@@ -1,4 +1,4 @@
-name: TypeScript Check
+name: ESLint Check
 
 on:
   pull_request:
@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  typescript:
-    name: Check TypeScript
+  eslint:
+    name: Check ESLint
     runs-on: ubuntu-22.04
 
     steps:
@@ -36,7 +36,7 @@ jobs:
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: yarn build:packages
 
-      - name: Run TypeScript Check
+      - name: Run ESLint Check
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
-        run: yarn tsc --noemit -p tsconfig.json
+        run: yarn lint

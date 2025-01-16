@@ -4,6 +4,11 @@ on:
   pull_request:
     branches:
       - '*'
+    paths:
+      - 'package.json'
+      - 'yarn.lock'
+      - 'ui/**'
+      - 'packages/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,15 +31,7 @@ jobs:
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Cache Build Output
-        uses: actions/cache@v3
-        id: cache-build
-        with:
-          path: packages/*/dist
-          key: ${{ runner.os }}-build-${{ hashFiles('**/package.json', 'packages/**') }}
-
       - name: Build Packages
-        if: steps.cache-build.outputs.cache-hit != 'true'
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: yarn build:packages
