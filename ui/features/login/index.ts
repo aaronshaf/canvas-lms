@@ -33,11 +33,15 @@ $('#coenrollment_link').click(function (event) {
   const template = $(this).data('template')
   const path = $(this).data('path')
   loadSignupDialog
-    // @ts-expect-error
+    // these fail locally but pass in CI
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     .then(signupDialog => {
       signupDialog(template, I18n.t('parent_signup', 'Parent Signup'), path)
     })
-    // @ts-expect-error
+    // these fail locally but pass in CI
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     .catch(error => {
       throw new Error('Failed to load signup dialog', error)
     })
