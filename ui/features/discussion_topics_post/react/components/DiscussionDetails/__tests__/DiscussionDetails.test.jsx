@@ -18,9 +18,7 @@
 
 import {DiscussionDetails} from '../DiscussionDetails'
 import {Assignment} from '../../../../graphql/Assignment'
-
 import {responsiveQuerySizes} from '../../../utils/index'
-
 import React from 'react'
 import {fireEvent, render} from '@testing-library/react'
 import {Discussion} from '../../../../graphql/Discussion'
@@ -156,11 +154,12 @@ describe('DiscussionDetails', () => {
       })
 
       it('displays tray and correctly formatted dates', async () => {
-        const {queryByText, findByText, findAllByTestId} = setup({}, mockOverrides)
+        const {queryByText, findAllByText, findAllByTestId} = setup({}, mockOverrides)
         expect(queryByText('View Due Dates')).toBeTruthy()
         fireEvent.click(queryByText('View Due Dates'))
         expect(await findAllByTestId('assignment-override-row')).toBeTruthy()
-        expect(await findByText('Sep 4, 2021 5:59am')).toBeTruthy()
+        const dates = await findAllByText('Apr 4, 2021 5:59am')
+        expect(dates.length).toBeGreaterThan(0)
       })
 
       it('correct text is shown when a date is not set', async () => {

@@ -217,10 +217,31 @@ export const CommonMigratorControls = ({
     ...(canImportAsNewQuizzes
       ? [
           <Checkbox
+            data-testid="import-quizzes-next-checkbox"
             key={nqCheckboxId}
             name={nqCheckboxId}
             value={nqCheckboxId}
-            label={generateNewQuizzesLabel()}
+            label={
+              <span>
+                {window.ENV.NEW_QUIZZES_UNATTACHED_BANK_MIGRATIONS
+                  ? I18n.t('Convert content to New Quizzes')
+                  : I18n.t('Import existing quizzes as New Quizzes')}
+                <span style={{position: 'absolute', marginTop: '-0.55em'}}>
+                  <InfoButton
+                    heading={I18n.t('Convert Quizzes')}
+                    body={
+                      <Text>
+                        {I18n.t(
+                          'Existing question banks and classic quizzes will be imported as Item Banks and New Quizzes.',
+                        )}
+                      </Text>
+                    }
+                    buttonLabel={I18n.t('Import assessment as New Quizzes Help Icon')}
+                    modalLabel={I18n.t('Import assessment as New Quizzes Help Modal')}
+                  />
+                </span>
+              </span>
+            }
             disabled={
               !ENV.QUIZZES_NEXT_ENABLED || ENV.NEW_QUIZZES_MIGRATION_REQUIRED || isSubmitting
             }

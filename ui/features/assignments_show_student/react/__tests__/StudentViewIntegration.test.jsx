@@ -33,16 +33,17 @@ import {MockedProvider} from '@apollo/client/testing'
 import {mockQuery} from '@canvas/assignments/graphql/studentMocks'
 import React from 'react'
 import StudentViewQuery from '../components/StudentViewQuery'
+import fakeENV from '@canvas/test-utils/fakeENV'
 
 jest.mock('../components/AttemptSelect')
 
 describe('student view integration tests', () => {
-  const oldENV = window.ENV
   let user
 
   beforeEach(() => {
     user = userEvent.setup()
-    window.ENV = {
+    $('body').append('<div role="alert" id="flash_screenreader_holder" />')
+    fakeENV.setup({
       FEATURES: {instui_nav: true},
       context_asset_string: 'test_1',
       ASSIGNMENT_ID: '1',
@@ -50,11 +51,11 @@ describe('student view integration tests', () => {
       current_user: {display_name: 'bob', avatar_url: 'awesome.avatar.url', id: '1'},
       PREREQS: {},
       current_user_roles: ['user', 'student'],
-    }
+    })
   })
 
   afterEach(() => {
-    window.ENV = oldENV
+    fakeENV.teardown()
     jest.clearAllMocks()
   })
 
@@ -320,8 +321,11 @@ describe('student view integration tests', () => {
     }
 
     it('renders needs submission view when peer review mode is enabled and the reviewer has not submitted', async () => {
-      window.ENV.peer_review_mode_enabled = true
-      window.ENV.peer_review_available = true
+      fakeENV.setup({
+        ...ENV,
+        peer_review_mode_enabled: true,
+        peer_review_available: true,
+      })
 
       const mocks = await createGraphqlMocks({Submission: {state: 'unsubmitted'}})
       const {findByText} = render(
@@ -335,8 +339,11 @@ describe('student view integration tests', () => {
     })
 
     it('renders unavailible view when peer review mode is enabled and the reviewer has submitted but there are no submissions to review', async () => {
-      window.ENV.peer_review_mode_enabled = true
-      window.ENV.peer_review_available = false
+      fakeENV.setup({
+        ...ENV,
+        peer_review_mode_enabled: true,
+        peer_review_available: false,
+      })
 
       const mocks = await createGraphqlMocks({Submission: {state: 'submitted'}})
       const {findByText} = render(
@@ -350,8 +357,11 @@ describe('student view integration tests', () => {
     })
 
     it('does not render unavailible or needs submission view when peer review mode is disabled', async () => {
-      window.ENV.peer_review_mode_enabled = false
-      window.ENV.peer_review_available = false
+      fakeENV.setup({
+        ...ENV,
+        peer_review_mode_enabled: false,
+        peer_review_available: false,
+      })
 
       const mocks = await createGraphqlMocks()
       const {queryByText} = render(
@@ -368,8 +378,11 @@ describe('student view integration tests', () => {
     })
 
     it('does not render unavailible or needs submission view when peer review mode is enabled and there are submissions to review', async () => {
-      window.ENV.peer_review_mode_enabled = true
-      window.ENV.peer_review_available = true
+      fakeENV.setup({
+        ...ENV,
+        peer_review_mode_enabled: true,
+        peer_review_available: true,
+      })
 
       const mocks = await createGraphqlMocks()
       const {queryByText} = render(

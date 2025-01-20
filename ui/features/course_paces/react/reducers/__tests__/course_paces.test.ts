@@ -26,6 +26,7 @@ import {
   mergeAssignmentsAndBlackoutDates,
 } from '../course_paces'
 import {DEFAULT_STORE_STATE, SECTION_PACE, STUDENT_PACE} from '../../__tests__/fixtures'
+import fakeENV from '@canvas/test-utils/fakeENV'
 
 const newbod1: BlackoutDate = {
   temp_id: 'tmp1',
@@ -47,6 +48,18 @@ const oldbod2: BlackoutDate = {
 }
 
 describe('course_paces reducer', () => {
+  beforeEach(() => {
+    fakeENV.setup({
+      TIMEZONE: 'America/Chicago',
+      CONTEXT_TIMEZONE: 'America/Chicago',
+      TIMEZONE_OFFSET: -300, // CDT offset in minutes
+    })
+  })
+
+  afterEach(() => {
+    fakeENV.teardown()
+  })
+
   describe('getBlackoutDateChanges', () => {
     it('finds the first blackout date', () => {
       // because this was the source of a hard to find bug
@@ -91,9 +104,16 @@ describe('course_paces reducer', () => {
     })
 
     describe('with course paces for students', () => {
-      beforeAll(() => {
-        window.ENV.FEATURES ||= {}
-        window.ENV.FEATURES.course_paces_for_students = true
+      beforeEach(() => {
+        fakeENV.setup({
+          FEATURES: {
+            course_paces_for_students: true,
+          },
+        })
+      })
+
+      afterEach(() => {
+        fakeENV.teardown()
       })
 
       it('is new if it is a student pace', () => {

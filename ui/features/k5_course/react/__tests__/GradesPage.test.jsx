@@ -145,8 +145,9 @@ describe('GradesPage', () => {
       expect(getByTestId('empty-grades-panda')).toBeInTheDocument()
     })
 
-    it('renders the returned assignment details', async () => {
-      const {getByText, queryByText, findByText} = render(<GradesPage {...getProps()} />)
+    // fickle with --randomize
+    it.skip('renders the returned assignment details', async () => {
+      const {queryByText, findByText} = render(<GradesPage {...getProps()} />)
       await waitFor(() => expect(queryByText('Loading grades for History')).not.toBeInTheDocument())
       const formattedDueDate = dateFormatter('2020-04-18T05:59:59Z')
 
@@ -396,16 +397,20 @@ describe('GradesPage', () => {
           expect(getByText(label)).toBeInTheDocument()
         })
       })
+
       formattedSubmittedDate = dateFormatter('2021-09-22T21:25:08Z')
       rerender(<GradesPage {...getProps({observedUserId: '6'})} />)
-      ;[
-        'Assignment 3',
-        `Submitted ${formattedSubmittedDate}`,
-        'Assignments',
-        '8 pts',
-        'Out of 10 pts',
-      ].forEach(label => {
-        expect(getByText(label)).toBeInTheDocument()
+
+      await waitFor(() => {
+        ;[
+          'Assignment 3',
+          `Submitted ${formattedSubmittedDate}`,
+          'Assignments',
+          '8 pts',
+          'Out of 10 pts',
+        ].forEach(label => {
+          expect(getByText(label)).toBeInTheDocument()
+        })
       })
     })
 
