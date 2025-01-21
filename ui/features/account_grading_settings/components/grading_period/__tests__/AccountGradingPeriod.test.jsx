@@ -22,6 +22,7 @@ import {render, fireEvent, screen} from '@testing-library/react'
 import axios from '@canvas/axios'
 import GradingPeriod from '../AccountGradingPeriod'
 import DateHelper from '@canvas/datetime/dateHelper'
+import fakeENV from '@canvas/test-utils/fakeENV'
 
 jest.mock('@canvas/datetime/dateHelper', () => ({
   formatDateForDisplay: jest.fn(date => {
@@ -51,6 +52,15 @@ const defaultProps = {
 }
 
 describe('AccountGradingPeriod', () => {
+  beforeEach(() => {
+    fakeENV.setup()
+  })
+
+  afterEach(() => {
+    fakeENV.teardown()
+    jest.resetAllMocks()
+  })
+
   const renderComponent = (props = {}) => {
     return render(<GradingPeriod {...defaultProps} {...props} />)
   }
@@ -129,15 +139,16 @@ describe('AccountGradingPeriod', () => {
     expect(screen.queryByTitle(/Delete/)).not.toBeInTheDocument()
   })
 
-  it('does not delete the period if the user cancels the delete confirmation', () => {
-    window.confirm = jest.fn(() => false)
+  it('does not delete the period if the user cancels the delete confirmation', async () => {
+    const confirmSpy = jest.spyOn(window, 'confirm').mockImplementation(() => false)
     renderComponent()
     fireEvent.click(screen.getByTitle(/Delete/))
+    expect(confirmSpy).toHaveBeenCalled()
     expect(defaultProps.onDelete).not.toHaveBeenCalled()
   })
 
   it('calls onDelete if the user confirms deletion and the axios call succeeds', async () => {
-    window.confirm = jest.fn(() => true)
+    const confirmSpy = jest.spyOn(window, 'confirm').mockImplementation(() => true)
     const flashMessageMock = jest.fn()
     $.flashMessage = flashMessageMock
     const axiosDeleteMock = jest.spyOn(axios, 'delete').mockResolvedValue({})

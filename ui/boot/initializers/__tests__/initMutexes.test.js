@@ -16,17 +16,24 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import MutexManager from '@canvas/mutex-manager/MutexManager'
+import fakeENV from '@canvas/test-utils/fakeENV'
 
 describe('initMutexes drawer_layout_mutex', () => {
-  const oldEnv = window.ENV
-  const oldBody = document.body
   const drawer_layout_mutex = 'drawer-layout-mutex'
+  let MutexManager
+
+  beforeEach(() => {
+    fakeENV.setup()
+    document.body.innerHTML = ''
+    jest.resetModules()
+    MutexManager = require('@canvas/mutex-manager/MutexManager').default
+    MutexManager.mutexes = {}
+  })
 
   afterEach(() => {
-    window.ENV = oldEnv
-    document.body = oldBody
+    document.body.innerHTML = ''
     MutexManager.mutexes = {}
+    fakeENV.teardown()
   })
 
   it('should create a drawer layout mutex if all conditions are met', () => {
@@ -41,7 +48,7 @@ describe('initMutexes drawer_layout_mutex', () => {
     document.body.appendChild(drawerLayout)
 
     require('../initMutexes')
-    expect(MutexManager.mutexes[drawer_layout_mutex]).not.toBeUndefined()
+    expect(MutexManager.mutexes[drawer_layout_mutex]).toBeDefined()
   })
 
   it('should not create a mutex if the ENV variable is not set', () => {
@@ -57,7 +64,7 @@ describe('initMutexes drawer_layout_mutex', () => {
     expect(MutexManager.mutexes[drawer_layout_mutex]).toBeUndefined()
   })
 
-  it('should not create a mutex if the topNav element is not present', () => {
+  it('should not create a mutex if the top nav mount point is not present', () => {
     window.ENV.INIT_DRAWER_LAYOUT_MUTEX = drawer_layout_mutex
 
     const drawerLayout = document.createElement('div')
@@ -68,7 +75,7 @@ describe('initMutexes drawer_layout_mutex', () => {
     expect(MutexManager.mutexes[drawer_layout_mutex]).toBeUndefined()
   })
 
-  it('should not create a mutex if the drawerLayout element is not present', () => {
+  it('should not create a mutex if the drawer layout mount point is not present', () => {
     window.ENV.INIT_DRAWER_LAYOUT_MUTEX = drawer_layout_mutex
 
     const topNav = document.createElement('div')

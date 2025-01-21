@@ -195,7 +195,7 @@
     "format-message-cli": "^6",
     "format-message-parse": "^6",
     "jest-canvas-mock": "^2",
-    "jest-junit": "^7",
+    "jest-junit": "^16.0.0",
     "jest-mock-proxy": "3.1.2",
     "jest": "^28",
     "mathjax": "^3.2.0",

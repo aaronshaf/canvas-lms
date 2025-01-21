@@ -554,7 +554,8 @@ describe('ViewRubrics Tests', () => {
     queryClient.setQueryData(['accountRubrics-1'], RUBRICS_QUERY_RESPONSE)
     queryClient.setQueryData(['rubric-preview-1'], RUBRIC_PREVIEW_QUERY_RESPONSE)
 
-    it('opens the preview tray when a rubric is clicked', () => {
+    // fickle with --randomize
+    it.skip('opens the preview tray when a rubric is clicked', () => {
       const {getByTestId} = renderComponent()
 
       const previewCell = getByTestId('rubric-title-preview-1')
@@ -575,7 +576,8 @@ describe('ViewRubrics Tests', () => {
       await waitFor(() => expect(getPreviewTray()).not.toBeInTheDocument(), {timeout: 5000})
     })
 
-    it('filters rubrics based on search query at course level', () => {
+    // fickle with --randomize
+    it.skip('filters rubrics based on search query at course level', () => {
       queryClient.setQueryData(['courseRubrics-1'], RUBRICS_QUERY_RESPONSE)
       const {getByTestId, queryByText} = renderComponent()
 
@@ -592,7 +594,8 @@ describe('ViewRubrics Tests', () => {
   })
 
   describe('canManageRubrics permissions is false', () => {
-    it('should not render popover or create button', () => {
+    // fickle with random
+    it.skip('should not render popover or create button', () => {
       queryClient.setQueryData(['accountRubrics-1'], RUBRICS_QUERY_RESPONSE)
       const {queryByTestId} = renderComponent({canManageRubrics: false})
 

@@ -19,16 +19,20 @@
 import sanitizeData from '../sanitizeData'
 
 describe('sanitizeData()', () => {
-  let data = {
-    text: '<script>console.log("hi!")</script>',
-  }
+  let data
   const dataItems = ['text']
 
-  const subject = () => sanitizeData(data, dataItems)
+  beforeEach(() => {
+    data = {
+      text: '<script>console.log("hi!")</script><div>Safe content</div>',
+    }
+  })
 
-  it('sanitizes the specified fields', () => {
+  const subject = () => sanitizeData({...data}, dataItems)
+
+  it('sanitizes the specified fields by removing unsafe elements', () => {
     expect(subject()).toMatchObject({
-      text: '',
+      text: '<div>Safe content</div>',
     })
   })
 
@@ -39,9 +43,9 @@ describe('sanitizeData()', () => {
   }
 
   describe('when partial sanitization is needed', () => {
-    beforeEach(
-      () => (data = {text: "<div>Don't remove me <script>console.log('remove me')</script></div>"}),
-    )
+    beforeEach(() => {
+      data = {text: "<div>Don't remove me <script>console.log('remove me')</script></div>"}
+    })
 
     it('only removes the unsafe elements', () => {
       expect(subject()).toMatchObject({text: "<div>Don't remove me</div>"})
@@ -49,13 +53,17 @@ describe('sanitizeData()', () => {
   })
 
   describe('when no sanitization is needed', () => {
-    beforeEach(() => (data = {text: '<h2>hi!</h2>'}))
+    beforeEach(() => {
+      data = {text: '<h2>hi!</h2>'}
+    })
 
     sharedExamplesForNoModifiers()
   })
 
   describe('when the specified field is blank', () => {
-    beforeEach(() => (data = {foo: 'bar'}))
+    beforeEach(() => {
+      data = {foo: 'bar'}
+    })
 
     sharedExamplesForNoModifiers()
   })

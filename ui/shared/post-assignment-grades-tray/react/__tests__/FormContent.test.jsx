@@ -17,11 +17,14 @@
  */
 
 import React from 'react'
-import {render, fireEvent} from '@testing-library/react'
+import {render} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import FormContent from '../FormContent'
 import {EVERYONE} from '../PostTypes'
 
 describe('PostAssignmentGradesTray FormContent', () => {
+  let user
+
   const defaultProps = {
     assignment: {
       anonymousGrading: false,
@@ -43,19 +46,24 @@ describe('PostAssignmentGradesTray FormContent', () => {
     unpostedCount: 0,
   }
 
+  beforeEach(() => {
+    user = userEvent.setup()
+    jest.clearAllMocks()
+  })
+
   function renderComponent(props = {}) {
     return render(<FormContent {...defaultProps} {...props} />)
   }
 
-  test('clicking "Close" button calls the dismiss prop', () => {
-    const {getByText} = renderComponent()
-    fireEvent.click(getByText('Close'))
+  test('clicking "Close" button calls the dismiss prop', async () => {
+    const {getByRole} = renderComponent()
+    await user.click(getByRole('button', {name: 'Close'}))
     expect(defaultProps.dismiss).toHaveBeenCalledTimes(1)
   })
 
-  test('clicking "Post" button calls the onPostClick prop', () => {
-    const {getByText} = renderComponent()
-    fireEvent.click(getByText('Post'))
+  test('clicking "Post" button calls the onPostClick prop', async () => {
+    const {getByRole} = renderComponent()
+    await user.click(getByRole('button', {name: 'Post'}))
     expect(defaultProps.onPostClick).toHaveBeenCalledTimes(1)
   })
 
@@ -196,37 +204,27 @@ describe('PostAssignmentGradesTray FormContent', () => {
       expect(everyoneInput).toBeChecked()
     })
 
-    it('calls postTypeChanged when clicking another post type', () => {
+    it('calls postTypeChanged when clicking another post type', async () => {
       const {container} = renderComponent()
       const gradedInput = Array.from(container.querySelectorAll('input[type="radio"]')).find(
         input => input.value !== EVERYONE,
       )
-      fireEvent.click(gradedInput)
+      await user.click(gradedInput)
       expect(defaultProps.postTypeChanged).toHaveBeenCalledTimes(1)
     })
   })
 
   describe('SpecificSections', () => {
-    it('calls postBySectionsChanged when enabling "Specific Sections"', () => {
+    it('calls postBySectionsChanged when enabling "Specific Sections"', async () => {
       const {container} = renderComponent()
       const toggle = container.querySelector('input[type="checkbox"]')
-      fireEvent.click(toggle)
+      await user.click(toggle)
       expect(defaultProps.postBySectionsChanged).toHaveBeenCalledTimes(1)
     })
 
-    it('calls sectionSelectionChanged when selecting a section', () => {
-      const {getByText, container, debug} = renderComponent()
-
-      const specificSectionsToggle = container.querySelector(
-        'input[id^="Checkbox_"][type="checkbox"]',
-      )
-      fireEvent.click(specificSectionsToggle)
-
-      const freshmenCheckbox = container.querySelectorAll(
-        'input[id^="Checkbox_"][type="checkbox"]',
-      )[1]
-      fireEvent.click(freshmenCheckbox)
-
+    it('calls sectionSelectionChanged when selecting a section', async () => {
+      const {getByText} = renderComponent()
+      await user.click(getByText('Freshmen'))
       expect(defaultProps.sectionSelectionChanged).toHaveBeenCalledTimes(1)
     })
   })

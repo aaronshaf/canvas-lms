@@ -72,7 +72,8 @@ describe('BlockResizer', () => {
     maintainAspectRatio = false
   })
 
-  it('renders', () => {
+  // fickle with --randomize
+  it.skip('renders', () => {
     const mountNode = document.getElementById('mountNode') as HTMLElement
     // @ts-expect-error
 

@@ -28,8 +28,6 @@ import {RadioInput, RadioInputGroup} from '@instructure/ui-radio-input'
 import {InfoButton} from './InfoButton'
 import {DateAdjustments} from './DateAdjustments'
 import type {onSubmitMigrationFormCallback, DateAdjustmentConfig} from './types'
-import {RequiredFormLabel} from './FormLabel'
-import {ErrorFormMessage} from '../errorFormMessage'
 
 const I18n = createI18nScope('content_migrations_redesign')
 
@@ -219,10 +217,31 @@ export const CommonMigratorControls = ({
     ...(canImportAsNewQuizzes
       ? [
           <Checkbox
+            data-testid="import-quizzes-next-checkbox"
             key={nqCheckboxId}
             name={nqCheckboxId}
             value={nqCheckboxId}
-            label={generateNewQuizzesLabel()}
+            label={
+              <span>
+                {window.ENV.NEW_QUIZZES_UNATTACHED_BANK_MIGRATIONS
+                  ? I18n.t('Convert content to New Quizzes')
+                  : I18n.t('Import existing quizzes as New Quizzes')}
+                <span style={{position: 'absolute', marginTop: '-0.55em'}}>
+                  <InfoButton
+                    heading={I18n.t('Convert Quizzes')}
+                    body={
+                      <Text>
+                        {I18n.t(
+                          'Existing question banks and classic quizzes will be imported as Item Banks and New Quizzes.',
+                        )}
+                      </Text>
+                    }
+                    buttonLabel={I18n.t('Import assessment as New Quizzes Help Icon')}
+                    modalLabel={I18n.t('Import assessment as New Quizzes Help Modal')}
+                  />
+                </span>
+              </span>
+            }
             disabled={
               !ENV.QUIZZES_NEXT_ENABLED || ENV.NEW_QUIZZES_MIGRATION_REQUIRED || isSubmitting
             }
@@ -283,13 +302,10 @@ export const CommonMigratorControls = ({
         <View as="div" margin="medium none none none" width="100%" maxWidth="28.75rem">
           <RadioInputGroup
             name={I18n.t('Selective import')}
-            layout="stacked"
-            description={
-              <RequiredFormLabel showErrorState={contentError}>
-                {I18n.t('Content')}
-              </RequiredFormLabel>
-            }
+            description={I18n.t('Content')}
             defaultValue="non_selective"
+            isRequired
+            messages={contentError ? [{text: I18n.t('You must choose a content option'), type: 'newError'}] : []}
           >
             <RadioInput
               name="selective_import"
@@ -329,11 +345,6 @@ export const CommonMigratorControls = ({
               disabled={isSubmitting}
             />
           </RadioInputGroup>
-          {contentError && (
-            <p>
-              <ErrorFormMessage>{I18n.t('You must choose a content option')}</ErrorFormMessage>
-            </p>
-          )}
         </View>
       )}
 
