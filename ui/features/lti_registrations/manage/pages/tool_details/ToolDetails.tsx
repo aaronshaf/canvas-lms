@@ -650,7 +650,10 @@ export const ToolDetailsInner = ({
                   </Button>
                 )}
 
-                {typeof dynamicRegistrationUrl === 'string' && !registration.reinstall_disabled ? (
+                {typeof dynamicRegistrationUrl === 'string' &&
+                !registration.reinstall_disabled &&
+                window.ENV.LTI_DR_REGISTRATIONS_UPDATE &&
+                window.ENV.REINSTALL_DYNAMIC_REGISTRATION ? (
                   <Button
                     color="primary"
                     onClick={() => {

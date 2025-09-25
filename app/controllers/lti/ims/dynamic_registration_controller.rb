@@ -284,6 +284,9 @@ module Lti
 
               # Create an LTI RegistrationUpdateRequest
               # to update the existing registration
+
+              # If we are in this flow, it means an admin has initiated a reinstallation
+              tool_initiated = false
               registration_update_request = Lti::RegistrationUpdateRequest.new(
                 root_account_id: registration.root_account.id,
                 lti_registration_id: registration.id,
@@ -291,6 +294,7 @@ module Lti
                 lti_ims_registration: registration_attrs,
                 created_by: created_by_user,
                 accepted_at: nil,
+                tool_initiated:,
                 rejected_at: nil
               )
 
@@ -421,6 +425,7 @@ module Lti
               lti_ims_registration: registration_attrs,
               created_by_id: nil,
               accepted_at: nil,
+              tool_initiated: true,
               rejected_at: nil
             )
 

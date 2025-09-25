@@ -17,36 +17,34 @@
  */
 
 import {create} from 'zustand'
+import {
+  combineAllApiResults,
+  formatApiResultError,
+  isSuccessful,
+  isUnsuccessful,
+  type ApiResult,
+} from '../../common/lib/apiResult/ApiResult'
+import {createRegistrationWithAllInfoQueryKey} from '../api/registrations'
 import type {AccountId} from '../model/AccountId'
 import type {DynamicRegistrationToken} from '../model/DynamicRegistrationToken'
+import type {LtiConfigurationOverlay} from '../model/internal_lti_configuration/LtiConfigurationOverlay'
+import {LtiRegistrationUpdateRequest} from '../model/lti_ims_registration/LtiRegistrationUpdateRequest'
+import {LtiRegistrationUpdateRequestId} from '../model/lti_ims_registration/LtiRegistrationUpdateRequestId'
+import type {LtiRegistrationWithConfiguration} from '../model/LtiRegistration'
+import type {LtiRegistrationId} from '../model/LtiRegistrationId'
+import type {UnifiedToolId} from '../model/UnifiedToolId'
+import {convertToLtiConfigurationOverlay} from '../registration_overlay/Lti1p3RegistrationOverlayStateHelpers'
 import {
-  containsPlacementWithIcon,
   createLti1p3RegistrationOverlayStore,
   type Lti1p3RegistrationOverlayStore,
 } from '../registration_overlay/Lti1p3RegistrationOverlayStore'
-import {convertToLtiConfigurationOverlay} from '../registration_overlay/Lti1p3RegistrationOverlayStateHelpers'
-import type {DynamicRegistrationWizardService} from './DynamicRegistrationWizardService'
 import {
-  formatApiResultError,
-  type ApiResult,
-  isUnsuccessful,
-  isSuccessful,
-  combineAllApiResults,
-} from '../../common/lib/apiResult/ApiResult'
-import type {LtiRegistrationId} from '../model/LtiRegistrationId'
-import type {UnifiedToolId} from '../model/UnifiedToolId'
-import type {LtiRegistrationWithConfiguration} from '../model/LtiRegistration'
-import type {LtiConfigurationOverlay} from '../model/internal_lti_configuration/LtiConfigurationOverlay'
-import {isLtiPlacementWithIcon, LtiPlacementsWithIcons} from '../model/LtiPlacement'
-import {filterPlacementsByFeatureFlags} from '@canvas/lti/model/LtiPlacementFilter'
-import {
-  validateIconUris,
-  getInputIdForField,
-  Lti1p3RegistrationOverlayStateErrorField,
   Lti1p3RegistrationOverlayStateError,
+  validateIconUris,
 } from '../registration_overlay/validateLti1p3RegistrationOverlayState'
-import {type Lti1p3RegistrationOverlayState} from '../registration_overlay/Lti1p3RegistrationOverlayState'
-import {LtiRegistrationUpdateRequestId} from '../model/lti_ims_registration/LtiRegistrationUpdateRequestId'
+import type {DynamicRegistrationWizardService} from './DynamicRegistrationWizardService'
+import {queryClient} from '@instructure/platform-query'
+
 /**
  * Steps are:
  * 1. Open modal, prompting for url
@@ -263,6 +261,7 @@ export type ConfirmationState<Tag extends string> = {
   _type: Tag
   registration: LtiRegistrationWithConfiguration
   overlayStore: Lti1p3RegistrationOverlayStore
+  registrationUpdateRequest?: LtiRegistrationUpdateRequest
   reviewing: boolean
   hasSubmitted?: boolean
 }
@@ -405,19 +404,47 @@ export const mkUseDynamicRegistrationWizardState = (service: DynamicRegistration
                     }),
                   )
 
-                  service.getRegistrationByUUID(accountId, resp.data.uuid).then(reg => {
-                    if (isSuccessful(reg)) {
-                      const store: Lti1p3RegistrationOverlayStore =
-                        createLti1p3RegistrationOverlayStore(
-                          reg.data.configuration,
-                          reg.data.admin_nickname || reg.data.name,
-                          reg.data.overlay?.data,
-                        )
-                      set(stateFor(confirmationState('PermissionConfirmation')(reg.data, store)))
-                    } else {
-                      set(stateFor(errorState(formatApiResultError(reg))))
-                    }
-                  })
+                  if (updatingRegistrationId) {
+                    Promise.all([
+                      service.getLtiRegistrationUpdateRequestByUUID(accountId, resp.data.uuid),
+                      service.fetchLtiRegistration(accountId, updatingRegistrationId),
+                    ])
+                      .then(combineAllApiResults)
+                      .then(result => {
+                        if (isSuccessful(result)) {
+                          const [updateRequest, reg] = result.data
+                          const store = createLti1p3RegistrationOverlayStore(
+                            updateRequest.internal_lti_configuration,
+                            reg.name,
+                            reg.overlay?.data,
+                          )
+                          set(
+                            stateForTag('PermissionConfirmation', {
+                              registrationUpdateRequest: updateRequest,
+                              registration: reg,
+                              overlayStore: store,
+                              reviewing: false,
+                            }),
+                          )
+                        } else {
+                          set(stateFor(errorState(formatApiResultError(result))))
+                        }
+                      })
+                  } else {
+                    service.getRegistrationByUUID(accountId, resp.data.uuid).then(reg => {
+                      if (isSuccessful(reg)) {
+                        const store: Lti1p3RegistrationOverlayStore =
+                          createLti1p3RegistrationOverlayStore(
+                            reg.data.configuration,
+                            reg.data.admin_nickname || reg.data.name,
+                            reg.data.overlay?.data,
+                          )
+                        set(stateFor(confirmationState('PermissionConfirmation')(reg.data, store)))
+                      } else {
+                        set(stateFor(errorState(formatApiResultError(reg))))
+                      }
+                    })
+                  }
                 }
               }
               global.addEventListener('message', onMessage)
@@ -565,7 +592,31 @@ export const mkUseDynamicRegistrationWizardState = (service: DynamicRegistration
       advanceStep: (accountId, onErrors, registrationId, onSuccessfulRegistration): void => {
         const currentState = get().state
         if (currentState._type === 'Reviewing') {
-          get().handleSave(accountId, registrationId, onSuccessfulRegistration)
+          // if we have a registration update request, apply that
+          if (currentState.registrationUpdateRequest) {
+            const ltiOverlay = convertToLtiConfigurationOverlay(
+              currentState.overlayStore.getState().state,
+              currentState.registrationUpdateRequest.internal_lti_configuration,
+            ).overlay
+            get().applyRegistrationUpdateRequest(
+              accountId,
+              currentState.registration.id,
+              currentState.registrationUpdateRequest.id,
+              ltiOverlay,
+              () => {
+                onSuccessfulRegistration?.(currentState.registration.id)
+              },
+            )
+          } else {
+            get().handleSave(accountId, registrationId, onSuccessfulRegistration)
+          }
+          // make sure to bust the react-query cache of the registration with all Info
+          queryClient.invalidateQueries({
+            queryKey: createRegistrationWithAllInfoQueryKey(
+              currentState.registration.id,
+              accountId,
+            ),
+          })
         } else if (isReviewingState(currentState)) {
           set(
             stateFrom(currentState._type)(state => {

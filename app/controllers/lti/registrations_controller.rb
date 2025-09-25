@@ -1155,6 +1155,7 @@ class Lti::RegistrationsController < ApplicationController
     js_env({
              LTI_REGISTRATIONS_HISTORY: @account.root_account.feature_enabled?(:lti_registrations_history),
              LTI_DR_REGISTRATIONS_UPDATE: @account.root_account.feature_enabled?(:lti_dr_registrations_update),
+             REINSTALL_DYNAMIC_REGISTRATION: @account.root_account.feature_enabled?(:reinstall_dynamic_registration),
              LTI_EDIT_JSON: @account.root_account.feature_enabled?(:lti_edit_json),
              ACCOUNT_GLOBAL_ID: @account.global_id,
              ACCOUNT_IS_SITE_ADMIN: @account.site_admin?,
@@ -1348,7 +1349,7 @@ class Lti::RegistrationsController < ApplicationController
       # Only show the most recent update request if it's still pending
       pending_update = nil
       if @account.root_account.feature_enabled?(:lti_dr_registrations_update)
-        most_recent = Lti::RegistrationUpdateRequest.where(lti_registration: registration)
+        most_recent = Lti::RegistrationUpdateRequest.where(lti_registration: registration, tool_initiated: true)
                                                     .order(created_at: :desc)
                                                     .first
         pending_update = most_recent if most_recent&.pending?
@@ -2019,6 +2020,7 @@ class Lti::RegistrationsController < ApplicationController
   #
   # @argument id [Integer] The id of the registration.
   # @argument update_request_id [Integer] The id of the registration update request to retrieve.
+  # @argument include [String] Array of additional information to include ["configuration", "lti_registration"]
   # @returns Lti::RegistrationUpdateRequest
   #
   # @example_request
@@ -2061,7 +2063,7 @@ class Lti::RegistrationsController < ApplicationController
     end
 
     # Get the most recent update request regardless of status
-    most_recent = Lti::RegistrationUpdateRequest.where(lti_registration: registration)
+    most_recent = Lti::RegistrationUpdateRequest.where(lti_registration: registration, tool_initiated: true)
                                                 .order(created_at: :desc)
                                                 .first
 

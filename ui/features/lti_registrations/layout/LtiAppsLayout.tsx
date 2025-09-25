@@ -101,7 +101,6 @@ export const LtiAppsLayout = React.memo(() => {
     openRegistrationWizard({
       jsonUrl: '',
       jsonCode: '',
-      unifiedToolId: undefined,
       dynamicRegistrationUrl: '',
       lti_version: '1p3',
       method: 'dynamic_registration',

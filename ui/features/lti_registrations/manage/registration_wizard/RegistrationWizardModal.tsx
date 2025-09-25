@@ -147,7 +147,7 @@ const ModalBodyWrapper = ({
           onSuccessfulRegistration={id => {
             state.close()
             showFlashSuccess(
-              state.existingRegistrationId
+              state.existingRegistrationId || state.reinstallingRegistrationId
                 ? I18n.t('App updated successfully!')
                 : I18n.t('App installed successfully!'),
             )()

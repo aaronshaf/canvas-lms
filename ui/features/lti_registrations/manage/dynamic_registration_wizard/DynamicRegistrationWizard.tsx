@@ -82,12 +82,22 @@ export const DynamicRegistrationWizard = (props: DynamicRegistrationWizardProps)
     onSuccessfulRegistration,
     reinstallingRegistrationId,
   } = props
+
   const useDynamicRegistrationWizardState = React.useMemo(() => {
     return mkUseDynamicRegistrationWizardState(service)
   }, [service])
-  const dynamicRegistrationWizardState = useDynamicRegistrationWizardState()
 
-  const {loadRegistrationToken, loadRegistration} = dynamicRegistrationWizardState
+  const {
+    state,
+    loadRegistration,
+    loadRegistrationToken,
+    deleteKey,
+    previousStep,
+    advanceStep,
+    transitionToConfirmationState,
+    transitionToReviewingState,
+    canProceed,
+  } = useDynamicRegistrationWizardState()
 
   React.useEffect(() => {
     if (registrationId) {
@@ -112,16 +122,10 @@ export const DynamicRegistrationWizard = (props: DynamicRegistrationWizardProps)
 
   const editing = !!props.registrationId
 
-  const state = dynamicRegistrationWizardState.state
-
   const onCancel = useCallback(async () => {
     if (props.onDismiss() && !editing && isReviewingState(state)) {
       if (!reinstallingRegistrationId) {
-        const result = await dynamicRegistrationWizardState.deleteKey(
-          state._type,
-          accountId,
-          state.registration.id,
-        )
+        const result = await deleteKey(state._type, accountId, state.registration.id)
 
         if (isUnsuccessful(result)) {
           showFlashAlert({
@@ -133,7 +137,7 @@ export const DynamicRegistrationWizard = (props: DynamicRegistrationWizardProps)
         }
       }
     }
-  }, [editing, state, dynamicRegistrationWizardState, accountId, props, reinstallingRegistrationId])
+  }, [editing, state, deleteKey, accountId, props, reinstallingRegistrationId])
 
   const onPreviousClicked = useCallback(() => {
     if (
@@ -143,27 +147,27 @@ export const DynamicRegistrationWizard = (props: DynamicRegistrationWizardProps)
     ) {
       props.onDismiss()
     } else if (state._type === 'PermissionConfirmation') {
-      if (props.onDismiss() && !props.registrationId) {
-        dynamicRegistrationWizardState
-          .deleteKey(state._type, accountId, state.registration.id)
-          .then(result => {
-            if (isUnsuccessful(result)) {
-              showFlashAlert({
-                message: I18n.t(
-                  'Something went wrong deleting the registration. The registration can still be deleted manually on the Manage page.',
-                ),
-                type: 'error',
-              })
-            }
-          })
+      if (props.onDismiss() && !props.registrationId && !reinstallingRegistrationId) {
+        deleteKey(state._type, accountId, state.registration.id).then(result => {
+          if (isUnsuccessful(result)) {
+            showFlashAlert({
+              message: I18n.t(
+                'Something went wrong deleting the registration. The registration can still be deleted manually on the Manage page.',
+              ),
+              type: 'error',
+            })
+          }
+        })
+      } else if (isReviewingState(state)) {
+        previousStep(state._type)
       }
     } else if (isReviewingState(state)) {
-      dynamicRegistrationWizardState.previousStep(state._type)
+      previousStep(state._type)
     }
-  }, [state, dynamicRegistrationWizardState, accountId, props])
+  }, [previousStep, accountId, props, deleteKey, state, reinstallingRegistrationId])
 
   const onNextClicked = useCallback(() => {
-    dynamicRegistrationWizardState.advanceStep(
+    advanceStep(
       accountId,
       errors => {
         if (errors.length > 0) {
@@ -174,15 +178,15 @@ export const DynamicRegistrationWizard = (props: DynamicRegistrationWizardProps)
       registrationId,
       onSuccessfulRegistration,
     )
-  }, [dynamicRegistrationWizardState, accountId, registrationId, onSuccessfulRegistration])
+  }, [advanceStep, accountId, registrationId, onSuccessfulRegistration])
 
   return (
     <>
       <Header onClose={onCancel} editing={editing} />
       {shouldShowProgressBar(state._type) && progressBar(state)}
       {renderStepContent(state, props, {
-        transitionToConfirmationState: dynamicRegistrationWizardState.transitionToConfirmationState,
-        transitionToReviewingState: dynamicRegistrationWizardState.transitionToReviewingState,
+        transitionToConfirmationState: transitionToConfirmationState,
+        transitionToReviewingState: transitionToReviewingState,
       })}
       {shouldShowFooter(state._type) && (
         <Footer
@@ -190,7 +194,7 @@ export const DynamicRegistrationWizard = (props: DynamicRegistrationWizardProps)
           reviewing={isReviewingState(state) ? state.reviewing : false}
           onPreviousClicked={onPreviousClicked}
           onNextClicked={onNextClicked}
-          disableNextButton={!dynamicRegistrationWizardState.canProceed()}
+          disableNextButton={!canProceed()}
           updating={!!registrationId}
         />
       )}
@@ -318,6 +322,7 @@ const renderStepContent = (
           internalConfig={state.registration.configuration}
           overlayStore={state.overlayStore}
           scopesSupported={state.registration.configuration.scopes}
+          registrationUpdateRequest={state.registrationUpdateRequest}
           showAllSettings={false}
         />
       )
@@ -327,6 +332,7 @@ const renderStepContent = (
           overlayStore={state.overlayStore}
           internalConfig={state.registration.configuration}
           originalConfig={state.registration.configuration}
+          registrationUpdateRequest={state.registrationUpdateRequest}
         />
       )
     case 'PlacementsConfirmation':
@@ -335,6 +341,8 @@ const renderStepContent = (
           internalConfig={state.registration.configuration}
           overlayStore={state.overlayStore}
           supportedPlacements={state.registration.configuration.placements.map(p => p.placement)}
+          existingRegistration={state.registration}
+          registrationUpdateRequest={state.registrationUpdateRequest}
         />
       )
     case 'NamingConfirmation':
@@ -342,6 +350,8 @@ const renderStepContent = (
         <NamingConfirmationWrapper
           overlayStore={state.overlayStore}
           internalConfig={state.registration.configuration}
+          existingRegistration={state.registration}
+          registrationUpdateRequest={state.registrationUpdateRequest}
         />
       )
     case 'IconConfirmation':
@@ -351,6 +361,8 @@ const renderStepContent = (
           internalConfig={state.registration.configuration}
           reviewing={state.reviewing}
           includeFooter={false}
+          existingRegistration={state.registration}
+          registrationUpdateRequest={state.registrationUpdateRequest}
         />
       )
     case 'Reviewing':

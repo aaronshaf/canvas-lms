@@ -553,12 +553,14 @@ describe Lti::ListRegistrationService do
             Lti::RegistrationUpdateRequest.create!(
               lti_registration: reg_a,
               root_account: account,
-              lti_ims_registration: {}
+              lti_ims_registration: {},
+              tool_initiated: true
             )
             Lti::RegistrationUpdateRequest.create!(
               lti_registration: reg_c,
               root_account: account,
-              lti_ims_registration: {}
+              lti_ims_registration: {},
+              tool_initiated: true
             )
 
             service = Lti::ListRegistrationService.new(
@@ -582,7 +584,8 @@ describe Lti::ListRegistrationService do
             Lti::RegistrationUpdateRequest.create!(
               lti_registration: reg_b,
               root_account: account,
-              lti_ims_registration: {}
+              lti_ims_registration: {},
+              tool_initiated: true
             )
 
             service = Lti::ListRegistrationService.new(
@@ -605,7 +608,8 @@ describe Lti::ListRegistrationService do
             Lti::RegistrationUpdateRequest.create!(
               lti_registration: reg_a,
               root_account: account,
-              lti_ims_registration: {}
+              lti_ims_registration: {},
+              tool_initiated: true
             )
 
             # Create accepted update request for reg_b (should be treated as up to date)
@@ -613,6 +617,7 @@ describe Lti::ListRegistrationService do
               lti_registration: reg_b,
               root_account: account,
               lti_ims_registration: {},
+              tool_initiated: true,
               accepted_at: Time.zone.now
             )
 
@@ -621,6 +626,7 @@ describe Lti::ListRegistrationService do
               lti_registration: reg_c,
               root_account: account,
               lti_ims_registration: {},
+              tool_initiated: true,
               rejected_at: Time.zone.now
             )
 
@@ -637,6 +643,42 @@ describe Lti::ListRegistrationService do
             # reg_a has pending update
             expect(result[:registrations].to_a[0..1]).to match_array([reg_b, reg_c])
             expect(result[:registrations].last).to eq(reg_a)
+          end
+
+          it "ignores admin-initiated (non-tool-initiated) update requests for status sorting" do
+            Account.site_admin.enable_feature!(:lti_dr_registrations_update)
+
+            # Create admin-initiated update request for reg_a (tool_initiated: false)
+            # This should NOT affect sorting since only tool-initiated requests are considered
+            Lti::RegistrationUpdateRequest.create!(
+              lti_registration: reg_a,
+              root_account: account,
+              lti_ims_registration: {},
+              tool_initiated: false
+            )
+
+            # Create tool-initiated update request for reg_b (tool_initiated: true)
+            # This SHOULD affect sorting
+            Lti::RegistrationUpdateRequest.create!(
+              lti_registration: reg_b,
+              root_account: account,
+              lti_ims_registration: {},
+              tool_initiated: true
+            )
+
+            service = Lti::ListRegistrationService.new(
+              account:,
+              search_terms: ["sortvendor"],
+              sort_field: :status,
+              sort_direction: :asc
+            )
+            result = service.call
+
+            # Up to date (0) comes before pending (1) in ascending order
+            # reg_a and reg_c are up to date (reg_a's admin-initiated request is ignored)
+            # reg_b has a tool-initiated pending update
+            expect(result[:registrations].to_a[0..1]).to match_array([reg_a, reg_c])
+            expect(result[:registrations].last).to eq(reg_b)
           end
 
           it "falls back to created_at sort when status sorting but feature disabled" do

@@ -82,7 +82,6 @@ describe('RegistrationWizardInitialization — XSS regression', () => {
     delete (window as any).__xss_fired
     openRegistrationWizard({
       dynamicRegistrationUrl: '',
-      unifiedToolId: undefined,
       lti_version: '1p1',
       isInstructureTool: undefined,
       showBlankConfigurationMessage: undefined,

@@ -595,6 +595,29 @@ describe Lti::IMS::DynamicRegistrationController do
           expect(update_request.lti_ims_registration).to be_present
         end
 
+        it "sets tool_initiated to false for admin-initiated reinstalls" do
+          account = Account.default
+          existing_registration = lti_ims_registration_model(account:)
+          existing_registration.lti_registration.new_external_tool(account)
+          registration_params = registration_params_hash(default_scopes)
+          token_hash_with_existing = {
+            user_id: User.create!.global_id,
+            initiated_at: 1.minute.ago,
+            root_account_global_id: account.global_id,
+            root_account_domain: account.domain,
+            uuid: SecureRandom.uuid,
+            unified_tool_id: "asdf",
+            registration_url: "https://example.com/registration",
+            existing_registration: existing_registration.lti_registration.id
+          }
+          valid_token_with_existing = Canvas::Security.create_jwt(token_hash_with_existing, 1.hour.from_now)
+
+          post "/api/lti/registrations", params: registration_params, headers: { "Authorization" => "Bearer #{valid_token_with_existing}" }
+
+          update_request = Lti::RegistrationUpdateRequest.last
+          expect(update_request.tool_initiated).to be false
+        end
+
         it "returns the existing registration data" do
           # Arrange
           account = Account.default
@@ -934,6 +957,15 @@ describe Lti::IMS::DynamicRegistrationController do
         expect(update_request.lti_ims_registration["redirect_uris"]).to eq(["https://updated.example.com/launch"])
         expect(update_request.accepted_at).to be_nil
         expect(update_request.rejected_at).to be_nil
+      end
+
+      it "sets tool_initiated to true for tool-initiated updates" do
+        # Arrange
+        # Act
+        put "/api/lti/registrations/#{registration.id}", params: update_params, headers: { "Authorization" => "Bearer #{access_token}" }
+        # Assert
+        update_request = Lti::RegistrationUpdateRequest.last
+        expect(update_request.tool_initiated).to be true
       end
 
       it "renders the registration response" do

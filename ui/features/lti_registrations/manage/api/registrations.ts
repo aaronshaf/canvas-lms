@@ -118,7 +118,7 @@ export const refreshRegistrations = (accountId?: AccountId) => {
   queryClient.invalidateQueries({queryKey: [accountId, 'lti_registrations'], exact: false})
 }
 
-const createRegistrationWithAllInfoQueryKey = (
+export const createRegistrationWithAllInfoQueryKey = (
   ltiRegistrationId: LtiRegistrationId,
   accountId: AccountId,
 ) => [accountId, 'lti_registrations', ltiRegistrationId, 'allInfo']

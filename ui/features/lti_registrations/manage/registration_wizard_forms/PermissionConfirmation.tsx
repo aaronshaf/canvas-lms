@@ -17,18 +17,16 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import type {LtiScope} from '@canvas/lti/model/LtiScope'
+import {i18nLtiScope} from '@canvas/lti/model/i18nLtiScope'
 import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
+import {IconAddSolid, IconNeutralSolid} from '@instructure/ui-icons'
 import {Text} from '@instructure/ui-text'
 import React from 'react'
-import type {LtiScope} from '@canvas/lti/model/LtiScope'
-import {i18nLtiScope} from '@canvas/lti/model/i18nLtiScope'
 import {LtiRegistrationUpdateRequest} from '../model/lti_ims_registration/LtiRegistrationUpdateRequest'
-import {Pill} from '@instructure/ui-pill'
-import {View} from '@instructure/ui-view'
-import {IconAddSolid, IconNeutralSolid} from '@instructure/ui-icons'
 
 const I18n = createI18nScope('lti_registration.wizard')
 

@@ -4612,6 +4612,57 @@ RSpec.describe Lti::RegistrationsController do
             expect(registration_data["pending_update"]).to be_nil
           end
         end
+
+        context "with admin-initiated (non-tool-initiated) pending update request" do
+          before do
+            # Admin-initiated reinstall creates update requests with tool_initiated: false
+            # These should NOT appear as pending updates (only tool-initiated ones should)
+            lti_ims_registration_update_request_model(
+              lti_registration: registration,
+              root_account: account,
+              uuid: SecureRandom.uuid,
+              created_by: admin,
+              tool_initiated: false
+            )
+          end
+
+          it "does not include admin-initiated requests in pending_update" do
+            subject
+            expect(response).to be_successful
+            registration_data = response_data.find { |r| r["id"] == registration.id }
+            expect(registration_data["pending_update"]).to be_nil
+          end
+        end
+
+        context "with both admin-initiated and tool-initiated pending update requests" do
+          before do
+            # Admin-initiated request (should be ignored)
+            lti_ims_registration_update_request_model(
+              lti_registration: registration,
+              root_account: account,
+              uuid: SecureRandom.uuid,
+              created_by: admin,
+              tool_initiated: false,
+              created_at: 2.hours.ago
+            )
+            # Tool-initiated request (should be shown)
+            lti_ims_registration_update_request_model(
+              lti_registration: registration,
+              root_account: account,
+              uuid: SecureRandom.uuid,
+              created_by: admin,
+              tool_initiated: true,
+              created_at: 1.hour.ago
+            )
+          end
+
+          it "includes pending_update from tool-initiated request only" do
+            subject
+            expect(response).to be_successful
+            registration_data = response_data.find { |r| r["id"] == registration.id }
+            expect(registration_data["pending_update"]).to be_present
+          end
+        end
       end
 
       describe "GET show", type: :request do
@@ -4724,6 +4775,55 @@ RSpec.describe Lti::RegistrationsController do
             subject
             expect(response).to be_successful
             expect(response_json["pending_update"]).to be_nil
+          end
+        end
+
+        context "with admin-initiated (non-tool-initiated) pending update request" do
+          before do
+            # Admin-initiated reinstall creates update requests with tool_initiated: false
+            # These should NOT appear as pending updates (only tool-initiated ones should)
+            lti_ims_registration_update_request_model(
+              lti_registration: registration,
+              root_account: account,
+              uuid: SecureRandom.uuid,
+              created_by: admin,
+              tool_initiated: false
+            )
+          end
+
+          it "does not include admin-initiated requests in pending_update" do
+            subject
+            expect(response).to be_successful
+            expect(response_json["pending_update"]).to be_nil
+          end
+        end
+
+        context "with both admin-initiated and tool-initiated pending update requests" do
+          before do
+            # Admin-initiated request (should be ignored)
+            lti_ims_registration_update_request_model(
+              lti_registration: registration,
+              root_account: account,
+              uuid: SecureRandom.uuid,
+              created_by: admin,
+              tool_initiated: false,
+              created_at: 2.hours.ago
+            )
+            # Tool-initiated request (should be shown)
+            lti_ims_registration_update_request_model(
+              lti_registration: registration,
+              root_account: account,
+              uuid: SecureRandom.uuid,
+              created_by: admin,
+              tool_initiated: true,
+              created_at: 1.hour.ago
+            )
+          end
+
+          it "includes pending_update from tool-initiated request only" do
+            subject
+            expect(response).to be_successful
+            expect(response_json["pending_update"]).to be_present
           end
         end
       end

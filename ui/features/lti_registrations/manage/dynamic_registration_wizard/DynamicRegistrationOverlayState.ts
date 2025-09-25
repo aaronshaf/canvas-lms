@@ -116,21 +116,15 @@ const updateAdminNickname = (nickname: string) =>
 
 const updateDefaultIconUrl = (iconUrl?: string) => updateRegistrationKey('icon_url')(() => iconUrl)
 
-export type DynamicRegistrationOverlayStore = StoreApi<
-  {
-    state: DynamicRegistrationOverlayState
-  } & DynamicRegistrationOverlayActions
+export type DynamicRegistrationOverlayStore = ReturnType<
+  typeof createDynamicRegistrationOverlayStore
 >
 
 export const createDynamicRegistrationOverlayStore = (
   developerKeyName: string | null,
   ltiRegistration: LtiRegistrationWithConfiguration,
   registrationUpdateRequest?: LtiRegistrationUpdateRequest,
-): StoreApi<
-  {
-    state: DynamicRegistrationOverlayState
-  } & DynamicRegistrationOverlayActions
-> =>
+) =>
   createStore<{state: DynamicRegistrationOverlayState} & DynamicRegistrationOverlayActions>()(
     subscribeWithSelector(set => ({
       state: initialOverlayStateFromLtiRegistration(

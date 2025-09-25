@@ -105,7 +105,7 @@ module Lti
       return {} unless account.root_account.feature_enabled?(:lti_dr_registrations_update)
 
       # Get the most recent update request per registration, regardless of status
-      all_latest = Lti::RegistrationUpdateRequest.where(lti_registration: registrations)
+      all_latest = Lti::RegistrationUpdateRequest.where(lti_registration: registrations, tool_initiated: true)
                                                  .select("DISTINCT ON (lti_registration_id) *")
                                                  .order(:lti_registration_id, created_at: :desc)
 

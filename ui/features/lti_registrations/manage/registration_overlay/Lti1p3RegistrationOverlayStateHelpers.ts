@@ -27,15 +27,30 @@ import {
 } from '../model/LtiPlacement'
 import {type Lti1p3RegistrationOverlayState} from './Lti1p3RegistrationOverlayState'
 
+/**
+ * Converts an InternalLtiConfiguration and an optional existing LtiConfigurationOverlay to
+ * an Lti1p3RegistrationOverlayState, which can be used to populate the registration overlay form.
+ *
+ * @param internalConfig The InternalLtiConfiguration to convert from
+ * @param adminNickname An optional nickname to populate the form with
+ * @param existingOverlay An optional existing LtiConfigurationOverlay to use as the base for the
+ * overlay state, which will allow only changed fields to be submitted in the overlay
+ * @param additive An optional boolean to indicate whether to add to the existing overlay's placements and scopes,
+ * rather than replacing them. Traditionally, `LtiToolConfiguration` were the only types of registrations
+ * that were "additive," but currently, they are just edited directly instead of using overlays,
+ * so this flag isn't quite used at the moment, but it may be useful in the future if we re-introduce
+ * overlays for traditional `LtiToolConfiguration` registrations.
+ */
 export const initialOverlayStateFromInternalConfig = (
   internalConfig: InternalLtiConfiguration,
   adminNickname?: string,
   existingOverlay?: LtiConfigurationOverlay,
+  additive: boolean = false,
 ): Lti1p3RegistrationOverlayState => {
   const placements = internalConfig.placements
     .map(p => p.placement)
     .filter(p => !existingOverlay?.disabled_placements?.includes(p))
-    .concat(keys(existingOverlay?.placements))
+    .concat(additive ? keys(existingOverlay?.placements) : [])
     .filter((value, index, array) => array.indexOf(value) === index) // unique values
 
   const courseNavigationDefaultDisabled = existingOverlay?.placements?.course_navigation?.default

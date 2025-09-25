@@ -69,7 +69,6 @@ describe('RegistrationWizardModal', () => {
     beforeEach(() => {
       openRegistrationWizard({
         dynamicRegistrationUrl: '',
-        unifiedToolId: undefined,
         lti_version: '1p3',
         isInstructureTool: undefined,
         showBlankConfigurationMessage: undefined,
@@ -133,7 +132,6 @@ describe('RegistrationWizardModal', () => {
     beforeEach(() => {
       openRegistrationWizard({
         dynamicRegistrationUrl: '',
-        unifiedToolId: undefined,
         lti_version: '1p3',
         isInstructureTool: undefined,
         showBlankConfigurationMessage: undefined,
@@ -254,7 +252,6 @@ describe('RegistrationWizardModal', () => {
     beforeEach(() => {
       openRegistrationWizard({
         dynamicRegistrationUrl: '',
-        unifiedToolId: undefined,
         lti_version: '1p3',
         isInstructureTool: undefined,
         showBlankConfigurationMessage: undefined,
@@ -371,7 +368,6 @@ describe('RegistrationWizardModal', () => {
     beforeEach(() => {
       openRegistrationWizard({
         dynamicRegistrationUrl: '',
-        unifiedToolId: undefined,
         lti_version: '1p3',
         isInstructureTool: undefined,
         showBlankConfigurationMessage: undefined,
@@ -450,7 +446,6 @@ describe('RegistrationWizardModal', () => {
     it('shows an alert', async () => {
       openRegistrationWizard({
         dynamicRegistrationUrl: '',
-        unifiedToolId: undefined,
         lti_version: '1p3',
         isInstructureTool: true,
         showBlankConfigurationMessage: true,
@@ -477,7 +472,6 @@ describe('RegistrationWizardModal', () => {
     it('shows an alert saying to contact the tool provider', () => {
       openRegistrationWizard({
         dynamicRegistrationUrl: '',
-        unifiedToolId: undefined,
         lti_version: '1p3',
         isInstructureTool: false,
         showBlankConfigurationMessage: true,

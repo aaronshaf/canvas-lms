@@ -22,6 +22,7 @@ import {useOverlayStore} from '../hooks/useOverlayStore'
 import type {LtiRegistrationWithConfiguration} from '../../model/LtiRegistration'
 import {isInternalOnlyLtiPlacement} from '../../model/LtiPlacement'
 import {isPlacementEnabledByFeatureFlag} from '@canvas/lti/model/LtiPlacementFilter'
+import {InternalOnlyLtiPlacements} from '../../model/LtiPlacement'
 import {LtiRegistrationUpdateRequest} from '../../model/lti_ims_registration/LtiRegistrationUpdateRequest'
 
 export type PlacementsConfirmationProps = {
@@ -38,15 +39,16 @@ export const PlacementsConfirmationWrapper = ({
   const [overlayState, actions] = useOverlayStore(overlayStore)
   const addedPlacements = Object.keys(overlayState.overlay.placements ?? {})
   const requestedPlacements = Object.keys(overlayState.overlay.placements ?? {})
+
+  const newPlacements = (
+    registrationUpdateRequest?.internal_lti_configuration?.placements || []
+  ).map(p => p.placement)
+
   const placements = registration.configuration.placements
     .map(p => p.placement)
     .filter(isPlacementEnabledByFeatureFlag)
     .filter(p => !isInternalOnlyLtiPlacement(p) || requestedPlacements.includes(p))
     .filter(p => addedPlacements.includes(p))
-
-  const newPlacements = (
-    registrationUpdateRequest?.internal_lti_configuration?.placements || []
-  ).map(p => p.placement)
 
   const handleToggleAllowFullscreen = () => {
     return actions.updatePlacement('top_navigation')(prevState => {

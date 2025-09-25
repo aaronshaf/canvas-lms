@@ -259,6 +259,17 @@ lti_dr_registrations_update:
       state: allowed_on
     ci:
       state: allowed_on
+reinstall_dynamic_registration:
+  state: hidden
+  shadow: true
+  applies_to: RootAccount
+  display_name: LTI Dynamic Registration Reinstall
+  description: When enabled, LTI Apps installed with dynamic registration can be reinstalled.
+  environments:
+    development:
+      state: allowed_on
+    ci:
+      state: allowed_on
 lti_edit_json:
   state: hidden
   shadow: true

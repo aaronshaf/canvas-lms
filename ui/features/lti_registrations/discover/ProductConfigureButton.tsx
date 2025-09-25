@@ -141,7 +141,6 @@ export const ProductConfigureButton = ({
     openRegistrationWizard({
       jsonUrl: '',
       jsonCode: '',
-      unifiedToolId: undefined,
       dynamicRegistrationUrl: '',
       lti_version: findLtiVersion(product.tool_integration_configurations),
       isInstructureTool: product?.company?.name === 'Instructure',

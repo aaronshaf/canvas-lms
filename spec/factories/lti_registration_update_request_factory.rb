@@ -63,6 +63,7 @@ module Factories
     params[:uuid] ||= SecureRandom.uuid
     params[:lti_ims_registration] ||= registration_attrs
     params[:created_at] ||= 1.hour.ago
+    params[:tool_initiated] = true unless params.key?(:tool_initiated)
 
     @lti_registration_update_request = Lti::RegistrationUpdateRequest.create!(params)
   end

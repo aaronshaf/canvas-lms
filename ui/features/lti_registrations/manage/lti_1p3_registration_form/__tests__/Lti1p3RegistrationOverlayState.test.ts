@@ -426,7 +426,7 @@ describe('Lti1p3RegistrationOverlayState', () => {
       expect(initialState.placements.topNavigationAllowFullscreen).toBe(false)
     })
 
-    it('includes placements from existing overlay in the placements list', () => {
+    it('includes placements from existing overlay in the placements list when additive', () => {
       const config = mockInternalConfiguration({
         placements: [{placement: 'course_navigation'}],
       })
@@ -437,7 +437,12 @@ describe('Lti1p3RegistrationOverlayState', () => {
         },
       }
 
-      const initialState = initialOverlayStateFromInternalConfig(config, undefined, existingOverlay)
+      const initialState = initialOverlayStateFromInternalConfig(
+        config,
+        undefined,
+        existingOverlay,
+        true,
+      )
       expect(initialState.placements.placements).toContain('global_navigation')
     })
   })

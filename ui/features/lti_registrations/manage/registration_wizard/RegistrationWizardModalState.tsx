@@ -17,10 +17,9 @@
  */
 import {create} from 'zustand'
 import {isSuccessful, type ApiResult} from '../../common/lib/apiResult/ApiResult'
-import {ZUnifiedToolId, type UnifiedToolId} from '../model/UnifiedToolId'
-import type {InternalLtiConfiguration} from '../model/internal_lti_configuration/InternalLtiConfiguration'
 import type {LtiRegistrationId} from '../model/LtiRegistrationId'
-import {LtiRegistrationUpdateRequest} from '../model/lti_ims_registration/LtiRegistrationUpdateRequest'
+import {type UnifiedToolId} from '../model/UnifiedToolId'
+import type {InternalLtiConfiguration} from '../model/internal_lti_configuration/InternalLtiConfiguration'
 
 export type JsonFetchStatus =
   | {
@@ -152,7 +151,6 @@ export const openRegistrationWizard = (
     return {
       ...prev,
       dynamicRegistrationUrl: '',
-      unifiedToolId: ZUnifiedToolId.parse(''),
       jsonUrl: '',
       jsonUrlFetch: {_tag: 'initial'},
       lti_version: '1p3',
@@ -236,14 +234,6 @@ export const openDynamicRegistrationWizard = (
     unifiedToolId,
   })
 }
-
-export const openDynamicRegistrationUpdateRequestReview = (
-  registrationUpdateRequest: LtiRegistrationUpdateRequest,
-  onSuccessfulInstallation?: () => void,
-) =>
-  openRegistrationWizard({
-    method: 'dynamic_registration',
-  })
 
 /**
  * Allows users to edit the Dynamic Registration of an already existing LTI IMS Registration.
