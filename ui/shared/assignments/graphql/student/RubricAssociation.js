@@ -21,7 +21,7 @@ import {gql} from '@apollo/client'
 
 export const RubricAssociation = {
   fragment: gql`
-    fragment RubricAssociation on RubricAssociation {
+    fragment StudentRubricAssociation on RubricAssociation {
       _id
       hide_points: hidePoints
       hide_score_total: hideScoreTotal

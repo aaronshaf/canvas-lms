@@ -21,7 +21,7 @@ import {shape, string, number} from 'prop-types'
 
 export const DiscussionEntryVersion = {
   fragment: gql`
-    fragment DiscussionEntryVersion on DiscussionEntryVersion {
+    fragment DiscussionPostDiscussionEntryVersion on DiscussionEntryVersion {
       _id
       id
       version

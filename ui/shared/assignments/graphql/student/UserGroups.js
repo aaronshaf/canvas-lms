@@ -21,7 +21,7 @@ import {gql} from '@apollo/client'
 
 export const UserGroups = {
   fragment: gql`
-    fragment UserGroups on User {
+    fragment StudentUserGroups on User {
       groups {
         _id
         name

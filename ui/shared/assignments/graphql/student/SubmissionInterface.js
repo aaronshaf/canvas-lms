@@ -25,13 +25,13 @@ import {TurnitinData} from './TurnitinData'
 
 export const SubmissionInterface = {
   fragment: gql`
-    fragment SubmissionInterface on SubmissionInterface {
+    fragment StudentSubmissionInterface on SubmissionInterface {
       attachment {
         # this refers to the screenshot of the submission if it is a url submission
-        ...SubmissionFile
+        ...StudentSubmissionFile
       }
       attachments {
-        ...SubmissionFile
+        ...StudentSubmissionFile
       }
       attempt
       body
@@ -46,7 +46,7 @@ export const SubmissionInterface = {
       customGradeStatus
       latePolicyStatus
       mediaObject {
-        ...MediaObject
+        ...StudentMediaObject
       }
       originalityData
       proxySubmitter
@@ -55,19 +55,19 @@ export const SubmissionInterface = {
       state
       sticker
       submissionDraft {
-        ...SubmissionDraft
+        ...StudentSubmissionDraft
       }
       submissionStatus
       submissionType
       submittedAt
       turnitinData {
-        ...TurnitinData
+        ...StudentTurnitinData
       }
       feedbackForCurrentAttempt
       unreadCommentCount
       url
       assignedAssessments {
-        ...AssessmentRequest
+        ...StudentAssessmentRequest
       }
     }
     ${MediaObject.fragment}

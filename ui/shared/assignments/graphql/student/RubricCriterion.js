@@ -22,7 +22,7 @@ import {RubricRating} from './RubricRating'
 
 export const RubricCriterion = {
   fragment: gql`
-    fragment RubricCriterion on RubricCriterion {
+    fragment StudentRubricCriterion on RubricCriterion {
       _id
       criterion_use_range: criterionUseRange
       description
@@ -34,7 +34,7 @@ export const RubricCriterion = {
       }
       points
       ratings {
-        ...RubricRating
+        ...StudentRubricRating
       }
     }
     ${RubricRating.fragment}

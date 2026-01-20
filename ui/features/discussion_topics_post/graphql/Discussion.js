@@ -32,7 +32,7 @@ import {GroupSet} from './GroupSet'
 
 export const Discussion = {
   fragment: gql`
-    fragment Discussion on Discussion {
+    fragment DiscussionPostDiscussion on Discussion {
       id
       _id
       title
@@ -64,35 +64,35 @@ export const Discussion = {
       sortOrderLocked
       expandedLocked
       editor {
-        ...User
+        ...DiscussionPostUser
       }
       author {
-        ...User
+        ...DiscussionPostUser
       }
       entryCounts {
         unreadCount
         repliesCount
       }
       attachment {
-        ...Attachment
+        ...DiscussionPostAttachment
       }
       assignment {
-        ...Assignment
+        ...DiscussionPostAssignment
       }
       permissions {
-        ...DiscussionPermissions
+        ...DiscussionPostDiscussionPermissions
       }
       courseSections {
-        ...Section
+        ...DiscussionPostSection
       }
       childTopics {
-        ...ChildTopic
+        ...DiscussionPostChildTopic
       }
       groupSet {
-        ...GroupSet
+        ...DiscussionPostGroupSet
       }
       rootTopic {
-        ...RootTopic
+        ...DiscussionPostRootTopic
       }
       participant {
         id

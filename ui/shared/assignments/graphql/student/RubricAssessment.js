@@ -23,7 +23,7 @@ import {RubricAssociation} from './RubricAssociation'
 
 export const RubricAssessment = {
   fragment: gql`
-    fragment RubricAssessment on RubricAssessment {
+    fragment StudentRubricAssessment on RubricAssessment {
       _id
       artifactAttempt
       assessment_type: assessmentType
@@ -36,10 +36,10 @@ export const RubricAssessment = {
         }
       }
       data: assessmentRatings {
-        ...RubricAssessmentRating
+        ...StudentRubricAssessmentRating
       }
       rubric_association: rubricAssociation {
-        ...RubricAssociation
+        ...StudentRubricAssociation
       }
       score
     }

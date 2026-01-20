@@ -21,7 +21,7 @@ import {gql} from '@apollo/client'
 
 export const DiscussionPermissions = {
   fragment: gql`
-    fragment DiscussionPermissions on DiscussionPermissions {
+    fragment DiscussionPostDiscussionPermissions on DiscussionPermissions {
       attach
       create
       delete

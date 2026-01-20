@@ -20,7 +20,7 @@ import {shape, string} from 'prop-types'
 
 export const ExternalTool = {
   fragment: gql`
-    fragment ExternalTool on ExternalTool {
+    fragment StudentExternalTool on ExternalTool {
       _id
       description
       name

@@ -22,11 +22,11 @@ import {ChildTopic} from './ChildTopic'
 
 export const RootTopic = {
   fragment: gql`
-    fragment RootTopic on Discussion {
+    fragment DiscussionPostRootTopic on Discussion {
       id
       _id
       childTopics {
-        ...ChildTopic
+        ...DiscussionPostChildTopic
       }
     }
     ${ChildTopic.fragment}

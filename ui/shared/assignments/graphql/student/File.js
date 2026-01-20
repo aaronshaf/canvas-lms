@@ -23,7 +23,7 @@ import {shape, string} from 'prop-types'
 
 export const SubmissionDraftFile = {
   fragment: gql`
-    fragment SubmissionDraftFile on File {
+    fragment StudentSubmissionDraftFile on File {
       _id
       displayName
       mimeClass
@@ -41,7 +41,7 @@ export const SubmissionDraftFile = {
 
 export const SubmissionFile = {
   fragment: gql`
-    fragment SubmissionFile on File {
+    fragment StudentSubmissionFile on File {
       _id
       displayName
       id
@@ -67,7 +67,7 @@ export const SubmissionFile = {
 
 export const SubmissionCommentFile = {
   fragment: gql`
-    fragment SubmissionCommentFile on File {
+    fragment StudentSubmissionCommentFile on File {
       _id
       displayName
       id

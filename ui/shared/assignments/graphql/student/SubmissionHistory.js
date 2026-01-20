@@ -24,19 +24,19 @@ import {
 
 export const SubmissionHistory = {
   fragment: gql`
-    fragment SubmissionHistory on SubmissionHistory {
-      ...SubmissionInterface
+    fragment StudentSubmissionHistory on SubmissionHistory {
+      ...StudentSubmissionInterface
     }
     ${SubmissionInterface.fragment}
   `,
 
   shape: shape({
-    ...SubmissionInterface.shape.propTypes,
+    ...StudentSubmissionInterface.shape.propTypes,
   }),
 }
 
 export const DefaultMocks = {
   SubmissionHistory: () => ({
-    ...SubmissionInterfaceDefaultMocks.SubmissionInterface(),
+    ...StudentSubmissionInterfaceDefaultMocks.SubmissionInterface(),
   }),
 }

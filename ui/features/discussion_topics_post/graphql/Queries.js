@@ -38,9 +38,9 @@ export const DISCUSSION_QUERY = gql`
   ) {
     legacyNode(_id: $discussionID, type: Discussion) {
       ... on Discussion {
-        ...Discussion
+        ...DiscussionPostDiscussion
         anonymousAuthor {
-          ...AnonymousUser
+          ...DiscussionPostAnonymousUser
         }
         discussionEntriesConnection(
           after: $page
@@ -52,13 +52,13 @@ export const DISCUSSION_QUERY = gql`
           unreadBefore: $unreadBefore
         ) {
           nodes {
-            ...DiscussionEntry
+            ...DiscussionPostDiscussionEntry
             anonymousAuthor {
-              ...AnonymousUser
+              ...DiscussionPostAnonymousUser
             }
           }
           pageInfo {
-            ...PageInfo
+            ...DiscussionPostPageInfo
           }
         }
         entriesTotalPages(
@@ -70,12 +70,12 @@ export const DISCUSSION_QUERY = gql`
         )
         searchEntryCount(filter: $filter, searchTerm: $searchTerm)
         groupSet {
-          ...GroupSet
+          ...DiscussionPostGroupSet
           groups {
-            ...Group
+            ...DiscussionPostGroup
           }
         }
-        ${ENV.discussion_pin_post ? 'pinnedEntries { ...DiscussionEntry }' : ''}
+        ${ENV.discussion_pin_post ? 'pinnedEntries { ...DiscussionPostDiscussionEntry }' : ''}
       }
     }
   }
@@ -101,7 +101,7 @@ export const STUDENT_DISCUSSION_QUERY = gql`
             rootEntryPageNumber(perPage: $perPage)
           }
           pageInfo {
-            ...PageInfo
+            ...DiscussionPostPageInfo
           }
         }
       }
@@ -118,9 +118,9 @@ export const DISCUSSION_ENTRIES_BY_STUDENT_QUERY = gql`
         _id
         discussionEntriesConnection(userSearchId: $userSearchId) {
           nodes {
-            ...DiscussionEntry
+            ...DiscussionPostDiscussionEntry
             anonymousAuthor {
-              ...AnonymousUser
+              ...DiscussionPostAnonymousUser
             }
           }
         }
@@ -144,9 +144,9 @@ export const DISCUSSION_SUBENTRIES_QUERY = gql`
   ) {
     legacyNode(_id: $discussionEntryID, type: DiscussionEntry) {
       ... on DiscussionEntry {
-        ...DiscussionEntry
+        ...DiscussionPostDiscussionEntry
         anonymousAuthor {
-          ...AnonymousUser
+          ...DiscussionPostAnonymousUser
         }
         discussionSubentriesConnection(
           after: $after
@@ -158,13 +158,13 @@ export const DISCUSSION_SUBENTRIES_QUERY = gql`
           beforeRelativeEntry: $beforeRelativeEntry
         ) {
           nodes {
-            ...DiscussionEntry
+            ...DiscussionPostDiscussionEntry
             anonymousAuthor {
-              ...AnonymousUser
+              ...DiscussionPostAnonymousUser
             }
           }
           pageInfo {
-            ...PageInfo
+            ...DiscussionPostPageInfo
           }
         }
       }
@@ -182,9 +182,9 @@ export const DISCUSSION_ENTRY_ALL_ROOT_ENTRIES_QUERY = gql`
         id
         _id
         allRootEntries {
-          ...DiscussionEntry
+          ...DiscussionPostDiscussionEntry
           anonymousAuthor {
-            ...AnonymousUser
+            ...DiscussionPostAnonymousUser
           }
         }
         subentriesCount
@@ -203,7 +203,7 @@ export const COURSE_USER_QUERY = gql`
   query GetCourseUserQuery($courseId: ID!) {
     legacyNode(_id: $courseId, type: Course) {
       ... on Course {
-        ...Course
+        ...DiscussionPostCourse
       }
     }
   }

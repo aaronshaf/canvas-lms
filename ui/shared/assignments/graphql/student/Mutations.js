@@ -55,10 +55,10 @@ export const CREATE_SUBMISSION = gql`
       }
     ) {
       submission {
-        ...Submission
+        ...StudentSubmission
       }
       errors {
-        ...Error
+        ...StudentError
       }
     }
   }
@@ -88,10 +88,10 @@ export const CREATE_SUBMISSION_COMMENT = gql`
       }
     ) {
       submissionComment {
-        ...SubmissionHtmlComment
+        ...StudentSubmissionHtmlComment
       }
       errors {
-        ...Error
+        ...StudentError
       }
     }
   }
@@ -127,10 +127,10 @@ export const CREATE_SUBMISSION_DRAFT = gql`
       }
     ) {
       submissionDraft {
-        ...SubmissionDraft
+        ...StudentSubmissionDraft
       }
       errors {
-        ...Error
+        ...StudentError
       }
     }
   }
@@ -147,7 +147,7 @@ export const MARK_SUBMISSION_COMMENT_READ = gql`
         _id
       }
       errors {
-        ...Error
+        ...StudentError
       }
     }
   }
@@ -161,7 +161,7 @@ export const SET_MODULE_ITEM_COMPLETION = gql`
         _id
       }
       errors {
-        ...Error
+        ...StudentError
       }
     }
   }
@@ -173,7 +173,7 @@ export const DELETE_SUBMISSION_DRAFT = gql`
     deleteSubmissionDraft(input: {submissionId: $submissionId}) {
       submissionDraftIds
       errors {
-        ...Error
+        ...StudentError
       }
     }
   }
