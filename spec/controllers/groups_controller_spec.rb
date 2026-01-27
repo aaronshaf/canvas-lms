@@ -376,24 +376,6 @@ describe GroupsController do
         get "index", params: { course_id: @course.id }, format: :html
         expect(response).to be_successful
       end
-
-      context "with deprecate_context_groups_old_view FF enabled" do
-        before do
-          Account.site_admin.enable_feature!(:deprecate_context_groups_old_view)
-        end
-
-        it "for a student" do
-          user_session(@student)
-          get "index", params: { course_id: @course.id }, format: :html
-          expect(response).to be_successful
-        end
-
-        it "for a teacher" do
-          user_session(@teacher)
-          get "index", params: { course_id: @course.id }, format: :html
-          expect(response).to be_successful
-        end
-      end
     end
 
     it "forces IS_LARGE_ROSTER to true for account groups" do

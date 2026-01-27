@@ -31,11 +31,6 @@ people_page_modernization:
   shadow: true
   display_name: People Page Modernization
   description: People page modernization
-deprecate_context_groups_old_view:
-  state: hidden
-  applies_to: SiteAdmin
-  display_name: Deprecate Legacy View of Context Groups
-  description: Removes dead code from the context groups view that is no longer used.
 educator_dashboard:
   state: hidden
   display_name: Educator Dashboard

@@ -388,21 +388,6 @@ class GroupsController < ApplicationController
           end
         end
 
-        @user_groups = @current_user.group_memberships_for(@context) if @current_user
-        if @user_groups
-          case collaboration_state
-          when "collaborative"
-            @user_groups = @user_groups.where(non_collaborative: false)
-          when "non_collaborative"
-            @user_groups = @user_groups.where(non_collaborative: true)
-          when "all"
-            # IF FAIL, EXCLUDE NON-COLLABORATIVE
-            unless @context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
-              @user_groups = @user_groups.where(non_collaborative: false)
-            end
-          end
-        end
-
         if @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS)
           categories_json = @categories.map { |cat| group_category_json(cat, current_principal, session, include: %w[progress_url unassigned_users_count groups_count]) }
           uncategorized = @context.groups.active.uncategorized.to_a
@@ -442,10 +427,6 @@ class GroupsController < ApplicationController
         else
           return render_unauthorized_action if @context.is_a?(Account)
 
-          @groups = @user_groups = @groups & (@user_groups || [])
-          @available_groups = (all_groups - @user_groups).select do |group|
-            group.grants_right?(current_principal, :join)
-          end
           render :context_groups
         end
       end
