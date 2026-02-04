@@ -18,7 +18,6 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {useCallback, useEffect, useState, useMemo} from 'react'
-import {func, string} from 'prop-types'
 import moment from 'moment-timezone'
 import produce from 'immer'
 import {DateTime} from '@instructure/ui-i18n'
@@ -34,21 +33,18 @@ import useMonitorJobCompletion from './hooks/useMonitorJobCompletion'
 import DateValidator from '@canvas/grading/DateValidator'
 import GradingPeriodsAPI from '@canvas/grading/jquery/gradingPeriodsApi'
 import {originalDateField, canEditAll, anyAssignmentEdited} from './utils'
+import type {Assignment} from './BulkAssignmentShape'
 
 const I18n = createI18nScope('assignments_bulk_edit')
 
-BulkEdit.propTypes = {
-  courseId: string.isRequired,
-  onCancel: func.isRequired,
-  onSave: func, // for now, this is just informational that save has been clicked
-  defaultDueTime: string,
+type BulkEditProps = {
+  courseId: string
+  onCancel: () => void
+  onSave?: () => void
+  defaultDueTime?: string
 }
 
-BulkEdit.defaultProps = {
-  onSave: () => {},
-}
-
-export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
+export default function BulkEdit({courseId, onCancel, onSave = () => {}, defaultDueTime}: BulkEditProps) {
   const dateValidator = useMemo(
     () =>
       new DateValidator({
@@ -62,8 +58,8 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
       }),
     [],
   )
-  const [assignments, setAssignments] = useState([])
-  const [loadingError, setLoadingError] = useState(null)
+  const [assignments, setAssignments] = useState<Assignment[]>([])
+  const [loadingError, setLoadingError] = useState<Error | null>(null)
   const [loading, setLoading] = useState(true)
   const [moveDatesModalOpen, setMoveDatesModalOpen] = useState(false)
   const [noAssignmentsSelectedError, setNoAssignmentsSelectedError] = useState(false)
@@ -76,7 +72,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
     },
   )
 
-  const filterAssignments = useCallback(assignments => {
+  const filterAssignments = useCallback((assignments: Assignment[]) => {
     assignments.forEach(assignment => {
       if (!assignment.hasOwnProperty('all_dates')) {
         assignment.all_dates = []
@@ -149,7 +145,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
   }, [jobErrors])
 
   const setDateOnOverride = useCallback(
-    (override, dateFieldName, newDate) => {
+    (override: any, dateFieldName: string, newDate: Date | null) => {
       const currentDate = override[dateFieldName]
       const newDateISO = newDate?.toISOString() || null
       if (currentDate === newDateISO || moment(currentDate).isSame(moment(newDateISO))) return
@@ -166,7 +162,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
   )
 
   const shiftDateOnOverride = useCallback(
-    (override, dateFieldName, nDays) => {
+    (override: any, dateFieldName: string, nDays: number) => {
       const currentDate = override[dateFieldName]
       if (currentDate) {
         const newDate = moment(currentDate).add(nDays, 'days').toDate()
@@ -183,7 +179,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
     setProgressUrl(null)
   }, [setJobSuccess, setProgressUrl])
 
-  const findOverride = useCallback((someAssignments, assignmentId, overrideId) => {
+  const findOverride = useCallback((someAssignments: Assignment[], assignmentId: string, overrideId?: string | null) => {
     const isBaseOverride = !overrideId
     const assignment = someAssignments.find(a => a.id === assignmentId)
     const override = assignment.all_dates.find(o => (isBaseOverride ? o.base : o.id === overrideId))
@@ -191,7 +187,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
   }, [])
 
   const updateAssignmentDate = useCallback(
-    ({dateKey, newDate, assignmentId, overrideId}) => {
+    ({dateKey, newDate, assignmentId, overrideId}: {dateKey: string; newDate: Date | null; assignmentId: string; overrideId?: string | null}) => {
       clearPreviousSave()
       setAssignments(currentAssignments =>
         produce(currentAssignments, draftAssignments => {
@@ -204,7 +200,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
   )
 
   const clearOverrideEdits = useCallback(
-    ({assignmentId, overrideId}) => {
+    ({assignmentId, overrideId}: {assignmentId: string; overrideId?: string | null}) => {
       setAssignments(currentAssignments =>
         produce(currentAssignments, draftAssignments => {
           const override = findOverride(draftAssignments, assignmentId, overrideId)
@@ -223,7 +219,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
     [findOverride],
   )
 
-  const setAssignmentSelected = useCallback((assignmentId, selected) => {
+  const setAssignmentSelected = useCallback((assignmentId: string, selected: boolean) => {
     setAssignments(currentAssignments =>
       produce(currentAssignments, draftAssignments => {
         const assignment = draftAssignments.find(a => a.id === assignmentId)
@@ -232,7 +228,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
     )
   }, [])
 
-  const selectAllAssignments = useCallback(selected => {
+  const selectAllAssignments = useCallback((selected: boolean) => {
     setAssignments(currentAssignments =>
       produce(currentAssignments, draftAssignments => {
         draftAssignments.forEach(a => {
@@ -242,7 +238,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
     )
   }, [])
 
-  const selectDateRange = useCallback((startDate, endDate) => {
+  const selectDateRange = useCallback((startDate: Date, endDate: Date) => {
     const timezone = ENV?.TIMEZONE || DateTime.browserTimeZone()
     const startMoment = moment.tz(startDate, timezone).startOf('day')
     const endMoment = moment.tz(endDate, timezone).endOf('day')
@@ -284,7 +280,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
   )
 
   const handleBatchEditShift = useCallback(
-    nDays => {
+    (nDays: string | number) => {
       setAssignments(currentAssignments =>
         produce(currentAssignments, draftAssignments => {
           draftAssignments.forEach(draftAssignment => {
@@ -303,7 +299,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
     [shiftDateOnOverride],
   )
   const handleBatchEditRemove = useCallback(
-    datesToRemove => {
+    (datesToRemove: string[]) => {
       setAssignments(currentAssignments =>
         produce(currentAssignments, draftAssignments => {
           draftAssignments.forEach(draftAssignment => {

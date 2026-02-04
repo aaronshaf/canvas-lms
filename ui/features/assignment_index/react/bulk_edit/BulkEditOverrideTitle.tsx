@@ -25,7 +25,13 @@ import {View} from '@instructure/ui-view'
 
 const I18n = createI18nScope('assignments_bulk_edit')
 
-function BulkEditOverrideTitle({assignmentName, overrideTitle, overrideBase}) {
+type BulkEditOverrideTitleProps = {
+  assignmentName: string
+  overrideTitle?: string
+  overrideBase?: boolean
+}
+
+function BulkEditOverrideTitle({assignmentName, overrideTitle, overrideBase}: BulkEditOverrideTitleProps) {
   const [visibleTitle, srSubTitle, size, indent] = overrideBase
     ? [assignmentName, I18n.t('default dates'), 'medium', '0']
     : [overrideTitle, overrideTitle, 'small', 'medium']

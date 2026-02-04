@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {createRoot} from 'react-dom/client'
+import {createRoot, type Root} from 'react-dom/client'
 import {extend} from '@canvas/backbone/utils'
 import $ from 'jquery'
 import {useScope as createI18nScope} from '@canvas/i18n'
@@ -35,9 +35,9 @@ const I18n = createI18nScope('AssignmentSettingsView')
 
 extend(AssignmentSettingsView, DialogFormView)
 
-function AssignmentSettingsView() {
-  this.errorRoots = {}
-  this.ariaLabels = {}
+function AssignmentSettingsView(this: any) {
+  this.errorRoots = {} as Record<string, Root>
+  this.ariaLabels = {} as Record<string, string>
   return AssignmentSettingsView.__super__.constructor.apply(this, arguments)
 }
 
@@ -74,9 +74,9 @@ AssignmentSettingsView.prototype.initialize = function () {
 }
 
 AssignmentSettingsView.prototype.validateFormData = function () {
-  const errors = {}
+  const errors: Record<string, Array<{type: string; message: string}>> = {}
   let shouldFocus = true
-  const weightInputs = document.querySelectorAll('.group_weight_value')
+  const weightInputs = document.querySelectorAll<HTMLInputElement>('.group_weight_value')
   weightInputs.forEach(input => {
     if (input.value && isNaN(numberHelper.parse(input.value))) {
       errors[input.id] = [
@@ -117,10 +117,7 @@ AssignmentSettingsView.prototype.submit = function (event) {
   }
 }
 
-AssignmentSettingsView.prototype.saveFormData = function (data) {
-  if (data == null) {
-    data = null
-  }
+AssignmentSettingsView.prototype.saveFormData = function (data: any = null) {
   const ref = this.weights
   for (let i = 0, len = ref.length; i < len; i++) {
     const v = ref[i]
@@ -149,7 +146,7 @@ AssignmentSettingsView.prototype.toggleTableByModel = function () {
   return this.toggleWeightsTable(checked)
 }
 
-AssignmentSettingsView.prototype.toggleTableByClick = function (e) {
+AssignmentSettingsView.prototype.toggleTableByClick = function (e: JQuery.Event) {
   if (this.canChangeWeights()) {
     const checked = $(e.currentTarget).is(':checked')
     return this.toggleWeightsTable(checked)
@@ -158,7 +155,7 @@ AssignmentSettingsView.prototype.toggleTableByClick = function (e) {
   }
 }
 
-AssignmentSettingsView.prototype.toggleWeightsTable = function (show) {
+AssignmentSettingsView.prototype.toggleWeightsTable = function (show: boolean) {
   if (show) {
     this.$('#ag_weights_wrapper').show()
     this.$('#apply_assignment_group_weights').prop('checked', true)
@@ -200,8 +197,8 @@ AssignmentSettingsView.prototype.clearWeights = function () {
   return this.$el.find('#assignment_groups_weights tbody').empty()
 }
 
-AssignmentSettingsView.prototype.updateTotalWeight = function (event) {
-  const groupId = event.currentTarget.getAttribute('groupId')
+AssignmentSettingsView.prototype.updateTotalWeight = function (event: JQuery.Event) {
+  const groupId = event.currentTarget?.getAttribute('groupId')
   if (this.errorRoots[groupId] && event.key !== 'Enter') {
     this.hideErrors(groupId)
   }

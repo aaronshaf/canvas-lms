@@ -32,7 +32,14 @@ import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 
 const I18n = createI18nScope('assignmentsToggleShowByView')
 
-export default class ToggleShowByView extends Backbone.View {
+export default class ToggleShowByView extends Backbone.View<any> {
+  menuOpened: boolean
+  initialized: JQuery.Deferred<any>
+  course: any
+  assignmentGroups: any
+  cache: any
+  groupedByAG: any[]
+  groupedByDate: any[]
   initialize(...args) {
     super.initialize(...args)
     this.menuOpened = false
@@ -111,20 +118,20 @@ export default class ToggleShowByView extends Backbone.View {
     return this.setAssignmentGroups()
   }
 
-  _sortGroups(overdue, upcoming, undated, past) {
+  _sortGroups(overdue: any, upcoming: any, undated: any, past: any) {
     this._sortAscending(overdue.get('assignments'))
     this._sortAscending(upcoming.get('assignments'))
     this._sortDescending(past.get('assignments'))
     return [overdue, upcoming, undated, past]
   }
 
-  _sortAscending(assignments) {
-    assignments.comparator = a => Date.parse(a.sortingDueAt())
+  _sortAscending(assignments: any) {
+    assignments.comparator = (a: any) => Date.parse(a.sortingDueAt())
     return assignments.sort()
   }
 
-  _sortDescending(assignments) {
-    assignments.comparator = a => new Date() - Date.parse(a.sortingDueAt())
+  _sortDescending(assignments: any) {
+    assignments.comparator = (a: any) => new Date().getTime() - Date.parse(a.sortingDueAt())
     return assignments.sort()
   }
 
@@ -197,7 +204,7 @@ export default class ToggleShowByView extends Backbone.View {
     return this.assignmentGroups.reset(groups)
   }
 
-  setAssignmentGroupAssociations(groups) {
+  setAssignmentGroupAssociations(groups: any[]) {
     ;(groups || []).forEach(assignment_group => {
       ;(assignment_group.get('assignments').models || []).forEach(assignment => {
         // we are keeping this change on the frontend only (for keyboard nav), will not persist in the db
@@ -222,7 +229,7 @@ export default class ToggleShowByView extends Backbone.View {
     ]
   }
 
-  toggleShowBy(value) {
+  toggleShowBy(value: string) {
     const key = this.cacheKey()
     const showByDate = value === 'date'
     const currentlyByDate = this.cache.get(key)

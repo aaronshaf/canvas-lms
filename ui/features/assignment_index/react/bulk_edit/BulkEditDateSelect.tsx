@@ -27,10 +27,15 @@ import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import CanvasDateInput2 from '@canvas/datetime/react/components/DateInput2'
 import useDateTimeFormat from '@canvas/use-date-time-format-hook'
+import type {FormMessage} from '@instructure/ui-form-field'
 
 const I18n = createI18nScope('assignments_bulk_edit')
 
-function BulkEditDateSelect({selectDateRange}) {
+type BulkEditDateSelectProps = {
+  selectDateRange: (startDate: Date, endDate: Date) => void
+}
+
+function BulkEditDateSelect({selectDateRange}: BulkEditDateSelectProps) {
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
 
@@ -49,7 +54,7 @@ function BulkEditDateSelect({selectDateRange}) {
     return (startDate || endDate) && !outOfOrder()
   }
 
-  function messages() {
+  function messages(): FormMessage[] {
     return outOfOrder()
       ? [{text: I18n.t('The end date must be after the start date'), type: 'error'}]
       : []

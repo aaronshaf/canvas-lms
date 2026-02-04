@@ -18,7 +18,6 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import {arrayOf, bool, func, number} from 'prop-types'
 import {Button} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
@@ -27,19 +26,19 @@ import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import CanvasInlineAlert from '@canvas/alerts/react/InlineAlert'
 import {originalDateField} from './utils'
-import {AssignmentShape} from './BulkAssignmentShape'
+import type {Assignment} from './BulkAssignmentShape'
 
 const I18n = createI18nScope('assignments_bulk_edit')
 
-BulkEditHeader.propTypes = {
-  assignments: arrayOf(AssignmentShape).isRequired,
-  startingSave: bool.isRequired,
-  jobRunning: bool.isRequired,
-  jobCompletion: number.isRequired,
-  jobSuccess: bool.isRequired,
-  onSave: func.isRequired,
-  onCancel: func.isRequired,
-  onOpenBatchEdit: func.isRequired,
+type BulkEditHeaderProps = {
+  assignments: Assignment[]
+  startingSave: boolean
+  jobRunning: boolean
+  jobCompletion: number
+  jobSuccess: boolean
+  onSave: () => void
+  onCancel: () => void
+  onOpenBatchEdit: (value?: boolean) => void
 }
 
 export default function BulkEditHeader({

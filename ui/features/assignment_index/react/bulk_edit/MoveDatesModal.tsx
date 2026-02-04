@@ -25,13 +25,22 @@ import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import CanvasModal from '@canvas/instui-bindings/react/Modal'
+import type {FormMessage} from '@instructure/ui-form-field'
 
 const I18n = createI18nScope('assignments_bulk_edit')
 
 export const SHIFT_DAYS_MIN = 1
 export const SHIFT_DAYS_MAX = 999
 
-export default function MoveDatesModal({onShiftDays, onRemoveDates, onCancel, ...otherModalProps}) {
+type MoveDatesModalProps = {
+  onShiftDays: (days: string | number) => void
+  onRemoveDates: (datesToRemove: string[]) => void
+  onCancel: () => void
+  open?: boolean
+  [key: string]: any
+}
+
+export default function MoveDatesModal({onShiftDays, onRemoveDates, onCancel, ...otherModalProps}: MoveDatesModalProps) {
   const DUE_DATES = 'dueDates'
   const LOCK_DATES = 'lockDates'
   const DUE_AND_LOCK_DATES = 'dueAndLockDates'
@@ -64,7 +73,7 @@ export default function MoveDatesModal({onShiftDays, onRemoveDates, onCancel, ..
     setShiftDaysMessages([])
   }, [shiftDays])
 
-  const generateShiftDaysMessages = () => {
+  const generateShiftDaysMessages = (): FormMessage[] => {
     if (shiftDays.trim() === '')
       return [{type: 'newError', text: I18n.t('Number of days is required')}]
 

@@ -18,7 +18,6 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {useCallback} from 'react'
-import {arrayOf, func, string} from 'prop-types'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {Table} from '@instructure/ui-table'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
@@ -30,12 +29,15 @@ import {IconButton} from '@instructure/ui-buttons'
 import {IconWarningLine, IconXSolid} from '@instructure/ui-icons'
 import BulkDateInput from './BulkDateInput'
 import BulkEditOverrideTitle from './BulkEditOverrideTitle'
-import {AssignmentShape} from './BulkAssignmentShape'
+import type {Assignment, AllDates} from './BulkAssignmentShape'
 import {canEditAll, originalDateField} from './utils'
+import type {FormMessage} from '@instructure/ui-form-field'
 
 const I18n = createI18nScope('assignments_bulk_edit')
 
-const DATE_INPUT_META = {
+type DateKey = 'due_at' | 'unlock_at' | 'lock_at'
+
+const DATE_INPUT_META: Record<DateKey, {label: string; fancyMidnight: boolean}> = {
   due_at: {
     label: I18n.t('Due At'),
     fancyMidnight: true,
@@ -50,26 +52,25 @@ const DATE_INPUT_META = {
   },
 }
 
-BulkEditTable.propTypes = {
-  assignments: arrayOf(AssignmentShape).isRequired,
+type UpdateAssignmentDateParams = {
+  dateKey: DateKey
+  newDate: Date | null
+  assignmentId: string
+  overrideId?: string | null
+}
 
-  // ({
-  //   dateKey: one of null, "due_at", "lock_at", or "unlock_at"
-  //   newDate: iso8601 date string
-  //   assignmentId: assignment id string
-  //
-  //   overrideId: override id string, if this is an override.
-  //   - or -
-  //   base: true if this is the base assignment dates
-  // }) => {...}
-  updateAssignmentDate: func.isRequired,
+type ClearOverrideEditsParams = {
+  assignmentId: string
+  overrideId?: string | null
+}
 
-  // {assignmentId, overrideId or base: true}
-  clearOverrideEdits: func.isRequired,
-
-  setAssignmentSelected: func.isRequired, // (assignmentId, selected) => {}
-
-  defaultDueTime: string, // e.g. "16:00:00"
+type BulkEditTableProps = {
+  assignments: Assignment[]
+  updateAssignmentDate: (params: UpdateAssignmentDateParams) => void
+  clearOverrideEdits: (params: ClearOverrideEditsParams) => void
+  setAssignmentSelected: (assignmentId: string, selected: boolean) => void
+  selectAllAssignments: (selected: boolean) => void
+  defaultDueTime?: string
 }
 
 export default function BulkEditTable({
@@ -89,14 +90,14 @@ export default function BulkEditTable({
   const allAssignmentsSelected =
     someAssignmentsSelected && assignments.every(a => a.selected || !canEditAll(a))
 
-  function processErrors(errors, dateKey) {
+  function processErrors(errors: {[key: string]: string} | undefined, dateKey: DateKey): FormMessage[] {
     if (!errors || !errors.hasOwnProperty(dateKey)) {
       return []
     }
     return [{text: errors[dateKey], type: 'error'}]
   }
 
-  function renderDateInput(assignmentId, dateKey, dates, overrideId = null) {
+  function renderDateInput(assignmentId: string, dateKey: DateKey, dates: AllDates, overrideId: string | null = null) {
     const label = DATE_INPUT_META[dateKey].label
     const calculatedWidth = `${DATE_COLUMN_WIDTH_REMS - 1}rem`
     return (
@@ -118,7 +119,7 @@ export default function BulkEditTable({
     )
   }
 
-  function renderOverrideTitle(assignment, override) {
+  function renderOverrideTitle(assignment: Assignment, override: AllDates) {
     return (
       <BulkEditOverrideTitle
         assignmentName={assignment.name}
@@ -128,7 +129,7 @@ export default function BulkEditTable({
     )
   }
 
-  function renderNoDefaultDates(hasTooManyDates) {
+  function renderNoDefaultDates(hasTooManyDates: boolean) {
     // The goal here is to create a cell that spans multiple columns. You can't do that with InstUI
     // yet, so we're going to fake it with a View that's as wide as all the other columns and
     // depend on the cell overflow as being visible. I think that's pretty safe since that's the
@@ -150,7 +151,7 @@ export default function BulkEditTable({
     )
   }
 
-  function renderAssignmentCheckbox(assignment) {
+  function renderAssignmentCheckbox(assignment: Assignment) {
     if (assignment.hasOwnProperty('all_dates_count')) {
       return null
     }
@@ -169,7 +170,7 @@ export default function BulkEditTable({
     )
   }
 
-  function renderActions(assignment, override) {
+  function renderActions(assignment: Assignment, override: AllDates) {
     const overrideHasBeenEdited = ['due_at', 'unlock_at', 'lock_at']
       .map(field => originalDateField(field))
       .some(originalField => override.hasOwnProperty(originalField))
@@ -191,7 +192,7 @@ export default function BulkEditTable({
     }
   }
 
-  function renderNote(assignment, dateSet) {
+  function renderNote(assignment: Assignment, dateSet: AllDates) {
     if (!dateSet.can_edit) {
       let explanation
       if (dateSet.in_closed_grading_period) {
@@ -211,7 +212,7 @@ export default function BulkEditTable({
     }
   }
 
-  function renderBaseRow(assignment) {
+  function renderBaseRow(assignment: Assignment) {
     const baseOverride = assignment.all_dates.find(dates => dates.base === true)
     // It's a bit repetitive this way, but Table.Row borks if it has anything but Table.Cell children.
     if (baseOverride) {
@@ -244,7 +245,7 @@ export default function BulkEditTable({
     }
   }
 
-  function renderOverrideRows(assignment) {
+  function renderOverrideRows(assignment: Assignment) {
     const overrides = assignment.all_dates.filter(dates => !dates.base)
     return overrides.map(override => {
       return (
@@ -285,7 +286,7 @@ export default function BulkEditTable({
     [allAssignmentsSelected, selectAllAssignments],
   )
 
-  const handleRevertClick = (assignment, override, event) => {
+  const handleRevertClick = (assignment: Assignment, override: AllDates, event: React.MouseEvent) => {
     // assuming the revert button is going away, so we reset focus to the prior input before that
     // happens.
     const tableRow = event.target.closest('[data-testid="bulk-edit-table-row"]')
@@ -296,7 +297,7 @@ export default function BulkEditTable({
     clearOverrideEdits({assignmentId: assignment.id, overrideId: override.id})
   }
 
-  function renderTable(_props = {}, matches = []) {
+  function renderTable(_props = {}, matches: string[] = []) {
     const checkboxWidthProp = `${CHECKBOX_COLUMN_WIDTH_REMS}rem`
     const widthProp = `${DATE_COLUMN_WIDTH_REMS}rem`
     const actionsWidthProp = `${ACTION_COLUMN_WIDTH_REMS}rem`

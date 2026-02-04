@@ -24,7 +24,7 @@ import keyboardNavTemplate from '@canvas/keyboard-nav-dialog/jst/KeyboardNavDial
 import $ from 'jquery'
 import Backbone from '@canvas/backbone'
 import React from 'react'
-import {createRoot} from 'react-dom/client'
+import {createRoot, type Root} from 'react-dom/client'
 import template from '../../jst/IndexView.handlebars'
 import NoAssignmentsSearch from '../../react/NoAssignmentsSearch'
 import AssignmentKeyBindingsMixin from '../mixins/AssignmentKeyBindingsMixin'
@@ -44,7 +44,7 @@ const I18n = createI18nScope('assignmentsIndexView')
 
 extend(IndexView, Backbone.View)
 
-function IndexView() {
+function IndexView(this: any) {
   this.filterKeyBindings = this.filterKeyBindings.bind(this)
   this.focusOnAssignments = this.focusOnAssignments.bind(this)
   this.filterResults = this.filterResults.bind(this)
@@ -250,11 +250,11 @@ IndexView.prototype.gradingPeriods = GradingPeriodsAPI.deserializePeriods(
   ENV.active_grading_periods,
 )
 
-IndexView.prototype.show_dnd_warning = function (event) {
+IndexView.prototype.show_dnd_warning = function (event: JQuery.Event) {
   return this.$(event.currentTarget).removeClass('screenreader-only')
 }
 
-IndexView.prototype.hide_dnd_warning = function (event) {
+IndexView.prototype.hide_dnd_warning = function (event: JQuery.Event) {
   return this.$(event.currentTarget).addClass('screenreader-only')
 }
 
@@ -313,7 +313,7 @@ IndexView.prototype.filterResults = function () {
   }
 }
 
-IndexView.prototype.alertForMatchingGroups = function (numAssignments) {
+IndexView.prototype.alertForMatchingGroups = function (numAssignments: number) {
   const msg = I18n.t(
     {
       one: '1 assignment found.',
@@ -327,11 +327,11 @@ IndexView.prototype.alertForMatchingGroups = function (numAssignments) {
   return $.screenReaderFlashMessageExclusive(msg)
 }
 
-IndexView.prototype.cleanSearchTerm = function (text) {
+IndexView.prototype.cleanSearchTerm = function (text: string) {
   return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }
 
-IndexView.prototype.focusOnAssignments = function (e) {
+IndexView.prototype.focusOnAssignments = function (e: KeyboardEvent) {
   if (e.keyCode === 74) {
     if (!$(e.target).is(':input')) {
       return $('.assignment_group').filter(':visible').first().attr('tabindex', -1).focus()
@@ -373,7 +373,7 @@ IndexView.prototype.selectGradingPeriod = function () {
   }
 }
 
-IndexView.prototype.saveSelectedGradingPeriod = function (gradingPeriod) {
+IndexView.prototype.saveSelectedGradingPeriod = function (gradingPeriod: any) {
   return userSettings.contextSet(
     'assignments_current_grading_period',
     gradingPeriod && gradingPeriod.id,
