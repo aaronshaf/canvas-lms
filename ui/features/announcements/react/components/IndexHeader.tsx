@@ -17,7 +17,6 @@
  */
 
 import {bindActionCreators} from 'redux'
-import {bool, func, number, string} from 'prop-types'
 import {connect} from 'react-redux'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {Component} from 'react'
@@ -28,11 +27,12 @@ import {IconLockLine, IconPlusLine, IconTrashLine, IconUnlockLine} from '@instru
 import {PresentationContent, ScreenReaderContent} from '@instructure/ui-a11y-content'
 import actions from '../actions'
 import ExternalFeedsTray from './ExternalFeedsTray'
-import propTypes from '../propTypes'
+import type {Permissions} from '../propTypes'
 import select from '@canvas/obj-select'
 import {showConfirmDelete} from './ConfirmDeleteModal'
+import type ConfirmDeleteModal from './ConfirmDeleteModal'
 import {SimpleSelect} from '@instructure/ui-simple-select'
-import WithBreakpoints, {breakpointsShape} from '@canvas/with-breakpoints'
+import WithBreakpoints, {type breakpointsShape} from '@canvas/with-breakpoints'
 import {HeadingMenu} from '@canvas/discussions/react/components/HeadingMenu'
 import {SearchField} from '@canvas/discussions/react/components/SearchField'
 import {ActionDropDown} from '@canvas/announcements/react/components/ActionDropDown'
@@ -42,35 +42,58 @@ const I18n = createI18nScope('announcements_v2')
 
 const instUINavEnabled = () => window.ENV?.FEATURES?.instui_nav
 
+interface AnnouncementFilter {
+  name: string
+  title: string
+}
+
+interface AnnouncementsFilters {
+  all: AnnouncementFilter | string
+  unread: AnnouncementFilter | string
+}
+
 // Delay the search so as not to overzealously read out the number
 // of search results to the user
 const announcementsFilter = {
   all: {name: I18n.t('All Announcements'), title: I18n.t('Announcements')},
   unread: {name: I18n.t('Unread Announcements'), title: I18n.t('Unread Announcements')},
 }
-const getFilters = () => ({
+const getFilters = (): AnnouncementsFilters => ({
   all: instUINavEnabled() ? announcementsFilter.all : I18n.t('All'),
   unread: instUINavEnabled() ? announcementsFilter.unread : I18n.t('Unread'),
 })
 
-export default class IndexHeader extends Component {
-  static propTypes = {
-    breakpoints: breakpointsShape.isRequired,
-    contextType: string,
-    contextId: string,
-    isBusy: bool,
-    selectedCount: number,
-    isToggleLocking: bool.isRequired,
-    permissions: propTypes.permissions.isRequired,
-    atomFeedUrl: string,
-    searchAnnouncements: func.isRequired,
-    toggleSelectedAnnouncementsLock: func.isRequired,
-    deleteSelectedAnnouncements: func.isRequired,
-    searchInputRef: func,
-    markAllAnnouncementRead: func.isRequired,
-    announcementsLocked: bool.isRequired,
-  }
+interface ResponsiveStyles {
+  buttonDisplay: 'inline-block' | 'block'
+  buttonMargin?: string
+}
 
+interface IndexHeaderOwnProps {
+  searchInputRef?: ((c: HTMLInputElement | null) => void) | null
+}
+
+interface IndexHeaderStateProps {
+  contextType?: string
+  contextId?: string
+  isBusy: boolean
+  selectedCount: number
+  isToggleLocking: boolean
+  permissions: Permissions
+  atomFeedUrl?: string | null
+  announcementsLocked: boolean
+  breakpoints: breakpointsShape
+}
+
+interface IndexHeaderDispatchProps {
+  searchAnnouncements: (params: {filter?: string; term?: string}) => void
+  toggleSelectedAnnouncementsLock: () => void
+  deleteSelectedAnnouncements: () => void
+  markAllAnnouncementRead: () => void
+}
+
+type IndexHeaderProps = IndexHeaderOwnProps & IndexHeaderStateProps & IndexHeaderDispatchProps
+
+export default class IndexHeader extends Component<IndexHeaderProps> {
   static defaultProps = {
     isBusy: false,
     atomFeedUrl: null,
@@ -78,6 +101,10 @@ export default class IndexHeader extends Component {
     searchInputRef: null,
     breakpoints: {},
   }
+
+  private deleteModal?: ConfirmDeleteModal | null
+  private deleteBtn?: Button | null
+  private searchInput?: HTMLInputElement | null
 
   onDelete = () => {
     showConfirmDelete({
@@ -88,7 +115,7 @@ export default class IndexHeader extends Component {
       onConfirm: () => this.props.deleteSelectedAnnouncements(),
       onHide: () => {
         const {deleteBtn, searchInput} = this
-        if (deleteBtn && deleteBtn._button && !deleteBtn._button.disabled) {
+        if (deleteBtn && (deleteBtn as any)._button && !(deleteBtn as any)._button.disabled) {
           deleteBtn.focus()
         } else if (searchInput) {
           searchInput.focus()
@@ -97,15 +124,21 @@ export default class IndexHeader extends Component {
     })
   }
 
-  onFilterChange = data => {
+  onFilterChange = (data: {value: string}) => {
     this.props.searchAnnouncements({filter: data.value})
   }
 
-  onSearchChange = data => {
+  onSearchChange = (data: {searchTerm: string}) => {
     this.props.searchAnnouncements({term: data.searchTerm})
   }
 
-  renderLockToggleButton(icon, label, screenReaderLabel, responsiveStyles, dataActionState) {
+  renderLockToggleButton(
+    icon: React.ReactElement,
+    label: string,
+    screenReaderLabel: string,
+    responsiveStyles: ResponsiveStyles,
+    dataActionState: string,
+  ) {
     return (
       <Button
         disabled={this.props.isBusy || this.props.selectedCount === 0}
@@ -160,7 +193,7 @@ export default class IndexHeader extends Component {
     )
   }
 
-  renderAddAnnouncementButton(responsiveStyles) {
+  renderAddAnnouncementButton(responsiveStyles: ResponsiveStyles) {
     return (
       this.props.permissions.create && (
         <Button
@@ -178,7 +211,7 @@ export default class IndexHeader extends Component {
     )
   }
 
-  renderMarkAllAsReadButton(responsiveStyles) {
+  renderMarkAllAsReadButton(responsiveStyles: ResponsiveStyles) {
     return (
       <Button
         id="mark_all_announcement_read"
@@ -194,7 +227,7 @@ export default class IndexHeader extends Component {
     )
   }
 
-  renderDeleteButton(responsiveStyles) {
+  renderDeleteButton(responsiveStyles: ResponsiveStyles) {
     return (
       this.props.permissions.manage_course_content_delete && (
         <Button
@@ -217,7 +250,7 @@ export default class IndexHeader extends Component {
     )
   }
 
-  renderLockButton(responsiveStyles) {
+  renderLockButton(responsiveStyles: ResponsiveStyles) {
     return (
       this.props.permissions.manage_course_content_edit &&
       !this.props.announcementsLocked &&
@@ -239,7 +272,7 @@ export default class IndexHeader extends Component {
     )
   }
 
-  renderActionButtons(responsiveStyles) {
+  renderActionButtons(responsiveStyles: ResponsiveStyles) {
     const {breakpoints} = this.props
 
     const buttonsDirection = !instUINavEnabled() || breakpoints.ICEDesktop ? 'row' : 'column'
@@ -289,7 +322,7 @@ export default class IndexHeader extends Component {
     )
   }
 
-  renderOldHeader(breakpoints) {
+  renderOldHeader(breakpoints: breakpointsShape) {
     const ddSize = breakpoints.ICEDesktopOnly ? '100px' : '100%'
     const containerSize = breakpoints.tablet ? 'auto' : '100%'
 
@@ -305,11 +338,11 @@ export default class IndexHeader extends Component {
                 id="announcement-filter"
                 data-testid="announcement-filter"
                 name="filter-dropdown"
-                onChange={(_e, data) => this.props.searchAnnouncements({filter: data.value})}
+                onChange={(_e, data) => this.props.searchAnnouncements({filter: data.value as string})}
               >
                 {Object.entries(getFilters()).map(([filter, label]) => (
                   <SimpleSelect.Option key={filter} id={filter} value={filter}>
-                    {label}
+                    {typeof label === 'string' ? label : label.name}
                   </SimpleSelect.Option>
                 ))}
               </SimpleSelect>
@@ -384,10 +417,12 @@ export default class IndexHeader extends Component {
   }
 }
 
-const connectState = state => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const connectState = (state: any): IndexHeaderStateProps => ({
   isBusy: state.isLockingAnnouncements || state.isDeletingAnnouncements || state.isMarkingAllRead,
   selectedCount: state.selectedAnnouncements.length,
   isToggleLocking: state.isToggleLocking,
+  breakpoints: {},
   ...select(state, [
     'contextType',
     'contextId',
@@ -403,7 +438,8 @@ const selectedActions = [
   'markAllAnnouncementRead',
 ]
 
-const connectActions = dispatch => bindActionCreators(select(actions, selectedActions), dispatch)
+const connectActions = (dispatch: any): IndexHeaderDispatchProps =>
+  bindActionCreators(select(actions, selectedActions), dispatch)
 export const ConnectedIndexHeader = WithBreakpoints(
   connect(connectState, connectActions)(IndexHeader),
 )

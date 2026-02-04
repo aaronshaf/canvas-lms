@@ -19,19 +19,27 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
-import {func, number, node, object, oneOfType} from 'prop-types'
 
 import Modal from '@canvas/instui-bindings/react/InstuiModal'
 import {Button} from '@instructure/ui-buttons'
 
 const I18n = createI18nScope('announcements_v2')
 
-export function showConfirmDelete(props) {
+export interface ShowConfirmDeleteProps {
+  selectedCount: number
+  onConfirm: () => void
+  onCancel?: (() => void) | null
+  onHide?: (() => void) | null
+  modalRef?: ((modal: ConfirmDeleteModal | null) => void) | null
+  parent?: HTMLElement | null
+}
+
+export function showConfirmDelete(props: ShowConfirmDeleteProps) {
   const parent = document.createElement('div')
   parent.setAttribute('class', 'confirm-delete-modal-container')
   document.body.appendChild(parent)
 
-  function showConfirmDeleteRef(modal) {
+  function showConfirmDeleteRef(modal: ConfirmDeleteModal | null) {
     if (modal) modal.show()
   }
 
@@ -41,26 +49,29 @@ export function showConfirmDelete(props) {
   )
 }
 
-export default class ConfirmDeleteModal extends Component {
-  static propTypes = {
-    selectedCount: number.isRequired,
-    onConfirm: func.isRequired,
-    onCancel: func,
-    onHide: func,
-    modalRef: func,
-    parent: oneOfType([node, object]),
-  }
+interface ConfirmDeleteModalProps {
+  selectedCount: number
+  onConfirm: () => void
+  onCancel?: (() => void) | null
+  onHide?: (() => void) | null
+  modalRef?: ((modal: ConfirmDeleteModal | null) => void) | null
+  parent?: HTMLElement | null
+}
 
-  static defaultProps = {
-    onCancel: null,
-    onHide: null,
-    parent: null,
-    modalRef: null,
-  }
+interface ConfirmDeleteModalState {
+  show: boolean
+}
 
-  state = {
+export default class ConfirmDeleteModal extends Component<
+  ConfirmDeleteModalProps,
+  ConfirmDeleteModalState
+> {
+  state: ConfirmDeleteModalState = {
     show: false,
   }
+
+  private cancelBtn?: Button | null
+  private confirmBtn?: Button | null
 
   componentDidMount() {
     if (this.props.modalRef) this.props.modalRef(this)

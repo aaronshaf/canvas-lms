@@ -18,7 +18,6 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {Component} from 'react'
-import {func, bool, number} from 'prop-types'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
 
@@ -31,38 +30,45 @@ import {Pagination} from '@instructure/ui-pagination'
 import AnnouncementRow from '@canvas/announcements/react/components/AnnouncementRow'
 import AnnouncementEmptyState from './AnnouncementEmptyState'
 import {showConfirmDelete} from './ConfirmDeleteModal'
+import type ConfirmDeleteModal from './ConfirmDeleteModal'
 
 import select from '@canvas/obj-select'
 import {selectPaginationState} from '@canvas/pagination/redux/actions'
-import {announcementList} from '@canvas/announcements/react/proptypes/announcement'
-import masterCourseDataShape from '@canvas/courses/react/proptypes/masterCourseData'
+import type {Announcement, Permissions, MasterCourseData} from '../propTypes'
 import actions from '../actions'
-import propTypes from '../propTypes'
 import {ConnectedIndexHeader} from './IndexHeader'
 import TopNavPortalWithDefaults from '@canvas/top-navigation/react/TopNavPortalWithDefaults'
 
 const I18n = createI18nScope('announcements_v2')
 
-export default class AnnouncementsIndex extends Component {
-  static propTypes = {
-    announcements: announcementList.isRequired,
-    announcementsPage: number.isRequired,
-    announcementsLastPage: number.isRequired,
-    isLoadingAnnouncements: bool.isRequired,
-    hasLoadedAnnouncements: bool.isRequired,
-    isCourseContext: bool.isRequired,
-    getAnnouncements: func.isRequired,
-    announcementSelectionChangeStart: func.isRequired,
-    permissions: propTypes.permissions.isRequired,
-    masterCourseData: masterCourseDataShape,
-    deleteAnnouncements: func.isRequired,
-    toggleAnnouncementsLock: func.isRequired,
-    announcementsLocked: bool.isRequired,
-  }
+interface AnnouncementsIndexOwnProps {
+  announcements: Announcement[]
+  announcementsPage: number
+  announcementsLastPage: number
+  isLoadingAnnouncements: boolean
+  hasLoadedAnnouncements: boolean
+  isCourseContext: boolean
+  permissions: Permissions
+  masterCourseData?: MasterCourseData | null
+  announcementsLocked: boolean
+}
 
+interface AnnouncementsIndexDispatchProps {
+  getAnnouncements: (params?: {page: number; select: boolean}) => void
+  announcementSelectionChangeStart: (announcement: Announcement) => void
+  deleteAnnouncements: (id: string | string[]) => void
+  toggleAnnouncementsLock: (id: string | string[], lock: boolean) => void
+}
+
+type AnnouncementsIndexProps = AnnouncementsIndexOwnProps & AnnouncementsIndexDispatchProps
+
+export default class AnnouncementsIndex extends Component<AnnouncementsIndexProps> {
   static defaultProps = {
     masterCourseData: null,
   }
+
+  private deleteModal?: ConfirmDeleteModal | null
+  private searchInput?: HTMLInputElement | null
 
   componentDidMount() {
     if (!this.props.hasLoadedAnnouncements) {
@@ -70,7 +76,10 @@ export default class AnnouncementsIndex extends Component {
     }
   }
 
-  onManageAnnouncement = (_e, {action, id, lock}) => {
+  onManageAnnouncement = (
+    _e: React.SyntheticEvent,
+    {action, id, lock}: {action: string; id: string; lock: boolean},
+  ) => {
     switch (action) {
       case 'delete':
         showConfirmDelete({
@@ -92,7 +101,7 @@ export default class AnnouncementsIndex extends Component {
     }
   }
 
-  selectPage(page) {
+  selectPage(page: number) {
     return () => this.props.getAnnouncements({page, select: true})
   }
 
@@ -104,7 +113,7 @@ export default class AnnouncementsIndex extends Component {
     }
   }
 
-  renderSpinner(condition, title) {
+  renderSpinner(condition: boolean, title: string) {
     if (condition) {
       return (
         <div style={{textAlign: 'center'}}>
@@ -128,7 +137,8 @@ export default class AnnouncementsIndex extends Component {
               key={announcement.id}
               announcement={announcement}
               canManage={
-                this.props.permissions.manage_course_content_edit && announcement.permissions.update
+                this.props.permissions.manage_course_content_edit &&
+                (announcement.permissions?.update ?? false)
               }
               canDelete={this.props.permissions.manage_course_content_delete}
               masterCourseData={this.props.masterCourseData}
@@ -145,7 +155,7 @@ export default class AnnouncementsIndex extends Component {
     }
   }
 
-  renderPageButton(page) {
+  renderPageButton(page: number) {
     return (
       <Pagination.Page
         key={page}
@@ -204,12 +214,13 @@ export default class AnnouncementsIndex extends Component {
   }
 }
 
-const connectState = state => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const connectState = (state: any) => ({
   isCourseContext: state.contextType === 'course',
   ...selectPaginationState(state, 'announcements'),
   ...select(state, ['permissions', 'masterCourseData', 'announcementsLocked']),
 })
-const connectActions = dispatch =>
+const connectActions = (dispatch: any) =>
   bindActionCreators(
     select(actions, [
       'getAnnouncements',

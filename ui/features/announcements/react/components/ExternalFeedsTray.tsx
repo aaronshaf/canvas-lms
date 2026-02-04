@@ -18,7 +18,6 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {Component} from 'react'
-import {bool, string} from 'prop-types'
 
 import {Tray} from '@instructure/ui-tray'
 import {Link} from '@instructure/ui-link'
@@ -29,25 +28,35 @@ import {View} from '@instructure/ui-view'
 import {IconRssLine} from '@instructure/ui-icons'
 
 import {ConnectedAddExternalFeed} from './AddExternalFeed'
-import propTypes from '../propTypes'
+import type {Permissions} from '../propTypes'
 
 const I18n = createI18nScope('announcements_v2')
 
-export default class ExternalFeedsTray extends Component {
-  static propTypes = {
-    atomFeedUrl: string,
-    permissions: propTypes.permissions.isRequired,
-    defaultOpen: bool, // facilitates testing
-  }
+interface ExternalFeedsTrayProps {
+  atomFeedUrl?: string | null
+  permissions: Permissions
+  defaultOpen?: boolean
+}
 
+interface ExternalFeedsTrayState {
+  open: boolean
+}
+
+export default class ExternalFeedsTray extends Component<
+  ExternalFeedsTrayProps,
+  ExternalFeedsTrayState
+> {
   static defaultProps = {
     atomFeedUrl: null,
     defaultOpen: false,
   }
 
-  state = {
-    open: this.props.defaultOpen,
+  state: ExternalFeedsTrayState = {
+    open: this.props.defaultOpen || false,
   }
+
+  private rssFeedLink?: HTMLElement | null
+  private externalFeedRef?: HTMLElement | null
 
   renderTrayContent() {
     return (

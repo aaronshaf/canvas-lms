@@ -18,7 +18,6 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import {bool} from 'prop-types'
 
 import {View} from '@instructure/ui-view'
 import {Text} from '@instructure/ui-text'
@@ -29,7 +28,11 @@ import AnnouncementHornSVGURL from '../../images/announcements-airhorn.svg'
 
 const I18n = createI18nScope('announcements_v2')
 
-const AnnouncementEmptyState = props => (
+export interface AnnouncementEmptyStateProps {
+  canCreate?: boolean
+}
+
+const AnnouncementEmptyState = ({canCreate = false}: AnnouncementEmptyStateProps) => (
   <View margin="large auto" textAlign="center" display="block">
     <PresentationContent>
       <View margin="small auto" maxWidth="16rem" display="block">
@@ -37,20 +40,12 @@ const AnnouncementEmptyState = props => (
       </View>
     </PresentationContent>
     <Heading margin="x-small">{I18n.t('No Announcements')}</Heading>
-    {props.canCreate ? (
+    {canCreate ? (
       <Text margin="x-small auto">{I18n.t('Create announcements above')}</Text>
     ) : (
       <Text margin="x-small auto">{I18n.t('Check back later')}</Text>
     )}
   </View>
 )
-
-AnnouncementEmptyState.propTypes = {
-  canCreate: bool,
-}
-
-AnnouncementEmptyState.defaultProps = {
-  canCreate: false,
-}
 
 export default AnnouncementEmptyState

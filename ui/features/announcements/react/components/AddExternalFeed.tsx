@@ -18,7 +18,6 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import {bool, func} from 'prop-types'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
 import $ from 'jquery'
@@ -39,33 +38,62 @@ import select from '@canvas/obj-select'
 
 const I18n = createI18nScope('announcements_v2')
 
-const verbosityTypes = [
+interface VerbosityType {
+  value: string
+  label: string
+}
+
+const verbosityTypes: VerbosityType[] = [
   {value: 'full', label: I18n.t('Full article')},
   {value: 'truncate', label: I18n.t('Truncated')},
   {value: 'link_only', label: I18n.t('Link only')},
 ]
 
-export default class AddExternalFeed extends React.Component {
-  static propTypes = {
-    defaultOpen: bool,
-    addExternalFeed: func.isRequired,
-  }
+interface AddExternalFeedOwnProps {
+  defaultOpen?: boolean
+}
 
+interface AddExternalFeedStateProps {
+  isSaving: boolean
+}
+
+interface AddExternalFeedDispatchProps {
+  addExternalFeed: (payload: {url: string; verbosity: string; header_match: string}) => void
+}
+
+type AddExternalFeedProps = AddExternalFeedOwnProps &
+  AddExternalFeedStateProps &
+  AddExternalFeedDispatchProps
+
+interface AddExternalFeedState {
+  isOpen: boolean
+  feedURL: string
+  verbosityType: string
+  phraseChecked: boolean
+  phrase: string
+}
+
+export default class AddExternalFeed extends React.Component<
+  AddExternalFeedProps,
+  AddExternalFeedState
+> {
   static defaultProps = {
     defaultOpen: false,
   }
 
-  state = {
-    isOpen: this.props.defaultOpen,
+  state: AddExternalFeedState = {
+    isOpen: this.props.defaultOpen || false,
     feedURL: '',
     verbosityType: verbosityTypes[0].value,
     phraseChecked: false,
     phrase: '',
   }
 
+  private toggleBtn?: HTMLButtonElement | null
+
   focusOnToggleHeader = () => {
     setTimeout(() => {
-      this.toggleBtn.focus()
+      if (this.toggleBtn) this.toggleBtn.focus()
     })
   }
 
@@ -78,7 +106,7 @@ export default class AddExternalFeed extends React.Component {
     this.clearAddRSS()
   }
 
-  toggleOpenState = (_event, expanded) => {
+  toggleOpenState = (_event: React.SyntheticEvent, expanded: boolean) => {
     $.screenReaderFlashMessage(I18n.t('dropdown changed state to %{expanded}.', {expanded}))
     this.setState(
       {
@@ -98,25 +126,25 @@ export default class AddExternalFeed extends React.Component {
     })
   }
 
-  handleCheckboxPhraseChecked = event => {
+  handleCheckboxPhraseChecked = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({
       phraseChecked: event.target.checked,
     })
   }
 
-  handleTextInputSetPhrase = event => {
+  handleTextInputSetPhrase = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({
       phrase: event.target.value,
     })
   }
 
-  handleTextInputSetFeedURL = event => {
+  handleTextInputSetFeedURL = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({
       feedURL: event.target.value,
     })
   }
 
-  handleRadioSelectionSetVerbosity = value => {
+  handleRadioSelectionSetVerbosity = (value: string) => {
     this.setState({
       verbosityType: value,
     })
@@ -129,11 +157,16 @@ export default class AddExternalFeed extends React.Component {
     )
   }
 
-  toggleRef = c => {
+  toggleRef = (c: HTMLElement | null) => {
     this.toggleBtn = c && c.querySelector('button')
   }
 
-  renderTextInput(value, text, onTextChange, name) {
+  renderTextInput(
+    value: string,
+    text: string,
+    onTextChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
+    name: string,
+  ) {
     return (
       <View margin="small" display="block">
         <TextInput
@@ -246,7 +279,6 @@ export default class AddExternalFeed extends React.Component {
             summary={I18n.t('Add External Feed')}
             onToggle={this.toggleOpenState}
             expanded={this.state.isOpen}
-            name="external-rss-feed__toggle"
           >
             <Dialog
               open={this.state.isOpen}
@@ -271,7 +303,10 @@ export default class AddExternalFeed extends React.Component {
   }
 }
 
-const connectState = state => ({isSaving: state.externalRssFeed.isSaving})
-const connectActions = dispatch =>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const connectState = (state: any): AddExternalFeedStateProps => ({
+  isSaving: state.externalRssFeed.isSaving,
+})
+const connectActions = (dispatch: any): AddExternalFeedDispatchProps =>
   bindActionCreators(select(actions, ['addExternalFeed']), dispatch)
 export const ConnectedAddExternalFeed = connect(connectState, connectActions)(AddExternalFeed)

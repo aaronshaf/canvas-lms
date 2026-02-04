@@ -18,7 +18,6 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import {func, arrayOf, bool} from 'prop-types'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
 
@@ -30,39 +29,43 @@ import {Spinner} from '@instructure/ui-spinner'
 import {IconXLine} from '@instructure/ui-icons'
 
 import actions from '../actions'
-import propTypes from '../propTypes'
+import type {RssFeed} from '../propTypes'
 import select from '@canvas/obj-select'
 
 import {Link} from '@instructure/ui-link'
 
 const I18n = createI18nScope('announcements_v2')
 
-export default class RSSFeedList extends React.Component {
-  static propTypes = {
-    feeds: arrayOf(propTypes.rssFeed),
-    hasLoadedFeed: bool,
-    getExternalFeeds: func.isRequired,
-    deleteExternalFeed: func.isRequired,
-    focusLastElement: func.isRequired,
-  }
+interface RSSFeedListOwnProps {
+  focusLastElement: () => void
+}
 
-  static defaultProps = {
-    feeds: [],
-    hasLoadedFeed: false,
-  }
+interface RSSFeedListStateProps {
+  feeds: RssFeed[]
+  hasLoadedFeed: boolean
+}
 
+interface RSSFeedListDispatchProps {
+  getExternalFeeds: () => void
+  deleteExternalFeed: (payload: {feedId: string}) => void
+}
+
+type RSSFeedListProps = RSSFeedListOwnProps & RSSFeedListStateProps & RSSFeedListDispatchProps
+
+export default class RSSFeedList extends React.Component<RSSFeedListProps> {
   componentDidMount() {
     if (!this.props.hasLoadedFeed) {
       this.props.getExternalFeeds()
     }
   }
 
-  deleteExternalFeed = (id, index) => {
+  deleteExternalFeed = (id: string, index: number) => {
     this.props.deleteExternalFeed({feedId: id})
     const previousIndex = index - 1
     const elFocus = index
       ? () => {
-          document.getElementById(`feed-row-${previousIndex}`).focus()
+          const element = document.getElementById(`feed-row-${previousIndex}`)
+          if (element) element.focus()
         }
       : this.props.focusLastElement
 
@@ -71,7 +74,7 @@ export default class RSSFeedList extends React.Component {
     }, 200)
   }
 
-  renderPostAddedText(numberOfPosts) {
+  renderPostAddedText(numberOfPosts: number) {
     return I18n.t(
       {
         zero: '%{count} posts added',
@@ -82,7 +85,8 @@ export default class RSSFeedList extends React.Component {
     )
   }
 
-  renderFeedRow({display_name, id, external_feed_entries_count = 0, url}, index) {
+  renderFeedRow(feed: RssFeed, index: number) {
+    const {display_name, id, external_feed_entries_count = 0, url} = feed
     return (
       <div
         key={id}
@@ -121,9 +125,7 @@ export default class RSSFeedList extends React.Component {
                     <IconXLine title={I18n.t('Delete %{feedName}', {feedName: display_name})} />
                   }
                   onClick={() => this.deleteExternalFeed(id, index)}
-                  offset="none"
                   size="small"
-                  placement="end"
                 />
               </Grid.Col>
             </Grid.Row>
@@ -156,11 +158,12 @@ export default class RSSFeedList extends React.Component {
   }
 }
 
-const connectState = state => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const connectState = (state: any): RSSFeedListStateProps => ({
   feeds: state.externalRssFeed.feeds,
   hasLoadedFeed: state.externalRssFeed.hasLoadedFeed,
 })
-const connectActions = dispatch =>
+const connectActions = (dispatch: any): RSSFeedListDispatchProps =>
   bindActionCreators(
     Object.assign(select(actions, ['getExternalFeeds', 'deleteExternalFeed'])),
     dispatch,
