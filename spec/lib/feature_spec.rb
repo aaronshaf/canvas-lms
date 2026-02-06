@@ -37,6 +37,7 @@ describe Feature do
                                                          "A" => Feature.new(feature: "A", applies_to: "Account", state: "on"),
                                                          "C" => Feature.new(feature: "C", applies_to: "Course", state: "off"),
                                                          "U" => Feature.new(feature: "U", applies_to: "User", state: "allowed"),
+                                                         "IU" => Feature.new(feature: "IU", applies_to: "InheritableUser", state: "allowed"),
                                                        })
   end
 
@@ -85,19 +86,29 @@ describe Feature do
       expect(feature.applies_to_object(t_course)).to be_falsey
       expect(feature.applies_to_object(t_user)).to be_truthy
     end
+
+    it "works for InheritableUser features" do
+      feature = Feature.definitions["IU"]
+      expect(feature.applies_to_object(t_site_admin)).to be_truthy
+      expect(feature.applies_to_object(t_root_account)).to be_truthy
+      expect(feature.applies_to_object(t_sub_account)).to be_falsey
+      expect(feature.applies_to_object(t_course)).to be_falsey
+      expect(feature.applies_to_object(t_user)).to be_truthy
+    end
   end
 
   describe "applicable_features" do
     it "works for Site Admin" do
-      expect(Feature.applicable_features(t_site_admin).map(&:feature).sort).to eql %w[A C RA SA U]
+      expect(Feature.applicable_features(t_site_admin).map(&:feature).sort).to eql %w[A C IU RA SA U]
     end
 
     it "works for RootAccounts" do
-      expect(Feature.applicable_features(t_root_account).map(&:feature).sort).to eql %w[A C RA]
+      expect(Feature.applicable_features(t_root_account).map(&:feature).sort).to eql %w[A C IU RA]
     end
 
     it "works for Accounts" do
       expect(Feature.applicable_features(t_sub_account).map(&:feature).sort).to eql %w[A C]
+      expect(Feature.applicable_features(t_sub_account).map(&:feature)).not_to include("IU")
     end
 
     it "works for Courses" do
@@ -105,7 +116,7 @@ describe Feature do
     end
 
     it "works for Users" do
-      expect(Feature.applicable_features(t_user).map(&:feature)).to eql %w[U]
+      expect(Feature.applicable_features(t_user).map(&:feature).sort).to eql %w[IU U]
     end
   end
 
@@ -115,6 +126,7 @@ describe Feature do
       expect(Feature.definitions["A"].locked?(nil)).to be_truthy
       expect(Feature.definitions["C"].locked?(nil)).to be_truthy
       expect(Feature.definitions["U"].locked?(nil)).to be_truthy
+      expect(Feature.definitions["IU"].locked?(nil)).to be_truthy
     end
 
     it "returns true in a lower context if the definition disallows override" do
@@ -122,6 +134,7 @@ describe Feature do
       expect(Feature.definitions["A"].locked?(t_site_admin)).to be_truthy
       expect(Feature.definitions["C"].locked?(t_site_admin)).to be_truthy
       expect(Feature.definitions["U"].locked?(t_site_admin)).to be_falsey
+      expect(Feature.definitions["IU"].locked?(t_site_admin)).to be_falsey
     end
   end
 
@@ -132,6 +145,7 @@ describe Feature do
       expect(Feature.definitions["A"].shadow?).to be_falsey
       expect(Feature.definitions["C"].shadow?).to be_falsey
       expect(Feature.definitions["U"].shadow?).to be_falsey
+      expect(Feature.definitions["IU"].shadow?).to be_falsey
     end
 
     context "when shadowed" do
@@ -202,6 +216,28 @@ describe Feature do
     it "enumerates User transitions" do
       fd = Feature.definitions["U"]
       expect(fd.default_transitions(t_user, "allowed")).to eql({ "off" => { "locked" => false }, "on" => { "locked" => false } })
+      expect(fd.default_transitions(t_user, "on")).to eql({ "off" => { "locked" => false } })
+      expect(fd.default_transitions(t_user, "off")).to eql({ "on" => { "locked" => false } })
+    end
+
+    it "enumerates InheritableUser transitions for site admin" do
+      fd = Feature.definitions["IU"]
+      expect(fd.default_transitions(t_site_admin, "allowed")).to eql({ "off" => { "locked" => false }, "on" => { "locked" => false }, "allowed_on" => { "locked" => false } })
+      expect(fd.default_transitions(t_site_admin, "allowed_on")).to eql({ "off" => { "locked" => false }, "on" => { "locked" => false }, "allowed" => { "locked" => false } })
+      expect(fd.default_transitions(t_site_admin, "on")).to eql({ "allowed" => { "locked" => false }, "off" => { "locked" => false }, "allowed_on" => { "locked" => false } })
+      expect(fd.default_transitions(t_site_admin, "off")).to eql({ "allowed" => { "locked" => false }, "on" => { "locked" => false }, "allowed_on" => { "locked" => false } })
+    end
+
+    it "enumerates InheritableUser transitions for root account" do
+      fd = Feature.definitions["IU"]
+      expect(fd.default_transitions(t_root_account, "allowed")).to eql({ "off" => { "locked" => false }, "on" => { "locked" => false }, "allowed_on" => { "locked" => false } })
+      expect(fd.default_transitions(t_root_account, "allowed_on")).to eql({ "off" => { "locked" => false }, "on" => { "locked" => false }, "allowed" => { "locked" => false } })
+      expect(fd.default_transitions(t_root_account, "on")).to eql({ "allowed" => { "locked" => false }, "off" => { "locked" => false }, "allowed_on" => { "locked" => false } })
+      expect(fd.default_transitions(t_root_account, "off")).to eql({ "allowed" => { "locked" => false }, "on" => { "locked" => false }, "allowed_on" => { "locked" => false } })
+    end
+
+    it "enumerates InheritableUser transitions for user" do
+      fd = Feature.definitions["IU"]
       expect(fd.default_transitions(t_user, "on")).to eql({ "off" => { "locked" => false } })
       expect(fd.default_transitions(t_user, "off")).to eql({ "on" => { "locked" => false } })
     end

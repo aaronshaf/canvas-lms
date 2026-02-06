@@ -144,7 +144,7 @@ class Feature
   STATE_DISABLED = "disabled"
 
   VALID_STATES = [STATE_ON, STATE_DEFAULT_OFF, STATE_DEFAULT_ON, STATE_HIDDEN, STATE_DISABLED].freeze
-  VALID_APPLIES_TO = %w[Course Account RootAccount User SiteAdmin].freeze
+  VALID_APPLIES_TO = %w[Course Account RootAccount User InheritableUser SiteAdmin].freeze
   VALID_ENVS = %i[development ci beta test production].freeze
   VALID_TYPES = %w[feature_option setting].freeze
 
@@ -202,6 +202,8 @@ class Feature
       object.is_a?(Course) || object.is_a?(Account)
     when "User"
       object.is_a?(User) || (object.is_a?(Account) && object.site_admin?)
+    when "InheritableUser"
+      object.is_a?(User) || (object.is_a?(Account) && object.root_account?)
     else
       false
     end
@@ -225,12 +227,14 @@ class Feature
       applicable_types << "Account"
       applicable_types << "Course"
       applicable_types << "RootAccount" if object.root_account?
+      applicable_types << "InheritableUser" if object.root_account?
       applicable_types << "User" if object.site_admin?
       applicable_types << "SiteAdmin" if object.site_admin?
     when Course
       applicable_types << "Course"
     when User
       applicable_types << "User"
+      applicable_types << "InheritableUser"
     end
     definitions.values.select { |fd| applicable_types.include?(fd.applies_to) && (type.nil? || fd.type == type) }
   end

@@ -45,6 +45,7 @@ describe FeatureFlags do
                                                          "hidden_root_opt_in_feature" => Feature.new(feature: "hidden_feature", applies_to: "Course", state: "hidden", root_opt_in: true),
                                                          "hidden_user_feature" => Feature.new(feature: "hidden_user_feature", applies_to: "User", state: "hidden"),
                                                          "shadow_feature" => Feature.new(feature: "shadow_feature", applies_to: "Course", state: "on", shadow: true),
+                                                         "inheritable_user_feature" => Feature.new(feature: "inheritable_user_feature", applies_to: "InheritableUser", state: "allowed"),
                                                          "disabled_feature" => Feature::DISABLED_FEATURE
                                                        })
     allow(analytics_service).to receive(:persist_feature_evaluation)
@@ -198,6 +199,28 @@ describe FeatureFlags do
         expect(t_user.lookup_feature_flag("user_feature").context).to eql t_user
         expect(t_user.feature_allowed?("user_feature")).to be_falsey
         expect(user_with_pseudonym(account: t_root_account).feature_allowed?("user_feature")).to be_truthy
+      end
+    end
+
+    context "inheritable_user flags" do
+      it "does not apply to courses" do
+        expect(t_course.lookup_feature_flag("inheritable_user_feature")).to be_nil
+      end
+
+      it "does not apply to sub-accounts" do
+        expect(t_sub_account.lookup_feature_flag("inheritable_user_feature")).to be_nil
+      end
+
+      it "returns the default flag at the root account context" do
+        expect(t_root_account.lookup_feature_flag("inheritable_user_feature")).to be_default
+      end
+
+      it "returns the default flag at the site admin context" do
+        expect(t_site_admin.lookup_feature_flag("inheritable_user_feature")).to be_default
+      end
+
+      it "returns the default flag at the user context" do
+        expect(t_user.lookup_feature_flag("inheritable_user_feature")).to be_default
       end
     end
 
