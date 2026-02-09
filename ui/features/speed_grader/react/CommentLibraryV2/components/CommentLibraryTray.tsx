@@ -74,7 +74,7 @@ export const CommentLibraryTray: React.FC<CommentLibraryTrayProps> = ({
     if (data?.legacyNode && 'commentBankItemsConnection' in data.legacyNode) {
       const conn = data.legacyNode.commentBankItemsConnection
       return {
-        comments: conn?.nodes?.filter(it => it !== null) ?? [],
+        comments: conn?.nodes?.filter((it): it is NonNullable<typeof it> => it !== null) ?? [],
         hasNextPage: conn?.pageInfo.hasNextPage ?? false,
         endCursor: conn?.pageInfo.endCursor ?? '',
       }

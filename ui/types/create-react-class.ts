@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 - present Instructure, Inc.
+ * Copyright (C) 2026 - present Instructure, Inc.
  *
  * This file is part of Canvas.
  *
@@ -16,22 +16,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react'
-import Lti2Permissions from '../Lti2Permissions'
-import {render, screen} from '@testing-library/react'
+declare module 'create-react-class' {
+  import type React from 'react'
 
-describe('Lti2Permissions', () => {
-  test('renders', () => {
-    const tool = {
-      app_id: 3,
-      app_type: 'Lti::ToolProxy',
-      description: null,
-      enabled: false,
-      installed_locally: true,
-      name: 'SomeTool',
-    }
-    render(<Lti2Permissions tool={tool} handleCancelLti2={vi.fn()} handleActivateLti2={vi.fn()} />)
-
-    expect(screen.getByText(/Would you like to enable this app\?/i)).toBeInTheDocument()
-  })
-})
+  export default function createReactClass<
+    P = Record<string, unknown>,
+    S = Record<string, unknown>,
+    T extends Record<string, unknown> = Record<string, unknown>,
+  >(spec: T & ThisType<React.Component<P, S> & T>): React.ComponentClass<P>
+}

@@ -71,4 +71,5 @@ export interface EditorToolInfo {
   width?: number
   use_tray?: boolean
   canvas_icon_class?: string
+  on_by_default?: boolean
 }
