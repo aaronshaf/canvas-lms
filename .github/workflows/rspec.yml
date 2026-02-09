@@ -1,0 +1,65 @@
+name: RSpec
+
+on:
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'lib/**'
+      - 'spec/**'
+      - 'config/**'
+      - 'Gemfile*'
+      - 'gems/**'
+      - '.github/workflows/rspec.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rspec:
+    name: RSpec Unit Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: canvas
+          POSTGRES_DB: canvas_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:alpine
+        ports: ['6379:6379']
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:canvas@localhost:5432/canvas_test
+      REDIS_URL: redis://localhost:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxmlsec1-dev libidn11-dev libicu-dev
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Database setup
+        run: |
+          bundle exec rake db:create db:schema:load
+
+      - name: Run RSpec
+        run: |
+          bundle exec rspec spec/models/ spec/lib/ \
+            --format progress \
+            --no-color
