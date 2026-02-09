@@ -57,7 +57,7 @@ describe('view of received content', () => {
 
   it('renders spinner while loading', async () => {
     server.use(
-      http.get('/api/v1/users/self/content_shares/received', async () => {
+      http.get('*/api/v1/users/self/content_shares/received*', async () => {
         await delay('infinite')
       }),
     )
@@ -66,7 +66,9 @@ describe('view of received content', () => {
   })
 
   it('hides spinner when not loading', async () => {
-    server.use(http.get('/api/v1/users/self/content_shares/received', () => HttpResponse.json([])))
+    server.use(
+      http.get('*/api/v1/users/self/content_shares/received*', () => HttpResponse.json([])),
+    )
     const {queryByText} = render(<ReceivedContentView />)
     await waitFor(() => {
       expect(queryByText(/loading/i)).not.toBeInTheDocument()
@@ -76,7 +78,7 @@ describe('view of received content', () => {
   it('displays table with successful retrieval and not loading', async () => {
     const shares = [assignmentShare]
     server.use(
-      http.get('/api/v1/users/self/content_shares/received', () => HttpResponse.json(shares)),
+      http.get('*/api/v1/users/self/content_shares/received*', () => HttpResponse.json(shares)),
     )
     const {getByText} = render(<ReceivedContentView />)
     await waitFor(() => {
@@ -85,7 +87,9 @@ describe('view of received content', () => {
   })
 
   it('displays a message instead of a table on an empty return', async () => {
-    server.use(http.get('/api/v1/users/self/content_shares/received', () => HttpResponse.json([])))
+    server.use(
+      http.get('*/api/v1/users/self/content_shares/received*', () => HttpResponse.json([])),
+    )
     const {queryByText, getByText} = render(<ReceivedContentView />)
     await waitFor(() => {
       expect(queryByText('Content shared by others to you')).toBeNull()
@@ -96,7 +100,7 @@ describe('view of received content', () => {
   it('raises an error on unsuccessful retrieval', async () => {
     server.use(
       http.get(
-        '/api/v1/users/self/content_shares/received',
+        '*/api/v1/users/self/content_shares/received*',
         () => new HttpResponse(null, {status: 500}),
       ),
     )
@@ -134,7 +138,7 @@ describe('view of received content', () => {
 
   it('shows pagination when the link header indicates there are multiple pages', async () => {
     server.use(
-      http.get('/api/v1/users/self/content_shares/received', () =>
+      http.get('*/api/v1/users/self/content_shares/received*', () =>
         HttpResponse.json([assignmentShare], {
           headers: {
             Link: '</api/v1/users/self/content_shares/received?page=5>; rel="last"',
@@ -157,7 +161,7 @@ describe('view of received content', () => {
   it('updates the current page when a page number is clicked', async () => {
     let requestedPage = null
     server.use(
-      http.get('/api/v1/users/self/content_shares/received', ({request}) => {
+      http.get('*/api/v1/users/self/content_shares/received*', ({request}) => {
         const url = new URL(request.url)
         requestedPage = url.searchParams.get('page')
         return HttpResponse.json([assignmentShare], {
@@ -181,8 +185,8 @@ describe('view of received content', () => {
   it('displays a preview modal when requested', async () => {
     const shares = [assignmentShare]
     server.use(
-      http.get('/api/v1/users/self/content_shares/received', () => HttpResponse.json(shares)),
-      http.put(`/api/v1/users/self/content_shares/${assignmentShare.id}`, () =>
+      http.get('*/api/v1/users/self/content_shares/received*', () => HttpResponse.json(shares)),
+      http.put(`*/api/v1/users/self/content_shares/${assignmentShare.id}`, () =>
         HttpResponse.json({read_state: 'read', id: unreadDiscussionShare.id}),
       ),
     )
@@ -202,8 +206,8 @@ describe('view of received content', () => {
   it('displays the import tray when requested', async () => {
     const shares = [assignmentShare]
     server.use(
-      http.get('/api/v1/users/self/content_shares/received', () => HttpResponse.json(shares)),
-      http.get('/users/self/manageable_courses', () => HttpResponse.json([])),
+      http.get('*/api/v1/users/self/content_shares/received*', () => HttpResponse.json(shares)),
+      http.get('*/users/self/manageable_courses', () => HttpResponse.json([])),
     )
     const {getByText, findByText, queryByRole} = render(<ReceivedContentView />)
     await waitFor(() => {
@@ -222,7 +226,7 @@ describe('view of received content', () => {
   it('announces when new shares are loaded', async () => {
     const shares = [assignmentShare]
     server.use(
-      http.get('/api/v1/users/self/content_shares/received', () => HttpResponse.json(shares)),
+      http.get('*/api/v1/users/self/content_shares/received*', () => HttpResponse.json(shares)),
     )
     const {getByText} = render(<ReceivedContentView />)
     await waitFor(() => {
@@ -235,8 +239,8 @@ describe('view of received content', () => {
 
     beforeEach(() => {
       server.use(
-        http.get('/api/v1/users/self/content_shares/received', () => HttpResponse.json(shares)),
-        http.put(`/api/v1/users/self/content_shares/${unreadDiscussionShare.id}`, () =>
+        http.get('*/api/v1/users/self/content_shares/received*', () => HttpResponse.json(shares)),
+        http.put(`*/api/v1/users/self/content_shares/${unreadDiscussionShare.id}`, () =>
           HttpResponse.json({read_state: 'read', id: unreadDiscussionShare.id}),
         ),
       )
@@ -245,7 +249,7 @@ describe('view of received content', () => {
     it('makes an update API call', async () => {
       let apiCalled = false
       server.use(
-        http.put(`/api/v1/users/self/content_shares/${unreadDiscussionShare.id}`, () => {
+        http.put(`*/api/v1/users/self/content_shares/${unreadDiscussionShare.id}`, () => {
           apiCalled = true
           return HttpResponse.json({read_state: 'read', id: unreadDiscussionShare.id})
         }),
@@ -288,9 +292,9 @@ describe('view of received content', () => {
     it('removes a content share when requested', async () => {
       const shares = [assignmentShare]
       server.use(
-        http.get('/api/v1/users/self/content_shares/received', () => HttpResponse.json(shares)),
+        http.get('*/api/v1/users/self/content_shares/received*', () => HttpResponse.json(shares)),
         http.delete(
-          `/api/v1/users/self/content_shares/${assignmentShare.id}`,
+          `*/api/v1/users/self/content_shares/${assignmentShare.id}`,
           () => new HttpResponse(null, {status: 200}),
         ),
       )
@@ -311,8 +315,8 @@ describe('view of received content', () => {
       const shares = [assignmentShare]
       let deleteCalled = false
       server.use(
-        http.get('/api/v1/users/self/content_shares/received', () => HttpResponse.json(shares)),
-        http.delete(`/api/v1/users/self/content_shares/${assignmentShare.id}`, () => {
+        http.get('*/api/v1/users/self/content_shares/received*', () => HttpResponse.json(shares)),
+        http.delete(`*/api/v1/users/self/content_shares/${assignmentShare.id}`, () => {
           deleteCalled = true
           return new HttpResponse(null, {status: 200})
         }),
@@ -335,9 +339,9 @@ describe('view of received content', () => {
     it('displays an error when the fetch fails', async () => {
       const shares = [assignmentShare]
       server.use(
-        http.get('/api/v1/users/self/content_shares/received', () => HttpResponse.json(shares)),
+        http.get('*/api/v1/users/self/content_shares/received*', () => HttpResponse.json(shares)),
         http.delete(
-          `/api/v1/users/self/content_shares/${assignmentShare.id}`,
+          `*/api/v1/users/self/content_shares/${assignmentShare.id}`,
           () => new HttpResponse(null, {status: 401}),
         ),
       )

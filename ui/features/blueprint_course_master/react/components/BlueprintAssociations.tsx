@@ -1,0 +1,227 @@
+/*
+ * Copyright (C) 2017 - present Instructure, Inc.
+ *
+ * This file is part of Canvas.
+ *
+ * Canvas is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, version 3 of the License.
+ *
+ * Canvas is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Affero General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+import {useScope as createI18nScope} from '@canvas/i18n'
+import $ from 'jquery'
+import {debounce} from 'es-toolkit/compat'
+import React from 'react'
+import PropTypes from 'prop-types'
+import {connect} from 'react-redux'
+import {bindActionCreators} from 'redux'
+import select from '@canvas/obj-select'
+import '@canvas/rails-flash-notifications'
+
+import {Text} from '@instructure/ui-text'
+import {Heading} from '@instructure/ui-heading'
+import {Spinner} from '@instructure/ui-spinner'
+import {Alert} from '@instructure/ui-alerts'
+import {PresentationContent} from '@instructure/ui-a11y-content'
+
+import CoursePicker from './CoursePicker'
+import AssociationsTable from './AssociationsTable'
+
+import actions from '@canvas/blueprint-courses/react/actions'
+import propTypes from '@canvas/blueprint-courses/react/propTypes'
+import FocusManager from '../focusManager'
+
+const I18n = createI18nScope('BlueprintAssociations')
+
+const {func, bool} = PropTypes
+
+export default class BlueprintAssociations extends React.Component {
+  static propTypes = {
+    loadCourses: func.isRequired,
+    addAssociations: func.isRequired,
+    removeAssociations: func.isRequired,
+
+    terms: propTypes.termList.isRequired,
+    subAccounts: propTypes.accountList.isRequired,
+    courses: propTypes.courseList.isRequired,
+    existingAssociations: propTypes.courseList.isRequired,
+    addedAssociations: propTypes.courseList.isRequired,
+    removedAssociations: propTypes.courseList.isRequired,
+
+    hasLoadedCourses: bool.isRequired,
+    isLoadingCourses: bool.isRequired,
+    isLoadingAssociations: bool.isRequired,
+    isSavingAssociations: bool.isRequired,
+    hasUnsyncedChanges: bool.isRequired,
+
+    isExpanded: bool,
+  }
+
+  static defaultProps = {
+    isExpanded: false,
+  }
+
+  componentDidMount() {
+    // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+    if (!this.props.hasLoadedCourses) {
+      // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+      this.props.loadCourses()
+    }
+  }
+
+  // @ts-expect-error TS7006 -- TypeScriptify (no 'any')
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+    if (!this.props.isSavingAssociations && nextProps.isSavingAssociations) {
+      $.screenReaderFlashMessage(I18n.t('Saving associations started'))
+    }
+
+    // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+    if (this.props.isSavingAssociations && !nextProps.isSavingAssociations) {
+      $.screenReaderFlashMessage(I18n.t('Saving associations complete'))
+
+      // when saving is done, reload courses in course picker
+      // this will remove courses we just associated from the picker
+      // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+      this.coursePicker.reloadCourses()
+    }
+  }
+
+  // @ts-expect-error TS7031 -- TypeScriptify (no 'any')
+  onSelectedChanged = ({added, removed}) => {
+    // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+    if (added.length) this.props.addAssociations(added)
+    // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+    if (removed.length) this.props.removeAssociations(removed)
+  }
+
+  focusManager = new FocusManager()
+
+  maybeRenderSyncWarning() {
+    // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+    const {hasUnsyncedChanges, existingAssociations, addedAssociations} = this.props
+    if (hasUnsyncedChanges && existingAssociations.length > 0 && addedAssociations.length > 0) {
+      return (
+        <Alert variant="warning" renderCloseButtonLabel={I18n.t('Close')} margin="0 0 large">
+          <p style={{margin: '0 -10px'}}>
+            <Text weight="bold">{I18n.t('Warning:')}</Text>&nbsp;
+            <Text>
+              {I18n.t(
+                'You have unsynced changes that will sync to all associated courses when a new association is saved.',
+              )}
+            </Text>
+          </p>
+        </Alert>
+      )
+    }
+
+    return null
+  }
+
+  renderLoadingOverlay() {
+    // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+    if (this.props.isSavingAssociations) {
+      const title = I18n.t('Saving Associations')
+      return (
+        <div className="bca__overlay">
+          <div className="bca__overlay__save-wrapper">
+            <Spinner renderTitle={title} />
+            <Text as="p">{title}</Text>
+          </div>
+        </div>
+      )
+    }
+
+    return null
+  }
+
+  render() {
+    return (
+      <div className="bca__wrapper">
+        {this.maybeRenderSyncWarning()}
+        {this.renderLoadingOverlay()}
+        <Heading level="h3">{I18n.t('Search Courses')}</Heading>
+        <br />
+        <div className="bca-course-associations">
+          <CoursePicker
+            ref={c => {
+              // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+              this.coursePicker = c
+            }}
+            // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+            courses={this.props.courses}
+            // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+            terms={this.props.terms}
+            // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+            subAccounts={this.props.subAccounts}
+            // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+            loadCourses={debounce(this.props.loadCourses, 200)}
+            // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+            isLoadingCourses={this.props.isLoadingCourses}
+            // @ts-expect-error TS2339,TS7006 -- TypeScriptify (no 'any')
+            selectedCourses={this.props.addedAssociations.map(course => course.id)}
+            onSelectedChanged={this.onSelectedChanged}
+            // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+            isExpanded={this.props.isExpanded}
+            detailsRef={this.focusManager.registerBeforeRef}
+          />
+          <PresentationContent>
+            <hr />
+          </PresentationContent>
+          <Heading level="h3">{I18n.t('Associated')}</Heading>
+          <AssociationsTable
+            // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+            existingAssociations={this.props.existingAssociations}
+            // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+            addedAssociations={this.props.addedAssociations}
+            // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+            removedAssociations={this.props.removedAssociations}
+            // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+            onRemoveAssociations={this.props.removeAssociations}
+            // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+            onRestoreAssociations={this.props.addAssociations}
+            // @ts-expect-error TS2339 -- TypeScriptify (no 'any')
+            isLoadingAssociations={this.props.isLoadingAssociations}
+            // @ts-expect-error TS2322,TS2339 -- TypeScriptify (no 'any')
+            handleFocusLoss={this.catchAssociationsFocus}
+            focusManager={this.focusManager}
+          />
+        </div>
+      </div>
+    )
+  }
+}
+
+// @ts-expect-error TS7006 -- TypeScriptify (no 'any')
+const connectState = state =>
+  Object.assign(
+    select(state, [
+      'existingAssociations',
+      'addedAssociations',
+      'removedAssociations',
+      'courses',
+      'terms',
+      'subAccounts',
+      'hasLoadedCourses',
+      'isLoadingCourses',
+      'isLoadingAssociations',
+      'isSavingAssociations',
+    ]),
+    {
+      hasUnsyncedChanges: !state.hasLoadedUnsyncedChanges || state.unsyncedChanges.length > 0,
+    },
+  )
+// @ts-expect-error TS7006 -- TypeScriptify (no 'any')
+const connectActions = dispatch => bindActionCreators(actions, dispatch)
+export const ConnectedBlueprintAssociations = connect(
+  connectState,
+  connectActions,
+)(BlueprintAssociations)

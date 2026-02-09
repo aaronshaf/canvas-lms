@@ -92,7 +92,6 @@ export const isTimeToCompleteCalendarDaysValid = (
     coursePace.selected_days_to_skip,
     blackoutDates,
     coursePace.start_date,
-    coursePace.course?.time_zone,
   )
 
   const endDateValue = moment.max(Object.values(paceDueDates).map(x => moment(x)))
@@ -113,7 +112,6 @@ export const getTimeToCompleteCalendarDaysFromItemsDuration = (
     coursePace.selected_days_to_skip,
     blackOutDates,
     coursePace.start_date,
-    coursePace.course?.time_zone,
   )
 
   const endDateValue = moment.max(Object.values(paceDueDates).map(x => moment(x)))
@@ -144,7 +142,6 @@ export const getTotalDurationFromTimeToComplete = (
     coursePace.exclude_weekends,
     coursePace.selected_days_to_skip,
     blackOutDaysObject,
-    coursePace.course?.time_zone,
   )
   const endDate = moment(coursePace.start_date).add(calendarDays, 'days').utc().endOf('day')
 

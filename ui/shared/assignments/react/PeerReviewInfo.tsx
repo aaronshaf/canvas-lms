@@ -86,9 +86,6 @@ interface AssignmentAttributes {
 
 export interface PeerReviewInfoProps {
   assignment: AssignmentAttributes
-  showDueDateLabel?: boolean
-  useDateOnly?: boolean
-  showAvailability?: boolean
 }
 
 const hasMultipleDates = (allDates?: DateInfo[]): boolean => {
@@ -183,17 +180,15 @@ const TooltipContent: React.FC<TooltipContentProps> = ({dates, type}: TooltipCon
 interface MultipleDatesLinkProps {
   tooltipContent: React.ReactNode
   linkHref?: string
-  linkText?: string
 }
 
 const MultipleDatesLink: React.FC<MultipleDatesLinkProps> = ({
   tooltipContent,
   linkHref,
-  linkText = I18n.t('Multiple Dates'),
 }: MultipleDatesLinkProps) => (
   <Tooltip renderTip={tooltipContent} on={['hover', 'focus']}>
     <Link href={linkHref || '#'} isWithinText={false}>
-      {linkText}
+      {I18n.t('Multiple Dates')}
     </Link>
   </Tooltip>
 )
@@ -205,7 +200,7 @@ interface DateSectionData {
   points_possible: number | null
   all_dates?: DateInfo[]
   availability_status?: AvailabilityStatusInfo
-  defaultDates?: DefaultDates | null
+  defaultDates?: DefaultDates
   singleSectionAvailability?: AvailabilityStatusInfo
 }
 
@@ -215,9 +210,6 @@ interface DateSectionProps {
   data: DateSectionData
   multipleDates: boolean
   htmlUrl: string
-  showDueDateLabel?: boolean
-  useDateOnly?: boolean
-  showAvailability?: boolean
 }
 
 const DateSection: React.FC<DateSectionProps> = ({
@@ -226,9 +218,6 @@ const DateSection: React.FC<DateSectionProps> = ({
   data,
   multipleDates,
   htmlUrl,
-  showDueDateLabel = true,
-  useDateOnly = false,
-  showAvailability = true,
 }: DateSectionProps) => {
   const defaultDates = data.defaultDates || {
     dueAt: data.due_at,
@@ -258,11 +247,11 @@ const DateSection: React.FC<DateSectionProps> = ({
     singleDueDate = defaultDates.dueAt
   }
 
-  const hasAvailabilityData = multipleDates || availability.status !== null
+  const showAvailability = multipleDates || availability.status !== null
   const showDueDate = multipleDates || singleDueDate !== null
   const showPoints = data.points_possible != null && data.points_possible > 0
 
-  if (!hasAvailabilityData && !showDueDate && !showPoints) {
+  if (!showAvailability && !showDueDate && !showPoints) {
     return null
   }
 
@@ -275,7 +264,7 @@ const DateSection: React.FC<DateSectionProps> = ({
       </View>{' '}
       {multipleDates ? (
         <>
-          {showAvailability && hasAvailabilityData && (
+          {showAvailability && (
             <View className="info-item">
               <Text size="x-small" weight="bold">
                 {I18n.t('Available')}
@@ -288,26 +277,19 @@ const DateSection: React.FC<DateSectionProps> = ({
           )}
           {showDueDate && (
             <View className="info-item">
-              {showDueDateLabel && (
-                <>
-                  <Text size="x-small" weight="bold">
-                    {I18n.t('Due')}
-                  </Text>{' '}
-                </>
-              )}
+              <Text size="x-small" weight="bold">
+                {I18n.t('Due')}
+              </Text>{' '}
               <MultipleDatesLink
                 tooltipContent={<TooltipContent dates={data.all_dates || []} type="due" />}
                 linkHref={htmlUrl}
-                linkText={
-                  showAvailability ? I18n.t('Multiple Dates') : I18n.t('Multiple Due Dates')
-                }
               />
             </View>
           )}
         </>
       ) : (
         <>
-          {showAvailability && availability.status === 'open' && availability.date && (
+          {availability.status === 'open' && availability.date && (
             <View className="info-item">
               <Text size="x-small" weight="bold">
                 {I18n.t('Available until')}
@@ -317,7 +299,7 @@ const DateSection: React.FC<DateSectionProps> = ({
               </Text>
             </View>
           )}
-          {showAvailability && availability.status === 'pending' && availability.date && (
+          {availability.status === 'pending' && availability.date && (
             <View className="info-item">
               <Text size="x-small" weight="bold">
                 {I18n.t('Not available until')}
@@ -327,7 +309,7 @@ const DateSection: React.FC<DateSectionProps> = ({
               </Text>
             </View>
           )}
-          {showAvailability && availability.status === 'closed' && (
+          {availability.status === 'closed' && (
             <View className="info-item">
               <Text size="x-small" weight="bold">
                 {I18n.t('Closed')}
@@ -336,18 +318,10 @@ const DateSection: React.FC<DateSectionProps> = ({
           )}
           {singleDueDate && (
             <View className="info-item">
-              {showDueDateLabel && (
-                <>
-                  <Text size="x-small" weight="bold">
-                    {I18n.t('Due')}
-                  </Text>{' '}
-                </>
-              )}
-              <Text size="x-small">
-                {useDateOnly
-                  ? dateString(singleDueDate, {timezone: ENV.TIMEZONE})
-                  : datetimeString(singleDueDate, {timezone: ENV.TIMEZONE})}
-              </Text>
+              <Text size="x-small" weight="bold">
+                {I18n.t('Due')}
+              </Text>{' '}
+              <Text size="x-small">{datetimeString(singleDueDate, {timezone: ENV.TIMEZONE})}</Text>
             </View>
           )}
         </>
@@ -366,26 +340,17 @@ const DateSection: React.FC<DateSectionProps> = ({
 interface AssignmentSectionProps {
   assignment: AssignmentAttributes
   multipleDates: boolean
-  showDueDateLabel?: boolean
-  useDateOnly?: boolean
-  showAvailability?: boolean
 }
 
 const AssignmentSection: React.FC<AssignmentSectionProps> = ({
   assignment,
   multipleDates,
-  showDueDateLabel = true,
-  useDateOnly = false,
-  showAvailability = true,
 }: AssignmentSectionProps) => (
   <DateSection
     label={I18n.t('Assignment:')}
     data={assignment}
     multipleDates={multipleDates}
     htmlUrl={assignment.html_url || '#'}
-    showDueDateLabel={showDueDateLabel}
-    useDateOnly={useDateOnly}
-    showAvailability={showAvailability}
   />
 )
 
@@ -393,18 +358,12 @@ interface PeerReviewSectionProps {
   peerReviewSub: PeerReviewSubAssignmentAttributes
   peerReviewCount: number
   htmlUrl: string
-  showDueDateLabel?: boolean
-  useDateOnly?: boolean
-  showAvailability?: boolean
 }
 
 const PeerReviewSection: React.FC<PeerReviewSectionProps> = ({
   peerReviewSub,
   peerReviewCount,
   htmlUrl,
-  showDueDateLabel = true,
-  useDateOnly = false,
-  showAvailability = true,
 }: PeerReviewSectionProps) => {
   const multipleDates = hasMultipleDates(peerReviewSub.all_dates)
   return (
@@ -415,9 +374,6 @@ const PeerReviewSection: React.FC<PeerReviewSectionProps> = ({
       )}
       className="peer-review-info"
       data={peerReviewSub}
-      showDueDateLabel={showDueDateLabel}
-      useDateOnly={useDateOnly}
-      showAvailability={showAvailability}
       multipleDates={multipleDates}
       htmlUrl={htmlUrl}
     />
@@ -426,9 +382,6 @@ const PeerReviewSection: React.FC<PeerReviewSectionProps> = ({
 
 export const PeerReviewInfo: React.FC<PeerReviewInfoProps> = ({
   assignment,
-  showDueDateLabel = true,
-  useDateOnly = false,
-  showAvailability = true,
 }: PeerReviewInfoProps) => {
   const peerReviewSub = assignment.peer_review_sub_assignment
 
@@ -442,20 +395,11 @@ export const PeerReviewInfo: React.FC<PeerReviewInfoProps> = ({
 
   return (
     <>
-      <AssignmentSection
-        assignment={assignment}
-        multipleDates={multipleDates}
-        showDueDateLabel={showDueDateLabel}
-        useDateOnly={useDateOnly}
-        showAvailability={showAvailability}
-      />
+      <AssignmentSection assignment={assignment} multipleDates={multipleDates} />
       <PeerReviewSection
         peerReviewSub={peerReviewSub}
         peerReviewCount={peerReviewCount}
         htmlUrl={htmlUrl}
-        showDueDateLabel={showDueDateLabel}
-        useDateOnly={useDateOnly}
-        showAvailability={showAvailability}
       />
     </>
   )

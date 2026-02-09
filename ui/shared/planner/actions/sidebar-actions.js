@@ -96,7 +96,7 @@ export const sidebarLoadInitialItems = (currentMoment, course_id) => (dispatch, 
       if (observed_user_id) {
         params.observed_user_id = observed_user_id
         if (!course_id) {
-          params.include = ['all_courses']
+          params.context_codes = getState().courses.map(c => c.assetString)
         }
       }
       const url = buildURL('/api/v1/planner/items', params)
