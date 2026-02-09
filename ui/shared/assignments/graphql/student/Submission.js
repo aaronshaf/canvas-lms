@@ -24,8 +24,8 @@ import {
 
 export const Submission = {
   fragment: gql`
-    fragment Submission on Submission {
-      ...SubmissionInterface
+    fragment StudentSubmission on Submission {
+      ...StudentSubmissionInterface
       _id
       id
       autoGradeResultPresent

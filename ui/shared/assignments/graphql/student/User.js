@@ -20,7 +20,7 @@ import {shape, string} from 'prop-types'
 
 export const SubmissionCommentAuthor = {
   fragment: gql`
-    fragment SubmissionCommentAuthor on User {
+    fragment StudentSubmissionCommentAuthor on User {
       avatarUrl
       shortName
     }

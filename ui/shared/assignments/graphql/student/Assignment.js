@@ -28,12 +28,12 @@ import {Submission} from './Submission'
 
 export const Assignment = {
   fragment: gql`
-    fragment Assignment on Assignment {
+    fragment StudentAssignment on Assignment {
       _id
       allowedAttempts
       allowedExtensions
       assignmentGroup {
-        ...AssignmentGroup
+        ...StudentAssignmentGroup
       }
       description
       dueAt
@@ -42,14 +42,14 @@ export const Assignment = {
       gradeGroupStudentsIndividually
       groupCategoryId
       groupSet {
-        ...GroupSet
+        ...StudentGroupSet
       }
       lockAt
       lockInfo {
-        ...LockInfo
+        ...StudentLockInfo
       }
       modules {
-        ...Module
+        ...StudentModule
       }
       name
       nonDigitalSubmission
@@ -97,7 +97,7 @@ export const AssignmentSubmissionsConnection = {
         filter: {states: [unsubmitted, graded, pending_review, submitted]}
       ) {
         nodes {
-          ...Submission
+          ...StudentSubmission
         }
       }
     }

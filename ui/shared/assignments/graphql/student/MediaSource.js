@@ -20,7 +20,7 @@ import {shape, string} from 'prop-types'
 
 export const MediaSource = {
   fragment: gql`
-    fragment MediaSource on MediaSource {
+    fragment StudentMediaSource on MediaSource {
       height
       src: url
       type: contentType

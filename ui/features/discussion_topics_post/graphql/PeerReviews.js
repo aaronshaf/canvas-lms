@@ -21,7 +21,7 @@ import {shape, string} from 'prop-types'
 
 export const PeerReviews = {
   fragment: gql`
-    fragment PeerReviews on PeerReviews {
+    fragment DiscussionPostPeerReviews on PeerReviews {
       dueAt
     }
   `,

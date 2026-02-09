@@ -21,7 +21,7 @@ import {gql} from '@apollo/client'
 
 export const ProficiencyRating = {
   fragment: gql`
-    fragment ProficiencyRating on ProficiencyRating {
+    fragment StudentProficiencyRating on ProficiencyRating {
       _id
       color
       description

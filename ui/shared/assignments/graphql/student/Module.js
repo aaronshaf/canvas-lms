@@ -20,7 +20,7 @@ import {shape, string} from 'prop-types'
 
 export const Module = {
   fragment: gql`
-    fragment Module on Module {
+    fragment StudentModule on Module {
       id
       name
     }

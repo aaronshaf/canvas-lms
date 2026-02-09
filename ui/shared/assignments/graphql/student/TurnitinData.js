@@ -21,7 +21,7 @@ import {number, shape, string} from 'prop-types'
 
 export const TurnitinData = {
   fragment: gql`
-    fragment TurnitinData on TurnitinData {
+    fragment StudentTurnitinData on TurnitinData {
       reportUrl
       score
       status

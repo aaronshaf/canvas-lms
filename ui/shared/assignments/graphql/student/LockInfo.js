@@ -20,7 +20,7 @@ import {gql} from '@apollo/client'
 
 export const LockInfo = {
   fragment: gql`
-    fragment LockInfo on LockInfo {
+    fragment StudentLockInfo on LockInfo {
       isLocked
     }
   `,

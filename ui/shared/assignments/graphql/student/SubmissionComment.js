@@ -23,17 +23,17 @@ import {SubmissionCommentAuthor} from './User'
 
 export const SubmissionComment = {
   fragment: gql`
-    fragment SubmissionComment on SubmissionComment {
+    fragment StudentSubmissionComment on SubmissionComment {
       _id
       attachments {
-        ...SubmissionCommentFile
+        ...StudentSubmissionCommentFile
       }
       author {
-        ...SubmissionCommentAuthor
+        ...StudentSubmissionCommentAuthor
       }
       comment
       mediaObject {
-        ...MediaObject
+        ...StudentMediaObject
       }
       read
       updatedAt
@@ -56,17 +56,17 @@ export const SubmissionComment = {
 
 export const SubmissionHtmlComment = {
   fragment: gql`
-    fragment SubmissionHtmlComment on SubmissionComment {
+    fragment StudentSubmissionHtmlComment on SubmissionComment {
       _id
       attachments {
-        ...SubmissionCommentFile
+        ...StudentSubmissionCommentFile
       }
       author {
-        ...SubmissionCommentAuthor
+        ...StudentSubmissionCommentAuthor
       }
       htmlComment
       mediaObject {
-        ...MediaObject
+        ...StudentMediaObject
       }
       read
       updatedAt

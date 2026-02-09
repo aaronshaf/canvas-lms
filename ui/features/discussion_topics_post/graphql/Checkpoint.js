@@ -22,7 +22,7 @@ import {arrayOf, bool, number, shape, string} from 'prop-types'
 
 export const Checkpoint = {
   fragment: gql`
-    fragment Checkpoint on Checkpoint {
+    fragment DiscussionPostCheckpoint on Checkpoint {
       name
       tag
       pointsPossible
@@ -30,7 +30,7 @@ export const Checkpoint = {
       onlyVisibleToOverrides
       assignmentOverrides {
         nodes {
-          ...AssignmentOverride
+          ...DiscussionPostAssignmentOverride
         }
       }
     }
