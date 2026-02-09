@@ -83,7 +83,7 @@ export const DELETE_DISCUSSION_ENTRY = gql`
   ${AnonymousUser.fragment}
 `
 export const UPDATE_DISCUSSION_TOPIC = gql`
-  mutation updateDiscussionTopic($discussionTopicId: ID!, $published: Boolean, $locked: Boolean) {
+  mutation updateDiscussionTopicPost($discussionTopicId: ID!, $published: Boolean, $locked: Boolean) {
     updateDiscussionTopic(
       input: {discussionTopicId: $discussionTopicId, published: $published, locked: $locked}
     ) {
@@ -222,7 +222,7 @@ export const UPDATE_DISCUSSION_READ_STATE = gql`
 
 export const UPDATE_SPLIT_SCREEN_VIEW_DEEPLY_NESTED_ALERT = gql`
   mutation UpdateSplitScreenViewDeeplyNestedAlert($splitScreenViewDeeplyNestedAlert: Boolean!) {
-    UpdateSplitScreenViewDeeplyNestedAlert(
+    updateSplitScreenViewDeeplyNestedAlert(
       input: {splitScreenViewDeeplyNestedAlert: $splitScreenViewDeeplyNestedAlert}
     ) {
       user {

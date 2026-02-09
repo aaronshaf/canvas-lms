@@ -38,7 +38,7 @@ export const AssignmentOverride = {
           students {
             _id
             id
-            name
+            studentName: name
           }
         }
         ... on Course {
@@ -59,7 +59,7 @@ export const AssignmentOverride = {
         }
         ... on Group {
           id
-          name
+          groupName: name
           nonCollaborative
           _id
         }

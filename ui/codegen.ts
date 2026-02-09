@@ -30,9 +30,6 @@ const config: CodegenConfig = {
     '!ui/**/Mocks.*',
     '!ui/features/context_modules_v2/**/*',
     '!ui/features/grade_summary/**/*',
-    // Temporarily re-excluded due to schema validation errors (to be fixed in separate commits)
-    '!ui/features/discussion_topic_edit_v2/graphql/**/*',
-    '!ui/features/discussion_topics_post/graphql/**/*',
     '!ui/shared/assignments/graphql/studentMocks.*',
     '!ui/shared/outcomes/react/treeBrowser.*',
   ],
