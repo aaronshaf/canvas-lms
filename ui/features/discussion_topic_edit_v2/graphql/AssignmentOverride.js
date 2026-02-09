@@ -38,20 +38,20 @@ export const AssignmentOverride = {
           students {
             _id
             id
-            name
+            studentName: name
           }
         }
         ... on Course {
           __typename
           id
-          name
+          courseName: name
           _id
         }
         ... on Section {
           __typename
           id
           _id
-          name
+          sectionName: name
         }
         ... on Noop {
           __typename
@@ -59,7 +59,7 @@ export const AssignmentOverride = {
         }
         ... on Group {
           id
-          name
+          groupName: name
           nonCollaborative
           _id
         }

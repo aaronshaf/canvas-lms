@@ -21,7 +21,7 @@ import {gql} from '@apollo/client'
 import {Attachment} from './Attachment'
 
 export const CREATE_DISCUSSION_TOPIC = gql`
-  mutation CreateDiscussionTopic(
+  mutation EditV2CreateDiscussionTopic(
     $contextId: ID!
     $contextType: DiscussionTopicContextType!
     $title: String
@@ -159,7 +159,7 @@ export const CREATE_DISCUSSION_TOPIC = gql`
 `
 
 export const UPDATE_DISCUSSION_TOPIC = gql`
-  mutation UpdateDiscussionTopic(
+  mutation EditV2UpdateDiscussionTopic(
     $discussionTopicId: ID!
     $title: String
     $message: String
@@ -294,31 +294,31 @@ export const UPDATE_DISCUSSION_TOPIC = gql`
 `
 
 export const CREATE_GROUP_CATEGORY = gql`
-  mutation CreateGroupCategory(
+  mutation EditV2CreateGroupSet(
     $contextId: ID!
-    $contextType: String!
-    $name: String
-    $selfSignup: String
-    $numberOfGroups: Int
-    $numberOfStudentsPerGroup: Int
-    $autoLeader: String
-    $randomlyAssignBySection: Boolean
-    $randomlyAssignSynchronously: Boolean
+    $contextType: GroupSetContextType!
+    $name: String!
+    $selfSignup: Boolean
+    $createGroupCount: Int
+    $createGroupMemberCount: Int
+    $autoLeaderType: AutoLeaderType
+    $groupBySection: Boolean
+    $assignAsync: Boolean
   ) {
-    createGroupCategory(
+    createGroupSet(
       input: {
         contextId: $contextId
         contextType: $contextType
         name: $name
         selfSignup: $selfSignup
-        numberOfGroups: $numberOfGroups
-        numberOfStudentsPerGroup: $numberOfStudentsPerGroup
-        autoLeader: $autoLeader
-        randomlyAssignBySection: $randomlyAssignBySection
-        randomlyAssignSynchronously: $randomlyAssignSynchronously
+        createGroupCount: $createGroupCount
+        createGroupMemberCount: $createGroupMemberCount
+        autoLeaderType: $autoLeaderType
+        groupBySection: $groupBySection
+        assignAsync: $assignAsync
       }
     ) {
-      groupCategory {
+      groupSet {
         _id
         id
       }
