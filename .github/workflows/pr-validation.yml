@@ -16,31 +16,39 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history so we can compare with base
 
       - name: Check file changes
         run: |
           echo "Files changed in this PR:"
-          git diff --name-only origin/${{ github.base_ref }}...HEAD
+          git diff --name-only origin/${{ github.base_ref }}...${{ github.sha }}
 
       - name: Validate ERB files
         run: |
           echo "Checking ERB syntax..."
           # Basic Ruby setup for ERB validation
-          sudo apt-get update
+          sudo apt-get update -qq
           sudo apt-get install -y ruby
 
           # Check ERB files for syntax errors
-          for file in $(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '\.erb$'); do
-            if [ -f "$file" ]; then
-              echo "Validating $file"
-              erb -x -T '-' "$file" | ruby -c || exit 1
-            fi
-          done
+          changed_erb_files=$(git diff --name-only origin/${{ github.base_ref }}...${{ github.sha }} | grep '\.erb$' || true)
+
+          if [ -n "$changed_erb_files" ]; then
+            echo "$changed_erb_files" | while read file; do
+              if [ -f "$file" ]; then
+                echo "Validating $file"
+                erb -x -T '-' "$file" | ruby -c || exit 1
+              fi
+            done
+          else
+            echo "No ERB files changed"
+          fi
 
       - name: Check for large files
         run: |
           echo "Checking for accidentally committed large files..."
-          git diff --name-only origin/${{ github.base_ref }}...HEAD | while read file; do
+          git diff --name-only origin/${{ github.base_ref }}...${{ github.sha }} | while read file; do
             if [ -f "$file" ]; then
               size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)
               if [ "$size" -gt 1048576 ]; then
