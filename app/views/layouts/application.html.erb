@@ -141,19 +141,25 @@
             </button>
           <% end %>
 
-          <div class="ic-app-crumbs <%= 'ic-app-crumbs-enhanced-rubrics' if @enhanced_rubrics_enabled %>">
-            <% if @context&.is_a?(Course) && @context.elementary_subject_course? %>
-              <%= link_to course_path(id: @context.id), :class => "btn k5-back-to-subject", :id => "back_to_subject" do %>
-                <i class="icon-arrow-open-left"></i> <%= t('Back to Subject') %>
-              <% end %>
-            <% elsif @context&.is_a?(Course) && @context.horizon_back_to_units_enabled? %>
-              <%= link_to course_path(id: @context.id), :class => "btn horizon-back-to-units", :id => "back_to_units" do %>
-                <i class="icon-arrow-open-left"></i> <%= t('Back to Units') %>
-              <% end %>
-            <% else %>
-              <%= render_crumbs %>
-            <% end %>
-          </div>
+	          <div class="ic-app-crumbs <%= 'ic-app-crumbs-enhanced-rubrics' if @enhanced_rubrics_enabled %>">
+	            <% if @context&.is_a?(Course) && @context.elementary_subject_course? %>
+	              <%= link_to(
+	                    safe_join([tag.i(class: "icon-arrow-open-left"), " ", t('Back to Subject')]),
+	                    course_path(id: @context.id),
+	                    :class => "btn k5-back-to-subject",
+	                    :id => "back_to_subject"
+	                  ) %>
+	            <% elsif @context&.is_a?(Course) && @context.horizon_back_to_units_enabled? %>
+	              <%= link_to(
+	                    safe_join([tag.i(class: "icon-arrow-open-left"), " ", t('Back to Units')]),
+	                    course_path(id: @context.id),
+	                    :class => "btn horizon-back-to-units",
+	                    :id => "back_to_units"
+	                  ) %>
+	            <% else %>
+	              <%= render_crumbs %>
+	            <% end %>
+	          </div>
 
           <% if @context&.is_a?(Course) && @context.elementary_subject_course? %>
             <span class="k5-heading-course-name"><%= @context.nickname_for(@current_user) %></span>
@@ -166,15 +172,20 @@
           <div class="right-of-crumbs right-of-crumbs-no-reverse">
             <% if (@context&.is_a?(Course) || @context&.is_a?(Assignment)) && @context_enrollment&.observer? %>
               <div id='observer-picker-mountpoint' style="margin: 3px;"></div>
-            <% end %>
-            <% if show_student_view_button? %>
-              <%= link_to course_student_view_path(course_id: @context, redirect_to_referer: 1), :class => "btn btn-top-nav", :id => "easy_student_view", :method => :post, :"aria-label" => student_view_text do %>
-                <i class="icon-student-view"></i> <%= student_view_text %>
-              <% end %>
-            <% end %>
-            <% if show_immersive_reader? %>
-              <div id="immersive_reader_mount_point"></div>
-            <% end %>
+	            <% end %>
+	            <% if show_student_view_button? %>
+	              <%= link_to(
+	                    safe_join([tag.i(class: "icon-student-view"), " ", student_view_text]),
+	                    course_student_view_path(course_id: @context, redirect_to_referer: 1),
+	                    :class => "btn btn-top-nav",
+	                    :id => "easy_student_view",
+	                    :method => :post,
+	                    :"aria-label" => student_view_text
+	                  ) %>
+	            <% end %>
+	            <% if show_immersive_reader? %>
+	              <div id="immersive_reader_mount_point"></div>
+	            <% end %>
             <%if @domain_root_account&.feature_enabled?(:top_navigation_placement) %>
               <div id="top-nav-tools-mount-point"></div>
             <% end %>

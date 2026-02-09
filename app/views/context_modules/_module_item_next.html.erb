@@ -173,7 +173,7 @@
             <div class="ig-details__item reply_to_entry_display"></div>
         <%end%>
         <div id="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-due-date" class="due_date_display ig-details__item"></div>
-        <% if module_item&.graded? && (!module_item.try_rescue(:assignment).restrict_quantitative_data?(@current_user, check_extra_permissions: true))%>
+        <% if module_item&.graded? && !module_item.try_rescue(:assignment).restrict_quantitative_data?(@current_user, check_extra_permissions: true)%>
           <div id="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-points" class="points_possible_display ig-details__item"></div>
         <%end%>
         <div id="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-requirement" class="requirement-description ig-details__item">
