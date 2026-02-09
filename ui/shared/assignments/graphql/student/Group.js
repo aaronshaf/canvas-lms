@@ -21,7 +21,7 @@ import {shape, string} from 'prop-types'
 
 export const Group = {
   fragment: gql`
-    fragment Group on Group {
+    fragment StudentGroup on Group {
       name
       id
       _id

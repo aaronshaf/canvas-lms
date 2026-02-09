@@ -28,7 +28,7 @@ import {Submission} from './Submission'
 
 export const Assignment = {
   fragment: gql`
-    fragment Assignment on Assignment {
+    fragment StudentAssignment on Assignment {
       _id
       allowedAttempts
       allowedExtensions
@@ -42,7 +42,7 @@ export const Assignment = {
       gradeGroupStudentsIndividually
       groupCategoryId
       groupSet {
-        ...GroupSet
+        ...StudentGroupSet
       }
       lockAt
       lockInfo {
@@ -91,7 +91,7 @@ export const Assignment = {
 
 export const AssignmentSubmissionsConnection = {
   fragment: gql`
-    fragment AssignmentSubmissionsConnection on Assignment {
+    fragment StudentAssignmentSubmissionsConnection on Assignment {
       submissionsConnection(
         last: 1
         filter: {states: [unsubmitted, graded, pending_review, submitted]}
