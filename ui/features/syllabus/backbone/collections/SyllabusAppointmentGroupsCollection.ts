@@ -1,0 +1,61 @@
+//
+// Copyright (C) 2012 - present Instructure, Inc.
+//
+// This file is part of Canvas.
+//
+// Canvas is free software: you can redistribute it and/or modify it under
+// the terms of the GNU Affero General Public License as published by the Free
+// Software Foundation, version 3 of the License.
+//
+// Canvas is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+// A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Affero General Public License along
+// with this program. If not, see <http://www.gnu.org/licenses/>.
+//
+
+import {each} from 'es-toolkit/compat'
+import PaginatedCollection from '@canvas/pagination/backbone/collections/PaginatedCollection'
+
+export default class SyllabusAppointmentGroupsCollection extends PaginatedCollection {
+  // @ts-expect-error
+  initialize(context_codes, scope = 'reservable') {
+    // @ts-expect-error
+    this.context_codes = context_codes
+    // @ts-expect-error
+    this.scope = scope
+    return super.initialize(...arguments)
+  }
+
+  fetch(options = {}) {
+    // @ts-expect-error
+    if (options.remove == null) options.remove = false
+
+    // @ts-expect-error
+    if (options.data == null) options.data = {}
+    // @ts-expect-error
+    options.data.scope = this.scope
+    // @ts-expect-error
+    options.data.context_codes = this.context_codes
+    // @ts-expect-error
+    if (options.data.include_past_appointments == null) {
+      // @ts-expect-error
+      options.data.include_past_appointments = '1'
+    }
+
+    return super.fetch(options)
+  }
+
+  // Overridden to make the id unique when aggregated in
+  // a collection with other models
+  // @ts-expect-error
+  parse(resp) {
+    // @ts-expect-error
+    each(super.parse(...arguments), ev => (ev.related_id = ev.id = `appointment_group_${ev.id}`))
+    return resp
+  }
+}
+// @ts-expect-error
+SyllabusAppointmentGroupsCollection.prototype.url = '/api/v1/appointment_groups'

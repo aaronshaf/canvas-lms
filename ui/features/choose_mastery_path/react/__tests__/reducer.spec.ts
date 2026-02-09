@@ -36,10 +36,17 @@ interface Action {
 }
 
 describe('Choose Mastery Path Reducer', () => {
-  const reduce = (action: Action, state = {}) => reducer(state as any, action)
+  const typedActions = actions as unknown as {
+    setError: (message: string) => Action
+    setOptions: (options: Option[]) => Action
+    SELECT_OPTION: string
+  }
+
+  // Reducer and actions are legacy JS; keep the tests strongly typed locally.
+  const reduce = (action: Action, state: unknown = {}) => reducer(state as never, action as never)
 
   test('sets error', () => {
-    const newState = reduce(actions.setError('ERROR'))
+    const newState = reduce(typedActions.setError('ERROR'))
     expect(newState.error).toBe('ERROR')
   })
 
@@ -56,12 +63,12 @@ describe('Choose Mastery Path Reducer', () => {
         ],
       },
     ]
-    const newState = reduce(actions.setOptions(options))
+    const newState = reduce(typedActions.setOptions(options))
     expect(newState.options).toEqual(options)
   })
 
   test('select option', () => {
-    const newState = reduce({type: actions.SELECT_OPTION, payload: 1})
+    const newState = reduce({type: typedActions.SELECT_OPTION, payload: 1})
     expect(newState.selectedOption).toBe(1)
   })
 })

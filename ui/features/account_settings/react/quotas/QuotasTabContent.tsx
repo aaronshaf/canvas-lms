@@ -20,20 +20,18 @@ import {Flex} from '@instructure/ui-flex'
 import DefaultAccountQuotas from './DefaultAccountQuotas'
 import ManuallySettableQuotas from './ManuallySettableQuotas'
 import {AccountWithQuotas} from './common'
-import {lazy, Suspense} from 'react'
+import {lazy, Suspense, type ComponentType} from 'react'
 import extensions from '@canvas/bundles/extensions'
 
-type Extensions = {
-  [key: string]: any
-}
-
 const SiteAdminQuotas = lazy(async () => {
-  const extension = (extensions as Extensions)['ui/features/account_settings/index.jsx']
+  const extension = (extensions as Record<string, unknown>)[
+    'ui/features/account_settings/index.jsx'
+  ]
   const EmptyComponent = () => <></>
 
-  if (extension) {
+  if (typeof extension === 'function') {
     try {
-      return await extension()
+      return await (extension as () => Promise<{default: ComponentType}>)()
     } catch (error) {
       console.error('Failed to load extension for ui/features/account_settings/index.jsx', error)
       return {default: EmptyComponent}

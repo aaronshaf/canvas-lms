@@ -1,0 +1,79 @@
+diff --git a/node_modules/dependency-cruiser/src/cli/utl/assert-file-existence.mjs b/node_modules/dependency-cruiser/src/cli/utl/assert-file-existence.mjs
+index 31f15fe..1dd3d53 100644
+--- a/node_modules/dependency-cruiser/src/cli/utl/assert-file-existence.mjs
++++ b/node_modules/dependency-cruiser/src/cli/utl/assert-file-existence.mjs
+@@ -1,7 +1,7 @@
+-import { accessSync, R_OK } from "node:fs";
++import { accessSync, constants } from "node:fs";
+ 
+ export default function assertFileExistence(pDirectoryOrFile) {
+   try {
+-    accessSync(pDirectoryOrFile, R_OK);
++    accessSync(pDirectoryOrFile, constants.R_OK);
+   } catch (pError) {
+     throw new Error(
+       `Can't open '${pDirectoryOrFile}' for reading. Does it exist?\n`,
+     );
+   }
+ }
+diff --git a/node_modules/dependency-cruiser/src/cli/normalize-cli-options.mjs b/node_modules/dependency-cruiser/src/cli/normalize-cli-options.mjs
+index f6a17fb..a0f858a 100644
+--- a/node_modules/dependency-cruiser/src/cli/normalize-cli-options.mjs
++++ b/node_modules/dependency-cruiser/src/cli/normalize-cli-options.mjs
+@@ -1,4 +1,4 @@
+-import { accessSync, R_OK } from "node:fs";
++import { accessSync, constants } from "node:fs";
+ import { isAbsolute } from "node:path";
+ import {
+   RULES_FILE_NAME_SEARCH_ARRAY,
+@@ -43,7 +43,7 @@ function normalizeConfigFileName(pCliOptions, pConfigWrapperName, pDefault) {
+ function fileExists(pFileName) {
+   try {
+-    accessSync(pFileName, R_OK);
++    accessSync(pFileName, constants.R_OK);
+     return true;
+   } catch (pError) {
+     return false;
+diff --git a/node_modules/dependency-cruiser/src/cli/init-config/environment-helpers.mjs b/node_modules/dependency-cruiser/src/cli/init-config/environment-helpers.mjs
+index 027b3c1..2c7d650 100644
+--- a/node_modules/dependency-cruiser/src/cli/init-config/environment-helpers.mjs
++++ b/node_modules/dependency-cruiser/src/cli/init-config/environment-helpers.mjs
+@@ -1,4 +1,10 @@
+-import { readFileSync, readdirSync, accessSync, statSync, R_OK } from "node:fs";
++import {
++  readFileSync,
++  readdirSync,
++  accessSync,
++  statSync,
++  constants,
++} from "node:fs";
+ import { join } from "node:path";
+ import { DEFAULT_CONFIG_FILE_NAME } from "../defaults.mjs";
+ 
+@@ -31,7 +37,7 @@ export function fileExists(pFile) {
+ export function fileExists(pFile) {
+   try {
+-    accessSync(pFile, R_OK);
++    accessSync(pFile, constants.R_OK);
+   } catch (pError) {
+     return false;
+   }
+diff --git a/node_modules/dependency-cruiser/src/extract/resolve/resolve-amd.mjs b/node_modules/dependency-cruiser/src/extract/resolve/resolve-amd.mjs
+index b16689f..c8a1ec3 100644
+--- a/node_modules/dependency-cruiser/src/extract/resolve/resolve-amd.mjs
++++ b/node_modules/dependency-cruiser/src/extract/resolve/resolve-amd.mjs
+@@ -1,4 +1,4 @@
+-import { accessSync, R_OK } from "node:fs";
++import { accessSync, constants } from "node:fs";
+ import { relative, join } from "node:path";
+ import memoize, { memoizeClear } from "memoize";
+ import { isBuiltin } from "./is-built-in.mjs";
+@@ -6,7 +6,7 @@ import pathToPosix from "#utl/path-to-posix.mjs";
+ 
+ const fileExists = memoize((pFile) => {
+   try {
+-    accessSync(pFile, R_OK);
++    accessSync(pFile, constants.R_OK);
+   } catch (pError) {
+     return false;
+   }

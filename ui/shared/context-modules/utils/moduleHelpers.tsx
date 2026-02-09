@@ -158,9 +158,12 @@ export function addEmptyModuleUI(module: HTMLElement) {
     module_dnd.reactRoot = createRoot(module_dnd)
   }
 
+  const courseId = ENV.course_id
+  if (!courseId) return
+
   module_dnd.reactRoot.render(
     <ModuleFileDrop
-      courseId={ENV.course_id}
+      courseId={courseId}
       moduleId={moduleId}
       contextModules={contextModules}
       moduleName={moduleName}
