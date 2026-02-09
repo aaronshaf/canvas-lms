@@ -27,4 +27,8 @@ describe('elideString', () => {
     const filename: string = 'c'.repeat(21)
     expect(elideString(filename)).toMatch(filename)
   })
+
+  it('handles empty strings', () => {
+    expect(elideString('')).toBe('')
+  })
 })
