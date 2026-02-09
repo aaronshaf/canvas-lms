@@ -30,43 +30,54 @@ class NewUserTutorialToggleButton extends React.Component {
     store: PropTypes.shape(plainStoreShape).isRequired,
   }
 
+  // @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
   constructor(props) {
     super(props)
     this.state = props.store.getState()
   }
 
   componentDidMount() {
+    // @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
     this.props.store.addChangeListener(this.handleStoreChange)
   }
 
   componentWillUnmount() {
+    // @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
     this.props.store.removeChangeListener(this.handleStoreChange)
   }
 
   focus() {
+    // @ts-expect-error -- TS migration: instance ref is untyped; keep runtime behavior unchanged.
     this.button.focus()
   }
 
   handleStoreChange = () => {
+    // @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
     this.setState(this.props.store.getState())
   }
 
+  // @ts-expect-error -- TS migration: event is untyped; keep runtime behavior unchanged.
   handleButtonClick = event => {
     event.preventDefault()
 
+    // @ts-expect-error -- TS migration: props/state are untyped; keep runtime behavior unchanged.
     this.props.store.setState({
+      // @ts-expect-error -- TS migration: state is untyped; keep runtime behavior unchanged.
       isCollapsed: !this.state.isCollapsed,
     })
   }
 
   render() {
+    // @ts-expect-error -- TS migration: state is untyped; keep runtime behavior unchanged.
     const isCollapsed = this.state.isCollapsed
 
     return (
       <IconButton
         ref={c => {
+          // @ts-expect-error -- TS migration: instance ref is untyped; keep runtime behavior unchanged.
           this.button = c
         }}
+        /* @ts-expect-error -- TS migration: InstUI typings differ; keep runtime behavior unchanged. */
         variant="icon"
         id="new_user_tutorial_toggle"
         onClick={this.handleButtonClick}

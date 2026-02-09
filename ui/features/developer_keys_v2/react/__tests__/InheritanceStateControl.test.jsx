@@ -17,11 +17,13 @@
  */
 
 import React from 'react'
-import {screen, render, fireEvent, waitFor} from '@testing-library/react'
+import {screen, render, waitFor} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import storeCreator from '../store/store'
 import actions from '../actions/developerKeysActions'
 import InheritanceStateControl from '../InheritanceStateControl'
 import {confirm as confirmDialog} from '@canvas/instui-bindings/react/Confirm'
+import axios from '@canvas/axios'
 import $ from 'jquery'
 
 vi.mock('@canvas/instui-bindings/react/Confirm')
@@ -31,6 +33,9 @@ beforeEach(() => {
   $.flashError = vi.fn()
   $.flashMessage = vi.fn()
   $.flashWarning = vi.fn()
+
+  // Avoid test-order coupling: a previous test may have changed the Confirm mock.
+  confirmDialog.mockReset()
 })
 
 const sampleDeveloperKey = (defaults = {}) => {
@@ -149,6 +154,13 @@ describe('InheritanceStateControl', () => {
         account_owns_binding: true,
       },
     })
+    vi.spyOn(axios, 'post').mockResolvedValue({
+      data: {
+        developer_key_id: key.id,
+        workflow_state: 'off',
+        account_owns_binding: true,
+      },
+    })
     const store = storeCreator({
       listDeveloperKeys: {
         list: [key],
@@ -157,9 +169,9 @@ describe('InheritanceStateControl', () => {
 
     renderInheritanceStateControl(key, store, 'site_admin')
 
-    const item = screen.getByText('Off')
-
-    fireEvent.click(item)
+    // Click the actual radio input instead of the label text. The label markup can
+    // vary across InstUI versions and lead to non-deterministic clicks.
+    await userEvent.click(screen.getByDisplayValue('off'))
 
     await waitFor(() => {
       const updatedDevKey = store.getState().listDeveloperKeys.list[0]
@@ -187,13 +199,23 @@ describe('InheritanceStateControl', () => {
   it('updates the state when the Checkbox is clicked', async () => {
     confirmDialog.mockImplementation(() => Promise.resolve(true))
     const {key, store} = createStoreAndDevKey()
+    vi.spyOn(axios, 'post').mockResolvedValue({
+      data: {
+        developer_key_id: key.id,
+        workflow_state: 'off',
+        account_owns_binding: true,
+      },
+    })
 
     renderInheritanceStateControl(key, store)
 
     const item = screen.getByRole('checkbox')
     expect(item.checked).toBe(true)
 
-    fireEvent.click(item)
+    // InstUI toggles can rely on a full click sequence; userEvent is more realistic
+    // than fireEvent and avoids flake under shard ordering.
+    const user = userEvent.setup()
+    await user.click(item)
 
     await waitFor(() => {
       const updatedDevKey = store.getState().listDeveloperKeys.list[0]
@@ -209,7 +231,8 @@ describe('InheritanceStateControl', () => {
 
     const item = document.querySelector('input[type="checkbox"]:checked')
 
-    fireEvent.click(item)
+    const user = userEvent.setup()
+    await user.click(item)
 
     // It's hard to test "wait for nothing to happen", so just
     // wait a bit and make sure nothing's changed. This seems to be

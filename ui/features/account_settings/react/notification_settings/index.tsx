@@ -220,17 +220,21 @@ export default function NotificationSettings(props: NotificationSettingsProps): 
       if (customNameInputElement.current) customNameInputElement.current.focus()
       return
     }
-    const formData = new FormData()
-    formData.append('account[settings][external_notification_warning]', externalWarning ? '1' : '0')
-    formData.append('account[settings][outgoing_email_default_name_option]', customNameOption)
+    // Prefer URL-encoded form data over `FormData` here:
+    // - This endpoint expects traditional form semantics (Rails params).
+    // - It avoids realm-specific FormData serialization issues in Node/jsdom tests.
+    const body = new URLSearchParams()
+    body.append('account[settings][external_notification_warning]', externalWarning ? '1' : '0')
+    body.append('account[settings][outgoing_email_default_name_option]', customNameOption)
     if (customNameOption === 'custom')
-      formData.append('account[settings][outgoing_email_default_name]', customName!)
+      body.append('account[settings][outgoing_email_default_name]', customName!)
     setUpdateButtonDisabled('disabled')
     try {
       const _response = await doFetchApi({
         method: 'PUT',
         path: `/accounts/${props.accountId}`,
-        body: formData,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+        body: body.toString(),
       })
       // XXX We'd normally just stay on this page and continue to manage the settings state,
       // but because for now this is just a portal inside a much larger ERB-rendered settings

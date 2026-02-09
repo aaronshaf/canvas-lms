@@ -132,7 +132,9 @@ export const defaultProps = {
 }
 
 // API URLs
-export const FETCH_IMPORTANT_INFO_URL = encodeURI('/api/v1/courses/30?include[]=syllabus_body')
+// Match both relative and absolute URLs, and both encoded and unencoded `include[]` syntax.
+export const FETCH_IMPORTANT_INFO_URL =
+  /\/api\/v1\/courses\/30\?include(?:%5B%5D|\[\])=syllabus_body$/
 export const FETCH_APPS_URL =
   '/api/v1/external_tools/visible_course_nav_tools?context_codes[]=course_30'
 export const FETCH_TABS_URL = '/api/v1/courses/30/tabs'

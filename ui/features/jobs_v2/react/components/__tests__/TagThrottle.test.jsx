@@ -23,13 +23,19 @@ import TagThrottle from '../TagThrottle'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 
-// Mock the debounce hook to avoid timer issues
-vi.mock('@canvas/search-item-selector/react/hooks/useDebouncedSearchTerm', () => ({
-  default: (initialValue) => ({
-    searchTerm: initialValue,
-    setSearchTerm: vi.fn(),
-  }),
-}))
+// Mock the debounce hook to avoid timer issues while still behaving like a real hook.
+// If we return a fixed `searchTerm`, the component never re-renders and requests won't fire.
+vi.mock('@canvas/search-item-selector/react/hooks/useDebouncedSearchTerm', async () => {
+  const {useState} = await import('react')
+
+  function useDebouncedSearchTermMock(initialValue) {
+    const [searchTerm, setSearchTerm] = useState(initialValue)
+    return {searchTerm, setSearchTerm}
+  }
+  return {
+    default: useDebouncedSearchTermMock,
+  }
+})
 
 const server = setupServer()
 
@@ -52,7 +58,7 @@ describe('TagThrottle', () => {
   beforeAll(() => {
     server.listen()
     server.use(
-      http.get('/api/v1/jobs2/throttle/check', ({request}) => {
+      http.get('*/api/v1/jobs2/throttle/check', ({request}) => {
         const url = new URL(request.url)
         const shardId = url.searchParams.get('shard_id')
         if (shardId) {
@@ -61,7 +67,7 @@ describe('TagThrottle', () => {
           return HttpResponse.json({matched_jobs: 27, matched_tags: 3})
         }
       }),
-      http.put('/api/v1/jobs2/throttle', () =>
+      http.put('*/api/v1/jobs2/throttle', () =>
         HttpResponse.json({new_strand: 'tmp_strand_XXX', job_count: 27}),
       ),
     )
@@ -83,12 +89,12 @@ describe('TagThrottle', () => {
     let requestMade = false
     let requestParams = null
     server.use(
-      http.get('/api/v1/jobs2/throttle/check', ({request}) => {
+      http.get('*/api/v1/jobs2/throttle/check', ({request}) => {
         requestMade = true
         const url = new URL(request.url)
         requestParams = {
-          term: url.searchParams.get('term'),
-          shard_id: url.searchParams.get('shard_id'),
+          term: url.searchParams.get('term') || '',
+          shard_id: url.searchParams.get('shard_id') || '',
         }
         const shardId = url.searchParams.get('shard_id')
         if (shardId) {
@@ -114,11 +120,11 @@ describe('TagThrottle', () => {
     let lastCheckRequestParams = null
     let throttleRequestParams = null
     server.use(
-      http.get('/api/v1/jobs2/throttle/check', ({request}) => {
+      http.get('*/api/v1/jobs2/throttle/check', ({request}) => {
         const url = new URL(request.url)
         lastCheckRequestParams = {
-          term: url.searchParams.get('term'),
-          shard_id: url.searchParams.get('shard_id'),
+          term: url.searchParams.get('term') || '',
+          shard_id: url.searchParams.get('shard_id') || '',
         }
         const shardId = url.searchParams.get('shard_id')
         if (shardId) {
@@ -127,12 +133,12 @@ describe('TagThrottle', () => {
           return HttpResponse.json({matched_jobs: 27, matched_tags: 3})
         }
       }),
-      http.put('/api/v1/jobs2/throttle', ({request}) => {
+      http.put('*/api/v1/jobs2/throttle', ({request}) => {
         const url = new URL(request.url)
         throttleRequestParams = {
-          term: url.searchParams.get('term'),
-          shard_id: url.searchParams.get('shard_id'),
-          max_concurrent: url.searchParams.get('max_concurrent'),
+          term: url.searchParams.get('term') || '',
+          shard_id: url.searchParams.get('shard_id') || '',
+          max_concurrent: url.searchParams.get('max_concurrent') || '',
         }
         return HttpResponse.json({new_strand: 'tmp_strand_XXX', job_count: 27})
       }),
@@ -155,7 +161,9 @@ describe('TagThrottle', () => {
     })
     await user.click(getByText('Throttle Jobs', {selector: 'button span'}))
 
-    await waitFor(() => expect(throttleRequestParams).toEqual({term: 'foo', shard_id: '', max_concurrent: '2'}))
+    await waitFor(() =>
+      expect(throttleRequestParams).toEqual({term: 'foo', shard_id: '', max_concurrent: '2'}),
+    )
     expect(onUpdate).toHaveBeenCalledWith({
       job_count: 27,
       new_strand: 'tmp_strand_XXX',

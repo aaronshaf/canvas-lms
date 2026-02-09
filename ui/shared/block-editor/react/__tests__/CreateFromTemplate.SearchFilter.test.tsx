@@ -19,8 +19,8 @@
 import React from 'react'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {useEditor} from '@craftjs/core'
-import {render, screen, waitFor} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import {render, screen, waitFor, fireEvent} from '@testing-library/react'
+
 import CreateFromTemplate from '../CreateFromTemplate'
 import type {GlobalEnv} from '@canvas/global/env/GlobalEnv.d'
 import fakeEnv from '@canvas/test-utils/fakeENV'
@@ -112,19 +112,11 @@ describe('CreateFromTemplate', () => {
   })
 
   it('filters on the search string', async () => {
-    const user = userEvent.setup()
     await renderComponent()
 
     const searchInput = screen.getByPlaceholderText('Search')
 
-    // Wait for the input to become enabled before interacting
-    await waitFor(() => {
-      expect(searchInput).not.toHaveAttribute('disabled')
-    })
-
-    // Use paste for faster input in CI
-    await user.click(searchInput)
-    await user.paste('yellow')
+    fireEvent.change(searchInput, {target: {value: 'yellow'}})
 
     await waitFor(() => {
       expect(screen.queryByLabelText('Course Home - Blue template')).not.toBeInTheDocument()

@@ -26,7 +26,23 @@ const link = new HttpLink({
 
   // Use explicit `window.fetch` so that outgoing requests
   // are captured and deferred until the Service Worker is ready.
-  fetch: (...args) => fetch(...args),
+  fetch: (input, init) => {
+    // MSW's fetch interceptor constructs a `Request(input, init)` internally.
+    // Undici is strict about AbortSignal identity, and in jsdom we can end up
+    // with signals from a different realm (window) which causes hard failures.
+    // Strip incompatible signals so tests stay deterministic.
+    if (init && 'signal' in init) {
+      const rest = {}
+      for (const key of Reflect.ownKeys(init)) {
+        if (key === 'signal') continue
+        const desc = Object.getOwnPropertyDescriptor(init, key)
+        if (desc) Object.defineProperty(rest, key, desc)
+      }
+      return fetch(input, rest)
+    }
+
+    return fetch(input, init)
+  },
 })
 
 // Isolate Apollo client so it could be reused

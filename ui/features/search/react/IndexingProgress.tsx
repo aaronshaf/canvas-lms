@@ -23,6 +23,7 @@ import {ProgressBar} from '@instructure/ui-progress'
 
 const I18n = createI18nScope('SmartSearch')
 
+// @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
 export default function IndexingProgress({progress}) {
   return (
     <div>

@@ -26,35 +26,12 @@ import {usePageState} from '../usePageState'
   current_user_id: 'test-user',
 }
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {}
-
-  return {
-    getItem: vi.fn((key: string) => store[key] || null),
-    setItem: vi.fn((key: string, value: string) => {
-      store[key] = value.toString()
-    }),
-    removeItem: vi.fn((key: string) => {
-      delete store[key]
-    }),
-    clear: vi.fn(() => {
-      store = {}
-    }),
-  }
-})()
-
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-})
-
 describe('usePageState', () => {
   const moduleId = 'test-module-123'
   const actualStorageKey = '_mperf_test-account_test-user_test-course_test-module-123'
 
   beforeEach(() => {
-    localStorageMock.clear()
-    vi.clearAllMocks()
+    localStorage.clear()
   })
 
   it('initializes with page 1 when no stored value exists', () => {
@@ -65,7 +42,7 @@ describe('usePageState', () => {
   })
 
   it('initializes with stored page value when it exists', () => {
-    localStorageMock.setItem(actualStorageKey, JSON.stringify({p: '3'}))
+    localStorage.setItem(actualStorageKey, JSON.stringify({p: '3'}))
 
     const {result} = renderHook(() => usePageState(moduleId))
     const [pageIndex] = result.current
@@ -83,14 +60,11 @@ describe('usePageState', () => {
 
     const [newPageIndex] = result.current
     expect(newPageIndex).toBe(2)
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      actualStorageKey,
-      JSON.stringify({p: '2'}),
-    )
+    expect(localStorage.getItem(actualStorageKey)).toBe(JSON.stringify({p: '2'}))
   })
 
   it('handles invalid stored page numbers gracefully', () => {
-    localStorageMock.setItem(actualStorageKey, JSON.stringify({p: 'invalid'}))
+    localStorage.setItem(actualStorageKey, JSON.stringify({p: 'invalid'}))
 
     const {result} = renderHook(() => usePageState(moduleId))
     const [pageIndex] = result.current
@@ -99,20 +73,21 @@ describe('usePageState', () => {
   })
 
   describe('error handling', () => {
-    let originalError: any
+    let originalSetItem: Storage['setItem']
+
     beforeEach(() => {
-      originalError = window.onerror
+      originalSetItem = localStorage.setItem
       console.error = () => {}
     })
 
     afterEach(() => {
-      console.error = originalError
+      localStorage.setItem = originalSetItem
     })
 
     it('handles localStorage errors gracefully', () => {
-      localStorageMock.setItem.mockImplementationOnce(() => {
+      localStorage.setItem = () => {
         throw new Error('Storage error')
-      })
+      }
 
       const {result} = renderHook(() => usePageState(moduleId))
       const [, setPageIndex] = result.current

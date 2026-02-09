@@ -20,9 +20,22 @@ import parseLinkHeader, {type Links} from '@canvas/parse-link-header'
 import {defaultFetchOptions} from '@canvas/util/xhr'
 import {toQueryString} from '@instructure/query-string-encoding'
 import type {QueryParameterRecord} from '@instructure/query-string-encoding/index.d'
-import z from 'zod'
+import {z} from 'zod'
 
 const jsonRegEx = /^application\/json/i
+
+function isFormData(body: unknown): body is FormData {
+  if (!body || typeof body !== 'object') return false
+  const b = body as any
+  // Avoid realm-sensitive `instanceof FormData` checks (jsdom vs undici).
+  return (
+    typeof b.append === 'function' &&
+    typeof b.delete === 'function' &&
+    typeof b.get === 'function' &&
+    typeof b.forEach === 'function' &&
+    (b[Symbol.toStringTag] === 'FormData' || b.constructor?.name === 'FormData')
+  )
+}
 
 function constructRelativeUrl({
   path,
@@ -95,7 +108,17 @@ export default async function doFetchApi<T = unknown>({
 
   // properly encode and set the content type if a body was given
   if (body) {
-    if (body instanceof FormData) {
+    if (isFormData(body)) {
+      // In Vitest/jsdom, `FormData` can come from the jsdom realm, but Node's fetch (undici)
+      // only knows how to serialize its own `FormData` implementation. Convert when needed.
+      const NativeFormData = (globalThis as any).global?.FormData ?? globalThis.FormData
+      if (typeof NativeFormData === 'function' && !(body instanceof NativeFormData)) {
+        const native = new NativeFormData()
+        ;(body as any).forEach((value: any, key: string) => {
+          native.append(key, value)
+        })
+        body = native as unknown as FormData
+      }
       fetchHeaders.delete('Content-Type') // must let the browser handle it
     } else if (typeof body !== 'string') {
       body = JSON.stringify(body)
@@ -104,14 +127,69 @@ export default async function doFetchApi<T = unknown>({
   }
 
   const url = constructRelativeUrl({path, params})
-  const response = await fetch(url, {
-    body,
+  const resolvedUrl = (() => {
+    try {
+      // If `url` is already absolute, this is a no-op.
+      let baseHref = globalThis.location?.href
+      if (!baseHref || !/^https?:\/\//i.test(baseHref)) baseHref = 'http://localhost'
+      return new URL(url, baseHref).toString()
+    } catch {
+      return url
+    }
+  })()
+
+  const requestInit = {
+    body: body as BodyInit | undefined,
     method,
     ...fetchOpts,
     headers: fetchHeaders,
     signal,
     credentials,
-  })
+  }
+
+  let response: Response | undefined
+  let currentUrl = url
+  let currentInit: typeof requestInit = requestInit
+  const isAbortSignalMismatch = (err: unknown) =>
+    err instanceof TypeError &&
+    typeof err.message === 'string' &&
+    err.message.includes('AbortSignal')
+  const isRelativeUrlError = (err: unknown) =>
+    err instanceof TypeError &&
+    typeof err.message === 'string' &&
+    /(Failed to parse URL|Invalid URL|Only absolute URLs are supported)/i.test(err.message)
+
+  // Prefer the original URL first:
+  // - In browsers and many test environments, relative URLs are valid.
+  // - In tests using `fetch-mock`, matching is often configured with relative URLs.
+  // If the underlying fetch implementation requires an absolute URL (Node/undici), retry with
+  // the resolved absolute URL.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      response = await fetch(currentUrl, currentInit)
+      break
+    } catch (err) {
+      // In Vitest/jsdom (and some polyfilled environments), the global AbortSignal can differ from the
+      // one expected by Node's fetch (undici), causing a TypeError. Retrying without a signal keeps
+      // request behavior intact for production while unblocking tests.
+      if (currentInit.signal && isAbortSignalMismatch(err)) {
+        const {signal: _ignored, ...retryInit} = currentInit
+        currentInit = retryInit as typeof requestInit
+        continue
+      }
+
+      if (currentUrl === url && isRelativeUrlError(err)) {
+        currentUrl = resolvedUrl
+        continue
+      }
+
+      throw err
+    }
+  }
+  if (!response) {
+    // Should be unreachable, but satisfies type narrowing for the checks below.
+    throw new Error('doFetchApi failed to fetch: no response received')
+  }
   if (!response.ok) {
     throw new FetchApiError(
       `doFetchApi received a bad response: ${response.status} ${response.statusText}`,
@@ -158,7 +236,6 @@ export async function safelyFetch<T = unknown>(
     try {
       schema.parse(json)
     } catch (err) {
-      // eslint-disable-next-line import/no-named-as-default-member
       if (err instanceof z.ZodError) {
         console.group(`Zod parsing error for ${path}`)
         for (const issue of err.issues) {

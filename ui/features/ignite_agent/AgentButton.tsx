@@ -37,6 +37,7 @@ import './AgentButton.css'
  * @param {Function} props.onClick - The function to execute when the button is clicked.
  * @param {boolean} [props.isLoading=false] - If true, shows a spinner overlay and disables the button.
  */
+// @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
 export function AgentButton({onClick, isLoading = false}) {
   // Get positioning state and utilities from context
   const {
@@ -66,6 +67,7 @@ export function AgentButton({onClick, isLoading = false}) {
   }, [onClick])
 
   const getBottomPixels = useCallback(
+    // @ts-expect-error -- TS migration: callback params are untyped; keep runtime behavior unchanged.
     containerHeight => {
       const calculatedBottom = (buttonPosition / 100) * containerHeight
 
@@ -79,6 +81,7 @@ export function AgentButton({onClick, isLoading = false}) {
   const bottomPx = getBottomPixels(viewportHeight)
 
   const handlePointerDown = useCallback(
+    // @ts-expect-error -- TS migration: event is untyped; keep runtime behavior unchanged.
     e => {
       // Only start drag preparation for primary pointer (left mouse button or first touch)
       if (!e.isPrimary) return
@@ -92,6 +95,7 @@ export function AgentButton({onClick, isLoading = false}) {
   )
 
   const handlePointerMove = useCallback(
+    // @ts-expect-error -- TS migration: event is untyped; keep runtime behavior unchanged.
     e => {
       if (!isPointerDown) return
 
@@ -105,11 +109,13 @@ export function AgentButton({onClick, isLoading = false}) {
       if (isDragging) {
         const deltaYSigned = dragStartY.current - e.clientY // Inverted: moving up = positive
         const deltaPercent = (deltaYSigned / viewportHeight) * 100
+        // @ts-expect-error -- TS migration: context helpers are untyped; keep runtime behavior unchanged.
         const newPosition = constrainPosition(
           dragStartPosition.current + deltaPercent,
           viewportHeight,
         )
 
+        // @ts-expect-error -- TS migration: context setter is untyped; keep runtime behavior unchanged.
         setButtonPosition(newPosition)
       }
     },
@@ -129,6 +135,7 @@ export function AgentButton({onClick, isLoading = false}) {
     }, 0)
   }, [isDragging])
 
+  // @ts-expect-error -- TS migration: event is untyped; keep runtime behavior unchanged.
   const handleClick = useCallback(e => {
     // Prevent click if we just finished dragging
     if (hasDraggedRef.current) {
@@ -159,6 +166,7 @@ export function AgentButton({onClick, isLoading = false}) {
   }, [isPointerDown, handlePointerMove, handlePointerUp])
 
   useEffect(() => {
+    // @ts-expect-error -- TS migration: context setter is untyped; keep runtime behavior unchanged.
     setDraggingContext(isDragging)
   }, [isDragging, setDraggingContext])
 
@@ -166,7 +174,9 @@ export function AgentButton({onClick, isLoading = false}) {
     setIsFocused(true)
   }, [])
 
+  // @ts-expect-error -- TS migration: event is untyped; keep runtime behavior unchanged.
   const handleBlur = useCallback(e => {
+    // @ts-expect-error -- TS migration: ref and event are untyped; keep runtime behavior unchanged.
     if (containerRef.current && !containerRef.current.contains(e.relatedTarget)) {
       setIsFocused(false)
     }

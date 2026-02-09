@@ -26,16 +26,19 @@ import React, {useCallback} from 'react'
 import {useAgentContainer} from './AgentContainerContext'
 import {MIN_POSITION, KEYBOARD_STEP} from './constants'
 
+// @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
 export function PositionArrow({direction}) {
   const {buttonPosition, setButtonPosition, getMaxPosition, constrainPosition, viewportHeight} =
     useAgentContainer()
 
   const movePosition = useCallback(() => {
     const delta = direction === 'up' ? KEYBOARD_STEP : -KEYBOARD_STEP
+    // @ts-expect-error -- TS migration: context helpers are untyped; keep runtime behavior unchanged.
     setButtonPosition(pos => constrainPosition(pos + delta, viewportHeight))
   }, [direction, setButtonPosition, constrainPosition, viewportHeight])
 
   const handleKeyDown = useCallback(
+    // @ts-expect-error -- TS migration: event is untyped; keep runtime behavior unchanged.
     e => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault()
@@ -47,7 +50,8 @@ export function PositionArrow({direction}) {
 
   const isDisabled =
     direction === 'up'
-      ? buttonPosition >= getMaxPosition(viewportHeight)
+      ? // @ts-expect-error -- TS migration: context helpers are untyped; keep runtime behavior unchanged.
+        buttonPosition >= getMaxPosition(viewportHeight)
       : buttonPosition <= MIN_POSITION
 
   const Icon = direction === 'up' ? IconArrowDoubleStartLine : IconArrowDoubleEndLine

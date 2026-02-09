@@ -28,7 +28,9 @@ const loginImageJsons = [
   {png: 'R0lGODlhAQABZZZZZCH5BAEKAAEALZZZZZABAAEAAAICTAEAOn=='},
 ]
 
-const route = '/canvas/login.png'
+// `apiClient`/fetch layer may resolve paths to absolute URLs under jsdom.
+// Match both relative and absolute requests.
+const route = /\/canvas\/login\.png$/
 
 // used for when we want fetchMock not to ever respond
 const doNotRespond = Function.prototype

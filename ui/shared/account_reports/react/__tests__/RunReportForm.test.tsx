@@ -18,16 +18,20 @@
 
 import {fireEvent, render, waitFor} from '@testing-library/react'
 import RunReportForm from '../RunReportForm'
-import {http, HttpResponse} from 'msw'
-import {setupServer} from 'msw/node'
 import userEvent from '@testing-library/user-event'
 import fakeENV from '@canvas/test-utils/fakeENV'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
-const server = setupServer()
+vi.mock('@canvas/do-fetch-api-effect', () => ({
+  __esModule: true,
+  default: vi.fn(),
+}))
 
 // Track API calls
 let postCalled = false
 let capturedFormData: FormData | null = null
+let capturedUrl: string | null = null
+const doFetchApiMock = vi.mocked(doFetchApi)
 
 const innerHtml1 = `<form>
   <h1>Test HTML</h1>
@@ -128,13 +132,11 @@ const props = {
 }
 
 describe('RunReportForm', () => {
-  beforeAll(() => server.listen())
-  afterAll(() => server.close())
-
   beforeEach(() => {
-    server.resetHandlers()
     postCalled = false
     capturedFormData = null
+    capturedUrl = null
+    doFetchApiMock.mockReset()
     fakeENV.setup({
       TIMEZONE: 'America/Los_Angeles',
       LOCALE: 'en',
@@ -155,13 +157,19 @@ describe('RunReportForm', () => {
 
   it('makes api call with checkboxes and select', async () => {
     const user = userEvent.setup()
-    server.use(
-      http.post(props.path, async ({request}) => {
-        postCalled = true
-        capturedFormData = await request.formData()
-        return HttpResponse.json(reportJson, {status: 200})
-      }),
-    )
+    doFetchApiMock.mockImplementation(async opts => {
+      postCalled = true
+      capturedUrl = opts.path
+      capturedFormData = opts.body as FormData
+      return {
+        json: reportJson,
+        text: JSON.stringify(reportJson),
+        response: new Response(JSON.stringify(reportJson), {
+          status: 200,
+          headers: {'Content-Type': 'application/json'},
+        }),
+      }
+    })
     const {getByTestId} = render(<RunReportForm {...props} />)
 
     const checkbox = getByTestId('checkbox')
@@ -174,6 +182,7 @@ describe('RunReportForm', () => {
     await waitFor(() => {
       expect(props.onSuccess).toHaveBeenCalledWith(reportJson)
       expect(postCalled).toBe(true)
+      expect(capturedUrl).toBe(props.path)
       expect(capturedFormData?.get('parameter[checkbox]')).toBeTruthy()
       expect(capturedFormData?.get('parameter[select]')).toBe('option_1')
       expect(capturedFormData?.has('parameter[unchecked]')).toBeFalsy()
@@ -183,13 +192,19 @@ describe('RunReportForm', () => {
   // custom reports use both these field types
   it('makes api call with textarea and radio inputs', async () => {
     const user = userEvent.setup()
-    server.use(
-      http.post(props.path, async ({request}) => {
-        postCalled = true
-        capturedFormData = await request.formData()
-        return HttpResponse.json(reportJson, {status: 200})
-      }),
-    )
+    doFetchApiMock.mockImplementation(async opts => {
+      postCalled = true
+      capturedUrl = opts.path
+      capturedFormData = opts.body as FormData
+      return {
+        json: reportJson,
+        text: JSON.stringify(reportJson),
+        response: new Response(JSON.stringify(reportJson), {
+          status: 200,
+          headers: {'Content-Type': 'application/json'},
+        }),
+      }
+    })
     const {getByTestId} = render(<RunReportForm {...props} formHTML={innerHtml2} />)
 
     const radio = getByTestId('radio_checked')
@@ -208,6 +223,7 @@ describe('RunReportForm', () => {
     await waitFor(() => {
       expect(props.onSuccess).toHaveBeenCalledWith(reportJson)
       expect(postCalled).toBe(true)
+      expect(capturedUrl).toBe(props.path)
       expect(capturedFormData?.get('parameter[textarea]')).toBe('test text')
       expect(capturedFormData?.get('parameter[radio]')).toBe('Checked')
     })
@@ -215,13 +231,19 @@ describe('RunReportForm', () => {
 
   it('sets up date/time pickers', async () => {
     const user = userEvent.setup()
-    server.use(
-      http.post(props.path, async ({request}) => {
-        postCalled = true
-        capturedFormData = await request.formData()
-        return HttpResponse.json(reportJson, {status: 200})
-      }),
-    )
+    doFetchApiMock.mockImplementation(async opts => {
+      postCalled = true
+      capturedUrl = opts.path
+      capturedFormData = opts.body as FormData
+      return {
+        json: reportJson,
+        text: JSON.stringify(reportJson),
+        response: new Response(JSON.stringify(reportJson), {
+          status: 200,
+          headers: {'Content-Type': 'application/json'},
+        }),
+      }
+    })
     const {getByTestId} = render(<RunReportForm {...props} formHTML={innerHtml3} />)
 
     const dateInput = getByTestId('parameters[updated_after]')
@@ -240,6 +262,7 @@ describe('RunReportForm', () => {
     await waitFor(() => {
       expect(props.onSuccess).toHaveBeenCalledWith(reportJson)
       expect(postCalled).toBe(true)
+      expect(capturedUrl).toBe(props.path)
       expect(capturedFormData?.get('parameters[updated_after]')).toBe('2025-05-01T07:00:00.000Z')
     })
   })
@@ -271,11 +294,7 @@ describe('RunReportForm', () => {
 
   it('shows error message when api call fails', async () => {
     const user = userEvent.setup()
-    server.use(
-      http.post(props.path, () => {
-        return new HttpResponse(null, {status: 500})
-      }),
-    )
+    doFetchApiMock.mockRejectedValueOnce(new Error('boom'))
     const {getByTestId, getAllByText} = render(<RunReportForm {...props} />)
 
     const submitButton = getByTestId('run-report')

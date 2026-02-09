@@ -27,6 +27,7 @@ const I18n = createI18nScope('new_user_tutorial')
 
 const API_URL = '/api/v1/users/self/features/flags/new_user_tutorial_on_off'
 
+// @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
 export default function ConfirmEndTutorialDialog({isOpen, handleRequestClose}) {
   return (
     <Modal

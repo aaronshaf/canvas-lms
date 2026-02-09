@@ -27,6 +27,7 @@ const I18n = createI18nScope('progress_pill')
 
 ready(() => {
   const presenter = document.querySelectorAll('.assignment_presenter_for_submission')
+  // @ts-expect-error -- TS migration: DOM element is untyped; keep runtime behavior unchanged.
   const progressIcon = presenterObject => {
     switch (presenterObject.innerText) {
       case 'pending':

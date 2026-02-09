@@ -98,14 +98,17 @@ const icons = {
   jobs: IconHourGlassLine,
 }
 
+// @ts-expect-error -- TS migration: tab is untyped; keep runtime behavior unchanged.
 const getIcon = tab => icons[tab.id] || (tab.type === 'external' ? IconLtiLine : IconEmptyLine)
 
+// @ts-expect-error -- TS migration: tab is untyped; keep runtime behavior unchanged.
 function srText(tab) {
   if (tab.hidden) return I18n.t('Disabled. Not visible to students.')
   if (tab.unused) return I18n.t('No content. Not visible to students.')
   return ''
 }
 
+// @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
 export default function MobileContextMenu({spinner, contextType, contextId}) {
   const [tabs, setTabs] = useState(null)
   const [defaultContextType, defaultContextId] = splitAssetString(ENV.context_asset_string)
@@ -119,26 +122,31 @@ export default function MobileContextMenu({spinner, contextType, contextId}) {
 
   if (tabs === null) return spinner
 
+  // @ts-expect-error -- TS migration: tabs are untyped; keep runtime behavior unchanged.
   const tabsToDisplay = tabs.filter(t => !(t.type === 'external' && t.hidden))
 
   return (
     <Grid vAlign="middle" rowSpacing="none">
-      {tabsToDisplay.map(tab => {
-        const Icon = getIcon(tab)
-        const isTabOff = tab.hidden || tab.unused
-        const isCurrentTab = ENV?.active_context_tab === tab.id
-        return (
-          <Grid.Row key={tab.id}>
-            <Grid.Col width="auto">
-              <Link renderIcon={Icon} href={tab.html_url} isWithinText={false}>
-                <Text weight={isCurrentTab ? 'bold' : 'normal'}>{tab.label}</Text>
-                {isTabOff && <ScreenReaderContent>{'- ' + srText(tab)}</ScreenReaderContent>}
-              </Link>
-            </Grid.Col>
-            <Grid.Col>{isTabOff && <IconOffLine />}</Grid.Col>
-          </Grid.Row>
-        )
-      })}
+      {
+        // @ts-expect-error -- TS migration: tab is untyped; keep runtime behavior unchanged.
+        tabsToDisplay.map(tab => {
+          const Icon = getIcon(tab)
+          const isTabOff = tab.hidden || tab.unused
+          // @ts-expect-error -- TS migration: ENV typing is incomplete; keep runtime behavior unchanged.
+          const isCurrentTab = ENV?.active_context_tab === tab.id
+          return (
+            <Grid.Row key={tab.id}>
+              <Grid.Col width="auto">
+                <Link renderIcon={Icon} href={tab.html_url} isWithinText={false}>
+                  <Text weight={isCurrentTab ? 'bold' : 'normal'}>{tab.label}</Text>
+                  {isTabOff && <ScreenReaderContent>{'- ' + srText(tab)}</ScreenReaderContent>}
+                </Link>
+              </Grid.Col>
+              <Grid.Col>{isTabOff && <IconOffLine />}</Grid.Col>
+            </Grid.Row>
+          )
+        })
+      }
     </Grid>
   )
 }

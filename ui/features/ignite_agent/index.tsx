@@ -35,6 +35,7 @@ const CHAT_OVERLAY_CONTAINER_ID = 'ignite-agent-chat-overlay-container'
 /**
  * Main IgniteAgent component that manages all states and rendering
  */
+// @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
 function IgniteAgent(props) {
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -73,6 +74,7 @@ function IgniteAgent(props) {
 
     try {
       console.log("[Ignite Agent] Importing remote 'igniteagent/appInjector'...")
+      // @ts-expect-error -- TS migration: remote module has no local TS types.
       const module = await import('igniteagent/appInjector')
       console.log('[Ignite Agent] Remote module loaded successfully:', module.default)
 
@@ -83,11 +85,13 @@ function IgniteAgent(props) {
         setIsOpen(true)
       } else {
         const renderError = new Error('Remote module does not have a render function')
+        // @ts-expect-error -- TS migration: state is untyped; keep runtime behavior unchanged.
         setError(renderError)
       }
     } catch (loadError) {
       console.error('Failed to load Ignite Agent remote module:', loadError)
       captureException(loadError)
+      // @ts-expect-error -- TS migration: state is untyped; keep runtime behavior unchanged.
       setError(loadError)
       setIsOpen(false)
       writeToSession('isOpen', false)
@@ -106,6 +110,7 @@ function IgniteAgent(props) {
   }
 
   // Don't render button if agent is open and loaded successfully
+  // @ts-expect-error -- TS migration: ENV typing is incomplete; keep runtime behavior unchanged.
   const shouldShowButton = window.ENV?.show_ignite_agent_button && !isOpen && error === null
 
   return (
@@ -115,6 +120,7 @@ function IgniteAgent(props) {
           <AgentButton isLoading={isLoading} onClick={handleLoadAgent} />
         </AgentContainerProvider>
       </Portal>
+      {/* @ts-expect-error -- TS migration: Portal prop mismatch; keep runtime behavior unchanged. */}
       <Portal mountPoint={chatOverlayMountPoint.current} open={error !== null}>
         <FallbackChatOverlay error={error} onClose={handleCloseError} />
       </Portal>

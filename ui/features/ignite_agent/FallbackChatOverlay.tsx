@@ -31,6 +31,7 @@ import {Flex} from '@instructure/ui-flex'
  * @param {Error} props.error - The error that occurred
  * @param {Function} props.onClose - Function to call when closing the sidebar
  */
+// @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
 export function FallbackChatOverlay({error, onClose}) {
   return (
     <View

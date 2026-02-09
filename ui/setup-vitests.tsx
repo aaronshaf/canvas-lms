@@ -21,6 +21,116 @@ import {cleanup} from '@testing-library/react'
 import {vi, afterEach} from 'vitest'
 import $ from 'jquery'
 
+function isStorageLike(storage: any): boolean {
+  return (
+    !!storage &&
+    typeof storage.getItem === 'function' &&
+    typeof storage.setItem === 'function' &&
+    typeof storage.removeItem === 'function' &&
+    typeof storage.clear === 'function'
+  )
+}
+
+function createInMemoryStorage(): Storage {
+  const store = new Map<string, string>()
+
+  return {
+    get length() {
+      return store.size
+    },
+    clear() {
+      store.clear()
+    },
+    getItem(key: string) {
+      return store.has(key) ? store.get(key)! : null
+    },
+    key(index: number) {
+      if (index < 0 || index >= store.size) return null
+      return Array.from(store.keys())[index] ?? null
+    },
+    removeItem(key: string) {
+      store.delete(key)
+    },
+    setItem(key: string, value: string) {
+      store.set(String(key), String(value))
+    },
+  } as unknown as Storage
+}
+
+// Vitest's jsdom environment should provide localStorage/sessionStorage, but in practice it can
+// be missing or be replaced by a non-Storage object (e.g. by tests). Ensure a working baseline.
+try {
+  if (!isStorageLike(globalThis.localStorage)) {
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: createInMemoryStorage(),
+      configurable: true,
+      writable: true,
+    })
+  }
+} catch {
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: createInMemoryStorage(),
+    configurable: true,
+    writable: true,
+  })
+}
+
+try {
+  if (!isStorageLike(globalThis.sessionStorage)) {
+    Object.defineProperty(globalThis, 'sessionStorage', {
+      value: createInMemoryStorage(),
+      configurable: true,
+      writable: true,
+    })
+  }
+} catch {
+  Object.defineProperty(globalThis, 'sessionStorage', {
+    value: createInMemoryStorage(),
+    configurable: true,
+    writable: true,
+  })
+}
+
+// Undici's `fetch` is strict about AbortSignal instances; in jsdom there can be multiple
+// AbortSignal implementations in play (e.g., polyfills), which can break libraries like Apollo.
+// If a signal isn't the global AbortSignal, drop it to avoid hard failures in tests.
+//
+// In particular: jsdom may provide `window.AbortController/AbortSignal` that are *not* the same
+// constructors as Node's globals used by undici. Normalize window to use the Node constructors
+// so libraries that grab abort primitives from `window` stay compatible with undici fetch.
+try {
+  if (typeof window !== 'undefined') {
+    const nodeAbortController =
+      (globalThis as any).global?.AbortController ?? globalThis.AbortController
+    const nodeAbortSignal = (globalThis as any).global?.AbortSignal ?? globalThis.AbortSignal
+
+    if (nodeAbortController && window.AbortController !== nodeAbortController) {
+      window.AbortController = nodeAbortController
+    }
+    if (nodeAbortSignal && window.AbortSignal !== nodeAbortSignal) {
+      window.AbortSignal = nodeAbortSignal
+    }
+  }
+} catch {
+  // ignore
+}
+
+const _originalFetch = globalThis.fetch
+if (typeof _originalFetch === 'function') {
+  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+    const nodeAbortSignal = (globalThis as any).global?.AbortSignal ?? globalThis.AbortSignal
+    if (
+      init?.signal &&
+      typeof nodeAbortSignal !== 'undefined' &&
+      !(init.signal instanceof nodeAbortSignal)
+    ) {
+      const {signal: _ignored, ...rest} = init as RequestInit & {signal?: AbortSignal}
+      return _originalFetch(input, rest)
+    }
+    return _originalFetch(input, init)
+  }) as typeof fetch
+}
+
 // Track all timers created during tests so we can clean them up
 // This prevents memory leaks from InstUI transitions and other timer-based code
 const pendingTimeouts = new Set<ReturnType<typeof setTimeout>>()
@@ -32,7 +142,11 @@ const originalClearTimeout = globalThis.clearTimeout
 const originalClearInterval = globalThis.clearInterval
 
 // Wrap setTimeout to track pending timers
-globalThis.setTimeout = ((callback: (...args: unknown[]) => void, ms?: number, ...args: unknown[]) => {
+globalThis.setTimeout = ((
+  callback: (...args: unknown[]) => void,
+  ms?: number,
+  ...args: unknown[]
+) => {
   const id = originalSetTimeout(() => {
     pendingTimeouts.delete(id)
     callback(...args)
@@ -42,7 +156,11 @@ globalThis.setTimeout = ((callback: (...args: unknown[]) => void, ms?: number, .
 }) as typeof setTimeout
 
 // Wrap setInterval to track pending intervals
-globalThis.setInterval = ((callback: (...args: unknown[]) => void, ms?: number, ...args: unknown[]) => {
+globalThis.setInterval = ((
+  callback: (...args: unknown[]) => void,
+  ms?: number,
+  ...args: unknown[]
+) => {
   const id = originalSetInterval(callback, ms, ...args)
   pendingIntervals.add(id)
   return id
@@ -67,6 +185,11 @@ globalThis.clearInterval = ((id?: ReturnType<typeof setInterval>) => {
 // Global cleanup after each test to prevent memory leaks and timer issues
 // This is especially important for InstUI components that use transitions with setTimeout
 afterEach(() => {
+  // Clean up any rendered React components that weren't explicitly unmounted.
+  // This must run BEFORE clearing timers because cleanup() can trigger InstUI
+  // Transition animations that create new timers via setTimeout.
+  cleanup()
+
   // Clear all pending timers from InstUI transitions, animations, etc.
   // These can cause "document is not defined" errors when they fire after jsdom teardown
   for (const id of pendingTimeouts) {
@@ -78,10 +201,6 @@ afterEach(() => {
     originalClearInterval(id)
   }
   pendingIntervals.clear()
-
-  // Clean up any rendered React components that weren't explicitly unmounted
-  // This is a safeguard for tests that don't properly clean up
-  cleanup()
 })
 
 // jQuery plugins (toJSON, dialog, droppable, etc.) are added via the jquery-with-plugins.ts wrapper
@@ -254,9 +373,7 @@ const ignoredWarnings = [
   /Consumer uses the legacy contextTypes API/,
   /Warning: ReactDOM.render is no longer supported in React 18/,
 ]
-const ignoredLogs = [
-  /JQMIGRATE:/,
-]
+const ignoredLogs = [/JQMIGRATE:/]
 const originalError = console.error
 const originalWarn = console.warn
 const originalLog = console.log
@@ -355,10 +472,18 @@ if (!window.HTMLElement.prototype.scrollIntoView) {
 // Fullscreen API mock - needed for media player tests
 // jsdom doesn't implement the Fullscreen API
 if (!document.fullscreenEnabled) {
-  Object.defineProperty(document, 'fullscreenEnabled', {value: true, writable: true, configurable: true})
+  Object.defineProperty(document, 'fullscreenEnabled', {
+    value: true,
+    writable: true,
+    configurable: true,
+  })
 }
 if (!document.fullscreenElement) {
-  Object.defineProperty(document, 'fullscreenElement', {value: null, writable: true, configurable: true})
+  Object.defineProperty(document, 'fullscreenElement', {
+    value: null,
+    writable: true,
+    configurable: true,
+  })
 }
 if (!document.exitFullscreen) {
   document.exitFullscreen = vi.fn().mockResolvedValue(undefined)
@@ -368,7 +493,11 @@ if (!HTMLElement.prototype.requestFullscreen) {
 }
 // Safari-specific fullscreen API
 if (!(document as any).webkitFullscreenEnabled) {
-  Object.defineProperty(document, 'webkitFullscreenEnabled', {value: true, writable: true, configurable: true})
+  Object.defineProperty(document, 'webkitFullscreenEnabled', {
+    value: true,
+    writable: true,
+    configurable: true,
+  })
 }
 if (!(HTMLVideoElement.prototype as any).webkitEnterFullscreen) {
   ;(HTMLVideoElement.prototype as any).webkitEnterFullscreen = vi.fn()

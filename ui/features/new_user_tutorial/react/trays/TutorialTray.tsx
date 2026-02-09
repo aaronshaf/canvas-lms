@@ -40,6 +40,7 @@ class TutorialTray extends React.Component {
     returnFocusToFunc: PropTypes.func.isRequired,
   }
 
+  // @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
   constructor(props) {
     super(props)
     this.state = {
@@ -49,19 +50,24 @@ class TutorialTray extends React.Component {
   }
 
   componentDidMount() {
+    // @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
     this.props.store.addChangeListener(this.handleStoreChange)
   }
 
   componentWillUnmount() {
+    // @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
     this.props.store.removeChangeListener(this.handleStoreChange)
   }
 
   handleStoreChange = () => {
+    // @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
     this.setState(this.props.store.getState())
   }
 
   handleToggleClick = () => {
+    // @ts-expect-error -- TS migration: props/state are untyped; keep runtime behavior unchanged.
     this.props.store.setState({
+      // @ts-expect-error -- TS migration: state is untyped; keep runtime behavior unchanged.
       isCollapsed: !this.state.isCollapsed,
     })
   }
@@ -76,23 +82,29 @@ class TutorialTray extends React.Component {
     this.setState({
       endUserTutorialShown: false,
     })
+    // @ts-expect-error -- TS migration: instance ref is untyped; keep runtime behavior unchanged.
     if (this.endTutorialButton) {
+      // @ts-expect-error -- TS migration: instance ref is untyped; keep runtime behavior unchanged.
       this.endTutorialButton.focus()
     }
   }
 
   handleEntering = () => {
+    // @ts-expect-error -- TS migration: instance ref is untyped; keep runtime behavior unchanged.
     this.toggleButton.focus()
   }
 
   handleExiting = () => {
+    // @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
     this.props.returnFocusToFunc().focus()
   }
 
   render() {
     return (
       <Tray
+        // @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
         label={this.props.label}
+        // @ts-expect-error -- TS migration: state is untyped; keep runtime behavior unchanged.
         open={!this.state.isCollapsed}
         placement="end"
         onExiting={this.handleExiting}
@@ -104,13 +116,17 @@ class TutorialTray extends React.Component {
           <View position="absolute" insetInlineEnd="1rem" insetBlockStart="1rem" insetBlockEnd="0">
             <NewUserTutorialToggleButton
               ref={c => {
+                // @ts-expect-error -- TS migration: instance ref is untyped; keep runtime behavior unchanged.
                 this.toggleButton = c
               }}
+              /* @ts-expect-error -- TS migration: component props are untyped; keep runtime behavior unchanged. */
               onClick={this.handleToggleClick}
+              // @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged.
               store={this.props.store}
             />
           </View>
           <View display="block" padding="none large">
+            {/* @ts-expect-error -- TS migration: props are untyped; keep runtime behavior unchanged. */}
             {this.props.children}
           </View>
           <View
@@ -123,6 +139,7 @@ class TutorialTray extends React.Component {
             <Button
               onClick={this.handleEndTutorialClick}
               ref={c => {
+                // @ts-expect-error -- TS migration: instance ref is untyped; keep runtime behavior unchanged.
                 this.endTutorialButton = c
               }}
             >
@@ -130,6 +147,7 @@ class TutorialTray extends React.Component {
             </Button>
           </View>
           <ConfirmEndTutorialDialog
+            // @ts-expect-error -- TS migration: state is untyped; keep runtime behavior unchanged.
             isOpen={this.state.endUserTutorialShown}
             handleRequestClose={this.closeEndTutorialDialog}
           />
