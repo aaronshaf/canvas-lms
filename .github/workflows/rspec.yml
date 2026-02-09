@@ -39,6 +39,7 @@ jobs:
       RAILS_ENV: test
       DATABASE_URL: postgres://postgres:canvas@localhost:5432/canvas_test
       REDIS_URL: redis://localhost:6379
+      BUNDLE_GEMFILE: Gemfile
 
     steps:
       - uses: actions/checkout@v4
