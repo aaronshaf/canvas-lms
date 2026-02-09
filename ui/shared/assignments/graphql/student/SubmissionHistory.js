@@ -24,8 +24,8 @@ import {
 
 export const SubmissionHistory = {
   fragment: gql`
-    fragment SubmissionHistory on SubmissionHistory {
-      ...SubmissionInterface
+    fragment StudentSubmissionHistory on SubmissionHistory {
+      ...StudentSubmissionInterface
     }
     ${SubmissionInterface.fragment}
   `,

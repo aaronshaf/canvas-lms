@@ -21,7 +21,7 @@ import {shape, string} from 'prop-types'
 
 export const AssessmentRequest = {
   fragment: gql`
-    fragment AssessmentRequest on AssessmentRequest {
+    fragment StudentAssessmentRequest on AssessmentRequest {
       anonymizedUser {
         _id
         displayName: shortName

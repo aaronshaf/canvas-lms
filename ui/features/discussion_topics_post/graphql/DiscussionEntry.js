@@ -27,7 +27,7 @@ import {User} from './User'
 
 export const DiscussionEntry = {
   fragment: gql`
-    fragment DiscussionEntry on DiscussionEntry {
+    fragment DiscussionPostDiscussionEntry on DiscussionEntry {
       id
       _id
       createdAt
@@ -43,13 +43,13 @@ export const DiscussionEntry = {
         shortName
       }
       editor {
-        ...User
+        ...DiscussionPostUser
       }
       author {
-        ...User
+        ...DiscussionPostUser
       }
       attachment {
-        ...Attachment
+        ...DiscussionPostAttachment
       }
       entryParticipant {
         rating
@@ -65,7 +65,7 @@ export const DiscussionEntry = {
         createdAt
       }
       permissions {
-        ...DiscussionEntryPermissions
+        ...DiscussionPostDiscussionEntryPermissions
       }
       rootEntryId
       parentId
@@ -88,7 +88,7 @@ export const DiscussionEntry = {
         deleted
       }
       discussionEntryVersions {
-        ...DiscussionEntryVersion
+        ...DiscussionPostDiscussionEntryVersion
       }
       reportTypeCounts {
         inappropriateCount

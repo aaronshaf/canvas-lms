@@ -21,7 +21,7 @@ import {number, shape, string} from 'prop-types'
 
 export const ChildTopic = {
   fragment: gql`
-    fragment ChildTopic on Discussion {
+    fragment DiscussionPostChildTopic on Discussion {
       id
       _id
       contextName

@@ -23,19 +23,19 @@ import {SubmissionDraftFile} from './File'
 
 export const SubmissionDraft = {
   fragment: gql`
-    fragment SubmissionDraft on SubmissionDraft {
+    fragment StudentSubmissionDraft on SubmissionDraft {
       _id
       activeSubmissionType
       attachments {
-        ...SubmissionDraftFile
+        ...StudentSubmissionDraftFile
       }
       body(rewriteUrls: false)
       externalTool {
-        ...ExternalTool
+        ...StudentExternalTool
       }
       ltiLaunchUrl
       mediaObject {
-        ...MediaObject
+        ...StudentMediaObject
       }
       meetsMediaRecordingCriteria
       meetsAssignmentCriteria

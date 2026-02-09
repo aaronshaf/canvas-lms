@@ -21,7 +21,7 @@ import {number, shape, string} from 'prop-types'
 
 export const RubricRating = {
   fragment: gql`
-    fragment RubricRating on RubricRating {
+    fragment StudentRubricRating on RubricRating {
       _id
       description
       long_description: longDescription

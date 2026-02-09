@@ -22,12 +22,12 @@ import {Group} from './Group'
 
 export const GroupSet = {
   fragment: gql`
-    fragment GroupSet on GroupSet {
+    fragment StudentGroupSet on GroupSet {
       name
       id
       _id
       currentGroup {
-        ...Group
+        ...StudentGroup
       }
     }
     ${Group.fragment}

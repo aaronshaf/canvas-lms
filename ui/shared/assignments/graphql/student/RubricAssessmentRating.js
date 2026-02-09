@@ -20,7 +20,7 @@ import {number, shape, string} from 'prop-types'
 
 export const RubricAssessmentRating = {
   fragment: gql`
-    fragment RubricAssessmentRating on RubricAssessmentRating {
+    fragment StudentRubricAssessmentRating on RubricAssessmentRating {
       _id
       criterion {
         _id

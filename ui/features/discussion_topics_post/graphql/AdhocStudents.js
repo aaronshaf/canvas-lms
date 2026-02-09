@@ -32,7 +32,7 @@ export const Student = {
 
 export const AdhocStudents = {
   fragment: gql`
-    fragment AdhocStudents on AdhocStudents {
+    fragment DiscussionPostAdhocStudents on AdhocStudents {
       students {
         shortName
       }

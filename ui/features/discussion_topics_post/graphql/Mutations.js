@@ -54,9 +54,9 @@ export const UPDATE_DISCUSSION_ENTRY_PARTICIPANT = gql`
       }
     ) {
       discussionEntry {
-        ...DiscussionEntry
+        ...DiscussionPostDiscussionEntry
         anonymousAuthor {
-          ...AnonymousUser
+          ...DiscussionPostAnonymousUser
         }
       }
     }
@@ -68,9 +68,9 @@ export const DELETE_DISCUSSION_ENTRY = gql`
   mutation DeleteDiscussionEntry($id: ID!) {
     deleteDiscussionEntry(input: {id: $id}) {
       discussionEntry {
-        ...DiscussionEntry
+        ...DiscussionPostDiscussionEntry
         anonymousAuthor {
-          ...AnonymousUser
+          ...DiscussionPostAnonymousUser
         }
       }
       errors {
@@ -88,7 +88,7 @@ export const UPDATE_DISCUSSION_TOPIC = gql`
       input: {discussionTopicId: $discussionTopicId, published: $published, locked: $locked}
     ) {
       discussionTopic {
-        ...Discussion
+        ...DiscussionPostDiscussion
       }
     }
   }
@@ -100,7 +100,7 @@ export const SUBSCRIBE_TO_DISCUSSION_TOPIC = gql`
       input: {discussionTopicId: $discussionTopicId, subscribed: $subscribed}
     ) {
       discussionTopic {
-        ...Discussion
+        ...DiscussionPostDiscussion
       }
     }
   }
@@ -127,13 +127,13 @@ export const CREATE_DISCUSSION_ENTRY = gql`
       }
     ) {
       discussionEntry {
-        ...DiscussionEntry
+        ...DiscussionPostDiscussionEntry
         anonymousAuthor {
-          ...AnonymousUser
+          ...DiscussionPostAnonymousUser
         }
       }
       mySubAssignmentSubmissions {
-        ...Submission
+        ...DiscussionPostSubmission
       }
       errors {
         ...Error
@@ -166,9 +166,9 @@ export const UPDATE_DISCUSSION_ENTRY = gql`
       }
     ) {
       discussionEntry {
-        ...DiscussionEntry
+        ...DiscussionPostDiscussionEntry
         anonymousAuthor {
-          ...AnonymousUser
+          ...DiscussionPostAnonymousUser
         }
       }
       errors {
@@ -187,7 +187,7 @@ export const UPDATE_DISCUSSION_ENTRIES_READ_STATE = gql`
       input: {discussionEntryIds: $discussionEntryIds, read: $read}
     ) {
       discussionEntries {
-        ...DiscussionEntry
+        ...DiscussionPostDiscussionEntry
       }
     }
   }
@@ -198,9 +198,9 @@ export const UPDATE_DISCUSSION_THREAD_READ_STATE = gql`
   mutation UpdateDiscussionThreadReadState($discussionEntryId: ID!, $read: Boolean!) {
     updateDiscussionThreadReadState(input: {discussionEntryId: $discussionEntryId, read: $read}) {
       discussionEntry {
-        ...DiscussionEntry
+        ...DiscussionPostDiscussionEntry
         anonymousAuthor {
-          ...AnonymousUser
+          ...DiscussionPostAnonymousUser
         }
       }
     }
@@ -213,7 +213,7 @@ export const UPDATE_DISCUSSION_READ_STATE = gql`
   mutation UpdateDiscussionReadState($discussionTopicId: ID!, $read: Boolean!) {
     updateDiscussionReadState(input: {discussionTopicId: $discussionTopicId, read: $read}) {
       discussionTopic {
-        ...Discussion
+        ...DiscussionPostDiscussion
       }
     }
   }
@@ -226,7 +226,7 @@ export const UPDATE_SPLIT_SCREEN_VIEW_DEEPLY_NESTED_ALERT = gql`
       input: {splitScreenViewDeeplyNestedAlert: $splitScreenViewDeeplyNestedAlert}
     ) {
       user {
-        ...User
+        ...DiscussionPostUser
       }
     }
   }
@@ -293,9 +293,9 @@ export const RESTORE_DELETED_DISCUSSION_ENTRY = gql`
   mutation RestoreDeletedDiscussionEntry($discussionEntryId: ID!) {
     restoreDeletedDiscussionEntry(input: {discussionEntryId: $discussionEntryId}) {
       discussionEntry {
-        ...DiscussionEntry
+        ...DiscussionPostDiscussionEntry
         anonymousAuthor {
-          ...AnonymousUser
+          ...DiscussionPostAnonymousUser
         }
       }
       errors {

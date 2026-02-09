@@ -21,7 +21,7 @@ import {shape, string} from 'prop-types'
 
 export const AnonymousUser = {
   fragment: gql`
-    fragment AnonymousUser on AnonymousUser {
+    fragment DiscussionPostAnonymousUser on AnonymousUser {
       id
       avatarUrl
       shortName
