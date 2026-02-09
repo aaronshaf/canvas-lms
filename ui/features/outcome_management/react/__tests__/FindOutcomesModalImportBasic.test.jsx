@@ -42,6 +42,24 @@ vi.mock('@canvas/alerts/react/FlashAlert', () => ({
 
 vi.mock('@canvas/progress/resolve_progress')
 
+const createLocalStorageMock = () => {
+  const store = new Map()
+  return {
+    getItem: key => (store.has(key) ? store.get(key) : null),
+    setItem: (key, value) => {
+      store.set(key, String(value))
+    },
+    removeItem: key => {
+      store.delete(key)
+    },
+    clear: () => {
+      store.clear()
+    },
+  }
+}
+
+let originalLocalStorageDescriptor
+
 const delayImportOutcomesProgress = () => {
   let realResolve
   resolveProgress.mockReturnValueOnce(
@@ -115,6 +133,11 @@ describe('FindOutcomesModal - Import Basic Tests', () => {
 
   beforeEach(() => {
     vi.useFakeTimers()
+    originalLocalStorageDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: createLocalStorageMock(),
+      configurable: true,
+    })
     onCloseHandlerMock = vi.fn()
     setTargetGroupIdsToRefetchMock = vi.fn()
     setImportsTargetGroupMock = vi.fn()
@@ -124,18 +147,18 @@ describe('FindOutcomesModal - Import Basic Tests', () => {
   afterEach(() => {
     vi.clearAllMocks()
     resolveProgress.mockReset()
-    delete localStorage.activeImports
+    localStorage.removeItem('activeImports')
     vi.useRealTimers()
+    if (originalLocalStorageDescriptor) {
+      Object.defineProperty(globalThis, 'localStorage', originalLocalStorageDescriptor)
+    } else {
+      delete globalThis.localStorage
+    }
   })
 
   const render = (
     children,
-    {
-      contextType = 'Account',
-      contextId = '1',
-      mocks = findModalMocks(),
-      renderer = rtlRender,
-    } = {},
+    {contextType = 'Account', contextId = '1', mocks = findModalMocks(), renderer = rtlRender} = {},
   ) => {
     return renderer(
       <OutcomesContext.Provider
@@ -170,18 +193,24 @@ describe('FindOutcomesModal - Import Basic Tests', () => {
   it('loads localstorage.activeImports if present', async () => {
     const doResolveProgress = delayImportOutcomesProgress()
 
-    localStorage.activeImports = JSON.stringify([
-      {
-        outcomeOrGroupId: '1',
-        isGroup: false,
-        progress: {_id: '111', state: 'queued', __typename: 'Progress'},
-      },
-    ])
+    localStorage.setItem(
+      'activeImports',
+      JSON.stringify([
+        {
+          outcomeOrGroupId: '1',
+          isGroup: false,
+          progress: {_id: '111', state: 'queued', __typename: 'Progress'},
+        },
+      ]),
+    )
 
-    const {getByText, queryByText, queryAllByText} = render(<FindOutcomesModal {...defaultProps()} />, {
-      contextType: 'Course',
-      mocks: [...findModalMocks({parentAccountChildren: 1}), ...defaultTreeGroupMocks()],
-    })
+    const {getByText, queryByText, queryAllByText} = render(
+      <FindOutcomesModal {...defaultProps()} />,
+      {
+        contextType: 'Course',
+        mocks: [...findModalMocks({parentAccountChildren: 1}), ...defaultTreeGroupMocks()],
+      },
+    )
 
     await waitFor(() => expect(getByText('Account Standards')).toBeInTheDocument())
     await clickEl(getByText('Account Standards'))
@@ -200,24 +229,27 @@ describe('FindOutcomesModal - Import Basic Tests', () => {
     })
     await waitFor(() => expect(queryByText('Loading')).not.toBeInTheDocument())
     expect(queryAllByText('Added')).toHaveLength(1)
-    expect(localStorage.activeImports).toEqual('[]')
+    expect(localStorage.getItem('activeImports')).toEqual('[]')
   })
 
   it('handles outcome import button states correctly', async () => {
     const doResolveProgress = delayImportOutcomesProgress()
 
-    const {getByText, getAllByText, queryByText} = render(<FindOutcomesModal {...defaultProps()} />, {
-      contextType: 'Course',
-      mocks: [
-        ...courseImportMocks,
-        ...importOutcomeMocks({
-          outcomeId: '5',
-          targetContextType: 'Course',
-          sourceContextId: '1',
-          sourceContextType: 'Account',
-        }),
-      ],
-    })
+    const {getByText, getAllByText, queryByText} = render(
+      <FindOutcomesModal {...defaultProps()} />,
+      {
+        contextType: 'Course',
+        mocks: [
+          ...courseImportMocks,
+          ...importOutcomeMocks({
+            outcomeId: '5',
+            targetContextType: 'Course',
+            sourceContextId: '1',
+            sourceContextType: 'Account',
+          }),
+        ],
+      },
+    )
 
     await navigateToGroup(getByText)
 

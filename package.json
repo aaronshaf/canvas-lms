@@ -370,7 +370,7 @@
     "check:ts:watch": "tsc --watch -p tsconfig.json",
     "check:ts:native": "tsgo --noEmit -p tsconfig.tsgo.json",
     "check:ts:native:watch": "tsgo --watch --noEmit -p tsconfig.tsgo.json",
-    "check:biome": "yarn biome ci --since=HEAD^ --changed",
+    "check:biome": "yarn biome ci --since=HEAD^ --changed --no-errors-on-unmatched",
     "graphql:codegen": "yarn graphql-codegen --config ui/codegen.ts",
     "serve": "gulp rev 1> /dev/null & NODE_ENV=development rspack serve",
     "lint:packages": "eslint packages --cache --concurrency=auto",

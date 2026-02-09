@@ -36,14 +36,14 @@ const getLocalStorageActiveImports = () => {
   try {
     // if, for some reason, we have a bad activeImports data inside (like null string)
     // we won't break
-    return JSON.parse(localStorage.activeImports || '[]') || []
+    return JSON.parse(localStorage.getItem('activeImports') || '[]') || []
   } catch (error) {
     return []
   }
 }
 
 const storeActiveImportsInLocalStorage = activeImports => {
-  localStorage.activeImports = JSON.stringify(activeImports)
+  localStorage.setItem('activeImports', JSON.stringify(activeImports))
 }
 
 const useOutcomesImport = (outcomePollingInterval = 1000, groupPollingInterval = 5000) => {

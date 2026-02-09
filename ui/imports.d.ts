@@ -69,6 +69,12 @@ declare module '@instructure/ui-media-player' {
   export const MediaPlayer: ComponentType<MediaPlayerProps & Record<string, any>>
 }
 
+// Auto-generated extensions module (created at build time by webpack)
+declare module '@canvas/bundles/extensions' {
+  const extensions: Record<string, (() => Promise<unknown>) | undefined>
+  export default extensions
+}
+
 // Auto-generated plugin bundles module (created at build time by webpack)
 declare module 'plugin-bundles-generated' {
   const pluginBundles: {

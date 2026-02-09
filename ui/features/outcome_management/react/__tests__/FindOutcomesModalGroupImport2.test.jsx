@@ -40,6 +40,24 @@ vi.mock('@canvas/alerts/react/FlashAlert', () => ({
 
 vi.mock('@canvas/progress/resolve_progress')
 
+const createLocalStorageMock = () => {
+  const store = new Map()
+  return {
+    getItem: key => (store.has(key) ? store.get(key) : null),
+    setItem: (key, value) => {
+      store.set(key, String(value))
+    },
+    removeItem: key => {
+      store.delete(key)
+    },
+    clear: () => {
+      store.clear()
+    },
+  }
+}
+
+let originalLocalStorageDescriptor
+
 describe('FindOutcomesModal - Group Import Tests Part 2', () => {
   let cache
   let onCloseHandlerMock
@@ -49,6 +67,11 @@ describe('FindOutcomesModal - Group Import Tests Part 2', () => {
 
   beforeEach(() => {
     vi.useFakeTimers({shouldAdvanceTime: true})
+    originalLocalStorageDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: createLocalStorageMock(),
+      configurable: true,
+    })
     onCloseHandlerMock = vi.fn()
     setTargetGroupIdsToRefetchMock = vi.fn()
     setImportsTargetGroupMock = vi.fn()
@@ -65,6 +88,11 @@ describe('FindOutcomesModal - Group Import Tests Part 2', () => {
     vi.clearAllMocks()
     vi.useRealTimers()
     resolveProgress.mockReset()
+    if (originalLocalStorageDescriptor) {
+      Object.defineProperty(globalThis, 'localStorage', originalLocalStorageDescriptor)
+    } else {
+      delete globalThis.localStorage
+    }
   })
 
   const render = (children, options = {}) => {
@@ -74,14 +102,17 @@ describe('FindOutcomesModal - Group Import Tests Part 2', () => {
   it('loads localstorage.activeImports if present', async () => {
     const doResolveProgress = delayImportOutcomesProgress()
 
-    localStorage.activeImports = JSON.stringify([
-      {
-        outcomeOrGroupId: '300',
-        isGroup: true,
-        groupTitle: 'Group 300',
-        progress: {_id: '111', state: 'queued', __typename: 'Progress'},
-      },
-    ])
+    localStorage.setItem(
+      'activeImports',
+      JSON.stringify([
+        {
+          outcomeOrGroupId: '300',
+          isGroup: true,
+          groupTitle: 'Group 300',
+          progress: {_id: '111', state: 'queued', __typename: 'Progress'},
+        },
+      ]),
+    )
 
     const {getByText, getAllByText, queryByText} = render(
       <FindOutcomesModal {...defaultProps()} />,
