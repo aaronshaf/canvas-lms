@@ -32,7 +32,7 @@ const subject = () => {
 }
 
 describe('useGetSettings', () => {
-  beforeAll(() => server.listen())
+  beforeAll(() => server.listen({onUnhandledRequest: 'error'}))
   afterAll(() => server.close())
 
   beforeEach(() => {

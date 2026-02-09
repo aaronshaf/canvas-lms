@@ -3,6 +3,6 @@
   "private": true,
   "version": "1.0.0",
   "author": "neme",
-  "main": "./react/IndividualStudentMastery/index.jsx",
+  "main": "./react/IndividualStudentMastery/index.tsx",
   "owner": "EVAL"
 }

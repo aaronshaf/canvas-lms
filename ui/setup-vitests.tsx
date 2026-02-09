@@ -21,6 +21,112 @@ import {cleanup} from '@testing-library/react'
 import {vi, afterEach} from 'vitest'
 import $ from 'jquery'
 
+class MemoryStorage implements Storage {
+  #map = new Map<string, string>()
+  get length() {
+    return this.#map.size
+  }
+  clear() {
+    this.#map.clear()
+  }
+  getItem(key: string) {
+    return this.#map.has(key) ? this.#map.get(key)! : null
+  }
+  key(index: number) {
+    return Array.from(this.#map.keys())[index] ?? null
+  }
+  removeItem(key: string) {
+    this.#map.delete(key)
+  }
+  setItem(key: string, value: string) {
+    this.#map.set(String(key), String(value))
+  }
+}
+
+// Some environments (and some Node flags) can yield a broken `localStorage`.
+// Provide a stable in-memory implementation for tests.
+const existingLocalStorage: any = (globalThis as any).localStorage
+if (
+  !existingLocalStorage ||
+  typeof existingLocalStorage.getItem !== 'function' ||
+  typeof existingLocalStorage.setItem !== 'function'
+) {
+  vi.stubGlobal('localStorage', new MemoryStorage())
+}
+
+// Vitest + Node's fetch (undici) doesn't accept relative URLs, but the Canvas
+// codebase uses relative API paths everywhere. Normalize to an absolute URL so
+// MSW handlers can intercept requests.
+//
+// Also: MSW's fetch interceptor (Node 25 / undici) can throw if a RequestInit
+// `signal` comes from a different realm (jsdom). For tests, it's safe to strip
+// `signal` so network mocks keep working.
+const _origFetch = globalThis.fetch
+if (typeof _origFetch === 'function') {
+  const origin = (() => {
+    try {
+      return (globalThis as any).location?.origin || window.location?.origin || 'http://localhost'
+    } catch {
+      return 'http://localhost'
+    }
+  })()
+
+  globalThis.fetch = ((input: any, init?: any) => {
+    let nextInput = input
+    if (typeof input === 'string' && input.startsWith('/')) {
+      nextInput = `${origin}${input}`
+    } else if (
+      input &&
+      typeof input === 'object' &&
+      typeof input.url === 'string' &&
+      input.url.startsWith('/') &&
+      typeof (globalThis as any).Request === 'function'
+    ) {
+      // Recreate the request with an absolute URL but preserve everything else.
+      nextInput = new (globalThis as any).Request(`${origin}${input.url}`, input)
+    }
+
+    let nextInit = init
+    if (init && typeof init === 'object' && 'signal' in init) {
+      const {signal, ...rest} = init
+      nextInit = rest
+    }
+
+    const Req = (globalThis as any).Request
+    const isRequest = typeof Req === 'function' && nextInput instanceof Req
+
+    const run = async () => {
+      // Avoid passing Request objects directly to undici in tests; the embedded
+      // AbortSignal can be from jsdom's realm and cause undici to throw.
+      if (isRequest) {
+        const cloned = nextInput.clone()
+        let body: any
+        if (cloned.method !== 'GET' && cloned.method !== 'HEAD') {
+          body = await cloned.arrayBuffer()
+        }
+
+        const url = cloned.url.startsWith('/') ? `${origin}${cloned.url}` : cloned.url
+        return _origFetch(url, {
+          ...nextInit,
+          method: cloned.method,
+          headers: cloned.headers,
+          body,
+        })
+      }
+
+      return _origFetch(nextInput, nextInit)
+    }
+
+    try {
+      return run()
+    } catch (err: any) {
+      const message = String(err?.message || '')
+      if (!message.includes('Expected signal')) throw err
+      return run()
+    }
+  }) as typeof fetch
+}
+
 // Track all timers created during tests so we can clean them up
 // This prevents memory leaks from InstUI transitions and other timer-based code
 const pendingTimeouts = new Set<ReturnType<typeof setTimeout>>()
@@ -32,7 +138,11 @@ const originalClearTimeout = globalThis.clearTimeout
 const originalClearInterval = globalThis.clearInterval
 
 // Wrap setTimeout to track pending timers
-globalThis.setTimeout = ((callback: (...args: unknown[]) => void, ms?: number, ...args: unknown[]) => {
+globalThis.setTimeout = ((
+  callback: (...args: unknown[]) => void,
+  ms?: number,
+  ...args: unknown[]
+) => {
   const id = originalSetTimeout(() => {
     pendingTimeouts.delete(id)
     callback(...args)
@@ -42,7 +152,11 @@ globalThis.setTimeout = ((callback: (...args: unknown[]) => void, ms?: number, .
 }) as typeof setTimeout
 
 // Wrap setInterval to track pending intervals
-globalThis.setInterval = ((callback: (...args: unknown[]) => void, ms?: number, ...args: unknown[]) => {
+globalThis.setInterval = ((
+  callback: (...args: unknown[]) => void,
+  ms?: number,
+  ...args: unknown[]
+) => {
   const id = originalSetInterval(callback, ms, ...args)
   pendingIntervals.add(id)
   return id
@@ -254,34 +368,61 @@ const ignoredWarnings = [
   /Consumer uses the legacy contextTypes API/,
   /Warning: ReactDOM.render is no longer supported in React 18/,
 ]
-const ignoredLogs = [
-  /JQMIGRATE:/,
-]
-const originalError = console.error
-const originalWarn = console.warn
-const originalLog = console.log
-console.error = (msg: unknown, ...args: unknown[]) => {
-  const msgStr = String(msg)
-  if (ignoredErrors.some(regex => regex.test(msgStr))) return
-  if (args.some(arg => ignoredErrors.some(regex => regex.test(String(arg))))) return
-  originalError(msg, ...args)
+const ignoredLogs = [/JQMIGRATE:/]
+if (process.env.VITEST_FILTER_CONSOLE !== '0') {
+  const originalError = console.error
+  const originalWarn = console.warn
+  const originalLog = console.log
+  console.error = (msg: unknown, ...args: unknown[]) => {
+    const msgStr = String(msg)
+    if (ignoredErrors.some(regex => regex.test(msgStr))) return
+    if (args.some(arg => ignoredErrors.some(regex => regex.test(String(arg))))) return
+    originalError(msg, ...args)
+  }
+  console.warn = (msg: unknown, ...args: unknown[]) => {
+    if (ignoredWarnings.some(regex => regex.test(String(msg)))) return
+    originalWarn(msg, ...args)
+  }
+  console.log = (msg: unknown, ...args: unknown[]) => {
+    if (ignoredLogs.some(regex => regex.test(String(msg)))) return
+    originalLog(msg, ...args)
+  }
+  filterUselessConsoleMessages(console)
 }
-console.warn = (msg: unknown, ...args: unknown[]) => {
-  if (ignoredWarnings.some(regex => regex.test(String(msg)))) return
-  originalWarn(msg, ...args)
-}
-console.log = (msg: unknown, ...args: unknown[]) => {
-  if (ignoredLogs.some(regex => regex.test(String(msg)))) return
-  originalLog(msg, ...args)
-}
-filterUselessConsoleMessages(console)
 
-vi.stubGlobal('ENV', {
+// `ENV` is a global in Canvas runtime (backed by `window.ENV`). In tests we need
+// `ENV` to always reflect `window.ENV`, even when tests replace `window.ENV`
+// wholesale (common legacy pattern).
+const defaultENV = {
   use_rce_enhancements: true,
   FEATURES: {
     extended_submission_state: true,
   },
-})
+}
+
+if (typeof window !== 'undefined') {
+  // In Vitest jsdom, `window === globalThis`, so we can't implement `ENV` as a
+  // getter that reads `window.ENV` without infinite recursion. Instead, store
+  // the actual object on a different key and make `ENV` an accessor for it.
+  const ENV_BACKING_KEY = '__CANVAS_ENV__'
+  const backing = (globalThis as any)[ENV_BACKING_KEY] || {}
+  ;(globalThis as any)[ENV_BACKING_KEY] = backing
+
+  Object.assign(backing, defaultENV, backing)
+  backing.FEATURES = {...defaultENV.FEATURES, ...(backing.FEATURES || {})}
+
+  Object.defineProperty(globalThis, 'ENV', {
+    configurable: true,
+    get() {
+      return (globalThis as any)[ENV_BACKING_KEY]
+    },
+    set(value) {
+      ;(globalThis as any)[ENV_BACKING_KEY] = value || {}
+    },
+  })
+} else {
+  vi.stubGlobal('ENV', defaultENV)
+}
 
 vi.stubGlobal(
   'IntersectionObserver',
@@ -355,10 +496,18 @@ if (!window.HTMLElement.prototype.scrollIntoView) {
 // Fullscreen API mock - needed for media player tests
 // jsdom doesn't implement the Fullscreen API
 if (!document.fullscreenEnabled) {
-  Object.defineProperty(document, 'fullscreenEnabled', {value: true, writable: true, configurable: true})
+  Object.defineProperty(document, 'fullscreenEnabled', {
+    value: true,
+    writable: true,
+    configurable: true,
+  })
 }
 if (!document.fullscreenElement) {
-  Object.defineProperty(document, 'fullscreenElement', {value: null, writable: true, configurable: true})
+  Object.defineProperty(document, 'fullscreenElement', {
+    value: null,
+    writable: true,
+    configurable: true,
+  })
 }
 if (!document.exitFullscreen) {
   document.exitFullscreen = vi.fn().mockResolvedValue(undefined)
@@ -368,7 +517,11 @@ if (!HTMLElement.prototype.requestFullscreen) {
 }
 // Safari-specific fullscreen API
 if (!(document as any).webkitFullscreenEnabled) {
-  Object.defineProperty(document, 'webkitFullscreenEnabled', {value: true, writable: true, configurable: true})
+  Object.defineProperty(document, 'webkitFullscreenEnabled', {
+    value: true,
+    writable: true,
+    configurable: true,
+  })
 }
 if (!(HTMLVideoElement.prototype as any).webkitEnterFullscreen) {
   ;(HTMLVideoElement.prototype as any).webkitEnterFullscreen = vi.fn()

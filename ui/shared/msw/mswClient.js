@@ -24,9 +24,16 @@ const cache = createCache()
 const link = new HttpLink({
   uri: 'http://localhost:3000/graphql',
 
-  // Use explicit `window.fetch` so that outgoing requests
-  // are captured and deferred until the Service Worker is ready.
-  fetch: (...args) => fetch(...args),
+  // Use explicit fetch so outgoing requests are captured by MSW.
+  // In Vitest jsdom, an AbortSignal may come from a different realm than undici,
+  // and MSW's fetch interceptor can throw. Strip `signal` for test/mocked use.
+  fetch: (input, init = {}) => {
+    if (init && typeof init === 'object' && 'signal' in init) {
+      const {signal, ...rest} = init
+      return fetch(input, rest)
+    }
+    return fetch(input, init)
+  },
 })
 
 // Isolate Apollo client so it could be reused

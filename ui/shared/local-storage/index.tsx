@@ -24,12 +24,33 @@ function invalidSchemaValue<T>(value: T, schema: z.Schema<T>) {
   return !schema.safeParse(value).success
 }
 
+function getSafeLocalStorage(): Storage | null {
+  // Some tests stub `window.localStorage` with a plain object.
+  // Be defensive and fall back to initial values when Storage is unavailable.
+  try {
+    const ls: any = window?.localStorage
+    if (!ls) return null
+    if (typeof ls.getItem !== 'function' || typeof ls.setItem !== 'function') return null
+    return ls as Storage
+  } catch {
+    return null
+  }
+}
+
 export function getLocalStorageValue<T>(
   key: string,
   initialValue: T,
   schema: z.Schema<T> | undefined = undefined,
 ): T {
-  const item = window.localStorage.getItem(key)
+  const ls = getSafeLocalStorage()
+  if (!ls) return initialValue
+
+  let item: string | null
+  try {
+    item = ls.getItem(key)
+  } catch {
+    return initialValue
+  }
 
   if (item === null) {
     return initialValue
@@ -44,7 +65,13 @@ export function getLocalStorageValue<T>(
 }
 
 async function setLocalStorageValue<T>(key: string, value: T): Promise<void> {
-  window.localStorage.setItem(key, JSON.stringify(value))
+  const ls = getSafeLocalStorage()
+  if (!ls) return
+  try {
+    ls.setItem(key, JSON.stringify(value))
+  } catch {
+    // Ignore write failures (private mode, disabled storage, etc.)
+  }
 }
 
 function useLocalStorage<T>(

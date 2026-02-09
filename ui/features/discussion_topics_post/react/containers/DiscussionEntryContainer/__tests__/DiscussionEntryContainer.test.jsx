@@ -48,6 +48,15 @@ beforeAll(() => {
 })
 
 describe('DiscussionEntryContainer', () => {
+  let savedRoles
+  beforeEach(() => {
+    savedRoles = window.ENV?.current_user_roles
+    if (window.ENV) window.ENV.current_user_roles = undefined
+  })
+  afterEach(() => {
+    if (window.ENV) window.ENV.current_user_roles = savedRoles
+  })
+
   const topicPostUtilities = () => (
     <PostToolbar
       isPublished={true}

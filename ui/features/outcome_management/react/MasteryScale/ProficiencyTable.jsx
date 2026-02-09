@@ -86,7 +86,7 @@ class ProficiencyTable extends React.Component {
         ],
       },
     },
-    canManage: window.ENV?.PERMISSIONS ? ENV.PERMISSIONS.manage_proficiency_scales : true,
+    canManage: window.ENV?.PERMISSIONS?.manage_proficiency_scales ?? true,
     focusTab: null,
     breakpoints: {},
   }

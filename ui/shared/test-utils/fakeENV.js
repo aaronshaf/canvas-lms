@@ -20,7 +20,7 @@ export default {
   setup(options = {}) {
     if (!window.ENV) window.ENV = {}
 
-    window.ENV = {
+    const defaults = {
       current_user_id: '1',
       current_user_roles: ['user', 'teacher', 'admin', 'student'],
       current_user_is_admin: true,
@@ -30,10 +30,27 @@ export default {
       context_cache_key: 'users/1-20111116001415',
       PERMISSIONS: {},
       FEATURES: {},
-      ...options,
     }
+
+    const nextEnv = {
+      ...defaults,
+      ...options,
+      PERMISSIONS: {
+        ...(defaults.PERMISSIONS || {}),
+        ...(options.PERMISSIONS || {}),
+      },
+      FEATURES: {
+        ...(defaults.FEATURES || {}),
+        ...(options.FEATURES || {}),
+      },
+    }
+
+    // Mutate in place so existing references to `window.ENV` remain valid.
+    Object.keys(window.ENV).forEach(k => delete window.ENV[k])
+    Object.assign(window.ENV, nextEnv)
   },
   teardown() {
-    window.ENV = {}
+    if (!window.ENV) window.ENV = {}
+    Object.keys(window.ENV).forEach(k => delete window.ENV[k])
   },
 }

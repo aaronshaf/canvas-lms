@@ -64,6 +64,21 @@ function createHttpLink(httpLinkOptions = {}) {
     ...defaultOptions,
     ...httpLinkOptions,
   }
+
+  // In Node/Vitest (jsdom), AbortSignals can come from a different realm than
+  // undici's fetch expects, causing TypeError "Expected signal ...".
+  // Apollo's HttpLink adds an AbortController by default; strip the signal for
+  // test/runtime environments where it isn't interoperable.
+  if (!linkOpts.fetch && typeof globalThis.fetch === 'function') {
+    const baseFetch = globalThis.fetch.bind(globalThis)
+    linkOpts.fetch = (input, init) => {
+      if (init && typeof init === 'object' && 'signal' in init) {
+        const {signal, ...rest} = init
+        return baseFetch(input, rest)
+      }
+      return baseFetch(input, init)
+    }
+  }
   return new HttpLink(linkOpts)
 }
 

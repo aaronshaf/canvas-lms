@@ -78,9 +78,22 @@ describe('StaffInfo', () => {
   })
 
   describe('instructor messaging', () => {
+    let previousENV
+
+    beforeEach(() => {
+      previousENV = global.ENV
+      // Many test suites seed `ENV.current_user_id` to "1" by default.
+      // Ensure we're not testing the "own user" case here.
+      global.ENV = {...(global.ENV || {}), current_user_id: '2'}
+    })
+
+    afterEach(() => {
+      global.ENV = previousENV
+    })
+
     const openModal = async () => {
       const wrapper = render(<StaffInfo {...getProps()} />)
-      const button = wrapper.getByText('Send a message to Mrs. Thompson')
+      const button = wrapper.getByRole('button', {name: 'Send a message to Mrs. Thompson'})
       fireEvent.click(button)
       await waitFor(() => expect(wrapper.getByText('Message Mrs. Thompson')).toBeInTheDocument())
       return wrapper
@@ -160,7 +173,7 @@ describe('StaffInfo', () => {
         const wrapper = await openModal()
         fireEvent.change(wrapper.getByLabelText('Message'), {target: {value: 'hello'}})
         fireEvent.click(wrapper.getByText('Send'))
-        fireEvent.click(wrapper.getByText('Send a message to Mrs. Thompson'))
+        fireEvent.click(wrapper.getByRole('button', {name: 'Send a message to Mrs. Thompson'}))
         await waitFor(() => {
           expect(wrapper.getByLabelText('Message').closest('textarea').value).toBe('')
           expect(wrapper.getByLabelText('Subject').closest('input').value).toBe('')

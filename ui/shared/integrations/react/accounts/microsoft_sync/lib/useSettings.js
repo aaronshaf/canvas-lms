@@ -28,18 +28,26 @@ import {reducerActions, defaultState, settingsReducer} from './settingsReducer'
  */
 export default function useSettings() {
   const [state, dispatch] = useReducer(settingsReducer, defaultState)
+
+  const contextBaseUrl =
+    (typeof window !== 'undefined' && window.ENV?.CONTEXT_BASE_URL) ||
+    (typeof ENV !== 'undefined' && ENV?.CONTEXT_BASE_URL)
+
   useFetchApi({
     success: useCallback(data => {
       dispatch({
         type: reducerActions.fetchSuccess,
-        payload: sliceSyncSettings(data),
+        payload: sliceSyncSettings(data || {}),
       })
     }, []),
-    path: `/api/v1${ENV.CONTEXT_BASE_URL}/settings`,
+    path: `/api/v1${contextBaseUrl}/settings`,
     loading: useCallback(loading => {
       dispatch({type: reducerActions.fetchLoading, payload: {loading}})
     }, []),
-    error: useCallback(() => {
+    error: useCallback(err => {
+      if (process.env.DEBUG_MICROSOFT_SYNC_SETTINGS === '1') {
+        console.error('Microsoft sync settings fetch error:', err)
+      }
       dispatch({type: reducerActions.fetchError})
     }, []),
   })

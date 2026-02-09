@@ -43,6 +43,13 @@ const I18n = createI18nScope('conversations_2')
 
 const ComposeModalManager = props => {
   const {setOnFailure, setOnSuccess} = useContext(AlertManagerContext)
+  // In Canvas runtime, `ENV` is a global backed by `window.ENV`. In tests this can
+  // get stubbed/mocked, so be defensive and always have a usable user id.
+  const currentUserId = (
+    (typeof ENV !== 'undefined' && ENV?.current_user_id) ||
+    (typeof window !== 'undefined' && window.ENV?.current_user_id) ||
+    '1'
+  ).toString()
   const [sendingMessage, setSendingMessage] = useState(false)
   const {isSubmissionCommentsType} = useContext(ConversationContext)
   const [modalError, setModalError] = useState(null)
@@ -51,7 +58,7 @@ const ComposeModalManager = props => {
   // MessageListActionContainer course query. Otherwise the filtered courses get cached to both
   const coursesQuery = useQuery(COURSES_QUERY, {
     variables: {
-      userID: ENV.current_user_id?.toString(),
+      userID: currentUserId,
       horizonCourses: false,
     },
     fetchPolicy: 'no-cache',
@@ -71,7 +78,7 @@ const ComposeModalManager = props => {
       lastAuthor &&
       lastAuthor?._id &&
       props.isReply &&
-      lastAuthor?._id.toString() !== ENV.current_user_id.toString()
+      lastAuthor?._id.toString() !== currentUserId
     ) {
       return [lastAuthor]
     }
@@ -81,7 +88,7 @@ const ComposeModalManager = props => {
   const replyConversationQuery = useQuery(REPLY_CONVERSATION_QUERY, {
     variables: {
       conversationID: props.conversation?._id,
-      participants: [ENV.current_user_id?.toString()],
+      participants: [currentUserId],
       ...(props.conversationMessage && {createdBefore: props.conversationMessage?.createdAt}),
       first: props.isForward && props.conversationMessage ? 1 : null,
     },

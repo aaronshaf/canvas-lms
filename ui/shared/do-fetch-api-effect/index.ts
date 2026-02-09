@@ -24,6 +24,21 @@ import z from 'zod'
 
 const jsonRegEx = /^application\/json/i
 
+function isFormData(value: unknown): value is FormData {
+  if (!value || typeof value !== 'object') return false
+  // Cross-realm safe checks (jsdom vs undici vs browser).
+  const tag = (value as any)[Symbol.toStringTag]
+  if (tag === 'FormData') return true
+  if (Object.prototype.toString.call(value) === '[object FormData]') return true
+  const v: any = value
+  return (
+    typeof v.append === 'function' &&
+    (typeof v.get === 'function' ||
+      typeof v.entries === 'function' ||
+      typeof v[Symbol.iterator] === 'function')
+  )
+}
+
 function constructRelativeUrl({
   path,
   params,
@@ -95,7 +110,7 @@ export default async function doFetchApi<T = unknown>({
 
   // properly encode and set the content type if a body was given
   if (body) {
-    if (body instanceof FormData) {
+    if (isFormData(body)) {
       fetchHeaders.delete('Content-Type') // must let the browser handle it
     } else if (typeof body !== 'string') {
       body = JSON.stringify(body)
@@ -104,14 +119,31 @@ export default async function doFetchApi<T = unknown>({
   }
 
   const url = constructRelativeUrl({path, params})
-  const response = await fetch(url, {
+  const fetchInit = {
     body,
     method,
     ...fetchOpts,
     headers: fetchHeaders,
     signal,
     credentials,
-  })
+  }
+
+  let response: Response
+  try {
+    response = await fetch(url, fetchInit)
+  } catch (err) {
+    // In Vitest jsdom, AbortSignal can come from a different realm than undici.
+    // MSW's fetch interceptor may throw when it sees such a signal. Retrying
+    // without a signal keeps request mocking working while preserving the abort
+    // behavior in real browsers.
+    const msg = String((err as Error)?.message || err)
+    if (signal && msg.includes('Expected signal')) {
+      const {signal: _signal, ...initWithoutSignal} = fetchInit
+      response = await fetch(url, initWithoutSignal)
+    } else {
+      throw err
+    }
+  }
   if (!response.ok) {
     throw new FetchApiError(
       `doFetchApi received a bad response: ${response.status} ${response.statusText}`,
