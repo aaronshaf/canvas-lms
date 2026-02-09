@@ -1,0 +1,54 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - '*'
+  # No path filters - runs on ALL PRs
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  basic-checks:
+    name: Basic Validation
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check file changes
+        run: |
+          echo "Files changed in this PR:"
+          git diff --name-only origin/${{ github.base_ref }}...HEAD
+
+      - name: Validate ERB files
+        run: |
+          echo "Checking ERB syntax..."
+          # Basic Ruby setup for ERB validation
+          sudo apt-get update
+          sudo apt-get install -y ruby
+
+          # Check ERB files for syntax errors
+          for file in $(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '\.erb$'); do
+            if [ -f "$file" ]; then
+              echo "Validating $file"
+              erb -x -T '-' "$file" | ruby -c || exit 1
+            fi
+          done
+
+      - name: Check for large files
+        run: |
+          echo "Checking for accidentally committed large files..."
+          git diff --name-only origin/${{ github.base_ref }}...HEAD | while read file; do
+            if [ -f "$file" ]; then
+              size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)
+              if [ "$size" -gt 1048576 ]; then
+                echo "❌ Warning: $file is larger than 1MB ($size bytes)"
+                exit 1
+              fi
+            fi
+          done
+
+      - name: Success
+        run: echo "✅ Basic validation passed!"
