@@ -67,7 +67,7 @@ export const SubmissionInterface = {
       unreadCommentCount
       url
       assignedAssessments {
-        ...AssessmentRequest
+        ...StudentAssessmentRequest
       }
     }
     ${MediaObject.fragment}
