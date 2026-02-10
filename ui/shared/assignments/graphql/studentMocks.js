@@ -54,7 +54,7 @@ const SUBMISSION_QUERY = gql`
 const ASSIGNMENT_QUERY = gql`
   query AssignmentQuery {
     assignment(id: "1") {
-      ...Assignment
+      ...StudentAssignment
       rubric {
         id
       }
