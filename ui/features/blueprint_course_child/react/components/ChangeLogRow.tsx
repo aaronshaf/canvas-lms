@@ -18,7 +18,7 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {Component} from 'react'
-import {string, bool, node} from 'prop-types'
+import type {ReactNode} from 'react'
 import cx from 'classnames'
 import shortId from '@canvas/shortid'
 
@@ -26,21 +26,33 @@ import {Grid} from '@instructure/ui-grid'
 import {Text} from '@instructure/ui-text'
 import {IconLock, IconUnlock} from '@canvas/blueprint-courses/react/components/BlueprintLocks'
 
-import propTypes from '@canvas/blueprint-courses/react/propTypes'
 import {itemTypeLabels, changeTypeLabels} from '@canvas/blueprint-courses/react/labels'
 
 const I18n = createI18nScope('blueprint_coursesChangeLogRow')
 
-export default class ChangeLogRow extends Component {
-  static propTypes = {
-    col1: string.isRequired,
-    col2: string.isRequired,
-    col3: string.isRequired,
-    col4: string.isRequired,
-    isHeading: bool,
-    children: node,
-  }
+interface ChangeLogRowProps {
+  col1: string
+  col2: string
+  col3: string
+  col4: string
+  isHeading?: boolean
+  children?: ReactNode
+}
 
+interface MigrationChange {
+  asset_id: string
+  asset_type: string
+  asset_name: string
+  change_type: string
+  locked?: boolean
+  exceptions?: unknown[]
+}
+
+interface ChangeRowProps {
+  change: MigrationChange
+}
+
+export default class ChangeLogRow extends Component<ChangeLogRowProps> {
   static defaultProps = {
     isHeading: false,
     children: null,
@@ -48,7 +60,7 @@ export default class ChangeLogRow extends Component {
 
   colIds = [shortId(), shortId(), shortId(), shortId()]
 
-  renderText = text => (
+  renderText = (text: string) => (
     <Text size="small" weight={this.props.isHeading ? 'bold' : 'normal'}>
       {text}
     </Text>
@@ -103,7 +115,7 @@ export default class ChangeLogRow extends Component {
   }
 }
 
-export const ChangeRow = ({change}) => (
+export const ChangeRow = ({change}: ChangeRowProps) => (
   <ChangeLogRow
     col1={change.asset_name}
     col2={itemTypeLabels[change.asset_type]}
@@ -117,7 +129,3 @@ export const ChangeRow = ({change}) => (
     </div>
   </ChangeLogRow>
 )
-
-ChangeRow.propTypes = {
-  change: propTypes.migrationChange.isRequired,
-}

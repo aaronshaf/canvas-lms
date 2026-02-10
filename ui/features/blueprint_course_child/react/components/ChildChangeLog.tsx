@@ -17,7 +17,6 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
 
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
@@ -29,17 +28,37 @@ import {PresentationContent} from '@instructure/ui-a11y-content'
 import ChangeLogRow, {ChangeRow} from './ChangeLogRow'
 import SyncHistoryItem from '@canvas/blueprint-courses/react/components/SyncHistoryItem'
 
-import propTypes from '@canvas/blueprint-courses/react/propTypes'
 import LoadStates from '@canvas/blueprint-courses/react/loadStates'
 
 const I18n = createI18nScope('blueprint_coursesChildChangeLog')
 
-export default class ChildChangeLog extends Component {
-  static propTypes = {
-    status: PropTypes.oneOf(LoadStates.statesList),
-    migration: propTypes.migration,
-  }
+interface Migration {
+  id: string
+  workflow_state: string
+  comment?: string
+  created_at: string
+  exports_started_at?: string
+  imports_queued_at?: string
+  imports_completed_at?: string
+  changes?: unknown[]
+}
 
+interface ChildChangeLogProps {
+  status?: string | null
+  migration?: Migration | null
+}
+
+interface ChangeLogState {
+  selectedChangeLog: string | null
+  changeLogs: Record<string, {status: string; data: Migration}>
+}
+
+interface StoreState {
+  selectedChangeLog: string | null
+  changeLogs: Record<string, {status: string; data: Migration}>
+}
+
+export class ChildChangeLog extends Component<ChildChangeLogProps> {
   static defaultProps = {
     migration: null,
     status: null,
@@ -89,7 +108,7 @@ export default class ChildChangeLog extends Component {
   }
 }
 
-const connectState = state => ({
+const connectState = (state: StoreState) => ({
   status: state.selectedChangeLog && state.changeLogs[state.selectedChangeLog].status,
   migration: state.selectedChangeLog && state.changeLogs[state.selectedChangeLog].data,
 })
