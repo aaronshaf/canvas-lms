@@ -30,7 +30,12 @@ import CustomHelpLinkIconInput from './CustomHelpLinkIconInput'
 
 const I18n = createI18nScope('custom_help_link')
 
-export default function CustomHelpLinkIcons(props) {
+type CustomHelpLinkIconsProps = {
+  defaultValue?: string
+  isCareerAccount?: boolean
+}
+
+export default function CustomHelpLinkIcons(props: CustomHelpLinkIconsProps) {
   const {defaultValue, isCareerAccount} = props
 
   if (isCareerAccount) {

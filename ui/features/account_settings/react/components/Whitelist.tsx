@@ -41,7 +41,49 @@ const I18n = createI18nScope('security_panel')
 
 const PROTOCOL_REGEX = /^(?:(ht|f)tp(s?)\:\/\/)?/
 
-export class Whitelist extends Component {
+type SecurityContext = 'course' | 'account'
+
+type WhitelistTool = {id: string; name: string; account_id: string}
+
+type WhitelistedDomains = {
+  account: string[]
+  effective: string[]
+  inherited: string[]
+  tools: Record<string, WhitelistTool[]>
+}
+
+type WhitelistOwnProps = {
+  context: SecurityContext
+  contextId: string
+  inherited?: boolean
+  isSubAccount?: boolean
+  maxDomains: number
+}
+
+type WhitelistStateProps = {
+  whitelistedDomains: WhitelistedDomains
+}
+
+type WhitelistDispatchProps = {
+  addDomain: (context: SecurityContext, contextId: string, domain: string) => void
+  removeDomain: (context: SecurityContext, contextId: string, domain: string) => void
+  copyInheritedIfNeeded: (
+    context: SecurityContext,
+    contextId: string,
+    payload: {add?: string; delete?: string},
+  ) => void
+}
+
+type WhitelistProps = WhitelistOwnProps & WhitelistStateProps & WhitelistDispatchProps
+
+type WhitelistState = {
+  addDomainInputValue: string
+  errors: Array<{text: string; type: string}>
+}
+
+type FocusableRef = {focus: () => void}
+
+export class Whitelist extends Component<WhitelistProps, WhitelistState> {
   static propTypes = {
     addDomain: func.isRequired,
     removeDomain: func.isRequired,
@@ -65,16 +107,16 @@ export class Whitelist extends Component {
 
   domainNameInputRef = createRef()
 
-  state = {
+  state: WhitelistState = {
     addDomainInputValue: '',
     errors: [],
   }
 
-  deleteButtons = []
+  deleteButtons: Record<string, FocusableRef | null> = {}
 
-  addDomainBtn = null
+  addDomainBtn: FocusableRef | null = null
 
-  validateInput = input => {
+  validateInput = (input: string) => {
     const domainOnly = input.replace(PROTOCOL_REGEX, '')
     const parts = domainOnly.split('.')
     const isWildcard = parts[0] === '*'
@@ -106,11 +148,11 @@ export class Whitelist extends Component {
           },
         ],
       })
-      this.domainNameInputRef.current.focus()
+      this.domainNameInputRef.current?.focus()
     }
   }
 
-  handleRemoveDomain = domain => {
+  handleRemoveDomain = (domain: string) => {
     const deletedIndex = this.props.whitelistedDomains.account.findIndex(x => x === domain)
     let newIndex = 0
     if (deletedIndex > 0) {
@@ -119,9 +161,9 @@ export class Whitelist extends Component {
     this.props.removeDomain(this.props.context, this.props.contextId, domain)
     const newDomainToFocus = this.props.whitelistedDomains.account[newIndex]
     if (deletedIndex <= 0) {
-      this.addDomainBtn.focus()
+      this.addDomainBtn?.focus()
     } else {
-      this.deleteButtons[newDomainToFocus].focus()
+      this.deleteButtons[newDomainToFocus]?.focus()
     }
     this.props.copyInheritedIfNeeded(this.props.context, this.props.contextId, {delete: domain})
   }
@@ -193,15 +235,15 @@ export class Whitelist extends Component {
                 messages={this.state.errors}
                 disabled={(this.props.inherited && this.props.isSubAccount) || domainLimitReached}
                 isRequired={true}
-                onChange={e => {
-                  this.setState({addDomainInputValue: e.currentTarget.value})
+                onChange={(e: any) => {
+                  this.setState({addDomainInputValue: String(e.currentTarget?.value ?? '')})
                 }}
               />
             </Flex.Item>
             <Flex.Item align={this.state.errors.length ? 'center' : 'end'}>
               <Button
                 aria-label={I18n.t('Add Domain')}
-                ref={c => (this.addDomainBtn = c)}
+                ref={(c: any) => (this.addDomainBtn = c)}
                 type="submit"
                 margin="0 x-small 0 0"
                 renderIcon={IconPlusSolid}
@@ -232,7 +274,7 @@ export class Whitelist extends Component {
                   <Table.Cell>{domain}</Table.Cell>
                   <Table.Cell textAlign="end">
                     <IconButton
-                      ref={c => (this.deleteButtons[domain] = c)}
+                      ref={(c: any) => (this.deleteButtons[domain] = c)}
                       renderIcon={IconTrashLine}
                       withBackground={false}
                       withBorder={false}
@@ -297,7 +339,10 @@ export class Whitelist extends Component {
   }
 }
 
-function mapStateToProps(state, ownProps) {
+function mapStateToProps(
+  state: any,
+  ownProps: WhitelistOwnProps,
+): WhitelistOwnProps & WhitelistStateProps {
   return {...ownProps, whitelistedDomains: state.whitelistedDomains}
 }
 

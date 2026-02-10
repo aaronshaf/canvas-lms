@@ -25,10 +25,20 @@ import {AccessibleContent} from '@instructure/ui-a11y-content'
 import {IconPlusLine} from '@instructure/ui-icons'
 import CustomHelpLinkPropTypes from './CustomHelpLinkPropTypes'
 import CustomHelpLinkConstants from './CustomHelpLinkConstants'
+import type {CustomHelpLinkLink} from './types'
 
 const I18n = createI18nScope('custom_help_link')
 
+type CustomHelpLinkMenuProps = {
+  links: CustomHelpLinkLink[]
+  onChange?: (link: CustomHelpLinkLink) => void
+}
+
 export default class CustomHelpLinkMenu extends React.Component {
+  declare props: CustomHelpLinkMenuProps
+
+  private addButton!: any
+
   static propTypes = {
     links: PropTypes.arrayOf(CustomHelpLinkPropTypes.link).isRequired,
     onChange: PropTypes.func,
@@ -38,7 +48,7 @@ export default class CustomHelpLinkMenu extends React.Component {
     onChange: () => {},
   }
 
-  handleChange = (e, link) => {
+  handleChange = (e: React.SyntheticEvent, link: CustomHelpLinkLink) => {
     if (link.is_disabled) {
       e.preventDefault()
       return
@@ -55,7 +65,7 @@ export default class CustomHelpLinkMenu extends React.Component {
 
   focusable = () => this.addButton
 
-  handleAddLinkSelection = (e, selected) => {
+  handleAddLinkSelection = (e: React.SyntheticEvent, selected: string[]) => {
     const item = selected[0]
     if (item === 'add_custom_link') {
       this.handleChange(e, {...CustomHelpLinkConstants.DEFAULT_LINK})
