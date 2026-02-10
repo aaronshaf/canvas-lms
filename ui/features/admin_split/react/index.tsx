@@ -21,14 +21,26 @@ import '@canvas/jquery/jquery.ajaxJSON'
 import React, {useCallback, useState} from 'react'
 import {Button} from '@instructure/ui-buttons'
 import {IconWarningLine} from '@instructure/ui-icons'
-import {arrayOf, shape, string} from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('admin_split')
 
-export default function AdminSplit({user, splitUrl, splitUsers}) {
+interface User {
+  id: string
+  display_name: string
+  short_name?: string
+  html_url: string
+}
+
+interface AdminSplitProps {
+  user: User
+  splitUrl: string
+  splitUsers: User[]
+}
+
+export default function AdminSplit({user, splitUrl, splitUsers}: AdminSplitProps) {
   const [loading, setLoading] = useState(false)
-  const [results, setResults] = useState([])
+  const [results, setResults] = useState<User[]>([])
   const [failed, setFailed] = useState(false)
 
   const performSplit = useCallback(() => {
@@ -37,19 +49,19 @@ export default function AdminSplit({user, splitUrl, splitUsers}) {
       splitUrl,
       'POST',
       {},
-      data => {
+      (data: User[]) => {
         setLoading(false)
         setResults(data)
       },
-      _data => {
+      (_data: unknown) => {
         setLoading(false)
         setFailed(true)
       },
     )
-  }, [splitUrl, setLoading, setResults, setFailed])
+  }, [splitUrl])
 
   const returnToReferrer = () => {
-    window.location = document.referrer
+    window.location.href = document.referrer
   }
 
   if (failed) {
@@ -113,16 +125,4 @@ export default function AdminSplit({user, splitUrl, splitUsers}) {
       ) : null}
     </>
   )
-}
-
-const userShape = shape({
-  id: string.isRequired,
-  display_name: string.isRequired,
-  html_url: string.isRequired,
-})
-
-AdminSplit.propTypes = {
-  splitUrl: string.isRequired,
-  user: userShape.isRequired,
-  splitUsers: arrayOf(userShape).isRequired,
 }
