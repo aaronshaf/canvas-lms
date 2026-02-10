@@ -23,10 +23,28 @@ import CustomHelpLinkPropTypes from './CustomHelpLinkPropTypes'
 import CustomHelpLinkHiddenInputs from './CustomHelpLinkHiddenInputs'
 import CustomHelpLinkAction from './CustomHelpLinkAction'
 import {Pill} from '@instructure/ui-pill'
+import type {CustomHelpLinkLink} from './types'
 
 const I18n = createI18nScope('custom_help_link')
 
+type ActionName = 'moveUp' | 'moveDown' | 'edit' | 'remove'
+
+type CustomHelpLinkProps = {
+  isCareerAccount?: boolean
+  link: CustomHelpLinkLink
+  onMoveUp?: () => void
+  onMoveDown?: () => void
+  onEdit?: () => void
+  onRemove?: () => void
+}
+
 export default class CustomHelpLink extends React.Component {
+  declare props: CustomHelpLinkProps
+
+  private actions: Partial<Record<ActionName, any>> = {}
+
+  private rootElement: HTMLLIElement | null = null
+
   static propTypes = {
     isCareerAccount: PropTypes.bool,
     link: CustomHelpLinkPropTypes.link.isRequired,
@@ -44,7 +62,7 @@ export default class CustomHelpLink extends React.Component {
     onRemove: () => {},
   }
 
-  focus = action => {
+  focus = (action: ActionName) => {
     // screenreaders are the worst
     // We have to force a focus change and a delay because clicking the "up" or "delete" buttons
     // just causes React to rearrange the DOM nodes, so the focus doesn't actually change. If the
@@ -66,7 +84,8 @@ export default class CustomHelpLink extends React.Component {
   }
 
   focusable = () => {
-    const focusable = this.rootElement?.querySelectorAll('button:not([disabled])')
+    const focusable =
+      this.rootElement?.querySelectorAll<HTMLButtonElement>('button:not([disabled])')
     return focusable?.[0]
   }
 
@@ -92,7 +111,7 @@ export default class CustomHelpLink extends React.Component {
     return (
       <li
         className="ic-Sortable-item"
-        ref={c => {
+        ref={(c: HTMLLIElement | null) => {
           this.rootElement = c
         }}
       >
@@ -103,7 +122,7 @@ export default class CustomHelpLink extends React.Component {
         <div className="ic-Sortable-item__Actions">
           <div className="ic-Sortable-sort-controls">
             <CustomHelpLinkAction
-              ref={c => {
+              ref={(c: any) => {
                 this.actions.moveUp = c
               }}
               link={this.props.link}
@@ -112,7 +131,7 @@ export default class CustomHelpLink extends React.Component {
               iconClass="icon-mini-arrow-up"
             />
             <CustomHelpLinkAction
-              ref={c => {
+              ref={(c: any) => {
                 this.actions.moveDown = c
               }}
               link={this.props.link}
@@ -122,7 +141,7 @@ export default class CustomHelpLink extends React.Component {
             />
           </div>
           <CustomHelpLinkAction
-            ref={c => {
+            ref={(c: any) => {
               this.actions.edit = c
             }}
             link={this.props.link}
@@ -131,7 +150,7 @@ export default class CustomHelpLink extends React.Component {
             iconClass="icon-edit"
           />
           <CustomHelpLinkAction
-            ref={c => {
+            ref={(c: any) => {
               this.actions.remove = c
             }}
             link={this.props.link}

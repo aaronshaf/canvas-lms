@@ -23,6 +23,7 @@ import CustomEmojiDenyList from './react/custom_emoji_deny_list/CustomEmojiDenyL
 import CustomHelpLinkSettings from './react/custom_help_link_settings/CustomHelpLinkSettings'
 import {Spinner} from '@instructure/ui-spinner'
 import {View} from '@instructure/ui-view'
+import {Text} from '@instructure/ui-text'
 import './jquery/index'
 import ready from '@instructure/ready'
 import MicrosoftSyncAccountSettings from '@canvas/integrations/react/accounts/microsoft_sync/MicrosoftSyncAccountSettings'

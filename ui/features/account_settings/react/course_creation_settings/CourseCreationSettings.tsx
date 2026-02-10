@@ -29,7 +29,25 @@ import {Checkbox} from '@instructure/ui-checkbox'
 
 const I18n = createI18nScope('course_creation_settings')
 
-const locationRadioInputs = [
+type CurrentValues = {
+  teachers_can_create_courses: boolean
+  students_can_create_courses: boolean
+  no_enrollments_can_create_courses: boolean
+  teachers_can_create_courses_anywhere: boolean
+  students_can_create_courses_anywhere: boolean
+}
+
+type CourseCreationSettingsProps = {
+  currentValues: CurrentValues
+}
+
+type LocationRadioInput = {
+  key: string
+  value: '0' | '1'
+  label: string
+}
+
+const locationRadioInputs: LocationRadioInput[] = [
   {
     key: 'anywhere',
     value: '1',
@@ -42,9 +60,9 @@ const locationRadioInputs = [
   },
 ]
 
-const formatInputName = name => `account[settings][${name}]`
+const formatInputName = (name: string) => `account[settings][${name}]`
 
-const CourseCreationSettings = ({currentValues}) => {
+const CourseCreationSettings = ({currentValues}: CourseCreationSettingsProps) => {
   const [isTeachersChecked, setTeachersChecked] = useState(
     currentValues.teachers_can_create_courses,
   )
@@ -76,7 +94,7 @@ const CourseCreationSettings = ({currentValues}) => {
           name={formatInputName('teachers_can_create_courses')}
           value={1}
           checked={isTeachersChecked}
-          onChange={e => setTeachersChecked(e.target.checked)}
+          onChange={(e: any) => setTeachersChecked(Boolean(e.target?.checked))}
         />
         {isTeachersChecked && (
           <View as="div" padding="0 0 0 medium">
@@ -102,7 +120,7 @@ const CourseCreationSettings = ({currentValues}) => {
           name={formatInputName('students_can_create_courses')}
           value={1}
           checked={isStudentsChecked}
-          onChange={e => setStudentsChecked(e.target.checked)}
+          onChange={(e: any) => setStudentsChecked(Boolean(e.target?.checked))}
         />
         {isStudentsChecked && (
           <View as="div" padding="0 0 0 medium">
@@ -132,7 +150,7 @@ const CourseCreationSettings = ({currentValues}) => {
           name={formatInputName('no_enrollments_can_create_courses')}
           value={1}
           checked={isNoEnrollmentsChecked}
-          onChange={e => setNoEnrollmentsChecked(e.target.checked)}
+          onChange={(e: any) => setNoEnrollmentsChecked(Boolean(e.target?.checked))}
         />
       </FormFieldGroup>
     </View>

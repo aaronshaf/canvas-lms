@@ -34,6 +34,7 @@ import 'jquery-scroll-to-visible/jquery.scrollTo'
 import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import ReactDOM from 'react-dom/client'
+import type {Root} from 'react-dom/client'
 import ReportDescription from '@canvas/account_reports/react/ReportDescription'
 import RunReportForm from '@canvas/account_reports/react/RunReportForm'
 import RQDModal from '../react/components/RQDModal'
@@ -44,53 +45,54 @@ import {LoadTab} from '../../../shared/tabs/react/LoadTab'
 const I18n = createI18nScope('account_settings')
 const _settings_smallTablet = window.matchMedia('(min-width: 550px)').matches
 const _settings_desktop = window.matchMedia('(min-width: 992px)').matches
+const env = window.ENV as any
 
 // for report description modals
-let descMount
-let descRoot
+let descMount: HTMLElement | null = null
+let descRoot: Root | null = null
 
-export function openReportDescriptionLink(event) {
+export function openReportDescriptionLink(this: HTMLElement, event: JQuery.TriggeredEvent) {
   event.preventDefault()
 
   const closeModal = () => {
-    descRoot.render(null)
+    descRoot?.render(null)
   }
   const title = $(this).parents('.title').find('span.title').text()
-  const desc = $(this).parent('.reports').find('.report_description').html()
+  const desc = $(this).parent('.reports').find('.report_description').html() || ''
 
   if (descMount && descRoot) {
     descRoot.render(<ReportDescription title={title} descHTML={desc} closeModal={closeModal} />)
   }
 }
 
-export function addUsersLink(event) {
+export function addUsersLink(this: HTMLElement, event: JQuery.TriggeredEvent) {
   event.preventDefault()
   const $enroll_users_form = $('#enroll_users_form')
   $(this).hide()
   $enroll_users_form.show()
-  $('html,body').scrollTo($enroll_users_form)
+  ;($('html,body') as any).scrollTo($enroll_users_form)
   $enroll_users_form.find('#admin_role_id').focus().select()
 }
 
 $(document).ready(function () {
   // for report configure modals
-  let reportMount
-  let reportRoot
+  let reportMount: HTMLElement | null = null
+  let reportRoot: Root | null = null
   // for RQD popup (behind FF)
   const rqdMount = document.getElementById('rqd_mount')
-  let rqdRoot
+  let rqdRoot: Root | null = null
   if (rqdMount) {
     rqdRoot = ReactDOM.createRoot(rqdMount)
   }
   // for open registration warning (renders based on auth providers)
   const openRegMount = document.getElementById('open_registration_mount')
-  let openRegRoot
+  let openRegRoot: Root | null = null
   if (openRegMount) {
     openRegRoot = ReactDOM.createRoot(openRegMount)
   }
   // for service description modals (always in settings)
   const serviceMount = document.getElementById('service_mount')
-  let serviceRoot
+  let serviceRoot: Root | null = null
   if (serviceMount) {
     serviceRoot = ReactDOM.createRoot(serviceMount)
   }
@@ -105,14 +107,14 @@ $(document).ready(function () {
   checkFutureListingSetting()
   $('#account_settings_restrict_student_future_view_value').change(checkFutureListingSetting)
 
-  $('#account_settings').on('submit', function (event) {
+  $('#account_settings').on('submit', function (this: HTMLFormElement, event: JQuery.Event) {
     const $this = $(this)
 
     const account_validations = {
       object_name: 'account',
       required: ['name'],
       property_validations: {
-        name(value) {
+        name(value: string) {
           if (value && value.length > 255) {
             return I18n.t('account_name_too_long', 'Account Name is too long')
           }
@@ -120,7 +122,7 @@ $(document).ready(function () {
       },
     }
 
-    let result = $this.validateForm(account_validations)
+    let result = ($this as any).validateForm(account_validations)
 
     // Work around for Safari to enforce help menu name validation until `required` is supported
     if ($('#custom_help_link_settings').length > 0) {
@@ -128,25 +130,26 @@ $(document).ready(function () {
         object_name: 'account[settings]',
         required: ['help_link_name'],
         property_validations: {
-          help_link_name(value) {
+          help_link_name(value: string) {
             if (value && value.length > 30) {
               return I18n.t('help_menu_name_too_long', 'Help menu name is too long')
             }
           },
         },
       }
-      result = result && $this.validateForm(help_menu_validations)
+      result = result && ($this as any).validateForm(help_menu_validations)
     }
 
     // Check for quiz filter errors too
-    const quizIPFilters = document.getElementById('account_settings_quiz_ip_filters')
+    const quizIPFilters = document.getElementById('account_settings_quiz_ip_filters') as any
     if (quizIPFilters) result = result && quizIPFilters.__performValidation()
 
     if (!result) event.preventDefault()
   })
 
   $('#account_settings_suppress_notifications').click(event => {
-    if (event.target.checked) {
+    const target = event.target as HTMLInputElement
+    if (target.checked) {
       const result = window.confirm(
         I18n.t(
           'suppress_notifications_warning',
@@ -165,10 +168,10 @@ $(document).ready(function () {
 
   globalAnnouncements.bindDomEvents()
 
-  function loadReportsTab(targetId) {
+  function loadReportsTab(targetId: string) {
     if (targetId !== 'tab-reports-selected') return
 
-    const splitContext = window.ENV.context_asset_string.split('_')
+    const splitContext = env.context_asset_string.split('_')
     const path = `/${splitContext[0]}s/${splitContext[1]}/reports_tab`
 
     fetch(path, {
@@ -179,16 +182,16 @@ $(document).ready(function () {
         try {
           $('#tab-reports-mount').html(html)
           descMount = document.getElementById('report_desc_mount')
-          descRoot = ReactDOM.createRoot(descMount)
+          if (descMount) descRoot = ReactDOM.createRoot(descMount)
           reportMount = document.getElementById('run_report_mount')
-          reportRoot = ReactDOM.createRoot(reportMount)
+          if (reportMount) reportRoot = ReactDOM.createRoot(reportMount)
 
           $('.open_report_description_link').click(openReportDescriptionLink)
           $('.run_report_link').click(function (clickEvent) {
             clickEvent.preventDefault()
             $(this).parent('form').submit()
           })
-          $('.run_report_form').formSubmit({
+          ;($('.run_report_form') as any).formSubmit({
             resetForm: true,
             beforeSubmit(_data) {
               $(this).loadingImage()
@@ -196,7 +199,7 @@ $(document).ready(function () {
             },
             success(_data) {
               $(this).loadingImage('remove')
-              const report = $(this).attr('id').replace('_form', '')
+              const report = String($(this).attr('id') || '').replace('_form', '')
               $('#' + report)
                 .find('.run_report_link')
                 .hide()
@@ -216,13 +219,13 @@ $(document).ready(function () {
 
             const reportCell = $(this).closest('td')
             const reportRow = reportCell.closest('tr')
-            const reportName = reportRow[0].id
-            const path = reportCell.find('.report_dialog form').attr('action')
+            const reportName = reportRow[0]?.id || ''
+            const path = reportCell.find('.report_dialog form').attr('action') || ''
             const html = reportCell.find('.report_dialog').html()
 
-            const closeModal = () => reportRoot.render(null)
-            const onSuccess = ({report}) => {
-              reportRoot.render(null)
+            const closeModal = () => reportRoot?.render(null)
+            const onSuccess = ({report}: {report: string}) => {
+              reportRoot?.render(null)
               $(`#${report}`)
                 .find('.run_report_link')
                 .hide()
@@ -237,9 +240,9 @@ $(document).ready(function () {
               nextRow.find('button.open_report_description_link').focus()
             }
 
-            reportRoot.render(
+            reportRoot?.render(
               <RunReportForm
-                formHTML={html}
+                formHTML={html || ''}
                 closeModal={closeModal}
                 onSuccess={onSuccess}
                 path={path}
@@ -256,10 +259,10 @@ $(document).ready(function () {
       })
   }
 
-  function loadSecurityTab(targetId) {
+  function loadSecurityTab(targetId: string) {
     if (targetId !== 'tab-security-selected') return
 
-    const splitContext = window.ENV.context_asset_string.split('_')
+    const splitContext = env.context_asset_string.split('_')
     const api = axios.create({})
 
     api
@@ -273,8 +276,8 @@ $(document).ready(function () {
             start(document.getElementById('tab-security-mount'), {
               context: splitContext[0],
               contextId: splitContext[1],
-              isSubAccount: !ENV.ACCOUNT.root_account,
-              initialCspSettings: ENV.CSP,
+              isSubAccount: !env.ACCOUNT?.root_account,
+              initialCspSettings: env.CSP,
               liveRegion: [
                 document.getElementById('flash_message_holder'),
                 document.getElementById('flash_screenreader_holder'),
@@ -296,7 +299,8 @@ $(document).ready(function () {
 
   $('#account_settings_restrict_quantitative_data_value').click(event => {
     const lockbox = $('#account_settings_restrict_quantitative_data_locked')
-    if (event.target.checked) {
+    const target = event.target as HTMLInputElement
+    if (target.checked) {
       lockbox.prop('disabled', false)
     } else {
       lockbox.prop('checked', false)
@@ -308,21 +312,23 @@ $(document).ready(function () {
     event.preventDefault()
 
     const closeModal = () => {
-      rqdRoot.render(null)
+      rqdRoot?.render(null)
     }
 
-    rqdRoot.render(<RQDModal closeModal={closeModal} />)
+    rqdRoot?.render(<RQDModal closeModal={closeModal} />)
   })
 
   $('.open_registration_delegated_warning_btn').click(event => {
     event.preventDefault()
 
     const closeModal = () => {
-      openRegRoot.render(null)
+      openRegRoot?.render(null)
     }
 
     const loginUrl = $('.open_registration_delegated_warning_btn').data('url')
-    openRegRoot.render(<OpenRegistrationWarning loginUrl={loginUrl} closeModal={closeModal} />)
+    openRegRoot?.render(
+      <OpenRegistrationWarning loginUrl={String(loginUrl || '')} closeModal={closeModal} />,
+    )
   })
 
   $('.custom_help_link .delete').click(function (event) {
@@ -339,10 +345,10 @@ $(document).ready(function () {
       newId = uniqueCounter++
     // need to replace the unique id in the inputs so they get sent back to rails right,
     // chage the 'for' on the lables to match.
-    $.each(['id', 'name', 'for'], (_i, prop) => {
+    $.each(['id', 'name', 'for'], (_i: number, prop: string) => {
       $newContainer
         .find('[' + prop + ']')
-        .attr(prop, (_i, previous) => previous.replace(/\d+/, newId))
+        .attr(prop, (_i, previous: string) => previous.replace(/\d+/, String(newId)))
     })
   })
 

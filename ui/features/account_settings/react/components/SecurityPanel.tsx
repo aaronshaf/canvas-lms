@@ -37,7 +37,36 @@ import {ConnectedWhitelist} from './Whitelist'
 
 const I18n = createI18nScope('security_panel')
 
-export class SecurityPanel extends Component {
+type SecurityContext = 'course' | 'account'
+
+type SecurityPanelOwnProps = {
+  context: SecurityContext
+  contextId: string
+  isSubAccount?: boolean
+  maxDomains: number
+  accountId: string
+  liveRegion: React.ReactElement[]
+}
+
+type SecurityPanelStateProps = {
+  cspEnabled: boolean
+  cspInherited: boolean
+  whitelistsHaveLoaded?: boolean
+}
+
+type SecurityPanelDispatchProps = {
+  getCspEnabled: (context: SecurityContext, contextId: string) => void
+  setCspEnabled: (context: SecurityContext, contextId: string, enabled: boolean) => void
+  getCspInherited: (context: SecurityContext, contextId: string) => void
+  setCspInherited: (context: SecurityContext, contextId: string, inherited: boolean) => void
+  getCurrentWhitelist: (context: SecurityContext, contextId: string) => void
+}
+
+type SecurityPanelProps = SecurityPanelOwnProps &
+  SecurityPanelStateProps &
+  SecurityPanelDispatchProps
+
+export class SecurityPanel extends Component<SecurityPanelProps> {
   static propTypes = {
     context: oneOf(['course', 'account']).isRequired,
     contextId: string.isRequired,
@@ -59,11 +88,11 @@ export class SecurityPanel extends Component {
     isSubAccount: false,
   }
 
-  handleCspToggleChange = e => {
+  handleCspToggleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.props.setCspEnabled(this.props.context, this.props.contextId, e.currentTarget.checked)
   }
 
-  handleCspInheritChange = e => {
+  handleCspInheritChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.props.setCspInherited(this.props.context, this.props.contextId, e.currentTarget.checked)
   }
 
@@ -142,7 +171,10 @@ export class SecurityPanel extends Component {
   }
 }
 
-function mapStateToProps(state, ownProps) {
+function mapStateToProps(
+  state: any,
+  ownProps: SecurityPanelOwnProps,
+): SecurityPanelOwnProps & SecurityPanelStateProps {
   return {
     ...ownProps,
     cspEnabled: state.cspEnabled,

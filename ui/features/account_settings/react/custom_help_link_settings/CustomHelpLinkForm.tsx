@@ -22,11 +22,30 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import CustomHelpLinkPropTypes from './CustomHelpLinkPropTypes'
 import CustomHelpLinkConstants from './CustomHelpLinkConstants'
 import {Text} from '@instructure/ui-text'
+import type {CustomHelpLinkLink} from './types'
 
 const I18n = createI18nScope('custom_help_link')
-const getHiddenStyle = condition => (condition ? {style: {display: 'none'}} : {})
+const getHiddenStyle = (condition: boolean) => (condition ? {style: {display: 'none'}} : {})
+
+type CustomHelpLinkFormProps = {
+  isCareerAccount?: boolean
+  link: CustomHelpLinkLink
+  onSave?: (link: CustomHelpLinkLink) => void
+  onCancel?: (link: CustomHelpLinkLink) => void
+}
+
+type CustomHelpLinkFormState = {
+  link: CustomHelpLinkLink & {available_to: string[]}
+  old_feature_headline: string | null
+}
 
 export default class CustomHelpLinkForm extends React.Component {
+  declare props: CustomHelpLinkFormProps
+  declare state: CustomHelpLinkFormState
+
+  private textInputRef: HTMLInputElement | null = null
+  private availableToUserRef: HTMLInputElement | null = null
+
   static propTypes = {
     isCareerAccount: PropTypes.bool,
     link: CustomHelpLinkPropTypes.link.isRequired,
@@ -43,30 +62,40 @@ export default class CustomHelpLinkForm extends React.Component {
   state = {
     link: {
       ...this.props.link,
+      available_to: this.props.link.available_to ?? [],
     },
     old_feature_headline: null,
   }
 
-  handleKeyDown = (e, field) => {
+  handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+    field: string,
+  ) => {
     // need to update the state if the user hits the ENTER key from any of the fields
     if (e.which !== 13) {
       return
     }
 
     if (field === 'available_to') {
-      this.handleAvailableToChange(e.target.value, e.target.checked)
+      const target = e.target as HTMLInputElement
+      this.handleAvailableToChange(target.value, target.checked)
     } else if (['is_featured', 'is_new'].includes(field)) {
-      this.handleFeatureChange(field, e.target.checked)
+      const target = e.target as HTMLInputElement
+      this.handleFeatureChange(field, target.checked)
     } else if (field) {
-      this.handleChange(field, e.target.value)
+      const target = e.target as HTMLInputElement | HTMLTextAreaElement
+      this.handleChange(field, target.value)
     }
   }
 
-  handleChange = (field, value) => {
-    this.handleChanges({[field]: value})
+  handleChange = (field: string, value: unknown) => {
+    this.handleChanges({[field]: value} as Partial<CustomHelpLinkLink>)
   }
 
-  handleChanges = (linkUpdates, otherUpdates = {}) => {
+  handleChanges = (
+    linkUpdates: Partial<CustomHelpLinkLink>,
+    otherUpdates: Partial<Pick<CustomHelpLinkFormState, 'old_feature_headline'>> = {},
+  ) => {
     this.setState(state => ({
       ...state,
       link: {
@@ -77,14 +106,14 @@ export default class CustomHelpLinkForm extends React.Component {
     }))
   }
 
-  handleSave = e => {
+  handleSave = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (typeof this.props.onSave === 'function') {
       this.props.onSave(this.state.link)
     }
     e.preventDefault()
   }
 
-  handleAvailableToChange = (type, checked) => {
+  handleAvailableToChange = (type: string, checked: boolean) => {
     const available_to = this.state.link.available_to.slice() // make a copy
 
     if (checked) {
@@ -96,16 +125,24 @@ export default class CustomHelpLinkForm extends React.Component {
     this.handleChange('available_to', available_to)
   }
 
-  handleIsNewChange = checked => {
+  handleFeatureChange = (field: string, checked: boolean) => {
+    if (field === 'is_featured') {
+      this.handleIsFeaturedChange(checked)
+    } else if (field === 'is_new') {
+      this.handleIsNewChange(checked)
+    }
+  }
+
+  handleIsNewChange = (checked: boolean) => {
     this.handleChange('is_new', checked)
     if (checked) {
       this.handleIsFeaturedChange(false)
     }
   }
 
-  handleIsFeaturedChange = checked => {
-    const linkChanges = {is_featured: checked}
-    const otherChanges = {}
+  handleIsFeaturedChange = (checked: boolean) => {
+    const linkChanges: Partial<CustomHelpLinkLink> = {is_featured: checked}
+    const otherChanges: Partial<Pick<CustomHelpLinkFormState, 'old_feature_headline'>> = {}
     if (checked) {
       linkChanges.is_new = false
     }
@@ -134,7 +171,7 @@ export default class CustomHelpLinkForm extends React.Component {
 
   focusable = () => {
     let el = this.textInputRef
-    if (el.disabled) {
+    if (el?.disabled) {
       el = this.availableToUserRef
     }
     return el
@@ -268,7 +305,7 @@ export default class CustomHelpLinkForm extends React.Component {
                   id="admin_settings_custom_link_type_is_featured"
                   name={`${namePrefix}[is_featured]`}
                   checked={is_featured}
-                  value={true}
+                  value="true"
                   onKeyDown={e => this.handleKeyDown(e, 'is_featured')}
                   onChange={e => this.handleIsFeaturedChange(e.target.checked)}
                 />
@@ -283,7 +320,7 @@ export default class CustomHelpLinkForm extends React.Component {
                   id="admin_settings_custom_link_type_is_new"
                   name={`${namePrefix}[is_new]`}
                   checked={is_new}
-                  value={true}
+                  value="true"
                   onKeyDown={e => this.handleKeyDown(e, 'is_new')}
                   onChange={e => this.handleIsNewChange(e.target.checked)}
                 />

@@ -26,14 +26,25 @@ import data from 'emoji-mart/data/all.json'
 
 const I18n = createI18nScope('i18n!custom_emoji_deny_list')
 
-export default function CustomEmojiDenyList() {
-  const [blockedEmojis, setBlockedEmojis] = useState(
-    ENV.EMOJI_DENY_LIST
-      ? ENV.EMOJI_DENY_LIST.split(',').map(id => ({name: data.emojis[id].name, id}))
-      : [],
-  )
+type BlockedEmoji = {
+  id: string
+  name: string
+}
 
-  const removeEmoji = id => setBlockedEmojis(blockedEmojis.filter(emoji => emoji.id !== id))
+export default function CustomEmojiDenyList() {
+  const emojiData = data as any
+  const [blockedEmojis, setBlockedEmojis] = useState<BlockedEmoji[]>(() => {
+    if (!ENV.EMOJI_DENY_LIST) return []
+    return ENV.EMOJI_DENY_LIST.split(',')
+      .map((id: string) => {
+        const name = emojiData?.emojis?.[id]?.name
+        return name ? {id, name: String(name)} : null
+      })
+      .filter((x: BlockedEmoji | null): x is BlockedEmoji => x !== null)
+  })
+
+  const removeEmoji = (id: string) =>
+    setBlockedEmojis(blockedEmojis.filter((emoji: BlockedEmoji) => emoji.id !== id))
   return (
     <fieldset>
       <h2 className="screenreader-only">{I18n.t('Blocked Emojis')}</h2>
@@ -75,8 +86,8 @@ export default function CustomEmojiDenyList() {
       <EmojiPicker
         autoFocus={false}
         excludedCategories={['recent']}
-        excludedEmojis={blockedEmojis.map(emoji => emoji.id)}
-        insertEmoji={({id, name}) => {
+        excludedEmojis={blockedEmojis.map((emoji: BlockedEmoji) => emoji.id)}
+        insertEmoji={({id, name}: {id: string; name: string}) => {
           setBlockedEmojis([...blockedEmojis, {id, name}])
         }}
         showSkinTones={false}
@@ -87,7 +98,7 @@ export default function CustomEmojiDenyList() {
         data-testid="account-settings-emoji-deny-list"
         type="hidden"
         name="account[settings][emoji_deny_list]"
-        value={blockedEmojis.map(emoji => emoji.id).join(',')}
+        value={blockedEmojis.map((emoji: BlockedEmoji) => emoji.id).join(',')}
       />
     </fieldset>
   )
