@@ -28,6 +28,26 @@ import errorShipUrl from '@canvas/images/ErrorShip.svg'
 
 const I18n = createI18nScope('canvascareer')
 
+interface CanvasCareerModule {
+  mount: (
+    mountPoint: HTMLElement,
+    envContext: unknown,
+    config: unknown,
+  ) => void
+  setupEnvContext: () => unknown
+}
+
+declare global {
+  interface Window {
+    REMOTES: {
+      canvas_career_learner?: string
+      canvas_career_learning_provider?: string
+      canvas_career_config?: unknown
+      [key: string]: unknown
+    }
+  }
+}
+
 ready(() => {
   const body = document.querySelector('body')
   const mountPoint = document.createElement('div')
@@ -41,11 +61,13 @@ ready(() => {
   mountPoint.style.position = 'relative'
 
   // Modifying the DOM to add the mount point
-  body.prepend(mountPoint)
-  body.style.lineHeight = 'normal'
-  body.style.margin = '0'
-  body.style.padding = '0'
-  body.style.overflow = 'hidden'
+  body?.prepend(mountPoint)
+  if (body) {
+    body.style.lineHeight = 'normal'
+    body.style.margin = '0'
+    body.style.padding = '0'
+    body.style.overflow = 'hidden'
+  }
 
   const root = render(
     <div
@@ -65,16 +87,16 @@ ready(() => {
     mountPoint,
   )
 
-  let bundles = []
+  let bundles: Promise<CanvasCareerModule>[] = []
   if (window.REMOTES.canvas_career_learner) {
     bundles = [
-      import('canvas_career_learner/bootstrap'),
-      import('canvas_career_learner/setupEnvContext'),
+      import('canvas_career_learner/bootstrap') as Promise<CanvasCareerModule>,
+      import('canvas_career_learner/setupEnvContext') as Promise<CanvasCareerModule>,
     ]
   } else if (window.REMOTES.canvas_career_learning_provider) {
     bundles = [
-      import('canvas_career_learning_provider/bootstrap'),
-      import('canvas_career_learning_provider/setupEnvContext'),
+      import('canvas_career_learning_provider/bootstrap') as Promise<CanvasCareerModule>,
+      import('canvas_career_learning_provider/setupEnvContext') as Promise<CanvasCareerModule>,
     ]
   }
 
@@ -82,7 +104,7 @@ ready(() => {
     .then(([{mount}, {setupEnvContext}]) => {
       mount(mountPoint, setupEnvContext(), window.REMOTES.canvas_career_config)
     })
-    .catch(error => {
+    .catch((error: Error) => {
       console.error('Failed to load Canvas Career', error)
       captureException(error)
 
