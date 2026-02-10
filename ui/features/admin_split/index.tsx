@@ -21,12 +21,31 @@ import React from 'react'
 import {legacyRender} from '@canvas/react'
 import AdminSplit from './react/index'
 
+interface User {
+  id: string
+  display_name: string
+  short_name?: string
+  html_url: string
+}
+
+interface AdminSplitEnv {
+  ADMIN_SPLIT_USER: User
+  ADMIN_SPLIT_URL: string
+  ADMIN_SPLIT_USERS: User[]
+}
+
+declare global {
+  interface Window {
+    ENV: AdminSplitEnv
+  }
+}
+
 ready(() => {
   legacyRender(
     <AdminSplit
-      user={ENV.ADMIN_SPLIT_USER}
-      splitUrl={ENV.ADMIN_SPLIT_URL}
-      splitUsers={ENV.ADMIN_SPLIT_USERS}
+      user={window.ENV.ADMIN_SPLIT_USER}
+      splitUrl={window.ENV.ADMIN_SPLIT_URL}
+      splitUsers={window.ENV.ADMIN_SPLIT_USERS}
     />,
     document.getElementById('admin_split'),
   )
