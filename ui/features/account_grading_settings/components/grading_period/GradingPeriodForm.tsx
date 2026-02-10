@@ -17,7 +17,6 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
 import update from 'immutability-helper'
 import {Button} from '@instructure/ui-buttons'
@@ -29,12 +28,35 @@ import {isEqual} from 'es-toolkit/compat'
 
 const I18n = createI18nScope('gradingPeriodForm')
 
-function roundWeight(val) {
+export interface GradingPeriod {
+  id?: string
+  title?: string
+  weight?: number | null
+  startDate?: Date
+  endDate?: Date
+  closeDate?: Date | null
+}
+
+interface GradingPeriodFormProps {
+  period?: GradingPeriod
+  weighted: boolean
+  disabled: boolean
+  onSave: (period: GradingPeriod) => void
+  onCancel: () => void
+}
+
+interface GradingPeriodFormState {
+  period: GradingPeriod
+  preserveCloseDate: boolean
+}
+
+function roundWeight(val: string | number | undefined | null): number | null {
+  if (val === undefined || val === null) return null
   const value = numberHelper.parse(val)
   return Number.isNaN(value) ? null : round(value, 2)
 }
 
-function buildPeriod(attr) {
+function buildPeriod(attr: Partial<GradingPeriod>): GradingPeriod {
   return {
     id: attr.id,
     title: attr.title,
@@ -45,26 +67,12 @@ function buildPeriod(attr) {
   }
 }
 
-class GradingPeriodForm extends React.Component {
-  static propTypes = {
-    period: PropTypes.shape({
-      id: PropTypes.string,
-      title: PropTypes.string.isRequired,
-      weight: PropTypes.number,
-      startDate: PropTypes.instanceOf(Date).isRequired,
-      endDate: PropTypes.instanceOf(Date).isRequired,
-      closeDate: PropTypes.instanceOf(Date),
-    }),
-    weighted: PropTypes.bool.isRequired,
-    disabled: PropTypes.bool.isRequired,
-    onSave: PropTypes.func.isRequired,
-    onCancel: PropTypes.func.isRequired,
-  }
+class GradingPeriodForm extends React.Component<GradingPeriodFormProps, GradingPeriodFormState> {
+  titleRef: HTMLInputElement | null = null
 
-  constructor(props, context) {
-    super(props, context)
+  constructor(props: GradingPeriodFormProps) {
+    super(props)
     const period = buildPeriod(props.period || {})
-    this.titleRef = null
 
     this.state = {
       period,
@@ -89,27 +97,28 @@ class GradingPeriodForm extends React.Component {
     }
   }
 
-  hasDistinctCloseDate = ({endDate, closeDate}) => closeDate && !isEqual(endDate, closeDate)
+  hasDistinctCloseDate = ({endDate, closeDate}: GradingPeriod) =>
+    closeDate && !isEqual(endDate, closeDate)
 
-  mergePeriod = attr => update(this.state.period, {$merge: attr})
+  mergePeriod = (attr: Partial<GradingPeriod>) => update(this.state.period, {$merge: attr})
 
-  changeTitle = e => {
+  changeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     const period = this.mergePeriod({title: e.target.value})
     this.setState({period})
   }
 
-  changeWeight = e => {
+  changeWeight = (e: React.ChangeEvent<HTMLInputElement>) => {
     const period = this.mergePeriod({weight: roundWeight(e.target.value)})
     this.setState({period})
   }
 
-  changeStartDate = date => {
-    const period = this.mergePeriod({startDate: date})
+  changeStartDate = (date: Date | null) => {
+    const period = this.mergePeriod({startDate: date || undefined})
     this.setState({period})
   }
 
-  changeEndDate = date => {
-    const attr = {endDate: date}
+  changeEndDate = (date: Date | null) => {
+    const attr: Partial<GradingPeriod> = {endDate: date || undefined}
     if (!this.state.preserveCloseDate && !this.hasDistinctCloseDate(this.state.period)) {
       attr.closeDate = date
     }
@@ -117,14 +126,17 @@ class GradingPeriodForm extends React.Component {
     this.setState({period})
   }
 
-  changeCloseDate = date => {
+  changeCloseDate = (date: Date | null) => {
     const period = this.mergePeriod({closeDate: date})
     this.setState({period, preserveCloseDate: !!date})
   }
 
   hackTheDatepickers = () => {
     // This can be replaced when we have an extensible datepicker
-    const $form = ReactDOM.findDOMNode(this)
+    // @ts-expect-error - ReactDOM.findDOMNode is deprecated but needed for legacy datepicker
+    const $form = ReactDOM.findDOMNode(this) as Element
+    if (!$form) return
+
     const $appends = $form.querySelectorAll('.input-append')
     $appends.forEach($el => {
       $el.classList.add('ic-Input-group')

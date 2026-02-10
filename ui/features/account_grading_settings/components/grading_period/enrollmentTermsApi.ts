@@ -18,9 +18,31 @@
 import {map, isNumber, flatten} from 'es-toolkit/compat'
 import NaiveRequestDispatch from '@canvas/network/NaiveRequestDispatch/index'
 
+import type {EnrollmentTerm} from './EnrollmentTermInput'
+
+declare const ENV: {ENROLLMENT_TERMS_URL: string}
+
 const listUrl = () => ENV.ENROLLMENT_TERMS_URL
 
-const deserializeTerms = termGroups =>
+type EnrollmentTermApi = {
+  id: number | string
+  name?: string
+  start_at?: string | null
+  end_at?: string | null
+  created_at?: string | null
+  grading_period_group_id?: number | string | null
+}
+
+type EnrollmentTermGroupApi = {
+  enrollment_terms: EnrollmentTermApi[]
+}
+
+export type RawEnrollmentTerm = Omit<EnrollmentTerm, 'displayName'> & {
+  // Added downstream by `presentEnrollmentTerms`.
+  displayName?: string
+}
+
+const deserializeTerms = (termGroups: EnrollmentTermGroupApi[]): RawEnrollmentTerm[] =>
   flatten(
     map(termGroups, group =>
       map(group.enrollment_terms, term => {
@@ -31,22 +53,22 @@ const deserializeTerms = termGroups =>
           name: term.name,
           startAt: term.start_at ? new Date(term.start_at) : null,
           endAt: term.end_at ? new Date(term.end_at) : null,
-          createdAt: term.created_at ? new Date(term.created_at) : null,
-          gradingPeriodGroupId: newGroupID,
+          createdAt: term.created_at ? new Date(term.created_at) : undefined,
+          gradingPeriodGroupId: newGroupID ?? null,
         }
       }),
     ),
   )
 
 export default {
-  list() {
+  list(): Promise<RawEnrollmentTerm[]> {
     return new Promise((resolve, reject) => {
       const dispatch = new NaiveRequestDispatch()
 
       dispatch
         .getDepaginated(listUrl())
-        .then(response => resolve(deserializeTerms(response)))
-        .fail(error => reject(error))
+        .then((response: EnrollmentTermGroupApi[]) => resolve(deserializeTerms(response)))
+        .fail((error: unknown) => reject(error))
     })
   },
 }

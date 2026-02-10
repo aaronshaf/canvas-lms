@@ -17,25 +17,24 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {debounce} from 'es-toolkit/compat'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('SearchGradingPeriodsField')
 
-export default class SearchGradingPeriodsField extends React.Component {
-  static propTypes = {
-    changeSearchText: PropTypes.func.isRequired,
-  }
+interface SearchGradingPeriodsFieldProps {
+  changeSearchText: (text: string) => void
+}
 
-  inputRef = React.createRef()
+export default class SearchGradingPeriodsField extends React.Component<SearchGradingPeriodsFieldProps> {
+  inputRef = React.createRef<HTMLInputElement>()
 
-  onChange = event => {
+  onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const trimmedText = event.target.value.trim()
     this.search(trimmedText)
   }
 
-  search = debounce(function (trimmedText) {
+  search = debounce((trimmedText: string) => {
     this.props.changeSearchText(trimmedText)
   }, 200)
 

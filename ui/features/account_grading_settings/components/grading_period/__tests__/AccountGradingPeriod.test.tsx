@@ -19,12 +19,14 @@
 import $ from 'jquery'
 import React from 'react'
 import {render, fireEvent, screen} from '@testing-library/react'
+import '@testing-library/jest-dom/vitest'
 import axios from '@canvas/axios'
 import GradingPeriod from '../AccountGradingPeriod'
 import * as DateHelper from '@canvas/datetime/dateHelper'
 import {windowConfirm} from '@canvas/util/globalUtils'
+import {vi, type Mock} from 'vitest'
 
-vi.mock('@canvas/datetime/dateHelper', async importOriginal => {
+vi.mock('@canvas/datetime/dateHelper', async (importOriginal: () => Promise<any>) => {
   const actual = await importOriginal()
   const formatDateForDisplayMock = vi.fn(date => {
     const options = {year: 'numeric', month: '2-digit', day: '2-digit'}
@@ -64,16 +66,16 @@ const defaultProps = {
 }
 
 describe('AccountGradingPeriod', () => {
-  const renderComponent = (props = {}) => {
+  const renderComponent = (props: Record<string, unknown> = {}) => {
     return render(<GradingPeriod {...defaultProps} {...props} />)
   }
 
   beforeEach(() => {
-    windowConfirm.mockReset()
+    ;(windowConfirm as unknown as Mock).mockReset()
     vi.spyOn(axios, 'delete').mockReset()
     defaultProps.onDelete.mockReset()
     defaultProps.onEdit.mockReset()
-    DateHelper.default.formatDateForDisplay.mockClear()
+    ;(DateHelper.default.formatDateForDisplay as unknown as Mock).mockClear()
   })
 
   afterEach(() => {
@@ -159,7 +161,7 @@ describe('AccountGradingPeriod', () => {
   })
 
   it('does not delete the period if the user cancels the delete confirmation', () => {
-    windowConfirm.mockReturnValue(false)
+    ;(windowConfirm as unknown as Mock).mockReturnValue(false)
     const axiosDeleteMock = vi.spyOn(axios, 'delete')
     renderComponent()
     fireEvent.click(screen.getByTitle(/Delete/))
@@ -168,9 +170,9 @@ describe('AccountGradingPeriod', () => {
   })
 
   it('calls onDelete if the user confirms deletion and the axios call succeeds', async () => {
-    windowConfirm.mockReturnValue(true)
+    ;(windowConfirm as unknown as Mock).mockReturnValue(true)
     const flashMessageMock = vi.fn()
-    $.flashMessage = flashMessageMock
+    ;($ as any).flashMessage = flashMessageMock
     const axiosDeleteMock = vi
       .spyOn(axios, 'delete')
       .mockImplementation(() => Promise.resolve({status: 200, data: {}}))

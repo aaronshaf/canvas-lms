@@ -17,46 +17,55 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {Button} from '@instructure/ui-buttons'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import setsApi from '@canvas/grading/jquery/gradingPeriodSetsApi'
 import EnrollmentTermInput from './EnrollmentTermInput'
 import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'
+import type {EnrollmentTerm} from './EnrollmentTermInput'
 
 const I18n = createI18nScope('NewGradingPeriodSetForm')
 
-export default class NewGradingPeriodSetForm extends React.Component {
-  static propTypes = {
-    enrollmentTerms: PropTypes.array.isRequired,
-    closeForm: PropTypes.func.isRequired,
-    addGradingPeriodSet: PropTypes.func.isRequired,
-    urls: PropTypes.shape({
-      gradingPeriodSetsURL: PropTypes.string.isRequired,
-    }).isRequired,
-  }
+interface NewGradingPeriodSetFormUrls {
+  gradingPeriodSetsURL: string
+  [key: string]: unknown
+}
 
-  constructor(props) {
-    super(props)
-    this.titleInput = React.createRef()
-    this.cancelButton = React.createRef()
-    this.createButton = React.createRef()
+interface NewGradingPeriodSetFormProps {
+  enrollmentTerms: EnrollmentTerm[]
+  closeForm: (event: any) => void
+  addGradingPeriodSet: (set: any, termIDs: string[]) => void
+  urls: NewGradingPeriodSetFormUrls
+}
 
-    this.state = {
-      buttonsDisabled: false,
-      title: '',
-      weighted: false,
-      displayTotalsForAllGradingPeriods: false,
-      selectedEnrollmentTermIDs: [],
-    }
+interface NewGradingPeriodSetFormState {
+  buttonsDisabled: boolean
+  title: string
+  weighted: boolean
+  displayTotalsForAllGradingPeriods: boolean
+  selectedEnrollmentTermIDs: string[]
+}
+
+export default class NewGradingPeriodSetForm extends React.Component<
+  NewGradingPeriodSetFormProps,
+  NewGradingPeriodSetFormState
+> {
+  titleInput = React.createRef<HTMLInputElement>()
+
+  state: NewGradingPeriodSetFormState = {
+    buttonsDisabled: false,
+    title: '',
+    weighted: false,
+    displayTotalsForAllGradingPeriods: false,
+    selectedEnrollmentTermIDs: [],
   }
 
   componentDidMount() {
-    this.titleInput.current.focus()
+    this.titleInput.current?.focus()
   }
 
-  setSelectedEnrollmentTermIDs = termIDs => {
+  setSelectedEnrollmentTermIDs = (termIDs: string[]) => {
     this.setState({
       selectedEnrollmentTermIDs: termIDs,
     })
@@ -73,7 +82,8 @@ export default class NewGradingPeriodSetForm extends React.Component {
 
   isValid = () => this.isTitlePresent()
 
-  submit = event => {
+  // Instructure UI's onClick uses its own event typing; keep this permissive.
+  submit = (event: any) => {
     event.preventDefault()
     this.setState({buttonsDisabled: true}, () => {
       if (this.isValid()) {
@@ -90,7 +100,7 @@ export default class NewGradingPeriodSetForm extends React.Component {
     })
   }
 
-  submitSucceeded = set => {
+  submitSucceeded = (set: any) => {
     showFlashAlert({type: 'success', message: I18n.t('Successfully created a set')})
     this.props.addGradingPeriodSet(set, this.state.selectedEnrollmentTermIDs)
   }
@@ -100,15 +110,15 @@ export default class NewGradingPeriodSetForm extends React.Component {
     this.setState({buttonsDisabled: false})
   }
 
-  onSetTitleChange = event => {
+  onSetTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({title: event.target.value})
   }
 
-  onSetWeightedChange = event => {
+  onSetWeightedChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({weighted: event.target.checked})
   }
 
-  onSetDisplayTotalsChanged = event => {
+  onSetDisplayTotalsChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({displayTotalsForAllGradingPeriods: event.target.checked})
   }
 
@@ -138,9 +148,6 @@ export default class NewGradingPeriodSetForm extends React.Component {
               />
               <div className="ic-Input pad-box top-only">
                 <Checkbox
-                  ref={ref => {
-                    this.weightedCheckbox = ref
-                  }}
                   label={I18n.t('Weighted grading periods')}
                   value="weighted"
                   checked={this.state.weighted}
@@ -149,9 +156,6 @@ export default class NewGradingPeriodSetForm extends React.Component {
               </div>
               <div className="ic-Input pad-box top-only">
                 <Checkbox
-                  ref={ref => {
-                    this.displayTotalsCheckbox = ref
-                  }}
                   label={I18n.t('Display totals for All Grading Periods option')}
                   value="totals"
                   checked={this.state.displayTotalsForAllGradingPeriods}
@@ -166,7 +170,6 @@ export default class NewGradingPeriodSetForm extends React.Component {
                 <Button
                   disabled={this.state.buttonsDisabled}
                   onClick={this.props.closeForm}
-                  ref={this.cancelButton}
                 >
                   {I18n.t('Cancel')}
                 </Button>
@@ -175,7 +178,6 @@ export default class NewGradingPeriodSetForm extends React.Component {
                   disabled={this.state.buttonsDisabled}
                   color="primary"
                   onClick={this.submit}
-                  ref={this.createButton}
                 >
                   {I18n.t('Create')}
                 </Button>

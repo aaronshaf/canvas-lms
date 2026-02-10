@@ -17,20 +17,38 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {each, map, filter, isEmpty} from 'es-toolkit/compat'
 import $ from 'jquery'
 import {Button} from '@instructure/ui-buttons'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import EnrollmentTermInput from './EnrollmentTermInput'
+import type {EnrollmentTerm} from './EnrollmentTermInput'
 import '@canvas/rails-flash-notifications'
 
 const I18n = createI18nScope('GradingPeriodSetForm')
 
-const {array, bool, func, shape, string} = PropTypes
+interface GradingPeriodSet {
+  id?: string | null
+  title: string
+  weighted: boolean
+  displayTotalsForAllGradingPeriods: boolean
+  enrollmentTermIDs: string[]
+}
 
-const buildSet = function (attr = {}) {
+interface GradingPeriodSetFormProps {
+  set: Partial<GradingPeriodSet> & {id?: string | null}
+  enrollmentTerms: EnrollmentTerm[]
+  disabled?: boolean
+  onSave: (set: GradingPeriodSet) => void
+  onCancel: () => void
+}
+
+interface GradingPeriodSetFormState {
+  set: GradingPeriodSet
+}
+
+const buildSet = function (attr: Partial<GradingPeriodSet> = {}): GradingPeriodSet {
   return {
     id: attr.id,
     title: attr.title || '',
@@ -40,33 +58,21 @@ const buildSet = function (attr = {}) {
   }
 }
 
-const validateSet = function (set) {
+const validateSet = function (set: GradingPeriodSet) {
   if (!(set.title || '').trim()) {
     return [I18n.t('All grading period sets must have a title')]
   }
   return []
 }
 
-function replaceSetAttr(set, key, val) {
+function replaceSetAttr<K extends keyof GradingPeriodSet>(set: GradingPeriodSet, key: K, val: GradingPeriodSet[K]) {
   return {set: {...set, [key]: val}}
 }
 
-class GradingPeriodSetForm extends React.Component {
-  static propTypes = {
-    set: shape({
-      id: string,
-      title: string,
-      displayTotalsForAllGradingPeriods: bool,
-      weighted: bool,
-      enrollmentTermIDs: array,
-    }).isRequired,
-    enrollmentTerms: array.isRequired,
-    disabled: bool,
-    onSave: func.isRequired,
-    onCancel: func.isRequired,
-  }
+class GradingPeriodSetForm extends React.Component<GradingPeriodSetFormProps, GradingPeriodSetFormState> {
+  titleRef = React.createRef<HTMLInputElement>()
 
-  constructor(props) {
+  constructor(props: GradingPeriodSetFormProps) {
     super(props)
     const associatedEnrollmentTerms = filter(props.enrollmentTerms, {
       gradingPeriodGroupId: props.set.id,
@@ -77,64 +83,52 @@ class GradingPeriodSetForm extends React.Component {
     }
 
     this.state = {set: buildSet(set)}
-    this.titleRef = React.createRef()
-    this.cancelButtonRef = React.createRef()
-    this.saveButtonRef = React.createRef()
-    this.weightedCheckboxRef = React.createRef()
-    this.displayTotalsCheckboxRef = React.createRef()
   }
 
   componentDidMount() {
-    this.titleRef.current.focus()
+    this.titleRef.current?.focus()
   }
 
-  changeTitle = e => {
+  changeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.setState(replaceSetAttr(this.state.set, 'title', e.target.value))
   }
 
-  changeWeighted = e => {
+  changeWeighted = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.setState(replaceSetAttr(this.state.set, 'weighted', e.target.checked))
   }
 
-  changeDisplayTotals = e => {
+  changeDisplayTotals = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.setState(
       replaceSetAttr(this.state.set, 'displayTotalsForAllGradingPeriods', e.target.checked),
     )
   }
 
-  changeEnrollmentTermIDs = termIDs => {
+  changeEnrollmentTermIDs = (termIDs: string[]) => {
     const set = {...this.state.set, enrollmentTermIDs: termIDs}
     this.setState({set})
   }
 
-  triggerSave = e => {
+  // Instructure UI's onClick uses its own event typing; keep this permissive.
+  triggerSave = (e: any) => {
     e.preventDefault()
-    if (this.props.onSave) {
-      const validations = validateSet(this.state.set)
-      if (isEmpty(validations)) {
-        this.props.onSave(this.state.set)
-      } else {
-        each(validations, message => {
-          $.flashError(message)
-        })
-      }
+    const validations = validateSet(this.state.set)
+    if (isEmpty(validations)) {
+      this.props.onSave(this.state.set)
+    } else {
+      each(validations, message => {
+        $.flashError(message)
+      })
     }
   }
 
-  triggerCancel = e => {
+  triggerCancel = (e: any) => {
     e.preventDefault()
-    if (this.props.onCancel) {
-      this.setState({set: buildSet()}, this.props.onCancel)
-    }
+    this.setState({set: buildSet()}, this.props.onCancel)
   }
 
   renderSaveAndCancelButtons = () => (
     <div className="ic-Form-actions below-line">
-      <Button
-        disabled={this.props.disabled}
-        onClick={this.triggerCancel}
-        ref={this.cancelButtonRef}
-      >
+      <Button disabled={this.props.disabled} onClick={this.triggerCancel}>
         {I18n.t('Cancel')}
       </Button>
       &nbsp;
@@ -143,7 +137,6 @@ class GradingPeriodSetForm extends React.Component {
         disabled={this.props.disabled}
         aria-label={I18n.t('Save Grading Period Set')}
         onClick={this.triggerSave}
-        ref={this.saveButtonRef}
       >
         {I18n.t('Save')}
       </Button>
@@ -180,9 +173,6 @@ class GradingPeriodSetForm extends React.Component {
 
               <div className="ic-Input pad-box top-only">
                 <Checkbox
-                  ref={ref => {
-                    this.weightedCheckboxRef = ref
-                  }}
                   label={I18n.t('Weighted grading periods')}
                   value="weighted"
                   checked={this.state.set.weighted}
@@ -191,9 +181,6 @@ class GradingPeriodSetForm extends React.Component {
               </div>
               <div className="ic-Input pad-box top-only">
                 <Checkbox
-                  ref={ref => {
-                    this.displayTotalsCheckboxRef = ref
-                  }}
                   label={I18n.t('Display totals for All Grading Periods option')}
                   value="totals"
                   checked={this.state.set.displayTotalsForAllGradingPeriods}
