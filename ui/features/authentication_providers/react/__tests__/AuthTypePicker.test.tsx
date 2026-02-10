@@ -26,7 +26,7 @@ const authTypes = [
   {name: 'TypeTwo', value: '2'},
 ]
 
-const renderAuthTypePicker = props => {
+const renderAuthTypePicker = (props?: {onChange?: (value: string) => void}) => {
   const activeProps = {
     authTypes,
     ...props,

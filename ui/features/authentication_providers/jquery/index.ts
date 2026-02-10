@@ -22,12 +22,12 @@ import '@canvas/jquery/jquery.instructure_misc_helpers'
 const authenticationProviders = {
   hideAllNewAuthTypeForms() {
     const newForms = document.querySelectorAll('.auth-form-container--new')
-    Array.prototype.forEach.call(newForms, (el, _id) => {
+    Array.prototype.forEach.call(newForms, (el: HTMLElement) => {
       el.style.display = 'none'
     })
   },
 
-  showFormFor(authType) {
+  showFormFor(authType: string) {
     const formId = authType + '_form'
     const form = document.getElementById(formId)
     if (form !== null) {
@@ -46,7 +46,7 @@ const authenticationProviders = {
     }
   },
 
-  changedAuthType(authType) {
+  changedAuthType(authType: string) {
     authenticationProviders.hideNoAuthMessage()
     authenticationProviders.hideAllNewAuthTypeForms()
     authenticationProviders.showFormFor(authType)
