@@ -19,6 +19,28 @@ import React, {useEffect, useState} from 'react'
 import {Emoji, frequently, store} from 'emoji-mart'
 import {View} from '@instructure/ui-view'
 
+const ensureEmojiMartQuickbarSeed = () => {
+  const storedFrequently = store.get('frequently')
+  const storedLast = store.get('last')
+  const storedFrequentlyKeys =
+    storedFrequently && typeof storedFrequently === 'object' ? Object.keys(storedFrequently) : []
+
+  // emoji-mart's defaults have changed across versions; treat the default quickbar as "unseeded"
+  // and replace it with Canvas' expected defaults.
+  const looksLikeEmojiMartDefaultQuickbar =
+    storedLast === 'blush' &&
+    storedFrequentlyKeys.length === 3 &&
+    storedFrequentlyKeys.every(k => ['blush', 'kissing_heart', 'grinning', 'wink'].includes(k))
+
+  if (!storedFrequently || storedFrequentlyKeys.length === 0 || looksLikeEmojiMartDefaultQuickbar) {
+    store.set('frequently', {'+1': 1, clap: 1, grinning: 1})
+  }
+
+  if (!storedLast || looksLikeEmojiMartDefaultQuickbar) {
+    store.set('last', '+1')
+  }
+}
+
 const quickbarEmojis = (lastEmoji, emojiFrequencies) => {
   if (!lastEmoji || !emojiFrequencies) return []
 
@@ -46,9 +68,12 @@ const quickbarEmojis = (lastEmoji, emojiFrequencies) => {
 }
 
 export default function EmojiQuickPicker(props) {
-  const [mostFrequent, setMostFrequent] = useState(store.get('frequently'))
-  const [last, setLast] = useState(store.get('last'))
-  const [skinTone, setSkinTone] = useState(store.get('skin') || 1)
+  // Ensure the seed is applied before initial state is read so the first render is deterministic.
+  ensureEmojiMartQuickbarSeed()
+
+  const [mostFrequent, setMostFrequent] = useState(() => store.get('frequently'))
+  const [last, setLast] = useState(() => store.get('last'))
+  const [skinTone, setSkinTone] = useState(() => store.get('skin') || 1)
   const handleEmojiSelected = event => {
     const emojiName = event.detail
     setMostFrequent(prevState => {
@@ -59,21 +84,16 @@ export default function EmojiQuickPicker(props) {
   }
 
   useEffect(() => {
-    const handleSkinToneChange = event => setSkinTone(event.detail)
+    const handleSkinToneChange = event => {
+      store.set('skin', event.detail)
+      setSkinTone(event.detail)
+    }
     window.addEventListener('emojiSkinChange', handleSkinToneChange)
     window.addEventListener('emojiSelected', handleEmojiSelected)
-
-    if (!store.get('frequently')) {
-      store.set('frequently', {'+1': 1, clap: 1, grinning: 1})
-      setMostFrequent(store.get('frequently'))
+    return () => {
+      window.removeEventListener('emojiSkinChange', handleSkinToneChange)
+      window.removeEventListener('emojiSelected', handleEmojiSelected)
     }
-
-    if (!store.get('last')) {
-      store.set('last', '+1')
-      setLast(store.get('last'))
-    }
-
-    return () => window.removeEventListener('emojiSkinChange', handleSkinToneChange)
   }, [])
 
   const incrementAndInsertEmoji = emoji => {

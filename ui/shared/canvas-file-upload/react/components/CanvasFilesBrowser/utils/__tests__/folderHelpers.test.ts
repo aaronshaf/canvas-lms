@@ -59,6 +59,7 @@ describe('folderHelpers', () => {
       expect(result.id).toBe('2')
       expect(result.name).toBe('Assignments')
       expect(result.parent_folder_id).toBe('1')
+      // @ts-expect-error - test accesses full_name property from API response, which is not in CanvasFolder type
       expect(result.full_name).toBe('course files/assignments')
       expect(result.created_at).toBe('2024-01-02')
       expect(result.locked).toBe(true)
@@ -87,6 +88,7 @@ describe('folderHelpers', () => {
       const parentFolder: CanvasFolder = {
         id: '1',
         name: 'Course Files',
+        parent_folder_id: null,
         subFolderIDs: [],
         subFileIDs: [],
       }
@@ -121,6 +123,7 @@ describe('folderHelpers', () => {
       const parentFolder: CanvasFolder = {
         id: '1',
         name: 'Course Files',
+        parent_folder_id: null,
         subFolderIDs: [],
         subFileIDs: [],
       }
@@ -141,6 +144,7 @@ describe('folderHelpers', () => {
       const existingFolder: CanvasFolder = {
         id: '1',
         name: 'Course Files',
+        parent_folder_id: null,
         subFolderIDs: ['2', '3'],
         subFileIDs: [],
       }
@@ -163,6 +167,7 @@ describe('folderHelpers', () => {
       const parentFolder: CanvasFolder = {
         id: '1',
         name: 'Course Files',
+        parent_folder_id: null,
         subFolderIDs: [],
         subFileIDs: [],
       }
@@ -186,7 +191,7 @@ describe('folderHelpers', () => {
         id: 'file-1',
         display_name: 'orphan.pdf',
         filename: 'orphan.pdf',
-        folder_id: '' as any,
+        folder_id: '',
         created_at: '2024-01-01',
         locked: false,
       }
@@ -201,6 +206,7 @@ describe('folderHelpers', () => {
       const parentFolder: CanvasFolder = {
         id: '1',
         name: 'Course Files',
+        parent_folder_id: null,
         subFolderIDs: [],
         subFileIDs: [],
       }
@@ -224,6 +230,7 @@ describe('folderHelpers', () => {
       const parentFolder: CanvasFolder = {
         id: '1',
         name: 'Course Files',
+        parent_folder_id: null,
         subFolderIDs: [],
         subFileIDs: [],
       }
@@ -270,6 +277,7 @@ describe('folderHelpers', () => {
         '1': {
           id: '1',
           name: 'Course Files',
+          parent_folder_id: null,
           subFolderIDs: [],
           subFileIDs: [],
         },
@@ -285,6 +293,7 @@ describe('folderHelpers', () => {
         '1': {
           id: '1',
           name: 'Course Files',
+          parent_folder_id: null,
           subFolderIDs: ['2'],
           subFileIDs: [],
         },
@@ -318,6 +327,7 @@ describe('folderHelpers', () => {
         '1': {
           id: '1',
           name: 'Root',
+          parent_folder_id: null,
           subFolderIDs: ['2'],
           subFileIDs: [],
         },
@@ -356,6 +366,7 @@ describe('folderHelpers', () => {
         '1': {
           id: '1',
           name: 'Root',
+          parent_folder_id: null,
           subFolderIDs: [],
           subFileIDs: [],
         },

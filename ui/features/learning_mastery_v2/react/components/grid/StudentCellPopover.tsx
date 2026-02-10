@@ -221,7 +221,6 @@ export const StudentCellPopover: React.FC<StudentCellPopoverProps> = ({
         <MessageStudents
           contextCode={`course_${courseId}`}
           onRequestClose={() => setIsMessageModalOpen(false)}
-          open={isMessageModalOpen}
           bulkMessage={false}
           groupConversation={false}
           recipients={[

@@ -25,29 +25,30 @@ export interface ContextFile {
   created_at?: string
 }
 
-export interface CanvasFolder {
-  id: string
-  name: string
-  parent_folder_id?: string
-  full_name?: string
-  subFolderIDs: string[]
-  subFileIDs: string[]
-  created_at?: string
-  locked?: boolean
+export interface CanvasUser {
+  display_name: string
 }
 
 export interface CanvasFile {
   id: string
   display_name: string
   filename: string
-  folder_id: string
   created_at: string
-  updated_at?: string
-  user?: {
-    display_name: string
-  }
-  size?: number
+  folder_id?: string
   locked: boolean
+  size?: number
+  updated_at?: string
+  user?: CanvasUser
+}
+
+export interface CanvasFolder {
+  id: string
+  name: string
+  parent_folder_id: string | null
+  created_at?: string
+  locked?: boolean
+  subFolderIDs: string[]
+  subFileIDs: string[]
 }
 
 export interface ColumnWidths {

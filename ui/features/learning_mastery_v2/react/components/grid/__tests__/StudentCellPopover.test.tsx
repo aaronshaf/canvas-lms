@@ -38,13 +38,13 @@ let apiCallCount = 0
 // Mock the MessageStudents component
 vi.mock('@canvas/message-students-modal', () => {
   return {
-    default: function MessageStudents({open, onRequestClose, title}: any) {
-      return open ? (
+    default: function MessageStudents({onRequestClose, title}: any) {
+      return (
         <div data-testid="message-students-modal">
           <h2>{title}</h2>
           <button onClick={onRequestClose}>Close Modal</button>
         </div>
-      ) : null
+      )
     },
   }
 })
