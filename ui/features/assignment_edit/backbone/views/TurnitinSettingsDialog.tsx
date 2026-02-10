@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {createRoot} from 'react-dom/client'
+import {createRoot, type Root} from 'react-dom/client'
 import {extend} from '@canvas/backbone/utils'
 import turnitinSettingsDialog from '../../jst/TurnitinSettingsDialog.handlebars'
 import {extend as lodashExtend} from 'es-toolkit/compat'
@@ -26,20 +26,37 @@ import {View} from '@canvas/backbone'
 import htmlEscape from '@instructure/html-escape'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import FormattedErrorMessage from '@canvas/assignments/react/FormattedErrorMessage'
+import type TurnitinSettings from '@canvas/assignments/TurnitinSettings'
+import type VeriCiteSettings from '@canvas/assignments/VeriCiteSettings'
 
 const I18n = createI18nScope('turnitinSettingsDialog')
+
+interface SelectorConfig {
+  TYPE: string
+  RADIO_SELECTOR: string
+  INPUT_SELECTOR: string
+  ERROR_CLASS: string
+}
+
+interface FormValues {
+  exclude_small_matches_type: string | null
+  exclude_small_matches_value: string | null
+  words?: string
+  percent?: string
+  [key: string]: any
+}
 
 const EXCLUDE_SMALL_MATCHES_OPTIONS = '.js-exclude-small-matches-options'
 const EXCLUDE_SMALL_MATCHES = '#exclude_small_matches'
 const EXCLUDE_SMALL_MATCHES_TYPE = '[name="exclude_small_matches_type"]'
 
-const EXCLUDE_SMALL_MATCHES_WORDS = {
+const EXCLUDE_SMALL_MATCHES_WORDS: SelectorConfig = {
   TYPE: 'words',
   RADIO_SELECTOR: '[value="words"]',
   INPUT_SELECTOR: '[name="words"]',
   ERROR_CLASS: '.words_error_container',
 }
-const EXCLUDE_SMALL_MATCHES_PERCENT = {
+const EXCLUDE_SMALL_MATCHES_PERCENT: SelectorConfig = {
   TYPE: 'percent',
   RADIO_SELECTOR: '[value="percent"]',
   INPUT_SELECTOR: '[name="percent"]',
@@ -50,7 +67,10 @@ extend(TurnitinSettingsDialog, View)
 
 TurnitinSettingsDialog.prototype.tagName = 'div'
 
-function TurnitinSettingsDialog(model, type) {
+function TurnitinSettingsDialog(
+  model: TurnitinSettings | VeriCiteSettings,
+  type: 'turnitin' | 'vericite',
+) {
   this.handleSubmit = this.handleSubmit.bind(this)
   this.getFormValues = this.getFormValues.bind(this)
   this.renderEl = this.renderEl.bind(this)
@@ -60,7 +80,7 @@ function TurnitinSettingsDialog(model, type) {
     model,
   })
   this.type = type
-  this.errorRoots = {}
+  this.errorRoots = {} as Record<string, Root>
 }
 
 TurnitinSettingsDialog.prototype.events = (function () {
@@ -84,7 +104,7 @@ TurnitinSettingsDialog.prototype.els = (function () {
   return els
 })()
 
-TurnitinSettingsDialog.prototype.getElement = function (selector) {
+TurnitinSettingsDialog.prototype.getElement = function (selector: string): Element | undefined {
   // If the dialog has been closed and reopened, it will create a new dialog
   // so we need to query for all elements that match the selector and choose
   // the last one
@@ -139,16 +159,18 @@ TurnitinSettingsDialog.prototype.renderEl = function () {
     .fixDialogButtons()
 }
 
-TurnitinSettingsDialog.prototype.clearErrors = function (selector) {
+TurnitinSettingsDialog.prototype.clearErrors = function (selector: SelectorConfig): void {
   this.errorRoots[selector.TYPE]?.unmount()
   delete this.errorRoots[selector.TYPE]
 
-  const inputContainer = this.getElement('input' + selector.INPUT_SELECTOR)
+  const inputContainer = this.getElement('input' + selector.INPUT_SELECTOR) as HTMLInputElement
   inputContainer?.classList.remove('error-outline')
   inputContainer?.removeAttribute('aria-label')
 }
 
-TurnitinSettingsDialog.prototype.clearInputErrors = function (e) {
+TurnitinSettingsDialog.prototype.clearInputErrors = function (
+  e: Event & {target: HTMLInputElement},
+): void {
   if (e.target.name === EXCLUDE_SMALL_MATCHES_WORDS.TYPE) {
     this.clearErrors(EXCLUDE_SMALL_MATCHES_WORDS)
   } else {
@@ -157,14 +179,14 @@ TurnitinSettingsDialog.prototype.clearInputErrors = function (e) {
 }
 
 TurnitinSettingsDialog.prototype.showErrorMessage = function (
-  message,
-  selectors,
+  message: string,
+  selectors: SelectorConfig,
   shouldFocus = false,
-) {
+): void {
   if (shouldFocus) {
-    this.getElement(selectors.INPUT_SELECTOR)?.focus()
+    ;(this.getElement(selectors.INPUT_SELECTOR) as HTMLElement)?.focus()
   }
-  const inputContainer = this.getElement('input' + selectors.INPUT_SELECTOR)
+  const inputContainer = this.getElement('input' + selectors.INPUT_SELECTOR) as HTMLInputElement
   inputContainer?.classList.add('error-outline')
   inputContainer?.setAttribute('aria-label', message)
   const errorsContainer = this.getElement(selectors.ERROR_CLASS)
@@ -184,7 +206,10 @@ TurnitinSettingsDialog.prototype.showErrorMessage = function (
   }
 }
 
-TurnitinSettingsDialog.prototype.getErrorMessage = function (value, showEmptyError = false) {
+TurnitinSettingsDialog.prototype.getErrorMessage = function (
+  value: string | null | undefined,
+  showEmptyError = false,
+): string | undefined {
   if (value) {
     const input = Number(value)
     if (!Number.isInteger(input)) {
@@ -197,10 +222,12 @@ TurnitinSettingsDialog.prototype.getErrorMessage = function (value, showEmptyErr
   }
 }
 
-TurnitinSettingsDialog.prototype.validateInput = function (selectors) {
-  const radioButtonChecked = this.getElement('input' + selectors.RADIO_SELECTOR)?.checked
+TurnitinSettingsDialog.prototype.validateInput = function (selectors: SelectorConfig): void {
+  const radioButtonChecked = (
+    this.getElement('input' + selectors.RADIO_SELECTOR) as HTMLInputElement
+  )?.checked
   if (radioButtonChecked) {
-    const inputContainer = this.getElement('input' + selectors.INPUT_SELECTOR)
+    const inputContainer = this.getElement('input' + selectors.INPUT_SELECTOR) as HTMLInputElement
     const message = this.getErrorMessage(inputContainer.value)
     if (message) {
       this.showErrorMessage(message, selectors)
@@ -208,7 +235,9 @@ TurnitinSettingsDialog.prototype.validateInput = function (selectors) {
   }
 }
 
-TurnitinSettingsDialog.prototype.runValidation = function (e) {
+TurnitinSettingsDialog.prototype.runValidation = function (
+  e: Event & {target: HTMLInputElement},
+): void {
   // validate onBlur or when the radio input gets checked
   if (e.type == 'focusout') {
     e.target.name === EXCLUDE_SMALL_MATCHES_WORDS.TYPE
@@ -223,7 +252,7 @@ TurnitinSettingsDialog.prototype.runValidation = function (e) {
   }
 }
 
-TurnitinSettingsDialog.prototype.getFormValues = function () {
+TurnitinSettingsDialog.prototype.getFormValues = function (): FormValues {
   const values = this.$el.find('form').toJSON()
   if (this.$excludeSmallMatches.prop('checked')) {
     if (values.exclude_small_matches_type === 'words') {
@@ -238,12 +267,12 @@ TurnitinSettingsDialog.prototype.getFormValues = function () {
   return values
 }
 
-TurnitinSettingsDialog.prototype.closeDialog = function (formValues) {
+TurnitinSettingsDialog.prototype.closeDialog = function (formValues: FormValues): void {
   this.$el.dialog('close')
   return this.trigger('settings:change', formValues)
 }
 
-TurnitinSettingsDialog.prototype.handleSubmit = function (ev) {
+TurnitinSettingsDialog.prototype.handleSubmit = function (ev: Event): void {
   ev.preventDefault()
   ev.stopPropagation()
   const formValues = this.getFormValues()
