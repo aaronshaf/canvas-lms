@@ -17,21 +17,21 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {sortBy, map, filter} from 'es-toolkit/compat'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import type {EnrollmentTerm} from './EnrollmentTermInput'
 
 const I18n = createI18nScope('EnrollmentTermsDropdown')
 
-class EnrollmentTermsDropdown extends React.Component {
-  static propTypes = {
-    terms: PropTypes.array.isRequired,
-    changeSelectedEnrollmentTerm: PropTypes.func.isRequired,
-  }
+interface EnrollmentTermsDropdownProps {
+  terms: EnrollmentTerm[]
+  changeSelectedEnrollmentTerm: (event: React.ChangeEvent<HTMLSelectElement>) => void
+}
 
-  termsDropdown = React.createRef()
+class EnrollmentTermsDropdown extends React.Component<EnrollmentTermsDropdownProps> {
+  termsDropdown = React.createRef<HTMLSelectElement>()
 
-  sortedTerms = terms => {
+  sortedTerms = (terms: EnrollmentTerm[]): EnrollmentTerm[] => {
     const dated = filter(terms, term => term.startAt)
     const datedTermsSortedByStart = sortBy(dated, term => term.startAt).reverse()
 
@@ -40,9 +40,9 @@ class EnrollmentTermsDropdown extends React.Component {
     return datedTermsSortedByStart.concat(undatedTermsSortedByCreate)
   }
 
-  termOptions = terms => {
+  termOptions = (terms: EnrollmentTerm[]) => {
     const allTermsOption = (
-      <option key={0} value={0}>
+      <option key="0" value="0">
         {I18n.t('All Terms')}
       </option>
     )
