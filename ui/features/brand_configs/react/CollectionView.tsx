@@ -19,8 +19,6 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {useState} from 'react'
 import {groupBy, sortBy, flatten, find, map} from 'es-toolkit/compat'
-import {arrayOf, func, shape, string} from 'prop-types'
-import customTypes from '@canvas/theme-editor/react/PropTypes'
 import {submitHtmlForm} from '@canvas/theme-editor/submitHtmlForm'
 import ThemeCard from './ThemeCard'
 import doFetchApi from '@canvas/do-fetch-api-effect'
@@ -33,7 +31,36 @@ import {IconAddSolid, IconQuestionLine} from '@instructure/ui-icons'
 
 const I18n = createI18nScope('theme_collection_view')
 
-function NewTheme({onNewTheme, bases}) {
+interface BrandConfig {
+  md5: string
+  variables: Record<string, string>
+  name?: string
+}
+
+interface SharedBrandConfig {
+  id?: string
+  account_id?: string
+  brand_config: BrandConfig
+  name: string
+}
+
+interface BaseTheme {
+  md5: string
+  label: string
+}
+
+interface VariableDescription {
+  default: string
+  type: 'color' | 'image' | 'percentage'
+  variable_name: string
+}
+
+interface NewThemeProps {
+  onNewTheme: (_e: React.SyntheticEvent, value: string | string[]) => void
+  bases: BaseTheme[]
+}
+
+function NewTheme({onNewTheme, bases}: NewThemeProps) {
   return (
     <Menu
       trigger={
@@ -53,17 +80,7 @@ function NewTheme({onNewTheme, bases}) {
   )
 }
 
-NewTheme.propTypes = {
-  onNewTheme: func.isRequired,
-  bases: arrayOf(
-    shape({
-      md5: string.isRequired,
-      label: string.isRequired,
-    }),
-  ),
-}
-
-const blankConfig = {
+const blankConfig: SharedBrandConfig = {
   name: I18n.t('Default Template'),
   brand_config: {
     md5: '',
@@ -71,9 +88,18 @@ const blankConfig = {
   },
 }
 
-const isSystemTheme = sharedBrandConfig => !sharedBrandConfig.account_id
+const isSystemTheme = (sharedBrandConfig: SharedBrandConfig): boolean =>
+  !sharedBrandConfig.account_id
 
-export default function CollectionView(props) {
+interface CollectionViewProps {
+  sharedBrandConfigs: SharedBrandConfig[]
+  activeBrandConfig: BrandConfig | null
+  accountID: string
+  brandableVariableDefaults: Record<string, VariableDescription>
+  baseBrandableVariables: Record<string, string>
+}
+
+export default function CollectionView(props: CollectionViewProps) {
   const {
     sharedBrandConfigs,
     activeBrandConfig,
@@ -81,9 +107,10 @@ export default function CollectionView(props) {
     brandableVariableDefaults,
     baseBrandableVariables,
   } = props
-  const [brandConfigBeingDeleted, setBrandConfigBeingDeleted] = useState(null)
+  const [brandConfigBeingDeleted, setBrandConfigBeingDeleted] =
+    useState<SharedBrandConfig | null>(null)
 
-  function brandVariableValue(config, name) {
+  function brandVariableValue(config: BrandConfig | null | undefined, name: string): string {
     const explicitValue = config?.variables[name]
     if (explicitValue) return explicitValue
 
@@ -95,7 +122,13 @@ export default function CollectionView(props) {
     return baseBrandableVariables[name]
   }
 
-  function startEditing({md5ToActivate, sharedBrandConfigToStartEditing}) {
+  function startEditing({
+    md5ToActivate,
+    sharedBrandConfigToStartEditing,
+  }: {
+    md5ToActivate?: string
+    sharedBrandConfigToStartEditing?: SharedBrandConfig | false
+  }) {
     if (md5ToActivate === activeBrandConfig?.md5) md5ToActivate = undefined
     if (sharedBrandConfigToStartEditing) {
       sessionStorage.setItem(
@@ -112,7 +145,7 @@ export default function CollectionView(props) {
     )
   }
 
-  async function deleteSharedBrandConfig(id) {
+  async function deleteSharedBrandConfig(id: string) {
     await doFetchApi({
       path: `/api/v1/shared_brand_configs/${id}`,
       method: 'DELETE',
@@ -120,7 +153,7 @@ export default function CollectionView(props) {
     reloadWindow()
   }
 
-  function isActiveBrandConfig(config) {
+  function isActiveBrandConfig(config: BrandConfig): boolean {
     if (activeBrandConfig) {
       return config.md5 === activeBrandConfig.md5
     } else {
@@ -128,15 +161,15 @@ export default function CollectionView(props) {
     }
   }
 
-  function isActiveEditableTheme(config) {
+  function isActiveEditableTheme(config: SharedBrandConfig): boolean {
     return !isSystemTheme(config) && activeBrandConfig?.md5 === config.brand_config.md5
   }
 
-  function multipleThemesReflectActiveOne() {
+  function multipleThemesReflectActiveOne(): boolean {
     return sharedBrandConfigs.filter(isActiveEditableTheme).length > 1
   }
 
-  function isDeletable(config) {
+  function isDeletable(config: SharedBrandConfig): boolean {
     // Globally-shared themes and the active theme (if there is only one
     // active) are not deletable.
     return (
@@ -145,15 +178,15 @@ export default function CollectionView(props) {
     )
   }
 
-  function thingsToShow() {
-    const showableCards = [blankConfig].concat(sharedBrandConfigs)
-    const isActive = config => isActiveBrandConfig(config.brand_config)
+  function thingsToShow(): Record<string, SharedBrandConfig[]> {
+    const showableCards: SharedBrandConfig[] = [blankConfig].concat(sharedBrandConfigs)
+    const isActive = (config: SharedBrandConfig) => isActiveBrandConfig(config.brand_config)
 
     // Add in a tile for the active theme if it is otherwise not present in the shared ones
     if (activeBrandConfig && !find(sharedBrandConfigs, isActive)) {
-      const cardForActiveBrandConfig = {
+      const cardForActiveBrandConfig: SharedBrandConfig = {
         brand_config: activeBrandConfig,
-        name: activeBrandConfig.name,
+        name: activeBrandConfig.name || '',
         account_id: accountID,
       }
       showableCards.unshift(cardForActiveBrandConfig)
@@ -169,7 +202,7 @@ export default function CollectionView(props) {
     )
   }
 
-  function renderCard(config) {
+  function renderCard(config: SharedBrandConfig) {
     function onClick() {
       const isReadOnly = isSystemTheme(config)
       startEditing({
@@ -199,22 +232,21 @@ export default function CollectionView(props) {
         cancelDeleting={() => setBrandConfigBeingDeleted(null)}
         onDelete={e => {
           e.preventDefault()
-          deleteSharedBrandConfig(config.id)
+          deleteSharedBrandConfig(config.id!)
         }}
       />
     )
   }
 
-  function onNewTheme(_e, value) {
-    let md5 = value
+  function onNewTheme(_e: React.SyntheticEvent, value: string | string[]) {
+    let md5: string | undefined = Array.isArray(value) ? value[0] : value
     // massage the callback value from InstUI Menu component (see INSTUI-2429)
-    if (md5 instanceof Array) md5 = md5[0]
-    if (md5 === 0) md5 = ''
+    if (md5 === '0') md5 = ''
     startEditing({md5ToActivate: md5})
   }
 
   const cards = thingsToShow()
-  const bases = flatten(
+  const bases: BaseTheme[] = flatten(
     map(['globalThemes', 'accountSpecificThemes'], coll =>
       map(cards[coll], config => ({md5: config.brand_config.md5, label: config.name})),
     ),
@@ -273,12 +305,4 @@ export default function CollectionView(props) {
       )}
     </>
   )
-}
-
-CollectionView.propTypes = {
-  sharedBrandConfigs: arrayOf(customTypes.sharedBrandConfig).isRequired,
-  activeBrandConfig: customTypes.brandConfig.isRequired,
-  accountID: string.isRequired,
-  brandableVariableDefaults: customTypes.brandableVariableDefaults,
-  baseBrandableVariables: customTypes.variables,
 }
