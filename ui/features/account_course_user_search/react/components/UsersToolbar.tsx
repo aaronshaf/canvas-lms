@@ -39,16 +39,48 @@ import {Flex} from '@instructure/ui-flex'
 
 const I18n = createI18nScope('account_course_user_search')
 
-export default function UsersToolbar(props) {
+type Role = {
+  id: string
+  label: string
+}
+
+type UsersToolbarErrors = {
+  search_term?: string
+}
+
+type UsersToolbarFilters = {
+  search_term?: string
+  include_deleted_users?: boolean
+  role_filter_id?: string
+  temporary_enrollment_providers?: boolean
+  temporary_enrollment_recipients?: boolean
+}
+
+type UsersToolbarProps = {
+  toggleSRMessage: (show?: boolean) => void
+  onUpdateFilters: (filters: UsersToolbarFilters) => void
+  onApplyFilters: () => void
+  search_term: string
+  include_deleted_users: boolean
+  role_filter_id: string
+  errors: UsersToolbarErrors
+  accountId: string
+  roles: Role[]
+}
+
+export default function UsersToolbar(props: UsersToolbarProps) {
   const [recipientsFilterChecked, setRecipientFilterChecked] = useState(false)
   const [providersFilterChecked, setProvidersFilterChecked] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
 
-  function handleRoleSelect(_event, value) {
+  function handleRoleSelect(_event: unknown, value: string) {
     props.onUpdateFilters({role_filter_id: value})
   }
 
-  function handleTemporaryEnrollmentsFilterChange(filter, event) {
+  function handleTemporaryEnrollmentsFilterChange(
+    filter: 'recipients' | 'providers',
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
     if (filter === 'recipients') {
       setRecipientFilterChecked(event.target.checked)
       props.onUpdateFilters({
@@ -85,7 +117,7 @@ export default function UsersToolbar(props) {
 
   return (
     <form
-      onSubmit={event => {
+      onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         props.onApplyFilters()
       }}
@@ -124,8 +156,10 @@ export default function UsersToolbar(props) {
                     renderAfterInput={renderClearButton()}
                     renderLabel={<ScreenReaderContent>{placeholder}</ScreenReaderContent>}
                     placeholder={placeholder}
-                    onChange={e => props.onUpdateFilters({search_term: e.target.value})}
-                    onKeyUp={e => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      props.onUpdateFilters({search_term: e.target.value})
+                    }
+                    onKeyUp={(e: React.KeyboardEvent<HTMLInputElement>) => {
                       if (e.key === 'Enter') {
                         props.toggleSRMessage(true)
                       } else {
@@ -171,7 +205,9 @@ export default function UsersToolbar(props) {
                     <Checkbox
                       size="small"
                       checked={recipientsFilterChecked}
-                      onChange={e => handleTemporaryEnrollmentsFilterChange('recipients', e)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleTemporaryEnrollmentsFilterChange('recipients', e)
+                      }
                       label={I18n.t('Show only temporary enrollment recipients')}
                     />
                   </Grid.Col>
@@ -179,7 +215,9 @@ export default function UsersToolbar(props) {
                     <Checkbox
                       size="small"
                       checked={providersFilterChecked}
-                      onChange={e => handleTemporaryEnrollmentsFilterChange('providers', e)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleTemporaryEnrollmentsFilterChange('providers', e)
+                      }
                       label={I18n.t('Show only temporary enrollment providers')}
                     />
                   </Grid.Col>
@@ -191,7 +229,7 @@ export default function UsersToolbar(props) {
                     <Checkbox
                       size="small"
                       checked={props.include_deleted_users}
-                      onChange={e =>
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         props.onUpdateFilters({include_deleted_users: e.target.checked})
                       }
                       label={I18n.t('Include deleted users in search results')}
@@ -207,7 +245,7 @@ export default function UsersToolbar(props) {
   )
 }
 
-function renderKabobMenu(accountId) {
+function renderKabobMenu(accountId: string): React.ReactNode {
   // see accounts_controller#avatars for the showAvatarItem logic
   const showAvatarItem = ENV.PERMISSIONS.can_allow_course_admin_actions
   const showGroupsItem = ENV.PERMISSIONS.can_manage_groups // see groups_controller#context_index
@@ -221,12 +259,12 @@ function renderKabobMenu(accountId) {
         }
       >
         {showAvatarItem && (
-          <Menu.Item onClick={() => (window.location = `/accounts/${accountId}/avatars`)}>
+          <Menu.Item onClick={() => window.location.assign(`/accounts/${accountId}/avatars`)}>
             <IconStudentViewLine /> {I18n.t('Manage profile pictures')}
           </Menu.Item>
         )}
         {showGroupsItem && (
-          <Menu.Item onClick={() => (window.location = `/accounts/${accountId}/groups`)}>
+          <Menu.Item onClick={() => window.location.assign(`/accounts/${accountId}/groups`)}>
             <IconGroupLine /> {I18n.t('View user groups')}
           </Menu.Item>
         )}

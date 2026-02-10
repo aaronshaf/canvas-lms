@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {arrayOf, string, bool, func, shape, oneOf} from 'prop-types'
-import {compact, groupBy, isEqual, map} from 'es-toolkit/compat'
+import {groupBy, isEqual} from 'es-toolkit/compat'
 import {IconPlusLine, IconSearchLine, IconTroubleLine} from '@instructure/ui-icons'
 import {Button, IconButton} from '@instructure/ui-buttons'
 import {TextInput} from '@instructure/ui-text-input'
@@ -33,7 +33,38 @@ import NewCourseModal from './NewCourseModal'
 
 const I18n = createI18nScope('account_course_user_search')
 
-function termGroup(term) {
+type Term = {
+  id: string
+  name: string
+  start_at?: string
+  end_at?: string
+}
+
+type CoursesDraftFilters = {
+  enrollment_term_id: string
+  search_by: 'course' | 'teacher'
+  search_term: string
+  enrollment_type: string[] | null
+  enrollment_workflow_state: string[] | null
+  blueprint: boolean | null
+  public: boolean | null
+}
+
+type CoursesToolbarProps = {
+  toggleSRMessage: (show?: boolean) => void
+  can_create_courses?: boolean
+  onUpdateFilters: (filters: Partial<CoursesDraftFilters>) => void
+  onApplyFilters: () => void
+  isLoading?: boolean
+  draftFilters: CoursesDraftFilters
+  errors: {search_term?: string}
+  terms?: {data: Term[]; loading?: boolean}
+  filteredTerms: Term[]
+}
+
+type TermGroupKey = 'active' | 'future' | 'past'
+
+function termGroup(term: Term): TermGroupKey {
   if (term.start_at && new Date(term.start_at) > new Date()) return 'future'
   if (term.end_at && new Date(term.end_at) < new Date()) return 'past'
   return 'active'
@@ -68,33 +99,28 @@ export default function CoursesToolbar({
   errors,
   draftFilters,
   toggleSRMessage,
-}) {
-  const groupedTerms = groupBy(filteredTerms, termGroup)
+}: CoursesToolbarProps) {
+  const groupedTerms = groupBy(filteredTerms, termGroup) as Partial<Record<TermGroupKey, Term[]>>
   const searchLabel =
     draftFilters.search_by === 'teacher'
       ? I18n.t('Search courses by teacher...')
       : I18n.t('Search courses...')
 
-  const termOptions = []
-  termOptions.push(allTermsGroup)
-  termOptions.push(
-    ...compact(
-      // Create Group options for terms and remove empty items
-      map(
-        termGroups,
-        (label, key) =>
-          groupedTerms[key] && (
-            <SearchableSelect.Group key={key} id={key} label={label}>
-              {groupedTerms[key].map(term => (
-                <SearchableSelect.Option key={term.id} id={term.id} value={term.id}>
-                  {term.name}
-                </SearchableSelect.Option>
-              ))}
-            </SearchableSelect.Group>
-          ),
-      ),
-    ),
-  )
+  const termOptions: React.ReactNode[] = [allTermsGroup]
+  ;(Object.keys(termGroups) as TermGroupKey[]).forEach(key => {
+    const termsForGroup = groupedTerms[key]
+    if (!termsForGroup || termsForGroup.length === 0) return
+
+    termOptions.push(
+      <SearchableSelect.Group key={key} id={key} label={termGroups[key]}>
+        {termsForGroup.map((term: Term) => (
+          <SearchableSelect.Option key={term.id} id={term.id} value={term.id}>
+            {term.name}
+          </SearchableSelect.Option>
+        ))}
+      </SearchableSelect.Group>,
+    )
+  })
   const renderClearButton = () =>
     draftFilters.search_term.length ? (
       <IconButton
@@ -113,7 +139,7 @@ export default function CoursesToolbar({
   return (
     <div>
       <form
-        onSubmit={event => {
+        onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
           event.preventDefault()
           onApplyFilters()
         }}
@@ -167,8 +193,10 @@ export default function CoursesToolbar({
                       renderLabel={<ScreenReaderContent>{searchLabel}</ScreenReaderContent>}
                       value={draftFilters.search_term}
                       placeholder={searchLabel}
-                      onChange={e => onUpdateFilters({search_term: e.target.value})}
-                      onKeyUp={e => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        onUpdateFilters({search_term: e.target.value})
+                      }
+                      onKeyUp={(e: React.KeyboardEvent<HTMLInputElement>) => {
                         if (e.key === 'Enter') {
                           toggleSRMessage(true)
                         } else {
@@ -185,7 +213,7 @@ export default function CoursesToolbar({
                   <Grid.Col width="auto">
                     <Checkbox
                       checked={isEqual(draftFilters.enrollment_type, ['student'])}
-                      onChange={e => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const isChecked = e.target.checked
 
                         onUpdateFilters({
@@ -201,14 +229,18 @@ export default function CoursesToolbar({
                   <Grid.Col width="auto">
                     <Checkbox
                       checked={draftFilters.blueprint}
-                      onChange={e => onUpdateFilters({blueprint: e.target.checked ? true : null})}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        onUpdateFilters({blueprint: e.target.checked ? true : null})
+                      }
                       label={I18n.t('Show only blueprint courses')}
                     />
                   </Grid.Col>
                   <Grid.Col width="auto">
                     <Checkbox
                       checked={draftFilters.public}
-                      onChange={e => onUpdateFilters({public: e.target.checked ? true : null})}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        onUpdateFilters({public: e.target.checked ? true : null})
+                      }
                       label={I18n.t('Show only public courses')}
                     />
                   </Grid.Col>

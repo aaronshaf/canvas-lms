@@ -42,7 +42,54 @@ import AddPeopleApp from '@canvas/add-people'
 
 const I18n = createI18nScope('account_course_user_search')
 
-export default class CoursesListRow extends React.Component {
+export type Teacher = {
+  id: string | number
+  display_name: string
+  html_url?: string
+  avatar_image_url?: string
+}
+
+export type Role = {
+  id: string
+  addable_by_user?: boolean
+  base_role_name?: string
+}
+
+export type CourseTerm = {
+  name: string
+}
+
+export type CoursesListRowProps = {
+  id: string
+  name: string
+  workflow_state: string
+  total_students: number
+  teachers?: Teacher[]
+  teacher_count?: number
+  sis_course_id?: string
+  subaccount_name: string
+  subaccount_id: string
+  term: CourseTerm
+  roles?: Role[]
+  showSISIds?: boolean
+  can_create_enrollments?: boolean
+  blueprint?: boolean
+  template?: boolean
+  concluded?: boolean
+}
+
+type Enrollment = {
+  enrollment: {
+    type: string
+  }
+}
+
+type CoursesListRowState = {
+  newlyEnrolledStudents: number
+  teachersToShow: Teacher[]
+}
+
+export default class CoursesListRow extends React.Component<CoursesListRowProps, CoursesListRowState> {
   static propTypes = {
     id: string.isRequired,
     name: string.isRequired,
@@ -77,7 +124,10 @@ export default class CoursesListRow extends React.Component {
 
   static displayName = 'Row'
 
-  constructor(props) {
+  private promiseToGetSections?: Promise<unknown[]>
+  private addPeopleApp?: {open: () => void; usersHaveBeenEnrolled: () => Enrollment[]} | undefined
+
+  constructor(props: CoursesListRowProps) {
     super(props)
 
     this.state = {
@@ -86,15 +136,16 @@ export default class CoursesListRow extends React.Component {
     }
   }
 
-  getSections = () =>
+  getSections = (): Promise<unknown[]> =>
     this.promiseToGetSections ||
     (this.promiseToGetSections = axios.get(
       `/api/v1/courses/${this.props.id}/sections?per_page=100`,
     )).then(resp => resp.data)
 
-  uniqueTeachers = () => uniqBy(this.props.teachers, 'id')
+  uniqueTeachers = (): Teacher[] =>
+    (uniqBy(this.props.teachers || [], 'id') as Teacher[]) || ([] as Teacher[])
 
-  handleNewEnrollments = newEnrollments => {
+  handleNewEnrollments = (newEnrollments?: Enrollment[] | null) => {
     if (newEnrollments && newEnrollments.length) {
       const newStudents = newEnrollments.filter(e => e.enrollment.type === 'StudentEnrollment')
       this.setState(oldState => {
@@ -104,8 +155,8 @@ export default class CoursesListRow extends React.Component {
     }
   }
 
-  getAvailableRoles = () => {
-    const filterFunc = role => role.addable_by_user
+  getAvailableRoles = (): Role[] => {
+    const filterFunc = (role: Role) => Boolean(role.addable_by_user)
 
     let roles = (this.props.roles || []).filter(filterFunc)
     if (this.props.blueprint) {
@@ -117,7 +168,7 @@ export default class CoursesListRow extends React.Component {
     return roles
   }
 
-  openAddUsersToCourseDialog = () => {
+  openAddUsersToCourseDialog = (): void => {
     this.getSections().then(sections => {
       this.addPeopleApp =
         this.addPeopleApp ||
@@ -137,15 +188,15 @@ export default class CoursesListRow extends React.Component {
     })
   }
 
-  showMoreTeachers = () => {
+  showMoreTeachers = (): void => {
     this.setState({teachersToShow: this.uniqueTeachers()})
   }
 
-  allowAddingEnrollments() {
-    return this.props.can_create_enrollments && !this.props.concluded && !this.props.template
+  allowAddingEnrollments(): boolean {
+    return Boolean(this.props.can_create_enrollments && !this.props.concluded && !this.props.template)
   }
 
-  renderAddEnrollments() {
+  renderAddEnrollments(): React.ReactNode {
     if (this.allowAddingEnrollments()) {
       const {name} = this.props
       const addUsersTip = I18n.t('Add Users to %{name}', {name})
@@ -165,7 +216,7 @@ export default class CoursesListRow extends React.Component {
     }
   }
 
-  renderCourseStatusIcon = () => {
+  renderCourseStatusIcon = (): React.ReactNode => {
     const {workflow_state} = this.props
     let tooltip = I18n.t('Unpublished')
     let classname = 'unpublished-course'
@@ -239,9 +290,9 @@ export default class CoursesListRow extends React.Component {
         <Table.Cell>{template ? '\u2014' : term.name}</Table.Cell>
         <Table.Cell>
           {(teachersToShow || []).map(teacher => (
-            <div key={teacher.id}>
+            <div key={String(teacher.id)}>
               <UserLink
-                key={teacher.id}
+                key={String(teacher.id)}
                 href={teacher.html_url}
                 name={teacher.display_name}
                 avatarName={teacher.display_name}

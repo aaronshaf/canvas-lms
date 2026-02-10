@@ -32,7 +32,69 @@ const I18n = createI18nScope('account_course_user_search')
 const MIN_SEARCH_LENGTH = 2
 export const SEARCH_DEBOUNCE_TIME = 750
 
-export default class UsersPane extends React.Component {
+type Role = {
+  id: string
+  label: string
+}
+
+type SearchFilter = {
+  page?: number | null
+  search_term?: string
+  include_deleted_users?: boolean
+  role_filter_id?: string
+  sort?: string
+  order?: string
+  temporary_enrollment_providers?: boolean
+  temporary_enrollment_recipients?: boolean
+}
+
+type PaginationLink = {
+  url: string
+  page: string
+}
+
+type CollectionLinks = Partial<Record<'current' | 'next' | 'prev' | 'first' | 'last', PaginationLink>>
+
+type UserListState = {
+  links?: CollectionLinks
+  accountId: string | number
+  users: unknown[]
+  isLoading: boolean
+  errors: {search_term?: string}
+  searchFilter: SearchFilter
+  permissions: Record<string, unknown>
+}
+
+type StoreState = {
+  userList: UserListState
+}
+
+type Store = {
+  getState: () => StoreState
+  dispatch: (action: unknown) => void
+  subscribe: (listener: () => void) => () => void
+}
+
+type UsersPaneProps = {
+  store: Store
+  roles: Role[]
+  onUpdateQueryParams: (params: SearchFilter) => void
+  queryParams: {
+    page?: string
+    search_term?: string
+    include_deleted_users?: string
+    role_filter_id?: string
+  }
+}
+
+type UsersPaneState = {
+  userList: UserListState
+  srMessageDisplayed: boolean
+  sortColumnHeader: HTMLElement | null
+  knownLastPage?: string
+}
+
+export default class UsersPane extends React.Component<UsersPaneProps, UsersPaneState> {
   static propTypes = {
     store: shape({
       getState: func.isRequired,
@@ -54,7 +116,10 @@ export default class UsersPane extends React.Component {
     }).isRequired,
   }
 
-  constructor(props) {
+  private unsubscribe: () => void = () => {}
+  private debouncedDispatchApplySearchFilter: (preserveLastPageValue?: boolean) => void
+
+  constructor(props: UsersPaneProps) {
     super(props)
 
     this.state = {
@@ -65,7 +130,7 @@ export default class UsersPane extends React.Component {
     this.debouncedDispatchApplySearchFilter = debounce(
       this.handleApplyingSearchFilter,
       SEARCH_DEBOUNCE_TIME,
-    )
+    ) as unknown as (preserveLastPageValue?: boolean) => void
   }
 
   componentDidMount() {
@@ -103,19 +168,19 @@ export default class UsersPane extends React.Component {
     const userList = this.props.store.getState().userList
     const lastPage = userList?.links?.last?.page
     this.setState(oldState => {
-      const newState = {userList}
+      const newState: Partial<UsersPaneState> = {userList}
       if (lastPage && !oldState.knownLastPage) newState.knownLastPage = lastPage
       return newState
     })
   }
 
-  handleApplyingSearchFilter = (preserveLastPageValue = false) => {
+  handleApplyingSearchFilter = (preserveLastPageValue: boolean = false) => {
     this.props.store.dispatch(UserActions.applySearchFilter(MIN_SEARCH_LENGTH))
     this.updateQueryString()
     if (!preserveLastPageValue) this.setState({knownLastPage: undefined})
   }
 
-  handleUpdateSearchFilter = searchFilter => {
+  handleUpdateSearchFilter = (searchFilter: Partial<SearchFilter>) => {
     this.props.store.dispatch(UserActions.updateSearchFilter({page: null, ...searchFilter}))
     this.debouncedDispatchApplySearchFilter()
   }
@@ -124,16 +189,16 @@ export default class UsersPane extends React.Component {
     this.handleApplyingSearchFilter()
   }
 
-  handleSetPage = page => {
+  handleSetPage = (page: number) => {
     this.props.store.dispatch(UserActions.updateSearchFilter({page}))
     this.handleApplyingSearchFilter(true)
   }
 
-  handleToggleSRMessage = (show = false) => {
+  handleToggleSRMessage = (show: boolean = false) => {
     this.setState({sortColumnHeader: null, srMessageDisplayed: show})
   }
 
-  handleSetSortColumnHeaderRef = element => {
+  handleSetSortColumnHeaderRef = (element: HTMLElement | null) => {
     if (element) this.setState({sortColumnHeader: element})
   }
 

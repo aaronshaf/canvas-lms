@@ -31,7 +31,7 @@ const liveRegion = () => document.getElementById('flash_screenreader_holder')
 
 // Regular expression special character escaper
 const reEscapeMatcher = /(\^|\$|\|\.|\*|\+|\?|\(|\)|\[|\]|\{|\}|\||\\)/g
-const reEscape = str => str.replace(reEscapeMatcher, '\\$1')
+const reEscape = (str: string) => str.replace(reEscapeMatcher, '\\$1')
 
 const SearchableSelectOption = () => <div />
 SearchableSelectOption.propTypes = {
@@ -47,22 +47,65 @@ SearchableSelectGroup.propTypes = {
 }
 SearchableSelectGroup.displayName = 'Group'
 
-function flattenOptions(nodes) {
-  const options = []
+type SearchableSelectOptionProps = {
+  id: string
+  value: string
+  children: React.ReactNode
+}
+
+type SearchableSelectGroupProps = {
+  id?: string
+  label: string
+  children?: React.ReactNode
+}
+
+type FlattenedOption = {
+  id: string
+  value: string
+  name: string
+}
+
+function isDisplayNamedElement(
+  el: unknown,
+  displayName: 'Option' | 'Group',
+): el is React.ReactElement {
+  if (!React.isValidElement(el)) return false
+  const t = el.type as unknown as {displayName?: string}
+  return t?.displayName === displayName
+}
+
+function flattenOptions(nodes: React.ReactNode): Array<React.ReactElement<SearchableSelectOptionProps>> {
+  const options: Array<React.ReactElement<SearchableSelectOptionProps>> = []
 
   React.Children.forEach(nodes, n => {
     if (Array.isArray(n)) {
-      options.push(flattenOptions(n))
-    } else if (n?.type?.displayName === 'Group') {
-      options.push(flattenOptions(n.props.children))
-    } else if (n?.type?.displayName === 'Option') {
-      options.push(n)
+      options.push(...flattenOptions(n))
+    } else if (isDisplayNamedElement(n, 'Group')) {
+      const groupNode = n as React.ReactElement<SearchableSelectGroupProps>
+      options.push(...flattenOptions(groupNode.props.children))
+    } else if (isDisplayNamedElement(n, 'Option')) {
+      options.push(n as React.ReactElement<SearchableSelectOptionProps>)
     }
   })
-  return options.flat()
+  return options
 }
 
-function SearchableSelect(props) {
+type SearchableSelectMessage = {type: string; text: string}
+
+type SearchableSelectProps = {
+  id: string
+  isLoading?: boolean
+  value?: string
+  onChange: (event: unknown, selectedOption: FlattenedOption) => void
+  label?: React.ReactNode | (() => React.ReactNode)
+  placeholder?: string
+  matchAnywhere?: boolean
+  noResultsLabel?: string
+  noSearchMatchLabel?: string
+  children?: React.ReactNode
+}
+
+function SearchableSelect(props: SearchableSelectProps) {
   const {id: selectId, value, children, isLoading, onChange, label, matchAnywhere} = props
   const noResultsLabel = props.noResultsLabel || I18n.t('No results')
   const noSearchMatchLabel = props.noSearchMatchLabel || I18n.t('No matches to your search')
@@ -70,21 +113,21 @@ function SearchableSelect(props) {
 
   const [inputValue, setInputValue] = useState('')
   const [matcher, setMatcher] = useState(new RegExp(''))
-  const [messages, setMessages] = useState(null)
+  const [messages, setMessages] = useState<Array<SearchableSelectMessage> | null>(null)
   const [isShowingOptions, setIsShowingOptions] = useState(false)
-  const [selectedOptionId, setSelectedOptionId] = useState(null)
-  const [highlightedOptionId, setHighlightedOptionId] = useState(null)
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null)
+  const [highlightedOptionId, setHighlightedOptionId] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
 
-  const options = flattenOptions(children).map(n => ({
+  const options: FlattenedOption[] = flattenOptions(children).map(n => ({
     id: n.props.id,
     value: n.props.value,
-    name: n.props.children,
+    name: typeof n.props.children === 'string' ? n.props.children : '',
   }))
-  const matchingOptions = options.filter(i => i.name?.match(matcher))
+  const matchingOptions = options.filter(i => i.name.match(matcher))
   const noResults = React.Children.count(children) === 0
 
-  function setSearchResultMessage(matches) {
+  function setSearchResultMessage(matches: boolean) {
     if (!matches) {
       setMessages([{type: 'newError', text: noSearchMatchLabel}])
       return
@@ -106,12 +149,12 @@ function SearchableSelect(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, React.Children.count(children)])
 
-  function matcherFor(v) {
+  function matcherFor(v: string) {
     const constrain = matchAnywhere ? '' : '^(\\s*)'
     return new RegExp(constrain + reEscape(v), 'i')
   }
 
-  function onInputChange(e) {
+  function onInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newMatcher = matcherFor(e.target.value)
     const doesAnythingMatch = options.some(i => i.name.match(newMatcher))
     setInputValue(e.target.value)
@@ -121,7 +164,7 @@ function SearchableSelect(props) {
     setIsShowingOptions(doesAnythingMatch)
   }
 
-  function onRequestHideOptions(event) {
+  function onRequestHideOptions(event: {type: string}) {
     setIsShowingOptions(false)
     setHighlightedOptionId(null)
     if (event.type !== 'blur') setAnnouncement(I18n.t('List collapsed. ') + inputValue)
@@ -133,15 +176,16 @@ function SearchableSelect(props) {
     setAnnouncement(I18n.t('List expanded.'))
   }
 
-  function onRequestHighlightOption(event, {id}) {
+  function onRequestHighlightOption(event: {type: string}, {id}: {id: string}) {
     const text = options.find(o => o.id === id)?.name
-    if (event.type === 'keydown') setInputValue(text)
+    if (event.type === 'keydown') setInputValue(text || '')
     setHighlightedOptionId(id)
-    setAnnouncement(text)
+    setAnnouncement(text || '')
   }
 
-  function onRequestSelectOption(event, {id}) {
+  function onRequestSelectOption(event: unknown, {id}: {id: string}) {
     const selectedOption = options.find(o => o.id === id)
+    if (!selectedOption) return
     setInputValue(selectedOption.name)
     setMatcher(new RegExp(''))
     setSelectedOptionId(id)
@@ -150,7 +194,7 @@ function SearchableSelect(props) {
     onChange(event, selectedOption)
   }
 
-  function onBlur(e) {
+  function onBlur(e: React.FocusEvent<HTMLInputElement>) {
     // set possible selection if narrowed to a single match or disregard as no op
     const possibleSelection = matchingOptions.length === 1 ? matchingOptions[0] : false
     if (possibleSelection) {
@@ -159,9 +203,9 @@ function SearchableSelect(props) {
     }
   }
 
-  function renderOptions(nodes) {
-    function renderOption(optionNode) {
-      const {id: optionId, children: optionChildren, ...rest} = optionNode.props
+  function renderOptions(nodes: React.ReactNode) {
+    function renderOption(optionNode: React.ReactElement<SearchableSelectOptionProps>) {
+      const {id: optionId, children: optionChildren, ...rest} = optionNode.props as SearchableSelectOptionProps & Record<string, unknown>
       const opt = options.find(o => o.id === optionId)
       if (!opt || !opt.name.match(matcher)) return null
       return (
@@ -177,8 +221,8 @@ function SearchableSelect(props) {
       )
     }
 
-    function renderGroup(groupNode) {
-      const {id: groupId, label: groupLabel, children: groupChildren, ...rest} = groupNode.props
+    function renderGroup(groupNode: React.ReactElement<SearchableSelectGroupProps>) {
+      const {id: groupId, label: groupLabel, children: groupChildren, ...rest} = groupNode.props as SearchableSelectGroupProps & Record<string, unknown>
       return (
         <Select.Group
           renderLabel={() => groupLabel}
@@ -190,15 +234,15 @@ function SearchableSelect(props) {
       )
     }
 
-    const result = []
+    const result: React.ReactNode[] = []
 
     React.Children.forEach(nodes, child => {
       if (Array.isArray(child)) {
         result.push(renderOptions(child))
-      } else if (child?.type?.displayName === 'Option') {
-        result.push(renderOption(child))
-      } else if (child?.type?.displayName === 'Group') {
-        result.push(renderGroup(child))
+      } else if (isDisplayNamedElement(child, 'Option')) {
+        result.push(renderOption(child as React.ReactElement<SearchableSelectOptionProps>))
+      } else if (isDisplayNamedElement(child, 'Group')) {
+        result.push(renderGroup(child as React.ReactElement<SearchableSelectGroupProps>))
       }
     })
 
@@ -225,7 +269,7 @@ function SearchableSelect(props) {
     return renderOptions(children).filter(Boolean)
   }
 
-  const controlProps = {
+  const controlProps: Record<string, unknown> = {
     id: selectId,
     inputValue,
     isShowingOptions,

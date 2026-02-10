@@ -26,20 +26,41 @@ import UsersListHeader from './UsersListHeader'
 
 const I18n = createI18nScope('account_course_user_search')
 
-export default class UsersList extends React.Component {
-  shouldComponentUpdate(nextProps) {
-    let count = 0
-    for (const prop in this.props) {
-      ++count
-      if (this.props[prop] !== nextProps[prop]) {
-        // a change to searchFilter on it's own should not cause the list
-        // to re-render
-        if (prop !== 'searchFilter') {
-          return true
-        }
-      }
+type Role = {id: string; label: string}
+
+type SearchFilter = {
+  sort?: string
+  order?: string
+  search_term?: string
+  role_filter_id?: string
+}
+
+type UsersListProps = {
+  accountId: string
+  users: Array<{id: string} & Record<string, unknown>>
+  permissions: Record<string, unknown>
+  handleSubmitEditUserForm: () => void
+  searchFilter: SearchFilter
+  onUpdateFilters: (filters: {
+    search_term: string
+    sort: string
+    order: string
+    role_filter_id?: string
+  }) => void
+  sortColumnHeaderRef: (element: HTMLElement) => void
+  roles: Role[]
+  includeDeletedUsers?: boolean
+}
+
+export default class UsersList extends React.Component<UsersListProps> {
+  shouldComponentUpdate(nextProps: UsersListProps) {
+    const keys = Object.keys(this.props) as Array<keyof UsersListProps>
+    for (const key of keys) {
+      // a change to searchFilter on it's own should not cause the list to re-render
+      if (key === 'searchFilter') continue
+      if (this.props[key] !== nextProps[key]) return true
     }
-    return count !== Object.keys(nextProps).length
+    return keys.length !== Object.keys(nextProps).length
   }
 
   render() {
@@ -89,7 +110,7 @@ export default class UsersList extends React.Component {
           </Table.Row>
         </Table.Head>
         <Table.Body data-automation="users list">
-          {this.props.users.map(user => (
+          {this.props.users.map((user: {id: string} & Record<string, unknown>) => (
             <UsersListRow
               handleSubmitEditUserForm={this.props.handleSubmitEditUserForm}
               roles={this.props.roles}
