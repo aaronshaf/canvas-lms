@@ -18,13 +18,13 @@
 import ready from '@instructure/ready'
 
 ready(() => {
-  const mountPoint = document.querySelector('#content-wrapper')
+  const mountPoint = document.querySelector('#content-wrapper') as HTMLElement
 
   import('analyticshub/AnalyticsHub')
     .then(module => {
       module.render(mountPoint)
     })
-    .catch(error => {
+    .catch((error: Error) => {
       console.error('Failed to load analyticshub', error)
     })
 })
