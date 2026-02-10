@@ -28,7 +28,14 @@ import 'jquery-tinypubsub'
 const I18n = createI18nScope('calendar')
 
 export default class UndatedEventsList {
-  constructor(selector, dataSource, calendar) {
+  dataSource: any
+  calendar: any
+  div: JQuery
+  hidden: boolean
+  visibleContextList: any[]
+  previouslyFocusedElement: any
+
+  constructor(selector: string, dataSource: any, calendar: any) {
     let toggler
     this.dataSource = dataSource
     this.calendar = calendar

@@ -22,16 +22,24 @@ import TimeBlockListManager from '@canvas/calendar/TimeBlockListManager'
 import TimeBlockRow from './TimeBlockRow'
 import '@canvas/jquery/jquery.instructure_forms'
 import '@instructure/date-js'
+import type moment from 'moment'
 
 const I18n = createI18nScope('calendar')
 
 export default class TimeBlockList {
-  constructor(element, splitterSelector, blocks, blankRow) {
+  element: JQuery
+  splitterDiv: JQuery
+  blocksManager: TimeBlockListManager
+  blankRow: any
+  rows: TimeBlockRow[]
+
+  constructor(element: any, splitterSelector: string, blocks: any, blankRow: any) {
     this.element = $(element)
     this.splitterDiv = $(splitterSelector)
     this.blocksManager = new TimeBlockListManager(blocks)
     this.splitterDiv.find('.split-link').click(this.handleSplitClick)
     this.blankRow = blankRow
+    this.rows = []
 
     this.element.on('change', 'input', event => {
       if ($(event.currentTarget).closest('tr').is(':last-child')) this.addRow()
@@ -39,7 +47,7 @@ export default class TimeBlockList {
     this.render()
   }
 
-  render() {
+  render(): TimeBlockRow {
     this.rows = []
     this.element.empty()
     this.blocksManager.blocks.forEach(block => this.addRow(block))
@@ -48,27 +56,27 @@ export default class TimeBlockList {
     return this.addRow(blankRow) // add a blank row at the bottom
   }
 
-  rowRemoved(rowToRemove) {
+  rowRemoved(rowToRemove: TimeBlockRow): TimeBlockRow | undefined {
     this.rows = this.rows.filter(row => row !== rowToRemove)
     const aNonLockedRowExists = this.rows.some(row => !row.locked)
 
     if (!aNonLockedRowExists) return this.addRow()
   }
 
-  addRow = data => {
+  addRow = (data?: any): TimeBlockRow => {
     const row = new TimeBlockRow(this, data)
     this.element.append(row.$row)
     this.rows.push(row)
     return row
   }
 
-  handleSplitClick = event => {
+  handleSplitClick = (event: JQuery.Event): void => {
     event.preventDefault()
     const duration = this.splitterDiv.find('[name=duration]').val()
     return this.split(duration)
   }
 
-  split(minutes) {
+  split(minutes: string): void {
     const value = parseFloat(minutes)
     if (value > 0 && this.validate()) {
       this.blocksManager.split(value)
@@ -77,7 +85,7 @@ export default class TimeBlockList {
   }
 
   // weird side-effect: populates the blocksManager
-  validate() {
+  validate(): boolean {
     let valid = true
     this.blocksManager.reset()
     this.rows.forEach(row => {
@@ -99,7 +107,7 @@ export default class TimeBlockList {
     return valid
   }
 
-  blocks() {
+  blocks(): [moment.Moment, moment.Moment][] {
     return this.blocksManager.blocks
       .filter(range => !range.locked)
       .map(range => [range.start, range.end])

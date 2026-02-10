@@ -27,7 +27,15 @@ import {publish, subscribe} from 'jquery-tinypubsub'
 const I18n = createI18nScope('context_sector')
 
 class ContextSelectorItem {
-  constructor(context) {
+  context: any
+  state: string
+  locked: boolean
+  $listItem?: JQuery
+  $sectionsList?: JQuery
+  $contentCheckbox?: JQuery
+  $sectionCheckboxes?: JQuery
+
+  constructor(context: any) {
     this.context = context
     this.state = 'off'
     this.locked = false

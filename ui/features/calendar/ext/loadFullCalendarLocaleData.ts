@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-export default function loadFullCalendarLocaleData(locale) {
+export default function loadFullCalendarLocaleData(locale: string): Promise<void> {
   // get it from node_modules/fullcalendar/dist/locale/
   const FULLCALENDAR_LOCALES = [
     'ar',

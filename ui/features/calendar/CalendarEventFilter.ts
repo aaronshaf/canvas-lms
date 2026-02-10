@@ -24,8 +24,19 @@ import fcUtil from '@canvas/calendar/jquery/fcUtil'
 // De-dupe, and remove any actual scheduled events (since we don't want to
 // display that among the placeholders.)
 
-export default function calendarEventFilter(viewingGroup, events, schedulerState = {}) {
-  const eventIds = {}
+interface SchedulerState {
+  inFindAppointmentMode?: boolean
+  selectedCourse?: {
+    asset_string: string
+  }
+}
+
+export default function calendarEventFilter(
+  viewingGroup: any,
+  events: any[],
+  schedulerState: SchedulerState = {}
+): any[] {
+  const eventIds: Record<string, boolean> = {}
   if (!(events.length > 0)) return events
   for (let idx = events.length; idx--; ) {
     const event = events[idx]

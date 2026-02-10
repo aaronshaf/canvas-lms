@@ -29,7 +29,11 @@ const TODAY_BACKGROUND_COLOR = '#e0f7fa'
 const HOVER_BACKGROUND_COLOR = '#f0f0f0'
 
 export default class MiniCalendar {
-  constructor(selector, mainCalendar) {
+  mainCalendar: any
+  calendar: JQuery
+  focusPositionAfterRender: any
+
+  constructor(selector: string, mainCalendar: any) {
     this.mainCalendar = mainCalendar
     this.calendar = $(selector)
     this.focusPositionAfterRender = null

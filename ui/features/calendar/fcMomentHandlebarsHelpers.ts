@@ -30,20 +30,20 @@ const Handlebars = _Handlebars.default // because this version of handlebars has
 
 const helpers = {
   // convert a moment to a string, using the given i18n format in the date.formats namespace
-  fcMomentToDateString(date = '', i18n_format) {
+  fcMomentToDateString(date: any = '', i18n_format: string): string {
     if (!date) return ''
     return tz.format(fcUtil.unwrap(date), `date.formats.${i18n_format}`)
   },
 
   // convert a moment to a time string, using the given i18n format in the time.formats namespace
-  fcMomentToString(date = '', i18n_format) {
+  fcMomentToString(date: any = '', i18n_format: string): string {
     if (!date) return ''
     return tz.format(fcUtil.unwrap(date), `time.formats.${i18n_format}`)
   },
 }
 
 for (const name in helpers) {
-  const fn = helpers[name]
+  const fn = helpers[name as keyof typeof helpers]
   Handlebars.registerHelper(name, fn)
 }
 

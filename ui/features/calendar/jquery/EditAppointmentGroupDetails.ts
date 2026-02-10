@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// @ts-nocheck
 import $ from 'jquery'
 import fcUtil from '@canvas/calendar/jquery/fcUtil'
 import {useScope as createI18nScope} from '@canvas/i18n'

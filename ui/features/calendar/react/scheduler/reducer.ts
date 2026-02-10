@@ -16,9 +16,26 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-const initialState = {
-  inFindAppointmentMode: false,
-  selectedCourse: {},
-}
+import {handleActions} from 'redux-actions'
+import SchedulerActions from './actions'
+import initialState, {type SchedulerState} from './store/initialState'
 
-export default initialState
+const reducer = handleActions<SchedulerState, any>(
+  {
+    [SchedulerActions.keys.SET_FIND_APPOINTMENT_MODE]: (state = initialState, action) => {
+      return {
+        ...state,
+        inFindAppointmentMode: action.payload as boolean,
+      }
+    },
+    [SchedulerActions.keys.SET_COURSE]: (state = initialState, action) => {
+      return {
+        ...state,
+        selectedCourse: action.payload as {asset_string?: string},
+      }
+    },
+  },
+  initialState
+)
+
+export default reducer

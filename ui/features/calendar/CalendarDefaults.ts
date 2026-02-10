@@ -18,7 +18,17 @@
 
 import {isRTL} from '@canvas/i18n/rtlHelper'
 
-export default {
+interface CalendarDefaults {
+  allDayDefault: boolean
+  fixedWeekCount: boolean
+  timezone: string
+  lazyFetching: boolean
+  dragRevertDuration: number
+  isRTL: boolean
+  lang: string
+}
+
+const calendarDefaults: CalendarDefaults = {
   allDayDefault: false,
   fixedWeekCount: false,
   timezone: window.ENV.TIMEZONE,
@@ -32,3 +42,5 @@ export default {
   // note: timeFormat && columnFormat change based on lang
   lang: window.ENV.FULLCALENDAR_LOCALE,
 }
+
+export default calendarDefaults

@@ -16,12 +16,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {createStore, applyMiddleware} from 'redux'
+import {createStore, applyMiddleware, type Store, type Middleware} from 'redux'
 import {thunk} from 'redux-thunk'
 import reducer from '../reducer'
-import initialState from './initialState'
+import initialState, {type SchedulerState} from './initialState'
 
-const middleware = [
+const middleware: Middleware[] = [
   // this is so redux-logger is not included in the production webpack bundle
   process.env.NODE_ENV !== 'production' &&
     // this is so redux-logger is not included in the test output
@@ -29,10 +29,10 @@ const middleware = [
     require('redux-logger').logger,
 
   thunk,
-].filter(Boolean)
+].filter(Boolean) as Middleware[]
 
 const createStoreWithMiddleware = applyMiddleware(...middleware)(createStore)
 
-export default function configureStore(state = initialState) {
+export default function configureStore(state: SchedulerState = initialState): Store<SchedulerState> {
   return createStoreWithMiddleware(reducer, state)
 }
