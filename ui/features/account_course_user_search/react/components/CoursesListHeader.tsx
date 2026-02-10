@@ -21,8 +21,17 @@ import {Link} from '@instructure/ui-link'
 import {Text} from '@instructure/ui-text'
 import {Tooltip} from '@instructure/ui-tooltip'
 import React from 'react'
-import {string, func} from 'prop-types'
 import preventDefault from '@canvas/util/preventDefault'
+
+type CourseListHeaderProps = {
+  sort?: string
+  order?: string
+  onChangeSort: (id: string) => void
+  id: string
+  label: string
+  tipDesc: string
+  tipAsc: string
+}
 
 export default function CourseListHeader({
   sort = 'sis_course_id',
@@ -32,10 +41,11 @@ export default function CourseListHeader({
   label,
   tipDesc,
   tipAsc,
-}) {
+}: CourseListHeaderProps) {
   const SortIcon = order === 'asc' ? IconMiniArrowUpSolid : IconMiniArrowDownSolid
   return (
     <Tooltip renderTip={sort === id && order === 'asc' ? tipAsc : tipDesc}>
+      {/* @ts-expect-error */}
       <Link
         isWithinText={false}
         as="button"
@@ -47,14 +57,4 @@ export default function CourseListHeader({
       </Link>
     </Tooltip>
   )
-}
-
-CourseListHeader.propTypes = {
-  sort: string,
-  order: string,
-  onChangeSort: func.isRequired,
-  id: string.isRequired,
-  label: string.isRequired,
-  tipDesc: string.isRequired,
-  tipAsc: string.isRequired,
 }

@@ -17,19 +17,38 @@
  */
 
 import React from 'react'
-import {string, func, shape} from 'prop-types'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {Table} from '@instructure/ui-table'
 import {IconMiniArrowUpSolid, IconMiniArrowDownSolid} from '@instructure/ui-icons'
 import {Link} from '@instructure/ui-link'
 import {Text} from '@instructure/ui-text'
 
-export default function UsersListHeader(props) {
+type UsersListHeaderProps = {
+  id: string
+  tipAsc: string
+  tipDesc: string
+  label: string
+  onUpdateFilters: (filters: {
+    search_term: string
+    sort: string
+    order: string
+    role_filter_id?: string
+  }) => void
+  sortColumnHeaderRef: (element: HTMLElement) => void
+  searchFilter: {
+    sort?: string
+    order?: string
+    search_term: string
+    role_filter_id?: string
+  }
+}
+
+export default function UsersListHeader(props: UsersListHeaderProps) {
   const {id, tipAsc, tipDesc, label, onUpdateFilters, sortColumnHeaderRef} = props
   const {sort, order, search_term, role_filter_id} = props.searchFilter
   const newOrder = (sort === id && order === 'asc') || (!sort && id === 'username') ? 'desc' : 'asc'
 
-  const handleFilterUpdate = event => {
+  const handleFilterUpdate = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (event && event.currentTarget) sortColumnHeaderRef(event.currentTarget)
     onUpdateFilters({search_term, sort: id, order: newOrder, role_filter_id})
   }
@@ -39,6 +58,7 @@ export default function UsersListHeader(props) {
   return (
     <Table.ColHeader id={id} data-testid="UsersListHeader">
       <Tooltip renderTip={sort === id && order === 'asc' ? tipAsc : tipDesc}>
+        {/* @ts-expect-error */}
         <Link
           isWithinText={false}
           id={`${id}-sort`}
@@ -52,21 +72,6 @@ export default function UsersListHeader(props) {
       </Tooltip>
     </Table.ColHeader>
   )
-}
-
-UsersListHeader.propTypes = {
-  id: string.isRequired,
-  tipAsc: string.isRequired,
-  tipDesc: string.isRequired,
-  label: string.isRequired,
-  onUpdateFilters: func.isRequired,
-  sortColumnHeaderRef: func.isRequired,
-  searchFilter: shape({
-    sort: string,
-    order: string,
-    search_term: string,
-    fole_filter_id: string,
-  }).isRequired,
 }
 
 UsersListHeader.displayName = 'ColHeader'

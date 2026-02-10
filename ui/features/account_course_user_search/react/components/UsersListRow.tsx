@@ -17,7 +17,6 @@
  */
 
 import React, {useState} from 'react'
-import {arrayOf, bool, func, object, shape, string} from 'prop-types'
 import {IconButton} from '@instructure/ui-buttons'
 import {Table} from '@instructure/ui-table'
 import {Tooltip} from '@instructure/ui-tooltip'
@@ -36,6 +35,42 @@ import TempEnrollUsersListRow from '@canvas/temporary-enrollment/react/TempEnrol
 
 const I18n = createI18nScope('account_course_user_search')
 
+type Role = {
+  id: string
+  label: string
+}
+
+type User = {
+  id: string
+  name: string
+  sortable_name?: string
+  short_name?: string
+  email?: string
+  time_zone?: string
+  sis_user_id?: string
+  last_login?: string
+  login_id?: string
+  avatar_url?: string
+  pronouns?: string
+}
+
+type Permissions = {
+  can_view_temporary_enrollments?: boolean
+  can_masquerade?: boolean
+  can_message_users?: boolean
+  can_edit_users?: boolean
+  can_create_dsr?: boolean
+}
+
+type UsersListRowProps = {
+  accountId: string
+  user: User
+  permissions: Permissions
+  handleSubmitEditUserForm: () => void
+  roles: Role[]
+  includeDeletedUsers?: boolean
+}
+
 export default function UsersListRow({
   accountId,
   user,
@@ -43,7 +78,7 @@ export default function UsersListRow({
   handleSubmitEditUserForm,
   roles,
   includeDeletedUsers,
-}) {
+}: UsersListRowProps) {
   const [openModal, setOpenModal] = useState(false)
 
   let userLink = `/accounts/${accountId}/users/${user.id}`
@@ -156,26 +191,6 @@ export default function UsersListRow({
       </Table.Cell>
     </Table.Row>
   )
-}
-
-UsersListRow.propTypes = {
-  accountId: string.isRequired,
-  user: shape({
-    name: string.isRequired,
-    sortable_name: string,
-    short_name: string,
-    email: string,
-    time_zone: string,
-  }).isRequired,
-  handleSubmitEditUserForm: func.isRequired,
-  permissions: object.isRequired,
-  roles: arrayOf(
-    shape({
-      id: string.isRequired,
-      label: string.isRequired,
-    }),
-  ).isRequired,
-  includeDeletedUsers: bool,
 }
 
 UsersListRow.displayName = 'Row'

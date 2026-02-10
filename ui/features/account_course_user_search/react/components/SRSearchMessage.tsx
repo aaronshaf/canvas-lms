@@ -18,7 +18,6 @@
 
 import React from 'react'
 import {Alert} from '@instructure/ui-alerts'
-import {oneOf, func, array, shape, string} from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('account_course_user_search')
@@ -33,22 +32,40 @@ const courseResultsUpdatedMessage = I18n.t('Course results updated.')
 
 const TIMEOUT = 5000
 
-const linkPropType = shape({
-  url: string.isRequired,
-  page: string.isRequired,
-}).isRequired
+type Link = {
+  url: string
+  page: string
+}
+
+type SRSearchMessageProps = {
+  collection: {
+    data: unknown[]
+    loading?: boolean
+    error?: boolean
+    links?: {
+      current?: Link
+    }
+  }
+  dataType: 'Course' | 'User'
+  getLiveAlertRegion?: () => HTMLElement | null
+}
 
 /**
  * This component handles reading the updated message only when rendered and
  * only when the collection has finished loading
  */
-export default function SRSearchMessage({collection, dataType, getLiveAlertRegion}) {
+export default function SRSearchMessage({
+  collection,
+  dataType,
+  getLiveAlertRegion = () => document.getElementById('flash_screenreader_holder'),
+}: SRSearchMessageProps) {
   if (collection.loading) {
     return <noscript />
   }
 
   if (collection.error) {
     return (
+      // @ts-expect-error
       <Alert screenReaderOnly={true} liveRegion={getLiveAlertRegion} timeout={TIMEOUT}>
         {errorLoadingMessage}
       </Alert>
@@ -57,6 +74,7 @@ export default function SRSearchMessage({collection, dataType, getLiveAlertRegio
   if (!collection.data.length) {
     if (dataType === 'Course') {
       return (
+        // @ts-expect-error
         <Alert screenReaderOnly={true} liveRegion={getLiveAlertRegion} timeout={TIMEOUT}>
           {noCoursesFoundMessage}
         </Alert>
@@ -64,6 +82,7 @@ export default function SRSearchMessage({collection, dataType, getLiveAlertRegio
     }
     if (dataType === 'User') {
       return (
+        // @ts-expect-error
         <Alert screenReaderOnly={true} liveRegion={getLiveAlertRegion} timeout={TIMEOUT}>
           {noUsersFoundMessage}
         </Alert>
@@ -73,6 +92,7 @@ export default function SRSearchMessage({collection, dataType, getLiveAlertRegio
 
   if (dataType === 'Course') {
     return (
+      // @ts-expect-error
       <Alert screenReaderOnly={true} liveRegion={getLiveAlertRegion} timeout={TIMEOUT}>
         {courseResultsUpdatedMessage}
       </Alert>
@@ -80,6 +100,7 @@ export default function SRSearchMessage({collection, dataType, getLiveAlertRegio
   }
   if (dataType === 'User') {
     return (
+      // @ts-expect-error
       <Alert screenReaderOnly={true} liveRegion={getLiveAlertRegion} timeout={TIMEOUT}>
         {userResultsUpdatedMessage}
       </Alert>
@@ -87,19 +108,4 @@ export default function SRSearchMessage({collection, dataType, getLiveAlertRegio
   }
 
   return <noscript />
-}
-
-SRSearchMessage.propTypes = {
-  collection: shape({
-    data: array.isRequired,
-    links: shape({current: linkPropType}),
-  }).isRequired,
-  dataType: oneOf(['Course', 'User']).isRequired,
-  getLiveAlertRegion: func,
-}
-
-SRSearchMessage.defaultProps = {
-  getLiveAlertRegion() {
-    return document.getElementById('flash_screenreader_holder')
-  },
 }

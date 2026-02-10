@@ -26,9 +26,18 @@ import initialState from './react/store/initialState'
 import ready from '@instructure/ready'
 import {initializeTopNavPortal} from '@canvas/top-navigation/react/TopNavPortal'
 
+type ActiveTab = {
+  button_class: string
+  title: string
+  href: string
+}
+
+type SetBreadCrumbFn = (crumb: {name: string; href: string}) => void
+
 ready(() => {
   // eg: '/accounts/xxx' for anything like '/accounts/xxx/whatever`
-  initialState.tabList.basePath = window.location.pathname.match(/.*accounts\/[^/]*/)[0]
+  const basePathMatch = window.location.pathname.match(/.*accounts\/[^/]*/)
+  if (basePathMatch) initialState.tabList.basePath = basePathMatch[0]
 
   // Note. Only the UsersPane/Tab is using a redux store. The courses tab is
   // still using the old store model. That is why this might seem kind of weird.
@@ -48,9 +57,12 @@ ready(() => {
   // either the "Courses" or "People" tabs on the left, it highlights the right
   // tab and updates the crumb and document title
   const originalDocumentTitle = document.title
-  function updateDocumentTitleBreadcrumbAndActiveTab(activeTab, setCrumb) {
+  function updateDocumentTitleBreadcrumbAndActiveTab(
+    activeTab: ActiveTab,
+    getCrumbSetter: () => SetBreadCrumbFn,
+  ) {
     // give the correct left nav item an active class
-    $('#section-tabs .section a').each(function () {
+    $('#section-tabs .section a').each(function (this: HTMLElement) {
       const $tab = $(this)
       $tab[$tab.hasClass(activeTab.button_class) ? 'addClass' : 'removeClass']('active')
     })
@@ -60,25 +72,29 @@ ready(() => {
 
     // toggle the breadcrumb between "Corses" and "People"
     $('#breadcrumbs a:last span').text(activeTab.title)
-    setCrumb()({name: activeTab.title, href: activeTab.href})
+    getCrumbSetter()({name: activeTab.title, href: activeTab.href})
   }
 
-  let setBreadCrumb = () => {}
-  const setFunction = f => {
+  let setBreadCrumb: SetBreadCrumbFn = () => {}
+  const setFunction = (f: {setCrumbs?: SetBreadCrumbFn} | null | undefined) => {
     setBreadCrumb = f?.setCrumbs || (() => {})
   }
 
   initializeTopNavPortal({getBreadCrumbSetter: setFunction})
 
   const content = document.getElementById('content')
-  const root = render(<App {...props} />, content)
+  if (!content) return
+  const root = render(<App {...(props as any)} />, content)
 
   store.subscribe(() => {
-    const tabState = store.getState().tabList
+    const tabState = store.getState().tabList as {
+      tabs: ActiveTab[]
+      selected: number
+    }
     const selectedTab = tabState.tabs[tabState.selected]
     updateDocumentTitleBreadcrumbAndActiveTab(selectedTab, () => setBreadCrumb)
 
-    rerender(root, <App {...props} />)
+    rerender(root, <App {...(props as any)} />)
   })
 
   router.start(store)

@@ -30,12 +30,37 @@ const I18n = createI18nScope('account_course_user_search')
 // exported for tests only
 export const LAST_PAGE_UNKNOWN_MARKER = '...'
 
+type PaginationLink = {
+  url: string
+  page: string
+}
+
+type CollectionLinks = Partial<Record<'current' | 'next' | 'prev' | 'first' | 'last', PaginationLink>>
+
+type Collection = {
+  data: unknown[]
+  loading?: boolean
+  error?: boolean
+  links?: CollectionLinks
+}
+
+type SearchMessageProps = {
+  collection: Collection
+  knownLastPage?: string
+  setPage: (page: number) => void
+  noneFoundMessage: string
+}
+
+type SearchMessageState = {
+  pageBecomingCurrent?: number | null
+}
+
 const linkPropType = shape({
   url: string.isRequired,
   page: string.isRequired,
 }).isRequired
 
-export default class SearchMessage extends Component {
+export default class SearchMessage extends Component<SearchMessageProps, SearchMessageState> {
   static propTypes = {
     collection: shape({
       data: array.isRequired,
@@ -46,31 +71,32 @@ export default class SearchMessage extends Component {
     noneFoundMessage: string.isRequired,
   }
 
-  state = {}
+  state: SearchMessageState = {}
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps: SearchMessageProps) {
     if (!nextProps.collection.loading) {
-      const newState = {}
+      const newState: SearchMessageState = {}
       if (this.state.pageBecomingCurrent) newState.pageBecomingCurrent = null
       this.setState(newState)
     }
   }
 
-  handleSetPage = page => {
+  handleSetPage = (page: number) => {
     this.setState({pageBecomingCurrent: page}, () => this.props.setPage(page))
   }
 
-  currentPage() {
-    return this.state.pageBecomingCurrent || Number(this.props.collection.links.current.page)
+  currentPage(): number {
+    const current = this.props.collection.links?.current?.page
+    return this.state.pageBecomingCurrent || Number(current || 1)
   }
 
-  isLastPageKnown() {
+  isLastPageKnown(): boolean {
     return (
       this.props.knownLastPage || typeof this.props.collection?.links?.last?.page !== 'undefined'
     )
   }
 
-  lastKnownPageNumber() {
+  lastKnownPageNumber(): number {
     if (this.props.knownLastPage) return Number(this.props.knownLastPage)
     const link =
       this.props.collection.links &&
@@ -80,7 +106,7 @@ export default class SearchMessage extends Component {
     return parseInt(link.page, 10)
   }
 
-  renderPaginationButton(pageIndex) {
+  renderPaginationButton(pageIndex: number) {
     const pageNumber = pageIndex + 1
     const locale = ENV?.LOCALE || navigator.language
     const isCurrent = this.state.pageBecomingCurrent
@@ -128,9 +154,9 @@ export default class SearchMessage extends Component {
     } else if (collection.links) {
       const lastPageNumber = this.lastKnownPageNumber()
       const lastIndex = lastPageNumber - 1
-      const paginationButtons = Array.from(Array(lastPageNumber))
+      const paginationButtons: Array<React.ReactNode> = Array.from({length: lastPageNumber})
       paginationButtons[0] = this.renderPaginationButton(0)
-      paginationButtons[lastIndex] = this.renderPaginationButton(lastIndex)
+      if (lastIndex >= 0) paginationButtons[lastIndex] = this.renderPaginationButton(lastIndex)
       const visiblePageRangeStart = Math.max(this.currentPage() - 10, 0)
       const visiblePageRangeEnd = Math.min(this.currentPage() + 10, lastIndex)
       for (let i = visiblePageRangeStart; i < visiblePageRangeEnd; i++) {

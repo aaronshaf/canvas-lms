@@ -23,10 +23,21 @@ import CoursesListRow from './CoursesListRow'
 import CoursesListHeader from './CoursesListHeader'
 import {Table} from '@instructure/ui-table'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
+import type {CoursesListRowProps, Role as CourseRole} from './CoursesListRow'
 
 const I18n = createI18nScope('account_course_user_search')
 
-export default function CoursesList(props) {
+type CourseRowData = Omit<CoursesListRowProps, 'roles' | 'showSISIds'>
+
+type CoursesListProps = {
+  courses?: CourseRowData[]
+  onChangeSort: (id: string) => void
+  roles?: CourseRole[]
+  sort?: string
+  order?: string
+}
+
+export default function CoursesList(props: CoursesListProps) {
   // The 'sis_course_id' field is only included in the api response if the user has
   // permission to view SIS information. So if it isn't, we can hide that column
   const showSISIds = !props.courses || props.courses.some(c => 'sis_course_id' in c)
@@ -100,10 +111,9 @@ export default function CoursesList(props) {
         </Table.Row>
       </Table.Head>
       <Table.Body data-automation="courses list">
-        {(props.courses || []).map(course => (
+        {(props.courses || []).map((course: CourseRowData) => (
           <CoursesListRow
             key={course.id}
-            courseModel={props.courses}
             roles={props.roles}
             showSISIds={showSISIds}
             {...course}
