@@ -19,7 +19,7 @@
 import React, {Component} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
+import {bindActionCreators, Dispatch} from 'redux'
 import select from '@canvas/obj-select'
 
 import {Alert} from '@instructure/ui-alerts'
@@ -31,15 +31,24 @@ import UnsyncedChange from './UnsyncedChange'
 import {ConnectedMigrationOptions as MigrationOptions} from './MigrationOptions'
 
 import actions from '@canvas/blueprint-courses/react/actions'
-import propTypes from '@canvas/blueprint-courses/react/propTypes'
 
 const I18n = createI18nScope('blueprint_settingsUnsyncedChanges')
 
-export default class UnsyncedChanges extends Component {
-  static propTypes = {
-    unsyncedChanges: propTypes.unsyncedChanges,
-  }
+interface UnsyncedChangeData {
+  asset_id: string
+  asset_type: string
+  asset_name: string
+  change_type: string
+  html_url: string
+  locked: boolean
+  locale?: string
+}
 
+interface UnsyncedChangesProps {
+  unsyncedChanges: UnsyncedChangeData[]
+}
+
+export default class UnsyncedChanges extends Component<UnsyncedChangesProps> {
   static defaultProps = {
     unsyncedChanges: [],
   }
@@ -92,6 +101,6 @@ export default class UnsyncedChanges extends Component {
   }
 }
 
-const connectState = state => select(state, ['unsyncedChanges'])
-const connectActions = dispatch => bindActionCreators(actions, dispatch)
+const connectState = (state: any) => select(state, ['unsyncedChanges'])
+const connectActions = (dispatch: Dispatch) => bindActionCreators(actions, dispatch)
 export const ConnectedUnsyncedChanges = connect(connectState, connectActions)(UnsyncedChanges)

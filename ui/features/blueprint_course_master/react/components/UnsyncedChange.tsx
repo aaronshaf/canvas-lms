@@ -23,12 +23,25 @@ import {Table} from '@instructure/ui-table'
 import {View} from '@instructure/ui-view'
 
 import {IconLock, IconUnlock} from '@canvas/blueprint-courses/react/components/BlueprintLocks'
-import propTypes from '@canvas/blueprint-courses/react/propTypes'
 import {itemTypeLabels, changeTypeLabels} from '@canvas/blueprint-courses/react/labels'
 import {captionLanguageForLocale} from '@instructure/canvas-media'
 
-const UnsyncedChange = props => {
-  const {asset_type, asset_name, change_type, locked, locale} = props.change
+interface UnsyncedChangeData {
+  asset_id: string
+  asset_type: string
+  asset_name: string
+  change_type: string
+  html_url: string
+  locked: boolean
+  locale?: string
+}
+
+interface UnsyncedChangeProps {
+  change: UnsyncedChangeData
+}
+
+const UnsyncedChange = ({change}: UnsyncedChangeProps) => {
+  const {asset_type, asset_name, change_type, locked, locale} = change
   const changeLabel = changeTypeLabels[change_type] || change_type
   const typeLabel = itemTypeLabels[asset_type] || asset_type
   const name = locale ? `${asset_name} (${captionLanguageForLocale(locale)})` : asset_name
@@ -59,10 +72,6 @@ const UnsyncedChange = props => {
       </Table.Cell>
     </Table.Row>
   )
-}
-
-UnsyncedChange.propTypes = {
-  change: propTypes.unsyncedChange.isRequired,
 }
 
 UnsyncedChange.displayName = 'Row'
