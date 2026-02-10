@@ -28,11 +28,17 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('PronounsInput')
 
-export default class PronounsInput extends React.Component {
-  constructor(props) {
+interface PronounsInputState {
+  pronouns: string[]
+  input_id: string
+  value?: string
+}
+
+export default class PronounsInput extends React.Component<{}, PronounsInputState> {
+  constructor(props: {}) {
     super(props)
 
-    const pronounList = ENV.PRONOUNS_LIST.filter(x => x !== null)
+    const pronounList = ENV.PRONOUNS_LIST.filter((x): x is string => x !== null)
 
     this.state = {
       pronouns: pronounList,
@@ -40,7 +46,7 @@ export default class PronounsInput extends React.Component {
     }
   }
 
-  createNewTag = value => (
+  createNewTag = (value: string) => (
     <span key={`pronoun_tag_container_${value}`}>
       <Tag
         dismissible={true}
@@ -52,11 +58,11 @@ export default class PronounsInput extends React.Component {
     </span>
   )
 
-  handleChange = (e, value) => {
+  handleChange = (_e: React.ChangeEvent<HTMLInputElement>, value: string) => {
     this.setState({value})
   }
 
-  deletePronoun = pronounToDelete => {
+  deletePronoun = (pronounToDelete: string) => {
     this.setState(prevState => ({
       pronouns: prevState.pronouns.filter(pronoun => pronounToDelete !== pronoun),
     }))
@@ -81,7 +87,10 @@ export default class PronounsInput extends React.Component {
               }
               return prevState
             })
-            document.querySelector(`#${this.state.input_id}`).value = ''
+            const element = document.querySelector<HTMLInputElement>(`#${this.state.input_id}`)
+            if (element) {
+              element.value = ''
+            }
           }
         }}
         renderLabel={
@@ -91,7 +100,7 @@ export default class PronounsInput extends React.Component {
               <span
                 style={{margin: '0 10px 0 10px'}}
                 // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-                tabIndex="0"
+                tabIndex={0}
               >
                 <IconInfoLine data-testid="pronoun_info" />
                 <ScreenReaderContent>{infoToolTip}</ScreenReaderContent>
