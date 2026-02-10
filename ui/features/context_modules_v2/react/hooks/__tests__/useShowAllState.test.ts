@@ -27,6 +27,7 @@ import {useShowAllState} from '../useShowAllState'
 }
 
 // Mock localStorage
+const originalLocalStorage = window.localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {}
 
@@ -46,11 +47,19 @@ const localStorageMock = (() => {
 
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
+  configurable: true,
 })
 
 describe('useShowAllState', () => {
   const moduleId = 'test-module-123'
   const actualStorageKey = '_mperf_test-account_test-user_test-course_test-module-123'
+
+  afterAll(() => {
+    Object.defineProperty(window, 'localStorage', {
+      value: originalLocalStorage,
+      configurable: true,
+    })
+  })
 
   beforeEach(() => {
     localStorageMock.clear()

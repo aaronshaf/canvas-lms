@@ -96,9 +96,8 @@ export const addDays = (
   excludeWeekends: boolean,
   selectedDaysToSkip: string[] = [],
   blackoutDates: BlackoutDate[] = [],
-  timezone?: string,
 ): string => {
-  const date = timezone ? moment.tz(start, timezone) : moment(start)
+  const date = moment(start)
 
   while (dayIsDisabled(date, excludeWeekends, selectedDaysToSkip, blackoutDates)) {
     date.add(1, 'day')

@@ -25,7 +25,6 @@ import type {CoursePaceItemAction} from '../actions/course_pace_items'
 import coursePaceItemsReducer from './course_pace_items'
 import * as DateHelpers from '../utils/date_stuff/date_helpers'
 import * as PaceDueDatesCalculator from '../utils/date_stuff/pace_due_dates_calculator'
-import {coursePaceTimezone} from '../shared/api/backend_serializer'
 import type {
   CoursePacesState,
   CoursePace,
@@ -332,7 +331,6 @@ export const getDueDates = createDeepEqualSelector(
       selectedDaysToSkip,
       blackoutDates,
       startDate,
-      coursePaceTimezone,
     )
   },
 )
@@ -356,7 +354,6 @@ export const getUncompressedDueDates = createDeepEqualSelector(
       selectedDaysToSkip,
       blackoutDates,
       startDate,
-      coursePaceTimezone,
     )
   },
 )
