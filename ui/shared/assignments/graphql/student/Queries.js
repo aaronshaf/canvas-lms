@@ -51,10 +51,10 @@ export const RUBRIC_QUERY = gql`
     assignment: legacyNode(_id: $assignmentLid, type: Assignment) {
       ... on Assignment {
         rubric {
-          ...Rubric
+          ...StudentRubric
         }
         rubricAssociation {
-          ...RubricAssociation
+          ...StudentRubricAssociation
         }
       }
     }
@@ -63,7 +63,7 @@ export const RUBRIC_QUERY = gql`
       autoGradeResultPresent
       rubricAssessmentsConnection(filter: {forAttempt: $submissionAttempt}) {
         nodes {
-          ...RubricAssessment
+          ...StudentRubricAssessment
         }
       }
     }
@@ -99,7 +99,7 @@ export const STUDENT_VIEW_QUERY = gql`
     assignment(id: $assignmentLid) {
       ...StudentAssignment
       rubric {
-        ...Rubric
+        ...StudentRubric
       }
       rubricAssociation {
         _id
@@ -107,7 +107,7 @@ export const STUDENT_VIEW_QUERY = gql`
       }
     }
     submission(id: $submissionID) {
-      ...Submission
+      ...StudentSubmission
     }
   }
   ${Assignment.fragment}
@@ -120,7 +120,7 @@ export const STUDENT_VIEW_QUERY_WITH_REVIEWER_SUBMISSION = gql`
     assignment(id: $assignmentLid) {
       ...StudentAssignment
       rubric {
-        ...Rubric
+        ...StudentRubric
       }
       rubricAssociation {
         _id
@@ -128,10 +128,10 @@ export const STUDENT_VIEW_QUERY_WITH_REVIEWER_SUBMISSION = gql`
       }
     }
     submission(id: $submissionID) {
-      ...Submission
+      ...StudentSubmission
     }
     reviewerSubmission: submission(id: $reviewerSubmissionID) {
-      ...Submission
+      ...StudentSubmission
     }
   }
   ${Assignment.fragment}
@@ -144,7 +144,7 @@ export const LOGGED_OUT_STUDENT_VIEW_QUERY = gql`
     assignment(id: $assignmentLid) {
       ...StudentAssignment
       rubric {
-        ...Rubric
+        ...StudentRubric
       }
     }
   }
@@ -171,7 +171,7 @@ export const SUBMISSION_COMMENT_QUERY = gql`
             hasPreviousPage
           }
           nodes {
-            ...SubmissionHtmlComment
+            ...StudentSubmissionHtmlComment
           }
         }
       }
@@ -186,7 +186,7 @@ export const SUBMISSION_HISTORIES_QUERY = gql`
       ... on Submission {
         submissionHistoriesConnection(filter: {includeCurrentSubmission: false}, first: 100) {
           nodes {
-            ...SubmissionHistory
+            ...StudentSubmissionHistory
           }
         }
       }

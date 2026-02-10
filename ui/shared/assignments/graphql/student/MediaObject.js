@@ -22,7 +22,7 @@ import {MediaTrack} from './MediaTrack'
 
 export const MediaObject = {
   fragment: gql`
-    fragment MediaObject on MediaObject {
+    fragment StudentMediaObject on MediaObject {
       id
       _id
       mediaSources {

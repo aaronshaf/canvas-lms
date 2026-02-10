@@ -97,7 +97,7 @@ export const AssignmentSubmissionsConnection = {
         filter: {states: [unsubmitted, graded, pending_review, submitted]}
       ) {
         nodes {
-          ...Submission
+          ...StudentSubmission
         }
       }
     }

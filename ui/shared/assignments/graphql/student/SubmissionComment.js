@@ -33,7 +33,7 @@ export const SubmissionComment = {
       }
       comment
       mediaObject {
-        ...MediaObject
+        ...StudentMediaObject
       }
       read
       updatedAt
@@ -66,7 +66,7 @@ export const SubmissionHtmlComment = {
       }
       htmlComment
       mediaObject {
-        ...MediaObject
+        ...StudentMediaObject
       }
       read
       updatedAt

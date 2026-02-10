@@ -55,7 +55,7 @@ export const CREATE_SUBMISSION = gql`
       }
     ) {
       submission {
-        ...Submission
+        ...StudentSubmission
       }
       errors {
         ...Error

@@ -22,7 +22,7 @@ import {RubricCriterion} from './RubricCriterion'
 
 export const Rubric = {
   fragment: gql`
-    fragment Rubric on Rubric {
+    fragment StudentRubric on Rubric {
       criteria {
         ...RubricCriterion
       }

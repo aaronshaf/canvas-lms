@@ -46,7 +46,7 @@ export const SubmissionInterface = {
       customGradeStatus
       latePolicyStatus
       mediaObject {
-        ...MediaObject
+        ...StudentMediaObject
       }
       originalityData
       proxySubmitter

@@ -35,7 +35,7 @@ export const SubmissionDraft = {
       }
       ltiLaunchUrl
       mediaObject {
-        ...MediaObject
+        ...StudentMediaObject
       }
       meetsMediaRecordingCriteria
       meetsAssignmentCriteria
