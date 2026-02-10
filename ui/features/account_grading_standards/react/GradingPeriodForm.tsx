@@ -29,23 +29,45 @@ import {isEqual} from 'es-toolkit/compat'
 
 const I18n = createI18nScope('gradingPeriodForm')
 
-function roundWeight(val) {
-  const value = numberHelper.parse(val)
+export interface GradingPeriod {
+  id?: string | null
+  title: string
+  weight: number | null
+  startDate: Date | null
+  endDate: Date | null
+  closeDate: Date | null
+}
+
+export interface GradingPeriodFormProps {
+  period?: Partial<GradingPeriod> | null
+  weighted: boolean
+  disabled: boolean
+  onSave: (period: GradingPeriod) => void
+  onCancel: () => void
+}
+
+interface GradingPeriodFormState {
+  period: GradingPeriod
+  preserveCloseDate: boolean
+}
+
+function roundWeight(val: unknown): number | null {
+  const value = numberHelper.parse(val as any)
   return Number.isNaN(value) ? null : round(value, 2)
 }
 
-function buildPeriod(attr) {
+function buildPeriod(attr: Partial<GradingPeriod>): GradingPeriod {
   return {
     id: attr.id,
-    title: attr.title,
+    title: attr.title || '',
     weight: roundWeight(attr.weight),
-    startDate: attr.startDate,
-    endDate: attr.endDate,
-    closeDate: attr.closeDate,
+    startDate: (attr.startDate as Date | null) ?? null,
+    endDate: (attr.endDate as Date | null) ?? null,
+    closeDate: (attr.closeDate as Date | null) ?? null,
   }
 }
 
-class GradingPeriodForm extends React.Component {
+class GradingPeriodForm extends React.Component<GradingPeriodFormProps, GradingPeriodFormState> {
   static propTypes = {
     period: PropTypes.shape({
       id: PropTypes.string,
@@ -61,9 +83,11 @@ class GradingPeriodForm extends React.Component {
     onCancel: PropTypes.func.isRequired,
   }
 
-  constructor(props, context) {
-    super(props, context)
-    const period = buildPeriod(props.period || {})
+  private titleRef: HTMLInputElement | null
+
+  constructor(props: GradingPeriodFormProps) {
+    super(props)
+    const period = buildPeriod((props.period || {}) as Partial<GradingPeriod>)
     this.titleRef = null
 
     this.state = {
@@ -89,27 +113,29 @@ class GradingPeriodForm extends React.Component {
     }
   }
 
-  hasDistinctCloseDate = ({endDate, closeDate}) => closeDate && !isEqual(endDate, closeDate)
+  hasDistinctCloseDate = ({endDate, closeDate}: GradingPeriod) =>
+    !!(closeDate && endDate && !isEqual(endDate, closeDate))
 
-  mergePeriod = attr => update(this.state.period, {$merge: attr})
+  mergePeriod = (attr: Partial<GradingPeriod>): GradingPeriod =>
+    update(this.state.period, {$merge: attr}) as GradingPeriod
 
-  changeTitle = e => {
+  changeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     const period = this.mergePeriod({title: e.target.value})
     this.setState({period})
   }
 
-  changeWeight = e => {
+  changeWeight = (e: React.ChangeEvent<HTMLInputElement>) => {
     const period = this.mergePeriod({weight: roundWeight(e.target.value)})
     this.setState({period})
   }
 
-  changeStartDate = date => {
+  changeStartDate = (date: Date) => {
     const period = this.mergePeriod({startDate: date})
     this.setState({period})
   }
 
-  changeEndDate = date => {
-    const attr = {endDate: date}
+  changeEndDate = (date: Date) => {
+    const attr: Partial<GradingPeriod> = {endDate: date}
     if (!this.state.preserveCloseDate && !this.hasDistinctCloseDate(this.state.period)) {
       attr.closeDate = date
     }
@@ -117,26 +143,28 @@ class GradingPeriodForm extends React.Component {
     this.setState({period})
   }
 
-  changeCloseDate = date => {
+  changeCloseDate = (date: Date | null) => {
     const period = this.mergePeriod({closeDate: date})
     this.setState({period, preserveCloseDate: !!date})
   }
 
   hackTheDatepickers = () => {
     // This can be replaced when we have an extensible datepicker
-    const $form = ReactDOM.findDOMNode(this)
-    const $appends = $form.querySelectorAll('.input-append')
+    const formNode = ReactDOM.findDOMNode(this) as Element | null
+    if (!formNode) return
+
+    const $appends = formNode.querySelectorAll('.input-append')
     $appends.forEach($el => {
       $el.classList.add('ic-Input-group')
     })
 
-    const $dateFields = $form.querySelectorAll('.date_field')
+    const $dateFields = formNode.querySelectorAll('.date_field')
     $dateFields.forEach($el => {
       $el.classList.remove('date_field')
       $el.classList.add('ic-Input')
     })
 
-    const $buttons = $form.querySelectorAll('.ui-datepicker-trigger')
+    const $buttons = formNode.querySelectorAll('.ui-datepicker-trigger')
     $buttons.forEach($el => {
       $el.classList.remove('btn')
       $el.classList.add('Button')
@@ -172,7 +200,7 @@ class GradingPeriodForm extends React.Component {
             id="weight"
             type="text"
             className="span1"
-            defaultValue={I18n.n(this.state.period.weight)}
+            defaultValue={I18n.n(this.state.period.weight ?? 0)}
             onChange={this.changeWeight}
           />
           <span className="add-on">%</span>

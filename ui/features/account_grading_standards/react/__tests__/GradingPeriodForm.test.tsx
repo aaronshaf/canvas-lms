@@ -19,6 +19,7 @@
 import React from 'react'
 import $ from 'jquery'
 import {fireEvent, render, screen} from '@testing-library/react'
+import '@testing-library/jest-dom'
 import chicago from 'timezone/America/Chicago'
 import * as tz from '@instructure/moment-utils'
 import tzInTest from '@instructure/moment-utils/specHelpers'
@@ -28,7 +29,7 @@ import {getI18nFormats} from '@canvas/datetime/configureDateTime'
 
 const onSave = vi.fn()
 const onCancel = vi.fn()
-const defaultProps = (props = {}) => {
+const defaultProps = (props: any = {}) => {
   let period = {
     closeDate: new Date('2016-01-07T12:00:00Z'),
     endDate: new Date('2015-12-31T12:00:00Z'),
@@ -50,8 +51,8 @@ const defaultProps = (props = {}) => {
     period,
   }
 }
-const renderGradingPeriodForm = (props = {}) => {
-  const ref = React.createRef()
+const renderGradingPeriodForm = (props: any = {}) => {
+  const ref = React.createRef<any>()
   const wrapper = render(<GradingPeriodForm {...defaultProps(props)} ref={ref} />)
 
   return {
@@ -59,18 +60,20 @@ const renderGradingPeriodForm = (props = {}) => {
     ref,
   }
 }
-const getButton = label => screen.queryByRole('button', {name: new RegExp(`${label}`, 'i')})
-const getDateTimeSuggestions = inputLabel => {
+const getButton = (label: string) =>
+  screen.queryByRole('button', {name: new RegExp(`${label}`, 'i')})
+const getDateTimeSuggestions = (inputLabel: string) => {
   const $input = screen.getByLabelText(inputLabel)
-  let $parent = $input.parentElement
+  let $parent: HTMLElement | null = $input.parentElement
 
   while ($parent && !$parent.classList.contains('ic-Form-control')) {
     $parent = $parent.parentElement
   }
 
+  if (!$parent) return []
   return Array.from($parent.querySelectorAll('.datetime_suggest'))
 }
-const setDateInputValue = (label, value) => {
+const setDateInputValue = (label: string, value: string) => {
   const $input = screen.getByLabelText(label)
 
   fireEvent.change($input, {target: {value}})
@@ -78,7 +81,7 @@ const setDateInputValue = (label, value) => {
 
 describe('GradingPeriodForm', () => {
   beforeEach(() => {
-    window.ENV = {CONTEXT_TIMEZONE: 'Etc/UTC', TIMEZONE: 'Etc/UTC'}
+    ;(globalThis as any).ENV = {CONTEXT_TIMEZONE: 'Etc/UTC', TIMEZONE: 'Etc/UTC'}
   })
 
   afterEach(() => {
@@ -116,7 +119,7 @@ describe('GradingPeriodForm', () => {
 
     describe('when local and server time are different', () => {
       beforeEach(() => {
-        Object.assign(ENV, {CONTEXT_TIMEZONE: 'America/Chicago'})
+        Object.assign((globalThis as any).ENV, {CONTEXT_TIMEZONE: 'America/Chicago'})
         tzInTest.configureAndRestoreLater({
           tz: timezone('UTC'),
           tzData: {
@@ -169,7 +172,7 @@ describe('GradingPeriodForm', () => {
 
     describe('when local and server time are different', () => {
       beforeEach(() => {
-        Object.assign(ENV, {CONTEXT_TIMEZONE: 'America/Chicago'})
+        Object.assign((globalThis as any).ENV, {CONTEXT_TIMEZONE: 'America/Chicago'})
         tzInTest.configureAndRestoreLater({
           tz: timezone('UTC'),
           tzData: {
@@ -276,7 +279,7 @@ describe('GradingPeriodForm', () => {
 
     describe('when local and server time are different', () => {
       beforeEach(() => {
-        Object.assign(ENV, {CONTEXT_TIMEZONE: 'America/Chicago'})
+        Object.assign((globalThis as any).ENV, {CONTEXT_TIMEZONE: 'America/Chicago'})
         tzInTest.configureAndRestoreLater({
           tz: timezone('UTC'),
           tzData: {

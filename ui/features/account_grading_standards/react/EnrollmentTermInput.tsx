@@ -17,7 +17,6 @@
  */
 
 import React, {useState, useRef} from 'react'
-import PropTypes from 'prop-types'
 import {groupBy, isDate} from 'es-toolkit/compat'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Select} from '@instructure/ui-select'
@@ -27,13 +26,25 @@ import {View} from '@instructure/ui-view'
 
 const I18n = createI18nScope('EnrollmentTermInput')
 
-const groupByTagType = function (options) {
+interface EnrollmentTerm {
+  id: string
+  displayName: string
+  gradingPeriodGroupId?: string | null
+  startAt?: Date | null
+  endAt?: Date | null
+}
+
+type TagType = 'active' | 'future' | 'past' | 'undated'
+
+const groupByTagType = function (
+  options: EnrollmentTerm[],
+): Partial<Record<TagType, EnrollmentTerm[]>> {
   const now = new Date()
   return groupBy(options, option => {
     const noStartDate = !isDate(option.startAt)
     const noEndDate = !isDate(option.endAt)
-    const started = option.startAt < now
-    const ended = option.endAt < now
+    const started = option.startAt && option.startAt < now
+    const ended = option.endAt && option.endAt < now
 
     if ((started && !ended) || (started && noEndDate) || (!ended && noStartDate)) {
       return 'active'
@@ -43,18 +54,28 @@ const groupByTagType = function (options) {
       return 'past'
     }
     return 'undated'
-  })
+  }) as Partial<Record<TagType, EnrollmentTerm[]>>
 }
 
-const EnrollmentTermInput = ({enrollmentTerms, setSelectedEnrollmentTermIDs, selectedIDs}) => {
+interface EnrollmentTermInputProps {
+  enrollmentTerms: EnrollmentTerm[]
+  setSelectedEnrollmentTermIDs: (termIDs: string[]) => void
+  selectedIDs: string[]
+}
+
+const EnrollmentTermInput = ({
+  enrollmentTerms,
+  setSelectedEnrollmentTermIDs,
+  selectedIDs,
+}: EnrollmentTermInputProps) => {
   const [inputValue, setInputValue] = useState('')
   const [isShowingOptions, setIsShowingOptions] = useState(false)
-  const [highlightedOptionId, setHighlightedOptionId] = useState(null)
+  const [highlightedOptionId, setHighlightedOptionId] = useState<string | null>(null)
   // use later for proper use of <Alert> alongside <Select>
-  const [_announcement, setAnnouncement] = useState(null)
-  const inputRef = useRef(null)
+  const [_announcement, setAnnouncement] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
 
-  const handleChange = termIDs => {
+  const handleChange = (termIDs: string[]) => {
     setSelectedEnrollmentTermIDs(termIDs)
   }
 
@@ -67,12 +88,12 @@ const EnrollmentTermInput = ({enrollmentTerms, setSelectedEnrollmentTermIDs, sel
     )
   }
 
-  const filteredTagsForType = type => {
+  const filteredTagsForType = (type: TagType): EnrollmentTerm[] => {
     const groupedTags = groupByTagType(selectableTerms())
     return (groupedTags && groupedTags[type]) || []
   }
 
-  const headerText = {
+  const headerText: Record<TagType | 'none', string> = {
     active: I18n.t('Active'),
     undated: I18n.t('Undated'),
     future: I18n.t('Future'),
@@ -80,7 +101,7 @@ const EnrollmentTermInput = ({enrollmentTerms, setSelectedEnrollmentTermIDs, sel
     none: I18n.t('No unassigned terms'),
   }
 
-  const getOptionsByType = type => {
+  const getOptionsByType = (type: TagType): JSX.Element[] => {
     const terms = filteredTagsForType(type)
     if (terms.length === 0) return []
 
@@ -130,11 +151,12 @@ const EnrollmentTermInput = ({enrollmentTerms, setSelectedEnrollmentTermIDs, sel
     setInputValue('')
   }
 
-  const handleHighlightOption = (_event, {id}) => {
-    setHighlightedOptionId(id)
+  const handleHighlightOption = (_event: React.SyntheticEvent, {id}: {id?: string}) => {
+    setHighlightedOptionId(id || null)
   }
 
-  const handleSelectOption = (_event, {id}) => {
+  const handleSelectOption = (_event: React.SyntheticEvent, {id}: {id?: string}) => {
+    if (!id) return
     const newSelectedIds = [...selectedIDs]
     if (!newSelectedIds.includes(id)) {
       newSelectedIds.push(id)
@@ -144,34 +166,39 @@ const EnrollmentTermInput = ({enrollmentTerms, setSelectedEnrollmentTermIDs, sel
     setInputValue('')
     setIsShowingOptions(false)
     const term = enrollmentTerms.find(term_ => term_.id === id)
-    setAnnouncement(`${term.displayName} selected`)
+    if (term) {
+      setAnnouncement(`${term.displayName} selected`)
+    }
   }
 
-  const handleInputChange = event => {
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
     setInputValue(value)
   }
 
-  const handleKeyDown = event => {
+  const handleKeyDown = (event: any) => {
     if (event.keyCode === 8 && inputValue === '' && selectedIDs.length > 0) {
       const newSelectedIds = selectedIDs.slice(0, -1)
       handleChange(newSelectedIds)
     }
   }
 
-  const dismissTag = (e, termId) => {
+  const dismissTag = (e: React.MouseEvent, termId: string) => {
     e.stopPropagation()
     e.preventDefault()
     const newSelectedIds = selectedIDs.filter(id => id !== termId)
     handleChange(newSelectedIds)
     const term = enrollmentTerms.find(term_ => term_.id === termId)
-    setAnnouncement(`${term.displayName} removed`)
+    if (term) {
+      setAnnouncement(`${term.displayName} removed`)
+    }
     inputRef.current?.focus()
   }
 
   const renderTags = () => {
     return selectedIDs.map((id, index) => {
       const term = enrollmentTerms.find(term_ => term_.id === id)
+      if (!term) return null
       return (
         <Tag
           dismissible={true}
@@ -212,12 +239,6 @@ const EnrollmentTermInput = ({enrollmentTerms, setSelectedEnrollmentTermIDs, sel
       </Select>
     </View>
   )
-}
-
-EnrollmentTermInput.propTypes = {
-  enrollmentTerms: PropTypes.array.isRequired,
-  setSelectedEnrollmentTermIDs: PropTypes.func.isRequired,
-  selectedIDs: PropTypes.array.isRequired,
 }
 
 export default EnrollmentTermInput

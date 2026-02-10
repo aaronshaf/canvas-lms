@@ -21,20 +21,31 @@ import ReactDOM from 'react-dom'
 import AccountTabContainer from './react/AccountTabContainer'
 import ready from '@instructure/ready'
 
+declare const ENV: {
+  GRADING_PERIODS_READ_ONLY: boolean
+  ENROLLMENT_TERMS_URL: string
+  GRADING_PERIODS_UPDATE_URL: string
+  GRADING_PERIOD_SETS_URL: string
+  DELETE_GRADING_PERIOD_URL: string
+}
+
 ready(() => {
+  const mountNode = document.getElementById('react_grading_tabs')
+  if (!mountNode) return
+
   ReactDOM.render(
     <AccountTabContainer
       {...{
-        readOnly: ENV.GRADING_PERIODS_READ_ONLY,
+        readOnly: ENV.GRADING_PERIODS_READ_ONLY as boolean,
         urls: {
-          enrollmentTermsURL: ENV.ENROLLMENT_TERMS_URL,
-          gradingPeriodsUpdateURL: ENV.GRADING_PERIODS_UPDATE_URL,
-          gradingPeriodSetsURL: ENV.GRADING_PERIOD_SETS_URL,
-          deleteGradingPeriodURL: ENV.DELETE_GRADING_PERIOD_URL,
+          enrollmentTermsURL: ENV.ENROLLMENT_TERMS_URL as string,
+          gradingPeriodsUpdateURL: ENV.GRADING_PERIODS_UPDATE_URL as string,
+          gradingPeriodSetsURL: ENV.GRADING_PERIOD_SETS_URL as string,
+          deleteGradingPeriodURL: ENV.DELETE_GRADING_PERIOD_URL as string,
         },
       }}
     />,
-    document.getElementById('react_grading_tabs'),
+    mountNode,
   )
 })
 
