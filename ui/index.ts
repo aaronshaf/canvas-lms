@@ -276,7 +276,6 @@ async function loadNewUserTutorials() {
 // each module with this line. Once we switch pages to using react-router
 // we can remove this, as the setup for HMR is taken care of for us.
 if (typeof module !== 'undefined') {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   module?.hot?.accept()
 }

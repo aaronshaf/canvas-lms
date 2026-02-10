@@ -193,9 +193,13 @@ export const DiscussionEdit = props => {
                         if (showErrorWhenMessageTooLong(rceContent)) {
                           return
                         }
-                        localStorage.removeItem(
-                          `rceautosave:${ENV.current_user_id}${window.location?.href}:${textAreaId.current}`,
-                        )
+                        try {
+                          window?.localStorage?.removeItem?.(
+                            `rceautosave:${ENV.current_user_id}${window.location?.href}:${textAreaId.current}`,
+                          )
+                        } catch {
+                          // ignore: localStorage may be unavailable/readonly in some test environments
+                        }
                         props.onSubmit(
                           rceContent,
                           includeQuotedReply ? props.quotedEntry._id : null,

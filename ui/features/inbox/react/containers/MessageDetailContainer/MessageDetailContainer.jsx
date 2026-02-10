@@ -263,6 +263,13 @@ export const MessageDetailContainer = props => {
     submissionCommentsQuery.data?.legacyNode?.commentsConnection?.pageInfo?.hasNextPage
 
   const isLoading = conversationMessagesQuery.loading || submissionCommentsQuery.loading
+  const hasError = conversationMessagesQuery?.error || submissionCommentsQuery?.error
+
+  useEffect(() => {
+    if (hasError) {
+      setOnFailure(I18n.t('Failed to load conversation messages.'))
+    }
+  }, [hasError, setOnFailure])
 
   // Creates an oberserver on the last scroll item to fetch more data when it becomes visible
   useEffect(() => {
@@ -285,11 +292,6 @@ export const MessageDetailContainer = props => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMoreMenuData, isSubmissionCommentsType, lastMessageItem])
-
-  if (conversationMessagesQuery?.error || submissionCommentsQuery?.error) {
-    setOnFailure(I18n.t('Failed to load conversation messages.'))
-    return
-  }
 
   const renderLoading = () => {
     return (
@@ -326,7 +328,6 @@ export const MessageDetailContainer = props => {
 
   // Memo which returns array of ConversationListItem's
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const renderedItems = useMemo(() => {
     const menuData = inboxMessageData?.inboxMessages
 
@@ -339,6 +340,10 @@ export const MessageDetailContainer = props => {
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inboxMessageData?.inboxMessages])
+
+  if (hasError) {
+    return null
+  }
 
   return (
     <>

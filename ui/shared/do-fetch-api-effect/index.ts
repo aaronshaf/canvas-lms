@@ -104,14 +104,45 @@ export default async function doFetchApi<T = unknown>({
   }
 
   const url = constructRelativeUrl({path, params})
-  const response = await fetch(url, {
+  // Some Node + jsdom test environments provide an AbortSignal implementation that undici rejects.
+  // Aborting requests is not critical there, so drop the signal to keep tests stable.
+  const {signal: fetchOptsSignal, ...restFetchOpts} = fetchOpts
+  let finalSignal = signal ?? fetchOptsSignal
+  const isNodeWithDom =
+    typeof process !== 'undefined' &&
+    typeof (process as any).versions?.node === 'string' &&
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined'
+
+  if (isNodeWithDom) {
+    finalSignal = undefined
+  }
+
+  const requestInit: globalThis.RequestInit = {
     body,
     method,
-    ...fetchOpts,
+    ...restFetchOpts,
     headers: fetchHeaders,
-    signal,
+    ...(finalSignal ? {signal: finalSignal} : {}),
     credentials,
-  })
+  }
+
+  let response: Response
+  try {
+    response = await fetch(url, requestInit)
+  } catch (err) {
+    // If a mismatched signal slips through, retry once without it.
+    if (
+      finalSignal &&
+      err instanceof TypeError &&
+      String(err.message).includes('Expected signal')
+    ) {
+      const {signal: _ignored, ...retryInit} = requestInit as any
+      response = await fetch(url, retryInit)
+    } else {
+      throw err
+    }
+  }
   if (!response.ok) {
     throw new FetchApiError(
       `doFetchApi received a bad response: ${response.status} ${response.statusText}`,

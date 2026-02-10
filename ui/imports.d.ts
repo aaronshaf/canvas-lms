@@ -76,3 +76,9 @@ declare module 'plugin-bundles-generated' {
   }
   export default pluginBundles
 }
+
+// Auto-generated extensions bundles module (created at build time by webpack)
+declare module '@canvas/bundles/extensions' {
+  const extensions: Record<string, unknown>
+  export default extensions
+}

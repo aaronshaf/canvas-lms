@@ -221,6 +221,7 @@ export const StudentCellPopover: React.FC<StudentCellPopoverProps> = ({
         <MessageStudents
           contextCode={`course_${courseId}`}
           onRequestClose={() => setIsMessageModalOpen(false)}
+          /* @ts-expect-error -- TODO: TSify */
           open={isMessageModalOpen}
           bulkMessage={false}
           groupConversation={false}

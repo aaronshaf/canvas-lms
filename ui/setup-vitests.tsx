@@ -21,6 +21,82 @@ import {cleanup} from '@testing-library/react'
 import {vi, afterEach} from 'vitest'
 import $ from 'jquery'
 
+// Node 25+ can expose a global `localStorage` that is not the DOM Storage API unless configured.
+// Ensure tests always have a functional in-memory implementation.
+const hasWorkingLocalStorage =
+  !!globalThis.localStorage && typeof (globalThis.localStorage as any).getItem === 'function'
+const hasWorkingWindowLocalStorage =
+  typeof window !== 'undefined' &&
+  !!window.localStorage &&
+  typeof (window.localStorage as any).getItem === 'function'
+
+if (!hasWorkingLocalStorage) {
+  // If jsdom provides a proper Storage, prefer it and only fix the broken global.
+  if (hasWorkingWindowLocalStorage) {
+    vi.stubGlobal('localStorage', window.localStorage)
+  } else {
+    // Minimal Storage-like polyfill that supports both setItem/getItem and bracket access
+    // (some libs read/write `localStorage[key]` directly).
+    const backing = new Map<string, string>()
+    const base = {
+      get length() {
+        return backing.size
+      },
+      clear: vi.fn(() => backing.clear()),
+      getItem: vi.fn((key: string) =>
+        backing.has(String(key)) ? backing.get(String(key))! : null,
+      ),
+      key: vi.fn((index: number) => Array.from(backing.keys())[index] ?? null),
+      removeItem: vi.fn((key: string) => {
+        backing.delete(String(key))
+      }),
+      setItem: vi.fn((key: string, value: string) => {
+        backing.set(String(key), String(value))
+      }),
+    }
+
+    const localStorageMock = new Proxy(base as any, {
+      get(target, prop, receiver) {
+        if (typeof prop === 'string' && !(prop in target)) {
+          return backing.get(prop)
+        }
+        return Reflect.get(target, prop, receiver)
+      },
+      set(target, prop, value, receiver) {
+        if (typeof prop === 'string' && !(prop in target)) {
+          backing.set(prop, String(value))
+          return true
+        }
+        return Reflect.set(target, prop, value, receiver)
+      },
+      deleteProperty(target, prop) {
+        if (typeof prop === 'string' && !(prop in target)) {
+          backing.delete(prop)
+          return true
+        }
+        return Reflect.deleteProperty(target, prop)
+      },
+      ownKeys(target) {
+        return [...Reflect.ownKeys(target), ...Array.from(backing.keys())]
+      },
+      getOwnPropertyDescriptor(target, prop) {
+        if (typeof prop === 'string' && backing.has(prop) && !(prop in target)) {
+          return {enumerable: true, configurable: true}
+        }
+        return Reflect.getOwnPropertyDescriptor(target, prop)
+      },
+    })
+
+    vi.stubGlobal('localStorage', localStorageMock)
+    if (typeof window !== 'undefined') {
+      Object.defineProperty(window, 'localStorage', {
+        value: localStorageMock,
+        configurable: true,
+      })
+    }
+  }
+}
+
 // Track all timers created during tests so we can clean them up
 // This prevents memory leaks from InstUI transitions and other timer-based code
 const pendingTimeouts = new Set<ReturnType<typeof setTimeout>>()
@@ -31,10 +107,48 @@ const originalSetInterval = globalThis.setInterval
 const originalClearTimeout = globalThis.clearTimeout
 const originalClearInterval = globalThis.clearInterval
 
+function clearTimeoutCompat(id: ReturnType<typeof setTimeout>) {
+  // In Vitest's jsdom environment, timer implementations can differ between the Node global and
+  // `window`. Try both to ensure the timer is actually cleared.
+  try {
+    originalClearTimeout(id)
+  } catch {
+    /* intentionally swallowed */
+  }
+  try {
+    if (typeof window !== 'undefined' && window.clearTimeout !== originalClearTimeout) {
+      window.clearTimeout(id as any)
+    }
+  } catch {
+    /* intentionally swallowed */
+  }
+}
+
+function clearIntervalCompat(id: ReturnType<typeof setInterval>) {
+  try {
+    originalClearInterval(id)
+  } catch {
+    /* intentionally swallowed */
+  }
+  try {
+    if (typeof window !== 'undefined' && window.clearInterval !== originalClearInterval) {
+      window.clearInterval(id as any)
+    }
+  } catch {
+    /* intentionally swallowed */
+  }
+}
+
 // Wrap setTimeout to track pending timers
-globalThis.setTimeout = ((callback: (...args: unknown[]) => void, ms?: number, ...args: unknown[]) => {
+globalThis.setTimeout = ((
+  callback: (...args: unknown[]) => void,
+  ms?: number,
+  ...args: unknown[]
+) => {
   const id = originalSetTimeout(() => {
     pendingTimeouts.delete(id)
+    // If jsdom has been torn down, ignore late timers to avoid noisy failures.
+    if (typeof window === 'undefined' || typeof document === 'undefined') return
     callback(...args)
   }, ms)
   pendingTimeouts.add(id)
@@ -42,8 +156,15 @@ globalThis.setTimeout = ((callback: (...args: unknown[]) => void, ms?: number, .
 }) as typeof setTimeout
 
 // Wrap setInterval to track pending intervals
-globalThis.setInterval = ((callback: (...args: unknown[]) => void, ms?: number, ...args: unknown[]) => {
-  const id = originalSetInterval(callback, ms, ...args)
+globalThis.setInterval = ((
+  callback: (...args: unknown[]) => void,
+  ms?: number,
+  ...args: unknown[]
+) => {
+  const id = originalSetInterval(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return
+    callback(...args)
+  }, ms)
   pendingIntervals.add(id)
   return id
 }) as typeof setInterval
@@ -52,7 +173,7 @@ globalThis.setInterval = ((callback: (...args: unknown[]) => void, ms?: number, 
 globalThis.clearTimeout = ((id?: ReturnType<typeof setTimeout>) => {
   if (id !== undefined) {
     pendingTimeouts.delete(id)
-    originalClearTimeout(id)
+    clearTimeoutCompat(id)
   }
 }) as typeof clearTimeout
 
@@ -60,28 +181,28 @@ globalThis.clearTimeout = ((id?: ReturnType<typeof setTimeout>) => {
 globalThis.clearInterval = ((id?: ReturnType<typeof setInterval>) => {
   if (id !== undefined) {
     pendingIntervals.delete(id)
-    originalClearInterval(id)
+    clearIntervalCompat(id)
   }
 }) as typeof clearInterval
 
 // Global cleanup after each test to prevent memory leaks and timer issues
 // This is especially important for InstUI components that use transitions with setTimeout
 afterEach(() => {
+  // Unmount React trees first. Unmounting can schedule debounced timers (e.g. InstUI positioning),
+  // so we clear timers after cleanup to avoid callbacks firing after jsdom teardown.
+  cleanup()
+
   // Clear all pending timers from InstUI transitions, animations, etc.
   // These can cause "document is not defined" errors when they fire after jsdom teardown
   for (const id of pendingTimeouts) {
-    originalClearTimeout(id)
+    clearTimeoutCompat(id)
   }
   pendingTimeouts.clear()
 
   for (const id of pendingIntervals) {
-    originalClearInterval(id)
+    clearIntervalCompat(id)
   }
   pendingIntervals.clear()
-
-  // Clean up any rendered React components that weren't explicitly unmounted
-  // This is a safeguard for tests that don't properly clean up
-  cleanup()
 })
 
 // jQuery plugins (toJSON, dialog, droppable, etc.) are added via the jquery-with-plugins.ts wrapper
@@ -254,9 +375,7 @@ const ignoredWarnings = [
   /Consumer uses the legacy contextTypes API/,
   /Warning: ReactDOM.render is no longer supported in React 18/,
 ]
-const ignoredLogs = [
-  /JQMIGRATE:/,
-]
+const ignoredLogs = [/JQMIGRATE:/]
 const originalError = console.error
 const originalWarn = console.warn
 const originalLog = console.log
@@ -355,10 +474,18 @@ if (!window.HTMLElement.prototype.scrollIntoView) {
 // Fullscreen API mock - needed for media player tests
 // jsdom doesn't implement the Fullscreen API
 if (!document.fullscreenEnabled) {
-  Object.defineProperty(document, 'fullscreenEnabled', {value: true, writable: true, configurable: true})
+  Object.defineProperty(document, 'fullscreenEnabled', {
+    value: true,
+    writable: true,
+    configurable: true,
+  })
 }
 if (!document.fullscreenElement) {
-  Object.defineProperty(document, 'fullscreenElement', {value: null, writable: true, configurable: true})
+  Object.defineProperty(document, 'fullscreenElement', {
+    value: null,
+    writable: true,
+    configurable: true,
+  })
 }
 if (!document.exitFullscreen) {
   document.exitFullscreen = vi.fn().mockResolvedValue(undefined)
@@ -368,7 +495,11 @@ if (!HTMLElement.prototype.requestFullscreen) {
 }
 // Safari-specific fullscreen API
 if (!(document as any).webkitFullscreenEnabled) {
-  Object.defineProperty(document, 'webkitFullscreenEnabled', {value: true, writable: true, configurable: true})
+  Object.defineProperty(document, 'webkitFullscreenEnabled', {
+    value: true,
+    writable: true,
+    configurable: true,
+  })
 }
 if (!(HTMLVideoElement.prototype as any).webkitEnterFullscreen) {
   ;(HTMLVideoElement.prototype as any).webkitEnterFullscreen = vi.fn()

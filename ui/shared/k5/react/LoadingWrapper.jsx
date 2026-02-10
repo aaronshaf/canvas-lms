@@ -61,8 +61,14 @@ export default function LoadingWrapper({
         let skeletonsNumtoRender = skeletonsNum
         if (persistInCache) {
           // if the wrapper has the cache enable, it will look for the cached value from the previous run
-          const cachedSkeletonsNum = parseInt(localStorage.getItem(cacheKey), 10)
-          // if there is no a valid cached value, defaultSkeletonsNum will be used by default
+          let cachedSkeletonsNum = NaN
+          try {
+            const raw = window?.localStorage?.getItem?.(cacheKey)
+            cachedSkeletonsNum = raw == null ? NaN : parseInt(raw, 10)
+          } catch {
+            cachedSkeletonsNum = NaN
+          }
+          // if there is no valid cached value, defaultSkeletonsNum will be used by default
           skeletonsNumtoRender = !Number.isNaN(cachedSkeletonsNum)
             ? cachedSkeletonsNum
             : defaultSkeletonsNum
@@ -76,7 +82,7 @@ export default function LoadingWrapper({
         )
       } else if (persistInCache && !Number.isNaN(skeletonsNum)) {
         try {
-          localStorage.setItem(cacheKey, skeletonsNum)
+          window?.localStorage?.setItem?.(cacheKey, String(skeletonsNum))
         } catch (e) {
           console.warn("Unable to save to localStorage, likely because it's out of space.")
         }

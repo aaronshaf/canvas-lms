@@ -26,7 +26,23 @@ const link = new HttpLink({
 
   // Use explicit `window.fetch` so that outgoing requests
   // are captured and deferred until the Service Worker is ready.
-  fetch: (...args) => fetch(...args),
+  fetch: (input, init) => {
+    const isNodeWithDom =
+      typeof process !== 'undefined' &&
+      typeof process.versions?.node === 'string' &&
+      typeof window !== 'undefined' &&
+      typeof document !== 'undefined'
+
+    // In Node + jsdom test environments, AbortSignal implementations can be incompatible with
+    // undici's fetch. Dropping `signal` here keeps Apollo queries stable while preserving the
+    // normal browser behavior in production.
+    if (isNodeWithDom && init?.signal) {
+      const {signal, ...rest} = init
+      return fetch(input, rest)
+    }
+
+    return fetch(input, init)
+  },
 })
 
 // Isolate Apollo client so it could be reused
