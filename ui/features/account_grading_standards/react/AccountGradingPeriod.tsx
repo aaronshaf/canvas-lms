@@ -17,7 +17,6 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import $ from 'jquery'
 import {IconButton} from '@instructure/ui-buttons'
 import {IconEditLine, IconTrashLine} from '@instructure/ui-icons'
@@ -29,39 +28,55 @@ import replaceTags from '@canvas/util/replaceTags'
 
 const I18n = createI18nScope('AccountGradingPeriod')
 
-export default class AccountGradingPeriod extends React.Component {
-  static propTypes = {
-    period: PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      title: PropTypes.string.isRequired,
-      weight: PropTypes.number,
-      startDate: PropTypes.instanceOf(Date).isRequired,
-      endDate: PropTypes.instanceOf(Date).isRequired,
-      closeDate: PropTypes.instanceOf(Date).isRequired,
-    }).isRequired,
-    weighted: PropTypes.bool,
-    onEdit: PropTypes.func.isRequired,
-    actionsDisabled: PropTypes.bool,
-    readOnly: PropTypes.bool.isRequired,
-    permissions: PropTypes.shape({
-      read: PropTypes.bool.isRequired,
-      create: PropTypes.bool.isRequired,
-      update: PropTypes.bool.isRequired,
-      delete: PropTypes.bool.isRequired,
-    }).isRequired,
-    onDelete: PropTypes.func.isRequired,
-    deleteGradingPeriodURL: PropTypes.string.isRequired,
-  }
+interface GradingPeriod {
+  id: string
+  title: string
+  weight?: number
+  startDate: Date
+  endDate: Date
+  closeDate: Date
+}
 
-  constructor(props) {
+interface Permissions {
+  read: boolean
+  create: boolean
+  update: boolean
+  delete: boolean
+}
+
+interface AccountGradingPeriodProps {
+  period: GradingPeriod
+  weighted?: boolean
+  onEdit: (period: GradingPeriod) => void
+  actionsDisabled?: boolean
+  readOnly: boolean
+  permissions: Permissions
+  onDelete: (id: string) => void
+  deleteGradingPeriodURL: string
+}
+
+interface Refs {
+  editButton?: HTMLElement | null
+  deleteButton?: HTMLElement | null
+  weight?: HTMLElement | null
+  title?: HTMLElement | null
+  startDate?: HTMLElement | null
+  endDate?: HTMLElement | null
+  closeDate?: HTMLElement | null
+}
+
+export default class AccountGradingPeriod extends React.Component<AccountGradingPeriodProps> {
+  _refs: Refs
+
+  constructor(props: AccountGradingPeriodProps) {
     super(props)
     this._refs = {}
   }
 
-  promptDeleteGradingPeriod = event => {
+  promptDeleteGradingPeriod = (event: any) => {
     event.stopPropagation()
     const confirmMessage = I18n.t('Are you sure you want to delete this grading period?')
-    if (!window.confirm(confirmMessage)) return null
+    if (!window.confirm(confirmMessage)) return
     const url = replaceTags(this.props.deleteGradingPeriodURL, 'id', this.props.period.id)
 
     axios
@@ -75,7 +90,7 @@ export default class AccountGradingPeriod extends React.Component {
       })
   }
 
-  onEdit = e => {
+  onEdit = (e: any) => {
     e.stopPropagation()
     this.props.onEdit(this.props.period)
   }
@@ -84,8 +99,8 @@ export default class AccountGradingPeriod extends React.Component {
     if (this.props.permissions.update && !this.props.readOnly) {
       return (
         <IconButton
-          elementRef={ref => {
-            this._refs.editButton = ref
+          elementRef={(ref: Element | null) => {
+            this._refs.editButton = ref as HTMLElement | null
           }}
           disabled={this.props.actionsDisabled}
           onClick={this.onEdit}
@@ -104,8 +119,8 @@ export default class AccountGradingPeriod extends React.Component {
     if (this.props.permissions.delete && !this.props.readOnly) {
       return (
         <IconButton
-          elementRef={ref => {
-            this._refs.deleteButton = ref
+          elementRef={(ref: Element | null) => {
+            this._refs.deleteButton = ref as HTMLElement | null
           }}
           disabled={this.props.actionsDisabled}
           onClick={this.promptDeleteGradingPeriod}
@@ -125,11 +140,11 @@ export default class AccountGradingPeriod extends React.Component {
       return (
         <div className="GradingPeriodList__period__attribute col-xs-12 col-md-8 col-lg-2">
           <span
-            ref={ref => {
+            ref={(ref: HTMLElement | null) => {
               this._refs.weight = ref
             }}
           >
-            {I18n.t('Weight:')} {I18n.n(this.props.period.weight, {percentage: true})}
+            {I18n.t('Weight:')} {I18n.n(this.props.period.weight ?? 0, {percentage: true})}
           </span>
         </div>
       )
@@ -142,7 +157,7 @@ export default class AccountGradingPeriod extends React.Component {
         <div className="GradingPeriodList__period__attributes grid-row">
           <div className="GradingPeriodList__period__attribute col-xs-12 col-md-8 col-lg-4">
             <span
-              ref={ref => {
+              ref={(ref: HTMLElement | null) => {
                 this._refs.title = ref
               }}
             >
@@ -151,7 +166,7 @@ export default class AccountGradingPeriod extends React.Component {
           </div>
           <div className="GradingPeriodList__period__attribute col-xs-12 col-md-8 col-lg-2">
             <span
-              ref={ref => {
+              ref={(ref: HTMLElement | null) => {
                 this._refs.startDate = ref
               }}
             >
@@ -160,7 +175,7 @@ export default class AccountGradingPeriod extends React.Component {
           </div>
           <div className="GradingPeriodList__period__attribute col-xs-12 col-md-8 col-lg-2">
             <span
-              ref={ref => {
+              ref={(ref: HTMLElement | null) => {
                 this._refs.endDate = ref
               }}
             >
@@ -169,7 +184,7 @@ export default class AccountGradingPeriod extends React.Component {
           </div>
           <div className="GradingPeriodList__period__attribute col-xs-12 col-md-8 col-lg-2">
             <span
-              ref={ref => {
+              ref={(ref: HTMLElement | null) => {
                 this._refs.closeDate = ref
               }}
             >

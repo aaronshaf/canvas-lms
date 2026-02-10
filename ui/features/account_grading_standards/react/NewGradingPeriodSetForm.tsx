@@ -27,7 +27,32 @@ import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'
 
 const I18n = createI18nScope('NewGradingPeriodSetForm')
 
-export default class NewGradingPeriodSetForm extends React.Component {
+interface EnrollmentTerm {
+  id: string
+  gradingPeriodGroupId?: string | null
+}
+
+interface NewGradingPeriodSetFormProps {
+  enrollmentTerms: EnrollmentTerm[]
+  closeForm: (e?: React.SyntheticEvent) => void
+  addGradingPeriodSet: (set: any, selectedEnrollmentTermIDs: string[]) => void
+  urls: {
+    gradingPeriodSetsURL: string
+  }
+}
+
+interface NewGradingPeriodSetFormState {
+  buttonsDisabled: boolean
+  title: string
+  weighted: boolean
+  displayTotalsForAllGradingPeriods: boolean
+  selectedEnrollmentTermIDs: string[]
+}
+
+export default class NewGradingPeriodSetForm extends React.Component<
+  NewGradingPeriodSetFormProps,
+  NewGradingPeriodSetFormState
+> {
   static propTypes = {
     enrollmentTerms: PropTypes.array.isRequired,
     closeForm: PropTypes.func.isRequired,
@@ -37,7 +62,7 @@ export default class NewGradingPeriodSetForm extends React.Component {
     }).isRequired,
   }
 
-  state = {
+  state: NewGradingPeriodSetFormState = {
     buttonsDisabled: false,
     title: '',
     weighted: false,
@@ -45,7 +70,13 @@ export default class NewGradingPeriodSetForm extends React.Component {
     selectedEnrollmentTermIDs: [],
   }
 
-  constructor(props) {
+  private inputRef: React.RefObject<HTMLInputElement>
+  private cancelButtonRef: React.RefObject<any>
+  private createButtonRef: React.RefObject<any>
+  private weightedCheckbox?: any
+  private displayTotalsCheckbox?: any
+
+  constructor(props: NewGradingPeriodSetFormProps) {
     super(props)
     this.inputRef = React.createRef()
     this.cancelButtonRef = React.createRef()
@@ -53,10 +84,10 @@ export default class NewGradingPeriodSetForm extends React.Component {
   }
 
   componentDidMount() {
-    this.inputRef.current.focus()
+    this.inputRef.current?.focus()
   }
 
-  setSelectedEnrollmentTermIDs = termIDs => {
+  setSelectedEnrollmentTermIDs = (termIDs: string[]) => {
     this.setState({
       selectedEnrollmentTermIDs: termIDs,
     })
@@ -73,7 +104,7 @@ export default class NewGradingPeriodSetForm extends React.Component {
 
   isValid = () => this.isTitlePresent()
 
-  submit = event => {
+  submit = (event: React.SyntheticEvent) => {
     event.preventDefault()
     this.setState({buttonsDisabled: true}, () => {
       if (this.isValid()) {
@@ -90,7 +121,7 @@ export default class NewGradingPeriodSetForm extends React.Component {
     })
   }
 
-  submitSucceeded = set => {
+  submitSucceeded = (set: any) => {
     showFlashAlert({type: 'success', message: I18n.t('Successfully created a set')})
     this.props.addGradingPeriodSet(set, this.state.selectedEnrollmentTermIDs)
   }
@@ -100,15 +131,15 @@ export default class NewGradingPeriodSetForm extends React.Component {
     this.setState({buttonsDisabled: false})
   }
 
-  onSetTitleChange = event => {
+  onSetTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({title: event.target.value})
   }
 
-  onSetWeightedChange = event => {
+  onSetWeightedChange = (event: any) => {
     this.setState({weighted: event.target.checked})
   }
 
-  onSetDisplayTotalsChanged = event => {
+  onSetDisplayTotalsChanged = (event: any) => {
     this.setState({displayTotalsForAllGradingPeriods: event.target.checked})
   }
 

@@ -44,16 +44,85 @@ import '@canvas/jquery/jquery.instructure_misc_helpers'
 
 const I18n = createI18nScope('GradingPeriodSet')
 
-const sortPeriods = function (periods) {
+interface Permissions {
+  read: boolean
+  create: boolean
+  update: boolean
+  delete: boolean
+}
+
+interface SetHeader {
+  id: string
+  title: string
+  weighted?: boolean
+  displayTotalsForAllGradingPeriods: boolean
+}
+
+interface Urls {
+  batchUpdateURL: string
+  deleteGradingPeriodURL: string
+  gradingPeriodSetsURL: string
+}
+
+interface EnrollmentTerm {
+  id: string
+  displayName: string
+  gradingPeriodGroupId?: string | null
+}
+
+interface GradingPeriod {
+  id: string
+  title: string
+  weight?: number | null
+  startDate: Date
+  endDate: Date
+  closeDate: Date
+}
+
+interface NewPeriodState {
+  period: Partial<GradingPeriod> | null
+  saving: boolean
+}
+
+interface EditPeriodState {
+  id: string | null
+  saving: boolean
+}
+
+interface GradingPeriodSetState {
+  title: string
+  weighted: boolean
+  displayTotalsForAllGradingPeriods: boolean
+  gradingPeriods: GradingPeriod[]
+  newPeriod: NewPeriodState
+  editPeriod: EditPeriodState
+}
+
+interface GradingPeriodSetProps {
+  gradingPeriods: GradingPeriod[]
+  terms: EnrollmentTerm[]
+  readOnly: boolean
+  expanded?: boolean
+  actionsDisabled?: boolean
+  onEdit: (set: SetHeader) => void
+  onDelete: (setId: string) => void
+  onPeriodsChange: (setId: string, gradingPeriods: GradingPeriod[]) => void
+  onToggleBody: () => void
+  set: SetHeader
+  urls: Urls
+  permissions: Permissions
+}
+
+const sortPeriods = function (periods: GradingPeriod[]): GradingPeriod[] {
   return sortBy(periods, 'startDate')
 }
 
-const anyPeriodsOverlap = function (periods) {
+const anyPeriodsOverlap = function (periods: GradingPeriod[]): boolean {
   if (isEmpty(periods)) {
     return false
   }
-  const firstPeriod = head(periods)
-  const otherPeriods = tail(periods)
+  const firstPeriod = head(periods) as GradingPeriod
+  const otherPeriods = tail(periods) as GradingPeriod[]
   const overlapping = some(
     otherPeriods,
     otherPeriod =>
@@ -62,11 +131,11 @@ const anyPeriodsOverlap = function (periods) {
   return overlapping || anyPeriodsOverlap(otherPeriods)
 }
 
-const isValidDate = function (date) {
-  return Object.prototype.toString.call(date) === '[object Date]' && !isNaN(date.getTime())
+const isValidDate = function (date: unknown): date is Date {
+  return date instanceof Date && !isNaN(date.getTime())
 }
 
-const validatePeriods = function (periods, weighted) {
+const validatePeriods = function (periods: GradingPeriod[], weighted: boolean): string[] {
   if (some(periods, period => !(period.title || '').trim())) {
     return [I18n.t('All grading periods must have a title')]
   }
@@ -100,23 +169,31 @@ const validatePeriods = function (periods, weighted) {
   if (anyPeriodsOverlap(periods)) {
     return [I18n.t('Grading periods must not overlap')]
   }
+
+  return []
 }
 
-const isEditingPeriod = function (state) {
+const isEditingPeriod = function (state: GradingPeriodSetState): boolean {
   return !!state.editPeriod.id
 }
 
-const isActionsDisabled = function (state, props) {
+const isActionsDisabled = function (
+  state: GradingPeriodSetState,
+  props: GradingPeriodSetProps,
+): boolean {
   return !!(props.actionsDisabled || isEditingPeriod(state) || state.newPeriod.period)
 }
 
-const getShowGradingPeriodRef = function (period) {
+const getShowGradingPeriodRef = function (period: {id: string}): string {
   return `show-grading-period-${period.id}`
 }
 
 const {shape, string, array, bool, func} = PropTypes
 
-export default class GradingPeriodSet extends React.Component {
+export default class GradingPeriodSet extends React.Component<
+  GradingPeriodSetProps,
+  GradingPeriodSetState
+> {
   static propTypes = {
     gradingPeriods: array.isRequired,
     terms: array.isRequired,
@@ -148,7 +225,9 @@ export default class GradingPeriodSet extends React.Component {
     }).isRequired,
   }
 
-  constructor(props) {
+  _refs: Record<string, any>
+
+  constructor(props: GradingPeriodSetProps) {
     super(props)
     this.state = {
       title: this.props.set.title,
@@ -167,7 +246,7 @@ export default class GradingPeriodSet extends React.Component {
     this._refs = {}
   }
 
-  componentDidUpdate(_prevProps, prevState) {
+  componentDidUpdate(_prevProps: GradingPeriodSetProps, prevState: GradingPeriodSetState) {
     if (prevState.newPeriod.period && !this.state.newPeriod.period) {
       this._refs.addPeriodButton.focus()
     } else if (isEditingPeriod(prevState) && !isEditingPeriod(this.state)) {
@@ -182,7 +261,7 @@ export default class GradingPeriodSet extends React.Component {
     }
   }
 
-  promptDeleteSet = event => {
+  promptDeleteSet = (event: React.MouseEvent) => {
     event.stopPropagation()
     const confirmMessage = I18n.t('Are you sure you want to delete this grading period set?')
     if (!window.confirm(confirmMessage)) return null
@@ -199,9 +278,10 @@ export default class GradingPeriodSet extends React.Component {
       })
   }
 
-  setTerms = () => filter(this.props.terms, {gradingPeriodGroupId: this.props.set.id})
+  setTerms = (): EnrollmentTerm[] =>
+    filter(this.props.terms, {gradingPeriodGroupId: this.props.set.id}) as EnrollmentTerm[]
 
-  termNames = () => {
+  termNames = (): string => {
     const names = map(this.setTerms(), 'displayName')
     if (names.length > 0) {
       return I18n.t('Terms: ') + names.join(', ')
@@ -210,18 +290,18 @@ export default class GradingPeriodSet extends React.Component {
     }
   }
 
-  editSet = e => {
+  editSet = (e: React.MouseEvent) => {
     e.stopPropagation()
     this.props.onEdit(this.props.set)
   }
 
-  changePeriods = periods => {
+  changePeriods = (periods: GradingPeriod[]) => {
     const sortedPeriods = sortPeriods(periods)
     this.setState({gradingPeriods: sortedPeriods})
     this.props.onPeriodsChange(this.props.set.id, sortedPeriods)
   }
 
-  removeGradingPeriod = idToRemove => {
+  removeGradingPeriod = (idToRemove: string) => {
     this.setState(oldState => {
       const gradingPeriods = reject(oldState.gradingPeriods, period => period.id === idToRemove)
       return {gradingPeriods}
@@ -232,14 +312,14 @@ export default class GradingPeriodSet extends React.Component {
     this.setNewPeriod({period: {}})
   }
 
-  saveNewPeriod = period => {
+  saveNewPeriod = (period: GradingPeriod) => {
     const periods = this.state.gradingPeriods.concat([period])
     const validations = validatePeriods(periods, this.state.weighted)
     if (isEmpty(validations)) {
       this.setNewPeriod({saving: true})
       gradingPeriodsApi
         .batchUpdate(this.props.set.id, periods)
-        .then(pds => {
+        .then((pds: GradingPeriod[]) => {
           $.flashMessage(I18n.t('All changes were saved'))
           this.removeNewPeriodForm()
           this.changePeriods(pds)
@@ -259,18 +339,18 @@ export default class GradingPeriodSet extends React.Component {
     this.setNewPeriod({saving: false, period: null})
   }
 
-  setNewPeriod = attr => {
+  setNewPeriod = (attr: Partial<NewPeriodState>) => {
     this.setState(oldState => {
       const newPeriod = $.extend(true, {}, oldState.newPeriod, attr)
       return {newPeriod}
     })
   }
 
-  editPeriod = period => {
+  editPeriod = (period: GradingPeriod) => {
     this.setEditPeriod({id: period.id, saving: false})
   }
 
-  updatePeriod = period => {
+  updatePeriod = (period: GradingPeriod) => {
     const periods = reject(this.state.gradingPeriods, _period => period.id === _period.id).concat([
       period,
     ])
@@ -279,7 +359,7 @@ export default class GradingPeriodSet extends React.Component {
       this.setEditPeriod({saving: true})
       gradingPeriodsApi
         .batchUpdate(this.props.set.id, periods)
-        .then(pds => {
+        .then((pds: GradingPeriod[]) => {
           $.flashMessage(I18n.t('All changes were saved'))
           this.setEditPeriod({id: null, saving: false})
           this.changePeriods(pds)
@@ -299,7 +379,7 @@ export default class GradingPeriodSet extends React.Component {
     this.setEditPeriod({id: null, saving: false})
   }
 
-  setEditPeriod = attr => {
+  setEditPeriod = (attr: Partial<EditPeriodState>) => {
     this.setState(oldState => {
       const editPeriod = $.extend(true, {}, oldState.editPeriod, attr)
       return {editPeriod}
@@ -311,6 +391,7 @@ export default class GradingPeriodSet extends React.Component {
       const disabled = isActionsDisabled(this.state, this.props)
       return (
         <IconButton
+          // @ts-expect-error - InstUI's elementRef types are complex
           elementRef={ref => {
             this._refs.editButton = ref
           }}
@@ -332,6 +413,7 @@ export default class GradingPeriodSet extends React.Component {
       const disabled = isActionsDisabled(this.state, this.props)
       return (
         <IconButton
+          // @ts-expect-error - InstUI's elementRef types are complex
           elementRef={ref => {
             this._refs.deleteButton = ref
           }}
@@ -436,6 +518,7 @@ export default class GradingPeriodSet extends React.Component {
       <div className="GradingPeriodList__new-period center-xs border-rbl border-round-b">
         <Link
           as="button"
+          // @ts-expect-error - InstUI's elementRef types are complex
           elementRef={ref => {
             this._refs.addPeriodButton = ref
           }}
