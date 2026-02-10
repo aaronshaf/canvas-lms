@@ -92,7 +92,14 @@ export const FilterControls = ({
           borderRadius: '2rem',
         }}
         value={searchValue}
-        onChange={(_, value) => setSearchValue(value)}
+        onChange={(event: unknown, value?: string) => {
+          if (typeof value === 'string') {
+            setSearchValue(value)
+            return
+          }
+          const targetValue = (event as {target?: {value?: string}})?.target?.value
+          setSearchValue(targetValue ?? '')
+        }}
       />
 
       <View as="div" margin="small 0 0">

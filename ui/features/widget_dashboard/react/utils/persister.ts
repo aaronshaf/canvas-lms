@@ -23,14 +23,30 @@ const ONE_DAY = 1000 * 60 * 60 * 24
 
 // Widget dashboard uses a stable cache buster that doesn't change on page reload
 // This allows queries to persist across page refreshes (Cmd+R)
-if (localStorage.widgetDashboardCacheBuster === undefined) {
-  localStorage.widgetDashboardCacheBuster = v4()
+const WIDGET_DASHBOARD_CACHE_BUSTER_KEY = 'widgetDashboardCacheBuster'
+
+function getWidgetDashboardCacheBuster(): string {
+  // Avoid throwing at import-time when `localStorage` is readonly or mocked.
+  try {
+    if (typeof window === 'undefined') return v4()
+    const storage = window.localStorage
+    const existing = storage?.getItem?.(WIDGET_DASHBOARD_CACHE_BUSTER_KEY)
+    if (existing) return existing
+
+    const next = v4()
+    storage?.setItem?.(WIDGET_DASHBOARD_CACHE_BUSTER_KEY, next)
+    return next
+  } catch {
+    return v4()
+  }
 }
+
+const widgetDashboardCacheBuster = getWidgetDashboardCacheBuster()
 
 export const widgetDashboardPersister = experimental_createPersister({
   storage: window.sessionStorage,
   maxAge: ONE_DAY,
-  buster: localStorage.widgetDashboardCacheBuster,
+  buster: widgetDashboardCacheBuster,
 })
 
 // Test helper to clear widget dashboard cache

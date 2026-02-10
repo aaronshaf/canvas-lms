@@ -118,14 +118,14 @@ describe('AccountCalendarSettings', () => {
   })
 
   it('renders account list when filters are applied', async () => {
-    const {findByText, queryByTestId, getByPlaceholderText} = render(
+    const {findByText, queryByTestId, getByTestId, getByText} = render(
       <AccountCalendarSettings {...defaultProps} />,
     )
     await findByText('University (5)')
-    // Search handler already set up in beforeEach to return West Elementary School for 'elemen'
-    const search = getByPlaceholderText('Search Calendars')
-    fireEvent.change(search, {target: {value: 'elemen'}})
-    expect(await findByText('West Elementary School')).toBeInTheDocument()
+    act(() => getByTestId('account-filter-dropdown').click())
+    act(() => getByText('Show only enabled calendars').click())
+    // List mode renders the raw account name (no sub-account counts).
+    expect(await findByText('University')).toBeInTheDocument()
     expect(queryByTestId('account-tree')).not.toBeVisible()
   })
 
@@ -176,27 +176,14 @@ describe('AccountCalendarSettings', () => {
     })
 
     it('does not show the confirmation modal if switching from auto to manual subscription', async () => {
-      server.use(
-        http.get('/api/v1/accounts/1/account_calendars', () => {
-          return HttpResponse.json(RESPONSE_ACCOUNT_6)
-        }),
-        http.get('/api/v1/accounts/1/visible_calendars_count', () => {
-          return HttpResponse.json(RESPONSE_ACCOUNT_6.length)
-        }),
-        http.put('/api/v1/accounts/1/account_calendars', async ({request}) => {
-          lastPutRequestBody = await request.json()
-          return HttpResponse.json({message: 'Updated 1 account'})
-        }),
-      )
-
-      const {queryByRole, getByText, findByText, getByTestId} = render(
+      const {queryByRole, getByText, findByText, getAllByTestId, getByTestId} = render(
         <AccountCalendarSettings {...defaultProps} />,
       )
-      expect(await findByText('Manually-Created Courses')).toBeInTheDocument()
+      expect(await findByText('Manually-Created Courses (2)')).toBeInTheDocument()
       const applyButton = getByTestId('save-button')
 
       expect(applyButton).toBeDisabled()
-      act(() => getByTestId('subscription-dropdown').click())
+      act(() => getAllByTestId('subscription-dropdown')[0].click())
       act(() => getByText('Manual subscribe').click())
       expect(applyButton).toBeEnabled()
       act(() => applyButton.click())
