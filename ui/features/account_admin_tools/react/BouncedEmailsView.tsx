@@ -26,9 +26,8 @@ import {Flex} from '@instructure/ui-flex'
 import {View} from '@instructure/ui-view'
 import {Link} from '@instructure/ui-link'
 import {Responsive} from '@instructure/ui-responsive'
-import {string} from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import doFetchApi from '@canvas/do-fetch-api-effect'
+import doFetchApi, {type DoFetchApiResults} from '@canvas/do-fetch-api-effect'
 import CanvasDateInput2 from '@canvas/datetime/react/components/DateInput2'
 import FriendlyDatetime from '@canvas/datetime/react/components/FriendlyDatetime'
 import * as tz from '@instructure/moment-utils'
@@ -36,27 +35,39 @@ import {encodeQueryString} from '@instructure/query-string-encoding'
 
 const I18n = createI18nScope('bounced_emails')
 
-BouncedEmailsView.propTypes = {
-  accountId: string.isRequired,
+interface BouncedEmailsViewProps {
+  accountId: string
 }
 
-export default function BouncedEmailsView({accountId}) {
-  const [loading, setLoading] = useState(false)
-  const [data, setData] = useState()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [after, setAfter] = useState()
-  const [before, setBefore] = useState()
-  const [fetchError, setFetchError] = useState('')
-  const [csvReportPath, setCsvReportPath] = useState()
+type BouncedEmailRow = [
+  string, // user_id
+  string, // name
+  string, // communication_channel_id
+  string, // unused
+  string, // email path
+  string, // bounce date
+  string, // bounce reason
+]
 
-  const formatDate = date => {
-    return tz.format(date, 'date.formats.medium')
+type BouncedEmailData = BouncedEmailRow[]
+
+export default function BouncedEmailsView({accountId}: BouncedEmailsViewProps) {
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState<BouncedEmailData | undefined>()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [after, setAfter] = useState<Date | undefined>()
+  const [before, setBefore] = useState<Date | undefined>()
+  const [fetchError, setFetchError] = useState('')
+  const [csvReportPath, setCsvReportPath] = useState<string | undefined>()
+
+  const formatDate = (date: Date) => {
+    return tz.format(date, 'date.formats.medium') ?? ''
   }
 
   // so, uh, the report localizes column names, and we're just identifying them by position
   // that's maybe a little brittle :(
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const renderTableHeader = header => {
+  const renderTableHeader = (header: BouncedEmailRow) => {
     return (
       <Table.Head>
         <Table.Row>
@@ -73,7 +84,7 @@ export default function BouncedEmailsView({accountId}) {
     )
   }
 
-  const renderTableRows = useCallback(body_data => {
+  const renderTableRows = useCallback((body_data: BouncedEmailRow[]) => {
     return body_data.map(row => (
       <Table.Row key={row[2] /* communication channel id */}>
         <Table.Cell>
@@ -93,15 +104,15 @@ export default function BouncedEmailsView({accountId}) {
   }, [])
 
   const renderTableBody = useCallback(
-    body_data => {
+    (body_data: BouncedEmailRow[]) => {
       return <Table.Body>{renderTableRows(body_data)}</Table.Body>
     },
     [renderTableRows],
   )
 
   const onFetch = useCallback(
-    ({json}) => {
-      setData(json)
+    (result: DoFetchApiResults<BouncedEmailData>) => {
+      setData(result.json)
       setFetchError('')
       setLoading(false)
     },
@@ -115,7 +126,7 @@ export default function BouncedEmailsView({accountId}) {
 
   const performSearch = useCallback(() => {
     const path = `/api/v1/accounts/${accountId}/bounced_communication_channels/`
-    const params = {order: 'desc'}
+    const params: Record<string, string> = {order: 'desc'}
     if (searchTerm) {
       params.pattern = searchTerm
     }
@@ -131,11 +142,11 @@ export default function BouncedEmailsView({accountId}) {
         params,
       )}`,
     )
-    doFetchApi({path, params}).then(onFetch).catch(onError)
+    doFetchApi<BouncedEmailData>({path, params}).then(onFetch).catch(onError)
   }, [accountId, searchTerm, onFetch, onError, before, after])
 
   const renderTable = useCallback(
-    table_data => {
+    (table_data: BouncedEmailData | undefined) => {
       if (loading) {
         return <Spinner renderTitle={I18n.t('Loading')} margin="large auto 0 auto" />
       }
@@ -155,7 +166,7 @@ export default function BouncedEmailsView({accountId}) {
             query={{small: {maxWidth: '1000px'}, large: {minWidth: '1000px'}}}
             props={{small: {layout: 'stacked'}, large: {layout: 'fixed'}}}
           >
-            {props => (
+            {(props: any) => (
               <Table caption={I18n.t('Bounced Emails')} {...props}>
                 {renderTableHeader(table_data[0])}
                 {renderTableBody(table_data.slice(1))}
@@ -183,14 +194,20 @@ export default function BouncedEmailsView({accountId}) {
       <Flex margin="0 0 small 0">
         <CanvasDateInput2
           renderLabel={I18n.t('Last bounced after')}
+          interaction="enabled"
           formatDate={formatDate}
-          onSelectedDateChange={setAfter}
+          onSelectedDateChange={(date, _dateInputType) => {
+            setAfter(date ?? undefined)
+          }}
         />
         &emsp;
         <CanvasDateInput2
           renderLabel={I18n.t('Last bounced before')}
+          interaction="enabled"
           formatDate={formatDate}
-          onSelectedDateChange={setBefore}
+          onSelectedDateChange={(date, _dateInputType) => {
+            setBefore(date ?? undefined)
+          }}
         />
       </Flex>
       <View as="div" margin="0 0 small 0">
