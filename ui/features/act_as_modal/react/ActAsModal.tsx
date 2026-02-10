@@ -16,8 +16,6 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import PropTypes from 'prop-types'
-
 import React from 'react'
 import keycode from 'keycode'
 import {useScope as createI18nScope} from '@canvas/i18n'
@@ -36,34 +34,41 @@ import ActAsPanda from './svg/ActAsPanda'
 
 const I18n = createI18nScope('act_as')
 
-export default class ActAsModal extends React.Component {
-  static propTypes = {
-    user: PropTypes.shape({
-      name: PropTypes.string,
-      short_name: PropTypes.string,
-      pronouns: PropTypes.string,
-      id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-      avatar_image_url: PropTypes.string,
-      sortable_name: PropTypes.string,
-      email: PropTypes.string,
-      pseudonyms: PropTypes.arrayOf(
-        PropTypes.shape({
-          login_id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-          sis_id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-          integration_id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-        }),
-      ),
-    }).isRequired,
-  }
+interface Pseudonym {
+  login_id: number | string
+  sis_id?: number | string
+  integration_id?: number | string
+}
 
-  constructor(props) {
+interface User {
+  name: string
+  short_name: string
+  pronouns?: string
+  id: number | string
+  avatar_image_url: string
+  sortable_name: string
+  email: string
+  pseudonyms: Pseudonym[]
+}
+
+interface ActAsModalProps {
+  user: User
+}
+
+interface ActAsModalState {
+  isLoading: boolean
+}
+
+export default class ActAsModal extends React.Component<ActAsModalProps, ActAsModalState> {
+  private closeButton: HTMLElement | null = null
+  private proceedButton: HTMLElement | null = null
+
+  constructor(props: ActAsModalProps) {
     super(props)
 
     this.state = {
       isLoading: false,
     }
-
-    this._button = null
   }
 
   UNSAFE_componentWillMount() {
@@ -96,18 +101,19 @@ export default class ActAsModal extends React.Component {
     this.setState({isLoading: true})
   }
 
-  handleClick = e => {
-    if (e.keyCode && (e.keyCode === keycode.codes.space || e.keyCode === keycode.codes.enter)) {
+  handleClick = (e: React.MouseEvent<HTMLAnchorElement> | React.KeyboardEvent<HTMLAnchorElement>) => {
+    if ('keyCode' in e && (e.keyCode === keycode.codes.space || e.keyCode === keycode.codes.enter)) {
       // for the data to post correctly, we need an actual click
       // on enter and space press, we simulate a click event and return
-      e.target.click()
+      ;(e.target as HTMLElement).click()
       return
     }
     this.setState({isLoading: true})
   }
 
-  renderInfoTable(caption, renderRows) {
+  renderInfoTable(caption: string, renderRows: () => React.ReactNode) {
     return (
+      // @ts-expect-error - InstUI Table props
       <Table caption={caption}>
         <Table.Head>
           <Table.Row>
@@ -136,7 +142,7 @@ export default class ActAsModal extends React.Component {
     )
   }
 
-  renderLoginInfoRows = pseudonym => (
+  renderLoginInfoRows = (pseudonym: Pseudonym) => (
     <Table.Body>
       {this.renderUserRow(I18n.t('Login ID:'), pseudonym.login_id)}
       {this.renderUserRow(I18n.t('SIS ID:'), pseudonym.sis_id)}
@@ -144,12 +150,13 @@ export default class ActAsModal extends React.Component {
     </Table.Body>
   )
 
-  renderUserRow(category, info) {
+  renderUserRow(category: string, info?: string | number) {
     return (
       <Table.Row>
         <Table.Cell>
           <Text size="small">{category}</Text>
         </Table.Cell>
+        {/* @ts-expect-error - InstUI Table.Cell textAlign prop */}
         <Table.Cell textAlign="end">
           <Text size="small" weight="bold">
             {info}
@@ -187,7 +194,9 @@ export default class ActAsModal extends React.Component {
                   </div>
                 </div>
                 <div className="ActAs__text">
+                  {/* @ts-expect-error - InstUI View props */}
                   <View as="div" size="small">
+                    {/* @ts-expect-error - InstUI View props */}
                     <View as="div" textAlign="center" padding="0 0 x-small 0">
                       <Text size="x-large" weight="light">
                         {I18n.t('Act as %{name}', {
@@ -196,6 +205,7 @@ export default class ActAsModal extends React.Component {
                         {user.pronouns ? ` (${user.pronouns})` : null}
                       </Text>
                     </View>
+                    {/* @ts-expect-error - InstUI View props */}
                     <View as="div" textAlign="center">
                       <Text lineHeight="condensed" size="small">
                         {I18n.t(
@@ -208,7 +218,9 @@ export default class ActAsModal extends React.Component {
                         )}
                       </Text>
                     </View>
+                    {/* @ts-expect-error - InstUI View props */}
                     <View as="div" textAlign="center">
+                      {/* @ts-expect-error - InstUI Avatar props */}
                       <Avatar
                         name={user.short_name}
                         src={user.avatar_image_url}
@@ -217,12 +229,14 @@ export default class ActAsModal extends React.Component {
                         data-fs-exclude={true}
                       />
                     </View>
+                    {/* @ts-expect-error - InstUI View props */}
                     <View as="div" textAlign="center">
                       {this.renderInfoTable(I18n.t('User details'), this.renderUserInfoRows)}
                     </View>
                     {user.pseudonyms.map(pseudonym => (
                       <View
                         as="div"
+                        // @ts-expect-error - InstUI View props
                         textAlign="center"
                         margin="large 0 0 0"
                         key={pseudonym.login_id}
@@ -232,14 +246,16 @@ export default class ActAsModal extends React.Component {
                         )}
                       </View>
                     ))}
+                    {/* @ts-expect-error - InstUI View props */}
                     <View as="div" textAlign="center">
+                      {/* @ts-expect-error - InstUI Button props */}
                       <Button
                         color="primary"
                         href={`/users/${user.id}/masquerade`}
                         data-method="post"
                         onClick={this.handleClick}
                         margin="large 0 0 0"
-                        elementRef={el => (this.proceedButton = el)}
+                        elementRef={(el: HTMLElement | null) => (this.proceedButton = el)}
                       >
                         {I18n.t('Proceed')}
                       </Button>
