@@ -19,14 +19,20 @@
 import $ from 'jquery'
 import {find} from 'es-toolkit/compat'
 import React from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import type {ListItem} from './ListItems'
 import ListItems from './ListItems'
 import getCookie from '@instructure/get-cookie'
 
 const I18n = createI18nScope('course_wizard')
 
-const courseNotSetUpItem = {
+interface InfoFrameItem extends Partial<ListItem> {
+  text: string
+  iconClass: string
+  warning?: string
+}
+
+const courseNotSetUpItem: InfoFrameItem = {
   get text() {
     return I18n.t(
       "Great, so you've got a course. Now what? Well, before you go publishing it to the world, you may want to check and make sure you've got the basics laid out.  Work through the list on the left to ensure that your course is ready to use.",
@@ -38,7 +44,7 @@ const courseNotSetUpItem = {
   iconClass: 'icon-instructure',
 }
 
-const checklistComplete = {
+const checklistComplete: InfoFrameItem = {
   get text() {
     return I18n.t(
       "Now that your course is set up and available, you probably won't need this checklist anymore. But we'll keep it around in case you realize later you want to try something new, or you just want a little extra help as you make changes to your course content.",
@@ -47,19 +53,29 @@ const checklistComplete = {
   iconClass: 'icon-instructure',
 }
 
-class InfoFrame extends React.Component {
+interface InfoFrameProps {
+  closeModal: () => void
+  className?: string
+  itemToShow?: string
+}
+
+interface InfoFrameState {
+  itemShown: InfoFrameItem
+}
+
+class InfoFrame extends React.Component<InfoFrameProps, InfoFrameState> {
   static displayName = 'InfoFrame'
 
-  static propTypes = {
-    closeModal: PropTypes.func.isRequired,
-    className: PropTypes.string,
-  }
-
-  state = {
+  state: InfoFrameState = {
     itemShown: courseNotSetUpItem,
   }
 
+  messageBox: HTMLDivElement | null = null
+  messageIcon: HTMLDivElement | null = null
+  callToAction: HTMLAnchorElement | HTMLButtonElement | null = null
+
   UNSAFE_componentWillMount() {
+    // @ts-expect-error - COURSE_WIZARD is always available in this context
     if (window.ENV.COURSE_WIZARD.checklist_states.publish_step) {
       this.setState({
         itemShown: checklistComplete,
@@ -67,31 +83,37 @@ class InfoFrame extends React.Component {
     }
   }
 
-  UNSAFE_componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps: InfoFrameProps) {
     this.getWizardItem(newProps.itemToShow)
   }
 
-  getWizardItem = key => {
+  getWizardItem = (key?: string) => {
     const item = find(ListItems, {key})
 
     this.setState(
       {
-        itemShown: item,
+        itemShown: item || courseNotSetUpItem,
       },
-      function () {
+      function (this: InfoFrame) {
+        // @ts-expect-error - jQuery typing issues with null elements
         const $messageBox = $(this.messageBox)
+        // @ts-expect-error - jQuery typing issues with null elements
         const $messageIcon = $(this.messageIcon)
 
         // I would use .toggle, but it has too much potential to get all out
         // of whack having to be called twice to force the animation.
 
         // Remove the animation classes in case they are there already.
+        // @ts-expect-error - jQuery typing issues with removeClass
         $messageBox.removeClass('ic-wizard-box__message-inner--is-fired')
+        // @ts-expect-error - jQuery typing issues with removeClass
         $messageIcon.removeClass('ic-wizard-box__message-icon--is-fired')
 
         // Add them back
         setTimeout(() => {
+          // @ts-expect-error - jQuery typing issues with addClass
           $messageBox.addClass('ic-wizard-box__message-inner--is-fired')
+          // @ts-expect-error - jQuery typing issues with addClass
           $messageIcon.addClass('ic-wizard-box__message-icon--is-fired')
         }, 100)
 
@@ -100,7 +122,7 @@ class InfoFrame extends React.Component {
         if (this.callToAction) {
           this.callToAction.focus()
         } else {
-          this.messageBox.focus()
+          this.messageBox?.focus()
         }
       },
     )
@@ -108,7 +130,7 @@ class InfoFrame extends React.Component {
 
   getHref = () => this.state.itemShown.url || '#'
 
-  chooseHomePage = event => {
+  chooseHomePage = (event: React.MouseEvent) => {
     event.preventDefault()
     this.props.closeModal()
     $('.choose_home_page_link').click()
@@ -132,10 +154,12 @@ class InfoFrame extends React.Component {
       )
     }
     if (this.state.itemShown.key === 'publish_course') {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       if (window.ENV.COURSE_WIZARD.permissions.can_change_course_publish_state) {
         return (
           <form
             acceptCharset="UTF-8"
+            // @ts-expect-error - COURSE_WIZARD is always available in this context
             action={window.ENV.COURSE_WIZARD.publish_course}
             method="post"
           >
@@ -189,7 +213,7 @@ class InfoFrame extends React.Component {
             </div>
             <div
               ref={e => (this.messageBox = e)}
-              tabIndex="-1"
+              tabIndex={-1}
               className="ic-wizard-box__message-inner ic-wizard-box__message-inner--is-fired"
             >
               <p className="ic-wizard-box__message-text" id="ic-wizard-box__message-text">
