@@ -16,54 +16,92 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
 import React from 'react'
 import {get} from 'es-toolkit/compat'
 
+// @ts-expect-error
 import {View} from '@instructure/ui-view'
+// @ts-expect-error
 import {FormFieldGroup} from '@instructure/ui-form-field'
+// @ts-expect-error
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 
 import RequiredValues from './RequiredValues'
 import Services from './Services'
 import AdditionalSettings from './AdditionalSettings'
 import Placements from './Placements'
+import type {ToolConfiguration} from '../types'
 
 const I18n = createI18nScope('react_developer_keys')
 
-export default class ManualConfigurationForm extends React.Component {
-  state = {
-    showMessages: false,
+interface ManualConfigurationFormProps {
+  toolConfiguration?: ToolConfiguration
+  validScopes: Record<string, string>
+}
+
+interface ManualConfigurationFormState {
+  showMessages: boolean
+}
+
+export default class ManualConfigurationForm extends React.Component<
+  ManualConfigurationFormProps,
+  ManualConfigurationFormState
+> {
+  static defaultProps = {
+    toolConfiguration: {},
   }
 
-  generateToolConfiguration = () => {
-    const toolConfig = {
-      ...this.requiredRef.generateToolConfigurationPart(),
-      scopes: this.servicesRef.generateToolConfigurationPart(),
-      ...this.additionalRef.generateToolConfigurationPart(),
+  private requiredRef?: RequiredValues
+  private servicesRef?: Services
+  private additionalRef?: AdditionalSettings
+  private placementsRef?: Placements
+
+  constructor(props: ManualConfigurationFormProps) {
+    super(props)
+    this.state = {
+      showMessages: false,
     }
-    toolConfig.extensions[0].settings.placements =
-      this.placementsRef.generateToolConfigurationPart()
+  }
+
+  generateToolConfiguration = (): ToolConfiguration => {
+    const toolConfig: ToolConfiguration = {
+      ...this.requiredRef!.generateToolConfigurationPart(),
+      scopes: this.servicesRef!.generateToolConfigurationPart(),
+      ...this.additionalRef!.generateToolConfigurationPart(),
+    }
+    if (toolConfig.extensions && toolConfig.extensions[0]) {
+      toolConfig.extensions[0].settings = toolConfig.extensions[0].settings || {}
+      toolConfig.extensions[0].settings.placements =
+        this.placementsRef!.generateToolConfigurationPart()
+    }
     return toolConfig
   }
 
-  valid = () => {
+  valid = (): boolean => {
     this.setState({showMessages: true})
     return (
-      this.requiredRef.valid() &&
-      this.servicesRef.valid() &&
-      this.additionalRef.valid() &&
-      this.placementsRef.valid()
+      this.requiredRef!.valid() &&
+      this.servicesRef!.valid() &&
+      this.additionalRef!.valid() &&
+      this.placementsRef!.valid()
     )
   }
 
-  setRequiredRef = node => (this.requiredRef = node)
+  setRequiredRef = (node: RequiredValues | null) => {
+    if (node) this.requiredRef = node
+  }
 
-  setServicesRef = node => (this.servicesRef = node)
+  setServicesRef = (node: Services | null) => {
+    if (node) this.servicesRef = node
+  }
 
-  setAdditionalRef = node => (this.additionalRef = node)
+  setAdditionalRef = (node: AdditionalSettings | null) => {
+    if (node) this.additionalRef = node
+  }
 
-  setPlacementsRef = node => (this.placementsRef = node)
+  setPlacementsRef = (node: Placements | null) => {
+    if (node) this.placementsRef = node
+  }
 
   additionalSettings = () => {
     const {toolConfiguration} = this.props
@@ -91,13 +129,13 @@ export default class ManualConfigurationForm extends React.Component {
         >
           <RequiredValues
             ref={this.setRequiredRef}
-            toolConfiguration={toolConfiguration}
+            toolConfiguration={toolConfiguration || {}}
             showMessages={this.state.showMessages}
           />
           <Services
             ref={this.setServicesRef}
             validScopes={validScopes}
-            scopes={toolConfiguration.scopes}
+            scopes={toolConfiguration?.scopes}
           />
           <AdditionalSettings
             ref={this.setAdditionalRef}
@@ -110,13 +148,4 @@ export default class ManualConfigurationForm extends React.Component {
       </View>
     )
   }
-}
-
-ManualConfigurationForm.propTypes = {
-  toolConfiguration: PropTypes.object,
-  validScopes: PropTypes.object.isRequired,
-}
-
-ManualConfigurationForm.defaultProps = {
-  toolConfiguration: {},
 }

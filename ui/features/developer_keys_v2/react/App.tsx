@@ -16,17 +16,23 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// @ts-expect-error
 import {Button} from '@instructure/ui-buttons'
+// @ts-expect-error
 import {Heading} from '@instructure/ui-heading'
+// @ts-expect-error
 import {Spinner} from '@instructure/ui-spinner'
+// @ts-expect-error
 import {Tabs} from '@instructure/ui-tabs'
+// @ts-expect-error
 import {View} from '@instructure/ui-view'
+// @ts-expect-error
 import {Text} from '@instructure/ui-text'
+// @ts-expect-error
 import {Alert} from '@instructure/ui-alerts'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import PropTypes from 'prop-types'
 import AdminTable from './AdminTable'
 import InheritedTable from './InheritedTable'
 import DeveloperKey from './DeveloperKey'
@@ -34,6 +40,7 @@ import NewKeyModal from './NewKeyModal'
 import {showFlashAlert, showFlashSuccess} from '@canvas/alerts/react/FlashAlert'
 import DateHelper from '@canvas/datetime/dateHelper'
 import {DynamicRegistrationModal} from './dynamic_registration/DynamicRegistrationModal'
+// @ts-expect-error
 import {Flex} from '@instructure/ui-flex'
 
 const I18n = createI18nScope('react_developer_keys')
@@ -360,35 +367,32 @@ class DeveloperKeysApp extends React.Component {
   }
 }
 
-DeveloperKeysApp.propTypes = {
-  store: PropTypes.shape({
-    dispatch: PropTypes.func.isRequired,
+DeveloperKeysApp).isRequired,
+  actions: shape({
+    developerKeysModalOpen: func.isRequired,
+    getRemainingDeveloperKeys: func.isRequired,
+    getRemainingInheritedDeveloperKeys: func.isRequired,
+    editDeveloperKey: func.isRequired,
   }).isRequired,
-  actions: PropTypes.shape({
-    developerKeysModalOpen: PropTypes.func.isRequired,
-    getRemainingDeveloperKeys: PropTypes.func.isRequired,
-    getRemainingInheritedDeveloperKeys: PropTypes.func.isRequired,
-    editDeveloperKey: PropTypes.func.isRequired,
-  }).isRequired,
-  applicationState: PropTypes.shape({
-    createOrEditDeveloperKey: PropTypes.shape({
-      developerKeyCreateOrEditFailed: PropTypes.bool.isRequired,
-      developerKeyCreateOrEditSuccessful: PropTypes.bool.isRequired,
+  applicationState: shape({
+    createOrEditDeveloperKey: shape({
+      developerKeyCreateOrEditFailed: bool.isRequired,
+      developerKeyCreateOrEditSuccessful: bool.isRequired,
     }),
-    listDeveloperKeys: PropTypes.shape({
-      nextPage: PropTypes.string,
-      listDeveloperKeysPending: PropTypes.bool.isRequired,
-      listDeveloperKeysSuccessful: PropTypes.bool.isRequired,
-      nextInheritedPage: PropTypes.string,
-      listInheritedDeveloperKeysPending: PropTypes.bool.isRequired,
-      listInheritedDeveloperKeysSuccessful: PropTypes.bool.isRequired,
-      list: PropTypes.arrayOf(DeveloperKey.propTypes.developerKey).isRequired,
-      inheritedList: PropTypes.arrayOf(DeveloperKey.propTypes.developerKey).isRequired,
+    listDeveloperKeys: shape({
+      nextPage: string,
+      listDeveloperKeysPending: bool.isRequired,
+      listDeveloperKeysSuccessful: bool.isRequired,
+      nextInheritedPage: string,
+      listInheritedDeveloperKeysPending: bool.isRequired,
+      listInheritedDeveloperKeysSuccessful: bool.isRequired,
+      list: arrayOf(DeveloperKey.propTypes.developerKey).isRequired,
+      inheritedList: arrayOf(DeveloperKey.propTypes.developerKey).isRequired,
     }).isRequired,
   }).isRequired,
-  ctx: PropTypes.shape({
-    params: PropTypes.shape({
-      contextId: PropTypes.string.isRequired,
+  ctx: shape({
+    params: shape({
+      contextId: string.isRequired,
     }),
   }).isRequired,
 }

@@ -18,17 +18,26 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import {bool, func, number, shape, string} from 'prop-types'
 
+// @ts-expect-error
 import {Button, CloseButton, IconButton} from '@instructure/ui-buttons'
+// @ts-expect-error
 import {View} from '@instructure/ui-view'
+// @ts-expect-error
 import {Flex} from '@instructure/ui-flex'
+// @ts-expect-error
 import {IconExternalLinkLine, IconLtiLine} from '@instructure/ui-icons'
+// @ts-expect-error
 import {Tooltip} from '@instructure/ui-tooltip'
+// @ts-expect-error
 import {Popover} from '@instructure/ui-popover'
+// @ts-expect-error
 import {Link} from '@instructure/ui-link'
+// @ts-expect-error
 import {Img} from '@instructure/ui-img'
+// @ts-expect-error
 import {Table} from '@instructure/ui-table'
+// @ts-expect-error
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {datetimeString} from '@canvas/datetime/date-functions'
 
@@ -274,10 +283,7 @@ class DeveloperKey extends React.Component {
   }
 }
 
-DeveloperKey.propTypes = {
-  store: shape({
-    dispatch: func.isRequired,
-  }).isRequired,
+DeveloperKey).isRequired,
   actions: shape({
     makeVisibleDeveloperKey: func.isRequired,
     makeInvisibleDeveloperKey: func.isRequired,
@@ -307,6 +313,6 @@ DeveloperKey.propTypes = {
   onDelete: func.isRequired,
 }
 
-DeveloperKey.defaultProps = {inherited: false}
+DeveloperKey
 
 export default DeveloperKey

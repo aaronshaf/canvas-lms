@@ -15,11 +15,20 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import PropTypes from 'prop-types'
 import React from 'react'
+// @ts-expect-error
 import {Pill} from '@instructure/ui-pill'
 
-export default class ScopesMethod extends React.Component {
+interface ScopesMethodProps {
+  method: string
+  margin?: string
+}
+
+export default class ScopesMethod extends React.Component<ScopesMethodProps> {
+  static defaultProps = {
+    margin: undefined,
+  }
+
   methodColorMap() {
     return {
       get: 'primary',
@@ -41,13 +50,4 @@ export default class ScopesMethod extends React.Component {
       </Pill>
     )
   }
-}
-
-ScopesMethod.propTypes = {
-  method: PropTypes.string.isRequired,
-  margin: PropTypes.string,
-}
-
-ScopesMethod.defaultProps = {
-  margin: undefined,
 }

@@ -17,20 +17,52 @@
  */
 import {useScope as createI18nScope} from '@canvas/i18n'
 import LazyLoad from 'react-lazy-load'
-import PropTypes from 'prop-types'
 import React from 'react'
+// @ts-expect-error
 import {View} from '@instructure/ui-view'
+// @ts-expect-error
 import {Flex} from '@instructure/ui-flex'
+// @ts-expect-error
 import {ScreenReaderContent, PresentationContent} from '@instructure/ui-a11y-content'
+// @ts-expect-error
 import {Text} from '@instructure/ui-text'
+// @ts-expect-error
 import {Checkbox} from '@instructure/ui-checkbox'
 import ScopesGroup from './ScopesGroup'
 import ScopesMethod from './ScopesMethod'
 
 const I18n = createI18nScope('react_developer_keys')
 
-export default class ScopesList extends React.Component {
-  constructor(props) {
+interface ScopeInfo {
+  resource: string
+  scope: string
+  verb: string
+  path?: string
+}
+
+type AvailableScopes = Record<string, ScopeInfo[]>
+
+interface ScopesListProps {
+  dispatch: (action: any) => void
+  listDeveloperKeyScopesSet: (scopes: string[]) => any
+  availableScopes: AvailableScopes
+  filter: string
+  selectedScopes?: string[]
+}
+
+interface ScopesListState {
+  formattedScopesArray: Array<Record<string, ScopeInfo[]>>
+  availableScopes: Array<Record<string, ScopeInfo[]>>
+  selectedScopes: string[]
+  readOnlySelected: boolean
+}
+
+export default class ScopesList extends React.Component<ScopesListProps, ScopesListState> {
+  static defaultProps = {
+    selectedScopes: [],
+  }
+
+  constructor(props: ScopesListProps) {
     super(props)
     const formattedScopesArray = Object.keys(this.props.availableScopes).map(k => ({
       [k]: this.props.availableScopes[k],
@@ -39,8 +71,8 @@ export default class ScopesList extends React.Component {
     this.state = {
       formattedScopesArray,
       availableScopes: formattedScopesArray.slice(0, 8), // Only load 8 groups on initial render
-      selectedScopes: this.props.selectedScopes,
-      readOnlySelected: this.onlySelectGet(this.uniqueSelectedScopes(this.props.selectedScopes)),
+      selectedScopes: this.props.selectedScopes || [],
+      readOnlySelected: this.onlySelectGet(this.uniqueSelectedScopes(this.props.selectedScopes || [])),
     }
   }
 
@@ -48,7 +80,7 @@ export default class ScopesList extends React.Component {
     this.delayedRender()
   }
 
-  onlySelectGet(selectedScopes) {
+  onlySelectGet(selectedScopes: string[]) {
     const allAvailableGetScopes = this.availableGetScopes()
     if (selectedScopes.length !== allAvailableGetScopes.length) {
       return false
@@ -60,7 +92,7 @@ export default class ScopesList extends React.Component {
     return true
   }
 
-  setSelectedScopes = scope => {
+  setSelectedScopes = (scope: string[]) => {
     const selectedScopes = this.uniqueSelectedScopes(scope)
     this.setState({
       selectedScopes,
@@ -69,7 +101,7 @@ export default class ScopesList extends React.Component {
     this.props.dispatch(this.props.listDeveloperKeyScopesSet(selectedScopes))
   }
 
-  uniqueSelectedScopes(selectedScopes) {
+  uniqueSelectedScopes(selectedScopes: string[]) {
     return [...new Set(selectedScopes)]
   }
 
@@ -80,8 +112,8 @@ export default class ScopesList extends React.Component {
     }, 0)
   }
 
-  handleReadOnlySelected = event => {
-    let newScopes = []
+  handleReadOnlySelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    let newScopes: string[] = []
     if (event.currentTarget.checked) {
       newScopes = this.availableGetScopes()
     } else {
@@ -106,8 +138,8 @@ export default class ScopesList extends React.Component {
       .map(s => s.scope)
   }
 
-  allScopes(availableScopes) {
-    return Object.values(availableScopes).reduce((accumulator, currentValue) => {
+  allScopes(availableScopes: AvailableScopes): ScopeInfo[] {
+    return Object.values(availableScopes).reduce<ScopeInfo[]>((accumulator, currentValue) => {
       return accumulator.concat(currentValue)
     }, [])
   }
@@ -145,7 +177,7 @@ export default class ScopesList extends React.Component {
             </Flex.Item>
             <Flex.Item shouldGrow={true} shouldShrink={true}>
               {this.state.availableScopes.map(scopeGroup => {
-                return Object.keys(scopeGroup).reduce((result, key) => {
+                return Object.keys(scopeGroup).reduce<React.ReactNode[]>((result, key) => {
                   const groupMatchesFilter =
                     this.noFilter() || key.toLowerCase().includes(this.props.filter.toLowerCase())
                   const scopeMatchesFilter = scopeGroup[key].some(s =>
@@ -186,23 +218,4 @@ export default class ScopesList extends React.Component {
       </div>
     )
   }
-}
-
-ScopesList.propTypes = {
-  dispatch: PropTypes.func.isRequired,
-  listDeveloperKeyScopesSet: PropTypes.func.isRequired,
-  availableScopes: PropTypes.objectOf(
-    PropTypes.arrayOf(
-      PropTypes.shape({
-        resource: PropTypes.string,
-        scope: PropTypes.string,
-      }),
-    ),
-  ).isRequired,
-  filter: PropTypes.string.isRequired,
-  selectedScopes: PropTypes.arrayOf(PropTypes.string),
-}
-
-ScopesList.defaultProps = {
-  selectedScopes: [],
 }
