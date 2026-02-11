@@ -19,6 +19,15 @@
 import $ from 'jquery'
 import ready from '@instructure/ready'
 
+// Narrow the ENV type to include locale-specific properties
+declare global {
+  interface Window {
+    ENV: {
+      crowdsourced_locales: string[]
+    }
+  }
+}
+
 ready(() => {
   const $select = $('select.locale')
 
@@ -26,7 +35,8 @@ ready(() => {
   $warningLink.hide()
 
   function checkWarningIcon() {
-    if (Array.from(ENV.crowdsourced_locales).includes($select.val())) {
+    const selectedLocale = $select.val()
+    if (typeof selectedLocale === 'string' && ENV.crowdsourced_locales.includes(selectedLocale)) {
       $warningLink.show()
     } else {
       $warningLink.hide()
