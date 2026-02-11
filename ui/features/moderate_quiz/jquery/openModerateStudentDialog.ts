@@ -17,11 +17,12 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import type JQuery from 'jquery'
 import 'jqueryui/dialog'
 
 const I18n = createI18nScope('quizzes.openModerateStudentDialog')
 
-const openModerateStudentDialog = ($dialog, dialogWidth) => {
+const openModerateStudentDialog = ($dialog: JQuery, dialogWidth: number): JQuery => {
   const dialog = $dialog
     .dialog({
       title: I18n.t('Student Extensions'),
