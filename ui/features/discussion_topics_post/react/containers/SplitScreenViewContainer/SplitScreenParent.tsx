@@ -52,7 +52,6 @@ export const SplitScreenParent = ({isEditing, setIsEditing, ...props}) => {
   const [updateSplitScreenViewDeeplyNestedAlert] = useMutation(
     UPDATE_SPLIT_SCREEN_VIEW_DEEPLY_NESTED_ALERT,
   )
-  // @ts-expect-error TS2345 (typescriptify)
   const {toggleUnread, updateDiscussionThreadReadState} = useUpdateDiscussionThread({
     discussionEntry: props.discussionEntry,
     discussionTopic: props.discussionTopic,

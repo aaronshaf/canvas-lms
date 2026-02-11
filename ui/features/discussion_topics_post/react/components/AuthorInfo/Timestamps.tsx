@@ -81,8 +81,8 @@ const Timestamps = (props: TimestampsProps) => {
           ) : (
             I18n.t('Edited by %{editorName} %{editedTimingDisplay}', {
               editorName: userNameToShow(
-                props.editor.displayName || props.editor.shortName,
-                props.author._id,
+                props.editor.displayName || props.editor.shortName || '',
+                props.author._id ?? '',
                 props.editor.courseRoles,
               ),
               editedTimingDisplay: props.editedTimingDisplay,
@@ -109,19 +109,19 @@ const Timestamps = (props: TimestampsProps) => {
     // show basic date for replies
     if (!props.isTopic) {
       if (props.container === 'pinned') {
-        return I18n.t('Posted on %{createdAt}', {createdAt: props.createdAt})
+        return I18n.t('Posted on %{createdAt}', {createdAt: props.createdAt ?? ''})
       } else {
-        return props.createdAt
+        return props.createdAt ?? ''
       }
     }
     // show the original created date for teachers
     if (isTeacher) {
-      return I18n.t('Created %{createdAt}', {createdAt: props.createdAt})
+      return I18n.t('Created %{createdAt}', {createdAt: props.createdAt ?? ''})
     } else {
       // don't show the created date for students if the post is delayed
       return props.delayedPostAt
         ? null
-        : I18n.t('Posted %{createdAt}', {createdAt: props.createdAt})
+        : I18n.t('Posted %{createdAt}', {createdAt: props.createdAt ?? ''})
     }
   }, [isTeacher, props.createdAt, props.delayedPostAt, props.isTopic, props.container])
 
@@ -139,7 +139,7 @@ const Timestamps = (props: TimestampsProps) => {
     if (!props.isTopic) return null
     // duplicate createdAt for teachers if the post is instant
     if (isTeacher && !props.delayedPostAt && props.createdAt && props.published) {
-      return I18n.t('Posted %{createdAt}', {createdAt: props.createdAt})
+      return I18n.t('Posted %{createdAt}', {createdAt: props.createdAt ?? ''})
     }
     if (props.delayedPostAt) {
       // announcements are "published" always, so we need to compare dates

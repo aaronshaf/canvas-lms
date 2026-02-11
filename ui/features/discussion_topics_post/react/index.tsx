@@ -45,7 +45,9 @@ export const DiscussionTopicsPost = (props: DiscussionTopicsPostProps) => {
 
   useEffect(() => {
     const setupApolloClient = async () => {
+      // @ts-expect-error - ENV property
       if (ENV.apollo_caching) {
+        // @ts-expect-error - ENV property
         const cache = await createPersistentCache(ENV.discussion_cache_key)
         setClient(createClient({cache}))
       } else {
@@ -62,7 +64,7 @@ export const DiscussionTopicsPost = (props: DiscussionTopicsPostProps) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ApolloProvider client={client}>
+      <ApolloProvider client={client!}>
         <ErrorBoundary
           errorComponent={
             <GenericErrorPage
@@ -71,6 +73,7 @@ export const DiscussionTopicsPost = (props: DiscussionTopicsPostProps) => {
             />
           }
         >
+          {/* @ts-expect-error - WithBreakpoints wrapper issue */}
           <AlertManager>
             <DiscussionTopicManager
               discussionTopicId={props.discussionTopicId}

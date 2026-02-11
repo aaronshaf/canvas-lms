@@ -136,8 +136,8 @@ const useTranslation = () => {
       }
 
       return await Promise.all([
-        getTranslation(title, language, signal),
-        getTranslation(message, language, signal),
+        getTranslation(title ?? '', language, signal),
+        getTranslation(message ?? '', language, signal),
       ])
     },
     [],
@@ -165,7 +165,7 @@ const useTranslation = () => {
         }
 
         setTranslationStart(entryId)
-        const [translatedTitle, translatedMessage] = await getTranslations(
+        const result = await getTranslations(
           {
             language,
             entryId,
@@ -175,6 +175,8 @@ const useTranslation = () => {
           signal,
         )
 
+        if (!result) return
+        const [translatedTitle, translatedMessage] = result
         // Check if aborted after translation completes
         if (signal?.aborted) {
           return

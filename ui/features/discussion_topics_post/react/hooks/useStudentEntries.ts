@@ -69,7 +69,13 @@ interface StudentEntriesResult {
   pageInfo: PageInfo
 }
 
-async function getStudentEntries({queryKey, pageParam}: QueryFunctionContext<[string, string, number, number, string | null], string | null>): Promise<StudentEntriesResult> {
+async function getStudentEntries({
+  queryKey,
+  pageParam,
+}: {
+  queryKey: [string, string, number, number, string | null]
+  pageParam: string | null
+}): Promise<StudentEntriesResult> {
   // queryKey structure:
   // ['studentEntries', discussionID, perPage, discussionPageAmount, userSearchId]
   const [_key, discussionID, perPage, discussionPageAmount, userSearchId] = queryKey
@@ -77,7 +83,7 @@ async function getStudentEntries({queryKey, pageParam}: QueryFunctionContext<[st
   const cursor = pageParam || null
 
   try {
-    const result = await executeQuery(STUDENT_DISCUSSION_QUERY, {
+    const result: any = await executeQuery(STUDENT_DISCUSSION_QUERY, {
       discussionID,
       perPage,
       discussionPageAmount,
@@ -86,7 +92,7 @@ async function getStudentEntries({queryKey, pageParam}: QueryFunctionContext<[st
     })
 
     if (result.errors) {
-      throw new Error(result.errors.map(err => err.message).join(', '))
+      throw new Error(result.errors.map((err: any) => err.message).join(', '))
     }
 
     const discussionEntriesConnection = result.legacyNode?.discussionEntriesConnection
@@ -120,6 +126,7 @@ export function useStudentEntries(
 ) {
   return useInfiniteQuery({
     queryKey: ['studentEntries', discussionID, perPage, discussionPageAmount, userSearchId],
+    // @ts-expect-error - QueryFunctionContext type mismatch
     queryFn: getStudentEntries,
     getNextPageParam: (lastPage: StudentEntriesResult) =>
       lastPage.pageInfo.hasNextPage ? lastPage.pageInfo.endCursor : undefined,

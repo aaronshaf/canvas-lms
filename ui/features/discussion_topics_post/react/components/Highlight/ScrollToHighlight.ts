@@ -23,7 +23,10 @@ interface ScrollableParent {
   scrollToY: (y: number) => void
 }
 
-async function scrollToHighlight(element: HTMLElement | null, _window: Window = window): Promise<ScrollResult> {
+async function scrollToHighlight(
+  element: HTMLElement | null,
+  _window: Window = window,
+): Promise<ScrollResult> {
   const scrollableParent: ScrollableParent = (() => {
     const drawerLayoutContent = _window.document.getElementById('discussion-drawer-layout')
     if (drawerLayoutContent) {
@@ -52,7 +55,7 @@ async function scrollToHighlight(element: HTMLElement | null, _window: Window = 
   const WAIT_FOR_ADDITIONAL_SCROLL_SECONDS = 3
   const activeElementAtStart = _window.document.activeElement
   if (!element) return 'NO_ELEMENT_TO_SCROLL_TO'
-  const startTime = _window.Date.now()
+  const startTime = Date.now()
 
   let shouldAbortDueToInteraction = false
   const abortViaMouse = () => (shouldAbortDueToInteraction = true)
@@ -69,9 +72,9 @@ async function scrollToHighlight(element: HTMLElement | null, _window: Window = 
   let waitForAdditionalScrollSecondsLeft = WAIT_FOR_ADDITIONAL_SCROLL_SECONDS
   try {
     while (true) {
-      const now = _window.Date.now()
+      const now = Date.now()
       await new Promise<void>(resolve => _window.requestAnimationFrame(() => resolve()))
-      const deltaTimeSeconds = (_window.Date.now() - now) / 1000
+      const deltaTimeSeconds = (Date.now() - now) / 1000
       const yDifference = element.offsetTop - SCROLL_MARGIN_TOP - scrollableParent.scrollY
       const magnitude =
         Math.max(Math.abs(yDifference) * SCROLL_MAGNITUDE_MULTIPLIER, SCROLL_MAGNITUDE_MIN) *
@@ -91,7 +94,7 @@ async function scrollToHighlight(element: HTMLElement | null, _window: Window = 
       if (
         // Abort to give scroll control back to the user if:
         waitForAdditionalScrollSecondsLeft <= 0 || // The element has not moved and we didn't scroll in WAIT_FOR_ADDITIONAL_SCROLL_SECONDS. Abort.
-        _window.Date.now() - startTime > EXPIRE_AFTER_MS || // We've been scrolling for too long. Abort.
+        Date.now() - startTime > EXPIRE_AFTER_MS || // We've been scrolling for too long. Abort.
         _window.document.activeElement !== activeElementAtStart || // The user interacted in a way that would change which element is focused (ex.: TAB key). Abort.
         shouldAbortDueToInteraction // The user scrolled via mouse or touchpad or "swiping", or clicked (maybe on the scroll bar?), or scrolled via keyboard. Abort.
       )

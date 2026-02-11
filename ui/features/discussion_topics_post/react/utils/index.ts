@@ -30,8 +30,11 @@ import {loadErrorMessages, loadDevMessages} from '@apollo/client/dev'
 import type {ApolloCache} from '@apollo/client'
 
 const I18n = createI18nScope('discussion_topics_post')
-
-export const getSpeedGraderUrl = (authorId: string | null = null, entryId: string | null = null): string => {
+export const getSpeedGraderUrl = (
+  authorId: string | null = null,
+  entryId: string | null = null,
+): string => {
+  // @ts-expect-error - ENV property
   let speedGraderUrl = ENV.SPEEDGRADER_URL_TEMPLATE
   if (authorId !== null) {
     speedGraderUrl = speedGraderUrl.replace(/%3Astudent_id/, authorId)
@@ -48,7 +51,11 @@ export const getGroupDiscussionUrl = (groupId: string, childDiscussionId: string
   return `/groups/${groupId}/discussion_topics/${childDiscussionId}`
 }
 
-export const getReviewLinkUrl = (courseId: string, assignmentId: string, revieweeId: string): string => {
+export const getReviewLinkUrl = (
+  courseId: string,
+  assignmentId: string,
+  revieweeId: string,
+): string => {
   return `/courses/${courseId}/assignments/${assignmentId}/submissions/${revieweeId}`
 }
 
@@ -85,7 +92,11 @@ export const updateDiscussionTopicEntryCounts = (
   }
 }
 
-export const updateDiscussionEntryRootEntryCounts = (cache: ApolloCache<any>, discussionEntry: any, unreadCountChange: number): void => {
+export const updateDiscussionEntryRootEntryCounts = (
+  cache: ApolloCache<any>,
+  discussionEntry: any,
+  unreadCountChange: number,
+): void => {
   const discussionEntryOptions = {
     id: btoa('DiscussionEntry-' + discussionEntry.rootEntryId),
     fragment: DiscussionEntry.fragment,
@@ -101,7 +112,11 @@ export const updateDiscussionEntryRootEntryCounts = (cache: ApolloCache<any>, di
   })
 }
 
-export const addReplyToDiscussionEntry = (cache: ApolloCache<any>, variables: any, newDiscussionEntry: any): boolean | undefined => {
+export const addReplyToDiscussionEntry = (
+  cache: ApolloCache<any>,
+  variables: any,
+  newDiscussionEntry: any,
+): boolean | undefined => {
   try {
     // Creates an object containing the data that needs to be updated
     // Writes that new data to the cache using the id of the object
@@ -170,7 +185,9 @@ export const addReplyToDiscussionEntry = (cache: ApolloCache<any>, variables: an
 
       if (parentQueryData) {
         const nodes = parentQueryData.legacyNode.discussionSubentriesConnection.nodes
-        const entryIndex = nodes.findIndex(entry => entry._id === newDiscussionEntry.parentId)
+        const entryIndex = nodes.findIndex(
+          (entry: any) => entry._id === newDiscussionEntry.parentId,
+        )
         const currentEntry = nodes[entryIndex]
 
         currentEntry.subentriesCount = (currentEntry.subentriesCount || 0) + 1
@@ -190,7 +207,10 @@ export const addReplyToDiscussionEntry = (cache: ApolloCache<any>, variables: an
   }
 }
 
-export const addReplyToAllRootEntries = (cache: ApolloCache<any>, newDiscussionEntry: any): void => {
+export const addReplyToAllRootEntries = (
+  cache: ApolloCache<any>,
+  newDiscussionEntry: any,
+): void => {
   if (newDiscussionEntry.id === 'DISCUSSION_ENTRY_PLACEHOLDER') return
   const options = {
     query: DISCUSSION_ENTRY_ALL_ROOT_ENTRIES_QUERY,
@@ -248,7 +268,10 @@ const addFirstReplyToAllRootEntries = (cache: ApolloCache<any>, newDiscussionEnt
   }
 }
 
-export const addSubentriesCountToParentEntry = (cache: ApolloCache<any>, newDiscussionEntry: any): void => {
+export const addSubentriesCountToParentEntry = (
+  cache: ApolloCache<any>,
+  newDiscussionEntry: any,
+): void => {
   // If the new discussion entry is a reply to a reply, update the subentries count on the parent entry.
   // Otherwise, it already happens correctly in the root entry level.
   if (newDiscussionEntry.parentId !== newDiscussionEntry.rootEntryId) {
@@ -285,7 +308,10 @@ export const addSubentriesCountToParentEntry = (cache: ApolloCache<any>, newDisc
   }
 }
 
-export const resolveAuthorRoles = (isAuthor: boolean, discussionRoles?: string[]): string[] | undefined => {
+export const resolveAuthorRoles = (
+  isAuthor: boolean,
+  discussionRoles?: string[],
+): string[] | undefined => {
   if (isAuthor && discussionRoles) {
     return discussionRoles.concat('Author')
   }
@@ -308,7 +334,11 @@ interface QuerySizes {
   desktop?: {minWidth: string}
 }
 
-export const responsiveQuerySizes = ({mobile = false, tablet = false, desktop = false}: ResponsiveQuerySizesOptions = {}): QuerySizes => {
+export const responsiveQuerySizes = ({
+  mobile = false,
+  tablet = false,
+  desktop = false,
+}: ResponsiveQuerySizesOptions = {}): QuerySizes => {
   const querySizes: QuerySizes = {}
   if (mobile) {
     querySizes.mobile = {maxWidth: '767px'}
@@ -472,8 +502,8 @@ export const buildQuotedReply = (nodes: any[], previewId: string): any => {
   })
   return preview
 }
-
 export const isAnonymous = (discussionEntry: any): boolean =>
+  // @ts-expect-error - ENV property
   ENV.discussion_anonymity_enabled &&
   discussionEntry.anonymousAuthor !== null &&
   discussionEntry.author === null
@@ -482,7 +512,11 @@ const urlParams = new URLSearchParams(window.location.search)
 const hiddenUserId = urlParams.get('hidden_user_id')
 export const hideStudentNames = !!hiddenUserId
 
-export const userNameToShow = (originalName: string, authorId: string, course_roles?: string[]): string => {
+export const userNameToShow = (
+  originalName: string,
+  authorId: string,
+  course_roles?: string[],
+): string => {
   if (hideStudentNames && course_roles?.includes('StudentEnrollment')) {
     return hiddenUserId === authorId ? I18n.t('This Student') : I18n.t('Discussion Participant')
   }
@@ -514,6 +548,7 @@ export const showErrorWhenMessageTooLong = (message: string): boolean => {
   // this ENV var
   //
   // backend limitation is 64Kb -1
+  // @ts-expect-error - ENV property
   const limit = ENV.DISCUSSION_ENTRY_SIZE_LIMIT || 63999
   const tooLong = new Blob([message]).size > limit
   if (tooLong === true) {
@@ -524,7 +559,11 @@ export const showErrorWhenMessageTooLong = (message: string): boolean => {
   return false
 }
 
-export const getTranslation = async (text: string, translateTargetLanguage: string, signal?: AbortSignal): Promise<string | undefined> => {
+export const getTranslation = async (
+  text: string,
+  translateTargetLanguage: string,
+  signal?: AbortSignal,
+): Promise<string | undefined> => {
   if (!text) return
 
   // Check if already aborted before making the request
@@ -557,7 +596,7 @@ export const getTranslation = async (text: string, translateTargetLanguage: stri
       throw error
     }
 
-    return json.translated_text
+    return (json as any).translated_text
   } catch (e: any) {
     // If the request was aborted, throw a specific error
     if (e.name === 'AbortError' || signal?.aborted) {
