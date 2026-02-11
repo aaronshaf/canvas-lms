@@ -16,29 +16,56 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
 import React from 'react'
+// @ts-expect-error
 import {Checkbox} from '@instructure/ui-checkbox'
+// @ts-expect-error
 import {View} from '@instructure/ui-view'
+// @ts-expect-error
 import {Flex} from '@instructure/ui-flex'
+// @ts-expect-error
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
+// @ts-expect-error
 import {Text} from '@instructure/ui-text'
+// @ts-expect-error
 import {ToggleDetails} from '@instructure/ui-toggle-details'
 import ScopesMethod from './ScopesMethod'
 import DeveloperKeyScope from './Scope'
 
 const I18n = createI18nScope('react_developer_keys')
 
-export default class ScopesGroup extends React.Component {
-  state = {groupChecked: this.allScopesAreSelected(this.props)}
+interface ScopeInfo {
+  scope: string
+  verb: string
+  resource: string
+  path?: string
+}
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+interface ScopesGroupProps {
+  setSelectedScopes: (scopes: string[]) => void
+  scopes: ScopeInfo[]
+  selectedScopes: string[]
+  name: string
+  expanded?: boolean
+}
+
+interface ScopesGroupState {
+  groupChecked: boolean
+}
+
+export default class ScopesGroup extends React.Component<ScopesGroupProps, ScopesGroupState> {
+  constructor(props: ScopesGroupProps) {
+    super(props)
+    this.state = {groupChecked: this.allScopesAreSelected(this.props)}
+  }
+
+  UNSAFE_componentWillReceiveProps(nextProps: ScopesGroupProps) {
     this.setState({
       groupChecked: this.allScopesAreSelected(nextProps),
     })
   }
 
-  shouldComponentUpdate(nextProps, _nextState) {
+  shouldComponentUpdate(nextProps: ScopesGroupProps, _nextState: ScopesGroupState) {
     // Get the symmetric difference of old selected scopes and new selected scopes
     const selectedDiff = nextProps.selectedScopes
       .filter(scope => !this.props.selectedScopes.includes(scope))
@@ -51,7 +78,7 @@ export default class ScopesGroup extends React.Component {
     return false
   }
 
-  allScopesAreSelected(props) {
+  allScopesAreSelected(props: ScopesGroupProps) {
     const allScopes = this.allScopesInGroup()
     const diff = allScopes.filter(s => !props.selectedScopes.includes(s))
     return diff.length === 0
@@ -64,7 +91,7 @@ export default class ScopesGroup extends React.Component {
       }
 
       return result
-    }, new Set())
+    }, new Set<string>())
 
     return (
       <span>
@@ -94,9 +121,9 @@ export default class ScopesGroup extends React.Component {
     return this.props.scopes.map(s => s.scope)
   }
 
-  handleGroupChange = event => {
+  handleGroupChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const scopesInGroup = this.allScopesInGroup()
-    let newScopes = []
+    let newScopes: string[] = []
 
     if (event.currentTarget.checked) {
       newScopes = scopesInGroup.concat(this.props.selectedScopes)
@@ -110,7 +137,7 @@ export default class ScopesGroup extends React.Component {
     })
   }
 
-  handleSingleChange = event => {
+  handleSingleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     let newScopes = this.props.selectedScopes.slice()
     const checkbox = event.currentTarget
 
@@ -164,17 +191,4 @@ export default class ScopesGroup extends React.Component {
       </View>
     )
   }
-}
-
-ScopesGroup.propTypes = {
-  setSelectedScopes: PropTypes.func.isRequired,
-  scopes: PropTypes.arrayOf(
-    PropTypes.shape({
-      scope: PropTypes.string,
-      verb: PropTypes.string.isRequired,
-    }),
-  ).isRequired,
-  selectedScopes: PropTypes.arrayOf(PropTypes.string).isRequired,
-  name: PropTypes.string.isRequired,
-  expanded: PropTypes.bool,
 }

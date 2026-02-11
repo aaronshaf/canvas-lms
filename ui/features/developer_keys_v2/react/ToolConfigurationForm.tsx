@@ -16,18 +16,25 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
-import React, {createRef} from 'react'
+import React, {createRef, RefObject} from 'react'
 
+// @ts-expect-error
 import {Heading} from '@instructure/ui-heading'
+// @ts-expect-error
 import {SimpleSelect} from '@instructure/ui-simple-select'
+// @ts-expect-error
 import {TextArea} from '@instructure/ui-text-area'
+// @ts-expect-error
 import {TextInput} from '@instructure/ui-text-input'
+// @ts-expect-error
 import {Grid} from '@instructure/ui-grid'
+// @ts-expect-error
 import {View} from '@instructure/ui-view'
+// @ts-expect-error
 import {Button} from '@instructure/ui-buttons'
 
 import ManualConfigurationForm from './ManualConfigurationForm/index'
+import type {ToolConfiguration} from './types'
 
 const I18n = createI18nScope('react_developer_keys')
 
@@ -39,11 +46,44 @@ const validationMessage = {
   ],
 }
 
-export default class ToolConfigurationForm extends React.Component {
-  state = {
-    isUrlValid: true,
-    jsonUrl: this.props.toolConfigurationUrl || '',
-    showMessages: false,
+interface ToolConfigurationFormProps {
+  toolConfiguration: ToolConfiguration
+  toolConfigurationUrl?: string
+  validScopes: Record<string, string>
+  editing: boolean
+  showRequiredMessages: boolean
+  updateToolConfigurationUrl: (url: string) => void
+  configurationMethod: string
+  updateConfigurationMethod: (method: string) => void
+  prettifyPastedJson: () => void
+  invalidJson?: string | null
+  jsonString?: string
+  updatePastedJson?: (json: string, cursorAtEnd: boolean) => void
+  canPrettify?: boolean
+}
+
+interface ToolConfigurationFormState {
+  isUrlValid: boolean
+  jsonUrl: string
+  showMessages: boolean
+}
+
+export default class ToolConfigurationForm extends React.Component<
+  ToolConfigurationFormProps,
+  ToolConfigurationFormState
+> {
+  private isValid = true
+  private jsonRef: RefObject<HTMLTextAreaElement> = createRef()
+  private urlRef: RefObject<HTMLInputElement> = createRef()
+  private manualConfigRef?: ManualConfigurationForm
+
+  constructor(props: ToolConfigurationFormProps) {
+    super(props)
+    this.state = {
+      isUrlValid: true,
+      jsonUrl: this.props.toolConfigurationUrl || '',
+      showMessages: false,
+    }
   }
 
   get toolConfiguration() {
@@ -57,33 +97,40 @@ export default class ToolConfigurationForm extends React.Component {
     return toolConfiguration ? JSON.stringify(toolConfiguration, null, 4) : ''
   }
 
-  generateToolConfiguration = () => {
-    return this.manualConfigRef.generateToolConfiguration()
+  generateToolConfiguration = (): ToolConfiguration => {
+    return this.manualConfigRef!.generateToolConfiguration()
   }
 
-  jsonRef = createRef()
-  urlRef = createRef()
-
-  validateUrlField = (fieldValue, fieldStateKey, fieldRef) => {
+  validateUrlField = (
+    fieldValue: string,
+    fieldStateKey: keyof ToolConfigurationFormState,
+    fieldRef: RefObject<HTMLInputElement>,
+  ) => {
     if (!fieldValue || (fieldValue && !URL.canParse(fieldValue))) {
-      this.setState({[fieldStateKey]: false})
+      this.setState({[fieldStateKey]: false} as Pick<
+        ToolConfigurationFormState,
+        keyof ToolConfigurationFormState
+      >)
       if (this.isValid) {
-        fieldRef.current.focus()
+        fieldRef.current?.focus()
         this.isValid = false
       }
     } else {
-      this.setState({[fieldStateKey]: true})
+      this.setState({[fieldStateKey]: true} as Pick<
+        ToolConfigurationFormState,
+        keyof ToolConfigurationFormState
+      >)
     }
   }
 
-  valid = () => {
+  valid = (): boolean => {
     this.isValid = true
 
     if (this.isManual()) {
-      return this.manualConfigRef.valid()
+      return this.manualConfigRef!.valid()
     } else if (this.isJson()) {
       if (this.props.invalidJson || this.toolConfiguration === '{}') {
-        this.jsonRef.current.focus()
+        this.jsonRef.current?.focus()
         this.isValid = false
         this.setState({showMessages: true})
       }
@@ -106,11 +153,12 @@ export default class ToolConfigurationForm extends React.Component {
     return this.props.configurationMethod === 'url'
   }
 
-  updatePastedJson = e => {
-    this.props.updatePastedJson(e.target.value, e.target.selectionEnd === e.target.value.length)
+  updatePastedJson = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const target = e.target
+    this.props.updatePastedJson?.(target.value, target.selectionEnd === target.value.length)
   }
 
-  handleJsonChange = e => {
+  handleJsonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     try {
       JSON.parse(e.target.value)
       this.setState({showMessages: false})
@@ -123,21 +171,23 @@ export default class ToolConfigurationForm extends React.Component {
     }
   }
 
-  handleToolConfigUrlChange = e => {
+  handleToolConfigUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     this.setState({jsonUrl: value})
     this.validateUrlField(value, 'isUrlValid', this.urlRef)
     this.props.updateToolConfigurationUrl(value)
   }
 
-  handleConfigTypeChange = (e, option) => {
+  handleConfigTypeChange = (_e: React.SyntheticEvent, option: {value: string}) => {
     this.props.updateConfigurationMethod(option.value)
     if (option.value === 'json') {
-      this.props.updatePastedJson(this.toolConfiguration, true)
+      this.props.updatePastedJson?.(this.toolConfiguration, true)
     }
   }
 
-  setManualConfigRef = node => (this.manualConfigRef = node)
+  setManualConfigRef = (node: ManualConfigurationForm | null) => {
+    if (node) this.manualConfigRef = node
+  }
 
   jsonConfigurationInput = () => (
     <Grid>
@@ -149,7 +199,7 @@ export default class ToolConfigurationForm extends React.Component {
             onChange={this.handleJsonChange}
             label={I18n.t('LTI 1.3 Configuration')}
             textareaRef={ref => {
-              this.jsonRef.current = ref
+              ;(this.jsonRef as any).current = ref
             }}
             maxHeight="20rem"
             required={this.props.configurationMethod === 'json'}
@@ -176,7 +226,7 @@ export default class ToolConfigurationForm extends React.Component {
       value={this.state.jsonUrl}
       isRequired={this.props.configurationMethod === 'url'}
       inputRef={ref => {
-        this.urlRef.current = ref
+        ;(this.urlRef as any).current = ref
       }}
       onChange={this.handleToolConfigUrlChange}
       renderLabel={I18n.t('JSON URL')}
@@ -186,7 +236,7 @@ export default class ToolConfigurationForm extends React.Component {
     />
   )
 
-  manualConfigurationInput = visible => (
+  manualConfigurationInput = (visible: boolean) => (
     <div style={{display: visible ? undefined : 'none'}}>
       <ManualConfigurationForm
         ref={this.setManualConfigRef}
@@ -246,20 +296,4 @@ export default class ToolConfigurationForm extends React.Component {
       </Grid.Row>
     )
   }
-}
-
-ToolConfigurationForm.propTypes = {
-  toolConfiguration: PropTypes.object.isRequired,
-  toolConfigurationUrl: PropTypes.string,
-  validScopes: PropTypes.object.isRequired,
-  editing: PropTypes.bool.isRequired,
-  showRequiredMessages: PropTypes.bool.isRequired,
-  updateToolConfigurationUrl: PropTypes.func.isRequired,
-  configurationMethod: PropTypes.string.isRequired,
-  updateConfigurationMethod: PropTypes.func.isRequired,
-  prettifyPastedJson: PropTypes.func.isRequired,
-  invalidJson: PropTypes.string,
-  jsonString: PropTypes.string,
-  updatePastedJson: PropTypes.func,
-  canPrettify: PropTypes.bool,
 }

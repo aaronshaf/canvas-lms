@@ -16,15 +16,21 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
-import React, {createRef} from 'react'
+import React, {createRef, RefObject} from 'react'
 
+// @ts-expect-error
 import {FormFieldGroup} from '@instructure/ui-form-field'
+// @ts-expect-error
 import {SimpleSelect} from '@instructure/ui-simple-select'
+// @ts-expect-error
 import {TextArea} from '@instructure/ui-text-area'
+// @ts-expect-error
 import {TextInput} from '@instructure/ui-text-input'
+// @ts-expect-error
 import {PresentationContent} from '@instructure/ui-a11y-content'
+// @ts-expect-error
 import {Grid} from '@instructure/ui-grid'
+import type {ToolConfiguration} from '../types'
 
 const I18n = createI18nScope('react_developer_keys')
 
@@ -34,11 +40,45 @@ const validationMessage = {
   jwk: [{text: I18n.t('Please enter a valid JWK.'), type: 'error'}],
 }
 
-export default class RequiredValues extends React.Component {
-  constructor(props) {
+interface RequiredValuesProps {
+  toolConfiguration?: ToolConfiguration
+  showMessages?: boolean
+}
+
+interface RequiredValuesState {
+  isTitleValid: boolean
+  isDescriptionValid: boolean
+  isTargetLinkUriValid: boolean
+  isOidcInitiationUrlValid: boolean
+  isPublicJwkValid: boolean
+  isPublicJwkUrlValid: boolean
+  toolConfiguration: {
+    title?: string
+    description?: string
+    target_link_uri?: string
+    oidc_initiation_url?: string
+    public_jwk?: string | Record<string, any>
+    public_jwk_url?: string
+  }
+  jwkConfig: 'public_jwk' | 'public_jwk_url'
+}
+
+export default class RequiredValues extends React.Component<
+  RequiredValuesProps,
+  RequiredValuesState
+> {
+  private isValid = true
+  private titleRef: RefObject<HTMLInputElement> = createRef()
+  private descriptionRef: RefObject<HTMLTextAreaElement> = createRef()
+  private targetLinkUriRef: RefObject<HTMLInputElement> = createRef()
+  private oidcInitiationUrlRef: RefObject<HTMLInputElement> = createRef()
+  private publicJwkRef: RefObject<HTMLTextAreaElement> = createRef()
+  private publicJwkUrlRef: RefObject<HTMLInputElement> = createRef()
+
+  constructor(props: RequiredValuesProps) {
     super(props)
 
-    const public_jwk = JSON.stringify(this.props.toolConfiguration.public_jwk || {}, null, 4)
+    const public_jwk = JSON.stringify(this.props.toolConfiguration?.public_jwk || {}, null, 4)
 
     this.state = {
       isTitleValid: true,
@@ -48,23 +88,16 @@ export default class RequiredValues extends React.Component {
       isPublicJwkValid: true,
       isPublicJwkUrlValid: true,
       toolConfiguration: {
-        ...this.props.toolConfiguration,
+        ...(this.props.toolConfiguration || {}),
         public_jwk,
       },
-      jwkConfig: this.props.toolConfiguration.public_jwk_url ? 'public_jwk_url' : 'public_jwk',
+      jwkConfig: this.props.toolConfiguration?.public_jwk_url ? 'public_jwk_url' : 'public_jwk',
     }
   }
 
-  titleRef = createRef()
-  descriptionRef = createRef()
-  targetLinkUriRef = createRef()
-  oidcInitiationUrlRef = createRef()
-  publicJwkRef = createRef()
-  publicJwkUrlRef = createRef()
-
-  generateToolConfigurationPart = () => {
+  generateToolConfigurationPart = (): ToolConfiguration => {
     if (this.state.toolConfiguration.public_jwk !== '') {
-      const public_jwk = JSON.parse(this.state.toolConfiguration.public_jwk)
+      const public_jwk = JSON.parse(this.state.toolConfiguration.public_jwk as string)
       return {...this.state.toolConfiguration, public_jwk}
     }
     return {...this.state.toolConfiguration, public_jwk: null}
@@ -75,9 +108,9 @@ export default class RequiredValues extends React.Component {
   hasJwkUrl = () => !!this.state.toolConfiguration.public_jwk_url
 
   hasValidJwk = () => {
-    let jwk
+    let jwk: any
     try {
-      jwk = JSON.parse(this.state.toolConfiguration.public_jwk)
+      jwk = JSON.parse(this.state.toolConfiguration.public_jwk as string)
     } catch (e) {
       if (e instanceof SyntaxError) {
         return false
@@ -92,31 +125,40 @@ export default class RequiredValues extends React.Component {
     return true
   }
 
-  invalidate = (fieldStateKey, fieldRef) => {
-    this.setState({[fieldStateKey]: false})
+  invalidate = (fieldStateKey: keyof RequiredValuesState, fieldRef: RefObject<any>) => {
+    this.setState({[fieldStateKey]: false} as Pick<RequiredValuesState, keyof RequiredValuesState>)
     if (this.isValid) {
-      fieldRef.current.focus()
+      fieldRef.current?.focus()
       this.isValid = false
     }
   }
 
-  validateField = (fieldValue, fieldStateKey, fieldRef, isUrl) => {
+  validateField = (
+    fieldValue: string | undefined,
+    fieldStateKey: keyof RequiredValuesState,
+    fieldRef: RefObject<any>,
+    isUrl: boolean,
+  ) => {
     if (!fieldValue || (isUrl && !URL.canParse(fieldValue))) {
       this.invalidate(fieldStateKey, fieldRef)
     } else {
-      this.setState({[fieldStateKey]: true})
+      this.setState({[fieldStateKey]: true} as Pick<RequiredValuesState, keyof RequiredValuesState>)
     }
   }
 
-  validateJwkField = (fieldValue, fieldStateKey, fieldRef) => {
+  validateJwkField = (
+    fieldValue: string | undefined,
+    fieldStateKey: keyof RequiredValuesState,
+    fieldRef: RefObject<any>,
+  ) => {
     if (!fieldValue || !this.hasValidJwk()) {
       this.invalidate(fieldStateKey, fieldRef)
     } else {
-      this.setState({[fieldStateKey]: true})
+      this.setState({[fieldStateKey]: true} as Pick<RequiredValuesState, keyof RequiredValuesState>)
     }
   }
 
-  valid = () => {
+  valid = (): boolean => {
     const {title, description, target_link_uri, oidc_initiation_url, public_jwk, public_jwk_url} =
       this.state.toolConfiguration
     this.isValid = true
@@ -134,25 +176,25 @@ export default class RequiredValues extends React.Component {
     if (this.state.jwkConfig === 'public_jwk_url') {
       this.validateField(public_jwk_url, 'isPublicJwkUrlValid', this.publicJwkUrlRef, true)
     } else if (this.state.jwkConfig === 'public_jwk') {
-      this.validateJwkField(public_jwk, 'isPublicJwkValid', this.publicJwkRef)
+      this.validateJwkField(public_jwk as string, 'isPublicJwkValid', this.publicJwkRef)
     }
 
     return this.isValid
   }
 
-  handleTitleChange = e => {
+  handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     this.setState(state => ({toolConfiguration: {...state.toolConfiguration, title: value}}))
     this.validateField(value, 'isTitleValid', this.titleRef, false)
   }
 
-  handleDescriptionChange = e => {
+  handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value
     this.setState(state => ({toolConfiguration: {...state.toolConfiguration, description: value}}))
     this.validateField(value, 'isDescriptionValid', this.descriptionRef, false)
   }
 
-  handleTargetLinkUriChange = e => {
+  handleTargetLinkUriChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     this.setState(state => ({
       toolConfiguration: {...state.toolConfiguration, target_link_uri: value},
@@ -160,7 +202,7 @@ export default class RequiredValues extends React.Component {
     this.validateField(value, 'isTargetLinkUriValid', this.targetLinkUriRef, true)
   }
 
-  handleOidcInitiationUrlChange = e => {
+  handleOidcInitiationUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     this.setState(state => ({
       toolConfiguration: {...state.toolConfiguration, oidc_initiation_url: value},
@@ -168,13 +210,13 @@ export default class RequiredValues extends React.Component {
     this.validateField(value, 'isOidcInitiationUrlValid', this.oidcInitiationUrlRef, true)
   }
 
-  handlePublicJwkChange = e => {
+  handlePublicJwkChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value
     this.setState(state => ({toolConfiguration: {...state.toolConfiguration, public_jwk: value}}))
     this.validateJwkField(value, 'isPublicJwkValid', this.publicJwkRef)
   }
 
-  handlePublicJwkUrlChange = e => {
+  handlePublicJwkUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     this.setState(state => ({
       toolConfiguration: {...state.toolConfiguration, public_jwk_url: value},
@@ -182,11 +224,11 @@ export default class RequiredValues extends React.Component {
     this.validateField(value, 'isPublicJwkUrlValid', this.publicJwkUrlRef, true)
   }
 
-  handleConfigTypeChange = (e, option) => {
-    this.setState({jwkConfig: option.value})
+  handleConfigTypeChange = (_e: React.SyntheticEvent, option: {value: string}) => {
+    this.setState({jwkConfig: option.value as 'public_jwk' | 'public_jwk_url'})
   }
 
-  configurationInput(option) {
+  configurationInput(option: string) {
     const {toolConfiguration} = this.state
     const {showMessages} = this.props
 
@@ -197,7 +239,7 @@ export default class RequiredValues extends React.Component {
           label={I18n.t('Public JWK')}
           required
           ref={this.publicJwkRef}
-          value={toolConfiguration.public_jwk || ''}
+          value={(toolConfiguration.public_jwk as string) || ''}
           maxHeight="10rem"
           resize="vertical"
           autoGrow
@@ -306,16 +348,4 @@ export default class RequiredValues extends React.Component {
       </FormFieldGroup>
     )
   }
-}
-
-RequiredValues.propTypes = {
-  toolConfiguration: PropTypes.shape({
-    title: PropTypes.string,
-    description: PropTypes.string,
-    target_link_uri: PropTypes.string,
-    oidc_initiation_url: PropTypes.string,
-    public_jwk: PropTypes.object,
-    public_jwk_url: PropTypes.string,
-  }),
-  showMessages: PropTypes.bool,
 }

@@ -17,17 +17,37 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
 import React from 'react'
+// @ts-expect-error
 import {RadioInputGroup, RadioInput} from '@instructure/ui-radio-input'
+// @ts-expect-error
 import {Checkbox} from '@instructure/ui-checkbox'
+// @ts-expect-error
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {confirm} from '@canvas/instui-bindings/react/Confirm'
+import type {DeveloperKey, DeveloperKeyStore, DeveloperKeyActions, DeveloperKeyContext} from './types'
 
 const I18n = createI18nScope('react_developer_keys')
 
-export default class DeveloperKeyStateControl extends React.Component {
-  confirmStateChange = (developerKey, newState) => {
+interface DeveloperKeyStateControlProps {
+  store: DeveloperKeyStore
+  actions: {
+    setBindingWorkflowState: (key: DeveloperKey, contextId: string, state: string) => any
+  }
+  developerKey?: DeveloperKey
+  ctx: DeveloperKeyContext
+}
+
+export default class DeveloperKeyStateControl extends React.Component<DeveloperKeyStateControlProps> {
+  static defaultProps = {
+    developerKey: {} as DeveloperKey,
+  }
+
+  private onToggle?: HTMLInputElement
+  private offToggle?: HTMLInputElement
+  private allowToggle?: HTMLInputElement
+
+  confirmStateChange = (developerKey: DeveloperKey | undefined, newState: string) => {
     const keyName = developerKey?.name || developerKey?.tool_configuration?.title
 
     return confirm({
@@ -55,7 +75,7 @@ export default class DeveloperKeyStateControl extends React.Component {
     })
   }
 
-  setBindingState = async newValue => {
+  setBindingState = async (newValue: string) => {
     const confirmation = await this.confirmStateChange(this.props.developerKey, newValue)
     if (!confirmation) {
       return
@@ -63,7 +83,7 @@ export default class DeveloperKeyStateControl extends React.Component {
 
     this.props.store.dispatch(
       this.props.actions.setBindingWorkflowState(
-        this.props.developerKey,
+        this.props.developerKey!,
         this.props.ctx.params.contextId,
         newValue,
       ),
@@ -71,18 +91,18 @@ export default class DeveloperKeyStateControl extends React.Component {
   }
 
   isDisabled() {
-    if (this.props.developerKey.inherited_to === 'child_account') {
+    if (this.props.developerKey?.inherited_to === 'child_account') {
       return true
     }
-    const devKeyBinding = this.props.developerKey.developer_key_account_binding
+    const devKeyBinding = this.props.developerKey?.developer_key_account_binding
     if (!devKeyBinding || this.radioGroupValue() === 'allow') {
       return false
     }
-    return !this.props.developerKey.developer_key_account_binding.account_owns_binding
+    return !this.props.developerKey?.developer_key_account_binding?.account_owns_binding
   }
 
-  radioGroupValue() {
-    const devKeyBinding = this.props.developerKey.developer_key_account_binding
+  radioGroupValue(): string {
+    const devKeyBinding = this.props.developerKey?.developer_key_account_binding
     if (devKeyBinding) {
       return devKeyBinding.workflow_state || 'allow'
     } else if (!this.isSiteAdmin()) {
@@ -103,27 +123,31 @@ export default class DeveloperKeyStateControl extends React.Component {
   }
 
   focusToggleGroup = () => {
-    this[`${this.getDefaultValue()}Toggle`].focus()
+    const defaultValue = this.getDefaultValue()
+    const toggle = this[`${defaultValue}Toggle` as 'onToggle' | 'offToggle' | 'allowToggle']
+    toggle?.focus()
   }
 
-  refOnToggle = node => {
-    this.onToggle = node
+  refOnToggle = (node: HTMLInputElement | null) => {
+    if (node) this.onToggle = node
   }
 
-  refOffToggle = node => {
-    this.offToggle = node
+  refOffToggle = (node: HTMLInputElement | null) => {
+    if (node) this.offToggle = node
   }
 
-  refCheckboxToggle = node => {
+  refCheckboxToggle = (node: HTMLInputElement | null) => {
     // Only onToggle and offToggle are set, since a checkbox should only
     // be used for non-siteadmin keys, so the allowToggle function *shouldn't*
     // ever get called.
-    this.onToggle = node
-    this.offToggle = node
+    if (node) {
+      this.onToggle = node
+      this.offToggle = node
+    }
   }
 
   getKeyName() {
-    return this.props.developerKey.name || I18n.t('Unnamed Key')
+    return this.props.developerKey?.name || I18n.t('Unnamed Key')
   }
 
   render() {
@@ -136,9 +160,9 @@ export default class DeveloperKeyStateControl extends React.Component {
           description={
             <ScreenReaderContent>{I18n.t('Key state for the current account')}</ScreenReaderContent>
           }
-          onChange={(e, val) => this.setBindingState(val)}
+          onChange={(_e, val) => this.setBindingState(val as string)}
           disabled={this.isDisabled() || ENV.devKeysReadOnly}
-          name={this.props.developerKey.id}
+          name={this.props.developerKey?.id}
           value={this.radioGroupValue()}
         >
           <RadioInput
@@ -157,7 +181,7 @@ export default class DeveloperKeyStateControl extends React.Component {
           {this.isSiteAdmin() && (
             <RadioInput
               ref={node => {
-                this.allowToggle = node
+                if (node) this.allowToggle = node
               }}
               label={
                 <div>
@@ -201,7 +225,7 @@ export default class DeveloperKeyStateControl extends React.Component {
           variant="toggle"
           checked={this.radioGroupValue() === 'on'}
           disabled={this.isDisabled()}
-          name={this.props.developerKey.id}
+          name={this.props.developerKey?.id}
           onChange={e => {
             const newValue = e.target.checked ? 'on' : 'off'
             this.setBindingState(newValue)
@@ -210,32 +234,4 @@ export default class DeveloperKeyStateControl extends React.Component {
       )
     }
   }
-}
-
-DeveloperKeyStateControl.propTypes = {
-  store: PropTypes.shape({
-    dispatch: PropTypes.func.isRequired,
-  }).isRequired,
-  actions: PropTypes.shape({
-    setBindingWorkflowState: PropTypes.func.isRequired,
-  }).isRequired,
-  developerKey: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    inherited_to: PropTypes.string,
-    workflow_state: PropTypes.string,
-    name: PropTypes.string,
-    developer_key_account_binding: PropTypes.shape({
-      workflow_state: PropTypes.string.isRequired,
-      account_owns_binding: PropTypes.bool,
-    }),
-  }),
-  ctx: PropTypes.shape({
-    params: PropTypes.shape({
-      contextId: PropTypes.string.isRequired,
-    }),
-  }).isRequired,
-}
-
-DeveloperKeyStateControl.defaultProps = {
-  developerKey: {},
 }

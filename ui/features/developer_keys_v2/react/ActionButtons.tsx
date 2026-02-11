@@ -18,36 +18,60 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import PropTypes from 'prop-types'
-import page from 'page'
 
+// @ts-expect-error
 import {IconButton} from '@instructure/ui-buttons'
+// @ts-expect-error
 import {Tooltip} from '@instructure/ui-tooltip'
+// @ts-expect-error
 import {IconEditLine, IconEyeLine, IconOffLine, IconTrashLine} from '@instructure/ui-icons'
 import {confirmDanger} from '@canvas/instui-bindings/react/Confirm'
+import type {DeveloperKey} from './types'
 
 const I18n = createI18nScope('react_developer_keys')
 
-class DeveloperKeyActionButtons extends React.Component {
-  makeVisibleLinkHandler = event => {
+interface DeveloperKeyActionButtonsProps {
+  dispatch: (action: any) => void
+  makeVisibleDeveloperKey: (key: DeveloperKey) => any
+  makeInvisibleDeveloperKey: (key: DeveloperKey) => any
+  deleteDeveloperKey: (key: DeveloperKey) => any
+  editDeveloperKey: (key: DeveloperKey) => any
+  developerKeysModalOpen: (type: string) => any
+  ltiKeysSetLtiKey: (value: boolean) => any
+  contextId: string
+  developerKey: DeveloperKey
+  visible: boolean
+  developerName: string
+  onDelete: (id: string) => void
+  showVisibilityToggle?: boolean
+}
+
+class DeveloperKeyActionButtons extends React.Component<DeveloperKeyActionButtonsProps> {
+  static defaultProps = {
+    showVisibilityToggle: true,
+  }
+
+  private deleteLink?: HTMLButtonElement
+
+  makeVisibleLinkHandler = (event: React.MouseEvent) => {
     const {dispatch, makeVisibleDeveloperKey, developerKey} = this.props
     event.preventDefault()
     dispatch(makeVisibleDeveloperKey(developerKey))
   }
 
-  makeInvisibleLinkHandler = event => {
+  makeInvisibleLinkHandler = (event: React.MouseEvent) => {
     const {dispatch, makeInvisibleDeveloperKey, developerKey} = this.props
     event.preventDefault()
     dispatch(makeInvisibleDeveloperKey(developerKey))
   }
 
-  confirmDeletion = developerKey => {
+  confirmDeletion = (developerKey: DeveloperKey) => {
     const isLtiKey = developerKey?.is_lti_key
     const keyName = developerKey?.name || developerKey?.tool_configuration?.title
 
     return confirmDanger({
       title: isLtiKey ? I18n.t('Delete LTI Developer Key') : I18n.t('Delete Developer Key'),
-      heading: keyName ? I18n.t('You are about to delete “%{keyName}”.', {keyName}) : undefined,
+      heading: keyName ? I18n.t('You are about to delete "%{keyName}".', {keyName}) : undefined,
       message: isLtiKey
         ? I18n.t(
             'Are you sure you want to delete this developer key? This action will also delete all tools associated with the developer key in this context.',
@@ -57,7 +81,7 @@ class DeveloperKeyActionButtons extends React.Component {
     })
   }
 
-  deleteLinkHandler = async event => {
+  deleteLinkHandler = async (event: React.MouseEvent) => {
     const {dispatch, deleteDeveloperKey, developerKey, onDelete} = this.props
     event.preventDefault()
 
@@ -67,7 +91,7 @@ class DeveloperKeyActionButtons extends React.Component {
     }
   }
 
-  editLinkHandler = event => {
+  editLinkHandler = (event: React.MouseEvent) => {
     const {
       dispatch,
       editDeveloperKey,
@@ -86,11 +110,13 @@ class DeveloperKeyActionButtons extends React.Component {
   }
 
   focusDeleteLink = () => {
-    this.deleteLink.focus()
+    this.deleteLink?.focus()
   }
 
-  refDeleteLink = link => {
-    this.deleteLink = link
+  refDeleteLink = (link: HTMLButtonElement | null) => {
+    if (link) {
+      this.deleteLink = link
+    }
   }
 
   renderVisibilityIcon() {
@@ -224,31 +250,6 @@ class DeveloperKeyActionButtons extends React.Component {
       </div>
     )
   }
-}
-
-DeveloperKeyActionButtons.propTypes = {
-  dispatch: PropTypes.func.isRequired,
-  makeVisibleDeveloperKey: PropTypes.func.isRequired,
-  makeInvisibleDeveloperKey: PropTypes.func.isRequired,
-  deleteDeveloperKey: PropTypes.func.isRequired,
-  editDeveloperKey: PropTypes.func.isRequired,
-  developerKeysModalOpen: PropTypes.func.isRequired,
-  ltiKeysSetLtiKey: PropTypes.func.isRequired,
-  contextId: PropTypes.string.isRequired,
-  developerKey: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    api_key: PropTypes.string,
-    created_at: PropTypes.string.isRequired,
-    is_lti_key: PropTypes.bool,
-  }).isRequired,
-  visible: PropTypes.bool.isRequired,
-  developerName: PropTypes.string.isRequired,
-  onDelete: PropTypes.func.isRequired,
-  showVisibilityToggle: PropTypes.bool,
-}
-
-DeveloperKeyActionButtons.defaultProps = {
-  showVisibilityToggle: true,
 }
 
 export default DeveloperKeyActionButtons

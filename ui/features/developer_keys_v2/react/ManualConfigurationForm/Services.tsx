@@ -16,32 +16,50 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
 import React from 'react'
 
+// @ts-expect-error
 import {Alert} from '@instructure/ui-alerts'
+// @ts-expect-error
 import {View} from '@instructure/ui-view'
+// @ts-expect-error
 import {CheckboxGroup, Checkbox} from '@instructure/ui-checkbox'
+// @ts-expect-error
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
+// @ts-expect-error
 import {ToggleDetails} from '@instructure/ui-toggle-details'
 
 const I18n = createI18nScope('react_developer_keys')
 
-export default class Services extends React.Component {
-  constructor(props) {
+interface ServicesProps {
+  validScopes?: Record<string, string>
+  scopes?: string[]
+}
+
+interface ServicesState {
+  scopes: string[]
+}
+
+export default class Services extends React.Component<ServicesProps, ServicesState> {
+  static defaultProps = {
+    scopes: [],
+    validScopes: {},
+  }
+
+  constructor(props: ServicesProps) {
     super(props)
     this.state = {
-      scopes: this.props.scopes,
+      scopes: this.props.scopes || [],
     }
   }
 
-  generateToolConfigurationPart = () => {
+  generateToolConfigurationPart = (): string[] => {
     return this.state.scopes
   }
 
-  valid = () => true
+  valid = (): boolean => true
 
-  handleScopesSelectionChange = scopes => {
+  handleScopesSelectionChange = (scopes: string[]) => {
     this.setState({scopes})
   }
 
@@ -65,22 +83,14 @@ export default class Services extends React.Component {
               <ScreenReaderContent>{I18n.t('Check Services to enable')}</ScreenReaderContent>
             }
           >
-            {Object.keys(validScopes).map(key => {
-              return <Checkbox key={key} label={validScopes[key]} value={key} variant="toggle" />
+            {Object.keys(validScopes || {}).map(key => {
+              return (
+                <Checkbox key={key} label={validScopes![key]} value={key} variant="toggle" />
+              )
             })}
           </CheckboxGroup>
         </View>
       </ToggleDetails>
     )
   }
-}
-
-Services.propTypes = {
-  validScopes: PropTypes.object,
-  scopes: PropTypes.arrayOf(PropTypes.string),
-}
-
-Services.defaultProps = {
-  scopes: [],
-  validScopes: {},
 }

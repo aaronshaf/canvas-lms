@@ -16,20 +16,34 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// @ts-expect-error
 import {View} from '@instructure/ui-view'
 
+// @ts-expect-error
 import {Button} from '@instructure/ui-buttons'
+// @ts-expect-error
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
+// @ts-expect-error
 import {IconPlusLine} from '@instructure/ui-icons'
 import {NewKeyButtons} from './NewKeyButtons'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import PropTypes from 'prop-types'
 
 const I18n = createI18nScope('react_developer_keys')
 
-export default class DeveloperKeyModalTrigger extends React.Component {
+interface DeveloperKeyModalTriggerProps {
+  store: {
+    dispatch: (action: any) => void
+  }
+  actions: {
+    developerKeysModalOpen: (type: string) => any
+    ltiKeysSetLtiKey: (value: boolean) => any
+  }
+  setAddKeyButtonRef: (node: HTMLButtonElement | null) => void
+}
+
+export default class DeveloperKeyModalTrigger extends React.Component<DeveloperKeyModalTriggerProps> {
   showCreateDeveloperKey = () => {
     this.props.store.dispatch(this.props.actions.developerKeysModalOpen('api'))
   }
@@ -81,15 +95,4 @@ export default class DeveloperKeyModalTrigger extends React.Component {
       </View>
     )
   }
-}
-
-DeveloperKeyModalTrigger.propTypes = {
-  store: PropTypes.shape({
-    dispatch: PropTypes.func.isRequired,
-  }).isRequired,
-  actions: PropTypes.shape({
-    developerKeysModalOpen: PropTypes.func.isRequired,
-    ltiKeysSetLtiKey: PropTypes.func.isRequired,
-  }).isRequired,
-  setAddKeyButtonRef: PropTypes.func.isRequired,
 }

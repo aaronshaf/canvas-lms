@@ -16,69 +16,107 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import $ from 'jquery'
+// @ts-expect-error
 import {Table} from '@instructure/ui-table'
-import {ScreenReaderContent} from '@instructure/ui-a11y-content'
+// @ts-expect-error
 import {View} from '@instructure/ui-view'
+// @ts-expect-error
 import {Text} from '@instructure/ui-text'
+// @ts-expect-error
 import {Tooltip} from '@instructure/ui-tooltip'
+// @ts-expect-error
+import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import React from 'react'
-import {arrayOf, func, shape, string} from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import FilterBar from '@canvas/filter-bar'
 
 import DeveloperKey from './DeveloperKey'
-import {createSetFocusCallback} from './AdminTable'
+import DeveloperKeyModalTrigger from './NewKeyTrigger'
 
 import '@canvas/rails-flash-notifications'
+import FilterBar from '@canvas/filter-bar'
+// @ts-expect-error
+import {Flex} from '@instructure/ui-flex'
 
 const I18n = createI18nScope('react_developer_keys')
 
-class InheritedTable extends React.Component {
+// extracted for shared use by InheritedTable
+const createSetFocusCallback =
+  ({developerKeysList, developerKeyRef, srMsg, handleRef}) =>
+  developerKeys => {
+    $.screenReaderFlashMessageExclusive(srMsg)
+    const developerKey = developerKeysList
+      .concat(developerKeys)
+      .reverse()
+      .find(key => {
+        const keyRef = developerKeyRef(key)
+        return keyRef && !keyRef.isDisabled()
+      })
+    const ref = developerKey ? developerKeyRef(developerKey) : undefined
+    handleRef(ref)
+    return ref
+  }
+
+class AdminTable extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      sortBy: `${this.props.prefix}-id`,
+      sortBy: 'keystable-details',
       sortAscending: false,
       typeFilter: 'all',
       searchQuery: '',
     }
   }
 
-  headers = prefix => ({
-    [`${prefix}-name`]: {
-      id: `${prefix}-name`,
+  headers = {
+    'keystable-name': {
+      id: 'keystable-name',
       text: I18n.t('Name'),
-      width: '45%',
       sortable: true,
       sortText: I18n.t('Sort by Name'),
       sortValue: key => key.name,
     },
-    [`${prefix}-id`]: {
-      id: `${prefix}-id`,
-      text: I18n.t('Id'),
-      width: '25%',
+    'keystable-owneremail': {
+      id: 'keystable-owneremail',
+      text: I18n.t('Owner Email'),
+      sortable: true,
+      sortText: I18n.t('Sort by Email'),
+      sortValue: key => key.email,
+    },
+    'keystable-details': {
+      id: 'keystable-details',
+      text: I18n.t('Details'),
       sortable: true,
       sortText: I18n.t('Sort by Client ID'),
       sortValue: key => key.id,
     },
-    [`${prefix}-type`]: {
-      id: `${prefix}-type`,
+    'keystable-stats': {
+      id: 'keystable-stats',
+      text: I18n.t('Stats'),
+      sortable: true,
+      sortText: I18n.t('Sort by Access Token count'),
+      sortValue: key => key.access_token_count,
+    },
+    'keystable-type': {
+      id: 'keystable-type',
       text: I18n.t('Type'),
-      width: '15%',
       sortable: true,
       sortText: I18n.t('Sort by Type'),
       sortValue: key => key.is_lti_key,
     },
-    [`${prefix}-state`]: {
-      id: `${prefix}-state`,
+    'keystable-state': {
+      id: 'keystable-state',
       text: I18n.t('State'),
-      width: '15%',
       sortable: true,
       sortText: I18n.t('Sort by State'),
-      // inherited keys only have a binding when they are turned On
-      sortValue: key => key.developer_key_account_binding?.workflow_state || 'allow',
+      sortValue: key => key.developer_key_account_binding.workflow_state,
     },
-  })
+    'keystable-actions': {
+      id: 'keystable-actions',
+      text: I18n.t('Actions'),
+      sortable: false,
+    },
+  }
 
   onRequestSort = (_, {id}) => {
     const {sortBy, sortAscending} = this.state
@@ -96,17 +134,15 @@ class InheritedTable extends React.Component {
   }
 
   renderHeader = () => {
-    const {prefix} = this.props
     const {sortBy, sortAscending} = this.state
     const direction = sortAscending ? 'ascending' : 'descending'
 
     return (
       <Table.Row>
-        {Object.values(this.headers(prefix)).map(header => (
+        {Object.values(this.headers).map(header => (
           <Table.ColHeader
             key={header.id}
             id={header.id}
-            width={header.width}
             {...(header.sortable && {
               sortDirection: sortBy === header.id ? direction : 'none',
               onRequestSort: this.onRequestSort,
@@ -126,14 +162,11 @@ class InheritedTable extends React.Component {
   }
 
   sortedDeveloperKeys = () => {
-    const {prefix} = this.props
-    const headers = this.headers(prefix)
     const {sortBy, sortAscending} = this.state
 
-    const developerKeys = this.filteredDeveloperKeys()
-    const sortedKeys = developerKeys.sort((a, b) => {
-      const aVal = headers[sortBy].sortValue(a)
-      const bVal = headers[sortBy].sortValue(b)
+    return this.filteredDeveloperKeys().sort((a, b) => {
+      const aVal = this.headers[sortBy].sortValue(a)
+      const bVal = this.headers[sortBy].sortValue(b)
       if (aVal < bVal) {
         return sortAscending ? -1 : 1
       }
@@ -142,7 +175,6 @@ class InheritedTable extends React.Component {
       }
       return 0
     })
-    return sortedKeys
   }
 
   filteredDeveloperKeys = () => {
@@ -154,6 +186,7 @@ class InheritedTable extends React.Component {
       const searchMatch =
         searchQuery === '' ||
         this.checkForMatch(key.name, searchQuery) ||
+        this.checkForMatch(key.email, searchQuery) ||
         this.checkForMatch(key.id, searchQuery)
       return typeMatch && searchMatch
     })
@@ -163,40 +196,82 @@ class InheritedTable extends React.Component {
     return attr && attr.toLowerCase().includes(searchQuery.toLowerCase())
   }
 
+  onDelete = developerKeyId => {
+    const developerKeys = this.sortedDeveloperKeys()
+    const position = developerKeys.findIndex(key => key.id === developerKeyId)
+    const previousDeveloperKey = developerKeys[position - 1]
+    const ref = previousDeveloperKey ? this.developerKeyRef(previousDeveloperKey) : undefined
+    let srMsg
+    // If ref is undefined it means that position was -1 and we deleted
+    // the first key in the list and focus should go to something other than
+    // a dev key
+    if (ref === undefined) {
+      srMsg = I18n.t(
+        'Developer key %{developerKeyId} deleted. Focus moved to add developer key button.',
+        {developerKeyId},
+      )
+      this.focusDevKeyButton()
+    } else {
+      srMsg = I18n.t(
+        'Developer key %{developerKeyId} deleted. Focus moved to the delete button of the previous developer key in the list.',
+        {developerKeyId},
+      )
+      ref.focusDeleteLink()
+    }
+    $.screenReaderFlashMessageExclusive(srMsg)
+    return ref
+  }
+
   // this should be called when more keys are loaded,
-  // and only handles the screenreader callout and focus
+  // and only handles the screenreader callout
   setFocusCallback = () =>
     createSetFocusCallback({
       developerKeysList: this.sortedDeveloperKeys(),
       developerKeyRef: this.developerKeyRef,
       srMsg: I18n.t(
-        'Loaded more developer keys. Focus moved to the last enabled developer key in the list.',
+        'Loaded more developer keys. Focus moved to the delete button of the last loaded developer key in the list.',
       ),
-      handleRef: ref => (ref ? ref.focusToggleGroup() : this.props.setFocus()),
+      handleRef: ref => ref && ref.focusDeleteLink(),
     })
 
   developerKeyRef = key => {
     return this[`developerKey-${key.id}`]
   }
 
+  setAddKeyButtonRef = node => {
+    this.addDevKeyButton = node
+  }
+
+  focusDevKeyButton = () => {
+    this.addDevKeyButton.focus()
+  }
+
   render() {
-    const {label} = this.props
     const developerKeys = this.sortedDeveloperKeys()
+    const srcontent = I18n.t('Developer Keys')
     return (
       <div>
-        <FilterBar
-          filterOptions={[
-            {value: 'lti', text: I18n.t('LTI Keys')},
-            {value: 'api', text: I18n.t('API Keys')},
-          ]}
-          onFilter={typeFilter => this.setState({typeFilter})}
-          onSearch={searchQuery => this.setState({searchQuery})}
-          searchPlaceholder={I18n.t('Search by name or ID')}
-          searchScreenReaderLabel={I18n.t('Search Developer Keys')}
-        />
+        <Flex justifyItems="space-between" margin="0" wrap="wrap">
+          <FilterBar
+            filterOptions={[
+              {value: 'lti', text: I18n.t('LTI Keys')},
+              {value: 'api', text: I18n.t('API Keys')},
+            ]}
+            onFilter={typeFilter => this.setState({typeFilter})}
+            onSearch={searchQuery => this.setState({searchQuery})}
+            searchPlaceholder={I18n.t('Search by name, email, or ID')}
+            searchScreenReaderLabel={I18n.t('Search Developer Keys')}
+          />
+          <DeveloperKeyModalTrigger
+            store={this.props.store}
+            actions={this.props.actions}
+            setAddKeyButtonRef={this.setAddKeyButtonRef}
+          />
+        </Flex>
         <Table
-          data-automation="devKeyInheritedTable"
-          caption={<ScreenReaderContent>{label}</ScreenReaderContent>}
+          data-testid={this.props.inherited ? 'inherited-table' : 'account-table'}
+          data-automation="devKeyAdminTable"
+          caption={<ScreenReaderContent>{srcontent}</ScreenReaderContent>}
           size="medium"
         >
           <Table.Head renderSortLabel={I18n.t('Sort by')}>{this.renderHeader()}</Table.Head>
@@ -211,9 +286,8 @@ class InheritedTable extends React.Component {
                 store={this.props.store}
                 actions={this.props.actions}
                 ctx={this.props.ctx}
-                inherited={true}
-                // inherited keys can't be deleted
-                onDelete={() => {}}
+                inherited={false}
+                onDelete={this.onDelete}
               />
             ))}
           </Table.Body>
@@ -228,22 +302,15 @@ class InheritedTable extends React.Component {
   }
 }
 
-InheritedTable.propTypes = {
-  store: shape({
-    dispatch: func.isRequired,
-  }).isRequired,
+AdminTable).isRequired,
   actions: shape({}).isRequired,
   developerKeysList: arrayOf(DeveloperKey.propTypes.developerKey).isRequired,
-  label: string.isRequired,
-  prefix: string.isRequired,
   ctx: shape({
     params: shape({
       contextId: string.isRequired,
     }),
   }).isRequired,
-  setFocus: func,
 }
 
-InheritedTable.defaultProps = {setFocus: () => {}}
-
-export default InheritedTable
+export default AdminTable
+export {createSetFocusCallback}
