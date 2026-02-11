@@ -36,11 +36,9 @@ class OutcomeAlignmentDeleteLink extends React.Component<OutcomeAlignmentDeleteL
     const $li = $(e.target as HTMLElement).parents('li.alignment')
 
     e.preventDefault()
-    // @ts-expect-error - confirmDelete is a jQuery plugin without type definitions
     $(e.target).confirmDelete({
       success() {
         $li.fadeOut('slow', function () {
-          // @ts-expect-error - this refers to the jQuery element
           this.remove()
         })
       },
