@@ -29,8 +29,9 @@ import {
   fetchGradesForGradingPeriodAsObserver,
   getCourseGrades,
   transformGrades,
-  type GradingPeriod,
+  
 } from '@canvas/k5/react/utils'
+import type {GradingPeriod} from '../types'
 import {showFlashError} from '@canvas/alerts/react/FlashAlert'
 import GradesSummary, {type GradeSummary} from './GradesSummary'
 import GradingPeriodSelect, {ALL_PERIODS_OPTION} from './GradingPeriodSelect'

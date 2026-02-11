@@ -23,7 +23,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {View} from '@instructure/ui-view'
 
-import {type GradingPeriod} from '@canvas/k5/react/utils'
+import type {GradingPeriod} from '../types'
 
 const I18n = createI18nScope('dashboard_grading_period_select')
 
