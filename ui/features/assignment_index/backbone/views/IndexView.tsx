@@ -206,6 +206,7 @@ IndexView.prototype.afterRender = function () {
 }
 
 IndexView.prototype.requestBulkEdit = function () {
+  // @ts-expect-error - FEATURES not in ENV type
   if (window.ENV.FEATURES?.instui_nav) {
     const bulkEditCrumb = $('<li>').text('Edit Assignment Dates')
     $('#breadcrumbs ul').append(bulkEditCrumb)
@@ -220,6 +221,7 @@ IndexView.prototype.handleBulkEditSaved = function () {
 }
 
 IndexView.prototype.cancelBulkEdit = function () {
+  // @ts-expect-error - FEATURES not in ENV type
   if (window.ENV.FEATURES?.instui_nav) {
     const lastCrumb = $('#breadcrumbs ul').children().last()
     lastCrumb.remove()
