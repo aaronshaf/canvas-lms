@@ -249,7 +249,7 @@ describe('GradingPeriodCollection', () => {
       expect(getByTestId('grading-periods')).toBeInTheDocument()
     })
 
-    const component = new GradingPeriodCollection()
+    const component = new GradingPeriodCollection({}, {})
     component.state = {
       periods: [
         {

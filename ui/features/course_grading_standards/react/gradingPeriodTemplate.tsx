@@ -76,6 +76,7 @@ class GradingPeriodTemplate extends React.Component<Props> {
     if (this.isNewGradingPeriod() && this.titleRef.current) {
       this.titleRef.current.focus()
     }
+    // @ts-expect-error - jQuery find and date field plugin
     const dateField = $(ReactDOM.findDOMNode(this)).find('.date_field')
     renderDatetimeField(dateField)
     dateField.on('change', this.onDateChange)
@@ -127,7 +128,7 @@ class GradingPeriodTemplate extends React.Component<Props> {
           </label>
           <div>
             <span className="screenreader-only">{I18n.t('Grading Period Weight')}</span>
-            <span ref={this.weightRef}>{I18n.n(this.props.weight, {percentage: true})}</span>
+            <span ref={this.weightRef}>{I18n.n(this.props.weight ?? 0, {percentage: true})}</span>
           </div>
         </div>
       )
@@ -258,6 +259,7 @@ class GradingPeriodTemplate extends React.Component<Props> {
 }
 
 // Custom prop validation
+// @ts-expect-error - propTypes on functional component
 GradingPeriodTemplate.propTypes = {
   requiredPropsIfEditable(props: Props) {
     if (!props.permissions.update && !props.permissions.delete) return

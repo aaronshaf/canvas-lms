@@ -37,7 +37,8 @@ vi.mock('@canvas/grading-standard-collection', () => ({
   },
 }))
 
-const renderCourseTabContainer = (props = {}) => render(<CourseTabContainer {...props} />)
+const renderCourseTabContainer = (props: {hasGradingPeriods: boolean}) =>
+  render(<CourseTabContainer {...props} />)
 
 describe('CourseTabContainer', () => {
   beforeEach(() => {

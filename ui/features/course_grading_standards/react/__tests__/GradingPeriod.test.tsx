@@ -93,6 +93,7 @@ describe('GradingPeriod', () => {
       updateGradingPeriodCollection: vi.fn(),
     }
 
+    // @ts-expect-error - partial ENV for testing
     window.ENV = {
       GRADING_PERIODS_URL: 'api/v1/courses/1/grading_periods',
     }

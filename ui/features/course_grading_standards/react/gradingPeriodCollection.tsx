@@ -83,7 +83,8 @@ class GradingPeriodCollection extends React.Component<{}, State> {
 
   getPeriods = () => {
     const self = this
-    $.getJSON(ENV.GRADING_PERIODS_URL)
+    // @ts-expect-error - jQuery getJSON success/error pattern
+    $.getJSON(ENV.GRADING_PERIODS_URL!)
       .success((periods: any) => {
         self.setState({
           periods: self.deserializePeriods(periods),
@@ -232,6 +233,7 @@ class GradingPeriodCollection extends React.Component<{}, State> {
           data: JSON.stringify(this.serializeDataForSubmission()),
           context: this,
         })
+          // @ts-expect-error - jQuery ajax success/error pattern
           .success(function (this: GradingPeriodCollection, response: any) {
             $.flashMessage(I18n.t('All changes were saved'))
             this.setState({disabled: false, periods: this.deserializePeriods(response)})

@@ -37,6 +37,7 @@ class CourseTabContainer extends React.Component<Props> {
 
   componentDidMount() {
     if (!this.props.hasGradingPeriods) return
+    // @ts-expect-error - jQuery tabs plugin typing
     $(this.tabContainer).children('.ui-tabs-minimal').tabs()
   }
 
