@@ -27,7 +27,7 @@ import EmptyModulesUrl from '../images/empty-modules.svg'
 
 const I18n = createI18nScope('empty_modules')
 
-const EmptyModules = () => (
+const EmptyModules = (): React.ReactElement => (
   <Flex
     as="div"
     direction="column"

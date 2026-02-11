@@ -18,7 +18,6 @@
 
 import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
 
 import {Img} from '@instructure/ui-img'
 import {Text} from '@instructure/ui-text'
@@ -30,7 +29,17 @@ import EmptyGradesUrl from '../images/empty-grades.svg'
 
 const I18n = createI18nScope('grades_empty_page')
 
-const GradesEmptyPage = ({userIsCourseAdmin, courseId, courseName}) => (
+interface GradesEmptyPageProps {
+  userIsCourseAdmin: boolean
+  courseId: string
+  courseName: string
+}
+
+const GradesEmptyPage = ({
+  userIsCourseAdmin,
+  courseId,
+  courseName,
+}: GradesEmptyPageProps): React.ReactElement => (
   <Flex
     direction="column"
     alignItems="center"
@@ -53,11 +62,5 @@ const GradesEmptyPage = ({userIsCourseAdmin, courseId, courseName}) => (
     )}
   </Flex>
 )
-
-GradesEmptyPage.propTypes = {
-  userIsCourseAdmin: PropTypes.bool.isRequired,
-  courseId: PropTypes.string.isRequired,
-  courseName: PropTypes.string.isRequired,
-}
 
 export default GradesEmptyPage

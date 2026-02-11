@@ -41,6 +41,27 @@ const I18n = createI18nScope('grade_row')
  * ***** CAUTION:  if modifying this, do not try to add any React Hooks, they will not work!
  */
 
+interface GradeRowProps {
+  id: string
+  assignmentName: string
+  url: string
+  dueDate: string | null
+  assignmentGroupName: string
+  pointsPossible: number | null
+  gradingType: string
+  grade: string | null
+  submissionDate: string | null
+  unread: boolean
+  late: boolean
+  excused: boolean
+  missing: boolean
+  hasComments: boolean
+  currentUserId: string
+  isStacked: boolean
+  dateFormatter: (date: string) => string
+  restrictQuantitativeData?: boolean
+}
+
 export const GradeRow = ({
   id,
   assignmentName,
@@ -60,7 +81,7 @@ export const GradeRow = ({
   isStacked,
   dateFormatter,
   restrictQuantitativeData,
-}) => {
+}: GradeRowProps): React.ReactElement => {
   const cellTheme = isStacked ? {padding: '.5rem .75rem'} : undefined
 
   const renderStatus = () => {

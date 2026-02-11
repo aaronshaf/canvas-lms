@@ -18,7 +18,6 @@
 
 import React, {useState, useCallback, useEffect} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
 
 import {Heading} from '@instructure/ui-heading'
 import {ToggleDetails} from '@instructure/ui-toggle-details'
@@ -44,6 +43,21 @@ const I18n = createI18nScope('grade_details')
 
 const NUM_GRADE_SKELETONS = 10
 
+interface GradeDetailsProps {
+  courseId: string
+  courseName: string
+  selectedGradingPeriodId?: string | null
+  showTotals: boolean
+  currentUser: {id: string}
+  loadingGradingPeriods: boolean
+  userIsCourseAdmin: boolean
+  observedUserId?: string | null
+  gradingScheme?: any[]
+  pointsBasedGradingScheme?: boolean
+  restrictQuantitativeData?: boolean
+  scalingFactor?: number
+}
+
 const GradeDetails = ({
   courseId,
   courseName,
@@ -57,20 +71,20 @@ const GradeDetails = ({
   pointsBasedGradingScheme,
   restrictQuantitativeData,
   scalingFactor,
-}) => {
+}: GradeDetailsProps): React.ReactElement | null => {
   const [loadingTotalGrade, setLoadingTotalGrade] = useState(true)
   const [loadingAssignmentGroups, setLoadingAssignmentGroups] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<Error | null>(null)
   const [mqList] = useState(() => window.matchMedia('(max-width: 767px)')) // keep in sync with k5_theme.scss
   const [isStacked, setIsStacked] = useState(mqList.matches)
-  const [enrollments, setEnrollments] = useState([])
-  const [assignmentGroups, setAssignmentGroups] = useState([])
+  const [enrollments, setEnrollments] = useState<any[]>([])
+  const [assignmentGroups, setAssignmentGroups] = useState<any[]>([])
 
   // This hook has to get called here even though it's used only in GradeRow
   // because GradeRow isn't a "real" React component so can't call a hook itself
   const dateFormatter = useDateTimeFormat('date.formats.full_with_weekday')
 
-  const gradingPeriodParam = {}
+  const gradingPeriodParam: Record<string, any> = {}
   const assignmentGroupTotals = getAssignmentGroupTotals(
     assignmentGroups,
     selectedGradingPeriodId,
@@ -99,13 +113,13 @@ const GradeDetails = ({
   }
 
   useEffect(() => {
-    mqList.onchange = event => setIsStacked(event.matches)
+    mqList.onchange = (event: MediaQueryListEvent) => setIsStacked(event.matches)
   }, [mqList])
 
   useFetchApi({
     path: `/api/v1/courses/${courseId}/assignment_groups`,
     loading: setLoadingAssignmentGroups,
-    success: useCallback(data => {
+    success: useCallback((data: any[]) => {
       // filtering possible null values
       setAssignmentGroups(data.filter(g => g))
     }, []),
@@ -122,7 +136,7 @@ const GradeDetails = ({
   useFetchApi({
     path: `/api/v1/courses/${courseId}/enrollments`,
     loading: setLoadingTotalGrade,
-    success: useCallback(data => {
+    success: useCallback((data: any[]) => {
       setEnrollments(data.filter(e => e))
     }, []),
     error: setError,
@@ -142,7 +156,7 @@ const GradeDetails = ({
     }
   }, [error, courseName])
 
-  const gradeRowSkeleton = props => {
+  const gradeRowSkeleton = (props: any) => {
     const {key, ...otherProps} = props
     return (
       <Table.Row key={key} {...otherProps}>
@@ -157,7 +171,7 @@ const GradeDetails = ({
     )
   }
 
-  const gradesDetailsTable = content => (
+  const gradesDetailsTable = (content: React.ReactNode) => (
     <div className={isStacked ? 'grade-details narrow' : 'grade-details'}>
       <Table
         caption={I18n.t('Grades for %{courseName}', {courseName})}
@@ -253,7 +267,7 @@ const GradeDetails = ({
         renderSkeletonsContainer={gradesDetailsTable}
         renderLoadedContainer={gradesDetailsTable}
       >
-        {grades.map(assignment =>
+        {grades.map((assignment: any) =>
           GradeRow({
             dateFormatter,
             isStacked,
@@ -264,21 +278,6 @@ const GradeDetails = ({
       </LoadingWrapper>
     </>
   )
-}
-
-GradeDetails.propTypes = {
-  courseId: PropTypes.string.isRequired,
-  courseName: PropTypes.string.isRequired,
-  selectedGradingPeriodId: PropTypes.string,
-  showTotals: PropTypes.bool.isRequired,
-  currentUser: PropTypes.object.isRequired,
-  loadingGradingPeriods: PropTypes.bool.isRequired,
-  userIsCourseAdmin: PropTypes.bool.isRequired,
-  observedUserId: PropTypes.string,
-  gradingScheme: PropTypes.array,
-  pointsBasedGradingScheme: PropTypes.bool,
-  restrictQuantitativeData: PropTypes.bool,
-  scalingFactor: PropTypes.number,
 }
 
 export default GradeDetails

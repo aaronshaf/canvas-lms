@@ -25,13 +25,24 @@ import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {Button} from '@instructure/ui-buttons'
 import {AccessibleContent} from '@instructure/ui-a11y-content'
-import PropTypes from 'prop-types'
 
 import emptyHomeUrl from '../images/empty-home.svg'
 
 const I18n = createI18nScope('empty_home')
 
-const EmptyHome = ({pagesPath, hasWikiPages, courseName, canManage}) => (
+interface EmptyHomeProps {
+  pagesPath: string
+  hasWikiPages: boolean
+  courseName: string
+  canManage: boolean
+}
+
+const EmptyHome = ({
+  pagesPath,
+  hasWikiPages,
+  courseName,
+  canManage,
+}: EmptyHomeProps): React.ReactElement => (
   <Flex
     as="div"
     direction="column"
@@ -59,10 +70,4 @@ const EmptyHome = ({pagesPath, hasWikiPages, courseName, canManage}) => (
   </Flex>
 )
 
-EmptyHome.propTypes = {
-  pagesPath: PropTypes.string.isRequired,
-  hasWikiPages: PropTypes.bool.isRequired,
-  canManage: PropTypes.bool.isRequired,
-  courseName: PropTypes.string.isRequired,
-}
 export default EmptyHome
