@@ -17,25 +17,28 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import classnames from 'classnames'
 
 const I18n = createI18nScope('course_wizard')
 
-class ChecklistItem extends React.Component {
+interface ChecklistItemProps {
+  onClick: (stepKey: string) => void
+  stepKey: string
+  title: string
+  complete: boolean
+  isSelected: boolean
+  id: string
+}
+
+interface ChecklistItemState {
+  classNameString: string
+}
+
+class ChecklistItem extends React.Component<ChecklistItemProps, ChecklistItemState> {
   static displayName = 'ChecklistItem'
 
-  static propTypes = {
-    onClick: PropTypes.func.isRequired,
-    stepKey: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    complete: PropTypes.bool.isRequired,
-    isSelected: PropTypes.bool.isRequired,
-    id: PropTypes.string.isRequired,
-  }
-
-  state = {classNameString: ''}
+  state: ChecklistItemState = {classNameString: ''}
 
   classNameString = ''
 
@@ -43,16 +46,16 @@ class ChecklistItem extends React.Component {
     this.setClassName(this.props)
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps: ChecklistItemProps) {
     this.setClassName(nextProps)
   }
 
-  handleClick = event => {
+  handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault()
     this.props.onClick(this.props.stepKey)
   }
 
-  setClassName = props => {
+  setClassName = (props: ChecklistItemProps) => {
     this.setState({
       classNameString: classnames({
         'ic-wizard-box__content-trigger': true,

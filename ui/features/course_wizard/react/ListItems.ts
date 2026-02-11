@@ -19,12 +19,23 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('course_wizard')
+
+export interface ListItem {
+  key: string
+  complete: boolean
+  title: string
+  text: string
+  url?: string
+  non_registered_text?: string
+  iconClass: string
+}
+
 /**
  * Returns an array containing all the possible items for the checklist
  * For many ListItems, the ! is added for the complete property
  *  because the ENV is checking if the step is nil? or empty?
  */
-export default [
+const listItems: ListItem[] = [
   {
     key: 'content_import',
     get complete() {
@@ -187,3 +198,5 @@ export default [
     iconClass: 'icon-publish icon-Solid',
   },
 ]
+
+export default listItems

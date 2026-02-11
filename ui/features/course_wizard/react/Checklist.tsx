@@ -17,27 +17,30 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import ChecklistItem from './ChecklistItem'
 import ListItems from './ListItems'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('course_wizard')
 
-class Checklist extends React.Component {
+interface ChecklistProps {
+  selectedItem: string
+  clickHandler: (key: string) => void
+  className: string
+}
+
+interface ChecklistState {
+  selectedItem: string
+}
+
+class Checklist extends React.Component<ChecklistProps, ChecklistState> {
   static displayName = 'Checklist'
 
-  static propTypes = {
-    selectedItem: PropTypes.string.isRequired,
-    clickHandler: PropTypes.func.isRequired,
-    className: PropTypes.string.isRequired,
-  }
-
-  state = {
+  state: ChecklistState = {
     selectedItem: this.props.selectedItem || '',
   }
 
-  UNSAFE_componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps: ChecklistProps) {
     this.setState({
       selectedItem: newProps.selectedItem,
     })
