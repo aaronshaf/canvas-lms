@@ -47,8 +47,8 @@ ready(() => {
       $('.profile_url').attr('href'),
       'PUT',
       {'user[show_user_services]': $(this).prop('checked')},
-      _data => {},
-      _data => {},
+      (_data: any) => {},
+      (_data: any) => {},
     )
   })
 })
