@@ -65,6 +65,7 @@ export class ChildChangeLog extends Component<ChildChangeLogProps> {
   }
 
   renderLoading() {
+    // @ts-expect-error
     if (this.props.status && LoadStates.isLoading(this.props.status)) {
       const title = I18n.t('Loading Change Log')
       return (
@@ -85,6 +86,7 @@ export class ChildChangeLog extends Component<ChildChangeLogProps> {
     if (migration) {
       return (
         <SyncHistoryItem
+          // @ts-expect-error
           migration={migration}
           heading={
             <ChangeLogRow
@@ -113,4 +115,5 @@ const connectState = (state: StoreState) => ({
   migration: state.selectedChangeLog && state.changeLogs[state.selectedChangeLog].data,
 })
 const connectActions = () => ({})
+// @ts-expect-error
 export const ConnectedChildChangeLog = connect(connectState, connectActions)(ChildChangeLog)

@@ -118,12 +118,13 @@ export default class ChangeLogRow extends Component<ChangeLogRowProps> {
 export const ChangeRow = ({change}: ChangeRowProps) => (
   <ChangeLogRow
     col1={change.asset_name}
-    col2={itemTypeLabels[change.asset_type]}
-    col3={changeTypeLabels[change.change_type]}
+    col2={itemTypeLabels[change.asset_type as keyof typeof itemTypeLabels]}
+    col3={changeTypeLabels[change.change_type as keyof typeof changeTypeLabels]}
     col4={change.exceptions && change.exceptions.length ? I18n.t('No') : I18n.t('Yes')}
   >
     <div className="bcs__history-item__lock-icon">
       <Text size="large" color="secondary">
+        {/* @ts-expect-error */}
         {change.locked ? <IconLock /> : <IconUnlock />}
       </Text>
     </div>
