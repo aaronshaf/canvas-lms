@@ -31,15 +31,12 @@ interface ContentHeadingProps {
 
 export default function ContentHeading({svgUrl, heading, description}: ContentHeadingProps) {
   return (
-    // @ts-expect-error
     <Flex margin="0 0 medium">
-      {/* @ts-expect-error */}
       <Flex.Item size="3.5em">
         <PresentationContent>
           <SVGWrapper url={svgUrl} />
         </PresentationContent>
       </Flex.Item>
-      {/* @ts-expect-error */}
       <Flex.Item padding="0 medium">
         <Heading level="h1" as="h2">
           {heading}

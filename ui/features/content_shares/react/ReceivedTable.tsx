@@ -32,7 +32,14 @@ import {Tooltip} from '@instructure/ui-tooltip'
 
 const I18n = createI18nScope('content_share')
 
-type ContentShareType = 'assignment' | 'attachment' | 'discussion_topic' | 'page' | 'quiz' | 'module' | 'module_item'
+type ContentShareType =
+  | 'assignment'
+  | 'attachment'
+  | 'discussion_topic'
+  | 'page'
+  | 'quiz'
+  | 'module'
+  | 'module_item'
 
 interface Attachment {
   id?: string
@@ -84,29 +91,29 @@ interface ReceivedTableProps {
   onUpdate?: (share_id: string, updateParms: {read_state: string}) => void
 }
 
-export default function ReceivedTable({shares = [], onPreview, onImport, onRemove, onUpdate}: ReceivedTableProps) {
+export default function ReceivedTable({
+  shares = [],
+  onPreview,
+  onImport,
+  onRemove,
+  onUpdate,
+}: ReceivedTableProps) {
   function renderActionMenu(share: ContentShare) {
     const items: JSX.Element[] = []
     if (share.content_export?.workflow_state === 'exported') {
       items.push(
-        // @ts-expect-error
         <Menu.Item key="prv" data-testid="preview-menu-action" onSelect={() => onPreview?.(share)}>
-          {/* @ts-expect-error */}
           <IconEyeLine /> <View margin="0 0 0 x-small">{I18n.t('Preview')}</View>
         </Menu.Item>,
       )
       items.push(
-        // @ts-expect-error
         <Menu.Item key="imp" data-testid="import-menu-action" onSelect={() => onImport?.(share)}>
-          {/* @ts-expect-error */}
           <IconImportLine /> <View margin="0 0 0 x-small">{I18n.t('Import')}</View>
         </Menu.Item>,
       )
     }
     items.push(
-      // @ts-expect-error
       <Menu.Item key="rmv" data-testid="remove-menu-action" onSelect={() => onRemove?.(share)}>
-        {/* @ts-expect-error */}
         <IconTrashLine /> <View margin="0 0 0 x-small">{I18n.t('Remove')}</View>
       </Menu.Item>,
     )
@@ -115,11 +122,8 @@ export default function ReceivedTable({shares = [], onPreview, onImport, onRemov
         data-testid="action-menu"
         trigger={
           <IconButton
-            // @ts-expect-error
             size="small"
-            // @ts-expect-error
             withBackground={false}
-            // @ts-expect-error
             withBorder={false}
             renderIcon={IconMoreLine}
             screenReaderLabel={I18n.t('Manage options for %{name}', {name: share.name})}
@@ -148,23 +152,16 @@ export default function ReceivedTable({shares = [], onPreview, onImport, onRemov
 
     if (read_state !== 'read') {
       return (
-        // @ts-expect-error
         <Tooltip renderTip={srText()}>
-          {/* @ts-expect-error */}
           <Link data-testid="received-table-row-unread" onClick={setReadState} margin="0 small">
             {/* unread indicator, until we can use InstUI Badge for both unread and read indicators */}
-            {/* @ts-expect-error */}
             <View
               display="block"
-              // @ts-expect-error
               borderWidth="medium"
               width="1rem"
               height="1rem"
-              // @ts-expect-error
               borderRadius="circle"
-              // @ts-expect-error
               borderColor="info"
-              // @ts-expect-error
               background="info"
             />
             <ScreenReaderContent>{srText()}</ScreenReaderContent>
@@ -173,20 +170,14 @@ export default function ReceivedTable({shares = [], onPreview, onImport, onRemov
       )
     } else {
       return (
-        // @ts-expect-error
         <Tooltip renderTip={srText()}>
-          {/* @ts-expect-error */}
           <Link data-testid="received-table-row-read" onClick={setUnreadState} margin="0 small">
-            {/* @ts-expect-error */}
             <View
               display="block"
-              // @ts-expect-error
               borderWidth="medium"
               width="1rem"
               height="1rem"
-              // @ts-expect-error
               borderRadius="circle"
-              // @ts-expect-error
               borderColor="info"
             />
             <ScreenReaderContent>{srText()}</ScreenReaderContent>
@@ -197,7 +188,11 @@ export default function ReceivedTable({shares = [], onPreview, onImport, onRemov
   }
 
   function renderReceivedColumn(content_export?: ContentExport) {
-    if (content_export && content_export.workflow_state === 'exported') {
+    if (
+      content_export &&
+      content_export.workflow_state === 'exported' &&
+      content_export.created_at
+    ) {
       return <FriendlyDatetime dateTime={content_export.created_at} />
     } else if (
       !content_export ||
@@ -205,14 +200,12 @@ export default function ReceivedTable({shares = [], onPreview, onImport, onRemov
       content_export.workflow_state === 'deleted'
     ) {
       return (
-        // @ts-expect-error
         <Text color="danger">
           <em>{I18n.t('Failed')}</em>
         </Text>
       )
     } else {
       return (
-        // @ts-expect-error
         <Text color="secondary">
           <em>{I18n.t('Pending')}</em>
         </Text>
@@ -223,7 +216,6 @@ export default function ReceivedTable({shares = [], onPreview, onImport, onRemov
   function renderRow(share: ContentShare) {
     return (
       <Table.Row key={share.id}>
-        {/* @ts-expect-error */}
         <Table.Cell textAlign="end">{renderUnreadBadge(share)}</Table.Cell>
         <Table.Cell>{share.name}</Table.Cell>
         <Table.Cell>
@@ -231,15 +223,13 @@ export default function ReceivedTable({shares = [], onPreview, onImport, onRemov
         </Table.Cell>
         <Table.Cell>
           <Avatar
-            // @ts-expect-error
             margin="0 small 0 0"
-            // @ts-expect-error
             size="small"
-            name={share.sender ? share.sender?.display_name : I18n.t('unknown sender')}
-            src={share.sender ? share.sender?.avatar_image_url : '/images/messages/avatar-50.png'}
+            name={share.sender?.display_name ?? I18n.t('unknown sender')}
+            src={share.sender?.avatar_image_url ?? '/images/messages/avatar-50.png'}
             data-fs-exclude={true}
           />{' '}
-          {share.sender ? share.sender?.display_name : '--'}
+          {share.sender?.display_name ?? '--'}
         </Table.Cell>
         <Table.Cell>{renderReceivedColumn(share.content_export)}</Table.Cell>
         <Table.Cell>{renderActionMenu(share)}</Table.Cell>
@@ -248,7 +238,6 @@ export default function ReceivedTable({shares = [], onPreview, onImport, onRemov
   }
 
   return (
-    // @ts-expect-error
     <Table caption={I18n.t('Content shared by others to you')} layout="auto" hover={true}>
       <Table.Head>
         <Table.Row>

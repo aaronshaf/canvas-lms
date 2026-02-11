@@ -33,7 +33,14 @@ import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'
 
 const I18n = createI18nScope('content_share')
 
-type ContentShareType = 'assignment' | 'attachment' | 'discussion_topic' | 'page' | 'quiz' | 'module' | 'module_item'
+type ContentShareType =
+  | 'assignment'
+  | 'attachment'
+  | 'discussion_topic'
+  | 'page'
+  | 'quiz'
+  | 'module'
+  | 'module_item'
 
 interface Attachment {
   id?: string
@@ -67,21 +74,25 @@ interface ContentShare {
   content_export?: ContentExport
 }
 
-interface LinkMeta {
-  page?: number
+interface LinkInfo {
+  [key: string]: string
+  url: string
+  rel: string
+}
+
+interface Links {
+  first?: LinkInfo
+  prev?: LinkInfo
+  current?: LinkInfo
+  next?: LinkInfo
+  last?: LinkInfo
 }
 
 interface ResponseMeta {
-  link?: {
-    last?: LinkMeta
-    first?: LinkMeta
-    next?: LinkMeta
-    prev?: LinkMeta
-  }
+  link?: Links
 }
 
 const CourseImportPanel = lazy(() => import('./CourseImportPanel'))
-// @ts-expect-error
 const NoContent = () => <Text size="large">{I18n.t('No content has been shared with you.')}</Text>
 
 export default function ReceivedContentView() {
@@ -97,7 +108,7 @@ export default function ReceivedContentView() {
 
   useFetchApi({
     success: setShares,
-    meta: setResponseMeta,
+    meta: meta => setResponseMeta({link: meta.link}),
     error: setError,
     loading: setIsLoading,
     path: `${sharesUrl}/received`,
@@ -183,15 +194,15 @@ export default function ReceivedContentView() {
   }
 
   function renderPagination() {
-    if (responseMeta.link?.last?.page) {
-      const last = parseInt(String(responseMeta.link.last.page), 10)
+    const lastPage = responseMeta.link?.last?.page
+    if (lastPage) {
+      const last = parseInt(String(lastPage), 10)
       if (!Number.isNaN(last)) {
         return (
           <Paginator
             loadPage={setCurrentPage}
             page={currentPage}
             pageCount={last}
-            // @ts-expect-error
             margin="small 0 0 0"
           />
         )
@@ -224,18 +235,18 @@ export default function ReceivedContentView() {
       <CanvasLazyTray
         label={I18n.t('Import...')}
         open={whichModalOpen === 'import'}
-        // @ts-expect-error
         placement="end"
-        // @ts-expect-error
         padding="medium"
         onDismiss={closeModal}
       >
-        {/* @ts-expect-error */}
-        <CourseImportPanel
-          contentShare={currentContentShare}
-          onClose={closeModal}
-          onImport={markRead}
-        />
+        {currentContentShare && (
+          <CourseImportPanel
+            // @ts-expect-error - CourseImportPanel uses PropTypes, not TypeScript
+            contentShare={currentContentShare}
+            onClose={closeModal}
+            onImport={markRead}
+          />
+        )}
       </CanvasLazyTray>
     </>
   )

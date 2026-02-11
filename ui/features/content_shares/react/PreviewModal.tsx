@@ -23,7 +23,14 @@ import CanvasModal from '@canvas/instui-bindings/react/Modal'
 
 const I18n = createI18nScope('content_share_preview_overlay')
 
-type ContentShareType = 'assignment' | 'attachment' | 'discussion_topic' | 'page' | 'quiz' | 'module' | 'module_item'
+type ContentShareType =
+  | 'assignment'
+  | 'attachment'
+  | 'discussion_topic'
+  | 'page'
+  | 'quiz'
+  | 'module'
+  | 'module_item'
 
 interface Attachment {
   id?: string
@@ -67,6 +74,7 @@ export default function PreviewModal({open, share, onDismiss}: PreviewModalProps
   function sharePreviewUrl(): string | null {
     if (!share?.content_export?.attachment?.url) return null
     const downloadUrl = encodeURIComponent(share.content_export.attachment.url)
+    // @ts-expect-error
     return `${ENV.COMMON_CARTRIDGE_VIEWER_URL}?cartridge=${downloadUrl}`
   }
 
@@ -77,11 +85,8 @@ export default function PreviewModal({open, share, onDismiss}: PreviewModalProps
   return (
     <CanvasModal
       open={open}
-      // @ts-expect-error
       size="fullscreen"
-      // @ts-expect-error
       padding="0"
-      // @ts-expect-error
       closeButtonSize="medium"
       label={I18n.t('Preview')}
       footer={Footer}
