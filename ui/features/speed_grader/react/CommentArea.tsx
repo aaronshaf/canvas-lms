@@ -154,7 +154,6 @@ export default function CommentArea({
       <div id="textarea-container">
         {useRCELite ? (
           <CanvasRce
-            // @ts-expect-error
             ref={textAreaRef}
             autosave={false}
             defaultContent={currentText}

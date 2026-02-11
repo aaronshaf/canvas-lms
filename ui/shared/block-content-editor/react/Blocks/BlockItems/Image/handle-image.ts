@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// @ts-expect-error - no type declarations available
 import {prepEmbedSrc} from '@instructure/canvas-rce/es/common/fileUrl'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 

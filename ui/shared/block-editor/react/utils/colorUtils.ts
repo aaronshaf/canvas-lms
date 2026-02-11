@@ -25,6 +25,7 @@ import {
   isTransparent,
   getDefaultColors,
   type ColorsInUse,
+  // @ts-expect-error - no type declarations available
 } from '@instructure/canvas-rce'
 
 const getContrastingColor = (color1: string) => {

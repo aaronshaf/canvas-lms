@@ -21,6 +21,7 @@ import DefaultAccountQuotas from './DefaultAccountQuotas'
 import ManuallySettableQuotas from './ManuallySettableQuotas'
 import {AccountWithQuotas} from './common'
 import {lazy, Suspense} from 'react'
+// @ts-expect-error - no type declarations available
 import extensions from '@canvas/bundles/extensions'
 
 type Extensions = {

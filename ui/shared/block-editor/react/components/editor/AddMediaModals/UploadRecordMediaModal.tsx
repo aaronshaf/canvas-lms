@@ -17,6 +17,7 @@
  */
 
 import React from 'react'
+// @ts-expect-error - no type declarations available
 import UploadMedia from '@instructure/canvas-media'
 import {
   UploadMediaStrings,

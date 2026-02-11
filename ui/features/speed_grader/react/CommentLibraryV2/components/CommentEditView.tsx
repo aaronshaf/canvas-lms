@@ -26,6 +26,7 @@ import {SpeedGraderLegacy_UpdateCommentBankItem} from '../graphql/mutations'
 import {useMutation} from '@apollo/client'
 import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'
 import {useScope as createI18nScope} from '@canvas/i18n'
+// @ts-expect-error - no type declarations available
 import {SpeedGraderLegacy_UpdateCommentBankItemMutation} from '@canvas/graphql/codegen/graphql'
 
 const I18n = createI18nScope('CommentLibrary')

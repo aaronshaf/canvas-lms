@@ -18,6 +18,7 @@
 
 import React from 'react'
 import {createRoot, Root} from 'react-dom/client'
+// @ts-expect-error - no type declarations available
 import {Mathml} from '@instructure/canvas-rce/enhance-user-content'
 import ModuleFileDrop from '@canvas/context-module-file-drop/react'
 import ModuleFile from '@canvas/files/backbone/models/ModuleFile'

@@ -21,6 +21,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {FileDrop} from '@instructure/ui-file-drop'
 import {Flex} from '@instructure/ui-flex'
 import {Billboard} from '@instructure/ui-billboard'
+// @ts-expect-error - no type declarations available
 import {RocketSVG} from '@instructure/canvas-media'
 import {Text} from '@instructure/ui-text'
 import {BBFolderWrapper} from '../../../utils/fileFolderWrappers'

@@ -25,6 +25,7 @@ import {EmojiPicker, EmojiQuickPicker} from '@canvas/emoji'
 import CanvasRce from '@canvas/rce/react/CanvasRce'
 import styled from 'styled-components'
 import {stripHtmlTags} from '@canvas/util/TextHelper'
+// @ts-expect-error - no type declarations available
 import RCEWrapper from '@instructure/canvas-rce/es/rce/RCEWrapper'
 import {Editor} from 'tinymce'
 import {ViewProps} from '@instructure/ui-view'

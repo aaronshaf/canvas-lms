@@ -17,8 +17,9 @@
  */
 
 import React, {useContext, useState} from 'react'
-// @ts-expect-error
+// @ts-expect-error - no type declarations available
 import {UploadFile, type UploadFilePanelId} from '@instructure/canvas-rce'
+// @ts-expect-error - no type declarations available
 import {prepEmbedSrc} from '@instructure/canvas-rce/es/common/fileUrl'
 import {RCSPropsContext} from '../../../Contexts'
 import {useScope as createI18nScope} from '@canvas/i18n'

@@ -29,6 +29,7 @@ import {Button, CloseButton} from '@instructure/ui-buttons'
 import CommentRouterView from './CommentRouterView'
 import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'
 import {SpeedGraderLegacy_CommentBankItems} from '../graphql/queries'
+// @ts-expect-error - no type declarations available
 import {SpeedGraderLegacy_CommentBankItemsQuery} from '@canvas/graphql/codegen/graphql'
 import {CreateCommentSection} from './CreateCommentSection'
 import {SuggestionsEnabledToggleSection} from './SuggestionsEnabledToggleSection'
@@ -74,7 +75,7 @@ export const CommentLibraryTray: React.FC<CommentLibraryTrayProps> = ({
     if (data?.legacyNode && 'commentBankItemsConnection' in data.legacyNode) {
       const conn = data.legacyNode.commentBankItemsConnection
       return {
-        comments: conn?.nodes?.filter(it => it !== null) ?? [],
+        comments: conn?.nodes?.filter((it: any) => it !== null) ?? [],
         hasNextPage: conn?.pageInfo.hasNextPage ?? false,
         endCursor: conn?.pageInfo.endCursor ?? '',
       }

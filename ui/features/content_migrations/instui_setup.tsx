@@ -20,6 +20,7 @@ import React from 'react'
 import {render} from '@canvas/react'
 import ready from '@instructure/ready'
 import App from './react/app'
+// @ts-expect-error - no type declarations available
 import extensions from '@canvas/bundles/extensions'
 
 ready(() => {

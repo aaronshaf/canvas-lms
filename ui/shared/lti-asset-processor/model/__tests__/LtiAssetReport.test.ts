@@ -23,6 +23,7 @@ import {
   LtiAssetReportForStudentFragment,
   SpeedGrader_LtiAssetProcessorsQueryQuery,
   LtiAssetProcessorFragmentFragment,
+  // @ts-expect-error - no type declarations available
 } from '@canvas/graphql/codegen/graphql'
 import {
   GetLtiAssetProcessorsResult,

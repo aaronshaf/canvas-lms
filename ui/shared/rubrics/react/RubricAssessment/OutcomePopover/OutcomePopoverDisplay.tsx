@@ -23,6 +23,7 @@ import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import CalculationMethodContent from '@canvas/grading/CalculationMethodContent'
+// @ts-expect-error - no type declarations available
 import type {GetRubricOutcomeQuery} from '@canvas/graphql/codegen/graphql'
 import OutcomeContextTag from '@canvas/outcome-context-tag'
 

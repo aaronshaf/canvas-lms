@@ -17,6 +17,7 @@
  */
 
 import {AccessibilityCheckResult, AccessibilityIssue, AccessibilityRule} from './types'
+// @ts-expect-error - no type declarations available
 import {checkNode} from '@instructure/canvas-rce'
 
 export const checkHtmlContent = (

@@ -20,6 +20,7 @@ import {useRef} from 'react'
 import {uid} from '@instructure/uid'
 import CanvasRce from '@canvas/rce/react/CanvasRce'
 import {TextEditProps} from './types'
+// @ts-expect-error - no type declarations available
 import RCEWrapper from '@instructure/canvas-rce/es/rce/RCEWrapper'
 import './text-edit.css'
 

@@ -24,6 +24,7 @@ import {Billboard} from '@instructure/ui-billboard'
 import {Text} from '@instructure/ui-text'
 import {Flex} from '@instructure/ui-flex'
 import {sharedHandleFileDrop} from '../../handlers/addItemHandlers'
+// @ts-expect-error - no type declarations available
 import {RocketSVG} from '@instructure/canvas-media'
 import {Action} from 'redux'
 

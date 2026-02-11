@@ -18,6 +18,7 @@
 
 // This test relies on types from codegen, generated with "yarn run graphql:codegen":
 // It makes sure the Zod types we use actually correspond to the GraphQL queries.
+// @ts-expect-error - no type declarations available
 import {LtiAssetReportsForStudentQuery} from '@canvas/graphql/codegen/graphql'
 import {
   GetLtiAssetProcessorsAndReportsForStudentResult,
