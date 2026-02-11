@@ -17,17 +17,34 @@
  */
 
 import React from 'react'
-import {arrayOf, bool, shape, string} from 'prop-types'
 
 import {View} from '@instructure/ui-view'
 
 import K5Announcement, {
   K5AnnouncementLoadingMask,
-  K5AnnouncementType,
+  type K5AnnouncementType,
 } from '@canvas/k5/react/K5Announcement'
 import LoadingWrapper from '@canvas/k5/react/LoadingWrapper'
 
-export default function HomeroomAnnouncementsLayout({homeroomAnnouncements, loading}) {
+interface HomeroomAnnouncement {
+  courseId: string
+  courseName: string
+  courseUrl: string
+  published?: boolean
+  canEdit?: boolean
+  canReadAnnouncements?: boolean
+  announcement?: K5AnnouncementType
+}
+
+interface HomeroomAnnouncementsLayoutProps {
+  homeroomAnnouncements?: HomeroomAnnouncement[]
+  loading: boolean
+}
+
+export default function HomeroomAnnouncementsLayout({
+  homeroomAnnouncements,
+  loading,
+}: HomeroomAnnouncementsLayoutProps) {
   return (
     <LoadingWrapper
       id="homeroom-announcements"
@@ -55,18 +72,4 @@ export default function HomeroomAnnouncementsLayout({homeroomAnnouncements, load
       </View>
     </LoadingWrapper>
   )
-}
-
-HomeroomAnnouncementsLayout.propTypes = {
-  homeroomAnnouncements: arrayOf(
-    shape({
-      courseId: string.isRequired,
-      courseName: string.isRequired,
-      courseUrl: string.isRequired,
-      published: bool,
-      canEdit: bool,
-      announcement: K5AnnouncementType,
-    }),
-  ),
-  loading: bool.isRequired,
 }

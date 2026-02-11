@@ -17,7 +17,6 @@
  */
 
 import React, {useState} from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 import useImmediate from '@canvas/use-immediate-hook'
@@ -38,6 +37,16 @@ import EmptyDashboardState from '@canvas/k5/react/EmptyDashboardState'
 
 const I18n = createI18nScope('homeroom_page')
 
+interface HomeroomPageProps {
+  cards: any[] | null
+  createPermission?: 'admin' | 'teacher' | 'student' | 'no_enrollments'
+  restrictCourseCreation: boolean
+  homeroomAnnouncements: any[]
+  loadingAnnouncements: boolean
+  visible: boolean
+  loadingCards: boolean
+}
+
 const HomeroomPage = ({
   cards,
   createPermission,
@@ -46,8 +55,8 @@ const HomeroomPage = ({
   loadingAnnouncements,
   visible,
   loadingCards,
-}) => {
-  const [dashboardCards, setDashboardCards] = useState([])
+}: HomeroomPageProps) => {
+  const [dashboardCards, setDashboardCards] = useState<React.ReactElement[]>([])
   const [courseModalOpen, setCourseModalOpen] = useState(false)
 
   useImmediate(
@@ -65,7 +74,7 @@ const HomeroomPage = ({
     {deep: true},
   )
 
-  const skeletonCard = ({key, ...props}) => (
+  const skeletonCard = ({key, ...props}: {key: string | number; [key: string]: any}) => (
     <div
       key={key}
       {...props}
@@ -79,7 +88,7 @@ const HomeroomPage = ({
     </div>
   )
 
-  const skeletonCardsContainer = skeletons => (
+  const skeletonCardsContainer = (skeletons: React.ReactElement[]) => (
     <div className="ic-DashboardCard__box">
       <div className="ic-DashboardCard__box__container">{skeletons}</div>
     </div>
@@ -126,7 +135,7 @@ const HomeroomPage = ({
           renderCustomSkeleton={skeletonCard}
           renderSkeletonsContainer={skeletonCardsContainer}
         >
-          {cards?.length > 0 ? dashboardCards : <EmptyDashboardState />}
+          {cards?.length! > 0 ? dashboardCards : <EmptyDashboardState />}
         </LoadingWrapper>
       </View>
       {courseModalOpen && (
@@ -140,16 +149,6 @@ const HomeroomPage = ({
       )}
     </section>
   )
-}
-
-HomeroomPage.propTypes = {
-  cards: PropTypes.array,
-  createPermission: PropTypes.oneOf(['admin', 'teacher', 'student', 'no_enrollments']),
-  restrictCourseCreation: PropTypes.bool.isRequired,
-  homeroomAnnouncements: PropTypes.array.isRequired,
-  loadingAnnouncements: PropTypes.bool.isRequired,
-  visible: PropTypes.bool.isRequired,
-  loadingCards: PropTypes.bool.isRequired,
 }
 
 export default HomeroomPage

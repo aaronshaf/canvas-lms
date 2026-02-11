@@ -35,7 +35,7 @@ import {
   saveElementaryDashboardPreference,
 } from '@canvas/k5/react/utils'
 import {mapStateToProps} from '@canvas/k5/redux/redux-helpers'
-import ObserverOptions, {ObservedUsersListShape} from '@canvas/observer-picker'
+import ObserverOptions, {type ObservedUsersListShape} from '@canvas/observer-picker'
 import {fetchShowK5Dashboard} from '@canvas/observer-picker/react/utils'
 import {responsiviser, store} from '@canvas/planner'
 import useFetchApi from '@canvas/use-fetch-api-hook'
@@ -57,7 +57,6 @@ import {
 import {Menu} from '@instructure/ui-menu'
 import {Tray} from '@instructure/ui-tray'
 import {View} from '@instructure/ui-view'
-import PropTypes from 'prop-types'
 import React, {useCallback, useEffect, useState, useLayoutEffect} from 'react'
 import {Provider, connect} from 'react-redux'
 import {GradesPage} from './GradesPage'
@@ -98,7 +97,11 @@ const DASHBOARD_TABS = [
   },
 ]
 
-const K5DashboardOptionsMenu = ({onDisableK5Dashboard}) => {
+interface K5DashboardOptionsMenuProps {
+  onDisableK5Dashboard: (e: React.SyntheticEvent, value: string[]) => void
+}
+
+const K5DashboardOptionsMenu = ({onDisableK5Dashboard}: K5DashboardOptionsMenuProps) => {
   return (
     <Menu
       trigger={
@@ -123,7 +126,11 @@ const K5DashboardOptionsMenu = ({onDisableK5Dashboard}) => {
   )
 }
 
-const toRenderTabs = (currentUserRoles, hideGradesTabForStudents, userIsObservingStudent) => {
+const toRenderTabs = (
+  currentUserRoles: string[],
+  hideGradesTabForStudents: boolean,
+  userIsObservingStudent: boolean,
+) => {
   const roles = new Set(currentUserRoles)
 
   const isTeacher = roles.has('teacher')
@@ -155,6 +162,38 @@ const getWindowSize = () => ({
   height: window.innerHeight,
 })
 
+interface AccountCalendarContext {
+  asset_string: string
+  name: string
+  color?: string
+}
+
+interface K5DashboardProps {
+  assignmentsDueToday: Record<string, number>
+  assignmentsMissing: Record<string, number>
+  assignmentsCompletedForToday: Record<string, number>
+  createPermission?: 'admin' | 'teacher' | 'student' | 'no_enrollments'
+  restrictCourseCreation: boolean
+  currentUser: {
+    id?: string
+    display_name?: string
+    avatar_image_url?: string
+  }
+  currentUserRoles: string[]
+  timeZone: string
+  defaultTab?: string
+  plannerEnabled?: boolean
+  responsiveSize?: string
+  hideGradesTabForStudents?: boolean
+  selectedContextCodes?: string[]
+  selectedContextsLimit: number
+  observedUsersList: ObservedUsersListShape
+  canAddObservee: boolean
+  openTodosInNewTab: boolean
+  loadingOpportunities: boolean
+  accountCalendarContexts?: AccountCalendarContext[]
+}
+
 const K5Dashboard = ({
   assignmentsDueToday,
   assignmentsMissing,
@@ -174,8 +213,8 @@ const K5Dashboard = ({
   canAddObservee,
   openTodosInNewTab,
   loadingOpportunities,
-  accountCalendarContexts,
-}) => {
+  accountCalendarContexts = [],
+}: K5DashboardProps) => {
   const initialObservedId = getObservedUserId(observedUsersList)
   const [observedUserId, setObservedUserId] = useState(initialObservedId)
   const observerMode = currentUserRoles.includes('observer')
@@ -183,14 +222,14 @@ const K5Dashboard = ({
 
   const availableTabs = toRenderTabs(currentUserRoles, hideGradesTabForStudents, isObservingStudent)
   const {activeTab, currentTab, handleTabChange} = useTabState(defaultTab, availableTabs)
-  const [cards, setCards] = useState(null)
+  const [cards, setCards] = useState<any[] | null>(null)
   const [cardsSettled, setCardsSettled] = useState(false)
-  const [homeroomAnnouncements, setHomeroomAnnouncements] = useState([])
-  const [subjectAnnouncements, setSubjectAnnouncements] = useState([])
+  const [homeroomAnnouncements, setHomeroomAnnouncements] = useState<any[]>([])
+  const [subjectAnnouncements, setSubjectAnnouncements] = useState<any[]>([])
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true)
-  const [tabsRef, setTabsRef] = useState(null)
+  const [tabsRef, setTabsRef] = useState<HTMLElement | null>(null)
   const [trayOpen, setTrayOpen] = useState(false)
-  const [, setCardDashboardLoader] = useState(null)
+  const [, setCardDashboardLoader] = useState<CardDashboardLoader | null>(null)
   const plannerInitialized = usePlanner({
     plannerEnabled,
     isPlannerActive: () => activeTab.current === TAB_IDS.SCHEDULE,
@@ -216,7 +255,7 @@ const K5Dashboard = ({
     setTrayOpen(false)
   }
 
-  const loadCardDashboardCallBack = (dc, cardsFinishedLoading) => {
+  const loadCardDashboardCallBack = (dc: any[], cardsFinishedLoading: boolean) => {
     const activeCards = dc.filter(({enrollmentState}) => enrollmentState !== 'invited')
     setCards(activeCards)
     if (cardsFinishedLoading) {
@@ -229,13 +268,13 @@ const K5Dashboard = ({
     }
   }
 
-  const updateDashboardForObserverCallback = id => {
+  const updateDashboardForObserverCallback = (id: string) => {
     setCardDashboardLoader(null)
     setCardsSettled(false)
     setObservedUserId(id)
   }
 
-  const handleChangeObservedUser = id => {
+  const handleChangeObservedUser = (id: string) => {
     if (id !== observedUserId) {
       fetchShowK5Dashboard(id)
         .then(response => {
@@ -266,7 +305,7 @@ const K5Dashboard = ({
     isError: isDashCardError,
     error: dashCardError,
   } = useFetchDashboardCards(
-    currentUser.id,
+    currentUser.id!,
     observedUserId,
     !observerMode || (observerMode && observedUserId != null),
   )
@@ -296,7 +335,7 @@ const K5Dashboard = ({
       },
       [cards],
     ),
-    error: useCallback(err => {
+    error: useCallback((err: any) => {
       // Don't show an error if user doesn't have permission to read announcements - this is a
       // permission that can be set.
       if (err?.response?.status === 401) {
@@ -317,7 +356,7 @@ const K5Dashboard = ({
     },
   })
 
-  const handleDisableK5Dashboard = (e, [newView]) => {
+  const handleDisableK5Dashboard = (e: React.SyntheticEvent, [newView]: string[]) => {
     if (newView === 'classic') {
       saveElementaryDashboardPreference(true)
         .then(() => reloadWindow())
@@ -325,7 +364,7 @@ const K5Dashboard = ({
     }
   }
 
-  const renderDashboardHeader = sticky => {
+  const renderDashboardHeader = (sticky: boolean) => {
     const showingAdditionalOptions =
       useImportantDatesTray || canDisableElementaryDashboard || observerMode
     const placeAdditionalOptionsAbove = observerMode && showingMobileNav
@@ -513,40 +552,10 @@ const K5Dashboard = ({
 }
 
 K5Dashboard.displayName = 'K5Dashboard'
-K5Dashboard.propTypes = {
-  assignmentsDueToday: PropTypes.object.isRequired,
-  assignmentsMissing: PropTypes.object.isRequired,
-  assignmentsCompletedForToday: PropTypes.object.isRequired,
-  loadingOpportunities: PropTypes.bool.isRequired,
-  createPermission: PropTypes.oneOf(['admin', 'teacher', 'student', 'no_enrollments']),
-  restrictCourseCreation: PropTypes.bool.isRequired,
-  currentUser: PropTypes.shape({
-    id: PropTypes.string,
-    display_name: PropTypes.string,
-    avatar_image_url: PropTypes.string,
-  }).isRequired,
-  currentUserRoles: PropTypes.arrayOf(PropTypes.string).isRequired,
-  timeZone: PropTypes.string.isRequired,
-  defaultTab: PropTypes.string,
-  plannerEnabled: PropTypes.bool,
-  responsiveSize: PropTypes.string,
-  hideGradesTabForStudents: PropTypes.bool,
-  selectedContextCodes: PropTypes.arrayOf(PropTypes.string),
-  selectedContextsLimit: PropTypes.number.isRequired,
-  observedUsersList: ObservedUsersListShape.isRequired,
-  canAddObservee: PropTypes.bool.isRequired,
-  openTodosInNewTab: PropTypes.bool.isRequired,
-  accountCalendarContexts: PropTypes.arrayOf(
-    PropTypes.shape({
-      asset_string: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-    }),
-  ),
-}
 
 const WrappedK5Dashboard = connect(mapStateToProps)(responsiviser()(K5Dashboard))
 
-export default props => (
+export default (props: K5DashboardProps) => (
   <InstUISettingsProvider theme={{componentOverrides}}>
     <Provider store={store}>
       <WrappedK5Dashboard {...props} />
