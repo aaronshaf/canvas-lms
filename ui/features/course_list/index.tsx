@@ -26,7 +26,7 @@ import ready from '@instructure/ready'
 const I18n = createI18nScope('course_list')
 
 ready(() => {
-  function success(target) {
+  function success(target: JQuery) {
     const courseName = target[0].dataset.courseName
     const favorited_tooltip = I18n.t(
       'favorited_tooltip',
@@ -71,7 +71,7 @@ ready(() => {
 
   $('[data-favorite-url]').on('click keyclick', function (event) {
     event.preventDefault()
-    const url = $(this).data('favoriteUrl')
+    const url = $(this).data('favoriteUrl') as string
     const target = $(event.currentTarget)
     if (target.hasClass('course-list-favorite-course')) {
       $.ajaxJSON(url, 'DELETE', {}, success(target), null)
