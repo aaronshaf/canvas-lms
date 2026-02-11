@@ -32,7 +32,121 @@ import '@canvas/util/templateData'
 const I18n = createI18nScope('gradebook_uploads')
 /* fillTemplateData */
 
-function shouldHighlightScoreChange(oldValue, newValue) {
+interface Student {
+  id: string
+  name: string
+  submissions: Submission[]
+  custom_column_data: CustomColumnData[]
+  override_scores?: OverrideScore[]
+  override_statuses?: OverrideStatus[]
+}
+
+interface Assignment {
+  id: string
+  title: string
+  previous_id?: string
+  grading_type?: string
+  points_possible?: number
+}
+
+interface Submission {
+  assignment_id: string
+  grade: string
+  original_grade?: string
+}
+
+interface CustomColumnData {
+  column_id: string
+  new_content: string
+  current_content: string
+}
+
+interface CustomColumn {
+  id: string
+  title: string
+}
+
+interface OverrideScore {
+  grading_period_id?: string
+  current_score: string
+  new_score: string
+}
+
+interface OverrideStatus {
+  grading_period_id?: string
+  current_grade_status: string | null
+  new_grade_status: string
+}
+
+interface GradingPeriod {
+  id: string
+  title: string
+}
+
+interface UploadedGradebook {
+  students: Student[]
+  assignments: Assignment[]
+  custom_columns: CustomColumn[]
+  override_scores?: {
+    includes_course_scores: boolean
+    grading_periods: GradingPeriod[]
+  }
+  override_statuses?: {
+    includes_course_score_status: boolean
+    grading_periods: GradingPeriod[]
+  }
+  missing_objects?: {
+    students?: Array<{id: string; name: string}>
+    assignments?: Array<{id: string; title: string}>
+  }
+  original_submissions?: Array<{
+    user_id: string
+    assignment_id: string
+    score: string | number
+  }>
+  unchanged_assignments?: boolean
+  warning_messages: {
+    prevented_new_assignment_creation_in_closed_period?: boolean
+    prevented_grading_ungradeable_submission?: boolean
+    prevented_changing_read_only_column?: boolean
+  }
+}
+
+interface GridColumn {
+  id: string
+  name?: string
+  field: string
+  width: number
+  cssClass?: string
+  headerCssClass?: string
+  formatter?: (row: number, cell: number, value: any) => string
+  editor?: any
+  editorFormatter?: ((grade: any) => string) | string
+  editorParser?: ((value: string) => number) | string
+  active?: boolean
+  previous_id?: string
+  type?: string
+  customColumnId?: string
+}
+
+interface GridData {
+  columns: GridColumn[]
+  options: {
+    enableAddRow: boolean
+    editable?: boolean
+    enableColumnReorder: boolean
+    asyncEditorLoading: boolean
+    rowHeight?: number
+  }
+  data: any[]
+}
+
+interface RowToHighlight {
+  rowIndex: number
+  id: string
+}
+
+function shouldHighlightScoreChange(oldValue: string, newValue: string): boolean {
   // Even if canvas is operating in a locale that does commas as
   // the decimal separator, the text that represents the score
   // is sent period separated.
@@ -44,30 +158,31 @@ function shouldHighlightScoreChange(oldValue, newValue) {
 }
 
 const GradebookUploader = {
-  createGeneralFormatter(attribute) {
-    return function (row, cell, value) {
+  createGeneralFormatter(attribute: string) {
+    return function (_row: number, _cell: number, value: any): string {
       return value ? htmlEscape(value[attribute]) : ''
     }
   },
 
-  createGrid($container, {data, columns, options}) {
+  createGrid($container: JQuery, {data, columns, options}: GridData) {
+    // @ts-expect-error - Slick.Grid is a global type from slickgrid library without proper TypeScript definitions
     return new Slick.Grid($container, data, columns, options)
   },
 
-  createNumberFormatter(attribute) {
-    return function (row, cell, value) {
+  createNumberFormatter(attribute: string) {
+    return function (_row: number, _cell: number, value: any): string {
       return value ? GradeFormatHelper.formatGrade(value[attribute]) : ''
     }
   },
 
-  init(uploadedGradebook) {
+  init(uploadedGradebook: UploadedGradebook) {
     const $gradebook_grid = $('#gradebook_grid')
     const $gradebook_grid_header = $('#gradebook_grid_header')
-    const rowsToHighlight = []
+    const rowsToHighlight: RowToHighlight[] = []
 
-    let gradebookGrid
+    let gradebookGrid: any
 
-    const gridData = {
+    const gridData: GridData = {
       columns: [
         {
           id: 'student',
@@ -88,7 +203,7 @@ const GradebookUploader = {
       data: [],
     }
 
-    const labelData = {
+    const labelData: GridData = {
       columns: [
         {
           id: 'assignmentGrouping',
@@ -108,13 +223,14 @@ const GradebookUploader = {
     delete uploadedGradebook.missing_objects
     delete uploadedGradebook.original_submissions
 
-    $.each(uploadedGradebook.assignments, function () {
-      const newGrade = {
+    $.each(uploadedGradebook.assignments, function (this: Assignment) {
+      const newGrade: GridColumn = {
         id: this.id,
         type: 'assignments',
         name: htmlEscape(I18n.t('To')),
         field: this.id,
         width: 125,
+        // @ts-expect-error - Slick.Editors is a global type from slickgrid library without proper TypeScript definitions
         editor: Slick.Editors.UploadGradeCellEditor,
         formatter: GradebookUploader.createNumberFormatter('grade'),
         active: true,
@@ -123,13 +239,13 @@ const GradebookUploader = {
       }
 
       if (this.grading_type !== 'letter_grade') {
-        newGrade.editorFormatter = function (grade) {
+        newGrade.editorFormatter = function (grade: any) {
           return GradeFormatHelper.formatGrade(grade, {defaultValue: ''})
         }
         newGrade.editorParser = GradeFormatHelper.delocalizeGrade
       }
 
-      const conflictingGrade = {
+      const conflictingGrade: GridColumn = {
         id: `${this.id}_conflicting`,
         width: 125,
         formatter: GradebookUploader.createNumberFormatter('original_grade'),
@@ -138,10 +254,11 @@ const GradebookUploader = {
         cssClass: 'conflicting-grade',
       }
 
-      const assignmentHeaderColumn = {
+      const assignmentHeaderColumn: GridColumn = {
         id: this.id,
         width: 250,
         name: htmlEscape(this.title),
+        field: this.id,
         headerCssClass: 'assignment',
       }
 
@@ -151,13 +268,14 @@ const GradebookUploader = {
     })
 
     uploadedGradebook.custom_columns.forEach(column => {
-      const newCustomColumn = {
+      const newCustomColumn: GridColumn = {
         id: `custom_col_${column.id}`,
         customColumnId: column.id,
         type: 'custom_column',
         name: htmlEscape(I18n.t('To')),
         field: `custom_col_${column.id}`,
         width: 125,
+        // @ts-expect-error - Slick.Editors is a global type from slickgrid library without proper TypeScript definitions
         editor: Slick.Editors.UploadGradeCellEditor,
         formatter: GradebookUploader.createGeneralFormatter('new_content'),
         editorFormatter: 'custom_column',
@@ -166,7 +284,7 @@ const GradebookUploader = {
         cssClass: 'new-grade',
       }
 
-      const conflictingCustomColumn = {
+      const conflictingCustomColumn: GridColumn = {
         id: `custom_col_${column.id}_conflicting`,
         width: 125,
         formatter: GradebookUploader.createGeneralFormatter('current_content'),
@@ -175,10 +293,11 @@ const GradebookUploader = {
         cssClass: 'conflicting-grade',
       }
 
-      const customColumnHeaderColumn = {
+      const customColumnHeaderColumn: GridColumn = {
         id: `custom_col_${column.id}`,
         width: 250,
         name: htmlEscape(column.title),
+        field: `custom_col_${column.id}`,
         headerCssClass: 'assignment',
       }
 
@@ -208,14 +327,14 @@ const GradebookUploader = {
       })
     }
 
-    $.each(uploadedGradebook.students, function (index) {
-      const row = {
+    $.each(uploadedGradebook.students, function (this: Student, index: number) {
+      const row: Record<string, any> = {
         student: this,
         id: this.id,
       }
-      $.each(this.submissions, function () {
+      $.each(this.submissions, function (this: Submission) {
         if (
-          shouldHighlightScoreChange(this.original_grade, this.grade) &&
+          shouldHighlightScoreChange(this.original_grade || '', this.grade) &&
           (this.grade || '').toUpperCase() !== 'EX'
         ) {
           rowsToHighlight.push({rowIndex: index, id: this.assignment_id})
@@ -225,7 +344,7 @@ const GradebookUploader = {
         row[this.assignment_id] = this
         row[`${this.assignment_id}_conflicting`] = this
       })
-      $.each(this.custom_column_data, function () {
+      $.each(this.custom_column_data, function (this: CustomColumnData) {
         if (this.current_content !== this.new_content) {
           rowsToHighlight.push({rowIndex: index, id: `custom_col_${this.column_id}`})
         }
@@ -280,7 +399,7 @@ const GradebookUploader = {
 
       $(window)
         .resize(() => {
-          $gradebook_grid.height($(window).height() - $gradebook_grid.offset().top - 150)
+          $gradebook_grid.height($(window).height()! - $gradebook_grid.offset()!.top - 150)
           const width = (gridData.columns.length - 1) * 125 + 250
           $gradebook_grid.parent().width(width)
         })
@@ -289,7 +408,7 @@ const GradebookUploader = {
       gradebookGrid = GradebookUploader.createGrid($gradebook_grid, gridData)
       GradebookUploader.createGrid($gradebook_grid_header, labelData)
 
-      const gradeReviewRow = {}
+      const gradeReviewRow: Record<number, Record<string, string>> = {}
 
       for (let i = 0; i < rowsToHighlight.length; i++) {
         const id = rowsToHighlight[i].id
@@ -322,38 +441,45 @@ const GradebookUploader = {
   },
 
   handleThingsNeedingToBeResolved() {
+    // @ts-expect-error - ENV.progress and ENV.new_gradebook_upload_path are added dynamically by Rails
     return waitForProcessing(ENV.progress)
       .then(uploadedGradebook => {
         processUploadedGradebook(uploadedGradebook)
       })
       .catch(error => {
         alert(error.message)
-        window.location = ENV.new_gradebook_upload_path
+        // @ts-expect-error - ENV.new_gradebook_upload_path is added dynamically by Rails
+        window.location.href = ENV.new_gradebook_upload_path
       })
 
-    function processUploadedGradebook(uploadedGradebook) {
-      const needingReview = {}
+    function processUploadedGradebook(uploadedGradebook: UploadedGradebook) {
+      const needingReview: Record<string, any[]> = {}
 
       // first, figure out if there is anything that needs to be resolved
-      $.each(['student', 'assignment'], (i, thing) => {
+      $.each(['student', 'assignment'], (_i: number, thing: string) => {
         const $template = $(`#${thing}_resolution_template`).remove(),
           $select = $template.find('select')
 
         needingReview[thing] = []
 
-        $.each(uploadedGradebook[`${thing}s`], function () {
-          if (!this.previous_id) {
-            needingReview[thing].push(this)
-          }
-        })
+        $.each(
+          uploadedGradebook[`${thing}s` as keyof UploadedGradebook] as any[],
+          function (this: any) {
+            if (!this.previous_id) {
+              needingReview[thing].push(this)
+            }
+          },
+        )
 
         if (needingReview[thing].length) {
-          $select.change(function () {
+          $select.change(function (this: HTMLSelectElement) {
             $(this).next('.points_possible_section').css({opacity: 0})
-            if ($(this).val() > 0) {
+            const val = $(this).val()
+            if (typeof val === 'number' || (typeof val === 'string' && Number(val) > 0)) {
               // if the thing that was selected is an id( not ignore or add )
               $(`#${thing}_resolution_template select option`).removeAttr('disabled')
-              $(`#${thing}_resolution_template select`).each(function () {
+              // @ts-expect-error - jQuery callback 'this' typing is complex and doesn't align perfectly with HTMLSelectElement
+              $(`#${thing}_resolution_template select`).each(function (this: HTMLSelectElement) {
                 if ($(this).val() !== 'ignore') {
                   $(`#${thing}_resolution_template select`)
                     .not(this)
@@ -366,13 +492,16 @@ const GradebookUploader = {
             }
           })
 
-          $.each(uploadedGradebook.missing_objects[`${thing}s`], function () {
-            $(
-              `<option value="${this.id}" >${htmlEscape(this.name || this.title)}</option>`,
-            ).appendTo($select)
-          })
+          $.each(
+            uploadedGradebook.missing_objects![`${thing}s` as 'students' | 'assignments']!,
+            function (this: any) {
+              $(
+                `<option value="${this.id}" >${htmlEscape(this.name || this.title)}</option>`,
+              ).appendTo($select)
+            },
+          )
 
-          $.each(needingReview[thing], (i, record) => {
+          $.each(needingReview[thing], (_i: number, record: any) => {
             $template
               .clone(true)
               .fillTemplateData({
@@ -386,9 +515,9 @@ const GradebookUploader = {
               .appendTo(`#gradebook_importer_resolution_section .${thing}_section table tbody`)
               .show()
               .find('input.points_possible')
-              .change(function () {
+              .change(function (this: HTMLInputElement) {
                 const $this = $(this)
-                record.points_possible = numberHelper.parse($this.val())
+                record.points_possible = numberHelper.parse($this.val() as string)
                 $this.val(I18n.n(record.points_possible))
               })
           })
@@ -401,13 +530,17 @@ const GradebookUploader = {
 
       if (needingReview.student.length || needingReview.assignment.length) {
         // if there are things that need to be resolved, set up stuff for that form
-        $('#gradebook_importer_resolution_section').submit(function (e) {
+        // @ts-expect-error - jQuery submit callback typing is complex with 'this' context
+        $('#gradebook_importer_resolution_section').submit(function (
+          this: HTMLFormElement,
+          e: JQuery.SubmitEvent,
+        ) {
           let returnFalse = false
           e.preventDefault()
 
           $(this)
             .find('select')
-            .each(function () {
+            .each(function (this: HTMLSelectElement) {
               if (!$(this).val()) {
                 returnFalse = true
                 $(this).errorBox(I18n.t('errors.select_an_option', 'Please select an option'))
@@ -418,12 +551,12 @@ const GradebookUploader = {
 
           $(this)
             .find('select')
-            .each(function () {
+            .each(function (this: HTMLSelectElement) {
               const $select = $(this),
-                parts = $select.attr('name').split('_'),
+                parts = $select.attr('name')!.split('_'),
                 thing = parts[0],
                 id = parts[1],
-                val = $select.val()
+                val = $select.val() as string
 
               switch (val) {
                 case 'new':
@@ -431,44 +564,63 @@ const GradebookUploader = {
                   break
                 case 'ignore':
                   // remove the entry from the uploaded gradebook
-                  for (const i in uploadedGradebook[`${thing}s`]) {
-                    if (id == uploadedGradebook[`${thing}s`][i].id) {
-                      uploadedGradebook[`${thing}s`].splice(i, 1)
-                      break
+                  {
+                    const collection = uploadedGradebook[
+                      `${thing}s` as keyof UploadedGradebook
+                    ] as any[]
+                    for (const i in collection) {
+                      if (id == collection[i].id) {
+                        collection.splice(Number(i), 1)
+                        break
+                      }
                     }
                   }
                   break
                 default: {
                   // merge
-                  const obj = find(uploadedGradebook[`${thing}s`], thng => id == thng.id)
+                  const obj = find(
+                    uploadedGradebook[`${thing}s` as keyof UploadedGradebook] as any[],
+                    thng => id == thng.id,
+                  )
                   obj.id = obj.previous_id = val
                   if (thing === 'assignment') {
                     // find the original grade for this assignment for each student
-                    $.each(uploadedGradebook.students, function () {
+                    $.each(uploadedGradebook.students, function (this: Student) {
                       const student = this
-                      const submission = find(student.submissions, thng => thng.assignment_id == id)
+                      const submission = find(
+                        student.submissions,
+                        thng => thng.assignment_id == id,
+                      )!
                       submission.assignment_id = val
                       const original_submission = find(
-                        uploadedGradebook.original_submissions,
+                        uploadedGradebook.original_submissions!,
                         sub => sub.user_id == student.id && sub.assignment_id == val,
                       )
                       if (original_submission) {
+                        const score =
+                          typeof original_submission.score === 'number'
+                            ? original_submission.score
+                            : Number.parseFloat(String(original_submission.score))
                         submission.original_grade =
-                          original_submission.score !== '' ? I18n.n(original_submission.score) : ''
+                          original_submission.score !== '' ? String(I18n.n(score)) : ''
                       }
                     })
                   } else if (thing === 'student') {
                     // find the original grade for each assignment for this student
-                    $.each(obj.submissions, function () {
+                    $.each(obj.submissions, function (this: Submission) {
                       const submission = this
                       const original_submission = find(
-                        uploadedGradebook.original_submissions,
+                        uploadedGradebook.original_submissions!,
                         sub =>
                           sub.user_id == obj.id && sub.assignment_id == submission.assignment_id,
                       )
                       if (original_submission) {
+                        const score =
+                          typeof original_submission.score === 'number'
+                            ? original_submission.score
+                            : Number.parseFloat(String(original_submission.score))
                         submission.original_grade =
-                          original_submission.score !== '' ? I18n.n(original_submission.score) : ''
+                          original_submission.score !== '' ? String(I18n.n(score)) : ''
                       }
                     })
                   }
@@ -477,15 +629,15 @@ const GradebookUploader = {
             })
 
           // remove assignments that have no changes
-          const indexes_to_delete = []
-          $.each(uploadedGradebook.assignments, index => {
+          const indexes_to_delete: number[] = []
+          $.each(uploadedGradebook.assignments, (index: number) => {
             if (
               uploadedGradebook.assignments[index].previous_id &&
               every(uploadedGradebook.students, student => {
                 const submission = student.submissions[index]
 
                 return (
-                  parseFloat(submission.original_grade) == parseFloat(submission.grade) ||
+                  parseFloat(submission.original_grade || '') == parseFloat(submission.grade) ||
                   (!submission.original_grade && !submission.grade)
                 )
               })
@@ -493,9 +645,9 @@ const GradebookUploader = {
               indexes_to_delete.push(index)
             }
           })
-          each(indexes_to_delete.reverse(), index => {
+          each(indexes_to_delete.reverse(), (index: number) => {
             uploadedGradebook.assignments.splice(index, 1)
-            $.each(uploadedGradebook.students, function () {
+            $.each(uploadedGradebook.students, function (this: Student) {
               this.submissions.splice(index, 1)
             })
           })
@@ -513,19 +665,24 @@ const GradebookUploader = {
     }
   },
 
-  addOverrideScoreChangeColumn(labelData, gridData, gradingPeriod = null) {
+  addOverrideScoreChangeColumn(
+    labelData: GridData,
+    gridData: GridData,
+    gradingPeriod: GradingPeriod | null = null,
+  ) {
     // A null grading period means these changes are for override grades for the course
     const id = gradingPeriod?.id || 'course'
     const title = gradingPeriod?.title
       ? I18n.t('Override Score (%{gradingPeriod})', {gradingPeriod: gradingPeriod.title})
       : I18n.t('Override Score')
 
-    const newOverrideScoreColumn = {
+    const newOverrideScoreColumn: GridColumn = {
       id: `override_score_${id}`,
       type: 'assignment',
       name: htmlEscape(I18n.t('To')),
       field: `override_score_${id}`,
       width: 125,
+      // @ts-expect-error - Slick.Editors is a global type from slickgrid library without proper TypeScript definitions
       editor: Slick.Editors.UploadGradeCellEditor,
       editorFormatter: 'override_score',
       editorParser: 'override_score',
@@ -534,7 +691,7 @@ const GradebookUploader = {
       cssClass: 'new-grade',
     }
 
-    const conflictingOverrideScoreColumn = {
+    const conflictingOverrideScoreColumn: GridColumn = {
       id: `override_score_${id}_conflicting`,
       width: 125,
       formatter: GradebookUploader.createNumberFormatter('current_score'),
@@ -544,28 +701,34 @@ const GradebookUploader = {
     }
     gridData.columns.push(conflictingOverrideScoreColumn, newOverrideScoreColumn)
 
-    const overrideScoreHeaderColumn = {
+    const overrideScoreHeaderColumn: GridColumn = {
       id: `override_score_${id}`,
       width: 250,
       name: htmlEscape(title),
+      field: `override_score_${id}`,
       headerCssClass: 'assignment',
     }
     labelData.columns.push(overrideScoreHeaderColumn)
   },
 
-  addOverrideStatusChangeColumn(labelData, gridData, gradingPeriod = null) {
+  addOverrideStatusChangeColumn(
+    labelData: GridData,
+    gridData: GridData,
+    gradingPeriod: GradingPeriod | null = null,
+  ) {
     // A null grading period means these changes are for override grades for the course
     const id = gradingPeriod?.id || 'course'
     const title = gradingPeriod?.title
       ? I18n.t('Override Status (%{gradingPeriod})', {gradingPeriod: gradingPeriod.title})
       : I18n.t('Override Status')
 
-    const newOverrideStatusColumn = {
+    const newOverrideStatusColumn: GridColumn = {
       id: `override_status_${id}`,
       type: 'assignment',
       name: htmlEscape(I18n.t('To')),
       field: `override_status_${id}`,
       width: 125,
+      // @ts-expect-error - Slick.Editors is a global type from slickgrid library without proper TypeScript definitions
       editor: Slick.Editors.UploadGradeCellEditor,
       editorFormatter: 'override_status',
       editorParser: 'override_status',
@@ -574,7 +737,7 @@ const GradebookUploader = {
       cssClass: 'new-grade',
     }
 
-    const conflictingOverrideScoreColumn = {
+    const conflictingOverrideScoreColumn: GridColumn = {
       id: `override_status_${id}_conflicting`,
       width: 125,
       formatter: GradebookUploader.createGeneralFormatter('current_grade_status'),
@@ -584,10 +747,11 @@ const GradebookUploader = {
     }
     gridData.columns.push(conflictingOverrideScoreColumn, newOverrideStatusColumn)
 
-    const overrideScoreHeaderColumn = {
+    const overrideScoreHeaderColumn: GridColumn = {
       id: `override_status_${id}`,
       width: 250,
       name: htmlEscape(title),
+      field: `override_status_${id}`,
       headerCssClass: 'assignment',
     }
     labelData.columns.push(overrideScoreHeaderColumn)
