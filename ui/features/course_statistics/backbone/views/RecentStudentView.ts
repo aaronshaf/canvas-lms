@@ -19,6 +19,7 @@
 import {extend} from '@canvas/backbone/utils'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import Backbone from '@canvas/backbone'
+// @ts-expect-error - no type definitions for handlebars templates
 import RecentStudentTemplate from '../../jst/recentStudent.handlebars'
 import {fudgeDateForProfileTimezone} from '@instructure/moment-utils'
 
@@ -33,9 +34,11 @@ interface RecentStudentModel extends Backbone.Model {
   toJSON(): StudentData
 }
 
+// @ts-expect-error - Backbone extend pattern not fully typed
 extend(RecentStudentView, Backbone.View)
 
 function RecentStudentView(this: any) {
+  // @ts-expect-error - Backbone __super__ pattern
   return RecentStudentView.__super__.constructor.apply(this, arguments)
 }
 

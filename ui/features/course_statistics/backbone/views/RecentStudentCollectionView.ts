@@ -29,11 +29,13 @@ interface RecentStudentCollectionViewOptions extends Backbone.ViewOptions<Backbo
   collection: RecentStudentCollection
 }
 
+// @ts-expect-error - Backbone extend pattern not fully typed
 extend(RecentStudentCollectionView, PaginatedView)
 
 function RecentStudentCollectionView(this: any) {
   this.renderUser = this.renderUser.bind(this)
   this.render = this.render.bind(this)
+  // @ts-expect-error - Backbone __super__ pattern
   return RecentStudentCollectionView.__super__.constructor.apply(this, arguments)
 }
 
@@ -45,9 +47,12 @@ RecentStudentCollectionView.prototype.initialize = function (
   },
   _options: RecentStudentCollectionViewOptions,
 ) {
+  // @ts-expect-error - Backbone collection event methods
   this.collection.on('add', this.renderUser)
+  // @ts-expect-error - Backbone collection event methods
   this.collection.on('reset', this.render)
   this.paginationScrollContainer = this.$el
+  // @ts-expect-error - Backbone __super__ pattern
   return RecentStudentCollectionView.__super__.initialize.apply(this, arguments)
 }
 
@@ -55,7 +60,9 @@ RecentStudentCollectionView.prototype.render = function (this: {
   collection: RecentStudentCollection
   renderUser: (user: Backbone.Model) => void
 }) {
+  // @ts-expect-error - Backbone __super__ pattern
   const ret = RecentStudentCollectionView.__super__.render.apply(this, arguments)
+  // @ts-expect-error - Backbone collection methods
   this.collection.each(
     (function (_this) {
       return function (user: Backbone.Model) {
@@ -74,6 +81,7 @@ RecentStudentCollectionView.prototype.renderUser = function (
     silent: true,
   })
   return this.$el.append(
+    // @ts-expect-error - Backbone view constructor pattern
     new RecentStudentView({
       model: user,
     }).render().el,
