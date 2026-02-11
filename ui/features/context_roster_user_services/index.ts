@@ -23,8 +23,14 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import ready from '@instructure/ready'
 
 const I18n = createI18nScope('RegisteredServices')
+
+interface BreadcrumbSetterProps {
+  getCrumbs: () => Array<{name: string; url: string}>
+  setCrumbs: (crumbs: Array<{name: string; url: string}>) => void
+}
+
 ready(() => {
-  const handleBreadCrumbSetter = ({getCrumbs, setCrumbs}) => {
+  const handleBreadCrumbSetter = ({getCrumbs, setCrumbs}: BreadcrumbSetterProps) => {
     const crumbs = getCrumbs()
     crumbs.push({name: I18n.t('People'), url: document.referrer})
     crumbs.push({name: I18n.t('Registered services'), url: ''})
