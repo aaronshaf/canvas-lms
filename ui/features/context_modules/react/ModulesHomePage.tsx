@@ -17,18 +17,22 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {IconModuleSolid} from '@instructure/ui-icons'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('modules_home_page')
 
-function ModulesHomePage({onCreateButtonClick}) {
+interface ModulesHomePageProps {
+  onCreateButtonClick?: () => void
+}
+
+function ModulesHomePage({onCreateButtonClick = () => {}}: ModulesHomePageProps) {
   return (
     <ul className="ic-EmptyStateList">
       <li className="ic-EmptyStateList__Item">
         <div className="ic-EmptyStateList__BillboardWrapper">
           <button type="button" className="ic-EmptyStateButton" onClick={onCreateButtonClick}>
+            {/* @ts-expect-error */}
             <IconModuleSolid className="ic-EmptyStateButton__SVG" />
             <span className="ic-EmptyStateButton__Text">{I18n.t('Create a new Module')}</span>
           </button>
@@ -36,14 +40,6 @@ function ModulesHomePage({onCreateButtonClick}) {
       </li>
     </ul>
   )
-}
-
-ModulesHomePage.propTypes = {
-  onCreateButtonClick: PropTypes.func,
-}
-
-ModulesHomePage.defaultProps = {
-  onCreateButtonClick: () => {},
 }
 
 export default ModulesHomePage
