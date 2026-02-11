@@ -36,7 +36,20 @@ import actions from '@canvas/blueprint-courses/react/actions'
 
 const I18n = createI18nScope('blueprint_settingsMigrationSync')
 
-export default class MigrationSync extends Component {
+interface MigrationSyncProps {
+  id?: string
+  migrationStatus: string
+  hasCheckedMigration: boolean
+  isLoadingBeginMigration: boolean
+  checkMigration: (pollInstead?: boolean) => void
+  beginMigration: () => void
+  stopMigrationStatusPoll: () => void
+  showProgress?: boolean
+  willSendNotification?: boolean
+  onClick?: (() => void) | null
+}
+
+export default class MigrationSync extends Component<MigrationSyncProps> {
   static propTypes = {
     id: PropTypes.string,
     migrationStatus: propTypes.migrationState.isRequired,
@@ -57,9 +70,11 @@ export default class MigrationSync extends Component {
     onClick: null,
   }
 
-  constructor(props) {
+  private intId: number | null = null
+  private syncBtn: any
+
+  constructor(props: MigrationSyncProps) {
     super(props)
-    this.intId = null
   }
 
   UNSAFE_componentWillMount() {
@@ -82,7 +97,7 @@ export default class MigrationSync extends Component {
   render() {
     const {migrationStatus} = this.props
     const isSyncing =
-      MigrationStates.isLoadingState(migrationStatus) || this.props.isLoadingBeginMigration
+      (MigrationStates as any).isLoadingState(migrationStatus) || this.props.isLoadingBeginMigration
     const iconClasses = cx({
       'bcs__sync-btn-icon': true,
       'bcs__sync-btn-icon__active': isSyncing,
@@ -97,10 +112,9 @@ export default class MigrationSync extends Component {
             </Text>
             <ProgressBar
               screenReaderLabel={I18n.t('Sync in progress')}
-              renderLabel={I18n.t('Sync in progress')}
               size="x-small"
-              valueNow={MigrationStates.getLoadingValue(migrationStatus)}
-              valueMax={MigrationStates.maxLoadingValue}
+              valueNow={(MigrationStates as any).getLoadingValue(migrationStatus)}
+              valueMax={(MigrationStates as any).maxLoadingValue}
             />
             {this.props.willSendNotification && (
               <Text as="p" size="small">
@@ -135,12 +149,12 @@ export default class MigrationSync extends Component {
   }
 }
 
-const connectState = state =>
+const connectState = (state: any) =>
   select(state, [
     'migrationStatus',
     'isLoadingBeginMigration',
     'hasCheckedMigration',
     'willSendNotification',
   ])
-const connectActions = dispatch => bindActionCreators(actions, dispatch)
+const connectActions = (dispatch: any) => bindActionCreators(actions, dispatch)
 export const ConnectedMigrationSync = connect(connectState, connectActions)(MigrationSync)

@@ -24,6 +24,7 @@ import {View} from '@instructure/ui-view'
 
 import {IconLock, IconUnlock} from '@canvas/blueprint-courses/react/components/BlueprintLocks'
 import {itemTypeLabels, changeTypeLabels} from '@canvas/blueprint-courses/react/labels'
+// @ts-expect-error - Module not found (dependency issue)
 import {captionLanguageForLocale} from '@instructure/canvas-media'
 
 interface UnsyncedChangeData {
@@ -42,8 +43,8 @@ interface UnsyncedChangeProps {
 
 const UnsyncedChange = ({change}: UnsyncedChangeProps) => {
   const {asset_type, asset_name, change_type, locked, locale} = change
-  const changeLabel = changeTypeLabels[change_type] || change_type
-  const typeLabel = itemTypeLabels[asset_type] || asset_type
+  const changeLabel = changeTypeLabels[change_type as keyof typeof changeTypeLabels] || change_type
+  const typeLabel = itemTypeLabels[asset_type as keyof typeof itemTypeLabels] || asset_type
   const name = locale ? `${asset_name} (${captionLanguageForLocale(locale)})` : asset_name
 
   return (
@@ -51,7 +52,11 @@ const UnsyncedChange = ({change}: UnsyncedChangeProps) => {
       <Table.Cell>
         <div className="bcs__unsynced-item__name">
           <Text size="large" color="secondary">
-            {locked ? <IconLock /> : <IconUnlock />}
+            {locked ? (
+              <IconLock data-testid="icon-lock" />
+            ) : (
+              <IconUnlock data-testid="icon-unlock" />
+            )}
           </Text>
           <View padding="0 0 0 small">
             <Text size="small" weight="bold">

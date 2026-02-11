@@ -32,7 +32,25 @@ const I18n = createI18nScope('blueprint_settingsCoursePicker')
 
 const {func, bool, arrayOf, string} = PropTypes
 
-export default class CoursePicker extends React.Component {
+interface CoursePickerProps {
+  courses: any[]
+  terms: any[]
+  subAccounts: any[]
+  selectedCourses: string[]
+  loadCourses: (filters?: any) => void
+  isLoadingCourses: boolean
+  onSelectedChanged?: (selection: {added: string[]; removed: string[]}) => void
+  detailsRef?: (el: HTMLElement | null) => void
+  isExpanded?: boolean
+}
+
+interface CoursePickerState {
+  isExpanded: boolean
+  announceChanges: boolean
+  filters?: any
+}
+
+export default class CoursePicker extends React.Component<CoursePickerProps, CoursePickerState> {
   static propTypes = {
     courses: propTypes.courseList.isRequired,
     terms: propTypes.termList.isRequired,
@@ -51,20 +69,23 @@ export default class CoursePicker extends React.Component {
     isExpanded: true,
   }
 
-  constructor(props) {
+  private _homeRef: HTMLElement | null = null
+  private filter: any
+  private coursesToggle: any
+
+  constructor(props: CoursePickerProps) {
     super(props)
     this.state = {
-      isExpanded: props.isExpanded,
+      isExpanded: props.isExpanded !== undefined ? props.isExpanded : true,
       announceChanges: false,
     }
-    this._homeRef = null
   }
 
   componentDidMount() {
     this.fixIcons()
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps: CoursePickerProps) {
     if (this.state.announceChanges && !this.props.isLoadingCourses && nextProps.isLoadingCourses) {
       $.screenReaderFlashMessage(I18n.t('Loading courses started'))
     }
@@ -93,13 +114,13 @@ export default class CoursePicker extends React.Component {
     })
   }
 
-  onSelectedChanged = selected => {
-    this.props.onSelectedChanged(selected)
+  onSelectedChanged = (selected: {added: string[]; removed: string[]}) => {
+    this.props.onSelectedChanged?.(selected)
     this.setState({isExpanded: true})
   }
 
   // when the filter updates, load new courses
-  onFilterChange = filters => {
+  onFilterChange = (filters: any) => {
     this.props.loadCourses(filters)
 
     this.setState({
@@ -110,7 +131,7 @@ export default class CoursePicker extends React.Component {
   }
 
   // when user clicks "Courses" button to toggle visibility
-  onToggleCoursePicker = (event, isExpanded) => {
+  onToggleCoursePicker = (event: any, isExpanded: boolean) => {
     this.setState({isExpanded})
   }
 
@@ -155,7 +176,9 @@ export default class CoursePicker extends React.Component {
             summary={
               <span
                 ref={c => {
-                  if (c) this.props.detailsRef(c.parentElement.parentElement)
+                  if (c && c.parentElement?.parentElement) {
+                    this.props.detailsRef?.(c.parentElement.parentElement as HTMLElement)
+                  }
                 }}
               >
                 <Text>{I18n.t('Courses')}</Text>

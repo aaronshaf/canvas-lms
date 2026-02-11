@@ -101,7 +101,7 @@ export default class BlueprintCourseSidebar extends Component<
             screenReaderLabel={I18n.t('Open Blueprint Sidebar')}
             onClick={this.open}
             elementRef={c => {
-              this.openBtn = c
+              this.openBtn = c as HTMLElement | null
             }}
             color="primary-inverse"
             withBorder={false}
@@ -124,7 +124,7 @@ export default class BlueprintCourseSidebar extends Component<
                   screenReaderLabel={I18n.t('Close sidebar')}
                   onClick={this.close}
                   elementRef={c => {
-                    this.closeBtn = c
+                    this.closeBtn = c as HTMLElement | null
                   }}
                   color="primary-inverse"
                   placement="start"

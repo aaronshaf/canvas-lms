@@ -91,6 +91,7 @@ export default class UnsyncedChanges extends Component<UnsyncedChangesProps> {
             </Table.Body>
           </Table>
         </div>
+        {/* @ts-expect-error - Connected component props */}
         <MigrationOptions />
       </div>
     )

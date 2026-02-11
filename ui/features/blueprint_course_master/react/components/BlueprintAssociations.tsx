@@ -43,7 +43,25 @@ const I18n = createI18nScope('BlueprintAssociations')
 
 const {func, bool} = PropTypes
 
-export default class BlueprintAssociations extends React.Component {
+interface BlueprintAssociationsProps {
+  loadCourses: (filters?: any) => void
+  addAssociations: (courseIds: string[]) => void
+  removeAssociations: (courseIds: string[]) => void
+  terms: any[]
+  subAccounts: any[]
+  courses: any[]
+  existingAssociations: any[]
+  addedAssociations: any[]
+  removedAssociations: any[]
+  hasLoadedCourses: boolean
+  isLoadingCourses: boolean
+  isLoadingAssociations: boolean
+  isSavingAssociations: boolean
+  hasUnsyncedChanges: boolean
+  isExpanded?: boolean
+}
+
+export default class BlueprintAssociations extends React.Component<BlueprintAssociationsProps> {
   static propTypes = {
     loadCourses: func.isRequired,
     addAssociations: func.isRequired,
@@ -75,7 +93,9 @@ export default class BlueprintAssociations extends React.Component {
     }
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  private coursePicker: any
+
+  UNSAFE_componentWillReceiveProps(nextProps: BlueprintAssociationsProps) {
     if (!this.props.isSavingAssociations && nextProps.isSavingAssociations) {
       $.screenReaderFlashMessage(I18n.t('Saving associations started'))
     }
@@ -89,7 +109,7 @@ export default class BlueprintAssociations extends React.Component {
     }
   }
 
-  onSelectedChanged = ({added, removed}) => {
+  onSelectedChanged = ({added, removed}: {added: string[]; removed: string[]}) => {
     if (added.length) this.props.addAssociations(added)
     if (removed.length) this.props.removeAssociations(removed)
   }
@@ -165,7 +185,6 @@ export default class BlueprintAssociations extends React.Component {
             onRemoveAssociations={this.props.removeAssociations}
             onRestoreAssociations={this.props.addAssociations}
             isLoadingAssociations={this.props.isLoadingAssociations}
-            handleFocusLoss={this.catchAssociationsFocus}
             focusManager={this.focusManager}
           />
         </div>
@@ -174,7 +193,7 @@ export default class BlueprintAssociations extends React.Component {
   }
 }
 
-const connectState = state =>
+const connectState = (state: any) =>
   Object.assign(
     select(state, [
       'existingAssociations',
@@ -192,7 +211,7 @@ const connectState = state =>
       hasUnsyncedChanges: !state.hasLoadedUnsyncedChanges || state.unsyncedChanges.length > 0,
     },
   )
-const connectActions = dispatch => bindActionCreators(actions, dispatch)
+const connectActions = (dispatch: any) => bindActionCreators(actions, dispatch)
 export const ConnectedBlueprintAssociations = connect(
   connectState,
   connectActions,

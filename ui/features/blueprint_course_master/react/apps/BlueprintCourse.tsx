@@ -69,6 +69,7 @@ export default class BlueprintCourse {
 
     ReactDOM.render(
       <Provider store={this.store}>
+        {/* @ts-expect-error - Connected component props */}
         <ConnectedCourseSidebar
           routeTo={routeTo}
           realRef={(c: CourseSidebarInstance | null) => {
