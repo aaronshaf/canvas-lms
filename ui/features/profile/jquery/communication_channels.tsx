@@ -62,7 +62,7 @@ $(document).ready(function () {
   )
 
   const registerCommunicationForm = {
-    beforeSubmit: (address, type) => {
+    beforeSubmit: (address: string, type: string) => {
       let $list = $('.email_channels')
       if (['sms', 'slack'].includes(type)) {
         $list = $('.other_channels')
@@ -74,7 +74,7 @@ $(document).ready(function () {
         }
       })
       $list.removeClass('single')
-      let $channel = null
+      let $channel: JQuery | null = null
       if (path) {
         $channel = $list.find('.channel.blank').clone(true).removeClass('blank')
         if (type === 'slack') {
@@ -96,8 +96,11 @@ $(document).ready(function () {
       $channel.loadingImage({image_size: 'small'})
       return $channel
     },
-    sendRequest: async (address, type, enableEmailLogin) => {
-      const body = {
+    sendRequest: async (address: string, type: string, enableEmailLogin?: boolean) => {
+      const body: {
+        communication_channel: {address: string; type: string}
+        build_pseudonym?: boolean
+      } = {
         communication_channel: {address, type},
       }
 
@@ -113,7 +116,10 @@ $(document).ready(function () {
 
       return json
     },
-    success: (channel, $channel) => {
+    success: (
+      channel: {id: string; type: string; address: string; channel_id?: string},
+      $channel: JQuery,
+    ) => {
       $channel.loadingImage('remove')
 
       channel.channel_id = channel.id
@@ -146,26 +152,26 @@ $(document).ready(function () {
     event.preventDefault()
 
     const mountPoint = document.getElementById('register_communication_mount_point')
-    const target = event.target
+    const target = event.target as HTMLElement
     const addContactLinkClicked = target.classList.contains('add_contact_link')
     const availableTabs = ENV.register_cc_tabs ?? ['email']
     const isDefaultAccount = ENV.is_default_account ?? false
     const initiallySelectedTab =
       availableTabs.includes('sms') && addContactLinkClicked ? 'sms' : 'email'
-    const root = createRoot(mountPoint)
+    const root = createRoot(mountPoint!)
 
     root.render(
       <RegisterCommunication
         initiallySelectedTab={initiallySelectedTab}
         availableTabs={availableTabs}
         isDefaultAccount={isDefaultAccount}
-        onSubmit={async (address, type, enableEmailLogin) => {
+        onSubmit={async (address: string, type: string, enableEmailLogin?: boolean) => {
           let channelElement
           try {
             channelElement = registerCommunicationForm.beforeSubmit(address, type)
             root.unmount()
           } catch (error) {
-            showFlashError(error.message)()
+            showFlashError((error as Error).message)()
             throw error
           }
           try {
@@ -189,7 +195,7 @@ $(document).ready(function () {
     )
   })
 
-  const manageAfterDeletingAnEmailFocus = function (currentElement) {
+  const manageAfterDeletingAnEmailFocus = function (currentElement: HTMLElement) {
     // There may be a better way to do this but I'm not aware of another way. I'm trying to
     // find the closest prev() or next() sibling
     let $elementToFocusOn = $(currentElement).next('.channel:not(.blank)').last()
@@ -200,7 +206,7 @@ $(document).ready(function () {
     if ($elementToFocusOn.length) {
       $elementToFocusOn.find('.email_channel').first().focus()
     } else {
-      $(this).parents('.channel_list .email_channel').first().focus()
+      $(currentElement).parents('.channel_list .email_channel').first().focus()
     }
   }
 
@@ -210,9 +216,9 @@ $(document).ready(function () {
       .parents('.channel')
       .confirmDelete({
         url: $(this).attr('href'),
-        success(_data) {
+        success(_data: unknown) {
           const $list = $(this).parents('.channel_list')
-          manageAfterDeletingAnEmailFocus(this)
+          manageAfterDeletingAnEmailFocus(this as unknown as HTMLElement)
           $(this).remove()
           $list.toggleClass('single', $list.find('.channel:visible').length <= 1)
         },
@@ -228,7 +234,7 @@ $(document).ready(function () {
   })
 
   const confirmCommunicationChannelForm = {
-    success: data => {
+    success: (data: {communication_channel: {id: string; pseudonym_id: string}}) => {
       const channelElement = $('#channel_' + data.communication_channel.id)
       channelElement.removeClass('unconfirmed')
       channelElement.find('.confirm_channel_link').remove()
@@ -257,8 +263,8 @@ $(document).ready(function () {
 
       if (isCommunicationListItemClicked) {
         const mountPoint = document.getElementById('confirm_communication_channel_mount_point')
-        const root = createRoot(mountPoint)
-        const smsOrEmail = event.target.innerText
+        const root = createRoot(mountPoint!)
+        const smsOrEmail = (event.target as HTMLElement).innerText
 
         root.render(
           <ConfirmCommunicationChannel
@@ -277,8 +283,8 @@ $(document).ready(function () {
         )
       } else {
         const mountPoint = document.getElementById('confirm_email_address_mount_point')
-        const root = createRoot(mountPoint)
-        const email = event.target.innerText
+        const root = createRoot(mountPoint!)
+        const email = (event.target as HTMLElement).innerText
 
         root.render(
           <ConfirmEmailAddress

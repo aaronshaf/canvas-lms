@@ -21,14 +21,14 @@ import './jquery/index'
 import '@canvas/user-sortable-name'
 import './jquery/communication_channels'
 import React from 'react'
-import {createRoot} from 'react-dom/client'
+import {createRoot, type Root} from 'react-dom/client'
 import GeneratePairingCode from '@canvas/generate-pairing-code'
 import ready from '@instructure/ready'
 import FeatureFlags from '@canvas/feature-flags'
 import {initializeTopNavPortal} from '@canvas/top-navigation/react/TopNavPortal'
 import AvatarModal from '@canvas/avatar-dialog-view/react/AvatarModal'
 
-let avatarRoot = null
+let avatarRoot: Root | null = null
 ready(() => {
   const hiddenFlags = []
   if (!ENV.NEW_USER_TUTORIALS_ENABLED_AT_ACCOUNT) {
@@ -52,12 +52,12 @@ ready(() => {
   const avatarModalMount = document.getElementById('avatar-modal-mount')
   const profilePicLink = document.querySelector('#main .profile_pic_link') // don't add event handler to side nav avatar
   if (profilePicLink && avatarModalMount) {
-    profilePicLink.addEventListener('click', event => {
+    profilePicLink.addEventListener('click', (event: MouseEvent) => {
       event.preventDefault()
       if (avatarRoot === null) {
         avatarRoot = createRoot(avatarModalMount)
       }
-      avatarRoot.render(<AvatarModal onClose={() => avatarRoot.render(null)} />)
+      avatarRoot.render(<AvatarModal onClose={() => avatarRoot?.render(null)} />)
     })
   }
 })

@@ -42,7 +42,7 @@ const $profile_table = $('.profile_table'),
   $update_profile_form = $('#update_profile_form'),
   $default_email_id = $('#default_email_id')
 
-const localizeWorkflowState = function (state) {
+const localizeWorkflowState = function (state: string): string {
   switch (state) {
     case 'active':
       return I18n.t('active')
@@ -98,14 +98,23 @@ $update_profile_form
     required: $update_profile_form.find('#user_name').length ? ['name'] : [],
     object_name: 'user',
     property_validations: {
-      '=default_email_id': function (val, _data) {
+      '=default_email_id': function (val: string, _data: unknown) {
         if ($('#default_email_id').length && (!val || val === 'new')) {
           return I18n.t('please_select_an_option', 'Please select an option')
         }
       },
     },
     beforeSubmit() {},
-    success(data) {
+    success(data: {
+      user: {
+        short_name: string
+        name: string
+        sortable_name: string
+        time_zone: string
+        locale: string
+        communication_channel: {id: string}
+      }
+    }) {
       const user = data.user
       const templateData = {
         short_name: user.short_name,
@@ -131,9 +140,9 @@ $update_profile_form
         .find('.cancel_button')
         .click()
     },
-    error(errors) {
+    error(errors: {password?: unknown}) {
       if (errors.password) {
-        const pseudonymId = $(this).find('#profile_pseudonym_id').val()
+        const pseudonymId = $(this).find('#profile_pseudonym_id').val() as string
         errors = Pseudonym.prototype.normalizeErrors(
           errors,
           ENV.PASSWORD_POLICIES[pseudonymId] || ENV.PASSWORD_POLICY,
@@ -160,7 +169,7 @@ $('#unregistered_services li.service').click(function (event) {
   event.preventDefault()
 
   const mountPoint = document.getElementById('register_service_mount_point')
-  const serviceName = $(this).attr('id').replace('unregistered_service_', '')
+  const serviceName = $(this).attr('id')?.replace('unregistered_service_', '') || ''
 
   const root = render(
     <RegisterService
@@ -265,8 +274,8 @@ $('.access_token .activate_token_link').click(function () {
     url,
     'POST',
     {},
-    data => {
-      $button.parentElement.replaceChildren(localizeWorkflowState(data.workflow_state))
+    (data: {workflow_state: string}) => {
+      $button.get(0)?.parentElement?.replaceChildren(localizeWorkflowState(data.workflow_state))
     },
     () => {
       $button
@@ -278,7 +287,7 @@ $('.access_token .activate_token_link').click(function () {
 $('.show_token_link').click(function (event) {
   event.preventDefault()
 
-  const url = $(this).attr('rel')
+  const url = $(this).attr('rel') || ''
   const tokenElement = $(this).parents('.access_token')
   const token = tokenElement.data('token')
   const userCanUpdateTokens = ENV.PERMISSIONS.can_update_tokens ?? false
@@ -313,7 +322,14 @@ $('.add_access_token_link').click(function (event) {
 
   const root = render(
     <NewAccessToken
-      onSubmit={data => {
+      onSubmit={(data: {
+        created_at: string
+        expires_at: string
+        workflow_state: string
+        created?: string
+        expires?: string
+        used?: string
+      }) => {
         root.unmount()
 
         $('#no_approved_integrations').hide()
@@ -339,7 +355,7 @@ $('.add_access_token_link').click(function (event) {
   )
 })
 $(document)
-  .fragmentChange((event, hash) => {
+  .fragmentChange((_event: JQuery.Event, hash: string) => {
     let type = hash.substring(1)
     if (type.match(/^register/)) {
       type = type.substring(9)
