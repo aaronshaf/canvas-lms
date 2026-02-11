@@ -33,14 +33,25 @@ import {View} from '@instructure/ui-view'
 
 const I18n = createI18nScope('groups')
 
-export default function ImportGroupsModal(props) {
-  const [messages, setMessages] = useState([])
+type Props = {
+  groupCategoryId: string
+  parent?: HTMLElement | null
+  setProgress: (progress: unknown) => void
+}
+
+type MessageType = {
+  text: string
+  type: string
+}
+
+export default function ImportGroupsModal(props: Props): JSX.Element {
+  const [messages, setMessages] = useState<MessageType[]>([])
 
   const hide = () => {
     if (props.parent) ReactDOM.unmountComponentAtNode(props.parent)
   }
 
-  const beginUpload = file => {
+  const beginUpload = (file: File) => {
     if (file !== null) {
       apiClient
         .createImport(props.groupCategoryId, file)
@@ -56,7 +67,7 @@ export default function ImportGroupsModal(props) {
     }
   }
 
-  const onSelection = (accepted, rejected) => {
+  const onSelection = (accepted: File[], rejected: File[]) => {
     if (accepted.length > 0) {
       beginUpload(accepted[0])
       hide()
