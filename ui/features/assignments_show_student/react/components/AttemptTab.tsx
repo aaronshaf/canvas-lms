@@ -297,19 +297,20 @@ export default class AttemptTab extends Component {
     this.props.updateUploadingFiles(false)
   }
 
-  uploadFiles = async files => {
+  uploadFiles = async (files: any) => {
     // This is taken almost verbatim from the uploadFiles method in the
     // upload-file module.  Rather than calling that method, we call uploadFile
     // for each file to track progress for the individual uploads.
+    // @ts-expect-error
     const {assignment} = this.props
     const uploadUrl =
       assignment.groupSet?.currentGroup == null
         ? `/api/v1/courses/${assignment.env.courseId}/assignments/${assignment._id}/submissions/${assignment.env.currentUser.id}/files`
         : `/api/v1/groups/${assignment.groupSet.currentGroup._id}/files`
 
-    const uploadPromises = []
-    files.forEach((file, i) => {
-      const onProgress = event => {
+    const uploadPromises: any = []
+    files.forEach((file: any, i: any) => {
+      const onProgress = (event: any) => {
         const {loaded, total} = event
         this.updateUploadProgress({index: i, loaded, total})
       }
@@ -348,8 +349,8 @@ export default class AttemptTab extends Component {
     return Promise.all(uploadPromises)
   }
 
-  updateUploadProgress = ({index, loaded, total}) => {
-    this.setState(state => {
+  updateUploadProgress = ({index, loaded, total}: any) => {
+    this.setState((state: any) => {
       const filesToUpload = [...state.filesToUpload]
       filesToUpload[index] = {...filesToUpload[index], loaded, total}
       return {filesToUpload}
@@ -357,6 +358,7 @@ export default class AttemptTab extends Component {
   }
 
   renderFileAttempt = () => {
+    // @ts-expect-error
     return isSubmitted(this.props.submission) ? (
       <LazyLoad errorCategory="Assignments 2 FilePreview on AttemptTab">
         <FilePreview
@@ -375,19 +377,27 @@ export default class AttemptTab extends Component {
     )
   }
 
-  renderTextAttempt = context => {
+  renderTextAttempt = (context: any) => {
     const readOnly =
+      // @ts-expect-error
       (!context.allowChangesToSubmission && !context.isObserver) ||
+      // @ts-expect-error
       isSubmitted(this.props.submission)
     return (
       <LazyLoad errorCategory="Assignments 2 TextEntry on AttemptTab">
         <TextEntry
+          // @ts-expect-error
           createSubmissionDraft={this.props.createSubmissionDraft}
+          // @ts-expect-error
           focusOnInit={this.props.focusAttemptOnInit}
+          // @ts-expect-error
           onContentsChanged={this.props.onContentsChanged}
           readOnly={readOnly}
+          // @ts-expect-error
           submission={this.props.submission}
+          // @ts-expect-error
           updateEditingDraft={this.props.updateEditingDraft}
+          // @ts-expect-error
           submitButtonRef={this.props.submitButtonRef}
         />
       </LazyLoad>
@@ -398,8 +408,11 @@ export default class AttemptTab extends Component {
     return (
       <LazyLoad errorCategory="Assignments 2 UrlEntry on AttemptTab">
         <UrlEntry
+          // @ts-expect-error
           assignment={this.props.assignment}
+          // @ts-expect-error
           createSubmissionDraft={this.props.createSubmissionDraft}
+          // @ts-expect-error
           focusOnInit={this.props.focusAttemptOnInit}
           submission={this.props.submission}
           updateEditingDraft={this.props.updateEditingDraft}
@@ -445,20 +458,23 @@ export default class AttemptTab extends Component {
     )
   }
 
-  renderExternalToolAttempt = externalTool => (
+  renderExternalToolAttempt = (externalTool: any) => (
     <LazyLoad errorCategory="Assignments 2 ExternalToolSubmission on AttemptTab">
       <ExternalToolSubmission
+        // @ts-expect-error
         createSubmissionDraft={this.props.createSubmissionDraft}
-        onFileUploadRequested={({files}) => {
+        onFileUploadRequested={({files}: any) => {
           this.onUploadRequested({
             files,
             onSuccess: () => {
               // If an LTI returns a file attachment and not a link,
               // switch to the upload panel to show it
+              // @ts-expect-error
               this.props.updateActiveSubmissionType('online_upload')
             },
           })
         }}
+        // @ts-expect-error
         submission={this.props.submission}
         tool={externalTool}
         submitButtonRef={this.props.submitButtonRef}
@@ -466,7 +482,7 @@ export default class AttemptTab extends Component {
     </LazyLoad>
   )
 
-  renderByType(submissionType, context, externalTool) {
+  renderByType(submissionType: any, context: any, externalTool: any) {
     switch (submissionType) {
       case 'media_recording':
         return this.renderMediaAttempt()
