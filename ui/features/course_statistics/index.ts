@@ -21,6 +21,19 @@ import UserCollection from '@canvas/users/backbone/collections/UserCollection'
 import RecentStudentCollectionView from './backbone/views/RecentStudentCollectionView'
 import 'jqueryui/tabs'
 
+interface GlobalWindow {
+  ENV: {
+    RECENT_STUDENTS_URL: string
+    context_asset_string: string
+  }
+  app: {
+    studentsTab: RecentStudentCollectionView | Record<string, never>
+  }
+}
+
+declare const ENV: GlobalWindow['ENV']
+declare const window: Window & typeof globalThis & {app: GlobalWindow['app']}
+
 $(() => {
   $('#reports-tabs').tabs().show()
 

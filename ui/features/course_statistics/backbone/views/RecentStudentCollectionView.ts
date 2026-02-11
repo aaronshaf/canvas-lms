@@ -19,27 +19,46 @@
 import {extend} from '@canvas/backbone/utils'
 import PaginatedView from '@canvas/pagination/backbone/views/PaginatedView'
 import RecentStudentView from './RecentStudentView'
+import type Backbone from '@canvas/backbone'
+
+interface RecentStudentCollection extends Backbone.Collection {
+  course_id?: string
+}
+
+interface RecentStudentCollectionViewOptions extends Backbone.ViewOptions<Backbone.Model> {
+  collection: RecentStudentCollection
+}
 
 extend(RecentStudentCollectionView, PaginatedView)
 
-function RecentStudentCollectionView() {
+function RecentStudentCollectionView(this: any) {
   this.renderUser = this.renderUser.bind(this)
   this.render = this.render.bind(this)
   return RecentStudentCollectionView.__super__.constructor.apply(this, arguments)
 }
 
-RecentStudentCollectionView.prototype.initialize = function (_options) {
+RecentStudentCollectionView.prototype.initialize = function (
+  this: {
+    collection: RecentStudentCollection
+    $el: JQuery
+    paginationScrollContainer?: JQuery
+  },
+  _options: RecentStudentCollectionViewOptions,
+) {
   this.collection.on('add', this.renderUser)
   this.collection.on('reset', this.render)
   this.paginationScrollContainer = this.$el
   return RecentStudentCollectionView.__super__.initialize.apply(this, arguments)
 }
 
-RecentStudentCollectionView.prototype.render = function () {
+RecentStudentCollectionView.prototype.render = function (this: {
+  collection: RecentStudentCollection
+  renderUser: (user: Backbone.Model) => void
+}) {
   const ret = RecentStudentCollectionView.__super__.render.apply(this, arguments)
   this.collection.each(
     (function (_this) {
-      return function (user) {
+      return function (user: Backbone.Model) {
         return _this.renderUser(user)
       }
     })(this),
@@ -47,7 +66,10 @@ RecentStudentCollectionView.prototype.render = function () {
   return ret
 }
 
-RecentStudentCollectionView.prototype.renderUser = function (user) {
+RecentStudentCollectionView.prototype.renderUser = function (
+  this: {collection: RecentStudentCollection; $el: JQuery},
+  user: Backbone.Model,
+) {
   user.set('course_id', this.collection.course_id, {
     silent: true,
   })
