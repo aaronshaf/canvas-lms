@@ -16,8 +16,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+interface ExtractedInfo {
+  file: File
+  type: string
+}
+
 const Helpers = {
-  isValidImageType(mimeType) {
+  isValidImageType(mimeType: string): boolean {
     return [
       'image/apng',
       'image/avif',
@@ -30,15 +35,17 @@ const Helpers = {
     ].includes(mimeType)
   },
 
-  extractInfoFromEvent(event) {
-    let file = ''
-    let type = ''
+  extractInfoFromEvent(event: Event | React.ChangeEvent<HTMLInputElement> | DragEvent): ExtractedInfo {
+    let file: File
+    let type: string
     if (event.type === 'change') {
-      file = event.target.files[0]
+      const target = event.target as HTMLInputElement
+      file = target.files![0]
       type = file.type
     } else {
-      type = event.dataTransfer.files[0].type
-      file = event.dataTransfer.files[0]
+      const dragEvent = event as DragEvent
+      type = dragEvent.dataTransfer!.files[0].type
+      file = dragEvent.dataTransfer!.files[0]
     }
 
     return {file, type}

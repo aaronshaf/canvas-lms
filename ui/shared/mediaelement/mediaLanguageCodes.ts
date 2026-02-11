@@ -19,6 +19,6 @@
 import {closedCaptionLanguages} from '@instructure/canvas-media'
 
 export const languageCodes = closedCaptionLanguages.reduce(
-  (result, {id, label}) => ({...result, [id]: label}),
+  (result: any, {id, label}: {id: string; label: string}) => ({...result, [id]: label}),
   {},
 )
