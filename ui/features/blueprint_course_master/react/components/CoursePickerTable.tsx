@@ -35,7 +35,26 @@ const I18n = createI18nScope('blueprint_settingsCoursePickerTable')
 
 const {arrayOf, string} = PropTypes
 
-export default class CoursePickerTable extends React.Component {
+interface Course {
+  id: string
+  [key: string]: any
+}
+
+interface CoursePickerTableProps {
+  courses: Course[]
+  selectedCourses: string[]
+  onSelectedChanged?: (selection: {added: any[]; removed: any[]}) => void
+}
+
+interface CoursePickerTableState {
+  selected: Record<string, boolean>
+  selectedAll: boolean
+}
+
+export default class CoursePickerTable extends React.Component<
+  CoursePickerTableProps,
+  CoursePickerTableState
+> {
   static propTypes = {
     courses: propTypes.courseList.isRequired,
     selectedCourses: arrayOf(string).isRequired,
@@ -46,22 +65,23 @@ export default class CoursePickerTable extends React.Component {
     onSelectedChanged: () => {},
   }
 
-  constructor(props) {
+  private tableRef = React.createRef<HTMLDivElement>()
+  private tableBody = React.createRef<any>()
+  private selectAllCheckbox = React.createRef<any>()
+
+  constructor(props: CoursePickerTableProps) {
     super(props)
     this.state = {
       selected: this.parseSelectedCourses(props.selectedCourses),
       selectedAll: false,
     }
-    this.tableRef = React.createRef()
-    this.tableBody = React.createRef()
-    this.selectAllCheckbox = React.createRef()
   }
 
   componentDidMount() {
     this.fixIcons()
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps: CoursePickerTableProps) {
     this.setState({
       selected: this.parseSelectedCourses(nextProps.selectedCourses),
       selectedAll: nextProps.selectedCourses.length === nextProps.courses.length,
@@ -72,7 +92,7 @@ export default class CoursePickerTable extends React.Component {
     this.fixIcons()
   }
 
-  onSelectToggle = e => {
+  onSelectToggle = (e: any) => {
     const index = this.props.courses.findIndex(c => c.id === e.target.value)
     const course = this.props.courses[index]
     const srMsg = e.target.checked
@@ -87,15 +107,18 @@ export default class CoursePickerTable extends React.Component {
     }, 0)
   }
 
-  onSelectAllToggle = e => {
+  onSelectAllToggle = (e: any) => {
     $.screenReaderFlashMessage(
       e.target.checked ? I18n.t('Selected all courses') : I18n.t('Unselected all courses'),
     )
 
-    const selected = this.props.courses.reduce((selectedMap, course) => {
-      selectedMap[course.id] = e.target.checked
-      return selectedMap
-    }, {})
+    const selected = this.props.courses.reduce(
+      (selectedMap: Record<string, boolean>, course: Course) => {
+        selectedMap[course.id] = e.target.checked
+        return selectedMap
+      },
+      {},
+    )
     this.updateSelected(selected, e.target.checked)
   }
 
@@ -106,45 +129,48 @@ export default class CoursePickerTable extends React.Component {
     if (this.tableRef.current) {
       Array.prototype.forEach.call(
         this.tableRef.current.querySelectorAll('svg[aria-hidden]'),
-        el => {
+        (el: Element) => {
           el.setAttribute('focusable', 'false')
         },
       )
     }
   }
 
-  parseSelectedCourses(courses = []) {
-    return courses.reduce((selected, courseId) => {
+  parseSelectedCourses(courses: string[] = []) {
+    return courses.reduce((selected: Record<string, boolean>, courseId: string) => {
       selected[courseId] = true
       return selected
     }, {})
   }
 
-  updateSelected(selectedDiff, selectedAll) {
+  updateSelected(selectedDiff: Record<string, boolean>, selectedAll: boolean) {
     const oldSelected = this.state.selected
-    const added = []
-    const removed = []
+    const added: string[] = []
+    const removed: string[] = []
 
-    this.props.courses.forEach(({id}) => {
+    this.props.courses.forEach(({id}: {id: string}) => {
       if (oldSelected[id] === true && selectedDiff[id] === false) removed.push(id)
       if (oldSelected[id] !== true && selectedDiff[id] === true) added.push(id)
     })
 
-    this.props.onSelectedChanged({added, removed})
+    this.props.onSelectedChanged?.({added, removed})
     this.setState({selectedAll})
   }
 
-  handleFocusLoss(index) {
+  handleFocusLoss(index: number) {
     if (this.props.courses.length === 0) {
-      this.selectAllCheckbox.current.focus()
+      this.selectAllCheckbox.current?.focus()
     } else if (index >= this.props.courses.length) {
       this.handleFocusLoss(index - 1)
     } else {
       // eslint-disable-next-line react/no-find-dom-node
       const elt = findDOMNode(this.tableBody.current)
-      elt
-        .querySelectorAll('[data-testid="bca-table__course-row"] input[type="checkbox"]')
-        [index].focus()
+      if (elt && 'querySelectorAll' in elt) {
+        const checkboxes = (elt as Element).querySelectorAll(
+          '[data-testid="bca-table__course-row"] input[type="checkbox"]',
+        )
+        ;(checkboxes[index] as HTMLElement)?.focus()
+      }
     }
   }
 
@@ -173,7 +199,7 @@ export default class CoursePickerTable extends React.Component {
     )
   }
 
-  renderCellText(text) {
+  renderCellText(text: any) {
     return (
       <Text color="secondary" size="small">
         {text}
@@ -181,7 +207,7 @@ export default class CoursePickerTable extends React.Component {
     )
   }
 
-  renderStatusPill(course) {
+  renderStatusPill(course: Course & {concluded?: boolean}) {
     if (course.concluded) {
       return <Pill color="info">{I18n.t('Concluded')}</Pill>
     }
@@ -191,40 +217,42 @@ export default class CoursePickerTable extends React.Component {
   renderRows() {
     const shouldRenderStatusPill = !!window.ENV.FEATURES.ux_list_concluded_courses_in_bp
 
-    return this.props.courses.map(course => (
-      <Table.Row id={`course_${course.id}`} key={course.id} data-testid="bca-table__course-row">
-        <Table.Cell>
-          <Checkbox
-            onChange={this.onSelectToggle}
-            value={course.id}
-            checked={this.state.selected[course.id] === true}
-            label={
-              <ScreenReaderContent>
-                {I18n.t('Toggle select course %{name}', {
-                  name: course.original_name || course.name,
-                })}
-              </ScreenReaderContent>
-            }
-          />
-        </Table.Cell>
-        <Table.Cell>
-          <Flex direction="column" gap="x-small">
-            <Flex.Item>{this.renderCellText(course.original_name || course.name)}</Flex.Item>
-            {shouldRenderStatusPill && <Flex.Item>{this.renderStatusPill(course)}</Flex.Item>}
-          </Flex>
-        </Table.Cell>
-        <Table.Cell>{this.renderCellText(course.course_code)}</Table.Cell>
-        <Table.Cell>{this.renderCellText(course.term.name)}</Table.Cell>
-        <Table.Cell>{this.renderCellText(course.sis_course_id)}</Table.Cell>
-        <Table.Cell>
-          {this.renderCellText(
-            course.teachers
-              ? course.teachers.map(teacher => teacher.display_name).join(', ')
-              : I18n.t('%{teacher_count} teachers', {teacher_count: course.teacher_count}),
-          )}
-        </Table.Cell>
-      </Table.Row>
-    ))
+    return this.props.courses.map(
+      (course: Course & {concluded?: boolean; original_name?: string}) => (
+        <Table.Row id={`course_${course.id}`} key={course.id} data-testid="bca-table__course-row">
+          <Table.Cell>
+            <Checkbox
+              onChange={this.onSelectToggle}
+              value={course.id}
+              checked={this.state.selected[course.id] === true}
+              label={
+                <ScreenReaderContent>
+                  {I18n.t('Toggle select course %{name}', {
+                    name: course.original_name || course.name,
+                  })}
+                </ScreenReaderContent>
+              }
+            />
+          </Table.Cell>
+          <Table.Cell>
+            <Flex direction="column" gap="x-small">
+              <Flex.Item>{this.renderCellText(course.original_name || course.name)}</Flex.Item>
+              {shouldRenderStatusPill && <Flex.Item>{this.renderStatusPill(course)}</Flex.Item>}
+            </Flex>
+          </Table.Cell>
+          <Table.Cell>{this.renderCellText(course.course_code)}</Table.Cell>
+          <Table.Cell>{this.renderCellText(course.term.name)}</Table.Cell>
+          <Table.Cell>{this.renderCellText(course.sis_course_id)}</Table.Cell>
+          <Table.Cell>
+            {this.renderCellText(
+              course.teachers
+                ? course.teachers.map((teacher: any) => teacher.display_name).join(', ')
+                : I18n.t('%{teacher_count} teachers', {teacher_count: course.teacher_count}),
+            )}
+          </Table.Cell>
+        </Table.Row>
+      ),
+    )
   }
 
   renderBodyContent() {

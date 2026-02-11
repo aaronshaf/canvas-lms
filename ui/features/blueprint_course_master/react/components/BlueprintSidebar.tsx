@@ -17,8 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
-import React, {Component} from 'react'
-import PropTypes from 'prop-types'
+import React, {Component, ReactNode} from 'react'
 import {Tray} from '@instructure/ui-tray'
 import {IconButton, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
@@ -27,14 +26,30 @@ import {IconBlueprintSolid} from '@instructure/ui-icons'
 
 const I18n = createI18nScope('BlueprintCourseSidebar')
 
-export default class BlueprintCourseSidebar extends Component {
-  static propTypes = {
-    onOpen: PropTypes.func,
-    onClose: PropTypes.func,
-    children: PropTypes.node,
-    detachedChildren: PropTypes.node,
-    contentRef: PropTypes.func, // for unit testing
+interface BlueprintCourseSidebarProps {
+  onOpen?: () => void
+  onClose?: () => void
+  children?: ReactNode
+  detachedChildren?: ReactNode
+  contentRef?: (el: Element | null) => void
+}
+
+interface BlueprintCourseSidebarState {
+  isOpen: boolean
+}
+
+declare global {
+  interface Window {
+    openBPSidebar?: () => void
   }
+}
+
+export default class BlueprintCourseSidebar extends Component<
+  BlueprintCourseSidebarProps,
+  BlueprintCourseSidebarState
+> {
+  private openBtn: HTMLElement | null = null
+  private closeBtn: HTMLElement | null = null
 
   static defaultProps = {
     children: null,
@@ -44,7 +59,7 @@ export default class BlueprintCourseSidebar extends Component {
     contentRef: null,
   }
 
-  constructor(props) {
+  constructor(props: BlueprintCourseSidebarProps) {
     super(props)
     this.state = {
       isOpen: false,
@@ -52,13 +67,13 @@ export default class BlueprintCourseSidebar extends Component {
   }
 
   handleOpen = () => {
-    this.props.onOpen()
-    this.closeBtn.focus()
+    this.props.onOpen?.()
+    this.closeBtn?.focus()
   }
 
   handleClose = () => {
-    this.openBtn.focus()
-    this.props.onClose()
+    this.openBtn?.focus()
+    this.props.onClose?.()
   }
 
   open = () => {
@@ -86,7 +101,7 @@ export default class BlueprintCourseSidebar extends Component {
             screenReaderLabel={I18n.t('Open Blueprint Sidebar')}
             onClick={this.open}
             elementRef={c => {
-              this.openBtn = c
+              this.openBtn = c as HTMLElement | null
             }}
             color="primary-inverse"
             withBorder={false}
@@ -109,7 +124,7 @@ export default class BlueprintCourseSidebar extends Component {
                   screenReaderLabel={I18n.t('Close sidebar')}
                   onClick={this.close}
                   elementRef={c => {
-                    this.closeBtn = c
+                    this.closeBtn = c as HTMLElement | null
                   }}
                   color="primary-inverse"
                   placement="start"

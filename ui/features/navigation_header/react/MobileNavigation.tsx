@@ -29,7 +29,7 @@ import {sessionStoragePersister} from '@canvas/query'
 
 declare global {
   interface Window {
-    openBPSidebar: () => void
+    openBPSidebar?: () => void
   }
 }
 
@@ -72,7 +72,7 @@ const MobileNavigation: React.FC<{navIsOpen?: boolean}> = ({navIsOpen = false}) 
     })
 
     $('.mobile-header-blueprint-button').on('touchstart click', () => {
-      window.openBPSidebar()
+      window.openBPSidebar?.()
     })
 
     $('.mobile-header-title.expandable, .mobile-header-arrow').on('touchstart click', event => {

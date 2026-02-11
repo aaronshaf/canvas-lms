@@ -19,14 +19,29 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import {Provider} from 'react-redux'
+import {Store} from 'redux'
 
 import {ConnectedCourseSidebar} from '../components/CourseSidebar'
 import FlashNotifications from '@canvas/blueprint-courses/react/flashNotifications'
 import createStore from '@canvas/blueprint-courses/react/store'
 import Router from '@canvas/blueprint-courses/react/router'
 
+interface RouteParams {
+  params: any
+}
+
+interface CourseSidebarInstance {
+  showChangeLog: (params: any) => void
+  hideChangeLog: () => void
+}
+
 export default class BlueprintCourse {
-  constructor(root, data) {
+  private root: HTMLElement
+  private store: Store
+  private router: Router
+  private app!: CourseSidebarInstance
+
+  constructor(root: HTMLElement, data: any) {
     this.root = root
     this.store = createStore(data)
     this.router = new Router()
@@ -35,7 +50,7 @@ export default class BlueprintCourse {
   routes = [
     {
       path: Router.PATHS.singleMigration,
-      onEnter: ({params}) => this.app.showChangeLog(params),
+      onEnter: ({params}: RouteParams) => this.app.showChangeLog(params),
       onExit: () => this.app.hideChangeLog(),
     },
   ]
@@ -54,10 +69,11 @@ export default class BlueprintCourse {
 
     ReactDOM.render(
       <Provider store={this.store}>
+        {/* @ts-expect-error - Connected component props */}
         <ConnectedCourseSidebar
           routeTo={routeTo}
-          realRef={c => {
-            this.app = c
+          realRef={(c: CourseSidebarInstance | null) => {
+            if (c) this.app = c
           }}
         />
       </Provider>,

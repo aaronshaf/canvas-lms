@@ -35,7 +35,23 @@ const I18n = createI18nScope('blueprint_settingsSyncHistory')
 
 const {func, bool} = PropTypes
 
-export default class SyncHistory extends Component {
+interface Migration {
+  id: string
+  [key: string]: any
+}
+
+interface SyncHistoryProps {
+  migrations: Migration[]
+  associations: any[]
+  isLoadingHistory: boolean
+  hasLoadedHistory: boolean
+  hasLoadedAssociations: boolean
+  isLoadingAssociations: boolean
+  loadHistory: () => void
+  loadAssociations: () => void
+}
+
+export default class SyncHistory extends Component<SyncHistoryProps> {
   static propTypes = {
     migrations: propTypes.migrationList,
     loadHistory: func.isRequired,
@@ -52,7 +68,7 @@ export default class SyncHistory extends Component {
     associations: [],
   }
 
-  constructor(props) {
+  constructor(props: SyncHistoryProps) {
     super(props)
     this.state = {
       associations: this.mapAssociations(props.associations),
@@ -68,14 +84,17 @@ export default class SyncHistory extends Component {
     }
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps: SyncHistoryProps) {
     this.setState({
       associations: this.mapAssociations(nextProps.associations),
     })
   }
 
-  mapAssociations(assocs = []) {
-    return assocs.reduce((map, asc) => Object.assign(map, {[asc.id]: asc}), {})
+  mapAssociations(assocs: any[] = []) {
+    return assocs.reduce(
+      (map, asc) => Object.assign(map, {[asc.id]: asc}),
+      {} as Record<string, any>,
+    )
   }
 
   renderLoading() {
@@ -94,9 +113,11 @@ export default class SyncHistory extends Component {
 
   render() {
     // inject course data into exceptions
-    const migrations = this.props.migrations.map(mig => {
-      mig.changes.map(change => {
-        change.exceptions.map(ex => Object.assign(ex, this.state.associations[ex.course_id] || {}))
+    const migrations = this.props.migrations.map((mig: Migration) => {
+      mig.changes?.map((change: any) => {
+        change.exceptions?.map((ex: any) =>
+          Object.assign(ex, (this.state as any).associations[ex.course_id] || {}),
+        )
         return change
       })
       return mig
@@ -105,18 +126,21 @@ export default class SyncHistory extends Component {
     return (
       <div className="bcs__history">
         {this.renderLoading() ||
-          migrations.map(migration => <SyncHistoryItem key={migration.id} migration={migration} />)}
+          migrations.map((migration: Migration) => (
+            // @ts-expect-error - Migration type compatibility
+            <SyncHistoryItem key={migration.id} migration={migration} />
+          ))}
       </div>
     )
   }
 }
 
-const connectState = state => {
+const connectState = (state: any) => {
   const selectedChange = state.selectedChangeLog && state.changeLogs[state.selectedChangeLog]
   const historyState = selectedChange
     ? {
-        hasLoadedHistory: LoadStates.hasLoaded(selectedChange.status),
-        isLoadingHistory: LoadStates.isLoading(selectedChange.status),
+        hasLoadedHistory: (LoadStates as any).hasLoaded(selectedChange.status),
+        isLoadingHistory: (LoadStates as any).isLoading(selectedChange.status),
         migrations: selectedChange.data ? [selectedChange.data] : [],
       }
     : select(state, ['hasLoadedHistory', 'isLoadingHistory', 'migrations'])
@@ -130,5 +154,5 @@ const connectState = state => {
     historyState,
   )
 }
-const connectActions = dispatch => bindActionCreators(actions, dispatch)
+const connectActions = (dispatch: any) => bindActionCreators(actions, dispatch)
 export const ConnectedSyncHistory = connect(connectState, connectActions)(SyncHistory)

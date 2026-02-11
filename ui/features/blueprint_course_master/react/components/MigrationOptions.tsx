@@ -40,7 +40,22 @@ const I18n = createI18nScope('blueprint_settingsMigrationOptions')
 const MAX_NOTIFICATION_MESSAGE_LENGTH = 140
 const WARNING_MESSAGE_LENGTH = 126
 
-export default class MigrationOptions extends React.Component {
+interface MigrationOptionsProps {
+  migrationStatus: string
+  willSendNotification: boolean
+  willIncludeCustomNotificationMessage: boolean
+  willIncludeCourseSettings: boolean
+  willSendItemNotifications: boolean
+  notificationMessage: string
+  enableSendNotification: (enabled: boolean) => void
+  includeCustomNotificationMessage: (enabled: boolean) => void
+  includeCourseSettings: (enabled: boolean) => void
+  enableItemNotifications: (enabled: boolean) => void
+  setNotificationMessage: (message: string) => void
+  itemNotificationFeatureEnabled: boolean
+}
+
+export default class MigrationOptions extends React.Component<MigrationOptionsProps> {
   static propTypes = {
     migrationStatus: propTypes.migrationState.isRequired,
     willSendNotification: PropTypes.bool.isRequired,
@@ -56,7 +71,7 @@ export default class MigrationOptions extends React.Component {
     itemNotificationFeatureEnabled: PropTypes.bool.isRequired,
   }
 
-  UNSAFE_componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps: MigrationOptionsProps) {
     if (
       newProps.notificationMessage !== this.props.notificationMessage &&
       newProps.notificationMessage.length > WARNING_MESSAGE_LENGTH
@@ -70,23 +85,23 @@ export default class MigrationOptions extends React.Component {
     }
   }
 
-  handleSendNotificationChange = event => {
+  handleSendNotificationChange = (event: any) => {
     this.props.enableSendNotification(event.target.checked)
   }
 
-  handleIncludeCourseSettingsChange = event => {
+  handleIncludeCourseSettingsChange = (event: any) => {
     this.props.includeCourseSettings(event.target.checked)
   }
 
-  handleAddAMessageChange = event => {
+  handleAddAMessageChange = (event: any) => {
     this.props.includeCustomNotificationMessage(event.target.checked)
   }
 
-  handleItemNotificationChange = event => {
+  handleItemNotificationChange = (event: any) => {
     this.props.enableItemNotifications(event.target.checked)
   }
 
-  handleChangeMessage = event => {
+  handleChangeMessage = (event: any) => {
     if (event.target.value.length > MAX_NOTIFICATION_MESSAGE_LENGTH) {
       setTimeout(() => {
         $.screenReaderFlashMessage(
@@ -101,7 +116,7 @@ export default class MigrationOptions extends React.Component {
   }
 
   render() {
-    const isDisabled = MigrationStates.isLoadingState(this.props.migrationStatus)
+    const isDisabled = (MigrationStates as any).isLoadingState(this.props.migrationStatus)
 
     return (
       <FormFieldGroup
@@ -182,7 +197,7 @@ export default class MigrationOptions extends React.Component {
   }
 }
 
-const connectState = state =>
+const connectState = (state: any) =>
   select(state, [
     'migrationStatus',
     'willSendNotification',
@@ -192,5 +207,5 @@ const connectState = state =>
     'willSendItemNotifications',
     'itemNotificationFeatureEnabled',
   ])
-const connectActions = dispatch => bindActionCreators(actions, dispatch)
+const connectActions = (dispatch: any) => bindActionCreators(actions, dispatch)
 export const ConnectedMigrationOptions = connect(connectState, connectActions)(MigrationOptions)

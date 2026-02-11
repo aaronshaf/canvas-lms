@@ -32,11 +32,13 @@ describe('FocusManager', () => {
 
   test('allocateNext() adds on to items', () => {
     const manager = new FocusManager()
+    // @ts-expect-error - accessing private property for testing
     expect(manager.items).toHaveLength(0)
 
     manager.allocateNext()
     manager.allocateNext()
 
+    // @ts-expect-error - accessing private property for testing
     expect(manager.items).toHaveLength(2)
   })
 
@@ -44,7 +46,9 @@ describe('FocusManager', () => {
     const manager = new FocusManager()
     const nextNode = manager.allocateNext()
     nextNode.ref({name: 'foo'} as FocusableNode)
+    // @ts-expect-error - accessing private property for testing
     expect(manager.items).toHaveLength(1)
+    // @ts-expect-error - accessing private property for testing
     expect(manager.items[0]).toEqual({name: 'foo'})
   })
 
@@ -52,8 +56,10 @@ describe('FocusManager', () => {
     const manager = new FocusManager()
     manager.allocateNext()
 
+    // @ts-expect-error - accessing private property for testing
     expect(manager.items).toHaveLength(1)
     manager.reset()
+    // @ts-expect-error - accessing private property for testing
     expect(manager.items).toHaveLength(0)
   })
 
@@ -61,7 +67,9 @@ describe('FocusManager', () => {
     const manager = new FocusManager()
     manager.registerItem({name: 'foo'} as FocusableNode, 0)
 
+    // @ts-expect-error - accessing private property for testing
     expect(manager.items).toHaveLength(1)
+    // @ts-expect-error - accessing private property for testing
     expect(manager.items[0]).toEqual({name: 'foo'})
   })
 
@@ -70,19 +78,23 @@ describe('FocusManager', () => {
     const ref = manager.registerItemRef(0)
     ref({name: 'foo'} as FocusableNode)
 
+    // @ts-expect-error - accessing private property for testing
     expect(manager.items).toHaveLength(1)
+    // @ts-expect-error - accessing private property for testing
     expect(manager.items[0]).toEqual({name: 'foo'})
   })
 
   test('registerBeforeRef() registers the before ref', () => {
     const manager = new FocusManager()
     manager.registerBeforeRef({name: 'foo'} as FocusableNode)
+    // @ts-expect-error - accessing private property for testing
     expect(manager.before).toEqual({name: 'foo'})
   })
 
   test('registerAfterRef() registers the after ref', () => {
     const manager = new FocusManager()
     manager.registerAfterRef({name: 'foo'} as FocusableNode)
+    // @ts-expect-error - accessing private property for testing
     expect(manager.after).toEqual({name: 'foo'})
   })
 
@@ -99,6 +111,7 @@ describe('FocusManager', () => {
   test('movePrev() moves focus to before if on first index', () => {
     const manager = new FocusManager()
     const spy = vi.fn()
+    // @ts-expect-error - accessing private property for testing
     manager.before = {focus: spy}
     manager.registerItem({focus: () => {}}, 0)
 
@@ -119,6 +132,7 @@ describe('FocusManager', () => {
   test('moveNext() moves focus to after if on last index', () => {
     const manager = new FocusManager()
     const spy = vi.fn()
+    // @ts-expect-error - accessing private property for testing
     manager.after = {focus: spy}
     manager.registerItem({focus: () => {}}, 0)
 
@@ -129,6 +143,7 @@ describe('FocusManager', () => {
   test('moveBefore() moves focus to before', () => {
     const manager = new FocusManager()
     const spy = vi.fn()
+    // @ts-expect-error - accessing private property for testing
     manager.before = {focus: spy}
 
     manager.moveBefore()
@@ -138,6 +153,7 @@ describe('FocusManager', () => {
   test('moveAfter() moves focus to after', () => {
     const manager = new FocusManager()
     const spy = vi.fn()
+    // @ts-expect-error - accessing private property for testing
     manager.after = {focus: spy}
 
     manager.moveAfter()

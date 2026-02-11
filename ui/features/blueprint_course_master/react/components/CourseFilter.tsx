@@ -30,7 +30,22 @@ const I18n = createI18nScope('blueprint_settingsCourseFilter')
 const {func} = PropTypes
 const MIN_SEACH = 3 // min search term length for API
 
-export default class CourseFilter extends React.Component {
+interface CourseFilterProps {
+  onChange?: (filters: any) => void
+  onActivate?: () => void
+  terms: any[]
+  subAccounts: any[]
+  isActive?: boolean
+}
+
+interface CourseFilterState {
+  isActive: boolean
+  search: string
+  term: string
+  subAccount: string
+}
+
+export default class CourseFilter extends React.Component<CourseFilterProps, CourseFilterState> {
   static propTypes = {
     onChange: func,
     onActivate: func,
@@ -43,7 +58,10 @@ export default class CourseFilter extends React.Component {
     onActivate: () => {},
   }
 
-  constructor(props) {
+  private wrapper: any
+  private searchInput: any
+
+  constructor(props: CourseFilterProps) {
     super(props)
     this.state = {
       isActive: false,
@@ -53,13 +71,13 @@ export default class CourseFilter extends React.Component {
     }
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps: CourseFilterProps, prevState: CourseFilterState) {
     if (
       prevState.search !== this.state.search ||
       prevState.term !== this.state.term ||
       prevState.subAccount !== this.state.subAccount
     ) {
-      this.props.onChange(this.state)
+      this.props.onChange?.(this.state)
     }
   }
 
@@ -81,7 +99,7 @@ export default class CourseFilter extends React.Component {
           isActive: true,
         },
         () => {
-          this.props.onActivate()
+          this.props.onActivate?.()
         },
       )
     }
@@ -108,7 +126,7 @@ export default class CourseFilter extends React.Component {
       <CanvasSelect.Option key="all" id="all" value="">
         {I18n.t('Any Term')}
       </CanvasSelect.Option>,
-      ...this.props.terms.map(term => (
+      ...this.props.terms.map((term: any) => (
         <CanvasSelect.Option key={term.id} id={term.id} value={term.id}>
           {term.name}
         </CanvasSelect.Option>
@@ -119,7 +137,7 @@ export default class CourseFilter extends React.Component {
       <CanvasSelect.Option key="all" id="all" value="">
         {I18n.t('Any Sub-Account')}
       </CanvasSelect.Option>,
-      ...this.props.subAccounts.map(account => (
+      ...this.props.subAccounts.map((account: any) => (
         <CanvasSelect.Option key={account.id} id={account.id} value={account.id}>
           {account.name}
         </CanvasSelect.Option>
