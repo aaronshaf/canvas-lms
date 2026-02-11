@@ -524,9 +524,10 @@ export default class AttemptTab extends Component {
 
     const submissionType = isSubmitted(submission)
       ? submission.submissionType
+      // @ts-expect-error
       : this.props.activeSubmissionType
 
-    let selectedType
+    let selectedType: any
     if (
       submissionType != null &&
       (assignment.submissionTypes.includes(submissionType) || submissionType === 'basic_lti_launch')
@@ -560,10 +561,13 @@ export default class AttemptTab extends Component {
             {(context.allowChangesToSubmission || context.isObserver) &&
               !isSubmitted(submission) && (
                 <SubmissionTypeSelector
+                  // @ts-expect-error
                   activeSubmissionType={this.props.activeSubmissionType}
                   assignment={assignment}
+                  // @ts-expect-error
                   selectedExternalTool={this.props.selectedExternalTool}
                   submission={submission}
+                  // @ts-expect-error
                   updateActiveSubmissionType={this.props.updateActiveSubmissionType}
                 />
               )}
