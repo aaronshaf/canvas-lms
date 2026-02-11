@@ -19,11 +19,15 @@
 import React from 'react'
 import {render, act} from '@testing-library/react'
 import App from '../App'
-import CourseEpubExportStore from '../CourseStore'
+import CourseEpubExportStore, {type Course} from '../CourseStore'
+
+interface CoursesMap {
+  [courseId: string]: Course
+}
 
 describe('EpubExportApp', () => {
-  let courseData
-  let mockGetState
+  let courseData: CoursesMap
+  let mockGetState: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
     // Initial empty state
@@ -33,7 +37,7 @@ describe('EpubExportApp', () => {
     vi.spyOn(CourseEpubExportStore, 'getAll').mockImplementation(() => {})
 
     // Mock setState to update our mock getState
-    vi.spyOn(CourseEpubExportStore, 'setState').mockImplementation(newState => {
+    vi.spyOn(CourseEpubExportStore, 'setState').mockImplementation((newState: CoursesMap) => {
       mockGetState.mockReturnValue(newState)
       // Simulate the store triggering change listeners
       CourseEpubExportStore.emitChange()

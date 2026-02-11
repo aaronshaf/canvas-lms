@@ -17,26 +17,25 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {isEmpty} from 'es-toolkit/compat'
 import GenerateLink from './GenerateLink'
 import DownloadLink from './DownloadLink'
 import ApiProgressBar from '@canvas/progress/react/components/ApiProgressBar'
-import CourseEpubExportStore from './CourseStore'
+import CourseEpubExportStore, {type Course, type EpubExport} from './CourseStore'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import FriendlyDatetime from '@canvas/datetime/react/components/FriendlyDatetime'
 import classnames from 'classnames'
 
 const I18n = createI18nScope('epub_exports')
 
-class CourseListItem extends React.Component {
+interface CourseListItemProps {
+  course: Course
+}
+
+class CourseListItem extends React.Component<CourseListItemProps> {
   static displayName = 'CourseListItem'
 
-  static propTypes = {
-    course: PropTypes.object.isRequired,
-  }
-
-  epubExport = () => this.props.course.epub_export || {}
+  epubExport = (): Partial<EpubExport> => this.props.course.epub_export || {}
 
   //
   // Rendering

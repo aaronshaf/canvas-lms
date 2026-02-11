@@ -16,14 +16,18 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import CourseStore from '../CourseStore'
+import CourseStore, {type Course} from '../CourseStore'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 
 const server = setupServer()
 
+interface ApiCoursesResponse {
+  courses: Course[]
+}
+
 describe('CourseEpubExportStore', () => {
-  let courses
+  let courses: ApiCoursesResponse
 
   beforeAll(() => {
     server.listen()
@@ -56,11 +60,12 @@ describe('CourseEpubExportStore', () => {
         return new HttpResponse(null, {status: 404})
       }),
       http.post('/api/v1/courses/:courseId/epub_exports', ({params}) => {
-        const course_id = parseInt(params.courseId, 10)
-        const response = {
+        const course_id = parseInt(params.courseId as string, 10)
+        const response: Course = {
           name: 'Creative Writing',
           id: course_id,
           epub_export: {
+            id: course_id,
             permissions: {},
             workflow_state: 'created',
           },
@@ -87,7 +92,7 @@ describe('CourseEpubExportStore', () => {
     await new Promise(resolve => setTimeout(resolve, 10))
 
     const state = CourseStore.getState()
-    courses.courses.forEach(course => {
+    courses.courses.forEach((course: Course) => {
       expect(state[course.id]).toEqual(course)
     })
   })
@@ -116,6 +121,7 @@ describe('CourseEpubExportStore', () => {
       name: 'Creative Writing',
       id: course_id,
       epub_export: {
+        id: course_id,
         permissions: {},
         workflow_state: 'created',
       },

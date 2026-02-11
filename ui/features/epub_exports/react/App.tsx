@@ -17,10 +17,14 @@
  */
 
 import React from 'react'
-import CourseStore from './CourseStore'
+import CourseStore, {type Course} from './CourseStore'
 import CourseList from './CourseList'
 
-class EpubExportApp extends React.Component {
+interface CoursesMap {
+  [courseId: string]: Course
+}
+
+class EpubExportApp extends React.Component<Record<string, never>, CoursesMap> {
   static displayName = 'EpubExportApp'
 
   //

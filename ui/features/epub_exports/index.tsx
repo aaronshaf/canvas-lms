@@ -23,7 +23,7 @@ import EpubExportsApp from './react/App'
 import ready from '@instructure/ready'
 
 ready(() => {
-  $('.course-epub-exports-app').each((_i, element) => {
+  $('.course-epub-exports-app').each((_i: number, element: HTMLElement) => {
     legacyRender(<EpubExportsApp />, element)
   })
 })

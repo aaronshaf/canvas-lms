@@ -20,11 +20,16 @@ import React from 'react'
 import {render} from '@testing-library/react'
 import DownloadLink from '../DownloadLink'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import type {Course} from '../CourseStore'
 
 const I18n = createI18nScope('epub_exports')
 
+interface DownloadLinkProps {
+  course: Course
+}
+
 describe('DownloadLink', () => {
-  let props
+  let props: DownloadLinkProps
 
   beforeEach(() => {
     props = {
@@ -41,13 +46,15 @@ describe('DownloadLink', () => {
   })
 
   it('shows no download link without download permissions', () => {
-    props.course.epub_export = {permissions: {download: false}}
+    props.course.epub_export = {id: 1, permissions: {download: false}, workflow_state: 'generated'}
     const {container} = render(<DownloadLink {...props} />)
     expect(container.firstChild).toBeNull()
   })
 
   it('shows download link with proper permissions', () => {
     props.course.epub_export = {
+      id: 1,
+      workflow_state: 'generated',
       epub_attachment: {url: 'http://download.url'},
       permissions: {download: true},
     }

@@ -17,20 +17,22 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {map} from 'es-toolkit/compat'
 import CourseListItem from './CourseListItem'
+import type {Course} from './CourseStore'
 
-export default function CourseList(props) {
+interface CourseListProps {
+  courses?: {
+    [courseId: string]: Course
+  }
+}
+
+export default function CourseList({courses}: CourseListProps) {
   return (
     <ul className="ig-list">
-      {map(props.courses, (course, key) => (
+      {map(courses, (course, key) => (
         <CourseListItem key={key} course={course} />
       ))}
     </ul>
   )
-}
-
-CourseList.propTypes = {
-  courses: PropTypes.object,
 }

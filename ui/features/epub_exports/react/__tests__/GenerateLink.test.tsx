@@ -20,13 +20,17 @@ import React from 'react'
 import {render, screen} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import GenerateLink from '../GenerateLink'
-import CourseEpubExportStore from '../CourseStore'
+import CourseEpubExportStore, {type Course} from '../CourseStore'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('epub_exports')
 
+interface GenerateLinkProps {
+  course: Course
+}
+
 describe('GenerateLink', () => {
-  let props
+  let props: GenerateLinkProps
 
   beforeEach(() => {
     props = {
@@ -43,13 +47,13 @@ describe('GenerateLink', () => {
   })
 
   it('hides generate link without regenerate permissions', () => {
-    props.course.epub_export = {permissions: {regenerate: false}}
+    props.course.epub_export = {id: 1, workflow_state: 'generated', permissions: {regenerate: false}}
     const {container} = render(<GenerateLink {...props} />)
     expect(container.firstChild).toBeNull()
   })
 
   it('shows generate link with regenerate permissions', () => {
-    props.course.epub_export = {permissions: {regenerate: true}}
+    props.course.epub_export = {id: 1, workflow_state: 'generated', permissions: {regenerate: true}}
     const {getByRole} = render(<GenerateLink {...props} />)
     expect(getByRole('button', {name: I18n.t('Regenerate ePub')})).toBeInTheDocument()
   })
@@ -73,7 +77,7 @@ describe('GenerateLink', () => {
   })
 
   it('renders regenerate button when epub_export exists with permissions', () => {
-    props.course.epub_export = {permissions: {regenerate: true}}
+    props.course.epub_export = {id: 1, workflow_state: 'generated', permissions: {regenerate: true}}
     const {getByRole} = render(<GenerateLink {...props} />)
     const button = getByRole('button', {name: I18n.t('Regenerate ePub')})
     expect(button).toBeInTheDocument()
