@@ -44,7 +44,14 @@ interface DateOptionsModalProps {
   onClose: () => void
 }
 
-export default function DateOptionsModal({open, startDate, endDate, timeZone, onSave, onClose}: DateOptionsModalProps) {
+export default function DateOptionsModal({
+  open,
+  startDate,
+  endDate,
+  timeZone,
+  onSave,
+  onClose,
+}: DateOptionsModalProps) {
   const title = I18n.t('Date/Time Options')
 
   const renderTimeZoneOption = (id: string | undefined, description: string) => {
@@ -108,6 +115,7 @@ export default function DateOptionsModal({open, startDate, endDate, timeZone, on
             formatDate={formatDate}
             withRunningValue={true}
             onSelectedDateChange={(date: Date | null) => setNewStartDate(date?.toISOString() || '')}
+            interaction="enabled"
           />
           <CanvasDateInput2
             selectedDate={newEndDate}
@@ -115,6 +123,7 @@ export default function DateOptionsModal({open, startDate, endDate, timeZone, on
             formatDate={formatDate}
             withRunningValue={true}
             onSelectedDateChange={(date: Date | null) => setNewEndDate(date?.toISOString() || '')}
+            interaction="enabled"
           />
         </FormFieldGroup>
       </Modal.Body>

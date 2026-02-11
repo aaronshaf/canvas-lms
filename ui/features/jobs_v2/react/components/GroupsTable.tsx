@@ -100,7 +100,7 @@ export default function GroupsTable({
                       {group.orphaned ? (
                         <OrphanedStrandIndicator
                           name={tag_or_strand}
-                          type={type}
+                          type={type as 'strand' | 'singleton'}
                           onComplete={onUnblock}
                         />
                       ) : null}

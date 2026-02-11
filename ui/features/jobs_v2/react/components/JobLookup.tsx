@@ -52,6 +52,7 @@ interface JobLookupProps {
 }
 
 export default function JobLookup({setSelectedItem, manualSelection}: JobLookupProps) {
+  // @ts-expect-error - SearchItemSelector type mismatch with JobLookupItem
   return (
     <SearchItemSelector
       onItemSelected={setSelectedItem}

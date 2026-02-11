@@ -125,7 +125,9 @@ export default function JobsHeader({
       <Flex.Item align="end" shouldGrow={true} shouldShrink={true}>
         <SimpleSelect
           renderLabel={<ScreenReaderContent>{I18n.t('Scope')}</ScreenReaderContent>}
+          // @ts-expect-error - InstUI SimpleSelect type mismatch
           onChange={onChangeScope}
+          // @ts-expect-error - ENV.jobs_scope_filter not in GlobalEnv
           value={ENV.jobs_scope_filter[jobScope]}
         >
           {Object.entries(ENV.jobs_scope_filter).map(([key, value]) => {

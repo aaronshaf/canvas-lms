@@ -91,25 +91,25 @@ export function InfoColumn({bucket, info, timeZone}: InfoColumnProps) {
 
   const columnText = useCallback(() => {
     if (bucket === 'future' || bucket === 'failed') {
-      return formatDate(info)
+      return formatDate(info as string)
     } else {
-      return formatSeconds(info)
+      return formatSeconds(info as number)
     }
   }, [bucket, info, formatDate, formatSeconds])
 
   const columnColor = useCallback(() => {
     if (bucket === 'running') {
-      if (info > SUPER_SLOW_RUN_TIME) {
+      if ((info as number) > SUPER_SLOW_RUN_TIME) {
         return 'alert'
-      } else if (info > SLOW_RUN_TIME) {
+      } else if ((info as number) > SLOW_RUN_TIME) {
         return 'danger'
       } else {
         return 'primary'
       }
     } else if (bucket === 'queued') {
-      if (info > SUPER_SLOW_QUEUE_TIME) {
+      if ((info as number) > SUPER_SLOW_QUEUE_TIME) {
         return 'alert'
-      } else if (info > SLOW_QUEUE_TIME) {
+      } else if ((info as number) > SLOW_QUEUE_TIME) {
         return 'danger'
       } else {
         return 'primary'

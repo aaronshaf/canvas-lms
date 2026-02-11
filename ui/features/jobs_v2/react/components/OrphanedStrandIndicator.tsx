@@ -36,7 +36,11 @@ interface OrphanedStrandIndicatorProps {
   onComplete: (json: any) => void
 }
 
-export default function OrphanedStrandIndicator({name, type, onComplete}: OrphanedStrandIndicatorProps) {
+export default function OrphanedStrandIndicator({
+  name,
+  type,
+  onComplete,
+}: OrphanedStrandIndicatorProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<any>()
@@ -46,6 +50,7 @@ export default function OrphanedStrandIndicator({name, type, onComplete}: Orphan
     type === 'strand'
       ? I18n.t('Strand "%{name}" has no next_in_strand.', {name})
       : I18n.t('Singleton "%{name}" has no next_in_strand.', {name})
+  // @ts-expect-error - ENV.manage_jobs not in GlobalEnv
   if (ENV?.manage_jobs) {
     tipLabel += ' ' + I18n.t('Click to fix')
   }
