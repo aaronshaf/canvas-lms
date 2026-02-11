@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// @ts-expect-error - jQuery types conflict with esModuleInterop
 import $ from 'jquery'
 import 'jquery-migrate'
 import Outcome from '@canvas/grade-summary/backbone/models/Outcome'
@@ -25,7 +26,7 @@ import * as tz from '@instructure/moment-utils'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
 describe('OutcomeLineGraphView', () => {
-  let outcomeLineGraphView
+  let outcomeLineGraphView: any
   const response = {
     outcome_results: [
       {
@@ -77,6 +78,7 @@ describe('OutcomeLineGraphView', () => {
   })
 
   it('should render correctly', () => {
+    // @ts-expect-error - vi is a global from vitest
     const renderSpy = vi.spyOn(outcomeLineGraphView, 'render')
     expect(outcomeLineGraphView.render()).toBeTruthy()
     expect(outcomeLineGraphView.svg).toBeUndefined()
