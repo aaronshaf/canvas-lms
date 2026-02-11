@@ -25,14 +25,21 @@ import {useMutation, useApolloClient} from '@apollo/client'
 import {useCallback, useContext} from 'react'
 import {AlertManagerContext} from '@canvas/alerts/react/AlertManager'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import type {ApolloCache} from '@apollo/client'
 
 const I18n = createI18nScope('discussion_topics_post')
+
+interface UseUpdateDiscussionThreadParams {
+  discussionEntry: any
+  discussionTopic: any
+  setLoadedSubentries?: (updater: (entries: any[]) => any[]) => void
+}
 
 export const useUpdateDiscussionThread = ({
   discussionEntry,
   discussionTopic,
   setLoadedSubentries,
-}) => {
+}: UseUpdateDiscussionThreadParams) => {
   const {setOnFailure, setOnSuccess} = useContext(AlertManagerContext)
   const client = useApolloClient()
 
@@ -44,7 +51,7 @@ export const useUpdateDiscussionThread = ({
   })
 
   const updateDiscussionEntryParticipantCache = useCallback(
-    (cache, result) => {
+    (cache: ApolloCache<any>, result: any) => {
       if (
         discussionEntry.entryParticipant?.read !==
         result.data.updateDiscussionEntryParticipant.discussionEntry.entryParticipant?.read
@@ -69,7 +76,7 @@ export const useUpdateDiscussionThread = ({
     [discussionEntry, discussionTopic],
   )
 
-  const updateLoadedSubentry = updatedEntry => {
+  const updateLoadedSubentry = (updatedEntry: any) => {
     // if it's a subentry then we need to update the loadedSubentry.
     if (setLoadedSubentries) {
       setLoadedSubentries(loadedSubentries => {
@@ -82,7 +89,7 @@ export const useUpdateDiscussionThread = ({
 
   const [updateDiscussionEntryParticipant] = useMutation(UPDATE_DISCUSSION_ENTRY_PARTICIPANT, {
     update: updateDiscussionEntryParticipantCache,
-    onCompleted: data => {
+    onCompleted: (data: any) => {
       if (!data || !data.updateDiscussionEntryParticipant) {
         return null
       }

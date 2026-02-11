@@ -27,9 +27,11 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from '@canvas/rails-flash-notifications'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {loadErrorMessages, loadDevMessages} from '@apollo/client/dev'
+import type {ApolloCache} from '@apollo/client'
+
 const I18n = createI18nScope('discussion_topics_post')
 
-export const getSpeedGraderUrl = (authorId = null, entryId = null) => {
+export const getSpeedGraderUrl = (authorId: string | null = null, entryId: string | null = null): string => {
   let speedGraderUrl = ENV.SPEEDGRADER_URL_TEMPLATE
   if (authorId !== null) {
     speedGraderUrl = speedGraderUrl.replace(/%3Astudent_id/, authorId)
@@ -42,19 +44,24 @@ export const getSpeedGraderUrl = (authorId = null, entryId = null) => {
   return speedGraderUrl
 }
 
-export const getGroupDiscussionUrl = (groupId, childDiscussionId) => {
+export const getGroupDiscussionUrl = (groupId: string, childDiscussionId: string): string => {
   return `/groups/${groupId}/discussion_topics/${childDiscussionId}`
 }
 
-export const getReviewLinkUrl = (courseId, assignmentId, revieweeId) => {
+export const getReviewLinkUrl = (courseId: string, assignmentId: string, revieweeId: string): string => {
   return `/courses/${courseId}/assignments/${assignmentId}/submissions/${revieweeId}`
 }
 
+interface EntryCountChange {
+  unreadCountChange?: number
+  repliesCountChange?: number
+}
+
 export const updateDiscussionTopicEntryCounts = (
-  cache,
-  discussionTopicGraphQLId,
-  entryCountChange,
-) => {
+  cache: ApolloCache<any>,
+  discussionTopicGraphQLId: string,
+  entryCountChange: EntryCountChange,
+): void => {
   const options = {
     id: discussionTopicGraphQLId,
     fragment: Discussion.fragment,
@@ -78,7 +85,7 @@ export const updateDiscussionTopicEntryCounts = (
   }
 }
 
-export const updateDiscussionEntryRootEntryCounts = (cache, discussionEntry, unreadCountChange) => {
+export const updateDiscussionEntryRootEntryCounts = (cache: ApolloCache<any>, discussionEntry: any, unreadCountChange: number): void => {
   const discussionEntryOptions = {
     id: btoa('DiscussionEntry-' + discussionEntry.rootEntryId),
     fragment: DiscussionEntry.fragment,
@@ -94,7 +101,7 @@ export const updateDiscussionEntryRootEntryCounts = (cache, discussionEntry, unr
   })
 }
 
-export const addReplyToDiscussionEntry = (cache, variables, newDiscussionEntry) => {
+export const addReplyToDiscussionEntry = (cache: ApolloCache<any>, variables: any, newDiscussionEntry: any): boolean | undefined => {
   try {
     // Creates an object containing the data that needs to be updated
     // Writes that new data to the cache using the id of the object
@@ -183,7 +190,7 @@ export const addReplyToDiscussionEntry = (cache, variables, newDiscussionEntry) 
   }
 }
 
-export const addReplyToAllRootEntries = (cache, newDiscussionEntry) => {
+export const addReplyToAllRootEntries = (cache: ApolloCache<any>, newDiscussionEntry: any): void => {
   if (newDiscussionEntry.id === 'DISCUSSION_ENTRY_PLACEHOLDER') return
   const options = {
     query: DISCUSSION_ENTRY_ALL_ROOT_ENTRIES_QUERY,
@@ -209,7 +216,7 @@ export const addReplyToAllRootEntries = (cache, newDiscussionEntry) => {
   }
 }
 
-const addFirstReplyToAllRootEntries = (cache, newDiscussionEntry) => {
+const addFirstReplyToAllRootEntries = (cache: ApolloCache<any>, newDiscussionEntry: any): void => {
   //either we're adding what would be the first reply to a thread either the thread is not expanded, first reply means un-expanded anyway
   const discussionEntryOptions = {
     id: btoa('DiscussionEntry-' + newDiscussionEntry.parentId),
@@ -241,7 +248,7 @@ const addFirstReplyToAllRootEntries = (cache, newDiscussionEntry) => {
   }
 }
 
-export const addSubentriesCountToParentEntry = (cache, newDiscussionEntry) => {
+export const addSubentriesCountToParentEntry = (cache: ApolloCache<any>, newDiscussionEntry: any): void => {
   // If the new discussion entry is a reply to a reply, update the subentries count on the parent entry.
   // Otherwise, it already happens correctly in the root entry level.
   if (newDiscussionEntry.parentId !== newDiscussionEntry.rootEntryId) {
@@ -278,7 +285,7 @@ export const addSubentriesCountToParentEntry = (cache, newDiscussionEntry) => {
   }
 }
 
-export const resolveAuthorRoles = (isAuthor, discussionRoles) => {
+export const resolveAuthorRoles = (isAuthor: boolean, discussionRoles?: string[]): string[] | undefined => {
   if (isAuthor && discussionRoles) {
     return discussionRoles.concat('Author')
   }
@@ -289,8 +296,20 @@ export const resolveAuthorRoles = (isAuthor, discussionRoles) => {
   return discussionRoles
 }
 
-export const responsiveQuerySizes = ({mobile = false, tablet = false, desktop = false} = {}) => {
-  const querySizes = {}
+interface ResponsiveQuerySizesOptions {
+  mobile?: boolean
+  tablet?: boolean
+  desktop?: boolean
+}
+
+interface QuerySizes {
+  mobile?: {maxWidth: string}
+  tablet?: {maxWidth: string}
+  desktop?: {minWidth: string}
+}
+
+export const responsiveQuerySizes = ({mobile = false, tablet = false, desktop = false}: ResponsiveQuerySizesOptions = {}): QuerySizes => {
+  const querySizes: QuerySizes = {}
   if (mobile) {
     querySizes.mobile = {maxWidth: '767px'}
   }
@@ -303,8 +322,18 @@ export const responsiveQuerySizes = ({mobile = false, tablet = false, desktop = 
   return querySizes
 }
 
-export const isTopicAuthor = (topicAuthor, entryAuthor) => {
+export const isTopicAuthor = (topicAuthor: any, entryAuthor: any): boolean => {
   return topicAuthor && entryAuthor && topicAuthor._id === entryAuthor._id
+}
+
+interface OptimisticResponseOptions {
+  message?: string
+  parentId?: string
+  rootEntryId?: string | null
+  quotedEntry?: any
+  isAnonymous?: boolean
+  depth?: number | null
+  attachment?: any
 }
 
 export const getOptimisticResponse = ({
@@ -315,7 +344,7 @@ export const getOptimisticResponse = ({
   isAnonymous = false,
   depth = null,
   attachment = null,
-} = {}) => {
+}: OptimisticResponseOptions = {}): any => {
   if (quotedEntry && Object.keys(quotedEntry).length !== 0) {
     quotedEntry = {
       createdAt: quotedEntry.createdAt,
@@ -418,18 +447,18 @@ export const getOptimisticResponse = ({
 }
 
 // data must contain data response to create discussion entry mutation
-export const getCheckpointSubmission = (data, subAssignmentTag) => {
+export const getCheckpointSubmission = (data: any, subAssignmentTag: string): any => {
   return (
     data.createDiscussionEntry.mySubAssignmentSubmissions?.find(
-      sub => sub.subAssignmentTag === subAssignmentTag,
+      (sub: any) => sub.subAssignmentTag === subAssignmentTag,
     ) || {}
   )
 }
 
-export const buildQuotedReply = (nodes, previewId) => {
+export const buildQuotedReply = (nodes: any[], previewId: string): any => {
   if (!nodes) return ''
-  let preview = {}
-  nodes.every(reply => {
+  let preview: any = {}
+  nodes.every((reply: any) => {
     if (reply._id === previewId) {
       preview = {
         _id: previewId,
@@ -444,7 +473,7 @@ export const buildQuotedReply = (nodes, previewId) => {
   return preview
 }
 
-export const isAnonymous = discussionEntry =>
+export const isAnonymous = (discussionEntry: any): boolean =>
   ENV.discussion_anonymity_enabled &&
   discussionEntry.anonymousAuthor !== null &&
   discussionEntry.author === null
@@ -453,14 +482,14 @@ const urlParams = new URLSearchParams(window.location.search)
 const hiddenUserId = urlParams.get('hidden_user_id')
 export const hideStudentNames = !!hiddenUserId
 
-export const userNameToShow = (originalName, authorId, course_roles) => {
+export const userNameToShow = (originalName: string, authorId: string, course_roles?: string[]): string => {
   if (hideStudentNames && course_roles?.includes('StudentEnrollment')) {
     return hiddenUserId === authorId ? I18n.t('This Student') : I18n.t('Discussion Participant')
   }
   return originalName
 }
 
-export const getDisplayName = discussionEntry => {
+export const getDisplayName = (discussionEntry: any): string => {
   if (isAnonymous(discussionEntry)) {
     if (discussionEntry.anonymousAuthor.shortName === CURRENT_USER) {
       if (!discussionEntry.anonymousAuthor.id) {
@@ -476,7 +505,7 @@ export const getDisplayName = discussionEntry => {
   return userNameToShow(name, author?._id, author?.courseRoles)
 }
 
-export const showErrorWhenMessageTooLong = message => {
+export const showErrorWhenMessageTooLong = (message: string): boolean => {
   // use DISCUSSION_ENTRY_SIZE_LIMIT for tests,
   // keep in mind, messages have opening and closing p tags,
   // which are 7 characters in total
@@ -495,7 +524,7 @@ export const showErrorWhenMessageTooLong = message => {
   return false
 }
 
-export const getTranslation = async (text, translateTargetLanguage, signal) => {
+export const getTranslation = async (text: string, translateTargetLanguage: string, signal?: AbortSignal): Promise<string | undefined> => {
   if (!text) return
 
   // Check if already aborted before making the request
@@ -529,7 +558,7 @@ export const getTranslation = async (text, translateTargetLanguage, signal) => {
     }
 
     return json.translated_text
-  } catch (e) {
+  } catch (e: any) {
     // If the request was aborted, throw a specific error
     if (e.name === 'AbortError' || signal?.aborted) {
       const error = new Error('Translation request was aborted')
@@ -555,7 +584,7 @@ export const getTranslation = async (text, translateTargetLanguage, signal) => {
  * @param {Object} submission - The submission object
  * @returns {boolean} - Whether the checkpoint is completed
  */
-export const isCheckpointCompleted = submission => {
+export const isCheckpointCompleted = (submission: any): boolean => {
   return submission?.submissionStatus === SUBMITTED
 }
 
@@ -570,11 +599,11 @@ export const isCheckpointCompleted = submission => {
  * @returns {boolean} - Whether the submission is complete
  */
 export const isSubmissionComplete = (
-  discussionTopic,
-  replyToTopicSubmission,
-  replyToEntrySubmission,
-  userHasPosted,
-) => {
+  discussionTopic: any,
+  replyToTopicSubmission: any,
+  replyToEntrySubmission: any,
+  userHasPosted: boolean,
+): boolean => {
   const hasCheckpoints = (discussionTopic?.assignment?.checkpoints?.length || 0) > 0
 
   if (hasCheckpoints) {

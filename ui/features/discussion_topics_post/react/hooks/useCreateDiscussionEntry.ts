@@ -22,14 +22,18 @@ import {useMutation} from '@apollo/client'
 import {AlertManagerContext} from '@canvas/alerts/react/AlertManager'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {captureException} from '@sentry/react'
+import type {ApolloCache, MutationUpdaterFunction, ApolloError} from '@apollo/client'
 
 const I18n = createI18nScope('discussion_topics_post')
 
-export default function useCreateDiscussionEntry(onCompleteCallback, updateCacheCallback) {
+export default function useCreateDiscussionEntry(
+  onCompleteCallback?: (data: any, success: boolean) => void,
+  updateCacheCallback?: MutationUpdaterFunction<any, any, any, ApolloCache<any>>
+) {
   const {setOnFailure, setOnSuccess} = useContext(AlertManagerContext)
 
   const [createDiscussionEntry, {data, loading, error}] = useMutation(CREATE_DISCUSSION_ENTRY, {
-    onCompleted: completionData => {
+    onCompleted: (completionData: any) => {
       if (completionData.createDiscussionEntry.errors) {
         setOnFailure(completionData.createDiscussionEntry.errors[0].message)
         return
@@ -42,7 +46,7 @@ export default function useCreateDiscussionEntry(onCompleteCallback, updateCache
         onCompleteCallback(completionData, true)
       }
     },
-    onError: errorData => {
+    onError: (errorData: ApolloError) => {
       // Common onError handling logic here.
       setOnFailure(I18n.t('There was an unexpected error creating the discussion entry.'))
 

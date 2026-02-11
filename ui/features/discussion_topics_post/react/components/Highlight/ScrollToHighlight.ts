@@ -16,15 +16,22 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-async function scrollToHighlight(element, _window = window) {
-  const scrollableParent = (() => {
+type ScrollResult = 'NO_ELEMENT_TO_SCROLL_TO' | 'SCROLL_ABORTED'
+
+interface ScrollableParent {
+  scrollY: number
+  scrollToY: (y: number) => void
+}
+
+async function scrollToHighlight(element: HTMLElement | null, _window: Window = window): Promise<ScrollResult> {
+  const scrollableParent: ScrollableParent = (() => {
     const drawerLayoutContent = _window.document.getElementById('discussion-drawer-layout')
     if (drawerLayoutContent) {
       return {
         get scrollY() {
           return drawerLayoutContent.scrollTop
         },
-        scrollToY(y) {
+        scrollToY(y: number) {
           drawerLayoutContent.scrollTo(drawerLayoutContent.scrollLeft, y)
         },
       }
@@ -33,7 +40,7 @@ async function scrollToHighlight(element, _window = window) {
       get scrollY() {
         return _window.scrollY
       },
-      scrollToY(y) {
+      scrollToY(y: number) {
         _window.scrollTo(_window.scrollX, y)
       },
     }
@@ -49,7 +56,7 @@ async function scrollToHighlight(element, _window = window) {
 
   let shouldAbortDueToInteraction = false
   const abortViaMouse = () => (shouldAbortDueToInteraction = true)
-  const abortViaKeyboard = event => {
+  const abortViaKeyboard = (event: KeyboardEvent) => {
     if (['Home', 'End', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
       shouldAbortDueToInteraction = true
     }
@@ -63,7 +70,7 @@ async function scrollToHighlight(element, _window = window) {
   try {
     while (true) {
       const now = _window.Date.now()
-      await new Promise(resolve => _window.requestAnimationFrame(resolve))
+      await new Promise<void>(resolve => _window.requestAnimationFrame(() => resolve()))
       const deltaTimeSeconds = (_window.Date.now() - now) / 1000
       const yDifference = element.offsetTop - SCROLL_MARGIN_TOP - scrollableParent.scrollY
       const magnitude =

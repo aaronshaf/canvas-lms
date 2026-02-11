@@ -20,9 +20,15 @@ import React from 'react'
 import KeyboardShortcutModal from './KeyboardShortcutModal'
 import {useScope as useI18nScope} from '@canvas/i18n'
 
-const DiscussionTopicKeyboardShortcutModal = props => {
+interface ShortcutProps {
+  keycode: string
+  description: string
+}
+
+// @ts-expect-error
+const DiscussionTopicKeyboardShortcutModal = (props) => {
   const I18n = useI18nScope('discussionTopicKeyboradShortcutModal')
-  const SHORTCUTS = [
+  const SHORTCUTS: ShortcutProps[] = [
     {keycode: 'e', description: I18n.t('Edit Current Message')},
     {keycode: 'd', description: I18n.t('Delete Current Message')},
     {keycode: 'r', description: I18n.t('Reply to Current Message')},

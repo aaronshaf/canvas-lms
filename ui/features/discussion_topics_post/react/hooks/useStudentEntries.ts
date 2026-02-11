@@ -21,6 +21,7 @@ import {gql} from 'graphql-tag'
 import {executeQuery} from '@canvas/graphql'
 import {showFlashError} from '@canvas/alerts/react/FlashAlert'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import type {QueryFunctionContext} from '@tanstack/react-query'
 
 const I18n = createI18nScope('student_entries')
 
@@ -52,7 +53,23 @@ export const STUDENT_DISCUSSION_QUERY = gql`
   }
 `
 
-async function getStudentEntries({queryKey, pageParam}) {
+interface StudentEntry {
+  _id: string
+  rootEntryId: string
+  rootEntryPageNumber: number
+}
+
+interface PageInfo {
+  hasNextPage: boolean
+  endCursor: string | null
+}
+
+interface StudentEntriesResult {
+  entries: StudentEntry[]
+  pageInfo: PageInfo
+}
+
+async function getStudentEntries({queryKey, pageParam}: QueryFunctionContext<[string, string, number, number, string | null], string | null>): Promise<StudentEntriesResult> {
   // queryKey structure:
   // ['studentEntries', discussionID, perPage, discussionPageAmount, userSearchId]
   const [_key, discussionID, perPage, discussionPageAmount, userSearchId] = queryKey
@@ -96,17 +113,17 @@ async function getStudentEntries({queryKey, pageParam}) {
 }
 
 export function useStudentEntries(
-  discussionID,
-  perPage = 50,
-  discussionPageAmount = 50,
-  userSearchId,
+  discussionID: string,
+  perPage: number = 50,
+  discussionPageAmount: number = 50,
+  userSearchId: string | null,
 ) {
   return useInfiniteQuery({
     queryKey: ['studentEntries', discussionID, perPage, discussionPageAmount, userSearchId],
     queryFn: getStudentEntries,
-    getNextPageParam: lastPage =>
+    getNextPageParam: (lastPage: StudentEntriesResult) =>
       lastPage.pageInfo.hasNextPage ? lastPage.pageInfo.endCursor : undefined,
-    initialPageParam: null,
+    initialPageParam: null as string | null,
     enabled: !!discussionID,
   })
 }
