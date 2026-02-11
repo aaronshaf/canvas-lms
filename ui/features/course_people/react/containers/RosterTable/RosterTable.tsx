@@ -28,21 +28,63 @@ import RosterTableLastActivity from '../../components/RosterTableLastActivity/Ro
 import RosterTableRoles from '../../components/RosterTableRoles/RosterTableRoles'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {Text} from '@instructure/ui-text'
-import {arrayOf, object, shape} from 'prop-types'
 import {OBSERVER_ENROLLMENT, STUDENT_ENROLLMENT} from '../../../util/constants'
 import {View} from '@instructure/ui-view'
 
 const I18n = createI18nScope('course_people')
 
+interface Section {
+  _id: string
+  name: string
+}
+
+interface AssociatedUser {
+  _id: string
+  name: string
+}
+
+interface Enrollment {
+  id: string
+  type: string
+  totalActivityTime?: number
+  htmlUrl: string
+  state: string
+  canBeRemoved: boolean
+  section: Section
+  associatedUser?: AssociatedUser
+}
+
+interface UserNode {
+  name: string
+  _id: string
+  sisId?: string
+  enrollments: Enrollment[]
+  loginId?: string
+  avatarUrl?: string
+  pronouns?: string
+}
+
+interface RosterTableProps {
+  data: {
+    course: {
+      usersConnection: {
+        nodes: UserNode[]
+      }
+    }
+  }
+}
+
 // InstUI Table.ColHeader id prop is not passed to HTML <th> element
-const idProps = name => ({
+const idProps = (name: string) => ({
   id: name,
   'data-testid': name,
 })
 
-const RosterTable = ({data}) => {
+const RosterTable: React.FC<RosterTableProps> = ({data}) => {
   const {view_user_logins, read_sis, read_reports, can_allow_admin_actions, manage_students} =
+    // @ts-expect-error - ENV.permissions not in GlobalEnv type
     ENV?.permissions || {}
+  // @ts-expect-error - ENV.course.hideSectionsOnCourseUsersPage not in type
   const showCourseSections = ENV?.course?.hideSectionsOnCourseUsersPage === false
 
   const tableRows = data.course.usersConnection.nodes.map(node => {
@@ -88,17 +130,21 @@ const RosterTable = ({data}) => {
         )}
         {showCourseSections && <Table.Cell>{sectionNames}</Table.Cell>}
         <Table.Cell>
+          {/* @ts-expect-error - Enrollment type mismatch between RosterTableRoles and RosterTable */}
           <RosterTableRoles enrollments={enrollments} />
         </Table.Cell>
         {read_reports && (
           <Table.Cell>
+            {/* @ts-expect-error - Enrollment type mismatch between RosterTableLastActivity and RosterTable */}
             <RosterTableLastActivity enrollments={enrollments} />
           </Table.Cell>
         )}
         {read_reports && (
           <Table.Cell>
             <Text wrap="break-word">
-              {totalActivityTime > 0 && secondsToStopwatchTime(totalActivityTime)}
+              {totalActivityTime &&
+                totalActivityTime > 0 &&
+                secondsToStopwatchTime(totalActivityTime)}
             </Text>
           </Table.Cell>
         )}
@@ -152,17 +198,5 @@ const RosterTable = ({data}) => {
     </Table>
   )
 }
-
-RosterTable.propTypes = {
-  data: shape({
-    course: shape({
-      usersConnection: shape({
-        nodes: arrayOf(object).isRequired,
-      }).isRequired,
-    }).isRequired,
-  }).isRequired,
-}
-
-RosterTable.defaultProps = {}
 
 export default RosterTable

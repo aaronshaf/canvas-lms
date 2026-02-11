@@ -18,6 +18,7 @@
 
 import AlertManager from '@canvas/alerts/react/AlertManager'
 import {ApolloProvider, createClient, createPersistentCache} from '@canvas/apollo-v3'
+import type {ApolloClient, NormalizedCacheObject} from '@apollo/client'
 import ErrorBoundary from '@canvas/error-boundary'
 import errorShipUrl from '@canvas/images/ErrorShip.svg'
 import GenericErrorPage from '@canvas/generic-error-page'
@@ -25,13 +26,15 @@ import LoadingIndicator from '@canvas/loading-indicator'
 import React, {useEffect, useState} from 'react'
 import CoursePeople from './containers/CoursePeople'
 
-export const CoursePeopleApp = () => {
-  const [client, setClient] = useState(null)
+export const CoursePeopleApp: React.FC = () => {
+  const [client, setClient] = useState<ApolloClient<NormalizedCacheObject> | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const setupApolloClient = async () => {
+      // @ts-expect-error - ENV.apollo_caching not in GlobalEnv type
       if (ENV.apollo_caching) {
+        // @ts-expect-error - ENV.conversation_cache_key not in GlobalEnv type
         const cache = await createPersistentCache(ENV.conversation_cache_key)
         setClient(createClient({cache}))
       } else {
@@ -47,12 +50,14 @@ export const CoursePeopleApp = () => {
   }
 
   return (
+    // @ts-expect-error - Apollo client type inference
     <ApolloProvider client={client}>
       <ErrorBoundary
         errorComponent={
           <GenericErrorPage imageUrl={errorShipUrl} errorCategory="Canvas People Error Page" />
         }
       >
+        {/* @ts-expect-error - WithBreakpoints wrapper type issues */}
         <AlertManager>
           <CoursePeople />
         </AlertManager>

@@ -54,15 +54,15 @@ const DEFAULT_PROPS = {
 }
 
 describe('RosterTableLastActivity', () => {
-  const setup = props => {
+  const setup = (props: any) => {
     return render(<RosterTableLastActivity {...props} />)
   }
 
   beforeAll(() => {
-    ENV = {
+    Object.assign(ENV, {
       TIMEZONE: 'America/Detroit',
       CONTEXT_TIMEZONE: 'America/Chicago',
-    }
+    })
     tzInTest.configureAndRestoreLater({
       tz: tz(detroit, 'America/Detroit', chicago, 'America/Chicago'),
       tzData: {

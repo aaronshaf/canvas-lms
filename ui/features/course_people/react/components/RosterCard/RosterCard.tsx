@@ -29,30 +29,47 @@ import {Text} from '@instructure/ui-text'
 import {Flex} from '@instructure/ui-flex'
 import {View} from '@instructure/ui-view'
 import {Table} from '@instructure/ui-table'
-import {arrayOf, bool, number, shape, string} from 'prop-types'
 import {OBSERVER_ENROLLMENT, STUDENT_ENROLLMENT} from '../../../util/constants'
 
 const I18n = createI18nScope('course_people')
 
 // InstUI Table.ColHeader id prop is not passed to HTML <th> element
-const idProps = name => ({
+const idProps = (name: string) => ({
   id: name,
   'data-testid': name,
 })
 
-const RosterCard = ({courseUsersConnectionNode}) => {
+interface CourseUsersConnectionNode {
+  name: string
+  _id: string
+  sisId?: string
+  enrollments: any[]
+  loginId?: string
+  avatarUrl?: string
+  pronouns?: string
+}
+
+interface RosterCardProps {
+  courseUsersConnectionNode: CourseUsersConnectionNode
+}
+
+const RosterCard: React.FC<RosterCardProps> = ({courseUsersConnectionNode}) => {
   const {view_user_logins, read_sis, read_reports, can_allow_admin_actions, manage_students} =
+    // @ts-expect-error - ENV.permissions not in GlobalEnv type
     ENV?.permissions || {}
+  // @ts-expect-error - ENV.course.hideSectionsOnCourseUsersPage not in type
   const showCourseSections = ENV?.course?.hideSectionsOnCourseUsersPage === false
 
   const {name, _id, sisId, enrollments, loginId, avatarUrl, pronouns} = courseUsersConnectionNode
   const {totalActivityTime, htmlUrl, state} = enrollments[0]
-  const canRemoveUser = enrollments.every(enrollment => enrollment.canBeRemoved)
-  const canManageUser = enrollments.some(enrollment => enrollment.type !== STUDENT_ENROLLMENT)
+  const canRemoveUser = enrollments.every((enrollment: any) => enrollment.canBeRemoved)
+  const canManageUser = enrollments.some(
+    (enrollment: any) => enrollment.type !== STUDENT_ENROLLMENT,
+  )
     ? can_allow_admin_actions
     : manage_students
 
-  const tableRows = enrollments.map(enrollment => {
+  const tableRows = enrollments.map((enrollment: any) => {
     const {id, section, type, associatedUser} = enrollment
     if (type === OBSERVER_ENROLLMENT && !associatedUser) return null
 
@@ -147,36 +164,5 @@ const RosterCard = ({courseUsersConnectionNode}) => {
     </View>
   )
 }
-
-RosterCard.propTypes = {
-  courseUsersConnectionNode: shape({
-    name: string.isRequired,
-    _id: string.isRequired,
-    sisId: string,
-    enrollments: arrayOf(
-      shape({
-        totalActivityTime: number,
-        htmlUrl: string.isRequired,
-        state: string.isRequired,
-        canBeRemoved: bool.isRequired,
-        id: string.isRequired,
-        section: shape({
-          _id: string.isRequired,
-          name: string.isRequired,
-        }),
-        type: string.isRequired,
-        associatedUser: shape({
-          _id: string.isRequired,
-          name: string.isRequired,
-        }),
-      }),
-    ),
-    loginId: string,
-    avatarUrl: string,
-    pronouns: string,
-  }),
-}
-
-RosterCard.defaultProps = {}
 
 export default RosterCard

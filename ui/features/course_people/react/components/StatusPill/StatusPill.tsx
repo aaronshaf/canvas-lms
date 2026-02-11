@@ -35,7 +35,6 @@
  */
 
 import React from 'react'
-import {string} from 'prop-types'
 import {Pill} from '@instructure/ui-pill'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {useScope as createI18nScope} from '@canvas/i18n'
@@ -48,20 +47,25 @@ export const INACTIVE_STATE = 'inactive'
 export const PENDING_STATE = 'invited'
 
 // Value that should be presented to user
-export const PILL_MAP = {
-  [INACTIVE_STATE]: {
-    text: I18n.t('inactive'),
-    hintText: I18n.t('This user is currently not able to access the course'),
-    color: 'primary',
-  },
-  [PENDING_STATE]: {
-    text: I18n.t('pending'),
-    hintText: I18n.t('This user has not yet accepted the invitation to the course'),
-    color: 'info',
-  },
+export const PILL_MAP: Record<string, {text: string; hintText: string; color: 'primary' | 'info'}> =
+  {
+    [INACTIVE_STATE]: {
+      text: I18n.t('inactive'),
+      hintText: I18n.t('This user is currently not able to access the course'),
+      color: 'primary',
+    },
+    [PENDING_STATE]: {
+      text: I18n.t('pending'),
+      hintText: I18n.t('This user has not yet accepted the invitation to the course'),
+      color: 'info',
+    },
+  }
+
+interface StatusPillProps {
+  state: string
 }
 
-const StatusPill = ({state}) => {
+const StatusPill: React.FC<StatusPillProps> = ({state}) => {
   if (!PILL_MAP.hasOwnProperty(state)) return null
 
   const {text, hintText, color} = PILL_MAP[state]
@@ -74,11 +78,5 @@ const StatusPill = ({state}) => {
     </Tooltip>
   )
 }
-
-StatusPill.propTypes = {
-  state: string.isRequired,
-}
-
-StatusPill.defaultProps = {}
 
 export default StatusPill

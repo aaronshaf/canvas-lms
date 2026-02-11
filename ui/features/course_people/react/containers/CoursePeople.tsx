@@ -25,18 +25,19 @@ import RosterTable from './RosterTable/RosterTable'
 import RosterCardView from './RosterCardView/RosterCardView'
 import {responsiveQuerySizes} from '../../util/utils'
 
-const CoursePeople = () => {
+const CoursePeople: React.FC = () => {
   const {loading, data} = useQuery(ROSTER_QUERY, {
-    variables: {courseID: ENV.course.id},
+    variables: {courseID: ENV.course?.id},
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   })
 
   const responsiveRoster = (
+    // @ts-expect-error - InstUI Responsive props are complex
     <Responsive
       match="media"
       query={responsiveQuerySizes({tablet: true})}
-      render={(props, matches) => {
+      render={(props: any, matches: string[]) => {
         if (matches.includes('tablet')) return <RosterCardView data={data} />
         return <RosterTable data={data} />
       }}
