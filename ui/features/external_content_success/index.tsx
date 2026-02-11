@@ -45,6 +45,7 @@ interface ExternalContentSuccessType {
 const ExternalContentSuccess: Partial<ExternalContentSuccessType> = {}
 
 ready(() => {
+  // @ts-expect-error - ENV properties not in GlobalEnv type
   const {lti_response_messages, service_id, retrieved_data: data, service} = ENV
   const parentWindow = window.parent || window.opener
 
@@ -65,10 +66,15 @@ ready(() => {
       {
         subject: 'A2ExternalContentReady',
         content_items: data,
+        // @ts-expect-error - ENV properties not in GlobalEnv type
         msg: ENV.message,
+        // @ts-expect-error - ENV properties not in GlobalEnv type
         log: ENV.log,
+        // @ts-expect-error - ENV properties not in GlobalEnv type
         errormsg: ENV.error_message,
+        // @ts-expect-error - ENV properties not in GlobalEnv type
         errorlog: ENV.error_log,
+        // @ts-expect-error - ENV properties not in GlobalEnv type
         ltiEndpoint: ENV.lti_endpoint,
       },
       ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN,
@@ -98,7 +104,6 @@ ready(() => {
               .filter(([msg, _]) => msg !== undefined)
               .map(([msg, isError], index) => {
                 return (
-                  // @ts-expect-error - InstUI Alert props are complex
                   <Alert
                     key={index}
                     variant={isError ? 'error' : 'info'}
@@ -120,14 +125,17 @@ ready(() => {
   ExternalContentSuccess.start = async function () {
     await this.processLtiMessages?.(lti_response_messages, document.querySelector('.ic-app'))
 
+    // @ts-expect-error - ENV properties not in GlobalEnv type
     if (ENV.oembed) {
       const url = replaceTags(
         replaceTags(
           $('#oembed_retrieve_url').attr('href') ?? '',
           'endpoint',
+          // @ts-expect-error - ENV properties not in GlobalEnv type
           encodeURIComponent(ENV.oembed.endpoint),
         ),
         'url',
+        // @ts-expect-error - ENV properties not in GlobalEnv type
         encodeURIComponent(ENV.oembed.url),
       )
       $.ajaxJSON(
