@@ -45,8 +45,8 @@ const useTranslationAll = (enqueueJobCallback: (jobCb: TranslationJobCb) => Prom
           setTranslationStart(id)
 
           const [translatedTitle, translatedMessage] = await Promise.all([
-            getTranslation(entry.title, language, signal),
-            getTranslation(entry.message, language, signal),
+            getTranslation(entry.title ?? '', language, signal),
+            getTranslation(entry.message ?? '', language, signal),
           ])
 
           // Check multiple conditions before updating state

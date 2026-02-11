@@ -259,7 +259,6 @@ export const SplitScreenViewContainer = props => {
       attachment: file,
       parentId: createdEntryParentId,
       rootEntryId: rootTopicReplyId,
-      // @ts-expect-error TS2322 (typescriptify)
       quotedEntry: buildQuotedReply(
         splitScreenEntryOlderDirection.data?.legacyNode?.discussionSubentriesConnection?.nodes,
         replyFromId,

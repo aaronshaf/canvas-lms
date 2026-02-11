@@ -237,7 +237,6 @@ const SplitScreenThreadContainer = props => {
   const {setReplyFromId} = useContext(DiscussionManagerUtilityContext)
   const {filter} = useContext(SearchContext)
   const [threadRefCurrent, setThreadRefCurrent] = useState(null)
-  // @ts-expect-error TS2345 (typescriptify)
   const {toggleUnread} = useUpdateDiscussionThread({
     discussionEntry: props.discussionEntry,
     discussionTopic: props.discussionTopic,

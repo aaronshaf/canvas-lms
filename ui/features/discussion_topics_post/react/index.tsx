@@ -23,24 +23,31 @@ import ErrorBoundary from '@canvas/error-boundary'
 import errorShipUrl from '@canvas/images/ErrorShip.svg'
 import GenericErrorPage from '@canvas/generic-error-page'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
 import React, {useEffect, useState} from 'react'
 import {LoadingSpinner} from './components/LoadingSpinner/LoadingSpinner'
 import {useKeyboardShortcuts} from './KeyboardShortcuts/useKeyboardShortcut'
 import {QueryClientProvider} from '@tanstack/react-query'
 import {queryClient} from '@canvas/query'
+import type {ApolloClient, NormalizedCacheObject} from '@apollo/client'
 
 const I18n = createI18nScope('discussion_topics_post')
 
-export const DiscussionTopicsPost = props => {
-  const [client, setClient] = useState(null)
+interface DiscussionTopicsPostProps {
+  discussionTopicId?: string
+  navbarHeight?: number
+}
+
+export const DiscussionTopicsPost = (props: DiscussionTopicsPostProps) => {
+  const [client, setClient] = useState<ApolloClient<NormalizedCacheObject> | null>(null)
   const [loading, setLoading] = useState(true)
 
   useKeyboardShortcuts()
 
   useEffect(() => {
     const setupApolloClient = async () => {
+      // @ts-expect-error - ENV property
       if (ENV.apollo_caching) {
+        // @ts-expect-error - ENV property
         const cache = await createPersistentCache(ENV.discussion_cache_key)
         setClient(createClient({cache}))
       } else {
@@ -57,7 +64,7 @@ export const DiscussionTopicsPost = props => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ApolloProvider client={client}>
+      <ApolloProvider client={client!}>
         <ErrorBoundary
           errorComponent={
             <GenericErrorPage
@@ -66,6 +73,7 @@ export const DiscussionTopicsPost = props => {
             />
           }
         >
+          {/* @ts-expect-error - WithBreakpoints wrapper issue */}
           <AlertManager>
             <DiscussionTopicManager
               discussionTopicId={props.discussionTopicId}
@@ -76,9 +84,4 @@ export const DiscussionTopicsPost = props => {
       </ApolloProvider>
     </QueryClientProvider>
   )
-}
-
-DiscussionTopicsPost.propTypes = {
-  discussionTopicId: PropTypes.string,
-  navbarHeight: PropTypes.number,
 }

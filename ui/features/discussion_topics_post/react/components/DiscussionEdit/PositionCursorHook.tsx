@@ -19,7 +19,13 @@
 import React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
 
-const positionCursor = rceRef => {
+interface RCERef {
+  current: {
+    editor: any
+  } | null
+}
+
+const positionCursor = (rceRef: RCERef): void => {
   // Don't do anything until RCE is initialized
   if (!rceRef.current) return
 
@@ -31,7 +37,7 @@ const positionCursor = rceRef => {
   positionForCreateReply(editor, mentionContainer)
 }
 
-const positionForCreateReply = (editor, mentionContainer) => {
+const positionForCreateReply = (editor: any, mentionContainer: HTMLElement): void => {
   // Save the current html
   const currentText = mentionContainer.innerHTML
   // Inject a element right after the inserted mention

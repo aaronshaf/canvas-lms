@@ -470,9 +470,9 @@ export const DiscussionTopicContainer = ({
                                 }
                                 revieweeName={assessmentRequest.user.displayName}
                                 reviewLinkUrl={getReviewLinkUrl(
-                                  ENV.course_id,
-                                  props.discussionTopic.assignment._id,
-                                  assessmentRequest.user._id,
+                                  ENV.course_id ?? '',
+                                  props.discussionTopic.assignment._id ?? '',
+                                  assessmentRequest.user._id ?? '',
                                 )}
                                 workflowState={assessmentRequest.workflowState}
                                 disabled={

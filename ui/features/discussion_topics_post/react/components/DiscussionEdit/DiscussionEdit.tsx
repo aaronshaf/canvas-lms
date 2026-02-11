@@ -38,8 +38,8 @@ const I18n = createI18nScope('discussion_posts')
 
 // @ts-expect-error TS7006 (typescriptify)
 export const DiscussionEdit = props => {
-  const rceRef = useRef()
-  const [rceContent, setRceContent] = useState(false)
+  const rceRef = useRef<{editor: any} | null>(null)
+  const [rceContent, setRceContent] = useState(false as any)
   const [includeQuotedReply, setIncludeQuotedReply] = useState(!!props.quotedEntry?.message)
   const textAreaId = useRef(`message-body-${props.rceIdentifier}`)
   const [anonymousAuthorState, setAnonymousAuthorState] = useState(
@@ -211,7 +211,7 @@ export const DiscussionEdit = props => {
                           rceContent,
                           includeQuotedReply ? props.quotedEntry._id : null,
                           attachment,
-                          anonymousAuthorState,
+                          String(anonymousAuthorState),
                         )
                       }
                     }}

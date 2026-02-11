@@ -118,7 +118,7 @@ describe('Translation component - language switching edge cases', () => {
           return
         }
 
-        translatedTexts.push(translatedMessage)
+        translatedTexts.push(translatedMessage ?? '')
       }
 
       // Start with Spanish
@@ -175,7 +175,7 @@ describe('Translation component - language switching edge cases', () => {
           return
         }
 
-        translatedTexts.push(translatedMessage)
+        translatedTexts.push(translatedMessage ?? '')
       }
 
       act(() => {
@@ -231,7 +231,7 @@ describe('Translation component - language switching edge cases', () => {
           return
         }
 
-        translatedTexts.push(translatedMessage)
+        translatedTexts.push(translatedMessage ?? '')
       }
 
       act(() => {

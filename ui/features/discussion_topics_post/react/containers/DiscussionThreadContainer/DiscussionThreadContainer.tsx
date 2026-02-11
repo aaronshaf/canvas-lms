@@ -641,7 +641,6 @@ export const DiscussionThreadContainer = props => {
       parentId: getParentId(),
       depth: props.discussionEntry.depth,
       rootEntryId: props.discussionEntry.rootEntryId,
-      // @ts-expect-error TS2322 (typescriptify)
       quotedEntry:
         quotedEntryId && typeof buildQuotedReply === 'function'
           ? buildQuotedReply([props.discussionEntry], getParentId())

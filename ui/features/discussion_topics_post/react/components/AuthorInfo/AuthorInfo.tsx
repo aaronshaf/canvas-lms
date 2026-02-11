@@ -227,7 +227,7 @@ const AuthorInfoBase = ({breakpoints, ...props}: AuthorInfoProps) => {
                 <Flex.Item padding={breakpoints?.mobileOnly ? '0 0 0 xx-small' : '0'}>
                   <RolePillContainer
                     discussionRoles={resolveAuthorRoles(
-                      props.isTopicAuthor,
+                      props.isTopicAuthor ?? false,
                       props.author?.courseRoles,
                     )}
                     data-testid="pill-container"
