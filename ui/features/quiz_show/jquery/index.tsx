@@ -45,12 +45,52 @@ import {
   mapRubricUnderscoredKeysToCamelCase,
   mapRubricAssociationUnderscoredKeysToCamelCase,
 } from '@canvas/rubrics/react/utils'
+import {type GlobalEnv} from '@canvas/global/env/GlobalEnv.d'
+import {type Root} from '@canvas/react'
 
 const I18n = createI18nScope('quizzes.show')
 
-const roots = new Map()
+interface Student {
+  id: string
+  name: string
+}
 
-function createOrUpdateRoot(elementId, component) {
+interface QuizSubmissionList {
+  UNSUBMITTED_STUDENTS: Student[]
+  SUBMITTED_STUDENTS: Student[]
+}
+
+interface QuizData {
+  id: string
+  title: string
+  assignment_id: string
+}
+
+declare const ENV: GlobalEnv & {
+  QUIZ_SUBMISSION_EVENTS_URL?: string
+  QUIZ_DETAILS_URL?: string
+  IS_SURVEY?: boolean
+  QUIZZES_URL: string
+  QUIZ_SUBMISSION_LIST: QuizSubmissionList
+  QUIZ: QuizData
+  ASSIGNMENT_ID: string
+  ASSIGNMENT_POINTS?: number
+  PERMISSIONS?: {
+    manage_rubrics?: boolean
+  }
+  COURSE_ID: string
+  current_user_id: string
+  rubric_self_assessment_ff_enabled?: boolean
+  ai_rubrics_enabled?: boolean
+  assigned_rubric?: any
+  rubric_association?: any
+  LOCALE?: string
+  TIMEZONE?: string
+}
+
+const roots = new Map<string, Root>()
+
+function createOrUpdateRoot(elementId: string, component: React.ReactElement) {
   const container = document.getElementById(elementId)
   if (!container) return
 
@@ -63,7 +103,7 @@ function createOrUpdateRoot(elementId, component) {
   }
 }
 
-function unmountRoot(elementId) {
+function unmountRoot(elementId: string) {
   const root = roots.get(elementId)
   if (root) {
     root.unmount()
@@ -119,11 +159,11 @@ $(document).ready(function () {
     $('#js-sequential-warning-dialogue div a').attr('href', $('#preview_quiz_button').attr('href'))
   })
 
-  function ensureStudentsLoaded(callback) {
+  function ensureStudentsLoaded(callback: () => void) {
     if ($('#quiz_details').length) {
       return callback()
     } else {
-      return $.get(ENV.QUIZ_DETAILS_URL, html => {
+      return $.get(ENV.QUIZ_DETAILS_URL ?? '', html => {
         $('#quiz_details_wrapper').html(html)
         callback()
       })
@@ -246,10 +286,12 @@ $(document).ready(function () {
     })
   })
 
-  function openSendTo(event, open = true) {
+  function openSendTo(event: React.MouseEvent | null, open = true) {
     if (event) event.preventDefault()
 
     const container = document.getElementById('direct-share-mount-point')
+    if (!container) return
+
     const root = render(
       <DirectShareUserModal
         open={open}
@@ -267,10 +309,12 @@ $(document).ready(function () {
 
   $('.direct-share-send-to-menu-item').click(openSendTo)
 
-  function openCopyTo(event, open = true) {
+  function openCopyTo(event: React.MouseEvent | null, open = true) {
     if (event) event.preventDefault()
 
     const container = document.getElementById('direct-share-mount-point')
+    if (!container) return
+
     const root = render(
       <DirectShareCourseTray
         open={open}
