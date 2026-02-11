@@ -18,8 +18,13 @@
 
 import {fetchContent} from '../eportfolio_section'
 import fixtures from '@canvas/test-utils/fixtures'
+import JQuery from 'jquery'
 
-let $section = null
+interface JQueryWithTemplateData extends JQuery<HTMLElement> {
+  getTemplateData(options: {textValues: string[]}): {[key: string]: unknown}
+}
+
+let $section: JQuery<HTMLElement> | null = null
 
 describe('EportfolioSection -> fetchContent', () => {
   beforeEach(() => {
@@ -41,14 +46,14 @@ describe('EportfolioSection -> fetchContent', () => {
   })
 
   it('grabs section content for rich_text type', () => {
-    const content = fetchContent($section, 'rich_text', 'section1')
+    const content = fetchContent($section as JQueryWithTemplateData, 'rich_text', 'section1')
     expect(content['section1[section_type]']).toEqual('rich_text')
-    expect(content['section1[content]'].trim()).toEqual('<p>Some Editor Content</p>')
+    expect((content['section1[content]'] as string).trim()).toEqual('<p>Some Editor Content</p>')
   })
 
   it('uses edit field value for html type', () => {
-    const content = fetchContent($section, 'html', 'section1')
+    const content = fetchContent($section as JQueryWithTemplateData, 'html', 'section1')
     expect(content['section1[section_type]']).toEqual('html')
-    expect(content['section1[content]'].trim()).toEqual('Some HTML Content')
+    expect((content['section1[content]'] as string).trim()).toEqual('Some HTML Content')
   })
 })
