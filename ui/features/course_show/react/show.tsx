@@ -161,7 +161,8 @@ $(() => {
     render(
       <CourseDifferentiationTagConverterMessage
         courseId={ENV.COURSE.id}
-        activeConversionJob={(ENV as any).ACTIVE_TAG_CONVERSION_JOB}
+        // @ts-expect-error - ACTIVE_TAG_CONVERSION_JOB is conditionally set in courses_controller.rb
+        activeConversionJob={ENV.ACTIVE_TAG_CONVERSION_JOB ?? false}
       />,
       diffTagOverrideConversionContainer,
     )

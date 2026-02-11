@@ -100,7 +100,8 @@ $(document).ready(() => {
       $('#home_page_content').html(bodyHtml)
       const homePageElement = $('#home_page')[0]
       if (homePageElement) {
-        $('html,body').scrollTo(homePageElement as any)
+        // @ts-expect-error - scrollTo is a jQuery plugin from jquery-scroll-to-visible
+        $('html,body').scrollTo(homePageElement)
       }
     })
   })
