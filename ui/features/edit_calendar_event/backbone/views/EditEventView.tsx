@@ -21,6 +21,7 @@ import {defer, omit, pick} from 'es-toolkit/compat'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import * as tz from '@instructure/moment-utils'
 import moment from 'moment-timezone'
+import type {Moment} from 'moment-timezone'
 import Backbone from '@canvas/backbone'
 import React from 'react'
 import ReactDOM from 'react-dom'
@@ -49,15 +50,73 @@ import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'
 import EditCalendarEventHeader from '../../react/components/EditCalendarEventHeader'
 import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
 import splitAssetString from '@canvas/util/splitAssetString'
+import type CalendarEvent from '../models/CalendarEvent'
 
 const I18n = createI18nScope('calendar.edit')
+
+interface ConferenceType {
+  name: string
+  type: string
+  contexts: string[]
+  conference_type?: string
+}
+
+interface WebConference {
+  id?: string
+  name?: string
+  conference_type?: string
+  lti_settings?: Record<string, any>
+  title?: string
+  user_settings?: {
+    scheduled_date?: string | null
+  }
+}
+
+interface ErrorShowOptions {
+  id?: string
+  fieldSelector?: string
+  containerSelector?: string
+  message: string
+}
+
+interface DuplicateOptions {
+  count: string | number
+  interval: string | number
+  frequency?: string
+  append_iterator?: boolean
+}
+
+interface EventFormData {
+  title: string
+  start_at?: Moment
+  end_at?: Moment
+  duplicate?: DuplicateOptions | boolean
+  blackout_date?: boolean
+  description?: string
+  location_name?: string
+  location_address?: string
+  important_dates?: boolean
+  web_conference?: WebConference | string
+  rrule?: string | null
+  [key: string]: any
+}
 
 RichContentEditor.preloadRemoteModule()
 
 // #
 // View for editing a calendar event on it's own page
-export default class EditCalendarEventView extends Backbone.View {
+export default class EditCalendarEventView extends Backbone.View<CalendarEvent> {
   static recurringEventLimit = 200
+
+  model!: CalendarEvent
+  conferencesKey!: number
+  hasConferenceField!: boolean
+  oldConference!: WebConference | null
+  unsavedFields!: Record<string, any>
+  frequency!: string
+  conferencesDisabled!: boolean
+  course?: Course
+  handleFrequencyChange!: (newFrequency: string, newRRule: string | null) => void
 
   initialize() {
     this.render = this.render.bind(this)
@@ -220,25 +279,26 @@ export default class EditCalendarEventView extends Backbone.View {
     return this.model.on('change:use_section_dates', this.toggleUsingSectionClass)
   }
 
-  setConference = conference => {
+  setConference = (conference: WebConference | null) => {
     this.model.set('web_conference', conference)
     setTimeout(this.renderConferenceWidget, 0)
   }
 
-  getActiveConferenceTypes() {
-    const conferenceTypes = ENV.conferences?.conference_types || []
+  getActiveConferenceTypes(): ConferenceType[] {
+    const conferenceTypes = (ENV.conferences?.conference_types as ConferenceType[]) || []
     const context = this.model.get('context_code')
     return filterConferenceTypes(conferenceTypes, context)
   }
 
-  renderConferenceWidget() {
+  renderConferenceWidget(): void {
     const conferenceNode = document.getElementById('calendar_event_conference_selection')
     const activeConferenceTypes = this.getActiveConferenceTypes()
     if (!this.model.get('web_conference') && activeConferenceTypes.length === 0) {
-      conferenceNode.closest('fieldset').className = 'hide'
+      conferenceNode!.closest('fieldset')!.className = 'hide'
     } else {
-      conferenceNode.closest('fieldset').className = ''
+      conferenceNode!.closest('fieldset')!.className = ''
 
+      // @ts-expect-error - CalendarConferenceWidget props
       ReactDOM.render(
         <CalendarConferenceWidget
           key={this.conferencesKey}
@@ -253,7 +313,7 @@ export default class EditCalendarEventView extends Backbone.View {
     }
   }
 
-  toggleRecurringEeventFrequencyPicker(event) {
+  toggleRecurringEeventFrequencyPicker(event: JQuery.ChangeEvent): void {
     if (event.target.checked) {
       this.$el.find('#recurring_event_frequency_picker').addClass('hidden')
       this.model.set('rrule', null)
@@ -263,7 +323,7 @@ export default class EditCalendarEventView extends Backbone.View {
     }
   }
 
-  showDuplicates(duplicatesEnabled) {
+  showDuplicates(duplicatesEnabled: boolean): void {
     if (this.model.isNew()) {
       this.$el.find('.label_with_checkbox[for="duplicate_event"]').toggle(duplicatesEnabled)
       $('#duplicate_event').prop('checked', false)
@@ -271,7 +331,7 @@ export default class EditCalendarEventView extends Backbone.View {
     }
   }
 
-  _handleFrequencyChange(newFrequency, newRRule) {
+  _handleFrequencyChange(newFrequency: string, newRRule: string | null): void {
     if (newFrequency !== 'custom') {
       this.model.set('rrule', newRRule)
       this.frequency = newFrequency
@@ -279,28 +339,29 @@ export default class EditCalendarEventView extends Backbone.View {
     }
   }
 
-  renderHeaderComponent() {
+  renderHeaderComponent(): void {
     const title =
       this.model.id == null
         ? I18n.t('Create New Calendar Event')
         : I18n.t('Edit %{title}', {title: this.model.get('title')})
 
+    // @ts-expect-error - EditCalendarEventHeader props
     ReactDOM.render(
       <EditCalendarEventHeader title={title} />,
       document.getElementById('header_component_root'),
     )
   }
 
-  renderRecurringEventFrequencyPicker() {
+  renderRecurringEventFrequencyPicker(): void {
     if (!this.model.get('use_section_dates')) {
       const pickerNode = document.getElementById('recurring_event_frequency_picker')
-      const start = this.$el.find('[name="start_date"]').val()
+      const start = this.$el.find('[name="start_date"]').val() as string | undefined
       const eventStart = start ? moment.tz(start, 'MMM D, YYYY', ENV.TIMEZONE) : moment('invalid')
 
       const rrule = this.model.get('rrule')
       const date = eventStart.isValid() ? eventStart.toISOString(true) : undefined
 
-      let courseEndAt
+      let courseEndAt: string | undefined
 
       if (this.course) {
         courseEndAt = this.course.get('restrict_enrollments_to_course_dates')
@@ -308,6 +369,7 @@ export default class EditCalendarEventView extends Backbone.View {
           : this.course.get('term')?.end_at
       }
 
+      // @ts-expect-error - FrequencyPicker props
       ReactDOM.render(
         <div id="recurring_event_frequency_picker" style={{margin: '.5rem 0 1rem'}}>
           <FrequencyPickerErrorBoundary>
@@ -429,17 +491,18 @@ export default class EditCalendarEventView extends Backbone.View {
     return this
   }
 
-  toggleDuplicateOptions() {
+  toggleDuplicateOptions(): JQuery {
     return this.$el.find('.duplicate_event_toggle_row').toggle(this.model.isNew())
   }
 
-  destroyModel() {
+  destroyModel(): void {
     let delModalContainer = document.getElementById('delete_modal_container')
     if (!delModalContainer) {
       delModalContainer = document.createElement('div')
       delModalContainer.id = 'delete_modal_container'
       document.body.appendChild(delModalContainer)
     }
+    // @ts-expect-error - renderDeleteCalendarEventDialog props
     renderDeleteCalendarEventDialog(delModalContainer, {
       isOpen: true,
       onCancel: () => {
@@ -457,31 +520,30 @@ export default class EditCalendarEventView extends Backbone.View {
       delUrl: this.model.url(),
       isRepeating: !!this.model.get('series_uuid'),
       isSeriesHead: !!this.model.get('series_head'),
-
-      eventType: event.eventType,
+      eventType: 'event',
     })
   }
 
   // boilerplate that could be replaced with data bindings
-  toggleUsingSectionClass() {
+  toggleUsingSectionClass(): void {
     this.$('#editCalendarEventFull').toggleClass(
       'use_section_dates',
       this.model.get('use_section_dates'),
     )
   }
 
-  toggleUseSectionDates(e) {
+  toggleUseSectionDates(e: JQuery.ChangeEvent): JQuery {
     this.model.set('use_section_dates', !this.model.get('use_section_dates'))
     this.toggleRecurringEeventFrequencyPicker(e)
     this.showDuplicates(e.target.checked)
     return this.updateRemoveChildEvents(e)
   }
 
-  disableDatePickers() {
+  disableDatePickers(): void {
     $('.date_field:disabled + button').prop('disabled', true)
   }
 
-  toggleHtmlView(event) {
+  toggleHtmlView(event: JQuery.ClickEvent): JQuery {
     if (event != null) event.preventDefault()
 
     RichContentEditor.callOnRCE($('textarea[name=description]'), 'toggle')
@@ -490,19 +552,19 @@ export default class EditCalendarEventView extends Backbone.View {
     return $(event.currentTarget).siblings('a').andSelf().toggle()
   }
 
-  updateRemoveChildEvents(e) {
+  updateRemoveChildEvents(e: JQuery.ChangeEvent): JQuery<HTMLInputElement> {
     const value = $(e.target).prop('checked') ? '' : '1'
     return $('input[name=remove_child_events]').val(value)
   }
 
-  redirectWithMessage(message) {
+  redirectWithMessage(message: string): void {
     $.flashMessage(message)
     if (this.model.get('return_to_url')) {
       window.location = this.model.get('return_to_url')
     }
   }
 
-  submit(event) {
+  submit(event?: JQuery.SubmitEvent): boolean | Promise<any> {
     if (event != null) event.preventDefault()
 
     const eventData = unflatten(this.getFormData())
@@ -561,11 +623,11 @@ export default class EditCalendarEventView extends Backbone.View {
     return this.saveEvent(eventData)
   }
 
-  validateFormData({title, start_at, duplicate}) {
+  validateFormData({title, start_at, duplicate}: EventFormData): boolean {
     // Form data:
     // blackout_date, description, end_at, important_dates, location_address,
     // location_name, start_at, title
-    const errors = []
+    const errors: string[] = []
     if (title.length === 0) {
       EditCalendarEventView.showError({
         id: 'calendar_event_title',
@@ -584,7 +646,7 @@ export default class EditCalendarEventView extends Backbone.View {
       errors.push('#calendar_event_date')
     }
 
-    if (duplicate) {
+    if (duplicate && typeof duplicate !== 'boolean') {
       EditCalendarEventView.validateDuplicatesForm(duplicate, errors)
     }
 
@@ -595,7 +657,7 @@ export default class EditCalendarEventView extends Backbone.View {
     return true
   }
 
-  static validateDuplicatesForm(duplicate, errors) {
+  static validateDuplicatesForm(duplicate: DuplicateOptions, errors: string[]): void {
     const {interval, count} = duplicate
 
     // Validate duplicate interval field
@@ -633,7 +695,7 @@ export default class EditCalendarEventView extends Backbone.View {
     }
   }
 
-  async saveEvent(eventData) {
+  async saveEvent(eventData: EventFormData): Promise<any> {
     RichContentEditor.closeRCE(this.$('textarea'))
 
     if (this.model.get('series_uuid') && this.model.get('rrule')) {
@@ -645,7 +707,7 @@ export default class EditCalendarEventView extends Backbone.View {
     return this.$el.disableWhileLoading(
       this.model.save(eventData, {
         success: () => this.redirectWithMessage(I18n.t('event_saved', 'Event Saved Successfully')),
-        error: (model, response, _options) => {
+        error: (_model: any, response: any, _options: any) => {
           CommonEventShowError(JSON.parse(response.responseText))
         },
         skipDefaultError: true,
@@ -653,7 +715,7 @@ export default class EditCalendarEventView extends Backbone.View {
     )
   }
 
-  shouldShowBlackoutDatesCheckbox() {
+  shouldShowBlackoutDatesCheckbox(): boolean {
     const context_type = this.model.get('context_type')
     const course_pacing_enabled = this.model.get('course_pacing_enabled') === 'true'
     return (
@@ -662,21 +724,21 @@ export default class EditCalendarEventView extends Backbone.View {
     )
   }
 
-  toJSON() {
+  toJSON(): any {
     const result = super.toJSON(...arguments)
     result.k5_context = ENV.K5_SUBJECT_COURSE || ENV.K5_HOMEROOM_COURSE || ENV.K5_ACCOUNT
     result.should_show_blackout_dates = this.shouldShowBlackoutDatesCheckbox()
     result.disableSectionDates =
       result.use_section_dates &&
       result.course_sections.filter(
-        section => !section.permissions.manage_calendar && section.event,
+        (section: any) => !section.permissions.manage_calendar && section.event,
       ).length > 0
         ? 'disabled'
         : ''
     return result
   }
 
-  getFormData() {
+  getFormData(): any {
     let data = this.$el.getFormData()
     data.blackout_date = this.$el.find('#calendar_event_blackout_date').prop('checked')
     if (data.blackout_date) {
@@ -728,26 +790,27 @@ export default class EditCalendarEventView extends Backbone.View {
     return data
   }
 
-  static title() {
+  static title(): string {
+    // @ts-expect-error - Backbone.View.title is a legacy method
     return super.title('event', 'Event')
   }
 
-  enableDuplicateFields(shouldEnable) {
+  enableDuplicateFields(shouldEnable: boolean | string[]): JQuery {
     const elts = this.$el.find('.duplicate_fields').find('input')
     const disableValue = !shouldEnable
     elts.prop('disabled', disableValue)
     return this.$el.find('.duplicate_event_row').toggle(!disableValue)
   }
 
-  duplicateCheckboxChanged(jsEvent, _propagate) {
+  duplicateCheckboxChanged(jsEvent: JQuery.ChangeEvent, _propagate?: any): JQuery {
     return this.enableDuplicateFields(jsEvent.target.checked)
   }
 
-  cancel() {
+  cancel(): void {
     RichContentEditor.closeRCE(this.$('textarea'))
   }
 
-  static showError({id, fieldSelector, containerSelector, message}) {
+  static showError({id, fieldSelector, containerSelector, message}: ErrorShowOptions): void {
     if (fieldSelector && message) {
       EditCalendarEventView.clearError({fieldSelector, containerSelector})
 
@@ -783,7 +846,7 @@ export default class EditCalendarEventView extends Backbone.View {
     }
   }
 
-  static clearError({fieldSelector, containerSelector}) {
+  static clearError({fieldSelector, containerSelector}: Partial<ErrorShowOptions>): void {
     if (fieldSelector) {
       // Removes the input red border
       $(fieldSelector).removeClass('error')
@@ -802,7 +865,7 @@ export default class EditCalendarEventView extends Backbone.View {
     }
   }
 
-  static focusAndScrollTo(selector) {
+  static focusAndScrollTo(selector: string): void {
     if (selector) {
       $(selector)[0].scrollIntoView({behavior: 'smooth'})
     }
