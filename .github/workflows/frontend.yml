@@ -17,8 +17,8 @@ concurrency:
 
 jobs:
 
-  depcruise:
-    name: Check Circular Deps
+  build:
+    name: Build
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -27,31 +27,73 @@ jobs:
         with:
           node-version: '20'
           cache: 'yarn'
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          command: yarn install --frozen-lockfile
       - name: Build Packages
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: yarn build:packages
+      - name: Remove files with invalid artifact characters
+        run: rm -rf node_modules/canvas_offline_course_viewer/examples
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            node_modules
+            packages/*/lib
+            packages/*/es
+            packages/*/dist
+          retention-days: 1
+
+  depcruise:
+    name: Check Circular Deps
+    runs-on: ubuntu-22.04
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+      - name: Restore symlinks
+        run: yarn install --frozen-lockfile
       - name: Check Circular Dependencies
         run: yarn depcruise ./ --include-only "^(ui|packages)"
 
   eslint:
     name: Check ESLint
     runs-on: ubuntu-22.04
+    needs: build
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-      - name: Install Dependencies
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+      - name: Restore symlinks
         run: yarn install --frozen-lockfile
-      - name: Build Packages
-        env:
-          NODE_OPTIONS: "--max-old-space-size=4096"
-        run: yarn build:packages
       - name: Run ESLint Check
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
@@ -60,19 +102,19 @@ jobs:
   typescript:
     name: Check TypeScript
     runs-on: ubuntu-22.04
+    needs: build
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-      - name: Install Dependencies
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+      - name: Restore symlinks
         run: yarn install --frozen-lockfile
-      - name: Build Packages
-        env:
-          NODE_OPTIONS: "--max-old-space-size=4096"
-        run: yarn build:packages
       - name: Run GraphQL Codegen
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
@@ -87,6 +129,7 @@ jobs:
   ui-tests:
     name: UI Tests (Shard ${{ matrix.shard }})
     runs-on: ubuntu-22.04
+    needs: build
     strategy:
       fail-fast: false
       matrix:
@@ -97,13 +140,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-      - name: Install Dependencies
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+      - name: Restore symlinks
         run: yarn install --frozen-lockfile
-      - name: Build Packages
-        env:
-          NODE_OPTIONS: "--max-old-space-size=4096"
-        run: yarn build:packages
       - name: Run Tests (Shard ${{ matrix.shard }})
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
@@ -112,20 +154,20 @@ jobs:
   package-tests:
     name: Package Tests
     runs-on: ubuntu-22.04
+    needs: build
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
-      - name: Install Dependencies
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+      - name: Restore symlinks
         run: yarn install --frozen-lockfile
-      - name: Build Packages
-        env:
-          NODE_OPTIONS: "--max-old-space-size=4096"
-        run: yarn build:packages
-      - name: Run TypeScript Check
+      - name: Run Package Tests
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: yarn wsrun --report -m -l -s -c test
