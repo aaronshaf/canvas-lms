@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {render} from '@testing-library/react'
-import ChildContent from '../ChildContent'
+import {ChildContent} from '../ChildContent'
 import getSampleData from '@canvas/blueprint-courses/getSampleData'
 
 describe('ChildContent app', () => {

@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {render} from '@testing-library/react'
-import ChildChangeLog from '../ChildChangeLog'
+import {ChildChangeLog} from '../ChildChangeLog'
 import loadStates from '@canvas/blueprint-courses/react/loadStates'
 import getSampleData from '@canvas/blueprint-courses/getSampleData'
 

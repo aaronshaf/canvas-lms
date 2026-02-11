@@ -18,45 +18,67 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {Component} from 'react'
-import PropTypes from 'prop-types'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
+import type {Dispatch} from 'redux'
 
 import BlueprintModal from '@canvas/blueprint-courses/react/components/BlueprintModal'
 import MasterChildStack from './MasterChildStack'
 import {ConnectedChildChangeLog as ChildChangeLog} from './ChildChangeLog'
 
 import actions from '@canvas/blueprint-courses/react/actions'
-import propTypes from '@canvas/blueprint-courses/react/propTypes'
 
 const I18n = createI18nScope('blueprint_coursesChildContent')
 
-export default class ChildContent extends Component {
-  static propTypes = {
-    realRef: PropTypes.func,
-    routeTo: PropTypes.func.isRequired,
-    isChangeLogOpen: PropTypes.bool.isRequired,
-    selectChangeLog: PropTypes.func.isRequired,
-    terms: propTypes.termList.isRequired,
-    childCourse: propTypes.courseInfo.isRequired,
-    masterCourse: propTypes.courseInfo.isRequired,
-  }
+interface Term {
+  id: string
+  name: string
+}
 
+interface CourseInfo {
+  id: string
+  name: string
+  enrollment_term_id: string
+  sis_course_id?: string
+}
+
+interface ChildContentProps {
+  realRef?: (ref: ChildContent | null) => void
+  routeTo: (path: string) => void
+  isChangeLogOpen: boolean
+  selectChangeLog: (params: {migrationId: string} | null) => void
+  terms: Term[]
+  childCourse: CourseInfo
+  masterCourse: CourseInfo
+}
+
+interface StoreState {
+  selectedChangeLog: string | null
+  course: CourseInfo
+  masterCourse: CourseInfo
+  terms: Term[]
+}
+
+export class ChildContent extends Component<ChildContentProps> {
   static defaultProps = {
     realRef: () => {},
   }
 
   componentDidMount() {
-    this.props.realRef(this)
+    if (this.props.realRef) {
+      this.props.realRef(this)
+    }
   }
 
-  componentDidUpdate(prevProps /* , prevState */) {
+  componentDidUpdate(prevProps: ChildContentProps) {
     // it's awkward to reach outside the component to give the Modal's trigger
     // focus when it closes but the way our opening is decoupled from the button
     // through 'router' makes that impossible
     if (prevProps.isChangeLogOpen && !this.props.isChangeLogOpen) {
       const infoButton = document.querySelector('.blueprint_information_button')
-      if (infoButton) infoButton.focus()
+      if (infoButton && infoButton instanceof HTMLElement) {
+        infoButton.focus()
+      }
     }
   }
 
@@ -64,7 +86,7 @@ export default class ChildContent extends Component {
     this.props.routeTo('#!/blueprint')
   }
 
-  showChangeLog(params) {
+  showChangeLog(params: {migrationId: string}) {
     this.props.selectChangeLog(params)
   }
 
@@ -102,11 +124,11 @@ export default class ChildContent extends Component {
   }
 }
 
-const connectState = state => ({
+const connectState = (state: StoreState) => ({
   isChangeLogOpen: !!state.selectedChangeLog,
   childCourse: state.course,
   masterCourse: state.masterCourse,
   terms: state.terms,
 })
-const connectActions = dispatch => bindActionCreators(actions, dispatch)
+const connectActions = (dispatch: Dispatch) => bindActionCreators(actions, dispatch)
 export const ConnectedChildContent = connect(connectState, connectActions)(ChildContent)
