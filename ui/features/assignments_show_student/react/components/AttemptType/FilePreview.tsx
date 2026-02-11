@@ -160,6 +160,7 @@ export default function FilePreview({submission, isOriginalityReportVisible}: Fi
                 </Table.Cell>
               )}
               <Table.Cell themeOverride={cellTheme} data-testid="download-file">
+                {/* @ts-expect-error */}
                 <Button
                   size="small"
                   renderIcon={IconDownloadLine}
@@ -176,7 +177,7 @@ export default function FilePreview({submission, isOriginalityReportVisible}: Fi
     )
   }
 
-  const renderUnavailablePreview = message => {
+  const renderUnavailablePreview = (message: any) => {
     return (
       <div style={{textAlign: 'center'}}>
         <img alt="" src={previewUnavailable} style={{width: '150px'}} />
@@ -198,7 +199,7 @@ export default function FilePreview({submission, isOriginalityReportVisible}: Fi
   }
 
   const renderFilePreview = () => {
-    const iframeContainerStyle = {
+    const iframeContainerStyle: any = {
       maxWidth: '1366px',
       height: '0',
       paddingBottom: '130%',
