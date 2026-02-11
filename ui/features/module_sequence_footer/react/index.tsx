@@ -26,14 +26,35 @@ import StudentGroupFilter from '@canvas/student-group-filter'
 
 const I18n = createI18nScope('module_sequence_footer')
 
-class ModuleSequenceFooter extends Component {
-  constructor(props) {
+interface GroupCategory {
+  id: string
+  name: string
+  groups: Array<{
+    id: string
+    name: string
+  }>
+}
+
+interface ModuleSequenceFooterProps {
+  courseId: string
+  filterSpeedGraderByStudentGroup?: boolean
+  groupCategories: GroupCategory[]
+  selectedStudentGroupId?: string
+  speedGraderUrl: string
+}
+
+interface ModuleSequenceFooterState {
+  selectedStudentGroupId: string
+}
+
+class ModuleSequenceFooter extends Component<ModuleSequenceFooterProps, ModuleSequenceFooterState> {
+  constructor(props: ModuleSequenceFooterProps) {
     super(props)
     this.state = {selectedStudentGroupId: props.selectedStudentGroupId || '0'}
     this.onStudentGroupSelected = this.onStudentGroupSelected.bind(this)
   }
 
-  onStudentGroupSelected(selectedStudentGroupId) {
+  onStudentGroupSelected(selectedStudentGroupId: string) {
     if (selectedStudentGroupId !== '0') {
       axios.put(`/api/v1/courses/${this.props.courseId}/gradebook_settings`, {
         gradebook_settings: {

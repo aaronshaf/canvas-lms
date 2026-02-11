@@ -20,8 +20,8 @@ import {renderModuleSequenceFooter} from '../index'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
 describe('renderModuleSequenceFooter', () => {
-  let container
-  let env
+  let container: HTMLDivElement
+  let env: any
 
   beforeEach(() => {
     container = document.createElement('div')
@@ -44,15 +44,16 @@ describe('renderModuleSequenceFooter', () => {
     container.remove()
   })
 
-  function getSelect() {
+  function getSelect(): HTMLSelectElement | null {
     return container.querySelector('select')
   }
 
-  function getSelectOptions() {
-    return [...getSelect().querySelectorAll('option')]
+  function getSelectOptions(): HTMLOptionElement[] {
+    const select = getSelect()
+    return select ? [...select.querySelectorAll('option')] : []
   }
 
-  function getSpeedGraderLink() {
+  function getSpeedGraderLink(): HTMLAnchorElement | undefined {
     return [...container.querySelectorAll('a')].find(a => a.href.includes(env.speed_grader_url))
   }
 
@@ -74,7 +75,8 @@ describe('renderModuleSequenceFooter', () => {
 
     test('rendered SpeedGrader link is not disabled', () => {
       renderModuleSequenceFooter()
-      expect(getSpeedGraderLink().hasAttribute('aria-disabled')).toBe(false)
+      const link = getSpeedGraderLink()
+      expect(link?.hasAttribute('aria-disabled')).toBe(false)
     })
   })
 
@@ -102,9 +104,10 @@ describe('renderModuleSequenceFooter', () => {
 
     test('rendered select dropdown contains group categories', () => {
       renderModuleSequenceFooter()
-      const groupCategoryNames = [...getSelect().querySelectorAll('optgroup')].map(
-        optgroup => optgroup.label,
-      )
+      const select = getSelect()
+      const groupCategoryNames = select
+        ? [...select.querySelectorAll('optgroup')].map(optgroup => optgroup.label)
+        : []
       expect(groupCategoryNames).toEqual(['group category 1'])
     })
 
@@ -118,12 +121,14 @@ describe('renderModuleSequenceFooter', () => {
       delete env.selected_student_group_id
       fakeENV.setup(env)
       renderModuleSequenceFooter()
-      expect(getSpeedGraderLink().getAttribute('aria-disabled')).toBe('true')
+      const link = getSpeedGraderLink()
+      expect(link?.getAttribute('aria-disabled')).toBe('true')
     })
 
     test('rendered SpeedGrader link is not disabled when a student group is selected', () => {
       renderModuleSequenceFooter()
-      expect(getSpeedGraderLink().hasAttribute('aria-disabled')).toBe(false)
+      const link = getSpeedGraderLink()
+      expect(link?.hasAttribute('aria-disabled')).toBe(false)
     })
   })
 })
