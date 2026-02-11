@@ -75,9 +75,8 @@ class NewUserTutorialToggleButton extends React.Component<
         ref={c => {
           this.button = c
         }}
-        variant="icon"
         id="new_user_tutorial_toggle"
-        onClick={this.handleButtonClick}
+        onClick={this.handleButtonClick as any}
         withBackground={false}
         withBorder={false}
         screenReaderLabel={
