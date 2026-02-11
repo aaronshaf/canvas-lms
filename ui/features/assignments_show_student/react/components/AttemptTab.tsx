@@ -437,19 +437,24 @@ export default class AttemptTab extends Component {
           key={this.props.submission.attempt}
           assignment={this.props.assignment}
           createSubmissionDraft={this.props.createSubmissionDraft}
+          // @ts-expect-error
           focusOnInit={this.props.focusAttemptOnInit}
+          // @ts-expect-error
           submission={this.props.submission}
+          // @ts-expect-error
           updateUploadingFiles={this.props.updateUploadingFiles}
+          // @ts-expect-error
           uploadingFiles={this.props.uploadingFiles}
           iframeURL={this.state.mediaRecordingIframURL}
           setIframeURL={this.setMediaRecordingIframeURL}
+          // @ts-expect-error
           submitButtonRef={this.props.submitButtonRef}
         />
       </LazyLoad>
     )
   }
 
-  setMediaRecordingIframeURL = url => {
+  setMediaRecordingIframeURL = (url: any) => {
     this.setState({mediaRecordingIframURL: url})
   }
 
@@ -457,8 +462,11 @@ export default class AttemptTab extends Component {
     return (
       <LazyLoad errorCategory="Assignments 2 StudentAnnotationAttempt on AttemptTab">
         <StudentAnnotationAttempt
+          // @ts-expect-error
           submission={this.props.submission}
+          // @ts-expect-error
           assignment={this.props.assignment}
+          // @ts-expect-error
           createSubmissionDraft={this.props.createSubmissionDraft}
         />
       </LazyLoad>
