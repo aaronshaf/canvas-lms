@@ -3399,6 +3399,7 @@ EG = {
     this.emptyIframeHolder()
     this.unmountAmsGrading()
 
+    // @ts-expect-error - REMOTES is a dynamically injected global
     if (!window.REMOTES?.ams?.launch_url) {
       console.error('AMS not configured')
       return

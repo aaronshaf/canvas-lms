@@ -29,11 +29,7 @@ import errorShipUrl from '@canvas/images/ErrorShip.svg'
 const I18n = createI18nScope('canvascareer')
 
 interface CanvasCareerModule {
-  mount: (
-    mountPoint: HTMLElement,
-    envContext: unknown,
-    config: unknown,
-  ) => void
+  mount: (mountPoint: HTMLElement, envContext: unknown, config: unknown) => void
   setupEnvContext: () => unknown
 }
 
@@ -52,7 +48,7 @@ ready(() => {
   const body = document.querySelector('body')
   const mountPoint = document.createElement('div')
   const fixedBottom = document.querySelector('#fixed_bottom')
-  const fixedBottomOffset = fixedBottom?.offsetHeight || 0
+  const fixedBottomOffset = (fixedBottom as HTMLElement | null)?.offsetHeight || 0
 
   mountPoint.id = 'canvascareer'
   mountPoint.style.height =
@@ -90,12 +86,16 @@ ready(() => {
   let bundles: Promise<CanvasCareerModule>[] = []
   if (window.REMOTES.canvas_career_learner) {
     bundles = [
+      // @ts-expect-error - dynamic module federation import
       import('canvas_career_learner/bootstrap') as Promise<CanvasCareerModule>,
+      // @ts-expect-error - dynamic module federation import
       import('canvas_career_learner/setupEnvContext') as Promise<CanvasCareerModule>,
     ]
   } else if (window.REMOTES.canvas_career_learning_provider) {
     bundles = [
+      // @ts-expect-error - dynamic module federation import
       import('canvas_career_learning_provider/bootstrap') as Promise<CanvasCareerModule>,
+      // @ts-expect-error - dynamic module federation import
       import('canvas_career_learning_provider/setupEnvContext') as Promise<CanvasCareerModule>,
     ]
   }
