@@ -44,8 +44,8 @@ const AUTO_REFRESH_INTERVAL = 5000
 export default function JobsIndex() {
   const [state, dispatch] = useReducer(jobsReducer, initialState())
 
-  const jobListRef = useRef()
-  const jobDetailsRef = useRef()
+  const jobListRef = useRef<HTMLDivElement>(null)
+  const jobDetailsRef = useRef<HTMLDivElement>(null)
 
   const bucketCaptions = useMemo(() => {
     return {
@@ -73,7 +73,7 @@ export default function JobsIndex() {
   }, [])
 
   const convertTimestamp = useCallback(
-    timestamp => {
+    (timestamp: string) => {
       if (!timestamp) return ''
 
       // convert from the profile timezone
@@ -95,13 +95,13 @@ export default function JobsIndex() {
         start_date: convertTimestamp(state.start_date),
         end_date: convertTimestamp(state.end_date),
       },
-      loading: useCallback(loading => {
+      loading: useCallback((loading: boolean) => {
         dispatch({type: 'GROUPS_LOADING', payload: loading})
       }, []),
-      meta: useCallback(response => {
+      meta: useCallback((response: any) => {
         dispatch({type: 'GROUP_METADATA', payload: response})
       }, []),
-      success: useCallback(response => {
+      success: useCallback((response: any) => {
         dispatch({type: 'FETCHED_GROUPS', payload: response})
       }, []),
     },
@@ -119,13 +119,13 @@ export default function JobsIndex() {
         start_date: convertTimestamp(state.start_date),
         end_date: convertTimestamp(state.end_date),
       },
-      loading: useCallback(loading => {
+      loading: useCallback((loading: boolean) => {
         dispatch({type: 'JOBS_LOADING', payload: loading})
       }, []),
-      meta: useCallback(response => {
+      meta: useCallback((response: any) => {
         dispatch({type: 'JOBS_METADATA', payload: response})
       }, []),
-      success: useCallback(response => {
+      success: useCallback((response: any) => {
         dispatch({type: 'FETCHED_JOBS', payload: response})
       }, []),
     },
@@ -176,11 +176,11 @@ export default function JobsIndex() {
         bucket={state.bucket}
         caption={bucketCaptions[state.bucket]}
         sortColumn={state.group_order}
-        onClickGroup={text => {
+        onClickGroup={(text: string) => {
           jobListRef.current?.scrollIntoView()
           dispatch({type: 'CHANGE_GROUP_TEXT', payload: text})
         }}
-        onClickHeader={col => dispatch({type: 'CHANGE_GROUP_ORDER', payload: col})}
+        onClickHeader={(col: string) => dispatch({type: 'CHANGE_GROUP_ORDER', payload: col})}
         onUnblock={() => dispatch({type: 'REFRESH_ALL'})}
         timeZone={state.time_zone}
       />
@@ -188,11 +188,13 @@ export default function JobsIndex() {
         <Paginator
           pageCount={state.groups_page_count}
           page={state.groups_page}
-          loadPage={page => dispatch({type: 'CHANGE_GROUPS_PAGE', payload: page})}
+          loadPage={(page: number) => dispatch({type: 'CHANGE_GROUPS_PAGE', payload: page})}
           margin="small"
         />
       ) : null}
-      <Flex alignItems="end" elementRef={el => (jobListRef.current = el)}>
+      <Flex alignItems="end" elementRef={(el: Element | null) => {
+        if (el && el instanceof HTMLDivElement) jobListRef.current = el
+      }}>
         <Flex.Item size="33%">
           <SectionRefreshHeader
             title={I18n.t('Jobs')}

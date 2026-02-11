@@ -25,11 +25,17 @@ import SearchItemSelector from '@canvas/search-item-selector/react/SearchItemSel
 
 const I18n = createI18nScope('jobs_v2')
 
-function convertResult(json) {
+interface SearchItem {
+  id: string
+  name: string
+  count: number
+}
+
+function convertResult(json: Record<string, number>): SearchItem[] {
   return Object.entries(json).map(item => ({id: item[0], name: item[0], count: item[1]}))
 }
 
-function useJobSearchApi(fetchApiOpts) {
+function useJobSearchApi(fetchApiOpts: any) {
   useFetchApi({
     forceResult: (fetchApiOpts.params.term?.length || 0) === 0 ? [] : undefined,
     path: `/api/v1/jobs2/${fetchApiOpts.params.bucket}/by_${fetchApiOpts.params.group}/search`,
@@ -38,7 +44,14 @@ function useJobSearchApi(fetchApiOpts) {
   })
 }
 
-export default function SearchBox({bucket, group, setSelectedItem, manualSelection}) {
+interface SearchBoxProps {
+  bucket: string
+  group: string
+  setSelectedItem: (item: SearchItem | null) => void
+  manualSelection: string
+}
+
+export default function SearchBox({bucket, group, setSelectedItem, manualSelection}: SearchBoxProps) {
   return (
     <SearchItemSelector
       onItemSelected={setSelectedItem}
@@ -46,7 +59,7 @@ export default function SearchBox({bucket, group, setSelectedItem, manualSelecti
       itemSearchFunction={useJobSearchApi}
       manualSelection={manualSelection}
       additionalParams={{bucket, group}}
-      renderOption={item => {
+      renderOption={(item: SearchItem) => {
         return (
           <View>
             {item.name} ({item.count})

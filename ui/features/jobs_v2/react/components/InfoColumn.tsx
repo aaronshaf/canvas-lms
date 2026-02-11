@@ -31,7 +31,13 @@ const SLOW_QUEUE_TIME = 600
 
 const SECONDS_PER_DAY = 86400
 
-export function GroupedInfoColumnHeader({bucket}) {
+type BucketType = 'queued' | 'running' | 'future' | 'failed'
+
+interface GroupedInfoColumnHeaderProps {
+  bucket: BucketType
+}
+
+export function GroupedInfoColumnHeader({bucket}: GroupedInfoColumnHeaderProps) {
   const columnTitles = useMemo(() => {
     return {
       queued: I18n.t('Max wait time'),
@@ -44,7 +50,11 @@ export function GroupedInfoColumnHeader({bucket}) {
   return <Text>{columnTitles[bucket]}</Text>
 }
 
-export function InfoColumnHeader({bucket}) {
+interface InfoColumnHeaderProps {
+  bucket: BucketType
+}
+
+export function InfoColumnHeader({bucket}: InfoColumnHeaderProps) {
   const columnTitles = useMemo(() => {
     return {
       queued: I18n.t('Wait time'),
@@ -57,10 +67,16 @@ export function InfoColumnHeader({bucket}) {
   return <Text>{columnTitles[bucket]}</Text>
 }
 
-export function InfoColumn({bucket, info, timeZone}) {
+interface InfoColumnProps {
+  bucket: BucketType
+  info: number | string
+  timeZone: string
+}
+
+export function InfoColumn({bucket, info, timeZone}: InfoColumnProps) {
   const formatDate = useDateTimeFormat('date.formats.full_compact', timeZone)
 
-  const formatSeconds = useCallback(seconds => {
+  const formatSeconds = useCallback((seconds: number) => {
     let format
     if (seconds > SECONDS_PER_DAY * 30) {
       return I18n.t('%{num} days', {num: Math.floor(seconds / SECONDS_PER_DAY)})
@@ -69,6 +85,7 @@ export function InfoColumn({bucket, info, timeZone}) {
     } else {
       format = 'HH:mm:ss'
     }
+    // @ts-expect-error - Date constructor accepts null values in legacy code
     return new Date(null, null, null, null, null, seconds).toString(format)
   }, [])
 

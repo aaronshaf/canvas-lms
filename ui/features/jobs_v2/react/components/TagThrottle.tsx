@@ -31,18 +31,30 @@ import doFetchApi from '@canvas/do-fetch-api-effect'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {Alert} from '@instructure/ui-alerts'
 import useDebouncedSearchTerm from '@canvas/search-item-selector/react/hooks/useDebouncedSearchTerm'
+import type {Job} from '../types'
 
 const I18n = createI18nScope('jobs_v2')
 
-export default function TagThrottle({tag, jobs, onUpdate}) {
+interface SearchResult {
+  matched_jobs?: number
+  matched_tags?: number
+}
+
+interface TagThrottleProps {
+  tag: string
+  jobs: Job[]
+  onUpdate: (result: any) => void
+}
+
+export default function TagThrottle({tag, jobs, onUpdate}: TagThrottleProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<any>(false)
   const [term, setTerm] = useState(tag)
-  const [shardId, setShardId] = useState(jobs[0]?.shard_id)
+  const [shardId, setShardId] = useState<number | undefined>(jobs[0]?.shard_id)
   const [maxConcurrent, setMaxConcurrent] = useState(1)
-  const [searchResult, setSearchResult] = useState({})
+  const [searchResult, setSearchResult] = useState<SearchResult>({})
   const {searchTerm: debouncedTerm, setSearchTerm: setDebouncedTerm} = useDebouncedSearchTerm(
     term,
     {timeout: 250},
@@ -54,7 +66,7 @@ export default function TagThrottle({tag, jobs, onUpdate}) {
 
   const handleClose = () => setModalOpen(false)
 
-  const handleSubmit = e => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
     setError(false)
@@ -64,12 +76,12 @@ export default function TagThrottle({tag, jobs, onUpdate}) {
       path: '/api/v1/jobs2/throttle',
       params: {term, shard_id: shardId, max_concurrent: maxConcurrent},
     }).then(
-      ({json}) => {
+      ({json}: any) => {
         handleClose()
         onUpdate(json)
         setSaving(false)
       },
-      err => {
+      (err: any) => {
         setSaving(false)
         setError(err)
       },
@@ -94,12 +106,12 @@ export default function TagThrottle({tag, jobs, onUpdate}) {
 
   const enableSubmit = () => !loading && !saving && term.length > 1 && searchResult.matched_jobs > 1
 
-  const onChangeConcurrency = (_event, value) =>
-    setMaxConcurrent(value && boundMaxConcurrent(parseInt(value, 10)))
+  const boundMaxConcurrent = (value: number) => Math.max(1, Math.min(value, 255))
 
-  const onIncrementConcurrency = diff => setMaxConcurrent(boundMaxConcurrent(maxConcurrent + diff))
+  const onChangeConcurrency = (_event: any, value: string) =>
+    setMaxConcurrent(value ? boundMaxConcurrent(parseInt(value, 10)) : 1)
 
-  const boundMaxConcurrent = value => Math.max(1, Math.min(value, 255))
+  const onIncrementConcurrency = (diff: number) => setMaxConcurrent(boundMaxConcurrent(maxConcurrent + diff))
 
   const Footer = () => {
     return (

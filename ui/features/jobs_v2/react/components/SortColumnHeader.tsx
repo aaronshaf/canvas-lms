@@ -21,7 +21,15 @@ import {Text} from '@instructure/ui-text'
 import {Link} from '@instructure/ui-link'
 import {colors} from '@instructure/canvas-theme'
 
-export default function SortColumnHeader({bucket, attr, content, sortColumn, onClickHeader}) {
+interface SortColumnHeaderProps {
+  bucket: string
+  attr: string
+  content: React.ReactNode
+  sortColumn: string
+  onClickHeader: (attr: string) => void
+}
+
+export default function SortColumnHeader({bucket, attr, content, sortColumn, onClickHeader}: SortColumnHeaderProps) {
   const sortIndicator = useCallback(() => {
     // I'm kind of torn on whether to implement sorting in either direction in the API (and UI)
     // since, generally speaking, one way is a lot more useful than the other here

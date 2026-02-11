@@ -37,6 +37,27 @@ import {
 
 const I18n = createI18nScope('jobs_v2')
 
+interface DateOptions {
+  start_date: string
+  end_date: string
+  time_zone: string
+}
+
+interface JobsHeaderProps {
+  jobBucket: string
+  onChangeBucket: (event: React.ChangeEvent<HTMLInputElement>) => void
+  jobGroup: string
+  onChangeGroup: (event: React.ChangeEvent<HTMLInputElement>) => void
+  jobScope: string
+  onChangeScope: (event: React.SyntheticEvent, data: {id?: string; value?: string}) => void
+  autoRefresh: boolean
+  onChangeAutoRefresh: (event: React.MouseEvent) => void
+  startDate: string
+  endDate: string
+  timeZone: string
+  onChangeDateOptions: (options: DateOptions) => void
+}
+
 export default function JobsHeader({
   jobBucket,
   onChangeBucket,
@@ -50,7 +71,7 @@ export default function JobsHeader({
   endDate,
   timeZone,
   onChangeDateOptions,
-}) {
+}: JobsHeaderProps) {
   const [dateModalOpen, setDateModalOpen] = useState(false)
 
   return (

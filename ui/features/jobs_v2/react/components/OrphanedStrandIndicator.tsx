@@ -30,10 +30,16 @@ import {Alert} from '@instructure/ui-alerts'
 
 const I18n = createI18nScope('jobs_v2')
 
-export default function OrphanedStrandIndicator({name, type, onComplete}) {
+interface OrphanedStrandIndicatorProps {
+  name: string
+  type: 'strand' | 'singleton'
+  onComplete: (json: any) => void
+}
+
+export default function OrphanedStrandIndicator({name, type, onComplete}: OrphanedStrandIndicatorProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState()
+  const [error, setError] = useState<any>()
   const [blocked, setBlocked] = useState(false)
 
   let tipLabel =
@@ -52,7 +58,7 @@ export default function OrphanedStrandIndicator({name, type, onComplete}) {
   const onClose = () => setModalOpen(false)
 
   const onSubmit = () => {
-    setError(null)
+    setError(undefined)
     setBlocked(false)
     setLoading(true)
     doFetchApi({
@@ -70,7 +76,7 @@ export default function OrphanedStrandIndicator({name, type, onComplete}) {
           setBlocked(true)
         }
       })
-      .catch(e => {
+      .catch((e: any) => {
         setLoading(false)
         setError(e)
       })

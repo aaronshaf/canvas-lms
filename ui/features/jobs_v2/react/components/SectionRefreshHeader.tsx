@@ -21,13 +21,21 @@ import RefreshWidget from './RefreshWidget'
 import {Heading} from '@instructure/ui-heading'
 import {Flex} from '@instructure/ui-flex'
 
+interface SectionRefreshHeaderProps {
+  title: string
+  loadingTitle: string
+  loading: boolean
+  autoRefresh: boolean
+  onRefresh: () => void
+}
+
 export default function SectionRefreshHeader({
   title,
   loadingTitle,
   loading,
   autoRefresh,
   onRefresh,
-}) {
+}: SectionRefreshHeaderProps) {
   return (
     <>
       <Flex alignItems="end">

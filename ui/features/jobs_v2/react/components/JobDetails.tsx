@@ -30,12 +30,39 @@ import RequeueButton from './RequeueButton'
 
 const I18n = createI18nScope('jobs_v2')
 
-export default function JobDetails({job, timeZone, onRequeue}) {
+interface Job {
+  id: number
+  tag?: string
+  strand?: string
+  singleton?: string
+  shard_id?: number
+  max_concurrent?: number
+  priority?: number
+  attempts?: number
+  max_attempts?: number
+  locked_by?: string
+  run_at?: string
+  locked_at?: string
+  failed_at?: string
+  original_job_id?: number
+  requeued_job_id?: number
+  handler?: string
+  last_error?: string
+  [key: string]: any
+}
+
+interface JobDetailsProps {
+  job: Job | null
+  timeZone: string
+  onRequeue: () => void
+}
+
+export default function JobDetails({job, timeZone, onRequeue}: JobDetailsProps) {
   const [openModal, setOpenModal] = useState('')
 
   const formatDate = useDateTimeFormat('date.formats.full_compact', timeZone)
 
-  const formatLockedBy = useCallback(locked_by => {
+  const formatLockedBy = useCallback((locked_by: string) => {
     if (!locked_by) return null
 
     const ip_parts = locked_by.match(/job(\d\d\d)(\d\d\d)(\d\d\d)(\d\d\d)/)
@@ -54,13 +81,13 @@ export default function JobDetails({job, timeZone, onRequeue}) {
     }
   }, [])
 
-  const formatRequeue = id => {
-    return id || <RequeueButton id={job.id} onRequeue={onRequeue} />
+  const formatRequeue = (id: number | undefined) => {
+    return id || <RequeueButton id={job!.id} onRequeue={onRequeue} />
   }
 
   const renderRow = useCallback(
-    (title, attr, formatFn) => {
-      if (job.hasOwnProperty(attr)) {
+    (title: string, attr: string, formatFn?: (value: any) => React.ReactNode) => {
+      if (job && Object.prototype.hasOwnProperty.call(job, attr)) {
         return (
           <Table.Row>
             <Table.RowHeader>{title}</Table.RowHeader>
@@ -73,8 +100,8 @@ export default function JobDetails({job, timeZone, onRequeue}) {
   )
 
   const renderModalRow = useCallback(
-    (title, attr) => {
-      if (job.hasOwnProperty(attr)) {
+    (title: string, attr: string) => {
+      if (job && Object.prototype.hasOwnProperty.call(job, attr)) {
         return (
           <Table.Row>
             <Table.RowHeader>{title}</Table.RowHeader>

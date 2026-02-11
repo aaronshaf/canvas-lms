@@ -26,11 +26,18 @@ import SearchItemSelector from '@canvas/search-item-selector/react/SearchItemSel
 
 const I18n = createI18nScope('jobs_v2')
 
-function convertResult(json) {
+interface JobLookupItem {
+  id: number
+  name: string
+  tag: string
+  bucket: string
+}
+
+function convertResult(json: any[]): JobLookupItem[] {
   return json.map(item => ({...item, name: item.id.toString()}))
 }
 
-function useJobLookupApi(fetchApiOpts) {
+function useJobLookupApi(fetchApiOpts: any) {
   useFetchApi({
     forceResult: (fetchApiOpts.params.term?.length || 0) === 0 ? [] : undefined,
     path: `/api/v1/jobs2/${fetchApiOpts.params.term}`,
@@ -39,7 +46,12 @@ function useJobLookupApi(fetchApiOpts) {
   })
 }
 
-export default function JobLookup({setSelectedItem, manualSelection}) {
+interface JobLookupProps {
+  setSelectedItem: (item: JobLookupItem | null) => void
+  manualSelection: string
+}
+
+export default function JobLookup({setSelectedItem, manualSelection}: JobLookupProps) {
   return (
     <SearchItemSelector
       onItemSelected={setSelectedItem}
@@ -47,8 +59,8 @@ export default function JobLookup({setSelectedItem, manualSelection}) {
       placeholder={I18n.t('Enter an id or an original_job_id')}
       itemSearchFunction={useJobLookupApi}
       manualSelection={manualSelection}
-      isSearchableTerm={term => term.length > 0 && term.match(/^\d+$/)?.length > 0}
-      renderOption={item => {
+      isSearchableTerm={(term: string) => term.length > 0 && term.match(/^\d+$/)?.length > 0}
+      renderOption={(item: JobLookupItem) => {
         return (
           <View>
             <strong>{item.id}</strong> {item.tag}{' '}

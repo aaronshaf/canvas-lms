@@ -29,10 +29,25 @@ import useDateTimeFormat from '@canvas/use-date-time-format-hook'
 
 const I18n = createI18nScope('jobs_v2')
 
-export default function DateOptionsModal({open, startDate, endDate, timeZone, onSave, onClose}) {
+interface DateOptions {
+  start_date: string
+  end_date: string
+  time_zone: string
+}
+
+interface DateOptionsModalProps {
+  open: boolean
+  startDate: string
+  endDate: string
+  timeZone: string
+  onSave: (options: DateOptions) => void
+  onClose: () => void
+}
+
+export default function DateOptionsModal({open, startDate, endDate, timeZone, onSave, onClose}: DateOptionsModalProps) {
   const title = I18n.t('Date/Time Options')
 
-  const renderTimeZoneOption = (id, description) => {
+  const renderTimeZoneOption = (id: string | undefined, description: string) => {
     if (!id) return null
     const text = id === description ? id : `${description} (${id})`
     return (
@@ -92,14 +107,14 @@ export default function DateOptionsModal({open, startDate, endDate, timeZone, on
             renderLabel={I18n.t('After')}
             formatDate={formatDate}
             withRunningValue={true}
-            onSelectedDateChange={date => setNewStartDate(date?.toISOString() || '')}
+            onSelectedDateChange={(date: Date | null) => setNewStartDate(date?.toISOString() || '')}
           />
           <CanvasDateInput2
             selectedDate={newEndDate}
             renderLabel={I18n.t('Before')}
             formatDate={formatDate}
             withRunningValue={true}
-            onSelectedDateChange={date => setNewEndDate(date?.toISOString() || '')}
+            onSelectedDateChange={(date: Date | null) => setNewEndDate(date?.toISOString() || '')}
           />
         </FormFieldGroup>
       </Modal.Body>

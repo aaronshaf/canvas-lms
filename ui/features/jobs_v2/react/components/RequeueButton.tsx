@@ -23,7 +23,12 @@ import doFetchApi from '@canvas/do-fetch-api-effect'
 
 const I18n = createI18nScope('jobs_v2')
 
-export default function RequeueButton({id, onRequeue}) {
+interface RequeueButtonProps {
+  id: number
+  onRequeue: (json: any) => void
+}
+
+export default function RequeueButton({id, onRequeue}: RequeueButtonProps) {
   const [loading, setLoading] = useState(false)
 
   // don't re-enable the requeue button until a different job is selected

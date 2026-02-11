@@ -30,22 +30,29 @@ import {NumberInput} from '@instructure/ui-number-input'
 import {Spinner} from '@instructure/ui-spinner'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {Tooltip} from '@instructure/ui-tooltip'
+import type {Job} from '../types'
 
 const I18n = createI18nScope('jobs_v2')
 
-function boundMaxConcurrent(value) {
+function boundMaxConcurrent(value: number): number {
   if (value < 1) return 1
   else if (value >= 255) return 255
   else return value
 }
 
-function boundPriority(value) {
+function boundPriority(value: number): number {
   if (value < 0) return 0
   else if (value >= 1000000) return 1000000
   else return value
 }
 
-export default function StrandManager({strand, jobs, onUpdate}) {
+interface StrandManagerProps {
+  strand: string
+  jobs: Job[]
+  onUpdate: (result: any) => void
+}
+
+export default function StrandManager({strand, jobs, onUpdate}: StrandManagerProps) {
   const computedMaxConcurrent = useMemo(() => {
     return Math.max(...jobs.map(job => job.max_concurrent))
   }, [jobs])
@@ -59,15 +66,15 @@ export default function StrandManager({strand, jobs, onUpdate}) {
   const [error, setError] = useState(false)
   const [maxConcurrent, setMaxConcurrent] = useState(computedMaxConcurrent)
   const [priority, setPriority] = useState(computedPriority)
-  const [numStrands, setNumStrands] = useState()
-  const [numStrandsOG, setNumStrandsOG] = useState()
-  const [numStrandsSettingId, setNumStrandsSettingId] = useState()
+  const [numStrands, setNumStrands] = useState<number | undefined>()
+  const [numStrandsOG, setNumStrandsOG] = useState<number | undefined>()
+  const [numStrandsSettingId, setNumStrandsSettingId] = useState<string | undefined>()
 
   const handleClose = () => setModalOpen(false)
 
   const [saveSetting] = useMutation(SET_SETTING_MUTATION)
 
-  const handleSubmit = e => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(false)
@@ -84,7 +91,7 @@ export default function StrandManager({strand, jobs, onUpdate}) {
     }
 
     return Promise.all(calls).then(
-      results => {
+      (results: any[]) => {
         handleClose()
         onUpdate(results[0])
         if (results.length === 2) {
@@ -99,27 +106,27 @@ export default function StrandManager({strand, jobs, onUpdate}) {
     )
   }
 
-  const onChangeConcurrency = (_event, value) =>
-    setMaxConcurrent(value && boundMaxConcurrent(parseInt(value, 10)))
+  const onChangeConcurrency = (_event: any, value: string) =>
+    setMaxConcurrent(value ? boundMaxConcurrent(parseInt(value, 10)) : 0)
 
-  const onIncrementConcurrency = diff => setMaxConcurrent(boundMaxConcurrent(maxConcurrent + diff))
+  const onIncrementConcurrency = (diff: number) => setMaxConcurrent(boundMaxConcurrent(maxConcurrent + diff))
 
-  const onChangePriority = (_event, value) =>
-    setPriority(value && boundPriority(parseInt(value, 10)))
+  const onChangePriority = (_event: any, value: string) =>
+    setPriority(value ? boundPriority(parseInt(value, 10)) : 0)
 
-  const onIncrementPriority = diff => setPriority(boundPriority(priority + diff))
+  const onIncrementPriority = (diff: number) => setPriority(boundPriority(priority + diff))
 
-  const onChangeNumStrands = (_event, value) =>
-    setNumStrands(value && boundMaxConcurrent(parseInt(value, 10)))
+  const onChangeNumStrands = (_event: any, value: string) =>
+    setNumStrands(value ? boundMaxConcurrent(parseInt(value, 10)) : undefined)
 
-  const onIncrementNumStrands = diff => setNumStrands(boundMaxConcurrent(numStrands + diff))
+  const onIncrementNumStrands = (diff: number) => setNumStrands(numStrands ? boundMaxConcurrent(numStrands + diff) : undefined)
 
   const enableSubmit = () =>
     !loading && typeof maxConcurrent === 'number' && typeof priority === 'number'
 
   useQuery(GET_SETTING_QUERY, {
     variables: {name: `${strand}_num_strands`},
-    onCompleted: data => {
+    onCompleted: (data: any) => {
       const setting = data.internalSetting
       if (setting) {
         const n = parseInt(setting.value, 10)

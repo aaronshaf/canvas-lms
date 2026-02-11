@@ -28,10 +28,16 @@ import {TruncateText} from '@instructure/ui-truncate-text'
 import {InfoColumn, InfoColumnHeader} from './InfoColumn'
 import SortColumnHeader from './SortColumnHeader'
 import CopyToClipboardButton from '@canvas/copy-to-clipboard-button'
+import type {Job, BucketType, GroupType} from '../types'
 
 const I18n = createI18nScope('jobs_v2')
 
-function CopyToClipboardTruncatedValue({value, onClick}) {
+interface CopyToClipboardTruncatedValueProps {
+  value: string | undefined
+  onClick: (value: string) => void
+}
+
+function CopyToClipboardTruncatedValue({value, onClick}: CopyToClipboardTruncatedValueProps) {
   if (!value) {
     return <Text color="secondary">-</Text>
   }
@@ -56,6 +62,17 @@ function CopyToClipboardTruncatedValue({value, onClick}) {
   )
 }
 
+interface JobsTableProps {
+  bucket: BucketType
+  jobs: Job[]
+  caption: string
+  sortColumn: string
+  onClickJob: (job: Job) => void
+  onClickHeader: (col: string) => void
+  onClickFilter: (groupType: GroupType, groupText: string) => void
+  timeZone: string
+}
+
 export default function JobsTable({
   bucket,
   jobs,
@@ -65,9 +82,9 @@ export default function JobsTable({
   onClickHeader,
   onClickFilter,
   timeZone,
-}) {
+}: JobsTableProps) {
   const renderJobRow = useCallback(
-    job => {
+    (job: Job) => {
       return (
         <Table.Row key={job.id}>
           <Table.RowHeader>
@@ -107,7 +124,7 @@ export default function JobsTable({
   )
 
   const renderColHeader = useCallback(
-    (attr, content, {sortable, width} = {}) => {
+    (attr: string, content: React.ReactNode, {sortable, width}: {sortable?: boolean; width?: string} = {}) => {
       if (typeof sortable === 'undefined' || sortable) {
         return (
           <Table.ColHeader id={attr} width={width}>

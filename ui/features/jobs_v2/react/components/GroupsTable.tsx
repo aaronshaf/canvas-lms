@@ -24,8 +24,22 @@ import {Link} from '@instructure/ui-link'
 import {InfoColumn, GroupedInfoColumnHeader} from './InfoColumn'
 import SortColumnHeader from './SortColumnHeader'
 import OrphanedStrandIndicator from './OrphanedStrandIndicator'
+import type {Group, BucketType, GroupType} from '../types'
 
 const I18n = createI18nScope('jobs_v2')
+
+interface GroupsTableProps {
+  groups: Group[]
+  type: GroupType
+  typeCaption: string
+  bucket: BucketType
+  caption: string
+  sortColumn: string
+  onClickGroup: (text: string) => void
+  onClickHeader: (col: string) => void
+  onUnblock: (json: any) => void
+  timeZone: string
+}
 
 export default function GroupsTable({
   groups,
@@ -38,9 +52,9 @@ export default function GroupsTable({
   onClickHeader,
   onUnblock,
   timeZone,
-}) {
+}: GroupsTableProps) {
   const renderColHeader = useCallback(
-    (attr, width, content) => {
+    (attr: string, width: string, content: React.ReactNode) => {
       return (
         <Table.ColHeader id={attr} width={width}>
           <SortColumnHeader
@@ -79,7 +93,7 @@ export default function GroupsTable({
             </Table.Head>
             <Table.Body>
               {groups.map(group => {
-                const tag_or_strand = group[type]
+                const tag_or_strand = group[type] as string
                 return (
                   <Table.Row key={tag_or_strand}>
                     <Table.Cell>
