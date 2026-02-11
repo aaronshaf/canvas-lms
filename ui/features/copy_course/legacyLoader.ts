@@ -27,8 +27,15 @@ import CollectionView from '@canvas/backbone-collection-view'
 import template from '@canvas/day-substitution/jst/DaySubstitutionCollection.handlebars'
 import ContentMigration from '@canvas/content-migrations/backbone/models/ContentMigration'
 import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
+import type {EnvContentMigrations} from '@canvas/global/env/ContentMigrations'
 
 const I18n = createI18nScope('content_migrations')
+
+declare global {
+  interface Window {
+    ENV: EnvContentMigrations
+  }
+}
 
 ready(() => {
   $(document).ready(() => {
@@ -36,6 +43,7 @@ ready(() => {
   })
 
   const daySubCollection = new DaySubstitutionCollection()
+  // @ts-expect-error - Backbone CollectionView types are complex
   const daySubCollectionView = new CollectionView({
     collection: daySubCollection,
     emptyMessage: () => I18n.t('no_day_substitutions', 'No Day Substitutions Added'),
@@ -45,6 +53,7 @@ ready(() => {
 
   const content_migration = new ContentMigration()
 
+  // @ts-expect-error - Backbone DateShiftView types are complex
   const dateShiftView = new DateShiftView({
     model: content_migration,
     collection: daySubCollection,
@@ -54,6 +63,7 @@ ready(() => {
     addHiddenInput: true,
   })
 
+  // @ts-expect-error - Backbone ImportQuizzesNextView types are complex
   const importQuizzesNextView = new ImportQuizzesNextView({
     model: content_migration,
     quizzesNextEnabled: ENV.QUIZZES_NEXT_ENABLED,
@@ -72,9 +82,9 @@ ready(() => {
   const $start = $('#course_start_at')
   const $end = $('#course_conclude_at')
 
-  function validateDates() {
-    const startAt = $start.data('unfudged-date')
-    const endAt = $end.data('unfudged-date')
+  function validateDates(): JQuery | undefined {
+    const startAt = $start.data('unfudged-date') as string | undefined
+    const endAt = $end.data('unfudged-date') as string | undefined
 
     if (startAt && endAt && endAt < startAt) {
       $('button[type=submit]').prop('disabled', true)
@@ -85,18 +95,18 @@ ready(() => {
   }
 
   $start.on('change', function () {
-    dateShiftView.$newStartDate.val($(this).val()).trigger('change')
+    dateShiftView.$newStartDate.val($(this).val() as string).trigger('change')
     validateDates()
   })
 
   $end.on('change', function () {
-    dateShiftView.$newEndDate.val($(this).val()).trigger('change')
+    dateShiftView.$newEndDate.val($(this).val() as string).trigger('change')
     validateDates()
   })
 
   if (document.querySelector('.import-blueprint-settings')) {
-    $('[name="selective_import"]').change(function () {
-      const ibs = document.querySelector('.import-blueprint-settings')
+    $('[name="selective_import"]').change(function (this: HTMLInputElement) {
+      const ibs = document.querySelector('.import-blueprint-settings') as HTMLElement
       ibs.style.display = this.value === 'true' ? 'none' : 'block'
     })
   }
