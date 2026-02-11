@@ -24,15 +24,15 @@ import ready from '@instructure/ready'
 ready(() => {
   $(window)
     .resize(() => {
-      const {top} = $('#file_content').offset()
-      const height = $(window).height()
+      const {top} = $('#file_content').offset() as {top: number}
+      const height = $(window).height() as number
       $('#content_preview').height(height - top)
       $('#modules').height(height - top)
     })
     .triggerHandler('resize')
   let maxWidth = 0
   $('.context_module_item').each(function () {
-    maxWidth = Math.max(maxWidth, $(this).width())
+    maxWidth = Math.max(maxWidth, $(this).width() as number)
   })
 
   $('.context_module_item').width(maxWidth)
@@ -51,12 +51,14 @@ ready(() => {
     .click(function (event) {
       event.preventDefault()
       $('#file_display_name').text($(this).text())
+      // @ts-expect-error
       const {id} = $(this)
         .parents('.context_module_item')
         .getTemplateData({textValues: ['id']})
       window.location.replace(`#tag_${id}`)
     })
 
+  // @ts-expect-error
   $(document).fragmentChange((event, hash) => {
     if (hash.match(/^#tag_/)) {
       const id = hash.substring(5)
@@ -77,7 +79,7 @@ ready(() => {
   $(`#context_module_item_${$('#current_item_id').text()}`).addClass('selected')
   $('#frameless_link').click(event => {
     event.preventDefault()
-    window.location.href = $('#content_preview').attr('src')
+    window.location.href = $('#content_preview').attr('src') as string
   })
 
   $('.hide_sidebar_link').click(event => {
