@@ -21,7 +21,14 @@ import {loadDocPreview} from '@instructure/canvas-rce/enhance-user-content'
 import '@canvas/jquery/jquery.instructure_misc_plugins'
 import ready from '@instructure/ready'
 
-const previewDefaults = {
+interface PreviewDefaults {
+  height: string
+  scribdParams: {
+    auto_size: boolean
+  }
+}
+
+const previewDefaults: PreviewDefaults = {
   height: '100%',
   scribdParams: {
     auto_size: true,
