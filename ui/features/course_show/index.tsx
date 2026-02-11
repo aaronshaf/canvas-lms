@@ -24,11 +24,18 @@ import '@canvas/jquery/jquery.ajaxJSON'
 import '@canvas/loading-image'
 import 'jquery-scroll-to-visible/jquery.scrollTo'
 import SelfUnenrollmentModal from './react/SelfUnenrollmentModal'
+import type {Root} from 'react-dom/client'
 
 const I18n = createI18nScope('courses.show')
 
+interface WikiPageData {
+  wiki_page: {
+    body: string
+  }
+}
+
 $(document).ready(() => {
-  let unenrollmentRoot = null
+  let unenrollmentRoot: Root | null = null
 
   $('.self_unenrollment_link').click(_event => {
     const mountPoint = document.getElementById('self_unenrollment_modal_mount_point')
@@ -43,21 +50,22 @@ $(document).ready(() => {
       return
     }
 
+    const handleClose = () => {
+      if (unenrollmentRoot) {
+        unenrollmentRoot.unmount()
+        unenrollmentRoot = null
+      }
+    }
+
     if (!unenrollmentRoot) {
       unenrollmentRoot = render(
-        <SelfUnenrollmentModal
-          unenrollmentApiUrl={apiUrl}
-          onClose={() => rerender(unenrollmentRoot, null)}
-        />,
+        <SelfUnenrollmentModal unenrollmentApiUrl={apiUrl} onClose={handleClose} />,
         mountPoint,
       )
     } else {
       rerender(
         unenrollmentRoot,
-        <SelfUnenrollmentModal
-          unenrollmentApiUrl={apiUrl}
-          onClose={() => rerender(unenrollmentRoot, null)}
-        />,
+        <SelfUnenrollmentModal unenrollmentApiUrl={apiUrl} onClose={handleClose} />,
       )
     }
   })
@@ -67,11 +75,11 @@ $(document).ready(() => {
     const $link = $(this)
     $link.text(I18n.t('re_sending', 'Re-Sending...'))
     $.ajaxJSON(
-      $link.attr('href'),
+      $link.attr('href') as string,
       'POST',
       {},
-      _data => $link.text(I18n.t('send_done', 'Done! Message may take a few minutes.')),
-      _data => $link.text(I18n.t('send_failed', 'Request failed. Try again.')),
+      (_data: unknown) => $link.text(I18n.t('send_done', 'Done! Message may take a few minutes.')),
+      (_data: unknown) => $link.text(I18n.t('send_failed', 'Request failed. Try again.')),
     )
   })
 
@@ -83,14 +91,18 @@ $(document).ready(() => {
 
     $('#home_page').slideDown().loadingImage()
     $link.hide()
-    $.ajaxJSON($(this).attr('href'), 'GET', {}, data => {
+    $.ajaxJSON($(this).attr('href') as string, 'GET', {}, (data: WikiPageData) => {
       $('#home_page').loadingImage('remove')
       let bodyHtml = htmlEscape($.trim(data.wiki_page.body))
       if (bodyHtml.length === 0) {
         bodyHtml = htmlEscape(I18n.t('empty_body', 'No Content'))
       }
       $('#home_page_content').html(bodyHtml)
-      $('html,body').scrollTo($('#home_page'))
+      const homePageElement = $('#home_page')[0]
+      if (homePageElement) {
+        // @ts-expect-error - scrollTo is a jQuery plugin from jquery-scroll-to-visible
+        $('html,body').scrollTo(homePageElement)
+      }
     })
   })
 
