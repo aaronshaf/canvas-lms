@@ -28,7 +28,7 @@ ready(() => {
     render(<ModulesHomePage onCreateButtonClick={modules.addModule} />, container)
   }
 
-  if (ENV.NO_MODULE_PROGRESSIONS) {
+  if ((window.ENV as {NO_MODULE_PROGRESSIONS?: boolean}).NO_MODULE_PROGRESSIONS) {
     document.querySelectorAll('.module_progressions_link').forEach(el => el.remove())
   }
 })
