@@ -1,20 +1,20 @@
-//
-// Copyright (C) 2012 - present Instructure, Inc.
-//
-// This file is part of Canvas.
-//
-// Canvas is free software: you can redistribute it and/or modify it under
-// the terms of the GNU Affero General Public License as published by the Free
-// Software Foundation, version 3 of the License.
-//
-// Canvas is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-// A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
-// details.
-//
-// You should have received a copy of the GNU Affero General Public License along
-// with this program. If not, see <http://www.gnu.org/licenses/>.
-//
+/*
+ * Copyright (C) 2012 - present Instructure, Inc.
+ *
+ * This file is part of Canvas.
+ *
+ * Canvas is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, version 3 of the License.
+ *
+ * Canvas is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Affero General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 import $ from 'jquery'
 import addLinkRow from '../../jst/addLinkRow.handlebars'
@@ -29,8 +29,19 @@ import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'
 
 const I18n = createI18nScope('user_profile')
 
-let avatarRoot = null
+type LinkData = {
+  title: string
+  url: string
+}
+
+type ProfileOptions = {
+  links?: LinkData[]
+}
+
+let avatarRoot: ReturnType<typeof render> | null = null
 export default class ProfileShow extends Backbone.View {
+  $linkFields?: JQuery
+
   static initClass() {
     this.prototype.el = document.body
 
@@ -44,19 +55,21 @@ export default class ProfileShow extends Backbone.View {
     this.prototype.attemptedDependencyLoads = 0
   }
 
+  declare options: ProfileOptions
+
   initialize() {
     super.initialize(...arguments)
     this.displayAlertOnSave()
 
     const avatarModalMount = document.getElementById('avatar-modal-mount')
-    let profilePicLinks = [
+    let profilePicLinks: (HTMLElement | null)[] = [
       document.getElementById('profile-edit-link'),
       document.querySelector('#main .profile_pic_link'), // don't add event handler to side nav avatar
     ]
     profilePicLinks = profilePicLinks.filter(link => link !== null)
     if (avatarModalMount && profilePicLinks.length > 0) {
       profilePicLinks.forEach(profilePicLink => {
-        profilePicLink.addEventListener('click', event => {
+        profilePicLink?.addEventListener('click', event => {
           event.preventDefault()
           if (avatarRoot === null) {
             avatarRoot = render(
@@ -71,7 +84,7 @@ export default class ProfileShow extends Backbone.View {
     }
   }
 
-  renderAlert(message, variant) {
+  renderAlert(message: string, variant: 'success' | 'error') {
     showFlashAlert({message, type: variant, timeout: 5000, politeness: 'assertive'})
   }
 
@@ -88,7 +101,7 @@ export default class ProfileShow extends Backbone.View {
     }
   }
 
-  async removeAvatarLink(e) {
+  async removeAvatarLink(e: JQuery.ClickEvent) {
     e.preventDefault()
     const link = $(e.currentTarget)
     const result = await showConfirmationDialog({
@@ -98,20 +111,23 @@ export default class ProfileShow extends Backbone.View {
     if (!result) {
       return
     }
+    // @ts-expect-error
     $.ajaxJSON(
-      link.attr('href'),
+      link.attr('href') as string,
       'PUT',
       {'avatar[state]': 'none'},
-      _data => {
+      (_data: unknown) => {
+        // @ts-expect-error
         $.flashMessage(I18n.t('The profile picture has been removed.'))
         $('.avatar').css('background-image', 'url()')
         link.remove()
       },
-      _data => $.flashError(I18n.t('Failed to remove the image, please try again.')),
+      // @ts-expect-error
+      (_data: unknown) => $.flashError(I18n.t('Failed to remove the image, please try again.')),
     )
   }
 
-  async reportAvatarLink(e) {
+  async reportAvatarLink(e: JQuery.ClickEvent) {
     e.preventDefault()
     const link = $(e.currentTarget)
     const result = await showConfirmationDialog({
@@ -123,23 +139,28 @@ export default class ProfileShow extends Backbone.View {
     if (!result) {
       return
     }
+    // @ts-expect-error
     $.ajaxJSON(
-      link.attr('href'),
+      link.attr('href') as string,
       'POST',
       {},
-      _data => {
+      (_data: unknown) => {
+        // @ts-expect-error
         $.flashMessage(I18n.t('The profile picture has been reported.'))
         link.remove()
       },
-      _data => $.flashError(I18n.t('Failed to report the image, please try again.')),
+      // @ts-expect-error
+      (_data: unknown) => $.flashError(I18n.t('Failed to report the image, please try again.')),
     )
   }
 
-  handleDeclarativeClick(event) {
+  handleDeclarativeClick(event: JQuery.ClickEvent) {
     event.preventDefault()
     const $target = $(event.currentTarget)
-    const method = $target.data('event')
-    if (typeof this[method] === 'function') return this[method](event, $target)
+    const method = $target.data('event') as string
+    if (typeof this[method as keyof this] === 'function') {
+      return (this[method as keyof this] as Function)(event, $target)
+    }
   }
 
   // #
@@ -153,8 +174,9 @@ export default class ProfileShow extends Backbone.View {
   showEditForm() {
     this.$el.addClass('editing').removeClass('not-editing')
     const elementToFocus =
-      document.querySelector('#name_input') || document.querySelector('#profile_bio')
-    return elementToFocus.focus()
+      document.querySelector<HTMLElement>('#name_input') ||
+      document.querySelector<HTMLElement>('#profile_bio')
+    return elementToFocus?.focus()
   }
 
   initEdit() {
@@ -177,7 +199,7 @@ export default class ProfileShow extends Backbone.View {
   // #
   // Event handler that can also be called manually.
   // When called manually, it will focus the first input in the new row
-  addLinkField(event, $el, title = '', url = '') {
+  addLinkField(event?: JQuery.ClickEvent | null, $el?: JQuery | null, title = '', url = '') {
     if (this.$linkFields == null) {
       this.$linkFields = this.$('#profile_link_fields')
     }
@@ -191,7 +213,7 @@ export default class ProfileShow extends Backbone.View {
     }
   }
 
-  removeLinkRow(event, $el) {
+  removeLinkRow(event: JQuery.ClickEvent | null, $el: JQuery) {
     const $parentRow = $el.parents('tr')
     let $toFocus = $parentRow.prev().find('.remove_link_row')
     if ($toFocus.length === 0) {
@@ -202,25 +224,25 @@ export default class ProfileShow extends Backbone.View {
     return $toFocus.focus()
   }
 
-  validateForm(event) {
+  validateForm(event: JQuery.SubmitEvent) {
     const validations = {
       property_validations: {
-        'user_profile[title]': function (value) {
+        'user_profile[title]': function (value: string) {
           if (value && value.length > 255) {
             return I18n.t('profile_title_too_long', 'Title is too long')
           }
         },
-        'user_profile[pronunciation]': function (value) {
+        'user_profile[pronunciation]': function (value: string) {
           if (value && value.length > 255) {
             return I18n.t('profile_pronuciation_too_long', 'Name pronunciation is too long')
           }
         },
-        'user_profile[bio]': function (value) {
+        'user_profile[bio]': function (value: string) {
           if (value && value.length > 65536) {
             return I18n.t('profile_bio_too_long', 'Bio is too long')
           }
         },
-        'link_urls[]': function (input) {
+        'link_urls[]': function (input: string | string[]) {
           if (Array.isArray(input)) {
             for (const url of input) {
               if (url && /\s/.test(url)) {
@@ -234,12 +256,13 @@ export default class ProfileShow extends Backbone.View {
       },
     }
     if ($('input[name="user[short_name]"]').length > 0) {
-      validations['property_validations']['user[short_name]'] = function (value) {
+      validations['property_validations']['user[short_name]'] = function (value: string) {
         if (!value || value.trim() === '') {
           return I18n.t('user_short_name_required', 'Please add your full name')
         }
       }
     }
+    // @ts-expect-error
     if (!$(event.target).validateForm(validations)) {
       return event.preventDefault()
     }
