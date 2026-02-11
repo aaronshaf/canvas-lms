@@ -63,9 +63,9 @@ describe('GradingPeriodCollection', () => {
     })
 
     // Mock jQuery's getJSON to use native fetch which MSW intercepts
-    $.getJSON = vi.fn(url => {
+    ;($ as any).getJSON = vi.fn((url: string) => {
       const promise = {
-        success: function (callback) {
+        success: function (callback: (data: any) => void) {
           fetch(url)
             .then(response => {
               if (!response.ok) throw new Error('Network response was not ok')
@@ -77,7 +77,7 @@ describe('GradingPeriodCollection', () => {
             .catch(() => {})
           return promise
         },
-        error: function (callback) {
+        error: function (callback: () => void) {
           fetch(url)
             .then(response => {
               if (!response.ok) {
@@ -94,9 +94,9 @@ describe('GradingPeriodCollection', () => {
     })
 
     // Mock jQuery's ajax to use native fetch which MSW intercepts
-    $.ajax = vi.fn(options => {
+    ;($ as any).ajax = vi.fn((options: any) => {
       const promise = {
-        success: function (callback) {
+        success: function (callback: (data: any) => void) {
           fetch(options.url, {
             method: options.type || 'GET',
             headers: {
@@ -114,7 +114,7 @@ describe('GradingPeriodCollection', () => {
             .catch(() => {})
           return promise
         },
-        error: function (callback) {
+        error: function (callback: () => void) {
           fetch(options.url, {
             method: options.type || 'GET',
             headers: {
@@ -137,9 +137,9 @@ describe('GradingPeriodCollection', () => {
     })
 
     // Mock jQuery plugins
-    $.fn.confirmDelete = vi.fn(({success}) => success())
-    $.flashMessage = vi.fn()
-    $.flashError = vi.fn()
+    ;($.fn as any).confirmDelete = vi.fn(({success}: {success: () => void}) => success())
+    ;($ as any).flashMessage = vi.fn()
+    ;($ as any).flashError = vi.fn()
   })
 
   afterEach(() => {
@@ -177,7 +177,7 @@ describe('GradingPeriodCollection', () => {
 
     render(<GradingPeriodCollection />)
     await waitFor(() => {
-      expect($.flashError).toHaveBeenCalledWith('There was a problem fetching periods')
+      expect(($ as any).flashError).toHaveBeenCalledWith('There was a problem fetching periods')
     })
   })
 
@@ -210,9 +210,9 @@ describe('GradingPeriodCollection', () => {
     const deleteButton = getByTestId('delete-grading-period-button')
     await user.click(deleteButton)
 
-    expect($.fn.confirmDelete).toHaveBeenCalled()
+    expect(($.fn as any).confirmDelete).toHaveBeenCalled()
     await waitFor(() => {
-      expect($.flashMessage).toHaveBeenCalledWith('The grading period was deleted')
+      expect(($ as any).flashMessage).toHaveBeenCalledWith('The grading period was deleted')
     })
   })
 
@@ -249,7 +249,7 @@ describe('GradingPeriodCollection', () => {
       expect(getByTestId('grading-periods')).toBeInTheDocument()
     })
 
-    const component = new GradingPeriodCollection()
+    const component = new GradingPeriodCollection({}, {})
     component.state = {
       periods: [
         {
@@ -257,17 +257,24 @@ describe('GradingPeriodCollection', () => {
           title: 'Period 1',
           startDate: new Date('2024-01-01'),
           endDate: new Date('2024-06-30'),
+          closeDate: new Date('2024-06-30'),
+          permissions: {update: true, delete: true},
         },
         {
           id: '2',
           title: 'Period 2',
           startDate: new Date('2024-06-01'),
           endDate: new Date('2024-12-31'),
+          closeDate: new Date('2024-12-31'),
+          permissions: {update: true, delete: true},
         },
       ],
+      readOnly: false,
+      disabled: false,
+      saveDisabled: false,
     }
 
     expect(component.areGradingPeriodsValid()).toBe(false)
-    expect($.flashError).toHaveBeenCalledWith('Grading periods must not overlap')
+    expect(($ as any).flashError).toHaveBeenCalledWith('Grading periods must not overlap')
   })
 })
