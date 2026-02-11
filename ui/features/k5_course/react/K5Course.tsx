@@ -17,7 +17,6 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
 import React, {forwardRef, useEffect, useLayoutEffect, useRef, useState} from 'react'
 import {Provider, connect} from 'react-redux'
 
@@ -45,7 +44,6 @@ import {TruncateText} from '@instructure/ui-truncate-text'
 import {View} from '@instructure/ui-view'
 
 import {showFlashError} from '@canvas/alerts/react/FlashAlert'
-import {outcomeProficiencyShape} from '@canvas/grade-summary/react/IndividualStudentMastery/shapes'
 import Modal from '@canvas/instui-bindings/react/InstuiModal'
 import GroupsPage from '@canvas/k5/react/GroupsPage'
 import K5Announcement from '@canvas/k5/react/K5Announcement'
@@ -64,10 +62,7 @@ import {
   parseAnnouncementDetails,
 } from '@canvas/k5/react/utils'
 import {mapStateToProps} from '@canvas/k5/redux/redux-helpers'
-import ObserverOptions, {
-  ObservedUsersListShape,
-  shouldShowObserverOptions,
-} from '@canvas/observer-picker'
+import ObserverOptions, {shouldShowObserverOptions} from '@canvas/observer-picker'
 import {savedObservedId} from '@canvas/observer-picker/ObserverGetObservee'
 import {reloadWindow} from '@canvas/util/globalUtils'
 import EmptyCourse from './EmptyCourse'

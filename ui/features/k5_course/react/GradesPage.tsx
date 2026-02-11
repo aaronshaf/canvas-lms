@@ -18,7 +18,6 @@
 
 import React, {useState, useCallback, useEffect, useRef} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
 
 import {Tabs} from '@instructure/ui-tabs'
 import {Text} from '@instructure/ui-text'
@@ -30,9 +29,24 @@ import GradingPeriodSelect from './GradingPeriodSelect'
 import GradesEmptyPage from './GradesEmptyPage'
 import GradeDetails from './GradeDetails'
 import IndividualStudentMastery from '@canvas/grade-summary'
-import {outcomeProficiencyShape} from '@canvas/grade-summary/react/IndividualStudentMastery/shapes'
 
 const I18n = createI18nScope('course_grades_page')
+
+interface GradesPageProps {
+  courseId: string
+  courseName: string
+  hideFinalGrades: boolean
+  currentUser: {id: string}
+  userIsStudent: boolean
+  userIsCourseAdmin: boolean
+  showLearningMasteryGradebook: boolean
+  outcomeProficiency?: any
+  observedUserId?: string | null
+  gradingScheme?: any[]
+  pointsBasedGradingScheme?: boolean
+  restrictQuantitativeData?: boolean
+  scalingFactor?: number
+}
 
 export const GradesPage = ({
   courseId,
@@ -48,16 +62,16 @@ export const GradesPage = ({
   pointsBasedGradingScheme,
   restrictQuantitativeData,
   scalingFactor,
-}) => {
+}: GradesPageProps): React.ReactElement => {
   const [loadingGradingPeriods, setLoadingGradingPeriods] = useState(true)
-  const [error, setError] = useState(null)
-  const [gradingPeriods, setGradingPeriods] = useState(null)
-  const [currentGradingPeriodId, setCurrentGradingPeriodId] = useState(null)
+  const [error, setError] = useState<Error | null>(null)
+  const [gradingPeriods, setGradingPeriods] = useState<any[] | null>(null)
+  const [currentGradingPeriodId, setCurrentGradingPeriodId] = useState<string | null>(null)
   const [allowTotalsForAllPeriods, setAllowTotalsForAllPeriods] = useState(true)
-  const [selectedGradingPeriodId, setSelectedGradingPeriodId] = useState(null)
+  const [selectedGradingPeriodId, setSelectedGradingPeriodId] = useState<string | null>(null)
   const [selectedTab, setSelectedTab] = useState('assignments')
-  const [enrollments, setEnrollments] = useState([])
-  const observedUserRef = useRef(null)
+  const [enrollments, setEnrollments] = useState<any[]>([])
+  const observedUserRef = useRef<string | null>(null)
   const include = ['grading_periods', 'current_grading_period_scores', 'total_scores']
   if (observedUserId) {
     include.push('observed_users')
@@ -65,7 +79,7 @@ export const GradesPage = ({
   useFetchApi({
     path: `/api/v1/courses/${courseId}`,
     loading: setLoadingGradingPeriods,
-    success: useCallback(data => {
+    success: useCallback((data: any) => {
       setGradingPeriods(data.grading_periods)
       setEnrollments(data.enrollments)
       setCurrentGradingPeriodId(data.enrollments[0]?.current_grading_period_id)
@@ -89,7 +103,7 @@ export const GradesPage = ({
   useEffect(() => {
     if (enrollments.length > 0 && observedUserId && observedUserRef.current !== observedUserId) {
       const enrollment = enrollments.find(
-        e => e.user_id === observedUserId && e.type !== 'observer',
+        (e: any) => e.user_id === observedUserId && e.type !== 'observer',
       )
       setCurrentGradingPeriodId(enrollment?.current_grading_period_id)
       setAllowTotalsForAllPeriods(enrollment?.totals_for_all_grading_periods_option)
@@ -155,7 +169,7 @@ export const GradesPage = ({
     return (
       <Tabs
         variant="secondary"
-        onRequestTabChange={(_e, {id}) => setSelectedTab(id)}
+        onRequestTabChange={(_e, {id}) => setSelectedTab(id as string)}
         margin="medium 0 0"
       >
         <Tabs.Panel
@@ -179,22 +193,6 @@ export const GradesPage = ({
   } else {
     return renderAssignments()
   }
-}
-
-GradesPage.propTypes = {
-  courseId: PropTypes.string.isRequired,
-  courseName: PropTypes.string.isRequired,
-  hideFinalGrades: PropTypes.bool.isRequired,
-  currentUser: PropTypes.object.isRequired,
-  userIsStudent: PropTypes.bool.isRequired,
-  userIsCourseAdmin: PropTypes.bool.isRequired,
-  showLearningMasteryGradebook: PropTypes.bool.isRequired,
-  outcomeProficiency: outcomeProficiencyShape,
-  observedUserId: PropTypes.string,
-  gradingScheme: PropTypes.array,
-  pointsBasedGradingScheme: PropTypes.bool,
-  restrictQuantitativeData: PropTypes.bool,
-  scalingFactor: PropTypes.number,
 }
 
 export default GradesPage

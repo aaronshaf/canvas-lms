@@ -18,7 +18,6 @@
 
 import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import PropTypes from 'prop-types'
 
 import {Img} from '@instructure/ui-img'
 import {Text} from '@instructure/ui-text'
@@ -29,7 +28,13 @@ import SpacePandaUrl from '@canvas/images/SpacePanda.svg'
 
 const I18n = createI18nScope('empty_course')
 
-export default function EmptyCourse({canManage, name, id}) {
+interface EmptyCourseProps {
+  canManage: boolean
+  name: string
+  id: string
+}
+
+export default function EmptyCourse({canManage, name, id}: EmptyCourseProps): React.ReactElement {
   return (
     <Flex
       as="div"
@@ -49,10 +54,4 @@ export default function EmptyCourse({canManage, name, id}) {
       )}
     </Flex>
   )
-}
-
-EmptyCourse.propTypes = {
-  name: PropTypes.string.isRequired,
-  id: PropTypes.string.isRequired,
-  canManage: PropTypes.bool.isRequired,
 }

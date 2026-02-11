@@ -17,17 +17,31 @@
  */
 
 import React, {useState, useEffect} from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {View} from '@instructure/ui-view'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 
-import {GradingPeriodShape} from '@canvas/k5/react/utils'
 import LoadingWrapper from '@canvas/k5/react/LoadingWrapper'
 
 const I18n = createI18nScope('course_grading_period_select')
+
+interface GradingPeriod {
+  id: string
+  title: string
+  end_date?: string
+  start_date?: string
+  workflow_state?: string
+}
+
+interface GradingPeriodSelectProps {
+  loadingGradingPeriods: boolean
+  gradingPeriods: GradingPeriod[] | null
+  onGradingPeriodSelected: (id: string | null) => void
+  currentGradingPeriodId?: string | null
+  courseName: string
+}
 
 const GradingPeriodSelect = ({
   loadingGradingPeriods,
@@ -35,7 +49,7 @@ const GradingPeriodSelect = ({
   onGradingPeriodSelected,
   currentGradingPeriodId,
   courseName,
-}) => {
+}: GradingPeriodSelectProps): React.ReactElement => {
   const ALL_PERIODS_VALUE = 'all'
   const [selectedValue, setSelectedValue] = useState(ALL_PERIODS_VALUE)
 
@@ -66,7 +80,7 @@ const GradingPeriodSelect = ({
             }
             assistiveText={I18n.t('Use arrow keys to navigate options.')}
             isInline={true}
-            onChange={(_e, data) => setSelectedValue(data.value)}
+            onChange={(_e, data) => setSelectedValue(data.value as string)}
             width="20rem"
             value={selectedValue}
           >
@@ -95,14 +109,6 @@ const GradingPeriodSelect = ({
       )}
     </LoadingWrapper>
   )
-}
-
-GradingPeriodSelect.propTypes = {
-  loadingGradingPeriods: PropTypes.bool.isRequired,
-  gradingPeriods: PropTypes.arrayOf(PropTypes.shape(GradingPeriodShape)),
-  onGradingPeriodSelected: PropTypes.func.isRequired,
-  currentGradingPeriodId: PropTypes.string,
-  courseName: PropTypes.string.isRequired,
 }
 
 export default GradingPeriodSelect
