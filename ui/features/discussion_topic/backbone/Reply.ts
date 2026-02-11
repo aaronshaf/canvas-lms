@@ -46,6 +46,7 @@ class Reply {
   textArea: any
   editing: boolean
   content?: string
+  trigger: any
 
   // #
   // Creates a new reply to an Entry
@@ -80,6 +81,7 @@ class Reply {
       RichContentEditor.callOnRCE(this.textArea, 'toggle')
       // hide the clicked link, and show the other toggle link.
       // todo: replace .andSelf with .addBack when JQuery is upgraded.
+      // @ts-expect-error - andSelf is deprecated jQuery method
       return $(e.currentTarget).siblings('a').andSelf().toggle()
     })
     this.form.on('click', '.alert .close', preventDefault(this.hideNotification))
@@ -179,6 +181,7 @@ class Reply {
       `<div class='alert alert-info'>${htmlEscape(I18n.t('saving_reply', 'Saving reply...'))}</div>`,
     )
     const entry = new Entry(this.getModelAttributes())
+    // @ts-expect-error - Backbone model save method
     entry.save(null, {
       success: this.onPostReplySuccess,
       error: this.onPostReplyError,
@@ -223,6 +226,7 @@ class Reply {
   onPostReplySuccess(entry: any, response: any) {
     if (response.errors) {
       this.hideNotification()
+      // @ts-expect-error - Backbone model get method
       this.textArea.val(entry.get('message'))
       this.edit()
       return this.form.formErrors(response)
@@ -247,6 +251,7 @@ class Reply {
         },
       )}</div>`,
     )
+    // @ts-expect-error - Backbone model get method
     this.textArea.val(entry.get('message'))
     return this.edit()
   }

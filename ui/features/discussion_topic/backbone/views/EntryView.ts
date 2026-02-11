@@ -41,7 +41,6 @@ const I18n = createI18nScope('discussions')
 
 extend(EntryView, Backbone.View)
 
-// @ts-expect-error - Backbone constructor pattern
 function EntryView(this: any) {
   this.handleKeyDown = this.handleKeyDown.bind(this)
   this.renderRatingSum = this.renderRatingSum.bind(this)
@@ -159,7 +158,6 @@ EntryView.prototype.handleDeclarativeEvent = function (event: any) {
   }
   event.stopPropagation()
   event.preventDefault()
-  // @ts-expect-error - Dynamic method call
   return this[method](event, $el)
 }
 
@@ -305,7 +303,6 @@ EntryView.prototype.renderTree = function (opts?: any) {
     showMoreDescendants: this.options.showMoreDescendants,
   })
   this.treeView.render()
-  // @ts-expect-error - Collection map method
   const boundReplies = collection.map(function (x: any) {
     return x.attributes
   })
