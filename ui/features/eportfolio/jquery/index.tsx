@@ -50,7 +50,6 @@ import 'jquery-scroll-to-visible/jquery.scrollTo'
 import 'jqueryui/progressbar'
 import 'jqueryui/sortable'
 import CreatePortfolioForm from '../react/CreatePortfolioForm'
-// @ts-expect-error
 import {Portal} from '@instructure/ui-portal'
 import PageNameContainer from '../react/PageNameContainer'
 import DeprecationNoticeAlert from '../react/DeprecationNoticeAlert'
@@ -87,15 +86,16 @@ interface JQueryWithTemplateData extends JQuery<HTMLElement> {
 }
 
 function ePortfolioFormData(): Record<string, unknown> {
-  let data = ($('#edit_page_form') as JQueryWithTemplateData).getFormData({
+  let data = ($('#edit_page_form') as any).getFormData({
     object_name: 'eportfolio_entry',
     values: [
       'eportfolio_entry[name]',
       'eportfolio_entry[allow_comments]',
       'eportfolio_entry[show_comments]',
     ],
-  })
+  }) as any
   let idx = 0
+  // @ts-expect-error - TypeScript inference issue
   $('#edit_page_form .section').each(function () {
     const $section = $(this) as JQueryWithTemplateData
     const section_type = $section.getTemplateData({textValues: ['section_type']})
@@ -103,11 +103,10 @@ function ePortfolioFormData(): Record<string, unknown> {
     if (section_type === 'rich_text' || section_type === 'html' || $section.hasClass('read_only')) {
       idx++
       const name = 'section_' + idx
-      const sectionContent = fetchContent($section, section_type, name)
-      data = $.extend(data, sectionContent)
+      const sectionContent = fetchContent($section, section_type, name) as any
+      data = $.extend(data, sectionContent as any) as any
     }
-  })
-  data.section_count = idx
+  })(data as any).section_count = idx
   return data
 }
 
@@ -168,7 +167,12 @@ function saveObject($obj: JQuery<HTMLElement>, type: string): boolean {
       $obj.data('event_pending', false)
     },
     // error callback
-    (_res: unknown, xhr: {name?: Array<{message: string}>}, _textStatus: string, _errorThrown: string) => {
+    (
+      _res: unknown,
+      xhr: {name?: Array<{message: string}>},
+      _textStatus: string,
+      _errorThrown: string,
+    ) => {
       $obj.removeClass('event_pending')
       $obj.data('event_pending', false)
       let name_message = I18n.t('errors.section_name_invalid', 'Section name is not valid')
@@ -197,7 +201,7 @@ function renderCreateForm(): JSX.Element | undefined {
   if (createContainer) {
     return (
       <Portal open={true} mountNode={createContainer}>
-        <CreatePortfolioForm formMount={formContainer} />
+        <CreatePortfolioForm formMount={formContainer!} />
       </Portal>
     )
   }
@@ -212,10 +216,10 @@ function renderPortal(portfolio_id: number): JSX.Element {
     <QueryClientProvider client={queryClient}>
       <PortfolioPortal
         portfolioId={portfolio_id}
-        sectionListNode={sectionListContainer}
-        pageListNode={pageListContainer}
-        submissionNode={submissionContainer}
-        onPageUpdate={(json: unknown) => $(document).triggerHandler('page_updated', json)}
+        sectionListNode={sectionListContainer!}
+        pageListNode={pageListContainer!}
+        submissionNode={submissionContainer!}
+        onPageUpdate={(json: unknown) => $(document).triggerHandler('page_updated', json as any)}
       />
     </QueryClientProvider>
   )
@@ -223,6 +227,7 @@ function renderPortal(portfolio_id: number): JSX.Element {
 
 $(document).ready(function () {
   const portfolio_id = ENV.eportfolio_id as number | undefined
+  // @ts-expect-error - ENV property
   const showDeprecation = ENV.show_eportfolio_deprecation_notice as boolean | undefined
   // formRoot is for the name field in the edit page form and renders dynamically
   // root is for everything else and should always be rendered
@@ -258,6 +263,7 @@ $(document).ready(function () {
   })
   $('#add_eportfolio_form').submit(function () {
     const $this = $(this)
+    // @ts-expect-error - jQuery plugin
     const result = $this.validateForm(ePortfolioValidations)
     if (!result) {
       return false
@@ -292,8 +298,8 @@ $(document).ready(function () {
     })
     if (formRoot) {
       const currentPageName = $('#content h2 .name').text()
-      const pageButtonContainer = document.getElementById('page_button_mount')
-      const sideButtonContainer = document.getElementById('side_button_mount')
+      const pageButtonContainer = document.getElementById('page_button_mount')!
+      const sideButtonContainer = document.getElementById('side_button_mount')!
 
       formRoot.render(
         <PageNameContainer
@@ -376,6 +382,7 @@ $(document).ready(function () {
   }
 
   $('#edit_page_form').formSubmit({
+    // @ts-expect-error - formSubmit plugin option
     processData(_data: unknown) {
       $('#page_content .section.unsaved').removeClass('unsaved')
       $('#page_content .section.failed').remove()
@@ -393,7 +400,7 @@ $(document).ready(function () {
             RichContentEditor.destroyRCE($richText)
           } else {
             const code = sanitizeHtml($section.find('.edit_section').val() as string)
-            $section.find('.section_content').html(raw(code))
+            $section.find('.section_content').html(raw(code) as any)
           }
         } else if (!$section.hasClass('read_only')) {
           $section.remove()
@@ -427,6 +434,7 @@ $(document).ready(function () {
     event.preventDefault()
     RichContentEditor.callOnRCE($('#edit_page_content'), 'toggle')
     //  todo: replace .andSelf with .addBack when JQuery is upgraded.
+    // @ts-expect-error - deprecated jQuery method
     $(this).siblings('.switch_views_link').andSelf().toggle().focus()
   })
   $('#edit_page_sidebar .add_content_link').click(function (event) {
@@ -434,9 +442,10 @@ $(document).ready(function () {
     $('#edit_page_form .keep_editing_button:first').click()
     const $section = $('#page_section_blank')
       .clone(true)
+      // @ts-expect-error - ENV property
       .attr('id', 'page_section_' + ENV.SECTION_COUNT_IDX)
     $section.addClass('unsaved')
-    $section.attr('id', 'page_section_' + (ENV.SECTION_COUNT_IDX as number)++)
+    $section.attr('id', 'page_section_' + ((ENV as any).SECTION_COUNT_IDX as number)++)
     $('#page_content').append($section)
     let section_type = 'rich_text'
     let section_type_name = I18n.t(
@@ -476,7 +485,7 @@ $(document).ready(function () {
       RichContentEditor.loadNewEditor($richText, {focus: true, defaultContent: ''})
     }
     $section.hide().slideDown('fast', () => {
-      $('html,body').scrollTo($section)
+      $('html,body').scrollTo($section as any)
       if (section_type === 'html') {
         $edit.find('.edit_section').focus().select()
       }
@@ -501,6 +510,7 @@ $(document).ready(function () {
     handle: '.move_link',
     helper: 'clone',
     axis: 'y',
+    // @ts-expect-error - jQuery UI sortable types
     start(_event: Event, ui: {item: Element}) {
       const $section = $(ui.item) as JQueryWithTemplateData
       if ($section.getTemplateData({textValues: ['section_type']}).section_type === 'rich_text') {
@@ -508,6 +518,7 @@ $(document).ready(function () {
         RichContentEditor.destroyRCE($richText)
       }
     },
+    // @ts-expect-error - jQuery UI sortable types
     stop(_event: Event, ui: {item: Element}) {
       const $section = $(ui.item) as JQueryWithTemplateData
       if ($section.getTemplateData({textValues: ['section_type']}).section_type === 'rich_text') {
@@ -541,7 +552,7 @@ $(document).ready(function () {
       const $sectionContent = $section.find('.section_content')
       $sectionContent.empty()
       const $frame = $('#edit_content_templates').find('.submission_preview').clone()
-      $frame.attr('src', url)
+      $frame.attr('src', url!)
       $sectionContent.append($frame)
       $section.addClass('read_only')
       $(this).focus()
@@ -574,8 +585,9 @@ $(document).ready(function () {
       preparedFileUpload: true,
       upload_only: true,
       singleFile: true,
+      // @ts-expect-error - ENV properties
       context_code: ENV.context_code,
-      folder_id: ENV.folder_id,
+      folder_id: (ENV as any).folder_id,
       formDataTarget: 'uploadDataUrl',
     },
     object_name: 'attachment',
@@ -612,12 +624,7 @@ $(document).ready(function () {
         return false
       }
     },
-    success(attachment: {
-      id: number
-      uuid: string
-      'content-type': string
-      display_name: string
-    }) {
+    success(attachment: {id: number; uuid: string; 'content-type': string; display_name: string}) {
       const $section = $(this).data('section') as JQuery<HTMLElement>
       $section.find('.attachment_id').text(attachment.id)
       let url = $('.eportfolio_download_url').attr('href')
@@ -637,12 +644,13 @@ $(document).ready(function () {
       }
       $(this).remove()
     },
+    // @ts-expect-error - formSubmit error signature
     error(data: {errors?: unknown}) {
       const $section = $(this).data('section') as JQuery<HTMLElement>
       $section.find('.uploading_file').text(I18n.t('errors.upload_failed', 'Upload Failed.'))
       $section.addClass('failed')
       $(this).remove()
-      $section.formErrors(data.errors || data)
+      $section.formErrors(data.errors || (data as any))
     },
   })
 
@@ -663,15 +671,17 @@ $(document).ready(function () {
   $('.delete_eportfolio_link').click((event: JQuery.ClickEvent) => {
     event.preventDefault()
     $('#delete_eportfolio_form').toggle(() => {
-      $('html,body').scrollTo($('#delete_eportfolio_form'))
+      $('html,body').scrollTo($('#delete_eportfolio_form') as any)
     })
   })
   $(document).blur(() => {})
 
+  // @ts-expect-error - jQuery plugin
   $('.submission_list').instTree({
     multi: false,
     dragdrop: false,
   })
+  // @ts-expect-error - jQuery plugin
   $('.file_list > ul').instTree({
     autoclose: false,
     multi: false,
@@ -701,7 +711,10 @@ $(document).ready(function () {
         // esc
       } else if (event.keyCode === 13) {
         // enter
-        $(this).parents('li').find('.name').text($(this).val() as string)
+        $(this)
+          .parents('li')
+          .find('.name')
+          .text($(this).val() as string)
         saveObject($(this).parents('li'), 'page')
       }
     })
@@ -771,7 +784,7 @@ $(document).ready(function () {
       $details.find('.header').after($this.find('.details').clone(true).show())
       const url = $this.find('.header').attr('href')
       if (url !== '#') {
-        $details.find('.link').show().attr('href', url)
+        $details.find('.link').show().attr('href', url!)
       } else {
         $details.find('.link').hide()
       }
@@ -823,7 +836,10 @@ $(document).ready(function () {
               'option',
               'value',
               Math.max(
-                Math.min($('#export_progress').progressbar('option', 'value') as number + 0.1, 90),
+                Math.min(
+                  ($('#export_progress').progressbar('option', 'value') as number) + 0.1,
+                  90,
+                ),
                 progress,
               ),
             )
@@ -831,7 +847,7 @@ $(document).ready(function () {
             $('#export_progress').progressbar(
               'option',
               'value',
-              Math.min($('#export_progress').progressbar('option', 'value') as number + 0.1, 90),
+              Math.min(($('#export_progress').progressbar('option', 'value') as number) + 0.1, 90),
             )
           }
           setTimeout(check, 2000)
