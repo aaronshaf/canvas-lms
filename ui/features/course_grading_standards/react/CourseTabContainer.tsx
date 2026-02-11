@@ -17,7 +17,6 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import GradingStandardCollection from '@canvas/grading-standard-collection'
 import GradingPeriodCollection from './gradingPeriodCollection'
 import $ from 'jquery'
@@ -27,10 +26,14 @@ import 'jqueryui/tabs'
 
 const I18n = createI18nScope('gradingCourseTabContainer')
 
-class CourseTabContainer extends React.Component {
-  static propTypes = {
-    hasGradingPeriods: PropTypes.bool.isRequired,
-  }
+interface Props {
+  hasGradingPeriods: boolean
+}
+
+class CourseTabContainer extends React.Component<Props> {
+  private tabContainer: HTMLDivElement | null = null
+  private gradingPeriods: HTMLDivElement | null = null
+  private gradingStandards: HTMLDivElement | null = null
 
   componentDidMount() {
     if (!this.props.hasGradingPeriods) return

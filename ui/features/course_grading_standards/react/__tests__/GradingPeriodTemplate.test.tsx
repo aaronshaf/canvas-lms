@@ -45,7 +45,7 @@ function renderComponent(props = {}) {
 }
 
 describe('custom prop validation for editable periods', () => {
-  let consoleErrorSpy
+  let consoleErrorSpy: any
 
   beforeEach(() => {
     // Suppress React act warnings and other unrelated warnings
@@ -55,7 +55,7 @@ describe('custom prop validation for editable periods', () => {
 
   afterEach(() => {
     consoleErrorSpy.mockRestore()
-    console.warn.mockRestore()
+    ;(console.warn as any).mockRestore()
   })
 
   it('does not warn of invalid props if all required props are present and of the correct type', () => {
@@ -89,13 +89,13 @@ describe('GradingPeriod with read-only permissions', () => {
   it('isNewGradingPeriod returns false if the id does not contain "new"', () => {
     const {container} = renderComponent(readOnlyProps)
     const gradingPeriodInstance = container.querySelector('.grading-period')
-    expect(gradingPeriodInstance.id.includes('new')).toBe(false)
+    expect(gradingPeriodInstance!.id.includes('new')).toBe(false)
   })
 
   it('isNewGradingPeriod returns true if the id contains "new"', () => {
     const {container} = renderComponent({...readOnlyProps, id: 'new1'})
     const gradingPeriodInstance = container.querySelector('.grading-period')
-    expect(gradingPeriodInstance.id.includes('new')).toBe(true)
+    expect(gradingPeriodInstance!.id.includes('new')).toBe(true)
   })
 
   it('does not render a delete button', () => {
@@ -139,13 +139,13 @@ describe("GradingPeriod with 'readOnly' set to true", () => {
   it('isNewGradingPeriod returns false if the id does not contain "new"', () => {
     const {container} = renderComponent(readOnlyProps)
     const gradingPeriodInstance = container.querySelector('.grading-period')
-    expect(gradingPeriodInstance.id.includes('new')).toBe(false)
+    expect(gradingPeriodInstance!.id.includes('new')).toBe(false)
   })
 
   it('isNewGradingPeriod returns true if the id contains "new"', () => {
     const {container} = renderComponent({...readOnlyProps, id: 'new1'})
     const gradingPeriodInstance = container.querySelector('.grading-period')
-    expect(gradingPeriodInstance.id.includes('new')).toBe(true)
+    expect(gradingPeriodInstance!.id.includes('new')).toBe(true)
   })
 
   it('does not render a delete button', () => {

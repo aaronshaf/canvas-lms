@@ -18,58 +18,68 @@
 
 import * as tz from '@instructure/moment-utils'
 import React from 'react'
-import PropTypes from 'prop-types'
 import $ from 'jquery'
 import GradingPeriodTemplate from './gradingPeriodTemplate'
 import DateHelper from '@canvas/datetime/dateHelper'
 import {isMidnight} from '@instructure/moment-utils'
 
-class GradingPeriod extends React.Component {
-  static propTypes = {
-    title: PropTypes.string.isRequired,
-    weight: PropTypes.number,
-    weighted: PropTypes.bool,
-    startDate: PropTypes.instanceOf(Date).isRequired,
-    endDate: PropTypes.instanceOf(Date).isRequired,
-    closeDate: PropTypes.instanceOf(Date).isRequired,
-    id: PropTypes.string.isRequired,
-    updateGradingPeriodCollection: PropTypes.func.isRequired,
-    onDeleteGradingPeriod: PropTypes.func.isRequired,
-    disabled: PropTypes.bool.isRequired,
-    readOnly: PropTypes.bool.isRequired,
-    permissions: PropTypes.shape({
-      update: PropTypes.bool.isRequired,
-      delete: PropTypes.bool.isRequired,
-    }).isRequired,
-  }
+interface Permissions {
+  update: boolean
+  delete: boolean
+}
+
+interface Props {
+  title: string
+  weight?: number | null
+  weighted?: boolean
+  startDate: Date
+  endDate: Date
+  closeDate: Date
+  id: string
+  updateGradingPeriodCollection: (gradingPeriod: GradingPeriod) => void
+  onDeleteGradingPeriod: (id: string) => void
+  disabled: boolean
+  readOnly: boolean
+  permissions: Permissions
+}
+
+interface State {
+  title: string
+  startDate: Date
+  endDate: Date
+  weight: number | null
+}
+
+class GradingPeriod extends React.Component<Props, State> {
+  private templateRef: GradingPeriodTemplate | null = null
 
   static defaultProps = {
     weight: null,
   }
 
-  state = {
+  state: State = {
     title: this.props.title,
     startDate: this.props.startDate,
     endDate: this.props.endDate,
-    weight: this.props.weight,
+    weight: this.props.weight ?? null,
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps: Props) {
     this.setState({
       title: nextProps.title,
       startDate: nextProps.startDate,
       endDate: nextProps.endDate,
-      weight: nextProps.weight,
+      weight: nextProps.weight ?? null,
     })
   }
 
-  onTitleChange = event => {
-    this.setState({title: event.target.value}, function () {
+  onTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({title: event.target.value}, function (this: GradingPeriod) {
       this.props.updateGradingPeriodCollection(this)
     })
   }
 
-  onDateChange = (dateType, id) => {
+  onDateChange = (dateType: string, id: string) => {
     const $date = $(`#${id}`)
     const isValidDate = !($date.data('invalid') || $date.data('blank'))
     let updatedDate = isValidDate ? $date.data('unfudged-date') : new Date('invalid date')
@@ -78,17 +88,19 @@ class GradingPeriod extends React.Component {
       updatedDate = tz.changeToTheSecondBeforeMidnight(updatedDate)
     }
 
-    const updatedState = {}
-    updatedState[dateType] = updatedDate
-    this.setState(updatedState, function () {
+    const updatedState: Partial<State> = {}
+    updatedState[dateType as keyof State] = updatedDate
+    this.setState(updatedState as State, function (this: GradingPeriod) {
       this.replaceInputWithDate(dateType, $date)
       this.props.updateGradingPeriodCollection(this)
     })
   }
 
-  replaceInputWithDate = (dateType, dateElement) => {
-    const date = this.state[dateType]
-    dateElement.val(DateHelper.formatDatetimeForDisplay(date))
+  replaceInputWithDate = (dateType: string, dateElement: JQuery) => {
+    const date = this.state[dateType as keyof State]
+    if (date instanceof Date) {
+      dateElement.val(DateHelper.formatDatetimeForDisplay(date))
+    }
   }
 
   render() {

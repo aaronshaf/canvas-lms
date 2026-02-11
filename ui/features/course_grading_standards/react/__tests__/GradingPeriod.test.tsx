@@ -46,12 +46,12 @@ vi.mock('jquery', () => ({
         datepicker: vi.fn(),
         data: vi.fn(),
         val: vi.fn(),
-        on: vi.fn((event, handler) => {
+        on: vi.fn((event: string, handler: any) => {
           // Store the handler for later use
           if (event === 'change' && typeof selector !== 'string') {
             const element = selector
             if (element && element.addEventListener) {
-              element.addEventListener('change', e => handler.call(element, e))
+              element.addEventListener('change', (e: Event) => handler.call(element, e))
             }
           }
         }),
@@ -70,7 +70,7 @@ vi.mock('@canvas/datetime/jquery/DatetimeField', () => ({
 }))
 
 describe('GradingPeriod', () => {
-  let defaultProps
+  let defaultProps: any
 
   beforeEach(() => {
     defaultProps = {
@@ -97,7 +97,7 @@ describe('GradingPeriod', () => {
       GRADING_PERIODS_URL: 'api/v1/courses/1/grading_periods',
     }
 
-    vi.spyOn(DateHelper, 'formatDatetimeForDisplay').mockImplementation(date => {
+    vi.spyOn(DateHelper, 'formatDatetimeForDisplay').mockImplementation((date: any) => {
       if (!date) return ''
       return date.toLocaleDateString('en-US', {
         month: 'short',
@@ -109,7 +109,7 @@ describe('GradingPeriod', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
-    delete window.ENV
+    delete (window as any).ENV
   })
 
   const renderGradingPeriod = (props = {}) => {

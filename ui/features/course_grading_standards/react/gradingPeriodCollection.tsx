@@ -27,14 +27,50 @@ import '@canvas/jquery/jquery.instructure_misc_plugins'
 
 const I18n = createI18nScope('gradinggradingPeriodCollection')
 
-const periodsAreLoaded = state => state.periods !== null
+interface Permissions {
+  update: boolean
+  delete: boolean
+}
 
-class GradingPeriodCollection extends React.Component {
-  static propTypes = {
-    // no props
+interface GradingPeriodData {
+  id: string
+  title: string
+  startDate: Date
+  endDate: Date
+  closeDate: Date
+  weight?: number | null
+  permissions: Permissions
+}
+
+interface GradingPeriodComponent {
+  props: {
+    id: string
+    title: string
+    startDate: Date
+    endDate: Date
+    closeDate: Date
+    weight?: number | null
+    permissions: Permissions
   }
+  state: {
+    title: string
+    startDate: Date
+    endDate: Date
+    weight?: number | null
+  }
+}
 
-  state = {
+interface State {
+  periods: GradingPeriodData[] | null
+  readOnly: boolean
+  disabled: boolean
+  saveDisabled: boolean
+}
+
+const periodsAreLoaded = (state: State) => state.periods !== null
+
+class GradingPeriodCollection extends React.Component<{}, State> {
+  state: State = {
     periods: null,
     readOnly: false,
     disabled: false,
@@ -48,7 +84,7 @@ class GradingPeriodCollection extends React.Component {
   getPeriods = () => {
     const self = this
     $.getJSON(ENV.GRADING_PERIODS_URL)
-      .success(periods => {
+      .success((periods: any) => {
         self.setState({
           periods: self.deserializePeriods(periods),
           readOnly: periods.grading_periods_read_only,
@@ -61,16 +97,16 @@ class GradingPeriodCollection extends React.Component {
       })
   }
 
-  deserializePeriods = periods =>
-    map(periods.grading_periods, period => {
-      const newPeriod = camelizeProperties(period)
+  deserializePeriods = (periods: any): GradingPeriodData[] =>
+    map(periods.grading_periods, (period: any) => {
+      const newPeriod = camelizeProperties(period) as any
       newPeriod.startDate = new Date(period.start_date)
       newPeriod.endDate = new Date(period.end_date)
       newPeriod.closeDate = new Date(period.close_date || period.end_date)
-      return newPeriod
+      return newPeriod as GradingPeriodData
     })
 
-  deleteGradingPeriod = id => {
+  deleteGradingPeriod = (id: string) => {
     if (id.indexOf('new') > -1) {
       this.removeDeletedGradingPeriod(id)
     } else {
@@ -93,14 +129,14 @@ class GradingPeriodCollection extends React.Component {
     }
   }
 
-  lastRemainingPeriod = () => this.state.periods.length === 1
+  lastRemainingPeriod = () => this.state.periods?.length === 1
 
-  removeDeletedGradingPeriod = id => {
+  removeDeletedGradingPeriod = (id: string) => {
     const newPeriods = reject(this.state.periods, period => period.id === id)
     this.setState({periods: newPeriods})
   }
 
-  getPeriodById = id => find(this.state.periods, period => period.id === id)
+  getPeriodById = (id: string) => find(this.state.periods, period => period.id === id)
 
   areGradingPeriodsValid = () =>
     every(
@@ -112,8 +148,9 @@ class GradingPeriodCollection extends React.Component {
         this.areNoDatesOverlapping(period),
     )
 
-  areDatesOverlapping = targetPeriod => {
+  areDatesOverlapping = (targetPeriod: GradingPeriodData) => {
     const target = this.getPeriodById(targetPeriod.id)
+    if (!target) return false
     const otherPeriods = reject(this.state.periods, p => p.id === target.id)
     if (isEmpty(otherPeriods)) return false
     return some(
@@ -124,7 +161,7 @@ class GradingPeriodCollection extends React.Component {
     )
   }
 
-  areNoDatesOverlapping = targetPeriod => {
+  areNoDatesOverlapping = (targetPeriod: GradingPeriodData) => {
     if (this.areDatesOverlapping(targetPeriod)) {
       $.flashError(I18n.t('Grading periods must not overlap'))
       return false
@@ -133,7 +170,7 @@ class GradingPeriodCollection extends React.Component {
     }
   }
 
-  areDatesValid = period => {
+  areDatesValid = (period: GradingPeriodData) => {
     if (!Number.isNaN(Number(period.startDate)) && !Number.isNaN(Number(period.endDate))) {
       return true
     } else {
@@ -142,7 +179,7 @@ class GradingPeriodCollection extends React.Component {
     }
   }
 
-  isStartDateBeforeEndDate = period => {
+  isStartDateBeforeEndDate = (period: GradingPeriodData) => {
     if (period.startDate < period.endDate) {
       return true
     } else {
@@ -151,7 +188,7 @@ class GradingPeriodCollection extends React.Component {
     }
   }
 
-  isTitleCompleted = period => {
+  isTitleCompleted = (period: GradingPeriodData) => {
     if (period.title.trim().length > 0) {
       return true
     } else {
@@ -160,7 +197,7 @@ class GradingPeriodCollection extends React.Component {
     }
   }
 
-  updateGradingPeriodCollection = updatedGradingPeriodComponent => {
+  updateGradingPeriodCollection = (updatedGradingPeriodComponent: GradingPeriodComponent) => {
     const attrs = $.extend(
       true,
       {},
@@ -168,6 +205,7 @@ class GradingPeriodCollection extends React.Component {
       updatedGradingPeriodComponent.state,
     )
     const existingGradingPeriod = this.getPeriodById(attrs.id)
+    if (!existingGradingPeriod || !this.state.periods) return
     const indexToUpdate = this.state.periods.indexOf(existingGradingPeriod)
     const updatedPeriods = update(this.state.periods, {$splice: [[indexToUpdate, 1, attrs]]})
     this.setState({periods: updatedPeriods})
@@ -194,11 +232,11 @@ class GradingPeriodCollection extends React.Component {
           data: JSON.stringify(this.serializeDataForSubmission()),
           context: this,
         })
-          .success(function (response) {
+          .success(function (this: GradingPeriodCollection, response: any) {
             $.flashMessage(I18n.t('All changes were saved'))
             this.setState({disabled: false, periods: this.deserializePeriods(response)})
           })
-          .error(function (_error) {
+          .error(function (this: GradingPeriodCollection, _error: any) {
             this.setState({disabled: false})
             $.flashError(I18n.t('There was a problem saving the grading period'))
           })

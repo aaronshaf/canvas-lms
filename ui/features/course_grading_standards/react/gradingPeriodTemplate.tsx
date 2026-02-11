@@ -17,7 +17,6 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
 import $ from 'jquery'
 import {each, isUndefined} from 'es-toolkit/compat'
@@ -27,11 +26,33 @@ import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
 
 const I18n = createI18nScope('gradingPeriodTemplate')
 
-const postfixId = (text, {props}) => text + props.id
+interface Permissions {
+  update: boolean
+  delete: boolean
+}
 
-const isEditable = ({props}) => props.permissions.update && !props.readOnly
+interface Props {
+  title: string
+  disabled: boolean
+  weight?: number | null
+  weighted?: boolean
+  startDate: Date
+  endDate: Date
+  closeDate: Date
+  id: string
+  permissions: Permissions
+  readOnly: boolean
+  onDeleteGradingPeriod?: (id: string) => void
+  onDateChange?: (dateType: string, id: string) => void
+  onTitleChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
+  requiredPropsIfEditable?: (props: Props) => Error | undefined
+}
 
-const tabbableDate = (ref, date) => {
+const postfixId = (text: string, {props}: {props: Props}) => text + props.id
+
+const isEditable = ({props}: {props: Props}) => props.permissions.update && !props.readOnly
+
+const tabbableDate = (ref: string, date: Date) => {
   const formattedDate = DateHelper.formatDateForDisplay(date)
   return (
     <span ref={ref} className="GradingPeriod__Action">
@@ -40,53 +61,15 @@ const tabbableDate = (ref, date) => {
   )
 }
 
-class GradingPeriodTemplate extends React.Component {
-  static propTypes = {
-    title: PropTypes.string.isRequired,
-    disabled: PropTypes.bool.isRequired,
-    weight: PropTypes.number,
-    weighted: PropTypes.bool,
-    startDate: PropTypes.instanceOf(Date).isRequired,
-    endDate: PropTypes.instanceOf(Date).isRequired,
-    closeDate: PropTypes.instanceOf(Date).isRequired,
-    id: PropTypes.string.isRequired,
-    permissions: PropTypes.shape({
-      update: PropTypes.bool.isRequired,
-      delete: PropTypes.bool.isRequired,
-    }).isRequired,
-    readOnly: PropTypes.bool.isRequired,
-    requiredPropsIfEditable(props) {
-      if (!props.permissions.update && !props.permissions.delete) return
+class GradingPeriodTemplate extends React.Component<Props> {
+  private titleRef = React.createRef<HTMLInputElement>()
+  private startDateRef = React.createRef<HTMLInputElement>()
+  private endDateRef = React.createRef<HTMLInputElement>()
+  private weightRef = React.createRef<HTMLSpanElement>()
+  private deleteButtonRef = React.createRef<HTMLButtonElement>()
 
-      const requiredProps = {
-        disabled: 'boolean',
-        onDeleteGradingPeriod: 'function',
-        onDateChange: 'function',
-        onTitleChange: 'function',
-      }
-
-      const invalidProps = []
-      each(requiredProps, (propType, propName) => {
-        const invalidProp = isUndefined(props[propName]) || typeof props[propName] !== propType
-        if (invalidProp) invalidProps.push(propName)
-      })
-
-      if (invalidProps.length > 0) {
-        let prefix = 'GradingPeriodTemplate: required prop'
-        if (invalidProps.length > 1) prefix += 's'
-        const errorMessage = `${prefix} ${invalidProps.join(', ')} not provided or of wrong type.`
-        return new Error(errorMessage)
-      }
-    },
-  }
-
-  constructor(props) {
-    super(props)
-    this.titleRef = React.createRef()
-    this.startDateRef = React.createRef()
-    this.endDateRef = React.createRef()
-    this.weightRef = React.createRef()
-    this.deleteButtonRef = React.createRef()
+  static defaultProps = {
+    weight: null,
   }
 
   componentDidMount() {
@@ -98,15 +81,16 @@ class GradingPeriodTemplate extends React.Component {
     dateField.on('change', this.onDateChange)
   }
 
-  onDateChange = event => {
-    this.props.onDateChange(event.target.name, event.target.id)
+  onDateChange = (event: JQuery.ChangeEvent) => {
+    const target = event.target as HTMLInputElement
+    this.props.onDateChange?.(target.name, target.id)
   }
 
   isNewGradingPeriod = () => this.props.id.indexOf('new') > -1
 
   onDeleteGradingPeriod = () => {
     if (!this.props.disabled) {
-      this.props.onDeleteGradingPeriod(this.props.id)
+      this.props.onDeleteGradingPeriod?.(this.props.id)
     }
   }
 
@@ -271,6 +255,35 @@ class GradingPeriodTemplate extends React.Component {
       </div>
     )
   }
+}
+
+// Custom prop validation
+GradingPeriodTemplate.propTypes = {
+  requiredPropsIfEditable(props: Props) {
+    if (!props.permissions.update && !props.permissions.delete) return
+
+    const requiredProps: Record<string, string> = {
+      disabled: 'boolean',
+      onDeleteGradingPeriod: 'function',
+      onDateChange: 'function',
+      onTitleChange: 'function',
+    }
+
+    const invalidProps: string[] = []
+    each(requiredProps, (propType, propName) => {
+      const invalidProp =
+        isUndefined(props[propName as keyof Props]) ||
+        typeof props[propName as keyof Props] !== propType
+      if (invalidProp) invalidProps.push(propName)
+    })
+
+    if (invalidProps.length > 0) {
+      let prefix = 'GradingPeriodTemplate: required prop'
+      if (invalidProps.length > 1) prefix += 's'
+      const errorMessage = `${prefix} ${invalidProps.join(', ')} not provided or of wrong type.`
+      return new Error(errorMessage)
+    }
+  },
 }
 
 export default GradingPeriodTemplate
