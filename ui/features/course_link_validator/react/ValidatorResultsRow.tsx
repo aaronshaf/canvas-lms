@@ -41,7 +41,36 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('link_validator')
 
-const TYPE_INFO = {
+interface InvalidLink {
+  url: string
+  reason: string
+  link_text?: string
+  image?: boolean
+}
+
+interface ValidationIssue {
+  name: string
+  type: string
+  content_url: string
+  invalid_links: InvalidLink[]
+}
+
+interface ValidatorResultsRowProps {
+  result: ValidationIssue
+}
+
+type ReasonType =
+  | 'course_mismatch'
+  | 'unpublished_item'
+  | 'missing_item'
+  | 'broken_link'
+  | 'broken_image'
+  | 'deleted'
+
+const TYPE_INFO: Record<
+  string,
+  {icon: React.ComponentType<any>; label: string}
+> = {
   course_card_image: {icon: IconSettingsLine, label: I18n.t('Course Settings')},
   syllabus: {icon: IconSyllabusLine, label: I18n.t('Syllabus')},
   assignment: {icon: IconAssignmentLine, label: I18n.t('Assignment')},
@@ -54,7 +83,7 @@ const TYPE_INFO = {
   quiz_question: {icon: IconQuestionLine, label: I18n.t('Quiz Question')},
 }
 
-const REASON_DESCRIPTION = {
+const REASON_DESCRIPTION: Record<ReasonType, string> = {
   course_mismatch: I18n.t(
     'Links to other courses in this resource may not be accessible by the students in this course:',
   ),
@@ -65,7 +94,7 @@ const REASON_DESCRIPTION = {
   deleted: I18n.t('Deleted content referenced in this resource:'),
 }
 
-function simplifyReason(link) {
+function simplifyReason(link: InvalidLink): ReasonType {
   switch (link.reason) {
     case 'course_mismatch':
     case 'unpublished_item':
@@ -77,26 +106,29 @@ function simplifyReason(link) {
   }
 }
 
-function getLinkText(link) {
+function getLinkText(link: InvalidLink): string {
   if (link.link_text) {
     return link.link_text
   }
   return link.url.substring(link.url.lastIndexOf('/') + 1)
 }
 
-export default function ValidatorResultsRow(props) {
+export default function ValidatorResultsRow(props: ValidatorResultsRowProps) {
   const invalid_links = props.result.invalid_links
-  const errorsByReason = {}
+  const errorsByReason: Record<ReasonType, InvalidLink[]> = {} as Record<
+    ReasonType,
+    InvalidLink[]
+  >
   invalid_links.forEach(link => {
     const reason = simplifyReason(link)
     errorsByReason[reason] = errorsByReason[reason] || []
     errorsByReason[reason].push(link)
   })
 
-  const rows = []
-  Object.keys(errorsByReason).forEach(reason => {
-    const errors = errorsByReason[reason]
-    const links = []
+  const rows: JSX.Element[] = []
+  Object.keys(errorsByReason).forEach((reason) => {
+    const errors = errorsByReason[reason as ReasonType]
+    const links: JSX.Element[] = []
 
     errors.forEach(error => {
       const IconClass = error.image ? IconImageSolid : IconLinkSolid
@@ -113,7 +145,8 @@ export default function ValidatorResultsRow(props) {
 
     rows.push(
       <List.Item key={reason}>
-        {REASON_DESCRIPTION[reason]}
+        {REASON_DESCRIPTION[reason as ReasonType]}
+        {/* @ts-expect-error - InstUI List props are complex */}
         <List isUnstyled={true} margin="none x-small small small">
           {links}
         </List>
@@ -121,7 +154,8 @@ export default function ValidatorResultsRow(props) {
     )
   })
 
-  let TypeIcon, label
+  let TypeIcon: React.ComponentType<any>
+  let label: string
   const typeInfo = TYPE_INFO[props.result.type]
   if (typeInfo) {
     TypeIcon = typeInfo.icon
@@ -133,12 +167,17 @@ export default function ValidatorResultsRow(props) {
 
   return (
     <div className="result">
+      {/* @ts-expect-error - InstUI Flex props are complex */}
       <Flex>
+        {/* @ts-expect-error - InstUI Flex.Item props are complex */}
         <Flex.Item align="start">
           <TypeIcon color="success" size="small" />
         </Flex.Item>
+        {/* @ts-expect-error - InstUI Flex.Item props are complex */}
         <Flex.Item margin="none none none small">
+          {/* @ts-expect-error - InstUI Heading props are complex */}
           <Heading level="h3" as="h2">
+            {/* @ts-expect-error - InstUI Link props are complex */}
             <Link
               href={props.result.content_url}
               isWithinText={false}
@@ -147,6 +186,7 @@ export default function ValidatorResultsRow(props) {
               {props.result.name}
             </Link>
           </Heading>
+          {/* @ts-expect-error - InstUI Text props are complex */}
           <Text
             size="x-small"
             transform="uppercase"
@@ -157,6 +197,7 @@ export default function ValidatorResultsRow(props) {
           </Text>
         </Flex.Item>
       </Flex>
+      {/* @ts-expect-error - InstUI List props are complex */}
       <List margin="none x-small small x-large">{rows}</List>
     </div>
   )
