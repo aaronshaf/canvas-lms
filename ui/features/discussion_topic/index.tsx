@@ -34,14 +34,16 @@ import TopicView from './backbone/views/TopicView'
 import EntriesView from './backbone/views/EntriesView'
 import SectionsTooltip from '@canvas/sections-tooltip'
 import DiscussionTopicKeyboardShortcutModal from './react/DiscussionTopicKeyboardShortcutModal'
+// @ts-expect-error
 import ready from '@instructure/ready'
 import {captureException} from '@sentry/react'
 
 const I18n = createI18nScope('discussions')
 
 // Backbone routes
-$('body').on('click', '[data-pushstate]', function (event) {
+$('body').on('click', '[data-pushstate]', function (event: any) {
   if (event) event.preventDefault()
+  // @ts-expect-error
   Backbone.history.navigate($(this).attr('href'), true)
 })
 
@@ -79,11 +81,11 @@ function renderCoursePacingNotice() {
 
   if ($mountPoint) {
     import('@canvas/due-dates/react/CoursePacingNotice')
-      .then(CoursePacingNoticeModule => {
+      .then((CoursePacingNoticeModule: any) => {
         const renderNotice = CoursePacingNoticeModule.renderCoursePacingNotice
         renderNotice($mountPoint, ENV.COURSE_ID)
       })
-      .catch(ex => {
+      .catch((ex: any) => {
         console.error('Falied loading CoursePacingNotice', ex)
         captureException(new Error('Failed loading CoursePacingNotice: ' + ex.message))
       })
@@ -93,8 +95,8 @@ function renderCoursePacingNotice() {
 ready(() => {
   new DiscussionTopicToolbarView({el: '#discussion-managebar'})
 
-  let keyboardShortcutRoot = null
-  let sectionTooltipRoot = null
+  let keyboardShortcutRoot: any = null
+  let sectionTooltipRoot: any = null
 
   if (!window.ENV.disable_keyboard_shortcuts) {
     const keyboardShortcutModal = document.getElementById('keyboard-shortcut-modal')
@@ -127,6 +129,7 @@ ready(() => {
   const topicView = new TopicView({
     el: '#main',
     model: new Backbone.Model(),
+    // @ts-expect-error
     filterModel,
   })
 
@@ -158,6 +161,7 @@ ready(() => {
   const $subentries = $('#discussion_subentries')
 
   function scrollToTop() {
+    // @ts-expect-error
     $container.scrollTo($subentries, {offset: -49})
   }
 
@@ -170,14 +174,15 @@ ready(() => {
 
   // define function that syncs a discussion entry's
   // read state back to the materialized view data.
-  function updateMaterializedViewReadState(id, read_state) {
+  function updateMaterializedViewReadState(id: any, read_state: string) {
     const e = data.flattened[id]
     if (e) e.read_state = read_state
   }
 
   // propagate mark all read/unread changes to all views
-  function setAllReadStateAllViews(newReadState) {
+  function setAllReadStateAllViews(newReadState: string) {
     entries.setAllReadState(newReadState)
+    // @ts-expect-error
     EntryView.setAllReadState(newReadState)
     return filterView.setAllReadState(newReadState)
   }
@@ -194,33 +199,36 @@ ready(() => {
 
   // catch when an EntryView changes the read_state
   // of a discussion entry and update the materialized view.
-  EntryView.on('readStateChanged', (entry, _view) =>
+  // @ts-expect-error
+  EntryView.on('readStateChanged', (entry: any, _view: any) =>
     updateMaterializedViewReadState(entry.get('id'), entry.get('read_state')),
   )
 
   // catch when auto-mark-as-read watcher changes an entry
   // and update the materialized view to match.
-  MarkAsReadWatcher.on('markAsRead', entry =>
+  MarkAsReadWatcher.on('markAsRead', (entry: any) =>
     updateMaterializedViewReadState(entry.get('id'), entry.get('read_state')),
   )
 
   // detect when read_state changes on filtered model.
   // sync the change to full view collections.
-  filterView.on('readStateChanged', (id, read_state) =>
+  filterView.on('readStateChanged', (id: any, read_state: string) =>
     // update on materialized view
     updateMaterializedViewReadState(id, read_state),
   )
 
-  filterView.on('clickEntry', entry => router.navigate(`entry-${entry.get('id')}`, true))
+  filterView.on('clickEntry', (entry: any) => router.navigate(`entry-${entry.get('id')}`, true))
 
-  toolbarView.on('showDeleted', show => entriesView.showDeleted(show))
+  toolbarView.on('showDeleted', (show: any) => entriesView.showDeleted(show))
 
   toolbarView.on('expandAll', () => {
+    // @ts-expect-error
     EntryView.expandRootEntries()
     scrollToTop()
   })
 
   toolbarView.on('collapseAll', () => {
+    // @ts-expect-error
     EntryView.collapseRootEntries()
     scrollToTop()
   })
@@ -239,7 +247,10 @@ ready(() => {
 
   filterView.on('hide', scrollToTop)
 
-  filterModel.on('reset', () => EntryView.expandRootEntries())
+  filterModel.on('reset', () => {
+    // @ts-expect-error
+    EntryView.expandRootEntries()
+  })
 
   const canReadReplies = () => ENV.DISCUSSION.PERMISSIONS.CAN_READ_REPLIES
 
@@ -251,7 +262,7 @@ ready(() => {
       $container.one('scroll', () => router.navigate(''))
     }, 10)
   })
-  router.route('entry-:id', 'id', entry => {
+  router.route('entry-:id', 'id', (entry: any) => {
     // Interval to deffer scrollng until page is fully loaded
     const goToEntry = entriesView.goToEntry.bind(entriesView, entry)
     const goToEntryIntervalId = setInterval(() => {
@@ -261,13 +272,13 @@ ready(() => {
       }
     }, 500)
   })
-  router.route('page-:page', 'page', page => {
+  router.route('page-:page', 'page', (page: any) => {
     entriesView.render(page)
     // TODO: can get a little bouncy when the page isn't as tall as the previous
     scrollToTop()
   })
 
-  function initEntries(initialEntry) {
+  function initEntries(initialEntry?: any) {
     if (canReadReplies()) {
       data.fetch({
         success() {
@@ -288,7 +299,7 @@ ready(() => {
         },
       })
 
-      topicView.on('addReply', entry => {
+      topicView.on('addReply', (entry: any) => {
         entries.add(entry)
         router.navigate(`entry-${entry.get('id')}`, true)
       })
@@ -305,6 +316,7 @@ ready(() => {
   // Add module sequence footer
   if (ENV.DISCUSSION.SEQUENCE != null) {
     import('@canvas/module-sequence-footer').then(() => {
+      // @ts-expect-error
       $('#module_sequence_footer').moduleSequenceFooter({
         assetType: ENV.DISCUSSION.SEQUENCE.ASSET_TYPE,
         assetID: ENV.DISCUSSION.SEQUENCE.ASSET_ID,
@@ -315,7 +327,7 @@ ready(() => {
 
   // Get the party started
   if (ENV.DISCUSSION.INITIAL_POST_REQUIRED) {
-    const once = entry => {
+    const once = (entry: any) => {
       initEntries(entry)
       topicView.off('addReply', once)
     }

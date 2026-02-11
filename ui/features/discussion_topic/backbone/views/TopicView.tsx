@@ -27,6 +27,7 @@ import replyTemplate from '../../jst/_reply_form.handlebars'
 import Reply from '../Reply'
 import assignmentRubricDialog from '@canvas/discussions/jquery/assignmentRubricDialog'
 import * as RceCommandShim from '@canvas/rce-command-shim'
+// @ts-expect-error
 import htmlEscape from '@instructure/html-escape'
 import AssignmentExternalTools from '@canvas/assignments/react/AssignmentExternalTools'
 import DirectShareUserModal from '@canvas/direct-sharing/react/components/DirectShareUserModal'
@@ -35,6 +36,20 @@ import DirectShareCourseTray from '@canvas/direct-sharing/react/components/Direc
 const I18n = createI18nScope('discussions')
 
 export default class TopicView extends Backbone.View {
+  filterModel: any
+  topic: any
+  reply?: any
+  $addRootReply: any
+  $replyLink: any
+  $dueDates: any
+  $textarea: any
+  $discussionToolbar: any
+  $subscribeButton: any
+  $unsubscribeButton: any
+  $announcementCog: any
+  $AssignmentExternalTools: any
+  AssignmentExternalTools?: any
+
   static initClass() {
     this.prototype.events = {
       // #
@@ -72,11 +87,13 @@ export default class TopicView extends Backbone.View {
   }
 
   initialize() {
+    // @ts-expect-error
     super.initialize(...arguments)
     this.model.set('id', ENV.DISCUSSION.TOPIC.ID)
     // overwrite cid so Reply::getModelAttributes gets the right "go to parent" link
     this.model.cid = 'main'
     this.model.set('canAttach', ENV.DISCUSSION.PERMISSIONS.CAN_ATTACH_TOPIC)
+    // @ts-expect-error
     this.filterModel = this.options.filterModel
     this.filterModel.on('change', this.hideIfFiltering, this)
     this.topic = new DiscussionTopic({id: ENV.DISCUSSION.TOPIC.ID})
@@ -86,8 +103,9 @@ export default class TopicView extends Backbone.View {
     this.topic.set('subscribed', ENV.DISCUSSION.TOPIC.IS_SUBSCRIBED)
 
     // catch when non-root replies are added so we can twiddle the subscribed button
+    // @ts-expect-error
     EntryView.on('addReply', () => this.setSubscribed(true))
-    $(window).on('keydown', e => this.handleKeyDown(e))
+    $(window).on('keydown', (e: any) => this.handleKeyDown(e))
   }
 
   hideIfFiltering() {
@@ -100,6 +118,7 @@ export default class TopicView extends Backbone.View {
 
   afterRender() {
     let $el
+    // @ts-expect-error
     super.afterRender(...arguments)
     assignmentRubricDialog.initTriggers()
     this.$el.toggleClass('side_comment_discussion', !ENV.DISCUSSION.THREADED)
@@ -126,13 +145,13 @@ export default class TopicView extends Backbone.View {
     }
   }
 
-  toggleLocked(event) {
+  toggleLocked(event: any) {
     // this is weird but Topic.js was not set up to talk to the API for CRUD
     const locked = $(event.currentTarget).data('mark-locked')
     return this.topic.save({locked}).done(() => window.location.reload())
   }
 
-  toggleDueDates(event) {
+  toggleDueDates(event: any) {
     event.preventDefault()
     this.$dueDates.toggleClass('hidden')
     $(event.currentTarget).text(
@@ -142,13 +161,13 @@ export default class TopicView extends Backbone.View {
     )
   }
 
-  toggleEditorMode(event) {
+  toggleEditorMode(event: any) {
     event.preventDefault()
     event.stopPropagation()
     RceCommandShim.send(this.$textarea, 'toggle')
   }
 
-  subscribeTopic(event) {
+  subscribeTopic(event: any) {
     event.preventDefault()
     this.topic.topicSubscribe()
     this.subscriptionStatusChanged()
@@ -158,7 +177,7 @@ export default class TopicView extends Backbone.View {
     }
   }
 
-  unsubscribeTopic(event) {
+  unsubscribeTopic(event: any) {
     event.preventDefault()
     this.topic.topicUnsubscribe()
     this.subscriptionStatusChanged()
@@ -185,7 +204,7 @@ export default class TopicView extends Backbone.View {
   // Adds a root level reply to the main topic
   //
   // @api private
-  addReply(event) {
+  addReply(event?: any) {
     if (event != null) {
       event.preventDefault()
     }
@@ -197,7 +216,7 @@ export default class TopicView extends Backbone.View {
       this.reply.on('hide', () =>
         this.$addRootReply != null ? this.$addRootReply.show() : undefined,
       )
-      this.reply.on('save', entry => {
+      this.reply.on('save', (entry: any) => {
         if (!ENV.DISCUSSION.TOPIC.IS_ANNOUNCEMENT) {
           ENV.DISCUSSION.CAN_SUBSCRIBE = true
           this.topic.set('subscription_hold', false)
@@ -212,7 +231,7 @@ export default class TopicView extends Backbone.View {
 
   // Update subscribed state without posted. Done when replies are posted and
   // user is auto-subscribed.
-  setSubscribed(_newValue) {
+  setSubscribed(_newValue: boolean) {
     this.topic.set('subscribed', true)
     return this.subscriptionStatusChanged()
   }
@@ -220,10 +239,11 @@ export default class TopicView extends Backbone.View {
   // #
   // Handles events for declarative HTML. Right now only catches the reply
   // form allowing EntriesView to handle its own events
-  handleEvent(event) {
+  handleEvent(event: any) {
     // get the element and the method to call
     const el = $(event.currentTarget)
     const method = el.data('event')
+    // @ts-expect-error
     return typeof this[method] === 'function' ? this[method](event, el) : undefined
   }
 
@@ -238,10 +258,11 @@ export default class TopicView extends Backbone.View {
       const html = replyTemplate(modelData)
       this.$('#discussion_topic').append(html)
     }
+    // @ts-expect-error
     return super.render(...arguments)
   }
 
-  format(attr, value) {
+  format(attr: string, value: any) {
     if (attr === 'notification') {
       return value
     } else {
@@ -249,25 +270,26 @@ export default class TopicView extends Backbone.View {
     }
   }
 
-  addRootReply(event) {
+  addRootReply(event: any) {
     const target = $('#discussion_topic .discussion-reply-form')
     this.addReply(event)
+    // @ts-expect-error
     $('html, body').animate({scrollTop: target.offset().top - 100})
   }
 
-  markAllAsRead(event) {
+  markAllAsRead(event: any) {
     event.preventDefault()
     this.trigger('markAllAsRead')
     return this.$announcementCog.focus()
   }
 
-  markAllAsUnread(event) {
+  markAllAsUnread(event: any) {
     event.preventDefault()
     this.trigger('markAllAsUnread')
     return this.$announcementCog.focus()
   }
 
-  openSendTo(event, open = true) {
+  openSendTo(event: any, open = true) {
     if (event) event.preventDefault()
 
     ReactDOM.render(
@@ -284,7 +306,7 @@ export default class TopicView extends Backbone.View {
     )
   }
 
-  openCopyTo(event, open = true) {
+  openCopyTo(event: any, open = true) {
     if (event) event.preventDefault()
 
     ReactDOM.render(
@@ -301,7 +323,7 @@ export default class TopicView extends Backbone.View {
     )
   }
 
-  handleKeyDown(e) {
+  handleKeyDown(e: any) {
     const nodeName = e.target.nodeName.toLowerCase()
     if (
       nodeName === 'input' ||
