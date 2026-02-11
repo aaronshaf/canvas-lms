@@ -18,24 +18,30 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {useState} from 'react'
-import {bool} from 'prop-types'
 import {FormFieldGroup} from '@instructure/ui-form-field'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 
 const I18n = createI18nScope('quantitative_data_options')
 
-export default function QuantitativeDataOptions({canManage}) {
+interface QuantitativeDataOptionsProps {
+  canManage: boolean
+}
+
+export default function QuantitativeDataOptions({canManage}: QuantitativeDataOptionsProps) {
   const FORM_IDS = {
     RESTRICT_QUANTITATIVE_DATA: 'course_restrict_quantitative_data',
   }
 
-  const setFormValue = (id, value) => {
-    const field = document.getElementById(id)
-    field.value = value
+  const setFormValue = (id: string, value: boolean) => {
+    const field = document.getElementById(id) as HTMLInputElement | null
+    if (field) field.value = String(value)
   }
 
-  const getFormValue = id => document.getElementById(id).value
+  const getFormValue = (id: string): string => {
+    const element = document.getElementById(id) as HTMLInputElement | null
+    return element?.value || ''
+  }
 
   const [viewQuantitativeData, setViewQuantitativeData] = useState(
     getFormValue(FORM_IDS.RESTRICT_QUANTITATIVE_DATA) === 'true',
@@ -64,8 +70,4 @@ export default function QuantitativeDataOptions({canManage}) {
       </FormFieldGroup>
     </div>
   )
-}
-
-QuantitativeDataOptions.propTypes = {
-  canManage: bool.isRequired,
 }

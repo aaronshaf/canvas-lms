@@ -17,7 +17,6 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {IconMoreLine, IconEditLine, IconTrashLine} from '@instructure/ui-icons'
 import {Button} from '@instructure/ui-buttons'
 import {Menu} from '@instructure/ui-menu'
@@ -31,19 +30,28 @@ const I18n = createI18nScope('course_images')
 
 let overflow = ''
 
-export default class CourseImageSelector extends React.Component {
-  static propTypes = {
-    courseId: PropTypes.string.isRequired,
-    setting: PropTypes.string.isRequired,
-    store: PropTypes.object.isRequired,
-    wide: PropTypes.bool,
-  }
+interface CourseImageSelectorProps {
+  courseId: string
+  setting: string
+  // @ts-expect-error - Redux store type is complex
+  store: any
+  wide?: boolean
+}
 
+interface CourseImageSelectorState {
+  imageUrl?: string
+  showModal?: boolean
+  gettingImage?: boolean
+  removingImage?: boolean
+  uploadingImage?: boolean
+}
+
+export default class CourseImageSelector extends React.Component<CourseImageSelectorProps, CourseImageSelectorState> {
   static defaultProps = {
     wide: false,
   }
 
-  state = this.props.store.getState()
+  state: CourseImageSelectorState = this.props.store.getState()
 
   UNSAFE_componentWillMount() {
     this.props.store.subscribe(() => this.setState(this.props.store.getState()))

@@ -20,7 +20,6 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {isMidnight} from '@instructure/moment-utils'
 import moment from 'moment'
 import React, {useState} from 'react'
-import {bool} from 'prop-types'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {Text} from '@instructure/ui-text'
 import {FormFieldGroup} from '@instructure/ui-form-field'
@@ -34,7 +33,17 @@ import useDateTimeFormat from '@canvas/use-date-time-format-hook'
 
 const I18n = createI18nScope('CourseAvailabilityOptions')
 
-export default function CourseAvailabilityOptions({canManage, viewPastLocked, viewFutureLocked}) {
+interface CourseAvailabilityOptionsProps {
+  canManage: boolean
+  viewPastLocked: boolean
+  viewFutureLocked: boolean
+}
+
+export default function CourseAvailabilityOptions({
+  canManage,
+  viewPastLocked,
+  viewFutureLocked,
+}: CourseAvailabilityOptionsProps) {
   const formatDateLocal = useDateTimeFormat('date.formats.full', ENV.TIMEZONE)
   const formatDateCourse = useDateTimeFormat('date.formats.full', ENV.CONTEXT_TIMEZONE)
   const FORM_IDS = {
@@ -51,15 +60,18 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
     END_DATE: window.ENV.STUDENTS_ENROLLMENT_DATES?.end_at || window.ENV.DEFAULT_TERM_DATES?.end_at,
   }
 
-  const localDate = date => `${I18n.t('Local')}: ${formatDateLocal(date)}`
-  const courseDate = date => `${I18n.t('Course')}: ${formatDateCourse(date)}`
+  const localDate = (date: string) => `${I18n.t('Local')}: ${formatDateLocal(date)}`
+  const courseDate = (date: string) => `${I18n.t('Course')}: ${formatDateCourse(date)}`
 
-  const setFormValue = (id, value) => {
-    const field = document.getElementById(id)
-    field.value = value
+  const setFormValue = (id: string, value: boolean | string | null) => {
+    const field = document.getElementById(id) as HTMLInputElement | null
+    if (field) field.value = String(value)
   }
 
-  const getFormValue = id => document.getElementById(id).value
+  const getFormValue = (id: string): string => {
+    const element = document.getElementById(id) as HTMLInputElement | null
+    return element?.value || ''
+  }
 
   const [selectedApplicabilityValue, setSelectedApplicabilityValue] = useState(
     getFormValue(FORM_IDS.RESTRICT_ENROLLMENTS) === 'true' ? 'course' : 'term',
@@ -97,16 +109,16 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
 
   const clearCourseDates = () => {
     setFormValue(FORM_IDS.START_DATE, null)
-    setStartDate(null)
+    setStartDate('')
     setFormValue(FORM_IDS.END_DATE, null)
-    setEndDate(null)
+    setEndDate('')
   }
 
-  const endDateErrors = (startDate, endDate) => {
+  const endDateErrors = (startDate: string, endDate: string) => {
     if (endDate < startDate) {
       return [
         {
-          type: 'error',
+          type: 'error' as const,
           text: I18n.t('The end date can not occur before the start date.'),
         },
       ]
@@ -280,10 +292,4 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
       </FormFieldGroup>
     </div>
   )
-}
-
-CourseAvailabilityOptions.propTypes = {
-  canManage: bool.isRequired,
-  viewPastLocked: bool.isRequired,
-  viewFutureLocked: bool.isRequired,
 }

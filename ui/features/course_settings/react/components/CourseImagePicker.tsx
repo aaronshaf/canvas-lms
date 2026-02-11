@@ -17,7 +17,6 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Spinner} from '@instructure/ui-spinner'
 import {Tabs} from '@instructure/ui-tabs'
@@ -30,32 +29,37 @@ const I18n = createI18nScope('course_images')
 
 const dropIcon = getIconByType('image')
 
-export default class CourseImagePicker extends React.Component {
-  static propTypes = {
-    courseId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    handleFileUpload: PropTypes.func,
-    uploadingImage: PropTypes.bool,
-  }
+interface CourseImagePickerProps {
+  courseId: string | number
+  handleFileUpload?: (event: any, courseId: string | number) => void
+  uploadingImage?: boolean
+}
 
+interface CourseImagePickerState {
+  selectedIndex: number
+  fileDropMessages: Array<{text: string; type: string}> | null
+}
+
+export default class CourseImagePicker extends React.Component<CourseImagePickerProps, CourseImagePickerState> {
   static defaultProps = {
     handleFileUpload: () => {},
     uploadingImage: false,
   }
 
-  state = {
+  state: CourseImagePickerState = {
     selectedIndex: 0,
     fileDropMessages: null,
   }
 
-  handleTabChange = (_event, {index}) => {
+  handleTabChange = (_event: any, {index}: {index: number}) => {
     this.setState({
       selectedIndex: index,
     })
   }
 
-  handleDropAccepted = files => {
+  handleDropAccepted = (files: File[]) => {
     this.setState({fileDropMessages: null})
-    this.props.handleFileUpload(
+    this.props.handleFileUpload?.(
       {
         dataTransfer: {files},
         preventDefault: () => {},
