@@ -16,7 +16,26 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import jobs from './jquery/index'
+import jobs from './jquery/index.tsx'
+
+declare global {
+  interface Window {
+    jobs: any
+    running: any
+    tags: any
+    Jobs: any
+    Workers: any
+    Tags: any
+  }
+
+  const ENV: {
+    JOBS: {
+      opts: any
+      running_opts: any
+      tags_opts: any
+    }
+  }
+}
 
 // TODO: get this stuff off window, need to move the domready stuff out of
 // jobs.js into here
