@@ -18,17 +18,44 @@
 
 import {render} from '@canvas/react'
 import ready from '@instructure/ready'
-import ConfirmChangePassword from './react/ConfirmChangePassword'
+import ConfirmChangePassword, {
+  type ConfirmChangePasswordProps,
+} from './react/ConfirmChangePassword'
+
+type Pseudonym = {
+  id: string
+  user_name: string
+}
+
+type CC = {
+  path: string
+  confirmation_code: string
+}
+
+declare global {
+  interface Window {
+    ENV: {
+      CC: CC
+      PSEUDONYM: Pseudonym
+      PASSWORD_POLICY: ConfirmChangePasswordProps['defaultPolicy']
+      PASSWORD_POLICIES: ConfirmChangePasswordProps['passwordPoliciesAndPseudonyms']
+    }
+  }
+}
 
 ready(() => {
   const mountPoint = document.getElementById('confirm_change_password_mount_point')
 
+  if (!mountPoint) {
+    throw new Error('Could not find mount point for change password component')
+  }
+
   render(
     <ConfirmChangePassword
-      cc={ENV.CC}
-      pseudonym={ENV.PSEUDONYM}
-      defaultPolicy={ENV.PASSWORD_POLICY}
-      passwordPoliciesAndPseudonyms={ENV.PASSWORD_POLICIES}
+      cc={window.ENV.CC}
+      pseudonym={window.ENV.PSEUDONYM}
+      defaultPolicy={window.ENV.PASSWORD_POLICY}
+      passwordPoliciesAndPseudonyms={window.ENV.PASSWORD_POLICIES}
     />,
     mountPoint,
   )
