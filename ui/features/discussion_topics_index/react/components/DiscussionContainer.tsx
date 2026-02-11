@@ -34,7 +34,7 @@ import update from 'immutability-helper'
 import select from '@canvas/obj-select'
 import actions from '../actions'
 import {ConnectedDiscussionRow, ConnectedDraggableDiscussionRow} from './DiscussionRow'
-import {discussionList} from '../proptypes/discussion'
+import {DiscussionList} from '../proptypes/discussion'
 import propTypes from '../propTypes'
 
 const I18n = createI18nScope('discussions_v2')

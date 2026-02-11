@@ -15,22 +15,21 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import {shape, arrayOf, string, number, bool, oneOf} from 'prop-types'
-import {author} from '@canvas/users/react/proptypes/user'
+import type {author as Author} from '@canvas/users/react/proptypes/user'
 
-const discussion = shape({
-  id: string.isRequired,
-  position: number,
-  published: bool.isRequired,
-  title: string.isRequired,
-  message: string,
-  posted_at: string.isRequired,
-  author: author.isRequired,
-  read_state: oneOf(['read', 'unread']).isRequired,
-  unread_count: number.isRequired,
-  subscribed: bool.isRequired,
-})
+export interface Discussion {
+  id: string
+  position?: number
+  published: boolean
+  title: string
+  message?: string
+  posted_at: string
+  author: Author
+  read_state: 'read' | 'unread'
+  unread_count: number
+  subscribed: boolean
+}
 
-export const discussionList = arrayOf(discussion)
+export type DiscussionList = Discussion[]
 
-export default discussion
+export default Discussion

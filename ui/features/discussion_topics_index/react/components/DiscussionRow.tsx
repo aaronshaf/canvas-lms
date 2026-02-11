@@ -129,6 +129,7 @@ class DiscussionRow extends Component {
     deleteDiscussion: func.isRequired,
     setCopyTo: func.isRequired,
     setSendTo: func.isRequired,
+    // @ts-expect-error - discussionShape converted to TypeScript type
     discussion: discussionShape.isRequired,
     discussionTopicMenuTools: arrayOf(propTypes.discussionTopicMenuTools),
     displayDeleteMenuItem: bool.isRequired,
