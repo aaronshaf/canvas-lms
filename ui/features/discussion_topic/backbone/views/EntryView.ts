@@ -42,7 +42,6 @@ const I18n = createI18nScope('discussions')
 // @ts-expect-error - Backbone extend pattern
 extend(EntryView, Backbone.View)
 
-// @ts-expect-error - Backbone constructor pattern
 function EntryView(this: any) {
   this.handleKeyDown = this.handleKeyDown.bind(this)
   this.renderRatingSum = this.renderRatingSum.bind(this)
@@ -51,6 +50,7 @@ function EntryView(this: any) {
   this.renderTree = this.renderTree.bind(this)
   this.toggleDeleted = this.toggleDeleted.bind(this)
   this.toggleReadState = this.toggleReadState.bind(this)
+  // @ts-expect-error - Backbone __super__ pattern
   return EntryView.__super__.constructor.apply(this, arguments)
 }
 
@@ -109,7 +109,6 @@ EntryView.prototype.className = 'entry'
 EntryView.prototype.initialize = function () {
   // @ts-expect-error - Backbone __super__ pattern
   EntryView.__super__.initialize.apply(this, arguments)
-  // @ts-expect-error - Dynamic instances tracking
   this.constructor.instances[this.cid] = this
   this.$el.attr('id', 'entry-' + this.model.get('id'))
   this.$el.toggleClass('no-replies', !this.model.hasActiveReplies())
@@ -163,7 +162,6 @@ EntryView.prototype.handleDeclarativeEvent = function (event: any) {
   }
   event.stopPropagation()
   event.preventDefault()
-  // @ts-expect-error - Dynamic method call
   return this[method](event, $el)
 }
 

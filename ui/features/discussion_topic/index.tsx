@@ -152,7 +152,6 @@ ready(() => {
     model: filterModel,
   })
 
-  // @ts-expect-error - Backbone constructor
   const filterView = new DiscussionFilterResultsView({
     el: `${excludeUserContentCss} #filterResults`,
     allData: data,
@@ -188,13 +187,11 @@ ready(() => {
 
   // propagate mark all read/unread changes to all views
   function setAllReadStateAllViews(newReadState: string) {
-    // @ts-expect-error - Collection method
     entries.setAllReadState(newReadState)
     EntryView.setAllReadState(newReadState)
     return filterView.setAllReadState(newReadState)
   }
 
-  // @ts-expect-error - Backbone view on method
   entriesView.on('scrollAwayFromEntry', () => {
     // prevent scroll to top for non-pushstate browsers when hash changes
     const top = $container.scrollTop()
@@ -202,6 +199,7 @@ ready(() => {
       trigger: false,
       replace: true,
     })
+    // @ts-expect-error - jQuery scrollTop can accept undefined
     $container.scrollTop(top)
   })
 
@@ -245,25 +243,20 @@ ready(() => {
     scrollToTop()
   })
 
-  // @ts-expect-error - Backbone view on method
   topicView.on('markAllAsRead', () => {
     data.markAllAsRead()
     setAllReadStateAllViews('read')
   })
 
-  // @ts-expect-error - Backbone view on method
   topicView.on('markAllAsUnread', () => {
     data.markAllAsUnread()
     setAllReadStateAllViews('unread')
   })
 
-  // @ts-expect-error - Backbone view on method
   filterView.on('render', scrollToTop)
 
-  // @ts-expect-error - Backbone view on method
   filterView.on('hide', scrollToTop)
 
-  // @ts-expect-error - Backbone model on method
   filterModel.on('reset', () => {
     EntryView.expandRootEntries()
   })
@@ -306,13 +299,10 @@ ready(() => {
             root: `${ENV.DISCUSSION?.APP_URL}/`,
           })
           if (initialEntry) {
-            // @ts-expect-error - Collection get method
             const fetchedModel = entries.get(initialEntry.id)
             if (fetchedModel) {
-              // @ts-expect-error - Collection remove method
               entries.remove(fetchedModel)
             }
-            // @ts-expect-error - Collection add method
             entries.add(initialEntry)
             entriesView.render()
             router.navigate(`entry-${initialEntry.get('id')}`, true)
@@ -320,9 +310,7 @@ ready(() => {
         },
       })
 
-      // @ts-expect-error - Backbone view on method
       topicView.on('addReply', (entry: any) => {
-        // @ts-expect-error - Collection add method
         entries.add(entry)
         router.navigate(`entry-${entry.get('id')}`, true)
       })
@@ -353,10 +341,8 @@ ready(() => {
   if (ENV.DISCUSSION?.INITIAL_POST_REQUIRED) {
     const once = (entry: any) => {
       initEntries(entry)
-      // @ts-expect-error - Backbone view off method
       topicView.off('addReply', once)
     }
-    // @ts-expect-error - Backbone view on method
     topicView.on('addReply', once)
   } else {
     initEntries()
