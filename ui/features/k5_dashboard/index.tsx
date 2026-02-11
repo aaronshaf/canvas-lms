@@ -24,6 +24,14 @@ import {registerK5Theme} from '@canvas/k5/react/k5-theme'
 import {QueryClientProvider} from '@tanstack/react-query'
 import {queryClient} from '@canvas/query'
 import ready from '@instructure/ready'
+import type {EnvK5Dashboard} from '@canvas/global/env/EnvK5Dashboard'
+import type {EnvCommon} from '@canvas/global/env/EnvCommon'
+
+declare global {
+  interface Window {
+    ENV: EnvCommon & EnvK5Dashboard
+  }
+}
 
 registerK5Theme()
 
@@ -38,8 +46,8 @@ ready(() => {
           plannerEnabled={ENV.STUDENT_PLANNER_ENABLED}
           timeZone={ENV.TIMEZONE}
           hideGradesTabForStudents={ENV.HIDE_K5_DASHBOARD_GRADES_TAB}
-          createPermission={ENV.CREATE_COURSES_PERMISSIONS.PERMISSION}
-          restrictCourseCreation={ENV.CREATE_COURSES_PERMISSIONS.RESTRICT_TO_MCC_ACCOUNT}
+          createPermission={ENV.CREATE_COURSES_PERMISSIONS?.PERMISSION ?? false}
+          restrictCourseCreation={ENV.CREATE_COURSES_PERMISSIONS?.RESTRICT_TO_MCC_ACCOUNT ?? false}
           selectedContextCodes={ENV.SELECTED_CONTEXT_CODES}
           selectedContextsLimit={ENV.SELECTED_CONTEXTS_LIMIT}
           observedUsersList={ENV.OBSERVED_USERS_LIST}

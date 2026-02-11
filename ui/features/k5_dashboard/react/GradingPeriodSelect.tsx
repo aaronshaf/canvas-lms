@@ -18,23 +18,28 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {View} from '@instructure/ui-view'
 
-import {GradingPeriodShape} from '@canvas/k5/react/utils'
+import type {GradingPeriod} from '../types'
 
 const I18n = createI18nScope('dashboard_grading_period_select')
 
 export const ALL_PERIODS_OPTION = 'all'
 
+interface GradingPeriodSelectProps {
+  gradingPeriods: GradingPeriod[]
+  handleSelectGradingPeriod: (event: React.SyntheticEvent, data: {value?: string | number}) => void
+  selectedGradingPeriodId?: string
+}
+
 const GradingPeriodSelect = ({
   gradingPeriods,
   handleSelectGradingPeriod,
   selectedGradingPeriodId,
-}) => (
+}: GradingPeriodSelectProps) => (
   <View as="div">
     <SimpleSelect
       id="grading-period-select"
@@ -61,11 +66,5 @@ const GradingPeriodSelect = ({
     </SimpleSelect>
   </View>
 )
-
-GradingPeriodSelect.propTypes = {
-  gradingPeriods: PropTypes.arrayOf(PropTypes.shape(GradingPeriodShape)).isRequired,
-  handleSelectGradingPeriod: PropTypes.func.isRequired,
-  selectedGradingPeriodId: PropTypes.string,
-}
 
 export default GradingPeriodSelect

@@ -17,7 +17,6 @@
  */
 
 import React, {useContext} from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 import {AccessibleContent} from '@instructure/ui-a11y-content'
@@ -41,7 +40,17 @@ const I18n = createI18nScope('k5_dashboard_card')
 
 export const CARD_SIZE_PX = 300
 
-export function DashboardCardHeaderHero({image, backgroundColor, onClick}) {
+interface DashboardCardHeaderHeroProps {
+  image?: string
+  backgroundColor: string
+  onClick: (e?: React.MouseEvent) => void
+}
+
+export function DashboardCardHeaderHero({
+  image,
+  backgroundColor,
+  onClick,
+}: DashboardCardHeaderHeroProps) {
   return (
     <div
       style={{
@@ -62,14 +71,23 @@ export function DashboardCardHeaderHero({image, backgroundColor, onClick}) {
 }
 
 DashboardCardHeaderHero.displayName = 'DashboardCardHeaderHero'
-DashboardCardHeaderHero.propTypes = {
-  backgroundColor: PropTypes.string.isRequired,
-  onClick: PropTypes.func.isRequired,
-  image: PropTypes.string,
+
+interface LatestAnnouncementLinkProps {
+  courseId: string
+  color: string
+  loading: boolean
+  html_url?: string
+  title?: string
 }
 
-export const LatestAnnouncementLink = ({courseId, color, loading, title, html_url}) => {
-  const customSkeleton = ({key, ...props}) => (
+export const LatestAnnouncementLink = ({
+  courseId,
+  color,
+  loading,
+  title,
+  html_url,
+}: LatestAnnouncementLinkProps) => {
+  const customSkeleton = ({key, ...props}: {key: string | number; [key: string]: any}) => (
     <Flex key={key} alignItems="start" margin="xx-small small xx-small small" {...props}>
       <Flex.Item shouldGrow={true} shouldShrink={true}>
         <LoadingSkeleton
@@ -117,12 +135,15 @@ export const LatestAnnouncementLink = ({courseId, color, loading, title, html_ur
 }
 
 LatestAnnouncementLink.displayName = 'LatestAnnouncementLink'
-LatestAnnouncementLink.propTypes = {
-  courseId: PropTypes.string.isRequired,
-  color: PropTypes.string.isRequired,
-  loading: PropTypes.bool.isRequired,
-  html_url: PropTypes.string,
-  title: PropTypes.string,
+
+interface AssignmentLinksProps {
+  id: string
+  color: string
+  courseName: string
+  numDueToday?: number
+  numMissing?: number
+  numSubmittedToday?: number
+  loading: boolean
 }
 
 export const AssignmentLinks = ({
@@ -133,7 +154,7 @@ export const AssignmentLinks = ({
   numMissing = 0,
   numSubmittedToday = 0,
   loading,
-}) => {
+}: AssignmentLinksProps) => {
   const noneDueMessage =
     numSubmittedToday > 0 ? (
       <AccessibleContent
@@ -228,14 +249,19 @@ export const AssignmentLinks = ({
 }
 
 AssignmentLinks.displayName = 'AssignmentLinks'
-AssignmentLinks.propTypes = {
-  id: PropTypes.string.isRequired,
-  color: PropTypes.string.isRequired,
-  courseName: PropTypes.string.isRequired,
-  numDueToday: PropTypes.number,
-  numMissing: PropTypes.number,
-  numSubmittedToday: PropTypes.number,
-  loading: PropTypes.bool.isRequired,
+
+interface K5DashboardCardProps {
+  href: string
+  id: string
+  shortName: string
+  originalName?: string
+  backgroundColor?: string
+  courseColor?: string
+  connectDragSource?: (element: React.ReactElement) => React.ReactElement
+  connectDropTarget?: (element: React.ReactElement) => React.ReactElement
+  headingLevel?: string
+  image?: string
+  isDragging?: boolean
 }
 
 const K5DashboardCard = ({
@@ -248,7 +274,7 @@ const K5DashboardCard = ({
   headingLevel = 'h3',
   image,
   isDragging = false,
-}) => {
+}: K5DashboardCardProps) => {
   const backgroundColor = courseColor || DEFAULT_COURSE_COLOR
 
   const k5Context = useContext(K5DashboardContext)
@@ -265,11 +291,11 @@ const K5DashboardCard = ({
     a => a.context_code === `course_${id}`,
   )
 
-  const handleHeaderClick = e => {
+  const handleHeaderClick = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault()
     }
-    window.location = href
+    window.location.href = href
   }
 
   // The transform: translate3d(0,0,0) below is required to do a Chrome bug with react-dnd drag
@@ -351,18 +377,5 @@ const K5DashboardCard = ({
 }
 
 K5DashboardCard.displayName = 'K5DashboardCard'
-K5DashboardCard.propTypes = {
-  href: PropTypes.string.isRequired,
-  id: PropTypes.string.isRequired,
-  shortName: PropTypes.string.isRequired,
-  originalName: PropTypes.string,
-  backgroundColor: PropTypes.string,
-  courseColor: PropTypes.string,
-  connectDragSource: PropTypes.func,
-  connectDropTarget: PropTypes.func,
-  headingLevel: PropTypes.string,
-  image: PropTypes.string,
-  isDragging: PropTypes.bool,
-}
 
 export default K5DashboardCard

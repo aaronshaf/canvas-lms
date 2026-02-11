@@ -17,16 +17,21 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import moment from 'moment-timezone'
 
 import {View} from '@instructure/ui-view'
 import {Heading} from '@instructure/ui-heading'
 
 import * as tz from '@instructure/moment-utils'
-import ImportantDateItem, {ImportantDateItemShape} from './ImportantDateItem'
+import ImportantDateItem, {type ImportantDateItemProps} from './ImportantDateItem'
 
-const ImportantDateSection = ({date, items, timeZone}) => {
+interface ImportantDateSectionProps {
+  date: string
+  items: ImportantDateItemProps[]
+  timeZone: string
+}
+
+const ImportantDateSection = ({date, items, timeZone}: ImportantDateSectionProps) => {
   const isSameYear = moment(date).isSame(moment().tz(timeZone), 'year')
   return (
     <View as="div" margin="medium 0 x-small">
@@ -41,12 +46,6 @@ const ImportantDateSection = ({date, items, timeZone}) => {
       ))}
     </View>
   )
-}
-
-ImportantDateSection.propTypes = {
-  date: PropTypes.string.isRequired,
-  items: PropTypes.arrayOf(PropTypes.shape(ImportantDateItemShape)).isRequired,
-  timeZone: PropTypes.string.isRequired,
 }
 
 export default ImportantDateSection

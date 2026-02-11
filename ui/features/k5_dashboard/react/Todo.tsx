@@ -17,7 +17,6 @@
  */
 
 import React, {useState} from 'react'
-import PropTypes from 'prop-types'
 import moment from 'moment-timezone'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
@@ -36,7 +35,31 @@ import * as tz from '@instructure/moment-utils'
 
 const I18n = createI18nScope('todo')
 
-export const getBaseDueAt = ({all_dates}) =>
+interface DateInfo {
+  base?: boolean
+  due_at?: string
+}
+
+interface Assignment {
+  id: string
+  all_dates: DateInfo[]
+  all_dates_count?: number
+  due_at?: string
+  name: string
+  points_possible: number
+}
+
+interface TodoProps {
+  assignment?: Assignment
+  context_name: string
+  html_url: string
+  ignore: string
+  needs_grading_count?: number
+  timeZone: string
+  openInNewTab: boolean
+}
+
+export const getBaseDueAt = ({all_dates}: Assignment) =>
   (all_dates.filter(d => d.base)[0] || all_dates[0])?.due_at
 
 const Todo = ({
@@ -47,7 +70,7 @@ const Todo = ({
   needs_grading_count,
   timeZone,
   openInNewTab,
-}) => {
+}: TodoProps) => {
   const [ignored, setIgnored] = useState(false)
 
   // Only assignments are supported (ungraded_quizzes are not)
@@ -118,7 +141,7 @@ const Todo = ({
               •
             </View>
           </PresentationContent>
-          {all_dates_count > 1 && all_dates.length === 0 ? (
+          {all_dates_count && all_dates_count > 1 && all_dates.length === 0 ? (
             <View>{I18n.t('Multiple Due Dates')}</View>
           ) : (
             <>
@@ -143,28 +166,6 @@ const Todo = ({
       </IconButton>
     </Flex>
   )
-}
-
-Todo.propTypes = {
-  assignment: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    all_dates: PropTypes.arrayOf(
-      PropTypes.shape({
-        base: PropTypes.bool,
-        due_at: PropTypes.string,
-      }),
-    ).isRequired,
-    all_dates_count: PropTypes.number,
-    due_at: PropTypes.string,
-    name: PropTypes.string.isRequired,
-    points_possible: PropTypes.number.isRequired,
-  }),
-  context_name: PropTypes.string.isRequired,
-  html_url: PropTypes.string.isRequired,
-  ignore: PropTypes.string.isRequired,
-  needs_grading_count: PropTypes.number,
-  timeZone: PropTypes.string.isRequired,
-  openInNewTab: PropTypes.bool.isRequired,
 }
 
 export default Todo

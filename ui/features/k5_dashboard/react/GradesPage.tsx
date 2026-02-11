@@ -18,7 +18,6 @@
  */
 
 import React, {useEffect, useState, useRef, useCallback} from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 import {Text} from '@instructure/ui-text'
@@ -30,9 +29,11 @@ import {
   fetchGradesForGradingPeriodAsObserver,
   getCourseGrades,
   transformGrades,
+  
 } from '@canvas/k5/react/utils'
+import type {GradingPeriod} from '../types'
 import {showFlashError} from '@canvas/alerts/react/FlashAlert'
-import GradesSummary from './GradesSummary'
+import GradesSummary, {type GradeSummary} from './GradesSummary'
 import GradingPeriodSelect, {ALL_PERIODS_OPTION} from './GradingPeriodSelect'
 import LoadingWrapper from '@canvas/k5/react/LoadingWrapper'
 import useFetchApi from '@canvas/use-fetch-api-hook'
@@ -40,10 +41,31 @@ import {isUserObservingStudent} from './utils'
 
 const I18n = createI18nScope('dashboard_grades_page')
 
-export const getGradingPeriodsFromCourses = courses =>
+interface Course {
+  courseId: string
+  gradingPeriods: GradingPeriod[]
+  enrollments?: any[]
+  totalScoreForAllGradingPeriods?: number
+  totalGradeForAllGradingPeriods?: string
+  [key: string]: any
+}
+
+interface SpecificPeriodGrade {
+  courseId: string
+  grade: string
+  score: number
+}
+
+interface CurrentUser {
+  id?: string
+  display_name?: string
+  avatar_image_url?: string
+}
+
+export const getGradingPeriodsFromCourses = (courses: Course[]): GradingPeriod[] =>
   courses
     .flatMap(course => course.gradingPeriods)
-    .reduce((acc, gradingPeriod) => {
+    .reduce((acc: GradingPeriod[], gradingPeriod: GradingPeriod) => {
       if (!acc.find(({id}) => gradingPeriod.id === id)) {
         acc.push(gradingPeriod)
       }
@@ -51,10 +73,10 @@ export const getGradingPeriodsFromCourses = courses =>
     }, [])
 
 export const overrideCourseGradingPeriods = (
-  courses,
-  selectedGradingPeriodId,
-  specificPeriodGrades,
-) =>
+  courses: GradeSummary[] | null,
+  selectedGradingPeriodId: string,
+  specificPeriodGrades: SpecificPeriodGrade[],
+): GradeSummary[] | null =>
   courses &&
   courses
     .map(course => {
@@ -63,7 +85,7 @@ export const overrideCourseGradingPeriods = (
       // The course isn't associated with this grading period, filter it out
       if (
         selectedGradingPeriodId !== ALL_PERIODS_OPTION &&
-        !course.gradingPeriods.some(({id}) => id === selectedGradingPeriodId)
+        !(course as any).gradingPeriods?.some((gp: GradingPeriod) => gp.id === selectedGradingPeriodId)
       )
         return null
       // The course has this grading period, so override the current scores with
@@ -80,11 +102,15 @@ export const overrideCourseGradingPeriods = (
       return course
     })
     // Filter out nulls
-    .filter(c => c)
+    .filter((c): c is GradeSummary => c !== null)
 
-export const getCoursesByObservee = (courses, observedUserId, currentUser) => {
+export const getCoursesByObservee = (
+  courses: Course[],
+  observedUserId: string | null | undefined,
+  currentUser: CurrentUser,
+): GradeSummary[] => {
   // All courses will be shown by default
-  let coursesByObservee = courses
+  let coursesByObservee: any[] = courses
   const currentUserId = currentUser?.id
   if (observedUserId && observedUserId === currentUserId) {
     // If the observed user is the current user, only non-observer enrollments
@@ -113,15 +139,27 @@ export const getCoursesByObservee = (courses, observedUserId, currentUser) => {
   return coursesByObservee
 }
 
-export const GradesPage = ({visible, currentUserRoles, observedUserId, currentUser}) => {
-  const [courses, setCourses] = useState(null)
-  const [coursesByUser, setCoursesByUser] = useState(null)
-  const [gradingPeriods, setGradingPeriods] = useState([])
+interface GradesPageProps {
+  visible: boolean
+  currentUserRoles: string[]
+  observedUserId?: string | null
+  currentUser: CurrentUser
+}
+
+export const GradesPage = ({
+  visible,
+  currentUserRoles,
+  observedUserId,
+  currentUser,
+}: GradesPageProps) => {
+  const [courses, setCourses] = useState<Course[] | null>(null)
+  const [coursesByUser, setCoursesByUser] = useState<GradeSummary[] | null>(null)
+  const [gradingPeriods, setGradingPeriods] = useState<GradingPeriod[]>([])
   const [initalLoading, setInitialLoading] = useState(true)
   const [gradesLoading, setGradesLoading] = useState(false)
   const [selectedGradingPeriodId, setSelectedGradingPeriodId] = useState('')
-  const [specificPeriodGrades, setSpecificPeriodGrades] = useState([])
-  const userRef = useRef(null)
+  const [specificPeriodGrades, setSpecificPeriodGrades] = useState<SpecificPeriodGrade[]>([])
+  const userRef = useRef<string | null | undefined>(null)
   const includeObservedUsers = currentUserRoles.includes('observer')
   const include = [
     'total_scores',
@@ -176,10 +214,10 @@ export const GradesPage = ({visible, currentUserRoles, observedUserId, currentUs
     }
 
     if (selectedGradingPeriodId === ALL_PERIODS_OPTION) {
-      const allGrades = coursesByUser.map(course => ({
+      const allGrades = coursesByUser!.map(course => ({
         courseId: course.courseId,
-        score: course.totalScoreForAllGradingPeriods,
-        grade: course.totalGradeForAllGradingPeriods,
+        score: (course as any).totalScoreForAllGradingPeriods,
+        grade: (course as any).totalGradeForAllGradingPeriods,
       }))
       setSpecificPeriodGrades(allGrades)
       return
@@ -204,8 +242,8 @@ export const GradesPage = ({visible, currentUserRoles, observedUserId, currentUs
     }
   }, [selectedGradingPeriodId, observedUserId, coursesByUser])
 
-  const handleSelectGradingPeriod = (_, {value}) => {
-    setSelectedGradingPeriodId(value)
+  const handleSelectGradingPeriod = (_: React.SyntheticEvent, {value}: {value?: string | number}) => {
+    setSelectedGradingPeriodId(value as string)
   }
 
   // Override current grading period grades with selected period if they exist
@@ -242,7 +280,7 @@ export const GradesPage = ({visible, currentUserRoles, observedUserId, currentUs
               />
             )}
           </LoadingWrapper>
-          {(selectedCourses?.length > 0 || loading) && (
+          {(selectedCourses?.length! > 0 || loading) && (
             <>
               <View as="div" margin="small 0">
                 <Text as="div" size="small">
@@ -273,13 +311,3 @@ export const GradesPage = ({visible, currentUserRoles, observedUserId, currentUs
 }
 
 GradesPage.displayName = 'GradesPage'
-GradesPage.propTypes = {
-  visible: PropTypes.bool.isRequired,
-  currentUserRoles: PropTypes.arrayOf(PropTypes.string).isRequired,
-  observedUserId: PropTypes.string,
-  currentUser: PropTypes.shape({
-    id: PropTypes.string,
-    display_name: PropTypes.string,
-    avatar_image_url: PropTypes.string,
-  }).isRequired,
-}
