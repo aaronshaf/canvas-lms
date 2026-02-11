@@ -54,11 +54,11 @@ describe('StudentLastAttended', () => {
     const {ref} = renderStudentLastAttended()
     const newDate = new Date('2018-03-05T07:00:00.000Z')
 
-    ref.current!.state.selectedDate = new Date('2018-03-04T07:00:00.000Z') as any
+    ref.current!.setState({selectedDate: new Date('2018-03-04T07:00:00.000Z').toISOString()})
 
     vi.spyOn(ref.current!, 'postDateToBackend')
 
-    ref.current!.onDateSubmit(newDate as any)
+    ref.current!.onDateSubmit(newDate)
 
     expect(ref.current!.postDateToBackend).toHaveBeenCalledWith(newDate.toISOString())
   })

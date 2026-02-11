@@ -32,12 +32,12 @@ import {showFlashError} from '@canvas/alerts/react/FlashAlert'
 
 const I18n = createI18nScope('last_attended')
 
-function formatDate(date: Moment): string {
-  return tz.format(date, 'date.formats.medium_with_weekday')
+function formatDate(date: Date): string {
+  return tz.format(date, 'date.formats.medium_with_weekday') || ''
 }
 
 interface StudentLastAttendedProps {
-  defaultDate: string | null
+  defaultDate: string | null | undefined
   courseID: string
   studentID: string
 }
@@ -71,11 +71,11 @@ export default class StudentLastAttended extends React.Component<
     this.createCancelToken()
   }
 
-  onDateSubmit = (d: Moment | null) => {
+  onDateSubmit = (d: Date | null) => {
     if (!d) return
     const currentMoment = moment(d)
     if (moment(this.state.selectedDate).isSame(currentMoment)) return // No change, no need to hit the back end
-    this.postDateToBackend(d.toISOString())
+    this.postDateToBackend(currentMoment.toISOString())
   }
 
   componentWillUnMount() {
@@ -96,7 +96,7 @@ export default class StudentLastAttended extends React.Component<
         {
           date: currentDate,
           cancelToken: this.source.token,
-        }
+        },
       )
       .then(r => {
         this.setState({loading: false, selectedDate: r?.data?.date})
@@ -109,9 +109,8 @@ export default class StudentLastAttended extends React.Component<
 
   renderTitle() {
     return (
-      // @ts-expect-error
       <View display="block" margin="small 0">
-        <Text margin="small 0">{I18n.t('Last day attended')}</Text>
+        <Text>{I18n.t('Last day attended')}</Text>
       </View>
     )
   }
@@ -119,23 +118,15 @@ export default class StudentLastAttended extends React.Component<
   render() {
     if (this.state.loading) {
       return (
-        // @ts-expect-error
         <View display="block" margin="small x-small">
           {this.renderTitle()}
-          {/* @ts-expect-error */}
           <View display="block" margin="small">
-            {/* @ts-expect-error */}
-            <Spinner
-              margin="small 0"
-              renderTitle={I18n.t('Loading last attended date')}
-              size="small"
-            />
+            <Spinner renderTitle={I18n.t('Loading last attended date')} size="small" />
           </View>
         </View>
       )
     }
     return (
-      // @ts-expect-error
       <View display="block" margin="small x-small" width="222px">
         {this.renderTitle()}
         <CanvasDateInput2
@@ -145,6 +136,7 @@ export default class StudentLastAttended extends React.Component<
           invalidDateMessage={value => I18n.t('%{value} is not a valid date', {value})}
           selectedDate={this.state.selectedDate}
           withRunningValue={true}
+          interaction="enabled"
         />
       </View>
     )

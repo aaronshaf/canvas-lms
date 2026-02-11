@@ -24,7 +24,7 @@ export default function initLastAttended(
   rootElement: HTMLElement,
   courseID: string,
   studentID: string,
-  lastAttendedDate: string | null
+  lastAttendedDate: string | null | undefined,
 ): void {
   legacyRender(
     <StudentLastAttended
