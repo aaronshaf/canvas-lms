@@ -25,11 +25,13 @@ import GenericErrorPage from '@canvas/generic-error-page'
 import errorShipUrl from '@canvas/images/ErrorShip.svg'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import LoadingIndicator from '@canvas/loading-indicator/react'
+import type {ApolloClient} from '@apollo/client'
+import type {InMemoryCache} from '@apollo/client'
 
 const I18n = createI18nScope('discussion_insights')
 
 const DiscussionInsightsApp = () => {
-  const [client, setClient] = useState(null)
+  const [client, setClient] = useState<ApolloClient<InMemoryCache> | null>(null)
 
   const queryClient = new QueryClient()
 
@@ -37,7 +39,7 @@ const DiscussionInsightsApp = () => {
     if (!client) {
       setClient(createClient())
     }
-  }, [client, setClient])
+  }, [client])
 
   if (!client) {
     return <LoadingIndicator />
