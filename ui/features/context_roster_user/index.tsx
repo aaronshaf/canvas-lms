@@ -40,15 +40,15 @@ ready(() => {
       $('.profile_url').attr('href'),
       'PUT',
       {'user[show_user_services]': $(this).prop('checked')},
-      _data => {},
-      _data => {},
+      (_data: any) => {},
+      (_data: any) => {},
     )
   })
 
   $('.unconclude_enrollment_link').click(function (event) {
     event.preventDefault()
     const $enrollment = $(this).parents('.enrollment')
-    $.ajaxJSON($(this).attr('href'), 'POST', {}, _data => {
+    $.ajaxJSON($(this).attr('href'), 'POST', {}, (_data: any) => {
       $enrollment.find('.conclude_enrollment_link_holder').show()
       $enrollment.find('.unconclude_enrollment_link_holder').hide()
       $enrollment.find('.completed_at_holder').hide()
@@ -62,9 +62,10 @@ ready(() => {
       .confirmDelete({
         message: I18n.t('confirm.conclude', 'Are you sure you want to conclude this enrollment?'),
         url: $(this).attr('href'),
-        success(data) {
+        success(data: any) {
           const comp_at = datetimeString(data.enrollment.completed_at)
           const $enrollment = $(this)
+          // @ts-expect-error - undim is a jQuery plugin method
           $enrollment.undim()
           $enrollment.find('.conclude_enrollment_link_holder').hide()
           $enrollment.find('.unconclude_enrollment_link_holder').show()
@@ -82,11 +83,11 @@ ready(() => {
       $(this).attr('href'),
       'POST',
       {limit},
-      _data => {
+      (_data: any) => {
         $user.loadingImage('remove')
         $('.elevate_enrollment_link_holder,.restrict_enrollment_link_holder').slideToggle()
       },
-      _data => {
+      (_data: any) => {
         $.flashError(
           I18n.t(
             'enrollment_change_failed',
@@ -109,7 +110,7 @@ ready(() => {
           'Are you sure you want to delete this enrollment?',
         ),
         url: $(this).attr('href'),
-        success(_data) {
+        success(_data: any) {
           $(this).closest('.enrollment').hide()
         },
       })
@@ -123,12 +124,14 @@ ready(() => {
 
   const lastAttendedContainer = document.getElementById('student_last_attended__component')
   if (lastAttendedContainer != null) {
+    // @ts-expect-error - COURSE_ID, USER_ID, LAST_ATTENDED_DATE are set by context roster controller
     initLastAttended(lastAttendedContainer, ENV.COURSE_ID, ENV.USER_ID, ENV.LAST_ATTENDED_DATE)
   }
 
   const container = document.querySelector('#pairing-code')
   if (container != null) {
     legacyRender(
+      // @ts-expect-error - USER_ID, CONTEXT_USER_DISPLAY_NAME are set by context roster controller
       <GeneratePairingCode userId={ENV.USER_ID} name={ENV.CONTEXT_USER_DISPLAY_NAME} />,
       container,
     )
@@ -136,12 +139,14 @@ ready(() => {
 
   if (
     ENV.FEATURES.student_access_token_management &&
+    // @ts-expect-error - can_view_user_generated_access_tokens is set by context roster controller
     ENV.PERMISSIONS?.can_view_user_generated_access_tokens
   ) {
     const accessTokensContainer = document.getElementById('user_access_tokens_react_mount_point')
     if (accessTokensContainer) {
       render(
         <QueryClientProvider client={queryClient}>
+          {/* @ts-expect-error - USER_ID is set by context roster controller */}
           <AccessTokensSection userId={ENV.USER_ID} />
         </QueryClientProvider>,
         accessTokensContainer,

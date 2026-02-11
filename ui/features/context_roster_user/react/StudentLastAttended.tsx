@@ -17,9 +17,10 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import moment from 'moment'
+import type {Moment} from 'moment'
 import axios from '@canvas/axios'
+import type {CancelTokenSource} from 'axios'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import * as tz from '@instructure/moment-utils'
 
@@ -31,22 +32,32 @@ import {showFlashError} from '@canvas/alerts/react/FlashAlert'
 
 const I18n = createI18nScope('last_attended')
 
-function formatDate(date) {
-  return tz.format(date, 'date.formats.medium_with_weekday')
+function formatDate(date: Date): string {
+  return tz.format(date, 'date.formats.medium_with_weekday') || ''
 }
 
-export default class StudentLastAttended extends React.Component {
-  static propTypes = {
-    defaultDate: PropTypes.string,
-    courseID: PropTypes.string.isRequired,
-    studentID: PropTypes.string.isRequired,
-  }
+interface StudentLastAttendedProps {
+  defaultDate: string | null | undefined
+  courseID: string
+  studentID: string
+}
 
+interface StudentLastAttendedState {
+  selectedDate: string | null
+  loading: boolean
+}
+
+export default class StudentLastAttended extends React.Component<
+  StudentLastAttendedProps,
+  StudentLastAttendedState
+> {
   static defaultProps = {
     defaultDate: null,
   }
 
-  constructor(props) {
+  private source!: CancelTokenSource
+
+  constructor(props: StudentLastAttendedProps) {
     super(props)
     const defaultDate = moment(this.props.defaultDate)
     const currentDate = defaultDate.isValid() ? defaultDate.toISOString() : null
@@ -60,11 +71,11 @@ export default class StudentLastAttended extends React.Component {
     this.createCancelToken()
   }
 
-  onDateSubmit = d => {
+  onDateSubmit = (d: Date | null) => {
     if (!d) return
     const currentMoment = moment(d)
     if (moment(this.state.selectedDate).isSame(currentMoment)) return // No change, no need to hit the back end
-    this.postDateToBackend(d.toISOString())
+    this.postDateToBackend(currentMoment.toISOString())
   }
 
   componentWillUnMount() {
@@ -77,26 +88,29 @@ export default class StudentLastAttended extends React.Component {
     this.source = cancelToken.source()
   }
 
-  postDateToBackend(currentDate) {
+  postDateToBackend(currentDate: string) {
     this.setState({loading: true})
     axios
-      .put(`/api/v1/courses/${this.props.courseID}/users/${this.props.studentID}/last_attended`, {
-        date: currentDate,
-        cancelToken: this.source.token,
-      })
+      .put<{date: string}>(
+        `/api/v1/courses/${this.props.courseID}/users/${this.props.studentID}/last_attended`,
+        {
+          date: currentDate,
+          cancelToken: this.source.token,
+        },
+      )
       .then(r => {
         this.setState({loading: false, selectedDate: r?.data?.date})
       })
       .catch(() => {
         this.setState({loading: false})
-        showFlashError(I18n.t('Failed To Change Last Attended Date'))
+        showFlashError(I18n.t('Failed To Change Last Attended Date'))()
       })
   }
 
   renderTitle() {
     return (
       <View display="block" margin="small 0">
-        <Text margin="small 0">{I18n.t('Last day attended')}</Text>
+        <Text>{I18n.t('Last day attended')}</Text>
       </View>
     )
   }
@@ -107,11 +121,7 @@ export default class StudentLastAttended extends React.Component {
         <View display="block" margin="small x-small">
           {this.renderTitle()}
           <View display="block" margin="small">
-            <Spinner
-              margin="small 0"
-              renderTitle={I18n.t('Loading last attended date')}
-              size="small"
-            />
+            <Spinner renderTitle={I18n.t('Loading last attended date')} size="small" />
           </View>
         </View>
       )
@@ -126,6 +136,7 @@ export default class StudentLastAttended extends React.Component {
           invalidDateMessage={value => I18n.t('%{value} is not a valid date', {value})}
           selectedDate={this.state.selectedDate}
           withRunningValue={true}
+          interaction="enabled"
         />
       </View>
     )
