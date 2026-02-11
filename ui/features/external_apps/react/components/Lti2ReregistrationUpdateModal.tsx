@@ -46,6 +46,7 @@ export default class Lti2ReregistrationUpdateModal extends React.Component {
     } else {
       this.setState({modalIsOpen: false})
     }
+
     this.props.returnFocus?.()
   }
 

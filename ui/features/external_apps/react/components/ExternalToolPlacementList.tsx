@@ -113,6 +113,7 @@ export default class ExternalToolPlacementList extends React.Component {
    * @param {String} placement required
    * @param {Function} cb optional
    */
+
   togglePlacement = (placement, cb = () => {}) => {
     this.setState(({tool}) => {
       tool[placement].enabled = tool[placement].hasOwnProperty('enabled')
@@ -149,6 +150,7 @@ export default class ExternalToolPlacementList extends React.Component {
    * Calls props.onToggleSuccess if API request succeeds.
    * @param {*} placement
    */
+
   handleTogglePlacement = placement => {
     const onSuccess = response => {
       this.props.onToggleSuccess(response, placement)
@@ -193,7 +195,9 @@ export default class ExternalToolPlacementList extends React.Component {
   shouldShowToggleButtons = () => {
     const tool = this.state.tool
     const is_1_1_tool = tool.version === '1.1'
+
     const isFlagEnabled = ENV.FEATURES.lti_toggle_placements
+
     const canUpdateTool = ENV.PERMISSIONS && ENV.PERMISSIONS.edit_tool_manually
     const [_, contextType, contextId] = ENV.CONTEXT_BASE_URL?.split('/') || []
     const isEditableContext =
@@ -231,6 +235,7 @@ export default class ExternalToolPlacementList extends React.Component {
     if (!this.shouldShowToggleButtons()) {
       return placements
         .filter(key => this.isPlacementEnabled(tool, key))
+
         .map(key => <div key={key}>{ALL_PLACEMENTS[key]}</div>)
     }
 
@@ -258,6 +263,7 @@ export default class ExternalToolPlacementList extends React.Component {
     } else {
       return placements
         .filter(key => this.isPlacementEnabled(tool, key))
+
         .map(key => <div key={key}>{ALL_PLACEMENTS[key]}</div>)
     }
   }
@@ -271,6 +277,7 @@ export default class ExternalToolPlacementList extends React.Component {
    * @param {String} placement - the placement key
    * @returns true if placement.enabled is true, or if is not present
    */
+
   isPlacementEnabled(tool, placement) {
     if (tool.version === '1.1' && placement === 'default_placements') {
       return !tool.not_selectable

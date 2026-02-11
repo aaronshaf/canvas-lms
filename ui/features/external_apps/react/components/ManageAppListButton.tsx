@@ -56,6 +56,7 @@ export default class ManageAppListButton extends React.Component<
   componentDidMount() {
     this.setState({
       originalAccessToken: this.maskedAccessToken(ENV.MASKED_APP_CENTER_ACCESS_TOKEN),
+
       accessToken: this.maskedAccessToken(ENV.MASKED_APP_CENTER_ACCESS_TOKEN),
     })
   }

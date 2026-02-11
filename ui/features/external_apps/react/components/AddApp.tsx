@@ -20,6 +20,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {map, each, isEmpty, compact} from 'es-toolkit/compat'
 import $ from 'jquery'
 import React from 'react'
+
 import createReactClass from 'create-react-class'
 import PropTypes from 'prop-types'
 import Modal from '@canvas/instui-bindings/react/InstuiModal'
@@ -71,6 +72,7 @@ export default createReactClass({
         required: true,
         description: I18n.t('Consumer Key'),
       }
+
       fields.shared_secret = {
         type: 'text',
         value: '',
@@ -145,10 +147,13 @@ export default createReactClass({
     each(this.state.fields, (v, k) => {
       if (v.type === 'checkbox') {
         if (!v.value) return
+
         queryParams[k] = '1'
       } else queryParams[k] = encodeURIComponent(v.value)
     })
+
     delete queryParams.consumer_key
+
     delete queryParams.shared_secret
 
     return queryParams
@@ -156,7 +161,9 @@ export default createReactClass({
 
   submit(e) {
     const newTool = new ExternalTool()
+
     newTool.on('sync', this.onSaveSuccess, this)
+
     newTool.on('error', this.onSaveFail, this)
     if (!isEmpty(this.state.invalidFields)) {
       const fields = this.state.fields
@@ -170,14 +177,18 @@ export default createReactClass({
     }
     if (this.props.app.requires_secret) {
       newTool.set('consumer_key', this.state.fields.consumer_key.value)
+
       newTool.set('shared_secret', this.state.fields.shared_secret.value)
     } else {
       newTool.set('consumer_key', 'N/A')
+
       newTool.set('shared_secret', 'N/A')
     }
 
     newTool.set('name', this.state.fields.name.value)
+
     newTool.set('app_center_id', this.props.app.short_name)
+
     newTool.set('config_settings', this.configSettings())
 
     $(e.target).prop('disabled', true)

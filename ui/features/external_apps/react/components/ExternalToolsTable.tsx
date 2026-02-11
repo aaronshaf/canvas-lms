@@ -54,6 +54,7 @@ export class ExternalToolsTable extends React.Component {
 
   componentDidMount() {
     store.addChangeListener(this.onChange)
+
     if (!store.getState().isLoaded) {
       store.fetch()
     }
@@ -95,12 +96,14 @@ export class ExternalToolsTable extends React.Component {
       return null
     }
     const t = null
+
     const externalTools = store.getState().externalTools
     const rceFavCount = countFavorites(externalTools)
     const topNavFavCount = externalTools.reduce(
       (accum, current) => accum + (current.is_top_nav_favorite ? 1 : 0),
       0,
     )
+
     return externalTools.map(tool => (
       <ExternalToolsTableRow
         key={tool.app_id}
@@ -204,6 +207,7 @@ export class ExternalToolsTable extends React.Component {
 export function countFavorites(tools) {
   return tools.reduce(
     // On_by_default apps don't count towards the limit
+
     (accum, current) =>
       accum +
       (current.is_rce_favorite &&

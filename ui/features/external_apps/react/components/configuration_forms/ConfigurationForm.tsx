@@ -45,13 +45,21 @@ export default class ConfigurationForm extends React.Component {
 
   constructor(props, context) {
     super(props, context)
+
     this.configurationFormManualRef = React.createRef()
+
     this.configurationFormUrlRef = React.createRef()
+
     this.configurationFormXmlRef = React.createRef()
+
     this.configurationFormLti2Ref = React.createRef()
+
     this.configurationFormLti13Ref = React.createRef()
+
     this.configurationTypeSelectorRef = React.createRef()
+
     this.submitLti2Ref = React.createRef()
+
     this.submitRef = React.createRef()
     const _state = this.defaultState()
     if (props.tool) {
@@ -74,6 +82,7 @@ export default class ConfigurationForm extends React.Component {
 
   defaultState = () => ({
     configurationType: this.props.configurationType,
+
     showConfigurationSelector: this.props.showConfigurationSelector,
     name: '',
     consumerKey: '',
@@ -118,6 +127,7 @@ export default class ConfigurationForm extends React.Component {
     e.preventDefault()
     this.setState({hasBeenSubmitted: true})
     let form
+
     switch (this.state.configurationType) {
       case 'manual':
         form = this.configurationFormManualRef.current
@@ -151,6 +161,7 @@ export default class ConfigurationForm extends React.Component {
       }
       let formData = form.getFormData()
       formData = strip(formData)
+
       this.props.handleSubmit(this.state.configurationType, formData, e)
     } else {
       document.querySelector('.ReactModal__Body')?.scrollIntoView({behavior: 'smooth'})

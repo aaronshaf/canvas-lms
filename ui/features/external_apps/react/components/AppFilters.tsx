@@ -62,8 +62,11 @@ export default class AppFilters extends React.Component<Record<string, never>, A
     const s = store.getState()
     this.setState({
       disabled: !!s.disabled,
+
       readOnly: !!s.readOnly,
+
       filterText: s.filterText,
+
       filter: s.filter,
     })
   }

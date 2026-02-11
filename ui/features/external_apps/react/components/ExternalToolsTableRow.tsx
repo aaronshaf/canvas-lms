@@ -126,6 +126,7 @@ export default class ExternalToolsTableRow extends React.Component {
   changeFavoriteLTI = (checked, type) => {
     const success = _res => {
       const externalTools = store.getState().externalTools
+
       const tool = externalTools.find(t => t.app_id === this.props.tool.app_id)
       switch (type) {
         case 'top_nav':
@@ -151,6 +152,7 @@ export default class ExternalToolsTableRow extends React.Component {
 
   updateTool = tool => {
     const externalTools = store.getState().externalTools
+
     const toolRef = externalTools.find(t => String(t.app_id) === tool.id)
     if (toolRef) {
       toolRef.editor_button_settings = tool.editor_button
@@ -163,6 +165,7 @@ export default class ExternalToolsTableRow extends React.Component {
       if (r && !r.editor_button.enabled && this.props.tool.is_rce_favorite) {
         this.changeFavoriteLTI(false)
       }
+
       store.fetchWithDetails(this.props.tool).then(data => {
         this.updateTool(data)
       })
@@ -171,6 +174,7 @@ export default class ExternalToolsTableRow extends React.Component {
 
   renderButtons = () => {
     const permsToRenderSettingsCog = this.props.canEdit || this.props.canDelete
+
     const {tool} = this.props
     if (tool.installed_locally && !tool.restricted_by_master_course && permsToRenderSettingsCog) {
       let configureButton = null
@@ -270,6 +274,7 @@ export default class ExternalToolsTableRow extends React.Component {
             {tool.migration_running ? <ExternalToolMigrationInfo tool={tool} /> : null}
           </div>
         </td>
+
         {this.props.showLTIFavoriteToggles && show_top_nav_toggles && (
           <td>
             {canBeTopNavFavorite(tool) ? (
@@ -288,6 +293,7 @@ export default class ExternalToolsTableRow extends React.Component {
             )}
           </td>
         )}
+
         {this.props.showLTIFavoriteToggles && (
           <td>
             {canBeRCEFavorite(tool) ? (
@@ -317,6 +323,7 @@ export default class ExternalToolsTableRow extends React.Component {
 // tool.is_rce_favorite only exists on the tool if
 // it can be an RCE favorite
 // see lib/lti/app_collator.rb#external_tool_definition
+
 function canBeRCEFavorite(tool) {
   return (
     'is_rce_favorite' in tool && tool.editor_button_settings && tool.editor_button_settings.enabled
@@ -325,6 +332,7 @@ function canBeRCEFavorite(tool) {
 // Similarly, tool.is_top_nav_favorite only exists
 // on the tool if it can be a top nav favorite
 // see lib/lti/app_collator.rb#external_tool_definition
+
 function canBeTopNavFavorite(tool) {
   return (
     'is_top_nav_favorite' in tool &&

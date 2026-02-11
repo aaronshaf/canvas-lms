@@ -66,6 +66,7 @@ export default function ExternalToolMigrationInfo(props: ExternalToolMigrationIn
 
         // Check status code to see if the API call was successful
         // If the modal is open or the tool is no longer migrating, don't continue to fetch data
+
         if (response.response.status == 200 && modalIsOpen && response.json.migration_running) {
           // Store the result of setTimeout with a 1 sec delay in apiTimeout
           apiTimeout = setTimeout(fetchData, 1000)

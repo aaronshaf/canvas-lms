@@ -113,13 +113,25 @@ describe('when configuration type is manual', () => {
     await userPaste(user, getUrlInput(), expected.url)
     await userPaste(user, getDomainInput(), expected.domain)
 
-    await userPaste(user, screen.getByRole('textbox', {name: /consumer key/i}), expected.consumerKey)
-    await userPaste(user, screen.getByRole('textbox', {name: /shared secret/i}), expected.sharedSecret)
+    await userPaste(
+      user,
+      screen.getByRole('textbox', {name: /consumer key/i}),
+      expected.consumerKey,
+    )
+    await userPaste(
+      user,
+      screen.getByRole('textbox', {name: /shared secret/i}),
+      expected.sharedSecret,
+    )
     await user.click(screen.getByRole('combobox', {name: /privacy level/i}))
     await user.click(screen.getByText(/anonymous/i))
 
     await userPaste(user, screen.getByRole('textbox', {name: /description/i}), expected.description)
-    await userPaste(user, screen.getByRole('textbox', {name: /custom fields/i}), expected.customFields)
+    await userPaste(
+      user,
+      screen.getByRole('textbox', {name: /custom fields/i}),
+      expected.customFields,
+    )
     await user.click(getSubmitButton())
     expect(handleSubmitMock).toHaveBeenCalledWith('manual', expected, expect.anything())
   })

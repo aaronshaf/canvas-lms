@@ -125,7 +125,9 @@ export default class AddExternalToolButton extends React.Component {
       },
       () => {
         $.flashMessage(I18n.t('The app was added'))
+
         store.reset()
+
         store.fetch()
       },
     )
@@ -147,6 +149,7 @@ export default class AddExternalToolButton extends React.Component {
     }
 
     let errorMessage = I18n.t('We were unable to add the app.')
+
     if (this.state.configurationType !== 'manual') {
       const errorName = `config_${this.state.configurationType}`
       if (errors[errorName]) {
@@ -157,7 +160,9 @@ export default class AddExternalToolButton extends React.Component {
     }
 
     this.throttleCreation = false
+
     store.reset()
+
     store.fetch({force: true})
     this.setState({tool: {}, isLti2: false, lti2RegistrationUrl: null})
     $.flashError(errorMessage)
@@ -170,6 +175,7 @@ export default class AddExternalToolButton extends React.Component {
 
   handleCancelLti2 = () => {
     store.delete(this.state.tool)
+
     $.flashMessage(I18n.t('%{name} app has been deleted', {name: this.state.tool.name}))
     this.setState({modalIsOpen: false, tool: {}, isLti2: false, lti2RegistrationUrl: null})
   }
@@ -185,6 +191,7 @@ export default class AddExternalToolButton extends React.Component {
     } else if (configurationType === 'byClientId') {
       return fetchToolConfiguration(
         data.client_id,
+
         ENV.TOOL_CONFIGURATION_SHOW_URL,
         toolConfigurationError,
       ).then(toolConfiguration => {
@@ -200,6 +207,7 @@ export default class AddExternalToolButton extends React.Component {
         attemptedToolSaveData: data,
         attemptedToolConfigurationType: configurationType,
       })
+
       store.save(
         configurationType,
         data,
@@ -251,6 +259,7 @@ export default class AddExternalToolButton extends React.Component {
       )
     } else if (this.isInstalling13Tool && this.state.toolConfiguration) {
       const {clientId} = this.state
+
       const toolName = this.state.toolConfiguration.settings.title
 
       return (

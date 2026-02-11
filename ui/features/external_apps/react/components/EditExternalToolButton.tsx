@@ -54,6 +54,7 @@ export default class EditExternalToolButton extends React.Component {
 
   openModal = e => {
     e.preventDefault()
+
     if (this.props.tool.app_type === 'ContextExternalTool') {
       store.fetchWithDetails(this.props.tool).then(data => {
         this.setContextExternalToolState(data)
@@ -68,13 +69,16 @@ export default class EditExternalToolButton extends React.Component {
 
   closeModal = () => {
     this.setState({modalIsOpen: false})
+
     this.props.returnFocus()
   }
 
   saveChanges = (configurationType, data) => {
     const success = _res => {
       // refresh app config index with latest tool state
+
       store.reset()
+
       store.fetch()
       this.closeModal()
       // Unsure why this is necessary, but the focus is lost if not wrapped in a timeout
@@ -90,6 +94,7 @@ export default class EditExternalToolButton extends React.Component {
     }
 
     const tool = Object.assign(this.state.tool, data)
+
     store.save(configurationType, tool, success.bind(this), error.bind(this))
   }
 

@@ -117,11 +117,13 @@ export default class ConfigureExternalToolButton extends React.Component<
   }
 
   iframeWidth = () => this.props.tool?.tool_configuration.selection_width || undefined
+
   iframeHeight = () => this.props.tool?.tool_configuration.selection_height || undefined
   modalSize = () => (this.iframeWidth() ? undefined : 'large')
   // If we don't explicitly set header width, long tool names will cause header
   // to be wider than iframe (plus 40 pixels for close button / padding) and
   // make dialog be too wide.
+
   headingWidth = () => ((this.iframeWidth() || 0) > 50 ? this.iframeWidth() - 40 : undefined)
 
   render() {
