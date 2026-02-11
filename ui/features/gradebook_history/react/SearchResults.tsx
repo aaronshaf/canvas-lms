@@ -16,9 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {Component} from 'react'
+import React, {Component, ReactNode} from 'react'
 import {connect} from 'react-redux'
-import {arrayOf, bool, func, node, shape, string} from 'prop-types'
 import $ from 'jquery'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {View} from '@instructure/ui-view'
@@ -31,9 +30,9 @@ import SearchResultsRow from './SearchResultsRow'
 
 const I18n = createI18nScope('gradebook_history')
 
-const colHeaders = [
+const colHeaders: Array<string | ReactNode> = [
   I18n.t('Date'),
-  <ScreenReaderContent>{I18n.t('Anonymous Grading')}</ScreenReaderContent>,
+  <ScreenReaderContent key="anonymous-grading">{I18n.t('Anonymous Grading')}</ScreenReaderContent>,
   I18n.t('Student'),
   I18n.t('Grader'),
   I18n.t('Artifact'),
@@ -45,41 +44,45 @@ const colHeaders = [
 const nearPageBottom = () =>
   document.body.clientHeight - (window.innerHeight + window.scrollY) < 100
 
-class SearchResultsComponent extends Component {
-  static propTypes = {
-    getNextPage: func.isRequired,
-    fetchHistoryStatus: string.isRequired,
-    caption: node.isRequired,
-    historyItems: arrayOf(
-      shape({
-        assignment: shape({
-          name: string.isRequired,
-          muted: bool.isRequired,
-          subAssignmentTag: string,
-        }),
-        date: string.isRequired,
-        displayAsPoints: bool.isRequired,
-        gradedAnonymously: bool.isRequired,
-        grader: string.isRequired,
-        gradeAfter: string.isRequired,
-        gradeBefore: string.isRequired,
-        gradeCurrent: string.isRequired,
-        id: string.isRequired,
-        pointsPossibleAfter: string.isRequired,
-        pointsPossibleBefore: string.isRequired,
-        pointsPossibleCurrent: string.isRequired,
-        student: string.isRequired,
-      }),
-    ).isRequired,
-    nextPage: string.isRequired,
-    requestingResults: bool.isRequired,
-  }
+interface HistoryItemAssignment {
+  name: string
+  muted: boolean
+  subAssignmentTag?: string
+  anonymousGrading?: boolean
+}
 
+interface HistoryItem {
+  assignment?: HistoryItemAssignment
+  courseOverrideGrade?: boolean
+  date: string
+  displayAsPoints: boolean
+  gradedAnonymously: boolean
+  grader: string
+  gradeAfter: string
+  gradeBefore: string
+  gradeCurrent: string
+  id: string
+  pointsPossibleAfter: string
+  pointsPossibleBefore: string
+  pointsPossibleCurrent: string
+  student: string
+}
+
+interface SearchResultsComponentProps {
+  getNextPage: (url: string) => void
+  fetchHistoryStatus: string
+  caption: ReactNode
+  historyItems: HistoryItem[]
+  nextPage: string
+  requestingResults: boolean
+}
+
+class SearchResultsComponent extends Component<SearchResultsComponentProps> {
   componentDidMount() {
     this.attachListeners()
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: SearchResultsComponentProps) {
     // if the page doesn't have a scrollbar, scroll event listener can't be triggered
     if (document.body.clientHeight <= window.innerHeight) {
       this.getNextPage()
@@ -130,8 +133,8 @@ class SearchResultsComponent extends Component {
       <Table caption={this.props.caption}>
         <Table.Head>
           <Table.Row>
-            {colHeaders.map(header => (
-              <Table.ColHeader key={`${header}-column`} id={`${header}-column`}>
+            {colHeaders.map((header, index) => (
+              <Table.ColHeader key={`column-${index}`} id={`column-${index}`}>
                 {header}
               </Table.ColHeader>
             ))}
@@ -176,15 +179,24 @@ class SearchResultsComponent extends Component {
   }
 }
 
-const mapStateToProps = state => ({
+interface RootState {
+  history: {
+    fetchHistoryStatus?: string
+    items?: HistoryItem[]
+    nextPage?: string
+    loading?: boolean
+  }
+}
+
+const mapStateToProps = (state: RootState) => ({
   fetchHistoryStatus: state.history.fetchHistoryStatus || '',
   historyItems: state.history.items || [],
   nextPage: state.history.nextPage || '',
   requestingResults: state.history.loading || false,
 })
 
-const mapDispatchToProps = dispatch => ({
-  getNextPage: url => {
+const mapDispatchToProps = (dispatch: any) => ({
+  getNextPage: (url: string) => {
     dispatch(getHistoryNextPage(url))
   },
 })

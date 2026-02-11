@@ -22,7 +22,7 @@ import GradebookHistoryApp from './react/GradebookHistoryApp'
 import ready from '@instructure/ready'
 
 ready(() => {
-  const root = createRoot(document.getElementById('content'))
+  const root = createRoot(document.getElementById('content')!)
   root.render(
     <GradebookHistoryApp
       courseUrl={ENV.COURSE_URL}
