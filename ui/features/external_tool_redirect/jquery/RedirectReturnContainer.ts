@@ -40,12 +40,15 @@ export default class RedirectReturnContainer {
   cancelUrl: string
 
   constructor() {
+    // @ts-expect-error - ENV.redirect_return_success_url not in GlobalEnv type
     this.successUrl = ENV.redirect_return_success_url
+    // @ts-expect-error - ENV.redirect_return_cancel_url not in GlobalEnv type
     this.cancelUrl = ENV.redirect_return_cancel_url
   }
 
   attachLtiEvents(): void {
     handleExternalContentMessages({
+      // @ts-expect-error - ExternalContentData shape doesn't match ExternalContentReady
       ready: this._contentReady,
       cancel: this._contentCancel,
     })
