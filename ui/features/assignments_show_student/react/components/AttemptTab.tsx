@@ -362,12 +362,17 @@ export default class AttemptTab extends Component {
     return isSubmitted(this.props.submission) ? (
       <LazyLoad errorCategory="Assignments 2 FilePreview on AttemptTab">
         <FilePreview
+          // @ts-expect-error
           submission={this.props.submission}
           isOriginalityReportVisible={
             isOriginalityReportVisible(
+              // @ts-expect-error
               this.props.assignment.originalityReportVisibility,
+              // @ts-expect-error
               this.props.assignment.dueAt,
+              // @ts-expect-error
               this.props.submission.gradingStatus,
+              // @ts-expect-error
             ) && this.props.originalityReportsForA2
           }
         />
