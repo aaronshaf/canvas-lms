@@ -56,7 +56,9 @@ export default function CourseAvailabilityOptions({
 
   const TERM_DATES = {
     START_DATE:
+      // @ts-expect-error - ENV properties
       window.ENV.STUDENTS_ENROLLMENT_DATES?.start_at || window.ENV.DEFAULT_TERM_DATES?.start_at,
+    // @ts-expect-error - ENV properties
     END_DATE: window.ENV.STUDENTS_ENROLLMENT_DATES?.end_at || window.ENV.DEFAULT_TERM_DATES?.end_at,
   }
 
@@ -154,7 +156,7 @@ export default function CourseAvailabilityOptions({
               clearCourseDates()
             }
             setFormValue(FORM_IDS.RESTRICT_ENROLLMENTS, value === 'course')
-            setSelectedApplicabilityValue(value)
+            setSelectedApplicabilityValue(value as string)
           }}
         >
           <SimpleSelect.Option id="term" value="term">
@@ -171,6 +173,7 @@ export default function CourseAvailabilityOptions({
           dangerouslySetInnerHTML={{__html: participationExplanationText()}}
         />
 
+        {/* @ts-expect-error - ENV property */}
         {ENV.COURSE_PACES_ENABLED && (
           <Text size="small" weight="light">
             {I18n.t(
@@ -183,19 +186,22 @@ export default function CourseAvailabilityOptions({
           <Flex direction="column" display="inline-flex">
             <Flex.Item padding="xx-small 0">
               <ScreenReaderContent>{I18n.t('Course Start Date')}</ScreenReaderContent>
-              <CanvasDateInput2
-                renderLabel={I18n.t('Start')}
-                formatDate={formatDateLocal}
-                interaction={datesInteraction()}
-                width="16rem"
-                selectedDate={startDateInputValue}
-                onSelectedDateChange={value => {
-                  const start = moment(value).toISOString()
-                  setFormValue(FORM_IDS.START_DATE, start)
-                  setStartDate(start)
-                }}
-                hideMessagesWhenFocused
-              />
+              {/* @ts-expect-error - CanvasDateInput2 prop types */}
+              {
+                <CanvasDateInput2
+                  renderLabel={I18n.t('Start')}
+                  formatDate={formatDateLocal}
+                  interaction={datesInteraction()}
+                  width="16rem"
+                  selectedDate={startDateInputValue}
+                  onSelectedDateChange={value => {
+                    const start = moment(value).toISOString()
+                    setFormValue(FORM_IDS.START_DATE, start)
+                    setStartDate(start)
+                  }}
+                  hideMessagesWhenFocused={true}
+                />
+              }
               {startDateInputValue && (
                 <>
                   <View as="div" margin="x-small none xx-small small">
@@ -213,20 +219,23 @@ export default function CourseAvailabilityOptions({
             </Flex.Item>
             <Flex.Item padding="xx-small 0">
               <ScreenReaderContent>{I18n.t('Course End Date')}</ScreenReaderContent>
-              <CanvasDateInput2
-                messages={endDateErrors(startDate, endDate)}
-                renderLabel={I18n.t('End')}
-                formatDate={formatDateLocal}
-                interaction={datesInteraction()}
-                width="16rem"
-                selectedDate={endDateInputValue}
-                onSelectedDateChange={value => {
-                  const end = moment(value).toISOString()
-                  setFormValue(FORM_IDS.END_DATE, end)
-                  setEndDate(end)
-                }}
-                hideMessagesWhenFocused
-              />
+              {/* @ts-expect-error - CanvasDateInput2 prop types */}
+              {
+                <CanvasDateInput2
+                  messages={endDateErrors(startDate, endDate)}
+                  renderLabel={I18n.t('End')}
+                  formatDate={formatDateLocal}
+                  interaction={datesInteraction()}
+                  width="16rem"
+                  selectedDate={endDateInputValue}
+                  onSelectedDateChange={value => {
+                    const end = moment(value).toISOString()
+                    setFormValue(FORM_IDS.END_DATE, end)
+                    setEndDate(end)
+                  }}
+                  hideMessagesWhenFocused={true}
+                />
+              }
               {endDateInputValue && (
                 <>
                   <View as="div" margin="x-small none xx-small small">

@@ -42,7 +42,7 @@ const I18n = createI18nScope('course_settings')
 const GradePublishing = {
   status: null,
   checkup() {
-    $.ajaxJSON($('#publish_to_sis_form').attr('action'), 'GET', {}, data => {
+    $.ajaxJSON($('#publish_to_sis_form').attr('action'), 'GET', {}, (data: any) => {
       if (!data.hasOwnProperty('sis_publish_overall_status')) return
       GradePublishing.status = data.sis_publish_overall_status
       GradePublishing.update(
@@ -50,7 +50,7 @@ const GradePublishing = {
       )
     })
   },
-  update(messages, requestInProgress) {
+  update(messages: any, requestInProgress?: any) {
     const $publish_grades_link = $('#publish_grades_link'),
       $publish_grades_error = $('#publish_grades_error')
     if (GradePublishing.status === 'published') {
@@ -75,9 +75,9 @@ const GradePublishing = {
     }
     const $messages = $('#publish_grades_messages')
     $messages.empty()
-    $.each(messages, (message, users) => {
+    $.each(messages, (message: string | number | symbol, users: any) => {
       const $message = $('<span/>')
-      $message.text(message)
+      $message.text(String(message))
       const $item = $('<li/>')
       $item.append($message)
       $item.append(' - <b>' + users.length + '</b>')
@@ -105,10 +105,12 @@ const GradePublishing = {
     }
 
     const $publish_to_sis_form = $('#publish_to_sis_form')
+    // @ts-expect-error - status can be 'publishing' at runtime
     GradePublishing.status = 'publishing'
     GradePublishing.update({}, true)
     const successful_statuses = {published: 1, publishing: 1, pending: 1}
-    const error = function (_data, _xhr, _status, _error) {
+    const error = function (_data: any, _xhr: any, _status: any, _error: any) {
+      // @ts-expect-error - status can be 'unknown' at runtime
       GradePublishing.status = 'unknown'
       $.flashError(
         I18n.t(
@@ -121,7 +123,7 @@ const GradePublishing = {
       $publish_to_sis_form.attr('action'),
       'POST',
       $publish_to_sis_form.getFormData(),
-      data => {
+      (data: any) => {
         if (
           !data.hasOwnProperty('sis_publish_overall_status') ||
           !successful_statuses.hasOwnProperty(data.sis_publish_overall_status)
@@ -139,20 +141,20 @@ const GradePublishing = {
   },
 }
 
-function checkHomeroomSyncProgress(progress) {
+function checkHomeroomSyncProgress(progress: any) {
   setTimeout(function () {
     $.ajaxJSON(
       progress.data('url'),
       'GET',
       {},
-      data => {
+      (data: any) => {
         if (data.workflow_state === 'completed') {
           progress.replaceWith(I18n.t('Last synced: right now'))
         } else {
           checkHomeroomSyncProgress(progress)
         }
       },
-      _data => {
+      (_data: any) => {
         checkHomeroomSyncProgress(progress)
       },
     )
@@ -167,13 +169,13 @@ $(document).ready(function () {
 
   $add_section_form.formSubmit({
     required: ['course_section[name]'],
-    beforeSubmit(_data) {
+    beforeSubmit(_data: any) {
       $add_section_form
         .find('button')
         .prop('disabled', true)
         .text(I18n.t('buttons.adding_section', 'Adding Section...'))
     },
-    success(data) {
+    success(data: any) {
       const section = data.course_section,
         $section = $('.section_blank:first').clone(true).attr('class', 'section'),
         $option = $('<option/>')
@@ -200,9 +202,9 @@ $(document).ready(function () {
       $('#course_section_name').val('')
       $('#add_section_form button[type="submit"]').focus()
     },
-    error(data) {
+    error(data: any) {
+      $add_section_form.formErrors(data)
       $add_section_form
-        .formErrors(data)
         .find('button')
         .prop('disabled', false)
         .text(I18n.t('errors.section', 'Add Section Failed, Please Try Again'))
@@ -213,31 +215,35 @@ $(document).ready(function () {
     return false
   })
   $edit_section_form
+    // @ts-expect-error - jQuery plugin formSubmit and keycodes type inference
     .formSubmit({
-      beforeSubmit(data) {
+      beforeSubmit(data: any) {
         $edit_section_form.hide()
         const $section = $edit_section_form.parents('.section')
         $section.find('.name').text(data['course_section[name]']).show()
         $section.loadingImage({image_size: 'small'})
         return $section
       },
-      success(data, $section) {
+      success(data: any) {
         const section = data.course_section
+        const $section = this
         $section.loadingImage('remove')
         $('.option_for_section_' + section.id).text(section.name)
-        this.parent().find('.edit_section_link').focus()
+        $section.parent().find('.edit_section_link').focus()
       },
-      error(data, $section) {
-        $section.loadingImage('remove').find('.edit_section_link').click()
+      error(data: any) {
+        const $section = this
+        $section.loadingImage('remove')
+        $section.find('.edit_section_link').click()
         $edit_section_form.formErrors(data)
-        this.find('#course_section_name_edit').focus()
+        $section.find('#course_section_name_edit').focus()
       },
-    })
+    } as any)
     .find(':text')
     .bind('blur', () => {
       $edit_section_form.submit()
     })
-    .keycodes('return esc', function (event) {
+    .keycodes('return esc', function (this: any, event: any) {
       if (event.keyString === 'return') {
         $edit_section_form.submit()
       } else {
@@ -247,11 +253,12 @@ $(document).ready(function () {
     })
   $('.edit_section_link').click(function () {
     const $this = $(this),
-      $section = $this.parents('.section'),
-      data = $section.getTemplateData({textValues: ['name']})
+      $section = $this.parents('.section')
+    const data = $section.getTemplateData({textValues: ['name']})
+    // @ts-expect-error - jQuery plugin fillFormData types
     $edit_section_form.fillFormData(data, {object_name: 'course_section'})
     $section.find('.name').hide().after($edit_section_form.show())
-    $edit_section_form.attr('action', $this.attr('href'))
+    $edit_section_form.attr('action', $this.attr('href') || '')
     $edit_section_form.find(':text:first').focus().select()
     return false
   })
@@ -261,7 +268,7 @@ $(document).ready(function () {
       .confirmDelete({
         url: $(this).attr('href'),
         message: I18n.t('confirm.delete_section', 'Are you sure you want to delete this section?'),
-        success(_data) {
+        success(this: any, _data: any) {
           const $prevItem = $(this).prev()
           const $toFocus = $prevItem.length
             ? $prevItem.find('.delete_section_link,.cant_delete_section_link')
@@ -275,7 +282,7 @@ $(document).ready(function () {
     return false
   })
   $('#nav_form').submit(function () {
-    const tabs = []
+    const tabs: Array<{id: string; hidden?: boolean}> = []
     $('#nav_enabled_list li').each(function () {
       const tab_id = tabIdFromElement(this)
       if (tab_id !== null) {
@@ -311,8 +318,9 @@ $(document).ready(function () {
     })
     .disableSelection()
 
-  $(document).fragmentChange((event, hash) => {
-    function handleFragmentType(val) {
+  // @ts-expect-error - jQuery plugin fragmentChange types
+  $(document).fragmentChange((_event: any, hash: any) => {
+    function handleFragmentType(val: string) {
       $('#tab-users').click()
       $('.add_users_link:visible').click()
       $("#enroll_users_form select[name='enrollment_type']").val(val)
@@ -326,8 +334,8 @@ $(document).ready(function () {
     }
   })
   $('#course_account_id_lookup').autocomplete({
-    source: $('#course_account_id_url').attr('href'),
-    select(event, ui) {
+    source: $('#course_account_id_url').attr('href') as any,
+    select(_event: any, ui: any) {
       $('#course_account_id').val(ui.item.id)
     },
   })
@@ -359,13 +367,13 @@ $(document).ready(function () {
 
       ReactDOM.render(
         <GradingSchemesSelector
-          canManage={ENV.PERMISSIONS.manage_grading_schemes}
-          canSet={ENV.PERMISSIONS.set_grading_scheme}
-          contextId={ENV.COURSE_ID}
+          canManage={ENV.PERMISSIONS?.manage_grading_schemes || false}
+          canSet={ENV.PERMISSIONS?.set_grading_scheme || false}
+          contextId={ENV.COURSE_ID || ''}
           contextType="Course"
-          initiallySelectedGradingSchemeId={selectedGradingSchemeId}
+          initiallySelectedGradingSchemeId={selectedGradingSchemeId as string | undefined}
           onChange={gradingSchemeId => handleSelectedGradingSchemeIdChanged(gradingSchemeId)}
-          archivedGradingSchemesEnabled={ENV.ARCHIVED_GRADING_SCHEMES_ENABLED}
+          archivedGradingSchemesEnabled={ENV.ARCHIVED_GRADING_SCHEMES_ENABLED || false}
           shrinkSearchBar={true}
           courseDefaultSchemeId={courseDefaultSchemeId || ''}
         />,
@@ -373,7 +381,7 @@ $(document).ready(function () {
       )
     }
   }
-  function handleSelectedGradingSchemeIdChanged(gradingSchemeId) {
+  function handleSelectedGradingSchemeIdChanged(gradingSchemeId: any) {
     if (gradingSchemeId) {
       $('#grading_standard_id').val(gradingSchemeId)
     } else {
@@ -387,7 +395,7 @@ $(document).ready(function () {
       if (grading_scheme_selector) {
         if ($(this).prop('checked')) {
           $course_form.find('.grading_scheme_selector').show()
-          renderGradingSchemeSelector($('#grading_standard_id').val())
+          renderGradingSchemeSelector()
         } else {
           ReactDOM.render(<></>, grading_scheme_selector)
           $course_form.find('.grading_scheme_selector').hide()
@@ -414,7 +422,7 @@ $(document).ready(function () {
     $(this).attr('aria-describedby', isMidnight_ ? 'course_conclude_at_warning' : null)
   })
   $course_form.formSubmit({
-    beforeSubmit(data) {
+    beforeSubmit(this: any, data: any) {
       // If Restrict Quantitative Data is checked, then the course must have a default grading scheme selected
       const rqdEnabled =
         $course_form.find('#course_restrict_quantitative_data')?.prop('value') === 'true'
@@ -451,13 +459,14 @@ $(document).ready(function () {
       $(this).find('.storage_quota_mb').text(data['course[storage_quota_mb]'])
       $('.course_form_more_options').hide()
     },
-    success(_data) {
+    success(_data: any) {
       $('#course_reload_form').submit()
     },
-    error(_data) {
+    error(this: any, _data: any) {
       renderFlashError(I18n.t('There was an error saving the changes to the course.'))
       $(this).loadingImage('remove')
     },
+    // @ts-expect-error - formSubmit plugin option
     disableWhileLoading: 'spin_on_success',
   })
   $('.course_info')
@@ -484,7 +493,7 @@ $(document).ready(function () {
       url,
       'POST',
       {},
-      _data => {
+      (_data: any) => {
         $enrollment_dialog.fillTemplateData({
           data: {invitation_sent_at: I18n.t('invitation_sent_now', 'Just Now')},
         })
@@ -496,13 +505,13 @@ $(document).ready(function () {
           })
         }
       },
-      _data => {
+      (_data: any) => {
         $link.text(I18n.t('errors.invitation', 'Invitation Failed.  Please try again.'))
       },
     )
   })
 
-  const renderFlashError = errorMessage => {
+  const renderFlashError = (errorMessage: string) => {
     $.flashError(errorMessage)
   }
 
@@ -531,7 +540,7 @@ $(document).ready(function () {
       $button.attr('href'),
       'POST',
       {},
-      function (_data) {
+      function (_data: any) {
         $button
           .text(I18n.t('buttons.re_sent_all', 'Re-Sent All Unaccepted Invitations!'))
           .prop('disabled', false)
@@ -563,6 +572,7 @@ $(document).ready(function () {
     event.preventDefault()
     GradePublishing.publish()
   })
+  // @ts-expect-error - ENV property
   if (ENV.PUBLISHING_ENABLED) {
     GradePublishing.checkup()
   }
@@ -584,7 +594,8 @@ $(document).ready(function () {
     $('#reset_course_content_dialog').dialog('close')
   })
 
-  $('#course_custom_course_visibility').click(function (_event) {
+  // @ts-expect-error - jQuery click handler with typed this context
+  $('#course_custom_course_visibility').click(function (this: HTMLInputElement, _event) {
     $('#customize_course_visibility').toggle(this.checked)
   })
 
@@ -619,13 +630,13 @@ $(document).ready(function () {
         }
       })
 
-      $(sel).val($(current).val())
+      $(sel).val($(current).val() as string)
     })
   }
 
   $('#course_course_visibility').change(function (_event) {
     refresh_visibility_options()
-    $('#customize_course_visibility select').val($('#course_course_visibility').val())
+    $('#customize_course_visibility select').val($('#course_course_visibility').val() as string)
   })
 
   $('#course_custom_course_visibility').ready(_event => {
@@ -637,20 +648,23 @@ $(document).ready(function () {
   })
 
   $('#course_enable_course_paces')
-    .change(function () {
+    // @ts-expect-error - jQuery change handler with typed this context
+    .change(function (this: HTMLInputElement) {
       $('#homeroom_disabled_tooltip').toggleClass('shown', this.checked)
       $('#course_homeroom_course').prop('disabled', $(this).prop('checked'))
     })
     .trigger('change')
 
   $('#course_homeroom_course')
-    .change(function () {
+    // @ts-expect-error - jQuery change handler with typed this context
+    .change(function (this: HTMLInputElement) {
       $('#pacing_disabled_tooltip').toggleClass('shown', this.checked)
       $('#course_enable_course_paces').prop('disabled', $(this).prop('checked'))
     })
     .trigger('change')
 
-  $('#course_conditional_release').change(function () {
+  // @ts-expect-error - jQuery change handler with typed this context
+  $('#course_conditional_release').change(function (this: HTMLInputElement) {
     $('#conditional_release_caution_text').toggleClass('shown', !this.checked)
   })
 })

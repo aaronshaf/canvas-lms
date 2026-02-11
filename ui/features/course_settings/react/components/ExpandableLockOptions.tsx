@@ -34,7 +34,13 @@ import {itemTypeLabelPlurals} from '@canvas/blueprint-courses/react/labels'
 
 const I18n = createI18nScope('blueprint_coursesExpandableLockOptions')
 
-type LockableAttribute = 'points' | 'content' | 'due_dates' | 'availability_dates' | 'settings' | 'deleted'
+type LockableAttribute =
+  | 'points'
+  | 'content'
+  | 'due_dates'
+  | 'availability_dates'
+  | 'settings'
+  | 'deleted'
 
 interface ItemLocks {
   content?: boolean
@@ -61,7 +67,10 @@ interface ExpandableLockOptionsState {
 // children are checked or not, and the list of checked children
 // This is used in Blueprint Lock Options as the granular lock
 
-export default class ExpandableLockOptions extends React.Component<ExpandableLockOptionsProps, ExpandableLockOptionsState> {
+export default class ExpandableLockOptions extends React.Component<
+  ExpandableLockOptionsProps,
+  ExpandableLockOptionsState
+> {
   static defaultProps = {
     isOpen: false,
     locks: {
@@ -106,7 +115,7 @@ export default class ExpandableLockOptions extends React.Component<ExpandableLoc
         <IconButton
           withBorder={false}
           withBackground={false}
-          screenReaderLabel={`${itemTypeLabelPlurals[this.props.objectType]},
+          screenReaderLabel={`${itemTypeLabelPlurals[this.props.objectType as keyof typeof itemTypeLabelPlurals]},
             ${this.state.open ? I18n.t('Expanded') : I18n.t('Collapsed')},
             ${formatLockObject(this.state.locks) ? I18n.t('Locked') : I18n.t('Unlocked')},
             ${formatLockObject(this.state.locks)}`}
@@ -132,7 +141,7 @@ export default class ExpandableLockOptions extends React.Component<ExpandableLoc
             <PresentationContent>
               <div className="bcs_tab-text">
                 <Text size="small" weight="normal">
-                  {itemTypeLabelPlurals[this.props.objectType]}
+                  {itemTypeLabelPlurals[this.props.objectType as keyof typeof itemTypeLabelPlurals]}
                 </Text>
               </div>
             </PresentationContent>

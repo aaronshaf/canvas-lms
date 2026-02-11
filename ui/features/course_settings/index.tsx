@@ -75,6 +75,7 @@ ready(() => {
             disabledMessage={ENV.DISABLED_BLUEPRINT_MESSAGE}
             generalRestrictions={ENV.BLUEPRINT_RESTRICTIONS}
             useRestrictionsbyType={ENV.USE_BLUEPRINT_RESTRICTIONS_BY_OBJECT_TYPE}
+            // @ts-expect-error - ENV types may not perfectly match component types
             restrictionsByType={ENV.BLUEPRINT_RESTRICTIONS_BY_OBJECT_TYPE}
           />
         </ErrorBoundary>

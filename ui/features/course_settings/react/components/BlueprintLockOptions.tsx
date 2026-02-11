@@ -38,7 +38,13 @@ const granularLocking = I18n.t('Locked Objects by Type')
 const granular = 'true'
 const general = 'false'
 
-type LockableAttribute = 'points' | 'content' | 'due_dates' | 'availability_dates' | 'settings' | 'deleted'
+type LockableAttribute =
+  | 'points'
+  | 'content'
+  | 'due_dates'
+  | 'availability_dates'
+  | 'settings'
+  | 'deleted'
 
 interface ItemLocks {
   content?: boolean
@@ -83,10 +89,18 @@ interface BlueprintLockOptionsState {
   objectRestrictions: ItemLocksByObject
 }
 
-export default class BlueprintLockOptions extends React.Component<BlueprintLockOptionsProps, BlueprintLockOptionsState> {
+export default class BlueprintLockOptions extends React.Component<
+  BlueprintLockOptionsProps,
+  BlueprintLockOptionsState
+> {
   static defaultProps = {
     disabledMessage: '',
-    lockableAttributes: ['content', 'points', 'due_dates', 'availability_dates'] as LockableAttribute[],
+    lockableAttributes: [
+      'content',
+      'points',
+      'due_dates',
+      'availability_dates',
+    ] as LockableAttribute[],
   }
 
   private granularRadioInput: any
@@ -196,7 +210,7 @@ export default class BlueprintLockOptions extends React.Component<BlueprintLockO
     const disabled = !!this.props.disabledMessage
     let checkBox = (
       <div>
-        <input type="hidden" name="course[blueprint]" value={false} />
+        <input type="hidden" name="course[blueprint]" value="false" />
         <Checkbox
           name="course[blueprint]"
           checked={this.state.courseEnabled}

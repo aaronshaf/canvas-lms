@@ -40,7 +40,10 @@ interface CourseImagePickerState {
   fileDropMessages: Array<{text: string; type: string}> | null
 }
 
-export default class CourseImagePicker extends React.Component<CourseImagePickerProps, CourseImagePickerState> {
+export default class CourseImagePicker extends React.Component<
+  CourseImagePickerProps,
+  CourseImagePickerState
+> {
   static defaultProps = {
     handleFileUpload: () => {},
     uploadingImage: false,
@@ -99,7 +102,9 @@ export default class CourseImagePicker extends React.Component<CourseImagePicker
                   }
                 />
               }
+              // @ts-expect-error - FileDrop message types
               messages={this.state.fileDropMessages}
+              // @ts-expect-error - FileDrop callback types
               onDropAccepted={this.handleDropAccepted}
               onDropRejected={this.handleDropRejected}
             />

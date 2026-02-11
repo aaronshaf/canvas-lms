@@ -20,7 +20,13 @@ import React from 'react'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {lockLabels} from '@canvas/blueprint-courses/react/labels'
 
-type LockableAttribute = 'points' | 'content' | 'due_dates' | 'availability_dates' | 'settings' | 'deleted'
+type LockableAttribute =
+  | 'points'
+  | 'content'
+  | 'due_dates'
+  | 'availability_dates'
+  | 'settings'
+  | 'deleted'
 
 interface ItemLocks {
   content?: boolean
@@ -53,10 +59,13 @@ export default class LockCheckList extends React.Component<LockCheckListProps, L
     this.state = {
       locks: props.locks,
     }
-    this.onChangeFunctions = this.props.lockableAttributes.reduce((object, item) => {
-      object[item] = (e: React.ChangeEvent<HTMLInputElement>) => this.onChange(e, item)
-      return object
-    }, {} as Record<string, (e: React.ChangeEvent<HTMLInputElement>) => void>)
+    this.onChangeFunctions = this.props.lockableAttributes.reduce(
+      (object, item) => {
+        object[item] = (e: React.ChangeEvent<HTMLInputElement>) => this.onChange(e, item)
+        return object
+      },
+      {} as Record<string, (e: React.ChangeEvent<HTMLInputElement>) => void>,
+    )
   }
 
   onChange = (e: React.ChangeEvent<HTMLInputElement>, value: string) => {
@@ -75,11 +84,11 @@ export default class LockCheckList extends React.Component<LockCheckListProps, L
       <div>
         {this.props.lockableAttributes.map(item => (
           <div key={item} className="bcs_check_box-group">
-            <input type="hidden" name={`course${this.props.formName}[${item}]`} value={false} />
+            <input type="hidden" name={`course${this.props.formName}[${item}]`} value="false" />
             <Checkbox
               name={`course${this.props.formName}[${item}]`}
               size="small"
-              label={lockLabels[item]}
+              label={lockLabels[item as keyof typeof lockLabels]}
               value={(this.state.locks[item] || false).toString()}
               checked={this.state.locks[item]}
               onChange={this.onChangeFunctions[item]}

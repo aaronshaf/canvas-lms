@@ -33,7 +33,6 @@ let overflow = ''
 interface CourseImageSelectorProps {
   courseId: string
   setting: string
-  // @ts-expect-error - Redux store type is complex
   store: any
   wide?: boolean
 }
@@ -46,7 +45,10 @@ interface CourseImageSelectorState {
   uploadingImage?: boolean
 }
 
-export default class CourseImageSelector extends React.Component<CourseImageSelectorProps, CourseImageSelectorState> {
+export default class CourseImageSelector extends React.Component<
+  CourseImageSelectorProps,
+  CourseImageSelectorState
+> {
   static defaultProps = {
     wide: false,
   }
@@ -129,13 +131,12 @@ export default class CourseImageSelector extends React.Component<CourseImageSele
           onDismiss={this.handleModalDismiss}
           onEnter={this.handleModalOpen}
           onExit={this.handleModalClose}
-          onDragOver={e => e.preventDefault()}
-          onDrop={e => e.preventDefault()}
+          onDragOver={(e: any) => e.preventDefault()}
+          onDrop={(e: any) => e.preventDefault()}
         >
           <Modal.Body>
             <CourseImagePicker
               courseId={this.props.courseId}
-              handleClose={this.handleModalClose}
               handleFileUpload={(e, courseId) =>
                 this.props.store.dispatch(Actions.uploadFile(e, courseId, this.props.setting))
               }
