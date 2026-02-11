@@ -19,32 +19,59 @@ import $ from 'jquery'
 
 import {handleExternalContentMessages} from '@canvas/external-tools/messages'
 
+interface ExternalContentData {
+  return_type?: string
+  url?: string
+}
+
+interface ContentMigrationData {
+  migration_type: string
+  settings: {
+    file_url: string
+  }
+}
+
+interface ErrorResponse {
+  message: string
+}
+
 export default class RedirectReturnContainer {
-  attachLtiEvents() {
+  successUrl: string
+  cancelUrl: string
+
+  constructor() {
+    // @ts-expect-error - ENV.redirect_return_success_url not in GlobalEnv type
+    this.successUrl = ENV.redirect_return_success_url
+    // @ts-expect-error - ENV.redirect_return_cancel_url not in GlobalEnv type
+    this.cancelUrl = ENV.redirect_return_cancel_url
+  }
+
+  attachLtiEvents(): void {
     handleExternalContentMessages({
+      // @ts-expect-error - ExternalContentData shape doesn't match ExternalContentReady
       ready: this._contentReady,
       cancel: this._contentCancel,
     })
   }
 
-  _contentReady = data => {
+  _contentReady = (data: ExternalContentData): void => {
     if (data && data.return_type === 'file') {
-      this.createMigration(data.url)
+      this.createMigration(data.url!)
     } else {
       this.redirectToSuccessUrl()
     }
   }
 
-  _contentCancel = () => {
+  _contentCancel = (): void => {
     window.location.href = this.cancelUrl
   }
 
-  redirectToSuccessUrl = () => {
+  redirectToSuccessUrl = (): void => {
     window.location.href = this.successUrl
   }
 
-  createMigration = file_url => {
-    const data = {
+  createMigration = (file_url: string): JQuery.jqXHR => {
+    const data: ContentMigrationData = {
       migration_type: 'canvas_cartridge_importer',
       settings: {
         file_url,
@@ -55,9 +82,7 @@ export default class RedirectReturnContainer {
     return $.ajaxJSON(migrationUrl, 'POST', data, this.redirectToSuccessUrl, this.handleError)
   }
 
-  handleError(data) {
-    return $.flashError(data.message)
+  handleError(data: ErrorResponse): void {
+    $.flashError(data.message)
   }
 }
-RedirectReturnContainer.prototype.successUrl = ENV.redirect_return_success_url
-RedirectReturnContainer.prototype.cancelUrl = ENV.redirect_return_cancel_url
