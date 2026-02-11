@@ -71,7 +71,7 @@ export default function loadFullCalendarLocaleData(locale: string): Promise<void
   ]
 
   if (locale === 'ga') {
-    return import('../../../ext/custom_fullcalendar_locales/ga')
+    return import('../../../ext/custom_fullcalendar_locales/ga').then(() => {})
   } else if (!FULLCALENDAR_LOCALES.includes(locale)) {
     return Promise.resolve()
   }

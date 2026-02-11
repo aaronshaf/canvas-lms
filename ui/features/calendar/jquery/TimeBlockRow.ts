@@ -40,9 +40,9 @@ export default class TimeBlockRow {
     this.locked = data.locked
     let timeoutId: ReturnType<typeof setTimeout> | null = null
     data.date = data.date || data.start
-    this.$row = $(timeBlockRowTemplate(data)).bind({
+    this.$row = $(timeBlockRowTemplate(data)).on({
       focusin: () => {
-        clearTimeout(timeoutId)
+        if (timeoutId) clearTimeout(timeoutId)
         this.focus()
       },
       focusout: () => {
@@ -155,7 +155,10 @@ export default class TimeBlockRow {
     return dateValid && startValid && endValid
   }
 
-  timeToDate(date: moment.Moment | undefined, time: moment.Moment | undefined): moment.Moment | undefined {
+  timeToDate(
+    date: moment.Moment | undefined,
+    time: moment.Moment | undefined,
+  ): moment.Moment | undefined {
     if (!date || !time) return
 
     // set all three values at once to handle potential

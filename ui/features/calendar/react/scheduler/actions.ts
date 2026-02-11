@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// @ts-expect-error redux-actions does not have type definitions
 import {createAction} from 'redux-actions'
 
 const keys = {

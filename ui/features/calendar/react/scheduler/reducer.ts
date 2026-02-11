@@ -16,26 +16,27 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// @ts-expect-error redux-actions does not have type definitions
 import {handleActions} from 'redux-actions'
 import SchedulerActions from './actions'
 import initialState, {type SchedulerState} from './store/initialState'
 
 const reducer = handleActions<SchedulerState, any>(
   {
-    [SchedulerActions.keys.SET_FIND_APPOINTMENT_MODE]: (state = initialState, action) => {
+    [SchedulerActions.keys.SET_FIND_APPOINTMENT_MODE]: (state = initialState, action: any) => {
       return {
         ...state,
         inFindAppointmentMode: action.payload as boolean,
       }
     },
-    [SchedulerActions.keys.SET_COURSE]: (state = initialState, action) => {
+    [SchedulerActions.keys.SET_COURSE]: (state = initialState, action: any) => {
       return {
         ...state,
         selectedCourse: action.payload as {asset_string?: string},
       }
     },
   },
-  initialState
+  initialState,
 )
 
 export default reducer

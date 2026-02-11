@@ -73,14 +73,14 @@ export default class TimeBlockList {
   handleSplitClick = (event: JQuery.Event): void => {
     event.preventDefault()
     const duration = this.splitterDiv.find('[name=duration]').val()
-    return this.split(duration)
+    this.split(String(duration))
   }
 
   split(minutes: string): void {
     const value = parseFloat(minutes)
     if (value > 0 && this.validate()) {
       this.blocksManager.split(value)
-      return this.render()
+      this.render()
     }
   }
 

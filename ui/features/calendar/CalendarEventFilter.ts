@@ -28,13 +28,14 @@ interface SchedulerState {
   inFindAppointmentMode?: boolean
   selectedCourse?: {
     asset_string: string
-  }
+    id?: number
+  } | null
 }
 
 export default function calendarEventFilter(
   viewingGroup: any,
   events: any[],
-  schedulerState: SchedulerState = {}
+  schedulerState: SchedulerState = {},
 ): any[] {
   const eventIds: Record<string, boolean> = {}
   if (!(events.length > 0)) return events
@@ -46,6 +47,7 @@ export default function calendarEventFilter(
     if (eventIds[event.id]) {
       keep = false
     } else if (event.isAppointmentGroupEvent()) {
+      // @ts-expect-error ENV.CALENDAR is not typed
       if (!viewingGroup || ENV.CALENDAR.SHOW_SCHEDULER) {
         // Handle normal calendar view, not scheduler view
         if (!event.calendarEvent.reserve_url) {
@@ -67,7 +69,7 @@ export default function calendarEventFilter(
         } else if (
           // appointment slot
           schedulerState.inFindAppointmentMode &&
-          event.isOnCalendar(schedulerState.selectedCourse.asset_string)
+          event.isOnCalendar(schedulerState.selectedCourse?.asset_string)
         ) {
           // show it (non-grayed) if it is reservable; filter it out otherwise
           if (

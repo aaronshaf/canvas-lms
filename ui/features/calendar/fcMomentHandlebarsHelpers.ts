@@ -18,6 +18,7 @@
 
 import * as tz from '@instructure/moment-utils'
 import fcUtil from '@canvas/calendar/jquery/fcUtil'
+// @ts-expect-error handlebars/runtime does not have type definitions
 import _Handlebars from 'handlebars/runtime'
 
 const Handlebars = _Handlebars.default // because this version of handlebars has old, messed up es6 transpilation
@@ -30,15 +31,15 @@ const Handlebars = _Handlebars.default // because this version of handlebars has
 
 const helpers = {
   // convert a moment to a string, using the given i18n format in the date.formats namespace
-  fcMomentToDateString(date: any = '', i18n_format: string): string {
+  fcMomentToDateString(date: any = '', i18n_format: string): string | null {
     if (!date) return ''
-    return tz.format(fcUtil.unwrap(date), `date.formats.${i18n_format}`)
+    return tz.format(fcUtil.unwrap(date), `date.formats.${i18n_format}`) || null
   },
 
   // convert a moment to a time string, using the given i18n format in the time.formats namespace
-  fcMomentToString(date: any = '', i18n_format: string): string {
+  fcMomentToString(date: any = '', i18n_format: string): string | null {
     if (!date) return ''
-    return tz.format(fcUtil.unwrap(date), `time.formats.${i18n_format}`)
+    return tz.format(fcUtil.unwrap(date), `time.formats.${i18n_format}`) || null
   },
 }
 

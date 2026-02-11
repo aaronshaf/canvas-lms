@@ -41,30 +41,32 @@ class ContextSelectorItem {
     this.locked = false
   }
 
-  render($list) {
+  render($list: JQuery) {
     this.$listItem = $(contextSelectorItemTemplate(this.context))
     this.$listItem.appendTo($list)
     this.$sectionsList = this.$listItem.find('.ag_sections')
 
+    // @ts-expect-error preventDefault expects native Event, not jQuery event
     this.$listItem.find('.ag_sections_toggle').click(preventDefault(this.toggleSections))
     this.$contentCheckbox = this.$listItem.find('[name="context_codes[]"]')
+    // @ts-expect-error preventDefault expects native Event, not jQuery event
     this.$contentCheckbox.change(preventDefault(this.change))
     this.$sectionCheckboxes = this.$listItem.find('[name="sections[]"]')
     this.$sectionCheckboxes.change(this.sectionChange)
   }
 
-  toggleSections = _e => {
-    this.$sectionsList.toggleClass('hidden')
-    const $toggle = this.$listItem.find('.ag_sections_toggle')
-    $toggle.toggleClass('ag-sections-expanded')
+  toggleSections = (_e: any) => {
+    this.$sectionsList?.toggleClass('hidden')
+    const $toggle = this.$listItem?.find('.ag_sections_toggle')
+    $toggle?.toggleClass('ag-sections-expanded')
 
-    if ($toggle.hasClass('ag-sections-expanded')) {
+    if ($toggle?.hasClass('ag-sections-expanded')) {
       $toggle
-        .find('.screenreader-only')
+        ?.find('.screenreader-only')
         .text(I18n.t('Hide course sections for course %{name}', {name: this.context.name}))
     } else {
       $toggle
-        .find('.screenreader-only')
+        ?.find('.screenreader-only')
         .text(I18n.t('Show course sections for course %{name}', {name: this.context.name}))
     }
   }
@@ -78,12 +80,14 @@ class ContextSelectorItem {
           return 'off'
         case 'partial':
           return 'on'
+        default:
+          return 'off'
       }
     })()
     this.setState(newState)
   }
 
-  setState = state => {
+  setState = (state: string) => {
     if (this.locked) return
 
     this.state = state
@@ -91,14 +95,14 @@ class ContextSelectorItem {
       case 'on':
       case 'off': {
         const checked = this.state === 'on'
-        this.$contentCheckbox.prop('checked', checked)
-        this.$contentCheckbox.prop('indeterminate', false)
-        this.$sectionCheckboxes.prop('checked', checked)
+        this.$contentCheckbox?.prop('checked', checked)
+        this.$contentCheckbox?.prop('indeterminate', false)
+        this.$sectionCheckboxes?.prop('checked', checked)
         break
       }
       case 'partial':
-        this.$contentCheckbox.prop('checked', true)
-        this.$contentCheckbox.prop('indeterminate', true)
+        this.$contentCheckbox?.prop('checked', true)
+        this.$contentCheckbox?.prop('indeterminate', true)
         break
     }
 
@@ -106,10 +110,10 @@ class ContextSelectorItem {
   }
 
   sectionChange = () => {
-    switch (this.$sectionCheckboxes.filter(':checked').length) {
+    switch (this.$sectionCheckboxes?.filter(':checked').length) {
       case 0:
         return this.setState('off')
-      case this.$sectionCheckboxes.length:
+      case this.$sectionCheckboxes?.length:
         return this.setState('on')
       default:
         return this.setState('partial')
@@ -117,11 +121,11 @@ class ContextSelectorItem {
   }
 
   disableSelf() {
-    this.$contentCheckbox.prop('disabled', true)
+    this.$contentCheckbox?.prop('disabled', true)
   }
 
   disableSections() {
-    this.$sectionCheckboxes.prop('disabled', true)
+    this.$sectionCheckboxes?.prop('disabled', true)
   }
 
   disableAll() {
@@ -139,20 +143,31 @@ class ContextSelectorItem {
   }
 
   sections() {
-    const checked = this.$sectionCheckboxes.filter(':checked')
+    const checked = this.$sectionCheckboxes?.filter(':checked')
     if (
-      checked.length === this.$sectionCheckboxes.length &&
-      !this.$contentCheckbox.prop('disabled')
+      checked?.length === this.$sectionCheckboxes?.length &&
+      !this.$contentCheckbox?.prop('disabled')
     ) {
       return []
     } else {
-      return map(checked, cb => cb.value)
+      return map(checked, (cb: any) => cb.value)
     }
   }
 }
 
 export default class ContextSelector {
-  constructor(selector, apptGroup, contexts, contextsChangedCB, closeCB) {
+  apptGroup: any
+  contexts: any[]
+  $menu: JQuery
+  contextSelectorItems: Record<string, ContextSelectorItem>
+
+  constructor(
+    selector: string,
+    apptGroup: any,
+    contexts: any[],
+    contextsChangedCB: any,
+    closeCB: any,
+  ) {
     this.apptGroup = apptGroup
     this.contexts = contexts
     this.$menu = $(selector).html(contextSelectorTemplate())
@@ -186,16 +201,16 @@ export default class ContextSelector {
         item.lock()
       }
     } else {
-      let context
-      const contextsBySubContext = {}
+      let context: string
+      const contextsBySubContext: Record<string, string> = {}
 
-      this.contexts.forEach(c => {
-        c.course_sections.forEach(section => {
+      this.contexts.forEach((c: any) => {
+        c.course_sections.forEach((section: any) => {
           contextsBySubContext[section.asset_string] = c.asset_string
         })
       })
 
-      this.apptGroup.sub_context_codes.forEach(subContextCode => {
+      this.apptGroup.sub_context_codes.forEach((subContextCode: string) => {
         $(`[value='${subContextCode}']`).prop('checked', true)
         context = contextsBySubContext[subContextCode]
         const item = this.contextSelectorItems[context]
@@ -203,7 +218,7 @@ export default class ContextSelector {
         item.lock()
       })
 
-      this.apptGroup.context_codes.forEach(contextCode => {
+      this.apptGroup.context_codes.forEach((contextCode: string) => {
         const item = this.contextSelectorItems[contextCode]
         if (item.state === 'off') {
           item.setState('on')
@@ -214,12 +229,13 @@ export default class ContextSelector {
       for (const c in this.contextSelectorItems) {
         const item = this.contextSelectorItems[c]
         if (!item.locked && !item.context.can_create_appointment_groups.all_sections) {
-          item.toggleSections()
+          item.toggleSections(null)
           item.disableSelf()
         }
       }
     }
 
+    // @ts-expect-error preventDefault expects native Event, not jQuery event
     $('.ag_contexts_done').click(preventDefault(closeCB))
 
     contextsChangedCB(this.selectedContexts(), this.selectedSections())
