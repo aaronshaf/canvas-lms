@@ -29,7 +29,7 @@ const defaultProps = (props = {}) => ({
 })
 
 const renderStudentLastAttended = (props = {}) => {
-  const ref = React.createRef()
+  const ref = React.createRef<StudentLastAttended>()
   const wrapper = render(<StudentLastAttended {...defaultProps(props)} {...props} ref={ref} />)
 
   return {ref, ...wrapper}
@@ -45,7 +45,7 @@ describe('StudentLastAttended', () => {
   it('renders loading component when loading', () => {
     const {ref} = renderStudentLastAttended()
 
-    ref.current.setState({loading: true})
+    ref.current!.setState({loading: true})
 
     expect(screen.getByText('Loading last attended date')).toBeInTheDocument()
   })
@@ -54,11 +54,12 @@ describe('StudentLastAttended', () => {
     const {ref} = renderStudentLastAttended()
     const newDate = new Date('2018-03-05T07:00:00.000Z')
 
-    ref.current.state.selectedDate = new Date('2018-03-04T07:00:00.000Z')
-    vi.spyOn(ref.current, 'postDateToBackend')
+    ref.current!.state.selectedDate = new Date('2018-03-04T07:00:00.000Z') as any
 
-    ref.current.onDateSubmit(newDate)
+    vi.spyOn(ref.current!, 'postDateToBackend')
 
-    expect(ref.current.postDateToBackend).toHaveBeenCalledWith(newDate.toISOString())
+    ref.current!.onDateSubmit(newDate as any)
+
+    expect(ref.current!.postDateToBackend).toHaveBeenCalledWith(newDate.toISOString())
   })
 })

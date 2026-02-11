@@ -20,7 +20,12 @@ import React from 'react'
 import {legacyRender} from '@canvas/react'
 import StudentLastAttended from './StudentLastAttended'
 
-export default function initLastAttended(rootElement, courseID, studentID, lastAttendedDate) {
+export default function initLastAttended(
+  rootElement: HTMLElement,
+  courseID: string,
+  studentID: string,
+  lastAttendedDate: string | null
+): void {
   legacyRender(
     <StudentLastAttended
       defaultDate={lastAttendedDate}
