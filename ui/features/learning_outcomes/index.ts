@@ -30,6 +30,47 @@ import {
   showOutcomesImporter,
   showOutcomesImporterIfInProgress,
 } from '@canvas/outcomes/react/OutcomesImporter'
+import type Backbone from 'backbone'
+
+declare global {
+  interface Window {
+    ENV: {
+      PERMISSIONS: {
+        manage_outcomes: boolean
+        manage_rubrics: boolean
+        import_outcomes: boolean
+      }
+      CONTEXT_URL_ROOT: string
+      ROOT_OUTCOME_GROUP: {
+        id: string
+        title: string
+        vendor_guid: string
+        url: string
+        subgroups_url: string
+        outcomes_url: string
+        can_edit: boolean
+        import_url: string
+        context_id: string
+        context_type: string
+        description: string
+      }
+      IMPROVED_OUTCOMES_MANAGEMENT?: boolean
+      current_user: {
+        id: string
+        anonymous_id: string
+        display_name: string
+        avatar_image_url: string
+        html_url: string
+        pronouns: string | null
+        fake_student: boolean
+        avatar_is_fallback: boolean
+        email?: string
+      }
+    }
+  }
+}
+
+const ENV = window.ENV
 
 ready(() => {
   const $el = $('#outcomes')
@@ -78,7 +119,7 @@ ready(() => {
   toolbar.on('add', content.add.bind(content))
   toolbar.on('find', () => sidebar.findDialog(FindDialog))
   toolbar.on('import', () => showImportOutcomesModal({toolbar}))
-  toolbar.on('start_sync', file =>
+  toolbar.on('start_sync', (file: File) =>
     showOutcomesImporter({
       file,
       disableOutcomeViews,
@@ -101,7 +142,7 @@ ready(() => {
   }
 
   // sidebar events
-  sidebar.on('select', model => content.show(model))
+  sidebar.on('select', (model: Backbone.Model) => content.show(model))
   sidebar.on('select', toolbar.resetBackButton.bind(toolbar))
 
   // content events
@@ -111,5 +152,7 @@ ready(() => {
     const model = view && view.model
     content.show(model)
   })
-  content.on('move', (model, newGroup) => sidebar.moveItem(model, newGroup))
+  content.on('move', (model: Backbone.Model, newGroup: Backbone.Model) =>
+    sidebar.moveItem(model, newGroup),
+  )
 })
