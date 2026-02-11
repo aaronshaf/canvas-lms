@@ -26,7 +26,9 @@ ready(() => {
 
   legacyRender(
     <LinkValidator
+      // @ts-expect-error - ENV properties not in GlobalEnv type
       pollTimeout={ENV.validation_poll_timeout}
+      // @ts-expect-error - ENV properties not in GlobalEnv type
       pollTimeoutInitial={ENV.validation_poll_timeout_initial}
     />,
     linkValidatorWrapper,

@@ -31,12 +31,16 @@ describe('LinkValidator', () => {
     const mockShow = vi.fn()
     const mockHide = vi.fn()
     const mockScreenReaderFlashMessage = vi.fn()
-    const mockJQuery = vi.fn(() => ({
-      show: mockShow,
-      hide: mockHide,
-    }))
-    mockJQuery.screenReaderFlashMessage = mockScreenReaderFlashMessage
-    $.mockImplementation(selector => mockJQuery(selector))
+    const mockJQuery = Object.assign(
+      vi.fn(() => ({
+        show: mockShow,
+        hide: mockHide,
+      })),
+      {screenReaderFlashMessage: mockScreenReaderFlashMessage},
+    )
+    // @ts-expect-error - Mocking jQuery
+    $.mockImplementation((selector: string) => mockJQuery(selector))
+    // @ts-expect-error - Mocking jQuery
     $.screenReaderFlashMessage = mockScreenReaderFlashMessage
   })
 
@@ -52,7 +56,8 @@ describe('LinkValidator', () => {
           VALIDATION_CONFETTI_ENABLED: true,
         })
 
-        $.ajax.mockImplementation(params =>
+        // @ts-expect-error - Mocking jQuery
+        $.ajax.mockImplementation((params: any) =>
           params.success({
             workflow_state: 'completed',
             results: {
@@ -113,7 +118,8 @@ describe('LinkValidator', () => {
           VALIDATION_CONFETTI_ENABLED: true,
         })
 
-        $.ajax.mockImplementation(params =>
+        // @ts-expect-error - Mocking jQuery
+        $.ajax.mockImplementation((params: any) =>
           params.success({
             workflow_state: 'completed',
             results: {
@@ -173,7 +179,7 @@ describe('LinkValidator', () => {
         })
 
         await waitFor(() => {
-          expect(getByText('hehehh').href).toEqual('about:blank')
+          expect((getByText('hehehh') as HTMLAnchorElement).href).toEqual('about:blank')
         })
       })
     })
