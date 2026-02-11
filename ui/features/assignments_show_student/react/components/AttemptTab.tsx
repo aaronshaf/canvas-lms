@@ -160,9 +160,9 @@ function SubmissionTypeSelector({
           <Flex wrap="wrap">
             {assignment.submissionTypes.map((type: any) => (
               <Flex.Item as="div" key={type} margin="0 medium 0 0" data-testid={type}>
-                {/* @ts-expect-error */}
                 <SubmissionTypeButton
                   displayName={friendlyTypeName(type)}
+                  {/* @ts-expect-error - dynamic icon lookup */}
                   icon={iconsByType[type]}
                   selected={activeSubmissionType === type}
                   onSelected={() => {
@@ -214,7 +214,6 @@ export default class AttemptTab extends Component {
   }
 
   renderFileUpload = () => {
-    // @ts-expect-error
     return (
       <LazyLoad errorCategory="Assignments 2 FileUpload on AttemptTab">
         <FileUpload
@@ -284,7 +283,7 @@ export default class AttemptTab extends Component {
         id: submission.id,
         activeSubmissionType: 'online_upload',
         attempt: submission.attempt || 1,
-        fileIds: existingAttachments.map(file => file._id).concat(newFileIDs),
+        fileIds: existingAttachments.map((file: any) => file._id).concat(newFileIDs),
       },
     })
   }
@@ -384,7 +383,6 @@ export default class AttemptTab extends Component {
 
   renderTextAttempt = (context: any) => {
     const readOnly =
-      // @ts-expect-error
       (!context.allowChangesToSubmission && !context.isObserver) ||
       // @ts-expect-error
       isSubmitted(this.props.submission)
@@ -419,9 +417,13 @@ export default class AttemptTab extends Component {
           createSubmissionDraft={this.props.createSubmissionDraft}
           // @ts-expect-error
           focusOnInit={this.props.focusAttemptOnInit}
+          // @ts-expect-error
           submission={this.props.submission}
+          // @ts-expect-error
           updateEditingDraft={this.props.updateEditingDraft}
+          // @ts-expect-error
           submitButtonRef={this.props.submitButtonRef}
+          // @ts-expect-error
           newAttemptButtonRef={this.props.newAttemptButtonRef}
         />
       </LazyLoad>
