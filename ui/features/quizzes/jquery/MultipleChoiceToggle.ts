@@ -29,11 +29,32 @@ extend(MultipleChoiceToggle, EditorToggle)
 // @param {jQuery} @editButton - the edit button to trigger the toggle
 // @param {Object} options - options for EditorToggle
 // @api public
-export default function MultipleChoiceToggle(editButton, options) {
+export default function MultipleChoiceToggle(
+  this: any,
+  editButton: JQuery,
+  options: any
+): MultipleChoiceToggle {
   this.editButton = editButton
   this.cacheElements()
 
   return EditorToggle.call(this, this.answer.find('.answer_html'), options) || this
+}
+
+interface MultipleChoiceToggle {
+  editButton: JQuery
+  answer: JQuery
+  answerText: JQuery
+  input: JQuery
+  content: string
+  el: JQuery
+  textArea: HTMLElement
+  cacheElements(): void
+  display(): void
+  edit(): void
+  showAnswerText(): void
+  showEl(): void
+  toggleIfEmpty(): void
+  isEmpty(): boolean
 }
 
 Object.assign(MultipleChoiceToggle.prototype, {
@@ -41,19 +62,19 @@ Object.assign(MultipleChoiceToggle.prototype, {
   // Finds all the relevant elements from the perspective of the edit button
   // that toggles the element between itself and an editor
   // @api private
-  cacheElements() {
+  cacheElements(this: MultipleChoiceToggle): void {
     this.answer = this.editButton.parents('.answer')
     this.answerText = this.answer.find('input[name=answer_text]')
     this.answerText.hide()
-    return (this.input = this.answer.find('input[name=answer_html]'))
+    this.input = this.answer.find('input[name=answer_html]')
   },
 
   // #
   // Extends EditorToggle::display to @toggleIfEmpty and sets the hidden
   // input's value to the content from the editor
   // @api public
-  display() {
-    EditorToggle.prototype.display.apply(this, arguments)
+  display(this: MultipleChoiceToggle): void {
+    EditorToggle.prototype.display.apply(this, arguments as any)
     this.toggleIfEmpty()
     this.input.val(this.content)
     if (this.content === '') return this.answerText.val('')
@@ -63,11 +84,11 @@ Object.assign(MultipleChoiceToggle.prototype, {
   // Extends EditorToggle::edit to always hide the original input
   // in case it was shown because the editor content was empty
   // @api public
-  edit() {
-    EditorToggle.prototype.edit.apply(this, arguments)
+  edit(this: MultipleChoiceToggle): void {
+    EditorToggle.prototype.edit.apply(this, arguments as any)
     this.answerText.hide()
     if (this.content === '') {
-      return send(this.textArea, 'set_code', htmlEscape(this.answerText.val()))
+      return send(this.textArea, 'set_code', htmlEscape(this.answerText.val() as string))
     } else {
       return send(this.textArea, 'set_code', this.content)
     }
@@ -78,24 +99,24 @@ Object.assign(MultipleChoiceToggle.prototype, {
   // the HTML display element, also sets @input value to '' so the quizzes.js
   // hooks don't think its an html answer
   // @api public
-  showAnswerText() {
+  showAnswerText(this: MultipleChoiceToggle): void {
     this.answerText.show()
     this.el.hide()
-    return this.input.val('')
+    this.input.val('')
   },
 
   // #
   // Shows the HTML element and hides the origina input
   // @api public
-  showEl() {
+  showEl(this: MultipleChoiceToggle): void {
     this.answerText.hide()
-    return this.el.show()
+    this.el.show()
   },
 
   // #
   // If the editor has no content, it will show the original input
   // @api public
-  toggleIfEmpty() {
+  toggleIfEmpty(this: MultipleChoiceToggle): void {
     if (this.isEmpty()) {
       return this.showAnswerText()
     } else {
@@ -107,7 +128,7 @@ Object.assign(MultipleChoiceToggle.prototype, {
   // Determines if the editor has any content
   // @returns {Boolean}
   // @api private
-  isEmpty() {
+  isEmpty(this: MultipleChoiceToggle): boolean {
     return $.trim(this.content) === ''
   },
 })

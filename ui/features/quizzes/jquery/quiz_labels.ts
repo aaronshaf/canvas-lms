@@ -21,7 +21,7 @@ import $ from 'jquery'
 
 const I18n = createI18nScope('quizzes.timing')
 
-export default function addAriaDescription($answer, id) {
+export default function addAriaDescription($answer: JQuery, id: string | number): void {
   const text = I18n.t('Answer %{answerId}', {answerId: id})
   const labelId = `answer${id}`
 

@@ -18,32 +18,34 @@
 import numberHelper from '@canvas/i18n/numberHelper'
 
 export default class QuizFormulaSolution {
-  constructor(result) {
+  result: string | null | undefined
+
+  constructor(result: string | null | undefined) {
     this.result = result
   }
 
-  rawValue() {
+  rawValue(): number {
     return numberHelper.parse(this.rawText())
   }
 
-  rawText() {
+  rawText(): string {
     if (this.result === null || this.result === undefined) {
       return 'NaN'
     }
     return this.result.substring(1).trim()
   }
 
-  isValid() {
+  isValid(): boolean {
     return !!(this._wellFormedString() && this._appropriateSolutionValue())
   }
 
-  _wellFormedString() {
+  _wellFormedString(): boolean {
     const result = this.result
-    return !!(result.match(/^=/) && result !== '= NaN' && result !== '= Infinity')
+    return !!(result?.match(/^=/) && result !== '= NaN' && result !== '= Infinity')
   }
 
-  _appropriateSolutionValue() {
+  _appropriateSolutionValue(): boolean {
     const rawVal = this.rawValue()
-    return !!(rawVal == 0 || rawVal)
+    return !!(rawVal === 0 || rawVal)
   }
 }
