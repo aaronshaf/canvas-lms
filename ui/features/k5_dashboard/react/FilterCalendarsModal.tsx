@@ -17,7 +17,6 @@
  */
 
 import React, {useEffect, useState} from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 import {FormFieldGroup} from '@instructure/ui-form-field'
@@ -36,6 +35,15 @@ import {DEFAULT_COURSE_COLOR, saveSelectedContexts} from '@canvas/k5/react/utils
 
 const I18n = createI18nScope('filter_calendars_modal')
 
+interface ContextCheckboxProps {
+  assetString: string
+  color?: string
+  maxContextsReached: boolean
+  name: string
+  onChange: (assetString: string) => void
+  selected: boolean
+}
+
 export const ContextCheckbox = ({
   assetString,
   color,
@@ -43,7 +51,7 @@ export const ContextCheckbox = ({
   name,
   onChange,
   selected,
-}) => {
+}: ContextCheckboxProps) => {
   const checkboxColor = color || DEFAULT_COURSE_COLOR
   return (
     <InstUISettingsProvider
@@ -68,6 +76,21 @@ export const ContextCheckbox = ({
   )
 }
 
+export interface ImportantDatesContext {
+  assetString: string
+  name: string
+  color?: string
+}
+
+interface FilterCalendarsModalProps {
+  closeModal: () => void
+  contexts: ImportantDatesContext[]
+  isOpen: boolean
+  selectedContextCodes: string[]
+  selectedContextsLimit: number
+  updateSelectedContextCodes: (codes: string[]) => void
+}
+
 const FilterCalendarsModal = ({
   closeModal,
   contexts,
@@ -75,7 +98,7 @@ const FilterCalendarsModal = ({
   selectedContextCodes,
   selectedContextsLimit,
   updateSelectedContextCodes,
-}) => {
+}: FilterCalendarsModalProps) => {
   const [pendingSelectedContexts, setPendingSelectedContexts] = useState([...selectedContextCodes])
 
   useEffect(() => {
@@ -87,7 +110,7 @@ const FilterCalendarsModal = ({
     closeModal()
   }
 
-  const toggleContext = assetString => {
+  const toggleContext = (assetString: string) => {
     setPendingSelectedContexts(currentlySelected => {
       const contextIndex = currentlySelected.indexOf(assetString)
       if (contextIndex === -1) {
@@ -173,21 +196,6 @@ const FilterCalendarsModal = ({
       </Modal.Footer>
     </Modal>
   )
-}
-
-export const ImportantDatesContextsShape = PropTypes.shape({
-  assetString: PropTypes.string.isRequired,
-  name: PropTypes.string.isRequired,
-  color: PropTypes.string,
-})
-
-FilterCalendarsModal.propTypes = {
-  closeModal: PropTypes.func.isRequired,
-  contexts: PropTypes.arrayOf(ImportantDatesContextsShape).isRequired,
-  isOpen: PropTypes.bool.isRequired,
-  selectedContextCodes: PropTypes.arrayOf(PropTypes.string).isRequired,
-  selectedContextsLimit: PropTypes.number.isRequired,
-  updateSelectedContextCodes: PropTypes.func.isRequired,
 }
 
 export default FilterCalendarsModal
