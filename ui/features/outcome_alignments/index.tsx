@@ -25,14 +25,20 @@ import {AlignmentWidget} from '@instructure/outcomes-ui'
 
 ready(() => {
   const container = document.getElementById('canvas_outcomes_alignment_widget')
+  // @ts-expect-error TS2339 (typescriptify)
   if (ENV.canvas_outcomes && ENV.canvas_outcomes.host) {
     legacyRender(
       <View as="div" borderWidth="small none none none" padding="medium none">
         <AlignmentWidget
+          // @ts-expect-error TS2339 (typescriptify)
           host={ENV.canvas_outcomes.host}
+          // @ts-expect-error TS2339 (typescriptify)
           jwt={ENV.canvas_outcomes.jwt}
+          // @ts-expect-error TS2339 (typescriptify)
           contextUuid={ENV.canvas_outcomes.context_uuid}
+          // @ts-expect-error TS2339 (typescriptify)
           artifactType={ENV.canvas_outcomes.artifact_type}
+          // @ts-expect-error TS2339 (typescriptify)
           artifactId={ENV.canvas_outcomes.artifact_id}
         />
       </View>,
