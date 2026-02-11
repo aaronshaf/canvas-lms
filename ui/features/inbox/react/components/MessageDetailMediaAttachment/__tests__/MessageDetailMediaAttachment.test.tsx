@@ -21,6 +21,7 @@ import {MediaComment} from '../../../../graphql/MediaComment'
 import {MessageDetailMediaAttachment} from '../MessageDetailMediaAttachment'
 import React from 'react'
 
+// @ts-expect-error - Mocking InstUI MediaPlayer component
 vi.mock('@instructure/ui-media-player', () => ({
   MediaPlayer: () => <div />,
 }))
