@@ -25,6 +25,7 @@ import ready from '@instructure/ready'
 ready(() => {
   const container = $('#sendMessageForm')[0]
   if (container) {
+    // eslint-disable-next-line react/no-deprecated
     ReactDOM.render(<FileNotFound contextCode={window.ENV.context_asset_string} />, container)
   }
 })

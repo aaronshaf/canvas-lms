@@ -62,7 +62,8 @@ class FileNotFound extends React.Component<FileNotFoundProps, FileNotFoundState>
     }
 
     const dfd = $.post('/api/v1/conversations', conversationData)
-    // @ts-expect-error - jQuery plugin disableWhileLoading is not typed
+    // @ts-expect-error - jQuery plugin disableWhileLoading is not typed, and findDOMNode is deprecated but required for jQuery plugin
+    // eslint-disable-next-line react/no-find-dom-node
     $(ReactDOM.findDOMNode(this.formRef.current)).disableWhileLoading(dfd)
 
     dfd.done(() => this.setState({status: 'sent'}))
