@@ -17,7 +17,6 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import axios from '@canvas/axios'
 
@@ -28,33 +27,44 @@ import {IconMoreLine, IconArrowOpenDownLine} from '@instructure/ui-icons'
 
 const I18n = createI18nScope('dashboard')
 
-export default class DashboardOptionsMenu extends React.Component {
-  static propTypes = {
-    view: PropTypes.string,
-    planner_enabled: PropTypes.bool,
-    onDashboardChange: PropTypes.func.isRequired,
-    menuButtonRef: PropTypes.func,
-    canEnableElementaryDashboard: PropTypes.bool,
-    responsiveSize: PropTypes.string,
-  }
+type DashboardView = 'cards' | 'planner' | 'activity' | 'elementary'
 
+interface DashboardOptionsMenuProps {
+  view?: DashboardView
+  planner_enabled?: boolean
+  onDashboardChange: (view: DashboardView) => void
+  menuButtonRef?: (element: Element | null) => void
+  canEnableElementaryDashboard?: boolean
+  responsiveSize?: string
+}
+
+interface DashboardOptionsMenuState {
+  showColorOverlays: boolean
+}
+
+export default class DashboardOptionsMenu extends React.Component<
+  DashboardOptionsMenuProps,
+  DashboardOptionsMenuState
+> {
   static defaultProps = {
     planner_enabled: false,
-    view: 'cards',
+    view: 'cards' as DashboardView,
     menuButtonRef: () => {},
     canEnableElementaryDashboard: false,
   }
 
-  state = {
+  menuContentRef: Element | null = null
+
+  state: DashboardOptionsMenuState = {
     showColorOverlays: !(ENV && ENV.PREFERENCES && ENV.PREFERENCES.hide_dashcard_color_overlays),
   }
 
-  handleViewOptionSelect = (e, [newlySelectedView]) => {
+  handleViewOptionSelect = (_e: React.SyntheticEvent, [newlySelectedView]: [DashboardView]) => {
     if (this.props.view === newlySelectedView) return
     this.props.onDashboardChange(newlySelectedView)
   }
 
-  handleColorOverlayOptionSelect = showColorOverlays => {
+  handleColorOverlayOptionSelect = (showColorOverlays: boolean) => {
     if (showColorOverlays === this.state.showColorOverlays) return
 
     this.setState({showColorOverlays}, () => {
@@ -67,11 +77,19 @@ export default class DashboardOptionsMenu extends React.Component {
     document.querySelectorAll('.ic-DashboardCard__header').forEach(dashcardHeader => {
       const dashcardImageHeader = dashcardHeader.querySelector('.ic-DashboardCard__header_image')
       if (dashcardImageHeader) {
-        const dashcardOverlay = dashcardImageHeader.querySelector('.ic-DashboardCard__header_hero')
-        dashcardOverlay.style.opacity = this.state.showColorOverlays ? 0.6 : 0
+        const dashcardOverlay = dashcardImageHeader.querySelector(
+          '.ic-DashboardCard__header_hero',
+        ) as HTMLElement
+        if (dashcardOverlay) {
+          dashcardOverlay.style.opacity = this.state.showColorOverlays ? '0.6' : '0'
+        }
 
-        const headerButtonBg = dashcardHeader.querySelector('.ic-DashboardCard__header-button-bg')
-        headerButtonBg.style.opacity = this.state.showColorOverlays ? 0 : 1
+        const headerButtonBg = dashcardHeader.querySelector(
+          '.ic-DashboardCard__header-button-bg',
+        ) as HTMLElement
+        if (headerButtonBg) {
+          headerButtonBg.style.opacity = this.state.showColorOverlays ? '0' : '1'
+        }
       }
     })
   }
@@ -85,10 +103,12 @@ export default class DashboardOptionsMenu extends React.Component {
 
     return (
       <Menu
+        // @ts-expect-error - InstUI Menu trigger prop type is complex
         trigger={
           this.props.responsiveSize == 'small' ? (
             <Button
               elementRef={this.props.menuButtonRef}
+              // @ts-expect-error - InstUI Button screenReaderLabel prop
               screenReaderLabel={I18n.t('Dashboard Options')}
               display="block"
               data-testid="dashboard-options-button"
@@ -142,7 +162,9 @@ export default class DashboardOptionsMenu extends React.Component {
             data-testid="color-overlay-group"
           >
             <Menu.Item
-              onSelect={(_e, _, isSelected) => this.handleColorOverlayOptionSelect(isSelected)}
+              onSelect={(_e, _value, isSelected) =>
+                this.handleColorOverlayOptionSelect(isSelected)
+              }
               selected={this.state.showColorOverlays}
               data-testid="color-overlay-menu-item"
             >

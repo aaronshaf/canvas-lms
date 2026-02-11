@@ -17,7 +17,6 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {render} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import DashboardOptionsMenu from '../DashboardOptionsMenu'
@@ -25,12 +24,19 @@ import axios from '@canvas/axios'
 
 vi.mock('@canvas/axios')
 
+interface FakeDashboardProps {
+  menuRef?: (ref: DashboardOptionsMenu | null) => void
+  view?: string
+  planner_enabled?: boolean
+  onDashboardChange?: (view: string) => void
+}
+
 const FakeDashboard = function ({
   menuRef,
   view = 'cards',
   planner_enabled = false,
   onDashboardChange = () => {},
-}) {
+}: FakeDashboardProps) {
   return (
     <div>
       <DashboardOptionsMenu
@@ -66,18 +72,11 @@ const FakeDashboard = function ({
   )
 }
 
-FakeDashboard.propTypes = {
-  menuRef: PropTypes.func,
-  view: PropTypes.string,
-  planner_enabled: PropTypes.bool,
-  onDashboardChange: PropTypes.func,
-}
-
 describe('Dashboard Options Menu', () => {
-  let user
+  let user: ReturnType<typeof userEvent.setup>
 
   beforeEach(() => {
-    axios.post.mockResolvedValue({data: {}})
+    ;(axios.post as any).mockResolvedValue({data: {}})
     user = userEvent.setup({delay: null})
   })
 
@@ -149,7 +148,7 @@ describe('Dashboard Options Menu', () => {
   })
 
   it('toggles color overlays', () => {
-    let dashboardMenu = null
+    let dashboardMenu: DashboardOptionsMenu | null = null
     render(
       <FakeDashboard
         menuRef={c => {
@@ -160,7 +159,7 @@ describe('Dashboard Options Menu', () => {
     )
 
     // Turn off color overlay
-    dashboardMenu.handleColorOverlayOptionSelect(false)
+    dashboardMenu!.handleColorOverlayOptionSelect(false)
     expect(document.getElementsByClassName('ic-DashboardCard__header_hero')[0].style.opacity).toBe(
       '0',
     )
@@ -169,7 +168,7 @@ describe('Dashboard Options Menu', () => {
     ).toBe('1')
 
     // Turn on color overlay
-    dashboardMenu.handleColorOverlayOptionSelect(true)
+    dashboardMenu!.handleColorOverlayOptionSelect(true)
     expect(document.getElementsByClassName('ic-DashboardCard__header_hero')[0].style.opacity).toBe(
       '0.6',
     )
