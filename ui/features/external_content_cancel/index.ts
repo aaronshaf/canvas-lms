@@ -23,7 +23,7 @@ import ready from '@instructure/ready'
 const I18n = createI18nScope('external_content.cancel')
 
 ready(() => {
-  const parentWindow = window.opener || window.parent
+  const parentWindow: WindowProxy = window.opener || window.parent
   postMessageExternalContentCancel(parentWindow)
   setTimeout(
     () =>
