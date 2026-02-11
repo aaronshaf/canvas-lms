@@ -19,19 +19,27 @@
 import {View} from '@canvas/backbone'
 import template from '../../jst/checkbox_view.handlebars'
 
+interface CheckboxViewOptions {
+  color: string
+  label: string
+}
+
 class CheckboxView extends View {
-  onClick(e) {
+  checked: boolean = true
+  options: CheckboxViewOptions
+
+  onClick(e: JQuery.ClickEvent): void {
     e.preventDefault()
-    return this.toggleState()
+    this.toggleState()
   }
 
-  toggleState() {
+  toggleState(): void {
     this.checked = !this.checked
     this.trigger('togglestate', this.checked)
-    return this.render()
+    this.render()
   }
 
-  toJSON() {
+  toJSON(): {checked: string; color: string; label: string} {
     return {
       checked: this.checked.toString(),
       color: this.checked ? this.options.color : 'none',
@@ -41,17 +49,11 @@ class CheckboxView extends View {
 }
 
 CheckboxView.prototype.tagName = 'label'
-
 CheckboxView.prototype.className = 'checkbox-view'
-
 CheckboxView.optionProperty('color')
-
 CheckboxView.optionProperty('label')
-
 CheckboxView.prototype.checked = true
-
 CheckboxView.prototype.template = template
-
 CheckboxView.prototype.events = {
   click: 'onClick',
 }
