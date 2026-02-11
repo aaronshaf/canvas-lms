@@ -93,7 +93,7 @@ class FlavorGrid {
   oldSelected?: Record<string | number, boolean>
   restoringSelection?: boolean
   sortData?: SortData
-  updated?: () => void
+  updated(): void {}
 
   constructor(options: FlavorGridOptions, type_name: string, grid_name: string) {
     this.options = options
@@ -102,7 +102,7 @@ class FlavorGrid {
     this.data = []
     this.$element = $(this.grid_name)
     this.loading = {}
-    requestAnimationFrame(this.refresh)
+    requestAnimationFrame(this.refresh as unknown as FrameRequestCallback)
     if (this.options.refresh_rate) this.setTimer()
     this.query = ''
   }
@@ -148,7 +148,8 @@ class FlavorGrid {
           q: this.query,
         },
       })
-        .then(({json}: {json: any}) => {
+        .then(response => {
+          const {json} = response as {json: any}
           this.saveSelection()
           this.data.length = 0
           this.loading = {}
@@ -209,7 +210,7 @@ class FlavorGrid {
     return this
   }
 
-  columns: any[]
+  columns: any[] = []
 }
 
 class Jobs extends FlavorGrid {
@@ -281,7 +282,8 @@ class Jobs extends FlavorGrid {
           offset: row,
         },
       })
-        .then(({json}: {json: any}) => {
+        .then(response => {
+          const {json} = response as {json: any}
           this.data.splice(
             row,
             row + json[this.type_name].length - row,
@@ -445,10 +447,11 @@ class Jobs extends FlavorGrid {
     if (!selected_job || selected_job.handler) return Promise.resolve(selected_job)
 
     try {
-      const {json} = await doFetchApi({
+      const response = await doFetchApi({
         path: `${this.options.job_url}/${selected_job.id}`,
         params: {flavor: this.options.flavor},
       })
+      const {json} = response as {json: any}
       selected_job.handler = json.handler
       selected_job.last_error = json.last_error
       fillin_job_data(selected_job)
@@ -496,8 +499,10 @@ class Workers extends Jobs {
       name: I18n.t('columns.runtime', 'runtime'),
       field: 'locked_at',
       width: 85,
+      // @ts-expect-error - SlickGrid formatter property
       formatter: this.runtime_formatter.bind(this),
     })
+    // @ts-expect-error - SlickGrid column property
     for (const col of cols) col.sortable = true
     return cols
   }
