@@ -24,6 +24,20 @@ import ToolLaunchResizer from '@canvas/lti/jquery/tool_launch_resizer'
 import ready from '@instructure/ready'
 import MutexManager from '@canvas/mutex-manager/MutexManager'
 
+type ENVType = {
+  LTI_FORM_SUBMIT_DELAY?: number
+  INIT_DRAWER_LAYOUT_MUTEX?: string
+  LTI_TOOL_FORM_ID?: string
+  LTI?: {
+    SEQUENCE?: {
+      ASSET_ID: string
+      COURSE_ID: string
+    }
+  }
+}
+
+declare const ENV: ENVType
+
 ready(() => {
   const formSubmissionDelay = window.ENV.LTI_FORM_SUBMIT_DELAY
   const formSubmissionMutex = window.ENV.INIT_DRAWER_LAYOUT_MUTEX
@@ -36,7 +50,7 @@ ready(() => {
   }
   const $toolForm = $(toolFormId)
 
-  const submitForm = function (submitFn) {
+  const submitForm = function (submitFn?: () => void) {
     if (formSubmissionDelay) {
       setTimeout(() => {
         MutexManager.awaitMutex(formSubmissionMutex, () => {
@@ -114,7 +128,8 @@ ready(() => {
 
   // Iframe resize handler
   const $tool_content_wrapper = $('.tool_content_wrapper')
-  let tool_height, canvas_chrome_height
+  let tool_height: number | undefined
+  let canvas_chrome_height: number | undefined
 
   const $window = $(window)
   const toolResizer = new ToolLaunchResizer(tool_height)
@@ -123,7 +138,7 @@ ready(() => {
 
   if (!is_full_screen) {
     const footerHeight = $('#footer').outerHeight(true) || 0
-    canvas_chrome_height = $tool_content_wrapper.offset().top + footerHeight
+    canvas_chrome_height = $tool_content_wrapper.offset()!.top + footerHeight
   }
 
   if ($tool_content_wrapper.length) {
@@ -148,7 +163,7 @@ ready(() => {
             // module item navigation from PLAT-1687
             const sequenceFooterHeight = $('#sequence_footer').outerHeight(true) || 0
             toolResizer.resize_tool_content_wrapper(
-              $window.height() - canvas_chrome_height - sequenceFooterHeight,
+              $window.height()! - canvas_chrome_height! - sequenceFooterHeight,
             )
           }
         }
@@ -157,6 +172,7 @@ ready(() => {
   }
 
   if (ENV.LTI != null && ENV.LTI.SEQUENCE != null) {
+    // @ts-expect-error - jQuery plugin types are not available
     $('#module_sequence_footer').moduleSequenceFooter({
       assetType: 'Lti',
       assetID: ENV.LTI.SEQUENCE.ASSET_ID,
