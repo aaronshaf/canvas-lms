@@ -21,10 +21,17 @@ import CanvasModal from '@canvas/instui-bindings/react/Modal'
 import StuckList from './StuckList'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Button} from '@instructure/ui-buttons'
+import type {JobCluster} from '../../types'
 
 const I18n = createI18nScope('jobs_v2')
 
-export default function StuckModal({shard, isOpen, onClose}) {
+interface StuckModalProps {
+  shard: JobCluster
+  isOpen: boolean
+  onClose: () => void
+}
+
+export default function StuckModal({shard, isOpen, onClose}: StuckModalProps) {
   const Footer = () => {
     return <Button onClick={onClose}>{I18n.t('Close')}</Button>
   }

@@ -25,7 +25,7 @@ import {http, HttpResponse} from 'msw'
 
 const server = setupServer()
 
-function fakeLinkHeader(path) {
+function fakeLinkHeader(path: string): string {
   return `<${path}?page=1>; rel="current", <${path}?page=1>; rel="last"`
 }
 
@@ -133,7 +133,7 @@ describe('JobStats', () => {
   })
 
   it('refreshes cluster', async () => {
-    let capturedParams = null
+    let capturedParams: string | null = null
     server.use(
       http.get('/api/v1/jobs2/clusters', ({request}) => {
         const url = new URL(request.url)
@@ -186,8 +186,8 @@ describe('JobStats', () => {
       manage_jobs: true,
     })
 
-    let unstuckParams = null
-    let unstuckMethod = null
+    let unstuckParams: string | null = null
+    let unstuckMethod: string | null = null
     let progressCalled = false
     let refreshCount = 0
 

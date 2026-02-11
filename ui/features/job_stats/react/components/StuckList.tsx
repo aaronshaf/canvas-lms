@@ -24,13 +24,19 @@ import {Table} from '@instructure/ui-table'
 import {Link} from '@instructure/ui-link'
 import {Text} from '@instructure/ui-text'
 import {Alert} from '@instructure/ui-alerts'
+import type {JobCluster, StuckJob, StuckType} from '../../types'
 
 const I18n = createI18nScope('jobs_v2')
 
-export default function StuckList({shard, type}) {
-  const [list, setList] = useState()
+interface StuckListProps {
+  shard: JobCluster
+  type: StuckType
+}
+
+export default function StuckList({shard, type}: StuckListProps) {
+  const [list, setList] = useState<StuckJob[]>()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState()
+  const [error, setError] = useState<Error | null>()
 
   useFetchApi(
     {
@@ -44,7 +50,7 @@ export default function StuckList({shard, type}) {
     [],
   )
 
-  const StuckTable = ({caption}) => {
+  const StuckTable = ({caption}: {caption: string}) => {
     return (
       <Table caption={caption} margin="0 0 small 0">
         <Table.Head>
@@ -58,7 +64,7 @@ export default function StuckList({shard, type}) {
           </Table.Row>
         </Table.Head>
         <Table.Body>
-          {list.map(row => (
+          {list!.map(row => (
             <Table.Row key={row.name}>
               <Table.Cell>
                 {shard.domain ? (
