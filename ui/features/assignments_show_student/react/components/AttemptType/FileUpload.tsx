@@ -94,10 +94,12 @@ class FileUpload extends Component {
   componentWillUnmount() {
     this._isMounted = false
     window.removeEventListener('message', this.handleLTIFiles)
+    // @ts-expect-error
     this.props.submitButtonRef.current?.removeEventListener('click', this.handleSubmitClick)
   }
 
   handleSubmitClick = () => {
+    // @ts-expect-error
     if (!this.props.submission.submissionDraft?.meetsUploadCriteria) {
       const fileDrop = document.getElementById('inputFileDrop')
       fileDrop?.focus()
