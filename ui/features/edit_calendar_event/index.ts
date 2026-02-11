@@ -22,5 +22,6 @@ import EditEventView from './backbone/views/EditEventView'
 
 ready(() => {
   const calendarEvent = new CalendarEvent(ENV.CALENDAR_EVENT)
+  // @ts-expect-error - Backbone.View constructor
   new EditEventView({model: calendarEvent})
 })
