@@ -63,6 +63,7 @@ function renderAttempts(assignment: any) {
                     one: '1 Attempt',
                     other: '%{count} Attempts',
                   },
+                  // @ts-expect-error - context.latestSubmission may not have all required fields
                   {count: totalAllowedAttempts(assignment, context.latestSubmission) || 0},
                 )}
               </Pill>

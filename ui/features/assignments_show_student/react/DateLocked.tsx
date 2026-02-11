@@ -37,10 +37,11 @@ export default function DateLocked(props: DateLockedProps) {
         <img alt={I18n.t('Assignment locked until future date')} src={locked1SVG} />
       </Flex.Item>
       <Flex.Item>
+        {/* @ts-expect-error */}
         <Flex margin="small" direction="column" alignItems="center" justifyContent="center">
           <Flex.Item>
-            {/* @ts-expect-error */}
             <Heading size="large" data-testid="assignments-2-date-locked" margin="small">
+              {/* @ts-expect-error */}
               {lockExplanation({unlock_at: props.date}, props.type)}
             </Heading>
           </Flex.Item>

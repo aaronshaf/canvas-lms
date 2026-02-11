@@ -36,11 +36,11 @@ export default function AssignmentGroupModuleNav({assignment}: AssignmentGroupMo
     <Flex margin="0 0 large 0" direction="column">
       {modules.slice(0, MAX_DISPLAYED_MODULES).map((module: any) => (
         <Flex.Item key={module.id} overflowY="visible">
-          {/* @ts-expect-error */}
           <Link
             data-testid="module-link"
             href={env.moduleUrl}
             isWithinText={false}
+            // @ts-expect-error - themeOverride type mismatch
             themeOverride={{mediumPaddingHorizontal: '0', mediumHeight: 'normal'}}
           >
             {module.name}
@@ -49,11 +49,11 @@ export default function AssignmentGroupModuleNav({assignment}: AssignmentGroupMo
       ))}
       {modules.length > MAX_DISPLAYED_MODULES && (
         <Flex.Item overflowY="visible">
-          {/* @ts-expect-error */}
           <Link
             data-testid="more-module-link"
             href={env.moduleUrl}
             isWithinText={false}
+            // @ts-expect-error - themeOverride type mismatch
             themeOverride={{mediumPaddingHorizontal: '0', mediumHeight: 'normal'}}
           >
             {I18n.t('More Modules')}
@@ -63,11 +63,11 @@ export default function AssignmentGroupModuleNav({assignment}: AssignmentGroupMo
 
       {assignmentGroup && (
         <Flex.Item overflowY="visible">
-          {/* @ts-expect-error */}
           <Link
             data-testid="assignmentgroup-link"
             href={env.assignmentUrl}
             isWithinText={false}
+            // @ts-expect-error - themeOverride type mismatch
             themeOverride={{mediumPaddingHorizontal: '0', mediumHeight: 'normal'}}
           >
             {assignmentGroup.name}

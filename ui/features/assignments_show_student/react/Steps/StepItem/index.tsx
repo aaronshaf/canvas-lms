@@ -100,10 +100,9 @@ class StepItem extends Component<StepItemProps> {
   }
 
   pinSize = (): number => {
-    // @ts-expect-error - pinSize can be undefined but px handles it
     switch (this.props.status) {
       case 'complete':
-        // @ts-expect-error
+        // @ts-expect-error - pinSize can be undefined
         return Math.round(px(this.props.pinSize) / 1.5)
       case 'unavailable':
         // @ts-expect-error
@@ -136,6 +135,7 @@ class StepItem extends Component<StepItemProps> {
         <span
           className="pinLayout"
           style={{
+            // @ts-expect-error - pinSize can be undefined
             height: px(this.props.pinSize),
           }}
         >
