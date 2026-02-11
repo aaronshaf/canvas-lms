@@ -16,9 +16,20 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-const initialState = {
-  inFindAppointmentMode: false,
-  selectedCourse: {},
+// @ts-expect-error redux-actions does not have type definitions
+import {createAction} from 'redux-actions'
+
+const keys = {
+  SET_FIND_APPOINTMENT_MODE: 'SET_FIND_APPOINTMENT_MODE',
+  SET_COURSE: 'SET_COURSE',
+} as const
+
+const actions = {
+  setFindAppointmentMode: createAction<boolean>(keys.SET_FIND_APPOINTMENT_MODE),
+  setCourse: createAction<{asset_string?: string}>(keys.SET_COURSE),
 }
 
-export default initialState
+export default {
+  actions,
+  keys,
+}

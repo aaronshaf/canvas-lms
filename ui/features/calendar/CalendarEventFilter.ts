@@ -24,8 +24,20 @@ import fcUtil from '@canvas/calendar/jquery/fcUtil'
 // De-dupe, and remove any actual scheduled events (since we don't want to
 // display that among the placeholders.)
 
-export default function calendarEventFilter(viewingGroup, events, schedulerState = {}) {
-  const eventIds = {}
+interface SchedulerState {
+  inFindAppointmentMode?: boolean
+  selectedCourse?: {
+    asset_string: string
+    id?: number
+  } | null
+}
+
+export default function calendarEventFilter(
+  viewingGroup: any,
+  events: any[],
+  schedulerState: SchedulerState = {},
+): any[] {
+  const eventIds: Record<string, boolean> = {}
   if (!(events.length > 0)) return events
   for (let idx = events.length; idx--; ) {
     const event = events[idx]
@@ -35,6 +47,7 @@ export default function calendarEventFilter(viewingGroup, events, schedulerState
     if (eventIds[event.id]) {
       keep = false
     } else if (event.isAppointmentGroupEvent()) {
+      // @ts-expect-error ENV.CALENDAR is not typed
       if (!viewingGroup || ENV.CALENDAR.SHOW_SCHEDULER) {
         // Handle normal calendar view, not scheduler view
         if (!event.calendarEvent.reserve_url) {
@@ -56,7 +69,7 @@ export default function calendarEventFilter(viewingGroup, events, schedulerState
         } else if (
           // appointment slot
           schedulerState.inFindAppointmentMode &&
-          event.isOnCalendar(schedulerState.selectedCourse.asset_string)
+          event.isOnCalendar(schedulerState.selectedCourse?.asset_string)
         ) {
           // show it (non-grayed) if it is reservable; filter it out otherwise
           if (

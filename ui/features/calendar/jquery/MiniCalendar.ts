@@ -29,7 +29,11 @@ const TODAY_BACKGROUND_COLOR = '#e0f7fa'
 const HOVER_BACKGROUND_COLOR = '#f0f0f0'
 
 export default class MiniCalendar {
-  constructor(selector, mainCalendar) {
+  mainCalendar: any
+  calendar: JQuery
+  focusPositionAfterRender: any
+
+  constructor(selector: string, mainCalendar: any) {
     this.mainCalendar = mainCalendar
     this.calendar = $(selector)
     this.focusPositionAfterRender = null
@@ -73,10 +77,10 @@ export default class MiniCalendar {
       'CommonEvent/eventsSavedFromSeries': this.eventsSavedFromSeries,
     }
 
-    this.calendar.fullCalendar(
-      defaults(calendarConfig, calendarDefaults),
-      $.subscribe(subscriptions),
-    )
+    // @ts-expect-error fullCalendar jQuery plugin not typed
+    this.calendar.fullCalendar(defaults(calendarConfig, calendarDefaults))
+    // @ts-expect-error subscribe jQuery plugin not typed
+    $.subscribe(subscriptions)
   }
 
   /**
@@ -107,7 +111,7 @@ export default class MiniCalendar {
    * Handle the viewRender callback from FullCalendar
    * Called whenever the calendar view changes (month navigation)
    */
-  handleViewRender = _view => {
+  handleViewRender = (_view: any) => {
     this.hideEmptyRows()
     this.hideEmptyCells()
     this.setupAccessibleDays()
@@ -147,7 +151,7 @@ export default class MiniCalendar {
    * Ensures keyboard accessibility with Space and Enter keys
    */
   setupNavigationButtons() {
-    const setupButton = (selector, className, ariaLabel) => {
+    const setupButton = (selector: string, className: string, ariaLabel: string) => {
       const $button = this.calendar.find(selector)
 
       // Store reference for consistent naming and set proper aria-label
@@ -235,10 +239,11 @@ export default class MiniCalendar {
    * Set up keyboard accessibility for a single day cell
    * Creates accessible button with proper ARIA labels and keyboard navigation
    */
-  setupAccessibleDay($td, currentMonth) {
+  setupAccessibleDay($td: any, currentMonth: any) {
     const dateStr = $td.data('date')
     if (!dateStr) return
 
+    // @ts-expect-error fullCalendar jQuery plugin not typed
     const momentDate = $.fullCalendar.moment(dateStr)
     const ariaLabel = this.buildDayAriaLabel($td, momentDate, currentMonth)
     const $button = this.getOrCreateDayButton($td)
@@ -250,7 +255,7 @@ export default class MiniCalendar {
    * Build comprehensive ARIA label for a day cell
    * Includes weekday, date, and contextual information
    */
-  buildDayAriaLabel($td, momentDate, currentMonth) {
+  buildDayAriaLabel($td: any, momentDate: any, currentMonth: any) {
     const date = momentDate.toDate()
     const weekday = date.toLocaleDateString(undefined, {weekday: 'long'})
     const monthName = date.toLocaleDateString(undefined, {month: 'long'})
@@ -279,7 +284,7 @@ export default class MiniCalendar {
    * Get existing day button or create new one
    * Returns the button element used for keyboard interaction
    */
-  getOrCreateDayButton($td) {
+  getOrCreateDayButton($td: any) {
     let $button = $td.find('.day-wrapper-button')
 
     if ($button.length === 0) {
@@ -297,7 +302,7 @@ export default class MiniCalendar {
    * Returns styled button with transparent background to inherit cell styling
    * Keeps fc-day-number class for backwards compatibility with tests
    */
-  createDayButton(dayText) {
+  createDayButton(dayText: any) {
     return $('<button class="day-wrapper-button fc-day-number"></button>').text(dayText).css({
       border: 'none',
       background: 'transparent',
@@ -320,7 +325,7 @@ export default class MiniCalendar {
    * Configure day button with accessibility attributes and event handlers
    * Sets up ARIA labels, keyboard navigation, and click handling
    */
-  configureDayButton($button, ariaLabel, momentDate) {
+  configureDayButton($button: any, ariaLabel: any, momentDate: any) {
     $button
       .attr({
         tabindex: '0',
@@ -338,14 +343,14 @@ export default class MiniCalendar {
 
         this.dayClick(momentDate)
       })
-      .on('keydown.minical', e => this.handleDayKeydown(e, $button, momentDate))
+      .on('keydown.minical', (e: any) => this.handleDayKeydown(e, $button, momentDate))
   }
 
   /**
    * Handle keydown events on day buttons
    * Supports Enter/Space for activation and arrow keys for navigation
    */
-  handleDayKeydown(event, $button, momentDate) {
+  handleDayKeydown(event: any, $button: any, momentDate: any) {
     const {key} = event
 
     if (key === 'Enter' || key === ' ') {
@@ -368,7 +373,7 @@ export default class MiniCalendar {
    * Navigate between day buttons using arrow keys
    * Handles wrapping at calendar boundaries for seamless navigation
    */
-  navigateDays = (key, $currentButton) => {
+  navigateDays = (key: any, $currentButton: any) => {
     const $allButtons = this.calendar.find('.fc-content-skeleton .day-wrapper-button[tabindex="0"]')
     const currentIndex = $allButtons.index($currentButton)
 
@@ -382,7 +387,7 @@ export default class MiniCalendar {
    * Calculate target button index for arrow key navigation
    * Returns new index with boundary wrapping
    */
-  calculateNavigationTarget(key, currentIndex, totalButtons) {
+  calculateNavigationTarget(key: any, currentIndex: any, totalButtons: any) {
     const DAYS_PER_WEEK = 7
 
     switch (key) {
@@ -406,7 +411,7 @@ export default class MiniCalendar {
   /**
    * Wrap index for circular navigation
    */
-  wrapIndex(index, total) {
+  wrapIndex(index: any, total: any) {
     if (index < 0) return total - 1
     if (index >= total) return 0
     return index
@@ -416,7 +421,7 @@ export default class MiniCalendar {
    * Calculate target index for vertical navigation (up/down arrows)
    * Maintains column position when wrapping to different rows
    */
-  navigateVertical(currentIndex, offset, totalButtons) {
+  navigateVertical(currentIndex: any, offset: any, totalButtons: any) {
     const DAYS_PER_WEEK = 7
     let targetIndex = currentIndex + offset
 
@@ -474,7 +479,7 @@ export default class MiniCalendar {
   /**
    * Get events for the specified date range
    */
-  getEvents = (start, end, timezone, donecb, datacb) => {
+  getEvents = (start: any, end: any, timezone: any, donecb: any, datacb: any) => {
     this.calendar
       .find('.fc-widget-content td')
       .removeClass('event slot-available')
@@ -488,7 +493,7 @@ export default class MiniCalendar {
   /**
    * Handle day click - navigate main calendar to selected date
    */
-  dayClick = date => {
+  dayClick = (date: any) => {
     this.mainCalendar.gotoDate(date)
   }
 
@@ -497,7 +502,7 @@ export default class MiniCalendar {
    * Keeps focus in the same calendar position when navigating months
    * Announces the new date to screen readers
    */
-  restoreFocusToPosition(position) {
+  restoreFocusToPosition(position: any) {
     setTimeout(() => {
       const $allButtons = this.calendar.find(
         '.fc-content-skeleton .day-wrapper-button[tabindex="0"]',
@@ -514,7 +519,7 @@ export default class MiniCalendar {
    * Announce a date to screen readers by forcing focus re-read
    * Temporarily blurs and refocuses the element to trigger screen reader announcement
    */
-  announceDate($button) {
+  announceDate($button: any) {
     if (!$button || !$button.length) return
 
     $button.blur()
@@ -524,14 +529,14 @@ export default class MiniCalendar {
   /**
    * Navigate mini calendar to a specific date
    */
-  gotoDate = date => {
+  gotoDate = (date: any) => {
     this.calendar.fullCalendar('gotoDate', date)
   }
 
   /**
    * Render an event on the mini calendar
    */
-  eventRender = (event, _element, view) => {
+  eventRender = (event: any, _element: any, view: any) => {
     const evDate = event.start.format('YYYY-MM-DD')
     const td = view.el.find(`td[data-date="${evDate}"]`)[0]
     if (!td) return false
@@ -562,7 +567,7 @@ export default class MiniCalendar {
   /**
    * Event subscription handlers
    */
-  visibleContextListChanged = _list => this.refetchEvents()
+  visibleContextListChanged = (_list: any) => this.refetchEvents()
 
   eventSaved = () => this.refetchEvents()
 
@@ -579,7 +584,7 @@ export default class MiniCalendar {
   /**
    * Handle drag and drop events
    */
-  drop = (date, jsEvent, ui, view) => {
+  drop = (date: any, jsEvent: any, ui: any, view: any) => {
     const allDay = view.options.allDayDefault
 
     if (ui.helper.is('.undated_event')) {

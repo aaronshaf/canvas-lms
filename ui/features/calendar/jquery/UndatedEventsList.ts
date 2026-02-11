@@ -28,7 +28,14 @@ import 'jquery-tinypubsub'
 const I18n = createI18nScope('calendar')
 
 export default class UndatedEventsList {
-  constructor(selector, dataSource, calendar) {
+  dataSource: any
+  calendar: any
+  div: JQuery
+  hidden: boolean
+  visibleContextList: any[]
+  previouslyFocusedElement: any
+
+  constructor(selector: string, dataSource: any, calendar: any) {
     let toggler
     this.dataSource = dataSource
     this.calendar = calendar
@@ -37,14 +44,12 @@ export default class UndatedEventsList {
     this.visibleContextList = []
     this.previouslyFocusedElement = null
 
-    $.subscribe({
-      'CommonEvent/eventDeleting': this.eventDeleting,
-      'CommonEvent/eventDeleted': this.eventDeleted,
-      'CommonEvent/eventSaving': this.eventSaving,
-      'CommonEvent/eventSaved': this.eventSaved,
-      'CommonEvent/eventsSavedFromSeries': this.eventsSavedFromSeries,
-      'Calendar/visibleContextListChanged': this.visibleContextListChanged,
-    })
+    $.subscribe('CommonEvent/eventDeleting', this.eventDeleting)
+    $.subscribe('CommonEvent/eventDeleted', this.eventDeleted)
+    $.subscribe('CommonEvent/eventSaving', this.eventSaving)
+    $.subscribe('CommonEvent/eventSaved', this.eventSaved)
+    $.subscribe('CommonEvent/eventsSavedFromSeries', this.eventsSavedFromSeries)
+    $.subscribe('Calendar/visibleContextListChanged', this.visibleContextListChanged)
 
     this.div
       .on('click keyclick', '.undated_event_title', this.clickEvent)
@@ -58,7 +63,7 @@ export default class UndatedEventsList {
   load = () => {
     if (this.hidden) return
 
-    const loadingDfd = new $.Deferred()
+    const loadingDfd = new ($.Deferred as any)()
     this.div.disableWhileLoading(loadingDfd, {
       buttons: ['.undated-events-link'],
       opacity: 1,
@@ -73,16 +78,16 @@ export default class UndatedEventsList {
       0,
     )
 
-    return this.dataSource.getEvents(null, null, this.visibleContextList, events => {
+    return this.dataSource.getEvents(null, null, this.visibleContextList, (events: any) => {
       clearTimeout(loadingTimer)
       loadingDfd.resolve()
-      events.forEach(e => {
+      events.forEach((e: any) => {
         e.details_url = e.fullDetailsURL()
         e.icon = e.iconType()
       })
       this.div.html(undatedEventsTemplate({events}))
 
-      events.forEach(e => {
+      events.forEach((e: any) => {
         this.div.find(`.${e.id}`).data('calendarEvent', e)
       })
 
@@ -94,7 +99,7 @@ export default class UndatedEventsList {
           this.calendar.closeEventPopups()
           $(this).hide()
         },
-        stop(_e, _ui) {
+        stop(_e: any, _ui: any) {
           // Only show the element after the drag stops if it doesn't have a start date now
           // (meaning it wasn't dropped on the calendar)
           if (!$(this).data('calendarEvent').start) $(this).show()
@@ -104,7 +109,7 @@ export default class UndatedEventsList {
       this.div.droppable({
         hoverClass: 'droppable-hover',
         accept: '.fc-event',
-        drop: (_e, _ui) => {
+        drop: (_e: any, _ui: any) => {
           let event
           if (!(event = this.calendar.lastEventDragged)) return
           event.start = null
@@ -121,13 +126,13 @@ export default class UndatedEventsList {
     })
   }
 
-  show = event => {
+  show = (event: any) => {
     event.preventDefault()
     this.hidden = false
     this.load()
   }
 
-  toggle = _e => {
+  toggle = (_e: any) => {
     // defer this until after the section toggles
     setTimeout(() => {
       this.hidden = !this.div.is(':visible')
@@ -135,7 +140,7 @@ export default class UndatedEventsList {
     }, 0)
   }
 
-  clickEvent = jsEvent => {
+  clickEvent = (jsEvent: any) => {
     jsEvent.preventDefault()
     const eventId = $(jsEvent.target).closest('.event').data('event-id')
     const event = this.dataSource.eventWithId(eventId)
@@ -144,32 +149,32 @@ export default class UndatedEventsList {
     }
   }
 
-  visibleContextListChanged = list => {
+  visibleContextListChanged = (list: any) => {
     this.visibleContextList = list
     if (!this.hidden) this.load()
   }
 
-  eventSaving = event => {
+  eventSaving = (event: any) => {
     this.div.find(`.event.${event.id}`).addClass('event_pending')
     this.previouslyFocusedElement = `.event.${event.id} a`
   }
 
-  eventSaved = () => {
+  eventSaved = (event: any) => {
     this.load()
   }
 
-  eventsSavedFromSeries = () => {
+  eventsSavedFromSeries = (event: any) => {
     this.load()
   }
 
-  eventDeleting = event => {
+  eventDeleting = (event: any) => {
     const $li = this.div.find(`.event.${event.id}`)
     $li.addClass('event_pending')
     const $prev = $li.prev()
     this.previouslyFocusedElement = $prev.length ? `.event.${$prev.data('event-id')} a` : null
   }
 
-  eventDeleted = () => {
+  eventDeleted = (event: any) => {
     this.load()
   }
 }

@@ -16,19 +16,16 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {createAction} from 'redux-actions'
-
-const keys = {
-  SET_FIND_APPOINTMENT_MODE: 'SET_FIND_APPOINTMENT_MODE',
-  SET_COURSE: 'SET_COURSE',
+export interface SchedulerState {
+  inFindAppointmentMode: boolean
+  selectedCourse: {
+    asset_string?: string
+  }
 }
 
-const actions = {
-  setFindAppointmentMode: createAction(keys.SET_FIND_APPOINTMENT_MODE),
-  setCourse: createAction(keys.SET_COURSE),
+const initialState: SchedulerState = {
+  inFindAppointmentMode: false,
+  selectedCourse: {},
 }
 
-export default {
-  actions,
-  keys,
-}
+export default initialState

@@ -23,19 +23,26 @@ import fcUtil from '@canvas/calendar/jquery/fcUtil'
 import datePickerFormat from '@instructure/moment-utils/datePickerFormat'
 import '../fcMomentHandlebarsHelpers' // make sure fcMomentToString and fcMomentToDateString are available to TimeBlockRow.handlebars
 import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
+import type moment from 'moment'
 
 const I18n = createI18nScope('calendar')
 
 export default class TimeBlockRow {
-  constructor(TimeBlockList, data) {
-    if (data == null) data = {}
+  TimeBlockList: any
+  locked: boolean
+  $row: JQuery
+  $date: JQuery
+  $start_time: JQuery
+  $end_time: JQuery
+
+  constructor(TimeBlockList: any, data: any = {}) {
     this.TimeBlockList = TimeBlockList
     this.locked = data.locked
-    let timeoutId = null
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
     data.date = data.date || data.start
-    this.$row = $(timeBlockRowTemplate(data)).bind({
+    this.$row = $(timeBlockRowTemplate(data)).on({
       focusin: () => {
-        clearTimeout(timeoutId)
+        if (timeoutId) clearTimeout(timeoutId)
         this.focus()
       },
       focusout: () => {
@@ -69,7 +76,7 @@ export default class TimeBlockRow {
     this.$row.find('.delete-block-link').click(this.remove)
   }
 
-  remove = event => {
+  remove = (event?: JQuery.Event) => {
     if (event) event.preventDefault()
 
     this.$row.remove()
@@ -88,20 +95,20 @@ export default class TimeBlockRow {
     }
   }
 
-  showInlineError = ($el, message) => {
+  showInlineError = ($el: JQuery, message: string) => {
     const error_box = $el.next('.datetime_suggest')
     error_box.addClass('invalid_datetime')
     error_box.children('.error-message').children('span').text(message)
     error_box.show()
   }
 
-  clearInlineError = $el => {
+  clearInlineError = ($el: JQuery) => {
     const error_box = $el.next('.datetime_suggest')
     error_box.removeClass('invalid_datetime')
     error_box.hide()
   }
 
-  validate = () => {
+  validate = (): boolean => {
     // for locked row, all values are valid, regardless of actual value
     if (this.locked) {
       this.$date.toggleClass('error', false)
@@ -148,7 +155,10 @@ export default class TimeBlockRow {
     return dateValid && startValid && endValid
   }
 
-  timeToDate(date, time) {
+  timeToDate(
+    date: moment.Moment | undefined,
+    time: moment.Moment | undefined,
+  ): moment.Moment | undefined {
     if (!date || !time) return
 
     // set all three values at once to handle potential
@@ -160,29 +170,29 @@ export default class TimeBlockRow {
     return time
   }
 
-  startAt() {
+  startAt(): moment.Moment | undefined {
     const date = fcUtil.wrap(this.$date.data('unfudged-date'))
     const time = fcUtil.wrap(this.$start_time.data('unfudged-date'))
     return this.timeToDate(date, time)
   }
 
-  endAt() {
+  endAt(): moment.Moment | undefined {
     const date = fcUtil.wrap(this.$date.data('unfudged-date'))
     const time = fcUtil.wrap(this.$end_time.data('unfudged-date'))
     return this.timeToDate(date, time)
   }
 
-  getData() {
+  getData(): [moment.Moment | undefined, moment.Moment | undefined, boolean] {
     return [this.startAt(), this.endAt(), !!this.locked]
   }
 
-  blank() {
+  blank(): boolean {
     return (
       this.$date.data('blank') && this.$start_time.data('blank') && this.$end_time.data('blank')
     )
   }
 
-  incomplete() {
+  incomplete(): boolean {
     return (
       !this.blank() &&
       (this.$date.data('blank') || this.$start_time.data('blank') || this.$end_time.data('blank'))
