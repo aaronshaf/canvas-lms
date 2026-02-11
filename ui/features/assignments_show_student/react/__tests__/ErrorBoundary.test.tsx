@@ -35,8 +35,8 @@ class ThrowsErrorComponent extends React.Component {
 }
 
 describe('Assignments Show Student ErrorBoundary', () => {
-  let consoleErrorSpy
-  let originalError
+  let consoleErrorSpy: any
+  let originalError: any
 
   beforeEach(() => {
     // Mock console.error to prevent error output in tests

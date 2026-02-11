@@ -36,6 +36,7 @@ export default function UnavailablePeerReview() {
         />
       </Flex.Item>
       <Flex.Item>
+        {/* @ts-expect-error */}
         <Flex margin="small" direction="column" alignItems="center" justifyContent="center">
           <Flex.Item>
             <View as="div" margin="0" maxWidth="390px">

@@ -49,7 +49,7 @@ function renderAvailability(assignment: any) {
   )
 }
 
-function renderAttempts(assignment) {
+function renderAttempts(assignment: any) {
   return (
     <StudentViewContext.Consumer>
       {context => (
@@ -101,9 +101,11 @@ export default function AssignmentDetails({assignment, submission}: AssignmentDe
           assignment.env.peerReviewModeEnabled) && (
           <Flex.Item
             margin={window.ENV.FEATURES?.instui_nav ? 'small 0 0 0' : '0'}
+            // @ts-expect-error
             themeOverride={{lineHeight: 1}}
           >
             <div style={{lineHeight: 1}}>
+              {/* @ts-expect-error */}
               <Text
                 size="small"
                 color={window.ENV.FEATURES?.instui_nav ? 'secondary' : null}

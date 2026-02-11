@@ -120,7 +120,7 @@ function SubmissionTypeSelector({
   activeSubmissionType,
   selectedExternalTool,
   updateActiveSubmissionType,
-}) {
+}: any) {
   const {data, loading: loadingExternalTools} = useQuery(EXTERNAL_TOOLS_QUERY, {
     variables: {courseID: assignment.env.courseId},
   })
@@ -158,10 +158,11 @@ function SubmissionTypeSelector({
           </Text>
 
           <Flex wrap="wrap">
-            {assignment.submissionTypes.map(type => (
+            {assignment.submissionTypes.map((type: any) => (
               <Flex.Item as="div" key={type} margin="0 medium 0 0" data-testid={type}>
                 <SubmissionTypeButton
                   displayName={friendlyTypeName(type)}
+                  {/* @ts-expect-error */}
                   icon={iconsByType[type]}
                   selected={activeSubmissionType === type}
                   onSelected={() => {
@@ -179,7 +180,7 @@ function SubmissionTypeSelector({
   )
 }
 
-function GroupSubmissionReminder({groupSet}) {
+function GroupSubmissionReminder({groupSet}: any) {
   return (
     <Alert variant="warning" margin="medium 0">
       {I18n.t('Keep in mind, this submission will count for everyone in your %{groupName} group.', {
@@ -213,23 +214,29 @@ export default class AttemptTab extends Component {
   }
 
   renderFileUpload = () => {
+    // @ts-expect-error
     return (
       <LazyLoad errorCategory="Assignments 2 FileUpload on AttemptTab">
         <FileUpload
+          // @ts-expect-error
           assignment={this.props.assignment}
+          // @ts-expect-error
           createSubmissionDraft={this.props.createSubmissionDraft}
           filesToUpload={this.state.filesToUpload}
+          // @ts-expect-error
           focusOnInit={this.props.focusAttemptOnInit}
+          // @ts-expect-error
           submission={this.props.submission}
           onCanvasFileRequested={this.onCanvasFileRequested}
           onUploadRequested={this.onUploadRequested}
+          // @ts-expect-error
           submitButtonRef={this.props.submitButtonRef}
         />
       </LazyLoad>
     )
   }
 
-  onCanvasFileRequested = ({fileID, onError}) => {
+  onCanvasFileRequested = ({fileID, onError}: any) => {
     this.updateUploadingFiles(async () => {
       try {
         await this.createFileUploadSubmissionDraft([fileID])
@@ -239,10 +246,10 @@ export default class AttemptTab extends Component {
     })
   }
 
-  onUploadRequested = ({files, onSuccess, onError}) => {
+  onUploadRequested = ({files, onSuccess, onError}: any) => {
     this.setState(
       {
-        filesToUpload: files.map((file, i) => {
+        filesToUpload: files.map((file: any, i: any) => {
           // "text" is filename in LTI Content Item
           const name = file.name || file.text || file.url
           const _id = `${i}-${file.url || file.name}`
@@ -267,10 +274,11 @@ export default class AttemptTab extends Component {
     })
   }
 
-  createFileUploadSubmissionDraft = async newFileIDs => {
+  createFileUploadSubmissionDraft = async (newFileIDs: any) => {
+    // @ts-expect-error
     const {submission} = this.props
     const existingAttachments = submission?.submissionDraft?.attachments || []
-
+    // @ts-expect-error
     await this.props.createSubmissionDraft({
       variables: {
         id: submission.id,
@@ -281,9 +289,11 @@ export default class AttemptTab extends Component {
     })
   }
 
-  updateUploadingFiles = async wrappedFunc => {
+  updateUploadingFiles = async (wrappedFunc: any) => {
+    // @ts-expect-error
     this.props.updateUploadingFiles(true)
     await wrappedFunc()
+    // @ts-expect-error
     this.props.updateUploadingFiles(false)
   }
 

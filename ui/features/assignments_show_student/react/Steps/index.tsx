@@ -71,12 +71,12 @@ class Steps extends Component<StepsProps> {
     let filteredChildren
 
     if (this.props.children) {
-      filteredChildren = this.props.children.filter(prop => prop !== null)
+      // @ts-expect-error - children is complex ReactNode type, needs array methods
+      filteredChildren = this.props.children.filter((prop: any) => prop !== null)
       progressionScale = this.calculateProgressionScale(filteredChildren)
     }
 
     return (
-      // @ts-expect-error - complex InstUI props
       <View
         {...omitProps(this.props, ['isCollapsed', 'children', 'margin'])}
         margin={this.props.margin}

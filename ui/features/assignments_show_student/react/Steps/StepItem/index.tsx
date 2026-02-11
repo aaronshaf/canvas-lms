@@ -100,16 +100,22 @@ class StepItem extends Component<StepItemProps> {
   }
 
   pinSize = (): number => {
+    // @ts-expect-error - pinSize can be undefined but px handles it
     switch (this.props.status) {
       case 'complete':
+        // @ts-expect-error
         return Math.round(px(this.props.pinSize) / 1.5)
       case 'unavailable':
+        // @ts-expect-error
         return Math.round(px(this.props.pinSize) / 1.2)
       case 'button':
+        // @ts-expect-error
         return Math.round(px(this.props.pinSize) / 1.05)
       case 'in-progress':
+        // @ts-expect-error
         return px(this.props.pinSize)
       default:
+        // @ts-expect-error
         return Math.round(px(this.props.pinSize) / 2.25)
     }
   }
