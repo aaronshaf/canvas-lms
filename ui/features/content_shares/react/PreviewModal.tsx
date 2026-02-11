@@ -17,24 +17,64 @@
  */
 
 import React from 'react'
-import {bool, func} from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Button} from '@instructure/ui-buttons'
 import CanvasModal from '@canvas/instui-bindings/react/Modal'
-import contentShareShape from '@canvas/content-sharing/react/proptypes/contentShare'
 
 const I18n = createI18nScope('content_share_preview_overlay')
 
-PreviewModal.propTypes = {
-  open: bool,
-  share: contentShareShape,
-  onDismiss: func,
+type ContentShareType =
+  | 'assignment'
+  | 'attachment'
+  | 'discussion_topic'
+  | 'page'
+  | 'quiz'
+  | 'module'
+  | 'module_item'
+
+interface Attachment {
+  id?: string
+  display_name?: string
+  url?: string
 }
 
-export default function PreviewModal({open, share, onDismiss}) {
-  function sharePreviewUrl() {
-    if (!share) return null
+interface ContentExport {
+  id: string
+  progress_url?: string
+  user_id?: string
+  workflow_state?: 'created' | 'exporting' | 'exported' | 'failed' | 'deleted'
+  attachment?: Attachment
+  created_at?: string
+}
+
+interface DisplayUser {
+  id?: string
+  display_name?: string
+  avatar_image_url?: string
+}
+
+interface ContentShare {
+  id: string
+  name: string
+  content_type: ContentShareType
+  created_at: string
+  updated_at: string
+  read_state: string
+  sender?: DisplayUser
+  content_export?: ContentExport
+}
+
+interface PreviewModalProps {
+  open?: boolean
+  share?: ContentShare | null
+  onDismiss?: () => void
+}
+
+export default function PreviewModal({open, share, onDismiss}: PreviewModalProps) {
+  function sharePreviewUrl(): string | null {
+    if (!share?.content_export?.attachment?.url) return null
     const downloadUrl = encodeURIComponent(share.content_export.attachment.url)
+    // @ts-expect-error
     return `${ENV.COMMON_CARTRIDGE_VIEWER_URL}?cartridge=${downloadUrl}`
   }
 
@@ -55,7 +95,7 @@ export default function PreviewModal({open, share, onDismiss}) {
       <iframe
         style={{width: '100%', height: '100%', border: 'none', display: 'block'}}
         title={I18n.t('Content Share Preview')}
-        src={sharePreviewUrl()}
+        src={sharePreviewUrl() ?? undefined}
       />
     </CanvasModal>
   )

@@ -17,7 +17,6 @@
  */
 
 import React from 'react'
-import {arrayOf, func} from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Table} from '@instructure/ui-table'
 import {Menu} from '@instructure/ui-menu'
@@ -30,44 +29,91 @@ import FriendlyDatetime from '@canvas/datetime/react/components/FriendlyDatetime
 import {Avatar} from '@instructure/ui-avatar'
 import {Text} from '@instructure/ui-text'
 import {Tooltip} from '@instructure/ui-tooltip'
-import contentShareShape from '@canvas/content-sharing/react/proptypes/contentShare'
 
 const I18n = createI18nScope('content_share')
 
-const friendlyShareNames = {
+type ContentShareType =
+  | 'assignment'
+  | 'attachment'
+  | 'discussion_topic'
+  | 'page'
+  | 'quiz'
+  | 'module'
+  | 'module_item'
+
+interface Attachment {
+  id?: string
+  display_name?: string
+  url?: string
+}
+
+interface ContentExport {
+  id: string
+  progress_url?: string
+  user_id?: string
+  workflow_state?: 'created' | 'exporting' | 'exported' | 'failed' | 'deleted'
+  attachment?: Attachment
+  created_at?: string
+}
+
+interface DisplayUser {
+  id?: string
+  display_name?: string
+  avatar_image_url?: string
+}
+
+interface ContentShare {
+  id: string
+  name: string
+  content_type: ContentShareType
+  created_at: string
+  updated_at: string
+  read_state: string
+  sender?: DisplayUser
+  content_export?: ContentExport
+}
+
+const friendlyShareNames: Record<ContentShareType, string> = {
   assignment: I18n.t('Assignment'),
   attachment: I18n.t('File'),
   discussion_topic: I18n.t('Discussion Topic'),
   module: I18n.t('Module'),
   page: I18n.t('Page'),
   quiz: I18n.t('Quiz'),
+  module_item: I18n.t('Module Item'),
 }
 
-ReceivedTable.propTypes = {
-  shares: arrayOf(contentShareShape),
-  onPreview: func,
-  onImport: func,
-  onRemove: func,
-  onUpdate: func,
+interface ReceivedTableProps {
+  shares?: ContentShare[]
+  onPreview?: (share: ContentShare) => void
+  onImport?: (share: ContentShare) => void
+  onRemove?: (share: ContentShare) => void
+  onUpdate?: (share_id: string, updateParms: {read_state: string}) => void
 }
 
-export default function ReceivedTable({shares, onPreview, onImport, onRemove, onUpdate}) {
-  function renderActionMenu(share) {
-    const items = []
+export default function ReceivedTable({
+  shares = [],
+  onPreview,
+  onImport,
+  onRemove,
+  onUpdate,
+}: ReceivedTableProps) {
+  function renderActionMenu(share: ContentShare) {
+    const items: JSX.Element[] = []
     if (share.content_export?.workflow_state === 'exported') {
       items.push(
-        <Menu.Item key="prv" data-testid="preview-menu-action" onSelect={() => onPreview(share)}>
+        <Menu.Item key="prv" data-testid="preview-menu-action" onSelect={() => onPreview?.(share)}>
           <IconEyeLine /> <View margin="0 0 0 x-small">{I18n.t('Preview')}</View>
         </Menu.Item>,
       )
       items.push(
-        <Menu.Item key="imp" data-testid="import-menu-action" onSelect={() => onImport(share)}>
+        <Menu.Item key="imp" data-testid="import-menu-action" onSelect={() => onImport?.(share)}>
           <IconImportLine /> <View margin="0 0 0 x-small">{I18n.t('Import')}</View>
         </Menu.Item>,
       )
     }
     items.push(
-      <Menu.Item key="rmv" data-testid="remove-menu-action" onSelect={() => onRemove(share)}>
+      <Menu.Item key="rmv" data-testid="remove-menu-action" onSelect={() => onRemove?.(share)}>
         <IconTrashLine /> <View margin="0 0 0 x-small">{I18n.t('Remove')}</View>
       </Menu.Item>,
     )
@@ -89,7 +135,7 @@ export default function ReceivedTable({shares, onPreview, onImport, onRemove, on
     )
   }
 
-  function renderUnreadBadge({id, name, read_state}) {
+  function renderUnreadBadge({id, name, read_state}: ContentShare) {
     function setReadState() {
       if (typeof onUpdate === 'function') onUpdate(id, {read_state: 'read'})
     }
@@ -141,8 +187,12 @@ export default function ReceivedTable({shares, onPreview, onImport, onRemove, on
     }
   }
 
-  function renderReceivedColumn(content_export) {
-    if (content_export && content_export.workflow_state === 'exported') {
+  function renderReceivedColumn(content_export?: ContentExport) {
+    if (
+      content_export &&
+      content_export.workflow_state === 'exported' &&
+      content_export.created_at
+    ) {
       return <FriendlyDatetime dateTime={content_export.created_at} />
     } else if (
       !content_export ||
@@ -163,7 +213,7 @@ export default function ReceivedTable({shares, onPreview, onImport, onRemove, on
     }
   }
 
-  function renderRow(share) {
+  function renderRow(share: ContentShare) {
     return (
       <Table.Row key={share.id}>
         <Table.Cell textAlign="end">{renderUnreadBadge(share)}</Table.Cell>
@@ -175,11 +225,11 @@ export default function ReceivedTable({shares, onPreview, onImport, onRemove, on
           <Avatar
             margin="0 small 0 0"
             size="small"
-            name={share.sender ? share.sender?.display_name : I18n.t('unknown sender')}
-            src={share.sender ? share.sender?.avatar_image_url : '/images/messages/avatar-50.png'}
+            name={share.sender?.display_name ?? I18n.t('unknown sender')}
+            src={share.sender?.avatar_image_url ?? '/images/messages/avatar-50.png'}
             data-fs-exclude={true}
           />{' '}
-          {share.sender ? share.sender?.display_name : '--'}
+          {share.sender?.display_name ?? '--'}
         </Table.Cell>
         <Table.Cell>{renderReceivedColumn(share.content_export)}</Table.Cell>
         <Table.Cell>{renderActionMenu(share)}</Table.Cell>
