@@ -17,7 +17,6 @@
  */
 
 import React, {useCallback, useEffect, useMemo, useState, useRef} from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import moment from 'moment-timezone'
 
@@ -32,13 +31,22 @@ import useFetchApi from '@canvas/use-fetch-api-hook'
 import {showFlashError} from '@canvas/alerts/react/FlashAlert'
 import LoadingSkeleton from '@canvas/k5/react/LoadingSkeleton'
 import LoadingWrapper from '@canvas/k5/react/LoadingWrapper'
-import FilterCalendarsModal, {ImportantDatesContextsShape} from './FilterCalendarsModal'
+import FilterCalendarsModal, {type ImportantDatesContext} from './FilterCalendarsModal'
 import ImportantDatesEmpty from './ImportantDatesEmpty'
 import ImportantDateSection from './ImportantDateSection'
 import {groupImportantDates} from '@canvas/k5/react/utils'
 import {isEqual} from 'es-toolkit/compat'
 
 const I18n = createI18nScope('important_dates')
+
+interface ImportantDatesProps {
+  contexts?: ImportantDatesContext[]
+  handleClose?: () => void
+  selectedContextCodes?: string[]
+  selectedContextsLimit: number
+  timeZone: string
+  observedUserId?: string
+}
 
 const ImportantDates = ({
   contexts,
@@ -47,14 +55,14 @@ const ImportantDates = ({
   selectedContextsLimit,
   timeZone,
   observedUserId,
-}) => {
+}: ImportantDatesProps) => {
   const [calendarsModalOpen, setCalendarsModalOpen] = useState(false)
   const [loadingAssignments, setLoadingAssignments] = useState(true)
   const [loadingEvents, setLoadingEvents] = useState(true)
-  const [assignments, setAssignments] = useState([])
-  const [events, setEvents] = useState([])
-  const [selectedContextCodes, setSelectedContextCodes] = useState(null)
-  const previousContextsRef = useRef(null)
+  const [assignments, setAssignments] = useState<any[]>([])
+  const [events, setEvents] = useState<any[]>([])
+  const [selectedContextCodes, setSelectedContextCodes] = useState<string[] | null>(null)
+  const previousContextsRef = useRef<ImportantDatesContext[] | null>(null)
   const [fetchEventsPath, setFetchEventsPath] = useState('/api/v1/calendar_events')
   const observerMode = !!observedUserId
   const isObservingUser = observerMode && observedUserId !== ENV.current_user_id
@@ -142,7 +150,7 @@ const ImportantDates = ({
 
   const closeCalendarsModal = () => setCalendarsModalOpen(false)
 
-  const datesSkeleton = ({key, ...otherProps}) => (
+  const datesSkeleton = ({key, ...otherProps}: {key: string | number; [key: string]: any}) => (
     <div key={key} {...otherProps}>
       <LoadingSkeleton
         id="skeleton-date"
@@ -244,15 +252,6 @@ const ImportantDates = ({
       )}
     </>
   )
-}
-
-ImportantDates.propTypes = {
-  contexts: PropTypes.arrayOf(ImportantDatesContextsShape),
-  handleClose: PropTypes.func,
-  selectedContextCodes: PropTypes.arrayOf(PropTypes.string),
-  selectedContextsLimit: PropTypes.number.isRequired,
-  timeZone: PropTypes.string.isRequired,
-  observedUserId: PropTypes.string,
 }
 
 export default ImportantDates
