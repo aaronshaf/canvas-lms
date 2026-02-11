@@ -146,7 +146,6 @@ export default function ValidatorResultsRow(props: ValidatorResultsRowProps) {
     rows.push(
       <List.Item key={reason}>
         {REASON_DESCRIPTION[reason as ReasonType]}
-        {/* @ts-expect-error - InstUI List props are complex */}
         <List isUnstyled={true} margin="none x-small small small">
           {links}
         </List>
@@ -167,17 +166,13 @@ export default function ValidatorResultsRow(props: ValidatorResultsRowProps) {
 
   return (
     <div className="result">
-      {/* @ts-expect-error - InstUI Flex props are complex */}
       <Flex>
-        {/* @ts-expect-error - InstUI Flex.Item props are complex */}
         <Flex.Item align="start">
           <TypeIcon color="success" size="small" />
         </Flex.Item>
-        {/* @ts-expect-error - InstUI Flex.Item props are complex */}
         <Flex.Item margin="none none none small">
-          {/* @ts-expect-error - InstUI Heading props are complex */}
           <Heading level="h3" as="h2">
-            {/* @ts-expect-error - InstUI Link props are complex */}
+            {/* @ts-expect-error - themeOverride not in InstUI Link type */}
             <Link
               href={props.result.content_url}
               isWithinText={false}
@@ -186,7 +181,6 @@ export default function ValidatorResultsRow(props: ValidatorResultsRowProps) {
               {props.result.name}
             </Link>
           </Heading>
-          {/* @ts-expect-error - InstUI Text props are complex */}
           <Text
             size="x-small"
             transform="uppercase"
@@ -197,7 +191,6 @@ export default function ValidatorResultsRow(props: ValidatorResultsRowProps) {
           </Text>
         </Flex.Item>
       </Flex>
-      {/* @ts-expect-error - InstUI List props are complex */}
       <List margin="none x-small small x-large">{rows}</List>
     </div>
   )

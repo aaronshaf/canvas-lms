@@ -31,11 +31,13 @@ describe('LinkValidator', () => {
     const mockShow = vi.fn()
     const mockHide = vi.fn()
     const mockScreenReaderFlashMessage = vi.fn()
-    const mockJQuery = vi.fn(() => ({
-      show: mockShow,
-      hide: mockHide,
-    }))
-    mockJQuery.screenReaderFlashMessage = mockScreenReaderFlashMessage
+    const mockJQuery = Object.assign(
+      vi.fn(() => ({
+        show: mockShow,
+        hide: mockHide,
+      })),
+      {screenReaderFlashMessage: mockScreenReaderFlashMessage},
+    )
     // @ts-expect-error - Mocking jQuery
     $.mockImplementation((selector: string) => mockJQuery(selector))
     // @ts-expect-error - Mocking jQuery

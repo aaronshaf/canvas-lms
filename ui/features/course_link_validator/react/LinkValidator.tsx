@@ -78,6 +78,7 @@ class LinkValidator extends React.Component<LinkValidatorProps, LinkValidatorSta
 
   getResults = (initial_load?: boolean) => {
     $.ajax({
+      // @ts-expect-error - ENV properties not in GlobalEnv type
       url: ENV.validation_api_url,
       dataType: 'json',
       success: (data: ValidationResponse) => {
@@ -137,6 +138,7 @@ class LinkValidator extends React.Component<LinkValidatorProps, LinkValidatorSta
 
     // You need to send a POST request to the API to initialize validation
     $.ajax({
+      // @ts-expect-error - ENV properties not in GlobalEnv type
       url: ENV.validation_api_url,
       type: 'POST',
       data: {},
@@ -168,13 +170,13 @@ class LinkValidator extends React.Component<LinkValidatorProps, LinkValidatorSta
           {this.state.buttonMessage}
         </button>
         {this.state.buttonDisabled && (
-          // @ts-expect-error - InstUI Spinner props are complex
           <Spinner
             renderTitle={I18n.t('Link validation is running')}
             size="x-small"
             margin="0 0 0 x-small"
           />
         )}
+        {/* @ts-expect-error - ENV properties not in GlobalEnv type */}
         {window.ENV.VALIDATION_CONFETTI_ENABLED && this.state.showConfetti && <Confetti />}
         <ValidatorResults
           results={this.state.results}
