@@ -21,5 +21,6 @@ import ready from '@instructure/ready'
 import '@canvas/jquery/jquery.instructure_misc_plugins' /* fillWindowWithMe */
 
 ready(() => {
+  // @ts-expect-error - fillWindowWithMe is a custom jQuery plugin
   $('#file_content').css('width', '100%').fillWindowWithMe()
 })
