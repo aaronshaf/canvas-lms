@@ -23,7 +23,21 @@ import '@instructure/date-js'
 const I18n = createI18nScope('quizzes.timing')
 /* Date.parse */
 
-const timing = {
+interface TimingResult {
+  referenceDate: Date | number
+  isDeadline: boolean
+  clientServerDiff: number
+}
+
+interface Timing {
+  initialTime: Date
+  clientServerDiff?: number
+  timesReady?: boolean
+  initTimes(): number | undefined
+  setReferenceDate(started_at: string, end_at: string, _now: Date): TimingResult
+}
+
+const timing: Timing = {
   initialTime: new Date(),
   initTimes() {
     if (timing.timesReady) {
@@ -34,11 +48,11 @@ const timing = {
     timing.clientServerDiff = serverNow.getTime() - clientNow.getTime()
     timing.timesReady = true
   },
-  setReferenceDate(started_at, end_at, _now) {
+  setReferenceDate(started_at: string, end_at: string, _now: Date): TimingResult {
     if (!timing.timesReady) {
       timing.initTimes()
     }
-    const result = {}
+    const result: Partial<TimingResult> = {}
     result.referenceDate = Date.parse(end_at)
     result.isDeadline = true
     $('.time_header').text(I18n.beforeLabel(I18n.t('labels.time_remaining', 'Time Remaining')))
@@ -47,8 +61,8 @@ const timing = {
       $('.time_header').text(I18n.beforeLabel(I18n.t('labels.time_elapsed', 'Time Elapsed')))
       result.referenceDate = Date.parse(started_at)
     }
-    result.clientServerDiff = timing.clientServerDiff
-    return result
+    result.clientServerDiff = timing.clientServerDiff!
+    return result as TimingResult
   },
 }
 

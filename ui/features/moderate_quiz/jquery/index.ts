@@ -18,8 +18,9 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
-import timing from './quiz_timing'
-import openModerateStudentDialog from './openModerateStudentDialog'
+import type JQuery from 'jquery'
+import timing from './quiz_timing.ts'
+import openModerateStudentDialog from './openModerateStudentDialog.ts'
 import '@canvas/jquery/jquery.ajaxJSON'
 import {datetimeString} from '@canvas/datetime/date-functions'
 import '@canvas/jquery/jquery.instructure_forms' /* fillFormData, getFormData */
@@ -35,17 +36,45 @@ const I18n = createI18nScope('quizzes.moderate')
 /* Date.parse */
 
 const DIALOG_WIDTH = 490
+
+interface QuizSubmission {
+  user_id: string
+  updated_at: string
+  workflow_state: string
+  finished_in_words?: string
+  attempt?: number
+  extra_time: number
+  extra_attempts: number
+  kept_score?: number | null
+  attempts_left?: number
+  'extendable?': boolean
+  manually_unlocked?: boolean
+  started_at?: string
+  end_at?: string
+}
+
+interface OutstandingData {
+  quiz_submissions: Array<{id: string}>
+  users: Array<{sortable_name: string}>
+}
+
+interface Moderation {
+  lastUpdatedAt: Date | string | number
+  studentsCurrentlyTakingQuiz: boolean
+  updateTimes(): void
+  updateSubmission(submission: QuizSubmission, updateLastUpdatedAt?: boolean): void
+}
+
+declare global {
+  interface Window {
+    moderation: Moderation
+  }
+}
 /**
  * Updates the digit(s) in the "gets X extra minutes" message in a student's
  * block.
- *
- * @param {jQuery} $studentBlock
- *        Selector to the student block you're updating.
- *
- * @param {Number} extraTime
- *        The submission's extra allotted time.
  */
-const updateExtraTime = function ($studentBlock, extraTime) {
+const updateExtraTime = function ($studentBlock: JQuery, extraTime: number): void {
   const $extraTime = $studentBlock.find('.extra_time_allowed')
 
   if (extraTime > 0) {
@@ -101,7 +130,7 @@ window.moderation = {
       $row.find('.time').text(times.join(':'))
     })
   },
-  updateSubmission(submission, updateLastUpdatedAt) {
+  updateSubmission(submission: QuizSubmission, updateLastUpdatedAt?: boolean) {
     const $student = $('#student_' + submission.user_id)
     if (updateLastUpdatedAt) {
       moderation.lastUpdatedAt = new Date(
@@ -156,7 +185,7 @@ $(document).ready(function (_event) {
   moderation.lastUpdatedAt = Date.parse($('.last_updated_at').text())
   let currently_updating = false
   const $updating_img = $('.reload_link img')
-  function updating(bool) {
+  function updating(bool: boolean): void {
     currently_updating = bool
     if (bool) {
       $updating_img.attr(
@@ -170,7 +199,7 @@ $(document).ready(function (_event) {
       )
     }
   }
-  function updateSubmissions(repeat) {
+  function updateSubmissions(repeat?: boolean): void {
     if (currently_updating) {
       return
     }
@@ -371,7 +400,7 @@ $(document).ready(function (_event) {
       errors = 0
     const formData = $(this).getFormData()
 
-    function valid(data) {
+    function valid(data: any): boolean {
       const extraAttempts = parseInt(data.extra_attempts, 10)
       const extraTime = parseInt(data.extra_time, 10)
       let valid = true
@@ -409,7 +438,7 @@ $(document).ready(function (_event) {
       return
     }
 
-    function checkIfFinished() {
+    function checkIfFinished(): void {
       if (finished >= ids.length) {
         if (errors > 0) {
           if (ids.length == 1) {
@@ -554,43 +583,61 @@ $(document).ready(function (_event) {
       )
     })
 
-  const outstanding = {
-    init(event) {
+  interface Outstanding {
+    $container?: JQuery
+    data?: OutstandingData
+    dialog?: JQuery
+    init(event: Event): void
+    fetchData(): void
+    storeDataAndShowAlert(data: OutstandingData): void
+    toggleAlertHeader(): void
+    showResultsList(data: OutstandingData): void
+    adjustDialogHeight(data: OutstandingData): void
+    buildResultList(data: OutstandingData): void
+    submitOutstandings(): void
+    cleanUpEventListeners(): void
+    closeDialog(): void
+    setFocusOnLoad(_event?: any, _ui?: any): void
+    showDialog(): void
+  }
+
+  const outstanding: Outstanding = {
+    init(event: Event): void {
       event.preventDefault()
       this.$container = $('.child_container')
 
       this.showDialog()
-      this.showResultsList(this.data)
+      this.showResultsList(this.data!)
     },
-    fetchData() {
+    fetchData(): void {
       const indexUrl = $('.outstanding_index_url').attr('href')
       $.ajaxJSON(indexUrl, 'GET', null, this.storeDataAndShowAlert.bind(this))
     },
-    storeDataAndShowAlert(data) {
+    storeDataAndShowAlert(data: OutstandingData): void {
       if (data.quiz_submissions.length > 0) {
         this.toggleAlertHeader()
         this.data = data
       }
     },
-    toggleAlertHeader() {
+    toggleAlertHeader(): void {
       $('.alert').toggle()
     },
-    showResultsList(data) {
+    showResultsList(data: OutstandingData): void {
       this.adjustDialogHeight(data)
       $('#autosubmit_content_description_things_to_do').show()
 
       this.buildResultList(data)
       $('#autosubmit_form_submit_btn').prop('disabled', false)
     },
-    adjustDialogHeight(data) {
+    adjustDialogHeight(data: OutstandingData): void {
       let height = 80
       height += data.quiz_submissions.length * 29
       if (height > 270) {
         height = 270
       }
-      this.dialog.animate({height: height + 'px'})
+      this.dialog!.animate({height: height + 'px'})
     },
-    buildResultList(data) {
+    buildResultList(data: OutstandingData): void {
       $.each(data.quiz_submissions, (index, qs) => {
         const clone = $('.example_autosubmit_row')
           .clone()
@@ -609,9 +656,9 @@ $(document).ready(function (_event) {
         clone.show()
       })
     },
-    submitOutstandings() {
+    submitOutstandings(): void {
       const gradeUrl = $('.outstanding_grade_url').attr('href')
-      const ids = this.$container
+      const ids = this.$container!
         .find('input:checked')
         .map(function extractQSIds() {
           return this.value
@@ -622,9 +669,9 @@ $(document).ready(function (_event) {
         gradeUrl,
         'POST',
         json,
-        function successReporting(data, xhr) {
+        function successReporting(data: any, xhr: any) {
           if (xhr.status === 204) {
-            if (ids.length == this.data.users.length) {
+            if (ids.length == this.data!.users.length) {
               this.toggleAlertHeader()
             }
             $.flashMessage('Successfully graded outstanding quizzes')
@@ -634,21 +681,21 @@ $(document).ready(function (_event) {
         }.bind(this),
       )
     },
-    cleanUpEventListeners() {
+    cleanUpEventListeners(): void {
       $('#autosubmit_form_cancel_btn').off()
       $('#autosubmit_form_submit_btn').off()
     },
-    closeDialog() {
+    closeDialog(): void {
       $('#autosubmit_content_description_things_to_do').hide()
       $('#autosubmit_content_description_all_done').hide()
       $('.autosubmit_data_row').not('.example_autosubmit_row').remove()
       this.cleanUpEventListeners()
-      this.dialog.dialog('close')
+      this.dialog!.dialog('close')
     },
-    setFocusOnLoad(_event, _ui) {
+    setFocusOnLoad(_event?: any, _ui?: any): void {
       $('#autosubmit_form').focus()
     },
-    showDialog() {
+    showDialog(): void {
       this.dialog = $('#autosubmit_form')
         .dialog({
           title: I18n.t('titles.autosubmit_dialog', 'Outstanding Quiz Submissions'),

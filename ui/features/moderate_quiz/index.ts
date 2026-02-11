@@ -16,5 +16,5 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import './jquery/quiz_timing'
-import './jquery/index'
+import './jquery/quiz_timing.ts'
+import './jquery/index.ts'
