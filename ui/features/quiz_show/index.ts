@@ -25,6 +25,20 @@ import '@canvas/jquery/jquery.disableWhileLoading'
 import '@canvas/module-sequence-footer'
 import LockManager from '@canvas/blueprint-courses/react/components/LockManager/index'
 import ready from '@instructure/ready'
+import {type GlobalEnv} from '@canvas/global/env/GlobalEnv.d'
+
+declare const ENV: GlobalEnv & {
+  SUBMISSION_VERSIONS_URL?: string
+  IS_SURVEY?: boolean
+  COURSE_ID: string
+  QUIZ: {
+    id: string
+  }
+}
+
+declare const INST: {
+  downloadSubmissions: (url: string | undefined) => void
+}
 
 ready(() => {
   const lockManager = new LockManager()
@@ -33,7 +47,7 @@ ready(() => {
 
   inputMethods.setWidths()
   $('.answer input[type=text]').each(function () {
-    $(this).width(($(this).val().length || 11) * 9.5)
+    $(this).width((($(this).val() as string).length || 11) * 9.5)
   })
 
   $('.download_submissions_link').click(function (event) {
