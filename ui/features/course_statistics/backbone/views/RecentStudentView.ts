@@ -19,14 +19,26 @@
 import {extend} from '@canvas/backbone/utils'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import Backbone from '@canvas/backbone'
+// @ts-expect-error - no type definitions for handlebars templates
 import RecentStudentTemplate from '../../jst/recentStudent.handlebars'
 import {fudgeDateForProfileTimezone} from '@instructure/moment-utils'
 
 const I18n = createI18nScope('course_statistics')
 
+interface StudentData {
+  last_login?: string | null
+  [key: string]: unknown
+}
+
+interface RecentStudentModel extends Backbone.Model {
+  toJSON(): StudentData
+}
+
+// @ts-expect-error - Backbone extend pattern not fully typed
 extend(RecentStudentView, Backbone.View)
 
-function RecentStudentView() {
+function RecentStudentView(this: any) {
+  // @ts-expect-error - Backbone __super__ pattern
   return RecentStudentView.__super__.constructor.apply(this, arguments)
 }
 
@@ -34,7 +46,7 @@ RecentStudentView.prototype.tagName = 'li'
 
 RecentStudentView.prototype.template = RecentStudentTemplate
 
-RecentStudentView.prototype.toJSON = function () {
+RecentStudentView.prototype.toJSON = function (this: {model: RecentStudentModel}) {
   const data = this.model.toJSON()
   if (data.last_login != null) {
     const date = fudgeDateForProfileTimezone(new Date(data.last_login))

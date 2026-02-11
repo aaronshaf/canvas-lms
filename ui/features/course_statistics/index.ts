@@ -16,10 +16,24 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// @ts-expect-error - jQuery default import
 import $ from 'jquery'
 import UserCollection from '@canvas/users/backbone/collections/UserCollection'
 import RecentStudentCollectionView from './backbone/views/RecentStudentCollectionView'
 import 'jqueryui/tabs'
+
+interface GlobalWindow {
+  ENV: {
+    RECENT_STUDENTS_URL: string
+    context_asset_string: string
+  }
+  app: {
+    studentsTab: typeof RecentStudentCollectionView | Record<string, never>
+  }
+}
+
+declare const ENV: GlobalWindow['ENV']
+declare const window: Window & typeof globalThis & {app: GlobalWindow['app']}
 
 $(() => {
   $('#reports-tabs').tabs().show()
@@ -30,6 +44,7 @@ $(() => {
   recentStudentCollection.fetch()
 
   window.app = {studentsTab: {}}
+  // @ts-expect-error - Backbone view constructor pattern
   window.app.studentsTab = new RecentStudentCollectionView({
     el: '#tab-students .item_list',
     collection: recentStudentCollection,

@@ -19,27 +19,53 @@
 import {extend} from '@canvas/backbone/utils'
 import PaginatedView from '@canvas/pagination/backbone/views/PaginatedView'
 import RecentStudentView from './RecentStudentView'
+import type Backbone from '@canvas/backbone'
 
+interface RecentStudentCollection extends Backbone.Collection {
+  course_id?: string
+}
+
+interface RecentStudentCollectionViewOptions extends Backbone.ViewOptions<Backbone.Model> {
+  collection: RecentStudentCollection
+}
+
+// @ts-expect-error - Backbone extend pattern not fully typed
 extend(RecentStudentCollectionView, PaginatedView)
 
-function RecentStudentCollectionView() {
+function RecentStudentCollectionView(this: any) {
   this.renderUser = this.renderUser.bind(this)
   this.render = this.render.bind(this)
+  // @ts-expect-error - Backbone __super__ pattern
   return RecentStudentCollectionView.__super__.constructor.apply(this, arguments)
 }
 
-RecentStudentCollectionView.prototype.initialize = function (_options) {
+RecentStudentCollectionView.prototype.initialize = function (
+  this: {
+    collection: RecentStudentCollection
+    $el: JQuery
+    paginationScrollContainer?: JQuery
+  },
+  _options: RecentStudentCollectionViewOptions,
+) {
+  // @ts-expect-error - Backbone collection event methods
   this.collection.on('add', this.renderUser)
+  // @ts-expect-error - Backbone collection event methods
   this.collection.on('reset', this.render)
   this.paginationScrollContainer = this.$el
+  // @ts-expect-error - Backbone __super__ pattern
   return RecentStudentCollectionView.__super__.initialize.apply(this, arguments)
 }
 
-RecentStudentCollectionView.prototype.render = function () {
+RecentStudentCollectionView.prototype.render = function (this: {
+  collection: RecentStudentCollection
+  renderUser: (user: Backbone.Model) => void
+}) {
+  // @ts-expect-error - Backbone __super__ pattern
   const ret = RecentStudentCollectionView.__super__.render.apply(this, arguments)
+  // @ts-expect-error - Backbone collection methods
   this.collection.each(
     (function (_this) {
-      return function (user) {
+      return function (user: Backbone.Model) {
         return _this.renderUser(user)
       }
     })(this),
@@ -47,11 +73,15 @@ RecentStudentCollectionView.prototype.render = function () {
   return ret
 }
 
-RecentStudentCollectionView.prototype.renderUser = function (user) {
+RecentStudentCollectionView.prototype.renderUser = function (
+  this: {collection: RecentStudentCollection; $el: JQuery},
+  user: Backbone.Model,
+) {
   user.set('course_id', this.collection.course_id, {
     silent: true,
   })
   return this.$el.append(
+    // @ts-expect-error - Backbone view constructor pattern
     new RecentStudentView({
       model: user,
     }).render().el,
