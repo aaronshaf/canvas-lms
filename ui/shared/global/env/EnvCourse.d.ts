@@ -31,7 +31,7 @@ export interface EnvCourseCommon {
    * From CoursesController#index
    */
   CREATE_COURSES_PERMISSIONS?: {
-    PERMISSION: boolean
+    PERMISSION: 'admin' | 'teacher' | 'student' | 'no_enrollments' | false
     RESTRICT_TO_MCC_ACCOUNT: boolean
   }
 

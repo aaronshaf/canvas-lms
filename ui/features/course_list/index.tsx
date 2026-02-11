@@ -26,7 +26,7 @@ import ready from '@instructure/ready'
 const I18n = createI18nScope('course_list')
 
 ready(() => {
-  function success(target) {
+  function success(target: JQuery) {
     const courseName = target[0].dataset.courseName
     const favorited_tooltip = I18n.t(
       'favorited_tooltip',
@@ -71,7 +71,7 @@ ready(() => {
 
   $('[data-favorite-url]').on('click keyclick', function (event) {
     event.preventDefault()
-    const url = $(this).data('favoriteUrl')
+    const url = $(this).data('favoriteUrl') as string
     const target = $(event.currentTarget)
     if (target.hasClass('course-list-favorite-course')) {
       $.ajaxJSON(url, 'DELETE', {}, success(target), null)
@@ -83,7 +83,16 @@ ready(() => {
   const startButton = document.getElementById('start_new_course')
   if (startButton && (ENV.K5_USER || ENV.FEATURES?.create_course_subaccount_picker)) {
     const container = document.getElementById('create_subject_modal_container')
-    if (container) {
+    const permissions = ENV.CREATE_COURSES_PERMISSIONS
+    const permission = permissions?.PERMISSION
+    if (
+      container &&
+      permission &&
+      (permission === 'admin' ||
+        permission === 'teacher' ||
+        permission === 'student' ||
+        permission === 'no_enrollments')
+    ) {
       startButton.addEventListener('click', () => {
         ReactDOM.render(
           <CreateCourseModal
@@ -91,8 +100,8 @@ ready(() => {
             setModalOpen={isOpen => {
               if (!isOpen) ReactDOM.unmountComponentAtNode(container)
             }}
-            permissions={ENV.CREATE_COURSES_PERMISSIONS.PERMISSION}
-            restrictToMCCAccount={ENV.CREATE_COURSES_PERMISSIONS.RESTRICT_TO_MCC_ACCOUNT}
+            permissions={permission}
+            restrictToMCCAccount={permissions.RESTRICT_TO_MCC_ACCOUNT}
             isK5User={ENV.K5_USER}
           />,
           container,
