@@ -19,7 +19,6 @@
 import $ from 'jquery'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import PropTypes from 'prop-types'
 import Modal from '@canvas/instui-bindings/react/InstuiModal'
 import ConfigOptionField from './ConfigOptionField'
 import {Button} from '@instructure/ui-buttons'
@@ -27,13 +26,29 @@ import {View} from '@instructure/ui-view'
 
 const I18n = createI18nScope('external_tools')
 
-export default class ManageAppListButton extends React.Component {
-  static propTypes = {
-    onUpdateAccessToken: PropTypes.func.isRequired,
-    extAppStore: PropTypes.object,
+interface ManageAppListButtonProps {
+  onUpdateAccessToken: () => void
+  extAppStore?: {
+    updateAccessToken: (
+      contextBaseUrl: string,
+      accessToken: string | undefined,
+      successHandler: () => void,
+      errorHandler: () => void,
+    ) => void
   }
+}
 
-  state = {
+interface ManageAppListButtonState {
+  modalIsOpen: boolean
+  accessToken: string | undefined
+  originalAccessToken?: string
+}
+
+export default class ManageAppListButton extends React.Component<
+  ManageAppListButtonProps,
+  ManageAppListButtonState
+> {
+  state: ManageAppListButtonState = {
     modalIsOpen: false,
     accessToken: undefined,
   }
@@ -45,7 +60,7 @@ export default class ManageAppListButton extends React.Component {
     })
   }
 
-  closeModal = cb => {
+  closeModal = (cb?: () => void) => {
     if (typeof cb === 'function') {
       this.setState({modalIsOpen: false}, cb)
     } else {
@@ -59,7 +74,7 @@ export default class ManageAppListButton extends React.Component {
 
   successHandler = () => {
     this.setState(state => ({
-      originalAccessToken: this.maskedAccessToken(state.accessToken.substring(0, 5)),
+      originalAccessToken: this.maskedAccessToken(state.accessToken?.substring(0, 5)),
     }))
     if (typeof this.props.onUpdateAccessToken === 'function') {
       this.props.onUpdateAccessToken()
@@ -70,14 +85,14 @@ export default class ManageAppListButton extends React.Component {
     $.flashError(I18n.t('We were unable to add the access token.'))
   }
 
-  handleChange = e => {
+  handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({accessToken: e.target.value})
   }
 
   handleSubmit = () => {
     this.closeModal(() => {
       if (this.state.accessToken !== this.state.originalAccessToken) {
-        this.props.extAppStore.updateAccessToken(
+        this.props.extAppStore?.updateAccessToken(
           ENV.CONTEXT_BASE_URL,
           this.state.accessToken,
           this.successHandler,
@@ -87,7 +102,7 @@ export default class ManageAppListButton extends React.Component {
     })
   }
 
-  maskedAccessToken = token => {
+  maskedAccessToken = (token: string | undefined) => {
     if (typeof token === 'string') {
       return `${token}...`
     }

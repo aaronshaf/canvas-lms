@@ -34,8 +34,20 @@ import {TextInput} from '@instructure/ui-text-input'
 
 const I18n = createI18nScope('external_tools')
 
-export default class AppFilters extends React.Component {
-  state = {filter: 'all', filterText: '', disabled: false, readOnly: false}
+interface AppFiltersState {
+  filter: string
+  filterText: string
+  disabled: boolean
+  readOnly: boolean
+}
+
+export default class AppFilters extends React.Component<Record<string, never>, AppFiltersState> {
+  tabAll?: HTMLAnchorElement
+  tabNotInstalled?: HTMLAnchorElement
+  tabInstalled?: HTMLAnchorElement
+  filterText?: HTMLInputElement
+
+  state: AppFiltersState = {filter: 'all', filterText: '', disabled: false, readOnly: false}
 
   componentDidMount() {
     store.addChangeListener(this.onChange)
@@ -56,13 +68,13 @@ export default class AppFilters extends React.Component {
     })
   }
 
-  handleFilterClick = (filter, e) => {
+  handleFilterClick = (filter: string, e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
     store.setState({filter})
     this.announceFilterResults()
   }
 
-  applyFilter = (_e, value) => {
+  applyFilter = (_e: unknown, value: string) => {
     store.setState({filterText: value})
     this.announceFilterResults()
   }
@@ -72,10 +84,10 @@ export default class AppFilters extends React.Component {
     $.screenReaderFlashMessageExclusive(I18n.t('%{count} apps found', {count: apps.length}))
   }
 
-  handleClear = e => {
+  handleClear = (e: React.MouseEvent) => {
     e.stopPropagation()
     this.applyFilter(null, '')
-    this.filterText.focus()
+    this.filterText?.focus()
   }
 
   interaction = () => {
@@ -112,7 +124,7 @@ export default class AppFilters extends React.Component {
               <ul className="nav nav-pills" role="tablist">
                 <li className={activeFilter === 'all' ? 'active' : ''}>
                   <a
-                    ref={c => (this.tabAll = c)}
+                    ref={c => (this.tabAll = c || undefined)}
                     onClick={this.handleFilterClick.bind(this, 'all')}
                     href="#"
                     role="tab"
@@ -123,7 +135,7 @@ export default class AppFilters extends React.Component {
                 </li>
                 <li className={activeFilter === 'not_installed' ? 'active' : ''}>
                   <a
-                    ref={c => (this.tabNotInstalled = c)}
+                    ref={c => (this.tabNotInstalled = c || undefined)}
                     onClick={this.handleFilterClick.bind(this, 'not_installed')}
                     href="#"
                     role="tab"
@@ -134,7 +146,7 @@ export default class AppFilters extends React.Component {
                 </li>
                 <li className={activeFilter === 'installed' ? 'active' : ''}>
                   <a
-                    ref={c => (this.tabInstalled = c)}
+                    ref={c => (this.tabInstalled = c || undefined)}
                     onClick={this.handleFilterClick.bind(this, 'installed')}
                     href="#"
                     role="tab"
@@ -152,7 +164,7 @@ export default class AppFilters extends React.Component {
                 placeholder={I18n.t('Filter by name')}
                 value={this.state.filterText}
                 onChange={this.applyFilter}
-                inputRef={el => (this.filterText = el)}
+                inputRef={el => (this.filterText = el || undefined)}
                 renderBeforeInput={<IconSearchLine inline={false} />}
                 renderAfterInput={this.renderClearButton()}
               />

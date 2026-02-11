@@ -17,13 +17,29 @@
  */
 
 import React from 'react'
-import {func, object, string, oneOfType, bool} from 'prop-types'
 import {Button} from '@instructure/ui-buttons'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('external_tools')
 
-export default function DuplicateConfirmationForm(props) {
+interface DuplicateConfirmationFormProps {
+  onCancel: () => void
+  onSuccess: () => void
+  onError: (error: unknown) => void
+  forceSaveTool?: (() => void) | false
+  toolData: Record<string, unknown>
+  configurationType: string
+  store: {
+    save: (
+      configurationType: string,
+      data: Record<string, unknown>,
+      onSuccess: () => void,
+      onError: (error: unknown) => void,
+    ) => void
+  }
+}
+
+export default function DuplicateConfirmationForm(props: DuplicateConfirmationFormProps) {
   const forceSaveTool =
     props.forceSaveTool ||
     (() => {
@@ -63,14 +79,4 @@ export default function DuplicateConfirmationForm(props) {
       </div>
     </div>
   )
-}
-
-DuplicateConfirmationForm.propTypes = {
-  onCancel: func.isRequired,
-  onSuccess: func.isRequired,
-  onError: func.isRequired,
-  forceSaveTool: oneOfType([func, bool]),
-  toolData: object.isRequired,
-  configurationType: string.isRequired,
-  store: object.isRequired,
 }

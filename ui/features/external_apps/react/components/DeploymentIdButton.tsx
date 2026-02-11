@@ -18,23 +18,29 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import PropTypes from 'prop-types'
 import {Button} from '@instructure/ui-buttons'
 import Modal from '@canvas/instui-bindings/react/InstuiModal'
 
 const I18n = createI18nScope('external_tools')
 
-export default class DeploymentIdButton extends React.Component {
-  static propTypes = {
-    tool: PropTypes.shape({name: PropTypes.string, deployment_id: PropTypes.string}).isRequired,
-    returnFocus: PropTypes.func.isRequired,
-  }
+interface DeploymentIdButtonProps {
+  tool: {name?: string; deployment_id?: string}
+  returnFocus: () => void
+}
 
-  state = {
+interface DeploymentIdButtonState {
+  modalIsOpen: boolean
+}
+
+export default class DeploymentIdButton extends React.Component<
+  DeploymentIdButtonProps,
+  DeploymentIdButtonState
+> {
+  state: DeploymentIdButtonState = {
     modalIsOpen: false,
   }
 
-  openModal = e => {
+  openModal = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
     this.setState({modalIsOpen: true})
   }

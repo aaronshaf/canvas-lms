@@ -18,37 +18,43 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import PropTypes from 'prop-types'
 import {Button} from '@instructure/ui-buttons'
 import Modal from '@canvas/instui-bindings/react/InstuiModal'
 import store from '../lib/ExternalAppsStore'
 
 const I18n = createI18nScope('external_tools')
 
-export default class DeleteExternalToolButton extends React.Component {
-  static propTypes = {
-    tool: PropTypes.shape({name: PropTypes.string}).isRequired,
-    returnFocus: PropTypes.func.isRequired,
-    canDelete: PropTypes.bool.isRequired,
-  }
+interface DeleteExternalToolButtonProps {
+  tool: {name?: string}
+  returnFocus: (options?: {passFocusUp?: boolean}) => void
+  canDelete: boolean
+}
 
-  state = {
+interface DeleteExternalToolButtonState {
+  modalIsOpen: boolean
+}
+
+export default class DeleteExternalToolButton extends React.Component<
+  DeleteExternalToolButtonProps,
+  DeleteExternalToolButtonState
+> {
+  state: DeleteExternalToolButtonState = {
     modalIsOpen: false,
   }
 
   isDeleting = false
-  btnTriggerDelete = React.createRef()
+  btnTriggerDelete = React.createRef<HTMLAnchorElement>()
 
   shouldComponentUpdate() {
     return !this.isDeleting
   }
 
-  openModal = e => {
+  openModal = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
     this.setState({modalIsOpen: true})
   }
 
-  closeModal = cb => {
+  closeModal = (cb?: () => void) => {
     if (typeof cb === 'function') {
       this.setState({modalIsOpen: false}, cb)
     } else {
@@ -57,7 +63,7 @@ export default class DeleteExternalToolButton extends React.Component {
     }
   }
 
-  deleteTool = e => {
+  deleteTool = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     this.isDeleting = true
     this.closeModal(() => {

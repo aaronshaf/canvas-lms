@@ -18,7 +18,6 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import {shape, func, bool} from 'prop-types'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Modal} from '@instructure/ui-modal'
 import {Heading} from '@instructure/ui-heading'
@@ -28,20 +27,35 @@ import {onLtiClosePostMessage} from '@canvas/lti/jquery/messages'
 
 const I18n = createI18nScope('external_tools')
 
-export default class ConfigureExternalToolButton extends React.Component {
-  removeCloseListener
-  btnTriggerModal = React.createRef()
-
-  static propTypes = {
-    tool: shape({}).isRequired,
-    returnFocus: func.isRequired,
-    modalIsOpen: bool,
+interface ConfigureExternalToolButtonProps {
+  tool: {
+    name?: string
+    app_id?: string | number
+    tool_configuration?: {
+      selection_width?: number
+      selection_height?: number
+    }
   }
+  returnFocus: () => void
+  modalIsOpen?: boolean
+}
 
-  constructor(props) {
+interface ConfigureExternalToolButtonState {
+  modalIsOpen: boolean
+}
+
+export default class ConfigureExternalToolButton extends React.Component<
+  ConfigureExternalToolButtonProps,
+  ConfigureExternalToolButtonState
+> {
+  removeCloseListener?: () => void
+  btnTriggerModal = React.createRef<HTMLAnchorElement>()
+  iframe?: HTMLIFrameElement | null
+
+  constructor(props: ConfigureExternalToolButtonProps) {
     super(props)
     this.state = {
-      modalIsOpen: props.modalIsOpen,
+      modalIsOpen: props.modalIsOpen || false,
     }
   }
 
@@ -53,16 +67,16 @@ export default class ConfigureExternalToolButton extends React.Component {
     this.removeCloseListener?.()
   }
 
-  getLaunchUrl = tool => {
+  getLaunchUrl = (tool: ConfigureExternalToolButtonProps['tool']) => {
     return `${ENV.CONTEXT_BASE_URL}/external_tools/${tool.app_id}?display=borderless&placement=tool_configuration`
   }
 
-  openModal = e => {
+  openModal = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
     this.setState({modalIsOpen: true})
   }
 
-  closeModal = cb => {
+  closeModal = (cb?: () => void) => {
     if (typeof cb === 'function') {
       this.setState({modalIsOpen: false}, cb)
     } else {
@@ -88,7 +102,7 @@ export default class ConfigureExternalToolButton extends React.Component {
           src={this.getLaunchUrl(this.props.tool)}
           title={I18n.t('Tool Configuration')}
           style={this.iframeStyle()}
-          ref={e => {
+          ref={(e: HTMLIFrameElement | null) => {
             this.iframe = e
           }}
         />
