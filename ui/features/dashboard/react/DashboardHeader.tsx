@@ -111,13 +111,13 @@ class DashboardHeader extends React.Component<DashboardHeaderProps, DashboardHea
     this.plannerLoaded = false
     if (this.props.planner_enabled) {
       // setup observing another user?
-      let observedUser: {id: string; name: string; avatarUrl: string} | undefined
-      if (observerMode() && ENV.OBSERVED_USERS_LIST.length > 0) {
+      let observedUser: {id: string; name: string; avatarUrl: string | null | undefined} | undefined
+      if (observerMode() && ENV.OBSERVED_USERS_LIST && ENV.OBSERVED_USERS_LIST.length > 0) {
         const storedObservedUserId = savedObservedId(ENV.current_user.id)
         const {id, name, avatar_url} =
           ENV.OBSERVED_USERS_LIST.find((u: any) => u.id === storedObservedUserId) ||
           ENV.OBSERVED_USERS_LIST[0]
-        observedUser = id === ENV.current_user_id ? undefined : {id, name, avatarUrl: avatar_url}
+        observedUser = id === ENV.current_user_id ? undefined : {id, name, avatarUrl: avatar_url ?? null}
       }
 
       this.planner_init_promise = initializePlanner({
@@ -354,7 +354,6 @@ class DashboardHeader extends React.Component<DashboardHeaderProps, DashboardHea
   renderLegacy(canEnableElementaryDashboard: boolean) {
     return (
       <div className={classnames(this.props.responsiveSize, 'ic-Dashboard-header__layout')}>
-        {/* @ts-expect-error - InstUI Flex props */}
         <Flex direction="row" alignItems="center" justifyItems="space-between" width="100%">
           <Flex.Item>
             <Heading as="span" level="h1" className=".ic-Dashboard-header__title">
@@ -418,7 +417,6 @@ class DashboardHeader extends React.Component<DashboardHeaderProps, DashboardHea
 
     return (
       <div style={{backgroundColor: 'white', paddingBottom: 'small'}}>
-        {/* @ts-expect-error - InstUI Flex props */}
         <Flex
           margin="0 0 medium"
           as="div"
@@ -439,7 +437,6 @@ class DashboardHeader extends React.Component<DashboardHeaderProps, DashboardHea
             overflowY="visible"
             margin={this.props.responsiveSize == 'large' ? 'x-small 0 0 0' : '0'}
           >
-            {/* @ts-expect-error - InstUI Flex props */}
             <Flex
               gap="small"
               withVisualDebug={false}

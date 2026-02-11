@@ -33,15 +33,15 @@ import DashboardHeader from './react/DashboardHeader'
 ready(() => {
   const dashboardHeaderContainer = document.getElementById('dashboard_header_container')
   if (dashboardHeaderContainer) {
-    const dashboard_view = ENV.PREFERENCES.dashboard_view
+    const dashboard_view = ENV.PREFERENCES?.dashboard_view
 
     const dashcard_query_enabled = !!ENV?.FEATURES?.dashboard_graphql_integration
 
     const dashboardProps = {
       dashboard_view,
-      allowElementaryDashboard: !!ENV.ALLOW_ELEMENTARY_DASHBOARD,
+      allowElementaryDashboard: !!(ENV as any).ALLOW_ELEMENTARY_DASHBOARD,
       isElementaryUser: !!ENV.K5_USER,
-      planner_enabled: ENV.STUDENT_PLANNER_ENABLED,
+      planner_enabled: !!(ENV as any).STUDENT_PLANNER_ENABLED,
       flashError: $.flashError,
       flashMessage: $.flashMessage,
       screenReaderFlashMessage: $.screenReaderFlashMessage,
