@@ -26,6 +26,7 @@ ready(() => {
   initializeTopNavPortal()
 
   ReactDOM.render(
+    // @ts-expect-error - brandConfigStuff is not in GlobalEnv type
     <CollectionView {...window.ENV.brandConfigStuff} />,
     document.getElementById('content'),
   )

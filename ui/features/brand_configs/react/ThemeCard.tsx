@@ -18,7 +18,6 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import {string, func, bool} from 'prop-types'
 import SVGWrapper from '@canvas/svg-wrapper'
 
 import {Button} from '@instructure/ui-buttons'
@@ -30,10 +29,23 @@ import Modal from '@canvas/instui-bindings/react/InstuiModal'
 
 const I18n = createI18nScope('theme_editor')
 
-export default function ThemeCard(props) {
+interface ThemeCardProps {
+  name: string
+  isActiveBrandConfig: boolean
+  isDeletable: boolean
+  isBeingDeleted: boolean
+  showMultipleCurrentThemesMessage: boolean
+  startDeleting: () => void
+  cancelDeleting: () => void
+  onDelete: (e: React.FormEvent) => void
+  open: () => void
+  getVariable: (name: string) => string
+}
+
+export default function ThemeCard(props: ThemeCardProps) {
   const getVar = props.getVariable
 
-  const handleOpen = e => {
+  const handleOpen = (e: React.MouseEvent) => {
     e.preventDefault()
     props.open()
   }
@@ -204,17 +216,4 @@ export default function ThemeCard(props) {
       )}
     </div>
   )
-}
-
-ThemeCard.propTypes = {
-  name: string.isRequired,
-  isActiveBrandConfig: bool.isRequired,
-  isDeletable: bool.isRequired,
-  isBeingDeleted: bool.isRequired,
-  showMultipleCurrentThemesMessage: bool.isRequired,
-  startDeleting: func.isRequired,
-  cancelDeleting: func.isRequired,
-  onDelete: func.isRequired,
-  open: func.isRequired,
-  getVariable: func.isRequired,
 }
