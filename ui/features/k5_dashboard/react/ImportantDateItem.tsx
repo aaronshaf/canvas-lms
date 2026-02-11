@@ -17,7 +17,6 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 import {
@@ -61,21 +60,35 @@ const itemTypes = [
   },
 ]
 
-const ItemIcon = ({type, color}) => {
+interface ItemIconProps {
+  type: string
+  color: string
+}
+
+const ItemIcon = ({type, color}: ItemIconProps) => {
   let itemDetails = itemTypes.find(i => i.type === type)
   if (!itemDetails) {
     itemDetails = itemTypes.find(i => i.type === 'assignment')
   }
   return (
-    <AccessibleContent alt={itemDetails.label}>
+    <AccessibleContent alt={itemDetails!.label}>
       <span style={{color}} data-testid="date-icon-wrapper">
-        {itemDetails.icon}
+        {itemDetails!.icon}
       </span>
     </AccessibleContent>
   )
 }
 
-const ImportantDateItem = ({title, context, color, type, url}) => (
+export interface ImportantDateItemProps {
+  id: string
+  title: string
+  context: string
+  color: string
+  type: string
+  url: string
+}
+
+const ImportantDateItem = ({title, context, color, type, url}: ImportantDateItemProps) => (
   <View
     as="div"
     borderWidth="small"
@@ -107,18 +120,5 @@ const ImportantDateItem = ({title, context, color, type, url}) => (
     </TruncateText>
   </View>
 )
-
-export const ImportantDateItemShape = {
-  id: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
-  context: PropTypes.string.isRequired,
-  color: PropTypes.string.isRequired,
-  type: PropTypes.string.isRequired,
-  url: PropTypes.string.isRequired,
-}
-
-ImportantDateItem.propTypes = {
-  ...ImportantDateItemShape,
-}
 
 export default ImportantDateItem
