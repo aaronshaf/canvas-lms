@@ -17,6 +17,7 @@
  */
 
 import {forEach, extend as lodashExtend} from 'es-toolkit/compat'
+// @ts-expect-error - jQuery types conflict with esModuleInterop
 import $ from 'jquery'
 import '@canvas/jquery/jquery.ajaxJSON'
 import '@canvas/jquery/jquery.instructure_misc_helpers' /* replaceTags */
@@ -26,7 +27,9 @@ import '@canvas/media-comments/jquery/mediaCommentThumbnail'
 import '@canvas/media-comments' /* mediaComment */
 import axios from '@canvas/axios'
 import {camelizeProperties} from '@canvas/convert-case'
+// @ts-expect-error - React types conflict with esModuleInterop
 import React from 'react'
+// @ts-expect-error - ReactDOM client types not properly exported
 import ReactDOM from 'react-dom/client'
 import gradingPeriodSetsApi from '@canvas/grading/jquery/gradingPeriodSetsApi'
 import {htmlEscape} from '@instructure/html-escape'
@@ -58,7 +61,7 @@ const I18n = createI18nScope('gradingGradeSummary')
 const SUBMISSION_UNREAD_PREFIX = 'submission_unread_dot_'
 
 const GradeSummary = {
-  getSelectedGradingPeriodId() {
+  getSelectedGradingPeriodId(): string | null {
     const currentGradingPeriodId = ENV.current_grading_period_id
 
     if (!currentGradingPeriodId || currentGradingPeriodId === '0') {
@@ -68,11 +71,16 @@ const GradeSummary = {
     return currentGradingPeriodId
   },
 
-  getAssignmentId($assignment) {
+  getAssignmentId($assignment: JQuery): string {
+    // @ts-expect-error - getTemplateData is a Canvas jQuery plugin extension
     return $assignment.getTemplateData({textValues: ['assignment_id']}).assignment_id
   },
 
-  parseScoreText(text, numericalDefault, formattedDefault) {
+  parseScoreText(
+    text: string,
+    numericalDefault?: number,
+    formattedDefault?: string,
+  ): {numericalValue: number | null; formattedValue: string} {
     const defaultNumericalValue = typeof numericalDefault === 'number' ? numericalDefault : null
     const defaultFormattedValue = typeof formattedDefault === 'string' ? formattedDefault : '-'
     let numericalValue = numberHelper.parse(text)
@@ -88,7 +96,7 @@ const GradeSummary = {
     }
   },
 
-  getOriginalScore($assignment) {
+  getOriginalScore($assignment: JQuery): {numericalValue: number | null; formattedValue: string} {
     let numericalValue = parseFloat($assignment.find('.original_points').text())
     numericalValue =
       numericalValue === undefined || Number.isNaN(numericalValue) ? null : numericalValue
@@ -98,11 +106,11 @@ const GradeSummary = {
     }
   },
 
-  getOriginalWorkflowState($assignment) {
+  getOriginalWorkflowState($assignment: JQuery): string {
     return $assignment.find('.submission_status').text().trim()
   },
 
-  onEditWhatIfScore($assignmentScore, $ariaAnnouncer) {
+  onEditWhatIfScore($assignmentScore: JQuery, $ariaAnnouncer: JQuery): void {
     // Store the original score so that it can be restored when the "What-If" score is reverted.
     if (!$assignmentScore.find('.grade').data('originalValue')) {
       $assignmentScore.find('.grade').data('originalValue', $assignmentScore.find('.grade').html())
@@ -121,10 +129,11 @@ const GradeSummary = {
       .find('.what_if_score')
       .text()
     const score = GradeSummary.parseScoreText(whatIfScoreText, 0, '0')
+    // @ts-expect-error - val() can accept string
     $('#grade_entry').val(score.formattedValue).show().focus().select()
   },
 
-  onScoreChange($assignment, options) {
+  onScoreChange($assignment: JQuery, options: {update: boolean; refocus?: boolean}): void {
     const originalScore = GradeSummary.getOriginalScore($assignment)
 
     // parse the score entered by the user
@@ -170,6 +179,7 @@ const GradeSummary = {
         {'submission[student_entered_score]': scoreForUpdate},
         data => {
           const updatedData = {student_entered_score: data.submission.student_entered_score}
+          // @ts-expect-error - fillTemplateData is a Canvas jQuery plugin extension
           $assignment.fillTemplateData({data: updatedData})
         },
         $.noop,
@@ -222,11 +232,13 @@ const GradeSummary = {
       $assignment.find('.grade').prepend($screenreaderLinkClone)
     }
 
+    // @ts-expect-error - updateScoreForAssignment is added via lodashExtend
     GradeSummary.updateScoreForAssignment(assignmentId, score.numericalValue, 'graded')
+    // @ts-expect-error - updateStudentGrades is added via lodashExtend
     GradeSummary.updateStudentGrades()
   },
 
-  onScoreRevert($assignment, options) {
+  onScoreRevert($assignment: JQuery, options?: {refocus?: boolean; skipEval?: boolean}): void {
     const $assignmentScore = $assignment.find('.assignment_score')
     const $grade = $assignmentScore.find('.grade')
     const opts = {refocus: true, skipEval: false, ...options}
@@ -258,10 +270,13 @@ const GradeSummary = {
     $assignmentScore.attr('title', title)
     $grade.removeClass('changed')
 
+    // @ts-expect-error - getTemplateValue is a Canvas jQuery plugin extension
     const assignmentId = $assignment.getTemplateValue('assignment_id')
     const workflowState = GradeSummary.getOriginalWorkflowState($assignment)
+    // @ts-expect-error - updateScoreForAssignment is added via lodashExtend
     GradeSummary.updateScoreForAssignment(assignmentId, score.numericalValue, workflowState)
     if (!opts.skipEval) {
+      // @ts-expect-error - updateStudentGrades is added via lodashExtend
       GradeSummary.updateStudentGrades()
     }
 
@@ -276,7 +291,7 @@ const GradeSummary = {
   },
 }
 
-function addTooltipElementForAssignment($assignment) {
+function addTooltipElementForAssignment($assignment: JQuery): void {
   const $grade = $assignment.find('.grade')
   let $tooltipWrapRight
   let $tooltipScoreTeaser
@@ -296,7 +311,7 @@ function addTooltipElementForAssignment($assignment) {
   }
 }
 
-function setTooltipForScore($assignment) {
+function setTooltipForScore($assignment: JQuery): void {
   let tooltipText
 
   if ($assignment.data('muted')) {
@@ -310,14 +325,14 @@ function setTooltipForScore($assignment) {
   $tooltipScoreTeaser.text(tooltipText)
 }
 
-function getGradingPeriodSet() {
+function getGradingPeriodSet(): any {
   if (ENV.grading_period_set) {
     return gradingPeriodSetsApi.deserializeSet(ENV.grading_period_set)
   }
   return null
 }
 
-function calculateGrades() {
+function calculateGrades(): any {
   let grades
 
   if (ENV.effective_due_dates && ENV.grading_period_set) {
@@ -346,20 +361,20 @@ function calculateGrades() {
   return grades
 }
 
-function canBeConvertedToGrade(score, possible) {
+function canBeConvertedToGrade(score: number, possible: number): boolean {
   return possible > 0 && score !== undefined && !Number.isNaN(score)
 }
 
-function calculatePercentGrade(score, possible) {
+function calculatePercentGrade(score: number, possible: number): number {
   const percentGrade = scoreToPercentage(score, possible)
   return round(percentGrade, round.DEFAULT)
 }
 
-function formatPercentGrade(percentGrade) {
+function formatPercentGrade(percentGrade: number): string {
   return I18n.n(percentGrade, {percentage: true})
 }
 
-function calculateGrade(score, possible) {
+function calculateGrade(score: number, possible: number): string {
   if (canBeConvertedToGrade(score, possible)) {
     return formatPercentGrade(calculatePercentGrade(score, possible))
   }
@@ -367,13 +382,17 @@ function calculateGrade(score, possible) {
   return I18n.t('N/A')
 }
 
-function subtotalByGradingPeriod() {
+function subtotalByGradingPeriod(): boolean {
   const gpset = ENV.grading_period_set
   const gpselected = GradeSummary.getSelectedGradingPeriodId()
   return (!gpselected || gpselected === 0) && gpset && gpset.weighted
 }
 
-function calculateSubtotals(byGradingPeriod, calculatedGrades, currentOrFinal) {
+function calculateSubtotals(
+  byGradingPeriod: boolean,
+  calculatedGrades: any,
+  currentOrFinal: string,
+): any[] {
   const subtotals = []
   let params
   if (byGradingPeriod) {
@@ -430,7 +449,10 @@ function calculateSubtotals(byGradingPeriod, calculatedGrades, currentOrFinal) {
   return subtotals
 }
 
-function finalGradePointsPossibleText(groupWeightingScheme, scoreWithPointsPossible) {
+function finalGradePointsPossibleText(
+  groupWeightingScheme: string,
+  scoreWithPointsPossible: string,
+): string {
   if (groupWeightingScheme === 'percent') {
     return ''
   }
@@ -444,7 +466,7 @@ function finalGradePointsPossibleText(groupWeightingScheme, scoreWithPointsPossi
   return scoreWithPointsPossible
 }
 
-function formatScaledPointsGrade(scaledPointsEarned, scaledPointsPossible) {
+function formatScaledPointsGrade(scaledPointsEarned: number, scaledPointsPossible: number): string {
   return canBeConvertedToGrade(scaledPointsEarned, scaledPointsPossible)
     ? `${I18n.n(scaledPointsEarned, {precision: 2})} / ${I18n.n(scaledPointsPossible, {
         precision: 2,
@@ -452,7 +474,11 @@ function formatScaledPointsGrade(scaledPointsEarned, scaledPointsPossible) {
     : I18n.t('N/A')
 }
 
-function calculateTotals(calculatedGrades, currentOrFinal, groupWeightingScheme) {
+function calculateTotals(
+  calculatedGrades: any,
+  currentOrFinal: string,
+  groupWeightingScheme: string,
+): void {
   const gradeChanged = $('.grade.changed').length > 0
   const showTotalGradeAsPoints = ENV.show_total_grade_as_points
 
@@ -593,15 +619,15 @@ function calculateTotals(calculatedGrades, currentOrFinal, groupWeightingScheme)
 
 // This element is only rendered by the erb if the course has enabled grading
 // schemes.
-function gradingSchemeEnabled() {
+function gradingSchemeEnabled(): boolean {
   return ENV.course_active_grading_scheme
 }
 
-function overrideScorePresent() {
+function overrideScorePresent(): boolean {
   return ENV.effective_final_score != null
 }
 
-function updateStudentGrades() {
+function updateStudentGrades(): void {
   const droppedMessage = I18n.t(
     'This assignment is dropped and will not be considered in the total calculation',
   )
@@ -635,7 +661,11 @@ function updateStudentGrades() {
   }
 }
 
-function updateScoreForAssignment(assignmentId, score, workflowStateOverride) {
+function updateScoreForAssignment(
+  assignmentId: string,
+  score: number | null,
+  workflowStateOverride?: string,
+): void {
   const submission = ENV.submissions?.find(s => `${s.assignment_id}` === `${assignmentId}`)
 
   if (submission) {
@@ -646,7 +676,7 @@ function updateScoreForAssignment(assignmentId, score, workflowStateOverride) {
   }
 }
 
-function bindShowAllDetailsButton($ariaAnnouncer) {
+function bindShowAllDetailsButton($ariaAnnouncer: JQuery): void {
   $('#show_all_details_button').click(event => {
     event.preventDefault()
     const $button = $('#show_all_details_button')
@@ -687,24 +717,24 @@ $(window).on('beforeprint', function () {
   $(`.toggle_sub_assignments i`).removeClass('icon-arrow-open-end').addClass('icon-arrow-open-down')
 })
 
-function displayPageContent() {
+function displayPageContent(): void {
   document.getElementById('grade-summary-content').style.display = ''
   document.getElementById('student-grades-right-content').style.display = ''
 }
 
-function goToURL(url) {
+function goToURL(url: string): void {
   window.location.href = url
 }
 
-function saveAssignmentOrder(order) {
+function saveAssignmentOrder(order: string[]): Promise<any> {
   return axios.post(ENV.save_assignment_order_url, {assignment_order: order})
 }
 
-function coursesWithGrades() {
+function coursesWithGrades(): any[] {
   return ENV.courses_with_grades.map(course => camelizeProperties(course))
 }
 
-function getSelectMenuGroupProps() {
+function getSelectMenuGroupProps(): any {
   return {
     assignmentSortOptions: ENV.assignment_sort_options,
     courses: coursesWithGrades(),
@@ -721,32 +751,35 @@ function getSelectMenuGroupProps() {
   }
 }
 
-function getCourseId() {
+function getCourseId(): string {
   return ENV.context_asset_string.match(/.*_(\d+)$/)[1]
 }
 
-let selectMenuRoot = null
-let gradeSummaryRoot = null
-let submissionCommentsTrayRoot = null
-let clearBadgeCountsRoot = null
+let selectMenuRoot: ReactDOM.Root | null = null
+let gradeSummaryRoot: ReactDOM.Root | null = null
+let submissionCommentsTrayRoot: ReactDOM.Root | null = null
+let clearBadgeCountsRoot: ReactDOM.Root | null = null
 
-function renderSelectMenuGroup() {
+function renderSelectMenuGroup(): void {
   const container = document.getElementById('GradeSummarySelectMenuGroup')
   if (!selectMenuRoot) {
+    // @ts-expect-error - container may be null but is checked at runtime
     selectMenuRoot = ReactDOM.createRoot(container)
   }
+  // @ts-expect-error - getSelectMenuGroupProps is added via lodashExtend
   selectMenuRoot.render(<SelectMenuGroup {...GradeSummary.getSelectMenuGroupProps()} />)
 }
 
-function renderGradeSummaryTable() {
+function renderGradeSummaryTable(): void {
   const container = document.getElementById('grade-summary-react')
   if (!gradeSummaryRoot) {
+    // @ts-expect-error - container may be null but is checked at runtime
     gradeSummaryRoot = ReactDOM.createRoot(container)
   }
   gradeSummaryRoot.render(<GradeSummaryManager />)
 }
 
-function handleSubmissionsCommentTray(assignmentId) {
+function handleSubmissionsCommentTray(assignmentId: string): void {
   const {submissionTrayAssignmentId, submissionTrayOpen} = useStore.getState()
 
   if (submissionTrayAssignmentId === assignmentId && submissionTrayOpen) {
@@ -768,7 +801,10 @@ function handleSubmissionsCommentTray(assignmentId) {
   }
 }
 
-function getSubmissionCommentsTrayProps(assignmentId) {
+function getSubmissionCommentsTrayProps(assignmentId: string): {
+  attempts: any
+  assignmentUrl: string
+} {
   const matchingSubmission = ENV.submissions.find(x => x.assignment_id === assignmentId)
   const {submission_comments, assignment_url: assignmentUrl} = matchingSubmission
   const attempts = submission_comments.reduce((attemptsMessages, comment) => {
@@ -788,9 +824,10 @@ function getSubmissionCommentsTrayProps(assignmentId) {
   }
 }
 
-function renderSubmissionCommentsTray() {
+function renderSubmissionCommentsTray(): void {
   const container = document.getElementById('GradeSummarySubmissionCommentsTray')
   if (!submissionCommentsTrayRoot) {
+    // @ts-expect-error - container may be null but is checked at runtime
     submissionCommentsTrayRoot = ReactDOM.createRoot(container)
   }
   submissionCommentsTrayRoot.render(
@@ -804,9 +841,10 @@ function renderSubmissionCommentsTray() {
   )
 }
 
-function renderClearBadgeCountsButton() {
+function renderClearBadgeCountsButton(): void {
   const container = document.getElementById('ClearBadgeCountsButton')
   if (!clearBadgeCountsRoot) {
+    // @ts-expect-error - container may be null but is checked at runtime
     clearBadgeCountsRoot = ReactDOM.createRoot(container)
   }
   const userId = ENV.student_id
@@ -814,7 +852,7 @@ function renderClearBadgeCountsButton() {
   clearBadgeCountsRoot.render(<ClearBadgeCountsButton userId={userId} courseId={courseId} />)
 }
 
-function addAssetProcessorToLegacyTable() {
+function addAssetProcessorToLegacyTable(): void {
   if (!ENV.FEATURES?.lti_asset_processor) {
     return
   }
@@ -844,8 +882,9 @@ function addAssetProcessorToLegacyTable() {
   )
 }
 
-function setup() {
+function setup(): void {
   $(document).ready(function () {
+    // @ts-expect-error - updateStudentGrades is added via lodashExtend
     GradeSummary.updateStudentGrades()
     const showAllWhatIfButton = $(this).find('#student-grades-whatif button')
     const revertButton = $(this).find('#revert-all-to-actual-score')
@@ -858,6 +897,7 @@ function setup() {
         $(this).trigger('click', {skipEval: true, refocus: false})
       })
       $('.show_guess_grades.exists').show()
+      // @ts-expect-error - updateStudentGrades is added via lodashExtend
       GradeSummary.updateStudentGrades()
       showAllWhatIfButton.focus()
       $.screenReaderFlashMessageExclusive(I18n.t('Grades are now reverted to original scores'))
@@ -1052,6 +1092,7 @@ function setup() {
 
     $('#only_consider_graded_assignments')
       .change(() => {
+        // @ts-expect-error - updateStudentGrades is added via lodashExtend
         GradeSummary.updateStudentGrades()
       })
       .triggerHandler('change')

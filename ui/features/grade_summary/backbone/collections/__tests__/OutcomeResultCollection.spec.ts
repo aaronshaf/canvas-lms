@@ -23,18 +23,18 @@ import fakeENV from '@canvas/test-utils/fakeENV'
 import * as tz from '@instructure/moment-utils'
 
 describe('OutcomeResultCollection', () => {
-  let studentDatastore
-  let userStudentMap
-  let testStudentMap
-  let outcome
-  let outcome2
-  let outcomeResultCollection
-  let outcomeResultCollection2
-  let alignmentName
-  let alignmentName2
-  let alignmentName3
-  let response
-  let response2
+  let studentDatastore: any
+  let userStudentMap: any
+  let testStudentMap: any
+  let outcome: any
+  let outcome2: any
+  let outcomeResultCollection: any
+  let outcomeResultCollection2: any
+  let alignmentName: string
+  let alignmentName2: string
+  let alignmentName3: string
+  let response: any
+  let response2: any
 
   beforeEach(() => {
     fakeENV.setup()
