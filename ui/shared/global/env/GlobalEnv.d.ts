@@ -35,6 +35,7 @@ import {EnvDiscussions} from './EnvDiscussions'
 import {EnvGradebook} from './EnvGradebook'
 import {EnvGradingStandards} from './EnvGradingStandards'
 import {EnvHorizon} from './EnvHorizon'
+import {EnvK5Dashboard} from './EnvK5Dashboard'
 import {EnvLtiRegistrations} from './EnvLtiRegistrations'
 import {EnvNewQuizzes} from './EnvNewQuizzes'
 import {EnvNotices} from './EnvNotices'
@@ -90,6 +91,7 @@ export type GlobalEnv =
         EnvUserMerge &
         EnvLtiRegistrations &
         EnvHorizon &
+        EnvK5Dashboard &
         EnvAuthentication &
         EnvWidgetDashboard &
         EnvNewQuizzes &
