@@ -17,7 +17,7 @@
  */
 
 const Helpers = {
-  isValidImageType(mimeType) {
+  isValidImageType(mimeType: string): boolean {
     return [
       'image/apng',
       'image/avif',
@@ -30,15 +30,20 @@ const Helpers = {
     ].includes(mimeType)
   },
 
-  extractInfoFromEvent(event) {
-    let file = ''
-    let type = ''
+  extractInfoFromEvent(event: React.ChangeEvent<HTMLInputElement> | React.DragEvent): {
+    file: File
+    type: string
+  } {
+    let file: File
+    let type: string
     if (event.type === 'change') {
-      file = event.target.files[0]
+      const changeEvent = event as React.ChangeEvent<HTMLInputElement>
+      file = changeEvent.target.files![0]
       type = file.type
     } else {
-      type = event.dataTransfer.files[0].type
-      file = event.dataTransfer.files[0]
+      const dragEvent = event as React.DragEvent
+      type = dragEvent.dataTransfer.files[0].type
+      file = dragEvent.dataTransfer.files[0]
     }
 
     return {file, type}
