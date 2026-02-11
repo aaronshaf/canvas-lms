@@ -162,7 +162,7 @@ function SubmissionTypeSelector({
               <Flex.Item as="div" key={type} margin="0 medium 0 0" data-testid={type}>
                 <SubmissionTypeButton
                   displayName={friendlyTypeName(type)}
-                  {/* @ts-expect-error - dynamic icon lookup */}
+                  // @ts-expect-error - dynamic icon lookup
                   icon={iconsByType[type]}
                   selected={activeSubmissionType === type}
                   onSelected={() => {
