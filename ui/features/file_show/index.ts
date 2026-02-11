@@ -38,5 +38,6 @@ const previewDefaults: PreviewDefaults = {
 ready(() => {
   const previewDiv = $('#doc_preview')
   previewDiv.fillWindowWithMe()
+  // @ts-expect-error - jQuery.merge expects array-like objects but works with plain objects
   loadDocPreview(previewDiv[0], $.merge(previewDefaults, previewDiv.data()))
 })
