@@ -30,13 +30,25 @@ import ready from '@instructure/ready'
 
 const I18n = createI18nScope('external_content.success')
 
-const ExternalContentSuccess = {}
+interface LtiResponseMessages {
+  lti_errormsg?: string
+  lti_msg?: string
+}
+
+interface ExternalContentSuccessType {
+  dataReady: (contentItems: any, service_id: string) => void
+  a2DataReady: (data: any) => void
+  processLtiMessages: (messages: LtiResponseMessages, target: Element | null) => Promise<void>
+  start: () => Promise<void>
+}
+
+const ExternalContentSuccess: Partial<ExternalContentSuccessType> = {}
 
 ready(() => {
   const {lti_response_messages, service_id, retrieved_data: data, service} = ENV
   const parentWindow = window.parent || window.opener
 
-  ExternalContentSuccess.dataReady = function (contentItems, service_id) {
+  ExternalContentSuccess.dataReady = function (contentItems: any, service_id: string) {
     postMessageExternalContentReady(parentWindow, {contentItems, service_id, service})
 
     setTimeout(() => {
@@ -48,7 +60,7 @@ ready(() => {
 
   // Handles lti 1.0 responses for Assignments 2 which expects a
   // vanilla JS event from LTI tools in the following form.
-  ExternalContentSuccess.a2DataReady = function (data) {
+  ExternalContentSuccess.a2DataReady = function (data: any) {
     parentWindow.postMessage(
       {
         subject: 'A2ExternalContentReady',
@@ -63,17 +75,20 @@ ready(() => {
     )
   }
 
-  ExternalContentSuccess.processLtiMessages = async (messages, target) => {
+  ExternalContentSuccess.processLtiMessages = async (
+    messages: LtiResponseMessages,
+    target: Element | null,
+  ) => {
     const errorMessage = messages?.lti_errormsg
     const message = messages?.lti_msg
 
     if (errorMessage || message) {
       const wrapper = document.createElement('div')
       wrapper.setAttribute('id', 'lti_messages_wrapper')
-      target.parentNode.insertBefore(wrapper, target)
+      target?.parentNode?.insertBefore(wrapper, target)
 
       const root = createRoot(wrapper)
-      await new Promise(resolve => {
+      await new Promise<void>(resolve => {
         root.render(
           <>
             {[
@@ -83,6 +98,7 @@ ready(() => {
               .filter(([msg, _]) => msg !== undefined)
               .map(([msg, isError], index) => {
                 return (
+                  // @ts-expect-error - InstUI Alert props are complex
                   <Alert
                     key={index}
                     variant={isError ? 'error' : 'info'}
@@ -102,12 +118,12 @@ ready(() => {
   }
 
   ExternalContentSuccess.start = async function () {
-    await this.processLtiMessages(lti_response_messages, document.querySelector('.ic-app'))
+    await this.processLtiMessages?.(lti_response_messages, document.querySelector('.ic-app'))
 
     if (ENV.oembed) {
       const url = replaceTags(
         replaceTags(
-          $('#oembed_retrieve_url').attr('href'),
+          $('#oembed_retrieve_url').attr('href') ?? '',
           'endpoint',
           encodeURIComponent(ENV.oembed.endpoint),
         ),
@@ -118,7 +134,7 @@ ready(() => {
         url,
         'GET',
         {},
-        data => ExternalContentSuccess.dataReady(data),
+        (data: any) => ExternalContentSuccess.dataReady?.(data, service_id),
         () =>
           $('#dialog_message').text(
             I18n.t(
@@ -128,12 +144,12 @@ ready(() => {
           ),
       )
     } else {
-      ExternalContentSuccess.dataReady(data, service_id)
-      ExternalContentSuccess.a2DataReady(data)
+      ExternalContentSuccess.dataReady?.(data, service_id)
+      ExternalContentSuccess.a2DataReady?.(data)
     }
   }
 
-  ExternalContentSuccess.start()
+  ExternalContentSuccess.start?.()
 })
 
 export default ExternalContentSuccess
