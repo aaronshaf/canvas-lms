@@ -130,7 +130,7 @@ const ManageThreadedReplies: React.FC<ManageThreadedRepliesProps> = ({
 
     try {
       const response = await updateDiscussionTopicTypes({
-        contextId: ENV.COURSE_ID,
+        contextId: ENV.COURSE_ID || '',
         threaded,
         notThreaded,
       })

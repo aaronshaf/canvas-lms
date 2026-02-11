@@ -43,7 +43,7 @@ function UpdateButton({onUpdateComplete}) {
   const onUpdateAll = async () => {
     try {
       setIsLoading(true)
-      await migrateDiscussionDisallowThreadedReplies({contextId: ENV.COURSE_ID})
+      await migrateDiscussionDisallowThreadedReplies({contextId: ENV.COURSE_ID || ''})
       closeModal()
       setOnSuccess(I18n.t('All discussions have successfully been updated to threaded.'), false)
       onUpdateComplete()

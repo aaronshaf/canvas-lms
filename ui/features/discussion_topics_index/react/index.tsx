@@ -21,6 +21,7 @@ import {createRoot, type Root} from 'react-dom/client'
 import {Provider} from 'react-redux'
 import {ApolloProvider, createClient} from '@canvas/apollo-v3'
 import AlertManager from '@canvas/alerts/react/AlertManager'
+import WithBreakpoints from '@canvas/with-breakpoints'
 
 import {subscribeFlashNotifications} from '@canvas/notifications/redux/actions'
 import {ConnectedDiscussionsIndex} from './components/DiscussionsIndex'
@@ -62,9 +63,11 @@ export default function createDiscussionsIndex(
     root.render(
       <ApolloProvider client={client}>
         <Provider store={store}>
-          <AlertManager>
-            <ConnectedDiscussionsIndex />
-          </AlertManager>
+          <WithBreakpoints>
+            <AlertManager>
+              <ConnectedDiscussionsIndex />
+            </AlertManager>
+          </WithBreakpoints>
         </Provider>
       </ApolloProvider>,
     )

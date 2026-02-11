@@ -41,7 +41,9 @@ export function getDiscussions(
   // `fetch` requests for all the discusisons we're going to render. We do this
   // so they can start loading then and not have to wait until this JS file is
   // loaded to start fetching.
-  return asAxios(getPrefetchedXHR(`prefetched_discussion_topic_page_${page - 1}`))
+  const xhr = getPrefetchedXHR(`prefetched_discussion_topic_page_${page - 1}`)
+  if (!xhr) throw new Error('Prefetched XHR not found')
+  return asAxios(xhr)
 }
 
 export function updateDiscussion(
@@ -65,10 +67,7 @@ export function subscribeToTopic({contextType, contextId}: ContextParams, {id}: 
   return axios.put(`/api/v1/${contextType}s/${contextId}/discussion_topics/${id}/subscribed`)
 }
 
-export function unsubscribeFromTopic(
-  {contextType, contextId}: ContextParams,
-  {id}: {id: string},
-) {
+export function unsubscribeFromTopic({contextType, contextId}: ContextParams, {id}: {id: string}) {
   return axios.delete(`/api/v1/${contextType}s/${contextId}/discussion_topics/${id}/subscribed`)
 }
 
@@ -94,19 +93,13 @@ export function saveUserSettings(
   return axios.put(`/api/v1/users/${currentUserId}/settings`, settings)
 }
 
-export function duplicateDiscussion(
-  {contextType, contextId}: ContextParams,
-  discussionId: string,
-) {
+export function duplicateDiscussion({contextType, contextId}: ContextParams, discussionId: string) {
   return axios.post(
     `/api/v1/${contextType}s/${contextId}/discussion_topics/${discussionId}/duplicate`,
   )
 }
 
-export function reorderPinnedDiscussions(
-  {contextType, contextId}: ContextParams,
-  order: string[],
-) {
+export function reorderPinnedDiscussions({contextType, contextId}: ContextParams, order: string[]) {
   const postData = {order: order.join(',')}
   const url = `/api/v1/${contextType}s/${contextId}/discussion_topics/reorder`
   return axios.post(url, postData)

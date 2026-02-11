@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import type {Author} from '@canvas/users/react/proptypes/user'
+import type {author as Author} from '@canvas/users/react/proptypes/user'
 
 export interface Discussion {
   id: string

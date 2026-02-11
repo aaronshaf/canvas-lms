@@ -104,7 +104,6 @@ const types = [
   'SET_SEND_TO',
   'SET_SEND_TO_OPEN',
 ] as const
-
 // @ts-expect-error - redux-actions types are complex
 const actions = Object.assign(createActions(...types), discussionActions.actionCreators)
 
@@ -193,7 +192,7 @@ actions.handleDrop = function (
         const promise =
           discussionCopy.pinned && order !== undefined
             ? apiClient.reorderPinnedDiscussions(getState(), order)
-            : new Promise(resolve => resolve())
+            : new Promise<void>(resolve => resolve())
 
         promise
           .then(() => {
@@ -299,7 +298,7 @@ function nextFocusableDiscussion(
     const prevDiscussion = allDiscussions[container[index - 1]]
     if (prevDiscussion) {
       focusId = prevDiscussion.id
-      focusOn = prevDiscussion.permissions.delete ? 'manageMenu' : 'title'
+      focusOn = prevDiscussion.permissions?.delete ? 'manageMenu' : 'title'
     }
   }
 

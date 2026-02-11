@@ -32,4 +32,20 @@ export interface EnvDiscussions {
   context_type?: string
   context_id?: string | number
   discussion_topic_id?: string | number
+  /**
+   * Discussion topic menu tools for context menu
+   */
+  discussion_topic_menu_tools?: any[]
+  /**
+   * Discussion topic index menu tools for index page
+   */
+  discussion_topic_index_menu_tools?: any[]
+  /**
+   * Total number of discussions for pagination
+   */
+  totalDiscussions?: number
+  /**
+   * Number of discussions per page
+   */
+  PER_PAGE?: number
 }

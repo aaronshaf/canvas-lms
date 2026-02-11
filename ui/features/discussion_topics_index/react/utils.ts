@@ -16,6 +16,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-export function reorderDiscussionsURL({contextType, contextId}) {
+export function reorderDiscussionsURL({
+  contextType,
+  contextId,
+}: {
+  contextType: string
+  contextId: string
+}) {
   return `/api/v1/${contextType}s/${contextId}/discussion_topics/reorder`
 }

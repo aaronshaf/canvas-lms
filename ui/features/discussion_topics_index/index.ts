@@ -22,13 +22,13 @@ import ready from '@instructure/ready'
 ready(() => {
   const [contextType, contextId] = ENV.context_asset_string.split('_')
 
-  const root = document.querySelector('#content')
+  const root = document.querySelector('#content') as HTMLElement
   if (!root) {
     throw new Error('Could not find #content element')
   }
 
   const app = createDiscussionsIndex(root, {
-    permissions: ENV.permissions,
+    permissions: ENV.PERMISSIONS,
     roles: ENV.current_user_roles,
     masterCourseData: ENV.BLUEPRINT_COURSES_DATA,
     discussionTopicMenuTools: ENV.discussion_topic_menu_tools,
