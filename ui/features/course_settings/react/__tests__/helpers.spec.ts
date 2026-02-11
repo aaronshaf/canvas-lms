@@ -68,6 +68,7 @@ describe('Course Settings Helpers', () => {
       },
     }
 
+    // @ts-expect-error - using simplified mock events for testing
     const changeResults = Helpers.extractInfoFromEvent(changeEvent as ExtractableEvent)
     const expectedChangeResults = {
       file: {
@@ -76,6 +77,7 @@ describe('Course Settings Helpers', () => {
       type: 'image/jpeg',
     }
 
+    // @ts-expect-error - using simplified mock events for testing
     const dragResults = Helpers.extractInfoFromEvent(dragEvent as ExtractableEvent)
     const expectedDragResults = {
       file: {
