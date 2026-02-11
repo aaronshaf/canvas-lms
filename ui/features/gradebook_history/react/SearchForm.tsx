@@ -18,7 +18,6 @@
 
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {arrayOf, func, shape, string} from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import * as tz from '@instructure/moment-utils'
 import moment from 'moment'
@@ -39,32 +38,56 @@ const I18n = createI18nScope('gradebook_history')
 
 const DEBOUNCE_DELAY = 500 // milliseconds
 
-const recordShape = shape({
-  fetchStatus: string.isRequired,
-  items: arrayOf(
-    shape({
-      id: string.isRequired,
-      name: string.isRequired,
-    }),
-  ),
-  nextPage: string.isRequired,
-})
+interface RecordItem {
+  id: string
+  name: string
+}
 
-const formatDate = date => tz.format(date, 'date.formats.medium_with_weekday')
+interface RecordShape {
+  fetchStatus: string
+  items: RecordItem[]
+  nextPage: string
+}
 
-class SearchFormComponent extends Component {
-  static propTypes = {
-    fetchHistoryStatus: string.isRequired,
-    assignments: recordShape.isRequired,
-    graders: recordShape.isRequired,
-    students: recordShape.isRequired,
-    getGradebookHistory: func.isRequired,
-    clearSearchOptions: func.isRequired,
-    getSearchOptions: func.isRequired,
-    getSearchOptionsNextPage: func.isRequired,
-  }
+interface SelectedState {
+  assignment: string
+  grader: string
+  student: string
+  from: {value: string | null}
+  to: {value: string | null}
+  showFinalGradeOverridesOnly: boolean
+}
 
-  constructor(props) {
+interface MessagesState {
+  assignments: string
+  graders: string
+  students: string
+}
+
+interface SearchFormComponentProps {
+  fetchHistoryStatus: string
+  assignments: RecordShape
+  graders: RecordShape
+  students: RecordShape
+  getGradebookHistory: (selected: SelectedState) => void
+  clearSearchOptions: (recordType: string) => void
+  getSearchOptions: (recordType: string, searchTerm: string) => void
+  getSearchOptionsNextPage: (recordType: string, url: string) => void
+}
+
+interface SearchFormComponentState {
+  selected: SelectedState
+  messages: MessagesState
+}
+
+type RecordType = 'assignments' | 'graders' | 'students'
+
+const formatDate = (date: Date | string) => tz.format(date, 'date.formats.medium_with_weekday')
+
+class SearchFormComponent extends Component<SearchFormComponentProps, SearchFormComponentState> {
+  debouncedGetSearchOptions: ReturnType<typeof debounce>
+
+  constructor(props: SearchFormComponentProps) {
     super(props)
     this.state = {
       selected: {
@@ -88,7 +111,7 @@ class SearchFormComponent extends Component {
     this.props.getGradebookHistory(this.state.selected)
   }
 
-  UNSAFE_componentWillReceiveProps({fetchHistoryStatus, assignments, graders, students}) {
+  UNSAFE_componentWillReceiveProps({fetchHistoryStatus, assignments, graders, students}: SearchFormComponentProps) {
     if (this.props.fetchHistoryStatus === 'started' && fetchHistoryStatus === 'failure') {
       showFlashAlert({message: I18n.t('Error loading gradebook history. Try again?')})
     }
@@ -128,7 +151,7 @@ class SearchFormComponent extends Component {
     }
   }
 
-  setSelectedFrom = from => {
+  setSelectedFrom = (from: Date | null) => {
     const value = from == null ? null : moment(from).startOf('day').toISOString()
 
     this.setState(prevState => ({
@@ -139,7 +162,7 @@ class SearchFormComponent extends Component {
     }))
   }
 
-  setSelectedTo = to => {
+  setSelectedTo = (to: Date | null) => {
     const value = to == null ? null : moment(to).endOf('day').toISOString()
 
     this.setState(prevState => ({
@@ -150,7 +173,7 @@ class SearchFormComponent extends Component {
     }))
   }
 
-  setSelectedAssignment = (_event, selectedOption) => {
+  setSelectedAssignment = (_event: React.SyntheticEvent, selectedOption: string) => {
     const selname = this.props.assignments.items.find(e => e.id === selectedOption)?.name
     if (selname) this.props.getSearchOptions('assignments', selname)
     this.setState(prevState => {
@@ -169,7 +192,7 @@ class SearchFormComponent extends Component {
     })
   }
 
-  setSelectedGrader = (_event, selected) => {
+  setSelectedGrader = (_event: React.SyntheticEvent, selected: string) => {
     const selname = this.props.graders.items.find(e => e.id === selected)?.name
     if (selname) this.props.getSearchOptions('graders', selname)
     this.setState(prevState => ({
@@ -180,7 +203,7 @@ class SearchFormComponent extends Component {
     }))
   }
 
-  setSelectedStudent = (_event, selected) => {
+  setSelectedStudent = (_event: React.SyntheticEvent, selected: string) => {
     const selname = this.props.students.items.find(e => e.id === selected)?.name
     if (selname) this.props.getSearchOptions('students', selname)
     this.setState(prevState => ({
@@ -208,7 +231,7 @@ class SearchFormComponent extends Component {
     if (this.hasToBeforeFrom()) {
       return [
         {
-          type: 'error',
+          type: 'error' as const,
           text: I18n.t("'From' date must be before 'To' date"),
         },
       ]
@@ -228,19 +251,19 @@ class SearchFormComponent extends Component {
     })
   }
 
-  handleAssignmentChange = (_event, value) => {
+  handleAssignmentChange = (_event: React.SyntheticEvent, value: string) => {
     this.handleSearchEntry('assignments', value)
   }
 
-  handleGraderChange = (_event, value) => {
+  handleGraderChange = (_event: React.SyntheticEvent, value: string) => {
     this.handleSearchEntry('graders', value)
   }
 
-  handleStudentChange = (_event, value) => {
+  handleStudentChange = (_event: React.SyntheticEvent, value: string) => {
     this.handleSearchEntry('students', value)
   }
 
-  handleShowFinalGradeOverridesOnlyChange = _event => {
+  handleShowFinalGradeOverridesOnlyChange = (_event: React.SyntheticEvent) => {
     const enabled = !this.state.selected.showFinalGradeOverridesOnly
 
     if (enabled) {
@@ -257,7 +280,7 @@ class SearchFormComponent extends Component {
     }))
   }
 
-  handleSearchEntry = (target, searchTerm) => {
+  handleSearchEntry = (target: RecordType, searchTerm: string) => {
     if (searchTerm.length <= 2) {
       if (this.props[target].items.length > 0) {
         this.props.clearSearchOptions(target)
@@ -274,7 +297,7 @@ class SearchFormComponent extends Component {
     this.props.getGradebookHistory(this.state.selected)
   }
 
-  renderAsOptions = data =>
+  renderAsOptions = (data: RecordItem[]) =>
     data.map(i => (
       <CanvasAsyncSelect.Option key={i.id} id={i.id}>
         {i.name}
@@ -288,6 +311,7 @@ class SearchFormComponent extends Component {
           <Grid.Row>
             <Grid.Col>
               <View as="div">
+                {/* @ts-expect-error - InstUI FormFieldGroup has complex prop types */}
                 <FormFieldGroup
                   description={<ScreenReaderContent>{I18n.t('Search Form')}</ScreenReaderContent>}
                   as="div"
@@ -296,6 +320,7 @@ class SearchFormComponent extends Component {
                   vAlign="top"
                   startAt="large"
                 >
+                  {/* @ts-expect-error - InstUI FormFieldGroup has complex prop types */}
                   <FormFieldGroup
                     description={<ScreenReaderContent>{I18n.t('Users')}</ScreenReaderContent>}
                     as="div"
@@ -341,6 +366,7 @@ class SearchFormComponent extends Component {
                     </CanvasAsyncSelect>
                   </FormFieldGroup>
 
+                  {/* @ts-expect-error - InstUI FormFieldGroup has complex prop types */}
                   <FormFieldGroup
                     description={<ScreenReaderContent>{I18n.t('Dates')}</ScreenReaderContent>}
                     layout="columns"
@@ -352,7 +378,7 @@ class SearchFormComponent extends Component {
                     <CanvasDateInput2
                       renderLabel={I18n.t('Start Date')}
                       formatDate={formatDate}
-                      disabledDates={isoDate =>
+                      disabledDates={(isoDate: string) =>
                         this.state.selected.to.value
                           ? isoDate >= this.state.selected.to.value
                           : false
@@ -364,7 +390,7 @@ class SearchFormComponent extends Component {
                     <CanvasDateInput2
                       renderLabel={I18n.t('End Date')}
                       formatDate={formatDate}
-                      disabledDates={isoDate =>
+                      disabledDates={(isoDate: string) =>
                         this.state.selected.from.value
                           ? isoDate <= this.state.selected.from.value
                           : false
@@ -412,7 +438,32 @@ class SearchFormComponent extends Component {
   }
 }
 
-const mapStateToProps = state => ({
+interface RootState {
+  history: {
+    fetchHistoryStatus?: string
+  }
+  searchForm: {
+    records: {
+      assignments: {
+        fetchStatus?: string
+        items?: RecordItem[]
+        nextPage?: string
+      }
+      graders: {
+        fetchStatus?: string
+        items?: RecordItem[]
+        nextPage?: string
+      }
+      students: {
+        fetchStatus?: string
+        items?: RecordItem[]
+        nextPage?: string
+      }
+    }
+  }
+}
+
+const mapStateToProps = (state: RootState) => ({
   fetchHistoryStatus: state.history.fetchHistoryStatus || '',
   assignments: {
     fetchStatus: state.searchForm.records.assignments.fetchStatus || '',
@@ -431,17 +482,17 @@ const mapStateToProps = state => ({
   },
 })
 
-const mapDispatchToProps = dispatch => ({
-  getGradebookHistory: input => {
+const mapDispatchToProps = (dispatch: any) => ({
+  getGradebookHistory: (input: SelectedState) => {
     dispatch(SearchFormActions.getGradebookHistory(input))
   },
-  getSearchOptions: (recordType, searchTerm) => {
+  getSearchOptions: (recordType: string, searchTerm: string) => {
     dispatch(SearchFormActions.getSearchOptions(recordType, searchTerm))
   },
-  getSearchOptionsNextPage: (recordType, url) => {
+  getSearchOptionsNextPage: (recordType: string, url: string) => {
     dispatch(SearchFormActions.getSearchOptionsNextPage(recordType, url))
   },
-  clearSearchOptions: recordType => {
+  clearSearchOptions: (recordType: string) => {
     dispatch(SearchFormActions.clearSearchOptions(recordType))
   },
 })
