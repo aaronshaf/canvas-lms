@@ -19,6 +19,6 @@
 import router from './router'
 import ready from '@instructure/ready'
 
-ready(() => {
+ready((): void => {
   router.start()
 })

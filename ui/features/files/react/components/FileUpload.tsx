@@ -17,7 +17,6 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import classnames from 'classnames'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Billboard} from '@instructure/ui-billboard'
@@ -31,18 +30,20 @@ import CurrentUploads from '@canvas/files/react/components/CurrentUploads'
 
 const I18n = createI18nScope('upload_drop_zone')
 
-class FileUpload extends React.Component {
+interface FileUploadProps {
+  currentFolder: Folder
+  filesDirectoryRef: HTMLElement
+}
+
+interface FileUploadState {
+  isUploading: boolean
+  isDragging: boolean
+}
+
+class FileUpload extends React.Component<FileUploadProps, FileUploadState> {
   static displayName = 'FileUpload'
 
-  static propTypes = {
-    currentFolder: PropTypes.instanceOf(Folder),
-    filesDirectoryRef: PropTypes.oneOfType([
-      PropTypes.func,
-      PropTypes.shape({current: PropTypes.elementType}),
-    ]),
-  }
-
-  state = {
+  state: FileUploadState = {
     isUploading: false,
     isDragging: false,
   }
@@ -64,20 +65,20 @@ class FileUpload extends React.Component {
     document.removeEventListener('drop', this.killWindowDrop)
   }
 
-  killWindowDrop = e => {
+  killWindowDrop = (e: Event): void => {
     e.preventDefault()
   }
 
-  getSurroundingBox = () => {
+  getSurroundingBox = (): HTMLElement => {
     // Return a ref of the file container here because that
     // gives a much more consistently sized container to start displaying
     // the file upload overlay with
     return this.props.filesDirectoryRef
   }
 
-  handleDragEnter = e => {
+  handleDragEnter = (e: DragEvent): boolean => {
     if (this.shouldAcceptDrop(e.dataTransfer)) {
-      e.dataTransfer.dropEffect = 'copy'
+      e.dataTransfer!.dropEffect = 'copy'
       e.preventDefault()
       if (!(this.state.isDragging || this.state.isUploading)) {
         this.setState({isDragging: true})
@@ -88,7 +89,7 @@ class FileUpload extends React.Component {
     }
   }
 
-  handleDragLeave = e => {
+  handleDragLeave = (e: DragEvent): void => {
     const rect = this.getSurroundingBox().getBoundingClientRect()
     if (
       e.clientY < rect.top ||
@@ -100,34 +101,37 @@ class FileUpload extends React.Component {
     }
   }
 
-  handleParentDrop = e => {
+  handleParentDrop = (e: React.DragEvent<HTMLDivElement>): void => {
     e.preventDefault()
     e.stopPropagation()
     this.handleDrop(e.dataTransfer.files)
   }
 
-  handleDrop = files => {
+  handleDrop = (files: FileList | File[]): void => {
     this.setState({isDragging: false})
     FileOptionsCollection.setFolder(this.props.currentFolder)
     FileOptionsCollection.setOptionsFromFiles(files, true)
   }
 
-  shouldAcceptDrop = dataTransfer => {
+  shouldAcceptDrop = (dataTransfer: DataTransfer | null): boolean => {
     if (dataTransfer) {
       return dataTransfer.types.includes('Files')
     }
+    return false
   }
 
-  renderDropZone = () => {
+  renderDropZone = (): JSX.Element => {
     const {isDragging} = this.state
     const isEmpty = this.props.currentFolder.isEmpty()
     return (
+      // @ts-expect-error - FileDrop types are complex
       <FileDrop
         shouldAllowMultiple={true}
         // Called when dropping files or when clicking,
         // after the file dialog window exits successfully
         onDrop={this.handleDrop}
         renderLabel={
+          // @ts-expect-error - Billboard types are complex
           <Billboard
             size="small"
             hero={<IconUploadLine color={isDragging ? `brand` : `primary`} />}
@@ -142,11 +146,11 @@ class FileUpload extends React.Component {
     )
   }
 
-  handleUploadChange = queueSize => {
+  handleUploadChange = (queueSize: number): void => {
     this.setState({isUploading: queueSize > 0})
   }
 
-  render() {
+  render(): JSX.Element {
     const {isDragging, isUploading} = this.state
     const isEmptyFolder = this.props.currentFolder.isEmpty()
     const classes = classnames({
