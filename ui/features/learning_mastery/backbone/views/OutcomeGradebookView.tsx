@@ -34,10 +34,16 @@ import 'jquery-tinypubsub'
 import '@canvas/rails-flash-notifications'
 import '@canvas/jquery/jquery.instructure_misc_plugins'
 import '@canvas/jquery/jquery.disableWhileLoading'
+import type LearningMastery from '../../react/LearningMastery'
 
 const I18n = createI18nScope('gradebookOutcomeGradebookView')
 
-const Dictionary = {
+interface DictionaryEntry {
+  color: string
+  label: string
+}
+
+const Dictionary: Record<string, DictionaryEntry> = {
   exceedsMastery: {
     color: '#02672D',
     label: I18n.t('Exceeds Mastery'),
@@ -54,6 +60,16 @@ const Dictionary = {
     color: '#E62429',
     label: I18n.t('Well Below Mastery'),
   },
+}
+
+interface Rating {
+  color: string
+  description: string
+}
+
+interface OutcomeGradebookViewOptions {
+  el?: JQuery | string
+  learningMastery: LearningMastery
 }
 
 extend(OutcomeGradebookView, View)
@@ -86,7 +102,7 @@ OutcomeGradebookView.prototype.sortField = 'student'
 
 OutcomeGradebookView.prototype.sortOrderAsc = true
 
-function OutcomeGradebookView(options) {
+function OutcomeGradebookView(this: any, options: OutcomeGradebookViewOptions) {
   this.updateExportLink = this.updateExportLink.bind(this)
   this._loadOutcomes = this._loadOutcomes.bind(this)
   this.updateCurrentSection = this.updateCurrentSection.bind(this)
@@ -105,7 +121,7 @@ function OutcomeGradebookView(options) {
   this._validateOptions(options)
   if ((ref = ENV.GRADEBOOK_OPTIONS.outcome_proficiency) != null ? ref.ratings : void 0) {
     this.ratings = ENV.GRADEBOOK_OPTIONS.outcome_proficiency.ratings
-    this.checkboxes = this.ratings.map(function (rating) {
+    this.checkboxes = this.ratings.map(function (rating: Rating) {
       return new CheckboxView({
         color: '#' + rating.color,
         label: rating.description,
@@ -125,25 +141,25 @@ OutcomeGradebookView.prototype.remove = function () {
 // e - Event object.
 //
 // Returns nothing.
-OutcomeGradebookView.prototype.onSidebarToggle = function (e) {
+OutcomeGradebookView.prototype.onSidebarToggle = function (e: JQuery.ClickEvent): void {
   e.preventDefault()
   const isCollapsed = this._toggleSidebarCollapse()
   this._toggleSidebarArrow()
-  return this._toggleSidebarTooltips(isCollapsed)
+  this._toggleSidebarTooltips(isCollapsed)
 }
 
 // Internal: Toggle collapsed class on sidebar.
 //
 // Returns true if collapsed, false if expanded.
-OutcomeGradebookView.prototype._toggleSidebarCollapse = function () {
+OutcomeGradebookView.prototype._toggleSidebarCollapse = function (): boolean {
   return this.$('.outcome-gradebook-sidebar').toggleClass('collapsed').hasClass('collapsed')
 }
 
 // Internal: Toggle the direction of the sidebar collapse arrow.
 //
 // Returns nothing.
-OutcomeGradebookView.prototype._toggleSidebarArrow = function () {
-  return this.$('.sidebar-toggle')
+OutcomeGradebookView.prototype._toggleSidebarArrow = function (): void {
+  this.$('.sidebar-toggle')
     .toggleClass('icon-arrow-open-right')
     .toggleClass('icon-arrow-open-left')
 }
@@ -151,18 +167,18 @@ OutcomeGradebookView.prototype._toggleSidebarArrow = function () {
 // Internal: Toggle the direction of the sidebar collapse arrow.
 //
 // Returns nothing
-OutcomeGradebookView.prototype._toggleSidebarTooltips = function (shouldShow) {
+OutcomeGradebookView.prototype._toggleSidebarTooltips = function (shouldShow: boolean): void {
   if (shouldShow) {
     this.$('.checkbox-view').each(function () {
-      return $(this)
+      $(this)
         .find('.checkbox')
         .attr('data-tooltip', 'left')
         .attr('title', $(this).find('.checkbox-label').text())
     })
-    return this.$('.filters').hide()
+    this.$('.filters').hide()
   } else {
     this.$('.checkbox').removeAttr('data-tooltip').removeAttr('title')
-    return this.$('.filters').show()
+    this.$('.filters').show()
   }
 }
 
@@ -171,7 +187,9 @@ OutcomeGradebookView.prototype._toggleSidebarTooltips = function (shouldShow) {
 // options - The options hash passed to the constructor function.
 //
 // Returns nothing on success, raises on failure.
-OutcomeGradebookView.prototype._validateOptions = function (arg) {
+OutcomeGradebookView.prototype._validateOptions = function (
+  arg: OutcomeGradebookViewOptions,
+): void {
   const learningMastery = arg.learningMastery
   if (!learningMastery) {
     throw new Error('Missing required option: "learningMastery"')
@@ -181,7 +199,7 @@ OutcomeGradebookView.prototype._validateOptions = function (arg) {
 // Internal: Listen for events on child views.
 //
 // Returns nothing.
-OutcomeGradebookView.prototype._attachEvents = function () {
+OutcomeGradebookView.prototype._attachEvents = function (): void {
   const _this = this
   const ref = this.checkboxes
   let j
@@ -190,21 +208,24 @@ OutcomeGradebookView.prototype._attachEvents = function () {
     view.on('togglestate', this._createFilter('rating_' + i))
   }
   this.updateExportLink(this.learningMastery.getCurrentSectionId())
-  return this.$('#no_results_outcomes').change(function () {
-    return _this._toggleOutcomesWithNoResults(this.checked)
+  this.$('#no_results_outcomes').change(function () {
+    _this._toggleOutcomesWithNoResults(this.checked)
   })
 }
 
-OutcomeGradebookView.prototype._setFilterSetting = function (name, value) {
+OutcomeGradebookView.prototype._setFilterSetting = function (
+  name: string,
+  value: any,
+): void {
   let filters = userSettings.contextGet('lmgb_filters')
   if (!filters) {
     filters = {}
   }
   filters[name] = value
-  return userSettings.contextSet('lmgb_filters', filters)
+  userSettings.contextSet('lmgb_filters', filters)
 }
 
-OutcomeGradebookView.prototype._getFilterSetting = function (name) {
+OutcomeGradebookView.prototype._getFilterSetting = function (name: string): any {
   const filters = userSettings.contextGet('lmgb_filters')
   return filters && filters[name]
 }

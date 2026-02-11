@@ -18,24 +18,51 @@
 
 import $ from 'jquery'
 import React from 'react'
-import {createRoot} from 'react-dom/client'
+import {createRoot, type Root} from 'react-dom/client'
 import '@canvas/jquery/jquery.ajaxJSON'
 
 import OutcomeGradebookView from '../backbone/views/OutcomeGradebookView'
 import GradebookMenu from '@canvas/gradebook-menu'
 import Paginator from '@canvas/instui-bindings/react/Paginator'
 
-function normalizeSections(options) {
-  const sections = options.sections || []
-  return sections.sort((a, b) => a.id - b.id)
+interface Section {
+  id: string
+  name: string
 }
 
-function currentSectionIdFromSettings(settings) {
+interface Settings {
+  filter_rows_by?: {
+    section_id?: string | null
+  }
+}
+
+interface LearningMasteryOptions {
+  sections?: Section[]
+  settings?: Settings
+  settings_update_url: string
+  context_url: string
+}
+
+function normalizeSections(options: LearningMasteryOptions): Section[] {
+  const sections = options.sections || []
+  return sections.sort((a, b) => Number(a.id) - Number(b.id))
+}
+
+function currentSectionIdFromSettings(settings?: Settings): string | null {
   return settings?.filter_rows_by?.section_id || null
 }
 
 export default class LearningMastery {
-  constructor(options) {
+  options: LearningMasteryOptions
+  paginatorRoot: Root | null = null
+  gradebookMenuRoot: Root | null = null
+  view: OutcomeGradebookView
+  data: {
+    currentSectionId: string | null
+    sections: Section[]
+  }
+
+  constructor(options: LearningMasteryOptions) {
     this.options = options
     this.paginatorRoot = null
     this.gradebookMenuRoot = null
@@ -51,15 +78,15 @@ export default class LearningMastery {
     }
   }
 
-  getSections() {
+  getSections(): Section[] {
     return this.data.sections
   }
 
-  getCurrentSectionId() {
+  getCurrentSectionId(): string | null {
     return this.data.currentSectionId
   }
 
-  updateCurrentSectionId(_sectionId) {
+  updateCurrentSectionId(_sectionId: string | null): void {
     // As of this writing, the section filter returns '0' for "All Sections"
     const sectionId = _sectionId === '0' ? null : _sectionId
     const currentSectionId = this.getCurrentSectionId()
@@ -70,9 +97,11 @@ export default class LearningMastery {
     }
   }
 
-  renderPagination(page = 0, pageCount = 0) {
+  renderPagination(page = 0, pageCount = 0): void {
     const loadPage = this.view.loadPage.bind(this.view)
     const container = document.getElementById('outcome-gradebook-paginator')
+
+    if (!container) return
 
     if (!this.paginatorRoot) {
       this.paginatorRoot = createRoot(container)
@@ -80,7 +109,7 @@ export default class LearningMastery {
     this.paginatorRoot.render(<Paginator page={page} pageCount={pageCount} loadPage={loadPage} />)
   }
 
-  saveSettings() {
+  saveSettings(): void {
     const data = {
       gradebook_settings: {
         filter_rows_by: {
@@ -92,14 +121,14 @@ export default class LearningMastery {
     $.ajaxJSON(this.options.settings_update_url, 'PUT', data)
   }
 
-  start() {
+  start(): void {
     this.view.render()
     this._renderGradebookMenu()
     this.renderPagination()
     this.view.onShow()
   }
 
-  destroy() {
+  destroy(): void {
     this.view.remove()
     if (this.gradebookMenuRoot) {
       this.gradebookMenuRoot.unmount()
@@ -111,13 +140,16 @@ export default class LearningMastery {
 
   // PRIVATE
 
-  _renderGradebookMenu() {
+  _renderGradebookMenu(): void {
     // This only needs to render once.
     const container = document.querySelector('[data-component="GradebookMenu"]')
+
+    if (!container) return
+
     const props = {
       courseUrl: this.options.context_url,
       learningMasteryEnabled: true,
-      variant: 'DefaultGradebookLearningMastery',
+      variant: 'DefaultGradebookLearningMastery' as const,
     }
 
     if (!this.gradebookMenuRoot) {
@@ -126,7 +158,7 @@ export default class LearningMastery {
     this.gradebookMenuRoot.render(<GradebookMenu {...props} />)
   }
 
-  _setCurrentSectionId(sectionId) {
+  _setCurrentSectionId(sectionId: string | null): void {
     this.data.currentSectionId = sectionId
   }
 }

@@ -26,15 +26,40 @@ import 'jquery-tinypubsub'
 
 const I18n = createI18nScope('gradebookSectionMenuView')
 
-const boundMethodCheck = function (instance, Constructor) {
+const boundMethodCheck = function (instance: any, Constructor: any): void {
   if (!(instance instanceof Constructor)) {
     throw new Error('Bound instance method accessed before binding')
   }
 }
 
+interface Section {
+  id?: string
+  name: string
+  checked?: boolean
+}
+
+interface Course {
+  name: string
+}
+
+interface SectionMenuViewOptions {
+  sections: Section[]
+  course?: Course
+  showSections?: boolean
+  disabled?: boolean
+  currentSection?: string
+}
+
 class SectionMenuView extends View {
-  determineDefaultSection() {
-    let defaultSection
+  sections: Section[]
+  course?: Course
+  showSections?: boolean
+  disabled?: boolean
+  currentSection?: string
+  defaultSection: string
+
+  determineDefaultSection(): string {
+    let defaultSection: string
     if (this.showSections || !this.course) {
       defaultSection = I18n.t('all_sections', 'All Sections')
     } else {
@@ -43,7 +68,7 @@ class SectionMenuView extends View {
     return defaultSection
   }
 
-  constructor(options) {
+  constructor(options: SectionMenuViewOptions) {
     super(options)
     this.onSectionChange = this.onSectionChange.bind(this)
     this.defaultSection = this.determineDefaultSection()
@@ -56,60 +81,54 @@ class SectionMenuView extends View {
     this.updateSections()
   }
 
-  render() {
+  render(): this {
     this.detachEvents()
     super.render()
     this.$('button').prop('disabled', this.disabled).kyleMenu()
-    return this.attachEvents()
+    this.attachEvents()
+    return this
   }
 
-  detachEvents() {
+  detachEvents(): void {
     $.unsubscribe('currentSection/change', this.onSectionChange)
-    return this.$('.section-select-menu').off('menuselect')
+    this.$('.section-select-menu').off('menuselect')
   }
 
-  attachEvents() {
+  attachEvents(): void {
     $.subscribe('currentSection/change', this.onSectionChange)
     this.$('.section-select-menu').on('click', function (e) {
-      return e.preventDefault()
+      e.preventDefault()
     })
-    return this.$('.section-select-menu').on('menuselect', (event, ui) => {
+    this.$('.section-select-menu').on('menuselect', (event, ui) => {
       const section =
         this.$('[aria-checked=true] input[name=section_to_show_radio]').val() || undefined
       $.publish('currentSection/change', [section, this.cid])
-      return this.trigger('menuselect', event, ui, this.currentSection)
+      this.trigger('menuselect', event, ui, this.currentSection)
     })
   }
 
-  onSectionChange(section, _author) {
+  onSectionChange(section: string, _author: string): void {
     boundMethodCheck(this, SectionMenuView)
     this.currentSection = section
     this.updateSections()
-    return this.render()
+    this.render()
   }
 
-  updateSections() {
+  updateSections(): Section[] {
     return map(this.sections, section => {
       section.checked = section.id === this.currentSection
       return section
     })
   }
 
-  showSections() {
-    return this.showSections
-  }
-
-  toJSON() {
-    let ref
+  toJSON(): {sections: Section[]; showSections?: boolean; currentSection: string} {
+    const ref = find(this.sections, {
+      id: this.currentSection,
+    })
     return {
       sections: this.sections,
       showSections: this.showSections,
-      currentSection:
-        ((ref = find(this.sections, {
-          id: this.currentSection,
-        })) != null
-          ? ref.name
-          : undefined) || this.defaultSection,
+      currentSection: ref?.name || this.defaultSection,
     }
   }
 }
