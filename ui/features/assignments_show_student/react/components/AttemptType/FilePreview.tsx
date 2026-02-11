@@ -55,17 +55,17 @@ export default function FilePreview({submission, isOriginalityReportVisible}: Fi
     setSelectedFileIndex(0)
   }, [submission.attempt])
 
-  const selectFile = index => {
+  const selectFile = (index: any) => {
     if (index >= 0 || index < submission.attachments.length) {
       setSelectedFileIndex(index)
     }
   }
 
-  const shouldDisplayThumbnail = file => {
+  const shouldDisplayThumbnail = (file: any) => {
     return file.mimeClass === 'image' && file.thumbnailUrl
   }
 
-  const renderThumbnail = (file, index) => {
+  const renderThumbnail = (file: any, index: any) => {
     return (
       <IconButton
         onClick={() => selectFile(index)}

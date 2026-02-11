@@ -492,6 +492,7 @@ export default class AttemptTab extends Component {
         // @ts-expect-error
         submission={this.props.submission}
         tool={externalTool}
+        // @ts-expect-error
         submitButtonRef={this.props.submitButtonRef}
       />
     </LazyLoad>
@@ -517,6 +518,7 @@ export default class AttemptTab extends Component {
   }
 
   render() {
+    // @ts-expect-error
     const {assignment, submission} = this.props
     if (assignment.lockInfo.isLocked && !isSubmitted(submission)) {
       return <LockedAssignment assignment={assignment} />
@@ -579,6 +581,7 @@ export default class AttemptTab extends Component {
                   borderTop: `2px solid ${theme.colors.contrasts.grey1214}`,
                 }}
               >
+                {/* @ts-expect-error */}
                 {this.renderByType(selectedType, context, this.props.selectedExternalTool)}
               </div>
             )}
