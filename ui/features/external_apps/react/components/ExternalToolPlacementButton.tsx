@@ -65,6 +65,7 @@ export default class ExternalToolPlacementButton extends React.Component {
 
   closeModal = () => {
     this.setState({modalIsOpen: false})
+
     this.props.returnFocus()
   }
 

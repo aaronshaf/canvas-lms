@@ -26,7 +26,11 @@ import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 
 const I18n = createI18nScope('external_tools')
 
-const Header = React.forwardRef(({children}, ref) => (
+interface HeaderProps {
+  children?: React.ReactNode
+}
+
+const Header = React.forwardRef<HTMLAnchorElement, HeaderProps>(({children}, ref) => (
   <View as="header" margin="small none">
     <Flex>
       <Flex.Item shouldGrow={true}>

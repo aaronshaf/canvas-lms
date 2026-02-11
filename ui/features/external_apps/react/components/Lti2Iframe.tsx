@@ -84,6 +84,7 @@ export default class Lti2Iframe extends React.Component {
             }}
           />
         </div>
+
         {this.props.children}
       </div>
     )

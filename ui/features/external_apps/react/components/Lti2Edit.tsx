@@ -51,6 +51,7 @@ export default class Lti2Edit extends React.Component {
     const p1 = I18n.t('*name* is currently **status**.', {
       wrappers: [
         `<strong>${htmlEscape(this.props.tool.name)}</strong>`,
+
         this.props.tool.enabled === false ? 'disabled' : 'enabled',
       ],
     })
@@ -62,6 +63,7 @@ export default class Lti2Edit extends React.Component {
         <div className="ReactModal__Footer">
           <div className="ReactModal__Footer-Actions">
             {this.toggleButton()}
+
             <button type="button" className="Button" onClick={this.props.handleCancel}>
               {I18n.t('Cancel')}
             </button>

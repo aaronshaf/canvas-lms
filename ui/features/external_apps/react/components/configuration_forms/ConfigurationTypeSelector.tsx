@@ -31,6 +31,7 @@ export default class ConfigurationTypeSelector extends React.Component {
 
   constructor(props) {
     super(props)
+
     this.configurationTypeRef = React.createRef()
   }
 

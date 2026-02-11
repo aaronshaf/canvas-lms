@@ -29,9 +29,13 @@ const I18n = createI18nScope('external_tools')
 export default class ReregisterExternalToolButton extends React.Component {
   constructor(props) {
     super(props)
+
     this.reactModalRef = React.createRef()
+
     this.lti2IframeRef = React.createRef()
+
     this.reregModalRef = React.createRef()
+
     this.reregisterExternalToolButtonRef = React.createRef()
   }
 
@@ -60,13 +64,16 @@ export default class ReregisterExternalToolButton extends React.Component {
 
   closeModal = () => {
     this.setState({modalIsOpen: false})
+
     this.props.returnFocus()
   }
 
   handleReregistration = (_message, e) => {
     this.props.tool.has_update = true
+
     store.triggerUpdate()
     this.closeModal()
+
     this.reregModalRef.current.openModal(e)
   }
 
@@ -114,6 +121,7 @@ export default class ReregisterExternalToolButton extends React.Component {
         <li role="presentation" className="ReregisterExternalToolButton">
           {this.getButton()}
           {this.getModal()}
+
           <Lti2ReregistrationUpdateModal tool={this.props.tool} ref={this.reregModalRef} />
         </li>
       )

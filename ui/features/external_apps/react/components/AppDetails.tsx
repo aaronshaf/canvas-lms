@@ -36,8 +36,11 @@ export default class AppDetails extends React.Component {
 
   constructor(props) {
     super(props)
+
     this.addAppButtonRef = React.createRef()
+
     this.appNameRef = React.createRef()
+
     this.appDescriptionRef = React.createRef()
   }
 
@@ -56,9 +59,12 @@ export default class AppDetails extends React.Component {
 
   handleToolInstalled = () => {
     const app = this.state.app
+
     app.is_installed = true
     this.setState({app})
+
     this.props.store.flagAppAsInstalled(app.short_name)
+
     this.props.store.setState({filter: 'installed', filterText: ''})
     $.flashMessage(I18n.t('The app was added successfully'))
     page('/')

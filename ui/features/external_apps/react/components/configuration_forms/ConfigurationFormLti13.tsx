@@ -58,6 +58,7 @@ class ConfigurationFormLti13 extends React.Component {
     this.setState({
       messages: this.messages({clientId}),
     })
+
     return !!this.state.clientId
   }
 

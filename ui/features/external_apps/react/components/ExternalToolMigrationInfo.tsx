@@ -26,10 +26,26 @@ import {IconHourGlassLine} from '@instructure/ui-icons'
 import {ProgressBar} from '@instructure/ui-progress'
 
 const I18n = createI18nScope('external_tools')
-let apiTimeout
+let apiTimeout: NodeJS.Timeout | undefined
 
-export default function ExternalToolMigrationInfo(props) {
-  const [data, setData] = useState({migration_running: false, total_items: 0, completed_items: 0})
+interface ExternalToolMigrationInfoProps {
+  tool: {
+    app_id: string | number
+  }
+}
+
+interface MigrationData {
+  migration_running: boolean
+  total_items: number
+  completed_items: number
+}
+
+export default function ExternalToolMigrationInfo(props: ExternalToolMigrationInfoProps) {
+  const [data, setData] = useState<MigrationData>({
+    migration_running: false,
+    total_items: 0,
+    completed_items: 0,
+  })
   const [modalIsOpen, setModalIsOpen] = useState(false)
 
   const openModal = () => {
@@ -46,10 +62,11 @@ export default function ExternalToolMigrationInfo(props) {
   const fetchData = () => {
     doFetchApi({path: `/api/v1${ENV.CONTEXT_BASE_URL}/external_tools/${tool_id}/migration_info`})
       .then(response => {
-        setData(response.json)
+        setData(response.json as MigrationData)
 
         // Check status code to see if the API call was successful
         // If the modal is open or the tool is no longer migrating, don't continue to fetch data
+
         if (response.response.status == 200 && modalIsOpen && response.json.migration_running) {
           // Store the result of setTimeout with a 1 sec delay in apiTimeout
           apiTimeout = setTimeout(fetchData, 1000)

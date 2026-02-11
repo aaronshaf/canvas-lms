@@ -46,6 +46,7 @@ export default class AppList extends React.Component {
 
   componentDidMount() {
     store.addChangeListener(this.onChange)
+
     store.fetch()
   }
 
@@ -55,6 +56,7 @@ export default class AppList extends React.Component {
 
   refreshAppList = () => {
     store.reset()
+
     store.fetch()
   }
 
@@ -96,7 +98,9 @@ export default class AppList extends React.Component {
       )
     } else {
       return store
+
         .filteredApps()
+
         .map(app => <AppTile key={app.id} app={app} baseUrl={this.props.baseUrl} />)
     }
   }

@@ -31,7 +31,9 @@ export default class ManageUpdateExternalToolButton extends React.Component {
 
   constructor(props) {
     super(props)
+
     this.reregModalRef = React.createRef()
+
     this.updateButtonRef = React.createRef()
   }
 
