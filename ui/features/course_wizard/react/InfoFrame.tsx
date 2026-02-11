@@ -75,6 +75,7 @@ class InfoFrame extends React.Component<InfoFrameProps, InfoFrameState> {
   callToAction: HTMLAnchorElement | HTMLButtonElement | null = null
 
   UNSAFE_componentWillMount() {
+    // @ts-expect-error - COURSE_WIZARD is always available in this context
     if (window.ENV.COURSE_WIZARD.checklist_states.publish_step) {
       this.setState({
         itemShown: checklistComplete,
@@ -94,19 +95,25 @@ class InfoFrame extends React.Component<InfoFrameProps, InfoFrameState> {
         itemShown: item || courseNotSetUpItem,
       },
       function (this: InfoFrame) {
+        // @ts-expect-error - jQuery typing issues with null elements
         const $messageBox = $(this.messageBox)
+        // @ts-expect-error - jQuery typing issues with null elements
         const $messageIcon = $(this.messageIcon)
 
         // I would use .toggle, but it has too much potential to get all out
         // of whack having to be called twice to force the animation.
 
         // Remove the animation classes in case they are there already.
+        // @ts-expect-error - jQuery typing issues with removeClass
         $messageBox.removeClass('ic-wizard-box__message-inner--is-fired')
+        // @ts-expect-error - jQuery typing issues with removeClass
         $messageIcon.removeClass('ic-wizard-box__message-icon--is-fired')
 
         // Add them back
         setTimeout(() => {
+          // @ts-expect-error - jQuery typing issues with addClass
           $messageBox.addClass('ic-wizard-box__message-inner--is-fired')
+          // @ts-expect-error - jQuery typing issues with addClass
           $messageIcon.addClass('ic-wizard-box__message-icon--is-fired')
         }, 100)
 
@@ -147,10 +154,12 @@ class InfoFrame extends React.Component<InfoFrameProps, InfoFrameState> {
       )
     }
     if (this.state.itemShown.key === 'publish_course') {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       if (window.ENV.COURSE_WIZARD.permissions.can_change_course_publish_state) {
         return (
           <form
             acceptCharset="UTF-8"
+            // @ts-expect-error - COURSE_WIZARD is always available in this context
             action={window.ENV.COURSE_WIZARD.publish_course}
             method="post"
           >

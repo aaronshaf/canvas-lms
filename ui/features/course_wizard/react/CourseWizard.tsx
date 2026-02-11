@@ -19,7 +19,6 @@
 import $ from 'jquery'
 import React, {useState, useRef} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
-// @ts-expect-error
 import {Mask, Overlay} from '@instructure/ui-overlays'
 import InfoFrame from './InfoFrame'
 import Checklist from './Checklist'

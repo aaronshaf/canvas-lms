@@ -39,6 +39,7 @@ const listItems: ListItem[] = [
   {
     key: 'content_import',
     get complete() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return !ENV.COURSE_WIZARD.checklist_states.import_step
     },
     get title() {
@@ -50,6 +51,7 @@ const listItems: ListItem[] = [
       )
     },
     get url() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return ENV.COURSE_WIZARD.urls.content_import
     },
     iconClass: 'icon-upload',
@@ -57,6 +59,7 @@ const listItems: ListItem[] = [
   {
     key: 'add_assignments',
     get complete() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return !ENV.COURSE_WIZARD.checklist_states.assignment_step
     },
     get title() {
@@ -68,6 +71,7 @@ const listItems: ListItem[] = [
       )
     },
     get url() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return ENV.COURSE_WIZARD.urls.add_assignments
     },
     iconClass: 'icon-assignment',
@@ -75,6 +79,7 @@ const listItems: ListItem[] = [
   {
     key: 'add_students',
     get complete() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return !ENV.COURSE_WIZARD.checklist_states.add_student_step
     },
     get title() {
@@ -86,6 +91,7 @@ const listItems: ListItem[] = [
       )
     },
     get url() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return ENV.COURSE_WIZARD.urls.add_students
     },
     iconClass: 'icon-group-new',
@@ -93,6 +99,7 @@ const listItems: ListItem[] = [
   {
     key: 'add_files',
     get complete() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return !ENV.COURSE_WIZARD.checklist_states.import_step
     } /* Super odd in the existing wizard this is set to display: none */,
     get title() {
@@ -104,6 +111,7 @@ const listItems: ListItem[] = [
       )
     },
     get url() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return ENV.COURSE_WIZARD.urls.add_files
     },
     iconClass: 'icon-note-light',
@@ -111,6 +119,7 @@ const listItems: ListItem[] = [
   {
     key: 'select_navigation',
     get complete() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return !ENV.COURSE_WIZARD.checklist_states.navigation_step
     },
     get title() {
@@ -122,6 +131,7 @@ const listItems: ListItem[] = [
       )
     },
     get url() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return ENV.COURSE_WIZARD.urls.select_navigation
     },
     iconClass: 'icon-hamburger',
@@ -129,6 +139,7 @@ const listItems: ListItem[] = [
   {
     key: 'home_page',
     get complete() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return ENV.COURSE_WIZARD.checklist_states.home_page_step
     },
     get title() {
@@ -144,6 +155,7 @@ const listItems: ListItem[] = [
   {
     key: 'course_calendar',
     get complete() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return !ENV.COURSE_WIZARD.checklist_states.calendar_event_step
     },
     get title() {
@@ -155,6 +167,7 @@ const listItems: ListItem[] = [
       )
     },
     get url() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return ENV.COURSE_WIZARD.urls.course_calendar
     },
     iconClass: 'icon-calendar-month',
@@ -162,6 +175,7 @@ const listItems: ListItem[] = [
   {
     key: 'add_tas',
     get complete() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return !ENV.COURSE_WIZARD.checklist_states.add_ta_step
     },
     get title() {
@@ -173,6 +187,7 @@ const listItems: ListItem[] = [
       )
     },
     get url() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return ENV.COURSE_WIZARD.urls.add_tas
     },
     iconClass: 'icon-educators',
@@ -180,6 +195,7 @@ const listItems: ListItem[] = [
   {
     key: 'publish_course',
     get complete() {
+      // @ts-expect-error - COURSE_WIZARD is always available in this context
       return ENV.COURSE_WIZARD.checklist_states.publish_step
     },
     get title() {
