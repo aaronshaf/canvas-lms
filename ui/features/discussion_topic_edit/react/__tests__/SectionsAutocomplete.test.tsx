@@ -21,10 +21,15 @@ import {render, cleanup} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SectionsAutocomplete from '../SectionsAutocomplete'
 
+interface Section {
+  id: string
+  name: string
+}
+
 describe('Sections Autocomplete', () => {
   afterEach(cleanup)
   const defaultProps = () => ({
-    sections: [{id: '1', name: 'awesome section'}],
+    sections: [{id: '1', name: 'awesome section'}] as Section[],
     flashMessage: () => {},
   })
 
@@ -40,7 +45,7 @@ describe('Sections Autocomplete', () => {
 
   it('has default all sections selected', () => {
     const {container} = render(<SectionsAutocomplete {...defaultProps()} />)
-    const hiddenInput = container.querySelector('input[name="specific_sections"]')
+    const hiddenInput = container.querySelector('input[name="specific_sections"]') as HTMLInputElement
     expect(hiddenInput.value).toBe('all')
   })
 
@@ -54,7 +59,7 @@ describe('Sections Autocomplete', () => {
     const {container} = render(<SectionsAutocomplete {...moreSections} />)
 
     // Verify the component renders without errors with multiple sections
-    const hiddenInput = container.querySelector('input[name="specific_sections"]')
+    const hiddenInput = container.querySelector('input[name="specific_sections"]') as HTMLInputElement
     expect(hiddenInput).toBeInTheDocument()
     expect(hiddenInput.value).toBe('all')
   })
@@ -65,15 +70,15 @@ describe('Sections Autocomplete', () => {
       sections: [
         {id: '1', name: 'awesome section'},
         {id: '3', name: 'other section'},
-      ],
+      ] as Section[],
       selectedSections: [
         {id: '1', name: 'awesome section'},
         {id: '3', name: 'other section'},
-      ],
+      ] as Section[],
     }
 
     const {container} = render(<SectionsAutocomplete {...props} />)
-    const hiddenInput = container.querySelector('input[name="specific_sections"]')
+    const hiddenInput = container.querySelector('input[name="specific_sections"]') as HTMLInputElement
     expect(hiddenInput.value).toBe('1,3')
   })
 

@@ -46,13 +46,16 @@ import 'jqueryui/tabs'
 import {unfudgeDateForProfileTimezone} from '@instructure/moment-utils'
 import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
 import {DiscussionFormOptions} from '../../react/DiscussionFormOptions'
+import type {JQuery} from 'jquery'
 
 const I18n = createI18nScope('discussion_topics')
 
 RichContentEditor.preloadRemoteModule()
 
+// @ts-expect-error - Backbone class with complex prototype inheritance
 extend(EditView, ValidatedFormView)
 
+// @ts-expect-error - Backbone view with prototype-based methods
 function EditView() {
   this.enableGradedCheckBox = this.enableGradedCheckBox.bind(this)
   this.disableGradedCheckBox = this.disableGradedCheckBox.bind(this)

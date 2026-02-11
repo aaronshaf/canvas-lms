@@ -26,6 +26,7 @@ const setup = () => {
 
 describe('AnonymousPostSelector', () => {
   beforeAll(() => {
+    // @ts-expect-error - ENV is a global object
     window.ENV.current_user = {display_name: 'Ronald Weasley'}
   })
 
