@@ -55,11 +55,12 @@ interface CourseFindSelectViewOptions extends Backbone.ViewOptions<Backbone.Mode
   show_select?: boolean
 }
 
+// @ts-expect-error
 extend(CourseFindSelectView, Backbone.View)
 
+// @ts-expect-error
 CourseFindSelectView.optionProperty('current_user_id', 'show_select')
 
-// @ts-expect-error
 CourseFindSelectView.prototype.template = template
 
 function CourseFindSelectView(this: any) {
@@ -129,15 +130,19 @@ CourseFindSelectView.prototype.afterRender = function (this: any) {
   // by the screen reader every time a user selects an auto completed item.
   const $converterDiv = $('#converter')
   this.$courseSearchField.on('focus', function () {
+    // @ts-expect-error
     return $converterDiv.attr('aria-atomic', false)
   })
   this.$courseSearchField.on('blur', function () {
+    // @ts-expect-error
     return $converterDiv.attr('aria-atomic', true)
   })
   this.$courseSelect.on('focus', function () {
+    // @ts-expect-error
     return $converterDiv.attr('aria-atomic', false)
   })
   return this.$courseSelect.on('blur', function () {
+    // @ts-expect-error
     return $converterDiv.attr('aria-atomic', true)
   })
 }
@@ -175,6 +180,7 @@ CourseFindSelectView.prototype.toggleConcludedCourses = function (this: any) {
 // refining the search term
 CourseFindSelectView.prototype.manageableCourseUrl = function (this: any) {
   const params: Record<string, string> = {
+    // @ts-expect-error
     current_course_id: ENV.COURSE_ID,
   }
   if (this.includeConcludedCourses) {

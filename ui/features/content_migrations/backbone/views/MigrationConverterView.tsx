@@ -30,10 +30,12 @@ import ReactDOM from 'react-dom'
 
 const I18n = createI18nScope('content_migrations')
 
+// @ts-expect-error
 extend(MigrationConverterView, ValidatedFormView)
 
 // This is an abstract class that is inherited
 // from by other MigrationConverter views
+// @ts-expect-error
 function MigrationConverterView(this: any) {
   this.exitUploadingState = this.exitUploadingState.bind(this)
   this.enterUploadingState = this.enterUploadingState.bind(this)
@@ -42,9 +44,9 @@ function MigrationConverterView(this: any) {
   return MigrationConverterView.__super__.constructor.apply(this, arguments)
 }
 
+// @ts-expect-error
 MigrationConverterView.optionProperty('selectOptions')
 
-// @ts-expect-error
 MigrationConverterView.prototype.template = template
 
 MigrationConverterView.prototype.initialize = function (this: any) {
@@ -73,6 +75,7 @@ MigrationConverterView.prototype.events = lodashExtend(
 MigrationConverterView.prototype.toJSON = function (this: any, json: any) {
   // @ts-expect-error
   json = MigrationConverterView.__super__.toJSON.apply(this, arguments)
+  // @ts-expect-error
   json.selectOptions = this.selectOptions || ENV.SELECT_OPTIONS
   return json
 }
@@ -109,6 +112,7 @@ MigrationConverterView.prototype.selectConverter = function (this: any, _event: 
   this.model.resetModel()
   this.$chooseMigrationConverter.attr('aria-activedescendant', this.$chooseMigrationConverter.val())
   this.model.set('migration_type', this.$chooseMigrationConverter.val())
+  // @ts-expect-error
   return $.publish('contentImportChange', {
     value: this.$chooseMigrationConverter.val(),
     migrationConverter: this,
@@ -137,6 +141,7 @@ MigrationConverterView.prototype.submit = function (this: any, _event: any) {
     return dfd.done(
       (function (_this: any) {
         return function () {
+          // @ts-expect-error
           $.publish('migrationCreated', _this.model.attributes)
           _this.model.resetModel()
           return _this.resetForm()
@@ -195,7 +200,6 @@ MigrationConverterView.prototype.exitUploadingState = function (this: any) {
 
 MigrationConverterView.prototype.afterRender = function (this: any) {
   const alert = (
-    // @ts-expect-error
     <Alert variant="warning" hasShadow={false} margin="0 0 medium 0">
       {I18n.t(
         'Previously imported content from the same course will be replaced. Manually added content will remain.',
