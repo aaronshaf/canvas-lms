@@ -16,11 +16,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import ProfileShow from './backbone/views/ProfileShow'
+import ProfileShow from './backbone/views/ProfileShow.tsx'
 import ready from '@instructure/ready'
 import {initializeTopNavPortal} from '@canvas/top-navigation/react/TopNavPortal'
 
 ready(() => {
   initializeTopNavPortal()
+  // @ts-expect-error
   new ProfileShow(ENV.PROFILE)
 })
