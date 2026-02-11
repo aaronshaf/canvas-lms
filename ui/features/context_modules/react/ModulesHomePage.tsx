@@ -32,7 +32,6 @@ function ModulesHomePage({onCreateButtonClick = () => {}}: ModulesHomePageProps)
       <li className="ic-EmptyStateList__Item">
         <div className="ic-EmptyStateList__BillboardWrapper">
           <button type="button" className="ic-EmptyStateButton" onClick={onCreateButtonClick}>
-            {/* @ts-expect-error */}
             <IconModuleSolid className="ic-EmptyStateButton__SVG" />
             <span className="ic-EmptyStateButton__Text">{I18n.t('Create a new Module')}</span>
           </button>
