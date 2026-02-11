@@ -24,14 +24,23 @@ import PaginatedCollectionView from '@canvas/pagination/backbone/views/Paginated
 import ProgressionStudentView from './backbone/views/ProgressionStudentView'
 
 import React from 'react'
-import {createRoot} from 'react-dom/client'
+import {createRoot, type Root} from 'react-dom/client'
 import ProgressionModuleHeader from './react/components/ProgressionModuleHeader'
+
+type IndexViewOptions = {
+  collection: UserCollection
+  itemView: typeof ProgressionStudentView
+  template: typeof progressionsIndexTemplate
+  modules_url: string
+  autoFetch: boolean
+}
 
 ready(() => {
   class IndexView extends PaginatedCollectionView {
-    constructor(options) {
+    root: Root | null = null
+
+    constructor(options: IndexViewOptions) {
       super(options)
-      this.root = null
     }
 
     // needed to render the react component at the top of the page
@@ -40,6 +49,7 @@ ready(() => {
       const container = document.getElementById('progression-module-header-root')
       if (container) {
         this.root = createRoot(container)
+        // @ts-expect-error - Backbone collection doesn't have full type definitions
         this.root.render(<ProgressionModuleHeader bridge={this.collection} />)
       }
     }
@@ -52,7 +62,7 @@ ready(() => {
     }
   }
 
-  let students
+  let students: UserCollection
   $(document.body).addClass('context_modules2')
 
   if (ENV.RESTRICTED_LIST) {

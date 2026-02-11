@@ -23,6 +23,20 @@ import PaginatedCollectionView from '@canvas/pagination/backbone/views/Paginated
 import ProgressionModuleView from './ProgressionModuleView'
 
 export default class ProgressionStudentView extends Backbone.View {
+  // @ts-expect-error - Backbone properties
+  $index: JQuery
+  // @ts-expect-error - Backbone properties
+  $students: JQuery
+  // @ts-expect-error - Backbone properties
+  $modules: JQuery
+  // @ts-expect-error - Backbone properties
+  progressions?: PaginatedCollectionView
+
+  static tagName = 'li'
+  static className = 'student'
+  static template = template
+  static events = {click: 'showProgressions'}
+
   initialize() {
     super.initialize(...arguments)
     this.$index = this.model.collection.view.$el
@@ -82,7 +96,7 @@ export default class ProgressionStudentView extends Backbone.View {
   }
 
   hideProgressions() {
-    this.progressions.hide()
+    this.progressions?.hide()
     return this.$el.removeClass('active').removeAttr('aria-selected')
   }
 
