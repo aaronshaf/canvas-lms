@@ -29,7 +29,6 @@ import $ from 'jquery'
 import '@canvas/rails-flash-notifications'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import PropTypes from 'prop-types'
 import {legacyRender, render} from '@canvas/react'
 import {initializePlanner, renderToDoSidebar} from '@canvas/planner'
 import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'
@@ -41,20 +40,31 @@ import CourseDifferentiationTagConverterMessage from '@canvas/differentiation-ta
 const I18n = createI18nScope('courses_show')
 
 const defaultViewStore = createStore({
-  selectedDefaultView: ENV.COURSE.default_view,
-  savedDefaultView: ENV.COURSE.default_view,
+  selectedDefaultView: ENV.COURSE?.default_view ?? null,
+  savedDefaultView: ENV.COURSE?.default_view ?? null,
 })
 
-class ChooseHomePageButton extends React.Component {
-  state = {
+interface ChooseHomePageButtonProps {
+  store: typeof defaultViewStore
+}
+
+interface ChooseHomePageButtonState {
+  dialogOpen: boolean
+}
+
+class ChooseHomePageButton extends React.Component<
+  ChooseHomePageButtonProps,
+  ChooseHomePageButtonState
+> {
+  state: ChooseHomePageButtonState = {
     dialogOpen: false,
   }
 
-  static propTypes = {
-    store: PropTypes.object.isRequired,
-  }
+  private chooseButton: HTMLButtonElement | null = null
 
   render() {
+    if (!ENV.COURSE) return null
+
     return (
       <div>
         <button
@@ -91,11 +101,13 @@ class ChooseHomePageButton extends React.Component {
   }
 }
 
-const addToDoSidebar = parent => {
+const addToDoSidebar = (parent: Element) => {
+  if (!ENV.COURSE) return
+
   initializePlanner({
     env: window.ENV, // missing STUDENT_PLANNER_COURSES, which is what we want
-    flashError: message => showFlashAlert({message, type: 'error'}),
-    flashMessage: message => showFlashAlert({message, type: 'info'}),
+    flashError: (message: string) => showFlashAlert({message, type: 'error'}),
+    flashMessage: (message: string) => showFlashAlert({message, type: 'info'}),
     srFlashMessage: $.screenReaderFlashMessage,
     convertApiUserContent: apiUserContent.convert,
     dateTimeFormatters: {
@@ -145,11 +157,11 @@ $(() => {
   const diffTagOverrideConversionContainer = document.getElementById(
     'differentiation-tag-converter-message-root',
   )
-  if (diffTagOverrideConversionContainer) {
+  if (diffTagOverrideConversionContainer && ENV.COURSE) {
     render(
       <CourseDifferentiationTagConverterMessage
         courseId={ENV.COURSE.id}
-        activeConversionJob={ENV.ACTIVE_TAG_CONVERSION_JOB}
+        activeConversionJob={(ENV as any).ACTIVE_TAG_CONVERSION_JOB}
       />,
       diffTagOverrideConversionContainer,
     )
