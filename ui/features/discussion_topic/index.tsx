@@ -192,6 +192,7 @@ ready(() => {
     return filterView.setAllReadState(newReadState)
   }
 
+  // @ts-expect-error - Backbone view on method
   entriesView.on('scrollAwayFromEntry', () => {
     // prevent scroll to top for non-pushstate browsers when hash changes
     const top = $container.scrollTop()
@@ -253,10 +254,13 @@ ready(() => {
     setAllReadStateAllViews('unread')
   })
 
+  // @ts-expect-error - Backbone view on method
   filterView.on('render', scrollToTop)
 
+  // @ts-expect-error - Backbone view on method
   filterView.on('hide', scrollToTop)
 
+  // @ts-expect-error - Backbone model on method
   filterModel.on('reset', () => {
     EntryView.expandRootEntries()
   })
@@ -290,7 +294,6 @@ ready(() => {
 
   function initEntries(initialEntry?: any) {
     if (canReadReplies()) {
-      // @ts-expect-error - Backbone model fetch method
       data.fetch({
         success() {
           entriesView.render()
@@ -299,10 +302,13 @@ ready(() => {
             root: `${ENV.DISCUSSION?.APP_URL}/`,
           })
           if (initialEntry) {
+            // @ts-expect-error - Collection get method
             const fetchedModel = entries.get(initialEntry.id)
             if (fetchedModel) {
+              // @ts-expect-error - Collection remove method
               entries.remove(fetchedModel)
             }
+            // @ts-expect-error - Collection add method
             entries.add(initialEntry)
             entriesView.render()
             router.navigate(`entry-${initialEntry.get('id')}`, true)
@@ -311,6 +317,7 @@ ready(() => {
       })
 
       topicView.on('addReply', (entry: any) => {
+        // @ts-expect-error - Collection add method
         entries.add(entry)
         router.navigate(`entry-${entry.get('id')}`, true)
       })
