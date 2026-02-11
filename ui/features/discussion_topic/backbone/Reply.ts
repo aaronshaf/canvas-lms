@@ -185,6 +185,7 @@ class Reply {
     entry.save(null, {
       success: this.onPostReplySuccess,
       error: this.onPostReplyError,
+      // @ts-expect-error - Backbone model get method
       multipart: entry.get('attachment'),
       proxyAttachment: true,
     })
@@ -226,7 +227,6 @@ class Reply {
   onPostReplySuccess(entry: any, response: any) {
     if (response.errors) {
       this.hideNotification()
-      // @ts-expect-error - Backbone model get method
       this.textArea.val(entry.get('message'))
       this.edit()
       return this.form.formErrors(response)
@@ -251,7 +251,6 @@ class Reply {
         },
       )}</div>`,
     )
-    // @ts-expect-error - Backbone model get method
     this.textArea.val(entry.get('message'))
     return this.edit()
   }

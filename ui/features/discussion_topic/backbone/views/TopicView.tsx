@@ -252,6 +252,7 @@ export default class TopicView extends Backbone.View {
     // get the element and the method to call
     const el = $(event.currentTarget)
     const method = el.data('event')
+    // @ts-expect-error - Dynamic method call
     return typeof this[method] === 'function' ? this[method](event, el) : undefined
   }
 
@@ -299,6 +300,7 @@ export default class TopicView extends Backbone.View {
     if (event) event.preventDefault()
 
     ReactDOM.render(
+      // @ts-expect-error - DirectShareUserModal props type mismatch
       <DirectShareUserModal
         open={open}
         sourceCourseId={ENV.COURSE_ID}

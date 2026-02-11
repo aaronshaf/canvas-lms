@@ -39,8 +39,10 @@ import '../../jst/_reply_form.handlebars'
 
 const I18n = createI18nScope('discussions')
 
+// @ts-expect-error - Backbone extend pattern
 extend(EntryView, Backbone.View)
 
+// @ts-expect-error - Backbone constructor pattern
 function EntryView(this: any) {
   this.handleKeyDown = this.handleKeyDown.bind(this)
   this.renderRatingSum = this.renderRatingSum.bind(this)
@@ -105,7 +107,9 @@ EntryView.prototype.tagName = 'li'
 EntryView.prototype.className = 'entry'
 
 EntryView.prototype.initialize = function () {
+  // @ts-expect-error - Backbone __super__ pattern
   EntryView.__super__.initialize.apply(this, arguments)
+  // @ts-expect-error - Dynamic instances tracking
   this.constructor.instances[this.cid] = this
   this.$el.attr('id', 'entry-' + this.model.get('id'))
   this.$el.toggleClass('no-replies', !this.model.hasActiveReplies())
@@ -147,6 +151,7 @@ EntryView.prototype.toggleRead = function (e: any) {
   } else {
     this.model.markAsRead()
   }
+  // @ts-expect-error - Static trigger method
   return EntryView.trigger('readStateChanged', this.model, this)
 }
 
@@ -158,6 +163,7 @@ EntryView.prototype.handleDeclarativeEvent = function (event: any) {
   }
   event.stopPropagation()
   event.preventDefault()
+  // @ts-expect-error - Dynamic method call
   return this[method](event, $el)
 }
 
@@ -249,6 +255,7 @@ EntryView.prototype.setToggleTooltip = function () {
 }
 
 EntryView.prototype.afterRender = function () {
+  // @ts-expect-error - Backbone __super__ pattern
   EntryView.__super__.afterRender.apply(this, arguments)
   const directionToPad = isRTL() ? 'right' : 'left'
   const shouldPosition = this.$el.find('.entry-content[data-should-position]')
@@ -303,6 +310,7 @@ EntryView.prototype.renderTree = function (opts?: any) {
     showMoreDescendants: this.options.showMoreDescendants,
   })
   this.treeView.render()
+  // @ts-expect-error - Collection map method
   const boundReplies = collection.map(function (x: any) {
     return x.attributes
   })
@@ -406,6 +414,7 @@ EntryView.prototype.addReply = function (_event?: any, _$el?: any) {
         _this.treeView.collection.fullCollection.add(entry)
         _this.model.get('replies').push(entry.attributes)
         _this.trigger('addReply')
+        // @ts-expect-error - Static trigger method
         return EntryView.trigger('addReply', entry)
       }
     })(this),
