@@ -1126,7 +1126,6 @@ function DiscussionTopicForm({
                     onFocus={() => {}}
                     onBlur={() => {}}
                     onInit={() => {}}
-                    // @ts-expect-error TS2322 (typescriptify)
                     ref={rceRef}
                     onContentChange={setRceContent}
                     editorOptions={{

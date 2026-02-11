@@ -181,6 +181,7 @@ export default function CanvasStudioPlayer({
   }
 
   const boundingBox = useCallback(() => {
+    // @ts-expect-error - webkitFullscreenElement is a non-standard property
     const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement
     if (isFullscreen || isEmbedded()) {
       return {
@@ -303,6 +304,7 @@ export default function CanvasStudioPlayer({
   }, [handlePlayerSize])
 
   const includeFullscreen =
+    // @ts-expect-error - webkitFullscreenEnabled is a non-standard property
     (document.fullscreenEnabled || document.webkitFullscreenEnabled) && type === 'video'
 
   function renderNoPlayer() {

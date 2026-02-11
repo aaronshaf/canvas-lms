@@ -68,7 +68,7 @@ describe('Course Settings Helpers', () => {
       },
     }
 
-    const changeResults = Helpers.extractInfoFromEvent(changeEvent as ExtractableEvent)
+    const changeResults = Helpers.extractInfoFromEvent(changeEvent as any)
     const expectedChangeResults = {
       file: {
         type: 'image/jpeg',
@@ -76,7 +76,7 @@ describe('Course Settings Helpers', () => {
       type: 'image/jpeg',
     }
 
-    const dragResults = Helpers.extractInfoFromEvent(dragEvent as ExtractableEvent)
+    const dragResults = Helpers.extractInfoFromEvent(dragEvent as any)
     const expectedDragResults = {
       file: {
         name: 'test',

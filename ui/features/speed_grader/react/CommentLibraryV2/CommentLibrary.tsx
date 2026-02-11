@@ -90,7 +90,7 @@ export const CommentLibraryContent: React.FC<CommentLibraryContentProps> = ({
       'commentBankItemsConnection' in suggestedCommentsData.legacyNode
     ) {
       const conn = suggestedCommentsData.legacyNode.commentBankItemsConnection
-      return conn?.nodes?.filter(it => it !== null) ?? []
+      return conn?.nodes?.filter((it: any) => it !== null) ?? []
     }
     return []
   }, [suggestedCommentsData])

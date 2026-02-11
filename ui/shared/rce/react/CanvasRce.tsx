@@ -65,7 +65,6 @@ const CanvasRce = forwardRef(function CanvasRce(
     const editorConfig = new EditorConfig(tinymce, window.INST, textareaId)
     const config = {...editorConfig.defaultConfig(), ...(editorOptions ?? {})}
     if (editorOptions?.init_instance_callback) {
-      // @ts-expect-error
       config.init_instance_callback = createChainedFunction(
         config.init_instance_callback,
         editorOptions.init_instance_callback,
@@ -86,8 +85,7 @@ const CanvasRce = forwardRef(function CanvasRce(
   // will never trigger it to be rerun. This way any time the ref changes,
   // the function is called. rceRef as a dependency is to quiet eslint.
   const magicRef = useCallback(
-    // @ts-expect-error
-    node => {
+    (node: any) => {
       rceRef.current = node
       if (node) {
         node.getTextarea().remoteEditor = node
@@ -118,10 +116,9 @@ const CanvasRce = forwardRef(function CanvasRce(
       }
       instRecordDisabled={window.ENV?.RICH_CONTENT_INST_RECORD_TAB_DISABLED}
       language={window.ENV?.LOCALES?.[0] || 'en'}
-      // @ts-expect-error
+      // @ts-expect-error - user_cache_key not in GlobalEnv type
       userCacheKey={window.ENV?.user_cache_key}
       liveRegion={() => document.getElementById('flash_screenreader_holder')}
-      // @ts-expect-error
       ltiTools={window.INST?.editorButtons}
       maxInitRenderedRCEs={props.maxInitRenderedRCEs ?? -1}
       mirroredAttrs={mirroredAttrs ?? {}}
@@ -129,7 +126,6 @@ const CanvasRce = forwardRef(function CanvasRce(
       textareaClassName={textareaClassName ?? 'input-block-level'}
       textareaId={textareaId}
       height={height}
-      // @ts-expect-error
       rcsProps={RCSProps}
       onFocus={onFocus ?? (() => {})}
       onBlur={onBlur ?? (() => {})}
@@ -140,15 +136,12 @@ const CanvasRce = forwardRef(function CanvasRce(
       resourceId={resourceId}
       flashAlertTimeout={flashAlertTimeout ?? ENV?.flashAlertTimeout ?? 10000}
       features={features ?? window.ENV?.FEATURES ?? {}}
-      // @ts-expect-error
+      // @ts-expect-error - RICH_CONTENT_AI_TEXT_TOOLS not in GlobalEnv type
       ai_text_tools={window.ENV?.RICH_CONTENT_AI_TEXT_TOOLS}
       externalToolsConfig={{
         ltiIframeAllowances: window.ENV?.LTI_LAUNCH_FRAME_ALLOWANCES,
-        // @ts-expect-error
         isA2StudentView: window.ENV?.a2_student_view,
-        // @ts-expect-error
         maxMruTools: window.ENV?.MAX_MRU_LTI_TOOLS,
-        // @ts-expect-error
         resourceSelectionUrlOverride:
           $('#context_external_tool_resource_selection_url').attr('href') || null,
       }}

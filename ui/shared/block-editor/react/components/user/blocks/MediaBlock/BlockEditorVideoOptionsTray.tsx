@@ -98,16 +98,13 @@ export default function BlockEditorVideoOptionsTray({
         onRequestClose={() => {
           setOpenTray(false)
         }}
-        onSave={onSaveProps => {
+        onSave={(onSaveProps: any) => {
           applyOptions(onSaveProps)
         }}
-        // @ts-expect-error
         trayProps={{}}
-        // @ts-expect-error
         videoOptions={{
           titleText: videoContainer?.getAttribute('title') || '',
         }}
-        // @ts-expect-error
         requestSubtitlesFromIframe={(cb: any) => requestSubtitlesFromIframe(cb)}
         forBlockEditorUse={true}
       />
