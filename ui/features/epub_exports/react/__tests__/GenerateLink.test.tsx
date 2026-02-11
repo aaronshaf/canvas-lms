@@ -47,7 +47,11 @@ describe('GenerateLink', () => {
   })
 
   it('hides generate link without regenerate permissions', () => {
-    props.course.epub_export = {id: 1, workflow_state: 'generated', permissions: {regenerate: false}}
+    props.course.epub_export = {
+      id: 1,
+      workflow_state: 'generated',
+      permissions: {regenerate: false},
+    }
     const {container} = render(<GenerateLink {...props} />)
     expect(container.firstChild).toBeNull()
   })
@@ -60,6 +64,7 @@ describe('GenerateLink', () => {
 
   it('shows generating state when clicked', async () => {
     vi.useFakeTimers()
+    // @ts-expect-error - Dynamically added method to store
     const createSpy = vi.spyOn(CourseEpubExportStore, 'create')
     const user = userEvent.setup({advanceTimers: vi.advanceTimersByTime})
 

@@ -40,7 +40,10 @@ describe('CourseEpubExportStore', () => {
         {
           name: 'Maths 101',
           id: 1,
-          epub_export: {id: 1},
+          epub_export: {
+            id: 1,
+            workflow_state: 'generated',
+          },
         },
         {
           name: 'Physics 101',
@@ -86,6 +89,7 @@ describe('CourseEpubExportStore', () => {
 
   it('gets all courses', async () => {
     expect(CourseStore.getState()).toEqual({})
+    // @ts-expect-error - Dynamically added method to store
     CourseStore.getAll()
 
     // Wait for the async request to complete
@@ -99,6 +103,7 @@ describe('CourseEpubExportStore', () => {
 
   it('gets a specific course', async () => {
     expect(CourseStore.getState()).toEqual({})
+    // @ts-expect-error - Dynamically added method to store
     CourseStore.get(1, 1)
 
     // Wait for the async request to complete
@@ -111,6 +116,7 @@ describe('CourseEpubExportStore', () => {
   it('creates a new epub export', async () => {
     const course_id = 3
     expect(CourseStore.getState()[course_id]).toBeUndefined()
+    // @ts-expect-error - Dynamically added method to store
     CourseStore.create(course_id)
 
     // Wait for the async request to complete

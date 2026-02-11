@@ -67,6 +67,7 @@ class CourseListItem extends React.Component<CourseListItemProps> {
     }
     const timestamp = this.epubExport().updated_at
 
+    // @ts-expect-error - FriendlyDatetime expects string | Date | null, but we have string | undefined
     return <FriendlyDatetime dateTime={timestamp} />
   }
 
@@ -75,6 +76,7 @@ class CourseListItem extends React.Component<CourseListItemProps> {
       classes = {
         'ig-row': true,
       }
+    // @ts-expect-error - Indexing with possibly undefined workflow_state
     classes[this.epubExport().workflow_state] = !isEmpty(this.epubExport())
 
     return (
@@ -107,6 +109,7 @@ class CourseListItem extends React.Component<CourseListItemProps> {
   //
 
   _onComplete = () => {
+    // @ts-expect-error - Dynamically added method to store
     CourseEpubExportStore.get(this.props.course.id, this.epubExport().id)
   }
 }

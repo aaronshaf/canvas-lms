@@ -60,6 +60,7 @@ interface ApiResponse {
 const CourseEpubExportStore = createStore<CoursesMap>({})
 const _courses: CoursesMap = {}
 
+// @ts-expect-error - Dynamically adding methods to store
 CourseEpubExportStore.getAll = function (): void {
   $.getJSON('/api/v1/epub_exports', (data: ApiResponse) => {
     each(data.courses, (course: Course) => {
@@ -69,6 +70,7 @@ CourseEpubExportStore.getAll = function (): void {
   })
 }
 
+// @ts-expect-error - Dynamically adding methods to store
 CourseEpubExportStore.get = function (course_id: number, id: number): void {
   const url = '/api/v1/courses/' + course_id + '/epub_exports/' + id
   $.getJSON(url, (data: Course) => {
@@ -77,6 +79,7 @@ CourseEpubExportStore.get = function (course_id: number, id: number): void {
   })
 }
 
+// @ts-expect-error - Dynamically adding methods to store
 CourseEpubExportStore.create = function (id: number): void {
   const url = '/api/v1/courses/' + id + '/epub_exports'
   $.post(

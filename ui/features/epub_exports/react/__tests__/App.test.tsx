@@ -34,9 +34,11 @@ describe('EpubExportApp', () => {
     mockGetState = vi.spyOn(CourseEpubExportStore, 'getState').mockReturnValue({})
 
     // Mock getAll to do nothing (we'll control state changes manually)
+    // @ts-expect-error - Dynamically added method to store
     vi.spyOn(CourseEpubExportStore, 'getAll').mockImplementation(() => {})
 
     // Mock setState to update our mock getState
+    // @ts-expect-error - setState parameter type mismatch with partial state
     vi.spyOn(CourseEpubExportStore, 'setState').mockImplementation((newState: CoursesMap) => {
       mockGetState.mockReturnValue(newState)
       // Simulate the store triggering change listeners
@@ -78,6 +80,7 @@ describe('EpubExportApp', () => {
 
   it('fetches courses on mount', () => {
     render(<App />)
+    // @ts-expect-error - Dynamically added method to store
     expect(CourseEpubExportStore.getAll).toHaveBeenCalled()
   })
 })

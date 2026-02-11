@@ -43,6 +43,7 @@ class EpubExportApp extends React.Component<Record<string, never>, CoursesMap> {
 
   componentDidMount() {
     CourseStore.addChangeListener(this.handleCourseStoreChange)
+    // @ts-expect-error - Dynamically added method to store
     CourseStore.getAll()
   }
 

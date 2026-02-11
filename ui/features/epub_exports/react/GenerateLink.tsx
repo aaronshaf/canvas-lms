@@ -95,6 +95,7 @@ class GenerateLink extends React.Component<GenerateLinkProps, GenerateLinkState>
         triggered: false,
       })
     }, 800)
+    // @ts-expect-error - Dynamically added method to store
     CourseEpubExportStore.create(this.props.course.id)
   }
 }
