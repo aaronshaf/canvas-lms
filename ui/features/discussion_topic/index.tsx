@@ -34,7 +34,6 @@ import TopicView from './backbone/views/TopicView'
 import EntriesView from './backbone/views/EntriesView'
 import SectionsTooltip from '@canvas/sections-tooltip'
 import DiscussionTopicKeyboardShortcutModal from './react/DiscussionTopicKeyboardShortcutModal'
-// @ts-expect-error
 import ready from '@instructure/ready'
 import {captureException} from '@sentry/react'
 
@@ -43,7 +42,6 @@ const I18n = createI18nScope('discussions')
 // Backbone routes
 $('body').on('click', '[data-pushstate]', function (event: any) {
   if (event) event.preventDefault()
-  // @ts-expect-error
   Backbone.history.navigate($(this).attr('href'), true)
 })
 
@@ -68,9 +66,9 @@ const children = 10
 // create the objects ...
 const router = new Backbone.Router()
 
-const data = ENV.DISCUSSION.THREADED
-  ? new MaterializedDiscussionTopic({root_url: ENV.DISCUSSION.ROOT_URL})
-  : new SideCommentDiscussionTopic({root_url: ENV.DISCUSSION.ROOT_URL})
+const data = ENV.DISCUSSION?.THREADED
+  ? new MaterializedDiscussionTopic({root_url: ENV.DISCUSSION?.ROOT_URL})
+  : new SideCommentDiscussionTopic({root_url: ENV.DISCUSSION?.ROOT_URL})
 
 const entries = new EntryCollection(null)
 
@@ -93,6 +91,7 @@ function renderCoursePacingNotice() {
 }
 
 ready(() => {
+  // @ts-expect-error - Backbone constructor expects 0 arguments
   new DiscussionTopicToolbarView({el: '#discussion-managebar'})
 
   let keyboardShortcutRoot: any = null
@@ -110,26 +109,26 @@ ready(() => {
 
   // Rendering of the section tooltip
   const container = document.querySelector('#section_tooltip_root')
-  const sectionSpecificAnnouncement = ENV.TOTAL_USER_COUNT || ENV.DISCUSSION.TOPIC.COURSE_SECTIONS
+  const sectionSpecificAnnouncement = ENV.TOTAL_USER_COUNT || ENV.DISCUSSION?.TOPIC?.COURSE_SECTIONS
   if (
     container &&
     sectionSpecificAnnouncement &&
-    !ENV.DISCUSSION.IS_ASSIGNMENT &&
-    !ENV.DISCUSSION.IS_GROUP
+    !ENV.DISCUSSION?.IS_ASSIGNMENT &&
+    !ENV.DISCUSSION?.IS_GROUP
   ) {
     sectionTooltipRoot = createRoot(container)
     sectionTooltipRoot.render(
       <SectionsTooltip
         totalUserCount={ENV.TOTAL_USER_COUNT}
-        sections={ENV.DISCUSSION.TOPIC.COURSE_SECTIONS}
+        sections={ENV.DISCUSSION?.TOPIC?.COURSE_SECTIONS}
       />,
     )
   }
 
+  // @ts-expect-error - Backbone constructor expects 0 arguments
   const topicView = new TopicView({
     el: '#main',
     model: new Backbone.Model(),
-    // @ts-expect-error
     filterModel,
   })
 
@@ -137,20 +136,23 @@ ready(() => {
   // use this so they do not trigger related code
   const excludeUserContentCss = 'div:not(.user_content)'
 
+  // @ts-expect-error - Backbone constructor expects 0 arguments
   const entriesView = new EntriesView({
     el: `${excludeUserContentCss} #discussion_subentries`,
     collection: entries,
     descendants,
     children,
-    threaded: ENV.DISCUSSION.THREADED,
+    threaded: ENV.DISCUSSION?.THREADED,
     model: filterModel,
   })
 
+  // @ts-expect-error - Backbone constructor expects 0 arguments
   const toolbarView = new DiscussionToolbarView({
     el: `${excludeUserContentCss} #discussion-toolbar`,
     model: filterModel,
   })
 
+  // @ts-expect-error - Backbone constructor expects 0 arguments
   const filterView = new DiscussionFilterResultsView({
     el: `${excludeUserContentCss} #filterResults`,
     allData: data,
@@ -161,32 +163,37 @@ ready(() => {
   const $subentries = $('#discussion_subentries')
 
   function scrollToTop() {
-    // @ts-expect-error
     $container.scrollTo($subentries, {offset: -49})
   }
 
   // connect them ...
+  // @ts-expect-error - Backbone model methods
   data.on('change', () => {
+    // @ts-expect-error - Backbone model methods
     const entryData = data.get('entries')
+    // @ts-expect-error - Collection options
     entries.options.per_page = entryData.length
+    // @ts-expect-error - Collection methods
     return entries.reset(entryData)
   })
 
   // define function that syncs a discussion entry's
   // read state back to the materialized view data.
   function updateMaterializedViewReadState(id: any, read_state: string) {
-    const e = data.flattened[id]
+    // @ts-expect-error - Dynamic property access
+    const e = data.flattened?.[id]
     if (e) e.read_state = read_state
   }
 
   // propagate mark all read/unread changes to all views
   function setAllReadStateAllViews(newReadState: string) {
+    // @ts-expect-error - Collection method
     entries.setAllReadState(newReadState)
-    // @ts-expect-error
     EntryView.setAllReadState(newReadState)
     return filterView.setAllReadState(newReadState)
   }
 
+  // @ts-expect-error - Backbone view events
   entriesView.on('scrollAwayFromEntry', () => {
     // prevent scroll to top for non-pushstate browsers when hash changes
     const top = $container.scrollTop()
@@ -199,64 +206,75 @@ ready(() => {
 
   // catch when an EntryView changes the read_state
   // of a discussion entry and update the materialized view.
-  // @ts-expect-error
   EntryView.on('readStateChanged', (entry: any, _view: any) =>
+    // @ts-expect-error - Backbone model methods
     updateMaterializedViewReadState(entry.get('id'), entry.get('read_state')),
   )
 
   // catch when auto-mark-as-read watcher changes an entry
   // and update the materialized view to match.
   MarkAsReadWatcher.on('markAsRead', (entry: any) =>
+    // @ts-expect-error - Backbone model methods
     updateMaterializedViewReadState(entry.get('id'), entry.get('read_state')),
   )
 
   // detect when read_state changes on filtered model.
   // sync the change to full view collections.
+  // @ts-expect-error - Backbone view events
   filterView.on('readStateChanged', (id: any, read_state: string) =>
     // update on materialized view
     updateMaterializedViewReadState(id, read_state),
   )
 
-  filterView.on('clickEntry', (entry: any) => router.navigate(`entry-${entry.get('id')}`, true))
+  // @ts-expect-error - Backbone view events
+  filterView.on('clickEntry', (entry: any) =>
+    // @ts-expect-error - Backbone model methods
+    router.navigate(`entry-${entry.get('id')}`, true),
+  )
 
+  // @ts-expect-error - Backbone view events
   toolbarView.on('showDeleted', (show: any) => entriesView.showDeleted(show))
 
+  // @ts-expect-error - Backbone view events
   toolbarView.on('expandAll', () => {
-    // @ts-expect-error
     EntryView.expandRootEntries()
     scrollToTop()
   })
 
+  // @ts-expect-error - Backbone view events
   toolbarView.on('collapseAll', () => {
-    // @ts-expect-error
     EntryView.collapseRootEntries()
     scrollToTop()
   })
 
+  // @ts-expect-error - Backbone view events
   topicView.on('markAllAsRead', () => {
     data.markAllAsRead()
     setAllReadStateAllViews('read')
   })
 
+  // @ts-expect-error - Backbone view events
   topicView.on('markAllAsUnread', () => {
     data.markAllAsUnread()
     setAllReadStateAllViews('unread')
   })
 
+  // @ts-expect-error - Backbone view events
   filterView.on('render', scrollToTop)
 
+  // @ts-expect-error - Backbone view events
   filterView.on('hide', scrollToTop)
 
+  // @ts-expect-error - Backbone model events
   filterModel.on('reset', () => {
-    // @ts-expect-error
     EntryView.expandRootEntries()
   })
 
-  const canReadReplies = () => ENV.DISCUSSION.PERMISSIONS.CAN_READ_REPLIES
+  const canReadReplies = () => ENV.DISCUSSION?.PERMISSIONS?.CAN_READ_REPLIES
 
   // routes
   router.route('topic', 'topic', () => {
-    $container.scrollTop($('#discussion_topic'))
+    $container.scrollTop($('#discussion_topic') as any)
     setTimeout(() => {
       $('#discussion_topic .author').focus()
       $container.one('scroll', () => router.navigate(''))
@@ -280,57 +298,67 @@ ready(() => {
 
   function initEntries(initialEntry?: any) {
     if (canReadReplies()) {
+      // @ts-expect-error - Backbone model methods
       data.fetch({
         success() {
           entriesView.render()
           Backbone.history.start({
             pushState: true,
-            root: `${ENV.DISCUSSION.APP_URL}/`,
+            root: `${ENV.DISCUSSION?.APP_URL}/`,
           })
           if (initialEntry) {
+            // @ts-expect-error - Collection methods
             const fetchedModel = entries.get(initialEntry.id)
             if (fetchedModel) {
+              // @ts-expect-error - Collection methods
               entries.remove(fetchedModel)
             }
+            // @ts-expect-error - Collection methods
             entries.add(initialEntry)
             entriesView.render()
+            // @ts-expect-error - Backbone model methods
             router.navigate(`entry-${initialEntry.get('id')}`, true)
           }
         },
       })
 
+      // @ts-expect-error - Backbone view events
       topicView.on('addReply', (entry: any) => {
+        // @ts-expect-error - Collection methods
         entries.add(entry)
+        // @ts-expect-error - Backbone model methods
         router.navigate(`entry-${entry.get('id')}`, true)
       })
 
-      if (!ENV.DISCUSSION.MANUAL_MARK_AS_READ) MarkAsReadWatcher.init()
+      if (!ENV.DISCUSSION?.MANUAL_MARK_AS_READ) MarkAsReadWatcher.init()
     } else {
       $('#discussion_subentries span').text(I18n.t('You must log in to view replies'))
     }
   }
 
   topicView.render()
+  // @ts-expect-error - Backbone view render
   toolbarView.render()
 
   // Add module sequence footer
-  if (ENV.DISCUSSION.SEQUENCE != null) {
+  if (ENV.DISCUSSION?.SEQUENCE != null) {
     import('@canvas/module-sequence-footer').then(() => {
-      // @ts-expect-error
       $('#module_sequence_footer').moduleSequenceFooter({
-        assetType: ENV.DISCUSSION.SEQUENCE.ASSET_TYPE,
-        assetID: ENV.DISCUSSION.SEQUENCE.ASSET_ID,
-        courseID: ENV.DISCUSSION.SEQUENCE.COURSE_ID,
+        assetType: ENV.DISCUSSION?.SEQUENCE?.ASSET_TYPE,
+        assetID: ENV.DISCUSSION?.SEQUENCE?.ASSET_ID,
+        courseID: ENV.DISCUSSION?.SEQUENCE?.COURSE_ID,
       })
     })
   }
 
   // Get the party started
-  if (ENV.DISCUSSION.INITIAL_POST_REQUIRED) {
+  if (ENV.DISCUSSION?.INITIAL_POST_REQUIRED) {
     const once = (entry: any) => {
       initEntries(entry)
+      // @ts-expect-error - Backbone view events
       topicView.off('addReply', once)
     }
+    // @ts-expect-error - Backbone view events
     topicView.on('addReply', once)
   } else {
     initEntries()

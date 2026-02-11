@@ -29,7 +29,6 @@ import entryWithRepliesTemplate from '../../jst/entry_with_replies.handlebars'
 import entryStatsTemplate from '../../jst/entryStats.handlebars'
 import Reply from '../Reply'
 import EntryEditor from '../EntryEditor'
-// @ts-expect-error
 import htmlEscape from '@instructure/html-escape'
 import {publish} from 'jquery-tinypubsub'
 import apiUserContent from '@canvas/util/jquery/apiUserContent'
@@ -42,6 +41,7 @@ const I18n = createI18nScope('discussions')
 
 extend(EntryView, Backbone.View)
 
+// @ts-expect-error - Backbone constructor pattern
 function EntryView(this: any) {
   this.handleKeyDown = this.handleKeyDown.bind(this)
   this.renderRatingSum = this.renderRatingSum.bind(this)
@@ -53,10 +53,8 @@ function EntryView(this: any) {
   return EntryView.__super__.constructor.apply(this, arguments)
 }
 
-// @ts-expect-error
 EntryView.instances = {}
 
-// @ts-expect-error
 EntryView.collapseRootEntries = function () {
   each(this.instances, function (view: any) {
     if (!view.model.get('parent')) {
@@ -65,7 +63,6 @@ EntryView.collapseRootEntries = function () {
   })
 }
 
-// @ts-expect-error
 EntryView.expandRootEntries = function () {
   each(this.instances, function (view: any) {
     if (!view.model.get('parent')) {
@@ -74,7 +71,6 @@ EntryView.expandRootEntries = function () {
   })
 }
 
-// @ts-expect-error
 EntryView.setAllReadState = function (newReadState: string) {
   each(this.instances, function (view: any) {
     view.model.set('read_state', newReadState)
@@ -110,9 +106,7 @@ EntryView.prototype.tagName = 'li'
 EntryView.prototype.className = 'entry'
 
 EntryView.prototype.initialize = function () {
-  // @ts-expect-error
   EntryView.__super__.initialize.apply(this, arguments)
-  // @ts-expect-error
   this.constructor.instances[this.cid] = this
   this.$el.attr('id', 'entry-' + this.model.get('id'))
   this.$el.toggleClass('no-replies', !this.model.hasActiveReplies())
@@ -154,7 +148,6 @@ EntryView.prototype.toggleRead = function (e: any) {
   } else {
     this.model.markAsRead()
   }
-  // @ts-expect-error
   return EntryView.trigger('readStateChanged', this.model, this)
 }
 
@@ -166,7 +159,7 @@ EntryView.prototype.handleDeclarativeEvent = function (event: any) {
   }
   event.stopPropagation()
   event.preventDefault()
-  // @ts-expect-error
+  // @ts-expect-error - Dynamic method call
   return this[method](event, $el)
 }
 
@@ -258,7 +251,6 @@ EntryView.prototype.setToggleTooltip = function () {
 }
 
 EntryView.prototype.afterRender = function () {
-  // @ts-expect-error
   EntryView.__super__.afterRender.apply(this, arguments)
   const directionToPad = isRTL() ? 'right' : 'left'
   const shouldPosition = this.$el.find('.entry-content[data-should-position]')
@@ -278,7 +270,7 @@ EntryView.prototype.afterRender = function () {
   if (
     this.model.get('read_state') === 'unread' &&
     !this.model.get('forced_read_state') &&
-    !ENV.DISCUSSION.MANUAL_MARK_AS_READ
+    !ENV.DISCUSSION?.MANUAL_MARK_AS_READ
   ) {
     if (this.readMarker == null) {
       this.readMarker = new MarkAsReadWatcher(this)
@@ -313,6 +305,7 @@ EntryView.prototype.renderTree = function (opts?: any) {
     showMoreDescendants: this.options.showMoreDescendants,
   })
   this.treeView.render()
+  // @ts-expect-error - Collection map method
   const boundReplies = collection.map(function (x: any) {
     return x.attributes
   })
@@ -416,7 +409,6 @@ EntryView.prototype.addReply = function (_event?: any, _$el?: any) {
         _this.treeView.collection.fullCollection.add(entry)
         _this.model.get('replies').push(entry.attributes)
         _this.trigger('addReply')
-        // @ts-expect-error
         return EntryView.trigger('addReply', entry)
       }
     })(this),

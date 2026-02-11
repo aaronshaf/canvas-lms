@@ -27,7 +27,6 @@ import replyTemplate from '../../jst/_reply_form.handlebars'
 import Reply from '../Reply'
 import assignmentRubricDialog from '@canvas/discussions/jquery/assignmentRubricDialog'
 import * as RceCommandShim from '@canvas/rce-command-shim'
-// @ts-expect-error
 import htmlEscape from '@instructure/html-escape'
 import AssignmentExternalTools from '@canvas/assignments/react/AssignmentExternalTools'
 import DirectShareUserModal from '@canvas/direct-sharing/react/components/DirectShareUserModal'
@@ -39,6 +38,9 @@ export default class TopicView extends Backbone.View {
   filterModel: any
   topic: any
   reply?: any
+  model: any
+  $el: any
+  $: any
   $addRootReply: any
   $replyLink: any
   $dueDates: any
@@ -49,6 +51,14 @@ export default class TopicView extends Backbone.View {
   $announcementCog: any
   $AssignmentExternalTools: any
   AssignmentExternalTools?: any
+  trigger: any
+  on: any
+  off: any
+  events: any
+  els: any
+  filter: any
+  addReplyAttachment: any
+  removeReplyAttachment: any
 
   static initClass() {
     this.prototype.events = {
@@ -87,23 +97,20 @@ export default class TopicView extends Backbone.View {
   }
 
   initialize() {
-    // @ts-expect-error
     super.initialize(...arguments)
-    this.model.set('id', ENV.DISCUSSION.TOPIC.ID)
+    this.model.set('id', ENV.DISCUSSION?.TOPIC?.ID)
     // overwrite cid so Reply::getModelAttributes gets the right "go to parent" link
     this.model.cid = 'main'
-    this.model.set('canAttach', ENV.DISCUSSION.PERMISSIONS.CAN_ATTACH_TOPIC)
-    // @ts-expect-error
+    this.model.set('canAttach', ENV.DISCUSSION?.PERMISSIONS?.CAN_ATTACH_TOPIC)
     this.filterModel = this.options.filterModel
     this.filterModel.on('change', this.hideIfFiltering, this)
-    this.topic = new DiscussionTopic({id: ENV.DISCUSSION.TOPIC.ID})
+    this.topic = new DiscussionTopic({id: ENV.DISCUSSION?.TOPIC?.ID})
     // get rid of the /view on /api/vl/courses/x/discusison_topics/x/view
-    this.topic.url = ENV.DISCUSSION.ROOT_URL.replace(/\/view/m, '')
+    this.topic.url = ENV.DISCUSSION?.ROOT_URL?.replace(/\/view/m, '')
     // set initial subscribed state
-    this.topic.set('subscribed', ENV.DISCUSSION.TOPIC.IS_SUBSCRIBED)
+    this.topic.set('subscribed', ENV.DISCUSSION?.TOPIC?.IS_SUBSCRIBED)
 
     // catch when non-root replies are added so we can twiddle the subscribed button
-    // @ts-expect-error
     EntryView.on('addReply', () => this.setSubscribed(true))
     $(window).on('keydown', (e: any) => this.handleKeyDown(e))
   }
@@ -118,15 +125,14 @@ export default class TopicView extends Backbone.View {
 
   afterRender() {
     let $el
-    // @ts-expect-error
     super.afterRender(...arguments)
     assignmentRubricDialog.initTriggers()
-    this.$el.toggleClass('side_comment_discussion', !ENV.DISCUSSION.THREADED)
+    this.$el.toggleClass('side_comment_discussion', !ENV.DISCUSSION?.THREADED)
     this.subscriptionStatusChanged()
     if (($el = this.$('#topic_publish_button'))) {
       this.topic.set({
-        unpublishable: ENV.DISCUSSION.TOPIC.CAN_UNPUBLISH,
-        published: ENV.DISCUSSION.TOPIC.IS_PUBLISHED,
+        unpublishable: ENV.DISCUSSION?.TOPIC?.CAN_UNPUBLISH,
+        published: ENV.DISCUSSION?.TOPIC?.IS_PUBLISHED,
       })
       new PublishButtonView({model: this.topic, el: $el}).render()
     }
@@ -139,7 +145,9 @@ export default class TopicView extends Backbone.View {
           elementToRenderInto,
           'assignment_view',
           parseInt(context_id, 10),
-          ENV.DISCUSSION.IS_ASSIGNMENT ? parseInt(ENV.DISCUSSION.ASSIGNMENT_ID, 10) : undefined,
+          ENV.DISCUSSION?.IS_ASSIGNMENT
+            ? parseInt(ENV.DISCUSSION?.ASSIGNMENT_ID as string, 10)
+            : undefined,
         )
       }
     }
@@ -191,7 +199,7 @@ export default class TopicView extends Backbone.View {
     const subscribed = this.topic.get('subscribed')
     this.$discussionToolbar.removeClass('subscribed')
     this.$discussionToolbar.removeClass('unsubscribed')
-    if (ENV.DISCUSSION.CAN_SUBSCRIBE) {
+    if (ENV.DISCUSSION?.CAN_SUBSCRIBE) {
       if (subscribed) {
         return this.$discussionToolbar.addClass('subscribed')
       } else {
@@ -217,7 +225,7 @@ export default class TopicView extends Backbone.View {
         this.$addRootReply != null ? this.$addRootReply.show() : undefined,
       )
       this.reply.on('save', (entry: any) => {
-        if (!ENV.DISCUSSION.TOPIC.IS_ANNOUNCEMENT) {
+        if (!ENV.DISCUSSION?.TOPIC?.IS_ANNOUNCEMENT && ENV.DISCUSSION) {
           ENV.DISCUSSION.CAN_SUBSCRIBE = true
           this.topic.set('subscription_hold', false)
         }
@@ -243,22 +251,21 @@ export default class TopicView extends Backbone.View {
     // get the element and the method to call
     const el = $(event.currentTarget)
     const method = el.data('event')
-    // @ts-expect-error
+    // @ts-expect-error - Dynamic method call
     return typeof this[method] === 'function' ? this[method](event, el) : undefined
   }
 
   render() {
     // erb renders most of this
-    if (ENV.DISCUSSION.PERMISSIONS.CAN_REPLY) {
+    if (ENV.DISCUSSION?.PERMISSIONS?.CAN_REPLY) {
       const modelData = this.model.toJSON()
       modelData.showBoxReplyLink = true
       modelData.root = true
-      modelData.title = ENV.DISCUSSION.TOPIC.TITLE
+      modelData.title = ENV.DISCUSSION?.TOPIC?.TITLE
       modelData.isForMainDiscussion = true
       const html = replyTemplate(modelData)
       this.$('#discussion_topic').append(html)
     }
-    // @ts-expect-error
     return super.render(...arguments)
   }
 
@@ -273,8 +280,7 @@ export default class TopicView extends Backbone.View {
   addRootReply(event: any) {
     const target = $('#discussion_topic .discussion-reply-form')
     this.addReply(event)
-    // @ts-expect-error
-    $('html, body').animate({scrollTop: target.offset().top - 100})
+    $('html, body').animate({scrollTop: target.offset()!.top - 100})
   }
 
   markAllAsRead(event: any) {
@@ -297,6 +303,7 @@ export default class TopicView extends Backbone.View {
         open={open}
         sourceCourseId={ENV.COURSE_ID}
         contentShare={{content_type: 'discussion_topic', content_id: this.topic.id}}
+        shouldReturnFocus={false}
         onDismiss={() => {
           this.openSendTo(null, false)
           this.$announcementCog.focus()

@@ -20,7 +20,6 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 import {extend} from 'es-toolkit/compat'
 import Entry from './models/Entry'
-// @ts-expect-error
 import htmlEscape from '@instructure/html-escape'
 import replyAttachmentTemplate from '../jst/_reply_attachment.handlebars'
 import preventDefault from '@canvas/util/preventDefault'
@@ -54,7 +53,10 @@ class Reply {
   // @param {view} an EntryView instance
   constructor(view: any, options: any = {}) {
     ;['hide', 'hideNotification', 'submit', 'onPostReplySuccess', 'onPostReplyError'].forEach(
-      m => (this[m] = this[m].bind(this)),
+      m => {
+        // @ts-expect-error - Dynamic method binding
+        this[m] = this[m].bind(this)
+      },
     )
     this.view = view
     this.options = options
@@ -78,7 +80,6 @@ class Reply {
       RichContentEditor.callOnRCE(this.textArea, 'toggle')
       // hide the clicked link, and show the other toggle link.
       // todo: replace .andSelf with .addBack when JQuery is upgraded.
-      // @ts-expect-error
       return $(e.currentTarget).siblings('a').andSelf().toggle()
     })
     this.form.on('click', '.alert .close', preventDefault(this.hideNotification))
@@ -122,7 +123,6 @@ class Reply {
       })
       this.editing = true
     }
-    // @ts-expect-error
     return this.trigger('edit', this)
   }
 
@@ -148,7 +148,6 @@ class Reply {
     this.discussionEntry.removeClass('replying')
     this.editing = false
     this.replaceTextArea(textAreaId)
-    // @ts-expect-error
     this.trigger('hide', this)
     return this.discussionEntry.find('.discussion-reply-action').focus()
   }
@@ -180,7 +179,6 @@ class Reply {
       `<div class='alert alert-info'>${htmlEscape(I18n.t('saving_reply', 'Saving reply...'))}</div>`,
     )
     const entry = new Entry(this.getModelAttributes())
-    // @ts-expect-error
     entry.save(null, {
       success: this.onPostReplySuccess,
       error: this.onPostReplyError,
@@ -230,7 +228,6 @@ class Reply {
       return this.form.formErrors(response)
     } else {
       this.view.model.set('notification', '')
-      // @ts-expect-error
       this.trigger('save', entry)
       return this.textArea.val('')
     }
