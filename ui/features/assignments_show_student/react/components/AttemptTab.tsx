@@ -160,9 +160,9 @@ function SubmissionTypeSelector({
           <Flex wrap="wrap">
             {assignment.submissionTypes.map((type: any) => (
               <Flex.Item as="div" key={type} margin="0 medium 0 0" data-testid={type}>
+                {/* @ts-expect-error */}
                 <SubmissionTypeButton
                   displayName={friendlyTypeName(type)}
-                  {/* @ts-expect-error */}
                   icon={iconsByType[type]}
                   selected={activeSubmissionType === type}
                   onSelected={() => {
