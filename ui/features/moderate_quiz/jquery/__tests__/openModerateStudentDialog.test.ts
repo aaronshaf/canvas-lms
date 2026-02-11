@@ -18,7 +18,7 @@
 
 import $ from 'jquery'
 import 'jquery-migrate' // required
-import openModerateStudentDialog from '../openModerateStudentDialog.ts'
+import openModerateStudentDialog from '../openModerateStudentDialog'
 
 describe.skip('openModerateStudentDialog', () => {
   beforeEach(() => {

@@ -19,8 +19,8 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 import type JQuery from 'jquery'
-import timing from './quiz_timing.ts'
-import openModerateStudentDialog from './openModerateStudentDialog.ts'
+import timing from './quiz_timing'
+import openModerateStudentDialog from './openModerateStudentDialog'
 import '@canvas/jquery/jquery.ajaxJSON'
 import {datetimeString} from '@canvas/datetime/date-functions'
 import '@canvas/jquery/jquery.instructure_forms' /* fillFormData, getFormData */
