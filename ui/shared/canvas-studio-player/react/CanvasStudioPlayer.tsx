@@ -18,11 +18,11 @@
 import React, {CSSProperties, useCallback, useEffect, useRef, useState} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {CaptionMetaData, StudioPlayer, type StudioPlayerProps} from '@instructure/studio-player'
-// @ts-expect-error - no type declarations available
 import {
   captionLanguageForLocale,
   LoadingIndicator,
   sizeMediaPlayer,
+  // @ts-expect-error - no type declarations available
 } from '@instructure/canvas-media'
 import {Alert} from '@instructure/ui-alerts'
 import {Flex} from '@instructure/ui-flex'

@@ -35,10 +35,10 @@ import {ApolloProvider, createClient} from '@canvas/apollo-v3'
 import {CommentLibraryTray} from './components/CommentLibraryTray'
 import {useDebounce} from 'use-debounce'
 import Suggestions from './Suggestions'
-// @ts-expect-error - no type declarations available
 import type {
   SpeedGraderLegacy_CommentBankItemsCountQuery,
   SpeedGraderLegacy_CommentBankItemsQuery,
+  // @ts-expect-error - no type declarations available
 } from '@canvas/graphql/codegen/graphql'
 
 const I18n = createI18nScope('CommentLibrary')
