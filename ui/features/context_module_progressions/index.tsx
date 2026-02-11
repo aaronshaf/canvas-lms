@@ -24,14 +24,23 @@ import PaginatedCollectionView from '@canvas/pagination/backbone/views/Paginated
 import ProgressionStudentView from './backbone/views/ProgressionStudentView'
 
 import React from 'react'
-import {createRoot} from 'react-dom/client'
+import {createRoot, type Root} from 'react-dom/client'
 import ProgressionModuleHeader from './react/components/ProgressionModuleHeader'
+
+type IndexViewOptions = {
+  collection: UserCollection
+  itemView: typeof ProgressionStudentView
+  template: typeof progressionsIndexTemplate
+  modules_url: string
+  autoFetch: boolean
+}
 
 ready(() => {
   class IndexView extends PaginatedCollectionView {
-    constructor(options) {
+    root: Root | null = null
+
+    constructor(options: IndexViewOptions) {
       super(options)
-      this.root = null
     }
 
     // needed to render the react component at the top of the page
@@ -40,6 +49,7 @@ ready(() => {
       const container = document.getElementById('progression-module-header-root')
       if (container) {
         this.root = createRoot(container)
+        // @ts-expect-error - Backbone collection doesn't have full type definitions
         this.root.render(<ProgressionModuleHeader bridge={this.collection} />)
       }
     }
@@ -52,11 +62,14 @@ ready(() => {
     }
   }
 
-  let students
+  let students: UserCollection
   $(document.body).addClass('context_modules2')
 
+  // @ts-expect-error - ENV properties not in global type
   if (ENV.RESTRICTED_LIST) {
+    // @ts-expect-error - ENV properties not in global type
     students = new UserCollection(ENV.VISIBLE_STUDENTS)
+    // @ts-expect-error - UserCollection urls property
     students.urls = null
   } else {
     students = new UserCollection(null, {
@@ -71,15 +84,20 @@ ready(() => {
     collection: students,
     itemView: ProgressionStudentView,
     template: progressionsIndexTemplate,
+    // @ts-expect-error - ENV properties not in global type
     modules_url: ENV.MODULES_URL,
     autoFetch: true,
   })
 
+  // @ts-expect-error - ENV properties not in global type
   if (!ENV.RESTRICTED_LIST) {
     // attach the view's scroll container once it's populated
+    // @ts-expect-error - UserCollection fetch method
     students.fetch({
       success() {
+        // @ts-expect-error - UserCollection length property
         if (students.length === 0) return
+        // @ts-expect-error - IndexView methods and properties
         indexView.resetScrollContainer(
           indexView.$el.find('#progression_students .collectionViewItems'),
         )
@@ -88,11 +106,15 @@ ready(() => {
   }
 
   // we need to have the backbone view in the dom before we can render the react component
+  // @ts-expect-error - IndexView $el property
   indexView.$el.appendTo($('#content'))
 
+  // @ts-expect-error - IndexView render method
   indexView.render()
 
+  // @ts-expect-error - ENV properties not in global type
   if (ENV.RESTRICTED_LIST && ENV.VISIBLE_STUDENTS.length === 1) {
+    // @ts-expect-error - IndexView $el property
     indexView.$el.find('#progression_students').hide()
   }
 })

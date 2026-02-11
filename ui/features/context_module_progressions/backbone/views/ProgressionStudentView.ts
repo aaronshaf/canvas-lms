@@ -23,6 +23,18 @@ import PaginatedCollectionView from '@canvas/pagination/backbone/views/Paginated
 import ProgressionModuleView from './ProgressionModuleView'
 
 export default class ProgressionStudentView extends Backbone.View {
+  model: any
+  $el!: JQuery
+  $index!: JQuery
+  $students!: JQuery
+  $modules!: JQuery
+  progressions?: PaginatedCollectionView
+
+  static tagName = 'li'
+  static className = 'student'
+  static template = template
+  static events = {click: 'showProgressions'}
+
   initialize() {
     super.initialize(...arguments)
     this.$index = this.model.collection.view.$el
@@ -46,8 +58,11 @@ export default class ProgressionStudentView extends Backbone.View {
         include: ['items'],
       },
     })
+    // @ts-expect-error - ModuleCollection custom properties
     modules.student_id = studentId
+    // @ts-expect-error - ModuleCollection custom properties
     modules.syncHeight = this.syncHeight
+    // @ts-expect-error - ModuleCollection fetch method
     modules.fetch()
 
     this.progressions = new PaginatedCollectionView({
@@ -57,7 +72,9 @@ export default class ProgressionStudentView extends Backbone.View {
       autoFetch: true,
     })
 
+    // @ts-expect-error - PaginatedCollectionView render method
     this.progressions.render()
+    // @ts-expect-error - PaginatedCollectionView $el property
     return this.progressions.$el.appendTo(this.$modules)
   }
 
@@ -73,22 +90,25 @@ export default class ProgressionStudentView extends Backbone.View {
     this.model.collection.currentStudentView = this
 
     this.syncHeight()
+    // @ts-expect-error - jQuery attr with boolean value
     this.$el.addClass('active').attr('aria-selected', true)
     if (!this.progressions) {
       return this.createProgressions()
     } else {
+      // @ts-expect-error - PaginatedCollectionView show method
       return this.progressions.show()
     }
   }
 
   hideProgressions() {
-    this.progressions.hide()
+    // @ts-expect-error - PaginatedCollectionView hide method
+    this.progressions?.hide()
     return this.$el.removeClass('active').removeAttr('aria-selected')
   }
 
   syncHeight = () => {
     return setTimeout(() => {
-      this.$students.height(this.$modules.height())
+      this.$students.height(this.$modules.height() || 0)
       return this.$students
         .find('.collectionViewItems')
         .height(
@@ -98,7 +118,11 @@ export default class ProgressionStudentView extends Backbone.View {
   }
 }
 
+// @ts-expect-error - Backbone prototype properties
 ProgressionStudentView.prototype.tagName = 'li'
+// @ts-expect-error - Backbone prototype properties
 ProgressionStudentView.prototype.className = 'student'
+// @ts-expect-error - Backbone prototype properties
 ProgressionStudentView.prototype.template = template
+// @ts-expect-error - Backbone prototype properties
 ProgressionStudentView.prototype.events = {click: 'showProgressions'}
