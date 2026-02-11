@@ -27,8 +27,15 @@ import CollectionView from '@canvas/backbone-collection-view'
 import template from '@canvas/day-substitution/jst/DaySubstitutionCollection.handlebars'
 import ContentMigration from '@canvas/content-migrations/backbone/models/ContentMigration'
 import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
+import type {EnvContentMigrations} from '@canvas/global/env/ContentMigrations'
 
 const I18n = createI18nScope('content_migrations')
+
+declare global {
+  interface Window {
+    ENV: EnvContentMigrations
+  }
+}
 
 ready(() => {
   $(document).ready(() => {
@@ -62,41 +69,49 @@ ready(() => {
     questionBank: null,
     unattachedBankMigrationsEnabled: ENV.NEW_QUIZZES_UNATTACHED_BANK_MIGRATIONS,
   })
+  // @ts-expect-error - Backbone view render() returns 'this', which has .el property
   $('#new_quizzes_migrate').html(importQuizzesNextView.render().el)
   $('#importQuizzesNext').attr('name', 'settings[import_quizzes_next]')
 
+  // @ts-expect-error - Backbone view render() returns 'this', which has .el property
   $('#date_shift').html(dateShiftView.render().el)
+  // @ts-expect-error - Backbone DateShiftView has custom jQuery properties
   dateShiftView.$oldStartDate.val(ENV.OLD_START_DATE).trigger('change')
+  // @ts-expect-error - Backbone DateShiftView has custom jQuery properties
   dateShiftView.$oldEndDate.val(ENV.OLD_END_DATE).trigger('change')
 
   const $start = $('#course_start_at')
   const $end = $('#course_conclude_at')
 
-  function validateDates() {
-    const startAt = $start.data('unfudged-date')
-    const endAt = $end.data('unfudged-date')
+  function validateDates(): JQuery | undefined {
+    const startAt = $start.data('unfudged-date') as string | undefined
+    const endAt = $end.data('unfudged-date') as string | undefined
 
     if (startAt && endAt && endAt < startAt) {
       $('button[type=submit]').prop('disabled', true)
       return $end.errorBox(I18n.t('End date cannot be before start date'))
     }
     $('button[type=submit]').prop('disabled', false)
+    // @ts-expect-error - jQuery plugin method from legacy code
     return $('#copy_course_form').hideErrors()
   }
 
   $start.on('change', function () {
-    dateShiftView.$newStartDate.val($(this).val()).trigger('change')
+    // @ts-expect-error - Backbone DateShiftView has custom jQuery properties
+    dateShiftView.$newStartDate.val($(this).val() as string).trigger('change')
     validateDates()
   })
 
   $end.on('change', function () {
-    dateShiftView.$newEndDate.val($(this).val()).trigger('change')
+    // @ts-expect-error - Backbone DateShiftView has custom jQuery properties
+    dateShiftView.$newEndDate.val($(this).val() as string).trigger('change')
     validateDates()
   })
 
   if (document.querySelector('.import-blueprint-settings')) {
-    $('[name="selective_import"]').change(function () {
-      const ibs = document.querySelector('.import-blueprint-settings')
+    // @ts-expect-error - jQuery event handler with typed 'this' context
+    $('[name="selective_import"]').change(function (this: HTMLInputElement) {
+      const ibs = document.querySelector('.import-blueprint-settings') as HTMLElement
       ibs.style.display = this.value === 'true' ? 'none' : 'block'
     })
   }
