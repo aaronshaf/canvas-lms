@@ -34,18 +34,21 @@ extend(MigrationConverterView, ValidatedFormView)
 
 // This is an abstract class that is inherited
 // from by other MigrationConverter views
-function MigrationConverterView() {
+function MigrationConverterView(this: any) {
   this.exitUploadingState = this.exitUploadingState.bind(this)
   this.enterUploadingState = this.enterUploadingState.bind(this)
   this.resetForm = this.resetForm.bind(this)
+  // @ts-expect-error
   return MigrationConverterView.__super__.constructor.apply(this, arguments)
 }
 
 MigrationConverterView.optionProperty('selectOptions')
 
+// @ts-expect-error
 MigrationConverterView.prototype.template = template
 
-MigrationConverterView.prototype.initialize = function () {
+MigrationConverterView.prototype.initialize = function (this: any) {
+  // @ts-expect-error
   MigrationConverterView.__super__.initialize.apply(this, arguments)
   return $.subscribe('resetForm', this.resetForm)
 }
@@ -67,7 +70,8 @@ MigrationConverterView.prototype.events = lodashExtend(
   },
 )
 
-MigrationConverterView.prototype.toJSON = function (json) {
+MigrationConverterView.prototype.toJSON = function (this: any, json: any) {
+  // @ts-expect-error
   json = MigrationConverterView.__super__.toJSON.apply(this, arguments)
   json.selectOptions = this.selectOptions || ENV.SELECT_OPTIONS
   return json
@@ -78,10 +82,10 @@ MigrationConverterView.prototype.toJSON = function (json) {
 // converter div if there were any previous
 // items set.
 
-MigrationConverterView.prototype.renderConverter = function (converter) {
+MigrationConverterView.prototype.renderConverter = function (this: any, converter: any) {
   if (converter) {
     return defer(
-      (function (_this) {
+      (function (_this: any) {
         return function () {
           _this.$converter.html(converter.render().$el)
           return _this.trigger('converterRendered')
@@ -100,7 +104,7 @@ MigrationConverterView.prototype.renderConverter = function (converter) {
 // it's migration_type to the view being shown.
 //
 // @api private
-MigrationConverterView.prototype.selectConverter = function (_event) {
+MigrationConverterView.prototype.selectConverter = function (this: any, _event: any) {
   this.$formActions.show()
   this.model.resetModel()
   this.$chooseMigrationConverter.attr('aria-activedescendant', this.$chooseMigrationConverter.val())
@@ -118,19 +122,20 @@ MigrationConverterView.prototype.selectConverter = function (_event) {
 //
 // @expects event
 // @api ValidatedFormView override
-MigrationConverterView.prototype.submit = function (_event) {
+MigrationConverterView.prototype.submit = function (this: any, _event: any) {
   this.enterUploadingState()
+  // @ts-expect-error
   const dfd = MigrationConverterView.__super__.submit.apply(this, arguments)
   if (dfd && typeof dfd === 'object') {
     dfd.always(
-      (function (_this) {
+      (function (_this: any) {
         return function () {
           return _this.exitUploadingState()
         }
       })(this),
     )
     return dfd.done(
-      (function (_this) {
+      (function (_this: any) {
         return function () {
           $.publish('migrationCreated', _this.model.attributes)
           _this.model.resetModel()
@@ -148,7 +153,7 @@ MigrationConverterView.prototype.submit = function (_event) {
 // when switching dropdowns so should be fine.
 //
 // @api private
-MigrationConverterView.prototype.resetForm = function () {
+MigrationConverterView.prototype.resetForm = function (this: any) {
   this.$formActions.hide()
   this.$converter.empty()
   return this.$chooseMigrationConverter.val('none')
@@ -158,7 +163,7 @@ MigrationConverterView.prototype.resetForm = function () {
 // enables the warning about navigating away from the page
 //
 // @api private
-MigrationConverterView.prototype.enterUploadingState = function () {
+MigrationConverterView.prototype.enterUploadingState = function (this: any) {
   this.btnText = this.$submitBtn.val()
   this.$submitBtn.val(I18n.t('uploading', 'Uploading...'))
   $(window).on('beforeunload', function () {
@@ -181,23 +186,22 @@ MigrationConverterView.prototype.enterUploadingState = function () {
 // (otherwise, a 100% bar will briefly appear when a second content migration is started)
 //
 // @api private
-MigrationConverterView.prototype.exitUploadingState = function () {
+MigrationConverterView.prototype.exitUploadingState = function (this: any) {
   $(window).off('beforeunload')
   $('#migration_upload_progress_container').hide()
-  ReactDOM.unmountComponentAtNode(document.getElementById('migration_upload_progress_bar'))
+  ReactDOM.unmountComponentAtNode(document.getElementById('migration_upload_progress_bar')!)
   return this.$submitBtn.val(this.btnText)
 }
 
-MigrationConverterView.prototype.afterRender = function () {
-  // eslint-disable-next-line react/no-children-prop
-  const alert = React.createElement(Alert, {
-    children: I18n.t(
-      'Previously imported content from the same course will be replaced. Manually added content will remain.',
-    ),
-    variant: 'warning',
-    hasShadow: false,
-    margin: '0 0 medium 0',
-  })
+MigrationConverterView.prototype.afterRender = function (this: any) {
+  const alert = (
+    // @ts-expect-error
+    <Alert variant="warning" hasShadow={false} margin="0 0 medium 0">
+      {I18n.t(
+        'Previously imported content from the same course will be replaced. Manually added content will remain.',
+      )}
+    </Alert>
+  )
   if (this.$overwriteWarning[0]) {
     // eslint-disable-next-line react/no-render-return-value
     return ReactDOM.render(alert, this.$overwriteWarning[0])

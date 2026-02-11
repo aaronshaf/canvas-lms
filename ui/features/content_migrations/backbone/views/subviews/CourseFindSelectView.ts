@@ -32,16 +32,41 @@ import {encodeQueryString} from '@instructure/query-string-encoding'
 
 const I18n = createI18nScope('content_migrations')
 
+interface Course {
+  id: string
+  label: string
+  term: string
+  enrollment_start?: string
+}
+
+interface CoursesByTerm {
+  term: string
+  courses: Course[]
+}
+
+interface AutocompleteItem {
+  label: string
+  id: string
+  value: string
+}
+
+interface CourseFindSelectViewOptions extends Backbone.ViewOptions<Backbone.Model> {
+  current_user_id?: string
+  show_select?: boolean
+}
+
 extend(CourseFindSelectView, Backbone.View)
 
 CourseFindSelectView.optionProperty('current_user_id', 'show_select')
 
+// @ts-expect-error
 CourseFindSelectView.prototype.template = template
 
-function CourseFindSelectView() {
+function CourseFindSelectView(this: any) {
   this.updateSearch = this.updateSearch.bind(this)
   this.updateSelect = this.updateSelect.bind(this)
   this.includeConcludedCourses = true
+  // @ts-expect-error
   CourseFindSelectView.__super__.constructor.apply(this, arguments)
 }
 
@@ -56,16 +81,17 @@ CourseFindSelectView.prototype.events = {
   'change #include_completed_courses': 'toggleConcludedCourses',
 }
 
-CourseFindSelectView.prototype.render = function () {
+CourseFindSelectView.prototype.render = function (this: any) {
+  // @ts-expect-error
   CourseFindSelectView.__super__.render.apply(this, arguments)
   if (this.options.show_select) {
     const dfd = this.getManageableCourses()
     this.$el.disableWhileLoading(dfd)
     return dfd.done(
-      (function (_this) {
-        return function (data) {
+      (function (_this: any) {
+        return function (data: Course[]) {
           _this.courses = data
-          const grouped = groupBy(_this.courses, course => course.term)
+          const grouped = groupBy(_this.courses, (course: Course) => course.term)
           _this.coursesByTerms = Object.entries(grouped)
             .map(([key, value]) => ({
               term: key,
@@ -76,13 +102,14 @@ CourseFindSelectView.prototype.render = function () {
               const bstart = b.courses[0].enrollment_start
               let val = 0
               if (astart || bstart) {
-                val = new Date(bstart) - new Date(astart)
+                val = new Date(bstart).getTime() - new Date(astart).getTime()
               }
               if (val === 0) {
                 val = natcompare.strings(a.term, b.term)
               }
               return val
             })
+          // @ts-expect-error
           return CourseFindSelectView.__super__.render.apply(_this, arguments)
         }
       })(this),
@@ -90,12 +117,12 @@ CourseFindSelectView.prototype.render = function () {
   }
 }
 
-CourseFindSelectView.prototype.afterRender = function () {
+CourseFindSelectView.prototype.afterRender = function (this: any) {
   this.$courseSearchField.autocomplete({
     source: this.manageableCourseUrl(),
     select: this.updateSelect,
   })
-  this.$courseSearchField.data('ui-autocomplete')._renderItem = function (ul, item) {
+  this.$courseSearchField.data('ui-autocomplete')._renderItem = function (ul: any, item: any) {
     return $(autocompleteItemTemplate(item)).appendTo(ul)
   }
   // Accessiblity Hack. If you find a better solution please fix this. This makes it so the whole form isn't read
@@ -115,7 +142,8 @@ CourseFindSelectView.prototype.afterRender = function () {
   })
 }
 
-CourseFindSelectView.prototype.toJSON = function () {
+CourseFindSelectView.prototype.toJSON = function (this: any) {
+  // @ts-expect-error
   const json = CourseFindSelectView.__super__.toJSON.apply(this, arguments)
   json.terms = this.coursesByTerms
   json.include_concluded = this.includeConcludedCourses
@@ -126,7 +154,7 @@ CourseFindSelectView.prototype.toJSON = function () {
 // Grab a list of courses from the server via the managebleCourseUrl. Disable
 // this view and re-render.
 // @api private
-CourseFindSelectView.prototype.getManageableCourses = function () {
+CourseFindSelectView.prototype.getManageableCourses = function (this: any) {
   const dfd = $.ajaxJSON(this.manageableCourseUrl(), 'GET', {}, {}, {}, {})
   this.$el.disableWhileLoading(dfd)
   return dfd
@@ -135,7 +163,7 @@ CourseFindSelectView.prototype.getManageableCourses = function () {
 // Turn on a param that lets this view know to filter terms with concluded
 // courses. Also, automatically update the dropdown menu with items
 // that include concluded courses.
-CourseFindSelectView.prototype.toggleConcludedCourses = function () {
+CourseFindSelectView.prototype.toggleConcludedCourses = function (this: any) {
   this.includeConcludedCourses = !this.includeConcludedCourses
   this.$courseSearchField.autocomplete('option', 'source', this.manageableCourseUrl())
   return this.render()
@@ -145,8 +173,8 @@ CourseFindSelectView.prototype.toggleConcludedCourses = function () {
 // that this user can manage. jQuery autocomplete will add the param
 // "term=typed in stuff" automagically so we don't have to worry about
 // refining the search term
-CourseFindSelectView.prototype.manageableCourseUrl = function () {
-  const params = {
+CourseFindSelectView.prototype.manageableCourseUrl = function (this: any) {
+  const params: Record<string, string> = {
     current_course_id: ENV.COURSE_ID,
   }
   if (this.includeConcludedCourses) {
@@ -160,8 +188,8 @@ CourseFindSelectView.prototype.manageableCourseUrl = function () {
 // objects look like
 //   {label: 'Plant Science', value: 'Plant Science', id: '42'}
 // @api private
-CourseFindSelectView.prototype.autocompleteCourses = function () {
-  return map(this.courses, function (course) {
+CourseFindSelectView.prototype.autocompleteCourses = function (this: any): AutocompleteItem[] {
+  return map(this.courses, function (course: Course) {
     return {
       label: course.label,
       id: course.id,
@@ -175,7 +203,7 @@ CourseFindSelectView.prototype.autocompleteCourses = function () {
 // source course id
 // @input (jqueryEvent, uiObj)
 // @api private
-CourseFindSelectView.prototype.updateSelect = function (event, ui) {
+CourseFindSelectView.prototype.updateSelect = function (this: any, event: any, ui: any) {
   this.setSourceCourseId(ui.item.id)
   if (this.$courseSelect.length) {
     this.$courseSelect.val(ui.item.id)
@@ -187,14 +215,14 @@ CourseFindSelectView.prototype.updateSelect = function (event, ui) {
 // field to keep the inputs in sync. Also set the source course id
 // @input jqueryEvent
 // @api private
-CourseFindSelectView.prototype.updateSearch = function (event) {
+CourseFindSelectView.prototype.updateSearch = function (this: any, event: any) {
   const value = event.target.value && String(event.target.value)
   this.setSourceCourseId(value)
   const courses = this.autocompleteCourses()
   const courseObj = find(
     courses,
-    (function (_this) {
-      return function (course) {
+    (function (_this: any) {
+      return function (course: AutocompleteItem) {
         return course.id === value
       }
     })(this),
@@ -206,10 +234,11 @@ CourseFindSelectView.prototype.updateSearch = function (event) {
 // Given an id, set the source_course_id on the backbone model.
 // @input int
 // @api private
-CourseFindSelectView.prototype.setSourceCourseId = function (id) {
-  let course, ref
+CourseFindSelectView.prototype.setSourceCourseId = function (this: any, id: string) {
+  let course
+  const ref = ENV.COURSE_ID
 
-  if (id === ((ref = ENV.COURSE_ID) != null ? ref.toString() : void 0)) {
+  if (id === (ref != null ? ref.toString() : void 0)) {
     this.$selectWarning.show()
   } else {
     this.$selectWarning.hide()
@@ -218,7 +247,7 @@ CourseFindSelectView.prototype.setSourceCourseId = function (id) {
   settings.source_course_id = id
   this.model.set('settings', settings)
   if (
-    (course = find(this.courses, function (c) {
+    (course = find(this.courses, function (c: Course) {
       return c.id === id
     }))
   ) {
@@ -234,8 +263,8 @@ CourseFindSelectView.prototype.setSourceCourseId = function (id) {
 // @expects void
 // @returns void | object (error)
 // @api private
-CourseFindSelectView.prototype.validations = function () {
-  const errors = {}
+CourseFindSelectView.prototype.validations = function (this: any) {
+  const errors: Record<string, Array<{type: string; message: string}>> = {}
   const settings = this.model.get('settings')
 
   if (!(settings != null ? settings.source_course_id : void 0)) {

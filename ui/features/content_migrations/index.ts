@@ -22,9 +22,9 @@ ready(() => {
   // Eventually when the feature flag is retired
   // we can divorce from these shenanigans
   if (document.getElementById('instui_content_migrations')) {
-    import('./instui_setup')
+    void import('./instui_setup')
   } else {
-    import('./setup')
+    void import('./setup')
   }
 })
 
