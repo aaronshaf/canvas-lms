@@ -18,7 +18,7 @@
 
 import ready from '@instructure/ready'
 
-function isSafariVersion13OrGreater() {
+function isSafariVersion13OrGreater(): boolean {
   const match = /Version\/(\d+).+Safari/.exec(navigator.userAgent)
   return match ? parseInt(match[1], 10) >= 13 : false
 }
@@ -34,7 +34,7 @@ ready(() => {
           'Registration succeeded. Refresh page to proxy Inst-FS requests through ServiceWorker.',
         )
       })
-      .catch(function (err) {
+      .catch((err: Error) => {
         console.log('Inst-FS ServiceWorker registration failed. :(', err)
       })
   }
