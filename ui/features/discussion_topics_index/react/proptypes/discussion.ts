@@ -15,20 +15,21 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+import type {Author} from '@canvas/users/react/proptypes/user'
 
-import {createStore, applyMiddleware} from 'redux'
-import {thunk} from 'redux-thunk'
-import rootReducer from './rootReducer'
-
-export default function configStore(initialState) {
-  const middleware = [
-    thunk,
-
-    // this is so redux-logger is not included in the production webpack bundle
-    process.env.NODE_ENV !== 'production' &&
-      // this is so redux-logger is not included in the test output
-      process.env.NODE_ENV !== 'test' &&
-      require('redux-logger').logger,
-  ].filter(Boolean)
-  return applyMiddleware(...middleware)(createStore)(rootReducer, initialState)
+export interface Discussion {
+  id: string
+  position?: number
+  published: boolean
+  title: string
+  message?: string
+  posted_at: string
+  author: Author
+  read_state: 'read' | 'unread'
+  unread_count: number
+  subscribed: boolean
 }
+
+export type DiscussionList = Discussion[]
+
+export default Discussion

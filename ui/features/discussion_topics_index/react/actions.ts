@@ -25,6 +25,35 @@ import {createPaginationActions} from '@canvas/pagination/redux/actions'
 
 const I18n = createI18nScope('discussions_v2')
 
+interface Discussion {
+  id: string
+  title: string
+  pinned?: boolean
+  subscribed?: boolean
+  subscription_hold?: string
+  permissions?: {
+    delete?: boolean
+  }
+  focusOn?: string
+  filtered?: boolean
+  [key: string]: any
+}
+
+interface State {
+  allDiscussions: {[id: string]: Discussion}
+  pinnedDiscussionIds: string[]
+  unpinnedDiscussionIds: string[]
+  closedForCommentsDiscussionIds: string[]
+  userSettings: any
+  contextType: string
+  contextId: string
+  currentUserId: string
+  [key: string]: any
+}
+
+type GetState = () => State
+type Dispatch = (action: any) => void
+
 const getDiscussionOpts = {
   fetchAll: true,
   totalCount: ENV.totalDiscussions,
@@ -74,11 +103,16 @@ const types = [
   'SET_COPY_TO_OPEN',
   'SET_SEND_TO',
   'SET_SEND_TO_OPEN',
-]
+] as const
 
+// @ts-expect-error - redux-actions types are complex
 const actions = Object.assign(createActions(...types), discussionActions.actionCreators)
 
-function copyAndUpdateDiscussion(discussion, updatedFields, focusOn) {
+function copyAndUpdateDiscussion(
+  discussion: Discussion,
+  updatedFields: Record<string, any>,
+  focusOn?: string,
+): Discussion {
   const discussionCopy = {...discussion}
   Object.keys(updatedFields).forEach(key => {
     if (!Object.prototype.hasOwnProperty.call(discussion, key)) {
@@ -93,12 +127,12 @@ function copyAndUpdateDiscussion(discussion, updatedFields, focusOn) {
 }
 
 actions.updateDiscussion = function (
-  discussion,
-  updatedFields,
-  {successMessage, failMessage},
-  focusOn,
+  discussion: Discussion,
+  updatedFields: Record<string, any>,
+  {successMessage, failMessage}: {successMessage?: string; failMessage?: string},
+  focusOn?: string,
 ) {
-  return (dispatch, getState) => {
+  return (dispatch: Dispatch, getState: GetState) => {
     dispatch(actions.updateDiscussionStart())
     apiClient
       .updateDiscussion(getState(), discussion, updatedFields)
@@ -143,8 +177,12 @@ actions.updateDiscussion = function (
 // and setting the order of the pin). Start by updating the store with
 // this information, then rollback based on if either of the API calls
 // failed.
-actions.handleDrop = function (discussion, updatedFields, order) {
-  return (dispatch, getState) => {
+actions.handleDrop = function (
+  discussion: Discussion,
+  updatedFields: Record<string, any>,
+  order?: string[],
+) {
+  return (dispatch: Dispatch, getState: GetState) => {
     const originalOrder = order ? getState().pinnedDiscussionIds.slice() : undefined
     const discussionCopy = copyAndUpdateDiscussion(discussion, updatedFields)
     dispatch(actions.dragAndDropStart({discussion: discussionCopy, order}))
@@ -166,7 +204,7 @@ actions.handleDrop = function (discussion, updatedFields, order) {
             // the pinned order here. By default, if this is a discussion that
             // that just got moved to the pinned container, we will move it to
             // the bottom of the pinned discussions on error
-            if (discussionCopy.pinned) {
+            if (discussionCopy.pinned && originalOrder) {
               originalOrder.push(discussionCopy.id)
             }
             dispatch(
@@ -193,8 +231,14 @@ actions.handleDrop = function (discussion, updatedFields, order) {
   }
 }
 
-actions.searchDiscussions = function searchDiscussions({searchTerm, filter}) {
-  return (dispatch, getState) => {
+actions.searchDiscussions = function searchDiscussions({
+  searchTerm,
+  filter,
+}: {
+  searchTerm: string
+  filter: string
+}) {
+  return (dispatch: Dispatch, getState: GetState) => {
     dispatch(actions.updateDiscussionsSearch({searchTerm, filter}))
     const {allDiscussions} = getState()
     const unfiltered = Object.keys(allDiscussions).filter(id => {
@@ -208,15 +252,18 @@ actions.searchDiscussions = function searchDiscussions({searchTerm, filter}) {
   }
 }
 
-function nextFocusableDiscussion(state, discussionId) {
+function nextFocusableDiscussion(
+  state: State,
+  discussionId: string,
+): {focusOn?: string; focusId?: string} {
   const {allDiscussions} = state
   const pinned = state.pinnedDiscussionIds
   const unpinned = state.unpinnedDiscussionIds
   const closed = state.closedForCommentsDiscussionIds
 
   // Find which category has the requested discussion
-  let container = null
-  let index = null
+  let container: string[] | null = null
+  let index: number | null = null
   const pinnedIndex = pinned.indexOf(discussionId)
   const unpinnedIndex = unpinned.indexOf(discussionId)
   const closedIndex = closed.indexOf(discussionId)
@@ -240,7 +287,8 @@ function nextFocusableDiscussion(state, discussionId) {
   // requests you put focus back on the toggle button will also handle if
   // there aren't any elements left in this container, and push the focus back
   // to the containers toggle button as well.
-  let focusId, focusOn
+  let focusId: string | undefined
+  let focusOn: string | undefined
   if (index === 0) {
     const nextDiscussion = allDiscussions[container[index + 1]]
     if (nextDiscussion) {
@@ -261,8 +309,8 @@ function nextFocusableDiscussion(state, discussionId) {
   }
 }
 
-actions.deleteDiscussion = function (discussion) {
-  return (dispatch, getState) => {
+actions.deleteDiscussion = function (discussion: Discussion) {
+  return (dispatch: Dispatch, getState: GetState) => {
     const state = getState()
     dispatch(actions.deleteDiscussionStart())
     apiClient
@@ -291,11 +339,11 @@ actions.deleteDiscussion = function (discussion) {
 }
 
 actions.deleteFocusDone = function () {
-  return dispatch => dispatch(actions.deleteFocusCleanup())
+  return (dispatch: Dispatch) => dispatch(actions.deleteFocusCleanup())
 }
 
 actions.fetchUserSettings = function () {
-  return (dispatch, getState) => {
+  return (dispatch: Dispatch, getState: GetState) => {
     dispatch(actions.getUserSettingsStart())
     apiClient
       .getUserSettings(getState())
@@ -309,7 +357,7 @@ actions.fetchUserSettings = function () {
 }
 
 actions.fetchCourseSettings = function () {
-  return (dispatch, getState) => {
+  return (dispatch: Dispatch, getState: GetState) => {
     dispatch(actions.getCourseSettingsStart())
     apiClient
       .getCourseSettings(getState())
@@ -322,7 +370,12 @@ actions.fetchCourseSettings = function () {
   }
 }
 
-function saveCourseSettings(dispatch, getState, userSettings, courseSettings) {
+function saveCourseSettings(
+  dispatch: Dispatch,
+  getState: GetState,
+  userSettings: any,
+  courseSettings: any,
+) {
   apiClient
     .saveCourseSettings(getState(), courseSettings)
     .then(resp => {
@@ -335,8 +388,8 @@ function saveCourseSettings(dispatch, getState, userSettings, courseSettings) {
     })
 }
 
-actions.saveSettings = function (userSettings, courseSettings) {
-  return (dispatch, getState) => {
+actions.saveSettings = function (userSettings: any, courseSettings?: any) {
+  return (dispatch: Dispatch, getState: GetState) => {
     dispatch(actions.savingSettingsStart())
     const userSettingsCopy = Object.assign(getState().userSettings, {})
     userSettingsCopy.manual_mark_as_read = userSettings.markAsRead
@@ -357,8 +410,8 @@ actions.saveSettings = function (userSettings, courseSettings) {
   }
 }
 
-actions.duplicateDiscussion = function (discussionId) {
-  return (dispatch, getState) => {
+actions.duplicateDiscussion = function (discussionId: string) {
+  return (dispatch: Dispatch, getState: GetState) => {
     // This is a no-op, just here to maintain a pattern
     dispatch(actions.duplicateDiscussionStart())
     apiClient
@@ -392,8 +445,8 @@ actions.duplicateDiscussion = function (discussionId) {
 
 // This is a different action then the update discussion because it hits an
 // entirely different endpoint on the backend.
-actions.toggleSubscriptionState = function (discussion) {
-  return (dispatch, getState) => {
+actions.toggleSubscriptionState = function (discussion: Discussion) {
+  return (dispatch: Dispatch, getState: GetState) => {
     if (discussion.subscription_hold === undefined) {
       dispatch(actions.toggleSubscribeStart())
       const toggleFunc = discussion.subscribed
@@ -421,9 +474,9 @@ actions.toggleSubscriptionState = function (discussion) {
   }
 }
 
-const actionTypes = types.reduce(
+const actionTypes: Record<string, string> = types.reduce(
   (typesMap, actionType) => Object.assign(typesMap, {[actionType]: actionType}),
-  {},
+  {} as Record<string, string>,
 )
 
 export {actionTypes, actions as default}

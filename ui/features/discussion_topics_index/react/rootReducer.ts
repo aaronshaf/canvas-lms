@@ -32,8 +32,8 @@ import copyToReducer from './reducers/copyToReducer'
 import sendToReducer from './reducers/sendToReducer'
 
 const identity =
-  (defaultState = null) =>
-  state =>
+  <T>(defaultState: T = null as T) =>
+  (state?: T): T =>
     state === undefined ? defaultState : state
 
 export default combineReducers({

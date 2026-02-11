@@ -23,6 +23,10 @@ ready(() => {
   const [contextType, contextId] = ENV.context_asset_string.split('_')
 
   const root = document.querySelector('#content')
+  if (!root) {
+    throw new Error('Could not find #content element')
+  }
+
   const app = createDiscussionsIndex(root, {
     permissions: ENV.permissions,
     roles: ENV.current_user_roles,

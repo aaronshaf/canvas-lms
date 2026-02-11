@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {createRoot} from 'react-dom/client'
+import {createRoot, type Root} from 'react-dom/client'
 import {Provider} from 'react-redux'
 import {ApolloProvider, createClient} from '@canvas/apollo-v3'
 import AlertManager from '@canvas/alerts/react/AlertManager'
@@ -28,9 +28,31 @@ import createStore from './store'
 
 const client = createClient()
 
-export default function createDiscussionsIndex(rootElement, data = {}) {
+interface DiscussionsIndexData {
+  permissions?: any
+  roles?: any
+  masterCourseData?: any
+  discussionTopicMenuTools?: any[]
+  discussionTopicIndexMenuTools?: any[]
+  contextCodes?: string[]
+  currentUserId?: string
+  DIRECT_SHARE_ENABLED?: boolean
+  COURSE_ID?: string
+  contextType?: string
+  contextId?: string
+}
+
+interface DiscussionsIndexApp {
+  unmount: () => void
+  render: () => void
+}
+
+export default function createDiscussionsIndex(
+  rootElement: HTMLElement,
+  data: DiscussionsIndexData = {},
+): DiscussionsIndexApp {
   const store = createStore(data)
-  const root = createRoot(rootElement)
+  const root: Root = createRoot(rootElement)
 
   function unmount() {
     root.unmount()

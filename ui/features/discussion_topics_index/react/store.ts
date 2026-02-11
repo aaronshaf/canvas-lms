@@ -15,22 +15,20 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import {shape, arrayOf, string, number, bool, oneOf} from 'prop-types'
-import {author} from '@canvas/users/react/proptypes/user'
 
-const discussion = shape({
-  id: string.isRequired,
-  position: number,
-  published: bool.isRequired,
-  title: string.isRequired,
-  message: string,
-  posted_at: string.isRequired,
-  author: author.isRequired,
-  read_state: oneOf(['read', 'unread']).isRequired,
-  unread_count: number.isRequired,
-  subscribed: bool.isRequired,
-})
+import {createStore, applyMiddleware, type Middleware} from 'redux'
+import {thunk} from 'redux-thunk'
+import rootReducer from './rootReducer'
 
-export const discussionList = arrayOf(discussion)
+export default function configStore(initialState?: any) {
+  const middleware: Middleware[] = [
+    thunk,
 
-export default discussion
+    // this is so redux-logger is not included in the production webpack bundle
+    process.env.NODE_ENV !== 'production' &&
+      // this is so redux-logger is not included in the test output
+      process.env.NODE_ENV !== 'test' &&
+      require('redux-logger').logger,
+  ].filter(Boolean) as Middleware[]
+  return applyMiddleware(...middleware)(createStore)(rootReducer, initialState)
+}
