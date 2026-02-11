@@ -54,14 +54,12 @@ const RosterTableRoles: React.FC<RosterTableRolesProps> = ({enrollments}) => {
 
     if (type === OBSERVER_ENROLLMENT) {
       return associatedUser ? (
-        // @ts-expect-error - InstUI Text props are complex
         <Text as="div" wrap="break-word" key={`role-${associatedUser.id}`}>
           {I18n.t('Observing: %{user_name}', {user_name: associatedUser.name})}
         </Text>
       ) : null
     }
     return (
-      // @ts-expect-error - InstUI Text props are complex
       <Text as="div" wrap="break-word" key={`role-${id}`}>
         {getRoleName(enrollment)}
       </Text>

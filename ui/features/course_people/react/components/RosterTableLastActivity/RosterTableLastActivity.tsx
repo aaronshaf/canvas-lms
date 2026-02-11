@@ -39,7 +39,6 @@ const RosterTableLastActivity: React.FC<RosterTableLastActivityProps> = ({enroll
 
     return (
       <div key={`last-activity-${enrollment.id}`}>
-        {/* @ts-expect-error - InstUI Tooltip props are complex */}
         <Tooltip
           renderTip={datetimeString(enrollment.lastActivityAt, {timezone: ENV.CONTEXT_TIMEZONE})}
         >

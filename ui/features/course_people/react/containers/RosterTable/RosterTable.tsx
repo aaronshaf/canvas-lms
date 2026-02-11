@@ -82,7 +82,9 @@ const idProps = (name: string) => ({
 
 const RosterTable: React.FC<RosterTableProps> = ({data}) => {
   const {view_user_logins, read_sis, read_reports, can_allow_admin_actions, manage_students} =
+    // @ts-expect-error - ENV.permissions not in GlobalEnv type
     ENV?.permissions || {}
+  // @ts-expect-error - ENV.course.hideSectionsOnCourseUsersPage not in type
   const showCourseSections = ENV?.course?.hideSectionsOnCourseUsersPage === false
 
   const tableRows = data.course.usersConnection.nodes.map(node => {
@@ -95,7 +97,6 @@ const RosterTable: React.FC<RosterTableProps> = ({data}) => {
     const sectionNames = enrollments.map(enrollment => {
       if (enrollment.type === OBSERVER_ENROLLMENT) return null
       return (
-        // @ts-expect-error - InstUI Text props are complex
         <Text as="div" wrap="break-word" key={`section-${enrollment.id}`}>
           {enrollment.section.name}
         </Text>
@@ -103,13 +104,10 @@ const RosterTable: React.FC<RosterTableProps> = ({data}) => {
     })
 
     return (
-      // @ts-expect-error - InstUI Table.Row props are complex
       <Table.Row key={_id} data-testid="roster-table-data-row">
-        {/* @ts-expect-error - InstUI Table.Cell props are complex */}
         <Table.Cell>
           <AvatarLink avatarUrl={avatarUrl} name={name} href={htmlUrl} />
         </Table.Cell>
-        {/* @ts-expect-error - InstUI Table.Cell props are complex */}
         <Table.Cell data-testid="roster-table-name-cell">
           <NameLink
             studentId={_id}
@@ -121,35 +119,28 @@ const RosterTable: React.FC<RosterTableProps> = ({data}) => {
           <StatusPill state={state} />
         </Table.Cell>
         {view_user_logins && (
-          // @ts-expect-error - InstUI Table.Cell props are complex
           <Table.Cell>
-            {/* @ts-expect-error - InstUI Text props are complex */}
             <Text wrap="break-word">{loginId}</Text>
           </Table.Cell>
         )}
         {read_sis && (
-          // @ts-expect-error - InstUI Table.Cell props are complex
           <Table.Cell>
-            {/* @ts-expect-error - InstUI Text props are complex */}
             <Text wrap="break-word">{sisId}</Text>
           </Table.Cell>
         )}
-        {/* @ts-expect-error - InstUI Table.Cell props are complex */}
         {showCourseSections && <Table.Cell>{sectionNames}</Table.Cell>}
-        {/* @ts-expect-error - InstUI Table.Cell props are complex */}
         <Table.Cell>
+          {/* @ts-expect-error - Enrollment type mismatch between RosterTableRoles and RosterTable */}
           <RosterTableRoles enrollments={enrollments} />
         </Table.Cell>
         {read_reports && (
-          // @ts-expect-error - InstUI Table.Cell props are complex
           <Table.Cell>
+            {/* @ts-expect-error - Enrollment type mismatch between RosterTableLastActivity and RosterTable */}
             <RosterTableLastActivity enrollments={enrollments} />
           </Table.Cell>
         )}
         {read_reports && (
-          // @ts-expect-error - InstUI Table.Cell props are complex
           <Table.Cell>
-            {/* @ts-expect-error - InstUI Text props are complex */}
             <Text wrap="break-word">
               {totalActivityTime &&
                 totalActivityTime > 0 &&
@@ -157,7 +148,6 @@ const RosterTable: React.FC<RosterTableProps> = ({data}) => {
             </Text>
           </Table.Cell>
         )}
-        {/* @ts-expect-error - InstUI Table.Cell props are complex */}
         <Table.Cell>
           {(canManageUser || canRemoveUser) && <RosterTableRowMenuButton name={name} />}
         </Table.Cell>
@@ -166,58 +156,44 @@ const RosterTable: React.FC<RosterTableProps> = ({data}) => {
   })
 
   return (
-    // @ts-expect-error - InstUI Table props are complex
     <Table caption={I18n.t('Course Roster')}>
-      {/* @ts-expect-error - InstUI Table.Head props are complex */}
       <Table.Head data-testid="roster-table-head">
-        {/* @ts-expect-error - InstUI Table.Row props are complex */}
         <Table.Row>
-          {/* @ts-expect-error - InstUI Table.ColHeader props are complex */}
           <Table.ColHeader {...idProps('colheader-avatar')} width="64px">
             <ScreenReaderContent>{I18n.t('Profile Pictures')}</ScreenReaderContent>
           </Table.ColHeader>
-          {/* @ts-expect-error - InstUI Table.ColHeader props are complex */}
           <Table.ColHeader {...idProps('colheader-name')}>{I18n.t('Name')}</Table.ColHeader>
           {view_user_logins && (
-            // @ts-expect-error - InstUI Table.ColHeader props are complex
             <Table.ColHeader {...idProps('colheader-login-id')}>
               {I18n.t('Login ID')}
             </Table.ColHeader>
           )}
           {read_sis && (
-            // @ts-expect-error - InstUI Table.ColHeader props are complex
             <Table.ColHeader {...idProps('colheader-sis-id')}>{I18n.t('SIS ID')}</Table.ColHeader>
           )}
           {showCourseSections && (
-            // @ts-expect-error - InstUI Table.ColHeader props are complex
             <Table.ColHeader {...idProps('colheader-section')}>{I18n.t('Section')}</Table.ColHeader>
           )}
-          {/* @ts-expect-error - InstUI Table.ColHeader props are complex */}
           <Table.ColHeader {...idProps('colheader-role')}>
-            {/* @ts-expect-error - InstUI View props are complex */}
             <View as="div" minWidth="9ch">
               {I18n.t('Role')}
             </View>
           </Table.ColHeader>
           {read_reports && (
-            // @ts-expect-error - InstUI Table.ColHeader props are complex
             <Table.ColHeader {...idProps('colheader-last-activity')}>
               {I18n.t('Last Activity')}
             </Table.ColHeader>
           )}
           {read_reports && (
-            // @ts-expect-error - InstUI Table.ColHeader props are complex
             <Table.ColHeader {...idProps('colheader-total-activity')}>
               {I18n.t('Total Activity')}
             </Table.ColHeader>
           )}
-          {/* @ts-expect-error - InstUI Table.ColHeader props are complex */}
           <Table.ColHeader {...idProps('colheader-administrative-links')}>
             <ScreenReaderContent>{I18n.t('Administrative Links')}</ScreenReaderContent>
           </Table.ColHeader>
         </Table.Row>
       </Table.Head>
-      {/* @ts-expect-error - InstUI Table.Body props are complex */}
       <Table.Body>{tableRows}</Table.Body>
     </Table>
   )

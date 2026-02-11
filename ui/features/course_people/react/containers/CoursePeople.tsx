@@ -27,7 +27,7 @@ import {responsiveQuerySizes} from '../../util/utils'
 
 const CoursePeople: React.FC = () => {
   const {loading, data} = useQuery(ROSTER_QUERY, {
-    variables: {courseID: ENV.course.id},
+    variables: {courseID: ENV.course?.id},
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   })

@@ -71,9 +71,7 @@ const StatusPill: React.FC<StatusPillProps> = ({state}) => {
   const {text, hintText, color} = PILL_MAP[state]
 
   return (
-    // @ts-expect-error - InstUI Tooltip props are complex
     <Tooltip as="span" renderTip={hintText}>
-      {/* @ts-expect-error - InstUI Pill props are complex */}
       <Pill color={color} margin="0 0 xx-small 0">
         {text}
       </Pill>

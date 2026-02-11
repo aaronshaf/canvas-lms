@@ -32,7 +32,9 @@ export const CoursePeopleApp: React.FC = () => {
 
   useEffect(() => {
     const setupApolloClient = async () => {
+      // @ts-expect-error - ENV.apollo_caching not in GlobalEnv type
       if (ENV.apollo_caching) {
+        // @ts-expect-error - ENV.conversation_cache_key not in GlobalEnv type
         const cache = await createPersistentCache(ENV.conversation_cache_key)
         setClient(createClient({cache}))
       } else {
@@ -55,6 +57,7 @@ export const CoursePeopleApp: React.FC = () => {
           <GenericErrorPage imageUrl={errorShipUrl} errorCategory="Canvas People Error Page" />
         }
       >
+        {/* @ts-expect-error - WithBreakpoints wrapper type issues */}
         <AlertManager>
           <CoursePeople />
         </AlertManager>
