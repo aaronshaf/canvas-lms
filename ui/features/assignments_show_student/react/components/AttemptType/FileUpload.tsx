@@ -79,9 +79,11 @@ class FileUpload extends Component {
     this._isMounted = true
     window.addEventListener('message', this.handleLTIFiles)
     const fileDrop = document.getElementById('inputFileDrop')
+    // @ts-expect-error
     if (fileDrop && this.props.focusOnInit) {
       fileDrop.focus()
     }
+    // @ts-expect-error
     this.props.submitButtonRef?.current?.addEventListener('click', this.handleSubmitClick)
   }
 

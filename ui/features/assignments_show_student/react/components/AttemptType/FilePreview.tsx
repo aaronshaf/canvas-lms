@@ -160,9 +160,9 @@ export default function FilePreview({submission, isOriginalityReportVisible}: Fi
                 </Table.Cell>
               )}
               <Table.Cell themeOverride={cellTheme} data-testid="download-file">
-                {/* @ts-expect-error */}
                 <Button
                   size="small"
+                  // @ts-expect-error
                   renderIcon={IconDownloadLine}
                   href={file.url}
                   disabled={!file.url}
