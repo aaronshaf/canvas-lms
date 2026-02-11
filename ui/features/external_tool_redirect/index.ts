@@ -19,7 +19,7 @@
 import RedirectReturnContainer from './jquery/RedirectReturnContainer'
 import ready from '@instructure/ready'
 
-ready(() => {
+ready((): void => {
   const container = new RedirectReturnContainer()
   container.attachLtiEvents()
 })
