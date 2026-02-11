@@ -24,12 +24,12 @@ import OutcomeAlignmentDeleteLink from './react/OutcomeAlignmentDeleteLink'
 
 ready(() => {
   $('li.alignment').each((_, li) => {
-    const $div = $(li).find('div.links')[0]
+    const $div = $(li).find('div.links')[0] as HTMLElement
 
     legacyRender(
       <OutcomeAlignmentDeleteLink
-        has_rubric_association={$(li).data('has-rubric-association')}
-        url={$(li).data('url')}
+        has_rubric_association={$(li).data('has-rubric-association') as string | null}
+        url={$(li).data('url') as string}
       />,
       $div,
     )

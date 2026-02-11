@@ -20,8 +20,10 @@ import React from 'react'
 import {render, screen} from '@testing-library/react'
 import OutcomeAlignmentDeleteLink from '../OutcomeAlignmentDeleteLink'
 
-const renderOutcomeAlignmentDeleteLink = (props = {}) =>
-  render(<OutcomeAlignmentDeleteLink {...props} />)
+const renderOutcomeAlignmentDeleteLink = (props: {
+  url: string
+  has_rubric_association?: string | null
+}) => render(<OutcomeAlignmentDeleteLink {...props} />)
 
 describe('OutcomeAlignmentDeleteLink', () => {
   it('should render span if hasRubricAssociation', () => {

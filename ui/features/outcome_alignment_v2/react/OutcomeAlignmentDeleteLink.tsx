@@ -17,29 +17,30 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 
 const I18n = createI18nScope('OutcomeAlignmentDeleteLink')
 
-class OutcomeAlignmentDeleteLink extends React.Component {
-  static propTypes = {
-    url: PropTypes.string.isRequired,
-    has_rubric_association: PropTypes.string,
-  }
+interface OutcomeAlignmentDeleteLinkProps {
+  url: string
+  has_rubric_association?: string | null
+}
 
+class OutcomeAlignmentDeleteLink extends React.Component<OutcomeAlignmentDeleteLinkProps> {
   static defaultProps = {
     has_rubric_association: null,
   }
 
-  handleClick = e => {
-    const $li = $(e.target).parents('li.alignment')
+  handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const $li = $(e.target as HTMLElement).parents('li.alignment')
 
     e.preventDefault()
+    // @ts-expect-error - confirmDelete is a jQuery plugin without type definitions
     $(e.target).confirmDelete({
       success() {
         $li.fadeOut('slow', function () {
+          // @ts-expect-error - this refers to the jQuery element
           this.remove()
         })
       },
