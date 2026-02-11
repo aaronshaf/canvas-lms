@@ -120,6 +120,7 @@ ready(() => {
 
   const lockedItems = lockManager.isChildContent() ? lockManager.getItemLocks() : {}
 
+  // @ts-expect-error TS7009,TS2554 (typescriptify) - Backbone view constructor
   const view = new EditView({
     model,
     // @ts-expect-error TS18048,TS2339 (typescriptify)
@@ -175,7 +176,6 @@ ready(() => {
     agc.options.params = {}
     // @ts-expect-error TS2339 (typescriptify)
     agc.contextAssetString = ENV.context_asset_string
-    // @ts-expect-error TS2551 (typescriptify)
     view.assignmentGroupCollection = agc
   }
 

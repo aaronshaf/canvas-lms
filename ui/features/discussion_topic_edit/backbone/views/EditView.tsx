@@ -46,7 +46,6 @@ import 'jqueryui/tabs'
 import {unfudgeDateForProfileTimezone} from '@instructure/moment-utils'
 import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
 import {DiscussionFormOptions} from '../../react/DiscussionFormOptions'
-import type {JQuery} from 'jquery'
 
 const I18n = createI18nScope('discussion_topics')
 
@@ -55,8 +54,8 @@ RichContentEditor.preloadRemoteModule()
 // @ts-expect-error - Backbone class with complex prototype inheritance
 extend(EditView, ValidatedFormView)
 
-// @ts-expect-error - Backbone view with prototype-based methods
-function EditView() {
+// @ts-expect-error - Backbone view with prototype-based methods and implicit 'this' typing
+function EditView(this: any) {
   this.enableGradedCheckBox = this.enableGradedCheckBox.bind(this)
   this.disableGradedCheckBox = this.disableGradedCheckBox.bind(this)
   this._validatePointsPossible = this._validatePointsPossible.bind(this)
@@ -92,6 +91,7 @@ function EditView() {
   this.toggleAvailabilityOptions = this.toggleAvailabilityOptions.bind(this)
   this.toggleConditionalReleaseTab = this.toggleConditionalReleaseTab.bind(this)
   window.addEventListener('message', this.handleMessageEvent.bind(this))
+  // @ts-expect-error - Backbone __super__ reference
   return EditView.__super__.constructor.apply(this, arguments)
 }
 
@@ -135,24 +135,26 @@ EditView.prototype.messages = {
   ),
 }
 
+// @ts-expect-error - Backbone optionProperty helper
 EditView.optionProperty('permissions')
 
-EditView.prototype.initialize = function (options) {
+EditView.prototype.initialize = function (options: any) {
   this.assignment = this.model.get('assignment')
   this.initialPointsPossible = this.assignment.pointsPossible()
   this.dueDateOverrideView = options.views['js-assignment-overrides']
   this.on(
     'success',
     (function (_this) {
-      return function (xhr) {
+      return function (xhr: any) {
         // a request with attachment always will be successfull because of the iframe submit
         const errors = xhr?.errors && Object.values(xhr.errors)
 
         if (errors?.length) {
           // when a request with attachment fails we need to re-enable the form
+          // @ts-expect-error - Backbone view property
           this.disablingDfd.reject()
 
-          errors.forEach(errorMsg => {
+          errors.forEach((errorMsg: any) => {
             if (typeof errorMsg === 'string') {
               $.flashError(errorMsg)
               return
@@ -177,9 +179,10 @@ EditView.prototype.initialize = function (options) {
             return setUsageRights(
               [_this.attachment_model],
               usageRights,
-              function (_success, _data) {
+              function (_success: any, _data: any) {
                 return {}
               },
+              // @ts-expect-error - contextId/contextType come from ENV
               contextId,
               contextType + 's',
             ).always(function () {
@@ -198,6 +201,7 @@ EditView.prototype.initialize = function (options) {
     })(this),
   )
   this.attachment_model = new FilesystemObject()
+  // @ts-expect-error - Backbone __super__ reference
   EditView.__super__.initialize.apply(this, arguments)
   this.lockedItems = options.lockedItems || {}
   this.announcementsLocked = options.announcementsLocked
@@ -205,7 +209,7 @@ EditView.prototype.initialize = function (options) {
   return (this.studentTodoAtDateValue = todoDate ? new Date(todoDate) : '')
 }
 
-EditView.prototype.setRenderSectionsAutocomplete = function (func) {
+EditView.prototype.setRenderSectionsAutocomplete = function (func: any) {
   return (this.renderSectionsAutocomplete = func)
 }
 
@@ -213,7 +217,7 @@ EditView.prototype.redirectAfterSave = function () {
   return (window.location = this.locationAfterSave(deparam()))
 }
 
-EditView.prototype.locationAfterSave = function (params) {
+EditView.prototype.locationAfterSave = function (params: any) {
   if (returnToHelper.isValid(params.return_to)) {
     return params.return_to
   } else {
@@ -234,11 +238,13 @@ EditView.prototype.redirectAfterCancel = function () {
   }
 }
 
-EditView.prototype.locationAfterCancel = function (params) {
+EditView.prototype.locationAfterCancel = function (params: any) {
   if (returnToHelper.isValid(params.return_to)) {
     return params.return_to
   }
+  // @ts-expect-error - ENV.CANCEL_TO is a dynamic property
   if (ENV.CANCEL_TO != null) {
+    // @ts-expect-error - ENV.CANCEL_TO is a dynamic property
     return ENV.CANCEL_TO
   }
   return null
@@ -252,7 +258,7 @@ EditView.prototype.isAnnouncement = function () {
   return this.model.constructor === Announcement
 }
 
-EditView.prototype.willPublish = function ({delayed_post_at} = {}) {
+EditView.prototype.willPublish = function ({delayed_post_at}: {delayed_post_at?: any} = {}) {
   const delayedString = delayed_post_at || this.getFormData().delayed_post_at // date string
   // When the page is first loaded, the delay_post checkbox info is not available. In that case we want to default to true and
   // Rely on the existence of the delayedString to determine if the announcement will publish immediately or not
@@ -275,6 +281,7 @@ EditView.prototype.canPublish = function () {
 }
 
 EditView.prototype.toJSON = function () {
+  // @ts-expect-error - Backbone __super__ reference
   const data = EditView.__super__.toJSON.apply(this, arguments)
   const json = lodashExtend(data, this.options, {
     showAssignment: !!this.assignmentGroupCollection,
@@ -307,7 +314,7 @@ EditView.prototype.toJSON = function () {
   return json
 }
 
-EditView.prototype.handleCancel = function (ev) {
+EditView.prototype.handleCancel = function (ev: any) {
   ev.preventDefault()
   if (!this.lockedItems.content) {
     RichContentEditor.closeRCE(this.$textarea)
@@ -316,7 +323,7 @@ EditView.prototype.handleCancel = function (ev) {
   return this.redirectAfterCancel()
 }
 
-EditView.prototype.handlePointsChange = function (ev) {
+EditView.prototype.handlePointsChange = function (ev: any) {
   ev.preventDefault()
   this.assignment.pointsPossible(this.$assignmentPointsPossible.val())
   if (this.assignment.hasSubmittedSubmissions()) {
@@ -326,7 +333,7 @@ EditView.prototype.handlePointsChange = function (ev) {
   }
 }
 
-EditView.prototype.validateGuidData = function (event) {
+EditView.prototype.validateGuidData = function (event: any) {
   const data = event.data.data
 
   // If data is a string, convert it to an array for consistent processing
@@ -342,7 +349,7 @@ EditView.prototype.validateGuidData = function (event) {
   return dataArray
 }
 
-EditView.prototype.handleMessageEvent = function (event) {
+EditView.prototype.handleMessageEvent = function (event: any) {
   if (event?.data?.subject !== 'assignment.set_ab_guid') {
     return
   }
@@ -352,7 +359,7 @@ EditView.prototype.handleMessageEvent = function (event) {
   }
 }
 
-EditView.prototype.loadNewEditor = function ($textarea) {
+EditView.prototype.loadNewEditor = function ($textarea: any) {
   if (this.lockedItems.content) {
     return
   }
@@ -363,6 +370,7 @@ EditView.prototype.loadNewEditor = function ($textarea) {
 }
 
 EditView.prototype.render = function () {
+  // @ts-expect-error - Backbone __super__ reference
   EditView.__super__.render.apply(this, arguments)
   this.$textarea = this.$('textarea[name=message]')
     .attr('id', uniqueId('discussion-topic-message'))
@@ -404,7 +412,8 @@ EditView.prototype.render = function () {
 }
 
 EditView.prototype.shouldRenderUsageRights = function () {
-  return ENV.USAGE_RIGHTS_REQUIRED && ENV.PERMISSIONS.manage_files && this.permissions.CAN_ATTACH
+  // @ts-expect-error - ENV dynamic properties and Backbone view property
+  return ENV.USAGE_RIGHTS_REQUIRED && ENV.PERMISSIONS?.manage_files && this.permissions.CAN_ATTACH
 }
 
 EditView.prototype.afterRender = function () {
@@ -446,7 +455,7 @@ EditView.prototype.renderUsageRights = function () {
     contextId,
     model: this.attachment_model,
     deferSave: (function (_this) {
-      return function (usageRights) {
+      return function (usageRights: any) {
         _this.attachment_model.set('usage_rights', usageRights)
         return _this.renderUsageRights()
       }
@@ -457,7 +466,7 @@ EditView.prototype.renderUsageRights = function () {
     modalOptions: {
       isOpen: false,
       openModal: (function (_this) {
-        return function (contents, _afterClose) {
+        return function (contents: any, _afterClose: any) {
           // eslint-disable-next-line react/no-render-return-value
           return ReactDOM.render(contents, _this.$('#usage_rights_modal')[0])
         }
@@ -499,6 +508,7 @@ EditView.prototype.renderGroupCategoryOptions = function () {
   this.groupCategorySelector = new GroupCategorySelector({
     el: '#group_category_options',
     parentModel: this.model,
+    // @ts-expect-error - ENV dynamic property
     groupCategories: ENV.GROUP_CATEGORIES,
     hideGradeIndividually: true,
     sectionLabel: this.messages.group_category_section_label,
@@ -535,12 +545,14 @@ EditView.prototype.renderTabs = function () {
 }
 
 EditView.prototype.loadConditionalRelease = function () {
+  // @ts-expect-error - ENV dynamic property
   if (!ENV.CONDITIONAL_RELEASE_ENV) {
     return
   }
   return (this.conditionalReleaseEditor = ConditionalRelease.attach(
     this.$conditionalReleaseTarget.get(0),
     I18n.t('discussion topic'),
+    // @ts-expect-error - ENV dynamic property
     ENV.CONDITIONAL_RELEASE_ENV,
   ))
 }
@@ -551,12 +563,14 @@ EditView.prototype.renderFormOptions = function () {
     const component = React.createElement(DiscussionFormOptions, {
       options: {
         studentTodoAtDateValue: this.studentTodoAtDateValue,
+        // @ts-expect-error - ENV dynamic property
         studentPlannerEnabled: ENV.STUDENT_PLANNER_ENABLED,
+        // @ts-expect-error - ENV dynamic property
         createAnnouncementsUnlocked: ENV.CREATE_ANNOUNCEMENTS_UNLOCKED,
         ...this.toJSON(),
       },
       onGradedChange: this.toggleGradingDependentOptions,
-      handleStudentTodoUpdate: date => {
+      handleStudentTodoUpdate: (date: any) => {
         this.studentTodoAtDateValue = date
       },
     })
@@ -568,7 +582,8 @@ EditView.prototype.renderFormOptions = function () {
 }
 
 EditView.prototype.getFormData = function () {
-  let data, dateField, i, len, ref
+  let data: any, dateField, i, len, ref
+  // @ts-expect-error - Backbone __super__ reference
   data = EditView.__super__.getFormData.apply(this, arguments)
   const dateFields = ['last_reply_at', 'posted_at', 'delayed_post_at', 'lock_at']
   for (i = 0, len = dateFields.length; i < len; i++) {
@@ -643,7 +658,7 @@ EditView.prototype.getFormData = function () {
   return data
 }
 
-EditView.prototype.updateAssignment = function (data) {
+EditView.prototype.updateAssignment = function (data: any) {
   let assignment
   const defaultDate = this.dueDateOverrideView.getDefaultDueDate()
   data.lock_at = (defaultDate != null ? defaultDate.get('lock_at') : void 0) || null
@@ -665,9 +680,10 @@ EditView.prototype.removeAttachment = function () {
 
 EditView.prototype.saveFormData = function () {
   if (this.showConditionalRelease()) {
+    // @ts-expect-error - Backbone __super__ reference
     return EditView.__super__.saveFormData.apply(this, arguments).pipe(
       (function (_this) {
-        return function (data, status, xhr) {
+        return function (data: any, status: any, xhr: any) {
           let assignment
           if (data.set_assignment) {
             assignment = data.assignment
@@ -675,9 +691,11 @@ EditView.prototype.saveFormData = function () {
           _this.conditionalReleaseEditor.updateAssignment(assignment)
           return _this.conditionalReleaseEditor.save().pipe(
             function () {
+              // @ts-expect-error - jQuery Deferred constructor
               return new $.Deferred().resolve(data, status, xhr).promise()
             },
-            function (err) {
+            function (err: any) {
+              // @ts-expect-error - jQuery Deferred constructor
               return new $.Deferred().reject(xhr, err).promise()
             },
           )
@@ -685,14 +703,16 @@ EditView.prototype.saveFormData = function () {
       })(this),
     )
   } else {
+    // @ts-expect-error - Backbone __super__ reference
     return EditView.__super__.saveFormData.apply(this, arguments)
   }
 }
 
-EditView.prototype.submit = function (event) {
-  let missingDateDialog, sections
+EditView.prototype.submit = function (event: any) {
+  let missingDateDialog: any, sections: any
   event.preventDefault()
   event.stopPropagation()
+  // @ts-expect-error - jQuery Deferred constructor
   this.disablingDfd = new $.Deferred()
   if (this.gradedChecked() && this.dueDateOverrideView.containsSectionsWithoutOverrides()) {
     sections = this.dueDateOverrideView.sectionsWithoutOverrides()
@@ -700,7 +720,7 @@ EditView.prototype.submit = function (event) {
       validationFn() {
         return sections
       },
-      labelFn(section) {
+      labelFn(section: any) {
         return section.get('name')
       },
       success: (function (_this) {
@@ -714,11 +734,12 @@ EditView.prototype.submit = function (event) {
         }
       })(this),
     })
-    missingDateDialog.cancel = function (_e) {
+    missingDateDialog.cancel = function (_e: any) {
       return missingDateDialog.$dialog.dialog('close').remove()
     }
     return missingDateDialog.render()
   } else {
+    // @ts-expect-error - Backbone __super__ reference
     return EditView.__super__.submit.apply(this, arguments)
   }
 }
@@ -731,7 +752,7 @@ EditView.prototype.fieldSelectors = lodashExtend(
   GroupCategorySelector.prototype.fieldSelectors,
 )
 
-EditView.prototype.saveAndPublish = function (event) {
+EditView.prototype.saveAndPublish = function (event: any) {
   this.shouldPublish = true
   this.disableWhileLoadingOpts = {
     buttons: ['.save_and_publish'],
@@ -739,9 +760,10 @@ EditView.prototype.saveAndPublish = function (event) {
   return this.submit(event)
 }
 
-EditView.prototype.onSaveFail = function (xhr) {
+EditView.prototype.onSaveFail = function (xhr: any) {
   this.shouldPublish = false
   this.disableWhileLoadingOpts = {}
+  // @ts-expect-error - Backbone __super__ reference
   return EditView.__super__.onSaveFail.call(this, xhr)
 }
 
@@ -749,8 +771,10 @@ EditView.prototype.sectionsAreRequired = function () {
   if (!ENV.context_asset_string.startsWith('course')) {
     return false
   }
-  const isAnnouncement = ENV.DISCUSSION_TOPIC.ATTRIBUTES.is_announcement
+  const isAnnouncement = ENV.DISCUSSION_TOPIC?.ATTRIBUTES.is_announcement
+  // @ts-expect-error - ENV dynamic property
   const announcementsFlag = ENV.SECTION_SPECIFIC_ANNOUNCEMENTS_ENABLED
+  // @ts-expect-error - ENV dynamic property
   const discussionsFlag = ENV.SECTION_SPECIFIC_DISCUSSIONS_ENABLED
   if (isAnnouncement) {
     return announcementsFlag
@@ -759,9 +783,9 @@ EditView.prototype.sectionsAreRequired = function () {
   }
 }
 
-EditView.prototype.validateBeforeSave = function (data, errors) {
+EditView.prototype.validateBeforeSave = function (data: any, errors: any) {
   // The anonymous_state is missing if the fields are disabled. We need the value for edit mode too.
-  let crErrors, ref, validateBeforeSaveData
+  let crErrors, ref, validateBeforeSaveData: any
   data.anonymous_state = $('input[name=anonymous_state]:checked').val()
   if (data.delay_posting === '0') {
     data.delayed_post_at = null
@@ -862,17 +886,20 @@ EditView.prototype.validateBeforeSave = function (data, errors) {
   return errors
 }
 
-EditView.prototype._validateTitle = function (data, errors) {
+EditView.prototype._validateTitle = function (data: any, errors: any) {
   let max_name_length
   const post_to_sis = data.assignment.attributes.post_to_sis === '1'
   max_name_length = 256
+  // @ts-expect-error - ENV dynamic property
   if (post_to_sis && ENV.MAX_NAME_LENGTH_REQUIRED_FOR_ACCOUNT === true) {
+    // @ts-expect-error - ENV dynamic property
     max_name_length = ENV.MAX_NAME_LENGTH
   }
   const validationHelper = new SisValidationHelper({
     postToSIS: post_to_sis,
     maxNameLength: max_name_length,
     name: data.title,
+    // @ts-expect-error - ENV dynamic property
     maxNameLengthRequired: ENV.MAX_NAME_LENGTH_REQUIRED_FOR_ACCOUNT,
   })
   if (validationHelper.nameTooLong()) {
@@ -887,7 +914,7 @@ EditView.prototype._validateTitle = function (data, errors) {
   return errors
 }
 
-EditView.prototype._validatePointsPossible = function (data, errors) {
+EditView.prototype._validatePointsPossible = function (data: any, errors: any) {
   const assign = data.assignment
   const frozenPoints = includes(assign.frozenAttributes(), 'points_possible')
   if (!frozenPoints && assign.pointsPossible() && !numberHelper.validate(assign.pointsPossible())) {
@@ -900,7 +927,7 @@ EditView.prototype._validatePointsPossible = function (data, errors) {
   return errors
 }
 
-EditView.prototype.showErrors = function (errors) {
+EditView.prototype.showErrors = function (errors: any) {
   // override view handles displaying override errors, remove them
   // before calling super
   delete errors.assignmentOverrides
@@ -913,10 +940,11 @@ EditView.prototype.showErrors = function (errors) {
       this.$discussionEditView.tabs('option', 'active', 0)
     }
   }
+  // @ts-expect-error - Backbone __super__ reference
   return EditView.__super__.showErrors.call(this, errors)
 }
 
-EditView.prototype.toggleGradingDependentOptions = function (isGraded) {
+EditView.prototype.toggleGradingDependentOptions = function (isGraded: any) {
   this.toggleAvailabilityOptions()
   this.toggleConditionalReleaseTab()
 
