@@ -21,7 +21,6 @@ import {createRoot} from 'react-dom/client'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import axios from '@canvas/axios'
 import classnames from 'classnames'
-import {bool, func, string, object, oneOf, arrayOf} from 'prop-types'
 import {
   initializePlanner,
   loadPlannerDashboard,
@@ -49,62 +48,84 @@ import {toggleDashboardView} from '@canvas/dashboard-toggle/utils/dashboardToggl
 
 const I18n = createI18nScope('dashboard')
 
-const [show, hide] = ['block', 'none'].map(displayVal => id => {
+const [show, hide] = ['block', 'none'].map(displayVal => (id: string) => {
   const el = document.getElementById(id)
   if (el) el.style.display = displayVal
 })
 
 export const observerMode = () => ENV.current_user_roles?.includes('observer')
 
+type DashboardView = 'cards' | 'planner' | 'activity' | 'elementary'
+type ResponsiveSize = 'small' | 'medium' | 'large'
+
+interface Card {
+  id: string
+  [key: string]: any
+}
+
+interface DashboardHeaderProps {
+  dashboard_view?: DashboardView
+  planner_enabled: boolean
+  screenReaderFlashMessage?: (message: string) => void
+  allowElementaryDashboard?: boolean
+  env?: any
+  loadDashboardSidebar?: (observedUserId: string | null) => void
+  responsiveSize?: ResponsiveSize
+  startNewCourseVisible?: boolean
+  viewGradesUrl?: string
+  preloadedCards?: Card[] | null
+  refetchDashboardCards?: () => void
+}
+
+interface DashboardHeaderState {
+  currentDashboard: DashboardView
+  loadedViews: DashboardView[]
+  selectedObserveeId: string | null
+  switchingDashboard: boolean
+}
+
 /**
  * This component renders the header and the to do sidebar for the user
  * dashboard and loads the current dashboard.
  */
-class DashboardHeader extends React.Component {
-  static propTypes = {
-    dashboard_view: string,
-    planner_enabled: bool.isRequired,
-    screenReaderFlashMessage: func,
-    allowElementaryDashboard: bool,
-    env: object,
-    loadDashboardSidebar: func,
-    responsiveSize: oneOf(['small', 'medium', 'large']),
-    startNewCourseVisible: bool,
-    viewGradesUrl: string,
-    preloadedCards: arrayOf(object) || null, // Card[]
-    refetchDashboardCards: func || null,
-  }
-
+class DashboardHeader extends React.Component<DashboardHeaderProps, DashboardHeaderState> {
   static defaultProps = {
-    dashboard_view: 'cards',
+    dashboard_view: 'cards' as DashboardView,
     screenReaderFlashMessage: () => {},
     env: {},
     loadDashboardSidebar,
-    responsiveSize: 'large',
+    responsiveSize: 'large' as ResponsiveSize,
   }
 
-  constructor(...args) {
-    super(...args)
+  cardDashboardLoader: CardDashboardLoader
+  planner_init_promise?: Promise<void>
+  plannerLoaded = false
+  menuButtonFocusable?: Element | null
+  sidebarHasLoaded = false
+  streamItemDashboard?: any
+
+  constructor(props: DashboardHeaderProps) {
+    super(props)
     this.cardDashboardLoader = new CardDashboardLoader()
     this.planner_init_promise = undefined
     this.plannerLoaded = false
     if (this.props.planner_enabled) {
       // setup observing another user?
-      let observedUser
-      if (observerMode() && ENV.OBSERVED_USERS_LIST.length > 0) {
+      let observedUser: {id: string; name: string; avatarUrl: string | null | undefined} | undefined
+      if (observerMode() && ENV.OBSERVED_USERS_LIST && ENV.OBSERVED_USERS_LIST.length > 0) {
         const storedObservedUserId = savedObservedId(ENV.current_user.id)
         const {id, name, avatar_url} =
-          ENV.OBSERVED_USERS_LIST.find(u => u.id === storedObservedUserId) ||
+          ENV.OBSERVED_USERS_LIST.find((u: any) => u.id === storedObservedUserId) ||
           ENV.OBSERVED_USERS_LIST[0]
-        observedUser = id === ENV.current_user_id ? null : {id, name, avatarUrl: avatar_url}
+        observedUser = id === ENV.current_user_id ? undefined : {id, name, avatarUrl: avatar_url ?? null}
       }
 
       this.planner_init_promise = initializePlanner({
         changeDashboardView: this.changeDashboard,
         getActiveApp: this.getActiveApp,
-        flashError: message => showFlashAlert({message, type: 'error'}),
-        flashMessage: message => showFlashAlert({message, type: 'info'}),
-        srFlashMessage: this.props.screenReaderFlashMessage,
+        flashError: (message: string) => showFlashAlert({message, type: 'error'}),
+        flashMessage: (message: string) => showFlashAlert({message, type: 'info'}),
+        srFlashMessage: this.props.screenReaderFlashMessage!,
         convertApiUserContent: apiUserContent.convert,
         dateTimeFormatters: {
           dateString,
@@ -116,17 +137,16 @@ class DashboardHeader extends React.Component {
         env: this.props.env,
       })
     }
-  }
 
-  state = {
-    currentDashboard: ['cards', 'activity', this.props.planner_enabled && 'planner']
-      .filter(Boolean)
-      .includes(this.props.dashboard_view)
-      ? this.props.dashboard_view
-      : 'cards',
-    loadedViews: [],
-    selectedObserveeId: null,
-    switchingDashboard: false,
+    this.state = {
+      currentDashboard: (['cards', 'activity', this.props.planner_enabled && 'planner']
+        .filter(Boolean) as DashboardView[]).includes(this.props.dashboard_view!)
+        ? this.props.dashboard_view!
+        : 'cards',
+      loadedViews: [],
+      selectedObserveeId: null,
+      switchingDashboard: false,
+    }
   }
 
   componentDidMount() {
@@ -135,7 +155,7 @@ class DashboardHeader extends React.Component {
 
   ready = () => {
     if (this.props.planner_enabled) {
-      return this.planner_init_promise
+      return this.planner_init_promise!
     } else {
       return Promise.resolve()
     }
@@ -143,7 +163,7 @@ class DashboardHeader extends React.Component {
 
   getActiveApp = () => this.state.currentDashboard
 
-  resetClasses(newDashboard) {
+  resetClasses(newDashboard: DashboardView) {
     if (newDashboard === 'planner') {
       document.body.classList.add('dashboard-is-planner')
     } else {
@@ -155,12 +175,12 @@ class DashboardHeader extends React.Component {
     loadPlannerDashboard()
   }
 
-  loadCardDashboard(observedUserId, preloadedCards) {
+  loadCardDashboard(observedUserId?: string | null, preloadedCards?: Card[] | null) {
     // I put this in so I can spy on the imported function in a spec :'(
     this.cardDashboardLoader.loadCardDashboard(undefined, observedUserId, preloadedCards)
   }
 
-  loadStreamItemDashboard(observedUserId) {
+  loadStreamItemDashboard(observedUserId?: string | null) {
     // populates the stream items via ajax when the toggle is switched
     const streamItemsUrl =
       observedUserId && observerMode()
@@ -191,14 +211,14 @@ class DashboardHeader extends React.Component {
     )
   }
 
-  loadDashboard(newView) {
+  loadDashboard(newView: DashboardView) {
     // if user is an observer, wait until we have an id to load
     // (this might be the observer's id, and is available as soon as the observer picker loads)
     if (observerMode() && !this.state.selectedObserveeId) return
     if (this.state.loadedViews.includes(newView)) return
 
     if (newView === 'planner' && this.props.planner_enabled) {
-      this.planner_init_promise
+      this.planner_init_promise!
         .then(() => {
           if (!this.plannerLoaded) {
             this.loadPlannerComponent()
@@ -217,16 +237,16 @@ class DashboardHeader extends React.Component {
     // also load the sidebar if we need to
     // (no sidebar is shown in planner dashboard)
     if (newView !== 'planner' && !this.sidebarHasLoaded) {
-      this.props.loadDashboardSidebar(this.state.selectedObserveeId)
+      this.props.loadDashboardSidebar!(this.state.selectedObserveeId)
       this.sidebarHasLoaded = true
     }
 
-    this.setState((state, _props) => {
+    this.setState(state => {
       return {loadedViews: state.loadedViews.concat(newView)}
     })
   }
 
-  saveDashboardView(newView) {
+  saveDashboardView(newView: DashboardView) {
     axios
       .put('/dashboard/view', {
         dashboard_view: newView,
@@ -236,7 +256,7 @@ class DashboardHeader extends React.Component {
       })
   }
 
-  saveElementaryPreference(disabled) {
+  saveElementaryPreference(disabled: boolean) {
     return axios
       .put('/api/v1/users/self/settings', {
         elementary_dashboard_disabled: disabled,
@@ -245,7 +265,7 @@ class DashboardHeader extends React.Component {
       .catch(showFlashError(I18n.t('Failed to save dashboard selection')))
   }
 
-  handleChangeObservedUser(id) {
+  handleChangeObservedUser(id: string | null) {
     if (ENV.widget_dashboard_overridable) {
       const isObservingSelf = id === ENV.current_user_id || id === null
       if (!isObservingSelf) {
@@ -260,7 +280,7 @@ class DashboardHeader extends React.Component {
           if (!response.show_k5_dashboard) {
             this.reloadDashboardForObserver(id)
             if (this.props.planner_enabled) {
-              this.planner_init_promise
+              this.planner_init_promise!
                 .then(() => {
                   reloadPlannerForObserver(id)
                 })
@@ -276,7 +296,7 @@ class DashboardHeader extends React.Component {
     }
   }
 
-  changeDashboard = newView => {
+  changeDashboard = (newView: DashboardView) => {
     if (newView === 'elementary') {
       this.switchToElementary()
     } else {
@@ -286,7 +306,7 @@ class DashboardHeader extends React.Component {
     return this.ready()
   }
 
-  switchDashboard = newView => {
+  switchDashboard = (newView: DashboardView) => {
     this.showDashboard(newView)
     this.setState({currentDashboard: newView})
   }
@@ -295,25 +315,26 @@ class DashboardHeader extends React.Component {
     this.saveElementaryPreference(false)
   }
 
-  showDashboard = newView => {
+  showDashboard = (newView: DashboardView) => {
     this.resetClasses(newView)
-    const elements = {
+    const elements: Record<DashboardView, string[]> = {
       planner: ['dashboard-planner', 'dashboard-planner-header', 'dashboard-planner-header-aux'],
       activity: ['dashboard-activity', 'right-side-wrapper'],
       cards: ['DashboardCard_Container', 'right-side-wrapper'],
+      elementary: [],
     }
     this.loadDashboard(newView)
 
     // hide the elements not part of this view
     Object.keys(elements)
       .filter(k => k !== newView)
-      .forEach(k => elements[k].forEach(hide))
+      .forEach(k => elements[k as DashboardView].forEach(hide))
 
     // show the ones that are
     elements[newView].forEach(show)
   }
 
-  reloadDashboardForObserver = userId => {
+  reloadDashboardForObserver = (userId: string | null) => {
     this.sidebarHasLoaded = false
     this.setState({selectedObserveeId: userId, loadedViews: []}, () => {
       this.cardDashboardLoader = new CardDashboardLoader()
@@ -330,7 +351,7 @@ class DashboardHeader extends React.Component {
     }
   }
 
-  renderLegacy(canEnableElementaryDashboard) {
+  renderLegacy(canEnableElementaryDashboard: boolean) {
     return (
       <div className={classnames(this.props.responsiveSize, 'ic-Dashboard-header__layout')}>
         <Flex direction="row" alignItems="center" justifyItems="space-between" width="100%">
@@ -388,7 +409,7 @@ class DashboardHeader extends React.Component {
     )
   }
 
-  renderResponsiveContent(canEnableElementaryDashboard) {
+  renderResponsiveContent(canEnableElementaryDashboard: boolean) {
     let responsiveSize = this.props.responsiveSize
     if (observerMode() && responsiveSize == 'large') {
       responsiveSize = 'medium'
@@ -475,7 +496,7 @@ class DashboardHeader extends React.Component {
                 <Flex.Item overflowY="visible">
                   <Button
                     display={this.props.responsiveSize == 'small' ? 'block' : 'inline-block'}
-                    onclick={() => {}}
+                    onClick={() => {}}
                     id="start_new_course"
                     aria-controls="new_course_form"
                   >
@@ -522,7 +543,7 @@ export default responsiviser()(
 
 // extract this out to a property so tests can override it and not have to mock
 // out the timers in every single test.
-function loadDashboardSidebar(observedUserId) {
+function loadDashboardSidebar(observedUserId: string | null) {
   const dashboardSidebarUrl =
     observedUserId && observerMode()
       ? `/dashboard-sidebar?observed_user_id=${observedUserId}`
@@ -560,7 +581,7 @@ function loadStartNewCourseHandler() {
 
   const modalContainer = document.getElementById('create_course_modal_container')
   if (startButton && modalContainer && ENV.FEATURES?.create_course_subaccount_picker) {
-    let root = null
+    let root: any = null
     startButton.addEventListener('click', () => {
       if (!root) {
         root = createRoot(modalContainer)
@@ -568,7 +589,7 @@ function loadStartNewCourseHandler() {
       root.render(
         <CreateCourseModal
           isModalOpen={true}
-          setModalOpen={isOpen => {
+          setModalOpen={(isOpen: boolean) => {
             if (!isOpen) {
               root.unmount()
               root = null

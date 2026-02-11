@@ -18,7 +18,6 @@
 
 import React from 'react'
 import {render, act, fireEvent, waitFor} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import {DashboardHeader} from '../DashboardHeader'
 import injectGlobalAlertContainers from '@canvas/util/react/testing/injectGlobalAlertContainers'
 import {resetPlanner} from '@canvas/planner'
@@ -29,7 +28,7 @@ vi.mock('@canvas/planner', async () => {
   return {
     ...actual,
     resetPlanner: vi.fn(),
-    initializePlanner: vi.fn().mockResolvedValue(),
+    initializePlanner: vi.fn().mockResolvedValue(undefined),
     loadPlannerDashboard: vi.fn(),
   }
 })
@@ -51,13 +50,22 @@ const defaultEnv = {
 }
 
 const defaultProps = {
-  dashboard_view: 'planner',
+  dashboard_view: 'planner' as const,
   planner_enabled: true,
   allowElementaryDashboard: false,
   env: defaultEnv,
 }
 
-const FakeDashboardHeader = props => (
+interface FakeDashboardHeaderProps {
+  planner_enabled?: boolean
+  dashboard_view?: string
+  env?: any
+  canAddObservee?: boolean
+  responsiveSize?: string
+  preloadedCards?: any[]
+}
+
+const FakeDashboardHeader = (props: FakeDashboardHeaderProps) => (
   <>
     <DashboardHeader id="dashboard_header_container" {...props} />
     <div id="flashalert_message_holder" style={{display: 'block'}} />
@@ -69,9 +77,9 @@ const FakeDashboardHeader = props => (
 )
 
 describe('DashboardHeader', () => {
-  let plannerSpy
-  let saveDashboardViewSpy
-  let cardLoadSpy
+  let plannerSpy: any
+  let saveDashboardViewSpy: any
+  let cardLoadSpy: any
 
   beforeEach(() => {
     window.ENV = {
@@ -122,8 +130,8 @@ describe('DashboardHeader', () => {
     const dashboardCards = document.getElementById('DashboardCard_Container')
 
     // Initial state should show activity view
-    expect(dashboardActivity.style.display).toBe('block')
-    expect(dashboardCards.style.display).toBe('none')
+    expect(dashboardActivity!.style.display).toBe('block')
+    expect(dashboardCards!.style.display).toBe('none')
 
     // Open menu and switch to cards view
     const menuButton = getByRole('button', {name: /dashboard options/i})
@@ -137,8 +145,8 @@ describe('DashboardHeader', () => {
     })
 
     // Should now show cards view
-    expect(dashboardActivity.style.display).toBe('none')
-    expect(dashboardCards.style.display).toBe('block')
+    expect(dashboardActivity!.style.display).toBe('none')
+    expect(dashboardCards!.style.display).toBe('block')
 
     // Switch back to activity view
     await act(async () => {
@@ -151,8 +159,8 @@ describe('DashboardHeader', () => {
     })
 
     // Should show activity view again
-    expect(dashboardActivity.style.display).toBe('block')
-    expect(dashboardCards.style.display).toBe('none')
+    expect(dashboardActivity!.style.display).toBe('block')
+    expect(dashboardCards!.style.display).toBe('none')
   })
 
   it('shows planner view when enabled', async () => {
@@ -166,9 +174,9 @@ describe('DashboardHeader', () => {
     const dashboardCards = document.getElementById('DashboardCard_Container')
 
     // Initial state
-    expect(dashboardPlanner.style.display).toBe('none')
-    expect(dashboardPlannerHeader.style.display).toBe('none')
-    expect(dashboardActivity.style.display).toBe('block')
+    expect(dashboardPlanner!.style.display).toBe('none')
+    expect(dashboardPlannerHeader!.style.display).toBe('none')
+    expect(dashboardActivity!.style.display).toBe('block')
 
     // Switch to planner view
     const menuButton = getByRole('button', {name: /dashboard options/i})
@@ -182,10 +190,10 @@ describe('DashboardHeader', () => {
     })
 
     // Should show planner view
-    expect(dashboardPlanner.style.display).toBe('block')
-    expect(dashboardPlannerHeader.style.display).toBe('block')
-    expect(dashboardActivity.style.display).toBe('none')
-    expect(dashboardCards.style.display).toBe('none')
+    expect(dashboardPlanner!.style.display).toBe('block')
+    expect(dashboardPlannerHeader!.style.display).toBe('block')
+    expect(dashboardActivity!.style.display).toBe('none')
+    expect(dashboardCards!.style.display).toBe('none')
   })
 
   describe('as an observer', () => {
@@ -218,8 +226,8 @@ describe('DashboardHeader', () => {
       const dashboardActivity = document.getElementById('dashboard-activity')
 
       // Initial state should show planner
-      expect(dashboardPlanner.style.display).toBe('block')
-      expect(dashboardActivity.style.display).toBe('none')
+      expect(dashboardPlanner!.style.display).toBe('block')
+      expect(dashboardActivity!.style.display).toBe('none')
 
       // Change student
       const studentSelector = getByTestId('observed-student-dropdown')
@@ -228,13 +236,13 @@ describe('DashboardHeader', () => {
       })
 
       // Should still show planner view
-      expect(dashboardPlanner.style.display).toBe('block')
-      expect(dashboardActivity.style.display).toBe('none')
+      expect(dashboardPlanner!.style.display).toBe('block')
+      expect(dashboardActivity!.style.display).toBe('none')
     })
 
     it('does not trigger page reload on mount when widget_dashboard feature flag is on but user is on classic dashboard', async () => {
-      delete window.location
-      window.location = {reload: vi.fn()}
+      delete (window as any).location
+      window.location = {reload: vi.fn()} as any
 
       window.ENV = {
         current_user_roles: ['observer'],
@@ -275,11 +283,11 @@ describe('DashboardHeader', () => {
   })
 
   describe('Dashboard Toggle Button', () => {
-    let reloadSpy
+    let reloadSpy: any
 
     beforeEach(() => {
-      delete window.location
-      window.location = {reload: vi.fn()}
+      delete (window as any).location
+      window.location = {reload: vi.fn()} as any
       reloadSpy = window.location.reload
       fetchMock.restore()
     })
