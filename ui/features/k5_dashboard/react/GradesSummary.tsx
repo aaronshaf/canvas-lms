@@ -18,7 +18,6 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 
 import {Button} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
@@ -41,25 +40,37 @@ const I18n = createI18nScope('grades_summary')
 
 const DEFAULT_SIZE = 100
 
-const GradeSummaryShape = {
-  courseId: PropTypes.string.isRequired,
-  courseName: PropTypes.string.isRequired,
-  enrollmentType: PropTypes.string.isRequired,
-  courseColor: PropTypes.string,
-  courseImage: PropTypes.string,
-  currentGradingPeriodId: PropTypes.string,
-  finalGradesHidden: PropTypes.bool,
-  grade: PropTypes.string,
-  score: PropTypes.number,
-  showTotalsForAllGradingPeriods: PropTypes.bool,
-  showingAllGradingPeriods: PropTypes.bool,
-  gradingScheme: PropTypes.array,
-  pointsBasedGradingScheme: PropTypes.bool,
-  restrictQuantitativeData: PropTypes.bool,
-  scalingFactor: PropTypes.number,
+export interface GradeSummary {
+  courseId: string
+  courseName: string
+  enrollmentType: string
+  courseColor?: string
+  courseImage?: string
+  currentGradingPeriodId?: string
+  finalGradesHidden?: boolean
+  grade?: string
+  score?: number
+  showTotalsForAllGradingPeriods?: boolean
+  showingAllGradingPeriods?: boolean
+  gradingScheme?: any[]
+  pointsBasedGradingScheme?: boolean
+  restrictQuantitativeData?: boolean
+  scalingFactor?: number
 }
 
-export const GradeCourseImage = ({onClick, courseImage, courseColor, size = DEFAULT_SIZE}) => (
+interface GradeCourseImageProps {
+  onClick: (e?: React.MouseEvent) => void
+  courseImage?: string
+  courseColor?: string
+  size?: number
+}
+
+export const GradeCourseImage = ({
+  onClick,
+  courseImage,
+  courseColor,
+  size = DEFAULT_SIZE,
+}: GradeCourseImageProps) => (
   <div
     style={{
       backgroundColor: !courseImage && (courseColor || DEFAULT_COURSE_COLOR),
@@ -81,12 +92,6 @@ export const GradeCourseImage = ({onClick, courseImage, courseColor, size = DEFA
 )
 
 GradeCourseImage.displayName = 'GradeCourseImage'
-GradeCourseImage.propTypes = {
-  onClick: PropTypes.func.isRequired,
-  courseColor: PropTypes.string,
-  courseImage: PropTypes.string,
-  size: PropTypes.number,
-}
 
 export const GradeSummaryLine = ({
   courseId,
@@ -104,7 +109,7 @@ export const GradeSummaryLine = ({
   pointsBasedGradingScheme,
   restrictQuantitativeData,
   scalingFactor,
-}) => {
+}: GradeSummary) => {
   let gradeText = grade
   let isPercentage = false
   if (restrictQuantitativeData) {
@@ -126,11 +131,11 @@ export const GradeSummaryLine = ({
     }
   }
   const courseUrl = `/courses/${courseId}`
-  const handleImageClick = e => {
+  const handleImageClick = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault()
     }
-    window.location = courseUrl
+    window.location.href = courseUrl
   }
   return (
     <View as="div">
@@ -214,9 +219,12 @@ export const GradeSummaryLine = ({
 }
 
 GradeSummaryLine.displayName = 'GradeSummaryLine'
-GradeSummaryLine.propTypes = GradeSummaryShape
 
-const GradesSummary = ({courses}) => {
+interface GradesSummaryProps {
+  courses: GradeSummary[]
+}
+
+const GradesSummary = ({courses}: GradesSummaryProps) => {
   return (
     <View as="div" margin="medium none none">
       {courses.map(course => (
@@ -227,8 +235,5 @@ const GradesSummary = ({courses}) => {
 }
 
 GradesSummary.displayName = 'GradesSummary'
-GradesSummary.propTypes = {
-  courses: PropTypes.arrayOf(PropTypes.shape(GradeSummaryShape)).isRequired,
-}
 
 export default GradesSummary
