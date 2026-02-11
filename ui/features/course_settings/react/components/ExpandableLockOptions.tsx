@@ -18,7 +18,6 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import PropTypes from 'prop-types'
 import cx from 'classnames'
 
 import {PresentationContent} from '@instructure/ui-a11y-content'
@@ -30,29 +29,48 @@ import {Grid} from '@instructure/ui-grid'
 import {IconLock, IconUnlock} from '@canvas/blueprint-courses/react/components/BlueprintLocks'
 import LockCheckList from './LockCheckList'
 
-import propTypes from '@canvas/blueprint-courses/react/propTypes'
 import {formatLockObject} from '@canvas/blueprint-courses/react/LockItemFormat'
 import {itemTypeLabelPlurals} from '@canvas/blueprint-courses/react/labels'
 
 const I18n = createI18nScope('blueprint_coursesExpandableLockOptions')
+
+type LockableAttribute =
+  | 'points'
+  | 'content'
+  | 'due_dates'
+  | 'availability_dates'
+  | 'settings'
+  | 'deleted'
+
+interface ItemLocks {
+  content?: boolean
+  points?: boolean
+  due_dates?: boolean
+  availability_dates?: boolean
+  [key: string]: boolean | undefined
+}
+
+interface ExpandableLockOptionsProps {
+  objectType: string
+  locks?: ItemLocks
+  isOpen?: boolean
+  lockableAttributes: LockableAttribute[]
+}
+
+interface ExpandableLockOptionsState {
+  open: boolean
+  locks: ItemLocks
+}
 
 // ExpandableLockOptions is a single expandable tab that has a list of checkboxes as children
 // The tab has the toggle icon, the title of the tab, the lock icon that indicates whether the
 // children are checked or not, and the list of checked children
 // This is used in Blueprint Lock Options as the granular lock
 
-export default class ExpandableLockOptions extends React.Component {
-  // objectType is the Title of the tab
-  // locks are the values of the children (whether they are checked or not)
-  // isOpen determines whether the tab is expanded or not
-  // lockableAttributes are the list of items that could be locked (the list of children)
-  static propTypes = {
-    objectType: PropTypes.string.isRequired,
-    locks: propTypes.itemLocks,
-    isOpen: PropTypes.bool,
-    lockableAttributes: propTypes.lockableAttributeList.isRequired,
-  }
-
+export default class ExpandableLockOptions extends React.Component<
+  ExpandableLockOptionsProps,
+  ExpandableLockOptionsState
+> {
   static defaultProps = {
     isOpen: false,
     locks: {
@@ -63,21 +81,21 @@ export default class ExpandableLockOptions extends React.Component {
     },
   }
 
-  constructor(props) {
+  constructor(props: ExpandableLockOptionsProps) {
     super(props)
     this.state = {
-      open: props.isOpen,
-      locks: {...props.locks},
+      open: props.isOpen || false,
+      locks: {...(props.locks || {})},
     }
   }
 
-  onChange = locks => {
+  onChange = (locks: ItemLocks) => {
     this.setState({
       locks,
     })
   }
 
-  onKeyDown = e => {
+  onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.keyCode === 32) {
       this.toggle()
     }
@@ -97,7 +115,7 @@ export default class ExpandableLockOptions extends React.Component {
         <IconButton
           withBorder={false}
           withBackground={false}
-          screenReaderLabel={`${itemTypeLabelPlurals[this.props.objectType]},
+          screenReaderLabel={`${itemTypeLabelPlurals[this.props.objectType as keyof typeof itemTypeLabelPlurals]},
             ${this.state.open ? I18n.t('Expanded') : I18n.t('Collapsed')},
             ${formatLockObject(this.state.locks) ? I18n.t('Locked') : I18n.t('Unlocked')},
             ${formatLockObject(this.state.locks)}`}
@@ -123,7 +141,7 @@ export default class ExpandableLockOptions extends React.Component {
             <PresentationContent>
               <div className="bcs_tab-text">
                 <Text size="small" weight="normal">
-                  {itemTypeLabelPlurals[this.props.objectType]}
+                  {itemTypeLabelPlurals[this.props.objectType as keyof typeof itemTypeLabelPlurals]}
                 </Text>
               </div>
             </PresentationContent>
@@ -135,7 +153,7 @@ export default class ExpandableLockOptions extends React.Component {
 
   renderLockIcon() {
     const hasLocks = Object.keys(this.state.locks).reduce(
-      (isLocked, lockProp) => isLocked || this.state.locks[lockProp],
+      (isLocked, lockProp) => isLocked || Boolean(this.state.locks[lockProp]),
       false,
     )
     const Icon = hasLocks ? (

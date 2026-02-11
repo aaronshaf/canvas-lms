@@ -17,42 +17,65 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {Checkbox} from '@instructure/ui-checkbox'
-import propTypes from '@canvas/blueprint-courses/react/propTypes'
 import {lockLabels} from '@canvas/blueprint-courses/react/labels'
 
-export default class LockCheckList extends React.Component {
-  static propTypes = {
-    locks: propTypes.itemLocks.isRequired,
-    lockableAttributes: propTypes.lockableAttributeList.isRequired,
-    onChange: PropTypes.func,
-    formName: PropTypes.string.isRequired,
-  }
+type LockableAttribute =
+  | 'points'
+  | 'content'
+  | 'due_dates'
+  | 'availability_dates'
+  | 'settings'
+  | 'deleted'
 
+interface ItemLocks {
+  content?: boolean
+  points?: boolean
+  due_dates?: boolean
+  availability_dates?: boolean
+  [key: string]: boolean | undefined
+}
+
+interface LockCheckListProps {
+  locks: ItemLocks
+  lockableAttributes: LockableAttribute[]
+  onChange?: (locks: ItemLocks) => void
+  formName: string
+}
+
+interface LockCheckListState {
+  locks: ItemLocks
+}
+
+export default class LockCheckList extends React.Component<LockCheckListProps, LockCheckListState> {
   static defaultProps = {
     onChange: () => {},
   }
 
-  constructor(props) {
+  private onChangeFunctions: Record<string, (e: React.ChangeEvent<HTMLInputElement>) => void>
+
+  constructor(props: LockCheckListProps) {
     super(props)
     this.state = {
       locks: props.locks,
     }
-    this.onChangeFunctions = this.props.lockableAttributes.reduce((object, item) => {
-      object[item] = e => this.onChange(e, item)
-      return object
-    }, {})
+    this.onChangeFunctions = this.props.lockableAttributes.reduce(
+      (object, item) => {
+        object[item] = (e: React.ChangeEvent<HTMLInputElement>) => this.onChange(e, item)
+        return object
+      },
+      {} as Record<string, (e: React.ChangeEvent<HTMLInputElement>) => void>,
+    )
   }
 
-  onChange = (e, value) => {
-    const locks = this.state.locks
+  onChange = (e: React.ChangeEvent<HTMLInputElement>, value: string) => {
+    const locks = {...this.state.locks}
     locks[value] = e.target.checked
     this.setState(
       {
         locks,
       },
-      () => this.props.onChange(locks),
+      () => this.props.onChange?.(locks),
     )
   }
 
@@ -61,11 +84,11 @@ export default class LockCheckList extends React.Component {
       <div>
         {this.props.lockableAttributes.map(item => (
           <div key={item} className="bcs_check_box-group">
-            <input type="hidden" name={`course${this.props.formName}[${item}]`} value={false} />
+            <input type="hidden" name={`course${this.props.formName}[${item}]`} value="false" />
             <Checkbox
               name={`course${this.props.formName}[${item}]`}
               size="small"
-              label={lockLabels[item]}
+              label={lockLabels[item as keyof typeof lockLabels]}
               value={(this.state.locks[item] || false).toString()}
               checked={this.state.locks[item]}
               onChange={this.onChangeFunctions[item]}

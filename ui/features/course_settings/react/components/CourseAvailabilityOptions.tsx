@@ -20,7 +20,6 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {isMidnight} from '@instructure/moment-utils'
 import moment from 'moment'
 import React, {useState} from 'react'
-import {bool} from 'prop-types'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {Text} from '@instructure/ui-text'
 import {FormFieldGroup} from '@instructure/ui-form-field'
@@ -34,7 +33,17 @@ import useDateTimeFormat from '@canvas/use-date-time-format-hook'
 
 const I18n = createI18nScope('CourseAvailabilityOptions')
 
-export default function CourseAvailabilityOptions({canManage, viewPastLocked, viewFutureLocked}) {
+interface CourseAvailabilityOptionsProps {
+  canManage: boolean
+  viewPastLocked: boolean
+  viewFutureLocked: boolean
+}
+
+export default function CourseAvailabilityOptions({
+  canManage,
+  viewPastLocked,
+  viewFutureLocked,
+}: CourseAvailabilityOptionsProps) {
   const formatDateLocal = useDateTimeFormat('date.formats.full', ENV.TIMEZONE)
   const formatDateCourse = useDateTimeFormat('date.formats.full', ENV.CONTEXT_TIMEZONE)
   const FORM_IDS = {
@@ -47,19 +56,24 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
 
   const TERM_DATES = {
     START_DATE:
+      // @ts-expect-error - ENV properties
       window.ENV.STUDENTS_ENROLLMENT_DATES?.start_at || window.ENV.DEFAULT_TERM_DATES?.start_at,
+    // @ts-expect-error - ENV properties
     END_DATE: window.ENV.STUDENTS_ENROLLMENT_DATES?.end_at || window.ENV.DEFAULT_TERM_DATES?.end_at,
   }
 
-  const localDate = date => `${I18n.t('Local')}: ${formatDateLocal(date)}`
-  const courseDate = date => `${I18n.t('Course')}: ${formatDateCourse(date)}`
+  const localDate = (date: string) => `${I18n.t('Local')}: ${formatDateLocal(date)}`
+  const courseDate = (date: string) => `${I18n.t('Course')}: ${formatDateCourse(date)}`
 
-  const setFormValue = (id, value) => {
-    const field = document.getElementById(id)
-    field.value = value
+  const setFormValue = (id: string, value: boolean | string | null) => {
+    const field = document.getElementById(id) as HTMLInputElement | null
+    if (field) field.value = String(value)
   }
 
-  const getFormValue = id => document.getElementById(id).value
+  const getFormValue = (id: string): string => {
+    const element = document.getElementById(id) as HTMLInputElement | null
+    return element?.value || ''
+  }
 
   const [selectedApplicabilityValue, setSelectedApplicabilityValue] = useState(
     getFormValue(FORM_IDS.RESTRICT_ENROLLMENTS) === 'true' ? 'course' : 'term',
@@ -97,16 +111,16 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
 
   const clearCourseDates = () => {
     setFormValue(FORM_IDS.START_DATE, null)
-    setStartDate(null)
+    setStartDate('')
     setFormValue(FORM_IDS.END_DATE, null)
-    setEndDate(null)
+    setEndDate('')
   }
 
-  const endDateErrors = (startDate, endDate) => {
+  const endDateErrors = (startDate: string, endDate: string) => {
     if (endDate < startDate) {
       return [
         {
-          type: 'error',
+          type: 'error' as const,
           text: I18n.t('The end date can not occur before the start date.'),
         },
       ]
@@ -142,7 +156,7 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
               clearCourseDates()
             }
             setFormValue(FORM_IDS.RESTRICT_ENROLLMENTS, value === 'course')
-            setSelectedApplicabilityValue(value)
+            setSelectedApplicabilityValue(value as string)
           }}
         >
           <SimpleSelect.Option id="term" value="term">
@@ -159,6 +173,7 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
           dangerouslySetInnerHTML={{__html: participationExplanationText()}}
         />
 
+        {/* @ts-expect-error - ENV property */}
         {ENV.COURSE_PACES_ENABLED && (
           <Text size="small" weight="light">
             {I18n.t(
@@ -171,19 +186,22 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
           <Flex direction="column" display="inline-flex">
             <Flex.Item padding="xx-small 0">
               <ScreenReaderContent>{I18n.t('Course Start Date')}</ScreenReaderContent>
-              <CanvasDateInput2
-                renderLabel={I18n.t('Start')}
-                formatDate={formatDateLocal}
-                interaction={datesInteraction()}
-                width="16rem"
-                selectedDate={startDateInputValue}
-                onSelectedDateChange={value => {
-                  const start = moment(value).toISOString()
-                  setFormValue(FORM_IDS.START_DATE, start)
-                  setStartDate(start)
-                }}
-                hideMessagesWhenFocused
-              />
+              {/* @ts-expect-error - CanvasDateInput2 prop types */}
+              {
+                <CanvasDateInput2
+                  renderLabel={I18n.t('Start')}
+                  formatDate={formatDateLocal}
+                  interaction={datesInteraction()}
+                  width="16rem"
+                  selectedDate={startDateInputValue}
+                  onSelectedDateChange={value => {
+                    const start = moment(value).toISOString()
+                    setFormValue(FORM_IDS.START_DATE, start)
+                    setStartDate(start)
+                  }}
+                  hideMessagesWhenFocused={true}
+                />
+              }
               {startDateInputValue && (
                 <>
                   <View as="div" margin="x-small none xx-small small">
@@ -201,20 +219,23 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
             </Flex.Item>
             <Flex.Item padding="xx-small 0">
               <ScreenReaderContent>{I18n.t('Course End Date')}</ScreenReaderContent>
-              <CanvasDateInput2
-                messages={endDateErrors(startDate, endDate)}
-                renderLabel={I18n.t('End')}
-                formatDate={formatDateLocal}
-                interaction={datesInteraction()}
-                width="16rem"
-                selectedDate={endDateInputValue}
-                onSelectedDateChange={value => {
-                  const end = moment(value).toISOString()
-                  setFormValue(FORM_IDS.END_DATE, end)
-                  setEndDate(end)
-                }}
-                hideMessagesWhenFocused
-              />
+              {/* @ts-expect-error - CanvasDateInput2 prop types */}
+              {
+                <CanvasDateInput2
+                  messages={endDateErrors(startDate, endDate)}
+                  renderLabel={I18n.t('End')}
+                  formatDate={formatDateLocal}
+                  interaction={datesInteraction()}
+                  width="16rem"
+                  selectedDate={endDateInputValue}
+                  onSelectedDateChange={value => {
+                    const end = moment(value).toISOString()
+                    setFormValue(FORM_IDS.END_DATE, end)
+                    setEndDate(end)
+                  }}
+                  hideMessagesWhenFocused={true}
+                />
+              }
               {endDateInputValue && (
                 <>
                   <View as="div" margin="x-small none xx-small small">
@@ -280,10 +301,4 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
       </FormFieldGroup>
     </div>
   )
-}
-
-CourseAvailabilityOptions.propTypes = {
-  canManage: bool.isRequired,
-  viewPastLocked: bool.isRequired,
-  viewFutureLocked: bool.isRequired,
 }

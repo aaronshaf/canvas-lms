@@ -18,14 +18,12 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
-import PropTypes from 'prop-types'
 import cx from 'classnames'
 
 import {Text} from '@instructure/ui-text'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {RadioInput} from '@instructure/ui-radio-input'
 import {Tooltip} from '@instructure/ui-tooltip'
-import propTypes from '@canvas/blueprint-courses/react/propTypes'
 import ExpandableLockOptions from './ExpandableLockOptions'
 import LockCheckList from './LockCheckList'
 
@@ -40,7 +38,33 @@ const granularLocking = I18n.t('Locked Objects by Type')
 const granular = 'true'
 const general = 'false'
 
-const keys = [
+type LockableAttribute =
+  | 'points'
+  | 'content'
+  | 'due_dates'
+  | 'availability_dates'
+  | 'settings'
+  | 'deleted'
+
+interface ItemLocks {
+  content?: boolean
+  points?: boolean
+  due_dates?: boolean
+  availability_dates?: boolean
+  [key: string]: boolean | undefined
+}
+
+interface ItemLocksByObject {
+  assignment?: ItemLocks
+  discussion_topic?: ItemLocks
+  wiki_page?: ItemLocks
+  quiz?: ItemLocks
+  attachment?: ItemLocks
+  course_pace?: ItemLocks
+  [key: string]: ItemLocks | undefined
+}
+
+const keys: Array<{objectType: string; lockableAttributes?: LockableAttribute[]}> = [
   {objectType: 'assignment'},
   {objectType: 'discussion_topic'},
   {objectType: 'wiki_page', lockableAttributes: ['content', 'availability_dates']},
@@ -49,22 +73,39 @@ const keys = [
   {objectType: 'course_pace', lockableAttributes: ['content']},
 ]
 
-export default class BlueprintLockOptions extends React.Component {
-  static propTypes = {
-    isMasterCourse: PropTypes.bool.isRequired,
-    disabledMessage: PropTypes.string,
-    useRestrictionsbyType: PropTypes.bool.isRequired,
-    generalRestrictions: propTypes.itemLocks.isRequired,
-    restrictionsByType: propTypes.itemLocksByObject.isRequired,
-    lockableAttributes: propTypes.lockableAttributeList,
-  }
+interface BlueprintLockOptionsProps {
+  isMasterCourse: boolean
+  disabledMessage?: string
+  useRestrictionsbyType: boolean
+  generalRestrictions: ItemLocks
+  restrictionsByType: ItemLocksByObject
+  lockableAttributes?: LockableAttribute[]
+}
 
+interface BlueprintLockOptionsState {
+  lockType: string
+  courseEnabled: boolean
+  generalRestrictions: ItemLocks
+  objectRestrictions: ItemLocksByObject
+}
+
+export default class BlueprintLockOptions extends React.Component<
+  BlueprintLockOptionsProps,
+  BlueprintLockOptionsState
+> {
   static defaultProps = {
     disabledMessage: '',
-    lockableAttributes: ['content', 'points', 'due_dates', 'availability_dates'],
+    lockableAttributes: [
+      'content',
+      'points',
+      'due_dates',
+      'availability_dates',
+    ] as LockableAttribute[],
   }
 
-  constructor(props) {
+  private granularRadioInput: any
+
+  constructor(props: BlueprintLockOptionsProps) {
     super(props)
     this.state = {
       lockType: props.useRestrictionsbyType ? granular : general,
@@ -74,7 +115,7 @@ export default class BlueprintLockOptions extends React.Component {
     }
   }
 
-  onChange = e => {
+  onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({
       lockType: e.target.value,
     })
@@ -84,7 +125,7 @@ export default class BlueprintLockOptions extends React.Component {
     this.setState(oldState => ({courseEnabled: !oldState.courseEnabled}))
   }
 
-  renderGeneralMenu(lock) {
+  renderGeneralMenu(lock: string) {
     const viewableClasses = cx({
       'bcs_sub-menu': true,
       'bcs_sub-menu-viewable': lock === general,
@@ -98,14 +139,14 @@ export default class BlueprintLockOptions extends React.Component {
         </div>
         <LockCheckList
           formName="[blueprint_restrictions]"
-          lockableAttributes={this.props.lockableAttributes}
+          lockableAttributes={this.props.lockableAttributes || []}
           locks={this.state.generalRestrictions}
         />
       </div>
     )
   }
 
-  renderGranularMenu(lock) {
+  renderGranularMenu(lock: string) {
     const viewableClasses = cx({
       'bcs_sub-menu': true,
       'bcs_sub-menu-viewable': lock === granular,
@@ -118,8 +159,8 @@ export default class BlueprintLockOptions extends React.Component {
             <ExpandableLockOptions
               key={item.objectType}
               objectType={item.objectType}
-              locks={this.state.objectRestrictions[item.objectType]}
-              lockableAttributes={item.lockableAttributes || this.props.lockableAttributes}
+              locks={this.state.objectRestrictions[item.objectType] || {}}
+              lockableAttributes={item.lockableAttributes || this.props.lockableAttributes || []}
             />
           ))}
         </div>
@@ -169,7 +210,7 @@ export default class BlueprintLockOptions extends React.Component {
     const disabled = !!this.props.disabledMessage
     let checkBox = (
       <div>
-        <input type="hidden" name="course[blueprint]" value={false} />
+        <input type="hidden" name="course[blueprint]" value="false" />
         <Checkbox
           name="course[blueprint]"
           checked={this.state.courseEnabled}
