@@ -19,9 +19,14 @@
 import React from 'react'
 import {render} from '@testing-library/react'
 import CourseListItem from '../CourseListItem'
+import type {Course} from '../CourseStore'
+
+interface CourseListItemProps {
+  course: Course
+}
 
 describe('CourseListItem', () => {
-  let props
+  let props: CourseListItemProps
 
   beforeEach(() => {
     props = {
@@ -40,7 +45,10 @@ describe('CourseListItem', () => {
 
   it('shows generating state when epub_export is generating', () => {
     props.course = {
+      id: 1,
+      name: 'Maths 101',
       epub_export: {
+        id: 1,
         permissions: {},
         workflow_state: 'generating',
       },

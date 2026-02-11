@@ -17,41 +17,44 @@
  */
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import classnames from 'classnames'
 import {isObject, isEmpty} from 'es-toolkit/compat'
-import CourseEpubExportStore from './CourseStore'
+import CourseEpubExportStore, {type Course, type EpubExport} from './CourseStore'
 
 const I18n = createI18nScope('epub_exports')
 
-class GenerateLink extends React.Component {
-  static displayName = 'GenerateLink'
+interface GenerateLinkProps {
+  course: Course
+}
 
-  static propTypes = {
-    course: PropTypes.object.isRequired,
-  }
+interface GenerateLinkState {
+  triggered: boolean
+}
+
+class GenerateLink extends React.Component<GenerateLinkProps, GenerateLinkState> {
+  static displayName = 'GenerateLink'
 
   //
   // Preparation
   //
 
-  state = {
+  state: GenerateLinkState = {
     triggered: false,
   }
 
-  epubExport = () => this.props.course.epub_export || {}
+  epubExport = (): Partial<EpubExport> => this.props.course.epub_export || {}
 
   showGenerateLink = () =>
     isEmpty(this.epubExport()) ||
-    (isObject(this.epubExport().permissions) && this.epubExport().permissions.regenerate)
+    (isObject(this.epubExport().permissions) && this.epubExport().permissions?.regenerate)
 
   //
   // Rendering
   //
 
   render() {
-    const text = {}
+    const text: Record<string, boolean> = {}
 
     if (!this.showGenerateLink() && !this.state.triggered) return null
 
@@ -82,7 +85,7 @@ class GenerateLink extends React.Component {
   // Event handling
   //
 
-  _onClick = e => {
+  _onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     this.setState({
       triggered: true,
@@ -92,6 +95,7 @@ class GenerateLink extends React.Component {
         triggered: false,
       })
     }, 800)
+    // @ts-expect-error - Dynamically added method to store
     CourseEpubExportStore.create(this.props.course.id)
   }
 }

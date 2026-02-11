@@ -20,32 +20,72 @@ import {each} from 'es-toolkit/compat'
 import createStore from '@canvas/backbone/createStore'
 import $ from 'jquery'
 
-const CourseEpubExportStore = createStore({}),
-  _courses = {}
+export interface EpubExportAttachment {
+  url: string
+  [key: string]: unknown
+}
 
-CourseEpubExportStore.getAll = function () {
-  $.getJSON('/api/v1/epub_exports', data => {
-    each(data.courses, course => {
+export interface EpubExportPermissions {
+  download?: boolean
+  regenerate?: boolean
+  [key: string]: unknown
+}
+
+export interface EpubExport {
+  id: number
+  progress_id?: string
+  workflow_state: string
+  updated_at?: string
+  epub_attachment?: EpubExportAttachment
+  zip_attachment?: EpubExportAttachment
+  permissions?: EpubExportPermissions
+  [key: string]: unknown
+}
+
+export interface Course {
+  id: number
+  name: string
+  epub_export?: EpubExport
+  [key: string]: unknown
+}
+
+interface CoursesMap {
+  [courseId: string]: Course
+}
+
+interface ApiResponse {
+  courses: Course[]
+}
+
+const CourseEpubExportStore = createStore<CoursesMap>({})
+const _courses: CoursesMap = {}
+
+// @ts-expect-error - Dynamically adding methods to store
+CourseEpubExportStore.getAll = function (): void {
+  $.getJSON('/api/v1/epub_exports', (data: ApiResponse) => {
+    each(data.courses, (course: Course) => {
       _courses[course.id] = course
     })
     CourseEpubExportStore.setState(_courses)
   })
 }
 
-CourseEpubExportStore.get = function (course_id, id) {
+// @ts-expect-error - Dynamically adding methods to store
+CourseEpubExportStore.get = function (course_id: number, id: number): void {
   const url = '/api/v1/courses/' + course_id + '/epub_exports/' + id
-  $.getJSON(url, data => {
+  $.getJSON(url, (data: Course) => {
     _courses[data.id] = data
     CourseEpubExportStore.setState(_courses)
   })
 }
 
-CourseEpubExportStore.create = function (id) {
+// @ts-expect-error - Dynamically adding methods to store
+CourseEpubExportStore.create = function (id: number): void {
   const url = '/api/v1/courses/' + id + '/epub_exports'
   $.post(
     url,
     {},
-    data => {
+    (data: Course) => {
       _courses[data.id] = data
       CourseEpubExportStore.setState(_courses)
     },

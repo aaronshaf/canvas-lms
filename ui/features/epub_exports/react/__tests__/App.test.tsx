@@ -19,21 +19,27 @@
 import React from 'react'
 import {render, act} from '@testing-library/react'
 import App from '../App'
-import CourseEpubExportStore from '../CourseStore'
+import CourseEpubExportStore, {type Course} from '../CourseStore'
+
+interface CoursesMap {
+  [courseId: string]: Course
+}
 
 describe('EpubExportApp', () => {
-  let courseData
-  let mockGetState
+  let courseData: CoursesMap
+  let mockGetState: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
     // Initial empty state
     mockGetState = vi.spyOn(CourseEpubExportStore, 'getState').mockReturnValue({})
 
     // Mock getAll to do nothing (we'll control state changes manually)
+    // @ts-expect-error - Dynamically added method to store
     vi.spyOn(CourseEpubExportStore, 'getAll').mockImplementation(() => {})
 
     // Mock setState to update our mock getState
-    vi.spyOn(CourseEpubExportStore, 'setState').mockImplementation(newState => {
+    // @ts-expect-error - setState parameter type mismatch with partial state
+    vi.spyOn(CourseEpubExportStore, 'setState').mockImplementation((newState: CoursesMap) => {
       mockGetState.mockReturnValue(newState)
       // Simulate the store triggering change listeners
       CourseEpubExportStore.emitChange()
@@ -74,6 +80,7 @@ describe('EpubExportApp', () => {
 
   it('fetches courses on mount', () => {
     render(<App />)
+    // @ts-expect-error - Dynamically added method to store
     expect(CourseEpubExportStore.getAll).toHaveBeenCalled()
   })
 })

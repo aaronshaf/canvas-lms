@@ -19,8 +19,13 @@
 import React from 'react'
 import {render} from '@testing-library/react'
 import CourseList from '../CourseList'
+import type {Course} from '../CourseStore'
 
-let props
+interface CoursesMap {
+  [courseId: string]: Course
+}
+
+let props: CoursesMap
 
 describe('CourseListSpec', () => {
   beforeEach(() => {
