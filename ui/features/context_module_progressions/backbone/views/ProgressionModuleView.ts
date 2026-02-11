@@ -53,6 +53,8 @@ export default class ProgressionModuleView extends Backbone.View {
   static className = 'progressionModule'
   static template = template
 
+  model: any
+
   statuses: Record<ModuleState, string> = {
     started: I18n.t('module_started', 'In Progress'),
     completed: I18n.t('module_complete', 'Complete'),
@@ -72,13 +74,12 @@ export default class ProgressionModuleView extends Backbone.View {
   }
 
   toJSON(): ModuleJSON {
-    // @ts-expect-error - Backbone super method doesn't have type definitions
     const json: ModuleJSON = super.toJSON(...arguments)
     json.student_id = this.model.collection.student_id
     json.status_text = this.statuses[json.state]
     json[json.state] = true
 
-    json.show_items = json.state === 'started' && json.items
+    json.show_items = json.state === 'started' && !!json.items
     if (json.show_items && json.items) {
       for (const item of json.items) {
         item.icon_class = this.iconClasses[item.type] || this.iconClasses.ModuleItem
@@ -88,12 +89,14 @@ export default class ProgressionModuleView extends Backbone.View {
   }
 
   afterRender() {
-    // @ts-expect-error - Backbone super method doesn't have type definitions
     super.afterRender(...arguments)
     return this.model.collection.syncHeight()
   }
 }
 
+// @ts-expect-error - Backbone prototype properties
 ProgressionModuleView.prototype.tagName = 'li'
+// @ts-expect-error - Backbone prototype properties
 ProgressionModuleView.prototype.className = 'progressionModule'
+// @ts-expect-error - Backbone prototype properties
 ProgressionModuleView.prototype.template = template
