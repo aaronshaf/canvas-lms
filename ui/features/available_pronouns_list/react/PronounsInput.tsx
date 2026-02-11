@@ -38,7 +38,8 @@ export default class PronounsInput extends React.Component<{}, PronounsInputStat
   constructor(props: {}) {
     super(props)
 
-    const pronounList = ENV.PRONOUNS_LIST.filter((x): x is string => x !== null)
+    // @ts-expect-error - PRONOUNS_LIST is set by backend but not in GlobalEnv type
+    const pronounList = ENV.PRONOUNS_LIST.filter((x: string | null): x is string => x !== null)
 
     this.state = {
       pronouns: pronounList,
@@ -82,8 +83,12 @@ export default class PronounsInput extends React.Component<{}, PronounsInputStat
             e.preventDefault()
             this.setState(prevState => {
               if (prevState.value && prevState.value.trim() !== '') {
-                prevState.pronouns.push(prevState.value.trim())
-                return {pronouns: [...new Set(prevState.pronouns)]}
+                const updatedPronouns = [...prevState.pronouns, prevState.value.trim()]
+                return {
+                  pronouns: [...new Set(updatedPronouns)],
+                  input_id: prevState.input_id,
+                  value: '',
+                }
               }
               return prevState
             })
@@ -109,8 +114,6 @@ export default class PronounsInput extends React.Component<{}, PronounsInputStat
           </>
         }
         size="medium"
-        resize="vertical"
-        height="4 rem"
         renderBeforeInput={this.state.pronouns.map(pronoun => {
           return this.createNewTag(pronoun)
         })}
