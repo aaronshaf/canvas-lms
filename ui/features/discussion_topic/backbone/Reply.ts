@@ -27,7 +27,7 @@ import RichContentEditor from '@canvas/rce/RichContentEditor'
 import {send} from '@canvas/rce-command-shim'
 import '@canvas/jquery/jquery.instructure_forms'
 
-const stripTags = str => {
+const stripTags = (str: string): string => {
   const div = document.createElement('div')
   div.innerHTML = str
   return div.textContent || div.innerText || ''
@@ -38,13 +38,26 @@ const I18n = createI18nScope('discussions.reply')
 RichContentEditor.preloadRemoteModule()
 
 class Reply {
+  view: any
+  options: any
+  el: any
+  discussionEntry: any
+  form: any
+  textArea: any
+  editing: boolean
+  content?: string
+  trigger: any
+
   // #
   // Creates a new reply to an Entry
   //
   // @param {view} an EntryView instance
-  constructor(view, options = {}) {
+  constructor(view: any, options: any = {}) {
     ;['hide', 'hideNotification', 'submit', 'onPostReplySuccess', 'onPostReplyError'].forEach(
-      m => (this[m] = this[m].bind(this)),
+      m => {
+        // @ts-expect-error - Dynamic method binding
+        this[m] = this[m].bind(this)
+      },
     )
     this.view = view
     this.options = options
@@ -59,19 +72,20 @@ class Reply {
       .find('form.discussion-reply-form:first')
       .submit(preventDefault(this.submit))
     this.textArea = this.getEditingElement()
-    this.form.find('.cancel_button').click(_e => {
+    this.form.find('.cancel_button').click((_e: any) => {
       RichContentEditor.closeRCE(this.textArea)
       this.hide()
     })
-    this.form.on('click', '.toggle-wrapper a', e => {
+    this.form.on('click', '.toggle-wrapper a', (e: any) => {
       e.preventDefault()
       RichContentEditor.callOnRCE(this.textArea, 'toggle')
       // hide the clicked link, and show the other toggle link.
       // todo: replace .andSelf with .addBack when JQuery is upgraded.
+      // @ts-expect-error - andSelf is deprecated jQuery method
       return $(e.currentTarget).siblings('a').andSelf().toggle()
     })
     this.form.on('click', '.alert .close', preventDefault(this.hideNotification))
-    this.form.on('change', 'ul.discussion-reply-attachments input[type=file]', e => {
+    this.form.on('change', 'ul.discussion-reply-attachments input[type=file]', (e: any) => {
       this.form.find('ul.discussion-reply-attachments input[type=file]').focus()
       if (e.target.files.length > 0) {
         $.screenReaderFlashMessage(
@@ -114,11 +128,11 @@ class Reply {
     return this.trigger('edit', this)
   }
 
-  createTextArea(id) {
+  createTextArea(id: string) {
     return $('<textarea/>').addClass('reply-textarea').attr('id', id).attr('aria-hidden', 'true')
   }
 
-  replaceTextArea(textAreaId) {
+  replaceTextArea(textAreaId: string) {
     RichContentEditor.destroyRCE(this.textArea)
     this.textArea = this.createTextArea(textAreaId)
     this.textArea.val(this.content)
@@ -155,8 +169,8 @@ class Reply {
 
     if (rceInputs.length > 0) {
       const okayToContinue = rceInputs
-        .map(rce => send($(rce), 'checkReadyToGetCode', window.confirm))
-        .every(i => i)
+        .map((rce: any) => send($(rce), 'checkReadyToGetCode', window.confirm))
+        .every((i: any) => i)
       if (!okayToContinue) return
     }
     RichContentEditor.closeRCE(this.textArea)
@@ -167,9 +181,11 @@ class Reply {
       `<div class='alert alert-info'>${htmlEscape(I18n.t('saving_reply', 'Saving reply...'))}</div>`,
     )
     const entry = new Entry(this.getModelAttributes())
+    // @ts-expect-error - Backbone model save method
     entry.save(null, {
       success: this.onPostReplySuccess,
       error: this.onPostReplyError,
+      // @ts-expect-error - Backbone model get method
       multipart: entry.get('attachment'),
       proxyAttachment: true,
     })
@@ -193,7 +209,7 @@ class Reply {
     // TODO: remove this summary, server should send it in create response and no further
     // work is required
     return {
-      summary: stripTags(this.content),
+      summary: stripTags(this.content || ''),
       message: this.content,
       parent_id: this.options.topLevel ? null : this.view.model.get('id'),
       user_id: ENV.current_user_id,
@@ -208,7 +224,7 @@ class Reply {
   // Callback when the model is succesfully saved
   //
   // @api private
-  onPostReplySuccess(entry, response) {
+  onPostReplySuccess(entry: any, response: any) {
     if (response.errors) {
       this.hideNotification()
       this.textArea.val(entry.get('message'))
@@ -225,7 +241,7 @@ class Reply {
   // Callback when the model fails to save
   //
   // @api private
-  onPostReplyError(entry) {
+  onPostReplyError(entry: any) {
     this.view.model.set(
       'notification',
       `<div class='alert alert-info'>${I18n.t(
@@ -241,7 +257,7 @@ class Reply {
 
   // #
   // Adds an attachment
-  addAttachment(_$el) {
+  addAttachment(_$el?: any) {
     this.form.find('ul.discussion-reply-attachments').append(replyAttachmentTemplate())
     this.form.find('ul.discussion-reply-attachments input').focus()
     return this.form.find('a.discussion-reply-add-attachment').hide() // TODO: when the data model allows it, tweak this to support multiple in the UI
@@ -249,7 +265,7 @@ class Reply {
 
   // #
   // Removes an attachment
-  removeAttachment($el) {
+  removeAttachment($el: any) {
     $el.closest('ul.discussion-reply-attachments li').remove()
     return this.form.find('a.discussion-reply-add-attachment').show().focus()
   }

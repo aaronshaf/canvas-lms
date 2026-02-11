@@ -39,9 +39,10 @@ import '../../jst/_reply_form.handlebars'
 
 const I18n = createI18nScope('discussions')
 
+// @ts-expect-error - Backbone extend pattern
 extend(EntryView, Backbone.View)
 
-function EntryView() {
+function EntryView(this: any) {
   this.handleKeyDown = this.handleKeyDown.bind(this)
   this.renderRatingSum = this.renderRatingSum.bind(this)
   this.renderRating = this.renderRating.bind(this)
@@ -49,13 +50,14 @@ function EntryView() {
   this.renderTree = this.renderTree.bind(this)
   this.toggleDeleted = this.toggleDeleted.bind(this)
   this.toggleReadState = this.toggleReadState.bind(this)
+  // @ts-expect-error - Backbone __super__ pattern
   return EntryView.__super__.constructor.apply(this, arguments)
 }
 
 EntryView.instances = {}
 
 EntryView.collapseRootEntries = function () {
-  each(this.instances, function (view) {
+  each(this.instances, function (view: any) {
     if (!view.model.get('parent')) {
       view.collapse()
     }
@@ -63,15 +65,15 @@ EntryView.collapseRootEntries = function () {
 }
 
 EntryView.expandRootEntries = function () {
-  each(this.instances, function (view) {
+  each(this.instances, function (view: any) {
     if (!view.model.get('parent')) {
       view.expand()
     }
   })
 }
 
-EntryView.setAllReadState = function (newReadState) {
-  each(this.instances, function (view) {
+EntryView.setAllReadState = function (newReadState: string) {
+  each(this.instances, function (view: any) {
     view.model.set('read_state', newReadState)
   })
 }
@@ -105,6 +107,7 @@ EntryView.prototype.tagName = 'li'
 EntryView.prototype.className = 'entry'
 
 EntryView.prototype.initialize = function () {
+  // @ts-expect-error - Backbone __super__ pattern
   EntryView.__super__.initialize.apply(this, arguments)
   this.constructor.instances[this.cid] = this
   this.$el.attr('id', 'entry-' + this.model.get('id'))
@@ -116,8 +119,8 @@ EntryView.prototype.initialize = function () {
   this.model.on('change:read_state', this.toggleReadState)
   this.model.on(
     'change:editor',
-    (function (_this) {
-      return function (entry) {
+    (function (_this: any) {
+      return function (entry: any) {
         _this.render()
         return entry.trigger('edited')
       }
@@ -125,8 +128,8 @@ EntryView.prototype.initialize = function () {
   )
   this.model.on(
     'change:replies',
-    (function (_this) {
-      return function (model, value) {
+    (function (_this: any) {
+      return function (model: any, value: any) {
         _this.$el.toggleClass('no-replies', !_this.model.hasActiveReplies())
         if (isEmpty(value)) {
           return delete _this.treeView
@@ -140,17 +143,18 @@ EntryView.prototype.initialize = function () {
   return this.model.on('change:rating_sum', this.renderRatingSum)
 }
 
-EntryView.prototype.toggleRead = function (e) {
+EntryView.prototype.toggleRead = function (e: any) {
   e.preventDefault()
   if (this.model.get('read_state') === 'read') {
     this.model.markAsUnread()
   } else {
     this.model.markAsRead()
   }
+  // @ts-expect-error - Static trigger method
   return EntryView.trigger('readStateChanged', this.model, this)
 }
 
-EntryView.prototype.handleDeclarativeEvent = function (event) {
+EntryView.prototype.handleDeclarativeEvent = function (event: any) {
   const $el = $(event.currentTarget)
   const method = $el.data('event')
   if (this.bypass(event)) {
@@ -161,7 +165,7 @@ EntryView.prototype.handleDeclarativeEvent = function (event) {
   return this[method](event, $el)
 }
 
-EntryView.prototype.bypass = function (event) {
+EntryView.prototype.bypass = function (event: any) {
   const target = $(event.target)
   if (target.data('bypass') != null) {
     return true
@@ -192,13 +196,13 @@ EntryView.prototype.toJSON = function () {
   return json
 }
 
-EntryView.prototype.toggleReadState = function (model, read_state) {
+EntryView.prototype.toggleReadState = function (model: any, read_state: string) {
   this.setToggleTooltip()
   this.$entryContent.toggleClass('unread', read_state === 'unread')
   return this.$entryContent.toggleClass('read', read_state === 'read')
 }
 
-EntryView.prototype.toggleCollapsed = function (event, $el) {
+EntryView.prototype.toggleCollapsed = function (event: any, $el: any) {
   if (!this.addedCountsToHeader) {
     this.addCountsToHeader()
   }
@@ -231,7 +235,7 @@ EntryView.prototype.addCountsToHeader = function () {
   return (this.addedCountsToHeader = true)
 }
 
-EntryView.prototype.toggleDeleted = function (model, deleted) {
+EntryView.prototype.toggleDeleted = function (model: any, deleted: boolean) {
   this.$el.toggleClass('deleted', deleted)
   this.$entryContent.toggleClass('deleted-discussion-entry', deleted)
   if (deleted) {
@@ -249,6 +253,7 @@ EntryView.prototype.setToggleTooltip = function () {
 }
 
 EntryView.prototype.afterRender = function () {
+  // @ts-expect-error - Backbone __super__ pattern
   EntryView.__super__.afterRender.apply(this, arguments)
   const directionToPad = isRTL() ? 'right' : 'left'
   const shouldPosition = this.$el.find('.entry-content[data-should-position]')
@@ -268,7 +273,7 @@ EntryView.prototype.afterRender = function () {
   if (
     this.model.get('read_state') === 'unread' &&
     !this.model.get('forced_read_state') &&
-    !ENV.DISCUSSION.MANUAL_MARK_AS_READ
+    !ENV.DISCUSSION?.MANUAL_MARK_AS_READ
   ) {
     if (this.readMarker == null) {
       this.readMarker = new MarkAsReadWatcher(this)
@@ -280,7 +285,7 @@ EntryView.prototype.afterRender = function () {
 
 EntryView.prototype.filter = EntryView.prototype.afterRender
 
-EntryView.prototype.renderTree = function (opts) {
+EntryView.prototype.renderTree = function (opts?: any) {
   if (opts == null) {
     opts = {}
   }
@@ -303,7 +308,8 @@ EntryView.prototype.renderTree = function (opts) {
     showMoreDescendants: this.options.showMoreDescendants,
   })
   this.treeView.render()
-  const boundReplies = collection.map(function (x) {
+  // @ts-expect-error - Collection map method
+  const boundReplies = collection.map(function (x: any) {
     return x.attributes
   })
   return this.model.set('replies', boundReplies)
@@ -330,7 +336,7 @@ EntryView.prototype.countPosterity = function () {
   if (this.model.attributes.replies == null) {
     return stats
   }
-  walk(this.model.attributes.replies, 'replies', function (entry) {
+  walk(this.model.attributes.replies, 'replies', function (entry: any) {
     if (!entry.deleted) {
       if (entry.read_state === 'unread') {
         stats.unread++
@@ -341,7 +347,7 @@ EntryView.prototype.countPosterity = function () {
   return stats
 }
 
-EntryView.prototype.loadDescendants = function (event) {
+EntryView.prototype.loadDescendants = function (event: any) {
   event.stopPropagation()
   event.preventDefault()
   return this.renderTree({
@@ -377,7 +383,7 @@ EntryView.prototype.edit = function () {
   }
   return this.editor.on(
     'display',
-    (function (_this) {
+    (function (_this: any) {
       return function () {
         return setTimeout(_this.focus, 0)
       }
@@ -389,7 +395,7 @@ EntryView.prototype.focus = function () {
   return this.$('.author').first().focus()
 }
 
-EntryView.prototype.addReply = function (_event, _$el) {
+EntryView.prototype.addReply = function (_event?: any, _$el?: any) {
   if (this.reply == null) {
     this.reply = new Reply(this, {
       focus: true,
@@ -399,20 +405,21 @@ EntryView.prototype.addReply = function (_event, _$el) {
   this.reply.edit()
   return this.reply.on(
     'save',
-    (function (_this) {
-      return function (entry) {
+    (function (_this: any) {
+      return function (entry: any) {
         _this.renderTree()
         _this.treeView.collection.add(entry)
         _this.treeView.collection.fullCollection.add(entry)
         _this.model.get('replies').push(entry.attributes)
         _this.trigger('addReply')
+        // @ts-expect-error - Static trigger method
         return EntryView.trigger('addReply', entry)
       }
     })(this),
   )
 }
 
-EntryView.prototype.toggleLike = function (e) {
+EntryView.prototype.toggleLike = function (e: any) {
   e.preventDefault()
   return this.model.toggleLike()
 }
@@ -429,17 +436,17 @@ EntryView.prototype.renderRatingSum = function () {
   return this.$ratingSum.text(this.model.ratingString())
 }
 
-EntryView.prototype.addReplyAttachment = function (event, $el) {
+EntryView.prototype.addReplyAttachment = function (event: any, $el: any) {
   event.preventDefault()
   return this.reply.addAttachment($el)
 }
 
-EntryView.prototype.removeReplyAttachment = function (event, $el) {
+EntryView.prototype.removeReplyAttachment = function (event: any, $el: any) {
   event.preventDefault()
   return this.reply.removeAttachment($el)
 }
 
-EntryView.prototype.format = function (attr, value) {
+EntryView.prototype.format = function (attr: string, value: any) {
   if (attr === 'message') {
     value = apiUserContent.convert(value)
     this.$el.find('.message').removeClass('enhanced')
@@ -452,7 +459,7 @@ EntryView.prototype.format = function (attr, value) {
   }
 }
 
-EntryView.prototype.handleKeyDown = function (e) {
+EntryView.prototype.handleKeyDown = function (e: any) {
   const nodeName = e.target.nodeName.toLowerCase()
   if (nodeName === 'input' || nodeName === 'textarea' || ENV.disable_keyboard_shortcuts) {
     return

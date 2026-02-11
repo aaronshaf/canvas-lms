@@ -35,6 +35,32 @@ import DirectShareCourseTray from '@canvas/direct-sharing/react/components/Direc
 const I18n = createI18nScope('discussions')
 
 export default class TopicView extends Backbone.View {
+  filterModel: any
+  topic: any
+  reply?: any
+  model: any
+  options: any
+  $el: any
+  $: any
+  $addRootReply: any
+  $replyLink: any
+  $dueDates: any
+  $textarea: any
+  $discussionToolbar: any
+  $subscribeButton: any
+  $unsubscribeButton: any
+  $announcementCog: any
+  $AssignmentExternalTools: any
+  AssignmentExternalTools?: any
+  trigger: any
+  on: any
+  off: any
+  events: any
+  els: any
+  filter: any
+  addReplyAttachment: any
+  removeReplyAttachment: any
+
   static initClass() {
     this.prototype.events = {
       // #
@@ -73,21 +99,21 @@ export default class TopicView extends Backbone.View {
 
   initialize() {
     super.initialize(...arguments)
-    this.model.set('id', ENV.DISCUSSION.TOPIC.ID)
+    this.model.set('id', ENV.DISCUSSION?.TOPIC?.ID)
     // overwrite cid so Reply::getModelAttributes gets the right "go to parent" link
     this.model.cid = 'main'
-    this.model.set('canAttach', ENV.DISCUSSION.PERMISSIONS.CAN_ATTACH_TOPIC)
+    this.model.set('canAttach', ENV.DISCUSSION?.PERMISSIONS?.CAN_ATTACH_TOPIC)
     this.filterModel = this.options.filterModel
     this.filterModel.on('change', this.hideIfFiltering, this)
-    this.topic = new DiscussionTopic({id: ENV.DISCUSSION.TOPIC.ID})
+    this.topic = new DiscussionTopic({id: ENV.DISCUSSION?.TOPIC?.ID})
     // get rid of the /view on /api/vl/courses/x/discusison_topics/x/view
-    this.topic.url = ENV.DISCUSSION.ROOT_URL.replace(/\/view/m, '')
+    this.topic.url = ENV.DISCUSSION?.ROOT_URL?.replace(/\/view/m, '')
     // set initial subscribed state
-    this.topic.set('subscribed', ENV.DISCUSSION.TOPIC.IS_SUBSCRIBED)
+    this.topic.set('subscribed', ENV.DISCUSSION?.TOPIC?.IS_SUBSCRIBED)
 
     // catch when non-root replies are added so we can twiddle the subscribed button
     EntryView.on('addReply', () => this.setSubscribed(true))
-    $(window).on('keydown', e => this.handleKeyDown(e))
+    $(window).on('keydown', (e: any) => this.handleKeyDown(e))
   }
 
   hideIfFiltering() {
@@ -102,12 +128,12 @@ export default class TopicView extends Backbone.View {
     let $el
     super.afterRender(...arguments)
     assignmentRubricDialog.initTriggers()
-    this.$el.toggleClass('side_comment_discussion', !ENV.DISCUSSION.THREADED)
+    this.$el.toggleClass('side_comment_discussion', !ENV.DISCUSSION?.THREADED)
     this.subscriptionStatusChanged()
     if (($el = this.$('#topic_publish_button'))) {
       this.topic.set({
-        unpublishable: ENV.DISCUSSION.TOPIC.CAN_UNPUBLISH,
-        published: ENV.DISCUSSION.TOPIC.IS_PUBLISHED,
+        unpublishable: ENV.DISCUSSION?.TOPIC?.CAN_UNPUBLISH,
+        published: ENV.DISCUSSION?.TOPIC?.IS_PUBLISHED,
       })
       new PublishButtonView({model: this.topic, el: $el}).render()
     }
@@ -120,19 +146,21 @@ export default class TopicView extends Backbone.View {
           elementToRenderInto,
           'assignment_view',
           parseInt(context_id, 10),
-          ENV.DISCUSSION.IS_ASSIGNMENT ? parseInt(ENV.DISCUSSION.ASSIGNMENT_ID, 10) : undefined,
+          ENV.DISCUSSION?.IS_ASSIGNMENT
+            ? parseInt(ENV.DISCUSSION?.ASSIGNMENT_ID as string, 10)
+            : undefined,
         )
       }
     }
   }
 
-  toggleLocked(event) {
+  toggleLocked(event: any) {
     // this is weird but Topic.js was not set up to talk to the API for CRUD
     const locked = $(event.currentTarget).data('mark-locked')
     return this.topic.save({locked}).done(() => window.location.reload())
   }
 
-  toggleDueDates(event) {
+  toggleDueDates(event: any) {
     event.preventDefault()
     this.$dueDates.toggleClass('hidden')
     $(event.currentTarget).text(
@@ -142,13 +170,13 @@ export default class TopicView extends Backbone.View {
     )
   }
 
-  toggleEditorMode(event) {
+  toggleEditorMode(event: any) {
     event.preventDefault()
     event.stopPropagation()
     RceCommandShim.send(this.$textarea, 'toggle')
   }
 
-  subscribeTopic(event) {
+  subscribeTopic(event: any) {
     event.preventDefault()
     this.topic.topicSubscribe()
     this.subscriptionStatusChanged()
@@ -158,7 +186,7 @@ export default class TopicView extends Backbone.View {
     }
   }
 
-  unsubscribeTopic(event) {
+  unsubscribeTopic(event: any) {
     event.preventDefault()
     this.topic.topicUnsubscribe()
     this.subscriptionStatusChanged()
@@ -172,7 +200,7 @@ export default class TopicView extends Backbone.View {
     const subscribed = this.topic.get('subscribed')
     this.$discussionToolbar.removeClass('subscribed')
     this.$discussionToolbar.removeClass('unsubscribed')
-    if (ENV.DISCUSSION.CAN_SUBSCRIBE) {
+    if (ENV.DISCUSSION?.CAN_SUBSCRIBE) {
       if (subscribed) {
         return this.$discussionToolbar.addClass('subscribed')
       } else {
@@ -185,7 +213,7 @@ export default class TopicView extends Backbone.View {
   // Adds a root level reply to the main topic
   //
   // @api private
-  addReply(event) {
+  addReply(event?: any) {
     if (event != null) {
       event.preventDefault()
     }
@@ -197,8 +225,8 @@ export default class TopicView extends Backbone.View {
       this.reply.on('hide', () =>
         this.$addRootReply != null ? this.$addRootReply.show() : undefined,
       )
-      this.reply.on('save', entry => {
-        if (!ENV.DISCUSSION.TOPIC.IS_ANNOUNCEMENT) {
+      this.reply.on('save', (entry: any) => {
+        if (!ENV.DISCUSSION?.TOPIC?.IS_ANNOUNCEMENT && ENV.DISCUSSION) {
           ENV.DISCUSSION.CAN_SUBSCRIBE = true
           this.topic.set('subscription_hold', false)
         }
@@ -212,7 +240,7 @@ export default class TopicView extends Backbone.View {
 
   // Update subscribed state without posted. Done when replies are posted and
   // user is auto-subscribed.
-  setSubscribed(_newValue) {
+  setSubscribed(_newValue: boolean) {
     this.topic.set('subscribed', true)
     return this.subscriptionStatusChanged()
   }
@@ -220,20 +248,21 @@ export default class TopicView extends Backbone.View {
   // #
   // Handles events for declarative HTML. Right now only catches the reply
   // form allowing EntriesView to handle its own events
-  handleEvent(event) {
+  handleEvent(event: any) {
     // get the element and the method to call
     const el = $(event.currentTarget)
     const method = el.data('event')
+    // @ts-expect-error - Dynamic method call
     return typeof this[method] === 'function' ? this[method](event, el) : undefined
   }
 
   render() {
     // erb renders most of this
-    if (ENV.DISCUSSION.PERMISSIONS.CAN_REPLY) {
+    if (ENV.DISCUSSION?.PERMISSIONS?.CAN_REPLY) {
       const modelData = this.model.toJSON()
       modelData.showBoxReplyLink = true
       modelData.root = true
-      modelData.title = ENV.DISCUSSION.TOPIC.TITLE
+      modelData.title = ENV.DISCUSSION?.TOPIC?.TITLE
       modelData.isForMainDiscussion = true
       const html = replyTemplate(modelData)
       this.$('#discussion_topic').append(html)
@@ -241,7 +270,7 @@ export default class TopicView extends Backbone.View {
     return super.render(...arguments)
   }
 
-  format(attr, value) {
+  format(attr: string, value: any) {
     if (attr === 'notification') {
       return value
     } else {
@@ -249,28 +278,29 @@ export default class TopicView extends Backbone.View {
     }
   }
 
-  addRootReply(event) {
+  addRootReply(event: any) {
     const target = $('#discussion_topic .discussion-reply-form')
     this.addReply(event)
-    $('html, body').animate({scrollTop: target.offset().top - 100})
+    $('html, body').animate({scrollTop: target.offset()!.top - 100})
   }
 
-  markAllAsRead(event) {
+  markAllAsRead(event: any) {
     event.preventDefault()
     this.trigger('markAllAsRead')
     return this.$announcementCog.focus()
   }
 
-  markAllAsUnread(event) {
+  markAllAsUnread(event: any) {
     event.preventDefault()
     this.trigger('markAllAsUnread')
     return this.$announcementCog.focus()
   }
 
-  openSendTo(event, open = true) {
+  openSendTo(event: any, open = true) {
     if (event) event.preventDefault()
 
     ReactDOM.render(
+      // @ts-expect-error - DirectShareUserModal props type mismatch
       <DirectShareUserModal
         open={open}
         sourceCourseId={ENV.COURSE_ID}
@@ -284,7 +314,7 @@ export default class TopicView extends Backbone.View {
     )
   }
 
-  openCopyTo(event, open = true) {
+  openCopyTo(event: any, open = true) {
     if (event) event.preventDefault()
 
     ReactDOM.render(
@@ -301,7 +331,7 @@ export default class TopicView extends Backbone.View {
     )
   }
 
-  handleKeyDown(e) {
+  handleKeyDown(e: any) {
     const nodeName = e.target.nodeName.toLowerCase()
     if (
       nodeName === 'input' ||

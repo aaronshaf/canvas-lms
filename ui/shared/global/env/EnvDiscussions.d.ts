@@ -32,4 +32,47 @@ export interface EnvDiscussions {
   context_type?: string
   context_id?: string | number
   discussion_topic_id?: string | number
+  DISCUSSION?: {
+    MANUAL_MARK_AS_READ?: boolean
+    PERMISSIONS?: {
+      CAN_ATTACH_TOPIC?: boolean
+      CAN_READ_REPLIES?: boolean
+      CAN_REPLY?: boolean
+      CAN_SUBSCRIBE?: boolean
+    }
+    TOPIC?: {
+      ID?: string | number
+      IS_SUBSCRIBED?: boolean
+      CAN_UNPUBLISH?: boolean
+      IS_PUBLISHED?: boolean
+      IS_ANNOUNCEMENT?: boolean
+      TITLE?: string
+      COURSE_SECTIONS?: any[]
+    }
+    ROOT_URL?: string
+    THREADED?: boolean
+    ENTRY_ROOT_URL?: string
+    ROOT_REPLY_URL?: string
+    REPLY_URL?: string
+    DELETE_URL?: string
+    MARK_READ_URL?: string
+    MARK_UNREAD_URL?: string
+    RATE_URL?: string
+    CURRENT_USER?: any
+    STUDENT_ID?: string
+    SPEEDGRADER_URL_TEMPLATE?: string
+    HIDE_STUDENT_NAMES?: boolean
+    CAN_SUBSCRIBE?: boolean
+    IS_ASSIGNMENT?: boolean
+    ASSIGNMENT_ID?: string | number
+    IS_GROUP?: boolean
+    APP_URL?: string
+    SEQUENCE?: {
+      ASSET_TYPE?: string
+      ASSET_ID?: string | number
+      COURSE_ID?: string | number
+    }
+    INITIAL_POST_REQUIRED?: boolean
+  }
+  TOTAL_USER_COUNT?: number
 }
