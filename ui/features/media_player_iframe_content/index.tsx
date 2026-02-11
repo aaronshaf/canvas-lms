@@ -26,6 +26,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import CanvasMediaPlayer from '@canvas/canvas-media-player'
 import CanvasStudioPlayer from '@canvas/canvas-studio-player'
 import {MediaInfo} from '@canvas/canvas-studio-player/react/types'
+// @ts-expect-error - no type declarations available
 import {captionLanguageForLocale} from '@instructure/canvas-media'
 import type {GlobalEnv} from '@canvas/global/env/GlobalEnv.d'
 
@@ -123,11 +124,11 @@ ready(() => {
   // with scrollbars, even though everything is the right size.
   document.documentElement.setAttribute('style', 'overflow: hidden;')
   const div = document.body.firstElementChild
-  let explicitSize;
+  let explicitSize
   if (isStandalone()) {
     // we're standalone mode
     div?.setAttribute('style', 'width: 640px; max-width: 100%; margin: 16px auto;')
-    explicitSize = { width: 640, height: 408 };
+    explicitSize = {width: 640, height: 408}
   }
 
   const aria_label = !media_object.title ? undefined : media_object.title

@@ -17,6 +17,7 @@
  */
 
 import getRCSProps from '@canvas/rce/getRCSProps'
+// @ts-expect-error - no type declarations available
 import {UploadFile} from '@instructure/canvas-rce'
 import {useState} from 'react'
 import {

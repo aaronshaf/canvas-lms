@@ -20,12 +20,15 @@ import $ from 'jquery'
 
 import React, {forwardRef, type MutableRefObject, useCallback, useEffect, useState} from 'react'
 import {createChainedFunction} from '@instructure/ui-utils'
+// @ts-expect-error - no type declarations available
 import RCE, {type RCEPropTypes} from '@instructure/canvas-rce/es/rce/RCE'
+// @ts-expect-error - no type declarations available
 import RCEWrapper from '@instructure/canvas-rce/es/rce/RCEWrapper'
 import getRCSProps from '../getRCSProps'
 import EditorConfig from '../tinymce.config'
 import shouldUseFeature, {Feature} from '../shouldUseFeature'
 import tinymce, {Editor} from 'tinymce'
+// @ts-expect-error - no type declarations available
 import type {EditorOptions} from '@instructure/canvas-rce/es/rce/RCEWrapperProps'
 
 window.INST = window.INST || {}
@@ -65,7 +68,6 @@ const CanvasRce = forwardRef(function CanvasRce(
     const editorConfig = new EditorConfig(tinymce, window.INST, textareaId)
     const config = {...editorConfig.defaultConfig(), ...(editorOptions ?? {})}
     if (editorOptions?.init_instance_callback) {
-      // @ts-expect-error
       config.init_instance_callback = createChainedFunction(
         config.init_instance_callback,
         editorOptions.init_instance_callback,
@@ -118,10 +120,9 @@ const CanvasRce = forwardRef(function CanvasRce(
       }
       instRecordDisabled={window.ENV?.RICH_CONTENT_INST_RECORD_TAB_DISABLED}
       language={window.ENV?.LOCALES?.[0] || 'en'}
-      // @ts-expect-error
+      // @ts-expect-error - property may not exist on GlobalEnv
       userCacheKey={window.ENV?.user_cache_key}
       liveRegion={() => document.getElementById('flash_screenreader_holder')}
-      // @ts-expect-error
       ltiTools={window.INST?.editorButtons}
       maxInitRenderedRCEs={props.maxInitRenderedRCEs ?? -1}
       mirroredAttrs={mirroredAttrs ?? {}}
@@ -129,7 +130,6 @@ const CanvasRce = forwardRef(function CanvasRce(
       textareaClassName={textareaClassName ?? 'input-block-level'}
       textareaId={textareaId}
       height={height}
-      // @ts-expect-error
       rcsProps={RCSProps}
       onFocus={onFocus ?? (() => {})}
       onBlur={onBlur ?? (() => {})}
@@ -140,15 +140,12 @@ const CanvasRce = forwardRef(function CanvasRce(
       resourceId={resourceId}
       flashAlertTimeout={flashAlertTimeout ?? ENV?.flashAlertTimeout ?? 10000}
       features={features ?? window.ENV?.FEATURES ?? {}}
-      // @ts-expect-error
+      // @ts-expect-error - property may not exist on GlobalEnv
       ai_text_tools={window.ENV?.RICH_CONTENT_AI_TEXT_TOOLS}
       externalToolsConfig={{
         ltiIframeAllowances: window.ENV?.LTI_LAUNCH_FRAME_ALLOWANCES,
-        // @ts-expect-error
         isA2StudentView: window.ENV?.a2_student_view,
-        // @ts-expect-error
         maxMruTools: window.ENV?.MAX_MRU_LTI_TOOLS,
-        // @ts-expect-error
         resourceSelectionUrlOverride:
           $('#context_external_tool_resource_selection_url').attr('href') || null,
       }}

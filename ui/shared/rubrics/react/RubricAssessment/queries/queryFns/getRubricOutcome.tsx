@@ -18,6 +18,7 @@
 
 import {executeQuery} from '@canvas/graphql'
 import {gql} from 'graphql-tag'
+// @ts-expect-error - no type declarations available
 import type {GetRubricOutcomeQuery} from '@canvas/graphql/codegen/graphql'
 
 const GET_RUBRIC_OUTCOME = gql`

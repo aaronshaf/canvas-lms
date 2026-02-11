@@ -22,6 +22,7 @@ import {CloseButton} from '@instructure/ui-buttons'
 import {View} from '@instructure/ui-view'
 import {useState} from 'react'
 import LoadingIndicator from '@canvas/loading-indicator'
+// @ts-expect-error - no type declarations available
 import type {GetRubricOutcomeQuery} from '@canvas/graphql/codegen/graphql'
 import {OutcomePopoverDisplay} from './OutcomePopoverDisplay'
 

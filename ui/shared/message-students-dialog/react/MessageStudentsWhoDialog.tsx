@@ -29,6 +29,7 @@ import {
   IconAttachMediaLine,
   IconWarningSolid,
 } from '@instructure/ui-icons'
+// @ts-expect-error - no type declarations available
 import UploadMedia from '@instructure/canvas-media'
 import {formatTracksForMediaPlayer} from '@canvas/canvas-media-player'
 import {Tooltip} from '@instructure/ui-tooltip'

@@ -19,6 +19,7 @@
 import React, {useCallback, useEffect, useState} from 'react'
 import {uploadFile} from '@canvas/upload-file'
 import {useScope as createI18nScope} from '@canvas/i18n'
+// @ts-expect-error - no type declarations available
 import {RocketSVG} from '@instructure/canvas-media'
 import type {FormMessage} from '@instructure/ui-form-field'
 import {Button, CloseButton} from '@instructure/ui-buttons'

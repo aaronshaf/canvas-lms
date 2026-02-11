@@ -24,6 +24,7 @@ import {Menu, type MenuItemProps, type MenuItem} from '@instructure/ui-menu'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {IconArrowOpenDownLine, IconBoxLine} from '@instructure/ui-icons'
+// @ts-expect-error - no type declarations available
 import {type ColorSpec} from '@instructure/canvas-rce'
 
 import {LinkModal} from '../../../editor/LinkModal'

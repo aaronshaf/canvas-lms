@@ -19,6 +19,7 @@
 import React from 'react'
 import {render, screen} from '@testing-library/react'
 import {OutcomePopoverDisplay} from '../OutcomePopoverDisplay'
+// @ts-expect-error - no type declarations available
 import type {GetRubricOutcomeQuery} from '@canvas/graphql/codegen/graphql'
 
 const mockOutcome: GetRubricOutcomeQuery['learningOutcome'] = {

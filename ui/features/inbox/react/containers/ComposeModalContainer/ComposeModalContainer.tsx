@@ -30,6 +30,7 @@ import React, {useContext, useState, useEffect} from 'react'
 import {Responsive} from '@instructure/ui-responsive'
 import {responsiveQuerySizes} from '../../../util/utils'
 import {uploadFiles} from '@canvas/upload-file'
+// @ts-expect-error - no type declarations available
 import UploadMedia from '@instructure/canvas-media'
 import {
   UploadMediaStrings,

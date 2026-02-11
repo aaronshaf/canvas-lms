@@ -17,12 +17,13 @@
  */
 import React, {CSSProperties, useCallback, useEffect, useRef, useState} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {CaptionMetaData, StudioPlayer, type StudioPlayerProps} from '@instructure/studio-player'
 import {
   captionLanguageForLocale,
   LoadingIndicator,
   sizeMediaPlayer,
+  // @ts-expect-error - no type declarations available
 } from '@instructure/canvas-media'
-import {CaptionMetaData, StudioPlayer, type StudioPlayerProps} from '@instructure/studio-player'
 import {Alert} from '@instructure/ui-alerts'
 import {Flex} from '@instructure/ui-flex'
 import {Spinner} from '@instructure/ui-spinner'
@@ -181,7 +182,7 @@ export default function CanvasStudioPlayer({
   }
 
   const boundingBox = useCallback(() => {
-    const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement
+    const isFullscreen = document.fullscreenElement || (document as any).webkitFullscreenElement
     if (isFullscreen || isEmbedded()) {
       return {
         width: window.innerWidth,
@@ -303,7 +304,7 @@ export default function CanvasStudioPlayer({
   }, [handlePlayerSize])
 
   const includeFullscreen =
-    (document.fullscreenEnabled || document.webkitFullscreenEnabled) && type === 'video'
+    (document.fullscreenEnabled || (document as any).webkitFullscreenEnabled) && type === 'video'
 
   function renderNoPlayer() {
     if (mediaObjNetworkErr) {

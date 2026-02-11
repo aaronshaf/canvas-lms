@@ -126,7 +126,6 @@ export const DiscussionEdit = props => {
               }, 1000)
               props.onInit()
             }}
-            // @ts-expect-error TS2322 (typescriptify)
             ref={rceRef}
             // @ts-expect-error TS7006 (typescriptify)
             onContentChange={content => {

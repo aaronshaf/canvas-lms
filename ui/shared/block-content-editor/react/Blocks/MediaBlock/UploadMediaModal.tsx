@@ -18,6 +18,7 @@
 
 import React, {useState} from 'react'
 import getRCSProps from '@canvas/rce/getRCSProps'
+// @ts-expect-error - no type declarations available
 import {UploadFile} from '@instructure/canvas-rce'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {handleMediaSubmit, panels, StoreProp, UploadData, UploadFilePanelIds} from './handleMedia'

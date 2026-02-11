@@ -18,7 +18,9 @@
 
 import React from 'react'
 import {type Node} from '@craftjs/core'
+// @ts-expect-error - no type declarations available
 import VideoOptionsTray from '@instructure/canvas-rce/es/rce/plugins/instructure_record/VideoOptionsTray/index'
+// @ts-expect-error - no type declarations available
 import {saveClosedCaptionsForAttachment} from '@instructure/canvas-media'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {type MediaBlockProps} from './types'
@@ -98,16 +100,13 @@ export default function BlockEditorVideoOptionsTray({
         onRequestClose={() => {
           setOpenTray(false)
         }}
-        onSave={onSaveProps => {
+        onSave={(onSaveProps: any) => {
           applyOptions(onSaveProps)
         }}
-        // @ts-expect-error
         trayProps={{}}
-        // @ts-expect-error
         videoOptions={{
           titleText: videoContainer?.getAttribute('title') || '',
         }}
-        // @ts-expect-error
         requestSubtitlesFromIframe={(cb: any) => requestSubtitlesFromIframe(cb)}
         forBlockEditorUse={true}
       />

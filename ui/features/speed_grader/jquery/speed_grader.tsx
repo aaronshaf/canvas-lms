@@ -130,6 +130,7 @@ import type {SelectOptionDefinition} from './speed_grader_select_menu'
 import 'jqueryui/draggable'
 import '@canvas/jquery/jquery.ajaxJSON' /* getJSON, ajaxJSON */
 import '@canvas/jquery/jquery.instructure_forms' /* ajaxJSONFiles */
+// @ts-expect-error - no type declarations available
 import {loadDocPreview} from '@instructure/canvas-rce/enhance-user-content'
 import 'jqueryui/dialog'
 import 'jqueryui/menu'
@@ -155,6 +156,7 @@ import type {
 import {containsHtmlTags, formatMessage} from '@canvas/util/TextHelper'
 import {windowAlert} from '@canvas/util/globalUtils'
 import replaceTags from '@canvas/util/replaceTags'
+// @ts-expect-error - no type declarations available
 import {isPreviewable} from '@instructure/canvas-rce/es/rce/plugins/shared/Previewable'
 import type {Root} from 'react-dom/client'
 import {AmsLoader} from '@canvas/ams/react/AmsLoader'

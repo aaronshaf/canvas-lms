@@ -33,12 +33,13 @@ import {
 } from './graphql/queries'
 import {ApolloProvider, createClient} from '@canvas/apollo-v3'
 import {CommentLibraryTray} from './components/CommentLibraryTray'
-import {
-  SpeedGraderLegacy_CommentBankItemsCountQuery,
-  SpeedGraderLegacy_CommentBankItemsQuery,
-} from '@canvas/graphql/codegen/graphql'
 import {useDebounce} from 'use-debounce'
 import Suggestions from './Suggestions'
+import type {
+  SpeedGraderLegacy_CommentBankItemsCountQuery,
+  SpeedGraderLegacy_CommentBankItemsQuery,
+  // @ts-expect-error - no type declarations available
+} from '@canvas/graphql/codegen/graphql'
 
 const I18n = createI18nScope('CommentLibrary')
 
@@ -90,7 +91,7 @@ export const CommentLibraryContent: React.FC<CommentLibraryContentProps> = ({
       'commentBankItemsConnection' in suggestedCommentsData.legacyNode
     ) {
       const conn = suggestedCommentsData.legacyNode.commentBankItemsConnection
-      return conn?.nodes?.filter(it => it !== null) ?? []
+      return conn?.nodes?.filter((it: any) => it !== null) ?? []
     }
     return []
   }, [suggestedCommentsData])

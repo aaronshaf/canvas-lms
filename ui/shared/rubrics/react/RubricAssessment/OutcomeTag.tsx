@@ -21,6 +21,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {Tag} from '@instructure/ui-tag'
 import {AccessibleContent} from '@instructure/ui-a11y-content'
 import {Text} from '@instructure/ui-text'
+// @ts-expect-error - no type declarations available
 import type {GetRubricOutcomeQuery} from '@canvas/graphql/codegen/graphql'
 import {OutcomePopover} from './OutcomePopover/OutcomePopover'
 

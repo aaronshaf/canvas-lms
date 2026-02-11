@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+// @ts-expect-error - no type declarations available
 import {RocketSVG} from '@instructure/canvas-media'
 import {FileDrop} from '@instructure/ui-file-drop'
 import {Flex} from '@instructure/ui-flex'

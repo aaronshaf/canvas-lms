@@ -21,6 +21,7 @@ import {useEditor} from '@craftjs/core'
 import {IconButton} from '@instructure/ui-buttons'
 import {Popover} from '@instructure/ui-popover'
 import {IconBackgroundColor} from '../../../assets/internal-icons'
+// @ts-expect-error - no type declarations available
 import {ColorPicker, type ColorSpec, type TabsSpec} from '@instructure/canvas-rce'
 import {getColorsInUse, type ColorsInUse} from '../../../utils'
 import {useScope as createI18nScope} from '@canvas/i18n'

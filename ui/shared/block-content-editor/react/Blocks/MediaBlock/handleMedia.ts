@@ -15,7 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+// @ts-expect-error - no type declarations available
 import saveMediaRecording from '@instructure/canvas-media/es/saveMediaRecording'
+// @ts-expect-error - no type declarations available
 import {getRCSOriginFromHost} from '@instructure/canvas-rce'
 import {MediaSources} from './types'
 

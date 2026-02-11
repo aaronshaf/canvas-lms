@@ -146,6 +146,7 @@ async function afterDocumentReady() {
 
 const RCE_HTML_EDITOR_CLASS = 'RceHtmlEditor'
 async function setupMathML() {
+  // @ts-expect-error - no type declarations available
   const {Mathml} = await import('@instructure/canvas-rce/enhance-user-content')
   const features = {
     new_math_equation_handling: !!ENV?.FEATURES?.new_math_equation_handling,

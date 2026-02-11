@@ -22,6 +22,7 @@ import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
 import {Modal} from '@instructure/ui-modal'
 import {View} from '@instructure/ui-view'
+// @ts-expect-error - no type declarations available
 import {enhanceUserContent} from '@instructure/canvas-rce'
 import BlockEditorView from '../../BlockEditorView'
 import {LATEST_BLOCK_DATA_VERSION} from '../../utils/transformations'
@@ -274,7 +275,6 @@ const PreviewModal = ({open, onDismiss}: PreviewModalProps) => {
 
   useEffect(() => {
     if (viewRef && rendered) {
-      // @ts-expect-error
       enhanceUserContent(viewRef, {canvasOrigin: window.location.origin})
     }
   }, [viewRef, rendered])
