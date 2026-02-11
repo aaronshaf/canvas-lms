@@ -25,9 +25,19 @@ import 'jqueryui/progressbar'
 
 const I18n = createI18nScope('content_exports')
 
+interface ContentExportData {
+  content_export: {
+    id: string
+    progress: number
+    workflow_state: string
+    download_url: string
+  }
+  error_message?: string
+}
+
 $(document).ready(function (_event) {
   let state = 'nothing'
-  let current_id = null
+  let current_id: string | null = null
   const $quiz_selection = $('#quiz_selection'),
     $exporter_form = $('#exporter_form')
 
@@ -60,13 +70,13 @@ $(document).ready(function (_event) {
       }
     }
     const checkup = function () {
-      let lastProgress = null
+      let lastProgress: number | null = null
       let waitTime = 1500
       $.ajaxJSON(
         window.location.href + '/' + current_id,
         'GET',
         {},
-        data => {
+        (data: ContentExportData) => {
           state = 'updating'
           const content_export = data.content_export
           let progress = 0
@@ -119,17 +129,17 @@ $(document).ready(function (_event) {
   }
 
   $exporter_form.formSubmit({
-    success(data) {
+    success(data: ContentExportData) {
       if (data && data.content_export) {
         current_id = data.content_export.id
         startPoll()
       } else {
         // show error message
-        $('.export_messages .error_message').text(data.error_message)
+        $('.export_messages .error_message').text(data.error_message || '')
         $('.export_messages').show()
       }
     },
-    error(_data) {
+    error(_data: unknown) {
       $(this)
         .find('.submit_button')
         .prop('disabled', false)
