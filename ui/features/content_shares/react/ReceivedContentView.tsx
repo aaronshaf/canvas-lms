@@ -33,17 +33,65 @@ import {showFlashAlert} from '@canvas/alerts/react/FlashAlert'
 
 const I18n = createI18nScope('content_share')
 
+type ContentShareType = 'assignment' | 'attachment' | 'discussion_topic' | 'page' | 'quiz' | 'module' | 'module_item'
+
+interface Attachment {
+  id?: string
+  display_name?: string
+  url?: string
+}
+
+interface ContentExport {
+  id: string
+  progress_url?: string
+  user_id?: string
+  workflow_state?: 'created' | 'exporting' | 'exported' | 'failed' | 'deleted'
+  attachment?: Attachment
+  created_at?: string
+}
+
+interface DisplayUser {
+  id?: string
+  display_name?: string
+  avatar_image_url?: string
+}
+
+interface ContentShare {
+  id: string
+  name: string
+  content_type: ContentShareType
+  created_at: string
+  updated_at: string
+  read_state: string
+  sender?: DisplayUser
+  content_export?: ContentExport
+}
+
+interface LinkMeta {
+  page?: number
+}
+
+interface ResponseMeta {
+  link?: {
+    last?: LinkMeta
+    first?: LinkMeta
+    next?: LinkMeta
+    prev?: LinkMeta
+  }
+}
+
 const CourseImportPanel = lazy(() => import('./CourseImportPanel'))
+// @ts-expect-error
 const NoContent = () => <Text size="large">{I18n.t('No content has been shared with you.')}</Text>
 
 export default function ReceivedContentView() {
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [shares, setShares] = useState([])
-  const [responseMeta, setResponseMeta] = useState({})
+  const [error, setError] = useState<Error | null>(null)
+  const [shares, setShares] = useState<ContentShare[]>([])
+  const [responseMeta, setResponseMeta] = useState<ResponseMeta>({})
   const [currentPage, setCurrentPage] = useState(1)
-  const [currentContentShare, setCurrentContentShare] = useState(null)
-  const [whichModalOpen, setWhichModalOpen] = useState(null)
+  const [currentContentShare, setCurrentContentShare] = useState<ContentShare | null>(null)
+  const [whichModalOpen, setWhichModalOpen] = useState<'preview' | 'import' | null>(null)
 
   const sharesUrl = '/api/v1/users/self/content_shares'
 
@@ -69,45 +117,45 @@ export default function ReceivedContentView() {
     }
   }, [shares, isLoading])
 
-  function removeShareFromList(doomedShare) {
+  function removeShareFromList(doomedShare: ContentShare) {
     setShares(shares.filter(share => share.id !== doomedShare.id))
   }
 
   // Handle an update to a read state from the displayed table
-  function onUpdate(share_id, updateParms) {
+  function onUpdate(share_id: string, updateParms: {read_state: string}) {
     doFetchApi({
       method: 'PUT',
       path: `${sharesUrl}/${share_id}`,
       body: updateParms,
     })
       .then(r => {
-        const {id, read_state} = r.json
+        const {id, read_state} = r.json as {id: string; read_state: string}
         setShares(shares.map(share => (share.id === id ? {...share, read_state} : share)))
       })
       .catch(setError)
   }
 
-  function markRead(share) {
+  function markRead(share: ContentShare) {
     onUpdate(share.id, {read_state: 'read'})
   }
 
-  function onPreview(share) {
+  function onPreview(share: ContentShare) {
     setCurrentContentShare(share)
     setWhichModalOpen('preview')
     markRead(share)
   }
 
-  function onImport(share) {
+  function onImport(share: ContentShare) {
     setCurrentContentShare(share)
     setWhichModalOpen('import')
   }
 
-  function onRemove(share) {
+  function onRemove(share: ContentShare) {
     const shouldRemove = window.confirm(I18n.t('Are you sure you want to remove this item?'))
     if (shouldRemove) {
       doFetchApi({path: `${sharesUrl}/${share.id}`, method: 'DELETE'})
         .then(() => removeShareFromList(share))
-        .catch(err =>
+        .catch((err: Error) =>
           showFlashAlert({message: I18n.t('There was an error removing the item'), err}),
         )
     }
@@ -135,14 +183,15 @@ export default function ReceivedContentView() {
   }
 
   function renderPagination() {
-    if (responseMeta.link) {
-      const last = parseInt(responseMeta.link.last.page, 10)
+    if (responseMeta.link?.last?.page) {
+      const last = parseInt(String(responseMeta.link.last.page), 10)
       if (!Number.isNaN(last)) {
         return (
           <Paginator
             loadPage={setCurrentPage}
             page={currentPage}
             pageCount={last}
+            // @ts-expect-error
             margin="small 0 0 0"
           />
         )
@@ -175,10 +224,13 @@ export default function ReceivedContentView() {
       <CanvasLazyTray
         label={I18n.t('Import...')}
         open={whichModalOpen === 'import'}
+        // @ts-expect-error
         placement="end"
+        // @ts-expect-error
         padding="medium"
         onDismiss={closeModal}
       >
+        {/* @ts-expect-error */}
         <CourseImportPanel
           contentShare={currentContentShare}
           onClose={closeModal}
