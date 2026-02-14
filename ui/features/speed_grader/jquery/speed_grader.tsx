@@ -4873,7 +4873,6 @@ EG = {
       provisionalGrades,
     }
 
-    // @ts-expect-error
     const gradeSelector = <SpeedGraderProvisionalGradeSelector {...props} />
     legacyRender(gradeSelector, mountPoint)
   },

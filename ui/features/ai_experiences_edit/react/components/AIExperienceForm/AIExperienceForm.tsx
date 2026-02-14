@@ -30,7 +30,7 @@ import DeleteConfirmationModal from './DeleteConfirmationModal'
 import FormHeader from './FormHeader'
 import ConfigurationSection from './ConfigurationSection'
 import FormActions from './FormActions'
-import type {ContextFile} from '@canvas/canvas-file-upload/react/types'
+import {ContextFile} from '@canvas/canvas-file-upload/react/types'
 
 const I18n = createI18nScope('ai_experiences_edit')
 
@@ -71,7 +71,6 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
         learning_objective: aiExperience.learning_objective || '',
         pedagogical_guidance: aiExperience.pedagogical_guidance || '',
       })
-      // Context files will be managed separately in component state for now
     }
   }, [aiExperience])
 
@@ -98,8 +97,7 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
 
   const handleContextFilesChange = (files: ContextFile[]) => {
     setContextFiles(files)
-    // Note: Files are kept in local state only for now (not persisted to backend)
-    // TODO: Integrate with backend when ready
+    // Note: Files kept in local state only (not persisted to backend yet)
   }
 
   const validateForm = (): Record<string, string> => {

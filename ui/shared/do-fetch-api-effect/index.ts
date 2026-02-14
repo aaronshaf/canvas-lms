@@ -80,6 +80,13 @@ export default async function doFetchApi<T = unknown>({
   fetchOpts = {}, // do not specify headers in fetchOpts.headers ... use headers instead
   includeCSRFToken = true,
 }: DoFetchApiOpts): Promise<DoFetchApiResults<T>> {
+  // Support both `signal` and `fetchOpts.signal` (used by some TanStack Query callers).
+  // Prefer the explicit `signal` argument if both are provided.
+  const {signal: fetchOptsSignal, ...fetchOptsNoSignal} = fetchOpts as RequestInit & {
+    signal?: AbortSignal
+  }
+  const effectiveSignal = signal ?? fetchOptsSignal
+
   const {credentials, headers: defaultHeaders} = defaultFetchOptions()
   const suppliedHeaders = new Headers(headers)
   const fetchHeaders = new Headers(defaultHeaders)
@@ -104,14 +111,34 @@ export default async function doFetchApi<T = unknown>({
   }
 
   const url = constructRelativeUrl({path, params})
-  const response = await fetch(url, {
+  const requestInit: RequestInit & {
+    body?: string | FormData
+    method: string
+    headers: Headers
+    credentials: RequestCredentials
+  } = {
     body,
     method,
-    ...fetchOpts,
+    ...fetchOptsNoSignal,
     headers: fetchHeaders,
-    signal,
     credentials,
-  })
+    ...(effectiveSignal ? {signal: effectiveSignal} : {}),
+  }
+
+  let response: Response
+  try {
+    response = await fetch(url, requestInit)
+  } catch (err) {
+    // Some test environments polyfill `fetch` without supporting AbortController.
+    // If the request wasn't already aborted, retry once without a signal.
+    if (effectiveSignal && !effectiveSignal.aborted) {
+      // Omit the key entirely to avoid "unknown option" errors in strict polyfills.
+      const {signal: _signal, ...requestInitNoSignal} = requestInit
+      response = await fetch(url, requestInitNoSignal)
+    } else {
+      throw err
+    }
+  }
   if (!response.ok) {
     throw new FetchApiError(
       `doFetchApi received a bad response: ${response.status} ${response.statusText}`,

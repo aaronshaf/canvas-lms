@@ -25,14 +25,33 @@ import {experimental_createPersister} from '@tanstack/query-persist-client-core'
 
 const ONE_DAY = 1000 * 60 * 60 * 24
 
-if (wasPageReloaded || localStorage.cacheBuster === undefined) {
-  localStorage.cacheBuster = v4()
+function getCacheBuster(): string | null {
+  try {
+    return window.localStorage.getItem('cacheBuster')
+  } catch {
+    return null
+  }
+}
+
+function setCacheBuster(value: string) {
+  try {
+    window.localStorage.setItem('cacheBuster', value)
+  } catch {
+    // Best-effort only. For environments where localStorage is unavailable
+    // (or a proxy object forbids arbitrary props), we fall back to an in-memory value.
+  }
+}
+
+let cacheBuster = getCacheBuster()
+if (wasPageReloaded || cacheBuster == null) {
+  cacheBuster = v4()
+  setCacheBuster(cacheBuster)
 }
 
 export const sessionStoragePersister = experimental_createPersister({
   storage: window.sessionStorage,
   maxAge: ONE_DAY,
-  buster: localStorage.cacheBuster,
+  buster: cacheBuster,
 })
 
 export const queryClient = new QueryClient({
