@@ -37,8 +37,8 @@ module Accessibility
               .preload(:accessibility_issues)
               .where(course_id: @context.id)
 
-      scans = apply_sorting(scans)
       scans = apply_accessibility_filters(scans, params[:filters], params[:search]) if params[:filters].present? || params[:search].present?
+      scans = apply_sorting(scans)
 
       base_url = resource_scan_course_accessibility_index_path(@context)
       paginated = Api.paginate(scans, self, base_url)
@@ -117,32 +117,40 @@ module Accessibility
 
       direction = (params[:direction].to_s.downcase == "desc") ? "DESC" : "ASC"
 
-      order_clause = case sort
-                     when "resource_type"
-                       type_case = <<~SQL.squish
-                         CASE
-                           WHEN is_syllabus = true THEN 'syllabus'
-                           WHEN wiki_page_id IS NOT NULL THEN 'wiki_page'
-                           WHEN assignment_id IS NOT NULL THEN 'assignment'
-                           WHEN attachment_id IS NOT NULL THEN 'attachment'
-                           WHEN discussion_topic_id IS NOT NULL THEN 'discussion_topic'
-                         END
-                       SQL
-                       Arel.sql("#{type_case} #{direction}")
-                     when "issue_count"
-                       issues_table = AccessibilityIssue.quoted_table_name
-                       scans_table = AccessibilityResourceScan.quoted_table_name
-                       closed_count_subquery = <<~SQL.squish
-                         (SELECT COUNT(*) FROM #{issues_table}
-                          WHERE #{issues_table}.accessibility_resource_scan_id = #{scans_table}.id
-                          AND #{issues_table}.workflow_state = 'closed')
-                       SQL
-                       Arel.sql("issue_count #{direction}, #{closed_count_subquery} #{direction}")
-                     else
-                       { sort => direction.downcase.to_sym }
-                     end
+      case sort
+      when "resource_type"
+        scans_table = AccessibilityResourceScan.quoted_table_name
+        type_case = <<~SQL.squish
+          CASE
+            WHEN #{scans_table}.is_syllabus = true THEN 'syllabus'
+            WHEN #{scans_table}.wiki_page_id IS NOT NULL THEN 'wiki_page'
+            WHEN #{scans_table}.assignment_id IS NOT NULL THEN 'assignment'
+            WHEN #{scans_table}.attachment_id IS NOT NULL THEN 'attachment'
+            WHEN #{scans_table}.discussion_topic_id IS NOT NULL THEN 'discussion_topic'
+            WHEN #{scans_table}.announcement_id IS NOT NULL THEN 'announcement'
+          END
+        SQL
+        relation.select("#{scans_table}.*", "#{type_case} AS resource_type_sort")
+                .order(Arel.sql("resource_type_sort #{direction}"))
+      when "issue_count"
+        scans_table = AccessibilityResourceScan.quoted_table_name
 
-      relation.order(order_clause)
+        if @context.try(:a11y_checker_close_issues?)
+          issues_table = AccessibilityIssue.quoted_table_name
+          closed_count_subquery = <<~SQL.squish
+            (SELECT COUNT(*) FROM #{issues_table}
+             WHERE #{issues_table}.accessibility_resource_scan_id = #{scans_table}.id
+             AND #{issues_table}.workflow_state = 'closed')
+          SQL
+          relation.select("#{scans_table}.*", "#{scans_table}.issue_count", "#{closed_count_subquery} AS closed_count_sort")
+                  .order(Arel.sql("issue_count #{direction}, closed_count_sort #{direction}"))
+        else
+          relation.select("#{scans_table}.*", "#{scans_table}.issue_count")
+                  .order(Arel.sql("issue_count #{direction}"))
+        end
+      else
+        relation.order({ sort => direction.downcase.to_sym })
+      end
     end
 
     # Returns a hash representation of the scan, for JSON rendering.
@@ -173,6 +181,7 @@ module Accessibility
         resource_workflow_state: scan.resource_workflow_state,
         resource_updated_at: scan.resource_updated_at&.iso8601 || "",
         resource_url: scan.context_url,
+        resource_scan_path: scan.resource_scan_path,
         workflow_state: scan.workflow_state,
         error_message: scan.error_message || "",
         closed_at: scan.closed_at&.iso8601

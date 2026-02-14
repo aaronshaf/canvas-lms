@@ -20,6 +20,7 @@
 
 class Course < ActiveRecord::Base
   include Context
+  include Accessibility::Scannable
   include Workflow
   include TextHelper
   include HtmlTextHelper
@@ -69,6 +70,7 @@ class Course < ActiveRecord::Base
     storage_quota
     created_at
     updated_at
+    career_learning_library_only
   ].freeze
 
   time_zone_attribute :time_zone
@@ -343,6 +345,7 @@ class Course < ActiveRecord::Base
   before_save :update_show_total_grade_as_on_weighting_scheme_change
   before_save :set_self_enrollment_code
   before_save :validate_license
+  before_save :set_career_learning_library_only, if: -> { account_id_changed? || new_record? || career_learning_library_only_changed? }
   before_save :set_horizon_course, if: -> { account_id_changed? || new_record? }
   before_save :update_syllabus_timestamp
   before_save :handle_syllabus_master_template_tracking
@@ -368,6 +371,7 @@ class Course < ActiveRecord::Base
   after_update :log_course_pacing_settings_update, if: :change_to_logged_settings?
   after_update :log_rqd_setting_enable_or_disable
   after_update :queue_remap_enrollment_roles
+
   before_validation :verify_unique_ids
   validate :validate_course_dates
   validate :validate_course_image
@@ -577,6 +581,17 @@ class Course < ActiveRecord::Base
     if saved_change_to_account_id? && !saved_change_to_id?
       Lti::ContextControl.update_paths_for_reparent(self, account_id_before_last_save, account_id)
     end
+  end
+
+  def delete_lti_context_controls
+    updates = { workflow_state: "deleted_with_context", updated_at: Time.current }
+    Lti::ContextControl.where(course_id: id).active.in_batches.update_all(updates)
+  end
+
+  def undelete_lti_context_controls
+    updates = { workflow_state: "active", updated_at: Time.current }
+    # Only restore context controls that were deleted with the context (course)
+    Lti::ContextControl.where(course_id: id, workflow_state: "deleted_with_context").in_batches.update_all(updates)
   end
 
   def update_enrollment_states_if_necessary
@@ -853,12 +868,11 @@ class Course < ActiveRecord::Base
     if used_roles.any?
       available_roles = account.available_course_roles(true)
       (used_roles - available_roles).each do |missing_role|
-        replacement_roles = available_roles.select do |role|
+        replacement_role = available_roles.find do |role|
           role.built_in? == missing_role.built_in? &&
             role.name == missing_role.name &&
             role.base_role_type == missing_role.base_role_type
         end
-        replacement_role = replacement_roles.find(&:active?) || replacement_roles.first
         if replacement_role
           role_map[missing_role.id] = replacement_role.id
         else
@@ -1246,6 +1260,9 @@ class Course < ActiveRecord::Base
 
   scope :horizon, -> { where(horizon_course: true) }
   scope :not_horizon, -> { where(horizon_course: false) }
+
+  scope :career_learning_library, -> { where(career_learning_library_only: true) }
+  scope :not_career_learning_library, -> { where(career_learning_library_only: false) }
 
   def potential_collaborators
     current_users
@@ -1655,6 +1672,17 @@ class Course < ActiveRecord::Base
     end
   end
 
+  def set_career_learning_library_only
+    return if dummy?
+
+    new_account = Account.find(account_id)
+    return unless new_account
+
+    unless root_account.feature_enabled?(:horizon_learning_library_ms2) && new_account.horizon_account?
+      self.career_learning_library_only = false
+    end
+  end
+
   def set_horizon_course
     return if dummy?
 
@@ -1871,6 +1899,9 @@ class Course < ActiveRecord::Base
       event :offer, transitions_to: :available
       event :complete, transitions_to: :completed
       event :delete, transitions_to: :deleted
+      on_entry do |prior_state, _event|
+        undelete_lti_context_controls if prior_state == :deleted
+      end
     end
 
     state :available do
@@ -1888,6 +1919,7 @@ class Course < ActiveRecord::Base
 
     state :deleted do
       event :undelete, transitions_to: :claimed
+      on_entry { delete_lti_context_controls }
     end
   end
 
@@ -1907,8 +1939,8 @@ class Course < ActiveRecord::Base
     return false if template?
 
     gradebook_filters.in_batches.destroy_all
-    self.workflow_state = "deleted"
     self.deleted_at = Time.now.utc
+    process_event(:delete)
     save!
   end
 
@@ -3115,6 +3147,7 @@ class Course < ActiveRecord::Base
        alt_name
        restrict_quantitative_data
        horizon_course
+       career_learning_library_only
        conditional_release
        default_due_time
        content_library]
@@ -4035,8 +4068,10 @@ class Course < ActiveRecord::Base
     account.feature_enabled?(:block_content_editor) && feature_enabled?(:block_content_editor_eap)
   end
 
+  # the feature_flag(:a11y_checker_eap) check is for testing purposes. Unfortunately multiple_root_accounts plugin mocking out Feature.definitions
+  # so we have a redundant call for that
   def a11y_checker_enabled?
-    (account.feature_enabled?(:a11y_checker) && feature_enabled?(:a11y_checker_eap)) || account.feature_enabled?(:a11y_checker_ga1)
+    (account.feature_enabled?(:a11y_checker) && feature_flag(:a11y_checker_eap) && feature_enabled?(:a11y_checker_eap)) || account.feature_enabled?(:a11y_checker_ga1)
   end
 
   def elementary_enabled?
@@ -4994,5 +5029,17 @@ class Course < ActiveRecord::Base
     elsif old_rqd_setting == true && new_rqd_setting == false
       InstStatsd::Statsd.distributed_increment("course.settings.restrict_quantitative_data.disabled")
     end
+  end
+
+  def a11y_scannable_attributes
+    [:syllabus_body, :workflow_state]
+  end
+
+  def any_completed_accessibility_scan?
+    Accessibility::CourseScanService.last_accessibility_course_scan(self)&.completed? || false
+  end
+
+  def excluded_from_accessibility_scan?
+    !a11y_checker_additional_resources?
   end
 end

@@ -280,6 +280,7 @@ class DiscussionTopicsController < ApplicationController
   include Api::V1::DiscussionTopics
   include Api::V1::Assignment
   include Api::V1::AssignmentOverride
+  include Api::V1::Rubric
   include KalturaHelper
   include SubmittableHelper
   include K5Mode
@@ -875,7 +876,6 @@ class DiscussionTopicsController < ApplicationController
 
     assign_to_tags = @context.account.allow_assign_to_differentiation_tags?
     participant = @topic.participant(@current_user)
-    translation_flags = Translation.get_translation_flags(@context.feature_enabled?(:translation), @domain_root_account)
     js_env({
              course_id: params[:course_id] || @context.course&.id,
              context_type: @topic.context_type,
@@ -891,10 +891,10 @@ class DiscussionTopicsController < ApplicationController
              rce_mentions_in_discussions: !@topic.anonymous?,
              discussion_grading_view: Account.site_admin.feature_enabled?(:discussion_grading_view),
              discussion_entry_version_history: Account.site_admin.feature_enabled?(:discussion_entry_version_history),
-             discussion_translation_available: Translation.available?(translation_flags), # Is translation enabled on the course.
-             ai_translation_improvements: @domain_root_account.feature_enabled?(:ai_translation_improvements),
-             cedar_translation: @domain_root_account.feature_enabled?(:cedar_translation),
-             discussion_translation_languages: Translation.available?(translation_flags) ? Translation.languages(translation_flags) : [],
+             discussion_translation_available: Translation.available? && @context.feature_enabled?(:translation), # Is translation enabled on the course.
+             ai_translation_improvements: true, # Temporary kept to avoid front error on release, see  VICE-5844
+             cedar_translation: true, # Temporary kept to avoid front error on release, see  VICE-5844
+             discussion_translation_languages: Translation.available? ? Translation.languages : [],
              discussion_anonymity_enabled: true,
              user_can_summarize: @topic.user_can_summarize?(@current_user),
              user_can_access_insights: @topic.user_can_access_insights?(@current_user),
@@ -924,6 +924,10 @@ class DiscussionTopicsController < ApplicationController
              DISCUSSION_DEFAULT_EXPAND_ENABLED: true, # this is to avoid a small p4 on release
              DISCUSSION_DEFAULT_SORT_ENABLED: true, # this is to avoid a small p4 on release
              restore_discussion_entry: context.feature_enabled?(:restore_discussion_entry),
+             enhanced_rubrics_enabled: @context.feature_enabled?(:enhanced_rubrics),
+             PERMISSIONS: {
+               manage_rubrics: @context.grants_right?(@current_user, session, :manage_rubrics),
+             },
            })
     unless @locked
       InstStatsd::Statsd.distributed_increment("discussion_topic.visit.redesign")
@@ -933,8 +937,10 @@ class DiscussionTopicsController < ApplicationController
 
     asset_processor_eula_js_env_for_discussion
 
+    enhanced_rubrics_assignments_js_env(@topic.assignment) if @topic.assignment.present? && @context.feature_enabled?(:enhanced_rubrics)
+
     js_bundle :discussion_topics_post
-    css_bundle :discussions_index, :learning_outcomes
+    css_bundle :discussions_index, :learning_outcomes, :enhanced_rubrics
 
     respond_to do |format|
       format.html do

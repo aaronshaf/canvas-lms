@@ -80,14 +80,14 @@ describe DeveloperKey do
 
       context "with plugin configuration available" do
         it "returns the mobile timeout from session settings" do
-          allow(Canvas::Plugin).to receive(:find).with("sessions").and_return(double(settings: { mobile_timeout: 45 }))
+          allow(Canvas::Plugin).to receive(:find).with("sessions").and_return(instance_double(Canvas::Plugin, settings: { mobile_timeout: 45 }))
           expect(developer_key.tokens_expire_in).to eq(45.minutes)
         end
       end
 
       context "without plugin configuration" do
         it "falls back to the mobile_public_client_token_ttl_days setting" do
-          allow(Canvas::Plugin).to receive(:find).with("sessions").and_return(double(settings: {}))
+          allow(Canvas::Plugin).to receive(:find).with("sessions").and_return(instance_double(Canvas::Plugin, settings: {}))
           allow(Setting).to receive(:get).with("mobile_public_client_token_ttl_days", "90").and_return("30")
           expect(developer_key.tokens_expire_in).to eq(30.days)
         end
@@ -101,14 +101,14 @@ describe DeveloperKey do
 
       context "with plugin configuration available" do
         it "returns the mobile timeout from session settings" do
-          allow(Canvas::Plugin).to receive(:find).with("sessions").and_return(double(settings: { mobile_timeout: 60 }))
+          allow(Canvas::Plugin).to receive(:find).with("sessions").and_return(instance_double(Canvas::Plugin, settings: { mobile_timeout: 60 }))
           expect(developer_key.tokens_expire_in).to eq(60.minutes)
         end
       end
 
       context "without plugin configuration" do
         it "returns nil (no expiration)" do
-          allow(Canvas::Plugin).to receive(:find).with("sessions").and_return(double(settings: {}))
+          allow(Canvas::Plugin).to receive(:find).with("sessions").and_return(instance_double(Canvas::Plugin, settings: {}))
           expect(developer_key.tokens_expire_in).to be_nil
         end
       end
@@ -288,6 +288,7 @@ describe DeveloperKey do
           name: "shard 1 tool",
           workflow_state: "public",
           developer_key:,
+          lti_registration: developer_key.lti_registration,
           context: shard_1_account,
           url: "https://www.test.com",
           consumer_key: "key",
@@ -309,6 +310,7 @@ describe DeveloperKey do
           name: "shard 2 tool",
           workflow_state: "public",
           developer_key:,
+          lti_registration: developer_key.lti_registration,
           context: shard_2_account,
           url: "https://www.test.com",
           consumer_key: "key",
@@ -561,6 +563,7 @@ describe DeveloperKey do
               name: "shard 1 tool",
               workflow_state: "public",
               developer_key:,
+              lti_registration: developer_key.lti_registration,
               context: shard_1_account,
               url: "https://www.test.com",
               consumer_key: "key",
@@ -577,6 +580,7 @@ describe DeveloperKey do
               name: "shard 2 tool",
               workflow_state: "public",
               developer_key: shard_2_dev_key,
+              lti_registration: shard_2_dev_key.lti_registration,
               context: shard_2_account,
               url: "https://www.test.com",
               consumer_key: "key",
@@ -622,6 +626,49 @@ describe DeveloperKey do
           run_jobs
           failed_jobs = Delayed::Job.where("tag LIKE ?", "DeveloperKey%").where.not(last_error: nil)
           expect(failed_jobs.to_a).to eq([])
+        end
+      end
+
+      context "with a template registration and local copy" do
+        include_context "lti_1_3_tool_configuration_spec_helper"
+
+        let_once(:admin) { account_admin_user(account: subaccount) }
+        let_once(:subaccount) { account_model }
+        let_once(:template) do
+          Account.site_admin.shard.activate do
+            Lti::CreateRegistrationService.call(
+              account: Account.site_admin,
+              created_by: admin,
+              registration_params: { name: "Template Tool" },
+              configuration_params: internal_lti_configuration
+            )
+          end
+        end
+        let_once(:template_developer_key) { template.developer_key }
+        let_once(:local_copy) do
+          Lti::InstallTemplateRegistrationService.call(
+            account: subaccount,
+            user: admin,
+            template:
+          )
+        end
+        let_once(:template_tool) { template.new_external_tool(Account.site_admin) }
+        let_once(:local_copy_tool) { local_copy.new_external_tool(subaccount) }
+
+        before do
+          Account.site_admin.enable_feature!(:lti_registrations_templates)
+          subaccount.enable_feature!(:lti_registrations_templates)
+        end
+
+        it "does not update tools from local copies when template is updated" do
+          original_title = template_tool.name
+          template_configuration = template.manual_configuration
+          template_configuration.update!(title: "Updated Template Title")
+          template_developer_key.update_external_tools!
+          run_jobs
+
+          expect(template_tool.reload.name).to eq("Updated Template Title")
+          expect(local_copy_tool.reload.name).to eq(original_title)
         end
       end
     end

@@ -90,7 +90,7 @@ describe SisImportsApiController, type: :request do
   end
 
   it "kicks off a sis import via multipart attachment" do
-    expect(Delayed::Worker).to receive(:current_job).at_least(:twice).and_return(double("Delayed::Job", id: 123))
+    expect(Delayed::Worker).to receive(:current_job).at_least(:twice).and_return(instance_double(Delayed::Job, id: 123))
     json = api_call(:post,
                     "/api/v1/accounts/#{@account.id}/sis_imports.json",
                     { controller: "sis_imports_api",
@@ -832,6 +832,17 @@ describe SisImportsApiController, type: :request do
       expect(c.name).to eq "French"
       expect(c.short_name).to eq "Fren101"
     end
+  end
+
+  it "gives a 400 rather than a 500 if binary is posted without an appropriate Content-Type" do
+    raw_zip_content = Rails.root.join("spec/fixtures/sis/mac_sis_batch.zip").read
+    post "/api/v1/accounts/#{@account.id}/sis_imports.json?import_type=instructure_csv",
+         params: raw_zip_content,
+         headers: { "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" }
+
+    expect(response).to be_bad_request
+    json = json_parse(response.body)
+    expect(json["error"]).to include "Ensure the Content-Type header is set"
   end
 
   it "allows raw post without charset" do

@@ -836,6 +836,8 @@ describe Course do
         enrollment = course.enroll_user(user, "StudentEnrollment", role:)
 
         account2 = Account.default.sub_accounts.create!
+        # ensure the most specific role is chosen (it should prefer the one in the subaccount)
+        Account.default.roles.create! name: "Something", base_role_type: "StudentEnrollment"
         # ensure the active role is chosen if there are dups (a unique constraint ensures only one active one can exist)
         account2.roles.create! name: "Something", workflow_state: "inactive", base_role_type: "StudentEnrollment"
         role2 = account2.roles.create! name: "Something", workflow_state: "active", base_role_type: "StudentEnrollment"
@@ -3178,7 +3180,7 @@ describe Course do
         let(:link) do
           NavMenuLink.create!(
             context: @course,
-            nav_type: "course",
+            course_nav: true,
             label: "External Resource",
             url: "https://example.com"
           )
@@ -7727,7 +7729,7 @@ describe Course do
       end
 
       context "when module not exist on the course" do
-        subject { @course.visible_module_items_by_module(@teacher, double("mock", id: "noop")) }
+        subject { @course.visible_module_items_by_module(@teacher, instance_double(ContextModule, id: "noop")) }
 
         it "should return empty list" do
           expect(subject.length).to be(0)
@@ -7751,7 +7753,7 @@ describe Course do
       end
 
       context "when module not exist on the course" do
-        subject { @course.visible_module_items_by_module(@student, double("mock", id: "noop")) }
+        subject { @course.visible_module_items_by_module(@student, instance_double(ContextModule, id: "noop")) }
 
         it "should return empty list" do
           expect(subject.length).to be(0)
@@ -9149,6 +9151,48 @@ describe Course do
       course_model
       expect { @course.destroy }.to change { @course.reload.deleted_at }.from(nil).to be_truthy
     end
+
+    it "soft-deletes associated LTI context controls" do
+      course = course_model
+      registration = lti_registration_with_tool(account: course.account)
+      deployment = registration.deployments.first
+
+      # Create a context control for the course
+      control = Lti::ContextControl.create!(
+        context: course,
+        registration:,
+        deployment:
+      )
+
+      expect(control.workflow_state).not_to eq("deleted_with_context")
+
+      course.destroy
+
+      expect(control.reload.workflow_state).to eq("deleted_with_context")
+      expect(control.updated_at).to be > control.created_at
+    end
+
+    it "restores LTI context controls when course is undeleted" do
+      course = course_model
+      registration = lti_registration_with_tool(account: course.account)
+      deployment = registration.deployments.first
+
+      control = Lti::ContextControl.create!(
+        context: course,
+        registration:,
+        deployment:
+      )
+
+      # Delete the course
+      course.destroy
+      expect(control.reload.workflow_state).to eq("deleted_with_context")
+
+      # Undelete the course
+      course.process_event(:undelete)
+      course.save!
+
+      expect(control.reload.workflow_state).to eq("active")
+    end
   end
 
   describe "#all_dates" do
@@ -9348,6 +9392,179 @@ describe Course do
     end
   end
 
+  describe "career_learning_library_only" do
+    describe "scopes" do
+      before :once do
+        @horizon_account = Account.create!
+        @horizon_account.enable_feature!(:horizon_course_setting)
+        @horizon_account.enable_feature!(:horizon_learning_library_ms2)
+        @horizon_account.horizon_account = true
+        @horizon_account.save!
+      end
+
+      it ".career_learning_library returns only courses with career_learning_library_only=true" do
+        regular_course = @horizon_account.courses.create!(name: "Regular Course")
+        regular_course.update!(career_learning_library_only: false)
+
+        cll_course = @horizon_account.courses.create!(name: "CLL Course")
+        cll_course.update!(career_learning_library_only: true)
+
+        expect(Course.career_learning_library).to include(cll_course)
+        expect(Course.career_learning_library).not_to include(regular_course)
+      end
+
+      it ".not_career_learning_library returns only courses with career_learning_library_only=false" do
+        regular_course = @horizon_account.courses.create!(name: "Regular Course")
+        regular_course.update!(career_learning_library_only: false)
+
+        cll_course = @horizon_account.courses.create!(name: "CLL Course")
+        cll_course.update!(career_learning_library_only: true)
+
+        expect(Course.not_career_learning_library).to include(regular_course)
+        expect(Course.not_career_learning_library).not_to include(cll_course)
+      end
+    end
+
+    describe "default value" do
+      it "defaults to false for new courses" do
+        course = course_factory
+        expect(course.career_learning_library_only).to be false
+      end
+    end
+
+    describe "#set_career_learning_library_only" do
+      let(:horizon_account) do
+        account = Account.create!
+        account.enable_feature!(:horizon_course_setting)
+        account.enable_feature!(:horizon_learning_library_ms2)
+        account.horizon_account = true
+        account.save!
+        account
+      end
+
+      let(:regular_account) { Account.create! }
+
+      it "allows setting to true in a horizon account with feature flag enabled" do
+        course = horizon_account.courses.create!(career_learning_library_only: true)
+        course.save!
+        expect(course.career_learning_library_only).to be true
+      end
+
+      it "forces to false in a non-horizon account" do
+        regular_account.enable_feature!(:horizon_learning_library_ms2)
+        course = regular_account.courses.create!(career_learning_library_only: true)
+        course.save!
+        expect(course.career_learning_library_only).to be false
+      end
+
+      it "forces to false when feature flag is not enabled" do
+        account = Account.create!
+        account.enable_feature!(:horizon_course_setting)
+        account.horizon_account = true
+        account.save!
+
+        course = account.courses.create!(career_learning_library_only: true)
+        course.save!
+        expect(course.career_learning_library_only).to be false
+      end
+
+      it "forces to false when moving course from horizon to non-horizon account" do
+        course = horizon_account.courses.create!(career_learning_library_only: true)
+        course.save!
+        expect(course.career_learning_library_only).to be true
+
+        course.account = regular_account
+        course.save!
+        expect(course.career_learning_library_only).to be false
+      end
+
+      it "allows keeping true when moving course between horizon accounts" do
+        horizon_account2 = Account.create!
+        horizon_account2.enable_feature!(:horizon_course_setting)
+        horizon_account2.enable_feature!(:horizon_learning_library_ms2)
+        horizon_account2.horizon_account = true
+        horizon_account2.save!
+
+        course = horizon_account.courses.create!(career_learning_library_only: true)
+        course.save!
+        expect(course.career_learning_library_only).to be true
+
+        course.account = horizon_account2
+        course.save!
+        expect(course.career_learning_library_only).to be true
+      end
+
+      it "runs callback on account change" do
+        course = horizon_account.courses.create!
+        expect(course).to receive(:set_career_learning_library_only).and_call_original
+
+        course.account = regular_account
+        course.save!
+      end
+
+      it "runs callback when career_learning_library_only is changed" do
+        course = horizon_account.courses.create!
+        expect(course).to receive(:set_career_learning_library_only).and_call_original
+
+        course.career_learning_library_only = true
+        course.save!
+      end
+    end
+
+    describe "clonable_attributes" do
+      it "includes career_learning_library_only in clonable attributes" do
+        expect(Course.clonable_attributes).to include(:career_learning_library_only)
+      end
+
+      it "clones career_learning_library_only when copying a course in horizon account" do
+        horizon_account = Account.create!
+        horizon_account.enable_feature!(:horizon_course_setting)
+        horizon_account.enable_feature!(:horizon_learning_library_ms2)
+        horizon_account.horizon_account = true
+        horizon_account.save!
+
+        original_course = horizon_account.courses.create!(
+          name: "Original Course",
+          career_learning_library_only: true
+        )
+        original_course.save!
+
+        copied_course = original_course.dup
+        Course.clonable_attributes.each do |attr|
+          copied_course.send(:"#{attr}=", original_course.send(attr))
+        end
+        copied_course.save!
+
+        expect(copied_course.career_learning_library_only).to be true
+      end
+
+      it "forces to false when cloning to non-horizon account" do
+        horizon_account = Account.create!
+        horizon_account.enable_feature!(:horizon_course_setting)
+        horizon_account.enable_feature!(:horizon_learning_library_ms2)
+        horizon_account.horizon_account = true
+        horizon_account.save!
+
+        regular_account = Account.create!
+
+        original_course = horizon_account.courses.create!(
+          name: "Original Course",
+          career_learning_library_only: true
+        )
+        original_course.save!
+
+        copied_course = regular_account.courses.build
+        Course.clonable_attributes.each do |attr|
+          copied_course.send(:"#{attr}=", original_course.send(attr))
+        end
+        copied_course.save!
+
+        # Should be forced to false because regular_account is not horizon
+        expect(copied_course.career_learning_library_only).to be false
+      end
+    end
+  end
+
   describe "horizon content ingestion" do
     let(:horizon_account) do
       account = Account.create!
@@ -9359,7 +9576,7 @@ describe Course do
     end
 
     let(:regular_account) { Account.create! }
-    let(:pine_client_mock) { double("PineClient") }
+    let(:pine_client_mock) { class_double(PineClient) }
 
     before do
       allow(pine_client_mock).to receive_messages(enabled?: true, ingest_url: true, ingest_html: true)
@@ -9500,11 +9717,12 @@ describe Course do
 
     describe "#exceeds_accessibility_scan_limit?" do
       before do
-        allow(course.wiki_pages).to receive(:not_deleted).and_return(double(count: wiki_count))
-        active_assignments = double(not_excluded_from_accessibility_scan: double(count: assignment_count))
+        allow(course.wiki_pages).to receive(:not_deleted).and_return(instance_double(ActiveRecord::Relation, count: wiki_count))
+        not_excluded = instance_double(ActiveRecord::Relation, count: assignment_count)
+        active_assignments = class_double(Assignment, not_excluded_from_accessibility_scan: not_excluded)
         allow(course.assignments).to receive(:active).and_return(active_assignments)
-        allow(course.discussion_topics).to receive(:scannable).and_return(double(count: discussion_topic_count))
-        allow(course.announcements).to receive(:active).and_return(double(count: announcement_count))
+        allow(course.discussion_topics).to receive(:scannable).and_return(instance_double(ActiveRecord::Relation, count: discussion_topic_count))
+        allow(course.announcements).to receive(:active).and_return(instance_double(ActiveRecord::Relation, count: announcement_count))
       end
 
       context "when total resources exceed limit" do
@@ -9663,7 +9881,7 @@ describe Course do
         course.restrict_enrollments_to_course_dates = true
       else
         course.restrict_enrollments_to_course_dates = false
-        enrollment_term = double("EnrollmentTerm", start_at:, end_at:)
+        enrollment_term = instance_double(EnrollmentTerm, start_at:, end_at:)
         allow(course).to receive(:enrollment_term).and_return(enrollment_term)
       end
       expect(course.active_now?).to eq(expected)
@@ -9746,6 +9964,7 @@ describe Course do
     context "when both a11y_checker and a11y_checker_eap features are enabled" do
       before do
         allow(course.account).to receive(:feature_enabled?).with(:a11y_checker).and_return(true)
+        allow(course).to receive(:feature_flag).with(:a11y_checker_eap).and_return(true)
         allow(course).to receive(:feature_enabled?).with(:a11y_checker_eap).and_return(true)
         allow(course.account).to receive(:feature_enabled?).with(:a11y_checker_ga1).and_return(false)
       end
@@ -9770,6 +9989,7 @@ describe Course do
     context "when both EAP path and GA1 are enabled" do
       before do
         allow(course.account).to receive(:feature_enabled?).with(:a11y_checker).and_return(true)
+        allow(course).to receive(:feature_flag).with(:a11y_checker_eap).and_return(true)
         allow(course).to receive(:feature_enabled?).with(:a11y_checker_eap).and_return(true)
         allow(course.account).to receive(:feature_enabled?).with(:a11y_checker_ga1).and_return(true)
       end
@@ -9782,6 +10002,7 @@ describe Course do
     context "when account a11y_checker is enabled but course a11y_checker_eap is disabled and ga1 is disabled" do
       before do
         allow(course.account).to receive(:feature_enabled?).with(:a11y_checker).and_return(true)
+        allow(course).to receive(:feature_flag).with(:a11y_checker_eap).and_return(true)
         allow(course).to receive(:feature_enabled?).with(:a11y_checker_eap).and_return(false)
         allow(course.account).to receive(:feature_enabled?).with(:a11y_checker_ga1).and_return(false)
       end
@@ -9930,6 +10151,170 @@ describe Course do
         allow(account).to receive(:a11y_checker_ai_alt_text_generation?).and_return(false)
 
         expect(course.a11y_checker_ai_alt_text_generation?).to be false
+      end
+    end
+  end
+
+  describe "syllabus accessibility scan" do
+    let(:course) { course_model }
+
+    context "when a11y_checker_additional_resources is disabled" do
+      before do
+        Account.site_admin.disable_feature!(:a11y_checker_additional_resources)
+        course.root_account.enable_feature!(:a11y_checker)
+        course.enable_feature!(:a11y_checker_eap)
+        Progress.create!(tag: Accessibility::CourseScanService::SCAN_TAG, context: course, workflow_state: "completed")
+      end
+
+      it "does not trigger accessibility scan for syllabus on update" do
+        expect(Accessibility::ResourceScannerService).not_to receive(:call)
+
+        course.update!(syllabus_body: "<h1>Test Syllabus</h1>")
+      end
+    end
+
+    context "when a11y_checker_additional_resources is enabled" do
+      before do
+        Account.site_admin.enable_feature!(:a11y_checker_additional_resources)
+        course.root_account.enable_feature!(:a11y_checker)
+        course.enable_feature!(:a11y_checker_eap)
+        Progress.create!(tag: Accessibility::CourseScanService::SCAN_TAG, context: course, workflow_state: "completed")
+      end
+
+      it "triggers accessibility scan when syllabus_body changes" do
+        expect(Accessibility::ResourceScannerService).to receive(:call).with(resource: course)
+
+        course.update!(syllabus_body: "<h1>Updated Syllabus</h1>")
+      end
+
+      it "does not trigger scan when syllabus_body doesn't change" do
+        course.update!(syllabus_body: "<p>Initial content</p>")
+
+        expect(Accessibility::ResourceScannerService).not_to receive(:call)
+
+        course.update!(name: "New Course Name")
+      end
+
+      it "does not trigger scan when syllabus_body remains blank" do
+        course.update!(syllabus_body: "")
+
+        expect(Accessibility::ResourceScannerService).not_to receive(:call)
+
+        course.update!(syllabus_body: "")
+      end
+
+      it "triggers scan when syllabus_body changes to blank" do
+        course.update!(syllabus_body: "<p>Some content</p>")
+
+        expect(Accessibility::ResourceScannerService).to receive(:call).with(resource: course)
+
+        course.update!(syllabus_body: "")
+      end
+
+      it "creates scan with is_syllabus flag" do
+        course.update!(syllabus_body: "<h1>Test Syllabus</h1>")
+
+        # Process the delayed job
+        run_jobs
+
+        scan = AccessibilityResourceScan.where(course_id: course.id, is_syllabus: true).last
+        expect(scan).not_to be_nil
+        expect(scan.is_syllabus).to be true
+        expect(scan.context_id).to be_nil
+        expect(scan.context_type).to be_nil
+      end
+
+      it "updates existing scan when syllabus changes again" do
+        # Create initial scan
+        AccessibilityResourceScan.create!(
+          course:,
+          is_syllabus: true,
+          workflow_state: "completed",
+          issue_count: 0,
+          resource_name: "Course Syllabus",
+          resource_workflow_state: "published"
+        )
+
+        expect(Accessibility::ResourceScannerService).to receive(:call).with(resource: course)
+
+        course.update!(syllabus_body: "<h1>Updated Again</h1>")
+      end
+    end
+
+    context "when course has no initial scan" do
+      before do
+        Account.site_admin.enable_feature!(:a11y_checker_additional_resources)
+        course.root_account.enable_feature!(:a11y_checker)
+        course.enable_feature!(:a11y_checker_eap)
+        # No initial course scan exists
+      end
+
+      it "does not trigger accessibility scan for syllabus" do
+        expect(Accessibility::ResourceScannerService).not_to receive(:call)
+
+        course.update!(syllabus_body: "<h1>Test Syllabus</h1>")
+      end
+    end
+
+    context "when a11y_checker is disabled" do
+      before do
+        Account.site_admin.enable_feature!(:a11y_checker_additional_resources)
+        course.root_account.disable_feature!(:a11y_checker)
+      end
+
+      it "does not trigger accessibility scan for syllabus" do
+        expect(Accessibility::ResourceScannerService).not_to receive(:call)
+
+        course.update!(syllabus_body: "<h1>Test Syllabus</h1>")
+      end
+    end
+
+    context "when additional_resources FF is on with EAP enabled (uses delegated method)" do
+      before do
+        Account.site_admin.enable_feature!(:a11y_checker_additional_resources)
+        course.root_account.enable_feature!(:a11y_checker)
+        course.enable_feature!(:a11y_checker_eap)
+        Progress.create!(tag: Accessibility::CourseScanService::SCAN_TAG, context: course, workflow_state: "completed")
+      end
+
+      it "triggers accessibility scan for syllabus on update" do
+        expect(Accessibility::ResourceScannerService).to receive(:call).with(resource: course)
+
+        course.update!(syllabus_body: "<h1>Test Syllabus with EAP</h1>")
+      end
+    end
+
+    context "when additional_resources FF is on but neither EAP nor a11y_checker is enabled" do
+      before do
+        Account.site_admin.enable_feature!(:a11y_checker_additional_resources)
+        Account.site_admin.disable_feature!(:a11y_checker_ga2_features)
+        course.root_account.disable_feature!(:a11y_checker)
+        # Don't set a11y_checker_eap since it requires a11y_checker to be enabled
+        Progress.create!(tag: Accessibility::CourseScanService::SCAN_TAG, context: course, workflow_state: "completed")
+      end
+
+      it "does not trigger accessibility scan for syllabus on update" do
+        expect(Accessibility::ResourceScannerService).not_to receive(:call)
+
+        course.update!(syllabus_body: "<h1>Test Syllabus without proper flags</h1>")
+      end
+    end
+
+    context "when additional_resources FF is on with GA2 features enabled (alternative path)" do
+      before do
+        Account.site_admin.enable_feature!(:a11y_checker_additional_resources)
+        Account.site_admin.enable_feature!(:a11y_checker_ga2_features)
+        # Don't disable a11y_checker at root account level since GA2 works at site admin level
+        # But enable a11y_checker_eap requires a11y_checker to be enabled, so enable it
+        course.root_account.enable_feature!(:a11y_checker)
+        course.enable_feature!(:a11y_checker_eap)
+        Progress.create!(tag: Accessibility::CourseScanService::SCAN_TAG, context: course, workflow_state: "completed")
+      end
+
+      it "triggers accessibility scan for syllabus on update" do
+        expect(Accessibility::ResourceScannerService).to receive(:call).with(resource: course)
+
+        course.update!(syllabus_body: "<h1>Test Syllabus with GA2</h1>")
       end
     end
   end

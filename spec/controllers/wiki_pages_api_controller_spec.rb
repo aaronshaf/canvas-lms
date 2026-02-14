@@ -536,10 +536,11 @@ describe WikiPagesApiController, type: :request do
                                       resource_workflow_state: "active",
                                       resource_updated_at: Time.zone.now,
                                       context_url: "/courses/#{@course.id}/pages/#{@wiki_page.id}",
+                                      resource_scan_path: nil,
                                       workflow_state: "completed",
                                       error_message: nil,
                                       issue_count: 0,
-                                      accessibility_issues: double(select: []))
+                                      accessibility_issues: instance_double(ActiveRecord::Relation, select: []))
 
         expect(Accessibility::ResourceScannerService).to receive(:new)
           .with(resource: @wiki_page)

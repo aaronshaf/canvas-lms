@@ -176,9 +176,9 @@ describe User do
 
   it "gets the first email from communication_channel" do
     @user = User.create
-    @cc1 = double("CommunicationChannel")
+    @cc1 = instance_double(CommunicationChannel)
     allow(@cc1).to receive(:path).and_return("cc1")
-    @cc2 = double("CommunicationChannel")
+    @cc2 = instance_double(CommunicationChannel)
     allow(@cc2).to receive(:path).and_return("cc2")
     allow(@user).to receive_messages(communication_channels: [@cc1, @cc2],
                                      communication_channel: @cc1)
@@ -1032,7 +1032,7 @@ describe User do
     it "caches the account properly" do
       enable_cache(:redis_cache_store) do
         @user = sub_sub_admin
-        expect(@user).to receive(:account_users).and_return(double(active: [])).once
+        expect(@user).to receive(:account_users).and_return(class_double(AccountUser, active: [])).once
         2.times { @user.alternate_account_for_course_creation }
       end
     end
@@ -1444,12 +1444,12 @@ describe User do
         end
 
         it "returns false if the account is not a root account" do
-          account = double(root_account?: false)
+          account = instance_double(Account, root_account?: false)
           expect(masqueradee.includes_subset_of_course_admin_permissions?(masquerader, account)).to be_falsey
         end
 
         it "is true when all permissions for current user are subsets of target user" do
-          account = double(root_account?: true)
+          account = instance_double(Account, root_account?: true)
           masquerader_permissions = { become_user: [true], view_all_grades: [true] }
           masqueradee_permissions = { view_all_grades: [true] }
           allow(AccountUser).to receive(:all_permissions_for).and_return(masquerader_permissions)
@@ -1459,7 +1459,7 @@ describe User do
         end
 
         it "is false when any permission for current user is not a subset of target user" do
-          account = double(root_account?: true)
+          account = instance_double(Account, root_account?: true)
           masquerader_permissions = { become_user: [true], view_all_grades: [] }
           masqueradee_permissions = { view_all_grades: [true] }
           allow(AccountUser).to receive(:all_permissions_for).and_return(masquerader_permissions)
@@ -1553,21 +1553,21 @@ describe User do
     end
 
     it "is false if the account is not a root account" do
-      expect(user.has_subset_of_account_permissions?(other_user, double(root_account?: false))).to be_falsey
+      expect(user.has_subset_of_account_permissions?(other_user, instance_double(Account, root_account?: false))).to be_falsey
     end
 
     it "is true if there are no account users for this root account" do
-      account = double(root_account?: true, cached_all_account_users_for: [])
+      account = instance_double(Account, root_account?: true, cached_all_account_users_for: [])
       expect(user.has_subset_of_account_permissions?(other_user, account)).to be_truthy
     end
 
     it "is true when all account_users for current user are subsets of target user" do
-      account = double(root_account?: true, cached_all_account_users_for: [double(is_subset_of?: true)])
+      account = instance_double(Account, root_account?: true, cached_all_account_users_for: [instance_double(AccountUser, is_subset_of?: true)])
       expect(user.has_subset_of_account_permissions?(other_user, account)).to be_truthy
     end
 
     it "is false when any account_user for current user is not a subset of target user" do
-      account = double(root_account?: true, cached_all_account_users_for: [double(is_subset_of?: false)])
+      account = instance_double(Account, root_account?: true, cached_all_account_users_for: [instance_double(AccountUser, is_subset_of?: false)])
       expect(user.has_subset_of_account_permissions?(other_user, account)).to be_falsey
     end
   end
@@ -2195,7 +2195,7 @@ describe User do
       end
 
       context "when user has associated root accounts with file_association_access feature" do
-        let(:root_account) { double("Account", feature_enabled?: true) }
+        let(:root_account) { instance_double(Account, feature_enabled?: true) }
 
         before do
           allow(user).to receive(:associated_root_accounts).and_return([root_account])
@@ -2283,7 +2283,7 @@ describe User do
       context "edge cases" do
         before do
           user.avatar_image_source = "attachment"
-          root_account = double("Account", feature_enabled?: true)
+          root_account = instance_double(Account, feature_enabled?: true)
           allow(user).to receive(:associated_root_accounts).and_return([root_account])
         end
 
@@ -4389,7 +4389,7 @@ describe User do
       expect(SubmissionLifecycleManager).to receive(:recompute_users_for_course).twice # sync_enrollments and destroy_enrollments
       test_student = @course.student_view_student
       test_student.destroy
-      test_student.reload.enrollments.each { |e| expect(e).to be_deleted }
+      expect(test_student.reload.enrollments).to all(be_deleted)
     end
   end
 
@@ -4727,6 +4727,72 @@ describe User do
     it "returns false when user is designer" do
       course_with_designer(user:)
       expect(user.has_student_enrollment?).to be false
+    end
+  end
+
+  describe "#active_non_student_enrollment?" do
+    let(:user) { User.create! }
+
+    it "returns false by default" do
+      expect(user.active_non_student_enrollment?).to be false
+    end
+
+    it "returns false when user has only student enrollment" do
+      course_with_student(user:, active_all: true)
+      expect(user.active_non_student_enrollment?).to be false
+    end
+
+    it "returns true when user has active teacher enrollment" do
+      course_with_teacher(user:, active_all: true)
+      expect(user.active_non_student_enrollment?).to be true
+    end
+
+    it "returns true when user has active TA enrollment" do
+      course_with_ta(user:, active_all: true)
+      expect(user.active_non_student_enrollment?).to be true
+    end
+
+    it "returns true when user has active designer enrollment" do
+      course_with_designer(user:, active_all: true)
+      expect(user.active_non_student_enrollment?).to be true
+    end
+
+    it "returns false when user has only observer enrollment" do
+      course_with_observer(user:, active_all: true)
+      expect(user.active_non_student_enrollment?).to be false
+    end
+
+    it "returns false when teacher enrollment is concluded" do
+      course_with_teacher(user:, active_all: true)
+      user.enrollments.find_by(type: "TeacherEnrollment").complete!
+      user.remove_instance_variable(:@_active_non_student_enrollment) if user.instance_variable_defined?(:@_active_non_student_enrollment)
+      expect(user.active_non_student_enrollment?).to be false
+    end
+
+    it "returns false when teacher enrollment is inactive" do
+      course_with_teacher(user:, active_all: true)
+      user.enrollments.find_by(type: "TeacherEnrollment").deactivate
+      user.remove_instance_variable(:@_active_non_student_enrollment) if user.instance_variable_defined?(:@_active_non_student_enrollment)
+      expect(user.active_non_student_enrollment?).to be false
+    end
+
+    it "returns false when teacher enrollment is deleted" do
+      course_with_teacher(user:, active_all: true)
+      user.enrollments.find_by(type: "TeacherEnrollment").destroy
+      user.remove_instance_variable(:@_active_non_student_enrollment) if user.instance_variable_defined?(:@_active_non_student_enrollment)
+      expect(user.active_non_student_enrollment?).to be false
+    end
+
+    it "returns false when user has concluded teacher enrollment and active student enrollment" do
+      course1 = course_factory(active_all: true)
+      course1.enroll_teacher(user).tap do |e|
+        e.accept!
+        e.complete!
+      end
+      course2 = course_factory(active_all: true)
+      course2.enroll_student(user).tap(&:accept!)
+      user.remove_instance_variable(:@_active_non_student_enrollment) if user.instance_variable_defined?(:@_active_non_student_enrollment)
+      expect(user.active_non_student_enrollment?).to be false
     end
   end
 

@@ -1152,7 +1152,8 @@ class UsersController < ApplicationController
 
         user = api_find(User, params[:observed_user_id])
         valid_course_ids = @current_user.observer_enrollments.active.where(associated_user_id: params[:observed_user_id]).shard(@current_user).pluck(:course_id)
-        return render_unauthorized_action unless (included_course_ids - valid_course_ids).empty?
+        included_course_ids &= valid_course_ids
+        return render_unauthorized_action if included_course_ids.empty?
       end
 
       filter = Array(params[:filter])
@@ -3532,11 +3533,9 @@ class UsersController < ApplicationController
       last_updated = nil
 
       if can_read_grades
+        display_grade = enrollment.effective_current_score(course_score: true)
         course_score = enrollment.find_score(course_score: true)
-        if course_score
-          display_grade = course_score.override_score.presence || course_score.current_score
-          last_updated = course_score.updated_at
-        end
+        last_updated = course_score&.updated_at
 
         if course.grading_standard_enabled? && course.grading_standard
           grading_scheme = course.grading_standard.data
@@ -3571,10 +3570,10 @@ class UsersController < ApplicationController
     # Check user preference (pass flag to avoid re-lookup)
     return false unless @current_user.prefers_widget_dashboard?(@domain_root_account, flag)
 
-    if @current_user.observer_enrollments.active.any?
+    if @current_user.observer_enrollments.active_or_pending.any?
       # only show widget dashboard if observer is actively observing a student
       return true if @selected_observed_user && @selected_observed_user != @current_user
-    elsif !@current_user.non_student_enrollment?
+    elsif !@current_user.active_non_student_enrollment?
       return true
     end
     false

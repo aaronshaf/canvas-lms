@@ -300,6 +300,8 @@ class Account < ActiveRecord::Base
   add_setting :sub_account_includes, boolean: true, default: false
   add_setting :restrict_quantitative_data, boolean: true, default: false, inheritable: true
 
+  add_setting :turnitin_asset_processor_client_id, root_only: true
+
   # Microsoft Sync Account Settings
   add_setting :microsoft_sync_enabled, root_only: true, boolean: true, default: false
   add_setting :microsoft_sync_tenant, root_only: true
@@ -320,8 +322,6 @@ class Account < ActiveRecord::Base
   add_setting :change_password_url, root_only: true
   add_setting :unknown_user_url, root_only: true
   add_setting :fft_registration_url, root_only: true
-
-  add_setting :native_discovery_enabled, boolean: true, root_only: true, default: false
 
   add_setting :restrict_student_future_view, boolean: true, default: false, inheritable: true
   add_setting :restrict_student_future_listing, boolean: true, default: false, inheritable: true
@@ -748,6 +748,17 @@ class Account < ActiveRecord::Base
     end
   end
 
+  def delete_lti_context_controls
+    updates = { workflow_state: "deleted_with_context", updated_at: Time.current }
+    Lti::ContextControl.where(account_id: id).active.in_batches.update_all(updates)
+  end
+
+  def undelete_lti_context_controls
+    updates = { workflow_state: "active", updated_at: Time.current }
+    # Only restore context controls that were deleted with the context (account)
+    Lti::ContextControl.where(account_id: id, workflow_state: "deleted_with_context").in_batches.update_all(updates)
+  end
+
   def check_downstream_caches
     # dummy account has no downstream
     return if dummy?
@@ -1121,6 +1132,11 @@ class Account < ActiveRecord::Base
     Canvas::Security.decrypt_password(turnitin_crypted_secret, turnitin_salt, "instructure_turnitin_secret_shared")
   end
 
+  def turnitin_asset_processor_client_id
+    settings[:turnitin_asset_processor_client_id].presence ||
+      Setting.get("turnitin_asset_processor_client_id", "")
+  end
+
   def self.account_chain(starting_account_id)
     chain = []
 
@@ -1464,8 +1480,19 @@ class Account < ActiveRecord::Base
     account_roles
   end
 
+  # returns active roles first, then ordered by their place in the account chain.
+  # this provides determinism when multiple roles with the same name exist
+  # in the account chain - just pick the first matching one you find
   def available_custom_course_roles(include_inactive = false)
-    available_custom_roles(include_inactive).for_courses.to_a
+    roles = available_custom_roles(include_inactive).for_courses.to_a
+
+    shard.activate do
+      account_positions = account_chain_ids(include_federated_parent_id: true).each_with_index.to_h
+      roles.sort_by do |role|
+        [role.active? ? CanvasSort::First : CanvasSort::Last,
+         account_positions[role.account_id] || CanvasSort::Last]
+      end
+    end
   end
 
   def available_course_roles(include_inactive = false)
@@ -1503,24 +1530,13 @@ class Account < ActiveRecord::Base
     end
 
     shard.activate do
-      role_scope = Role.not_deleted.where(name: role_name)
-      role_scope = if self.class.connection.adapter_name == "PostgreSQL"
-                     role_scope.where("account_id = ? OR
-          account_id IN (
-            WITH RECURSIVE t AS (
-              SELECT id, parent_account_id FROM #{Account.quoted_table_name} WHERE id = ?
-              UNION
-              SELECT accounts.id, accounts.parent_account_id FROM #{Account.quoted_table_name} INNER JOIN t ON accounts.id=t.parent_account_id
-            )
-            SELECT id FROM t
-          )",
-                                      id,
-                                      id)
-                   else
-                     role_scope.where(account_id: account_chain.map(&:id))
-                   end
-      # not_deleted scope could return both active and inactive roles, prefer the active one
-      role_scope.min_by { |r| (r.workflow_state == "active") ? 0 : 1 }
+      role_scope = Role.not_deleted.where(name: role_name, account_id: account_chain_ids)
+      # not_deleted scope could return both active and inactive roles, prefer the active one.
+      # also prefer roles defined lower in the account chain, to eliminate ambiguity when a role with
+      # the same name exists at multiple levels
+      account_positions = account_chain_ids.each_with_index.to_h
+      n = account_positions.size
+      role_scope.min_by { |r| ((r.workflow_state == "active") ? 0 : n) + (account_positions[r.account_id] || n) }
     end
   end
 
@@ -1555,7 +1571,11 @@ class Account < ActiveRecord::Base
   end
 
   workflow do
-    state :active
+    state :active do
+      on_entry do |prior_state, _event|
+        undelete_lti_context_controls if prior_state == :deleted
+      end
+    end
     state :deleted
   end
 
@@ -1733,9 +1753,10 @@ class Account < ActiveRecord::Base
   end
 
   alias_method :destroy_permanently!, :destroy
-  def destroy
+  def destroy(user: nil)
     transaction do
       account_users.update_all(workflow_state: "deleted")
+      delete_lti_context_controls
       self.workflow_state = "deleted"
       self.deleted_at = Time.now.utc
       save!
@@ -1803,18 +1824,6 @@ class Account < ActiveRecord::Base
     settings[:auth_discovery_url]
   end
 
-  def native_discovery_enabled=(enabled)
-    settings[:native_discovery_enabled] = Canvas::Plugin.value_to_boolean(enabled)
-  end
-
-  def native_discovery_enabled?
-    settings[:native_discovery_enabled] == true
-  end
-
-  def native_discovery_route_active?
-    native_discovery_enabled?
-  end
-
   def auth_discovery_url_options(_request)
     {}
   end
@@ -1841,6 +1850,15 @@ class Account < ActiveRecord::Base
 
   def unknown_user_url
     settings[:unknown_user_url]
+  end
+
+  def discovery_page_active=(active)
+    settings[:discovery_page] ||= {}
+    settings[:discovery_page][:active] = Canvas::Plugin.value_to_boolean(active)
+  end
+
+  def discovery_page_active?
+    settings.dig(:discovery_page, :active) == true
   end
 
   def validate_auth_discovery_url
