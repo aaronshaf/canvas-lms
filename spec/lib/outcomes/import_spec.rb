@@ -565,8 +565,7 @@ RSpec.describe Outcomes::Import do
     end
 
     context "with friendly_description" do
-      let(:fd) { "A friendly description" }
-
+      fd = "A friendly description"
       it "creates an OutcomeFriendlyDescription if the imported outcome has a friendly_description" do
         expect(OutcomeFriendlyDescription.find_by(description: fd)).to be_nil
         importer.import_outcome(**outcome_attributes, friendly_description: fd)

@@ -42,18 +42,16 @@ describe Quizzes::QuizSubmissionEventsApiController, type: :request do
       end
     end
 
-    let(:events_data) do
-      [{
-        "client_timestamp" => Time.zone.now.iso8601,
-        "event_type" => "question_answered",
-        "event_data" => { "question_id" => 1, "answer" => "1" }.freeze
-      }.freeze,
-       {
-         "client_timestamp" => Time.zone.now.iso8601,
-         "event_type" => "question_flagged",
-         "event_data" => { "question_id" => 2, "flagged" => true }.freeze
-       }.freeze].freeze
-    end
+    events_data = [{
+      "client_timestamp" => Time.zone.now.iso8601,
+      "event_type" => "question_answered",
+      "event_data" => { "question_id" => 1, "answer" => "1" }
+    },
+                   {
+                     "client_timestamp" => Time.zone.now.iso8601,
+                     "event_type" => "question_flagged",
+                     "event_data" => { "question_id" => 2, "flagged" => true }
+                   }]
 
     before :once do
       course_with_teacher active_all: true

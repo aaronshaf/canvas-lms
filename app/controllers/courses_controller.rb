@@ -1913,8 +1913,9 @@ class CoursesController < ApplicationController
   def update_nav
     get_context
     if authorized_action(@context, @current_user, :update)
-      @context.tab_configuration = NavMenuLinkTabs.sync_course_links_with_tabs(
-        course: @context,
+      @context.tab_configuration = NavMenuLinkTabs.create_and_delete_links(
+        context: @context,
+        nav_type: "course",
         tabs: JSON.parse(params[:tabs_json]).compact
       )
       @context.save
@@ -4622,7 +4623,6 @@ class CoursesController < ApplicationController
       :conditional_release,
       :post_manually,
       :horizon_course,
-      :career_learning_library_only,
       :disable_csp,
       :default_student_gradebook_view
     )

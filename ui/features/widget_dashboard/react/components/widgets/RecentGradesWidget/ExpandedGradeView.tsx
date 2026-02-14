@@ -35,16 +35,11 @@ const I18n = createI18nScope('widget_dashboard')
 
 interface ExpandedGradeViewProps {
   submission: RecentGradeSubmission
-  isRightColumn?: boolean
 }
 
-export const ExpandedGradeView: React.FC<ExpandedGradeViewProps> = ({
-  submission,
-  isRightColumn = false,
-}) => {
+export const ExpandedGradeView: React.FC<ExpandedGradeViewProps> = ({submission}) => {
   const {sharedCourseData} = useWidgetDashboard()
   const {isMobile} = useResponsiveContext()
-  const isCompactLayout = isMobile || isRightColumn
   const assignmentUrl = submission.assignment.htmlUrl
   const courseId = submission.assignment.course._id
   const assignmentName = submission.assignment.name
@@ -62,7 +57,7 @@ export const ExpandedGradeView: React.FC<ExpandedGradeViewProps> = ({
   return (
     <View
       as="div"
-      padding={isCompactLayout ? 'none' : '0 medium medium medium'}
+      padding={isMobile ? 'none' : '0 medium medium medium'}
       data-testid={`expanded-grade-view-${submission._id}`}
     >
       <Flex direction="column" gap="small">
@@ -79,8 +74,8 @@ export const ExpandedGradeView: React.FC<ExpandedGradeViewProps> = ({
         </Flex.Item>
 
         <Flex.Item>
-          <Flex direction={isCompactLayout ? 'column' : 'row'} alignItems="start">
-            <Flex.Item width={isCompactLayout ? '100%' : '60%'} wrap="wrap">
+          <Flex direction={isMobile ? 'column' : 'row'} alignItems="start">
+            <Flex.Item width={isMobile ? '100%' : '60%'} wrap="wrap">
               <Flex direction="column" gap="x-small" padding="x-small">
                 {isLoading ? (
                   <Flex.Item>
@@ -120,11 +115,7 @@ export const ExpandedGradeView: React.FC<ExpandedGradeViewProps> = ({
               </Flex>
             </Flex.Item>
 
-            <Flex.Item
-              width={isCompactLayout ? '100%' : '40%'}
-              wrap="wrap"
-              padding={isCompactLayout ? 'none' : '0 0 0 medium'}
-            >
+            <Flex.Item width={isMobile ? '100%' : '40%'} wrap="wrap" padding="0 0 0 medium">
               <Flex direction="column" gap="x-small" padding="x-small">
                 <Flex.Item overflowY="visible">
                   <Link

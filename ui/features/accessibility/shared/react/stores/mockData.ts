@@ -213,8 +213,7 @@ export const mockScanData: AccessibilityResourceScan[] = [
 ]
 
 export const mockIssuesSummary1: AccessibilityIssuesSummaryData = {
-  active: 61,
-  resolved: 0,
+  total: 61,
   byRuleType: {
     'headings-sequence': 1,
     'adjacent-links': 50,
@@ -223,8 +222,7 @@ export const mockIssuesSummary1: AccessibilityIssuesSummaryData = {
 }
 
 export const mockIssuesSummary2: AccessibilityIssuesSummaryData = {
-  active: 15,
-  resolved: 0,
+  total: 15,
   byRuleType: {
     'img-alt': 5,
     'img-alt-length': 2,
@@ -235,7 +233,6 @@ export const mockIssuesSummary2: AccessibilityIssuesSummaryData = {
 }
 
 export const mockEmptyIssuesSummary: AccessibilityIssuesSummaryData = {
-  active: 0,
-  resolved: 0,
+  total: 0,
   byRuleType: {},
 }

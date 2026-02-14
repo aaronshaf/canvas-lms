@@ -83,7 +83,7 @@ describe "new ui" do
     context("files rewrite tooggle") do
       include FilesPage
 
-      let(:folder_name) { "base folder" }
+      folder_name = "base folder"
 
       before do
         user_session @teacher

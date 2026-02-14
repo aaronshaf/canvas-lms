@@ -17,8 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@canvas/react'
-import type {Root} from 'react-dom/client'
+import ReactDOM from 'react-dom/client'
 import ContextModulesPublishIcon from '@canvas/context-modules/react/ContextModulesPublishIcon'
 import ready from '@instructure/ready'
 
@@ -30,7 +29,9 @@ ready(() => {
     const moduleName = el.closest('.context_module')!.querySelector('.ig-header-title')!
       .textContent!
     const published = el.getAttribute('data-published') === 'true'
-    const root = render(
+    const root = ReactDOM.createRoot(el)
+    ;(el as Element & {reactRoot?: ReactDOM.Root}).reactRoot = root
+    root.render(
       <ContextModulesPublishIcon
         courseId={courseId}
         moduleId={moduleId}
@@ -38,8 +39,6 @@ ready(() => {
         published={published}
         isPublishing={false}
       />,
-      el,
     )
-    ;(el as Element & {reactRoot?: Root}).reactRoot = root
   })
 })

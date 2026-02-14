@@ -155,11 +155,11 @@ describe Quizzes::QuizStatistics do
 
   describe "self#large_quiz?" do
     let :active_quiz_questions do
-      instance_double(ActiveRecord::Relation, size: 50)
+      double(size: 50)
     end
 
     let :quiz_submissions do
-      instance_double(ActiveRecord::Relation, size: 15)
+      double(size: 15)
     end
 
     let :quiz do

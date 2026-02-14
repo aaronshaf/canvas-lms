@@ -21,7 +21,7 @@ import {arrayOf, shape, string} from 'prop-types'
 
 export const User = {
   fragment: gql`
-    fragment DiscussionPostUser on User {
+    fragment User on User {
       id
       _id
       avatarUrl

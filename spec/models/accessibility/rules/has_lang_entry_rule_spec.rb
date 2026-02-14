@@ -37,7 +37,7 @@ describe Accessibility::Rules::HasLangEntryRule do
   end
 
   let(:element_id) { "pdf-123" }
-  let(:elem) { instance_double(PDF::Reader) }
+  let(:elem) { double("pdf_element") }
   let(:issues) { find_issues(elem, element_id) }
 
   before do

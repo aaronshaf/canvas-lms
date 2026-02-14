@@ -23,7 +23,7 @@ require "response_field_view"
 
 describe ResponseFieldView do
   let(:tag) do
-    instance_double(YARD::Tags::Tag, tag_name: "response_field", text: "foo A description.", types: ["String"])
+    double(tag_name: "response_field", text: "foo A description.", types: ["String"])
   end
 
   let(:view) { ResponseFieldView.new(tag) }
@@ -69,10 +69,11 @@ describe ResponseFieldView do
 
     it "forces the encoding of the name to UTF-8" do
       response_field_view = ResponseFieldView.new(
-        instance_double(YARD::Tags::Tag,
-                        tag_name: "response_field",
-                        text: (+"foo A description.").force_encoding("binary"),
-                        types: ["String"])
+        double(
+          tag_name: "response_field",
+          text: (+"foo A description.").force_encoding("binary"),
+          types: ["String"]
+        )
       )
 
       expect(response_field_view.name.encoding.name).to eq "UTF-8"
@@ -86,10 +87,11 @@ describe ResponseFieldView do
 
     it "forces the encoding of the description to UTF-8" do
       response_field_view = ResponseFieldView.new(
-        instance_double(YARD::Tags::Tag,
-                        tag_name: "response_field",
-                        text: (+"foo A description.").force_encoding("binary"),
-                        types: ["String"])
+        double(
+          tag_name: "response_field",
+          text: (+"foo A description.").force_encoding("binary"),
+          types: ["String"]
+        )
       )
 
       expect(response_field_view.description.encoding.name).to eq "UTF-8"
@@ -98,10 +100,11 @@ describe ResponseFieldView do
 
   context "Deprecated ResponseFieldView" do
     let(:deprecated_tag) do
-      instance_double(YARD::Tags::Tag,
-                      tag_name: "deprecated_response_field",
-                      text: "foo NOTICE 2018-01-02 EFFECTIVE 2018-04-30\nA description \non multiple lines.",
-                      types: ["String"])
+      double(
+        tag_name: "deprecated_response_field",
+        text: "foo NOTICE 2018-01-02 EFFECTIVE 2018-04-30\nA description \non multiple lines.",
+        types: ["String"]
+      )
     end
 
     let(:deprecated_view) { ResponseFieldView.new(deprecated_tag) }
@@ -149,90 +152,99 @@ describe ResponseFieldView do
 
       context "validations" do
         it 'is invalid when the text "NOTICE" is omitted' do
-          tag = instance_double(YARD::Tags::Tag,
-                                tag_name: "deprecated_response_field",
-                                text: deprecated_tag.text.gsub("NOTICE ", ""),
-                                types: ["String"])
+          tag = double(
+            tag_name: "deprecated_response_field",
+            text: deprecated_tag.text.gsub("NOTICE ", ""),
+            types: ["String"]
+          )
           expect do
             ResponseFieldView.new(tag)
           end.to raise_error(ArgumentError, /Expected argument `NOTICE`/)
         end
 
         it "is invalid when the NOTICE date is omitted" do
-          tag = instance_double(YARD::Tags::Tag,
-                                tag_name: "deprecated_response_field",
-                                text: deprecated_tag.text.gsub("2018-01-02 ", ""),
-                                types: ["String"])
+          tag = double(
+            tag_name: "deprecated_response_field",
+            text: deprecated_tag.text.gsub("2018-01-02 ", ""),
+            types: ["String"]
+          )
           expect do
             ResponseFieldView.new(tag)
           end.to raise_error(ArgumentError, /Expected date .+ for key `NOTICE` to be in ISO 8601 format/)
         end
 
         it 'is invalid when the text "NOTICE" and the NOTICE date are omitted' do
-          tag = instance_double(YARD::Tags::Tag,
-                                tag_name: "deprecated_response_field",
-                                text: deprecated_tag.text.gsub("NOTICE 2018-01-02 ", ""),
-                                types: ["String"])
+          tag = double(
+            tag_name: "deprecated_response_field",
+            text: deprecated_tag.text.gsub("NOTICE 2018-01-02 ", ""),
+            types: ["String"]
+          )
           expect do
             ResponseFieldView.new(tag)
           end.to raise_error(ArgumentError, /Expected argument `NOTICE`/)
         end
 
         it "is invalid when the NOTICE date is not in YYYY-MM-DD format" do
-          tag = instance_double(YARD::Tags::Tag,
-                                tag_name: "deprecated_response_field",
-                                text: deprecated_tag.text.gsub("2018-01-02", "01-02-2018"),
-                                types: ["String"])
+          tag = double(
+            tag_name: "deprecated_response_field",
+            text: deprecated_tag.text.gsub("2018-01-02", "01-02-2018"),
+            types: ["String"]
+          )
           expect do
             ResponseFieldView.new(tag)
           end.to raise_error(ArgumentError, /Expected date `01-02-2018` for key `NOTICE` to be in ISO 8601 format/)
         end
 
         it 'is invalid when the text "EFFECTIVE" is omitted' do
-          tag = instance_double(YARD::Tags::Tag,
-                                tag_name: "deprecated_response_field",
-                                text: deprecated_tag.text.gsub("EFFECTIVE ", ""),
-                                types: ["String"])
+          tag = double(
+            tag_name: "deprecated_response_field",
+            text: deprecated_tag.text.gsub("EFFECTIVE ", ""),
+            types: ["String"]
+          )
           expect do
             ResponseFieldView.new(tag)
           end.to raise_error(ArgumentError, /Expected argument `EFFECTIVE`/)
         end
 
         it "is invalid when the EFFECTIVE date is omitted" do
-          tag = instance_double(YARD::Tags::Tag,
-                                tag_name: "deprecated_response_field",
-                                text: deprecated_tag.text.gsub("2018-04-30", ""),
-                                types: ["String"])
+          tag = double(
+            tag_name: "deprecated_response_field",
+            text: deprecated_tag.text.gsub("2018-04-30", ""),
+            types: ["String"]
+          )
           expect do
             ResponseFieldView.new(tag)
           end.to raise_error(ArgumentError, /Expected a value to be present for argument `EFFECTIVE`, but it was blank./)
         end
 
         it 'is invalid when the text "EFFECTIVE" and the EFFECTIVE date are omitted' do
-          tag = instance_double(YARD::Tags::Tag,
-                                tag_name: "deprecated_response_field",
-                                text: deprecated_tag.text.gsub(" EFFECTIVE 2018-04-30", ""),
-                                types: ["String"])
+          tag = double(
+            tag_name: "deprecated_response_field",
+            text: deprecated_tag.text.gsub(" EFFECTIVE 2018-04-30", ""),
+            types: ["String"]
+          )
           expect do
             ResponseFieldView.new(tag)
           end.to raise_error(ArgumentError, /Expected argument `EFFECTIVE`/)
         end
 
         it "is invalid when the EFFECTIVE date is not in YYYY-MM-DD format" do
-          tag = instance_double(YARD::Tags::Tag,
-                                tag_name: "deprecated_response_field",
-                                text: deprecated_tag.text.gsub("2018-04-30", "04-30-2018"),
-                                types: ["String"])
+          tag = double(
+            tag_name: "deprecated_response_field",
+            text: deprecated_tag.text.gsub("2018-04-30", "04-30-2018"),
+            types: ["String"]
+          )
           expect do
             ResponseFieldView.new(tag)
           end.to raise_error(ArgumentError, /Expected date `04-30-2018` for key `EFFECTIVE` to be in ISO 8601 format/)
         end
 
         it "is invalid when the EFFECTIVE date is < 90 days after the NOTICE date" do
-          tag = instance_double(YARD::Tags::Tag,
-                                tag_name: "deprecated_response_field",
-                                text: deprecated_tag.text.gsub("2018-04-30", "2018-02-26"),
-                                types: ["String"])
+          tag = double(
+            tag_name: "deprecated_response_field",
+            text: deprecated_tag.text.gsub("2018-04-30", "2018-02-26"),
+            types: ["String"]
+          )
           expect do
             ResponseFieldView.new(tag)
           end.to raise_error(
@@ -242,10 +254,11 @@ describe ResponseFieldView do
         end
 
         it "is invalid when a description is not provided" do
-          tag = instance_double(YARD::Tags::Tag,
-                                tag_name: "deprecated_response_field",
-                                text: deprecated_tag.text.gsub("\nA description \non multiple lines.", ""),
-                                types: ["String"])
+          tag = double(
+            tag_name: "deprecated_response_field",
+            text: deprecated_tag.text.gsub("\nA description \non multiple lines.", ""),
+            types: ["String"]
+          )
           expect do
             ResponseFieldView.new(tag)
           end.to raise_error(
@@ -255,10 +268,11 @@ describe ResponseFieldView do
         end
 
         it "is invalid when the description is on the same line as the other content" do
-          tag = instance_double(YARD::Tags::Tag,
-                                tag_name: "deprecated_response_field",
-                                text: deprecated_tag.text.gsub("\nA description \non multiple lines.", " A description."),
-                                types: ["String"])
+          tag = double(
+            tag_name: "deprecated_response_field",
+            text: deprecated_tag.text.gsub("\nA description \non multiple lines.", " A description."),
+            types: ["String"]
+          )
           expect do
             ResponseFieldView.new(tag)
           end.to raise_error(

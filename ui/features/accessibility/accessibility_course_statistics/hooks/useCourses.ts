@@ -19,7 +19,9 @@
 import {useQuery} from '@tanstack/react-query'
 import {fetchCourses, FetchCoursesParams} from '../api/courses'
 
-export const useCourses = ({accountId, sort, order, page, search}: FetchCoursesParams) => {
+interface UseCoursesOptions extends FetchCoursesParams {}
+
+export const useCourses = ({accountId, sort, order, page, search}: UseCoursesOptions) => {
   return useQuery({
     queryKey: ['accessibility-courses', accountId, sort, order, page, search],
     queryFn: () => fetchCourses({accountId, sort, order, page, search}),

@@ -21,7 +21,7 @@ import {shape, string} from 'prop-types'
 
 export const Attachment = {
   fragment: gql`
-    fragment DiscussionPostAttachment on File {
+    fragment Attachment on File {
       id
       _id
       displayName

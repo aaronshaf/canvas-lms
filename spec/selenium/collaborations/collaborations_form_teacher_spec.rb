@@ -29,10 +29,10 @@ describe "collaborations" do
   include GoogleDriveCommon
 
   context "a teacher's" do
-    let(:title) { "Google Docs" }
-    let(:type) { "google_docs" }
+    title = "Google Docs"
+    type = "google_docs"
 
-    context "Google Docs collaboration" do
+    context "#{title} collaboration" do
       before do
         course_with_teacher_logged_in
         setup_google_drive

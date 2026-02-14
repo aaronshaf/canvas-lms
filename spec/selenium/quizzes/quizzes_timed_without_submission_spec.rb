@@ -38,7 +38,7 @@ describe "taking a timed quiz without auto-submit" do
       @quiz.disable_timer_autosubmission = true
       @quiz.save!
       get "/courses/#{@course.id}/quizzes/#{@quiz.id}/edit"
-      expect(f("#quiz_disable_timer_autosubmission")).not_to be_nil
+      expect(f("#quiz_disable_timer_autosubmission")).to be
     end
   end
 end

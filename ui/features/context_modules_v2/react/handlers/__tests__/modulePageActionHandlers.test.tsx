@@ -16,12 +16,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import {queryClient} from '@canvas/query'
-import {render} from '@canvas/react'
+import {createRoot} from 'react-dom/client'
 import {handleOpeningEditItemModal} from '../modulePageActionHandlers'
 import {MODULE_ITEMS} from '../../utils/constants'
 
-vi.mock('@canvas/react', () => ({
-  render: vi.fn(() => ({render: vi.fn(), unmount: vi.fn()})),
+vi.mock('react-dom/client', () => ({
+  createRoot: vi.fn(() => ({render: vi.fn()})),
 }))
 
 const courseId = '1'
@@ -43,8 +43,6 @@ const mockItemsDataPage3 = {
   ],
 }
 
-const mockRender = render as ReturnType<typeof vi.fn>
-
 describe('handleOpeningEditItemModal', () => {
   beforeEach(() => {
     queryClient.clear()
@@ -54,19 +52,21 @@ describe('handleOpeningEditItemModal', () => {
     queryClient.setQueryData([MODULE_ITEMS, moduleId, null], mockItemsDataPage1)
     queryClient.setQueryData([MODULE_ITEMS, moduleId, btoa('10')], mockItemsDataPage2)
     queryClient.setQueryData([MODULE_ITEMS, moduleId, btoa('20')], mockItemsDataPage3)
-    mockRender.mockClear()
+    ;(createRoot as any).mockClear()
   })
 
   afterEach(() => {
-    mockRender.mockClear()
+    ;(createRoot as any).mockClear()
   })
 
   it('opens the Edit modal for an item on page 1', () => {
     handleOpeningEditItemModal(courseId, moduleId, '3')
 
-    expect(mockRender).toHaveBeenCalledTimes(1)
+    expect(createRoot).toHaveBeenCalledTimes(1)
+    const root = (createRoot as any).mock.results[0].value
+    expect(root.render).toHaveBeenCalledTimes(1)
 
-    const renderArg = mockRender.mock.calls[0][0]
+    const renderArg = root.render.mock.calls[0][0]
     expect(renderArg.props.isOpen).toBe(true)
     expect(renderArg.props.itemId).toBe('3')
     expect(renderArg.props.itemName).toBe('Item P1')
@@ -76,9 +76,11 @@ describe('handleOpeningEditItemModal', () => {
   it('opens the Edit modal for an item on page 2 (multi-page cache search)', () => {
     handleOpeningEditItemModal(courseId, moduleId, '4')
 
-    expect(mockRender).toHaveBeenCalledTimes(1)
+    expect(createRoot).toHaveBeenCalledTimes(1)
+    const root = (createRoot as any).mock.results[0].value
+    expect(root.render).toHaveBeenCalledTimes(1)
 
-    const renderArg = mockRender.mock.calls[0][0]
+    const renderArg = root.render.mock.calls[0][0]
     expect(renderArg.props.isOpen).toBe(true)
     expect(renderArg.props.itemId).toBe('4')
     expect(renderArg.props.itemName).toBe('Item P2')
@@ -89,9 +91,11 @@ describe('handleOpeningEditItemModal', () => {
   it('opens the Edit modal for an item on page 3 (multi-page cache search)', () => {
     handleOpeningEditItemModal(courseId, moduleId, '5')
 
-    expect(mockRender).toHaveBeenCalledTimes(1)
+    expect(createRoot).toHaveBeenCalledTimes(1)
+    const root = (createRoot as any).mock.results[0].value
+    expect(root.render).toHaveBeenCalledTimes(1)
 
-    const renderArg = mockRender.mock.calls[0][0]
+    const renderArg = root.render.mock.calls[0][0]
     expect(renderArg.props.isOpen).toBe(true)
     expect(renderArg.props.itemId).toBe('5')
     expect(renderArg.props.itemName).toBe('Last Item P3')
@@ -101,7 +105,7 @@ describe('handleOpeningEditItemModal', () => {
   it('does nothing when the item is not found in any cached page', () => {
     handleOpeningEditItemModal(courseId, moduleId, 'does-not-exist')
 
-    expect(mockRender).not.toHaveBeenCalled()
+    expect(createRoot).not.toHaveBeenCalled()
   })
 
   it('does nothing when there is no cache for the module', () => {
@@ -109,6 +113,6 @@ describe('handleOpeningEditItemModal', () => {
 
     handleOpeningEditItemModal(courseId, moduleId, '3')
 
-    expect(mockRender).not.toHaveBeenCalled()
+    expect(createRoot).not.toHaveBeenCalled()
   })
 })

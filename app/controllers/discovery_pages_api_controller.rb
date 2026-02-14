@@ -34,10 +34,6 @@
 #           "description": "Secondary authentication provider buttons displayed less prominently",
 #           "type": "array",
 #           "items": { "$ref": "DiscoveryPageEntry" }
-#         },
-#         "active": {
-#           "description": "Whether the discovery page is enabled",
-#           "type": "boolean"
 #         }
 #       }
 #     }
@@ -92,8 +88,7 @@ class DiscoveryPagesApiController < ApplicationController
   #           "authentication_provider_id": 3,
   #           "label": "Admins"
   #         }
-  #       ],
-  #       "active": true
+  #       ]
   #     }
   #   }
   def show
@@ -102,8 +97,6 @@ class DiscoveryPagesApiController < ApplicationController
 
   # @API Update Discovery Page
   # Update or create the discovery page configuration for the domain root account.
-  # This is a full replacement - provide the complete configuration including
-  # primary, secondary, and active fields. Any fields omitted will be removed.
   #
   # @argument discovery_page[primary][][authentication_provider_id] [Required, Integer]
   #   The ID of an active authentication provider for this account.
@@ -122,9 +115,6 @@ class DiscoveryPagesApiController < ApplicationController
   #
   # @argument discovery_page[secondary][][icon_url] [String]
   #   URL to an icon image for this authentication provider button.
-  #
-  # @argument discovery_page[active] [Boolean]
-  #   Whether the discovery page is enabled. Defaults to false if not provided.
   #
   # @returns DiscoveryPage
   #
@@ -151,8 +141,7 @@ class DiscoveryPagesApiController < ApplicationController
   #             "authentication_provider_id": 3,
   #             "label": "Admins"
   #           }
-  #         ],
-  #         "active": true
+  #         ]
   #       }
   #     }'
   #
@@ -176,8 +165,7 @@ class DiscoveryPagesApiController < ApplicationController
   #           "authentication_provider_id": 3,
   #           "label": "Admins"
   #         }
-  #       ],
-  #       "active": true
+  #       ]
   #     }
   #   }
   def upsert
@@ -190,11 +178,7 @@ class DiscoveryPagesApiController < ApplicationController
   private
 
   def discovery_page
-    page = context.settings[:discovery_page].presence || {}
-    page[:primary] ||= []
-    page[:secondary] ||= []
-    page[:active] = context.discovery_page_active?
-    page
+    context.settings[:discovery_page].presence || {}
   end
 
   def context
@@ -211,15 +195,8 @@ class DiscoveryPagesApiController < ApplicationController
                      Validators::AccountSettingsValidator::DISCOVERY_PAGE_OPTIONAL_KEYS
 
     params.expect(
-      discovery_page: [
-        { primary: [permitted_keys] },
-        { secondary: [permitted_keys] },
-        :active
-      ]
-    ).to_h.deep_symbolize_keys.tap do |expected_params|
-      expected_params[:primary] ||= []
-      expected_params[:secondary] ||= []
-      expected_params[:active] = Canvas::Plugin.value_to_boolean(expected_params[:active])
-    end
+      discovery_page: [primary: [permitted_keys],
+                       secondary: [permitted_keys]]
+    ).to_h.deep_symbolize_keys
   end
 end

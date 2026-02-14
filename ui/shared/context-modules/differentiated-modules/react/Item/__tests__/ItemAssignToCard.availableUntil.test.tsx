@@ -17,8 +17,7 @@
  */
 
 import React from 'react'
-import {cleanup, render, waitFor} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import {render, fireEvent, waitFor} from '@testing-library/react'
 import ItemAssignToCard, {type ItemAssignToCardProps} from '../ItemAssignToCard'
 import {SECTIONS_DATA, STUDENTS_DATA} from '../../__tests__/mocks'
 import {http, HttpResponse} from 'msw'
@@ -89,8 +88,6 @@ describe('ItemAssignToCard - Available Until Defaults', () => {
   afterEach(() => {
     server.resetHandlers()
     fakeEnv.teardown()
-    vi.clearAllMocks()
-    cleanup()
   })
 
   it('defaults to 11:59 PM for available until dates if it is null on blur', async () => {
@@ -99,9 +96,11 @@ describe('ItemAssignToCard - Available Until Defaults', () => {
       onCardDatesChange: onCardDatesChangeMock,
     })
     const dateInput = getByLabelText('Until')
+    // Clear mock calls from initial render
     onCardDatesChangeMock.mockClear()
-    await userEvent.type(dateInput, 'Nov 9, 2020')
-    await userEvent.tab()
+    fireEvent.change(dateInput, {target: {value: 'Nov 9, 2020'}})
+    // userEvent causes Event Pooling issues, so I used fireEvent instead
+    fireEvent.blur(dateInput, {target: {value: 'Nov 9, 2020'}})
     await waitFor(() => {
       expect(onCardDatesChangeMock).toHaveBeenCalledWith(
         expect.any(String),
@@ -109,7 +108,7 @@ describe('ItemAssignToCard - Available Until Defaults', () => {
         '2020-11-09T23:59:59.000Z',
       )
       expect(getAllByLabelText('Time')[2]).toHaveValue('11:59 PM')
-    }, {timeout: 30000})
+    })
   })
 
   it('defaults to 11:59 PM for available until dates if it is undefined', async () => {
@@ -120,8 +119,8 @@ describe('ItemAssignToCard - Available Until Defaults', () => {
     })
     const dateInput = getByLabelText('Until')
     onCardDatesChangeMock.mockClear()
-    await userEvent.type(dateInput, 'Nov 10, 2020')
-    await userEvent.tab()
+    fireEvent.change(dateInput, {target: {value: 'Nov 10, 2020'}})
+    fireEvent.blur(dateInput, {target: {value: 'Nov 10, 2020'}})
     await waitFor(() => {
       expect(onCardDatesChangeMock).toHaveBeenCalledWith(
         expect.any(String),
@@ -129,6 +128,6 @@ describe('ItemAssignToCard - Available Until Defaults', () => {
         '2020-11-10T23:59:59.000Z',
       )
       expect(getAllByLabelText('Time')[2]).toHaveValue('11:59 PM')
-    }, {timeout: 30000})
+    })
   })
 })

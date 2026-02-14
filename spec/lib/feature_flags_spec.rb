@@ -98,8 +98,8 @@ describe FeatureFlags do
     end
 
     it "returns nil if the visible_on returns false" do
-      feature = instance_double(
-        Feature,
+      feature = double(
+        "Feature double",
         feature: "some_feature",
         visible_on: ->(_) { false },
         state: "allowed",

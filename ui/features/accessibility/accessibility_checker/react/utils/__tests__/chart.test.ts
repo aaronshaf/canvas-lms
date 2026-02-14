@@ -19,6 +19,7 @@
 import {mockIssuesSummary1} from '../../../../shared/react/stores/mockData'
 import {IssueDataPoint} from '../../../../shared/react/types'
 import {
+  getChartData,
   getChartOptions,
   getGroupedFilterForRuleType,
   getSeverityCounts,

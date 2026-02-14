@@ -84,12 +84,6 @@ module Accessibility
       end
 
       def self.target_attribute(resource)
-        # Check if resource implements the new AccessibilityCheckable interface
-        if resource.respond_to?(:scannable_content_column)
-          return resource.scannable_content_column
-        end
-
-        # Legacy fallback for non-migrated resources
         case resource
         when WikiPage
           :body
@@ -97,8 +91,6 @@ module Accessibility
           :description
         when DiscussionTopic, Announcement
           :message
-        when Course
-          :syllabus_body
         else
           raise ArgumentError, "Unsupported resource type: #{resource.class.name}"
         end

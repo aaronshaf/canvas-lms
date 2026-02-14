@@ -99,8 +99,7 @@ describe('ItemAssignToTray - Save Operations', () => {
     server.close()
   })
 
-  // Fickle: times out at 15s in CI despite 30s timeout — vitest config may override per-test timeout
-  it.skip('creates new assignment overrides', async () => {
+  it('creates new assignment overrides', async () => {
     const {findByTestId, findByText, getByRole, findAllByText} = renderComponent()
     const assigneeSelector = await findByTestId('assignee_selector')
     act(() => assigneeSelector.click())
@@ -129,7 +128,7 @@ describe('ItemAssignToTray - Save Operations', () => {
       ],
     })
     expect(lastPutBody).toEqual(expectedPayload)
-  }, 30000)
+  })
 
   it('calls onDismiss after saving', async () => {
     const onDismissMock = vi.fn()
@@ -146,7 +145,7 @@ describe('ItemAssignToTray - Save Operations', () => {
     await waitFor(() => {
       expect(onDismissMock).toHaveBeenCalled()
     })
-  }, 30000)
+  })
 
   it('Save does not persist changes when a card is invalid', async () => {
     const onDismissMock = vi.fn()
@@ -163,7 +162,7 @@ describe('ItemAssignToTray - Save Operations', () => {
     expect(getByText('Please fix errors before continuing')).toBeInTheDocument()
     expect(lastGetMethod).toBe('GET')
     expect(onDismissMock).not.toHaveBeenCalled()
-  }, 30000)
+  })
 
   // TODO: flaky in Vitest - reloadWindow mock not called within waitFor timeout
   it.skip('reloads the page after saving', async () => {
@@ -198,7 +197,7 @@ describe('ItemAssignToTray - Save Operations', () => {
     })
     expect(reloadWindow).not.toHaveBeenCalled()
     unmount()
-  }, 30000)
+  })
 
   it('does not show cards for ADHOC override with no students', async () => {
     server.use(
@@ -209,7 +208,7 @@ describe('ItemAssignToTray - Save Operations', () => {
     const {findAllByTestId} = renderComponent()
     const cards = await findAllByTestId('item-assign-to-card')
     expect(cards).toHaveLength(1)
-  }, 30000)
+  })
 
   it('does not include ADHOC overrides without students when saving', async () => {
     server.use(
@@ -235,7 +234,7 @@ describe('ItemAssignToTray - Save Operations', () => {
     const requestBody = JSON.parse(lastPutBody!)
     // filters out invalid overrides
     expect(requestBody.assignment_overrides).toHaveLength(2)
-  }, 30000)
+  })
 
   it('disables Save button if no changes have been made', async () => {
     // There are some callbacks that update the cards, they are passed by the tray wrappers
@@ -252,7 +251,7 @@ describe('ItemAssignToTray - Save Operations', () => {
     await waitFor(() => {
       expect(onSave).toHaveBeenCalled()
     })
-  }, 30000)
+  })
 
   describe('required due dates', () => {
     beforeEach(() => {
@@ -286,6 +285,6 @@ describe('ItemAssignToTray - Save Operations', () => {
       expect(getByText('Please fix errors before continuing')).toBeInTheDocument()
       // tray stays open
       expect(getByText('Assignment | 10 pts')).toBeInTheDocument()
-    }, 30000)
+    })
   })
 })

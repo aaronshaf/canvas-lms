@@ -32,13 +32,11 @@ import {TraditionalViewCriterionRow} from './TraditionalViewCriterionRow'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {Flex} from '@instructure/ui-flex'
 import AiUsageButton from '../components/AiUsageButton'
-import {ProficiencyRating} from '@canvas/graphql/codegen/graphql'
 
 const I18n = createI18nScope('rubrics-assessment-tray')
 
 export type TraditionalViewProps = {
   criteria: RubricCriterion[]
-  customRatings?: ProficiencyRating[]
   hidePoints: boolean
   isFreeFormCriterionComments: boolean
   isPeerReview?: boolean
@@ -56,7 +54,6 @@ export type TraditionalViewProps = {
 
 export const TraditionalView = ({
   criteria,
-  customRatings,
   hidePoints,
   isFreeFormCriterionComments,
   isPeerReview,
@@ -175,7 +172,6 @@ export const TraditionalView = ({
                 criterion={criterion}
                 criterionAssessment={criterionAssessment}
                 criterionSelfAssessment={criterionSelfAssessment}
-                customRatings={customRatings}
                 hidePoints={hidePoints}
                 isFreeFormCriterionComments={isFreeFormCriterionComments}
                 isLastIndex={isLastIndex}

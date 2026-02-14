@@ -64,32 +64,32 @@ export const Discussion = {
       sortOrderLocked
       expandedLocked
       editor {
-        ...DiscussionPostUser
+        ...User
       }
       author {
-        ...DiscussionPostUser
+        ...User
       }
       entryCounts {
         unreadCount
         repliesCount
       }
       attachment {
-        ...DiscussionPostAttachment
+        ...Attachment
       }
       assignment {
-        ...DiscussionPostAssignment
+        ...Assignment
       }
       permissions {
         ...DiscussionPermissions
       }
       courseSections {
-        ...DiscussionPostSection
+        ...Section
       }
       childTopics {
         ...ChildTopic
       }
       groupSet {
-        ...DiscussionPostGroupSet
+        ...GroupSet
       }
       rootTopic {
         ...RootTopic

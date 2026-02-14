@@ -88,7 +88,7 @@ describe Notifier do
       notification = Notification.create!(name: "New Context Group Membership", category: "Registration")
       to_list = [group_user]
       dispatch = :test_dispatch
-      message = instance_double(Message)
+      message = double("message")
 
       expect(DelayedNotification).to receive(:delay_if_production)
         .with(priority: 30)

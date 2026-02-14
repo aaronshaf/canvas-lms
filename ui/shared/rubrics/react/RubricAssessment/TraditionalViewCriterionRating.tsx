@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {FC, useMemo} from 'react'
+import {FC} from 'react'
 import {colors} from '@instructure/canvas-theme'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
@@ -24,13 +24,10 @@ import {Text} from '@instructure/ui-text'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {possibleString, possibleStringRange} from '../Points'
 import type {RubricCriterion, RubricRating} from '../types/rubric'
-import {escapeNewLineText, getCustomRatingColor, rubricSelectedAriaLabel} from './utils/rubricUtils'
-import {ProficiencyRating} from '@canvas/graphql/codegen/graphql'
+import {escapeNewLineText, rubricSelectedAriaLabel} from './utils/rubricUtils'
 
 type TraditionalViewCriterionRatingProps = {
   criterionId: RubricCriterion['id']
-  criterionPointsPossible: number
-  customRatings?: ProficiencyRating[]
   hidePoints: boolean
   index: number
   isHovered: boolean
@@ -48,8 +45,6 @@ type TraditionalViewCriterionRatingProps = {
 
 export const TraditionalViewCriterionRating: FC<TraditionalViewCriterionRatingProps> = ({
   criterionId,
-  criterionPointsPossible,
-  customRatings,
   hidePoints,
   index,
   isHovered,
@@ -64,15 +59,6 @@ export const TraditionalViewCriterionRating: FC<TraditionalViewCriterionRatingPr
   onClickRating,
   setHoveredRatingIndex,
 }) => {
-  const brandColor = useMemo(() => {
-    if (customRatings?.length) {
-      const color = getCustomRatingColor(rating.points, criterionPointsPossible, customRatings)
-      return color || colors.contrasts.green4570
-    }
-
-    return colors.contrasts.green4570
-  }, [customRatings, rating.points, criterionPointsPossible])
-
   const borderColor = isHovered || isSelected ? 'brand' : 'primary'
   const primaryBorderColor = `${colors.contrasts.grey1214} ${
     isLastRating ? colors.contrasts.grey1214 : colors.primitives.grey14
@@ -92,7 +78,7 @@ export const TraditionalViewCriterionRating: FC<TraditionalViewCriterionRatingPr
         margin="0"
         minWidth={ratingCellMinWidth}
         themeOverride={{
-          borderColorBrand: brandColor,
+          borderColorBrand: colors.contrasts.green4570,
           borderColorPrimary: primaryBorderColor,
         }}
         elementRef={elementRef}
@@ -117,7 +103,7 @@ export const TraditionalViewCriterionRating: FC<TraditionalViewCriterionRatingPr
           onClick={() => onClickRating(rating.id)}
           themeOverride={{
             borderWidthSmall: '0.125rem',
-            borderColorBrand: brandColor,
+            borderColorBrand: colors.contrasts.green4570,
             borderColorPrimary: 'transparent',
           }}
           data-testid={`traditional-criterion-${criterionId}-ratings-${index}`}
@@ -183,7 +169,7 @@ export const TraditionalViewCriterionRating: FC<TraditionalViewCriterionRatingPr
                       left: '50%',
                       borderLeft: '12px solid transparent',
                       borderRight: '12px solid transparent',
-                      borderBottom: `12px solid ${brandColor}`,
+                      borderBottom: `12px solid ${colors.contrasts.green4570}`,
                       transform: 'translateX(-50%)',
                     }}
                   />

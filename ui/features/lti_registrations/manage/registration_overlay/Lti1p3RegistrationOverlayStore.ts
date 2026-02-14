@@ -16,17 +16,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {
-  LtiDeepLinkingRequest,
-  LtiResourceLinkRequest,
-  type LtiMessageType,
-} from '../model/LtiMessageType'
+import type {LtiMessageType} from '../model/LtiMessageType'
 import {
   type LtiPlacement,
   type LtiPlacementWithIcon,
   LtiPlacements,
   isLtiPlacementWithIcon,
-  supportsDeepLinkingRequest,
 } from '../model/LtiPlacement'
 import type {LtiPrivacyLevel} from '../model/LtiPrivacyLevel'
 import {type LtiScope, LtiScopes} from '@canvas/lti/model/LtiScope'
@@ -242,20 +237,12 @@ export const createLti1p3RegistrationOverlayStore = (
       set(
         updateState(state => {
           let updatedPlacements = state.placements.placements
-          const isAdding = !updatedPlacements?.includes(placement)
 
-          if (isAdding) {
-            updatedPlacements = [...(updatedPlacements ?? []), placement]
-          } else {
+          if (updatedPlacements?.includes(placement)) {
             updatedPlacements = updatedPlacements.filter(p => p !== placement)
+          } else {
+            updatedPlacements = [...(updatedPlacements ?? []), placement]
           }
-
-          const needsDefaultMessageType =
-            isAdding && !state.override_uris.placements[placement]?.message_type
-
-          const defaultMessageType = supportsDeepLinkingRequest(placement)
-            ? LtiDeepLinkingRequest
-            : LtiResourceLinkRequest
 
           return {
             ...state,
@@ -263,18 +250,6 @@ export const createLti1p3RegistrationOverlayStore = (
               ...state.placements,
               placements: updatedPlacements,
             },
-            ...(needsDefaultMessageType && {
-              override_uris: {
-                ...state.override_uris,
-                placements: {
-                  ...state.override_uris.placements,
-                  [placement]: {
-                    ...state.override_uris.placements[placement],
-                    message_type: defaultMessageType,
-                  },
-                },
-              },
-            }),
           }
         }),
       )

@@ -27,10 +27,6 @@ describe('DiscussionTopicForm Announcements Scheduled', () => {
     setupDefaultEnv()
   })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
   it(
     'shows info alert when creating a scheduled announcement in an unpublished course',
     async () => {
@@ -49,6 +45,6 @@ describe('DiscussionTopicForm Announcements Scheduled', () => {
         'Notifications will only be sent to students who have been enrolled. Please allow time for this process to finish after publishing your course before scheduling this announcement.',
       )
     },
-    30000,
+    {timeout: 10000},
   )
 })

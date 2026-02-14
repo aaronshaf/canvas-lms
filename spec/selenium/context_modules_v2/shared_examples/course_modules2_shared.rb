@@ -170,7 +170,7 @@ shared_examples_for "course_module2 add module tray" do |context|
   include Modules2IndexPage
   include Modules2ActionTray
 
-  let(:new_module_name) { "First Week 1" }
+  new_module_name = "First Week 1"
 
   before do
     case context

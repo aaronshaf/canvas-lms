@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {useState} from 'react'
+import React, {useState} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import type {SaveRubricResponse} from '@canvas/rubrics/react/RubricForm/queries/RubricFormQueries'
 import {View} from '@instructure/ui-view'
@@ -58,10 +58,7 @@ export type RubricAssignmentContainerProps = {
   currentUserId: string
   rubricSelfAssessmentFFEnabled: boolean
   aiRubricsEnabled: boolean
-  onRubricChange?: (
-    rubric: AssignmentRubric | undefined,
-    rubricAssociation: RubricAssociation | undefined,
-  ) => void
+  onRubricChange?: (rubric: Rubric | undefined) => void
   containerStyles?: Partial<ViewProps>
 }
 export const RubricAssignmentContainer = ({
@@ -104,7 +101,7 @@ export const RubricAssignmentContainer = ({
       savedRubricResponse.rubricAssociation?.useForGrading,
       updatePointsPossible,
     )
-    onRubricChange?.(savedRubricResponse.rubric, savedRubricResponse.rubricAssociation)
+    onRubricChange?.(savedRubricResponse.rubric)
   }
 
   const handleRemoveRubric = async () => {
@@ -113,7 +110,7 @@ export const RubricAssignmentContainer = ({
       setRubric(undefined)
       setRubricAssociation(undefined)
       setIsDeleteConfirmModalOpen(false)
-      onRubricChange?.(undefined, undefined)
+      onRubricChange?.(undefined)
     }
   }
 
@@ -128,7 +125,7 @@ export const RubricAssignmentContainer = ({
       setRubric(response.rubric)
       setRubricAssociation(response.rubricAssociation)
       setIsSearchTrayOpen(false)
-      onRubricChange?.(response.rubric, response.rubricAssociation)
+      onRubricChange?.(response.rubric)
       showFlashSuccess(I18n.t('Rubric added to assignment'))()
     } catch (_error) {
       showFlashError(I18n.t('Failed to add rubric to assignment'))()
@@ -182,13 +179,6 @@ export const RubricAssignmentContainer = ({
     margin: 'medium 0',
   }
 
-  // If the user doesn't have manage rubric permissions and there is no rubric,
-  // don't show the container at all
-  // TODO: Do deeper permission checks on rubric/association level on EVAL-6460
-  if (!rubric && !canManageRubrics) {
-    return null
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <View as="div" display="inline-block" {...containerStyles}>
@@ -219,46 +209,44 @@ export const RubricAssignmentContainer = ({
                   {I18n.t('Preview Rubric')}
                 </Button>
 
-                {/* TODO: Do deeper permission checks on rubric/association level on EVAL-6460 */}
                 {canManageRubrics && (
-                  <>
-                    <Tooltip renderTip={I18n.t('Edit Rubric')}>
-                      <IconButton
-                        margin="0 0 0 small"
-                        screenReaderLabel={I18n.t('Edit Rubric')}
-                        data-testid="edit-assignment-rubric-button"
-                        onClick={handleEditClick}
-                      >
-                        <IconEditLine />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip renderTip={deleteTooltipText}>
-                      <IconButton
-                        margin="0 0 0 small"
-                        data-testid="remove-assignment-rubric-button"
-                        screenReaderLabel={deleteTooltipText}
-                        onClick={() => setIsDeleteConfirmModalOpen(true)}
-                      >
-                        <IconTrashLine />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip renderTip={I18n.t('Replace Rubric')}>
-                      <IconButton
-                        margin="0 0 0 small"
-                        screenReaderLabel={I18n.t('Replace Rubric')}
-                        data-testid="find-assignment-rubric-icon-button"
-                        onClick={() => setIsSearchTrayOpen(true)}
-                      >
-                        <IconSearchLine />
-                      </IconButton>
-                    </Tooltip>
-                  </>
+                  <Tooltip renderTip={I18n.t('Edit Rubric')}>
+                    <IconButton
+                      margin="0 0 0 small"
+                      screenReaderLabel={I18n.t('Edit Rubric')}
+                      data-testid="edit-assignment-rubric-button"
+                      onClick={handleEditClick}
+                    >
+                      <IconEditLine />
+                    </IconButton>
+                  </Tooltip>
                 )}
+
+                <Tooltip renderTip={deleteTooltipText}>
+                  <IconButton
+                    margin="0 0 0 small"
+                    data-testid="remove-assignment-rubric-button"
+                    screenReaderLabel={deleteTooltipText}
+                    onClick={() => setIsDeleteConfirmModalOpen(true)}
+                  >
+                    <IconTrashLine />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip renderTip={I18n.t('Replace Rubric')}>
+                  <IconButton
+                    margin="0 0 0 small"
+                    screenReaderLabel={I18n.t('Replace Rubric')}
+                    data-testid="find-assignment-rubric-icon-button"
+                    onClick={() => setIsSearchTrayOpen(true)}
+                  >
+                    <IconSearchLine />
+                  </IconButton>
+                </Tooltip>
               </Flex.Item>
             </Flex>
             <View>
-              {/* TODO: Do deeper permission checks on rubric/association level on EVAL-6460 */}
-              {rubricSelfAssessmentFFEnabled && canManageRubrics && (
+              {rubricSelfAssessmentFFEnabled && (
                 <>
                   <View as="hr" />
                   <RubricSelfAssessmentSettings assignmentId={assignmentId} rubricId={rubric.id} />
@@ -268,17 +256,21 @@ export const RubricAssignmentContainer = ({
           </>
         ) : (
           <View>
-            <Button
-              margin="0"
-              renderIcon={<IconAddLine />}
-              data-testid="create-assignment-rubric-button"
-              onClick={() => {
-                setCriteriaViaLlm(false)
-                setRubricCreateModalOpen(true)
-              }}
-            >
-              {I18n.t('Create Rubric')}
-            </Button>
+            {canManageRubrics && (
+              <>
+                <Button
+                  margin="0"
+                  renderIcon={<IconAddLine />}
+                  data-testid="create-assignment-rubric-button"
+                  onClick={() => {
+                    setCriteriaViaLlm(false)
+                    setRubricCreateModalOpen(true)
+                  }}
+                >
+                  {I18n.t('Create Rubric')}
+                </Button>
+              </>
+            )}
             <Button
               margin="0 0 0 small"
               data-testid="find-assignment-rubric-button"

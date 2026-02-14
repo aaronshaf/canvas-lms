@@ -39,7 +39,6 @@ export interface OutcomeHeaderProps extends DragDropConnectorProps {
   contributingScoresForOutcome: ContributingScoresForOutcome
   outcomeDistribution?: OutcomeDistribution
   distributionStudents?: Student[]
-  courseId: string
 }
 
 export const OutcomeHeader: React.FC<OutcomeHeaderProps> = ({
@@ -48,7 +47,6 @@ export const OutcomeHeader: React.FC<OutcomeHeaderProps> = ({
   contributingScoresForOutcome,
   outcomeDistribution,
   distributionStudents,
-  courseId,
 }) => {
   // OD => OutcomeDescription
   const [isODModalOpen, openODModal, closeODModal] = useModal() as [boolean, () => void, () => void]
@@ -124,7 +122,6 @@ export const OutcomeHeader: React.FC<OutcomeHeaderProps> = ({
           outcome={outcome}
           outcomeDistribution={outcomeDistribution}
           distributionStudents={distributionStudents}
-          courseId={courseId}
           isOpen={isODPOpen}
           onCloseHandler={closeODP}
           renderTrigger={<span />}

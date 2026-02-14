@@ -26,8 +26,7 @@ module Accessibility
 
     def initialize(issue_id:)
       @issue = AccessibilityIssue.find(issue_id)
-      # Use the resource from ResourceResolvable concern (handles syllabus)
-      @resource = @issue.resource
+      @resource = @issue.context
       @rule_id = @issue.rule_type
       @path = @issue.node_path
     end
@@ -60,22 +59,15 @@ module Accessibility
     private
 
     def resource_html_content
-      # Check if resource implements the new AccessibilityCheckable interface
-      if @resource.respond_to?(:scannable_content)
-        # New path for resources using AccessibilityCheckable (e.g., SyllabusResource)
-        @resource.scannable_content
+      case @resource
+      when Assignment
+        @resource.description
+      when WikiPage
+        @resource.body
+      when DiscussionTopic, Announcement
+        @resource.message
       else
-        # Legacy path for non-migrated resources
-        case @resource
-        when Assignment
-          @resource.description
-        when WikiPage
-          @resource.body
-        when DiscussionTopic, Announcement
-          @resource.message
-        else
-          raise UnsupportedResourceTypeError, "Unsupported resource type: #{@resource.class.name}"
-        end
+        raise UnsupportedResourceTypeError, "Unsupported resource type: #{@resource.class.name}"
       end
     end
 

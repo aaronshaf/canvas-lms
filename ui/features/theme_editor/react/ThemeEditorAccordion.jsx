@@ -25,7 +25,6 @@ import ThemeEditorImageRow from './ThemeEditorImageRow'
 import ThemeEditorVariableGroup from './ThemeEditorVariableGroup'
 import RangeInput from './RangeInput'
 import customTypes from '@canvas/theme-editor/react/PropTypes'
-import ThemeEditorTextareaRow from './ThemeEditorTextareaRow'
 
 const activeIndexKey = 'Theme__editor-accordion-index'
 
@@ -95,8 +94,6 @@ export default class ThemeEditorAccordion extends React.Component {
           />
         )
       }
-      case 'textarea':
-        return <ThemeEditorTextareaRow key={key} {...props} />
       default:
         return null
     }

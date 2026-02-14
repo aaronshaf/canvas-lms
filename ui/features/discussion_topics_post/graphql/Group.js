@@ -21,7 +21,7 @@ import {number, shape, string} from 'prop-types'
 
 export const Group = {
   fragment: gql`
-    fragment DiscussionPostGroup on Group {
+    fragment Group on Group {
       id
       _id
       name

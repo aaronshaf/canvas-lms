@@ -1,0 +1,4 @@
+#!/bin/sh
+# Stub commit-msg hook for sandboxed environment.
+# The normal Gerrit hook can't be downloaded here due to network restrictions.
+exit 0

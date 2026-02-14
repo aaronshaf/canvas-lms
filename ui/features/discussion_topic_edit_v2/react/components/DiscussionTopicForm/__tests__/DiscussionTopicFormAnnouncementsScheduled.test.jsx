@@ -27,10 +27,6 @@ describe('DiscussionTopicForm Announcements Scheduled', () => {
     setupDefaultEnv()
   })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
   // InstUI DateTimeInput's initialTimeForNewDate prop only applies when using the
   // calendar picker to select a date, not when typing directly into the input field.
   // This test would need to use the calendar picker UI to verify this behavior.
@@ -79,7 +75,7 @@ describe('DiscussionTopicForm Announcements Scheduled', () => {
         expect(timeInput.value).toBe('12:00 AM')
       })
     },
-    30000,
+    {timeout: 10000},
   )
 
   it(
@@ -98,6 +94,6 @@ describe('DiscussionTopicForm Announcements Scheduled', () => {
 
       expect(document.queryByTestId('schedule-info-alert')).toBeFalsy()
     },
-    30000,
+    {timeout: 10000},
   )
 })

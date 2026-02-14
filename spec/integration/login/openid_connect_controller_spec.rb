@@ -19,8 +19,10 @@
 #
 
 describe Login::OpenidConnectController do
-  let_once(:keypair) { OpenSSL::PKey::RSA.new(2048).freeze }
-  let_once(:jwk) { JSON::JWK.new(keypair.public_key).freeze }
+  keypair = OpenSSL::PKey::RSA.new(2048).freeze
+  jwk = JSON::JWK.new(keypair.public_key).freeze
+  let(:keypair) { keypair }
+  let(:jwk) { jwk }
   let!(:oidc_ap) do
     ap = AuthenticationProvider::OpenIDConnect.new(jit_provisioning: true,
                                                    account: Account.default,
@@ -153,18 +155,16 @@ describe Login::OpenidConnectController do
   end
 
   describe "#destroy" do
-    let(:logout_token_base) do
-      {
-        iss: "issuer",
-        aud: "audience",
-        jti: 1,
-        events: { Login::OpenidConnectController::OIDC_BACKCHANNEL_LOGOUT_EVENT_URN => {} },
-        sub: "uid",
-        sid: "session",
-        iat: Time.now.to_i,
-        exp: 10.minutes.from_now.to_i
-      }.freeze
-    end
+    logout_token_base = {
+      iss: "issuer",
+      aud: "audience",
+      jti: 1,
+      events: { Login::OpenidConnectController::OIDC_BACKCHANNEL_LOGOUT_EVENT_URN => {} },
+      sub: "uid",
+      sid: "session",
+      iat: Time.now.to_i,
+      exp: 10.minutes.from_now.to_i
+    }.freeze
 
     before do
       skip unless Canvas.redis_enabled?
@@ -233,9 +233,6 @@ describe Login::OpenidConnectController do
     def self.bad_token_spec(description, logout_token, message, status: 400)
       it "doesn't destroy the session when #{description}" do
         do_login
-        if logout_token.respond_to?(:call)
-          logout_token = instance_eval(&logout_token)
-        end
 
         back_channel = open_session
         if logout_token.is_a?(Hash)
@@ -260,55 +257,55 @@ describe Login::OpenidConnectController do
                    "invalid",
                    "Invalid logout token"
     bad_token_spec "the iat is missing",
-                   proc { logout_token_base.except(:iat) },
+                   logout_token_base.except(:iat),
                    "Missing claim iat"
     bad_token_spec "the exp is missing",
-                   proc { logout_token_base.except(:exp) },
+                   logout_token_base.except(:exp),
                    "Missing claim exp"
     bad_token_spec "the audience is missing",
-                   proc { logout_token_base.except(:aud) },
+                   logout_token_base.except(:aud),
                    "Missing claim aud"
     bad_token_spec "the audience is wrong",
-                   proc { logout_token_base.merge(aud: "someone else") },
+                   logout_token_base.merge(aud: "someone else"),
                    "Invalid audience/issuer pair",
                    status: 404
     bad_token_spec "the issuer is missing",
-                   proc { logout_token_base.except(:iss) },
+                   logout_token_base.except(:iss),
                    "Missing claim iss"
     bad_token_spec "the issuer is wrong",
-                   proc { logout_token_base.merge(iss: "someone else") },
+                   logout_token_base.merge(iss: "someone else"),
                    "Invalid audience/issuer pair",
                    status: 404
     bad_token_spec "the events are missing",
-                   proc { logout_token_base.except(:events) },
+                   logout_token_base.except(:events),
                    "Missing claim events"
     bad_token_spec "the events are the wrong data type",
-                   proc { logout_token_base.merge(events: 1) },
+                   logout_token_base.merge(events: 1),
                    "Invalid events"
     bad_token_spec "the correct event is the wrong data type",
-                   proc { logout_token_base.merge(events: { Login::OpenidConnectController::OIDC_BACKCHANNEL_LOGOUT_EVENT_URN => 1 }) },
+                   logout_token_base.merge(events: { Login::OpenidConnectController::OIDC_BACKCHANNEL_LOGOUT_EVENT_URN => 1 }),
                    "Invalid events"
     bad_token_spec "the wrong event is sent",
-                   proc { logout_token_base.merge(events: { "somethingelse" => {} }) },
+                   logout_token_base.merge(events: { "somethingelse" => {} }),
                    "Invalid events"
     bad_token_spec "neither sub or sid are sent",
-                   proc { logout_token_base.except(:sub, :sid) },
+                   logout_token_base.except(:sub, :sid),
                    "Missing session information"
     bad_token_spec "the jti is missing",
-                   proc { logout_token_base.except(:jti) },
+                   logout_token_base.except(:jti),
                    "Missing claim jti"
     bad_token_spec "a nonce is sent",
-                   proc { logout_token_base.merge(nonce: "nonce") },
+                   logout_token_base.merge(nonce: "nonce"),
                    "Nonce must not be provided"
     bad_token_spec "the wrong information is sent",
-                   proc { logout_token_base.merge(sub: "someone else", sid: "someone else") },
+                   logout_token_base.merge(sub: "someone else", sid: "someone else"),
                    "OK",
                    status: 200
     bad_token_spec "the logout_token is unsigned",
-                   proc { JSON::JWT.new(logout_token_base.dup).to_s },
+                   JSON::JWT.new(logout_token_base.dup).to_s,
                    "Invalid signature: Token is not signed"
     bad_token_spec "the logout_token is signed with a different key",
-                   proc { JSON::JWT.new(logout_token_base.dup).tap { |jwt| jwt.kid = jwk[:kid] }.sign(OpenSSL::PKey::RSA.new(2048)).to_s },
+                   JSON::JWT.new(logout_token_base.dup).tap { |jwt| jwt.kid = jwk[:kid] }.sign(OpenSSL::PKey::RSA.new(2048)).to_s,
                    "Invalid signature: JSON::JWS::VerificationFailed"
 
     it "doesn't destroy the session when the jti is duplicated" do

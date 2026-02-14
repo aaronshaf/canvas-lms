@@ -4092,7 +4092,6 @@ nn:
     quiz_type_options: 
       graded_survey: "Vurdert undersøking"
       ungraded_survey: "Undersøking som ikkje er vurdert"
-  assignment_rubric_details_1b6723b2: "Detaljar om vurderingsskjemaet"
   assignment_scheduling_e2a3eaf6: "Planlegging av oppgåve"
   assignment_score_summary_f1dc9708: "Oppsummering av oppgåveresultat"
   assignment_selection_6bff05c4: Oppgåveutval
@@ -18439,7 +18438,6 @@ nn:
   no_grading_periods_set_up_a20a8819: "Ingen karaktersetjingsperiodar er sett opp"
   no_grading_schemes_to_display_8b0e92e7: "Ingen karaktersetjingsskjema å vise"
   no_integrations_available_6729d0ca: "Ingen integrasjonar tilgjengelege"
-  no_items_20cde5bf: "Ingen element."
   no_items_found_870b2d0d: "Finn ingen element"
   no_items_in_module_21f111a2: "Ingen element i modulen"
   no_job_selected_d6c5e6f4: "Ingen jobb valt"

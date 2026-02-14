@@ -35,7 +35,6 @@ import K5Dashboard from '../K5Dashboard'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
 import {MockedQueryProvider} from '@canvas/test-utils/query'
-import {queryClient} from '@canvas/query'
 
 vi.mock('@canvas/util/globalUtils', () => ({
   reloadWindow: vi.fn(),
@@ -200,7 +199,6 @@ afterEach(() => {
   fakeENV.teardown()
   resetPlanner()
   resetCardCache()
-  queryClient.clear()
   sessionStorage.clear()
   window.location.hash = ''
   destroyContainer()
@@ -317,7 +315,7 @@ describe('K-5 Dashboard', () => {
         )
         expect(externalToolsCalls).toHaveLength(0)
       })
-    }, 30000)
+    }, 10000)
 
     it('only fetches announcements based on cards once per page load', async () => {
       sessionStorage.setItem('dashcards_for_user_1', JSON.stringify(MOCK_CARDS))

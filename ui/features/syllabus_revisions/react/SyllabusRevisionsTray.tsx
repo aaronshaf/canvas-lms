@@ -63,31 +63,10 @@ export default function SyllabusRevisionsTray({
   const [versionToRestore, setVersionToRestore] = useState<SyllabusVersion | null>(null)
   const [restoring, setRestoring] = useState(false)
   const [currentSyllabusBody, setCurrentSyllabusBody] = useState<string | null>(null)
-  const [isPreviewingVersion, setIsPreviewingVersion] = useState(false)
-  const [hasEditedWhilePreviewing, setHasEditedWhilePreviewing] = useState(false)
 
   const isInEditMode = (): boolean => {
     const editForm = document.getElementById('edit_course_syllabus_form')
     return editForm !== null && editForm.style.display !== 'none'
-  }
-
-  const restoreOriginalSyllabusIfNeeded = () => {
-    if (
-      !isInEditMode() &&
-      isPreviewingVersion &&
-      !hasEditedWhilePreviewing &&
-      currentSyllabusBody
-    ) {
-      const syllabusElement = document.getElementById('course_syllabus')
-      if (syllabusElement) {
-        const currentContent = syllabusElement.innerHTML.trim()
-        const selectedContent = (selectedVersion?.syllabus_body || '').trim()
-
-        if (currentContent === selectedContent && currentContent !== currentSyllabusBody.trim()) {
-          syllabusElement.innerHTML = currentSyllabusBody
-        }
-      }
-    }
   }
 
   const fetchVersions = useCallback(async () => {
@@ -117,17 +96,15 @@ export default function SyllabusRevisionsTray({
   useEffect(() => {
     if (open) {
       fetchVersions()
-      setHasEditedWhilePreviewing(false)
+    } else if (currentSyllabusBody) {
+      if (!isInEditMode()) {
+        const syllabusElement = document.getElementById('course_syllabus')
+        if (syllabusElement && syllabusElement.innerHTML !== currentSyllabusBody) {
+          syllabusElement.innerHTML = currentSyllabusBody
+        }
+      }
     }
-  }, [open, fetchVersions])
-
-  useEffect(() => {
-    if (!open && currentSyllabusBody) {
-      restoreOriginalSyllabusIfNeeded()
-      setIsPreviewingVersion(false)
-      setHasEditedWhilePreviewing(false)
-    }
-  }, [open, currentSyllabusBody, isPreviewingVersion, hasEditedWhilePreviewing, selectedVersion])
+  }, [open, fetchVersions, currentSyllabusBody])
 
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr)
@@ -147,9 +124,6 @@ export default function SyllabusRevisionsTray({
 
   const handleVersionClick = (version: SyllabusVersion) => {
     if (isInEditMode()) {
-      if (isPreviewingVersion) {
-        setHasEditedWhilePreviewing(true)
-      }
       const $editorTextarea = $('#course_syllabus_body')
       if ($editorTextarea.length && version.syllabus_body) {
         RichContentEditor.callOnRCE($editorTextarea, 'set_code', version.syllabus_body)
@@ -165,7 +139,6 @@ export default function SyllabusRevisionsTray({
 
         if (shouldUpdateDOM) {
           syllabusElement.innerHTML = version.syllabus_body || ''
-          setIsPreviewingVersion(true)
         }
       }
     }
@@ -207,7 +180,16 @@ export default function SyllabusRevisionsTray({
   }
 
   const handleTrayDismiss = () => {
-    restoreOriginalSyllabusIfNeeded()
+    if (!isInEditMode()) {
+      const syllabusElement = document.getElementById('course_syllabus')
+      if (
+        syllabusElement &&
+        currentSyllabusBody &&
+        syllabusElement.innerHTML !== currentSyllabusBody
+      ) {
+        syllabusElement.innerHTML = currentSyllabusBody
+      }
+    }
     onDismiss()
   }
 

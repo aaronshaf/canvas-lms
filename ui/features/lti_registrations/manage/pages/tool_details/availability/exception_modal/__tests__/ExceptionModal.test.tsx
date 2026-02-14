@@ -24,14 +24,6 @@ import {ZAccountId} from '@canvas/lti-apps/models/AccountId'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import userEvent from '@testing-library/user-event'
-
-vi.mock('use-debounce', () => ({
-  useDebouncedCallback: (callback: any) => {
-    const debouncedFn = (...args: any[]) => callback(...args)
-    debouncedFn.flush = vi.fn()
-    return debouncedFn
-  },
-}))
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {SearchableContexts} from '../../../../../model/SearchableContext'
 import {ZCourseId} from '../../../../../model/CourseId'
@@ -97,7 +89,7 @@ describe('ExceptionModal', () => {
       />,
     )
     expect(screen.queryByText('Add Availability and Exceptions')).not.toBeInTheDocument()
-  }, 30000)
+  })
 
   it('renders when open is true', () => {
     renderWithQueryClient(
@@ -116,7 +108,7 @@ describe('ExceptionModal', () => {
         'You have not added any availability or exceptions. Search or browse to add one.',
       ),
     ).toBeInTheDocument()
-  }, 30000)
+  })
 
   it('calls onClose when CloseButton is clicked', async () => {
     const onClose = vi.fn()
@@ -132,7 +124,7 @@ describe('ExceptionModal', () => {
     const closeBtn = screen.getByText('Close').closest('button')
     await clickOrFail(closeBtn)
     expect(onClose).toHaveBeenCalled()
-  }, 30000)
+  })
 
   it('allows searching for multiple contexts and adding them', async () => {
     const accountId = ZAccountId.parse('1')
@@ -152,7 +144,7 @@ describe('ExceptionModal', () => {
 
     input.focus()
     await userEvent.paste('Subaccount')
-    const subaccount_1 = await screen.findByText('Subaccount 101', {}, {timeout: 15000})
+    const subaccount_1 = await screen.findByText('Subaccount 101', {}, {timeout: 3000})
     await screen.findByText('Subaccount 102')
 
     await userEvent.click(subaccount_1)
@@ -172,7 +164,7 @@ describe('ExceptionModal', () => {
 
     await clickOrFail(screen.getByText('Close').closest('button'))
     expect(onClose).toHaveBeenCalled()
-  }, 30000)
+  })
 
   it.skip('removes an added exception when the delete button is clicked', async () => {
     const accountId = ZAccountId.parse('1')
@@ -224,11 +216,9 @@ describe('ExceptionModal', () => {
     const input = screen.getByPlaceholderText(/search by sub-accounts or courses/i)
     input.focus()
     await userEvent.paste('Subaccount')
-    const subaccount_1 = await screen.findByText('Subaccount 101', {}, {timeout: 15000})
+    const subaccount_1 = await screen.findByText('Subaccount 101', {}, {timeout: 3000})
     await userEvent.click(subaccount_1)
-    await waitFor(() => expect(screen.getAllByText('Subaccount 101').length).toBeGreaterThan(0), {
-      timeout: 10000,
-    })
+    await waitFor(() => expect(screen.getAllByText('Subaccount 101').length).toBeGreaterThan(0))
 
     const select = screen.getByDisplayValue(/not available/i)
 
@@ -243,7 +233,7 @@ describe('ExceptionModal', () => {
     const notAvailableOption = screen.getByText('Not Available')
     await userEvent.click(notAvailableOption)
     expect(select).toHaveDisplayValue(/not available/i)
-  }, 30000)
+  })
 
   it('calls onConfirm with selected controls when Save is clicked', async () => {
     const accountId = ZAccountId.parse('1')
@@ -263,11 +253,9 @@ describe('ExceptionModal', () => {
     const input = screen.getByPlaceholderText(/search by sub-accounts or courses/i)
     input.focus()
     await userEvent.paste('Subaccount')
-    const subaccount_1 = await screen.findByText('Subaccount 101', {}, {timeout: 15000})
+    const subaccount_1 = await screen.findByText('Subaccount 101', {}, {timeout: 3000})
     await userEvent.click(subaccount_1)
-    await waitFor(() => expect(screen.getAllByText('Subaccount 101').length).toBeGreaterThan(0), {
-      timeout: 10000,
-    })
+    await waitFor(() => expect(screen.getAllByText('Subaccount 101').length).toBeGreaterThan(0))
 
     const saveBtn = screen.getByText('Save').closest('button')
     await clickOrFail(saveBtn)
@@ -282,7 +270,7 @@ describe('ExceptionModal', () => {
         }),
       ]),
     )
-  }, 30000)
+  })
 
   it('allows adding exceptions via the browse popover for subaccount and course contexts', async () => {
     const accountId = ZAccountId.parse('1')
@@ -342,7 +330,7 @@ describe('ExceptionModal', () => {
         }),
       ]),
     )
-  }, 30000)
+  })
 
   it('displays subaccounts before courses in the browse popover', async () => {
     const accountId = ZAccountId.parse('1')
@@ -370,7 +358,7 @@ describe('ExceptionModal', () => {
     expect(subaccountOption.compareDocumentPosition(courseOption)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     )
-  }, 30000)
+  })
 
   it('does not call onConfirm when Save is clicked with no selected exceptions, but does call onClose', async () => {
     const accountId = ZAccountId.parse('1')
@@ -392,7 +380,7 @@ describe('ExceptionModal', () => {
 
     expect(onConfirm).not.toHaveBeenCalled()
     expect(onClose).toHaveBeenCalled()
-  }, 30000)
+  })
 
   it('clears the search filter after a context is selected', async () => {
     const accountId = ZAccountId.parse('1')
@@ -418,5 +406,5 @@ describe('ExceptionModal', () => {
 
     await userEvent.click(input)
     expect(await screen.findByText('Subaccount 102')).toBeInTheDocument()
-  }, 30000)
+  })
 })

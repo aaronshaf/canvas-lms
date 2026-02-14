@@ -27,32 +27,23 @@ import {CaptionRow} from './CaptionRow'
 import {useClosedCaptionState} from './hooks/useClosedCaptionState'
 import {useLanguageFiltering} from './hooks/useLanguageFiltering'
 import {ManualCaptionCreator} from './ManualCaptionCreator'
-import type {CaptionUploadConfig, Subtitle} from './types'
-import {useClosedCaptionUpload} from './hooks/useClosedCaptionUpload'
+import type {Subtitle} from './types'
 
 /**
  * Props for ClosedCaptionPanel component
  */
 export interface ClosedCaptionPanelProps {
   liveRegion: () => HTMLElement | null
-  mountNode?: HTMLElement | (() => HTMLElement | null)
   subtitles?: Subtitle[]
   onUpdateSubtitles: (subtitles: Subtitle[]) => void
   userLocale?: string
-  uploadConfig?: CaptionUploadConfig
-  onCaptionUploaded?: (subtitle: Subtitle) => void
-  onCaptionDeleted?: (locale: string) => void
 }
 
 export function ClosedCaptionPanelV2({
   liveRegion,
-  mountNode,
   subtitles: initialSubtitles = [],
   onUpdateSubtitles,
   userLocale = 'en',
-  uploadConfig,
-  onCaptionUploaded,
-  onCaptionDeleted,
 }: ClosedCaptionPanelProps) {
   // Get sorted language list based on user locale
   const closedCaptionLanguages = useMemo(
@@ -71,26 +62,6 @@ export function ClosedCaptionPanelV2({
   const {availableLanguages} = useLanguageFiltering({
     allLanguages: closedCaptionLanguages,
     subtitles: state.subtitles,
-  })
-
-  // Always use immediate upload hook (this component always uploads immediately)
-  const upload = useClosedCaptionUpload({
-    uploadConfig,
-    subtitles: state.subtitles,
-    onUploadSuccess: subtitle => {
-      state.handleCaptionUploaded(subtitle)
-      onCaptionUploaded?.(subtitle)
-    },
-    onUploadError: (_error, locale) => {
-      state.handleCaptionUploadFailed(locale, '{captionName} caption upload failed')
-    },
-    onDeleteSuccess: locale => {
-      state.handleDeleteRow(locale)
-      onCaptionDeleted?.(locale)
-    },
-    onDeleteError: (_error, locale) => {
-      state.handleCaptionUploadFailed(locale, '{captionName} caption delete failed')
-    },
   })
 
   return (
@@ -112,18 +83,17 @@ export function ClosedCaptionPanelV2({
         <View>
           {state.subtitles.map(subtitle => {
             const language = closedCaptionLanguages.find(l => l.id === subtitle.locale)
-            // Use subtitle status directly (processing, failed, or uploaded)
-            const status = subtitle.status || 'uploaded'
+            // Use isNew flag to determine loading state
+            const status = subtitle.isNew ? 'processing' : 'uploaded'
 
             return (
               <CaptionRow
                 key={subtitle.locale}
                 status={status}
                 captionName={language?.label || ''}
-                errorMessage={subtitle.errorMessage}
                 liveRegion={liveRegion}
                 isInherited={subtitle.inherited}
-                onDelete={() => upload.deleteCaption(subtitle.locale)}
+                onDelete={() => state.handleDeleteRow(subtitle.locale)}
               />
             )
           })}
@@ -138,14 +108,12 @@ export function ClosedCaptionPanelV2({
         <ManualCaptionCreator
           languages={availableLanguages}
           liveRegion={liveRegion}
-          mountNode={mountNode}
           onCancel={state.handleCancelCreation}
           onPrimary={(languageId: string, file: File) => {
             // Find the language object
             const language = closedCaptionLanguages.find(l => l.id === languageId)
             if (language) {
-              state.handleCaptionProcessing(languageId, file)
-              upload.uploadCaption(languageId, file)
+              state.handleAddSubtitle(languageId, file, language.label)
             }
           }}
         />

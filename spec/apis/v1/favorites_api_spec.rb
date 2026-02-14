@@ -258,7 +258,7 @@ describe "Favorites API", type: :request do
                       controller: "favorites",
                       action: "list_favorite_groups",
                       format: "json")
-      expect(json.any?).to be true
+      expect(json.any?).to be
     end
   end
 

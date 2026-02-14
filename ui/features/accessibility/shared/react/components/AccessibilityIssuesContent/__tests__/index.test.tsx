@@ -20,34 +20,24 @@ import {render, screen, fireEvent, waitFor} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import React from 'react'
 
-import {AccessibilityWizard} from '../index'
+import AccessibilityIssuesDrawerContent from '../index'
 import userEvent from '@testing-library/user-event'
 import {multiIssueItem, checkboxTextInputRuleItem} from './__mocks__'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
-import {
-  AccessibilityScansActions,
-  AccessibilityScansState,
-  useAccessibilityScansStore,
-} from '../../../stores/AccessibilityScansStore'
-import {ResourceType, AccessibilityResourceScan} from '../../../types'
-import {AccessibilityCheckerContext} from '../../../contexts/AccessibilityCheckerContext'
+import {useAccessibilityScansStore} from '../../../stores/AccessibilityScansStore'
 
-const mockSetSelectedItem = vi.fn()
-const mockSetIsTrayOpen = vi.fn()
+const mockClose = vi.fn()
 
 const baseItem = multiIssueItem
 
-const createMockState = (
-  overrides: Partial<AccessibilityScansState & AccessibilityScansActions> = {},
-) => {
+const createMockState = (overrides = {}) => {
   const defaultState = {
     accessibilityScans: null,
     nextResource: {index: -1, item: null},
     filters: null,
     isCloseIssuesEnabled: true,
     issuesSummary: undefined,
-    isGA2FeaturesEnabled: false,
     setAccessibilityScans: vi.fn(),
     setNextResource: vi.fn(),
     setLoadingOfSummary: vi.fn(),
@@ -57,9 +47,7 @@ const createMockState = (
   return {...defaultState, ...overrides}
 }
 
-const setupMockStore = (
-  stateOverrides: Partial<AccessibilityScansState & AccessibilityScansActions> = {},
-) => {
+const setupMockStore = (stateOverrides = {}) => {
   ;(useAccessibilityScansStore as unknown as any).mockImplementation((selector: any) => {
     const state = createMockState(stateOverrides)
     return selector ? selector(state) : state
@@ -120,7 +108,7 @@ const server = setupServer(
   http.get('/', ({request}: {request: Request}) => {
     const url = new URL(request.url)
     if (url.searchParams.has('filters')) {
-      return HttpResponse.json({active: 0, by_type: {}})
+      return HttpResponse.json({total: 0, by_type: {}})
     }
     return new HttpResponse(null, {status: 404})
   }),
@@ -145,7 +133,7 @@ vi.mock('../../../hooks/useA11yTracking', () => ({
   }),
 }))
 
-describe('AccessibilityWizard', () => {
+describe('AccessibilityIssuesDrawerContent', () => {
   let queryClient: QueryClient
 
   beforeAll(() => server.listen())
@@ -155,8 +143,6 @@ describe('AccessibilityWizard', () => {
     // Enable feature flag by default for tests
     window.ENV = {FEATURES: {a11y_checker_close_issues: true}} as any
     vi.clearAllMocks()
-    mockSetSelectedItem.mockClear()
-    mockSetIsTrayOpen.mockClear()
     queryClient = new QueryClient({
       defaultOptions: {
         queries: {retry: false},
@@ -170,32 +156,17 @@ describe('AccessibilityWizard', () => {
     queryClient.clear()
   })
 
-  const createWrapper = (
-    selectedItem: AccessibilityResourceScan | null = baseItem,
-    isTrayOpen = true,
-  ) => {
-    const Wrapper = ({children}: {children: React.ReactNode}) => (
-      <AccessibilityCheckerContext.Provider
-        value={{
-          selectedItem,
-          setSelectedItem: mockSetSelectedItem,
-          isTrayOpen,
-          setIsTrayOpen: mockSetIsTrayOpen,
-        }}
-      >
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      </AccessibilityCheckerContext.Provider>
-    )
-    return Wrapper
-  }
+  const wrapper = ({children}: {children: React.ReactNode}) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
 
   it('renders the issue counter', async () => {
-    render(<AccessibilityWizard />, {wrapper: createWrapper()})
+    render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
     expect(screen.getByText(/Issue 1\/2:/)).toBeInTheDocument()
   })
 
   it('disables "Back" on first issue and enables "Next"', async () => {
-    render(<AccessibilityWizard />, {wrapper: createWrapper()})
+    render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
     const back = screen.getByTestId('back-button')
     const next = screen.getByTestId('skip-button')
 
@@ -205,7 +176,7 @@ describe('AccessibilityWizard', () => {
 
   describe('when a11y_checker_close_issues flag is enabled', () => {
     it('shows CloseRemediationView when skipping the last issue', async () => {
-      render(<AccessibilityWizard />, {wrapper: createWrapper()})
+      render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
       const next = screen.getByTestId('skip-button')
 
@@ -226,7 +197,7 @@ describe('AccessibilityWizard', () => {
     })
 
     it('navigates back to first issue from CloseRemediationView', async () => {
-      render(<AccessibilityWizard />, {wrapper: createWrapper()})
+      render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
       const next = screen.getByTestId('skip-button')
 
@@ -260,7 +231,7 @@ describe('AccessibilityWizard', () => {
     })
 
     it('replaces Skip button with Back to start button on last issue with multiple issues', async () => {
-      render(<AccessibilityWizard />, {wrapper: createWrapper()})
+      render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
       const skipButton = screen.getByTestId('skip-button')
       fireEvent.click(skipButton)
@@ -274,7 +245,7 @@ describe('AccessibilityWizard', () => {
     })
 
     it('navigates to first issue when clicking "Back to start" button', async () => {
-      render(<AccessibilityWizard />, {wrapper: createWrapper()})
+      render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
       const skipButton = screen.getByTestId('skip-button')
       fireEvent.click(skipButton)
@@ -295,14 +266,14 @@ describe('AccessibilityWizard', () => {
     })
 
     it('shows Skip button on non-last issues', async () => {
-      render(<AccessibilityWizard />, {wrapper: createWrapper()})
+      render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
       expect(screen.getByTestId('skip-button')).toBeInTheDocument()
       expect(screen.queryByTestId('back-to-start-button')).not.toBeInTheDocument()
     })
 
     it('does not show CloseRemediationView when on the last issue', async () => {
-      render(<AccessibilityWizard />, {wrapper: createWrapper()})
+      render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
       const skipButton = screen.getByTestId('skip-button')
       fireEvent.click(skipButton)
@@ -322,7 +293,9 @@ describe('AccessibilityWizard', () => {
         issues: [baseItem.issues![0]],
       }
 
-      render(<AccessibilityWizard />, {wrapper: createWrapper(singleIssueItem)})
+      render(<AccessibilityIssuesDrawerContent item={singleIssueItem} onClose={mockClose} />, {
+        wrapper,
+      })
 
       expect(screen.getByText(/Issue 1\/1:/)).toBeInTheDocument()
 
@@ -337,7 +310,7 @@ describe('AccessibilityWizard', () => {
   })
 
   it('removes issue on save and next', async () => {
-    render(<AccessibilityWizard />, {wrapper: createWrapper()})
+    render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
     const saveAndNext = screen.getByTestId('save-and-next-button')
     expect(saveAndNext).toBeDisabled()
@@ -357,7 +330,7 @@ describe('AccessibilityWizard', () => {
   })
 
   it('renders Open Page and Edit Page links', async () => {
-    render(<AccessibilityWizard />, {wrapper: createWrapper()})
+    render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
     expect(await screen.findByText('Open Page')).toHaveAttribute(
       'href',
@@ -369,24 +342,8 @@ describe('AccessibilityWizard', () => {
     )
   })
 
-  it('renders correct Edit Page link for Syllabus', async () => {
-    const syllabusItem = {
-      ...baseItem,
-      resourceType: ResourceType.Syllabus,
-      resourceUrl: '/courses/1/assignments/syllabus',
-    }
-
-    render(<AccessibilityWizard />, {wrapper: createWrapper(syllabusItem)})
-
-    // For syllabus, edit link should not append /edit
-    expect(await screen.findByText('Edit Page')).toHaveAttribute(
-      'href',
-      '/courses/1/assignments/syllabus',
-    )
-  })
-
   it('wraps Preview component in a semantic region for screen reader navigation', async () => {
-    render(<AccessibilityWizard />, {wrapper: createWrapper()})
+    render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
     const issuePreviewRegion = screen.getByRole('region', {name: 'Problem area'})
     expect(issuePreviewRegion).toBeInTheDocument()
@@ -395,7 +352,7 @@ describe('AccessibilityWizard', () => {
   describe('Save and Next button', () => {
     describe('is enabled', () => {
       it('when the issue is remediated', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
+        render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
         const saveAndNext = screen.getByTestId('save-and-next-button')
         expect(saveAndNext).toBeDisabled()
@@ -406,13 +363,16 @@ describe('AccessibilityWizard', () => {
       })
 
       it('when the form type is CheckboxTextInput', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper(checkboxTextInputRuleItem)})
+        render(
+          <AccessibilityIssuesDrawerContent item={checkboxTextInputRuleItem} onClose={mockClose} />,
+          {wrapper},
+        )
 
         const saveAndNext = screen.getByTestId('save-and-next-button')
         expect(saveAndNext).toBeDisabled()
 
         const textarea = screen.getByTestId('checkbox-text-input-form')
-        fireEvent.change(textarea, {target: {value: 'alt text'}})
+        await userEvent.type(textarea, 'alt text')
 
         const apply = screen.getByTestId('apply-button')
         await userEvent.click(apply)
@@ -425,14 +385,14 @@ describe('AccessibilityWizard', () => {
 
     describe('is disabled', () => {
       it('when the issue is not remediated', () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
+        render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
         const saveAndNext = screen.getByTestId('save-and-next-button')
         expect(saveAndNext).toBeDisabled()
       })
 
       it('when the form is locked during apply operation', () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
+        render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
         const apply = screen.getByTestId('apply-button')
 
@@ -444,7 +404,7 @@ describe('AccessibilityWizard', () => {
       })
 
       it('when the form is locked during undo operation', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
+        render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />, {wrapper})
 
         const apply = screen.getByTestId('apply-button')
         await userEvent.click(apply)
@@ -469,7 +429,7 @@ describe('AccessibilityWizard', () => {
   describe('Pendo tracking', () => {
     describe('IssueSkipped event', () => {
       it('calls trackA11yIssueEvent with correct data when Skip button is clicked', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
+        render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />)
 
         const skipButton = screen.getByTestId('skip-button')
         await userEvent.click(skipButton)
@@ -484,7 +444,7 @@ describe('AccessibilityWizard', () => {
 
     describe('IssueFixed event', () => {
       it('calls trackA11yIssueEvent when Save & Next button is clicked', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
+        render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />)
 
         const apply = screen.getByTestId('apply-button')
         await userEvent.click(apply)
@@ -530,7 +490,7 @@ describe('AccessibilityWizard', () => {
           }),
         )
 
-        render(<AccessibilityWizard />, {wrapper: createWrapper(singleIssueItem)})
+        render(<AccessibilityIssuesDrawerContent item={singleIssueItem} onClose={mockClose} />)
 
         const apply = screen.getByTestId('apply-button')
         await userEvent.click(apply)
@@ -551,7 +511,7 @@ describe('AccessibilityWizard', () => {
       })
 
       it('does not call trackA11yEvent when issues still remain', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
+        render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />)
 
         const apply = screen.getByTestId('apply-button')
         await userEvent.click(apply)
@@ -576,7 +536,7 @@ describe('AccessibilityWizard', () => {
 
     describe('Open Page link click event', () => {
       it('calls trackA11yIssueEvent when Open Page link is clicked', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
+        render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />)
 
         const openPageLink = await screen.findByText('Open Page')
 
@@ -592,7 +552,7 @@ describe('AccessibilityWizard', () => {
 
     describe('Edit Page link click event', () => {
       it('calls trackA11yIssueEvent when Edit Page link is clicked', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
+        render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />)
 
         const editPageLink = screen.getByText('Edit Page')
 
@@ -611,12 +571,14 @@ describe('AccessibilityWizard', () => {
         window.ENV = {current_context: {id: '123'}} as any
       })
 
-      it('calls trackA11yEvent when issuesSummary.active transitions from >0 to 0', async () => {
-        setupMockStore({issuesSummary: {active: 1, resolved: 0, byRuleType: {['img-alt']: 1}}})
-        const {rerender} = render(<AccessibilityWizard />, {wrapper: createWrapper()})
+      it('calls trackA11yEvent when issuesSummary.total transitions from >0 to 0', async () => {
+        setupMockStore({issuesSummary: {total: 1, byRuleType: {['img-alt']: 1}}})
+        const {rerender} = render(
+          <AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />,
+        )
 
-        setupMockStore({issuesSummary: {active: 0, resolved: 0, byRuleType: {}}})
-        rerender(<AccessibilityWizard />)
+        setupMockStore({issuesSummary: {total: 0, byRuleType: {}}})
+        rerender(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />)
 
         await waitFor(() => {
           expect(mockTrackA11yEvent).toHaveBeenCalledWith('CourseRemediated', {
@@ -626,8 +588,8 @@ describe('AccessibilityWizard', () => {
       })
 
       it('does not call trackA11yEvent on initial mount', async () => {
-        setupMockStore({issuesSummary: {active: 0, resolved: 0, byRuleType: {}}})
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
+        setupMockStore({issuesSummary: {total: 0, byRuleType: {}}})
+        render(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />)
 
         const allRemediatedCalls = mockTrackA11yEvent.mock.calls.filter(
           (call: any) => call[0] === 'CourseRemediated',
@@ -635,27 +597,14 @@ describe('AccessibilityWizard', () => {
         expect(allRemediatedCalls).toHaveLength(0)
       })
 
-      it('does not call trackA11yEvent when active stays above 0', async () => {
-        setupMockStore({issuesSummary: {active: 5, resolved: 0, byRuleType: {['img-alt']: 5}}})
-        const {rerender} = render(<AccessibilityWizard />, {wrapper: createWrapper()})
+      it('does not call trackA11yEvent when total stays above 0', async () => {
+        setupMockStore({issuesSummary: {total: 5, byRuleType: {['img-alt']: 5}}})
+        const {rerender} = render(
+          <AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />,
+        )
 
-        setupMockStore({issuesSummary: {active: 4, resolved: 0, byRuleType: {['img-alt']: 4}}})
-        rerender(<AccessibilityWizard />)
-
-        await waitFor(() => {
-          const allRemediatedCalls = mockTrackA11yEvent.mock.calls.filter(
-            (call: any) => call[0] === 'CourseRemediated',
-          )
-          expect(allRemediatedCalls).toHaveLength(0)
-        })
-      })
-
-      it('does not call trackA11yEvent when previousActive was already 0', async () => {
-        setupMockStore({issuesSummary: {active: 0, resolved: 0, byRuleType: {}}})
-        const {rerender} = render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-        setupMockStore({issuesSummary: {active: 0, resolved: 0, byRuleType: {}}})
-        rerender(<AccessibilityWizard />)
+        setupMockStore({issuesSummary: {total: 4, byRuleType: {['img-alt']: 4}}})
+        rerender(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />)
 
         await waitFor(() => {
           const allRemediatedCalls = mockTrackA11yEvent.mock.calls.filter(
@@ -664,468 +613,21 @@ describe('AccessibilityWizard', () => {
           expect(allRemediatedCalls).toHaveLength(0)
         })
       })
-    })
-  })
 
-  describe('UnsavedChangesModal', () => {
-    beforeEach(() => {
-      setupMockStore({isGA2FeaturesEnabled: true})
-    })
+      it('does not call trackA11yEvent when previousTotal was already 0', async () => {
+        setupMockStore({issuesSummary: {total: 0, byRuleType: {}}})
+        const {rerender} = render(
+          <AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />,
+        )
 
-    it('shows modal when user tries to close with unsaved changes', async () => {
-      render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-      // Apply changes to set isRemediated to true
-      const applyButton = screen.getByTestId('apply-button')
-      await userEvent.click(applyButton)
-
-      await waitFor(() => {
-        expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-      })
-
-      // Click the close button in the header
-      const closeButtonContainer = screen.getByTestId('wizard-close-button')
-      const closeButton = closeButtonContainer.querySelector('button')!
-      await userEvent.click(closeButton)
-
-      // Modal should appear
-      await waitFor(() => {
-        expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-      })
-    })
-
-    it('closes immediately when user tries to close with no unsaved changes', async () => {
-      render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-      // Click the close button in the header (no changes applied)
-      const closeButtonContainer = screen.getByTestId('wizard-close-button')
-      const closeButton = closeButtonContainer.querySelector('button')!
-      await userEvent.click(closeButton)
-
-      // onClose should be called immediately
-      await waitFor(() => {
-        expect(mockSetSelectedItem).toHaveBeenCalledWith(null)
-        expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
-      })
-
-      // Modal should NOT appear
-      expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument()
-    })
-
-    it('calls handleApplyAndSaveAndNext and closes when modal confirm clicked', async () => {
-      render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-      // Apply changes
-      const applyButton = screen.getByTestId('apply-button')
-      await userEvent.click(applyButton)
-
-      await waitFor(() => {
-        expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-      })
-
-      // Click the close button to trigger modal
-      const closeButtonContainer = screen.getByTestId('wizard-close-button')
-      const closeButton = closeButtonContainer.querySelector('button')!
-      await userEvent.click(closeButton)
-
-      // Wait for modal to appear
-      await waitFor(() => {
-        expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-      })
-
-      // Click "Save changes" in modal
-      const saveButton = screen.getByText('Save changes').closest('button')!
-      await userEvent.click(saveButton)
-
-      // Verify close was called after save
-      await waitFor(() => {
-        expect(mockSetSelectedItem).toHaveBeenCalledWith(null)
-        expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
-      })
-    })
-
-    it('closes immediately when modal cancel clicked', async () => {
-      render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-      // Apply changes
-      const applyButton = screen.getByTestId('apply-button')
-      await userEvent.click(applyButton)
-
-      await waitFor(() => {
-        expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-      })
-
-      // Click the close button to trigger modal
-      const closeButtonContainer = screen.getByTestId('wizard-close-button')
-      const closeButton = closeButtonContainer.querySelector('button')!
-      await userEvent.click(closeButton)
-
-      // Wait for modal to appear
-      await waitFor(() => {
-        expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-      })
-
-      // Click "Don't save" in modal
-      const cancelButton = screen.getByText("Don't save").closest('button')!
-      await userEvent.click(cancelButton)
-
-      // Verify close was called without saving
-      await waitFor(() => {
-        expect(mockSetSelectedItem).toHaveBeenCalledWith(null)
-        expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
-      })
-    })
-
-    it('does not show modal when feature flag is disabled', async () => {
-      setupMockStore({isGA2FeaturesEnabled: false})
-
-      render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-      // Apply changes
-      const applyButton = screen.getByTestId('apply-button')
-      await userEvent.click(applyButton)
-
-      await waitFor(() => {
-        expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-      })
-
-      // Click the close button
-      const closeButtonContainer = screen.getByTestId('wizard-close-button')
-      const closeButton = closeButtonContainer.querySelector('button')!
-      await userEvent.click(closeButton)
-
-      // onClose should be called immediately, no modal
-      await waitFor(() => {
-        expect(mockSetSelectedItem).toHaveBeenCalledWith(null)
-        expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
-      })
-      expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument()
-    })
-
-    it('allows closing the tray after dismissing the modal with X button', async () => {
-      render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-      // Apply changes to set isRemediated to true
-      const applyButton = screen.getByTestId('apply-button')
-      await userEvent.click(applyButton)
-
-      await waitFor(() => {
-        expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-      })
-
-      // First close attempt - click tray close button
-      const trayCloseButtonContainer = screen.getByTestId('wizard-close-button')
-      const trayCloseButton = trayCloseButtonContainer.querySelector('button')!
-      await userEvent.click(trayCloseButton)
-
-      // Modal should appear
-      await waitFor(() => {
-        expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-      })
-
-      // Get the modal's close button
-      const modalCloseButton = screen.getByTestId('modal-close-button')
-
-      // Click X to close the modal (not the tray)
-      await userEvent.click(modalCloseButton)
-
-      // Modal should close
-      await waitFor(() => {
-        expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument()
-      })
-
-      // Second close attempt - click tray close button again
-      await userEvent.click(trayCloseButton)
-
-      // Modal should show again
-      await waitFor(() => {
-        expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-      })
-
-      // This time click "Don't save" to actually close the tray
-      const dontSaveButton = screen.getByText("Don't save").closest('button')!
-      await userEvent.click(dontSaveButton)
-
-      // Verify tray closed
-      await waitFor(() => {
-        expect(mockSetSelectedItem).toHaveBeenCalledWith(null)
-        expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
-      })
-    })
-
-    describe('Skip button with unsaved changes', () => {
-      it('shows modal when user tries to skip with unsaved changes', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-        // Apply changes to set isRemediated to true
-        const applyButton = screen.getByTestId('apply-button')
-        await userEvent.click(applyButton)
+        setupMockStore({issuesSummary: {total: 0, byRuleType: {}}})
+        rerender(<AccessibilityIssuesDrawerContent item={baseItem} onClose={mockClose} />)
 
         await waitFor(() => {
-          expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-        })
-
-        // Click Skip button
-        const skipButton = screen.getByTestId('skip-button')
-        await userEvent.click(skipButton)
-
-        // Modal should appear
-        await waitFor(() => {
-          expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-        })
-      })
-
-      it('saves and skips when user clicks "Save changes"', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-        // Apply changes
-        const applyButton = screen.getByTestId('apply-button')
-        await userEvent.click(applyButton)
-
-        await waitFor(() => {
-          expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-        })
-
-        // Click Skip button
-        const skipButton = screen.getByTestId('skip-button')
-        await userEvent.click(skipButton)
-
-        // Wait for modal
-        await waitFor(() => {
-          expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-        })
-
-        // Click "Save changes"
-        const saveButton = screen.getByText('Save changes').closest('button')!
-        await userEvent.click(saveButton)
-
-        // Modal should close and save should be called
-        await waitFor(() => {
-          expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument()
-        })
-      })
-
-      it('skips without saving when user clicks "Don\'t Save"', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-        // Apply changes
-        const applyButton = screen.getByTestId('apply-button')
-        await userEvent.click(applyButton)
-
-        await waitFor(() => {
-          expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-        })
-
-        // Click Skip button
-        const skipButton = screen.getByTestId('skip-button')
-        await userEvent.click(skipButton)
-
-        // Wait for modal
-        await waitFor(() => {
-          expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-        })
-
-        // Click "Don't save"
-        const dontSaveButton = screen.getByText("Don't save").closest('button')!
-        await userEvent.click(dontSaveButton)
-
-        // Modal should close without saving
-        await waitFor(() => {
-          expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument()
-        })
-      })
-    })
-
-    describe('Back button with unsaved changes', () => {
-      it('shows modal when user tries to go back with unsaved changes', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-        // First skip to second issue
-        const skipButton = screen.getByTestId('skip-button')
-        await userEvent.click(skipButton)
-
-        // Apply changes to set isRemediated to true
-        const applyButton = screen.getByTestId('apply-button')
-        await userEvent.click(applyButton)
-
-        await waitFor(() => {
-          expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-        })
-
-        // Click Back button
-        const backButton = screen.getByTestId('back-button')
-        await userEvent.click(backButton)
-
-        // Modal should appear
-        await waitFor(() => {
-          expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-        })
-      })
-
-      it('saves and goes back when user clicks "Save changes"', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-        // Skip to second issue
-        const skipButton = screen.getByTestId('skip-button')
-        await userEvent.click(skipButton)
-
-        // Apply changes
-        const applyButton = screen.getByTestId('apply-button')
-        await userEvent.click(applyButton)
-
-        await waitFor(() => {
-          expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-        })
-
-        // Click Back button
-        const backButton = screen.getByTestId('back-button')
-        await userEvent.click(backButton)
-
-        // Wait for modal
-        await waitFor(() => {
-          expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-        })
-
-        // Click "Save changes"
-        const saveButton = screen.getByText('Save changes').closest('button')!
-        await userEvent.click(saveButton)
-
-        // Modal should close
-        await waitFor(() => {
-          expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument()
-        })
-      })
-
-      it('goes back without saving when user clicks "Don\'t Save"', async () => {
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-        // Skip to second issue
-        const skipButton = screen.getByTestId('skip-button')
-        await userEvent.click(skipButton)
-
-        // Apply changes
-        const applyButton = screen.getByTestId('apply-button')
-        await userEvent.click(applyButton)
-
-        await waitFor(() => {
-          expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-        })
-
-        // Click Back button
-        const backButton = screen.getByTestId('back-button')
-        await userEvent.click(backButton)
-
-        // Wait for modal
-        await waitFor(() => {
-          expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-        })
-
-        // Click "Don't save"
-        const dontSaveButton = screen.getByText("Don't save").closest('button')!
-        await userEvent.click(dontSaveButton)
-
-        // Modal should close
-        await waitFor(() => {
-          expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument()
-        })
-      })
-    })
-
-    describe('Back To Start button with unsaved changes', () => {
-      it('shows modal when user tries to go back to start with unsaved changes', async () => {
-        // Use wrapper with close issues disabled to show Back To Start button
-        setupMockStore({isGA2FeaturesEnabled: true, isCloseIssuesEnabled: false})
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-        // Skip to last issue
-        const skipButton = screen.getByTestId('skip-button')
-        await userEvent.click(skipButton)
-
-        // Apply changes to set isRemediated to true
-        const applyButton = screen.getByTestId('apply-button')
-        await userEvent.click(applyButton)
-
-        await waitFor(() => {
-          expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-        })
-
-        // Click Back To Start button
-        const backToStartButton = screen.getByTestId('back-to-start-button')
-        await userEvent.click(backToStartButton)
-
-        // Modal should appear
-        await waitFor(() => {
-          expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-        })
-      })
-
-      it('saves and goes back to start when user clicks "Save changes"', async () => {
-        setupMockStore({isGA2FeaturesEnabled: true, isCloseIssuesEnabled: false})
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-        // Skip to last issue
-        const skipButton = screen.getByTestId('skip-button')
-        await userEvent.click(skipButton)
-
-        // Apply changes
-        const applyButton = screen.getByTestId('apply-button')
-        await userEvent.click(applyButton)
-
-        await waitFor(() => {
-          expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-        })
-
-        // Click Back To Start button
-        const backToStartButton = screen.getByTestId('back-to-start-button')
-        await userEvent.click(backToStartButton)
-
-        // Wait for modal
-        await waitFor(() => {
-          expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-        })
-
-        // Click "Save changes"
-        const saveButton = screen.getByText('Save changes').closest('button')!
-        await userEvent.click(saveButton)
-
-        // Modal should close
-        await waitFor(() => {
-          expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument()
-        })
-      })
-
-      it('goes back to start without saving when user clicks "Don\'t Save"', async () => {
-        setupMockStore({isGA2FeaturesEnabled: true, isCloseIssuesEnabled: false})
-        render(<AccessibilityWizard />, {wrapper: createWrapper()})
-
-        // Skip to last issue
-        const skipButton = screen.getByTestId('skip-button')
-        await userEvent.click(skipButton)
-
-        // Apply changes
-        const applyButton = screen.getByTestId('apply-button')
-        await userEvent.click(applyButton)
-
-        await waitFor(() => {
-          expect(screen.getByTestId('save-and-next-button')).toBeEnabled()
-        })
-
-        // Click Back To Start button
-        const backToStartButton = screen.getByTestId('back-to-start-button')
-        await userEvent.click(backToStartButton)
-
-        // Wait for modal
-        await waitFor(() => {
-          expect(screen.getByText('You have unsaved changes')).toBeInTheDocument()
-        })
-
-        // Click "Don't save"
-        const dontSaveButton = screen.getByText("Don't save").closest('button')!
-        await userEvent.click(dontSaveButton)
-
-        // Modal should close
-        await waitFor(() => {
-          expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument()
+          const allRemediatedCalls = mockTrackA11yEvent.mock.calls.filter(
+            (call: any) => call[0] === 'CourseRemediated',
+          )
+          expect(allRemediatedCalls).toHaveLength(0)
         })
       })
     })

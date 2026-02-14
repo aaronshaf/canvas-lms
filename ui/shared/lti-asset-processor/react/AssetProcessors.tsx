@@ -94,7 +94,7 @@ export function AssetProcessors(props: AssetProcessorsProps) {
             className="error-message"
           />
           {toolsAvailable && (
-            <Flex.Item overflowY="visible">
+            <Flex.Item>
               <Button
                 color="secondary"
                 onClick={openAddDialog}

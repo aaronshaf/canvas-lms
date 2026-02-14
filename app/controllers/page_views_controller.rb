@@ -79,12 +79,12 @@
 #           "format": "iso8601"
 #         },
 #         "user_request": {
-#           "description": "A flag indicating whether the request was user-initiated, or automatic (such as an AJAX call). Not available in history CSV.",
+#           "description": "A flag indicating whether the request was user-initiated, or automatic (such as an AJAX call)",
 #           "example": "true",
 #           "type": "boolean"
 #         },
 #         "render_time": {
-#           "description": "How long the response took to render, in seconds. Not available in history CSV.",
+#           "description": "How long the response took to render, in seconds",
 #           "example": "0.369",
 #           "type": "number"
 #         },
@@ -108,22 +108,6 @@
 #           "example": "173.194.46.71",
 #           "type": "string"
 #         },
-#         "session_id": {
-#           "description": "The session identifier for the user session that made the request",
-#           "example": "b4f5c8e0-e2f3-0130-51e0-02e33aa501ef",
-#           "type": "string",
-#           "format": "uuid"
-#         },
-#        "developer_key_id": {
-#          "description": "The ID of the developer key that authorized the API request, if applicable",
-#          "example": "42",
-#          "type": "number"
-#        },
-#        "asset_user_access_id": {
-#          "description": "The ID of the asset (e.g. an assignment) associated with this page view, if applicable",
-#          "example": "9876",
-#          "type": "number"
-#        },
 #         "links": {
 #           "description": "The page view links to define the relationships",
 #           "$ref": "PageViewLinks",
@@ -150,7 +134,7 @@
 #          "format": "int64"
 #        },
 #        "asset": {
-#          "description": "The ID of the asset for the request, if any. Not available in history CSV.",
+#          "description": "The ID of the asset for the request, if any",
 #          "example": "1234",
 #          "type": "integer",
 #          "format": "int64"
@@ -267,7 +251,6 @@
 #         }
 #       }
 #     }
-#
 
 class PageViewsController < ApplicationController
   before_action :require_user, only: [:index]
@@ -276,9 +259,6 @@ class PageViewsController < ApplicationController
 
   # Maximum records per page for page views API (PV5 supports up to 200)
   PAGE_VIEWS_MAX_PER_PAGE = 200
-
-  # Maximum number of user IDs allowed in a batch query
-  BATCH_QUERY_MAX_USER_IDS = 10
 
   # @API List user page views
   # Return a paginated list of the user's page view history in json format,
@@ -545,12 +525,6 @@ class PageViewsController < ApplicationController
   # @returns QueryResultsResponse
   # @returns AsyncApiErrorResponse
   #
-  # Note: PageView payloads use two types of identifiers: globalId and localId. Global identifier is equal to (shardId*10000000000000)+localId.
-  # Please note our global identifiers might change if your Canvas instance goes through shard migration process, in this case your current
-  # shardId in the global identifier will change to a new shardId. Local identifiers do not change after shard migration and stay unique in the
-  # context of the Canvas account. The following fields in the PageView payload are global identifiers: `links_user`, `links_context`, `links_asset`,
-  # `links_real_user`, `links_account`, `developer_key_id`, `asset_user_access_id`.
-  #
   # @example_request
   #   curl https://<canvas>/api/v1/users/:user_id/page_views/query/:query_id/results \
   #     -H 'Authorization: Bearer <token>'
@@ -665,16 +639,6 @@ class PageViewsController < ApplicationController
     increment_request_cost(150)
 
     user_ids, start_date, end_date, results_format = params.require(%i[user_ids start_date end_date results_format])
-
-    # Check for maximum number of user IDs
-    if user_ids.length > BATCH_QUERY_MAX_USER_IDS
-      return render json: {
-                      error: t("Too many user IDs. Maximum: %{max}, provided: %{provided}",
-                               max: BATCH_QUERY_MAX_USER_IDS,
-                               provided: user_ids.length)
-                    },
-                    status: :bad_request
-    end
 
     # Check for duplicate user IDs
     duplicate_id = user_ids.detect { |id| user_ids.count(id) > 1 }

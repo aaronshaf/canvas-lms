@@ -78,7 +78,7 @@ module Lti
           context "logging" do
             before do
               allow(Lti::LogService).to receive(:new) do
-                instance_double(Lti::LogService, call: nil)
+                double("Lti::LogService").tap { |s| allow(s).to receive(:call) }
               end
             end
 
@@ -256,7 +256,7 @@ module Lti
         context "logging" do
           before do
             allow(Lti::LogService).to receive(:new) do
-              instance_double(Lti::LogService, call: nil)
+              double("Lti::LogService").tap { |s| allow(s).to receive(:call) }
             end
           end
 

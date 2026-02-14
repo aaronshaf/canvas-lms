@@ -21,7 +21,7 @@
 describe Lti::ReRegConstraint do
   describe "#matches?" do
     it "returns true if the header VND-IMS-CONFIRM-URL is present" do
-      mock_request = instance_double(ActionDispatch::Request)
+      mock_request = double("mock_request")
       allow(mock_request).to receive_messages(
         headers: { "VND-IMS-CONFIRM-URL" => "http://i-am-a-place-on-the-internet.dev/" },
         format: "json"
@@ -30,7 +30,7 @@ describe Lti::ReRegConstraint do
     end
 
     it "returns failse if the format is not json" do
-      mock_request = instance_double(ActionDispatch::Request)
+      mock_request = double("mock_request")
       allow(mock_request).to receive_messages(
         headers: { "VND-IMS-CONFIRM-URL" => "http://i-am-a-place-on-the-internet.dev/" },
         format: "xml"

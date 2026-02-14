@@ -21,7 +21,7 @@ import {shape, string} from 'prop-types'
 
 export const AssessmentRequest = {
   fragment: gql`
-    fragment DiscussionPostAssessmentRequest on AssessmentRequest {
+    fragment AssessmentRequest on AssessmentRequest {
       _id
       createdAt
       updatedAt

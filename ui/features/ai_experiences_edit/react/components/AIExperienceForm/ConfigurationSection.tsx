@@ -27,7 +27,7 @@ import {Text} from '@instructure/ui-text'
 import {IconAiLine} from '@instructure/ui-icons'
 import {AIExperienceFormData} from '../../../types'
 import CanvasFileUpload from '@canvas/canvas-file-upload/react/CanvasFileUpload'
-import type {ContextFile} from '@canvas/canvas-file-upload/react/types'
+import {ContextFile} from '@canvas/canvas-file-upload/react/types'
 
 const I18n = createI18nScope('ai_experiences_edit')
 
@@ -80,7 +80,7 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
               <View>
                 <View as="div" margin="0 0 xx-small 0">
                   <Text color="primary-inverse" weight="bold" size="large">
-                    {I18n.t('Learning Design')}
+                    {I18n.t('Learning design')}
                   </Text>
                 </View>
                 <Text color="primary-inverse" size="small">
@@ -95,16 +95,50 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
           <FormFieldGroup description="" layout="stacked">
             <TextArea
               data-testid="ai-experience-edit-facts-input"
-              label={I18n.t('Facts Students Should Know')}
+              label={I18n.t('Facts students should know')}
               value={formData.facts}
               onChange={onChange('facts')}
-              required
               placeholder={I18n.t(
                 'Key facts or details the student is expected to recall (e.g., Wright brothers, 1903, Kitty Hawk).',
               )}
               resize="vertical"
               height="120px"
-              messages={showErrors && errors.facts ? [{type: 'newError', text: errors.facts}] : []}
+            />
+
+            <TextArea
+              data-testid="ai-experience-edit-learning-objective-input"
+              label={I18n.t('Learning objectives')}
+              value={formData.learning_objective}
+              onChange={onChange('learning_objective')}
+              required
+              placeholder={I18n.t(
+                'Enter each objective on a new line or separated by semicolons.\nExample:\n- Understand photosynthesis\n- Explain cellular respiration\n- Describe ATP production',
+              )}
+              resize="vertical"
+              height="120px"
+              messages={
+                showErrors && errors.learning_objective
+                  ? [{type: 'newError', text: errors.learning_objective}]
+                  : []
+              }
+            />
+
+            <TextArea
+              data-testid="ai-experience-edit-pedagogical-guidance-input"
+              label={I18n.t('Pedagogical guidance')}
+              value={formData.pedagogical_guidance}
+              onChange={onChange('pedagogical_guidance')}
+              required
+              placeholder={I18n.t(
+                'Describe the role or style of the AI (e.g., friendly guide, strict examiner, storyteller).',
+              )}
+              resize="vertical"
+              height="120px"
+              messages={
+                showErrors && errors.pedagogical_guidance
+                  ? [{type: 'newError', text: errors.pedagogical_guidance}]
+                  : []
+              }
             />
           </FormFieldGroup>
 
@@ -112,7 +146,7 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
           {(window as any).ENV?.FEATURES?.ai_experiences_context_file_upload && (
             <View as="div" margin="medium 0 0 0" padding="xxx-small">
               <Heading level="h4" margin="0 0 x-small 0">
-                {I18n.t('Source Materials')}
+                {I18n.t('Source materials')}
               </Heading>
               <View as="div" margin="0 0 small 0">
                 <Text size="small" color="secondary">
@@ -131,43 +165,6 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
               />
             </View>
           )}
-
-          <FormFieldGroup description="" layout="stacked">
-            <TextArea
-              data-testid="ai-experience-edit-learning-objective-input"
-              label={I18n.t('Learning Objectives')}
-              value={formData.learning_objective}
-              onChange={onChange('learning_objective')}
-              required
-              placeholder={I18n.t(
-                'Enter each objective on a new line or separated by semicolons.\nExample:\n- Understand photosynthesis\n- Explain cellular respiration\n- Describe ATP production',
-              )}
-              resize="vertical"
-              height="120px"
-              messages={
-                showErrors && errors.learning_objective
-                  ? [{type: 'newError', text: errors.learning_objective}]
-                  : []
-              }
-            />
-
-            <TextArea
-              data-testid="ai-experience-edit-pedagogical-guidance-input"
-              label={I18n.t('Pedagogical Guidance')}
-              value={formData.pedagogical_guidance}
-              onChange={onChange('pedagogical_guidance')}
-              placeholder={I18n.t(
-                'Describe the role or style of the AI (e.g., friendly guide, strict examiner, storyteller).',
-              )}
-              resize="vertical"
-              height="120px"
-              messages={
-                showErrors && errors.pedagogical_guidance
-                  ? [{type: 'newError', text: errors.pedagogical_guidance}]
-                  : []
-              }
-            />
-          </FormFieldGroup>
         </div>
       </div>
     </View>

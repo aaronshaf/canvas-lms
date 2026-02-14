@@ -1,0 +1,10 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
+[remote "origin"]
+	url = ssh://gerrit.instructure.com:29418/canvas-lms
+	fetch = +refs/heads/master:refs/remotes/origin/master

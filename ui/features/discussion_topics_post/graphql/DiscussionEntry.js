@@ -43,13 +43,13 @@ export const DiscussionEntry = {
         shortName
       }
       editor {
-        ...DiscussionPostUser
+        ...User
       }
       author {
-        ...DiscussionPostUser
+        ...User
       }
       attachment {
-        ...DiscussionPostAttachment
+        ...Attachment
       }
       entryParticipant {
         rating

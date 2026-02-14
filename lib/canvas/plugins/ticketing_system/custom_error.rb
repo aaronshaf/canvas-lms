@@ -26,21 +26,7 @@ module Canvas::Plugins::TicketingSystem
   # error = CustomError.new(error_report)
   #
   class CustomError < DelegateClass(::ErrorReport)
-    # Explicit delegations for ErrorReport attributes used by this class.
-    # DelegateClass captures public_instance_methods at class load time, but
-    # ActiveRecord attribute methods are lazily defined and may not exist yet.
-    delegate :account_id,
-             :backtrace,
-             :comments,
-             :data,
-             :http_env,
-             :id,
-             :message,
-             :request_context_id,
-             :subject,
-             :url,
-             :user_id,
-             to: :__getobj__
+    delegate :id, to: :__getobj__
 
     # whether sending to a web endpoint, or an email message,
     # this is the canonical way to present a Canvas ErrorReport

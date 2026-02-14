@@ -3101,16 +3101,11 @@ EG = {
           grade,
         }
       })
-      // Only show quiz history link if the global flag is true AND the student has actual submissions
-      const hasActualSubmissions = submissionHistory.some((h: any) => {
-        const s = h.submission || h
-        return s.submitted_at != null
-      })
       innerHTML = submissionsDropdownTemplate({
         showSubmissionStatus: !window.jsonData.anonymize_students || isAdmin,
         singleSubmission: submissionHistory.length === 1,
         submissions: templateSubmissions,
-        linkToQuizHistory: window.jsonData.too_many_quiz_submissions && hasActualSubmissions,
+        linkToQuizHistory: window.jsonData.too_many_quiz_submissions,
         quizHistoryHref: replaceTags(ENV.quiz_history_url, {
           user_id: this.currentStudent[anonymizableId],
         }),
@@ -4878,7 +4873,6 @@ EG = {
       provisionalGrades,
     }
 
-    // @ts-expect-error
     const gradeSelector = <SpeedGraderProvisionalGradeSelector {...props} />
     legacyRender(gradeSelector, mountPoint)
   },

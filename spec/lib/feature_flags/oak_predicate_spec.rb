@@ -18,7 +18,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 describe FeatureFlags::OakPredicate do
-  let(:context) { instance_double(Account) }
+  let(:context) { double("Context") }
 
   describe "#call" do
     context "when Rails environment is local" do

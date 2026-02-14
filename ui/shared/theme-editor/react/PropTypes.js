@@ -54,15 +54,7 @@ types.percentage = PropTypes.shape({
   ...baseVarDef,
 })
 
-types.textarea = PropTypes.shape({
-  type: PropTypes.oneOf(['textarea']).isRequired,
-  helper_text: PropTypes.string,
-  label: PropTypes.string,
-  description: PropTypes.string,
-  ...baseVarDef,
-})
-
-types.varDef = PropTypes.oneOfType([types.image, types.color, types.percentage, types.textarea])
+types.varDef = PropTypes.oneOfType([types.image, types.color, types.percentage])
 
 types.brandConfig = PropTypes.shape({
   md5: types.md5,
@@ -89,7 +81,7 @@ types.variableSchema = PropTypes.arrayOf(types.variableGroup)
 
 types.variableDescription = PropTypes.shape({
   default: PropTypes.string.isRequired,
-  type: PropTypes.oneOf(['color', 'image', 'percentage', 'textarea']).isRequired,
+  type: PropTypes.oneOf(['color', 'image', 'percentage']).isRequired,
   variable_name: PropTypes.string.isRequired,
 })
 

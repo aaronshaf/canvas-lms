@@ -18,11 +18,7 @@
 
 import {cleanup, render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import ColorPickerForm, {
-  COLOR_REQUIRED_MESSAGE,
-  INVALID_COLOR_MESSAGE,
-  type ContrastErrorCode,
-} from '../ColorPickerForm'
+import ColorPickerForm from '../ColorPickerForm'
 import {AccessibilityIssue, FormType, IssueWorkflowState} from '../../../../types'
 
 describe('ColorPickerForm', () => {
@@ -141,7 +137,7 @@ describe('ColorPickerForm', () => {
       expect(screen.getByText(LABELS.CUSTOM_INPUT)).toBeInTheDocument()
     })
 
-    it('uses BLACK as default when no value is provided', () => {
+    it('uses empty string as default when no value is provided', () => {
       const issue = createMockIssue({
         form: {
           type: FormType.ColorPicker,
@@ -151,10 +147,10 @@ describe('ColorPickerForm', () => {
 
       renderColorPickerForm({issue})
 
-      expect(getColorPickerInput().value).toBe(COLORS.BLACK.substring(1)) // Remove # for input value
+      expect(getColorPickerInput().value).toBe('')
     })
 
-    it('uses provided value when issue.form.value is provided', () => {
+    it('uses empty string even when issue.form.value is provided', () => {
       const issue = createMockIssue({
         form: {
           type: FormType.ColorPicker,
@@ -165,7 +161,7 @@ describe('ColorPickerForm', () => {
 
       renderColorPickerForm({issue})
 
-      expect(getColorPickerInput().value).toBe(COLORS.RED.substring(1)) // Remove # for input value
+      expect(getColorPickerInput().value).toBe('')
     })
 
     it('uses default background color #FFFFFF when not provided', () => {
@@ -297,20 +293,6 @@ describe('ColorPickerForm', () => {
       renderColorPickerForm()
 
       expect(screen.getByTestId(TEST_IDS.COLOR_PICKER)).toBeInTheDocument()
-    })
-
-    it('maps backend error "color_missing" to user-friendly message', () => {
-      const errorCode: ContrastErrorCode = 'color_missing'
-      renderColorPickerForm({error: errorCode})
-
-      expect(screen.getByText(COLOR_REQUIRED_MESSAGE)).toBeInTheDocument()
-    })
-
-    it('maps backend error "invalid_color_format" to user-friendly message', () => {
-      const errorCode: ContrastErrorCode = 'invalid_color_format'
-      renderColorPickerForm({error: errorCode})
-
-      expect(screen.getByText(INVALID_COLOR_MESSAGE)).toBeInTheDocument()
     })
   })
 

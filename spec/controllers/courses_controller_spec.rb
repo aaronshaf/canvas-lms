@@ -2334,7 +2334,7 @@ describe CoursesController do
         end
 
         it "syncs enrollments if setting is set" do
-          progress = instance_double(Progress).as_null_object
+          progress = double("Progress").as_null_object
           allow(Progress).to receive(:new).and_return(progress)
           expect(progress).to receive(:process_job)
 
@@ -2350,7 +2350,7 @@ describe CoursesController do
         end
 
         it "does not sync if course is a sis import" do
-          progress = instance_double(Progress).as_null_object
+          progress = double("Progress").as_null_object
           allow(Progress).to receive(:new).and_return(progress)
           expect(progress).not_to receive(:process_job)
 
@@ -3123,30 +3123,6 @@ describe CoursesController do
       expect(@course.workflow_state).to eq "deleted"
     end
 
-    it "soft-deletes associated LTI context controls when course is deleted" do
-      @course.root_account.role_overrides.create!(
-        role: teacher_role,
-        permission: "manage_courses_delete",
-        enabled: true
-      )
-      user_session(@teacher)
-
-      registration = lti_registration_with_tool(account: @course.account)
-      deployment = registration.deployments.first
-
-      control = Lti::ContextControl.create!(
-        context: @course,
-        registration:,
-        deployment:
-      )
-
-      expect(control.workflow_state).to eq("active")
-
-      put "update", params: { id: @course.id, course: { event: "delete" }, format: :json }
-
-      expect(control.reload.workflow_state).to eq("deleted_with_context")
-    end
-
     it "doesn't delete course if :manage_courses_delete is not enabled" do
       @course.root_account.role_overrides.create!(
         role: teacher_role,
@@ -3176,79 +3152,6 @@ describe CoursesController do
       expect(json["course"]["workflow_state"]).to eq "claimed"
       @course.reload
       expect(@course.workflow_state).to eq "claimed"
-    end
-
-    it "restores LTI context controls when course is undeleted" do
-      @course.root_account.role_overrides.create!(
-        role: admin_role,
-        permission: "manage_courses_delete",
-        enabled: true
-      )
-      admin = account_admin_user
-      user_session(admin)
-
-      registration = lti_registration_with_tool(account: @course.account)
-      deployment = registration.deployments.first
-
-      control = Lti::ContextControl.create!(
-        context: @course,
-        registration:,
-        deployment:
-      )
-
-      # Delete the course
-      put "update", params: { id: @course.id, course: { event: "delete" }, format: :json }
-      expect(control.reload.workflow_state).to eq("deleted_with_context")
-
-      # Undelete the course
-      put "update", params: { id: @course.id, course: { event: "undelete" }, format: :json }
-
-      expect(control.reload.workflow_state).to eq("active")
-    end
-
-    it "does not restore context controls that were independently deleted before course deletion" do
-      @course.root_account.role_overrides.create!(
-        role: admin_role,
-        permission: "manage_courses_delete",
-        enabled: true
-      )
-      admin = account_admin_user
-      user_session(admin)
-
-      registration1 = lti_registration_with_tool(account: @course.account)
-      deployment1 = registration1.deployments.first
-      registration2 = lti_registration_with_tool(account: @course.account)
-      deployment2 = registration2.deployments.first
-
-      control1 = Lti::ContextControl.create!(
-        context: @course,
-        registration: registration1,
-        deployment: deployment1
-      )
-      control2 = Lti::ContextControl.create!(
-        context: @course,
-        registration: registration2,
-        deployment: deployment2
-      )
-
-      # Delete control1 as though it was deleted in the Apps UI,
-      # not via course deletion.
-      control1.update!(workflow_state: "deleted")
-
-      # Delete the course (which will delete control2)
-      put "update", params: { id: @course.id, course: { event: "delete" }, format: :json }
-      # control1 is in normal "deleted" state
-      expect(control1.reload.workflow_state).to eq("deleted")
-      # control1 is "deleted_with_context" because it was deleted along with a course
-      expect(control2.reload.workflow_state).to eq("deleted_with_context")
-
-      # Undelete the course
-      put "update", params: { id: @course.id, course: { event: "undelete" }, format: :json }
-
-      # control1 should remain deleted
-      expect(control1.reload.workflow_state).to eq("deleted")
-      # control2 should be restored
-      expect(control2.reload.workflow_state).to eq("active")
     end
 
     it "returns an error if a bad event is given" do
@@ -5564,19 +5467,19 @@ describe CoursesController do
 
         context "with existing progress" do
           let(:progress) do
-            instance_double(Progress,
-                            id: 123,
-                            workflow_state: "completed",
-                            results: {
-                              resources: {
-                                "WikiPage|1" => { name: "Page 1", type: "WikiPage", embeds: [], count: 1 },
-                                "WikiPage|2" => { name: "Page 2", type: "WikiPage", embeds: [], count: 2 },
-                                "WikiPage|3" => { name: "Page 3", type: "WikiPage", embeds: [], count: 1 },
-                                "WikiPage|4" => { name: "Page 4", type: "WikiPage", embeds: [], count: 3 },
-                                "WikiPage|5" => { name: "Page 5", type: "WikiPage", embeds: [], count: 1 }
-                              },
-                              total_count: 8
-                            })
+            double("Progress",
+                   id: 123,
+                   workflow_state: "completed",
+                   results: {
+                     resources: {
+                       "WikiPage|1" => { name: "Page 1", type: "WikiPage", embeds: [], count: 1 },
+                       "WikiPage|2" => { name: "Page 2", type: "WikiPage", embeds: [], count: 2 },
+                       "WikiPage|3" => { name: "Page 3", type: "WikiPage", embeds: [], count: 1 },
+                       "WikiPage|4" => { name: "Page 4", type: "WikiPage", embeds: [], count: 3 },
+                       "WikiPage|5" => { name: "Page 5", type: "WikiPage", embeds: [], count: 1 }
+                     },
+                     total_count: 8
+                   })
           end
 
           before do
@@ -5668,7 +5571,7 @@ describe CoursesController do
           resource_group_key: "key"
         }
       end
-      let(:progress) { instance_double(Progress, id: 1) }
+      let(:progress) { double("Progress", id: 1) }
 
       before do
         allow(YoutubeMigrationService).to receive(:new).with(@course).and_return(service)
@@ -6564,7 +6467,7 @@ describe CoursesController do
       course_with_teacher(active_all: true)
     end
 
-    it "calls NavMenuLinkTabs.sync_course_links_with_tabs and saves course" do
+    it "calls NavMenuLinkTabs.create_and_delete_links and saves course" do
       user_session(@teacher)
       tabs_json = [
         { id: "assignments", label: "Assignments" },
@@ -6576,9 +6479,10 @@ describe CoursesController do
         { "id" => "announcements", "label" => "Announcements", "hidden" => true }
       ]
 
-      expect(NavMenuLinkTabs).to receive(:sync_course_links_with_tabs)
+      expect(NavMenuLinkTabs).to receive(:create_and_delete_links)
         .with(
-          course: @course,
+          context: @course,
+          nav_type: "course",
           tabs: [
             { "id" => "assignments", "label" => "Assignments" },
             { "id" => "announcements", "label" => "Announcements", "hidden" => true }

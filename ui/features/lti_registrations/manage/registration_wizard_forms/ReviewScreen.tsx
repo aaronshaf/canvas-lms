@@ -67,7 +67,6 @@ export type ReviewScreenProps = {
   launchSettings?: LaunchSettings
   eulaSettings?: MessageSetting
   defaultIconUrl?: string
-  includeIconUrls?: boolean
   onEditScopes: () => void
   onEditPrivacyLevel: () => void
   onEditPlacements: () => void
@@ -89,7 +88,6 @@ export const ReviewScreen = ({
   iconUrls,
   defaultIconUrl,
   defaultPlacementIconUrls = {},
-  includeIconUrls = true,
   onEditScopes,
   onEditLaunchSettings,
   onEditMessageSettings,
@@ -225,15 +223,13 @@ export const ReviewScreen = ({
           onClick={onEditNaming}
         />
       </ReviewSection>
-      {includeIconUrls && (
-        <IconUrlsReviewSection
-          placements={placements}
-          iconUrls={iconUrls}
-          defaultPlacementIconUrls={defaultPlacementIconUrls}
-          defaultIconUrl={defaultIconUrl}
-          onEditIconUrls={onEditIconUrls}
-        />
-      )}
+      <IconUrlsReviewSection
+        placements={placements}
+        iconUrls={iconUrls}
+        defaultPlacementIconUrls={defaultPlacementIconUrls}
+        defaultIconUrl={defaultIconUrl}
+        onEditIconUrls={onEditIconUrls}
+      />
     </RegistrationModalBody>
   )
 }

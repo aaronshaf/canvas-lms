@@ -108,10 +108,7 @@ export const getCourseBasedPath = (newPath = ''): string => {
  * @returns - the resource scan path (e.g. /api/v1/courses/1/pages/1/accessibility/scan)
  */
 export const getResourceScanPath = (resourceScan: AccessibilityResourceScan): string => {
-  // Use resourceScanPath if available (only present for syllabus resources)
-  // For all other resources, fall back to resourceUrl
-  const basePath = resourceScan.resourceScanPath || resourceScan.resourceUrl
-  return `/api/v1${basePath}/accessibility/scan`.replaceAll('//', '/')
+  return `/api/v1/${resourceScan.resourceUrl}/accessibility/scan`.replaceAll('//', '/')
 }
 
 /**
@@ -119,10 +116,7 @@ export const getResourceScanPath = (resourceScan: AccessibilityResourceScan): st
  * @returns - the resource scan path (e.g. /api/v1/courses/1/pages/1/accessibility/queue_scan)
  */
 export const getResourceQueueScanPath = (resourceScan: AccessibilityResourceScan): string => {
-  // Use resourceScanPath if available (only present for syllabus resources)
-  // For all other resources, fall back to resourceUrl
-  const basePath = resourceScan.resourceScanPath || resourceScan.resourceUrl
-  return `/api/v1${basePath}/accessibility/queue_scan`.replaceAll('//', '/')
+  return `/api/v1/${resourceScan.resourceUrl}/accessibility/queue_scan`.replaceAll('//', '/')
 }
 
 /**

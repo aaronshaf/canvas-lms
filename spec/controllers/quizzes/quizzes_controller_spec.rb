@@ -1536,7 +1536,7 @@ describe Quizzes::QuizzesController do
     end
 
     describe "valid_question?" do
-      let(:submission) { instance_double(Quizzes::QuizSubmission) }
+      let(:submission) { double }
 
       context "when the passed in question ID is in the submission" do
         it "returns true" do

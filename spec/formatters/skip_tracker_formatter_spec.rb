@@ -30,8 +30,8 @@ RSpec.describe RSpec::SkipTrackerFormatter do
 
   # Helper to create a mock example
   def create_example(description:, location:, pending_message:, metadata: {})
-    execution_result = instance_double(
-      RSpec::Core::Example::ExecutionResult,
+    execution_result = double(
+      "ExecutionResult",
       status: :pending,
       pending_message:,
       pending_fixed: false
@@ -50,8 +50,8 @@ RSpec.describe RSpec::SkipTrackerFormatter do
       }
     }
 
-    instance_double(
-      RSpec::Core::Example,
+    double(
+      "Example",
       full_description: description,
       location:,
       execution_result:,
@@ -61,13 +61,13 @@ RSpec.describe RSpec::SkipTrackerFormatter do
 
   # Helper to create a notification
   def create_notification(example)
-    instance_double(RSpec::Core::Notifications::ExampleNotification, example:)
+    double("Notification", example:)
   end
 
   # Helper to create summary notification
   def create_summary_notification(example_count: 10, failed_examples: [])
-    instance_double(
-      RSpec::Core::Notifications::SummaryNotification,
+    double(
+      "SummaryNotification",
       example_count:,
       failed_examples:
     )

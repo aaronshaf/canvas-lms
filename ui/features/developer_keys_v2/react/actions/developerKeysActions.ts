@@ -419,7 +419,7 @@ export const actions = {
     (formData: unknown, url: string, method: string) => (dispatch: Dispatch) => {
       dispatch(actions.createOrEditDeveloperKeyStart())
 
-      return axios<DeveloperKey>({
+      return axios<DeveloperKey, DeveloperKey>({
         method,
         url,
         data: formData,

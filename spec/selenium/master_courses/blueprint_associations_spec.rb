@@ -58,10 +58,10 @@ describe "Blueprint association settings" do
       open_courses_list
       row = f('tr[data-testid="bca-table__course-row"]')
       row.find_element(xpath: "td//label").click
-      expect(fj("span:contains('To be Added')")).not_to be_nil
+      expect(fj("span:contains('To be Added')")).to be
       element = f(".bca-associations-table")
       element = element.find_element(css: "button[data-course-id=\"#{@minion3.id}\"]")
-      expect(element).not_to be_nil
+      expect(element).to be
     end
 
     it "leaving the search bar shouldn't close the courses tab", priority: "2" do

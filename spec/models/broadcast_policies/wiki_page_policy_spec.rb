@@ -20,19 +20,19 @@
 module BroadcastPolicies
   describe WikiPagePolicy do
     let(:course) do
-      instance_double(Course).tap do |c|
+      double("Course").tap do |c|
         allow(c).to receive_messages(unpublished?: false, concluded?: false)
       end
     end
 
     let(:wiki) do
-      instance_double(Wiki).tap do |w|
+      double("Wiki").tap do |w|
         allow(w).to receive(:context).and_return(course)
       end
     end
 
     let(:wiki_page) do
-      instance_double(WikiPage).tap do |w|
+      double("WikiPage").tap do |w|
         allow(w).to receive_messages(created_at: 1.hour.ago,
                                      published?: true,
                                      wiki:,

@@ -23,7 +23,7 @@ module Services
     let_once(:course) { course_factory(active_all: true) }
     let_once(:global_course_id) { course.global_id }
     let_once(:global_account_id) { course.account.global_id }
-    let(:mock_dynamic_settings) { instance_double(DynamicSettings::PrefixProxy) }
+    let(:mock_dynamic_settings) { double("DynamicSettings") }
 
     before do
       allow(DynamicSettings).to receive(:find).with(tree: :private).and_return(mock_dynamic_settings)

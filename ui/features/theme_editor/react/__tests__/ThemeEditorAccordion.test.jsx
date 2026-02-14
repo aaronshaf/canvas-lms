@@ -165,10 +165,5 @@ describe('ThemeEditorAccordion', () => {
       const {getByLabelText} = render(<ThemeEditorAccordion {...generateProps('percentage')} />)
       expect(getByLabelText('Friendly Foo')).toBeInTheDocument()
     })
-
-    it('renders textarea rows', () => {
-      const {getByLabelText} = render(<ThemeEditorAccordion {...generateProps('textarea')} />)
-      expect(getByLabelText('Friendly Foo')).toBeInTheDocument()
-    })
   })
 })

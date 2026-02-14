@@ -25,9 +25,13 @@ export function useTranslationQueue() {
   const translationQueue = useRef([])
   const activeAbortControllers = useRef(new Set())
 
+  const actualMaxConcurrentTranslations = useMemo(() => {
+    return ENV.ai_translation_improvements ? MAX_CONCURRENT_TRANSLATIONS : Number.POSITIVE_INFINITY
+  }, [])
+
   const processTranslationQueue = useCallback(() => {
     while (
-      activeTranslationCount.current < MAX_CONCURRENT_TRANSLATIONS &&
+      activeTranslationCount.current < actualMaxConcurrentTranslations &&
       translationQueue.current.length > 0
     ) {
       const {jobFn, abortController} = translationQueue.current.shift()
@@ -44,7 +48,7 @@ export function useTranslationQueue() {
           processTranslationQueue()
         })
     }
-  }, [MAX_CONCURRENT_TRANSLATIONS])
+  }, [actualMaxConcurrentTranslations])
 
   const enqueueTranslation = useCallback(
     jobFn => {

@@ -29,6 +29,7 @@ import {Text} from '@instructure/ui-text'
 import {ToggleDetails} from '@instructure/ui-toggle-details'
 import {Alert} from '@instructure/ui-alerts'
 import {View} from '@instructure/ui-view'
+import {Flex} from '@instructure/ui-flex'
 import useStore from './stores/index'
 import {RubricAssessmentTray, TraditionalView} from '@canvas/rubrics/react/RubricAssessment'
 import {Button} from '@instructure/ui-buttons'
@@ -145,7 +146,6 @@ export default function RubricTab(props) {
     return enhancedRubricsEnabled ? (
       <TraditionalView
         criteria={rubricCriteria}
-        customRatings={props.proficiencyRatings}
         hidePoints={hidePoints}
         isPreviewMode={true}
         isAiEvaluated={props.isAiEvaluated}

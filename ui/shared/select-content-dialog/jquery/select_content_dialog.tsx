@@ -811,8 +811,7 @@ $(document).ready(function () {
             }
             // Only include New Quizzes params when New Quizzes is selected
             const isNewQuizzesSelected =
-              $('input[name=quiz_engine_selection]:checked').val() === 'assignment' ||
-              ENV?.NEW_QUIZZES_BY_DEFAULT === true
+              $('input[name=quiz_engine_selection]:checked').val() === 'assignment'
             if (isNewQuizzesSelected) {
               data['assignment[new_quizzes_quiz_type]'] = currentQuizType
               data['assignment[new_quizzes_anonymous_submission]'] = isAnonymousSubmission
@@ -1055,8 +1054,7 @@ $(document).ready(function () {
 
       const itemType = $('#add_module_item_select').val()
       const isNewQuizzesChecked = $('#new_quizzes_radio').is(':checked')
-      const newQuizzesByDefault = ENV?.NEW_QUIZZES_BY_DEFAULT === true
-      if (itemType === 'quiz' && (isNewQuizzesChecked || newQuizzesByDefault)) {
+      if (itemType === 'quiz' && isNewQuizzesChecked) {
         resizeModuleItemDialog(MODULE_ITEM_DIALOG_HEIGHT_WITH_QUIZ_TYPE_SELECTOR)
       }
     } else {
@@ -1097,12 +1095,7 @@ $(document).ready(function () {
 
   // Initialize quiz type selector if New Quizzes is already selected on page load
   const isNewQuizzesChecked = $('#new_quizzes_radio').is(':checked')
-  const newQuizzesByDefault = ENV?.NEW_QUIZZES_BY_DEFAULT === true
-
-  // Show quiz type selector if:
-  // 1. New Quizzes radio is checked, OR
-  // 2. New Quizzes is by default (radio buttons don't exist)
-  if (isNewQuizzesChecked || newQuizzesByDefault) {
+  if (isNewQuizzesChecked) {
     $('#quiz_type_selector_row').show()
     renderQuizTypeSelector()
   }

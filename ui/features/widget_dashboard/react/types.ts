@@ -162,7 +162,6 @@ export interface RecentGradeSubmission {
 
 export interface GradeItemProps {
   submission: RecentGradeSubmission
-  isRightColumn?: boolean
 }
 
 export interface ConversationParticipant {

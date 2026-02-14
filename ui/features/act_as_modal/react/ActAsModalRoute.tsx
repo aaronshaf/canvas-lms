@@ -18,10 +18,23 @@
 
 import React from 'react'
 import {Portal} from '@instructure/ui-portal'
-import ActAsModal, {type User} from './ActAsModal'
+import ActAsModal from './ActAsModal'
 
 type ActAsUserData = {
-  user: User
+  user: {
+    name?: string
+    short_name?: string
+    pronouns?: string
+    id?: number | string
+    avatar_image_url?: string
+    sortable_name?: string
+    email?: string
+    pseudonyms?: Array<{
+      login_id?: number | string
+      sis_id?: number | string
+      integration_id?: number | string
+    }>
+  }
 }
 
 export function Component() {

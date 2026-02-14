@@ -9,7 +9,7 @@ describe TatlTael::Linters do
   describe TatlTael::Linters::BaseLinter do
     describe ".inherited" do
       context "not a simple linter" do
-        let(:foo_linter) { Class.new(TatlTael::Linters::BaseLinter) }
+        foo_linter = Class.new(TatlTael::Linters::BaseLinter)
 
         it "saves the subclass" do
           expect(TatlTael::Linters.linters).to include(foo_linter)

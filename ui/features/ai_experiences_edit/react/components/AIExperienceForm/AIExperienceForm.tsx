@@ -30,7 +30,7 @@ import DeleteConfirmationModal from './DeleteConfirmationModal'
 import FormHeader from './FormHeader'
 import ConfigurationSection from './ConfigurationSection'
 import FormActions from './FormActions'
-import type {ContextFile} from '@canvas/canvas-file-upload/react/types'
+import {ContextFile} from '@canvas/canvas-file-upload/react/types'
 
 const I18n = createI18nScope('ai_experiences_edit')
 
@@ -71,7 +71,6 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
         learning_objective: aiExperience.learning_objective || '',
         pedagogical_guidance: aiExperience.pedagogical_guidance || '',
       })
-      // Context files will be managed separately in component state for now
     }
   }, [aiExperience])
 
@@ -98,8 +97,7 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
 
   const handleContextFilesChange = (files: ContextFile[]) => {
     setContextFiles(files)
-    // Note: Files are kept in local state only for now (not persisted to backend)
-    // TODO: Integrate with backend when ready
+    // Note: Files kept in local state only (not persisted to backend yet)
   }
 
   const validateForm = (): Record<string, string> => {
@@ -107,10 +105,6 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
 
     if (!formData.title.trim()) {
       newErrors.title = I18n.t('Title required')
-    }
-
-    if (!formData.facts.trim()) {
-      newErrors.facts = I18n.t('Please provide facts students should know')
     }
 
     if (!formData.learning_objective.trim()) {
@@ -152,16 +146,6 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
   }
 
   const handleConfirmPreview = () => {
-    const validationErrors = validateForm()
-    setErrors(validationErrors)
-
-    if (Object.keys(validationErrors).length > 0) {
-      setShowErrors(true)
-      setShowErrorBanner(true)
-      setShowPreviewModal(false)
-      return
-    }
-
     setShowPreviewModal(false)
     // Save as draft first, then redirect to preview
     onSubmit(formData, true)
@@ -211,7 +195,7 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
         </Alert>
       )}
 
-      <FormHeader isEdit={isEdit} title={aiExperience?.title} onDeleteClick={handleDeleteClick} />
+      <FormHeader isEdit={isEdit} onDeleteClick={handleDeleteClick} />
 
       <form onSubmit={handleSubmit} noValidate={true}>
         <View as="div" margin="0 0 large 0">
@@ -231,6 +215,7 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
             label={I18n.t('Description')}
             value={formData.description}
             onChange={handleInputChange('description')}
+            required
             resize="vertical"
             height="120px"
           />

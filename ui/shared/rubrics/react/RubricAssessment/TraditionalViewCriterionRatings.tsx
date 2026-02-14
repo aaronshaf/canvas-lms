@@ -24,7 +24,6 @@ import {Text} from '@instructure/ui-text'
 import type {RubricAssessmentData, RubricCriterion, UpdateAssessmentData} from '../types/rubric'
 import {rangingFrom, findCriterionMatchingRatingId} from './utils/rubricUtils'
 import {TraditionalViewCriterionRating} from './TraditionalViewCriterionRating'
-import {ProficiencyRating} from '@canvas/graphql/codegen/graphql'
 
 const I18n = createI18nScope('rubrics-assessment-tray')
 
@@ -32,7 +31,6 @@ type TraditionalViewCriterionRatingsProps = {
   criterion: RubricCriterion
   criterionAssessment?: RubricAssessmentData
   criterionSelfAssessment?: RubricAssessmentData
-  customRatings?: ProficiencyRating[]
   hasValidationError?: boolean
   hidePoints: boolean
   isPreviewMode: boolean
@@ -46,7 +44,6 @@ export const TraditionalViewCriterionRatings: FC<TraditionalViewCriterionRatings
   criterion,
   criterionAssessment,
   criterionSelfAssessment,
-  customRatings,
   hasValidationError,
   hidePoints,
   isPreviewMode,
@@ -130,8 +127,6 @@ export const TraditionalViewCriterionRatings: FC<TraditionalViewCriterionRatings
                 // we use the array index because rating may not have an id
                 key={`traditional-criterion-${criterion.id}-ratings-${index}`}
                 criterionId={criterion.id}
-                criterionPointsPossible={criterion.points}
-                customRatings={customRatings}
                 hidePoints={hidePoints}
                 index={index}
                 isHovered={isHovered}

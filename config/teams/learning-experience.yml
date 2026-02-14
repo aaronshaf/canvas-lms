@@ -43,5 +43,3 @@ owned_globs:
   - ui/features/context_modules_publish_menu/**/*
   - ui/features/module_dnd/**/*
   - app/views/context_modules/**/*
-github:
-  team: ''

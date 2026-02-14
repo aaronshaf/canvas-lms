@@ -20,8 +20,8 @@
 # Initialize canvas statsd configuration. See config/statsd.yml.example.
 
 Rails.configuration.to_prepare do
-  settings = ConfigFile.load("statsd")&.dup
-  settings ||= YAML.safe_load(DynamicSettings.find(tree: :private)["statsd.yml", failsafe_cache: Rails.root.join("config")] || "")
+  settings = YAML.safe_load(DynamicSettings.find(tree: :private)["statsd.yml", failsafe_cache: Rails.root.join("config")] || "")
+  settings ||= ConfigFile.load("statsd").dup
   settings ||= {}
   InstStatsd.settings = settings
   InstStatsd::Statsd.instance # ensure the singleton is initialized

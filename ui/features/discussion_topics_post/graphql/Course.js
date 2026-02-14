@@ -21,7 +21,7 @@ import {gql} from '@apollo/client'
 
 export const Course = {
   fragment: gql`
-    fragment DiscussionPostCourse on Course {
+    fragment Course on Course {
       _id
       id
       name

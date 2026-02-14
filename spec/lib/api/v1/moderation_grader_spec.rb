@@ -21,11 +21,9 @@
 require_relative "../../../spec_helper"
 
 describe "Api::V1::ModerationGrader" do
-  subject(:api) do
-    (Class.new do
-      include Api::V1::ModerationGrader
-    end).new
-  end
+  api = (Class.new do
+    include Api::V1::ModerationGrader
+  end).new
 
   describe "#moderation_graders_json" do
     let_once(:course) do

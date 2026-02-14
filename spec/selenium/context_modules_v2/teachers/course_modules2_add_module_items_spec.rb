@@ -358,8 +358,7 @@ describe "selective_release module item assign to tray", :ignore_js_errors do
   end
 
   context "create and add module items with modal", :ignore_js_errors do
-    let(:new_item_name) { "New course work" }
-
+    new_item_name = "New course work"
     before(:once) do
       @module = @course.context_modules.create!(name: "first week")
     end
@@ -483,7 +482,7 @@ describe "selective_release module item assign to tray", :ignore_js_errors do
   end
 
   context "when new quizzes enabled", :ignore_js_errors do
-    let(:new_item_name) { "New quiz 1" }
+    new_item_name = "New quiz 1"
 
     before(:once) do
       @course.enable_feature! :quizzes_next

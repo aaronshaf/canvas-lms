@@ -39,19 +39,17 @@ describe "Student Gradebook - Assignment Details" do
       assignments
     end
 
-    let(:grades) do
-      [
-        5,
-        10,
-        15,
-        19,
-        15,
-        10,
-        4,
-        6,
-        17
-      ].freeze
-    end
+    grades = [
+      5,
+      10,
+      15,
+      19,
+      15,
+      10,
+      4,
+      6,
+      17
+    ]
 
     before do
       init_course_with_students 3

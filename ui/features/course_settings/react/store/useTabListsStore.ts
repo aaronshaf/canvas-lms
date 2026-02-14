@@ -67,11 +67,11 @@ export type CourseNavigationTabToSave =
   // New link tab
   | ({hidden?: boolean; label: string} & NavMenuLinkTabHrefAndArgs)
 
-function newLinkItem({label, url}: {label: string; url: string}): NavigationTab {
+function newLinkItem({text, url}: {text: string; url: string}): NavigationTab {
   return {
     type: 'newLink',
     internalId: uuidv4(),
-    label,
+    label: text,
     href: NAV_MENU_LINK_HREF,
     args: [url],
   }
@@ -85,7 +85,7 @@ export type MoveItemTrayResult = {
 export interface TabListsState {
   enabledTabs: NavigationTab[]
   disabledTabs: NavigationTab[]
-  appendNewLinkItemTab: (params: {label: string; url: string}) => void
+  appendNewLinkItemTab: (params: {text: string; url: string}) => void
   deleteTab: (tabInternalId: string) => void
   moveTab: (result: {
     source: {droppableId: string; index: number}
@@ -171,8 +171,8 @@ export const useTabListsStore = create<TabListsState>((set, get) => {
 
     tabsToSave: () => [...get().enabledTabs, ...get().disabledTabs].map(makeTabToSave),
 
-    appendNewLinkItemTab: ({label, url}) => {
-      const newTab = newLinkItem({label, url})
+    appendNewLinkItemTab: ({text, url}) => {
+      const newTab = newLinkItem({text, url})
       set({enabledTabs: [...get().enabledTabs, newTab]})
     },
 

@@ -19,8 +19,7 @@
 
 describe InstLLMHelper do
   describe ".client" do
-    let(:model_id) { "model123" }
-
+    model_id = "model123"
     before do
       InstLLMHelper.instance_variable_set(:@clients, nil)
 

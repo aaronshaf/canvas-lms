@@ -70,7 +70,7 @@ describe('useStudents', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {headers: {} as any},
+      config: {},
       data: mockStudents,
     })
 
@@ -87,7 +87,7 @@ describe('useStudents', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {headers: {} as any},
+      config: {},
       data: mockStudents,
     })
 
@@ -124,7 +124,7 @@ describe('useStudents', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {headers: {} as any},
+      config: {},
       data: [],
     })
 
@@ -141,7 +141,7 @@ describe('useStudents', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {headers: {} as any},
+      config: {},
       data: mockStudents,
     })
 
@@ -165,7 +165,7 @@ describe('useStudents', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {headers: {} as any},
+      config: {},
       data: mockStudents,
     })
 
@@ -187,7 +187,7 @@ describe('useStudents', () => {
         status: 200,
         statusText: 'OK',
         headers: {},
-        config: {headers: {} as any},
+        config: {},
         data: mockStudents,
       })
 
@@ -210,7 +210,7 @@ describe('useStudents', () => {
       status: 404,
       statusText: 'Not Found',
       headers: {},
-      config: {headers: {} as any},
+      config: {},
       data: [],
     })
 
@@ -227,7 +227,7 @@ describe('useStudents', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {headers: {} as any},
+      config: {},
       data: [],
     })
 
@@ -244,7 +244,7 @@ describe('useStudents', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {headers: {} as any},
+      config: {},
       data: mockStudents,
     })
 
@@ -273,7 +273,7 @@ describe('useStudents', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {headers: {} as any},
+      config: {},
       data: studentsWithAllFields,
     })
 

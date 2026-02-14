@@ -88,8 +88,18 @@ describe LtiOutbound::ToolLaunch do
     assignment
   end
 
+  let(:controller) do
+    request_mock = double("request")
+    allow(request_mock).to receive(:host).returns("/my/url")
+    allow(request_mock).to receive(:scheme).returns("https")
+    controller = double("controller")
+    allow(controller).to receive(:request).returns(request_mock)
+    allow(controller).to receive(:logged_in_user).returns(@user)
+    controller
+  end
+
   let(:variable_expander) do
-    m = double("VariableExpander") # rubocop:disable RSpec/VerifiedDoubles -- class doesn't exist in gem
+    m = double("variable_expander")
     allow(m).to receive(:expand_variables!) { |hash| hash }
     m
   end

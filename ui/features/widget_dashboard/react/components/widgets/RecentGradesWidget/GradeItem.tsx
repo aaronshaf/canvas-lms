@@ -59,7 +59,7 @@ const formatTimeAgo = (dateString: string | null): string => {
   }
 }
 
-export const GradeItem: React.FC<GradeItemProps> = ({submission, isRightColumn = false}) => {
+export const GradeItem: React.FC<GradeItemProps> = ({submission}) => {
   const {isMobile} = useResponsiveContext()
   const [isExpanded, setIsExpanded] = useState(false)
   const isGraded = submission.gradedAt !== null
@@ -72,22 +72,12 @@ export const GradeItem: React.FC<GradeItemProps> = ({submission, isRightColumn =
 
   const assignmentTitle = (
     <View>
-      <Text
-        size="medium"
-        wrap="break-word"
-        weight="bold"
-        data-testid={`assignment-title-${submission._id}`}
-      >
+      <Text size="medium" weight="bold" data-testid={`assignment-title-${submission._id}`}>
         {submission.assignment.name}
       </Text>
       {submission.assignment.course?.name && (
         <View as="div">
-          <Text
-            size="small"
-            color="secondary"
-            wrap="break-word"
-            data-testid={`course-name-${submission._id}`}
-          >
+          <Text size="small" color="secondary" data-testid={`course-name-${submission._id}`}>
             {submission.assignment.course.name}
           </Text>
         </View>
@@ -194,11 +184,7 @@ export const GradeItem: React.FC<GradeItemProps> = ({submission, isRightColumn =
           <Flex.Item>
             <Expandable expanded={isExpanded} onToggle={handleToggleExpand}>
               {({expanded}) => (
-                <div>
-                  {expanded && (
-                    <ExpandedGradeView submission={submission} isRightColumn={isRightColumn} />
-                  )}
-                </div>
+                <div>{expanded && <ExpandedGradeView submission={submission} />}</div>
               )}
             </Expandable>
           </Flex.Item>

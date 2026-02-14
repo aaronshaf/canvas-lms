@@ -34,9 +34,9 @@ module Users
     end
 
     describe "#dispatch!" do
-      let(:user) { instance_double(User) }
-      let(:pseudonym) { instance_double(Pseudonym, account: Account.default) }
-      let(:channel) { instance_double(CommunicationChannel) }
+      let(:user) { double }
+      let(:pseudonym) { double(account: Account.default) }
+      let(:channel) { double }
 
       context "for self_registration" do
         let(:policy) { CreationNotifyPolicy.new(true, { force_self_registration: true }) }

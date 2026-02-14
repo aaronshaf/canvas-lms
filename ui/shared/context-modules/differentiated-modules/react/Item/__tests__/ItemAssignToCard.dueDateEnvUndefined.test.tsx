@@ -17,8 +17,7 @@
  */
 
 import React from 'react'
-import {cleanup, render, waitFor} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import {render, fireEvent, waitFor} from '@testing-library/react'
 import ItemAssignToCard, {type ItemAssignToCardProps} from '../ItemAssignToCard'
 import {SECTIONS_DATA, STUDENTS_DATA} from '../../__tests__/mocks'
 import {http, HttpResponse} from 'msw'
@@ -89,8 +88,6 @@ describe('ItemAssignToCard - Due Date ENV Undefined Defaults', () => {
   afterEach(() => {
     server.resetHandlers()
     fakeEnv.teardown()
-    vi.clearAllMocks()
-    cleanup()
   })
 
   it('defaults to the default due time for due dates from ENV if has undefined due time', async () => {
@@ -101,8 +98,8 @@ describe('ItemAssignToCard - Due Date ENV Undefined Defaults', () => {
     })
     const dateInput = getByLabelText('Due Date')
     onCardDatesChangeMock.mockClear()
-    await userEvent.type(dateInput, 'Nov 10, 2020')
-    await userEvent.tab()
+    fireEvent.change(dateInput, {target: {value: 'Nov 10, 2020'}})
+    fireEvent.blur(dateInput, {target: {value: 'Nov 10, 2020'}})
     await waitFor(() => {
       expect(onCardDatesChangeMock).toHaveBeenCalledWith(
         expect.any(String),
@@ -110,6 +107,6 @@ describe('ItemAssignToCard - Due Date ENV Undefined Defaults', () => {
         '2020-11-10T08:00:00.000Z',
       )
       expect(getAllByLabelText('Time')[0]).toHaveValue('8:00 AM')
-    }, {timeout: 30000})
+    })
   })
 })

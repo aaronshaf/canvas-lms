@@ -23,15 +23,14 @@ describe Quizzes::QuizRegrader::AttemptVersion do
   end
 
   let(:question_group) do
-    instance_double(Quizzes::QuizGroup, pick_count: 1, question_points: 25)
+    double(pick_count: 1, question_points: 25)
   end
 
   let(:question_regrades) do
     1.upto(3).index_with do |i|
-      instance_double(Quizzes::QuizQuestionRegrade,
-                      quiz_question: instance_double(Quizzes::QuizQuestion, id: i, question_data: { id: i }, quiz_group: question_group),
-                      question_data: { id: i },
-                      regrade_option: regrade_options[i])
+      double(quiz_question: double(id: i, question_data: { id: i }, quiz_group: question_group),
+             question_data: { id: i },
+             regrade_option: regrade_options[i])
     end
   end
 
@@ -44,18 +43,17 @@ describe Quizzes::QuizRegrader::AttemptVersion do
   end
 
   let(:submission) do
-    instance_double(Quizzes::QuizSubmission,
-                    :score => 0,
-                    :score_before_regrade => 1,
-                    :questions => questions,
-                    :score= => nil,
-                    :score_before_regrade= => nil,
-                    :submission_data => submission_data,
-                    :[]= => {})
+    double(:score => 0,
+           :score_before_regrade => 1,
+           :questions => questions,
+           :score= => nil,
+           :score_before_regrade= => nil,
+           :submission_data => submission_data,
+           :[]= => {})
   end
 
   let(:version) do
-    instance_double(Version, model: submission)
+    double(model: submission)
   end
 
   let(:attempt_version) do
@@ -76,7 +74,7 @@ describe Quizzes::QuizRegrader::AttemptVersion do
   describe "#regrade!" do
     it "assigns the model and saves the version" do
       submission_data.length.times do
-        answer_stub = instance_double(Quizzes::QuizRegrader::Answer)
+        answer_stub = double
         expect(answer_stub).to receive(:regrade!).and_return(1)
         expect(Quizzes::QuizRegrader::Answer).to receive(:new).and_return answer_stub
       end

@@ -137,14 +137,9 @@ describe AuditLogFieldExtension::Logger do
     end
 
     it "allows overriding the logged object" do
-      mutation_class = Class.new(GraphQL::Schema::Mutation) do
-        graphql_name "asdf"
-
-        def self.whatever_log_entry(entry, _ctx)
-          entry.context
-        end
-      end
-      logger = AuditLogFieldExtension::Logger.new(mutation_class, {}, { input: {} })
+      mutation = double(graphql_name: "asdf")
+      expect(mutation).to receive(:whatever_log_entry) { @entry.context }
+      logger = AuditLogFieldExtension::Logger.new(mutation, {}, { input: {} })
       expect(logger.log_entry_ids(@entry, "whatever")).to eq ["#{@course.root_account.global_id}-course_#{@course.id}"]
     end
   end

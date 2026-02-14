@@ -37,7 +37,6 @@ import {TraditionalViewCriterionPoints} from './TraditionalViewCriterionPoints'
 import {TraditionalViewCriterionRatings} from './TraditionalViewCriterionRatings'
 import {colors, borders} from '@instructure/canvas-theme'
 import {useGetRubricOutcome} from './queries/useGetRubricOutcome'
-import {ProficiencyRating} from '@canvas/graphql/codegen/graphql'
 
 const I18n = createI18nScope('rubrics-assessment-tray')
 
@@ -46,7 +45,6 @@ type TraditionalViewCriterionRowProps = {
   criterion: RubricCriterion
   criterionAssessment?: RubricAssessmentData
   criterionSelfAssessment?: RubricAssessmentData
-  customRatings?: ProficiencyRating[]
   hidePoints: boolean
   isFreeFormCriterionComments: boolean
   isLastIndex: boolean
@@ -67,7 +65,6 @@ export const TraditionalViewCriterionRow: FC<TraditionalViewCriterionRowProps> =
   criterion,
   criterionAssessment,
   criterionSelfAssessment,
-  customRatings,
   hidePoints,
   isFreeFormCriterionComments,
   isLastIndex,
@@ -182,7 +179,6 @@ export const TraditionalViewCriterionRow: FC<TraditionalViewCriterionRowProps> =
             criterion={criterion}
             criterionAssessment={criterionAssessment}
             criterionSelfAssessment={criterionSelfAssessment}
-            customRatings={customRatings}
             hasValidationError={hasValidationError}
             hidePoints={hidePoints}
             isPreviewMode={isPreviewMode}
