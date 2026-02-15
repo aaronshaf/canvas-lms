@@ -47,8 +47,9 @@
         "testStrategy": "Test each script with a dummy branch name. Verify worktree creation, patch application, commit formatting, and cleanup all work correctly.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-15T04:25:04.268Z"
       },
       {
         "id": "5",
@@ -58,8 +59,9 @@
         "testStrategy": "Create a test PR using the template. Verify all sections render correctly on GitHub. Test the auto-fill script generates valid markdown.",
         "priority": "low",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-15T04:25:35.870Z"
       },
       {
         "id": "6",
@@ -71,8 +73,9 @@
         "dependencies": [
           "3"
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-15T04:26:04.587Z"
       },
       {
         "id": "7",
@@ -858,9 +861,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-02-15T04:23:18.663Z",
+      "lastModified": "2026-02-15T04:26:04.587Z",
       "taskCount": 65,
-      "completedCount": 3,
+      "completedCount": 6,
       "tags": [
         "master"
       ]
