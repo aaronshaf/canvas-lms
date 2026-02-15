@@ -1,0 +1,356 @@
+# Canvas LMS TypeScript Migration: InstUI Components
+
+## Project Overview
+
+Systematically migrate all JavaScript/JSX files in `ui/features/*` that import InstUI components to TypeScript, using a safe two-repository workflow with automated CI validation and Gerrit code review.
+
+## Goals
+
+1. Convert all `.js` and `.jsx` files importing `@instructure/ui-*` packages to TypeScript
+2. Maintain code quality with proper type safety (modest effort, fallback to `@ts-expect-error`)
+3. Validate changes through GitHub Actions CI before pushing to Gerrit
+4. Automate reviewer assignment based on CODEOWNERS
+
+## Repository Workflow
+
+### Two-Repository Pattern
+
+```
+instructure-internal/canvas-lms-readonly (GitHub)
+  ↓ [Work here, validate CI]
+  ↓ [git diff → patch]
+  ↓
+~/inst/canvas-lms (Gerrit worktree)
+  → [Push to Gerrit for review]
+```
+
+### Workflow Steps Per Feature
+
+1. **Identify files** in `ui/features/<feature-name>/` that import InstUI
+2. **Spawn Codex task** for TypeScript migration implementation
+   - Use `/codex-task` skill to spawn autonomous coding agent
+   - Codex handles file renaming, type additions, and validation
+   - Note: Codex doesn't have TaskMaster MCP access, provide context in prompt
+3. **Code review with Opus** after Codex completes
+   - Use `/codex-review` skill with Opus model
+   - Review for type safety, `@ts-expect-error` usage, forbidden patterns
+   - Ensure no `as` casts or `any` types
+4. **Validate locally**: eslint, biome, tsc (entire codebase)
+5. **Create PR** in `instructure-internal/canvas-lms-readonly`
+6. **Wait for CI** to pass on GitHub Actions
+7. **Extract patch** via `git diff`
+8. **Create worktree** in `~/inst/canvas-lms` via `wt switch --create <branch> -y`
+9. **Apply patch** and commit with: `refs CFA-436`, `flag=none`
+10. **Push to Gerrit** via `ger` CLI
+11. **Find reviewers** via `/find-reviewers` skill (uses CODEOWNERS + inst-vault)
+12. **Close GitHub PR** automatically when pushed to Gerrit
+13. **Delete worktree** when merged to Gerrit master
+
+## InstUI Packages to Track
+
+Files must import one or more of these packages:
+
+- `@instructure/ui-a11y-content`
+- `@instructure/ui-alerts`
+- `@instructure/ui-buttons`
+- `@instructure/ui-color-utils`
+- `@instructure/ui-dom-utils`
+- `@instructure/ui-drilldown`
+- `@instructure/ui-grid`
+- `@instructure/ui-icons`
+- `@instructure/ui-menu`
+- `@instructure/ui-responsive`
+- `@instructure/ui-simple-select`
+- `@instructure/ui-spinner`
+- `@instructure/ui-text`
+- `@instructure/ui-text-input`
+- `@instructure/ui-truncate-text`
+- `@instructure/ui-view`
+
+## Migration Rules
+
+### Type Safety Strategy
+
+1. **Modest effort** at adding proper types
+2. **Fallback to `@ts-expect-error`** when types are complex
+3. **NEVER use `as` type casts** (except `as const`)
+4. **NEVER use `any` types**
+5. **Push through with suppressions** rather than blocking on perfect types
+
+### File Scope
+
+- **Include**: `.js` and `.jsx` files importing InstUI packages
+- **Exclude**: Test files (`.test.js`, `.test.jsx`, `__tests__/`, etc.)
+- **Scope**: `ui/features/*` only
+
+### Validation Requirements
+
+- Run `eslint` and ensure it passes
+- Run `biome` (via `yarn biome:fix` if needed)
+- Run `npx tsc --noEmit` on **entire codebase** (not just changed files)
+
+## Processing Strategy
+
+### Priority: Smallest First
+
+Process `ui/features/*` folders in order of size (fewest InstUI-importing files first) for quick wins and learning.
+
+### Skip Logic
+
+Skip folders that have:
+- Zero files importing `@instructure/ui-*` packages
+- Only test files importing InstUI
+
+## Task Tracking Requirements
+
+Each migration task must track:
+
+1. **Feature folder path**: `ui/features/<feature-name>`
+2. **File list**: All files being migrated in that folder
+3. **GitHub PR number**: PR in `instructure-internal/canvas-lms-readonly`
+4. **GitHub PR status**: Open, CI Passing, CI Failed, Closed
+5. **Worktree path**: e.g., `~/inst/canvas-lms-worktrees/<branch-name>`
+6. **Gerrit change ID**: The Change-Id from Gerrit
+7. **Gerrit review URL**: Full URL to Gerrit change
+8. **Gerrit status**: Pushed, In Review, Merged to Master
+9. **Reviewers assigned**: List of email addresses
+
+### Task Lifecycle States
+
+1. **Pending**: Feature identified, not yet started
+2. **In Progress - Migration**: Converting files to TypeScript
+3. **In Progress - Local Validation**: Running eslint/biome/tsc
+4. **In Progress - CI**: PR open, waiting for GitHub Actions
+5. **In Progress - Gerrit**: Pushed to Gerrit, awaiting review
+6. **Blocked**: CI failing, merge conflicts, or review feedback needed
+7. **Completed - Merged**: Change merged to Gerrit master, worktree deleted, PR closed
+
+## Automation Requirements
+
+### Automatic Actions
+
+1. **Close GitHub PR** when successfully pushed to Gerrit
+2. **Find and assign reviewers** via `/find-reviewers` skill after Gerrit push
+3. **Delete worktree** when change is merged to Gerrit master
+
+### Tools & Skills
+
+- **wt**: Worktree CLI for managing `~/inst/canvas-lms` worktrees
+- **ger**: Gerrit CLI for pushing, adding reviewers, checking status
+- **/find-reviewers**: Claude skill using CODEOWNERS + `~/inst/inst-vault/eng.csv`
+- **/codex-task**: Spawn autonomous Codex agent for implementation
+- **/codex-review**: Code review using Opus model
+
+### Codex/Opus Development Workflow
+
+**Implementation Pattern:**
+1. Spawn Codex task with `/codex-task` for autonomous TypeScript migration
+2. Codex performs file conversions, adds types, runs validations
+3. After Codex completes, run `/codex-review` with Opus model
+4. Opus reviews for:
+   - Type safety and correctness
+   - Proper `@ts-expect-error` usage with explanations
+   - Forbidden patterns (`as` casts, `any` types)
+   - Code quality and consistency
+
+**Refinement Loop:**
+If Opus identifies issues requiring refactoring:
+1. Make changes based on Opus feedback
+2. Re-run validation (eslint, biome, tsc)
+3. Optionally run another Opus review
+4. Amend commit before pushing to GitHub PR
+
+**Note:** Codex doesn't have TaskMaster MCP access - provide full context in task prompt including:
+- Files to migrate
+- Migration rules (no `as`, no `any`, use `@ts-expect-error`)
+- Validation requirements
+
+## Success Criteria
+
+1. All `ui/features/*` folders processed (or marked as "no InstUI imports")
+2. All changes merged to Gerrit master
+3. Zero TypeScript errors in migrated files (via suppressions if needed)
+4. All GitHub PRs closed
+5. All worktrees cleaned up
+
+## Edge Cases & Failure Handling
+
+### Opus Code Review Feedback
+
+If Opus review identifies issues before PR creation:
+- Refactor code based on Opus feedback
+- Re-run validation (eslint, biome, tsc)
+- Optionally run another Opus review cycle
+- Amend changes before creating PR
+- Do NOT push to Gerrit until Opus review passes
+
+### CI Failures
+
+- Mark task as **Blocked**
+- Investigate failure (test failures, lint errors, type errors)
+- Fix in `canvas-lms-readonly`, push update to PR
+- Re-run Opus review if significant changes made
+- Wait for CI to pass, then proceed
+
+### Gerrit Review Feedback
+
+- Mark task as **Blocked**
+- Apply feedback in `canvas-lms-readonly`
+- Generate new patch, apply to worktree
+- Amend commit, force-push to Gerrit
+- Wait for re-approval
+
+### Merge Conflicts
+
+- Rebase `canvas-lms-readonly` on latest upstream
+- Regenerate patch
+- Recreate worktree from latest Gerrit master
+- Reapply patch and resolve conflicts
+
+## Commit Message Format
+
+All commits must include:
+```
+<Description of changes>
+
+refs CFA-436
+flag=none
+```
+
+## Example Task Structure
+
+```
+Task: Migrate ui/features/account_settings
+├─ Files: 12 files importing InstUI
+├─ GitHub PR: #234 (CI Passing ✓)
+├─ Worktree: ~/inst/canvas-lms-worktrees/account-settings-ts
+├─ Gerrit: Change-Id I123abc, https://gerrit.instructure.com/c/canvas-lms/+/567890
+├─ Status: In Review
+├─ Reviewers: [alice@instructure.com, bob@instructure.com]
+└─ Next: Wait for +2, then merge
+```
+
+## ASCII Workflow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  TYPESCRIPT MIGRATION PIPELINE (Smallest Folders First)        │
+└─────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────┐
+│ 1. DISCOVER              │  Find ui/features/* with InstUI imports
+│    ui/features/*         │  - Glob for .js/.jsx files
+│                          │  - Grep for @instructure/ui-* imports
+│    Sort by size ↓        │  - Exclude test files
+└──────┬───────────────────┘  - Skip folders with 0 matches
+       │
+       ▼
+┌──────────────────────────┐
+│ 2. SPAWN CODEX TASK      │  Autonomous coding agent
+│    /codex-task           │  • Codex renames files
+│                          │  • Adds types (modest effort)
+│                          │  • Uses @ts-expect-error liberally
+│                          │  • NO 'as' casts or 'any'
+└──────┬───────────────────┘
+       │
+       ▼
+┌──────────────────────────┐
+│ 3. OPUS CODE REVIEW      │  Review Codex's work
+│    /codex-review (Opus)  │  • Check type safety
+│                          │  • Verify no forbidden patterns
+│    ┌─────────────────────┤  • Approve or request changes
+│    │ If issues found:    │
+│    │ └─ Refactor & amend │  Loop back to step 2 if needed
+└────┼─┬───────────────────┘
+     │ │
+     └─┘ (refinement loop)
+       │
+       ▼
+┌──────────────────────────┐
+│ 4. VALIDATE LOCALLY      │  In canvas-lms-readonly
+│    ✓ eslint              │  • Run linters
+│    ✓ biome               │  • Auto-fix if needed
+│    ✓ tsc (all files)     │  • Validate entire codebase
+└──────┬───────────────────┘
+       │
+       ▼
+┌──────────────────────────┐
+│ 5. CREATE PR             │  PR in canvas-lms-readonly
+│    GitHub Actions        │  Track: PR#, status
+│    Wait for CI ✓         │
+└──────┬───────────────────┘
+       │
+       ▼
+┌──────────────────────────┐
+│ 6. PORT TO GERRIT        │
+│    git diff > patch      │  Extract changes
+│                          │
+│    ~/inst/canvas-lms     │  Create worktree:
+│    wt switch --create    │    wt switch --create <branch> -y
+│                          │    cp ~/inst/canvas-lms/.tool-versions
+│    git apply -3 patch    │  Apply patch
+│                          │
+│    git commit            │  Commit: refs CFA-436, flag=none
+│    ger push              │  Push to Gerrit
+│                          │
+│    Track: Change-Id,     │
+│            Gerrit URL,   │
+│            worktree path │
+└──────┬───────────────────┘
+       │
+       ▼
+┌──────────────────────────┐
+│ 7. ASSIGN REVIEWERS      │
+│    /find-reviewers       │  Claude skill:
+│                          │  - Reads CODEOWNERS
+│    Track: reviewer emails│  - Maps to team via inst-vault
+│                          │  - Adds via ger CLI
+└──────┬───────────────────┘
+       │
+       ▼
+┌──────────────────────────┐
+│ 8. AUTO-CLOSE PR         │
+│    Close GitHub PR       │  When successfully pushed to Gerrit
+│    Track: PR closed ✓    │
+└──────┬───────────────────┘
+       │
+       ▼
+┌──────────────────────────┐
+│ 9. AWAIT REVIEW          │
+│    Monitor Gerrit status │  Wait for +2 votes
+│                          │
+│    If feedback:          │
+│    ├─ Fix in readonly    │  Update PR, regenerate patch
+│    └─ Amend Gerrit       │  Force-push to same Change-Id
+└──────┬───────────────────┘
+       │
+       ▼
+┌──────────────────────────┐
+│ 10. CLEANUP              │
+│  When merged to master:  │
+│    Delete worktree       │  Clean up ~/inst/canvas-lms-worktrees
+│    Mark task complete ✓  │
+└──────────────────────────┘
+
+         REPEAT FOR NEXT ui/features/* FOLDER
+              (smallest first)
+```
+
+## Dependencies & Prerequisites
+
+- `~/inst/canvas-lms-readonly` - current working directory
+- `~/inst/canvas-lms` - Gerrit repository for pushing changes
+- `~/inst/canvas-lms/.tool-versions` - copy to each worktree for asdf
+- `~/inst/inst-vault/eng.csv` - team member lookup
+- `~/inst/inst-vault/teams.csv` - team name mapping
+- `/Users/ashafovaloff/inst/canvas-lms/CODEOWNERS` - code ownership mapping
+- `wt` CLI - worktree management
+- `ger` CLI - Gerrit operations
+- `/find-reviewers` - Claude skill in canvas-lms repo
+
+## Non-Goals
+
+- Migrating test files (skip for now)
+- Perfect type coverage (use @ts-expect-error liberally)
+- Files outside `ui/features/*`
+- Files not importing InstUI packages

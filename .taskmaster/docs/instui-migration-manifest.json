@@ -1,0 +1,730 @@
+{
+  "generated": "2026-02-15",
+  "totalFolders": 57,
+  "totalFiles": 324,
+  "folders": [
+    {
+      "path": "ui/features/account_admin_tools",
+      "fileCount": 1,
+      "files": [
+        "react/BouncedEmailsView.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/admin_split",
+      "fileCount": 1,
+      "files": [
+        "react/index.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/available_pronouns_list",
+      "fileCount": 1,
+      "files": [
+        "react/PronounsInput.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/canvas_career",
+      "fileCount": 1,
+      "files": [
+        "index.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/content_migrations",
+      "fileCount": 1,
+      "files": [
+        "backbone/views/MigrationConverterView.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/content_notices",
+      "fileCount": 1,
+      "files": [
+        "index.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/context_modules",
+      "fileCount": 1,
+      "files": [
+        "react/ModulesHomePage.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/context_roster_user",
+      "fileCount": 1,
+      "files": [
+        "react/StudentLastAttended.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/course_show",
+      "fileCount": 1,
+      "files": [
+        "react/show.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/courses",
+      "fileCount": 1,
+      "files": [
+        "index.js"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/external_content_success",
+      "fileCount": 1,
+      "files": [
+        "index.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/files",
+      "fileCount": 1,
+      "files": [
+        "react/components/FileUpload.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/ignite_agent",
+      "fileCount": 1,
+      "files": [
+        "FallbackChatOverlay.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/navigation_header",
+      "fileCount": 1,
+      "files": [
+        "react/MobileContextMenu.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/outcome_alignments",
+      "fileCount": 1,
+      "files": [
+        "index.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/past_global_alert",
+      "fileCount": 1,
+      "files": [
+        "react/PastGlobalAlert.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/progress_pill",
+      "fileCount": 1,
+      "files": [
+        "index.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/roster",
+      "fileCount": 1,
+      "files": [
+        "backbone/views/RosterView.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/search",
+      "fileCount": 1,
+      "files": [
+        "react/IndexingProgress.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/sis_import",
+      "fileCount": 1,
+      "files": [
+        "react/ConfirmationModal.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/submissions",
+      "fileCount": 1,
+      "files": [
+        "jquery/index.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/syllabus",
+      "fileCount": 1,
+      "files": [
+        "index.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/user",
+      "fileCount": 1,
+      "files": [
+        "index.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/user_logins",
+      "fileCount": 1,
+      "files": [
+        "react/SuspendedIcon.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/webzip_export",
+      "fileCount": 1,
+      "files": [
+        "react/App.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/brand_configs",
+      "fileCount": 2,
+      "files": [
+        "react/CollectionView.jsx",
+        "react/ThemeCard.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/course_link_validator",
+      "fileCount": 2,
+      "files": [
+        "react/LinkValidator.jsx",
+        "react/ValidatorResultsRow.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/dashboard",
+      "fileCount": 2,
+      "files": [
+        "react/DashboardHeader.jsx",
+        "react/DashboardOptionsMenu.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/gradebook_history",
+      "fileCount": 2,
+      "files": [
+        "react/SearchForm.jsx",
+        "react/SearchResults.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/past_global_announcements",
+      "fileCount": 2,
+      "files": [
+        "react/AnnouncementFactory.jsx",
+        "react/PastGlobalAnnouncements.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/quiz_statistics",
+      "fileCount": 2,
+      "files": [
+        "react/components/discrimination_index/index.jsx",
+        "react/components/summary/index.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/quizzes_index",
+      "fileCount": 2,
+      "files": [
+        "backbone/views/IndexView.jsx",
+        "react/QuizEngineModal.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/wiki_page_index",
+      "fileCount": 2,
+      "files": [
+        "backbone/views/WikiPageIndexView.jsx",
+        "react/ConfirmDeleteModal.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/blueprint_course_child",
+      "fileCount": 3,
+      "files": [
+        "react/components/ChangeLogRow.jsx",
+        "react/components/ChildChangeLog.jsx",
+        "react/components/MasterChildStack.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/new_user_tutorial",
+      "fileCount": 3,
+      "files": [
+        "react/ConfirmEndTutorialDialog.jsx",
+        "react/NewUserTutorialToggleButton.jsx",
+        "react/trays/TutorialTray.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/quiz_log_auditing",
+      "fileCount": 3,
+      "files": [
+        "react/components/event_stream/event.jsx",
+        "react/components/question_listing.jsx",
+        "react/components/session.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/submit_assignment",
+      "fileCount": 3,
+      "files": [
+        "jquery/index.jsx",
+        "react/Attachment.jsx",
+        "react/WebcamModal.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/content_shares",
+      "fileCount": 4,
+      "files": [
+        "react/ContentHeading.jsx",
+        "react/PreviewModal.jsx",
+        "react/ReceivedContentView.jsx",
+        "react/ReceivedTable.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/job_stats",
+      "fileCount": 4,
+      "files": [
+        "react/components/JobStats.jsx",
+        "react/components/JobStatsTable.jsx",
+        "react/components/StuckList.jsx",
+        "react/components/StuckModal.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/manage_groups",
+      "fileCount": 4,
+      "files": [
+        "react/GroupCategoryCloneModal.jsx",
+        "react/GroupCategoryMessageAllUnassignedModal.jsx",
+        "react/GroupCategoryProgress.jsx",
+        "react/GroupImportModal.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/course_people",
+      "fileCount": 5,
+      "files": [
+        "react/components/NameLink/NameLink.jsx",
+        "react/components/RosterCard/RosterCard.jsx",
+        "react/components/RosterTableRoles/RosterTableRoles.jsx",
+        "react/containers/CoursePeople.jsx",
+        "react/containers/RosterTable/RosterTable.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/theme_editor",
+      "fileCount": 5,
+      "files": [
+        "react/ThemeEditor.jsx",
+        "react/ThemeEditorAccordion.jsx",
+        "react/ThemeEditorColorRow.jsx",
+        "react/ThemeEditorSidebar.jsx",
+        "react/ThemeEditorVariableGroup.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/course_settings",
+      "fileCount": 6,
+      "files": [
+        "react/components/BlueprintLockOptions.jsx",
+        "react/components/CourseAvailabilityOptions.jsx",
+        "react/components/CourseImagePicker.jsx",
+        "react/components/CourseImageSelector.jsx",
+        "react/components/ExpandableLockOptions.jsx",
+        "react/components/QuantitativeDataOptions.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/account_grading_settings",
+      "fileCount": 7,
+      "files": [
+        "components/grading_period/AccountGradingPeriod.jsx",
+        "components/grading_period/EditGradingPeriodSetForm.jsx",
+        "components/grading_period/EnrollmentTermInput.jsx",
+        "components/grading_period/GradingPeriodForm.jsx",
+        "components/grading_period/GradingPeriodSet.jsx",
+        "components/grading_period/GradingPeriodSetCollection.jsx",
+        "components/grading_period/NewGradingPeriodSetForm.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/account_grading_standards",
+      "fileCount": 7,
+      "files": [
+        "react/AccountGradingPeriod.jsx",
+        "react/EditGradingPeriodSetForm.jsx",
+        "react/EnrollmentTermInput.jsx",
+        "react/GradingPeriodForm.jsx",
+        "react/GradingPeriodSet.jsx",
+        "react/GradingPeriodSetCollection.jsx",
+        "react/NewGradingPeriodSetForm.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/account_settings",
+      "fileCount": 8,
+      "files": [
+        "index.jsx",
+        "react/components/SecurityPanel.jsx",
+        "react/components/Whitelist.jsx",
+        "react/course_creation_settings/CourseCreationSettings.jsx",
+        "react/custom_emoji_deny_list/CustomEmojiDenyList.jsx",
+        "react/custom_help_link_settings/CustomHelpLinkForm.jsx",
+        "react/custom_help_link_settings/CustomHelpLinkIcons.jsx",
+        "react/custom_help_link_settings/CustomHelpLinkMenu.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/permissions",
+      "fileCount": 8,
+      "files": [
+        "react/components/AddTray.jsx",
+        "react/components/DetailsToggle.jsx",
+        "react/components/PermissionTray.jsx",
+        "react/components/PermissionsIndex.jsx",
+        "react/components/PermissionsTable.jsx",
+        "react/components/RoleTray.jsx",
+        "react/components/RoleTrayTable.jsx",
+        "react/components/RoleTrayTableRow.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/k5_course",
+      "fileCount": 9,
+      "files": [
+        "react/EmptyCourse.jsx",
+        "react/EmptyHome.jsx",
+        "react/EmptyModules.jsx",
+        "react/GradeDetails.jsx",
+        "react/GradeRow.jsx",
+        "react/GradesEmptyPage.jsx",
+        "react/GradesPage.jsx",
+        "react/GradingPeriodSelect.jsx",
+        "react/K5Course.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/blueprint_course_master",
+      "fileCount": 12,
+      "files": [
+        "react/components/AssociationsTable.jsx",
+        "react/components/BlueprintAssociations.jsx",
+        "react/components/BlueprintSidebar.jsx",
+        "react/components/CourseFilter.jsx",
+        "react/components/CoursePicker.jsx",
+        "react/components/CoursePickerTable.jsx",
+        "react/components/CourseSidebar.jsx",
+        "react/components/MigrationOptions.jsx",
+        "react/components/MigrationSync.jsx",
+        "react/components/SyncHistory.jsx",
+        "react/components/UnsyncedChange.jsx",
+        "react/components/UnsyncedChanges.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/account_course_user_search",
+      "fileCount": 13,
+      "files": [
+        "react/components/CoursesList.jsx",
+        "react/components/CoursesListHeader.jsx",
+        "react/components/CoursesListRow.jsx",
+        "react/components/CoursesPane.jsx",
+        "react/components/CoursesToolbar.jsx",
+        "react/components/SRSearchMessage.jsx",
+        "react/components/SearchMessage.jsx",
+        "react/components/SearchableSelect.jsx",
+        "react/components/UsersList.jsx",
+        "react/components/UsersListHeader.jsx",
+        "react/components/UsersListRow.jsx",
+        "react/components/UsersPane.jsx",
+        "react/components/UsersToolbar.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/k5_dashboard",
+      "fileCount": 14,
+      "files": [
+        "react/EmptyTodos.jsx",
+        "react/FilterCalendarsModal.jsx",
+        "react/GradesPage.jsx",
+        "react/GradesSummary.jsx",
+        "react/GradingPeriodSelect.jsx",
+        "react/HomeroomAnnouncementsLayout.jsx",
+        "react/HomeroomPage.jsx",
+        "react/ImportantDateItem.jsx",
+        "react/ImportantDateSection.jsx",
+        "react/ImportantDates.jsx",
+        "react/ImportantDatesEmpty.jsx",
+        "react/K5Dashboard.jsx",
+        "react/K5DashboardCard.jsx",
+        "react/Todo.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/developer_keys_v2",
+      "fileCount": 15,
+      "files": [
+        "react/ActionButtons.jsx",
+        "react/AdminTable.jsx",
+        "react/App.jsx",
+        "react/DeveloperKey.jsx",
+        "react/InheritanceStateControl.jsx",
+        "react/InheritedTable.jsx",
+        "react/ManualConfigurationForm/Placement.jsx",
+        "react/ManualConfigurationForm/RequiredValues.jsx",
+        "react/ManualConfigurationForm/Services.jsx",
+        "react/ManualConfigurationForm/index.jsx",
+        "react/NewKeyTrigger.jsx",
+        "react/Scope.jsx",
+        "react/ScopesGroup.jsx",
+        "react/ScopesList.jsx",
+        "react/ToolConfigurationForm.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/jobs_v2",
+      "fileCount": 15,
+      "files": [
+        "react/components/DateOptionsModal.jsx",
+        "react/components/GroupsTable.jsx",
+        "react/components/InfoColumn.jsx",
+        "react/components/JobDetails.jsx",
+        "react/components/JobLookup.jsx",
+        "react/components/JobsHeader.jsx",
+        "react/components/JobsTable.jsx",
+        "react/components/OrphanedStrandIndicator.jsx",
+        "react/components/RefreshWidget.jsx",
+        "react/components/RequeueButton.jsx",
+        "react/components/SearchBox.jsx",
+        "react/components/SortColumnHeader.jsx",
+        "react/components/StrandManager.jsx",
+        "react/components/TagThrottle.jsx",
+        "react/index.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/external_apps",
+      "fileCount": 18,
+      "files": [
+        "react/components/AddApp.jsx",
+        "react/components/AddExternalToolButton.jsx",
+        "react/components/AppFilters.jsx",
+        "react/components/AppList.jsx",
+        "react/components/Configurations.jsx",
+        "react/components/ConfigureExternalToolButton.jsx",
+        "react/components/DeleteExternalToolButton.jsx",
+        "react/components/DeploymentIdButton.jsx",
+        "react/components/DuplicateConfirmationForm.jsx",
+        "react/components/ExternalToolMigrationInfo.jsx",
+        "react/components/ExternalToolPlacementButton.jsx",
+        "react/components/ExternalToolPlacementList.jsx",
+        "react/components/ExternalToolsTable.jsx",
+        "react/components/ExternalToolsTableRow.jsx",
+        "react/components/Header.jsx",
+        "react/components/Lti2ReregistrationUpdateModal.jsx",
+        "react/components/ManageAppListButton.jsx",
+        "react/components/configuration_forms/ConfigurationFormLti13.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/assignments_show_teacher_deprecated",
+      "fileCount": 34,
+      "files": [
+        "react/components/AddHorizontalRuleButton.jsx",
+        "react/components/AssignmentDescription.jsx",
+        "react/components/ConfirmDialog.jsx",
+        "react/components/Editables/AssignmentModules.jsx",
+        "react/components/Editables/AssignmentName.jsx",
+        "react/components/Editables/AssignmentPoints.jsx",
+        "react/components/Editables/AssignmentType.jsx",
+        "react/components/Editables/EditableDateTime.jsx",
+        "react/components/Editables/EditableNumber.jsx",
+        "react/components/Editables/EditableRichText.jsx",
+        "react/components/Editables/SelectableText.jsx",
+        "react/components/Header.jsx",
+        "react/components/MessageStudentsWhoForm.jsx",
+        "react/components/Overrides/ExternalToolType.jsx",
+        "react/components/Overrides/FileType.jsx",
+        "react/components/Overrides/NonCanvasType.jsx",
+        "react/components/Overrides/OperatorType.jsx",
+        "react/components/Overrides/Override.jsx",
+        "react/components/Overrides/OverrideAssignTo.jsx",
+        "react/components/Overrides/OverrideAttempts.jsx",
+        "react/components/Overrides/OverrideDates.jsx",
+        "react/components/Overrides/OverrideDetail.jsx",
+        "react/components/Overrides/OverrideSubmissionTypes.jsx",
+        "react/components/Overrides/OverrideSummary.jsx",
+        "react/components/Overrides/Overrides.jsx",
+        "react/components/Overrides/SimpleType.jsx",
+        "react/components/StudentsTab/StudentSearchQuery.jsx",
+        "react/components/StudentsTab/StudentTray.jsx",
+        "react/components/StudentsTab/StudentsSearcher.jsx",
+        "react/components/StudentsTab/StudentsTable.jsx",
+        "react/components/TeacherFooter.jsx",
+        "react/components/TeacherQuery.jsx",
+        "react/components/TeacherView.jsx",
+        "react/components/Toolbox.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/assignments_show_student",
+      "fileCount": 37,
+      "files": [
+        "react/Steps/StepItem/index.jsx",
+        "react/Steps/index.jsx",
+        "react/UnavailablePeerReview.jsx",
+        "react/UnpublishedModule.jsx",
+        "react/components/AssignmentDetails.jsx",
+        "react/components/AttemptTab.jsx",
+        "react/components/AttemptType/FilePreview.jsx",
+        "react/components/AttemptType/FileUpload.jsx",
+        "react/components/AttemptType/MediaAttempt.jsx",
+        "react/components/AttemptType/MoreOptions/CanvasFiles/BreadcrumbLinkWithTip.jsx",
+        "react/components/AttemptType/MoreOptions/CanvasFiles/FileSelectTable.jsx",
+        "react/components/AttemptType/MoreOptions/CanvasFiles/TableFolders.jsx",
+        "react/components/AttemptType/MoreOptions/CanvasFiles/TableHeader.jsx",
+        "react/components/AttemptType/MoreOptions/WebcamCapture.jsx",
+        "react/components/AttemptType/MoreOptions/index.jsx",
+        "react/components/AttemptType/TextEntry.jsx",
+        "react/components/AttemptType/UrlEntry.jsx",
+        "react/components/ContentTabs.jsx",
+        "react/components/ExternalToolOptions.jsx",
+        "react/components/GradeDisplay.jsx",
+        "react/components/Header.jsx",
+        "react/components/LatePolicyStatusDisplay/AccessibleTipContent.jsx",
+        "react/components/LatePolicyStatusDisplay/LatePolicyToolTipContent.jsx",
+        "react/components/LatePolicyStatusDisplay/index.jsx",
+        "react/components/LockedAssignment.jsx",
+        "react/components/MissingPrereqs.jsx",
+        "react/components/OriginalityReport.jsx",
+        "react/components/PeerReviewsCounter.jsx",
+        "react/components/RubricTab.jsx",
+        "react/components/StepContainer.jsx",
+        "react/components/StudentContent.jsx",
+        "react/components/StudentFooter.jsx",
+        "react/components/SubmissionHistoriesQuery.jsx",
+        "react/components/SubmissionManager.jsx",
+        "react/components/SubmissionTypeButton.jsx",
+        "react/components/SubmissionWorkflowTracker.jsx",
+        "react/index.jsx"
+      ],
+      "status": "pending"
+    },
+    {
+      "path": "ui/features/outcome_management",
+      "fileCount": 46,
+      "files": [
+        "react/Alignments/AlignmentItem.jsx",
+        "react/Alignments/AlignmentOutcomeItem.jsx",
+        "react/Alignments/AlignmentOutcomeItemList.jsx",
+        "react/Alignments/AlignmentStatItem.jsx",
+        "react/Alignments/AlignmentSummaryHeader.jsx",
+        "react/Alignments/index.jsx",
+        "react/ConfirmMasteryModal.jsx",
+        "react/CreateOutcomeModal.jsx",
+        "react/FindOutcomeItem.jsx",
+        "react/FindOutcomesBillboard.jsx",
+        "react/FindOutcomesModal.jsx",
+        "react/FindOutcomesView.jsx",
+        "react/ImportConfirmBox.jsx",
+        "react/Management/GroupDescriptionModal.jsx",
+        "react/Management/GroupEditForm.jsx",
+        "react/Management/GroupMoveModal.jsx",
+        "react/Management/GroupRemoveModal.jsx",
+        "react/Management/ManageOutcomeItem.jsx",
+        "react/Management/ManageOutcomesBillboard.jsx",
+        "react/Management/ManageOutcomesFooter.jsx",
+        "react/Management/ManageOutcomesView.jsx",
+        "react/Management/OutcomeDescription.jsx",
+        "react/Management/OutcomeEditModal.jsx",
+        "react/Management/OutcomeGroupHeader.jsx",
+        "react/Management/OutcomeKebabMenu.jsx",
+        "react/Management/OutcomeMoveModal.jsx",
+        "react/Management/OutcomeSearchBar.jsx",
+        "react/Management/OutcomesPopover.jsx",
+        "react/Management/Ratings.jsx",
+        "react/Management/TreeBrowser.jsx",
+        "react/Management/index.jsx",
+        "react/ManagementHeader.jsx",
+        "react/MasteryCalculation/ProficiencyCalculation.jsx",
+        "react/MasteryCalculation/index.jsx",
+        "react/MasteryScale/ProficiencyRating.jsx",
+        "react/MasteryScale/ProficiencyTable.jsx",
+        "react/MasteryScale/index.jsx",
+        "react/OutcomeManagement.jsx",
+        "react/RoleList.jsx",
+        "react/shared/AddContentItem.jsx",
+        "react/shared/GroupActionDrillDown.jsx",
+        "react/shared/GroupSelectionDrillDown.jsx",
+        "react/shared/LabeledRceField.jsx",
+        "react/shared/OutcomesRceField.jsx",
+        "react/shared/SearchBreadcrumb.jsx",
+        "react/shared/TargetGroupSelector.jsx"
+      ],
+      "status": "pending"
+    }
+  ]
+}

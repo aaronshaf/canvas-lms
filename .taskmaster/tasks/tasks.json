@@ -1,0 +1,868 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Set Up Migration Discovery Script",
+        "description": "Create a script to scan ui/features/* directories and identify all JS/JSX files importing InstUI packages, sorted by folder size (smallest first) for prioritized processing.",
+        "details": "Create a Python or Node.js script that:\n1. Recursively scans each ui/features/* subdirectory\n2. Identifies .js and .jsx files that import from @instructure/ui-* packages\n3. Excludes test files (__tests__/, *.test.js, *.test.jsx, *.spec.js, *.spec.jsx)\n4. Groups files by feature folder\n5. Counts InstUI-importing files per folder\n6. Outputs a sorted list (smallest to largest) with:\n   - Feature folder path\n   - File count\n   - List of specific files to migrate\n7. Save output to .taskmaster/docs/instui-migration-manifest.json\n\nInstUI packages to detect:\n- @instructure/ui-a11y-content\n- @instructure/ui-alerts\n- @instructure/ui-buttons\n- @instructure/ui-color-utils\n- @instructure/ui-dom-utils\n- @instructure/ui-drilldown\n- @instructure/ui-grid\n- @instructure/ui-icons\n- @instructure/ui-menu\n- @instructure/ui-responsive\n- @instructure/ui-simple-select\n- @instructure/ui-spinner\n- @instructure/ui-text\n- @instructure/ui-text-input\n- @instructure/ui-truncate-text\n- @instructure/ui-view\n\nExample output structure:\n```json\n{\n  \"generated\": \"2026-02-14\",\n  \"totalFolders\": 80,\n  \"totalFiles\": 320,\n  \"folders\": [\n    {\n      \"path\": \"ui/features/canvas_career\",\n      \"fileCount\": 1,\n      \"files\": [\"index.jsx\"],\n      \"status\": \"pending\"\n    }\n  ]\n}\n```",
+        "testStrategy": "Run the script and verify output contains all 234 feature folders. Cross-reference with manual grep searches to confirm file counts match. Ensure test files are properly excluded.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-15T04:12:47.607Z"
+      },
+      {
+        "id": "2",
+        "title": "Create Migration Task Tracking System",
+        "description": "Establish a tracking system to monitor the status of each feature folder migration through the complete workflow (GitHub PR → CI → Gerrit → Review → Merge).",
+        "details": "Extend the migration manifest JSON to track workflow state:\n\n1. Add status fields to each folder entry:\n   ```json\n   {\n     \"path\": \"ui/features/example\",\n     \"files\": [...],\n     \"status\": \"pending\",\n     \"githubPr\": {\n       \"number\": null,\n       \"url\": null,\n       \"status\": null,\n       \"ciStatus\": null\n     },\n     \"gerrit\": {\n       \"changeId\": null,\n       \"url\": null,\n       \"status\": null,\n       \"reviewers\": []\n     },\n     \"worktree\": {\n       \"path\": null,\n       \"branch\": null\n     },\n     \"migratedAt\": null,\n     \"mergedAt\": null\n   }\n   ```\n\n2. Define status values:\n   - pending: Not started\n   - in_progress_migration: Converting files\n   - in_progress_validation: Running eslint/biome/tsc\n   - in_progress_ci: GitHub PR open, awaiting CI\n   - in_progress_gerrit: Pushed to Gerrit\n   - blocked: CI failing or review feedback needed\n   - completed: Merged to Gerrit master\n\n3. Create helper script to update status:\n   - `update-migration-status.sh <folder> <status> [fields...]`\n\n4. Create progress report generator showing:\n   - Total folders / completed / in-progress / blocked\n   - Estimated completion based on velocity",
+        "testStrategy": "Create test entries with various statuses. Verify status updates persist correctly. Run progress report and confirm counts match actual state.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-15T04:15:50.883Z"
+      },
+      {
+        "id": "3",
+        "title": "Document TypeScript Migration Patterns",
+        "description": "Create a reference guide documenting common patterns for converting InstUI-importing files from JavaScript to TypeScript, including type definitions and @ts-expect-error usage.",
+        "details": "Create .taskmaster/docs/typescript-migration-guide.md with:\n\n1. **File Renaming**:\n   - .js → .ts for utility files\n   - .jsx → .tsx for React components\n\n2. **Import Patterns**:\n   ```typescript\n   // InstUI components are already typed\n   import {Button, View} from '@instructure/ui-buttons'\n   import type {ViewProps} from '@instructure/ui-view'\n   ```\n\n3. **React Component Patterns**:\n   ```typescript\n   // Function component with props\n   interface MyComponentProps {\n     title: string\n     onSubmit: (data: FormData) => void\n     children?: React.ReactNode\n   }\n   \n   export default function MyComponent({title, onSubmit, children}: MyComponentProps): React.JSX.Element {\n     // ...\n   }\n   ```\n\n4. **Event Handler Typing**:\n   ```typescript\n   // InstUI events often have custom types\n   const handleChange = (event: React.ChangeEvent<HTMLInputElement>, value: string) => {\n     // If type is complex, use @ts-expect-error\n   }\n   \n   // @ts-expect-error - InstUI event type mismatch\n   const handleSelect = (event, {value}) => {\n     setValue(value)\n   }\n   ```\n\n5. **Forbidden Patterns**:\n   - NEVER use `as` type casts (except `as const`)\n   - NEVER use `any` type\n   - DO use `@ts-expect-error` with brief explanation\n   - DO use `unknown` when type is truly unknown\n\n6. **Common Type Suppression Examples**:\n   ```typescript\n   // @ts-expect-error - Canvas ENV global\n   const courseId = ENV.COURSE_ID\n   \n   // @ts-expect-error - Legacy jQuery integration\n   $('#element').trigger('change')\n   \n   // @ts-expect-error - InstUI callback signature\n   <Select onChange={(e, {value}) => setValue(value)} />\n   ```\n\n7. **Canvas-specific Types**:\n   - Import from '@canvas/types' when available\n   - Use createI18nScope pattern for i18n",
+        "testStrategy": "Apply patterns to 2-3 test migrations. Verify converted files pass eslint, biome, and tsc. Document any additional patterns discovered.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "4",
+        "title": "Create Worktree Management Scripts",
+        "description": "Develop helper scripts for managing git worktrees in ~/inst/canvas-lms for the Gerrit push workflow.",
+        "details": "Create scripts in .taskmaster/scripts/:\n\n1. **create-worktree.sh <feature-name>**:\n   ```bash\n   #!/bin/bash\n   FEATURE=$1\n   BRANCH=\"ts-instui-$FEATURE\"\n   WORKTREE_BASE=~/inst/canvas-lms-worktrees\n   \n   cd ~/inst/canvas-lms\n   wt switch --create $BRANCH -y\n   \n   # Copy .tool-versions for asdf\n   cp ~/inst/canvas-lms/.tool-versions $WORKTREE_BASE/$BRANCH/\n   \n   echo \"Worktree created: $WORKTREE_BASE/$BRANCH\"\n   ```\n\n2. **apply-patch.sh <feature-name>**:\n   ```bash\n   #!/bin/bash\n   FEATURE=$1\n   BRANCH=\"ts-instui-$FEATURE\"\n   WORKTREE=$WORKTREE_BASE/$BRANCH\n   \n   # Generate patch from canvas-lms-readonly\n   cd ~/inst/canvas-lms-readonly\n   git diff HEAD~1 > /tmp/$FEATURE.patch\n   \n   # Apply to worktree\n   cd $WORKTREE\n   git apply -3 /tmp/$FEATURE.patch\n   ```\n\n3. **commit-and-push.sh <feature-name> <description>**:\n   ```bash\n   #!/bin/bash\n   FEATURE=$1\n   DESC=$2\n   \n   cd $WORKTREE\n   git add -A\n   git commit -m \"$DESC\n   \n   refs CFA-436\n   flag=none\"\n   \n   ger push\n   ```\n\n4. **cleanup-worktree.sh <feature-name>**:\n   ```bash\n   #!/bin/bash\n   FEATURE=$1\n   BRANCH=\"ts-instui-$FEATURE\"\n   \n   cd ~/inst/canvas-lms\n   git worktree remove $WORKTREE_BASE/$BRANCH\n   git branch -d $BRANCH\n   ```",
+        "testStrategy": "Test each script with a dummy branch name. Verify worktree creation, patch application, commit formatting, and cleanup all work correctly.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "5",
+        "title": "Create GitHub PR Template for Migrations",
+        "description": "Create a standardized PR template for TypeScript migration PRs in the canvas-lms-readonly repository.",
+        "details": "Create .github/PULL_REQUEST_TEMPLATE/typescript_migration.md:\n\n```markdown\n## TypeScript Migration: [Feature Name]\n\n### Summary\nMigrate InstUI-importing files in `ui/features/<feature>` from JavaScript to TypeScript.\n\n### Files Changed\n<!-- List files being converted -->\n- [ ] `path/to/file1.jsx` → `path/to/file1.tsx`\n- [ ] `path/to/file2.js` → `path/to/file2.ts`\n\n### Migration Details\n- **Feature folder**: `ui/features/<feature>`\n- **Files migrated**: X\n- **Type suppressions added**: Y\n\n### Validation Checklist\n- [ ] `yarn lint` passes\n- [ ] `yarn check:biome` passes\n- [ ] `npx tsc --noEmit` passes (entire codebase)\n- [ ] No `as` type casts used\n- [ ] No `any` types used\n- [ ] @ts-expect-error comments include explanations\n\n### Gerrit Tracking\n- **Jira**: CFA-436\n- **Gerrit Change-Id**: (to be added after push)\n- **Gerrit URL**: (to be added after push)\n\n### Notes\n<!-- Any special considerations or known issues -->\n\n---\n*This PR will be closed automatically when pushed to Gerrit.*\n```\n\nAlso create a script to auto-fill the template:\n```bash\ngenerate-pr-body.sh <feature-name> <files...>\n```",
+        "testStrategy": "Create a test PR using the template. Verify all sections render correctly on GitHub. Test the auto-fill script generates valid markdown.",
+        "priority": "low",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "6",
+        "title": "Implement Validation Pipeline",
+        "description": "Create a local validation script that runs all required checks (eslint, biome, tsc) before creating a PR.",
+        "details": "Create .taskmaster/scripts/validate-migration.sh:\n\n```bash\n#!/bin/bash\nset -e\n\necho \"=== Running ESLint ===\"\nyarn lint\nif [ $? -ne 0 ]; then\n  echo \"❌ ESLint failed\"\n  exit 1\nfi\necho \"✓ ESLint passed\"\n\necho \"=== Running Biome ===\"\nyarn check:biome\nif [ $? -ne 0 ]; then\n  echo \"Attempting biome:fix...\"\n  yarn biome:fix\n  yarn check:biome\n  if [ $? -ne 0 ]; then\n    echo \"❌ Biome failed after fix attempt\"\n    exit 1\n  fi\nfi\necho \"✓ Biome passed\"\n\necho \"=== Running TypeScript Check ===\"\necho \"(This checks the entire codebase, may take a minute...)\"\nnpx tsc --noEmit\nif [ $? -ne 0 ]; then\n  echo \"❌ TypeScript check failed\"\n  exit 1\nfi\necho \"✓ TypeScript passed\"\n\necho \"\"\necho \"==================================\"\necho \"✅ All validations passed!\"\necho \"Ready to create PR.\"\necho \"==================================\"\n```\n\nOptionally create a watch mode for iterative development:\n```bash\nvalidate-migration-watch.sh\n# Uses nodemon/chokidar to re-run on file changes\n```",
+        "testStrategy": "Run validation script on clean codebase (should pass). Introduce intentional errors (lint, type, biome) and verify each is caught. Test auto-fix functionality.",
+        "priority": "high",
+        "dependencies": [
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "7",
+        "title": "Migrate ui/features/canvas_career (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/canvas_career to TypeScript as a pilot migration.",
+        "details": "Files to migrate:\n- ui/features/canvas_career/index.jsx → index.tsx\n\nSteps:\n1. Read the file and analyze InstUI imports\n2. Rename .jsx to .tsx\n3. Add type annotations to component props\n4. Add types to event handlers and state\n5. Use @ts-expect-error where types are complex\n6. Run validation pipeline\n7. Create PR in canvas-lms-readonly\n8. Wait for CI to pass\n9. Generate patch and apply to Gerrit worktree\n10. Push to Gerrit with:\n   ```\n   chore: migrate ui/features/canvas_career to TypeScript\n   \n   Convert InstUI-importing files to TypeScript as part of\n   the CFA-436 migration initiative.\n   \n   refs CFA-436\n   flag=none\n   ```\n11. Find reviewers via /find-reviewers\n12. Close GitHub PR\n13. Update tracking manifest\n\nThis is the pilot migration - document any issues encountered for the migration guide.",
+        "testStrategy": "Verify file compiles without errors. Run full validation pipeline. Confirm PR passes CI. Verify Gerrit push succeeds and reviewers are assigned.",
+        "priority": "high",
+        "dependencies": [
+          "1",
+          "2",
+          "3",
+          "6"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "8",
+        "title": "Migrate ui/features/content_notices (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/content_notices to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/content_notices/index.jsx → index.tsx\n\nFollow established workflow:\n1. Rename and add types\n2. Validate locally\n3. Create PR, wait for CI\n4. Push to Gerrit\n5. Assign reviewers\n6. Update tracking\n\nCommit message:\n```\nchore: migrate ui/features/content_notices to TypeScript\n\nrefs CFA-436\nflag=none\n```",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "9",
+        "title": "Migrate ui/features/external_content_success (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/external_content_success to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/external_content_success/index.jsx → index.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "10",
+        "title": "Migrate ui/features/outcome_alignments (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/outcome_alignments to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/outcome_alignments/index.jsx → index.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "11",
+        "title": "Migrate ui/features/past_global_alert (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/past_global_alert to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/past_global_alert/react/PastGlobalAlert.jsx → PastGlobalAlert.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "12",
+        "title": "Migrate ui/features/progress_pill (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/progress_pill to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/progress_pill/index.jsx → index.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "13",
+        "title": "Migrate ui/features/user (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/user to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/user/index.jsx → index.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "14",
+        "title": "Migrate ui/features/user_logins (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/user_logins to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/user_logins/react/SuspendedIcon.jsx → SuspendedIcon.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "15",
+        "title": "Migrate ui/features/webzip_export (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/webzip_export to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/webzip_export/react/App.jsx → App.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "16",
+        "title": "Migrate ui/features/admin_split (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/admin_split to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/admin_split/react/index.jsx → index.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "17",
+        "title": "Migrate ui/features/authentication_providers (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/authentication_providers to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/authentication_providers/react/AuthTypePicker.jsx → AuthTypePicker.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "18",
+        "title": "Migrate ui/features/available_pronouns_list (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/available_pronouns_list to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/available_pronouns_list/react/PronounsInput.jsx → PronounsInput.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "19",
+        "title": "Migrate ui/features/context_modules (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/context_modules to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/context_modules/react/ModulesHomePage.jsx → ModulesHomePage.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "20",
+        "title": "Migrate ui/features/context_roster_user (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/context_roster_user to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/context_roster_user/react/StudentLastAttended.jsx → StudentLastAttended.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "21",
+        "title": "Migrate ui/features/course_show (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/course_show to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/course_show/react/show.jsx → show.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "22",
+        "title": "Migrate ui/features/course_wizard (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/course_wizard to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/course_wizard/react/CourseWizard.jsx → CourseWizard.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "23",
+        "title": "Migrate ui/features/eportfolio (1 file)",
+        "description": "Convert the single InstUI-importing file in ui/features/eportfolio to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/eportfolio/jquery/index.jsx → index.tsx\n\nNote: This file is in a jquery/ subdirectory, may have jQuery integration patterns requiring @ts-expect-error.\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "24",
+        "title": "Migrate ui/features/ignite_agent (2 files)",
+        "description": "Convert the InstUI-importing files in ui/features/ignite_agent to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/ignite_agent/index.jsx → index.tsx\n- ui/features/ignite_agent/FallbackChatOverlay.jsx → FallbackChatOverlay.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "25",
+        "title": "Migrate ui/features/dashboard (2 files)",
+        "description": "Convert the InstUI-importing files in ui/features/dashboard to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/dashboard/react/DashboardHeader.jsx → DashboardHeader.tsx\n- ui/features/dashboard/react/DashboardOptionsMenu.jsx → DashboardOptionsMenu.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "26",
+        "title": "Migrate ui/features/new_user_tutorial (3 files)",
+        "description": "Convert the InstUI-importing files in ui/features/new_user_tutorial to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/new_user_tutorial/react/trays/TutorialTray.jsx → TutorialTray.tsx\n- ui/features/new_user_tutorial/react/NewUserTutorialToggleButton.jsx → NewUserTutorialToggleButton.tsx\n- ui/features/new_user_tutorial/react/ConfirmEndTutorialDialog.jsx → ConfirmEndTutorialDialog.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "27",
+        "title": "Migrate ui/features/syllabus (2 files)",
+        "description": "Convert the InstUI-importing files in ui/features/syllabus to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/syllabus/index.jsx → index.tsx\n- ui/features/syllabus/backbone/views/SyllabusView.jsx → SyllabusView.tsx\n\nNote: SyllabusView is in backbone/views, may have Backbone patterns requiring @ts-expect-error.\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "28",
+        "title": "Migrate ui/features/submit_assignment (3 files)",
+        "description": "Convert the InstUI-importing files in ui/features/submit_assignment to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/submit_assignment/react/WebcamModal.jsx → WebcamModal.tsx\n- ui/features/submit_assignment/react/Attachment.jsx → Attachment.tsx\n- ui/features/submit_assignment/jquery/index.jsx → index.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "29",
+        "title": "Migrate ui/features/brand_configs (2 files)",
+        "description": "Convert the InstUI-importing files in ui/features/brand_configs to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/brand_configs/react/ThemeCard.jsx → ThemeCard.tsx\n- ui/features/brand_configs/react/CollectionView.jsx → CollectionView.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "30",
+        "title": "Migrate ui/features/quizzes_index (2 files)",
+        "description": "Convert the InstUI-importing files in ui/features/quizzes_index to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/quizzes_index/react/QuizEngineModal.jsx → QuizEngineModal.tsx\n- ui/features/quizzes_index/backbone/views/IndexView.jsx → IndexView.tsx\n\nNote: IndexView is Backbone-based, expect complex type suppressions.\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "31",
+        "title": "Migrate ui/features/past_global_announcements (3 files)",
+        "description": "Convert the InstUI-importing files in ui/features/past_global_announcements to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/past_global_announcements/react/PastGlobalAnnouncements.jsx → PastGlobalAnnouncements.tsx\n- ui/features/past_global_announcements/react/AnnouncementPagination.jsx → AnnouncementPagination.tsx\n- ui/features/past_global_announcements/react/AnnouncementFactory.jsx → AnnouncementFactory.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "32",
+        "title": "Migrate ui/features/search (1 file)",
+        "description": "Convert the InstUI-importing file in ui/features/search to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/search/react/IndexingProgress.jsx → IndexingProgress.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "33",
+        "title": "Migrate ui/features/wiki_page_index (2 files)",
+        "description": "Convert the InstUI-importing files in ui/features/wiki_page_index to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/wiki_page_index/react/ConfirmDeleteModal.jsx → ConfirmDeleteModal.tsx\n- ui/features/wiki_page_index/backbone/views/WikiPageIndexView.jsx → WikiPageIndexView.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "34",
+        "title": "Migrate ui/features/roster (3 files)",
+        "description": "Convert the InstUI-importing files in ui/features/roster to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/roster/backbone/views/RosterView.jsx → RosterView.tsx\n- ui/features/roster/backbone/views/RosterUserView.jsx → RosterUserView.tsx\n- Exclude: ui/features/roster/backbone/views/__tests__/RosterUserView.test.js (test file)\n\nNote: These are Backbone views, expect type suppression patterns.\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "35",
+        "title": "Migrate ui/features/sis_import (1 file)",
+        "description": "Convert the InstUI-importing file in ui/features/sis_import to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/sis_import/react/ConfirmationModal.jsx → ConfirmationModal.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "36",
+        "title": "Migrate ui/features/quiz_statistics (3 files)",
+        "description": "Convert the InstUI-importing files in ui/features/quiz_statistics to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/quiz_statistics/react/components/summary/index.jsx → index.tsx\n- ui/features/quiz_statistics/react/components/discrimination_index/index.jsx → index.tsx\n- Other related files in feature\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "37",
+        "title": "Migrate ui/features/quiz_log_auditing (3 files)",
+        "description": "Convert the InstUI-importing files in ui/features/quiz_log_auditing to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/quiz_log_auditing/react/components/session.jsx → session.tsx\n- ui/features/quiz_log_auditing/react/components/question_listing.jsx → question_listing.tsx\n- ui/features/quiz_log_auditing/react/components/event_stream/event.jsx → event.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "38",
+        "title": "Migrate ui/features/files (3 files)",
+        "description": "Convert the InstUI-importing files in ui/features/files to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/files/react/components/FileUpload.jsx → FileUpload.tsx\n- ui/features/files/MasterCourseLock.jsx → MasterCourseLock.tsx\n- ui/features/files/openMoveDialog.jsx → openMoveDialog.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "39",
+        "title": "Migrate ui/features/theme_editor (5 files)",
+        "description": "Convert the InstUI-importing files in ui/features/theme_editor to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/theme_editor/react/ThemeEditorAccordion.jsx → ThemeEditorAccordion.tsx\n- ui/features/theme_editor/react/ThemeEditorVariableGroup.jsx → ThemeEditorVariableGroup.tsx\n- ui/features/theme_editor/react/ThemeEditorSidebar.jsx → ThemeEditorSidebar.tsx\n- ui/features/theme_editor/react/ThemeEditorModal.jsx → ThemeEditorModal.tsx\n- ui/features/theme_editor/react/ThemeEditorColorRow.jsx → ThemeEditorColorRow.tsx\n- ui/features/theme_editor/react/ThemeEditor.jsx → ThemeEditor.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "40",
+        "title": "Migrate ui/features/gradebook_history (2 files)",
+        "description": "Convert the InstUI-importing files in ui/features/gradebook_history to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/gradebook_history/react/SearchResults.jsx → SearchResults.tsx\n- ui/features/gradebook_history/react/SearchForm.jsx → SearchForm.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "41",
+        "title": "Migrate ui/features/course_link_validator (2 files)",
+        "description": "Convert the InstUI-importing files in ui/features/course_link_validator to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/course_link_validator/react/ValidatorResultsRow.jsx → ValidatorResultsRow.tsx\n- ui/features/course_link_validator/react/LinkValidator.jsx → LinkValidator.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "42",
+        "title": "Migrate ui/features/navigation_header (1 file)",
+        "description": "Convert the InstUI-importing file in ui/features/navigation_header to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/navigation_header/react/MobileContextMenu.jsx → MobileContextMenu.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "43",
+        "title": "Migrate ui/features/manage_groups (4 files)",
+        "description": "Convert the InstUI-importing files in ui/features/manage_groups to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/manage_groups/react/GroupImportModal.jsx → GroupImportModal.tsx\n- ui/features/manage_groups/react/GroupCategoryProgress.jsx → GroupCategoryProgress.tsx\n- ui/features/manage_groups/react/GroupCategoryMessageAllUnassignedModal.jsx → GroupCategoryMessageAllUnassignedModal.tsx\n- ui/features/manage_groups/react/GroupCategoryCloneModal.jsx → GroupCategoryCloneModal.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "44",
+        "title": "Migrate ui/features/course_settings (7 files)",
+        "description": "Convert the InstUI-importing files in ui/features/course_settings to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/course_settings/react/components/QuantitativeDataOptions.jsx → QuantitativeDataOptions.tsx\n- ui/features/course_settings/react/components/LockCheckList.jsx → LockCheckList.tsx\n- ui/features/course_settings/react/components/ExpandableLockOptions.jsx → ExpandableLockOptions.tsx\n- ui/features/course_settings/react/components/CourseImageSelector.jsx → CourseImageSelector.tsx\n- ui/features/course_settings/react/components/CourseImagePicker.jsx → CourseImagePicker.tsx\n- ui/features/course_settings/react/components/CourseAvailabilityOptions.jsx → CourseAvailabilityOptions.tsx\n- ui/features/course_settings/react/components/BlueprintLockOptions.jsx → BlueprintLockOptions.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "45",
+        "title": "Migrate ui/features/course_people (7 files)",
+        "description": "Convert the InstUI-importing files in ui/features/course_people to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/course_people/react/containers/RosterTable/RosterTable.jsx → RosterTable.tsx\n- ui/features/course_people/react/containers/CoursePeople.jsx → CoursePeople.tsx\n- ui/features/course_people/react/components/StatusPill/StatusPill.jsx → StatusPill.tsx\n- ui/features/course_people/react/components/RosterTableRoles/RosterTableRoles.jsx → RosterTableRoles.tsx\n- ui/features/course_people/react/components/RosterTableLastActivity/RosterTableLastActivity.jsx → RosterTableLastActivity.tsx\n- ui/features/course_people/react/components/RosterCard/RosterCard.jsx → RosterCard.tsx\n- ui/features/course_people/react/components/NameLink/NameLink.jsx → NameLink.tsx\n- ui/features/course_people/react/components/AvatarLink/AvatarLink.jsx → AvatarLink.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "46",
+        "title": "Migrate ui/features/content_shares (4 files)",
+        "description": "Convert the InstUI-importing files in ui/features/content_shares to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/content_shares/react/ReceivedTable.jsx → ReceivedTable.tsx\n- ui/features/content_shares/react/ReceivedContentView.jsx → ReceivedContentView.tsx\n- ui/features/content_shares/react/PreviewModal.jsx → PreviewModal.tsx\n- ui/features/content_shares/react/ContentHeading.jsx → ContentHeading.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "47",
+        "title": "Migrate ui/features/job_stats (4 files)",
+        "description": "Convert the InstUI-importing files in ui/features/job_stats to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/job_stats/react/components/StuckModal.jsx → StuckModal.tsx\n- ui/features/job_stats/react/components/StuckList.jsx → StuckList.tsx\n- ui/features/job_stats/react/components/JobStatsTable.jsx → JobStatsTable.tsx\n- ui/features/job_stats/react/components/JobStats.jsx → JobStats.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "48",
+        "title": "Migrate ui/features/jobs_v2 (15 files)",
+        "description": "Convert the InstUI-importing files in ui/features/jobs_v2 to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/jobs_v2/react/index.jsx → index.tsx\n- ui/features/jobs_v2/react/components/TagThrottle.jsx → TagThrottle.tsx\n- ui/features/jobs_v2/react/components/StrandManager.jsx → StrandManager.tsx\n- ui/features/jobs_v2/react/components/SortColumnHeader.jsx → SortColumnHeader.tsx\n- ui/features/jobs_v2/react/components/SectionRefreshHeader.jsx → SectionRefreshHeader.tsx\n- ui/features/jobs_v2/react/components/SearchBox.jsx → SearchBox.tsx\n- ui/features/jobs_v2/react/components/RequeueButton.jsx → RequeueButton.tsx\n- ui/features/jobs_v2/react/components/RefreshWidget.jsx → RefreshWidget.tsx\n- ui/features/jobs_v2/react/components/OrphanedStrandIndicator.jsx → OrphanedStrandIndicator.tsx\n- ui/features/jobs_v2/react/components/JobsTable.jsx → JobsTable.tsx\n- ui/features/jobs_v2/react/components/JobsHeader.jsx → JobsHeader.tsx\n- ui/features/jobs_v2/react/components/JobLookup.jsx → JobLookup.tsx\n- ui/features/jobs_v2/react/components/JobDetails.jsx → JobDetails.tsx\n- ui/features/jobs_v2/react/components/InfoColumn.jsx → InfoColumn.tsx\n- ui/features/jobs_v2/react/components/GroupsTable.jsx → GroupsTable.tsx\n- ui/features/jobs_v2/react/components/DateOptionsModal.jsx → DateOptionsModal.tsx\n\nThis is a larger migration - consider batching into multiple Gerrit changes if needed.\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "49",
+        "title": "Migrate ui/features/k5_course (9 files)",
+        "description": "Convert the InstUI-importing files in ui/features/k5_course to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/k5_course/react/K5Course.jsx → K5Course.tsx\n- ui/features/k5_course/react/GradingPeriodSelect.jsx → GradingPeriodSelect.tsx\n- ui/features/k5_course/react/GradesPage.jsx → GradesPage.tsx\n- ui/features/k5_course/react/GradesEmptyPage.jsx → GradesEmptyPage.tsx\n- ui/features/k5_course/react/GradeRow.jsx → GradeRow.tsx\n- ui/features/k5_course/react/GradeDetails.jsx → GradeDetails.tsx\n- ui/features/k5_course/react/EmptyModules.jsx → EmptyModules.tsx\n- ui/features/k5_course/react/EmptyHome.jsx → EmptyHome.tsx\n- ui/features/k5_course/react/EmptyCourse.jsx → EmptyCourse.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "50",
+        "title": "Migrate ui/features/k5_dashboard (13 files)",
+        "description": "Convert the InstUI-importing files in ui/features/k5_dashboard to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/k5_dashboard/react/Todo.jsx → Todo.tsx\n- ui/features/k5_dashboard/react/K5DashboardCard.jsx → K5DashboardCard.tsx\n- ui/features/k5_dashboard/react/K5Dashboard.jsx → K5Dashboard.tsx\n- ui/features/k5_dashboard/react/ImportantDatesEmpty.jsx → ImportantDatesEmpty.tsx\n- ui/features/k5_dashboard/react/ImportantDates.jsx → ImportantDates.tsx\n- ui/features/k5_dashboard/react/ImportantDateSection.jsx → ImportantDateSection.tsx\n- ui/features/k5_dashboard/react/ImportantDateItem.jsx → ImportantDateItem.tsx\n- ui/features/k5_dashboard/react/HomeroomPage.jsx → HomeroomPage.tsx\n- ui/features/k5_dashboard/react/HomeroomAnnouncementsLayout.jsx → HomeroomAnnouncementsLayout.tsx\n- ui/features/k5_dashboard/react/GradingPeriodSelect.jsx → GradingPeriodSelect.tsx\n- ui/features/k5_dashboard/react/GradesSummary.jsx → GradesSummary.tsx\n- ui/features/k5_dashboard/react/GradesPage.jsx → GradesPage.tsx\n- ui/features/k5_dashboard/react/FilterCalendarsModal.jsx → FilterCalendarsModal.tsx\n- ui/features/k5_dashboard/react/EmptyTodos.jsx → EmptyTodos.tsx\n\nThis is a larger migration - consider batching into multiple Gerrit changes if needed.\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "51",
+        "title": "Migrate ui/features/permissions (8 files)",
+        "description": "Convert the InstUI-importing files in ui/features/permissions to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/permissions/react/components/RoleTrayTableRow.jsx → RoleTrayTableRow.tsx\n- ui/features/permissions/react/components/RoleTrayTable.jsx → RoleTrayTable.tsx\n- ui/features/permissions/react/components/RoleTray.jsx → RoleTray.tsx\n- ui/features/permissions/react/components/PermissionsTable.jsx → PermissionsTable.tsx\n- ui/features/permissions/react/components/PermissionsIndex.jsx → PermissionsIndex.tsx\n- ui/features/permissions/react/components/PermissionTray.jsx → PermissionTray.tsx\n- ui/features/permissions/react/components/DetailsToggle.jsx → DetailsToggle.tsx\n- ui/features/permissions/react/components/AddTray.jsx → AddTray.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "52",
+        "title": "Migrate ui/features/external_apps (16 files)",
+        "description": "Convert the InstUI-importing files in ui/features/external_apps to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/external_apps/react/components/configuration_forms/ConfigurationFormLti13.jsx → ConfigurationFormLti13.tsx\n- ui/features/external_apps/react/components/ManageAppListButton.jsx → ManageAppListButton.tsx\n- ui/features/external_apps/react/components/Lti2ReregistrationUpdateModal.jsx → Lti2ReregistrationUpdateModal.tsx\n- ui/features/external_apps/react/components/Header.jsx → Header.tsx\n- ui/features/external_apps/react/components/ExternalToolsTableRow.jsx → ExternalToolsTableRow.tsx\n- ui/features/external_apps/react/components/ExternalToolsTable.jsx → ExternalToolsTable.tsx\n- ui/features/external_apps/react/components/ExternalToolPlacementList.jsx → ExternalToolPlacementList.tsx\n- ui/features/external_apps/react/components/ExternalToolPlacementButton.jsx → ExternalToolPlacementButton.tsx\n- ui/features/external_apps/react/components/ExternalToolMigrationInfo.jsx → ExternalToolMigrationInfo.tsx\n- ui/features/external_apps/react/components/DuplicateConfirmationForm.jsx → DuplicateConfirmationForm.tsx\n- ui/features/external_apps/react/components/DeploymentIdButton.jsx → DeploymentIdButton.tsx\n- ui/features/external_apps/react/components/DeleteExternalToolButton.jsx → DeleteExternalToolButton.tsx\n- ui/features/external_apps/react/components/ConfigureExternalToolButton.jsx → ConfigureExternalToolButton.tsx\n- ui/features/external_apps/react/components/Configurations.jsx → Configurations.tsx\n- ui/features/external_apps/react/components/AppList.jsx → AppList.tsx\n- ui/features/external_apps/react/components/AppFilters.jsx → AppFilters.tsx\n- ui/features/external_apps/react/components/AddExternalToolButton.jsx → AddExternalToolButton.tsx\n- ui/features/external_apps/react/components/AddApp.jsx → AddApp.tsx\n\nThis is a large migration - strongly consider batching into 2-3 Gerrit changes.\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "53",
+        "title": "Migrate ui/features/developer_keys_v2 (16 files)",
+        "description": "Convert the InstUI-importing files in ui/features/developer_keys_v2 to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/developer_keys_v2/react/ToolConfigurationForm.jsx → ToolConfigurationForm.tsx\n- ui/features/developer_keys_v2/react/ScopesMethod.jsx → ScopesMethod.tsx\n- ui/features/developer_keys_v2/react/ScopesList.jsx → ScopesList.tsx\n- ui/features/developer_keys_v2/react/ScopesGroup.jsx → ScopesGroup.tsx\n- ui/features/developer_keys_v2/react/Scope.jsx → Scope.tsx\n- ui/features/developer_keys_v2/react/NewKeyTrigger.jsx → NewKeyTrigger.tsx\n- ui/features/developer_keys_v2/react/ManualConfigurationForm/index.jsx → index.tsx\n- ui/features/developer_keys_v2/react/ManualConfigurationForm/Services.jsx → Services.tsx\n- ui/features/developer_keys_v2/react/ManualConfigurationForm/RequiredValues.jsx → RequiredValues.tsx\n- ui/features/developer_keys_v2/react/ManualConfigurationForm/Placements.jsx → Placements.tsx\n- ui/features/developer_keys_v2/react/ManualConfigurationForm/Placement.jsx → Placement.tsx\n- ui/features/developer_keys_v2/react/InheritedTable.jsx → InheritedTable.tsx\n- ui/features/developer_keys_v2/react/InheritanceStateControl.jsx → InheritanceStateControl.tsx\n- ui/features/developer_keys_v2/react/DeveloperKey.jsx → DeveloperKey.tsx\n- ui/features/developer_keys_v2/react/App.jsx → App.tsx\n- ui/features/developer_keys_v2/react/AdminTable.jsx → AdminTable.tsx\n- ui/features/developer_keys_v2/react/ActionButtons.jsx → ActionButtons.tsx\n\nThis is a large migration - strongly consider batching into 2-3 Gerrit changes.\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "54",
+        "title": "Migrate ui/features/blueprint_course_master (12 files)",
+        "description": "Convert the InstUI-importing files in ui/features/blueprint_course_master to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/blueprint_course_master/react/components/UnsyncedChanges.jsx → UnsyncedChanges.tsx\n- ui/features/blueprint_course_master/react/components/UnsyncedChange.jsx → UnsyncedChange.tsx\n- ui/features/blueprint_course_master/react/components/SyncHistory.jsx → SyncHistory.tsx\n- ui/features/blueprint_course_master/react/components/MigrationSync.jsx → MigrationSync.tsx\n- ui/features/blueprint_course_master/react/components/MigrationOptions.jsx → MigrationOptions.tsx\n- ui/features/blueprint_course_master/react/components/CourseSidebar.jsx → CourseSidebar.tsx\n- ui/features/blueprint_course_master/react/components/CoursePickerTable.jsx → CoursePickerTable.tsx\n- ui/features/blueprint_course_master/react/components/CoursePicker.jsx → CoursePicker.tsx\n- ui/features/blueprint_course_master/react/components/CourseFilter.jsx → CourseFilter.tsx\n- ui/features/blueprint_course_master/react/components/BlueprintSidebar.jsx → BlueprintSidebar.tsx\n- ui/features/blueprint_course_master/react/components/BlueprintAssociations.jsx → BlueprintAssociations.tsx\n- ui/features/blueprint_course_master/react/components/AssociationsTable.jsx → AssociationsTable.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "55",
+        "title": "Migrate ui/features/blueprint_course_child (3 files)",
+        "description": "Convert the InstUI-importing files in ui/features/blueprint_course_child to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/blueprint_course_child/react/components/MasterChildStack.jsx → MasterChildStack.tsx\n- ui/features/blueprint_course_child/react/components/ChildChangeLog.jsx → ChildChangeLog.tsx\n- ui/features/blueprint_course_child/react/components/ChangeLogRow.jsx → ChangeLogRow.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "56",
+        "title": "Migrate ui/features/account_settings (10 files)",
+        "description": "Convert the InstUI-importing files in ui/features/account_settings to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/account_settings/react/components/Whitelist.jsx → Whitelist.tsx\n- ui/features/account_settings/react/components/SecurityPanel.jsx → SecurityPanel.tsx\n- ui/features/account_settings/react/course_creation_settings/CourseCreationSettings.jsx → CourseCreationSettings.tsx\n- ui/features/account_settings/react/custom_help_link_settings/CustomHelpLinkIcons.jsx → CustomHelpLinkIcons.tsx\n- ui/features/account_settings/react/custom_help_link_settings/CustomHelpLinkMenu.jsx → CustomHelpLinkMenu.tsx\n- ui/features/account_settings/react/custom_help_link_settings/CustomHelpLinkForm.jsx → CustomHelpLinkForm.tsx\n- ui/features/account_settings/react/custom_help_link_settings/CustomHelpLink.jsx → CustomHelpLink.tsx\n- ui/features/account_settings/react/custom_emoji_deny_list/CustomEmojiDenyList.jsx → CustomEmojiDenyList.tsx\n- ui/features/account_settings/index.jsx → index.tsx\n- Additional files in the feature\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "57",
+        "title": "Migrate ui/features/account_grading_standards (7 files)",
+        "description": "Convert the InstUI-importing files in ui/features/account_grading_standards to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/account_grading_standards/react/GradingPeriodSet.jsx → GradingPeriodSet.tsx\n- ui/features/account_grading_standards/react/EditGradingPeriodSetForm.jsx → EditGradingPeriodSetForm.tsx\n- ui/features/account_grading_standards/react/NewGradingPeriodSetForm.jsx → NewGradingPeriodSetForm.tsx\n- ui/features/account_grading_standards/react/GradingPeriodSetCollection.jsx → GradingPeriodSetCollection.tsx\n- ui/features/account_grading_standards/react/EnrollmentTermInput.jsx → EnrollmentTermInput.tsx\n- ui/features/account_grading_standards/react/GradingPeriodForm.jsx → GradingPeriodForm.tsx\n- ui/features/account_grading_standards/react/AccountGradingPeriod.jsx → AccountGradingPeriod.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "58",
+        "title": "Migrate ui/features/account_admin_tools (1 file)",
+        "description": "Convert the InstUI-importing file in ui/features/account_admin_tools to TypeScript.",
+        "details": "Files to migrate:\n- ui/features/account_admin_tools/react/BouncedEmailsView.jsx → BouncedEmailsView.tsx\n\nFollow established workflow from task 7.",
+        "testStrategy": "Full validation pipeline passes. CI passes. Gerrit push succeeds.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "59",
+        "title": "Migrate ui/features/outcome_management (35+ files)",
+        "description": "Convert all InstUI-importing files in ui/features/outcome_management to TypeScript. This is the largest migration batch.",
+        "details": "This is the largest feature folder with ~35 files importing InstUI. Files span:\n- ui/features/outcome_management/react/shared/\n- ui/features/outcome_management/react/Management/\n- ui/features/outcome_management/react/MasteryScale/\n- ui/features/outcome_management/react/MasteryCalculation/\n- ui/features/outcome_management/react/Alignments/\n- Root level components\n\nStrategy:\n1. Split into 4-5 separate Gerrit changes:\n   - shared/ utilities\n   - Management/ components\n   - MasteryScale/ + MasteryCalculation/\n   - Alignments/\n   - Root components\n\n2. Create dependency order (shared first, then components that use shared)\n\n3. Each batch follows the standard workflow\n\nFollow established workflow from task 7, with batching.",
+        "testStrategy": "Full validation pipeline passes for each batch. All CI passes. All Gerrit pushes succeed.",
+        "priority": "low",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "60",
+        "title": "Migrate ui/features/assignments_show_student (~20 files)",
+        "description": "Convert all InstUI-importing files in ui/features/assignments_show_student to TypeScript.",
+        "details": "Files include components in:\n- ui/features/assignments_show_student/react/components/\n- ui/features/assignments_show_student/react/components/LatePolicyStatusDisplay/\n- Root level files\n\nStrategy: Split into 2-3 Gerrit changes based on component dependencies.\n\nFollow established workflow from task 7, with batching.",
+        "testStrategy": "Full validation pipeline passes for each batch. All CI passes. All Gerrit pushes succeed.",
+        "priority": "low",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "61",
+        "title": "Migrate ui/features/assignments_show_teacher_deprecated (~35 files)",
+        "description": "Convert all InstUI-importing files in ui/features/assignments_show_teacher_deprecated to TypeScript.",
+        "details": "This is a deprecated feature but still has active InstUI imports. Files span:\n- ui/features/assignments_show_teacher_deprecated/react/components/\n- ui/features/assignments_show_teacher_deprecated/react/components/StudentsTab/\n- ui/features/assignments_show_teacher_deprecated/react/components/Overrides/\n- ui/features/assignments_show_teacher_deprecated/react/components/Editables/\n\nStrategy: Split into 4-5 Gerrit changes:\n- StudentsTab/\n- Overrides/\n- Editables/\n- Root components\n\nNote: Being deprecated, use @ts-expect-error liberally.\n\nFollow established workflow from task 7, with batching.",
+        "testStrategy": "Full validation pipeline passes for each batch. All CI passes. All Gerrit pushes succeed.",
+        "priority": "low",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "62",
+        "title": "Create Migration Progress Dashboard",
+        "description": "Build a simple progress tracking dashboard that shows overall migration status, blocked items, and estimated completion.",
+        "details": "Create a dashboard script or web page that:\n\n1. Reads .taskmaster/docs/instui-migration-manifest.json\n2. Calculates statistics:\n   - Total folders to migrate\n   - Completed / In Progress / Blocked / Pending\n   - Total files migrated vs remaining\n   - Completion percentage\n\n3. Shows breakdown by status:\n   ```\n   ============================================\n   InstUI TypeScript Migration Progress\n   ============================================\n   \n   Overall: 45/80 folders (56.25%)\n   Files:   215/361 files (59.56%)\n   \n   Status Breakdown:\n   ├── Completed:    45 folders\n   ├── In Progress:   3 folders\n   ├── Blocked:       2 folders\n   └── Pending:      30 folders\n   \n   Blocked Items:\n   ├── ui/features/foo - CI failing (lint errors)\n   └── ui/features/bar - Review feedback pending\n   \n   Recent Activity:\n   ├── ui/features/canvas_career - Merged 2h ago\n   └── ui/features/dashboard - In review\n   ```\n\n4. Option to output as markdown for status updates",
+        "testStrategy": "Run dashboard with test data at various states (empty, partial, complete). Verify counts are accurate. Test markdown output renders correctly.",
+        "priority": "low",
+        "dependencies": [
+          "2"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "63",
+        "title": "Create CI Integration for Auto-Close PRs",
+        "description": "Set up automation to automatically close GitHub PRs when the corresponding Gerrit change is successfully pushed.",
+        "details": "Options:\n\n1. **GitHub Action workflow**:\n   ```yaml\n   name: Close PR on Gerrit Push\n   on:\n     workflow_dispatch:\n       inputs:\n         pr_number:\n           description: 'PR number to close'\n           required: true\n         gerrit_url:\n           description: 'Gerrit change URL'\n           required: true\n   \n   jobs:\n     close-pr:\n       runs-on: ubuntu-latest\n       steps:\n         - uses: actions/github-script@v7\n           with:\n             script: |\n               await github.rest.issues.createComment({\n                 owner: context.repo.owner,\n                 repo: context.repo.repo,\n                 issue_number: ${{ inputs.pr_number }},\n                 body: 'This PR has been pushed to Gerrit: ${{ inputs.gerrit_url }}\\n\\nClosing this PR.'\n               });\n               await github.rest.pulls.update({\n                 owner: context.repo.owner,\n                 repo: context.repo.repo,\n                 pull_number: ${{ inputs.pr_number }},\n                 state: 'closed'\n               });\n   ```\n\n2. **CLI script using gh**:\n   ```bash\n   close-pr-after-gerrit.sh <pr_number> <gerrit_url>\n   gh pr close $pr_number --comment \"Pushed to Gerrit: $gerrit_url\"\n   ```\n\n3. Integrate into the commit-and-push workflow",
+        "testStrategy": "Test with a dummy PR. Verify PR is closed with correct comment. Verify idempotency (running twice doesn't error).",
+        "priority": "low",
+        "dependencies": [
+          "4"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "64",
+        "title": "Document Lessons Learned and Update Migration Guide",
+        "description": "After completing initial migrations, document patterns, gotchas, and update the migration guide with real-world examples.",
+        "details": "After completing tasks 7-20 (single-file migrations), review and document:\n\n1. **Common Type Patterns**:\n   - Event handler types that work\n   - Props patterns that emerged\n   - @ts-expect-error usage patterns\n\n2. **Gotchas Discovered**:\n   - Canvas-specific type issues\n   - InstUI component edge cases\n   - Build/lint issues encountered\n\n3. **Workflow Improvements**:\n   - Steps that could be automated\n   - Common mistakes to avoid\n   - Time estimates for different file counts\n\n4. **Update migration guide** with:\n   - Real code examples from completed migrations\n   - Copy-paste patterns for common scenarios\n   - Checklist of things to verify\n\n5. **Create FAQ**:\n   - Common CI failures and fixes\n   - Gerrit review feedback patterns\n   - Type error resolution strategies",
+        "testStrategy": "Review guide with fresh eyes. Apply documented patterns to a new migration. Verify patterns work as documented.",
+        "priority": "medium",
+        "dependencies": [
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "65",
+        "title": "Final Cleanup and Verification",
+        "description": "Verify all migrations are complete, clean up tracking artifacts, and document final state.",
+        "details": "After all migrations complete:\n\n1. **Verification**:\n   - Re-run discovery script to confirm 0 remaining JS/JSX files with InstUI imports\n   - Run full tsc --noEmit to verify no type errors\n   - Run full lint suite\n\n2. **Cleanup**:\n   - Delete all worktrees\n   - Archive tracking manifest\n   - Close any stale PRs\n\n3. **Documentation**:\n   - Final count of files migrated\n   - Total @ts-expect-error suppressions added\n   - Time spent / lessons learned summary\n\n4. **Jira Update**:\n   - Comment on CFA-436 with completion summary\n   - Link to final commit on Gerrit master\n\n5. **Notify Team**:\n   - Send summary to team channel\n   - Highlight any files that need follow-up type work",
+        "testStrategy": "Run discovery script and verify 0 remaining files. Run full validation suite. Verify all PRs are closed and worktrees deleted.",
+        "priority": "low",
+        "dependencies": [
+          "59",
+          "60",
+          "61"
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2026-02-15T04:15:50.883Z",
+      "taskCount": 65,
+      "completedCount": 2,
+      "tags": [
+        "master"
+      ]
+    }
+  }
+}
