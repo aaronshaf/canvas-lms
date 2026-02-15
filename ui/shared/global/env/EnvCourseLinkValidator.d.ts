@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 - present Instructure, Inc.
+ * Copyright (C) 2025 - present Instructure, Inc.
  *
  * This file is part of Canvas.
  *
@@ -16,19 +16,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react'
-import {legacyRender} from '@canvas/react'
-import LinkValidator from './react/LinkValidator'
-import ready from '@instructure/ready'
-
-ready(() => {
-  const linkValidatorWrapper = document.getElementById('link_validator_wrapper')
-
-  legacyRender(
-    <LinkValidator
-      pollTimeout={ENV.validation_poll_timeout}
-      pollTimeoutInitial={ENV.validation_poll_timeout_initial}
-    />,
-    linkValidatorWrapper,
-  )
-})
+export interface EnvCourseLinkValidator {
+  validation_api_url: string
+  validation_poll_timeout: number
+  validation_poll_timeout_initial: number
+  VALIDATION_CONFETTI_ENABLED?: boolean
+}
