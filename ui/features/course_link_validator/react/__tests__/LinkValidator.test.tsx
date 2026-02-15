@@ -38,7 +38,7 @@ describe('LinkValidator', () => {
     // @ts-expect-error - jQuery screenReaderFlashMessage extension
     mockJQuery.screenReaderFlashMessage = mockScreenReaderFlashMessage
     // @ts-expect-error - jQuery mock
-    $.mockImplementation = vi.fn((selector: string) => mockJQuery(selector))
+    $.mockImplementation((selector: string) => mockJQuery(selector))
     // @ts-expect-error - jQuery screenReaderFlashMessage extension
     $.screenReaderFlashMessage = mockScreenReaderFlashMessage
   })
@@ -56,7 +56,7 @@ describe('LinkValidator', () => {
         })
 
         // @ts-expect-error - jQuery ajax mock
-        $.ajax.mockImplementation = vi.fn((params: any) =>
+        $.ajax.mockImplementation((params: any) =>
           params.success({
             workflow_state: 'completed',
             results: {
@@ -118,7 +118,7 @@ describe('LinkValidator', () => {
         })
 
         // @ts-expect-error - jQuery ajax mock
-        $.ajax.mockImplementation = vi.fn((params: any) =>
+        $.ajax.mockImplementation((params: any) =>
           params.success({
             workflow_state: 'completed',
             results: {
