@@ -39,7 +39,6 @@ describe('LinkValidator', () => {
     mockJQuery.screenReaderFlashMessage = mockScreenReaderFlashMessage
     // @ts-expect-error - jQuery mock
     $.mockImplementation((selector: string) => mockJQuery(selector))
-    // @ts-expect-error - jQuery screenReaderFlashMessage extension
     $.screenReaderFlashMessage = mockScreenReaderFlashMessage
   })
 
