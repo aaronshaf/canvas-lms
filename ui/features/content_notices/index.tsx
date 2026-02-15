@@ -23,11 +23,21 @@ import {Text} from '@instructure/ui-text'
 import {Link} from '@instructure/ui-link'
 import ready from '@instructure/ready'
 
+type ContentNotice = {
+  tag: string
+  variant: React.ComponentProps<typeof Alert>['variant']
+  text: string
+  link_text?: string
+  link_target?: string
+}
+
 ready(() => {
   const container = document.getElementById('content_notice_container')
+  // @ts-expect-error - page-specific ENV.CONTENT_NOTICES is not part of GlobalEnv
   if (container && ENV.CONTENT_NOTICES.length > 0) {
-    const alerts = ENV.CONTENT_NOTICES.map(notice => {
-      let link = null
+    // @ts-expect-error - page-specific ENV.CONTENT_NOTICES is not part of GlobalEnv
+    const alerts = ENV.CONTENT_NOTICES.map((notice: ContentNotice) => {
+      let link: React.JSX.Element | null = null
       if (notice.link_text && notice.link_target) {
         link = <Link href={notice.link_target}>{notice.link_text}</Link>
       }
