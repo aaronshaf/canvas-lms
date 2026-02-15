@@ -35,6 +35,7 @@ describe('LinkValidator', () => {
       show: mockShow,
       hide: mockHide,
     }))
+    // @ts-expect-error - jQuery screenReaderFlashMessage extension
     mockJQuery.screenReaderFlashMessage = mockScreenReaderFlashMessage
     // @ts-expect-error - jQuery mock
     $.mockImplementation = vi.fn((selector: string) => mockJQuery(selector))
