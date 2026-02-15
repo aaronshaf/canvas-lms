@@ -66,7 +66,7 @@
       "files": [
         "index.jsx"
       ],
-      "status": "in_progress_migration",
+      "status": "completed",
       "githubPr": {
         "number": null,
         "url": null,
@@ -83,7 +83,8 @@
         "path": null,
         "branch": null
       },
-      "migratedAt": "2026-02-15T04:44:29.633Z"
+      "migratedAt": "2026-02-15T04:44:29.633Z",
+      "mergedAt": "2026-02-15T04:44:48.715Z"
     },
     {
       "path": "ui/features/context_modules",
@@ -123,7 +124,24 @@
       "files": [
         "index.jsx"
       ],
-      "status": "pending"
+      "status": "in_progress_migration",
+      "githubPr": {
+        "number": null,
+        "url": null,
+        "status": null,
+        "ciStatus": null
+      },
+      "gerrit": {
+        "changeId": null,
+        "url": null,
+        "status": null,
+        "reviewers": []
+      },
+      "worktree": {
+        "path": null,
+        "branch": null
+      },
+      "migratedAt": "2026-02-15T04:54:45.383Z"
     },
     {
       "path": "ui/features/files",
