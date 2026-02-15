@@ -35,8 +35,9 @@
         "testStrategy": "Apply patterns to 2-3 test migrations. Verify converted files pass eslint, biome, and tsc. Document any additional patterns discovered.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-02-15T04:23:18.663Z"
       },
       {
         "id": "4",
@@ -857,9 +858,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-02-15T04:15:50.883Z",
+      "lastModified": "2026-02-15T04:23:18.663Z",
       "taskCount": 65,
-      "completedCount": 2,
+      "completedCount": 3,
       "tags": [
         "master"
       ]
