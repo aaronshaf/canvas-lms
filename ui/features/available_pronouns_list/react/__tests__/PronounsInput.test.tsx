@@ -21,10 +21,11 @@ import {render, fireEvent} from '@testing-library/react'
 import React from 'react'
 
 describe('render available pronouns input', () => {
-  let originalEnv
+  let originalEnv: typeof window.ENV
 
   beforeEach(() => {
     originalEnv = JSON.parse(JSON.stringify(window.ENV))
+    // @ts-expect-error - ENV.PRONOUNS_LIST not typed in Canvas ENV global
     window.ENV.PRONOUNS_LIST = ['She/Her', 'He/Him', 'They/Them']
   })
 

@@ -22,5 +22,8 @@ import {legacyRender} from '@canvas/react'
 import PronounsInput from './react/PronounsInput'
 
 $(() => {
-  legacyRender(<PronounsInput />, $('<div/>').appendTo('#personal_pronouns_options')[0])
+  const container = $('<div/>').appendTo('#personal_pronouns_options')[0]
+  if (container) {
+    legacyRender(<PronounsInput />, container)
+  }
 })
