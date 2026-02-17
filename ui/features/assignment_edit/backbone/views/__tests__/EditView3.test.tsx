@@ -45,7 +45,7 @@ vi.mock('@canvas/sections/backbone/collections/SectionCollection', () => {
       add: vi.fn(),
       models: [],
       courseSectionID: '1',
-    }))
+    })),
   }
 })
 
@@ -64,7 +64,7 @@ vi.mock('@canvas/due-dates/backbone/models/DueDateList', () => {
       },
       courseSectionID: '1',
       _addOverrideForDefaultSectionIfNeeded: vi.fn(),
-    }))
+    })),
   }
 })
 
