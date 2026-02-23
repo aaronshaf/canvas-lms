@@ -18,7 +18,10 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 import React from 'react'
-import ReactDOM from 'react-dom'
+import {flushSync} from 'react-dom'
+import {createRoot} from 'react-dom/client'
+
+const _rubricRoots = new WeakMap()
 import htmlEscape from '@instructure/html-escape'
 import {truncateText} from '@canvas/util/TextHelper'
 import round from '@canvas/round'
@@ -357,19 +360,22 @@ window.rubricAssessment = {
       const association = rubricAssessment.currentAssociation || rubricAssociation
       rubricAssessment.currentAssociation = association
 
+      const el = container.get(0)
       const render = currentAssessment => {
-        ReactDOM.render(
-          <Rubric
-            allowExtraCredit={ENV.outcome_extra_credit_enabled}
-            onAssessmentChange={assessing ? setCurrentAssessment : null}
-            rubric={ENV.rubric}
-            rubricAssessment={currentAssessment}
-            customRatings={ENV.outcome_proficiency ? ENV.outcome_proficiency.ratings : []}
-            rubricAssociation={rubricAssociation}
-          >
-            {null}
-          </Rubric>,
-          container.get(0),
+        if (!_rubricRoots.has(el)) _rubricRoots.set(el, createRoot(el))
+        flushSync(() =>
+          _rubricRoots.get(el).render(
+            <Rubric
+              allowExtraCredit={ENV.outcome_extra_credit_enabled}
+              onAssessmentChange={assessing ? setCurrentAssessment : null}
+              rubric={ENV.rubric}
+              rubricAssessment={currentAssessment}
+              customRatings={ENV.outcome_proficiency ? ENV.outcome_proficiency.ratings : []}
+              rubricAssociation={rubricAssociation}
+            >
+              {null}
+            </Rubric>,
+          ),
         )
       }
 
@@ -495,25 +501,30 @@ window.rubricAssessment = {
   populateNewRubricSummary(container, assessment, rubricAssociation, editData) {
     const el = container.get(0)
     if (ENV.nonScoringRubrics && ENV.rubric) {
-      ReactDOM.unmountComponentAtNode(el)
+      if (_rubricRoots.has(el)) {
+        _rubricRoots.get(el).unmount()
+        _rubricRoots.delete(el)
+      }
       if (assessment) {
         const filled = rubricAssessment.fillAssessment(
           ENV.rubric,
           assessment || {},
           ENV.RUBRIC_ASSESSMENT,
         )
-
-        ReactDOM.render(
-          <Rubric
-            customRatings={ENV.outcome_proficiency ? ENV.outcome_proficiency.ratings : []}
-            rubric={ENV.rubric}
-            rubricAssessment={filled}
-            rubricAssociation={rubricAssociation}
-            isSummary={true}
-          >
-            {null}
-          </Rubric>,
-          el,
+        const root = createRoot(el)
+        _rubricRoots.set(el, root)
+        flushSync(() =>
+          root.render(
+            <Rubric
+              customRatings={ENV.outcome_proficiency ? ENV.outcome_proficiency.ratings : []}
+              rubric={ENV.rubric}
+              rubricAssessment={filled}
+              rubricAssociation={rubricAssociation}
+              isSummary={true}
+            >
+              {null}
+            </Rubric>,
+          ),
         )
       } else {
         el.innerHTML = ''
