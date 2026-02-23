@@ -27,7 +27,7 @@ import RichContentEditor from '@canvas/rce/RichContentEditor'
 import {unfudgeDateForProfileTimezone} from '@instructure/moment-utils'
 import $ from 'jquery'
 import React, {lazy, Suspense} from 'react'
-import ReactDOM from 'react-dom'
+import {flushSync} from 'react-dom'
 import {createRoot} from 'react-dom/client'
 import template from '../../jst/WikiPageEdit.handlebars'
 import {renderAssignToTray} from '../../react/renderAssignToTray'
@@ -282,16 +282,20 @@ export default class WikiPageEditView extends ValidatedFormView {
         }
       }
 
-      ReactDOM.render(
-        React.createElement(MasteryPathToggle, {
-          onSync,
-          fetchOwnOverrides: true,
-          courseId: ENV.COURSE_ID,
-          itemType: 'wiki_page',
-          itemContentId: this.model.id,
-        }),
-        mountElement,
-      )
+      if (mountElement) {
+        if (!this._masteryPathRoot) this._masteryPathRoot = createRoot(mountElement)
+        flushSync(() =>
+          this._masteryPathRoot.render(
+            React.createElement(MasteryPathToggle, {
+              onSync,
+              fetchOwnOverrides: true,
+              courseId: ENV.COURSE_ID,
+              itemType: 'wiki_page',
+              itemContentId: this.model.id,
+            }),
+          ),
+        )
+      }
     }
 
     let chose_block_editor =
