@@ -234,7 +234,6 @@ describe CoursesHelper do
           controller = CoursesController.new
           controller.instance_variable_set(:@context, tool.context)
 
-          Account.site_admin.enable_feature! :assignments_2_teacher
           allow(controller).to receive(:new_quizzes_navigation_placements_enabled?).with(tool.context).and_return(true)
 
           tabs = controller.sortable_tabs
@@ -250,8 +249,6 @@ describe CoursesHelper do
           tool.save
           controller = CoursesController.new
           controller.instance_variable_set(:@context, tool.context)
-
-          Account.site_admin.disable_feature! :assignments_2_teacher
 
           tabs = controller.sortable_tabs
           tool_tab = tabs.find { |t| Lti::ExternalToolTab.tool_for_tab(t) == tool }

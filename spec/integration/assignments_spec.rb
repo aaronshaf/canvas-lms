@@ -370,24 +370,6 @@ describe "assignments_2 feature flag and parameter" do
         expect(html.at_css("div#assignment_show")).not_to be_nil
       end
     end
-
-    describe "with feature enabled" do
-      before :once do
-        Account.default.enable_feature! :assignments_2_teacher
-      end
-
-      it "shows new assignments" do
-        get "/courses/#{@course.id}/assignments/#{@assignment.id}"
-        html = Nokogiri::HTML5(response.body)
-        expect(html.at_css("div#assignment_show")).to be_nil
-      end
-
-      it "shows old assignments when explicitly requested" do
-        get "/courses/#{@course.id}/assignments/#{@assignment.id}?assignments_2=0"
-        html = Nokogiri::HTML5(response.body)
-        expect(html.at_css("div#assignment_show")).not_to be_nil
-      end
-    end
   end
 
   describe "as a student" do

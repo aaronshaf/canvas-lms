@@ -486,15 +486,6 @@ class AssignmentsController < ApplicationController
                  PREREQS: assignment_prereqs
                })
 
-        if @context.feature_enabled?(:assignments_2_teacher) &&
-           (!params.key?(:assignments_2) || value_to_boolean(params[:assignments_2])) &&
-           can_do(@context, current_principal, :read_as_admin)
-          css_bundle :assignments_2_teacher
-          js_bundle :assignments_show_teacher_deprecated
-          render html: "", layout: true
-          return
-        end
-
         if @context.feature_enabled?(:assignment_enhancements_teacher_view) &&
            can_do(@context, current_principal, :read_as_admin)
           css_bundle :assignment_enhancements_teacher_view

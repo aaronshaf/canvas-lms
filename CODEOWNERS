@@ -283,7 +283,6 @@
 /ui/features/assignments_peer_reviews_student/ @instructure/engage
 /ui/features/assignments_show_student/ @instructure/engage
 /ui/features/assignments_show_teacher/ @instructure/engage
-/ui/features/assignments_show_teacher_deprecated/ @instructure/engage
 /ui/features/context_prior_users/ @instructure/engage
 /ui/features/context_roster_groups/ @instructure/engage
 /ui/features/context_roster_user/ @instructure/engage
