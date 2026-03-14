@@ -43,4 +43,7 @@ else
   printf 'development:\n  domain: localhost\n  ssl: false\n' > config/domain.yml
 fi
 
+# Remove stale PID file from previous run
+rm -f tmp/pids/server.pid
+
 exec bundle exec rails server -b 0.0.0.0 -p 3000
