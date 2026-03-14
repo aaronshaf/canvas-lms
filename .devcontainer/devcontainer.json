@@ -1,0 +1,35 @@
+{
+  "name": "Canvas LMS",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "web",
+  "workspaceFolder": "/usr/src/app",
+
+  // Forward Canvas (Puma) and postgres ports
+  "forwardPorts": [3000, 5432],
+  "portsAttributes": {
+    "3000": { "label": "Canvas", "onAutoForward": "openBrowser" }
+  },
+
+  // One-time setup after the container is created
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "remoteUser": "docker",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Shopify.ruby-lsp",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "manuelpuyol.erb-linter"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    },
+    // DevPod: stop the VM after 1h of inactivity (saves Hetzner billing)
+    "devpod": {
+      "inactivityTimeout": "1h"
+    }
+  }
+}

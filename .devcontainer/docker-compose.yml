@@ -1,0 +1,68 @@
+version: "3.8"
+
+# Devcontainer compose for Canvas LMS.
+# Stripped down from the local dev setup:
+#   - No inst_shared external network (not needed without inst CLI)
+#   - Puma on port 3000 instead of Passenger/Nginx on port 80
+#   - Named volumes (no host bind mounts for deps)
+#   - No webpack watcher — assets built once in post-create.sh
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: Dockerfile.puma
+    command: bash .devcontainer/start.sh
+    ports:
+      - "3000:3000"
+    environment:
+      RAILS_ENV: development
+      CANVAS_DATABASE_HOST: postgres
+      CANVAS_DATABASE_USERNAME: postgres
+      POSTGRES_PASSWORD: sekret
+      CANVAS_REDIS_HOST: redis
+      ENCRYPTION_KEY: devcontainer-local-not-for-production
+      # Disable domain-based routing used by inst CLI
+      CANVAS_DEV_DOMAIN: localhost
+      # Skip SSL redirect
+      DISABLE_HTTPS: "true"
+      # Pin bundler-multilock to the base lockfile — the rails80.plugins lockfile
+      # requires extra git gems (crystalball etc.) not needed for dev.
+      BUNDLE_LOCKFILE: Gemfile.lock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      # Source code — DevPod mounts the workspace here
+      - ..:/usr/src/app
+      # Persist gems, bundler config/cache (git clones), and yarn cache across rebuilds
+      - bundle:/home/docker/.gem
+      - bundle_config:/home/docker/.bundle
+      - yarn_cache:/home/docker/.cache/yarn
+      # Isolate node_modules inside the container
+      - node_modules:/usr/src/app/node_modules
+
+  postgres:
+    build:
+      context: ../docker-compose/postgres
+    environment:
+      POSTGRES_PASSWORD: sekret
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:alpine
+
+volumes:
+  pg_data:
+  bundle:
+  bundle_config:
+  yarn_cache:
+  node_modules:
