@@ -2322,14 +2322,63 @@ module Lti
         end
 
         context "iso8601" do
-          it "has substitution for $Canvas.assignment.unlockAt.iso8601" do
-            allow(assignment).to receive(:unlock_at).and_return(right_now)
-            expect(expand!("$Canvas.assignment.unlockAt.iso8601")).to eq right_now.utc.iso8601
+          it "has substitution for $Canvas.assignment.unlockAt.overrideForUser.iso8601" do
+            allow(variable_expander).to receive(:unlock_at_for_user).and_return(right_now)
+            expect(expand!("$Canvas.assignment.unlockAt.overrideForUser.iso8601")).to eq right_now.utc.iso8601
           end
 
-          it "has substitution for $Canvas.assignment.lockAt.iso8601" do
-            allow(assignment).to receive(:lock_at).and_return(right_now)
-            expect(expand!("$Canvas.assignment.lockAt.iso8601")).to eq right_now.utc.iso8601
+          it "has substitution for $Canvas.assignment.lockAt.overrideForUser.iso8601" do
+            allow(variable_expander).to receive(:lock_at_for_user).and_return(right_now)
+            expect(expand!("$Canvas.assignment.lockAt.overrideForUser.iso8601")).to eq right_now.utc.iso8601
+          end
+
+          describe "$Canvas.assignment.lockAt.overrideForUser.iso8601" do
+            before do
+              course.save!
+              user.save!
+              assignment.update!(course:)
+            end
+
+            context "for student" do
+              before do
+                course.enroll_user(user, "StudentEnrollment")
+              end
+
+              it "is expanded with the base assignment lock_at" do
+                assignment.update!(lock_at: right_now)
+                expect(expand!("$Canvas.assignment.lockAt.overrideForUser.iso8601")).to eq right_now.utc.iso8601
+              end
+
+              it "handles a nil lock_at" do
+                assignment.update!(lock_at: nil)
+                expect_unexpanded! "$Canvas.assignment.lockAt.overrideForUser.iso8601"
+              end
+
+              context "with a lock_at override" do
+                it "returns the student-specific override lock_at" do
+                  override_lock_at = right_now + 1.hour
+                  assignment.update!(lock_at: right_now)
+                  override = assignment.assignment_overrides.create!(
+                    set_type: "ADHOC",
+                    lock_at: override_lock_at,
+                    lock_at_overridden: true
+                  )
+                  override.assignment_override_students.create!(user:)
+                  expect(expand!("$Canvas.assignment.lockAt.overrideForUser.iso8601")).to eq override_lock_at.utc.iso8601
+                end
+              end
+            end
+
+            context "for teacher" do
+              before do
+                course.enroll_user(user, "TeacherEnrollment")
+              end
+
+              it "returns the base assignment lock_at" do
+                assignment.update!(lock_at: right_now)
+                expect(expand!("$Canvas.assignment.lockAt.overrideForUser.iso8601")).to eq right_now.utc.iso8601
+              end
+            end
           end
 
           describe "$Canvas.assignment.dueAt.iso8601" do
@@ -2408,13 +2457,13 @@ module Lti
           end
 
           it "handles a nil unlock_at" do
-            allow(assignment).to receive(:unlock_at).and_return(nil)
-            expect_unexpanded! "$Canvas.assignment.unlockAt.iso8601"
+            allow(variable_expander).to receive(:unlock_at_for_user).and_return(nil)
+            expect_unexpanded! "$Canvas.assignment.unlockAt.overrideForUser.iso8601"
           end
 
           it "handles a nil lock_at" do
-            allow(assignment).to receive(:lock_at).and_return(nil)
-            expect_unexpanded! "$Canvas.assignment.lockAt.iso8601"
+            allow(variable_expander).to receive(:lock_at_for_user).and_return(nil)
+            expect_unexpanded! "$Canvas.assignment.lockAt.overrideForUser.iso8601"
           end
         end
 

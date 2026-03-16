@@ -1945,6 +1945,10 @@ module Lti
 
     # Returns the `unlock_at` date of the assignment that was launched.
     # Only available when launched as an assignment with an `unlock_at` set.
+    # NOTE: A 90-day change notice has been issued. This variable will be
+    # updated to return the student-specific override value (accounting for
+    # assignment overrides) when launched as a student. Until then, use
+    # Canvas.assignment.unlockAt.overrideForUser.iso8601 for override-aware behavior.
     # @example
     #   ```
     #   2018-02-18T00:00:00Z
@@ -1954,9 +1958,29 @@ module Lti
                        -> { @assignment.unlock_at.utc.iso8601 },
                        -> { @assignment && @assignment.unlock_at.present? }
 
+    # Returns the `unlock_at` date of the assignment that was launched,
+    # accounting for student-specific assignment overrides.
+    # If the tool is launched as a student, this will be the unlock_at
+    # date for that student. Falls back to the base assignment unlock_at
+    # for instructors or when no override exists.
+    # Only available when launched as an assignment with an `unlock_at` set.
+    # @deprecated This variable is temporary. It will be removed once
+    # Canvas.assignment.unlockAt.iso8601 is updated to include override behavior.
+    # @example
+    #   ```
+    #   2018-02-18T00:00:00Z
+    #   ```
+    register_expansion "Canvas.assignment.unlockAt.overrideForUser.iso8601",
+                       [],
+                       -> { unlock_at_for_user.utc.iso8601 },
+                       -> { @assignment && unlock_at_for_user.present? }
+
     # Returns the `lock_at` date of the assignment that was launched.
     # Only available when launched as an assignment with a `lock_at` set.
-    #
+    # NOTE: A 90-day change notice has been issued. This variable will be
+    # updated to return the student-specific override value (accounting for
+    # assignment overrides) when launched as a student. Until then, use
+    # Canvas.assignment.lockAt.overrideForUser.iso8601 for override-aware behavior.
     # @example
     #   ```
     #   2018-02-20:00:00Z
@@ -1965,6 +1989,23 @@ module Lti
                        [],
                        -> { @assignment.lock_at.utc.iso8601 },
                        -> { @assignment && @assignment.lock_at.present? }
+
+    # Returns the `lock_at` date of the assignment that was launched,
+    # accounting for student-specific assignment overrides.
+    # If the tool is launched as a student, this will be the lock_at
+    # date for that student. Falls back to the base assignment lock_at
+    # for instructors or when no override exists.
+    # Only available when launched as an assignment with a `lock_at` set.
+    # @deprecated This variable is temporary. It will be removed once
+    # Canvas.assignment.lockAt.iso8601 is updated to include override behavior.
+    # @example
+    #   ```
+    #   2018-02-20T00:00:00Z
+    #   ```
+    register_expansion "Canvas.assignment.lockAt.overrideForUser.iso8601",
+                       [],
+                       -> { lock_at_for_user.utc.iso8601 },
+                       -> { @assignment && lock_at_for_user.present? }
 
     # Returns the `due_at` date of the assignment that was launched.
     # If the tool is launched as a student, this will be the date that assignment
@@ -2405,6 +2446,18 @@ module Lti
       else
         submission&.cached_due_date || @assignment.due_at
       end
+    end
+
+    def lock_at_for_user
+      return @assignment.lock_at if @current_user.nil? || course_admin?(@assignment.context)
+
+      AssignmentOverrideApplicator.assignment_overridden_for(@assignment, @current_user).lock_at
+    end
+
+    def unlock_at_for_user
+      return @assignment.unlock_at if @current_user.nil? || course_admin?(@assignment.context)
+
+      AssignmentOverrideApplicator.assignment_overridden_for(@assignment, @current_user).unlock_at
     end
 
     def course_admin?(context)
