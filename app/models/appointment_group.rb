@@ -438,18 +438,23 @@ class AppointmentGroup < ApplicationRecord
     @participant_for ||= {}
     return @participant_for[user.global_id] if @participant_for.key?(user.global_id)
 
-    participant = user.shard.activate do
-      if participant_type == "User"
-        user
-      else
-        # can't have more than one group_category
-        group_categories = sub_contexts.find_all { |sc| sc.instance_of? GroupCategory }
-        raise "inconsistent appointment group: #{id} #{group_categories}" if group_categories.length > 1
+    participant = if participant_type == "User"
+                    user
+                  else
+                    # can't have more than one group_category
+                    group_categories = sub_contexts.find_all { |sc| sc.instance_of? GroupCategory }
+                    raise "inconsistent appointment group: #{id} #{group_categories}" if group_categories.length > 1
 
-        group_category_id = group_categories.first.id
-        user.current_groups.detect { |g| g.group_category_id == group_category_id }
-      end
-    end
+                    shard.activate do
+                      group_category_id = group_categories.first.id
+                      Group.collaborative
+                           .where.not(workflow_state: "deleted")
+                           .where(group_category_id:)
+                           .joins(:group_memberships)
+                           .where(group_memberships: { user_id: user.global_id, workflow_state: "accepted" })
+                           .first
+                    end
+                  end
 
     @participant_for[user.global_id] = if participant && shard.activate { eligible_participant?(participant) }
                                          participant

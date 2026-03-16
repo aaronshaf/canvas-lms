@@ -955,4 +955,44 @@ describe AppointmentGroup do
       expect(appt.description).not_to include("<script>")
     end
   end
+
+  context "cross-shard group appointment" do
+    specs_require_sharding
+
+    it "grants :reserve when user and appointment group are on different shards" do
+      student = nil
+      ag = nil
+      user_group = nil
+
+      @shard1.activate do
+        student = user_factory(active_all: true)
+      end
+
+      @shard2.activate do
+        account = Account.create!
+        course = course_factory(active_all: true, account:)
+        gc = course.group_categories.create!(name: "gc")
+        user_group = course.groups.create!(group_category: gc)
+        user_group.add_user(student)
+        course.enroll_student(student, enrollment_state: :active)
+        ag = AppointmentGroup.create!(
+          title: "cross-shard group ag",
+          contexts: [course],
+          sub_context_codes: [gc.asset_string],
+          new_appointments: [["2099-01-01 12:00:00", "2099-01-01 13:00:00"]]
+        )
+        ag.publish!
+      end
+
+      @shard1.activate do
+        expect(ag.participant_for(student)).to eq user_group
+        expect(ag.grants_right?(student, nil, :reserve)).to be_truthy
+        expect(ag.appointments.first.grants_right?(student, nil, :reserve)).to be_truthy
+      end
+      @shard2.activate do
+        expect(ag.grants_right?(student, nil, :reserve)).to be_truthy
+        expect(ag.appointments.first.grants_right?(student, nil, :reserve)).to be_truthy
+      end
+    end
+  end
 end
