@@ -261,3 +261,9 @@ window.parent.postMessage({subject: 'org.imsglobal.lti.close'}, '*')
 ```
 
 Canvas will listen for this message and close the iframe, presenting the user with a summary of the registration the tool returned. The administrator will then be able to make some modifications to the registration. It's important to note that these modifications may alter how the tool is finally configured and launched. For example, the tool may request a certain number of scopes, but the administrator could restrict access to certain scopes. The tool should detect this and warn the user if modifications need to be made to the configuration.
+
+## Updating a Registration
+
+Once a tool has been registered, it may need to update its configuration over time (e.g., adding new placements, requesting additional scopes, or updating launch URLs). Canvas provides a controlled update workflow that allows tools to request configuration changes while giving administrators the opportunity to review and approve them before they take effect.
+
+See the [LTI Registration Updates](file.lti_registration_updates.html) documentation for details on how to update an existing registration.

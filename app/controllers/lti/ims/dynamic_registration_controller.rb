@@ -120,6 +120,8 @@ module Lti
       # This endpoint provides the complete registration configuration including client details,
       # scopes, redirect URIs, and LTI tool configuration. Authentication is required via
       # developer key access token with appropriate LTI registration scopes.
+      # Tools can use this endpoint to retrieve their current configuration before submitting
+      # an update request. See the <a href="file.lti_registration_updates.html">Registration Updates guide</a> for details.
       #
       # @argument registration_id [Required, Integer] The ID of the LTI IMS Registration to retrieve configuration for
       #
@@ -372,6 +374,11 @@ module Lti
         end
       end
 
+      # @API Update a Dynamic Registration
+      # Request an update to an existing LTI registration.
+      # Creates a Registration Update Request that must be reviewed and approved by an administrator.
+      # See the <a href="file.lti_registration_updates.html">Registration Updates guide</a> for details on the update workflow.
+      # Requires special Dynamic Registration access token and is not for out-of-band use.
       def update
         ims_registration = Lti::IMS::Registration.find(params[:registration_id])
         registration = ims_registration.lti_registration
