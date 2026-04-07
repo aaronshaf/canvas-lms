@@ -766,6 +766,9 @@ describe NotificationMessageCreator do
 
       def set_up_stubs(start_time, *conditions)
         scope = class_double(Message)
+        locked_scope = class_double(Message)
+        ids = [1, 2, 3]
+
         expect(Message).to receive(:in_partition).ordered.with("created_at" => start_time).and_return(scope)
         expect(scope).to receive(:where).ordered.and_return(scope)
         expect(scope).to receive(:for).ordered.and_return(scope)
@@ -776,7 +779,10 @@ describe NotificationMessageCreator do
           expect(scope).to receive(:where).with(*conditions).ordered.and_return(scope)
         end
         allow(Message.connection).to receive(:table_exists?).and_return(true)
-        expect(scope).to receive(:update_all).ordered.and_return(count_of_updated_record)
+        expect(scope).to receive(:lock).with("FOR UPDATE SKIP LOCKED").ordered.and_return(locked_scope)
+        expect(locked_scope).to receive(:pluck).with(:id).ordered.and_return(ids)
+        expect(scope).to receive(:where).with(id: ids).ordered.and_return(scope)
+        expect(scope).to receive(:update_all).with(workflow_state: "cancelled").ordered.and_return(count_of_updated_record)
         expect(InstStatsd::Statsd).to receive(:count).with("cancelled_duplicated_messages", count_of_updated_record)
 
         user = User.create!

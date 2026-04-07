@@ -70,10 +70,11 @@ describe Notifier do
         subject
       end
 
-      it "n_strands the job for new account user notifications" do
+      it "n_strands the job per asset to limit parallel notification processing" do
         expect(DelayedNotification).to receive(:delay_if_production).with(
           priority: 30,
-          n_strand: ["delayed_notification", record.account.root_account.global_id]
+          n_strand: ["delayed_notification", a_string_matching(/\AAccountUser_\d+\z/)],
+          max_concurrent: 2
         )
 
         subject
@@ -91,7 +92,7 @@ describe Notifier do
       message = instance_double(Message)
 
       expect(DelayedNotification).to receive(:delay_if_production)
-        .with(priority: 30)
+        .with(priority: 30, n_strand: ["delayed_notification", "GroupMembership_#{group_membership.global_id}"], max_concurrent: 2)
         .and_call_original
       expect(DelayedNotification).to receive(:process).with(
         kind_of(ActiveRecord::Base),

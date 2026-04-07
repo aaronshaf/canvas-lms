@@ -40,13 +40,11 @@ class Notifier
 
   private
 
-  def job_attributes(record, dispatch)
-    job_attributes = { priority: 30 }
-    # This safe gourd is temporary until we are able to measure the parallelism  precisely
-    if record.is_a?(AccountUser) && dispatch == "New Account User"
-      job_attributes[:n_strand] = ["delayed_notification", record.root_account.global_id]
-    end
-
-    job_attributes
+  def job_attributes(record, _dispatch)
+    {
+      priority: 30,
+      n_strand: ["delayed_notification", "#{record.class.name}_#{record.global_id}"],
+      max_concurrent: 2
+    }
   end
 end

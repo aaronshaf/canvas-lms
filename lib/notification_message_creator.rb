@@ -388,7 +388,8 @@ class NotificationMessageCreator
           end
 
           if Message.connection.table_exists?(start_partition)
-            effected_record_count = scope.update_all(workflow_state: "cancelled")
+            ids_to_cancel = scope.lock("FOR UPDATE SKIP LOCKED").pluck(:id)
+            effected_record_count = ids_to_cancel.any? ? scope.where(id: ids_to_cancel).update_all(workflow_state: "cancelled") : 0
             InstStatsd::Statsd.count("cancelled_duplicated_messages", effected_record_count)
           end
 
