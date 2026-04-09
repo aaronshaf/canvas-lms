@@ -3655,6 +3655,22 @@ describe GradebooksController do
         expect(assigns[:js_env].fetch(:PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED)).to be false
       end
 
+      it "includes OUTCOME_EXTRA_CREDIT_ENABLED in js_env when feature is enabled" do
+        @assignment.publish
+        @course.enable_feature!(:platform_service_speedgrader)
+        @course.enable_feature!(:outcome_extra_credit)
+        get "speed_grader", params: { course_id: @course, assignment_id: @assignment.id, platform_sg: true }
+        expect(assigns[:js_env].fetch(:OUTCOME_EXTRA_CREDIT_ENABLED)).to be true
+      end
+
+      it "sets OUTCOME_EXTRA_CREDIT_ENABLED to false when feature is disabled" do
+        @assignment.publish
+        @course.enable_feature!(:platform_service_speedgrader)
+        @course.disable_feature!(:outcome_extra_credit)
+        get "speed_grader", params: { course_id: @course, assignment_id: @assignment.id, platform_sg: true }
+        expect(assigns[:js_env].fetch(:OUTCOME_EXTRA_CREDIT_ENABLED)).to be false
+      end
+
       it "sets IS_PEER_REVIEW_SUB_ASSIGNMENT to false when assignment is not a peer review sub assignment" do
         @assignment.publish
         @course.enable_feature!(:platform_service_speedgrader)

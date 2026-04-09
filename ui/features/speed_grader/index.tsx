@@ -145,6 +145,8 @@ ready(() => {
         commentBankPerAssignmentEnabled: window.ENV.COMMENT_BANK_PER_ASSIGNMENT_ENABLED ?? false,
         peerReviewAllocationAndGrading:
           window.ENV.PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED ?? false,
+        // @ts-expect-error
+        outcomeExtraCreditEnabled: window.ENV.OUTCOME_EXTRA_CREDIT_ENABLED ?? false,
       },
     }
   }
