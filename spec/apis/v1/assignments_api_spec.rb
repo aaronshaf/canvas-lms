@@ -5748,6 +5748,7 @@ describe AssignmentsApiController, type: :request do
             peer_review_sub_assignment = instance_double(PeerReviewSubAssignment)
             allow(assignment).to receive_messages(peer_review_sub_assignment:, peer_reviews: true)
             allow(peer_review_sub_assignment).to receive(:update_cached_due_dates?).and_return(false)
+            allow(test_object).to receive(:validate_existing_peer_review_dates).and_return(true)
             allow(test_object).to receive(:update_api_peer_review_sub_assignment)
               .and_raise(StandardError.new("Update failed"))
 

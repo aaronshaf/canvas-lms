@@ -776,24 +776,18 @@ module Api::V1::Assignment
             peer_review_result = true
 
             if has_peer_reviews
-              if prepared_update[:assignment].peer_review_sub_assignment.present?
-                peer_review_result = update_api_peer_review_sub_assignment(
-                  prepared_update[:assignment],
-                  assignment_params[:peer_review]
-                )
-              # Do not create peer review sub assignment for assignments with legacy peer reviews
-              # Only create when peer_reviews is being newly enabled (old_assignment had peer_reviews=false)
-              elsif prepared_update[:old_assignment].nil? || !prepared_update[:old_assignment].peer_reviews
-                peer_review_result = create_api_peer_review_sub_assignment(
-                  prepared_update[:assignment],
-                  assignment_params[:peer_review]
-                )
-              end
+              peer_review_update = handle_peer_review_update(
+                prepared_update[:assignment],
+                assignment_params,
+                prepared_update[:old_assignment]
+              )
 
-              if peer_review_result.is_a?(Hash)
-                peer_review_overrides_affected = peer_review_result[:overrides_affected] || 0
-                peer_review_cached_due_dates_changed = peer_review_result[:peer_review_sub_assignment]&.update_cached_due_dates? || false
+              if peer_review_update.is_a?(Hash)
+                peer_review_overrides_affected = peer_review_update[:overrides_affected] || 0
+                peer_review_cached_due_dates_changed = peer_review_update[:peer_review_sub_assignment]&.update_cached_due_dates? || false
                 should_recompute_peer_review_sub = peer_review_overrides_affected > 0 || peer_review_cached_due_dates_changed
+              elsif peer_review_update == false
+                peer_review_result = false
               end
             else
               prepared_update[:assignment]&.peer_review_sub_assignment&.destroy
@@ -1720,7 +1714,7 @@ module Api::V1::Assignment
 
     { peer_review_sub_assignment:, overrides_affected: }
   rescue PeerReview::PeerReviewError => e
-    parent_assignment.errors.add(:base, "Peer Review: #{e.message}")
+    add_peer_review_error(parent_assignment, e)
     false
   end
 
@@ -1744,7 +1738,49 @@ module Api::V1::Assignment
 
     { peer_review_sub_assignment:, overrides_affected: }
   rescue PeerReview::PeerReviewError => e
-    parent_assignment.errors.add(:base, "Peer Review: #{e.message}")
+    add_peer_review_error(parent_assignment, e)
     false
+  end
+
+  def handle_peer_review_update(assignment, assignment_params, old_assignment)
+    if assignment.peer_review_sub_assignment.present?
+      peer_review_params = assignment_params[:peer_review]
+
+      # Validate existing peer review dates first when no peer review date/override
+      # params are sent, to avoid wasted SubmissionLifecycleManager.recompute on rollback.
+      if peer_review_date_params_blank?(peer_review_params)
+        return false unless validate_existing_peer_review_dates(assignment)
+      end
+
+      update_api_peer_review_sub_assignment(assignment, peer_review_params)
+    # Do not create peer review sub assignment for assignments with legacy peer reviews
+    # Only create when peer_reviews is being newly enabled (old_assignment had peer_reviews=false)
+    elsif old_assignment.nil? || !old_assignment.peer_reviews
+      create_api_peer_review_sub_assignment(assignment, assignment_params[:peer_review])
+    end
+  end
+
+  def peer_review_date_params_blank?(peer_review_params)
+    return true if peer_review_params.blank?
+
+    base_date_keys = %i[due_at unlock_at lock_at]
+    has_base_date = base_date_keys.any? { |key| peer_review_params.key?(key) && peer_review_params[key].present? }
+    overrides = peer_review_params[:peer_review_overrides]
+    has_overrides = overrides.is_a?(Array) && overrides.any?
+
+    !(has_base_date || has_overrides)
+  end
+
+  def validate_existing_peer_review_dates(parent_assignment)
+    peer_review_sub_assignment = parent_assignment.peer_review_sub_assignment
+    PeerReview::DateValidationService.call(peer_review_sub_assignment:)
+    true
+  rescue PeerReview::PeerReviewError => e
+    add_peer_review_error(parent_assignment, e)
+    false
+  end
+
+  def add_peer_review_error(parent_assignment, error)
+    parent_assignment.errors.add(:base, I18n.t("assignment_api.peer_review_error", "Peer Review: %{message}", message: error.message))
   end
 end

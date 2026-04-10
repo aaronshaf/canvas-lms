@@ -2227,6 +2227,166 @@ describe "Api::V1::Assignment" do
         expect(existing_assignment.peer_reviews).to be(false)
         expect(existing_assignment.peer_review_sub_assignment).to be_nil
       end
+
+      context "when assignment has an existing peer review sub assignment" do
+        let(:assignment_with_peer_review) do
+          course.assignments.create!(
+            name: "Assignment With Peer Review",
+            peer_reviews: true,
+            submission_types: "online_text_entry",
+            due_at: 3.days.from_now,
+            lock_at: 14.days.from_now
+          )
+        end
+        let!(:pr_sub) { peer_review_model(parent_assignment: assignment_with_peer_review) }
+
+        it "rolls back when parent due_at moves past peer review unlock_at without peer review params" do
+          pr_sub.update_columns(unlock_at: 4.days.from_now)
+          original_due_at = assignment_with_peer_review.due_at
+
+          update_params = ActionController::Parameters.new(
+            due_at: 6.days.from_now.iso8601
+          )
+
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+
+          expect(result).to be(false)
+          expect(assignment_with_peer_review.errors[:base]).to include(
+            a_string_matching(/Peer Review: Peer review available from date cannot be before assignment due date/)
+          )
+          assignment_with_peer_review.reload
+          expect(assignment_with_peer_review.due_at).to be_within(1.second).of(original_due_at)
+        end
+
+        it "rolls back when parent lock_at moves before peer review lock_at without peer review params" do
+          pr_sub.update_columns(due_at: 7.days.from_now, lock_at: 12.days.from_now)
+
+          update_params = ActionController::Parameters.new(
+            lock_at: 9.days.from_now.iso8601
+          )
+
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+
+          expect(result).to be(false)
+          expect(assignment_with_peer_review.errors[:base]).to include(
+            a_string_matching(/Peer Review: Peer review until date cannot be after assignment until date/)
+          )
+        end
+
+        it "succeeds when parent date change remains valid relative to peer review dates" do
+          pr_sub.update_columns(unlock_at: 5.days.from_now)
+
+          update_params = ActionController::Parameters.new(
+            due_at: 4.days.from_now.iso8601
+          )
+
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+
+          expect(result).to eq(:ok)
+        end
+
+        it "does not call validation service when peer review params include date params" do
+          expect(PeerReview::DateValidationService).not_to receive(:call)
+
+          update_params = ActionController::Parameters.new(
+            peer_review: {
+              due_at: 8.days.from_now.iso8601
+            }
+          )
+
+          api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+        end
+
+        it "rolls back when parent due_at moves past peer review unlock_at and peer_review params have no dates" do
+          pr_sub.update_columns(unlock_at: 4.days.from_now)
+          original_due_at = assignment_with_peer_review.due_at
+
+          update_params = ActionController::Parameters.new(
+            due_at: 6.days.from_now.iso8601,
+            peer_review: {
+              points_possible: 10
+            }
+          )
+
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+
+          expect(result).to be(false)
+          expect(assignment_with_peer_review.errors[:base]).to include(
+            a_string_matching(/Peer Review: Peer review available from date cannot be before assignment due date/)
+          )
+          assignment_with_peer_review.reload
+          expect(assignment_with_peer_review.due_at).to be_within(1.second).of(original_due_at)
+        end
+
+        it "rolls back when parent due_at moves past peer review unlock_at and peer_review_overrides is empty" do
+          pr_sub.update_columns(unlock_at: 4.days.from_now)
+          original_due_at = assignment_with_peer_review.due_at
+
+          update_params = ActionController::Parameters.new(
+            due_at: 6.days.from_now.iso8601,
+            peer_review: {
+              peer_review_overrides: []
+            }
+          )
+
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+
+          expect(result).to be(false)
+          expect(assignment_with_peer_review.errors[:base]).to include(
+            a_string_matching(/Peer Review: Peer review available from date cannot be before assignment due date/)
+          )
+          assignment_with_peer_review.reload
+          expect(assignment_with_peer_review.due_at).to be_within(1.second).of(original_due_at)
+        end
+
+        it "rolls back when parent section override due_at is past peer review section override unlock_at without peer review params" do
+          parent_override = assignment_with_peer_review.assignment_overrides.create!(
+            set_type: "CourseSection",
+            set_id: section.id,
+            due_at: 7.days.from_now,
+            due_at_overridden: true
+          )
+          pr_sub.assignment_overrides.create!(
+            set_type: "CourseSection",
+            set_id: section.id,
+            unlock_at: 6.days.from_now,
+            unlock_at_overridden: true,
+            parent_override:
+          )
+
+          update_params = ActionController::Parameters.new(name: assignment_with_peer_review.name)
+
+          result = api.update_api_assignment(assignment_with_peer_review, update_params, teacher, course)
+
+          expect(result).to be(false)
+          expect(assignment_with_peer_review.errors[:base]).to include(
+            a_string_matching(/Peer Review: Peer review override available from date cannot be before parent override due date/)
+          )
+        end
+      end
+
+      context "when assignment has legacy peer reviews" do
+        let(:legacy_assignment) do
+          course.assignments.create!(
+            name: "Legacy Assignment",
+            peer_reviews: true,
+            submission_types: "online_text_entry",
+            due_at: 3.days.from_now
+          )
+        end
+
+        it "succeeds without calling validation service" do
+          expect(PeerReview::DateValidationService).not_to receive(:call)
+
+          update_params = ActionController::Parameters.new(
+            due_at: 5.days.from_now.iso8601
+          )
+
+          result = api.update_api_assignment(legacy_assignment, update_params, teacher, course)
+
+          expect(result).to eq(:ok)
+        end
+      end
     end
 
     describe "#create_api_peer_review_sub_assignment rollback scenarios" do
@@ -2295,6 +2455,113 @@ describe "Api::V1::Assignment" do
 
         expect(result).to be(false)
         expect(parent_assignment.errors[:base]).to include(a_string_matching(/ADHOC override not found/i))
+      end
+    end
+
+    describe "#validate_existing_peer_review_dates" do
+      let(:parent_assignment) do
+        course.assignments.create!(
+          name: "Parent Assignment with Peer Review",
+          peer_reviews: true,
+          submission_types: "online_text_entry",
+          due_at: 3.days.from_now,
+          lock_at: 14.days.from_now
+        )
+      end
+      let!(:peer_review_sub_assignment) { peer_review_model(parent_assignment:) }
+
+      it "returns true when valid" do
+        result = api.send(:validate_existing_peer_review_dates, parent_assignment)
+
+        expect(result).to be(true)
+      end
+
+      it "returns false and adds error when peer review dates violate parent constraints" do
+        peer_review_sub_assignment.update_columns(unlock_at: 2.days.from_now)
+        parent_assignment.update_columns(due_at: 5.days.from_now)
+
+        result = api.send(:validate_existing_peer_review_dates, parent_assignment)
+
+        expect(result).to be(false)
+        expect(parent_assignment.errors[:base]).to include(
+          a_string_matching(/Peer Review: Peer review available from date cannot be before assignment due date/)
+        )
+      end
+    end
+
+    describe "#add_peer_review_error" do
+      let(:parent_assignment) { course.assignments.create!(title: "Test") }
+
+      it "adds an error with 'Peer Review:' prefix" do
+        error = PeerReview::PeerReviewError.new("some validation message")
+
+        api.send(:add_peer_review_error, parent_assignment, error)
+
+        expect(parent_assignment.errors[:base]).to include("Peer Review: some validation message")
+      end
+    end
+
+    describe "#peer_review_date_params_blank?" do
+      it "returns true when peer_review_params is nil" do
+        expect(api.send(:peer_review_date_params_blank?, nil)).to be(true)
+      end
+
+      it "returns true when peer_review_params is an empty hash" do
+        expect(api.send(:peer_review_date_params_blank?, {})).to be(true)
+      end
+
+      it "returns true when only non-date params are present" do
+        params = { points_possible: 10, grading_type: "points" }
+
+        expect(api.send(:peer_review_date_params_blank?, params)).to be(true)
+      end
+
+      it "returns true when peer_review_overrides is an empty array" do
+        params = { peer_review_overrides: [] }
+
+        expect(api.send(:peer_review_date_params_blank?, params)).to be(true)
+      end
+
+      it "returns true when peer_review_overrides is nil" do
+        params = { peer_review_overrides: nil }
+
+        expect(api.send(:peer_review_date_params_blank?, params)).to be(true)
+      end
+
+      it "returns true when base date keys are present but blank" do
+        params = { due_at: "", unlock_at: nil }
+
+        expect(api.send(:peer_review_date_params_blank?, params)).to be(true)
+      end
+
+      it "returns false when due_at is present" do
+        params = { due_at: 5.days.from_now.iso8601 }
+
+        expect(api.send(:peer_review_date_params_blank?, params)).to be(false)
+      end
+
+      it "returns false when unlock_at is present" do
+        params = { unlock_at: 2.days.from_now.iso8601 }
+
+        expect(api.send(:peer_review_date_params_blank?, params)).to be(false)
+      end
+
+      it "returns false when lock_at is present" do
+        params = { lock_at: 10.days.from_now.iso8601 }
+
+        expect(api.send(:peer_review_date_params_blank?, params)).to be(false)
+      end
+
+      it "returns false when peer_review_overrides has at least one entry" do
+        params = { peer_review_overrides: [{ course_section_id: 1, due_at: 4.days.from_now.iso8601 }] }
+
+        expect(api.send(:peer_review_date_params_blank?, params)).to be(false)
+      end
+
+      it "returns false when both base dates and non-date params are present" do
+        params = { points_possible: 10, due_at: 5.days.from_now.iso8601 }
+
+        expect(api.send(:peer_review_date_params_blank?, params)).to be(false)
       end
     end
   end
