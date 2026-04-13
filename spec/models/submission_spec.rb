@@ -3798,6 +3798,12 @@ describe Submission do
         expect(submission.originality_report_url(submission.asset_string, test_teacher)).to eq report_url
       end
 
+      it "returns the report url for text entry submissions when the asset key includes a timestamp" do
+        originality_report.update!(attachment: nil)
+        timestamped_key = "#{submission.asset_string}_#{originality_report.submission_time.utc.iso8601}"
+        expect(submission.originality_report_url(timestamped_key, test_teacher)).to eq report_url
+      end
+
       context "when a report exists but for a different attempt" do
         it "finds the report url even when queried with a different attempt number" do
           first_submission = assignment.submit_homework(test_student, attachments: [attachment])

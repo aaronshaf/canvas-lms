@@ -1044,7 +1044,10 @@ class Submission < ApplicationRecord
     return unless grants_right?(user, :view_turnitin_report)
 
     # Find the attachment, returning early if requested but not found.
-    is_attachment_request = (asset_string != self.asset_string)
+    # Note: submission asset strings may include an ISO8601 timestamp suffix
+    # (e.g. "submission_1_2026-01-01T12:00:00Z") added by OriginalityReport#asset_key,
+    # so we identify attachment requests by prefix rather than exact match.
+    is_attachment_request = !asset_string.to_s.start_with?("submission_")
     requested_attachment = find_versioned_attachment(asset_string) if is_attachment_request
     return nil if is_attachment_request && requested_attachment.nil?
 
