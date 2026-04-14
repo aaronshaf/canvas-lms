@@ -77,4 +77,50 @@ describe "Enhanced Individual Gradebook - Peer Review" do
 
     expect(EnhancedSRGB.main_grade_input.attribute("value")).to eq("40")
   end
+
+  context "peer review grade in total" do
+    before(:once) do
+      course_with_teacher(active_all: true)
+      @student1 = student_in_course(course: @course, active_all: true).user
+
+      @counting_assignment = @course.assignments.create!(
+        title: "Counting Assignment",
+        points_possible: 10
+      )
+
+      @parent = @course.assignments.create!(
+        title: "Parent Assignment",
+        points_possible: 10,
+        peer_reviews: true
+      )
+
+      @peer_review_sub = peer_review_model(parent_assignment: @parent, points_possible: 10)
+
+      @counting_assignment.grade_student(@student1, grade: "10", grader: @teacher)
+      @parent.grade_student(@student1, grade: "10", grader: @teacher)
+      @peer_review_sub.grade_student(@student1, grade: "5", grader: @teacher)
+    end
+
+    before do
+      user_session(@teacher)
+    end
+
+    it "stored enrollment score matches the Individual Gradebook total" do
+      EnhancedSRGB.visit(@course.id)
+      EnhancedSRGB.select_student(@student1)
+
+      displayed_total = EnhancedSRGB.total_score
+      displayed_percent = displayed_total[/([\d.]+)\s*%/, 1]&.to_f
+
+      @student1.reload
+      stored_score = @student1.enrollments.find_by(course: @course).computed_final_score
+
+      # (10 + 10 + 5) / (10 + 10 + 10) = 83.33%
+      expect(stored_score).to be_within(0.01).of(83.33)
+
+      # The displayed Individual Gradebook total must agree with the stored enrollment score
+      # since CSV exports and SIS passback use the stored score, not the displayed one
+      expect(displayed_percent).to be_within(0.01).of(stored_score)
+    end
+  end
 end

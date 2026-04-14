@@ -570,6 +570,20 @@ class Course < ApplicationRecord
     scope
   end
 
+  def assignments_and_peer_reviews_scope
+    scope = assignments
+    if feature_enabled?(:peer_review_allocation_and_grading)
+      scope_assignment_ids = scope.pluck(:id)
+      # Assignment and PeerReviewSubAssignment are STI siblings under AbstractAssignment.
+      # The scope must be re-rooted on AbstractAssignment so that .or(peer_reviews_scope)
+      # can instantiate both types; using Assignment.or(...) raises SubclassNotFound.
+      scope = AbstractAssignment.where(id: scope_assignment_ids)
+      peer_reviews_scope = PeerReviewSubAssignment.where(parent_assignment_id: scope_assignment_ids)
+      scope = scope.or(peer_reviews_scope)
+    end
+    scope
+  end
+
   def grading_standard_read_permission
     :read_as_admin
   end

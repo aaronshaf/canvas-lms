@@ -2169,6 +2169,39 @@ describe Course do
     end
   end
 
+  describe "#assignments_and_peer_reviews_scope" do
+    context "when the peer_review_allocation_and_grading feature is disabled" do
+      let_once(:course) { course_factory(active_all: true) }
+
+      it "returns assignments for the course" do
+        assignment = course.assignments.create!(title: "Assignment")
+        expect(course.assignments_and_peer_reviews_scope).to include(assignment)
+      end
+
+      it "does not include peer review sub-assignments" do
+        result = course.assignments_and_peer_reviews_scope.to_a
+        expect(result).to all(be_a(Assignment))
+      end
+    end
+
+    context "when the peer_review_allocation_and_grading feature is enabled" do
+      before :once do
+        @course = course_factory(active_all: true)
+        peer_review_model(course: @course)
+        # peer_review_model enables :peer_review_allocation_and_grading and sets
+        # @parent_assignment and @peer_review_sub_assignment
+      end
+
+      it "includes assignments" do
+        expect(@course.assignments_and_peer_reviews_scope).to include(@parent_assignment)
+      end
+
+      it "includes peer review sub-assignments belonging to course assignments" do
+        expect(@course.assignments_and_peer_reviews_scope).to include(@peer_review_sub_assignment)
+      end
+    end
+  end
+
   describe "#assignment_groups" do
     it "orders groups by position" do
       course_model

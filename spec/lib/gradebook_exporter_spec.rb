@@ -1469,4 +1469,43 @@ describe GradebookExporter do
     # Assert
     expect(score).to eq "EX"
   end
+
+  describe "peer_review_allocation_and_grading enabled" do
+    before(:once) do
+      student_in_course(course: @course, active_all: true)
+
+      @counting_assignment = @course.assignments.create!(
+        title: "Counting Assignment",
+        points_possible: 10
+      )
+
+      @parent = @course.assignments.create!(
+        title: "Parent Assignment",
+        points_possible: 10,
+        peer_reviews: true
+      )
+
+      @peer_review_sub = peer_review_model(parent_assignment: @parent, points_possible: 10)
+
+      @counting_assignment.grade_student(@student, grade: "10", grader: @teacher)
+      @parent.grade_student(@student, grade: "10", grader: @teacher)
+      @peer_review_sub.grade_student(@student, grade: "5", grader: @teacher)
+    end
+
+    let(:parsed_csv) do
+      csv = GradebookExporter.new(@course, @teacher, {}).to_csv
+      CSV.parse(csv, headers: true)
+    end
+
+    it "includes the peer review assignment as a column" do
+      expect(parsed_csv.headers).to include(@peer_review_sub.title_with_id)
+    end
+
+    it "includes peer review grades in the Final Score" do
+      student_row = parsed_csv.find { |row| row["ID"].to_i == @student.id }
+
+      # (10 + 10 + 5) / (10 + 10 + 10) = 83.33%
+      expect(student_row["Final Score"].to_f).to be_within(0.01).of(83.33)
+    end
+  end
 end

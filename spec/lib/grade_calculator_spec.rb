@@ -951,7 +951,7 @@ describe GradeCalculator do
 
     it "only fetches assignments once" do
       expect(GradeCalculator).to receive(:new).twice.and_call_original
-      expect(@course).to receive(:assignments).once.and_call_original
+      expect(@course).to receive(:assignments_and_peer_reviews_scope).once.and_call_original
       GradeCalculator.new(@student.id, @course).compute_and_save_scores
     end
 
@@ -988,14 +988,15 @@ describe GradeCalculator do
     end
 
     it "fetches assignments for GradeCalculator" do
-      expect(@course).to receive_message_chain(:assignments, :published, :gradeable, to_a: [5, 6])
+      scope_double = double(published: double(gradeable: double(to_a: [5, 6])))
+      expect(@course).to receive(:assignments_and_peer_reviews_scope).and_return(scope_double)
       expect(GradeCalculator).to receive(:new).with([@student.id], @course, hash_including(assignments: [5, 6]))
                                               .and_return(instance_double(GradeCalculator, compute_and_save_scores: "hi"))
       GradeCalculator.recompute_final_score(@student.id, @course)
     end
 
     it "does not fetch assignments if they are already passed" do
-      expect(@course).not_to receive(:assignments)
+      expect(@course).not_to receive(:assignments_and_peer_reviews_scope)
       expect(GradeCalculator).to receive(:new).with([@student.id], @course, hash_including(assignments: [5, 6]))
                                               .and_return(instance_double(GradeCalculator, compute_and_save_scores: "hi"))
       GradeCalculator.recompute_final_score(@student.id, @course, assignments: [5, 6])
@@ -2147,6 +2148,92 @@ describe GradeCalculator do
       calc = GradeCalculator.new([@student.id], @course, include_discussion_checkpoints: false)
       expect(calc.submissions.pluck(:assignment_id)).not_to include(@reply_to_topic.id)
       expect(calc.submissions.pluck(:assignment_id)).not_to include(@reply_to_entry.id)
+    end
+  end
+
+  context "peer_review_allocation_and_grading feature flag" do
+    before(:once) do
+      student_in_course(course: @course, active_all: true)
+
+      @counting_assignment = @course.assignments.create!(
+        title: "Counting Assignment",
+        points_possible: 10
+      )
+
+      @parent = @course.assignments.create!(
+        title: "Parent Assignment",
+        points_possible: 10,
+        peer_reviews: true
+      )
+
+      @peer_review_sub = peer_review_model(
+        parent_assignment: @parent,
+        points_possible: 10,
+        due_at: 1.day.from_now,
+        unlock_at: 1.hour.from_now,
+        lock_at: 2.weeks.from_now
+      )
+    end
+
+    it "includes peer review sub-assignment in gradable_assignments" do
+      calc = GradeCalculator.new([@student.id], @course)
+      # must include the peer review sub or the grades page and stored score diverge
+      expect(calc.gradable_assignments.map(&:id)).to include(@peer_review_sub.id)
+    end
+
+    it "does not include peer review sub-assignment when feature flag is disabled" do
+      @course.disable_feature!(:peer_review_allocation_and_grading)
+      calc = GradeCalculator.new([@student.id], @course)
+      expect(calc.gradable_assignments.map(&:id)).not_to include(@peer_review_sub.id)
+    end
+
+    it "loads peer review submissions" do
+      @peer_review_sub.grade_student(@student, grade: "5", grader: @teacher)
+      calc = GradeCalculator.new([@student.id], @course)
+      expect(calc.submissions.pluck(:assignment_id)).to include(@peer_review_sub.id)
+    end
+
+    it "includes peer review grade in computed_final_score" do
+      @counting_assignment.grade_student(@student, grade: "10", grader: @teacher)
+      @parent.grade_student(@student, grade: "10", grader: @teacher)
+      @peer_review_sub.grade_student(@student, grade: "5", grader: @teacher)
+
+      # (10 + 10 + 5) / (10 + 10 + 10) = 83.33%
+      expect(@student.enrollments.first.computed_final_score).to be_within(0.01).of(83.33)
+    end
+
+    it "includes peer review grade in the grading period score" do
+      now = Time.zone.now
+      grading_period_set = @course.root_account.grading_period_groups.create!
+      grading_period_set.enrollment_terms << @course.enrollment_term
+      period = grading_period_set.grading_periods.create!(
+        title: "Period",
+        start_date: 1.month.ago(now),
+        end_date: 1.month.from_now(now)
+      )
+
+      [@counting_assignment, @parent].each { |a| a.update!(due_at: now) }
+      @counting_assignment.grade_student(@student, grade: "10", grader: @teacher)
+      @parent.grade_student(@student, grade: "10", grader: @teacher)
+      @peer_review_sub.grade_student(@student, grade: "5", grader: @teacher)
+
+      # all three assignments fall in the period: (10 + 10 + 5) / 30 = 83.33
+      enrollment = @student.enrollments.first
+      expect(enrollment.computed_final_score(grading_period_id: period.id)).to be_within(0.01).of(83.33)
+    end
+
+    it "includes peer review what-if scores when use_what_if_scores is enabled" do
+      @counting_assignment.grade_student(@student, grade: "10", grader: @teacher)
+      @parent.grade_student(@student, grade: "10", grader: @teacher)
+      @peer_review_sub.grade_student(@student, grade: "5", grader: @teacher)
+      submission = @peer_review_sub.submissions.find_by(user: @student)
+      submission.update_column(:student_entered_score, 10)
+
+      calc = GradeCalculator.new([@student.id], @course, use_what_if_scores: true)
+      scores = calc.compute_scores
+
+      # what-if replaces the peer review 5 with 10: (10 + 10 + 10) / 30 = 100
+      expect(scores.first[:current][:grade]).to eq 100
     end
   end
 end

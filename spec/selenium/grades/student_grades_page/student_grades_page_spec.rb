@@ -689,4 +689,47 @@ describe "gradebook - logged in as a student" do
       expect(f(".submission-custom-grade-status-pill-#{@custom_status.id}")).to be_displayed
     end
   end
+
+  context "peer review grade total" do
+    before(:once) do
+      course_with_student({ active_course: true, active_enrollment: true })
+      teacher_in_course(course: @course, active_all: true)
+
+      @counting_assignment = @course.assignments.create!(
+        title: "Counting Assignment",
+        points_possible: 10
+      )
+
+      @parent = @course.assignments.create!(
+        title: "Parent Assignment",
+        points_possible: 10,
+        peer_reviews: true
+      )
+
+      @peer_review_sub = peer_review_model(parent_assignment: @parent, points_possible: 10)
+
+      @counting_assignment.grade_student(@student, grade: "10", grader: @teacher)
+      @parent.grade_student(@student, grade: "10", grader: @teacher)
+      @peer_review_sub.grade_student(@student, grade: "5", grader: @teacher)
+    end
+
+    it "stored enrollment score matches the displayed total on the grades page" do
+      user_session(@student)
+      StudentGradesPage.visit_as_student(@course)
+
+      final_row = f("tr#submission_final-grade")
+      displayed_total = final_row.text
+      displayed_percent = displayed_total[/([\d.]+)\s*%/, 1]&.to_f
+
+      @student.reload
+      stored_score = @student.enrollments.find_by(course: @course).computed_final_score
+
+      # (10 + 10 + 5) / (10 + 10 + 10) = 83.33%
+      expect(stored_score).to be_within(0.01).of(83.33)
+
+      # The grades page total (client-side calc includes peer review) must agree with the
+      # stored enrollment score, since CSV exports and SIS passback use the stored score
+      expect(displayed_percent).to be_within(0.01).of(stored_score)
+    end
+  end
 end

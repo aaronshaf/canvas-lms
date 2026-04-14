@@ -48,7 +48,7 @@ class GradeCalculator
       :ignore_unposted_anonymous,
       @course.root_account.feature_enabled?(:grade_calc_ignore_unposted_anonymous)
     )
-    @gradable_assignments = (opts[:assignments] || @course.assignments.published.gradeable).to_a
+    @gradable_assignments = (opts[:assignments] || @course.assignments_and_peer_reviews_scope.published.gradeable).to_a
 
     @assignments = if @ignore_unposted_anonymous
                      Assignment.preload_unposted_anonymous_submissions(@gradable_assignments)
@@ -90,7 +90,7 @@ class GradeCalculator
     course = course_id.is_a?(Course) ? course_id : Course.active.find_by(id: course_id)
     return unless course
 
-    assignments = compute_score_opts[:assignments] || course.assignments.published.gradeable.to_a
+    assignments = compute_score_opts[:assignments] || course.assignments_and_peer_reviews_scope.published.gradeable.to_a
     groups = compute_score_opts[:groups] || course.assignment_groups.active.to_a
     periods = compute_score_opts[:periods] || GradingPeriod.for(course)
     grading_period_id = compute_score_opts.delete(:grading_period_id)

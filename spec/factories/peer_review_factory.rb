@@ -22,6 +22,9 @@ module Factories
   def peer_review_model(opts = {})
     @parent_assignment = opts.delete(:parent_assignment)
     peer_review_count = opts.delete(:peer_review_count) || 1
+    explicit_due_at = opts.delete(:due_at)
+    explicit_unlock_at = opts.delete(:unlock_at)
+    explicit_lock_at = opts.delete(:lock_at)
     course = if @parent_assignment
                opts.delete(:course)
                @parent_assignment.course
@@ -44,9 +47,15 @@ module Factories
 
     course.enable_feature!(:peer_review_allocation_and_grading)
 
+    date_overrides = {
+      due_at: explicit_due_at,
+      unlock_at: explicit_unlock_at,
+      lock_at: explicit_lock_at
+    }.compact
+
     @peer_review_sub_assignment = PeerReview::PeerReviewCreatorService.call(
       parent_assignment: @parent_assignment,
-      **valid_attributes.merge(opts)
+      **valid_attributes.merge(opts).merge(date_overrides)
     )
     @parent_assignment.reload
     @peer_review_sub_assignment
