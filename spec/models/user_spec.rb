@@ -6258,7 +6258,14 @@ describe User do
         @account_user = @root_account.account_users.create!(account_id: @root_account.id, user: @user)
         @account_user_subaccount = @associated_subaccount.sub_accounts.create!(account_calendar_visible: true)
         course_with_student(account: @account_user_subaccount, user: @user)
-        expect(@user.all_account_calendars.pluck(:id)).to contain_exactly(@associated_subaccount.id, @account_user_subaccount.id)
+        expect(@user.all_account_calendars.pluck(:id)).to contain_exactly(@associated_subaccount.id, @account_user_subaccount.id, @random_subaccount.id)
+      end
+
+      it "returns sub-account calendars even when admin's account calendar is disabled" do
+        # admin in @root_account (calendar disabled), but sub-accounts have calendar enabled
+        # the admin should see the sub-account calendars without needing a direct enrollment
+        @root_account.account_users.create!(account_id: @root_account.id, user: @user)
+        expect(@user.all_account_calendars.pluck(:id)).to include(@random_subaccount.id)
       end
 
       describe "sharding" do
@@ -6279,7 +6286,7 @@ describe User do
           @account_user = @root_account.account_users.create!(account_id: @root_account.id, user: @user)
           @account_user_subaccount = @associated_subaccount.sub_accounts.create!(account_calendar_visible: true)
           course_with_student(account: @account_user_subaccount, user: @user)
-          expect(@user.all_account_calendars.pluck(:id)).to contain_exactly(@associated_subaccount.id, @account2.id, @account_user_subaccount.id)
+          expect(@user.all_account_calendars.pluck(:id)).to contain_exactly(@associated_subaccount.id, @account2.id, @account_user_subaccount.id, @random_subaccount.id)
         end
       end
     end

@@ -4128,7 +4128,7 @@ class User < ApplicationRecord
     account_user_account_ids = []
     active_account_users = account_users.active
     if active_account_users.any?
-      active_accounts = Account.active.where(id: active_account_users.select(:account_id), account_calendar_visible: true)
+      active_accounts = Account.active.where(id: active_account_users.select(:account_id))
       account_user_account_ids = active_accounts.reduce([]) do |descendants, account|
         descendants.concat(Account.sub_account_ids_recursive(account.id))
       end
