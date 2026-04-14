@@ -20,7 +20,7 @@ import {useMutation} from '@tanstack/react-query'
 import {RubricFormProps} from '../types/RubricForm'
 import {queryClient} from '@instructure/platform-query'
 import {saveRubric} from '../queries/RubricFormQueries'
-import {SaveRubricResponse} from 'features/rubrics/queries/RubricFormQueries'
+import type {SaveRubricResponse} from '@canvas/rubrics/react/RubricForm/queries/RubricFormQueries'
 import {showFlashSuccess} from '@instructure/platform-alerts'
 import {useScope as createI18nScope} from '@canvas/i18n'
 

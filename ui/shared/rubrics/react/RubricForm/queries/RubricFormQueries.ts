@@ -26,6 +26,7 @@ import {
   mapRubricAssociationUnderscoredKeysToCamelCase,
   mapRubricUnderscoredKeysToCamelCase,
   decodeHTML,
+  stripLongDescriptionBrTags,
 } from '@canvas/rubrics/react/utils'
 import {getCookie} from '@instructure/platform-get-cookie'
 import {
@@ -189,19 +190,10 @@ export const saveRubric = async (
   const method = id ? 'PATCH' : 'POST'
 
   const criteria = rubric.criteria.map(criterion => {
-    /**
-     * remove all <br/> from the longDescription because the backend
-     * html sanitization will escape any <br/> tags
-     */
-    const longDescription = criterion.outcome
-      ? criterion.longDescription
-      : // unescape any escaped html entities
-        decodeHTML(criterion.longDescription?.replace(/<br\/>/g, '') ?? '')
-
     return {
       id: criterion.id,
       description: criterion.description,
-      long_description: longDescription,
+      long_description: stripLongDescriptionBrTags(criterion),
       points: criterion.points,
       outcome: {
         display_name: criterion.outcome?.displayName,

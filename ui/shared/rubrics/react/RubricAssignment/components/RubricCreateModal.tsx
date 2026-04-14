@@ -24,7 +24,7 @@ import {Heading} from '@instructure/ui-heading'
 import {View} from '@instructure/ui-view'
 import {RubricForm} from '@canvas/rubrics/react/RubricForm'
 import type {Rubric, RubricAssociation} from '../../types/rubric'
-import type {SaveRubricResponse} from '../../../../../features/rubrics/queries/RubricFormQueries'
+import type {SaveRubricResponse} from '@canvas/rubrics/react/RubricForm/queries/RubricFormQueries'
 import {Responsive} from '@instructure/ui-responsive'
 
 const I18n = createI18nScope('rubrics-form')

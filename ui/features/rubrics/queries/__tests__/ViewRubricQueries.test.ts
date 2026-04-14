@@ -124,6 +124,48 @@ describe('duplicateRubric', () => {
     expect(c0.criterion_use_range).toBe('false')
   })
 
+  describe('long_description stripping', () => {
+    it('strips <br/> tags from long_description when criterion has no outcome', async () => {
+      const criteria = [
+        {
+          ...baseCriteria[0],
+          longDescription: 'Line one<br/>Line two<br/>Line three',
+        },
+      ]
+      await duplicateRubric({title: 'Test', pointsPossible: 10, accountId: '1', criteria})
+
+      expect(capturedBody.rubric?.criteria?.['0'].long_description).toBe(
+        'Line oneLine twoLine three',
+      )
+    })
+
+    it('decodes HTML entities in long_description when criterion has no outcome', async () => {
+      const criteria = [
+        {
+          ...baseCriteria[0],
+          longDescription: 'A &amp; B &lt;thing&gt;',
+        },
+      ]
+      await duplicateRubric({title: 'Test', pointsPossible: 10, accountId: '1', criteria})
+
+      expect(capturedBody.rubric?.criteria?.['0'].long_description).toBe('A & B <thing>')
+    })
+
+    it('preserves long_description as-is when criterion has an outcome', async () => {
+      const criteria = [
+        {
+          ...baseCriteria[0],
+          longDescription: 'Keep <br/> this intact',
+          learningOutcomeId: 'outcome-1',
+          outcome: {displayName: 'Outcome', title: 'Outcome Title'},
+        },
+      ]
+      await duplicateRubric({title: 'Test', pointsPossible: 10, accountId: '1', criteria})
+
+      expect(capturedBody.rubric?.criteria?.['0'].long_description).toBe('Keep <br/> this intact')
+    })
+  })
+
   it('uses course URL when courseId is provided', async () => {
     server.use(
       http.post('/courses/:courseId/rubrics/', async ({request}) => {

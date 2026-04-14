@@ -22,6 +22,7 @@ import type {
   Rubric,
   RubricAssessmentData,
   RubricAssociation,
+  RubricCriterion,
   RubricRating,
 } from '@canvas/rubrics/react/types/rubric'
 
@@ -229,4 +230,15 @@ export const reorderRatingsAtIndex = ({list, startIndex, endIndex}: ReorderProps
   })
 
   return result
+}
+
+export const stripLongDescriptionBrTags = (criterion: RubricCriterion): string | undefined => {
+  /**
+   * remove all <br/> from the longDescription because the backend
+   * html sanitization will escape any <br/> tags
+   */
+  return criterion.outcome
+    ? criterion.longDescription
+    : // unescape any escaped html entities
+      decodeHTML(criterion.longDescription?.replace(/<br\/>/g, '') ?? '')
 }

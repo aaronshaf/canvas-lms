@@ -29,6 +29,7 @@ import {getCookie} from '@instructure/platform-get-cookie'
 import qs from 'qs'
 import type {UsedLocation} from '@canvas/grading-scheme/gradingSchemeApiModel'
 import doFetchApi from '@canvas/do-fetch-api-effect'
+import {decodeHTML, stripLongDescriptionBrTags} from '@canvas/rubrics/react/utils'
 
 const rubricsPerPage = 100
 const COURSE_RUBRICS_QUERY = gql`
@@ -348,7 +349,7 @@ export const duplicateRubric = async ({
     return {
       id: criterion.id,
       description: criterion.description,
-      long_description: criterion.longDescription,
+      long_description: stripLongDescriptionBrTags(criterion),
       points: criterion.points,
       learning_outcome_id: criterion.learningOutcomeId,
       criterion_use_range: criterion.criterionUseRange,
