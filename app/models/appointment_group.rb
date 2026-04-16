@@ -276,7 +276,9 @@ class AppointmentGroup < ApplicationRecord
       next false unless active_contexts.any? { |c| c.grants_right? user, :manage_calendar }
 
       if appointment_group_sub_contexts.present? && appointment_group_sub_contexts.first.sub_context_type == "CourseSection"
-        sub_context_ids = appointment_group_sub_contexts.map(&:sub_context_id)
+        all_sub_context_ids = appointment_group_sub_contexts.map(&:sub_context_id)
+        deleted_section_ids = CourseSection.where(id: all_sub_context_ids, workflow_state: "deleted").pluck(:id)
+        sub_context_ids = all_sub_context_ids - deleted_section_ids
         user_visible_section_ids = contexts.map do |c|
           c.section_visibilities_for(user).pluck(:course_section_id)
         end.flatten

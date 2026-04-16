@@ -436,6 +436,61 @@ describe AppointmentGroup do
       expect(@g8.reload.grants_right?(@teacher2, :manage)).to be_truthy
     end
 
+    it "ignores deleted section sub_contexts when performing permissions checks" do
+      course_with_teacher(active_all: true)
+      section_a = @course.course_sections.create!(name: "Section A")
+      section_b = @course.course_sections.create!(name: "Section B")
+
+      restricted_teacher = user_factory(active_all: true)
+      @course.enroll_teacher(restricted_teacher,
+                             section: section_a,
+                             limit_privileges_to_course_section: true,
+                             enrollment_state: "active")
+
+      ag = AppointmentGroup.create!(title: "test",
+                                    contexts: [@course],
+                                    sub_context_codes: [section_a.asset_string, section_b.asset_string])
+      ag.publish!
+
+      # Delete section_b (which restricted_teacher is NOT in)
+      section_b.destroy
+
+      # After deleting section_b, only section_a remains active.
+      # restricted_teacher (who's in section_a) should now be able to manage.
+      expect(ag.reload.grants_right?(restricted_teacher, :manage)).to be_truthy
+    end
+
+    it "ignores deleted section sub_contexts across multiple courses" do
+      course1 = course_factory(active_all: true)
+      course2 = course_factory(active_all: true)
+      section_a = course1.course_sections.create!(name: "Section A")
+      section_b = course1.course_sections.create!(name: "Section B")
+      section_c = course2.course_sections.create!(name: "Section C")
+      section_d = course2.course_sections.create!(name: "Section D")
+
+      restricted_teacher = user_factory(active_all: true)
+      [section_a, section_b, section_c, section_d].each do |s|
+        s.course.enroll_teacher(restricted_teacher,
+                                section: s,
+                                limit_privileges_to_course_section: true,
+                                enrollment_state: "active")
+      end
+
+      # Appointment group spans one section from each course
+      ag = AppointmentGroup.create!(
+        title: "multi-course test",
+        contexts: [course1, course2],
+        sub_context_codes: [section_a.asset_string, section_c.asset_string]
+      )
+      ag.publish!
+
+      # Delete section_a — it was one of the sub_contexts
+      section_a.destroy
+
+      # restricted_teacher is in section_c (still active), so manage should be granted
+      expect(ag.reload.grants_right?(restricted_teacher, :manage)).to be_truthy
+    end
+
     it "gives :manage permission even if some contexts are concluded" do
       @course3.complete!
       expect(@g8.reload.grants_right?(@teacher2, :manage)).to be_truthy
