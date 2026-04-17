@@ -59,7 +59,7 @@ const USER_COURSE_STATISTICS_QUERY = gql`
     legacyNode(_id: $userId, type: User) {
       ... on User {
         _id
-        enrollments(currentOnly: true) {
+        enrollments(currentOnly: true, homeroomCourses: false) {
           course {
             _id
             name

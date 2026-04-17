@@ -775,6 +775,24 @@ describe Types::UserType do
       end
     end
 
+    context "Homeroom courses" do
+      before :once do
+        @homeroom = course_factory
+        @homeroom.update!(homeroom_course: true)
+        @homeroom.enroll_student(@student, enrollment_state: "active")
+      end
+
+      it "returns only homeroom courses when homeroomCourses is true" do
+        enrollments = user_type.resolve("enrollments(homeroomCourses: true) { _id }", current_user: @student)
+        expect(enrollments).to eq [@student.enrollments.find_by(course: @homeroom).to_param]
+      end
+
+      it "excludes homeroom courses when homeroomCourses is false" do
+        enrollments = user_type.resolve("enrollments(homeroomCourses: false) { _id }", current_user: @student)
+        expect(enrollments).not_to include(@student.enrollments.find_by(course: @homeroom).to_param)
+      end
+    end
+
     context "Career Learning Library courses" do
       before :once do
         @horizon_account = Account.create!
@@ -3202,6 +3220,25 @@ describe Types::UserType do
 
         expect(titles.count("Course 1 Announcement")).to eq(1)
         expect(titles).to match_array(["Course 1 Announcement", "Course 2 Announcement"])
+      end
+    end
+
+    context "with homeroom courses" do
+      before do
+        toggle_k5_setting(@course1.account.root_account)
+        @homeroom_course = course_factory(active_all: true, account: @course1.account.root_account)
+        @homeroom_course.update!(homeroom_course: true)
+        @homeroom_course.enroll_user(@student_user, "StudentEnrollment", enrollment_state: "active")
+        @homeroom_announcement = @homeroom_course.announcements.create!(
+          title: "Homeroom Announcement",
+          message: "Homeroom news"
+        )
+      end
+
+      it "excludes announcements from homeroom courses for K-5 students" do
+        result = resolve_participants_with_topics(filter: { isAnnouncement: true })
+        titles = result.flatten
+        expect(titles).not_to include("Homeroom Announcement")
       end
     end
   end

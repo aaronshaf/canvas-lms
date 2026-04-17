@@ -12730,6 +12730,11 @@ type User implements LegacyIDInterface & Node & Timestamped {
     excludeConcluded: Boolean
 
     """
+    Whether or not to include or exclude K-5 homeroom courses
+    """
+    homeroomCourses: Boolean
+
+    """
     Whether or not to include or exclude Canvas Career courses
     """
     horizonCourses: Boolean

@@ -244,6 +244,10 @@ module Types
                Boolean,
                "Whether or not to exclude `completed` enrollments",
                required: false
+      argument :homeroom_courses,
+               Boolean,
+               "Whether or not to include or exclude K-5 homeroom courses",
+               required: false
       argument :horizon_courses,
                Boolean,
                "Whether or not to include or exclude Canvas Career courses",
@@ -279,13 +283,14 @@ module Types
       end
     end
 
-    def enrollments(course_id: nil, current_only: false, order_by: [], exclude_concluded: false, horizon_courses: nil, career_learning_library_only: nil, sort: {})
+    def enrollments(course_id: nil, current_only: false, order_by: [], exclude_concluded: false, homeroom_courses: nil, horizon_courses: nil, career_learning_library_only: nil, sort: {})
       course_ids = [course_id].compact
       Loaders::UserCourseEnrollmentLoader.for(
         course_ids:,
         order_by:,
         current_only:,
         exclude_concluded:,
+        homeroom_courses:,
         horizon_courses:,
         career_learning_library_only:,
         sort:
@@ -1050,12 +1055,13 @@ end
 
 module Loaders
   class UserCourseEnrollmentLoader < Loaders::ForeignKeyLoader
-    def initialize(course_ids:, order_by: [], current_only: false, exclude_concluded: false, exclude_pending_enrollments: true, horizon_courses: nil, career_learning_library_only: nil, sort: {})
+    def initialize(course_ids:, order_by: [], current_only: false, exclude_concluded: false, exclude_pending_enrollments: true, homeroom_courses: nil, horizon_courses: nil, career_learning_library_only: nil, sort: {})
       @course_ids = course_ids
       @order_by = order_by
       @current_only = current_only
       @exclude_concluded = exclude_concluded
       @exclude_pending_enrollments = exclude_pending_enrollments
+      @homeroom_courses = homeroom_courses
       @horizon_courses = horizon_courses
       @career_learning_library_only = career_learning_library_only
       @sort = sort
@@ -1104,6 +1110,14 @@ module Loaders
                 Enrollment.not_horizon
               else
                 Enrollment.joins(:course)
+              end
+
+      scope = if @homeroom_courses
+                scope.homeroom
+              elsif @homeroom_courses == false
+                scope.not_homeroom
+              else
+                scope
               end
 
       scope = if @career_learning_library_only

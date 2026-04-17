@@ -19,6 +19,7 @@
 #
 
 require_relative "../graphql_spec_helper"
+require "helpers/k5_common"
 
 describe Types::QueryType do
   it "works" do
@@ -1666,6 +1667,114 @@ describe Types::QueryType do
         user = result.dig("data", "courseInstructorsConnection", "nodes", 0, "user")
         expect(user).to have_key("email")
         expect(user["email"]).to be_nil
+      end
+    end
+
+    describe "homeroom course filtering" do
+      include K5Common
+
+      before(:once) do
+        @k5_account = Account.default
+        @homeroom_course = Course.create!(account: @k5_account, name: "Homeroom", workflow_state: "available")
+        @homeroom_course.update!(homeroom_course: true)
+        @homeroom_teacher = user_factory(name: "Homeroom Teacher")
+        @homeroom_course.enroll_teacher(@homeroom_teacher).accept!
+
+        @subject_course = Course.create!(account: @k5_account, name: "Subject", workflow_state: "available")
+        @subject_teacher = user_factory(name: "Subject Teacher")
+        @subject_course.enroll_teacher(@subject_teacher).accept!
+
+        @homeroom_student = user_factory(name: "Homeroom Student")
+        @homeroom_course.enroll_student(@homeroom_student, enrollment_state: "active")
+        @subject_course.enroll_student(@homeroom_student, enrollment_state: "active")
+
+        @parent_observer = user_factory(name: "Parent Observer")
+        @homeroom_course.enroll_user(@parent_observer, "ObserverEnrollment", associated_user_id: @homeroom_student.id, enrollment_state: "active")
+        @subject_course.enroll_user(@parent_observer, "ObserverEnrollment", associated_user_id: @homeroom_student.id, enrollment_state: "active")
+      end
+
+      before do
+        toggle_k5_setting(@k5_account)
+      end
+
+      it "excludes instructors of homeroom courses for K-5 students" do
+        result = CanvasSchema.execute(
+          query,
+          variables: { courseIds: [] },
+          context: { current_user: @homeroom_student, domain_root_account: @k5_account }
+        )
+
+        instructors = result.dig("data", "courseInstructorsConnection", "nodes")
+        instructor_names = instructors.pluck("user").pluck("name")
+        expect(instructor_names).to include("Subject Teacher")
+        expect(instructor_names).not_to include("Homeroom Teacher")
+      end
+
+      it "excludes homeroom instructors for observers viewing a K-5 student" do
+        query_with_observer = <<~GQL
+          query($courseIds: [ID!]!, $observedUserId: ID) {
+            courseInstructorsConnection(courseIds: $courseIds, observedUserId: $observedUserId) {
+              nodes {
+                user { name }
+              }
+            }
+          }
+        GQL
+
+        result = CanvasSchema.execute(
+          query_with_observer,
+          variables: { courseIds: [], observedUserId: @homeroom_student.id.to_s },
+          context: { current_user: @parent_observer, domain_root_account: @k5_account }
+        )
+
+        instructors = result.dig("data", "courseInstructorsConnection", "nodes")
+        instructor_names = instructors.pluck("user").pluck("name")
+        expect(instructor_names).to include("Subject Teacher")
+        expect(instructor_names).not_to include("Homeroom Teacher")
+      end
+    end
+
+    describe "homeroom filtering across shards" do
+      specs_require_sharding
+
+      it "handles cross-shard observed_ids without error and does not leak homeroom instructors" do
+        cross_shard_student = user_factory(name: "Cross-Shard Student")
+        cross_shard_observer = user_factory(name: "Cross-Shard Observer")
+
+        @shard1.activate do
+          shard1_account = Account.create!
+          @shard1_subject = shard1_account.courses.create!(name: "Shard1 Subject", workflow_state: "available")
+          shard1_subject_teacher = user_factory(name: "Shard1 Subject Teacher")
+          @shard1_subject.enroll_teacher(shard1_subject_teacher).accept!
+
+          @shard1_homeroom = shard1_account.courses.create!(name: "Shard1 Homeroom", workflow_state: "available")
+          @shard1_homeroom.update!(homeroom_course: true)
+          shard1_homeroom_teacher = user_factory(name: "Shard1 Homeroom Teacher")
+          @shard1_homeroom.enroll_teacher(shard1_homeroom_teacher).accept!
+
+          @shard1_subject.enroll_student(cross_shard_student, enrollment_state: "active")
+          @shard1_homeroom.enroll_student(cross_shard_student, enrollment_state: "active")
+          @shard1_subject.enroll_user(cross_shard_observer, "ObserverEnrollment", associated_user_id: cross_shard_student.id, enrollment_state: "active")
+          @shard1_homeroom.enroll_user(cross_shard_observer, "ObserverEnrollment", associated_user_id: cross_shard_student.id, enrollment_state: "active")
+        end
+
+        observer_query = <<~GQL
+          query($courseIds: [ID!]!, $observedUserId: ID) {
+            courseInstructorsConnection(courseIds: $courseIds, observedUserId: $observedUserId) {
+              nodes { user { name } }
+            }
+          }
+        GQL
+
+        result = CanvasSchema.execute(
+          observer_query,
+          variables: { courseIds: [], observedUserId: cross_shard_student.id.to_s },
+          context: { current_user: cross_shard_observer, domain_root_account: Account.default }
+        )
+
+        expect(result["errors"]).to be_nil
+        instructor_names = (result.dig("data", "courseInstructorsConnection", "nodes") || []).pluck("user").pluck("name")
+        expect(instructor_names).not_to include("Shard1 Homeroom Teacher")
       end
     end
   end

@@ -208,9 +208,15 @@ module Types
                           observed_user = User.find_by(id: observed_user_id)
                           return [] unless observed_user
 
-                          current_user.cached_course_ids_for_observed_user(observed_user).map(&:to_s)
+                          observed_ids = current_user.cached_course_ids_for_observed_user(observed_user)
+                          original_shard = Shard.current
+                          Shard.partition_by_shard(observed_ids) do |ids|
+                            Course.where(id: ids, homeroom_course: false).pluck(:id).map do |id|
+                              Shard.relative_id_for(id, Shard.current, original_shard).to_s
+                            end
+                          end
                         else
-                          current_user.participating_course_ids.map(&:to_s)
+                          current_user.cached_current_course_ids_for_dashboard(domain_root_account: context[:domain_root_account]).map(&:to_s)
                         end
 
       course_ids = if course_ids.blank?

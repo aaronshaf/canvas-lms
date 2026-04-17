@@ -102,6 +102,8 @@ class Enrollment < ApplicationRecord
   scope :not_horizon, -> { joins(:course).where(courses: { horizon_course: false }) }
   scope :career_learning_library, -> { joins(:course).where(courses: { career_learning_library_only: true }) }
   scope :not_career_learning_library, -> { joins(:course).where(courses: { career_learning_library_only: false }) }
+  scope :homeroom, -> { joins(:course).where(courses: { homeroom_course: true }) }
+  scope :not_homeroom, -> { joins(:course).where(courses: { homeroom_course: false }) }
 
   def ensure_role_id
     self.role_id ||= role.id
