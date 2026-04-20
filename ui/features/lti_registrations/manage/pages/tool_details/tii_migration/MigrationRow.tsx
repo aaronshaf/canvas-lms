@@ -85,6 +85,25 @@ const MigrationActionButton = ({
 }) => {
   const workflowState = migration.migration_progress?.workflow_state || 'ready'
 
+  const startButton = (label: string) => {
+    if (isBulkInProgress && !isPending) {
+      return (
+        <Button color="primary" interaction="disabled">
+          {I18n.t('Queued...')}
+        </Button>
+      )
+    }
+    return (
+      <Button
+        color="primary"
+        interaction={isPending || emailError || isBulkInProgress ? 'disabled' : 'enabled'}
+        onClick={() => startMigration(migration.account_id)}
+      >
+        {label}
+      </Button>
+    )
+  }
+
   switch (workflowState) {
     case 'running':
     case 'queued':
@@ -93,27 +112,12 @@ const MigrationActionButton = ({
           {I18n.t('Migrating...')}
         </Button>
       )
-    case 'failed':
-      return null // TODO we might allow retry in future
     case 'ready':
-      if (isBulkInProgress && !isPending) {
-        return (
-          <Button color="primary" interaction="disabled">
-            {I18n.t('Queued...')}
-          </Button>
-        )
-      }
-      return (
-        <Button
-          color="primary"
-          interaction={isPending || emailError || isBulkInProgress ? 'disabled' : 'enabled'}
-          onClick={() => startMigration(migration.account_id)}
-        >
-          {I18n.t('Migrate')}
-        </Button>
-      )
+      return startButton(I18n.t('Migrate'))
+    case 'failed':
+      return startButton(I18n.t('Retry'))
     case 'completed':
-      return null
+      return startButton(I18n.t('Re-run'))
     default:
       return workflowState satisfies never
   }

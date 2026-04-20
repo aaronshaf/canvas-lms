@@ -316,6 +316,74 @@ describe('TurnitinAPMigrationModal Actions', () => {
     })
   })
 
+  it('should show a Retry button on a failed row and rerun the migration when clicked', async () => {
+    const user = userEvent.setup()
+    let rerunCalled = false
+
+    server.use(
+      http.get(
+        `/api/v1/accounts/${defaultProps.rootAccountId}/asset_processors/tii_migrations`,
+        () => {
+          return HttpResponse.json({accounts: [mockMigrationFailed], coordinator_progress: null})
+        },
+      ),
+      http.post(
+        `/api/v1/accounts/${mockMigrationFailed.account_id}/asset_processors/tii_migrations`,
+        () => {
+          rerunCalled = true
+          return HttpResponse.json({progress_id: 9991})
+        },
+      ),
+    )
+
+    render(<TurnitinAPMigrationModal {...defaultProps} />, {wrapper: createWrapper()})
+
+    await waitFor(() => {
+      expect(screen.getByText(mockMigrationFailed.account_name)).toBeInTheDocument()
+    })
+
+    const retryButton = screen.getByRole('button', {name: /^Retry$/i})
+    await user.click(retryButton)
+
+    await waitFor(() => {
+      expect(rerunCalled).toBe(true)
+    })
+  })
+
+  it('should show a Re-run button on a completed row and rerun the migration when clicked', async () => {
+    const user = userEvent.setup()
+    let rerunCalled = false
+
+    server.use(
+      http.get(
+        `/api/v1/accounts/${defaultProps.rootAccountId}/asset_processors/tii_migrations`,
+        () => {
+          return HttpResponse.json({accounts: [mockMigrationCompleted], coordinator_progress: null})
+        },
+      ),
+      http.post(
+        `/api/v1/accounts/${mockMigrationCompleted.account_id}/asset_processors/tii_migrations`,
+        () => {
+          rerunCalled = true
+          return HttpResponse.json({progress_id: 9992})
+        },
+      ),
+    )
+
+    render(<TurnitinAPMigrationModal {...defaultProps} />, {wrapper: createWrapper()})
+
+    await waitFor(() => {
+      expect(screen.getByText(mockMigrationCompleted.account_name)).toBeInTheDocument()
+    })
+
+    const rerunButton = screen.getByRole('button', {name: /^Re-run$/i})
+    await user.click(rerunButton)
+
+    await waitFor(() => {
+      expect(rerunCalled).toBe(true)
+    })
+  })
+
   describe('Migrate All functionality', () => {
     it('should show "Migrate All" button when eligible migrations exist', async () => {
       server.use(
@@ -621,11 +689,19 @@ describe('TurnitinAPMigrationModal Actions', () => {
         ...mockMigrationCompleted,
         account_id: '20',
         account_name: 'Completed Account 1',
+        migration_progress: {
+          ...mockMigrationCompleted.migration_progress,
+          coordinator_id: 'coordinator-123',
+        },
       }
       const mockCompletedAccount2 = {
         ...mockMigrationCompleted,
         account_id: '21',
         account_name: 'Completed Account 2',
+        migration_progress: {
+          ...mockMigrationCompleted.migration_progress,
+          coordinator_id: 'coordinator-123',
+        },
       }
 
       server.use(
@@ -660,11 +736,19 @@ describe('TurnitinAPMigrationModal Actions', () => {
         ...mockMigrationCompleted,
         account_id: '22',
         account_name: 'Completed Account 3',
+        migration_progress: {
+          ...mockMigrationCompleted.migration_progress,
+          coordinator_id: 'coordinator-123',
+        },
       }
       const mockCompletedAccount4 = {
         ...mockMigrationCompleted,
         account_id: '23',
         account_name: 'Completed Account 4',
+        migration_progress: {
+          ...mockMigrationCompleted.migration_progress,
+          coordinator_id: 'coordinator-123',
+        },
       }
 
       server.use(

@@ -109,7 +109,8 @@ module Lti
         :perform,
         {
           priority: Delayed::HIGH_PRIORITY,
-          strand: "tii_migration_account_#{account.global_id}"
+          strand: "tii_migration_account_#{account.global_id}",
+          max_attempts: 3,
         }
       )
       progress
@@ -183,6 +184,7 @@ module Lti
             workflow_state: progress.workflow_state,
             completion: progress.completion,
             message: progress.message,
+            coordinator_id: progress.results&.dig(:coordinator_id),
             results: {
               migration_report_url: progress.results&.dig(:migration_report_url)
             }

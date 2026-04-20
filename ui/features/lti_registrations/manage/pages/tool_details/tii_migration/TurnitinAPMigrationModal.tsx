@@ -73,7 +73,11 @@ export const TurnitinAPMigrationModal = ({
   const isCoordinatorInProgress =
     coordinatorProgress?.workflow_state === 'running' ||
     coordinatorProgress?.workflow_state === 'queued'
-  const showConsolidatedReport = !!coordinatorProgress?.consolidated_report_url
+  const hasIndividuallyRerunAccounts = migrations?.some(
+    m => m.migration_progress && m.migration_progress.coordinator_id !== coordinatorProgress?.id,
+  )
+  const showConsolidatedReport =
+    !!coordinatorProgress?.consolidated_report_url && !hasIndividuallyRerunAccounts
 
   const [email, setEmail] = React.useState('')
   const [emailNotification, setEmailNotification] = React.useState(false)

@@ -1427,26 +1427,53 @@ describe Lti::AssetProcessorTiiMigrationWorker do
   end
 
   describe "#report_download_url" do
-    it "uses environment_specific_domain for the URL" do
-      attachment = Attachment.create!(
-        context: sub_account,
-        filename: "test_report.csv",
-        content_type: "text/csv"
-      )
-
+    it "generates an account-scoped URL for account context" do
       allow(sub_account).to receive(:environment_specific_domain).and_return("beta.instructure.com")
 
-      url = worker.send(:report_download_url, attachment.id, sub_account)
+      url = worker.send(:report_download_url, 123, sub_account)
 
       expect(url).to include("beta.instructure.com")
       expect(url).to include("accounts/#{sub_account.id}")
-      expect(url).to include("files/#{attachment.id}")
+      expect(url).to include("files/123")
+    end
+
+    it "generates a user-scoped URL for user context" do
+      allow(root_account).to receive(:environment_specific_domain).and_return("beta.instructure.com")
+
+      url = worker.send(:report_download_url, 456, admin_user)
+
+      expect(url).to include("beta.instructure.com")
+      expect(url).to include("users/#{admin_user.id}")
+      expect(url).to include("files/456")
     end
 
     it "returns nil when attachment_id is nil" do
-      url = worker.send(:report_download_url, nil, sub_account)
+      expect(worker.send(:report_download_url, nil, sub_account)).to be_nil
+    end
+  end
 
-      expect(url).to be_nil
+  describe "#attachment_context_attrs" do
+    it "returns user context with a 'LTI 2.0 migration' folder when user is provided" do
+      attrs = worker.send(:attachment_context_attrs, admin_user, sub_account)
+
+      expect(attrs[:context]).to be(admin_user)
+      expect(attrs[:user_id]).to be(admin_user.id)
+
+      folder = Folder.find(attrs[:folder_id])
+      expect(folder.name).to eql("LTI 2.0 migration")
+      expect(folder.full_name).to eql("my files/LTI 2.0 migration")
+      expect(folder.context).to eql(admin_user)
+    end
+
+    it "does not create duplicate folders on repeated calls" do
+      2.times { worker.send(:attachment_context_attrs, admin_user, sub_account) }
+
+      my_files = Folder.root_folders(admin_user).first
+      expect(my_files.sub_folders.active.where(name: "LTI 2.0 migration").count).to be(1)
+    end
+
+    it "falls back to account context when user is nil" do
+      expect(worker.send(:attachment_context_attrs, nil, sub_account)).to eql({ context: sub_account })
     end
   end
 
@@ -1846,6 +1873,24 @@ describe Lti::AssetProcessorTiiMigrationWorker do
 
         new_report = Lti::AssetReport.active.last
         expect(new_report.result).to eq("75.0%")
+      end
+
+      it "is idempotent when run multiple times with the same CPF report" do
+        attachment = attachment_model(context: course)
+        OriginalityReport.create!(
+          attachment:,
+          submission:,
+          originality_score: 50,
+          workflow_state: "scored"
+        )
+
+        worker.send(:migrate_reports, actl, asset_processor)
+        first_report_id = Lti::AssetReport.active.last.id
+
+        worker.send(:migrate_reports, actl, asset_processor)
+
+        expect(Lti::AssetReport.active.count).to eq(1)
+        expect(Lti::AssetReport.active.last.id).to eq(first_report_id)
       end
     end
 
@@ -2281,6 +2326,44 @@ describe Lti::AssetProcessorTiiMigrationWorker do
       end
     end
 
+    describe "#save_consolidated_report" do
+      let(:bulk_migration_id) { SecureRandom.uuid }
+      let(:csv_content) { "header\nrow1\n" }
+      let(:other_user) { account_admin_user(account: root_account) }
+
+      it "saves the attachment to the given user's context and returns a user file download URL" do
+        worker = described_class.new(sub_account, "test@example.com", coordinator.id)
+
+        url = worker.send(:save_consolidated_report, csv_content, root_account, bulk_migration_id, admin_user)
+
+        attachment = Attachment.where(user_id: admin_user.id, filename: "tii_ap_bulk_migration_report_#{bulk_migration_id}.csv").last
+        expect(attachment).not_to be_nil
+        expect(attachment.context).to eq(admin_user)
+        expect(attachment.folder.full_name).to eq("my files/LTI 2.0 migration")
+        expect(url).to include("/users/#{admin_user.id}/files/#{attachment.id}/download")
+      end
+
+      it "uses the coordinator's user, not the finishing sub-account worker's user" do
+        worker = described_class.new(sub_account, "test@example.com", coordinator.id)
+
+        url = worker.send(:save_consolidated_report, csv_content, root_account, bulk_migration_id, admin_user)
+
+        expect(Attachment.where(user_id: other_user.id).count).to eq(0)
+        expect(url).to include("/users/#{admin_user.id}/files/")
+      end
+
+      it "falls back to account context and returns an account file download URL when user is nil" do
+        worker = described_class.new(sub_account, nil, coordinator.id)
+
+        url = worker.send(:save_consolidated_report, csv_content, root_account, bulk_migration_id, nil)
+
+        attachment = Attachment.where(context: root_account, filename: "tii_ap_bulk_migration_report_#{bulk_migration_id}.csv").last
+        expect(attachment).not_to be_nil
+        expect(attachment.context).to eq(root_account)
+        expect(url).to include("/accounts/#{root_account.id}/files/#{attachment.id}/download")
+      end
+    end
+
     describe "#consolidated_email_body" do
       it "returns success message when all migrations succeeded" do
         worker = described_class.new(sub_account, "test@example.com", coordinator.id)
@@ -2601,6 +2684,49 @@ describe Lti::AssetProcessorTiiMigrationWorker do
       )
       result = worker.send(:tii_orphan_proxies)
       expect(result).not_to include(other_proxy)
+    end
+  end
+
+  describe "#tii_proxies_pending_subscription_cleanup" do
+    before do
+      Setting.set("turnitin_asset_processor_client_id", developer_key.global_id.to_s)
+    end
+
+    it "returns migrated TII proxies that still have a subscription_id" do
+      product_family
+      tool_proxy.update!(
+        migrated_to_context_external_tool: external_tool_1_3_model(context: sub_account),
+        subscription_id: "leftover-sub-123"
+      )
+      expect(worker.send(:tii_proxies_pending_subscription_cleanup)).to include(tool_proxy)
+    end
+
+    it "excludes proxies that have not yet been migrated" do
+      product_family
+      tool_proxy.update_columns(subscription_id: "active-sub", migrated_to_context_external_tool_id: nil)
+      expect(worker.send(:tii_proxies_pending_subscription_cleanup)).not_to include(tool_proxy)
+    end
+  end
+
+  describe "DB sweep for subscription cleanup on rerun" do
+    let(:rsa_key) { OpenSSL::PKey::RSA.new(2048) }
+
+    before do
+      Setting.set("turnitin_asset_processor_client_id", developer_key.global_id.to_s)
+      allow(Lti::KeyStorage).to receive(:present_key).and_return(rsa_key)
+    end
+
+    it "cleans up subscriptions for TPs migrated in a prior run that are skipped in the current run" do
+      product_family
+      # TP already migrated (prior run), but subscription_id was not cleaned up
+      tool_proxy.update!(
+        migrated_to_context_external_tool: external_tool_1_3_model(context: sub_account),
+        subscription_id: "leftover-from-prior-run"
+      )
+
+      worker.perform(test_progress)
+
+      expect(tool_proxy.reload.subscription_id).to be_nil
     end
   end
 

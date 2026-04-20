@@ -48,12 +48,21 @@ module Lti
       end
       save_migration_report
 
-      # Clean up subscriptions for migrated tool proxies
-      # Can be rolled back with tool_proxy.manage_subscription
-      @migrated_tool_proxies.each do |tp|
+      # Clean up subscriptions for migrated tool proxies.
+      # Can be rolled back with tool_proxy.manage_subscription.
+      # The DB sweep catches TPs migrated in a prior run whose subscription
+      # cleanup didn't finish: on rerun they're skipped by the migrate loop
+      # (already migrated), so without this their subscription would leak.
+      tps_needing_cleanup = @migrated_tool_proxies.index_by(&:id)
+      tii_proxies_pending_subscription_cleanup.find_each do |tp|
+        tps_needing_cleanup[tp.id] ||= tp
+      end
+
+      tps_needing_cleanup.each_value do |tp|
         tp.delete_subscription
       rescue => e
         capture_and_log_exception(e)
+        initialize_proxy_results(tp)
         add_proxy_error(tp, "Unexpected error deleting subscriptions of ToolProxy ID=#{tp.id}")
       end
 
@@ -329,6 +338,12 @@ module Lti
 
     def tii_orphan_proxies(account_ids = [@account.id])
       tii_tool_proxies_base_query(account_ids).where(lti_tool_proxies: { migrated_to_context_external_tool_id: nil })
+    end
+
+    def tii_proxies_pending_subscription_cleanup
+      tii_tool_proxies_base_query([@account.id])
+        .where.not(lti_tool_proxies: { migrated_to_context_external_tool_id: nil })
+        .where.not(lti_tool_proxies: { subscription_id: nil })
     end
 
     def tii_tool_proxies_base_query(account_ids)
@@ -655,15 +670,16 @@ module Lti
     end
 
     def save_report(csv)
+      user = @progress.user
       attachment = Attachment.new(
-        context: @account,
         filename: "tii_ap_migration_report_#{@progress.id}.csv",
-        content_type: "text/csv"
+        content_type: "text/csv",
+        **attachment_context_attrs(user, @account)
       )
       Attachments::Storage.store_for_attachment(attachment, StringIO.new(csv))
       attachment.save!
       @results[:migration_report_attachment_id] = attachment.id
-      @results[:migration_report_url] = report_download_url(attachment.id, @account)
+      @results[:migration_report_url] = report_download_url(attachment.id, user || @account)
     end
 
     def send_migration_report_email
@@ -731,7 +747,7 @@ module Lti
       email = coordinator.results&.dig(:email)
 
       consolidated_csv = generate_consolidated_report(all_migrations)
-      download_url = save_consolidated_report(consolidated_csv, root_account, bulk_migration_id)
+      download_url = save_consolidated_report(consolidated_csv, root_account, bulk_migration_id, coordinator.user)
       return unless download_url
       return download_url unless email.present?
 
@@ -785,15 +801,15 @@ module Lti
       content
     end
 
-    def save_consolidated_report(csv_content, root_account, bulk_migration_id)
+    def save_consolidated_report(csv_content, root_account, bulk_migration_id, user)
       attachment = Attachment.new(
-        context: root_account,
         filename: "tii_ap_bulk_migration_report_#{bulk_migration_id}.csv",
-        content_type: "text/csv"
+        content_type: "text/csv",
+        **attachment_context_attrs(user, root_account)
       )
       Attachments::Storage.store_for_attachment(attachment, StringIO.new(csv_content))
       attachment.save!
-      report_download_url(attachment, root_account)
+      report_download_url(attachment.id, user || root_account)
     rescue => e
       capture_and_log_exception(e)
       Rails.logger.error("Failed to save consolidated migration report: #{e.message}")
@@ -822,14 +838,31 @@ module Lti
       end
     end
 
-    def report_download_url(attachment_id, account)
+    def attachment_context_attrs(user, fallback_context)
+      if user
+        folder = Folder.assert_path("my files/LTI 2.0 migration", user)
+        { context: user, user_id: user.id, folder_id: folder.id }
+      else
+        { context: fallback_context }
+      end
+    end
+
+    def report_download_url(attachment_id, context)
       return unless attachment_id
 
-      Rails.application.routes.url_helpers.account_file_download_url(
-        account.id,
-        attachment_id,
-        host: account.environment_specific_domain
-      )
+      if context.is_a?(User)
+        Rails.application.routes.url_helpers.user_file_download_url(
+          context.id,
+          attachment_id,
+          host: @account.root_account.environment_specific_domain
+        )
+      else
+        Rails.application.routes.url_helpers.account_file_download_url(
+          context.id,
+          attachment_id,
+          host: context.environment_specific_domain
+        )
+      end
     end
 
     def success_email_body(download_url)
@@ -969,6 +1002,7 @@ module Lti
 
       asset_ids = asset_cache.values.map(&:id).uniq
       existing_by_asset_id = asset_processor.asset_reports
+                                            .active
                                             .where(lti_asset_id: asset_ids, report_type: MIGRATED_ASSET_REPORT_TYPE)
                                             .index_by(&:lti_asset_id)
 
@@ -992,8 +1026,8 @@ module Lti
         existing = existing_by_asset_id[asset.id]
 
         if existing
-          if existing.timestamp > timestamp
-            # Existing report is newer; leave it in place and count as success
+          # We've already migrated the report, skip it
+          if existing.extensions["migrated_from"] == cpf_report.id || existing.timestamp >= timestamp
             successful_count += 1
             next
           end

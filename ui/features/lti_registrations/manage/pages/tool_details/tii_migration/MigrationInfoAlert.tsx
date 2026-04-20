@@ -39,6 +39,9 @@ export const MigrationInfoAlert = () => {
               'After you select the button to start, reports won’t be visible in SpeedGrader until the migration is finished.',
             )}
           </Text>
+          {I18n.t(
+            'Migration reports are also available in the personal files of the admin who started the migration. (My Files/LTI 2.0 migration)',
+          )}
         </Flex>
       </Alert>
     </View>
