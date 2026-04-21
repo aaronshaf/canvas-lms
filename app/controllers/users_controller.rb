@@ -543,13 +543,20 @@ class UsersController < ApplicationController
                                   .select(&:enable_as_k5_account?)
                                   .map { |a| { asset_string: a.asset_string, name: a.name } }
 
+      homeroom_courses = Course.where(
+        id: @current_user.enrollments.active_by_date.select(:course_id),
+        homeroom_course: true
+      )
+
       js_env({
                HIDE_K5_DASHBOARD_GRADES_TAB: active_courses.empty? || active_courses.all? { |c| c.tab_hidden?(Course::TAB_GRADES) },
                SELECTED_CONTEXT_CODES: calendar_contexts.is_a?(Array) ? calendar_contexts : [],
                SELECTED_CONTEXTS_LIMIT: @domain_root_account.settings[:calendar_contexts_limit] || 10,
                INITIAL_NUM_K5_CARDS: Rails.cache.read(["last_known_k5_cards_count", @current_user.global_id].cache_key) || 5,
                OPEN_TEACHER_TODOS_IN_NEW_TAB: @current_user.feature_enabled?(:open_todos_in_new_tab),
-               ACCOUNT_CALENDAR_CONTEXTS: account_calendar_contexts
+               ACCOUNT_CALENDAR_CONTEXTS: account_calendar_contexts,
+               CAN_READ_ROSTER: homeroom_courses.blank? ||
+                                homeroom_courses.all? { |c| c.grants_right?(@current_user, session, :read_roster) }
              })
 
       css_bundle :k5_common, :k5_dashboard, :dashboard_card

@@ -172,6 +172,7 @@ const K5Dashboard = ({
   openTodosInNewTab,
   loadingOpportunities,
   accountCalendarContexts,
+  canReadRoster = true,
 }) => {
   const initialObservedId = getObservedUserId(observedUsersList)
   const [observedUserId, setObservedUserId] = useState(initialObservedId)
@@ -475,7 +476,7 @@ const K5Dashboard = ({
                 cards={cards}
                 cardsSettled={cardsSettled}
                 visible={currentTab === TAB_IDS.RESOURCES}
-                showStaff={true}
+                showStaff={canReadRoster}
                 isSingleCourse={false}
               />
             )}
@@ -541,6 +542,7 @@ K5Dashboard.propTypes = {
       name: PropTypes.string.isRequired,
     }),
   ),
+  canReadRoster: PropTypes.bool,
 }
 
 const WrappedK5Dashboard = connect(mapStateToProps)(responsiviser()(K5Dashboard))

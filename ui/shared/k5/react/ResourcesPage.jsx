@@ -122,7 +122,7 @@ export default function ResourcesPage({
           fetchStaff(cards)
             .then(setStaff)
             .catch(err => {
-              if (err?.response?.status === 401) {
+              if (err?.response?.status === 401 || err?.response?.status === 403) {
                 return setStaffAuthorized(false)
               }
               showFlashError(I18n.t('Failed to load staff.'))(err)

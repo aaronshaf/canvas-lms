@@ -420,4 +420,5 @@ export const defaultK5DashboardProps = {
   observedUsersList: [{id: currentUser.id, name: currentUser.display_name}],
   openTodosInNewTab: true,
   accountCalendarContexts,
+  canReadRoster: true,
 }

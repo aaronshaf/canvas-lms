@@ -3347,6 +3347,50 @@ describe UsersController do
           end
         end
 
+        context "ENV.CAN_READ_ROSTER" do
+          before do
+            @homeroom = @course
+            @homeroom.update!(homeroom_course: true)
+            @current_user = @user
+          end
+
+          it "is true when user has read_roster permission on a homeroom course" do
+            get "user_dashboard"
+            expect(assigns[:js_env][:CAN_READ_ROSTER]).to be_truthy
+          end
+
+          it "is false when user lacks read_roster on all homeroom courses" do
+            RoleOverride.create!(
+              context: @homeroom.account,
+              permission: "read_roster",
+              role: student_role,
+              enabled: false
+            )
+            get "user_dashboard"
+            expect(assigns[:js_env][:CAN_READ_ROSTER]).to be_falsey
+          end
+
+          it "is true when there are no homeroom courses" do
+            @homeroom.update!(homeroom_course: false)
+            get "user_dashboard"
+            expect(assigns[:js_env][:CAN_READ_ROSTER]).to be_truthy
+          end
+
+          it "is false when user lacks read_roster on at least one homeroom course" do
+            second_homeroom = course_factory(active_all: true, account: @homeroom.account)
+            second_homeroom.update!(homeroom_course: true)
+            second_homeroom.enroll_student(@current_user, enrollment_state: "active")
+            RoleOverride.create!(
+              context: second_homeroom.account,
+              permission: "read_roster",
+              role: student_role,
+              enabled: false
+            )
+            get "user_dashboard"
+            expect(assigns[:js_env][:CAN_READ_ROSTER]).to be_falsey
+          end
+        end
+
         context "ENV.ACCOUNT_CALENDAR_CONTEXTS" do
           before :once do
             @account1 = Account.create!(name: "test 1")
