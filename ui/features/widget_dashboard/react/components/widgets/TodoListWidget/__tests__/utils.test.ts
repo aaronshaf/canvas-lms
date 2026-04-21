@@ -16,7 +16,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {formatAnnouncementDate, formatDate, getPlannableTypeLabel, isOverdue} from '../utils'
+import {
+  formatAnnouncementDate,
+  formatDate,
+  getPlannableTypeLabel,
+  isOverdue,
+  isClosed,
+} from '../utils'
 
 describe('utils', () => {
   describe('formatAnnouncementDate', () => {
@@ -59,6 +65,24 @@ describe('utils', () => {
 
     it('returns "Item" for unknown type', () => {
       expect(getPlannableTypeLabel('unknown' as any)).toBe('Item')
+    })
+  })
+
+  describe('isClosed', () => {
+    it('returns false for undefined', () => {
+      expect(isClosed(undefined)).toBe(false)
+    })
+
+    it('returns true when lock_at is in the past', () => {
+      const pastDate = new Date()
+      pastDate.setDate(pastDate.getDate() - 1)
+      expect(isClosed(pastDate.toISOString())).toBe(true)
+    })
+
+    it('returns false when lock_at is in the future', () => {
+      const futureDate = new Date()
+      futureDate.setDate(futureDate.getDate() + 1)
+      expect(isClosed(futureDate.toISOString())).toBe(false)
     })
   })
 

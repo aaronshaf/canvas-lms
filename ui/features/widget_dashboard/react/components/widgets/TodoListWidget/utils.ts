@@ -102,3 +102,8 @@ export function isOverdue(dateString: string | undefined): boolean {
   const now = new Date()
   return date < now
 }
+
+export function isClosed(lockAt: string | undefined): boolean {
+  if (!lockAt) return false
+  return new Date(lockAt) < new Date()
+}

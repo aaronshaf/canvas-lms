@@ -26,7 +26,13 @@ import {Link} from '@instructure/ui-link'
 import {IconCheckPlusLine, IconCheckLine} from '@instructure/ui-icons'
 import {Spinner} from '@instructure/ui-spinner'
 import type {PlannerItem, PlannerOverride} from './types'
-import {formatDate, formatAnnouncementDate, getPlannableTypeLabel, isOverdue} from './utils'
+import {
+  formatDate,
+  formatAnnouncementDate,
+  getPlannableTypeLabel,
+  isOverdue,
+  isClosed,
+} from './utils'
 import {usePlannerOverride} from './hooks/usePlannerOverride'
 import {useWidgetTheme} from '../../../theme/WidgetThemeContext'
 
@@ -44,6 +50,7 @@ const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false
     ? formatAnnouncementDate(item.plannable_date)
     : formatDate(item.plannable_date)
   const isItemOverdue = isAnnouncement ? false : isOverdue(item.plannable_date)
+  const isItemClosed = !isAnnouncement && isClosed(item.plannable.lock_at)
   const typeLabel = getPlannableTypeLabel(item.plannable_type)
   const {toggleComplete, isLoading} = usePlannerOverride({
     onSuccess: (override, {item: toggledItem}) => {
@@ -142,12 +149,18 @@ const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false
 
             <Flex.Item overflowY="visible">
               <Text size="small">
-                {dateText && (
-                  <Text size="small" color={isItemOverdue ? 'danger' : 'secondary'}>
-                    {dateText}
+                {isItemClosed ? (
+                  <Text size="small" color="secondary">
+                    {I18n.t('Closed')}
                   </Text>
+                ) : (
+                  dateText && (
+                    <Text size="small" color={isItemOverdue ? 'danger' : 'secondary'}>
+                      {dateText}
+                    </Text>
+                  )
                 )}
-                {dateText &&
+                {(isItemClosed || dateText) &&
                   item.plannable.points_possible !== undefined &&
                   item.plannable.points_possible !== null &&
                   item.plannable.points_possible > 0 && (

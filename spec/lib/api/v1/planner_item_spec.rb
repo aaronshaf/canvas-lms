@@ -109,6 +109,36 @@ describe Api::V1::PlannerItem do
       expect(event_hash[:plannable].keys).to include("id", "title", "start_at", "end_at", "all_day", "description")
     end
 
+    it "includes lock_at in the plannable for assignments" do
+      lock_date = 1.day.ago
+      asg = assignment_model course: @course,
+                             submission_types: "online_text_entry",
+                             due_at: 2.days.ago,
+                             lock_at: lock_date
+      hash = api.planner_item_json(asg, @student, session)
+      expect(hash[:plannable]["lock_at"]).to eq lock_date
+    end
+
+    it "includes lock_at as nil when not set" do
+      asg = assignment_model course: @course, submission_types: "online_text_entry"
+      hash = api.planner_item_json(asg, @student, session)
+      expect(hash[:plannable].key?("lock_at")).to be true
+      expect(hash[:plannable]["lock_at"]).to be_nil
+    end
+
+    it "includes lock_at in the plannable for quizzes" do
+      lock_date = 1.day.ago
+      quiz = @course.quizzes.create!(
+        title: "Closed Quiz",
+        quiz_type: "assignment",
+        workflow_state: "available",
+        due_at: 2.days.ago,
+        lock_at: lock_date
+      )
+      hash = api.planner_item_json(quiz, @student, session)
+      expect(hash[:plannable]["lock_at"]).to eq lock_date
+    end
+
     it "returns with a context_name and context_image for the respective item" do
       asg_hash = api.planner_item_json(@assignment, @student, session)
       expect(asg_hash[:context_name]).to eq @course.name

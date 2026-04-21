@@ -87,6 +87,10 @@ const getItemDetailsFromPlannable = apiResponse => {
     details.restrict_quantitative_data = plannable.restrict_quantitative_data
   }
 
+  if (plannable.lock_at) {
+    details.lock_at = plannable.lock_at
+  }
+
   return details
 }
 

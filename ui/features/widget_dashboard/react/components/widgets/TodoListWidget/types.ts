@@ -57,6 +57,7 @@ export interface Plannable {
   course_id?: string
   todo_date?: string
   due_at?: string
+  lock_at?: string
   points_possible?: number
   details?: string
   unread_count?: number

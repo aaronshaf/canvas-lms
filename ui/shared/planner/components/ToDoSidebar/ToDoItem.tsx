@@ -142,7 +142,7 @@ export default class ToDoItem extends React.Component {
   }
 
   // @ts-expect-error TS7006 (typescriptify)
-  getInformationRow = (dueAt, points, restrictQuantitativeData) => {
+  getInformationRow = (dueAt, points, restrictQuantitativeData, lockAt) => {
     const toDisplay = []
     if (points && !restrictQuantitativeData) {
       toDisplay.push(
@@ -152,9 +152,14 @@ export default class ToDoItem extends React.Component {
       )
     }
 
+    const isClosed = lockAt && new Date(lockAt) < new Date()
     toDisplay.push(
-      // @ts-expect-error TS2339 (typescriptify)
-      <InlineList.Item key="date">{dateTimeString(dueAt, this.props.timeZone)}</InlineList.Item>,
+      <InlineList.Item key="date">
+        {isClosed
+          ? I18n.t('Closed')
+          : // @ts-expect-error TS2339 (typescriptify)
+            dateTimeString(dueAt, this.props.timeZone)}
+      </InlineList.Item>,
     )
     return toDisplay
   }
@@ -214,6 +219,8 @@ export default class ToDoItem extends React.Component {
               this.props.item.points,
               // @ts-expect-error TS2339 (typescriptify)
               this.props.item?.restrict_quantitative_data,
+              // @ts-expect-error TS2339 (typescriptify)
+              this.props.item?.lock_at,
             )}
           </InlineList>
         </div>
@@ -250,6 +257,7 @@ ToDoItem.propTypes = {
     date: object, // moment
     points: number,
     restrict_quantitative_data: bool,
+    lock_at: string,
   }),
   courses: arrayOf(object).isRequired,
   handleDismissClick: func.isRequired,

@@ -363,6 +363,79 @@ describe('TodoItem', () => {
     })
   })
 
+  describe('closed item display', () => {
+    it('shows "Closed" when lock_at is in the past', () => {
+      const pastDate = new Date()
+      pastDate.setDate(pastDate.getDate() - 1)
+      const closedItem = {
+        ...mockPlannerItems[0],
+        plannable_date: pastDate.toISOString(),
+        plannable: {
+          ...mockPlannerItems[0].plannable,
+          lock_at: pastDate.toISOString(),
+        },
+      }
+      renderWithProvider(<TodoItem item={closedItem} />)
+
+      expect(screen.getByText('Closed')).toBeInTheDocument()
+      expect(screen.queryByText('Overdue')).not.toBeInTheDocument()
+    })
+
+    it('shows "Overdue" when overdue but lock_at is not set', () => {
+      const pastDate = new Date()
+      pastDate.setDate(pastDate.getDate() - 1)
+      const overdueItem = {
+        ...mockPlannerItems[0],
+        plannable_date: pastDate.toISOString(),
+        plannable: {
+          ...mockPlannerItems[0].plannable,
+          lock_at: undefined,
+        },
+      }
+      renderWithProvider(<TodoItem item={overdueItem} />)
+
+      expect(screen.getByText('Overdue')).toBeInTheDocument()
+      expect(screen.queryByText('Closed')).not.toBeInTheDocument()
+    })
+
+    it('shows "Overdue" when overdue but lock_at is in the future', () => {
+      const pastDate = new Date()
+      pastDate.setDate(pastDate.getDate() - 1)
+      const futureDate = new Date()
+      futureDate.setDate(futureDate.getDate() + 1)
+      const overdueItem = {
+        ...mockPlannerItems[0],
+        plannable_date: pastDate.toISOString(),
+        plannable: {
+          ...mockPlannerItems[0].plannable,
+          lock_at: futureDate.toISOString(),
+        },
+      }
+      renderWithProvider(<TodoItem item={overdueItem} />)
+
+      expect(screen.getByText('Overdue')).toBeInTheDocument()
+      expect(screen.queryByText('Closed')).not.toBeInTheDocument()
+    })
+
+    it('shows points alongside "Closed" label', () => {
+      const pastDate = new Date()
+      pastDate.setDate(pastDate.getDate() - 1)
+      const closedItem = {
+        ...mockPlannerItems[0],
+        plannable_date: pastDate.toISOString(),
+        plannable: {
+          ...mockPlannerItems[0].plannable,
+          lock_at: pastDate.toISOString(),
+          points_possible: 50,
+        },
+      }
+      renderWithProvider(<TodoItem item={closedItem} />)
+
+      expect(screen.getByText('Closed')).toBeInTheDocument()
+      expect(screen.getByText(/50 points/)).toBeInTheDocument()
+    })
+  })
+
   describe('announcement display', () => {
     it('shows "Posted" date for announcements without overdue styling', () => {
       const announcementItem = {

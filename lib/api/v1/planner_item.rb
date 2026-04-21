@@ -49,7 +49,7 @@ module Api::V1::PlannerItem
                                  start_at
                                  end_at
                                  online_meeting_url].freeze
-  GRADABLE_FIELDS = %i[assignment_id points_possible due_at].freeze
+  GRADABLE_FIELDS = %i[assignment_id points_possible due_at lock_at].freeze
   PLANNER_NOTE_FIELDS = [:user_id].freeze
   ASSESSMENT_REQUEST_FIELDS = [:workflow_state].freeze
   SUB_ASSIGNMENT_FIELDS = [:sub_assignment_tag].freeze
@@ -95,7 +95,7 @@ module Api::V1::PlannerItem
         item = item.wiki_page if item.respond_to?(:wiki_page?) && item.wiki_page?
         hash[:plannable_date] = item.todo_date || item.created_at
         hash[:plannable_type] = PlannerHelper::PLANNABLE_TYPES.key(item.class_name)
-        hash[:plannable] = plannable_json(item.attributes)
+        hash[:plannable] = plannable_json(item.attributes, extra_fields: [:lock_at])
         hash[:html_url] = named_context_url(item.context, :context_wiki_page_url, item.url)
         hash[:planner_override] ||= planner_override_json(item.planner_override_for(user), user, session)
       elsif item.is_a?(Announcement)
