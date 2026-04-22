@@ -4919,6 +4919,10 @@ class Course < ApplicationRecord
     horizon_course && account&.feature_enabled?(:horizon_course_setting)
   end
 
+  def notebook_accessible?
+    root_account.feature_enabled?(:notebook) || horizon_course?
+  end
+
   def horizon_back_to_units_enabled?
     horizon_course?
   end

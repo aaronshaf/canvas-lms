@@ -6097,6 +6097,17 @@ enum LearnerDashboardTabType {
   dashboard
 }
 
+input LearningObjectFilterInput {
+  learningObjectId: String!
+  learningObjectType: LearningObjectType!
+}
+
+enum LearningObjectType {
+  Assignment
+  Quiz
+  WikiPage
+}
+
 type LearningOutcome implements LegacyIDInterface & Node & Timestamped {
   """
   legacy canvas id
@@ -9453,6 +9464,29 @@ type Query {
     """
     id: ID!
   ): Rubric
+  studyNotesConnection(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+    courseId: ID!
+    filter: StudyNoteFilterInput
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+  ): StudyNoteConnection
   submission(
     """
     an anonymous id in use when grading anonymously
@@ -10440,6 +10474,63 @@ type StudentSummaryAnalytics {
   pageViews: PageViewAnalysis
   participations: PageViewAnalysis
   tardinessBreakdown: TardinessBreakdown
+}
+
+"""
+A student note attached to a learning object
+"""
+type StudyNote implements LegacyIDInterface & Node & Timestamped {
+  """
+  legacy canvas id
+  """
+  _id: ID!
+  courseId: ID!
+  createdAt: DateTime
+  highlightData: JSON
+  id: ID!
+  learningObjectId: String!
+  learningObjectType: LearningObjectType!
+  reactions: [String!]!
+  redwoodUuid: String
+  updatedAt: DateTime
+  userId: ID!
+  userText: String
+}
+
+"""
+The connection type for StudyNote.
+"""
+type StudyNoteConnection {
+  """
+  A list of edges.
+  """
+  edges: [StudyNoteEdge]
+
+  """
+  A list of nodes.
+  """
+  nodes: [StudyNote]
+  pageInfo: TotalCountPageInfo!
+}
+
+"""
+An edge in a connection.
+"""
+type StudyNoteEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: StudyNote
+}
+
+input StudyNoteFilterInput {
+  learningObject: LearningObjectFilterInput
+  reactions: [String!]
 }
 
 type SubAssignmentSubmission {

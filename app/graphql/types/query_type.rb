@@ -451,5 +451,33 @@ module Types
     def institutional_tag_category(id:)
       GraphQLNodeLoader.load("InstitutionalTagCategory", id, context)
     end
+
+    field :study_notes_connection, Types::StudyNoteType.connection_type, null: true do
+      argument :course_id, ID, required: true, prepare: GraphQLHelpers.relay_or_legacy_id_prepare_func("Course")
+      argument :filter, Types::StudyNoteFilterInputType, required: false
+    end
+    def study_notes_connection(course_id:, filter: nil)
+      course = Course.active.find_by(id: course_id)
+      return nil unless course
+
+      unless course.notebook_accessible?
+        raise GraphQL::ExecutionError, I18n.t("notebook feature flag is not enabled")
+      end
+
+      unless current_user&.participating_student_course_ids&.include?(course.id)
+        raise GraphQL::ExecutionError, I18n.t("User is not a student of this course")
+      end
+
+      scope = StudyNote.active.for_user(current_user).for_course(course)
+
+      if filter
+        if filter[:learning_object]
+          scope = scope.for_object(filter[:learning_object][:learning_object_type], filter[:learning_object][:learning_object_id])
+        end
+        scope = scope.with_reactions(filter[:reactions]) if filter[:reactions].present?
+      end
+
+      scope
+    end
   end
 end

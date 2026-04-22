@@ -118,6 +118,7 @@ class CanvasSchema < GraphQL::Schema
     when AssessmentRequest then Types::AssessmentRequestType
     when UsageRights then Types::UsageRightsType
     when ScheduledPost then Types::ScheduledPostType
+    when StudyNote then Types::StudyNoteType
     end
   end
 
