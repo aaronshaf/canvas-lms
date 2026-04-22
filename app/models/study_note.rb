@@ -33,6 +33,9 @@ class StudyNote < ApplicationRecord
   validates :root_account_id, presence: true
   validates :workflow_state, presence: true
   validates :reaction, length: { maximum: 20 }, allow_nil: true
+  validates :redwood_uuid, uniqueness: true, allow_nil: true
+  validates :user_text, length: { maximum: maximum_text_length }, allow_nil: true
+  validate :highlight_data_size
   validate :note_limit_not_exceeded, on: :create
 
   scope :for_user, ->(user) { where(user:) }
@@ -47,7 +50,18 @@ class StudyNote < ApplicationRecord
   }
   scope :with_reactions, ->(reactions) { where("reaction && ARRAY[?]::varchar[]", reactions) }
 
+  set_policy do
+    given { |user| self.user == user }
+    can :read and can :update and can :delete
+  end
+
   private
+
+  def highlight_data_size
+    return if highlight_data.blank?
+
+    errors.add(:highlight_data, t("is too large")) if highlight_data.to_json.bytesize > self.class.maximum_text_length
+  end
 
   def note_limit_not_exceeded
     return unless user_id && course_id

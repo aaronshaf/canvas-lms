@@ -302,7 +302,8 @@ module GraphQLNodeLoader
       end
     when "StudyNote"
       Loaders::IDLoader.for(StudyNote).load(id).then do |record|
-        next if !record || record.deleted? || record.user_id != ctx[:current_user]&.id
+        next if !record || record.deleted? || !record.grants_right?(ctx[:current_user], :read)
+        next unless record.course.notebook_accessible?
 
         record
       end

@@ -71,6 +71,7 @@ class Types::MutationType < Types::ApplicationObjectType
   field :create_module, mutation: Mutations::CreateModule
   field :create_outcome_calculation_method, mutation: Mutations::CreateOutcomeCalculationMethod
   field :create_outcome_proficiency, mutation: Mutations::CreateOutcomeProficiency
+  field :create_study_note, mutation: Mutations::CreateStudyNote
   field :create_submission_comment, mutation: Mutations::CreateSubmissionComment
   field :create_submission_draft, mutation: Mutations::CreateSubmissionDraft
   field :create_user_inbox_label, mutation: Mutations::CreateUserInboxLabel
@@ -85,6 +86,7 @@ class Types::MutationType < Types::ApplicationObjectType
   field :delete_outcome_calculation_method, mutation: Mutations::DeleteOutcomeCalculationMethod
   field :delete_outcome_links, mutation: Mutations::DeleteOutcomeLinks
   field :delete_outcome_proficiency, mutation: Mutations::DeleteOutcomeProficiency
+  field :delete_study_note, mutation: Mutations::DeleteStudyNote
   field :delete_submission_comment, mutation: Mutations::DeleteSubmissionComment
   field :delete_submission_draft, mutation: Mutations::DeleteSubmissionDraft
   field :delete_user_inbox_label, mutation: Mutations::DeleteUserInboxLabel
@@ -129,6 +131,7 @@ class Types::MutationType < Types::ApplicationObjectType
   field :update_rubric_assessment_read_state, mutation: Mutations::UpdateRubricAssessmentReadState
   field :update_speed_grader_settings, mutation: Mutations::UpdateSpeedGraderSettings
   field :update_split_screen_view_deeply_nested_alert, mutation: Mutations::UpdateSplitScreenViewDeeplyNestedAlert
+  field :update_study_note, mutation: Mutations::UpdateStudyNote
   field :update_submission_grade, mutation: Mutations::UpdateSubmissionGrade
   field :update_submission_grade_status, mutation: Mutations::UpdateSubmissionGradeStatus
   field :update_submission_sticker, mutation: Mutations::UpdateSubmissionSticker

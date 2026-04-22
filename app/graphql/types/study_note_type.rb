@@ -29,7 +29,7 @@ module Types
     connection_type_class TotalCountConnection
 
     def self.authorized?(record, context)
-      super && record.user_id == context[:current_user]&.id
+      super && record.grants_right?(context[:current_user], :read)
     end
 
     global_id_field :id

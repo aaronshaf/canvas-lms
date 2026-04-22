@@ -464,7 +464,7 @@ module Types
         raise GraphQL::ExecutionError, I18n.t("notebook feature flag is not enabled")
       end
 
-      unless current_user&.participating_student_course_ids&.include?(course.id)
+      unless course.user_is_student?(current_user)
         raise GraphQL::ExecutionError, I18n.t("User is not a student of this course")
       end
 
