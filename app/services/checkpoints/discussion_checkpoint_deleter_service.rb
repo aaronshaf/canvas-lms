@@ -36,6 +36,7 @@ class Checkpoints::DiscussionCheckpointDeleterService < ApplicationService
     checkpoints.destroy_all
 
     update_assignment_and_discussion
+    mark_downstream_changes
 
     true
   end
@@ -53,5 +54,19 @@ class Checkpoints::DiscussionCheckpointDeleterService < ApplicationService
   def update_assignment_and_discussion
     @assignment.update!(has_sub_assignments: false)
     @discussion_topic.update!(reply_to_entry_required_count: 0)
+  end
+
+  def mark_downstream_changes
+    return unless @discussion_topic.is_child_content?
+
+    MasterCourses::ChildContentTag.transaction do
+      child_tag = MasterCourses::ChildContentTag.where(content: @discussion_topic).lock.first
+      return unless child_tag
+
+      unless child_tag.downstream_changes.include?("has_sub_assignments")
+        child_tag.downstream_changes << "has_sub_assignments"
+        child_tag.save!
+      end
+    end
   end
 end

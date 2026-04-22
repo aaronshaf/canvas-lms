@@ -150,5 +150,58 @@ describe Checkpoints::DiscussionCheckpointDeleterService do
       expect(@topic.assignment_overrides.active.count).to eq 0
       expect(adhoc_override.assignment_override_students.active.count).to eq 0
     end
+
+    context "when the discussion topic is child content (Blueprint)" do
+      let_once(:master_course) { course_model }
+      let_once(:master_template) { MasterCourses::MasterTemplate.set_as_master_course(master_course) }
+      let_once(:child_course) { course_model }
+      let_once(:child_subscription) { master_template.add_child_course!(child_course) }
+
+      before(:once) do
+        child_course.account.enable_feature!(:discussion_checkpoints)
+        @child_topic = DiscussionTopic.create_graded_topic!(course: child_course, title: "child graded topic")
+        @child_topic.update!(migration_id: "#{MasterCourses::MIGRATION_ID_PREFIX}something")
+        child_subscription.content_tag_for(@child_topic)
+
+        creator_service.call(
+          discussion_topic: @child_topic,
+          checkpoint_label: CheckpointLabels::REPLY_TO_TOPIC,
+          dates: [{ type: "everyone", due_at: 2.days.from_now }],
+          points_possible: 4
+        )
+        creator_service.call(
+          discussion_topic: @child_topic,
+          checkpoint_label: CheckpointLabels::REPLY_TO_ENTRY,
+          dates: [{ type: "everyone", due_at: 3.days.from_now }],
+          points_possible: 6,
+          replies_required: 3
+        )
+      end
+
+      it "marks has_sub_assignments as a downstream change" do
+        deleter_service.call(discussion_topic: @child_topic.reload)
+
+        child_tag = MasterCourses::ChildContentTag.where(content: @child_topic).first
+        expect(child_tag.downstream_changes).to include("has_sub_assignments")
+      end
+    end
+
+    context "when the discussion topic is not child content" do
+      it "does not attempt to mark downstream changes" do
+        creator_service.call(
+          discussion_topic: @topic,
+          checkpoint_label: CheckpointLabels::REPLY_TO_ENTRY,
+          dates: [{ type: "everyone", due_at: 2.days.from_now }],
+          points_possible: 6,
+          replies_required: 5
+        )
+
+        expect do
+          deleter_service.call(discussion_topic: @topic)
+        end.not_to raise_error
+
+        expect(MasterCourses::ChildContentTag.where(content: @topic).count).to be(0)
+      end
+    end
   end
 end

@@ -2212,6 +2212,46 @@ describe "Importing assignments" do
       end
     end
 
+    context "when blueprint sync with checkpoints disabled downstream" do
+      let(:master_course_subscription) { instance_double(MasterCourses::ChildSubscription) }
+      let(:child_tag) { instance_double(MasterCourses::ChildContentTag, downstream_changes: ["has_sub_assignments"], migration_id: "mastercourse_test") }
+
+      let(:blueprint_migration) do
+        m = course.content_migrations.create!
+        allow(m).to receive_messages(for_master_course_import?: true, master_course_subscription:)
+        m
+      end
+
+      before do
+        account.enable_feature!(:discussion_checkpoints)
+        allow(master_course_subscription).to receive(:content_tag_for).and_return(child_tag)
+      end
+
+      it "does not restore sub assignments when checkpoints were disabled downstream" do
+        Importers::AssignmentImporter.import_from_migration(assignment_hash, course, blueprint_migration)
+        assignment = course.assignments.find_by(migration_id:)
+
+        expect(assignment.has_sub_assignments).to be(false)
+        expect(assignment.sub_assignments.active.count).to be(0)
+      end
+
+      it "adds a skipped item to the migration" do
+        expect(blueprint_migration).to receive(:add_skipped_item).with(child_tag)
+        Importers::AssignmentImporter.import_from_migration(assignment_hash, course, blueprint_migration)
+      end
+
+      it "restores sub assignments when no downstream checkpoint change exists" do
+        no_change_tag = instance_double(MasterCourses::ChildContentTag, downstream_changes: [], migration_id: "mastercourse_test")
+        allow(master_course_subscription).to receive(:content_tag_for).and_return(no_change_tag)
+
+        Importers::AssignmentImporter.import_from_migration(assignment_hash, course, blueprint_migration)
+        assignment = course.assignments.find_by(migration_id:)
+
+        expect(assignment.has_sub_assignments).to be(true)
+        expect(assignment.sub_assignments.active.count).to be(2)
+      end
+    end
+
     describe ".find_or_create_sub_assignment" do
       subject do
         Importers::AssignmentImporter.find_or_create_sub_assignment(sub_assignment_hash, parent_item)

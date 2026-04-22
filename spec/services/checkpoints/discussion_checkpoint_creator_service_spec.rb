@@ -572,5 +572,73 @@ describe Checkpoints::DiscussionCheckpointCreatorService do
         expect(reply_to_entry.submissions.count).to eq 2
       end
     end
+
+    context "when the discussion topic is child content (Blueprint)" do
+      let_once(:master_course) { course_model }
+      let_once(:master_template) { MasterCourses::MasterTemplate.set_as_master_course(master_course) }
+      let_once(:child_course) { course_model }
+      let_once(:child_subscription) { master_template.add_child_course!(child_course) }
+
+      before(:once) do
+        child_course.account.enable_feature!(:discussion_checkpoints)
+        @child_topic = DiscussionTopic.create_graded_topic!(course: child_course, title: "child graded topic")
+        @child_topic.update!(migration_id: "#{MasterCourses::MIGRATION_ID_PREFIX}something")
+        @child_tag = child_subscription.content_tag_for(@child_topic)
+      end
+
+      def create_both_checkpoints
+        service.call(
+          discussion_topic: @child_topic.reload,
+          checkpoint_label: CheckpointLabels::REPLY_TO_TOPIC,
+          dates: [{ type: "everyone", due_at: 2.days.from_now }],
+          points_possible: 4
+        )
+        service.call(
+          discussion_topic: @child_topic.reload,
+          checkpoint_label: CheckpointLabels::REPLY_TO_ENTRY,
+          dates: [{ type: "everyone", due_at: 3.days.from_now }],
+          points_possible: 6,
+          replies_required: 3
+        )
+      end
+
+      it "clears the has_sub_assignments downstream change when checkpoints are re-enabled" do
+        @child_tag.update!(downstream_changes: ["has_sub_assignments"])
+
+        create_both_checkpoints
+
+        expect(@child_tag.reload.downstream_changes).not_to include("has_sub_assignments")
+      end
+
+      it "leaves other downstream changes intact" do
+        @child_tag.update!(downstream_changes: %w[has_sub_assignments title])
+
+        create_both_checkpoints
+
+        expect(@child_tag.reload.downstream_changes).to eq(["title"])
+      end
+
+      it "does nothing when there is no downstream change to clear" do
+        @child_tag.update!(downstream_changes: [])
+
+        expect { create_both_checkpoints }.not_to change { @child_tag.reload.downstream_changes }
+      end
+    end
+
+    context "when the discussion topic is not child content" do
+      it "does not attempt to clear downstream changes" do
+        expect do
+          service.call(
+            discussion_topic: @topic,
+            checkpoint_label: CheckpointLabels::REPLY_TO_ENTRY,
+            dates: [{ type: "everyone", due_at: 2.days.from_now }],
+            points_possible: 6,
+            replies_required: 3
+          )
+        end.not_to raise_error
+
+        expect(MasterCourses::ChildContentTag.where(content: @topic).count).to be(0)
+      end
+    end
   end
 end

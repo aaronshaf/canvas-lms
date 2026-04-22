@@ -152,6 +152,38 @@ describe Importers::DiscussionTopicImporter do
       end
     end
 
+    context "when blueprint sync with checkpoints disabled downstream" do
+      let(:master_course_subscription) { instance_double(MasterCourses::ChildSubscription) }
+      let(:child_tag) { instance_double(MasterCourses::ChildContentTag, downstream_changes: ["has_sub_assignments"]) }
+
+      let(:blueprint_migration) do
+        m = context.content_migrations.create!
+        allow(m).to receive_messages(for_master_course_import?: true, master_course_subscription:)
+        m
+      end
+
+      before do
+        allow(master_course_subscription).to receive(:content_tag_for).and_return(child_tag)
+      end
+
+      it "preserves reply_to_entry_required_count at 0" do
+        data[:reply_to_entry_required_count] = 5
+        Importers::DiscussionTopicImporter.import_from_migration(data, context, blueprint_migration)
+        topic = DiscussionTopic.where(migration_id: data[:migration_id]).first
+        expect(topic.reply_to_entry_required_count).to eq(0)
+      end
+
+      it "imports reply_to_entry_required_count normally when no downstream checkpoint change" do
+        no_change_tag = instance_double(MasterCourses::ChildContentTag, downstream_changes: [])
+        allow(master_course_subscription).to receive(:content_tag_for).and_return(no_change_tag)
+
+        data[:reply_to_entry_required_count] = 5
+        Importers::DiscussionTopicImporter.import_from_migration(data, context, blueprint_migration)
+        topic = DiscussionTopic.where(migration_id: data[:migration_id]).first
+        expect(topic.reply_to_entry_required_count).to eq(5)
+      end
+    end
+
     context "when discussion has lock_at but assignment does not" do
       it "uses assignment lock_at for discussion topic" do
         discussion_data = {

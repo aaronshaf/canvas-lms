@@ -457,6 +457,11 @@ module Importers
       return unless assignment_hash[:sub_assignments].present?
       return unless parent_item.context.discussion_checkpoints_enabled?
 
+      if migration&.for_master_course_import? && checkpoints_disabled_downstream?(parent_item, migration)
+        skip_checkpoint_restoration(parent_item, migration)
+        return
+      end
+
       parent_item.has_sub_assignments = true
 
       assignment_hash[:sub_assignments].each do |sub_assignment_hash|
@@ -511,6 +516,26 @@ module Importers
       )
 
       parent_item.sub_assignments.reload
+    end
+
+    def self.checkpoints_disabled_downstream?(parent_item, migration)
+      # content_tag_for automatically defers from Assignment to its submittable_object (DiscussionTopic)
+      child_tag = migration.master_course_subscription.content_tag_for(parent_item)
+      child_tag&.downstream_changes&.include?("has_sub_assignments")
+    end
+
+    def self.skip_checkpoint_restoration(parent_item, migration)
+      child_tag = migration.master_course_subscription.content_tag_for(parent_item)
+      migration.add_skipped_item(child_tag) if child_tag
+
+      # Preserve the child course's reply_to_entry_required_count (set to 0 when checkpoints were disabled)
+      discussion_topic = parent_item.submittable_object
+      discussion_topic.reply_to_entry_required_count = 0 if discussion_topic.is_a?(DiscussionTopic)
+
+      Rails.logger.info(
+        "[Blueprint Sync] Skipping checkpoint restoration for Assignment #{parent_item.id} " \
+        "(#{parent_item.title}) - checkpoints were disabled downstream. Migration: #{migration.id}"
+      )
     end
 
     def self.find_or_create_sub_assignment(sub_assignment_hash, parent_item)

@@ -28,10 +28,30 @@ class Checkpoints::DiscussionCheckpointCreatorService < Checkpoints::DiscussionC
 
     checkpoint = create_checkpoint
     compute_due_dates_and_create_submissions(checkpoint)
+    unmark_downstream_changes
     checkpoint
   end
 
   private
+
+  # Inverse of Checkpoints::DiscussionCheckpointDeleterService#mark_downstream_changes.
+  # When checkpoints are re-enabled in a Blueprint child course, clear the
+  # "has_sub_assignments" downstream change so the child reconnects to the
+  # Blueprint and future syncs restore checkpoints normally. Without this the
+  # child would stay permanently stuck in the no-checkpoints state. See VICE-5938.
+  def unmark_downstream_changes
+    return unless @discussion_topic.is_child_content?
+
+    MasterCourses::ChildContentTag.transaction do
+      child_tag = MasterCourses::ChildContentTag.where(content: @discussion_topic).lock.first
+      return unless child_tag
+
+      if child_tag.downstream_changes.include?("has_sub_assignments")
+        child_tag.downstream_changes.delete("has_sub_assignments")
+        child_tag.save!
+      end
+    end
+  end
 
   def create_checkpoint
     AbstractAssignment.suspend_due_date_caching_and_score_recalculation do
