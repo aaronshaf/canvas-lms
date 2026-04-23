@@ -16,14 +16,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
-import {intersection, some} from 'es-toolkit/compat'
+import React, {useMemo} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import {Button} from '@instructure/ui-buttons'
 import {IconWarningLine} from '@instructure/ui-icons'
 import {View} from '@instructure/ui-view'
 import {Link} from '@instructure/ui-link'
-import {Text} from '@instructure/ui-text'
+import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import type {
   AssignmentConnection,
   GradebookOptions,
@@ -31,18 +29,10 @@ import type {
   SubmissionConnection,
   SubmissionGradeChange,
 } from '../../../types'
-import {
-  computeAssignmentDetailText,
-  isInPastGradingPeriodAndNotAdmin,
-} from '../../../utils/gradebookUtils'
-import MessageStudentsWhoModal from './MessageStudentsWhoModal'
-import DefaultGradeModal from './DefaultGradeModal'
-import {CurveGradesModal} from './CurveGradesModal'
-import SubmissionDownloadModal from './SubmissionDownloadModal'
-import {ScreenReaderContent} from '@instructure/ui-a11y-content'
-import {MSWLaunchContext} from '@canvas/message-students-dialog/react/MessageStudentsWhoDialog'
-import {disableGrading} from '../../../utils/gradeInputUtils'
-import AssignmentPostingPolicyTray from '@canvas/assignment-posting-policy-tray'
+import {AssignmentInformationEmpty} from './AssignmentInformationEmpty'
+import {AssignmentSubmissionInfo} from './AssignmentSubmissionInfo'
+import {AssignmentScoreDetails} from './AssignmentScoreDetails'
+import {AssignmentActions} from './AssignmentActions'
 
 const I18n = createI18nScope('enhanced_individual_gradebook')
 
@@ -64,68 +54,23 @@ export default function AssignmentInformation({
   handleSetGrades,
 }: AssignmentInformationComponentProps) {
   const {gradedSubmissions, scores} = useMemo(() => {
-    // Exclude ungraded (null/undefined score) submissions from score calculations
-    const gradedSubmissions = submissions.filter(s => s.score != null)
-    return {
-      gradedSubmissions,
-      scores: gradedSubmissions.map(s => s.score as number),
-    }
+    const graded = submissions.filter(s => s.score != null)
+    return {gradedSubmissions: graded, scores: graded.map(s => s.score as number)}
   }, [submissions])
 
   if (!assignment) {
-    return (
-      <View as="div" data-testid="assignment-information-empty">
-        <View as="div" className="row-fluid">
-          <View as="div" className="span4">
-            <View as="h2">{I18n.t('Assignment Information')}</View>
-          </View>
-          <View as="div" className="span8 pad-box top-only">
-            <View as="p" className="submission_selection">
-              {I18n.t('Select an assignment to view additional information here.')}
-            </View>
-          </View>
-        </View>
-      </View>
-    )
+    return <AssignmentInformationEmpty />
   }
 
   const {downloadAssignmentSubmissionsUrl, contextUrl, groupWeightingScheme} = gradebookOptions
+  const {htmlUrl} = assignment
+
   const downloadSubmissionsUrl = (downloadAssignmentSubmissionsUrl ?? '').replace(
     ':assignment',
     assignment.id,
   )
-  const {hasSubmittedSubmissions, submissionTypes, htmlUrl} = assignment
-  const showSubmissionDownloadButton = () => {
-    const allowList = ['online_upload', 'online_text_entry', 'online_url']
-    const submissionTypesOnAllowlist = intersection(submissionTypes, allowList)
-    return hasSubmittedSubmissions && some(submissionTypesOnAllowlist)
-  }
-
-  const translatedSubmissionTypes: {[key: string]: any} = {
-    discussion_topic: I18n.t('Discussion topic'),
-    online_quiz: I18n.t('Online quiz'),
-    on_paper: I18n.t('On paper'),
-    none: I18n.t('None'),
-    external_tool: I18n.t('External tool'),
-    online_text_entry: I18n.t('Online text entry'),
-    online_url: I18n.t('Online URL'),
-    online_upload: I18n.t('Online upload'),
-    media_recording: I18n.t('Media recording'),
-    student_annotation: I18n.t('Student annotation'),
-    peer_review: I18n.t('Peer review'),
-  }
-
-  const readableSubmissionTypes = submissionTypes
-    ?.map(snakeCase => translatedSubmissionTypes[snakeCase])
-    .join(', ')
-
-  const speedGraderUrl = () => {
-    return `${contextUrl}/gradebook/speed_grader?assignment_id=${assignment.id}`
-  }
-
-  const showAssignmentPointsWarning = (): boolean => {
-    return (assignmentGroupInvalid ?? false) && groupWeightingScheme === 'percent'
-  }
+  const showPointsWarning = (assignmentGroupInvalid ?? false) && groupWeightingScheme === 'percent'
+  const speedGraderUrl = `${contextUrl}/gradebook/speed_grader?assignment_id=${assignment.id}`
 
   return (
     <View as="div" data-testid="assignment-information">
@@ -139,6 +84,7 @@ export default function AssignmentInformation({
               {assignment.name}
             </Link>
           </View>
+
           {assignment.omitFromFinalGrade ? (
             <>
               <i className="icon-warning">
@@ -148,7 +94,7 @@ export default function AssignmentInformation({
               </i>{' '}
               {I18n.t('This assignment does not count toward the final grade.')}
             </>
-          ) : showAssignmentPointsWarning() ? (
+          ) : showPointsWarning ? (
             <View as="span" className="text-error">
               <Link
                 href={htmlUrl}
@@ -163,9 +109,10 @@ export default function AssignmentInformation({
               </Link>
             </View>
           ) : null}
+
           <View as="div">
             <Link
-              href={speedGraderUrl()}
+              href={speedGraderUrl}
               isWithinText={false}
               target="_blank"
               rel="noopener"
@@ -174,23 +121,12 @@ export default function AssignmentInformation({
               {I18n.t('See this assignment in speedgrader')}
             </Link>
           </View>
-          {showSubmissionDownloadButton() && (
-            <View as="div" margin="small 0 0 0">
-              <SubmissionDownloadModal downloadSubmissionsUrl={downloadSubmissionsUrl} />
-            </View>
-          )}
-          <View as="div" className="pad-box no-sides" data-testid="assignment-submission-info">
-            <View as="p">
-              <View as="strong">
-                {I18n.t('Submission types:')} {readableSubmissionTypes}
-              </View>
-            </View>
-            <View as="p">
-              <View as="strong">
-                {I18n.t('Graded submissions:')} {gradedSubmissions.length}
-              </View>
-            </View>
-          </View>
+
+          <AssignmentSubmissionInfo
+            assignment={assignment}
+            gradedSubmissionsCount={gradedSubmissions.length}
+            downloadSubmissionsUrl={downloadSubmissionsUrl}
+          />
 
           <AssignmentScoreDetails assignment={assignment} scores={scores} />
 
@@ -204,204 +140,5 @@ export default function AssignmentInformation({
         </View>
       </View>
     </View>
-  )
-}
-
-type AssignmentScoreDetailsProps = {
-  assignment: AssignmentConnection
-  scores: number[]
-}
-function AssignmentScoreDetails({assignment, scores}: AssignmentScoreDetailsProps) {
-  const {average, max, min} = useMemo(
-    () => computeAssignmentDetailText(assignment, scores),
-    [assignment, scores],
-  )
-  return (
-    <View as="div" className="pad-box bottom-only ic-Table-responsive-x-scroll">
-      <table className="ic-Table">
-        <thead>
-          <tr>
-            <th>{I18n.t('Points possible')}</th>
-            <th>{I18n.t('Average Score')}</th>
-            <th>{I18n.t('High Score')}</th>
-            <th>{I18n.t('Low Score')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td data-testid="assignment-points-possible">
-              {assignment.pointsPossible ? assignment.pointsPossible : I18n.t('No points possible')}
-            </td>
-            <td data-testid="assignment-average">{average}</td>
-            <td data-testid="assignment-max">{max}</td>
-            <td data-testid="assignment-min">{min}</td>
-          </tr>
-        </tbody>
-      </table>
-    </View>
-  )
-}
-
-type AssignmentActionsProps = {
-  assignment: AssignmentConnection
-  students: SortableStudent[]
-  submissions: SubmissionConnection[]
-  gradebookOptions: GradebookOptions
-  handleSetGrades: (updatedSubmissions: SubmissionGradeChange[]) => void
-}
-function AssignmentActions({
-  assignment,
-  students,
-  submissions,
-  gradebookOptions,
-  handleSetGrades,
-}: AssignmentActionsProps) {
-  const [showMessageStudentsWhoModal, setShowMessageStudentsWhoModal] = useState(false)
-  const [showSetDefaultGradeModal, setShowSetDefaultGradeModal] = useState(false)
-  const [postManually, setPostManually] = useState(assignment.postManually)
-  useEffect(() => {
-    setPostManually(assignment.postManually)
-  }, [assignment.id])
-  const defaultGradeButtonRef = useRef<Element | null>(null)
-  const postingPolicyTrayRef = useRef<AssignmentPostingPolicyTray>(null)
-  const postPolicyButtonRef = useRef<Element | null>(null)
-
-  const focusDefaultGradeButton = useCallback(() => {
-    requestAnimationFrame(() => {
-      const el = defaultGradeButtonRef.current
-      if (el instanceof HTMLElement) {
-        el.focus()
-      }
-    })
-  }, [])
-
-  const onSetGrades = useCallback(
-    (updatedSubmissions: SubmissionGradeChange[]) => {
-      setShowSetDefaultGradeModal(false)
-      if (updatedSubmissions.length) {
-        handleSetGrades(updatedSubmissions)
-      }
-      focusDefaultGradeButton()
-    },
-    [handleSetGrades, focusDefaultGradeButton],
-  )
-
-  const handleDefaultGradeClose = useCallback(() => {
-    setShowSetDefaultGradeModal(false)
-    focusDefaultGradeButton()
-  }, [focusDefaultGradeButton])
-
-  return (
-    <>
-      {!gradebookOptions.customOptions.hideStudentNames && !assignment.anonymizeStudents && (
-        <View as="div" className="pad-box no-sides">
-          <Button
-            color="secondary"
-            onClick={() => setShowMessageStudentsWhoModal(true)}
-            data-testid="message-students-who-button"
-          >
-            {I18n.t('Message students who...')}
-          </Button>
-          <MessageStudentsWhoModal
-            assignment={assignment}
-            launchContext={MSWLaunchContext.ASSIGNMENT_CONTEXT}
-            gradebookOptions={gradebookOptions}
-            students={students}
-            submissions={submissions}
-            isOpen={showMessageStudentsWhoModal}
-            onClose={() => setShowMessageStudentsWhoModal(false)}
-          />
-        </View>
-      )}
-      <View as="div" className="pad-box no-sides">
-        <>
-          <Button
-            color="secondary"
-            onClick={() => setShowSetDefaultGradeModal(true)}
-            data-testid="default-grade-button"
-            disabled={disableGrading(assignment)}
-            elementRef={el => {
-              defaultGradeButtonRef.current = el
-            }}
-          >
-            {I18n.t('Set default grade')}
-          </Button>
-          <DefaultGradeModal
-            assignment={assignment}
-            gradebookOptions={gradebookOptions}
-            submissions={submissions}
-            modalOpen={showSetDefaultGradeModal}
-            handleClose={handleDefaultGradeClose}
-            handleSetGrades={onSetGrades}
-          />
-        </>
-        {isInPastGradingPeriodAndNotAdmin(assignment) && (
-          <View padding="0 0 0 xx-small">
-            <Text data-testid="default-grade-warning">
-              {I18n.t(
-                'Unable to set default grade because this assignment is due in a closed grading period for at least one student',
-              )}
-            </Text>
-          </View>
-        )}
-      </View>
-      <View as="div" className="pad-box no-sides">
-        {assignment.pointsPossible ? (
-          <CurveGradesModal
-            assignment={assignment}
-            submissions={submissions}
-            handleGradeChange={onSetGrades}
-            contextUrl={gradebookOptions.contextUrl}
-          />
-        ) : null}
-        {isInPastGradingPeriodAndNotAdmin(assignment) && (
-          <View padding="0 0 0 xx-small">
-            <Text data-testid="curve-grade-warning">
-              {I18n.t(
-                'Unable to curve grades because this assignment is due in a closed grading period for at least one student',
-              )}
-            </Text>
-          </View>
-        )}
-      </View>
-      <View as="div" className="pad-box no-sides">
-        <Button
-          color="secondary"
-          onClick={() =>
-            postingPolicyTrayRef.current?.show({
-              assignment: {
-                anonymousGrading: assignment.anonymousGrading,
-                gradesPublished: assignment.gradesPublished,
-                id: assignment.id,
-                moderatedGrading: assignment.moderatedGrading,
-                name: assignment.name,
-                postManually,
-              },
-              onAssignmentPostPolicyUpdated: ({
-                postManually: updated,
-              }: {
-                assignmentId: string
-                postManually: boolean
-              }) => {
-                setPostManually(updated)
-              },
-              onExited: () => {
-                requestAnimationFrame(() => {
-                  const el = postPolicyButtonRef.current
-                  if (el instanceof HTMLElement) el.focus()
-                })
-              },
-            })
-          }
-          elementRef={el => {
-            postPolicyButtonRef.current = el
-          }}
-          data-testid="grade-post-policy-button"
-        >
-          {I18n.t('Grade Post Policy')}
-        </Button>
-        <AssignmentPostingPolicyTray ref={postingPolicyTrayRef} />
-      </View>
-    </>
   )
 }
