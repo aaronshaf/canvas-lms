@@ -29,8 +29,10 @@ module Oak
       end
       # End legacy check
 
+      # admins
       return true if root_account.feature_enabled?(:oak_for_admins) &&
-                     root_account.grants_right?(user, :access_oak)
+                     user.adminable_accounts.any? { |account| account.grants_right?(user, :access_oak) }
+      # teachers
       return true if root_account.feature_enabled?(:oak_for_teachers) &&
                      user.all_courses
                          .where(root_account:)

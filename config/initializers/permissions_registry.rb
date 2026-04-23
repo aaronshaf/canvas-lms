@@ -2297,7 +2297,7 @@ BASE_PERMISSIONS = {
     label: -> { I18n.t("IgniteAI Agent - Admins") },
     available_to: %w[AccountAdmin AccountMembership],
     true_for: %w[AccountAdmin],
-    account_allows: ->(a) { a.feature_enabled?(:oak_for_admins) },
+    account_allows: ->(a) { a.root_account.feature_enabled?(:oak_for_admins) },
     details: [
       { title: -> { I18n.t("IgniteAI Agent - Admins") },
         description: -> { I18n.t("Allows user to access the IgniteAI Agent for Canvas LMS.") } }
@@ -2311,7 +2311,7 @@ BASE_PERMISSIONS = {
     label: -> { I18n.t("IgniteAI Agent - Faculty & Support") },
     available_to: %w[TeacherEnrollment TaEnrollment DesignerEnrollment AccountAdmin AccountMembership],
     true_for: %w[AccountAdmin TeacherEnrollment DesignerEnrollment],
-    account_allows: ->(a) { a.feature_enabled?(:oak_for_teachers) },
+    account_allows: ->(a) { a.root_account.feature_enabled?(:oak_for_teachers) },
     details: [
       { title: -> { I18n.t("IgniteAI Agent - Faculty & Support") },
         description: -> { I18n.t("Allows user to access the IgniteAI Agent for Canvas LMS.") } }

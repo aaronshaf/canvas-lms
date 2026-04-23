@@ -109,6 +109,24 @@ describe Oak::PermissionChecker do
         end
       end
 
+      context "when user is a sub-account admin with access_oak permission" do
+        let_once(:sub_account) { account.sub_accounts.create! }
+        let_once(:sub_account_admin) do
+          account_admin_user_with_role_changes(
+            role_changes: {
+              manage_account_settings: false,
+              access_oak: true
+            },
+            account: sub_account,
+            role: Role.get_built_in_role("AccountMembership", root_account_id: account.id)
+          )
+        end
+
+        it "returns true" do
+          expect(Oak::PermissionChecker.user_permitted?(sub_account_admin, account)).to be true
+        end
+      end
+
       context "when user is not an admin" do
         let_once(:user) { user_model }
 
