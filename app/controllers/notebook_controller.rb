@@ -19,7 +19,24 @@
 #
 
 class NotebookController < ApplicationController
+  before_action :require_context
+  before_action :require_user
+
   def index
-    render status: :not_found, template: "shared/errors/404_message"
+    not_found unless @context.account.feature_enabled?(:notebook)
+    return unless authorized_action(@context, @current_user, :participate_as_student)
+
+    set_active_tab "notebook"
+    add_crumb t("#crumbs.notebook", "Notebook")
+    @page_title = t("#page_title.notebook", "Notebook")
+
+    js_env({
+             COURSE_ID: @context.id,
+             JOURNEY_URL: CanvasCareer::Config.new(@domain_root_account).public_app_config(request)&.dig("hosts", "journey")
+           })
+    js_env[:FEATURES] ||= {}
+    js_env[:FEATURES][:notebook] = true
+    js_bundle :notebook_index
+    render html: view_context.content_tag(:div, nil, id: "notebook_index_mount_point"), layout: true
   end
 end

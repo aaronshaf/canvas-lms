@@ -157,6 +157,7 @@ const featureBundles: {
   nav_tourpoints: () => import('./features/nav_tourpoints/index'),
   navigation_header: () => import('./features/navigation_header/index'),
   notebook: () => import('./features/notebook/index'),
+  notebook_index: () => import('./features/notebook_index/index'),
   new_quizzes: () => import('./features/new_quizzes/index'),
   new_user_tutorial: () => import('./features/new_user_tutorial/index'),
   not_found_index: () => import('./features/not_found_index/index'),
