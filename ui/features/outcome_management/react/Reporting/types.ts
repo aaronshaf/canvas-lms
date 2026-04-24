@@ -90,7 +90,7 @@ export type MasteryFilter = 'all' | 'mastery' | 'not_started' | 'in_progress'
 
 export type SortColumn = 'code' | 'assessed' | 'mastery'
 
-export type ScoreType = 'quiz' | 'discussion' | 'assignment'
+export type ScoreType = 'quiz' | 'new_quiz' | 'discussion' | 'assignment'
 
 export interface Outcome {
   id: number | string

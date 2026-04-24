@@ -21,21 +21,36 @@ import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {Link} from '@instructure/ui-link'
-import {IconCheckMarkLine} from '@instructure/ui-icons'
+import {
+  IconAssignmentLine,
+  IconCheckMarkLine,
+  IconDiscussionLine,
+  IconQuizLine,
+  IconQuizSolid,
+} from '@instructure/ui-icons'
 import {getTagIcon, type ProficiencyRating} from '@canvas/outcomes/react/utils/icons'
 import {getDescriptionForLevel} from '@canvas/outcomes/react/utils/masteryScaleLogic'
-import type {MasteryLevel} from './types'
+import type {MasteryLevel, ScoreType} from './types'
 import MasteryDetail from './MasteryDetail'
-import {useMemo, useEffect, useState} from 'react'
+import {useMemo} from 'react'
+import type {ReactElement} from 'react'
 import type {ContributingScoresForOutcome} from '@canvas/outcomes/react/hooks/useContributingScores'
 import useLMGBContext from '@canvas/outcomes/react/hooks/useLMGBContext'
+import {contentTypeToScoreType} from './utils'
 
 const I18n = createI18nScope('outcome_management')
+
+const ALIGNMENT_ICONS: Record<ScoreType, ReactElement> = {
+  assignment: <IconAssignmentLine data-testid="alignment-icon-assignment" />,
+  discussion: <IconDiscussionLine data-testid="alignment-icon-discussion" />,
+  quiz: <IconQuizLine data-testid="alignment-icon-quiz" />,
+  new_quiz: <IconQuizSolid data-testid="alignment-icon-new-quiz" />,
+}
 
 export interface AlignmentWithScore {
   alignmentId: string
   title: string
-  type: string
+  type: ScoreType
   htmlUrl: string
   score: number | null
   submittedAt: string | null
@@ -77,7 +92,7 @@ const OutcomeAlignmentsList = ({
       return {
         alignmentId: alignment.alignment_id,
         title: alignment.associated_asset_name,
-        type: alignment.associated_asset_type?.toLowerCase() || 'assignment',
+        type: contentTypeToScoreType(alignment.associated_asset_type),
         htmlUrl: alignment.html_url,
         score: scoreValue,
         submittedAt: score?.submitted_or_assessed_at ?? null,
@@ -93,43 +108,6 @@ const OutcomeAlignmentsList = ({
       return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime()
     })
   }, [outcomeScores, studentId, masteryPoints, proficiencyRatings])
-
-  // Load assignment type icons
-  const [iconCache, setIconCache] = useState<Map<string, string>>(new Map())
-
-  useEffect(() => {
-    const loadIcons = async () => {
-      const types = new Set(alignmentsWithScores.map(a => a.type))
-
-      // Check which types need loading
-      const typesToLoad = Array.from(types).filter(type => !iconCache.has(type))
-      if (typesToLoad.length === 0) return
-
-      // Load icons and collect results
-      const loadPromises = typesToLoad.map(
-        type =>
-          new Promise<[string, string]>(resolve => {
-            const img = new Image()
-            img.src = `/images/outcomes/${type}.svg`
-            img.onload = () => resolve([type, img.src])
-            img.onerror = () => resolve([type, '/images/outcomes/assignment.svg'])
-          }),
-      )
-
-      const results = await Promise.all(loadPromises)
-
-      // Update cache with new icons
-      setIconCache(prevCache => {
-        const newCache = new Map(prevCache)
-        results.forEach(([type, src]) => newCache.set(type, src))
-        return newCache
-      })
-    }
-
-    if (alignmentsWithScores.length > 0) {
-      loadIcons()
-    }
-  }, [alignmentsWithScores, iconCache])
 
   if (alignmentsWithScores.length === 0) {
     return null
@@ -193,15 +171,7 @@ const OutcomeAlignmentsList = ({
                 </Flex.Item>
 
                 {/* Assignment Type Icon */}
-                <Flex.Item width="1rem">
-                  {iconCache.has(alignment.type) && (
-                    <img
-                      src={iconCache.get(alignment.type)}
-                      alt={alignment.type}
-                      style={{width: '1rem', height: '1rem'}}
-                    />
-                  )}
-                </Flex.Item>
+                <Flex.Item width="1rem">{ALIGNMENT_ICONS[alignment.type]}</Flex.Item>
 
                 {/* Title and Date */}
                 <Flex.Item shouldGrow={true} shouldShrink={true}>

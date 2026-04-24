@@ -527,7 +527,7 @@ describe('OutcomeAlignmentsList', () => {
   })
 
   describe('assignment type handling', () => {
-    it('defaults to "assignment" type when associated_asset_type is undefined', async () => {
+    it('defaults to assignment icon when associated_asset_type is undefined', () => {
       const alignments = [
         {
           alignment_id: 'A_1',
@@ -547,23 +547,19 @@ describe('OutcomeAlignmentsList', () => {
       ]
 
       const outcomeScores = createMockOutcomeScores(alignments, scores)
-      const {container} = render(
-        <OutcomeAlignmentsList {...defaultProps} outcomeScores={outcomeScores} />,
-      )
+      render(<OutcomeAlignmentsList {...defaultProps} outcomeScores={outcomeScores} />)
 
-      await waitFor(() => {
-        expect(screen.getByTestId('alignment-item-A_1')).toBeInTheDocument()
-      })
+      expect(screen.getByTestId('alignment-icon-assignment')).toBeInTheDocument()
     })
 
-    it('converts associated_asset_type to lowercase', async () => {
+    it('defaults to assignment icon for unknown types', () => {
       const alignments = [
         {
           alignment_id: 'A_1',
           associated_asset_id: '1',
-          associated_asset_name: 'Quiz 1',
-          associated_asset_type: 'QUIZ',
-          html_url: '/courses/1/quizzes/1',
+          associated_asset_name: 'Wiki Page 1',
+          associated_asset_type: 'WikiPage',
+          html_url: '/courses/1/pages/1',
         },
       ]
       const scores = [
@@ -578,14 +574,40 @@ describe('OutcomeAlignmentsList', () => {
       const outcomeScores = createMockOutcomeScores(alignments, scores)
       render(<OutcomeAlignmentsList {...defaultProps} outcomeScores={outcomeScores} />)
 
-      // Wait for the alignment item to be rendered
-      await waitFor(() => {
-        expect(screen.getByTestId('alignment-item-A_1')).toBeInTheDocument()
-        expect(screen.getByText('Quiz 1')).toBeInTheDocument()
-      })
-
-      // Note: Assignment type icons load asynchronously, so they may not be immediately available
-      // The component converts 'QUIZ' to 'quiz' internally
+      expect(screen.getByTestId('alignment-icon-assignment')).toBeInTheDocument()
     })
+
+    it.each([
+      {associated_asset_type: 'Assignment', expectedTestId: 'alignment-icon-assignment'},
+      {associated_asset_type: 'DiscussionTopic', expectedTestId: 'alignment-icon-discussion'},
+      {associated_asset_type: 'Quizzes::Quiz', expectedTestId: 'alignment-icon-new-quiz'},
+      {associated_asset_type: 'Quiz', expectedTestId: 'alignment-icon-quiz'},
+    ])(
+      'uses $expectedTestId icon for $associated_asset_type',
+      ({associated_asset_type, expectedTestId}) => {
+        const alignments = [
+          {
+            alignment_id: 'A_1',
+            associated_asset_id: '1',
+            associated_asset_name: 'Item 1',
+            associated_asset_type,
+            html_url: '/courses/1/items/1',
+          },
+        ]
+        const scores = [
+          {
+            user_id: 'student-1',
+            alignment_id: 'A_1',
+            score: 3.5,
+            submitted_or_assessed_at: '2025-01-15T10:00:00Z',
+          },
+        ]
+
+        const outcomeScores = createMockOutcomeScores(alignments, scores)
+        render(<OutcomeAlignmentsList {...defaultProps} outcomeScores={outcomeScores} />)
+
+        expect(screen.getByTestId(expectedTestId)).toBeInTheDocument()
+      },
+    )
   })
 })

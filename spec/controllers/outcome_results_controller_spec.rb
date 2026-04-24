@@ -3164,6 +3164,59 @@ describe OutcomeResultsController do
         expect(alignment_types.length).to be > 1
       end
     end
+
+    context "associated_asset_type resolution" do
+      let_once(:course) { outcome_course }
+      let_once(:teacher) { outcome_teacher }
+      let_once(:outcome) { @outcome }
+
+      before { user_session(teacher) }
+
+      def contributing_scores_for(assignment)
+        outcome.align(assignment, course, mastery_score: 3)
+        get :contributing_scores,
+            params: { course_id: course.id, outcome_id: outcome.id, user_ids: [@student1.id] },
+            format: :json
+        response.parsed_body["alignments"]
+                .find { |a| a["associated_asset_id"] == assignment.id.to_s }
+      end
+
+      it "returns Assignment for a regular assignment" do
+        assignment = course.assignments.create!(title: "Regular", points_possible: 10)
+        alignment = contributing_scores_for(assignment)
+        expect(alignment["associated_asset_type"]).to eql("Assignment")
+      end
+
+      it "returns DiscussionTopic for a discussion-backed assignment" do
+        assignment = course.assignments.create!(
+          title: "Discussion",
+          submission_types: "discussion_topic",
+          points_possible: 10
+        )
+        alignment = contributing_scores_for(assignment)
+        expect(alignment["associated_asset_type"]).to eql("DiscussionTopic")
+      end
+
+      it "returns Quiz for a classic quiz assignment" do
+        assignment = course.assignments.create!(
+          title: "Classic Quiz",
+          submission_types: "online_quiz",
+          points_possible: 10
+        )
+        alignment = contributing_scores_for(assignment)
+        expect(alignment["associated_asset_type"]).to eql("Quiz")
+      end
+
+      it "returns Quizzes::Quiz for a new quiz assignment" do
+        assignment = course.assignments.create!(
+          title: "New Quiz",
+          submission_types: "external_tool",
+          points_possible: 10
+        )
+        alignment = contributing_scores_for(assignment)
+        expect(alignment["associated_asset_type"]).to eql("Quizzes::Quiz")
+      end
+    end
   end
 
   describe "#mastery_distribution" do

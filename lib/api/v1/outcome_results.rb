@@ -353,9 +353,20 @@ module Api::V1::OutcomeResults
         alignment_id: alignment.prefixed_id,
         associated_asset_id: content.id.to_s,
         associated_asset_name: content.title,
-        associated_asset_type: alignment.content_type,
+        associated_asset_type: resolved_asset_type(content, alignment.content_type),
         html_url: outcome_alignment_html_url(content),
       }
+    end
+  end
+
+  def resolved_asset_type(content, fallback_type)
+    return fallback_type unless content.is_a?(Assignment)
+
+    case content.submission_types
+    when "external_tool"    then "Quizzes::Quiz"
+    when "online_quiz"      then "Quiz"
+    when "discussion_topic" then "DiscussionTopic"
+    else fallback_type
     end
   end
 

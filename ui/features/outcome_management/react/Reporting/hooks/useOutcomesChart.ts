@@ -30,6 +30,7 @@ import {
 import {useScope as createI18nScope} from '@canvas/i18n'
 import type {OutcomeIconType, ProficiencyRating} from '@canvas/outcomes/react/utils/icons'
 import {LMGBScoreReporting, ScoreType} from '../types'
+import {contentTypeToScoreType} from '../utils'
 import {theme} from '@instructure/canvas-theme'
 import useLMGBContext from '@canvas/outcomes/react/hooks/useLMGBContext'
 import {shouldUseNumbers} from '@canvas/outcomes/react/utils/masteryScaleLogic'
@@ -58,7 +59,7 @@ const DEFAULT_MASTERY_LEVEL_CONFIGS: Array<{level: OutcomeIconType; value: numbe
   {level: 'exceeds_mastery', value: 4},
 ] as const
 
-const SCORE_TYPES: ScoreType[] = ['quiz', 'discussion', 'assignment'] as const
+const SCORE_TYPES: ScoreType[] = ['quiz', 'new_quiz', 'discussion', 'assignment'] as const
 
 /**
  * Builds mastery level configs from proficiency ratings
@@ -313,11 +314,8 @@ export const useOutcomesChart = (
               const scoreData = sortedScores[index]
               if (!scoreData) return
 
-              // Use the type from the score data, or default to 'assignment'
-              const assetType: ScoreType =
-                (scoreData.type?.toLowerCase() as ScoreType) || 'assignment'
-              const iconType = SCORE_TYPES.includes(assetType) ? assetType : 'assignment'
-              const scoreTypeIcon = scoreTypeIconsRef.current[iconType]
+              const scoreType = contentTypeToScoreType(scoreData.type)
+              const scoreTypeIcon = scoreTypeIconsRef.current[scoreType]
 
               if (!scoreTypeIcon) return
 
