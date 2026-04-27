@@ -380,19 +380,24 @@ module Plannable
       col.include?(@model.table_name) ? col : "#{@model.table_name}.#{col}"
     end
 
-    # Joins the associated table & column together as a string to be used in a SQL query
+    # Joins the associated table & column together as a string to be used in a SQL query.
+    # The table name is intentionally returned UNQUALIFIED (no schema prefix) so the result
+    # works identically on every shard when the bookmarker drives an ORDER BY for a
+    # multi-shard / `.shard()`-wrapped relation. A schema-qualified name (from
+    # `quoted_table_name`) gets baked in at the user-shard's schema and then breaks when
+    # the query runs against a different shard.
     def associated_table_column_name(col)
       table, column = associated_table_column(col)
       correct_table_name =
         if ActiveRecord::Base.connection.table_exists?(table.to_s)
           table.to_s
         elsif Object.const_defined?(table.to_s.classify)
-          Object.const_get(table.to_s.classify).quoted_table_name
+          Object.const_get(table.to_s.classify).table_name
         else
           inferred_table = table.to_s.tableize
           ActiveRecord::Base.connection.table_exists?(inferred_table) ? inferred_table : table.to_s
         end
-      # Return fully qualified column name
+      # Return fully qualified column name (table.column, schema-less)
       [correct_table_name, column].join(".")
     end
 
