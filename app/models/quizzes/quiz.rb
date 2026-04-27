@@ -1225,39 +1225,101 @@ class Quizzes::Quiz < ApplicationRecord
              ending)
   }
 
+  # Built entirely via Arel/AR scopes — no schema-qualified strings — so Switchman
+  # can rewrite table references at execution time, making the scope safe to run
+  # cross-shard via `.shard(...)`.
   scope :ungraded_with_user_due_date, lambda { |user|
-    from("(WITH overrides AS (
-          SELECT DISTINCT ON (o.quiz_id, o.user_id) *
-          FROM (
-            SELECT ao.quiz_id, aos.user_id, ao.due_at, ao.due_at_overridden, 1 AS priority
-            FROM #{AssignmentOverride.quoted_table_name} ao
-            INNER JOIN #{AssignmentOverrideStudent.quoted_table_name} aos ON ao.id = aos.assignment_override_id AND ao.set_type = 'ADHOC'
-            WHERE aos.user_id = #{User.connection.quote(user.id_for_database)}
-              AND ao.workflow_state = 'active'
-              AND aos.workflow_state <> 'deleted'
-            UNION
-            SELECT ao.quiz_id, e.user_id, ao.due_at, ao.due_at_overridden, 1 AS priority
-            FROM #{AssignmentOverride.quoted_table_name} ao
-            INNER JOIN #{Enrollment.quoted_table_name} e ON e.course_section_id = ao.set_id AND ao.set_type = 'CourseSection'
-            WHERE e.user_id = #{User.connection.quote(user.id_for_database)}
-              AND e.workflow_state NOT IN ('rejected', 'deleted', 'inactive')
-              AND ao.workflow_state = 'active'
-            UNION
-            SELECT q.id, e.user_id, q.due_at, FALSE as due_at_overridden, 2 AS priority
-            FROM #{Quizzes::Quiz.quoted_table_name} q
-            INNER JOIN #{Enrollment.quoted_table_name} e ON e.course_id = q.context_id
-            WHERE e.workflow_state NOT IN ('rejected', 'deleted', 'inactive')
-              AND e.type in ('StudentEnrollment', 'StudentViewEnrollment')
-              AND e.user_id = #{User.connection.quote(user.id_for_database)}
-              AND q.assignment_id IS NULL
-              AND NOT q.only_visible_to_overrides
-          ) o
-          ORDER BY o.user_id ASC, o.quiz_id ASC, priority ASC, o.due_at_overridden DESC, o.due_at DESC NULLS FIRST
-        )
-        SELECT CASE WHEN overrides.due_at_overridden THEN overrides.due_at ELSE q.due_at END as user_due_date, q.*
-        FROM #{Quizzes::Quiz.quoted_table_name} q
-        INNER JOIN overrides ON overrides.quiz_id = q.id) as quizzes")
-      .select(arel.projections, "user_due_date").not_for_assignment
+    ao_t  = AssignmentOverride.arel_table
+    aos_t = AssignmentOverrideStudent.arel_table
+    e_t   = Enrollment.arel_table
+    q_t   = arel_table
+
+    inactive_enrollment_states = %w[rejected deleted inactive]
+
+    adhoc_overrides = AssignmentOverrideStudent
+                      .joins(:assignment_override)
+                      .where(user_id: user)
+                      .where.not(workflow_state: "deleted")
+                      .where(assignment_overrides: { set_type: "ADHOC", workflow_state: "active" })
+                      .select(
+                        ao_t[:quiz_id],
+                        aos_t[:user_id],
+                        ao_t[:due_at],
+                        ao_t[:due_at_overridden],
+                        Arel.sql("1 AS priority")
+                      )
+
+    section_join = e_t.create_join(
+      ao_t,
+      e_t.create_on(
+        ao_t[:set_id].eq(e_t[:course_section_id])
+          .and(ao_t[:set_type].eq("CourseSection"))
+          .and(ao_t[:workflow_state].eq("active"))
+      )
+    )
+    section_overrides = Enrollment
+                        .joins(section_join)
+                        .where(user_id: user)
+                        .where.not(workflow_state: inactive_enrollment_states)
+                        .select(
+                          ao_t[:quiz_id],
+                          e_t[:user_id],
+                          ao_t[:due_at],
+                          ao_t[:due_at_overridden],
+                          Arel.sql("1 AS priority")
+                        )
+
+    quiz_join = e_t.create_join(
+      q_t,
+      e_t.create_on(q_t[:context_id].eq(e_t[:course_id]))
+    )
+    course_fallback = Enrollment
+                      .joins(quiz_join)
+                      .where(user_id: user, type: %w[StudentEnrollment StudentViewEnrollment])
+                      .where.not(workflow_state: inactive_enrollment_states)
+                      .where(q_t[:assignment_id].eq(nil))
+                      .where(q_t[:only_visible_to_overrides].eq(false))
+                      .select(
+                        q_t[:id].as("quiz_id"),
+                        e_t[:user_id],
+                        q_t[:due_at],
+                        Arel.sql("FALSE AS due_at_overridden"),
+                        Arel.sql("2 AS priority")
+                      )
+
+    union_node  = Plannable.union_arel(adhoc_overrides, section_overrides, course_fallback)
+    union_alias = Arel::Nodes::TableAlias.new(union_node, "u")
+    u_t         = Arel::Table.new("u")
+
+    # ROW_NUMBER() replaces DISTINCT ON (which Arel cannot express); rn = 1
+    # yields the same per-(quiz_id, user_id) winner as the original ORDER BY.
+    rn_window = Arel::Nodes::Window.new
+                                   .partition(u_t[:quiz_id], u_t[:user_id])
+                                   .order(
+                                     u_t[:priority].asc,
+                                     Arel.sql("u.due_at_overridden DESC NULLS LAST"),
+                                     Arel.sql("u.due_at DESC NULLS FIRST")
+                                   )
+    rn = Arel::Nodes::NamedFunction.new("ROW_NUMBER", []).over(rn_window).as("rn")
+
+    numbered = Arel::SelectManager.new
+                                  .from(union_alias)
+                                  .project(u_t[Arel.star], rn)
+    overrides_t = Arel::Table.new("overrides")
+
+    q_alias = q_t.alias("q")
+    user_due_date = Arel::Nodes::Case.new
+                                     .when(overrides_t[:due_at_overridden]).then(overrides_t[:due_at])
+                                     .else(q_alias[:due_at])
+                                     .as("user_due_date")
+
+    outer = Arel::SelectManager.new
+                               .from(q_alias)
+                               .join(numbered.as("overrides"))
+                               .on(overrides_t[:quiz_id].eq(q_alias[:id]).and(overrides_t[:rn].eq(1)))
+                               .project(user_due_date, q_alias[Arel.star])
+
+    from(outer.as("quizzes")).not_for_assignment
   }
 
   scope :ungraded_due_between_for_user, lambda { |start, ending, user|

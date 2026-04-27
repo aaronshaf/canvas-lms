@@ -2758,6 +2758,58 @@ describe Quizzes::Quiz do
       AssignmentOverrideStudent.create!(user: @student, assignment_override: override2)
       expect(@course.quizzes.ungraded_with_user_due_date(@student).find(@quiz)[:user_due_date]).to eq override2.due_at
     end
+
+    it "supports COUNT(*) without leaking the user_due_date select expression" do
+      @quiz.due_at = 1.day.from_now
+      @quiz.save!
+      # Folio-style pagination calls .count(:all). The previous implementation
+      # leaked select values into COUNT and produced invalid `COUNT("quizzes".*, user_due_date)` SQL.
+      expect { @course.quizzes.ungraded_with_user_due_date(@student).count(:all) }.not_to raise_error
+      expect(@course.quizzes.ungraded_with_user_due_date(@student).count(:all)).to eq 1
+    end
+  end
+
+  context "with_user_due_date cross-shard" do
+    specs_require_sharding
+
+    before :once do
+      @user_shard = @shard1
+      @quiz_shard = Shard.default
+
+      @user = User.create!(name: "Cross-shard Student")
+      @user.pseudonyms.create!(account: Account.default, unique_id: "cross-shard@test.com")
+
+      @cross_shard_quiz = nil
+      @user_shard.activate do
+        @cross_shard_account = Account.create!(name: "Cross-shard Account")
+        @cross_shard_course  = @cross_shard_account.courses.create!(workflow_state: "available")
+        @cross_shard_quiz    = @cross_shard_course.quizzes.create!(
+          title: "Cross-shard Quiz",
+          quiz_type: "practice_quiz",
+          due_at: 1.day.from_now
+        )
+        @cross_shard_course.enroll_student(@user, enrollment_state: "active")
+      end
+    end
+
+    it "does not bake schema-qualified table names that break on a different shard" do
+      # Built on the user's home shard, executed against the quiz's shard via .shard().
+      # The original raw-SQL implementation interpolated #{AssignmentOverride.quoted_table_name}
+      # at scope-build time, which froze the user-shard schema into the query and produced
+      # `relation "<other_shard>.assignment_overrides" does not exist` on the quiz's shard.
+      @quiz_shard.activate do
+        expect do
+          Quizzes::Quiz.ungraded_with_user_due_date(@user).shard(@user_shard).to_a
+        end.not_to raise_error
+      end
+    end
+
+    it "returns the cross-shard quiz with its user_due_date" do
+      @user_shard.activate do
+        result = Quizzes::Quiz.ungraded_with_user_due_date(@user).find(@cross_shard_quiz.id)
+        expect(result[:user_due_date]).to be_within(1.minute).of(@cross_shard_quiz.due_at)
+      end
+    end
   end
 
   context "need_submitting_info" do
