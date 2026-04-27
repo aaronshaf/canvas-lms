@@ -36,7 +36,7 @@ export function Editor(props) {
     const tinymceEditor = new FakeEditor(props)
     const originalGet = window.tinymce.get
 
-    window.tinymce.get = (id) => {
+    window.tinymce.get = id => {
       if (id === props.id) {
         return tinymceEditor
       }
@@ -45,6 +45,10 @@ export function Editor(props) {
 
     tinymceEditor.on('change', handleChange)
     props.onInit && props.onInit({}, tinymceEditor)
+
+    return () => {
+      window.tinymce.get = originalGet
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

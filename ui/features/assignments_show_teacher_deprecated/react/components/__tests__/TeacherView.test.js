@@ -135,7 +135,7 @@ describe('TeacherView', () => {
   describe('editing the assignment', () => {
     it('render footer when assignment is changed', async () => {
       const assignment = mockAssignment({name: 'old name'})
-      const {getByText, getByDisplayValue, getByTestId} = await renderTeacherView(assignment, [], {
+      const {getByText, findByDisplayValue, getByTestId} = await renderTeacherView(assignment, [], {
         readOnly: false,
       })
 
@@ -144,7 +144,7 @@ describe('TeacherView', () => {
       editNameBtn.click()
 
       // change the name
-      const nameInput = getByDisplayValue('old name')
+      const nameInput = await findByDisplayValue('old name')
       fireEvent.input(nameInput, {target: {value: 'new name'}})
 
       // the cancel/save/publish footer appears
@@ -153,7 +153,7 @@ describe('TeacherView', () => {
 
     it('resets assignment on Cancel', async () => {
       const assignment = mockAssignment({name: 'old name'})
-      const {getByText, getAllByText, getByDisplayValue, getByTestId} = renderTeacherView(
+      const {getByText, getAllByText, findByDisplayValue, getByTestId} = renderTeacherView(
         assignment,
         [],
         {
@@ -166,7 +166,7 @@ describe('TeacherView', () => {
       editNameBtn.click()
 
       // change the name
-      const nameInput = getByDisplayValue('old name')
+      const nameInput = await findByDisplayValue('old name')
       fireEvent.input(nameInput, {target: {value: 'new name'}})
 
       // the cancel/save/publish footer appears
@@ -182,7 +182,7 @@ describe('TeacherView', () => {
 
     it('aborts save if there is an invalid field in the assignment', async () => {
       const assignment = mockAssignment({name: 'old name'})
-      const {getByText, getAllByText, getByDisplayValue, getByTestId} = renderTeacherView(
+      const {getByText, getAllByText, findByDisplayValue, getByTestId} = renderTeacherView(
         assignment,
         [],
         {
@@ -195,7 +195,7 @@ describe('TeacherView', () => {
       editNameBtn.click()
 
       // delete the name (this is bad)
-      const nameInput = getByDisplayValue('old name')
+      const nameInput = await findByDisplayValue('old name')
       fireEvent.input(nameInput, {target: {value: ''}})
 
       expect(getByTestId('TeacherFooter')).toBeInTheDocument()
@@ -212,7 +212,7 @@ describe('TeacherView', () => {
     it('bypasses update if new value == old', async () => {
       // this spec is here to exercise 1 line of code
       const assignment = mockAssignment({name: 'old name'})
-      const {getByText, getAllByText, getByDisplayValue, queryByTestId} = renderTeacherView(
+      const {getByText, getAllByText, findByDisplayValue, queryByTestId} = renderTeacherView(
         assignment,
         [],
         {
@@ -225,7 +225,7 @@ describe('TeacherView', () => {
       editNameBtn.click()
 
       // abort editing
-      const nameInput = getByDisplayValue('old name')
+      const nameInput = await findByDisplayValue('old name')
       fireEvent.keyDown(nameInput, {key: 'Escape', code: 27})
 
       expect(getAllByText('old name')[0]).toBeInTheDocument()

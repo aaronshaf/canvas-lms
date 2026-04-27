@@ -110,7 +110,7 @@ describe('feature_flags::FeatureFlagTable', () => {
     await userEvent.click(button)
     await userEvent.click(getByText('Enabled'))
     await waitFor(() => expect(apiCalled).toHaveBeenCalledTimes(1))
-    expect(row).not.toHaveTextContent('Hidden')
+    await waitFor(() => expect(row).not.toHaveTextContent('Hidden'))
   })
 
   describe('Status column sorting', () => {

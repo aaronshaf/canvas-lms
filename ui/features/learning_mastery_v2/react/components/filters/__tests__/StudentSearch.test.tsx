@@ -25,10 +25,6 @@ vi.mock('../../../hooks/useStudents')
 vi.mock('../../../apiClient')
 vi.mock('@instructure/platform-alerts')
 
-afterEach(() => {
-  cleanup()
-})
-
 const mockStudents: Student[] = [
   {
     id: '1',
@@ -151,13 +147,10 @@ describe('StudentSearch', () => {
     })
 
     // Wait for debounce (500ms) and verify hook is called with new search term
-    await waitFor(
-      () => {
-        // After input, useStudents should be called with the search term
-        expect(useStudentsHook.useStudents).toHaveBeenCalledWith('123', 'Da')
-      },
-      {timeout: 1000},
-    )
+    await waitFor(() => {
+      // After input, useStudents should be called with the search term
+      expect(useStudentsHook.useStudents).toHaveBeenCalledWith('123', 'Da')
+    })
   })
 
   it('does not update search term when input length is 1 character', async () => {
@@ -263,12 +256,9 @@ describe('StudentSearch', () => {
       input.dispatchEvent(new Event('input', {bubbles: true}))
     })
 
-    await waitFor(
-      () => {
-        expect(useStudentsHook.useStudents).toHaveBeenCalledWith('123', 'David')
-      },
-      {timeout: 1000},
-    )
+    await waitFor(() => {
+      expect(useStudentsHook.useStudents).toHaveBeenCalledWith('123', 'David')
+    })
 
     // Clear search
     act(() => {
@@ -276,12 +266,9 @@ describe('StudentSearch', () => {
       input.dispatchEvent(new Event('input', {bubbles: true}))
     })
 
-    await waitFor(
-      () => {
-        expect(useStudentsHook.useStudents).toHaveBeenCalledWith('123', '')
-      },
-      {timeout: 1000},
-    )
+    await waitFor(() => {
+      expect(useStudentsHook.useStudents).toHaveBeenCalledWith('123', '')
+    })
 
     // Component should still be rendered
     expect(screen.getByText('Student Names')).toBeInTheDocument()

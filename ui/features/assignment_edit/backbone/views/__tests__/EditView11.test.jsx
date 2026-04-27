@@ -141,7 +141,7 @@ EditView.prototype._attachEditorToDescription = () => {}
 
 // Skipped: Tests cause "window is not defined" and "Should not already be working" errors in CI
 // due to @instructure/ui-position debounced operations and React scheduler tasks firing after
-// test environment is torn down. The vi.runAllTimers() fix works locally but not reliably in CI.
+// test environment is torn down. The vi.runOnlyPendingTimers() fix works locally but not reliably in CI.
 describe.skip('EditView - Anonymous Submission Handling', () => {
   let view
 
@@ -191,7 +191,7 @@ describe.skip('EditView - Anonymous Submission Handling', () => {
   afterEach(async () => {
     // Flush all pending timers (like @instructure/ui-position debounce) while still
     // in fake timer mode, then restore real timers to prevent "window is not defined"
-    vi.runAllTimers()
+    vi.runOnlyPendingTimers()
     vi.useRealTimers()
 
     fakeENV.teardown()

@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render, waitFor, fireEvent} from '@testing-library/react'
+import {render, waitFor, fireEvent, act} from '@testing-library/react'
 import SisImportForm from '../SisImportForm'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import fakeENV from '@canvas/test-utils/fakeENV'
@@ -200,24 +200,26 @@ describe('SisImportForm', () => {
 
     const file = await uploadFile(user, getByTestId('file_drop'))
 
-    getByText('Process Data').click()
+    fireEvent.click(getByText('Process Data'))
     await waitFor(() => expect(fetchMock.called(SIS_IMPORT_URI, 'POST')).toBe(true))
 
     // Verify completeUpload was called with the correct parameters
-    expect(completeUpload).toHaveBeenCalledWith(
-      {
-        upload_url: 'https://s3.example.com/upload',
-        upload_params: {
-          key: 'uploads/123/users.csv',
-          policy: 'base64policy',
-          signature: 'signature',
+    await waitFor(() =>
+      expect(completeUpload).toHaveBeenCalledWith(
+        {
+          upload_url: 'https://s3.example.com/upload',
+          upload_params: {
+            key: 'uploads/123/users.csv',
+            policy: 'base64policy',
+            signature: 'signature',
+          },
+          file_param: 'file',
         },
-        file_param: 'file',
-      },
-      file,
-      expect.objectContaining({
-        onProgress: expect.any(Function),
-      }),
+        file,
+        expect.objectContaining({
+          onProgress: expect.any(Function),
+        }),
+      ),
     )
 
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
@@ -249,13 +251,11 @@ describe('SisImportForm', () => {
 
       it('shows modal on submit', async () => {
         const user = userEvent.setup()
-        const {getByTestId, getByText} = renderWithClient(
-          <SisImportForm onSuccess={vi.fn()} />,
-        )
+        const {getByTestId, getByText} = renderWithClient(<SisImportForm onSuccess={vi.fn()} />)
         await uploadFile(user, getByTestId('file_drop'))
 
-        getByText('Process Data').click()
-        expect(getByText('Confirm SIS Import')).toBeInTheDocument()
+        fireEvent.click(getByText('Process Data'))
+        await waitFor(() => expect(getByText('Confirm SIS Import')).toBeInTheDocument())
         expect(getByText(`Account: ${ACCOUNT_NAME}`)).toBeInTheDocument()
       })
 
@@ -263,12 +263,11 @@ describe('SisImportForm', () => {
         const onSuccess = vi.fn()
         const user = userEvent.setup()
         mockPost({batchMode: false, overrideSis: false})
-        const {getByTestId, getByText} = renderWithClient(
-          <SisImportForm onSuccess={onSuccess} />,
-        )
+        const {getByTestId, getByText} = renderWithClient(<SisImportForm onSuccess={onSuccess} />)
         await uploadFile(user, getByTestId('file_drop'))
 
-        getByText('Process Data').click()
+        fireEvent.click(getByText('Process Data'))
+        await waitFor(() => expect(getByText('Confirm SIS Import')).toBeInTheDocument())
         // Use fireEvent.change instead of user.type to avoid InstUI Modal
         // focus management conflict with the space in the account name.
         fireEvent.change(getByTestId('site-admin-confirm-input'), {target: {value: ACCOUNT_NAME}})
@@ -286,7 +285,8 @@ describe('SisImportForm', () => {
         )
         await uploadFile(user, getByTestId('file_drop'))
 
-        getByText('Process Data').click()
+        fireEvent.click(getByText('Process Data'))
+        await waitFor(() => expect(getByTestId('site-admin-cancel-btn')).toBeInTheDocument())
         await user.click(getByTestId('site-admin-cancel-btn'))
 
         await waitFor(() => {
@@ -308,11 +308,13 @@ describe('SisImportForm', () => {
         await findByTestId('full-batch-dropdown')
 
         // Click submit — unified modal appears with both sections
-        getByText('Process Data').click()
-        expect(getByText('Confirm SIS Import')).toBeInTheDocument()
+        fireEvent.click(getByText('Process Data'))
+        await waitFor(() => expect(getByText('Confirm SIS Import')).toBeInTheDocument())
         expect(getByText(`Account: ${ACCOUNT_NAME}`)).toBeInTheDocument()
         // Warning text appears both in FullBatchDropdown and in the modal
-        expect(getAllByText(/this will delete everything for this term/).length).toBeGreaterThanOrEqual(2)
+        expect(
+          getAllByText(/this will delete everything for this term/).length,
+        ).toBeGreaterThanOrEqual(2)
 
         // Use fireEvent.change instead of user.type to avoid InstUI Modal
         // focus management conflict: re-rendering the batch mode Alert shifts
@@ -333,7 +335,7 @@ describe('SisImportForm', () => {
       )
       await uploadFile(user, getByTestId('file_drop'))
 
-      getByText('Process Data').click()
+      fireEvent.click(getByText('Process Data'))
       expect(queryByText('Confirm SIS Import')).toBeNull()
       await waitFor(() => expect(fetchMock.called(SIS_IMPORT_URI, 'POST')).toBe(true))
     })
@@ -351,10 +353,12 @@ describe('SisImportForm', () => {
       // Wait for the term select to appear
       await findByTestId('full-batch-dropdown')
 
-      getByText('Process Data').click()
-      expect(getByText('Confirm SIS Import')).toBeInTheDocument()
+      fireEvent.click(getByText('Process Data'))
+      await waitFor(() => expect(getByText('Confirm SIS Import')).toBeInTheDocument())
       // Warning text appears both in FullBatchDropdown and in the modal
-      expect(getAllByText(/this will delete everything for this term/).length).toBeGreaterThanOrEqual(2)
+      expect(
+        getAllByText(/this will delete everything for this term/).length,
+      ).toBeGreaterThanOrEqual(2)
     })
 
     it('calls onSuccess if confirmed', async () => {
@@ -371,8 +375,9 @@ describe('SisImportForm', () => {
       // Wait for the term select to appear
       await findByTestId('full-batch-dropdown')
 
-      getByText('Process Data').click()
-      getByText('Confirm').click()
+      fireEvent.click(getByText('Process Data'))
+      await waitFor(() => expect(getByText('Confirm SIS Import')).toBeInTheDocument())
+      fireEvent.click(getByText('Confirm'))
       await waitFor(() => expect(fetchMock.called(SIS_IMPORT_URI, 'POST')).toBe(true))
       await waitFor(() => expect(onSuccess).toHaveBeenCalled())
     })
@@ -389,8 +394,9 @@ describe('SisImportForm', () => {
       // Wait for the term select to appear
       await findByTestId('full-batch-dropdown')
 
-      getByText('Process Data').click()
-      getByText('Cancel').click()
+      fireEvent.click(getByText('Process Data'))
+      await waitFor(() => expect(getByText('Confirm SIS Import')).toBeInTheDocument())
+      fireEvent.click(getByText('Cancel'))
       await waitFor(() => {
         expect(queryByText('Confirm SIS Import')).toBeNull()
         expect(fetchMock.called(SIS_IMPORT_URI, 'POST')).toBe(false)

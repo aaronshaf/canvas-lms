@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, act, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Scopes from '../Scopes'
 
@@ -101,17 +101,20 @@ describe('Scopes', () => {
     expect(ref.current.state.filter).toBe('')
   })
 
-  it('handles filter input change by setting the filter state', () => {
+  it('handles filter input change by setting the filter state', async () => {
     vi.useFakeTimers()
     const {ref} = renderScopes()
     const eventDup = {currentTarget: {value: 'banana'}}
 
-    ref.current.handleFilterChange(eventDup)
+    act(() => {
+      ref.current.handleFilterChange(eventDup)
+      // Advance timers to trigger the debounced function (400ms delay)
+      vi.advanceTimersByTime(400)
+    })
 
-    // Advance timers to trigger the debounced function (400ms delay)
-    vi.advanceTimersByTime(400)
-
-    expect(ref.current.state.filter).toBe('banana')
+    await waitFor(() => {
+      expect(ref.current.state.filter).toBe('banana')
+    })
     vi.useRealTimers()
   })
 

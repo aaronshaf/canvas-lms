@@ -391,12 +391,9 @@ describe('ToolAvailability', () => {
     )
 
     // Now wait for the main content to appear
-    await waitFor(
-      () => {
-        expect(utils.getByText('Deployment ID: default-deployment-id')).toBeInTheDocument()
-      },
-      {timeout: 2000},
-    )
+    await waitFor(() => {
+      expect(utils.getByText('Deployment ID: default-deployment-id')).toBeInTheDocument()
+    })
 
     // Assert that context controls from page 1 are shown
     // The root control won't render it's context name.
@@ -409,12 +406,9 @@ describe('ToolAvailability', () => {
     const showMore = utils.queryByRole('button', {name: /show more/i})
     if (showMore) {
       fireEvent.click(showMore)
-      await waitFor(
-        () => {
-          expect(utils.getByText('Deployment ID: default-deployment-id-2')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(utils.getByText('Deployment ID: default-deployment-id-2')).toBeInTheDocument()
+      })
 
       // Assert that context controls from page 2 are shown
       // the root controls won't render their context name.
@@ -921,12 +915,9 @@ describe('ToolAvailability', () => {
       )
 
       // Wait for the main content to appear
-      await waitFor(
-        () => {
-          expect(screen.getByText('Deployment ID: default-deployment-id')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(screen.getByText('Deployment ID: default-deployment-id')).toBeInTheDocument()
+      })
 
       const control = deployment.context_controls![1]
 

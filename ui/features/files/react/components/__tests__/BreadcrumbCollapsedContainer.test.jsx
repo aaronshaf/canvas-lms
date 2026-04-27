@@ -67,8 +67,6 @@ describe('BreadcrumbsCollapsedContainer', () => {
     Component = stubRouterContext(BreadcrumbCollapsedContainer, props)
   })
 
-  afterEach(cleanup)
-
   it('opens breadcrumbs on mouse enter', () => {
     const {getByText} = render(<Component />)
     const ellipsis = getByText('…').closest('li')

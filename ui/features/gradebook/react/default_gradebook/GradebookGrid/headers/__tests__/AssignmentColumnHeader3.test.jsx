@@ -111,7 +111,6 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
   })
 
   afterEach(() => {
-    cleanup()
     container.remove()
   })
 
@@ -136,17 +135,20 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
     return document.querySelector(`[aria-labelledby="${button.id}"]`)
   }
 
-  function openOptionsMenu() {
+  async function openOptionsMenu() {
     const trigger = getOptionsMenuTrigger()
     if (trigger) {
       fireEvent.click(trigger)
-      menuContent = getOptionsMenuContent()
+      await waitFor(() => {
+        menuContent = getOptionsMenuContent()
+        expect(menuContent).not.toBeNull()
+      })
     }
   }
 
-  function mountAndOpenOptionsMenu() {
+  async function mountAndOpenOptionsMenu() {
     mountComponent()
-    openOptionsMenu()
+    await openOptionsMenu()
   }
 
   function closeOptionsMenu() {
@@ -155,10 +157,10 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
   }
 
   describe('"Options" > "Hide grades" action', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       props.postGradesAction.enabledForUser = true
       props.hideGradesAction.hasGradesOrCommentsToHide = true
-      mountAndOpenOptionsMenu()
+      await mountAndOpenOptionsMenu()
     })
 
     describe('when post policies is enabled', () => {
@@ -217,13 +219,14 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
         expect(document.activeElement).not.toBe(getOptionsMenuTrigger())
       })
 
-      test('calls the .hideGradesAction.onSelect callback', () => {
-        getMenuItem(menuContent, 'Hide grades').click()
-        expect(props.hideGradesAction.onSelect).toHaveBeenCalledTimes(1)
+      test('calls the .hideGradesAction.onSelect callback', async () => {
+        fireEvent.click(getMenuItem(menuContent, 'Hide grades'))
+        await waitFor(() => expect(props.hideGradesAction.onSelect).toHaveBeenCalledTimes(1))
       })
 
-      test('includes a callback for restoring focus upon dialog close', () => {
-        getMenuItem(menuContent, 'Hide grades').click()
+      test('includes a callback for restoring focus upon dialog close', async () => {
+        fireEvent.click(getMenuItem(menuContent, 'Hide grades'))
+        await waitFor(() => expect(props.hideGradesAction.onSelect).toHaveBeenCalledTimes(1))
         const [callback] = props.hideGradesAction.onSelect.mock.calls[0]
         callback()
         expect(document.activeElement).toBe(getOptionsMenuTrigger())
@@ -232,9 +235,9 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
   })
 
   describe('"Options" > "Grade Posting Policy" action', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       props.postGradesAction.enabledForUser = true
-      mountAndOpenOptionsMenu()
+      await mountAndOpenOptionsMenu()
     })
 
     test('is present when the current user can post grades', () => {
@@ -263,26 +266,26 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
       }
     })
 
-    test('is present when .enterGradesAsSetting.hidden is false', () => {
-      mountAndOpenOptionsMenu()
+    test('is present when .enterGradesAsSetting.hidden is false', async () => {
+      await mountAndOpenOptionsMenu()
       expect(getMenuItem(menuContent, 'Enter Grades as')).toBeInTheDocument()
     })
 
-    test('is not present when .enterGradesAsSetting.hidden is true', () => {
+    test('is not present when .enterGradesAsSetting.hidden is true', async () => {
       props.enterGradesAsSetting.hidden = true
-      mountAndOpenOptionsMenu()
+      await mountAndOpenOptionsMenu()
       expect(getMenuItem(menuContent, 'Enter Grades as')).toBeUndefined()
     })
 
     describe('"Points" option', () => {
-      test('is always present', () => {
-        mountAndOpenOptionsMenu()
+      test('is always present', async () => {
+        await mountAndOpenOptionsMenu()
         expect(getEnterGradesAsOption('Points')).toBeInTheDocument()
       })
 
-      test('is optionally selected', () => {
+      test('is optionally selected', async () => {
         props.enterGradesAsSetting.selected = 'points'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getEnterGradesAsOption('Points').getAttribute('aria-checked')).toBe('true')
       })
 
@@ -292,14 +295,14 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
           props.enterGradesAsSetting.onSelect = vi.fn()
         })
 
-        test('calls the onSelect callback', () => {
-          mountAndOpenOptionsMenu()
+        test('calls the onSelect callback', async () => {
+          await mountAndOpenOptionsMenu()
           getEnterGradesAsOption('Points').click()
           expect(props.enterGradesAsSetting.onSelect).toHaveBeenCalledTimes(1)
         })
 
-        test('calls the onSelect callback with "points"', () => {
-          mountAndOpenOptionsMenu()
+        test('calls the onSelect callback with "points"', async () => {
+          await mountAndOpenOptionsMenu()
           getEnterGradesAsOption('Points').click()
           const [selected] = props.enterGradesAsSetting.onSelect.mock.calls[0]
           expect(selected).toBe('points')
@@ -308,22 +311,22 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
     })
 
     describe('"Percentage" option', () => {
-      test('is always present', () => {
-        mountAndOpenOptionsMenu()
+      test('is always present', async () => {
+        await mountAndOpenOptionsMenu()
         expect(getEnterGradesAsOption('Percentage')).toBeInTheDocument()
       })
 
-      test('is optionally selected', () => {
+      test('is optionally selected', async () => {
         props.enterGradesAsSetting.selected = 'percent'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getEnterGradesAsOption('Percentage').getAttribute('aria-checked')).toBe('true')
       })
 
       describe('when clicked', () => {
-        beforeEach(() => {
+        beforeEach(async () => {
           props.enterGradesAsSetting.selected = 'points'
           props.enterGradesAsSetting.onSelect = vi.fn()
-          mountAndOpenOptionsMenu()
+          await mountAndOpenOptionsMenu()
         })
 
         test('calls the onSelect callback', () => {
@@ -340,43 +343,43 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
     })
 
     describe('"Grading Scheme" option', () => {
-      test('is present when "showGradingSchemeOption" is true', () => {
+      test('is present when "showGradingSchemeOption" is true', async () => {
         props.enterGradesAsSetting.showGradingSchemeOption = true
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getEnterGradesAsOption('Grading Scheme')).toBeInTheDocument()
       })
 
-      test('is not present when "showGradingSchemeOption" is false', () => {
+      test('is not present when "showGradingSchemeOption" is false', async () => {
         props.enterGradesAsSetting.showGradingSchemeOption = false
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getEnterGradesAsOption('Grading Scheme')).toBeUndefined()
       })
 
-      test('is optionally selected', () => {
+      test('is optionally selected', async () => {
         props.enterGradesAsSetting.showGradingSchemeOption = true
         props.enterGradesAsSetting.selected = 'gradingScheme'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getEnterGradesAsOption('Grading Scheme').getAttribute('aria-checked')).toBe('true')
       })
     })
   })
 
   describe('"Options" > "Download Submissions" action', () => {
-    test('is present when .downloadSubmissionsAction.hidden is false', () => {
-      mountAndOpenOptionsMenu()
+    test('is present when .downloadSubmissionsAction.hidden is false', async () => {
+      await mountAndOpenOptionsMenu()
       expect(getMenuItem(menuContent, 'Download Submissions')).toBeTruthy()
     })
 
-    test('is not present when .downloadSubmissionsAction.hidden is true', () => {
+    test('is not present when .downloadSubmissionsAction.hidden is true', async () => {
       props.downloadSubmissionsAction.hidden = true
-      mountAndOpenOptionsMenu()
+      await mountAndOpenOptionsMenu()
       expect(getMenuItem(menuContent, 'Download Submissions')).toBeUndefined()
     })
 
     describe('when clicked', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         props.downloadSubmissionsAction.onSelect = vi.fn()
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
       })
 
       test('does not restore focus to the "Options" menu trigger', () => {
@@ -384,13 +387,18 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
         expect(document.activeElement).not.toBe(getOptionsMenuTrigger())
       })
 
-      test('calls the .downloadSubmissionsAction.onSelect callback', () => {
-        getMenuItem(menuContent, 'Download Submissions').click()
-        expect(props.downloadSubmissionsAction.onSelect).toHaveBeenCalledTimes(1)
+      test('calls the .downloadSubmissionsAction.onSelect callback', async () => {
+        fireEvent.click(getMenuItem(menuContent, 'Download Submissions'))
+        await waitFor(() =>
+          expect(props.downloadSubmissionsAction.onSelect).toHaveBeenCalledTimes(1),
+        )
       })
 
-      test('includes a callback for restoring focus upon dialog close', () => {
-        getMenuItem(menuContent, 'Download Submissions').click()
+      test('includes a callback for restoring focus upon dialog close', async () => {
+        fireEvent.click(getMenuItem(menuContent, 'Download Submissions'))
+        await waitFor(() =>
+          expect(props.downloadSubmissionsAction.onSelect).toHaveBeenCalledTimes(1),
+        )
         const [callback] = props.downloadSubmissionsAction.onSelect.mock.calls[0]
         callback()
         expect(document.activeElement).toBe(getOptionsMenuTrigger())
@@ -399,21 +407,21 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
   })
 
   describe('"Options" > "Re-Upload Submissions" action', () => {
-    test('is present when .reuploadSubmissionsAction.hidden is false', () => {
-      mountAndOpenOptionsMenu()
+    test('is present when .reuploadSubmissionsAction.hidden is false', async () => {
+      await mountAndOpenOptionsMenu()
       expect(getMenuItem(menuContent, 'Re-Upload Submissions')).toBeTruthy()
     })
 
-    test('is not present when .reuploadSubmissionsAction.hidden is true', () => {
+    test('is not present when .reuploadSubmissionsAction.hidden is true', async () => {
       props.reuploadSubmissionsAction.hidden = true
-      mountAndOpenOptionsMenu()
+      await mountAndOpenOptionsMenu()
       expect(getMenuItem(menuContent, 'Re-Upload Submissions')).toBeUndefined()
     })
 
     describe('when clicked', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         props.reuploadSubmissionsAction.onSelect = vi.fn()
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
       })
 
       test('does not restore focus to the "Options" menu trigger', () => {
@@ -421,13 +429,18 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
         expect(document.activeElement).not.toBe(getOptionsMenuTrigger())
       })
 
-      test('calls the .reuploadSubmissionsAction.onSelect callback', () => {
-        getMenuItem(menuContent, 'Re-Upload Submissions').click()
-        expect(props.reuploadSubmissionsAction.onSelect).toHaveBeenCalledTimes(1)
+      test('calls the .reuploadSubmissionsAction.onSelect callback', async () => {
+        fireEvent.click(getMenuItem(menuContent, 'Re-Upload Submissions'))
+        await waitFor(() =>
+          expect(props.reuploadSubmissionsAction.onSelect).toHaveBeenCalledTimes(1),
+        )
       })
 
-      test('includes a callback for restoring focus upon dialog close', () => {
-        getMenuItem(menuContent, 'Re-Upload Submissions').click()
+      test('includes a callback for restoring focus upon dialog close', async () => {
+        fireEvent.click(getMenuItem(menuContent, 'Re-Upload Submissions'))
+        await waitFor(() =>
+          expect(props.reuploadSubmissionsAction.onSelect).toHaveBeenCalledTimes(1),
+        )
         const [callback] = props.reuploadSubmissionsAction.onSelect.mock.calls[0]
         callback()
         expect(document.activeElement).toBe(getOptionsMenuTrigger())
@@ -475,17 +488,16 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
         expect(preventDefault).not.toHaveBeenCalled()
       })
 
-      test('Enter key opens the options menu', () => {
+      test('Enter key opens the options menu', async () => {
         // Arrange - get the options menu trigger
         const optionsMenuTrigger = getOptionsMenuTrigger()
 
         // Act - simulate a user pressing Enter on the options menu trigger
         // This uses userEvent which is preferred over fireEvent per user rules
         optionsMenuTrigger.focus()
-        openOptionsMenu()
+        await openOptionsMenu()
 
         // Assert - verify the menu is open
-        menuContent = getOptionsMenuContent()
         expect(menuContent).not.toBeNull()
 
         // Verify we can interact with menu items

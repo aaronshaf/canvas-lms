@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, act} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {ColorPicker} from '../ColorPicker'
 
@@ -97,7 +97,9 @@ describe('ColorPicker', () => {
     expect(tabelems).toHaveLength(1)
     const contrastSummary = getByTestId('color-contrast-summary')
     expect(contrastSummary.textContent).toContain('PASS')
-    contrastSummary.click()
+    act(() => {
+      contrastSummary.click()
+    })
     const constrast = getByTestId('color-contrast')
     expect(constrast.textContent).toContain('5.25:1')
   })
@@ -113,7 +115,9 @@ describe('ColorPicker', () => {
     expect(tabelems).toHaveLength(2)
     const contrastSummary = getByTestId('color-contrast-summary')
     expect(contrastSummary.textContent).toContain('PASS')
-    contrastSummary.click()
+    act(() => {
+      contrastSummary.click()
+    })
     const constrast = getByTestId('color-contrast')
     expect(constrast.textContent).toContain('21:1')
   })

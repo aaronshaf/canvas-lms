@@ -19,7 +19,7 @@
 import {mockConfigWithPlacements, mockRegistration} from './helpers'
 import {createDynamicRegistrationOverlayStore} from '../DynamicRegistrationOverlayState'
 import {IconConfirmationWrapper} from '../components/IconConfirmationWrapper'
-import {cleanup, render, screen} from '@testing-library/react'
+import {cleanup, render, screen, waitFor} from '@testing-library/react'
 import * as ue from '@testing-library/user-event'
 import {LtiPlacements, LtiPlacementsWithIcons} from '../../model/LtiPlacement'
 import {i18nLtiPlacement} from '../../model/i18nLtiPlacement'
@@ -41,7 +41,6 @@ describe('IconConfirmation', () => {
   })
 
   afterEach(() => {
-    cleanup()
     vi.runOnlyPendingTimers()
     vi.useRealTimers()
     fakeENV.teardown()
@@ -196,9 +195,11 @@ describe('IconConfirmation', () => {
 
     await userEvent.clear(input)
     expect(input).toHaveValue('')
-    expect(screen.getByAltText('Global Navigation icon')).toHaveAttribute(
-      'src',
-      'http://example.com/icon.png',
+    await waitFor(() =>
+      expect(screen.getByAltText('Global Navigation icon')).toHaveAttribute(
+        'src',
+        'http://example.com/icon.png',
+      ),
     )
     // Explainer text and message hint
     expect(screen.getAllByText(/the tool's default icon/i)).toHaveLength(2)
@@ -300,9 +301,11 @@ describe('IconConfirmation', () => {
     vi.runOnlyPendingTimers()
 
     expect(input).toHaveValue('http://example.com/icon.png')
-    expect(screen.getByAltText('Global Navigation icon')).toHaveAttribute(
-      'src',
-      'http://example.com/icon.png',
+    await waitFor(() =>
+      expect(screen.getByAltText('Global Navigation icon')).toHaveAttribute(
+        'src',
+        'http://example.com/icon.png',
+      ),
     )
   })
 
@@ -354,9 +357,11 @@ describe('IconConfirmation', () => {
       jest.runAllTimers()
 
       expect(input).toHaveValue('https://example.com/new-default.png')
-      expect(screen.getByTestId('img-default-icon')).toHaveAttribute(
-        'src',
-        'https://example.com/new-default.png',
+      await waitFor(() =>
+        expect(screen.getByTestId('img-default-icon')).toHaveAttribute(
+          'src',
+          'https://example.com/new-default.png',
+        ),
       )
     })
 
@@ -430,9 +435,11 @@ describe('IconConfirmation', () => {
       await userEvent.paste('https://example.com/default-icon.png')
       jest.runAllTimers()
 
-      expect(screen.getByTestId('img-default-icon')).toHaveAttribute(
-        'src',
-        'https://example.com/default-icon.png',
+      await waitFor(() =>
+        expect(screen.getByTestId('img-default-icon')).toHaveAttribute(
+          'src',
+          'https://example.com/default-icon.png',
+        ),
       )
     })
 
@@ -457,9 +464,11 @@ describe('IconConfirmation', () => {
       await userEvent.clear(input)
       jest.runAllTimers()
 
-      expect(screen.getByTestId('img-default-icon')).toHaveAttribute(
-        'src',
-        'https://example.com/default-icon.png',
+      await waitFor(() =>
+        expect(screen.getByTestId('img-default-icon')).toHaveAttribute(
+          'src',
+          'https://example.com/default-icon.png',
+        ),
       )
     })
   })

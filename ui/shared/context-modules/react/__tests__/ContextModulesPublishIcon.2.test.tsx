@@ -26,7 +26,9 @@ import ContextModulesPublishIcon from '../ContextModulesPublishIcon'
 import {initBody, makeModuleWithItems} from '../../__tests__/testHelpers'
 import {showFlashAlert} from '@instructure/platform-alerts'
 
-const server = setupServer()
+const server = setupServer(
+  http.get('/api/v1/courses/1/modules/1/items', () => HttpResponse.json([])),
+)
 
 vi.mock('@canvas/context-modules/jquery/utils', async () => {
   const originalModule = await vi.importActual('@canvas/context-modules/jquery/utils')
@@ -179,12 +181,12 @@ describe('ContextModulesPublishIcon', () => {
       }),
     )
 
-    const {getByRole, getByText} = render(
+    const {getByRole, findByText} = render(
       <ContextModulesPublishIcon {...defaultProps} published={true} />,
     )
     const menuButton = getByRole('button', {hidden: true})
     menuButton.click()
-    const publishButton = getByText('Unpublish module and all items')
+    const publishButton = await findByText('Unpublish module and all items')
     userEvent.click(publishButton)
 
     await waitFor(() => {

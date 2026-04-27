@@ -119,10 +119,10 @@ describe('OutcomeManagement Changes confirmation', () => {
     )
 
     fireEvent.click(getByText('Calculation'))
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     fireEvent.input(getByLabelText('Parameter'), {target: {value: ''}})
     fireEvent.click(getByText('Mastery'))
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(windowConfirm).toHaveBeenCalledWith(
       'Are you sure you want to proceed? Changes you made will not be saved.',
     )
@@ -143,7 +143,7 @@ describe('OutcomeManagement Changes confirmation', () => {
     )
 
     fireEvent.click(getByText('Calculation'))
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     fireEvent.input(getByLabelText('Parameter'), {target: {value: ''}})
     fireEvent.click(getByText('Mastery'))
     expect(queryByTestId('masteryScales')).not.toBeInTheDocument()
@@ -162,7 +162,7 @@ describe('OutcomeManagement Changes confirmation', () => {
     const calculationButton = getByText('Calculation')
     fireEvent.click(calculationButton)
 
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
 
     const e = vi.fn()
     e.preventDefault = vi.fn()
@@ -183,7 +183,7 @@ describe('OutcomeManagement Changes confirmation', () => {
     const calculationButton = getByText('Calculation')
     fireEvent.click(calculationButton)
 
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
 
     const parameter = getByLabelText(/Parameter/)
     fireEvent.input(parameter, {target: {value: '88'}})

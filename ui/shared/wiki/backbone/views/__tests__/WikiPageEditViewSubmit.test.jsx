@@ -60,7 +60,7 @@ describe('WikiPageEditView submit functionality', () => {
 
   afterEach(async () => {
     // Flush any pending timers before cleanup
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
     vi.useRealTimers()
 
     container.remove()

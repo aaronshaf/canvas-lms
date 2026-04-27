@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {render, waitFor, act} from '@testing-library/react'
 import FakeEditor from './FakeEditor'
 
 import RCEWrapper from '../RCEWrapper'
@@ -210,9 +210,11 @@ describe('RCEWrapper', () => {
     it('adds an alert when addAlert is called', () => {
       const alertmsg = 'Something went wrong uploading, check your connection and try again.'
       const {getByText} = createMountedElement()
-      rce.addAlert({
-        text: alertmsg,
-        variant: 'error',
+      act(() => {
+        rce.addAlert({
+          text: alertmsg,
+          variant: 'error',
+        })
       })
       expect(getByText(alertmsg)).toBeInTheDocument()
     })
@@ -223,17 +225,19 @@ describe('RCEWrapper', () => {
       const alertmsg3 = 'Something went wrong uploading 3, check your connection and try again.'
       const {getByText} = createMountedElement()
       rce.resetAlertId()
-      rce.addAlert({
-        text: alertmsg1,
-        variant: 'error',
-      })
-      rce.addAlert({
-        text: alertmsg2,
-        variant: 'error',
-      })
-      rce.addAlert({
-        text: alertmsg3,
-        variant: 'error',
+      act(() => {
+        rce.addAlert({
+          text: alertmsg1,
+          variant: 'error',
+        })
+        rce.addAlert({
+          text: alertmsg2,
+          variant: 'error',
+        })
+        rce.addAlert({
+          text: alertmsg3,
+          variant: 'error',
+        })
       })
       expect(getByText(alertmsg1)).toBeInTheDocument()
       expect(getByText(alertmsg2)).toBeInTheDocument()
@@ -244,17 +248,19 @@ describe('RCEWrapper', () => {
       const alertmsg1 = 'Something went wrong uploading, check your connection and try again.'
       const {getAllByText} = createMountedElement()
       rce.resetAlertId()
-      rce.addAlert({
-        text: alertmsg1,
-        variant: 'error',
-      })
-      rce.addAlert({
-        text: alertmsg1,
-        variant: 'error',
-      })
-      rce.addAlert({
-        text: alertmsg1,
-        variant: 'error',
+      act(() => {
+        rce.addAlert({
+          text: alertmsg1,
+          variant: 'error',
+        })
+        rce.addAlert({
+          text: alertmsg1,
+          variant: 'error',
+        })
+        rce.addAlert({
+          text: alertmsg1,
+          variant: 'error',
+        })
       })
       expect(getAllByText(alertmsg1)).toHaveLength(1)
     })
@@ -262,22 +268,26 @@ describe('RCEWrapper', () => {
     it('removes an alert when removeAlert is called', () => {
       const {queryByText} = createMountedElement()
       rce.resetAlertId()
-      rce.addAlert({
-        text: 'First',
-        variant: 'error',
-      })
-      rce.addAlert({
-        text: 'Second',
-        variant: 'error',
-      })
-      rce.addAlert({
-        text: 'Third',
-        variant: 'error',
+      act(() => {
+        rce.addAlert({
+          text: 'First',
+          variant: 'error',
+        })
+        rce.addAlert({
+          text: 'Second',
+          variant: 'error',
+        })
+        rce.addAlert({
+          text: 'Third',
+          variant: 'error',
+        })
       })
       expect(queryByText('First')).toBeInTheDocument()
       expect(queryByText('Second')).toBeInTheDocument()
       expect(queryByText('Third')).toBeInTheDocument()
-      rce.removeAlert(1)
+      act(() => {
+        rce.removeAlert(1)
+      })
       expect(queryByText('First')).toBeInTheDocument()
       expect(queryByText('Second')).toBeNull()
       expect(queryByText('Third')).toBeInTheDocument()

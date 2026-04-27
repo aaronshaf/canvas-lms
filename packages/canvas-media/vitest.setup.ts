@@ -1,5 +1,8 @@
 import '@testing-library/jest-dom'
+import {configure} from '@testing-library/react'
 import {vi} from 'vitest'
+
+configure({asyncUtilTimeout: 2000})
 
 vi.stubGlobal('DataTransferItem', class DataTransferItem {})
 

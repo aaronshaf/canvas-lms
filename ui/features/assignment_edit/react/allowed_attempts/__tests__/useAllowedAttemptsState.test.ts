@@ -17,7 +17,7 @@
  */
 
 import useAllowedAttemptsState from '../useAllowedAttemptsState'
-import {renderHook, act} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 
 interface AllowedAttemptsStateProps {
   limited: boolean

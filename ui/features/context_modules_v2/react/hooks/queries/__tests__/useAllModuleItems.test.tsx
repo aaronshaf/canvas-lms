@@ -18,7 +18,7 @@
 
 import {useAllModuleItems, getAllModuleItems} from '../useAllModuleItems'
 import * as moduleItemsHook from '../useModuleItems'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import React from 'react'
 import {waitFor} from '@testing-library/react'

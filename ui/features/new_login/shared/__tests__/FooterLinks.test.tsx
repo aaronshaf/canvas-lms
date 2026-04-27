@@ -56,10 +56,6 @@ describe('FooterLinks', () => {
       </MemoryRouter>,
     )
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
   })

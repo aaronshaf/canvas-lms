@@ -182,7 +182,7 @@ describe('EditView - Peer Review Integration - Error Display', () => {
     // Flush all pending timers while still in fake timer mode, then restore
     // real timers to prevent "window is not defined" errors from React
     // scheduler tasks firing after test environment is torn down
-    vi.runAllTimers()
+    vi.runOnlyPendingTimers()
     vi.useRealTimers()
 
     // Clean up view and all child views

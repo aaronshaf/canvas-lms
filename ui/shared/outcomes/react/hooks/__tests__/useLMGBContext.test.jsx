@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook} from '@testing-library/react'
 import LMGBContext from '../../contexts/LMGBContext'
 import useLMGBContext from '../useLMGBContext'
 

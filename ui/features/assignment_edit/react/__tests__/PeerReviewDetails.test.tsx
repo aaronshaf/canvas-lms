@@ -837,7 +837,7 @@ describe('PeerReviewDetails', () => {
       expect(pointsPerReviewInput).toHaveValue('5') // 20 / 4 = 5
     })
 
-    it('loads pass_fail grading type', () => {
+    it('loads pass_fail grading type', async () => {
       const assignmentWithData = createMockAssignment({
         peerReviews: vi.fn(() => true),
         peerReviewCount: vi.fn(() => 2),
@@ -850,13 +850,13 @@ describe('PeerReviewDetails', () => {
       renderWithQueryClient(<PeerReviewDetails assignment={assignmentWithData} />)
 
       const advancedSettingsToggle = screen.getByText('Advanced Peer Review Configurations')
-      advancedSettingsToggle.click()
+      await user.click(advancedSettingsToggle)
 
-      const passFailCheckbox = screen.getByTestId('pass-fail-grading-checkbox')
+      const passFailCheckbox = await screen.findByTestId('pass-fail-grading-checkbox')
       expect(passFailCheckbox).toBeChecked()
     })
 
-    it('loads anonymous peer reviews setting', () => {
+    it('loads anonymous peer reviews setting', async () => {
       const assignmentWithData = createMockAssignment({
         peerReviews: vi.fn(() => true),
         peerReviewCount: vi.fn(() => 2),
@@ -866,13 +866,13 @@ describe('PeerReviewDetails', () => {
       renderWithQueryClient(<PeerReviewDetails assignment={assignmentWithData} />)
 
       const advancedSettingsToggle = screen.getByText('Advanced Peer Review Configurations')
-      advancedSettingsToggle.click()
+      await user.click(advancedSettingsToggle)
 
-      const anonymityCheckbox = screen.getByTestId('anonymity-checkbox')
+      const anonymityCheckbox = await screen.findByTestId('anonymity-checkbox')
       expect(anonymityCheckbox).toBeChecked()
     })
 
-    it('loads intra group peer reviews setting', () => {
+    it('loads intra group peer reviews setting', async () => {
       const assignmentWithData = createMockAssignment({
         peerReviews: vi.fn(() => true),
         peerReviewCount: vi.fn(() => 2),
@@ -883,9 +883,9 @@ describe('PeerReviewDetails', () => {
       renderWithQueryClient(<PeerReviewDetails assignment={assignmentWithData} />)
 
       const advancedSettingsToggle = screen.getByText('Advanced Peer Review Configurations')
-      advancedSettingsToggle.click()
+      await user.click(advancedSettingsToggle)
 
-      const withinGroupsCheckbox = screen.getByTestId('within-groups-checkbox')
+      const withinGroupsCheckbox = await screen.findByTestId('within-groups-checkbox')
       expect(withinGroupsCheckbox).toBeChecked()
     })
   })
@@ -1076,9 +1076,9 @@ describe('PeerReviewDetails', () => {
       renderWithQueryClient(<PeerReviewDetails assignment={assignment} />)
 
       const advancedSettingsToggle = screen.getByText('Advanced Peer Review Configurations')
-      advancedSettingsToggle.click()
+      await user.click(advancedSettingsToggle)
 
-      const withinGroupsCheckbox = screen.getByTestId('within-groups-checkbox')
+      const withinGroupsCheckbox = await screen.findByTestId('within-groups-checkbox')
       await user.click(withinGroupsCheckbox)
 
       await waitFor(() => {
@@ -1094,9 +1094,9 @@ describe('PeerReviewDetails', () => {
       renderWithQueryClient(<PeerReviewDetails assignment={assignment} />)
 
       const advancedSettingsToggle = screen.getByText('Advanced Peer Review Configurations')
-      advancedSettingsToggle.click()
+      await user.click(advancedSettingsToggle)
 
-      const anonymityCheckbox = screen.getByTestId('anonymity-checkbox')
+      const anonymityCheckbox = await screen.findByTestId('anonymity-checkbox')
       await user.click(anonymityCheckbox)
 
       await waitFor(() => {
@@ -1112,9 +1112,9 @@ describe('PeerReviewDetails', () => {
       renderWithQueryClient(<PeerReviewDetails assignment={assignment} />)
 
       const advancedSettingsToggle = screen.getByText('Advanced Peer Review Configurations')
-      advancedSettingsToggle.click()
+      await user.click(advancedSettingsToggle)
 
-      const submissionRequiredCheckbox = screen.getByTestId('submission-required-checkbox')
+      const submissionRequiredCheckbox = await screen.findByTestId('submission-required-checkbox')
       await user.click(submissionRequiredCheckbox)
 
       await waitFor(() => {
@@ -1130,9 +1130,9 @@ describe('PeerReviewDetails', () => {
       renderWithQueryClient(<PeerReviewDetails assignment={assignment} />)
 
       const advancedSettingsToggle = screen.getByText('Advanced Peer Review Configurations')
-      advancedSettingsToggle.click()
+      await user.click(advancedSettingsToggle)
 
-      const passFailCheckbox = screen.getByTestId('pass-fail-grading-checkbox')
+      const passFailCheckbox = await screen.findByTestId('pass-fail-grading-checkbox')
       await user.click(passFailCheckbox)
 
       await waitFor(() => {

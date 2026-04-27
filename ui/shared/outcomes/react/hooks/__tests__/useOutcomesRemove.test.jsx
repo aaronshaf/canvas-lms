@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook, act} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import useOutcomesRemove, {
   REMOVE_FAILED,
   REMOVE_COMPLETED,
@@ -66,18 +66,16 @@ describe('useOutcomesRemove', () => {
     vi.clearAllMocks()
   })
 
-  const wrapper = ({
-    children,
-    mocks = deleteOutcomeMocks(),
-    contextType = 'Account',
-    contextId = '1',
-  }) => (
-    <MockedProvider cache={cache} mocks={mocks}>
-      <OutcomesContext.Provider value={{env: {contextType, contextId}}}>
-        {children}
-      </OutcomesContext.Provider>
-    </MockedProvider>
-  )
+  const createWrapper =
+    ({mocks = deleteOutcomeMocks(), contextType = 'Account', contextId = '1'} = {}) =>
+    ({children}) => (
+      <MockedProvider cache={cache} mocks={mocks}>
+        <OutcomesContext.Provider value={{env: {contextType, contextId}}}>
+          {children}
+        </OutcomesContext.Provider>
+      </MockedProvider>
+    )
+  const wrapper = createWrapper()
 
   it('creates custom hook with proper exports', () => {
     const {result} = renderHook(() => useOutcomesRemove(), {
@@ -92,15 +90,12 @@ describe('useOutcomesRemove', () => {
     it('displays flash confirmation with proper message if delete request succeeds', async () => {
       const outcomes = outcomesGenerator(1, 1)
       const {result} = renderHook(() => useOutcomesRemove(), {
-        wrapper,
-        initialProps: {
-          mocks: deleteOutcomeMocks(),
-        },
+        wrapper: createWrapper({mocks: deleteOutcomeMocks()}),
       })
       act(() => {
         result.current.removeOutcomes(outcomes)
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(showFlashAlert).toHaveBeenCalledWith({
         message: 'This outcome was successfully removed.',
         type: 'success',
@@ -110,15 +105,12 @@ describe('useOutcomesRemove', () => {
     it('displays flash error with proper message if delete request fails', async () => {
       const outcomes = outcomesGenerator(1, 1)
       const {result} = renderHook(() => useOutcomesRemove(), {
-        wrapper,
-        initialProps: {
-          mocks: deleteOutcomeMocks({failResponse: true}),
-        },
+        wrapper: createWrapper({mocks: deleteOutcomeMocks({failResponse: true})}),
       })
       act(() => {
         result.current.removeOutcomes(outcomes)
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(showFlashAlert).toHaveBeenCalledWith({
         message: 'An error occurred while removing this outcome. Please try again.',
         type: 'error',
@@ -128,15 +120,12 @@ describe('useOutcomesRemove', () => {
     it('displays flash error with proper message if delete request fails because it is aligned with content', async () => {
       const outcomes = outcomesGenerator(1, 1)
       const {result} = renderHook(() => useOutcomesRemove(), {
-        wrapper,
-        initialProps: {
-          mocks: deleteOutcomeMocks({failAlignedContentMutation: true}),
-        },
+        wrapper: createWrapper({mocks: deleteOutcomeMocks({failAlignedContentMutation: true})}),
       })
       act(() => {
         result.current.removeOutcomes(outcomes)
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(showFlashAlert).toHaveBeenCalledWith({
         message: 'An error occurred while removing this outcome. Please try again.',
         type: 'error',
@@ -146,15 +135,12 @@ describe('useOutcomesRemove', () => {
     it('displays flash confirmation with proper message if delete mutation fails', async () => {
       const outcomes = outcomesGenerator(1, 1)
       const {result} = renderHook(() => useOutcomesRemove(), {
-        wrapper,
-        initialProps: {
-          mocks: deleteOutcomeMocks({failMutation: true}),
-        },
+        wrapper: createWrapper({mocks: deleteOutcomeMocks({failMutation: true})}),
       })
       act(() => {
         result.current.removeOutcomes(outcomes)
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(showFlashAlert).toHaveBeenCalledWith({
         message: 'An error occurred while removing this outcome. Please try again.',
         type: 'error',
@@ -164,15 +150,12 @@ describe('useOutcomesRemove', () => {
     it('displays flash confirmation with proper message if delete request fails with no error message', async () => {
       const outcomes = outcomesGenerator(1, 1)
       const {result} = renderHook(() => useOutcomesRemove(), {
-        wrapper,
-        initialProps: {
-          mocks: deleteOutcomeMocks({failMutationNoErrMsg: true}),
-        },
+        wrapper: createWrapper({mocks: deleteOutcomeMocks({failMutationNoErrMsg: true})}),
       })
       act(() => {
         result.current.removeOutcomes(outcomes)
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(showFlashAlert).toHaveBeenCalledWith({
         message: 'An error occurred while removing this outcome. Please try again.',
         type: 'error',
@@ -182,32 +165,26 @@ describe('useOutcomesRemove', () => {
     it('sets status of deleted outcome to complete if delete succeeds', async () => {
       const outcomes = outcomesGenerator(1, 1)
       const {result} = renderHook(() => useOutcomesRemove(), {
-        wrapper,
-        initialProps: {
-          mocks: deleteOutcomeMocks(),
-        },
+        wrapper: createWrapper({mocks: deleteOutcomeMocks()}),
       })
       act(() => {
         result.current.removeOutcomes(outcomes)
       })
       expect(result.current.removeOutcomesStatus).toEqual({1: REMOVE_PENDING})
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(result.current.removeOutcomesStatus).toEqual({1: REMOVE_COMPLETED})
     })
 
     it('sets status of deleted outcome to failed if delete fails', async () => {
       const outcomes = outcomesGenerator(1, 1)
       const {result} = renderHook(() => useOutcomesRemove(), {
-        wrapper,
-        initialProps: {
-          mocks: deleteOutcomeMocks({failResponse: true}),
-        },
+        wrapper: createWrapper({mocks: deleteOutcomeMocks({failResponse: true})}),
       })
       act(() => {
         result.current.removeOutcomes(outcomes)
       })
       expect(result.current.removeOutcomesStatus).toEqual({1: REMOVE_PENDING})
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(result.current.removeOutcomesStatus).toEqual({1: REMOVE_FAILED})
     })
 
@@ -215,15 +192,12 @@ describe('useOutcomesRemove', () => {
       it('displays flash confirmation with proper message if delete request succeeds', async () => {
         const outcomes = outcomesGenerator(1, 4)
         const {result} = renderHook(() => useOutcomesRemove(), {
-          wrapper,
-          initialProps: {
-            mocks: deleteOutcomeMocks({ids: ['1', '2', '3', '4']}),
-          },
+          wrapper: createWrapper({mocks: deleteOutcomeMocks({ids: ['1', '2', '3', '4']})}),
         })
         act(() => {
           result.current.removeOutcomes(outcomes)
         })
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         expect(showFlashAlert).toHaveBeenCalledWith({
           message: '4 outcomes were successfully removed.',
           type: 'success',
@@ -233,15 +207,14 @@ describe('useOutcomesRemove', () => {
       it('displays flash error with proper message if delete request fails', async () => {
         const outcomes = outcomesGenerator(1, 4)
         const {result} = renderHook(() => useOutcomesRemove(), {
-          wrapper,
-          initialProps: {
+          wrapper: createWrapper({
             mocks: deleteOutcomeMocks({ids: ['1', '2', '3', '4'], failResponse: true}),
-          },
+          }),
         })
         act(() => {
           result.current.removeOutcomes(outcomes)
         })
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         expect(showFlashAlert).toHaveBeenCalledWith({
           message: 'An error occurred while removing these outcomes. Please try again.',
           type: 'error',
@@ -251,15 +224,14 @@ describe('useOutcomesRemove', () => {
       it('displays flash confirmation with proper message if delete mutation fails', async () => {
         const outcomes = outcomesGenerator(1, 4)
         const {result} = renderHook(() => useOutcomesRemove(), {
-          wrapper,
-          initialProps: {
+          wrapper: createWrapper({
             mocks: deleteOutcomeMocks({ids: ['1', '2', '3', '4'], failMutation: true}),
-          },
+          }),
         })
         act(() => {
           result.current.removeOutcomes(outcomes)
         })
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         expect(showFlashAlert).toHaveBeenCalledWith({
           message: 'An error occurred while removing these outcomes. Please try again.',
           type: 'error',
@@ -269,15 +241,14 @@ describe('useOutcomesRemove', () => {
       it('displays flash confirmation with proper message if delete request fails with no error message', async () => {
         const outcomes = outcomesGenerator(1, 4)
         const {result} = renderHook(() => useOutcomesRemove(), {
-          wrapper,
-          initialProps: {
+          wrapper: createWrapper({
             mocks: deleteOutcomeMocks({ids: ['1', '2', '3', '4'], failMutationNoErrMsg: true}),
-          },
+          }),
         })
         act(() => {
           result.current.removeOutcomes(outcomes)
         })
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         expect(showFlashAlert).toHaveBeenCalledWith({
           message: 'An error occurred while removing these outcomes. Please try again.',
           type: 'error',
@@ -287,15 +258,14 @@ describe('useOutcomesRemove', () => {
       it('displays flash generic error if remove outcomes mutation partially succeeds', async () => {
         const outcomes = outcomesGenerator(1, 4)
         const {result} = renderHook(() => useOutcomesRemove(), {
-          wrapper,
-          initialProps: {
+          wrapper: createWrapper({
             mocks: deleteOutcomeMocks({ids: ['1', '2', '3', '4'], partialSuccess: true}),
-          },
+          }),
         })
         act(() => {
           result.current.removeOutcomes(outcomes)
         })
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         expect(showFlashAlert).toHaveBeenCalledWith({
           message: 'An error occurred while removing these outcomes. Please try again.',
           type: 'error',
@@ -305,10 +275,7 @@ describe('useOutcomesRemove', () => {
       it('sets status of outcomes being removed to pending and others are not started', async () => {
         const outcomes = outcomesGenerator(1, 4)
         const {result} = renderHook(() => useOutcomesRemove(), {
-          wrapper,
-          initialProps: {
-            mocks: deleteOutcomeMocks({ids: ['1', '3']}),
-          },
+          wrapper: createWrapper({mocks: deleteOutcomeMocks({ids: ['1', '3']})}),
         })
         result.current.setRemoveOutcomesStatus({
           1: REMOVE_NOT_STARTED,
@@ -325,7 +292,7 @@ describe('useOutcomesRemove', () => {
           3: REMOVE_PENDING,
           4: REMOVE_NOT_STARTED,
         })
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         expect(result.current.removeOutcomesStatus).toEqual({
           1: REMOVE_COMPLETED,
           2: REMOVE_NOT_STARTED,

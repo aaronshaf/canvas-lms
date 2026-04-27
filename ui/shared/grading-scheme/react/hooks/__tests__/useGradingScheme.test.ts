@@ -19,7 +19,7 @@
 import {useGradingScheme} from '../useGradingScheme'
 import {ApiCallStatus} from '../ApiCallStatus'
 
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 
@@ -34,13 +34,11 @@ describe('useGradingSchemeHook', () => {
   afterAll(() => server.close())
 
   it('renders for course context without error', () => {
-    const {result} = renderHook(() => useGradingScheme())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useGradingScheme())
   })
 
   it('renders for account context without error', () => {
-    const {result} = renderHook(() => useGradingScheme())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useGradingScheme())
   })
 
   it('makes a GET request for course context to load grading scheme', async () => {
@@ -58,11 +56,10 @@ describe('useGradingSchemeHook', () => {
     )
 
     const {result} = renderHook(() => useGradingScheme())
-    const loadedGradingScheme = await result.current.loadGradingScheme(
-      'Course',
-      courseId,
-      'some-id',
-    )
+    let loadedGradingScheme: any
+    await act(async () => {
+      loadedGradingScheme = await result.current.loadGradingScheme('Course', courseId, 'some-id')
+    })
 
     expect(capturedPath).toBe(`/courses/${courseId}/grading_schemes/some-id`)
     expect(loadedGradingScheme).toEqual({title: 'Scheme 1', data})
@@ -84,11 +81,10 @@ describe('useGradingSchemeHook', () => {
     )
 
     const {result} = renderHook(() => useGradingScheme())
-    const loadedGradingScheme = await result.current.loadGradingScheme(
-      'Account',
-      accountId,
-      'some-id',
-    )
+    let loadedGradingScheme: any
+    await act(async () => {
+      loadedGradingScheme = await result.current.loadGradingScheme('Account', accountId, 'some-id')
+    })
 
     expect(capturedPath).toBe(`/accounts/${accountId}/grading_schemes/some-id`)
     expect(loadedGradingScheme).toEqual({title: 'Scheme 1', data})

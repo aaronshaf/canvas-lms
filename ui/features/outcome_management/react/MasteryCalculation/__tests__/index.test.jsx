@@ -100,7 +100,7 @@ describe('MasteryCalculation', () => {
 
   it('loads proficiency data for Account', async () => {
     const {getByDisplayValue} = render(<MasteryCalculation />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByDisplayValue(/65/)).not.toEqual(null)
   })
 
@@ -109,15 +109,13 @@ describe('MasteryCalculation', () => {
       contextType: 'Course',
       contextId: '12',
     })
-    await act(async () => vi.runAllTimers())
-    await waitFor(async () => {
-      expect(await findByDisplayValue(/65/)).not.toBeNull()
-    })
+    await act(async () => vi.runOnlyPendingTimers())
+    expect(await findByDisplayValue(/65/)).not.toBeNull()
   })
 
   it('loads role list', async () => {
     const {getByText, getAllByText} = render(<MasteryCalculation />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(
       getByText(
         /Permission to change this mastery calculation at the account level is enabled for/,
@@ -135,7 +133,7 @@ describe('MasteryCalculation', () => {
     mocks[0] = {...mocks[0], result: {errors: new Error('aw shucks')}}
 
     const {getByText} = render(<MasteryCalculation />, {mocks: mocks})
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText(/An error occurred/)).not.toEqual(null)
   })
 
@@ -159,7 +157,7 @@ describe('MasteryCalculation', () => {
       },
     ]
     const {getByText} = render(<MasteryCalculation />, {mocks: emptyMocks})
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('Mastery Calculation')).not.toBeNull()
   })
 
@@ -203,7 +201,7 @@ describe('MasteryCalculation', () => {
 
     it('submits a request when calculation method is saved', async () => {
       const {getByText, findByLabelText} = render(<MasteryCalculation />, {mocks: updateMocks})
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
 
       const parameter = await findByLabelText(/Parameter/)
       fireEvent.input(parameter, {target: {value: '88'}})

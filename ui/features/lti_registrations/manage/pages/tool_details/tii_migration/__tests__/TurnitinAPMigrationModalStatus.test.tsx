@@ -96,7 +96,6 @@ const server = setupServer()
 
 beforeAll(() => server.listen({onUnhandledRequest: 'warn'}))
 afterEach(() => {
-  cleanup()
   server.resetHandlers()
 })
 afterAll(() => server.close())

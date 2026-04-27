@@ -90,9 +90,10 @@ describe('ContentTabs', () => {
     )
 
     if (props.assignment.submissionTypes.includes('online_text_entry')) {
+      // TinyMCE initialization in jsdom is slow — needs more than the 3000ms global default.
       await waitFor(
         () => {
-          expect(tinymce.get('textentry_text')).toBeDefined()
+          expect(tinymce.get('textentry_text')).toBeTruthy()
         },
         {timeout: 4000},
       )

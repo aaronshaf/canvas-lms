@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 import {useValidateLaunchSettings} from '../hooks/useValidateLaunchSettings'
 import type {Lti1p3RegistrationOverlayState} from '../../registration_overlay/Lti1p3RegistrationOverlayState'
 import {mockInternalConfiguration} from './helpers'

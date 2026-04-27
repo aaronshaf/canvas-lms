@@ -212,7 +212,7 @@ describe('OutcomeManagementPanel - Group Operations', () => {
       fireEvent.click(getByText('Menu for group Group 200 folder 0'))
       fireEvent.click(getByTestId('outcome-kebab-menu-move'))
       // Move Modal
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       await moveSelectedGroup(getByRole)
       expect(getByText('2 Outcomes')).toBeInTheDocument()
     })
@@ -244,6 +244,7 @@ describe('OutcomeManagementPanel - Group Operations', () => {
       fireEvent.click(within(getByRole('dialog')).getByText('Create new group'))
       await act(async () => vi.runOnlyPendingTimers())
       fireEvent.click(within(getByRole('dialog')).getByText('Cancel'))
+      // runAllTimers: drains the finite modal close animation chain (no Apollo queries here)
       await act(async () => vi.runAllTimers())
       expect(getByText('new group name')).toBeInTheDocument()
     }, 30000)

@@ -18,7 +18,7 @@
 
 import React from 'react'
 import PropTypes from 'prop-types'
-import {render} from '@testing-library/react'
+import {act, render} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import DashboardOptionsMenu from '../DashboardOptionsMenu'
 import axios from '@canvas/axios'
@@ -148,7 +148,7 @@ describe('Dashboard Options Menu', () => {
     expect(queryByTestId('color-overlay-menu-item')).not.toBeInTheDocument()
   })
 
-  it('toggles color overlays', () => {
+  it('toggles color overlays', async () => {
     let dashboardMenu = null
     render(
       <FakeDashboard
@@ -160,7 +160,9 @@ describe('Dashboard Options Menu', () => {
     )
 
     // Turn off color overlay
-    dashboardMenu.handleColorOverlayOptionSelect(false)
+    await act(async () => {
+      dashboardMenu.handleColorOverlayOptionSelect(false)
+    })
     expect(document.getElementsByClassName('ic-DashboardCard__header_hero')[0].style.opacity).toBe(
       '0',
     )
@@ -169,7 +171,9 @@ describe('Dashboard Options Menu', () => {
     ).toBe('1')
 
     // Turn on color overlay
-    dashboardMenu.handleColorOverlayOptionSelect(true)
+    await act(async () => {
+      dashboardMenu.handleColorOverlayOptionSelect(true)
+    })
     expect(document.getElementsByClassName('ic-DashboardCard__header_hero')[0].style.opacity).toBe(
       '0.6',
     )

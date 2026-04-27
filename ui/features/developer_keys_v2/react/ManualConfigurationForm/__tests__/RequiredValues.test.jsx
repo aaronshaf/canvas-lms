@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, act, waitFor} from '@testing-library/react'
 import {get} from 'es-toolkit/compat'
 
 import RequiredValues from '../RequiredValues'
@@ -49,36 +49,44 @@ const checkToolConfigPart = (toolConfig, path, value) => {
   expect(get(toolConfig, path)).toEqual(value)
 }
 
-const checkChange = (path, funcName, value, expectedValue = null) => {
+const checkChange = async (path, funcName, value, expectedValue = null) => {
   const ref = React.createRef()
   render(<RequiredValues {...props({overrides: {ref}})} />)
 
-  ref.current[funcName]({target: {value}})
-  checkToolConfigPart(ref.current.generateToolConfigurationPart(), path, expectedValue || value)
+  act(() => {
+    ref.current[funcName]({target: {value}})
+  })
+  await waitFor(() => {
+    checkToolConfigPart(
+      ref.current.generateToolConfigurationPart(),
+      path,
+      expectedValue || value,
+    )
+  })
 }
 
-it('changes the output when domain changes', () => {
-  checkChange(['title'], 'handleTitleChange', 'New Title')
+it('changes the output when domain changes', async () => {
+  await checkChange(['title'], 'handleTitleChange', 'New Title')
 })
 
-it('changes the output when tool_id changes', () => {
-  checkChange(['description'], 'handleDescriptionChange', 'qwerty')
+it('changes the output when tool_id changes', async () => {
+  await checkChange(['description'], 'handleDescriptionChange', 'qwerty')
 })
 
-it('changes the output when icon_url changes', () => {
-  checkChange(
+it('changes the output when icon_url changes', async () => {
+  await checkChange(
     ['oidc_initiation_url'],
     'handleOidcInitiationUrlChange',
     'http://example.com/new/login',
   )
 })
 
-it('changes the output when target_link_uri changes', () => {
-  checkChange(['target_link_uri'], 'handleTargetLinkUriChange', 'http://example.com/new')
+it('changes the output when target_link_uri changes', async () => {
+  await checkChange(['target_link_uri'], 'handleTargetLinkUriChange', 'http://example.com/new')
 })
 
-it('changes the output when public_jwk changes', () => {
-  checkChange(['public_jwk'], 'handlePublicJwkChange', '{}', {})
+it('changes the output when public_jwk changes', async () => {
+  await checkChange(['public_jwk'], 'handlePublicJwkChange', '{}', {})
 })
 
 it('is valid when valid', () => {

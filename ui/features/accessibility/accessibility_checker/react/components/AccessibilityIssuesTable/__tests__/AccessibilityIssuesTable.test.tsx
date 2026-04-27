@@ -17,7 +17,7 @@
  */
 
 import {cleanup, fireEvent, render, screen} from '@testing-library/react'
-import {act, renderHook} from '@testing-library/react-hooks'
+import {act, renderHook} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import React from 'react'
 import {type Mock} from 'vitest'
@@ -38,7 +38,7 @@ vi.mock('../../../../../shared/react/hooks/useAccessibilityScansFetchUtils', () 
 
 // Mock breakpoints to always return desktop queries for sortable table
 vi.mock('@canvas/breakpoints', async () => ({
-  ...await vi.importActual('@canvas/breakpoints'),
+  ...(await vi.importActual('@canvas/breakpoints')),
   responsiveQuerySizes: () => ({
     desktop: {minWidth: '0px'},
   }),
@@ -61,10 +61,6 @@ const createWrapper = () => {
 }
 
 describe('AccessibilityIssuesTable', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const mockState = {
     ...initialState,
   }

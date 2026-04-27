@@ -133,8 +133,7 @@ class FileBrowser extends React.Component {
 
   populateRootFolder(data, opts = {}) {
     this.decreaseLoadingCount()
-    this.populateCollectionsList([data], opts)
-    this.getFolderData(data.id)
+    this.populateCollectionsList([data], opts, () => this.getFolderData(data.id))
   }
 
   // Memoized function to fetch all subfolders
@@ -195,7 +194,7 @@ class FileBrowser extends React.Component {
     }
   }
 
-  populateCollectionsList = (folderList, opts = {}) => {
+  populateCollectionsList = (folderList, opts = {}, callback) => {
     this.setState((state, props) => {
       const newCollections = cloneDeep(state.collections)
       folderList.forEach(folder => {
@@ -215,7 +214,7 @@ class FileBrowser extends React.Component {
         }
       })
       return {collections: newCollections}
-    })
+    }, callback)
   }
 
   contentTypeIsAllowed(contentType) {

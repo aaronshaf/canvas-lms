@@ -62,7 +62,7 @@ describe('Highlight', () => {
       // Allow layout effects to complete
       await Promise.resolve()
       // Allow setTimeout to complete
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
 
     expect(getByTestId('isHighlighted')).toBeInTheDocument()
@@ -80,7 +80,7 @@ describe('Highlight', () => {
       // Allow layout effects to complete
       await Promise.resolve()
       // Allow setTimeout to complete
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
 
     expect(getByTestId('isHighlighted')).toHaveClass('highlight-discussion')

@@ -60,7 +60,6 @@ describe('ReviewScreen', () => {
     })
   })
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
     fakeENV.teardown()
   })

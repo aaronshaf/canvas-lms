@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {fireEvent, render} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import {
   GradingSchemesManagement,
   type GradingSchemesManagementProps,
@@ -69,8 +69,7 @@ describe('Grading Schemes Management Tests', () => {
   it('should render grading schemes', async () => {
     const {getByTestId} = renderGradingSchemesManagement()
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(getByTestId('grading_scheme_1_edit_button')).toBeInTheDocument()
+    await waitFor(() => expect(getByTestId('grading_scheme_1_edit_button')).toBeInTheDocument())
     expect(getByTestId('grading_scheme_2_edit_button')).toBeInTheDocument()
     expect(getByTestId('grading_scheme_3_edit_button')).toBeInTheDocument()
     expect(getByTestId('default_canvas_grading_scheme')).toBeInTheDocument()
@@ -79,7 +78,7 @@ describe('Grading Schemes Management Tests', () => {
   it('should disable Account grading schemes when contextType is Course', async () => {
     const {getByTestId} = renderGradingSchemesManagement()
 
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await waitFor(() => expect(getByTestId('grading_scheme_1_edit_button')).toBeInTheDocument())
     const course1EditButton = getByTestId('grading_scheme_1_edit_button')
     const course1DeleteButton = getByTestId('grading_scheme_1_delete_button')
     const account1EditButton = getByTestId('grading_scheme_2_edit_button')
@@ -98,7 +97,7 @@ describe('Grading Schemes Management Tests', () => {
   it('should not disable Account grading schemes when contextType is Account', async () => {
     const {getByTestId} = renderGradingSchemesManagement({contextType: 'Account'})
 
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await waitFor(() => expect(getByTestId('grading_scheme_1_edit_button')).toBeInTheDocument())
     const course1EditButton = getByTestId('grading_scheme_1_edit_button')
     const course1DeleteButton = getByTestId('grading_scheme_1_delete_button')
     const account1EditButton = getByTestId('grading_scheme_2_edit_button')
@@ -123,7 +122,9 @@ describe('Grading Schemes Management Tests', () => {
 
     it('should render three grading scheme tables, (default, active, archived)', async () => {
       const {getByTestId} = renderArchivedGradingSchemesManagement()
-      await new Promise(resolve => setTimeout(resolve, 0))
+      await waitFor(() => expect(getByTestId('grading-scheme-1-edit-button')).toBeInTheDocument(), {
+        timeout: 5000,
+      })
       expect(getByTestId('grading-scheme-table-archived')).toBeInTheDocument()
       expect(getByTestId('grading-scheme-table-active')).toBeInTheDocument()
       expect(getByTestId('grading-scheme-table-default')).toBeInTheDocument()
@@ -132,7 +133,7 @@ describe('Grading Schemes Management Tests', () => {
     describe('filtering', () => {
       it('should filter grading schemes by title', async () => {
         const {getByTestId, queryByTestId} = renderArchivedGradingSchemesManagement()
-        await new Promise(resolve => setTimeout(resolve, 0))
+        await waitFor(() => expect(getByTestId('grading-scheme-1-edit-button')).toBeInTheDocument())
         const input = getByTestId('grading-scheme-search')
         fireEvent.change(input, {target: {value: 'Grading Scheme 1'}})
         AccountGradingSchemes.forEach(scheme => {
@@ -147,7 +148,7 @@ describe('Grading Schemes Management Tests', () => {
 
       it('shows archived and active schemes that match the filter', async () => {
         const {getByTestId, queryByTestId} = renderArchivedGradingSchemesManagement()
-        await new Promise(resolve => setTimeout(resolve, 0))
+        await waitFor(() => expect(getByTestId('grading-scheme-1-edit-button')).toBeInTheDocument())
         const input = getByTestId('grading-scheme-search')
         fireEvent.change(input, {target: {value: 'Grading Scheme'}})
         AccountGradingSchemes.forEach(scheme => {
@@ -162,7 +163,7 @@ describe('Grading Schemes Management Tests', () => {
 
       it('always shows the default grading scheme', async () => {
         const {getByTestId} = renderArchivedGradingSchemesManagement()
-        await new Promise(resolve => setTimeout(resolve, 0))
+        await waitFor(() => expect(getByTestId('grading-scheme-1-edit-button')).toBeInTheDocument())
         const input = getByTestId('grading-scheme-search')
         fireEvent.change(input, {target: {value: 'Carrot Potato Scheme'}})
         expect(getByTestId('grading-scheme-row-')).toBeInTheDocument()

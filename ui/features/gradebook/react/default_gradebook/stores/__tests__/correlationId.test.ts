@@ -21,6 +21,7 @@ import {request} from 'graphql-request'
 import {StoreApi, UseBoundStore} from 'zustand'
 import {GradebookStore} from '..'
 import {v4 as uuidv4} from 'uuid'
+import {act} from '@testing-library/react'
 
 // Mock graphql-request to capture headers
 vi.mock('graphql-request', () => ({
@@ -124,21 +125,25 @@ describe.skip('Gradebook Store - Correlation ID Headers', () => {
       }
 
       store.getState().fetchCompositeAssignmentGroups({params})
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
 
       expectRESTCorrelationHeader()
     })
 
-    it('should include Correlation-Id header when fetching students via REST', () => {
+    it('should include Correlation-Id header when fetching students via REST', async () => {
       const {getStudentsChunk} = require('../studentsState.utils')
 
       getStudentsChunk('123', ['1', '2'], store.getState().dispatch, TEST_CORRELATION_ID)
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
 
       expectRESTCorrelationHeader()
     })
 
-    it('should include Correlation-Id header when fetching submissions via REST', () => {
+    it('should include Correlation-Id header when fetching submissions via REST', async () => {
       const {getSubmissionsForStudents} = require('../studentsState.utils')
 
       const allEnqueued = Promise.resolve()
@@ -150,7 +155,9 @@ describe.skip('Gradebook Store - Correlation ID Headers', () => {
         store.getState().dispatch,
         TEST_CORRELATION_ID,
       )
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
 
       expectRESTCorrelationHeader()
     })
@@ -159,7 +166,9 @@ describe.skip('Gradebook Store - Correlation ID Headers', () => {
   describe('GraphQL API Requests', () => {
     it('should include Correlation-Id header when fetching assignment groups via GraphQL', async () => {
       await store.getState().fetchGrapqhlAssignmentGroups({gradingPeriodIds: null})
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
 
       expectGraphQLCorrelationHeader()
     })
@@ -182,7 +191,9 @@ describe.skip('Gradebook Store - Correlation ID Headers', () => {
       })
 
       await store.getState().fetchGrapqhlAssignmentGroups({gradingPeriodIds: ['gp1']})
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
 
       expectGraphQLCorrelationHeader()
     })
@@ -198,7 +209,9 @@ describe.skip('Gradebook Store - Correlation ID Headers', () => {
         },
         headers: {'Correlation-Id': TEST_CORRELATION_ID},
       })
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
 
       expectGraphQLCorrelationHeader()
     })
@@ -213,7 +226,9 @@ describe.skip('Gradebook Store - Correlation ID Headers', () => {
         },
         headers: {'Correlation-Id': TEST_CORRELATION_ID},
       })
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
 
       expectGraphQLCorrelationHeader()
     })
@@ -228,7 +243,9 @@ describe.skip('Gradebook Store - Correlation ID Headers', () => {
         },
         headers: {'Correlation-Id': TEST_CORRELATION_ID},
       })
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
 
       expectGraphQLCorrelationHeader()
     })

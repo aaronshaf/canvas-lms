@@ -27,7 +27,7 @@ function prepareAnimation(animation) {
   animation.acceptAction(deletedPlannerItem({uniqueId: 'doomed-item'}))
   animation.uiWillUpdate()
   animation.uiDidUpdate()
-  vi.runAllTimers()
+  vi.runOnlyPendingTimers()
 }
 
 it('sets focus to the item prior to the deleted item', () => {

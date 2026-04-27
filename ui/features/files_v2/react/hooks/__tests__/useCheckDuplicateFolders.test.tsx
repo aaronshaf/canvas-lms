@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook, waitFor} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -76,7 +76,7 @@ describe('useCheckDuplicateFolders', () => {
       }),
     )
 
-    const {result, waitForNextUpdate} = renderHook(
+    const {result} = renderHook(
       () =>
         useCheckDuplicateFolders({
           folderId: '123',
@@ -86,9 +86,7 @@ describe('useCheckDuplicateFolders', () => {
       {wrapper: createWrapper()},
     )
 
-    await waitForNextUpdate()
-
-    expect(result.current.data).toEqual(mockDuplicates)
+    await waitFor(() => expect(result.current.data).toEqual(mockDuplicates))
   })
 
   it('returns empty array on 404 error', async () => {
@@ -98,7 +96,7 @@ describe('useCheckDuplicateFolders', () => {
       }),
     )
 
-    const {result, waitForNextUpdate} = renderHook(
+    const {result} = renderHook(
       () =>
         useCheckDuplicateFolders({
           folderId: '123',
@@ -108,9 +106,7 @@ describe('useCheckDuplicateFolders', () => {
       {wrapper: createWrapper()},
     )
 
-    await waitForNextUpdate()
-
-    expect(result.current.data).toEqual([])
+    await waitFor(() => expect(result.current.data).toEqual([]))
     expect(result.current.error).toBeNull()
   })
 
@@ -121,7 +117,7 @@ describe('useCheckDuplicateFolders', () => {
       }),
     )
 
-    const {result, waitForNextUpdate} = renderHook(
+    const {result} = renderHook(
       () =>
         useCheckDuplicateFolders({
           folderId: '123',
@@ -131,9 +127,7 @@ describe('useCheckDuplicateFolders', () => {
       {wrapper: createWrapper()},
     )
 
-    await waitForNextUpdate()
-
-    expect(result.current.error).toBeTruthy()
+    await waitFor(() => expect(result.current.error).toBeTruthy())
     expect(result.current.data).toBeUndefined()
   })
 
@@ -159,7 +153,7 @@ describe('useCheckDuplicateFolders', () => {
       }),
     )
 
-    const {result, waitForNextUpdate} = renderHook(
+    const {result} = renderHook(
       () =>
         useCheckDuplicateFolders({
           folderId: '789',
@@ -169,8 +163,6 @@ describe('useCheckDuplicateFolders', () => {
       {wrapper: createWrapper()},
     )
 
-    await waitForNextUpdate()
-
-    expect(result.current.data).toEqual([])
+    await waitFor(() => expect(result.current.data).toEqual([]))
   })
 })

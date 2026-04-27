@@ -17,7 +17,7 @@
  */
 
 import {render, screen} from '@testing-library/react'
-import {act, renderHook} from '@testing-library/react-hooks'
+import {act, renderHook} from '@testing-library/react'
 
 import {IssuesByTypeChart} from '../IssuesByTypeChart'
 import {

@@ -18,11 +18,9 @@
 
 import moment from 'moment-timezone'
 import React from 'react'
-import {render, fireEvent, waitFor} from '@testing-library/react'
+import {act, render, fireEvent, waitFor} from '@testing-library/react'
 import TodoEditorModal from '../index'
 import {initialize} from '../../../utilities/alertUtils'
-
-vi.useFakeTimers()
 
 const defaultProps = (options = {}) => ({
   savePlannerItem: () => {},
@@ -51,6 +49,14 @@ const errorFn = vi.fn()
 
 beforeAll(() => {
   initialize({visualSuccessCallback: successFn, visualErrorCallback: errorFn})
+})
+
+beforeEach(() => {
+  vi.useFakeTimers({shouldAdvanceTime: true})
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 it('does not show the editor modal when todoItem is null', () => {
@@ -97,17 +103,19 @@ it('updates the planner item and then closes the editor when Save is clicked ', 
   fireEvent.blur(date)
   fireEvent.change(title, {target: {value: 'Updated Todo'}})
   fireEvent.change(details, {target: {value: 'These are the todo details'}})
-  vi.runOnlyPendingTimers()
+  await act(async () => vi.advanceTimersByTimeAsync(1000))
 
   const saveButton = getByTestId('save')
   fireEvent.click(saveButton)
 
-  expect(mockSave).toHaveBeenCalledWith({
-    ...todoItem,
-    title: 'Updated Todo',
-    date: moment('2021-05-30T11:00:00Z').toISOString(),
-    details: 'These are the todo details',
-  })
+  await waitFor(() =>
+    expect(mockSave).toHaveBeenCalledWith({
+      ...todoItem,
+      title: 'Updated Todo',
+      date: moment('2021-05-30T11:00:00Z').toISOString(),
+      details: 'These are the todo details',
+    }),
+  )
 
   await waitFor(() => {
     expect(mockOnClose).toHaveBeenCalled()

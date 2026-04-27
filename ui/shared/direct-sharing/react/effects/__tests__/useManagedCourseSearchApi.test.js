@@ -18,7 +18,7 @@
 
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook} from '@testing-library/react'
 import {waitFor} from '@testing-library/react'
 import useManagedCourseSearchApi from '../useManagedCourseSearchApi'
 import fakeENV from '@canvas/test-utils/fakeENV'

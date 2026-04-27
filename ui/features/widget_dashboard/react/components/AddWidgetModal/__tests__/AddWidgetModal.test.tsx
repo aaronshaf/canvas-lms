@@ -40,10 +40,6 @@ describe('AddWidgetModal', () => {
     targetRow: 2,
   }
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseWidgetLayout.mockReturnValue({

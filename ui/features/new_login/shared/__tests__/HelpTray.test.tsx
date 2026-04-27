@@ -50,10 +50,6 @@ const renderHelpTray = () => {
 }
 
 describe('HelpTray', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseNewLoginData.mockReturnValue({

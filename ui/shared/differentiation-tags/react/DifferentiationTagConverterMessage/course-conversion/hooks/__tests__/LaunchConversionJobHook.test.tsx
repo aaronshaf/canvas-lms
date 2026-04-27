@@ -16,8 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks'
-import {waitFor} from '@testing-library/react'
+import {act, renderHook, waitFor} from '@testing-library/react'
 import useLaunchConversionJobHook, {
   CONVERSION_JOB_COMPLETE,
   CONVERSION_JOB_FAILED,
@@ -63,7 +62,9 @@ describe('useLaunchConversionJobHook', () => {
   it('should update conversion job state when launchConversionJob is called', async () => {
     const {result} = renderHook(() => useLaunchConversionJobHook('1', false))
 
-    await result.current.launchConversionJob()
+    await act(async () => {
+      await result.current.launchConversionJob()
+    })
 
     expect(result.current.conversionJobState).toBe(CONVERSION_JOB_QUEUED)
     expect(result.current.conversionJobProgress).toBe(0)
@@ -110,7 +111,9 @@ describe('useLaunchConversionJobHook', () => {
 
     await waitFor(() => {
       expect(result.current.conversionJobState).toBe(CONVERSION_JOB_FAILED)
-      expect(result.current.conversionJobError).toBe('An error occurred while fetching job progress.')
+      expect(result.current.conversionJobError).toBe(
+        'An error occurred while fetching job progress.',
+      )
       expect(result.current.conversionJobProgress).toBe(0)
     })
   })

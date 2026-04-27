@@ -94,7 +94,6 @@ describe('SignIn', () => {
   })
 
   afterEach(() => {
-    cleanup()
     fakeENV.teardown()
   })
 

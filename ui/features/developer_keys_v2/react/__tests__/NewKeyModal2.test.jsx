@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {screen, render} from '@testing-library/react'
+import {screen, render, act, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import DeveloperKeyModal from '../NewKeyModal'
 import _devKeyActions from '../actions/developerKeysActions'
@@ -269,10 +269,12 @@ describe('NewKeyModal', () => {
       })
 
       // Set up the component state
-      ref.current.setState({
-        toolConfiguration: validToolConfig,
-        configurationMethod: 'manual',
-        hasRedirectUris: true,
+      act(() => {
+        ref.current.setState({
+          toolConfiguration: validToolConfig,
+          configurationMethod: 'manual',
+          hasRedirectUris: true,
+        })
       })
 
       // Mock the API response
@@ -327,10 +329,12 @@ describe('NewKeyModal', () => {
       })
 
       // Set up the component state
-      ref.current.setState({
-        toolConfiguration: validToolConfig,
-        configurationMethod: 'manual',
-        hasRedirectUris: true,
+      act(() => {
+        ref.current.setState({
+          toolConfiguration: validToolConfig,
+          configurationMethod: 'manual',
+          hasRedirectUris: true,
+        })
       })
 
       // Mock the API response with an error
@@ -390,9 +394,11 @@ describe('NewKeyModal', () => {
     })
 
     // Set the state directly to ensure the tool configuration is present
-    ref.current.setState({
-      toolConfiguration: validToolConfig,
-      configurationMethod: 'manual',
+    act(() => {
+      ref.current.setState({
+        toolConfiguration: validToolConfig,
+        configurationMethod: 'manual',
+      })
     })
 
     // Replace the saveLtiToolConfiguration method with our mock
@@ -413,7 +419,7 @@ describe('NewKeyModal', () => {
     expect(ltiStub).toHaveBeenCalled()
   })
 
-  it('clears state on modal close', () => {
+  it('clears state on modal close', async () => {
     const ltiStub = vi.fn()
     const actions = {
       ...fakeActions,
@@ -426,13 +432,19 @@ describe('NewKeyModal', () => {
     })
     const text = 'I should show up in the text'
 
-    ref.current.setState({toolConfiguration: {oidc_initiation_url: text}})
-    ref.current.closeModal()
+    act(() => {
+      ref.current.setState({toolConfiguration: {oidc_initiation_url: text}})
+    })
+    act(() => {
+      ref.current.closeModal()
+    })
 
-    expect(ref.current.state.toolConfiguration).toBeFalsy()
+    await waitFor(() => {
+      expect(ref.current.state.toolConfiguration).toBeFalsy()
+    })
   })
 
-  it('hasRedirectUris', () => {
+  it('hasRedirectUris', async () => {
     developerKey.redirect_uris = ''
 
     const {ref} = renderDeveloperKeyModal({
@@ -446,9 +458,13 @@ describe('NewKeyModal', () => {
 
     expect(ref.current.hasRedirectUris).toEqual(false)
 
-    ref.current.updateToolConfiguration(validToolConfig)
+    act(() => {
+      ref.current.updateToolConfiguration(validToolConfig)
+    })
 
-    expect(ref.current.hasRedirectUris).toEqual(true)
+    await waitFor(() => {
+      expect(ref.current.hasRedirectUris).toEqual(true)
+    })
   })
 
   describe('redirect_uris automatic setting', () => {

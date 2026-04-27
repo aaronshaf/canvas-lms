@@ -59,21 +59,11 @@ describe('UserDateRangeSearch', () => {
     const submit = screen.getByLabelText('Find')
     const expectedFromDate = new Date(`${fromDateValue}, ${fromTimeValue}`).toISOString()
 
-    await waitFor(() => {
-      fireEvent.input(fromDate, {target: {value: fromDateValue}})
-    })
-    await waitFor(() => {
-      fireEvent.blur(fromDate)
-    })
-    await waitFor(() => {
-      fireEvent.input(fromTime, {target: {value: fromTimeValue}})
-    })
-    await waitFor(() => {
-      fireEvent.blur(fromTime)
-    })
-    await waitFor(() => {
-      fireEvent.click(submit)
-    })
+    fireEvent.input(fromDate, {target: {value: fromDateValue}})
+    fireEvent.blur(fromDate)
+    fireEvent.input(fromTime, {target: {value: fromTimeValue}})
+    fireEvent.blur(fromTime)
+    await userEvent.click(submit)
 
     await waitFor(() => {
       expect(props.onSubmit).toHaveBeenCalledWith({from: expectedFromDate, to: undefined})
@@ -89,21 +79,11 @@ describe('UserDateRangeSearch', () => {
     const submit = screen.getByLabelText('Find')
     const expectedToDate = new Date(`${toDateValue}, ${toTimeValue}`).toISOString()
 
-    await waitFor(() => {
-      fireEvent.input(toDate, {target: {value: toDateValue}})
-    })
-    await waitFor(() => {
-      fireEvent.blur(toDate)
-    })
-    await waitFor(() => {
-      fireEvent.input(toTime, {target: {value: toTimeValue}})
-    })
-    await waitFor(() => {
-      fireEvent.blur(toTime)
-    })
-    await waitFor(() => {
-      fireEvent.click(submit)
-    })
+    fireEvent.input(toDate, {target: {value: toDateValue}})
+    fireEvent.blur(toDate)
+    fireEvent.input(toTime, {target: {value: toTimeValue}})
+    fireEvent.blur(toTime)
+    await userEvent.click(submit)
 
     await waitFor(() => {
       expect(props.onSubmit).toHaveBeenCalledWith({from: undefined, to: expectedToDate})
@@ -123,33 +103,15 @@ describe('UserDateRangeSearch', () => {
     const expectedFromDate = new Date(`${fromDateValue}, ${timeValue}`).toISOString()
     const expectedToDate = new Date(`${toDateValue}, ${timeValue}`).toISOString()
 
-    await waitFor(() => {
-      fireEvent.input(fromDate, {target: {value: fromDateValue}})
-    })
-    await waitFor(() => {
-      fireEvent.blur(fromDate)
-    })
-    await waitFor(() => {
-      fireEvent.input(fromTime, {target: {value: timeValue}})
-    })
-    await waitFor(() => {
-      fireEvent.blur(fromTime)
-    })
-    await waitFor(() => {
-      fireEvent.input(toDate, {target: {value: toDateValue}})
-    })
-    await waitFor(() => {
-      fireEvent.blur(toDate)
-    })
-    await waitFor(() => {
-      fireEvent.input(toTime, {target: {value: timeValue}})
-    })
-    await waitFor(() => {
-      fireEvent.blur(toTime)
-    })
-    await waitFor(() => {
-      fireEvent.click(submit)
-    })
+    fireEvent.input(fromDate, {target: {value: fromDateValue}})
+    fireEvent.blur(fromDate)
+    fireEvent.input(fromTime, {target: {value: timeValue}})
+    fireEvent.blur(fromTime)
+    fireEvent.input(toDate, {target: {value: toDateValue}})
+    fireEvent.blur(toDate)
+    fireEvent.input(toTime, {target: {value: timeValue}})
+    fireEvent.blur(toTime)
+    await userEvent.click(submit)
 
     await waitFor(() => {
       expect(props.onSubmit).toHaveBeenCalledWith({from: expectedFromDate, to: expectedToDate})

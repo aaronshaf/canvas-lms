@@ -18,7 +18,7 @@
 
 import $ from 'jquery'
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, act, waitFor} from '@testing-library/react'
 import AssignmentConfigurationTools from '../AssignmentConfigurationTools'
 
 let secureParams = null
@@ -166,7 +166,7 @@ describe('AssignmentConfigurationsTools', () => {
     expect(toolType.value).toBe('none')
   })
 
-  test('it renders each tool', () => {
+  test('it renders each tool', async () => {
     const ref = React.createRef()
     const wrapper = render(
       <AssignmentConfigurationTools.configTools
@@ -175,7 +175,9 @@ describe('AssignmentConfigurationsTools', () => {
         ref={ref}
       />,
     )
-    ref.current.setState({tools: toolDefinitions})
+    await act(async () => {
+      ref.current.setState({tools: toolDefinitions})
+    })
     expect(wrapper.container.querySelectorAll('#similarity_detection_tool option')).toHaveLength(
       toolDefinitions.length + 1,
     )
@@ -214,7 +216,7 @@ describe('AssignmentConfigurationsTools', () => {
     expect(computedUrl).toBe(correctUrl)
   })
 
-  test('it renders the proper tool type for LTI 1.x tools', () => {
+  test('it renders the proper tool type for LTI 1.x tools', async () => {
     const ref = React.createRef()
     const wrapper = render(
       <AssignmentConfigurationTools.configTools
@@ -223,16 +225,20 @@ describe('AssignmentConfigurationsTools', () => {
         ref={ref}
       />,
     )
-    ref.current.setState({tools: toolDefinitions})
+    await act(async () => {
+      ref.current.setState({tools: toolDefinitions})
+    })
     const toolSelect = wrapper.container.querySelector('#similarity_detection_tool')
     const toolType = wrapper.container.querySelector('#configuration-tool-type')
 
     toolSelect.options[1].selected = 'selected'
-    ref.current.setToolLaunchUrl()
-    expect(toolType.value).toBe('ContextExternalTool')
+    await act(async () => {
+      ref.current.setToolLaunchUrl()
+    })
+    await waitFor(() => expect(toolType.value).toBe('ContextExternalTool'))
   })
 
-  test('it renders the proper tool type for LTI 2 tools', () => {
+  test('it renders the proper tool type for LTI 2 tools', async () => {
     const ref = React.createRef()
     const wrapper = render(
       <AssignmentConfigurationTools.configTools
@@ -241,15 +247,19 @@ describe('AssignmentConfigurationsTools', () => {
         ref={ref}
       />,
     )
-    ref.current.setState({tools: toolDefinitions})
+    await act(async () => {
+      ref.current.setState({tools: toolDefinitions})
+    })
     const toolSelect = wrapper.container.querySelector('#similarity_detection_tool')
     const toolType = wrapper.container.querySelector('#configuration-tool-type')
     toolSelect.options[4].selected = 'selected'
-    ref.current.setToolLaunchUrl()
-    expect(toolType.value).toBe('Lti::MessageHandler')
+    await act(async () => {
+      ref.current.setToolLaunchUrl()
+    })
+    await waitFor(() => expect(toolType.value).toBe('Lti::MessageHandler'))
   })
 
-  test('it renders proper tool when duplicate IDs but unique tool types are present', () => {
+  test('it renders proper tool when duplicate IDs but unique tool types are present', async () => {
     const ref = React.createRef()
     const wrapper = render(
       <AssignmentConfigurationTools.configTools
@@ -260,7 +270,9 @@ describe('AssignmentConfigurationsTools', () => {
         selectedToolType="ContextExternalTool"
       />,
     )
-    ref.current.setState({tools: toolDefinitions})
+    await act(async () => {
+      ref.current.setState({tools: toolDefinitions})
+    })
     const selectBox = wrapper.container.querySelector('#similarity_detection_tool')
     expect(selectBox.value).toBe('ContextExternalTool_5')
   })

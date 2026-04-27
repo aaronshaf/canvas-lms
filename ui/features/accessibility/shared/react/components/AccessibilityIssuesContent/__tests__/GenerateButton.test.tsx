@@ -20,10 +20,6 @@ import {cleanup, render, screen} from '@testing-library/react'
 import {GenerateButton} from '../GenerateButton'
 
 describe('GenerateButton', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const defaultProps = {
     handleGenerateClick: vi.fn(),
     isLoading: false,

@@ -36,10 +36,6 @@ describe('AssignmentSection', () => {
     onNext: vi.fn(),
   }
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
   })

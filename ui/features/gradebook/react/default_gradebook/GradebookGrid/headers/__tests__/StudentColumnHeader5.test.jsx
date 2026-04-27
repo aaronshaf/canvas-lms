@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
 import studentRowHeaderConstants from '../../../constants/studentRowHeaderConstants'
@@ -228,19 +228,19 @@ describe('GradebookGrid StudentColumnHeader', () => {
       expect(menuButton).toHaveFocus()
     })
 
-    it('adds the "focused" class to the header when the "Options" menu trigger receives focus', () => {
+    it('adds the "focused" class to the header when the "Options" menu trigger receives focus', async () => {
       const {getByRole, container} = renderHeader()
       const menuButton = getByRole('button', {name: 'Student Name Options'})
       menuButton.focus()
-      expect(container.firstChild).toHaveClass('focused')
+      await waitFor(() => expect(container.firstChild).toHaveClass('focused'))
     })
 
-    it('removes the "focused" class from the header when focus leaves', () => {
+    it('removes the "focused" class from the header when focus leaves', async () => {
       const {getByRole, container} = renderHeader()
       const menuButton = getByRole('button', {name: 'Student Name Options'})
       menuButton.focus()
       menuButton.blur()
-      expect(container.firstChild).not.toHaveClass('focused')
+      await waitFor(() => expect(container.firstChild).not.toHaveClass('focused'))
     })
   })
 })

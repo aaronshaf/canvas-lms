@@ -22,10 +22,6 @@ import {AccessibilityIssue, FormType, IssueWorkflowState} from '../../../../type
 import RadioInputGroupForm from '../RadioInputGroupForm'
 
 describe('RadioInputGroupForm', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const createMockIssue = (options?: string[]): AccessibilityIssue => ({
     id: '1',
     ruleId: 'test-rule',

@@ -789,12 +789,9 @@ describe('canvas_quizzes/statistics', () => {
       const el = await findByTestId(node, 'summary-statistics')
 
       // Wait for the chart data to be properly rendered with more specific text
-      await waitFor(
-        () => {
-          expect(el.textContent).toContain('11 students scored above or at the average')
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(el.textContent).toContain('11 students scored above or at the average')
+      })
 
       // Now check the complete expected text
       expect(el.textContent).toContain(

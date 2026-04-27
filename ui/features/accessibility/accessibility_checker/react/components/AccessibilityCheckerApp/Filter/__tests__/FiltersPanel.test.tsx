@@ -50,10 +50,6 @@ describe('FiltersPanel', () => {
     })
   }
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
     mockMatchMedia(true)

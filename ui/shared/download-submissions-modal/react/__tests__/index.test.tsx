@@ -79,8 +79,9 @@ describe('DownloadSubmissionModal', () => {
 
   it('renders 100% progress and success text when the download is complete', async () => {
     const {getByTestId} = setUp()
-    await waitFor(() => expect(apiCallCount).toBe(1))
-    expect(await getByTestId('progress-value').textContent).toBe('100%')
+    await waitFor(() => expect(getByTestId('progress-value').textContent).toBe('100%'), {
+      timeout: 5000,
+    })
     expect(getByTestId('progress-text').textContent).toBe('Finished preparing 100 Bytes.')
   })
 
@@ -88,7 +89,7 @@ describe('DownloadSubmissionModal', () => {
     const {getByTestId} = setUp()
     await waitFor(() => expect(apiCallCount).toBe(1))
     const button = getByTestId('download_button')
-    expect(button).not.toHaveAttribute('disabled')
+    await waitFor(() => expect(button).not.toHaveAttribute('disabled'))
   })
 
   describe('error while downloading', () => {
@@ -104,8 +105,11 @@ describe('DownloadSubmissionModal', () => {
 
     it('renders error text', async () => {
       const {getByTestId} = setUp()
-      await waitFor(() => expect(apiCallCount).toBe(1))
-      expect(getByTestId('progress-text').textContent).toBe('Failed to gather and compress files.')
+      await waitFor(() =>
+        expect(getByTestId('progress-text').textContent).toBe(
+          'Failed to gather and compress files.',
+        ),
+      )
     })
 
     it('does not enable the download button', async () => {

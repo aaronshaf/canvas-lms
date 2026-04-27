@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {fireEvent, render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor, act} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React, {createRef} from 'react'
 import CreateTicketForm from '../CreateTicketForm'
@@ -345,12 +345,12 @@ describe('CreateTicketForm', () => {
       expect(onCancel).toHaveBeenCalled()
     })
 
-    it('allows parent component to reset form via ref', () => {
+    it('allows parent component to reset form via ref', async () => {
       const ref = createRef<{resetForm: () => void}>()
       const {getByTestId} = render(<CreateTicketForm ref={ref} {...props} />)
       fireEvent.change(getByTestId('subject-input'), {target: {value: 'Test subject'}})
-      ref.current?.resetForm()
-      expect(getByTestId('subject-input')).toHaveValue('')
+      await act(async () => ref.current?.resetForm())
+      await waitFor(() => expect(getByTestId('subject-input')).toHaveValue(''))
     })
   })
 

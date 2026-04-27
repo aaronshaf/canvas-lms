@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook, act} from '@testing-library/react-hooks'
+import {renderHook, act} from '@testing-library/react'
 import {cleanup} from '@testing-library/react'
 import {useObservedTranslations} from '../useObservedTranslations'
 import {useTranslationStore} from '../useTranslationStore'
@@ -80,7 +80,6 @@ describe('useObservedTranslations', () => {
   })
 
   afterEach(() => {
-    cleanup()
     vi.useRealTimers()
   })
 

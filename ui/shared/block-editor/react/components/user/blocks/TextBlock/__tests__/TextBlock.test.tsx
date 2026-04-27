@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, getNodeText, waitFor} from '@testing-library/react'
+import {act, render, getNodeText, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {Editor, Frame} from '@craftjs/core'
 import {TextBlock, type TextBlockProps} from '..'
@@ -57,18 +57,26 @@ describe('TextBlock', () => {
     it('should stop being editable on blur', async () => {
       const {container} = renderBlock(true, {text: 'some text'})
       const contentEditable = container.querySelector('[contenteditable]') as HTMLElement
-      ;(document.querySelector('.text-block') as HTMLElement).focus()
+      await act(async () => {
+        ;(document.querySelector('.text-block') as HTMLElement).focus()
+      })
       expect(contentEditable.getAttribute('contenteditable')).toBe('true')
 
-      document.getElementById('another-element')?.focus()
+      await act(async () => {
+        document.getElementById('another-element')?.focus()
+      })
       expect(contentEditable.getAttribute('contenteditable')).toBe('false')
     })
 
     it('should render active editable version on click', async () => {
       const {container} = renderBlock(true, {text: 'some text'})
       const contentEditable = container.querySelector('[contenteditable]') as HTMLElement
-      ;(document.querySelector('.text-block') as HTMLElement).focus()
-      document.getElementById('another-element')?.focus()
+      await act(async () => {
+        ;(document.querySelector('.text-block') as HTMLElement).focus()
+      })
+      await act(async () => {
+        document.getElementById('another-element')?.focus()
+      })
       expect(contentEditable.getAttribute('contenteditable')).toBe('false')
 
       await userEvent.click(contentEditable)

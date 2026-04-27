@@ -57,13 +57,13 @@ describe('GroupEditForm - Submit', () => {
       description: 'The Group Description',
     }
     const {getByLabelText, getByText} = render(<GroupEditForm {...defaultProps({initialValues})} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
 
     focusChange(getByLabelText('Group Name *'), 'New group name')
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
 
     fireEvent.click(getByText('Save'))
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
 
     expect(onSubmit).toHaveBeenCalledWith(
       {
@@ -77,19 +77,19 @@ describe('GroupEditForm - Submit', () => {
 
   it('does not save if form is invalid', async () => {
     const {getByLabelText, getByText} = render(<GroupEditForm {...defaultProps()} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     const groupTitle = getByLabelText('Group Name *')
     fireEvent.change(groupTitle, {target: {value: 'a'.repeat(256)}})
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(groupTitle.value).toBe('a'.repeat(256))
     getByText('Save').closest('button').click()
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(onSubmit).not.toHaveBeenCalled()
     fireEvent.change(groupTitle, {target: {value: 'a'.repeat(255)}})
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(groupTitle.value).toBe('a'.repeat(255))
     getByText('Save').closest('button').click()
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(onSubmit).toHaveBeenCalled()
   })
 })

@@ -20,7 +20,7 @@ import React from 'react'
 import {render} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {setupServer} from 'msw/node'
-import {graphql, HttpResponse} from 'msw'
+import {graphql, http, HttpResponse} from 'msw'
 import {ContextModuleProvider, contextModuleDefaultProps} from '../../hooks/useModuleContext'
 import ModuleHeader from '../ModuleHeader'
 import {PAGE_SIZE, MODULE_ITEMS, MODULES} from '../../utils/constants'
@@ -37,6 +37,7 @@ vi.mock('@canvas/context-modules/react/publishing/publishingContext', async () =
 })
 
 const server = setupServer(
+  http.get('/api/v1/courses/:courseId/folders/root', () => HttpResponse.json({})),
   graphql.query('GetModuleItemsQuery', () => {
     return HttpResponse.json({
       data: {

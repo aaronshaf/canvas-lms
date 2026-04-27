@@ -96,6 +96,7 @@ describe('CommentsTrayBody - read/unread comments', () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     fakeENV.teardown()
   })
 
@@ -121,9 +122,11 @@ describe('CommentsTrayBody - read/unread comments', () => {
 
     render(mockContext(<CommentsTrayBody {...props} />, mocks))
 
-    await act(() => vi.runAllTimers())
+    await act(() => vi.advanceTimersByTime(3000)) // fires the read-marking timeout
+    await act(() => vi.runOnlyPendingTimers()) // fires mutation → Apollo schedules setTimeout(0)
+    await act(() => vi.runOnlyPendingTimers()) // drains Apollo's response timer
 
-    await waitFor(() => expect(mockMutation).toHaveBeenCalledWith(), {timeout: 3000})
+    await waitFor(() => expect(mockMutation).toHaveBeenCalledWith())
   })
 
   it('does not mark submission comments as read for observers', async () => {
@@ -156,7 +159,7 @@ describe('CommentsTrayBody - read/unread comments', () => {
       ),
     )
 
-    await act(() => vi.runAllTimers())
+    await act(() => vi.runOnlyPendingTimers())
 
     expect(mockMutation).not.toHaveBeenCalled()
   })
@@ -181,8 +184,9 @@ describe('CommentsTrayBody - read/unread comments', () => {
 
     render(mockContext(<CommentsTrayBody {...props} />, mocks))
 
-    await act(() => vi.advanceTimersByTime(3000))
-    await act(() => vi.runAllTimers())
+    await act(() => vi.advanceTimersByTime(3000)) // fires the read-marking timeout
+    await act(() => vi.runOnlyPendingTimers()) // fires mutation → Apollo schedules setTimeout(0)
+    await act(() => vi.runOnlyPendingTimers()) // drains Apollo's response timer
 
     expect(mockedSetOnFailure).toHaveBeenCalledWith(
       'There was a problem marking submission comments as read',
@@ -215,8 +219,9 @@ describe('CommentsTrayBody - read/unread comments', () => {
 
     render(mockContext(<CommentsTrayBody {...props} />, mocks))
 
-    await act(() => vi.advanceTimersByTime(3000))
-    await act(() => vi.runAllTimers())
+    await act(() => vi.advanceTimersByTime(3000)) // fires the read-marking timeout
+    await act(() => vi.runOnlyPendingTimers()) // fires mutation → Apollo schedules setTimeout(0)
+    await act(() => vi.runOnlyPendingTimers()) // drains Apollo's response timer
 
     expect(mockedSetOnSuccess).toHaveBeenCalledWith(
       'All submission comments have been marked as read',

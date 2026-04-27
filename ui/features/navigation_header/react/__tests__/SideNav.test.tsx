@@ -42,7 +42,6 @@ const baseEnvConfig = {
 
 describe('SideNav', () => {
   afterEach(() => {
-    cleanup()
     fakeENV.teardown()
   })
 

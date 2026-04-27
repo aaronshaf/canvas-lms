@@ -216,7 +216,6 @@ vi.mock('../MediaRecordingSubmissionDisplay', () => ({
 
 describe('AssignmentSubmission', () => {
   afterEach(() => {
-    cleanup()
     mockOnSuccessfulPeerReview = null
     vi.clearAllMocks()
   })

@@ -215,7 +215,7 @@ class FileBrowser extends React.Component {
       const newCollections = cloneDeep(collections)
       fileList.forEach(file => {
         if (this.contentTypeIsAllowed(file['content-type'])) {
-          const item = this.formatFileInfo(file)
+          const item = this.formatFileInfo(file, {}, newCollections)
           newItems[item.id] = item
           const folder_id = file.folder_id
           const collectionItems = newCollections[folder_id].items
@@ -254,8 +254,7 @@ class FileBrowser extends React.Component {
     return folder
   }
 
-  formatFileInfo(apiFile, opts = {}) {
-    const {collections} = this.state
+  formatFileInfo(apiFile, opts = {}, collections = this.state.collections) {
     const context = collections[apiFile.folder_id].context
     const file = {
       api: apiFile,

@@ -38,7 +38,10 @@ vi.mock('@canvas/breakpoints', async () => ({
 
 const mockTrackA11yEvent = vi.fn()
 
-const server = setupServer()
+const server = setupServer(
+  http.get('/api/v1/accounts/123/accessibility_issue_summary', () => HttpResponse.json({})),
+  http.get('/api/v1/accounts/123/terms', () => HttpResponse.json({enrollment_terms: []})),
+)
 
 describe('AccessibilityCoursesPage', () => {
   let queryClient: QueryClient

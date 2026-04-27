@@ -74,15 +74,16 @@ describe('AssignmentPostingPolicyTray ScheduledRelease - Save Validation', () =>
 
   it('prevents save and shows error when scheduled release is checked in shared mode but no date is entered', async () => {
     context.assignment.postManually = false
-    const {getByTestId} = renderTray(context)
+    const {findByTestId} = renderTray(context)
+    await waitFor(() => expect(getTray()).toBeInTheDocument())
     await userEvent.click(getInput('Manually'))
 
-    const checkbox = getByTestId('scheduled-release-checkbox')
+    const checkbox = await findByTestId('scheduled-release-checkbox')
     await userEvent.click(checkbox)
     expect(checkbox).toBeChecked()
 
     // Shared mode should be selected by default
-    const sharedRadio = getByTestId('shared-scheduled-post')
+    const sharedRadio = await findByTestId('shared-scheduled-post')
     expect(sharedRadio).toBeChecked()
 
     const saveButton = getSaveButton()
@@ -95,16 +96,17 @@ describe('AssignmentPostingPolicyTray ScheduledRelease - Save Validation', () =>
 
   it('prevents save and shows error when scheduled release is checked in separate mode but no dates are entered', async () => {
     context.assignment.postManually = false
-    const {getByTestId} = renderTray(context)
+    const {findByTestId} = renderTray(context)
+    await waitFor(() => expect(getTray()).toBeInTheDocument())
     await userEvent.click(getInput('Manually'))
-    const checkbox = getByTestId('scheduled-release-checkbox')
+    const checkbox = await findByTestId('scheduled-release-checkbox')
 
     // Enable scheduled release options
     await userEvent.click(checkbox)
     expect(checkbox).toBeChecked()
 
     // Select separate mode
-    const separateRadio = getByTestId('separate-scheduled-post')
+    const separateRadio = await findByTestId('separate-scheduled-post')
     await userEvent.click(separateRadio)
     expect(separateRadio).toBeChecked()
 
@@ -118,20 +120,20 @@ describe('AssignmentPostingPolicyTray ScheduledRelease - Save Validation', () =>
   })
 
   it('prevents save and shows error when scheduled release is in separate mode and only grades date is entered', async () => {
-    const {getByTestId, getAllByPlaceholderText} = renderTray(context)
-    const checkbox = getByTestId('scheduled-release-checkbox')
+    const {findByTestId, findAllByPlaceholderText} = renderTray(context)
+    const checkbox = await findByTestId('scheduled-release-checkbox')
 
     // Enable scheduled release options
     await userEvent.click(checkbox)
     expect(checkbox).toBeChecked()
 
     // Select separate mode
-    const separateRadio = getByTestId('separate-scheduled-post')
+    const separateRadio = await findByTestId('separate-scheduled-post')
     await userEvent.click(separateRadio)
     expect(separateRadio).toBeChecked()
 
     // Enter only grades date
-    const dateInputs = getAllByPlaceholderText('Select Date')
+    const dateInputs = await findAllByPlaceholderText('Select Date')
     const futureDate = new Date()
     futureDate.setDate(futureDate.getDate() + 1)
     const futureDateString = futureDate.toISOString().slice(0, 16)
@@ -150,20 +152,20 @@ describe('AssignmentPostingPolicyTray ScheduledRelease - Save Validation', () =>
   })
 
   it('prevents save and shows error when scheduled release is in separate mode and only comments date is entered', async () => {
-    const {getByTestId, getAllByPlaceholderText} = renderTray(context)
-    const checkbox = getByTestId('scheduled-release-checkbox')
+    const {findByTestId, findAllByPlaceholderText} = renderTray(context)
+    const checkbox = await findByTestId('scheduled-release-checkbox')
 
     // Enable scheduled release options
     await userEvent.click(checkbox)
     expect(checkbox).toBeChecked()
 
     // Select separate mode
-    const separateRadio = getByTestId('separate-scheduled-post')
+    const separateRadio = await findByTestId('separate-scheduled-post')
     await userEvent.click(separateRadio)
     expect(separateRadio).toBeChecked()
 
     // Enter only comments date
-    const dateInputs = getAllByPlaceholderText('Select Date')
+    const dateInputs = await findAllByPlaceholderText('Select Date')
     const futureDate = new Date()
     futureDate.setDate(futureDate.getDate() + 1)
     const futureDateString = futureDate.toISOString().slice(0, 16)
@@ -183,19 +185,19 @@ describe('AssignmentPostingPolicyTray ScheduledRelease - Save Validation', () =>
   }, 10000)
 
   it('allows save when scheduled release is checked in shared mode and valid date is entered', async () => {
-    const {getByTestId, getByPlaceholderText} = renderTray(context)
-    const checkbox = getByTestId('scheduled-release-checkbox')
+    const {findByTestId, findByPlaceholderText} = renderTray(context)
+    const checkbox = await findByTestId('scheduled-release-checkbox')
 
     // Enable scheduled release options
     await userEvent.click(checkbox)
     expect(checkbox).toBeChecked()
 
     // Shared mode should be selected by default
-    const sharedRadio = getByTestId('shared-scheduled-post')
+    const sharedRadio = await findByTestId('shared-scheduled-post')
     expect(sharedRadio).toBeChecked()
 
     // Enter a valid future date
-    const sharedDateInput = getByPlaceholderText('Choose release date')
+    const sharedDateInput = await findByPlaceholderText('Choose release date')
     const futureDate = new Date()
     futureDate.setDate(futureDate.getDate() + 1)
     const futureDateString = futureDate.toISOString().slice(0, 16)
@@ -213,20 +215,20 @@ describe('AssignmentPostingPolicyTray ScheduledRelease - Save Validation', () =>
   })
 
   it('allows save when scheduled release is checked in separate mode and both valid dates are entered', async () => {
-    const {getByTestId, getAllByPlaceholderText} = renderTray(context)
-    const checkbox = getByTestId('scheduled-release-checkbox')
+    const {findByTestId, findAllByPlaceholderText} = renderTray(context)
+    const checkbox = await findByTestId('scheduled-release-checkbox')
 
     // Enable scheduled release options
     await userEvent.click(checkbox)
     expect(checkbox).toBeChecked()
 
     // Select separate mode
-    const separateRadio = getByTestId('separate-scheduled-post')
+    const separateRadio = await findByTestId('separate-scheduled-post')
     await userEvent.click(separateRadio)
     expect(separateRadio).toBeChecked()
 
     // Enter valid future dates for both fields
-    const dateInputs = getAllByPlaceholderText('Select Date')
+    const dateInputs = await findAllByPlaceholderText('Select Date')
     const futureDate1 = new Date()
     futureDate1.setDate(futureDate1.getDate() + 1)
     const futureDateString1 = futureDate1.toISOString().slice(0, 16)

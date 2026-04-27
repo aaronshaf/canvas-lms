@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {act, render, screen, waitFor} from '@testing-library/react'
 
 import ImageOptionsTray from '..'
 import ImageOptionsTrayDriver from './ImageOptionsTrayDriver'
@@ -324,10 +324,13 @@ describe('RCE "Images" Plugin > ImageOptionsTray', () => {
           expect(altText).toEqual('')
         })
 
-        it('ensures there is an Alt Text when the "is decorative" setting is true', () => {
+        it('ensures there is an Alt Text when the "is decorative" setting is true', async () => {
           tray.setAltText('')
-          tray.setIsDecorativeImage(true)
+          await act(async () => {
+            tray.setIsDecorativeImage(true)
+          })
           tray.$doneButton.click()
+          await waitFor(() => expect(props.onSave).toHaveBeenCalled())
           const [{altText}] = props.onSave.mock.calls[0]
           expect(altText).toEqual('')
         })

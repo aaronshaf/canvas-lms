@@ -26,7 +26,6 @@ describe('FeedbackQuestionTile', () => {
   })
 
   afterEach(() => {
-    cleanup()
     sessionStorage.clear()
   })
 

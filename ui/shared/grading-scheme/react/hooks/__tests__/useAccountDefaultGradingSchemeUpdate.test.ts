@@ -19,7 +19,7 @@
 import {useAccountDefaultGradingSchemeUpdate} from '../useAccountDefaultGradingSchemeUpdate'
 import {ApiCallStatus} from '../ApiCallStatus'
 
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 
@@ -33,13 +33,11 @@ describe('useAccountDefaultGradingSchemeUpdateHook', () => {
   afterAll(() => server.close())
 
   it('renders for course context without error', () => {
-    const {result} = renderHook(() => useAccountDefaultGradingSchemeUpdate())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useAccountDefaultGradingSchemeUpdate())
   })
 
   it('renders for account context without error', () => {
-    const {result} = renderHook(() => useAccountDefaultGradingSchemeUpdate())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useAccountDefaultGradingSchemeUpdate())
   })
 
   it('makes a POST request for account context to update a grading scheme', async () => {
@@ -59,10 +57,10 @@ describe('useAccountDefaultGradingSchemeUpdateHook', () => {
     )
 
     const {result} = renderHook(() => useAccountDefaultGradingSchemeUpdate())
-    const loadedGradingScheme = await result.current.updateAccountDefaultGradingScheme(
-      accountId,
-      '99',
-    )
+    let loadedGradingScheme: any
+    await act(async () => {
+      loadedGradingScheme = await result.current.updateAccountDefaultGradingScheme(accountId, '99')
+    })
 
     expect(capturedPath).toBe(`/accounts/${accountId}/grading_schemes/account_default`)
     expect(capturedBody).toEqual({id: '99'})

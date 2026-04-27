@@ -42,10 +42,6 @@ const makeProps = (props = {}): StudentHeaderProps => {
 }
 
 describe('StudentHeader', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   it('renders a "Student" cell', () => {
     render(<StudentHeader {...makeProps()} />)
     expect(screen.getAllByText('Students')[0]).toBeInTheDocument()

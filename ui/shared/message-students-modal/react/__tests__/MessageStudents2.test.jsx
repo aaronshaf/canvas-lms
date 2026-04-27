@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, act, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -52,32 +52,24 @@ describe('MessageStudents', () => {
 
   beforeEach(() => {
     user = userEvent.setup({delay: null})
-    vi.useFakeTimers()
   })
 
   afterEach(() => {
     vi.clearAllMocks()
-    vi.clearAllTimers()
-    vi.useRealTimers()
   })
 
   describe('form validation', () => {
     it('displays validation error when submitting without subject', async () => {
       renderMessageStudents()
-      await act(async () => {
-        await user.click(screen.getByTestId('message-students-submit'))
-        vi.runAllTimers()
-      })
+      await user.click(screen.getByTestId('message-students-submit'))
       expect(screen.getByText(/please provide a subject/i)).toBeInTheDocument()
     })
   })
 
   describe('message submission', () => {
     const fillForm = async () => {
-      await act(async () => {
-        await user.type(screen.getByLabelText(/subject/i), 'Test Subject')
-        await user.type(screen.getByLabelText(/body/i), 'Test Message')
-      })
+      await user.type(screen.getByLabelText(/subject/i), 'Test Subject')
+      await user.type(screen.getByLabelText(/body/i), 'Test Message')
     }
 
     it('handles server error', async () => {
@@ -91,10 +83,7 @@ describe('MessageStudents', () => {
 
       renderMessageStudents()
       await fillForm()
-      await act(async () => {
-        await user.click(screen.getByTestId('message-students-submit'))
-        vi.runAllTimers()
-      })
+      await user.click(screen.getByTestId('message-students-submit'))
       const errorMessage = await screen.findByText('Invalid subject')
       expect(errorMessage).toBeInTheDocument()
     })
@@ -103,14 +92,9 @@ describe('MessageStudents', () => {
       const onRequestClose = vi.fn()
       renderMessageStudents({onRequestClose})
       await fillForm()
-      await act(async () => {
-        await user.click(screen.getByTestId('message-students-submit'))
-      })
+      await user.click(screen.getByTestId('message-students-submit'))
       await screen.findByText('Your message was sent!')
-      await act(async () => {
-        vi.runAllTimers()
-      })
-      expect(onRequestClose).toHaveBeenCalled()
+      await waitFor(() => expect(onRequestClose).toHaveBeenCalled())
     })
   })
 
@@ -118,10 +102,7 @@ describe('MessageStudents', () => {
     it('closes when clicking close button', async () => {
       const onRequestClose = vi.fn()
       renderMessageStudents({onRequestClose})
-      await act(async () => {
-        await user.click(screen.getByTestId('message-students-cancel'))
-        vi.runAllTimers()
-      })
+      await user.click(screen.getByTestId('message-students-cancel'))
       expect(onRequestClose).toHaveBeenCalled()
     })
   })

@@ -146,12 +146,9 @@ describe('InboxSettingsModalContainer', () => {
       const {findByText, findByTestId} = setup({...defaultProps()})
       await findByTestId('inbox-signature-input')
       fireEvent.click(await findByText('Save'))
-      await waitFor(
-        () => {
-          expect(onDismissWithAlertMock).toHaveBeenCalledWith(SAVE_SETTINGS_OK)
-        },
-        {timeout: 5000},
-      )
+      await waitFor(() => {
+        expect(onDismissWithAlertMock).toHaveBeenCalledWith(SAVE_SETTINGS_OK)
+      })
     })
 
     it('calls onDismissWithAlert with SAVE_SETTINGS_FAIL when GraphQL mutation fails', async () => {
@@ -159,12 +156,9 @@ describe('InboxSettingsModalContainer', () => {
       const {findByText, findByTestId} = setup({...defaultProps()})
       await findByTestId('inbox-signature-input')
       fireEvent.click(await findByText('Save'))
-      await waitFor(
-        () => {
-          expect(onDismissWithAlertMock).toHaveBeenCalledWith(SAVE_SETTINGS_FAIL)
-        },
-        {timeout: 5000},
-      )
+      await waitFor(() => {
+        expect(onDismissWithAlertMock).toHaveBeenCalledWith(SAVE_SETTINGS_FAIL)
+      })
     })
 
     describe('when useSignature gets enabled', () => {
@@ -193,7 +187,7 @@ describe('InboxSettingsModalContainer', () => {
         await user.click(startDateInput)
         await user.tab()
         await user.keyboard('[Space]')
-        await waitFor(() => expect(screen.getByText('15')).toBeInTheDocument(), {timeout: 3000})
+        await waitFor(() => expect(screen.getByText('15')).toBeInTheDocument())
         await user.click(screen.getByText('15').closest('button'))
 
         // Open end date picker
@@ -201,7 +195,7 @@ describe('InboxSettingsModalContainer', () => {
         await user.click(endDateInput)
         await user.tab()
         await user.keyboard('[Space]')
-        await waitFor(() => expect(screen.getByText('16')).toBeInTheDocument(), {timeout: 3000})
+        await waitFor(() => expect(screen.getByText('16')).toBeInTheDocument())
         await user.click(screen.getByText('16').closest('button'))
 
         await user.click(await findByText('Save'))
@@ -223,7 +217,7 @@ describe('InboxSettingsModalContainer', () => {
         await user.click(endDateInput)
         await user.tab()
         await user.keyboard('[Space]')
-        await waitFor(() => expect(screen.getByText('15')).toBeInTheDocument(), {timeout: 3000})
+        await waitFor(() => expect(screen.getByText('15')).toBeInTheDocument())
         await user.click(screen.getByText('15').closest('button'))
 
         // Set start date later (April 16)
@@ -231,7 +225,7 @@ describe('InboxSettingsModalContainer', () => {
         await user.click(startDateInput)
         await user.tab()
         await user.keyboard('[Space]')
-        await waitFor(() => expect(screen.getByText('16')).toBeInTheDocument(), {timeout: 3000})
+        await waitFor(() => expect(screen.getByText('16')).toBeInTheDocument())
         await user.click(screen.getByText('16').closest('button'))
 
         // Click save and wait for validation
@@ -284,7 +278,7 @@ describe('InboxSettingsModalContainer', () => {
         await user.click(startDateInput)
         await user.tab()
         await user.keyboard('[Space]')
-        await waitFor(() => expect(screen.getByText('15')).toBeInTheDocument(), {timeout: 3000})
+        await waitFor(() => expect(screen.getByText('15')).toBeInTheDocument())
         await user.click(screen.getByText('15').closest('button'))
         await user.click(await findByText('Save'))
         await waitFor(() => {

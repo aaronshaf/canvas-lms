@@ -156,7 +156,7 @@ describe('CreateOutcomeModal', () => {
         })
         await user.click(getByText('Root account folder'))
         await user.click(getByText('Create'))
-        await act(async () => vi.runAllTimersAsync())
+        await act(async () => vi.runOnlyPendingTimersAsync())
         expect(showFlashAlert).toHaveBeenCalledWith({
           message: '"Outcome 123" was successfully created.',
           type: 'success',
@@ -248,7 +248,7 @@ describe('CreateOutcomeModal', () => {
           fireEvent.change(getByLabelText('Name'), {target: {value: 'Outcome 123'}})
           fireEvent.change(getByLabelText('Friendly Name'), {target: {value: 'Display name'}})
           await user.click(getByText('Create'))
-          await act(async () => vi.runAllTimersAsync())
+          await act(async () => vi.runOnlyPendingTimersAsync())
           // if setFriendlyDescription mutation is called the expectation below will fail
           expect(showFlashAlert).toHaveBeenCalledWith({
             message: '"Outcome 123" was successfully created.',

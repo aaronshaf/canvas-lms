@@ -29,10 +29,6 @@ vi.mock('../../../hooks/useFetchInsights')
 const mockedUseInsight = useInsight as any
 
 describe('DiscussionInsights', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     const mockState = {
       context: 'test-context',

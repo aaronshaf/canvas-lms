@@ -182,10 +182,10 @@ describe('AppsTableInner', () => {
       },
     })
 
-    expect(wrapper.getByTestId(`actions-menu-1`)).toBeInTheDocument()
-    wrapper.getByTestId(`actions-menu-1`).click()
+    await waitFor(() => expect(wrapper.getByTestId(`actions-menu-1`)).toBeInTheDocument())
+    fireEvent.click(wrapper.getByTestId(`actions-menu-1`))
     expect(wrapper.queryByText('Edit App')).not.toBeInTheDocument()
-    expect(wrapper.queryByText('Copy Client ID')).toBeInTheDocument()
+    await waitFor(() => expect(wrapper.queryByText('Copy Client ID')).toBeInTheDocument())
   })
 
   it('shows the created by and updated by fields as Instructure for site admin registrations', async () => {

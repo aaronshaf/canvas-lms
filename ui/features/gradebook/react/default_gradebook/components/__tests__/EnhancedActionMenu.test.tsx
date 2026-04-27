@@ -110,7 +110,6 @@ describe('EnhancedActionMenu', () => {
   })
 
   afterEach(() => {
-    cleanup()
     fakeENV.teardown()
     vi.clearAllMocks()
     vi.restoreAllMocks()
@@ -518,7 +517,9 @@ describe('EnhancedActionMenu', () => {
       await waitFor(() => {
         expect(appLaunch).toHaveBeenCalled()
       })
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
       vi.useRealTimers()
     })
   })

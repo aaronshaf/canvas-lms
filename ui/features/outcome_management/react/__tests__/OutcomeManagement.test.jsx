@@ -71,7 +71,7 @@ describe('OutcomeManagement', () => {
         </MockedProvider>,
       )
       expect(getByText(/^Loading$/)).toBeInTheDocument() // spinner
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(getByTestId('managementHeader')).toBeInTheDocument()
     })
 
@@ -85,7 +85,7 @@ describe('OutcomeManagement', () => {
         </MockedProvider>,
       )
       expect(getByText(/^Loading$/)).toBeInTheDocument() // spinner
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       fireEvent.click(getByText('Add'))
       fireEvent.click(getByText('Import'))
       const fileDrop = getByLabelText(/Upload your Outcomes!/i)
@@ -104,7 +104,7 @@ describe('OutcomeManagement', () => {
         </MockedProvider>,
       )
       expect(getByText(/^Loading$/)).toBeInTheDocument() // spinner
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(showOutcomesImporterIfInProgress).toHaveBeenCalledTimes(1)
       expect(showOutcomesImporterIfInProgress).toHaveBeenCalledWith(
         {
@@ -120,7 +120,7 @@ describe('OutcomeManagement', () => {
       fireEvent.click(getByText('Calculation'))
       fireEvent.click(getByText('Manage'))
       expect(showOutcomesImporterIfInProgress).toHaveBeenCalledTimes(2)
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(getByTestId('outcomeManagementPanel')).toBeInTheDocument()
     })
 
@@ -136,7 +136,7 @@ describe('OutcomeManagement', () => {
           <OutcomeManagement />
         </MockedProvider>,
       )
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(getByText('Manage')).toBeInTheDocument()
       expect(getByText('Mastery')).toBeInTheDocument()
       expect(getByText('Calculation')).toBeInTheDocument()
@@ -149,7 +149,7 @@ describe('OutcomeManagement', () => {
           <OutcomeManagement />
         </MockedProvider>,
       )
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(getByText('Manage')).toBeInTheDocument()
       expect(queryByText('Mastery')).not.toBeInTheDocument()
       expect(queryByText('Calculation')).not.toBeInTheDocument()
@@ -170,7 +170,7 @@ describe('OutcomeManagement', () => {
               <OutcomeManagement />
             </MockedProvider>,
           )
-          await act(async () => vi.runAllTimers())
+          await act(async () => vi.runOnlyPendingTimers())
           expect(getByText('Alignments')).toBeInTheDocument()
         })
 
@@ -181,7 +181,7 @@ describe('OutcomeManagement', () => {
               <OutcomeManagement />
             </MockedProvider>,
           )
-          await act(async () => vi.runAllTimers())
+          await act(async () => vi.runOnlyPendingTimers())
           expect(queryByText('Alignments')).not.toBeInTheDocument()
         })
 
@@ -192,7 +192,7 @@ describe('OutcomeManagement', () => {
               <OutcomeManagement />
             </MockedProvider>,
           )
-          await act(async () => vi.runAllTimers())
+          await act(async () => vi.runOnlyPendingTimers())
           expect(queryByText('Alignments')).not.toBeInTheDocument()
         })
       })
@@ -205,7 +205,7 @@ describe('OutcomeManagement', () => {
               <OutcomeManagement />
             </MockedProvider>,
           )
-          await act(async () => vi.runAllTimers())
+          await act(async () => vi.runOnlyPendingTimers())
           expect(queryByText('Alignments')).not.toBeInTheDocument()
         })
       })
@@ -222,7 +222,7 @@ describe('OutcomeManagement', () => {
             <OutcomeManagement />
           </MockedProvider>,
         )
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         expect(queryByText('Alignments')).not.toBeInTheDocument()
       })
     })

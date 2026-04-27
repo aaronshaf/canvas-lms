@@ -25,10 +25,6 @@ const defaultProps = {
 }
 
 describe('TutorialTrayContent', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   it('renders with required props', () => {
     const {getByText} = render(<TutorialTrayContent {...defaultProps} />)
 

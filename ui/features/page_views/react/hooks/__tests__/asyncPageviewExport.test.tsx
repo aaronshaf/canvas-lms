@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook, act} from '@testing-library/react-hooks'
+import {renderHook, act} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {
@@ -301,7 +301,9 @@ describe('useAsyncPageviewJobs', () => {
       const {result} = renderHook(() => useAsyncPageviewJobs(defaultKey, defaultUserId))
       const [, , , , getDownloadUrl] = result.current
 
-      await expect(getDownloadUrl(job)).rejects.toThrow('No content available for download')
+      await act(async () => {
+        await expect(getDownloadUrl(job)).rejects.toThrow('No content available for download')
+      })
 
       const [jobs] = result.current
       expect(jobs[0].status).toBe(AsyncPageViewJobStatus.Empty)
@@ -320,7 +322,9 @@ describe('useAsyncPageviewJobs', () => {
       const {result} = renderHook(() => useAsyncPageviewJobs(defaultKey, defaultUserId))
       const [, , , , getDownloadUrl] = result.current
 
-      await expect(getDownloadUrl(job)).rejects.toThrow('doFetchApi received a bad response: 404')
+      await act(async () => {
+        await expect(getDownloadUrl(job)).rejects.toThrow('doFetchApi received a bad response: 404')
+      })
 
       const [jobs] = result.current
       expect(jobs).toHaveLength(0) // Job should be removed

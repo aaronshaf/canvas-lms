@@ -19,7 +19,7 @@
 import {merge} from 'es-toolkit/compat'
 import ConversationStatusFilter from '../ConversationStatusFilter'
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, act} from '@testing-library/react'
 
 const makeProps = (props = {}) =>
   merge(
@@ -81,18 +81,18 @@ describe('ConversationStatusFilter component', () => {
     expect(instance2.getUrlFilter('jar=jar')).toStrictEqual('bar')
   })
 
-  test('updateBackboneState only allows valid filters', () => {
+  test('updateBackboneState only allows valid filters', async () => {
     const ref = React.createRef()
     render(<ConversationStatusFilter {...makeProps()} ref={ref} />)
     const instance = ref.current
 
-    instance.updateBackboneState('foo')
+    await act(async () => instance.updateBackboneState('foo'))
     expect(instance.state.selected).toStrictEqual('foo')
 
-    instance.updateBackboneState('bar')
+    await act(async () => instance.updateBackboneState('bar'))
     expect(instance.state.selected).toStrictEqual('bar')
 
-    instance.updateBackboneState('NOT_A_VALID_FILTER')
+    await act(async () => instance.updateBackboneState('NOT_A_VALID_FILTER'))
     expect(instance.state.selected).toStrictEqual('foo')
   })
 })

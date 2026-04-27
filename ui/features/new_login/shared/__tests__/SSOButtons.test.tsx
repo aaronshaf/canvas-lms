@@ -22,10 +22,6 @@ import {MemoryRouter} from 'react-router-dom'
 import {SSOButtons} from '..'
 import {NewLoginDataProvider, NewLoginProvider} from '../../context'
 
-afterEach(() => {
-  cleanup()
-})
-
 describe('SSOButtons', () => {
   it('mounts without crashing', () => {
     render(

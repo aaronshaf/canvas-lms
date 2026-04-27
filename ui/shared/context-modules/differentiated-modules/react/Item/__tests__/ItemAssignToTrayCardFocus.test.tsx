@@ -45,7 +45,6 @@ describe('ItemAssignToTray - Card Focus', () => {
     server.resetHandlers()
     teardownEnv()
     clearQueryCache()
-    cleanup()
   })
 
   afterAll(() => {

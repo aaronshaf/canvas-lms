@@ -21,10 +21,6 @@ import React from 'react'
 import {Background} from '..'
 import {NewLoginDataProvider, NewLoginProvider} from '../../context'
 
-afterEach(() => {
-  cleanup()
-})
-
 describe('Background', () => {
   it('mounts without crashing', () => {
     render(

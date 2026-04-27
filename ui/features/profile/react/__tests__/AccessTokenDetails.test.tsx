@@ -60,7 +60,6 @@ describe('AccessTokenDetails', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
     fakeENV.teardown()
   })
@@ -80,12 +79,9 @@ describe('AccessTokenDetails', () => {
     expect(spinner).toBeInTheDocument()
 
     // Wait for the fetch to complete with a more resilient approach
-    await waitFor(
-      () => {
-        expect(requestReceived).toHaveBeenCalled()
-      },
-      {timeout: 2000},
-    ) // Increase timeout for stability
+    await waitFor(() => {
+      expect(requestReceived).toHaveBeenCalled()
+    }) // Increase timeout for stability
   })
 
   it('should NOT fetch the data if the token is present', async () => {
@@ -103,12 +99,9 @@ describe('AccessTokenDetails', () => {
     expect(spinner).not.toBeInTheDocument()
 
     // Use a more reliable approach to verify no fetch was made
-    await waitFor(
-      () => {
-        expect(requestReceived).not.toHaveBeenCalled()
-      },
-      {timeout: 1000},
-    )
+    await waitFor(() => {
+      expect(requestReceived).not.toHaveBeenCalled()
+    })
   })
 
   it('should show an error if the initial fetch request fails', async () => {
@@ -124,7 +117,6 @@ describe('AccessTokenDetails', () => {
     const error = await screen.findByText(
       'Failed to load access token details. Please try again later.',
       {},
-      {timeout: 2000},
     )
     expect(error).toBeInTheDocument()
   })
@@ -199,12 +191,12 @@ describe('AccessTokenDetails', () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockImplementationOnce(() => true)
 
     render(<AccessTokenDetails {...props} />)
-    const regenerateButton = await screen.findByText('Regenerate Token', {}, {timeout: 2000})
+    const regenerateButton = await screen.findByText('Regenerate Token')
 
     fireEvent.click(regenerateButton)
 
     // Use a more reliable approach to find the new token
-    const newToken = await screen.findByText(fully_visible_token, {}, {timeout: 2000})
+    const newToken = await screen.findByText(fully_visible_token)
     expect(newToken).toBeInTheDocument()
     expect(requestBodyCapture).toHaveBeenCalledWith({token: {regenerate: 1}})
 
@@ -226,16 +218,12 @@ describe('AccessTokenDetails', () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockImplementationOnce(() => true)
 
     render(<AccessTokenDetails {...props} />)
-    const regenerateButton = await screen.findByText('Regenerate Token', {}, {timeout: 2000})
+    const regenerateButton = await screen.findByText('Regenerate Token')
 
     fireEvent.click(regenerateButton)
 
     // Use a more reliable approach to find error alerts
-    const errorAlerts = await screen.findAllByText(
-      'Failed to regenerate access token.',
-      {},
-      {timeout: 2000},
-    )
+    const errorAlerts = await screen.findAllByText('Failed to regenerate access token.', {})
     expect(errorAlerts.length).toBeTruthy()
 
     // Clean up the spy

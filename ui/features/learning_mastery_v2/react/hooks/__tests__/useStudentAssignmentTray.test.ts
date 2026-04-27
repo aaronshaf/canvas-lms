@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook, act} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import {useStudentAssignmentTray} from '../useStudentAssignmentTray'
 import {MOCK_OUTCOMES, MOCK_STUDENTS} from '../../__fixtures__/rollups'
 import {MOCK_ALIGNMENTS} from '../../__fixtures__/contributingScores'

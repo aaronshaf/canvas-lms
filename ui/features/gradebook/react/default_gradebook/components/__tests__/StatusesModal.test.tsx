@@ -46,7 +46,6 @@ describe('Statuses Modal', () => {
   })
 
   afterEach(() => {
-    cleanup() // Clean up any rendered components
     store.setState(originalState, true)
     server.resetHandlers()
     fakeENV.teardown()

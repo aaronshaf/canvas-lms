@@ -71,7 +71,6 @@ describe('GroupEditModal', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
-    cleanup()
     cache.reset()
   })
 

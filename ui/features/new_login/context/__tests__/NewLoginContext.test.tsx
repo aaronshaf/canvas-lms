@@ -60,10 +60,6 @@ const TestComponent = () => {
   )
 }
 
-afterEach(() => {
-  cleanup()
-})
-
 describe('NewLoginContext', () => {
   it('renders without crashing', () => {
     render(

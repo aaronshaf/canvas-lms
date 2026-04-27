@@ -39,7 +39,7 @@ const viewElement = new WikiPageEditView({
 
 // Mock the $el.toJSON method that jQuery's form serializer provides
 if ((viewElement as any).$el) {
-  (viewElement as any).$el.toJSON = vi.fn(() => ({title: ''}))
+  ;(viewElement as any).$el.toJSON = vi.fn(() => ({title: ''}))
 }
 
 const getProps = (overrides?: {[k: string]: any}): ComponentProps => ({
@@ -78,20 +78,20 @@ describe('renderWikiPageTitle', () => {
     expect(getByText('Test Title')).toBeInTheDocument()
   })
 
-  it('calls validationCallback when submitting empty title', () => {
+  it('calls validationCallback when submitting empty title', async () => {
     const titleErrors = [{message: 'title is required', type: 'required'}]
     const callback = vi.fn(() => ({title: titleErrors}))
     const props = getProps({validationCallback: callback})
 
     const component = renderWikiPageTitle(props)
 
-    const {getByText} = render(component)
+    const {findByText} = render(component)
     props.viewElement.trigger('submit')
-    expect(getByText(titleErrors[0].message)).toBeInTheDocument()
+    expect(await findByText(titleErrors[0].message)).toBeInTheDocument()
     expect(callback).toHaveBeenCalled()
   })
 
-  it('shows error from server when submitting', () => {
+  it('shows error from server when submitting', async () => {
     const mockViewElement = {
       on: vi.fn(),
       off: vi.fn(),
@@ -99,7 +99,7 @@ describe('renderWikiPageTitle', () => {
     }
     const props = getProps({viewElement: mockViewElement})
     const component = renderWikiPageTitle(props)
-    const {getByText} = render(component)
+    const {findByText} = render(component)
 
     const submitterFn = mockViewElement.on.mock.calls[0][1]
     const mockEvent = {
@@ -115,9 +115,7 @@ describe('renderWikiPageTitle', () => {
 
     submitterFn(mockEvent)
     expect(mockEvent.stopPropagation).toHaveBeenCalled()
-    mockEvent.result.catch(() => {
-      expect(getByText('Title error message')).toBeInTheDocument()
-    })
+    expect(await findByText('Title error message')).toBeInTheDocument()
   })
 
   describe('handleOnChange', () => {

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {useNode} from '@craftjs/core'
 import {RCETextBlock, RCETextBlockToolbar} from '..'
@@ -48,13 +48,15 @@ describe('RCETextBlockToolbar', () => {
     expect(getByText('Block Size')).toBeInTheDocument()
   })
 
-  it('renders its block size menu', () => {
+  it('renders its block size menu', async () => {
     const {getByText} = render(<RCETextBlockToolbar />)
 
     const szbtn = getByText('Block Size').closest('button') as HTMLButtonElement
     szbtn.click()
 
-    expect(screen.getByText('Fixed size')).toBeInTheDocument()
-    expect(screen.getByText('Percent size')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Fixed size')).toBeInTheDocument()
+      expect(screen.getByText('Percent size')).toBeInTheDocument()
+    })
   })
 })

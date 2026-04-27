@@ -22,10 +22,6 @@ import {MemoryRouter} from 'react-router-dom'
 import {AppNavBar} from '..'
 import {HelpTrayProvider, NewLoginDataProvider, NewLoginProvider} from '../../context'
 
-afterEach(() => {
-  cleanup()
-})
-
 describe('AppNavBar', () => {
   it('mounts without crashing', () => {
     render(

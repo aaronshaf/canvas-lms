@@ -16,7 +16,6 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {act} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {http, HttpResponse} from 'msw'
 import {createServer, renderMessageStudents} from './MessageStudentsTestHelpers'
@@ -32,13 +31,10 @@ describe('MessageStudents message submission', () => {
 
   beforeEach(() => {
     user = userEvent.setup({delay: null})
-    vi.useFakeTimers()
   })
 
   afterEach(() => {
     vi.clearAllMocks()
-    vi.clearAllTimers()
-    vi.useRealTimers()
   })
 
   it('handles server error responses', async () => {
@@ -51,12 +47,9 @@ describe('MessageStudents message submission', () => {
     )
 
     const {getByTestId, getByLabelText, findByText} = renderMessageStudents()
-    await act(async () => {
-      await user.type(getByLabelText(/subject/i), 'Test Subject')
-      await user.type(getByLabelText(/body/i), 'Test Message')
-      await user.click(getByTestId('message-students-submit'))
-      vi.runAllTimers()
-    })
+    await user.type(getByLabelText(/subject/i), 'Test Subject')
+    await user.type(getByLabelText(/body/i), 'Test Message')
+    await user.click(getByTestId('message-students-submit'))
     const errorMessage = await findByText('Invalid subject')
     expect(errorMessage).toBeInTheDocument()
   })

@@ -44,7 +44,6 @@ describe('ItemAssignToTray - Blueprint Environment Configuration', () => {
   afterEach(() => {
     Object.defineProperty(window, 'location', {value: originalLocation, writable: true})
     server.resetHandlers()
-    cleanup()
   })
 
   it('shows blueprint locking info when ENV contains master_course_restrictions', async () => {

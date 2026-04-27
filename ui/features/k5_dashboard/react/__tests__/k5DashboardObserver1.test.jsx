@@ -140,12 +140,9 @@ describe.skip('K5Dashboard Parent Support - Picker and Prefetch', () => {
       />,
     )
     // let the dashboard execute all its queries and render
-    await waitFor(
-      () => {
-        expect(requestUrl).not.toBeNull()
-      },
-      {timeout: 5000},
-    )
+    await waitFor(() => {
+      expect(requestUrl).not.toBeNull()
+    })
     expect(requestUrl).toContain('observed_user_id=4')
   })
 })

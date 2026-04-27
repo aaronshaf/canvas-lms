@@ -67,10 +67,6 @@ describe('ColorPickerForm', () => {
     PATH: 'body > div',
   } as const
 
-  afterEach(() => {
-    cleanup()
-  })
-
   const createMockIssue = (overrides?: Partial<AccessibilityIssue>): AccessibilityIssue => ({
     id: ISSUE_DEFAULTS.ID,
     ruleId: ISSUE_DEFAULTS.RULE_ID,

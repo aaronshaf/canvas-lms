@@ -41,7 +41,7 @@ afterAll(() => {
 
 afterEach(() => {
   // Run all pending timers to complete any InstUI transitions
-  vi.runAllTimers()
+  vi.runOnlyPendingTimers()
 })
 
 describe('LtiAssetProcessorCellWithData', () => {

@@ -19,7 +19,7 @@
 import React from 'react'
 import useCourseAlignments from '../useCourseAlignments'
 import {createCache} from '@canvas/apollo-v3'
-import {renderHook, act} from '@testing-library/react-hooks'
+import {renderHook, act} from '@testing-library/react'
 import {courseAlignmentMocks} from '../../../mocks/Management'
 import {MockedProvider} from '@apollo/client/testing'
 import OutcomesContext from '../../contexts/OutcomesContext'
@@ -36,7 +36,7 @@ vi.mock('@instructure/platform-alerts', async () => {
 const flushAllTimersAndPromises = async () => {
   while (vi.getTimerCount() > 0) {
     await act(async () => {
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
   }
 }
@@ -149,7 +149,7 @@ describe('useCourseAlignments', () => {
         wrapper,
       })
 
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(showFlashAlert).toHaveBeenCalledWith({
         message: 'An error occurred while loading outcome alignments.',
         type: 'error',
@@ -162,8 +162,8 @@ describe('useCourseAlignments', () => {
       const hook = renderHook(() => useCourseAlignments(), {
         wrapper,
       })
-      hook.result.current.onSearchChangeHandler({target: {value: 'TEST'}})
-      await act(async () => vi.runAllTimers())
+      act(() => hook.result.current.onSearchChangeHandler({target: {value: 'TEST'}}))
+      await act(async () => vi.runOnlyPendingTimers())
       expect(showFlashAlert).toHaveBeenCalledWith({
         message: 'Showing Search Results Below',
         type: 'info',
@@ -191,8 +191,8 @@ describe('useCourseAlignments', () => {
       const hook = renderHook(() => useCourseAlignments(), {
         wrapper,
       })
-      hook.result.current.onSearchChangeHandler({target: {value: 'TEST'}})
-      await act(async () => vi.runAllTimers())
+      act(() => hook.result.current.onSearchChangeHandler({target: {value: 'TEST'}}))
+      await act(async () => vi.runOnlyPendingTimers())
       expect(showFlashAlert).toHaveBeenCalledWith({
         message: 'No Search Results Found',
         type: 'info',
@@ -207,20 +207,20 @@ describe('useCourseAlignments', () => {
       wrapper,
     })
 
-    hook.result.current.onSearchChangeHandler({target: {value: ''}})
-    await act(async () => vi.runAllTimers())
+    act(() => hook.result.current.onSearchChangeHandler({target: {value: ''}}))
+    await act(async () => vi.runOnlyPendingTimers())
     expect(outcomeTitles(hook.result)).toEqual(['Outcome 1 with alignments', 'Outcome 2'])
 
-    hook.result.current.onSearchChangeHandler({target: {value: 'T'}})
-    await act(async () => vi.runAllTimers())
+    act(() => hook.result.current.onSearchChangeHandler({target: {value: 'T'}}))
+    await act(async () => vi.runOnlyPendingTimers())
     expect(outcomeTitles(hook.result)).toEqual(['Outcome 1 with alignments', 'Outcome 2'])
 
-    hook.result.current.onSearchChangeHandler({target: {value: 'TE'}})
-    await act(async () => vi.runAllTimers())
+    act(() => hook.result.current.onSearchChangeHandler({target: {value: 'TE'}}))
+    await act(async () => vi.runOnlyPendingTimers())
     expect(outcomeTitles(hook.result)).toEqual(['Outcome 1 with alignments', 'Outcome 2'])
 
-    hook.result.current.onSearchChangeHandler({target: {value: 'TEST'}})
-    await act(async () => vi.runAllTimers())
+    act(() => hook.result.current.onSearchChangeHandler({target: {value: 'TEST'}}))
+    await act(async () => vi.runOnlyPendingTimers())
     expect(outcomeTitles(hook.result)).toEqual([
       'Outcome 1 with alignments',
       'Outcome 2 with alignments',
@@ -258,23 +258,23 @@ describe('useCourseAlignments', () => {
     const hook = renderHook(() => useCourseAlignments(), {wrapper})
 
     // original search
-    hook.result.current.onSearchChangeHandler({target: {value: 'abc'}})
+    act(() => hook.result.current.onSearchChangeHandler({target: {value: 'abc'}}))
     expect(hook.result.current.loading).toBe(true)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(hook.result.current.loading).toBe(false)
     expect(outcomeTitles(hook.result)).toEqual(['Outcome 1 with alignments', 'Outcome 2'])
 
     // run a different search to force hook rerender
-    hook.result.current.onSearchChangeHandler({target: {value: 'def'}})
+    act(() => hook.result.current.onSearchChangeHandler({target: {value: 'def'}}))
     expect(hook.result.current.loading).toBe(true)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(hook.result.current.loading).toBe(false)
     expect(outcomeTitles(hook.result)).toEqual(['Outcome 1 with alignments', 'Outcome 2'])
 
     // repeat original search to test refetch
-    hook.result.current.onSearchChangeHandler({target: {value: 'abc'}})
+    act(() => hook.result.current.onSearchChangeHandler({target: {value: 'abc'}}))
     expect(hook.result.current.loading).toBe(true)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(hook.result.current.loading).toBe(false)
     expect(outcomeTitles(hook.result)).toEqual([
       'Outcome 1 with alignments - Refetched',
@@ -289,14 +289,14 @@ describe('useCourseAlignments', () => {
     })
 
     expect(result.current.loading).toBe(false)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(result.current.loading).toBe(false)
     expect(result.current.rootGroup).toBe(null)
 
     rerender({shouldWait: false})
 
     expect(result.current.loading).toBe(true)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(result.current.loading).toBe(false)
     expect(result.current.rootGroup).not.toBe(null)
     expect(result.current.rootGroup._id).toBe('1')

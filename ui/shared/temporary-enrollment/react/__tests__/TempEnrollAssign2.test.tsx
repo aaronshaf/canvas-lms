@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, within} from '@testing-library/react'
+import {render, within, waitFor} from '@testing-library/react'
 import {
   defaultRoleChoice,
   deleteMultipleEnrollmentsByNoMatch,
@@ -224,7 +224,7 @@ describe('TempEnrollAssign', () => {
     it('should set the role correctly when a matching role is found', async () => {
       const {findByPlaceholderText} = render(<TempEnrollAssign {...tempProps} />)
       const roleSelect = (await findByPlaceholderText('Select a Role')) as HTMLInputElement
-      expect(roleSelect.value).toBe('Teacher')
+      await waitFor(() => expect(roleSelect.value).toBe('Teacher'))
     })
 
     it('should set the state correctly when a matching state is found', async () => {

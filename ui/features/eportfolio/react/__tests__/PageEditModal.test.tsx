@@ -171,13 +171,13 @@ describe('PageEditModal', () => {
   })
   describe('move to', () => {
     it('does not move page on cancel', async () => {
-      const {getByText, getByTestId} = render(
+      const {getByText, getByTestId, findByText} = render(
         <PageEditModal {...props} modalType="move" page={page} pageList={pageList} />,
       )
 
       const select = getByTestId('move-select')
       select.click()
-      getByText('First Page').click()
+      ;(await findByText('First Page')).click()
       const cancelButton = getByText('Cancel')
       cancelButton.click()
 
@@ -186,13 +186,13 @@ describe('PageEditModal', () => {
     })
 
     it('move page when clicking save button', async () => {
-      const {getByText, getByTestId} = render(
+      const {getByText, getByTestId, findByText} = render(
         <PageEditModal {...props} modalType="move" page={page} pageList={pageList} />,
       )
 
       const select = getByTestId('move-select')
       select.click()
-      getByText('First Page').click()
+      ;(await findByText('First Page')).click()
       const saveButton = getByText('Save')
       saveButton.click()
 

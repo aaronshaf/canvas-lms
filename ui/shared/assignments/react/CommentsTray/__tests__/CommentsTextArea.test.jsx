@@ -154,7 +154,7 @@ describe('CommentTextArea', () => {
       const props = await mockAssignmentAndSubmission()
       const componentRef = renderCommentTextArea(props)
       componentRef.handleMediaUpload(null, mediaObject, createSubmissionComment)
-      expect(createSubmissionComment).toHaveBeenCalled()
+      await waitFor(() => expect(createSubmissionComment).toHaveBeenCalled())
     })
 
     it('shows an error message if the upload fails', async () => {

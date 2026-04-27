@@ -89,10 +89,6 @@ describe('Student - form submission', () => {
     }))
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   it('submits successfully with valid inputs', async () => {
     ;(createStudentAccount as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       status: 200,

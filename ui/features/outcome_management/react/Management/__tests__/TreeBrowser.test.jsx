@@ -141,7 +141,7 @@ describe('TreeBrowser', () => {
     it('expands and focuses on text box when clicked', async () => {
       const {getByText, getByLabelText} = render(<TreeBrowser {...defaultProps()} />)
       fireEvent.click(getByText('Create New Group'))
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(getByLabelText('Enter new group name')).toHaveFocus()
     })
 
@@ -152,7 +152,7 @@ describe('TreeBrowser', () => {
         key: 'ArrowLeft',
         code: 'ArrowLeft',
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(getByText('Leaf folder').closest('li')).toHaveFocus()
     })
 

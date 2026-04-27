@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook, waitFor} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import {useGetFolders} from '../useGetFolders'
@@ -92,18 +92,19 @@ describe('useGetFolders', () => {
   })
 
   it('returns root folder without fetching', async () => {
-    const {result, waitForNextUpdate} = renderHook(() => useGetFolders(), {
+    const {result} = renderHook(() => useGetFolders(), {
       wrapper,
     })
-    await waitForNextUpdate()
+    await waitFor(() => {
+      expect(result.current.data).toHaveLength(1)
+      expect(result.current.data?.[0]).toMatchObject({
+        id: '2',
+        context_id: '1',
+        context_type: 'user',
+      })
+    })
 
     expect(requestMade).toBe(false)
-    expect(result.current.data).toHaveLength(1)
-    expect(result.current.data?.[0]).toMatchObject({
-      id: '2',
-      context_id: '1',
-      context_type: 'user',
-    })
   })
 
   it('fetches root folder when there is no root_context_id in files context', async () => {
@@ -111,13 +112,13 @@ describe('useGetFolders', () => {
     ROOTLESS_CONTEXT.root_folder_id = ''
     resetAndGetFilesEnv([ROOTLESS_CONTEXT])
 
-    const {result, waitForNextUpdate} = renderHook(() => useGetFolders(), {
+    const {result} = renderHook(() => useGetFolders(), {
       wrapper,
     })
-    await waitForNextUpdate()
+    // Wait for the API-fetched data (name is set by the API response, unlike the local construction)
+    await waitFor(() => expect(result.current.data?.[0]?.name).toBe('Folder 1'))
 
     expect(requestMade).toBe(true)
-    expect(result.current.data).toHaveLength(1)
     expect(result.current.data).toMatchObject(mockFolders)
   })
 
@@ -136,13 +137,13 @@ describe('useGetFolders', () => {
     })
 
     it('fetches folders', async () => {
-      const {result, waitForNextUpdate} = renderHook(() => useGetFolders(), {
+      const {result} = renderHook(() => useGetFolders(), {
         wrapper,
       })
-      await waitForNextUpdate()
+      // Wait for both subfolders (API response has 2 folders)
+      await waitFor(() => expect(result.current.data).toHaveLength(2))
 
       expect(requestMade).toBe(true)
-      expect(result.current.data).toHaveLength(2)
       expect(result.current.data).toMatchObject(mockSubfolders)
     })
   })

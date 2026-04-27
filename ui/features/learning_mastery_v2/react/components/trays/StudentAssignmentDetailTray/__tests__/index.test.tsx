@@ -136,7 +136,6 @@ describe('StudentAssignmentDetailTray', () => {
   })
 
   afterEach(() => {
-    cleanup()
     fetchMock.restore()
   })
 
@@ -359,7 +358,7 @@ describe('StudentAssignmentDetailTray', () => {
     it('renders the comments section', async () => {
       renderWithWrapper(<StudentAssignmentDetailTray {...defaultProps} />)
       // Wait for GraphQL queries to resolve
-      await screen.findByText('Comment', {}, {timeout: 3000})
+      await screen.findByText('Comment')
       expect(screen.getByLabelText('Comment')).toBeInTheDocument()
     })
 
@@ -370,20 +369,20 @@ describe('StudentAssignmentDetailTray', () => {
 
     it('displays comment input area after loading', async () => {
       renderWithWrapper(<StudentAssignmentDetailTray {...defaultProps} />)
-      const commentInput = await screen.findByLabelText('Comment', {}, {timeout: 3000})
+      const commentInput = await screen.findByLabelText('Comment')
       expect(commentInput).toBeInTheDocument()
     })
 
     it('displays send comment button', async () => {
       renderWithWrapper(<StudentAssignmentDetailTray {...defaultProps} />)
-      const sendButton = await screen.findByRole('button', {name: /send comment/i}, {timeout: 3000})
+      const sendButton = await screen.findByRole('button', {name: /send comment/i})
       expect(sendButton).toBeInTheDocument()
     })
 
     it('does not show placeholder graphics when there are no comments', async () => {
       renderWithWrapper(<StudentAssignmentDetailTray {...defaultProps} />)
       // Wait for loading to complete
-      await screen.findByLabelText('Comment', {}, {timeout: 3000})
+      await screen.findByLabelText('Comment')
       // Should not show the default placeholder text
       expect(screen.queryByText(/this is where you can leave a comment/i)).not.toBeInTheDocument()
     })
@@ -453,13 +452,13 @@ describe('StudentAssignmentDetailTray', () => {
       renderWithWrapper(<StudentAssignmentDetailTray {...defaultProps} />)
 
       // Wait for comment to appear
-      const commentText = await screen.findByText('Great work!', {}, {timeout: 3000})
+      const commentText = await screen.findByText('Great work!')
       expect(commentText).toBeInTheDocument()
     })
 
     it('hides file upload and media upload buttons via CSS', async () => {
       renderWithWrapper(<StudentAssignmentDetailTray {...defaultProps} />)
-      await screen.findByLabelText('Comment', {}, {timeout: 3000})
+      await screen.findByLabelText('Comment')
 
       // Buttons exist in DOM but should be hidden via CSS
       const fileButton = screen.queryByTestId('file-upload-button')

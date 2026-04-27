@@ -76,7 +76,6 @@ describe('PasswordComplexityConfiguration Component', () => {
 
   afterEach(() => {
     server.resetHandlers()
-    cleanup()
   })
 
   beforeEach(() => {
@@ -239,7 +238,11 @@ describe('PasswordComplexityConfiguration Component', () => {
       await waitFor(() => expect(screen.getByTestId('cancelButton')).toBeEnabled())
       expect(screen.getByTestId('requireSymbolsCheckbox')).not.toBeChecked()
       expect(screen.getByTestId('customMaxLoginAttemptsCheckbox')).not.toBeChecked()
-      expect(screen.getByTestId('minimumCharacterLengthInput')).toHaveValue(minimumCharacterLength)
+      await waitFor(() =>
+        expect(screen.getByTestId('minimumCharacterLengthInput')).toHaveValue(
+          minimumCharacterLength,
+        ),
+      )
       expect(screen.getByTestId('customForbiddenWordsCheckbox')).not.toBeChecked()
     })
   })

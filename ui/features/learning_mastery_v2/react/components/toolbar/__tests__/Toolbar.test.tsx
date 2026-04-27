@@ -35,10 +35,6 @@ const makeProps = (props = {}): ToolbarProps => ({
 })
 
 describe('Toolbar', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   it('renders the gradebook menu and title', () => {
     const {getByTestId, getByText} = render(<Toolbar {...makeProps()} />)
     expect(getByTestId('lmgb-gradebook-menu')).toBeInTheDocument()

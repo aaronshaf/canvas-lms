@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {useState} from 'react'
+import {useState, useCallback, useEffect, useRef} from 'react'
 import {useScope as i18nScope} from '@canvas/i18n'
 import doFetchApi, {FetchApiError} from '@canvas/do-fetch-api-effect'
 const I18n = i18nScope('page_views')
@@ -71,24 +71,34 @@ export function useAsyncPageviewJobs(
   const BASE_URL = `/api/v1/users/${userid}/page_views`
   //const BASE_URL = 'http://localhost:8082/api/v5/pageviews' // for local pv5 mock
 
-  function setJobs(value: AsyncPageviewJob[]) {
-    const filtered = value.filter(notExpired)
-    _setJobs(filtered)
-    window.localStorage.setItem(key, JSON.stringify(filtered))
-  }
+  const jobsRef = useRef(jobs)
+  useEffect(() => {
+    jobsRef.current = jobs
+  }, [jobs])
+
+  const setJobs = useCallback(
+    (value: AsyncPageviewJob[]) => {
+      const filtered = value.filter(notExpired)
+      _setJobs(filtered)
+      window.localStorage.setItem(key, JSON.stringify(filtered))
+    },
+    [key],
+  )
 
   /**
    * Poll the status of async jobs. Returns true if the state did not change
    * and jobs are still in progress. This allows the caller to decide whether to
    * continue polling or not.
    */
-  async function pollJobs() {
+  const pollJobs = useCallback(async () => {
+    const currentJobs = jobsRef.current
+
     // cancel polling if no jobs are in progress
-    const job = jobs.find(isInProgress)
+    const job = currentJobs.find(isInProgress)
     if (job === undefined) return false
 
     // postpone polling if a job was updated recently
-    const recentUpdatedJob = jobs.find(j => {
+    const recentUpdatedJob = currentJobs.find(j => {
       const updatedAt = new Date(j.updatedAt)
       const age = new Date().getTime() - updatedAt.getTime()
       return age < POLL_FRESHNESS
@@ -104,7 +114,7 @@ export function useAsyncPageviewJobs(
       })
       if (json?.status) {
         // Update the status and the timestamp of the record
-        const updatedJobs = jobs.map(record =>
+        const updatedJobs = currentJobs.map(record =>
           record.query_id === job.query_id
             ? {...record, status: json.status, updatedAt: new Date(), error_code: json.error_code}
             : record,
@@ -113,12 +123,12 @@ export function useAsyncPageviewJobs(
         // state will change, polling can stop in this lifecycle
         return false
       }
-      return jobs.filter(isInProgress).length > 0
+      return currentJobs.filter(isInProgress).length > 0
     } catch (error) {
       // remove the job if status is 410 or 404
       if (error instanceof FetchApiError) {
         if (error.response.status === 404 || error.response.status === 410) {
-          const updatedJobs = jobs.filter(record => record.query_id !== job.query_id)
+          const updatedJobs = currentJobs.filter(record => record.query_id !== job.query_id)
           setJobs(updatedJobs)
           return false
         }
@@ -126,78 +136,86 @@ export function useAsyncPageviewJobs(
       // Other errors are considered intermittent, so we keep polling
       return true
     }
-  }
+  }, [setJobs, BASE_URL])
 
-  async function postJob(user: string, jobName: string, startDate: string, endDate: string) {
-    const {json} = await doFetchApi<AsyncPageviewJobResult>({
-      path: `${BASE_URL}/query`,
-      method: 'POST',
-      body: {
-        user: user,
-        start_date: startDate,
-        end_date: endDate,
-        results_format: 'csv',
-      },
-    })
-    if (json?.poll_url) {
-      const query_id = json.poll_url.split('/').pop()
-      if (!query_id) return
-      if (jobs.find(j => j.query_id === query_id)) {
-        // Already exists
-        return
-      }
-      const newRecord: AsyncPageviewJob = {
-        query_id: query_id,
-        name: jobName,
-        status: AsyncPageViewJobStatus.Queued,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        error_code: null,
-      }
-      setJobs([newRecord, ...jobs])
-    }
-  }
-
-  async function getDownloadUrl(record: AsyncPageviewJob): Promise<string> {
-    const path = `${BASE_URL}/query/${record.query_id}/results`
-
-    try {
-      const {response} = await doFetchApi({
-        path,
-        method: 'HEAD',
+  const postJob = useCallback(
+    async (user: string, jobName: string, startDate: string, endDate: string) => {
+      const currentJobs = jobsRef.current
+      const {json} = await doFetchApi<AsyncPageviewJobResult>({
+        path: `${BASE_URL}/query`,
+        method: 'POST',
+        body: {
+          user: user,
+          start_date: startDate,
+          end_date: endDate,
+          results_format: 'csv',
+        },
       })
-
-      // Check for 204 No Content (doFetchApi won't throw for this since it's 2xx)
-      if (response.status === 204) {
-        // No content, mark as empty
-        const updatedJobs = jobs.map(job =>
-          job.query_id === record.query_id ? {...job, status: AsyncPageViewJobStatus.Empty} : job,
-        )
-        setJobs(updatedJobs)
-        throw new FetchApiError('No content available for download', response)
+      if (json?.poll_url) {
+        const query_id = json.poll_url.split('/').pop()
+        if (!query_id) return
+        if (currentJobs.find(j => j.query_id === query_id)) {
+          // Already exists
+          return
+        }
+        const newRecord: AsyncPageviewJob = {
+          query_id: query_id,
+          name: jobName,
+          status: AsyncPageViewJobStatus.Queued,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          error_code: null,
+        }
+        setJobs([newRecord, ...currentJobs])
       }
+    },
+    [setJobs, BASE_URL],
+  )
 
-      // If we get here, it's a successful response (200), download is ready
-      return path
-    } catch (error) {
-      if (error instanceof FetchApiError) {
-        const status = error.response.status
+  const getDownloadUrl = useCallback(
+    async (record: AsyncPageviewJob): Promise<string> => {
+      const currentJobs = jobsRef.current
+      const path = `${BASE_URL}/query/${record.query_id}/results`
 
-        // Handle job state updates based on response status for non-2xx responses
-        if (status === 404 || status === 410) {
-          // File not found or gone, remove from jobs
-          const updatedJobs = jobs.filter(job => job.query_id !== record.query_id)
+      try {
+        const {response} = await doFetchApi({
+          path,
+          method: 'HEAD',
+        })
+
+        // Check for 204 No Content (doFetchApi won't throw for this since it's 2xx)
+        if (response.status === 204) {
+          // No content, mark as empty
+          const updatedJobs = currentJobs.map(job =>
+            job.query_id === record.query_id ? {...job, status: AsyncPageViewJobStatus.Empty} : job,
+          )
           setJobs(updatedJobs)
+          throw new FetchApiError('No content available for download', response)
         }
 
-        // For any error status, throw the FetchApiError for caller to handle
-        throw error
-      }
+        // If we get here, it's a successful response (200), download is ready
+        return path
+      } catch (error) {
+        if (error instanceof FetchApiError) {
+          const status = error.response.status
 
-      // For non-HTTP errors (network issues, etc.), wrap in a generic error
-      throw new Error(`Failed to check download status: ${error}`)
-    }
-  }
+          // Handle job state updates based on response status for non-2xx responses
+          if (status === 404 || status === 410) {
+            // File not found or gone, remove from jobs
+            const updatedJobs = currentJobs.filter(job => job.query_id !== record.query_id)
+            setJobs(updatedJobs)
+          }
+
+          // For any error status, throw the FetchApiError for caller to handle
+          throw error
+        }
+
+        // For non-HTTP errors (network issues, etc.), wrap in a generic error
+        throw new Error(`Failed to check download status: ${error}`)
+      }
+    },
+    [setJobs, BASE_URL],
+  )
 
   return [jobs, setJobs, pollJobs, postJob, getDownloadUrl]
 }

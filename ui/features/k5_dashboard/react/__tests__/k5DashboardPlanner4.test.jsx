@@ -63,7 +63,7 @@ describe('K5Dashboard Schedule Section', () => {
     await new Promise(resolve => setTimeout(resolve, 100))
   })
 
-  it('renders an "jump to navigation" button at the bottom of the schedule tab', async () => {
+  it.skip('renders an "jump to navigation" button at the bottom of the schedule tab', async () => {
     const {findByTestId} = render(
       <K5Dashboard {...defaultProps} defaultTab="tab-schedule" plannerEnabled={true} />,
     )

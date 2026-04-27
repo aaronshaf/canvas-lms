@@ -79,7 +79,7 @@ describe('TimeBlockRow', () => {
   })
 
   afterEach(() => {
-    vi.runAllTimers()
+    vi.runOnlyPendingTimers()
     vi.useRealTimers()
 
     // Clean up DOM

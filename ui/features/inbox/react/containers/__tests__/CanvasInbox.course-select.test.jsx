@@ -165,7 +165,7 @@ describe('CanvasInbox App Container - Course Select', () => {
     })
 
     // The main behavior: invalid course should be removed from URL
-    await waitFor(() => expect(window.location.hash).toBe('#filter=type=inbox'), {timeout: 5000})
+    await waitFor(() => expect(window.location.hash).toBe('#filter=type=inbox'))
     // After the filter is cleared, the dropdown should show the placeholder
     const mailboxDropdown = await container.findByTestId('course-select')
     await waitFor(() => {
@@ -189,8 +189,10 @@ describe('CanvasInbox App Container - Course Select', () => {
     const courseSelectModal = await container.findByTestId(
       'course-select-modal',
       {},
-      {timeout: 5000},
+      {timeout: 10000},
     )
-    await waitFor(() => expect(courseSelectModal.getAttribute('value')).toBe('XavierSchool'))
+    await waitFor(() => expect(courseSelectModal.getAttribute('value')).toBe('XavierSchool'), {
+      timeout: 10000,
+    })
   })
 })

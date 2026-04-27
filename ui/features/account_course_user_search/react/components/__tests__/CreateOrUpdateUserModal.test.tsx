@@ -66,7 +66,6 @@ describe('CreateOrUpdateUserModal', () => {
 
   afterEach(() => {
     server.resetHandlers()
-    cleanup()
     fakeENV.teardown()
     capturedBody = null
   })

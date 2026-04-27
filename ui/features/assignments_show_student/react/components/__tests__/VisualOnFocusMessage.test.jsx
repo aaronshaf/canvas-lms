@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 
 import VisualOnFocusMessage from '../VisualOnFocusMessage'
 
@@ -27,9 +27,11 @@ describe('VisualOnFocusMessage', () => {
     expect(getByText('warning: this is a test')).toHaveClass('screenreader-only')
   })
 
-  it('does not have the screenreader class on focus', () => {
+  it('does not have the screenreader class on focus', async () => {
     const {getByText} = render(<VisualOnFocusMessage message="warning: this is a test" />)
     getByText('warning: this is a test').focus()
-    expect(getByText('warning: this is a test')).not.toHaveClass('screenreader-only')
+    await waitFor(() => {
+      expect(getByText('warning: this is a test')).not.toHaveClass('screenreader-only')
+    })
   })
 })

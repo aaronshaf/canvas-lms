@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, act, waitFor} from '@testing-library/react'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
 import Placements from '../Placements'
@@ -107,18 +107,26 @@ it('placementDisplayName returns correct names', () => {
 it('adds placements', async () => {
   const ref = React.createRef()
   render(<Placements {...props({ref})} />)
-  ref.current.handlePlacementSelect(['account_navigation', 'course_navigation'])
-  expect(screen.getByRole('combobox', {name: /Account Navigation/i})).toBeInTheDocument()
-  expect(screen.queryByRole('combobox', {name: /Course Navigation/i})).toBeInTheDocument()
+  act(() => {
+    ref.current.handlePlacementSelect(['account_navigation', 'course_navigation'])
+  })
+  await waitFor(() => {
+    expect(screen.getByRole('combobox', {name: /Account Navigation/i})).toBeInTheDocument()
+    expect(screen.queryByRole('combobox', {name: /Course Navigation/i})).toBeInTheDocument()
+  })
 })
 
-it('adds new placements to output', () => {
+it('adds new placements to output', async () => {
   const ref = React.createRef()
   render(<Placements {...props({ref})} />)
-  ref.current.handlePlacementSelect(['account_navigation', 'course_navigation'])
-  const toolConfig = ref.current.generateToolConfigurationPart()
-  expect(toolConfig).toHaveLength(2)
-  expect(toolConfig[1].placement).toEqual('course_navigation')
+  act(() => {
+    ref.current.handlePlacementSelect(['account_navigation', 'course_navigation'])
+  })
+  await waitFor(() => {
+    const toolConfig = ref.current.generateToolConfigurationPart()
+    expect(toolConfig).toHaveLength(2)
+    expect(toolConfig[1].placement).toEqual('course_navigation')
+  })
 })
 
 it('filters out placements that are feature-flagged off when initializing', () => {

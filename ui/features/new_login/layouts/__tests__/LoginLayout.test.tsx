@@ -31,10 +31,6 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
-afterEach(() => {
-  cleanup()
-})
-
 describe('LoginLayout', () => {
   it('renders without crashing', () => {
     render(

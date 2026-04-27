@@ -101,12 +101,12 @@ describe('LaunchSettings', () => {
 
     expect(oidcInitiationUrl).toHaveValue('https://example.com/init')
 
-    const jwkUrl = screen.getByLabelText('JWK URL')
+    const jwkUrl = screen.getByLabelText(/^JWK URL$/i)
     await user.clear(jwkUrl)
     await user.paste('https://example.com/jwk')
     expect(jwkUrl).toHaveValue('https://example.com/jwk')
 
-    const domain = screen.getByLabelText('Domain')
+    const domain = screen.getByLabelText(/^Domain$/i)
     await user.clear(domain)
     await user.paste('foo.com')
     expect(domain).toHaveValue('foo.com')

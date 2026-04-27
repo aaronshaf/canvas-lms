@@ -17,7 +17,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import EmojiQuickPicker from '../EmojiQuickPicker'
 import {store} from 'emoji-mart'
@@ -73,23 +73,23 @@ describe('EmojiQuickPicker', () => {
     expect(queryByRole('button', {name: /😅, sweat_smile/})).not.toBeInTheDocument()
   })
 
-  it('updates emoji skin tone accordingly when an "emojiSkinChange" event is triggered', () => {
+  it('updates emoji skin tone accordingly when an "emojiSkinChange" event is triggered', async () => {
     const {getByRole} = render(<EmojiQuickPicker insertEmoji={insertEmoji} />)
     const event = new CustomEvent('emojiSkinChange', {detail: 5})
     window.dispatchEvent(event)
-    expect(getByRole('button', {name: /👍🏾, \+1, thumbsup/})).toBeInTheDocument()
+    await waitFor(() => expect(getByRole('button', {name: /👍🏾, \+1, thumbsup/})).toBeInTheDocument())
     expect(getByRole('button', {name: /👏🏾, clap/})).toBeInTheDocument()
   })
 
-  it('updates the most recent emoji accordingly when an "emojiSelected" event is triggered', () => {
+  it('updates the most recent emoji accordingly when an "emojiSelected" event is triggered', async () => {
     store.set('last', 'wink')
     store.set('frequently', {wink: 5, sweat_smile: 1, blush: 4, grinning: 3})
     const {getByRole, queryByRole} = render(<EmojiQuickPicker insertEmoji={insertEmoji} />)
     const event = new CustomEvent('emojiSelected', {detail: 'sweat_smile'})
     window.dispatchEvent(event)
+    await waitFor(() => expect(getByRole('button', {name: /😅, sweat_smile/})).toBeInTheDocument())
     expect(getByRole('button', {name: /😉, wink/})).toBeInTheDocument()
     expect(getByRole('button', {name: /😊, blush/})).toBeInTheDocument()
-    expect(getByRole('button', {name: /😅, sweat_smile/})).toBeInTheDocument()
     expect(queryByRole('button', {name: /😀, grinning/})).not.toBeInTheDocument()
   })
 })

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {act, renderHook} from '@testing-library/react'
 import useStateWithCallback from '../index'
 
 const initialValue = 'initial value'
@@ -82,24 +82,21 @@ describe('useStateWithCallback', () => {
 
   describe('by default, with only one callback at the end', () => {
     it('calls the callback correctly on multiple calls to the setter', () => {
-      const {result, rerender} = renderHook(() => useStateWithCallback(initialValue))
+      const {result} = renderHook(() => useStateWithCallback(initialValue))
       const setState = result.current[1]
-      setState('value 2', callback)
-      setState('value 3', callback)
-      rerender()
-      // Each setState triggers a render cycle, so callback is called once per setState
+      // Each act() flushes a separate render cycle so the callback fires once per setState
+      act(() => setState('value 2', callback))
+      act(() => setState('value 3', callback))
       expect(callback).toHaveBeenCalledTimes(2)
       expect(callback).toHaveBeenNthCalledWith(1, 'value 2')
       expect(callback).toHaveBeenLastCalledWith('value 3')
     })
 
     it('calls the callback correctly on multiple calls with functions', () => {
-      const {result, rerender} = renderHook(() => useStateWithCallback(10))
+      const {result} = renderHook(() => useStateWithCallback(10))
       const setState = result.current[1]
-      setState(x => x * 2, callback) // 10 * 2 => 20
-      setState(x => x + 1, callback) // 20 + 1 => 21
-      rerender()
-      // Each setState triggers a render cycle, so callback is called once per setState
+      act(() => setState(x => x * 2, callback)) // 10 * 2 => 20
+      act(() => setState(x => x + 1, callback)) // 20 + 1 => 21
       expect(callback).toHaveBeenCalledTimes(2)
       expect(callback).toHaveBeenNthCalledWith(1, 20)
       expect(callback).toHaveBeenLastCalledWith(21)

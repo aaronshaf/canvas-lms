@@ -150,7 +150,6 @@ describe('OutcomeSearch', () => {
   })
 
   afterEach(() => {
-    cleanup()
     vi.restoreAllMocks()
     vi.runOnlyPendingTimers()
     vi.useRealTimers()
@@ -227,7 +226,7 @@ describe('OutcomeSearch', () => {
       input.dispatchEvent(new Event('input', {bubbles: true}))
     })
 
-    act(() => {
+    await act(async () => {
       vi.advanceTimersByTime(750)
     })
 
@@ -311,7 +310,7 @@ describe('OutcomeSearch', () => {
       input.dispatchEvent(new Event('input', {bubbles: true}))
     })
 
-    act(() => {
+    await act(async () => {
       vi.advanceTimersByTime(750)
     })
 
@@ -327,7 +326,7 @@ describe('OutcomeSearch', () => {
       input.dispatchEvent(new Event('input', {bubbles: true}))
     })
 
-    act(() => {
+    await act(async () => {
       vi.advanceTimersByTime(750)
     })
 
@@ -372,7 +371,7 @@ describe('OutcomeSearch', () => {
       input.dispatchEvent(new Event('input', {bubbles: true}))
     })
 
-    act(() => {
+    await act(async () => {
       vi.advanceTimersByTime(750)
     })
 

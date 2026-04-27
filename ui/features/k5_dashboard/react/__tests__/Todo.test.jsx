@@ -50,6 +50,7 @@ beforeEach(() => {
     isSame: () => true,
     tz: () => null,
   }))
+  showFlashError.mockReturnValue(vi.fn())
 })
 
 afterEach(() => {
@@ -194,15 +195,10 @@ describe('Todo', () => {
     const {getByRole} = render(<Todo {...defaultProps} />)
     const ignoreButton = getByRole('button', {name: 'Ignore Plant a plant until new submission'})
 
-    const handler = () => {}
-    process.prependListener('unhandledRejection', handler)
-
     ignoreButton.click()
     await waitFor(() => {
       expect(showFlashError).toHaveBeenCalledWith('Failed to ignore assignment')
     })
-
-    process.removeListener('unhandledRejection', handler)
   })
 
   it('adds target attribute to link if openInNewTab is true', () => {

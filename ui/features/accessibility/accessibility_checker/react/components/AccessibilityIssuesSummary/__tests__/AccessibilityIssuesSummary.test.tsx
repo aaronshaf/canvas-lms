@@ -17,7 +17,7 @@
  */
 
 import {render, screen, waitFor} from '@testing-library/react'
-import {act, renderHook} from '@testing-library/react-hooks'
+import {act, renderHook} from '@testing-library/react'
 
 import {useAccessibilityScansStore} from '../../../../../shared/react/stores/AccessibilityScansStore'
 import {mockIssuesSummary1} from '../../../../../shared/react/stores/mockData'

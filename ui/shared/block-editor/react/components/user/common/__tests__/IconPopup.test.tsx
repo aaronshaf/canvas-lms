@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {useNode} from '@craftjs/core'
 import {IconPopup, type IconPopupProps} from '../IconPopup'
@@ -50,51 +50,51 @@ describe('IconPopup', () => {
     expect(getByText('Select Icon')).toBeInTheDocument()
   })
 
-  it('renders the popup when the trigger button is clicked', () => {
-    const {getByText, queryByText, getByTitle} = render(<IconPopup />)
+  it('renders the popup when the trigger button is clicked', async () => {
+    const {getByText, queryByText, findByText, findByTitle} = render(<IconPopup />)
 
     expect(queryByText('IconPicker')).not.toBeInTheDocument()
 
     getByText('Select Icon').closest('button')?.click()
 
-    expect(getByText('Select an icon')).toBeInTheDocument()
+    expect(await findByText('Select an icon')).toBeInTheDocument()
     // a sampling of icons
-    expect(getByTitle('alarm')).toBeInTheDocument()
-    expect(getByTitle('idea')).toBeInTheDocument()
-    expect(getByTitle('like')).toBeInTheDocument()
-    expect(getByText('No Icon')).toBeInTheDocument()
+    expect(await findByTitle('alarm')).toBeInTheDocument()
+    expect(await findByTitle('idea')).toBeInTheDocument()
+    expect(await findByTitle('like')).toBeInTheDocument()
+    expect(await findByText('No Icon')).toBeInTheDocument()
   })
 
-  it('closes the popup when the trigger button is clicked again', () => {
-    const {getByText, queryByText} = render(<IconPopup />)
+  it('closes the popup when the trigger button is clicked again', async () => {
+    const {getByText, queryByText, findByText} = render(<IconPopup />)
 
     getByText('Select Icon').closest('button')?.click()
-    expect(getByText('Select an icon')).toBeInTheDocument()
+    expect(await findByText('Select an icon')).toBeInTheDocument()
 
     getByText('Select Icon').closest('button')?.click()
-    expect(queryByText('Select an icon')).not.toBeInTheDocument()
+    await waitFor(() => expect(queryByText('Select an icon')).not.toBeInTheDocument())
   })
 
-  it('selects an icon on clicking one', () => {
-    const {getByText, getByTitle} = render(<IconPopup />)
+  it('selects an icon on clicking one', async () => {
+    const {getByText, findByText, findByTitle} = render(<IconPopup />)
 
     getByText('Select Icon').closest('button')?.click()
-    expect(getByText('Select an icon')).toBeInTheDocument()
+    expect(await findByText('Select an icon')).toBeInTheDocument()
 
-    const icon = getByTitle('pencil').closest('div[role="button"]') as HTMLElement
+    const icon = (await findByTitle('pencil')).closest('div[role="button"]') as HTMLElement
     icon?.click()
 
     expect(mockSetProp).toHaveBeenCalled()
     expect(props.iconName).toBe('pencil')
   })
 
-  it('unselects an icon on clicking the "No Icon" button', () => {
-    const {getByText} = render(<IconPopup />)
+  it('unselects an icon on clicking the "No Icon" button', async () => {
+    const {getByText, findByText} = render(<IconPopup />)
 
     getByText('Select Icon').closest('button')?.click()
-    expect(getByText('Select an icon')).toBeInTheDocument()
+    expect(await findByText('Select an icon')).toBeInTheDocument()
 
-    const noIcon = getByText('No Icon').closest('div[role="button"]') as HTMLElement
+    const noIcon = (await findByText('No Icon')).closest('div[role="button"]') as HTMLElement
     noIcon?.click()
 
     expect(mockSetProp).toHaveBeenCalled()

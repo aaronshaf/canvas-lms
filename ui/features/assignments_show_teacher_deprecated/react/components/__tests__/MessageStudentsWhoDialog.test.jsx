@@ -32,13 +32,11 @@ import {partialSubAssignment, variedSubmissionTypes} from './fixtures/Assignment
  *  resumes on A2.
  */
 
-
 const server = setupServer()
 
-beforeAll(() => server.listen({onUnhandledRequest: 'warn'}))  
+beforeAll(() => server.listen({onUnhandledRequest: 'warn'}))
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
-
 
 function renderMessageStudentsWhoDialog(assignment = mockAssignment(), propsOverride = {}) {
   const props = {
@@ -53,8 +51,6 @@ function renderMessageStudentsWhoDialog(assignment = mockAssignment(), propsOver
 }
 
 describe.skip('MessageStudentsWhoDialog', () => {
-  afterEach(cleanup)
-
   describe('filters', () => {
     // assignment is of type no-submission
     it('does not show the not submitted yet filter when the assignment is of type no submissions', () => {

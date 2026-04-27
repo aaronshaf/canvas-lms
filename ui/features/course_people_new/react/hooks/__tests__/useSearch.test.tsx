@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook, act} from '@testing-library/react-hooks'
+import {renderHook, act} from '@testing-library/react'
 import useSearch from '../useSearch'
 import {ChangeEvent} from 'react'
 
@@ -42,7 +42,7 @@ describe('useSearch', () => {
     expect(result.current.search).toBe('123')
     expect(result.current.debouncedSearch).toBe('')
     act(() => {
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
     expect(result.current.debouncedSearch).toBe('123')
   })
@@ -53,27 +53,27 @@ describe('useSearch', () => {
       result.current.onClearHandler()
     })
     act(() => {
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
     expect(result.current.search).toBe('')
   })
 
-  it('should update state with event.target.value using default debounce', () => {
+  it('should update state with event.target.value using default debounce', async () => {
     const {result} = renderHook(() => useSearch())
     act(() => {
       result.current.onChangeHandler(event)
     })
     expect(result.current.search).toBe('123')
     expect(result.current.debouncedSearch).toBe('')
-    act(() => {
+    await act(async () => {
       vi.advanceTimersByTime(100)
     })
     expect(result.current.debouncedSearch).toBe('')
-    act(() => {
+    await act(async () => {
       vi.advanceTimersByTime(100)
     })
     expect(result.current.debouncedSearch).toBe('')
-    act(() => {
+    await act(async () => {
       vi.advanceTimersByTime(300)
     })
     expect(result.current.debouncedSearch).toBe('123')

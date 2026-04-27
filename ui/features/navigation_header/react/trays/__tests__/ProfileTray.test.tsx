@@ -29,10 +29,6 @@ const render = (children: unknown) =>
 
 const imageUrl = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
 
-afterEach(() => {
-  cleanup()
-})
-
 const profileTabs = [
   {
     id: 'foo',

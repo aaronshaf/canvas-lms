@@ -65,7 +65,6 @@ describe('GroupMoveModal', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
-    cleanup()
     cache.reset()
   })
 
@@ -91,25 +90,25 @@ describe('GroupMoveModal', () => {
 
   it('renders component with Group title', async () => {
     const {getByText} = render(<GroupMoveModal {...defaultProps()} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('Move "Group 100 folder 0"')).toBeInTheDocument()
   })
 
   it('shows modal if open prop true', async () => {
     const {getByText} = render(<GroupMoveModal {...defaultProps()} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('Cancel')).toBeInTheDocument()
   })
 
   it('does not show modal if open prop false', async () => {
     const {queryByText} = render(<GroupMoveModal {...defaultProps({isOpen: false})} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(queryByText('Cancel')).not.toBeInTheDocument()
   })
 
   it('calls onCloseHandlerMock on Close button click', async () => {
     const {getByText} = render(<GroupMoveModal {...defaultProps()} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     const closeBtn = getByText('Close')
     fireEvent.click(closeBtn)
     expect(onCloseHandlerMock).toHaveBeenCalledTimes(1)
@@ -117,7 +116,7 @@ describe('GroupMoveModal', () => {
 
   it('calls onCloseHandlerMock on Cancel button click', async () => {
     const {getByText} = render(<GroupMoveModal {...defaultProps()} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     const closeBtn = getByText('Cancel')
     fireEvent.click(closeBtn)
     expect(onCloseHandlerMock).toHaveBeenCalledTimes(1)
@@ -125,15 +124,15 @@ describe('GroupMoveModal', () => {
 
   it('enables the move button when a valid group is selected', async () => {
     const {getByText} = render(<GroupMoveModal {...defaultProps()} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     fireEvent.click(getByText('Group 100 folder 1'))
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('Move').closest('button')).toBeEnabled()
   })
 
   it('by default, select parent group and disables move button', async () => {
     const {getByText} = render(<GroupMoveModal {...defaultProps()} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('Account folder 0')).toBeInTheDocument()
     expect(getByText('Group 100 folder 1')).toBeInTheDocument()
     expect(getByText('Move').closest('button')).toBeDisabled()

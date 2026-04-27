@@ -70,7 +70,6 @@ describe('SyllabusRevisionsTray', () => {
   beforeAll(() => server.listen())
   afterEach(() => {
     server.resetHandlers()
-    cleanup()
     document.body.innerHTML = ''
     vi.mocked(showFlashAlert).mockClear()
     vi.mocked(showFlashError).mockClear()
@@ -230,12 +229,9 @@ describe('SyllabusRevisionsTray', () => {
 
     fireEvent.click(screen.getByTestId('confirm-restore'))
 
-    await waitFor(
-      () => {
-        expect(showFlashError).toHaveBeenCalledWith('Failed to restore version')
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      expect(showFlashError).toHaveBeenCalledWith('Failed to restore version')
+    })
   })
 
   it('updates page syllabus content when version is clicked', async () => {

@@ -30,10 +30,6 @@ const renderSectionTooltip = (props = {}) =>
   render(<SectionTooltip {...defaultProps()} {...props} />)
 
 describe('SectionTooltip', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   it('renders the SectionTooltip component', () => {
     const tree = renderSectionTooltip()
 

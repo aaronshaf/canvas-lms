@@ -77,11 +77,8 @@ describe('OutcomeEditModal', () => {
   })
 
   afterEach(async () => {
-    // Clear any pending timers before cleanup
+    // Clear any pending timers
     vi.clearAllTimers()
-
-    // Cleanup React components
-    cleanup()
 
     // Clear document focus
     if (document.activeElement && document.activeElement !== document.body) {
@@ -98,10 +95,10 @@ describe('OutcomeEditModal', () => {
   })
 
   const waitForRceToLoad = async queryByTestId => {
-    await act(async () => vi.runAllTimers())
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     while (queryByTestId('rce-loading-spinner')) {
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
     }
   }
 

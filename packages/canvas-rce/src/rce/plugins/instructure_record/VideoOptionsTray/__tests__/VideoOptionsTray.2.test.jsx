@@ -218,7 +218,9 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
       await waitFor(() => {
         expect(getFileMock).toHaveBeenCalled()
       })
-      expect(tray.$closedCaptionPanel).toBeInTheDocument()
+      await waitFor(() => {
+        expect(tray.$closedCaptionPanel).toBeInTheDocument()
+      })
       expect(tray.$titleTextField).toBeInTheDocument()
     })
   })
@@ -433,6 +435,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
       renderComponent()
       await waitFor(() => {
         expect(tray.$titleTextField).toBeInTheDocument()
+        expect(tray.$closedCaptionPanel).toBeInTheDocument()
       })
     }
 

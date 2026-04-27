@@ -18,6 +18,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
+import {act} from '@testing-library/react'
 
 import {createGradebook} from '../../../__tests__/GradebookSpecHelper'
 import AssignmentColumnHeaderRenderer from '../AssignmentColumnHeaderRenderer'
@@ -675,18 +676,20 @@ describe('GradebookGrid AssignmentColumnHeaderRenderer', () => {
       expect(gradebook.handleHeaderKeyDown).toHaveBeenCalledWith(expect.any(Object), column.id)
     })
 
-    it('includes a callback for closing the column header menu', () => {
+    it('includes a callback for closing the column header menu', async () => {
       vi.useFakeTimers()
       buildGradebook()
       gradebook.handleColumnHeaderMenuClose = vi.fn()
       renderComponent()
       component.props.onMenuDismiss()
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
       expect(gradebook.handleColumnHeaderMenuClose).toHaveBeenCalledTimes(1)
       vi.useRealTimers()
     })
 
-    it('does not call the menu close handler synchronously', () => {
+    it('does not call the menu close handler synchronously', async () => {
       // The React render lifecycle is not yet complete at this time.
       // The callback must begin after React finishes to avoid conflicts.
       vi.useFakeTimers()
@@ -695,7 +698,9 @@ describe('GradebookGrid AssignmentColumnHeaderRenderer', () => {
       renderComponent()
       component.props.onMenuDismiss()
       expect(gradebook.handleColumnHeaderMenuClose).not.toHaveBeenCalled()
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
       vi.useRealTimers()
     })
 

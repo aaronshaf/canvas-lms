@@ -90,7 +90,6 @@ describe('ItemAssignToCard - Available Until Defaults', () => {
     server.resetHandlers()
     fakeEnv.teardown()
     vi.clearAllMocks()
-    cleanup()
   })
 
   it('defaults to 11:59 PM for available until dates if it is null on blur', async () => {

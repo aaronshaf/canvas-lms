@@ -75,10 +75,6 @@ describe('ColorPickerProblemArea', () => {
     PATH: '//div',
   } as const
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
   })

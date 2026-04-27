@@ -169,7 +169,6 @@ describe('RegistrationWizardModal', () => {
         developerKeyId: undefined,
       },
     }))
-    cleanup()
   }
 
   describe('When flag is OFF (old behavior)', () => {

@@ -73,7 +73,6 @@ describe('ItemAssignToTray - Add Card with Many Overrides', () => {
   afterEach(() => {
     fakeENV.teardown()
     server.resetHandlers()
-    cleanup()
   })
 
   // Rendering 4 cards is slow; increase timeout for CI stability

@@ -31,10 +31,6 @@ describe('WidgetCard', () => {
     disabled: false,
   }
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
   })

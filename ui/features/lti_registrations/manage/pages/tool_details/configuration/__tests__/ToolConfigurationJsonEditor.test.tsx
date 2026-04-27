@@ -183,7 +183,7 @@ describe('ToolConfigurationJsonEditor', () => {
       await user.paste('invalid json')
       fireEvent.blur(textarea) // Trigger blur directly
 
-      expect(await findByText(/Invalid JSON/, {exact: false}, {timeout: 3000})).toBeInTheDocument()
+      expect(await findByText(/Invalid JSON/, {exact: false})).toBeInTheDocument()
     })
 
     it('clears validation error when user starts typing', async () => {
@@ -199,7 +199,7 @@ describe('ToolConfigurationJsonEditor', () => {
       await user.paste('invalid')
       fireEvent.blur(textarea) // Trigger blur directly
 
-      await findByText(/Invalid JSON/, {exact: false}, {timeout: 3000})
+      await findByText(/Invalid JSON/, {exact: false})
 
       // Start typing again
       await user.type(textarea, 'x')
@@ -310,12 +310,9 @@ describe('ToolConfigurationJsonEditor', () => {
       const updateButton = getByText('Update Configuration').closest('button')!
       await user.click(updateButton)
 
-      await waitFor(
-        () => {
-          expect(mockNavigate).toHaveBeenCalledWith('/manage/1/configuration', {replace: true})
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/manage/1/configuration', {replace: true})
+      })
     })
 
     it('shows error message when save fails', async () => {

@@ -48,8 +48,6 @@ describe('SubmissionStatus - Pills', () => {
     }
   })
 
-  afterEach(cleanup)
-
   test('shows the "Unpublished" pill when the assignment is unpublished', () => {
     props.assignment.published = false
     render(<SubmissionStatus {...props} />)

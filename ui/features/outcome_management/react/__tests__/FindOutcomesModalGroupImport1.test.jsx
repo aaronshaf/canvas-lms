@@ -86,13 +86,13 @@ describe('FindOutcomesModal - Group Import Tests Part 1', () => {
         ...importGroupMocks({groupId: '300'}),
       ],
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await clickEl(getByText('Account Standards'))
     await clickEl(getByText('Root Account Outcome Group 0'))
     await clickEl(getByText('Group 100 folder 0'))
     await clickEl(getByText('Add All Outcomes').closest('button'))
     await act(async () => {
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
       await Promise.resolve()
     })
     expect(setImportsTargetGroupMock).toHaveBeenCalledTimes(1)
@@ -124,13 +124,13 @@ describe('FindOutcomesModal - Group Import Tests Part 1', () => {
         }),
       ],
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await clickEl(getByText('Account Standards'))
     await clickEl(getByText('Root Account Outcome Group 0'))
     await clickEl(getByText('Group 100 folder 0'))
     await clickEl(getByText('Add All Outcomes').closest('button'))
     await act(async () => {
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
       await Promise.resolve()
     })
     expect(showFlashAlert).toHaveBeenCalledWith({
@@ -151,7 +151,7 @@ describe('FindOutcomesModal - Group Import Tests Part 1', () => {
       ],
     })
 
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await clickEl(getByText('Account Standards'))
     await clickEl(getByText('Root Account Outcome Group 0'))
     await clickEl(getByText('Group 100 folder 0'))
@@ -172,7 +172,7 @@ describe('FindOutcomesModal - Group Import Tests Part 1', () => {
 
     // Wait for the import status to update
     await act(async () => {
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
       await Promise.resolve()
     })
 
@@ -192,7 +192,7 @@ describe('FindOutcomesModal - Group Import Tests Part 1', () => {
         }),
       ],
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await clickEl(getByText('Account Standards'))
     await clickEl(getByText('Root Account Outcome Group 0'))
     await clickEl(getByText('Group 100 folder 0'))
@@ -206,7 +206,7 @@ describe('FindOutcomesModal - Group Import Tests Part 1', () => {
       contextType: 'Course',
       mocks: courseImportMocks,
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await clickEl(getByText('Account Standards'))
     await clickEl(getByText('Root Account Outcome Group 0'))
     await clickEl(getByText('Group 100 folder 0'))
@@ -224,7 +224,7 @@ describe('FindOutcomesModal - Group Import Tests Part 1', () => {
       contextType: 'Course',
       mocks: courseImportMocks,
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await clickEl(getByText('Account Standards'))
     await clickEl(getByText('Root Account Outcome Group 0'))
     await clickEl(getByText('Group 100 folder 0'))
@@ -234,7 +234,7 @@ describe('FindOutcomesModal - Group Import Tests Part 1', () => {
     expect(DoneButton).not.toHaveFocus()
     await clickEl(getByText('Import Anyway'))
     await act(async () => {
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
       await Promise.resolve()
     })
     expect(DoneButton).toHaveFocus()
@@ -253,7 +253,7 @@ describe('FindOutcomesModal - Group Import Tests Part 1', () => {
         }),
       ],
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await clickEl(getByText('Account Standards'))
     await clickEl(getByText('Root Account Outcome Group 0'))
     await clickEl(getByText('Group 100 folder 0'))
@@ -261,7 +261,7 @@ describe('FindOutcomesModal - Group Import Tests Part 1', () => {
     await clickEl(AddAllButton)
     await clickEl(getByText('Import Anyway'))
     await act(async () => {
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
       await Promise.resolve()
     })
     expect(AddAllButton).toBeEnabled()
@@ -282,7 +282,7 @@ describe('FindOutcomesModal - Group Import Tests Part 1', () => {
         ],
       },
     )
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await clickEl(getByText('Account Standards'))
     await clickEl(getByText('Root Account Outcome Group 0'))
     await clickEl(getByText('Group 100 folder 0'))
@@ -292,7 +292,7 @@ describe('FindOutcomesModal - Group Import Tests Part 1', () => {
     expect(getAllByText('Loading')).toHaveLength(2)
     await act(async () => {
       doResolveProgress()
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
     })
     await waitFor(() => expect(queryByText('Loading')).not.toBeInTheDocument())
     expect(getAllByText('Added')).toHaveLength(2)

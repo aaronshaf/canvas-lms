@@ -32,10 +32,6 @@ describe('BasicPagination', () => {
     onPrev: vi.fn(),
   }
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
   })

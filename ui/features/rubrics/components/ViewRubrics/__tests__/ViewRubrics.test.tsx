@@ -595,7 +595,7 @@ describe.skip('ViewRubrics Tests', () => {
       expect(getByTestId('traditional-criterion-1-ratings-0')).toBeInTheDocument()
 
       previewCell.click()
-      await waitFor(() => expect(getPreviewTray()).not.toBeInTheDocument(), {timeout: 5000})
+      await waitFor(() => expect(getPreviewTray()).not.toBeInTheDocument())
     })
 
     it('filters rubrics based on search query at course level', async () => {

@@ -90,7 +90,7 @@ describe('FindOutcomesModal - Group Import Refetch Tests', () => {
         ],
       },
     )
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await waitFor(() => expect(getByText('Account Standards')).toBeInTheDocument())
     await clickEl(getByText('Account Standards'))
     await clickEl(getByText('Root Account Outcome Group 0'))
@@ -102,7 +102,7 @@ describe('FindOutcomesModal - Group Import Refetch Tests', () => {
 
     await act(async () => {
       doResolveProgress()
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
     })
     await waitFor(() => expect(queryByText('Loading')).not.toBeInTheDocument())
     expect(getAllByText('Added')).toHaveLength(3)
@@ -128,7 +128,7 @@ describe('FindOutcomesModal - Group Import Refetch Tests', () => {
         ],
       },
     )
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await waitFor(() => expect(getByText('Account Standards')).toBeInTheDocument())
     await clickEl(getByText('Account Standards'))
     await clickEl(getByText('Root Account Outcome Group 0'))
@@ -140,7 +140,7 @@ describe('FindOutcomesModal - Group Import Refetch Tests', () => {
 
     await act(async () => {
       doResolveProgress()
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
     })
     await waitFor(() => expect(queryByText('Loading')).not.toBeInTheDocument())
     expect(getAllByText('Added')).toHaveLength(3)

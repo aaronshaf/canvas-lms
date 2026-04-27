@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import {
   GradingSchemeViewEditModal,
   type GradingSchemeViewEditModalProps,
@@ -59,8 +59,7 @@ describe('Grading Schemes View Edit Tests', () => {
     )
     const {getByTestId} = renderGradingSchemesManagement()
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(getByTestId('grading_scheme_1_edit_button')).toBeInTheDocument()
+    await waitFor(() => expect(getByTestId('grading_scheme_1_edit_button')).toBeInTheDocument())
   })
 
   it('should not disable course grading scheme buttons', async () => {
@@ -74,8 +73,7 @@ describe('Grading Schemes View Edit Tests', () => {
     )
     const {getByTestId} = renderGradingSchemesManagement()
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(getByTestId('grading_scheme_1_edit_button')).not.toBeDisabled()
+    await waitFor(() => expect(getByTestId('grading_scheme_1_edit_button')).not.toBeDisabled())
   })
 
   it('should disable Account grading scheme buttons when contextType is Course', async () => {
@@ -89,8 +87,7 @@ describe('Grading Schemes View Edit Tests', () => {
     )
     const {getByTestId} = renderGradingSchemesManagement()
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(getByTestId('grading_scheme_2_edit_button')).toBeDisabled()
+    await waitFor(() => expect(getByTestId('grading_scheme_2_edit_button')).toBeDisabled())
   })
 
   it('should not disable Account grading scheme buttons when contextType is Account', async () => {
@@ -104,7 +101,6 @@ describe('Grading Schemes View Edit Tests', () => {
     )
     const {getByTestId} = renderGradingSchemesManagement({contextType: 'Account'})
 
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(getByTestId('grading_scheme_2_edit_button')).not.toBeDisabled()
+    await waitFor(() => expect(getByTestId('grading_scheme_2_edit_button')).not.toBeDisabled())
   })
 })

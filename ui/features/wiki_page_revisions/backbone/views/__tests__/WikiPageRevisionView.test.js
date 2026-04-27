@@ -48,8 +48,7 @@ describe('WikiPageRevisionView', () => {
     })
     view.restore()
     $('button[data-testid="confirm-button"]').trigger('click')
-    await waitFor(() => restoreSpy.mock.calls.length > 0)
-    expect(restoreSpy).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(restoreSpy).toHaveBeenCalledTimes(1))
   })
 
   test('toJSON serializes expected values', () => {

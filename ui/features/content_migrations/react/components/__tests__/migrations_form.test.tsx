@@ -25,7 +25,9 @@ import {setupServer} from 'msw/node'
 import {completeUpload} from '@canvas/upload-file'
 import fakeEnv from '@canvas/test-utils/fakeENV'
 
-const server = setupServer()
+const server = setupServer(
+  http.get(/\/api\/v1\/courses\/\d+\/late_policy/, () => HttpResponse.json({})),
+)
 
 // Track API calls
 let postCalled = false

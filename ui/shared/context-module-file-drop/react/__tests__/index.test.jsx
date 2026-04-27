@@ -18,7 +18,7 @@
 
 import React from 'react'
 import ModuleFileDrop from '../index'
-import {cleanup, render} from '@testing-library/react'
+import {act, cleanup, render, waitFor} from '@testing-library/react'
 
 vi.mock('../apiClient', async importOriginal => {
   const originalModule = await importOriginal()
@@ -80,36 +80,48 @@ it('renders disabled file drop with loading billboard', () => {
   expect(component.queryAllByText('Loading...')[1]).toBeInTheDocument()
 })
 
-it('renders enabled file drop with active billboard', () => {
+it('renders enabled file drop with active billboard', async () => {
   const ref = React.createRef()
   component = render(<ModuleFileDrop {...props} ref={ref} />)
-  ref.current.setState({folder: {files: []}})
+  await act(async () => {
+    ref.current.setState({folder: {files: []}})
+  })
   expect(ref.current.state.interaction).toBeTruthy()
   expect(ref.current.state.folder).toBeTruthy()
-  expect(component.queryByText('Drop files here to add to module')).toBeInTheDocument()
-  expect(component.queryByText('or choose files')).toBeInTheDocument()
+  await waitFor(() => {
+    expect(component.queryByText('Drop files here to add to module')).toBeInTheDocument()
+    expect(component.queryByText('or choose files')).toBeInTheDocument()
+  })
 })
 
 it('renders invisible upload form when files are dropped', async () => {
   const ref = React.createRef()
   component = render(<ModuleFileDrop {...props} ref={ref} />)
-  await ref.current.setState({
-    folder: {files: []},
-    isUploading: true,
-    contextId: '1',
-    contextType: 'Course',
+  await act(async () => {
+    ref.current.setState({
+      folder: {files: []},
+      isUploading: true,
+      contextId: '1',
+      contextType: 'Course',
+    })
   })
-  expect(component.getByRole('form', {hidden: true})).toBeInTheDocument()
-  expect(component.getByTestId('current-uploads')).toBeInTheDocument()
+  await waitFor(() => {
+    expect(component.getByRole('form', {hidden: true})).toBeInTheDocument()
+    expect(component.getByTestId('current-uploads')).toBeInTheDocument()
+  })
 })
 
 it('renders accessibility text with the module name', async () => {
   const ref = React.createRef()
   component = render(<ModuleFileDrop {...props} ref={ref} />)
-  ref.current.setState({folder: {files: []}})
+  await act(async () => {
+    ref.current.setState({folder: {files: []}})
+  })
   expect(ref.current.state.interaction).toBeTruthy()
   expect(ref.current.state.folder).toBeTruthy()
-  expect(
-    component.queryByText('Drop files here to add to Introduction module or choose files'),
-  ).toBeInTheDocument()
+  await waitFor(() => {
+    expect(
+      component.queryByText('Drop files here to add to Introduction module or choose files'),
+    ).toBeInTheDocument()
+  })
 })

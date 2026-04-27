@@ -20,7 +20,7 @@ import React from 'react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import userEvent, {PointerEventsCheckLevel} from '@testing-library/user-event'
-import {render, waitFor, cleanup, fireEvent} from '@testing-library/react'
+import {render, screen, waitFor, cleanup, fireEvent} from '@testing-library/react'
 
 import {CreateCourseModal} from '../CreateCourseModal'
 import injectGlobalAlertContainers from '@canvas/util/react/testing/injectGlobalAlertContainers'
@@ -122,7 +122,6 @@ describe('CreateCourseModal (2)', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
     // Tear down fakeENV
     fakeENV.teardown()
@@ -286,8 +285,8 @@ describe('CreateCourseModal (2)', () => {
       expect(createButton).toBeDisabled()
       await user.type(getByLabelText('Subject Name'), 'New course')
       expect(createButton).toBeDisabled()
-      await user.click(getByLabelText('Which account will this subject be associated with?'))
-      await user.click(getByText('Elementary'))
+      fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
+      await user.click(await screen.findByText('Elementary'))
       await user.click(getByLabelText('Sync enrollments and subject start/end dates from homeroom'))
       await waitFor(() => expect(homeroomRequestUrl).toBeTruthy(), {timeout: 10000})
       expect(homeroomRequestUrl).toContain('/api/v1/users/self/courses')
@@ -314,8 +313,8 @@ describe('CreateCourseModal (2)', () => {
       expect(createButton).toBeDisabled()
       await user.type(getByLabelText('Subject Name'), 'New course')
       expect(createButton).toBeDisabled()
-      await user.click(getByLabelText('Which account will this subject be associated with?'))
-      await user.click(getByText('CPMS'))
+      fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
+      await user.click(await screen.findByText('CPMS'))
       await user.click(getByLabelText('Sync enrollments and subject start/end dates from homeroom'))
       await waitFor(() => expect(homeroomRequestUrl).toBeTruthy(), {timeout: 10000})
       expect(homeroomRequestUrl).toContain('/api/v1/accounts/4/courses')
@@ -370,10 +369,10 @@ describe('CreateCourseModal (2)', () => {
         <CreateCourseModal {...getProps({viewableAccountIds: ['4']})} />,
       )
       await waitFor(() => expect(getByLabelText('Subject Name')).toBeInTheDocument())
-      await user.click(getByLabelText('Which account will this subject be associated with?'))
-      await user.click(getByText('CPMS'))
+      fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
+      await user.click(await screen.findByText('CPMS'))
       await user.click(getByLabelText('Sync enrollments and subject start/end dates from homeroom'))
-      await waitFor(() => expect(homeroomRequestedForAccount4).toBe(true), {timeout: 5000})
+      await waitFor(() => expect(homeroomRequestedForAccount4).toBe(true))
       expect(homeroomRequestedForAccount5).toBe(false)
     })
   })

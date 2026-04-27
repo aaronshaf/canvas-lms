@@ -211,7 +211,7 @@ describe('GradeSummary Header', () => {
       const user = userEvent.setup({delay: null})
       mountComponent()
       await user.click(screen.getByRole('button', {name: /release grades/i}))
-      waitFor(() => {
+      await waitFor(() => {
         expect(windowConfirm).toHaveBeenCalledTimes(1)
       })
     })
@@ -231,7 +231,7 @@ describe('GradeSummary Header', () => {
 
       mountComponent()
       await user.click(screen.getByRole('button', {name: /release grades/i}))
-      waitFor(() => {
+      await waitFor(() => {
         expect(store.getState().assignment.releaseGradesStatus).toBe(null)
       })
     })

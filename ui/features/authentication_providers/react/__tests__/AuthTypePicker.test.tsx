@@ -36,10 +36,6 @@ const renderAuthTypePicker = (props?: Partial<AuthTypePickerProps>) => {
 }
 
 describe('AuthTypePicker', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   it('rendered structure', () => {
     const wrapper = renderAuthTypePicker()
 

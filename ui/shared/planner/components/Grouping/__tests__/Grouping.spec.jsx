@@ -17,7 +17,7 @@
  */
 import React from 'react'
 // eslint-disable-next-line no-redeclare
-import {render, fireEvent, screen} from '@testing-library/react'
+import {act, render, fireEvent, screen} from '@testing-library/react'
 import moment from 'moment-timezone'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import {Grouping} from '../index'
@@ -279,10 +279,12 @@ describe('handleFacadeClick', () => {
     }
   })
 
-  it('sets focus to the groupingLink when called', () => {
+  it('sets focus to the groupingLink when called', async () => {
     const ref = React.createRef()
     render(<Grouping {...getDefaultProps()} ref={ref} />, {container: containerElement})
-    ref.current.handleFacadeClick()
+    await act(async () => {
+      ref.current.handleFacadeClick()
+    })
     expect(document.activeElement).toBe(ref.current.groupingLink)
   })
 

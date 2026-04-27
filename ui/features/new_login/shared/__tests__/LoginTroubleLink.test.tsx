@@ -45,10 +45,6 @@ describe('LoginTroubleLink', () => {
   const renderLoginTroubleLink = (url: string | null = defaultUrl) =>
     render(<LoginTroubleLink url={url} />)
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseNewLogin.mockReturnValue({isUiActionPending: false})

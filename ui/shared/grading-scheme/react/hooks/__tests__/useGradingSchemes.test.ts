@@ -19,7 +19,7 @@
 import {useGradingSchemes} from '../useGradingSchemes'
 import {ApiCallStatus} from '../ApiCallStatus'
 
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 
@@ -34,13 +34,11 @@ describe('useGradingSchemesHook', () => {
   afterAll(() => server.close())
 
   it('renders for course context without error', () => {
-    const {result} = renderHook(() => useGradingSchemes())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useGradingSchemes())
   })
 
   it('renders for account context without error', () => {
-    const {result} = renderHook(() => useGradingSchemes())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useGradingSchemes())
   })
 
   it('makes a GET request for course context to load grading schemes', async () => {
@@ -65,7 +63,10 @@ describe('useGradingSchemesHook', () => {
     )
 
     const {result} = renderHook(() => useGradingSchemes())
-    const loadedGradingSchemes = await result.current.loadGradingSchemes('Course', courseId)
+    let loadedGradingSchemes: any
+    await act(async () => {
+      loadedGradingSchemes = await result.current.loadGradingSchemes('Course', courseId)
+    })
 
     expect(capturedUrl).toContain(`/courses/${courseId}/grading_schemes`)
     expect(capturedUrl).toContain('include_archived=false')
@@ -98,7 +99,10 @@ describe('useGradingSchemesHook', () => {
     )
 
     const {result} = renderHook(() => useGradingSchemes())
-    const loadedGradingSchemes = await result.current.loadGradingSchemes('Account', accountId)
+    let loadedGradingSchemes: any
+    await act(async () => {
+      loadedGradingSchemes = await result.current.loadGradingSchemes('Account', accountId)
+    })
 
     expect(capturedUrl).toContain(`/accounts/${accountId}/grading_schemes`)
     expect(capturedUrl).toContain('include_archived=false')

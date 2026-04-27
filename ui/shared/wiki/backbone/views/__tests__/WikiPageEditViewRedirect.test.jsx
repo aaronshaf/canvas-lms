@@ -50,7 +50,7 @@ describe('WikiPageEditView redirect functionality', () => {
   })
 
   afterEach(async () => {
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
     vi.useRealTimers()
 
     window.location = originalLocation

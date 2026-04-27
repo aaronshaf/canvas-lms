@@ -151,9 +151,7 @@ describe('CourseCopyImporter', () => {
     fakeENV.setup({...defaultEnv, SHOW_BP_SETTINGS_IMPORT_OPTION: false})
     const {findByText, queryByText} = renderComponent()
     await userEvent.type(screen.getByTestId('course-copy-select-course'), 'math')
-    await waitFor(async () => {
-      await expect(findByText('Mathmatics')).resolves.toBeInTheDocument()
-    })
+    expect(await findByText('Mathmatics')).toBeInTheDocument()
     await userEvent.click(await findByText('Mathmatics'))
     expect(queryByText('Import Blueprint Course settings')).toBeNull()
   })

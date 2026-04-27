@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {fireEvent, render} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {Editor} from '@craftjs/core'
 import {PreviewModal, getViewWidth} from '../PreviewModal'
@@ -51,7 +51,7 @@ describe('PreviewModal', () => {
     expect(view).toHaveStyle({width: getViewWidth('desktop')})
   })
 
-  it('renders Tablet size', () => {
+  it('renders Tablet size', async () => {
     const {getByText} = render(
       <Editor enabled={false}>
         <PreviewModal open={true} onDismiss={() => {}} />)
@@ -62,10 +62,12 @@ describe('PreviewModal', () => {
     expect(tabletButton).toBeInTheDocument()
     tabletButton.click()
 
-    expect(tabletButton).toHaveAttribute('aria-current', 'true')
-    const view = document.querySelector('.block-editor-previewview.tablet')
-    expect(view).toBeInTheDocument()
-    expect(view).toHaveStyle({width: getViewWidth('tablet')})
+    await waitFor(() => {
+      expect(tabletButton).toHaveAttribute('aria-current', 'true')
+      const view = document.querySelector('.block-editor-previewview.tablet')
+      expect(view).toBeInTheDocument()
+      expect(view).toHaveStyle({width: getViewWidth('tablet')})
+    })
   })
 
   it('renders Mobile size', async () => {
@@ -79,10 +81,12 @@ describe('PreviewModal', () => {
     expect(mobileButton).toBeInTheDocument()
     mobileButton.click()
 
-    expect(mobileButton).toHaveAttribute('aria-current', 'true')
-    const view = document.querySelector('.block-editor-previewview.mobile')
-    expect(view).toBeInTheDocument()
-    expect(view).toHaveStyle({width: getViewWidth('mobile')})
+    await waitFor(() => {
+      expect(mobileButton).toHaveAttribute('aria-current', 'true')
+      const view = document.querySelector('.block-editor-previewview.mobile')
+      expect(view).toBeInTheDocument()
+      expect(view).toHaveStyle({width: getViewWidth('mobile')})
+    })
   })
 
   it('calls onDismiss on Escape key', async () => {

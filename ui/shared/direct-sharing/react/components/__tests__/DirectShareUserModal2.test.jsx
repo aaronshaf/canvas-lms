@@ -75,7 +75,7 @@ vi.mock('../DirectShareUserPanel', () => ({
 const flushAllTimersAndPromises = async () => {
   while (vi.getTimerCount() > 0) {
     await act(async () => {
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
   }
 }

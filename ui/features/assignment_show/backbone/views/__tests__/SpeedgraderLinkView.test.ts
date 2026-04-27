@@ -54,7 +54,6 @@ describe('SpeedgraderLinkView', () => {
   })
 
   afterEach(() => {
-    cleanup()
     document.body.innerHTML = ''
   })
 

@@ -227,14 +227,14 @@ describe('StudentContent Non-Digital Submissions', () => {
         previous: {url: '/previous', tooltipText: {string: 'Previous'}},
       })
 
-      const {getByTestId} = render(
+      const {findByTestId} = render(
         <MockedQueryProvider>
           <StudentContent {...props} />
         </MockedQueryProvider>,
       )
       await waitFor(() => expect(ContextModuleApi.getContextModuleData).toHaveBeenCalled())
 
-      const footer = getByTestId('student-footer')
+      const footer = await findByTestId('student-footer')
       expect(within(footer).getByRole('link', {name: /Previous/})).toBeInTheDocument()
       expect(within(footer).getByRole('link', {name: /Next/})).toBeInTheDocument()
     })

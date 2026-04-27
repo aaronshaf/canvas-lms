@@ -21,10 +21,6 @@ import React from 'react'
 import {NewLoginDataProvider, NewLoginProvider} from '../../context'
 import ContentLayout from '../ContentLayout'
 
-afterEach(() => {
-  cleanup()
-})
-
 describe('ContentLayout', () => {
   it('mounts without crashing', () => {
     render(

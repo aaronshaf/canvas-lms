@@ -27,10 +27,6 @@ import {
 import type {Tool} from '@canvas/global/env/EnvCommon'
 
 describe('TopNavigationTools', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     window.ENV = window.ENV || {}
     window.ENV.FEATURES = {}

@@ -44,7 +44,7 @@ describe('MessageStudents form validation', () => {
     renderMessageStudents()
     await act(async () => {
       await user.click(screen.getByTestId('message-students-submit'))
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
     expect(screen.getByText(/please provide a subject/i)).toBeInTheDocument()
   })
@@ -56,11 +56,11 @@ describe('MessageStudents form validation', () => {
       // Use paste instead of type to avoid timeout with 256 characters
       await user.click(subjectInput)
       await user.paste('a'.repeat(256))
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
     await act(async () => {
       await user.click(screen.getByTestId('message-students-submit'))
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
     expect(screen.getByText(/subject must contain fewer than 255 characters/i)).toBeInTheDocument()
   })
@@ -70,11 +70,11 @@ describe('MessageStudents form validation', () => {
     const subjectInput = screen.getByLabelText(/subject/i)
     await act(async () => {
       await user.type(subjectInput, '   ')
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
     await act(async () => {
       await user.click(screen.getByTestId('message-students-submit'))
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
     expect(screen.getByText(/please provide a subject/i)).toBeInTheDocument()
   })
@@ -86,11 +86,11 @@ describe('MessageStudents form validation', () => {
     await act(async () => {
       await user.type(subjectInput, 'Valid Subject')
       await user.type(bodyInput, '   ')
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
     await act(async () => {
       await user.click(screen.getByTestId('message-students-submit'))
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
     expect(screen.getByText(/please provide a body/i)).toBeInTheDocument()
   })

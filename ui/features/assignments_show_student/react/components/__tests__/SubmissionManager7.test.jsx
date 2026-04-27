@@ -90,13 +90,13 @@ describe('SubmissionManager', () => {
         Submission: {...SubmissionMocks.submitted},
       })
 
-      const {getByTestId} = render(
+      const {findByTestId} = render(
         <MockedProvider>
           <SubmissionManager {...props} />
         </MockedProvider>,
       )
 
-      expect(getByTestId('student-footer')).toBeInTheDocument()
+      expect(await findByTestId('student-footer')).toBeInTheDocument()
     })
 
     it('is not rendered if no buttons can be shown', async () => {
@@ -145,20 +145,22 @@ describe('SubmissionManager', () => {
           previous: {url: '/previous', tooltipText: {string: 'some module'}},
         })
 
-        const {getByTestId} = render(
+        const {findByTestId} = render(
           <MockedProvider>
             <SubmissionManager {...props} />
           </MockedProvider>,
         )
 
         await waitFor(() => expect(ContextModuleApi.getContextModuleData).toHaveBeenCalled())
-        const footer = getByTestId('student-footer')
-        expect(
-          within(footer).getByTestId('previous-assignment-btn', {name: /Previous/}),
-        ).toBeInTheDocument()
-        expect(
-          within(footer).getByTestId('next-assignment-btn', {name: /Next/}),
-        ).toBeInTheDocument()
+        const footer = await findByTestId('student-footer')
+        await waitFor(() => {
+          expect(
+            within(footer).getByTestId('previous-assignment-btn', {name: /Previous/}),
+          ).toBeInTheDocument()
+          expect(
+            within(footer).getByTestId('next-assignment-btn', {name: /Next/}),
+          ).toBeInTheDocument()
+        })
       })
 
       it('does not render module buttons if no next/previous modules exist for the assignment', async () => {

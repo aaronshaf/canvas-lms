@@ -138,12 +138,9 @@ describe('CanvasContentPanel', () => {
   }
 
   const waitForLoading = async () => {
-    await waitFor(
-      () => {
-        expect(screen.queryByText('Loading')).not.toBeInTheDocument()
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      expect(screen.queryByText('Loading')).not.toBeInTheDocument()
+    })
   }
 
   describe('when used to load course_images', () => {

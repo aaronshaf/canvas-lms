@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import {TagSelect, AvailableTags} from '../TagSelect'
 
 const renderComponent = (props = {}) => {
@@ -41,23 +41,26 @@ describe('TagSelect', () => {
     expect(getByText('Apply Filters')).toBeInTheDocument()
   })
 
-  it('shows the menu', () => {
-    const {getByText} = renderComponent()
+  it('shows the menu', async () => {
+    const {getByText, findByText} = renderComponent()
     const trigger = getByText('Apply Filters').closest('button')
 
     trigger?.click()
-    expect(getByText('Home')).toBeInTheDocument()
-    expect(getByText('Resource')).toBeInTheDocument()
-    expect(getByText('Module Overview')).toBeInTheDocument()
-    expect(getByText('Introduction')).toBeInTheDocument()
-    expect(getByText('General Content')).toBeInTheDocument()
+    expect(await findByText('Home')).toBeInTheDocument()
+    expect(await findByText('Resource')).toBeInTheDocument()
+    expect(await findByText('Module Overview')).toBeInTheDocument()
+    expect(await findByText('Introduction')).toBeInTheDocument()
+    expect(await findByText('General Content')).toBeInTheDocument()
   })
 
-  it('checks the selected tags', () => {
+  it('checks the selected tags', async () => {
     const selectedTags = ['home', 'resource', 'intro']
-    const {getByText, debug} = renderComponent({selectedTags})
+    const {getByText, findByText} = renderComponent({selectedTags})
     const trigger = getByText('Apply Filters').closest('button')
     trigger?.click()
+
+    // Wait for the menu to appear
+    await findByText(AvailableTags[Object.keys(AvailableTags)[0]])
 
     for (const tag of Object.keys(AvailableTags)) {
       const li = getByText(AvailableTags[tag]).parentElement
@@ -66,14 +69,14 @@ describe('TagSelect', () => {
     }
   })
 
-  it('calls onChange when a tag is selected', () => {
+  it('calls onChange when a tag is selected', async () => {
     const onChange = vi.fn()
     const selectedTags = ['resource']
-    const {getByText} = renderComponent({selectedTags, onChange})
+    const {getByText, findByText} = renderComponent({selectedTags, onChange})
     const trigger = getByText('Apply Filters').closest('button')
     trigger?.click()
 
-    const li = getByText('Home')
+    const li = await findByText('Home')
     li?.click()
     expect(onChange).toHaveBeenCalledWith(['resource', 'home'])
   })

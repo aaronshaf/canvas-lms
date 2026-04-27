@@ -160,7 +160,6 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
   })
 
   afterEach(() => {
-    cleanup()
     container.remove()
   })
 
@@ -181,17 +180,20 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
     return document.querySelector(`[aria-labelledby="${button.id}"]`)
   }
 
-  function openOptionsMenu() {
+  async function openOptionsMenu() {
     const trigger = getOptionsMenuTrigger()
     if (trigger) {
       fireEvent.click(trigger)
-      menuContent = getOptionsMenuContent()
+      await waitFor(() => {
+        menuContent = getOptionsMenuContent()
+        expect(menuContent).not.toBeNull()
+      })
     }
   }
 
-  function mountAndOpenOptionsMenu() {
+  async function mountAndOpenOptionsMenu() {
     mountComponent()
-    openOptionsMenu()
+    await openOptionsMenu()
   }
 
   function closeOptionsMenu() {
@@ -204,49 +206,49 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
       return getMenuItem(menuContent, 'Sort by', label)
     }
 
-    test('is added as a Gradebook element when opened', () => {
-      mountAndOpenOptionsMenu()
+    test('is added as a Gradebook element when opened', async () => {
+      await mountAndOpenOptionsMenu()
       const sortByMenuContent = getMenuContent(menuContent, 'Sort by')
       expect(gradebookElements.indexOf(sortByMenuContent)).not.toBe(-1)
     })
 
-    test('is removed as a Gradebook element when closed', () => {
-      mountAndOpenOptionsMenu()
+    test('is removed as a Gradebook element when closed', async () => {
+      await mountAndOpenOptionsMenu()
       const sortByMenuContent = getMenuContent(menuContent, 'Sort by')
       closeOptionsMenu()
       expect(gradebookElements.indexOf(sortByMenuContent)).toBe(-1)
     })
 
     describe('"Grade - Low to High" option', () => {
-      test('is selected when sorting by grade ascending', () => {
+      test('is selected when sorting by grade ascending', async () => {
         props.sortBySetting.settingKey = 'grade'
         props.sortBySetting.direction = 'ascending'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Grade - Low to High').getAttribute('aria-checked')).toBe('true')
       })
 
-      test('is not selected when sorting by grade descending', () => {
+      test('is not selected when sorting by grade descending', async () => {
         props.sortBySetting.settingKey = 'grade'
         props.sortBySetting.direction = 'descending'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Grade - Low to High').getAttribute('aria-checked')).toBe('false')
       })
 
-      test('is not selected when sorting by a different setting', () => {
+      test('is not selected when sorting by a different setting', async () => {
         props.sortBySetting.settingKey = 'missing'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Grade - Low to High').getAttribute('aria-checked')).toBe('false')
       })
 
-      test('is not selected when isSortColumn is false', () => {
+      test('is not selected when isSortColumn is false', async () => {
         props.sortBySetting.isSortColumn = false
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Grade - Low to High').getAttribute('aria-checked')).toBe('false')
       })
 
-      test('is optionally disabled', () => {
+      test('is optionally disabled', async () => {
         props.sortBySetting.disabled = true
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Grade - Low to High').getAttribute('aria-disabled')).toBe('true')
       })
 
@@ -255,51 +257,51 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
           props.sortBySetting.onSortByGradeAscending = vi.fn()
         })
 
-        test('calls the .sortBySetting.onSortByGradeAscending callback', () => {
-          mountAndOpenOptionsMenu()
+        test('calls the .sortBySetting.onSortByGradeAscending callback', async () => {
+          await mountAndOpenOptionsMenu()
           getSortByOption('Grade - Low to High').click()
           expect(props.sortBySetting.onSortByGradeAscending).toHaveBeenCalledTimes(1)
         })
 
-        test('returns focus to the "Options" menu trigger', () => {
-          mountAndOpenOptionsMenu()
-          getSortByOption('Grade - Low to High').focus()
-          getSortByOption('Grade - Low to High').click()
-          expect(document.activeElement).toBe(getOptionsMenuTrigger())
+        test('returns focus to the "Options" menu trigger', async () => {
+          await mountAndOpenOptionsMenu()
+          fireEvent.focus(getSortByOption('Grade - Low to High'))
+          fireEvent.click(getSortByOption('Grade - Low to High'))
+          await waitFor(() => expect(document.activeElement).toBe(getOptionsMenuTrigger()))
         })
       })
     })
 
     describe('"Grade - High to Low" option', () => {
-      test('is selected when sorting by grade descending', () => {
+      test('is selected when sorting by grade descending', async () => {
         props.sortBySetting.settingKey = 'grade'
         props.sortBySetting.direction = 'descending'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Grade - High to Low').getAttribute('aria-checked')).toBe('true')
       })
 
-      test('is not selected when sorting by grade ascending', () => {
+      test('is not selected when sorting by grade ascending', async () => {
         props.sortBySetting.settingKey = 'grade'
         props.sortBySetting.direction = 'ascending'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Grade - High to Low').getAttribute('aria-checked')).toBe('false')
       })
 
-      test('is not selected when sorting by a different setting', () => {
+      test('is not selected when sorting by a different setting', async () => {
         props.sortBySetting.settingKey = 'missing'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Grade - High to Low').getAttribute('aria-checked')).toBe('false')
       })
 
-      test('is not selected when isSortColumn is false', () => {
+      test('is not selected when isSortColumn is false', async () => {
         props.sortBySetting.isSortColumn = false
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Grade - High to Low').getAttribute('aria-checked')).toBe('false')
       })
 
-      test('is optionally disabled', () => {
+      test('is optionally disabled', async () => {
         props.sortBySetting.disabled = true
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Grade - High to Low').getAttribute('aria-disabled')).toBe('true')
       })
 
@@ -308,44 +310,44 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
           props.sortBySetting.onSortByGradeDescending = vi.fn()
         })
 
-        test('calls the .sortBySetting.onSortByGradeDescending callback', () => {
-          mountAndOpenOptionsMenu()
+        test('calls the .sortBySetting.onSortByGradeDescending callback', async () => {
+          await mountAndOpenOptionsMenu()
           getSortByOption('Grade - High to Low').click()
           expect(props.sortBySetting.onSortByGradeDescending).toHaveBeenCalledTimes(1)
         })
 
-        test('returns focus to the "Options" menu trigger', () => {
-          mountAndOpenOptionsMenu()
-          getSortByOption('Grade - High to Low').focus()
-          getSortByOption('Grade - High to Low').click()
-          expect(document.activeElement).toBe(getOptionsMenuTrigger())
+        test('returns focus to the "Options" menu trigger', async () => {
+          await mountAndOpenOptionsMenu()
+          fireEvent.focus(getSortByOption('Grade - High to Low'))
+          fireEvent.click(getSortByOption('Grade - High to Low'))
+          await waitFor(() => expect(document.activeElement).toBe(getOptionsMenuTrigger()))
         })
       })
     })
 
     describe('"Missing" option', () => {
-      test('is selected when sorting by missing', () => {
+      test('is selected when sorting by missing', async () => {
         props.sortBySetting.settingKey = 'missing'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Missing').getAttribute('aria-checked')).toBe('true')
       })
 
-      test('is not selected when sorting by a different setting', () => {
+      test('is not selected when sorting by a different setting', async () => {
         props.sortBySetting.settingKey = 'grade'
         props.sortBySetting.direction = 'ascending'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Missing').getAttribute('aria-checked')).toBe('false')
       })
 
-      test('is not selected when isSortColumn is false', () => {
+      test('is not selected when isSortColumn is false', async () => {
         props.sortBySetting.isSortColumn = false
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Missing').getAttribute('aria-checked')).toBe('false')
       })
 
-      test('is optionally disabled', () => {
+      test('is optionally disabled', async () => {
         props.sortBySetting.disabled = true
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Missing').getAttribute('aria-disabled')).toBe('true')
       })
 
@@ -354,44 +356,44 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
           props.sortBySetting.onSortByMissing = vi.fn()
         })
 
-        test('calls the .sortBySetting.onSortByMissing callback', () => {
-          mountAndOpenOptionsMenu()
+        test('calls the .sortBySetting.onSortByMissing callback', async () => {
+          await mountAndOpenOptionsMenu()
           getSortByOption('Missing').click()
           expect(props.sortBySetting.onSortByMissing).toHaveBeenCalledTimes(1)
         })
 
-        test('returns focus to the "Options" menu trigger', () => {
-          mountAndOpenOptionsMenu()
-          getSortByOption('Missing').focus()
-          getSortByOption('Missing').click()
-          expect(document.activeElement).toBe(getOptionsMenuTrigger())
+        test('returns focus to the "Options" menu trigger', async () => {
+          await mountAndOpenOptionsMenu()
+          fireEvent.focus(getSortByOption('Missing'))
+          fireEvent.click(getSortByOption('Missing'))
+          await waitFor(() => expect(document.activeElement).toBe(getOptionsMenuTrigger()))
         })
       })
     })
 
     describe('"Late" option', () => {
-      test('is selected when sorting by late', () => {
+      test('is selected when sorting by late', async () => {
         props.sortBySetting.settingKey = 'late'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Late').getAttribute('aria-checked')).toBe('true')
       })
 
-      test('is not selected when sorting by a different setting', () => {
+      test('is not selected when sorting by a different setting', async () => {
         props.sortBySetting.settingKey = 'grade'
         props.sortBySetting.direction = 'ascending'
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Late').getAttribute('aria-checked')).toBe('false')
       })
 
-      test('is not selected when isSortColumn is false', () => {
+      test('is not selected when isSortColumn is false', async () => {
         props.sortBySetting.isSortColumn = false
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Late').getAttribute('aria-checked')).toBe('false')
       })
 
-      test('is optionally disabled', () => {
+      test('is optionally disabled', async () => {
         props.sortBySetting.disabled = true
-        mountAndOpenOptionsMenu()
+        await mountAndOpenOptionsMenu()
         expect(getSortByOption('Late').getAttribute('aria-disabled')).toBe('true')
       })
 
@@ -400,25 +402,25 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
           props.sortBySetting.onSortByLate = vi.fn()
         })
 
-        test('calls the .sortBySetting.onSortByLate callback', () => {
-          mountAndOpenOptionsMenu()
+        test('calls the .sortBySetting.onSortByLate callback', async () => {
+          await mountAndOpenOptionsMenu()
           getSortByOption('Late').click()
           expect(props.sortBySetting.onSortByLate).toHaveBeenCalledTimes(1)
         })
 
-        test('returns focus to the "Options" menu trigger', () => {
-          mountAndOpenOptionsMenu()
-          getSortByOption('Late').focus()
-          getSortByOption('Late').click()
-          expect(document.activeElement).toBe(getOptionsMenuTrigger())
+        test('returns focus to the "Options" menu trigger', async () => {
+          await mountAndOpenOptionsMenu()
+          fireEvent.focus(getSortByOption('Late'))
+          fireEvent.click(getSortByOption('Late'))
+          await waitFor(() => expect(document.activeElement).toBe(getOptionsMenuTrigger()))
         })
       })
     })
   })
 
   describe('"Options" > "SpeedGrader" action', () => {
-    beforeEach(() => {
-      mountAndOpenOptionsMenu()
+    beforeEach(async () => {
+      await mountAndOpenOptionsMenu()
     })
 
     test('is present', () => {
@@ -435,13 +437,13 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
   describe('"Options" > "Message Students Who" action', () => {
     let loadMessageStudentsWhoDialogPromise
 
-    beforeEach(() => {
+    beforeEach(async () => {
       loadMessageStudentsWhoDialogPromise = Promise.resolve(MessageStudentsWhoDialog)
-      vi
-        .spyOn(AsyncComponents, 'loadMessageStudentsWhoDialog')
-        .mockReturnValue(loadMessageStudentsWhoDialogPromise)
+      vi.spyOn(AsyncComponents, 'loadMessageStudentsWhoDialog').mockReturnValue(
+        loadMessageStudentsWhoDialogPromise,
+      )
       vi.spyOn(MessageStudentsWhoDialog, 'show').mockImplementation(() => {})
-      mountAndOpenOptionsMenu()
+      await mountAndOpenOptionsMenu()
     })
 
     afterEach(() => {
@@ -518,8 +520,8 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
   })
 
   describe('"Options" > "Curve Grades" action', () => {
-    beforeEach(() => {
-      mountAndOpenOptionsMenu()
+    beforeEach(async () => {
+      await mountAndOpenOptionsMenu()
     })
 
     test('is always present', () => {
@@ -571,8 +573,8 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
   })
 
   describe('"Options" > "Set Default Grade" action', () => {
-    beforeEach(() => {
-      mountAndOpenOptionsMenu()
+    beforeEach(async () => {
+      await mountAndOpenOptionsMenu()
     })
 
     test('is always present', () => {
@@ -624,10 +626,10 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
   })
 
   describe('"Options" > "Post grades" action', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       props.postGradesAction.enabledForUser = true
       props.postGradesAction.hasGradesOrCommentsToPost = true
-      mountAndOpenOptionsMenu()
+      await mountAndOpenOptionsMenu()
     })
 
     describe('when the current user can edit grades', () => {
@@ -678,17 +680,17 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
       })
 
       test('does not restore focus to the "Options" menu trigger', () => {
-        getMenuItem(menuContent, 'Post grades').click()
+        fireEvent.click(getMenuItem(menuContent, 'Post grades'))
         expect(document.activeElement).not.toBe(getOptionsMenuTrigger())
       })
 
       test('calls the .postGradesAction.onSelect callback', () => {
-        getMenuItem(menuContent, 'Post grades').click()
+        fireEvent.click(getMenuItem(menuContent, 'Post grades'))
         expect(props.postGradesAction.onSelect).toHaveBeenCalledTimes(1)
       })
 
       test('includes a callback for restoring focus upon dialog close', () => {
-        getMenuItem(menuContent, 'Post grades').click()
+        fireEvent.click(getMenuItem(menuContent, 'Post grades'))
         const [callback] =
           props.postGradesAction.onSelect.mock.calls[
             props.postGradesAction.onSelect.mock.calls.length - 1

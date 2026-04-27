@@ -18,7 +18,7 @@
 
 import React from 'react'
 import CoursePublishButton from '../CoursePublishButton'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 
 describe('CoursePublishButton', () => {
   const getProps = (props: object) => {
@@ -40,26 +40,26 @@ describe('CoursePublishButton', () => {
     expect(getByText('Published')).toBeInTheDocument()
   })
 
-  it('opens menu and displays publish/unpublish buttons when button is clicked', () => {
-    const {getByText} = render(<CoursePublishButton {...getProps({})} />)
+  it('opens menu and displays publish/unpublish buttons when button is clicked', async () => {
+    const {getByText, findByText} = render(<CoursePublishButton {...getProps({})} />)
     getByText('Unpublished').click()
-    expect(getByText('Publish')).toBeInTheDocument()
-    expect(getByText('Unpublish')).toBeInTheDocument()
+    expect(await findByText('Publish')).toBeInTheDocument()
+    expect(await findByText('Unpublish')).toBeInTheDocument()
   })
 
-  it('unpublish option is disabled if course is unpublished', () => {
-    const {getByText, getByLabelText} = render(<CoursePublishButton {...getProps({})} />)
+  it('unpublish option is disabled if course is unpublished', async () => {
+    const {getByText, findByText, findByLabelText} = render(<CoursePublishButton {...getProps({})} />)
     getByText('Unpublished').click()
-    expect(getByLabelText('Unpublish').getAttribute('aria-disabled')).toBeTruthy()
-    expect(getByText('Publish').getAttribute('aria-disabled')).toBeNull()
+    expect((await findByLabelText('Unpublish')).getAttribute('aria-disabled')).toBeTruthy()
+    expect((await findByText('Publish')).getAttribute('aria-disabled')).toBeNull()
   })
 
-  it('publish option is disabled if course is published', () => {
-    const {getByText, getByLabelText} = render(
+  it('publish option is disabled if course is published', async () => {
+    const {getByText, findByText, findByLabelText} = render(
       <CoursePublishButton {...getProps({isPublished: true})} />,
     )
     getByText('Published').click()
-    expect(getByLabelText('Publish').getAttribute('aria-disabled')).toBeTruthy()
-    expect(getByText('Unpublish').getAttribute('aria-disabled')).toBeNull()
+    expect((await findByLabelText('Publish')).getAttribute('aria-disabled')).toBeTruthy()
+    expect((await findByText('Unpublish')).getAttribute('aria-disabled')).toBeNull()
   })
 })

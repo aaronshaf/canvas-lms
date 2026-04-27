@@ -42,7 +42,7 @@ describe('DiscussionTopicForm Checkpoints Toggle', () => {
       delay: null,
       pointerEventsCheck: PointerEventsCheckLevel.Never,
     })
-    const {getByLabelText, queryByTestId, findByTestId} = setup()
+    const {getByLabelText, queryByTestId, findByTestId, getByTestId} = setup()
 
     await user.click(getByLabelText('Graded'))
     // Wait for the checkpoints checkbox to appear after graded is checked
@@ -66,8 +66,8 @@ describe('DiscussionTopicForm Checkpoints Toggle', () => {
     // Use waitFor to avoid a stale-state race in CI: the checkbox may appear
     // before React finishes updating the checked state.
     await waitFor(
-      async () => {
-        const recheckCheckbox = await findByTestId('checkpoints-checkbox')
+      () => {
+        const recheckCheckbox = getByTestId('checkpoints-checkbox')
         expect(recheckCheckbox.querySelector('input').checked).toBe(false)
       },
       {timeout: 10000},

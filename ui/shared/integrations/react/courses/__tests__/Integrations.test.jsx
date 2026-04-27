@@ -17,6 +17,7 @@
  */
 
 import {render, act, fireEvent, waitFor} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import React from 'react'
 import Integrations from '../Integrations'
 import {setupServer} from 'msw/node'
@@ -131,11 +132,9 @@ describe('Integrations', () => {
         expect(subject.queryByText('Show Microsoft Sync details')).toBeInTheDocument()
       })
 
-      act(() => {
-        fireEvent.click(subject.getByText('Show Microsoft Sync details'))
-      })
+      fireEvent.click(subject.getByText('Show Microsoft Sync details'))
 
-      expect(subject.getByText('Sync Now')).toBeTruthy()
+      await waitFor(() => expect(subject.getByText('Sync Now')).toBeTruthy())
     })
 
     it('expands the Microsoft Sync details when toggled on', async () => {
@@ -153,9 +152,7 @@ describe('Integrations', () => {
         expect(subject.queryByText('Sync Now')).not.toBeInTheDocument()
       })
 
-      act(() => {
-        fireEvent.click(subject.getByLabelText('Toggle Microsoft Sync'))
-      })
+      await userEvent.click(subject.getByLabelText('Toggle Microsoft Sync'))
 
       await waitFor(() => {
         expect(subject.getByText('Sync Now')).toBeTruthy()

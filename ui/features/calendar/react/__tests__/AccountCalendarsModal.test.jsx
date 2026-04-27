@@ -132,7 +132,6 @@ describe('Other Calendars modal ', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
     vi.clearAllMocks()
 

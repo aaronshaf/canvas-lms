@@ -71,11 +71,11 @@ describe('Discussions', () => {
     expect(screen.getByText('Discussions (2 items)')).toBeInTheDocument()
     const toggle = screen.getByText('Discussions')
     toggle.click()
-    expect(screen.getByText('Discussion 1')).toBeInTheDocument()
+    expect(await screen.findByText('Discussion 1')).toBeInTheDocument()
     expect(screen.getByText('Discussion 2')).toBeInTheDocument()
   })
 
-  it('displays correct translation for single item', () => {
+  it('displays correct translation for single item', async () => {
     render(
       <HorizonToggleContext.Provider
         value={{
@@ -103,6 +103,6 @@ describe('Discussions', () => {
     expect(screen.getByText('Discussions (1 item)')).toBeInTheDocument()
     const toggle = screen.getByText('Discussions')
     toggle.click()
-    expect(screen.getByText('Discussion 1')).toBeInTheDocument()
+    expect(await screen.findByText('Discussion 1')).toBeInTheDocument()
   })
 })

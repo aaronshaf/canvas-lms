@@ -107,7 +107,7 @@ describe('SpeedGrader Quiz History Link', () => {
   })
 
   afterEach(async () => {
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
     SpeedGrader.teardown()
     fixtures.remove()
     fakeENV.teardown()

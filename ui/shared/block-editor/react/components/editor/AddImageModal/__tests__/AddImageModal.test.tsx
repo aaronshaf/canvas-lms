@@ -252,7 +252,7 @@ describe('AddImageModal', () => {
     })
 
     // Wait for the lazy-loaded ComputerPanel to render
-    const filedrop = await screen.findByTestId('filedrop', {}, {timeout: 5000})
+    const filedrop = await screen.findByTestId('filedrop')
     fireEvent.change(filedrop, {
       target: {
         files: [aFile],

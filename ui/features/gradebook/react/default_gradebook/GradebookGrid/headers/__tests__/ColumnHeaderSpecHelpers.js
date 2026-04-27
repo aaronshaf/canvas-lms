@@ -16,12 +16,10 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {fireEvent} from '@testing-library/react'
+
 function mouseover($el) {
-  const event = new MouseEvent('mouseover', {
-    bubbles: true,
-    cancelable: true,
-  })
-  $el.dispatchEvent(event)
+  fireEvent.mouseOver($el)
 }
 
 function getMenuItemWithLabel($parent, label) {

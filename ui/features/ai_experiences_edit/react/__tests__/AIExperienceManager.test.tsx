@@ -57,7 +57,6 @@ describe('AIExperienceManager', () => {
 
   afterEach(() => {
     server.resetHandlers()
-    cleanup()
     fakeEnv.teardown()
   })
 

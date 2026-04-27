@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {act} from '@testing-library/react-hooks'
+import {act} from '@testing-library/react'
 import {useTranslationStore} from '../../../../hooks/useTranslationStore'
 import {getTranslation} from '../../../../utils'
 

@@ -187,13 +187,10 @@ describe('TodoListWidget - Filter Dropdown', () => {
     await user.click(completeOption)
 
     // Wait for the filter to update and refetch to complete
-    await waitFor(
-      () => {
-        const updatedFilterSelect = screen.getByTestId('todo-filter-select')
-        expect(updatedFilterSelect).toHaveValue('Complete')
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      const updatedFilterSelect = screen.getByTestId('todo-filter-select')
+      expect(updatedFilterSelect).toHaveValue('Complete')
+    })
   })
 
   it('can change to All filter', async () => {
@@ -212,13 +209,10 @@ describe('TodoListWidget - Filter Dropdown', () => {
     await user.click(allOption)
 
     // Wait for the filter to update and refetch to complete
-    await waitFor(
-      () => {
-        const updatedFilterSelect = screen.getByTestId('todo-filter-select')
-        expect(updatedFilterSelect).toHaveValue('All')
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      const updatedFilterSelect = screen.getByTestId('todo-filter-select')
+      expect(updatedFilterSelect).toHaveValue('All')
+    })
   })
 
   it('filter is placed in widget body', async () => {

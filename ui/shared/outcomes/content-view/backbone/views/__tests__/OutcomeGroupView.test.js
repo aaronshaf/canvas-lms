@@ -69,20 +69,17 @@ describe('OutcomeGroupView', () => {
       })
 
       // Use waitFor from testing-library to wait for the element to be available
-      await waitFor(
-        () => {
-          // First verify the container exists
-          const container = document.getElementById('outcome_group_title_container')
-          expect(container).not.toBeNull()
+      await waitFor(() => {
+        // First verify the container exists
+        const container = document.getElementById('outcome_group_title_container')
+        expect(container).not.toBeNull()
 
-          // Then check for the input with the correct placeholder
-          // The input is rendered inside the React component
-          const input = document.querySelector('input[placeholder="New Outcome Group"]')
-          expect(input).not.toBeNull()
-          expect(input.getAttribute('placeholder')).toBe('New Outcome Group')
-        },
-        {timeout: 1000},
-      )
+        // Then check for the input with the correct placeholder
+        // The input is rendered inside the React component
+        const input = document.querySelector('input[placeholder="New Outcome Group"]')
+        expect(input).not.toBeNull()
+        expect(input.getAttribute('placeholder')).toBe('New Outcome Group')
+      })
 
       view.remove()
     })

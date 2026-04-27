@@ -28,7 +28,6 @@ describe('GradeLoadingSpinner', () => {
   })
 
   afterEach(() => {
-    cleanup()
     store.setState({currentStudentId: '', gradesLoading: {}})
   })
 

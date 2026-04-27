@@ -31,10 +31,6 @@ vi.mock('@instructure/platform-alerts')
 const server = setupServer()
 
 describe('CommentLibraryTray', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const defaultProps = {
     userId: '1',
     courseId: '1',

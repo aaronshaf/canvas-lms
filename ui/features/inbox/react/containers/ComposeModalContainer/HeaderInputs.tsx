@@ -48,6 +48,12 @@ const HeaderInputs = props => {
     props.activeCourseFilter,
   )
 
+  // Sync initial course from URL when ComposeModalContainer's useEffect fires
+  // after mount (causing activeCourseFilter to transition from undefined to a value)
+  useEffect(() => {
+    setModalContextCourseFilter((prev: any) => prev ?? props.activeCourseFilter)
+  }, [props.activeCourseFilter])
+
   const isAllInDifferentiationTagSelected = useMemo(() => {
     return props.selectedRecipients?.some(
       // @ts-expect-error TS7006 (typescriptify)

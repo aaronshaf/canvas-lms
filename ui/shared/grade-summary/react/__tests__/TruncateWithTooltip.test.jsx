@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {act, render, screen} from '@testing-library/react'
 import TruncateWithTooltip from '../TruncateWithTooltip'
 
 vi.mock('@instructure/ui-truncate-text', () => ({
@@ -62,10 +62,12 @@ describe('TruncateWithTooltip', () => {
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
   })
 
-  it('shows Tooltip for truncated text', () => {
+  it('shows Tooltip for truncated text', async () => {
     const {ref} = renderTruncateWithTooltip('Tooltip', '100px')
 
-    ref.current.setState({isTruncated: true})
+    await act(async () => {
+      ref.current.setState({isTruncated: true})
+    })
 
     expect(screen.getByRole('tooltip')).toBeInTheDocument()
   })

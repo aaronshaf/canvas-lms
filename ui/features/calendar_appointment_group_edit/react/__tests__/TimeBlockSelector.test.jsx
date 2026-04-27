@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, fireEvent} from '@testing-library/react'
+import {act, render, fireEvent, waitFor} from '@testing-library/react'
 import TimeBlockSelector from '../TimeBlockSelector'
 
 const defaultProps = {
@@ -50,7 +50,7 @@ describe('TimeBlockSelector', () => {
     expect(rowsContainer).toBeInTheDocument()
   })
 
-  it('divides slots and adds new rows when using the divide section', () => {
+  it('divides slots and adds new rows when using the divide section', async () => {
     const ref = React.createRef()
     const {container} = render(<TimeBlockSelector {...defaultProps} ref={ref} />)
 
@@ -62,8 +62,8 @@ describe('TimeBlockSelector', () => {
         endTime: new Date('2016-10-26T20:00:00.000Z'),
       },
     }
-    ref.current.setState({
-      timeBlockRows: [initialRow],
+    await act(async () => {
+      ref.current.setState({timeBlockRows: [initialRow]})
     })
 
     // Input division value and trigger division
@@ -71,10 +71,10 @@ describe('TimeBlockSelector', () => {
     fireEvent.change(divideInput, {target: {value: '60'}})
     ref.current.handleSlotDivision()
 
-    expect(ref.current.state.timeBlockRows.length).toBeGreaterThan(1)
+    await waitFor(() => expect(ref.current.state.timeBlockRows.length).toBeGreaterThan(1))
   })
 
-  it('adds new time slot with specified time', () => {
+  it('adds new time slot with specified time', async () => {
     const ref = React.createRef()
     render(<TimeBlockSelector {...defaultProps} ref={ref} />)
 
@@ -85,29 +85,29 @@ describe('TimeBlockSelector', () => {
         endTime: new Date('Oct 26 2016 15:00'),
       },
     })
-    expect(ref.current.state.timeBlockRows).toHaveLength(initialLength + 1)
+    await waitFor(() => expect(ref.current.state.timeBlockRows).toHaveLength(initialLength + 1))
   })
 
-  it('adds new empty time slot when no time specified', () => {
+  it('adds new empty time slot when no time specified', async () => {
     const ref = React.createRef()
     render(<TimeBlockSelector {...defaultProps} ref={ref} />)
 
     const initialLength = ref.current.state.timeBlockRows.length
     ref.current.addRow()
-    expect(ref.current.state.timeBlockRows).toHaveLength(initialLength + 1)
+    await waitFor(() => expect(ref.current.state.timeBlockRows).toHaveLength(initialLength + 1))
   })
 
-  it('deletes a time slot', () => {
+  it('deletes a time slot', async () => {
     const ref = React.createRef()
     render(<TimeBlockSelector {...defaultProps} ref={ref} />)
 
     const initialLength = ref.current.state.timeBlockRows.length
     const slotId = ref.current.state.timeBlockRows[0].slotEventId
     ref.current.deleteRow(slotId)
-    expect(ref.current.state.timeBlockRows).toHaveLength(initialLength - 1)
+    await waitFor(() => expect(ref.current.state.timeBlockRows).toHaveLength(initialLength - 1))
   })
 
-  it('updates time data for a specific slot', () => {
+  it('updates time data for a specific slot', async () => {
     const ref = React.createRef()
     render(<TimeBlockSelector {...defaultProps} ref={ref} />)
 
@@ -118,10 +118,10 @@ describe('TimeBlockSelector', () => {
     }
 
     ref.current.handleSetData(slotId, newTimeData)
-    expect(ref.current.state.timeBlockRows[0].timeData).toEqual(newTimeData)
+    await waitFor(() => expect(ref.current.state.timeBlockRows[0].timeData).toEqual(newTimeData))
   })
 
-  it('calls onChange when modifications are made', () => {
+  it('calls onChange when modifications are made', async () => {
     const onChange = vi.fn()
     const ref = React.createRef()
     render(<TimeBlockSelector {...defaultProps} onChange={onChange} ref={ref} />)
@@ -132,10 +132,10 @@ describe('TimeBlockSelector', () => {
       startTime: new Date('Oct 26 2016 10:00'),
       endTime: new Date('Oct 26 2016 15:00'),
     }
-    ref.current.setState({
-      timeBlockRows: [newRow],
+    await act(async () => {
+      ref.current.setState({timeBlockRows: [newRow]})
     })
 
-    expect(onChange).toHaveBeenCalled()
+    await waitFor(() => expect(onChange).toHaveBeenCalled())
   })
 })

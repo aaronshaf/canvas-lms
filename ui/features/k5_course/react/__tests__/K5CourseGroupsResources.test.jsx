@@ -178,13 +178,14 @@ describe('K-5 Subject Course', () => {
       })
 
       it('shows some loading skeletons while apps are loading', async () => {
-        const {getAllByText, queryByText} = render(
+        // Override apps fetch to never resolve so loading state persists across the assertion
+        fetchMock.get(FETCH_APPS_URL, new Promise(() => {}), {overwriteRoutes: true})
+        const {findAllByTestId, queryByText} = render(
           <K5Course {...defaultProps} defaultTab={TAB_IDS.RESOURCES} />,
         )
-        await waitFor(() => {
-          expect(getAllByText('Loading apps...')[0]).toBeInTheDocument()
-          expect(queryByText('Studio')).not.toBeInTheDocument()
-        })
+        // LoadingWrapper renders skeletons after its useEffect sets skeletonsToRender
+        expect((await findAllByTestId('skeleton-wrapper', {}))[0]).toBeInTheDocument()
+        expect(queryByText('Studio')).not.toBeInTheDocument()
       })
 
       it('shows an error if apps fail to load', async () => {
@@ -201,7 +202,7 @@ describe('K-5 Subject Course', () => {
       expect(getByText('Time to learn!')).toBeInTheDocument()
       expect(fetchMock.called(FETCH_IMPORTANT_INFO_URL)).toBeFalsy()
       expect(fetchMock.called(FETCH_APPS_URL)).toBeFalsy()
-      act(() => getByText('Resources').click())
+      await act(async () => getByText('Resources').click())
       expect(await findByText('This is really important.')).toBeInTheDocument()
       expect(fetchMock.called(FETCH_IMPORTANT_INFO_URL)).toBeTruthy()
       expect(fetchMock.called(FETCH_APPS_URL)).toBeTruthy()

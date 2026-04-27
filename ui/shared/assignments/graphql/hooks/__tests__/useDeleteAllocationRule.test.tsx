@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook, waitFor} from '@testing-library/react'
 import {QueryClient} from '@tanstack/react-query'
 import React from 'react'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
@@ -69,18 +69,14 @@ describe('useDeleteAllocationRule', () => {
       const onSuccess = vi.fn()
       const onError = vi.fn()
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => useDeleteAllocationRule(onSuccess, onError),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => useDeleteAllocationRule(onSuccess, onError), {
+        wrapper: createWrapper(),
+      })
 
       result.current.mutate(mockInput)
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-      expect(result.current.isSuccess).toBe(true)
       expect(onSuccess).toHaveBeenCalledWith(mockResponse)
       expect(onError).not.toHaveBeenCalled()
       expect(mockExecuteQuery).toHaveBeenCalledWith(expect.any(Object), {input: mockInput})
@@ -95,18 +91,14 @@ describe('useDeleteAllocationRule', () => {
       const onSuccess = vi.fn()
       const onError = vi.fn()
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => useDeleteAllocationRule(onSuccess, onError),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => useDeleteAllocationRule(onSuccess, onError), {
+        wrapper: createWrapper(),
+      })
 
       result.current.mutate({ruleId: 'nonexistent'})
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.isError).toBe(true))
 
-      expect(result.current.isError).toBe(true)
       expect(onError).toHaveBeenCalledWith(mockError)
       expect(onSuccess).not.toHaveBeenCalled()
     })

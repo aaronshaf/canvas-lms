@@ -76,7 +76,6 @@ describe('BlockResizer', () => {
   })
 
   afterEach(() => {
-    cleanup()
     document.body.innerHTML = ''
     vi.clearAllMocks()
     fakeENV.teardown()

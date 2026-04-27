@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import QuizIPFilters, {type IPFilterSpec, type ElementWithValidator} from '../QuizIPFilters'
 
@@ -71,11 +71,19 @@ describe('QuizIPFilters', () => {
 
   it('shows the explainer tip only when the info icon is focussed', async () => {
     renderComponent([])
-    await new Promise(resolve => requestAnimationFrame(resolve)) // wait for InstUI to settle down
-    expect(screen.getByText('filters are a way to limit access', {exact: false})).not.toBeVisible()
-    screen.getByTestId('ip-filter-help-toggle')?.focus()
-    await new Promise(resolve => requestAnimationFrame(resolve)) // wait for InstUI to settle down
-    expect(screen.getByText('filters are a way to limit access', {exact: false})).toBeVisible()
+    const toggleBtn = screen.getByTestId('ip-filter-help-toggle')
+    // React 18 may flush effects that trigger the Tooltip to open during Portal mount;
+    // explicitly blur to ensure the tooltip starts closed before asserting.
+    toggleBtn?.blur()
+    await waitFor(() =>
+      expect(
+        screen.getByText('filters are a way to limit access', {exact: false}),
+      ).not.toBeVisible(),
+    )
+    toggleBtn?.focus()
+    await waitFor(() =>
+      expect(screen.getByText('filters are a way to limit access', {exact: false})).toBeVisible(),
+    )
   })
 
   it('adds the validation hook onto the parent div', () => {
@@ -86,8 +94,9 @@ describe('QuizIPFilters', () => {
   it('adds screenreader text to the Add Filter button', async () => {
     const {getByTestId} = renderComponent([])
     const addFilter = getByTestId('add-ip-filter')
-    await new Promise(resolve => requestAnimationFrame(resolve)) // wait for InstUI to settle down
-    expect(addFilter.attributes.getNamedItem('aria-label')?.value).toBe('Add a quiz IP filter')
+    await waitFor(() => {
+      expect(addFilter.attributes.getNamedItem('aria-label')?.value).toBe('Add a quiz IP filter')
+    })
   })
 
   it('lets you create new filters', async () => {
@@ -168,6 +177,6 @@ describe('QuizIPFilters', () => {
     // @ts-expect-error
     expect(parentDiv.__performValidation()).toBe(false)
     expect(filterField).toHaveFocus()
-    expect(screen.getByText('This field is required')).toBeInTheDocument()
+    expect(await screen.findByText('This field is required')).toBeInTheDocument()
   })
 })

@@ -53,7 +53,6 @@ describe('TermsOfServiceModal', () => {
 
   afterEach(() => {
     server.resetHandlers()
-    cleanup()
     $('#fixtures').empty()
     fakeENV.teardown()
   })

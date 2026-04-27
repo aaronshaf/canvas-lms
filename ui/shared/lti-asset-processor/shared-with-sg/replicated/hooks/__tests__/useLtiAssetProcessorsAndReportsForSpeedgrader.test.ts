@@ -119,6 +119,7 @@ describe('useLtiAssetProcessorsAndReportsForSpeedgrader', () => {
           },
         },
       })
+      mockUseLtiAssetReports(undefined)
 
       renderHook(() => useLtiAssetProcessorsAndReportsForSpeedgrader(mockParams))
 
@@ -129,6 +130,7 @@ describe('useLtiAssetProcessorsAndReportsForSpeedgrader', () => {
 
     it('should cancel reports query when submission type is incompatible', () => {
       mockUseLtiAssetProcessors(defaultGetLtiAssetProcessorsResult)
+      mockUseLtiAssetReports(undefined)
 
       const paramsWithIncompatibleType = {
         ...mockParams,
@@ -163,6 +165,7 @@ describe('useLtiAssetProcessorsAndReportsForSpeedgrader', () => {
       }
 
       mockUseLtiAssetProcessors(defaultGetLtiAssetProcessorsResult)
+      mockUseLtiAssetReports(defaultGetLtiAssetReportsResult())
 
       renderHook(() => useLtiAssetProcessorsAndReportsForSpeedgrader(paramsWithUserId))
 
@@ -178,6 +181,7 @@ describe('useLtiAssetProcessorsAndReportsForSpeedgrader', () => {
 
     it('should handle studentAnonymousId parameter correctly', () => {
       mockUseLtiAssetProcessors(defaultGetLtiAssetProcessorsResult)
+      mockUseLtiAssetReports(defaultGetLtiAssetReportsResult())
 
       renderHook(() => useLtiAssetProcessorsAndReportsForSpeedgrader(mockParams))
 

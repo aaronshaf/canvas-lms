@@ -16,7 +16,7 @@
 
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
-import {render, cleanup, fireEvent} from '@testing-library/react'
+import {act, render, cleanup, fireEvent, waitFor} from '@testing-library/react'
 import {userEvent} from '@testing-library/user-event'
 import React from 'react'
 import FileBrowser from '../FileBrowser'
@@ -56,7 +56,8 @@ const testFile = overrides => ({
   ...overrides,
 })
 
-const getClosestElementByType = (wrapper, text, type) => wrapper.getByText(text).closest(type)
+const findClosestElementByType = async (wrapper, text, type) =>
+  (await wrapper.findByText(text)).closest(type)
 
 const getNthOfElementByType = (wrapper, index, type) =>
   wrapper.container.querySelectorAll(type)[index]
@@ -97,7 +98,6 @@ describe('FileBrowser', () => {
   beforeAll(() => server.listen())
   afterEach(() => {
     server.resetHandlers()
-    cleanup()
     window.ENV = oldEnv
   })
   afterAll(() => server.close())
@@ -143,13 +143,15 @@ describe('FileBrowser', () => {
       1: {id: 1, name: folder1, collections: [4], items: [], context: '/courses/1'},
       4: {id: 4, name: folder4, collections: [], items: [], context: '/users/1'},
     }
-    ref.current.setState({collections})
+    // Wait for componentDidMount API calls to complete before overwriting state
+    await waitFor(() => expect(ref.current.state.loadingCount).toBe(0))
+    await act(async () => ref.current.setState({collections}))
 
-    await userEvent.click(getClosestElementByType(wrapper, folder1, 'button'))
-    await userEvent.click(getClosestElementByType(wrapper, folder4, 'button'))
+    await userEvent.click(await findClosestElementByType(wrapper, folder1, 'button'))
+    await userEvent.click(await findClosestElementByType(wrapper, folder4, 'button'))
 
     // Wait for files to be loaded and filtered
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await waitFor(() => expect(wrapper.queryByText('file 1')).toBeInTheDocument())
 
     // Check that only the image file is shown (not the HTML file)
     expect(wrapper.queryByText('file 1')).toBeInTheDocument()
@@ -175,11 +177,11 @@ describe('FileBrowser', () => {
       1: {id: 1, name: 'folder 1', collections: [4], items: [], context: '/courses/1'},
       4: {id: 4, name: 'folder 4', collections: [], items: [], context: '/users/1'},
     }
-    ref.current.setState({collections})
+    await act(async () => ref.current.setState({collections}))
 
     await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
     await userEvent.click(getNthOfElementByType(wrapper, 1, 'button'))
-    expect(wrapper.container.querySelector('img')).toBeInTheDocument()
+    await waitFor(() => expect(wrapper.container.querySelector('img')).toBeInTheDocument())
   })
 
   it('gets root folder data on mount', async () => {
@@ -223,9 +225,8 @@ describe('FileBrowser', () => {
 
     const {wrapper} = renderFileBrowser()
 
-    await new Promise(resolve => setTimeout(resolve, 100)) // Wait for async operations
-    expect(wrapper.getByText('Course files')).toBeInTheDocument()
-    expect(wrapper.getByText('My files')).toBeInTheDocument()
+    await waitFor(() => expect(wrapper.getByText('Course files')).toBeInTheDocument())
+    expect(await wrapper.findByText('My files')).toBeInTheDocument()
   })
 
   it('should not error when there is no context asset string', () => {
@@ -274,18 +275,17 @@ describe('FileBrowser', () => {
         5: {id: 5, collections: [], items: [], context: '/users/1'},
       }
 
-      ref.current.setState({collections})
+      await act(async () => ref.current.setState({collections}))
       vi.spyOn(ref.current, 'getFolderData')
 
       await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
 
-      // Wait for API calls to complete
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      expect(ref.current.state.collections[4].collections).toEqual([6])
-      expect(ref.current.state.collections[5].collections).toEqual([7])
-      expect(ref.current.state.collections[4].items).toEqual([1])
-      expect(ref.current.state.collections[5].items).toEqual([])
+      await waitFor(() => {
+        expect(ref.current.state.collections[4].collections).toEqual([6])
+        expect(ref.current.state.collections[5].collections).toEqual([7])
+        expect(ref.current.state.collections[4].items).toEqual([1])
+        expect(ref.current.state.collections[5].items).toEqual([])
+      })
     })
 
     it('does not get new folder/file data on folder collapse', async () => {
@@ -298,10 +298,7 @@ describe('FileBrowser', () => {
         5: {id: 5, collections: [], items: [], context: '/users/1'},
       }
 
-      ref.current.setState({collections, openFolders: [1]})
-
-      // Wait for state to settle
-      await new Promise(resolve => setTimeout(resolve, 50))
+      await act(async () => ref.current.setState({collections, openFolders: [1]}))
 
       vi.spyOn(ref.current, 'getFolderData')
 
@@ -339,16 +336,17 @@ describe('FileBrowser', () => {
         4: {id: 4, name: 'folder 4', collections: [], items: [], context: '/users/1'},
       }
 
-      ref.current.setState({collections})
+      // Wait for componentDidMount API calls to complete before overwriting state
+      await waitFor(() => expect(ref.current.state.loadingCount).toBe(0))
+      await act(async () => ref.current.setState({collections}))
 
-      await userEvent.click(getClosestElementByType(wrapper, 'folder 1', 'button'))
-      await userEvent.click(getClosestElementByType(wrapper, 'folder 4', 'button'))
+      await userEvent.click(await findClosestElementByType(wrapper, 'folder 1', 'button'))
+      await userEvent.click(await findClosestElementByType(wrapper, 'folder 4', 'button'))
 
-      // Wait for API calls to complete
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      expect(ref.current.state.collections[4].collections).toEqual([6])
-      expect(ref.current.state.collections[6].items).toEqual([1])
+      await waitFor(() => {
+        expect(ref.current.state.collections[4].collections).toEqual([6])
+        expect(ref.current.state.collections[6].items).toEqual([1])
+      })
     })
 
     it('gets additional pages of data', async () => {
@@ -394,15 +392,14 @@ describe('FileBrowser', () => {
         4: {id: 4, collections: [], items: [], context: 'users/1'},
       }
 
-      ref.current.setState({collections})
+      await act(async () => ref.current.setState({collections}))
 
       await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
 
-      // Wait for API calls to complete
-      await new Promise(resolve => setTimeout(resolve, 200))
-
-      expect(ref.current.state.collections[4].collections).toEqual([6, 7])
-      expect(ref.current.state.collections[4].items).toEqual([1, 5])
+      await waitFor(() => {
+        expect(ref.current.state.collections[4].collections).toEqual([6, 7])
+        expect(ref.current.state.collections[4].items).toEqual([1, 5])
+      })
     })
 
     it('does not get data for locked sub-folders', async () => {
@@ -426,16 +423,15 @@ describe('FileBrowser', () => {
         },
       }
 
-      ref.current.setState({collections})
+      await act(async () => ref.current.setState({collections}))
 
       await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
 
-      // Wait for API calls to complete
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      expect(wrapper.getByText('Locked')).toBeInTheDocument()
-      expect(ref.current.state.collections[4].collections).toEqual([])
-      expect(ref.current.state.collections[4].items).toEqual([])
+      await waitFor(() => {
+        expect(wrapper.getByText('Locked')).toBeInTheDocument()
+        expect(ref.current.state.collections[4].collections).toEqual([])
+        expect(ref.current.state.collections[4].items).toEqual([])
+      })
     })
 
     it('replaces folder and file data if the folder has previously been loaded', async () => {
@@ -467,16 +463,15 @@ describe('FileBrowser', () => {
       }
       const items = {1: {id: 1, name: 'old name 1'}}
 
-      ref.current.setState({collections, items})
+      await act(async () => ref.current.setState({collections, items}))
 
       await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
 
-      // Wait for API calls to complete
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      expect(ref.current.state.collections[5].name).toEqual('sub folder 1')
-      expect(ref.current.state.collections[4].items).toEqual([1, 2])
-      expect(ref.current.state.items[1].name).toEqual('file 1')
+      await waitFor(() => {
+        expect(ref.current.state.collections[5].name).toEqual('sub folder 1')
+        expect(ref.current.state.collections[4].items).toEqual([1, 2])
+        expect(ref.current.state.items[1].name).toEqual('file 1')
+      })
     })
   })
 
@@ -492,16 +487,16 @@ describe('FileBrowser', () => {
         1: {id: 1, name: 'file 1', alt: 'file 1', src: '/courses/1/files/1/preview'},
         2: {id: 2, name: 'file 2', alt: 'file 2', src: '/courses/1/files/2/preview'},
       }
-      ref.current.setState({collections, items})
+      await act(async () => ref.current.setState({collections, items}))
 
       await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
       await userEvent.click(getNthOfElementByType(wrapper, 1, 'button'))
 
-      expect(spy).toHaveBeenCalledWith(items[1])
+      await waitFor(() => expect(spy).toHaveBeenCalledWith(items[1]))
 
       await userEvent.click(getNthOfElementByType(wrapper, 2, 'button'))
 
-      expect(spy).toHaveBeenCalledWith(items[2])
+      await waitFor(() => expect(spy).toHaveBeenCalledWith(items[2]))
     })
   })
 
@@ -532,13 +527,12 @@ describe('FileBrowser', () => {
         1: {id: 1, name: 'folder 1', collections: [], items: [], context: '/courses/1'},
       }
 
-      ref.current.setState({collections})
+      await act(async () => ref.current.setState({collections}))
       ref.current.getFolderData(1)
 
-      // Wait for the API calls to complete
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      expect(ref.current.state.collections[1].collections).toEqual([5, 7, 6])
+      await waitFor(() => {
+        expect(ref.current.state.collections[1].collections).toEqual([5, 7, 6])
+      })
     })
 
     it('orders items naturally by file name', async () => {
@@ -566,13 +560,12 @@ describe('FileBrowser', () => {
         1: {id: 1, name: 'folder 1', collections: [], items: [], context: '/courses/1'},
       }
 
-      ref.current.setState({collections})
+      await act(async () => ref.current.setState({collections}))
       ref.current.getFolderData(1)
 
-      // Wait for the API calls to complete
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      expect(ref.current.state.collections[1].items).toEqual([1, 3, 2])
+      await waitFor(() => {
+        expect(ref.current.state.collections[1].items).toEqual([1, 3, 2])
+      })
     })
   })
 
@@ -615,23 +608,29 @@ describe('FileBrowser', () => {
           context: '/users/1',
         },
       }
-      ref.current.setState({collections})
+      await act(async () => ref.current.setState({collections}))
 
       expect(
         wrapper.container.querySelector('button#image-upload__upload[disabled]'),
       ).toBeInTheDocument()
       await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
-      expect(
-        wrapper.container.querySelector('button#image-upload__upload[disabled]'),
-      ).not.toBeInTheDocument()
+      await waitFor(() =>
+        expect(
+          wrapper.container.querySelector('button#image-upload__upload[disabled]'),
+        ).not.toBeInTheDocument(),
+      )
       await userEvent.click(getNthOfElementByType(wrapper, 1, 'button'))
-      expect(
-        wrapper.container.querySelector('button#image-upload__upload[disabled]'),
-      ).toBeInTheDocument()
+      await waitFor(() =>
+        expect(
+          wrapper.container.querySelector('button#image-upload__upload[disabled]'),
+        ).toBeInTheDocument(),
+      )
       await userEvent.click(getNthOfElementByType(wrapper, 2, 'button'))
-      expect(
-        wrapper.container.querySelector('button#image-upload__upload[disabled]'),
-      ).toBeInTheDocument()
+      await waitFor(() =>
+        expect(
+          wrapper.container.querySelector('button#image-upload__upload[disabled]'),
+        ).toBeInTheDocument(),
+      )
     })
 
     it('uploads a file', async () => {
@@ -665,7 +664,7 @@ describe('FileBrowser', () => {
       }
       const spy = vi.spyOn(ref.current, 'submitFile')
 
-      ref.current.setState({collections})
+      await act(async () => ref.current.setState({collections}))
 
       await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
       fireEvent.change(wrapper.container.querySelector('input'), {
@@ -673,10 +672,10 @@ describe('FileBrowser', () => {
           files: ['dummyValue.png'],
         },
       })
-      expect(spy).toHaveBeenCalled()
+      await waitFor(() => expect(spy).toHaveBeenCalled())
     })
 
-    it('allows uploads without folder selection when a default folder is provided', () => {
+    it('allows uploads without folder selection when a default folder is provided', async () => {
       const overrides = {defaultUploadFolderId: courseFolder().id.toString()}
       const {wrapper, ref} = renderFileBrowser(overrides)
       const collections = {
@@ -692,11 +691,13 @@ describe('FileBrowser', () => {
         },
       }
 
-      ref.current.setState({collections})
+      await act(async () => ref.current.setState({collections}))
 
-      expect(
-        wrapper.container.querySelector('button#image-upload__upload[disabled]'),
-      ).not.toBeInTheDocument()
+      await waitFor(() =>
+        expect(
+          wrapper.container.querySelector('button#image-upload__upload[disabled]'),
+        ).not.toBeInTheDocument(),
+      )
     })
 
     it('renders a spinner while uploading files', async () => {
@@ -728,7 +729,7 @@ describe('FileBrowser', () => {
           context: '/courses/1',
         },
       }
-      ref.current.setState({collections})
+      await act(async () => ref.current.setState({collections}))
 
       await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
       fireEvent.change(wrapper.container.querySelector('input'), {
@@ -737,7 +738,7 @@ describe('FileBrowser', () => {
         },
       })
 
-      expect(wrapper.getByText('File uploading')).toBeInTheDocument()
+      await waitFor(() => expect(wrapper.getByText('File uploading')).toBeInTheDocument())
     })
 
     it('shows an alert on file upload', async () => {
@@ -758,7 +759,7 @@ describe('FileBrowser', () => {
         },
       }
 
-      ref.current.setState({collections})
+      await act(async () => ref.current.setState({collections}))
       vi.spyOn(ref.current, 'setSuccessMessage')
 
       server.use(
@@ -784,18 +785,17 @@ describe('FileBrowser', () => {
         ),
       )
 
-      userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
+      await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
       fireEvent.change(wrapper.container.querySelector('input'), {
         target: {
           files: [{name: 'file 1', size: 0}],
         },
       })
 
-      // Wait for the upload to complete
-      await new Promise(resolve => setTimeout(resolve, 200))
-
-      expect(ref.current.setSuccessMessage).toHaveBeenCalled()
-      expect(ref.current.setSuccessMessage).toHaveBeenCalledWith('Success: File uploaded')
+      await waitFor(() => {
+        expect(ref.current.setSuccessMessage).toHaveBeenCalled()
+        expect(ref.current.setSuccessMessage).toHaveBeenCalledWith('Success: File uploaded')
+      })
     })
 
     it('shows an alert on file upload fail', async () => {
@@ -816,25 +816,24 @@ describe('FileBrowser', () => {
         },
       }
 
-      ref.current.setState({collections})
+      await act(async () => ref.current.setState({collections}))
       vi.spyOn(ref.current, 'setFailureMessage')
 
       server.use(
         http.post(`/api/v1/folders/${id}/files`, () => new HttpResponse(null, {status: 500})),
       )
 
-      userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
+      await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
       fireEvent.change(wrapper.container.querySelector('input'), {
         target: {
           files: [{name: 'file 1', size: 0}],
         },
       })
 
-      // Wait for the upload to fail
-      await new Promise(resolve => setTimeout(resolve, 100))
-
-      expect(ref.current.setFailureMessage).toHaveBeenCalled()
-      expect(ref.current.setFailureMessage).toHaveBeenCalledWith('File upload failed')
+      await waitFor(() => {
+        expect(ref.current.setFailureMessage).toHaveBeenCalled()
+        expect(ref.current.setFailureMessage).toHaveBeenCalledWith('File upload failed')
+      })
     })
   })
 

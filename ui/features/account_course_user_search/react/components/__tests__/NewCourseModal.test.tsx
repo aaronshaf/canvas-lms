@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {Button} from '@instructure/ui-buttons'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import NewCourseModal from '../NewCourseModal'
@@ -72,7 +72,7 @@ describe('NewCourseModal', () => {
     const {getByText} = render(<NewCourseModal terms={terms}>{children}</NewCourseModal>)
 
     // open modal
-    getByText('Add Course').click()
+    fireEvent.click(getByText('Add Course'))
     expect(getByText('Add a New Course')).toBeInTheDocument()
     expect(getByText('Course Name')).toBeInTheDocument()
     expect(getByText('Reference Code')).toBeInTheDocument()
@@ -100,7 +100,7 @@ describe('NewCourseModal', () => {
     const {getByText} = render(<NewCourseModal terms={terms}>{children}</NewCourseModal>)
 
     // This should trigger the renderAccountOptions function
-    getByText('Add Course').click()
+    fireEvent.click(getByText('Add Course'))
     expect(getByText('Add a New Course')).toBeInTheDocument()
     expect(getByText('Subaccount')).toBeInTheDocument()
 

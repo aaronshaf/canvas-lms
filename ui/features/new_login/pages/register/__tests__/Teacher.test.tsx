@@ -87,10 +87,6 @@ describe('Teacher', () => {
     }))
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   describe('form rendering', () => {
     it('renders all required input fields', async () => {
       setup()

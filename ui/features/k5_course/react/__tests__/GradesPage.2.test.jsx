@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor, act} from '@testing-library/react'
+import {render, waitFor, act, fireEvent} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {GradesPage} from '../GradesPage'
@@ -89,6 +89,24 @@ describe('GradesPage', () => {
   })
 
   describe('learning mastery gradebook', () => {
+    beforeEach(() => {
+      server.use(
+        http.get('*/api/v1/courses/12', ({request}) => {
+          const url = new URL(request.url)
+          if (url.searchParams.get('include[]') === 'grading_periods') {
+            return HttpResponse.json(MOCK_GRADING_PERIODS_EMPTY)
+          }
+          return HttpResponse.json({})
+        }),
+        http.get('*/api/v1/courses/12/assignment_groups', () => {
+          return HttpResponse.json(MOCK_ASSIGNMENT_GROUPS)
+        }),
+        http.get('*/api/v1/courses/12/enrollments', () => {
+          return HttpResponse.json(MOCK_ENROLLMENTS)
+        }),
+      )
+    })
+
     it('shows no tabs if LMGB is disabled', () => {
       const {getByText, queryByText} = render(<GradesPage {...getProps()} />)
       expect(getByText('Assignment')).toBeInTheDocument()
@@ -103,15 +121,24 @@ describe('GradesPage', () => {
     })
 
     it('shows LMGB and hides assignments when clicking on the tab', async () => {
+      server.use(
+        http.get('*/api/v1/courses/12/outcome_groups', () => HttpResponse.error()),
+        http.get('*/api/v1/courses/12/outcome_group_links', () => HttpResponse.error()),
+        http.get('*/api/v1/courses/12/outcome_rollups', () => HttpResponse.error()),
+        http.get('*/api/v1/courses/12/outcome_alignments', () => HttpResponse.error()),
+        http.get('*/api/v1/courses/12/assignments', () => HttpResponse.json([])),
+      )
       const {getByRole, getByText, queryByText} = render(
         <GradesPage {...getProps({showLearningMasteryGradebook: true})} />,
       )
-      act(() => getByRole('tab', {name: 'Learning Mastery'}).click())
+      await act(async () => fireEvent.click(getByRole('tab', {name: 'Learning Mastery'})))
       ;['Assignment', 'Due Date', 'Assignment Group', 'Score'].forEach(header => {
         expect(queryByText(header)).not.toBeInTheDocument()
       })
       expect(getByText('Learning outcome gradebook for History')).toBeInTheDocument()
-      await waitFor(() => expect(queryByText('Loading outcome results')).not.toBeInTheDocument())
+      await waitFor(() => expect(queryByText('Loading outcome results')).not.toBeInTheDocument(), {
+        timeout: 5000,
+      })
       expect(getByText('An error occurred loading outcomes data.')).toBeInTheDocument()
     })
   })
@@ -229,24 +256,20 @@ describe('GradesPage', () => {
         <GradesPage {...getProps({observedUserId: '5'})} />,
       )
 
-      await waitFor(async () => {
-        await findByText('Total: 88.00%')
-        await findByText('History Total: 88.00%')
-        expect(queryByText('Total: 76.20%')).not.toBeInTheDocument()
-      })
+      await findByText('Total: 88.00%')
+      await findByText('History Total: 88.00%')
+      await waitFor(() => expect(queryByText('Total: 76.20%')).not.toBeInTheDocument())
 
       rerender(<GradesPage {...getProps({observedUserId: '6'})} />)
-      await waitFor(async () => {
-        await findByText('Total: 76.20%')
-        await findByText('History Total: 76.20%')
-        expect(queryByText('Total: 88.00%')).not.toBeInTheDocument()
-      })
+      await findByText('Total: 76.20%')
+      await findByText('History Total: 76.20%')
+      await waitFor(() => expect(queryByText('Total: 88.00%')).not.toBeInTheDocument())
     })
 
     it('displays assignment group totals for the observed user when expanded', async () => {
       const {findByText, rerender} = render(<GradesPage {...getProps({observedUserId: '6'})} />)
       const totalsButton = await findByText('View Assignment Group Totals')
-      act(() => totalsButton.click())
+      fireEvent.click(totalsButton)
       await findByText('Assignments: 80.00%')
       rerender(<GradesPage {...getProps({observedUserId: '5'})} />)
       await findByText('Assignments: 60.00%')

@@ -40,7 +40,6 @@ describe('LoginHelp Component and Helpers', () => {
   afterEach(async () => {
     // Wait for any pending transitions to complete before cleanup
     await new Promise(resolve => setTimeout(resolve, 500))
-    cleanup()
     document.body.innerHTML = ''
   })
 
@@ -107,7 +106,6 @@ describe('LoginHelp Component and Helpers', () => {
     })
 
     afterEach(() => {
-      cleanup()
       document.body.innerHTML = ''
     })
 
@@ -119,12 +117,9 @@ describe('LoginHelp Component and Helpers', () => {
       renderLoginHelp(anchorElement)
 
       // Modal should be open initially when renderLoginHelp is called
-      await waitFor(
-        () => {
-          expect(screen.getByText('Login Help for Canvas LMS')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(screen.getByText('Login Help for Canvas LMS')).toBeInTheDocument()
+      })
 
       // Verify the link is still available
       expect(screen.getByText('Help')).toBeInTheDocument()

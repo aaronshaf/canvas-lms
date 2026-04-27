@@ -67,7 +67,6 @@ describe('OutcomeRemoveModal', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
-    cleanup()
     cache.reset()
   })
 

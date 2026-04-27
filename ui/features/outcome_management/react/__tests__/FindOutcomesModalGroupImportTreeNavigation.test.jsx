@@ -79,7 +79,7 @@ describe('FindOutcomesModal - Group Import Tree Navigation Tests', () => {
       contextType: 'Course',
       mocks: [...findModalMocks({parentAccountChildren: 1}), ...defaultTreeGroupMocks()],
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await clickEl(getByText('Account Standards'))
     await clickEl(getByText('Root Account Outcome Group 0'))
     expect(getByText('Group 200')).toBeInTheDocument()
@@ -102,7 +102,7 @@ describe('FindOutcomesModal - Group Import Tree Navigation Tests', () => {
         ],
       },
     )
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await clickEl(getByText('Account Standards'))
     await clickEl(getByText('Root Account Outcome Group 0'))
     await clickEl(getByText('Group 200'))
@@ -117,7 +117,7 @@ describe('FindOutcomesModal - Group Import Tree Navigation Tests', () => {
     expect(getAllByText('Loading')).toHaveLength(1)
     await act(async () => {
       doResolveProgress()
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
     })
     await waitFor(() => expect(queryByText('Loading')).not.toBeInTheDocument())
     expect(getAllByText('Added')).toHaveLength(1)

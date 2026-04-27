@@ -52,7 +52,7 @@ describe('PublishButton', () => {
       apiClient.getModules.mockReturnValue(Promise.resolve({data: []}))
       await wrapper.getByText('Publish').click()
       expect(apiClient.getModules).toHaveBeenCalledWith({courseId: '0'})
-      expect(ref.current.state.showModal).toBe(true)
+      await waitFor(() => expect(ref.current.state.showModal).toBe(true))
       expect(wrapper.queryByText('Choose Course Home Page')).toBeInTheDocument()
     })
 

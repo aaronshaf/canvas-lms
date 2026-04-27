@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {cleanup, fireEvent, screen} from '@testing-library/react'
+import {act, cleanup, fireEvent, screen, waitFor} from '@testing-library/react'
 import tz from 'timezone'
 import tzInTest from '@instructure/moment-utils/specHelpers'
 import tokyo from 'timezone/Asia/Tokyo'
@@ -36,7 +36,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  cleanup()
   fetchMock.reset()
   vi.useRealTimers()
 })
@@ -78,8 +77,10 @@ describe('Assignment Bulk Edit Dates - Batch Edit Dialog', () => {
       const {getByText, queryByText, getByTestId} = await renderOpenBatchEditDialog()
       expect(getByText('Batch Edit Dates')).toBeInTheDocument()
       fireEvent.click(getByTestId('cancel-batch-edit'))
-      vi.runAllTimers()
-      expect(queryByText('Batch Edit Dates')).toBeNull()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
+      await waitFor(() => expect(queryByText('Batch Edit Dates')).toBeNull())
     }, 30000)
 
     it('clears days error when closing and reopening the dialog', async () => {
@@ -89,7 +90,9 @@ describe('Assignment Bulk Edit Dates - Batch Edit Dialog', () => {
       expect(queryByText('Number of days is required')).toBeInTheDocument()
 
       fireEvent.click(getByTestId('cancel-batch-edit'))
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
 
       fireEvent.click(queryByText('Batch Edit'))
       expect(queryByText('Batch Edit Dates')).toBeInTheDocument()
@@ -102,7 +105,9 @@ describe('Assignment Bulk Edit Dates - Batch Edit Dialog', () => {
       const {getByText, getByLabelText} = await renderOpenBatchEditDialog([0])
       fireEvent.change(getByLabelText('Days'), {target: {value: '2'}})
       fireEvent.click(getByText('Confirm'))
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
       await user.click(getByText('Save'))
       await flushPromises()
       const body = JSON.parse(fetchMock.calls()[1][1].body)
@@ -132,7 +137,9 @@ describe('Assignment Bulk Edit Dates - Batch Edit Dialog', () => {
       const {getByText, getByLabelText} = await renderOpenBatchEditDialog([1])
       fireEvent.change(getByLabelText('Days'), {target: {value: '2'}})
       fireEvent.click(getByText('Confirm'))
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
       await user.click(getByText('Save'))
       expect(getByText('Update at least one date to save changes.')).toBeInTheDocument()
     }, 30000)
@@ -143,7 +150,9 @@ describe('Assignment Bulk Edit Dates - Batch Edit Dialog', () => {
       const {assignments, getByText, getByLabelText} = await renderOpenBatchEditDialog([0])
       fireEvent.click(getByLabelText('Remove Dates'))
       await user.click(getByText('Confirm'))
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
       fireEvent.click(getByText('Save'))
       await flushPromises()
       const body = JSON.parse(fetchMock.calls()[1][1].body)
@@ -174,7 +183,9 @@ describe('Assignment Bulk Edit Dates - Batch Edit Dialog', () => {
       fireEvent.click(getByLabelText('Remove Dates'))
       fireEvent.click(getByLabelText('Remove Availability Dates'))
       await user.click(getByText('Confirm'))
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
       fireEvent.click(getByText('Save'))
       await flushPromises()
       const body = JSON.parse(fetchMock.calls()[1][1].body)
@@ -205,7 +216,9 @@ describe('Assignment Bulk Edit Dates - Batch Edit Dialog', () => {
       fireEvent.click(getByLabelText('Remove Dates'))
       fireEvent.click(getByLabelText('Remove Both'))
       await user.click(getByText('Confirm'))
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
       fireEvent.click(getByText('Save'))
       await flushPromises()
       const body = JSON.parse(fetchMock.calls()[1][1].body)

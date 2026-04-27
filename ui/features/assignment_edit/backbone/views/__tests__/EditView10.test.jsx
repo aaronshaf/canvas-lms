@@ -244,7 +244,7 @@ describe.skip('EditView - Quiz Type Handling', () => {
   })
 
   afterEach(() => {
-    vi.runAllTimers()
+    vi.runOnlyPendingTimers()
     vi.useRealTimers()
 
     fakeENV.teardown()

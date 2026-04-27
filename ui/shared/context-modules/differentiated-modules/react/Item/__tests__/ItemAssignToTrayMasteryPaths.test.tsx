@@ -38,15 +38,14 @@ describe('ItemAssignToTray - Mastery Paths & Errors', () => {
   afterAll(() => server.close())
 
   beforeEach(() => {
+    vi.resetAllMocks()
     setupEnv()
     setupBaseMocks()
-    vi.resetAllMocks()
   })
 
   afterEach(() => {
     Object.defineProperty(window, 'location', {value: originalLocation, writable: true})
     server.resetHandlers()
-    cleanup()
   })
 
   it('renders mastery paths option for noop 1 overrides', async () => {
@@ -69,9 +68,9 @@ describe('ItemAssignToTray - Mastery Paths & Errors', () => {
       }),
     )
     const {findAllByTestId} = renderComponent()
-    const selectedOptions = await findAllByTestId('assignee_selector_selected_option')
+    const selectedOptions = await findAllByTestId('assignee_selector_selected_option', {})
     expect(selectedOptions).toHaveLength(1)
-    waitFor(() => expect(selectedOptions[0]).toHaveTextContent('Mastery Paths'))
+    await waitFor(() => expect(selectedOptions[0]).toHaveTextContent('Mastery Paths'))
   })
 
   it('calls onDismiss when an error occurs while fetching data', async () => {

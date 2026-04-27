@@ -30,7 +30,6 @@ describe('Files Breadcrumbs Component', () => {
   })
 
   afterEach(() => {
-    cleanup()
     fakeENV.teardown()
   })
 

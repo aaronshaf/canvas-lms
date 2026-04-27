@@ -100,9 +100,10 @@ export const LaunchSettingsConfirmation = (props: LaunchSettingsConfirmationProp
   const handleBlur = React.useCallback(
     (field: LaunchSettingsField, required = false) =>
       (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+        const value = event.currentTarget.value
         setBlurStatus(prev => ({
           ...prev,
-          [field]: event.currentTarget.value.trim() !== '' || required,
+          [field]: value.trim() !== '' || required,
         }))
       },
     [setBlurStatus],

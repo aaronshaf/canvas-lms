@@ -118,8 +118,6 @@ describe('UserObservees Mutations', () => {
   })
 
   afterEach(async () => {
-    // Cleanup rendered components
-    cleanup()
     // Reset server handlers
     server.resetHandlers()
     // Clear all mocks

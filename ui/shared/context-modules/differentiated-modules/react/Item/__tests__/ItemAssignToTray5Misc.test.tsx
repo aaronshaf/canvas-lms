@@ -74,7 +74,6 @@ describe('ItemAssignToTray - Module Overrides', () => {
     server.resetHandlers()
     teardownEnv()
     clearQueryCache()
-    cleanup()
   })
 
   afterAll(() => {
@@ -145,7 +144,6 @@ describe('ItemAssignToTray - Paced Course with Mastery Paths', () => {
     server.resetHandlers()
     teardownEnv()
     clearQueryCache()
-    cleanup()
   })
 
   afterAll(() => {
@@ -197,7 +195,6 @@ describe('ItemAssignToTray - Group Set Handling', () => {
     server.resetHandlers()
     teardownEnv()
     clearQueryCache()
-    cleanup()
   })
 
   afterAll(() => {

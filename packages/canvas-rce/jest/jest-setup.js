@@ -85,6 +85,7 @@ const ignoredErrors = [
   /Warning: %s uses the legacy contextTypes API which is no longer supported and will be removed in the next major release. Use React.createContext\(\) with static contextType instead./,
   /Warning: Unknown event handler property `%s`. It will be ignored.%s/,
   /`ref` is not a prop\. Trying to access it will result in `undefined` being returned/,
+  /A suspended resource finished loading inside a test/,
 ]
 const globalWarn = global.console.warn
 const ignoredWarnings = [

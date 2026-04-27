@@ -316,7 +316,6 @@ describe('FilterNav', () => {
   })
 
   afterEach(() => {
-    cleanup()
     store.setState(originalState, true)
     server.resetHandlers()
   })

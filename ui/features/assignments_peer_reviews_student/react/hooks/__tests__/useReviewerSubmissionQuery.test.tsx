@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook, waitFor} from '@testing-library/react'
 import {QueryClient} from '@tanstack/react-query'
 import React from 'react'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
@@ -71,18 +71,15 @@ describe('useReviewerSubmissionQuery', () => {
       },
     })
 
-    const {result, waitForNextUpdate} = renderHook(
-      () => useReviewerSubmissionQuery('assignment-1', 'user-1'),
-      {
-        wrapper: createWrapper(),
-      },
-    )
+    const {result} = renderHook(() => useReviewerSubmissionQuery('assignment-1', 'user-1'), {
+      wrapper: createWrapper(),
+    })
 
     expect(result.current.isLoading).toBe(true)
     expect(result.current.data).toBeUndefined()
     expect(result.current.isError).toBe(false)
 
-    await waitForNextUpdate()
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.isLoading).toBe(false)
     expect(result.current.data).toEqual({
@@ -110,14 +107,11 @@ describe('useReviewerSubmissionQuery', () => {
       submission: null,
     })
 
-    const {result, waitForNextUpdate} = renderHook(
-      () => useReviewerSubmissionQuery('assignment-2', 'user-2'),
-      {
-        wrapper: createWrapper(),
-      },
-    )
+    const {result} = renderHook(() => useReviewerSubmissionQuery('assignment-2', 'user-2'), {
+      wrapper: createWrapper(),
+    })
 
-    await waitForNextUpdate()
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.isLoading).toBe(false)
     expect(result.current.data).toBeNull()
@@ -134,14 +128,11 @@ describe('useReviewerSubmissionQuery', () => {
       },
     })
 
-    const {result, waitForNextUpdate} = renderHook(
-      () => useReviewerSubmissionQuery('assignment-3', 'user-3'),
-      {
-        wrapper: createWrapper(),
-      },
-    )
+    const {result} = renderHook(() => useReviewerSubmissionQuery('assignment-3', 'user-3'), {
+      wrapper: createWrapper(),
+    })
 
-    await waitForNextUpdate()
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.isLoading).toBe(false)
     expect(result.current.data?.assignedAssessments).toEqual([])
@@ -151,14 +142,14 @@ describe('useReviewerSubmissionQuery', () => {
   it('handles query error', async () => {
     mockExecuteQuery.mockRejectedValueOnce(new Error('Failed to fetch reviewer submission'))
 
-    const {result, waitForNextUpdate} = renderHook(
+    const {result} = renderHook(
       () => useReviewerSubmissionQuery('error-assignment', 'error-user'),
       {
         wrapper: createWrapper(),
       },
     )
 
-    await waitForNextUpdate()
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.isLoading).toBe(false)
     expect(result.current.data).toBeUndefined()
@@ -175,14 +166,11 @@ describe('useReviewerSubmissionQuery', () => {
       },
     })
 
-    const {waitForNextUpdate} = renderHook(
-      () => useReviewerSubmissionQuery('assignment-123', 'user-456'),
-      {
-        wrapper: createWrapper(),
-      },
-    )
+    const {result} = renderHook(() => useReviewerSubmissionQuery('assignment-123', 'user-456'), {
+      wrapper: createWrapper(),
+    })
 
-    await waitForNextUpdate()
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(mockExecuteQuery).toHaveBeenCalledWith(REVIEWER_SUBMISSION_QUERY, {
       assignmentId: 'assignment-123',
@@ -234,14 +222,11 @@ describe('useReviewerSubmissionQuery', () => {
       },
     })
 
-    const {result, waitForNextUpdate} = renderHook(
-      () => useReviewerSubmissionQuery('assignment-4', 'user-4'),
-      {
-        wrapper: createWrapper(),
-      },
-    )
+    const {result} = renderHook(() => useReviewerSubmissionQuery('assignment-4', 'user-4'), {
+      wrapper: createWrapper(),
+    })
 
-    await waitForNextUpdate()
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.data?.assignedAssessments).toHaveLength(3)
     expect(result.current.data?.assignedAssessments?.[0].workflowState).toBe('assigned')

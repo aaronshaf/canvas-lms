@@ -44,7 +44,6 @@ describe('ItemAssignToTray - Blueprint Date Locks', () => {
   afterEach(() => {
     Object.defineProperty(window, 'location', {value: originalLocation, writable: true})
     server.resetHandlers()
-    cleanup()
   })
 
   afterAll(() => {

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {fireEvent, render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor, act} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import CreatePortfolioForm from '../CreatePortfolioForm'
@@ -36,7 +36,7 @@ describe('CreatePortfolioForm', () => {
     postCalled = false
   })
 
-  it('displays form when clicking add button', () => {
+  it('displays form when clicking add button', async () => {
     const mountNode = document.createElement('div')
     const {getByTestId, getByText} = render(
       <React.Fragment>
@@ -45,12 +45,14 @@ describe('CreatePortfolioForm', () => {
       </React.Fragment>,
     )
 
-    getByTestId('add-portfolio-button').click()
-    expect(getByText('Portfolio name')).toBeVisible()
-    expect(getByText('Mark as Public')).toBeVisible()
+    fireEvent.click(getByTestId('add-portfolio-button'))
+    await waitFor(() => {
+      expect(getByText('Portfolio name')).toBeVisible()
+      expect(getByText('Mark as Public')).toBeVisible()
+    })
   })
 
-  it('sets focus and shows error if name is blank', () => {
+  it('sets focus and shows error if name is blank', async () => {
     const mountNode = document.createElement('div')
     const {getByTestId, getByText} = render(
       <React.Fragment>
@@ -59,11 +61,11 @@ describe('CreatePortfolioForm', () => {
       </React.Fragment>,
     )
 
-    getByTestId('add-portfolio-button').click()
-    const textInput = getByTestId('portfolio-name-field')
+    fireEvent.click(getByTestId('add-portfolio-button'))
+    const textInput = await waitFor(() => getByTestId('portfolio-name-field'))
     const saveButton = getByText('Submit')
-    saveButton.click()
-    waitFor(() => {
+    fireEvent.click(saveButton)
+    await waitFor(() => {
       expect(textInput).toHaveFocus()
       expect(getByText('Name is required.')).toBeInTheDocument()
     })
@@ -85,15 +87,15 @@ describe('CreatePortfolioForm', () => {
       </React.Fragment>,
     )
 
-    getByTestId('add-portfolio-button').click()
-    const textInput = getByTestId('portfolio-name-field')
+    fireEvent.click(getByTestId('add-portfolio-button'))
+    const textInput = await waitFor(() => getByTestId('portfolio-name-field'))
     fireEvent.change(textInput, {target: {value: 'Test Portfolio'}})
     const saveButton = getByText('Submit')
-    saveButton.click()
+    fireEvent.click(saveButton)
     await waitFor(() => expect(postCalled).toBe(true))
   })
 
-  it('hides form when cancelling ', () => {
+  it('hides form when cancelling ', async () => {
     const mountNode = document.createElement('div')
     const {getByTestId, getByText} = render(
       <React.Fragment>
@@ -102,11 +104,13 @@ describe('CreatePortfolioForm', () => {
       </React.Fragment>,
     )
 
-    getByTestId('add-portfolio-button').click()
-    const nameInput = getByText('Portfolio name')
+    fireEvent.click(getByTestId('add-portfolio-button'))
+    const nameInput = await waitFor(() => getByText('Portfolio name'))
     const publicCheck = getByText('Mark as Public')
-    getByText('Cancel').click()
-    expect(nameInput).not.toBeVisible()
-    expect(publicCheck).not.toBeVisible()
+    fireEvent.click(getByText('Cancel'))
+    await waitFor(() => {
+      expect(nameInput).not.toBeVisible()
+      expect(publicCheck).not.toBeVisible()
+    })
   })
 })

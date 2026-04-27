@@ -84,10 +84,6 @@ describe('Student - form rendering', () => {
     }))
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   it('renders all required input fields', async () => {
     setup()
     expect(await screen.findByTestId('name-input')).toBeInTheDocument()

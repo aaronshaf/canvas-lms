@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {act, render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {merge} from 'es-toolkit/compat'
 import FilesCollection from '@canvas/files/backbone/collections/FilesCollection'
@@ -137,9 +137,9 @@ describe('SearchResults', () => {
   })
 
   describe('File Menu', () => {
-    let ref, menuItems
+    let ref
 
-    beforeEach(() => {
+    beforeEach(async () => {
       document.body.appendChild(document.createElement('div'))
       const props = {...defaultProps()}
       const collection = new FilesCollection([
@@ -147,49 +147,91 @@ describe('SearchResults', () => {
       ])
       ref = React.createRef()
       render(<SearchResults {...props} ref={ref} />, {attachTo: document.body.firstChild})
-      ref.current.setState({collection})
-
-      menuItems = Array.from(document.body.querySelectorAll('.al-options [role="menuitem"]'))
+      await waitFor(() => {
+        ref.current.setState({collection})
+      })
     })
 
     describe('Download item', () => {
-      it('renders', () => {
-        expect(menuItems.some(i => i.textContent === 'Download')).toEqual(true)
+      it('renders', async () => {
+        await waitFor(() => {
+          const menuItems = Array.from(
+            document.body.querySelectorAll('.al-options [role="menuitem"]'),
+          )
+          expect(menuItems.some(i => i.textContent === 'Download')).toEqual(true)
+        })
       })
     })
 
     describe('Send To item', () => {
-      it('renders', () => {
-        expect(menuItems.some(i => i.textContent === 'Send To...')).toEqual(true)
+      it('renders', async () => {
+        await waitFor(() => {
+          const menuItems = Array.from(
+            document.body.querySelectorAll('.al-options [role="menuitem"]'),
+          )
+          expect(menuItems.some(i => i.textContent === 'Send To...')).toEqual(true)
+        })
       })
 
-      it('renders a modal for sending the file, when clicked', () => {
-        ref.current.setState({sendFileId: '1'})
-        expect(document.body.querySelector('[role="dialog"][aria-label="Send To..."]')).toBeTruthy()
+      it('renders a modal for sending the file, when clicked', async () => {
+        await act(async () => {
+          ref.current.setState({sendFileId: '1'})
+        })
+        await waitFor(() => {
+          expect(
+            document.body.querySelector('[role="dialog"][aria-label="Send To..."]'),
+          ).toBeTruthy()
+        })
       })
     })
 
     describe('Copy To item', () => {
-      it('renders', () => {
-        expect(menuItems.some(i => i.textContent === 'Copy To...')).toEqual(true)
+      it('renders', async () => {
+        await waitFor(() => {
+          const menuItems = Array.from(
+            document.body.querySelectorAll('.al-options [role="menuitem"]'),
+          )
+          expect(menuItems.some(i => i.textContent === 'Copy To...')).toEqual(true)
+        })
       })
 
-      it('renders a modal for sending the file, when clicked', () => {
-        ref.current.setState({copyFileId: '1'})
-        expect(document.body.querySelector('[role="dialog"][aria-label="Copy To..."]')).toBeTruthy()
+      it('renders a modal for sending the file, when clicked', async () => {
+        await act(async () => {
+          ref.current.setState({copyFileId: '1'})
+        })
+        await waitFor(() => {
+          expect(
+            document.body.querySelector('[role="dialog"][aria-label="Copy To..."]'),
+          ).toBeTruthy()
+        })
       })
     })
 
-    it('Rename item renders', () => {
-      expect(menuItems.some(i => i.textContent === 'Rename')).toEqual(true)
+    it('Rename item renders', async () => {
+      await waitFor(() => {
+        const menuItems = Array.from(
+          document.body.querySelectorAll('.al-options [role="menuitem"]'),
+        )
+        expect(menuItems.some(i => i.textContent === 'Rename')).toEqual(true)
+      })
     })
 
-    it('Move item renders', () => {
-      expect(menuItems.some(i => i.textContent === 'Move To...')).toEqual(true)
+    it('Move item renders', async () => {
+      await waitFor(() => {
+        const menuItems = Array.from(
+          document.body.querySelectorAll('.al-options [role="menuitem"]'),
+        )
+        expect(menuItems.some(i => i.textContent === 'Move To...')).toEqual(true)
+      })
     })
 
-    it('Delete item renders', () => {
-      expect(menuItems.some(i => i.textContent === 'Delete')).toEqual(true)
+    it('Delete item renders', async () => {
+      await waitFor(() => {
+        const menuItems = Array.from(
+          document.body.querySelectorAll('.al-options [role="menuitem"]'),
+        )
+        expect(menuItems.some(i => i.textContent === 'Delete')).toEqual(true)
+      })
     })
   })
 })

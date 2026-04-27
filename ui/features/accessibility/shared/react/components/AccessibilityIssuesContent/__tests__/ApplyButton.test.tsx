@@ -21,10 +21,6 @@ import userEvent from '@testing-library/user-event'
 import ApplyButton from '../ApplyButton'
 
 describe('ApplyButton', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const defaultProps = {
     children: 'Apply',
     onApply: vi.fn(),

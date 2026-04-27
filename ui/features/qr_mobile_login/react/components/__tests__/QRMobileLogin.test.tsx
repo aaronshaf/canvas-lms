@@ -34,10 +34,6 @@ const route = '/canvas/login.png'
 const doNotRespond = Function.prototype
 
 describe('QRMobileLogin', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   describe('before the API call responds', () => {
     beforeEach(() => {
       fetchMock.post(route, doNotRespond, {overwriteRoutes: true})

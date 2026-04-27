@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 
 import {EditTemplateModal} from '../EditTemplateModal'
 import {type BlockTemplate} from '../../../types'
@@ -113,9 +113,9 @@ describe('EditTemplateModal', () => {
     )
   })
 
-  it('should show a message and not call onSave if there is no name', () => {
+  it('should show a message and not call onSave if there is no name', async () => {
     const onSave = vi.fn()
-    const {getByText, queryByText} = renderModal({onSave})
+    const {getByText, findByText, queryByText} = renderModal({onSave})
 
     expect(queryByText('A template name is required')).toBeNull()
 
@@ -123,7 +123,7 @@ describe('EditTemplateModal', () => {
     getByText('Save').closest('button').click()
 
     expect(onSave).not.toHaveBeenCalled()
-    expect(getByText('A template name is required')).toBeInTheDocument()
+    expect(await findByText('A template name is required')).toBeInTheDocument()
   })
 
   describe('when mode is save', () => {

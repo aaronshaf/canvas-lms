@@ -62,7 +62,7 @@ describe('WikiPageEditView renderAssignToTray integration', () => {
   })
 
   afterEach(async () => {
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
     vi.useRealTimers()
 
     container.remove()

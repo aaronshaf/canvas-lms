@@ -30,7 +30,6 @@ vi.mock('react-router-dom', async () => {
 const mockNavigate = vi.fn()
 
 afterEach(() => {
-  cleanup()
   vi.clearAllMocks()
 })
 

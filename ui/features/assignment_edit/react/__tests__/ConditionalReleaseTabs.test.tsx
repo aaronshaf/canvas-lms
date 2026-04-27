@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, act, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ConditionalReleaseTabs from '../ConditionalReleaseTabs'
 import type {ConditionalReleaseTabsHandle} from '../ConditionalReleaseTabs'
@@ -97,25 +97,25 @@ describe('ConditionalReleaseTabs', () => {
     expect(panels.panel2.style.display).toBe('none')
   })
 
-  it('supports programmatic tab switching via ref', () => {
+  it('supports programmatic tab switching via ref', async () => {
     const ref = React.createRef<ConditionalReleaseTabsHandle>()
     render(<ConditionalReleaseTabs ref={ref} onTabChange={vi.fn()} />)
 
-    ref.current!.setActiveIndex(1)
+    await act(async () => { ref.current!.setActiveIndex(1) })
     expect(panels.panel1.style.display).toBe('none')
     expect(panels.panel2.style.display).toBe('')
 
-    ref.current!.setActiveIndex(0)
+    await act(async () => { ref.current!.setActiveIndex(0) })
     expect(panels.panel1.style.display).toBe('')
     expect(panels.panel2.style.display).toBe('none')
   })
 
-  it('disables the Mastery Paths tab', () => {
+  it('disables the Mastery Paths tab', async () => {
     const ref = React.createRef<ConditionalReleaseTabsHandle>()
     render(<ConditionalReleaseTabs ref={ref} onTabChange={vi.fn()} />)
 
-    ref.current!.setDisabledIndices([1])
-    expect(getMasteryPathsTab()).toHaveAttribute('aria-disabled', 'true')
+    await act(async () => { ref.current!.setDisabledIndices([1]) })
+    await waitFor(() => expect(getMasteryPathsTab()).toHaveAttribute('aria-disabled', 'true'))
   })
 
   it('does not switch to a disabled tab on click', async () => {
@@ -123,7 +123,7 @@ describe('ConditionalReleaseTabs', () => {
     const ref = React.createRef<ConditionalReleaseTabsHandle>()
     render(<ConditionalReleaseTabs ref={ref} onTabChange={vi.fn()} />)
 
-    ref.current!.setDisabledIndices([1])
+    await act(async () => { ref.current!.setDisabledIndices([1]) })
     await user.click(screen.getByText('Mastery Paths'))
 
     // Still on Details tab
@@ -132,14 +132,14 @@ describe('ConditionalReleaseTabs', () => {
     expect(panels.panel2.style.display).toBe('none')
   })
 
-  it('re-enables tabs when setDisabledIndices is called with empty array', () => {
+  it('re-enables tabs when setDisabledIndices is called with empty array', async () => {
     const ref = React.createRef<ConditionalReleaseTabsHandle>()
     render(<ConditionalReleaseTabs ref={ref} onTabChange={vi.fn()} />)
 
-    ref.current!.setDisabledIndices([1])
-    expect(getMasteryPathsTab()).toHaveAttribute('aria-disabled', 'true')
+    await act(async () => { ref.current!.setDisabledIndices([1]) })
+    await waitFor(() => expect(getMasteryPathsTab()).toHaveAttribute('aria-disabled', 'true'))
 
-    ref.current!.setDisabledIndices([])
-    expect(getMasteryPathsTab()).not.toHaveAttribute('aria-disabled', 'true')
+    await act(async () => { ref.current!.setDisabledIndices([]) })
+    await waitFor(() => expect(getMasteryPathsTab()).not.toHaveAttribute('aria-disabled', 'true'))
   })
 })

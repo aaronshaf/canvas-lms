@@ -100,11 +100,11 @@ describe('Footer', () => {
 
   it('displays the confirmation modal if showConfirmation is enabled', async () => {
     const onApplyClicked = vi.fn()
-    const {getByRole} = render(
+    const {getByRole, findByRole} = render(
       <Footer {...defaultProps} showConfirmation={true} onApplyClicked={onApplyClicked} />,
     )
     getByRole('button', {name: 'Apply Changes'}).click()
-    const modalTitle = getByRole('heading', {name: 'Apply Changes'})
+    const modalTitle = await findByRole('heading', {name: 'Apply Changes'})
     expect(modalTitle).toBeInTheDocument()
     getByRole('button', {name: 'Confirm'}).click()
     expect(onApplyClicked).toHaveBeenCalledTimes(1)

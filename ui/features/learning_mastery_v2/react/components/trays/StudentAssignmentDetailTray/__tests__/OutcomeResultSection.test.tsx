@@ -135,7 +135,6 @@ describe('OutcomeResultSection', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
   })
 
@@ -303,12 +302,9 @@ describe('OutcomeResultSection', () => {
       })
 
       // Wait for the error to be processed
-      await waitFor(
-        () => {
-          expect(container.firstChild).toBeNull()
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(container.firstChild).toBeNull()
+      })
 
       // Verify no content is rendered
       expect(screen.queryByText('Aligned Outcomes')).not.toBeInTheDocument()
@@ -326,12 +322,9 @@ describe('OutcomeResultSection', () => {
         wrapper: createWrapper(),
       })
 
-      await waitFor(
-        () => {
-          expect(container.firstChild).toBeNull()
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(container.firstChild).toBeNull()
+      })
 
       expect(screen.queryByText('Aligned Outcomes')).not.toBeInTheDocument()
       expect(showFlashAlert).toHaveBeenCalled()
@@ -348,12 +341,9 @@ describe('OutcomeResultSection', () => {
         wrapper: createWrapper(),
       })
 
-      await waitFor(
-        () => {
-          expect(container.firstChild).toBeNull()
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(container.firstChild).toBeNull()
+      })
 
       expect(screen.queryByText('Aligned Outcomes')).not.toBeInTheDocument()
       expect(showFlashAlert).toHaveBeenCalled()

@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook, waitFor} from '@testing-library/react'
 import {defaultState} from '../lib/settingsReducer'
 import useSettings from '../lib/useSettings'
 import {setupServer} from 'msw/node'
@@ -54,9 +54,8 @@ describe('useGetSettings', () => {
   it('tries to get current account settings', async () => {
     fakeENV.setup({CONTEXT_BASE_URL})
     server.use(http.get('/api/v1/accounts/5/settings', () => HttpResponse.json(defaultState)))
-    const {result, waitForNextUpdate} = subject()
-    await waitForNextUpdate()
-    expect(result.current[0]).toStrictEqual({...defaultState, loading: false})
+    const {result} = subject()
+    await waitFor(() => expect(result.current[0]).toStrictEqual({...defaultState, loading: false}))
   })
 
   describe('updating state after fetch finishes', () => {
@@ -68,9 +67,8 @@ describe('useGetSettings', () => {
       server.use(
         http.get('/api/v1/accounts/5/settings', () => new HttpResponse(null, {status: 500})),
       )
-      const {result, waitForNextUpdate} = subject()
-      await waitForNextUpdate()
-      expect(result.current[0].loading).toBeFalsy()
+      const {result} = subject()
+      await waitFor(() => expect(result.current[0].loading).toBeFalsy())
       expect(result.current[0].errorMessage).toBeTruthy()
     })
 
@@ -87,9 +85,8 @@ describe('useGetSettings', () => {
       }
       server.use(http.get('/api/v1/accounts/5/settings', () => HttpResponse.json(expectedSettings)))
 
-      const {result, waitForNextUpdate} = subject()
-      await waitForNextUpdate()
-      expect(result.current[0]).toStrictEqual(expectedSettings)
+      const {result} = subject()
+      await waitFor(() => expect(result.current[0]).toStrictEqual(expectedSettings))
     })
   })
 })

@@ -19,7 +19,7 @@
 import React from 'react'
 import GradeFormatHelper from '@canvas/grading/GradeFormatHelper'
 import SpeedGraderProvisionalGradeSelector from '../SpeedGraderProvisionalGradeSelector'
-import {render, waitFor} from '@testing-library/react'
+import {act, render, waitFor} from '@testing-library/react'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
 describe('SpeedGraderProvisionalGradeSelector', () => {
@@ -95,34 +95,48 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
   test('has "Hide Details" text if detailsVisible is true', async () => {
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
     await waitFor(() => {
       expect(wrapper.getByText('Hide Details')).toBeInTheDocument()
     })
   })
 
-  test('shows the main container if detailsVisible is true', () => {
+  test('shows the main container if detailsVisible is true', async () => {
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
-    expect(wrapper.container.querySelector('#grading_details')).toBeInTheDocument()
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
+    await waitFor(() => {
+      expect(wrapper.container.querySelector('#grading_details')).toBeInTheDocument()
+    })
   })
 
-  test('includes a radio button for each provisional grade', () => {
+  test('includes a radio button for each provisional grade', async () => {
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
-    expect(wrapper.container.querySelectorAll('input[type="radio"]')).toHaveLength(3)
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
+    await waitFor(() => {
+      expect(wrapper.container.querySelectorAll('input[type="radio"]')).toHaveLength(3)
+    })
   })
 
-  test('positions the "Custom" radio button first', () => {
+  test('positions the "Custom" radio button first', async () => {
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
-    expect(wrapper.container.querySelectorAll('input')[0].value).toBe('2')
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
+    await waitFor(() => {
+      expect(wrapper.container.querySelectorAll('input')[0].value).toBe('2')
+    })
   })
 
-  test('prepends a "Custom" radio button if no non-readonly grade is passed', () => {
+  test('prepends a "Custom" radio button if no non-readonly grade is passed', async () => {
     props.provisionalGrades = [
       {
         grade: '11',
@@ -133,18 +147,26 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
     ]
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
-    expect(wrapper.container.querySelectorAll('input')[0].value).toBe('custom')
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
+    await waitFor(() => {
+      expect(wrapper.container.querySelectorAll('input')[0].value).toBe('custom')
+    })
   })
 
-  test('selects the first grade whose "selected" field is true', () => {
+  test('selects the first grade whose "selected" field is true', async () => {
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
-    expect(wrapper.container.querySelectorAll('input')[0].checked).toBe(true)
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
+    await waitFor(() => {
+      expect(wrapper.container.querySelectorAll('input')[0].checked).toBe(true)
+    })
   })
 
-  test('selects the "Custom" button if no grade is selected', () => {
+  test('selects the "Custom" button if no grade is selected', async () => {
     props.provisionalGrades = [
       {
         grade: '11',
@@ -155,14 +177,20 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
     ]
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
-    expect(wrapper.container.querySelectorAll('input[value="custom"]')[0].checked).toBe(true)
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
+    await waitFor(() => {
+      expect(wrapper.container.querySelectorAll('input[value="custom"]')[0].checked).toBe(true)
+    })
   })
 
   test('includes the grader name in the button label', async () => {
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
     await waitFor(() => {
       expect(wrapper.getByText('Gradius').closest('div').querySelector('input').value).toBe('1')
     })
@@ -171,7 +199,9 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
   test('uses a label of "Custom" for the non-readonly button', async () => {
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
     await waitFor(() => {
       expect(wrapper.getAllByText('Custom')[1].closest('div').querySelector('input').value).toBe(
         '3',
@@ -182,7 +212,9 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
   test('includes the score for a provisional grade in the button label', async () => {
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
     await waitFor(() => {
       expect(wrapper.getByText('11').closest('div').querySelector('input').value).toBe('1')
     })
@@ -193,7 +225,9 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
     props.pointsPossible = 123
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
     await waitFor(() => {
       expect(
         wrapper.getAllByText('out of 123')[0].closest('div').querySelector('input').value,
@@ -206,7 +240,9 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
     props.pointsPossible = 123
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
     await waitFor(() => {
       expect(wrapper.queryByText('out of 123')).toBeNull()
     })
@@ -215,7 +251,9 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
   test('enables option when the instructor_state is active', async () => {
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
     await waitFor(() => {
       expect(wrapper.getAllByText('Custom')[0].closest('div').querySelector('input').disabled).toBe(
         false,
@@ -226,7 +264,9 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
   test('disables option when the instructor_state is deleted', async () => {
     const ref = React.createRef()
     const wrapper = render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
     await waitFor(() => {
       expect(wrapper.getByText('Gradius').closest('div').querySelector('input').disabled).toBe(true)
     })
@@ -247,7 +287,9 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
     const formatSpy = vi.spyOn(GradeFormatHelper, 'formatSubmissionGrade')
     const ref = React.createRef()
     render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
     await waitFor(() => {
       expect(formatSpy).toHaveBeenCalled()
       const [gradeToFormat] = formatSpy.mock.calls[0]
@@ -270,7 +312,9 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
     const formatSpy = vi.spyOn(GradeFormatHelper, 'formatSubmissionGrade')
     const ref = React.createRef()
     render(<SpeedGraderProvisionalGradeSelector {...props} ref={ref} />)
-    ref.current.setState({detailsVisible: true})
+    await act(async () => {
+      ref.current.setState({detailsVisible: true})
+    })
     await waitFor(() => {
       expect(formatSpy).toHaveBeenCalled()
       expect(formatSpy.mock.calls[0][1].formatType).toBe('points')

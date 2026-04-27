@@ -50,7 +50,7 @@ describe('AddContentItem', () => {
   it('focuses the input automatically', async () => {
     const props = defaultProps()
     const {getByLabelText} = render(<AddContentItem {...props} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByLabelText(props.textInputInstructions)).toHaveFocus()
   })
 
@@ -97,7 +97,7 @@ describe('AddContentItem', () => {
     })
     fireEvent.click(getByText(props.labelInstructions))
     expect(onSaveHandler).not.toHaveBeenCalled()
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(document.activeElement.value).toEqual('  ')
   })
 

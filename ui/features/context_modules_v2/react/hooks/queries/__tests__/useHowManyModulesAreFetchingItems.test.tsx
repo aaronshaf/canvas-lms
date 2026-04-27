@@ -17,7 +17,7 @@
  */
 import React, {useEffect} from 'react'
 import {render, waitFor} from '@testing-library/react'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 import {useQuery, QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {useHowManyModulesAreFetchingItems} from '../useHowManyModulesAreFetchingItems'
 import {MODULE_ITEMS, STUDENT, TEACHER} from '../../../utils/constants'

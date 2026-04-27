@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, fireEvent, waitFor} from '@testing-library/react'
+import {render, fireEvent} from '@testing-library/react'
 import DirectShareCourseTray from '../DirectShareCourseTray'
 import useManagedCourseSearchApi from '../../effects/useManagedCourseSearchApi'
 import useModuleCourseSearchApi from '../../effects/useModuleCourseSearchApi'
@@ -188,9 +188,7 @@ describe('DirectShareCopyToTray', () => {
       )
 
       // Wait for error message - this verifies error handling works without console noise
-      await waitFor(async () => {
-        await expect(findByRole('heading', {name: 'Sorry, Something Broke'})).resolves.toBeTruthy()
-      })
+      expect(await findByRole('heading', {name: 'Sorry, Something Broke'})).toBeTruthy()
     })
   })
 })

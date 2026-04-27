@@ -105,7 +105,7 @@ describe('PostAssignmentGradesTray', () => {
       await tray.show(defaultProps)
       await waitForTrayToOpen()
 
-      expect(toggle).not.toBeChecked()
+      await waitFor(() => expect(toggle).not.toBeChecked())
     })
 
     it('resets the selected sections', async () => {

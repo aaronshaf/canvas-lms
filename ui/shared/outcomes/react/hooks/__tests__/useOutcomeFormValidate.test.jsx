@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import OutcomesContext from '../../contexts/OutcomesContext'
 import useOutcomeFormValidate from '../useOutcomeFormValidate'
 
@@ -96,14 +96,16 @@ describe('useOutcomeFormValidate', () => {
       }),
     )
 
-    const validateDisplayName = result.current.validateForm({
-      ...defaultProps({displayNameError: true}),
+    let validateDisplayName
+    act(() => {
+      validateDisplayName = result.current.validateForm({...defaultProps({displayNameError: true})})
     })
     expect(validateDisplayName).toBe(false)
     expect(result.current.fieldWithError).toBe('display_name')
 
-    const validateTitle = result.current.validateForm({
-      ...defaultProps({titleError: true}),
+    let validateTitle
+    act(() => {
+      validateTitle = result.current.validateForm({...defaultProps({titleError: true})})
     })
     expect(validateTitle).toBe(false)
     expect(result.current.fieldWithError).toBe('title')
@@ -130,8 +132,11 @@ describe('useOutcomeFormValidate', () => {
       {wrapper},
     )
 
-    const validateFriendlyDescriptionError = result.current.validateForm({
-      ...defaultProps({friendlyDescriptionError: true}),
+    let validateFriendlyDescriptionError
+    act(() => {
+      validateFriendlyDescriptionError = result.current.validateForm({
+        ...defaultProps({friendlyDescriptionError: true}),
+      })
     })
     expect(validateFriendlyDescriptionError).toBe(false)
     expect(result.current.fieldWithError).toBe('friendly_description')
@@ -159,20 +164,27 @@ describe('useOutcomeFormValidate', () => {
       {wrapper},
     )
 
-    const validateRatingsError = result.current.validateForm({
-      ...defaultProps({ratingsError: true}),
+    let validateRatingsError
+    act(() => {
+      validateRatingsError = result.current.validateForm({...defaultProps({ratingsError: true})})
     })
     expect(validateRatingsError).toBe(false)
     expect(result.current.fieldWithError).toBe('individual_ratings')
 
-    const validateMasteryPointsError = result.current.validateForm({
-      ...defaultProps({masteryPointsError: true}),
+    let validateMasteryPointsError
+    act(() => {
+      validateMasteryPointsError = result.current.validateForm({
+        ...defaultProps({masteryPointsError: true}),
+      })
     })
     expect(validateMasteryPointsError).toBe(false)
     expect(result.current.fieldWithError).toBe('mastery_points')
 
-    const validateCalculationMethodError = result.current.validateForm({
-      ...defaultProps({proficiencyCalculationError: true}),
+    let validateCalculationMethodError
+    act(() => {
+      validateCalculationMethodError = result.current.validateForm({
+        ...defaultProps({proficiencyCalculationError: true}),
+      })
     })
     expect(validateCalculationMethodError).toBe(false)
     expect(result.current.fieldWithError).toBe('individual_calculation_method')
@@ -199,12 +211,15 @@ describe('useOutcomeFormValidate', () => {
       {wrapper},
     )
 
-    const validateRatingsError = result.current.validateForm({
-      ...defaultProps({ratingsError: true}),
+    let validateRatingsError
+    act(() => {
+      validateRatingsError = result.current.validateForm({...defaultProps({ratingsError: true})})
     })
     expect(validateRatingsError).toBe(false)
     expect(result.current.fieldWithError).toBe('individual_ratings')
-    result.current.focusOnError()
+    act(() => {
+      result.current.focusOnError()
+    })
     rerender()
     expect(focusOnRatingsErrorMock).toHaveBeenCalled()
     expect(result.current.fieldWithError).toBe(null)
@@ -223,14 +238,17 @@ describe('useOutcomeFormValidate', () => {
       {wrapper},
     )
 
-    const validateTitleError = result.current.validateForm({
-      ...defaultProps({titleError: true}),
+    let validateTitleError
+    act(() => {
+      validateTitleError = result.current.validateForm({...defaultProps({titleError: true})})
     })
     const el = {focus: focusMock}
     result.current.setTitleRef(el)
     expect(validateTitleError).toBe(false)
     expect(result.current.fieldWithError).toBe('title')
-    result.current.focusOnError()
+    act(() => {
+      result.current.focusOnError()
+    })
     rerender()
     expect(focusOnRatingsErrorMock).not.toHaveBeenCalled()
     expect(result.current.fieldWithError).toBe(null)

@@ -46,7 +46,6 @@ describe('ItemAssignToTray - Blueprint Input Controls', () => {
   afterEach(() => {
     Object.defineProperty(window, 'location', {value: originalLocation, writable: true})
     server.resetHandlers()
-    cleanup()
   })
 
   it('disables due date input and assignee selector when due_dates are blueprint-locked', async () => {

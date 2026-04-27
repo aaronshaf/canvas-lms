@@ -106,7 +106,6 @@ describe('ItemAssignToCard - Course Dates', () => {
     server.resetHandlers()
     fakeENV.teardown()
     vi.clearAllMocks()
-    cleanup()
   })
 
   afterAll(() => {

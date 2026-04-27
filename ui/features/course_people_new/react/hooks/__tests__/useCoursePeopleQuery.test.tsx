@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {waitFor} from '@testing-library/react'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 import useCoursePeopleQuery, {CoursePeopleQueryResponse, QueryProps} from '../useCoursePeopleQuery'
 import {executeQuery} from '@canvas/graphql'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
@@ -160,8 +160,8 @@ describe('useCoursePeopleQuery', () => {
     mockExecuteQuery.mockResolvedValueOnce(mockData).mockResolvedValueOnce(filteredMockData)
 
     const {result, rerender} = renderHook<
-      {searchTerm: string},
-      ReturnType<typeof useCoursePeopleQuery>
+      ReturnType<typeof useCoursePeopleQuery>,
+      {searchTerm: string}
     >(({searchTerm}) => useCoursePeopleQuery({...defaultProps, searchTerm}), {
       wrapper,
       initialProps: {searchTerm: ''},
@@ -195,8 +195,8 @@ describe('useCoursePeopleQuery', () => {
     mockExecuteQuery.mockResolvedValue(mockData)
 
     const {result, rerender} = renderHook<
-      {optionId: string},
-      ReturnType<typeof useCoursePeopleQuery>
+      ReturnType<typeof useCoursePeopleQuery>,
+      {optionId: string}
     >(({optionId}) => useCoursePeopleQuery({...defaultProps, optionId}), {
       wrapper,
       initialProps: {optionId: defaultRole.id},

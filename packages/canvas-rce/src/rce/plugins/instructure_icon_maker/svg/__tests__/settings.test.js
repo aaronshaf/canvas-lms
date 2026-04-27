@@ -17,7 +17,7 @@
  */
 
 import fetchMock from 'fetch-mock'
-import {renderHook, act} from '@testing-library/react-hooks/dom'
+import {renderHook, act, waitFor} from '@testing-library/react'
 import {useSvgSettings, statuses} from '../settings'
 import Editor from '../../../../__tests__/FakeEditor'
 
@@ -260,13 +260,9 @@ describe('useSvgSettings()', () => {
     })
 
     it('parses the SVG settings from the icon metadata', async () => {
-      const {result, waitForValueToChange} = renderHook(() =>
-        useSvgSettings(ed, editing, canvasOrigin),
-      )
+      const {result} = renderHook(() => useSvgSettings(ed, editing, canvasOrigin))
 
-      await waitForValueToChange(() => {
-        return result.current[0]
-      })
+      await waitFor(() => expect(result.current[1]).toEqual(statuses.IDLE))
 
       expect(result.current[0]).toMatchInlineSnapshot(`
         {
@@ -305,28 +301,24 @@ describe('useSvgSettings()', () => {
     describe('parses the SVG settings from a legacy SVG metadata structure', () => {
       const bodyGenerator = overrideParams => `
         ${JSON.stringify({
-          ...{
-            name: 'Test Icon',
-            alt: 'a test image',
-            shape: 'triangle',
-            size: 'large',
-            color: '#FF2717',
-            outlineColor: '#06A3B7',
-            outlineSize: 'small',
-            text: 'Some Text',
-            textSize: 'medium',
-            textColor: '#009606',
-            textBackgroundColor: '#06A3B7',
-            textPosition: 'below',
-            imageSettings: {
-              cropperSettings: null,
-              icon: {
-                label: 'Art Icon',
-              },
-              iconFillColor: '#FFFFFF',
-              image: 'Art Icon',
-              mode: 'SingleColor',
-            },
+          name: 'Test Icon',
+          alt: 'a test image',
+          shape: 'triangle',
+          size: 'large',
+          color: '#FF2717',
+          outlineColor: '#06A3B7',
+          outlineSize: 'small',
+          text: 'Some Text',
+          textSize: 'medium',
+          textColor: '#009606',
+          textBackgroundColor: '#06A3B7',
+          textPosition: 'below',
+          imageSettings: {
+            cropperSettings: null,
+            icon: {label: 'Art Icon'},
+            iconFillColor: '#FFFFFF',
+            image: 'Art Icon',
+            mode: 'SingleColor',
           },
           ...overrideParams,
         })}`
@@ -338,13 +330,9 @@ describe('useSvgSettings()', () => {
       })
 
       it('replaces icon type from object to string for single-color images', async () => {
-        const {result, waitForValueToChange} = renderHook(() =>
-          useSvgSettings(ed, editing, canvasOrigin),
-        )
+        const {result} = renderHook(() => useSvgSettings(ed, editing, canvasOrigin))
 
-        await waitForValueToChange(() => {
-          return result.current[0]
-        })
+        await waitFor(() => expect(result.current[1]).toEqual(statuses.IDLE))
 
         expect(result.current[0]).toMatchInlineSnapshot(`
           {
@@ -401,13 +389,9 @@ describe('useSvgSettings()', () => {
         })
         overwriteUrl()
 
-        const {result, waitForValueToChange} = renderHook(() =>
-          useSvgSettings(ed, editing, canvasOrigin),
-        )
+        const {result} = renderHook(() => useSvgSettings(ed, editing, canvasOrigin))
 
-        await waitForValueToChange(() => {
-          return result.current[0]
-        })
+        await waitFor(() => expect(result.current[1]).toEqual(statuses.IDLE))
 
         expect(result.current[0]).toMatchInlineSnapshot(`
           {
@@ -464,13 +448,9 @@ describe('useSvgSettings()', () => {
         })
         overwriteUrl()
 
-        const {result, waitForValueToChange} = renderHook(() =>
-          useSvgSettings(ed, editing, canvasOrigin),
-        )
+        const {result} = renderHook(() => useSvgSettings(ed, editing, canvasOrigin))
 
-        await waitForValueToChange(() => {
-          return result.current[0]
-        })
+        await waitFor(() => expect(result.current[1]).toEqual(statuses.IDLE))
 
         expect(result.current[0]).toMatchInlineSnapshot(`
           {
@@ -519,13 +499,9 @@ describe('useSvgSettings()', () => {
         })
         overwriteUrl()
 
-        const {result, waitForValueToChange} = renderHook(() =>
-          useSvgSettings(ed, editing, canvasOrigin),
-        )
+        const {result} = renderHook(() => useSvgSettings(ed, editing, canvasOrigin))
 
-        await waitForValueToChange(() => {
-          return result.current[0]
-        })
+        await waitFor(() => expect(result.current[1]).toEqual(statuses.IDLE))
 
         expect(result.current[0]).toMatchInlineSnapshot(`
           {
@@ -582,13 +558,9 @@ describe('useSvgSettings()', () => {
         })
         overwriteUrl()
 
-        const {result, waitForValueToChange} = renderHook(() =>
-          useSvgSettings(ed, editing, canvasOrigin),
-        )
+        const {result} = renderHook(() => useSvgSettings(ed, editing, canvasOrigin))
 
-        await waitForValueToChange(() => {
-          return result.current[0]
-        })
+        await waitFor(() => expect(result.current[1]).toEqual(statuses.IDLE))
 
         expect(result.current[0]).toMatchInlineSnapshot(`
           {
@@ -637,15 +609,9 @@ describe('useSvgSettings()', () => {
     })
 
     it('returns the status to "idle"', async () => {
-      const {result, waitForValueToChange} = renderHook(() =>
-        useSvgSettings(ed, editing, canvasOrigin),
-      )
+      const {result} = renderHook(() => useSvgSettings(ed, editing, canvasOrigin))
 
-      await waitForValueToChange(() => {
-        return result.current[1]
-      })
-
-      expect(result.current[1]).toEqual(statuses.IDLE)
+      await waitFor(() => expect(result.current[1]).toEqual(statuses.IDLE))
     })
 
     describe('and the metadata is non-parsable', () => {
@@ -752,13 +718,9 @@ describe('useSvgSettings()', () => {
           }`
       overwriteUrl()
 
-      const {result, waitForValueToChange} = renderHook(() =>
-        useSvgSettings(ed, editing, canvasOrigin),
-      )
+      const {result} = renderHook(() => useSvgSettings(ed, editing, canvasOrigin))
 
-      await waitForValueToChange(() => {
-        return result.current[0]
-      })
+      await waitFor(() => expect(result.current[1]).toEqual(statuses.IDLE))
 
       expect(result.current[0]).toMatchInlineSnapshot(`
         {
@@ -820,13 +782,9 @@ describe('useSvgSettings()', () => {
           }`
       overwriteUrl()
 
-      const {result, waitForValueToChange} = renderHook(() =>
-        useSvgSettings(ed, editing, canvasOrigin),
-      )
+      const {result} = renderHook(() => useSvgSettings(ed, editing, canvasOrigin))
 
-      await waitForValueToChange(() => {
-        return result.current[0]
-      })
+      await waitFor(() => expect(result.current[1]).toEqual(statuses.IDLE))
 
       expect(result.current[0]).toMatchInlineSnapshot(`
         {
@@ -892,13 +850,9 @@ describe('useSvgSettings()', () => {
           }`
       overwriteUrl()
 
-      const {result, waitForValueToChange} = renderHook(() =>
-        useSvgSettings(ed, editing, canvasOrigin),
-      )
+      const {result} = renderHook(() => useSvgSettings(ed, editing, canvasOrigin))
 
-      await waitForValueToChange(() => {
-        return result.current[0]
-      })
+      await waitFor(() => expect(result.current[1]).toEqual(statuses.IDLE))
 
       expect(result.current[0]).toMatchInlineSnapshot(`
         {
@@ -962,13 +916,9 @@ describe('useSvgSettings()', () => {
           }`
       overwriteUrl()
 
-      const {result, waitForValueToChange} = renderHook(() =>
-        useSvgSettings(ed, editing, canvasOrigin),
-      )
+      const {result} = renderHook(() => useSvgSettings(ed, editing, canvasOrigin))
 
-      await waitForValueToChange(() => {
-        return result.current[0]
-      })
+      await waitFor(() => expect(result.current[1]).toEqual(statuses.IDLE))
 
       expect(result.current[0]).toMatchInlineSnapshot(`
         {
@@ -1068,17 +1018,15 @@ describe('useSvgSettings()', () => {
     afterEach(() => fetchMock.restore())
 
     it('loads the correct metadata', async () => {
-      const {result, rerender, waitForValueToChange} = renderHook(() =>
-        useSvgSettings(ed, editing, canvasOrigin),
-      )
+      const {result, rerender} = renderHook(() => useSvgSettings(ed, editing, canvasOrigin))
 
       ed.setSelectedNode(ed.dom.select('#test-image-1')[0])
       rerender()
-      await waitForValueToChange(() => result.current)
+      await waitFor(() => expect(result.current[0].shape).toEqual('triangle'))
 
       ed.setSelectedNode(ed.dom.select('#test-image-2')[0])
       rerender()
-      await waitForValueToChange(() => result.current)
+      await waitFor(() => expect(result.current[0].shape).toEqual('square'))
 
       expect(result.current[0].name).toEqual('Test Icon')
       expect(result.current[0].shape).toEqual('square')

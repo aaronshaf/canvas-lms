@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import SubscriptionDropDown, {type ComponentProps} from '../SubscriptionDropDown'
 
 const defaultProps: ComponentProps = {
@@ -43,15 +43,16 @@ describe('SubscriptionDropDown', () => {
     expect(getByTestId('subscription-dropdown'))?.toBeDisabled()
   })
 
-  it('calls onChange with the accountId and the new value', () => {
+  it('calls onChange with the accountId and the new value', async () => {
     const onChange = vi.fn()
-    const {getByTestId, getByText} = render(
+    const {getByTestId, findByText} = render(
       <SubscriptionDropDown {...defaultProps} onChange={onChange} />,
     )
     // display options
     getByTestId('subscription-dropdown').click()
     // select new option
-    getByText('Auto subscribe').click()
-    expect(onChange).toHaveBeenCalledWith(defaultProps.accountId, true)
+    const option = await findByText('Auto subscribe')
+    option.click()
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(defaultProps.accountId, true))
   })
 })

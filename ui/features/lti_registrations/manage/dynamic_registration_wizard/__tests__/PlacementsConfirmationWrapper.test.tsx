@@ -26,10 +26,6 @@ import {i18nLtiPlacement} from '../../model/i18nLtiPlacement'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
 describe('PlacementsConfirmation', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   it('renders the PlacementsConfirmation', () => {
     const config = mockConfigWithPlacements([LtiPlacements.AccountNavigation])
     const reg = mockRegistration({}, config)

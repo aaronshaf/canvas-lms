@@ -80,10 +80,6 @@ describe('ForgotPassword', () => {
     }))
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   describe('form validation', () => {
     describe('when required fields are empty', () => {
       it('does not allow the form to submit', async () => {

@@ -126,11 +126,8 @@ describe('Enhanced Individual Gradebook - Server Settings', () => {
 
     fireEvent.click(viewUngradedAsZeroCheckbox)
 
-    await waitFor(
-      () => {
-        expect(apiCallMade).toBe(true)
-      },
-      {timeout: 1000},
-    )
+    await waitFor(() => {
+      expect(apiCallMade).toBe(true)
+    })
   })
 })

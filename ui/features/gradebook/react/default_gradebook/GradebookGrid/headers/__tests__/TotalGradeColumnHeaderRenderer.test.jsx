@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {act} from '@testing-library/react'
 import {createGradebook} from '../../../__tests__/GradebookSpecHelper'
 import TotalGradeColumnHeaderRenderer from '../TotalGradeColumnHeaderRenderer'
 
@@ -157,12 +158,14 @@ describe('GradebookGrid TotalGradeColumnHeaderRenderer', () => {
       expect(gradebook.handleHeaderKeyDown).toHaveBeenCalledWith(event, column.id)
     })
 
-    it('includes a callback for closing the column header menu', () => {
+    it('includes a callback for closing the column header menu', async () => {
       vi.useFakeTimers()
       renderHeader()
       component.props.onMenuDismiss()
       expect(gradebook.keyboardNav.handleMenuOrDialogClose).not.toHaveBeenCalled()
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
       expect(gradebook.keyboardNav.handleMenuOrDialogClose).toHaveBeenCalled()
       vi.useRealTimers()
     })

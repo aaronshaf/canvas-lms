@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {act} from '@testing-library/react'
 import {subscribeFlashNotifications, notificationActions, reduceNotifications} from '../actions'
 import * as FlashAlert from '@instructure/platform-alerts'
 
@@ -38,7 +39,7 @@ describe('Redux Notifications', () => {
     vi.clearAllMocks()
   })
 
-  test('subscribes to a store and calls showFlashAlert for each notification in state', () => {
+  test('subscribes to a store and calls showFlashAlert for each notification in state', async () => {
     const mockStore = createMockStore({
       notifications: [
         {id: '1', message: 'hello'},
@@ -50,7 +51,9 @@ describe('Redux Notifications', () => {
     mockStore.mockStateChange()
 
     vi.useFakeTimers()
-    vi.runAllTimers()
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
 
     expect(FlashAlert.showFlashAlert).toHaveBeenCalledTimes(2)
     expect(FlashAlert.showFlashAlert).toHaveBeenCalledWith({id: '1', message: 'hello'})
@@ -59,7 +62,7 @@ describe('Redux Notifications', () => {
     vi.useRealTimers()
   })
 
-  test('subscribes to a store and dispatches clearNotifications for each notification in state', () => {
+  test('subscribes to a store and dispatches clearNotifications for each notification in state', async () => {
     const mockStore = createMockStore({
       notifications: [
         {id: '1', message: 'hello'},
@@ -71,7 +74,9 @@ describe('Redux Notifications', () => {
     mockStore.mockStateChange()
 
     vi.useFakeTimers()
-    vi.runAllTimers()
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
 
     expect(mockStore.dispatch).toHaveBeenCalledTimes(2)
     expect(mockStore.dispatch).toHaveBeenCalledWith(notificationActions.clearNotification('1'))

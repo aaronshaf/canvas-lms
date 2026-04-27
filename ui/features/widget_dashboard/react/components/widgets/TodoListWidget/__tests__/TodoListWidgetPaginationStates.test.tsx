@@ -120,14 +120,11 @@ describe('TodoListWidget - Pagination', () => {
       expect(screen.queryByText('Loading to-do items...')).not.toBeInTheDocument()
     })
 
-    const paginationContainer = await waitFor(
-      () => {
-        const container = screen.queryByTestId('pagination-container')
-        if (!container) throw new Error('Pagination not found')
-        return container
-      },
-      {timeout: 5000},
-    )
+    const paginationContainer = await waitFor(() => {
+      const container = screen.queryByTestId('pagination-container')
+      if (!container) throw new Error('Pagination not found')
+      return container
+    })
 
     expect(paginationContainer).toBeInTheDocument()
   })
@@ -140,14 +137,11 @@ describe('TodoListWidget - Pagination', () => {
       expect(screen.queryByText('Loading to-do items...')).not.toBeInTheDocument()
     })
 
-    const paginationContainer = await waitFor(
-      () => {
-        const container = screen.queryByTestId('pagination-container')
-        if (!container) throw new Error('Pagination not found')
-        return container
-      },
-      {timeout: 5000},
-    )
+    const paginationContainer = await waitFor(() => {
+      const container = screen.queryByTestId('pagination-container')
+      if (!container) throw new Error('Pagination not found')
+      return container
+    })
 
     const page2Button = screen.getByRole('button', {name: '2'})
     expect(page2Button).toBeInTheDocument()
@@ -169,14 +163,11 @@ describe('TodoListWidget - Checkbox on paginated pages', () => {
       expect(screen.queryByText('Loading to-do items...')).not.toBeInTheDocument()
     })
 
-    await waitFor(
-      () => {
-        const container = screen.queryByTestId('pagination-container')
-        if (!container) throw new Error('Pagination not found')
-        return container
-      },
-      {timeout: 5000},
-    )
+    await waitFor(() => {
+      const container = screen.queryByTestId('pagination-container')
+      if (!container) throw new Error('Pagination not found')
+      return container
+    })
 
     const page2Button = screen.getByRole('button', {name: '2'})
     await user.click(page2Button)
@@ -184,12 +175,9 @@ describe('TodoListWidget - Checkbox on paginated pages', () => {
     const page2ItemId = '6'
     const page2ItemTitle = 'Office Hours with Dr. Smith'
 
-    await waitFor(
-      () => {
-        expect(screen.getByTestId(`todo-checkbox-${page2ItemId}`)).toBeInTheDocument()
-      },
-      {timeout: 5000},
-    )
+    await waitFor(() => {
+      expect(screen.getByTestId(`todo-checkbox-${page2ItemId}`)).toBeInTheDocument()
+    })
 
     expect(screen.getByText(`Mark ${page2ItemTitle} as complete`)).toBeInTheDocument()
 
@@ -230,6 +218,9 @@ describe('TodoListWidget - Empty State', () => {
   })
 })
 
+// Error-state handlers return immediately but the retry/error UI involves
+// two sequential React Query state transitions; 5000ms prevents flakes on
+// slow CI shards where 3000ms was not consistently enough.
 describe('TodoListWidget - Error Handling', () => {
   it('shows error message on API failure', async () => {
     server.use(errorPlannerItemsHandler)
@@ -277,8 +268,11 @@ describe('TodoListWidget - Error Handling', () => {
     const retryButton = screen.getByRole('button', {name: /retry/i})
     await user.click(retryButton)
 
-    await waitFor(() => {
-      expect(screen.getByText('Lab Report: Cell Structure')).toBeInTheDocument()
-    })
+    await waitFor(
+      () => {
+        expect(screen.getByText('Lab Report: Cell Structure')).toBeInTheDocument()
+      },
+      {timeout: 5000},
+    )
   })
 })

@@ -118,11 +118,7 @@ describe('TodoListWidget', () => {
     it('displays items after successful fetch', async () => {
       renderWithClient(<TodoListWidget {...buildDefaultProps()} />)
 
-      await waitFor(() => {
-        expect(screen.queryByText('Loading to-do items...')).not.toBeInTheDocument()
-      })
-
-      expect(screen.getByText('Lab Report: Cell Structure')).toBeInTheDocument()
+      await screen.findByText('Lab Report: Cell Structure')
       expect(screen.getByText('Chapter 5 Quiz')).toBeInTheDocument()
     })
 
@@ -240,11 +236,7 @@ describe('TodoListWidget', () => {
     it('disables the complete checkbox when observing a student', async () => {
       renderWithClient(<TodoListWidget {...buildDefaultProps()} />, {observedUserId: 'student-123'})
 
-      await waitFor(() => {
-        expect(screen.queryByText('Loading to-do items...')).not.toBeInTheDocument()
-      })
-
-      const checkbox = screen.getByTestId('todo-checkbox-1')
+      const checkbox = await screen.findByTestId('todo-checkbox-1')
       expect(checkbox).toBeDisabled()
     })
   })
@@ -253,11 +245,7 @@ describe('TodoListWidget', () => {
     it('renders checkboxes as enabled', async () => {
       renderWithClient(<TodoListWidget {...buildDefaultProps()} />)
 
-      await waitFor(() => {
-        expect(screen.queryByText('Loading to-do items...')).not.toBeInTheDocument()
-      })
-
-      const checkbox = screen.getByTestId('todo-checkbox-1')
+      const checkbox = await screen.findByTestId('todo-checkbox-1')
       expect(checkbox).toBeEnabled()
     })
   })
@@ -266,25 +254,17 @@ describe('TodoListWidget', () => {
     it('renders each todo item with role=group for screen readers', async () => {
       renderWithClient(<TodoListWidget {...buildDefaultProps()} />)
 
-      await waitFor(() => {
-        expect(screen.queryByText('Loading to-do items...')).not.toBeInTheDocument()
-      })
-
-      const todoItem = screen.getByTestId('todo-item-1')
+      const todoItem = await screen.findByTestId('todo-item-1')
       expect(todoItem).toHaveAttribute('role', 'group')
     })
 
     it('provides accessible labels for each todo item group', async () => {
       renderWithClient(<TodoListWidget {...buildDefaultProps()} />)
 
-      await waitFor(() => {
-        expect(screen.queryByText('Loading to-do items...')).not.toBeInTheDocument()
-      })
-
-      const labReportGroup = screen.getByTestId('todo-item-1')
+      const labReportGroup = await screen.findByTestId('todo-item-1')
       expect(labReportGroup).toHaveAttribute('aria-label', 'Lab Report: Cell Structure')
 
-      const quizGroup = screen.getByTestId('todo-item-2')
+      const quizGroup = await screen.findByTestId('todo-item-2')
       expect(quizGroup).toHaveAttribute('aria-label', 'Chapter 5 Quiz')
     })
   })

@@ -76,7 +76,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  cleanup()
   server.resetHandlers()
   destroyContainer()
   vi.useRealTimers()

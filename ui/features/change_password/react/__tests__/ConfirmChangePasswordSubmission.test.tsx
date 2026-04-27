@@ -61,7 +61,6 @@ describe('ConfirmChangePassword form submission', () => {
   beforeAll(() => server.listen())
 
   afterEach(() => {
-    cleanup()
     vi.clearAllMocks()
     server.resetHandlers()
   })

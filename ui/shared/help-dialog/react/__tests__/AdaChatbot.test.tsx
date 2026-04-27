@@ -60,7 +60,6 @@ describe('AdaChatbot', () => {
   })
 
   afterEach(() => {
-    cleanup()
     fakeENV.teardown()
   })
 

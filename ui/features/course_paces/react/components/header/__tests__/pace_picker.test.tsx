@@ -42,7 +42,6 @@ const defaultProps = {
 }
 
 afterEach(() => {
-  cleanup()
   vi.clearAllMocks()
 })
 

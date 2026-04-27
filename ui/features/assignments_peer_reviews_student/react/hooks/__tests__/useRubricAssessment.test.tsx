@@ -18,7 +18,7 @@
 
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
 import {QueryClient} from '@tanstack/react-query'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 import {useRubricAssessment} from '../useRubricAssessment'
 import type {Assignment} from '@canvas/assignments/react/AssignmentsPeerReviewsStudentTypes'
 
@@ -391,8 +391,8 @@ describe('useRubricAssessment', () => {
 
   it('maintains stable rubric assessment data when isPeerReviewCompleted changes', () => {
     const {result, rerender} = renderHook<
-      {isPeerReviewCompleted: boolean},
-      UseRubricAssessmentReturn
+      UseRubricAssessmentReturn,
+      {isPeerReviewCompleted: boolean}
     >(
       ({isPeerReviewCompleted}) =>
         useRubricAssessment({
@@ -429,8 +429,8 @@ describe('useRubricAssessment', () => {
     }
 
     const {result, rerender} = renderHook<
-      {isPeerReviewCompleted: boolean},
-      UseRubricAssessmentReturn
+      UseRubricAssessmentReturn,
+      {isPeerReviewCompleted: boolean}
     >(
       ({isPeerReviewCompleted}) =>
         useRubricAssessment({

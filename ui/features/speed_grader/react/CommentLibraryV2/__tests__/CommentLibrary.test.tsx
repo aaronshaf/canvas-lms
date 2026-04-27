@@ -40,10 +40,6 @@ vi.mock('use-debounce', () => ({
 const server = setupServer()
 
 describe('CommentLibrary', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const defaultUserId = '1'
   const defaultCourseId = '1'
 
@@ -296,13 +292,10 @@ describe('CommentLibrary', () => {
       // Should not show button initially
       expect(queryByTestId('comment-library-button')).not.toBeInTheDocument()
 
-      await waitFor(
-        () => {
-          // Should still not show button after error
-          expect(queryByTestId('comment-library-button')).not.toBeInTheDocument()
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        // Should still not show button after error
+        expect(queryByTestId('comment-library-button')).not.toBeInTheDocument()
+      })
     })
   })
 
@@ -343,8 +336,8 @@ describe('CommentLibrary', () => {
       expect(setFocusToTextArea).not.toHaveBeenCalled()
 
       // Fast-forward timers to trigger async focus
-      act(() => {
-        vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
       })
 
       // Now setFocus should be called
@@ -458,12 +451,9 @@ describe('CommentLibrary', () => {
         setup(mocks, {comment: 'great'})
 
         // Wait for suggestions to appear
-        await waitFor(
-          () => {
-            expect(screen.getByTestId('comment-suggestion-suggestion-1')).toBeInTheDocument()
-          },
-          {timeout: 3000},
-        )
+        await waitFor(() => {
+          expect(screen.getByTestId('comment-suggestion-suggestion-1')).toBeInTheDocument()
+        })
 
         // Open tray
         await user.click(screen.getByTestId('comment-library-button'))
@@ -499,12 +489,9 @@ describe('CommentLibrary', () => {
         setup(mocks, {comment: 'test'})
 
         // Wait for suggestions to appear
-        await waitFor(
-          () => {
-            expect(screen.getByTestId('comment-suggestion-test-1')).toBeInTheDocument()
-          },
-          {timeout: 3000},
-        )
+        await waitFor(() => {
+          expect(screen.getByTestId('comment-suggestion-test-1')).toBeInTheDocument()
+        })
 
         // Open tray
         await user.click(screen.getByTestId('comment-library-button'))
@@ -581,12 +568,9 @@ describe('CommentLibrary', () => {
         setup(mocks, {comment: 'great'})
 
         // Wait for suggestions to appear
-        await waitFor(
-          () => {
-            expect(screen.getByTestId('comment-suggestion-suggestion-1')).toBeInTheDocument()
-          },
-          {timeout: 3000},
-        )
+        await waitFor(() => {
+          expect(screen.getByTestId('comment-suggestion-suggestion-1')).toBeInTheDocument()
+        })
 
         // Verify suggestion content
         expect(screen.getByTestId('comment-suggestion-suggestion-1')).toHaveTextContent(
@@ -665,12 +649,9 @@ describe('CommentLibrary', () => {
         })
 
         // The mock will fail if the variables don't match exactly
-        await waitFor(
-          () => {
-            expect(screen.getByTestId('comment-suggestion-test-1')).toBeInTheDocument()
-          },
-          {timeout: 3000},
-        )
+        await waitFor(() => {
+          expect(screen.getByTestId('comment-suggestion-test-1')).toBeInTheDocument()
+        })
       })
 
       it('returns empty array when no results', async () => {
@@ -722,12 +703,9 @@ describe('CommentLibrary', () => {
 
         setup(mocks, {comment: 'test'})
 
-        await waitFor(
-          () => {
-            expect(screen.getByTestId('comment-suggestion-test-1')).toBeInTheDocument()
-          },
-          {timeout: 3000},
-        )
+        await waitFor(() => {
+          expect(screen.getByTestId('comment-suggestion-test-1')).toBeInTheDocument()
+        })
 
         // Should only have one suggestion (nulls filtered out)
         expect(screen.queryByTestId('comment-suggestion-null')).not.toBeInTheDocument()

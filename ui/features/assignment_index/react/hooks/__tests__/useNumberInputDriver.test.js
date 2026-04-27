@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {act, renderHook} from '@testing-library/react-hooks/dom'
+import {act, renderHook} from '@testing-library/react'
 import useNumberInputDriver from '../useNumberInputDriver'
 
 describe('useNumberInputDriver', () => {

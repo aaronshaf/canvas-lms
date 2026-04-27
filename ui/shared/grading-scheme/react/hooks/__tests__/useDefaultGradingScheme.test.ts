@@ -18,7 +18,7 @@
 
 import {useDefaultGradingScheme} from '../useDefaultGradingScheme'
 
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import {ApiCallStatus} from '../ApiCallStatus'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -34,13 +34,11 @@ describe('useDefaultGradingSchemeHook', () => {
   afterAll(() => server.close())
 
   it('renders for course context without error', () => {
-    const {result} = renderHook(() => useDefaultGradingScheme())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useDefaultGradingScheme())
   })
 
   it('renders for account context without error', () => {
-    const {result} = renderHook(() => useDefaultGradingScheme())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useDefaultGradingScheme())
   })
 
   it('makes a GET request for course context to load the default grading scheme', async () => {
@@ -58,7 +56,10 @@ describe('useDefaultGradingSchemeHook', () => {
     )
 
     const {result} = renderHook(() => useDefaultGradingScheme())
-    const defaultGradingScheme = await result.current.loadDefaultGradingScheme('Course', courseId)
+    let defaultGradingScheme: any
+    await act(async () => {
+      defaultGradingScheme = await result.current.loadDefaultGradingScheme('Course', courseId)
+    })
 
     expect(capturedPath).toBe(`/courses/${courseId}/grading_schemes/default`)
     expect(defaultGradingScheme).toEqual({
@@ -83,7 +84,10 @@ describe('useDefaultGradingSchemeHook', () => {
     )
 
     const {result} = renderHook(() => useDefaultGradingScheme())
-    const defaultGradingScheme = await result.current.loadDefaultGradingScheme('Account', accountId)
+    let defaultGradingScheme: any
+    await act(async () => {
+      defaultGradingScheme = await result.current.loadDefaultGradingScheme('Account', accountId)
+    })
 
     expect(capturedPath).toBe(`/accounts/${accountId}/grading_schemes/default`)
     expect(defaultGradingScheme).toEqual({
@@ -106,7 +110,9 @@ describe('useDefaultGradingSchemeHook', () => {
     )
 
     const {result} = renderHook(() => useDefaultGradingScheme())
-    await expect(result.current.loadDefaultGradingScheme('Course', courseId)).rejects.toThrow()
+    await act(async () => {
+      await expect(result.current.loadDefaultGradingScheme('Course', courseId)).rejects.toThrow()
+    })
     expect(result.current.loadDefaultGradingSchemeStatus).toEqual(ApiCallStatus.FAILED)
   })
 })

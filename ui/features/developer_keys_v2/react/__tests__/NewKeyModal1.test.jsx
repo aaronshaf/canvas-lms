@@ -36,7 +36,6 @@ describe('NewKeyModal', () => {
   afterEach(() => {
     fakeENV.teardown()
     vi.restoreAllMocks()
-    cleanup()
   })
 
   const selectedScopes = [
@@ -366,10 +365,6 @@ describe('NewKeyModal', () => {
   })
 
   describe('scope selection', () => {
-    afterEach(() => {
-      cleanup()
-    })
-
     it('flashes an error if no scopes are selected', async () => {
       const flashStub = vi.spyOn($, 'flashError')
       const createOrEditSpy = vi.fn()

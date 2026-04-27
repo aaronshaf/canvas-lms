@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook, act} from '@testing-library/react-hooks'
+import {renderHook, act} from '@testing-library/react'
 import {useAssetProcessorsState, ContentItemType} from '../AssetProcessorsState'
 import {
   mockExistingAttachedAssetProcessor,
@@ -37,7 +37,9 @@ vi.mock('@instructure/platform-alerts', async () => {
 
 // Mock the confirm dialog
 vi.mock('@instructure/platform-instui-bindings', async () => ({
-  ...(await vi.importActual<typeof import('@instructure/platform-instui-bindings')>('@instructure/platform-instui-bindings')),
+  ...(await vi.importActual<typeof import('@instructure/platform-instui-bindings')>(
+    '@instructure/platform-instui-bindings',
+  )),
   confirmDanger: vi.fn(() => Promise.resolve(true)),
 }))
 

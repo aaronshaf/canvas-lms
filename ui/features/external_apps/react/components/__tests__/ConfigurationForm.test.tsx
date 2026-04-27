@@ -21,7 +21,7 @@ import {showFlashAlert} from '@instructure/platform-alerts'
 // be tested separately. However, because they all rely on the submit/cancel button
 // rendered in ConfigurationForm.js and React Testing Library (rightly) only let's
 // you test what user's see, we have to pull the testing up a level.
-import {cleanup, render, screen} from '@testing-library/react'
+import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import ConfigurationForm from '../configuration_forms/ConfigurationForm'
@@ -49,7 +49,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  cleanup()
   fakeENV.teardown()
   handleSubmitMock.mockReset()
 })
@@ -324,23 +323,27 @@ describe('when configuration type is xml', () => {
     const user = userEvent.setup()
     renderForm(baseProps)
 
-    await userPaste(user, screen.getByLabelText(/xml configuration/i), 'some for sure real xml')
+    fireEvent.change(screen.getByLabelText(/xml configuration/i), {
+      target: {value: 'some for sure real xml'},
+    })
     await userPaste(user, screen.getByLabelText(/shared secret/i), 'secret')
     await userPaste(user, screen.getByLabelText(/consumer key/i), 'key')
     await userPaste(user, screen.getByLabelText(/name/i), 'a really cool name')
 
     await user.click(screen.getByText(/submit/i))
 
-    expect(handleSubmitMock).toHaveBeenCalledWith(
-      'xml',
-      {
-        name: 'a really cool name',
-        xml: 'some for sure real xml',
-        consumerKey: 'key',
-        sharedSecret: 'secret',
-        verifyUniqueness: 'true',
-      },
-      expect.anything(),
+    await waitFor(() =>
+      expect(handleSubmitMock).toHaveBeenCalledWith(
+        'xml',
+        {
+          name: 'a really cool name',
+          xml: 'some for sure real xml',
+          consumerKey: 'key',
+          sharedSecret: 'secret',
+          verifyUniqueness: 'true',
+        },
+        expect.anything(),
+      ),
     )
   })
 
@@ -391,7 +394,9 @@ describe('when configuration type is xml', () => {
     it('renders error when the name is empty', async () => {
       const user = userEvent.setup()
       renderForm(baseProps)
-      await userPaste(user, screen.getByLabelText(/xml configuration/i), 'some for sure real xml')
+      fireEvent.change(screen.getByLabelText(/xml configuration/i), {
+        target: {value: 'some for sure real xml'},
+      })
       await user.click(screen.getByText(/submit/i))
 
       expect(handleSubmitMock).not.toHaveBeenCalled()

@@ -44,7 +44,7 @@ const changeValue = (component, testid, value) => {
 const setTime = async (component, testid, time) => {
   const clock = component.getByTestId(testid)
   fireEvent.click(clock)
-  const timeOption = await component.findByText(time, {}, {timeout: 3000})
+  const timeOption = await component.findByText(time)
   fireEvent.click(timeOption)
   return clock
 }

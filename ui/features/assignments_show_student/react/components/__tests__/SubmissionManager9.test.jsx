@@ -130,7 +130,6 @@ describe('SubmissionManager', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
     mswClient.cache.reset()
     vi.clearAllMocks()
@@ -241,7 +240,6 @@ describe('SubmissionManager peer reviews with rubrics - submit button states', (
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
     mswClient.cache.reset()
     vi.clearAllMocks()
@@ -440,7 +438,6 @@ describe('SubmissionManager peer reviews with rubrics - modal and error handling
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
     mswClient.cache.reset()
     vi.clearAllMocks()

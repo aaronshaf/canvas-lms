@@ -91,10 +91,6 @@ describe('SignIn', () => {
     }))
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   describe('redirects', () => {
     // Skip: Mock setup causes redirect to fail - needs refactoring
     it.skip('calls assignLocation with the correct URL after successful login', async () => {

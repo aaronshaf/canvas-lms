@@ -57,17 +57,19 @@ describe('AssignmentPublishButton', () => {
   })
 
   it('renders success flash alert', async () => {
-    const {getByTestId} = setUp()
+    const {getByTestId, findByTestId} = setUp()
     getByTestId('assignment-publish-menu').click()
-    getByTestId('unpublish-option').click()
+    const unpublishOption = await findByTestId('unpublish-option')
+    unpublishOption.click()
     const alertMessages = await screen.findAllByText('This assignment has been unpublished.')
     expect(alertMessages.length).toBeGreaterThan(0)
   })
 
   it('renders failure flash alert', async () => {
-    const {getByTestId} = setUp({}, false)
+    const {getByTestId, findByTestId} = setUp({}, false)
     getByTestId('assignment-publish-menu').click()
-    getByTestId('unpublish-option').click()
+    const unpublishOption = await findByTestId('unpublish-option')
+    unpublishOption.click()
     const alertMessages = await screen.findAllByText('This assignment has failed to unpublish.')
     expect(alertMessages.length).toBeGreaterThan(0)
   })

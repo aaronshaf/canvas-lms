@@ -100,7 +100,7 @@ const mockConfigChangeEntryWithDiff = (
     icons: {
       iconUrl: null,
       placementIcons: new Map(),
-      ...(overrides.internalConfig?.icons || {}),
+      ...overrides.internalConfig?.icons,
     },
     launchSettings: {
       customFields: null,
@@ -111,29 +111,29 @@ const mockConfigChangeEntryWithDiff = (
       publicJwkUrl: null,
       redirectUris: null,
       targetLinkUri: null,
-      ...(overrides.internalConfig?.launchSettings || {}),
+      ...overrides.internalConfig?.launchSettings,
     },
     naming: {
       adminNickname: null,
       description: null,
       placementTexts: new Map(),
-      ...(overrides.internalConfig?.naming || {}),
+      ...overrides.internalConfig?.naming,
     },
     permissions: {
       added: [],
       removed: [],
-      ...(overrides.internalConfig?.permissions || {}),
+      ...overrides.internalConfig?.permissions,
     },
     placements: {
       added: [],
       removed: [],
       courseNavigationDefault: null,
       placementChanges: new Map(),
-      ...(overrides.internalConfig?.placements || {}),
+      ...overrides.internalConfig?.placements,
     },
     privacyLevel: null,
     locked: null,
-    ...(overrides.internalConfig ?? {}),
+    ...overrides.internalConfig,
   },
   totalAdditions: 0,
   totalRemovals: 0,
@@ -142,10 +142,6 @@ const mockConfigChangeEntryWithDiff = (
 
 describe('HistoryDiffModal', () => {
   const onClose = vi.fn()
-
-  afterEach(() => {
-    cleanup()
-  })
 
   beforeEach(() => {
     onClose.mockClear()
@@ -447,7 +443,7 @@ describe('HistoryDiffModal', () => {
       ).toBeInTheDocument()
       expect(
         screen.getByText(
-          /\[\-\] can create and update submission results for assignments associated with the tool/i,
+          /\[-\] can create and update submission results for assignments associated with the tool/i,
         ),
       ).toBeInTheDocument()
     })
@@ -1054,7 +1050,7 @@ describe('HistoryDiffModal', () => {
       expect(screen.getByText('[-] https://old.com/redirect')).toBeInTheDocument()
       expect(screen.getByText('[+] https://new.com/redirect')).toBeInTheDocument()
 
-      expect(screen.getByText(/\[\-\] old_field: old_value/i)).toBeInTheDocument()
+      expect(screen.getByText(/\[-\] old_field: old_value/i)).toBeInTheDocument()
       expect(screen.getByText(/\[\+\] new_field: new_value/i)).toBeInTheDocument()
 
       expect(

@@ -22,10 +22,6 @@ import AppliedFilters from '../AppliedFilters'
 import {AppliedFilter, FilterOption} from '../../../../../../shared/react/types'
 
 describe('AppliedFilters', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const mockSetFilters = vi.fn()
 
   beforeEach(() => {

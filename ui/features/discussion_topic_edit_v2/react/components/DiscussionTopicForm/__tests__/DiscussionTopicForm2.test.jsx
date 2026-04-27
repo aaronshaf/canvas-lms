@@ -114,11 +114,11 @@ describe('DiscussionTopicForm', () => {
   })
 
   describe('Title entry', () => {
-    it('shows empty title reminder', () => {
-      const {getByText, getByPlaceholderText} = setup()
+    it('shows empty title reminder', async () => {
+      const {findByText, getByText, getByPlaceholderText} = setup()
       getByPlaceholderText('Topic Title').focus()
       getByText('Save').click()
-      expect(getByText('Title must not be empty.')).toBeInTheDocument()
+      expect(await findByText('Title must not be empty.')).toBeInTheDocument()
     })
 
     it('submits only with non-empty title', () => {

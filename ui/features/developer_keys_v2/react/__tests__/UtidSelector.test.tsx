@@ -59,10 +59,6 @@ describe('UtidSelector', () => {
     },
   ]
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
   })

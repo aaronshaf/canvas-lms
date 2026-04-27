@@ -39,7 +39,17 @@ injectGlobalAlertContainers()
 const render = children =>
   testingLibraryRender(<MockedQueryProvider>{children}</MockedQueryProvider>)
 
-const server = setupServer()
+const server = setupServer(
+  ...createPlannerMocks(),
+  http.get(/\/api\/v1\/announcements.*/, () => HttpResponse.json([])),
+  http.get(/\/api\/v1\/users\/self\/courses.*/, () => HttpResponse.json([])),
+  http.get(/\/api\/v1\/external_tools\/visible_course_nav_tools.*/, () => HttpResponse.json([])),
+  http.get('/api/v1/calendar_events', () => HttpResponse.json([])),
+  http.post(/\/api\/v1\/calendar_events\/save_selected_contexts.*/, () =>
+    HttpResponse.json({status: 'ok'}),
+  ),
+  http.put(/\/api\/v1\/users\/\d+\/colors.*/, () => HttpResponse.json([])),
+)
 
 beforeAll(() => server.listen())
 
@@ -48,19 +58,6 @@ beforeEach(() => {
   resetCardCache()
   resetPlanner()
   sessionStorage.clear()
-  server.use(
-    ...createPlannerMocks(),
-    http.get(/\/api\/v1\/announcements.*/, () => HttpResponse.json([])),
-    http.get(/\/api\/v1\/users\/self\/courses.*/, () => HttpResponse.json([])),
-    http.get(/\/api\/v1\/external_tools\/visible_course_nav_tools.*/, () => HttpResponse.json([])),
-    http.get('/api/v1/calendar_events', ({request}) => {
-      return HttpResponse.json([])
-    }),
-    http.post(/\/api\/v1\/calendar_events\/save_selected_contexts.*/, () =>
-      HttpResponse.json({status: 'ok'}),
-    ),
-    http.put(/\/api\/v1\/users\/\d+\/colors.*/, () => HttpResponse.json([])),
-  )
   fakeENV.setup(defaultEnv)
 })
 
@@ -86,7 +83,7 @@ describe('K5Dashboard Missing Items', () => {
 
     await findByText('Economics 101')
 
-    const missingItemsLink = await findByTestId('number-missing', {}, {timeout: 5000})
+    const missingItemsLink = await findByTestId('number-missing')
     expect(missingItemsLink).toBeInTheDocument()
     expect(missingItemsLink).toHaveTextContent(
       'View 2 missing items for course Economics 1012 missing',
@@ -102,7 +99,7 @@ describe('K5Dashboard Missing Items', () => {
 
     await findByText('Economics 101')
 
-    const missingItemsLink = await findByTestId('number-missing', {}, {timeout: 5000})
+    const missingItemsLink = await findByTestId('number-missing')
     expect(missingItemsLink.getAttribute('href')).toMatch(
       '/courses/1?focusTarget=missing-items#schedule',
     )

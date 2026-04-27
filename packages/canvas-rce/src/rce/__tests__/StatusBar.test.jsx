@@ -18,7 +18,7 @@
 
 import React from 'react'
 import '@testing-library/jest-dom/extend-expect'
-import {render, fireEvent, waitFor} from '@testing-library/react'
+import {render, fireEvent, waitFor, act} from '@testing-library/react'
 import {queryHelpers} from '@testing-library/dom'
 import keycode from 'keycode'
 import {FS_ENABLED} from '../../util/fullscreenHelpers'
@@ -131,7 +131,9 @@ describe('RCE StatusBar', () => {
       const buttons = container.querySelectorAll('button, *[tabindex]')
       expect(buttons).toHaveLength(6)
 
-      buttons[buttons.length - 1].focus()
+      await act(async () => {
+        buttons[buttons.length - 1].focus()
+      })
       expect(document.activeElement).toBe(buttons[buttons.length - 1])
       // wraps to the left
       for (let focusedButton = buttons.length - 1; focusedButton >= 0; --focusedButton) {
@@ -231,7 +233,9 @@ describe('RCE StatusBar', () => {
       const buttons = container.querySelectorAll('[tabindex]')
       expect(buttons).toHaveLength(3)
 
-      buttons[buttons.length - 1].focus()
+      await act(async () => {
+        buttons[buttons.length - 1].focus()
+      })
       expect(document.activeElement).toBe(buttons[buttons.length - 1])
       // wraps to the left
       for (let focusedButton = buttons.length - 1; focusedButton >= 0; --focusedButton) {
@@ -271,7 +275,9 @@ describe('RCE StatusBar', () => {
       const buttons = container.querySelectorAll('[tabindex]')
       expect(buttons).toHaveLength(4)
 
-      buttons[buttons.length - 1].focus()
+      await act(async () => {
+        buttons[buttons.length - 1].focus()
+      })
       expect(document.activeElement).toBe(buttons[buttons.length - 1])
       // wraps to the left
       for (let focusedButton = buttons.length - 1; focusedButton >= 0; --focusedButton) {
@@ -307,7 +313,9 @@ describe('RCE StatusBar', () => {
       const buttons = container.querySelectorAll('button, *[tabindex]')
       expect(buttons).toHaveLength(3)
 
-      buttons[buttons.length - 1].focus()
+      await act(async () => {
+        buttons[buttons.length - 1].focus()
+      })
       expect(document.activeElement).toBe(buttons[buttons.length - 1])
       // wraps to the left
       for (let focusedButton = buttons.length - 1; focusedButton >= 0; --focusedButton) {

@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {waitFor} from '@testing-library/react'
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -87,12 +87,9 @@ describe('useUtidMatching', () => {
     const redirectUris = 'https://example.com/redirect\nhttps://another.com/callback'
     const {result} = renderHook(() => useUtidMatching(redirectUris, accountId), {wrapper})
 
-    await waitFor(
-      () => {
-        expect(result.current.loading).toBe(false)
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false)
+    })
 
     expect(capturedUrl).toContain(`/api/v1/accounts/${accountId}/developer_keys/lookup_utids`)
     expect(result.current.matches).toEqual(mockMatches)
@@ -109,12 +106,9 @@ describe('useUtidMatching', () => {
     const redirectUris = 'https://example.com/redirect'
     const {result} = renderHook(() => useUtidMatching(redirectUris, accountId), {wrapper})
 
-    await waitFor(
-      () => {
-        expect(result.current.loading).toBe(false)
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false)
+    })
 
     expect(result.current.matches).toEqual([])
     expect(result.current.error).toBeNull()
@@ -130,14 +124,11 @@ describe('useUtidMatching', () => {
     const redirectUris = 'https://example.com/redirect'
     const {result} = renderHook(() => useUtidMatching(redirectUris, accountId), {wrapper})
 
-    await waitFor(
-      () => {
-        expect(result.current.loading).toBe(false)
-        expect(result.current.matches).toEqual([])
-        expect(result.current.error).toBe('Failed to fetch matching products')
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false)
+      expect(result.current.matches).toEqual([])
+      expect(result.current.error).toBe('Failed to fetch matching products')
+    })
   })
 
   it('does not make API call for empty redirect URIs', async () => {
@@ -185,7 +176,7 @@ describe('useUtidMatching', () => {
       }),
     )
 
-    const {rerender} = renderHook<{uris: string}, ReturnType<typeof useUtidMatching>>(
+    const {rerender} = renderHook<ReturnType<typeof useUtidMatching>, {uris: string}>(
       ({uris}) => useUtidMatching(uris, accountId),
       {
         initialProps: {uris: 'https://example1.com'},
@@ -203,13 +194,10 @@ describe('useUtidMatching', () => {
     rerender({uris: 'https://example4.com'})
 
     // Wait for debounce to complete and request to finish
-    await waitFor(
-      () => {
-        expect(requestCount).toBe(2)
-        expect(lastCapturedUrl).toContain('example4.com')
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      expect(requestCount).toBe(2)
+      expect(lastCapturedUrl).toContain('example4.com')
+    })
   })
 
   it('trims and filters empty lines from redirect URIs', async () => {
@@ -224,12 +212,9 @@ describe('useUtidMatching', () => {
     const redirectUris = '  https://example.com  \n\n  https://another.com  \n  \n'
     const {result} = renderHook(() => useUtidMatching(redirectUris, accountId), {wrapper})
 
-    await waitFor(
-      () => {
-        expect(result.current.loading).toBe(false)
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false)
+    })
 
     expect(capturedUrl).toContain('example.com')
     expect(capturedUrl).toContain('another.com')

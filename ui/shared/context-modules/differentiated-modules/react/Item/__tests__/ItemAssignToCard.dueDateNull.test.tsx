@@ -89,7 +89,6 @@ describe('ItemAssignToCard - Due Date Null Defaults', () => {
     server.resetHandlers()
     fakeEnv.teardown()
     vi.clearAllMocks()
-    cleanup()
   })
 
   // Fickle: times out at 15s in CI — vitest config may override per-test timeout

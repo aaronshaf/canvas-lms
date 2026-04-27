@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {cleanup, render} from '@testing-library/react'
+import {act, cleanup, render} from '@testing-library/react'
 
 import {CourseReport} from '../../types'
 import PaceDownloadModal, {PaceDownloadModalProps} from '../pace_download_modal'
@@ -42,7 +42,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  cleanup()
   vi.clearAllMocks()
   vi.useRealTimers()
 })
@@ -58,10 +57,12 @@ describe('PaceDownloadModal', () => {
     expect(modal.queryByText('35%')).toBeVisible()
   })
 
-  it('polls the course report', () => {
+  it('polls the course report', async () => {
     vi.useFakeTimers()
     const modal = render(<PaceDownloadModal {...defaultProps} />)
-    vi.advanceTimersByTime(POLL_DOCX_DELAY + 100)
+    await act(async () => {
+      vi.advanceTimersByTime(POLL_DOCX_DELAY + 100)
+    })
     expect(defaultProps.showCourseReport).toHaveBeenCalled()
   })
 })

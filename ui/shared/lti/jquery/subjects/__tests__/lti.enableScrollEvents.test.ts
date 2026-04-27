@@ -75,7 +75,7 @@ describe('lti.enableScrollEvents handler', () => {
 
       handler({message, event, responseMessages})
       drawerContent.dispatchEvent(new Event('scroll'))
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
 
       expect(responseMessages.sendResponse).toHaveBeenCalledWith(
         expect.objectContaining({subject: 'lti.scroll', scrollY: 250}),
@@ -110,7 +110,7 @@ describe('lti.enableScrollEvents handler', () => {
 
       handler({message, event, responseMessages})
       window.dispatchEvent(new Event('scroll'))
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
 
       expect(responseMessages.sendResponse).toHaveBeenCalledWith(
         expect.objectContaining({subject: 'lti.scroll', scrollY: 123}),
@@ -149,7 +149,7 @@ describe('lti.enableScrollEvents handler', () => {
 
       handler({message, event, responseMessages})
       window.dispatchEvent(new Event('scroll'))
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
 
       expect(responseMessages.sendResponse).toHaveBeenCalledWith(
         expect.objectContaining({subject: 'lti.scroll', scrollY: 42}),

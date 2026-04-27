@@ -22,10 +22,6 @@ import FilterCheckboxGroup from '../FilterCheckboxGroup'
 import {FilterOption} from '../../../../../../shared/react/types'
 
 describe('FilterCheckboxGroup', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const mockOnUpdate = vi.fn()
   const mockOptions: {value: string; label: string}[] = [
     {value: 'option1', label: 'Option 1'},

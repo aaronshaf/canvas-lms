@@ -126,8 +126,9 @@ describe('AIConversationsContainer', () => {
     const user = userEvent.setup()
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
 
+    // Wait for data to load so the select is no longer disabled (pointer-events: none)
     await waitFor(() => {
-      expect(screen.getByLabelText('Filter by student')).toBeInTheDocument()
+      expect(screen.getByLabelText('Filter by student')).not.toBeDisabled()
     })
 
     await user.click(screen.getByLabelText('Filter by student'))
@@ -143,8 +144,9 @@ describe('AIConversationsContainer', () => {
     const user = userEvent.setup()
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
 
+    // Wait for data to load so the select is no longer disabled (pointer-events: none)
     await waitFor(() => {
-      expect(screen.getByLabelText('Filter by student')).toBeInTheDocument()
+      expect(screen.getByLabelText('Filter by student')).not.toBeDisabled()
     })
 
     await user.click(screen.getByLabelText('Filter by student'))

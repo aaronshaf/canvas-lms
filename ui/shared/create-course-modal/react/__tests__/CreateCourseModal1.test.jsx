@@ -20,7 +20,7 @@ import React from 'react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import userEvent, {PointerEventsCheckLevel} from '@testing-library/user-event'
-import {render, waitFor, cleanup} from '@testing-library/react'
+import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 
 import {CreateCourseModal} from '../CreateCourseModal'
 import injectGlobalAlertContainers from '@canvas/util/react/testing/injectGlobalAlertContainers'
@@ -124,7 +124,6 @@ describe('CreateCourseModal (1)', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
     fakeENV.teardown()
   })
@@ -173,8 +172,8 @@ describe('CreateCourseModal (1)', () => {
     expect(createButton).toBeDisabled()
     await user.type(getByLabelText('Subject Name'), 'New course')
     expect(createButton).toBeDisabled()
-    await user.click(getByLabelText('Which account will this subject be associated with?'))
-    await user.click(getByText('Elementary'))
+    fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
+    await user.click(await screen.findByText('Elementary'))
     // Wait for the button to be enabled after account selection completes
     await waitFor(() => expect(createButton).not.toBeDisabled())
   })
@@ -214,10 +213,12 @@ describe('CreateCourseModal (1)', () => {
 
     const {getByText, getByLabelText} = render(<CreateCourseModal {...getProps()} />)
     await waitFor(() => expect(getByLabelText('Subject Name')).toBeInTheDocument())
-    await user.click(getByLabelText('Which account will this subject be associated with?'))
+    fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
+    await screen.findByText(accountsPage1[0].name)
     accountsPage1.forEach(a => {
       expect(getByText(a.name)).toBeInTheDocument()
     })
+    await screen.findByText(accountsPage2[0].name)
     accountsPage2.forEach(a => {
       expect(getByText(a.name)).toBeInTheDocument()
     })
@@ -249,8 +250,8 @@ describe('CreateCourseModal (1)', () => {
       <CreateCourseModal {...getProps()} />,
     )
     await waitFor(() => expect(getByLabelText('Subject Name')).toBeInTheDocument())
-    await user.click(getByLabelText('Which account will this subject be associated with?'))
-    await user.click(getByText('CS'))
+    fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
+    await user.click(await screen.findByText('CS'))
     await user.type(getByLabelText('Subject Name'), 'Math')
     // Wait for the button to be enabled after both account selection and name entry
     await waitFor(() => expect(getByRole('button', {name: 'Create'})).not.toBeDisabled())
@@ -277,9 +278,11 @@ describe('CreateCourseModal (1)', () => {
         <CreateCourseModal {...getProps({permissions: 'teacher'})} />,
       )
       await waitFor(() => expect(getByLabelText('Subject Name')).toBeInTheDocument())
-      await getByLabelText('Which account will this subject be associated with?').click()
-      expect(getByText('Orange Elementary')).toBeInTheDocument()
-      expect(getByText('Clark HS')).toBeInTheDocument()
+      fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
+      await waitFor(() => {
+        expect(getByText('Orange Elementary')).toBeInTheDocument()
+        expect(getByText('Clark HS')).toBeInTheDocument()
+      })
     })
 
     it('hides the account select if there is only one enrollment', async () => {
@@ -328,9 +331,11 @@ describe('CreateCourseModal (1)', () => {
       )
       await waitFor(() => expect(getByLabelText('Subject Name')).toBeInTheDocument())
       expect(queryByText('Unable to get accounts')).not.toBeInTheDocument()
-      await getByLabelText('Which account will this subject be associated with?').click()
-      expect(getByText('Orange Elementary')).toBeInTheDocument()
-      expect(getByText('Clark HS')).toBeInTheDocument()
+      fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
+      await waitFor(() => {
+        expect(getByText('Orange Elementary')).toBeInTheDocument()
+        expect(getByText('Clark HS')).toBeInTheDocument()
+      })
     })
 
     it('fetches accounts from the manually_created_courses_account api if restrictToMCCAccount is true', async () => {
@@ -365,8 +370,8 @@ describe('CreateCourseModal (1)', () => {
         <CreateCourseModal {...getProps({permissions: 'student'})} />,
       )
       expect(await findByLabelText('Subject Name')).toBeInTheDocument()
-      await getByLabelText('Which account will this subject be associated with?').click()
-      expect(getByText('Orange Elementary')).toBeInTheDocument()
+      fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
+      await waitFor(() => expect(getByText('Orange Elementary')).toBeInTheDocument())
     })
 
     it("doesn't show the homeroom sync options", async () => {

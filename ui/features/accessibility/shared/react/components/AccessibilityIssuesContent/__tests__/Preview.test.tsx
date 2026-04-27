@@ -65,12 +65,11 @@ describe('Preview', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
   })
 
   describe('initial render and loading', () => {
-    it('shows loading spinner initially', () => {
+    it('shows loading spinner initially', async () => {
       server.use(
         http.get('/preview', async () => {
           await delay(100)
@@ -83,7 +82,7 @@ describe('Preview', () => {
 
       render(<Preview {...defaultProps} />)
 
-      expect(screen.getByText('Loading preview...')).toBeInTheDocument()
+      expect(await screen.findByText('Loading preview...')).toBeInTheDocument()
     })
 
     it('shows loading overlay with spinner during API calls', async () => {
@@ -100,7 +99,7 @@ describe('Preview', () => {
       render(<Preview {...defaultProps} />)
 
       // Should show loading spinner initially
-      expect(screen.getByText('Loading preview...')).toBeInTheDocument()
+      expect(await screen.findByText('Loading preview...')).toBeInTheDocument()
 
       // Should have the overlay mask
       expect(document.getElementById('a11y-issue-preview-overlay')).toBeInTheDocument()
@@ -142,7 +141,7 @@ describe('Preview', () => {
       ref.current?.update(formValue)
 
       // Should show loading spinner during update
-      expect(screen.getByText('Loading preview...')).toBeInTheDocument()
+      expect(await screen.findByText('Loading preview...')).toBeInTheDocument()
       expect(document.getElementById('a11y-issue-preview-overlay')).toBeInTheDocument()
 
       // Wait for loading to complete
@@ -193,19 +192,17 @@ describe('Preview', () => {
 
       render(<Preview {...defaultProps} />)
 
-      // Wait for loading to complete
+      // Wait for loading to complete and loading indicator to disappear
       await waitFor(() => {
         expect(screen.getByText('Test content')).toBeInTheDocument()
+        expect(screen.queryByText('Loading preview...')).not.toBeInTheDocument()
       })
-
-      // Should not show loading spinner
-      expect(screen.queryByText('Loading preview...')).not.toBeInTheDocument()
 
       // Should not have the overlay mask
       expect(document.getElementById('a11y-issue-preview-overlay')).not.toBeInTheDocument()
     })
 
-    it('shows loading spinner with correct accessibility attributes', () => {
+    it('shows loading spinner with correct accessibility attributes', async () => {
       server.use(
         http.get('/preview', async () => {
           await delay(100)
@@ -219,7 +216,7 @@ describe('Preview', () => {
       render(<Preview {...defaultProps} />)
 
       // Should show loading spinner with correct title
-      const loadingSpinner = screen.getByText('Loading preview...')
+      const loadingSpinner = await screen.findByText('Loading preview...')
       expect(loadingSpinner).toBeInTheDocument()
 
       // The spinner should be inside the overlay mask
@@ -439,7 +436,7 @@ describe('Preview', () => {
       ref.current?.update(formValue)
 
       // Should show loading spinner during update
-      expect(screen.getByText('Loading preview...')).toBeInTheDocument()
+      expect(await screen.findByText('Loading preview...')).toBeInTheDocument()
     })
 
     it('calls onSuccess callback when update succeeds', async () => {

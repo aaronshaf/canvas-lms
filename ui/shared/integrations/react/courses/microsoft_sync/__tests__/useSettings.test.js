@@ -17,8 +17,7 @@
  */
 
 import useSettings from '../useSettings'
-import {act} from '@testing-library/react'
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {act, renderHook, waitFor} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 
@@ -51,9 +50,8 @@ describe('useSettings', () => {
         return HttpResponse.json({})
       }),
     )
-    const {waitForNextUpdate} = subject()
-    await waitForNextUpdate()
-    expect(requestMade).toBe(true)
+    subject()
+    await waitFor(() => expect(requestMade).toBe(true))
   })
 
   describe('when last_error and last_error_report_id are set on the group', () => {
@@ -68,8 +66,8 @@ describe('useSettings', () => {
         ),
       )
 
-      const {result, waitForNextUpdate} = subject()
-      await waitForNextUpdate()
+      const {result} = subject()
+      await waitFor(() => expect(result.current[3]).toBeTruthy())
 
       const message = result.current[3].message
       expect(message.type).toBe('a')
@@ -87,8 +85,10 @@ describe('useSettings', () => {
         ),
       )
 
-      const {result, waitForNextUpdate} = subject()
-      await waitForNextUpdate()
+      const {result} = subject()
+      // Wait for the initial GET to start and complete (loading: false→true→false)
+      await waitFor(() => expect(result.current[2]).toBe(true))
+      await waitFor(() => expect(result.current[2]).toBe(false))
 
       const toggleEnabled = result.current[4]
       await act(toggleEnabled)
@@ -104,8 +104,9 @@ describe('useSettings', () => {
         ),
       )
 
-      const {result, waitForNextUpdate} = subject()
-      await waitForNextUpdate()
+      const {result} = subject()
+      // Wait until enabled=true, which happens after GET with workflow_state:'active'
+      await waitFor(() => expect(result.current[1]).toBe(true))
 
       const toggleEnabled = result.current[4]
       await act(toggleEnabled)
@@ -119,8 +120,9 @@ describe('useSettings', () => {
         ),
       )
 
-      const {result, waitForNextUpdate} = subject()
-      await waitForNextUpdate()
+      const {result} = subject()
+      await waitFor(() => expect(result.current[2]).toBe(true))
+      await waitFor(() => expect(result.current[2]).toBe(false))
 
       const toggleEnabled = result.current[4]
       await act(toggleEnabled)
@@ -137,8 +139,9 @@ describe('useSettings', () => {
         ),
       )
 
-      const {result, waitForNextUpdate} = subject()
-      await waitForNextUpdate()
+      const {result} = subject()
+      await waitFor(() => expect(result.current[2]).toBe(true))
+      await waitFor(() => expect(result.current[2]).toBe(false))
 
       const toggleEnabled = result.current[4]
       await act(toggleEnabled)

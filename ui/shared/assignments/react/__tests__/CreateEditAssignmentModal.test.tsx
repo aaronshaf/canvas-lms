@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, fireEvent} from '@testing-library/react'
+import {render, fireEvent, act} from '@testing-library/react'
 import CreateEditAssignmentModal, {
   type CreateEditAssignmentModalProps,
   type ModalAssignment,
@@ -95,7 +95,7 @@ describe('CreateEditAssignmentModal', () => {
     expect(onCloseHandlerMock).toHaveBeenCalled()
   })
 
-  it('calls onMoreOptionsHandler with form data when more options button is clicked', () => {
+  it('calls onMoreOptionsHandler with form data when more options button is clicked', async () => {
     const {getByTestId, getByPlaceholderText, getByText} = render(
       <CreateEditAssignmentModal {...defaultProps({assignment: assignmentData})} />,
     )
@@ -105,7 +105,9 @@ describe('CreateEditAssignmentModal', () => {
 
     fireEvent.click(getByPlaceholderText('Choose a date'))
     fireEvent.click(getByText('15'))
-    vi.runAllTimers() // DateTimeInput has a setTimeout before firing the change event
+    await act(async () => {
+      vi.advanceTimersByTime(1000)
+    }) // DateTimeInput has a setTimeout before firing the change event
 
     fireEvent.click(getByTestId('more-options-button'))
 
@@ -293,7 +295,7 @@ describe('CreateEditAssignmentModal', () => {
       )
     })
 
-    it('sets time to 11:59 PM when date is selected (and no time is present)', () => {
+    it('sets time to 11:59 PM when date is selected (and no time is present)', async () => {
       const {getByTestId, getByPlaceholderText, getByText} = render(
         <CreateEditAssignmentModal {...defaultProps()} />,
       )
@@ -304,7 +306,9 @@ describe('CreateEditAssignmentModal', () => {
       // open the calendar picker (Select January 15th)
       fireEvent.click(getByPlaceholderText('Choose a date'))
       fireEvent.click(getByText('15'))
-      vi.advanceTimersByTime(100) // DateTimeInput has a setTimeout before firing the change event
+      await act(async () => {
+        vi.advanceTimersByTime(1000)
+      }) // DateTimeInput has a setTimeout before firing the change event
       fireEvent.click(getByTestId('save-button'))
 
       expect(onSaveHandlerMock).toHaveBeenCalledWith(
@@ -320,7 +324,7 @@ describe('CreateEditAssignmentModal', () => {
       )
     })
 
-    it('set time to DEFAULT_DUE_TIME if provided by props', () => {
+    it('set time to DEFAULT_DUE_TIME if provided by props', async () => {
       const {getByTestId, getByPlaceholderText, getByText} = render(
         <CreateEditAssignmentModal {...defaultProps({defaultDueTime: '03:00'})} />,
       )
@@ -331,7 +335,9 @@ describe('CreateEditAssignmentModal', () => {
       // open the calendar picker (Select January 15th)
       fireEvent.click(getByPlaceholderText('Choose a date'))
       fireEvent.click(getByText('15'))
-      vi.advanceTimersByTime(100) // DateTimeInput has a setTimeout before firing the change event
+      await act(async () => {
+        vi.advanceTimersByTime(1000)
+      }) // DateTimeInput has a setTimeout before firing the change event
 
       fireEvent.click(getByTestId('save-button'))
 
@@ -438,7 +444,7 @@ describe('CreateEditAssignmentModal', () => {
       expect(queryByTestId('save-and-publish-button')).not.toBeInTheDocument()
     })
 
-    it('Does not change due date time when selecting new date if one was already present', () => {
+    it('Does not change due date time when selecting new date if one was already present', async () => {
       const {getByTestId, getByPlaceholderText, getByText} = render(
         <CreateEditAssignmentModal {...defaultProps({assignment: assignmentData})} />,
       )
@@ -446,7 +452,9 @@ describe('CreateEditAssignmentModal', () => {
       // open the calendar picker (Select January 15th)
       fireEvent.click(getByPlaceholderText('Choose a date'))
       fireEvent.click(getByText('15'))
-      vi.runAllTimers() // DateTimeInput has a setTimeout before firing the change event
+      await act(async () => {
+        vi.advanceTimersByTime(1000)
+      }) // DateTimeInput has a setTimeout before firing the change event
 
       fireEvent.click(getByTestId('save-button'))
 
@@ -516,7 +524,7 @@ describe('CreateEditAssignmentModal', () => {
         unlockAt: undefined,
       }
 
-      it('Renders error message when due date is past assignment lock date', () => {
+      it('Renders error message when due date is past assignment lock date', async () => {
         const {getByPlaceholderText, getByText, getAllByText, getByTestId} = render(
           <CreateEditAssignmentModal {...defaultProps({assignment: assignmentData})} />,
         )
@@ -525,7 +533,9 @@ describe('CreateEditAssignmentModal', () => {
         const datePicker = getByPlaceholderText('Choose a date')
         fireEvent.click(datePicker)
         fireEvent.click(getByText('21'))
-        vi.runAllTimers() // DateTimeInput has a setTimeout before firing the change event
+        await act(async () => {
+          vi.advanceTimersByTime(1000)
+        }) // DateTimeInput has a setTimeout before firing the change event
 
         // Try to save
         fireEvent.click(getByTestId('save-button'))
@@ -534,7 +544,7 @@ describe('CreateEditAssignmentModal', () => {
         expect(datePicker).toHaveFocus()
       })
 
-      it('Renders error message when due date is before assignment unlock date', () => {
+      it('Renders error message when due date is before assignment unlock date', async () => {
         const {getByPlaceholderText, getByText, getAllByText, getByTestId} = render(
           <CreateEditAssignmentModal {...defaultProps({assignment: assignmentData})} />,
         )
@@ -543,7 +553,9 @@ describe('CreateEditAssignmentModal', () => {
         const datePicker = getByPlaceholderText('Choose a date')
         fireEvent.click(datePicker)
         fireEvent.click(getByText('11'))
-        vi.runAllTimers() // DateTimeInput has a setTimeout before firing the change event
+        await act(async () => {
+          vi.advanceTimersByTime(1000)
+        }) // DateTimeInput has a setTimeout before firing the change event
 
         // Try to save
         fireEvent.click(getByTestId('save-button'))
@@ -552,7 +564,7 @@ describe('CreateEditAssignmentModal', () => {
         expect(datePicker).toHaveFocus()
       })
 
-      it('Renders error message when due date is past term end date', () => {
+      it('Renders error message when due date is past term end date', async () => {
         const {getByPlaceholderText, getByText, getAllByText, getByTestId} = render(
           <CreateEditAssignmentModal
             {...defaultProps({assignment: assignmentWithoutLocks, validDueAtRange: termDates})}
@@ -563,7 +575,9 @@ describe('CreateEditAssignmentModal', () => {
         const datePicker = getByPlaceholderText('Choose a date')
         fireEvent.click(datePicker)
         fireEvent.click(getByText('21'))
-        vi.advanceTimersByTime(100) // DateTimeInput has a setTimeout before firing the change event
+        await act(async () => {
+          vi.advanceTimersByTime(1000)
+        }) // DateTimeInput has a setTimeout before firing the change event
 
         // Try to save
         fireEvent.click(getByTestId('save-button'))
@@ -572,7 +586,7 @@ describe('CreateEditAssignmentModal', () => {
         expect(datePicker).toHaveFocus()
       })
 
-      it('Renders error message when due date is before term start date', () => {
+      it('Renders error message when due date is before term start date', async () => {
         const {getByPlaceholderText, getByText, getAllByText, getByTestId} = render(
           <CreateEditAssignmentModal
             {...defaultProps({assignment: assignmentWithoutLocks, validDueAtRange: termDates})}
@@ -583,7 +597,9 @@ describe('CreateEditAssignmentModal', () => {
         const datePicker = getByPlaceholderText('Choose a date')
         fireEvent.click(datePicker)
         fireEvent.click(getByText('11'))
-        vi.advanceTimersByTime(100) // DateTimeInput has a setTimeout before firing the change event
+        await act(async () => {
+          vi.advanceTimersByTime(1000)
+        }) // DateTimeInput has a setTimeout before firing the change event
 
         // Try to save
         fireEvent.click(getByTestId('save-button'))

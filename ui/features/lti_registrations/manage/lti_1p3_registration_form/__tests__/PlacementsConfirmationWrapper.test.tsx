@@ -26,10 +26,6 @@ import {i18nLtiPlacement} from '../../model/i18nLtiPlacement'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
 describe('PlacementsConfirmationWrapper', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   describe('when lti_asset_processor and lti_asset_processor_discussions are enabled', () => {
     beforeEach(() => {
       fakeENV.setup({

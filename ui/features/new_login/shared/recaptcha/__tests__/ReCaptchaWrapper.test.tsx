@@ -21,10 +21,6 @@ import userEvent from '@testing-library/user-event'
 import React, {useRef} from 'react'
 import ReCaptchaWrapper, {ReCaptchaWrapperRef} from '../ReCaptchaWrapper'
 
-afterEach(() => {
-  cleanup()
-})
-
 describe('ReCaptchaWrapper', () => {
   test('renders children inside the wrapper', () => {
     render(

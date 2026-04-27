@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook, waitFor} from '@testing-library/react'
 import {useGetPaginatedFiles} from '../useGetPaginatedFiles'
 import {useSearchTerm} from '../useSearchTerm'
 import {queryClient} from '@instructure/platform-query'
@@ -87,12 +87,11 @@ describe('useGetPaginatedFiles', () => {
       setSearchTerm: mockSetSearchTerm,
     }))
 
-    const {result, waitForNextUpdate} = renderHook(
+    const {result} = renderHook(
       () => useGetPaginatedFiles({folder: mockFolder as any, onSettled: mockOnSettled}),
       {wrapper},
     )
-    await waitForNextUpdate()
-    expect(mockOnSettled).toHaveBeenCalled()
+    await waitFor(() => expect(mockOnSettled).toHaveBeenCalled())
     expect(result.current.data).toBeTruthy()
   })
 
@@ -103,15 +102,16 @@ describe('useGetPaginatedFiles', () => {
       setSearchTerm: mockSetSearchTerm,
     }))
 
-    const {result, waitForNextUpdate} = renderHook(
+    const {result} = renderHook(
       () => useGetPaginatedFiles({folder: mockFolder as any, onSettled: mockOnSettled}),
       {wrapper},
     )
-    await waitForNextUpdate()
+    await waitFor(() => {
+      expect(mockOnSettled).toHaveBeenCalledWith([])
+      expect(result.current.data).toEqual([])
+    })
 
     expect(result.current.search.term).toBe('a')
-    expect(mockOnSettled).toHaveBeenCalledWith([])
-    expect(result.current.data).toEqual([])
   })
 
   it('handles search terms with more than one character', async () => {
@@ -121,14 +121,13 @@ describe('useGetPaginatedFiles', () => {
       setSearchTerm: mockSetSearchTerm,
     }))
 
-    const {result, waitForNextUpdate} = renderHook(
+    const {result} = renderHook(
       () => useGetPaginatedFiles({folder: mockFolder as any, onSettled: mockOnSettled}),
       {wrapper},
     )
-    await waitForNextUpdate()
+    await waitFor(() => expect(mockOnSettled).toHaveBeenCalled())
 
     expect(mockGenerateTableUrl).toHaveBeenCalled()
-    expect(mockOnSettled).toHaveBeenCalled()
     expect(result.current.data).toBeTruthy()
   })
 
@@ -140,14 +139,14 @@ describe('useGetPaginatedFiles', () => {
       setSearchTerm: mockSetSearchTerm,
     }))
 
-    const {result, waitForNextUpdate} = renderHook(
+    const {result} = renderHook(
       () => useGetPaginatedFiles({folder: mockFolder as any, onSettled: mockOnSettled}),
       {wrapper},
     )
-    await waitForNextUpdate()
-
-    expect(mockOnSettled).toHaveBeenCalledWith([])
-    expect(result.current.data).toEqual([])
+    await waitFor(() => {
+      expect(mockOnSettled).toHaveBeenCalledWith([])
+      expect(result.current.data).toEqual([])
+    })
   })
 
   it('calls backend with URL-encoded search term', async () => {
@@ -159,11 +158,11 @@ describe('useGetPaginatedFiles', () => {
       setSearchTerm: mockSetSearchTerm,
     }))
 
-    const {waitForNextUpdate} = renderHook(
+    const {result} = renderHook(
       () => useGetPaginatedFiles({folder: mockFolder as any, onSettled: mockOnSettled}),
       {wrapper},
     )
-    await waitForNextUpdate()
+    await waitFor(() => expect(mockOnSettled).toHaveBeenCalled())
 
     expect(mockGenerateTableUrl).toHaveBeenCalledWith(
       expect.objectContaining({

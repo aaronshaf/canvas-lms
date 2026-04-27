@@ -18,7 +18,7 @@
 
 import $ from 'jquery'
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AddExternalToolButton from '../AddExternalToolButton'
 
@@ -38,7 +38,7 @@ describe('AddExternalToolButton', () => {
   })
 
   describe('handleLti2ToolInstalled()', () => {
-    test('displays a flash message from the tool when there is an error', () => {
+    test('displays a flash message from the tool when there is an error', async () => {
       const ref = React.createRef()
       render(<AddExternalToolButton ref={ref} />)
       const toolData = {
@@ -46,10 +46,10 @@ describe('AddExternalToolButton', () => {
         status: 'failure',
       }
       ref.current.handleLti2ToolInstalled(toolData)
-      expect($.flashErrorSafe).toHaveBeenCalledTimes(1)
+      await waitFor(() => expect($.flashErrorSafe).toHaveBeenCalledTimes(1))
     })
 
-    test('displays the message included with the error', () => {
+    test('displays the message included with the error', async () => {
       const ref = React.createRef()
       render(<AddExternalToolButton ref={ref} />)
       const toolData = {
@@ -57,17 +57,19 @@ describe('AddExternalToolButton', () => {
         status: 'failure',
       }
       ref.current.handleLti2ToolInstalled(toolData)
+      await waitFor(() => expect($.flashErrorSafe).toHaveBeenCalled())
       const [message] = $.flashErrorSafe.mock.lastCall
       expect(message).toBe('Something bad happened')
     })
 
-    test('displays a default flash message when the error does not include a message', () => {
+    test('displays a default flash message when the error does not include a message', async () => {
       const ref = React.createRef()
       render(<AddExternalToolButton ref={ref} />)
       const toolData = {
         status: 'failure',
       }
       ref.current.handleLti2ToolInstalled(toolData)
+      await waitFor(() => expect($.flashErrorSafe).toHaveBeenCalled())
       const [message] = $.flashErrorSafe.mock.lastCall
       expect(message).toBe('There was an unknown error registering the tool')
     })

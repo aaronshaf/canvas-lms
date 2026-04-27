@@ -18,7 +18,7 @@
 
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook} from '@testing-library/react'
 import {waitFor} from '@testing-library/react'
 
 import useContentShareUserSearchApi from '../useContentShareUserSearchApi'
@@ -63,9 +63,9 @@ describe('useContentShareUserSearchApi', () => {
 
   it('throws if the courseId parameter is missing', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const {result} = renderHook(() => useContentShareUserSearchApi({params: {search_term: '123'}}))
-    expect(result.error).toBeDefined()
-    expect(result.error.message).toMatch(/courseId.*required/)
+    expect(() =>
+      renderHook(() => useContentShareUserSearchApi({params: {search_term: '123'}})),
+    ).toThrow(/courseId.*required/)
     consoleSpy.mockRestore()
   })
 })

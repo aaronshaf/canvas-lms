@@ -89,13 +89,13 @@ describe('GradebookHistory::SearchFormComponent', () => {
 
   describe('calls getSearchOptions with correct arguments after debounce', () => {
     fields.forEach(field => {
-      it(`for ${field}`, () => {
+      it(`for ${field}`, async () => {
         const getSearchOptions = vi.fn()
         const {container} = mountSubject({getSearchOptions})
         const input = container.querySelector(`input#${field}`)
         fireEvent.click(input)
         fireEvent.input(input, {target: {id: field, value: 'onetwo'}})
-        act(() => {
+        await act(async () => {
           vi.advanceTimersByTime(500)
         }) // wait for debounce
         expect(getSearchOptions).toHaveBeenCalledWith(field, 'onetwo')
@@ -125,37 +125,37 @@ describe('GradebookHistory::SearchFormComponent', () => {
   })
 
   describe('searches at minimum character threshold per field', () => {
-    it('fires assignment search with a single character', () => {
+    it('fires assignment search with a single character', async () => {
       const getSearchOptions = vi.fn()
       const {container} = mountSubject({getSearchOptions})
       const input = container.querySelector('input#assignments')
       fireEvent.click(input)
       fireEvent.input(input, {target: {id: 'assignments', value: 'a'}})
-      act(() => {
+      await act(async () => {
         vi.advanceTimersByTime(500)
       })
       expect(getSearchOptions).toHaveBeenCalledWith('assignments', 'a')
     })
 
-    it('fires grader search with two characters', () => {
+    it('fires grader search with two characters', async () => {
       const getSearchOptions = vi.fn()
       const {container} = mountSubject({getSearchOptions})
       const input = container.querySelector('input#graders')
       fireEvent.click(input)
       fireEvent.input(input, {target: {id: 'graders', value: 'xy'}})
-      act(() => {
+      await act(async () => {
         vi.advanceTimersByTime(500)
       })
       expect(getSearchOptions).toHaveBeenCalledWith('graders', 'xy')
     })
 
-    it('fires student search with two characters', () => {
+    it('fires student search with two characters', async () => {
       const getSearchOptions = vi.fn()
       const {container} = mountSubject({getSearchOptions})
       const input = container.querySelector('input#students')
       fireEvent.click(input)
       fireEvent.input(input, {target: {id: 'students', value: 'ab'}})
-      act(() => {
+      await act(async () => {
         vi.advanceTimersByTime(500)
       })
       expect(getSearchOptions).toHaveBeenCalledWith('students', 'ab')

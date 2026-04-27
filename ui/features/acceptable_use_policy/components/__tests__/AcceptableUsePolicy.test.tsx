@@ -64,7 +64,6 @@ describe('AcceptableUsePolicy', () => {
 
   afterEach(() => {
     server.resetHandlers()
-    cleanup()
   })
 
   it('mounts without crashing', () => {

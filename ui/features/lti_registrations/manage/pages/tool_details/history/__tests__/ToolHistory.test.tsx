@@ -94,7 +94,6 @@ const mockLtiRegistrationHistoryEntry = (
 describe('ToolHistory', () => {
   beforeAll(() => server.listen())
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
     fakeENV.teardown()
   })

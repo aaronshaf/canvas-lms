@@ -202,7 +202,6 @@ describe('LearningMastery', () => {
   })
 
   afterEach(() => {
-    cleanup()
     const mockUseRollups = useRollups as MockedFunction<typeof useRollups>
     mockUseRollups.mockClear()
     mockSaveLearningMasteryGradebookSettings.mockClear()

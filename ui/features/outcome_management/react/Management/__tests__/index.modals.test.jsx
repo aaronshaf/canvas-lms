@@ -63,7 +63,7 @@ describe('OutcomeManagementPanel - Modals', () => {
     await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('Add Outcomes to "Course folder 0"')).toBeInTheDocument()
     fireEvent.click(within(getByTestId('find-outcomes-modal')).getByText('Done'))
-    // Run all timers to remove the modal from the DOM
+    // runAllTimers: drains the finite modal close animation chain (no Apollo queries here)
     await act(async () => vi.runAllTimers())
     expect(queryByText('Add Outcomes to "Course folder 0"')).not.toBeInTheDocument()
   })

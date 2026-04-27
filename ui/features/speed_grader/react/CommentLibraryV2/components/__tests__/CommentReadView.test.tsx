@@ -27,10 +27,6 @@ vi.mock('@canvas/shave')
 vi.mock('@instructure/platform-alerts')
 
 describe('CommentReadView', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const defaultProps = {
     id: 'comment-1',
     comment: 'This is a test comment',

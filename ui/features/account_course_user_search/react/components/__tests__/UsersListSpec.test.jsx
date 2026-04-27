@@ -25,7 +25,9 @@ import UsersList from '../UsersList'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 
-const server = setupServer()
+const server = setupServer(
+  http.get('/api/v1/temporary_enrollment_status', () => HttpResponse.json({})),
+)
 
 function renderWithQueryClient(ui) {
   queryClient.clear()

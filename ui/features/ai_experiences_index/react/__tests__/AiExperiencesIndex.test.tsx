@@ -36,7 +36,6 @@ beforeEach(() => {
 
 afterEach(() => {
   server.resetHandlers()
-  cleanup()
   fakeEnv.teardown()
 })
 

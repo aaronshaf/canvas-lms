@@ -21,12 +21,7 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import React from 'react'
 import {MemoryRouter} from 'react-router-dom'
 import {ForgotPasswordLink} from '..'
-import {
-  NewLoginDataProvider,
-  NewLoginProvider,
-  useNewLogin,
-  useNewLoginData,
-} from '../../context'
+import {NewLoginDataProvider, NewLoginProvider, useNewLogin, useNewLoginData} from '../../context'
 
 vi.mock('../../context', async () => {
   const originalModule = await vi.importActual('../../context')
@@ -56,10 +51,6 @@ describe('ForgotPasswordLink', () => {
       </MemoryRouter>,
     )
   }
-
-  afterEach(() => {
-    cleanup()
-  })
 
   beforeEach(() => {
     vi.clearAllMocks()

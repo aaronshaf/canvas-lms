@@ -80,18 +80,22 @@ describe('TextEntry', () => {
     vi.useFakeTimers()
   })
 
-  afterEach(async () => {
-    await act(async () => vi.runOnlyPendingTimers())
+  afterEach(() => {
+    vi.clearAllTimers()
     vi.useRealTimers()
   })
 
   const renderEditor = async props => {
     const propsToRender = props || (await makeProps())
     const retval = render(<TextEntry {...propsToRender} />)
-    await waitFor(() => {
-      expect(tinymce.get('textentry_text')).toBeDefined()
-    })
-    fakeEditor = tinymce.get('textentry_text')
+    if (!propsToRender.readOnly) {
+      await waitFor(() => {
+        expect(tinymce.get('textentry_text')).not.toBeNull()
+      })
+      fakeEditor = tinymce.get('textentry_text')
+    } else {
+      fakeEditor = null
+    }
     return retval
   }
 
@@ -123,7 +127,7 @@ describe('TextEntry', () => {
             </StudentViewContext.Provider>,
           )
           await waitFor(() => {
-            expect(tinymce.get('textentry_text')).toBeDefined()
+            expect(tinymce.get('textentry_text')).not.toBeNull()
           })
           fakeEditor = tinymce.get('textentry_text')
           await waitFor(() => {
@@ -519,7 +523,7 @@ describe('TextEntry', () => {
       const {getByText, queryByText} = await renderEditor(props)
       fireEvent.click(props.submitButtonRef.current)
       expect(getByText(ERROR_MESSAGE)).toBeInTheDocument()
-      fakeEditor.setContent('clear errors')
+      await act(async () => fakeEditor.setContent('clear errors'))
       expect(queryByText(ERROR_MESSAGE)).not.toBeInTheDocument()
     })
   })

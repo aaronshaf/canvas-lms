@@ -115,7 +115,6 @@ describe('DirectShareCourseTray', () => {
   afterEach(() => {
     server.resetHandlers()
     vi.clearAllMocks()
-    cleanup()
   })
 
   it('shows the overwrite warning', () => {

@@ -92,7 +92,6 @@ describe('RegistrationUpdateWizard', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
   })
 
@@ -456,12 +455,9 @@ describe('RegistrationUpdateWizard', () => {
 
       resolveRequest(null)
 
-      await waitFor(
-        () => {
-          expect(screen.getByText(/Review Updates from/i)).toBeInTheDocument()
-        },
-        {timeout: 5000},
-      )
+      await waitFor(() => {
+        expect(screen.getByText(/Review Updates from/i)).toBeInTheDocument()
+      })
     })
 
     it('calls onDismiss when header close button is clicked', async () => {

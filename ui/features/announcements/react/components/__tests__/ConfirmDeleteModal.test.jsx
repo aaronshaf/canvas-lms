@@ -59,14 +59,14 @@ describe('ConfirmDeleteModal component', () => {
       modal = ref
     })
 
-    const {getByTestId} = render(
+    const {findByTestId} = render(
       <ConfirmDeleteModal {...makeProps({onConfirm: confirmSpy, modalRef})} />,
     )
 
     // Show the modal
     modal.show()
 
-    const confirmButton = getByTestId('confirm-delete-announcements')
+    const confirmButton = await findByTestId('confirm-delete-announcements')
     await user.click(confirmButton)
 
     // Wait for setTimeout in component
@@ -81,12 +81,12 @@ describe('ConfirmDeleteModal component', () => {
       modal = ref
     })
 
-    const {getByTestId} = render(<ConfirmDeleteModal {...makeProps({onHide: hideSpy, modalRef})} />)
+    const {findByTestId} = render(<ConfirmDeleteModal {...makeProps({onHide: hideSpy, modalRef})} />)
 
     // Show the modal
     modal.show()
 
-    const confirmButton = getByTestId('confirm-delete-announcements')
+    const confirmButton = await findByTestId('confirm-delete-announcements')
     await user.click(confirmButton)
 
     // Wait for setTimeout in component
@@ -101,14 +101,14 @@ describe('ConfirmDeleteModal component', () => {
       modal = ref
     })
 
-    const {getByTestId} = render(
+    const {findByTestId} = render(
       <ConfirmDeleteModal {...makeProps({onCancel: cancelSpy, modalRef})} />,
     )
 
     // Show the modal
     modal.show()
 
-    const cancelButton = getByTestId('cancel-delete-announcements')
+    const cancelButton = await findByTestId('cancel-delete-announcements')
     await user.click(cancelButton)
 
     // Wait for setTimeout in component
@@ -123,12 +123,12 @@ describe('ConfirmDeleteModal component', () => {
       modal = ref
     })
 
-    const {getByTestId} = render(<ConfirmDeleteModal {...makeProps({onHide: hideSpy, modalRef})} />)
+    const {findByTestId} = render(<ConfirmDeleteModal {...makeProps({onHide: hideSpy, modalRef})} />)
 
     // Show the modal
     modal.show()
 
-    const cancelButton = getByTestId('cancel-delete-announcements')
+    const cancelButton = await findByTestId('cancel-delete-announcements')
     await user.click(cancelButton)
 
     // Wait for setTimeout in component

@@ -88,7 +88,6 @@ describe('AssignmentPostingPolicyTray Layout', () => {
   })
 
   afterEach(() => {
-    cleanup()
     user = null
     context = null
     container = null

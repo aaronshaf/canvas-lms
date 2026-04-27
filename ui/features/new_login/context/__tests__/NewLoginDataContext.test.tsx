@@ -18,7 +18,7 @@
 
 import {render, screen} from '@testing-library/react'
 import React from 'react'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 import {NewLoginDataProvider, useNewLoginData} from '..'
 
 const mockUseFetchNewLoginData = vi.hoisted(() => vi.fn())
@@ -239,9 +239,8 @@ describe('NewLoginDataContext', () => {
   })
 
   it('throws an error if useNewLoginData is used outside NewLoginDataProvider', () => {
-    const {result} = renderHook(() => useNewLoginData())
-    expect(result.error).toEqual(
-      new Error('useNewLoginData must be used within a NewLoginDataProvider'),
+    expect(() => renderHook(() => useNewLoginData())).toThrow(
+      'useNewLoginData must be used within a NewLoginDataProvider',
     )
   })
 })

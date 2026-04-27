@@ -22,10 +22,6 @@ import {cleanup, render, fireEvent} from '@testing-library/react'
 import PeerReviewNavigationLink from '../PeerReviewNavigationLink'
 
 describe('PeerReviewNavigationLink', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const props = {
     assignedAssessments: [
       {

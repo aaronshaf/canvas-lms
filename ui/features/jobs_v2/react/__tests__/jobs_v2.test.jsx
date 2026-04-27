@@ -192,7 +192,6 @@ describe.skip('JobsIndex (flaky - hangs with timer/API interaction)', () => {
   })
 
   afterEach(() => {
-    cleanup()
     vi.useRealTimers()
     server.resetHandlers()
   })

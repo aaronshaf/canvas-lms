@@ -34,6 +34,10 @@ beforeAll(() => {
   window.history.replaceState = vi.fn()
 })
 
+beforeEach(() => {
+  window.location.hash = ''
+})
+
 afterEach(() => {
   window.history.replaceState.mockClear()
   window.location.hash = ''
@@ -69,10 +73,15 @@ const renderHook = (defaultTab, tabs, getResult) => {
 }
 
 describe('useTabState hook', () => {
-  it('sets the current tab to the passed-in default tab', () => {
+  it('sets the current tab to the passed-in default tab', async () => {
+    // With React 18, the useEffect in TestComponent may fire during the initial
+    // mount commit before useTabState's own effect has run, so the first call can
+    // carry the tabs[0] default. Capture the last result and poll until settled.
+    let capturedResult
     renderHook(TAB_IDS.GRADES, TABS, result => {
-      expect(result.currentTab).toBe(TAB_IDS.GRADES)
+      capturedResult = result
     })
+    await waitFor(() => expect(capturedResult?.currentTab).toBe(TAB_IDS.GRADES))
   })
 
   it('defaults the current tab to the first tab if no default is passed-in', () => {

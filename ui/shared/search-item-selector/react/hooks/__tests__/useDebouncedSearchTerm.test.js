@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook, act} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import useDebouncedSearchTerm from '../useDebouncedSearchTerm'
 
 describe('useDebouncedSearchTerm', () => {
@@ -28,7 +28,7 @@ describe('useDebouncedSearchTerm', () => {
     const {result} = renderHook(() => useDebouncedSearchTerm('default'))
     act(() => result.current.setSearchTerm('updated'))
     expect(result.current.searchTerm).toBe('default')
-    act(() => vi.runAllTimers())
+    act(() => vi.runOnlyPendingTimers())
     expect(result.current.searchTerm).toBe('updated')
   })
 
@@ -36,10 +36,10 @@ describe('useDebouncedSearchTerm', () => {
     const isSearchableTerm = term => term === 'searchable'
     const {result} = renderHook(() => useDebouncedSearchTerm('default', {isSearchableTerm}))
     act(() => result.current.setSearchTerm('blah'))
-    act(() => vi.runAllTimers())
+    act(() => vi.runOnlyPendingTimers())
     expect(result.current.searchTerm).toBe('default')
     act(() => result.current.setSearchTerm('searchable'))
-    act(() => vi.runAllTimers())
+    act(() => vi.runOnlyPendingTimers())
     expect(result.current.searchTerm).toBe('searchable')
   })
 
@@ -48,7 +48,7 @@ describe('useDebouncedSearchTerm', () => {
     expect(result.current.searchTermIsPending).toBe(false)
     act(() => result.current.setSearchTerm('updated'))
     expect(result.current.searchTermIsPending).toBe(true)
-    act(() => vi.runAllTimers())
+    act(() => vi.runOnlyPendingTimers())
     expect(result.current.searchTermIsPending).toBe(false)
   })
 
@@ -56,7 +56,7 @@ describe('useDebouncedSearchTerm', () => {
     const {result} = renderHook(() => useDebouncedSearchTerm('default'))
     act(() => result.current.setSearchTerm('updated'))
     act(() => result.current.cancelCallback())
-    act(() => vi.runAllTimers())
+    act(() => vi.runOnlyPendingTimers())
     expect(result.current.searchTerm).toBe('default')
     expect(result.current.searchTermIsPending).toBe(false)
   })

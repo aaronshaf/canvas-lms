@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import SettingsPanel, {type SettingsPanelProps} from '../SettingsPanel'
 import * as miscUtils from '../../utils/miscHelpers'
 import * as moduleUtils from '../../utils/moduleHelpers'
@@ -244,14 +244,14 @@ describe('SettingsPanel', () => {
 
     afterEach(() => server.resetHandlers())
 
-    it('validates the module name', () => {
-      const {getByRole, getByText, getByTestId} = renderComponent({moduleName: ''})
+    it('validates the module name', async () => {
+      const {getByRole, findByText, getByTestId} = renderComponent({moduleName: ''})
       const updateButton = getByRole('button', {name: 'Save'})
       const nameInput = getByTestId('module-name-input')
 
-      updateButton.click()
-      expect(getByText('Please fix errors before continuing')).toBeInTheDocument()
-      expect(getByText('Module name can’t be blank')).toBeInTheDocument()
+      fireEvent.click(updateButton)
+      expect(await findByText('Please fix errors before continuing')).toBeInTheDocument()
+      expect(await findByText(/Module name can.t be blank/i)).toBeInTheDocument()
       expect(nameInput).toHaveFocus()
     })
 
@@ -352,7 +352,7 @@ describe('SettingsPanel', () => {
         window.ENV.FEATURES.modules_requirements_allow_percentage = true
       })
 
-      it('Invalid input message is shown for points', () => {
+      it('Invalid input message is shown for points', async () => {
         const overrideProps = {
           moduleItems: [{id: '1', name: 'Assignments'}],
           requirements: [
@@ -367,11 +367,11 @@ describe('SettingsPanel', () => {
           ],
           pointsInputMessages: [{requirementId: '1', message: 'Invalid input'}],
         }
-        const {getByRole, getByText} = renderComponent(overrideProps)
+        const {getByRole, findByText} = renderComponent(overrideProps)
         const updateButton = getByRole('button', {name: 'Save'})
         updateButton.click()
 
-        expect(getByText('Invalid input')).toBeInTheDocument()
+        expect(await findByText('Invalid input')).toBeInTheDocument()
       })
 
       it('addModuleUI is not called if error in requirements', () => {

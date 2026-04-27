@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 
 import Actions from '../../actions'
 import CourseImageSelector from '../CourseImageSelector'
@@ -56,7 +56,7 @@ describe('CourseImageSelector', () => {
     expect(element.style.backgroundImage).toBe('url(http://coolUrl)')
   })
 
-  it('renders course image edit options when an image is present', () => {
+  it('renders course image edit options when an image is present', async () => {
     const store = fakeStore()
     const mockState = {
       ...initialState,
@@ -80,8 +80,7 @@ describe('CourseImageSelector', () => {
     }
 
     // The Menu component should be present when image exists and not loading
-    const menuTrigger = container.querySelector('button')
-    expect(menuTrigger).toBeTruthy()
+    await waitFor(() => expect(container.querySelector('button')).toBeTruthy())
   })
 
   it('adds the wide classname if the wide prop is true', () => {

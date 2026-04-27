@@ -23,7 +23,7 @@ import {http, HttpResponse} from 'msw'
 import {AssetProcessorsAddModal} from '../AssetProcessorsAddModal'
 import {QueryClient} from '@tanstack/react-query'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
-import {act, renderHook} from '@testing-library/react-hooks'
+import {act, renderHook} from '@testing-library/react'
 import {handleExternalContentMessages} from '@canvas/external-tools/messages'
 import {
   mockDeepLinkResponse,
@@ -79,7 +79,10 @@ describe('AssetProcessorsAddModal', () => {
   afterEach(() => {
     server.resetHandlers()
     queryClient.clear()
-    vi.clearAllMocks()
+    // clearMocks: true in vitest.config.ts already clears call history globally.
+    // mockReset() is additionally needed here to wipe the implementation set by
+    // the "handles valid deep linking response" test — clearMocks does not do that.
+    vi.mocked(handleExternalContentMessages).mockReset()
     // Reset Zustand store state to prevent test pollution
     useAssetProcessorsAddModalState.getState().actions.close()
     fakeENV.teardown()
@@ -138,25 +141,22 @@ describe('AssetProcessorsAddModal', () => {
         .showToolList
       act(() => open())
 
-      await waitFor(
-        () => {
-          expect(getByText('Add A Document Processing App')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(getByText('Add A Document Processing App')).toBeInTheDocument()
 
-          const cards = queryAllByTestId('asset-processor-card')
-          expect(cards).toHaveLength(4)
-          const foundCard = cards.find(card => card.textContent?.includes(tool!.name))
-          expect(foundCard).toBeDefined()
+        const cards = queryAllByTestId('asset-processor-card')
+        expect(cards).toHaveLength(4)
+        const foundCard = cards.find(card => card.textContent?.includes(tool!.name))
+        expect(foundCard).toBeDefined()
 
-          toolsForType(type).forEach(t => {
-            if (t.context_name) {
-              expect(getByText(`Installed in: ${t.context_name}`)).toBeInTheDocument()
-            }
-          })
+        toolsForType(type).forEach(t => {
+          if (t.context_name) {
+            expect(getByText(`Installed in: ${t.context_name}`)).toBeInTheDocument()
+          }
+        })
 
-          return foundCard
-        },
-        {timeout: 3000},
-      ).then(toolCard => {
+        return foundCard
+      }).then(toolCard => {
         act(() => toolCard!.click())
       })
 
@@ -173,9 +173,8 @@ describe('AssetProcessorsAddModal', () => {
         const closeButton = document.querySelector(
           '[data-pendo="asset-processors-add-modal-close-button"]',
         )
-        if (closeButton) {
-          expect(document.activeElement).toBe(closeButton)
-        }
+        expect(closeButton).toBeTruthy()
+        expect(document.activeElement).toBe(closeButton)
       })
     })
 
@@ -318,41 +317,31 @@ describe('AssetProcessorsAddModal', () => {
         .showToolList
       act(() => open())
 
-      const toolCard = await waitFor(
-        () => {
-          expect(getByText('Add A Document Processing App')).toBeInTheDocument()
+      const toolCard = await waitFor(() => {
+        expect(getByText('Add A Document Processing App')).toBeInTheDocument()
 
-          const cards = queryAllByTestId('asset-processor-card')
-          expect(cards).toHaveLength(4)
-          const foundCard = cards.find(card => card.textContent?.includes(assignmentTools[0].name))
-          expect(foundCard).toBeDefined()
-          return foundCard!
-        },
-        {timeout: 3000},
-      )
+        const cards = queryAllByTestId('asset-processor-card')
+        expect(cards).toHaveLength(4)
+        const foundCard = cards.find(card => card.textContent?.includes(assignmentTools[0].name))
+        expect(foundCard).toBeDefined()
+        return foundCard!
+      })
 
       act(() => {
         fireEvent.keyDown(toolCard, {key: 'Enter', code: 'Enter', bubbles: true})
       })
 
-      await waitFor(
-        () => {
-          expect(getByTitle('Configure new document processing app')).toBeInTheDocument()
-        },
-        {timeout: 5000},
-      )
+      await waitFor(() => {
+        expect(getByTitle('Configure new document processing app')).toBeInTheDocument()
+      })
 
-      await waitFor(
-        () => {
-          const closeButton = document.querySelector(
-            '[data-pendo="asset-processors-add-modal-close-button"]',
-          )
-          if (closeButton) {
-            expect(document.activeElement).toBe(closeButton)
-          }
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        const closeButton = document.querySelector(
+          '[data-pendo="asset-processors-add-modal-close-button"]',
+        )
+        expect(closeButton).toBeTruthy()
+        expect(document.activeElement).toBe(closeButton)
+      })
     })
 
     it('launches the tool when Space key is pressed on a card', async () => {
@@ -361,37 +350,30 @@ describe('AssetProcessorsAddModal', () => {
         .showToolList
       act(() => open())
 
-      const toolCard = await waitFor(
-        () => {
-          expect(getByText('Add A Document Processing App')).toBeInTheDocument()
+      const toolCard = await waitFor(() => {
+        expect(getByText('Add A Document Processing App')).toBeInTheDocument()
 
-          const cards = queryAllByTestId('asset-processor-card')
-          expect(cards).toHaveLength(4)
-          const foundCard = cards.find(card => card.textContent?.includes(assignmentTools[0].name))
-          expect(foundCard).toBeDefined()
-          return foundCard!
-        },
-        {timeout: 3000},
-      )
+        const cards = queryAllByTestId('asset-processor-card')
+        expect(cards).toHaveLength(4)
+        const foundCard = cards.find(card => card.textContent?.includes(assignmentTools[0].name))
+        expect(foundCard).toBeDefined()
+        return foundCard!
+      })
 
       act(() => {
         fireEvent.keyDown(toolCard, {key: ' ', code: 'Space', bubbles: true})
       })
 
-      await waitFor(
-        () => {
-          expect(getByTitle('Configure new document processing app')).toBeInTheDocument()
-        },
-        {timeout: 5000},
-      )
+      await waitFor(() => {
+        expect(getByTitle('Configure new document processing app')).toBeInTheDocument()
+      })
 
       await waitFor(() => {
         const closeButton = document.querySelector(
           '[data-pendo="asset-processors-add-modal-close-button"]',
         )
-        if (closeButton) {
-          expect(document.activeElement).toBe(closeButton)
-        }
+        expect(closeButton).toBeTruthy()
+        expect(document.activeElement).toBe(closeButton)
       })
     })
 
@@ -401,18 +383,15 @@ describe('AssetProcessorsAddModal', () => {
         .showToolList
       act(() => open())
 
-      const toolCard = await waitFor(
-        () => {
-          expect(getByText('Add A Document Processing App')).toBeInTheDocument()
+      const toolCard = await waitFor(() => {
+        expect(getByText('Add A Document Processing App')).toBeInTheDocument()
 
-          const cards = queryAllByTestId('asset-processor-card')
-          expect(cards).toHaveLength(4)
-          const foundCard = cards.find(card => card.textContent?.includes(assignmentTools[0].name))
-          expect(foundCard).toBeDefined()
-          return foundCard!
-        },
-        {timeout: 3000},
-      )
+        const cards = queryAllByTestId('asset-processor-card')
+        expect(cards).toHaveLength(4)
+        const foundCard = cards.find(card => card.textContent?.includes(assignmentTools[0].name))
+        expect(foundCard).toBeDefined()
+        return foundCard!
+      })
 
       act(() => {
         fireEvent.keyDown(toolCard, {key: 'a', code: 'KeyA'})

@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook, waitFor} from '@testing-library/react'
 import {useStudents} from '../useStudents'
 import * as apiClient from '../../apiClient'
 import {Student} from '@canvas/outcomes/react/types/rollup'
@@ -74,11 +74,10 @@ describe('useStudents', () => {
       data: mockStudents,
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useStudents(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useStudents(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.students).toEqual(mockStudents)
-    expect(result.current.isLoading).toBe(false)
     expect(result.current.error).toBeNull()
   })
 
@@ -91,8 +90,8 @@ describe('useStudents', () => {
       data: mockStudents,
     })
 
-    const {waitForNextUpdate} = renderHook(() => useStudents(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useStudents(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(loadCourseUsersSpy).toHaveBeenCalledWith(courseId, undefined)
     expect(loadCourseUsersSpy).toHaveBeenCalledTimes(1)
@@ -101,19 +100,18 @@ describe('useStudents', () => {
   it('sets error state on failed request', async () => {
     vi.spyOn(apiClient, 'loadCourseUsers').mockRejectedValue(new Error('Network error'))
 
-    const {result, waitForNextUpdate} = renderHook(() => useStudents(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useStudents(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.students).toEqual([])
-    expect(result.current.isLoading).toBe(false)
     expect(result.current.error).toBe('Failed to load students')
   })
 
   it('clears students array on error', async () => {
     vi.spyOn(apiClient, 'loadCourseUsers').mockRejectedValue(new Error('API error'))
 
-    const {result, waitForNextUpdate} = renderHook(() => useStudents(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useStudents(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.students).toEqual([])
     expect(result.current.error).toBeTruthy()
@@ -128,11 +126,10 @@ describe('useStudents', () => {
       data: [],
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useStudents(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useStudents(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.students).toEqual([])
-    expect(result.current.isLoading).toBe(false)
     expect(result.current.error).toBeNull()
   })
 
@@ -145,18 +142,17 @@ describe('useStudents', () => {
       data: mockStudents,
     })
 
-    const {rerender, waitForNextUpdate} = renderHook(({id}) => useStudents(id), {
+    const {result, rerender} = renderHook(({id}) => useStudents(id), {
       initialProps: {id: '123'},
     })
-    await waitForNextUpdate()
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(loadCourseUsersSpy).toHaveBeenCalledWith('123', undefined)
     expect(loadCourseUsersSpy).toHaveBeenCalledTimes(1)
 
     rerender({id: '456'})
-    await waitForNextUpdate()
+    await waitFor(() => expect(loadCourseUsersSpy).toHaveBeenCalledWith('456', undefined))
 
-    expect(loadCourseUsersSpy).toHaveBeenCalledWith('456', undefined)
     expect(loadCourseUsersSpy).toHaveBeenCalledTimes(2)
   })
 
@@ -169,12 +165,10 @@ describe('useStudents', () => {
       data: mockStudents,
     })
 
-    const {result, rerender, waitForNextUpdate} = renderHook(({id}) => useStudents(id), {
+    const {result, rerender} = renderHook(({id}) => useStudents(id), {
       initialProps: {id: '123'},
     })
-    await waitForNextUpdate()
-
-    expect(result.current.isLoading).toBe(false)
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     rerender({id: '456'})
     expect(result.current.isLoading).toBe(true)
@@ -191,18 +185,16 @@ describe('useStudents', () => {
         data: mockStudents,
       })
 
-    const {result, rerender, waitForNextUpdate} = renderHook(({id}) => useStudents(id), {
+    const {result, rerender} = renderHook(({id}) => useStudents(id), {
       initialProps: {id: '123'},
     })
-    await waitForNextUpdate()
-
-    expect(result.current.error).toBe('Failed to load students')
+    await waitFor(() => expect(result.current.error).toBe('Failed to load students'))
 
     rerender({id: '456'})
-    await waitForNextUpdate()
-
-    expect(result.current.error).toBeNull()
-    expect(result.current.students).toEqual(mockStudents)
+    await waitFor(() => {
+      expect(result.current.error).toBeNull()
+      expect(result.current.students).toEqual(mockStudents)
+    })
   })
 
   it('handles non-200 status code response', async () => {
@@ -214,8 +206,8 @@ describe('useStudents', () => {
       data: [],
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useStudents(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useStudents(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.students).toEqual([])
     expect(result.current.isLoading).toBe(false)
@@ -231,8 +223,8 @@ describe('useStudents', () => {
       data: [],
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useStudents(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useStudents(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.students).toEqual([])
     expect(result.current.isLoading).toBe(false)
@@ -248,8 +240,8 @@ describe('useStudents', () => {
       data: mockStudents,
     })
 
-    const {waitForNextUpdate} = renderHook(() => useStudents('456'))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useStudents('456'))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(loadCourseUsersSpy).toHaveBeenCalledWith('456', undefined)
   })
@@ -277,8 +269,8 @@ describe('useStudents', () => {
       data: studentsWithAllFields,
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useStudents(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useStudents(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.students).toEqual(studentsWithAllFields)
     expect(result.current.students[0].sis_id).toBe('SIS123')

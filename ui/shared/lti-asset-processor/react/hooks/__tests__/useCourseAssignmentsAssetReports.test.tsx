@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 import {waitFor} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import React from 'react'
@@ -74,7 +74,7 @@ describe('useCourseAssignmentsAssetReports', () => {
     })
     mockExecuteQuery.mockResolvedValue(mockData)
 
-    const {result, waitForNextUpdate} = renderHook(
+    const {result} = renderHook(
       () =>
         useCourseAssignmentsAssetReports({
           courseId: 'course_1',
@@ -248,7 +248,7 @@ describe('useCourseAssignmentsAssetReports', () => {
     )
 
     // Wait for both pages to load
-    await waitFor(() => expect(result.current.isSuccess).toBe(true), {timeout: 3000})
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
     // Verify the Map contains assignments if they pass filters
     expect(result.current.data).toBeInstanceOf(Map)

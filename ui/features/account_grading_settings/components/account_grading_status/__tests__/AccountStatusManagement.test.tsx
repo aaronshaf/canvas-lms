@@ -61,7 +61,6 @@ describe('Account Grading Status Management', () => {
   })
 
   afterEach(() => {
-    cleanup()
     destroyFlashAlertContainer()
     fakeENV.teardown()
   })
@@ -169,8 +168,8 @@ describe('Account Grading Status Management', () => {
       })
       const confirmDeleteButton = getByTestId('confirm-button')
       await userEvent.click(confirmDeleteButton)
-      await waitFor(() => expect(queryAllByTestId(/custom\-status\-[0-9]/)).toHaveLength(1))
-      expect(queryAllByTestId(/custom\-status\-new\-[0-2]/)).toHaveLength(2)
+      await waitFor(() => expect(queryAllByTestId(/custom-status-[0-9]/)).toHaveLength(1))
+      expect(queryAllByTestId(/custom-status-new-[0-2]/)).toHaveLength(2)
 
       expect(getSRAlert()).toContain('Successfully deleted custom status custom 2')
     })
@@ -227,9 +226,9 @@ describe('Account Grading Status Management', () => {
         await new Promise(resolve => setTimeout(resolve, 0))
       })
 
-      const customStatusItems = queryAllByTestId(/custom\-status\-[0-9]/)
+      const customStatusItems = queryAllByTestId(/custom-status-[0-9]/)
       expect(customStatusItems).toHaveLength(3)
-      expect(queryAllByTestId(/custom\-status\-new\-[0-2]/)).toHaveLength(0)
+      expect(queryAllByTestId(/custom-status-new-[0-2]/)).toHaveLength(0)
       const newItem = customStatusItems[2]
 
       expect(newItem.textContent).toContain('New Status 11')
@@ -252,9 +251,9 @@ describe('Account Grading Status Management', () => {
       expect(getByText('Custom Statuses')).toBeInTheDocument()
 
       expect(queryAllByTestId(/standard-status-/)).toHaveLength(6)
-      expect(queryAllByTestId(/custom\-status\-[0-9]/)).toHaveLength(2)
+      expect(queryAllByTestId(/custom-status-[0-9]/)).toHaveLength(2)
       // cannot add new statuses from a sub account
-      expect(queryAllByTestId(/custom\-status\-new\-[0-2]/)).toHaveLength(0)
+      expect(queryAllByTestId(/custom-status-new-[0-2]/)).toHaveLength(0)
     })
 
     it('should display status but not allow editing or deleting them', async () => {

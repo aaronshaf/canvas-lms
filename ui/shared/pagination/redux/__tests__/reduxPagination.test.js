@@ -235,25 +235,22 @@ describe('Redux Pagination', () => {
       })
       actionCreators.getThings()(mockStore.dispatch, mockStore.getState)
 
-      await vi.waitFor(
-        () => {
-          expect(mockStore.dispatch).toHaveBeenCalledTimes(2)
-          expect(mockStore.dispatch).toHaveBeenCalledWith({
-            type: 'GET_THINGS_START',
-            payload: {page: 1},
-          })
-          const expectedResults = {
-            type: 'GET_THINGS_SUCCESS',
-            payload: {
-              data: ['item1', 'item1', 'item1', 'item1', 'item1'],
-              lastPage: 1,
-              page: 1,
-            },
-          }
-          expect(mockStore.dispatch).toHaveBeenLastCalledWith(expectedResults)
-        },
-        {timeout: 1000}
-      )
+      await vi.waitFor(() => {
+        expect(mockStore.dispatch).toHaveBeenCalledTimes(2)
+        expect(mockStore.dispatch).toHaveBeenCalledWith({
+          type: 'GET_THINGS_START',
+          payload: {page: 1},
+        })
+        const expectedResults = {
+          type: 'GET_THINGS_SUCCESS',
+          payload: {
+            data: ['item1', 'item1', 'item1', 'item1', 'item1'],
+            lastPage: 1,
+            page: 1,
+          },
+        }
+        expect(mockStore.dispatch).toHaveBeenLastCalledWith(expectedResults)
+      })
     })
   })
 

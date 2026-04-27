@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {act, render, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import BlueprintSidebar from '../BlueprintSidebar'
 
@@ -42,8 +42,10 @@ describe('BlueprintSidebar', () => {
 
     await user.click(button)
 
-    // Run all timers to completion for the tray animation
-    vi.runAllTimers()
+    // Flush currently-queued timers for the tray animation
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
 
     await waitFor(() => {
       const tray = document.querySelector('[role="dialog"][aria-label="Blueprint Settings"]')
@@ -58,7 +60,9 @@ describe('BlueprintSidebar', () => {
 
     // Open the tray first
     await user.click(openButton)
-    vi.runAllTimers()
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
 
     await waitFor(() => {
       const tray = document.querySelector('[role="dialog"][aria-label="Blueprint Settings"]')
@@ -68,7 +72,9 @@ describe('BlueprintSidebar', () => {
     // Now close it
     const closeButton = getByRole('button', {name: 'Close sidebar'})
     await user.click(closeButton)
-    vi.runAllTimers()
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
 
     await waitFor(() => {
       const tray = document.querySelector('[role="dialog"][aria-label="Blueprint Settings"]')

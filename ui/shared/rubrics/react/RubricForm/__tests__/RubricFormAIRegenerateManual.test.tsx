@@ -205,14 +205,11 @@ describe('RubricForm AI Regenerate Manual Criterion Tests', () => {
       // Wait for the modal to close using the same pattern as other tests
       await waitForElementToBeRemoved(queryByText('Regenerate Criterion'))
 
-      await waitFor(
-        () => {
-          expect(document.querySelector('#flashalert_message_holder')).toHaveTextContent(
-            'Failed to regenerate criteria',
-          )
-        },
-        {timeout: 5000},
-      )
+      await waitFor(() => {
+        expect(document.querySelector('#flashalert_message_holder')).toHaveTextContent(
+          'Failed to regenerate criteria',
+        )
+      })
     })
 
     // Note: The 'replaces the criterions with the regenerated one' test has been moved to

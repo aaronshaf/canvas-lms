@@ -18,7 +18,7 @@
 
 import {useGradingSchemeUpdate} from '../useGradingSchemeUpdate'
 
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import type {GradingScheme, GradingSchemeUpdateRequest} from '../../../gradingSchemeApiModel'
 import {ApiCallStatus} from '../ApiCallStatus'
 import {setupServer} from 'msw/node'
@@ -35,13 +35,11 @@ describe('useGradingSchemeUpdateHook', () => {
   afterAll(() => server.close())
 
   it('renders for course context without error', () => {
-    const {result} = renderHook(() => useGradingSchemeUpdate())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useGradingSchemeUpdate())
   })
 
   it('renders for account context without error', () => {
-    const {result} = renderHook(() => useGradingSchemeUpdate())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useGradingSchemeUpdate())
   })
 
   it('makes a PUT request for course context to update a grading scheme', async () => {
@@ -79,11 +77,14 @@ describe('useGradingSchemeUpdateHook', () => {
     )
 
     const {result} = renderHook(() => useGradingSchemeUpdate())
-    const updatedGradingScheme = await result.current.updateGradingScheme(
-      'Course',
-      courseId,
-      gradingSchemeUpdateRequest,
-    )
+    let updatedGradingScheme: any
+    await act(async () => {
+      updatedGradingScheme = await result.current.updateGradingScheme(
+        'Course',
+        courseId,
+        gradingSchemeUpdateRequest,
+      )
+    })
 
     expect(capturedPath).toBe(`/courses/${courseId}/grading_schemes/some-id`)
     expect(capturedBody).toEqual(gradingSchemeUpdateRequest)
@@ -125,11 +126,14 @@ describe('useGradingSchemeUpdateHook', () => {
     )
 
     const {result} = renderHook(() => useGradingSchemeUpdate())
-    const updatedGradingScheme = await result.current.updateGradingScheme(
-      'Account',
-      accountId,
-      gradingSchemeUpdateRequest,
-    )
+    let updatedGradingScheme: any
+    await act(async () => {
+      updatedGradingScheme = await result.current.updateGradingScheme(
+        'Account',
+        accountId,
+        gradingSchemeUpdateRequest,
+      )
+    })
 
     expect(capturedPath).toBe(`/accounts/${accountId}/grading_schemes/some-id`)
     expect(capturedBody).toEqual(gradingSchemeUpdateRequest)

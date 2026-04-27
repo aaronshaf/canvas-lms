@@ -18,7 +18,7 @@
 
 import $ from 'jquery'
 import 'jquery-migrate'
-import {waitFor} from '@testing-library/react'
+import {act, waitFor} from '@testing-library/react'
 import Assignment from '@canvas/assignments/backbone/models/Assignment'
 import AssignmentGroupSelector from '@canvas/assignments/backbone/views/AssignmentGroupSelector'
 import GradingTypeSelector from '@canvas/assignments/backbone/views/GradingTypeSelector'
@@ -242,9 +242,11 @@ function createEditView(assignment) {
 describe('EditView - Quiz Type Disabled State', () => {
   let view
 
-  afterEach(() => {
+  afterEach(async () => {
     if (view) {
-      view.remove()
+      await act(async () => {
+        view.remove()
+      })
       view = null
     }
   })

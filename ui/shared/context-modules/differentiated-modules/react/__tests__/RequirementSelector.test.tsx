@@ -18,7 +18,7 @@
 
 import React from 'react'
 import RequirementSelector, {type RequirementSelectorProps} from '../RequirementSelector'
-import {render, fireEvent} from '@testing-library/react'
+import {render, fireEvent, waitFor} from '@testing-library/react'
 
 describe('RequirementSelector', () => {
   const props: RequirementSelectorProps = {
@@ -62,23 +62,29 @@ describe('RequirementSelector', () => {
     expect(getByDisplayValue('View the item')).toBeInTheDocument()
   })
 
-  it('calls onUpdateRequirement when a new module item is selected', () => {
-    const {getByDisplayValue, getByText} = renderComponent()
+  it('calls onUpdateRequirement when a new module item is selected', async () => {
+    const {getByDisplayValue, findByText} = renderComponent()
     getByDisplayValue('Module 1').click()
-    getByText('Module 2').click()
-    expect(props.onUpdateRequirement).toHaveBeenCalledWith(
-      {id: '2', name: 'Module 2', resource: 'page', type: 'view'},
-      0,
+    const option = await findByText('Module 2')
+    option.click()
+    await waitFor(() =>
+      expect(props.onUpdateRequirement).toHaveBeenCalledWith(
+        {id: '2', name: 'Module 2', resource: 'page', type: 'view'},
+        0,
+      ),
     )
   })
 
-  it('calls onUpdateRequirement when a new requirement type is selected', () => {
-    const {getByDisplayValue, getByText} = renderComponent()
+  it('calls onUpdateRequirement when a new requirement type is selected', async () => {
+    const {getByDisplayValue, findByText} = renderComponent()
     getByDisplayValue('View the item').click()
-    getByText('Contribute to the page').click()
-    expect(props.onUpdateRequirement).toHaveBeenCalledWith(
-      {id: '1', name: 'Module 1', resource: 'page', type: 'contribute'},
-      0,
+    const option = await findByText('Contribute to the page')
+    option.click()
+    await waitFor(() =>
+      expect(props.onUpdateRequirement).toHaveBeenCalledWith(
+        {id: '1', name: 'Module 1', resource: 'page', type: 'contribute'},
+        0,
+      ),
     )
   })
 
@@ -88,9 +94,9 @@ describe('RequirementSelector', () => {
     expect(props.onDropRequirement).toHaveBeenCalledWith(0)
   })
 
-  it('selects the correct item by id when two items share the same name', () => {
+  it('selects the correct item by id when two items share the same name', async () => {
     // file and assignment both named "New Assignment" — assignment must win
-    const {getByDisplayValue, getAllByText} = renderComponent({
+    const {getByDisplayValue, findAllByText} = renderComponent({
       requirement: {id: '1', name: 'New Assignment', resource: 'file', type: 'view'},
       moduleItems: [
         {id: '1', name: 'New Assignment', resource: 'file'},
@@ -99,10 +105,13 @@ describe('RequirementSelector', () => {
     })
     getByDisplayValue('New Assignment').click()
     // two options with the same label — click the second one (the assignment)
-    getAllByText('New Assignment')[1].click()
-    expect(props.onUpdateRequirement).toHaveBeenCalledWith(
-      {id: '2', name: 'New Assignment', resource: 'assignment', type: 'view'},
-      0,
+    const options = await findAllByText('New Assignment')
+    options[1].click()
+    await waitFor(() =>
+      expect(props.onUpdateRequirement).toHaveBeenCalledWith(
+        {id: '2', name: 'New Assignment', resource: 'assignment', type: 'view'},
+        0,
+      ),
     )
   })
 

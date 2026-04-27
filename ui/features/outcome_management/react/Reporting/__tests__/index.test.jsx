@@ -102,7 +102,6 @@ describe('Reporting', () => {
   })
 
   afterEach(() => {
-    cleanup()
     vi.clearAllMocks()
   })
 

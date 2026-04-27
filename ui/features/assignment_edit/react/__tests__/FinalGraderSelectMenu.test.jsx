@@ -30,10 +30,6 @@ describe('FinalGraderSelectMenu', () => {
     user = userEvent.setup()
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   function selectMenu() {
     return wrapper.container.querySelector('select[name="final_grader_id"]')
   }

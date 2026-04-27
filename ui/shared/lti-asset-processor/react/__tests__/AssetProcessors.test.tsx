@@ -20,7 +20,7 @@ import {showFlashAlert, showFlashError} from '@instructure/platform-alerts'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
 import {QueryClient} from '@tanstack/react-query'
 import {render, waitForElementToBeRemoved} from '@testing-library/react'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 import {AssetProcessors} from '../AssetProcessors'
 import {
   AssetProcessorsAddModalOnProcessorResponseFn,

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 import QuizIPFilters, {type IPFilterSpec, type ElementWithValidator} from '../QuizIPFilters'
 
 const parentId = 'account_settings_quiz_ip_filters'
@@ -69,10 +69,18 @@ describe('QuizIPFilters', () => {
 
   it('shows the explainer tip only when the info icon is focussed', async () => {
     renderComponent([])
-    await new Promise(resolve => requestAnimationFrame(resolve)) // wait for InstUI to settle down
-    expect(screen.getByText('filters are a way to limit access', {exact: false})).not.toBeVisible()
-    screen.getByTestId('ip-filter-help-toggle')?.focus()
-    await new Promise(resolve => requestAnimationFrame(resolve)) // wait for InstUI to settle down
-    expect(screen.getByText('filters are a way to limit access', {exact: false})).toBeVisible()
+    const toggleBtn = screen.getByTestId('ip-filter-help-toggle')
+    // React 18 may flush effects that trigger the Tooltip to open during Portal mount;
+    // explicitly blur to ensure the tooltip starts closed before asserting.
+    toggleBtn?.blur()
+    await waitFor(() =>
+      expect(
+        screen.getByText('filters are a way to limit access', {exact: false}),
+      ).not.toBeVisible(),
+    )
+    toggleBtn?.focus()
+    await waitFor(() =>
+      expect(screen.getByText('filters are a way to limit access', {exact: false})).toBeVisible(),
+    )
   })
 })

@@ -74,18 +74,14 @@ describe('MergeUsers', () => {
   }
 
   const assertSourceUser = async (sourceUser: User) => {
-    const sourceUserText = await screen.findByText(
-      (content, element) => {
-        const hasText = (node: Element | null) => {
-          if (!node) return false
-          const text = node.textContent || ''
-          return text.includes(sourceUser.name) && text.includes(sourceUser.email!)
-        }
-        return hasText(element)
-      },
-      {},
-      {timeout: 3000},
-    )
+    const sourceUserText = await screen.findByText((content, element) => {
+      const hasText = (node: Element | null) => {
+        if (!node) return false
+        const text = node.textContent || ''
+        return text.includes(sourceUser.name) && text.includes(sourceUser.email!)
+      }
+      return hasText(element)
+    }, {})
 
     expect(sourceUserText).toBeInTheDocument()
   }

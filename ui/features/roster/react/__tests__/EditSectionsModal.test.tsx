@@ -64,7 +64,6 @@ describe('EditSectionsModal', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
   })
 

@@ -37,6 +37,10 @@ const initialStoreState = {
 
 const OverrideStudentStore = createStore($.extend(true, {}, initialStoreState))
 
+// Monotonically-increasing counter; incremented by reset() so that any
+// in-flight $.getJSON callbacks from before the reset are silently dropped.
+let _fetchGeneration = 0
+
 // -------------------
 //   Private Methods
 // -------------------
@@ -64,6 +68,7 @@ OverrideStudentStore.fetchStudentsByID = function (givenIds) {
     return null
   }
 
+  const gen = _fetchGeneration
   const getUsersPath = this.getContextPath() + '/users'
   $.getJSON(
     getUsersPath,
@@ -72,16 +77,18 @@ OverrideStudentStore.fetchStudentsByID = function (givenIds) {
       enrollment_type: 'student',
       include: ['enrollments', 'group_ids'],
     },
-    this._fetchStudentsByIDSuccessHandler.bind(this, {}),
+    this._fetchStudentsByIDSuccessHandler.bind(this, {gen}),
   )
 }
 
 OverrideStudentStore._fetchStudentsByIDSuccessHandler = function (opts, items, status, xhr) {
+  if (opts.gen !== _fetchGeneration) return
+
   this.addStudents(items)
 
   const links = parseLinkHeader(xhr)
   if (links.next) {
-    $.getJSON(links.next, {}, this._fetchStudentsByIDSuccessHandler.bind(this, {}))
+    $.getJSON(links.next, {}, this._fetchStudentsByIDSuccessHandler.bind(this, {gen: opts.gen}))
   }
 }
 
@@ -96,6 +103,7 @@ OverrideStudentStore.fetchStudentsByName = function (nameString) {
     return true
   }
 
+  const gen = _fetchGeneration
   const searchUsersPath = this.getContextPath() + '/search_users'
 
   this.setState({
@@ -110,8 +118,8 @@ OverrideStudentStore.fetchStudentsByName = function (nameString) {
       include_inactive: false,
       include: ['enrollments', 'group_ids'],
     },
-    this._fetchStudentsByNameSuccessHandler.bind(this, {nameString}),
-    this._fetchStudentsByNameErrorHandler.bind(this, {nameString}),
+    this._fetchStudentsByNameSuccessHandler.bind(this, {nameString, gen}),
+    this._fetchStudentsByNameErrorHandler.bind(this, {nameString, gen}),
   )
 }
 
@@ -120,12 +128,16 @@ OverrideStudentStore.allStudentsFetched = function () {
 }
 
 OverrideStudentStore._fetchStudentsByNameSuccessHandler = function (opts, items, _status, _xhr) {
+  if (opts.gen !== _fetchGeneration) return
+
   this.doneSearching()
   this.markNameSearched(opts.nameString)
   this.addStudents(items)
 }
 
-OverrideStudentStore._fetchStudentsByNameErrorHandler = function (_opts) {
+OverrideStudentStore._fetchStudentsByNameErrorHandler = function (opts) {
+  if (opts.gen !== _fetchGeneration) return
+
   this.doneSearching()
 }
 
@@ -140,6 +152,7 @@ OverrideStudentStore.fetchStudentsForCourse = function () {
   }
   this.setState({requestedStudentsForCourse: true})
 
+  const gen = _fetchGeneration
   const path = this.getContextPath() + '/users'
 
   $.getJSON(
@@ -150,16 +163,18 @@ OverrideStudentStore.fetchStudentsForCourse = function () {
       include_inactive: false,
       include: ['enrollments', 'group_ids'],
     },
-    this._fetchStudentsForCourseSuccessHandler.bind(this, {pageNumber: 1}),
+    this._fetchStudentsForCourseSuccessHandler.bind(this, {pageNumber: 1, gen}),
   )
 }
 
 OverrideStudentStore._fetchStudentsForCourseSuccessHandler = function (
-  {pageNumber},
+  {pageNumber, gen},
   items,
   status,
   xhr,
 ) {
+  if (gen !== _fetchGeneration) return
+
   this.addStudents(items)
 
   const links = parseLinkHeader(xhr)
@@ -168,7 +183,7 @@ OverrideStudentStore._fetchStudentsForCourseSuccessHandler = function (
       $.getJSON(
         links.next,
         {},
-        this._fetchStudentsForCourseSuccessHandler.bind(this, {pageNumber: pageNumber + 1}),
+        this._fetchStudentsForCourseSuccessHandler.bind(this, {pageNumber: pageNumber + 1, gen}),
       )
     }
   } else {
@@ -219,6 +234,7 @@ OverrideStudentStore.getContextPath = function () {
 
 // test helper
 OverrideStudentStore.reset = function () {
+  _fetchGeneration++
   this.setState($.extend(true, {}, initialStoreState))
 }
 

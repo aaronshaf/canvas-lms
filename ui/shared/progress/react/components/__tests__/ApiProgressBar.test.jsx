@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, act} from '@testing-library/react'
 import ApiProgressBar from '../ApiProgressBar'
 import ProgressStore from '../../../stores/ProgressStore'
 
@@ -54,65 +54,65 @@ describe('ApiProgressBar', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('renders progress bar when in progress', () => {
+  it('renders progress bar when in progress', async () => {
     const {getByTestId} = renderComponent({progress_id: defaultProgress.id})
-    vi.advanceTimersByTime(1000)
+    await act(async () => { vi.advanceTimersByTime(1000) })
     expect(getByTestId('api-progress-bar')).toBeInTheDocument()
   })
 
-  it('updates when progress state changes', () => {
+  it('updates when progress state changes', async () => {
     const {getByTestId} = renderComponent({progress_id: defaultProgress.id})
-    vi.advanceTimersByTime(1000)
+    await act(async () => { vi.advanceTimersByTime(1000) })
 
     // Update progress state to running
     const updatedProgress = {...defaultProgress, workflow_state: 'running', completion: 50}
-    ProgressStore.setState({[defaultProgress.id]: updatedProgress})
+    await act(async () => { ProgressStore.setState({[defaultProgress.id]: updatedProgress}) })
 
     const progressBar = getByTestId('api-progress-bar')
     expect(progressBar).toBeInTheDocument()
     expect(progressBar.querySelector('[role="progressbar"]')).toHaveAttribute('aria-valuenow', '50')
   })
 
-  it('calls onComplete when progress is completed', () => {
+  it('calls onComplete when progress is completed', async () => {
     const onComplete = vi.fn()
     renderComponent({progress_id: defaultProgress.id, onComplete})
-    vi.advanceTimersByTime(1000)
+    await act(async () => { vi.advanceTimersByTime(1000) })
 
     // Update progress state to completed
     const completedProgress = {...defaultProgress, workflow_state: 'completed', completion: 100}
-    ProgressStore.setState({[defaultProgress.id]: completedProgress})
+    await act(async () => { ProgressStore.setState({[defaultProgress.id]: completedProgress}) })
 
     expect(onComplete).toHaveBeenCalled()
   })
 
-  it('stops polling when progress is completed', () => {
+  it('stops polling when progress is completed', async () => {
     const {queryByTestId} = renderComponent({progress_id: defaultProgress.id})
-    vi.advanceTimersByTime(1000)
+    await act(async () => { vi.advanceTimersByTime(1000) })
 
     // Update progress state to completed
     const completedProgress = {...defaultProgress, workflow_state: 'completed', completion: 100}
-    ProgressStore.setState({[defaultProgress.id]: completedProgress})
-    vi.advanceTimersByTime(1000)
+    await act(async () => { ProgressStore.setState({[defaultProgress.id]: completedProgress}) })
+    await act(async () => { vi.advanceTimersByTime(1000) })
 
     expect(queryByTestId('api-progress-bar')).not.toBeInTheDocument()
   })
 
-  it('starts polling when progress_id is provided', () => {
+  it('starts polling when progress_id is provided', async () => {
     renderComponent({progress_id: defaultProgress.id})
-    vi.advanceTimersByTime(1000)
+    await act(async () => { vi.advanceTimersByTime(1000) })
     expect(ProgressStore.get).toHaveBeenCalled()
   })
 
-  it('does not start polling when no progress_id is provided', () => {
+  it('does not start polling when no progress_id is provided', async () => {
     renderComponent()
-    vi.advanceTimersByTime(1000)
+    await act(async () => { vi.advanceTimersByTime(1000) })
     expect(ProgressStore.get).not.toHaveBeenCalled()
   })
 
   describe('progress states', () => {
-    it('shows progress bar in queued state', () => {
+    it('shows progress bar in queued state', async () => {
       const {getByTestId} = renderComponent({progress_id: defaultProgress.id})
-      vi.advanceTimersByTime(1000)
+      await act(async () => { vi.advanceTimersByTime(1000) })
       const progressBar = getByTestId('api-progress-bar')
       expect(progressBar).toBeInTheDocument()
       expect(progressBar.querySelector('[role="progressbar"]')).toHaveAttribute(
@@ -121,12 +121,12 @@ describe('ApiProgressBar', () => {
       )
     })
 
-    it('shows progress bar in running state', () => {
+    it('shows progress bar in running state', async () => {
       const {getByTestId} = renderComponent({progress_id: defaultProgress.id})
-      vi.advanceTimersByTime(1000)
+      await act(async () => { vi.advanceTimersByTime(1000) })
 
       const runningProgress = {...defaultProgress, workflow_state: 'running', completion: 75}
-      ProgressStore.setState({[defaultProgress.id]: runningProgress})
+      await act(async () => { ProgressStore.setState({[defaultProgress.id]: runningProgress}) })
 
       const progressBar = getByTestId('api-progress-bar')
       expect(progressBar).toBeInTheDocument()
@@ -136,12 +136,12 @@ describe('ApiProgressBar', () => {
       )
     })
 
-    it('removes progress bar in completed state', () => {
+    it('removes progress bar in completed state', async () => {
       const {queryByTestId} = renderComponent({progress_id: defaultProgress.id})
-      vi.advanceTimersByTime(1000)
+      await act(async () => { vi.advanceTimersByTime(1000) })
 
       const completedProgress = {...defaultProgress, workflow_state: 'completed', completion: 100}
-      ProgressStore.setState({[defaultProgress.id]: completedProgress})
+      await act(async () => { ProgressStore.setState({[defaultProgress.id]: completedProgress}) })
 
       expect(queryByTestId('api-progress-bar')).not.toBeInTheDocument()
     })

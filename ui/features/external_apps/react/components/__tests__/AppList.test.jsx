@@ -138,9 +138,8 @@ describe('AppList', () => {
 
   async function renderAppList() {
     const result = render(<AppList baseUrl="/the/base/url" />)
-    // Wait for initial fetch to complete
     await waitFor(() => {
-      expect(store.getState().isLoaded || store.getState().isLoading).toBe(true)
+      expect(store.getState().isLoaded).toBe(true)
     })
     return result
   }

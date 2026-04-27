@@ -71,7 +71,6 @@ describe('AIExperienceShow', () => {
 
   afterEach(() => {
     fakeENV.teardown()
-    cleanup()
     vi.clearAllMocks()
   })
 
@@ -208,12 +207,9 @@ describe('AIExperienceShow', () => {
 
     fireEvent.click(cancelButton)
 
-    await waitFor(
-      () => {
-        expect(screen.queryByText('Delete Knowledge Chat')).not.toBeInTheDocument()
-      },
-      {timeout: 5000},
-    )
+    await waitFor(() => {
+      expect(screen.queryByText('Delete Knowledge Chat')).not.toBeInTheDocument()
+    })
   })
 
   it('calls delete API when confirmed', async () => {
@@ -246,12 +242,9 @@ describe('AIExperienceShow', () => {
     fireEvent.click(screen.getByTestId('ai-experience-show-delete-confirm-button'))
 
     // Wait for delete API to be called
-    await waitFor(
-      () => {
-        expect(deleteCalled).toBe(true)
-      },
-      {timeout: 5000},
-    )
+    await waitFor(() => {
+      expect(deleteCalled).toBe(true)
+    })
   })
 
   it('passes returnFocusRef to LLMConversationView', () => {

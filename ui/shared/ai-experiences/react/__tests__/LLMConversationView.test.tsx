@@ -18,7 +18,7 @@
 
 import '@instructure/canvas-theme'
 import React from 'react'
-import {render, screen, fireEvent, waitFor} from '@testing-library/react'
+import {act, render, screen, fireEvent, waitFor} from '@testing-library/react'
 import {http, HttpResponse, delay} from 'msw'
 import {setupServer} from 'msw/node'
 import LLMConversationView from '../components/LLMConversationView'
@@ -66,8 +66,9 @@ describe('LLMConversationView', () => {
     )
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.clearAllMocks()
+    await act(async () => {})
     server.resetHandlers()
   })
 

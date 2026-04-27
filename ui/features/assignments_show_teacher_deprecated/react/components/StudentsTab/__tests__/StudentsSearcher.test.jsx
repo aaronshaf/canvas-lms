@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, fireEvent, waitFor} from '@testing-library/react'
+import {render, fireEvent, waitFor, act} from '@testing-library/react'
 import {MockedProvider} from '@apollo/client/testing'
 import {STUDENT_SEARCH_QUERY} from '../../../assignmentData'
 import {mockAssignment, mockSubmission, mockUser, closest} from '../../../test-utils'
@@ -195,21 +195,27 @@ describe('StudentsSearcher', () => {
     fireEvent.change(searchInput, {target: {value: 'search'}})
 
     // initially hasn't searched yet
-    vi.advanceTimersByTime(500)
+    await act(async () => {
+      vi.advanceTimersByTime(500)
+    })
     expect(getByText(mockUser().shortName)).toBeInTheDocument()
     expect(queryByText('searched user')).toBeNull()
 
     // then does the search after the delay
-    vi.advanceTimersByTime(500)
+    await act(async () => {
+      vi.advanceTimersByTime(500)
+    })
     await waitFor(() => expect(getByText('searched user')).toBeInTheDocument())
   })
 
-  it('displays a message and does not load when 0 < search characters < 3', () => {
-    const {getByText, getByLabelText} = renderStudentsSearcher()
+  it('displays a message and does not load when 0 < search characters < 3', async () => {
+    const {findByText, getByLabelText} = renderStudentsSearcher()
     vi.runOnlyPendingTimers()
     const searchInput = getByLabelText('Search by student name')
     fireEvent.change(searchInput, {target: {value: '12'}})
-    vi.advanceTimersByTime(1000)
-    expect(getByText(/at least 3 characters/)).toBeInTheDocument()
+    await act(async () => {
+      vi.advanceTimersByTime(1000)
+    })
+    expect(await findByText(/at least 3 characters/)).toBeInTheDocument()
   })
 })

@@ -29,8 +29,6 @@ import {useAllPages} from '@instructure/platform-query'
 
 vi.mock('@instructure/platform-query')
 
-vi.useFakeTimers()
-
 describe('MasteryScale', () => {
   beforeEach(() => {
     window.ENV = {

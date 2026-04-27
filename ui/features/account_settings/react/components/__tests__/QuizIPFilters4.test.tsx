@@ -67,6 +67,6 @@ describe('QuizIPFilters', () => {
     // @ts-expect-error
     expect(parentDiv.__performValidation()).toBe(false)
     expect(filterField).toHaveFocus()
-    expect(screen.getByText('This field is required')).toBeInTheDocument()
+    expect(await screen.findByText('This field is required')).toBeInTheDocument()
   })
 })

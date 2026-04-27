@@ -92,7 +92,6 @@ describe('RubricAssignmentContainer Tests', () => {
   })
 
   afterEach(() => {
-    cleanup()
     destroyFlashAlertContainer()
     fakeENV.teardown()
     vi.clearAllMocks()
@@ -153,43 +152,45 @@ describe('RubricAssignmentContainer Tests', () => {
       expect(getByTestId('preview-assignment-rubric-button')).toBeInTheDocument()
     })
 
-    it('should render the create modal when the create button is clicked', () => {
-      const {getByTestId} = renderComponent()
+    it('should render the create modal when the create button is clicked', async () => {
+      const {getByTestId, findByTestId} = renderComponent()
       getByTestId('create-assignment-rubric-button').click()
-      expect(getByTestId('rubric-assignment-create-modal')).toHaveTextContent('Create Rubric')
+      expect(await findByTestId('rubric-assignment-create-modal')).toHaveTextContent(
+        'Create Rubric',
+      )
       expect(getByTestId('rubric-criteria-builder-header')).toHaveTextContent('Criteria Builder')
       expect(getByTestId('save-rubric-button')).toBeDisabled()
     })
 
     it('should save a new rubric and display the Rubric title, edit, preview, and remove buttons', async () => {
-      const {getByTestId} = renderComponent()
-      getByTestId('create-assignment-rubric-button').click()
-      const titleInput = getByTestId('rubric-form-title')
+      const {getByTestId, findByTestId} = renderComponent()
+      fireEvent.click(getByTestId('create-assignment-rubric-button'))
+      const titleInput = await findByTestId('rubric-form-title')
       fireEvent.change(titleInput, {target: {value: 'Rubric 1'}})
       fireEvent.click(getByTestId('add-criterion-button'))
 
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(getByTestId('rubric-criterion-modal')).toBeInTheDocument()
+      await waitFor(() => expect(getByTestId('rubric-criterion-modal')).toBeInTheDocument())
       fireEvent.change(getByTestId('rubric-criterion-name-input'), {
         target: {value: 'New Criterion Test'},
       })
       fireEvent.click(getByTestId('rubric-criterion-save'))
       fireEvent.click(getByTestId('save-rubric-button'))
 
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(document.querySelector('#flash_screenreader_holder')?.textContent?.trim()).toContain(
-        'Rubric saved successfully',
-      )
-      expect(getByTestId('preview-assignment-rubric-button')).toBeInTheDocument()
-      expect(getByTestId('edit-assignment-rubric-button')).toBeInTheDocument()
-      expect(getByTestId('remove-assignment-rubric-button')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(document.querySelector('#flash_screenreader_holder')?.textContent?.trim()).toContain(
+          'Rubric saved successfully',
+        )
+        expect(getByTestId('preview-assignment-rubric-button')).toBeInTheDocument()
+        expect(getByTestId('edit-assignment-rubric-button')).toBeInTheDocument()
+        expect(getByTestId('remove-assignment-rubric-button')).toBeInTheDocument()
+      })
     }, 30000)
 
     it('should call onRubricChange callback when a new rubric is saved', async () => {
       const onRubricChange = vi.fn()
-      const {getByTestId} = renderComponent({onRubricChange})
-      getByTestId('create-assignment-rubric-button').click()
-      const titleInput = getByTestId('rubric-form-title')
+      const {getByTestId, findByTestId} = renderComponent({onRubricChange})
+      fireEvent.click(getByTestId('create-assignment-rubric-button'))
+      const titleInput = await findByTestId('rubric-form-title')
       fireEvent.change(titleInput, {target: {value: 'Rubric 1'}})
       await waitFor(() => expect(getByTestId('add-criterion-button')).toBeInTheDocument())
       fireEvent.click(getByTestId('add-criterion-button'))
@@ -213,13 +214,15 @@ describe('RubricAssignmentContainer Tests', () => {
       })
     }
 
-    it('should render the edit modal with Rubric Generator title when AI Rubrics is enabled', () => {
-      const {getByTestId} = renderComponent({
+    it('should render the edit modal with Rubric Generator title when AI Rubrics is enabled', async () => {
+      const {getByTestId, findByTestId} = renderComponent({
         assignmentRubricAssociation: RUBRIC_ASSOCIATION,
         aiRubricsEnabled: true,
       })
       fireEvent.click(getByTestId('create-assignment-rubric-button'))
-      expect(getByTestId('rubric-assignment-create-modal')).toHaveTextContent('Create Rubric')
+      expect(await findByTestId('rubric-assignment-create-modal')).toHaveTextContent(
+        'Create Rubric',
+      )
       expect(getByTestId('rubric-criteria-builder-header')).toHaveTextContent('Rubric Generator')
     })
 
@@ -267,13 +270,13 @@ describe('RubricAssignmentContainer Tests', () => {
       expect(queryByTestId('find-assignment-rubric-icon-button')).toBeNull()
     })
 
-    it('should render the edit modal when the edit button is clicked', () => {
-      const {getByTestId} = renderComponent({
+    it('should render the edit modal when the edit button is clicked', async () => {
+      const {getByTestId, findByTestId} = renderComponent({
         assignmentRubric: RUBRIC,
         assignmentRubricAssociation: RUBRIC_ASSOCIATION,
       })
       fireEvent.click(getByTestId('edit-assignment-rubric-button'))
-      expect(getByTestId('rubric-assignment-create-modal')).toHaveTextContent('Edit Rubric')
+      expect(await findByTestId('rubric-assignment-create-modal')).toHaveTextContent('Edit Rubric')
       expect(getByTestId('rubric-criteria-builder-header')).toHaveTextContent('Criteria Builder')
       expect(getByTestId('rubric-form-title')).toHaveValue('Rubric 1')
     })

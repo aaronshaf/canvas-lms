@@ -59,10 +59,6 @@ const mountComponent = (props = {}) =>
   render(<SearchFormComponent {...defaultProps()} {...props} />)
 
 describe('SearchForm', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   test('has a form field group', function () {
     mountComponent()
     expect(screen.getByText('Search Form')).toBeInTheDocument()

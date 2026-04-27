@@ -98,8 +98,10 @@ describe('feature_flags::FeatureFlagButton', () => {
     await userEvent.click(getByText('Enabled'))
     await waitFor(() => expect(apiCalled).toHaveBeenCalledTimes(1))
 
-    expect(onStateChange).toHaveBeenCalledWith('on')
-    expect(container.querySelector('svg[name="IconPublish"]')).toBeInTheDocument()
+    await waitFor(() => expect(onStateChange).toHaveBeenCalledWith('on'))
+    await waitFor(() =>
+      expect(container.querySelector('svg[name="IconPublish"]')).toBeInTheDocument(),
+    )
   })
 
   it('Calls the delete api when appropriate and uses the returned flag', async () => {

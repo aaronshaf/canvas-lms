@@ -16,13 +16,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook, act} from '@testing-library/react-hooks'
+import {renderHook, act} from '@testing-library/react'
 import {waitFor} from '@testing-library/react'
 import {useLazyQuery} from '@apollo/client'
 import {useFetchAllPages} from '../useFetchAllPages'
 
 // Mock Apollo Client
-vi.mock('@apollo/client', async (importOriginal) => {
+vi.mock('@apollo/client', async importOriginal => {
   const actual = await importOriginal<typeof import('@apollo/client')>()
   return {
     ...actual,

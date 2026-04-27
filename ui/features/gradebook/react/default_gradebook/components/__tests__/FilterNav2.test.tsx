@@ -306,7 +306,6 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  cleanup()
   window.ENV.FEATURES = oldEnv
 })
 

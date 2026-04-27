@@ -74,10 +74,10 @@ describe('DifferentiatedModulesTray', () => {
     expect(getByText('Edit Module Settings')).toBeInTheDocument()
   })
 
-  it('renders tabs when moduleId is set', () => {
-    const {getByTestId} = renderComponent({moduleId: '1'})
-    expect(getByTestId('assign-to-panel')).toBeInTheDocument()
-    expect(getByTestId('settings-panel')).toBeInTheDocument()
+  it('renders tabs when moduleId is set', async () => {
+    const {findByTestId} = renderComponent({moduleId: '1'})
+    expect(await findByTestId('assign-to-panel')).toBeInTheDocument()
+    expect(await findByTestId('settings-panel')).toBeInTheDocument()
   })
 
   it('does not render tabs when moduleId is not set"', () => {

@@ -73,7 +73,6 @@ describe('ItemAssignToTray - Add Card', () => {
   afterEach(() => {
     fakeENV.teardown()
     server.resetHandlers()
-    cleanup()
   })
 
   it('adds a card when add button is clicked', async () => {

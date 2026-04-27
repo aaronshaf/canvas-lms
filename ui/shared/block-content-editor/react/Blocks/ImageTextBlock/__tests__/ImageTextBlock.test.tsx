@@ -20,9 +20,14 @@ import {renderBlock} from '../../__tests__/render-helper'
 import {ImageTextBlock} from '../ImageTextBlock'
 import {ImageTextBlockProps} from '../types'
 
+// CanvasRce initializes TinyMCE which hangs in jsdom — stub it out entirely
+vi.mock('@canvas/rce/react/CanvasRce', () => ({
+  default: () => null,
+}))
+
 vi.mock('../../../store', async () => ({
   __esModule: true,
-  ...await vi.importActual('../../../store'),
+  ...(await vi.importActual('../../../store')),
   useAppSetStore: vi.fn().mockReturnValue(vi.fn()),
 }))
 

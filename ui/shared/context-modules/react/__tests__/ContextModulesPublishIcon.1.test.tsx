@@ -61,6 +61,9 @@ beforeEach(() => {
     http.put(PUBLISH_URL, () => {
       return HttpResponse.json({published: true})
     }),
+    http.get('/api/v1/courses/1/modules/1/items', () => {
+      return HttpResponse.json([])
+    }),
   )
   mockShowFlashAlert.mockReset()
   initBody()

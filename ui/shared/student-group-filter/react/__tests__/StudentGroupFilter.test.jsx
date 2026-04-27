@@ -50,10 +50,6 @@ describe('StudentGroupFilter', () => {
     }
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   test('renders a select', () => {
     renderComponent()
     expect(getSelect()).toBeInTheDocument()

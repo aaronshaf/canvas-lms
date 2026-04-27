@@ -93,7 +93,6 @@ describe('OutcomesImporter', () => {
   beforeAll(() => server.listen())
   afterEach(() => {
     server.resetHandlers()
-    cleanup()
     vi.clearAllMocks()
     vi.clearAllTimers()
   })

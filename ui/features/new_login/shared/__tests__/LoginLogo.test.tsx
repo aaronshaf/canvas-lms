@@ -59,10 +59,6 @@ vi.mock('@instructure/ui-text', () => ({
 }))
 
 describe('MessageAlert', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
   })

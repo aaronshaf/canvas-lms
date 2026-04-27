@@ -634,28 +634,19 @@ describe('fetchModuleItems utility', () => {
           await moduleItemsLazyLoader.fetchModuleItemsHtml(badModule.moduleId, 1)
 
           // Wait for the error state to be set and the React component to render
-          await waitFor(
-            () => {
-              const module = moduleFromId(badModule.moduleId)
-              expect(module?.dataset.loadstate).toBe('error')
-            },
-            {timeout: 5000},
-          )
+          await waitFor(() => {
+            const module = moduleFromId(badModule.moduleId)
+            expect(module?.dataset.loadstate).toBe('error')
+          })
 
           // Give React an additional tick to render the error component
-          await waitFor(
-            () => {
-              expect(screen.getByTestId('items-failed-to-load')).toBeInTheDocument()
-            },
-            {timeout: 5000},
-          )
+          await waitFor(() => {
+            expect(screen.getByTestId('items-failed-to-load')).toBeInTheDocument()
+          })
 
-          await waitFor(
-            () => {
-              expect(screen.getByTestId('retry-items-failed-to-load')).toBeInTheDocument()
-            },
-            {timeout: 1000},
-          )
+          await waitFor(() => {
+            expect(screen.getByTestId('retry-items-failed-to-load')).toBeInTheDocument()
+          })
 
           const retryButton = screen.getByTestId('retry-items-failed-to-load').closest('button')
           expect(retryButton).toBeInTheDocument()

@@ -45,10 +45,6 @@ describe('InstructureLogo', () => {
       </NewLoginProvider>,
     )
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseNewLogin.mockReturnValue({isUiActionPending: false})

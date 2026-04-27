@@ -19,7 +19,7 @@
 import {useGradingSchemeSummaries} from '../useGradingSchemeSummaries'
 import {ApiCallStatus} from '../ApiCallStatus'
 
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 
@@ -34,13 +34,11 @@ describe('useGradingSchemeSummariesHook', () => {
   afterAll(() => server.close())
 
   it('renders for course context without error', () => {
-    const {result} = renderHook(() => useGradingSchemeSummaries())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useGradingSchemeSummaries())
   })
 
   it('renders for account context without error', () => {
-    const {result} = renderHook(() => useGradingSchemeSummaries())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useGradingSchemeSummaries())
   })
 
   it('makes a GET request for course context to load grading scheme summaries', async () => {
@@ -57,7 +55,10 @@ describe('useGradingSchemeSummariesHook', () => {
     )
 
     const {result} = renderHook(() => useGradingSchemeSummaries())
-    const loadedGradingSchemes = await result.current.loadGradingSchemeSummaries('Course', courseId)
+    let loadedGradingSchemes: any
+    await act(async () => {
+      loadedGradingSchemes = await result.current.loadGradingSchemeSummaries('Course', courseId)
+    })
 
     expect(capturedPath).toBe(`/courses/${courseId}/grading_scheme_summaries`)
     expect(loadedGradingSchemes).toEqual([
@@ -81,10 +82,10 @@ describe('useGradingSchemeSummariesHook', () => {
     )
 
     const {result} = renderHook(() => useGradingSchemeSummaries())
-    const loadedGradingSchemes = await result.current.loadGradingSchemeSummaries(
-      'Account',
-      accountId,
-    )
+    let loadedGradingSchemes: any
+    await act(async () => {
+      loadedGradingSchemes = await result.current.loadGradingSchemeSummaries('Account', accountId)
+    })
 
     expect(capturedPath).toBe(`/accounts/${accountId}/grading_scheme_summaries`)
     expect(loadedGradingSchemes).toEqual([

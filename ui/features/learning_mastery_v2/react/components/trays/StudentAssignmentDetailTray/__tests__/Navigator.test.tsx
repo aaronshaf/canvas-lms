@@ -22,10 +22,6 @@ import userEvent from '@testing-library/user-event'
 import {Navigator, NavigatorComponentProps} from '../Navigator'
 
 describe('Navigator', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const defaultProps: NavigatorComponentProps = {
     hasPrevious: true,
     hasNext: true,

@@ -135,10 +135,8 @@ describe('student view integration tests', () => {
         </MockedQueryProvider>,
       )
 
-      await act(async () => {
-        const element = await findByTestId('assignments-2-student-view')
-        expect(element).toBeInTheDocument()
-      })
+      const element = await findByTestId('assignments-2-student-view')
+      expect(element).toBeInTheDocument()
     })
 
     it('renders error state correctly', async () => {
@@ -152,10 +150,8 @@ describe('student view integration tests', () => {
         </MockedQueryProvider>,
       )
 
-      await act(async () => {
-        const errorElement = await findByText('Sorry, Something Broke')
-        expect(errorElement).toBeInTheDocument()
-      })
+      const errorElement = await findByText('Sorry, Something Broke')
+      expect(errorElement).toBeInTheDocument()
     })
 
     // TODO: Fix - file input element not rendering due to GraphQL mock data not including required submission types
@@ -187,12 +183,9 @@ describe('student view integration tests', () => {
       await user.upload(fileInput, mockFile)
 
       // Wait for the file to appear in the list
-      await waitFor(
-        () => {
-          expect(screen.getByText('test.jpg')).toBeInTheDocument()
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(screen.getByText('test.jpg')).toBeInTheDocument()
+      })
     })
 
     // This cannot be tested at the <AttemptTab> because the new file being

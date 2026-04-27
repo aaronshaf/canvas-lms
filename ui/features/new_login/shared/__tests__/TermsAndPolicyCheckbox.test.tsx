@@ -20,10 +20,6 @@ import {cleanup, render, screen} from '@testing-library/react'
 import React from 'react'
 import TermsAndPolicyCheckbox from '../TermsAndPolicyCheckbox'
 
-afterEach(() => {
-  cleanup()
-})
-
 describe('TermsAndPolicyCheckbox', () => {
   const termsOfUseUrl = '/acceptable_use_policy'
   const privacyPolicyUrl = 'http://www.canvaslms.com/policies/privacy-policy'

@@ -26,12 +26,12 @@ import {NewLoginDataProvider, NewLoginProvider, useNewLogin, useNewLoginData} fr
 import {performSignIn} from '../../services'
 import SignIn from '../SignIn'
 
-vi.mock('react-router-dom', async (importOriginal) => ({
+vi.mock('react-router-dom', async importOriginal => ({
   ...(await importOriginal<typeof import('react-router-dom')>()),
   useNavigate: vi.fn(),
 }))
 
-vi.mock('../../context', async (importOriginal) => {
+vi.mock('../../context', async importOriginal => {
   const actualContext = await importOriginal<typeof import('../../context')>()
   return {
     ...actualContext,
@@ -59,7 +59,7 @@ vi.mock('../../services/auth', () => ({
   initiateOtpRequest: vi.fn(),
 }))
 
-vi.mock('@canvas/util/globalUtils', async (importOriginal) => ({
+vi.mock('@canvas/util/globalUtils', async importOriginal => ({
   ...(await importOriginal<typeof import('@canvas/util/globalUtils')>()),
   assignLocation: vi.fn(),
   windowPathname: vi.fn(),
@@ -104,10 +104,6 @@ describe('SignIn', () => {
       otpCommunicationChannelId: null,
       setOtpCommunicationChannelId: vi.fn(),
     })
-  })
-
-  afterEach(() => {
-    cleanup()
   })
 
   describe('error handling', () => {

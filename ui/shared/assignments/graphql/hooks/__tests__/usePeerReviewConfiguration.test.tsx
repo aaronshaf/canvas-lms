@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook, waitFor} from '@testing-library/react'
 import {QueryClient} from '@tanstack/react-query'
 import React from 'react'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
@@ -86,12 +86,9 @@ describe('usePeerReviewConfiguration', () => {
     it('initializes with loading set to true and returns configuration successfully', async () => {
       mockExecuteQuery.mockResolvedValueOnce(mockPeerReviewConfig)
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => usePeerReviewConfiguration('assignment-123'),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => usePeerReviewConfiguration('assignment-123'), {
+        wrapper: createWrapper(),
+      })
 
       expect(result.current.loading).toBe(true)
       expect(result.current.peerReviews).toBe(null)
@@ -99,7 +96,7 @@ describe('usePeerReviewConfiguration', () => {
       expect(result.current.hasGroupCategory).toBe(false)
       expect(result.current.error).toBe(null)
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.peerReviews).toEqual(mockPeerReviewConfig.assignment.peerReviews)
@@ -113,14 +110,11 @@ describe('usePeerReviewConfiguration', () => {
     it('returns configuration for group assignment', async () => {
       mockExecuteQuery.mockResolvedValueOnce(mockGroupAssignmentConfig)
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => usePeerReviewConfiguration('assignment-456'),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => usePeerReviewConfiguration('assignment-456'), {
+        wrapper: createWrapper(),
+      })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.peerReviews).toEqual(mockGroupAssignmentConfig.assignment.peerReviews)
@@ -134,14 +128,11 @@ describe('usePeerReviewConfiguration', () => {
     it('handles query error', async () => {
       mockExecuteQuery.mockRejectedValueOnce(new Error('Failed to fetch configuration'))
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => usePeerReviewConfiguration('assignment-error'),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => usePeerReviewConfiguration('assignment-error'), {
+        wrapper: createWrapper(),
+      })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.peerReviews).toBe(null)
@@ -160,14 +151,11 @@ describe('usePeerReviewConfiguration', () => {
         },
       })
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => usePeerReviewConfiguration('assignment-789'),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => usePeerReviewConfiguration('assignment-789'), {
+        wrapper: createWrapper(),
+      })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.peerReviews).toBe(null)
@@ -185,14 +173,11 @@ describe('usePeerReviewConfiguration', () => {
         },
       })
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => usePeerReviewConfiguration('assignment-no-points'),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => usePeerReviewConfiguration('assignment-no-points'), {
+        wrapper: createWrapper(),
+      })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.peerReviews).toEqual(mockPeerReviewConfig.assignment.peerReviews)
@@ -203,14 +188,11 @@ describe('usePeerReviewConfiguration', () => {
     it('calls executeQuery with correct parameters', async () => {
       mockExecuteQuery.mockResolvedValueOnce(mockPeerReviewConfig)
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => usePeerReviewConfiguration('assignment-123'),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => usePeerReviewConfiguration('assignment-123'), {
+        wrapper: createWrapper(),
+      })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(mockExecuteQuery).toHaveBeenCalledWith(PEER_REVIEW_CONFIGURATION_QUERY, {
         assignmentId: 'assignment-123',

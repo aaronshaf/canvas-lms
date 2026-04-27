@@ -18,7 +18,7 @@
 
 import {useGradingSchemeCreate} from '../useGradingSchemeCreate'
 
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import type {GradingSchemeTemplate} from '../../../gradingSchemeApiModel'
 import {ApiCallStatus} from '../ApiCallStatus'
 import {setupServer} from 'msw/node'
@@ -35,13 +35,11 @@ describe('useGradingSchemeCreateHook', () => {
   afterAll(() => server.close())
 
   it('renders for course context without error', () => {
-    const {result} = renderHook(() => useGradingSchemeCreate())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useGradingSchemeCreate())
   })
 
   it('renders for account context without error', () => {
-    const {result} = renderHook(() => useGradingSchemeCreate())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useGradingSchemeCreate())
   })
 
   it('makes a POST request for course context to create a grading scheme', async () => {
@@ -65,11 +63,14 @@ describe('useGradingSchemeCreateHook', () => {
     )
 
     const {result} = renderHook(() => useGradingSchemeCreate())
-    const createdGradingScheme = await result.current.createGradingScheme(
-      'Course',
-      courseId,
-      gradingSchemeTemplate,
-    )
+    let createdGradingScheme: any
+    await act(async () => {
+      createdGradingScheme = await result.current.createGradingScheme(
+        'Course',
+        courseId,
+        gradingSchemeTemplate,
+      )
+    })
 
     expect(capturedPath).toBe(`/courses/${courseId}/grading_schemes`)
     expect(createdGradingScheme).toEqual({
@@ -102,11 +103,14 @@ describe('useGradingSchemeCreateHook', () => {
     )
 
     const {result} = renderHook(() => useGradingSchemeCreate())
-    const createdGradingScheme = await result.current.createGradingScheme(
-      'Account',
-      accountId,
-      gradingSchemeTemplate,
-    )
+    let createdGradingScheme: any
+    await act(async () => {
+      createdGradingScheme = await result.current.createGradingScheme(
+        'Account',
+        accountId,
+        gradingSchemeTemplate,
+      )
+    })
 
     expect(capturedPath).toBe(`/accounts/${accountId}/grading_schemes`)
     expect(createdGradingScheme).toEqual({

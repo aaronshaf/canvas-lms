@@ -137,7 +137,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
         media_object_id: 'm_somevideo',
         updateMediaObject,
       })
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000}) // the tray is closed after a transition
+      await waitFor(() => expect(getTray()).toBeNull()) // the tray is closed after a transition
       const videoIframe = trayController.$videoContainer
       const videoContainer = videoIframe.parentElement
       expect(videoContainer.getAttribute('data-mce-p-title')).toBe('new title')
@@ -235,7 +235,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
         media_object_id: undefined,
         updateMediaObject,
       })
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000}) // the tray is closed after a transition
+      await waitFor(() => expect(getTray()).toBeNull()) // the tray is closed after a transition
       const videoIframe = trayController.$videoContainer
       const videoContainer = videoIframe.parentElement
       expect(videoContainer.getAttribute('data-mce-p-title')).toBe('new title')
@@ -307,7 +307,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
         media_object_id: 'm_somevideo',
         updateMediaObject,
       })
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000}) // the tray is closed after a transition
+      await waitFor(() => expect(getTray()).toBeNull()) // the tray is closed after a transition
       const videoContainer = trayController.$videoContainer
       expect(videoContainer).toBe(null)
       const sel = ed.selection.getNode()
@@ -369,28 +369,28 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     it('calls bridge.focusActiveEditor when closing normally', async () => {
       trayController.showTrayForEditor(editors[0])
       trayController.hideTrayForEditor(editors[0])
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000})
+      await waitFor(() => expect(getTray()).toBeNull())
       expect(bridge.focusActiveEditor).toHaveBeenCalledWith(false)
     })
 
     it('does not call bridge.focusActiveEditor when skipFocusOnExit is true', async () => {
       trayController.showTrayForEditor(editors[0])
       trayController.hideTrayForEditor(editors[0], true)
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000})
+      await waitFor(() => expect(getTray()).toBeNull())
       expect(bridge.focusActiveEditor).not.toHaveBeenCalled()
     })
 
     it('resets skipFocusOnExit flag after tray closes', async () => {
       trayController.showTrayForEditor(editors[0])
       trayController.hideTrayForEditor(editors[0], true)
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000})
+      await waitFor(() => expect(getTray()).toBeNull())
       expect(bridge.focusActiveEditor).not.toHaveBeenCalled()
 
       bridge.focusActiveEditor.mockClear()
 
       trayController.showTrayForEditor(editors[0])
       trayController.hideTrayForEditor(editors[0])
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000})
+      await waitFor(() => expect(getTray()).toBeNull())
       expect(bridge.focusActiveEditor).toHaveBeenCalledWith(false)
     })
   })
@@ -413,7 +413,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
 
       // Close tray
       trayController.hideTrayForEditor(editors[0])
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000})
+      await waitFor(() => expect(getTray()).toBeNull())
 
       // Assert: reload should NOT be called (old behavior preserved)
       expect(reloadSpy).not.toHaveBeenCalled()
@@ -440,7 +440,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
 
       // Close tray
       trayController.hideTrayForEditor(editors[0])
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000})
+      await waitFor(() => expect(getTray()).toBeNull())
 
       // Assert: reload SHOULD be called
       expect(reloadSpy).toHaveBeenCalledTimes(1)

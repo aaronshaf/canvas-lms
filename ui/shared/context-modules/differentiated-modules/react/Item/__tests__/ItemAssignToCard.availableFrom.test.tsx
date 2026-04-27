@@ -89,15 +89,17 @@ describe('ItemAssignToCard - Available From Defaults', () => {
     server.resetHandlers()
     fakeEnv.teardown()
     vi.clearAllMocks()
-    cleanup()
   })
 
-  it('defaults to midnight for available from dates if it is null on click', () => {
+  it('defaults to midnight for available from dates if it is null on click', async () => {
     const {getByLabelText, getByRole, getAllByLabelText} = renderComponent()
     const dateInput = getByLabelText('Available from')
     fireEvent.change(dateInput, {target: {value: 'Nov 9, 2020'}})
     getByRole('option', {name: /10 november 2020/i}).click()
-    expect(getAllByLabelText('Time')[1]).toHaveValue('12:00 AM')
+    await waitFor(() => {
+      const timeInputs = getAllByLabelText('Time')
+      expect(timeInputs[1]).toHaveValue('12:00 AM')
+    })
   })
 
   it('defaults to midnight for available from dates if it is null on blur', async () => {
@@ -127,11 +129,14 @@ describe('ItemAssignToCard - Available From Defaults', () => {
     expect(timeInputs[1]).toHaveValue('12:00 AM')
   })
 
-  it('defaults to midnight for available from dates if it is undefined', () => {
+  it('defaults to midnight for available from dates if it is undefined', async () => {
     const {getByLabelText, getByRole, getAllByLabelText} = renderComponent({unlock_at: undefined})
     const dateInput = getByLabelText('Available from')
     fireEvent.change(dateInput, {target: {value: 'Nov 9, 2020'}})
     getByRole('option', {name: /10 november 2020/i}).click()
-    expect(getAllByLabelText('Time')[1]).toHaveValue('12:00 AM')
+    await waitFor(() => {
+      const timeInputs = getAllByLabelText('Time')
+      expect(timeInputs[1]).toHaveValue('12:00 AM')
+    })
   })
 })

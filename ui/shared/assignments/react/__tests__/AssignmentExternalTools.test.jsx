@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {act, render} from '@testing-library/react'
 import AssignmentExternalTools from '../AssignmentExternalTools'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -121,7 +121,7 @@ describe('AssignmentExternalTools', () => {
     expect(ref.current.getDefinitionsUrl()).toEqual(correctUrl)
   })
 
-  test('it renders each tool', () => {
+  test('it renders each tool', async () => {
     const ref = React.createRef()
     wrapper = render(
       <AssignmentExternalTools.configTools
@@ -131,7 +131,9 @@ describe('AssignmentExternalTools', () => {
         assignmentId={1}
       />,
     )
-    ref.current.setState({tools: toolDefinitions})
+    await act(async () => {
+      ref.current.setState({tools: toolDefinitions})
+    })
     expect(wrapper.container.querySelectorAll('.tool_launch')).toHaveLength(toolDefinitions.length)
   })
 
@@ -155,7 +157,7 @@ describe('AssignmentExternalTools', () => {
     expect(computedUrl).toEqual(correctUrl)
   })
 
-  test('it renders multiple iframes', () => {
+  test('it renders multiple iframes', async () => {
     const ref = React.createRef()
     wrapper = render(
       <AssignmentExternalTools.configTools
@@ -165,7 +167,9 @@ describe('AssignmentExternalTools', () => {
         assignmentId={1}
       />,
     )
-    ref.current.setState({tools: toolDefinitions})
+    await act(async () => {
+      ref.current.setState({tools: toolDefinitions})
+    })
     expect(wrapper.container.querySelectorAll('.tool_launch')).toHaveLength(2)
   })
 
@@ -189,7 +193,7 @@ describe('AssignmentExternalTools', () => {
     expect(computedUrl).toEqual(correctUrl)
   })
 
-  test('it sets the "data-lti-launch" attribute on each iframe', () => {
+  test('it sets the "data-lti-launch" attribute on each iframe', async () => {
     const ref = React.createRef()
     wrapper = render(
       <AssignmentExternalTools.configTools
@@ -199,13 +203,15 @@ describe('AssignmentExternalTools', () => {
         assignmentId={1}
       />,
     )
-    ref.current.setState({tools: toolDefinitions})
+    await act(async () => {
+      ref.current.setState({tools: toolDefinitions})
+    })
     wrapper.container.querySelectorAll('.tool_launch').forEach(iframe => {
       expect(iframe.getAttribute('data-lti-launch')).toEqual('true')
     })
   })
 
-  test('it sets iframe allow attribute at render time for microphone and camera permissions', () => {
+  test('it sets iframe allow attribute at render time for microphone and camera permissions', async () => {
     const ref = React.createRef()
     wrapper = render(
       <AssignmentExternalTools.configTools
@@ -215,7 +221,9 @@ describe('AssignmentExternalTools', () => {
         assignmentId={1}
       />,
     )
-    ref.current.setState({tools: toolDefinitions})
+    await act(async () => {
+      ref.current.setState({tools: toolDefinitions})
+    })
     wrapper.container.querySelectorAll('.tool_launch').forEach(iframe => {
       expect(iframe.getAttribute('allow')).toEqual(ENV.LTI_LAUNCH_FRAME_ALLOWANCES.join('; '))
     })

@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {act, renderHook} from '@testing-library/react-hooks/dom'
+import {act, renderHook} from '@testing-library/react'
 import useDataUrl from '../useDataUrl'
 import fetchMock from 'fetch-mock'
 
@@ -57,17 +57,18 @@ describe('useDataUrl()', () => {
   })
 
   describe('after fetching a resource', () => {
-    let current, allResults
+    let current
 
     beforeEach(async () => {
       const {result} = subject()
       const {setUrl} = result.current
 
-      act(() => setUrl('/foo/bar.png'))
-      await flushPromises()
+      await act(async () => {
+        setUrl('/foo/bar.png')
+        await flushPromises()
+      })
 
       current = result.current
-      allResults = result
     })
 
     it('sets the data URL', () => {
@@ -75,7 +76,6 @@ describe('useDataUrl()', () => {
     })
 
     it('sets "loading" to false after loading completes', () => {
-      expect(allResults.all[2].dataLoading).toEqual(true)
       expect(current.dataLoading).toEqual(false)
     })
   })
@@ -98,8 +98,10 @@ describe('useDataUrl()', () => {
       const {result} = subject()
       const {setUrl} = result.current
 
-      act(() => setUrl('/foo/bar.png'))
-      await flushPromises()
+      await act(async () => {
+        setUrl('/foo/bar.png')
+        await flushPromises()
+      })
 
       current = result.current
     })

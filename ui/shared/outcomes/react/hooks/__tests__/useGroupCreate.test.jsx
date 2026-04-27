@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook, act} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import useGroupCreate from '../useGroupCreate'
 import {createCache} from '@canvas/apollo-v3'
 import {MockedProvider} from '@apollo/client/testing'
@@ -48,11 +48,14 @@ describe('useGroupCreate', () => {
     vi.clearAllMocks()
   })
 
-  const wrapper = ({children, mocks = createOutcomeGroupMocks()}) => (
-    <MockedProvider cache={cache} mocks={mocks}>
-      {children}
-    </MockedProvider>
-  )
+  const createWrapper =
+    (mocks = createOutcomeGroupMocks()) =>
+    ({children}) => (
+      <MockedProvider cache={cache} mocks={mocks}>
+        {children}
+      </MockedProvider>
+    )
+  const wrapper = createWrapper()
 
   it('creates custom hook with proper exports', () => {
     const {result} = renderHook(() => useGroupCreate(), {
@@ -71,7 +74,7 @@ describe('useGroupCreate', () => {
     act(() => {
       result.current.createGroup(groupName, parentGroupId)
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(result.current.createdGroups).toEqual([groupId])
   })
 
@@ -82,7 +85,7 @@ describe('useGroupCreate', () => {
     act(() => {
       result.current.createGroup(groupName, parentGroupId)
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(showFlashAlert).toHaveBeenCalledWith({
       message: '"New Group" was successfully created.',
       type: 'success',
@@ -91,15 +94,12 @@ describe('useGroupCreate', () => {
 
   it('displays flash error message with details if create group fails', async () => {
     const {result} = renderHook(() => useGroupCreate(), {
-      wrapper,
-      initialProps: {
-        mocks: createOutcomeGroupMocks({failResponse: true}),
-      },
+      wrapper: createWrapper(createOutcomeGroupMocks({failResponse: true})),
     })
     act(() => {
       result.current.createGroup(groupName, parentGroupId)
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(showFlashAlert).toHaveBeenCalledWith({
       message: 'An error occurred while creating this group. Please try again.',
       type: 'error',
@@ -108,15 +108,12 @@ describe('useGroupCreate', () => {
 
   it('displays flash error generic message if create group fails and no error details', async () => {
     const {result} = renderHook(() => useGroupCreate(), {
-      wrapper,
-      initialProps: {
-        mocks: createOutcomeGroupMocks({failMutationNoErrMsg: true}),
-      },
+      wrapper: createWrapper(createOutcomeGroupMocks({failMutationNoErrMsg: true})),
     })
     act(() => {
       result.current.createGroup(groupName, parentGroupId)
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(showFlashAlert).toHaveBeenCalledWith({
       message: 'An error occurred while creating this group. Please try again.',
       type: 'error',
@@ -130,7 +127,7 @@ describe('useGroupCreate', () => {
     act(() => {
       result.current.createGroup(groupName, parentGroupId)
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(result.current.createdGroups).toEqual([groupId])
     act(() => {
       result.current.clearCreatedGroups()

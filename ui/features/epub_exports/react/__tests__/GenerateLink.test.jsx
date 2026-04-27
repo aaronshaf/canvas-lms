@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import GenerateLink from '../GenerateLink'
 import CourseEpubExportStore from '../CourseStore'
@@ -66,7 +66,9 @@ describe('GenerateLink', () => {
     expect(getByText(I18n.t('Generating...'))).toBeInTheDocument()
 
     vi.advanceTimersByTime(1005)
-    expect(getByRole('button', {name: I18n.t('Generate ePub')})).toBeInTheDocument()
+    await waitFor(() =>
+      expect(getByRole('button', {name: I18n.t('Generate ePub')})).toBeInTheDocument(),
+    )
 
     vi.useRealTimers()
     createSpy.mockRestore()

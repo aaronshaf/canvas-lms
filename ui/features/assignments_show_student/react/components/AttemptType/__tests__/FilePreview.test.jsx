@@ -96,10 +96,9 @@ describe('FilePreview', () => {
   })
 
   afterEach(async () => {
-    // Flush all pending timers from InstUI transitions before cleanup
-    // Use runAllTimers to ensure nested timers are also flushed
+    // Flush currently-queued timers from InstUI transitions before cleanup
     await act(async () => {
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
     vi.useRealTimers()
     queryClient.clear()

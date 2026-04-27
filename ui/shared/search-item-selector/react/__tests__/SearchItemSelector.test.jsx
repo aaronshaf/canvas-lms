@@ -18,7 +18,7 @@
 
 import React from 'react'
 import SearchItemSelector from '../SearchItemSelector'
-import {render, fireEvent, act} from '@testing-library/react'
+import {render, fireEvent, act, waitFor} from '@testing-library/react'
 
 const testSearchFunction = vi.fn()
 
@@ -37,6 +37,10 @@ describe('SearchItemSelector', () => {
 
   beforeEach(() => {
     vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('initially sends no search term', () => {
@@ -67,8 +71,7 @@ describe('SearchItemSelector', () => {
     expect(getByText(/loading/i)).toBeInTheDocument()
   })
 
-  // Infinite timer loop with vi.runAllTimers()
-  it.skip('renders a loading spinner and searches with a specific search term when typed', () => {
+  it('renders a loading spinner and searches with a specific search term when typed', async () => {
     const {getAllByText, getByLabelText} = render(
       <SearchItemSelector
         itemSearchFunction={testSearchFunction}
@@ -80,10 +83,12 @@ describe('SearchItemSelector', () => {
     fireEvent.click(selectInput)
     fireEvent.change(selectInput, {target: {value: 'abc'}})
     testSearchFunction.mockImplementationOnce(({loading}) => loading(true))
-    act(() => vi.runAllTimers()) // let the debounce happen
-    const loadingTexts = getAllByText(/loading/i)
-    const loadingTextForSpinner = loadingTexts.find(loading => loading.closest('svg'))
-    expect(loadingTextForSpinner).toBeInTheDocument()
+    await act(async () => vi.advanceTimersByTimeAsync(800)) // fire the 750ms debounce
+    await waitFor(() => {
+      const loadingTexts = getAllByText(/loading/i)
+      const loadingTextForSpinner = loadingTexts.find(el => el.closest('svg'))
+      expect(loadingTextForSpinner).toBeInTheDocument()
+    })
     expect(testSearchFunction).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {term: 'abc', search_term: 'abc'},
@@ -91,11 +96,10 @@ describe('SearchItemSelector', () => {
     )
   })
 
-  // Element not rendering in dropdown
-  it.skip('updates select and invokes onItemSelected when an item is chosen', () => {
+  it('updates select and invokes onItemSelected when an item is chosen', async () => {
     testSearchFunction.mockImplementationOnce(({success}) => success([{id: 'foo', name: 'bar'}]))
     const handleCourseSelected = vi.fn()
-    const {getByText, getByLabelText} = render(
+    const {findByText, getByLabelText} = render(
       <SearchItemSelector
         itemSearchFunction={testSearchFunction}
         onItemSelected={handleCourseSelected}
@@ -104,8 +108,8 @@ describe('SearchItemSelector', () => {
     )
     const selectInput = getByLabelText(/select a course/i)
     fireEvent.click(selectInput)
-    fireEvent.click(getByText('bar'))
-    expect(selectInput.value).toBe('bar')
+    fireEvent.click(await findByText('bar'))
+    await waitFor(() => expect(selectInput.value).toBe('bar'))
     expect(handleCourseSelected).toHaveBeenCalledWith({id: 'foo', name: 'bar'})
   })
 
@@ -182,8 +186,7 @@ describe('SearchItemSelector', () => {
     expect(selectInput.value).toBe('')
   })
 
-  // Infinite timer loop with vi.runAllTimers()
-  it.skip('supports prepopulating search text (which can be changed by the user)', () => {
+  it('supports prepopulating search text (which can be changed by the user)', async () => {
     const handleCourseSelected = vi.fn()
     const {getByLabelText} = render(
       <SearchItemSelector
@@ -203,26 +206,48 @@ describe('SearchItemSelector', () => {
 
     fireEvent.click(selectInput)
     fireEvent.change(selectInput, {target: {value: 'baz'}})
-    act(() => vi.runAllTimers())
-    expect(testSearchFunction).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        params: {term: 'baz', search_term: 'baz'},
-      }),
+    await act(async () => vi.advanceTimersByTimeAsync(800))
+    await waitFor(() =>
+      expect(testSearchFunction).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          params: {term: 'baz', search_term: 'baz'},
+        }),
+      ),
     )
   })
 
-  // not sure how to suppress the error output this creates. oh well.
-  it('throws errors for handling by an ErrorBoundary', () => {
+  it('throws errors for handling by an ErrorBoundary', async () => {
+    class TestErrorBoundary extends React.Component {
+      constructor(props) {
+        super(props)
+        this.state = {hasError: false}
+      }
+
+      static getDerivedStateFromError() {
+        return {hasError: true}
+      }
+
+      render() {
+        if (this.state.hasError) return <div>Error caught</div>
+        return this.props.children
+      }
+    }
+
     const testError = new Error('test error')
-    testSearchFunction.mockImplementationOnce(({error}) => error(testError))
-    expect(() =>
-      render(
+    // Use mockImplementation (not Once) so React 18 StrictMode retry also throws
+    testSearchFunction.mockImplementation(({error: errorCb}) => errorCb(testError))
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const {findByText} = render(
+      <TestErrorBoundary>
         <SearchItemSelector
           itemSearchFunction={testSearchFunction}
           onItemSelected={() => {}}
           renderLabel="Select a course"
-        />,
-      ),
-    ).toThrow(testError)
+        />
+      </TestErrorBoundary>,
+    )
+    expect(await findByText('Error caught')).toBeInTheDocument()
+    consoleErrorSpy.mockRestore()
+    testSearchFunction.mockReset()
   })
 })

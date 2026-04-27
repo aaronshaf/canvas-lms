@@ -48,10 +48,6 @@ const mockUseNewLogin = vi.mocked(useNewLogin)
 const mockUseNewLoginData = vi.mocked(useNewLoginData)
 
 describe('Landing', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
   })

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook} from '@testing-library/react'
 import OutcomesContext from '../../contexts/OutcomesContext'
 import useCanvasContext from '../useCanvasContext'
 

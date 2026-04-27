@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 import {waitFor} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {setupServer} from 'msw/node'
@@ -538,7 +538,12 @@ describe('useCourseWork', () => {
           _id: '1',
           courseWorkSubmissionsConnection: {
             nodes: [],
-            pageInfo: {hasNextPage: false, hasPreviousPage: false, endCursor: null, startCursor: null},
+            pageInfo: {
+              hasNextPage: false,
+              hasPreviousPage: false,
+              endCursor: null,
+              startCursor: null,
+            },
           },
         },
       },
@@ -613,7 +618,12 @@ describe('useCourseWork', () => {
                         },
                       },
                     ],
-                    pageInfo: {hasNextPage: false, hasPreviousPage: false, endCursor: null, startCursor: null},
+                    pageInfo: {
+                      hasNextPage: false,
+                      hasPreviousPage: false,
+                      endCursor: null,
+                      startCursor: null,
+                    },
                   },
                 },
               },

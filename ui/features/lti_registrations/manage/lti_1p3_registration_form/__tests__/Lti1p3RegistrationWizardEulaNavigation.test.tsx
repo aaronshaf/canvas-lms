@@ -24,10 +24,6 @@ import {mockLti1p3RegistrationWizardService} from '../../dynamic_registration_wi
 import {ZAccountId} from '../../model/AccountId'
 
 describe('Lti1p3RegistrationWizard', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const accountId = ZAccountId.parse('123')
   const defaultProps = {
     accountId,

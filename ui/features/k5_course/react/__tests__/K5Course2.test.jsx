@@ -19,7 +19,7 @@
 import {TAB_IDS} from '@canvas/k5/react/utils'
 import {OBSERVER_COOKIE_PREFIX} from '@canvas/observer-picker/ObserverGetObservee'
 import {MOCK_OBSERVED_USERS_LIST} from '@canvas/observer-picker/react/__tests__/fixtures'
-import {act, render, waitFor} from '@testing-library/react'
+import {act, fireEvent, render, waitFor} from '@testing-library/react'
 import React from 'react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -251,11 +251,13 @@ describe('K-5 Subject Course', () => {
       expect(studentViewBtn.href).toBe('http://localhost/courses/30/student_view/1')
     })
 
-    it('Should keep the navigation tab when accessing student view mode', () => {
+    it('Should keep the navigation tab when accessing student view mode', async () => {
       const {getByRole, getByTestId} = render(<K5Course {...defaultProps} showStudentView={true} />)
-      getByRole('tab', {name: 'Arts and Crafts Grades'}).click()
+      fireEvent.click(getByRole('tab', {name: 'Arts and Crafts Grades'}))
       const studentViewBtn = getByTestId('student-view-btn')
-      expect(studentViewBtn.href).toBe('http://localhost/courses/30/student_view/1#grades')
+      await waitFor(() =>
+        expect(studentViewBtn.href).toBe('http://localhost/courses/30/student_view/1#grades'),
+      )
     })
 
     describe('Student View mode enable', () => {
@@ -267,18 +269,22 @@ describe('K-5 Subject Course', () => {
         studentViewBarContainer.remove()
       })
 
-      it('Should keep the navigation tab when the fake student is reset', () => {
+      it('Should keep the navigation tab when the fake student is reset', async () => {
         const {getByRole} = render(<K5Course {...defaultProps} showStudentView={true} />)
         const resetStudentBtn = getByRole('link', {name: 'Reset student'})
-        getByRole('tab', {name: 'Arts and Crafts Resources'}).click()
-        expect(resetStudentBtn.href).toBe('http://localhost/courses/30/test_student#resources')
+        fireEvent.click(getByRole('tab', {name: 'Arts and Crafts Resources'}))
+        await waitFor(() =>
+          expect(resetStudentBtn.href).toBe('http://localhost/courses/30/test_student#resources'),
+        )
       })
 
-      it('Should keep the navigation tab when leaving student view mode', () => {
+      it('Should keep the navigation tab when leaving student view mode', async () => {
         const {getByRole} = render(<K5Course {...defaultProps} showStudentView={true} />)
         const leaveStudentViewBtn = getByRole('link', {name: 'Leave student view'})
-        getByRole('tab', {name: 'Arts and Crafts Grades'}).click()
-        expect(leaveStudentViewBtn.href).toBe('http://localhost/courses/30/student_view#grades')
+        fireEvent.click(getByRole('tab', {name: 'Arts and Crafts Grades'}))
+        await waitFor(() =>
+          expect(leaveStudentViewBtn.href).toBe('http://localhost/courses/30/student_view#grades'),
+        )
       })
     })
   })
@@ -305,7 +311,7 @@ describe('K-5 Subject Course', () => {
       )
       const button = getByRole('button', {name: 'Drop this Subject'})
       expect(button).toBeInTheDocument()
-      act(() => button.click())
+      fireEvent.click(button)
       expect(getByText('Drop Arts and Crafts')).toBeInTheDocument()
       expect(getByText('Confirm Unenrollment')).toBeInTheDocument()
       expect(
@@ -332,9 +338,9 @@ describe('K-5 Subject Course', () => {
         <K5Course {...defaultProps} selfEnrollment={selfEnrollment} />,
       )
       const openModalButton = getByRole('button', {name: 'Drop this Subject'})
-      act(() => openModalButton.click())
+      fireEvent.click(openModalButton)
       const dropButton = getAllByRole('button', {name: 'Drop this Subject'})[1]
-      act(() => dropButton.click())
+      fireEvent.click(dropButton)
       expect(getByText('Dropping subject')).toBeInTheDocument()
       await waitFor(() => expect(postCalled).toBe(true))
     })

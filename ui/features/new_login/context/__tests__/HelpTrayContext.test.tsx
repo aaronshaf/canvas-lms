@@ -72,7 +72,6 @@ describe('HelpTrayContext', () => {
   })
 
   afterEach(() => {
-    cleanup()
     window.history.pushState(null, '', originalHash)
     window.dispatchEvent(new HashChangeEvent('hashchange'))
   })

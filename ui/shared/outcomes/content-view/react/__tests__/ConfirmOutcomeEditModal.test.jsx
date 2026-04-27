@@ -167,7 +167,9 @@ it('calls onConfirm when saved', async () => {
       modalRef.current.onConfirm()
     }
   })
-  vi.runAllTimers()
+  await act(async () => {
+    vi.runOnlyPendingTimers()
+  })
 
   expect(onConfirm).toHaveBeenCalled()
   vi.useRealTimers()
@@ -184,18 +186,20 @@ describe('showConfirmOutcomeEdit', () => {
     }
   })
 
-  const doesNotRenderFor = props => {
+  const doesNotRenderFor = async props => {
     const onConfirm = vi.fn()
 
     vi.useFakeTimers()
     showConfirmOutcomeEdit({...props, onConfirm})
-    vi.runAllTimers()
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
 
     expect(onConfirm).toHaveBeenCalled()
     expect(document.querySelector('.confirm-outcome-edit-modal-container')).toBeNull()
   }
 
-  const rendersFor = props => {
+  const rendersFor = async props => {
     const app = document.createElement('div')
     app.setAttribute('id', 'application')
     document.body.appendChild(app)
@@ -204,33 +208,35 @@ describe('showConfirmOutcomeEdit', () => {
 
     vi.useFakeTimers()
     showConfirmOutcomeEdit({...props, onConfirm})
-    vi.runAllTimers()
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
 
     expect(onConfirm).not.toHaveBeenCalled()
     expect(document.querySelector('.confirm-outcome-edit-modal-container')).not.toBeNull()
   }
 
-  it('does not render a dialog if nothing updateable and not modified', () => {
-    doesNotRenderFor(defaultProps())
+  it('does not render a dialog if nothing updateable and not modified', async () => {
+    await doesNotRenderFor(defaultProps())
   })
 
-  it('renders a dialog if has updateable rubrics', () => {
-    rendersFor(defaultProps({hasUpdateableRubrics: true}))
+  it('renders a dialog if has updateable rubrics', async () => {
+    await rendersFor(defaultProps({hasUpdateableRubrics: true}))
   })
 
-  it('does not render a dialog if not assessed', () => {
-    doesNotRenderFor(defaultProps({assessed: false, modifiedFields: {masteryPoints: true}}))
+  it('does not render a dialog if not assessed', async () => {
+    await doesNotRenderFor(defaultProps({assessed: false, modifiedFields: {masteryPoints: true}}))
   })
 
-  it('renders a dialog if masteryPoints modified', () => {
-    rendersFor(defaultProps({modifiedFields: {masteryPoints: true}}))
+  it('renders a dialog if masteryPoints modified', async () => {
+    await rendersFor(defaultProps({modifiedFields: {masteryPoints: true}}))
   })
 
-  it('renders a dialog if scoringMethod modified', () => {
-    rendersFor(defaultProps({modifiedFields: {scoringMethod: true}}))
+  it('renders a dialog if scoringMethod modified', async () => {
+    await rendersFor(defaultProps({modifiedFields: {scoringMethod: true}}))
   })
 
-  it('does not render a dialog if unchanged', () => {
-    doesNotRenderFor(defaultProps({changed: false}))
+  it('does not render a dialog if unchanged', async () => {
+    await doesNotRenderFor(defaultProps({changed: false}))
   })
 })

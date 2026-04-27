@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {render, screen, fireEvent, act, waitFor} from '@testing-library/react'
 import DeveloperKeyScopesList from '../ScopesList'
 
 // Mock LazyLoad to render children immediately in tests
@@ -177,7 +177,9 @@ describe('DeveloperKeyScopesList', () => {
     const checkBox = screen.getByLabelText(/Enable all read only scopes/i)
 
     component.handleReadOnlySelected = stubbedHandler
-    component.forceUpdate()
+    act(() => {
+      component.forceUpdate()
+    })
 
     fireEvent.click(checkBox)
 
@@ -316,7 +318,7 @@ describe('DeveloperKeyScopesList', () => {
   })
 
   describe('handleReadOnlySelected', () => {
-    it('selects all scopes with GET as the verb', () => {
+    it('selects all scopes with GET as the verb', async () => {
       const {ref} = renderDeveloperKeyScopesList()
       const fakeEvent = {
         currentTarget: {
@@ -324,14 +326,18 @@ describe('DeveloperKeyScopesList', () => {
         },
       }
 
-      ref.current.handleReadOnlySelected(fakeEvent)
+      act(() => {
+        ref.current.handleReadOnlySelected(fakeEvent)
+      })
 
-      expect(ref.current.state.selectedScopes).toEqual(
-        expect.arrayContaining(['/auth/userinfo', 'url:GET|/api/v1/accounts/search']),
-      )
+      await waitFor(() => {
+        expect(ref.current.state.selectedScopes).toEqual(
+          expect.arrayContaining(['/auth/userinfo', 'url:GET|/api/v1/accounts/search']),
+        )
+      })
     })
 
-    it('deselects all scopes with GET as the verb', () => {
+    it('deselects all scopes with GET as the verb', async () => {
       const {ref} = renderDeveloperKeyScopesList()
       const fakeSelectEvent = {
         currentTarget: {
@@ -344,10 +350,16 @@ describe('DeveloperKeyScopesList', () => {
         },
       }
 
-      ref.current.handleReadOnlySelected(fakeSelectEvent)
-      ref.current.handleReadOnlySelected(fakeDeselectEvent)
+      act(() => {
+        ref.current.handleReadOnlySelected(fakeSelectEvent)
+      })
+      act(() => {
+        ref.current.handleReadOnlySelected(fakeDeselectEvent)
+      })
 
-      expect(ref.current.state.selectedScopes).toEqual(expect.arrayContaining([]))
+      await waitFor(() => {
+        expect(ref.current.state.selectedScopes).toEqual(expect.arrayContaining([]))
+      })
     })
   })
 
@@ -360,77 +372,111 @@ describe('DeveloperKeyScopesList', () => {
   })
 
   describe('verify no duplicate elements get posted', () => {
-    it('filter out duplicate elements when setting the state', () => {
+    it('filter out duplicate elements when setting the state', async () => {
       const {ref} = renderDeveloperKeyScopesList()
       const duplicate = ['a', 'b', 'c', 'd', 'a', 'a', 'a', 'b']
 
-      ref.current.setSelectedScopes(duplicate)
+      act(() => {
+        ref.current.setSelectedScopes(duplicate)
+      })
 
-      expect(ref.current.state.selectedScopes).toEqual(expect.arrayContaining(['a', 'b', 'c', 'd']))
+      await waitFor(() => {
+        expect(ref.current.state.selectedScopes).toEqual(
+          expect.arrayContaining(['a', 'b', 'c', 'd']),
+        )
+      })
     })
 
-    it('does nothing to empty array when setting the state', () => {
+    it('does nothing to empty array when setting the state', async () => {
       const {ref} = renderDeveloperKeyScopesList()
 
-      ref.current.setSelectedScopes([])
+      act(() => {
+        ref.current.setSelectedScopes([])
+      })
 
-      expect(ref.current.state.selectedScopes).toEqual([])
+      await waitFor(() => {
+        expect(ref.current.state.selectedScopes).toEqual([])
+      })
     })
 
-    it('does nothing to array with no duplicate elements when setting the state', () => {
+    it('does nothing to array with no duplicate elements when setting the state', async () => {
       const {ref} = renderDeveloperKeyScopesList()
       const noDuplicate = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 
-      ref.current.setSelectedScopes(noDuplicate)
+      act(() => {
+        ref.current.setSelectedScopes(noDuplicate)
+      })
 
-      expect(ref.current.state.selectedScopes).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'g'])
+      await waitFor(() => {
+        expect(ref.current.state.selectedScopes).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'g'])
+      })
     })
   })
 
   describe('setSelectedScopes', () => {
     describe('Read Only check box', () => {
-      it('is not checked when no scope is selected', () => {
+      it('is not checked when no scope is selected', async () => {
         const {ref} = renderDeveloperKeyScopesList()
 
-        ref.current.setSelectedScopes([])
+        act(() => {
+          ref.current.setSelectedScopes([])
+        })
 
-        expect(ref.current.state.readOnlySelected).toBeFalsy()
+        await waitFor(() => {
+          expect(ref.current.state.readOnlySelected).toBeFalsy()
+        })
       })
 
-      it('is checked when all possible GET is selected', () => {
+      it('is checked when all possible GET is selected', async () => {
         const {ref} = renderDeveloperKeyScopesList()
 
-        ref.current.setSelectedScopes(['/auth/userinfo', 'url:GET|/api/v1/accounts/search'])
+        act(() => {
+          ref.current.setSelectedScopes(['/auth/userinfo', 'url:GET|/api/v1/accounts/search'])
+        })
 
-        expect(ref.current.state.readOnlySelected).toBeTruthy()
+        await waitFor(() => {
+          expect(ref.current.state.readOnlySelected).toBeTruthy()
+        })
       })
 
-      it('is not checked when some of the GET is selected but nothing else', () => {
+      it('is not checked when some of the GET is selected but nothing else', async () => {
         const {ref} = renderDeveloperKeyScopesList()
 
-        ref.current.setSelectedScopes(['/auth/userinfo'])
+        act(() => {
+          ref.current.setSelectedScopes(['/auth/userinfo'])
+        })
 
-        expect(ref.current.state.readOnlySelected).toEqual(false)
+        await waitFor(() => {
+          expect(ref.current.state.readOnlySelected).toEqual(false)
+        })
       })
 
-      it('is not checked when any verb that is not GET and all possible GET is selected', () => {
+      it('is not checked when any verb that is not GET and all possible GET is selected', async () => {
         const {ref} = renderDeveloperKeyScopesList()
 
-        ref.current.setSelectedScopes([
-          'url:POST|/api/v1/account_domain_lookups',
-          '/auth/userinfo',
-          'url:GET|/api/v1/accounts/search',
-        ])
+        act(() => {
+          ref.current.setSelectedScopes([
+            'url:POST|/api/v1/account_domain_lookups',
+            '/auth/userinfo',
+            'url:GET|/api/v1/accounts/search',
+          ])
+        })
 
-        expect(ref.current.state.readOnlySelected).toEqual(false)
+        await waitFor(() => {
+          expect(ref.current.state.readOnlySelected).toEqual(false)
+        })
       })
 
-      it('is not checked when any verb that is not GET is selected only', () => {
+      it('is not checked when any verb that is not GET is selected only', async () => {
         const {ref} = renderDeveloperKeyScopesList()
 
-        ref.current.setSelectedScopes(['url:POST|/api/v1/account_domain_lookups'])
+        act(() => {
+          ref.current.setSelectedScopes(['url:POST|/api/v1/account_domain_lookups'])
+        })
 
-        expect(ref.current.state.readOnlySelected).toEqual(false)
+        await waitFor(() => {
+          expect(ref.current.state.readOnlySelected).toEqual(false)
+        })
       })
     })
   })

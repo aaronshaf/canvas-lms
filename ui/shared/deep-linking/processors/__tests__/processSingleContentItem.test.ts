@@ -59,8 +59,6 @@ describe('processSingleContentItem', () => {
     ;($.flashMessage as unknown as {mockClear: () => void}).mockClear()
   })
 
-  afterEach(() => {})
-
   it('extracts the first content item', () => {
     const result = processSingleContentItem({data: data({})})
     expect(result).toEqual(content_items[0])

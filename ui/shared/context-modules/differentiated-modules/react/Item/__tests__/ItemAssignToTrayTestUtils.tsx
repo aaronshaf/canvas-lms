@@ -36,7 +36,7 @@ export const SECOND_GROUP_CATEGORY_ID = '3'
 export const FIRST_GROUP_CATEGORY_URL = `/api/v1/group_categories/${FIRST_GROUP_CATEGORY_ID}/groups?per_page=100`
 export const SECOND_GROUP_CATEGORY_URL = `/api/v1/group_categories/${SECOND_GROUP_CATEGORY_ID}/groups?per_page=100`
 export const SECTIONS_URL = /\/api\/v1\/courses\/.+\/sections\?per_page=\d+/
-export const OVERRIDES_URL = '/api/v1/courses/1/assignments/23/date_details?per_page=100'
+export const OVERRIDES_URL = '/api/v1/courses/1/assignments/23/date_details'
 
 export const server = setupServer()
 

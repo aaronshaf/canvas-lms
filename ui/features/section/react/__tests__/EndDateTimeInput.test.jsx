@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {render, screen, fireEvent, waitFor} from '@testing-library/react'
 import EndDateTimeInput from '../EndDateTimeInput'
 
 // Store original handlers to call them in mock
@@ -86,7 +86,7 @@ describe('EndDateTimeInput', () => {
     expect(screen.queryByText('Course: Mon, May 15, 2023, 8:00 AM')).not.toBeInTheDocument()
   })
 
-  it('shows error if date is invalid', () => {
+  it('shows error if date is invalid', async () => {
     render(<EndDateTimeInput initialValue={initialValue} handleDateTimeChange={() => {}} />)
     const input = screen.getByTestId('section-end-date')
 
@@ -97,6 +97,6 @@ describe('EndDateTimeInput', () => {
     // Trigger blur to run validation
     mockOnBlur()
 
-    expect(screen.getByText('Please enter a valid format for a date')).toBeInTheDocument()
+    expect(await screen.findByText('Please enter a valid format for a date')).toBeInTheDocument()
   })
 })

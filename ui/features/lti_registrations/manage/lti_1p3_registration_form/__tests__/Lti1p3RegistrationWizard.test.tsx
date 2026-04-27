@@ -66,7 +66,6 @@ describe('Lti1p3RegistrationWizard', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
     fakeENV.teardown()
   })

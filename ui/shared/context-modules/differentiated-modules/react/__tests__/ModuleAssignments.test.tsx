@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, fireEvent, render} from '@testing-library/react'
+import {act, fireEvent, render, waitFor} from '@testing-library/react'
 import ModuleAssignments, {type ModuleAssignmentsProps} from '../ModuleAssignments'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -80,40 +80,40 @@ describe('ModuleAssignments', () => {
     )
 
   it('displays sections and students as options', async () => {
-    const {findByTestId, findByText, getByText} = renderComponent()
+    const {findByTestId, findByText} = renderComponent()
     const moduleAssignments = await findByTestId('assignee_selector')
     act(() => moduleAssignments.click())
     await findByText(SECTIONS_DATA[0].name)
-    SECTIONS_DATA.forEach(section => {
-      expect(getByText(section.name)).toBeInTheDocument()
-    })
-    STUDENTS_DATA.forEach(student => {
-      expect(getByText(student.value)).toBeInTheDocument()
-    })
+    for (const section of SECTIONS_DATA) {
+      expect(await findByText(section.name)).toBeInTheDocument()
+    }
+    for (const student of STUDENTS_DATA) {
+      expect(await findByText(student.value)).toBeInTheDocument()
+    }
   })
 
   it('shows sis id in list', async () => {
-    const {findByTestId, findByText, getByText} = renderComponent()
+    const {findByTestId, findByText} = renderComponent()
     const moduleAssignments = await findByTestId('assignee_selector')
     act(() => moduleAssignments.click())
     await findByText(STUDENTS_DATA[0].value)
-    STUDENTS_DATA.forEach(student => {
-      expect(getByText(student.sisID)).toBeInTheDocument()
-    })
+    for (const student of STUDENTS_DATA) {
+      expect(await findByText(student.sisID)).toBeInTheDocument()
+    }
   })
 
   it('fetches filtered results from both APIs', async () => {
-    const {findByTestId, findByText, getByText} = renderComponent()
+    const {findByTestId, findByText} = renderComponent()
     const moduleAssignments = await findByTestId('assignee_selector')
     act(() => moduleAssignments.click())
     fireEvent.change(moduleAssignments, {target: {value: 'sec'}})
     await findByText(FILTERED_SECTIONS_DATA[0].name)
-    FILTERED_SECTIONS_DATA.forEach(section => {
-      expect(getByText(section.name)).toBeInTheDocument()
-    })
-    FILTERED_STUDENTS_DATA.forEach(student => {
-      expect(getByText(student.value)).toBeInTheDocument()
-    })
+    for (const section of FILTERED_SECTIONS_DATA) {
+      expect(await findByText(section.name)).toBeInTheDocument()
+    }
+    for (const student of FILTERED_STUDENTS_DATA) {
+      expect(await findByText(student.value)).toBeInTheDocument()
+    }
   })
 
   it('allows filtering by SIS ID', async () => {

@@ -73,20 +73,14 @@ describe('GroupEditForm - Basic', () => {
     await user.clear(name)
     await user.tab()
 
-    await waitFor(
-      () => {
-        expect(queryByText('This field is required')).toBeInTheDocument()
-      },
-      {timeout: 1000},
-    )
+    await waitFor(() => {
+      expect(queryByText('This field is required')).toBeInTheDocument()
+    })
 
     await user.type(name, 'a')
-    await waitFor(
-      () => {
-        expect(queryByText('This field is required')).not.toBeInTheDocument()
-      },
-      {timeout: 1000},
-    )
+    await waitFor(() => {
+      expect(queryByText('This field is required')).not.toBeInTheDocument()
+    })
   })
 
   it('renders without Close button if isOpen is false', () => {

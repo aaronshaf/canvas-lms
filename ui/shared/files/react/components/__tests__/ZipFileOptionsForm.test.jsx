@@ -29,7 +29,6 @@ describe('ZipFileOptionsForm', () => {
   })
 
   afterEach(() => {
-    cleanup()
     document.getElementById('application').remove()
   })
 

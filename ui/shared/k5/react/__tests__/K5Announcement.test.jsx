@@ -286,13 +286,14 @@ describe('K5Announcement', () => {
         ),
       )
       const date = '2021-05-14T17:06:21-06:00'
-      const {getByText, queryByText} = render(
+      const {findByText, queryByText} = render(
         <K5Announcement {...getProps({}, {postedDate: new Date(date)})} />,
       )
-      await waitFor(() => {}, {timeout: 10})
-      expect(getByText('Edit announcement 20 minutes of weekly reading')).toBeInTheDocument()
-      expect(queryByText('Previous announcement')).toBeNull()
-      expect(queryByText('Next announcement')).toBeNull()
+      expect(await findByText('Edit announcement 20 minutes of weekly reading')).toBeInTheDocument()
+      await waitFor(() => {
+        expect(queryByText('Previous announcement')).toBeNull()
+        expect(queryByText('Next announcement')).toBeNull()
+      })
     })
 
     it('does shows prev and next buttons if more announcements exist', async () => {
@@ -318,11 +319,12 @@ describe('K5Announcement', () => {
         ),
       )
       const date = '2021-05-14T17:06:21-06:00'
-      const {getByText} = render(<K5Announcement {...getProps({}, {postedDate: new Date(date)})} />)
-      await waitFor(() => {}, {timeout: 10})
-      expect(getByText('Edit announcement 20 minutes of weekly reading')).toBeInTheDocument()
-      expect(getByText('Previous announcement')).toBeInTheDocument()
-      expect(getByText('Next announcement')).toBeInTheDocument()
+      const {findByText} = render(
+        <K5Announcement {...getProps({}, {postedDate: new Date(date)})} />,
+      )
+      expect(await findByText('Edit announcement 20 minutes of weekly reading')).toBeInTheDocument()
+      expect(await findByText('Previous announcement')).toBeInTheDocument()
+      expect(await findByText('Next announcement')).toBeInTheDocument()
     })
 
     it('does shows previous announcement if prev button is clicked', async () => {
@@ -348,24 +350,23 @@ describe('K5Announcement', () => {
         ),
       )
       const date = '2021-05-14T17:06:21-06:00'
-      const {findByText, getByText} = render(
+      const {findByText} = render(
         <K5Announcement {...getProps({}, {postedDate: new Date(date)})} />,
       )
-      await waitFor(() => {}, {timeout: 10})
-      const prevBtn = getByText('Previous announcement').closest('button')
-      const nextBtn = getByText('Next announcement').closest('button')
+      const prevBtn = (await findByText('Previous announcement')).closest('button')
+      const nextBtn = (await findByText('Next announcement')).closest('button')
       await act(async () => {
         prevBtn.click()
-        expect(await findByText('Announcement 2')).toBeInTheDocument()
-        expect(prevBtn.hasAttribute('disabled')).toBeTruthy()
-        expect(nextBtn.hasAttribute('disabled')).toBeFalsy()
       })
+      expect(await findByText('Announcement 2')).toBeInTheDocument()
+      expect(prevBtn.hasAttribute('disabled')).toBeTruthy()
+      expect(nextBtn.hasAttribute('disabled')).toBeFalsy()
       await act(async () => {
         nextBtn.click()
-        expect(await findByText('20 minutes of weekly reading')).toBeInTheDocument()
-        expect(prevBtn.hasAttribute('disabled')).toBeFalsy()
-        expect(nextBtn.hasAttribute('disabled')).toBeTruthy()
       })
+      expect(await findByText('20 minutes of weekly reading')).toBeInTheDocument()
+      expect(prevBtn.hasAttribute('disabled')).toBeFalsy()
+      expect(nextBtn.hasAttribute('disabled')).toBeTruthy()
     })
 
     it('handles 2 announcements with identical posted_at dates', async () => {
@@ -393,16 +394,15 @@ describe('K5Announcement', () => {
           ),
         ),
       )
-      const {findByText, getByText} = render(<K5Announcement {...props} />)
-      expect(getByText('20 minutes of weekly reading')).toBeInTheDocument()
+      const {findByText} = render(<K5Announcement {...props} />)
+      expect(await findByText('20 minutes of weekly reading')).toBeInTheDocument()
 
-      await waitFor(() => {}, {timeout: 10})
-      const prevBtn = getByText('Previous announcement').closest('button')
+      const prevBtn = (await findByText('Previous announcement')).closest('button')
       await act(async () => {
         prevBtn.click()
-        expect(await findByText('Announcement 2')).toBeInTheDocument()
-        expect(prevBtn.hasAttribute('disabled')).toBeTruthy()
       })
+      expect(await findByText('Announcement 2')).toBeInTheDocument()
+      expect(prevBtn.hasAttribute('disabled')).toBeTruthy()
     })
 
     it.skip('places each page of fetched announcements in correct order', async () => {
@@ -537,8 +537,7 @@ describe('K5Announcement', () => {
         it('shows nothing for a student', async () => {
           const {container} = render(<K5Announcement {...getCourseProps({canEdit: false})} />)
 
-          await waitFor(() => {}, {timeout: 10})
-          expect(container.innerHTML).toEqual('')
+          await waitFor(() => expect(container.innerHTML).toEqual(''))
         })
 
         it('shows "create a new announcement" for a teacher', async () => {

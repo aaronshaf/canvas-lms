@@ -201,7 +201,9 @@ describe('ActionsMenuCell', () => {
         })
       })
 
-      expect(screen.getByText(/you closed remediation/i)).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByText(/you closed remediation/i)).toBeInTheDocument()
+      })
     })
 
     it('tracks ResourceClosed event with resourceId and courseId on success', async () => {

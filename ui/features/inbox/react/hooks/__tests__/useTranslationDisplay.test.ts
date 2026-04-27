@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook, act} from '@testing-library/react-hooks'
+import {renderHook, act} from '@testing-library/react'
 import useTranslationDisplay from '../useTranslationDisplay'
 import {useTranslationContext} from '../useTranslationContext'
 import {translationSeparator} from '../../utils/constants'

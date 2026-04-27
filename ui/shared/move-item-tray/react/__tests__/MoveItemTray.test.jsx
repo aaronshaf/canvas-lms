@@ -77,20 +77,20 @@ describe('MoveItemTray', () => {
     expect(screen.getByRole('combobox')).toBeInTheDocument()
   })
 
-  it('open sets the state.open to true', () => {
+  it('open sets the state.open to true', async () => {
     const {ref} = renderMoveItemTray()
 
     ref.current.open()
 
-    expect(ref.current.state.open).toBe(true)
+    await waitFor(() => expect(ref.current.state.open).toBe(true))
   })
 
-  it('close sets the state.open to false', () => {
+  it('close sets the state.open to false', async () => {
     const {ref} = renderMoveItemTray()
 
     ref.current.close()
 
-    expect(ref.current.state.open).toBe(false)
+    await waitFor(() => expect(ref.current.state.open).toBe(false))
   })
 
   it('closing the tray calls onExited', () => {
@@ -101,12 +101,12 @@ describe('MoveItemTray', () => {
     expect(stubs.onExited).toHaveBeenCalledTimes(1)
   })
 
-  it('onMoveSelect calls onMoveSuccess with move data', () => {
+  it('onMoveSelect calls onMoveSuccess with move data', async () => {
     const {ref} = renderMoveItemTray({formatSaveUrl: () => null})
 
     ref.current.onMoveSelect({order: ['1', '2', '3'], groupId: '5', itemIds: ['2']})
 
-    waitFor(() =>
+    await waitFor(() =>
       expect(stubs.onMoveSuccess).toHaveBeenCalledWith({
         data: ['1', '2', '3'],
         groupId: '5',

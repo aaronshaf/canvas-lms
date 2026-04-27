@@ -43,10 +43,6 @@ const useCoursePeopleContextMocks = {
 }
 
 describe('CoursePeopleOptionsMenu', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     ;(useCoursePeopleContext as any).mockReturnValue(useCoursePeopleContextMocks)
   })

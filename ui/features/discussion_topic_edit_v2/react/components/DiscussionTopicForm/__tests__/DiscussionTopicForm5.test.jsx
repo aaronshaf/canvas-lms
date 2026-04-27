@@ -92,18 +92,20 @@ describe('DiscussionTopicForm', () => {
       })
 
       // Switch to graded
-      getByTestId('graded-checkbox').querySelector('input').click()
+      fireEvent.click(getByTestId('graded-checkbox').querySelector('input'))
 
       // Submit form
-      getByTestId('save-button').click()
+      fireEvent.click(getByTestId('save-button'))
 
       // Verify submission
-      expect(mockOnSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({
-          todoDate: null,
-          assignment: expect.any(Object),
-        }),
-        false,
+      await waitFor(() =>
+        expect(mockOnSubmit).toHaveBeenCalledWith(
+          expect.objectContaining({
+            todoDate: null,
+            assignment: expect.any(Object),
+          }),
+          false,
+        ),
       )
     })
 
@@ -119,15 +121,17 @@ describe('DiscussionTopicForm', () => {
       })
 
       // Submit form
-      getByTestId('save-button').click()
+      fireEvent.click(getByTestId('save-button'))
 
       // Verify submission
-      expect(mockOnSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({
-          todoDate,
-          assignment: null,
-        }),
-        false,
+      await waitFor(() =>
+        expect(mockOnSubmit).toHaveBeenCalledWith(
+          expect.objectContaining({
+            todoDate,
+            assignment: null,
+          }),
+          false,
+        ),
       )
     })
   })
@@ -214,7 +218,7 @@ describe('DiscussionTopicForm', () => {
       })
 
       // Submit form
-      getByText('Save').click()
+      fireEvent.click(getByText('Save'))
 
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalled()
@@ -279,7 +283,7 @@ describe('DiscussionTopicForm', () => {
       })
 
       // Submit form without enabling checkpoints
-      getByText('Save').click()
+      fireEvent.click(getByText('Save'))
 
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalled()

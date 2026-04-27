@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import FindAppointmentApp from '../FindAppointment'
 
 const courses = [
@@ -51,7 +51,7 @@ describe('FindAppointmentApp', () => {
     expect(getByTestId('find-appointment-close-button')).toBeInTheDocument()
   })
 
-  test('selectCourse sets the proper selected course', () => {
+  test('selectCourse sets the proper selected course', async () => {
     const store = {
       getState() {
         return {
@@ -63,6 +63,6 @@ describe('FindAppointmentApp', () => {
     const ref = React.createRef()
     render(<FindAppointmentApp courses={courses} store={store} ref={ref} />)
     ref.current.selectCourse(2)
-    expect(ref.current.state.selectedCourse).toEqual(courses[1])
+    await waitFor(() => expect(ref.current.state.selectedCourse).toEqual(courses[1]))
   })
 })

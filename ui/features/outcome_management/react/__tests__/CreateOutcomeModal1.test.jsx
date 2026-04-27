@@ -244,7 +244,7 @@ describe('CreateOutcomeModal', () => {
         })
         await user.click(getByText('Account folder 0'))
         await user.click(getByText('Create'))
-        await act(async () => vi.runAllTimersAsync())
+        await act(async () => vi.runOnlyPendingTimersAsync())
         expect(onSuccessMock).toHaveBeenCalledTimes(1)
         expect(onSuccessMock).toHaveBeenCalledWith({
           selectedGroupAncestorIds: ['100', '1'],
@@ -274,7 +274,7 @@ describe('CreateOutcomeModal', () => {
           target: {value: 'Friendly Description value'},
         })
         await user.click(getByText('Create'))
-        await act(async () => vi.runAllTimersAsync())
+        await act(async () => vi.runOnlyPendingTimersAsync())
         expect(showFlashAlert).toHaveBeenCalledWith({
           message: '"Outcome 123" was successfully created.',
           type: 'success',
@@ -299,7 +299,7 @@ describe('CreateOutcomeModal', () => {
         fireEvent.change(getByLabelText('Name'), {target: {value: 'Outcome 123'}})
         fireEvent.change(getByLabelText('Friendly Name'), {target: {value: 'Display name'}})
         await user.click(getByText('Create'))
-        await act(async () => vi.runAllTimersAsync())
+        await act(async () => vi.runOnlyPendingTimersAsync())
         expect(showFlashAlert).toHaveBeenCalledWith({
           message: 'An error occurred while creating this outcome. Please try again.',
           type: 'error',
@@ -324,7 +324,7 @@ describe('CreateOutcomeModal', () => {
         fireEvent.change(getByLabelText('Name'), {target: {value: 'Outcome 123'}})
         fireEvent.change(getByLabelText('Friendly Name'), {target: {value: 'Display name'}})
         await user.click(getByText('Create'))
-        await act(async () => vi.runAllTimersAsync())
+        await act(async () => vi.runOnlyPendingTimersAsync())
         expect(showFlashAlert).toHaveBeenCalledWith({
           message: 'An error occurred while creating this outcome. Please try again.',
           type: 'error',
@@ -355,7 +355,7 @@ describe('CreateOutcomeModal', () => {
           target: {value: 'Friendly description'},
         })
         await user.click(getByText('Create'))
-        await act(async () => vi.runAllTimersAsync())
+        await act(async () => vi.runOnlyPendingTimersAsync())
         expect(showFlashAlert).toHaveBeenCalledWith({
           message: 'An error occurred while creating this outcome. Please try again.',
           type: 'error',

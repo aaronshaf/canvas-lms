@@ -238,7 +238,7 @@ describe('MessageStudentsWhoDialog', () => {
       queryClient.clear()
       makeMocks()
 
-      const {getByLabelText, getByText, findByTestId} = render(
+      const {getByLabelText, getByText, findByTestId, getByTestId} = render(
         <MockedQueryClientProvider client={queryClient}>
           <MessageStudentsWhoDialog {...makeProps({students: testStudents})} />
         </MockedQueryClientProvider>,
@@ -254,9 +254,10 @@ describe('MessageStudentsWhoDialog', () => {
       fireEvent.click(getByText(/Have not been graded/))
 
       // Wait for the component to update with the filtered students
-      await waitFor(async () => {
-        const checkbox = await findByTestId('total-student-checkbox')
-        expect(checkbox).toHaveAccessibleName(`${ungradedCount} Students`)
+      await waitFor(() => {
+        expect(getByTestId('total-student-checkbox')).toHaveAccessibleName(
+          `${ungradedCount} Students`,
+        )
       })
       expect(await findByTestId('total-observer-checkbox')).toHaveAccessibleName('0 Observers')
     })

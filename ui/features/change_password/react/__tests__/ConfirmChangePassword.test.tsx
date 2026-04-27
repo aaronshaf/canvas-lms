@@ -62,7 +62,6 @@ describe('ConfirmChangePassword', () => {
   }
 
   afterEach(() => {
-    cleanup()
     vi.clearAllMocks()
   })
 

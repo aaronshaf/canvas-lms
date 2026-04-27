@@ -27,10 +27,6 @@ describe('Card', () => {
     vi.clearAllMocks()
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   it('mounts without crashing', () => {
     render(
       <Card

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import {render, screen} from '@testing-library/react'
+import {act, render, screen, waitFor} from '@testing-library/react'
 import * as ue from '@testing-library/user-event'
 import {IconConfirmationWrapper} from '../components/IconConfirmationWrapper'
 import {createLti1p3RegistrationOverlayStore} from '../../registration_overlay/Lti1p3RegistrationOverlayStore'
@@ -31,7 +31,7 @@ describe('IconConfirmationWrapper', () => {
   })
 
   afterEach(() => {
-    vi.runAllTimers()
+    vi.runOnlyPendingTimers()
     vi.useRealTimers()
   })
 
@@ -104,7 +104,9 @@ describe('IconConfirmationWrapper', () => {
     await userEvent.click(input)
     await userEvent.clear(input)
     await userEvent.paste('https://new-icon-url.com')
-    vi.runAllTimers()
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
 
     expect(overlayStore.getState().state.icons.placements[placement as LtiPlacementWithIcon]).toBe(
       'https://new-icon-url.com',
@@ -224,12 +226,14 @@ describe('IconConfirmationWrapper', () => {
     )
     expect(img).toHaveAttribute('src', 'https://example.com/icon/first')
 
-    vi.runAllTimers()
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
 
     expect(overlayStore.getState().state.icons.placements[LtiPlacements.GlobalNavigation]).toBe(
       'https://new-icon-url.com',
     )
-    expect(img).toHaveAttribute('src', 'https://new-icon-url.com')
+    await waitFor(() => expect(img).toHaveAttribute('src', 'https://new-icon-url.com'))
   })
 
   it('handles users adding new placements', async () => {
@@ -251,8 +255,12 @@ describe('IconConfirmationWrapper', () => {
       />,
     )
 
-    overlayStore.getState().togglePlacement(LtiPlacements.EditorButton)
-    vi.runAllTimers()
+    await act(async () => {
+      overlayStore.getState().togglePlacement(LtiPlacements.EditorButton)
+    })
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
 
     const input = screen.getByLabelText(
       new RegExp(i18nLtiPlacement(LtiPlacements.GlobalNavigation), 'i'),
@@ -313,7 +321,7 @@ describe('IconConfirmationWrapper', () => {
       await userEvent.paste('https://example.com/new-default.png')
       jest.runAllTimers()
 
-      expect(input).toHaveValue('https://example.com/new-default.png')
+      await waitFor(() => expect(input).toHaveValue('https://example.com/new-default.png'))
     })
 
     it('should display the existing Tool Icon URL', () => {
@@ -380,9 +388,11 @@ describe('IconConfirmationWrapper', () => {
       await userEvent.paste('https://example.com/default-icon.png')
       jest.runAllTimers()
 
-      expect(screen.getByTestId('img-default-icon')).toHaveAttribute(
-        'src',
-        'https://example.com/default-icon.png',
+      await waitFor(() =>
+        expect(screen.getByTestId('img-default-icon')).toHaveAttribute(
+          'src',
+          'https://example.com/default-icon.png',
+        ),
       )
     })
 
@@ -405,9 +415,11 @@ describe('IconConfirmationWrapper', () => {
       await userEvent.clear(input)
       jest.runAllTimers()
 
-      expect(screen.getByTestId('img-default-icon')).toHaveAttribute(
-        'src',
-        'https://example.com/default-icon.png',
+      await waitFor(() =>
+        expect(screen.getByTestId('img-default-icon')).toHaveAttribute(
+          'src',
+          'https://example.com/default-icon.png',
+        ),
       )
     })
   })

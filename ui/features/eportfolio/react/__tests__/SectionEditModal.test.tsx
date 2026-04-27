@@ -181,7 +181,7 @@ describe('SectionEditModal', () => {
   })
   describe('move to', () => {
     it('does not move section on cancel', async () => {
-      const {getByText, getByTestId} = render(
+      const {getByText, getByTestId, findByText} = render(
         <SectionEditModal
           {...props}
           modalType="move"
@@ -191,14 +191,14 @@ describe('SectionEditModal', () => {
       )
       const select = getByTestId('move-select')
       select.click()
-      getByText('First Section').click()
+      ;(await findByText('First Section')).click()
       const cancelButton = getByText('Cancel')
       cancelButton.click()
       await waitFor(() => expect(wasApiCalled('POST', '/reorder_categories')).toBe(false))
       await waitFor(() => expect(mockCancel).toHaveBeenCalled())
     })
     it('move section when clicking save button', async () => {
-      const {getByText, getByTestId} = render(
+      const {getByText, getByTestId, findByText} = render(
         <SectionEditModal
           {...props}
           modalType="move"
@@ -208,7 +208,7 @@ describe('SectionEditModal', () => {
       )
       const select = getByTestId('move-select')
       select.click()
-      getByText('First Section').click()
+      ;(await findByText('First Section')).click()
       const saveButton = getByText('Save')
       saveButton.click()
       await waitFor(() => expect(wasApiCalled('POST', '/reorder_categories')).toBe(true))

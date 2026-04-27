@@ -18,7 +18,7 @@
 
 import {useGradingSchemeDelete} from '../useGradingSchemeDelete'
 
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import type {GradingSchemeTemplate} from '../../../gradingSchemeApiModel'
 import {ApiCallStatus} from '../ApiCallStatus'
 import {setupServer} from 'msw/node'
@@ -35,13 +35,11 @@ describe('useGradingSchemeDeleteHook', () => {
   afterAll(() => server.close())
 
   it('renders for course context without error', () => {
-    const {result} = renderHook(() => useGradingSchemeDelete())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useGradingSchemeDelete())
   })
 
   it('renders for account context without error', () => {
-    const {result} = renderHook(() => useGradingSchemeDelete())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useGradingSchemeDelete())
   })
 
   it('makes a DELETE request for course context to delete a grading scheme', async () => {
@@ -61,7 +59,9 @@ describe('useGradingSchemeDeleteHook', () => {
     )
 
     const {result} = renderHook(() => useGradingSchemeDelete())
-    await result.current.deleteGradingScheme('Course', courseId, 'some-grading-scheme-id')
+    await act(async () => {
+      await result.current.deleteGradingScheme('Course', courseId, 'some-grading-scheme-id')
+    })
 
     expect(capturedPath).toBe(`/courses/${courseId}/grading_schemes/some-grading-scheme-id`)
     expect(result.current.deleteGradingSchemeStatus).toEqual(ApiCallStatus.COMPLETED)
@@ -84,7 +84,9 @@ describe('useGradingSchemeDeleteHook', () => {
     )
 
     const {result} = renderHook(() => useGradingSchemeDelete())
-    await result.current.deleteGradingScheme('Account', accountId, 'some-grading-scheme-id')
+    await act(async () => {
+      await result.current.deleteGradingScheme('Account', accountId, 'some-grading-scheme-id')
+    })
 
     expect(capturedPath).toBe(`/accounts/${accountId}/grading_schemes/some-grading-scheme-id`)
     expect(result.current.deleteGradingSchemeStatus).toEqual(ApiCallStatus.COMPLETED)

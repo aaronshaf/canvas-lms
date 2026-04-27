@@ -37,7 +37,7 @@ describe('SlideTransition', () => {
   afterEach(() => {
     // Drain all pending timers from BaseTransition (@instructure/ui-motion)
     // before teardown to avoid leaked timer warnings.
-    vi.runAllTimers()
+    vi.runOnlyPendingTimers()
     vi.useRealTimers()
   })
 
@@ -48,9 +48,9 @@ describe('SlideTransition', () => {
 
   it('hides child components when collapsed', async () => {
     const {queryByText} = renderComponent({direction: 'vertical', expanded: false})
-    // Advance timers to complete the exit transition in BaseTransition
+    // Flush currently-queued timers for the BaseTransition exit animation
     await act(async () => {
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
     expect(queryByText("Hey look it's me!")).not.toBeInTheDocument()
   })

@@ -18,7 +18,7 @@
 
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {render} from '@testing-library/react'
-export {renderHook} from '@testing-library/react-hooks'
+export {renderHook} from '@testing-library/react'
 
 const queryClient = new QueryClient()
 

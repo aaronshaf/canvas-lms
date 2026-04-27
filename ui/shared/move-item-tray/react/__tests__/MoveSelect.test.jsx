@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {positions} from '@canvas/positions'
-import {screen as testScreen, render, waitFor} from '@testing-library/react'
+import {screen as testScreen, render, act, waitFor} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import MoveSelect from '../MoveSelect'
@@ -228,39 +228,47 @@ describe('MoveSelect', () => {
     expect(testScreen.getByText('Move')).toBeInTheDocument()
   })
 
-  it('hasSelectedPosition() is false if selectedPosition is false-y', () => {
+  it('hasSelectedPosition() is false if selectedPosition is false-y', async () => {
     const {ref} = renderMoveSelect()
 
-    ref.current.setState({selectedPosition: null})
+    await act(async () => {
+      ref.current.setState({selectedPosition: null})
+    })
 
-    expect(ref.current.hasSelectedPosition()).toBe(false)
+    await waitFor(() => expect(ref.current.hasSelectedPosition()).toBe(false))
   })
 
-  it('hasSelectedPosition() is true if selectedPosition is an absolute position', () => {
+  it('hasSelectedPosition() is true if selectedPosition is an absolute position', async () => {
     const {ref} = renderMoveSelect()
 
-    ref.current.setState({selectedPosition: positions.last})
+    await act(async () => {
+      ref.current.setState({selectedPosition: positions.last})
+    })
 
-    expect(ref.current.hasSelectedPosition()).toBe(true)
+    await waitFor(() => expect(ref.current.hasSelectedPosition()).toBe(true))
   })
 
-  it('hasSelectedPosition() is false if selectedPosition is a relative position and selectedSibling is false-y', () => {
+  it('hasSelectedPosition() is false if selectedPosition is a relative position and selectedSibling is false-y', async () => {
     const {ref} = renderMoveSelect()
 
-    ref.current.setState({selectedPosition: positions.before, selectedSibling: null})
+    await act(async () => {
+      ref.current.setState({selectedPosition: positions.before, selectedSibling: null})
+    })
 
-    expect(ref.current.hasSelectedPosition()).toBe(false)
+    await waitFor(() => expect(ref.current.hasSelectedPosition()).toBe(false))
   })
 
-  it('hasSelectedPosition() is true if selectedPosition is a relative position and selectedSibling is valid', () => {
+  it('hasSelectedPosition() is true if selectedPosition is a relative position and selectedSibling is valid', async () => {
     const {ref} = renderMoveSelect()
 
-    ref.current.setState({selectedPosition: positions.before, selectedSibling: '2'})
+    await act(async () => {
+      ref.current.setState({selectedPosition: positions.before, selectedSibling: '2'})
+    })
 
-    expect(ref.current.hasSelectedPosition()).toBe(true)
+    await waitFor(() => expect(ref.current.hasSelectedPosition()).toBe(true))
   })
 
-  it('isDoneSelecting() is true if props.moveOptions is siblings and hasSelectedPosition() is true', () => {
+  it('isDoneSelecting() is true if props.moveOptions is siblings and hasSelectedPosition() is true', async () => {
     const props = defaultProps()
     props.moveOptions = {
       siblings: [
@@ -270,12 +278,14 @@ describe('MoveSelect', () => {
     }
     const {ref} = renderMoveSelect(props)
 
-    ref.current.setState({selectedPosition: positions.last})
+    await act(async () => {
+      ref.current.setState({selectedPosition: positions.last})
+    })
 
-    expect(ref.current.isDoneSelecting()).toBe(true)
+    await waitFor(() => expect(ref.current.isDoneSelecting()).toBe(true))
   })
 
-  it('isDoneSelecting() is true if props.moveOptions is siblings because of default position', () => {
+  it('isDoneSelecting() is true if props.moveOptions is siblings because of default position', async () => {
     const props = defaultProps()
     props.moveOptions = {
       siblings: [
@@ -285,28 +295,32 @@ describe('MoveSelect', () => {
     }
     const {ref} = renderMoveSelect(props)
 
-    ref.current.setState({selectedPosition: positions.before})
+    await act(async () => {
+      ref.current.setState({selectedPosition: positions.before})
+    })
 
-    expect(ref.current.isDoneSelecting()).toBe(true)
+    await waitFor(() => expect(ref.current.isDoneSelecting()).toBe(true))
   })
 
-  it('isDoneSelecting() is false if props.moveOptions is groups and selectedGroup is false-y', () => {
+  it('isDoneSelecting() is false if props.moveOptions is groups and selectedGroup is false-y', async () => {
     const props = defaultProps()
     props.moveOptions = {
       groupsLabel: 'groups',
       groups: [
-        {id: '12', title: 'Making Cake'},
-        {id: '30', title: 'Very Hard Quiz'},
+        {id: '12', title: 'Making Cake', items: []},
+        {id: '30', title: 'Very Hard Quiz', items: []},
       ],
     }
     const {ref} = renderMoveSelect(props)
 
-    ref.current.setState({selectedGroup: null})
+    await act(async () => {
+      ref.current.setState({selectedGroup: null})
+    })
 
-    expect(ref.current.isDoneSelecting()).toBe(false)
+    await waitFor(() => expect(ref.current.isDoneSelecting()).toBe(false))
   })
 
-  it('isDoneSelecting() is true if props.moveOptions is groups and selectedGroup is valid with items because of default position', () => {
+  it('isDoneSelecting() is true if props.moveOptions is groups and selectedGroup is valid with items because of default position', async () => {
     const props = defaultProps()
     props.moveOptions = {
       groupsLabel: 'groups',
@@ -317,15 +331,17 @@ describe('MoveSelect', () => {
     }
     const {ref} = renderMoveSelect(props)
 
-    ref.current.setState({
-      selectedGroup: props.moveOptions.groups[0],
-      selectedPosition: positions.before,
+    await act(async () => {
+      ref.current.setState({
+        selectedGroup: props.moveOptions.groups[0],
+        selectedPosition: positions.before,
+      })
     })
 
-    expect(ref.current.isDoneSelecting()).toBe(true)
+    await waitFor(() => expect(ref.current.isDoneSelecting()).toBe(true))
   })
 
-  it('isDoneSelecting() is true if props.moveOptions is groups and selectedGroup is valid with items but hasSelectedPosition() is true', () => {
+  it('isDoneSelecting() is true if props.moveOptions is groups and selectedGroup is valid with items but hasSelectedPosition() is true', async () => {
     const props = defaultProps()
     props.moveOptions = {
       groupsLabel: 'groups',
@@ -336,15 +352,17 @@ describe('MoveSelect', () => {
     }
     const {ref} = renderMoveSelect(props)
 
-    ref.current.setState({
-      selectedGroup: props.moveOptions.groups[0],
-      selectedPosition: positions.first,
+    await act(async () => {
+      ref.current.setState({
+        selectedGroup: props.moveOptions.groups[0],
+        selectedPosition: positions.first,
+      })
     })
 
-    expect(ref.current.isDoneSelecting()).toBe(true)
+    await waitFor(() => expect(ref.current.isDoneSelecting()).toBe(true))
   })
 
-  it('isDoneSelecting() is true if props.moveOptions is groups and selectedGroup is valid without items', () => {
+  it('isDoneSelecting() is true if props.moveOptions is groups and selectedGroup is valid without items', async () => {
     const props = defaultProps()
     props.moveOptions = {
       groupsLabel: 'groups',
@@ -355,25 +373,33 @@ describe('MoveSelect', () => {
     }
     const {ref} = renderMoveSelect(props)
 
-    ref.current.setState({selectedGroup: props.moveOptions.groups[0]})
+    await act(async () => {
+      ref.current.setState({selectedGroup: props.moveOptions.groups[0]})
+    })
 
-    expect(ref.current.isDoneSelecting()).toBe(true)
+    await waitFor(() => expect(ref.current.isDoneSelecting()).toBe(true))
   })
 
-  it('submitSelection() calls onSelect with properly ordered items for siblings', () => {
+  it('submitSelection() calls onSelect with properly ordered items for siblings', async () => {
     const {ref} = renderMoveSelect()
 
-    ref.current.setState({selectedPosition: positions.before, selectedSibling: 1})
-    ref.current.submitSelection()
-
-    expect(stubs.onSelect).toHaveBeenCalledWith({
-      groupId: null,
-      order: ['12', '10', '30'],
-      itemIds: ['10'],
+    await act(async () => {
+      ref.current.setState({selectedPosition: positions.before, selectedSibling: 1})
     })
+    await act(async () => {
+      ref.current.submitSelection()
+    })
+
+    await waitFor(() =>
+      expect(stubs.onSelect).toHaveBeenCalledWith({
+        groupId: null,
+        order: ['12', '10', '30'],
+        itemIds: ['10'],
+      }),
+    )
   })
 
-  it('submitSelection() calls onSelect with properly ordered items for groups', () => {
+  it('submitSelection() calls onSelect with properly ordered items for groups', async () => {
     const props = defaultProps()
     props.moveOptions = {
       groupsLabel: 'groups',
@@ -398,68 +424,90 @@ describe('MoveSelect', () => {
     }
     const {ref} = renderMoveSelect(props)
 
-    ref.current.setState({
-      selectedPosition: positions.before,
-      selectedGroup: props.moveOptions.groups[0],
-      selectedSibling: 1,
+    await act(async () => {
+      ref.current.setState({
+        selectedPosition: positions.before,
+        selectedGroup: props.moveOptions.groups[0],
+        selectedSibling: 1,
+      })
     })
-    ref.current.submitSelection()
+    await act(async () => {
+      ref.current.submitSelection()
+    })
 
-    expect(stubs.onSelect).toHaveBeenCalledWith({
-      groupId: '12',
-      order: ['2', '10', '8'],
-      itemIds: ['10'],
-    })
+    await waitFor(() =>
+      expect(stubs.onSelect).toHaveBeenCalledWith({
+        groupId: '12',
+        order: ['2', '10', '8'],
+        itemIds: ['10'],
+      }),
+    )
   })
 
-  it('submitSelection() calls onSelect with properly ordered items for multple items', () => {
+  it('submitSelection() calls onSelect with properly ordered items for multple items', async () => {
     const {ref, props} = setupRefForMultipleItems()
 
-    ref.current.setState({
-      selectedPosition: positions.before,
-      selectedGroup: props.moveOptions.groups[1],
-      selectedSibling: 1,
+    await act(async () => {
+      ref.current.setState({
+        selectedPosition: positions.before,
+        selectedGroup: props.moveOptions.groups[1],
+        selectedSibling: 1,
+      })
     })
-    ref.current.submitSelection()
+    await act(async () => {
+      ref.current.submitSelection()
+    })
 
-    expect(stubs.onSelect).toHaveBeenCalledWith({
-      groupId: '30',
-      order: ['4', '88', '14', '12', '6'],
-      itemIds: ['88', '14', '12'],
-    })
+    await waitFor(() =>
+      expect(stubs.onSelect).toHaveBeenCalledWith({
+        groupId: '30',
+        order: ['4', '88', '14', '12', '6'],
+        itemIds: ['88', '14', '12'],
+      }),
+    )
   })
 
-  it('submitSelection() calls onSelect with properly ordered items for multple items for an absolute position', () => {
+  it('submitSelection() calls onSelect with properly ordered items for multple items for an absolute position', async () => {
     const {ref, props} = setupRefForMultipleItems()
 
-    ref.current.setState({
-      selectedPosition: positions.last,
-      selectedGroup: props.moveOptions.groups[1],
-      selectedSibling: 1,
+    await act(async () => {
+      ref.current.setState({
+        selectedPosition: positions.last,
+        selectedGroup: props.moveOptions.groups[1],
+        selectedSibling: 1,
+      })
     })
-    ref.current.submitSelection()
+    await act(async () => {
+      ref.current.submitSelection()
+    })
 
-    expect(stubs.onSelect).toHaveBeenCalledWith({
-      groupId: '30',
-      order: ['4', '6', '88', '14', '12'],
-      itemIds: ['88', '14', '12'],
-    })
+    await waitFor(() =>
+      expect(stubs.onSelect).toHaveBeenCalledWith({
+        groupId: '30',
+        order: ['4', '6', '88', '14', '12'],
+        itemIds: ['88', '14', '12'],
+      }),
+    )
   })
 
-  it('submitSelection() calls onSelect with properly ordered items for a selected group in the first position', () => {
+  it('submitSelection() calls onSelect with properly ordered items for a selected group in the first position', async () => {
     const {ref, props} = setupRefForMultipleItems()
 
-    ref.current.setState({
-      selectedPosition: positions.first,
-      selectedGroup: props.moveOptions.groups[0],
-      selectedSibling: 0,
-    })
+    await waitFor(() =>
+      ref.current.setState({
+        selectedPosition: positions.first,
+        selectedGroup: props.moveOptions.groups[0],
+        selectedSibling: 0,
+      }),
+    )
     ref.current.submitSelection()
 
-    expect(stubs.onSelect).toHaveBeenCalledWith({
-      groupId: '12',
-      order: ['88', '14', '12', '2', '8'],
-      itemIds: ['88', '14', '12'],
-    })
+    await waitFor(() =>
+      expect(stubs.onSelect).toHaveBeenCalledWith({
+        groupId: '12',
+        order: ['88', '14', '12', '2', '8'],
+        itemIds: ['88', '14', '12'],
+      }),
+    )
   })
 })

@@ -24,7 +24,7 @@ describe('awaitElement', () => {
   })
 
   afterAll(() => {
-    vi.runAllTimers()
+    vi.runOnlyPendingTimers()
     vi.useRealTimers()
   })
 
@@ -52,7 +52,7 @@ describe('awaitElement', () => {
 
     const promise = awaitElement('lolly', 1000)
     document.body.append(elt)
-    vi.runAllTimers()
+    vi.runOnlyPendingTimers()
     const result = await promise
     expect(result.id).toBe('lolly')
   })
@@ -63,7 +63,7 @@ describe('awaitElement', () => {
     document.body.append(elt)
 
     const promise = awaitElement('popsicle', 1000)
-    vi.runAllTimers()
+    vi.runOnlyPendingTimers()
     const result = await promise
     expect(result.id).toBe('popsicle')
   })
@@ -87,7 +87,7 @@ describe('awaitElement', () => {
 
     vi.advanceTimersByTime(2949) // wait until it's almost too late
     document.body.append(elt) // ...then add the element in the nick of time
-    vi.runAllTimers()
+    vi.runOnlyPendingTimers()
 
     const result = await promise
     expect(result.id).toBe('just-in-time')

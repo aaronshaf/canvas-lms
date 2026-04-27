@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, act, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import Services from '../Services'
@@ -38,11 +38,15 @@ it('generates the toolConfiguration', () => {
   expect(toolConfig[0]).toEqual('ascope')
 })
 
-it('changes the scopes on select', () => {
+it('changes the scopes on select', async () => {
   const ref = React.createRef()
   render(<Services {...props({ref})} />)
-  ref.current.handleScopesSelectionChange(['ascope', 'bscope'])
-  const toolConfig = ref.current.generateToolConfigurationPart()
-  expect(toolConfig).toHaveLength(2)
-  expect(toolConfig[1]).toEqual('bscope')
+  act(() => {
+    ref.current.handleScopesSelectionChange(['ascope', 'bscope'])
+  })
+  await waitFor(() => {
+    const toolConfig = ref.current.generateToolConfigurationPart()
+    expect(toolConfig).toHaveLength(2)
+    expect(toolConfig[1]).toEqual('bscope')
+  })
 })

@@ -19,7 +19,7 @@
 import React from 'react'
 import $ from 'jquery'
 import moment from 'moment-timezone'
-import {act, fireEvent, render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import {screen} from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import {eventFormProps, conference, userContext, courseContext, accountContext} from './mocks'
@@ -35,19 +35,19 @@ let defaultProps = eventFormProps()
 const changeValue = (component, testid, value) => {
   const child = component.getByTestId(testid)
   expect(child).toBeInTheDocument()
-  act(() => child.click())
+  fireEvent.click(child)
   fireEvent.change(child, {target: {value}})
   if (testid == 'edit-calendar-event-form-date') {
     fireEvent.keyUp(child, {key: 'Enter', code: 'Enter'})
   } else {
-    act(() => child.blur())
+    fireEvent.blur(child)
   }
   return child
 }
 
 const setTime = (component, testid, time) => {
   const clock = component.getByTestId(testid)
-  act(() => clock.click())
+  fireEvent.click(clock)
   fireEvent.click(component.getByText(time))
   return clock
 }
@@ -58,7 +58,7 @@ const testTimezone = async (timezone, inputDate, expectedDate, time) => {
   // CanvasDateInput2 now stores values as an ISO8601 compliant string
   changeValue(component, 'edit-calendar-event-form-date', inputDate)
   if (time) setTime(component, 'event-form-end-time', time)
-  component.getByText('Submit').click()
+  fireEvent.click(component.getByText('Submit'))
 
   // When a time is provided, we're setting the end time, so check end_at
   // When no time is provided, check start_at (date at midnight)
@@ -78,8 +78,8 @@ const testTimezone = async (timezone, inputDate, expectedDate, time) => {
 const testBlackoutDateSuccess = () => {
   const component = render(<CalendarEventDetailsForm {...defaultProps} />)
 
-  component.getByText('Add to Course Pacing blackout dates').click()
-  component.getByText('Submit').click()
+  fireEvent.click(component.getByText('Add to Course Pacing blackout dates'))
+  fireEvent.click(component.getByText('Submit'))
   expect(defaultProps.event.save).toHaveBeenCalledWith(
     expect.objectContaining({
       'calendar_event[blackout_date]': true,
@@ -121,7 +121,7 @@ describe('CalendarEventDetailsForm', () => {
     const component = render(<CalendarEventDetailsForm {...defaultProps} />)
     expect(defaultProps.setSetContextCB).toHaveBeenCalled()
     expect(defaultProps.contextChangeCB).toHaveBeenCalled()
-    component.getByText('Submit').click()
+    fireEvent.click(component.getByText('Submit'))
 
     await waitFor(() => expect(defaultProps.closeCB).toHaveBeenCalled())
 
@@ -139,7 +139,7 @@ describe('CalendarEventDetailsForm', () => {
     setTime(component, 'event-form-start-time', '2:00 AM')
     setTime(component, 'event-form-end-time', '3:00 PM')
     expect(component.getByText('More Options')).toBeInTheDocument()
-    component.getByText('Submit').click()
+    fireEvent.click(component.getByText('Submit'))
     await waitFor(() => expect(defaultProps.closeCB).toHaveBeenCalled())
     expect(defaultProps.event.save).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -165,7 +165,7 @@ describe('CalendarEventDetailsForm', () => {
     props.event.object = {rrule: 'FREQ=DAILY;INTERVAL=1;COUNT=3'}
 
     const component = render(<CalendarEventDetailsForm {...props} />)
-    component.getByText('Submit').click()
+    fireEvent.click(component.getByText('Submit'))
 
     expect(UpdateCalendarEventDialogModule.renderUpdateCalendarEventDialog).toHaveBeenCalled()
     await waitFor(() =>
@@ -186,7 +186,7 @@ describe('CalendarEventDetailsForm', () => {
     props.event.object = {rrule: null}
 
     const component = render(<CalendarEventDetailsForm {...props} />)
-    component.getByText('Submit').click()
+    fireEvent.click(component.getByText('Submit'))
 
     expect(UpdateCalendarEventDialogModule.renderUpdateCalendarEventDialog).not.toHaveBeenCalled()
     await waitFor(() => expect(props.event.save).toHaveBeenCalled())
@@ -201,9 +201,9 @@ describe('CalendarEventDetailsForm', () => {
     props.event.object = {rrule: 'FREQ=DAILY;INTERVAL=1;COUNT=3'}
 
     const component = render(<CalendarEventDetailsForm {...props} />)
-    component.getByText('Frequency').click() // open the dropdown
-    component.getByText('Does not repeat').click() // select the option
-    component.getByText('Submit').click()
+    fireEvent.click(component.getByText('Frequency')) // open the dropdown
+    fireEvent.click(await component.findByText('Does not repeat')) // select the option
+    fireEvent.click(component.getByText('Submit'))
 
     expect(UpdateCalendarEventDialogModule.renderUpdateCalendarEventDialog).not.toHaveBeenCalled()
     await waitFor(() => expect(props.event.save).toHaveBeenCalled())
@@ -218,7 +218,7 @@ describe('CalendarEventDetailsForm', () => {
     expect(date.value).toBe('Thu, Jul 14, 2022')
     date = changeValue(component, 'edit-calendar-event-form-date', '2022-07-23T00:00:00.000Z')
     expect(date.value).toBe('Sat, Jul 23, 2022')
-    component.getByText('Submit').click()
+    fireEvent.click(component.getByText('Submit'))
 
     await waitFor(() =>
       expect(defaultProps.event.save).toHaveBeenCalledWith(
@@ -256,11 +256,11 @@ describe('CalendarEventDetailsForm', () => {
     expect(date.value).toBe('Thu, Jul 14, 2022')
 
     for (let i = 0; i < 30; i++) {
-      act(() => date.click())
-      act(() => date.blur())
+      fireEvent.click(date)
+      fireEvent.blur(date)
     }
 
-    component.getByText('Submit').click()
+    fireEvent.click(component.getByText('Submit'))
     expect(date.value).toBe('Thu, Jul 14, 2022')
 
     await waitFor(() =>
@@ -318,7 +318,12 @@ describe('CalendarEventDetailsForm', () => {
   })
 
   it('can change the date in Tokyo at 11:30 PM', async () => {
-    await testTimezone('Asia/Tokyo', '2022-07-13T15:00:00.000Z', '2022-07-14T14:30:00.000Z', '11:30 PM')
+    await testTimezone(
+      'Asia/Tokyo',
+      '2022-07-13T15:00:00.000Z',
+      '2022-07-14T14:30:00.000Z',
+      '11:30 PM',
+    )
   })
 
   it('can change the date in the UK at 12:00 AM', async () => {
@@ -326,7 +331,12 @@ describe('CalendarEventDetailsForm', () => {
   })
 
   it('can change the date in the UK at 11:30 PM', async () => {
-    await testTimezone('Etc/UTC', '2022-07-14T00:00:00.000Z', '2022-07-14T23:30:00.000Z', '11:30 PM')
+    await testTimezone(
+      'Etc/UTC',
+      '2022-07-14T00:00:00.000Z',
+      '2022-07-14T23:30:00.000Z',
+      '11:30 PM',
+    )
   })
 
   it('can change the date in eastern Brazil at 12:00 AM', async () => {
@@ -334,7 +344,12 @@ describe('CalendarEventDetailsForm', () => {
   })
 
   it('can change the date in eastern Brazil at 11:30 PM', async () => {
-    await testTimezone('Brazil/East', '2022-07-14T03:00:00.000Z', '2022-07-15T02:30:00.000Z', '11:30 PM')
+    await testTimezone(
+      'Brazil/East',
+      '2022-07-14T03:00:00.000Z',
+      '2022-07-15T02:30:00.000Z',
+      '11:30 PM',
+    )
   })
 
   it('does not show FrequencyPicker when the event is section-specific', () => {

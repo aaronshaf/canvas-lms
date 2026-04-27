@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, within} from '@testing-library/react'
+import {act, render, within} from '@testing-library/react'
 import {Set} from 'immutable'
 import IndividualStudentMastery from '../index'
 import fetchOutcomes from '../fetchOutcomes'
@@ -117,9 +117,13 @@ describe('expand and contract', () => {
     const ref = React.createRef()
     render(<IndividualStudentMastery {...props} ref={ref} />)
     await ref.current.componentDidMount()
-    ref.current.onElementExpansionChange('outcome', 100, true)
+    await act(async () => {
+      ref.current.onElementExpansionChange('outcome', 100, true)
+    })
     expect(ref.current.state.expandedOutcomes.equals(Set.of(100))).toBe(true)
-    ref.current.onElementExpansionChange('outcome', 100, false)
+    await act(async () => {
+      ref.current.onElementExpansionChange('outcome', 100, false)
+    })
     expect(ref.current.state.expandedOutcomes.equals(Set())).toBe(true)
   })
 
@@ -137,7 +141,9 @@ describe('expand and contract', () => {
     const ref = React.createRef()
     render(<IndividualStudentMastery {...props} ref={ref} />)
     await ref.current.componentDidMount()
-    ref.current.expand()
+    await act(async () => {
+      ref.current.expand()
+    })
     expect(ref.current.state.expandedGroups.equals(Set.of(1))).toBe(true)
     expect(ref.current.state.expandedOutcomes.equals(Set.of(100))).toBe(true)
   })
@@ -157,11 +163,17 @@ describe('expand and contract', () => {
     const ref = React.createRef()
     render(<IndividualStudentMastery {...props} ref={ref} />)
     await ref.current.componentDidMount()
-    ref.current.onElementExpansionChange('outcome', 100, true)
+    await act(async () => {
+      ref.current.onElementExpansionChange('outcome', 100, true)
+    })
     expect(props.onExpansionChange).toHaveBeenLastCalledWith(true, true)
-    ref.current.onElementExpansionChange('group', 1, true)
+    await act(async () => {
+      ref.current.onElementExpansionChange('group', 1, true)
+    })
     expect(props.onExpansionChange).toHaveBeenLastCalledWith(true, false)
-    ref.current.contract()
+    await act(async () => {
+      ref.current.contract()
+    })
     expect(props.onExpansionChange).toHaveBeenLastCalledWith(false, true)
   })
 })

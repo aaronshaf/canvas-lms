@@ -178,7 +178,7 @@ describe('DynamicRegistrationWizard', () => {
       expect(screen.getByText(/Loading Registration/i)).toBeInTheDocument()
     })
 
-    await waitFor(() => screen.findByText(/^Permissions$/i))
+    await screen.findByText(/^Permissions$/i)
 
     expect(getRegistrationByUUID).toHaveBeenCalledWith('123', 'uuid_value')
   })

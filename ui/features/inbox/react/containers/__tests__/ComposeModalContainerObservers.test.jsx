@@ -156,13 +156,10 @@ describe('ComposeModalContainer - Include Observers Button', () => {
 
     await waitForApolloLoading()
 
-    await waitFor(
-      () => {
-        const button = component.queryByTestId('include-observer-button')
-        expect(button).toBeInTheDocument()
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      const button = component.queryByTestId('include-observer-button')
+      expect(button).toBeInTheDocument()
+    })
   })
 
   it('should fetch all observers when button is clicked (single page)', async () => {
@@ -227,18 +224,14 @@ describe('ComposeModalContainer - Include Observers Button', () => {
     expect(button).toBeInTheDocument()
     fireEvent.click(button)
 
-    await waitFor(
-      () => {
-        expect(onSelectedIdsChange).toHaveBeenCalled()
-        const callArgs =
-          onSelectedIdsChange.mock.calls[onSelectedIdsChange.mock.calls.length - 1][0]
-        expect(callArgs).toHaveLength(4)
-        const observerIds = callArgs.map(r => r._id)
-        expect(observerIds).toContain('3')
-        expect(observerIds).toContain('4')
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      expect(onSelectedIdsChange).toHaveBeenCalled()
+      const callArgs = onSelectedIdsChange.mock.calls[onSelectedIdsChange.mock.calls.length - 1][0]
+      expect(callArgs).toHaveLength(4)
+      const observerIds = callArgs.map(r => r._id)
+      expect(observerIds).toContain('3')
+      expect(observerIds).toContain('4')
+    })
   })
 
   it('should fetch all observers across multiple pages when button is clicked', async () => {
@@ -324,20 +317,16 @@ describe('ComposeModalContainer - Include Observers Button', () => {
     expect(button).toBeInTheDocument()
     fireEvent.click(button)
 
-    await waitFor(
-      () => {
-        expect(onSelectedIdsChange).toHaveBeenCalled()
-        expect(callCount).toBeGreaterThanOrEqual(2)
+    await waitFor(() => {
+      expect(onSelectedIdsChange).toHaveBeenCalled()
+      expect(callCount).toBeGreaterThanOrEqual(2)
 
-        const callArgs =
-          onSelectedIdsChange.mock.calls[onSelectedIdsChange.mock.calls.length - 1][0]
-        expect(callArgs).toHaveLength(32)
+      const callArgs = onSelectedIdsChange.mock.calls[onSelectedIdsChange.mock.calls.length - 1][0]
+      expect(callArgs).toHaveLength(32)
 
-        const observerIds = callArgs.map(r => r._id)
-        expect(observerIds).toContain('1')
-        expect(observerIds).toContain('30')
-      },
-      {timeout: 5000},
-    )
+      const observerIds = callArgs.map(r => r._id)
+      expect(observerIds).toContain('1')
+      expect(observerIds).toContain('30')
+    })
   })
 })

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import GradeInput from '../../components/GradeInput'
 import GradeInputDriver from './GradeInputDriver'
 import fakeENV from '@canvas/test-utils/fakeENV'
@@ -84,11 +84,13 @@ describe('Gradebook > Default Gradebook > Components > GradeInput', () => {
       expect(gradeInput.labelText).toBe('Grade')
     })
 
-    test('includes "Ungraded," "Complete," and "Incomplete" as options text', () => {
+    test('includes "Ungraded," "Complete," and "Incomplete" as options text', async () => {
       renderComponent()
       gradeInput.clickToExpand()
       // verifies the option labels
-      expect(gradeInput.optionLabels).toEqual(['Ungraded', 'Complete', 'Incomplete'])
+      await waitFor(() => {
+        expect(gradeInput.optionLabels).toEqual(['Ungraded', 'Complete', 'Incomplete'])
+      })
     })
 
     describe('when the submission is not graded', () => {
@@ -99,12 +101,14 @@ describe('Gradebook > Default Gradebook > Components > GradeInput', () => {
         expect(gradeInput.value).toBe('Ungraded')
       })
 
-      test('sets the active option to "Ungraded"', () => {
+      test('sets the active option to "Ungraded"', async () => {
         props.submission.enteredGrade = null
         renderComponent()
         gradeInput.clickToExpand()
         // verifies the active item label
-        expect(gradeInput.activeItemLabel).toBe('Ungraded')
+        await waitFor(() => {
+          expect(gradeInput.activeItemLabel).toBe('Ungraded')
+        })
       })
     })
 
@@ -117,13 +121,15 @@ describe('Gradebook > Default Gradebook > Components > GradeInput', () => {
         expect(gradeInput.value).toBe('Complete')
       })
 
-      test('sets the active option to "Complete"', () => {
+      test('sets the active option to "Complete"', async () => {
         props.submission.enteredScore = 10
         props.submission.enteredGrade = 'complete'
         renderComponent()
         gradeInput.clickToExpand()
         // verifies the active item label
-        expect(gradeInput.activeItemLabel).toBe('Complete')
+        await waitFor(() => {
+          expect(gradeInput.activeItemLabel).toBe('Complete')
+        })
       })
     })
 
@@ -135,12 +141,14 @@ describe('Gradebook > Default Gradebook > Components > GradeInput', () => {
         expect(gradeInput.value).toBe('Incomplete')
       })
 
-      test('sets the active option to "Incomplete"', () => {
+      test('sets the active option to "Incomplete"', async () => {
         props.submission.enteredGrade = 'incomplete'
         renderComponent()
         gradeInput.clickToExpand()
         // verifies the active item label
-        expect(gradeInput.activeItemLabel).toBe('Incomplete')
+        await waitFor(() => {
+          expect(gradeInput.activeItemLabel).toBe('Incomplete')
+        })
       })
     })
 
@@ -175,129 +183,159 @@ describe('Gradebook > Default Gradebook > Components > GradeInput', () => {
     })
 
     describe('when "Complete" is selected', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         renderComponent()
         gradeInput.clickToExpand()
+        await waitFor(() => expect(gradeInput.isExpanded).toBe(true))
         gradeInput.clickToSelectOption('Complete')
+        await waitFor(() => expect(gradeInput.isExpanded).toBe(false))
       })
 
-      test('collapses the options list', () => {
+      test('collapses the options list', async () => {
         // checks if the options list is collapsed
-        expect(gradeInput.isExpanded).toBe(false)
+        await waitFor(() => expect(gradeInput.isExpanded).toBe(false))
       })
 
-      test('sets the input value to "Complete"', () => {
+      test('sets the input value to "Complete"', async () => {
         // verifies the input value
-        expect(gradeInput.value).toBe('Complete')
+        await waitFor(() => expect(gradeInput.value).toBe('Complete'))
       })
 
-      test('calls the onSubmissionUpdate prop', () => {
-        expect(props.onSubmissionUpdate).toHaveBeenCalledTimes(1)
+      test('calls the onSubmissionUpdate prop', async () => {
+        await waitFor(() => expect(props.onSubmissionUpdate).toHaveBeenCalledTimes(1))
       })
 
-      test('calls the onSubmissionUpdate prop with the submission', () => {
-        const [updatedSubmission] = props.onSubmissionUpdate.mock.calls[0]
-        expect(updatedSubmission).toBe(props.submission)
+      test('calls the onSubmissionUpdate prop with the submission', async () => {
+        await waitFor(() => {
+          const [updatedSubmission] = props.onSubmissionUpdate.mock.calls[0]
+          expect(updatedSubmission).toBe(props.submission)
+        })
       })
 
-      test('calls the onSubmissionUpdate prop with the grade form of the selected grade', () => {
-        const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
-        expect(gradingData.grade).toBe('complete')
+      test('calls the onSubmissionUpdate prop with the grade form of the selected grade', async () => {
+        await waitFor(() => {
+          const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
+          expect(gradingData.grade).toBe('complete')
+        })
       })
 
-      test('calls the onSubmissionUpdate prop with the score form of the selected grade', () => {
-        const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
-        expect(gradingData.score).toBe(10)
+      test('calls the onSubmissionUpdate prop with the score form of the selected grade', async () => {
+        await waitFor(() => {
+          const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
+          expect(gradingData.score).toBe(10)
+        })
       })
 
-      test('calls the onSubmissionUpdate prop with the enteredAs set to "passFail"', () => {
-        const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
-        expect(gradingData.enteredAs).toBe('passFail')
+      test('calls the onSubmissionUpdate prop with the enteredAs set to "passFail"', async () => {
+        await waitFor(() => {
+          const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
+          expect(gradingData.enteredAs).toBe('passFail')
+        })
       })
     })
 
     describe('when "Incomplete" is selected', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         renderComponent()
         gradeInput.clickToExpand()
+        await waitFor(() => expect(gradeInput.isExpanded).toBe(true))
         gradeInput.clickToSelectOption('Incomplete')
+        await waitFor(() => expect(gradeInput.isExpanded).toBe(false))
       })
 
-      test('collapses the options list', () => {
+      test('collapses the options list', async () => {
         // checks if the options list is collapsed
-        expect(gradeInput.isExpanded).toBe(false)
+        await waitFor(() => expect(gradeInput.isExpanded).toBe(false))
       })
 
-      test('sets the input value to "Incomplete"', () => {
+      test('sets the input value to "Incomplete"', async () => {
         // verifies the input value
-        expect(gradeInput.value).toBe('Incomplete')
+        await waitFor(() => expect(gradeInput.value).toBe('Incomplete'))
       })
 
-      test('calls the onSubmissionUpdate prop', () => {
-        expect(props.onSubmissionUpdate).toHaveBeenCalledTimes(1)
+      test('calls the onSubmissionUpdate prop', async () => {
+        await waitFor(() => expect(props.onSubmissionUpdate).toHaveBeenCalledTimes(1))
       })
 
-      test('calls the onSubmissionUpdate prop with the submission', () => {
-        const [updatedSubmission] = props.onSubmissionUpdate.mock.calls[0]
-        expect(updatedSubmission).toBe(props.submission)
+      test('calls the onSubmissionUpdate prop with the submission', async () => {
+        await waitFor(() => {
+          const [updatedSubmission] = props.onSubmissionUpdate.mock.calls[0]
+          expect(updatedSubmission).toBe(props.submission)
+        })
       })
 
-      test('calls the onSubmissionUpdate prop with the entered grade', () => {
-        const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
-        expect(gradingData.grade).toBe('incomplete')
+      test('calls the onSubmissionUpdate prop with the entered grade', async () => {
+        await waitFor(() => {
+          const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
+          expect(gradingData.grade).toBe('incomplete')
+        })
       })
 
-      test('calls the onSubmissionUpdate prop with the score form of the entered grade', () => {
-        const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
-        expect(gradingData.score).toBe(0)
+      test('calls the onSubmissionUpdate prop with the score form of the entered grade', async () => {
+        await waitFor(() => {
+          const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
+          expect(gradingData.score).toBe(0)
+        })
       })
 
-      test('calls the onSubmissionUpdate prop with the enteredAs set to "passFail"', () => {
-        const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
-        expect(gradingData.enteredAs).toBe('passFail')
+      test('calls the onSubmissionUpdate prop with the enteredAs set to "passFail"', async () => {
+        await waitFor(() => {
+          const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
+          expect(gradingData.enteredAs).toBe('passFail')
+        })
       })
     })
 
     describe('when the current grade is cleared', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         props.submission.enteredGrade = 'incomplete'
         renderComponent()
         gradeInput.clickToExpand()
+        await waitFor(() => expect(gradeInput.isExpanded).toBe(true))
         gradeInput.clickToSelectOption('Ungraded')
+        await waitFor(() => expect(gradeInput.isExpanded).toBe(false))
       })
 
-      test('collapses the options list', () => {
+      test('collapses the options list', async () => {
         // checks if the options list is collapsed
-        expect(gradeInput.isExpanded).toBe(false)
+        await waitFor(() => expect(gradeInput.isExpanded).toBe(false))
       })
 
-      test('sets the input value to "Ungraded"', () => {
+      test('sets the input value to "Ungraded"', async () => {
         // verifies the input value
-        expect(gradeInput.value).toBe('Ungraded')
+        await waitFor(() => expect(gradeInput.value).toBe('Ungraded'))
       })
 
-      test('calls the onSubmissionUpdate prop', () => {
-        expect(props.onSubmissionUpdate).toHaveBeenCalledTimes(1)
+      test('calls the onSubmissionUpdate prop', async () => {
+        await waitFor(() => expect(props.onSubmissionUpdate).toHaveBeenCalledTimes(1))
       })
 
-      test('calls the onSubmissionUpdate prop with the submission', () => {
-        const [updatedSubmission] = props.onSubmissionUpdate.mock.calls[0]
-        expect(updatedSubmission).toBe(props.submission)
+      test('calls the onSubmissionUpdate prop with the submission', async () => {
+        await waitFor(() => {
+          const [updatedSubmission] = props.onSubmissionUpdate.mock.calls[0]
+          expect(updatedSubmission).toBe(props.submission)
+        })
       })
 
-      test('calls the onSubmissionUpdate prop with a null grade form', () => {
-        const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
-        expect(gradingData.grade).toBeNull()
+      test('calls the onSubmissionUpdate prop with a null grade form', async () => {
+        await waitFor(() => {
+          const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
+          expect(gradingData.grade).toBeNull()
+        })
       })
 
-      test('calls the onSubmissionUpdate prop with a null score form', () => {
-        const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
-        expect(gradingData.score).toBeNull()
+      test('calls the onSubmissionUpdate prop with a null score form', async () => {
+        await waitFor(() => {
+          const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
+          expect(gradingData.score).toBeNull()
+        })
       })
 
-      test('calls the onSubmissionUpdate prop with the enteredAs set to null', () => {
-        const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
-        expect(gradingData.enteredAs).toBeNull()
+      test('calls the onSubmissionUpdate prop with the enteredAs set to null', async () => {
+        await waitFor(() => {
+          const gradingData = props.onSubmissionUpdate.mock.calls[0][1]
+          expect(gradingData.enteredAs).toBeNull()
+        })
       })
     })
 
@@ -320,11 +358,13 @@ describe('Gradebook > Default Gradebook > Components > GradeInput', () => {
         expect(gradeInput.value).toBe('Excused')
       })
 
-      test('disables the other select options', () => {
+      test('disables the other select options', async () => {
         renderComponent()
         gradeInput.clickToExpand()
         // checks if the select options are disabled
-        expect(gradeInput.optionsAreDisabled).toBe(true)
+        await waitFor(() => {
+          expect(gradeInput.optionsAreDisabled).toBe(true)
+        })
       })
 
       describe('when the submission grade finishes updating', () => {
@@ -340,10 +380,12 @@ describe('Gradebook > Default Gradebook > Components > GradeInput', () => {
           expect(gradeInput.value).toBe('Complete')
         })
 
-        test('enables the select options', () => {
+        test('enables the select options', async () => {
           gradeInput.clickToExpand()
           // checks if the select options are enabled
-          expect(gradeInput.optionsAreDisabled).toBe(false)
+          await waitFor(() => {
+            expect(gradeInput.optionsAreDisabled).toBe(false)
+          })
         })
       })
     })
@@ -370,23 +412,29 @@ describe('Gradebook > Default Gradebook > Components > GradeInput', () => {
     })
 
     describe('when handling down arrow', () => {
-      test('activates the option after the current active option', () => {
+      test('activates the option after the current active option', async () => {
         renderComponent()
         gradeInput.clickToExpand()
+        await waitFor(() => expect(gradeInput.isExpanded).toBe(true))
         gradeInput.keyDown(40) // Arrow Down key code
         // checks if the active item label is "Complete"
-        expect(gradeInput.activeItemLabel).toBe('Complete')
+        await waitFor(() => {
+          expect(gradeInput.activeItemLabel).toBe('Complete')
+        })
       })
     })
 
     describe('when handling up arrow', () => {
-      test('activates the option previous to the current active option', () => {
+      test('activates the option previous to the current active option', async () => {
         props.submission = {...props.submission, enteredGrade: 'complete'}
         renderComponent()
         gradeInput.clickToExpand()
+        await waitFor(() => expect(gradeInput.isExpanded).toBe(true))
         gradeInput.keyDown(38) // Arrow Up key code
         // verifies the active item label is "Ungraded"
-        expect(gradeInput.activeItemLabel).toBe('Ungraded')
+        await waitFor(() => {
+          expect(gradeInput.activeItemLabel).toBe('Ungraded')
+        })
       })
     })
   })

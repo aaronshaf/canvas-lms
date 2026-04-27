@@ -18,7 +18,7 @@
 
 import React from 'react'
 import TimeZoneSelect from '../TimeZoneSelect'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import {isEqual} from 'es-toolkit/compat'
 
 let liveRegion = null
@@ -110,9 +110,9 @@ describe('TimeZoneSelect', () => {
     )
   })
 
-  it('calls onChange on a selection', () => {
+  it('calls onChange on a selection', async () => {
     const onChangeTZ = vi.fn()
-    const {getByText} = render(
+    const {getByText, findByText} = render(
       <TimeZoneSelect
         label="the label"
         onChange={onChangeTZ}
@@ -125,11 +125,11 @@ describe('TimeZoneSelect', () => {
     const label = getByText('the label')
     label.click()
 
-    const eastern = getByText('Eastern localized')
+    const eastern = await findByText('Eastern localized')
     eastern.click()
 
     // onChange's event.target.value === onChanges's 2nd argument
-    expect(onChangeTZ).toHaveBeenCalled()
+    await waitFor(() => expect(onChangeTZ).toHaveBeenCalled())
     expect(onChangeTZ.mock.calls[0][0].target.value).toEqual('Eastern')
     expect(onChangeTZ.mock.calls[0][1]).toEqual('Eastern')
   })

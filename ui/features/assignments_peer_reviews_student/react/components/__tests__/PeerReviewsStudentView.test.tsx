@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import {queryClient} from '@instructure/platform-query'
@@ -1988,7 +1988,7 @@ describe('PeerReviewsStudentView', () => {
       })
 
       const user = userEvent.setup()
-      await user.click(getByText('Submissions to Review'))
+      fireEvent.click(getByText('Submissions to Review'))
 
       await waitFor(() => {
         expect(getByTestId('text-entry-content')).toHaveTextContent('First submission')
@@ -2047,7 +2047,7 @@ describe('PeerReviewsStudentView', () => {
       })
 
       const user = userEvent.setup()
-      await user.click(getByText('Submissions to Review'))
+      fireEvent.click(getByText('Submissions to Review'))
 
       const selector = getByTestId('peer-review-selector')
       await user.click(selector)
@@ -2091,8 +2091,7 @@ describe('PeerReviewsStudentView', () => {
       await waitFor(() => {
         expect(getByTestId('peer-review-selector')).toBeInTheDocument()
       })
-      const user = userEvent.setup()
-      await user.click(getByText('Submissions to Review'))
+      fireEvent.click(getByText('Submissions to Review'))
 
       await waitFor(() => {
         expect(getByTestId('unavailable-peer-review')).toBeInTheDocument()
@@ -2350,8 +2349,7 @@ describe('PeerReviewsStudentView', () => {
         expect(getByTestId('peer-review-selector')).toBeInTheDocument()
       })
 
-      const user = userEvent.setup()
-      await user.click(getByText('Submissions to Review'))
+      fireEvent.click(getByText('Submissions to Review'))
 
       await waitFor(() => {
         expect(getByTestId('unavailable-peer-review')).toBeInTheDocument()

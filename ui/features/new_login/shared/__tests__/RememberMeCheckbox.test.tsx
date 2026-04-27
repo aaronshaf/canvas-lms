@@ -21,10 +21,6 @@ import React from 'react'
 import {RememberMeCheckbox} from '..'
 import {NewLoginProvider} from '../../context'
 
-afterEach(() => {
-  cleanup()
-})
-
 describe('RememberMeCheckbox', () => {
   it('mounts without crashing', () => {
     render(

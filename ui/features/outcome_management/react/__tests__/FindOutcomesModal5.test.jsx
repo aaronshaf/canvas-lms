@@ -129,10 +129,10 @@ describe('FindOutcomesModal', () => {
     const {getByText, getByLabelText} = render(<FindOutcomesModal {...defaultProps()} />, {
       mocks: [...findModalMocks(), ...findOutcomesMocks()],
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     fireEvent.click(getByText('Account Standards'))
     fireEvent.click(getByText('Root Account Outcome Group 0'))
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('25 Outcomes')).toBeInTheDocument()
 
     const input = getByLabelText('Search field')
@@ -145,7 +145,8 @@ describe('FindOutcomesModal', () => {
     expect(getByText('25 Outcomes')).toBeInTheDocument()
 
     fireEvent.change(input, {target: {value: 'mathematics'}})
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers()) // fires debounce → Apollo schedules setTimeout(0)
+    await act(async () => vi.runOnlyPendingTimers()) // drains Apollo's response timer
     await act(async () => vi.advanceTimersByTime(200))
     expect(getByText('15 Outcomes')).toBeInTheDocument()
   })
@@ -157,16 +158,16 @@ describe('FindOutcomesModal', () => {
         mocks: [...findModalMocks(), ...findOutcomesMocks()],
       },
     )
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     fireEvent.click(getByText('Account Standards'))
     fireEvent.click(getByText('Root Account Outcome Group 0'))
-    await act(async () => vi.runAllTimers())
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('25 Outcomes')).toBeInTheDocument()
 
     const input = getByLabelText('Search field')
     fireEvent.change(input, {target: {value: 'no results'}})
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     await act(async () => vi.advanceTimersByTime(200))
     expect(getByLabelText('Search field')).toBeEnabled()
     expect(queryByTestId('clear-search-icon')).toBeInTheDocument()

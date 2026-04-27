@@ -29,10 +29,6 @@ const render = (children: unknown) =>
   testingLibraryRender(<MockedQueryProvider>{children}</MockedQueryProvider>)
 
 describe('CoursesTray', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const courses = [
     {
       id: '1',

@@ -68,7 +68,7 @@ describe('K5Dashboard Schedule Section', () => {
     const {findByTestId} = render(
       <K5Dashboard {...defaultProps} defaultTab="tab-schedule" plannerEnabled={true} />,
     )
-    const planner = await findByTestId('PlannerApp', {timeout: 4000}) // give it some more time
+    const planner = await findByTestId('PlannerApp') // give it some more time
     expect(planner).toBeInTheDocument()
     const header = await findByTestId('WeeklyPlannerHeader')
     expect(header).toBeInTheDocument()

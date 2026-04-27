@@ -27,10 +27,6 @@ const defaultContent: ModuleItemContent = {
 }
 
 describe('CompletionRequirementDisplay', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   it('renders null if no completion requirement is provided', () => {
     const {container} = render(
       <CompletionRequirementDisplay

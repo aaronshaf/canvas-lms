@@ -39,7 +39,6 @@ describe('LoginHelp Component', () => {
   })
 
   afterEach(async () => {
-    cleanup()
     document.body.innerHTML = ''
     // Allow any pending timers to settle
     await waitFor(() => {}, {timeout: 100}).catch(() => {})

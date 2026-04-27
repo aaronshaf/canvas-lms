@@ -48,6 +48,7 @@ const server = setupServer(
   http.get('/users/:userId/manageable_courses', () => {
     return HttpResponse.json(fakeCourses)
   }),
+  http.get(/\/api\/v1\/courses\/\d+\/late_policy/, () => HttpResponse.json({})),
 )
 
 const renderComponent = (overrideProps?: any) =>

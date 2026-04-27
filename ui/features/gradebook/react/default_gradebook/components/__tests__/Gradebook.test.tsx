@@ -44,7 +44,6 @@ describe('Gradebook', () => {
     server.listen({onUnhandledRequest: 'bypass'})
   })
   afterEach(() => {
-    cleanup()
     store.setState(originalState, true)
     server.resetHandlers()
   })

@@ -199,12 +199,9 @@ describe('DiscussionPostToolbar', () => {
       fireEvent.click(splitscreenButton)
 
       // Wait for the success callback to be called with a longer timeout
-      await waitFor(
-        () => {
-          expect(onSuccessStub).toHaveBeenCalled()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(onSuccessStub).toHaveBeenCalled()
+      })
 
       // Verify the preference was updated
       expect(setUserSplitScreenPreference).toHaveBeenCalled()

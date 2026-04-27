@@ -107,6 +107,8 @@ describe('RCETextBlockPopup', () => {
       .closest('button') as HTMLButtonElement
     expect(fullscreenButton.textContent).toEqual('Fullscreen')
     fullscreenButton.click()
-    expect(fullscreenButton.textContent).toEqual('Exit Fullscreen')
+    await waitFor(() => {
+      expect(fullscreenButton.textContent).toEqual('Exit Fullscreen')
+    })
   })
 })

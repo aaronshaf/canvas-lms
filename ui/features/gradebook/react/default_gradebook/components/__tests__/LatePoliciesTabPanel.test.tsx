@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {userEvent} from '@testing-library/user-event'
-import {fireEvent, render, screen, waitFor, cleanup} from '@testing-library/react'
+import {act, fireEvent, render, screen, waitFor, cleanup} from '@testing-library/react'
 import LatePoliciesTabPanel from '../LatePoliciesTabPanel'
 import {
   getAutomaticallyApplyGradeForMissingSubmissionsCheckbox,
@@ -35,7 +35,6 @@ import {
 
 describe('LatePoliciesTabPanel', () => {
   afterEach(() => {
-    cleanup()
     vi.clearAllMocks()
   })
 
@@ -50,9 +49,9 @@ describe('LatePoliciesTabPanel', () => {
      * the double render behavior.
      */
     function subject(cb: (props: any) => void = () => {}) {
-      const props: any = {...getLatePoliciesTabPanelProps(), ...{}}
+      const props: any = {...getLatePoliciesTabPanelProps()}
       const container = render(<LatePoliciesTabPanel {...props} />)
-      props.latePolicy.data = {...getDefaultLatePolicyData(), ...{}}
+      props.latePolicy.data = {...getDefaultLatePolicyData()}
       cb(props)
       container.rerender(<LatePoliciesTabPanel {...props} />)
       return {container, props}
@@ -162,9 +161,9 @@ describe('LatePoliciesTabPanel', () => {
      * the double render behavior.
      */
     function subject(cb: (props: any) => void = () => {}) {
-      const props: any = {...getLatePoliciesTabPanelProps(), ...{}}
+      const props: any = {...getLatePoliciesTabPanelProps()}
       const {rerender} = render(<LatePoliciesTabPanel {...props} />)
-      props.latePolicy.data = {...getDefaultLatePolicyData, ...{}}
+      props.latePolicy.data = {...getDefaultLatePolicyData}
       cb(props)
       rerender(<LatePoliciesTabPanel {...props} />)
     }
@@ -307,44 +306,49 @@ describe('LatePoliciesTabPanel', () => {
       ).not.toBeInTheDocument()
     })
 
-    test('focuses on the missing submission input when the alert closes', () => {
+    test('focuses on the missing submission input when the alert closes', async () => {
       subject({showAlert: true})
       const spy = vi.spyOn(getGradePercentageForMissingSubmissionsInput(screen), 'focus')
-      ref.current.closeAlert()
-      expect(spy).toHaveBeenCalledTimes(1)
+      await act(async () => {
+        ref.current.closeAlert()
+      })
+      await waitFor(() => expect(spy).toHaveBeenCalledTimes(1))
     })
 
-    test('does not focus on the missing submission checkbox when the alert closes', () => {
+    test('does not focus on the missing submission checkbox when the alert closes', async () => {
       subject({showAlert: true})
-      const spy = vi.spyOn(
-        getAutomaticallyApplyGradeForMissingSubmissionsCheckbox(screen),
-        'focus',
-      )
-      ref.current.closeAlert()
+      const spy = vi.spyOn(getAutomaticallyApplyGradeForMissingSubmissionsCheckbox(screen), 'focus')
+      await act(async () => {
+        ref.current.closeAlert()
+      })
       expect(spy).toHaveBeenCalledTimes(0)
     })
 
     test(
       'focuses on the missing submission checkbox when the alert closes if the' +
         'missing submission input is disabled',
-      () => {
+      async () => {
         subject({showAlert: true}, {missingSubmissionDeductionEnabled: false})
         const spy = vi.spyOn(
           getAutomaticallyApplyGradeForMissingSubmissionsCheckbox(screen),
           'focus',
         )
-        ref.current.closeAlert()
-        expect(spy).toHaveBeenCalledTimes(1)
+        await act(async () => {
+          ref.current.closeAlert()
+        })
+        await waitFor(() => expect(spy).toHaveBeenCalledTimes(1))
       },
     )
 
     test(
       'does not focus on the missing submission input when the alert closes if the' +
         'missing submission input is disabled',
-      () => {
+      async () => {
         subject({showAlert: true}, {missingSubmissionDeductionEnabled: false})
         const spy = vi.spyOn(getGradePercentageForMissingSubmissionsInput(screen), 'focus')
-        ref.current.closeAlert()
+        await act(async () => {
+          ref.current.closeAlert()
+        })
         expect(spy).toHaveBeenCalledTimes(0)
       },
     )

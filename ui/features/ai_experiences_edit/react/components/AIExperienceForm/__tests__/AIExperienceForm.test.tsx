@@ -38,7 +38,6 @@ describe('AIExperienceForm', () => {
   const mockOnCancel = vi.fn()
 
   afterEach(() => {
-    cleanup()
     fakeEnv.teardown()
   })
 

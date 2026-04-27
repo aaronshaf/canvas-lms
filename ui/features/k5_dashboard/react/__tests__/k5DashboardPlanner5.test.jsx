@@ -65,7 +65,7 @@ describe('K5Dashboard Schedule Section', () => {
     const {findByTestId, getByTestId} = render(
       <K5Dashboard {...defaultProps} defaultTab="tab-schedule" plannerEnabled={true} />,
     )
-    const todayButton = await findByTestId('jump-to-today-button', {timeout: 10000})
+    const todayButton = await findByTestId('jump-to-today-button', undefined, {timeout: 10000})
     expect(todayButton).toBeEnabled()
     const previousButton = getByTestId('view-previous-week-button')
     await waitFor(() => expect(previousButton).toBeEnabled(), {timeout: 10000})

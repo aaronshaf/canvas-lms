@@ -33,8 +33,6 @@ describe('SearchGradingPeriodsField', () => {
     changeSearchText = vi.fn()
   })
 
-  afterEach(cleanup)
-
   it('onChange trims the search text and sends it to the parent component to filter', async () => {
     const {getByRole} = render(<SearchGradingPeriodsField changeSearchText={changeSearchText} />)
     const input = getByRole('textbox')

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook, act} from '@testing-library/react-hooks/dom'
+import {renderHook, act, waitFor} from '@testing-library/react'
 import useOutcomesImport, {
   IMPORT_PENDING,
   IMPORT_FAILED,
@@ -29,7 +29,6 @@ import OutcomesContext from '../../contexts/OutcomesContext'
 import {importGroupMocks, importOutcomeMocks} from '../../../mocks/Management'
 import {showFlashAlert} from '@instructure/platform-alerts'
 import resolveProgress from '@canvas/progress/resolve_progress'
-import {waitFor} from '@testing-library/react'
 
 vi.mock('@canvas/progress/resolve_progress')
 
@@ -55,18 +54,16 @@ describe('useOutcomesImport', () => {
     vi.clearAllMocks()
   })
 
-  const wrapper = ({
-    children,
-    mocks = importGroupMocks(),
-    contextType = 'Account',
-    contextId = '1',
-  }) => (
-    <MockedProvider cache={cache} mocks={mocks}>
-      <OutcomesContext.Provider value={{env: {contextType, contextId}}}>
-        {children}
-      </OutcomesContext.Provider>
-    </MockedProvider>
-  )
+  const createWrapper =
+    ({mocks = importGroupMocks(), contextType = 'Account', contextId = '1'} = {}) =>
+    ({children}) => (
+      <MockedProvider cache={cache} mocks={mocks}>
+        <OutcomesContext.Provider value={{env: {contextType, contextId}}}>
+          {children}
+        </OutcomesContext.Provider>
+      </MockedProvider>
+    )
+  const wrapper = createWrapper()
 
   const sharedResolverSpecs = () => {
     it('calls for resolveProgress', async () => {
@@ -83,10 +80,7 @@ describe('useOutcomesImport', () => {
   describe('Outcome import', () => {
     it('adds imported outcome id with pending status to importOutcomesStatus before starting outcome import', async () => {
       const {result} = renderHook(() => useOutcomesImport(), {
-        wrapper,
-        initialProps: {
-          mocks: importOutcomeMocks(),
-        },
+        wrapper: createWrapper({mocks: importOutcomeMocks()}),
       })
       act(() => {
         result.current.importOutcomes({outcomeOrGroupId: outcomeId, isGroup: false})
@@ -96,29 +90,23 @@ describe('useOutcomesImport', () => {
 
     it('sets status of imported outcome to failed if import fails', async () => {
       const {result} = renderHook(() => useOutcomesImport(), {
-        wrapper,
-        initialProps: {
-          mocks: importOutcomeMocks({failResponse: true}),
-        },
+        wrapper: createWrapper({mocks: importOutcomeMocks({failResponse: true})}),
       })
       act(() => {
         result.current.importOutcomes({outcomeOrGroupId: outcomeId, isGroup: false})
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(result.current.importOutcomesStatus).toEqual({[outcomeId]: IMPORT_FAILED})
     })
 
     it('calls progress tracker after outcome import mutation is triggered', async () => {
       const {result} = renderHook(() => useOutcomesImport(), {
-        wrapper,
-        initialProps: {
-          mocks: importOutcomeMocks(),
-        },
+        wrapper: createWrapper({mocks: importOutcomeMocks()}),
       })
       act(() => {
         result.current.importOutcomes({outcomeOrGroupId: outcomeId, isGroup: false})
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(resolveProgress).toHaveBeenCalled()
       expect(resolveProgress).toHaveBeenCalledWith(
         {
@@ -133,16 +121,13 @@ describe('useOutcomesImport', () => {
 
     it('changes import outcome status from pending to completed when progress tracker resolves', async () => {
       const {result} = renderHook(() => useOutcomesImport(), {
-        wrapper,
-        initialProps: {
-          mocks: importOutcomeMocks(),
-        },
+        wrapper: createWrapper({mocks: importOutcomeMocks()}),
       })
       act(() => {
         result.current.importOutcomes({outcomeOrGroupId: outcomeId, isGroup: false})
       })
       expect(result.current.importOutcomesStatus).toEqual({[outcomeId]: IMPORT_PENDING})
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(result.current.importOutcomesStatus).toEqual({[outcomeId]: IMPORT_COMPLETED})
     })
 
@@ -155,10 +140,7 @@ describe('useOutcomesImport', () => {
       resolveProgress.mockImplementation(() => Promise.reject(new Error()))
 
       const {result} = renderHook(() => useOutcomesImport(), {
-        wrapper,
-        initialProps: {
-          mocks: importOutcomeMocks(),
-        },
+        wrapper: createWrapper({mocks: importOutcomeMocks()}),
       })
 
       act(() => {
@@ -167,7 +149,7 @@ describe('useOutcomesImport', () => {
 
       expect(result.current.importOutcomesStatus).toEqual({[outcomeId]: IMPORT_PENDING})
 
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
 
       expect(showFlashAlert).toHaveBeenCalledWith({
         message: 'An error occurred while importing this outcome.',
@@ -182,15 +164,12 @@ describe('useOutcomesImport', () => {
 
     it('displays flash error message with details if cannot import outcome', async () => {
       const {result} = renderHook(() => useOutcomesImport(), {
-        wrapper,
-        initialProps: {
-          mocks: importOutcomeMocks({failResponse: true}),
-        },
+        wrapper: createWrapper({mocks: importOutcomeMocks({failResponse: true})}),
       })
       act(() => {
         result.current.importOutcomes({outcomeOrGroupId: outcomeId, isGroup: false})
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(showFlashAlert).toHaveBeenCalledWith({
         message: 'An error occurred while importing this outcome: Network error.',
         type: 'error',
@@ -199,15 +178,12 @@ describe('useOutcomesImport', () => {
 
     it('displays flash error generic message if cannot import outcome and no error details', async () => {
       const {result} = renderHook(() => useOutcomesImport(), {
-        wrapper,
-        initialProps: {
-          mocks: importOutcomeMocks({failMutationNoErrMsg: true}),
-        },
+        wrapper: createWrapper({mocks: importOutcomeMocks({failMutationNoErrMsg: true})}),
       })
       act(() => {
         result.current.importOutcomes({outcomeOrGroupId: outcomeId, isGroup: false})
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(showFlashAlert).toHaveBeenCalledWith({
         message: 'An error occurred while importing this outcome.',
         type: 'error',
@@ -216,15 +192,12 @@ describe('useOutcomesImport', () => {
 
     it('clears importOutcomesStatus if clearOutcomesStatus called', async () => {
       const {result} = renderHook(() => useOutcomesImport(), {
-        wrapper,
-        initialProps: {
-          mocks: importOutcomeMocks(),
-        },
+        wrapper: createWrapper({mocks: importOutcomeMocks()}),
       })
       act(() => {
         result.current.importOutcomes({outcomeOrGroupId: outcomeId, isGroup: false})
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(result.current.importOutcomesStatus).toEqual({[outcomeId]: IMPORT_COMPLETED})
       act(() => {
         result.current.clearOutcomesStatus()
@@ -234,10 +207,9 @@ describe('useOutcomesImport', () => {
 
     it('passes sourceContextId and sourceContexType to outcome import mutation if provided', async () => {
       const {result} = renderHook(() => useOutcomesImport(), {
-        wrapper,
-        initialProps: {
+        wrapper: createWrapper({
           mocks: importOutcomeMocks({sourceContextId: 300, sourceContextType: 'Account'}),
-        },
+        }),
       })
       act(() => {
         result.current.importOutcomes({
@@ -247,16 +219,13 @@ describe('useOutcomesImport', () => {
           sourceContextType: 'Account',
         })
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(result.current.importOutcomesStatus).toEqual({[outcomeId]: IMPORT_COMPLETED})
     })
 
     it('imports outcomes correctly with targetGroupId', async () => {
       const {result} = renderHook(() => useOutcomesImport(), {
-        wrapper,
-        initialProps: {
-          mocks: importOutcomeMocks({targetGroupId: 123}),
-        },
+        wrapper: createWrapper({mocks: importOutcomeMocks({targetGroupId: 123})}),
       })
       act(() => {
         result.current.importOutcomes({
@@ -265,7 +234,7 @@ describe('useOutcomesImport', () => {
           targetGroupId: 123,
         })
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(result.current.importOutcomesStatus).toEqual({[outcomeId]: IMPORT_COMPLETED})
     })
   })

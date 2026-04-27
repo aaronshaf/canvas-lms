@@ -27,10 +27,6 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 const server = setupServer()
 const queryClient = new QueryClient()
 
-afterEach(() => {
-  cleanup()
-})
-
 // Helper function to create reusable pagination mock
 function createPaginationMock(
   userId: string,
@@ -203,10 +199,8 @@ describe('PageViewsTable', () => {
 
       // assert - pagination renders with correct buttons
       await findByTestId('page-views-table-body')
-      await waitFor(async () => {
-        expect(await findByText('1')).toBeInTheDocument() // Current page
-        expect(await findByText('2+')).toBeInTheDocument() // Next page indicator
-      })
+      expect(await findByText('1')).toBeInTheDocument() // Current page
+      expect(await findByText('2+')).toBeInTheDocument() // Next page indicator
     })
 
     it('navigates to next page when pagination button is clicked', async () => {
@@ -220,20 +214,16 @@ describe('PageViewsTable', () => {
 
       // assert - wait for first page to load
       await findByTestId('page-views-table-body')
-      await waitFor(async () => {
-        expect(await findByText('1')).toBeInTheDocument() // Page 1 button
-        expect(await findByText('2+')).toBeInTheDocument() // Page 2+ indicator
-      })
+      expect(await findByText('1')).toBeInTheDocument() // Page 1 button
+      expect(await findByText('2+')).toBeInTheDocument() // Page 2+ indicator
 
       // act - click page 2 button
       const page2Button = await findByText('2+')
       page2Button.click()
 
       // assert - should navigate to page 2 (component integration test)
-      await waitFor(async () => {
-        expect(queryByText('2+')).not.toBeInTheDocument() // 2+ indicator should be gone
-        expect(await findByText('2')).toBeInTheDocument() // Now showing page 2 as current
-      })
+      expect(await findByText('2')).toBeInTheDocument() // Now showing page 2 as current
+      expect(queryByText('2+')).not.toBeInTheDocument() // 2+ indicator should be gone
     })
 
     it('shows empty state when API returns no data', async () => {

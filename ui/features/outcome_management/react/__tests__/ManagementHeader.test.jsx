@@ -158,7 +158,7 @@ describe('ManagementHeader', () => {
   it('opens FindOutcomesModal when Find button is clicked', async () => {
     const {getByText} = render(<ManagementHeader {...defaultProps()} />)
     fireEvent.click(getByText('Find'))
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('Add Outcomes to Account')).toBeInTheDocument()
   })
 
@@ -172,7 +172,7 @@ describe('ManagementHeader', () => {
   it('opens CreateOutcomeModal when Create button is clicked', async () => {
     const {getByText} = render(<ManagementHeader {...defaultProps()} />)
     fireEvent.click(getByText('Create'))
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(CreateOutcomeModal).toHaveBeenCalled()
     expect(getByText('CreateOutcomeModal')).toBeInTheDocument()
   })
@@ -241,7 +241,7 @@ describe('ManagementHeader', () => {
       })
       fireEvent.click(getByText('Add'))
       fireEvent.click(getByText('Find'))
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(getByText('Add Outcomes to Account')).toBeInTheDocument()
     })
 
@@ -251,7 +251,7 @@ describe('ManagementHeader', () => {
       })
       fireEvent.click(getByText('Add'))
       fireEvent.click(getByText('Create'))
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(CreateOutcomeModal).toHaveBeenCalled()
       expect(getByText('CreateOutcomeModal')).toBeInTheDocument()
     })

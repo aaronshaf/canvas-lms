@@ -304,7 +304,7 @@ describe('MoreOptions', () => {
     })
 
     afterEach(() => {
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
       delete navigator.mediaDevices
     })
 
@@ -335,15 +335,17 @@ describe('MoreOptions', () => {
 
       await act(async () => {
         vi.advanceTimersByTime(3000)
-        await waitFor(() => rerender(<TestComponent />))
-        vi.advanceTimersByTime(2000)
-        await waitFor(() => rerender(<TestComponent />))
-        vi.advanceTimersByTime(1000)
-        await waitFor(() => rerender(<TestComponent />))
-        vi.advanceTimersByTime(500)
-        await waitFor(() => rerender(<TestComponent />))
-        await screen.findByAltText('Captured Image')
       })
+      await act(async () => {
+        vi.advanceTimersByTime(2000)
+      })
+      await act(async () => {
+        vi.advanceTimersByTime(1000)
+      })
+      await act(async () => {
+        vi.advanceTimersByTime(500)
+      })
+      await screen.findByAltText('Captured Image')
 
       const saveButton = await screen.findByRole('button', {name: 'Save'})
       await user.click(saveButton)

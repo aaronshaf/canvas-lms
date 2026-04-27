@@ -28,8 +28,6 @@ describe('SimilarityScore', () => {
     status: 'scored',
   }
 
-  afterEach(cleanup)
-
   const mountComponent = (props = {}) => {
     render(<SimilarityScore {...defaultProps} {...props} />)
   }

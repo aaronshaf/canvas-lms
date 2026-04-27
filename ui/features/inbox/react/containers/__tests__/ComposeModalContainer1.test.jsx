@@ -68,7 +68,6 @@ describe('ComposeModalContainer', () => {
   })
 
   afterEach(async () => {
-    cleanup()
     server.resetHandlers()
     // Clear any pending timers
     vi.clearAllTimers()

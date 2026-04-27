@@ -17,32 +17,37 @@
  */
 
 import React from 'react'
-import {cleanup, render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import {PageViewsDownload, type PageViewsDownloadProps} from '../PageViewsDownload'
 import {AsyncPageViewJobStatus} from '../hooks/asyncPageviewExport'
 
-// Mock canvas alerts
-vi.mock('@instructure/platform-alerts', async () => {
-  const actual = await vi.importActual('@instructure/platform-alerts')
-  return {
-    ...actual,
-    showFlashAlert: vi.fn(),
-  }
-})
+vi.mock('@instructure/platform-alerts', () => ({
+  showFlashAlert: vi.fn(),
+}))
 
 const server = setupServer()
 
+beforeAll(() => server.listen())
+
+beforeEach(() => {
+  // Force major GC between tests — each render of this InstUI-heavy component
+  // promotes objects to old-gen; without explicit GC V8 defers mark-compact
+  // until the heap is nearly full, causing OOM across 20 tests.
+  if (typeof global.gc === 'function') {
+    global.gc()
+    global.gc()
+  }
+})
+
 afterEach(() => {
-  cleanup()
+  server.resetHandlers()
   vi.clearAllMocks()
   localStorage.clear()
 })
 
-beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
 // Helper to create mock job data
@@ -287,20 +292,15 @@ describe('PageViewsDownload', () => {
   })
 
   describe('Job polling', () => {
-    beforeEach(() => {
-      vi.useFakeTimers()
-    })
-
-    afterEach(() => {
-      vi.runOnlyPendingTimers()
-      vi.useRealTimers()
-    })
+    // No fake timers needed: PageViewsDownload's useEffect calls pollAsyncJobs()
+    // immediately on mount (not via a timer). Fake timers break waitFor's internal
+    // retry setTimeout, causing the test to hang indefinitely and OOM.
 
     it('polls job status and updates UI when job completes', async () => {
       const runningJob = createMockJob({
         query_id: 'polling-job',
         status: AsyncPageViewJobStatus.Running,
-        updatedAt: new Date(Date.now() - 10000).toISOString(), // 10 seconds ago
+        updatedAt: new Date(Date.now() - 10000).toISOString(), // 10 seconds ago, past POLL_FRESHNESS
       })
 
       localStorage.setItem(`pv-export-${defaultProps.userId}`, JSON.stringify([runningJob]))
@@ -319,12 +319,10 @@ describe('PageViewsDownload', () => {
 
       render(<Subject {...defaultProps} />)
 
-      // Initially shows "In progress"
+      // Initially shows "In progress" (synchronous from localStorage)
       expect(screen.getByText('In progress')).toBeInTheDocument()
 
-      // Fast-forward to trigger polling
-      vi.advanceTimersByTime(1000)
-
+      // useEffect fires pollAsyncJobs() immediately; wait for the fetch to resolve
       await waitFor(() => {
         expect(screen.getByText('Completed')).toBeInTheDocument()
       })
@@ -353,14 +351,9 @@ describe('PageViewsDownload', () => {
 
       render(<Subject {...defaultProps} />)
 
-      // Fast-forward to trigger polling
-      vi.advanceTimersByTime(1000)
-
       await waitFor(() => {
         expect(screen.getByText('Failed')).toBeInTheDocument()
       })
-
-      // The error code is properly processed and would be available via errorCodeDisplayName
     })
   })
 

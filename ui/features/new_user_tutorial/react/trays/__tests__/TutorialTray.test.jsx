@@ -85,19 +85,17 @@ describe('TutorialTray', () => {
   })
 
   it('initial state sets endUserTutorialShown to false', () => {
-    const {store} = renderTutorialTray()
+    const {ref} = renderTutorialTray()
 
-    waitFor(() => {
-      expect(store.getState().endUserTutorialShown).toBe(false)
-    })
+    expect(ref.current.state.endUserTutorialShown).toBe(false)
   })
 
-  it('handleEndTutorialClick sets endUserTutorialShown to true', () => {
+  it('handleEndTutorialClick sets endUserTutorialShown to true', async () => {
     const {ref} = renderTutorialTray()
 
     ref.current.handleEndTutorialClick()
 
-    expect(ref.current.state.endUserTutorialShown).toBe(true)
+    await waitFor(() => expect(ref.current.state.endUserTutorialShown).toBe(true))
   })
 
   it('closeEndTutorialDialog sets endUserTutorialShown to false', () => {

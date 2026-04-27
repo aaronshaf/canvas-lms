@@ -235,12 +235,9 @@ describe('ModuleItemListSmart Show All optimization', () => {
     setup()
 
     // Wait for queries to complete
-    await waitFor(
-      () => {
-        expect(mockGetModuleItems).toHaveBeenCalledTimes(2)
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      expect(mockGetModuleItems).toHaveBeenCalledTimes(2)
+    })
 
     // First call should use SHOW_ALL_PAGE_SIZE
     expect(mockGetModuleItems).toHaveBeenNthCalledWith(

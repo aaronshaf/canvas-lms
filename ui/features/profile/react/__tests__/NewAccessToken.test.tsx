@@ -35,7 +35,6 @@ describe('NewAccessToken', () => {
   afterAll(() => server.close())
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
   })
 
@@ -324,6 +323,5 @@ describe('NewAccessToken', () => {
         )
       })
     })
-
   })
 })

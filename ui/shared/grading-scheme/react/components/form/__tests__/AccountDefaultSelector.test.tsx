@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import {AccountDefaultSelector, type AccountDefaultSelectorProps} from '../AccountDefaultSelector'
 import {AccountGradingSchemes} from '../../__tests__/fixtures'
 
@@ -39,66 +39,66 @@ describe('AccountDefaultSelector tests', () => {
     expect(queryByText('Applied')).not.toBeInTheDocument()
   })
 
-  it('apply button appears when you switch to an unselected grading scheme', () => {
-    const {getByText, getByTestId} = renderAccountDefaultSelector()
+  it('apply button appears when you switch to an unselected grading scheme', async () => {
+    const {findByText, getByTestId, findByTestId} = renderAccountDefaultSelector()
     const select = getByTestId('account-default-grading-scheme-select')
-    select.click()
-    const option = getByTestId('grading-scheme-1-option')
-    option.click()
-    expect(getByText('Apply')).toBeInTheDocument()
+    fireEvent.click(select)
+    const option = await findByTestId('grading-scheme-1-option')
+    fireEvent.click(option)
+    expect(await findByText('Apply')).toBeInTheDocument()
   })
 
-  it('opens a confirmation modal when apply is clicked to change the default grading scheme', () => {
-    const {getByText, getByTestId} = renderAccountDefaultSelector()
+  it('opens a confirmation modal when apply is clicked to change the default grading scheme', async () => {
+    const {findByText, getByTestId, findByTestId} = renderAccountDefaultSelector()
     const select = getByTestId('account-default-grading-scheme-select')
-    select.click()
-    const option = getByTestId('grading-scheme-1-option')
-    option.click()
-    const apply = getByText('Apply')
-    apply.click()
-    expect(getByText('Confirm Default Grading Scheme Change')).toBeInTheDocument()
+    fireEvent.click(select)
+    const option = await findByTestId('grading-scheme-1-option')
+    fireEvent.click(option)
+    const apply = await findByText('Apply')
+    fireEvent.click(apply)
+    expect(await findByText('Confirm Default Grading Scheme Change')).toBeInTheDocument()
   })
 
-  it('apply button text changes to applied after default grading scheme changes', () => {
-    const {getByText, getByTestId} = renderAccountDefaultSelector()
+  it('apply button text changes to applied after default grading scheme changes', async () => {
+    const {findByText, getByTestId, findByTestId} = renderAccountDefaultSelector()
     const select = getByTestId('account-default-grading-scheme-select')
-    select.click()
-    const option = getByTestId('grading-scheme-1-option')
-    option.click()
-    const apply = getByText('Apply')
-    apply.click()
-    const confirm = getByText('Confirm')
-    confirm.click()
-    expect(getByText('Applied')).toBeInTheDocument()
+    fireEvent.click(select)
+    const option = await findByTestId('grading-scheme-1-option')
+    fireEvent.click(option)
+    const apply = await findByText('Apply')
+    fireEvent.click(apply)
+    const confirm = await findByText('Confirm')
+    fireEvent.click(confirm)
+    expect(await findByText('Applied')).toBeInTheDocument()
   })
 
-  it('apply button does not change text if the confirmation modal is canceled or closed', () => {
-    const {getByText, getByTestId} = renderAccountDefaultSelector()
+  it('apply button does not change text if the confirmation modal is canceled or closed', async () => {
+    const {findByText, getByTestId, findByTestId} = renderAccountDefaultSelector()
     const select = getByTestId('account-default-grading-scheme-select')
-    select.click()
-    const option = getByTestId('grading-scheme-1-option')
-    option.click()
-    const apply = getByText('Apply')
-    apply.click()
-    const cancel = getByText('Cancel')
-    cancel.click()
-    expect(getByText('Apply')).toBeInTheDocument()
-    apply.click()
-    const close = getByTestId('confirm-default-grading-scheme-change-modal-close-button')
-    close.click()
-    expect(getByText('Apply')).toBeInTheDocument()
+    fireEvent.click(select)
+    const option = await findByTestId('grading-scheme-1-option')
+    fireEvent.click(option)
+    const apply = await findByText('Apply')
+    fireEvent.click(apply)
+    const cancel = await findByText('Cancel')
+    fireEvent.click(cancel)
+    await waitFor(() => expect(select).toBeInTheDocument()) // let state settle
+    fireEvent.click(apply)
+    const close = await findByTestId('confirm-default-grading-scheme-change-modal-close-button')
+    fireEvent.click(close)
+    expect(await findByText('Apply')).toBeInTheDocument()
   })
 
-  it('reselecting the current default changes the apply text to applied', () => {
-    const {getByText, getByTestId} = renderAccountDefaultSelector()
+  it('reselecting the current default changes the apply text to applied', async () => {
+    const {findByText, getByTestId, findByTestId} = renderAccountDefaultSelector()
     const select = getByTestId('account-default-grading-scheme-select')
-    select.click()
-    const option = getByTestId('grading-scheme-1-option')
-    option.click()
-    expect(getByText('Apply')).toBeInTheDocument()
-    select.click()
-    const current = getByTestId('grading-scheme-0-option')
-    current.click()
-    expect(getByText('Applied')).toBeInTheDocument()
+    fireEvent.click(select)
+    const option = await findByTestId('grading-scheme-1-option')
+    fireEvent.click(option)
+    expect(await findByText('Apply')).toBeInTheDocument()
+    fireEvent.click(select)
+    const current = await findByTestId('grading-scheme-0-option')
+    fireEvent.click(current)
+    expect(await findByText('Applied')).toBeInTheDocument()
   })
 })

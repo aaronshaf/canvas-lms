@@ -89,7 +89,6 @@ describe('OutcomeMoveModal', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
-    cleanup()
     cache.reset()
   })
 
@@ -114,7 +113,7 @@ describe('OutcomeMoveModal', () => {
 
   it('renders component with customized outcome title if single outcome provided', async () => {
     const {getByText} = render(<OutcomeMoveModal {...defaultProps()} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('Move "Outcome 101"?')).toBeInTheDocument()
   })
 
@@ -122,28 +121,28 @@ describe('OutcomeMoveModal', () => {
     const {getByText} = render(
       <OutcomeMoveModal {...defaultProps({outcomes: generateOutcomes(2)})} />,
     )
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('Move 2 Outcomes?')).toBeInTheDocument()
   })
 
   // Skipped: React is not defined error - ARC-9213
   it('shows modal if open prop true', async () => {
     const {getByText} = render(<OutcomeMoveModal {...defaultProps()} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('Cancel')).toBeInTheDocument()
   })
 
   // Skipped: React is not defined error - ARC-9213
   it('does not show modal if open prop false', async () => {
     const {queryByText} = render(<OutcomeMoveModal {...defaultProps({isOpen: false})} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(queryByText('Cancel')).not.toBeInTheDocument()
   })
 
   // Skipped: React is not defined error - ARC-9213
   it('calls onCloseHandlerMock on Close button click', async () => {
     const {getByText} = render(<OutcomeMoveModal {...defaultProps()} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     const closeBtn = getByText('Close')
     fireEvent.click(closeBtn)
     expect(onCloseHandlerMock).toHaveBeenCalledTimes(1)
@@ -152,7 +151,7 @@ describe('OutcomeMoveModal', () => {
   // Skipped: React is not defined error - ARC-9213
   it('calls onCloseHandlerMock on Cancel button click', async () => {
     const {getByText} = render(<OutcomeMoveModal {...defaultProps()} />)
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     const closeBtn = getByText('Cancel')
     fireEvent.click(closeBtn)
     expect(onCloseHandlerMock).toHaveBeenCalledTimes(1)
@@ -163,7 +162,7 @@ describe('OutcomeMoveModal', () => {
     const {getByText} = render(<OutcomeMoveModal {...defaultProps()} />, {
       mocks: [...smallOutcomeTree()],
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('Move').closest('button')).toBeEnabled()
   })
 
@@ -172,9 +171,9 @@ describe('OutcomeMoveModal', () => {
     const {getByText} = render(<OutcomeMoveModal {...defaultProps()} />, {
       mocks: [...defaultMocks, ...smallOutcomeTree()],
     })
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     fireEvent.click(getByText('Account folder 1'))
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(getByText('Move').closest('button')).toBeEnabled()
   })
 

@@ -109,7 +109,7 @@ describe('assignToUtils', () => {
       await waitFor(() => {
         expect(screen.getByTestId('module-item-edit-tray')).toBeInTheDocument()
       })
-      expect(screen.queryByTestId('due_at_input')).toBeInTheDocument()
+      await waitFor(() => expect(screen.queryByTestId('due_at_input')).toBeInTheDocument())
     })
   })
 })

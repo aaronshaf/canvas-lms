@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {act, renderHook} from '@testing-library/react'
 import useRatings, {defaultRatings, defaultMasteryPoints, prepareRatings} from '../useRatings'
 
 const expectDescriptions = (result, expectedDescriptions) => {
@@ -38,16 +38,18 @@ const expectPointsErrors = (result, expectedPointsErrors) => {
 }
 
 const changeRating = (result, ratingIndex, attrs) => {
-  const newRatings = [...result.current.ratings]
-  const rating = newRatings[ratingIndex]
-  newRatings.splice(ratingIndex, 1, {
-    ...rating,
-    ...attrs,
+  act(() => {
+    const newRatings = [...result.current.ratings]
+    const rating = newRatings[ratingIndex]
+    newRatings.splice(ratingIndex, 1, {
+      ...rating,
+      ...attrs,
+    })
+    result.current.setRatings(newRatings)
   })
-  result.current.setRatings(newRatings)
 }
 
-const changeMasteryPoints = (result, points) => result.current.setMasteryPoints(points)
+const changeMasteryPoints = (result, points) => act(() => result.current.setMasteryPoints(points))
 
 const expectMasteryPoints = (result, expectedMasteryPoints) => {
   expect(result.current.masteryPoints.value).toEqual(expectedMasteryPoints)

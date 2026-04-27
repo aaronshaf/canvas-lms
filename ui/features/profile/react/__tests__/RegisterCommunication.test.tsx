@@ -22,10 +22,6 @@ import {userEvent} from '@testing-library/user-event'
 import RegisterCommunication, {Tab} from '../RegisterCommunication'
 
 describe('RegisterCommunication', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const onSubmit = vi.fn()
 
   const tabIdAndLabelMap = {

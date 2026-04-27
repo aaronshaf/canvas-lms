@@ -19,7 +19,7 @@
 import $ from 'jquery'
 import React from 'react'
 import {userEvent} from '@testing-library/user-event'
-import {cleanup, render, screen, waitFor} from '@testing-library/react'
+import {act, cleanup, render, screen, waitFor} from '@testing-library/react'
 import PostGradesApp from '../../../SISGradePassback/PostGradesApp'
 import GradebookExportManager from '../../../shared/GradebookExportManager'
 import ActionMenu from '../ActionMenu'
@@ -37,7 +37,6 @@ describe('ActionMenu', () => {
   })
 
   afterEach(() => {
-    cleanup()
     vi.restoreAllMocks()
   })
 
@@ -276,29 +275,35 @@ describe('ActionMenu', () => {
       render(<ActionMenu {...specific_properties} ref={ref} />)
     }
 
-    test('returns the previous export if state has a previousExport defined', function () {
+    test('returns the previous export if state has a previousExport defined', async function () {
       const expectedPreviousExport = {
         label: 'previous export label',
         attachmentUrl: 'http://attachmentUrl',
       }
       const ref: any = React.createRef()
       subject(props, ref)
-      ref.current.setState({previousExport: expectedPreviousExport})
+      await act(async () => {
+        ref.current.setState({previousExport: expectedPreviousExport})
+      })
       expect(ref.current.lastExportFromState()).toEqual(expectedPreviousExport)
     })
 
-    test('returns undefined if an export is already in progress', function () {
+    test('returns undefined if an export is already in progress', async function () {
       const ref: any = React.createRef()
       subject(props, ref)
-      ref.current.setExportInProgress(true)
+      await act(async () => {
+        ref.current.setExportInProgress(true)
+      })
       expect(ref.current.lastExportFromState()).toEqual(undefined)
     })
 
-    test('returns undefined if no previous export is set in the state', function () {
+    test('returns undefined if no previous export is set in the state', async function () {
       const ref: any = React.createRef()
       subject(props, ref)
-      ref.current.setState({previousExport: undefined})
-      ref.current.setExportInProgress(false)
+      await act(async () => {
+        ref.current.setState({previousExport: undefined})
+        ref.current.setExportInProgress(false)
+      })
       expect(ref.current.lastExportFromState()).toEqual(undefined)
     })
   })
@@ -308,7 +313,7 @@ describe('ActionMenu', () => {
       render(<ActionMenu {...specific_properties} ref={ref} />)
     }
 
-    test('returns the previous export stored in the state if it is available', function () {
+    test('returns the previous export stored in the state if it is available', async function () {
       vi.spyOn(ActionMenu.prototype, 'lastExportFromState').mockImplementation(() => {
         return {
           label: 'previous export label',
@@ -316,7 +321,9 @@ describe('ActionMenu', () => {
         }
       })
       const ref: any = React.createRef()
-      subject(props, ref)
+      await act(async () => {
+        subject(props, ref)
+      })
       expect(ActionMenu.prototype.lastExportFromState).toHaveBeenCalledTimes(1)
       expect(ref.current.previousExport()).toEqual({
         label: 'previous export label',
@@ -362,17 +369,21 @@ describe('ActionMenu', () => {
       render(<ActionMenu {...specific_properties} ref={ref} />)
     }
 
-    test('returns true if exportInProgress is set', function () {
+    test('returns true if exportInProgress is set', async function () {
       const ref: any = React.createRef()
       subject(props, ref)
-      ref.current.setExportInProgress(true)
+      await act(async () => {
+        ref.current.setExportInProgress(true)
+      })
       expect(ref.current.exportInProgress()).toEqual(true)
     })
 
-    test('returns false if exportInProgress is set to false', function () {
+    test('returns false if exportInProgress is set to false', async function () {
       const ref: any = React.createRef()
       subject(props, ref)
-      ref.current.setExportInProgress(false)
+      await act(async () => {
+        ref.current.setExportInProgress(false)
+      })
       expect(ref.current.exportInProgress()).toEqual(false)
     })
   })

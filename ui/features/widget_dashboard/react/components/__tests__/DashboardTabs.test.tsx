@@ -122,6 +122,14 @@ const server = setupServer(
   http.get('/api/v1/planner/items', () => {
     return HttpResponse.json([])
   }),
+  // Mock course color PUT requests from CoursesTab dashcards
+  http.put('/api/v1/users/:userId/colors/:color', () => {
+    return HttpResponse.json({hexcode: '#aabbcc'})
+  }),
+  // Mock activity stream summary for courses in CoursesTab
+  http.get('/api/v1/courses/:courseId/activity_stream/summary', () => {
+    return HttpResponse.json([])
+  }),
   // Mock GraphQL mutation for tab selection
   graphql.mutation('UpdateLearnerDashboardTabSelection', () => {
     return HttpResponse.json({

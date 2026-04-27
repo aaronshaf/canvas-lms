@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import PrerequisiteSelector, {type PrerequisiteSelectorProps} from '../PrerequisiteSelector'
 
 describe('PrerequisiteSelector', () => {
@@ -53,18 +53,21 @@ describe('PrerequisiteSelector', () => {
     expect(getByDisplayValue('Module 1')).toBeInTheDocument()
   })
 
-  it('shows the available options when expanded', () => {
-    const {getByText} = renderComponent()
+  it('shows the available options when expanded', async () => {
+    const {getByText, findByText} = renderComponent()
     getByText('Select Prerequisite').click()
-    expect(getByText('Module 1')).toBeInTheDocument()
-    expect(getByText('Module 2')).toBeInTheDocument()
+    expect(await findByText('Module 1')).toBeInTheDocument()
+    expect(await findByText('Module 2')).toBeInTheDocument()
   })
 
-  it('calls onUpdatePrerequisite when a new option is selected', () => {
-    const {getByText} = renderComponent()
+  it('calls onUpdatePrerequisite when a new option is selected', async () => {
+    const {getByText, findByText} = renderComponent()
     getByText('Select Prerequisite').click()
-    getByText('Module 2').click()
-    expect(props.onUpdatePrerequisite).toHaveBeenCalledWith({id: '2', name: 'Module 2'}, 0)
+    const option = await findByText('Module 2')
+    option.click()
+    await waitFor(() =>
+      expect(props.onUpdatePrerequisite).toHaveBeenCalledWith({id: '2', name: 'Module 2'}, 0),
+    )
   })
 
   it('calls onDropPrerequisite when the remove button is clicked', () => {

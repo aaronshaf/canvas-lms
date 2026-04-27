@@ -21,7 +21,7 @@ import {createCache} from '@canvas/apollo-v3'
 import OutcomesContext from '../contexts/OutcomesContext'
 import {useManageOutcomes} from '../treeBrowser'
 import {smallOutcomeTree} from '../../mocks/Management'
-import {renderHook, act} from '@testing-library/react-hooks'
+import {renderHook, act} from '@testing-library/react'
 import {MockedProvider} from '@apollo/client/testing'
 import {showFlashAlert} from '@instructure/platform-alerts'
 
@@ -57,33 +57,33 @@ describe('useManageOutcomes', () => {
       () => useManageOutcomes({collection: 'test', initialGroupId: '400'}),
       {wrapper},
     )
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(result.current.selectedGroupId).toBe('400')
     expect(result.current.selectedParentGroupId).toBe('100')
 
     act(() => result.current.queryCollections({id: '100'}))
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(result.current.selectedGroupId).toBe('100')
     expect(result.current.selectedParentGroupId).toBe('1')
   })
 
   it('it doesnt show deleted group after rerender', async () => {
     const {result} = renderHook(() => useManageOutcomes(), {wrapper})
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
 
     expect(result.current.collections['100']).toBeDefined()
     act(() => result.current.removeGroup('100'))
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(result.current.collections['100']).toBeUndefined()
 
     const {result: result2} = renderHook(() => useManageOutcomes(), {wrapper})
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(result2.current.collections['100']).toBeUndefined()
   })
 
   it('should flash a screenreader only info message when a group is loading', async () => {
     const {result} = renderHook(() => useManageOutcomes(), {wrapper})
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
 
     expect(result.current.collections['100']).toBeDefined()
     result.current.queryCollections({id: '100', parentGroupId: '1'})

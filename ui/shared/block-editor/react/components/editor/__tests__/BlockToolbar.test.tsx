@@ -20,7 +20,7 @@ import React from 'react'
 import {userEvent} from '@testing-library/user-event'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {useEditor, useNode, type Node} from '@craftjs/core'
-import {render} from '@testing-library/react'
+import {act, render, waitFor} from '@testing-library/react'
 import {BlockToolbar, isBlockSaveable} from '../BlockToolbar'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {mountNode} from '../../../utils'
@@ -33,7 +33,7 @@ let downNode: any
 let mountDiv: HTMLDivElement | null = null
 vi.mock('../../../utils', async () => {
   return {
-    ...await vi.importActual('../../../utils'),
+    ...(await vi.importActual('../../../utils')),
     mountNode: vi.fn(() => mountDiv),
     findUpNode: vi.fn(() => upNode),
     findDownNode: vi.fn(() => downNode),
@@ -223,19 +223,22 @@ describe('BlockToolbar', () => {
       downNode = undefined
     })
 
-    it('should default to the first focusable element', () => {
+    it('should default to the first focusable element', async () => {
       const {getByText} = renderBlockToolbar()
-      const firstButton = getByText('Go up').closest('button')
-      expect(firstButton?.getAttribute('tabindex')).toEqual('0')
+      await waitFor(() => {
+        const firstButton = getByText('Go up').closest('button')
+        expect(firstButton?.getAttribute('tabindex')).toEqual('0')
+      })
     })
 
     it('should move to the next button on right arrow key', async () => {
       const {getByText} = renderBlockToolbar()
       const firstButton = getByText('Go up').closest('button') as HTMLButtonElement
       await user.type(firstButton, '{ArrowRight}')
-      const secondButton = getByText('Drag to move').closest('button')
-      expect(secondButton?.getAttribute('tabindex')).toEqual('0')
-      expect(firstButton?.getAttribute('tabindex')).toEqual('-1')
+      await waitFor(() => {
+        expect(getByText('Drag to move').closest('button')?.getAttribute('tabindex')).toEqual('0')
+        expect(firstButton?.getAttribute('tabindex')).toEqual('-1')
+      })
     })
 
     it('should move to the previous button on left arrow key', async () => {
@@ -243,7 +246,7 @@ describe('BlockToolbar', () => {
       const firstButton = getByText('Go up').closest('button') as HTMLButtonElement
       await user.type(activeElem() as Element, '{ArrowLeft}')
       await user.type(activeElem() as Element, '{ArrowRight}')
-      expect(firstButton.getAttribute('tabindex')).toEqual('0')
+      await waitFor(() => expect(firstButton.getAttribute('tabindex')).toEqual('0'))
     })
 
     it('should wrap around on left arrow from the first button', async () => {
@@ -251,20 +254,24 @@ describe('BlockToolbar', () => {
       const {getByText} = renderBlockToolbar()
       const firstButton = getByText('Go up').closest('button') as HTMLButtonElement
       await user.type(firstButton, '{ArrowLeft}')
-      const lastButton = getByText('Delete').closest('button')
-      expect(lastButton?.getAttribute('tabindex')).toEqual('0')
+      await waitFor(() => {
+        expect(getByText('Delete').closest('button')?.getAttribute('tabindex')).toEqual('0')
+      })
     })
 
     it('should wrap around on right arrow from the last button', async () => {
       isSaveable = false
       const {getByText} = renderBlockToolbar()
       const lastButton = getByText('Delete').closest('button') as HTMLButtonElement
-      lastButton.focus()
-      expect(lastButton?.getAttribute('tabindex')).toEqual('0')
+      await act(async () => {
+        lastButton.focus()
+      })
+      await waitFor(() => expect(lastButton?.getAttribute('tabindex')).toEqual('0'))
 
-      await user.type(lastButton, '{ArrowRight}')
-      const firstButton = getByText('Go up').closest('button')
-      expect(firstButton?.getAttribute('tabindex')).toEqual('0')
+      await user.keyboard('{ArrowRight}')
+      await waitFor(() => {
+        expect(getByText('Go up').closest('button')?.getAttribute('tabindex')).toEqual('0')
+      })
     })
 
     it('should return focus to last focused button after leaving the toolbar', async () => {
@@ -280,7 +287,7 @@ describe('BlockToolbar', () => {
       expect(domNode).toBe(activeElem())
 
       await user.type(activeElem(), '{Tab}')
-      expect(button2).toBe(activeElem())
+      await waitFor(() => expect(button2).toBe(activeElem()))
     })
 
     it("should return focus to it's node's dom node on escape", async () => {
@@ -289,7 +296,7 @@ describe('BlockToolbar', () => {
       firstButton.focus()
       expect(firstButton).toBe(activeElem())
       await user.type(firstButton, '{Escape}')
-      expect(activeElem()).toBe(nodeDomNode)
+      await waitFor(() => expect(activeElem()).toBe(nodeDomNode))
     })
   })
 

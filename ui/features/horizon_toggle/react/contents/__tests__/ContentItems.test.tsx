@@ -61,7 +61,7 @@ describe('ContentItems', () => {
     render(<ContentItems {...defaultProps} />)
     const toggle = screen.getByText('Test Items')
     toggle.click()
-    expect(screen.getByText('Item 1')).toBeInTheDocument()
+    expect(await screen.findByText('Item 1')).toBeInTheDocument()
     expect(screen.getByText('Item 2')).toBeInTheDocument()
   })
 
@@ -69,7 +69,7 @@ describe('ContentItems', () => {
     render(<ContentItems {...defaultProps} />)
     const toggle = screen.getByText('Test Items')
     toggle.click()
-    const link1 = screen.getByText('Item 1')
+    const link1 = await screen.findByText('Item 1')
     const link2 = screen.getByText('Item 2')
     expect(link1).toHaveAttribute('href', '/item/1')
     expect(link2).toHaveAttribute('href', '/item/2')

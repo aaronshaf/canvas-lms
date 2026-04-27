@@ -55,9 +55,7 @@ describe('ContentShareUserSearchSelector', () => {
   })
 
   it('renders loading spinner while searching', () => {
-    vi.mocked(useContentShareUserSearchApi).mockImplementationOnce(({loading}) =>
-      loading(true),
-    )
+    vi.mocked(useContentShareUserSearchApi).mockImplementationOnce(({loading}) => loading(true))
     const {getByText, getByLabelText} = renderComponent()
     fireEvent.click(getByLabelText(/select at least one person/i))
     expect(getByText(/loading/i)).toBeInTheDocument()
@@ -68,9 +66,7 @@ describe('ContentShareUserSearchSelector', () => {
     const selectInput = getByLabelText(/select at least one person/i)
     fireEvent.click(selectInput)
     fireEvent.change(selectInput, {target: {value: 'abc'}})
-    vi.mocked(useContentShareUserSearchApi).mockImplementationOnce(({loading}) =>
-      loading(true),
-    )
+    vi.mocked(useContentShareUserSearchApi).mockImplementationOnce(({loading}) => loading(true))
     const loadingTexts = getAllByText(/loading/i)
     const loadingTextForSpinner = loadingTexts.find(loading => loading.closest('svg'))
     expect(loadingTextForSpinner).toBeInTheDocument()
@@ -91,7 +87,7 @@ describe('ContentShareUserSearchSelector', () => {
       success([{id: 'foo', name: 'shrek'}]),
     )
     fireEvent.change(selectInput, {target: {value: 'shr'}})
-    act(() => {
+    await act(async () => {
       vi.advanceTimersByTime(500)
     }) // let the debounce happen
     await waitFor(() => {
@@ -119,7 +115,7 @@ describe('ContentShareUserSearchSelector', () => {
       ]),
     )
     fireEvent.change(selectInput, {target: {value: 'shr'}})
-    act(() => {
+    await act(async () => {
       vi.advanceTimersByTime(500)
     }) // let the debounce happen
     await waitFor(() => {

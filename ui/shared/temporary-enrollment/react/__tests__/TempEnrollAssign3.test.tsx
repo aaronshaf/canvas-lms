@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {fireEvent, render, waitFor, within} from '@testing-library/react'
+import {act, fireEvent, render, waitFor, within} from '@testing-library/react'
 import {Props, TempEnrollAssign, tempEnrollAssignData} from '../TempEnrollAssign'
 import {MAX_ALLOWED_COURSES_PER_PAGE, PROVIDER, User} from '../types'
 import {http, HttpResponse} from 'msw'
@@ -102,9 +102,7 @@ function formatDateToLocalString(utcDateStr: string) {
   }
 }
 
-const ENROLLMENTS_URI = encodeURI(
-  `/api/v1/users/${props.user.id}/courses?enrollment_state=active&include[]=sections&include[]=term&per_page=${MAX_ALLOWED_COURSES_PER_PAGE}&account_id=${enrollmentsByCourse[0].account_id}`,
-)
+const ENROLLMENTS_URI = `/api/v1/users/${props.user.id}/courses`
 
 describe('TempEnrollAssign', () => {
   beforeAll(() => server.listen())
@@ -120,6 +118,8 @@ describe('TempEnrollAssign', () => {
 
   afterEach(() => {
     server.resetHandlers()
+    vi.clearAllTimers()
+    vi.useRealTimers()
     vi.clearAllMocks()
     // ensure a clean state before each tests
     localStorage.clear()
@@ -145,7 +145,7 @@ describe('TempEnrollAssign', () => {
     })
 
     const input = screen.getByPlaceholderText('Select a Role')
-    expect(input).toHaveValue('Teacher')
+    await waitFor(() => expect(input).toHaveValue('Teacher'))
   })
 
   it('saves to localStorage on role select', async () => {
@@ -192,11 +192,15 @@ describe('TempEnrollAssign', () => {
     vi.useFakeTimers()
     fireEvent.input(startDate, {target: {value: expectedStartDateDisplay}})
     fireEvent.blur(startDate)
-    vi.runAllTimers() // DateTimeInput has a setTimeout before firing the change event
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    }) // DateTimeInput has a setTimeout before firing the change event
 
     fireEvent.input(startTime, {target: {value: expectedStartTime12Hr}})
     fireEvent.blur(startTime)
-    vi.runAllTimers() // DateTimeInput has a setTimeout before firing the change event
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    }) // DateTimeInput has a setTimeout before firing the change event
 
     const storedDataRaw = localStorage.getItem(tempEnrollAssignData) as string
     expect(storedDataRaw).toBeTruthy()
@@ -231,11 +235,15 @@ describe('TempEnrollAssign', () => {
     vi.useFakeTimers()
     fireEvent.input(endDate, {target: {value: expectedEndDateDisplay}})
     fireEvent.blur(endDate)
-    vi.runAllTimers() // DateTimeInput has a setTimeout before firing the change event
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    }) // DateTimeInput has a setTimeout before firing the change event
 
     fireEvent.input(endTime, {target: {value: expectedEndTime12Hr}})
     fireEvent.blur(endTime)
-    vi.runAllTimers() // DateTimeInput has a setTimeout before firing the change event
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    }) // DateTimeInput has a setTimeout before firing the change event
 
     const storedDataRaw = localStorage.getItem(tempEnrollAssignData) as string
     expect(storedDataRaw).toBeTruthy()

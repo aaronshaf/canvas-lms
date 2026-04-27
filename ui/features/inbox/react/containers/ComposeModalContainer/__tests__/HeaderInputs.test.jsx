@@ -161,15 +161,12 @@ describe('HeaderInputs', () => {
     fireEvent.change(input, {target: {value: 'Fred'}})
 
     // Wait for debouncing and items to appear
-    const items = await screen.findAllByTestId('address-book-item', {}, {timeout: 3000})
+    const items = await screen.findAllByTestId('address-book-item', {})
     fireEvent.mouseDown(items[0])
 
-    await waitFor(
-      () => {
-        expect(props.onSelectedIdsChange).toHaveBeenCalled()
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      expect(props.onSelectedIdsChange).toHaveBeenCalled()
+    })
     expect(props.onSelectedIdsChange.mock.calls[0][0][0]._id).toBe('1')
   })
 })

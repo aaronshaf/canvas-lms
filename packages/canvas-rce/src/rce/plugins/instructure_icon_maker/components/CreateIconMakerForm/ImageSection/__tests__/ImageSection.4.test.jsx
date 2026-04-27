@@ -143,7 +143,7 @@ describe('ImageSection', () => {
   })
 
   describe('when the "Single Color Image" mode is selected', () => {
-    let spyFn, getByTestId, getByText, container, rerender
+    let spyFn, getByTestId, findByTestId, getByText, container, rerender
 
     beforeAll(() => {
       spyFn = jest.spyOn(svg.art, 'source')
@@ -154,6 +154,7 @@ describe('ImageSection', () => {
       const rendered = subject()
 
       getByTestId = rendered.getByTestId
+      findByTestId = rendered.findByTestId
       getByText = rendered.getByText
       container = rendered.container
       rerender = rendered.rerender
@@ -177,7 +178,7 @@ describe('ImageSection', () => {
         await waitFor(() => {
           expect(getByTestId('selected-image-preview')).toBeInTheDocument()
         })
-        fireEvent.click(getByTestId('icon-maker-art'))
+        fireEvent.click(await findByTestId('icon-maker-art'))
         convertFileToBase64.mockImplementation(
           jest.requireActual('../../../../../shared/fileUtils').convertFileToBase64,
         )

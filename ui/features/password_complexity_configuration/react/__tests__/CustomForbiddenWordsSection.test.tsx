@@ -55,7 +55,6 @@ describe('CustomForbiddenWordsSection Component', () => {
 
   afterEach(() => {
     server.resetHandlers()
-    cleanup()
   })
 
   describe('when no file is uploaded', () => {

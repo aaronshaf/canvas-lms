@@ -32,10 +32,6 @@ describe('StudentSection', () => {
     onNext: vi.fn(),
   }
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
   })

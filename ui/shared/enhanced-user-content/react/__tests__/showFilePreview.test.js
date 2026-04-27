@@ -81,7 +81,7 @@ describe('showFilePreview', () => {
   // Needs investigation into proper mocking of page router and FilePreview dependencies.
   it.skip('displays the file preview', async () => {
     showFilePreview('2282', 'abc')
-    await findByLabelText(document.body, 'File Preview Overlay', {}, {timeout: 3000})
+    await findByLabelText(document.body, 'File Preview Overlay')
     expect(getByLabelText(document.body, 'File Preview Overlay')).toBeInTheDocument()
   })
 

@@ -72,7 +72,6 @@ describe.skip('ItemAssignToTray - Student Groups', () => {
   afterEach(() => {
     Object.defineProperty(window, 'location', {value: originalLocation, writable: true})
     server.resetHandlers()
-    cleanup()
   })
 
   it('displays student groups if the assignment is a group assignment', async () => {

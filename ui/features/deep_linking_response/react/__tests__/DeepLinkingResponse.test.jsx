@@ -44,10 +44,6 @@ describe('RetrievingContent', () => {
     windowMock.postMessage = vi.fn()
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   describe('with no content item errors', () => {
     beforeEach(() => {
       content_items = [{type: 'link'}]

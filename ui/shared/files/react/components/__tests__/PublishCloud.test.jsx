@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, fireEvent, waitFor} from '@testing-library/react'
+import {act, render, fireEvent, waitFor} from '@testing-library/react'
 import $ from 'jquery'
 import 'jquery-migrate'
 import PublishCloud from '@canvas/files/react/components/PublishCloud'
@@ -39,7 +39,7 @@ describe('PublishCloud', () => {
   })
 
   describe('when user can edit files', () => {
-    it('updates publish state when model changes', () => {
+    it('updates publish state when model changes', async () => {
       const model = new FilesystemObject({
         locked: true,
         hidden: false,
@@ -47,7 +47,7 @@ describe('PublishCloud', () => {
       })
       model.url = () => `/api/v1/folders/${model.id}`
 
-      const {getByTestId} = render(
+      const {getByTestId, findByTestId} = render(
         <PublishCloud
           model={model}
           userCanEditFilesForContext={true}
@@ -58,8 +58,10 @@ describe('PublishCloud', () => {
 
       expect(getByTestId('unpublished-button')).toBeInTheDocument()
 
-      model.set('locked', false)
-      expect(getByTestId('published-button')).toBeInTheDocument()
+      await act(async () => {
+        model.set('locked', false)
+      })
+      expect(await findByTestId('published-button')).toBeInTheDocument()
     })
 
     it.skip('opens restricted dialog when clicking publish cloud', async () => {

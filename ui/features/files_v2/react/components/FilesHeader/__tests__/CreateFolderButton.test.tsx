@@ -18,7 +18,7 @@
 
 import React from 'react'
 import CreateFolderButton from '../CreateFolderButton'
-import {render, screen, waitFor} from '@testing-library/react'
+import {act, render, screen, waitFor} from '@testing-library/react'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
 import {queryClient} from '@instructure/platform-query'
 import userEvent from '@testing-library/user-event'
@@ -51,12 +51,12 @@ const renderComponent = () => {
     </FileManagementProvider>,
   )
 }
-vi.useFakeTimers()
 describe('CreateFolderButton', () => {
   beforeAll(() => server.listen())
   afterAll(() => server.close())
 
   beforeEach(() => {
+    vi.useFakeTimers({shouldAdvanceTime: true})
     vi.clearAllMocks()
     server.use(
       http.post(/.*\/folders/, () => {
@@ -66,6 +66,7 @@ describe('CreateFolderButton', () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     server.resetHandlers()
   })
 
@@ -102,10 +103,12 @@ describe('CreateFolderButton', () => {
     await user.type(folderNameInput, 'New Folder')
     const createButton = screen.getByRole('button', {name: /Create Folder/i})
     await user.click(createButton)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000)
+    })
 
-    vi.runAllTimers()
-    await waitFor(() =>
-      expect(showFlashSuccess).toHaveBeenCalledWith('Folder created successfully'),
-    )
+    await waitFor(() => {
+      expect(showFlashSuccess).toHaveBeenCalledWith('Folder created successfully')
+    })
   })
 })

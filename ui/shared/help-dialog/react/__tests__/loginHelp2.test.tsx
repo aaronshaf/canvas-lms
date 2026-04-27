@@ -37,7 +37,6 @@ describe('renderLoginHelp()', () => {
   })
 
   afterEach(async () => {
-    cleanup()
     document.body.innerHTML = ''
     // Allow any pending timers to settle
     await waitFor(() => {}, {timeout: 100}).catch(() => {})
@@ -51,12 +50,9 @@ describe('renderLoginHelp()', () => {
     renderLoginHelp(anchorElement)
 
     // Modal should be open initially when renderLoginHelp is called
-    await waitFor(
-      () => {
-        expect(screen.getByText('Login Help for Canvas LMS')).toBeInTheDocument()
-      },
-      {timeout: 2000},
-    )
+    await waitFor(() => {
+      expect(screen.getByText('Login Help for Canvas LMS')).toBeInTheDocument()
+    })
 
     // Verify the link is still available
     expect(screen.getByText('Help')).toBeInTheDocument()

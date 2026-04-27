@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, act} from '@testing-library/react'
 
 import {getPermissionsWithLabels} from '@canvas/permissions/util'
 import {ROLES, PERMISSIONS} from '../../__tests__/examples'
@@ -166,30 +166,31 @@ it('renders the close button when edit mode is not set', () => {
   expect(getByRole('button', {name: /close/i})).toBeInTheDocument()
 })
 
-it('renders the back button when edit mode is set', () => {
+it('renders the back button when edit mode is set', async () => {
   const props = makeDefaultProps()
   const component = React.createRef()
-  const {getByRole, rerender} = render(<RoleTray {...props} ref={component} />)
-  component.current.setState({editTrayVisible: true})
-  rerender(<RoleTray {...props} ref={component} />)
+  const {getByRole} = render(<RoleTray {...props} ref={component} />)
+  await act(async () => component.current.setState({editTrayVisible: true}))
   expect(getByRole('button', {name: /back/i})).toBeInTheDocument()
 })
 
-it('calls props.hideTray() and correctly sets state when hideTray is called', () => {
+it('calls props.hideTray() and correctly sets state when hideTray is called', async () => {
   const hideTrayMock = vi.fn()
   const props = makeDefaultProps()
   props.hideTray = hideTrayMock
 
   const component = React.createRef()
   render(<RoleTray {...props} ref={component} />)
-  component.current.setState({
-    deleteAlertVisible: true,
-    editBaseRoleAlertVisible: true,
-    editTrayVisible: true,
-    editRoleLabelErrorMessages: [{text: 'ERROR', type: 'newError'}],
-    newTargetBaseRole: 'banana',
+  await act(async () => {
+    component.current.setState({
+      deleteAlertVisible: true,
+      editBaseRoleAlertVisible: true,
+      editTrayVisible: true,
+      editRoleLabelErrorMessages: [{text: 'ERROR', type: 'newError'}],
+      newTargetBaseRole: 'banana',
+    })
   })
-  component.current.hideTray() // components hideTray, not props.hideTray method
+  await act(async () => component.current.hideTray()) // components hideTray, not props.hideTray method
 
   const expectedState = {
     deleteAlertVisible: false,
@@ -207,9 +208,9 @@ it('calls props.hideTray() and correctly sets state when hideTray is called', ()
 it('renders the delete confirmation alert if deleteAlertVisible state is true', async () => {
   const props = makeDefaultProps()
   const component = React.createRef()
-  const {getByText} = render(<RoleTray {...props} ref={component} />)
+  render(<RoleTray {...props} ref={component} />)
   // Set state and then check that the warning message appears
-  component.current.setState({deleteAlertVisible: true})
+  await act(async () => component.current.setState({deleteAlertVisible: true}))
   // The renderDeleteAlert method should render the confirmation text
   // Let's just check that the component instance's state has been updated
   expect(component.current.state.deleteAlertVisible).toBe(true)
@@ -221,12 +222,11 @@ it('does not render the delete confirmation alert if deleteAlertVisible state is
   expect(container.querySelector('.role-tray-delete-alert-confirm')).not.toBeInTheDocument()
 })
 
-it('renders the edit confirmation alert if editBaseRoleAlertVisible state is true', () => {
+it('renders the edit confirmation alert if editBaseRoleAlertVisible state is true', async () => {
   const props = makeDefaultProps()
   const component = React.createRef()
-  const {getByRole, rerender} = render(<RoleTray {...props} ref={component} />)
-  component.current.setState({editBaseRoleAlertVisible: true})
-  rerender(<RoleTray {...props} ref={component} />)
+  const {getByRole} = render(<RoleTray {...props} ref={component} />)
+  await act(async () => component.current.setState({editBaseRoleAlertVisible: true}))
   expect(getByRole('button', {name: /ok/i})).toBeInTheDocument()
 })
 
@@ -243,14 +243,14 @@ it('does not render the base role selector', () => {
   expect(container.querySelector('[role="combobox"]')).not.toBeInTheDocument()
 })
 
-it('onChangeRoleLabel sets error if role is used', () => {
+it('onChangeRoleLabel sets error if role is used', async () => {
   const props = makeDefaultProps()
   props.allRoleLabels = {student: true, teacher: true}
   props.label = 'student'
   const component = React.createRef()
   render(<RoleTray {...props} ref={component} />)
   const event = {target: {value: ' teacher   '}} // make sure trimming happens
-  component.current.onChangeRoleLabel(event)
+  await act(async () => component.current.onChangeRoleLabel(event))
   // We don't trim in the state; we only trim for purposes of error-checking
   // and post requests
   expect(component.current.state.editRoleLabelInput).toEqual(' teacher   ')
@@ -283,7 +283,7 @@ it('updateRole will not try to update if error', () => {
   expect(props.updateRole).toHaveBeenCalledTimes(0)
 })
 
-it('updateRole will reset value and not try to edit if empty', () => {
+it('updateRole will reset value and not try to edit if empty', async () => {
   const props = makeDefaultProps()
   const mockUpdateRoleName = vi.fn()
   props.updateRoleName = mockUpdateRoleName
@@ -291,7 +291,7 @@ it('updateRole will reset value and not try to edit if empty', () => {
   render(<RoleTray {...props} ref={component} />)
   const input = '   '
   const event = {target: {value: input}}
-  component.current.updateRole(event)
+  await act(async () => component.current.updateRole(event))
   expect(component.current.state.editRoleLabelInput).toEqual(props.role.label)
   expect(component.current.state.editRoleLabelErrorMessages).toHaveLength(0)
   expect(mockUpdateRoleName).toHaveBeenCalledTimes(0)

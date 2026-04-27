@@ -51,7 +51,6 @@ describe('AIExperiencePublishButton', () => {
   })
 
   afterEach(() => {
-    cleanup()
     vi.clearAllMocks()
   })
 

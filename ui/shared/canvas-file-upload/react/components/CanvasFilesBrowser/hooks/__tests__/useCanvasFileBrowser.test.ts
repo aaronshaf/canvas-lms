@@ -17,7 +17,7 @@
  */
 
 import {waitFor} from '@testing-library/react'
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook} from '@testing-library/react'
 import {vi} from 'vitest'
 
 // Mock modules

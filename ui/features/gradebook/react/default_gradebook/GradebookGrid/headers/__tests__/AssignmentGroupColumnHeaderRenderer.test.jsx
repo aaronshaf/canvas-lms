@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {act} from '@testing-library/react'
 import {createGradebook, setFixtureHtml} from '../../../__tests__/GradebookSpecHelper'
 import AssignmentGroupColumnHeaderRenderer from '../AssignmentGroupColumnHeaderRenderer'
 import {getAssignmentGroupColumnId} from '../../../Gradebook.utils'
@@ -174,11 +175,13 @@ describe('GradebookGrid AssignmentGroupColumnHeaderRenderer', () => {
       expect(gradebook.gradebookGrid.gridSupport.navigation.handleHeaderKeyDown).toHaveBeenCalled()
     })
 
-    it('includes a callback for closing the column header menu', () => {
+    it('includes a callback for closing the column header menu', async () => {
       vi.useFakeTimers()
       render()
       component.props.onMenuDismiss()
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
       expect(gradebook.keyboardNav.handleMenuOrDialogClose).toHaveBeenCalledTimes(1)
       vi.useRealTimers()
     })

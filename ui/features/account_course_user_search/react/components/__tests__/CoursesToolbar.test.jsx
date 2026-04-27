@@ -18,7 +18,7 @@
 
 import React from 'react'
 import CoursesToolbar from '../CoursesToolbar'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import injectGlobalAlertContainers from '@canvas/util/react/testing/injectGlobalAlertContainers'
 
 injectGlobalAlertContainers()
@@ -130,11 +130,11 @@ describe('CoursesToolbar', () => {
       expect(props.onUpdateFilters).toHaveBeenCalledWith({blueprint: true})
     })
 
-    it('terms are grouped correctly when term search is clicked', () => {
+    it('terms are grouped correctly when term search is clicked', async () => {
       const container = render(<CoursesToolbar {...props} />)
       container.getByText('Filter by term').click()
 
-      const options = container.getAllByRole('option')
+      const options = await waitFor(() => container.getAllByRole('option'))
 
       const parsed = []
       options.forEach(e => {

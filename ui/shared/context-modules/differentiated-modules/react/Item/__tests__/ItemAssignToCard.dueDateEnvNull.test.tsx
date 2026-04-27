@@ -91,7 +91,6 @@ describe('ItemAssignToCard - Due Date ENV Null Defaults', () => {
     server.resetHandlers()
     fakeEnv.teardown()
     vi.clearAllMocks()
-    cleanup()
   })
 
   it('defaults to the default due time for due dates from ENV if has null due time', async () => {

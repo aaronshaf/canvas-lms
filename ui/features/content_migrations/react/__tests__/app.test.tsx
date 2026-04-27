@@ -132,7 +132,7 @@ describe('App', () => {
       expect(capturedUrl).toContain('page=1')
     })
 
-    expect(screen.getByText(/Common Cartridge/)).toBeInTheDocument()
+    expect(await screen.findByText(/Common Cartridge/)).toBeInTheDocument()
   })
 
   describe('when api call fails', () => {
@@ -158,8 +158,10 @@ describe('App', () => {
     it("doesn't render loading spinner", async () => {
       render(<App />)
 
-      await waitFor(() => expect(showFlashError).toHaveBeenCalled())
-      expect(screen.queryByText('Loading')).not.toBeInTheDocument()
+      await waitFor(() => {
+        expect(showFlashError).toHaveBeenCalled()
+        expect(screen.queryByText('Loading')).not.toBeInTheDocument()
+      })
     })
   })
 })

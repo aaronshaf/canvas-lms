@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook, act} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import useSearch from '../useSearch'
 
 vi.useFakeTimers()
@@ -38,14 +38,14 @@ describe('useSearch', () => {
     act(() => result.current.onChangeHandler(event))
     expect(result.current.search).toBe('123')
     expect(result.current.debouncedSearch).toBe('')
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(result.current.debouncedSearch).toBe('123')
   })
 
   test('should clear state to empty string when second returned fn is called', async () => {
     const {result} = renderHook(() => useSearch())
     act(() => result.current.onClearHandler())
-    await act(async () => vi.runAllTimers())
+    await act(async () => vi.runOnlyPendingTimers())
     expect(result.current.search).toBe('')
   })
 

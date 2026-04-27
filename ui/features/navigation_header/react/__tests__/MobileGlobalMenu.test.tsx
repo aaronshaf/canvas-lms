@@ -49,10 +49,6 @@ describe('MobileGlobalMenu', () => {
     mockedUseSwitchExperience.mockReturnValue({mutate: vi.fn()} as any)
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   const setup = (
     processedTools: ProcessedTool[] = [],
     externalTools: ExternalTool[] = [],

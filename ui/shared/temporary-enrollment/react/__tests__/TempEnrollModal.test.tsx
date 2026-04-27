@@ -123,21 +123,9 @@ const enrollmentsByCourse = [
   },
 ]
 
-const ENROLLMENTS_URI = encodeURI(
-  `/api/v1/users/${modalProps.user.id}/courses?enrollment_state=active&include[]=sections&include[]=term&per_page=${MAX_ALLOWED_COURSES_PER_PAGE}&account_id=${enrollmentsByCourse[0].account_id}`,
-)
+const ENROLLMENTS_URI = `/api/v1/users/${modalProps.user.id}/courses`
 
-// user_list did not match the encoded url (hence user_list[])
-const userListsData = {
-  'user_list[]': '1',
-  v2: true,
-  search_type: 'cc_path',
-}
-const userListsParams = Object.entries(userListsData)
-  .map(([key, value]) => `${key}=${value}`)
-  .join('&')
-
-const USER_LIST_URI = encodeURI(`/accounts/1/user_lists.json?${userListsParams}`)
+const USER_LIST_URI = '/accounts/1/user_lists.json'
 
 const userDetailsUriMock = (userId: string, response: object) =>
   server.use(http.get(`/api/v1/users/${userId}/profile`, () => HttpResponse.json(response)))
@@ -160,11 +148,6 @@ describe('TempEnrollModal', () => {
     localStorage.clear()
     server.resetHandlers()
     vi.clearAllMocks()
-  })
-
-  afterEach(() => {
-    // unmount the React tree after each test
-    cleanup()
   })
 
   afterAll(() => {

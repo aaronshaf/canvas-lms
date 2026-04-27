@@ -45,7 +45,6 @@ describe('Gradebook > Default Gradebook > Components > Content Filters > Section
   })
 
   afterEach(() => {
-    cleanup()
     fakeENV.teardown()
     vi.clearAllMocks()
   })

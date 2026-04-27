@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {act, renderHook} from '@testing-library/react'
 import useInboxSettingsValidate from '../useInboxSettingsValidate'
 
 describe('useInboxSettingsValidate', () => {
@@ -60,60 +60,68 @@ describe('useInboxSettingsValidate', () => {
 
   it('validates first date for errors', () => {
     const {result} = renderHook(() => useInboxSettingsValidate())
-    const validateFirstDate = result.current.validateForm({
-      ...defaultProps({firstDateError: true}),
+    let validateFirstDate: boolean
+    act(() => {
+      validateFirstDate = result.current.validateForm({...defaultProps({firstDateError: true})})
     })
-    expect(validateFirstDate).toBe(false)
+    expect(validateFirstDate!).toBe(false)
     expect(result.current.fieldWithError).toBe('first_date')
   })
 
   it('validates last date for errors', () => {
     const {result} = renderHook(() => useInboxSettingsValidate())
-    const validateLastDate = result.current.validateForm({
-      ...defaultProps({lastDateError: true}),
+    let validateLastDate: boolean
+    act(() => {
+      validateLastDate = result.current.validateForm({...defaultProps({lastDateError: true})})
     })
-    expect(validateLastDate).toBe(false)
+    expect(validateLastDate!).toBe(false)
     expect(result.current.fieldWithError).toBe('last_date')
   })
 
   it('validates subject for errors', () => {
     const {result} = renderHook(() => useInboxSettingsValidate())
-    const validateSubject = result.current.validateForm({
-      ...defaultProps({subjectError: true}),
+    let validateSubject: boolean
+    act(() => {
+      validateSubject = result.current.validateForm({...defaultProps({subjectError: true})})
     })
-    expect(validateSubject).toBe(false)
+    expect(validateSubject!).toBe(false)
     expect(result.current.fieldWithError).toBe('subject')
   })
 
   it('validates message for errors', () => {
     const {result} = renderHook(() => useInboxSettingsValidate())
-    const validateMessage = result.current.validateForm({
-      ...defaultProps({messageError: true}),
+    let validateMessage: boolean
+    act(() => {
+      validateMessage = result.current.validateForm({...defaultProps({messageError: true})})
     })
-    expect(validateMessage).toBe(false)
+    expect(validateMessage!).toBe(false)
     expect(result.current.fieldWithError).toBe('message')
   })
 
   it('validates signature for errors', () => {
     const {result} = renderHook(() => useInboxSettingsValidate())
-    const validateSignature = result.current.validateForm({
-      ...defaultProps({signatureError: true}),
+    let validateSignature: boolean
+    act(() => {
+      validateSignature = result.current.validateForm({...defaultProps({signatureError: true})})
     })
-    expect(validateSignature).toBe(false)
+    expect(validateSignature!).toBe(false)
     expect(result.current.fieldWithError).toBe('signature')
   })
 
   it('puts focus on the element with error when focusOnError called', () => {
     const {result, rerender} = renderHook(() => useInboxSettingsValidate())
-    const validateSignature = result.current.validateForm({
-      ...defaultProps({signatureError: true}),
+    let validateSignature: boolean
+    act(() => {
+      validateSignature = result.current.validateForm({...defaultProps({signatureError: true})})
     })
     const el: HTMLTextAreaElement = document.createElement('textarea')
     el.focus = focusMock
     result.current.setSignatureRef(el)
-    expect(validateSignature).toBe(false)
+    expect(validateSignature!).toBe(false)
     expect(result.current.fieldWithError).toBe('signature')
-    result.current.focusOnError()
+    act(() => {
+      result.current.focusOnError()
+    })
     rerender()
     expect(result.current.fieldWithError).toBe(null)
     expect(focusMock).toHaveBeenCalled()

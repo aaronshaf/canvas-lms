@@ -15,8 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import {act} from '@testing-library/react'
-import {renderHook} from '@testing-library/react-hooks'
+import {act, renderHook, waitFor} from '@testing-library/react'
 import {useGradebookSettings} from '../useGradebookSettings'
 import * as apiClient from '../../apiClient'
 import {DEFAULT_GRADEBOOK_SETTINGS} from '@canvas/outcomes/react/utils/constants'
@@ -56,8 +55,8 @@ describe('useGradebookSettings', () => {
       data: {learning_mastery_gradebook_settings: mockSettings},
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.settings.secondaryInfoDisplay).toBe(SecondaryInfoDisplay.SIS_ID)
     expect(result.current.settings.displayFilters).toEqual([
@@ -71,8 +70,8 @@ describe('useGradebookSettings', () => {
 
   it('sets default settings on error', async () => {
     vi.spyOn(apiClient, 'loadLearningMasteryGradebookSettings').mockRejectedValue(new Error('fail'))
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.settings).toEqual(DEFAULT_GRADEBOOK_SETTINGS)
     expect(result.current.isLoading).toBe(false)
     expect(result.current.error).toBeTruthy()
@@ -86,8 +85,8 @@ describe('useGradebookSettings', () => {
       config: {headers: {} as any},
       data: {},
     })
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.settings).toEqual(DEFAULT_GRADEBOOK_SETTINGS)
     expect(result.current.isLoading).toBe(false)
   })
@@ -104,8 +103,8 @@ describe('useGradebookSettings', () => {
       config: {headers: {} as any},
       data: {learning_mastery_gradebook_settings: mockSettings},
     })
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.settings.secondaryInfoDisplay).toBe(mockSettings.secondary_info_display)
     expect(result.current.settings.displayFilters).toEqual([
       DisplayFilter.SHOW_STUDENTS_WITH_NO_RESULTS,
@@ -126,8 +125,8 @@ describe('useGradebookSettings', () => {
       config: {headers: {} as any},
       data: {learning_mastery_gradebook_settings: mockSettings},
     })
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.settings.secondaryInfoDisplay).toBe(mockSettings.secondary_info_display)
     expect(result.current.settings.displayFilters).toEqual(
       DEFAULT_GRADEBOOK_SETTINGS.displayFilters,
@@ -148,8 +147,8 @@ describe('useGradebookSettings', () => {
       config: {headers: {} as any},
       data: {learning_mastery_gradebook_settings: mockSettings},
     })
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.settings.secondaryInfoDisplay).toBe(
       DEFAULT_GRADEBOOK_SETTINGS.secondaryInfoDisplay,
     )
@@ -172,8 +171,8 @@ describe('useGradebookSettings', () => {
       data: {learning_mastery_gradebook_settings: mockSettings},
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.settings.nameDisplayFormat).toBe(NameDisplayFormat.LAST_FIRST)
     expect(result.current.error).toBeNull()
@@ -194,8 +193,8 @@ describe('useGradebookSettings', () => {
       data: {learning_mastery_gradebook_settings: mockSettings},
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.settings.nameDisplayFormat).toBe(
       DEFAULT_GRADEBOOK_SETTINGS.nameDisplayFormat,
@@ -219,8 +218,8 @@ describe('useGradebookSettings', () => {
       data: {learning_mastery_gradebook_settings: mockSettings},
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.settings.scoreDisplayFormat).toBe(ScoreDisplayFormat.ICON_AND_POINTS)
     expect(result.current.error).toBeNull()
@@ -241,8 +240,8 @@ describe('useGradebookSettings', () => {
       data: {learning_mastery_gradebook_settings: mockSettings},
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.settings.scoreDisplayFormat).toBe(
       DEFAULT_GRADEBOOK_SETTINGS.scoreDisplayFormat,
@@ -266,8 +265,8 @@ describe('useGradebookSettings', () => {
       data: {learning_mastery_gradebook_settings: mockSettings},
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.settings.outcomeArrangement).toBe(OutcomeArrangement.CUSTOM)
     expect(result.current.error).toBeNull()
@@ -288,8 +287,8 @@ describe('useGradebookSettings', () => {
       data: {learning_mastery_gradebook_settings: mockSettings},
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.settings.outcomeArrangement).toBe(
       DEFAULT_GRADEBOOK_SETTINGS.outcomeArrangement,
@@ -306,7 +305,7 @@ describe('useGradebookSettings', () => {
       show_outcomes_with_no_results: false,
       show_unpublished_assignments: true,
     }
-    jest.spyOn(apiClient, 'loadLearningMasteryGradebookSettings').mockResolvedValue({
+    vi.spyOn(apiClient, 'loadLearningMasteryGradebookSettings').mockResolvedValue({
       status: 200,
       statusText: 'OK',
       headers: {},
@@ -314,8 +313,8 @@ describe('useGradebookSettings', () => {
       data: {learning_mastery_gradebook_settings: mockSettings},
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.settings.displayFilters).toContain(
       DisplayFilter.SHOW_UNPUBLISHED_ASSIGNMENTS,
@@ -331,7 +330,7 @@ describe('useGradebookSettings', () => {
       show_students_with_no_results: true,
       show_unpublished_assignments: false,
     }
-    jest.spyOn(apiClient, 'loadLearningMasteryGradebookSettings').mockResolvedValue({
+    vi.spyOn(apiClient, 'loadLearningMasteryGradebookSettings').mockResolvedValue({
       status: 200,
       statusText: 'OK',
       headers: {},
@@ -339,8 +338,8 @@ describe('useGradebookSettings', () => {
       data: {learning_mastery_gradebook_settings: mockSettings},
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.settings.displayFilters).not.toContain(
       DisplayFilter.SHOW_UNPUBLISHED_ASSIGNMENTS,
@@ -363,8 +362,8 @@ describe('useGradebookSettings', () => {
         },
       },
     })
-    const {result, waitForNextUpdate} = renderHook(() => useGradebookSettings(courseId))
-    await waitForNextUpdate()
+    const {result} = renderHook(() => useGradebookSettings(courseId))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
     act(() => {
       result.current.updateSettings({
         secondaryInfoDisplay: SecondaryInfoDisplay.INTEGRATION_ID,

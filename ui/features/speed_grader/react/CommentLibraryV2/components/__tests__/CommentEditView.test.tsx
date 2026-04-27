@@ -27,10 +27,6 @@ import * as FlashAlert from '@instructure/platform-alerts'
 vi.mock('@instructure/platform-alerts')
 
 describe('CommentEditView', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const defaultProps = {
     id: 'comment-1',
     initialValue: 'Initial comment text',
@@ -290,12 +286,9 @@ describe('CommentEditView', () => {
         expect(saveButton).toBeDisabled()
       })
 
-      await waitFor(
-        () => {
-          expect(saveButton).not.toBeDisabled()
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(saveButton).not.toBeDisabled()
+      })
     })
   })
 

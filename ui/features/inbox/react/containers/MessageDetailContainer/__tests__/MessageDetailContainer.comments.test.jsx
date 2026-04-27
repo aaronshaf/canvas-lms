@@ -159,17 +159,10 @@ describe('MessageDetailContainer', () => {
           conversation: mockSubmissionComment,
         })
 
-        await waitFor(
-          async () => {
-            const header = await findByTestId('message-detail-header-desktop')
-            expect(header).toBeInTheDocument()
-            const commentText = await findByText('my student comment')
-            expect(commentText).toBeInTheDocument()
-          },
-          {
-            timeout: 1000,
-          },
-        )
+        const header = await findByTestId('message-detail-header-desktop')
+        expect(header).toBeInTheDocument()
+        const commentText = await findByText('my student comment')
+        expect(commentText).toBeInTheDocument()
       })
 
       it('should not render the reply or reply_all option in header if student lacks permission', async () => {

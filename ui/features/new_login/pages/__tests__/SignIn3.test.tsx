@@ -91,10 +91,6 @@ describe('SignIn', () => {
     }))
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   describe('form validation', () => {
     it('shows validation error when the username contains only whitespace', async () => {
       vi.mocked(useNewLogin).mockReturnValue({
@@ -321,7 +317,12 @@ describe('SignIn', () => {
         await userEvent.type(passwordInput, 'password123')
         await userEvent.click(loginButton)
         await waitFor(() => {
-          expect(performSignIn).toHaveBeenCalledWith('user@example.com', 'password123', false, '/login/canvas')
+          expect(performSignIn).toHaveBeenCalledWith(
+            'user@example.com',
+            'password123',
+            false,
+            '/login/canvas',
+          )
         })
         // Verify setOtpRequired was called with true when API returns otp_required: true
         await waitFor(() => {

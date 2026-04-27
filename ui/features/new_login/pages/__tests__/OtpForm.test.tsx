@@ -45,7 +45,6 @@ vi.mock('../../services', () => ({
 }))
 
 afterEach(() => {
-  cleanup()
   vi.clearAllMocks()
 })
 

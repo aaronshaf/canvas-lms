@@ -22,7 +22,7 @@ import {MemoryRouter} from 'react-router-dom'
 import {NewLoginDataProvider} from '../../context'
 import RegistrationRoutesMiddleware from '../RegistrationRoutesMiddleware'
 
-vi.mock('../../context/NewLoginDataContext', async (importOriginal) => {
+vi.mock('../../context/NewLoginDataContext', async importOriginal => {
   const actualContext = await importOriginal<typeof import('../../context/NewLoginDataContext')>()
   return {
     ...actualContext,
@@ -32,10 +32,6 @@ vi.mock('../../context/NewLoginDataContext', async (importOriginal) => {
       selfRegistrationType: 'all',
     }),
   }
-})
-
-afterEach(() => {
-  cleanup()
 })
 
 describe('RegistrationRoutesMiddleware', () => {

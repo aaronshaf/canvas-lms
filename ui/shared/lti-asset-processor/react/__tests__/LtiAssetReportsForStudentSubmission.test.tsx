@@ -41,9 +41,8 @@ describe('LtiAssetReportsForStudentSubmission', () => {
   })
 
   afterEach(() => {
-    vi.runAllTimers()
+    vi.runOnlyPendingTimers()
     vi.useRealTimers()
-    cleanup()
     queryClient.clear()
     fakeENV.teardown()
   })

@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render, within} from '@testing-library/react'
+import {render, waitFor, within} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {AlertManagerContext} from '@instructure/platform-alerts'
 import {ApolloProvider} from '@apollo/client'
@@ -181,8 +181,16 @@ describe('CanvasInbox App Container - URL Routing', () => {
       const composeModal = await container.findByTestId('compose-modal-desktop')
       expect(composeModal).toBeInTheDocument()
 
-      const courseSelectModal = await container.findByTestId('course-select-modal')
-      expect(courseSelectModal.getAttribute('value')).toBe('XavierSchool')
+      // Apollo + URL-param parsing chain is slower than a typical MSW round-trip;
+      // both findByTestId and the subsequent waitFor need elevated timeouts on CI shards under load.
+      const courseSelectModal = await container.findByTestId(
+        'course-select-modal',
+        {},
+        {timeout: 5000},
+      )
+      await waitFor(() => expect(courseSelectModal.getAttribute('value')).toBe('XavierSchool'), {
+        timeout: 10000,
+      })
     })
 
     it('should not open compose modal when compose parameter is false or missing', async () => {

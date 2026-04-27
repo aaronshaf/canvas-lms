@@ -348,7 +348,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
 
       // Close tray
       trayController.hideTrayForEditor(editors[0])
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000})
+      await waitFor(() => expect(getTray()).toBeNull())
 
       // Assert: reload should NOT be called (old behavior preserved)
       expect(reloadSpy).not.toHaveBeenCalled()
@@ -375,7 +375,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
 
       // Close tray
       trayController.hideTrayForEditor(editors[0])
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000})
+      await waitFor(() => expect(getTray()).toBeNull())
 
       // Assert: _reloadAudioPlayer SHOULD be called
       expect(reloadSpy).toHaveBeenCalledTimes(1)
@@ -401,7 +401,7 @@ describe('RCE "Audios" Plugin > AudioOptionsTray > TrayController', () => {
 
       // Close tray
       trayController.hideTrayForEditor(editors[0])
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000})
+      await waitFor(() => expect(getTray()).toBeNull())
 
       // Assert: reload should NOT be called (no changes made)
       expect(reloadSpy).not.toHaveBeenCalled()

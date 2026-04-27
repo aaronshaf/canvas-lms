@@ -35,10 +35,6 @@ describe('CreateTodoModal', () => {
     timeZone: 'America/Denver',
   }
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
   })

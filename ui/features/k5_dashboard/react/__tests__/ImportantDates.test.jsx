@@ -68,7 +68,6 @@ describe('ImportantDates', () => {
   })
 
   afterEach(() => {
-    cleanup()
     vi.useRealTimers()
     fetchMock.restore()
     destroyContainer()
@@ -88,16 +87,22 @@ describe('ImportantDates', () => {
     fetchMock.get(ASSIGNMENTS_URL, 500, {overwriteRoutes: true})
     render(<ImportantDates {...getProps()} />)
     await vi.advanceTimersByTimeAsync(500)
-    expect(
-      screen.getAllByText('Failed to load assignments in important dates.')[0],
-    ).toBeInTheDocument()
+    await waitFor(() =>
+      expect(
+        screen.getAllByText('Failed to load assignments in important dates.')[0],
+      ).toBeInTheDocument(),
+    )
   })
 
   it('shows an error message if events request fails', async () => {
     fetchMock.get(EVENTS_URL, 500, {overwriteRoutes: true})
     render(<ImportantDates {...getProps()} />)
     await vi.advanceTimersByTimeAsync(500)
-    expect(screen.getAllByText('Failed to load events in important dates.')[0]).toBeInTheDocument()
+    await waitFor(() =>
+      expect(
+        screen.getAllByText('Failed to load events in important dates.')[0],
+      ).toBeInTheDocument(),
+    )
   })
 
   it('fires off requests with correct params', async () => {

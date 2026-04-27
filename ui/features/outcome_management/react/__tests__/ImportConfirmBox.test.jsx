@@ -113,7 +113,7 @@ describe('ImportConfirmBox', () => {
       const cancelButton = container.querySelector('button span span').closest('button')
       fireEvent.click(cancelButton)
 
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(onCloseHandlerMock).toHaveBeenCalled()
     })
 
@@ -135,7 +135,7 @@ describe('ImportConfirmBox', () => {
       )
 
       fireEvent.click(importButton)
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(onImportHandlerMock).toHaveBeenCalled()
       expect(onCloseHandlerMock).toHaveBeenCalled()
     })
@@ -152,7 +152,7 @@ describe('ImportConfirmBox', () => {
     it('calls onCloseHandler before ImportConfirmBox is unmounted', async () => {
       showImportConfirmBox({...defaultProps()})
       fireEvent.click(screen.getByText('Cancel'))
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(onCloseHandlerMock).toHaveBeenCalled()
     })
 

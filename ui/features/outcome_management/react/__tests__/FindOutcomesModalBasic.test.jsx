@@ -70,7 +70,7 @@ describe('FindOutcomesModal - Basic Tests', () => {
   describe('Modal behavior', () => {
     it('renders component with "Add Outcomes to Account" title when contextType is Account', async () => {
       const {getByText} = render(<FindOutcomesModal {...defaultProps()} />)
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(getByText('Add Outcomes to Account')).toBeInTheDocument()
     })
 
@@ -78,7 +78,7 @@ describe('FindOutcomesModal - Basic Tests', () => {
       const {getByText} = render(<FindOutcomesModal {...defaultProps()} />, {
         contextType: 'Course',
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(getByText('Add Outcomes to Course')).toBeInTheDocument()
     })
 
@@ -96,19 +96,19 @@ describe('FindOutcomesModal - Basic Tests', () => {
           contextType: 'Course',
         },
       )
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(getByText('Add Outcomes to "The Group Title"')).toBeInTheDocument()
     })
 
     it('shows modal if open prop true', async () => {
       const {getByText} = render(<FindOutcomesModal {...defaultProps()} />)
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(getByText('Close')).toBeInTheDocument()
     })
 
     it('does not show modal if open prop false', async () => {
       const {queryByText} = render(<FindOutcomesModal {...defaultProps({open: false})} />)
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(queryByText('Close')).not.toBeInTheDocument()
     })
 
@@ -116,7 +116,7 @@ describe('FindOutcomesModal - Basic Tests', () => {
       describe('within an account', () => {
         it('displays a screen reader error and text error on failed request', async () => {
           const {getByText} = render(<FindOutcomesModal {...defaultProps()} />, {mocks: []})
-          await act(async () => vi.runAllTimers())
+          await act(async () => vi.runOnlyPendingTimers())
           expect(showFlashAlert).toHaveBeenCalledWith({
             message: 'An error occurred while loading account learning outcome groups.',
             srOnly: true,
@@ -132,7 +132,7 @@ describe('FindOutcomesModal - Basic Tests', () => {
             contextType: 'Course',
             mocks: [],
           })
-          await act(async () => vi.runAllTimers())
+          await act(async () => vi.runOnlyPendingTimers())
           expect(showFlashAlert).toHaveBeenCalledWith({
             message: 'An error occurred while loading course learning outcome groups.',
             srOnly: true,
@@ -147,26 +147,26 @@ describe('FindOutcomesModal - Basic Tests', () => {
   describe('Tree browser behavior', () => {
     it('clears selected outcome group for the outcomes view after closing and reopening', async () => {
       const {getByText, queryByText, rerender} = render(<FindOutcomesModal {...defaultProps()} />)
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       fireEvent.click(getByText('Account Standards'))
       fireEvent.click(getByText('Root Account Outcome Group 0'))
-      await act(async () => vi.runAllTimers())
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(getByText('All Root Account Outcome Group 0 Outcomes')).toBeInTheDocument()
       fireEvent.click(getByText('Done'))
       render(<FindOutcomesModal {...defaultProps({open: false})} />, {renderer: rerender})
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       render(<FindOutcomesModal {...defaultProps()} />, {renderer: rerender})
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(queryByText('All Root Account Outcome Group 0 Outcomes')).not.toBeInTheDocument()
     })
 
     describe('within an account context', () => {
       it('renders Account Standards groups for non root accounts', async () => {
         const {getByText, queryByText} = render(<FindOutcomesModal {...defaultProps()} />)
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         fireEvent.click(getByText('Account Standards'))
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         expect(getByText('Root Account Outcome Group 0')).toBeInTheDocument()
       })
 
@@ -174,7 +174,7 @@ describe('FindOutcomesModal - Basic Tests', () => {
         const {queryByText} = render(<FindOutcomesModal {...defaultProps()} />, {
           mocks: findModalMocks({parentAccountChildren: 0}),
         })
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         expect(queryByText('Account Standards')).not.toBeInTheDocument()
       })
     })
@@ -183,7 +183,7 @@ describe('FindOutcomesModal - Basic Tests', () => {
       const {getByText, queryByText} = render(<FindOutcomesModal {...defaultProps()} />, {
         contextType: 'Course',
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       await clickEl(getByText('Account Standards'))
       await clickEl(getByText('Course Account Outcome Group'))
       expect(showFlashAlert).toHaveBeenCalledWith({
@@ -199,16 +199,16 @@ describe('FindOutcomesModal - Basic Tests', () => {
           mocks: findModalMocks({includeGlobalRootGroup: true}),
           globalRootId: '1',
         })
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         fireEvent.click(getByText('State Standards'))
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
       })
 
       it('does not render the State Standard group if no globalRootId is set', async () => {
         const {queryByText, getByText} = render(<FindOutcomesModal {...defaultProps()} />, {
           mocks: findModalMocks({includeGlobalRootGroup: true}),
         })
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         expect(getByText(/An error occurred while loading account outcomes/)).toBeInTheDocument()
         expect(queryByText('State Standards')).not.toBeInTheDocument()
       })
@@ -218,9 +218,9 @@ describe('FindOutcomesModal - Basic Tests', () => {
           mocks: [...findModalMocks({includeGlobalRootGroup: true}), ...groupMocks({groupId: '1'})],
           globalRootId: '1',
         })
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         fireEvent.click(getByText('State Standards'))
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         expect(getByText('Select a group to reveal outcomes here.')).toBeInTheDocument()
       })
     })

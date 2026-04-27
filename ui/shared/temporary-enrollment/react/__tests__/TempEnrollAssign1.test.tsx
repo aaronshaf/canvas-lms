@@ -258,21 +258,15 @@ describe('TempEnrollAssign', () => {
       fireEvent.blur(startTime)
 
       // Wait for the component to update with the time information
-      await waitFor(async () => {
-        const localTimes = await findAllByText(/Local: /)
-        const accTimes = await findAllByText(/Account: /)
-        return localTimes.length > 0 && accTimes.length > 0
-      })
+      const localTimes = await findAllByText(/Local: /)
+      const accTimes = await findAllByText(/Account: /)
 
-      const localTime = (await findAllByText(/Local: /))[0]
-      const accTime = (await findAllByText(/Account: /))[0]
+      const localTime = localTimes[0]
+      const accTime = accTimes[0]
 
       // Check that the times show different dates due to timezone differences
       expect(localTime.textContent).toBeTruthy()
       expect(accTime.textContent).toBeTruthy()
-
-      // Clean up
-      fakeENV.teardown()
     })
 
     it('sets invalid start error state when date field is blank', async () => {
@@ -384,9 +378,6 @@ describe('TempEnrollAssign', () => {
       expect(summary.textContent).toContain('Canvas will enroll Melvin')
       expect(summary.textContent).toContain('in the selected courses of John Smith')
       expect(summary.textContent).toContain('with an ending enrollment state of Deleted')
-
-      // Clean up
-      fakeENV.teardown()
     })
   })
 

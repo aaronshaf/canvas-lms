@@ -105,7 +105,6 @@ describe('DirectShareUserTray', () => {
     server.resetHandlers()
     vi.clearAllMocks()
     vi.resetAllMocks()
-    cleanup()
   })
 
   it('renders', () => {

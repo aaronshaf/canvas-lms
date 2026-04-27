@@ -32,10 +32,6 @@ describe('Suggestions', () => {
     onClose: vi.fn(),
   }
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
   })

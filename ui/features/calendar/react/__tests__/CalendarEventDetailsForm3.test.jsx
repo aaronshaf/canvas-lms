@@ -126,9 +126,9 @@ describe('CalendarEventDetailsForm', () => {
       save: vi.fn().mockResolvedValue({}),
     }))
     // MSW will handle the actual network requests
-    vi
-      .spyOn(UpdateCalendarEventDialogModule, 'renderUpdateCalendarEventDialog')
-      .mockImplementation(() => Promise.resolve('all'))
+    vi.spyOn(UpdateCalendarEventDialogModule, 'renderUpdateCalendarEventDialog').mockImplementation(
+      () => Promise.resolve('all'),
+    )
   })
 
   afterEach(() => {
@@ -141,14 +141,16 @@ describe('CalendarEventDetailsForm', () => {
     const component = render(<CalendarEventDetailsForm {...defaultProps} />)
 
     expect(component.getByText('Conferencing')).toBeInTheDocument()
-    component.getByText('Submit').click()
-    expect(defaultProps.event.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        'calendar_event[web_conference][conference_type]': 'BigBlueButton',
-        'calendar_event[web_conference][name]': 'BigBlueButton',
-      }),
-      expect.any(Function),
-      expect.any(Function),
+    fireEvent.click(component.getByText('Submit'))
+    await waitFor(() =>
+      expect(defaultProps.event.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          'calendar_event[web_conference][conference_type]': 'BigBlueButton',
+          'calendar_event[web_conference][name]': 'BigBlueButton',
+        }),
+        expect.any(Function),
+        expect.any(Function),
+      ),
     )
   })
 
@@ -156,14 +158,16 @@ describe('CalendarEventDetailsForm', () => {
     defaultProps.event.webConference = conference
     const component = render(<CalendarEventDetailsForm {...defaultProps} />)
 
-    component.getByText('Remove conference: Conference').click()
-    component.getByText('Submit').click()
-    expect(defaultProps.event.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        'calendar_event[web_conference]': '',
-      }),
-      expect.any(Function),
-      expect.any(Function),
+    fireEvent.click(component.getByText('Remove conference: Conference'))
+    fireEvent.click(component.getByText('Submit'))
+    await waitFor(() =>
+      expect(defaultProps.event.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          'calendar_event[web_conference]': '',
+        }),
+        expect.any(Function),
+        expect.any(Function),
+      ),
     )
   })
 
@@ -172,14 +176,16 @@ describe('CalendarEventDetailsForm', () => {
     event.contextInfo.k5_course = true
     const component = render(<CalendarEventDetailsForm {...defaultProps} event={event} />)
 
-    component.getByText('Mark as Important Date').click()
-    component.getByText('Submit').click()
-    expect(defaultProps.event.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        'calendar_event[important_dates]': true,
-      }),
-      expect.any(Function),
-      expect.any(Function),
+    fireEvent.click(component.getByText('Mark as Important Date'))
+    fireEvent.click(component.getByText('Submit'))
+    await waitFor(() =>
+      expect(defaultProps.event.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          'calendar_event[important_dates]': true,
+        }),
+        expect.any(Function),
+        expect.any(Function),
+      ),
     )
   })
 
@@ -188,14 +194,16 @@ describe('CalendarEventDetailsForm', () => {
     event.contextInfo.k5_account = true
     const component = render(<CalendarEventDetailsForm {...defaultProps} event={event} />)
 
-    component.getByText('Mark as Important Date').click()
-    component.getByText('Submit').click()
-    expect(defaultProps.event.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        'calendar_event[important_dates]': true,
-      }),
-      expect.any(Function),
-      expect.any(Function),
+    fireEvent.click(component.getByText('Mark as Important Date'))
+    fireEvent.click(component.getByText('Submit'))
+    await waitFor(() =>
+      expect(defaultProps.event.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          'calendar_event[important_dates]': true,
+        }),
+        expect.any(Function),
+        expect.any(Function),
+      ),
     )
   })
 
@@ -320,10 +328,11 @@ describe('CalendarEventDetailsForm', () => {
 
     it('with option selected contains RRULE on submit', async () => {
       const component = render(<CalendarEventDetailsForm {...defaultProps} />)
-      component.getByText('Frequency').click() // open the dropdown
-      component.getByText('Daily').click() // select the option
-      component.getByText('Submit').click()
-      expect(defaultProps.closeCB).toHaveBeenCalled()
+      fireEvent.click(component.getByText('Frequency')) // open the dropdown
+      fireEvent.click(await component.findByText('Daily')) // select the option
+      await waitFor(() => expect(component.queryByDisplayValue('Daily')).toBeInTheDocument())
+      fireEvent.click(component.getByText('Submit'))
+      await waitFor(() => expect(defaultProps.closeCB).toHaveBeenCalled())
       expect(defaultProps.event.save).toHaveBeenCalledWith(
         expect.objectContaining({
           'calendar_event[rrule]': 'FREQ=DAILY;INTERVAL=1;COUNT=365',
@@ -335,8 +344,8 @@ describe('CalendarEventDetailsForm', () => {
 
     it('with custom option selected opens the modal', async () => {
       const component = render(<CalendarEventDetailsForm {...defaultProps} />)
-      component.getByText('Frequency').click()
-      component.getByText('Custom...').click()
+      fireEvent.click(component.getByText('Frequency'))
+      fireEvent.click(await component.findByText('Custom...'))
       const modal = await component.findByText('Custom Repeating Event')
       expect(modal).toBeInTheDocument()
     })
@@ -347,8 +356,8 @@ describe('CalendarEventDetailsForm', () => {
       const nextDate = props.event.startDate().clone().add(1, 'day').format('ddd, MMM D, YYYY')
 
       const component = render(<CalendarEventDetailsForm {...props} />)
-      component.getByText('Frequency').click()
-      component.getByText('Daily').click()
+      fireEvent.click(component.getByText('Frequency'))
+      fireEvent.click(await component.findByText('Daily'))
       await waitFor(() => expect(component.queryByDisplayValue('Daily')).toBeInTheDocument())
       changeValue(component, 'edit-calendar-event-form-date', nextDate)
       expect(component.queryByDisplayValue('Daily')).toBeInTheDocument()
@@ -363,13 +372,15 @@ describe('CalendarEventDetailsForm', () => {
       const nextDate = d.clone().add(1, 'day').toISOString()
 
       const component = render(<CalendarEventDetailsForm {...props} />)
-      component.getByText('Frequency').click()
-      component.getByText('Weekly on Monday').click()
+      fireEvent.click(component.getByText('Frequency'))
+      fireEvent.click(await component.findByText('Weekly on Monday'))
       await waitFor(() =>
         expect(component.queryByDisplayValue('Weekly on Monday')).toBeInTheDocument(),
       )
       changeValue(component, 'edit-calendar-event-form-date', nextDate)
-      expect(component.queryByDisplayValue('Weekly on Tuesday')).toBeInTheDocument()
+      await waitFor(() =>
+        expect(component.queryByDisplayValue('Weekly on Tuesday')).toBeInTheDocument(),
+      )
     })
 
     it('does not change the custom frequency when the date changes', async () => {

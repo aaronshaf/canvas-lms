@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, act, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {get} from 'es-toolkit/compat'
 
@@ -52,31 +52,35 @@ const checkToolConfigPart = (toolConfig, path, value) => {
   expect(get(toolConfig, path)).toEqual(value)
 }
 
-const checkChange = (path, funcName, value, placementOverrides, event = null) => {
+const checkChange = async (path, funcName, value, placementOverrides, event = null) => {
   const ref = React.createRef()
   render(<Placement {...props({}, {...placementOverrides})} ref={ref} />)
 
   event = event || {target: {value}}
   event = Array.isArray(event) ? event : [event]
 
-  ref.current[funcName](...event)
-  checkToolConfigPart(ref.current.generateToolConfigurationPart(), path, value)
+  act(() => {
+    ref.current[funcName](...event)
+  })
+  await waitFor(() => {
+    checkToolConfigPart(ref.current.generateToolConfigurationPart(), path, value)
+  })
 }
 
-it('changes the output when target_link_uri changes', () => {
-  checkChange(['target_link_uri'], 'handleTargetLinkUriChange', 'http://new.example.com')
+it('changes the output when target_link_uri changes', async () => {
+  await checkChange(['target_link_uri'], 'handleTargetLinkUriChange', 'http://new.example.com')
 })
 
-it('changes the output when icon_url changes', () => {
-  checkChange(['icon_url'], 'handleIconUrlChange', 'http://example.com/new_icon')
+it('changes the output when icon_url changes', async () => {
+  await checkChange(['icon_url'], 'handleIconUrlChange', 'http://example.com/new_icon')
 })
 
-it('changes the output when text changes', () => {
-  checkChange(['text'], 'handleTextChange', 'New Text')
+it('changes the output when text changes', async () => {
+  await checkChange(['text'], 'handleTextChange', 'New Text')
 })
 
-it('changes the output when selection_height changes', () => {
-  checkChange(
+it('changes the output when selection_height changes', async () => {
+  await checkChange(
     ['selection_height'],
     'handleHeightChange',
     250,
@@ -85,8 +89,8 @@ it('changes the output when selection_height changes', () => {
   )
 })
 
-it('changes the output when selection_width changes', () => {
-  checkChange(
+it('changes the output when selection_width changes', async () => {
+  await checkChange(
     ['selection_width'],
     'handleWidthChange',
     250,
@@ -95,8 +99,8 @@ it('changes the output when selection_width changes', () => {
   )
 })
 
-it('changes the output when launch_height changes', () => {
-  checkChange(
+it('changes the output when launch_height changes', async () => {
+  await checkChange(
     ['launch_height'],
     'handleHeightChange',
     250,
@@ -105,8 +109,8 @@ it('changes the output when launch_height changes', () => {
   )
 })
 
-it('changes the output when launch_width changes', () => {
-  checkChange(
+it('changes the output when launch_width changes', async () => {
+  await checkChange(
     ['launch_width'],
     'handleWidthChange',
     250,
@@ -115,35 +119,47 @@ it('changes the output when launch_width changes', () => {
   )
 })
 
-it('changes the output when message_type changes', () => {
-  checkChange(['message_type'], 'handleMessageTypeChange', 'LtiDeepLinkingRequest', {}, [
+it('changes the output when message_type changes', async () => {
+  await checkChange(['message_type'], 'handleMessageTypeChange', 'LtiDeepLinkingRequest', {}, [
     null,
     'LtiDeepLinkingRequest',
   ])
 })
 
-it('removes target_link_uri from the placement if it is empty', () => {
+it('removes target_link_uri from the placement if it is empty', async () => {
   const ref = React.createRef()
   render(<Placement {...props()} ref={ref} />)
-  ref.current.handleTargetLinkUriChange({target: {value: ''}})
-  const placement = ref.current.generateToolConfigurationPart()
-  expect(Object.keys(placement)).not.toContain('target_link_uri')
+  act(() => {
+    ref.current.handleTargetLinkUriChange({target: {value: ''}})
+  })
+  await waitFor(() => {
+    const placement = ref.current.generateToolConfigurationPart()
+    expect(Object.keys(placement)).not.toContain('target_link_uri')
+  })
 })
 
-it('removes selection_width from the placement if it is empty', () => {
+it('removes selection_width from the placement if it is empty', async () => {
   const ref = React.createRef()
   render(<Placement {...props()} ref={ref} />)
-  ref.current.handleWidthChange({target: {value: '', name: 'placement_name_selection_width'}})
-  const placement = ref.current.generateToolConfigurationPart()
-  expect(Object.keys(placement)).not.toContain('selection_width')
+  act(() => {
+    ref.current.handleWidthChange({target: {value: '', name: 'placement_name_selection_width'}})
+  })
+  await waitFor(() => {
+    const placement = ref.current.generateToolConfigurationPart()
+    expect(Object.keys(placement)).not.toContain('selection_width')
+  })
 })
 
-it('removes launch_width from the placement if it is empty', () => {
+it('removes launch_width from the placement if it is empty', async () => {
   const ref = React.createRef()
   render(<Placement {...props()} ref={ref} />)
-  ref.current.handleWidthChange({target: {value: '', name: 'placement_name_launch_width'}})
-  const placement = ref.current.generateToolConfigurationPart()
-  expect(Object.keys(placement)).not.toContain('launch_width')
+  act(() => {
+    ref.current.handleWidthChange({target: {value: '', name: 'placement_name_launch_width'}})
+  })
+  await waitFor(() => {
+    const placement = ref.current.generateToolConfigurationPart()
+    expect(Object.keys(placement)).not.toContain('launch_width')
+  })
 })
 
 it('cleans up invalid inputs', () => {

@@ -172,12 +172,10 @@ describe('TagAsModal', () => {
     it('renders multi-variant categories as grouped options', async () => {
       renderComponent({categories: [multipleTagsCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      // SimpleSelect renders options asynchronously after click. byText is
-      // faster and more reliable than byRole('option') here — the a11y-tree
-      // build pass can lag the DOM under CI load and produce flaky timeouts.
-      expect(await screen.findByText('Reading Groups', {}, {timeout: 3000})).toBeInTheDocument()
-      expect(await screen.findByText('Variant A', {}, {timeout: 3000})).toBeInTheDocument()
-      expect(await screen.findByText('Variant B', {}, {timeout: 3000})).toBeInTheDocument()
+      // SimpleSelect renders options asynchronously after click
+      expect(await screen.findByText('Reading Groups')).toBeInTheDocument()
+      expect(await screen.findByRole('option', {name: 'Variant A'})).toBeInTheDocument()
+      expect(await screen.findByRole('option', {name: 'Variant B'})).toBeInTheDocument()
     })
 
     it('calls onCreationSuccess with a single tag group ID without an API call', async () => {
@@ -191,16 +189,13 @@ describe('TagAsModal', () => {
 
       renderComponent({categories: [singleTagCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      await user.click(await screen.findByText('Honors', {}, {timeout: 3000}))
+      await user.click(await screen.findByRole('option', {name: 'Honors'}))
       await user.click(screen.getByTestId('submit-button'))
 
-      await waitFor(
-        () => {
-          expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(101) // group id
-          expect(apiCalled).toBe(false)
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(101) // group id
+        expect(apiCalled).toBe(false)
+      })
     })
 
     it('calls onCreationSuccess with a multi-variant group ID without an API call', async () => {
@@ -214,16 +209,13 @@ describe('TagAsModal', () => {
 
       renderComponent({categories: [multipleTagsCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      await user.click(await screen.findByText('Variant A', {}, {timeout: 3000}))
+      await user.click(await screen.findByRole('option', {name: 'Variant A'}))
       await user.click(screen.getByTestId('submit-button'))
 
-      await waitFor(
-        () => {
-          expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(201) // Variant A group id
-          expect(apiCalled).toBe(false)
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(201) // Variant A group id
+        expect(apiCalled).toBe(false)
+      })
     })
 
     it('shows validation error when no tag is selected', async () => {
@@ -291,16 +283,13 @@ describe('TagAsModal', () => {
       })
       await user.click(screen.getByTestId('submit-button'))
 
-      await waitFor(
-        () => {
-          expect(requestBody).toBeDefined()
-          expect(requestBody.group_category.name).toBe('Reading Levels')
-          expect(requestBody.group_category.id).toBeUndefined()
-          expect(requestBody.operations.create).toEqual([{name: 'Level 1'}])
-          expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(999)
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(requestBody).toBeDefined()
+        expect(requestBody.group_category.name).toBe('Reading Levels')
+        expect(requestBody.group_category.id).toBeUndefined()
+        expect(requestBody.operations.create).toEqual([{name: 'Level 1'}])
+        expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(999)
+      })
     })
 
     it('shows a flash error and does not call onCreationSuccess when the API fails', async () => {
@@ -315,13 +304,10 @@ describe('TagAsModal', () => {
       fireEvent.change(screen.getByTestId('tag-set-name-input'), {target: {value: 'x'}})
       await user.click(screen.getByTestId('submit-button'))
 
-      await waitFor(
-        () => {
-          expect(showFlashError).toHaveBeenCalled()
-          expect(defaultProps.onCreationSuccess).not.toHaveBeenCalled()
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(showFlashError).toHaveBeenCalled()
+        expect(defaultProps.onCreationSuccess).not.toHaveBeenCalled()
+      })
     })
   })
 
@@ -386,16 +372,13 @@ describe('TagAsModal', () => {
       fireEvent.change(screen.getByTestId('new-variant-name-input'), {target: {value: 'Variant D'}})
       await user.click(screen.getByTestId('submit-button'))
 
-      await waitFor(
-        () => {
-          expect(requestBody).toBeDefined()
-          expect(requestBody.group_category.id).toBe(3)
-          expect(requestBody.group_category.name).toBeUndefined()
-          expect(requestBody.operations.create).toEqual([{name: 'Variant D'}])
-          expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(999)
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(requestBody).toBeDefined()
+        expect(requestBody.group_category.id).toBe(3)
+        expect(requestBody.group_category.name).toBeUndefined()
+        expect(requestBody.operations.create).toEqual([{name: 'Variant D'}])
+        expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(999)
+      })
     })
   })
 
@@ -439,15 +422,12 @@ describe('TagAsModal', () => {
       fireEvent.change(screen.getByTestId('tag-name-input'), {target: {value: 'Honors'}})
       await user.click(screen.getByTestId('submit-button'))
 
-      await waitFor(
-        () => {
-          expect(requestBody).toBeDefined()
-          expect(requestBody.group_category.name).toBe('Honors')
-          expect(requestBody.operations.create).toEqual([{name: 'Honors'}])
-          expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(999)
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(requestBody).toBeDefined()
+        expect(requestBody.group_category.name).toBe('Honors')
+        expect(requestBody.operations.create).toEqual([{name: 'Honors'}])
+        expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(999)
+      })
     })
   })
 

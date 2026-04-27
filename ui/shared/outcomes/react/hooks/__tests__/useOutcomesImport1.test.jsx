@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {renderHook, act} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import useOutcomesImport, {
   IMPORT_PENDING,
   IMPORT_FAILED,
@@ -71,16 +71,13 @@ describe('useOutcomesImport', () => {
     vi.clearAllMocks()
   })
 
-  const wrapper = ({
-    children,
+  const createWrapper = ({
     mocks = importGroupMocks(),
     contextType = 'Account',
     contextId = '1',
-  }) => {
-    // Set isCourse based on contextType
+  } = {}) => {
     const isCourse = contextType === 'Course'
-
-    return (
+    return ({children}) => (
       <MockedProvider cache={cache} mocks={mocks}>
         <OutcomesContext.Provider value={{env: {contextType, contextId, isCourse}}}>
           {children}
@@ -88,6 +85,7 @@ describe('useOutcomesImport', () => {
       </MockedProvider>
     )
   }
+  const wrapper = createWrapper()
 
   it('creates custom hook with proper exports', () => {
     const {result} = renderHook(() => useOutcomesImport(), {
@@ -117,17 +115,14 @@ describe('useOutcomesImport', () => {
 
     it('sets status of imported group to failed if import fails', async () => {
       const {result} = renderHook(() => useOutcomesImport(), {
-        wrapper,
-        initialProps: {
-          mocks: importGroupMocks({failResponse: true}),
-        },
+        wrapper: createWrapper({mocks: importGroupMocks({failResponse: true})}),
       })
       act(() => {
         result.current.importOutcomes({
           outcomeOrGroupId: groupId,
         })
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(result.current.importGroupsStatus).toEqual({[groupId]: IMPORT_FAILED})
     })
 
@@ -140,7 +135,7 @@ describe('useOutcomesImport', () => {
           outcomeOrGroupId: groupId,
         })
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(resolveProgress).toHaveBeenCalled()
       expect(resolveProgress).toHaveBeenCalledWith(
         {
@@ -163,7 +158,7 @@ describe('useOutcomesImport', () => {
         })
       })
       expect(result.current.importGroupsStatus).toEqual({[groupId]: IMPORT_PENDING})
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(result.current.importGroupsStatus).toEqual({[groupId]: IMPORT_COMPLETED})
     })
 
@@ -185,7 +180,7 @@ describe('useOutcomesImport', () => {
       expect(result.current.importGroupsStatus).toEqual({[groupId]: IMPORT_PENDING})
 
       await act(async () => {
-        vi.runAllTimers()
+        vi.runOnlyPendingTimers()
         // Wait for all promises to resolve/reject
         await Promise.resolve()
       })
@@ -209,7 +204,7 @@ describe('useOutcomesImport', () => {
           groupTitle: 'New Group',
         })
       })
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
 
       // Verify that showFlashAlert was called with a success message
       expect(showFlashAlert).toHaveBeenCalled()

@@ -125,7 +125,7 @@ describe('FilesystemObjectThumbnail', () => {
 
       // Run timers to trigger fetch
       await act(async () => {
-        vi.runAllTimers()
+        vi.runOnlyPendingTimers()
       })
 
       // Verify fetch was called

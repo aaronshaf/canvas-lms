@@ -96,7 +96,6 @@ describe('UserDifferentiationTagManager', () => {
   })
 
   afterEach(() => {
-    cleanup()
     fakeENV.teardown()
     server.resetHandlers()
     vi.clearAllMocks()

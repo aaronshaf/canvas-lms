@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import DaySubstitution from '../DaySubstitution'
 import {DaySub} from '../types'
 
@@ -70,35 +70,39 @@ describe('DaySubstitution', () => {
   })
 
   it('calls onChangeSubstitution move from is updated', async () => {
-    const {getByText, getByLabelText} = renderComponent()
+    const {findByText, getByLabelText} = renderComponent()
 
     const selectMoveFrom = getByLabelText('Move from')
     selectMoveFrom.click()
 
-    const optionMonday = getByText('Monday')
+    const optionMonday = await findByText('Monday')
     optionMonday.click()
 
-    expect(mockOnChangeSubstitution).toHaveBeenCalledWith(
-      mockSubstitution.id,
-      {id: 'Mon', value: 1},
-      'from',
-    )
+    await waitFor(() => {
+      expect(mockOnChangeSubstitution).toHaveBeenCalledWith(
+        mockSubstitution.id,
+        {id: 'Mon', value: 1},
+        'from',
+      )
+    })
   })
 
   it('calls onChangeSubstitution move to is updated', async () => {
-    const {getByText, getByLabelText} = renderComponent()
+    const {findByText, getByLabelText} = renderComponent()
 
     const selectMoveTo = getByLabelText('Move to')
     selectMoveTo.click()
 
-    const optionTuesday = getByText('Tuesday')
+    const optionTuesday = await findByText('Tuesday')
     optionTuesday.click()
 
-    expect(mockOnChangeSubstitution).toHaveBeenCalledWith(
-      mockSubstitution.id,
-      {id: 'Tue', value: 2},
-      'to',
-    )
+    await waitFor(() => {
+      expect(mockOnChangeSubstitution).toHaveBeenCalledWith(
+        mockSubstitution.id,
+        {id: 'Tue', value: 2},
+        'to',
+      )
+    })
   })
 
   it('calls onRemoveSubstitution when the remove button is clicked', async () => {

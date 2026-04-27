@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 import {waitFor} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import React from 'react'
@@ -108,11 +108,9 @@ describe('useAccessibilityScansPolling', () => {
         accessibilityScans: null,
       })
 
-      const {result} = renderHook(() => useAccessibilityScansPolling(), {
+      renderHook(() => useAccessibilityScansPolling(), {
         wrapper: createWrapper(),
       })
-
-      expect(result.error).toBeUndefined()
     })
 
     it('should not poll when all scans are completed', () => {
@@ -121,11 +119,9 @@ describe('useAccessibilityScansPolling', () => {
         accessibilityScans: [completedScan],
       })
 
-      const {result} = renderHook(() => useAccessibilityScansPolling(), {
+      renderHook(() => useAccessibilityScansPolling(), {
         wrapper: createWrapper(),
       })
-
-      expect(result.error).toBeUndefined()
     })
 
     it('should poll queued scans', () => {
@@ -148,11 +144,9 @@ describe('useAccessibilityScansPolling', () => {
         }),
       )
 
-      const {result} = renderHook(() => useAccessibilityScansPolling(), {
+      renderHook(() => useAccessibilityScansPolling(), {
         wrapper: createWrapper(),
       })
-
-      expect(result.error).toBeUndefined()
     })
 
     it('should poll in_progress scans', () => {
@@ -174,11 +168,9 @@ describe('useAccessibilityScansPolling', () => {
         }),
       )
 
-      const {result} = renderHook(() => useAccessibilityScansPolling(), {
+      renderHook(() => useAccessibilityScansPolling(), {
         wrapper: createWrapper(),
       })
-
-      expect(result.error).toBeUndefined()
     })
 
     it('should poll mixed scan states correctly', () => {
@@ -203,11 +195,9 @@ describe('useAccessibilityScansPolling', () => {
         }),
       )
 
-      const {result} = renderHook(() => useAccessibilityScansPolling(), {
+      renderHook(() => useAccessibilityScansPolling(), {
         wrapper: createWrapper(),
       })
-
-      expect(result.error).toBeUndefined()
     })
   })
 
@@ -225,12 +215,9 @@ describe('useAccessibilityScansPolling', () => {
         }),
       )
 
-      const {result} = renderHook(() => useAccessibilityScansPolling(), {
+      renderHook(() => useAccessibilityScansPolling(), {
         wrapper: createWrapper(),
       })
-
-      // Hook should not crash on error
-      expect(result.error).toBeUndefined()
     })
 
     it('should handle 5xx error responses', () => {
@@ -246,11 +233,9 @@ describe('useAccessibilityScansPolling', () => {
         }),
       )
 
-      const {result} = renderHook(() => useAccessibilityScansPolling(), {
+      renderHook(() => useAccessibilityScansPolling(), {
         wrapper: createWrapper(),
       })
-
-      expect(result.error).toBeUndefined()
     })
   })
 
@@ -278,11 +263,9 @@ describe('useAccessibilityScansPolling', () => {
         }),
       )
 
-      const {result} = renderHook(() => useAccessibilityScansPolling(), {
+      renderHook(() => useAccessibilityScansPolling(), {
         wrapper: createWrapper(),
       })
-
-      expect(result.error).toBeUndefined()
     })
   })
 

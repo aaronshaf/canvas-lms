@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {NamingConfirmationWrapper} from '../components/NamingConfirmationWrapper'
 import {mockInternalConfiguration} from './helpers'
@@ -93,7 +93,7 @@ describe('NamingConfirmationWrapper', () => {
     }
   })
 
-  it('adds a new input when a new placement is added to the overlay', () => {
+  it('adds a new input when a new placement is added to the overlay', async () => {
     // This is only needed until the top_navigation_placement feature flag is removed
     fakeENV.setup({
       FEATURES: {
@@ -112,6 +112,8 @@ describe('NamingConfirmationWrapper', () => {
 
     overlayStore.getState().togglePlacement('top_navigation')
 
-    expect(screen.getByLabelText(i18nLtiPlacement('top_navigation'))).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByLabelText(i18nLtiPlacement('top_navigation'))).toBeInTheDocument(),
+    )
   })
 })

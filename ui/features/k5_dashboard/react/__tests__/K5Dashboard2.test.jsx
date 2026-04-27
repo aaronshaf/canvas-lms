@@ -19,7 +19,13 @@
 import {resetCardCache} from '@canvas/dashboard-card'
 import {MOCK_ASSIGNMENTS, MOCK_EVENTS} from '@canvas/k5/react/__tests__/fixtures'
 import {resetPlanner} from '@canvas/planner'
-import {act, screen, render as testingLibraryRender, waitFor} from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  screen,
+  render as testingLibraryRender,
+  waitFor,
+} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import React from 'react'
@@ -260,8 +266,9 @@ describe('K-5 Dashboard', () => {
       const {findByText} = render(<K5Dashboard {...defaultProps} currentUserRoles={['teacher']} />)
       const todoTab = await findByText('To Do')
       expect(todoTab).toBeInTheDocument()
-      act(() => todoTab.click())
+      fireEvent.click(todoTab)
 
+      // todo data is fetched async after tab switch; extend timeout for CI load
       const gradeButton = await findByText('Grade Plant a plant')
       expect(gradeButton).toBeInTheDocument()
     })

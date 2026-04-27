@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import React from 'react'
 import MicrosoftSyncDebugInfo from '../MicrosoftSyncDebugInfo'
 
@@ -38,12 +38,14 @@ describe('MicrosoftSyncDebugInfo', () => {
   it('renders the debugInfo array as a list of text items', async () => {
     // click the toggle button to expand the debugging info:
     const {getByText} = subject()
-    getByText('Toggle Debugging Info').click()
-    expect(getByText('Debug item 1')).toBeInTheDocument()
-    expect(getByText('Debug item 2')).toBeInTheDocument()
-    expect(getByText(/Oct 20/)).toBeInTheDocument()
-    expect(getByText(/2:02/)).toBeInTheDocument()
-    expect(getByText(/Oct 21/)).toBeInTheDocument()
-    expect(getByText(/3:03/)).toBeInTheDocument()
+    fireEvent.click(getByText('Toggle Debugging Info'))
+    await waitFor(() => {
+      expect(getByText('Debug item 1')).toBeInTheDocument()
+      expect(getByText('Debug item 2')).toBeInTheDocument()
+      expect(getByText(/Oct 20/)).toBeInTheDocument()
+      expect(getByText(/2:02/)).toBeInTheDocument()
+      expect(getByText(/Oct 21/)).toBeInTheDocument()
+      expect(getByText(/3:03/)).toBeInTheDocument()
+    })
   })
 })

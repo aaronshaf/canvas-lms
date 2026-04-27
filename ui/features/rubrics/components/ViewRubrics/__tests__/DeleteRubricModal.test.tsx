@@ -44,7 +44,6 @@ describe('RubricForm Tests', () => {
   })
 
   afterEach(() => {
-    cleanup()
     destroyFlashAlertContainer()
     fakeENV.teardown()
     vi.resetAllMocks()

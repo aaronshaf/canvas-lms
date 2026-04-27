@@ -25,7 +25,7 @@ import {http, HttpResponse} from 'msw'
 
 // Mock the debounce hook to avoid timer issues
 vi.mock('@canvas/search-item-selector/react/hooks/useDebouncedSearchTerm', () => ({
-  default: (initialValue) => ({
+  default: initialValue => ({
     searchTerm: initialValue,
     setSearchTerm: vi.fn(),
   }),
@@ -104,7 +104,7 @@ describe('TagThrottle', () => {
     await user.click(getByText('Throttle tag "foobar"', {selector: 'button span'}))
     await waitFor(() => expect(requestMade).toBe(true))
     expect(requestParams).toEqual({term: 'foobar', shard_id: '101'})
-    expect(getByText('Matched 21 jobs with 2 tags')).toBeInTheDocument()
+    await waitFor(() => expect(getByText('Matched 21 jobs with 2 tags')).toBeInTheDocument())
     expect(onUpdate).not.toHaveBeenCalled()
   })
 
@@ -155,10 +155,14 @@ describe('TagThrottle', () => {
     })
     await user.click(getByText('Throttle Jobs', {selector: 'button span'}))
 
-    await waitFor(() => expect(throttleRequestParams).toEqual({term: 'foo', shard_id: '', max_concurrent: '2'}))
-    expect(onUpdate).toHaveBeenCalledWith({
-      job_count: 27,
-      new_strand: 'tmp_strand_XXX',
-    })
+    await waitFor(() =>
+      expect(throttleRequestParams).toEqual({term: 'foo', shard_id: '', max_concurrent: '2'}),
+    )
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith({
+        job_count: 27,
+        new_strand: 'tmp_strand_XXX',
+      }),
+    )
   })
 })

@@ -71,11 +71,11 @@ describe('Content Published', () => {
     expect(screen.getByText('Content to be Unpublished (2 items)')).toBeInTheDocument()
     const toggle = screen.getByText('Content to be Unpublished')
     toggle.click()
-    expect(screen.getByText('Assignment 1')).toBeInTheDocument()
+    expect(await screen.findByText('Assignment 1')).toBeInTheDocument()
     expect(screen.getByText('Assignment 2')).toBeInTheDocument()
   })
 
-  it('displays correct translation for single item', () => {
+  it('displays correct translation for single item', async () => {
     render(
       <HorizonToggleContext.Provider
         value={{
@@ -103,6 +103,6 @@ describe('Content Published', () => {
     expect(screen.getByText('Content to be Unpublished (1 item)')).toBeInTheDocument()
     const toggle = screen.getByText('Content to be Unpublished')
     toggle.click()
-    expect(screen.getByText('Assignment 1')).toBeInTheDocument()
+    expect(await screen.findByText('Assignment 1')).toBeInTheDocument()
   })
 })

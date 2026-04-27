@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {act, render, waitFor} from '@testing-library/react'
 import FileUpload from '../FileUpload'
 import Folder from '@canvas/files/backbone/models/Folder'
 import {merge} from 'es-toolkit/compat'
@@ -50,12 +50,14 @@ describe('FileUpload', () => {
     expect(ref.current).not.toBeNull()
   })
 
-  it('sets isDragging to false when a file has been dropped', () => {
+  it('sets isDragging to false when a file has been dropped', async () => {
     const ref = React.createRef()
     render(<FileUpload {...defaultProps()} ref={ref} />)
-    ref.current.setState({isDragging: true})
+    await act(async () => {
+      ref.current.setState({isDragging: true})
+    })
     ref.current.handleDrop([], [{file: 'foo'}], {})
-    expect(ref.current.state.isDragging).toEqual(false)
+    await waitFor(() => expect(ref.current.state.isDragging).toEqual(false))
   })
 
   it('renders a FileDrop when there are no files', () => {
@@ -70,11 +72,15 @@ describe('FileUpload', () => {
     expect(wrapper.getByTestId('fileUpload')).toBeInTheDocument()
   })
 
-  it('renders fileDrop when isDragging is true', () => {
+  it('renders fileDrop when isDragging is true', async () => {
     const ref = React.createRef()
     const wrapper = render(<FileUpload {...defaultProps()} ref={ref} />)
-    ref.current.setState({isDragging: true})
-    expect(wrapper.container.querySelectorAll('.FileUpload__dragging')).toHaveLength(1)
+    await act(async () => {
+      ref.current.setState({isDragging: true})
+    })
+    await waitFor(() =>
+      expect(wrapper.container.querySelectorAll('.FileUpload__dragging')).toHaveLength(1),
+    )
   })
 
   it('does not render a full sized FileDrop when the currentFolder is not empty', () => {

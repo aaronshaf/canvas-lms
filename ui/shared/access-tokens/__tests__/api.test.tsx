@@ -24,7 +24,7 @@ import {setupServer} from 'msw/node'
 import {useManuallyGeneratedTokens, useDeleteToken} from '../api'
 import {ZTokenId, type Token} from '../Token'
 import {ZUserId} from '../UserId'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 
 const mockShowFlashAlert = vi.fn()
 

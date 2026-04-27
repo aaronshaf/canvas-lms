@@ -52,7 +52,6 @@ describe('UncrosslistForm', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
     vi.restoreAllMocks()
   })

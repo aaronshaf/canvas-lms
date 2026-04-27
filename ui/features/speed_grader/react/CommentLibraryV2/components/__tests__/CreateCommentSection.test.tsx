@@ -27,10 +27,6 @@ import * as FlashAlert from '@instructure/platform-alerts'
 vi.mock('@instructure/platform-alerts')
 
 describe('CreateCommentSection', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const defaultProps = {
     courseId: '1',
   }

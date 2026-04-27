@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook, waitFor} from '@testing-library/react'
 import {useAUPContent} from '../useAUPContent'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -38,9 +38,7 @@ describe('useAUPContent', () => {
   })
 
   it('initializes with loading set to true and error to false', () => {
-    server.use(
-      http.get('/api/v1/acceptable_use_policy', () => HttpResponse.json(mockApiResponse)),
-    )
+    server.use(http.get('/api/v1/acceptable_use_policy', () => HttpResponse.json(mockApiResponse)))
     const {result} = renderHook(() => useAUPContent())
     expect(result.current.loading).toBe(true)
     expect(result.current.error).toBe(false)
@@ -48,32 +46,25 @@ describe('useAUPContent', () => {
   })
 
   it('fetches content successfully and updates content and loading states', async () => {
-    server.use(
-      http.get('/api/v1/acceptable_use_policy', () => HttpResponse.json(mockApiResponse)),
-    )
-    const {result, waitForNextUpdate} = renderHook(() => useAUPContent())
-    await waitForNextUpdate()
-    expect(result.current.loading).toBe(false)
+    server.use(http.get('/api/v1/acceptable_use_policy', () => HttpResponse.json(mockApiResponse)))
+    const {result} = renderHook(() => useAUPContent())
+    await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.error).toBe(false)
     expect(result.current.content).toBe(mockApiResponse.content)
   })
 
   it('sets error to true if the API request fails', async () => {
     server.use(http.get('/api/v1/acceptable_use_policy', () => HttpResponse.error()))
-    const {result, waitForNextUpdate} = renderHook(() => useAUPContent())
-    await waitForNextUpdate()
-    expect(result.current.loading).toBe(false)
+    const {result} = renderHook(() => useAUPContent())
+    await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.error).toBe(true)
     expect(result.current.content).toBe(null)
   })
 
   it('handles null content without setting error when response is ok', async () => {
-    server.use(
-      http.get('/api/v1/acceptable_use_policy', () => HttpResponse.json({content: null})),
-    )
-    const {result, waitForNextUpdate} = renderHook(() => useAUPContent())
-    await waitForNextUpdate()
-    expect(result.current.loading).toBe(false)
+    server.use(http.get('/api/v1/acceptable_use_policy', () => HttpResponse.json({content: null})))
+    const {result} = renderHook(() => useAUPContent())
+    await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.error).toBe(false)
     expect(result.current.content).toBe(null)
   })

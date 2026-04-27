@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {fireEvent, render, screen} from '@testing-library/react'
+import {fireEvent, render, screen, act, waitFor} from '@testing-library/react'
 import WebcamCapture from '../WebcamCapture'
 
 const onSelectImage = vi.fn()
@@ -52,15 +52,17 @@ describe('WebcamCapture', () => {
 
   afterEach(() => {
     vi.resetAllMocks()
-    vi.runAllTimers()
+    vi.runOnlyPendingTimers()
     delete navigator.mediaDevices
   })
 
-  it('shows a message indicating it needs permission to access the camera after a brief delay', () => {
+  it('shows a message indicating it needs permission to access the camera after a brief delay', async () => {
     getUserMedia.mockImplementation(() => new Promise(() => {}))
     renderWebcamCapture()
 
-    vi.advanceTimersByTime(1000)
+    await act(async () => {
+      vi.advanceTimersByTime(1000)
+    })
 
     expect(screen.getByText(/Canvas needs access to your camera/)).toBeInTheDocument()
   })
@@ -80,7 +82,9 @@ describe('WebcamCapture', () => {
     it('shows a video feed', async () => {
       renderWebcamCapture()
 
-      expect(await screen.findByTestId('webcam-capture-video')).toBeVisible()
+      await waitFor(() => expect(screen.getByTestId('webcam-capture-video')).toBeVisible(), {
+        timeout: 5000,
+      })
     })
 
     it('shows a button to take a photo', async () => {

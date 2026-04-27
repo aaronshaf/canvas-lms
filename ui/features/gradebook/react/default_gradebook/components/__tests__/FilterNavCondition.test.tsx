@@ -42,10 +42,6 @@ const defaultProps: FilterNavFilterProps = {
 const dateTests = (testType: string) => {
   let props, filter, onChange, onDelete
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     filter = {
       id: '456',

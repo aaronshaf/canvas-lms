@@ -22,10 +22,6 @@ import userEvent from '@testing-library/user-event'
 import NeverDrop from '../NeverDrop'
 
 describe('NeverDrop', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   const mockAssignments = [
     {id: '1', name: 'Assignment 1'},
     {id: '2', name: 'Assignment 2'},

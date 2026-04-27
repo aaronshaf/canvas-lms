@@ -69,10 +69,6 @@ describe('Student - form validation', () => {
     }))
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   it('shows an error for a missing name and focuses the name input', async () => {
     setup()
     await user.click(screen.getByTestId('submit-button'))

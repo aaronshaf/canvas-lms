@@ -20,7 +20,7 @@ import {act, fireEvent} from '@testing-library/react'
 
 export const clickEl = async el => {
   fireEvent.click(el)
-  await act(async () => vi.runAllTimers())
+  await act(async () => vi.runOnlyPendingTimers())
 }
 
 export const clickWithPending = async el => {

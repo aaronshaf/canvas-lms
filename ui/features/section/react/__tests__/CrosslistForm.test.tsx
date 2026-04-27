@@ -198,12 +198,9 @@ describe('CrosslistForm', () => {
       await userEvent.type(searchInput, 'dog')
 
       // Wait for debounce + extra time
-      await waitFor(
-        () => {
-          expect(callCount).toBe(1)
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(callCount).toBe(1)
+      })
     })
 
     it('does not call API with whitespace-only input', async () => {
@@ -327,12 +324,9 @@ describe('CrosslistForm', () => {
       await userEvent.click(searchInput)
       await userEvent.type(searchInput, 'Bio')
 
-      await waitFor(
-        () => {
-          expect(getByText('Biology 101')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText('Biology 101')).toBeInTheDocument()
+      })
 
       await userEvent.click(getByText('Biology 101'))
 
@@ -394,12 +388,9 @@ describe('CrosslistForm', () => {
       await userEvent.type(searchInput, 'Bio')
 
       // Verify search term in the API call
-      await waitFor(
-        () => {
-          expect(searchTerm).toBe('Bio')
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(searchTerm).toBe('Bio')
+      })
     })
 
     it('debounces the search API call', async () => {
@@ -423,12 +414,9 @@ describe('CrosslistForm', () => {
       await userEvent.type(searchInput, 'o')
 
       // Should only make one call after debounce period
-      await waitFor(
-        () => {
-          expect(callCount).toBe(1)
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(callCount).toBe(1)
+      })
     })
 
     it('displays course options with SIS ID and term', async () => {
@@ -453,13 +441,10 @@ describe('CrosslistForm', () => {
       await userEvent.type(searchInput, 'Bio')
 
       // Wait for debounce (500ms) + API call + render
-      await waitFor(
-        () => {
-          expect(getByText('Biology 101')).toBeInTheDocument()
-          expect(getByText(/SIS ID: 2718281828.*Term: Spring 2026/)).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText('Biology 101')).toBeInTheDocument()
+        expect(getByText(/SIS ID: 2718281828.*Term: Spring 2026/)).toBeInTheDocument()
+      })
     })
 
     it('displays course options without SIS ID', async () => {
@@ -482,14 +467,11 @@ describe('CrosslistForm', () => {
       await userEvent.click(searchInput) // Open dropdown
       await userEvent.type(searchInput, 'Bio')
 
-      await waitFor(
-        () => {
-          expect(getByText('Biology 101')).toBeInTheDocument()
-          expect(getByText('Term: Intersession 1984')).toBeInTheDocument()
-          expect(queryByText(/SIS ID:/)).toBeNull()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText('Biology 101')).toBeInTheDocument()
+        expect(getByText('Term: Intersession 1984')).toBeInTheDocument()
+        expect(queryByText(/SIS ID:/)).toBeNull()
+      })
     })
 
     it('shows loading state while fetching courses', async () => {
@@ -525,12 +507,9 @@ describe('CrosslistForm', () => {
       resolveSearch()
 
       // After loading completes, results should appear
-      await waitFor(
-        () => {
-          expect(getByText('Aviation 130')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText('Aviation 130')).toBeInTheDocument()
+      })
     })
 
     it('handles empty search results', async () => {
@@ -543,12 +522,9 @@ describe('CrosslistForm', () => {
       await userEvent.click(searchInput) // Open dropdown
       await userEvent.type(searchInput, 'Nonexistent')
 
-      await waitFor(
-        () => {
-          expect(getByText('No courses found')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText('No courses found')).toBeInTheDocument()
+      })
     })
 
     it('clears course options when search is cleared', async () => {
@@ -573,12 +549,9 @@ describe('CrosslistForm', () => {
 
       // Type to get results
       await userEvent.type(searchInput, 'Com')
-      await waitFor(
-        () => {
-          expect(getByText('Computer Science 257')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText('Computer Science 257')).toBeInTheDocument()
+      })
 
       // Clear the search
       await userEvent.clear(searchInput)
@@ -616,12 +589,9 @@ describe('CrosslistForm', () => {
       await userEvent.click(searchInput) // Open dropdown
       await userEvent.type(searchInput, 'Avi')
 
-      await waitFor(
-        () => {
-          expect(getByText('Aviation 130')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText('Aviation 130')).toBeInTheDocument()
+      })
 
       await userEvent.click(getByText('Aviation 130'))
 
@@ -657,12 +627,9 @@ describe('CrosslistForm', () => {
       await userEvent.click(searchInput) // Open dropdown
       await userEvent.type(searchInput, 'Bio')
 
-      await waitFor(
-        () => {
-          expect(getByText('Biology 101')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText('Biology 101')).toBeInTheDocument()
+      })
 
       await userEvent.click(getByText('Biology 101'))
 
@@ -694,12 +661,9 @@ describe('CrosslistForm', () => {
       await userEvent.click(searchInput) // Open dropdown
       await userEvent.type(searchInput, 'Bio')
 
-      await waitFor(
-        () => {
-          expect(getByText('Biology 101')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText('Biology 101')).toBeInTheDocument()
+      })
 
       // Now type in course ID field
       const courseIdInput = getByTestId('course-id-input')
@@ -838,12 +802,9 @@ describe('CrosslistForm', () => {
       await userEvent.click(searchInput)
       await userEvent.type(searchInput, 'Bio')
 
-      await waitFor(
-        () => {
-          expect(getByText('Biology 101')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText('Biology 101')).toBeInTheDocument()
+      })
 
       // Click on the search result
       await userEvent.click(getByText('Biology 101'))
@@ -912,12 +873,9 @@ describe('CrosslistForm', () => {
       await userEvent.type(courseIdInput, '123')
       await userEvent.tab()
 
-      await waitFor(
-        () => {
-          expect(getByText(/Course ID "123" not authorized for cross-listing/)).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText(/Course ID "123" not authorized for cross-listing/)).toBeInTheDocument()
+      })
     })
 
     it('clears previous confirmation when input value changes', async () => {
@@ -985,12 +943,9 @@ describe('CrosslistForm', () => {
       await userEvent.tab()
 
       // Should show confirming state
-      await waitFor(
-        () => {
-          expect(getByText(/Confirming/)).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText(/Confirming/)).toBeInTheDocument()
+      })
 
       // Un-hang the API call to clean up
       resolveConfirm()
@@ -1038,12 +993,9 @@ describe('CrosslistForm', () => {
       await userEvent.type(courseIdInput, '123')
       await userEvent.tab()
 
-      await waitFor(
-        () => {
-          expect(getByText(/SIS ID.*SIS-12345/)).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText(/SIS ID.*SIS-12345/)).toBeInTheDocument()
+      })
     })
 
     it('displays account name when available', async () => {
@@ -1064,12 +1016,9 @@ describe('CrosslistForm', () => {
       await userEvent.type(courseIdInput, '123')
       await userEvent.tab()
 
-      await waitFor(
-        () => {
-          expect(getByText(/Account.*Engineering Department/)).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText(/Account.*Engineering Department/)).toBeInTheDocument()
+      })
     })
 
     it('shows error when course is not authorized for crosslisting', async () => {
@@ -1088,12 +1037,9 @@ describe('CrosslistForm', () => {
       await userEvent.type(courseIdInput, '123')
       await userEvent.tab()
 
-      await waitFor(
-        () => {
-          expect(getByText(/not authorized for cross-listing/)).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText(/not authorized for cross-listing/)).toBeInTheDocument()
+      })
     })
 
     it('shows error when confirmation API fails', async () => {
@@ -1111,12 +1057,9 @@ describe('CrosslistForm', () => {
       await userEvent.type(courseIdInput, '123')
       await userEvent.tab()
 
-      await waitFor(
-        () => {
-          expect(getByText(/Confirmation Failed/)).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText(/Confirmation Failed/)).toBeInTheDocument()
+      })
     })
 
     it('prevents duplicate confirmation calls for same input', async () => {
@@ -1568,12 +1511,9 @@ describe('CrosslistForm', () => {
       await userEvent.tab()
 
       // Should show an error
-      await waitFor(
-        () => {
-          expect(getByText(/Confirmation Failed/)).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText(/Confirmation Failed/)).toBeInTheDocument()
+      })
     })
 
     it('clears course options when modal is closed', async () => {
@@ -1597,12 +1537,9 @@ describe('CrosslistForm', () => {
       await userEvent.click(searchInput)
       await userEvent.type(searchInput, 'Bio')
 
-      await waitFor(
-        () => {
-          expect(getByText('Biology 101')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText('Biology 101')).toBeInTheDocument()
+      })
 
       // Close the modal
       await userEvent.click(getByTestId('crosslist-cancel-button'))
@@ -1681,12 +1618,9 @@ describe('CrosslistForm', () => {
       await userEvent.click(searchInput)
       await userEvent.type(searchInput, 'Bio')
 
-      await waitFor(
-        () => {
-          expect(getByText('Biology 101')).toBeInTheDocument()
-        },
-        {timeout: 2000},
-      )
+      await waitFor(() => {
+        expect(getByText('Biology 101')).toBeInTheDocument()
+      })
 
       await userEvent.click(getByText('Biology 101'))
 

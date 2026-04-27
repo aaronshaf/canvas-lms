@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {act, renderHook} from '@testing-library/react-hooks'
+import {act, renderHook, waitFor} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import React from 'react'
 import {
@@ -27,7 +27,6 @@ import {
 import {defaultGetLtiAssetProcessorsAndReportsForStudentResult} from '../../../queries/__fixtures__/LtiAssetProcessorsAndReportsForStudent'
 import {executeQueryAndValidate} from '../graphqlQueryHooks'
 import {ZGetLtiAssetProcessorsAndReportsForStudentResult} from '@canvas/lti-asset-processor/queries/getLtiAssetProcessorsAndReportsForStudent'
-import {waitFor} from '@testing-library/react'
 
 vi.mock('../graphqlQueryHooks', () => ({
   executeQueryAndValidate: vi.fn(() =>
@@ -218,7 +217,7 @@ describe('useLtiAssetProcessorsAndReportsForStudent hooks', () => {
 
   describe('data fetching', () => {
     it('returns expected data from fixture after fetching', async () => {
-      const {result, waitFor} = renderHook(
+      const {result} = renderHook(
         () => useLtiAssetProcessorsAndReportsForStudent(defaultSubmission),
         {
           wrapper: createWrapper(),

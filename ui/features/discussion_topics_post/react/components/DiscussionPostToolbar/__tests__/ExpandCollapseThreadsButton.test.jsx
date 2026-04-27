@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {fireEvent, render} from '@testing-library/react'
+import {act, fireEvent, render} from '@testing-library/react'
 import React from 'react'
 import {AllThreadsState, SearchContext} from '../../../utils/constants'
 import {ExpandCollapseThreadsButton} from '../ExpandCollapseThreadsButton'
@@ -221,11 +221,13 @@ describe('ExpandCollapseThreadsButton', () => {
       expect(expandedCalls).toHaveLength(0)
     })
 
-    it('should call setAllThreadsStatus with None after timeout on mount', () => {
+    it('should call setAllThreadsStatus with None after timeout on mount', async () => {
       const setAllThreadsStatusMock = vi.fn()
       setup({isExpanded: true}, {setAllThreadsStatus: setAllThreadsStatusMock})
 
-      vi.runAllTimers()
+      await act(async () => {
+        vi.runOnlyPendingTimers()
+      })
       expect(setAllThreadsStatusMock).toHaveBeenCalledWith(AllThreadsState.None)
     })
   })

@@ -130,7 +130,7 @@ describe('CreateOutcomeModal', () => {
           await user.click(getByDisplayValue('Decaying Average'))
           await user.click(getByText('n Number of Times'))
           await user.click(getByText('Create'))
-          await act(async () => vi.runAllTimersAsync())
+          await act(async () => vi.runOnlyPendingTimersAsync())
           expect(showFlashAlert).toHaveBeenCalledWith({
             message: '"Outcome 123" was successfully created.',
             type: 'success',

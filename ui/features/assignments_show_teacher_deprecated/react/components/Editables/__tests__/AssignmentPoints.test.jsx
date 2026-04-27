@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, fireEvent} from '@testing-library/react'
+import {act, render, fireEvent} from '@testing-library/react'
 import AssignmentPoints from '../AssignmentPoints'
 import AssignmentFieldValidator from '../../../AssignentFieldValidator'
 
@@ -109,7 +109,7 @@ describe('AssignmentPoints', () => {
     expect(onChange).toHaveBeenCalledWith(12)
   })
 
-  it('rounds to 2 decimal places', () => {
+  it('rounds to 2 decimal places', async () => {
     const onChange = vi.fn()
     const {getByTestId} = render(
       <div>
@@ -125,7 +125,9 @@ describe('AssignmentPoints', () => {
       </div>,
     )
     const btn = getByTestId('focusme')
-    btn.focus()
+    await act(async () => {
+      btn.focus()
+    })
     expect(onChange).toHaveBeenCalledWith(1.25)
   })
 })

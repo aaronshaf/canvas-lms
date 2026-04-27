@@ -59,7 +59,7 @@ describe('FindReplaceTray', () => {
         }
         expect(element.getAttribute('value')).not.toBe(initialInput)
       },
-      {timeout: 3000},
+      {timeout: 5000},
     )
   }
 
@@ -68,7 +68,7 @@ describe('FindReplaceTray', () => {
     const {user} = renderComponent()
     const findInput = screen.getByTestId('find-text-input')
     await type(user, findInput, 'a')
-    const errorText = await screen.findByLabelText(/no results found/i, {}, {timeout: 3000})
+    const errorText = await screen.findByLabelText(/no results found/i)
     const errorIcon = await screen.findAllByTestId('error-icon')
     expect(errorText).toBeInTheDocument()
     expect(errorIcon[0]).toBeInTheDocument()
@@ -84,14 +84,11 @@ describe('FindReplaceTray', () => {
     await user.clear(findInput)
 
     // Wait for error text to be removed and cleanup to be called
-    await waitFor(
-      () => {
-        const errorText = screen.queryByLabelText(/no results found/i)
-        expect(errorText).toBeNull()
-        expect(fakePlugin.done).toHaveBeenCalledTimes(1)
-      },
-      {timeout: 3000},
-    )
+    await waitFor(() => {
+      const errorText = screen.queryByLabelText(/no results found/i)
+      expect(errorText).toBeNull()
+      expect(fakePlugin.done).toHaveBeenCalledTimes(1)
+    })
   })
 
   it('cleans up when closed', async () => {
@@ -112,7 +109,7 @@ describe('FindReplaceTray', () => {
 
     await user.click(findInput)
     fireEvent.keyDown(findInput, {key: 'Enter'})
-    const resultText = await screen.findByLabelText(/1 of 3/i, {}, {timeout: 3000})
+    const resultText = await screen.findByLabelText(/1 of 3/i)
     expect(resultText).toBeInTheDocument()
   })
 
@@ -120,7 +117,7 @@ describe('FindReplaceTray', () => {
     props.initialText = 'some text'
     renderComponent()
     expect(fakePlugin.find).toHaveBeenCalledTimes(1)
-    const resultText = await screen.findByLabelText(/1 of 3/i, {}, {timeout: 3000})
+    const resultText = await screen.findByLabelText(/1 of 3/i)
     expect(resultText).toBeInTheDocument()
   })
 
@@ -181,7 +178,7 @@ describe('FindReplaceTray', () => {
       const replaceButton = screen.getByTestId('replace-button')
       await user.click(replaceButton)
 
-      const alert = await screen.findAllByText(/Replaced a with some text/i, {}, {timeout: 3000})
+      const alert = await screen.findAllByText(/Replaced a with some text/i)
       expect(alert).toHaveLength(2)
     })
   })
@@ -231,11 +228,7 @@ describe('FindReplaceTray', () => {
       const replaceButton = screen.getByTestId('replace-all-button')
       await user.click(replaceButton)
 
-      const alert = await screen.findAllByText(
-        /Replaced all a with some text/i,
-        {},
-        {timeout: 3000},
-      )
+      const alert = await screen.findAllByText(/Replaced all a with some text/i, {})
       expect(alert).toHaveLength(2)
     })
   })

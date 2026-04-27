@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 
 import CurrentUploads from '../CurrentUploads'
 import FileUploader from '../../modules/FileUploader'
@@ -29,27 +29,27 @@ function makeUploader(name) {
 }
 
 describe('CurrentUploads', () => {
-  it('pulls FileUploaders from UploadQueue', () => {
-    const {getByText, getAllByRole} = render(<CurrentUploads />)
+  it('pulls FileUploaders from UploadQueue', async () => {
+    const {findByText, getAllByRole} = render(<CurrentUploads />)
     const allUploads = [makeUploader('name'), makeUploader('other')]
     UploadQueue.getAllUploaders = vi.fn().mockReturnValue(allUploads)
     UploadQueue.onChange()
-    expect(getByText('name')).toBeInTheDocument()
-    expect(getByText('other')).toBeInTheDocument()
-    expect(getAllByRole('progressbar')).toHaveLength(2)
+    expect(await findByText('name')).toBeInTheDocument()
+    expect(await findByText('other')).toBeInTheDocument()
+    await waitFor(() => expect(getAllByRole('progressbar')).toHaveLength(2))
   })
 
-  it('responds to changes in progress', () => {
+  it('responds to changes in progress', async () => {
     const {container} = render(<CurrentUploads />)
     const uploader = makeUploader('name')
     UploadQueue.getAllUploaders = vi.fn().mockReturnValue([uploader])
     UploadQueue.onChange()
 
-    expect(container.querySelector('[aria-valuenow="0"]')).toBeInTheDocument()
+    await waitFor(() => expect(container.querySelector('[aria-valuenow="0"]')).toBeInTheDocument())
 
     uploader.trackProgress({loaded: 50, total: 100})
     UploadQueue.onChange()
 
-    expect(container.querySelector('[aria-valuenow="50"]')).toBeInTheDocument()
+    await waitFor(() => expect(container.querySelector('[aria-valuenow="50"]')).toBeInTheDocument())
   })
 })

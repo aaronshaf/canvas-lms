@@ -191,15 +191,12 @@ describe('ExceptionModal', () => {
     const input = screen.getByPlaceholderText(/search by sub-accounts or courses/i)
     await userEvent.click(input)
     await userEvent.paste('Subaccount')
-    const subaccount_1 = await screen.findByText('Subaccount 101', {}, {timeout: 5000})
+    const subaccount_1 = await screen.findByText('Subaccount 101')
     fireEvent.click(subaccount_1)
-    await waitFor(
-      () => {
-        const addedItems = screen.getAllByText('Subaccount 101')
-        expect(addedItems.length).toBeGreaterThan(1)
-      },
-      {timeout: 5000},
-    )
+    await waitFor(() => {
+      const addedItems = screen.getAllByText('Subaccount 101')
+      expect(addedItems.length).toBeGreaterThan(1)
+    })
 
     const removeBtn = screen.getByText(/delete exception.*subaccount 101/i).closest('button')
     await clickOrFail(removeBtn)
@@ -232,14 +229,14 @@ describe('ExceptionModal', () => {
 
     const select = screen.getByDisplayValue(/not available/i)
 
-    select.click()
+    await userEvent.click(select)
 
     const availableOption = screen.getByText('Available')
     await userEvent.click(availableOption)
 
     expect(select).toHaveDisplayValue(/available/i)
 
-    select.click()
+    await userEvent.click(select)
     const notAvailableOption = screen.getByText('Not Available')
     await userEvent.click(notAvailableOption)
     expect(select).toHaveDisplayValue(/not available/i)

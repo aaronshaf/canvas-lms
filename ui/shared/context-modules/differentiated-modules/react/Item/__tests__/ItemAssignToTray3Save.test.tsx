@@ -17,7 +17,7 @@
  */
 
 import {reloadWindow} from '@canvas/util/globalUtils'
-import {act, cleanup, waitFor} from '@testing-library/react'
+import {act, cleanup, fireEvent, waitFor} from '@testing-library/react'
 import userEvent, {PointerEventsCheckLevel} from '@testing-library/user-event'
 import {ADHOC_WITHOUT_STUDENTS} from '../../__tests__/mocks'
 import {
@@ -92,7 +92,6 @@ describe('ItemAssignToTray - Save Operations', () => {
   afterEach(() => {
     Object.defineProperty(window, 'location', {value: originalLocation, writable: true})
     server.resetHandlers()
-    cleanup()
   })
 
   afterAll(() => {
@@ -137,11 +136,11 @@ describe('ItemAssignToTray - Save Operations', () => {
       onDismiss: onDismissMock,
     })
     const assigneeSelector = (await findAllByTestId('assignee_selector'))[0]
-    assigneeSelector.click()
+    fireEvent.click(assigneeSelector)
     const option1 = await findByText(SECTIONS_DATA[0].name)
-    option1.click()
+    fireEvent.click(option1)
     const saveButton = getByTestId('differentiated_modules_save_button')
-    saveButton.click()
+    fireEvent.click(saveButton)
     expect((await findAllByText(`${DEFAULT_PROPS.itemName} updated`))[0]).toBeInTheDocument()
     await waitFor(() => {
       expect(onDismissMock).toHaveBeenCalled()
@@ -150,7 +149,7 @@ describe('ItemAssignToTray - Save Operations', () => {
 
   it('Save does not persist changes when a card is invalid', async () => {
     const onDismissMock = vi.fn()
-    const {getAllByTestId, getByRole, getByText} = renderComponent({
+    const {getAllByTestId, getByRole, findByText} = renderComponent({
       itemContentId: '24',
       onDismiss: onDismissMock,
     })
@@ -158,9 +157,16 @@ describe('ItemAssignToTray - Save Operations', () => {
       expect(getAllByTestId('item-assign-to-card')).toHaveLength(1)
     })
     const savebtn = getByRole('button', {name: 'Save'})
+    // Wait for card date-validation effects to propagate to assignToCards state
+    // (due_at < unlock_at makes the card invalid; this flows through 2 async effect
+    // cycles before the state used by focusErrors() is updated)
+    await waitFor(() => {
+      fireEvent.mouseEnter(savebtn)
+      expect(getByRole('tooltip')).toBeInTheDocument()
+    })
 
-    savebtn.click()
-    expect(getByText('Please fix errors before continuing')).toBeInTheDocument()
+    fireEvent.click(savebtn)
+    expect(await findByText('Please fix errors before continuing')).toBeInTheDocument()
     expect(lastGetMethod).toBe('GET')
     expect(onDismissMock).not.toHaveBeenCalled()
   }, 30000)
@@ -245,10 +251,10 @@ describe('ItemAssignToTray - Save Operations', () => {
     const {getByTestId, findAllByTestId, findByText} = renderComponent({onSave})
     const saveButton = getByTestId('differentiated_modules_save_button')
     const assigneeSelector = (await findAllByTestId('assignee_selector'))[0]
-    assigneeSelector.click()
+    fireEvent.click(assigneeSelector)
     const option1 = await findByText(SECTIONS_DATA[0].name)
-    option1.click()
-    saveButton.click()
+    fireEvent.click(option1)
+    fireEvent.click(saveButton)
     await waitFor(() => {
       expect(onSave).toHaveBeenCalled()
     })
@@ -265,7 +271,7 @@ describe('ItemAssignToTray - Save Operations', () => {
     })
 
     it('validates if required due dates are set before applying changes', async () => {
-      const {getByTestId, getAllByTestId, findAllByTestId, getByText, getAllByText, findByText} =
+      const {getByTestId, getAllByTestId, findAllByTestId, findByText, findAllByText, getByText} =
         renderComponent({
           postToSIS: true,
         })
@@ -282,8 +288,8 @@ describe('ItemAssignToTray - Save Operations', () => {
 
       getByTestId('differentiated_modules_save_button').click()
 
-      expect(getAllByText('Please add a due date')[0]).toBeInTheDocument()
-      expect(getByText('Please fix errors before continuing')).toBeInTheDocument()
+      expect((await findAllByText('Please add a due date'))[0]).toBeInTheDocument()
+      expect(await findByText('Please fix errors before continuing')).toBeInTheDocument()
       // tray stays open
       expect(getByText('Assignment | 10 pts')).toBeInTheDocument()
     }, 30000)

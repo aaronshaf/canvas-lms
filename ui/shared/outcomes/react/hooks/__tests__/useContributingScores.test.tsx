@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {act, waitFor} from '@testing-library/react'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -686,7 +686,7 @@ describe('useContributingScores', () => {
 
       const settingsWithoutUnpublished = {
         secondaryInfoDisplay: SecondaryInfoDisplay.NONE,
-        displayFilters: [],
+        displayFilters: [] as DisplayFilter[],
         nameDisplayFormat: NameDisplayFormat.FIRST_LAST,
         studentsPerPage: 15,
         scoreDisplayFormat: ScoreDisplayFormat.ICON_ONLY,

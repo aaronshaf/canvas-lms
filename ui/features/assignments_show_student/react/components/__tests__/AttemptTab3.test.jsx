@@ -127,9 +127,10 @@ describe('ContentTabs', () => {
     )
 
     if (props.assignment.submissionTypes.includes('online_text_entry')) {
+      // TinyMCE initialization in jsdom is slow — needs more than the 3000ms global default.
       await waitFor(
         () => {
-          expect(tinymce.get('textentry_text')).toBeDefined()
+          expect(tinymce.get('textentry_text')).toBeTruthy()
         },
         {timeout: 4000},
       )
@@ -226,7 +227,13 @@ describe('ContentTabs', () => {
           })
           props.submitButtonRef = submitButtonRef
 
-          const {findByTestId} = await renderAttemptTab(props)
+          // Read-only mode never mounts TinyMCE, so skip renderAttemptTab (which
+          // waits for the editor) and rely on findByTestId to wait for the content.
+          const {findByTestId} = render(
+            <MockedProvider mocks={defaultMocks()}>
+              <AttemptTab {...props} focusAttemptOnInit={false} />
+            </MockedProvider>,
+          )
           expect(await findByTestId('read-only-content')).toBeInTheDocument()
         })
 
@@ -254,7 +261,12 @@ describe('ContentTabs', () => {
           })
           props.submitButtonRef = submitButtonRef
 
-          const {findByTestId} = await renderAttemptTab(props)
+          // Read-only mode never mounts TinyMCE, so skip renderAttemptTab.
+          const {findByTestId} = render(
+            <MockedProvider mocks={defaultMocks()}>
+              <AttemptTab {...props} focusAttemptOnInit={false} />
+            </MockedProvider>,
+          )
           expect(await findByTestId('read-only-content')).toBeInTheDocument()
         })
 
@@ -276,15 +288,7 @@ describe('ContentTabs', () => {
             </MockedProvider>,
           )
 
-          // Wait for the component to be fully rendered
-          await waitFor(
-            () => {
-              expect(tinymce.get('textentry_text')).toBeDefined()
-            },
-            {timeout: 4000},
-          )
-
-          // Now check for the read-only content
+          // Read-only mode never mounts TinyMCE; findByTestId waits for the content.
           expect(await findByTestId('read-only-content')).toBeInTheDocument()
         })
 

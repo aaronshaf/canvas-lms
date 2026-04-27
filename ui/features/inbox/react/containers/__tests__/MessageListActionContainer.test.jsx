@@ -61,7 +61,6 @@ describe('MessageListActionContainer', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
     fakeENV.teardown()
     vi.clearAllMocks()
@@ -144,7 +143,7 @@ describe('MessageListActionContainer', () => {
       const courseDropdown = await component.findByTestId('course-select')
       await user.click(courseDropdown)
 
-      const options = await component.findAllByText('Ipsum', {}, {timeout: 5000})
+      const options = await component.findAllByText('Ipsum', {})
       expect(options).toHaveLength(4)
       await user.click(options[0])
 

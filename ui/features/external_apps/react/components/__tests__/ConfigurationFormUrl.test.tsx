@@ -21,7 +21,6 @@ import userEvent from '@testing-library/user-event'
 import ConfigurationFormUrl from '../configuration_forms/ConfigurationFormUrl'
 
 describe('ConfigurationFormUrl', () => {
-  afterEach(cleanup)
   const props = (overrides?: any) => ({
     name: '',
     consumerKey: '',

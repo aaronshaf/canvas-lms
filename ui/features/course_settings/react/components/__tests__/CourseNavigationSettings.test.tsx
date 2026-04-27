@@ -75,7 +75,7 @@ const triggerMockDragEnd = (result: any) => {
   }
 }
 
-import {render, screen, fireEvent, within} from '@testing-library/react'
+import {render, screen, fireEvent, within, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import CourseNavigationSettings from '../CourseNavigationSettings'
 import {NavigationTab, useTabListsStore} from '../../store/useTabListsStore'
@@ -260,7 +260,7 @@ describe('CourseNavigationSettings', () => {
     })
   })
 
-  it('handles drag and drop operations correctly', () => {
+  it('handles drag and drop operations correctly', async () => {
     render(<CourseNavigationSettings {...defaultProps} />)
 
     const dragDropContext = screen.getByTestId('drag-drop-context')
@@ -281,9 +281,11 @@ describe('CourseNavigationSettings', () => {
     })
 
     // Verify Grades now appears in disabled section
-    expect(disabledSection).toHaveTextContent('Grades')
-    expect(enabledSection).not.toHaveTextContent('Grades')
-    expect(enabledSection).toHaveTextContent('Home')
+    await waitFor(() => {
+      expect(disabledSection).toHaveTextContent('Grades')
+      expect(enabledSection).not.toHaveTextContent('Grades')
+      expect(enabledSection).toHaveTextContent('Home')
+    })
 
     // Verify the component structure remains intact after drag operation
     expect(dragDropContext).toBeInTheDocument()

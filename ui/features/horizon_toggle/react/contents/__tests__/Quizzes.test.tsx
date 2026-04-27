@@ -72,7 +72,7 @@ describe('Quizzes', () => {
     expect(screen.getByText('Classic Quizzes (2 items)')).toBeInTheDocument()
     const toggle = screen.getByText('Classic Quizzes')
     toggle.click()
-    expect(screen.getByText('Quiz 1')).toBeInTheDocument()
+    expect(await screen.findByText('Quiz 1')).toBeInTheDocument()
     expect(screen.getByText('Quiz 2')).toBeInTheDocument()
   })
 })

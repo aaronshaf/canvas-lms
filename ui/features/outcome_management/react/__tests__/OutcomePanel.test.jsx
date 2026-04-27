@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {act, render} from '@testing-library/react'
 import {OutcomePanel} from '../OutcomeManagement'
 
 describe('OutcomePanel', () => {
@@ -31,16 +31,20 @@ describe('OutcomePanel', () => {
     vi.useRealTimers()
   })
 
-  it('sets style on mount', () => {
+  it('sets style on mount', async () => {
     render(<OutcomePanel />)
-    vi.runAllTimers()
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
     expect(document.getElementById('outcomes').style.display).toEqual('block')
   })
 
-  it('sets style on unmount', () => {
+  it('sets style on unmount', async () => {
     const {unmount} = render(<OutcomePanel />)
     unmount()
-    vi.runAllTimers()
+    await act(async () => {
+      vi.runOnlyPendingTimers()
+    })
     expect(document.getElementById('outcomes').style.display).toEqual('none')
   })
 })

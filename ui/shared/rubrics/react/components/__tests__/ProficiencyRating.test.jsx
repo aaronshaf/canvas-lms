@@ -51,10 +51,6 @@ const renderProficiencyRating = (props = {}) =>
   )
 
 describe('ProficiencyRating', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   it('renders the ProficiencyRating component', () => {
     const wrapper = renderProficiencyRating()
 

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import {fireEvent, render, waitFor} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {mockQuery} from '@canvas/assignments/graphql/studentMocks'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import React from 'react'
@@ -109,7 +109,7 @@ describe('RubricTab - General Tests', () => {
     props.peerReviewModeEnabled = false
     const {findByText, queryByText, rerender} = renderRubricTab(props)
 
-    await waitFor(() => expect(findByText('View Rubric')).resolves.toBeInTheDocument())
+    expect(await findByText('View Rubric')).toBeInTheDocument()
     expect(queryByText('Fill Out Rubric')).not.toBeInTheDocument()
 
     // Test peer review mode
@@ -121,7 +121,7 @@ describe('RubricTab - General Tests', () => {
       </MockedQueryProvider>,
     )
 
-    await waitFor(() => expect(findByText('Fill Out Rubric')).resolves.toBeInTheDocument())
+    expect(await findByText('Fill Out Rubric')).toBeInTheDocument()
     expect(queryByText('View Rubric')).not.toBeInTheDocument()
   })
 
@@ -170,7 +170,7 @@ describe('RubricTab - General Tests', () => {
       // Non-peer review
       props.peerReviewModeEnabled = false
       const {findByText, queryByText, rerender} = renderRubricTab(props)
-      await waitFor(() => expect(findByText('View Rubric')).resolves.toBeInTheDocument())
+      expect(await findByText('View Rubric')).toBeInTheDocument()
       expect(queryByText('Fill Out Rubric')).not.toBeInTheDocument()
 
       // Peer review
@@ -181,7 +181,7 @@ describe('RubricTab - General Tests', () => {
           <RubricTab {...props} />
         </MockedQueryProvider>,
       )
-      await waitFor(() => expect(findByText('Fill Out Rubric')).resolves.toBeInTheDocument())
+      expect(await findByText('Fill Out Rubric')).toBeInTheDocument()
       expect(queryByText('View Rubric')).not.toBeInTheDocument()
     })
   })

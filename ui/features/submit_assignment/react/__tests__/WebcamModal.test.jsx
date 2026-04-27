@@ -59,7 +59,6 @@ describe('WebcamModal', () => {
   })
 
   afterEach(() => {
-    cleanup()
     vi.clearAllMocks()
     vi.restoreAllMocks()
   })
@@ -86,7 +85,9 @@ describe('WebcamModal', () => {
     let result
     await act(async () => {
       result = render(<WebcamModal {...getProps({open: true})} />)
-      await vi.runAllTimers()
+    })
+    await act(async () => {
+      vi.runOnlyPendingTimers()
     })
 
     // Verify Take Photo button exists and is visible

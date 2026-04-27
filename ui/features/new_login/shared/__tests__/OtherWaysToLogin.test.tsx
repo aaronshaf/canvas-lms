@@ -45,10 +45,6 @@ describe('OtherWaysToLogin', () => {
   const renderOtherWaysToLogin = (url: string = defaultUrl) =>
     render(<OtherWaysToLogin url={url} />)
 
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseNewLogin.mockReturnValue({isUiActionPending: false})

@@ -18,7 +18,7 @@
 
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook} from '@testing-library/react'
 import {waitFor} from '@testing-library/react'
 // eslint-disable-next-line import/no-nodejs-modules
 import EventEmitter from 'events'

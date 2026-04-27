@@ -46,7 +46,6 @@ describe('ItemAssignToTray - Blueprint Locking Info', () => {
   afterEach(() => {
     Object.defineProperty(window, 'location', {value: originalLocation, writable: true})
     server.resetHandlers()
-    cleanup()
   })
 
   it('renders blueprint locking info when there are locked dates', async () => {

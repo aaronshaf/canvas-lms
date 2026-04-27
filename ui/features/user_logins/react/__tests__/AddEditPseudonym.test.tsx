@@ -30,7 +30,6 @@ describe('AddEditPseudonym', () => {
 
   afterEach(() => {
     server.resetHandlers()
-    cleanup()
   })
 
   const policy = {

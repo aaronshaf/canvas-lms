@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen, fireEvent} from '@testing-library/react'
+import {render, screen, fireEvent, waitFor} from '@testing-library/react'
 import TranslationOptions from '../TranslationOptions'
 import {useTranslationContext} from '../../../hooks/useTranslationContext'
 
@@ -61,7 +61,7 @@ describe('TranslationOptions', () => {
     expect(screen.getByText(/^Translate$/i).closest('button')).toBeEnabled()
   })
 
-  it('calls translateBody on clicking on translate button', () => {
+  it('calls translateBody on clicking on translate button', async () => {
     const {translateBody} = mockUseTranslationContext()
     const setPrimaryMock = vi.fn()
     render(
@@ -73,15 +73,15 @@ describe('TranslationOptions', () => {
     const input = screen.getByPlaceholderText(/Select a language.../i)
     fireEvent.click(input)
     const option = screen.getByText(/Spanish/i)
-    option.click()
+    fireEvent.click(option)
 
     const translateButton = screen.getByText(/^Translate$/i).closest('button')
     fireEvent.click(translateButton!)
-    expect(translateBody).toHaveBeenCalledWith(false)
-    expect(setPrimaryMock).toHaveBeenCalledWith(false)
+    await waitFor(() => expect(translateBody).toHaveBeenCalledWith(false))
+    await waitFor(() => expect(setPrimaryMock).toHaveBeenCalledWith(false))
   })
 
-  it('calls translateBody but not onSetPrimary if the asPrimary is non null', () => {
+  it('calls translateBody but not onSetPrimary if the asPrimary is non null', async () => {
     mockUseTranslationContext()
 
     const valuesArr = [true, false]
@@ -89,7 +89,7 @@ describe('TranslationOptions', () => {
     const setPrimaryMock = vi.fn()
     const {rerender} = render(<TranslationOptions asPrimary={null} onSetPrimary={setPrimaryMock} />)
 
-    valuesArr.forEach(asPrimary => {
+    for (const asPrimary of valuesArr) {
       translateBody.mockClear()
       setPrimaryMock.mockClear()
 
@@ -102,9 +102,9 @@ describe('TranslationOptions', () => {
       const translateButton = screen.getByText(/^Translate$/i).closest('button')
       fireEvent.click(translateButton!)
 
-      expect(translateBody).toHaveBeenCalledWith(asPrimary)
+      await waitFor(() => expect(translateBody).toHaveBeenCalledWith(asPrimary))
       expect(setPrimaryMock).not.toHaveBeenCalled()
-    })
+    }
   })
 
   it('updates asPrimary state on radio input change', () => {
@@ -114,7 +114,7 @@ describe('TranslationOptions', () => {
     expect(onSetPrimary).toHaveBeenCalledWith(true)
   })
 
-  it('calls setTranslationTargetLanguage on selecting multiple languages', () => {
+  it('calls setTranslationTargetLanguage on selecting multiple languages', async () => {
     const {setTranslationTargetLanguage} = mockUseTranslationContext()
     render(
       <div id="flash_screenreader_holder" role="alert">
@@ -125,14 +125,14 @@ describe('TranslationOptions', () => {
     const input = screen.getByPlaceholderText(/Select a language.../i)
     fireEvent.click(input)
     const option = screen.getByText(/Spanish/i)
-    option.click()
+    fireEvent.click(option)
 
     expect(setTranslationTargetLanguage).toHaveBeenCalledWith('es')
 
     fireEvent.change(input, {target: {value: ''}})
     fireEvent.click(input)
-    const option2 = screen.getByText(/French/i)
-    option2.click()
+    const option2 = await screen.findByText(/French/i)
+    fireEvent.click(option2)
     expect(setTranslationTargetLanguage).toHaveBeenCalledWith('fr')
   })
 })

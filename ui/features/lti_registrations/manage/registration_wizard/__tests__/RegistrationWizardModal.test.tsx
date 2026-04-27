@@ -55,10 +55,6 @@ describe('RegistrationWizardModal', () => {
     console.warn = warn
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   const fetchRegistrationToken = vi.fn().mockImplementation(() => new Promise(() => {}))
 
   const emptyServices = {

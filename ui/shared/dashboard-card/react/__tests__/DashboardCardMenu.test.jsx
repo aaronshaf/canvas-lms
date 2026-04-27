@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {cleanup, render} from '@testing-library/react'
+import {act, render, fireEvent, waitFor} from '@testing-library/react'
 import DashboardCardMenu from '../DashboardCardMenu'
 
 const defaultProps = () => ({
@@ -44,126 +44,69 @@ const defaultMovementMenuProps = () => ({
 })
 
 describe('DashboardCardMenu - reordering', () => {
-  let wrapper
-  let ref
-
-  beforeEach(() => {
-    ref = React.createRef()
-    wrapper = render(
-      <DashboardCardMenu {...defaultProps()} {...defaultMovementMenuProps()} ref={ref} />,
-    )
-  })
-
   // FOO-3822
   it('it should render a tabList with colorpicker and movement menu', async () => {
-    const handleShowPromise = new Promise(resolve => {
-      const handleShow = () => {
-        expect(ref.current._tabList).toBeTruthy()
-        expect(ref.current._colorPicker).toBeTruthy()
-        wrapper.getByText('Move').click()
-        expect(ref.current._movementMenu).toBeTruthy()
-        resolve()
-      }
+    const ref = React.createRef()
+    const {getByText} = render(
+      <DashboardCardMenu {...defaultProps()} {...defaultMovementMenuProps()} ref={ref} />,
+    )
 
-      wrapper.rerender(
-        <DashboardCardMenu
-          {...defaultProps()}
-          {...defaultMovementMenuProps()}
-          ref={ref}
-          handleShow={handleShow}
-        />,
-      )
+    fireEvent.click(getByText('menu'))
 
-      wrapper.getByText('menu').click()
+    await waitFor(() => {
+      expect(ref.current._tabList).toBeTruthy()
+      expect(ref.current._colorPicker).toBeTruthy()
     })
 
-    await handleShowPromise
+    fireEvent.click(getByText('Move'))
+    await waitFor(() => expect(ref.current._movementMenu).toBeTruthy())
   })
 
   it('it should close the popover on close button click', async () => {
-    let popoverContent
+    const ref = React.createRef()
+    const {getByText} = render(
+      <DashboardCardMenu {...defaultProps()} {...defaultMovementMenuProps()} ref={ref} />,
+    )
 
-    const popoverContentRef = c => {
-      popoverContent = c
-    }
+    fireEvent.click(getByText('menu'))
+    await waitFor(() => expect(ref.current.state.show).toBe(true))
 
-    const handleShowPromise = new Promise(resolve => {
-      const handleShow = () => {
-        ref.current._closeButton.click()
-        expect(popoverContent).toBeFalsy()
-        resolve()
-      }
-
-      wrapper.rerender(
-        <DashboardCardMenu
-          {...defaultProps()}
-          {...defaultMovementMenuProps()}
-          ref={ref}
-          handleShow={handleShow}
-          popoverContentRef={popoverContentRef}
-        />,
-      )
-      wrapper.getByText('menu').click()
-    })
-
-    await handleShowPromise
+    fireEvent.click(ref.current._closeButton)
+    await waitFor(() => expect(ref.current.state.show).toBe(false))
   })
 
   it('it should close the popover on color picker close', async () => {
-    let popoverContent
-    const popoverContentRef = c => {
-      popoverContent = c
-    }
+    const ref = React.createRef()
+    const {getByText} = render(
+      <DashboardCardMenu {...defaultProps()} {...defaultMovementMenuProps()} ref={ref} />,
+    )
 
-    const handleShowPromise = new Promise(resolve => {
-      const handleShow = () => {
-        ref.current._colorPicker.closeModal()
-        expect(popoverContent).toBeFalsy()
-        resolve()
-      }
+    fireEvent.click(getByText('menu'))
+    await waitFor(() => expect(ref.current.state.show).toBe(true))
 
-      wrapper.rerender(
-        <DashboardCardMenu
-          {...defaultProps()}
-          {...defaultMovementMenuProps()}
-          ref={ref}
-          handleShow={handleShow}
-          popoverContentRef={popoverContentRef}
-        />,
-      )
-      wrapper.getByText('menu').click()
+    await act(async () => {
+      ref.current._colorPicker.closeModal()
     })
-
-    await handleShowPromise
+    await waitFor(() => expect(ref.current.state.show).toBe(false))
   })
 
   // FOO-3822
   it('it should close the popover on movement menu option select', async () => {
-    let popoverContent
-    const popoverContentRef = c => {
-      popoverContent = c
-    }
+    const ref = React.createRef()
+    const {getByText} = render(
+      <DashboardCardMenu {...defaultProps()} {...defaultMovementMenuProps()} ref={ref} />,
+    )
 
-    const handleShowPromise = new Promise(resolve => {
-      const handleShow = () => {
-        wrapper.getByText('Move').click()
-        document.querySelectorAll('[role="menuitem"]')[0].click()
-        expect(popoverContent).toBeFalsy()
-        resolve()
-      }
+    fireEvent.click(getByText('menu'))
+    await waitFor(() => expect(ref.current.state.show).toBe(true))
 
-      wrapper.rerender(
-        <DashboardCardMenu
-          {...defaultProps()}
-          {...defaultMovementMenuProps()}
-          ref={ref}
-          handleShow={handleShow}
-          popoverContentRef={popoverContentRef}
-        />,
-      )
-      wrapper.getByText('menu').click()
+    fireEvent.click(getByText('Move'))
+
+    await waitFor(() => {
+      const menuItems = document.querySelectorAll('[role="menuitem"]')
+      expect(menuItems.length).toBeGreaterThan(0)
     })
-
-    await handleShowPromise
+    fireEvent.click(document.querySelectorAll('[role="menuitem"]')[0])
+    await waitFor(() => expect(ref.current.state.show).toBe(false))
   })
 })

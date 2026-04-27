@@ -103,7 +103,6 @@ describe('ProblemArea', () => {
   })
 
   afterEach(() => {
-    cleanup()
     server.resetHandlers()
   })
 

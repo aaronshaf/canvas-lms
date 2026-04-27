@@ -44,7 +44,6 @@ describe('ItemAssignToTray - Pagination', () => {
     server.resetHandlers()
     teardownEnv()
     clearQueryCache()
-    cleanup()
   })
 
   afterAll(() => {

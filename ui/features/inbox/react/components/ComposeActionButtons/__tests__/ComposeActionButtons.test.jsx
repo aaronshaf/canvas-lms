@@ -41,7 +41,6 @@ const createProps = overrides => ({
 
 describe('ComposeActionButtons', () => {
   afterEach(() => {
-    cleanup()
     vi.clearAllMocks()
   })
 

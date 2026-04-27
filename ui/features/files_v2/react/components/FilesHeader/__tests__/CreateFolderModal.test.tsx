@@ -95,13 +95,10 @@ describe('CreateFolderModal', () => {
     const createFolderButton = screen.getByRole('button', {name: /Create Folder/i})
     await user.click(createFolderButton)
 
-    await waitFor(
-      () => {
-        expect(lastCallBody).toBeTruthy()
-        expect(lastCallBody).toEqual('{"name":""}')
-      },
-      {timeout: 5000},
-    )
+    await waitFor(() => {
+      expect(lastCallBody).toBeTruthy()
+      expect(lastCallBody).toEqual('{"name":""}')
+    })
   })
 
   it('submits on enter', async () => {
@@ -113,13 +110,10 @@ describe('CreateFolderModal', () => {
     // Use fireEvent.keyDown instead of user.keyboard for more reliable Enter handling
     fireEvent.keyDown(input, {key: 'Enter', code: 'Enter', charCode: 13, keyCode: 13})
 
-    await waitFor(
-      () => {
-        expect(lastCallBody).toBeTruthy()
-        expect(lastCallBody).toEqual('{"name":""}')
-      },
-      {timeout: 5000},
-    )
+    await waitFor(() => {
+      expect(lastCallBody).toBeTruthy()
+      expect(lastCallBody).toEqual('{"name":""}')
+    })
   })
 
   it('displays loading spinner when submitting', async () => {
@@ -177,12 +171,9 @@ describe('CreateFolderModal', () => {
     const createFolderButton = screen.getByRole('button', {name: /Create Folder/i})
     await user.click(createFolderButton)
 
-    await waitFor(
-      () => {
-        expect(lastCallBody).toBeTruthy()
-        expect(lastCallBody).toEqual(`{"name":"${name}"}`)
-      },
-      {timeout: 5000},
-    )
+    await waitFor(() => {
+      expect(lastCallBody).toBeTruthy()
+      expect(lastCallBody).toEqual(`{"name":"${name}"}`)
+    })
   })
 })

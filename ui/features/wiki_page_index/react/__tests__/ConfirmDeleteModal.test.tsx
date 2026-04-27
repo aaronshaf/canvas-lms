@@ -26,48 +26,44 @@ const defaultProps = () => ({
   onConfirm: () => Promise.resolve({failures: []}),
 })
 
-afterEach(() => {
-  cleanup()
-})
-
-test('renders cancel and delete button', () => {
+test('renders cancel and delete button', async () => {
   const ref = React.createRef<any>()
-  const {getByText} = render(<ConfirmDeleteModal {...defaultProps()} ref={ref} />)
+  const {findByText} = render(<ConfirmDeleteModal {...defaultProps()} ref={ref} />)
   ref.current?.show()
 
-  expect(getByText('Cancel')).toBeInTheDocument()
-  expect(getByText('Delete')).toBeInTheDocument()
+  expect(await findByText('Cancel')).toBeInTheDocument()
+  expect(await findByText('Delete')).toBeInTheDocument()
 })
 
 test('closes the ConfirmDeleteModal when cancel pressed', async () => {
   const ref = React.createRef<any>()
   const onHide = vi.fn()
-  const {getByText} = render(<ConfirmDeleteModal {...defaultProps()} onHide={onHide} ref={ref} />)
+  const {findByText} = render(<ConfirmDeleteModal {...defaultProps()} onHide={onHide} ref={ref} />)
   ref.current?.show()
 
-  const cancelButton = getByText('Cancel')
+  const cancelButton = await findByText('Cancel')
   fireEvent.click(cancelButton)
 
   await new Promise(resolve => setTimeout(resolve, 0))
   expect(onHide).toHaveBeenCalledWith(false, false)
 })
 
-test('shows spinner on delete', () => {
+test('shows spinner on delete', async () => {
   const ref = React.createRef<any>()
-  const {getByText, getByTitle} = render(<ConfirmDeleteModal {...defaultProps()} ref={ref} />)
+  const {findByText, getByTitle} = render(<ConfirmDeleteModal {...defaultProps()} ref={ref} />)
   ref.current?.show()
 
-  const deleteButton = getByText('Delete')
+  const deleteButton = await findByText('Delete')
   fireEvent.click(deleteButton)
 
   expect(getByTitle('Delete in progress')).toBeInTheDocument()
 })
 
-test('renders provided page titles', () => {
+test('renders provided page titles', async () => {
   const ref = React.createRef<any>()
-  const {getByText} = render(<ConfirmDeleteModal {...defaultProps()} ref={ref} />)
+  const {findByText} = render(<ConfirmDeleteModal {...defaultProps()} ref={ref} />)
   ref.current?.show()
 
-  expect(getByText('page_1')).toBeInTheDocument()
-  expect(getByText('1 page selected for deletion')).toBeInTheDocument()
+  expect(await findByText('page_1')).toBeInTheDocument()
+  expect(await findByText('1 page selected for deletion')).toBeInTheDocument()
 })

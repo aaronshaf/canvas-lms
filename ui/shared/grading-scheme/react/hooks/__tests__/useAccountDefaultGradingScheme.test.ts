@@ -19,7 +19,7 @@
 import {useAccountDefaultGradingScheme} from '../useAccountDefaultGradingScheme'
 import {ApiCallStatus} from '../ApiCallStatus'
 
-import {renderHook} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 
@@ -33,13 +33,11 @@ describe('useAccountDefaultGradingSchemeHook', () => {
   afterAll(() => server.close())
 
   it('renders for course context without error', () => {
-    const {result} = renderHook(() => useAccountDefaultGradingScheme())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useAccountDefaultGradingScheme())
   })
 
   it('renders for account context without error', () => {
-    const {result} = renderHook(() => useAccountDefaultGradingScheme())
-    expect(result.error).toBeFalsy()
+    renderHook(() => useAccountDefaultGradingScheme())
   })
 
   it('makes a GET request for account context to load grading scheme', async () => {
@@ -57,7 +55,10 @@ describe('useAccountDefaultGradingSchemeHook', () => {
     )
 
     const {result} = renderHook(() => useAccountDefaultGradingScheme())
-    const loadedGradingScheme = await result.current.loadAccountDefaultGradingScheme(accountId)
+    let loadedGradingScheme: any
+    await act(async () => {
+      loadedGradingScheme = await result.current.loadAccountDefaultGradingScheme(accountId)
+    })
 
     expect(capturedPath).toBe(`/accounts/${accountId}/grading_schemes/account_default`)
     expect(loadedGradingScheme).toEqual({title: 'Scheme 1', data})

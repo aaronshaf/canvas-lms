@@ -296,6 +296,7 @@ describe('OverrideStudentStore', () => {
     OverrideStudentStore.fetchStudentsByName('publiu')
     await waitFor(() => {
       expect(OverrideStudentStore.currentlySearching()).toBe(false)
+      expect(OverrideStudentStore.alreadySearchedForName('publiu')).toBe(true)
     })
     OverrideStudentStore.fetchStudentsByName('publiu')
     expect(localRequestCount).toBe(1)

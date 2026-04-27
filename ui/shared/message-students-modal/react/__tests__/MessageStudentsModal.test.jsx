@@ -45,7 +45,7 @@ describe('MessageStudents modal behavior', () => {
     const {getByTestId} = renderMessageStudents({onRequestClose})
     await act(async () => {
       await user.click(getByTestId('message-students-cancel'))
-      vi.runAllTimers()
+      vi.runOnlyPendingTimers()
     })
     expect(onRequestClose).toHaveBeenCalled()
   })

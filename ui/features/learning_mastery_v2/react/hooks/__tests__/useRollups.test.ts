@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook, act} from '@testing-library/react-hooks/dom'
+import {renderHook, act} from '@testing-library/react'
 import axios from '@canvas/axios'
 import useRollups from '@canvas/outcomes/react/hooks/useRollups'
 import {DEFAULT_STUDENTS_PER_PAGE} from '@canvas/outcomes/react/utils/constants'
@@ -117,7 +117,7 @@ describe('useRollups', () => {
           selectedUserIds: multipleUserIds,
         }),
       )
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       const params = {
         params: {
           per_page: DEFAULT_STUDENTS_PER_PAGE,
@@ -141,7 +141,7 @@ describe('useRollups', () => {
           selectedUserIds: emptyUserIds,
         }),
       )
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       const callArgs = (axios.get as any).mock.calls[0][1]
       expect(callArgs.params).not.toHaveProperty('user_ids')
     })
@@ -153,7 +153,7 @@ describe('useRollups', () => {
           accountMasteryScalesEnabled: false,
         }),
       )
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       const callArgs = (axios.get as any).mock.calls[0][1]
       expect(callArgs.params).not.toHaveProperty('user_ids')
     })
@@ -166,7 +166,7 @@ describe('useRollups', () => {
           selectedUserIds: singleUserId,
         }),
       )
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       const callParams = (axios.get as any).mock.calls[0][1]
       expect(callParams.params.user_ids).toEqual([97])
     })
@@ -179,7 +179,7 @@ describe('useRollups', () => {
           selectedUserIds: multipleUserIds,
         }),
       )
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       const callParams = (axios.get as any).mock.calls[0][1]
       expect(callParams.params.user_ids).toEqual([97, 42, 101])
     })
@@ -195,7 +195,7 @@ describe('useRollups', () => {
       expect(students).toEqual([])
       expect(outcomes).toEqual([])
       expect(rollups).toEqual([])
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       expect(result.current.isLoading).toEqual(false)
     })
 
@@ -203,7 +203,7 @@ describe('useRollups', () => {
       const {result} = renderHook(() =>
         useRollups({courseId: '1', accountMasteryScalesEnabled: false}),
       )
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       const {isLoading, error, students, outcomes, rollups} = result.current
       expect(isLoading).toEqual(false)
       expect(error).toEqual(null)
@@ -253,7 +253,7 @@ describe('useRollups', () => {
       const {result} = renderHook(() =>
         useRollups({courseId: '1', accountMasteryScalesEnabled: false}),
       )
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       const {students} = result.current
       expect(axios.get).toHaveBeenCalled()
       expect(students[2].status).toEqual('concluded')
@@ -261,7 +261,7 @@ describe('useRollups', () => {
 
     it('calls the /rollups URL with the right parameters', async () => {
       renderHook(() => useRollups({courseId: '1', accountMasteryScalesEnabled: false}))
-      await act(async () => vi.runAllTimers())
+      await act(async () => vi.runOnlyPendingTimers())
       const params = {
         params: {
           per_page: DEFAULT_STUDENTS_PER_PAGE,
@@ -301,7 +301,7 @@ describe('useRollups', () => {
         const {result} = renderHook(() =>
           useRollups({courseId: '1', accountMasteryScalesEnabled: false}),
         )
-        await act(async () => vi.runAllTimers())
+        await act(async () => vi.runOnlyPendingTimers())
         const {isLoading, error} = result.current
         expect(axios.get).toHaveBeenCalled()
         expect(error).toEqual(testCase.expectedErrorMessage)

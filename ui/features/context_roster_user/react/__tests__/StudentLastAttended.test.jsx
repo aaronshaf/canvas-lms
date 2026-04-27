@@ -42,12 +42,12 @@ describe('StudentLastAttended', () => {
     expect(screen.getByText('Last day attended')).toBeInTheDocument()
   })
 
-  it('renders loading component when loading', () => {
+  it('renders loading component when loading', async () => {
     const {ref} = renderStudentLastAttended()
 
     ref.current.setState({loading: true})
 
-    expect(screen.getByText('Loading last attended date')).toBeInTheDocument()
+    expect(await screen.findByText('Loading last attended date')).toBeInTheDocument()
   })
 
   it('onDateSubmit posts date to the endpoint if it differs', () => {

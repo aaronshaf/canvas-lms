@@ -58,10 +58,6 @@ describe('SubmissionManager', () => {
     ContextModuleApi.getContextModuleData.mockResolvedValue({})
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   it('renders the AttemptTab', async () => {
     const props = await mockAssignmentAndSubmission()
     const {getByTestId} = render(
@@ -308,7 +304,7 @@ describe('SubmissionManager', () => {
 
         // Flush all pending timers and promises for Apollo mutations
         await act(async () => {
-          vi.runAllTimers()
+          vi.runOnlyPendingTimers()
         })
 
         await waitFor(() => expect(getByTestId('submit-button')).not.toBeDisabled())

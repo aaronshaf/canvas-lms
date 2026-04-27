@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {ApolloProvider} from '@apollo/client'
-import {render, waitFor} from '@testing-library/react'
+import {act, fireEvent, render, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {mswClient} from '@canvas/msw/mswClient'
 import {graphql, HttpResponse} from 'msw'
@@ -106,6 +106,7 @@ describe('AddressBookContainer', () => {
   })
 
   beforeEach(() => {
+    mswClient.cache.reset()
     window.ENV = {
       current_user_id: 1,
     }
@@ -138,8 +139,7 @@ describe('AddressBookContainer', () => {
     it('hides context select in initial menu', async () => {
       const rendered = setup(contextSelectionProps)
       await openAddressBook(rendered)
-      const items = await rendered.findAllByTestId('address-book-item')
-      expect(items).toHaveLength(2)
+      await waitFor(() => expect(rendered.getAllByTestId('address-book-item')).toHaveLength(2))
       expect(rendered.queryByText('Users')).toBeInTheDocument()
     })
 
@@ -148,8 +148,7 @@ describe('AddressBookContainer', () => {
       await openAddressBook(rendered)
       const items = await rendered.findAllByTestId('address-book-item')
       await user.click(items[0])
-      const submenuItems = await rendered.findAllByTestId('address-book-item')
-      expect(submenuItems).toHaveLength(2)
+      await waitFor(() => expect(rendered.getAllByTestId('address-book-item')).toHaveLength(2))
     })
 
     it('hides context select for initial users submenu', async () => {
@@ -157,8 +156,9 @@ describe('AddressBookContainer', () => {
       await openAddressBook(rendered)
       const items = await rendered.findAllByTestId('address-book-item')
       await user.click(items[1])
-      const submenuItems = await rendered.findAllByTestId('address-book-item')
-      expect(submenuItems).toHaveLength(4) // Back button + 3 users
+      await waitFor(
+        () => expect(rendered.getAllByTestId('address-book-item')).toHaveLength(4), // Back button + 3 users
+      )
     })
 
     it('shows context select for course selection', async () => {
@@ -188,8 +188,7 @@ describe('AddressBookContainer', () => {
     it('loads courses and users submenu on initial load', async () => {
       const rendered = setup()
       await openAddressBook(rendered)
-      const items = await rendered.findAllByTestId('address-book-item')
-      expect(items).toHaveLength(2)
+      await waitFor(() => expect(rendered.getAllByTestId('address-book-item')).toHaveLength(2))
     })
 
     it('loads data on initial request', async () => {
@@ -197,8 +196,7 @@ describe('AddressBookContainer', () => {
       await openAddressBook(rendered)
       const items = await rendered.findAllByTestId('address-book-item')
       await user.click(items[0])
-      const submenuItems = await rendered.findAllByTestId('address-book-item')
-      expect(submenuItems).toHaveLength(2)
+      await waitFor(() => expect(rendered.getAllByTestId('address-book-item')).toHaveLength(2))
     })
 
     it('should filter menu when typing', async () => {
@@ -220,8 +218,7 @@ describe('AddressBookContainer', () => {
       const input = await rendered.findByTestId('-address-book-input')
       await user.type(input, 'Test')
       await user.clear(input)
-      const submenuItems = await rendered.findAllByTestId('address-book-item')
-      expect(submenuItems).toHaveLength(2)
+      await waitFor(() => expect(rendered.getAllByTestId('address-book-item')).toHaveLength(2))
     })
 
     it('clears text field when item is clicked', async () => {
@@ -233,7 +230,7 @@ describe('AddressBookContainer', () => {
       await user.type(input, 'Test')
       const submenuItems = await rendered.findAllByTestId('address-book-item')
       await user.click(submenuItems[0])
-      expect(input).toHaveValue('')
+      await waitFor(() => expect(input).toHaveValue(''))
     })
 
     it('should navigate through filters', async () => {
@@ -241,8 +238,9 @@ describe('AddressBookContainer', () => {
       await openAddressBook(rendered)
       const items = await rendered.findAllByTestId('address-book-item')
       await user.click(items[1])
-      const submenuItems = await rendered.findAllByTestId('address-book-item')
-      expect(submenuItems).toHaveLength(4) // Back button + 3 users
+      await waitFor(
+        () => expect(rendered.getAllByTestId('address-book-item')).toHaveLength(4), // Back button + 3 users
+      )
     })
 
     it('clears input when submenu is chosen', async () => {
@@ -252,7 +250,7 @@ describe('AddressBookContainer', () => {
       await user.type(input, 'Test')
       const items = await rendered.findAllByTestId('address-book-item')
       await user.click(items[0])
-      expect(input).toHaveValue('')
+      await waitFor(() => expect(input).toHaveValue(''))
     })
 
     it('limits tag selection when limit is 1', async () => {
@@ -264,10 +262,13 @@ describe('AddressBookContainer', () => {
       })
       await openAddressBook(rendered)
       const items = await rendered.findAllByTestId('address-book-item')
-      await user.click(items[1]) // Click on Users
-      const userItems = await rendered.findAllByTestId('address-book-item')
-      await user.click(userItems[1]) // Click the first user item
-      expect(onSelectedIdsChange).toHaveBeenCalled()
+      fireEvent.mouseDown(items[1]) // Navigate to Users submenu
+      await waitFor(() => {
+        expect(rendered.getAllByTestId('address-book-item').length).toBeGreaterThanOrEqual(3)
+      })
+      const userItems = rendered.getAllByTestId('address-book-item')
+      fireEvent.mouseDown(userItems[1]) // Select the first user item
+      await waitFor(() => expect(onSelectedIdsChange).toHaveBeenCalled())
     })
 
     it('updates navigation state when activeCourseFilter changes', async () => {
@@ -275,8 +276,7 @@ describe('AddressBookContainer', () => {
       await openAddressBook(rendered)
       const items = await rendered.findAllByTestId('address-book-item')
       await user.click(items[0])
-      const submenuItems = await rendered.findAllByTestId('address-book-item')
-      expect(submenuItems).toHaveLength(2)
+      await waitFor(() => expect(rendered.getAllByTestId('address-book-item')).toHaveLength(2))
     })
   })
 
@@ -286,10 +286,13 @@ describe('AddressBookContainer', () => {
       const rendered = setup({onSelectedIdsChange})
       await openAddressBook(rendered)
       const items = await rendered.findAllByTestId('address-book-item')
-      await user.click(items[1]) // Click on Users
-      const userItems = await rendered.findAllByTestId('address-book-item')
-      await user.click(userItems[1]) // Click the first user item
-      expect(onSelectedIdsChange).toHaveBeenCalled()
+      fireEvent.mouseDown(items[1]) // Navigate to Users submenu
+      await waitFor(() => {
+        expect(rendered.getAllByTestId('address-book-item')).toHaveLength(4)
+      })
+      const userItems = rendered.getAllByTestId('address-book-item')
+      fireEvent.mouseDown(userItems[1]) // Select the first user item
+      await waitFor(() => expect(onSelectedIdsChange).toHaveBeenCalled())
     })
 
     it('calls onInputValueChange when search term changes', async () => {

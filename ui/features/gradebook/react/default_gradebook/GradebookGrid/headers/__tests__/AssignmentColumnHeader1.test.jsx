@@ -157,7 +157,6 @@ describe('GradebookGrid AssignmentColumnHeader', () => {
   })
 
   afterEach(() => {
-    cleanup()
     container.remove()
   })
 

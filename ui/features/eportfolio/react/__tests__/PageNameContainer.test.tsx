@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 import React from 'react'
 import PageNameContainer from '../PageNameContainer'
 import userEvent from '@testing-library/user-event'
@@ -50,7 +50,7 @@ describe('PageNameContainer', () => {
     vi.resetAllMocks()
   })
 
-  it('renders correct buttons and input if in preview', () => {
+  it('renders correct buttons and input if in preview', async () => {
     const {getByTestId, queryAllByText} = renderComponent()
 
     // editing
@@ -64,11 +64,13 @@ describe('PageNameContainer', () => {
 
     // previewing
     previewButtons[0].click()
-    expect(input).not.toBeVisible()
-    expect(queryAllByText('Preview')).toHaveLength(0)
-    expect(queryAllByText('Keep Editing')).toHaveLength(2)
-    expect(queryAllByText('Cancel')).toHaveLength(2)
-    expect(queryAllByText('Save')).toHaveLength(2)
+    await waitFor(() => {
+      expect(input).not.toBeVisible()
+      expect(queryAllByText('Preview')).toHaveLength(0)
+      expect(queryAllByText('Keep Editing')).toHaveLength(2)
+      expect(queryAllByText('Cancel')).toHaveLength(2)
+      expect(queryAllByText('Save')).toHaveLength(2)
+    })
   })
 
   it('calls onSave when save button is clicked', () => {

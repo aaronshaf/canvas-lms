@@ -120,9 +120,16 @@ export default defineConfig({
   test: {
     testTimeout: 30000,
     hookTimeout: 30000,
+    clearMocks: true,
     environment: 'jsdom',
     // Use forks pool for better memory isolation between tests
     // Limit to 4 workers to balance parallelism with memory pressure
+    //
+    // IMPORTANT: ui/pre-setup-scheduler-guard.ts relies on this pool+isolate
+    // combination. Each test file gets a fresh fork, so the guard runs before
+    // any module (including React's scheduler) is imported in that fork.
+    // Switching to pool:'threads' would break the guard — globalThis would be
+    // shared across files and React would capture setImmediate before the guard runs.
     pool: 'forks',
     poolOptions: {
       forks: {
@@ -154,7 +161,7 @@ export default defineConfig({
       },
     },
     globals: true,
-    setupFiles: 'ui/setup-vitests.tsx',
+    setupFiles: ['ui/pre-setup-scheduler-guard.ts', 'ui/setup-vitests.tsx'],
     include: ['ui/**/__tests__/**/*.(test|spec).?(c|m)[jt]s?(x)'],
     exclude: [
       // Exclude non-ui directories that vitest might auto-detect

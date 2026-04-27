@@ -73,7 +73,6 @@ describe('DeleteCalendarEventDialog', () => {
 
   afterEach(() => {
     // Clean up after each test
-    cleanup() // Clean up any rendered components
     vi.resetAllMocks()
   })
 

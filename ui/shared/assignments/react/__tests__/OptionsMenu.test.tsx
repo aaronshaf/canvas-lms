@@ -52,40 +52,40 @@ const setUp = (
 
 describe('Options Menu', () => {
   describe('download submissions option', () => {
-    it('does not render when there are no submissions in saved view', () => {
+    it('does not render when there are no submissions in saved view', async () => {
       const {getByTestId, queryByTestId} = setUp()
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('download-submissions-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('download-submissions-option')).not.toBeInTheDocument())
     })
 
-    it('renders when there are submissions in saved view', () => {
-      const {getByTestId} = setUp({}, {hasSubmittedSubmissions: true})
+    it('renders when there are submissions in saved view', async () => {
+      const {getByTestId, findByTestId} = setUp({}, {hasSubmittedSubmissions: true})
       getByTestId('assignment-options-button').click()
-      expect(getByTestId('download-submissions-option')).toBeInTheDocument()
+      expect(await findByTestId('download-submissions-option')).toBeInTheDocument()
     })
 
-    it('does not render in edit view', () => {
+    it('does not render in edit view', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'edit'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('download-submissions-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('download-submissions-option')).not.toBeInTheDocument())
     })
 
-    it('does not render in create view', () => {
+    it('does not render in create view', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'create'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('download-submissions-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('download-submissions-option')).not.toBeInTheDocument())
     })
   })
 
   describe('reupload submissions option', () => {
-    it('does not render when there are no submission downloads in saved view', () => {
+    it('does not render when there are no submission downloads in saved view', async () => {
       const {getByTestId, queryByTestId} = setUp({})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('reupload-submissions-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('reupload-submissions-option')).not.toBeInTheDocument())
     })
 
-    it('renders when there are submission downloads in saved view', () => {
-      const {getByTestId} = setUp(
+    it('renders when there are submission downloads in saved view', async () => {
+      const {getByTestId, findByTestId} = setUp(
         {},
         {
           hasSubmittedSubmissions: true,
@@ -93,145 +93,145 @@ describe('Options Menu', () => {
         },
       )
       getByTestId('assignment-options-button').click()
-      expect(getByTestId('reupload-submissions-option')).toBeInTheDocument()
+      expect(await findByTestId('reupload-submissions-option')).toBeInTheDocument()
     })
 
-    it('does not render in edit view', () => {
+    it('does not render in edit view', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'edit'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('reupload-submissions-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('reupload-submissions-option')).not.toBeInTheDocument())
     })
 
-    it('does not render in create view', () => {
+    it('does not render in create view', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'create'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('reupload-submissions-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('reupload-submissions-option')).not.toBeInTheDocument())
     })
   })
 
   describe('peer review option', () => {
-    it('renders when peer reviews are required and in saved view', () => {
-      const {getByTestId} = setUp({})
+    it('renders when peer reviews are required and in saved view', async () => {
+      const {getByTestId, findByTestId} = setUp({})
       getByTestId('assignment-options-button').click()
-      expect(getByTestId('peer-review-option')).toBeInTheDocument()
+      expect(await findByTestId('peer-review-option')).toBeInTheDocument()
     })
 
-    it('does not render when peer reviews are not required and in saved view', () => {
+    it('does not render when peer reviews are not required and in saved view', async () => {
       const {getByTestId, queryByTestId} = setUp({}, {peerReviews: {enabled: false}})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('peer-review-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('peer-review-option')).not.toBeInTheDocument())
     })
 
-    it('does not render when in edit view', () => {
+    it('does not render when in edit view', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'edit'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('peer-review-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('peer-review-option')).not.toBeInTheDocument())
     })
 
-    it('does not render when in create view', () => {
+    it('does not render when in create view', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'create'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('peer-review-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('peer-review-option')).not.toBeInTheDocument())
     })
   })
 
   describe('send to option', () => {
-    it('renders in saved view', () => {
-      const {getByTestId} = setUp()
+    it('renders in saved view', async () => {
+      const {getByTestId, findByTestId} = setUp()
       getByTestId('assignment-options-button').click()
-      expect(getByTestId('send-to-option')).toBeInTheDocument()
+      expect(await findByTestId('send-to-option')).toBeInTheDocument()
     })
 
-    it('does not render in edit view', () => {
+    it('does not render in edit view', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'edit'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('send-to-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('send-to-option')).not.toBeInTheDocument())
     })
 
-    it('does not render in create view', () => {
+    it('does not render in create view', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'create'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('send-to-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('send-to-option')).not.toBeInTheDocument())
     })
   })
 
   describe('copy to option', () => {
-    it('renders in saved view', () => {
-      const {getByTestId} = setUp()
+    it('renders in saved view', async () => {
+      const {getByTestId, findByTestId} = setUp()
       getByTestId('assignment-options-button').click()
-      expect(getByTestId('copy-to-option')).toBeInTheDocument()
+      expect(await findByTestId('copy-to-option')).toBeInTheDocument()
     })
 
-    it('does not render in edit view', () => {
+    it('does not render in edit view', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'edit'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('copy-to-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('copy-to-option')).not.toBeInTheDocument())
     })
 
-    it('does not render in create view', () => {
+    it('does not render in create view', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'create'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('copy-to-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('copy-to-option')).not.toBeInTheDocument())
     })
   })
 
   describe('share to commons option', () => {
-    it('renders in saved view', () => {
-      const {getByTestId} = setUp()
+    it('renders in saved view', async () => {
+      const {getByTestId, findByTestId} = setUp()
       getByTestId('assignment-options-button').click()
-      expect(getByTestId('share-to-commons-option')).toBeInTheDocument()
+      expect(await findByTestId('share-to-commons-option')).toBeInTheDocument()
     })
 
-    it('does not render in edit view', () => {
+    it('does not render in edit view', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'edit'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('share-to-commons-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('share-to-commons-option')).not.toBeInTheDocument())
     })
 
-    it('does not render in create view', () => {
+    it('does not render in create view', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'create'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('share-to-commons-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('share-to-commons-option')).not.toBeInTheDocument())
     })
   })
 
   describe('delete option', () => {
-    it('renders in edit view', () => {
-      const {getByTestId} = setUp({type: 'edit'})
+    it('renders in edit view', async () => {
+      const {getByTestId, findByTestId} = setUp({type: 'edit'})
       getByTestId('assignment-options-button').click()
-      expect(getByTestId('delete-assignment-option')).toBeInTheDocument()
+      expect(await findByTestId('delete-assignment-option')).toBeInTheDocument()
     })
 
-    it('renders in create view', () => {
-      const {getByTestId} = setUp({type: 'create'})
+    it('renders in create view', async () => {
+      const {getByTestId, findByTestId} = setUp({type: 'create'})
       getByTestId('assignment-options-button').click()
-      expect(getByTestId('delete-assignment-option')).toBeInTheDocument()
+      expect(await findByTestId('delete-assignment-option')).toBeInTheDocument()
     })
 
-    it('does not render in saved view', () => {
+    it('does not render in saved view', async () => {
       const {getByTestId, queryByTestId} = setUp()
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('delete-assignment-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('delete-assignment-option')).not.toBeInTheDocument())
     })
   })
 
   describe('speedgrader option', () => {
-    it('renders in the edit view if published', () => {
-      const {getByTestId} = setUp({type: 'edit'})
+    it('renders in the edit view if published', async () => {
+      const {getByTestId, findByTestId} = setUp({type: 'edit'})
       getByTestId('assignment-options-button').click()
-      expect(getByTestId('speedgrader-option')).toBeInTheDocument()
+      expect(await findByTestId('speedgrader-option')).toBeInTheDocument()
     })
 
-    it('does not render in the edit option if unpublished', () => {
+    it('does not render in the edit option if unpublished', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'edit'}, {state: 'unpublished'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('speedgrader-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('speedgrader-option')).not.toBeInTheDocument())
     })
 
-    it('does not render in the create option', () => {
+    it('does not render in the create option', async () => {
       const {getByTestId, queryByTestId} = setUp({type: 'create'})
       getByTestId('assignment-options-button').click()
-      expect(queryByTestId('speedgrader-option')).not.toBeInTheDocument()
+      await waitFor(() => expect(queryByTestId('speedgrader-option')).not.toBeInTheDocument())
     })
   })
 
@@ -242,22 +242,22 @@ describe('Options Menu', () => {
       expect(screen.getByText('More')).toBeInTheDocument()
     })
 
-    it('renders the Edit option', () => {
-      const {queryByTestId} = setUp({}, {}, {mobileOnly: true})
+    it('renders the Edit option', async () => {
+      const {queryByTestId, findByTestId} = setUp({}, {}, {mobileOnly: true})
       queryByTestId('assignment-options-button')?.click()
-      expect(queryByTestId('edit-option')).toBeInTheDocument()
+      expect(await findByTestId('edit-option')).toBeInTheDocument()
     })
 
-    it('renders the Assign To option', () => {
-      const {queryByTestId} = setUp({}, {}, {mobileOnly: true})
+    it('renders the Assign To option', async () => {
+      const {queryByTestId, findByTestId} = setUp({}, {}, {mobileOnly: true})
       queryByTestId('assignment-options-button')?.click()
-      expect(queryByTestId('assign-to-option')).toBeInTheDocument()
+      expect(await findByTestId('assign-to-option')).toBeInTheDocument()
     })
 
-    it('renders the SpeedGrader option', () => {
-      const {queryByTestId} = setUp({}, {}, {mobileOnly: true})
+    it('renders the SpeedGrader option', async () => {
+      const {queryByTestId, findByTestId} = setUp({}, {}, {mobileOnly: true})
       queryByTestId('assignment-options-button')?.click()
-      expect(queryByTestId('speedgrader-option')).toBeInTheDocument()
+      expect(await findByTestId('speedgrader-option')).toBeInTheDocument()
     })
   })
 })

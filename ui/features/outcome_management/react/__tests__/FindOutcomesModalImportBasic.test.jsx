@@ -199,7 +199,7 @@ describe('FindOutcomesModal - Import Basic Tests', () => {
 
     await act(async () => {
       doResolveProgress()
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
     })
     await waitFor(() => expect(queryByText('Loading')).not.toBeInTheDocument())
     expect(queryAllByText('Added')).toHaveLength(1)
@@ -235,7 +235,7 @@ describe('FindOutcomesModal - Import Basic Tests', () => {
 
     await act(async () => {
       doResolveProgress()
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
     })
     await waitFor(() => expect(queryByText('Loading')).not.toBeInTheDocument())
 

@@ -58,10 +58,6 @@ describe('Gradebook > Default Gradebook > Components > GradeInput', () => {
     }
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   const renderComponent = () => render(<GradeInput {...props} />)
 
   it('displays a label of "Letter Grade"', () => {

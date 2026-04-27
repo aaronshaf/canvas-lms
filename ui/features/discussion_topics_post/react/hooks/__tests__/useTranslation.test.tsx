@@ -17,7 +17,7 @@
  */
 
 import {act, waitFor} from '@testing-library/react'
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook} from '@testing-library/react'
 import {MockedProvider} from '@apollo/client/testing'
 import {useTranslation} from '../useTranslation'
 import {useTranslationStore} from '../useTranslationStore'
@@ -119,9 +119,10 @@ describe('useTranslation', () => {
         </MockedProvider>
       )
 
-      const {result, waitForNextUpdate} = renderHook(() => useTranslation(), {wrapper})
+      const {result} = renderHook(() => useTranslation(), {wrapper})
 
-      await waitForNextUpdate()
+      // 6 = number of enumValues in createMockQueryResponse (EN, ES, FR, DE, PT_BR, ZH_HANS)
+      await waitFor(() => expect(result.current.preferredLanguagesEnum).toHaveLength(6))
 
       expect(result.current.preferredLanguage).toBe(null)
     })
@@ -237,9 +238,9 @@ describe('useTranslation', () => {
         </MockedProvider>
       )
 
-      const {result, waitForNextUpdate} = renderHook(() => useTranslation(), {wrapper})
+      const {result} = renderHook(() => useTranslation(), {wrapper})
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.preferredLanguagesEnum).toHaveLength(6))
 
       expect(result.current.preferredLanguage).toBe(null)
 
@@ -270,9 +271,9 @@ describe('useTranslation', () => {
         </MockedProvider>
       )
 
-      const {result, waitForNextUpdate} = renderHook(() => useTranslation(), {wrapper})
+      const {result} = renderHook(() => useTranslation(), {wrapper})
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.preferredLanguagesEnum).toHaveLength(6))
 
       await act(async () => {
         await result.current.forceTranslate('fr')

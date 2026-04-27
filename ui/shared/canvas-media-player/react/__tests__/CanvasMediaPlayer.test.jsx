@@ -187,12 +187,9 @@ describe('CanvasMediaPlayer', () => {
 
         expect(getAllByText('Loading')[0]).toBeInTheDocument()
 
-        await waitFor(
-          () => {
-            expect(requestCount).toBeGreaterThan(0)
-          },
-          {timeout: 3000},
-        )
+        await waitFor(() => {
+          expect(requestCount).toBeGreaterThan(0)
+        })
       })
       it('makes ajax call if no mediaSources are provided on load', async () => {
         let requestMade = false
@@ -205,12 +202,9 @@ describe('CanvasMediaPlayer', () => {
           }),
         )
         render(<CanvasMediaPlayer media_id="dummy_media_id" />)
-        await waitFor(
-          () => {
-            expect(requestMade).toBe(true)
-          },
-          {timeout: 3000},
-        )
+        await waitFor(() => {
+          expect(requestMade).toBe(true)
+        })
       })
       it('makes ajax call to media_attachments if no mediaSources are provided on load', async () => {
         let requestMade = false
@@ -223,12 +217,9 @@ describe('CanvasMediaPlayer', () => {
           }),
         )
         render(<CanvasMediaPlayer media_id="dummy_media_id" attachment_id="1" />)
-        await waitFor(
-          () => {
-            expect(requestMade).toBe(true)
-          },
-          {timeout: 3000},
-        )
+        await waitFor(() => {
+          expect(requestMade).toBe(true)
+        })
         expect(requestUrl).toContain('/media_attachments/1/info')
       })
       it('shows error message if fetch for media_sources fails', async () => {
@@ -241,12 +232,9 @@ describe('CanvasMediaPlayer', () => {
           container: document.getElementById('here').firstElementChild,
         })
 
-        await waitFor(
-          () => {
-            expect(component.getByText('Failed retrieving media sources.')).toBeInTheDocument()
-          },
-          {timeout: 3000},
-        )
+        await waitFor(() => {
+          expect(component.getByText('Failed retrieving media sources.')).toBeInTheDocument()
+        })
       })
       it('shows error message if media processing has failed', async () => {
         server.use(
@@ -258,16 +246,13 @@ describe('CanvasMediaPlayer', () => {
           container: document.getElementById('here').firstElementChild,
         })
 
-        await waitFor(
-          () => {
-            expect(
-              component.getByText(
-                "This file couldn't be processed. It may be corrupted or in an unsupported format. Please upload a different file.",
-              ),
-            ).toBeInTheDocument()
-          },
-          {timeout: 3000},
-        )
+        await waitFor(() => {
+          expect(
+            component.getByText(
+              "This file couldn't be processed. It may be corrupted or in an unsupported format. Please upload a different file.",
+            ),
+          ).toBeInTheDocument()
+        })
       })
       it.skip('tries ajax call up to MAX times if no media_sources', async () => {
         // MAT-885 - Complex timing test with retry behavior that relies heavily on fake timers.
@@ -386,12 +371,9 @@ describe('CanvasMediaPlayer', () => {
 
         expect(component.getByText('Loading')).toBeInTheDocument()
 
-        await waitFor(
-          () => {
-            expect(requestCount).toBeGreaterThan(0)
-          },
-          {timeout: 3000},
-        )
+        await waitFor(() => {
+          expect(requestCount).toBeGreaterThan(0)
+        })
 
         expect(component.getByText('Loading')).toBeInTheDocument()
       })

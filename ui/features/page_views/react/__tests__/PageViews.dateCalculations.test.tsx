@@ -71,7 +71,6 @@ describe('PageViews - Cache Date Calculations with unfudgeDateForProfileTimezone
   })
 
   afterEach(() => {
-    cleanup()
     MockPageViewsTable.mockReset()
     vi.useRealTimers()
   })

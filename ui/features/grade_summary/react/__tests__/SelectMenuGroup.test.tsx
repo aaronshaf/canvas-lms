@@ -25,10 +25,6 @@ describe('SelectMenuGroup', () => {
   let props: any
   let wrapper: any
 
-  afterEach(() => {
-    cleanup()
-  })
-
   async function selectOptionFromMenu(user: any, menuSelector: string, optionValue: string) {
     await user.click(wrapper.container.querySelector(menuSelector))
     const options = screen.getAllByTestId('select-menu-option')

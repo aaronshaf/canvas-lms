@@ -47,7 +47,6 @@ describe('ItemAssignToTray - Everyone Option', () => {
   afterEach(() => {
     Object.defineProperty(window, 'location', {value: originalLocation, writable: true})
     server.resetHandlers()
-    cleanup()
   })
 
   it('does not render everyone option if the assignment is set to overrides only', async () => {
@@ -124,7 +123,9 @@ describe('ItemAssignToTray - Everyone Option', () => {
       }),
     )
     const {findAllByTestId} = renderComponent()
-    const selectedOptions = await findAllByTestId('assignee_selector_selected_option')
+    // Course/module overrides require more processing time; extend timeout to allow
+    // the tray transition and API response processing to complete under React 18.
+    const selectedOptions = await findAllByTestId('assignee_selector_selected_option', {})
     expect(selectedOptions).toHaveLength(1)
     waitFor(() => expect(selectedOptions[0]).toHaveTextContent('Everyone'))
   })

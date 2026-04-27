@@ -121,7 +121,6 @@ describe('ItemAssignToCard - Grading Periods', () => {
     server.resetHandlers()
     fakeENV.teardown()
     vi.clearAllMocks()
-    cleanup()
   })
 
   afterAll(() => {

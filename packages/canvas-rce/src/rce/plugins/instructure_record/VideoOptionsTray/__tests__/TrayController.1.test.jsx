@@ -187,7 +187,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
     it('closes the tray when open for the given editor', async () => {
       trayController.showTrayForEditor(editors[0])
       trayController.hideTrayForEditor(editors[0])
-      await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000}) // the tray is closed after a transition
+      await waitFor(() => expect(getTray()).toBeNull()) // the tray is closed after a transition
     })
 
     it('does not close the tray when open for a different editor', () => {
@@ -215,7 +215,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
         const selectSpy = jest.spyOn(editors[0].selection, 'select')
         trayController.showTrayForEditor(editors[0])
         trayController.hideTrayForEditor(editors[0], true)
-        await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000})
+        await waitFor(() => expect(getTray()).toBeNull())
         expect(selectSpy).not.toHaveBeenCalled()
       })
 
@@ -223,7 +223,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
         const selectSpy = jest.spyOn(editors[0].selection, 'select')
         trayController.showTrayForEditor(editors[0])
         trayController.hideTrayForEditor(editors[0], false)
-        await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000})
+        await waitFor(() => expect(getTray()).toBeNull())
         expect(selectSpy).toHaveBeenCalledWith(trayController.$videoContainer)
       })
 
@@ -231,7 +231,7 @@ describe('RCE "Videos" Plugin > VideoOptionsTray > TrayController', () => {
         const selectSpy = jest.spyOn(editors[0].selection, 'select')
         trayController.showTrayForEditor(editors[0])
         trayController.hideTrayForEditor(editors[0])
-        await waitFor(() => expect(getTray()).toBeNull(), {timeout: 2000})
+        await waitFor(() => expect(getTray()).toBeNull())
         expect(selectSpy).toHaveBeenCalledWith(trayController.$videoContainer)
       })
     })

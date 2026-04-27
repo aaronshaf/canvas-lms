@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook, waitFor} from '@testing-library/react'
 import {QueryClient} from '@tanstack/react-query'
 import React from 'react'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
@@ -74,18 +74,15 @@ describe('useAssignedStudents', () => {
         },
       })
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => useAssignedStudents('assignment-123', ''),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => useAssignedStudents('assignment-123', ''), {
+        wrapper: createWrapper(),
+      })
 
       expect(result.current.loading).toBe(true)
       expect(result.current.students).toEqual([])
       expect(result.current.error).toBe(null)
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.students).toEqual(mockAssignedStudents)
@@ -101,14 +98,11 @@ describe('useAssignedStudents', () => {
         },
       })
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => useAssignedStudents('assignment-123', 'Squirtle'),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => useAssignedStudents('assignment-123', 'Squirtle'), {
+        wrapper: createWrapper(),
+      })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.students).toEqual([mockAssignedStudents[0]])
@@ -118,14 +112,11 @@ describe('useAssignedStudents', () => {
     it('handles assigned students query error', async () => {
       mockExecuteQuery.mockRejectedValueOnce(new Error('Assignment not found'))
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => useAssignedStudents('assignment-error', ''),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => useAssignedStudents('assignment-error', ''), {
+        wrapper: createWrapper(),
+      })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.students).toEqual([])
@@ -142,14 +133,11 @@ describe('useAssignedStudents', () => {
         },
       })
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => useAssignedStudents('assignment-empty', ''),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => useAssignedStudents('assignment-empty', ''), {
+        wrapper: createWrapper(),
+      })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.students).toEqual([])
@@ -179,14 +167,11 @@ describe('useAssignedStudents', () => {
         },
       })
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => useAssignedStudents('assignment-123', ''),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => useAssignedStudents('assignment-123', ''), {
+        wrapper: createWrapper(),
+      })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.students).toEqual(mockAssignedStudents)
@@ -202,14 +187,11 @@ describe('useAssignedStudents', () => {
         },
       })
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => useAssignedStudents('assignment-123', 'Squirtle'),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => useAssignedStudents('assignment-123', 'Squirtle'), {
+        wrapper: createWrapper(),
+      })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.students).toEqual([mockAssignedStudents[0]])
@@ -225,14 +207,11 @@ describe('useAssignedStudents', () => {
         },
       })
 
-      const {result, waitForNextUpdate} = renderHook(
-        () => useAssignedStudents('assignment-123', '   '),
-        {
-          wrapper: createWrapper(),
-        },
-      )
+      const {result} = renderHook(() => useAssignedStudents('assignment-123', '   '), {
+        wrapper: createWrapper(),
+      })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.loading).toBe(false))
 
       expect(result.current.loading).toBe(false)
       expect(result.current.students).toEqual(mockAssignedStudents)

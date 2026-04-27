@@ -91,31 +91,33 @@ describe('NewStudentGroupModal', () => {
   })
 
   describe('group name validations', () => {
-    it('validates empty group name reminder', () => {
+    it('validates empty group name reminder', async () => {
       const {getByText, queryByText} = renderComponent()
       expect(queryByText('A group name is required.')).not.toBeInTheDocument()
       getByText('Submit').closest('button').click()
-      expect(queryByText('A group name is required.')).toBeInTheDocument()
+      await waitFor(() => expect(queryByText('A group name is required.')).toBeInTheDocument())
     })
 
-    it('validates empty group name reminder with leading spaces', () => {
+    it('validates empty group name reminder with leading spaces', async () => {
       const {getByText, getByLabelText, queryByText} = renderComponent()
       expect(queryByText('A group name is required.')).not.toBeInTheDocument()
       fireEvent.input(getByLabelText('Group Name *'), {
         target: {value: '  '},
       })
       getByText('Submit').closest('button').click()
-      expect(queryByText('A group name is required.')).toBeInTheDocument()
+      await waitFor(() => expect(queryByText('A group name is required.')).toBeInTheDocument())
     })
 
-    it('shows too-long group name reminder.', () => {
+    it('shows too-long group name reminder.', async () => {
       const {getByText, getByLabelText, queryByText} = renderComponent()
       expect(queryByText('Group name must be less than 255 characters.')).not.toBeInTheDocument()
       fireEvent.input(getByLabelText('Group Name *'), {
         target: {value: 'A'.repeat(260)},
       })
       getByText('Submit').closest('button').click()
-      expect(queryByText('Group name must be less than 255 characters.')).toBeInTheDocument()
+      await waitFor(() =>
+        expect(queryByText('Group name must be less than 255 characters.')).toBeInTheDocument(),
+      )
     })
 
     it('enables the submit button if group name is provided', () => {

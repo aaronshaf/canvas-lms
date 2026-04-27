@@ -17,7 +17,7 @@
  */
 
 import {waitFor} from '@testing-library/react'
-import {renderHook, act} from '@testing-library/react-hooks'
+import {renderHook, act} from '@testing-library/react'
 import {useTranslationQueue, MAX_CONCURRENT_TRANSLATIONS} from '../useTranslationQueue'
 
 describe('useTranslationQueue', () => {

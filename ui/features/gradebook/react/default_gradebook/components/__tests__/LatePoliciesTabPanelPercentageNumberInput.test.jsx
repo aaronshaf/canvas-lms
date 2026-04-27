@@ -237,10 +237,6 @@ describe('Gradebook > Default Gradebook > Components > LatePoliciesTabPanelPerce
     }
   })
 
-  afterEach(() => {
-    cleanup()
-  })
-
   /**
    * Renders the LatePoliciesTabPanel component within the Wrapper.
    * @param {Object} componentProps - Props to pass to the component.

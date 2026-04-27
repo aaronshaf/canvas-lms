@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, waitFor} from '@testing-library/react'
 import CoursePeople from '../CoursePeople'
 import useCoursePeopleQuery from '../hooks/useCoursePeopleQuery'
 import useSearch from '../hooks/useSearch'
@@ -132,15 +132,17 @@ describe('CoursePeople', () => {
     expect(getByTestId('search-bar')).toHaveTextContent(`SearchBar: test user`)
   })
 
-  it('passes handler for selected option to PeopleFilter', () => {
+  it('passes handler for selected option to PeopleFilter', async () => {
     const {getByTestId} = render(<CoursePeople />)
     const filter = getByTestId('people-filter')
     expect(filter).toBeInTheDocument()
     filter.click()
-    expect(useCoursePeopleQuery).toHaveBeenCalledWith(
-      expect.objectContaining({
-        optionId: 'test-id',
-      }),
+    await waitFor(() =>
+      expect(useCoursePeopleQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          optionId: 'test-id',
+        }),
+      ),
     )
   })
 

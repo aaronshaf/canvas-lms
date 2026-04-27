@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {render, waitFor, act} from '@testing-library/react'
 import Checker from '../checker'
 import util from 'util'
 
@@ -71,7 +71,9 @@ describe('checker', () => {
   describe('setConfig', () => {
     test('sets config state', () => {
       const conf = {disableContrastCheck: true}
-      instance.setConfig(conf)
+      act(() => {
+        instance.setConfig(conf)
+      })
       expect(instance.state.config).toEqual(conf)
     })
   })
@@ -210,11 +212,9 @@ describe('checker', () => {
       beforeEach(() => jest.useFakeTimers())
       afterEach(() => jest.useRealTimers())
 
-      test('does not try to call done if it is not a function', () => {
-        expect(() => {
-          instance.check('123')
-          jest.runAllTimers()
-        }).not.toThrow()
+      test('does not try to call done if it is not a function', async () => {
+        instance.check('123')
+        await act(async () => jest.runAllTimers())
       })
     })
 
@@ -225,12 +225,12 @@ describe('checker', () => {
         jest.restoreAllMocks()
       })
 
-      it("calls editor.on('Remove') when mounted", () => {
+      it("calls editor.on('Remove') when mounted", async () => {
         const instanceRef = React.createRef()
         render(<Checker ref={instanceRef} getBody={() => node} editor={fakeEditor} />)
         instance = instanceRef.current
         instance.check() // open it
-        jest.runAllTimers()
+        await act(async () => jest.runAllTimers())
         expect(fakeEditor.on).toHaveBeenCalled()
         expect(fakeEditor.on.mock.calls[0][0]).toEqual('Remove')
       })
@@ -249,12 +249,16 @@ describe('checker', () => {
     })
 
     test('sets error index if in range', () => {
-      instance.setErrorIndex(1)
+      act(() => {
+        instance.setErrorIndex(1)
+      })
       expect(instance.state.errorIndex).toBe(1)
     })
 
     test('sets index to zero if out of range', () => {
-      instance.setErrorIndex(2)
+      act(() => {
+        instance.setErrorIndex(2)
+      })
       expect(instance.state.errorIndex).toBe(0)
     })
   })
@@ -290,19 +294,25 @@ describe('checker', () => {
     test('sets state to true if target is a checkbox and checked', () => {
       target.type = 'checkbox'
       target.checked = true
-      instance.updateFormState({target})
+      act(() => {
+        instance.updateFormState({target})
+      })
       expect(instance.state.formState.foo).toBe(true)
     })
 
     test('sets state to false if target is a checkbox and not checked', () => {
       target.type = 'checkbox'
       target.checked = false
-      instance.updateFormState({target})
+      act(() => {
+        instance.updateFormState({target})
+      })
       expect(instance.state.formState.foo).toBe(false)
     })
 
     test('sets state to value', () => {
-      instance.updateFormState({target})
+      act(() => {
+        instance.updateFormState({target})
+      })
       expect(instance.state.formState.foo).toBe(target.value)
     })
   })
@@ -384,7 +394,9 @@ describe('checker', () => {
     })
 
     test('updates the number of errors', async () => {
-      instance.fixIssue(ev)
+      act(() => {
+        instance.fixIssue(ev)
+      })
       expect(instance.state.errors).toEqual([])
       await waitFor(() => {
         expect(instance.props.onFixError).toHaveBeenCalled()
@@ -452,7 +464,9 @@ describe('checker', () => {
       )
       const instance = instanceRef.current
 
-      instance.handleClose() // Simulate closing the tray
+      act(() => {
+        instance.handleClose()
+      }) // Simulate closing the tray
 
       expect(window.webkit.messageHandlers.modalPresentation.postMessage).toHaveBeenCalledWith({
         open: false,
@@ -464,7 +478,9 @@ describe('checker', () => {
       render(<Checker ref={instanceRef} getBody={() => node} editor={fakeEditor} />)
       const instance = instanceRef.current
 
-      instance.check() // Simulate opening the tray
+      act(() => {
+        instance.check()
+      }) // Simulate opening the tray
 
       expect(window.webkit.messageHandlers.modalPresentation.postMessage).toHaveBeenCalledWith({
         open: true,

@@ -18,7 +18,7 @@
  */
 
 import React from 'react'
-import {fireEvent, render} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import injectGlobalAlertContainers from '@canvas/util/react/testing/injectGlobalAlertContainers'
 import {ConferenceAddressBook} from '../ConferenceAddressBook'
 
@@ -49,11 +49,11 @@ describe('ConferenceAddressBook', () => {
     expect(container).toBeTruthy()
   })
 
-  it('should open when clicked', () => {
+  it('should open when clicked', async () => {
     const container = setup()
     const input = container.getByTestId('address-input')
     input.click()
-    const item = container.getByText('Allison')
+    const item = await container.findByText('Allison')
     expect(item).toBeTruthy()
   })
 
@@ -73,53 +73,53 @@ describe('ConferenceAddressBook', () => {
     expect(item).toBeTruthy()
   })
 
-  it('should add tag when user is selected', () => {
+  it('should add tag when user is selected', async () => {
     const container = setup()
     const input = container.getByTestId('address-input')
     input.click()
-    const item = container.getByText('Allison')
+    const item = await container.findByText('Allison')
     item.click()
-    const tag = container.getByTestId('address-tag')
+    const tag = await container.findByTestId('address-tag')
     expect(tag).toBeTruthy()
   })
 
-  it('should add tag when group is selected', () => {
+  it('should add tag when group is selected', async () => {
     const container = setup()
     const input = container.getByTestId('address-input')
     input.click()
-    const item = container.getByText('Group1')
+    const item = await container.findByText('Group1')
     item.click()
-    const tag = container.getByTestId('address-tag')
+    const tag = await container.findByTestId('address-tag')
     expect(tag).toBeTruthy()
   })
 
-  it('should add tag when section is selected', () => {
+  it('should add tag when section is selected', async () => {
     const container = setup()
     const input = container.getByTestId('address-input')
     input.click()
-    const item = container.getByText('Section1')
+    const item = await container.findByText('Section1')
     item.click()
-    const tag = container.getByTestId('address-tag')
+    const tag = await container.findByTestId('address-tag')
     expect(tag).toBeTruthy()
   })
 
-  it('should have section header when section is present', () => {
+  it('should have section header when section is present', async () => {
     const container = setup()
     const input = container.getByTestId('address-input')
     input.click()
-    const item = container.getByTestId('section-conference-header')
+    const item = await container.findByTestId('section-conference-header')
     expect(item).toBeTruthy()
   })
 
-  it('should have group header when group is present', () => {
+  it('should have group header when group is present', async () => {
     const container = setup()
     const input = container.getByTestId('address-input')
     input.click()
-    const item = container.getByTestId('group-conference-header')
+    const item = await container.findByTestId('group-conference-header')
     expect(item).toBeTruthy()
   })
 
-  it('should not have group header when no groups exist', () => {
+  it('should not have group header when no groups exist', async () => {
     const menuItemList = [
       {displayName: 'Allison', id: '7', type: 'user', assetCode: 'user-7'},
       {displayName: 'Caleb', id: '3', type: 'user', assetCode: 'user-3'},
@@ -129,15 +129,17 @@ describe('ConferenceAddressBook', () => {
     const container = setup({}, menuItemList)
     const input = container.getByTestId('address-input')
     input.click()
+    // Wait for the menu to open, then check that group header is absent
+    await container.findByTestId('section-conference-header')
     const item = container.queryByTestId('group-conference-header')
     expect(item).toBeFalsy()
   })
 
-  it('should have User header', () => {
+  it('should have User header', async () => {
     const container = setup()
     const input = container.getByTestId('address-input')
     input.click()
-    const item = container.getByTestId('user-conference-header')
+    const item = await container.findByTestId('user-conference-header')
     expect(item).toBeTruthy()
   })
 
@@ -171,22 +173,21 @@ describe('ConferenceAddressBook', () => {
     expect(tag).toHaveLength(2)
   })
 
-  it('should remove selected user when backspace is pressed and input is empty', () => {
+  it('should remove selected user when backspace is pressed and input is empty', async () => {
     const container = setup()
     const input = container.getByTestId('address-input')
     input.click()
-    const item = container.getByText('Allison')
+    const item = await container.findByText('Allison')
     item.click()
     fireEvent.keyDown(input, {keyCode: '8'})
-    const tag = container.queryByTestId('address-tag')
-    expect(tag).toBeFalsy()
+    await waitFor(() => expect(container.queryByTestId('address-tag')).toBeFalsy())
   })
 
-  it('should not remove saved users when isEditing', () => {
+  it('should not remove saved users when isEditing', async () => {
     const container = setup({isEditing: true, selectedItems: [menuItemList[0]]})
     const input = container.getByTestId('address-input')
     input.click()
-    const item = container.getByText('Allison')
+    const item = await container.findByText('Allison')
     item.click()
     fireEvent.keyDown(input, {keyCode: '8'})
     const tag = container.queryByTestId('address-tag')
@@ -195,14 +196,13 @@ describe('ConferenceAddressBook', () => {
     expect(tag).toBeTruthy()
   })
 
-  it('should remove unsaved users when isEditing', () => {
+  it('should remove unsaved users when isEditing', async () => {
     const container = setup({isEditing: true, selectedItems: []})
     const input = container.getByTestId('address-input')
     input.click()
-    const item = container.getByText('Allison')
+    const item = await container.findByText('Allison')
     item.click()
     fireEvent.keyDown(input, {keyCode: '8'})
-    const tag = container.queryByTestId('address-tag')
-    expect(tag).toBeFalsy()
+    await waitFor(() => expect(container.queryByTestId('address-tag')).toBeFalsy())
   })
 })

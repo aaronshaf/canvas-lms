@@ -146,12 +146,9 @@ describe('FileSelectBox', () => {
     const expectedFolders = ['course files', 'course files/A', 'course files/B', 'course files/C']
 
     // Wait for both store callbacks to complete
-    await waitFor(
-      () => {
-        expect(screen.queryByText('Loading...')).not.toBeInTheDocument()
-      },
-      {timeout: 2000},
-    )
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument()
+    })
 
     for (const folderName of expectedFolders) {
       expect(screen.getByRole('group', {name: folderName})).toBeInTheDocument()
@@ -171,12 +168,9 @@ describe('FileSelectBox', () => {
     expect(loadingOption).toBeInTheDocument()
 
     // Wait for both store callbacks to complete
-    await waitFor(
-      () => {
-        expect(screen.queryByText('Loading...')).not.toBeInTheDocument()
-      },
-      {timeout: 2000},
-    )
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument()
+    })
 
     expect(select).toHaveAttribute('aria-busy', 'false')
     expect(screen.getByRole('group', {name: 'course files'})).toBeInTheDocument()

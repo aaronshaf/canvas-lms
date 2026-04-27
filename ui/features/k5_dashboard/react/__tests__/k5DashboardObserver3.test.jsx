@@ -23,7 +23,7 @@ import {fetchShowK5Dashboard} from '@canvas/observer-picker/react/utils'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import {reloadWindow} from '@canvas/util/globalUtils'
 import injectGlobalAlertContainers from '@canvas/util/react/testing/injectGlobalAlertContainers'
-import {act, render as testingLibraryRender, waitFor} from '@testing-library/react'
+import {fireEvent, render as testingLibraryRender, waitFor} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import React from 'react'
@@ -119,12 +119,9 @@ describe('K5Dashboard Parent Support - Switching and Grades', () => {
         />,
       )
       const select = await findByRole('combobox', {name: 'Select a student to view'})
-      await act(async () => {
-        select.click()
-        await waitFor(() => expect(getByText('Student 2')).toBeInTheDocument())
-        getByText('Student 2').click()
-      })
-      // Wait for any async operations to complete
+      fireEvent.click(select)
+      await waitFor(() => expect(getByText('Student 2')).toBeInTheDocument())
+      fireEvent.click(getByText('Student 2'))
       await waitFor(() => expect(fetchShowK5Dashboard).toHaveBeenCalledWith('2'))
     }
 

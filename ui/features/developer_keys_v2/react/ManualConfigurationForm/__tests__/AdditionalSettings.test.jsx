@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, act, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {get} from 'es-toolkit/compat'
 
@@ -56,13 +56,17 @@ const checkToolConfigPart = (toolConfig, path, value) => {
   expect(get(toolConfig, path)).toEqual(value)
 }
 
-const checkChange = (path, funcName, in_value, out_value) => {
+const checkChange = async (path, funcName, in_value, out_value) => {
   out_value = out_value || in_value
   const ref = React.createRef()
   render(<AdditionalSettings {...props({overrides: {ref}})} />)
 
-  ref.current[funcName]({target: {value: in_value}})
-  checkToolConfigPart(ref.current.generateToolConfigurationPart(), path, out_value)
+  act(() => {
+    ref.current[funcName]({target: {value: in_value}})
+  })
+  await waitFor(() => {
+    checkToolConfigPart(ref.current.generateToolConfigurationPart(), path, out_value)
+  })
 }
 
 it('is valid when valid', () => {
@@ -81,50 +85,60 @@ it('is invalid with invalid inputs', async () => {
       })}
     />,
   )
-  userEvent.click(await screen.getByText('Additional Settings').closest('button'))
+  await userEvent.click(screen.getByText('Additional Settings').closest('button'))
   await screen.findByText('Icon Url')
-  expect(ref.current.valid()).toBe(false)
-  expect(
-    screen.getByText('Please enter a valid URL (e.g. https://example.com)'),
-  ).toBeInTheDocument()
+  let isValid
+  act(() => {
+    isValid = ref.current.valid()
+  })
+  expect(isValid).toBe(false)
+  await waitFor(() => {
+    expect(
+      screen.getByText('Please enter a valid URL (e.g. https://example.com)'),
+    ).toBeInTheDocument()
+  })
 })
 
-it('changes the output when domain changes', () => {
-  checkChange(['extensions', '0', 'domain'], 'handleDomainChange', 'new.example.com')
+it('changes the output when domain changes', async () => {
+  await checkChange(['extensions', '0', 'domain'], 'handleDomainChange', 'new.example.com')
 })
 
-it('changes the output when tool_id changes', () => {
-  checkChange(['extensions', '0', 'tool_id'], 'handleToolIdChange', 'qwerty')
+it('changes the output when tool_id changes', async () => {
+  await checkChange(['extensions', '0', 'tool_id'], 'handleToolIdChange', 'qwerty')
 })
 
-it('changes the output when icon_url changes', () => {
-  checkChange(
+it('changes the output when icon_url changes', async () => {
+  await checkChange(
     ['extensions', '0', 'settings', 'icon_url'],
     'handleIconUrlChange',
     'http://example.com/new_icon',
   )
 })
 
-it('changes the output when text changes', () => {
-  checkChange(['extensions', '0', 'settings', 'text'], 'handleTextChange', 'New Text')
+it('changes the output when text changes', async () => {
+  await checkChange(['extensions', '0', 'settings', 'text'], 'handleTextChange', 'New Text')
 })
 
-it('changes the output when selection_height changes', () => {
-  checkChange(
+it('changes the output when selection_height changes', async () => {
+  await checkChange(
     ['extensions', '0', 'settings', 'selection_height'],
     'handleSelectionHeightChange',
     250,
   )
 })
 
-it('changes the output when selection_width changes', () => {
-  checkChange(['extensions', '0', 'settings', 'selection_width'], 'handleSelectionWidthChange', 250)
+it('changes the output when selection_width changes', async () => {
+  await checkChange(
+    ['extensions', '0', 'settings', 'selection_width'],
+    'handleSelectionWidthChange',
+    250,
+  )
 })
 
-it('changes the output when custom_fields changes', () => {
-  checkChange(['custom_fields'], 'handleCustomFieldsChange', 'foo=bar', {foo: 'bar'})
+it('changes the output when custom_fields changes', async () => {
+  await checkChange(['custom_fields'], 'handleCustomFieldsChange', 'foo=bar', {foo: 'bar'})
 })
 
-it('changes the output when domain is cleared', () => {
-  checkChange(['extensions', '0', 'domain'], 'handleDomainChange', '')
+it('changes the output when domain is cleared', async () => {
+  await checkChange(['extensions', '0', 'domain'], 'handleDomainChange', '')
 })

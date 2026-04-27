@@ -32,10 +32,6 @@ const makeProps = (props = {}): SettingsTrayContentProps => ({
 })
 
 describe('SettingsTrayContent', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     vi.clearAllMocks()
   })

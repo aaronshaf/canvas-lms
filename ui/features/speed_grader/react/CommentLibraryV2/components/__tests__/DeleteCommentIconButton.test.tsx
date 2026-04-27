@@ -175,12 +175,9 @@ describe('DeleteCommentIconButton', () => {
       })
 
       // Wait for mutation to complete
-      await waitFor(
-        () => {
-          expect(button).not.toBeDisabled()
-        },
-        {timeout: 3000},
-      )
+      await waitFor(() => {
+        expect(button).not.toBeDisabled()
+      })
     })
   })
 

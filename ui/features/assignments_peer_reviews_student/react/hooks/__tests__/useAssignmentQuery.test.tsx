@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {renderHook} from '@testing-library/react-hooks'
+import {renderHook, waitFor} from '@testing-library/react'
 import {QueryClient} from '@tanstack/react-query'
 import React from 'react'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
@@ -82,7 +82,7 @@ describe('useAssignmentQuery', () => {
       },
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useAssignmentQuery('1', '123'), {
+    const {result} = renderHook(() => useAssignmentQuery('1', '123'), {
       wrapper: createWrapper(),
     })
 
@@ -90,7 +90,7 @@ describe('useAssignmentQuery', () => {
     expect(result.current.data).toBeUndefined()
     expect(result.current.isError).toBe(false)
 
-    await waitForNextUpdate()
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.isLoading).toBe(false)
     expect(result.current.data?.assignment).toEqual({
@@ -143,11 +143,11 @@ describe('useAssignmentQuery', () => {
       },
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useAssignmentQuery('2', '123'), {
+    const {result} = renderHook(() => useAssignmentQuery('2', '123'), {
       wrapper: createWrapper(),
     })
 
-    await waitForNextUpdate()
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.isLoading).toBe(false)
     expect(result.current.data?.assignment.dueAt).toBeNull()
@@ -174,11 +174,11 @@ describe('useAssignmentQuery', () => {
       },
     })
 
-    const {result, waitForNextUpdate} = renderHook(() => useAssignmentQuery('3', '123'), {
+    const {result} = renderHook(() => useAssignmentQuery('3', '123'), {
       wrapper: createWrapper(),
     })
 
-    await waitForNextUpdate()
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.isLoading).toBe(false)
     expect(result.current.data?.assignment.description).toBeNull()
@@ -189,11 +189,11 @@ describe('useAssignmentQuery', () => {
   it('handles query error', async () => {
     mockExecuteQuery.mockRejectedValueOnce(new Error('Failed to fetch assignment'))
 
-    const {result, waitForNextUpdate} = renderHook(() => useAssignmentQuery('error-id', '123'), {
+    const {result} = renderHook(() => useAssignmentQuery('error-id', '123'), {
       wrapper: createWrapper(),
     })
 
-    await waitForNextUpdate()
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(result.current.isLoading).toBe(false)
     expect(result.current.data).toBeUndefined()
@@ -219,11 +219,11 @@ describe('useAssignmentQuery', () => {
       },
     })
 
-    const {waitForNextUpdate} = renderHook(() => useAssignmentQuery('123', '456'), {
+    const {result} = renderHook(() => useAssignmentQuery('123', '456'), {
       wrapper: createWrapper(),
     })
 
-    await waitForNextUpdate()
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     expect(mockExecuteQuery).toHaveBeenCalledWith(PEER_REVIEW_ASSIGNMENT_QUERY, {
       assignmentId: '123',
@@ -262,11 +262,11 @@ describe('useAssignmentQuery', () => {
         },
       })
 
-      const {result, waitForNextUpdate} = renderHook(() => useAssignmentQuery('4', '123'), {
+      const {result} = renderHook(() => useAssignmentQuery('4', '123'), {
         wrapper: createWrapper(),
       })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
 
       expect(
         result.current.data?.assignment.assessmentRequestsForCurrentUser?.[0].submission,
@@ -320,11 +320,11 @@ describe('useAssignmentQuery', () => {
         },
       })
 
-      const {result, waitForNextUpdate} = renderHook(() => useAssignmentQuery('6', '123'), {
+      const {result} = renderHook(() => useAssignmentQuery('6', '123'), {
         wrapper: createWrapper(),
       })
 
-      await waitForNextUpdate()
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
 
       const assessmentRequests = result.current.data?.assignment.assessmentRequestsForCurrentUser
       expect(assessmentRequests).toHaveLength(2)

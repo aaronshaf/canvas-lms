@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {screen, render} from '@testing-library/react'
+import {screen, render, waitFor, fireEvent} from '@testing-library/react'
 import AssignToPanel, {type AssignToPanelProps} from '../AssignToPanel'
 import {
   ASSIGNMENT_OVERRIDES_DATA,
@@ -392,12 +392,12 @@ describe('AssignToPanel', () => {
       const option1 = await findByText(SECTIONS_DATA[0].name)
       await userEvent.click(option1)
 
-      getByRole('button', {name: 'Save'}).click()
+      fireEvent.click(getByRole('button', {name: 'Save'}))
       expect((await findAllByText('Module access updated successfully.'))[0]).toBeInTheDocument()
       const expectedPayload = {
         overrides: [{course_section_id: SECTIONS_DATA[0].id}],
       }
-      expect(lastPutBody).toEqual(expectedPayload)
+      await waitFor(() => expect(lastPutBody).toEqual(expectedPayload))
     })
 
     it('updates existing assignment overrides', async () => {
@@ -417,7 +417,7 @@ describe('AssignToPanel', () => {
       // removing the existing section override
       await userEvent.click(option1)
 
-      getByRole('button', {name: 'Save'}).click()
+      fireEvent.click(getByRole('button', {name: 'Save'}))
       expect((await findAllByText('Module access updated successfully.'))[0]).toBeInTheDocument()
       // it sends back the student list override, including the assignment override id
       const expectedPayload = {
@@ -425,7 +425,7 @@ describe('AssignToPanel', () => {
           {id: studentsOverride.id, student_ids: studentsOverride.students!.map(({id}) => id)},
         ],
       }
-      expect(lastPutBody).toEqual(expectedPayload)
+      await waitFor(() => expect(lastPutBody).toEqual(expectedPayload))
     })
 
     it('updates the modules UI', async () => {
