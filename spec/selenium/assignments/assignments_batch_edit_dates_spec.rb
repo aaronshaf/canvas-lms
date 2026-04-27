@@ -104,6 +104,186 @@ describe "assignment batch edit" do
     end
   end
 
+  context "with peer review assignments" do
+    before(:once) do
+      @date = Time.zone.now.change(usec: 0, hour: 12)
+      @pr_course = Course.create!(name: "Peer Review Course")
+      @pr_course.enable_feature!(:peer_review_allocation_and_grading)
+      @pr_teacher = User.create!(name: "PR Teacher")
+      @pr_teacher.accept_terms
+      @pr_teacher.register!
+      @pr_course.enroll_teacher(@pr_teacher, enrollment_state: "active")
+
+      @pr_assignment = @pr_course.assignments.create!(
+        title: "Graded Peer Review Assignment",
+        peer_reviews: true,
+        peer_review_count: 1,
+        points_possible: 10,
+        submission_types: "online_text_entry",
+        due_at: @date + 7.days,
+        unlock_at: @date + 1.day,
+        lock_at: @date + 21.days
+      )
+      @pr_sub = PeerReview::PeerReviewCreatorService.call(
+        parent_assignment: @pr_assignment,
+        points_possible: 10,
+        grading_type: "points",
+        due_at: @date + 10.days,
+        unlock_at: @date + 8.days,
+        lock_at: @date + 14.days
+      )
+      @pr_assignment.reload
+
+      @legacy_pr_assignment = @pr_course.assignments.create!(
+        title: "Legacy Peer Review Assignment",
+        peer_reviews: true,
+        peer_review_count: 1,
+        points_possible: 10,
+        submission_types: "online_text_entry",
+        due_at: @date + 3.days,
+        unlock_at: @date + 1.day,
+        lock_at: @date + 10.days
+      )
+    end
+
+    context "when in graded peer review mode (peer review allocation and grading feature enabled)", :ignore_js_errors do
+      before do
+        @pr_course.enable_feature!(:peer_review_allocation_and_grading)
+        user_session(@pr_teacher)
+        visit_assignments_index_page(@pr_course.id)
+        goto_bulk_edit_view
+      end
+
+      it "can edit and persist peer review due date for assignment with graded peer reviews", custom_timeout: 60 do
+        new_review_date = format_date_for_view(@pr_assignment.due_at + 3.days, "%m/%d/%Y")
+        input = review_due_date_input(@pr_assignment.name)
+        replace_content(input, new_review_date, tab_out: true)
+        save_bulk_edited_dates
+
+        expect(format_date_for_view(@pr_sub.reload.due_at, "%m/%d/%Y")).to eq new_review_date
+      end
+
+      it "validates peer review date relative to assignment dates", custom_timeout: 60 do
+        invalid_review_date = format_date_for_view(@pr_assignment.lock_at + 1.day, "%m/%d/%Y")
+        input = review_due_date_input(@pr_assignment.name)
+        replace_content(input, invalid_review_date, tab_out: true)
+        wait_for_ajaximations
+
+        expect(bulk_edit_root).to include_text("Due date cannot be after assignment until date")
+        expect(bulk_edit_save_button.attribute("disabled")).to be_truthy
+      end
+
+      it "shifts the peer review due date when batch shifting dates forward", custom_timeout: 60 do
+        shift_days = 3
+        original_review_due = @pr_sub.due_at
+
+        select_assignment_checkbox(@pr_assignment.name).click
+        open_batch_edit_dialog
+        replace_content(batch_edit_shift_days_input, shift_days.to_s)
+        batch_edit_confirm_button.click
+        wait_for_ajaximations
+        save_bulk_edited_dates
+
+        expect(@pr_sub.reload.due_at).to be_within(1.minute).of(original_review_due + shift_days.days)
+      end
+
+      it "clears and persists the peer review due date when batch removing due dates", custom_timeout: 60 do
+        select_assignment_checkbox(@pr_assignment.name).click
+        open_batch_edit_dialog
+        batch_edit_remove_dates_radio_label.click
+        batch_edit_confirm_button.click
+        wait_for_ajaximations
+        save_bulk_edited_dates
+
+        expect(@pr_assignment.reload.due_at).to be_nil
+        expect(@pr_sub.reload.due_at).to be_nil
+      end
+
+      it "clears parent availability dates and re-derives peer review availability dates when batch removing availability dates", custom_timeout: 60 do
+        select_assignment_checkbox(@pr_assignment.name).click
+        open_batch_edit_dialog
+        batch_edit_remove_dates_radio_label.click
+        batch_edit_remove_availability_dates_radio_label.click
+        batch_edit_confirm_button.click
+        wait_for_ajaximations
+        save_bulk_edited_dates
+
+        expect(@pr_assignment.reload.unlock_at).to be_nil
+        expect(@pr_assignment.lock_at).to be_nil
+        # Peer review dates are derived from parent at serialization time:
+        # unlock_at from parent due_at, lock_at from parent lock_at.
+        expect(@pr_sub.reload.unlock_at).to eq(@pr_assignment.due_at)
+        expect(@pr_sub.lock_at).to be_nil
+      end
+
+      it "does not render peer review due date input for assignment with legacy peer reviews", custom_timeout: 60 do
+        expect(assignment_dates_inputs(@legacy_pr_assignment.name).count).to eq 3
+      end
+    end
+
+    context "with a pre-existing invalid peer review due date", :ignore_js_errors do
+      before do
+        @pr_course.enable_feature!(:peer_review_allocation_and_grading)
+        # update_columns bypasses model validations so we can simulate data introduced
+        # via API/console/migration that left peer_review.due_at before parent due_at.
+        @pr_sub.update_columns(due_at: @pr_assignment.due_at - 5.days)
+        user_session(@pr_teacher)
+        visit_assignments_index_page(@pr_course.id)
+        goto_bulk_edit_view
+      end
+
+      it "surfaces a validation error and disables Save on load", custom_timeout: 60 do
+        expect(bulk_edit_root).to include_text("Due date cannot be before assignment due date")
+        expect(bulk_edit_save_button.attribute("disabled")).to be_truthy
+      end
+
+      it "re-enables Save once the invalid review due date is corrected", custom_timeout: 60 do
+        expect(bulk_edit_save_button.attribute("disabled")).to be_truthy
+
+        fixed_review_date = format_date_for_view(@pr_assignment.due_at + 3.days, "%m/%d/%Y")
+        replace_content(review_due_date_input(@pr_assignment.name), fixed_review_date, tab_out: true)
+        wait_for_ajaximations
+
+        expect(bulk_edit_root).not_to include_text("Due date cannot be before assignment due date")
+        expect(bulk_edit_save_button.attribute("disabled")).to be_falsey
+      end
+    end
+
+    context "when in legacy peer review mode (feature disabled)", :ignore_js_errors do
+      before do
+        @pr_course.disable_feature!(:peer_review_allocation_and_grading)
+        user_session(@pr_teacher)
+        visit_assignments_index_page(@pr_course.id)
+        goto_bulk_edit_view
+      end
+
+      it "does not render the Review Due Date column", custom_timeout: 60 do
+        expect(bulk_edit_root.text).not_to include("Review Due Date")
+        expect(assignment_dates_inputs(@pr_assignment.name).count).to eq 3
+      end
+
+      it "does not change peer review sub assignment dates when parent availability dates are removed", custom_timeout: 60 do
+        original_due_at = @pr_sub.due_at
+        original_unlock_at = @pr_sub.unlock_at
+        original_lock_at = @pr_sub.lock_at
+
+        select_assignment_checkbox(@pr_assignment.name).click
+        open_batch_edit_dialog
+        batch_edit_remove_dates_radio_label.click
+        batch_edit_remove_availability_dates_radio_label.click
+        batch_edit_confirm_button.click
+        wait_for_ajaximations
+        save_bulk_edited_dates
+
+        expect(@pr_assignment.reload.unlock_at).to be_nil
+        expect(@pr_assignment.lock_at).to be_nil
+        expect(@pr_sub.reload.due_at).to be_within(1.minute).of(original_due_at)
+        expect(@pr_sub.unlock_at).to be_within(1.minute).of(original_unlock_at)
+        expect(@pr_sub.lock_at).to be_within(1.minute).of(original_lock_at)
+      end
+    end
+  end
+
   context "in a paced course" do
     before do
       course_with_teacher_logged_in

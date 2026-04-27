@@ -488,7 +488,7 @@ module DatesOverridable
         next
       end
 
-      new_result = o.slice(:id, :due_at, :unlock_at, :lock_at, :title, :base, :set_type, :set_id)
+      new_result = o.slice(:id, :due_at, :unlock_at, :lock_at, :title, :base, :set_type, :set_id, :parent_override_id)
       result << new_result
     end
 
@@ -513,7 +513,7 @@ module DatesOverridable
       everyone_override[:title] = result.empty? ? I18n.t("Everyone") : I18n.t("Everyone else")
 
       result << everyone_override.slice(
-        :id, :due_at, :unlock_at, :lock_at, :title, :base, :set_type, :set_id
+        :id, :due_at, :unlock_at, :lock_at, :title, :base, :set_type, :set_id, :parent_override_id
       )
     end
 

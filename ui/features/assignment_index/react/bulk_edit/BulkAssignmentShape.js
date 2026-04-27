@@ -26,7 +26,20 @@ export const AllDates = shape({
   unlock_at: string,
 })
 
+const PeerReviewSubAssignmentShape = shape({
+  id: string,
+  all_dates: arrayOf(
+    shape({
+      id: string,
+      base: bool,
+      due_at: string,
+    }),
+  ),
+})
+
 export const AssignmentShape = shape({
   id: string.isRequired,
   all_dates: arrayOf(AllDates),
+  peer_reviews: bool,
+  peer_review_sub_assignment: PeerReviewSubAssignmentShape,
 })

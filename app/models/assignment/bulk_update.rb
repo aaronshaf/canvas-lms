@@ -30,13 +30,20 @@ class Assignment::BulkUpdate
   def run(progress, assignment_data)
     # assignment_data looks like [:id, :all_dates => [:id, :base, :due_at, :unlock_at, :lock_at]]
     assignment_data_hash = assignment_data.index_by { |a| a["id"] }
-    assignments = @context.active_assignments.where(id: assignment_data_hash.keys).preload(:assignment_overrides).index_by(&:id)
+    scope = @context.active_assignments
+                    .where(id: assignment_data_hash.keys)
+                    .preload(:assignment_overrides)
+    if @context.feature_enabled?(:peer_review_allocation_and_grading)
+      scope = scope.preload(peer_review_sub_assignment: :assignment_overrides)
+    end
+    assignments = scope.index_by(&:id)
     assignments_to_save = Set.new
 
     # 1. update AR models (in memory!)
     assignment_data_hash.each do |id, data|
-      dates = data["all_dates"]
-      next unless dates.present?
+      dates = data["all_dates"] || []
+      has_peer_review_data = data["peer_review_sub_assignment"].present? && @context.feature_enabled?(:peer_review_allocation_and_grading)
+      next unless dates.present? || has_peer_review_data
 
       base, overrides = dates.partition { |date| date["base"] }
 
@@ -67,6 +74,19 @@ class Assignment::BulkUpdate
         end
         assignments_to_save << assignment if override.changed?
       end
+
+      # 1c. update peer review sub assignment dates
+      next unless has_peer_review_data
+
+      begin
+        peer_review_changed = PeerReview::BulkDateUpdateService.call(
+          assignment:,
+          peer_review_data: data["peer_review_sub_assignment"]
+        )
+      rescue PeerReview::PeerReviewError => e
+        raise e.class, "#{e.message} for assignment #{assignment.id}"
+      end
+      assignments_to_save << assignment if peer_review_changed
     end
 
     progress_count = 0
@@ -85,6 +105,38 @@ class Assignment::BulkUpdate
                         .merge(::Api::Errors::Reporter.to_json(override.errors).deep_stringify_keys)
         end
       end
+
+      if @context.feature_enabled?(:peer_review_allocation_and_grading)
+        peer_review_sub = assignment.peer_review_sub_assignment
+        if peer_review_sub.present?
+          pr_sub_save_blocked = peer_review_sub.changed? && (!grading_periods_allow_submittable_update?(peer_review_sub, {}) || !peer_review_sub.valid?)
+
+          pr_date_boundary_invalid = false
+          begin
+            PeerReview::DateValidationService.call(
+              peer_review_sub_assignment: peer_review_sub,
+              parent_assignment: assignment,
+              in_memory: true
+            )
+          rescue PeerReview::PeerReviewError => e
+            peer_review_sub.errors.add(:base, I18n.t("assignment_api.peer_review_error", "Peer Review: %{message}", message: e.message))
+            pr_date_boundary_invalid = true
+          end
+
+          if pr_sub_save_blocked || pr_date_boundary_invalid
+            all_errors << { "assignment_id" => assignment.id }
+                          .merge(::Api::Errors::Reporter.to_json(peer_review_sub.errors).deep_stringify_keys)
+          end
+          peer_review_sub.assignment_overrides.each do |pr_override|
+            next unless pr_override.changed?
+
+            if !grading_periods_allow_assignment_override_update?(pr_override) || !pr_override.valid?
+              all_errors << { "assignment_id" => assignment.id, "assignment_override_id" => pr_override.id }
+                            .merge(::Api::Errors::Reporter.to_json(pr_override.errors).deep_stringify_keys)
+            end
+          end
+        end
+      end
       progress.calculate_completion!(progress_count, progress_total)
       progress_count += 1
     end
@@ -98,13 +150,28 @@ class Assignment::BulkUpdate
     Assignment.suspend_due_date_caching do
       Assignment.suspend_grading_period_grade_recalculation do
         assignments_to_save.each do |assignment|
+          peer_review_sub_to_notify = nil
           assignment.transaction do
             assignment.save_without_broadcasting!
             assignment.assignment_overrides.each(&:save!)
+
+            if @context.feature_enabled?(:peer_review_allocation_and_grading)
+              peer_review_sub = assignment.peer_review_sub_assignment
+              if peer_review_sub.present?
+                if peer_review_sub.changed?
+                  peer_review_sub.save_without_broadcasting!
+                  peer_review_sub_to_notify = peer_review_sub
+                end
+                peer_review_sub.assignment_overrides.each do |pr_override|
+                  pr_override.save! if pr_override.changed?
+                end
+              end
+            end
           end
           progress.calculate_completion!(progress_count, progress_total)
           progress_count += 1
           assignment.delay_if_production.do_notifications!
+          peer_review_sub_to_notify&.delay_if_production&.do_notifications!
         end
       end
     end
@@ -113,11 +180,18 @@ class Assignment::BulkUpdate
     Assignment.clear_cache_keys(assignments_to_save, :availability)
     quizzes = assignments_to_save.select(&:quiz?).map(&:quiz)
     Quizzes::Quiz.clear_cache_keys(quizzes, :availability) if quizzes.any?
-    SubmissionLifecycleManager.recompute_course(@context, assignments: assignments_to_save, update_grades: true, executing_user: @current_user)
+
+    peer_review_subs = []
+    if @context.feature_enabled?(:peer_review_allocation_and_grading)
+      peer_review_subs = assignments_to_save.filter_map(&:peer_review_sub_assignment)
+      PeerReviewSubAssignment.clear_cache_keys(peer_review_subs, :availability) if peer_review_subs.any?
+    end
+
+    SubmissionLifecycleManager.recompute_course(@context, assignments: assignments_to_save + peer_review_subs, update_grades: true, executing_user: @current_user)
 
     progress.complete
     progress.set_results({ "updated_count" => assignments_to_save.size })
-  rescue ActiveRecord::RecordNotFound => e
+  rescue ActiveRecord::RecordNotFound, PeerReview::PeerReviewError => e
     progress.fail
     progress.set_results({ "message" => e.message })
   end

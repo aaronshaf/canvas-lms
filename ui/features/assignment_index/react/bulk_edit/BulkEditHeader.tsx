@@ -67,10 +67,15 @@ export default function BulkEditHeader({
 
   const validationErrorsExist = (() => {
     // @ts-expect-error
-    return assignments.some(assignment =>
-      // @ts-expect-error
-      assignment.all_dates.some(override => Object.keys(override.errors || {}).length > 0),
-    )
+    return assignments.some(assignment => {
+      const overrideErrors = assignment.all_dates.some(
+        (override: {errors?: Record<string, string>}) => Object.keys(override.errors || {}).length > 0,
+      )
+      if (overrideErrors) return true
+      const peerReviewDates: Array<{errors?: Record<string, string>}> =
+        (assignment as any).peer_review_sub_assignment?.all_dates || []
+      return peerReviewDates.some(peerReviewDate => Object.keys(peerReviewDate.errors || {}).length > 0)
+    })
   })()
 
   // @ts-expect-error

@@ -17,7 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
-import React, {useCallback, useEffect, useState, useMemo} from 'react'
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {func, string} from 'prop-types'
 import moment from 'moment-timezone'
 import produce from 'immer'
@@ -36,6 +36,23 @@ import GradingPeriodsAPI from '@canvas/grading/jquery/gradingPeriodsApi'
 import {originalDateField, canEditAll, anyAssignmentEdited} from './utils'
 
 const I18n = createI18nScope('assignments_bulk_edit')
+
+type PeerReviewDateDraft = {
+  base?: boolean
+  due_at: string | null
+  parent_override_id?: string
+  errors?: any
+  [key: string]: unknown
+}
+
+type DateOverrideDraft = {
+  id?: string
+  base?: boolean
+  due_at?: string | null
+  unlock_at?: string | null
+  lock_at?: string | null
+  [key: string]: unknown
+}
 
 BulkEdit.propTypes = {
   courseId: string.isRequired,
@@ -77,6 +94,8 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
     },
   )
 
+  const peerReviewAllocationAndGradingEnabled = !!ENV.PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED
+
   // @ts-expect-error
   const filterAssignments = useCallback(assignments => {
     // @ts-expect-error
@@ -99,7 +118,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
     fetchAllPages: true,
     params: {
       per_page: 50,
-      include: ['all_dates', 'can_edit'],
+      include: ['all_dates', 'can_edit', ...(peerReviewAllocationAndGradingEnabled ? ['peer_review'] : [])],
       order_by: 'due_at',
       exclude_checkpoints: true,
     },
@@ -116,6 +135,16 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
             delete draftOverride[originalDateField('unlock_at')]
             delete draftOverride[originalDateField('lock_at')]
           })
+          if (peerReviewAllocationAndGradingEnabled) {
+            draftAssignments.forEach(draftAssignment => {
+              const peerReviewDates = (draftAssignment as any).peer_review_sub_assignment?.all_dates as PeerReviewDateDraft[] | undefined
+              if (peerReviewDates) {
+                peerReviewDates.forEach(peerReviewDate => {
+                  delete peerReviewDate[originalDateField('due_at')]
+                })
+              }
+            })
+          }
         }),
       )
     }
@@ -195,15 +224,101 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
     setProgressUrl(null)
   }, [setJobSuccess, setProgressUrl])
 
-  // @ts-expect-error
-  const findOverride = useCallback((someAssignments, assignmentId, overrideId) => {
-    const isBaseOverride = !overrideId
-    // @ts-expect-error
-    const assignment = someAssignments.find(a => a.id === assignmentId)
-    // @ts-expect-error
-    const override = assignment.all_dates.find(o => (isBaseOverride ? o.base : o.id === overrideId))
-    return override
-  }, [])
+  const findOverride = useCallback(
+    (
+      someAssignments: any[],
+      assignmentId: string,
+      overrideId: string | null,
+    ): DateOverrideDraft | undefined => {
+      const isBaseOverride = !overrideId
+      const assignment = someAssignments.find((a: {id: string}) => a.id === assignmentId)
+      return assignment?.all_dates.find((o: DateOverrideDraft) =>
+        isBaseOverride ? o.base : o.id === overrideId,
+      )
+    },
+    [],
+  )
+
+  const findPeerReviewDate = useCallback(
+    (someAssignments: any[], assignmentId: string, overrideId: string | null) => {
+      const assignment = someAssignments.find((a: {id: string}) => a.id === assignmentId)
+      const peerReviewSub: {all_dates?: PeerReviewDateDraft[]} | undefined = assignment?.peer_review_sub_assignment
+      if (!peerReviewSub?.all_dates) return null
+      const isBase = !overrideId
+      return peerReviewSub.all_dates.find(d => (isBase ? d.base : d.parent_override_id === overrideId)) || null
+    },
+    [],
+  )
+
+  const validatePeerReviewDate = useCallback(
+    (peerReviewDate: PeerReviewDateDraft, parentOverride: DateOverrideDraft) => {
+      const errors = dateValidator.validateDatetimes({
+        due_at: parentOverride.due_at,
+        unlock_at: parentOverride.unlock_at,
+        lock_at: parentOverride.lock_at,
+        peer_review_due_at: peerReviewDate.due_at,
+      })
+      peerReviewDate.errors = errors.peer_review_due_at ? {due_at: errors.peer_review_due_at} : {}
+    },
+    [dateValidator],
+  )
+
+  // Validates pre-existing peer review dates once after load to disable Save on already-invalid
+  // rows; without this, `errors` only populates on user edits and stale invalid rows slip through.
+  const hasValidatedOnLoadRef = useRef(false)
+  useEffect(() => {
+    if (loading || !peerReviewAllocationAndGradingEnabled || hasValidatedOnLoadRef.current) return
+    hasValidatedOnLoadRef.current = true
+    setAssignments(currentAssignments =>
+      produce(currentAssignments, draftAssignments => {
+        draftAssignments.forEach(draftAssignment => {
+          const assignment = draftAssignment as any
+          const peerReviewDates = assignment.peer_review_sub_assignment?.all_dates as
+            | PeerReviewDateDraft[]
+            | undefined
+          if (!peerReviewDates) return
+          peerReviewDates.forEach(peerReviewDate => {
+            const parentOverride = assignment.all_dates.find((d: DateOverrideDraft) =>
+              peerReviewDate.base ? d.base : d.id === peerReviewDate.parent_override_id,
+            ) as DateOverrideDraft | undefined
+            if (parentOverride) validatePeerReviewDate(peerReviewDate, parentOverride)
+          })
+        })
+      }),
+    )
+  }, [loading, peerReviewAllocationAndGradingEnabled, validatePeerReviewDate])
+
+  const updatePeerReviewDate = useCallback(
+    ({
+      dateKey,
+      newDate,
+      assignmentId,
+      overrideId,
+    }: {
+      dateKey: string
+      newDate: Date | null
+      assignmentId: string
+      overrideId: string | null
+    }) => {
+      clearPreviousSave()
+      setAssignments(currentAssignments =>
+        produce(currentAssignments, draftAssignments => {
+          const peerReviewDate = findPeerReviewDate(draftAssignments, assignmentId, overrideId)
+          if (!peerReviewDate) return
+          setDateOnOverride(peerReviewDate, dateKey, newDate)
+          const parentOverride = findOverride(draftAssignments, assignmentId, overrideId)
+          if (parentOverride) validatePeerReviewDate(peerReviewDate, parentOverride)
+        }),
+      )
+    },
+    [
+      clearPreviousSave,
+      findOverride,
+      findPeerReviewDate,
+      setDateOnOverride,
+      validatePeerReviewDate,
+    ],
+  )
 
   const updateAssignmentDate = useCallback(
     // @ts-expect-error
@@ -212,11 +327,23 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
       setAssignments(currentAssignments =>
         produce(currentAssignments, draftAssignments => {
           const override = findOverride(draftAssignments, assignmentId, overrideId)
+          if (!override) return
           setDateOnOverride(override, dateKey, newDate)
+          if (peerReviewAllocationAndGradingEnabled) {
+            const peerReviewDate = findPeerReviewDate(draftAssignments, assignmentId, overrideId)
+            if (peerReviewDate) validatePeerReviewDate(peerReviewDate, override)
+          }
         }),
       )
     },
-    [clearPreviousSave, findOverride, setDateOnOverride],
+    [
+      clearPreviousSave,
+      findOverride,
+      findPeerReviewDate,
+      peerReviewAllocationAndGradingEnabled,
+      setDateOnOverride,
+      validatePeerReviewDate,
+    ],
   )
 
   const clearOverrideEdits = useCallback(
@@ -225,6 +352,7 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
       setAssignments(currentAssignments =>
         produce(currentAssignments, draftAssignments => {
           const override = findOverride(draftAssignments, assignmentId, overrideId)
+          if (!override) return
           ;['due_at', 'unlock_at', 'lock_at'].forEach(dateField => {
             const originalField = originalDateField(dateField)
             if (override.hasOwnProperty(originalField)) {
@@ -234,10 +362,21 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
           })
           delete override.errors
           delete override.persisted
+
+          const peerReviewDate = findPeerReviewDate(draftAssignments, assignmentId, overrideId)
+          if (peerReviewDate) {
+            const originalField = originalDateField('due_at')
+            if (peerReviewDate.hasOwnProperty(originalField)) {
+              peerReviewDate.due_at = peerReviewDate[originalField] as string | null
+              delete peerReviewDate[originalField]
+            }
+            delete peerReviewDate.errors
+            delete peerReviewDate.persisted
+          }
         }),
       )
     },
-    [findOverride],
+    [findOverride, findPeerReviewDate],
   )
 
   // @ts-expect-error
@@ -323,13 +462,26 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
                 shiftDateOnOverride(draftOverride, 'unlock_at', nDays)
                 shiftDateOnOverride(draftOverride, 'lock_at', nDays)
               })
+              const assignment = draftAssignment as any
+              if (peerReviewAllocationAndGradingEnabled) {
+                const peerReviewDates = assignment.peer_review_sub_assignment?.all_dates as PeerReviewDateDraft[] | undefined
+                if (peerReviewDates) {
+                  peerReviewDates.forEach(peerReviewDate => {
+                    shiftDateOnOverride(peerReviewDate, 'due_at', nDays)
+                    const parentOverride = assignment.all_dates.find((d: DateOverrideDraft) =>
+                      peerReviewDate.base ? d.base : d.id === peerReviewDate.parent_override_id,
+                    ) as DateOverrideDraft | undefined
+                    if (parentOverride) validatePeerReviewDate(peerReviewDate, parentOverride)
+                  })
+                }
+              }
             }
           })
         }),
       )
       setMoveDatesModalOpen(false)
     },
-    [shiftDateOnOverride],
+    [peerReviewAllocationAndGradingEnabled, shiftDateOnOverride, validatePeerReviewDate],
   )
   const handleBatchEditRemove = useCallback(
     // @ts-expect-error
@@ -348,13 +500,29 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
                 if (datesToRemove.includes('lock_at'))
                   setDateOnOverride(draftOverride, 'lock_at', null)
               })
+              const assignment = draftAssignment as any
+              if (peerReviewAllocationAndGradingEnabled) {
+                const peerReviewDates = assignment.peer_review_sub_assignment?.all_dates as PeerReviewDateDraft[] | undefined
+                if (peerReviewDates) {
+                  peerReviewDates.forEach(peerReviewDate => {
+                    if (datesToRemove.includes('due_at'))
+                      setDateOnOverride(peerReviewDate, 'due_at', null)
+                    // unlock_at/lock_at are derived from the parent override in useSaveAssignments,
+                    // so we don't need to clear them on the peer review date itself.
+                    const parentOverride = assignment.all_dates.find((d: DateOverrideDraft) =>
+                      peerReviewDate.base ? d.base : d.id === peerReviewDate.parent_override_id,
+                    ) as DateOverrideDraft | undefined
+                    if (parentOverride) validatePeerReviewDate(peerReviewDate, parentOverride)
+                  })
+                }
+              }
             }
           })
         }),
       )
       setMoveDatesModalOpen(false)
     },
-    [setDateOnOverride],
+    [peerReviewAllocationAndGradingEnabled, setDateOnOverride, validatePeerReviewDate],
   )
 
   function renderHeader() {
@@ -484,10 +652,12 @@ export default function BulkEdit({courseId, onCancel, onSave, defaultDueTime}) {
         <BulkEditTable
           assignments={assignments}
           updateAssignmentDate={updateAssignmentDate}
+          updatePeerReviewDate={updatePeerReviewDate}
           setAssignmentSelected={setAssignmentSelected}
           selectAllAssignments={selectAllAssignments}
           clearOverrideEdits={clearOverrideEdits}
           defaultDueTime={defaultDueTime}
+          peerReviewAllocationAndGradingEnabled={peerReviewAllocationAndGradingEnabled}
         />
       </>
     )

@@ -464,6 +464,7 @@ class AssignmentOverride < ApplicationRecord
       all_day_date:,
       lock_at:,
       unlock_at:,
+      parent_override_id:,
       override: self }
   end
 

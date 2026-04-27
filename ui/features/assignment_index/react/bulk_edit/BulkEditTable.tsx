@@ -18,7 +18,7 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {useCallback} from 'react'
-import {arrayOf, func, string} from 'prop-types'
+import {arrayOf, bool, func, string} from 'prop-types'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {Table} from '@instructure/ui-table'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
@@ -35,9 +35,33 @@ import {canEditAll, originalDateField} from './utils'
 
 const I18n = createI18nScope('assignments_bulk_edit')
 
+type PeerReviewDate = {
+  base?: boolean
+  parent_override_id?: string
+  due_at?: string | null
+  errors?: Record<string, string>
+  can_edit?: boolean
+}
+
+type PeerReviewAssignment = {
+  id: string
+  peer_reviews?: boolean
+  peer_review_sub_assignment?: {all_dates?: PeerReviewDate[]}
+}
+
+type DateOverride = {
+  base?: boolean
+  id?: string
+  due_at?: string | null
+}
+
 const DATE_INPUT_META = {
   due_at: {
     label: I18n.t('Due At'),
+    fancyMidnight: true,
+  },
+  review_due_at: {
+    label: I18n.t('Review Due Date'),
     fancyMidnight: true,
   },
   unlock_at: {
@@ -64,30 +88,58 @@ BulkEditTable.propTypes = {
   // }) => {...}
   updateAssignmentDate: func.isRequired,
 
+  // ({
+  //   dateKey: always "due_at" (unlock_at and lock_at are not user-editable for peer reviews)
+  //   newDate: iso8601 date string
+  //   assignmentId: assignment id string
+  //
+  //   overrideId: override id string, if this is an override.
+  //   - or -
+  //   base: true if this is the base assignment dates
+  // }) => {...}
+  updatePeerReviewDate: func,
+
   // {assignmentId, overrideId or base: true}
   clearOverrideEdits: func.isRequired,
 
   setAssignmentSelected: func.isRequired, // (assignmentId, selected) => {}
 
   defaultDueTime: string, // e.g. "16:00:00"
+
+  peerReviewAllocationAndGradingEnabled: bool,
+}
+
+type UpdateDateArgs = {
+  dateKey: string
+  newDate: Date | null
+  assignmentId: string
+  overrideId: string | null
+}
+
+interface BulkEditTableProps {
+  assignments: object[]
+  updateAssignmentDate: (args: UpdateDateArgs) => void
+  updatePeerReviewDate?: (args: UpdateDateArgs) => void
+  setAssignmentSelected: (id: string, selected: boolean) => void
+  selectAllAssignments: (selected: boolean) => void
+  clearOverrideEdits: (args: Pick<UpdateDateArgs, 'assignmentId' | 'overrideId'>) => void
+  defaultDueTime?: string
+  peerReviewAllocationAndGradingEnabled?: boolean
 }
 
 export default function BulkEditTable({
-  // @ts-expect-error
   assignments,
-  // @ts-expect-error
   updateAssignmentDate,
-  // @ts-expect-error
+  updatePeerReviewDate,
   setAssignmentSelected,
-  // @ts-expect-error
   selectAllAssignments,
-  // @ts-expect-error
   clearOverrideEdits,
-  // @ts-expect-error
   defaultDueTime,
-}) {
+  peerReviewAllocationAndGradingEnabled,
+}: BulkEditTableProps) {
   const CHECKBOX_COLUMN_WIDTH_REMS = 2
-  const DATE_COLUMN_WIDTH_REMS = 15
+  const TITLE_COLUMN_MIN_WIDTH_REMS = 10
+  const DATE_COLUMN_WIDTH_REMS = peerReviewAllocationAndGradingEnabled ? 12 : 15
   const ACTION_COLUMN_WIDTH_REMS = 4
   const NOTE_COLUMN_WIDTH_REMS = 3
 
@@ -102,7 +154,7 @@ export default function BulkEditTable({
     if (!errors || !errors.hasOwnProperty(dateKey)) {
       return []
     }
-    return [{text: errors[dateKey], type: 'error'}]
+    return [{text: errors[dateKey], type: 'error' as const}]
   }
 
   // @ts-expect-error
@@ -114,12 +166,12 @@ export default function BulkEditTable({
       <BulkDateInput
         label={label}
         selectedDateString={dates[dateKey]}
-        // @ts-expect-error
         messages={processErrors(dates.errors, dateKey)}
         dateKey={dateKey}
         assignmentId={assignmentId}
         // @ts-expect-error
         overrideId={overrideId}
+        // @ts-expect-error
         updateAssignmentDate={updateAssignmentDate}
         fancyMidnight={
           // @ts-expect-error
@@ -129,6 +181,44 @@ export default function BulkEditTable({
         interaction={dates.can_edit ? 'enabled' : 'disabled'}
         width={calculatedWidth}
       />
+    )
+  }
+
+  function findPeerReviewDate(assignment: PeerReviewAssignment, override: DateOverride): PeerReviewDate | null {
+    const peerReviewSub = assignment.peer_review_sub_assignment
+    if (!peerReviewSub?.all_dates) return null
+    if (override.base) {
+      return peerReviewSub.all_dates.find(d => d.base) || null
+    }
+    return peerReviewSub.all_dates.find(d => d.parent_override_id === override.id) || null
+  }
+
+  function renderReviewDueDateInput(assignment: PeerReviewAssignment, override: DateOverride): JSX.Element | null {
+    if (!peerReviewAllocationAndGradingEnabled) return null
+    if (!assignment.peer_reviews || !assignment.peer_review_sub_assignment) {
+      return <Table.Cell />
+    }
+
+    const peerReviewDate = findPeerReviewDate(assignment, override)
+    const label = DATE_INPUT_META.review_due_at.label
+    const calculatedWidth = `${DATE_COLUMN_WIDTH_REMS - 1}rem`
+    return (
+      <Table.Cell>
+        <BulkDateInput
+          label={label}
+          selectedDateString={peerReviewDate?.due_at ?? undefined}
+          messages={processErrors(peerReviewDate?.errors, 'due_at')}
+          dateKey="due_at"
+          assignmentId={assignment.id}
+          overrideId={override.base ? undefined : override.id}
+          // @ts-expect-error
+          updateAssignmentDate={updatePeerReviewDate!}
+          fancyMidnight={DATE_INPUT_META.review_due_at.fancyMidnight}
+          defaultTime={null}
+          interaction={peerReviewDate?.can_edit !== false && !!override.due_at ? 'enabled' : 'disabled'}
+          width={calculatedWidth}
+        />
+      </Table.Cell>
     )
   }
 
@@ -149,11 +239,14 @@ export default function BulkEditTable({
     // yet, so we're going to fake it with a View that's as wide as all the other columns and
     // depend on the cell overflow as being visible. I think that's pretty safe since that's the
     // default overflow.
+    const dateColumnCount = peerReviewAllocationAndGradingEnabled ? 4 : 3
     return (
       <View
         as="div"
         minWidth={`${
-          DATE_COLUMN_WIDTH_REMS * 3 + ACTION_COLUMN_WIDTH_REMS + NOTE_COLUMN_WIDTH_REMS
+          DATE_COLUMN_WIDTH_REMS * dateColumnCount +
+          ACTION_COLUMN_WIDTH_REMS +
+          NOTE_COLUMN_WIDTH_REMS
         }rem`}
         margin="small"
       >
@@ -192,7 +285,10 @@ export default function BulkEditTable({
       .map(field => originalDateField(field))
       .some(originalField => override.hasOwnProperty(originalField))
 
-    if (overrideHasBeenEdited) {
+    const peerReviewDate = peerReviewAllocationAndGradingEnabled ? findPeerReviewDate(assignment, override) : null
+    const peerReviewHasBeenEdited = peerReviewDate?.hasOwnProperty(originalDateField('due_at')) || false
+
+    if (overrideHasBeenEdited || peerReviewHasBeenEdited) {
       return (
         <Tooltip renderTip={I18n.t('Revert date changes')}>
           <IconButton
@@ -241,6 +337,7 @@ export default function BulkEditTable({
           <Table.Cell>{renderAssignmentCheckbox(assignment)}</Table.Cell>
           <Table.Cell>{renderOverrideTitle(assignment, baseOverride)}</Table.Cell>
           <Table.Cell>{renderDateInput(assignment.id, 'due_at', baseOverride)}</Table.Cell>
+          {renderReviewDueDateInput(assignment, baseOverride)}
           <Table.Cell>{renderDateInput(assignment.id, 'unlock_at', baseOverride)}</Table.Cell>
           <Table.Cell>{renderDateInput(assignment.id, 'lock_at', baseOverride)}</Table.Cell>
           <Table.Cell>{renderActions(assignment, baseOverride)}</Table.Cell>
@@ -256,6 +353,7 @@ export default function BulkEditTable({
           <Table.Cell>
             {renderNoDefaultDates(assignment.hasOwnProperty('all_dates_count'))}
           </Table.Cell>
+          {peerReviewAllocationAndGradingEnabled && <Table.Cell />}
           <Table.Cell />
           <Table.Cell />
           <Table.Cell />
@@ -282,6 +380,7 @@ export default function BulkEditTable({
           </Table.Cell>
           <Table.Cell>{renderOverrideTitle(assignment, override)}</Table.Cell>
           <Table.Cell>{renderDateInput(assignment.id, 'due_at', override, override.id)}</Table.Cell>
+          {renderReviewDueDateInput(assignment, override)}
           <Table.Cell>
             {renderDateInput(assignment.id, 'unlock_at', override, override.id)}
           </Table.Cell>
@@ -298,7 +397,6 @@ export default function BulkEditTable({
   function renderAssignments() {
     // @ts-expect-error
     const rows = []
-    // @ts-expect-error
     assignments.forEach(assignment => {
       rows.push(renderBaseRow(assignment))
       rows.push(...renderOverrideRows(assignment))
@@ -374,10 +472,17 @@ export default function BulkEditTable({
               <Table.ColHeader id="select" width={checkboxWidthProp}>
                 {selectedHeader}
               </Table.ColHeader>
-              <Table.ColHeader id="title">{I18n.t('Title')}</Table.ColHeader>
+              <Table.ColHeader id="title" style={{minWidth: `${TITLE_COLUMN_MIN_WIDTH_REMS}rem`}}>
+                {I18n.t('Title')}
+              </Table.ColHeader>
               <Table.ColHeader width={widthProp} id="due">
                 {DATE_INPUT_META.due_at.label}
               </Table.ColHeader>
+              {peerReviewAllocationAndGradingEnabled && (
+                <Table.ColHeader width={widthProp} id="review_due">
+                  {DATE_INPUT_META.review_due_at.label}
+                </Table.ColHeader>
+              )}
               <Table.ColHeader width={widthProp} id="unlock">
                 {DATE_INPUT_META.unlock_at.label}
               </Table.ColHeader>
@@ -398,16 +503,20 @@ export default function BulkEditTable({
     )
   }
 
-  // For test environments that don't have matchMedia
-  // @ts-expect-error
-  if (window.matchMedia) {
+  // match="element" uses the component's own container width (via ResizeObserver) instead of
+  // the viewport width, so the breakpoint correctly accounts for nav sidebar overhead.
+  if (window.ResizeObserver) {
     return (
       <Responsive
-        match="media"
+        match="element"
         query={{
           small: {
             maxWidth: `${
-              5 * DATE_COLUMN_WIDTH_REMS + ACTION_COLUMN_WIDTH_REMS + NOTE_COLUMN_WIDTH_REMS
+              CHECKBOX_COLUMN_WIDTH_REMS +
+              TITLE_COLUMN_MIN_WIDTH_REMS +
+              (peerReviewAllocationAndGradingEnabled ? 4 : 3) * DATE_COLUMN_WIDTH_REMS +
+              ACTION_COLUMN_WIDTH_REMS +
+              NOTE_COLUMN_WIDTH_REMS
             }rem`,
           },
         }}

@@ -38,7 +38,12 @@ export function anyAssignmentEdited(assignments) {
     originalDateField('unlock_at'),
     originalDateField('lock_at'),
   ]
-  return overrides.some(override =>
+  const overridesEdited = overrides.some(override =>
     originalDateFields.some(originalField => override.hasOwnProperty(originalField)),
   )
+  const peerReviewDates = assignments
+    .filter(a => a.peer_review_sub_assignment?.all_dates)
+    .flatMap(a => a.peer_review_sub_assignment.all_dates)
+  const peerReviewEdited = peerReviewDates.some(d => d.hasOwnProperty(originalDateField('due_at')))
+  return overridesEdited || peerReviewEdited
 }

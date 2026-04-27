@@ -167,6 +167,7 @@ describe Quizzes::QuizAssignmentOverridesController, type: :request do
                                      "lock_at" => nil,
                                      "set_id" => @diff_tag.id,
                                      "set_type" => "Group",
+                                     "parent_override_id" => nil,
                                    }
                                  ]
                                }

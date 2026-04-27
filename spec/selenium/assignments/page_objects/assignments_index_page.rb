@@ -127,7 +127,7 @@ module AssignmentsIndexPage
   end
 
   def assignment_dates_inputs(assignment_name)
-    ff("input[role='combobox']", bulk_edit_assignment_row(assignment_name))
+    ff("input[type='text']", bulk_edit_assignment_row(assignment_name))
   end
 
   def bulk_edit_save_button
@@ -143,7 +143,10 @@ module AssignmentsIndexPage
   end
 
   def select_assignment_checkbox(assignment_name)
-    f("input[type='checkbox']", bulk_edit_assignment_row(assignment_name))
+    # InstUI Checkbox hides the real <input> behind a facade span that intercepts
+    # direct clicks. The <label> wraps both and triggers React's onChange via the
+    # browser's native label/input association.
+    fj("label:contains('Select assignment: #{assignment_name}')")
   end
 
   def batch_edit_dialog
@@ -192,6 +195,28 @@ module AssignmentsIndexPage
 
   def peer_review_sub_assignment(assignment_name)
     fj("li:contains('#{assignment_name} Peer Reviews')")
+  end
+
+  def review_due_date_input(assignment_name)
+    # With peer_review_allocation_and_grading enabled and a peer_review_sub_assignment present,
+    # the row contains 4 date inputs: [Due At, Review Due Date, Available From, Available Until].
+    assignment_dates_inputs(assignment_name)[1]
+  end
+
+  def batch_edit_confirm_button
+    fj("button:contains('Confirm')", batch_edit_dialog)
+  end
+
+  def batch_edit_shift_days_input
+    fj("label:contains('Days') input", batch_edit_dialog)
+  end
+
+  def batch_edit_remove_dates_radio_label
+    fj("label:contains('Remove Dates')", batch_edit_dialog)
+  end
+
+  def batch_edit_remove_availability_dates_radio_label
+    fj("label:contains('Remove Availability Dates')", batch_edit_dialog)
   end
 
   #------------------------------ Actions --------------------------------

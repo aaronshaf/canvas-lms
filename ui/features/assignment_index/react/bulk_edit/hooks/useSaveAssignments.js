@@ -38,8 +38,36 @@ function extractEditedAssignmentsAndOverrides(assignments) {
       return [...filteredOverrides, outputOverride]
     }, [])
 
-    if (!editedOverrides.length) return filteredAssignments
+    const peerReviewSub = assignment.peer_review_sub_assignment
+    const editedPeerReviewDates = (peerReviewSub?.all_dates || []).reduce((filtered, peerReviewDate) => {
+      const parentOverride = peerReviewDate.base
+        ? assignment.all_dates.find(o => o.base)
+        : assignment.all_dates.find(o => o.id === peerReviewDate.parent_override_id)
+      const peerReviewDueDateEdited = peerReviewDate.hasOwnProperty(originalDateField('due_at'))
+      const parentWasEdited =
+        parentOverride && DATE_FIELDS.some(f => parentOverride.hasOwnProperty(originalDateField(f)))
+      if (!peerReviewDueDateEdited && !parentWasEdited) return filtered
+      return [
+        ...filtered,
+        {
+          id: peerReviewDate.id,
+          base: peerReviewDate.base,
+          due_at: peerReviewDate.due_at,
+          unlock_at: parentOverride?.due_at ?? null,
+          lock_at: parentOverride?.lock_at ?? null,
+        },
+      ]
+    }, [])
+
+    if (!editedOverrides.length && !editedPeerReviewDates.length) return filteredAssignments
+
     const outputAssignment = {id: assignment.id, all_dates: editedOverrides}
+    if (editedPeerReviewDates.length) {
+      outputAssignment.peer_review_sub_assignment = {
+        id: peerReviewSub.id,
+        all_dates: editedPeerReviewDates,
+      }
+    }
     return [...filteredAssignments, outputAssignment]
   }, [])
 

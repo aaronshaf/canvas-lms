@@ -1824,6 +1824,147 @@ describe AssignmentsApiController, type: :request do
         expect(passed_assignments.map(&:id)).to include(regular_assignment.id, parent_assignment.id, peer_review_parent.id)
       end
     end
+
+    context "include[]=peer_review" do
+      def month_day(num_days) = Time.now.utc.beginning_of_month + num_days.days
+
+      let(:index_json) do
+        api_get_assignments_index_from_course_as_user(@course, @teacher, include: %w[all_dates peer_review])
+      end
+      let(:parent_assignment_json) { index_json.find { |a| a["id"].to_i == @parent_assignment.id } }
+      let(:peer_review_sub_json) { parent_assignment_json["peer_review_sub_assignment"] }
+      let(:peer_review_override_all_dates) { peer_review_sub_json["all_dates"].find { |d| !d["base"] } }
+
+      shared_examples "exposes parent_override_id on the peer review override all dates" do
+        it "includes parent_override_id in peer_review_sub_assignment all_dates" do
+          expect(peer_review_override_all_dates).to be_present
+          expect(peer_review_override_all_dates["parent_override_id"]).to eq(@parent_override.id)
+        end
+      end
+
+      before :once do
+        course_with_teacher(active_all: true)
+        @parent_assignment = assignment_model(
+          course: @course,
+          peer_reviews: true,
+          unlock_at: month_day(4),
+          due_at: month_day(14),
+          lock_at: month_day(24),
+          submission_types: "online_text_entry"
+        )
+        peer_review_model(parent_assignment: @parent_assignment)
+        @parent_assignment.reload
+      end
+
+      it "includes peer_review_sub_assignment with all_dates when include[]=peer_review and include[]=all_dates" do
+        expect(parent_assignment_json).not_to be_nil
+        expect(parent_assignment_json).to have_key("peer_review_sub_assignment")
+        expect(peer_review_sub_json).to have_key("all_dates")
+        expect(peer_review_sub_json["all_dates"]).to be_an(Array)
+        base_date = peer_review_sub_json["all_dates"].find { |d| d["base"] }
+        expect(base_date).to be_present
+      end
+
+      it "does not include peer_review_sub_assignment when include[]=peer_review is absent" do
+        json = api_get_assignments_index_from_course_as_user(@course, @teacher, include: %w[all_dates])
+        assignment_json = json.find { |a| a["id"].to_i == @parent_assignment.id }
+        expect(assignment_json).not_to be_nil
+        expect(assignment_json).not_to have_key("peer_review_sub_assignment")
+      end
+
+      it "returns null peer_review_sub_assignment for non-peer-review assignments" do
+        non_peer_review_assignment = assignment_model(course: @course, peer_reviews: false)
+
+        non_peer_review_json = index_json.find { |a| a["id"].to_i == non_peer_review_assignment.id }
+        expect(non_peer_review_json).not_to be_nil
+        expect(non_peer_review_json["peer_review_sub_assignment"]).to be_nil
+      end
+
+      context "when the peer review sub assignment has section overrides" do
+        before do
+          section = add_section("Section A", course: @course)
+          @parent_override = @parent_assignment.assignment_overrides.create!(
+            set_type: "CourseSection",
+            set: section,
+            due_at: month_day(19),
+            due_at_overridden: true,
+            dont_touch_assignment: true
+          )
+          peer_review_sub = @parent_assignment.peer_review_sub_assignment
+          peer_review_sub.assignment_overrides.create!(
+            set_type: "CourseSection",
+            set: section,
+            parent_override: @parent_override,
+            due_at: month_day(21),
+            due_at_overridden: true,
+            dont_touch_assignment: true
+          )
+          @parent_assignment.reload
+        end
+
+        it_behaves_like "exposes parent_override_id on the peer review override all dates"
+      end
+
+      context "when the peer review sub assignment has adhoc (student) overrides" do
+        before do
+          @student = student_in_course(course: @course, active_all: true).user
+          peer_review_sub = @parent_assignment.peer_review_sub_assignment
+
+          @parent_override = @parent_assignment.assignment_overrides.create!(
+            set_type: "ADHOC",
+            due_at: month_day(19),
+            due_at_overridden: true,
+            dont_touch_assignment: true
+          )
+          @parent_override.assignment_override_students.create!(user: @student)
+
+          peer_review_override = peer_review_sub.assignment_overrides.create!(
+            set_type: "ADHOC",
+            parent_override: @parent_override,
+            due_at: month_day(21),
+            due_at_overridden: true,
+            dont_touch_assignment: true
+          )
+          peer_review_override.assignment_override_students.create!(user: @student)
+
+          @parent_assignment.reload
+        end
+
+        it_behaves_like "exposes parent_override_id on the peer review override all dates"
+      end
+
+      context "when the peer review sub assignment has differentiation tag (group) overrides" do
+        before do
+          @course.account.settings[:allow_assign_to_differentiation_tags] = { value: true }
+          @course.account.save!
+
+          group_category = @course.group_categories.create!(name: "Collaborative Groups", non_collaborative: true)
+          group = group_category.groups.create!(name: "Group 1", context: @course)
+
+          @parent_override = @parent_assignment.assignment_overrides.create!(
+            set_type: "Group",
+            set: group,
+            due_at: month_day(19),
+            due_at_overridden: true,
+            dont_touch_assignment: true
+          )
+
+          peer_review_sub = @parent_assignment.peer_review_sub_assignment
+          peer_review_sub.assignment_overrides.create!(
+            set_type: "Group",
+            set: group,
+            parent_override: @parent_override,
+            due_at: month_day(21),
+            due_at_overridden: true,
+            dont_touch_assignment: true
+          )
+
+          @parent_assignment.reload
+        end
+
+        it_behaves_like "exposes parent_override_id on the peer review override all dates"
+      end
+    end
   end
 
   describe "GET /users/:user_id/courses/:course_id/assignments (#user_index)" do

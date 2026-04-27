@@ -1152,7 +1152,8 @@ class AssignmentsApiController < ApplicationController
                         include_score_statistics: include_params.include?("score_statistics"),
                         include_ab_guid: include_params.include?("ab_guid"),
                         master_course_status: mc_status,
-                        include_checkpoints: include_params.include?("checkpoints"))
+                        include_checkpoints: include_params.include?("checkpoints"),
+                        include_peer_review: include_params.include?("peer_review"))
       end
     end
   end
@@ -1757,7 +1758,13 @@ class AssignmentsApiController < ApplicationController
   def bulk_update
     return render_json_unauthorized unless @context.grants_right?(@current_user, session, :manage_assignments_edit)
 
-    data = params.permit(_json: [:id, all_dates: %i[id base due_at unlock_at lock_at]]).to_h[:_json]
+    data = params.permit(
+      _json: [
+        :id,
+        { all_dates: %i[id base due_at unlock_at lock_at] },
+        { peer_review_sub_assignment: [:id, { all_dates: %i[id base due_at unlock_at lock_at] }] }
+      ]
+    ).to_h[:_json]
     return render json: { message: "expected array" }, status: :bad_request unless data.is_a?(Array)
     return render json: { message: "missing assignment id" }, status: :bad_request unless data.all? { |a| a.key?("id") }
 

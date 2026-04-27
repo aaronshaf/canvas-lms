@@ -209,10 +209,157 @@ RSpec.describe PeerReview::DateValidationService do
     end
 
     context "when peer_review_sub_assignment is nil" do
-      it "raises InvalidParentAssignmentError" do
+      it "raises SubAssignmentNotExistError" do
         expect do
           described_class.call(peer_review_sub_assignment: nil)
-        end.to raise_error(PeerReview::InvalidParentAssignmentError)
+        end.to raise_error(PeerReview::SubAssignmentNotExistError)
+      end
+    end
+  end
+
+  describe "#call with in_memory: true" do
+    context "when base dates are valid against the in-memory parent" do
+      it "returns true without raising" do
+        result = described_class.call(
+          peer_review_sub_assignment:,
+          parent_assignment:,
+          in_memory: true
+        )
+        expect(result).to be(true)
+      end
+    end
+
+    context "when peer review due_at violates an in-memory parent due_at that was not yet persisted" do
+      it "raises InvalidDatesError using in-memory state, not persisted state" do
+        # mutate parent in memory only — persisted due_at remains valid
+        parent_assignment.due_at = 20.days.from_now
+        peer_review_sub_assignment.update_columns(unlock_at: nil, due_at: 3.days.from_now)
+
+        expect do
+          described_class.call(
+            peer_review_sub_assignment:,
+            parent_assignment:,
+            in_memory: true
+          )
+        end.to raise_error(PeerReview::InvalidDatesError, /due date cannot be before assignment due date/)
+      end
+    end
+
+    context "with a section override" do
+      let(:section) { course.default_section }
+      let!(:parent_override) do
+        parent_assignment.assignment_overrides.create!(
+          set_type: "CourseSection",
+          set_id: section.id,
+          due_at: 5.days.from_now,
+          due_at_overridden: true
+        )
+      end
+      let(:pr_override) do
+        peer_review_sub_assignment.assignment_overrides.create!(
+          set_type: "CourseSection",
+          set_id: section.id,
+          unlock_at: 6.days.from_now,
+          unlock_at_overridden: true,
+          due_at: 8.days.from_now,
+          due_at_overridden: true,
+          parent_override:
+        )
+      end
+
+      before { pr_override }
+
+      it "returns true when in-memory override dates are valid" do
+        result = described_class.call(
+          peer_review_sub_assignment:,
+          parent_assignment:,
+          in_memory: true
+        )
+        expect(result).to be(true)
+      end
+
+      it "raises when in-memory parent override due_at shifts past peer review override unlock_at" do
+        parent_override.due_at = 7.days.from_now # in-memory only
+
+        expect do
+          described_class.call(
+            peer_review_sub_assignment:,
+            parent_assignment:,
+            in_memory: true
+          )
+        end.to raise_error(PeerReview::InvalidDatesError, /override available from date cannot be before parent override due date/)
+      end
+    end
+
+    context "with a soft-deleted peer review override" do
+      let(:section) { course.default_section }
+      let!(:parent_override) do
+        parent_assignment.assignment_overrides.create!(
+          set_type: "CourseSection",
+          set_id: section.id,
+          due_at: 5.days.from_now,
+          due_at_overridden: true
+        )
+      end
+      let!(:pr_override) do
+        peer_review_sub_assignment.assignment_overrides.create!(
+          set_type: "CourseSection",
+          set_id: section.id,
+          unlock_at: 6.days.from_now,
+          unlock_at_overridden: true,
+          parent_override:
+        )
+      end
+
+      before do
+        parent_override.update_columns(due_at: 7.days.from_now)
+        pr_override.destroy
+        peer_review_sub_assignment.assignment_overrides.reload
+        parent_assignment.assignment_overrides.reload
+      end
+
+      it "skips the deleted override and returns true even when its dates would otherwise be invalid" do
+        result = described_class.call(
+          peer_review_sub_assignment:,
+          parent_assignment:,
+          in_memory: true
+        )
+        expect(result).to be(true)
+      end
+    end
+
+    context "with an orphaned in-memory peer review override (no matching parent_override)" do
+      let(:section) { course.default_section }
+      let!(:parent_override) do
+        parent_assignment.assignment_overrides.create!(
+          set_type: "CourseSection",
+          set_id: section.id,
+          due_at: 10.days.from_now,
+          due_at_overridden: true
+        )
+      end
+      let!(:pr_override) do
+        peer_review_sub_assignment.assignment_overrides.create!(
+          set_type: "CourseSection",
+          set_id: section.id,
+          due_at: 12.days.from_now,
+          due_at_overridden: true,
+          parent_override:
+        )
+      end
+
+      before do
+        pr_override.update_columns(parent_override_id: nil)
+        peer_review_sub_assignment.assignment_overrides.reload
+      end
+
+      it "skips the orphan and returns true" do
+        result = described_class.call(
+          peer_review_sub_assignment:,
+          parent_assignment:,
+          in_memory: true
+        )
+        expect(result).to be(true)
       end
     end
   end

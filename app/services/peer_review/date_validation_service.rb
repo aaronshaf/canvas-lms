@@ -24,13 +24,17 @@
 class PeerReview::DateValidationService < ApplicationService
   include PeerReview::Validations
 
-  def initialize(peer_review_sub_assignment:)
+  # Pass in_memory: true (with explicit parent_assignment:) when validating unsaved objects;
+  # skips DB reloads and uses in-memory association arrays instead of querying records.
+  def initialize(peer_review_sub_assignment:, parent_assignment: nil, in_memory: false)
     super()
     @peer_review_sub_assignment = peer_review_sub_assignment
-    @parent_assignment = peer_review_sub_assignment&.parent_assignment
+    @parent_assignment = parent_assignment || peer_review_sub_assignment&.parent_assignment
+    @in_memory = in_memory
   end
 
   def call
+    validate_peer_review_sub_assignment(@peer_review_sub_assignment)
     validate_parent_assignment(@parent_assignment)
     refresh_associations
     validate_base_dates
@@ -43,6 +47,8 @@ class PeerReview::DateValidationService < ApplicationService
   # Reloads parent assignment to ensure changes made upstream in the same
   # transaction are visible before validating against parent dates.
   def refresh_associations
+    return if @in_memory
+
     @peer_review_sub_assignment.association(:parent_assignment).reload
     @parent_assignment = @peer_review_sub_assignment.parent_assignment
   end
@@ -60,13 +66,18 @@ class PeerReview::DateValidationService < ApplicationService
   end
 
   def validate_override_dates
-    peer_review_overrides = @peer_review_sub_assignment
-                            .assignment_overrides
-                            .active
-                            .preload(:parent_override)
+    peer_review_overrides = if @in_memory
+                              @peer_review_sub_assignment.assignment_overrides.select(&:active?)
+                            else
+                              @peer_review_sub_assignment.assignment_overrides.active.preload(:parent_override)
+                            end
 
     peer_review_overrides.each do |pr_override|
-      parent_override = pr_override.parent_override
+      parent_override = if @in_memory
+                          @parent_assignment.assignment_overrides.detect { |o| o.id == pr_override.parent_override_id }
+                        else
+                          pr_override.parent_override
+                        end
       next unless parent_override
 
       override_dates = {}

@@ -97,6 +97,43 @@ RSpec.describe PeerReview::Validations do
     end
   end
 
+  describe "#validate_peer_review_sub_assignment" do
+    let(:pr_sub_assignment) { peer_review_model(parent_assignment:) }
+
+    it "does not raise an error for a valid peer review sub assignment" do
+      expect { service.validate_peer_review_sub_assignment(pr_sub_assignment) }.not_to raise_error
+    end
+
+    it "raises an error when peer review sub assignment is nil" do
+      expect { service.validate_peer_review_sub_assignment(nil) }.to raise_error(
+        PeerReview::SubAssignmentNotExistError,
+        "Invalid peer review sub assignment"
+      )
+    end
+
+    it "raises an error when peer review sub assignment is not a PeerReviewSubAssignment object" do
+      expect { service.validate_peer_review_sub_assignment("not_a_sub_assignment") }.to raise_error(
+        PeerReview::SubAssignmentNotExistError,
+        "Invalid peer review sub assignment"
+      )
+    end
+
+    it "raises an error when peer review sub assignment is a regular Assignment" do
+      expect { service.validate_peer_review_sub_assignment(parent_assignment) }.to raise_error(
+        PeerReview::SubAssignmentNotExistError,
+        "Invalid peer review sub assignment"
+      )
+    end
+
+    it "raises an error when peer review sub assignment is a PeerReviewSubAssignment but not persisted" do
+      new_sub_assignment = PeerReviewSubAssignment.new(parent_assignment:, context: course)
+      expect { service.validate_peer_review_sub_assignment(new_sub_assignment) }.to raise_error(
+        PeerReview::SubAssignmentNotExistError,
+        "Invalid peer review sub assignment"
+      )
+    end
+  end
+
   describe "#validate_peer_reviews_enabled" do
     it "does not raise an error when peer reviews are enabled" do
       expect { service.validate_peer_reviews_enabled(parent_assignment) }.not_to raise_error
@@ -2572,6 +2609,7 @@ RSpec.describe PeerReview::Validations do
   describe "integration with module inclusion" do
     it "includes the validation methods in the service class" do
       expect(service).to respond_to(:validate_parent_assignment)
+      expect(service).to respond_to(:validate_peer_review_sub_assignment)
       expect(service).to respond_to(:validate_peer_reviews_enabled)
       expect(service).to respond_to(:validate_feature_enabled)
       expect(service).to respond_to(:validate_assignment_submission_types)

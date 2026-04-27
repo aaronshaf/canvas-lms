@@ -24,6 +24,12 @@ module PeerReview::Validations
     end
   end
 
+  def validate_peer_review_sub_assignment(pr_sub_assignment)
+    unless pr_sub_assignment.present? && pr_sub_assignment.is_a?(PeerReviewSubAssignment) && pr_sub_assignment.persisted?
+      raise PeerReview::SubAssignmentNotExistError, I18n.t("Invalid peer review sub assignment")
+    end
+  end
+
   def validate_peer_reviews_enabled(assignment)
     unless assignment.peer_reviews?
       raise PeerReview::PeerReviewsNotEnabledError, I18n.t("Peer reviews are not enabled for this assignment")
