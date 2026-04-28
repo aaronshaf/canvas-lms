@@ -96,7 +96,9 @@ const Reporting = () => {
       {student && scores && (
         <StudentMasteryScoreSummary
           studentName={student.name || I18n.t('Student')}
-          studentEmail={student.login_id}
+          studentId={student.id}
+          studentSortableName={student.sortable_name}
+          courseId={contextId}
           studentAvatarUrl={student.avatar_url}
           masteryLevel={{
             score: scores.grossAverage || 0,

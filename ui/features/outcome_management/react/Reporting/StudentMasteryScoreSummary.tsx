@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react'
+import React, {useState, useMemo, useCallback} from 'react'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
@@ -24,15 +24,23 @@ import {Avatar} from '@instructure/ui-avatar'
 import {Img} from '@instructure/ui-img'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {Link} from '@instructure/ui-link'
-import {IconEmailLine} from '@instructure/ui-icons'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import type {MasteryBucket} from '@canvas/outcomes/react/hooks/useStudentMasteryScores'
+import MessageStudentsWhoDialog from '@instructure/outcomes-ui/es/components/Gradebook/dialogs/MessageStudentsWhoDialog'
+import type {
+  Student as MSWStudent,
+  SendMessageArgs,
+} from '@instructure/outcomes-ui/lib/components/Gradebook/dialogs/MessageStudentsWhoDialog'
+import MessageStudentsWhoHelper from '@canvas/grading/messageStudentsWhoHelper'
+import {showFlashError, showFlashSuccess} from '@instructure/platform-alerts'
 
 const I18n = createI18nScope('OutcomeManagement')
 
 export interface StudentMasteryScoreSummaryProps {
   studentName: string
-  studentEmail?: string
+  studentId: string
+  studentSortableName: string
+  courseId: string
   studentAvatarUrl?: string
   masteryLevel?: {
     score: number
@@ -60,13 +68,54 @@ const ResultIcon: React.FC<{url: string; alt: string; size?: string}> = ({
 
 export const StudentMasteryScoreSummary: React.FC<StudentMasteryScoreSummaryProps> = ({
   studentName,
-  studentEmail,
+  studentId,
+  studentSortableName,
+  courseId,
   studentAvatarUrl,
   masteryLevel,
   buckets,
 }) => {
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
+
+  const mswStudents = useMemo<MSWStudent[]>(
+    () => [
+      {
+        id: studentId,
+        name: studentName,
+        sortableName: studentSortableName,
+        submittedAt: null,
+        workflowState: 'graded',
+      },
+    ],
+    [studentId, studentName, studentSortableName],
+  )
+
+  const handleSendMessage = useCallback(
+    ({recipientsIds, subject, body, mediaFile, attachmentIds}: SendMessageArgs) => {
+      MessageStudentsWhoHelper.sendMessageStudentsWho(
+        recipientsIds,
+        subject,
+        body,
+        `course_${courseId}`,
+        mediaFile,
+        attachmentIds,
+      )
+        .then(() => showFlashSuccess(I18n.t('Message sent successfully'))())
+        .catch(() => showFlashError(I18n.t('Failed to send message'))())
+    },
+    [courseId],
+  )
+
   return (
     <View as="div" background="primary" data-testid="student-mastery-header" padding="xxx-small">
+      {isMessageModalOpen && (
+        <MessageStudentsWhoDialog
+          onClose={() => setIsMessageModalOpen(false)}
+          students={mswStudents}
+          onSend={handleSendMessage}
+          userId={ENV.current_user_id ?? ''}
+        />
+      )}
       <Flex justifyItems="space-between" alignItems="center">
         <Flex.Item shouldGrow>
           <Flex gap="small" alignItems="center">
@@ -85,14 +134,11 @@ export const StudentMasteryScoreSummary: React.FC<StudentMasteryScoreSummaryProp
                 <Text size="x-large" lineHeight="fit">
                   {studentName}
                 </Text>
-                {studentEmail && (
-                  <Flex direction="row" gap="xx-small">
-                    <IconEmailLine size="x-small" />
-                    <Link href={`mailto:${studentEmail}`} isWithinText={false}>
-                      <Text size="medium">{studentEmail}</Text>
-                    </Link>
-                  </Flex>
-                )}
+                <View as="div">
+                  <Link onClick={() => setIsMessageModalOpen(true)} isWithinText={false}>
+                    <Text size="medium">{I18n.t('Message')}</Text>
+                  </Link>
+                </View>
               </View>
             </Flex.Item>
           </Flex>

@@ -17,13 +17,38 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render} from '@testing-library/react'
+import {render, screen} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import {StudentMasteryScoreSummary} from '../StudentMasteryScoreSummary'
 
+vi.mock('@instructure/outcomes-ui/es/components/Gradebook/dialogs/MessageStudentsWhoDialog', () => ({
+  default: ({onClose}: {onClose: () => void}) => (
+    <div data-testid="message-students-dialog">
+      <button onClick={onClose}>Close</button>
+    </div>
+  ),
+}))
+
+vi.mock('@canvas/grading/messageStudentsWhoHelper', () => ({
+  default: {
+    sendMessageStudentsWho: vi.fn().mockResolvedValue(undefined),
+  },
+}))
+
 describe('StudentMasteryScoreSummary', () => {
+  beforeEach(() => {
+    window.ENV = {
+      ...window.ENV,
+      current_user_id: '1',
+      GRADEBOOK_OPTIONS: {message_attachment_upload_folder_id: ''},
+    } as any
+  })
+
   const defaultProps = (props = {}) => ({
     studentName: 'John Doe',
-    studentEmail: 'john.doe@example.com',
+    studentId: '42',
+    studentSortableName: 'Doe, John',
+    courseId: '1',
     studentAvatarUrl: 'https://example.com/avatar.jpg',
     ...props,
   })
@@ -70,22 +95,28 @@ describe('StudentMasteryScoreSummary', () => {
     expect(wrapper.getByText('John Doe')).toBeInTheDocument()
   })
 
-  it('renders student email as mailto link', () => {
-    const wrapper = renderStudentMasteryScoreSummary()
-    const emailLink = wrapper.getByText('john.doe@example.com')
-    expect(emailLink).toBeInTheDocument()
-    expect(emailLink.closest('a')).toHaveAttribute('href', 'mailto:john.doe@example.com')
-  })
-
   it('renders student avatar', () => {
     const wrapper = renderStudentMasteryScoreSummary()
     const avatar = wrapper.getByTestId('student-mastery-avatar')
     expect(avatar).toBeInTheDocument()
   })
 
-  it('does not render email when not provided', () => {
-    const wrapper = renderStudentMasteryScoreSummary({studentEmail: undefined})
-    expect(wrapper.container.querySelector('a[href^="mailto:"]')).not.toBeInTheDocument()
+  it('renders a Message button', () => {
+    renderStudentMasteryScoreSummary()
+    expect(screen.getByRole('button', {name: 'Message'})).toBeInTheDocument()
+  })
+
+  it('opens the message dialog when Message button is clicked', async () => {
+    renderStudentMasteryScoreSummary()
+    await userEvent.click(screen.getByRole('button', {name: 'Message'}))
+    expect(screen.getByTestId('message-students-dialog')).toBeInTheDocument()
+  })
+
+  it('closes the message dialog when dialog requests close', async () => {
+    renderStudentMasteryScoreSummary()
+    await userEvent.click(screen.getByRole('button', {name: 'Message'}))
+    await userEvent.click(screen.getByRole('button', {name: 'Close'}))
+    expect(screen.queryByTestId('message-students-dialog')).not.toBeInTheDocument()
   })
 
   it('renders mastery level score and text', () => {
