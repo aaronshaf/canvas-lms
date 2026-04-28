@@ -26,18 +26,20 @@ module DataFixup
     self.batch_strategy = :id
 
     scope do
-      Attachment
-        .joins("INNER JOIN #{ConversationMessage.quoted_table_name} ON attachments.id = ANY (string_to_array(conversation_messages.attachment_ids, ',')::INT8[])")
-        .where.not(conversation_messages: { attachment_ids: "" })
-        .where.not(
-          AttachmentAssociation.where("conversation_messages.id = attachment_associations.context_id
-                                   and attachment_associations.context_type = 'ConversationMessage'
-                                   and attachment_associations.attachment_id = attachments.id").arel.exists
-        )
-        .select("attachments.id as attachment_id, attachments.root_account_id, conversation_messages.id AS context_id, 'ConversationMessage' AS context_type, null as user_id, null as context_concern")
+      ConversationMessage.select(:id)
     end
 
-    def process_batch(attachment_association_data)
+    def process_batch(conversation_message_ids)
+      attachment_association_data = Attachment
+                                    .joins("INNER JOIN #{ConversationMessage.quoted_table_name} ON attachments.id = ANY (string_to_array(conversation_messages.attachment_ids, ',')::INT8[])")
+                                    .where(conversation_messages: { id: conversation_message_ids })
+                                    .where.not(conversation_messages: { attachment_ids: "" })
+                                    .where.not(
+                                      AttachmentAssociation.where("conversation_messages.id = attachment_associations.context_id
+                                   and attachment_associations.context_type = 'ConversationMessage'
+                                   and attachment_associations.attachment_id = attachments.id").arel.exists
+                                    )
+                                    .select("attachments.id as attachment_id, attachments.root_account_id, conversation_messages.id AS context_id, 'ConversationMessage' AS context_type, null as user_id, null as context_concern")
       AttachmentAssociation.insert_all(attachment_association_data.map { |a| a.slice(:attachment_id, :root_account_id, :context_id, :context_type, :user_id, :context_concern) })
     end
   end

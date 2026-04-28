@@ -22,6 +22,6 @@ class AddAttachmentAssociationsToConversationMessages < ActiveRecord::Migration[
   tag :postdeploy
 
   def up
-    DataFixup::AddAttachmentAssociationsToConversationMessages.new.run_later
+    DataFixup::AddAttachmentAssociationsToConversationMessages.new.run_later(run_at: 2.hours.from_now)
   end
 end

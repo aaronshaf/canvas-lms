@@ -397,6 +397,17 @@ RSpec.describe CanvasOperations::BaseOperation do
 
         expect { run_jobs }.not_to change(Progress, :count)
       end
+
+      it "uses run_at in the job options if specified" do
+        time = 1.hour.from_now
+        operation_instance.run_later(run_at: time)
+
+        job = Delayed::Job.find_by(
+          singleton: "operations/no_progress_operation/shards/#{Shard.current.id}",
+          tag: "NoProgressOperation#run"
+        )
+        expect(job.run_at).to eq(time)
+      end
     end
   end
 

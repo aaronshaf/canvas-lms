@@ -85,9 +85,12 @@ module CanvasOperations
     # @note Subclasses should not override this method. Instead, they should implement their logic in `#execute`.
     #
     # @return [Object] The result of the `process_job` invocation, which may vary depending on the implementation.
-    def run_later
+    def run_later(run_at: nil)
       # Enforce a common singleton prefix for easy identification
-      final_job_options = job_options.tap { |options| options[:singleton] = "operations/#{name}/#{options[:singleton]}" if options[:singleton] }
+      final_job_options = job_options.tap do |options|
+        options[:singleton] = "operations/#{name}/#{options[:singleton]}" if options[:singleton]
+        options[:run_at] = run_at if run_at
+      end
 
       unless use_progress_tracking?
         log_message("Progress tracking is disabled; running operation without Progress tracking.", level: :debug)
