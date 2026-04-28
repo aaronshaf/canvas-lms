@@ -16,7 +16,14 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useCallback, useEffect, useMemo, useRef, type ReactNode} from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from 'react'
 import {usePendoTracking} from '@canvas/pendo/react/hooks/usePendoTracking'
 import {useTranslation} from '@canvas/i18next'
 import {DrawerLayout} from '@instructure/ui-drawer-layout'
@@ -160,6 +167,11 @@ export default function StudyAssistTray({open, onDismiss, fetchAssistResponse, c
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [open, onDismiss])
+
+  useLayoutEffect(() => {
+    if (!open) return
+    ;(closeButtonRef.current as HTMLElement | null)?.focus()
+  }, [open])
 
   const handleAnalyticsEvent = useCallback(
     (event: string) => {

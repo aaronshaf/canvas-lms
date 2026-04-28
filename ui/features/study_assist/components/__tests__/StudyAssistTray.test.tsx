@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import StudyAssistTray from '../StudyAssistTray'
 import * as PendoModule from '@canvas/pendo'
@@ -93,6 +93,30 @@ describe('StudyAssistTray', () => {
       />,
     )
     expect(screen.getByTestId('study-assist-ai-info-button')).toBeInTheDocument()
+  })
+
+  it('moves focus to the close button when the tray opens', async () => {
+    const {rerender} = render(
+      <StudyAssistTray
+        open={false}
+        onDismiss={onDismiss}
+        fetchAssistResponse={fetchAssistResponse}
+      />,
+    )
+
+    rerender(
+      <StudyAssistTray
+        open={true}
+        onDismiss={onDismiss}
+        fetchAssistResponse={fetchAssistResponse}
+      />,
+    )
+
+    await waitFor(() => {
+      const closeEl = screen.getByTestId('study-assist-close-button')
+      const button = closeEl.tagName === 'BUTTON' ? closeEl : closeEl.querySelector('button')
+      expect(button).toHaveFocus()
+    })
   })
 
   it('renders inside a DrawerLayout so content sits side-by-side with the tray', () => {
