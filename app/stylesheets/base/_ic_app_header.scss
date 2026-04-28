@@ -446,15 +446,17 @@ body.primary-nav-expanded {
 .mobile-header-student-view,
 .mobile-header-arrow,
 .mobile-header-title,
-.mobile-header-space {
+.mobile-header-space,
+.mobile-header-icon-mount {
   padding: $ic-sp * 1.3;
 }
-.mobile-header-student-view {
-  padding-#{direction('right')}: $ic-sp * 0.65;
-  padding-#{direction('left')}: $ic-sp * 0.65;
+.mobile-header-student-view,
+.mobile-header-icon-mount {
+  padding-#{direction(right)}: $ic-sp * 0.65;
+  padding-#{direction(left)}: $ic-sp * 0.65;
 }
 .mobile-header-arrow {
-  padding-#{direction('left')}: $ic-sp * 0.65;
+  padding-#{direction(left)}: $ic-sp * 0.65;
 }
 .ic-brand-mobile-global-nav-logo {
   height: 48px;
