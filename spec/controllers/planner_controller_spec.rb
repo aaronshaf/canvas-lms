@@ -587,18 +587,85 @@ describe PlannerController do
         end
 
         it "only returns data from contexted courses if specified" do
-          get :index, params: { context_codes: [@course1.asset_string] }
+          get :index, params: { context_codes: [@course1.asset_string], per_page: 50 }
           response_json = json_parse(response.body)
           response_hash = response_json.map { |i| [i["plannable_type"], i["plannable_id"]] }
           expect(response_hash).to include(["assignment", @assignment1.id])
           expect(response_hash).to include(["assignment", @group_assignment.id])
           expect(response_hash).to include(["discussion_topic", @course_topic.id])
+          expect(response_hash).to include(["discussion_topic", @group_topic.id])
           expect(response_hash).to include(["wiki_page", @course_page.id])
+          expect(response_hash).to include(["wiki_page", @group_page.id])
           expect(response_hash).to include(["assignment", @assignment3.id])
           expect(response_hash).to include(["quiz", @quiz.id])
           expect(response_hash).to include(["planner_note", @course1_note.id])
           expect(response_hash).to include(["calendar_event", @course1_event.id])
-          expect(response_hash.length).to be 8
+          expect(response_hash).to include(["calendar_event", @group_event.id])
+          expect(response_hash.length).to be 11
+        end
+
+        context "group announcements with course context_codes" do
+          let(:group_announcement) do
+            @group.announcements.create!(
+              title: "Group Announcement",
+              message: "Hello group"
+            )
+          end
+
+          it "includes group announcements when filtering by course context_code" do
+            group_announcement
+            get :index, params: { context_codes: [@course1.asset_string] }
+            response_json = json_parse(response.body)
+            plannable_ids = response_json.select { |i| i["plannable_type"] == "announcement" }.pluck("plannable_id")
+            expect(plannable_ids).to include(group_announcement.id)
+          end
+
+          it "does not include group announcements from a different course when filtering by course context_code" do
+            other_group = @course2.groups.create!(name: "Other Group", group_category: group_category(context: @course2))
+            other_group.add_user(@student, "accepted")
+            other_announcement = Announcement.create!(
+              context: other_group,
+              title: "Other Group Announcement",
+              message: "Hello other group",
+              todo_date: 1.day.from_now,
+              workflow_state: "active"
+            )
+            get :index, params: { context_codes: [@course1.asset_string] }
+            response_json = json_parse(response.body)
+            plannable_ids = response_json.select { |i| i["plannable_type"] == "announcement" }.pluck("plannable_id")
+            expect(plannable_ids).not_to include(other_announcement.id)
+          end
+
+          it "does not include group announcements when user is not a member of the group" do
+            non_member_group = @course1.groups.create!(name: "Non Member Group", group_category: @group_category)
+            non_member_announcement = Announcement.create!(
+              context: non_member_group,
+              title: "Non Member Group Announcement",
+              message: "You can't see this",
+              todo_date: 1.day.from_now,
+              workflow_state: "active"
+            )
+            get :index, params: { context_codes: [@course1.asset_string] }
+            response_json = json_parse(response.body)
+            plannable_ids = response_json.select { |i| i["plannable_type"] == "announcement" }.pluck("plannable_id")
+            expect(plannable_ids).not_to include(non_member_announcement.id)
+          end
+
+          it "does not double-include group items when group context_code is also specified" do
+            group_announcement
+            get :index, params: { context_codes: [@course1.asset_string, @group.asset_string] }
+            response_json = json_parse(response.body)
+            announcement_items = response_json.select { |i| i["plannable_type"] == "announcement" && i["plannable_id"] == group_announcement.id }
+            expect(announcement_items.length).to eq 1
+          end
+
+          it "includes group announcements when no context_codes are specified (dashboard)" do
+            group_announcement
+            get :index, params: {}
+            response_json = json_parse(response.body)
+            plannable_ids = response_json.select { |i| i["plannable_type"] == "announcement" }.pluck("plannable_id")
+            expect(plannable_ids).to include(group_announcement.id)
+          end
         end
 
         it "only returns data from contexted users if specified" do
@@ -674,7 +741,8 @@ describe PlannerController do
               filter: "incomplete_items",
               context_codes: [@course1.asset_string],
               start_date: 2.weeks.ago.iso8601,
-              end_date: 6.weeks.from_now.iso8601
+              end_date: 6.weeks.from_now.iso8601,
+              per_page: 50
             }
 
             response_json = json_parse(response.body)
@@ -721,7 +789,8 @@ describe PlannerController do
               filter: "incomplete_items",
               context_codes: [@course1.asset_string],
               start_date: 2.weeks.ago.iso8601,
-              end_date: 4.weeks.from_now.iso8601
+              end_date: 4.weeks.from_now.iso8601,
+              per_page: 50
             }
 
             response_json = json_parse(response.body)

@@ -515,6 +515,16 @@ class PlannerController < ApplicationController
       if @user
         @course_ids = @user.course_ids_for_todo_lists(:student, course_ids: @course_ids, include_concluded:)
         @group_ids = @user.group_ids_for_todo_lists(group_ids: @group_ids)
+        # When course context_codes are specified without group context_codes,
+        # auto-include the user's groups belonging to those courses.
+        if @include_context_codes && @group_ids.empty? && original_group_ids.empty? && @course_ids.present? && @user == @current_user
+          user_group_ids = @user.group_ids_for_todo_lists
+          if user_group_ids.present?
+            @group_ids = Group.active
+                              .where(context_type: "Course", context_id: @course_ids, id: user_group_ids)
+                              .pluck(:id)
+          end
+        end
         @account_ids ||= transposed_enabled.call
         @account_ids &= transposed_allowed.call
         @user_ids ||= [@user.id]
