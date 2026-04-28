@@ -159,12 +159,57 @@ class PlannerController < ApplicationController
         end
 
         response.headers["Link"] = items_response[:link]
+        detect_planner_pagination_loop(items_response[:link])
         render json: items_response[:json]
       end
     end
   end
 
   private
+
+  def detect_planner_pagination_loop(link_header)
+    return if params[:page].blank? || link_header.blank?
+
+    next_url = link_header[/<([^>]+)>;\s*rel="next"/, 1]
+    return if next_url.blank?
+
+    next_query = URI.parse(next_url).query
+    return if next_query.blank?
+
+    next_page = Rack::Utils.parse_nested_query(next_query)["page"]
+    return if next_page.blank? || next_page != params[:page]
+
+    rate_limit_key = ["planner_infinite_pagination_log",
+                      @current_user&.global_id,
+                      params[:user_id] || params[:observed_user_id],
+                      params[:filter]].cache_key
+    return if Rails.cache.read(rate_limit_key)
+
+    Rails.cache.write(rate_limit_key, true, expires_in: 1.hour)
+
+    Sentry.with_scope do |scope|
+      scope.set_tags(
+        "inst.feature" => "planner",
+        "issue" => "infinite_pagination",
+        "filter" => params[:filter].presence || "default"
+      )
+      scope.set_context("planner_pagination", {
+                          bookmark: params[:page],
+                          filter: params[:filter],
+                          per_page: params[:per_page],
+                          context_codes_count: Array(params[:context_codes]).size,
+                          viewing_user_global_id: @user&.global_id,
+                          current_user_global_id: @current_user&.global_id,
+                          observer_view: @user != @current_user
+                        })
+      Sentry.capture_message(
+        "PlannerController#index infinite pagination loop: next bookmark equals current bookmark",
+        level: :warning
+      )
+    end
+  rescue => e
+    Canvas::Errors.capture_exception(:planner_pagination_loop_detection, e, :error)
+  end
 
   def apply_completion_filter(scope, user, completion_filter)
     case completion_filter

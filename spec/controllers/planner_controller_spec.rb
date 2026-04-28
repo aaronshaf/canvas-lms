@@ -103,6 +103,67 @@ describe PlannerController do
         expect(found_planner_items_request).to be true
       end
 
+      describe "infinite pagination loop detection (LX-3563)" do
+        let(:bookmark) { "WyJBQkMiLDEyMzQ1XQ" }
+        let(:matching_link) do
+          "<https://example.com/api/v1/planner/items?page=#{bookmark}&per_page=10>; rel=\"next\""
+        end
+        let(:differing_link) do
+          "<https://example.com/api/v1/planner/items?page=DIFFERENT&per_page=10>; rel=\"next\""
+        end
+
+        before do
+          # Get a real request through so @current_user, @user, params, etc. are set
+          get :index
+          allow(Rails.cache).to receive(:write).and_call_original
+        end
+
+        it "logs a Sentry warning when the next bookmark equals the current bookmark" do
+          controller.params[:page] = bookmark
+          scope = instance_double(Sentry::Scope, set_tags: nil, set_context: nil)
+          allow(Sentry).to receive(:with_scope).and_yield(scope)
+          expect(Sentry).to receive(:capture_message).with(
+            /infinite pagination loop/,
+            level: :warning
+          )
+          controller.send(:detect_planner_pagination_loop, matching_link)
+        end
+
+        it "does not log when the next bookmark differs from the current bookmark" do
+          controller.params[:page] = bookmark
+          expect(Sentry).not_to receive(:capture_message)
+          controller.send(:detect_planner_pagination_loop, differing_link)
+        end
+
+        it "does not log on the first page when there is no incoming bookmark" do
+          controller.params[:page] = nil
+          expect(Sentry).not_to receive(:capture_message)
+          controller.send(:detect_planner_pagination_loop, matching_link)
+        end
+
+        it "does not log when the link header has no rel=next" do
+          controller.params[:page] = bookmark
+          expect(Sentry).not_to receive(:capture_message)
+          controller.send(:detect_planner_pagination_loop, "<https://example.com/x>; rel=\"last\"")
+        end
+
+        it "rate-limits to once per user within the window" do
+          controller.params[:page] = bookmark
+          allow(Sentry).to receive(:with_scope).and_yield(instance_double(Sentry::Scope, set_tags: nil, set_context: nil))
+          enable_cache do
+            expect(Sentry).to receive(:capture_message).once
+            3.times { controller.send(:detect_planner_pagination_loop, matching_link) }
+          end
+        end
+
+        it "swallows unexpected errors so logging never breaks the response" do
+          controller.params[:page] = bookmark
+          allow(URI).to receive(:parse).and_raise(StandardError, "boom")
+          expect(Canvas::Errors).to receive(:capture_exception).with(:planner_pagination_loop_detection, instance_of(StandardError), :error)
+          expect { controller.send(:detect_planner_pagination_loop, matching_link) }.not_to raise_error
+        end
+      end
+
       it "shows wiki pages with todo dates" do
         wiki_page_model(course: @course)
         @page.todo_date = 1.day.from_now
