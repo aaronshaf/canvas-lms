@@ -1285,7 +1285,13 @@ class ExternalToolsController < ApplicationController
     )
 
     lti_launch.resource_url = opts[:launch_url] || adapter.launch_url
-    lti_launch.link_text = selection_type ? tool.label_for(selection_type.to_sym, I18n.locale) : tool.default_label
+    lti_launch.link_text = if opts.dig(:overrides, "resource_link_title").present?
+                             opts[:overrides]["resource_link_title"]
+                           elsif selection_type
+                             tool.label_for(selection_type.to_sym, I18n.locale)
+                           else
+                             tool.default_label
+                           end
     lti_launch.analytics_id = tool.tool_id
 
     lti_launch

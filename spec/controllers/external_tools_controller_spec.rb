@@ -2103,6 +2103,16 @@ describe ExternalToolsController do
           }
           expect(response).not_to be_redirect
         end
+
+        it "sets link_text to the assignment title instead of tool default label" do
+          get :retrieve, params: {
+            course_id: @course.id,
+            url: quiz_lti_tool.url,
+            assignment_id: assignment.id
+          }
+          lti_launch = assigns[:lti_launch]
+          expect(lti_launch.link_text).to eq "NQ Assignment"
+        end
       end
 
       context "when assignment_id is not provided" do
