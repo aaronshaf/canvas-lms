@@ -1706,7 +1706,6 @@ describe ApplicationHelper do
         result = helper.csp_context
 
         expect(result).to eq(@course)
-        expect(helper.instance_variable_get(:@csp_context_is_submission)).to be(true)
       end
 
       it "returns nil when attachment has no submission associations" do
@@ -1714,7 +1713,6 @@ describe ApplicationHelper do
         result = helper.csp_context
 
         expect(result).to be_nil
-        expect(helper.instance_variable_get(:@csp_context_is_submission)).to be(false)
       end
 
       it "returns nil when attachment has submissions from multiple courses" do
@@ -1729,7 +1727,6 @@ describe ApplicationHelper do
         result = helper.csp_context
 
         expect(result).to be_nil
-        expect(helper.instance_variable_get(:@csp_context_is_submission)).to be(false)
       end
 
       it "returns the course when attachment has multiple submissions from the same course" do
@@ -1742,7 +1739,6 @@ describe ApplicationHelper do
         result = helper.csp_context
 
         expect(result).to eq(@course)
-        expect(helper.instance_variable_get(:@csp_context_is_submission)).to be(true)
       end
 
       it "does not return courses where the attachment is only referenced in past, but not current, submission attempts" do
@@ -1759,7 +1755,6 @@ describe ApplicationHelper do
         result = helper.csp_context
 
         expect(result).to be_nil
-        expect(helper.instance_variable_get(:@csp_context_is_submission)).to be(false)
       end
     end
   end

@@ -956,15 +956,9 @@ module ApplicationHelper
     output.inject(&:<<).presence
   end
 
-  def csp_context_is_submission?
-    csp_context
-    @csp_context_is_submission
-  end
-
   def csp_context
     @csp_context ||=
       begin
-        @csp_context_is_submission = false
         attachment = @attachment || @context
         if attachment.is_a?(Attachment)
           case attachment.context_type
@@ -976,11 +970,9 @@ module ApplicationHelper
             )
             courses = submissions.map { |submission| submission&.assignment&.course }.uniq
             if courses.length == 1
-              @csp_context_is_submission = true
               courses.first
             end
           when "Submission"
-            @csp_context_is_submission = true
             attachment.submission.assignment.course
           when "Course"
             attachment.course
@@ -1037,7 +1029,7 @@ module ApplicationHelper
   end
 
   def include_files_domain_in_csp?
-    # TODO: make this configurable per-course, and depending on csp_context_is_submission?
+    # TODO: make this configurable per-course, and depending on whether csp_context is a Submission
     true
   end
 
