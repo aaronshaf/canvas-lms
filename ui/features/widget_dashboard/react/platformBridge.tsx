@@ -76,8 +76,21 @@ const TRANSLATION_THUNKS: Record<string, TranslationThunk> = {
   noReadAnnouncements: () => I18n.t('No read announcements'),
   noRecentAnnouncements: () => I18n.t('No recent announcements'),
   failedToLoadAnnouncements: () => I18n.t('Failed to load announcements. Please try again.'),
-  loadingAnnouncements: () => I18n.t('Loading announcements'),
+  loadingAnnouncements: () => I18n.t('Loading announcements...'),
+  loadingAnnouncementsAriaLabel: () => I18n.t('Loading announcements'),
   announcementsPagination: () => I18n.t('Announcements pagination'),
+  unknownAuthor: () => I18n.t('Unknown Author'),
+  announcementMarkedAsRead: (opts: Record<string, unknown> = {}) =>
+    I18n.t('"%{title}" marked as read', {title: opts.title}),
+  announcementMarkedAsUnread: (opts: Record<string, unknown> = {}) =>
+    I18n.t('"%{title}" marked as unread', {title: opts.title}),
+  errorChangingAnnouncementReadState: () =>
+    I18n.t("An error ocurred while changing the announcement's read state"),
+  markAnnouncementAsRead: (opts: Record<string, unknown> = {}) =>
+    I18n.t('Mark %{title} as read', {title: opts.title}),
+  markAnnouncementAsUnread: (opts: Record<string, unknown> = {}) =>
+    I18n.t('Mark %{title} as unread', {title: opts.title}),
+  updatingReadStatus: () => I18n.t('Updating read status'),
 
   courseWork: () => I18n.t('Course work'),
   noCourseWork: () => I18n.t('No upcoming course work'),

@@ -236,6 +236,7 @@ const WidgetDashboardApp = () => {
           currentUserRoles={ENV.current_user_roles}
           sharedCourseData={ENV.SHARED_COURSE_DATA}
           dashboardFeatures={ENV.DASHBOARD_FEATURES}
+          isDark={isDark}
         >
           <WidgetDashboardEditProvider>
             <WidgetLayoutProvider>

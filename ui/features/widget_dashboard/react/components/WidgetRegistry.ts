@@ -20,11 +20,11 @@ import type {WidgetRegistry, WidgetRenderer} from '../types'
 import {WIDGET_TYPES, EDUCATOR_WIDGET_ROLE} from '../constants'
 import CourseWorkCombinedWidget from './widgets/CourseWorkCombinedWidget/CourseWorkCombinedWidget'
 import CourseGradesWidget from './widgets/CourseGradesWidget/CourseGradesWidget'
-import AnnouncementsWidget from './widgets/AnnouncementsWidget/AnnouncementsWidget'
 import PeopleWidget from './widgets/PeopleWidget/PeopleWidget'
 import TodoListWidget from './widgets/TodoListWidget/TodoListWidget'
 import RecentGradesWidget from './widgets/RecentGradesWidget/RecentGradesWidget'
 import {
+  AnnouncementsWidget,
   ProgressOverviewWidget,
   EducatorAnnouncementCreationWidget,
   EducatorTodoListWidget,

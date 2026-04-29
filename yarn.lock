@@ -2948,6 +2948,24 @@
   resolved "https://registry.yarnpkg.com/@instructure/platform-alerts/-/platform-alerts-0.2.0.tgz#2836706e1857cd3e026854eccc2013983c9cce7d"
   integrity sha512-YA3Xps0qS1mGcRr1flzXt6wg7TYK8FmwF1tZfC+xDtoUW/VSAhaWcFWAMJcIuoIKuP5A2I31IhUp7sLYFTZQEg==
 
+"@instructure/platform-alerts@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-alerts/-/platform-alerts-1.0.0.tgz#8bdb3f4937dd65445e4f7dd9f372d9e6104692e1"
+  integrity sha512-peixMqMxxNdT+C6bk2skvEME35Sa7U0CYx1Tgs3doZL9OTpg/LcIftjhtpnrqzSHN8Yry2eJp6yE7DuuJAFHWQ==
+
+"@instructure/platform-canvas-fetch@0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-canvas-fetch/-/platform-canvas-fetch-0.1.3.tgz#623b7bfaa44a5cda4ff43068f670d0550dcd9392"
+  integrity sha512-Aesk+chzx6yxriGuIhtQJlMu5TKt3N7vdhcrJsQNLXzdZ97t4EbwmWfqbLQgDsYPd0MXupbkMQKHymR7Pk4nAw==
+  dependencies:
+    "@instructure/platform-get-cookie" "0.2.1"
+    zod "^3.23.8"
+
+"@instructure/platform-datetime@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-datetime/-/platform-datetime-0.2.0.tgz#7254106ec99a97b0c5979b7f231777135f4ad25a"
+  integrity sha512-2Rxzl0lPr2qNuX0npmxZlSdQIZTfMii91Hohn8Z41dvGVB8rQJaXgAHfgqUukZ4LO7hZ2Sxi15lb4ecI8cSgyA==
+
 "@instructure/platform-error-boundary@0.2.0":
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@instructure/platform-error-boundary/-/platform-error-boundary-0.2.0.tgz#85b5410242dce59bef779b7a26e5daba47f9bea2"
@@ -2963,10 +2981,15 @@
   resolved "https://registry.yarnpkg.com/@instructure/platform-get-cookie/-/platform-get-cookie-0.2.0.tgz#db5c7d9f8381e3e2a058715e2733ecf4da08cfcf"
   integrity sha512-fxAonhI/Z1xxBLMIJfqc0e56BhEpDE8OaCgXPzZ4EHRXLbMW/KUozE3lRlnWGKL6XgUxpDgfbRgnH7VOT2+KEw==
 
-"@instructure/platform-graphql-types@0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@instructure/platform-graphql-types/-/platform-graphql-types-0.1.2.tgz#14c724e23ddc89926b165c418512feac703b3e01"
-  integrity sha512-doB3jlrm/YSv7ZCAqRlCghLgC4iixqlJ/kjmVjxNgvJPi0/3ZYOrqo+CnRnrdigJC/5VBm1tGaL7hu2DdCP+8g==
+"@instructure/platform-get-cookie@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-get-cookie/-/platform-get-cookie-0.2.1.tgz#7aa1a3c7d70f0fc08f2b63bcb2f68a2eef572465"
+  integrity sha512-/gOVej7X/uHM9JecM3lqUKDjA4rlAIj/AyVtrkCeqi9el5IlaSWceom4MhEmqmUowvT9Y7GeH33Pcw6Sai00MA==
+
+"@instructure/platform-graphql-types@0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-graphql-types/-/platform-graphql-types-0.1.3.tgz#ad017274cbd17711d5e33f883db434ae28ea725c"
+  integrity sha512-oJxg6O5s0Uqx21DxQyqr+mSMRvKTTT/qpwbcjSDn6vYkFjg/bKLDOSrU2h7hZHq6TSWO36v0zznR7lN++wNhLA==
   dependencies:
     "@graphql-typed-document-node/core" "^3.2.0"
     graphql "^16.9.0"
@@ -3032,15 +3055,19 @@
   dependencies:
     uuid "^9.0.0"
 
-"@instructure/platform-widget-dashboard@4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@instructure/platform-widget-dashboard/-/platform-widget-dashboard-4.0.0.tgz#7a3aba87572cc6d98eb111ee0aab8ff315b835bb"
-  integrity sha512-a/pn/UtJU59hc+vGgfbY5YwDazPJsvBq9j0ZIjCov0VgPU+u8CAxuU7VzX7QGzG4zYzd2qRTJlPXVXrdpCBZkQ==
+"@instructure/platform-widget-dashboard@5.3.0":
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-widget-dashboard/-/platform-widget-dashboard-5.3.0.tgz#c9023269af588f9a4f2e1557d3bd1e9595f837ba"
+  integrity sha512-IBOeCRgNu6b4N8HcM/BgnvZkAVGiMRgf+GQEomNw6deCkBKu+3EWM9ub5QK5+H9YMqZzNPYsc5eVAPdQiPGDIg==
   dependencies:
-    "@instructure/platform-graphql-types" "0.1.2"
+    "@instructure/platform-alerts" "1.0.0"
+    "@instructure/platform-canvas-fetch" "0.1.3"
+    "@instructure/platform-datetime" "0.2.0"
+    "@instructure/platform-graphql-types" "0.1.3"
     "@tanstack/query-persist-client-core" "^5.0.0"
     sanitize-html "^2.0.0"
     uuid "^10.0.0"
+    zod "^3.23.8"
 
 "@instructure/platform-with-breakpoints@^0.2.0":
   version "0.2.0"
@@ -24970,7 +24997,7 @@ zod-validation-error@^3.0.3:
   resolved "https://registry.yarnpkg.com/zod-validation-error/-/zod-validation-error-3.4.0.tgz#3a8a1f55c65579822d7faa190b51336c61bee2a6"
   integrity sha512-ZOPR9SVY6Pb2qqO5XHt+MkkTRxGXb4EVtnjc9JpXUOtUB1T9Ru7mZOT361AN3MsetVe7R0a1KZshJDZdgp9miQ==
 
-zod@3.22.4, zod@^3.22.4, zod@^3.25.76:
+zod@3.22.4, zod@^3.22.4, zod@^3.23.8, zod@^3.25.76:
   version "3.22.4"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.22.4.tgz#f31c3a9386f61b1f228af56faa9255e845cf3fff"
   integrity sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==
