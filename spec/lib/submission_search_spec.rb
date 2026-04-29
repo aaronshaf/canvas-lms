@@ -99,6 +99,28 @@ describe SubmissionSearch do
     expect(results.where(user: jonah).exists?).to be false
   end
 
+  it "includes students assigned via module section overrides when passing the apply_gradebook_enrollment_filters option" do
+    section2 = course.course_sections.create!(name: "Section 2")
+    course.enrollments.find_by(user: jonah).update!(course_section: section2)
+    mod = course.context_modules.create!(name: "Module A")
+    mod.add_item(type: "assignment", id: assignment.id)
+    # assign jonah via module override
+    mod.assignment_overrides.create!(set_type: "CourseSection", set_id: section2.id)
+    # assign amanda via assignment override
+    assignment.update!(only_visible_to_overrides: true)
+    assignment.assignment_overrides.create!(set_type: "CourseSection", set_id: course.default_section.id)
+    results = SubmissionSearch.new(
+      assignment,
+      teacher,
+      nil,
+      order_by: [{ field: "username" }],
+      apply_gradebook_enrollment_filters: true
+    ).search
+
+    expect(results.where(user: amanda).exists?).to be true
+    expect(results.where(user: jonah).exists?).to be true
+  end
+
   it "optionally includes deactivated students via gradebook settings" do
     course.enrollments.find_by(user: jonah).deactivate
     teacher.preferences[:gradebook_settings] = {

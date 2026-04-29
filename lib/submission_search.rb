@@ -257,9 +257,15 @@ class SubmissionSearch
   def filter_section_enrollment_states(user_scope)
     return user_scope unless @options[:apply_gradebook_enrollment_filters]
     return user_scope unless @assignment.only_visible_to_overrides?
-    return user_scope unless @assignment.active_assignment_overrides.where.not(set_type: AssignmentOverride::SET_TYPE_COURSE_SECTION).none?
 
-    section_ids = @assignment.active_assignment_overrides.where(set_type: AssignmentOverride::SET_TYPE_COURSE_SECTION).pluck(:set_id)
+    non_section_assignment_overrides = @assignment.active_assignment_overrides.where.not(set_type: AssignmentOverride::SET_TYPE_COURSE_SECTION)
+    non_section_module_overrides = @assignment.module_overrides.active.where.not(set_type: AssignmentOverride::SET_TYPE_COURSE_SECTION)
+    return user_scope if non_section_assignment_overrides.exists? || non_section_module_overrides.exists?
+
+    assignment_section_ids = @assignment.active_assignment_overrides.where(set_type: AssignmentOverride::SET_TYPE_COURSE_SECTION).pluck(:set_id)
+    module_section_ids = @assignment.module_overrides.active.where(set_type: AssignmentOverride::SET_TYPE_COURSE_SECTION).pluck(:set_id)
+    section_ids = (assignment_section_ids + module_section_ids).uniq
+
     return user_scope if section_ids.empty?
 
     enrollment_scope = user_ids_by_enrollment_section_filters(section_ids)

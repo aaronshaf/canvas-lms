@@ -171,6 +171,7 @@ class AbstractAssignment < ApplicationRecord
   has_many :sub_assignment_overrides, through: :sub_assignments, source: :assignment_overrides
   has_one :estimated_duration, dependent: :destroy, inverse_of: :assignment
   has_many :comment_bank_items, dependent: :destroy, inverse_of: :assignment
+  has_many :module_overrides, through: :context_modules, source: :assignment_overrides
 
   scope :assigned_to_student, ->(student_id) { joins(:submissions).where(submissions: { user_id: student_id }) }
   scope :anonymous, -> { where(anonymous_grading: true) }
