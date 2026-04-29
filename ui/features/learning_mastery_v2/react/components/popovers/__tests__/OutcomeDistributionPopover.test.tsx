@@ -16,19 +16,19 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react'
-import {render, screen} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import {pick} from 'es-toolkit/compat'
-import {defaultRatings, defaultMasteryPoints} from '@canvas/outcomes/react/hooks/useRatings'
-import {OutcomeDistributionPopover} from '../OutcomeDistributionPopover'
-import {Outcome, Student} from '@canvas/outcomes/react/types/rollup'
+import LMGBContext from '@canvas/outcomes/react/contexts/LMGBContext'
+import {defaultMasteryPoints, defaultRatings} from '@canvas/outcomes/react/hooks/useRatings'
 import {
   OutcomeDistribution,
   RatingDistribution,
 } from '@canvas/outcomes/react/types/mastery_distribution'
-import LMGBContext from '@canvas/outcomes/react/contexts/LMGBContext'
+import {Outcome, Student} from '@canvas/outcomes/react/types/rollup'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
+import {render, screen, waitFor} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import {pick} from 'es-toolkit/compat'
+import React from 'react'
+import {OutcomeDistributionPopover} from '../OutcomeDistributionPopover'
 
 vi.mock('../../charts/BarChart', () => ({
   BarChart: () => null,
@@ -174,6 +174,38 @@ describe('OutcomeDistributionPopover', () => {
     )
     expect(screen.getByTestId('outcome-distribution-popover')).toBeInTheDocument()
     expect(screen.getByText('outcome 1')).toBeInTheDocument()
+  })
+
+  it('close button is keyboard accessible (no tabIndex -1)', () => {
+    renderWithContext(
+      <OutcomeDistributionPopover
+        outcome={outcome}
+        courseId="5"
+        isOpen={true}
+        onCloseHandler={vi.fn()}
+        renderTrigger={<button>Trigger</button>}
+      />,
+    )
+
+    const closeButtonContainer = screen.getByTestId('outcome-distribution-popover-close-button')
+    const closeButton = closeButtonContainer.querySelector('button')
+    expect(closeButton).not.toHaveAttribute('tabindex', '-1')
+  })
+
+  it('info button is keyboard accessible (no tabIndex -1)', () => {
+    renderWithContext(
+      <OutcomeDistributionPopover
+        outcome={outcome}
+        courseId="5"
+        isOpen={true}
+        onCloseHandler={vi.fn()}
+        renderTrigger={<button>Trigger</button>}
+      />,
+    )
+
+    const infoButtonContainer = screen.getByTestId('outcome-distribution-popover-info-button')
+    const infoButton = infoButtonContainer.querySelector('button') ?? infoButtonContainer
+    expect(infoButton).not.toHaveAttribute('tabindex', '-1')
   })
 
   it('calls onCloseHandler when close button is clicked', async () => {
@@ -365,6 +397,27 @@ describe('OutcomeDistributionPopover', () => {
       await user.click(exceedsBar)
 
       expect(await screen.findByTestId('student-list-section')).toBeInTheDocument()
+    })
+
+    it('moves focus to student list when a bar is selected', async () => {
+      const user = userEvent.setup()
+      renderWithContext(
+        <OutcomeDistributionPopover
+          outcome={outcome}
+          outcomeDistribution={mockOutcomeDistribution}
+          distributionStudents={mockStudents}
+          courseId="5"
+          isOpen={true}
+          onCloseHandler={vi.fn()}
+          renderTrigger={<button>Trigger</button>}
+        />,
+      )
+
+      const exceedsBar = screen.getByTestId('bar-exceeds-mastery')
+      await user.click(exceedsBar)
+
+      const studentList = await screen.findByTestId('student-list-section')
+      await waitFor(() => expect(studentList).toHaveFocus())
     })
 
     it('filters students correctly by mastery level when bar is clicked', async () => {

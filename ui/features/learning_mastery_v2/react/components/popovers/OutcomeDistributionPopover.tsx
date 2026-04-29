@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {ReactElement, useEffect, useMemo, useState} from 'react'
+import React, {ReactElement, useEffect, useMemo, useRef, useState} from 'react'
 import {Popover} from '@instructure/ui-popover'
 import {View} from '@instructure/ui-view'
 import {Heading} from '@instructure/ui-heading'
@@ -146,13 +146,7 @@ const InfoSection: React.FC<{
 
 const StudentList: React.FC<{students: Student[]}> = ({students}) => {
   return (
-    <View
-      as="div"
-      data-testid="student-list-section"
-      maxHeight="280px"
-      overflowY="auto"
-      padding="0 0 0 medium"
-    >
+    <View as="div" maxHeight="280px" overflowY="auto" padding="0 0 0 medium">
       {students.length > 0 ? (
         <View as="ul" margin="0" padding="0">
           {students.map(student => (
@@ -197,12 +191,22 @@ export const OutcomeDistributionPopover: React.FC<OutcomeDistributionPopoverProp
   const [selectedRating, setSelectedRating] = useState<RatingDistribution | null>(null)
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
   const [isDifferentiationTagModalOpen, setIsDifferentiationTagModalOpen] = useState(false)
+  const studentListRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (!isOpen) {
       setSelectedRating(null)
     }
   }, [isOpen])
+
+  useEffect(() => {
+    if (selectedRating) {
+      const id = setTimeout(() => {
+        studentListRef.current?.focus()
+      }, 0)
+      return () => clearTimeout(id)
+    }
+  }, [selectedRating])
   const {accountLevelMasteryScalesFF, allowDifferentiationTags} = useLMGBContext()
   const {mutate: addTagMembership} = useAddTagMembership()
   const calculationMethod = getCalculationMethod(outcome)
@@ -348,7 +352,6 @@ export const OutcomeDistributionPopover: React.FC<OutcomeDistributionPopoverProp
                 data-testid="outcome-distribution-popover-close-button"
                 onClick={onCloseHandler}
                 screenReaderLabel={I18n.t('Close')}
-                tabIndex={-1}
               />
             </Flex.Item>
           </Flex>
@@ -372,7 +375,16 @@ export const OutcomeDistributionPopover: React.FC<OutcomeDistributionPopoverProp
 
             {selectedRating && (
               <Flex.Item shouldGrow={true} shouldShrink={true} size="0">
-                <StudentList students={selectedStudents} />
+                <div
+                  ref={studentListRef}
+                  tabIndex={-1}
+                  role="region"
+                  aria-label={I18n.t('Students in selected rating')}
+                  aria-live="polite"
+                  data-testid="student-list-section"
+                >
+                  <StudentList students={selectedStudents} />
+                </div>
               </Flex.Item>
             )}
           </Flex>
@@ -393,7 +405,6 @@ export const OutcomeDistributionPopover: React.FC<OutcomeDistributionPopoverProp
                   withBackground={showInfo}
                   withBorder={true}
                   color="primary"
-                  tabIndex={-1}
                 >
                   <IconInfoLine />
                 </IconButton>
