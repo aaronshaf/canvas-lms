@@ -50,6 +50,7 @@ const Attachment = ({
 
   const useWebcamRef = useRef(null)
   const fileInputPlaceholderRef = useRef(null)
+  const fileDropInputRef = useRef(null)
 
   const fileTypeError = () => {
     const fileTypes = validFileTypes.join(', ')
@@ -58,9 +59,7 @@ const Attachment = ({
     })
   }
 
-  // TODO: When we upgrade to InstUI 10, the inputRef prop will be available to use.
-  // For now, we query for the input by its id
-  const getFileDropInput = () => document.getElementById(`submission_file_drop_${index}`)
+  const getFileDropInput = () => fileDropInputRef.current
 
   useEffect(() => {
     const handleFocus = () => {
@@ -76,11 +75,11 @@ const Attachment = ({
     // state and need to observe changes on the input.
     const handleChange = e => {
       const files = e.target.files
-      const fileDropInput = getFileDropInput()
-      if (file && files.length === 0 && fileDropInput) {
+      if (file && files.length === 0) {
         // If the user clicks "Cancel", the input will be cleared and we should update the UI to reflect that.
         clearInputFile()
-      } else if (files.length > 0 && fileDropInput) {
+      } else if (files.length > 0) {
+        const fileDropInput = getFileDropInput() || e.target
         persistFileInput(fileDropInput)
         // If the user clicks "Open", the input will be updated and we should update the UI to reflect that.
         const newFile = files[0]
@@ -195,6 +194,9 @@ const Attachment = ({
             <Flex width="100%">
               <FileDrop
                 id={`submission_file_drop_${index}`}
+                inputRef={el => {
+                  if (el) fileDropInputRef.current = el
+                }}
                 accept={validFileTypes.length > 0 ? validFileTypes : undefined}
                 onClick={clearErrors}
                 onDrop={clearErrors}
