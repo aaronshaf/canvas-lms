@@ -129,14 +129,26 @@ describe LinkedAttachmentHandler do
         expect(fetch_list_with_field_name(nil)).to be_empty
       end
 
-      it "keeps association if the user doesn't have manage access to the file" do
-        html = <<~HTML
-          <p><a href="/courses/#{course.id}/files/#{course_attachment.id}/download">file 1</a>
-            <img id="3" src="/courses/#{course.id}/files/#{course_attachment2.id}/preview"></p>
+      it "removes associations when HTML contains only external URLs" do
+        # Simulate an association that was incorrectly created from an external URL
+        # before the fix in https://gerrit.instructure.com/c/canvas-lms/+/406985
+        AttachmentAssociation.create!(
+          context: course,
+          attachment: course_attachment,
+          user: teacher,
+          root_account_id: course.root_account_id
+        )
+
+        expect(fetch_list_with_field_name(nil)).to match_array([course_attachment.id])
+
+        html_with_external_url = <<~HTML
+          <p><a href="https://example.com/files/#{course_attachment.id}/download">external link</a></p>
         HTML
-        course.associate_attachments_to_rce_object(html, teacher)
-        course.associate_attachments_to_rce_object("", student)
-        expect(fetch_list_with_field_name(nil)).to match_array([course_attachment.id, course_attachment2.id])
+
+        # External URLs are filtered out, so this acts like empty HTML and removes the association
+        course.associate_attachments_to_rce_object(html_with_external_url, student)
+
+        expect(fetch_list_with_field_name(nil)).to be_empty
       end
     end
 

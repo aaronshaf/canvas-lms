@@ -4312,6 +4312,35 @@ describe CoursesController do
         expect(@course.csp_enabled?).to be_truthy
       end
     end
+
+    context "attachment associations" do
+      it "removes attachment associations even without delete permission on the file" do
+        teacher2 = user_model
+        @course.enroll_teacher(teacher2, enrollment_state: "active")
+
+        attachment = attachment_with_context(teacher2)
+
+        AttachmentAssociation.create!(
+          context: @course,
+          attachment:,
+          user: teacher2,
+          root_account_id: @course.root_account_id,
+          context_concern: "syllabus_body"
+        )
+
+        expect(AttachmentAssociation.where(context: @course, attachment:, context_concern: "syllabus_body").count).to eq 1
+        expect(attachment.grants_right?(@teacher, :delete)).to be false
+
+        user_session(@teacher)
+        updated_html = "<p>Updated syllabus with no attachments</p>"
+        put "update", params: { id: @course.id, course: { syllabus_body: updated_html } }
+
+        @course.reload
+        expect(@course.syllabus_body).to eq updated_html
+
+        expect(AttachmentAssociation.where(context: @course, attachment:, context_concern: "syllabus_body").count).to eq 0
+      end
+    end
   end
 
   describe "POST 'unconclude'" do

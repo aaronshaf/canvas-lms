@@ -73,8 +73,8 @@ module LinkedAttachmentHandler
     attachment.context_type != target_context_type || source_global_id != target_global_id
   end
 
-  def keep_associations?(attachment, session, user)
-    instance_of?(Submission) || instance_of?(Quizzes::QuizSubmission) || !attachment.grants_right?(user, session, :delete)
+  def keep_associations?
+    instance_of?(Submission) || instance_of?(Quizzes::QuizSubmission)
   end
 
   # NB: context_concern is a virtual subdivision of context.
@@ -117,7 +117,7 @@ module LinkedAttachmentHandler
 
       Attachment.where(id: att_ids).find_each do |attachment|
         if to_delete.include?(Shard.global_id_for(attachment.id))
-          to_delete.delete(Shard.global_id_for(attachment.id)) if keep_associations?(attachment, session, user)
+          to_delete.delete(Shard.global_id_for(attachment.id)) if keep_associations?
         else
           next if exclude_cross_course_attachment_association?(attachment)
           next unless skip_user_verification ||
