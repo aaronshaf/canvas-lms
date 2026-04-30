@@ -1119,7 +1119,9 @@ class Course < ApplicationRecord
     key = "associated_accounts#{include_crosslisted_courses && "_xlisted"}"
     Rails.cache.fetch_with_batched_keys(key, batch_object: self, batched_keys: :account_associations) do
       GuardRail.activate(:primary) do
-        accounts = if association(:course_account_associations).loaded?
+        accounts_preloaded = association(:course_account_associations).loaded? &&
+                             course_account_associations.all? { |caa| caa.association(:account).loaded? }
+        accounts = if accounts_preloaded
                      course_account_associations.filter { |caa| include_crosslisted_courses ? true : caa.course_section_id.nil? }.map(&:account).uniq
                    else
                      shard.activate do

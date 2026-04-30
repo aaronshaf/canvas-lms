@@ -2802,6 +2802,52 @@ describe Course do
     end
   end
 
+  describe "#associated_accounts" do
+    let(:sub_account) { Account.default.sub_accounts.create! }
+    let!(:course) { sub_account.courses.create! }
+
+    before do
+      Rails.cache.clear
+    end
+
+    def count_cte_queries(&)
+      count = 0
+      counter = lambda do |_name, _start, _finish, _id, payload|
+        count += 1 if payload[:sql].to_s.match?(/WITH depths AS/i)
+      end
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record", &)
+      count
+    end
+
+    it "uses the CTE path when course_account_associations are preloaded but :account is not" do
+      reloaded = Course.where(id: course.id).preload(:course_account_associations).first
+
+      cte_count = count_cte_queries { reloaded.associated_accounts }
+
+      expect(cte_count).to eq(1)
+      expect(reloaded.associated_accounts.map(&:id)).to match_array([sub_account.id, Account.default.id])
+    end
+
+    it "uses preloaded data without firing the CTE when :account is also preloaded" do
+      reloaded = Course.where(id: course.id).preload(course_account_associations: :account).first
+
+      cte_count = count_cte_queries { reloaded.associated_accounts }
+
+      expect(cte_count).to eq(0)
+      expect(reloaded.associated_accounts.map(&:id)).to match_array([sub_account.id, Account.default.id])
+    end
+
+    it "falls back to account and root_account when preloaded course_account_associations are empty" do
+      course.course_account_associations.scope.delete_all
+      reloaded = Course.where(id: course.id).preload(course_account_associations: :account).first
+
+      cte_count = count_cte_queries { reloaded.associated_accounts }
+
+      expect(cte_count).to eq(0)
+      expect(reloaded.associated_accounts.map(&:id)).to match_array([sub_account.id, Account.default.id])
+    end
+  end
+
   describe "#update_lti_context_controls" do
     let(:course) { course_model(account:) }
     let(:account) { account_model }
