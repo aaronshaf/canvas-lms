@@ -120,6 +120,13 @@ development:
       # datadog_apm.yml: |
       #   sample_rate: 0.0
       #   host_sample_rate: 0.0
+      # Globally-applied Content-Security-Policy-Report-Only header.
+      # Header is emitted if both report_uri and a non-empty allowed_domains list are set.
+      # csp_report_only.yml: |
+      #   allowed_domains:
+      #     - "https://*.instructure.com"
+      #     - "wss://*.instructure.com"
+      #   report_uri: "https://<csp-violation-report-endpoint>/submit/csp"
       # use a unique subdomain per attachment, so that browsers will enforce security
       # permissions (such as microphone/camera access) per-file. You must have wildcard
       # DNS set up for this to work.

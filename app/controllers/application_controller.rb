@@ -1241,9 +1241,19 @@ class ApplicationController < ActionController::Base
       directives = "frame-ancestors 'self' #{csp_frame_ancestors&.uniq&.join(" ")};"
 
       append_to_header("Content-Security-Policy", directives)
+      append_csp_report_only_header
     end
     RequestContext::Generator.store_context_meta(@context)
     true
+  end
+
+  def append_csp_report_only_header
+    return unless response.media_type == "text/html"
+
+    directives = CspReportOnlyConfig.directives_for(@domain_root_account, request)
+    append_to_header("Content-Security-Policy-Report-Only", directives) if directives
+  rescue => e
+    Canvas::Errors.capture_exception(:csp_report_only, e)
   end
 
   def files_domain?

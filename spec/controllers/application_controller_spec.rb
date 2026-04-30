@@ -3987,6 +3987,107 @@ RSpec.describe ApplicationController do
       expect(content_for_head).to include("<link>")
     end
   end
+
+  context "Content-Security-Policy-Report-Only header" do
+    let(:controller) { described_class.new }
+    let(:account) { Account.default }
+    let(:fake_response) { instance_double(ActionDispatch::Response, media_type: "text/html") }
+    let(:fake_request) { instance_double(ActionDispatch::Request, host: "canvas.example.com", host_with_port: "canvas.example.com") }
+    let(:captured_headers) { {} }
+
+    before do
+      allow(controller).to receive(:headers).and_return(captured_headers)
+      allow(controller).to receive(:append_to_header) do |header, value|
+        captured_headers[header] = (captured_headers[header] || "") + value
+      end
+      controller.instance_variable_set(:@domain_root_account, account)
+      allow(controller).to receive_messages(request: fake_request, response: fake_response, files_domain?: false)
+      allow(RequestContext::Generator).to receive(:store_context_meta)
+    end
+
+    describe "#append_csp_report_only_header" do
+      it "appends the header when directives_for returns a string" do
+        allow(CspReportOnlyConfig).to receive(:directives_for).with(account, fake_request).and_return("default-src 'self' https://*.instructure.com; report-uri https://r.example/csp;")
+        controller.send(:append_csp_report_only_header)
+        expect(captured_headers["Content-Security-Policy-Report-Only"]).to eq(
+          "default-src 'self' https://*.instructure.com; report-uri https://r.example/csp;"
+        )
+      end
+
+      it "is a no-op when directives_for returns nil" do
+        allow(CspReportOnlyConfig).to receive(:directives_for).and_return(nil)
+        controller.send(:append_csp_report_only_header)
+        expect(captured_headers).not_to have_key("Content-Security-Policy-Report-Only")
+      end
+
+      it "swallows exceptions and reports via Canvas::Errors" do
+        allow(CspReportOnlyConfig).to receive(:directives_for).and_raise(StandardError.new("boom"))
+        expect(Canvas::Errors).to receive(:capture_exception).with(:csp_report_only, instance_of(StandardError))
+        expect { controller.send(:append_csp_report_only_header) }.not_to raise_error
+        expect(captured_headers).not_to have_key("Content-Security-Policy-Report-Only")
+      end
+
+      it "is a no-op on non-HTML responses (browsers ignore CSP on JSON / etc.)" do
+        allow(fake_response).to receive(:media_type).and_return("application/json")
+        allow(CspReportOnlyConfig).to receive(:directives_for).and_return("default-src 'self';")
+        controller.send(:append_csp_report_only_header)
+        expect(captured_headers).not_to have_key("Content-Security-Policy-Report-Only")
+      end
+    end
+
+    describe "#set_response_headers" do
+      context "with CSP report-only directives present" do
+        before do
+          allow(CspReportOnlyConfig).to receive(:directives_for).and_return("default-src 'self' https://*.instructure.com; report-uri https://r.example/csp;")
+        end
+
+        it "emits both the enforcing frame-ancestors and the Report-Only header" do
+          controller.send(:set_response_headers)
+          expect(captured_headers["Content-Security-Policy"]).to start_with("frame-ancestors 'self'")
+          expect(captured_headers["Content-Security-Policy-Report-Only"]).to start_with("default-src 'self'")
+        end
+
+        it "omits both headers on the files domain" do
+          allow(controller).to receive(:files_domain?).and_return(true)
+          controller.send(:set_response_headers)
+          expect(captured_headers).not_to have_key("Content-Security-Policy-Report-Only")
+          expect(captured_headers).not_to have_key("Content-Security-Policy")
+        end
+
+        it "omits both headers on @embeddable responses" do
+          controller.instance_variable_set(:@embeddable, true)
+          controller.send(:set_response_headers)
+          expect(captured_headers).not_to have_key("Content-Security-Policy-Report-Only")
+          expect(captured_headers).not_to have_key("Content-Security-Policy")
+        end
+      end
+
+      context "with CSP report-only directives absent" do
+        before do
+          allow(CspReportOnlyConfig).to receive(:directives_for).and_return(nil)
+        end
+
+        it "still emits the existing frame-ancestors header but skips Report-Only" do
+          controller.send(:set_response_headers)
+          expect(captured_headers["Content-Security-Policy"]).to start_with("frame-ancestors 'self'")
+          expect(captured_headers).not_to have_key("Content-Security-Policy-Report-Only")
+        end
+      end
+
+      context "with directives_for raising" do
+        before do
+          allow(CspReportOnlyConfig).to receive(:directives_for).and_raise(StandardError.new("boom"))
+          allow(Canvas::Errors).to receive(:capture_exception)
+        end
+
+        it "still emits the frame-ancestors header without raising" do
+          expect { controller.send(:set_response_headers) }.not_to raise_error
+          expect(captured_headers["Content-Security-Policy"]).to start_with("frame-ancestors 'self'")
+          expect(captured_headers).not_to have_key("Content-Security-Policy-Report-Only")
+        end
+      end
+    end
+  end
 end
 
 describe WikiPagesController do
