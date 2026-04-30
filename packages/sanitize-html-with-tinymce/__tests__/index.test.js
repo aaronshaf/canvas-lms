@@ -22,3 +22,17 @@ it('sanitizes html with tinymce', async () => {
   await import('@instructure/canvas-rce-old/lib/async')
   expect(sanitizeHtml('<img src=x onerror="alert(1)">')).toBe('<img src="x" />')
 })
+
+it('strips onerror from object elements', async () => {
+  await import('@instructure/canvas-rce-old/lib/async')
+  const result = sanitizeHtml('<object onerror="alert(1)">x</object>')
+  expect(result).not.toContain('onerror')
+  expect(result).not.toContain('alert')
+})
+
+it('strips onerror from embed elements', async () => {
+  await import('@instructure/canvas-rce-old/lib/async')
+  const result = sanitizeHtml('<embed src="x" onerror="alert(1)" />')
+  expect(result).not.toContain('onerror')
+  expect(result).not.toContain('alert')
+})

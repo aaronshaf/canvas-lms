@@ -268,9 +268,9 @@ const defaultTinymceConfig = {
     acronym: [],
     del: ['datetime', 'cite'],
     ins: ['datetime', 'cite'],
-    object: ['classid', 'width', 'height', 'codebase', '*'],
+    object: ['classid', 'codebase', 'data', 'height', 'type', 'width'],
     param: ['name', 'value', '_value'],
-    embed: ['type', 'width', 'height', 'src', '*'],
+    embed: ['allowfullscreen', 'allowscriptaccess', 'height', 'name', 'pluginspage', 'src', 'type', 'width', 'wmode'],
     map: ['name'],
     area: ['shape', 'coords', 'href', 'alt', 'target'],
     bdo: [],
@@ -961,8 +961,6 @@ const defaultTinymceConfig = {
     ruby: [],
     rp: [],
     rt: [],
-    g: ['*'],
-    circle: ['*'],
   }),
 
   non_empty_elements:
