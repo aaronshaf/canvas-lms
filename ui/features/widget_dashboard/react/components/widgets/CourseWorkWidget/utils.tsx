@@ -20,10 +20,18 @@ import React from 'react'
 import {IconCalendarClockLine, IconCheckMarkLine, IconWarningLine} from '@instructure/ui-icons'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {startOfToday, getTomorrow} from '../../../utils/dateUtils'
+import {CourseWorkItem} from '../../../hooks/useCourseWork'
 
 const I18n = createI18nScope('widget_dashboard')
 export interface SubmissionStatus {
-  type: 'submitted' | 'late' | 'missing' | 'pending_review' | 'due_soon' | 'not_submitted'
+  type:
+    | 'submitted'
+    | 'late'
+    | 'missing'
+    | 'excused'
+    | 'pending_review'
+    | 'due_soon'
+    | 'not_submitted'
   label: string
   color: {background: string; textColor: string}
   icon?: any
@@ -86,14 +94,19 @@ function getStatusColors(isDark: boolean): SubmissionStatusColors {
   return isDark ? SUBMISSION_STATUS_COLORS_DARK : SUBMISSION_STATUS_COLORS_LIGHT
 }
 
-export function getSubmissionStatus(
-  late: boolean,
-  missing: boolean,
-  state: string,
-  dueAt: string | null,
-  isDark = false,
-): SubmissionStatus {
+export function getSubmissionStatus(item: CourseWorkItem, isDark = false): SubmissionStatus {
+  const {late, missing, state, dueAt, excused} = item
   const colors = getStatusColors(isDark)
+
+  if (excused) {
+    return {
+      type: 'excused',
+      label: I18n.t('Excused'),
+      color: colors.green,
+      icon: IconCheckMarkLine,
+      iconColor: 'success',
+    }
+  }
 
   if (missing) {
     return {

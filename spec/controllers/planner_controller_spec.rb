@@ -1006,6 +1006,57 @@ describe PlannerController do
             expect(sub_assignment_ids).to include(reply_to_topic_checkpoint.id)
             expect(sub_assignment_ids).not_to include(reply_to_entry_checkpoint.id)
           end
+
+          context "excused assignments" do
+            before do
+              @excused_assignment = assignment_model(course: @course1, title: "excused assignment", due_at: 1.week.from_now)
+              @excused_assignment.grade_student(@student, grader: @course1.teachers.first, excused: true)
+              @normal_assignment = assignment_model(course: @course1, title: "normal assignment", due_at: 2.weeks.from_now)
+              SubmissionLifecycleManager.recompute_course(@course1, run_immediately: true)
+            end
+
+            it "includes excused assignments in the All filter (no filter param)" do
+              get :index, params: {
+                context_codes: [@course1.asset_string],
+                start_date: 2.weeks.ago.iso8601,
+                end_date: 4.weeks.from_now.iso8601,
+                per_page: 50
+              }
+
+              response_json = json_parse(response.body)
+              items = response_json.pluck("plannable_type", "plannable_id")
+              expect(items).to include(["assignment", @excused_assignment.id])
+            end
+
+            it "excludes excused assignments from the incomplete_items filter" do
+              get :index, params: {
+                filter: "incomplete_items",
+                context_codes: [@course1.asset_string],
+                start_date: 2.weeks.ago.iso8601,
+                end_date: 4.weeks.from_now.iso8601,
+                per_page: 50
+              }
+
+              response_json = json_parse(response.body)
+              items = response_json.pluck("plannable_type", "plannable_id")
+              expect(items).not_to include(["assignment", @excused_assignment.id])
+              expect(items).to include(["assignment", @normal_assignment.id])
+            end
+
+            it "includes excused assignments in the complete_items filter" do
+              get :index, params: {
+                filter: "complete_items",
+                context_codes: [@course1.asset_string],
+                start_date: 2.weeks.ago.iso8601,
+                end_date: 4.weeks.from_now.iso8601,
+                per_page: 50
+              }
+
+              response_json = json_parse(response.body)
+              items = response_json.pluck("plannable_type", "plannable_id")
+              expect(items).to include(["assignment", @excused_assignment.id])
+            end
+          end
         end
 
         it "filters all_ungraded_todo_items for teachers, including unpublished items" do

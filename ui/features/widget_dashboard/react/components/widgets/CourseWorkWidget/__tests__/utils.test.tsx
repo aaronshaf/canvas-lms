@@ -17,13 +17,32 @@
  */
 
 import {getSubmissionStatus, formatDueDate} from '../utils'
+import {CourseWorkItem} from '../../../../hooks/useCourseWork'
 import {determineItemType} from '../../../../utils/assignmentUtils'
+
+const makeItem = (overrides: Partial<CourseWorkItem> = {}): CourseWorkItem => ({
+  id: '1',
+  title: 'Test Assignment',
+  dueAt: null,
+  course: {id: '1', name: 'Test Course'},
+  points: null,
+  htmlUrl: '/courses/1/assignments/1',
+  type: 'assignment',
+  late: false,
+  missing: false,
+  excused: false,
+  state: 'unsubmitted',
+  ...overrides,
+})
 
 describe('CourseWorkWidget utils', () => {
   describe('determineItemType', () => {
     it('detects quiz via assignment.quiz object before checking submissionTypes', () => {
       expect(
-        determineItemType({quiz: {_id: '1', title: 'My Quiz'}, submissionTypes: ['online_text_entry']}),
+        determineItemType({
+          quiz: {_id: '1', title: 'My Quiz'},
+          submissionTypes: ['online_text_entry'],
+        }),
       ).toBe('quiz')
     })
 
@@ -40,31 +59,31 @@ describe('CourseWorkWidget utils', () => {
 
   describe('getSubmissionStatus', () => {
     it('returns missing status when missing is true', () => {
-      const status = getSubmissionStatus(false, true, 'unsubmitted', null)
+      const status = getSubmissionStatus(makeItem({missing: true, state: 'unsubmitted'}))
       expect(status.type).toBe('missing')
       expect(status.label).toBe('Missing')
     })
 
     it('returns late status when late is true', () => {
-      const status = getSubmissionStatus(true, false, 'submitted', null)
+      const status = getSubmissionStatus(makeItem({late: true, state: 'submitted'}))
       expect(status.type).toBe('late')
       expect(status.label).toBe('Late')
     })
 
     it('returns submitted status when state is submitted', () => {
-      const status = getSubmissionStatus(false, false, 'submitted', null)
+      const status = getSubmissionStatus(makeItem({state: 'submitted'}))
       expect(status.type).toBe('submitted')
       expect(status.label).toBe('Submitted')
     })
 
     it('returns submitted status when state is graded', () => {
-      const status = getSubmissionStatus(false, false, 'graded', null)
+      const status = getSubmissionStatus(makeItem({state: 'graded'}))
       expect(status.type).toBe('submitted')
       expect(status.label).toBe('Submitted')
     })
 
     it('returns pending review status when state is pending_review', () => {
-      const status = getSubmissionStatus(false, false, 'pending_review', null)
+      const status = getSubmissionStatus(makeItem({state: 'pending_review'}))
       expect(status.type).toBe('pending_review')
       expect(status.label).toBe('Pending Review')
     })
@@ -75,26 +94,26 @@ describe('CourseWorkWidget utils', () => {
       tomorrow.setHours(15, 30, 0, 0) // 3:30 PM
       const tomorrowDate = tomorrow.toISOString()
 
-      const status = getSubmissionStatus(false, false, 'unsubmitted', tomorrowDate)
+      const status = getSubmissionStatus(makeItem({state: 'unsubmitted', dueAt: tomorrowDate}))
       expect(status.type).toBe('due_soon')
       expect(status.label).toBe('Tomorrow 3:30 PM')
     })
 
     it('returns not submitted status as default', () => {
-      const status = getSubmissionStatus(false, false, 'unsubmitted', null)
+      const status = getSubmissionStatus(makeItem({state: 'unsubmitted'}))
       expect(status.type).toBe('not_submitted')
       expect(status.label).toBe('Not Submitted')
     })
 
-    it('returns submitted status for excused submission', () => {
-      // Canvas sets missing=false for excused submissions; state='graded' → submitted pill
-      const status = getSubmissionStatus(false, false, 'graded', null)
-      expect(status.type).toBe('submitted')
+    it('returns excused status when excused is true', () => {
+      const status = getSubmissionStatus(makeItem({excused: true, state: 'graded'}))
+      expect(status.type).toBe('excused')
+      expect(status.label).toBe('Excused')
     })
 
     it('submission status is determined by state alone, not by planner override', () => {
       // PlannerOverride.marked_complete has no effect on the CW pill
-      const status = getSubmissionStatus(false, false, 'unsubmitted', null)
+      const status = getSubmissionStatus(makeItem({state: 'unsubmitted'}))
       expect(status.type).toBe('not_submitted')
     })
   })

@@ -36,13 +36,7 @@ interface CourseWorkItemProps {
 
 export function CourseWorkItem({item}: CourseWorkItemProps) {
   const {isDark} = useWidgetTheme()
-  const submissionStatus = getSubmissionStatus(
-    item.late,
-    item.missing,
-    item.state,
-    item.dueAt,
-    isDark,
-  )
+  const submissionStatus = getSubmissionStatus(item, isDark)
   const {isMobile} = useResponsiveContext()
 
   return (

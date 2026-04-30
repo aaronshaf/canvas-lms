@@ -38,6 +38,7 @@ export interface CourseWorkItem {
   type: 'assignment' | 'quiz' | 'discussion'
   late: boolean
   missing: boolean
+  excused: boolean
   state: string
 }
 
@@ -295,6 +296,7 @@ export async function fetchCourseWorkPage(
       type: determineItemType(assignment),
       late: submission.late || false,
       missing: submission.missing || false,
+      excused: submission.excused || false,
       state: submission.state || 'not_submitted',
     }
   })
@@ -393,6 +395,7 @@ export function useCourseWork(options: UseCourseWorkOptions = {}) {
           type: determineItemType(assignment),
           late: submission.late || false,
           missing: submission.missing || false,
+          excused: submission.excused || false,
           state: submission.state || 'not_submitted',
         }
       })

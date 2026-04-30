@@ -62,12 +62,21 @@ const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false
   const buttonRef = useRef<HTMLButtonElement | null>(null)
   const previousLoadingRef = useRef<boolean>(false)
 
+  const isSubmissionObject = typeof item.submissions === 'object'
+
+  const isExcused = item.submissions && isSubmissionObject && item.submissions.excused === true
+
   const isMarkedComplete = item.planner_override
     ? item.planner_override.marked_complete
     : item.submissions &&
-      typeof item.submissions === 'object' &&
+      isSubmissionObject &&
       item.submissions.submitted &&
       !item.submissions.redo_request
+
+  // Excused items default to "complete" unless the student has explicitly
+  // opted them back in by setting marked_complete: false on the override.
+  const isExcusedAndNotOptedBack = isExcused && !(item.planner_override?.marked_complete === false)
+  const effectiveComplete = !!(isMarkedComplete || isExcusedAndNotOptedBack)
 
   // For planner notes, course_id may be in plannable.course_id instead of item.course_id
   const courseId = item.course_id || item.plannable.course_id
@@ -82,7 +91,7 @@ const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false
   const handleCheckboxClick = () => {
     toggleComplete({
       item,
-      markedComplete: !isMarkedComplete,
+      markedComplete: !effectiveComplete,
     })
   }
 
@@ -117,7 +126,7 @@ const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false
             <Text
               weight="bold"
               wrap="break-word"
-              color={isMarkedComplete ? 'secondary' : undefined}
+              color={effectiveComplete ? 'secondary' : undefined}
             >
               {item.plannable.title}
             </Text>
@@ -148,7 +157,11 @@ const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false
 
         <Flex.Item overflowY="visible">
           <Text size="small">
-            {isItemClosed ? (
+            {isExcused ? (
+              <Text size="small" color="success">
+                {I18n.t('Excused')}
+              </Text>
+            ) : isItemClosed ? (
               <Text size="small" color="secondary">
                 {I18n.t('Closed')}
               </Text>
@@ -189,13 +202,13 @@ const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false
               elementRef={(el: Element | null) => {
                 buttonRef.current = el as HTMLButtonElement | null
               }}
-              color={isMarkedComplete ? 'success' : 'secondary'}
-              renderIcon={isMarkedComplete ? <IconCheckLine /> : <IconCheckPlusLine />}
+              color={effectiveComplete ? 'success' : 'secondary'}
+              renderIcon={effectiveComplete ? <IconCheckLine /> : <IconCheckPlusLine />}
               onClick={handleCheckboxClick}
               data-testid={`todo-checkbox-${item.plannable_id}`}
               interaction={readOnly ? 'disabled' : 'enabled'}
               themeOverride={
-                isDark && !isMarkedComplete
+                isDark && !effectiveComplete
                   ? {
                       secondaryBackground: colors.inputBackground,
                       secondaryBorderColor: colors.border,
@@ -208,12 +221,12 @@ const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false
             >
               <AccessibleContent
                 alt={
-                  isMarkedComplete
+                  effectiveComplete
                     ? I18n.t('Mark %{title} as incomplete', {title: item.plannable.title})
                     : I18n.t('Mark %{title} as complete', {title: item.plannable.title})
                 }
               >
-                {isMarkedComplete ? I18n.t('Done') : I18n.t('Mark as done')}
+                {effectiveComplete ? I18n.t('Done') : I18n.t('Mark as done')}
               </AccessibleContent>
             </Button>
           )}

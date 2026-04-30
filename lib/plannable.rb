@@ -21,10 +21,58 @@
 module Plannable
   ACTIVE_WORKFLOW_STATES = ["active", "published"].freeze
 
+  # Shared WHERE clause used in excused-submission subqueries.
+  # Ensures a planner_override with marked_complete: false (the student
+  # explicitly opting back in) is respected and lets the item through.
+  OVERRIDE_NOT_OPTED_BACK_IN = "planner_overrides.marked_complete IS NOT FALSE"
+
   # Reduces an array of AR scopes into an Arel UNION node.
   # Using Arel avoids string-based SQL interpolation (which triggers brakeman warnings).
   def self.union_arel(*scopes)
-    scopes.flat_map { |s| s.is_a?(Array) ? s : [s] }.map(&:arel).reduce { |acc, a| Arel::Nodes::Union.new(acc, a) }
+    scopes.flat_map { |s| s.is_a?(Array) ? s : [s] }.map(&:arel).reduce { |acc, a| Arel::Nodes::UnionAll.new(acc, a) }
+  end
+
+  # Builds the LEFT JOIN SQL for planner_overrides used in excused-submission
+  # subqueries.
+  #
+  # Why a raw string and not Arel (unlike union_arel above)?
+  # The join condition references columns from two unrelated tables
+  # (submissions/assignments AND planner_overrides) with no AR association
+  # between them, so there is no scope-chain or Arel node we can .merge into.
+  # plannable_type and user_id are passed as bind parameters via sanitize_sql_array
+  # so PG can reuse query plans across users.
+  # plannable_id_column must be a trusted column reference (e.g.
+  # "submissions.assignment_id"), never user-supplied input.
+  def self.excused_planner_override_join_sql(plannable_id_column, plannable_type, user)
+    condition = PlannerOverride.sanitize_sql_array(
+      ["planner_overrides.plannable_id = #{plannable_id_column}
+       AND planner_overrides.plannable_type = ?
+       AND planner_overrides.user_id = ?
+       AND planner_overrides.workflow_state <> 'deleted'",
+       plannable_type,
+       user.id_for_database]
+    )
+    "LEFT JOIN #{PlannerOverride.quoted_table_name} ON #{condition}"
+  end
+
+  def self.excused_submission_subquery(user)
+    Submission.where(user:)
+              .where("submissions.assignment_id = assignments.id")
+              .where(excused: true)
+              .where.not(workflow_state: "deleted")
+              .joins(excused_planner_override_join_sql("submissions.assignment_id", "Assignment", user))
+              .where(OVERRIDE_NOT_OPTED_BACK_IN)
+  end
+
+  # Excused assignments surface in the Completed filter so students can
+  # bring them back via the planner toggle if needed.
+  def self.excused_ids_for_complete(klass, user)
+    klass.joins(:submissions)
+         .joins(excused_planner_override_join_sql("#{klass.table_name}.id", klass.name, user))
+         .where(submissions: { user_id: user.id, excused: true })
+         .where.not(submissions: { workflow_state: "deleted" })
+         .where(OVERRIDE_NOT_OPTED_BACK_IN)
+         .select("DISTINCT #{klass.table_name}.id")
   end
 
   def self.submittable_override_assignment_scopes(user, marked_complete:)
@@ -59,15 +107,15 @@ module Plannable
             end
           end
 
+          scope = scope.where.not(Plannable.excused_submission_subquery(user).arel.exists)
+
           submission_scope = Submission.where(user:)
                                        .where("submissions.assignment_id = assignments.id")
                                        .where.not(submitted_at: nil)
+                                       .where.not(workflow_state: "deleted")
                                        .where(redo_request: [false, nil])
-                                       .joins("LEFT JOIN #{PlannerOverride.quoted_table_name} ON
-                                               planner_overrides.plannable_id = submissions.assignment_id
-                                               AND planner_overrides.plannable_type = 'Assignment'
-                                               AND planner_overrides.user_id = #{user.id}")
-                                       .where("planner_overrides.marked_complete IS NOT FALSE")
+                                       .joins(Plannable.excused_planner_override_join_sql("submissions.assignment_id", "Assignment", user))
+                                       .where(OVERRIDE_NOT_OPTED_BACK_IN)
           if Account.site_admin.feature_enabled?(:planner_submittable_completion_filter)
             Plannable.submittable_override_assignment_scopes(user, marked_complete: false).each do |subquery|
               submission_scope = submission_scope.where.not(assignment_id: subquery)
@@ -102,24 +150,26 @@ module Plannable
           # Use UNION for better performance on large submissions tables
           submitted_ids = klass
                           .joins(:submissions)
-                          .joins("LEFT JOIN #{PlannerOverride.quoted_table_name} ON
-                                  planner_overrides.plannable_id = #{klass.table_name}.id
-                                  AND planner_overrides.plannable_type = '#{klass.name}'
-                                  AND planner_overrides.user_id = #{user.id}")
+                          .joins(Plannable.excused_planner_override_join_sql("#{klass.table_name}.id", klass.name, user))
                           .where(submissions: { user_id: user.id })
                           .where.not(submissions: { submitted_at: nil })
                           .where(submissions: { redo_request: [false, nil] })
-                          .where("planner_overrides.marked_complete IS NOT FALSE")
+                          .where(OVERRIDE_NOT_OPTED_BACK_IN)
                           .select("#{klass.table_name}.id")
+
+          # Excused assignments appear in the Completed filter so students can
+          # find and bring them back via the planner toggle if needed.
+          excused_ids = Plannable.excused_ids_for_complete(klass, user)
+
           if Account.site_admin.feature_enabled?(:planner_submittable_completion_filter)
             Plannable.submittable_override_assignment_scopes(user, marked_complete: false).each do |subquery|
               submitted_ids = submitted_ids.where.not(id: subquery)
             end
 
             submittable_scopes = Plannable.submittable_override_assignment_scopes(user, marked_complete: true)
-            where(klass.arel_table[:id].in(Plannable.union_arel(overridden_complete_ids, submitted_ids, submittable_scopes)))
+            where(klass.arel_table[:id].in(Plannable.union_arel(overridden_complete_ids, submitted_ids, submittable_scopes, excused_ids)))
           else
-            where(klass.arel_table[:id].in(Plannable.union_arel(overridden_complete_ids, submitted_ids)))
+            where(klass.arel_table[:id].in(Plannable.union_arel(overridden_complete_ids, submitted_ids, excused_ids)))
           end
         else
           where(id: overridden_complete_ids)

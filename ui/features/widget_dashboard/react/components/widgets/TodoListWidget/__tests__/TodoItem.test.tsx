@@ -470,6 +470,124 @@ describe('TodoItem', () => {
     })
   })
 
+  describe('excused item display', () => {
+    const excusedSubmission = {
+      submitted: false,
+      excused: true,
+      graded: false,
+      late: false,
+      missing: false,
+      needs_grading: false,
+      has_feedback: false,
+      redo_request: false,
+    }
+
+    const excusedOptedBackOverride = {
+      id: 1,
+      plannable_type: 'assignment',
+      plannable_id: '1',
+      user_id: 1,
+      workflow_state: 'active',
+      marked_complete: false,
+      dismissed: false,
+      deleted_at: null,
+      created_at: '2025-01-01T00:00:00Z',
+      updated_at: '2025-01-01T00:00:00Z',
+    }
+
+    it('shows Excused badge when submission is excused and no planner_override', () => {
+      const item = {
+        ...mockPlannerItems[0],
+        submissions: excusedSubmission,
+        planner_override: null,
+      }
+      renderWithProvider(<TodoItem item={item} />)
+
+      expect(screen.getByText('Excused')).toBeInTheDocument()
+    })
+
+    it('still shows Excused badge when excused and planner_override marked_complete is false', () => {
+      const item = {
+        ...mockPlannerItems[0],
+        submissions: excusedSubmission,
+        planner_override: excusedOptedBackOverride,
+      }
+      renderWithProvider(<TodoItem item={item} />)
+
+      expect(screen.getByText('Excused')).toBeInTheDocument()
+    })
+
+    it('shows Done and dims title when excused with no override (effectively complete)', () => {
+      const item = {
+        ...mockPlannerItems[0],
+        submissions: excusedSubmission,
+        planner_override: null,
+      }
+      renderWithProvider(<TodoItem item={item} />)
+
+      expect(screen.getByText('Done')).toBeInTheDocument()
+      const link = screen.getByTestId(`todo-link-${item.plannable_id}`)
+      expect(link.querySelector('span')).toHaveAttribute('color', 'secondary')
+    })
+
+    it('button is enabled for excused items with no override', () => {
+      const item = {
+        ...mockPlannerItems[0],
+        submissions: excusedSubmission,
+        planner_override: null,
+      }
+      renderWithProvider(<TodoItem item={item} />)
+
+      expect(screen.getByTestId(`todo-checkbox-${item.plannable_id}`)).toBeEnabled()
+    })
+
+    it('screen reader label says "Mark as incomplete" for excused with no override', () => {
+      const item = {
+        ...mockPlannerItems[0],
+        submissions: excusedSubmission,
+        planner_override: null,
+      }
+      renderWithProvider(<TodoItem item={item} />)
+
+      expect(screen.getByText('Mark Lab Report: Cell Structure as incomplete')).toBeInTheDocument()
+    })
+
+    it('shows Mark as done and unset title color when opted back in (marked_complete: false)', () => {
+      const item = {
+        ...mockPlannerItems[0],
+        submissions: excusedSubmission,
+        planner_override: excusedOptedBackOverride,
+      }
+      renderWithProvider(<TodoItem item={item} />)
+
+      expect(screen.getByText('Mark as done')).toBeInTheDocument()
+      const link = screen.getByTestId(`todo-link-${item.plannable_id}`)
+      expect(link.querySelector('span')).not.toHaveAttribute('color', 'secondary')
+    })
+
+    it('button is enabled for excused items with marked_complete: false override', () => {
+      const item = {
+        ...mockPlannerItems[0],
+        submissions: excusedSubmission,
+        planner_override: excusedOptedBackOverride,
+      }
+      renderWithProvider(<TodoItem item={item} />)
+
+      expect(screen.getByTestId(`todo-checkbox-${item.plannable_id}`)).toBeEnabled()
+    })
+
+    it('screen reader label says "Mark as complete" when opted back in', () => {
+      const item = {
+        ...mockPlannerItems[0],
+        submissions: excusedSubmission,
+        planner_override: excusedOptedBackOverride,
+      }
+      renderWithProvider(<TodoItem item={item} />)
+
+      expect(screen.getByText('Mark Lab Report: Cell Structure as complete')).toBeInTheDocument()
+    })
+  })
+
   describe('closed item display', () => {
     it('shows "Closed" when lock_at is in the past', () => {
       const pastDate = new Date()

@@ -160,6 +160,23 @@ describe Plannable do
 
       expect(Assignment.published.complete_for_planner(@student)).not_to include(assignment)
     end
+
+    context "with an excused submission" do
+      before :once do
+        @excused_assignment = assignment_model(course: @course, due_at: 1.week.from_now)
+        @excused_assignment.grade_student(@student, grader: @teacher, excused: true)
+      end
+
+      it "includes excused assignments so students can find and bring them back" do
+        expect(Assignment.published.complete_for_planner(@student)).to include(@excused_assignment)
+      end
+
+      it "excludes excused assignment when student has marked it incomplete to bring it back" do
+        @excused_assignment.planner_overrides.create!(user: @student, marked_complete: false)
+
+        expect(Assignment.published.complete_for_planner(@student)).not_to include(@excused_assignment)
+      end
+    end
   end
 
   context "incomplete_for_planner scope" do
@@ -246,6 +263,35 @@ describe Plannable do
       assignment.planner_overrides.create!(user: @student, marked_complete: true)
 
       expect(Assignment.published.incomplete_for_planner(@student)).not_to include(assignment)
+    end
+
+    context "with an excused submission" do
+      before :once do
+        @excused_assignment = assignment_model(course: @course, due_at: 1.week.from_now)
+        @excused_assignment.grade_student(@student, grader: @teacher, excused: true)
+      end
+
+      it "excludes excused assignments" do
+        expect(Assignment.published.incomplete_for_planner(@student)).not_to include(@excused_assignment)
+      end
+
+      it "includes excused assignment when planner override marked_complete is false" do
+        @excused_assignment.planner_overrides.create!(user: @student, marked_complete: false)
+
+        expect(Assignment.published.incomplete_for_planner(@student)).to include(@excused_assignment)
+      end
+    end
+
+    context "with an excused SubAssignment" do
+      before :once do
+        parent = @course.assignments.create!(title: "peer review parent", peer_reviews: true, points_possible: 10)
+        @sub_assignment = PeerReviewSubAssignment.create!(context: @course, parent_assignment: parent, title: "peer review", points_possible: 10)
+        @sub_assignment.grade_student(@student, grader: @teacher, excused: true)
+      end
+
+      it "excludes excused sub-assignments" do
+        expect(SubAssignment.incomplete_for_planner(@student)).not_to include(@sub_assignment)
+      end
     end
   end
 

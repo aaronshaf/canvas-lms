@@ -188,6 +188,7 @@ describe('useCourseWork', () => {
         type: 'quiz',
         late: false,
         missing: false,
+        excused: false,
         state: 'unsubmitted',
       },
       {
@@ -200,6 +201,7 @@ describe('useCourseWork', () => {
         type: 'assignment',
         late: false,
         missing: false,
+        excused: false,
         state: 'unsubmitted',
       },
       {
@@ -212,6 +214,7 @@ describe('useCourseWork', () => {
         type: 'discussion',
         late: false,
         missing: false,
+        excused: false,
         state: 'unsubmitted',
       },
     ]
