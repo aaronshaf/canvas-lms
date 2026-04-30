@@ -2449,7 +2449,7 @@ class Submission < ApplicationRecord
   scope :referencing_attachment, lambda { |attachment| # you can also provide an attachment ID
     where(
       "submissions.attachment_id = ? " \
-      "OR ? = ANY(regexp_split_to_array(NULLIF(submissions.attachment_ids, ''), ',')::INT8[])",
+      "OR (submissions.attachment_ids IS NOT NULL AND ? = ANY(string_to_array(submissions.attachment_ids, ',')::INT8[]))",
       attachment,
       attachment
     )

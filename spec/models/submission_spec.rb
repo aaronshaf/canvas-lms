@@ -9906,6 +9906,25 @@ describe Submission do
       it "can be passed an attachment object instead of an attachment id" do
         expect(Submission.referencing_attachment(first_attempt_attachment)).to include(submission)
       end
+
+      it "gracefully handles submissions with NULL attachment_ids" do
+        student = User.create!
+        @course.enroll_student(student, enrollment_state: :active)
+        submission = @assignment.submissions.find_by(user: student)
+        expect(submission.attachment_ids).to be_nil
+        expect(Submission.where(id: submission.id).referencing_attachment(first_attempt_attachment)).to be_empty
+      end
+
+      it "works when attachment_ids stores multiple ids" do
+        additional_attachment = Attachment.create!(
+          uploaded_data: StringIO.new("attempt 2, attachment 2"),
+          context: @user,
+          filename: "attempt2_at2.txt"
+        )
+        @assignment.submit_homework(@user, attachments: [second_attempt_attachment, additional_attachment])
+        expect(Submission.referencing_attachment(second_attempt_attachment.id)).to include(submission)
+        expect(Submission.referencing_attachment(additional_attachment.id)).to include(submission)
+      end
     end
 
     describe "scope: referencing_linked_attachment" do
