@@ -969,7 +969,6 @@ module ApplicationHelper
         if attachment.is_a?(Attachment)
           case attachment.context_type
           when "User"
-            # search for an attachment association
             submissions = Submission.referencing_linked_attachment(attachment).to_a
             ActiveRecord::Associations.preload(
               submissions,
