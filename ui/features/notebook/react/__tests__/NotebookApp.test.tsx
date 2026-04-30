@@ -64,7 +64,6 @@ vi.mock('@canvas/notebook', () => ({
   notebookTranslations: {},
   notebookTranslate: vi.fn((key: string) => key),
   HIGHLIGHT_THEME: {},
-  CARD_THEME: {},
 }))
 
 describe('NotebookApp', () => {

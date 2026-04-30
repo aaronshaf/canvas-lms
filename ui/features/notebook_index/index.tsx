@@ -16,9 +16,14 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React from 'react'
+import {render} from '@canvas/react'
 import ready from '@instructure/ready'
+import NotebookIndexPage from './react/NotebookIndexPage'
 
 ready(() => {
   const mount = document.getElementById('notebook_index_mount_point')
   if (!mount) return
+
+  render(<NotebookIndexPage />, mount)
 })

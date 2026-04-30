@@ -35,7 +35,6 @@ import {
   notebookTranslations,
   notebookTranslate,
   HIGHLIGHT_THEME,
-  CARD_THEME,
 } from '@canvas/notebook'
 import {Button} from '@instructure/ui-buttons'
 import {IconNoteLine} from '@instructure/ui-icons'
@@ -138,7 +137,6 @@ function NotebookTrayContent() {
       onNoteTypeChange={handleTypeChange}
       columnCount={1}
       highlightTheme={HIGHLIGHT_THEME}
-      cardTheme={CARD_THEME}
     />
   )
 }

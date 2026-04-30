@@ -17,7 +17,7 @@
  */
 
 import {canvas} from '@instructure/ui-themes'
-import type {HighlightTheme, NoteCardTheme} from '@instructure/platform-notebook'
+import type {HighlightTheme} from '@instructure/platform-notebook'
 
 export const HIGHLIGHT_THEME: HighlightTheme = {
   colors: {
@@ -28,9 +28,4 @@ export const HIGHLIGHT_THEME: HighlightTheme = {
   },
   borderWidthSmall: '0.0625rem',
   underlineOffset: '0.125rem',
-}
-
-export const CARD_THEME: NoteCardTheme = {
-  importantBorderColor: canvas.colors.contrasts.blue4570,
-  confusingBorderColor: canvas.colors.contrasts.red4570,
 }

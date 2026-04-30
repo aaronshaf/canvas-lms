@@ -18,4 +18,4 @@
 
 export {CanvasNotebookApi} from './api/CanvasNotebookApi'
 export {notebookTranslations, notebookTranslate} from './react/notebookTranslations'
-export {HIGHLIGHT_THEME, CARD_THEME} from './themes'
+export {HIGHLIGHT_THEME} from './themes'
