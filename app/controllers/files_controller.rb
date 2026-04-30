@@ -786,6 +786,7 @@ class FilesController < ApplicationController
                      STUDY_ASSIST_TOOLS: study_assist_enabled_tools
                    })
             js_bundle :study_assist
+            js_bundle :student_study_drawer
           end
           if attachment.locked_for?(@current_user, check_policies: true)
             render :show, status: :forbidden

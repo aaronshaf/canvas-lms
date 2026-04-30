@@ -146,6 +146,7 @@ class WikiPagesController < ApplicationController
                  })
           js_bundle :notebook
         end
+        js_bundle :student_study_drawer if @show_study_assist || @show_notebook
       end
 
       js_bundle :wiki_page_show

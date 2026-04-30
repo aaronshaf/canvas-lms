@@ -16,7 +16,4 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-export {CanvasNotebookApi} from './api/CanvasNotebookApi'
-export {notebookTranslations, notebookTranslate} from './react/notebookTranslations'
-export {HIGHLIGHT_THEME} from './themes'
-export {NotebookPanel} from './react/NotebookPanel'
+export {StudyAssistPanel} from './react/StudyAssistPanel'

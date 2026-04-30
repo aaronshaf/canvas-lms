@@ -1,0 +1,151 @@
+/*
+ * Copyright (C) 2026 - present Instructure, Inc.
+ *
+ * This file is part of Canvas.
+ *
+ * Canvas is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, version 3 of the License.
+ *
+ * Canvas is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Affero General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+import React, {useCallback, useMemo} from 'react'
+import {
+  NotesListView,
+  useNotebook,
+  useGetNotes,
+  useUpdateNote,
+  useDeleteNote,
+  REACTION_TYPE,
+} from '@instructure/platform-notebook'
+import {useScope as createI18nScope} from '@canvas/i18n'
+import {HIGHLIGHT_THEME} from '../themes'
+import {CloseButton} from '@instructure/ui-buttons'
+import {Flex} from '@instructure/ui-flex'
+import {Heading} from '@instructure/ui-heading'
+
+const I18n = createI18nScope('notebook')
+
+type Props = {
+  onDismiss: () => void
+  closeButtonRef: React.MutableRefObject<Element | null>
+}
+
+type HeaderProps = {
+  onDismiss: () => void
+  closeButtonRef: React.MutableRefObject<Element | null>
+}
+
+function NotebookPanelHeader({onDismiss, closeButtonRef}: HeaderProps) {
+  return (
+    <Flex as="div" padding="small" alignItems="center">
+      <Flex.Item shouldGrow={true}>
+        <Heading level="h3">{I18n.t('Notebook')}</Heading>
+      </Flex.Item>
+      <Flex.Item>
+        <CloseButton
+          elementRef={el => {
+            closeButtonRef.current = el
+          }}
+          onClick={onDismiss}
+          size="small"
+          screenReaderLabel={I18n.t('Close')}
+          data-testid="notebook-close-button"
+        />
+      </Flex.Item>
+    </Flex>
+  )
+}
+
+export function NotebookPanel({onDismiss, closeButtonRef}: Props) {
+  const {api, objectId, objectType, courseId, selectedNoteId, selectNote, clearSelectedNote} =
+    useNotebook()
+
+  const {data, isLoading, isError} = useGetNotes({
+    api,
+    filter: {learningObject: {type: objectType, id: objectId}},
+    courseId,
+    pageSize: 100,
+  })
+
+  const {mutate: updateNote} = useUpdateNote(api)
+  const {mutate: deleteNote} = useDeleteNote(api)
+
+  const notes = useMemo(() => data?.notes ?? [], [data?.notes])
+
+  const handleDelete = useCallback(
+    (noteId: string) => {
+      deleteNote(noteId)
+    },
+    [deleteNote],
+  )
+
+  const handleSave = useCallback(
+    (noteId: string, text: string) => {
+      const note = notes.find(n => n.id === noteId)
+      if (!note) return
+      updateNote({
+        id: noteId,
+        input: {
+          id: noteId,
+          userText: text,
+          reaction: note.reaction,
+          highlightData: note.highlightData,
+        },
+      })
+    },
+    [notes, updateNote],
+  )
+
+  const handleTypeChange = useCallback(
+    (noteId: string, type: REACTION_TYPE) => {
+      const note = notes.find(n => n.id === noteId)
+      if (!note) return
+      updateNote({
+        id: noteId,
+        input: {
+          id: noteId,
+          userText: note.userText,
+          reaction: [type],
+          highlightData: note.highlightData,
+        },
+      })
+    },
+    [notes, updateNote],
+  )
+
+  return (
+    <div
+      data-testid="notebook-panel"
+      style={{
+        width: '25rem',
+        minHeight: '100vh',
+        boxSizing: 'border-box',
+      }}
+    >
+      <NotebookPanelHeader onDismiss={onDismiss} closeButtonRef={closeButtonRef} />
+      <NotesListView
+        notes={notes}
+        isLoading={isLoading}
+        isError={isError}
+        pageInfo={data?.pageInfo}
+        onPreviousPage={() => {}}
+        onNextPage={() => {}}
+        selectedNoteId={selectedNoteId ?? undefined}
+        onNoteSelect={id => (id === selectedNoteId ? clearSelectedNote() : selectNote(id))}
+        onNoteDelete={handleDelete}
+        onNoteSave={handleSave}
+        onNoteTypeChange={handleTypeChange}
+        columnCount={1}
+        highlightTheme={HIGHLIGHT_THEME}
+      />
+    </div>
+  )
+}

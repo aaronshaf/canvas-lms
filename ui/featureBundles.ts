@@ -214,6 +214,7 @@ const featureBundles: {
   submissions: () => import('./features/submissions/index'),
   submit_assignment: () => import('./features/submit_assignment/index'),
   study_assist: () => import('./features/study_assist/index'),
+  student_study_drawer: () => import('./features/student_study_drawer/index'),
   syllabus: () => import('./features/syllabus/index'),
   syllabus_revisions: () => import('./features/syllabus_revisions/index'),
   take_quiz: () => import('./features/take_quiz/index'),

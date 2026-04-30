@@ -19,7 +19,30 @@
 import React from 'react'
 import {render} from '@canvas/react'
 import ready from '@instructure/ready'
-import NotebookApp from './react/NotebookApp'
+import {useScope as createI18nScope} from '@canvas/i18n'
+import {Button} from '@instructure/ui-buttons'
+import {IconNoteLine} from '@instructure/ui-icons'
+
+const I18n = createI18nScope('notebook')
+
+const OPEN_EVENT = 'notebook:open'
+
+function dispatchOpen() {
+  window.dispatchEvent(new CustomEvent(OPEN_EVENT))
+}
+
+function NotebookTrigger() {
+  return (
+    <Button
+      renderIcon={<IconNoteLine />}
+      color="secondary"
+      onClick={dispatchOpen}
+      data-testid="notebook-button"
+    >
+      {I18n.t('Notebook')}
+    </Button>
+  )
+}
 
 ready(() => {
   if (!window.ENV.FEATURES?.notebook) return
@@ -27,5 +50,5 @@ ready(() => {
   const mount = document.getElementById('notebook_mount_point')
   if (!mount) return
 
-  render(<NotebookApp />, mount)
+  render(<NotebookTrigger />, mount)
 })

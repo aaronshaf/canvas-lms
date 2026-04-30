@@ -17,9 +17,9 @@
  */
 
 import React from 'react'
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import StudyAssistTray from '../StudyAssistTray'
+import {StudyAssistPanel} from '../StudyAssistPanel'
 import * as PendoModule from '@canvas/pendo'
 
 const mockAssistContent = vi.fn((_props: object) => <div data-testid="assist-content" />)
@@ -60,9 +60,10 @@ vi.mock('@instructure/platform-study-assist', () => ({
   useAssistContext: () => mockUseAssistContext(),
 }))
 
-describe('StudyAssistTray', () => {
+describe('StudyAssistPanel', () => {
   const onDismiss = vi.fn()
   const fetchAssistResponse = vi.fn()
+  const closeButtonRef = {current: null as Element | null}
 
   beforeEach(() => {
     window.ENV = {
@@ -78,6 +79,7 @@ describe('StudyAssistTray', () => {
     mockTrack.mockClear()
     mockResetChat.mockReset()
     mockUseAssistContext.mockReturnValue({showBackButton: false, resetChat: mockResetChat})
+    closeButtonRef.current = null
   })
 
   afterEach(() => {
@@ -86,56 +88,20 @@ describe('StudyAssistTray', () => {
 
   it('renders the AI information button', () => {
     render(
-      <StudyAssistTray
-        open={true}
+      <StudyAssistPanel
         onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
         fetchAssistResponse={fetchAssistResponse}
       />,
     )
     expect(screen.getByTestId('study-assist-ai-info-button')).toBeInTheDocument()
   })
 
-  it('moves focus to the close button when the tray opens', async () => {
-    const {rerender} = render(
-      <StudyAssistTray
-        open={false}
-        onDismiss={onDismiss}
-        fetchAssistResponse={fetchAssistResponse}
-      />,
-    )
-
-    rerender(
-      <StudyAssistTray
-        open={true}
-        onDismiss={onDismiss}
-        fetchAssistResponse={fetchAssistResponse}
-      />,
-    )
-
-    await waitFor(() => {
-      const closeEl = screen.getByTestId('study-assist-close-button')
-      const button = closeEl.tagName === 'BUTTON' ? closeEl : closeEl.querySelector('button')
-      expect(button).toHaveFocus()
-    })
-  })
-
-  it('renders inside a DrawerLayout so content sits side-by-side with the tray', () => {
+  it('renders the heading', () => {
     render(
-      <StudyAssistTray
-        open={true}
+      <StudyAssistPanel
         onDismiss={onDismiss}
-        fetchAssistResponse={fetchAssistResponse}
-      />,
-    )
-    expect(screen.getByTestId('study-assist-drawer-layout')).toBeInTheDocument()
-    expect(screen.getByTestId('study-assist-drawer-tray')).toBeInTheDocument()
-  })
-
-  it('renders the heading when open', () => {
-    render(
-      <StudyAssistTray
-        open={true}
-        onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
         fetchAssistResponse={fetchAssistResponse}
       />,
     )
@@ -145,9 +111,9 @@ describe('StudyAssistTray', () => {
   it('calls onDismiss when close button is clicked', async () => {
     const user = userEvent.setup()
     render(
-      <StudyAssistTray
-        open={true}
+      <StudyAssistPanel
         onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
         fetchAssistResponse={fetchAssistResponse}
       />,
     )
@@ -157,44 +123,11 @@ describe('StudyAssistTray', () => {
     expect(onDismiss).toHaveBeenCalledTimes(1)
   })
 
-  it('calls onDismiss when Escape is pressed while open', () => {
-    render(
-      <StudyAssistTray
-        open={true}
-        onDismiss={onDismiss}
-        fetchAssistResponse={fetchAssistResponse}
-      />,
-    )
-    window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}))
-    expect(onDismiss).toHaveBeenCalledTimes(1)
-  })
-
-  it('does not call onDismiss on Escape when closed', () => {
-    render(
-      <StudyAssistTray
-        open={false}
-        onDismiss={onDismiss}
-        fetchAssistResponse={fetchAssistResponse}
-      />,
-    )
-    window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}))
-    expect(onDismiss).not.toHaveBeenCalled()
-  })
-
-  it('renders children inside the drawer content', () => {
-    render(
-      <StudyAssistTray open={true} onDismiss={onDismiss} fetchAssistResponse={fetchAssistResponse}>
-        <div data-testid="drawer-page-content" />
-      </StudyAssistTray>,
-    )
-    expect(screen.getByTestId('drawer-page-content')).toBeInTheDocument()
-  })
-
   it('passes WIKI_PAGE_ID as pageId to AssistProvider', () => {
     render(
-      <StudyAssistTray
-        open={true}
+      <StudyAssistPanel
         onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
         fetchAssistResponse={fetchAssistResponse}
       />,
     )
@@ -203,9 +136,9 @@ describe('StudyAssistTray', () => {
 
   it('passes featureSlug="canvas-lms:study-assist" to AssistProvider', () => {
     render(
-      <StudyAssistTray
-        open={true}
+      <StudyAssistPanel
         onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
         fetchAssistResponse={fetchAssistResponse}
       />,
     )
@@ -217,9 +150,9 @@ describe('StudyAssistTray', () => {
 
   it('configures AssistContent for prompts-only mode with filtered prompts', () => {
     render(
-      <StudyAssistTray
-        open={true}
+      <StudyAssistPanel
         onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
         fetchAssistResponse={fetchAssistResponse}
       />,
     )
@@ -238,9 +171,9 @@ describe('StudyAssistTray', () => {
       STUDY_ASSIST_TOOLS: ['Summarize', 'Flashcards'],
     } as any
     render(
-      <StudyAssistTray
-        open={true}
+      <StudyAssistPanel
         onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
         fetchAssistResponse={fetchAssistResponse}
       />,
     )
@@ -257,9 +190,9 @@ describe('StudyAssistTray', () => {
       STUDY_ASSIST_TOOLS: [],
     } as any
     render(
-      <StudyAssistTray
-        open={true}
+      <StudyAssistPanel
         onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
         fetchAssistResponse={fetchAssistResponse}
       />,
     )
@@ -274,9 +207,9 @@ describe('StudyAssistTray', () => {
       STUDY_ASSIST_TOOLS: undefined,
     } as any
     render(
-      <StudyAssistTray
-        open={true}
+      <StudyAssistPanel
         onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
         fetchAssistResponse={fetchAssistResponse}
       />,
     )
@@ -286,9 +219,9 @@ describe('StudyAssistTray', () => {
 
   it('renderFlashCards renders AssistFlashCardsInteraction with cardHeight', () => {
     render(
-      <StudyAssistTray
-        open={true}
+      <StudyAssistPanel
         onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
         fetchAssistResponse={fetchAssistResponse}
       />,
     )
@@ -315,9 +248,9 @@ describe('StudyAssistTray', () => {
 
   it('renderFlashCards forwards onAnalyticsEvent so flashcard thumbs fire Pendo events', async () => {
     render(
-      <StudyAssistTray
-        open={true}
+      <StudyAssistPanel
         onDismiss={onDismiss}
+        closeButtonRef={closeButtonRef}
         fetchAssistResponse={fetchAssistResponse}
       />,
     )
@@ -345,9 +278,9 @@ describe('StudyAssistTray', () => {
   describe('analytics events', () => {
     it('passes handleAnalyticsEvent to AssistContent', () => {
       render(
-        <StudyAssistTray
-          open={true}
+        <StudyAssistPanel
           onDismiss={onDismiss}
+          closeButtonRef={closeButtonRef}
           fetchAssistResponse={fetchAssistResponse}
         />,
       )
@@ -359,9 +292,9 @@ describe('StudyAssistTray', () => {
 
     it('tracks thumbs up event with correct Pendo event name', async () => {
       render(
-        <StudyAssistTray
-          open={true}
+        <StudyAssistPanel
           onDismiss={onDismiss}
+          closeButtonRef={closeButtonRef}
           fetchAssistResponse={fetchAssistResponse}
         />,
       )
@@ -376,9 +309,9 @@ describe('StudyAssistTray', () => {
 
     it('tracks thumbs down event with correct Pendo event name', async () => {
       render(
-        <StudyAssistTray
-          open={true}
+        <StudyAssistPanel
           onDismiss={onDismiss}
+          closeButtonRef={closeButtonRef}
           fetchAssistResponse={fetchAssistResponse}
         />,
       )
@@ -393,9 +326,9 @@ describe('StudyAssistTray', () => {
 
     it('tracks prompt click events with correct Pendo event name', async () => {
       render(
-        <StudyAssistTray
-          open={true}
+        <StudyAssistPanel
           onDismiss={onDismiss}
+          closeButtonRef={closeButtonRef}
           fetchAssistResponse={fetchAssistResponse}
         />,
       )
@@ -410,9 +343,9 @@ describe('StudyAssistTray', () => {
 
     it('tracks citation link click events with correct Pendo event name', async () => {
       render(
-        <StudyAssistTray
-          open={true}
+        <StudyAssistPanel
           onDismiss={onDismiss}
+          closeButtonRef={closeButtonRef}
           fetchAssistResponse={fetchAssistResponse}
         />,
       )
@@ -429,9 +362,9 @@ describe('StudyAssistTray', () => {
   describe('back button', () => {
     it('is not visible when showBackButton is false', () => {
       render(
-        <StudyAssistTray
-          open={true}
+        <StudyAssistPanel
           onDismiss={onDismiss}
+          closeButtonRef={closeButtonRef}
           fetchAssistResponse={fetchAssistResponse}
         />,
       )
@@ -441,9 +374,9 @@ describe('StudyAssistTray', () => {
     it('is visible when showBackButton is true', () => {
       mockUseAssistContext.mockReturnValue({showBackButton: true, resetChat: mockResetChat})
       render(
-        <StudyAssistTray
-          open={true}
+        <StudyAssistPanel
           onDismiss={onDismiss}
+          closeButtonRef={closeButtonRef}
           fetchAssistResponse={fetchAssistResponse}
         />,
       )
@@ -454,9 +387,9 @@ describe('StudyAssistTray', () => {
       const user = userEvent.setup()
       mockUseAssistContext.mockReturnValue({showBackButton: true, resetChat: mockResetChat})
       render(
-        <StudyAssistTray
-          open={true}
+        <StudyAssistPanel
           onDismiss={onDismiss}
+          closeButtonRef={closeButtonRef}
           fetchAssistResponse={fetchAssistResponse}
         />,
       )
