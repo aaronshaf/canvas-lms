@@ -304,4 +304,25 @@ describe('DeveloperKey', () => {
       expect(getByText(defaultProps.developerKey.api_key)).toBeInTheDocument()
     })
   })
+
+  describe('when api_key is truncated', () => {
+    const truncatedProps = {
+      ...defaultProps,
+      developerKey: {
+        ...defaultProps.developerKey,
+        api_key: 'rYcJ7...',
+        api_key_truncated: true,
+      },
+    }
+
+    it('hides the Show Key button', () => {
+      const {queryByTestId} = renderComponent(truncatedProps)
+      expect(queryByTestId('show-key')).not.toBeInTheDocument()
+    })
+
+    it('renders the api_key hint inline', () => {
+      const {getByTestId} = renderComponent(truncatedProps)
+      expect(getByTestId('api-key-hint')).toHaveTextContent('rYcJ7...')
+    })
+  })
 })

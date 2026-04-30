@@ -207,6 +207,28 @@ class DeveloperKey < ApplicationRecord
     self.api_key = CanvasSlug.generate(nil, 64) if overwrite || !api_key
   end
 
+  API_KEY_HINT_LENGTH = 5
+
+  def api_key_hint
+    return nil if api_key.blank?
+
+    "#{api_key[0, API_KEY_HINT_LENGTH]}..."
+  end
+
+  def self.secret_grace_window
+    seconds = DynamicSettings.find(tree: :private)[
+      "site_admin_dev_key_secret_grace_window_seconds",
+      failsafe: 900
+    ]&.to_i
+    (seconds.to_i.positive? ? seconds : 900).seconds
+  end
+
+  def within_secret_grace_window?
+    return true unless service_user_id.present?
+
+    created_at.present? && created_at > self.class.secret_grace_window.ago
+  end
+
   def generate_rsa_keypair!(overwrite: false)
     return if public_jwk.present? && !overwrite
 

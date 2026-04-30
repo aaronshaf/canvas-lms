@@ -136,8 +136,10 @@ class DeveloperKey extends React.Component {
     const {developerKey, inherited} = this.props
     const showLinkFlag = window.ENV.FEATURES.lti_link_to_apps_from_developer_keys
     const showLinkToApps = developerKey.is_lti_key && showLinkFlag
-    // hide secret button if inherited, or lti key and flag on
-    const showClientSecret = !(inherited || showLinkToApps)
+    // hide secret button if inherited, lti key with link, or backend
+    // returned only a hint (api_key_truncated) instead of the full secret
+    const showClientSecret =
+      !(inherited || showLinkToApps) && !developerKey.api_key_truncated
 
     return (
       <Table.Row>
@@ -188,6 +190,11 @@ class DeveloperKey extends React.Component {
                     {developerKey.api_key}
                   </View>
                 </Popover>
+              </div>
+            )}
+            {!inherited && developerKey.api_key_truncated && (
+              <div data-testid="api-key-hint" style={{wordBreak: 'break-all'}}>
+                {developerKey.api_key}
               </div>
             )}
             {showLinkToApps && (

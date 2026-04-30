@@ -200,6 +200,49 @@ describe DeveloperKeysController do
             expect(response).to be_not_found
           end
         end
+
+        describe "api_key secret grace window" do
+          let(:flag) { :site_admin_dev_key_secret_grace_window }
+          let(:service_user) { user_model }
+          let!(:key) { DeveloperKey.create!(name: "SA Key", service_user:) }
+
+          it "returns the full api_key when feature flag is disabled" do
+            Account.site_admin.disable_feature!(flag) if Account.site_admin.feature_enabled?(flag)
+            key.update_column(:created_at, 1.hour.ago)
+            get "index", params: { account_id: Account.site_admin.id }, format: :json
+            entry = json_parse(response.body).find { |k| k["id"] == key.global_id }
+            expect(entry["api_key"]).to eq key.api_key
+            expect(entry).not_to have_key("api_key_truncated")
+          end
+
+          context "with the feature flag enabled" do
+            before { Account.site_admin.enable_feature!(flag) }
+
+            it "returns the api_key hint for keys older than the grace window" do
+              key.update_column(:created_at, 1.hour.ago)
+              get "index", params: { account_id: Account.site_admin.id }, format: :json
+              entry = json_parse(response.body).find { |k| k["id"] == key.global_id }
+              expect(entry["api_key"]).to eq key.api_key_hint
+              expect(entry["api_key_truncated"]).to be true
+            end
+
+            it "still returns the full api_key for keys within the grace window" do
+              get "index", params: { account_id: Account.site_admin.id }, format: :json
+              entry = json_parse(response.body).find { |k| k["id"] == key.global_id }
+              expect(entry["api_key"]).to eq key.api_key
+              expect(entry).not_to have_key("api_key_truncated")
+            end
+
+            it "returns the full api_key for aged keys without a service user" do
+              keyless = DeveloperKey.create!(name: "No Service User Key")
+              keyless.update_column(:created_at, 1.hour.ago)
+              get "index", params: { account_id: Account.site_admin.id }, format: :json
+              entry = json_parse(response.body).find { |k| k["id"] == keyless.global_id }
+              expect(entry["api_key"]).to eq keyless.api_key
+              expect(entry).not_to have_key("api_key_truncated")
+            end
+          end
+        end
       end
     end
 
@@ -229,6 +272,15 @@ describe DeveloperKeysController do
       it "cannot create keys for a subaccount" do
         post "create", params: create_params.merge(account_id: sub_account.id)
         expect(response).to be_not_found
+      end
+
+      it "returns the full api_key on creation even when the secret grace window flag is on" do
+        Account.site_admin.enable_feature!(:site_admin_dev_key_secret_grace_window)
+        post "create", params: create_params
+        json_data = response.parsed_body
+        key = DeveloperKey.find(json_data["id"])
+        expect(json_data["api_key"]).to eq key.api_key
+        expect(json_data).not_to have_key("api_key_truncated")
       end
 
       context "when request errors" do

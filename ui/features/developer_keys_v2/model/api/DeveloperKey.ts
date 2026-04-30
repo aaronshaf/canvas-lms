@@ -34,6 +34,7 @@ export interface DeveloperKey {
   account_name: string
   allow_includes: boolean
   api_key: string
+  api_key_truncated?: boolean
   created_at: string
   developer_key_account_binding?: DeveloperKeyAccountBinding
   scopes: Array<LtiScope>

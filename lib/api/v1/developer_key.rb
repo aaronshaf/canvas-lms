@@ -43,7 +43,12 @@ module Api::V1::DeveloperKey
 
     api_json(key, user, session, only: keys_to_show).tap do |hash|
       if (context.grants_right?(user, session, :manage_developer_keys) || user.try(:id) == key.user_id) && !inherited
-        hash["api_key"] = key.api_key
+        if developer_key_secret_suppressed?(key)
+          hash["api_key"] = key.api_key_hint
+          hash["api_key_truncated"] = true
+        else
+          hash["api_key"] = key.api_key
+        end
         hash["redirect_uri"] = key.redirect_uri
         hash["redirect_uris"] = key.redirect_uris.join("\n")
         hash["notes"] = key.notes
@@ -74,5 +79,14 @@ module Api::V1::DeveloperKey
       hash["is_lti_registration"] = key.ims_registration?
       hash["id"] = key.global_id
     end
+  end
+
+  private
+
+  def developer_key_secret_suppressed?(key)
+    return false unless key.owner_account&.site_admin?
+    return false unless Account.site_admin.feature_enabled?(:site_admin_dev_key_secret_grace_window)
+
+    !key.within_secret_grace_window?
   end
 end

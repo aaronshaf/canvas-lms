@@ -487,3 +487,15 @@ canvas_apps_sub_account_access:
       state: allowed_on
     ci:
       state: allowed_on
+site_admin_dev_key_secret_grace_window:
+  state: hidden
+  shadow: true
+  applies_to: SiteAdmin
+  display_name: Site Admin Developer Key Secret Grace Window
+  description: |-
+    On the Site Admin account, hide the full Developer Key client secret
+    (api_key) in API responses except for a short grace window after the
+    key is created. Outside the window, a truncated hint (first 5 chars +
+    "...") is returned instead. The window length is configurable via the
+    DynamicSetting "site_admin_dev_key_secret_grace_window_seconds"
+    (default 900).
