@@ -36,10 +36,20 @@ class SubmissionComment < ApplicationRecord
   ].freeze
   private_constant :AUDITABLE_ATTRIBUTES
 
-  alias_attribute :body, :comment
-
   attr_writer :updating_user
   attr_accessor :grade_posting_in_progress
+
+  def comment
+    Sanitize.clean(super, CanvasSanitize::SANITIZE)
+  end
+
+  def body
+    comment
+  end
+
+  def body=(value)
+    self.comment = value
+  end
 
   belongs_to :root_account, class_name: "Account"
   belongs_to :submission

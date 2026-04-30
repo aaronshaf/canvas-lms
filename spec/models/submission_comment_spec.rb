@@ -1248,5 +1248,43 @@ RSpec.describe SubmissionComment do
       )
       expect(sc.comment).to eq('<a href="#">click me</a>')
     end
+
+    describe "#comment reader" do
+      let(:sc) { @submission.submission_comments.create!(comment: "placeholder", author: @teacher) }
+
+      it "strips disallowed attributes on read when the column was persisted unsanitized" do
+        sc.update_columns(comment: '<object onerror="alert(1)">x</object>')
+        expect(sc.reload.comment).not_to include("onerror")
+        expect(sc.comment).not_to include("alert(1)")
+      end
+
+      it "strips disallowed elements on read when the column was persisted unsanitized" do
+        sc.update_columns(comment: "<script>alert(1)</script>safe text")
+        expect(sc.reload.comment).not_to include("<script>")
+        expect(sc.comment).not_to include("alert(1)")
+        expect(sc.comment).to include("safe text")
+      end
+
+      it "preserves allowed HTML on read" do
+        sc.update_columns(comment: "<p>hello <strong>world</strong></p>")
+        expect(sc.reload.comment).to eql("<p>hello <strong>world</strong></p>")
+      end
+
+      it "leaves plain text unchanged on read" do
+        sc.update_columns(comment: "just a comment")
+        expect(sc.reload.comment).to eql("just a comment")
+      end
+
+      it "sanitizes the body alias the same way" do
+        sc.update_columns(comment: '<object onerror="alert(1)">x</object>')
+        expect(sc.reload.body).not_to include("onerror")
+      end
+
+      it "sanitizes formatted_body the same way" do
+        sc.update_columns(comment: '<object onerror="alert(1)">x</object>')
+        expect(sc.reload.formatted_body).not_to include("onerror")
+        expect(sc.formatted_body).not_to include("alert(1)")
+      end
+    end
   end
 end
