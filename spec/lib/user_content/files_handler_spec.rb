@@ -173,6 +173,25 @@ describe UserContent::FilesHandler do
           result_attachment = handler.send(:attachment)
           expect(result_attachment).to eq replacement_attachment
         end
+
+        context "with old location parameter" do
+          let(:match_part) { "download?location=old_location&amp;wrap=1" }
+
+          it "removes existing location parameters if they exist" do
+            processed_url = UserContent::FilesHandler.new(
+              match: uri_match,
+              context: course,
+              user: current_user,
+              preloaded_attachments: {},
+              is_public:,
+              in_app:,
+              location:
+            ).processed_url
+
+            expect(processed_url).to include "location=#{location}"
+            expect(processed_url).not_to include "location=old_location"
+          end
+        end
       end
     end
 

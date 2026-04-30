@@ -37,10 +37,8 @@ module UserContent
       return unless attachment.present?
 
       query_values = uri.query_values || {}
-
-      if location.nil?
-        query_values.delete(:location)
-      else
+      query_values.delete("location")
+      if location.present?
         query_values[:location] = location
       end
 
@@ -85,7 +83,7 @@ module UserContent
                         end
         return uri unless @attachment
 
-        if match.obj_id != @attachment.id
+        if match.obj_id != @attachment.id.to_s
           uri.path = uri.path.gsub(%r{/(files|media_attachments_iframe)/#{match.obj_id}/}, "/\\1/#{@attachment.id}/")
         end
       end
