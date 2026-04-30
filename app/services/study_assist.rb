@@ -30,6 +30,7 @@ module StudyAssist
 
   class Service
     include HtmlTextHelper
+    include LocaleSelection
 
     MAX_CONTENT_CHARS = 100_000
     MAX_FILE_BYTES = 2.megabytes
@@ -125,10 +126,20 @@ module StudyAssist
     private
 
     def build_chips
-      chips = TOOLS.each_with_object([]) do |(_, cfg), memo|
-        memo << { chip: cfg[:chip_label], prompt: cfg[:chip_label] } if @course.feature_enabled?(cfg[:feature_flag])
+      chips = TOOLS.each_with_object([]) do |(tool_key, cfg), memo|
+        next unless @course.feature_enabled?(cfg[:feature_flag])
+
+        memo << { chip: chip_display_for(tool_key), prompt: cfg[:chip_label] }
       end
       { chips: }
+    end
+
+    def chip_display_for(tool_key)
+      case tool_key
+      when :summarize then I18n.t("study_assist.chips.summarize", default: "Summarize")
+      when :quiz then I18n.t("study_assist.chips.quiz_me", default: "Quiz me")
+      when :flashcards then I18n.t("study_assist.chips.flashcards", default: "Flashcards")
+      end
     end
 
     # --- Content resolution ---
@@ -215,7 +226,8 @@ module StudyAssist
         tool_key,
         content.cache_key_with_version,
         llm_config.name,
-        template_fingerprint
+        template_fingerprint,
+        @locale
       ].join(":")
     end
 
@@ -257,9 +269,14 @@ module StudyAssist
     # --- Per-tool prompt + response ---
 
     def prompt_for_cedar(tool_key, llm_config, content)
-      substitutions = (tool_key == :summarize) ? { KIND: summarize_kind(content) } : {}
+      substitutions = { LOCALE: pretty_locale }
+      substitutions[:KIND] = summarize_kind(content) if tool_key == :summarize
       prompt, = llm_config.generate_prompt_and_options(substitutions:)
       prompt
+    end
+
+    def pretty_locale
+      available_locales[@locale] || "English"
     end
 
     def summarize_kind(content)

@@ -119,6 +119,21 @@ describe StudyAssist::Service do
       result = call_service(prompt: "", state: {})
       expect(result[:chips]).to eq([])
     end
+
+    it "localizes the chip display while keeping the prompt in English for routing" do
+      allow(I18n).to receive(:t).and_call_original
+      allow(I18n).to receive(:t).with("study_assist.chips.summarize", default: "Summarize").and_return("Resumir")
+      allow(I18n).to receive(:t).with("study_assist.chips.quiz_me", default: "Quiz me").and_return("Examinarme")
+      allow(I18n).to receive(:t).with("study_assist.chips.flashcards", default: "Flashcards").and_return("Tarjetas")
+
+      result = call_service(prompt: "", state: {})
+
+      expect(result[:chips]).to eq([
+                                     { chip: "Resumir", prompt: "Summarize" },
+                                     { chip: "Examinarme", prompt: "Quiz me" },
+                                     { chip: "Tarjetas", prompt: "Flashcards" }
+                                   ])
+    end
   end
 
   describe "summarize" do
@@ -144,6 +159,20 @@ describe StudyAssist::Service do
     it "appends a no-preamble instruction to the prompt" do
       expect(CedarClient).to receive(:prompt).with(hash_including(prompt: a_string_including("Start directly"))).and_call_original
       call_service(prompt: "Summarize")
+    end
+
+    it "substitutes the locale into the prompt" do
+      expect(CedarClient).to receive(:prompt).with(
+        hash_including(prompt: a_string_matching(%r{<locale>English[^<]*</locale>}))
+      ).and_call_original
+      call_service(prompt: "Summarize")
+    end
+
+    it "falls back to English when the locale is not recognized" do
+      expect(CedarClient).to receive(:prompt).with(
+        hash_including(prompt: a_string_including("<locale>English</locale>"))
+      ).and_call_original
+      described_class.call(course: @course, user: @student, prompt: "Summarize", state: page_state, locale: "xx-not-a-locale")
     end
 
     it "returns the response text verbatim (stripping only whitespace)" do
@@ -205,6 +234,13 @@ describe StudyAssist::Service do
       expect(result[:quizItems]).to be_an(Array)
     end
 
+    it "substitutes the locale into the prompt" do
+      expect(CedarClient).to receive(:prompt).with(
+        hash_including(prompt: a_string_matching(%r{<locale>English[^<]*</locale>}))
+      ).and_call_original
+      call_service(prompt: "Quiz me")
+    end
+
     it "raises CedarUnavailable when a quiz item is malformed" do
       stub_cedar([{ question: "Q", options: [] }].to_json)
       expect { call_service(prompt: "Quiz me") }.to raise_error(StudyAssist::CedarUnavailable)
@@ -240,6 +276,13 @@ describe StudyAssist::Service do
     it "handles the 'Generate flashcards' regenerate prompt" do
       result = call_service(prompt: "Generate flashcards")
       expect(result[:flashCards]).to be_an(Array)
+    end
+
+    it "substitutes the locale into the prompt" do
+      expect(CedarClient).to receive(:prompt).with(
+        hash_including(prompt: a_string_matching(%r{<locale>English[^<]*</locale>}))
+      ).and_call_original
+      call_service(prompt: "Flashcards")
     end
 
     it "raises CedarUnavailable when flashcards payload is empty" do
@@ -330,6 +373,12 @@ describe StudyAssist::Service do
       expect(CedarClient).to receive(:prompt).twice.and_call_original
       call_service(prompt: "Summarize")
       call_service(prompt: "Summarize", regenerate: true)
+    end
+
+    it "scopes the cache key by locale" do
+      expect(CedarClient).to receive(:prompt).twice.and_call_original
+      described_class.call(course: @course, user: @student, prompt: "Summarize", state: page_state, locale: "en")
+      described_class.call(course: @course, user: @student, prompt: "Summarize", state: page_state, locale: "es")
     end
 
     it "treats 'Generate quiz' as an implicit regenerate, busting the cache" do
