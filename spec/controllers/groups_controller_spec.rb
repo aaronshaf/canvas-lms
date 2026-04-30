@@ -484,6 +484,49 @@ describe GroupsController do
       expect(assigns[:previous_groups]).to eq([@group])
     end
 
+    it 'puts groups in active courses where student is hard-concluded in "previous groups"' do
+      group_with_user(group_context: @course, user: @student, active_all: true)
+      @student.enrollments.where(course: @course).first.conclude
+      user_session(@student)
+      get "index"
+      expect(assigns[:current_groups]).to eq([])
+      expect(assigns[:previous_groups]).to eq([@group])
+    end
+
+    context "with cross-shard groups" do
+      specs_require_sharding
+
+      before :once do
+        local_course = @course
+        group_with_user(group_context: local_course, user: @student, active_all: true)
+        @local_group = @group
+
+        @shard1.activate do
+          remote_account = Account.create!
+          @remote_course = course_with_student(account: remote_account, user: @student, active_all: true).course
+          group_with_user(group_context: @remote_course, user: @student, active_all: true)
+          @remote_group = @group
+        end
+      end
+
+      it "puts cross-shard groups in active courses in current_groups" do
+        user_session(@student)
+        get "index"
+        expect(assigns[:current_groups]).to match_array([@local_group, @remote_group])
+        expect(assigns[:previous_groups]).to eq([])
+      end
+
+      it "moves a cross-shard group to previous_groups when the student is hard-concluded on that shard" do
+        @shard1.activate do
+          Enrollment.where(user_id: @student, course_id: @remote_course).first.conclude
+        end
+        user_session(@student)
+        get "index"
+        expect(assigns[:current_groups]).to eq([@local_group])
+        expect(assigns[:previous_groups]).to eq([@remote_group])
+      end
+    end
+
     describe "pagination" do
       before :once do
         group_with_user(group_context: @course, user: @student, active_all: true)

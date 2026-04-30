@@ -255,9 +255,23 @@ class GroupsController < ApplicationController
         groups.select! { |group| group.context_type != "Course" || group.context.grants_right?(@current_user, :read) }
         groups.sort_by! { |group| Canvas::ICU.collation_key(group&.name) }
 
-        # Split the groups out into those in concluded courses and those not in concluded courses
+        # Split the groups out into those in concluded courses and those not in concluded courses.
+        # Query enrollments per-shard so users with cross-shard group memberships are partitioned correctly.
+        courses = groups.filter_map { |g| g.context if g.context_type == "Course" }
+        active_course_global_ids = Set.new
+        Shard.partition_by_shard(courses, ->(c) { c.shard }) do |shard_courses|
+          @current_user.enrollments
+                       .shard(Shard.current)
+                       .where(course_id: shard_courses.map(&:id))
+                       .active_or_pending
+                       .distinct
+                       .pluck(:course_id)
+                       .each { |id| active_course_global_ids << Shard.global_id_for(id) }
+        end
         @current_groups, @previous_groups = groups.partition do |group|
-          group.context_type != "Course" || !group.context.concluded?("StudentEnrollment")
+          next true if group.context_type != "Course"
+
+          !group.context.concluded?("StudentEnrollment") && active_course_global_ids.include?(group.context.global_id)
         end
       end
 
