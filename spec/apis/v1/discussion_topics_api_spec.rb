@@ -1602,9 +1602,9 @@ describe DiscussionTopicsController, type: :request do
                  { controller: "discussion_topics", action: "update", format: "json", course_id: @course.to_param, topic_id: @topic.to_param },
                  { message: aa_test_data.added_html })
         aas = AttachmentAssociation.where(context_type: "DiscussionTopic", context_id: @topic.id)
-        expect(aas.count).to eq 2
+        expect(aas.count).to eq 3
         attachment_ids = aas.pluck(:attachment_id)
-        expect(attachment_ids).to match_array [aa_test_data.attachment1.id, aa_test_data.attachment2.id]
+        expect(attachment_ids).to match_array [aa_test_data.attachment1.id, aa_test_data.attachment2.id, @attachment.id]
       end
 
       it "updates attachment associations when no file is attached" do
@@ -1619,7 +1619,8 @@ describe DiscussionTopicsController, type: :request do
                  { controller: "discussion_topics", action: "update", format: "json", course_id: @course.to_param, topic_id: @topic.to_param },
                  { message: aa_test_data.removed_html })
         aas = AttachmentAssociation.where(context_type: "DiscussionTopic", context_id: @topic.id)
-        expect(aas.count).to eq 0
+        expect(aas.count).to eq 1
+        expect(aas.first.attachment_id).to eq @attachment.id
       end
 
       it "returns section count if section specific" do

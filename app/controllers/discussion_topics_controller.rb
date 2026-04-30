@@ -1611,6 +1611,7 @@ class DiscussionTopicsController < ApplicationController
         else
           @topic.course_sections = []
         end
+        @topic.updating_user = @current_user
         @topic.update(discussion_topic_hash)
         @topic.root_topic.try(:save)
       end
@@ -1867,6 +1868,7 @@ class DiscussionTopicsController < ApplicationController
         @topic.transaction do
           att = @topic.attachment
           @topic.attachment = nil
+          @topic.updating_user = @current_user
           @topic.save! unless @topic.new_record?
           att.destroy
         end
@@ -1879,6 +1881,7 @@ class DiscussionTopicsController < ApplicationController
         @attachment.save!
         @attachment.handle_duplicates(:rename)
         @topic.attachment = @attachment
+        @topic.updating_user = @current_user
         @topic.save
       end
     end

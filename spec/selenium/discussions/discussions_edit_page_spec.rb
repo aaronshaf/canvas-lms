@@ -110,8 +110,8 @@ describe "discussions" do
           attachment: @attachment
         }
 
-        @topic_all_options = course.discussion_topics.create!(all_discussion_options_enabled)
-        @topic_no_options = course.discussion_topics.create!(title: "no options enabled - topic", message: "test")
+        @topic_all_options = course.discussion_topics.create!(all_discussion_options_enabled.merge(user: teacher))
+        @topic_no_options = course.discussion_topics.create!(title: "no options enabled - topic", message: "test", user: teacher)
       end
 
       it "displays all selected options correctly" do

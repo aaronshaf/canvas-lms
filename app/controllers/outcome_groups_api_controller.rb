@@ -276,16 +276,15 @@ class OutcomeGroupsApiController < ApplicationController
       render json: "error".to_json, status: :bad_request
       return
     end
-    @outcome_group.saving_user = @current_user
-    @outcome_group.update(outcome_groups_incoming_params)
-    if params[:parent_outcome_group_id] && params[:parent_outcome_group_id] != @outcome_group.learning_outcome_group_id
-      new_parent = context_outcome_groups.find(params[:parent_outcome_group_id])
-      unless new_parent.adopt_outcome_group(@outcome_group)
-        render json: "error".to_json, status: :bad_request
-        return
+    @outcome_group.updating_user = @current_user
+    if @outcome_group.update(outcome_groups_incoming_params)
+      if params[:parent_outcome_group_id] && params[:parent_outcome_group_id] != @outcome_group.learning_outcome_group_id
+        new_parent = context_outcome_groups.find(params[:parent_outcome_group_id])
+        unless new_parent.adopt_outcome_group(@outcome_group)
+          render json: "error".to_json, status: :bad_request
+          return
+        end
       end
-    end
-    if @outcome_group.save
       render json: outcome_group_json(@outcome_group, @current_user, session)
     else
       render json: @outcome_group.errors, status: :bad_request

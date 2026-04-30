@@ -2338,7 +2338,7 @@ describe DiscussionTopicsController do
 
       before :once do
         attachment_model
-        @topic_with_file = @course.discussion_topics.create!(title: "some topic", attachment: @attachment)
+        @topic_with_file = @course.discussion_topics.create!(title: "some topic", attachment: @attachment, user: @teacher)
       end
 
       shared_examples_for "no usage rights returned" do
@@ -3293,6 +3293,7 @@ describe DiscussionTopicsController do
       attachment = @topic.attachment = attachment_model(context: @course)
       @topic.lock_at = 1.week.from_now
       @topic.delayed_post_at = 1.week.ago
+      @topic.updating_user = @teacher
       @topic.save!
       @topic.unlock!
       put("update", params: { course_id: @course.id, topic_id: @topic.id, remove_attachment: "1" }, format: "json")

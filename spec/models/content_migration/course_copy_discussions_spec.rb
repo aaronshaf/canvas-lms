@@ -275,7 +275,7 @@ describe ContentMigration do
                                uploaded_data: StringIO.new("file"),
                                folder: Folder.root_folders(@copy_from).first,
                                context: @copy_from)
-      topic = @copy_from.discussion_topics.new(message: "howdy", title: "title")
+      topic = @copy_from.discussion_topics.new(message: "howdy", title: "title", user: @teacher)
       topic.attachment = att
       topic.save!
 

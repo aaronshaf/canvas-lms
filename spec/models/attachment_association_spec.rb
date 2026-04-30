@@ -210,6 +210,7 @@ describe AttachmentAssociation do
         @quiz.description = "<p>Quiz description <a href=\"/users/#{@teacher.id}/files/#{@quiz_desc_att.id}/download\">Download</a></p>"
         @quiz.updating_user = @teacher
         @quiz.save!
+        @quiz.reload
 
         @group = @quiz.quiz_groups.create!(name: "question group", pick_count: 2, question_points: 5.0)
         @group.assessment_question_bank = @bank
@@ -222,8 +223,6 @@ describe AttachmentAssociation do
         )
 
         @quiz.generate_quiz_data
-        @quiz.save!
-        @quiz.reload
 
         @qsub = @quiz.generate_submission(@student)
         @qsub_user_attachment = attachment_with_context(@qsub)

@@ -84,9 +84,8 @@ module LinkedAttachmentHandler
   # "terms of use" HTML, which should be treated as a publicly viewable
   # property of accounts, even for anonymous users, therefore any and all
   # attachments to it should also be viewable without restrictions.
-  def associate_attachments_to_rce_object(html, user, context_concern: nil, session: nil, skip_user_verification: false, migration: nil)
-    attachment_ids = Api::Html::Content.collect_attachment_ids(html) if html.present?
-    attachment_ids = [] if attachment_ids.blank?
+  def associate_attachments_to_rce_object(html, user, extra_ids: [], context_concern: nil, session: nil, skip_user_verification: false, migration: nil)
+    attachment_ids = Api::Html::Content.collect_attachment_ids(html) + extra_ids
 
     global_ids = attachment_ids.map { |id| Shard.global_id_for(id) }
     currently_has = attachment_associations.where(context_concern:).pluck(:attachment_id).map { |id| Shard.global_id_for(id) }

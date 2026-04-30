@@ -333,6 +333,7 @@ class Assignment < AbstractAssignment
       next unless updates.any?
 
       checkpoint.saved_by = :parent_assignment
+      checkpoint.updating_user = updating_user
       checkpoint.update!(updates)
       checkpoint.saved_by = nil
     end

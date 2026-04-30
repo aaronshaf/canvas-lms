@@ -275,6 +275,15 @@ class DiscussionEntry < ApplicationRecord
     end
   end
 
+  def update_attachment_associations(migration: nil)
+    return if skip_attachment_association_update
+    return if importing && !migration
+    return unless attachment_associations_creation_enabled?
+    return unless migration || saved_change_to_attribute?("message") || saved_change_to_attribute?("attachment_id")
+
+    associate_attachments_to_rce_object(message, updating_user, extra_ids: [attachment_id].compact, migration:)
+  end
+
   def create_discussion_entry_versions
     if saved_changes.key?("message")
       user = current_user || self.user

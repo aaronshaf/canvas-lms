@@ -24,7 +24,7 @@ RSpec.describe Mutations::UpdateDiscussionTopic do
   before(:once) do
     course_with_teacher(active_all: true)
     @attachment = attachment_with_context(@teacher)
-    discussion_topic_model({ context: @course, attachment: @attachment })
+    discussion_topic_model({ context: @course, attachment: @attachment, user: @teacher })
   end
 
   def mutation_str(
@@ -1400,7 +1400,7 @@ RSpec.describe Mutations::UpdateDiscussionTopic do
     end
 
     it "returns an error when attemting to add checkpoints to an ungraded discussion with replies" do
-      my_topic = discussion_topic_model({ context: @course, attachment: @attachment })
+      my_topic = discussion_topic_model({ context: @course, attachment: @attachment, user: @teacher })
       student = student_in_course.user
       my_topic.discussion_entries.create!(message: "first message", user: student)
 
@@ -1477,7 +1477,7 @@ RSpec.describe Mutations::UpdateDiscussionTopic do
     end
 
     it "ungraded discussions with only deleted replies can still become checkpointed" do
-      my_topic = discussion_topic_model({ context: @course, attachment: @attachment })
+      my_topic = discussion_topic_model({ context: @course, attachment: @attachment, user: @teacher })
       entry = my_topic.discussion_entries.create!(message: "first message", user: @teacher)
       entry.destroy
       expect(my_topic.discussion_entries.active).to be_empty

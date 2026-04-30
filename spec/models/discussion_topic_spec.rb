@@ -1223,6 +1223,7 @@ describe DiscussionTopic do
         attachment_model(context: @course)
         @topic.discussion_type = "threaded"
         @topic.attachment = @attachment
+        @topic.updating_user = @teacher
         @topic.save!
         subtopics = @topic.reload.child_topics
         subtopics.each do |st|
@@ -4753,6 +4754,175 @@ describe DiscussionTopic do
       atom = topic.reload.to_atom
       expect(atom[:content]).not_to include("data:text/html")
       expect(atom[:content]).not_to include("PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg")
+    end
+  end
+
+  describe "direct upload attachment associations" do
+    before :once do
+      course_with_teacher(active_all: true)
+    end
+
+    it "creates attachment association when direct upload attachment is added" do
+      attachment = attachment_model(context: @course)
+      topic = @course.discussion_topics.create!(
+        title: "Test Topic",
+        message: "test",
+        user: @teacher
+      )
+      topic.attachment = attachment
+      topic.updating_user = @teacher
+      topic.save!
+
+      association = AttachmentAssociation.find_by(
+        context: topic,
+        attachment:,
+        context_concern: nil
+      )
+      expect(association).to be_present
+      expect(association.user_id).to eq(@teacher.id)
+      expect(association.root_account_id).to eq(@course.root_account_id)
+    end
+
+    it "removes attachment association when attachment is removed" do
+      attachment = attachment_model(context: @teacher)
+      topic = @course.discussion_topics.create!(
+        title: "Test Topic",
+        message: "test",
+        user: @teacher,
+        attachment:
+      )
+      topic.updating_user = @teacher
+      topic.save!
+
+      expect(AttachmentAssociation.where(context: topic, attachment:).exists?).to be_truthy
+
+      topic.attachment = nil
+      topic.updating_user = @teacher
+      topic.save!
+
+      expect(AttachmentAssociation.where(context: topic, attachment:).exists?).to be_falsey
+    end
+
+    it "updates attachment association when attachment is changed" do
+      attachment1 = attachment_model(context: @teacher)
+      attachment2 = attachment_model(context: @teacher)
+
+      topic = @course.discussion_topics.create!(
+        title: "Test Topic",
+        message: "test",
+        user: @teacher,
+        attachment: attachment1
+      )
+      topic.updating_user = @teacher
+      topic.save!
+
+      expect(AttachmentAssociation.where(context: topic, attachment: attachment1).exists?).to be_truthy
+      expect(AttachmentAssociation.where(context: topic, attachment: attachment2).exists?).to be_falsey
+
+      topic.attachment = attachment2
+      topic.updating_user = @teacher
+      topic.save!
+
+      expect(AttachmentAssociation.where(context: topic, attachment: attachment1).exists?).to be_falsey
+      expect(AttachmentAssociation.where(context: topic, attachment: attachment2).exists?).to be_truthy
+    end
+
+    it "does not create association when user lacks update permission on attachment" do
+      student_in_course(active_all: true)
+      other_user = user_factory(active_all: true)
+      attachment = attachment_model(context: other_user)
+
+      topic = @course.discussion_topics.create!(
+        title: "Test Topic",
+        message: "test",
+        user: @student,
+        attachment:
+      )
+      topic.updating_user = @student
+      topic.save!
+
+      expect(AttachmentAssociation.where(context: topic, attachment:).exists?).to be_falsey
+    end
+
+    it "does not create association when feature flag is disabled" do
+      @course.root_account.disable_feature!(:allow_attachment_association_creation)
+
+      attachment = attachment_model(context: @teacher)
+      topic = @course.discussion_topics.create!(
+        title: "Test Topic",
+        message: "test",
+        user: @teacher,
+        attachment:
+      )
+      topic.updating_user = @teacher
+      topic.save!
+
+      expect(AttachmentAssociation.where(context: topic, attachment:).exists?).to be_falsey
+    end
+
+    it "does not create associations for child topics (handled by copy)" do
+      @course.root_account.enable_feature!(:file_association_access)
+
+      group_discussion_assignment
+      attachment = attachment_model(context: @course)
+
+      @topic.attachment = attachment
+      @topic.updating_user = @teacher
+      @topic.save!
+
+      expect(AttachmentAssociation.where(context: @topic, attachment:).exists?).to be_truthy
+
+      @topic.refresh_subtopics
+
+      child_topic = @topic.child_topics.first
+      expect(child_topic.attachment_id).to eq(attachment.id)
+      expect(AttachmentAssociation.where(context: child_topic, attachment:).exists?).to be_truthy
+    end
+
+    it "preserves attachment_id association when HTML is updated but attachment_id remains unchanged" do
+      attachment = attachment_model(context: @course)
+      attachment_for_html = attachment_model(context: @course)
+      topic = @course.discussion_topics.build(
+        title: "Test Topic",
+        message: "<a href='/courses/#{@course.id}/files/#{attachment_for_html.id}'>example</a>",
+        user: @teacher,
+        attachment:
+      )
+      topic.updating_user = @teacher
+      topic.save!
+
+      association = AttachmentAssociation.find_by(
+        context: topic,
+        attachment:,
+        context_concern: nil
+      )
+      association_for_html = AttachmentAssociation.find_by(
+        context: topic,
+        attachment: attachment_for_html,
+        context_concern: nil
+      )
+      expect(association_for_html).to be_present
+      expect(association).to be_present
+      association_id = association.id
+
+      topic.message = "Updated message content"
+      topic.updating_user = @teacher
+      topic.save!
+
+      updated_association = AttachmentAssociation.find_by(
+        context: topic,
+        attachment:,
+        context_concern: nil
+      )
+      expect(updated_association).to be_present
+      expect(updated_association.id).to eq(association_id)
+
+      updated_html_association = AttachmentAssociation.find_by(
+        context: topic,
+        attachment: attachment_for_html,
+        context_concern: nil
+      )
+      expect(updated_html_association).to be_nil
     end
   end
 end

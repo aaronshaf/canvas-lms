@@ -403,10 +403,14 @@ class DiscussionTopic < ApplicationRecord
     end
   end
 
-  def update_attachment_associations(**args)
+  def update_attachment_associations(migration: nil)
     return if root_topic_id.present? # skip for subtopics; associations are copied in refresh_subtopics
+    return if skip_attachment_association_update
+    return if importing && !migration
+    return unless attachment_associations_creation_enabled?
+    return unless migration || saved_change_to_attribute?("message") || saved_change_to_attribute?("attachment_id")
 
-    super
+    associate_attachments_to_rce_object(message, updating_user, extra_ids: [attachment_id].compact, migration:)
   end
 
   def ensure_child_topic_for(group)

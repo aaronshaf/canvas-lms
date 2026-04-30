@@ -1445,4 +1445,149 @@ describe DiscussionEntry do
       expect(entry.reload.message).to be_nil
     end
   end
+
+  describe "direct upload attachment associations" do
+    before :once do
+      course_with_teacher(active_all: true)
+      @topic = @course.discussion_topics.create!(title: "Test Topic", message: "test")
+    end
+
+    it "creates attachment association when direct upload attachment is added" do
+      attachment = attachment_model(context: @teacher)
+      entry = @topic.discussion_entries.create!(
+        user: @teacher,
+        message: "Entry with attachment"
+      )
+      entry.attachment = attachment
+      entry.updating_user = @teacher
+      entry.save!
+
+      association = AttachmentAssociation.find_by(
+        context: entry,
+        attachment:,
+        context_concern: nil
+      )
+      expect(association).to be_present
+      expect(association.user_id).to eq(@teacher.id)
+      expect(association.root_account_id).to eq(@course.root_account_id)
+    end
+
+    it "removes attachment association when attachment is removed" do
+      attachment = attachment_model(context: @teacher)
+      entry = @topic.discussion_entries.create!(
+        user: @teacher,
+        message: "Entry with attachment",
+        attachment:
+      )
+      entry.updating_user = @teacher
+      entry.save!
+
+      expect(AttachmentAssociation.where(context: entry, attachment:).exists?).to be_truthy
+
+      entry.attachment = nil
+      entry.updating_user = @teacher
+      entry.save!
+
+      expect(AttachmentAssociation.where(context: entry, attachment:).exists?).to be_falsey
+    end
+
+    it "updates attachment association when attachment is changed" do
+      attachment1 = attachment_model(context: @teacher)
+      attachment2 = attachment_model(context: @teacher)
+
+      entry = @topic.discussion_entries.create!(
+        user: @teacher,
+        message: "Entry",
+        attachment: attachment1
+      )
+      entry.updating_user = @teacher
+      entry.save!
+
+      expect(AttachmentAssociation.where(context: entry, attachment: attachment1).exists?).to be_truthy
+      expect(AttachmentAssociation.where(context: entry, attachment: attachment2).exists?).to be_falsey
+
+      entry.attachment = attachment2
+      entry.updating_user = @teacher
+      entry.save!
+
+      expect(AttachmentAssociation.where(context: entry, attachment: attachment1).exists?).to be_falsey
+      expect(AttachmentAssociation.where(context: entry, attachment: attachment2).exists?).to be_truthy
+    end
+
+    it "does not create association when user lacks update permission on attachment" do
+      student_in_course(active_all: true)
+      other_user = user_factory(active_all: true)
+      attachment = attachment_model(context: other_user)
+
+      entry = @topic.discussion_entries.create!(
+        user: @student,
+        message: "Entry with attachment",
+        attachment:
+      )
+      entry.updating_user = @student
+      entry.save!
+
+      expect(AttachmentAssociation.where(context: entry, attachment:).exists?).to be_falsey
+    end
+
+    it "does not create association when feature flag is disabled" do
+      @course.root_account.disable_feature!(:allow_attachment_association_creation)
+
+      attachment = attachment_model(context: @teacher)
+      entry = @topic.discussion_entries.create!(
+        user: @teacher,
+        message: "Entry with attachment",
+        attachment:
+      )
+      entry.updating_user = @teacher
+      entry.save!
+
+      expect(AttachmentAssociation.where(context: entry, attachment:).exists?).to be_falsey
+    end
+
+    it "preserves attachment_id association when HTML is updated but attachment_id remains unchanged" do
+      attachment = attachment_model(context: @teacher)
+      attachment_for_html = attachment_model(context: @teacher)
+      entry = @topic.discussion_entries.build(
+        user: @teacher,
+        message: "<a href='/courses/#{@course.id}/files/#{attachment_for_html.id}'>example</a>",
+        attachment:
+      )
+      entry.updating_user = @teacher
+      entry.save!
+
+      association = AttachmentAssociation.find_by(
+        context: entry,
+        attachment:,
+        context_concern: nil
+      )
+      association_for_html = AttachmentAssociation.find_by(
+        context: entry,
+        attachment: attachment_for_html,
+        context_concern: nil
+      )
+      expect(association_for_html).to be_present
+      expect(association).to be_present
+      association_id = association.id
+
+      entry.message = "Updated message content"
+      entry.updating_user = @teacher
+      entry.save!
+
+      updated_association = AttachmentAssociation.find_by(
+        context: entry,
+        attachment:,
+        context_concern: nil
+      )
+      expect(updated_association).to be_present
+      expect(updated_association.id).to eq(association_id)
+
+      updated_html_association = AttachmentAssociation.find_by(
+        context: entry,
+        attachment: attachment_for_html,
+        context_concern: nil
+      )
+      expect(updated_html_association).to be_nil
+    end
+  end
 end

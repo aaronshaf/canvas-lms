@@ -264,6 +264,7 @@ RSpec.shared_examples "DiscussionType" do
   it "has an attachment" do
     a = attachment_model
     discussion.attachment = a
+    discussion.updating_user = @teacher
     discussion.save!
 
     expect(discussion_type.resolve("attachment { _id }")).to eq discussion.attachment.id.to_s

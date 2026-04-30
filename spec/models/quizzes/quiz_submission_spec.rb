@@ -34,20 +34,21 @@ describe Quizzes::QuizSubmission do
       @q_desc_attachment = attachment_with_context(@course)
       @quiz = @course.quizzes.create!(
         title: "new quiz",
-        saving_user: @teacher,
-        description: "<p>Attachment: <a href=\"/courses/#{@course.id}/files/#{@q_desc_attachment.id}/download\">file</a></p>"
+        description: "<p>Attachment: <a href=\"/courses/#{@course.id}/files/#{@q_desc_attachment.id}/download\">file</a></p>",
+        updating_user: @teacher
       )
       @quiz_group = @quiz.quiz_groups.create!(assessment_question_bank: @bank, pick_count: 2)
       @qq_attachment = attachment_with_context(@course)
-      @quiz_question = @quiz.quiz_questions.create!(question_data: {
-                                                      name: "test 1",
-                                                      question_text: "<p>what a <a href='/courses/#{@course.id}/files/#{@qq_attachment.id}/download'>link</a></p>",
-                                                      question_type: "file_upload_question",
-                                                    },
-                                                    quiz_group: nil,
-                                                    saving_user: @teacher)
+      @quiz_question = @quiz.quiz_questions.create!(
+        question_data: {
+          name: "test 1",
+          question_text: "<p>what a <a href='/courses/#{@course.id}/files/#{@qq_attachment.id}/download'>link</a></p>",
+          question_type: "file_upload_question",
+        },
+        quiz_group: nil,
+        updating_user: @teacher
+      )
       @quiz.generate_quiz_data
-      @quiz.save
     end
 
     it "processes them for both quiz and submission data" do

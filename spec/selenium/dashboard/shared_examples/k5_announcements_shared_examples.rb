@@ -108,7 +108,8 @@ shared_examples_for "k5 homeroom announcements" do
       @homeroom_course.announcements.create!(
         title: "Welcome to class",
         message: "Hello!",
-        attachment: @attachment
+        attachment: @attachment,
+        user: @homeroom_teacher
       )
     end
 
