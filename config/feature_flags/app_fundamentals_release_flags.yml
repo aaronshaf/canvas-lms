@@ -78,3 +78,9 @@ user_session_termination:
   description: Allows administrators to terminate all sessions for a specific user through the UI
   applies_to: RootAccount
   shadow: true
+feature_rollout:
+  state: hidden
+  applies_to: RootAccount
+  display_name: Feature Rollout API and UI
+  description: Expose the API and Account Settings tab for the Feature Rollout feature
+  shadow: true
