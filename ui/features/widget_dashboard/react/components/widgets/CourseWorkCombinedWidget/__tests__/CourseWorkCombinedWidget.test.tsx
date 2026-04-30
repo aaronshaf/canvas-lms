@@ -17,7 +17,8 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, waitFor} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse, graphql} from 'msw'
@@ -640,5 +641,109 @@ describe('CourseWorkCombinedWidget', () => {
     expect(screen.getByText('5')).toBeInTheDocument() // Due count
     expect(screen.getByText('2')).toBeInTheDocument() // Missing count
     expect(screen.getByText('8')).toBeInTheDocument() // Submitted count
+  })
+
+  it('shows the summary counts toggle in the header, on by default', async () => {
+    renderWithProviders(<CourseWorkCombinedWidget {...buildDefaultProps()} />)
+
+    const toggle = await screen.findByTestId('show-summary-counts-toggle')
+    expect(toggle).toBeChecked()
+    expect(await screen.findByTestId('statistics-card-Due')).toBeInTheDocument()
+    expect(screen.getByTestId('statistics-card-Missing')).toBeInTheDocument()
+    expect(screen.getByTestId('statistics-card-Submitted')).toBeInTheDocument()
+  })
+
+  it('hides the statistics cards when the toggle is turned off', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<CourseWorkCombinedWidget {...buildDefaultProps()} />)
+
+    expect(await screen.findByTestId('statistics-card-Due')).toBeInTheDocument()
+
+    await user.click(screen.getByTestId('show-summary-counts-toggle'))
+
+    expect(screen.queryByTestId('statistics-card-Due')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('statistics-card-Missing')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('statistics-card-Submitted')).not.toBeInTheDocument()
+    expect(await screen.findByText('Essay on Climate Change')).toBeInTheDocument()
+  })
+
+  it('toggling back on restores the statistics cards', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<CourseWorkCombinedWidget {...buildDefaultProps()} />)
+
+    const toggle = await screen.findByTestId('show-summary-counts-toggle')
+    await user.click(toggle)
+    expect(screen.queryByTestId('statistics-card-Due')).not.toBeInTheDocument()
+
+    await user.click(toggle)
+    expect(await screen.findByTestId('statistics-card-Due')).toBeInTheDocument()
+  })
+
+  it('does not fetch course work statistics when the toggle is off', async () => {
+    const user = userEvent.setup()
+    let statisticsRequestCount = 0
+    server.use(
+      graphql.query('GetUserCourseStatistics', () => {
+        statisticsRequestCount += 1
+        return HttpResponse.json({
+          data: {
+            legacyNode: {
+              _id: '123',
+              enrollments: [
+                {
+                  course: {
+                    _id: '123',
+                    name: 'Test Course',
+                    submissionStatistics: mockStatisticsData,
+                  },
+                },
+              ],
+            },
+          },
+        })
+      }),
+    )
+
+    renderWithProviders(<CourseWorkCombinedWidget {...buildDefaultProps()} />)
+
+    await screen.findByTestId('statistics-card-Due')
+    expect(statisticsRequestCount).toBeGreaterThan(0)
+
+    const baselineCount = statisticsRequestCount
+    await user.click(screen.getByTestId('show-summary-counts-toggle'))
+
+    await screen.findByText('Essay on Climate Change')
+    await new Promise(resolve => setTimeout(resolve, 50))
+    await waitFor(() => {
+      expect(statisticsRequestCount).toBe(baselineCount)
+    })
+  })
+
+  it('persists the toggle state via the widget config mutation', async () => {
+    const user = userEvent.setup()
+    const mutationPayloads: Array<Record<string, unknown>> = []
+    server.use(
+      graphql.mutation('UpdateWidgetDashboardConfig', ({variables}) => {
+        mutationPayloads.push(variables as Record<string, unknown>)
+        return HttpResponse.json({
+          data: {
+            updateWidgetDashboardConfig: {
+              widgetId: variables.widgetId,
+              filters: variables.filters,
+              errors: null,
+            },
+          },
+        })
+      }),
+    )
+
+    renderWithProviders(<CourseWorkCombinedWidget {...buildDefaultProps()} />)
+
+    await user.click(await screen.findByTestId('show-summary-counts-toggle'))
+
+    await waitFor(() => expect(mutationPayloads.length).toBeGreaterThanOrEqual(1))
+    const lastPayload = mutationPayloads[mutationPayloads.length - 1]
+    expect(lastPayload.widgetId).toBe('course-work-combined-widget')
+    expect((lastPayload.filters as Record<string, unknown>).showSummaryCounts).toBe(false)
   })
 })

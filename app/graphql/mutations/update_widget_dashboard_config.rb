@@ -47,6 +47,7 @@ class Mutations::UpdateWidgetDashboardConfig < Mutations::BaseMutation
 
   ANNOUNCEMENTS_WIDGET_ID = "announcements-widget"
   TODO_LIST_WIDGET_ID = "todo-list-widget"
+  COURSE_WORK_COMBINED_WIDGET_ID = "course-work-combined-widget"
   COURSE_WORK_WIDGET_IDS = %w[
     course-work-widget
     course-work-combined-widget
@@ -89,7 +90,7 @@ class Mutations::UpdateWidgetDashboardConfig < Mutations::BaseMutation
     elsif widget_id == TODO_LIST_WIDGET_ID
       validate_todo_list_filters!(filters)
     elsif COURSE_WORK_WIDGET_IDS.include?(widget_id)
-      validate_course_work_filters!(filters)
+      validate_course_work_filters!(widget_id, filters)
     else
       validate_generic_filters!(filters)
     end
@@ -123,7 +124,7 @@ class Mutations::UpdateWidgetDashboardConfig < Mutations::BaseMutation
     end
   end
 
-  def validate_course_work_filters!(filters)
+  def validate_course_work_filters!(widget_id, filters)
     if filters.key?("selectedCourse")
       course_value = filters["selectedCourse"]
       unless course_value.is_a?(String) && (course_value == "all" || course_value.match?(/^course_\d+$/))
@@ -138,7 +139,17 @@ class Mutations::UpdateWidgetDashboardConfig < Mutations::BaseMutation
       end
     end
 
-    invalid_keys = filters.keys - ["selectedCourse", "selectedDateFilter"]
+    allowed_keys = %w[selectedCourse selectedDateFilter]
+    allowed_keys += ["showSummaryCounts"] if widget_id == COURSE_WORK_COMBINED_WIDGET_ID
+
+    if widget_id == COURSE_WORK_COMBINED_WIDGET_ID && filters.key?("showSummaryCounts")
+      show_summary_counts = filters["showSummaryCounts"]
+      unless [true, false].include?(show_summary_counts)
+        raise GraphQL::ExecutionError, "showSummaryCounts must be a boolean"
+      end
+    end
+
+    invalid_keys = filters.keys - allowed_keys
     unless invalid_keys.empty?
       raise GraphQL::ExecutionError, "invalid filter keys for course work widget: #{invalid_keys.join(", ")}"
     end

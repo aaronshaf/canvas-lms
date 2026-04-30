@@ -22,6 +22,7 @@ import {Flex} from '@instructure/ui-flex'
 import {View} from '@instructure/ui-view'
 import {Text} from '@instructure/ui-text'
 import {List} from '@instructure/ui-list'
+import {Checkbox} from '@instructure/ui-checkbox'
 import {TemplateWidget} from '@instructure/platform-widget-dashboard'
 import CourseWorkFilters, {
   type DateFilterOption,
@@ -41,6 +42,8 @@ import {useWidgetConfig} from '../../../hooks/useWidgetConfig'
 
 const I18n = createI18nScope('widget_dashboard')
 
+const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean'
+
 const CourseWorkCombinedWidget: React.FC<BaseWidgetProps> = ({
   widget,
   isLoading: externalIsLoading,
@@ -59,6 +62,12 @@ const CourseWorkCombinedWidget: React.FC<BaseWidgetProps> = ({
     'selectedDateFilter',
     'not_submitted',
     isValidDateFilterOption,
+  )
+  const [showSummaryCounts, setShowSummaryCounts] = useWidgetConfig<boolean>(
+    widget.id,
+    'showSummaryCounts',
+    true,
+    isBoolean,
   )
 
   const courseFilter = selectedCourse === 'all' ? undefined : selectedCourse
@@ -85,13 +94,14 @@ const CourseWorkCombinedWidget: React.FC<BaseWidgetProps> = ({
   })
 
   const {
-    data: summary = {due: 0, missing: 0, submitted: 0},
+    data: summary,
     isLoading: statisticsLoading,
     error: statisticsError,
   } = useCourseWorkStatistics({
     startDate: statisticsDateRange.startDate,
     endDate: statisticsDateRange.endDate,
     courseId: courseFilter,
+    enabled: showSummaryCounts,
   })
 
   const filteredItems = currentPageData?.items || []
@@ -122,6 +132,13 @@ const CourseWorkCombinedWidget: React.FC<BaseWidgetProps> = ({
     [setSelectedDateFilter],
   )
 
+  const handleShowSummaryCountsChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setShowSummaryCounts(event.target.checked)
+    },
+    [setShowSummaryCounts],
+  )
+
   return (
     <TemplateWidget
       widget={widget}
@@ -140,6 +157,15 @@ const CourseWorkCombinedWidget: React.FC<BaseWidgetProps> = ({
         isLoading: courseWorkPaginationLoading,
         ariaLabel: I18n.t('Loading course work'),
       }}
+      headerActions={
+        <Checkbox
+          variant="toggle"
+          label={I18n.t('Show summary counts')}
+          checked={showSummaryCounts}
+          onChange={handleShowSummaryCountsChange}
+          data-testid="show-summary-counts-toggle"
+        />
+      }
     >
       <Flex direction="column" gap="small" height="100%">
         {/* Filters Section */}
@@ -153,9 +179,11 @@ const CourseWorkCombinedWidget: React.FC<BaseWidgetProps> = ({
         </Flex.Item>
 
         {/* Statistics Cards Section */}
-        <Flex.Item overflowY="hidden">
-          <StatisticsCardsGrid summary={summary} margin="small 0" />
-        </Flex.Item>
+        {showSummaryCounts && summary && (
+          <Flex.Item overflowY="hidden">
+            <StatisticsCardsGrid summary={summary} margin="small 0" />
+          </Flex.Item>
+        )}
 
         {/* Course Work Items Section */}
         <Flex.Item shouldGrow>

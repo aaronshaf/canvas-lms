@@ -52,6 +52,7 @@ interface CourseWorkStatisticsParams {
   startDate: Date
   endDate: Date
   courseId?: string
+  enabled?: boolean
 }
 
 const USER_COURSE_STATISTICS_QUERY = gql`
@@ -145,8 +146,10 @@ export function useCourseWorkStatistics(params: CourseWorkStatisticsParams) {
     observedUserId ?? undefined,
   ]
 
+  const baseConfig = createUserQueryConfig(queryKey, QUERY_CONFIG.STALE_TIME.STATISTICS)
+
   const query = useQuery({
-    ...createUserQueryConfig(queryKey, QUERY_CONFIG.STALE_TIME.STATISTICS),
+    ...baseConfig,
     queryFn: () =>
       fetchAllCourseStatistics({
         startDate: params.startDate,
@@ -160,6 +163,7 @@ export function useCourseWorkStatistics(params: CourseWorkStatisticsParams) {
     },
     persister: widgetDashboardPersister,
     refetchOnMount: false,
+    enabled: baseConfig.enabled && (params.enabled ?? true),
   })
 
   // Broadcast statistics updates across tabs

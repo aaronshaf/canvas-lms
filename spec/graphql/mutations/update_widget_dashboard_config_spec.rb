@@ -205,6 +205,78 @@ RSpec.describe Mutations::UpdateWidgetDashboardConfig do
       expect(result["errors"][0]["message"]).to include("invalid filter keys for course work widget")
     end
 
+    [true, false].each do |value|
+      it "accepts showSummaryCounts=#{value} and persists it" do
+        filters = { "showSummaryCounts" => value }
+        result = run_mutation(widgetId: "course-work-combined-widget", filters:)
+
+        expect(result["errors"]).to be_nil
+        expect(result.dig("data", "updateWidgetDashboardConfig", "widgetId")).to eq("course-work-combined-widget")
+
+        @student.reload
+        config = @student.get_preference(:widget_dashboard_config)
+        expect(config["filters"]["course-work-combined-widget"]["showSummaryCounts"]).to eq(value)
+      end
+    end
+
+    it "rejects non-boolean showSummaryCounts values" do
+      filters = { "showSummaryCounts" => "true" }
+      result = run_mutation(widgetId: "course-work-combined-widget", filters:)
+
+      expect(result.dig("data", "updateWidgetDashboardConfig")).to be_nil
+      expect(result["errors"]).not_to be_nil
+      expect(result["errors"][0]["message"]).to include("showSummaryCounts must be a boolean")
+    end
+
+    it "rejects nil showSummaryCounts values" do
+      filters = { "showSummaryCounts" => nil }
+      result = run_mutation(widgetId: "course-work-combined-widget", filters:)
+
+      expect(result.dig("data", "updateWidgetDashboardConfig")).to be_nil
+      expect(result["errors"]).not_to be_nil
+      expect(result["errors"][0]["message"]).to include("showSummaryCounts must be a boolean")
+    end
+
+    it "persists subsequent showSummaryCounts writes (not defaulted from missing key)" do
+      @student.preferences.delete(:widget_dashboard_config)
+      @student.save!
+
+      run_mutation(widgetId: "course-work-combined-widget", filters: { "showSummaryCounts" => false })
+      @student.reload
+      expect(@student.get_preference(:widget_dashboard_config)["filters"]["course-work-combined-widget"]["showSummaryCounts"]).to be(false)
+
+      run_mutation(widgetId: "course-work-combined-widget", filters: { "showSummaryCounts" => true })
+      @student.reload
+      expect(@student.get_preference(:widget_dashboard_config)["filters"]["course-work-combined-widget"]["showSummaryCounts"]).to be(true)
+    end
+
+    it "accepts showSummaryCounts alongside other filter keys in one mutation" do
+      filters = {
+        "showSummaryCounts" => true,
+        "selectedCourse" => "all",
+        "selectedDateFilter" => "not_submitted",
+      }
+      result = run_mutation(widgetId: "course-work-combined-widget", filters:)
+
+      expect(result["errors"]).to be_nil
+      @student.reload
+      persisted = @student.get_preference(:widget_dashboard_config)["filters"]["course-work-combined-widget"]
+      expect(persisted["showSummaryCounts"]).to be(true)
+      expect(persisted["selectedCourse"]).to eq("all")
+      expect(persisted["selectedDateFilter"]).to eq("not_submitted")
+    end
+
+    it "rejects showSummaryCounts on non-combined course work widgets" do
+      %w[course-work-widget course-work-summary-widget].each do |widget_id|
+        filters = { "showSummaryCounts" => true }
+        result = run_mutation(widgetId: widget_id, filters:)
+
+        expect(result.dig("data", "updateWidgetDashboardConfig")).to be_nil
+        expect(result["errors"]).not_to be_nil
+        expect(result["errors"][0]["message"]).to include("invalid filter keys for course work widget")
+      end
+    end
+
     it "works for course-work-combined-widget" do
       filters = { "selectedCourse" => "all", "selectedDateFilter" => "not_submitted" }
       result = run_mutation(widgetId: "course-work-combined-widget", filters:)
