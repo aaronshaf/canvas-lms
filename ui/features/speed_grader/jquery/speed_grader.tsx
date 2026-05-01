@@ -4638,11 +4638,11 @@ EG = {
     if (!submittedAtLabel) return
 
     if (event.data?.subject === 'SG.handleHighlightedEntryChange' && event.data?.entryTimestamp) {
-      submittedAtLabel.innerHTML = datetimeString(event.data?.entryTimestamp)
+      submittedAtLabel.textContent = datetimeString(event.data?.entryTimestamp)
     }
 
     if (event.data?.subject === 'SG.switchToIndividualPosts' && submittedAtText) {
-      submittedAtLabel.innerHTML = submittedAtText
+      submittedAtLabel.textContent = submittedAtText
     }
   },
 
