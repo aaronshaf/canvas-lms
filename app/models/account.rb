@@ -2019,6 +2019,15 @@ class Account < ApplicationRecord
     end
   end
 
+  def login_page_custom_message
+    return nil unless Account.site_admin.feature_enabled?(:new_login_ui_custom_labels)
+
+    value = brand_config&.get_value("ic-brand-Login-custom-message").presence
+    return nil if value.nil?
+
+    value.gsub(/[\r\n]+/, " ").strip
+  end
+
   def validate_help_links
     links = settings[:custom_help_links]
     return if links.blank?

@@ -2856,6 +2856,44 @@ describe Account do
     end
   end
 
+  describe "#login_page_custom_message" do
+    let(:account) { Account.default }
+
+    context "when new_login_ui_custom_labels is disabled" do
+      it "returns nil even when a custom message is set" do
+        bc = BrandConfig.create!(variables: { "ic-brand-Login-custom-message" => "Hello" })
+        account.update!(brand_config: bc)
+        expect(account.login_page_custom_message).to be_nil
+      end
+    end
+
+    context "when new_login_ui_custom_labels is enabled" do
+      before { Account.site_admin.enable_feature!(:new_login_ui_custom_labels) }
+
+      it "returns nil when there is no brand config" do
+        expect(account.login_page_custom_message).to be_nil
+      end
+
+      it "returns nil when the variable is not set" do
+        bc = BrandConfig.create!(variables: { "ic-brand-primary" => "#fff" })
+        account.update!(brand_config: bc)
+        expect(account.login_page_custom_message).to be_nil
+      end
+
+      it "returns the value with newlines collapsed" do
+        bc = BrandConfig.create!(variables: { "ic-brand-Login-custom-message" => "line one\nline two" })
+        account.update!(brand_config: bc)
+        expect(account.login_page_custom_message).to eq("line one line two")
+      end
+
+      it "strips leading and trailing whitespace" do
+        bc = BrandConfig.create!(variables: { "ic-brand-Login-custom-message" => "  hello  " })
+        account.update!(brand_config: bc)
+        expect(account.login_page_custom_message).to eq("hello")
+      end
+    end
+  end
+
   describe "#discovery_page_link_for" do
     let(:account) { Account.default }
     let(:provider) { account.authentication_providers.create!(auth_type: "cas") }
