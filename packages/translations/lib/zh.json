@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "卡积"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "生成字幕失败"
-    },
     "caption_manager_aae0906f": {
         "message": "字幕管理器"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "度数符号"
-    },
-    "delete_failed_6529e336": {
-        "message": "删除失败"
     },
     "delimiters_4db4840d": {
         "message": "分隔符"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "上传文档"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "上传失败"
     },
     "upload_file_fd2361b8": {
         "message": "上传文件"

@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "कैप उत्पाद"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "कैप्शन जेनरेट नहीं किया जा सका"
-    },
     "caption_manager_aae0906f": {
         "message": "कैप्शन मैनेजर"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "डिग्री प्रतीक"
-    },
-    "delete_failed_6529e336": {
-        "message": "मिटाया नहीं जा सका"
     },
     "delimiters_4db4840d": {
         "message": "परिसीमक"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "दस्तावेज़ अपलोड करें"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "अपलोड करना विफल रहा"
     },
     "upload_file_fd2361b8": {
         "message": "फ़ाइल अपलोड करें"

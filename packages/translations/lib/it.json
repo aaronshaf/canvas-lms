@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "Cap-prodotto"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "Generazione sottotitolo non riuscita"
-    },
     "caption_manager_aae0906f": {
         "message": "Gestore sottotitolo"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "Simbolo dei gradi"
-    },
-    "delete_failed_6529e336": {
-        "message": "Eliminazione non riuscita"
     },
     "delimiters_4db4840d": {
         "message": "Delimitatori"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "Carica documento"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "Caricamento non riuscito"
     },
     "upload_file_fd2361b8": {
         "message": "Carica File"

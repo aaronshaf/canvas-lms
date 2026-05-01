@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "Kaskèt Pwodui"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "Jenerasyon soutit la echwe"
-    },
     "caption_manager_aae0906f": {
         "message": "Jesyonè Soutit"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "Senbòl Degre"
-    },
-    "delete_failed_6529e336": {
-        "message": "Efase echwe"
     },
     "delimiters_4db4840d": {
         "message": "Delimitè"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "Chaje Dokiman"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "Transf[e Echwe"
     },
     "upload_file_fd2361b8": {
         "message": "Transfere Fichye"

@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "Cynnyrch Cap"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "Wedi methu creu''r capsiwn"
-    },
     "caption_manager_aae0906f": {
         "message": "Rheolwr Capsiwn"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "Symbol Gradd"
-    },
-    "delete_failed_6529e336": {
-        "message": "Wedi Methu Dileu"
     },
     "delimiters_4db4840d": {
         "message": "Amffinyddion"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "Llwytho Dogfen i fyny"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "Wedi methu llwytho i fyny"
     },
     "upload_file_fd2361b8": {
         "message": "Llwytho Ffeil i Fyny"

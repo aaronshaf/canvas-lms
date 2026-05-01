@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "便帽產品"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "産生字幕失敗"
-    },
     "caption_manager_aae0906f": {
         "message": "字幕管理員"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "度數符號"
-    },
-    "delete_failed_6529e336": {
-        "message": "刪除失敗"
     },
     "delimiters_4db4840d": {
         "message": "分隔符號"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "上傳文件"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "上傳失敗"
     },
     "upload_file_fd2361b8": {
         "message": "上傳檔案"

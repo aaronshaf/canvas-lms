@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "Tampa Produto"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "A geração de legendas falhou"
-    },
     "caption_manager_aae0906f": {
         "message": "Gestor de legendas"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "Símbolo de Grau"
-    },
-    "delete_failed_6529e336": {
-        "message": "Falha na eliminação"
     },
     "delimiters_4db4840d": {
         "message": "Delimitadores"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "Carregar documento"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "Carregamento falhou"
     },
     "upload_file_fd2361b8": {
         "message": "Carregar ficheiro"

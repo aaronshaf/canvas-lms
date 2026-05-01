@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "キャップ製品"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "キャプションの生成に失敗しました"
-    },
     "caption_manager_aae0906f": {
         "message": "キャプションマネージャ"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "度数記号"
-    },
-    "delete_failed_6529e336": {
-        "message": "削除に失敗"
     },
     "delimiters_4db4840d": {
         "message": "デリミタ"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "ドキュメントをアップロードする"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "アップロードに失敗"
     },
     "upload_file_fd2361b8": {
         "message": "ファイルアップロード"

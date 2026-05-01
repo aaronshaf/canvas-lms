@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "Hadkan Produk"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "Penjanaan kapsyen gagal"
-    },
     "caption_manager_aae0906f": {
         "message": "Pengurus Kapsyen"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "Simbol Darjah"
-    },
-    "delete_failed_6529e336": {
-        "message": "Pemadaman Gagal"
     },
     "delimiters_4db4840d": {
         "message": "Pembatas"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "Muat Naik Dokumen"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "Muat naik gagal"
     },
     "upload_file_fd2361b8": {
         "message": "Muat Naik Fail"

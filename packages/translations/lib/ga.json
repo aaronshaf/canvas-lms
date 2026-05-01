@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "Táirge Cap"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "Theip ar ghiniúint fotheidil"
-    },
     "caption_manager_aae0906f": {
         "message": "Bainisteoir Fotheideal"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "Siombail Céime"
-    },
-    "delete_failed_6529e336": {
-        "message": "Theip ar Scriosadh"
     },
     "delimiters_4db4840d": {
         "message": "Teorainneoirí"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "Uaslódáil Doiciméad"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "Theip ar an Uaslódáil"
     },
     "upload_file_fd2361b8": {
         "message": "Uaslódáil Comhad"

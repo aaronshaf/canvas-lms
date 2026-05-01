@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "Hua potae"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "I rahua te hanga taitara"
-    },
     "caption_manager_aae0906f": {
         "message": "Kaiwhakahaere Tapanga"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "Tohu Tohu"
-    },
-    "delete_failed_6529e336": {
-        "message": "Mukunga I Rahua"
     },
     "delimiters_4db4840d": {
         "message": "Ngā Kaiwehe"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "Tikiake Tuhinga"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "I Rahua te Tukuake"
     },
     "upload_file_fd2361b8": {
         "message": "Tukuake kōnae"

@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "Capsprodukt"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "Generering av bildetekst mislyktes"
-    },
     "caption_manager_aae0906f": {
         "message": "Bildetekstadministrator"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "Gradsymbol"
-    },
-    "delete_failed_6529e336": {
-        "message": "Sletting mislyktes"
     },
     "delimiters_4db4840d": {
         "message": "Avgrensninger"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "Last opp dokument"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "Opplasting mislyktes"
     },
     "upload_file_fd2361b8": {
         "message": "Last opp fil"

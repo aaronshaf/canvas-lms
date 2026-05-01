@@ -248,9 +248,6 @@
   "cap_product_3a5265a6": {
     "message": "Cap Product"
   },
-  "caption_generation_failed_7312f917": {
-    "message": "Caption generation failed"
-  },
   "caption_manager_aae0906f": {
     "message": "Caption Manager"
   },
@@ -578,8 +575,8 @@
   "degree_symbol_4a823d5f": {
     "message": "Degree Symbol"
   },
-  "delete_failed_6529e336": {
-    "message": "Delete Failed"
+  "delete_failed_6285e600": {
+    "message": "Delete failed"
   },
   "deleting_captionname_f175b906": {
     "message": "Deleting { captionName }"
@@ -970,6 +967,9 @@
   },
   "generating_preview_45b53be0": {
     "message": "Generating preview..."
+  },
+  "generation_failed_bbf6693c": {
+    "message": "Generation failed"
   },
   "german_3ec99bbb": {
     "message": "German"
@@ -2676,8 +2676,8 @@
   "upload_document_253f0478": {
     "message": "Upload Document"
   },
-  "upload_failed_a5dc91ec": {
-    "message": "Upload Failed"
+  "upload_failed_a27094da": {
+    "message": "Upload failed"
   },
   "upload_file_fd2361b8": {
     "message": "Upload File"

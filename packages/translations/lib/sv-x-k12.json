@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "Takprodukt"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "Det gick inte att generera undertexten"
-    },
     "caption_manager_aae0906f": {
         "message": "Undertexthanterare"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "Gradersymbol"
-    },
-    "delete_failed_6529e336": {
-        "message": "Det gick inte att radera"
     },
     "delimiters_4db4840d": {
         "message": "Avgränsare"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "Ladda upp dokument"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "Uppladdningen  misslyckades"
     },
     "upload_file_fd2361b8": {
         "message": "Ladda upp fil"

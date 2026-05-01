@@ -245,9 +245,6 @@
     "cap_product_3a5265a6": {
         "message": "Produit Maj"
     },
-    "caption_generation_failed_7312f917": {
-        "message": "La génération de légende a échoué."
-    },
     "caption_manager_aae0906f": {
         "message": "Gestionnaire des légendes"
     },
@@ -568,9 +565,6 @@
     },
     "degree_symbol_4a823d5f": {
         "message": "Symbole de degré"
-    },
-    "delete_failed_6529e336": {
-        "message": "Échec de la suppression"
     },
     "delimiters_4db4840d": {
         "message": "Délimiteurs"
@@ -2659,9 +2653,6 @@
     },
     "upload_document_253f0478": {
         "message": "Téléverser le document"
-    },
-    "upload_failed_a5dc91ec": {
-        "message": "Échec du téléversement."
     },
     "upload_file_fd2361b8": {
         "message": "Téléverser le fichier"
