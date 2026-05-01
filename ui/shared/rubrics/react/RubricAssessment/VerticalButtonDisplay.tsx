@@ -154,11 +154,15 @@ export const VerticalButtonDisplay = ({
                       </Text>
                     </View>
                     <View as="div" display="block">
-                      <Text
-                        size="x-small"
-                        themeOverride={{paragraphMargin: 0}}
-                        dangerouslySetInnerHTML={escapeNewLineText(rating.longDescription)}
-                      />
+                      <span style={{whiteSpace: 'pre-wrap'}}>
+                        <Text
+                          size="x-small"
+                          themeOverride={{paragraphMargin: 0}}
+                          style={{whiteSpace: 'pre-wrap'}}
+                        >
+                          {rating.longDescription}
+                        </Text>
+                      </span>
                     </View>
                     {!hidePoints && (
                       <View as="div" textAlign="end">

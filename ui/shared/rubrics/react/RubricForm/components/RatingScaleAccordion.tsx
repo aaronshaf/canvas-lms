@@ -84,10 +84,9 @@ export const RatingScaleAccordion = ({
                   <td>{scale}</td>
                   <td>{rating.description}</td>
                   <td>
-                    <Text
-                      dangerouslySetInnerHTML={escapeNewLineText(rating.longDescription)}
-                      themeOverride={{paragraphMargin: 0}}
-                    />
+                    <span style={{whiteSpace: 'pre-wrap'}}>
+                      <Text themeOverride={{paragraphMargin: 0}}>{rating.longDescription}</Text>
+                    </span>
                   </td>
                   {!hidePoints && (
                     <td style={{paddingLeft: '1.5rem'}}>

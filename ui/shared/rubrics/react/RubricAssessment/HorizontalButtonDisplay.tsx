@@ -110,13 +110,11 @@ export const HorizontalButtonDisplay = ({
             </Text>
           </View>
           <View as="div" display="block">
-            <Text
-              size="x-small"
-              themeOverride={{paragraphMargin: 0}}
-              dangerouslySetInnerHTML={escapeNewLineText(
-                selectedRatingDescription?.longDescription,
-              )}
-            />
+            <span style={{whiteSpace: 'pre-wrap'}}>
+              <Text size="x-small" themeOverride={{paragraphMargin: 0}}>
+                {selectedRatingDescription?.longDescription}
+              </Text>
+            </span>
           </View>
           {!hidePoints && (
             <View as="div" textAlign="end">

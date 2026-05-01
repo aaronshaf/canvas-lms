@@ -143,10 +143,11 @@ export const TraditionalViewCriterionRating: FC<TraditionalViewCriterionRatingPr
             </Flex.Item>
             <Flex.Item margin="small 0 0 0" textAlign="start" shouldGrow shouldShrink>
               <View as="div">
-                <Text
-                  size="small"
-                  dangerouslySetInnerHTML={escapeNewLineText(rating.longDescription)}
-                />
+                <span style={{whiteSpace: 'pre-wrap'}}>
+                  <Text size="small" style={{whiteSpace: 'pre-wrap'}}>
+                    {rating.longDescription}
+                  </Text>
+                </span>
               </View>
             </Flex.Item>
             <Flex.Item>
