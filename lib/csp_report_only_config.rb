@@ -97,7 +97,7 @@ module CspReportOnlyConfig
 
   def self.format_directives(domains, report_uri)
     sources = ["'self'", *domains].join(" ")
-    "default-src #{sources}; form-action #{sources}; base-uri 'self'; report-uri #{report_uri};"
+    "default-src 'unsafe-inline' #{sources}; form-action #{sources}; base-uri 'self'; report-uri #{report_uri};"
   end
 
   def self.build_static_config

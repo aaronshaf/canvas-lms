@@ -141,7 +141,7 @@ describe CspReportOnlyConfig do
       expect(result).to include("https://*.instructure.com")
       expect(result).to include("*.tool.example.com")
       expect(result).to include("files.example.com")
-      expect(result).to start_with("default-src 'self'")
+      expect(result).to start_with("default-src 'unsafe-inline' 'self'")
       expect(result).to include("form-action 'self'")
       expect(result).to end_with("report-uri https://r.example/csp;")
     end
@@ -155,7 +155,7 @@ describe CspReportOnlyConfig do
     it "returns static-only output when account is nil" do
       result = described_class.directives_for(nil, request)
       expect(result).to eq(
-        "default-src 'self' https://*.instructure.com; " \
+        "default-src 'unsafe-inline' 'self' https://*.instructure.com; " \
         "form-action 'self' https://*.instructure.com; " \
         "base-uri 'self'; " \
         "report-uri https://r.example/csp;"
