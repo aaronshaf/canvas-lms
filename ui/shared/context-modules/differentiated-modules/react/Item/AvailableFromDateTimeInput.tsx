@@ -73,7 +73,7 @@ export function AvailableFromDateTimeInput({
     id: key,
     disabled:
       Boolean(blueprintDateLocks?.includes('availability_dates')) || disabledWithGradingPeriod,
-    description: I18n.t('Choose an available from date and time'),
+    description: I18n.t('Available from date and time'),
     dateRenderLabel: I18n.t('Available from'),
     value: availableFromDate,
     onChange: handleAvailableFromDateChange,

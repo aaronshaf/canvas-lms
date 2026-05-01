@@ -43,7 +43,7 @@ const SelfSignupEndDate = ({initialEndDate, onDateChange, breakpoints}: SelfSign
       <ClearableDateTimeInput
         dateRenderLabel={I18n.t('Self Sign-up Deadline')}
         clearButtonAltLabel={I18n.t('Clear Self Sign-up Deadline')}
-        description={I18n.t('Choose a self sign-up deadline date and time')}
+        description={I18n.t('Self sign-up deadline date and time')}
         value={endDate || null}
         onChange={handleEndDateUpdate}
         onClear={() => setEndDate('')}

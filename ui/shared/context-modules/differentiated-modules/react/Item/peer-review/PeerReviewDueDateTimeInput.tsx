@@ -75,7 +75,7 @@ const PeerReviewDueDateTimeInput = ({
     <ClearableDateTimeInput
       id={key}
       disabled={disabled}
-      description={I18n.t('Choose a peer review due date and time')}
+      description={I18n.t('Peer review due date and time')}
       dateRenderLabel={I18n.t('Review Due Date')}
       value={peerReviewDueDate}
       onChange={handlePeerReviewDueDateChange}

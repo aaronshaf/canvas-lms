@@ -69,7 +69,7 @@ export function AvailableToDateTimeInput({
     id: key,
     disabled:
       Boolean(blueprintDateLocks?.includes('availability_dates')) || disabledWithGradingPeriod,
-    description: I18n.t('Choose an available to date and time'),
+    description: I18n.t('Available to date and time'),
     dateRenderLabel: I18n.t('Until'),
     value: availableToDate,
     onChange: handleAvailableToDateChange,
