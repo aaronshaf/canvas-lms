@@ -65,6 +65,7 @@ module AuthenticationMethods
       @real_current_pseudonym = auth_context[:real_current_pseudonym]
       logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{request.url}"
     end
+    raise_if_pseudonym_suspended
     @authenticated_with_jwt = true
   end
 
@@ -92,6 +93,7 @@ module AuthenticationMethods
         @real_current_pseudonym = SisPseudonym.for(@real_current_user, @domain_root_account, type: :implicit, require_sis: false)
         logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{request.url}"
       end
+      raise_if_pseudonym_suspended
       @authenticated_with_jwt = true
     rescue JSON::JWT::InvalidFormat,       # definitely not a JWT
            Canvas::Security::TokenExpired, # it could be a JWT, but it's expired if so
@@ -163,7 +165,7 @@ module AuthenticationMethods
       @real_current_user = @access_token.real_user
       @real_current_pseudonym = SisPseudonym.for(@real_current_user, @domain_root_account, type: :implicit, require_sis: false) if @real_current_user
       @current_pseudonym = SisPseudonym.for(@current_user, @domain_root_account, type: :implicit, require_sis: false)
-      @current_pseudonym = nil if (@current_pseudonym&.suspended? && !@real_current_pseudonym) || @real_current_pseudonym&.suspended?
+      raise_if_pseudonym_suspended
 
       raise AccessTokenError unless @current_user && @current_pseudonym
 
@@ -453,4 +455,9 @@ module AuthenticationMethods
   def login_request?
     params[:controller]&.start_with?("login")
   end
+
+  def raise_if_pseudonym_suspended
+    raise AccessTokenError if (@current_pseudonym&.suspended? && !@real_current_pseudonym) || @real_current_pseudonym&.suspended?
+  end
+  private :raise_if_pseudonym_suspended
 end

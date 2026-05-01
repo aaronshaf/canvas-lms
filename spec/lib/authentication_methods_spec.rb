@@ -258,6 +258,14 @@ describe AuthenticationMethods do
         expect(controller.instance_variable_get(:@real_current_pseudonym)).to eq @real_user.pseudonym
         expect(controller.instance_variable_get(:@current_user).impersonated).to be true
       end
+
+      it "raises AccessTokenError if the pseudonym is suspended" do
+        @pseudonym.update!(workflow_state: "suspended")
+        base64_encoded_token = build_encoded_token(@user.id)
+        controller = setup_with_jwt(base64_encoded_token)
+
+        expect { controller.send(:load_user) }.to raise_error(AuthenticationMethods::AccessTokenError)
+      end
     end
 
     context "with an access token" do
@@ -408,6 +416,13 @@ describe AuthenticationMethods do
             controller = setup_with_inst_access_token(token)
             controller.send(:load_user)
             expect(controller.instance_variable_get(:@authenticated_with_jwt)).to be true
+          end
+
+          it "raises AccessTokenError if the pseudonym is suspended" do
+            user.pseudonym.update!(workflow_state: "suspended")
+            controller = setup_with_inst_access_token(token)
+
+            expect { controller.send(:load_user) }.to raise_error(AuthenticationMethods::AccessTokenError)
           end
         end
 
