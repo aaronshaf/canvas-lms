@@ -1229,6 +1229,16 @@ describe Lti::IMS::DynamicRegistrationController do
   end
 
   describe "#dr_iframe" do
+    let(:registration_url) { "http://testexample.com" }
+    let(:valid_jwt) do
+      Canvas::Security.create_jwt({
+                                    user_id: @admin.global_id,
+                                    root_account_global_id: Account.default.global_id,
+                                    registration_url:
+                                  },
+                                  5.minutes.from_now)
+    end
+
     before do
       account_admin_user(account: Account.default)
       Account.default.root_account.enable_feature! :javascript_csp
@@ -1244,44 +1254,87 @@ describe Lti::IMS::DynamicRegistrationController do
     it "returns unauthorized if jwt is expired" do
       expired_jwt = Canvas::Security.create_jwt({
                                                   user_id: @admin.global_id,
-                                                  root_account_global_id: Account.default.global_id
+                                                  root_account_global_id: Account.default.global_id,
+                                                  registration_url:
                                                 },
                                                 5.minutes.ago)
-      get :dr_iframe, params: { account_id: Account.default.id, url: "http://testexample.com?registration_token=#{expired_jwt}" }
+      get :dr_iframe, params: { account_id: Account.default.id, url: "#{registration_url}?registration_token=#{expired_jwt}" }
       expect(response).to be_unauthorized
     end
 
     it "returns unauthorized if jwt is issued for other account" do
-      expired_jwt = Canvas::Security.create_jwt({
-                                                  user_id: @admin.global_id,
-                                                  root_account_global_id: 123
-                                                },
-                                                5.minutes.from_now)
-      get :dr_iframe, params: { account_id: Account.default.id, url: "http://testexample.com?registration_token=#{expired_jwt}" }
+      jwt = Canvas::Security.create_jwt({
+                                          user_id: @admin.global_id,
+                                          root_account_global_id: 123,
+                                          registration_url:
+                                        },
+                                        5.minutes.from_now)
+      get :dr_iframe, params: { account_id: Account.default.id, url: "#{registration_url}?registration_token=#{jwt}" }
       expect(response).to be_unauthorized
       expect(response.headers["Content-Security-Policy"]).not_to include("testexample.com")
     end
 
     it "returns unauthorized if jwt is issued for other user" do
-      expired_jwt = Canvas::Security.create_jwt({
-                                                  user_id: @admin.global_id + 1,
-                                                  root_account_global_id: Account.default.global_id
-                                                },
-                                                5.minutes.from_now)
-      get :dr_iframe, params: { account_id: Account.default.id, url: "http://testexample.com?registration_token=#{expired_jwt}" }
+      jwt = Canvas::Security.create_jwt({
+                                          user_id: @admin.global_id + 1,
+                                          root_account_global_id: Account.default.global_id,
+                                          registration_url:
+                                        },
+                                        5.minutes.from_now)
+      get :dr_iframe, params: { account_id: Account.default.id, url: "#{registration_url}?registration_token=#{jwt}" }
       expect(response).to be_unauthorized
       expect(response.headers["Content-Security-Policy"]).not_to include("testexample.com")
     end
 
     it "adds url to CSP whitelist if registration_token is valid" do
-      valid_jwt = Canvas::Security.create_jwt({
-                                                user_id: @admin.global_id,
-                                                root_account_global_id: Account.default.global_id
-                                              },
-                                              5.minutes.from_now)
-      get :dr_iframe, params: { account_id: Account.default.id, url: "http://testexample.com?registration_token=#{valid_jwt}" }
+      get :dr_iframe, params: { account_id: Account.default.id, url: "#{registration_url}?registration_token=#{valid_jwt}" }
       expect(response).to be_successful
       expect(response.headers["Content-Security-Policy"]).to include("testexample.com")
+    end
+
+    context "URL scheme validation" do
+      it "rejects javascript: scheme" do
+        get :dr_iframe, params: { account_id: Account.default.id, url: "javascript:alert(1)" }
+        expect(response).to be_bad_request
+      end
+
+      it "rejects data: scheme" do
+        get :dr_iframe, params: { account_id: Account.default.id, url: "data:text/html,test" }
+        expect(response).to be_bad_request
+      end
+
+      context "when the url uses https" do
+        let(:registration_url) { "https://testexample.com" }
+
+        it "accepts https scheme" do
+          get :dr_iframe, params: { account_id: Account.default.id, url: "#{registration_url}?registration_token=#{valid_jwt}" }
+          expect(response).to be_successful
+        end
+      end
+    end
+
+    context "URL origin binding" do
+      it "rejects a url with a different host than registration_url in the jwt" do
+        get :dr_iframe, params: { account_id: Account.default.id, url: "http://evil.example.com?registration_token=#{valid_jwt}" }
+        expect(response).to be_unauthorized
+        expect(response.headers["Content-Security-Policy"]).not_to include("evil.example.com")
+      end
+
+      it "rejects a url with a different scheme than registration_url in the jwt" do
+        get :dr_iframe, params: { account_id: Account.default.id, url: "https://testexample.com?registration_token=#{valid_jwt}" }
+        expect(response).to be_unauthorized
+      end
+
+      it "rejects a url with a different port than registration_url in the jwt" do
+        get :dr_iframe, params: { account_id: Account.default.id, url: "http://testexample.com:8080?registration_token=#{valid_jwt}" }
+        expect(response).to be_unauthorized
+      end
+
+      it "allows additional query parameters beyond what is in the jwt registration_url" do
+        get :dr_iframe, params: { account_id: Account.default.id, url: "#{registration_url}?openid_configuration=https%3A%2F%2Fcanvas.example.com&registration_token=#{valid_jwt}" }
+        expect(response).to be_successful
+        expect(response.headers["Content-Security-Policy"]).to include("testexample.com")
+      end
     end
   end
 

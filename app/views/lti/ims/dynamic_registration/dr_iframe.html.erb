@@ -28,9 +28,10 @@
   }
 
   const onMessage = function(message) {
+    const drUrl = <%= @dr_url.to_json.html_safe %>;
     if (
       message.data.subject === 'org.imsglobal.lti.close' &&
-      message.origin === originOfUrl("<%= @dr_url %>")
+      message.origin === originOfUrl(drUrl)
     ) {
       window.removeEventListener('message', onMessage)
       // Forward close message to parent window, which is the DR wizzard

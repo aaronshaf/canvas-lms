@@ -439,7 +439,20 @@ module Lti
 
       def dr_iframe
         @dr_url = params.require(:url)
-        token = CGI.parse(URI.parse(@dr_url).query)["registration_token"].first
+        begin
+          dr_uri = URI.parse(@dr_url)
+        rescue URI::InvalidURIError
+          render status: :bad_request, json: { errorMessage: "Invalid URL" }
+          return
+        end
+
+        unless %w[http https].include?(dr_uri.scheme)
+          render status: :bad_request,
+                 json: { errorMessage: "Invalid URL scheme" }
+          return
+        end
+
+        token = CGI.parse(dr_uri.query)["registration_token"].first
         jwt = Canvas::Security.decode_jwt(token)
 
         if jwt["root_account_global_id"] != @context.global_id
@@ -456,6 +469,16 @@ module Lti
                  }
           return
         end
+
+        jwt_uri = URI.parse(jwt["registration_url"])
+        unless jwt_uri.scheme == dr_uri.scheme &&
+               jwt_uri.host == dr_uri.host &&
+               jwt_uri.port == dr_uri.port
+          render status: :unauthorized,
+                 json: { errorMessage: "URL does not match registration_token" }
+          return
+        end
+
         request.env["dynamic_reg_url_csp"] = @dr_url
         render("lti/ims/dynamic_registration/dr_iframe", layout: false, formats: :html)
       end
