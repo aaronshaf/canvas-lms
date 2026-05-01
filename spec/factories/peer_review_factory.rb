@@ -75,11 +75,12 @@ module Factories
                1.week.from_now
              end
 
-    # Peer review lock must be <= parent lock_at if it exists
+    # Peer review lock must be <= parent lock_at if it exists,
+    # and always >= due_at + 1.week to satisfy validation
     lock_at = if parent_lock
                 [parent_lock, due_at + 1.week].min
               else
-                2.weeks.from_now
+                [2.weeks.from_now, due_at + 1.week].max
               end
 
     {
