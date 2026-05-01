@@ -20,7 +20,8 @@ import React, {useEffect, useRef} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
-import {IconButton} from '@instructure/ui-buttons'
+import {Button} from '@instructure/ui-buttons'
+import {AccessibleContent} from '@instructure/ui-a11y-content'
 import {View} from '@instructure/ui-view'
 import {Link} from '@instructure/ui-link'
 import {IconCheckPlusLine, IconCheckLine} from '@instructure/ui-icons'
@@ -100,87 +101,83 @@ const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false
         backgroundSecondary: colors.cardSecondary,
       }}
     >
-      <Flex gap="small" alignItems="center">
-        <Flex.Item shouldGrow shouldShrink>
-          <Flex direction="column" gap="x-small">
-            <Flex.Item overflowY="visible">
-              <Text size="small" color="secondary">
-                {typeLabel}
-              </Text>
-            </Flex.Item>
-
-            <Flex.Item overflowY="visible">
-              <Link
-                href={item.html_url}
-                isWithinText={false}
-                data-testid={`todo-link-${item.plannable_id}`}
-              >
-                <Text
-                  weight="bold"
-                  wrap="break-word"
-                  color={isMarkedComplete ? 'secondary' : undefined}
-                >
-                  {item.plannable.title}
-                </Text>
-              </Link>
-            </Flex.Item>
-
-            {item.plannable.details && (
-              <Flex.Item>
-                <Text size="small" color="secondary" wrap="break-word" lineHeight="condensed">
-                  {item.plannable.details}
-                </Text>
-              </Flex.Item>
-            )}
-
-            {courseId && item.context_name && (
-              <Flex.Item overflowY="visible">
-                <Link
-                  href={`/courses/${courseId}`}
-                  isWithinText={false}
-                  data-testid={`todo-item-course-link-${item.plannable_id}`}
-                >
-                  <Text wrap="break-word" size="small" color="secondary">
-                    {item.context_name}
-                  </Text>
-                </Link>
-              </Flex.Item>
-            )}
-
-            <Flex.Item overflowY="visible">
-              <Text size="small">
-                {isItemClosed ? (
-                  <Text size="small" color="secondary">
-                    {I18n.t('Closed')}
-                  </Text>
-                ) : (
-                  dateText && (
-                    <Text size="small" color={isItemOverdue ? 'danger' : 'secondary'}>
-                      {dateText}
-                    </Text>
-                  )
-                )}
-                {(isItemClosed || dateText) &&
-                  item.plannable.points_possible !== undefined &&
-                  item.plannable.points_possible !== null &&
-                  item.plannable.points_possible > 0 && (
-                    <Text size="small" color="secondary">
-                      {' | '}
-                    </Text>
-                  )}
-                {item.plannable.points_possible !== undefined &&
-                  item.plannable.points_possible !== null &&
-                  item.plannable.points_possible > 0 && (
-                    <Text size="small" color="secondary">
-                      {I18n.t('%{points} points', {points: item.plannable.points_possible})}
-                    </Text>
-                  )}
-              </Text>
-            </Flex.Item>
-          </Flex>
+      <Flex direction="column">
+        <Flex.Item overflowY="visible">
+          <Text size="small" color="secondary">
+            {typeLabel}
+          </Text>
         </Flex.Item>
 
-        <Flex.Item>
+        <Flex.Item overflowY="visible">
+          <Link
+            href={item.html_url}
+            isWithinText={false}
+            data-testid={`todo-link-${item.plannable_id}`}
+          >
+            <Text
+              weight="bold"
+              wrap="break-word"
+              color={isMarkedComplete ? 'secondary' : undefined}
+            >
+              {item.plannable.title}
+            </Text>
+          </Link>
+        </Flex.Item>
+
+        {item.plannable.details && (
+          <Flex.Item>
+            <Text size="small" color="secondary" wrap="break-word" lineHeight="condensed">
+              {item.plannable.details}
+            </Text>
+          </Flex.Item>
+        )}
+
+        {courseId && item.context_name && (
+          <Flex.Item overflowY="visible">
+            <Link
+              href={`/courses/${courseId}`}
+              isWithinText={false}
+              data-testid={`todo-item-course-link-${item.plannable_id}`}
+            >
+              <Text wrap="break-word" size="small" color="secondary">
+                {item.context_name}
+              </Text>
+            </Link>
+          </Flex.Item>
+        )}
+
+        <Flex.Item overflowY="visible">
+          <Text size="small">
+            {isItemClosed ? (
+              <Text size="small" color="secondary">
+                {I18n.t('Closed')}
+              </Text>
+            ) : (
+              dateText && (
+                <Text size="small" color={isItemOverdue ? 'danger' : 'secondary'}>
+                  {dateText}
+                </Text>
+              )
+            )}
+            {(isItemClosed || dateText) &&
+              item.plannable.points_possible !== undefined &&
+              item.plannable.points_possible !== null &&
+              item.plannable.points_possible > 0 && (
+                <Text size="small" color="secondary">
+                  {' | '}
+                </Text>
+              )}
+            {item.plannable.points_possible !== undefined &&
+              item.plannable.points_possible !== null &&
+              item.plannable.points_possible > 0 && (
+                <Text size="small" color="secondary">
+                  {I18n.t('%{points} points', {points: item.plannable.points_possible})}
+                </Text>
+              )}
+          </Text>
+        </Flex.Item>
+
+        <Flex.Item margin="x-small 0 0 0" overflowY="visible" overflowX="visible">
           {isLoading ? (
             <Spinner
               renderTitle={I18n.t('Updating...')}
@@ -188,22 +185,37 @@ const TodoItem: React.FC<TodoItemProps> = ({item, onItemUpdate, readOnly = false
               data-testid={`todo-checkbox-loading-${item.plannable_id}`}
             />
           ) : (
-            <IconButton
+            <Button
               elementRef={(el: Element | null) => {
                 buttonRef.current = el as HTMLButtonElement | null
               }}
-              color={isDark ? 'primary-inverse' : 'secondary'}
-              screenReaderLabel={
-                isMarkedComplete
-                  ? I18n.t('Mark %{title} as incomplete', {title: item.plannable.title})
-                  : I18n.t('Mark %{title} as complete', {title: item.plannable.title})
-              }
+              color={isMarkedComplete ? 'success' : 'secondary'}
+              renderIcon={isMarkedComplete ? <IconCheckLine /> : <IconCheckPlusLine />}
               onClick={handleCheckboxClick}
               data-testid={`todo-checkbox-${item.plannable_id}`}
               interaction={readOnly ? 'disabled' : 'enabled'}
+              themeOverride={
+                isDark && !isMarkedComplete
+                  ? {
+                      secondaryBackground: colors.inputBackground,
+                      secondaryBorderColor: colors.border,
+                      secondaryColor: colors.textPrimary,
+                      secondaryHoverBackground: colors.cardBackground,
+                      secondaryActiveBackground: colors.pageBackground,
+                    }
+                  : undefined
+              }
             >
-              {isMarkedComplete ? <IconCheckLine color="success" /> : <IconCheckPlusLine />}
-            </IconButton>
+              <AccessibleContent
+                alt={
+                  isMarkedComplete
+                    ? I18n.t('Mark %{title} as incomplete', {title: item.plannable.title})
+                    : I18n.t('Mark %{title} as complete', {title: item.plannable.title})
+                }
+              >
+                {isMarkedComplete ? I18n.t('Done') : I18n.t('Mark as done')}
+              </AccessibleContent>
+            </Button>
           )}
         </Flex.Item>
       </Flex>

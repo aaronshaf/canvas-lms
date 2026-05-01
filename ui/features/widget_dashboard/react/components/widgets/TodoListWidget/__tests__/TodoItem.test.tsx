@@ -18,10 +18,16 @@
 
 import React from 'react'
 import {render, screen} from '@testing-library/react'
+import {vi} from 'vitest'
+
+vi.mock('../hooks/usePlannerItems', () => ({
+  PLANNER_ITEMS_QUERY_KEY: 'planner-items',
+}))
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import TodoItem from '../TodoItem'
 import {mockPlannerItems} from './mocks/data'
 import {WidgetDashboardProvider} from '../../../../hooks/useWidgetDashboardContext'
+import {WidgetThemeProvider} from '../../../../theme/WidgetThemeContext'
 
 const mockSharedCourseData = [
   {
@@ -55,6 +61,28 @@ const renderWithProvider = (ui: React.ReactElement) => {
         preferences={mockPreferences}
       >
         {ui}
+      </WidgetDashboardProvider>
+    </QueryClientProvider>,
+  )
+}
+
+const renderWithDarkTheme = (ui: React.ReactElement) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {retry: false},
+      mutations: {retry: false},
+    },
+  })
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <WidgetDashboardProvider
+        sharedCourseData={mockSharedCourseData}
+        preferences={mockPreferences}
+      >
+        <WidgetThemeProvider isDark={true} setIsDark={() => {}}>
+          {ui}
+        </WidgetThemeProvider>
       </WidgetDashboardProvider>
     </QueryClientProvider>,
   )
@@ -161,6 +189,85 @@ describe('TodoItem', () => {
     expect(
       screen.queryByTestId(`todo-item-course-link-${mockPlannerItems[0].plannable_id}`),
     ).not.toBeInTheDocument()
+  })
+
+  describe('mark as done button', () => {
+    it('shows "Mark as done" text when item is not complete', () => {
+      const item = mockPlannerItems[0]
+      renderWithProvider(<TodoItem item={item} />)
+
+      expect(screen.getByText('Mark as done')).toBeInTheDocument()
+    })
+
+    it('shows "Done" text when item is marked complete', () => {
+      const completedItem = {
+        ...mockPlannerItems[0],
+        planner_override: {
+          id: 1,
+          plannable_type: 'assignment',
+          plannable_id: '1',
+          user_id: 1,
+          workflow_state: 'active',
+          marked_complete: true,
+          dismissed: false,
+          deleted_at: null,
+          created_at: '2025-01-01T00:00:00Z',
+          updated_at: '2025-01-01T00:00:00Z',
+        },
+      }
+      renderWithProvider(<TodoItem item={completedItem} />)
+
+      expect(screen.getByText('Done')).toBeInTheDocument()
+    })
+
+    it('button is disabled when readOnly is true', () => {
+      const item = mockPlannerItems[0]
+      renderWithProvider(<TodoItem item={item} readOnly={true} />)
+
+      const button = screen.getByTestId(`todo-checkbox-${item.plannable_id}`)
+      expect(button).toBeDisabled()
+    })
+
+    it('button appears after item content in the DOM', () => {
+      const item = mockPlannerItems[0]
+      renderWithProvider(<TodoItem item={item} />)
+
+      const title = screen.getByTestId(`todo-link-${item.plannable_id}`)
+      const button = screen.getByTestId(`todo-checkbox-${item.plannable_id}`)
+
+      expect(title.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+  })
+
+  describe('dark mode', () => {
+    it('renders "Mark as done" button correctly in dark mode', () => {
+      const item = mockPlannerItems[0]
+      renderWithDarkTheme(<TodoItem item={item} />)
+
+      expect(screen.getByText('Mark as done')).toBeInTheDocument()
+      expect(screen.getByTestId(`todo-checkbox-${item.plannable_id}`)).toBeEnabled()
+    })
+
+    it('renders "Done" button correctly in dark mode when complete', () => {
+      const completedItem = {
+        ...mockPlannerItems[0],
+        planner_override: {
+          id: 1,
+          plannable_type: 'assignment',
+          plannable_id: '1',
+          user_id: 1,
+          workflow_state: 'active',
+          marked_complete: true,
+          dismissed: false,
+          deleted_at: null,
+          created_at: '2025-01-01T00:00:00Z',
+          updated_at: '2025-01-01T00:00:00Z',
+        },
+      }
+      renderWithDarkTheme(<TodoItem item={completedItem} />)
+
+      expect(screen.getByText('Done')).toBeInTheDocument()
+    })
   })
 
   describe('checkbox display', () => {
