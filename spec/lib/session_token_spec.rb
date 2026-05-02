@@ -74,6 +74,60 @@ describe SessionToken do
     expect(SessionToken.parse(token.to_s)).to be_valid
   end
 
+  it "preserves nil login_aac" do
+    token = SessionToken.new(1)
+    expect(SessionToken.parse(token.to_s).login_aac).to be_nil
+  end
+
+  it "preserves non-nil login_aac" do
+    token = SessionToken.new(1, login_aac: 42)
+    expect(SessionToken.parse(token.to_s).login_aac).to eq token.login_aac
+  end
+
+  # During a rolling deploy, old and new hosts both produce and verify tokens.
+  # Tokens with login_aac unset must validate in either direction.
+  it "is valid in split-deploy state: token issued by old code (no login_aac key) consumed by new code" do
+    # Build a payload as a pre-login_aac deploy would emit it: no login_aac
+    # key, signature computed over the legacy field set.
+    created_at = Time.now.utc
+    legacy_signature_string = [
+      created_at.to_i.to_s,
+      "1",
+      "",
+      ""
+    ].join("::")
+    legacy_payload = {
+      "created_at" => created_at.to_i,
+      "pseudonym_id" => 1,
+      "current_user_id" => nil,
+      "used_remember_me_token" => nil,
+      "consent_from_mobile" => nil,
+      "signature" => Canvas::Security.hmac_sha1(legacy_signature_string)
+    }
+    parsed = SessionToken.parse(JSONToken.encode(legacy_payload))
+    expect(parsed).not_to be_nil
+    expect(parsed.login_aac).to be_nil
+    expect(parsed).to be_valid
+  end
+
+  it "is valid in split-deploy state: token issued by new code (login_aac unset) consumed by old code" do
+    # New code emits a token with login_aac unset.
+    token = SessionToken.new(1)
+    payload = JSONToken.decode(token.to_s)
+
+    # Old code's signature_values ended with [..., consent_from_mobile].compact
+    # and had no knowledge of login_aac. Verify the new-code signature against
+    # that legacy shape.
+    old_signature_string = [
+      payload["created_at"].to_s,
+      payload["pseudonym_id"].to_s,
+      payload["current_user_id"].to_s,
+      payload["used_remember_me_token"].to_s,
+      payload["consent_from_mobile"]
+    ].compact.join("::")
+    expect(Canvas::Security.verify_hmac_sha1(payload["signature"], old_signature_string)).to be true
+  end
+
   it "is not valid after tampering" do
     token = SessionToken.new(1)
     token.to_s # cache the signature

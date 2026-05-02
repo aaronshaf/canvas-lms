@@ -2845,6 +2845,31 @@ RSpec.describe ApplicationController do
       end
     end
 
+    describe "login_aac session key" do
+      let(:user) { user_factory }
+      let(:pseudonym) { user.pseudonyms.create!(unique_id: "testuser") }
+      let(:pseudonym_session) { instance_double(PseudonymSession, "non_explicit_session=": true, save!: true) }
+
+      before do
+        allow_any_instantiation_of(pseudonym).to receive(:works_for_account?).and_return(true)
+        allow(PseudonymSession).to receive(:new).and_return(pseudonym_session)
+        allow(controller).to receive(:redirect_to).and_return(true)
+      end
+
+      it "sets session[:login_aac] from the token" do
+        aac_id = 12_345
+        controller.params[:session_token] = SessionToken.new(pseudonym.global_id, login_aac: aac_id).to_s
+        controller.send(:initiate_session_from_token)
+        expect(session[:login_aac]).to eq aac_id
+      end
+
+      it "does not set session[:login_aac] when the token has no login_aac" do
+        controller.params[:session_token] = SessionToken.new(pseudonym.global_id).to_s
+        controller.send(:initiate_session_from_token)
+        expect(session).not_to have_key(:login_aac)
+      end
+    end
+
     describe "error reporting" do
       let(:user) { user_factory }
       let(:pseudonym) { user.pseudonyms.create!(unique_id: "testuser") }

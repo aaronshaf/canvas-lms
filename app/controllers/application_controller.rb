@@ -1914,6 +1914,7 @@ class ApplicationController < ActionController::Base
             pseudonym_session.non_explicit_session = true
             pseudonym_session.save!
             session[:used_remember_me_token] = true if token.used_remember_me_token
+            session[:login_aac] = token.login_aac if token.login_aac
             @session_token = token
           end
           if pseudonym && token.current_user_id
