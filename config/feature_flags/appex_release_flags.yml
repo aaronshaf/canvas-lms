@@ -117,3 +117,33 @@ log_session_token_failures:
       state: hidden
     production:
       state: hidden
+log_elevated_auth_provider_violations:
+  state: hidden
+  applies_to: SiteAdmin
+  display_name: Log Elevated Auth Provider Violations
+  description: |-
+    If enabled, requests that require an elevated authentication provider but
+    are made with a different (or no) auth provider will emit a violation event
+    to DataDog. The request itself is still allowed.
+  environments:
+    development:
+      state: allowed
+    beta:
+      state: hidden
+    production:
+      state: hidden
+enforce_no_elevated_auth_provider_violations:
+  state: hidden
+  applies_to: SiteAdmin
+  display_name: Enforce Elevated Auth Provider Requirement
+  description: |-
+    If enabled, requests that require an elevated authentication provider but
+    are made with a different (or no) auth provider are blocked: html requests
+    are redirected and json/api requests receive an unauthorized response.
+  environments:
+    development:
+      state: allowed
+    beta:
+      state: hidden
+    production:
+      state: hidden

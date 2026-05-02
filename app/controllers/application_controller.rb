@@ -37,6 +37,7 @@ class ApplicationController < ActionController::Base
   helper :all
 
   include AuthenticationMethods
+  include AuthenticationMethods::ElevatedAuthProvider
 
   include Canvas::RequestForgeryProtection
 
