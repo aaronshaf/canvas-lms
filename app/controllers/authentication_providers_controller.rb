@@ -233,6 +233,8 @@
 class AuthenticationProvidersController < ApplicationController
   before_action :require_context
   before_action :require_root_account_management, except: :show
+  before_action :require_elevated_auth_provider
+
   include Api::V1::AuthenticationProvider
 
   include HorizonMode

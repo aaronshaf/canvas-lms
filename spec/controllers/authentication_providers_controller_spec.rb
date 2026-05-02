@@ -45,7 +45,7 @@ describe AuthenticationProvidersController do
 
   before do
     admin = account_admin_user(account:)
-    user_session(admin)
+    user_session(admin, pseudonym(admin, account:))
   end
 
   describe "GET #index" do
@@ -115,7 +115,8 @@ describe AuthenticationProvidersController do
 
   describe "refresh_saml_metadata" do
     it "requires root manage account settings permission" do
-      user_session(user_with_pseudonym(account:))
+      user = user_with_pseudonym(account:)
+      user_session(user, user.pseudonyms.first)
       provider = account.authentication_providers.create!(saml_hash)
       get "refresh_saml_metadata", params: { account_id: account.id, authentication_provider_id: provider.id }
       expect(response).to have_http_status :unauthorized
@@ -403,14 +404,14 @@ describe AuthenticationProvidersController do
 
     it "does not allow non-admins" do
       user = user_with_pseudonym(active_all: true)
-      user_session(user)
+      user_session(user, user.pseudonyms.first)
       post :create, params: { account_id: account.id, auth_type: "cas", auth_base: "http://example.com" }
       expect(response).to be_unauthorized
     end
 
     it "allows admins" do
       user = account_admin_user(account:)
-      user_session(user)
+      user_session(user, pseudonym(user, account:))
       post :create, params: { account_id: account.id, auth_type: "cas", auth_base: "http://example.com" }
       expect(response).to be_redirect
     end
@@ -421,14 +422,14 @@ describe AuthenticationProvidersController do
 
     it "does not allow non-admins" do
       user = user_with_pseudonym(active_all: true)
-      user_session(user)
+      user_session(user, user.pseudonyms.first)
       put :update, params: { account_id: account.id, id: auth_provider.id, auth_base: "http://updated.example.com" }
       expect(response).to be_unauthorized
     end
 
     it "allows admins" do
       user = account_admin_user(account:)
-      user_session(user)
+      user_session(user, pseudonym(user, account:))
       put :update, params: { account_id: account.id, id: auth_provider.id, auth_base: "http://updated.example.com" }
       expect(response).to be_redirect
     end
@@ -467,9 +468,9 @@ describe AuthenticationProvidersController do
       end
 
       context "when the current user root account management permissions" do
-        let(:non_admin) { user_model }
+        let(:non_admin) { user_with_pseudonym(account:) }
 
-        before { user_session(non_admin) }
+        before { user_session(non_admin, non_admin.pseudonyms.first) }
 
         it { is_expected.to be_unauthorized }
       end
@@ -565,6 +566,82 @@ describe AuthenticationProvidersController do
         expect(response).to have_http_status(:unprocessable_content)
         json = response.parsed_body
         expect(json["errors"]).to include(match(/remove.*from the discovery page/))
+      end
+    end
+  end
+
+  describe "elevated auth provider enforcement" do
+    let!(:auth_provider) { account.authentication_providers.create!(saml_hash) }
+    let(:admin) { account_admin_user(account:) }
+    let(:admin_pseudonym) { pseudonym(admin, account:) }
+
+    before do
+      user_session(admin, admin_pseudonym)
+
+      account.settings[:elevated_auth_provider_global_id] = auth_provider.global_id
+      account.save(validate: false)
+
+      AuthenticationMethods::PseudonymAttributes.reset
+
+      site_admin = Account.site_admin
+      allow(site_admin).to receive(:feature_enabled?).and_call_original
+      allow(site_admin).to receive(:feature_enabled?)
+        .with(:log_elevated_auth_provider_violations).and_return(true)
+      allow(site_admin).to receive(:feature_enabled?)
+        .with(:enforce_no_elevated_auth_provider_violations).and_return(true)
+      allow(Account).to receive(:site_admin).and_return(site_admin)
+    end
+
+    context "when the request does not satisfy the elevation requirement" do
+      it "redirects html requests to root_url with a flash error" do
+        get :index, params: { account_id: account.id }
+        expect(response).to redirect_to(root_url)
+        expect(flash[:error][:html]).to include("requires using an elevated authentication provider")
+      end
+
+      it "responds 403 unauthorized for json index requests" do
+        get :index, params: { account_id: account.id }, format: :json
+        expect(response).to have_http_status(:forbidden)
+        expect(response.parsed_body["status"]).to eql "unauthorized"
+      end
+
+      it "blocks create and does not persist a new provider" do
+        expect do
+          post :create, params: { account_id: account.id, authentication_provider: cas_hash }, format: :json
+        end.not_to change { account.authentication_providers.active.count }
+        expect(response).to have_http_status(:forbidden)
+        expect(response.parsed_body["status"]).to eql "unauthorized"
+      end
+
+      it "blocks destroy and leaves the provider active" do
+        delete :destroy, params: { account_id: account.id, id: auth_provider.id }, format: :json
+        expect(response).to have_http_status(:forbidden)
+        expect(response.parsed_body["status"]).to eql "unauthorized"
+        expect(auth_provider.reload).to be_active
+      end
+
+      it "blocks show even though it skips require_root_account_management" do
+        get :show, params: { account_id: account.id, id: auth_provider.id }, format: :json
+        expect(response).to have_http_status(:forbidden)
+        expect(response.parsed_body["status"]).to eql "unauthorized"
+      end
+    end
+
+    context "when the session uses the elevated auth provider" do
+      before do
+        AuthenticationMethods::PseudonymAttributes.auth_provider_id = auth_provider.id
+      end
+
+      it "allows index" do
+        get :index, params: { account_id: account.id }
+        expect(response).to be_successful
+      end
+
+      it "allows create and persists the new provider" do
+        expect do
+          post :create, params: { account_id: account.id, authentication_provider: cas_hash }, format: :json
+        end.to change { account.authentication_providers.active.count }.by(1)
+        expect(response).to be_successful
       end
     end
   end
