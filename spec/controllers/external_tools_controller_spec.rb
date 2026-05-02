@@ -2893,7 +2893,7 @@ describe ExternalToolsController do
     end
 
     it "fails gracefully trying to retrieve from localhost" do
-      expect(CanvasHttp).to receive(:insecure_host?).with("localhost").and_return(true)
+      expect(CanvasHttp).to receive(:resolve_and_validate_host).with("localhost").and_raise(CanvasHttp::InsecureUriError)
       user_session(@teacher)
       post "create",
            params: { course_id: @course.id,
@@ -2911,7 +2911,7 @@ describe ExternalToolsController do
     end
 
     it "stores placement config using string key" do
-      expect(CanvasHttp).to receive(:insecure_host?).with("localhost").and_return(true)
+      expect(CanvasHttp).to receive(:resolve_and_validate_host).with("localhost").and_raise(CanvasHttp::InsecureUriError)
       user_session(@teacher)
 
       post "create",

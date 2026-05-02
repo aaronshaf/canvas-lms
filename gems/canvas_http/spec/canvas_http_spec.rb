@@ -161,6 +161,7 @@ describe "CanvasHttp" do
       expect(http).to receive(:read_timeout=).with(30)
       expect(http).to receive(:write_timeout=).with(10)
       expect(http).to receive(:max_retries=).with(0)
+      allow(http).to receive(:ipaddr=) # pinned by validate_url; covered separately
 
       expect(CanvasHttp.get("https://www.example.com/a/b").body).to eq("Hello SSL")
     end
@@ -209,8 +210,25 @@ describe "CanvasHttp" do
     it "checks host before running" do
       stub_request(:get, "http://www.example.com/a/b")
         .to_return(body: "Hello", headers: { "Content-Length" => 5 })
-      expect(CanvasHttp).to receive(:insecure_host?).with("www.example.com").and_return(true)
+      expect(CanvasHttp).to receive(:resolve_and_validate_host).with("www.example.com").and_raise(CanvasHttp::InsecureUriError)
       expect { CanvasHttp.get("http://www.example.com/a/b") }.to raise_error(CanvasHttp::InsecureUriError)
+    end
+
+    it "pins ipaddr on the connection so Net::HTTP cannot re-resolve (defeats DNS rebinding)" do
+      stub_request(:get, "http://attacker.test/").to_return(status: 200, body: "ok")
+      allow(Resolv).to receive(:getaddresses).with("attacker.test").and_return(["93.184.216.34"])
+
+      built_http = nil
+      allow(Net::HTTP).to receive(:new).and_wrap_original do |original, *args|
+        built_http = original.call(*args)
+      end
+
+      CanvasHttp.get("http://attacker.test/")
+
+      # ipaddr is set to the validated IP — Net::HTTP connects to this address
+      # rather than re-resolving the hostname, closing the rebinding window.
+      expect(built_http.ipaddr).to eq("93.184.216.34")
+      expect(built_http.address).to eq("attacker.test")
     end
 
     context "when given a max_response_body_length" do
@@ -347,6 +365,18 @@ describe "CanvasHttp" do
       expect(http.address).to eq("example.com")
       expect(http.use_ssl?).to be(true)
     end
+
+    it "pins ipaddr to validated_ip and keeps address as the hostname" do
+      http = CanvasHttp.connection_for_uri(URI.parse("https://example.com"), validated_ip: "93.184.216.34")
+      expect(http.ipaddr).to eq("93.184.216.34")
+      expect(http.address).to eq("example.com")
+      expect(http.use_ssl?).to be(true)
+    end
+
+    it "leaves ipaddr unset when no validated_ip is given" do
+      http = CanvasHttp.connection_for_uri(URI.parse("https://example.com"))
+      expect(http.ipaddr).to be_nil
+    end
   end
 
   describe ".validate_url" do
@@ -374,7 +404,7 @@ describe "CanvasHttp" do
     end
 
     it "checks for unsafe hosts" do
-      expect(CanvasHttp).to receive(:insecure_host?).with("127.0.0.1").and_return(true)
+      expect(CanvasHttp).to receive(:resolve_and_validate_host).with("127.0.0.1").and_raise(CanvasHttp::InsecureUriError)
       expect { CanvasHttp.validate_url("http://127.0.0.1") }.not_to raise_error
       expect { CanvasHttp.validate_url("http://127.0.0.1", check_host: true) }.to raise_error(CanvasHttp::InsecureUriError)
     end
@@ -385,9 +415,37 @@ describe "CanvasHttp" do
     end
 
     it "does not bypass other checks when normalizing unicode names" do
-      expect(CanvasHttp).to receive(:insecure_host?).with("127.0.0.1").and_return(true)
+      expect(CanvasHttp).to receive(:resolve_and_validate_host).with("127.0.0.1").and_raise(CanvasHttp::InsecureUriError)
       expect { CanvasHttp.validate_url("http://127.0.0.1/嘊", check_host: true) }.to raise_error(CanvasHttp::InsecureUriError)
       expect { CanvasHttp.validate_url("http://example.com/whät", allowed_schemes: ["https"]) }.to raise_error(ArgumentError)
+    end
+
+    describe "DNS rebinding defense" do
+      it "returns the resolved IP as the third tuple element when check_host is true" do
+        allow(Resolv).to receive(:getaddresses).with("example.com").and_return(["93.184.216.34"])
+        _, _uri, validated_ip = CanvasHttp.validate_url("http://example.com", check_host: true)
+        expect(validated_ip).to eq("93.184.216.34")
+      end
+
+      it "returns nil for the validated IP when check_host is false" do
+        _, _uri, validated_ip = CanvasHttp.validate_url("http://example.com")
+        expect(validated_ip).to be_nil
+      end
+
+      it "returns nil for the validated IP when blocked_ip_ranges is empty (caller opted out)" do
+        original = CanvasHttp.blocked_ip_ranges
+        CanvasHttp.blocked_ip_ranges = []
+        _, _uri, validated_ip = CanvasHttp.validate_url("http://example.com", check_host: true)
+        expect(validated_ip).to be_nil
+      ensure
+        CanvasHttp.blocked_ip_ranges = original
+      end
+
+      it "raises InsecureUriError when host resolves to a blocked IP" do
+        allow(Resolv).to receive(:getaddresses).with("rebind.test").and_return(["10.0.0.5"])
+        expect { CanvasHttp.validate_url("http://rebind.test", check_host: true) }
+          .to raise_error(CanvasHttp::InsecureUriError)
+      end
     end
 
     describe "nav_menu_link URL fixtures" do

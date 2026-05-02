@@ -93,7 +93,7 @@ module WebMock::API
   include WebMock::Matchers
 
   def self.included(other)
-    other.before { allow(CanvasHttp).to receive(:insecure_host?).and_return(false) }
+    other.before { allow(CanvasHttp).to receive(:resolve_and_validate_host).and_return(nil) }
     other.after { WebMock.reset! }
   end
 end

@@ -139,11 +139,11 @@ module CanvasHttp
     loop do
       raise(TooManyRedirectsError) if redirect_limit <= 0
 
-      _, uri = CanvasHttp.validate_url(url_str, host: last_host, scheme: last_scheme, check_host: true) # uses the last host and scheme for relative redirects
+      _, uri, validated_ip = CanvasHttp.validate_url(url_str, host: last_host, scheme: last_scheme, check_host: true) # uses the last host and scheme for relative redirects
       current_host = uri.host
       raise CircuitBreakerError if CircuitBreaker.tripped?(current_host)
 
-      http = CanvasHttp.connection_for_uri(uri)
+      http = CanvasHttp.connection_for_uri(uri, validated_ip:)
 
       request = request_class.new(uri.request_uri, other_headers)
       add_form_data(request, form_data, multipart:, streaming:) if form_data
@@ -239,7 +239,10 @@ module CanvasHttp
     end
   end
 
-  # returns [normalized_url_string, URI] if valid, raises otherwise
+  # returns [normalized_url_string, URI, validated_ip] if valid, raises otherwise.
+  # When check_host is set, validated_ip must be passed to connection_for_uri
+  # (or use CanvasHttp.{get,post,...} which thread it through automatically) to
+  # defeat DNS rebinding between validation and connect. It is nil otherwise.
   def self.validate_url(value, host: nil, scheme: nil, allowed_schemes: %w[http https], check_host: false)
     value = value&.strip || ""
     raise ArgumentError if value.empty?
@@ -268,13 +271,19 @@ module CanvasHttp
     end
     raise ArgumentError if !allowed_schemes.nil? && !allowed_schemes.include?(uri.scheme.downcase)
     raise(RelativeUriError) if uri.host.nil? || uri.host.strip.empty?
-    raise InsecureUriError if check_host && insecure_host?(uri.host)
 
-    [value, uri]
+    validated_ip = resolve_and_validate_host(uri.host)&.first if check_host
+
+    [value, uri, validated_ip]
   end
 
-  def self.insecure_host?(host)
-    return false if blocked_ip_ranges.empty?
+  # Resolves `host` and validates that none of the resolved IPs fall in
+  # `blocked_ip_ranges`. Returns the resolved IP strings, or nil when the
+  # blocklist is empty (caller has opted out of validation).
+  # Raises UnresolvableUriError if the host can't be resolved.
+  # Raises InsecureUriError if any resolved IP is in a blocked range.
+  def self.resolve_and_validate_host(host)
+    return nil if blocked_ip_ranges.empty?
 
     resolved_addrs = Resolv.getaddresses(host)
     unless resolved_addrs.any?
@@ -295,21 +304,35 @@ module CanvasHttp
       raise UnresolvableUriError, "#{host} resolves to only unparseable IPs..."
     end
 
-    blocked_ip_ranges.each do |range|
-      addr_range = ::IPAddr.new(range)
-      ip_addrs.any? do |addr|
-        if addr_range.include?(addr)
-          logger.warn("CANVAS_HTTP WARNING insecure address | host: #{host} | insecure_address: #{addr} | range: #{range}")
-          return true
-        end
+    blocked_ranges = blocked_ip_ranges.map { |r| ::IPAddr.new(r) }
+    ip_addrs.each do |addr|
+      blocked_ranges.each do |range|
+        next unless range.include?(addr)
+
+        logger.warn("CANVAS_HTTP WARNING insecure address | host: #{host} | insecure_address: #{addr} | range: #{range}")
+        raise InsecureUriError, "#{host} resolves to blocked address #{addr}"
       end
     end
-    false
+
+    resolved_addrs
   end
 
-  # returns a Net::HTTP connection object for the given URI object
-  def self.connection_for_uri(uri)
+  def self.insecure_host?(host)
+    return false if blocked_ip_ranges.empty?
+
+    resolve_and_validate_host(host)
+    false
+  rescue InsecureUriError
+    true
+  end
+
+  # returns a Net::HTTP connection object for the given URI object.
+  # When validated_ip is given, the TCP connection targets that IP while
+  # Net::HTTP keeps `address` (hostname) for SNI, Host header, and cert
+  # verification — defeating DNS rebinding between validation and connect.
+  def self.connection_for_uri(uri, validated_ip: nil)
     http = Net::HTTP.new(uri.host, uri.port)
+    http.ipaddr = validated_ip if validated_ip
     http.use_ssl = (uri.scheme == "https")
     http.ssl_timeout = http.open_timeout = OPEN_TIMEOUT
     http.read_timeout = READ_TIMEOUT
