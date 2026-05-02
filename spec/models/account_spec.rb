@@ -2771,6 +2771,19 @@ describe Account do
     end
   end
 
+  describe "#elevated_auth_provider_global_id" do
+    let(:account) { Account.default }
+
+    it "returns nil when the setting is unset" do
+      expect(account.elevated_auth_provider_global_id).to be_nil
+    end
+
+    it "returns the value stored in settings" do
+      account.settings[:elevated_auth_provider_global_id] = 10_000_000_000_001
+      expect(account.elevated_auth_provider_global_id).to be 10_000_000_000_001
+    end
+  end
+
   describe "#multi_parent_sub_accounts_recursive" do
     subject { Account.multi_parent_sub_accounts_recursive(parent_account_ids) }
 

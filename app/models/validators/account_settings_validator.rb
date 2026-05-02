@@ -45,9 +45,25 @@ module Validators
     def validate(record)
       # Discovery Page
       validate_discovery_page(record) if record.settings[:discovery_page].present? && record.discovery_page_changed?
+      if record.settings[:elevated_auth_provider_global_id].present? && record.elevated_auth_provider_global_id_changed?
+        validate_elevated_auth_provider(record)
+      end
     end
 
     private
+
+    def validate_elevated_auth_provider(record)
+      global_id = record.settings[:elevated_auth_provider_global_id]
+
+      unless Shard.global_id?(global_id)
+        record.errors.add(:settings, "elevated_auth_provider_global_id must be a global id")
+        return
+      end
+
+      unless record.authentication_providers.active.find_by(id: global_id)
+        record.errors.add(:settings, "elevated_auth_provider_global_id is invalid or inactive")
+      end
+    end
 
     def validate_discovery_page(record)
       data = record.settings[:discovery_page]

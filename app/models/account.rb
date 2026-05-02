@@ -467,6 +467,7 @@ class Account < ApplicationRecord
   add_setting :discovery_page, root_only: true
   add_setting :onetrust_consent_domain_id, root_only: true
   add_setting :has_underage_users, boolean: true, root_only: true, default: false
+  add_setting :elevated_auth_provider_global_id, root_only: true
 
   # suppress_notifications can be:
   #   true          - suppress all notifications (backward compatible)
@@ -1947,6 +1948,10 @@ class Account < ApplicationRecord
     return nil if value.nil?
 
     value.gsub(/[\r\n]+/, " ").strip
+  end
+
+  def elevated_auth_provider_global_id
+    settings[:elevated_auth_provider_global_id]
   end
 
   def validate_auth_discovery_url

@@ -272,4 +272,67 @@ describe Validators::AccountSettingsValidator do
       end
     end
   end
+
+  describe "elevated_auth_provider_global_id validation" do
+    it "passes when the setting is absent" do
+      account.settings.delete(:elevated_auth_provider_global_id)
+      expect(account).to be_valid
+    end
+
+    it "fails when the value is a local id" do
+      account.settings[:elevated_auth_provider_global_id] = auth_provider.id
+      expect(account).not_to be_valid
+      expect(account.errors[:settings]).to include("elevated_auth_provider_global_id must be a global id")
+    end
+
+    it "fails when the value is non-numeric" do
+      account.settings[:elevated_auth_provider_global_id] = "not-a-number"
+      expect(account).not_to be_valid
+      expect(account.errors[:settings]).to include("elevated_auth_provider_global_id must be a global id")
+    end
+
+    context "with sharding" do
+      specs_require_sharding
+
+      let(:sharded_account) { @shard1.activate { Account.create!(name: "Sharded Account") } }
+      let!(:sharded_auth_provider) do
+        @shard1.activate { sharded_account.authentication_providers.create!(auth_type: "saml") }
+      end
+
+      it "passes with the global id of an active provider in the same account" do
+        sharded_account.settings[:elevated_auth_provider_global_id] = sharded_auth_provider.global_id
+        expect(sharded_account).to be_valid
+      end
+
+      it "fails when the global id resolves to no provider" do
+        sharded_account.settings[:elevated_auth_provider_global_id] = @shard1.global_id_for(999_999)
+        expect(sharded_account).not_to be_valid
+        expect(sharded_account.errors[:settings]).to include("elevated_auth_provider_global_id is invalid or inactive")
+      end
+
+      it "fails when the provider is soft-deleted" do
+        @shard1.activate { sharded_auth_provider.destroy }
+        sharded_account.settings[:elevated_auth_provider_global_id] = sharded_auth_provider.global_id
+        expect(sharded_account).not_to be_valid
+        expect(sharded_account.errors[:settings]).to include("elevated_auth_provider_global_id is invalid or inactive")
+      end
+
+      it "fails when the provider belongs to a different account" do
+        other_account = @shard1.activate { Account.create!(name: "Other Sharded Account") }
+        other_provider = @shard1.activate { other_account.authentication_providers.create!(auth_type: "saml") }
+        sharded_account.settings[:elevated_auth_provider_global_id] = other_provider.global_id
+        expect(sharded_account).not_to be_valid
+        expect(sharded_account.errors[:settings]).to include("elevated_auth_provider_global_id is invalid or inactive")
+      end
+
+      it "does not re-validate when the setting hasn't changed" do
+        sharded_account.settings[:elevated_auth_provider_global_id] = sharded_auth_provider.global_id
+        sharded_account.save!
+
+        expect(Shard).not_to receive(:global_id?)
+        sharded_account.name = "Updated"
+        expect(sharded_account).to be_valid
+      end
+    end
+  end
 end
