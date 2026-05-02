@@ -199,6 +199,24 @@ describe AuthenticationProvider do
       expect(found).not_to be_nil
     end
 
+    context "when the provider is the account's elevated auth provider" do
+      before do
+        account.settings[:elevated_auth_provider_global_id] = aac.global_id
+        account.save(validate: false)
+      end
+
+      it "raises RecordInvalid and does not transition workflow_state" do
+        expect { aac.destroy }.to raise_error(ActiveRecord::RecordInvalid)
+        expect(aac.reload.workflow_state).to eq("active")
+      end
+
+      it "exposes a useful error message" do
+        aac.destroy
+      rescue ActiveRecord::RecordInvalid
+        expect(aac.errors.full_messages.join).to include("elevated authentication provider")
+      end
+    end
+
     it "soft-deletes associated pseudonyms" do
       user = user_model
       pseudonym = user.pseudonyms.create!(unique_id: "user@facebook.com")

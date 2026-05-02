@@ -200,6 +200,11 @@ class AuthenticationProvider < ApplicationRecord
   end
 
   def destroy
+    if account.elevated_auth_provider_global_id.to_s == global_id.to_s
+      errors.add(:base, t("Cannot delete an authentication provider that is configured as the elevated authentication provider for this account."))
+      raise ActiveRecord::RecordInvalid, self
+    end
+
     send(:remove_from_list_for_destroy)
     self.workflow_state = "deleted"
     save!
