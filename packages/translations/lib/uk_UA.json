@@ -152,6 +152,9 @@
     "default_9db103d": {
         "message": "За замовчуванням"
     },
+    "delete_failed_6285e600": {
+        "message": "Видалення не вдалося"
+    },
     "delimiters_4db4840d": {
         "message": "Розділювачі"
     },
