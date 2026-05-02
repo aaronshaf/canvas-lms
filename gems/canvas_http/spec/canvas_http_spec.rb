@@ -276,12 +276,25 @@ describe "CanvasHttp" do
   end
 
   describe "#insecure_host?" do
+    before do
+      # spec_helper nerfs this method, presumably to avoid making real network calls during tests
+      # or to avoid failing network requests to test hosts, but we need to test the real thing here
+      allow(CanvasHttp).to receive(:insecure_host?).and_call_original
+    end
+
     it "checks for insecure hosts" do
       expect(CanvasHttp.insecure_host?("example.com")).to be false
       expect(CanvasHttp.insecure_host?("localhost")).to be true
       expect(CanvasHttp.insecure_host?("127.0.0.1")).to be true
       expect(CanvasHttp.insecure_host?("192.168.0.0")).to be true
       expect(CanvasHttp.insecure_host?("192.168.1.2")).to be true
+      expect(CanvasHttp.insecure_host?("169.254.169.254")).to be true
+      expect(CanvasHttp.insecure_host?("100.64.5.10")).to be true
+      expect(CanvasHttp.insecure_host?("0.0.0.1")).to be true
+      expect(CanvasHttp.insecure_host?("::1")).to be true
+      expect(CanvasHttp.insecure_host?("fe80::1")).to be true
+      expect(CanvasHttp.insecure_host?("fc00::1")).to be true
+      expect(CanvasHttp.insecure_host?("::ffff:127.0.0.1")).to be true
       expect(CanvasHttp.insecure_host?("192.198.0.0")).to be false
     end
 

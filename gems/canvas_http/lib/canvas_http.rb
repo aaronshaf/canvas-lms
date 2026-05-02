@@ -31,11 +31,19 @@ module CanvasHttp
 
   def self.blocked_ip_ranges
     @blocked_ip_ranges || [
-      "127.0.0.1/8",
-      "10.0.0.0/8",
-      "172.16.0.0/12",
-      "192.168.0.0/16",
-      "fd00::/8"
+      # IPv4 — RFC1918 private + loopback + link-local + CGNAT + "this network"
+      "127.0.0.0/8",        # loopback
+      "10.0.0.0/8",         # RFC1918
+      "172.16.0.0/12",      # RFC1918
+      "192.168.0.0/16",     # RFC1918
+      "169.254.0.0/16",     # link-local + cloud metadata 169.254.169.254
+      "100.64.0.0/10",      # CGNAT (often internal cloud)
+      "0.0.0.0/8",          # "this network" — kernel-routed loopback on some platforms
+      # IPv6 — loopback, link-local, unique-local, IPv4-mapped
+      "::1/128",            # IPv6 loopback
+      "fe80::/10",          # IPv6 link-local
+      "fc00::/7",           # unique-local
+      "::ffff:0:0/96",      # IPv4-mapped IPv6 (defeats `[::ffff:127.0.0.1]` bypass)
     ]
   end
 
