@@ -37,9 +37,30 @@ import {
   IconSpeedGraderLine,
   IconUploadLine,
 } from '@instructure/ui-icons'
-import MessageStudents from '@canvas/message-students-modal'
+import {
+  MessageStudents,
+  MessageStudentsTranslationsProvider,
+  type MessageStudentsTranslations,
+} from '@instructure/platform-message-students-modal'
+import {queryClient} from '@instructure/platform-query'
+import {QueryClientProvider} from '@tanstack/react-query'
 
 const I18n = createI18nScope('assignments_2')
+
+function buildMessageStudentsTranslations(): MessageStudentsTranslations {
+  return {
+    close: I18n.t('Close'),
+    sendMessage: I18n.t('Send Message'),
+    to: I18n.t('To'),
+    subjectLabel: I18n.t('Subject'),
+    bodyLabel: I18n.t('Body'),
+    messageSent: I18n.t('Your message was sent!'),
+    sending: I18n.t("We're sending your message..."),
+    subjectRequired: I18n.t('Please provide a %{field}', {field: I18n.t('Subject')}),
+    bodyRequired: I18n.t('Please provide a %{field}', {field: I18n.t('Body')}),
+    subjectTooLong: I18n.t('Subject must contain fewer than 255 characters.'),
+  }
+}
 
 /*
  *  CAUTION: The InstUI DateTimeInput component was deprecated in v7.
@@ -344,22 +365,27 @@ export default class StudentTray extends React.Component {
       <div>
         {/* @ts-expect-error */}
         {this.state.messageFormOpen ? (
-          <MessageStudents
-            // @ts-expect-error
-            contextCode={`course_${this.props.assignment.course.lid}`}
-            onRequestClose={this.handleMessageFormClose}
-            // @ts-expect-error
-            open={this.state.messageFormOpen}
-            recipients={[
-              {
+          <QueryClientProvider client={queryClient}>
+            <MessageStudentsTranslationsProvider translations={buildMessageStudentsTranslations()}>
+              <MessageStudents
                 // @ts-expect-error
-                id: this.props.student.lid,
+                contextCode={`course_${this.props.assignment.course.lid}`}
                 // @ts-expect-error
-                displayName: this.props.student.shortName,
-              },
-            ]}
-            title={I18n.t('Send a message')}
-          />
+                onRequestClose={this.handleMessageFormClose}
+                // @ts-expect-error
+                open={this.state.messageFormOpen}
+                recipients={[
+                  {
+                    // @ts-expect-error
+                    id: this.props.student.lid,
+                    // @ts-expect-error
+                    displayName: this.props.student.shortName,
+                  },
+                ]}
+                title={I18n.t('Send a message')}
+              />
+            </MessageStudentsTranslationsProvider>
+          </QueryClientProvider>
         ) : null}
 
         <Tray

@@ -33,8 +33,13 @@ vi.mock('@instructure/platform-query/broadcast', () => ({
   useBroadcastQuery: vi.fn(),
 }))
 
-vi.mock('@canvas/message-students-modal/react', () => ({
-  default: function MockMessageStudents({onRequestClose, title, recipients, contextCode}: any) {
+vi.mock('@instructure/platform-message-students-modal', () => ({
+  MessageStudents: function MockMessageStudents({
+    onRequestClose,
+    title,
+    recipients,
+    contextCode,
+  }: any) {
     return (
       <div data-testid="message-students-modal">
         <h2>{title}</h2>
@@ -47,6 +52,9 @@ vi.mock('@canvas/message-students-modal/react', () => ({
         </button>
       </div>
     )
+  },
+  MessageStudentsTranslationsProvider: function MockProvider({children}: any) {
+    return <>{children}</>
   },
 }))
 

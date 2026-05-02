@@ -25,7 +25,13 @@ import MetricsList from './MetricsList'
 import Rating from './Rating'
 import SectionInfo from './SectionInfo'
 import SubmissionProgressBars from './SubmissionProgressBars'
-import MessageStudents from '@canvas/message-students-modal'
+import {
+  MessageStudents,
+  MessageStudentsTranslationsProvider,
+  type MessageStudentsTranslations,
+} from '@instructure/platform-message-students-modal'
+import {queryClient} from '@instructure/platform-query'
+import {QueryClientProvider} from '@tanstack/react-query'
 import {Text} from '@instructure/ui-text'
 import {Heading} from '@instructure/ui-heading'
 import {Spinner} from '@instructure/ui-spinner'
@@ -39,6 +45,21 @@ import {Tag} from '@instructure/ui-tag'
 import {htmlDecode} from '@canvas/util/TextHelper'
 
 const I18n = createI18nScope('student_context_trayStudentContextTray')
+
+function buildMessageStudentsTranslations(): MessageStudentsTranslations {
+  return {
+    close: I18n.t('Close'),
+    sendMessage: I18n.t('Send Message'),
+    to: I18n.t('To'),
+    subjectLabel: I18n.t('Subject'),
+    bodyLabel: I18n.t('Body'),
+    messageSent: I18n.t('Your message was sent!'),
+    sending: I18n.t("We're sending your message..."),
+    subjectRequired: I18n.t('Please provide a %{field}', {field: I18n.t('Subject')}),
+    bodyRequired: I18n.t('Please provide a %{field}', {field: I18n.t('Body')}),
+    subjectTooLong: I18n.t('Subject must contain fewer than 255 characters.'),
+  }
+}
 
 const courseShape = PropTypes.shape({
   permissions: PropTypes.shape({}).isRequired,
@@ -261,19 +282,24 @@ export default class StudentContextTray extends React.Component {
       <div>
         {/* @ts-expect-error TS2339 (typescriptify) */}
         {this.state.messageFormOpen ? (
-          <MessageStudents
-            contextCode={`course_${course._id}`}
-            onRequestClose={this.handleMessageFormClose}
-            // @ts-expect-error TS2339 (typescriptify)
-            open={this.state.messageFormOpen}
-            recipients={[
-              {
-                id: user._id,
-                displayName: user.short_name,
-              },
-            ]}
-            title={I18n.t('Send a message')}
-          />
+          <QueryClientProvider client={queryClient}>
+            <MessageStudentsTranslationsProvider translations={buildMessageStudentsTranslations()}>
+              <MessageStudents
+                contextCode={`course_${course._id}`}
+                // @ts-expect-error TS2322 (handler signature mismatch)
+                onRequestClose={this.handleMessageFormClose}
+                // @ts-expect-error TS2339 (typescriptify)
+                open={this.state.messageFormOpen}
+                recipients={[
+                  {
+                    id: user._id,
+                    displayName: user.short_name,
+                  },
+                ]}
+                title={I18n.t('Send a message')}
+              />
+            </MessageStudentsTranslationsProvider>
+          </QueryClientProvider>
         ) : null}
 
         <Tray

@@ -26,7 +26,13 @@ import {List} from '@instructure/ui-list'
 import {IconButton} from '@instructure/ui-buttons'
 import {IconMessageLine} from '@instructure/ui-icons'
 import {ToggleDetails} from '@instructure/ui-toggle-details'
-import MessageStudents from '@canvas/message-students-modal/react'
+import {
+  MessageStudents,
+  MessageStudentsTranslationsProvider,
+  type MessageStudentsTranslations,
+} from '@instructure/platform-message-students-modal'
+import {queryClient} from '@instructure/platform-query'
+import {QueryClientProvider} from '@tanstack/react-query'
 import {TemplateWidget} from '@instructure/platform-widget-dashboard'
 import PeopleFilters, {type RoleFilterOption, isValidRoleFilterOption} from './PeopleFilters'
 import type {BaseWidgetProps} from '../../../types'
@@ -36,6 +42,21 @@ import {DEFAULT_PAGE_SIZE} from '../../../constants/pagination'
 import {useWidgetConfig} from '../../../hooks/useWidgetConfig'
 
 const I18n = createI18nScope('widget_dashboard')
+
+function buildMessageStudentsTranslations(): MessageStudentsTranslations {
+  return {
+    close: I18n.t('Close'),
+    sendMessage: I18n.t('Send Message'),
+    to: I18n.t('To'),
+    subjectLabel: I18n.t('Subject'),
+    bodyLabel: I18n.t('Body'),
+    messageSent: I18n.t('Your message was sent!'),
+    sending: I18n.t("We're sending your message..."),
+    subjectRequired: I18n.t('Please provide a %{field}', {field: I18n.t('Subject')}),
+    bodyRequired: I18n.t('Please provide a %{field}', {field: I18n.t('Body')}),
+    subjectTooLong: I18n.t('Subject must contain fewer than 255 characters.'),
+  }
+}
 
 const PeopleWidget: React.FC<BaseWidgetProps> = ({
   widget,
@@ -292,13 +313,17 @@ const PeopleWidget: React.FC<BaseWidgetProps> = ({
         </Flex.Item>
       </Flex>
       {selectedRecipient && (
-        <MessageStudents
-          key={modalKey}
-          contextCode={selectedRecipient.contextCode}
-          recipients={[selectedRecipient]}
-          title={I18n.t('Send Message to %{name}', {name: selectedRecipient.displayName})}
-          onRequestClose={handleCloseMessageModal}
-        />
+        <QueryClientProvider client={queryClient}>
+          <MessageStudentsTranslationsProvider translations={buildMessageStudentsTranslations()}>
+            <MessageStudents
+              key={modalKey}
+              contextCode={selectedRecipient.contextCode}
+              recipients={[selectedRecipient]}
+              title={I18n.t('Send Message to %{name}', {name: selectedRecipient.displayName})}
+              onRequestClose={handleCloseMessageModal}
+            />
+          </MessageStudentsTranslationsProvider>
+        </QueryClientProvider>
       )}
     </TemplateWidget>
   )
