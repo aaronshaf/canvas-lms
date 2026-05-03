@@ -647,6 +647,54 @@ describe TokensController do
         end
       end
 
+      context "with an elevated auth provider required by the account" do
+        let(:account) { Account.default }
+        let!(:elevated_auth_provider) { account.authentication_providers.create!(auth_type: "saml") }
+        let!(:other_auth_provider) { account.authentication_providers.create!(auth_type: "cas", auth_base: "http://example.com") }
+        let(:elevated_user) { user_with_pseudonym(active_all: true, account:) }
+        let(:elevated_pseudonym) { elevated_user.pseudonyms.first }
+
+        before do
+          account.settings[:elevated_auth_provider_global_id] = elevated_auth_provider.global_id
+          account.save(validate: false)
+          user_session(elevated_user, elevated_pseudonym)
+
+          AuthenticationMethods::PseudonymAttributes.reset
+
+          site_admin = Account.site_admin
+          allow(site_admin).to receive(:feature_enabled?).and_call_original
+          allow(site_admin).to receive(:feature_enabled?)
+            .with(:enforce_no_elevated_auth_provider_violations).and_return(true)
+          allow(Account).to receive(:site_admin).and_return(site_admin)
+        end
+
+        describe "POST create" do
+          context "when the session uses the elevated auth provider" do
+            before { AuthenticationMethods::PseudonymAttributes.auth_provider_id = elevated_auth_provider.id }
+
+            it "allows creating an access token" do
+              post "create", params: { user_id: "self", token: { purpose: "test", expires_at: "jun 1 2011" } }
+              expect(response).to be_successful
+              expect(assigns[:token]).not_to be_nil
+              expect(assigns[:token].user).to eql elevated_user
+              expect(assigns[:token].purpose).to eql "test"
+            end
+          end
+
+          context "when the session uses a non-elevated auth provider" do
+            before { AuthenticationMethods::PseudonymAttributes.auth_provider_id = other_auth_provider.id }
+
+            it "denies creating an access token" do
+              expect do
+                post "create", params: { user_id: "self", token: { purpose: "test", expires_at: "jun 1 2011" } }
+              end.not_to change { elevated_user.access_tokens.count }
+              expect(response).to redirect_to(root_url)
+              expect(flash[:error][:html]).to include("requires using an elevated authentication provider")
+            end
+          end
+        end
+      end
+
       context "student expiration enforcement" do
         context "as an admin" do
           before(:once) { @admin = account_admin_user }

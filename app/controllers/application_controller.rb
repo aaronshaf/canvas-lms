@@ -1325,7 +1325,7 @@ class ApplicationController < ActionController::Base
       redirect_to login_url
       return false
     end
-    true
+    require_elevated_auth_provider
   end
 
   def run_login_hooks

@@ -30,6 +30,7 @@ module Factories
         user:,
         login_count: 1,
         global_account_id: "10000000000001",
+        account: nil,
         sis_user_id: "U001",
         shard: Shard.default,
         works_for_account?: true,

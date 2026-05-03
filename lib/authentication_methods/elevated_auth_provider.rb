@@ -24,7 +24,7 @@ module AuthenticationMethods
 
       unless elevated_auth_provider_required?(pseudonym_account)
         log_message("Not required")
-        return
+        return true
       end
 
       if using_elevated_auth_provider?(pseudonym_account)
