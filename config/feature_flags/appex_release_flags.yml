@@ -119,6 +119,7 @@ log_session_token_failures:
       state: hidden
 log_elevated_auth_provider_violations:
   state: hidden
+  shadow: true
   applies_to: SiteAdmin
   display_name: Log Elevated Auth Provider Violations
   description: |-
@@ -134,6 +135,7 @@ log_elevated_auth_provider_violations:
       state: hidden
 enforce_no_elevated_auth_provider_violations:
   state: hidden
+  shadow: true
   applies_to: SiteAdmin
   display_name: Enforce Elevated Auth Provider Requirement
   description: |-
