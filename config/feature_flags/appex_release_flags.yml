@@ -149,3 +149,19 @@ enforce_no_elevated_auth_provider_violations:
       state: hidden
     production:
       state: hidden
+require_elevated_auth_provider_for_session_token:
+  state: hidden
+  shadow: true
+  applies_to: SiteAdmin
+  display_name: Require Elevated Auth Provider For Session Token
+  description: |-
+    If enabled, the login/session_token endpoint participates in the elevated
+    auth provider requirement. When disabled the endpoint bypasses the check
+    entirely, regardless of the log/enforce flags.
+  environments:
+    development:
+      state: allowed
+    beta:
+      state: hidden
+    production:
+      state: hidden

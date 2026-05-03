@@ -24,6 +24,8 @@ class LoginController < ApplicationController
   before_action :forbid_on_files_domain, except: :clear_file_session
   before_action :run_login_hooks, only: :new
   before_action :fix_ms_office_redirects, only: :new
+  before_action :require_elevated_auth_provider, only: :session_token, if: :require_elevated_auth_provider_for_session_token?
+
   skip_before_action :require_reacceptance_of_terms
   skip_before_action :require_user, only: %i[clear_file_session logout_landing new]
 
@@ -178,4 +180,8 @@ class LoginController < ApplicationController
   end
 
   def auth_type; end
+
+  def require_elevated_auth_provider_for_session_token?
+    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_session_token)
+  end
 end
