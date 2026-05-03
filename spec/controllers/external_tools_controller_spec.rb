@@ -3814,6 +3814,103 @@ describe ExternalToolsController do
         end
       end
     end
+
+    describe "elevated auth provider enforcement" do
+      let(:account) { Account.default }
+      let(:elevated_provider) { account.canvas_authentication_provider }
+      let(:log_flag_enabled) { false }
+      let(:enforce_flag_enabled) { false }
+      let(:sessionless_launch_flag_enabled) { true }
+
+      before do
+        AuthenticationMethods::PseudonymAttributes.reset
+
+        site_admin = Account.site_admin
+        allow(site_admin).to receive(:feature_enabled?).and_call_original
+        allow(site_admin).to receive(:feature_enabled?)
+          .with(:log_elevated_auth_provider_violations).and_return(log_flag_enabled)
+        allow(site_admin).to receive(:feature_enabled?)
+          .with(:enforce_no_elevated_auth_provider_violations).and_return(enforce_flag_enabled)
+        allow(site_admin).to receive(:feature_enabled?)
+          .with(:require_elevated_auth_provider_for_sessionless_launch).and_return(sessionless_launch_flag_enabled)
+        allow(Account).to receive(:site_admin).and_return(site_admin)
+
+        # Short-circuit the action body past the before_action so we get a
+        # deterministic response (503) when the elevation check allows the
+        # request through, without depending on Redis being enabled in test.
+        allow(Canvas).to receive(:redis_enabled?).and_return(false)
+      end
+
+      context "when no elevated provider is configured" do
+        let(:enforce_flag_enabled) { true }
+
+        it "allows the request past the before_action" do
+          get :generate_sessionless_launch, params: { course_id: @course.id, id: tool.id }
+          expect(response).to have_http_status(:service_unavailable)
+        end
+      end
+
+      context "when an elevated provider is configured" do
+        before do
+          account.settings[:elevated_auth_provider_global_id] = elevated_provider.global_id
+          account.save(validate: false)
+        end
+
+        context "and the session uses the elevated provider" do
+          let(:enforce_flag_enabled) { true }
+
+          before { AuthenticationMethods::PseudonymAttributes.auth_provider_id = elevated_provider.id }
+
+          it "allows the request past the before_action" do
+            get :generate_sessionless_launch, params: { course_id: @course.id, id: tool.id }
+            expect(response).to have_http_status(:service_unavailable)
+          end
+        end
+
+        context "and the session does not use the elevated provider" do
+          context "with both flags off" do
+            it "allows the request past the before_action" do
+              get :generate_sessionless_launch, params: { course_id: @course.id, id: tool.id }
+              expect(response).to have_http_status(:service_unavailable)
+            end
+          end
+
+          context "with only the log flag on" do
+            let(:log_flag_enabled) { true }
+
+            it "allows the request past the before_action" do
+              get :generate_sessionless_launch, params: { course_id: @course.id, id: tool.id }
+              expect(response).to have_http_status(:service_unavailable)
+            end
+          end
+
+          context "with the enforce flag on" do
+            let(:enforce_flag_enabled) { true }
+
+            it "blocks json requests with 403 unauthorized" do
+              get :generate_sessionless_launch, params: { course_id: @course.id, id: tool.id }, format: :json
+              expect(response).to have_http_status(:forbidden)
+              expect(response.parsed_body["status"]).to eq "unauthorized"
+            end
+
+            it "redirects html requests to root_url with a flash error" do
+              get :generate_sessionless_launch, params: { course_id: @course.id, id: tool.id }
+              expect(response).to redirect_to(root_url)
+              expect(flash[:error][:html]).to include("requires using an elevated authentication provider")
+            end
+
+            context "but the sessionless_launch flag is off" do
+              let(:sessionless_launch_flag_enabled) { false }
+
+              it "bypasses the elevated auth provider check" do
+                get :generate_sessionless_launch, params: { course_id: @course.id, id: tool.id }, format: :json
+                expect(response).to have_http_status(:service_unavailable)
+              end
+            end
+          end
+        end
+      end
+    end
   end
 
   describe "#sessionless_launch" do

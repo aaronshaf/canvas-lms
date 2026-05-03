@@ -610,6 +610,7 @@ class ExternalToolsController < ApplicationController
   before_action :require_context, except: [:all_visible_nav_tools]
   before_action :require_tool_create_rights, only: :create
   before_action :require_access_to_context, except: %i[index sessionless_launch all_visible_nav_tools]
+  before_action :require_elevated_auth_provider, only: :generate_sessionless_launch, if: :require_elevated_auth_provider_for_sessionless_launch?
   skip_before_action :require_user, only: %i[all_visible_nav_tools
                                              finished
                                              index
@@ -1861,6 +1862,10 @@ class ExternalToolsController < ApplicationController
   end
 
   private
+
+  def require_elevated_auth_provider_for_sessionless_launch?
+    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_sessionless_launch)
+  end
 
   def external_tools_json_for_courses(courses)
     courses.reduce([]) do |all_results, course|

@@ -182,3 +182,19 @@ require_elevated_auth_provider_for_login_management:
       state: hidden
     production:
       state: hidden
+require_elevated_auth_provider_for_sessionless_launch:
+  state: hidden
+  shadow: true
+  applies_to: SiteAdmin
+  display_name: Require Elevated Auth Provider For Sessionless Launch
+  description: |-
+    If enabled, the elevated authentication provider requirement is checked
+    on the sessionless launch endpoint. Controlled independently from other
+    elevated auth provider enforcement so it can be rolled out on its own.
+  environments:
+    development:
+      state: allowed
+    beta:
+      state: hidden
+    production:
+      state: hidden
