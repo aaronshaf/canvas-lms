@@ -4668,4 +4668,94 @@ describe UsersController do
       end
     end
   end
+
+  describe "elevated auth provider enforcement on create" do
+    let(:account) { Account.default }
+    let!(:auth_provider) { account.authentication_providers.create!(auth_type: "saml") }
+    let!(:other_provider) { account.authentication_providers.create!(auth_type: "cas") }
+    let(:admin) { account_admin_user(account:) }
+    let(:admin_pseudonym) { pseudonym(admin, account:) }
+    let(:create_params) do
+      {
+        account_id: account.id,
+        pseudonym: { unique_id: "newuser@example.com" },
+        user: { name: "New User" }
+      }
+    end
+    let(:login_management_flag_enabled) { true }
+    let(:enforce_flag_enabled) { true }
+
+    before do
+      AuthenticationMethods::PseudonymAttributes.reset
+
+      site_admin = Account.site_admin
+      allow(site_admin).to receive(:feature_enabled?).and_call_original
+      allow(site_admin).to receive(:feature_enabled?)
+        .with(:require_elevated_auth_provider_for_login_management).and_return(login_management_flag_enabled)
+      allow(site_admin).to receive(:feature_enabled?)
+        .with(:enforce_no_elevated_auth_provider_violations).and_return(enforce_flag_enabled)
+      allow(Account).to receive(:site_admin).and_return(site_admin)
+
+      user_session(admin, admin_pseudonym)
+    end
+
+    context "when the login management gate flag is off" do
+      let(:login_management_flag_enabled) { false }
+
+      before do
+        account.settings[:elevated_auth_provider_global_id] = auth_provider.global_id
+        account.save(validate: false)
+        AuthenticationMethods::PseudonymAttributes.auth_provider_id = other_provider.id
+      end
+
+      it "allows create through" do
+        expect do
+          post :create, params: create_params, format: :json
+        end.to change { account.pseudonyms.count }.by(1)
+        expect(response).to be_successful
+      end
+    end
+
+    context "when the session does not use the elevated provider" do
+      before do
+        account.settings[:elevated_auth_provider_global_id] = auth_provider.global_id
+        account.save(validate: false)
+        AuthenticationMethods::PseudonymAttributes.auth_provider_id = other_provider.id
+      end
+
+      it "blocks create with 403 unauthorized" do
+        expect do
+          post :create, params: create_params, format: :json
+        end.not_to change { account.pseudonyms.count }
+        expect(response).to have_http_status(:forbidden)
+        expect(response.parsed_body["status"]).to eq "unauthorized"
+      end
+
+      context "but the enforce flag is off" do
+        let(:enforce_flag_enabled) { false }
+
+        it "allows create through" do
+          expect do
+            post :create, params: create_params, format: :json
+          end.to change { account.pseudonyms.count }.by(1)
+          expect(response).to be_successful
+        end
+      end
+    end
+
+    context "when the session uses the elevated provider" do
+      before do
+        account.settings[:elevated_auth_provider_global_id] = auth_provider.global_id
+        account.save(validate: false)
+        AuthenticationMethods::PseudonymAttributes.auth_provider_id = auth_provider.id
+      end
+
+      it "allows create through" do
+        expect do
+          post :create, params: create_params, format: :json
+        end.to change { account.pseudonyms.count }.by(1)
+        expect(response).to be_successful
+      end
+    end
+  end
 end

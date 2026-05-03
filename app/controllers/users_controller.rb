@@ -107,6 +107,7 @@ class UsersController < ApplicationController
   before_action :require_self_registration, only: %i[new create create_self_registered_user]
   before_action :check_limited_access_for_students, only: %i[create_file set_custom_color]
   before_action :load_canvas_career, only: %i[user_dashboard]
+  before_action :require_elevated_auth_provider, only: :create, if: :require_elevated_auth_provider_for_login_management?
 
   MAX_UUIDS_IN_FILTER = 100
 
@@ -3105,6 +3106,10 @@ class UsersController < ApplicationController
   end
 
   private
+
+  def require_elevated_auth_provider_for_login_management?
+    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_login_management)
+  end
 
   def load_dashboard_learning_agent_env
     return unless @current_user

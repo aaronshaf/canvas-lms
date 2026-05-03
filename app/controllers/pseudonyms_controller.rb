@@ -24,6 +24,7 @@ class PseudonymsController < ApplicationController
   before_action :get_context, only: [:index, :create]
   skip_before_action :require_user, only: %i[change_password confirm_change_password forgot_password]
   before_action :reject_student_view_student, only: %i[create show edit update]
+  before_action :require_elevated_auth_provider, only: %i[create update destroy], if: :require_elevated_auth_provider_for_login_management?
   protect_from_forgery except: %i[registration_confirmation change_password forgot_password], with: :exception
 
   include Api::V1::Pseudonym
@@ -529,6 +530,10 @@ class PseudonymsController < ApplicationController
   end
 
   protected
+
+  def require_elevated_auth_provider_for_login_management?
+    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_login_management)
+  end
 
   def context_is_root_account?
     if @context.root_account?
