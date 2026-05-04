@@ -106,6 +106,43 @@ describe CC::Importer::Canvas::CourseSettings do
         end
       end
     end
+    context "nested settings (default_discussion_settings))" do
+      let(:nested_values) do
+        {
+          anonymous_state: "full_anonymity",
+          disallow_threaded_replies: true,
+          require_initial_post: true,
+          podcast_enabled: true,
+          podcast_has_student_posts: true,
+          allow_rating: true,
+          only_graders_can_rate: true,
+          expanded: true,
+          expanded_locked: true,
+          sort_order: "desc",
+          sort_order_locked: true,
+        }
+      end
+
+      let(:mock_html_meta) do
+        builder = Nokogiri::XML::Builder.new do |xml|
+          xml.course(identifier: "mock-id") do
+            xml.send(:default_discussion_settings) do
+              nested_values.each do |key, value|
+                xml.send(key, value)
+              end
+            end
+          end
+        end
+
+        Nokogiri::XML(builder.to_xml)
+      end
+
+      it "should return true for nested values" do
+        nested_values.each do |k, v|
+          expect(subject[:default_discussion_settings][k.to_s]).to eq(v)
+        end
+      end
+    end
   end
 
   describe "#convert_nav_menu_links" do

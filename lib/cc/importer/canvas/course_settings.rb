@@ -156,9 +156,24 @@ module CC::Importer::Canvas
       course[:use_default_discussion_settings] = use_default unless use_default.nil?
 
       if (dds_node = doc.at_css("default_discussion_settings"))
+        bool_fields = %w[disallow_threaded_replies
+                         require_initial_post
+                         podcast_enabled
+                         podcast_has_student_posts
+                         allow_rating
+                         only_graders_can_rate
+                         expanded
+                         expanded_locked
+                         sort_order_locked]
         dds = {}
         dds_node.children.each do |child|
-          dds[child.name] = child.text if child.element?
+          next unless child.element?
+
+          dds[child.name] = if bool_fields.include?(child.name)
+                              get_bool_val(dds_node, child.name)
+                            else
+                              child.text
+                            end
         end
         course[:default_discussion_settings] = dds if dds.present?
       end
