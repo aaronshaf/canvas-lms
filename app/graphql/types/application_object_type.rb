@@ -35,6 +35,10 @@ module Types
       context[:current_user]
     end
 
+    def current_principal
+      context[:current_principal]
+    end
+
     def domain_root_account
       context[:domain_root_account]
     end

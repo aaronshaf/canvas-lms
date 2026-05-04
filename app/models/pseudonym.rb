@@ -509,10 +509,10 @@ class Pseudonym < ApplicationRecord
     # permission on the pseudonym's owner, and a superset of the pseudonym's
     # owner's rights (if any) on the pseudonym's account. some fields of the
     # pseudonym may require additional conditions to update (see below)
-    given do |user|
-      self.account.grants_right?(user, :manage_user_logins) &&
-        self.user.has_subset_of_account_permissions?(user, self.account) &&
-        self.user.grants_right?(user, :read) &&
+    given do |principal|
+      self.account.grants_right?(principal, :manage_user_logins) &&
+        user.has_subset_of_account_permissions?(principal&.user, self.account) &&
+        user.grants_right?(principal, :read) &&
         directly_editable?
     end
     can :create and can :update

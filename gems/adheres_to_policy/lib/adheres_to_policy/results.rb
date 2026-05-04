@@ -20,39 +20,51 @@
 require "singleton"
 
 module AdheresToPolicy
-  class Success
+  class Result
+    NO_JUSTIFICATION = [].freeze
+    private_constant :NO_JUSTIFICATION
+
+    # @return [<JustifiedFailure>]
+    attr_reader :justifications
+
+    # @return [true, false]
+    def success? = false
+
+    private
+
+    def initialize
+      @justifications = NO_JUSTIFICATION
+    end
+  end
+
+  class Success < Result
     include Singleton
 
-    def success?
-      true
-    end
+    def success? = true
   end
 
-  class Failure
+  class Failure < Result
     include Singleton
+  end
 
-    def justifications
-      []
-    end
+  class JustifiedFailure < Result
+    # @return [Symbol]
+    attr_reader :justification
+    # @return [Object, nil]
+    attr_reader :context
 
-    def success?
-      false
+    def initialize(justification, context = nil)
+      super()
+      @justification = justification
+      @context = context
+      @justifications = [self].freeze
     end
   end
 
-  JustifiedFailure = Struct.new(:justification, :context) do
-    def success?
-      false
-    end
-
-    def justifications
-      [self]
-    end
-  end
-
-  JustifiedFailures = Struct.new(:justifications) do
-    def success?
-      false
+  class JustifiedFailures < Result
+    def initialize(justifications)
+      super()
+      @justifications = justifications.freeze
     end
   end
 end

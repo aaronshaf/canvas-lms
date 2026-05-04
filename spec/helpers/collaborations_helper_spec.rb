@@ -30,6 +30,7 @@ describe CollaborationsHelper do
     end
 
     it "renders the google auth for google drive collaborations if the user does not have google docs authorized" do
+      allow(collab).to receive(:is_a?).with(RSpec::Mocks::InstanceVerifyingDouble).and_return(false)
       allow(collab).to receive(:is_a?).with(GoogleDocsCollaboration).and_return(true)
       expect(helper).to receive(:render).with("collaborations/auth_google_drive", collaboration: collab)
       helper.collaboration(collab, user, false)

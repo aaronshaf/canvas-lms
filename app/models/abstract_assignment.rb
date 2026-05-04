@@ -2660,7 +2660,7 @@ class AbstractAssignment < ApplicationRecord
     raise "Student Required" unless original_student
 
     group, students = group_students(original_student)
-    opts[:author] ||= opts[:commenter] || (opts[:user_id].present? && User.find_by(id: opts[:user_id]))
+    opts[:author] ||= opts[:commenter] || (opts[:user_id].presence && User.find_by(id: opts[:user_id]))
     res = {
       comments: [],
       submissions: []

@@ -84,6 +84,7 @@ class GraphQLController < ApplicationController
     context = {
       current_user: @current_user,
       real_current_user: @real_current_user,
+      current_principal:,
       session:,
       request:,
       domain_root_account: @domain_root_account,

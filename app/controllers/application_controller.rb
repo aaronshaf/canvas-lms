@@ -26,6 +26,10 @@ class ApplicationController < ActionController::Base
 
   attr_accessor :active_tab
   attr_reader :context
+  # @return [AdheresToPolicy::Principal, nil]
+  attr_reader :current_principal
+
+  helper_method :current_principal
 
   include Api
   include LocaleSelection
@@ -1971,6 +1975,7 @@ class ApplicationController < ActionController::Base
       render template: "shared/unauthorized_feed", status: :bad_request, formats: [:html]
       return false
     end
+    @current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@current_user) if @current_user
     @context
   end
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #
-# Copyright (C) 2014 - present Instructure, Inc.
+# Copyright (C) 2026 - present Instructure, Inc.
 #
 # This file is part of Canvas.
 #
@@ -16,26 +16,21 @@
 #
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
+#
 
-require "active_support"
-require "active_support/core_ext/object/blank"
+describe Canvas::AdheresToPolicy::UserPrincipal do
+  let_once(:user) { user_with_pseudonym }
+  let(:principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
 
-module AdheresToPolicy
-  require "adheres_to_policy/cache"
-  require "adheres_to_policy/class_methods"
-  require "adheres_to_policy/condition"
-  require "adheres_to_policy/configuration"
-  require "adheres_to_policy/instance_methods"
-  require "adheres_to_policy/policy"
-  require "adheres_to_policy/principal"
-  require "adheres_to_policy/results"
+  describe "#initialize" do
+    it "infers user from pseudonym" do
+      principal = Canvas::AdheresToPolicy::UserPrincipal.new(user.pseudonyms.first)
+      expect(principal.user).to eq user
+      expect(principal.pseudonym).to eq user.pseudonyms.first
+    end
 
-  @configuration = Configuration.new
-  class << self
-    attr_reader :configuration
-
-    def configure
-      yield(configuration)
+    it "allows pseudonym-less users" do
+      expect(principal.pseudonym).to be_nil
     end
   end
 end

@@ -873,14 +873,14 @@ describe LearningOutcome do
       end
 
       it "grants :update iff the site admin grants :manage_global_outcomes" do
-        @admin = double
+        principal = AdheresToPolicy::UserPrincipal.new(instance_double(User, cache_key: "key"))
 
-        expect(Account.site_admin).to receive(:grants_right?).with(@admin, nil, :manage_global_outcomes).and_return(true)
-        expect(@outcome.grants_right?(@admin, :update)).to be_truthy
-        @outcome.clear_permissions_cache(@admin)
+        expect(Account.site_admin).to receive(:grants_right?).with(principal, nil, :manage_global_outcomes).and_return(true)
+        expect(@outcome.grants_right?(principal, :update)).to be_truthy
+        @outcome.clear_permissions_cache(principal)
 
-        expect(Account.site_admin).to receive(:grants_right?).with(@admin, nil, :manage_global_outcomes).and_return(false)
-        expect(@outcome.grants_right?(@admin, :update)).to be_falsey
+        expect(Account.site_admin).to receive(:grants_right?).with(principal, nil, :manage_global_outcomes).and_return(false)
+        expect(@outcome.grants_right?(principal, :update)).to be_falsey
       end
     end
 

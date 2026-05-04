@@ -55,6 +55,7 @@ end
 def view_context(context = @course, current_user = @user, real_current_user = nil)
   assign(:context, context)
   assign(:current_user, current_user)
+  assign(:current_principal, current_user && Canvas::AdheresToPolicy::UserPrincipal.new(current_user))
   assign(:real_current_user, real_current_user)
   assign(:domain_root_account, Account.default)
 end

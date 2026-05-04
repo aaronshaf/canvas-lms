@@ -22,7 +22,7 @@ module AdheresToPolicy
   class Policy
     attr_reader :conditions, :available_rights, :parent_policy, :parent_condition
 
-    def initialize(parent_policy, parent_condition, *blocks, &block)
+    def initialize(parent_policy = nil, parent_condition = nil, *blocks, &block)
       @parent_policy = parent_policy
       @parent_condition = parent_condition
 

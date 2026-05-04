@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #
-# Copyright (C) 2014 - present Instructure, Inc.
+# Copyright (C) 2024 - present Instructure, Inc.
 #
 # This file is part of Canvas.
 #
@@ -17,25 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-require "active_support"
-require "active_support/core_ext/object/blank"
+module FuzzyMatcherForPrincipals
+  def values_match?(expected, actual)
+    return true if expected.is_a?(RSpec::Mocks::InstanceVerifyingDouble) && actual.is_a?(AdheresToPolicy::Principal) && expected == actual.user
 
-module AdheresToPolicy
-  require "adheres_to_policy/cache"
-  require "adheres_to_policy/class_methods"
-  require "adheres_to_policy/condition"
-  require "adheres_to_policy/configuration"
-  require "adheres_to_policy/instance_methods"
-  require "adheres_to_policy/policy"
-  require "adheres_to_policy/principal"
-  require "adheres_to_policy/results"
-
-  @configuration = Configuration.new
-  class << self
-    attr_reader :configuration
-
-    def configure
-      yield(configuration)
-    end
+    super
   end
 end
+
+RSpec::Support::FuzzyMatcher.singleton_class.prepend(FuzzyMatcherForPrincipals)

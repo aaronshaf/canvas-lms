@@ -26,13 +26,25 @@ describe AdheresToPolicy::InstanceMethods do
       extend AdheresToPolicy::ClassMethods
 
       set_policy do
-        given { |user| self.user == user }
+        given { |principal| user == principal.user }
         can :read
       end
     end
   end
 
   let(:user_class) { Class.new }
+
+  let(:principal_class) do
+    Class.new(AdheresToPolicy::UserPrincipal) do
+      def cache_key
+        user&.to_s
+      end
+    end
+  end
+  let(:principal) { principal_class.new(1) }
+  let(:allowed_actor) { principal_class.new("allowed actor") }
+  let(:another_allowed_actor) { principal_class.new("another allowed actor") }
+  let(:disallowed_actor) { principal_class.new("disallowed actor") }
 
   it "has setup a series of methods on the instance" do
     %w[rights_status granted_rights grants_right? grants_any_right? grants_all_rights?].each do |method|
@@ -43,81 +55,81 @@ describe AdheresToPolicy::InstanceMethods do
   it "is able to check a policy" do
     some_instance = some_class.new
     some_instance.user = 1
-    expect(some_instance.grants_right?(1, :read)).to be true
+    expect(some_instance.grants_right?(principal, :read)).to be true
   end
 
   it "allows multiple forms of can statements" do
-    actor_class = Class.new do
+    resource_class = Class.new do
       extend AdheresToPolicy::ClassMethods
 
       set_policy do
-        given { |user| user == 1 }
+        given { |principal| principal.user == 1 }
         can :read and can :write
 
-        given { |user| user == 2 }
+        given { |principal| principal.user == 2 }
         can :update, :delete
 
-        given { |user| user == 3 }
+        given { |principal| principal.user == 3 }
         can [:manage, :set_permissions]
       end
     end
 
-    actor = actor_class.new
-    expect(actor.rights_status(1, :read, :write)).to eq({ read: true, write: true })
-    expect(actor.rights_status(2, :read, :update, :delete)).to eq({ read: false, update: true, delete: true })
-    expect(actor.rights_status(3, :read, :manage, :set_permissions)).to eq({ read: false, manage: true, set_permissions: true })
+    resource = resource_class.new
+    expect(resource.rights_status(principal, :read, :write)).to eq({ read: true, write: true })
+    expect(resource.rights_status(principal_class.new(2), :read, :update, :delete)).to eq({ read: false, update: true, delete: true })
+    expect(resource.rights_status(principal_class.new(3), :read, :manage, :set_permissions)).to eq({ read: false, manage: true, set_permissions: true })
   end
 
   it "checks parent conditions" do
-    actor_class = Class.new do
+    resource_class = Class.new do
       extend AdheresToPolicy::ClassMethods
 
       set_policy do
-        given { |value| value[0] == true }
+        given { |principal| principal.user[0] == true }
         use_additional_policy do
-          given { |value| value[1] == true }
+          given { |principal| principal.user[1] == true }
           can :do_stuff
         end
       end
     end
 
-    actor = actor_class.new
-    expect(actor.rights_status([false, false])).to eq(do_stuff: false)
-    expect(actor.rights_status([false, true])).to eq(do_stuff: false)
-    expect(actor.rights_status([true, false])).to eq(do_stuff: false)
-    expect(actor.rights_status([true, true])).to eq(do_stuff: true)
+    resource = resource_class.new
+    expect(resource.rights_status(principal_class.new([false, false]))).to eq(do_stuff: false)
+    expect(resource.rights_status(principal_class.new([false, true]))).to eq(do_stuff: false)
+    expect(resource.rights_status(principal_class.new([true, false]))).to eq(do_stuff: false)
+    expect(resource.rights_status(principal_class.new([true, true]))).to eq(do_stuff: true)
   end
 
   it "checks deeply nested parent conditions" do
-    actor_class = Class.new do
+    resource_class = Class.new do
       extend AdheresToPolicy::ClassMethods
 
       set_policy do
-        given { |value| value[0] == true }
+        given { |principal| principal.user[0] == true }
         use_additional_policy do
-          given { |value| value[1] == true }
+          given { |principal| principal.user[1] == true }
           can :do_stuff
           use_additional_policy do
-            given { |value| value[2] == true }
+            given { |principal| principal.user[2] == true }
             can :do_things
           end
         end
       end
     end
 
-    actor = actor_class.new
-    expect(actor.rights_status([false, false, false])).to eq(do_stuff: false, do_things: false)
-    expect(actor.rights_status([false, false, true])).to eq(do_stuff: false, do_things: false)
-    expect(actor.rights_status([false, true, false])).to eq(do_stuff: false, do_things: false)
-    expect(actor.rights_status([false, true, true])).to eq(do_stuff: false, do_things: false)
-    expect(actor.rights_status([true, false, false])).to eq(do_stuff: false, do_things: false)
-    expect(actor.rights_status([true, false, true])).to eq(do_stuff: false, do_things: false)
-    expect(actor.rights_status([true, true, false])).to eq(do_stuff: true, do_things: false)
-    expect(actor.rights_status([true, true, true])).to eq(do_stuff: true, do_things: true)
+    resource = resource_class.new
+    expect(resource.rights_status(principal_class.new([false, false, false]))).to eq(do_stuff: false, do_things: false)
+    expect(resource.rights_status(principal_class.new([false, false, true]))).to eq(do_stuff: false, do_things: false)
+    expect(resource.rights_status(principal_class.new([false, true, false]))).to eq(do_stuff: false, do_things: false)
+    expect(resource.rights_status(principal_class.new([false, true, true]))).to eq(do_stuff: false, do_things: false)
+    expect(resource.rights_status(principal_class.new([true, false, false]))).to eq(do_stuff: false, do_things: false)
+    expect(resource.rights_status(principal_class.new([true, false, true]))).to eq(do_stuff: false, do_things: false)
+    expect(resource.rights_status(principal_class.new([true, true, false]))).to eq(do_stuff: true, do_things: false)
+    expect(resource.rights_status(principal_class.new([true, true, true]))).to eq(do_stuff: true, do_things: true)
   end
 
   it "executes all conditions when searching for all rights" do
-    actor_class = Class.new do
+    resource_class = Class.new do
       attr_accessor :total
 
       extend AdheresToPolicy::ClassMethods
@@ -138,13 +150,13 @@ describe AdheresToPolicy::InstanceMethods do
       end
     end
 
-    actor = actor_class.new
-    expect(actor.rights_status(nil)).to eq({ read: true, write: true, update: true })
-    expect(actor.total).to eq 3
+    resource = resource_class.new
+    expect(resource.rights_status(nil)).to eq({ read: true, write: true, update: true })
+    expect(resource.total).to eq 3
   end
 
   it "skips duplicate conditions when searching for all rights" do
-    actor_class = Class.new do
+    resource_class = Class.new do
       attr_accessor :total
 
       extend AdheresToPolicy::ClassMethods
@@ -165,13 +177,13 @@ describe AdheresToPolicy::InstanceMethods do
       end
     end
 
-    actor = actor_class.new
-    expect(actor.rights_status(nil)).to eq({ read: true, write: true, update: true })
-    expect(actor.total).to eq 2
+    resource = resource_class.new
+    expect(resource.rights_status(nil)).to eq({ read: true, write: true, update: true })
+    expect(resource.total).to eq 2
   end
 
   it "only executes relevant conditions when searching for specific rights" do
-    actor_class = Class.new do
+    resource_class = Class.new do
       attr_accessor :total
 
       extend AdheresToPolicy::ClassMethods
@@ -192,13 +204,13 @@ describe AdheresToPolicy::InstanceMethods do
       end
     end
 
-    actor = actor_class.new
-    expect(actor.rights_status(nil, :read)).to eq({ read: true })
-    expect(actor.total).to eq 1
+    resource = resource_class.new
+    expect(resource.rights_status(nil, :read)).to eq({ read: true })
+    expect(resource.total).to eq 1
   end
 
   it "skips duplicate conditions when searching for specific rights" do
-    actor_class = Class.new do
+    resource_class = Class.new do
       attr_accessor :total
 
       extend AdheresToPolicy::ClassMethods
@@ -219,9 +231,9 @@ describe AdheresToPolicy::InstanceMethods do
       end
     end
 
-    actor = actor_class.new
-    expect(actor.rights_status(nil, :read, :write)).to eq({ read: true, write: true })
-    expect(actor.total).to eq 2
+    resource = resource_class.new
+    expect(resource.rights_status(nil, :read, :write)).to eq({ read: true, write: true })
+    expect(resource.total).to eq 2
   end
 
   context "clear_permissions_cache" do
@@ -230,10 +242,10 @@ describe AdheresToPolicy::InstanceMethods do
         extend AdheresToPolicy::ClassMethods
 
         set_policy do
-          given { |actor| actor == 1 }
+          given { |principal| principal.user == 1 }
           can :read
 
-          given { |actor| actor == 2 }
+          given { |principal| principal.user == 2 }
           can :read and can :write
         end
       end
@@ -244,8 +256,8 @@ describe AdheresToPolicy::InstanceMethods do
       expect(Rails.cache).to receive(:delete).with(%r{/write$})
 
       sample = sample_class.new
-      expect(sample.grants_right?(1, :read)).to be true
-      sample.clear_permissions_cache(1)
+      expect(sample.grants_right?(principal, :read)).to be true
+      sample.clear_permissions_cache(principal)
     end
   end
 
@@ -255,10 +267,10 @@ describe AdheresToPolicy::InstanceMethods do
         extend AdheresToPolicy::ClassMethods
 
         set_policy do
-          given { |actor| actor == 1 }
+          given { |principal| principal.user == 1 }
           can :read
 
-          given { |actor| actor == 2 }
+          given { |principal| principal.user == 2 }
           can :read and can :write
         end
       end
@@ -266,43 +278,43 @@ describe AdheresToPolicy::InstanceMethods do
 
     it "checks the policy" do
       sample = sample_class.new
-      expect(sample.grants_any_right?(1, :read, :write)).to be true
-      expect(sample.grants_any_right?(1, :asdf)).to be false
+      expect(sample.grants_any_right?(principal, :read, :write)).to be true
+      expect(sample.grants_any_right?(principal, :asdf)).to be false
     end
 
     it "returns false if no specific ones are sought" do
       sample = sample_class.new
-      expect(sample.grants_any_right?(1)).to be false
+      expect(sample.grants_any_right?(principal)).to be false
     end
 
     context "with justifications" do
-      let(:actor_class) do
+      let(:resource_class) do
         Class.new do
           extend AdheresToPolicy::ClassMethods
 
           set_policy do
-            given { |actor| actor == "allowed actor" || AdheresToPolicy::JustifiedFailure.new(:wrong_actor) }
+            given { |principal| principal.user == "allowed actor" || AdheresToPolicy::JustifiedFailure.new(:wrong_actor) }
             can :read
 
-            given { |actor| actor == "allowed actor" }
+            given { |principal| principal.user == "allowed actor" }
             can :read_more
           end
         end
       end
 
       it "returns true/false by default" do
-        non_context = actor_class.new
-        expect(non_context.grants_any_right?("allowed actor", :read, :read_more)).to be true
-        expect(non_context.grants_any_right?("disallowed actor", :read, :read_more)).to be false
+        non_context = resource_class.new
+        expect(non_context.grants_any_right?(allowed_actor, :read, :read_more)).to be true
+        expect(non_context.grants_any_right?(disallowed_actor, :read, :read_more)).to be false
       end
 
       it "returns detailed information if requested and denied" do
-        non_context = actor_class.new
-        expect(non_context.grants_any_right?("allowed actor", :read, :read_more, with_justifications: true).success?).to be true
-        reasoned_failure = non_context.grants_any_right?("disallowed actor", :read, :read_more, with_justifications: true)
+        non_context = resource_class.new
+        expect(non_context.grants_any_right?(allowed_actor, :read, :read_more, with_justifications: true).success?).to be true
+        reasoned_failure = non_context.grants_any_right?(disallowed_actor, :read, :read_more, with_justifications: true)
         expect(reasoned_failure.success?).to be false
         expect(reasoned_failure.justifications.first.justification).to eq(:wrong_actor)
-        reasonless_failure = non_context.grants_any_right?("disallowed actor", :read_more, with_justifications: true)
+        reasonless_failure = non_context.grants_any_right?(disallowed_actor, :read_more, with_justifications: true)
         expect(reasonless_failure.success?).to be false
         expect(reasonless_failure.justifications.length).to eq(0)
       end
@@ -314,10 +326,10 @@ describe AdheresToPolicy::InstanceMethods do
           extend AdheresToPolicy::ClassMethods
 
           set_policy do
-            given { |actor| actor == "allowed actor" || AdheresToPolicy::JustifiedFailures.new([AdheresToPolicy::JustifiedFailure.new(:wrong_actor)]) }
+            given { |principal| principal.user == "allowed actor" || AdheresToPolicy::JustifiedFailures.new([AdheresToPolicy::JustifiedFailure.new(:wrong_actor)]) }
             can :read
 
-            given { |actor| actor == "allowed actor" }
+            given { |principal| principal.user == "allowed actor" }
             can :read_more
           end
         end
@@ -325,11 +337,11 @@ describe AdheresToPolicy::InstanceMethods do
 
       it "returns detailed information if requested and denied" do
         non_context = actor_class.new
-        expect(non_context.grants_any_right?("allowed actor", :read, :read_more, with_justifications: true).success?).to be true
-        reasoned_failure = non_context.grants_any_right?("disallowed actor", :read, :read_more, with_justifications: true)
+        expect(non_context.grants_any_right?(allowed_actor, :read, :read_more, with_justifications: true).success?).to be true
+        reasoned_failure = non_context.grants_any_right?(disallowed_actor, :read, :read_more, with_justifications: true)
         expect(reasoned_failure.success?).to be false
         expect(reasoned_failure.justifications.first.justification).to eq(:wrong_actor)
-        reasonless_failure = non_context.grants_any_right?("disallowed actor", :read_more, with_justifications: true)
+        reasonless_failure = non_context.grants_any_right?(disallowed_actor, :read_more, with_justifications: true)
         expect(reasonless_failure.success?).to be false
         expect(reasonless_failure.justifications.length).to eq(0)
       end
@@ -342,10 +354,10 @@ describe AdheresToPolicy::InstanceMethods do
         extend AdheresToPolicy::ClassMethods
 
         set_policy do
-          given { |actor| actor == 1 }
+          given { |principal| principal.user == 1 }
           can :read
 
-          given { |actor| actor == 2 }
+          given { |principal| principal.user == 2 }
           can :read and can :write
         end
       end
@@ -353,45 +365,45 @@ describe AdheresToPolicy::InstanceMethods do
 
     it "checks the policy" do
       sample = sample_class.new
-      expect(sample.grants_all_rights?(1, :read, :write)).to be false
-      expect(sample.grants_all_rights?(2, :read, :write)).to be true
-      expect(sample.grants_all_rights?(3, :read, :asdf)).to be false
+      expect(sample.grants_all_rights?(principal_class.new(1), :read, :write)).to be false
+      expect(sample.grants_all_rights?(principal_class.new(2), :read, :write)).to be true
+      expect(sample.grants_all_rights?(principal_class.new(3), :read, :asdf)).to be false
     end
 
     it "returns false if no specific ones are sought" do
       sample = sample_class.new
-      expect(sample.grants_all_rights?(1)).to be false
+      expect(sample.grants_all_rights?(principal_class.new(1))).to be false
     end
 
     context "with justifications" do
-      let(:actor_class) do
+      let(:resource_class) do
         Class.new do
           extend AdheresToPolicy::ClassMethods
 
           set_policy do
-            given { |actor| actor == "allowed actor" || AdheresToPolicy::JustifiedFailure.new(:wrong_actor) }
+            given { |principal| principal.user == "allowed actor" || AdheresToPolicy::JustifiedFailure.new(:wrong_actor) }
             can :read and can :read_more
 
-            given { |actor| actor == "another allowed actor" }
+            given { |principal| principal.user == "another allowed actor" }
             can :read
           end
         end
       end
 
       it "returns true/false by default" do
-        non_context = actor_class.new
-        expect(non_context.grants_all_rights?("allowed actor", :read, :read_more)).to be true
-        expect(non_context.grants_all_rights?("another allowed actor", :read, :read_more)).to be false
-        expect(non_context.grants_all_rights?("disallowed actor", :read, :read_more)).to be false
+        non_context = resource_class.new
+        expect(non_context.grants_all_rights?(allowed_actor, :read, :read_more)).to be true
+        expect(non_context.grants_all_rights?(another_allowed_actor, :read, :read_more)).to be false
+        expect(non_context.grants_all_rights?(disallowed_actor, :read, :read_more)).to be false
       end
 
       it "returns detailed information if requested and denied" do
-        non_context = actor_class.new
-        expect(non_context.grants_all_rights?("allowed actor", :read, :read_more, with_justifications: true).success?).to be true
-        single_failure = non_context.grants_all_rights?("another allowed actor", :read, :read_more, with_justifications: true)
+        non_context = resource_class.new
+        expect(non_context.grants_all_rights?(allowed_actor, :read, :read_more, with_justifications: true).success?).to be true
+        single_failure = non_context.grants_all_rights?(another_allowed_actor, :read, :read_more, with_justifications: true)
         expect(single_failure.success?).to be false
         expect(single_failure.justifications.first.justification).to eq(:wrong_actor)
-        full_failure = non_context.grants_all_rights?("disallowed actor", :read, :read_more, with_justifications: true)
+        full_failure = non_context.grants_all_rights?(disallowed_actor, :read, :read_more, with_justifications: true)
         expect(full_failure.success?).to be false
         expect(full_failure.justifications.first.justification).to eq(:wrong_actor)
       end
@@ -400,7 +412,7 @@ describe AdheresToPolicy::InstanceMethods do
 
   context "check_condition?" do
     it "runs condition based on its arity" do
-      actor_class = Class.new do
+      resource_class = Class.new do
         attr_accessor :total
 
         extend AdheresToPolicy::ClassMethods
@@ -410,59 +422,59 @@ describe AdheresToPolicy::InstanceMethods do
         end
 
         set_policy do
-          given { |arg1| @total += arg1 }
+          given { |principal| @total += principal.user[0] }
           can :read
 
-          given { |arg1, arg2| @total = @total + arg1 + arg2[:count] }
+          given { |principal| @total = @total + principal.user[0] + principal.user[1][:count] }
           can :write
         end
       end
 
-      actor = actor_class.new
-      expect(actor.rights_status(1, { count: 2 }, :read, :write)).to eq({ read: true, write: true })
-      expect(actor.total).to eq 4
+      resource = resource_class.new
+      expect(resource.rights_status(principal_class.new([1, { count: 2 }]), :read, :write)).to eq({ read: true, write: true })
+      expect(resource.total).to eq 4
     end
   end
 
   context "grants_right?" do
-    let(:actor_class) do
+    let(:resource_class) do
       # need to copy the method to a local variable so that it's visible within the block
       user_class = self.user_class
       Class.new do
         extend AdheresToPolicy::ClassMethods
 
         set_policy do
-          given { |actor| actor == "allowed actor" || actor.is_a?(user_class) }
+          given { |principal| principal&.user == "allowed actor" || principal&.user.is_a?(user_class) }
           can :read
 
-          given { |actor| actor == "allowed actor" }
+          given { |principal| principal&.user == "allowed actor" }
           can :read
         end
       end
     end
 
     it "checks the policy" do
-      non_context = actor_class.new
-      expect(non_context.grants_right?("allowed actor", :read)).to be true
-      expect(non_context.grants_right?("allowed actor", :asdf)).to be false
+      non_context = resource_class.new
+      expect(non_context.grants_right?(allowed_actor, :read)).to be true
+      expect(non_context.grants_right?(allowed_actor, :asdf)).to be false
     end
 
     it "returns false if no specific ones are sought" do
-      non_context = actor_class.new
-      expect(non_context.grants_right?("allowed actor")).to be false
+      non_context = resource_class.new
+      expect(non_context.grants_right?(allowed_actor)).to be false
     end
 
     it "returns false if no user is provided" do
-      non_context = actor_class.new
-      expect(non_context.grants_right?("allowed actor", :read)).to be true
+      non_context = resource_class.new
+      expect(non_context.grants_right?(allowed_actor, :read)).to be true
       expect(non_context.grants_right?(nil, :read)).to be false
     end
 
     it "raises argument exception if anything other then one right is provided" do
-      non_context = actor_class.new
-      expect(non_context.grants_right?("allowed actor", :read)).to be true
+      non_context = resource_class.new
+      expect(non_context.grants_right?(allowed_actor, :read)).to be true
       expect do
-        non_context.grants_right?("allowed actor", :asdf, :read)
+        non_context.grants_right?(allowed_actor, :asdf, :read)
       end.to raise_exception ArgumentError
     end
 
@@ -472,17 +484,16 @@ describe AdheresToPolicy::InstanceMethods do
       end
 
       it "caches permissions" do
-        user = user_class
-        actor = actor_class.new
+        resource = resource_class.new
 
         expect(AdheresToPolicy::Cache).to receive(:fetch).twice.with(/permissions/, an_instance_of(Hash)).and_return([AdheresToPolicy::Failure.instance])
-        actor.rights_status(user)
+        resource.rights_status(principal)
         # cache lookups for "nobody" as well
-        actor.rights_status(nil)
+        resource.rights_status(nil)
       end
 
       it "does not nil the session argument when not caching" do
-        actor_class = Class.new do
+        resource_class = Class.new do
           attr_reader :session
 
           extend AdheresToPolicy::ClassMethods
@@ -493,9 +504,9 @@ describe AdheresToPolicy::InstanceMethods do
           end
         end
 
-        actor = actor_class.new
-        actor.rights_status(actor, {})
-        expect(actor.session).not_to be_nil
+        resource = resource_class.new
+        resource.rights_status(principal, {})
+        expect(resource.session).not_to be_nil
       end
 
       it "changes cache key based on session[:permissions_key]" do
@@ -503,7 +514,7 @@ describe AdheresToPolicy::InstanceMethods do
           permissions_key: "permissions_key",
           session_id: "session_id"
         }
-        actor_class = Class.new do
+        resource_class = Class.new do
           extend AdheresToPolicy::ClassMethods
 
           set_policy do
@@ -516,13 +527,13 @@ describe AdheresToPolicy::InstanceMethods do
           end
         end
 
-        actor = actor_class.new
-        expect(actor.call_permission_cache_key_for(nil, session, :read)).to match(%r{>/permissions_key/read$})
+        resource = resource_class.new
+        expect(resource.call_permission_cache_key_for(nil, session, :read)).to match(%r{>/permissions_key/read$})
 
         session.delete(:permissions_key)
-        expect(actor.call_permission_cache_key_for(nil, session, :read)).to match(%r{>/default/read$})
+        expect(resource.call_permission_cache_key_for(nil, session, :read)).to match(%r{>/default/read$})
 
-        expect(actor.call_permission_cache_key_for(nil, nil, :read)).to match(%r{>/read$})
+        expect(resource.call_permission_cache_key_for(nil, nil, :read)).to match(%r{>/read$})
       end
 
       it "must not use the rails cache for permissions included in the configured blacklist" do
@@ -539,7 +550,7 @@ describe AdheresToPolicy::InstanceMethods do
         expect(AdheresToPolicy::Cache).to receive(:fetch)
           .with(an_instance_of(String), a_hash_including(use_rails_cache: false))
           .and_return([AdheresToPolicy::Failure.instance])
-        instance.granted_rights(instance)
+        instance.granted_rights(principal)
       end
 
       it "must cache permissions calculated using the same given block in-process only" do
@@ -558,7 +569,7 @@ describe AdheresToPolicy::InstanceMethods do
 
         expect(AdheresToPolicy::Cache).to receive(:write)
           .with(/write/, AdheresToPolicy::Success.instance, a_hash_including(use_rails_cache: false))
-        instance.grants_right?("", :read)
+        instance.grants_right?(principal, :read)
       end
 
       it "must cache permissions calculated in the course of calculating others" do
@@ -578,7 +589,7 @@ describe AdheresToPolicy::InstanceMethods do
         allow(AdheresToPolicy::Cache).to receive(:fetch).and_yield
         expect(AdheresToPolicy::Cache).to receive(:fetch)
           .with(/create/, a_hash_including(use_rails_cache: true))
-        instance.grants_right?("foobar", :update)
+        instance.grants_right?(principal, :update)
       end
 
       it "must not cache permissions calculated in the course of calculating others when configured not to" do
@@ -606,33 +617,33 @@ describe AdheresToPolicy::InstanceMethods do
           .with(/create/, a_hash_including(use_rails_cache: false))
           .twice
           .and_return([AdheresToPolicy::Failure.instance])
-        instance.grants_right?("foobar", :update)
-        instance.grants_right?("foobar", :update)
+        instance.grants_right?(principal, :update)
+        instance.grants_right?(principal, :update)
       end
     end
 
     context "with justifications" do
-      let(:actor_class) do
+      let(:resource_class) do
         Class.new do
           extend AdheresToPolicy::ClassMethods
 
           set_policy do
-            given { |actor| actor == "allowed actor" || AdheresToPolicy::JustifiedFailure.new(:wrong_actor) }
+            given { |principal| principal.user == "allowed actor" || AdheresToPolicy::JustifiedFailure.new(:wrong_actor) }
             can :read
           end
         end
       end
 
       it "returns true/false by default" do
-        non_context = actor_class.new
-        expect(non_context.grants_right?("allowed actor", :read)).to be true
-        expect(non_context.grants_right?("disallowed actor", :read)).to be false
+        non_context = resource_class.new
+        expect(non_context.grants_right?(allowed_actor, :read)).to be true
+        expect(non_context.grants_right?(disallowed_actor, :read)).to be false
       end
 
       it "returns detailed information if requested" do
-        non_context = actor_class.new
-        expect(non_context.grants_right?("allowed actor", :read, with_justifications: true).success?).to be true
-        full_failure = non_context.grants_right?("disallowed actor", :read, with_justifications: true)
+        non_context = resource_class.new
+        expect(non_context.grants_right?(allowed_actor, :read, with_justifications: true).success?).to be true
+        full_failure = non_context.grants_right?(disallowed_actor, :read, with_justifications: true)
         expect(full_failure.success?).to be false
         expect(full_failure.justifications.first.justification).to eq(:wrong_actor)
       end
@@ -640,11 +651,11 @@ describe AdheresToPolicy::InstanceMethods do
 
     context "override_proc" do
       before do
-        AdheresToPolicy.configuration.override_proc = lambda do |user, sought_right|
+        AdheresToPolicy.configuration.override_proc = lambda do |principal, sought_right|
           if sought_right == :read
-            if user.odd?
+            if principal.user.odd?
               AdheresToPolicy::JustifiedFailure.new(:odd_user)
-            elsif user.zero?
+            elsif principal.user.zero?
               AdheresToPolicy::Success.instance
             end
           end
@@ -658,17 +669,17 @@ describe AdheresToPolicy::InstanceMethods do
       it "does regular permissions checks if the override proc returns nil" do
         some_instance = some_class.new
         some_instance.user = 2
-        expect(some_instance.grants_right?(2, :read)).to be true
-        expect(some_instance.grants_right?(2, :write)).to be false
-        expect(some_instance.grants_right?(4, :read)).to be false
+        expect(some_instance.grants_right?(principal_class.new(2), :read)).to be true
+        expect(some_instance.grants_right?(principal_class.new(2), :write)).to be false
+        expect(some_instance.grants_right?(principal_class.new(4), :read)).to be false
       end
 
       it "returns a justified failure if the override proc returns a justified failure" do
         some_instance = some_class.new
         some_instance.user = 1
-        expect(some_instance.grants_right?(1, :read)).to be false
+        expect(some_instance.grants_right?(principal_class.new(1), :read)).to be false
 
-        full_failure = some_instance.grants_right?(1, :read, with_justifications: true)
+        full_failure = some_instance.grants_right?(principal_class.new(1), :read, with_justifications: true)
         expect(full_failure.success?).to be false
         expect(full_failure.justifications.first.justification).to eq(:odd_user)
       end
@@ -676,10 +687,59 @@ describe AdheresToPolicy::InstanceMethods do
       it "returns success if the override_proc returns success" do
         some_instance = some_class.new
         some_instance.user = 1
-        expect(some_instance.grants_right?(0, :read)).to be true
+        expect(some_instance.grants_right?(principal_class.new(0), :read)).to be true
 
-        full_success = some_instance.grants_right?(0, :read, with_justifications: true)
+        full_success = some_instance.grants_right?(principal_class.new(0), :read, with_justifications: true)
         expect(full_success.success?).to be true
+      end
+    end
+
+    context "with a principal that further restricts permissions" do
+      let(:resource_class) do
+        Class.new do
+          extend AdheresToPolicy::ClassMethods
+
+          set_policy do
+            given { true }
+            can :read
+          end
+        end
+      end
+      let(:resource) { resource_class.new }
+
+      let(:principal_class) do
+        Class.new(AdheresToPolicy::UserPrincipal) do
+          attr_writer :user
+
+          def cache_key = "key"
+
+          def grants_right?(*)
+            user
+          end
+        end
+      end
+
+      it "returns the intersection of permissions" do
+        expect(resource.grants_right?(principal_class.new(true), :read)).to be true
+        expect(resource.grants_right?(principal_class.new(false), :read)).to be false
+        expect(resource.grants_right?(principal_class.new(true), :read, with_justifications: true)).to be AdheresToPolicy::Success.instance
+        expect(resource.grants_right?(principal_class.new(false), :read, with_justifications: true)).to be AdheresToPolicy::Failure.instance
+        justification = AdheresToPolicy::JustifiedFailure.new(:bad)
+        result = resource.grants_right?(principal_class.new(justification), :read, with_justifications: true)
+        expect(result).to be_a(AdheresToPolicy::JustifiedFailures)
+        expect(result.justifications.first.justification).to be :bad
+      end
+
+      it "does not cache the result of the principal's grants_right? method" do
+        principal = principal_class.new(true)
+
+        expect(AdheresToPolicy::Cache).to receive(:write)
+          .with(/read/, AdheresToPolicy::Success.instance, an_instance_of(Hash))
+          .and_call_original
+
+        expect(resource.grants_right?(principal, :read)).to be true
+        principal.user = false
+        expect(resource.grants_right?(principal, :read)).to be false
       end
     end
   end

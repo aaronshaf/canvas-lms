@@ -65,6 +65,7 @@ module AuthenticationMethods
 
     ::AuthenticationMethods::AccessTokenAttributes.current_token = @token
     ::AuthenticationMethods::AccessTokenAttributes.current_developer_key = developer_key
+    @current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@current_pseudonym)
 
     RequestContext::Generator.add_meta_header("at", @token.jti)
     RequestContext::Generator.add_meta_header("dk", developer_key.global_id) if developer_key
@@ -94,9 +95,9 @@ module AuthenticationMethods
       services_jwt = CanvasSecurity::ServicesJwt.new(token_string)
       @current_user = User.find(services_jwt.user_global_id)
       @current_pseudonym = SisPseudonym.for(@current_user, @domain_root_account, type: :implicit, require_sis: false)
-      unless @current_user && @current_pseudonym
-        raise AccessTokenError
-      end
+      raise AccessTokenError unless @current_user && @current_pseudonym
+
+      @current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@current_pseudonym)
 
       if services_jwt.masquerading_user_global_id
         @real_current_user = User.find(services_jwt.masquerading_user_global_id)
@@ -188,6 +189,8 @@ module AuthenticationMethods
 
       raise AccessTokenError unless @current_user && @current_pseudonym
 
+      @current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@current_pseudonym)
+
       validate_scopes
 
       ::AuthenticationMethods::AccessTokenAttributes.current_token = @access_token
@@ -227,6 +230,7 @@ module AuthenticationMethods
         if @pseudonym_session
           @current_pseudonym = @pseudonym_session.record
           @current_pseudonym.user.reload if @current_pseudonym.shard != @current_pseudonym.user.shard
+          @current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@current_pseudonym)
 
           # if the session was created before the last time the user explicitly
           # logged out (of any session for any of their pseudonyms), invalidate
@@ -343,6 +347,7 @@ module AuthenticationMethods
         @current_user = user
         @real_current_pseudonym = @current_pseudonym
         @current_pseudonym = SisPseudonym.for(@current_user, @domain_root_account, type: :implicit, require_sis: false)
+        @current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@current_pseudonym || @current_user)
         logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{LoggingFilter.filter_uri(request.url)}"
       elsif api_request? # fail silently for UI, but not for API
         result = { errors: "Invalid as_user_id" }

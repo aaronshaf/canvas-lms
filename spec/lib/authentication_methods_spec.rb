@@ -149,6 +149,9 @@ describe AuthenticationMethods do
       it "sets the user and pseudonym" do
         expect(@controller.send(:load_user)).to eq @user
         expect(@controller.instance_variable_get(:@current_user)).to eq @user
+        expect(current_principal = @controller.instance_variable_get(:@current_principal)).to be_a(Canvas::AdheresToPolicy::UserPrincipal)
+        expect(current_principal.user).to eq @user
+        expect(current_principal.pseudonym).to eq @pseudonym
         expect(@controller.instance_variable_get(:@current_pseudonym)).to eq @pseudonym
       end
 
@@ -227,6 +230,9 @@ describe AuthenticationMethods do
 
         expect(controller.send(:load_user)).to eq @user
         expect(controller.instance_variable_get(:@current_user)).to eq @user
+        expect(current_principal = controller.instance_variable_get(:@current_principal)).to be_a(Canvas::AdheresToPolicy::UserPrincipal)
+        expect(current_principal.user).to eq @user
+        expect(current_principal.pseudonym).to eq @pseudonym
       end
 
       it "sets real current_user if masquerading user id present" do
@@ -237,6 +243,9 @@ describe AuthenticationMethods do
         expect(controller.instance_variable_get(:@current_user)).to eq @user
         expect(controller.instance_variable_get(:@real_current_user)).to eq @real_user
         expect(controller.instance_variable_get(:@current_user).impersonated).to be true
+        expect(current_principal = controller.instance_variable_get(:@current_principal)).to be_a(Canvas::AdheresToPolicy::UserPrincipal)
+        expect(current_principal.user).to eq @user
+        expect(current_principal.pseudonym).to eq @pseudonym
       end
 
       it "sets current_pseudonym" do
@@ -319,6 +328,9 @@ describe AuthenticationMethods do
 
         expect(controller.send(:load_user)).to eq @user
         expect(controller.instance_variable_get(:@current_user)).to eq @user
+        expect(current_principal = controller.instance_variable_get(:@current_principal)).to be_a(Canvas::AdheresToPolicy::UserPrincipal)
+        expect(current_principal.user).to eq @user
+        expect(current_principal.pseudonym).to eq @pseudonym
       end
 
       it "sets {real_,}current_user from token" do
@@ -329,6 +341,9 @@ describe AuthenticationMethods do
         expect(controller.instance_variable_get(:@current_user)).to eq @user
         expect(controller.instance_variable_get(:@real_current_user)).to eq @real_user
         expect(controller.instance_variable_get(:@current_user).impersonated).to be true
+        expect(current_principal = controller.instance_variable_get(:@current_principal)).to be_a(Canvas::AdheresToPolicy::UserPrincipal)
+        expect(current_principal.user).to eq @user
+        expect(current_principal.pseudonym).to eq @pseudonym
       end
 
       it "sets current_pseudonym" do
@@ -396,6 +411,9 @@ describe AuthenticationMethods do
         expect(controller.instance_variable_get(:@current_user)).to eq @user
         expect(controller.instance_variable_get(:@real_current_user)).to eq @real_user
         expect(controller.instance_variable_get(:@current_user).impersonated).to be true
+        expect(current_principal = controller.instance_variable_get(:@current_principal)).to be_a(Canvas::AdheresToPolicy::UserPrincipal)
+        expect(current_principal.user).to eq @user
+        expect(current_principal.pseudonym).to eq @pseudonym
       end
 
       it "rejects as_user_id on a masquerading token if masquerade does not match" do
@@ -551,6 +569,9 @@ describe AuthenticationMethods do
             expect(controller.send(:load_user)).to eq user
             expect(controller.instance_variable_get(:@current_user)).to eq user
             expect(controller.instance_variable_get(:@current_pseudonym)).to eq @pseudonym
+            expect(current_principal = controller.instance_variable_get(:@current_principal)).to be_a(Canvas::AdheresToPolicy::UserPrincipal)
+            expect(current_principal.user).to eq @user
+            expect(current_principal.pseudonym).to eq @pseudonym
           end
 
           it "sets authenticated_with_jwt to true" do
@@ -597,6 +618,9 @@ describe AuthenticationMethods do
               expect(controller.instance_variable_get(:@current_user)).to eq user
               expect(controller.instance_variable_get(:@current_pseudonym)).to eq @pseudonym
               expect(controller.instance_variable_get(:@current_user).impersonated).to be false
+              expect(current_principal = controller.instance_variable_get(:@current_principal)).to be_a(Canvas::AdheresToPolicy::UserPrincipal)
+              expect(current_principal.user).to eq @user
+              expect(current_principal.pseudonym).to eq @pseudonym
             end
 
             it "sends an InstStatsd event for monitoring" do

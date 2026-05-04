@@ -40,6 +40,10 @@ class Mutations::BaseMutation < GraphQL::Schema::Mutation
     context[:current_user]
   end
 
+  def current_principal
+    context[:current_principal]
+  end
+
   def resolve_with_support(**input)
     # our resolvers generally expect a hash, not GraphQL objects, so just transform it here
     input_hash = input.deep_transform_values { |v| v.is_a?(GraphQL::Schema::InputObject) ? v.to_h : v }

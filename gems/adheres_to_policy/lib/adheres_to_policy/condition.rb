@@ -31,31 +31,30 @@ module AdheresToPolicy
       @rights.merge([right, rights].flatten)
     end
 
-    # Internal: Checks whether this condition currently holds for the specified
-    # object.
+    # @!visibility private
     #
-    # object    - The object to check
-    # user      - The user passed to the condition to determine if they pass the
-    #             condition.
-    # session   - The session passed to the condition to determine if the user
-    #             passes the condition.
+    # Checks whether this condition currently holds for the specified object.
+    #
+    # @param resource [Object] The resource to check
+    # @param principal [Principal, nil]  The principal passed to the condition to determine if it passes the condition.
+    # @param session [Hash, nil] The session passed to the condition to determine if the user passes the condition.
     #
     # Examples
     #
-    #   Condition.new(->(user) { true }).applies?(some_object, user, session)
+    #   Condition.new(->(principal) { true }).applies?(some_object, principal, session)
     #   # => true
     #
-    #   Condition.new(->(user, session){ false }).applies?(some_object, user, session)
+    #   Condition.new(->(principal, session){ false }).applies?(some_object, principal, session)
     #   # => false
     #
-    # Returns true or false on whether the user passes the condition.
-    def applies?(object, user, session)
-      return false if parent && !parent.applies?(object, user, session)
+    # @return [true, false]
+    def applies?(resource, principal, session)
+      return false if parent && !parent.applies?(resource, principal, session)
 
       if given.arity == 1
-        object.instance_exec(user, &given)
+        resource.instance_exec(principal, &given)
       else
-        object.instance_exec(user, session, &given)
+        resource.instance_exec(principal, session, &given)
       end
     end
   end

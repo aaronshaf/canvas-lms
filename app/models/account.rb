@@ -1697,8 +1697,8 @@ class Account < ApplicationRecord
 
   set_policy do
     RoleOverride.permissions.each_key do |permission|
-      given do |user|
-        results = cached_account_users_for(user).map do |au|
+      given do |principal|
+        results = cached_account_users_for(principal&.user).map do |au|
           res = au.permission_check(self, permission)
           if res.success?
             break :success
@@ -1715,8 +1715,8 @@ class Account < ApplicationRecord
       can :create_courses if permission == :manage_courses_add
     end
 
-    given do |user|
-      results = cached_account_users_for(user).map do |au|
+    given do |principal|
+      results = cached_account_users_for(principal&.user).map do |au|
         res = au.permitted_for_account?(self)
         if res.success?
           break :success

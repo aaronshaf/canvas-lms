@@ -2117,9 +2117,9 @@ class Course < ApplicationRecord
     end
 
     RoleOverride.permissions.each do |permission, details|
-      given do |user|
-        active_enrollment_allows(user, permission, allow_future: !details[:restrict_future_enrollments]) ||
-          account_membership_allows(user, permission)
+      given do |principal|
+        active_enrollment_allows(principal&.user, permission, allow_future: !details[:restrict_future_enrollments]) ||
+          account_membership_allows(principal&.user, permission)
       end
       can permission
     end

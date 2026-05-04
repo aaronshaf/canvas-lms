@@ -660,7 +660,7 @@ class CalendarEvent < ApplicationRecord
     if child_events.loaded?
       child_events.select { |e| e.has_asset?(participant) }
     else
-      child_events.where(context_type: participant.class.name, context_id: participant)
+      child_events.where(context: participant)
     end
   end
 

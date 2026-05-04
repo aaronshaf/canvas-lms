@@ -5,14 +5,14 @@ This allows us to do something like:
 
 class Account < ActiveRecord::Base
   set_policy do
-    given { |u| self.user == u }
+    given { |principal| user == principal.user }
     can :read and can :write
   end
 end
 
 u = User.first
 a = Account.first
-a.check_policy(u)
+a.check_policy(AdheresToPolicy::UserPrincipal.new(u))
 
 License
 =======
