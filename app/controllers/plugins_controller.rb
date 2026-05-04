@@ -22,6 +22,7 @@ class PluginsController < ApplicationController
   include Api::V1::Plugin
 
   before_action :require_setting_site_admin, :set_site_admin_context, :set_navigation
+  before_action :require_elevated_auth_provider, if: :require_elevated_auth_provider_for_plugins?
 
   def index
     @plugins = Canvas::Plugin.all
@@ -102,6 +103,10 @@ class PluginsController < ApplicationController
 
   def require_setting_site_admin
     require_site_admin_with_permission(:manage_site_settings)
+  end
+
+  def require_elevated_auth_provider_for_plugins?
+    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_plugins)
   end
 
   def set_navigation

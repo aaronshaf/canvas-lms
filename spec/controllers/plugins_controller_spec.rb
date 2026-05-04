@@ -115,4 +115,110 @@ describe PluginsController do
       end
     end
   end
+
+  describe "elevated auth provider enforcement" do
+    let(:account) { Account.default }
+    let!(:elevated_provider) { account.authentication_providers.create!(auth_type: "saml") }
+    let(:log_flag_enabled) { false }
+    let(:enforce_flag_enabled) { false }
+    let(:plugins_flag_enabled) { true }
+
+    before do
+      user_with_pseudonym(active_all: true, account:)
+      Account.site_admin.account_users.create!(user: @user)
+      user_session(@user, @pseudonym)
+
+      AuthenticationMethods::PseudonymAttributes.reset
+
+      site_admin = Account.site_admin
+      allow(site_admin).to receive(:feature_enabled?).and_call_original
+      allow(site_admin).to receive(:feature_enabled?)
+        .with(:log_elevated_auth_provider_violations).and_return(log_flag_enabled)
+      allow(site_admin).to receive(:feature_enabled?)
+        .with(:enforce_no_elevated_auth_provider_violations).and_return(enforce_flag_enabled)
+      allow(site_admin).to receive(:feature_enabled?)
+        .with(:require_elevated_auth_provider_for_plugins).and_return(plugins_flag_enabled)
+      allow(Account).to receive(:site_admin).and_return(site_admin)
+    end
+
+    context "when no elevated provider is configured" do
+      let(:enforce_flag_enabled) { true }
+
+      it "allows the request" do
+        get :index
+        expect(response).to be_successful
+      end
+    end
+
+    context "when an elevated provider is configured" do
+      before do
+        account.settings[:elevated_auth_provider_global_id] = elevated_provider.global_id
+        account.save(validate: false)
+      end
+
+      context "and the session uses the elevated provider" do
+        let(:enforce_flag_enabled) { true }
+
+        before { AuthenticationMethods::PseudonymAttributes.auth_provider_id = elevated_provider.id }
+
+        it "allows index" do
+          get :index
+          expect(response).to be_successful
+        end
+
+        it "allows show" do
+          get :show, params: { id: "account_reports" }, format: :json
+          expect(response).to have_http_status(:ok)
+        end
+
+        it "allows update" do
+          put :update, params: { id: "account_reports", plugin_setting: { disabled: false } }
+          expect(response).to be_redirect
+        end
+      end
+
+      context "and the session does not use the elevated provider" do
+        context "with both flags off" do
+          it "allows the request" do
+            get :index
+            expect(response).to be_successful
+          end
+        end
+
+        context "with only the log flag on" do
+          let(:log_flag_enabled) { true }
+
+          it "allows the request" do
+            get :index
+            expect(response).to be_successful
+          end
+        end
+
+        context "with the enforce flag on" do
+          let(:enforce_flag_enabled) { true }
+
+          it "blocks json requests with 403 unauthorized" do
+            get :show, params: { id: "account_reports" }, format: :json
+            expect(response).to have_http_status(:forbidden)
+            expect(response.parsed_body["status"]).to eq "unauthorized"
+          end
+
+          it "redirects html requests with a flash error" do
+            get :index
+            expect(response).to be_redirect
+            expect(flash[:error][:html]).to include("requires using an elevated authentication provider")
+          end
+
+          context "but the plugins flag is off" do
+            let(:plugins_flag_enabled) { false }
+
+            it "bypasses the elevated auth provider check" do
+              get :index
+              expect(response).to be_successful
+            end
+          end
+        end
+      end
+    end
+  end
 end

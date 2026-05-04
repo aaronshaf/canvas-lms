@@ -198,3 +198,19 @@ require_elevated_auth_provider_for_sessionless_launch:
       state: hidden
     production:
       state: hidden
+require_elevated_auth_provider_for_plugins:
+  state: hidden
+  shadow: true
+  applies_to: SiteAdmin
+  display_name: Require Elevated Auth Provider For Plugin Management
+  description: |-
+    If enabled, all plugin management endpoints participate in the elevated
+    auth provider requirement. When disabled the endpoints bypass the check
+    entirely, regardless of the log/enforce flags.
+  environments:
+    development:
+      state: allowed
+    beta:
+      state: hidden
+    production:
+      state: hidden
