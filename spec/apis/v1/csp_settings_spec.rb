@@ -332,4 +332,103 @@ describe "CSP Settings API", type: :request do
       expect(json["current_account_whitelist"]).to eq [domain2]
     end
   end
+
+  describe "elevated auth provider enforcement" do
+    let!(:elevated_provider) { Account.default.authentication_providers.create!(auth_type: "saml") }
+    let(:log_flag_enabled) { false }
+    let(:enforce_flag_enabled) { false }
+    let(:csp_settings_flag_enabled) { true }
+
+    before do
+      AuthenticationMethods::PseudonymAttributes.reset
+
+      site_admin = Account.site_admin
+      allow(site_admin).to receive(:feature_enabled?).and_call_original
+      allow(site_admin).to receive(:feature_enabled?)
+        .with(:log_elevated_auth_provider_violations).and_return(log_flag_enabled)
+      allow(site_admin).to receive(:feature_enabled?)
+        .with(:enforce_no_elevated_auth_provider_violations).and_return(enforce_flag_enabled)
+      allow(site_admin).to receive(:feature_enabled?)
+        .with(:require_elevated_auth_provider_for_csp_settings).and_return(csp_settings_flag_enabled)
+      allow(Account).to receive(:site_admin).and_return(site_admin)
+    end
+
+    def get_csp_settings_for_default(expected_status = 200)
+      api_call(:get,
+               "/api/v1/accounts/#{Account.default.id}/csp_settings",
+               { controller: "csp_settings",
+                 action: "get_csp_settings",
+                 format: "json",
+                 account_id: Account.default.id.to_s },
+               {},
+               {},
+               { expected_status: })
+    end
+
+    context "when no elevated provider is configured" do
+      let(:enforce_flag_enabled) { true }
+
+      it "allows the request" do
+        json = get_csp_settings_for_default
+        expect(json["enabled"]).to be false
+      end
+    end
+
+    context "when an elevated provider is configured" do
+      before do
+        Account.default.settings[:elevated_auth_provider_global_id] = elevated_provider.global_id
+        Account.default.save(validate: false)
+      end
+
+      context "and the api token does not carry an elevated provider" do
+        context "with both flags off" do
+          it "allows the request" do
+            json = get_csp_settings_for_default
+            expect(json["enabled"]).to be false
+          end
+        end
+
+        context "with only the log flag on" do
+          let(:log_flag_enabled) { true }
+
+          it "allows the request" do
+            json = get_csp_settings_for_default
+            expect(json["enabled"]).to be false
+          end
+        end
+
+        context "with the enforce flag on" do
+          let(:enforce_flag_enabled) { true }
+
+          it "blocks requests with 403 unauthorized" do
+            json = get_csp_settings_for_default(403)
+            expect(json["status"]).to eq "unauthorized"
+          end
+
+          it "blocks mutating requests with 403 unauthorized" do
+            json = api_call(:put,
+                            "/api/v1/accounts/#{Account.default.id}/csp_settings",
+                            { controller: "csp_settings",
+                              action: "set_csp_setting",
+                              format: "json",
+                              account_id: Account.default.id.to_s,
+                              status: "disabled" },
+                            {},
+                            {},
+                            { expected_status: 403 })
+            expect(json["status"]).to eq "unauthorized"
+          end
+
+          context "but the csp_settings flag is off" do
+            let(:csp_settings_flag_enabled) { false }
+
+            it "bypasses the elevated auth provider check" do
+              json = get_csp_settings_for_default
+              expect(json["enabled"]).to be false
+            end
+          end
+        end
+      end
+    end
+  end
 end

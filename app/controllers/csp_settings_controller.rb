@@ -28,6 +28,7 @@ class CspSettingsController < ApplicationController
   before_action :require_context, :require_user
   before_action :require_read_permissions, only: :get_csp_settings
   before_action :require_permissions, except: :get_csp_settings
+  before_action :require_elevated_auth_provider, if: :require_elevated_auth_provider_for_csp_settings?
   before_action :get_domain, only: [:add_domain, :remove_domain]
 
   after_action :set_sentry_context, only: [:set_csp_setting]
@@ -169,6 +170,10 @@ class CspSettingsController < ApplicationController
   end
 
   protected
+
+  def require_elevated_auth_provider_for_csp_settings?
+    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_csp_settings)
+  end
 
   def require_read_permissions
     !!authorized_action(@context, @current_user, :read_as_admin)
