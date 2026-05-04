@@ -85,7 +85,7 @@ function addUploaderFileCompleteEventListeners(uploader, rcsConfig, file, done, 
     const type = mediaTypeToSymbol(mediaServerMediaObject.mediaType || mediaServerMediaObject.type)
     const body = {
       id: mediaServerMediaObject.entryId,
-      type: file.type || type,
+      type,
       context_code: `${rcsConfig.contextType}_${rcsConfig.contextId}`,
       title: file.name,
       user_entered_title: file.userEnteredTitle || file.name,

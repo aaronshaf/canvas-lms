@@ -210,7 +210,7 @@ describe('saveMediaRecording', () => {
     })
   })
 
-  it('uploads with the content type from the file', () => {
+  it('uploads with the media type derived from the kaltura response', () => {
     let capturedRequest
     server.use(
       http.post('**/api/v1/services/kaltura_session*', () =>
@@ -229,9 +229,35 @@ describe('saveMediaRecording', () => {
       doneFunction2,
       progressFunction,
     ).then(async uploader => {
+      uploader.dispatchEvent('K5.complete', {mediaType: '5'}, uploader)
+      await waitFor(() => {
+        expect(capturedRequest.type).toEqual('audio')
+      })
+    })
+  })
+
+  it('defaults media type to video when kaltura response has no mediaType', () => {
+    let capturedRequest
+    server.use(
+      http.post('**/api/v1/services/kaltura_session*', () =>
+        HttpResponse.json(mediaServerSession()),
+      ),
+      http.post('**/api/media_objects', async ({request}) => {
+        capturedRequest = await request.json()
+        return HttpResponse.json({data: 'media object data'})
+      }),
+    )
+    const doneFunction2 = vi.fn()
+    const progressFunction = vi.fn()
+    return saveMediaRecording(
+      {file: 'thing', type: 'audio/webm'},
+      rcsConfig,
+      doneFunction2,
+      progressFunction,
+    ).then(async uploader => {
       uploader.dispatchEvent('K5.complete', {stuff: 'datatatatatatatat'}, uploader)
       await waitFor(() => {
-        expect(capturedRequest.type).toEqual('video/mp4')
+        expect(capturedRequest.type).toEqual('video')
       })
     })
   })

@@ -99,5 +99,7 @@ export function mediaExtension(mimeType) {
     'audio/x-wavpack': 'wvp',
     'audio/x-xi': 'xi',
     'audio/x-xm': 'xm',
+    'audio/webm': 'webm',
+    'video/webm': 'webm',
   }[mimeType]
 }

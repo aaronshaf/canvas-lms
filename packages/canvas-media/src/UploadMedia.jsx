@@ -172,15 +172,27 @@ export class UploadMediaModal extends React.Component {
 
   uploadFile(file) {
     this.setState({uploading: true}, () => {
-      this.props.onStartUpload && this.props.onStartUpload(file)
-      file.userEnteredTitle = file.title
-      file.userEnteredTitle ||= file.name
+      const userEnteredTitle = file.title || file.name
+      const extension = mediaExtension(file.type) || DEFAULT_EXTENSION
+
+      // Ensure the file name has a proper extension so the K5Uploader's
+      // extension-based file type check can determine the correct media type.
+      // Recordings from @instructure/media-capture often lack a file extension.
+      // This must happen before onStartUpload so placeholder insertion and
+      // later removal in the RCE both key off the same file name.
+      if (!fileExtensionRegex.test(file.name)) {
+        const newName = file.name + (file.name.endsWith('.') ? extension : `.${extension}`)
+        file = new File([file], newName, {type: file.type})
+      }
+
+      file.userEnteredTitle = userEnteredTitle
       if (!fileExtensionRegex.test(file.userEnteredTitle)) {
-        const extension = mediaExtension(file.type) || DEFAULT_EXTENSION
         file.userEnteredTitle += file.userEnteredTitle.endsWith('.')
           ? `${extension}`
           : `.${extension}`
       }
+
+      this.props.onStartUpload && this.props.onStartUpload(file)
       saveMediaRecording(
         file,
         this.props.rcsConfig,
@@ -388,7 +400,7 @@ export class UploadMediaModal extends React.Component {
   render() {
     const {CLOSE_TEXT, UPLOAD_MEDIA_LABEL} = this.props.uploadMediaTranslations.UploadMediaStrings
     const dataProps = Object.keys(this.props)
-      .filter(p => /^data-/.test(p))
+      .filter(p => p.startsWith('data-'))
       .reduce((obj, key) => {
         obj[key] = this.props[key]
         return obj
