@@ -24030,6 +24030,9 @@ hu:
   students_with_no_submissions_title: "Hallgatók leadott munka nélkül"
   students_without_assessments_eb100e60: "Értékelés nélküli hallgatók"
   studio_capture_a88ec4e: "Studio Capture"
+  study_assist: 
+    chips: 
+      summarize: Összefoglalás
   sub_account_daeadd0: Alfiók
   sub_accounts: 
     alerts: 
