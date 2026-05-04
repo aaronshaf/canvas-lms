@@ -162,7 +162,6 @@ class Quizzes::QuizzesController < ApplicationController
           post_to_sis_enabled: Assignment.sis_grade_export_enabled?(@context),
           quiz_lti_enabled: quiz_lti_on_quizzes_page?,
           migrate_quiz_enabled: quiz_lti_enabled?,
-          show_additional_speed_grader_link: Account.site_admin.feature_enabled?(:additional_speedgrader_links),
           # TODO: remove this since it's set in application controller
           # Will need to update consumers of this in the UI to bring down
           # this permissions check as well

@@ -75,7 +75,6 @@ const createView = (quiz, options = {}) => {
     migrate_quiz_enabled: options.migrate_quiz_enabled,
     DIRECT_SHARE_ENABLED: options.DIRECT_SHARE_ENABLED || false,
     quiz_lti_enabled: !!options.quiz_lti_enabled,
-    show_additional_speed_grader_link: true,
   }
 
   ENV.context_asset_string = 'course_1'

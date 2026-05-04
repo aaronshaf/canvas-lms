@@ -97,7 +97,6 @@ class AssignmentsController < ApplicationController
           SHOW_SPEED_GRADER_LINK: @current_user.present? && context.allows_speed_grader? && context.grants_any_right?(current_principal, :manage_grades, :view_all_grades),
           FLAGS: {
             newquizzes_on_quiz_page: @context.root_account.feature_enabled?(:newquizzes_on_quiz_page),
-            show_additional_speed_grader_link: Account.site_admin.feature_enabled?(:additional_speedgrader_links),
             new_quizzes_by_default: @context.feature_enabled?(:new_quizzes_by_default)
           },
           grading_scheme: grading_standard.data,
@@ -545,7 +544,7 @@ class AssignmentsController < ApplicationController
         end
 
         @can_direct_share = @context.grants_right?(current_principal, session, :direct_share)
-        @can_link_to_speed_grader = Account.site_admin.feature_enabled?(:additional_speedgrader_links) && @assignment.can_view_speed_grader?(@current_user)
+        @can_link_to_speed_grader = @assignment.can_view_speed_grader?(@current_user)
 
         @assignment_menu_tools = external_tools_display_hashes(:assignment_menu)
 
@@ -1022,7 +1021,7 @@ class AssignmentsController < ApplicationController
       hash[:SELECTED_CONFIG_TOOL_ID] = selected_tool&.id
       hash[:SELECTED_CONFIG_TOOL_TYPE] = selected_tool ? selected_tool.class.to_s : nil
       hash[:REPORT_VISIBILITY_SETTING] = @assignment.turnitin_settings[:originality_report_visibility]
-      hash[:SHOW_SPEED_GRADER_LINK] = Account.site_admin.feature_enabled?(:additional_speedgrader_links) && @assignment.published? && @assignment.can_view_speed_grader?(@current_user)
+      hash[:SHOW_SPEED_GRADER_LINK] = @assignment.published? && @assignment.can_view_speed_grader?(@current_user)
 
       if @context.grading_periods?
         hash[:active_grading_periods] = GradingPeriod.json_for(@context, @current_user)

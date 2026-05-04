@@ -2589,7 +2589,6 @@ class CoursesController < ApplicationController
                    PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED: @context.feature_enabled?(:peer_review_allocation_and_grading),
                    FLAGS: {
                      newquizzes_on_quiz_page: @context.root_account.feature_enabled?(:newquizzes_on_quiz_page),
-                     show_additional_speed_grader_link: Account.site_admin.feature_enabled?(:additional_speedgrader_links),
                    },
                    COURSE_HOME: true
                  })

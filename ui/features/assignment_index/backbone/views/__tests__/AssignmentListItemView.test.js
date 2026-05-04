@@ -148,10 +148,9 @@ const createView = (model, options = {}) => {
   ENV.DIRECT_SHARE_ENABLED = options.directShareEnabled
   ENV.COURSE_ID = options.courseId
   ENV.FLAGS = {
-    show_additional_speed_grader_link: options.show_additional_speed_grader_link,
     newquizzes_on_quiz_page: options.newquizzes_on_quiz_page,
   }
-  ENV.SHOW_SPEED_GRADER_LINK = options.show_additional_speed_grader_link
+  ENV.SHOW_SPEED_GRADER_LINK = options.showSpeedGraderLink
   ENV.PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED = options.peer_review_allocation_and_grading
   ENV.SETTINGS = {}
 
@@ -504,7 +503,7 @@ describe('AssignmentListItemViewSpec', () => {
     const view = createView(model, {
       userIsAdmin: true,
       canManage: true,
-      show_additional_speed_grader_link: true,
+      showSpeedGraderLink: true,
     })
     expect(view.$('.speed-grader-link')).toHaveLength(1)
   })
@@ -518,7 +517,7 @@ describe('AssignmentListItemViewSpec', () => {
     const view = createView(model, {
       userIsAdmin: true,
       canManage: true,
-      show_additional_speed_grader_link: true,
+      showSpeedGraderLink: true,
     })
     expect(view.$('.speed-grader-link-container').hasClass('hidden')).toBe(true)
   })
@@ -531,7 +530,7 @@ describe('AssignmentListItemViewSpec', () => {
     const view = createView(model, {
       userIsAdmin: true,
       canManage: true,
-      show_additional_speed_grader_link: true,
+      showSpeedGraderLink: true,
     })
     expect(view.$('.speed-grader-link')[0]?.href).toContain(
       '/courses/1/gradebook/speed_grader?assignment_id=11',

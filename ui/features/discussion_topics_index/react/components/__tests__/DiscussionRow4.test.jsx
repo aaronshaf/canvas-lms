@@ -409,7 +409,6 @@ describe('DiscussionRow', () => {
   })
 
   it('renders speedgrader link in manage menu if permitted', async () => {
-    window.ENV.show_additional_speed_grader_links = true
     render(
       <DiscussionRow
         {...makeProps({

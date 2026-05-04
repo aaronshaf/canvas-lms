@@ -560,7 +560,6 @@ export default (AssignmentListItemView = (function () {
         data = this._setJSONForGrade(data)
       }
       data.courseId = this.model.get('course_id')
-      data.showSpeedGraderLinkFlag = ENV.FLAGS?.show_additional_speed_grader_link
       data.showSpeedGraderLink = ENV.SHOW_SPEED_GRADER_LINK
       // publishing and unpublishing the underlying model does not rerender this view.
       // this sets initial value, then it keeps up with class toggling behavior on updatePublishState()

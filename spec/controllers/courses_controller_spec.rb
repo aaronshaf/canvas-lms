@@ -2120,14 +2120,6 @@ describe CoursesController do
       expect(assigns(:js_env)[:FLAGS].keys).to include :newquizzes_on_quiz_page
     end
 
-    it "sets SpeedGrader link flags for assignments view" do
-      course_with_teacher_logged_in(active_all: true)
-      @course.default_view = "assignments"
-      @course.save!
-      get "show", params: { id: @course.id }
-      expect(assigns(:js_env)[:FLAGS].keys).to include :show_additional_speed_grader_link
-    end
-
     it "redirects html to settings page when user can :read_as_admin, but not :read" do
       # an account user on the site admin will always have :read_as_admin
       # permission to any course, but will not have :read permission unless

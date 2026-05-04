@@ -789,8 +789,6 @@ class DiscussionRow extends Component {
 
     if (
       // @ts-expect-error TS2339 (typescriptify)
-      ENV.show_additional_speed_grader_links &&
-      // @ts-expect-error TS2339 (typescriptify)
       this.props.discussion.assignment?.speed_grader_url
     ) {
       menuList.push(
