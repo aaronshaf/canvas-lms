@@ -30461,6 +30461,9 @@ tr:
   students_with_no_results_6bd5424b: "Sonucu olmayan öğrenciler"
   students_with_no_submissions_title: "Gönderim yapmayan öğrenciler"
   studio_capture_a88ec4e: "Studio Yakalama"
+  study_assist: 
+    chips: 
+      summarize: Özetle
   style_f6881133: Stil
   sub_account_daeadd0: "Alt Hesap"
   sub_accounts: 
