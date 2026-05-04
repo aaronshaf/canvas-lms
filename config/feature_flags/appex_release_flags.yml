@@ -69,6 +69,37 @@ enforce_service_token_tenant_matching:
       state: hidden
     production:
       state: hidden
+allow_masquerade_without_all_permissions:
+  state: hidden
+  shadow: true
+  applies_to: RootAccount
+  display_name: Allow Masquerade Without All Permissions
+  description: |-
+    Allows an admin to masquerade as another user even if they don't have all the permissions that user has. Instead,
+    the effective permissions will be an intersection of the admin and the target user.
+  environments:
+    development:
+      state: allowed
+    beta:
+      state: hidden
+    production:
+      state: hidden
+allow_site_admin_masquerade_without_all_permissions:
+  state: hidden
+  shadow: true
+  applies_to: SiteAdmin
+  display_name: Allow Masquerade Without All Permissions (Site Admin)
+  description: |-
+    Allows an admin whose pseudonym is in Site Admin to masquerade as another user even if they don't have all the
+    permissions that user has. Instead, the effective permissions will be an intersection of the admin and the target
+    user.
+  environments:
+    development:
+      state: allowed
+    beta:
+      state: hidden
+    production:
+      state: hidden
 new_login_ui_custom_labels:
   state: hidden
   applies_to: SiteAdmin

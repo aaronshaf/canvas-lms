@@ -205,6 +205,24 @@ describe "adheres_to_policy monkeypatches" do
           user.grants_right?(principal, :read)
           expect(received_principal).to be principal
         end
+
+        it "reuses Canvas::AdheresToPolicy::Current.principal when grants_right? is called with the User it wraps" do
+          expected_principal = AdheresToPolicy::MasqueradingPrincipal.new(
+            Canvas::AdheresToPolicy::UserPrincipal.new(user),
+            Canvas::AdheresToPolicy::UserPrincipal.new(user_model)
+          )
+          Canvas::AdheresToPolicy::Current.principal = expected_principal
+
+          resource = Account.default
+          captured = nil
+          allow(resource).to receive(:permission_cache_key_for).and_wrap_original do |orig, principal, *rest|
+            captured = principal
+            orig.call(principal, *rest)
+          end
+
+          resource.grants_right?(user, :read)
+          expect(captured).to be expected_principal
+        end
       end
 
       context "when deprecation mode is :raise" do

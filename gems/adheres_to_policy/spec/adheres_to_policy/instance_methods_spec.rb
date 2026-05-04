@@ -742,5 +742,105 @@ describe AdheresToPolicy::InstanceMethods do
         expect(resource.grants_right?(principal, :read)).to be false
       end
     end
+
+    context "with a MasqueradingPrincipal" do
+      let(:resource_class) do
+        Class.new do
+          extend AdheresToPolicy::ClassMethods
+
+          set_policy do
+            given { |_| true }
+            can :read
+          end
+        end
+      end
+      let(:resource) { resource_class.new }
+      let(:effective) { principal_class.new("effective") }
+      let(:real) { principal_class.new("real") }
+      let(:masquerading) { AdheresToPolicy::MasqueradingPrincipal.new(effective, real) }
+
+      after { AdheresToPolicy.configuration.reset! }
+
+      it "looks up the cache under a key that includes both principals at the outer level, and the real principal alone for the recursive check" do
+        expect(AdheresToPolicy::Cache).to receive(:fetch)
+          .with(a_string_including("masq/effective/real"), an_instance_of(Hash))
+          .and_call_original
+        expect(AdheresToPolicy::Cache).to receive(:fetch)
+          .with(a_string_including("real/read"), an_instance_of(Hash))
+          .and_call_original
+
+        resource.grants_right?(masquerading, :read)
+      end
+
+      it "treats the recursive check as non-primary when cache_intermediate_permissions is disabled" do
+        AdheresToPolicy.configuration.cache_intermediate_permissions = false
+
+        expect(AdheresToPolicy::Cache).to receive(:fetch)
+          .with(a_string_including("masq/effective/real"), a_hash_including(use_rails_cache: true))
+          .and_call_original
+        expect(AdheresToPolicy::Cache).to receive(:fetch)
+          .with(a_string_including("real/read"), a_hash_including(use_rails_cache: false))
+          .and_call_original
+
+        resource.grants_right?(masquerading, :read)
+      end
+
+      it "exposes the primary-permission flag as false to both the outer and recursive policy evaluations" do
+        captured = []
+        probing_class = Class.new do
+          extend AdheresToPolicy::ClassMethods
+
+          set_policy do
+            given do |_|
+              captured << Thread.current[:primary_permission_under_evaluation]
+              true
+            end
+            can :read
+          end
+        end
+
+        probing_class.new.grants_right?(masquerading, :read)
+        expect(captured).to eql [false, false]
+      end
+
+      it "does not poison the effective principal's cache when the recursive check fails" do
+        resource_class = Class.new do
+          extend AdheresToPolicy::ClassMethods
+
+          set_policy do
+            given { |principal| principal.user == "effective" }
+            can :read
+          end
+        end
+        resource = resource_class.new
+
+        expect(resource.grants_right?(masquerading, :read)).to be false
+        expect(resource.grants_right?(effective, :read)).to be true
+      end
+
+      it "does not poison a child object's cache when its given block delegates to a parent that fails for the real user" do
+        parent_class = Class.new do
+          extend AdheresToPolicy::ClassMethods
+
+          set_policy do
+            given { |principal| principal.user == "effective" }
+            can :read
+          end
+        end
+        parent = parent_class.new
+
+        child_class = Class.new do
+          extend AdheresToPolicy::ClassMethods
+        end
+        child_class.set_policy do
+          given { |principal| parent.grants_right?(principal, :read) }
+          can :read
+        end
+        child = child_class.new
+
+        expect(child.grants_right?(masquerading, :read)).to be false
+        expect(child.grants_right?(effective, :read)).to be true
+      end
+    end
   end
 end

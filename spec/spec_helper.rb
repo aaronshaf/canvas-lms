@@ -543,6 +543,7 @@ RSpec.configure do |config|
   end
 
   def reset_all_the_things!
+    ActiveSupport::CurrentAttributes.clear_all
     LocalCache.reset
     ReadOnlySecondaryStub.reset
     Time.zone = "UTC"

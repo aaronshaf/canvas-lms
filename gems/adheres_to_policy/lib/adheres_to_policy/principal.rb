@@ -88,6 +88,74 @@ module AdheresToPolicy
     # Otherwise you'll likely need to inherit and override.
     def cache_key = user.cache_key
   end
+
+  # Abstract class for any sort of restriction on access on top of another Principal.
+  #
+  # @abstract
+  class WrappedPrincipal < Principal
+    # @return [Principal]
+    attr_reader :wrapped_principal
+
+    # @param wrapped_principal [Principal]
+    def initialize(wrapped_principal)
+      super()
+
+      @wrapped_principal = wrapped_principal
+    end
+
+    def user = wrapped_principal.user
+    def cache_key = wrapped_principal.cache_key
+
+    def eql?(other)
+      other.instance_of?(self.class) && wrapped_principal.eql?(other.wrapped_principal)
+    end
+
+    def hash
+      [self.class, wrapped_principal].hash
+    end
+
+    def ==(other)
+      other.instance_of?(self.class) && wrapped_principal == other.wrapped_principal
+    end
+  end
+
+  # A wrapped Principal for one principal acting on behalf of another.
+  class MasqueradingPrincipal < WrappedPrincipal
+    # @return [Principal]
+    attr_reader :real_principal
+    alias_method :effective_principal, :wrapped_principal
+
+    def initialize(effective_principal, real_principal)
+      super(effective_principal)
+      @real_principal = real_principal
+    end
+
+    # Distinct from the effective principal's cache_key: a `given` block can recursively call
+    # `grants_right?`, which re-applies the masquerade restriction on the nested call. The cached
+    # outer result therefore depends on both principals, not just the effective one.
+    def cache_key = "masq/#{effective_principal.cache_key}/#{real_principal.cache_key}"
+
+    # @return []
+    def grants_right?(resource, right)
+      resource.grants_right?(real_principal, right, with_justifications: true)
+    end
+
+    def eql?(other)
+      other.instance_of?(self.class) &&
+        effective_principal.eql?(other.effective_principal) &&
+        real_principal.eql?(other.real_principal)
+    end
+
+    def hash
+      [self.class, effective_principal, real_principal].hash
+    end
+
+    def ==(other)
+      other.instance_of?(self.class) &&
+        effective_principal == other.effective_principal &&
+        real_principal == other.real_principal
+    end
+  end
 end
 
 # rubocop:enable Rails/Delegate

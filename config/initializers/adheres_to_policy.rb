@@ -138,6 +138,11 @@ module AdheresToPolicy
           # Uses RequestCache to avoid re-creating UserPrincipal objects for the same user repeatedly within a single
           # request, which is a common case when transitioning because permission checks are still passing only a user.
           user = RequestCache.cache(user) do
+            # If the request already has a Principal for this user (e.g. a MasqueradingPrincipal),
+            # reuse it so masquerade restrictions etc. apply.
+            current = ::Canvas::AdheresToPolicy::Current.principal
+            next current if current && current.user == user
+
             ::Canvas::AdheresToPolicy::UserPrincipal.new(user)
           end
         end
@@ -247,6 +252,8 @@ end
 
 AdheresToPolicy::InstanceMethods.prepend(AdheresToPolicy::Canvas::InstanceMethods)
 AdheresToPolicy::Principal.prepend(AdheresToPolicy::Canvas::Principal)
+# makes sure MasqueradingPrincipal doesn't hide the overridden #==
+AdheresToPolicy::MasqueradingPrincipal.prepend(AdheresToPolicy::Canvas::Principal)
 AdheresToPolicy::Principal.singleton_class.prepend(AdheresToPolicy::Canvas::Principal::ClassMethods)
 Switchman::Shard.singleton_class.prepend(AdheresToPolicy::Canvas::Shard::ClassMethods)
 ActiveRecord::Associations::BelongsToAssociation.prepend(AdheresToPolicy::Canvas::ActiveRecord::BelongsToAssociation)

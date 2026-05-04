@@ -248,6 +248,20 @@ describe AuthenticationMethods do
         expect(current_principal.pseudonym).to eq @pseudonym
       end
 
+      it "builds a MasqueradingPrincipal when allow_site_admin_masquerade_without_all_permissions is on" do
+        Account.site_admin.enable_feature!(:allow_site_admin_masquerade_without_all_permissions)
+        base64_encoded_token = build_encoded_token(@user.id, real_user_id: @real_user.id)
+        controller = setup_with_jwt(base64_encoded_token)
+
+        expect(controller.send(:load_user)).to eq @user
+        current_principal = controller.instance_variable_get(:@current_principal)
+        expect(current_principal).to be_a(AdheresToPolicy::MasqueradingPrincipal)
+        expect(current_principal.effective_principal.user).to eq @user
+        expect(current_principal.effective_principal.pseudonym).to eq @pseudonym
+        expect(current_principal.real_principal.user).to eq @real_user
+        expect(current_principal.real_principal.pseudonym).to eq @real_user.pseudonym
+      end
+
       it "sets current_pseudonym" do
         base64_encoded_token = build_encoded_token(@user.id)
         controller = setup_with_jwt(base64_encoded_token)
@@ -346,6 +360,20 @@ describe AuthenticationMethods do
         expect(current_principal.pseudonym).to eq @pseudonym
       end
 
+      it "builds a MasqueradingPrincipal when allow_site_admin_masquerade_without_all_permissions is on" do
+        Account.site_admin.enable_feature!(:allow_site_admin_masquerade_without_all_permissions)
+        token = AccessToken.create!(user: @user, real_user: @real_user, purpose: "Test Access Token")
+        controller = setup_with_token(token)
+
+        expect(controller.send(:load_user)).to eq @user
+        current_principal = controller.instance_variable_get(:@current_principal)
+        expect(current_principal).to be_a(AdheresToPolicy::MasqueradingPrincipal)
+        expect(current_principal.effective_principal.user).to eq @user
+        expect(current_principal.effective_principal.pseudonym).to eq @pseudonym
+        expect(current_principal.real_principal.user).to eq @real_user
+        expect(current_principal.real_principal.pseudonym).to eq @real_user.pseudonym
+      end
+
       it "sets current_pseudonym" do
         token = AccessToken.create!(user: @user, purpose: "Test Access Token")
         controller = setup_with_token(token)
@@ -414,6 +442,21 @@ describe AuthenticationMethods do
         expect(current_principal = controller.instance_variable_get(:@current_principal)).to be_a(Canvas::AdheresToPolicy::UserPrincipal)
         expect(current_principal.user).to eq @user
         expect(current_principal.pseudonym).to eq @pseudonym
+      end
+
+      it "builds a MasqueradingPrincipal for matching as_user_id when allow_site_admin_masquerade_without_all_permissions is on" do
+        Account.site_admin.enable_feature!(:allow_site_admin_masquerade_without_all_permissions)
+        token = AccessToken.create!(user: @user, real_user: @real_user, purpose: "Test Access Token")
+        controller = setup_with_token(token)
+        controller.params[:as_user_id] = @user.id
+
+        expect(controller.send(:load_user)).to eq @user
+        current_principal = controller.instance_variable_get(:@current_principal)
+        expect(current_principal).to be_a(AdheresToPolicy::MasqueradingPrincipal)
+        expect(current_principal.effective_principal.user).to eq @user
+        expect(current_principal.effective_principal.pseudonym).to eq @pseudonym
+        expect(current_principal.real_principal.user).to eq @real_user
+        expect(current_principal.real_principal.pseudonym).to eq @real_user.pseudonym
       end
 
       it "rejects as_user_id on a masquerading token if masquerade does not match" do

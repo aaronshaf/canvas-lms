@@ -47,6 +47,29 @@ module AuthenticationMethods
     request.session[:user_id]
   end
 
+  def self.masquerade_without_all_permissions_allowed?(masquerader, account: nil)
+    if Account.site_admin.grants_right?(masquerader, :read)
+      Account.site_admin.feature_enabled?(:allow_site_admin_masquerade_without_all_permissions)
+    else
+      # yes, this method should not be used, but this is just a temporary population until the feature flag is fully on
+      account ||= masquerader.account
+      account.feature_enabled?(:allow_masquerade_without_all_permissions)
+    end
+  end
+
+  def set_up_masquerading_principal
+    return unless @real_current_pseudonym
+
+    effective_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@current_pseudonym || @current_user)
+    @current_principal = Canvas::AdheresToPolicy::Current.principal =
+      if AuthenticationMethods.masquerade_without_all_permissions_allowed?(@real_current_user, account: @real_current_pseudonym.account)
+        real_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@real_current_pseudonym)
+        AdheresToPolicy::MasqueradingPrincipal.new(effective_principal, real_principal)
+      else
+        effective_principal
+      end
+  end
+
   def load_pseudonym_from_inst_access_token(token_string)
     @token = ::AuthenticationMethods::InstAccessToken.parse(token_string)
     return false unless @token
@@ -74,6 +97,7 @@ module AuthenticationMethods
     if auth_context[:real_current_user]
       @real_current_user = auth_context[:real_current_user]
       @real_current_pseudonym = auth_context[:real_current_pseudonym]
+      set_up_masquerading_principal
       logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{LoggingFilter.filter_uri(request.url)}"
     end
     raise_if_pseudonym_suspended
@@ -102,6 +126,7 @@ module AuthenticationMethods
       if services_jwt.masquerading_user_global_id
         @real_current_user = User.find(services_jwt.masquerading_user_global_id)
         @real_current_pseudonym = SisPseudonym.for(@real_current_user, @domain_root_account, type: :implicit, require_sis: false)
+        set_up_masquerading_principal
         logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{LoggingFilter.filter_uri(request.url)}"
       end
       raise_if_pseudonym_suspended
@@ -185,11 +210,13 @@ module AuthenticationMethods
       end
 
       @current_pseudonym = SisPseudonym.for(@current_user, @domain_root_account, type: :implicit, require_sis: false)
+
       raise_if_pseudonym_suspended
 
       raise AccessTokenError unless @current_user && @current_pseudonym
 
       @current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@current_pseudonym)
+      set_up_masquerading_principal
 
       validate_scopes
 
@@ -347,7 +374,7 @@ module AuthenticationMethods
         @current_user = user
         @real_current_pseudonym = @current_pseudonym
         @current_pseudonym = SisPseudonym.for(@current_user, @domain_root_account, type: :implicit, require_sis: false)
-        @current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(@current_pseudonym || @current_user)
+        set_up_masquerading_principal
         logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{LoggingFilter.filter_uri(request.url)}"
       elsif api_request? # fail silently for UI, but not for API
         result = { errors: "Invalid as_user_id" }

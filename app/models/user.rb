@@ -1657,6 +1657,9 @@ class User < ApplicationRecord
       return false unless includes_subset_of_course_admin_permissions?(masquerader, account)
     end
 
+    # AdheresToPolicy's MasqueradingPrincipal will handle the extra permission checks
+    return true if AuthenticationMethods.masquerade_without_all_permissions_allowed?(masquerader)
+
     has_subset_of_account_permissions?(masquerader, account, exclude_non_masquerading_permissions: true)
   end
 
