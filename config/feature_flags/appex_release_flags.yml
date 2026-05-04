@@ -214,3 +214,19 @@ require_elevated_auth_provider_for_plugins:
       state: hidden
     production:
       state: hidden
+require_elevated_auth_provider_for_brand_configs:
+  state: hidden
+  shadow: true
+  applies_to: SiteAdmin
+  display_name: Require Elevated Auth Provider For Brand Config Management
+  description: |-
+    If enabled, all brand config management endpoints participate in the
+    elevated auth provider requirement. When disabled the endpoints bypass
+    the check entirely, regardless of the log/enforce flags.
+  environments:
+    development:
+      state: allowed
+    beta:
+      state: hidden
+    production:
+      state: hidden

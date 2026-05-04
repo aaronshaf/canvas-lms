@@ -24,6 +24,7 @@ class BrandConfigsController < ApplicationController
   before_action :require_account_context
   before_action :require_account_management
   before_action :require_account_branding, except: [:destroy]
+  before_action :require_elevated_auth_provider, if: :require_elevated_auth_provider_for_brand_configs?
   before_action { |c| c.active_tab = "brand_configs" }
 
   include HorizonMode
@@ -200,6 +201,10 @@ class BrandConfigsController < ApplicationController
   private :existing_config
 
   protected
+
+  def require_elevated_auth_provider_for_brand_configs?
+    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_brand_configs)
+  end
 
   def visible_shared_brand_configs
     # things shared in this account, or globally (account_id is nil)
