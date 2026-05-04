@@ -20,6 +20,12 @@
 
 #select_context_content_dialog {
   padding: 35px;
+  input[type="text"] {
+    box-sizing: border-box;
+  }
+  table td:first-child {
+    width: 1%;
+  }
   #context_external_tools_select {
     .tools {
       vertical-align: top;

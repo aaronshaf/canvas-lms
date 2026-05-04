@@ -82,11 +82,11 @@
           <i class="icon-link"></i>
           <%= t :external_url_notice, "Enter a URL and page name to add a link to any website URL to this *module*.", :wrapper => '<span class="holder_type">\1</span>' %>
         </div>
-        <table>
+        <table style="width: 100%;">
           <tr>
             <td><label for="content_tag_create_url"><%= before_label :url, "URL" %></label></td>
-            <td>
-              <input type="text" name="url" id="content_tag_create_url" style="width: 200px;"/>
+            <td style="width: 100%;">
+              <input type="text" name="url" id="content_tag_create_url" style="width: 100%;"/>
               <div id="content_tag_services">
 
               </div>
@@ -94,7 +94,7 @@
           </tr>
           <tr class='select_item_name'>
             <td><label for="content_tag_create_title"><%= before_label :page_name, "Page Name" %></label></td>
-            <td><input type="text" name="title" id="content_tag_create_title" style="width: 120px;"/></td>
+            <td><input type="text" name="title" id="content_tag_create_title" style="width: 100%;"/></td>
           </tr>
           <% unless @context.horizon_course? %>
           <tr>
@@ -123,7 +123,7 @@
         <input type="hidden" name="available" id="external_tool_create_available"/>
         <input type="hidden" name="submission" id="external_tool_create_submission"/>
         <input type="hidden" id="external_tool_create_preserve_existing_assignment_name" />
-        <table>
+        <table style="width: 100%;">
           <tr>
             <td colspan="2">
               <ul class="tools" style="max-height: 250px; overflow: auto;">
@@ -138,7 +138,7 @@
           <tr>
             <td><label for="external_tool_create_url"><%= before_label :url, "URL" %></label></td>
             <td>
-              <input type="text" name="url" id="external_tool_create_url" style="width: 200px;"/>
+              <input type="text" name="url" id="external_tool_create_url" style="width: 100%;"/>
               <div class="domain_message" style="font-size: 0.8em; display: none;">
                 <%= t :domain_match_notice, "to use this tool the domain must match %{domain}", :domain => '<span class="domain">&nbsp;</span>'.html_safe %>
               </div>
@@ -146,7 +146,7 @@
           </tr>
           <tr class='select_item_name'>
             <td><label for="external_tool_create_title"><%= before_label :page_name, "Page Name" %></label></td>
-            <td><input type="text" name="title" id="external_tool_create_title" style="width: 120px;"/></td>
+            <td><input type="text" name="title" id="external_tool_create_title" style="width: 100%;"/></td>
           </tr>
           <% unless @context.horizon_course? %>
           <tr>

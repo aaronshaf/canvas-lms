@@ -183,8 +183,6 @@ const EditItemModal = (props: EditItemModalProps) => {
                   setTitle(title)
                 }}
                 required
-                display="inline-block"
-                width="12.5rem"
                 data-testid="edit-modal-title"
                 interaction={
                   masterCourseRestrictions?.all || masterCourseRestrictions?.content
@@ -207,8 +205,6 @@ const EditItemModal = (props: EditItemModalProps) => {
                   renderLabel={<ScreenReaderContent>{I18n.t('URL')}</ScreenReaderContent>}
                   value={url}
                   onChange={e => setUrl(e.target.value)}
-                  display="inline-block"
-                  width="12.5rem"
                   data-testid="edit-modal-url"
                 />
               </Grid.Col>
