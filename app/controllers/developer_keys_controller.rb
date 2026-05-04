@@ -191,7 +191,7 @@
 #      }
 #    }
 class DeveloperKeysController < ApplicationController
-  before_action :set_key, only: [:update, :destroy]
+  before_action :set_key, only: %i[update destroy regenerate_secret]
   before_action :require_manage_developer_keys
   before_action :require_modify_site_admin_developer_keys, except: %i[index lookup_utids]
   before_action :require_root_account, only: %i[index create]
@@ -221,7 +221,8 @@ class DeveloperKeysController < ApplicationController
                  showApiGetWithBodyNotice: !!@domain_root_account.settings[:show_api_get_with_body_notice],
                  validLtiScopes:
             TokenScopes.public_lti_scopes_hash_for_account(@domain_root_account),
-                 devKeysReadOnly: read_only_mode?
+                 devKeysReadOnly: read_only_mode?,
+                 developerKeyRegenerateSecretEnabled: @domain_root_account.feature_enabled?(:developer_key_regenerate_secret)
                })
 
         render :index
@@ -276,7 +277,7 @@ class DeveloperKeysController < ApplicationController
     @key.current_user = @current_user
     @key.account = @context if params[:account_id] && @context != Account.site_admin
     if @key.save
-      render json: developer_key_json(@key, @current_user, session, account_context)
+      render json: developer_key_json(@key, @current_user, session, account_context, show_full_secret: true)
     else
       report_error(nil, 400)
       render json: @key.errors, status: :bad_request
@@ -344,6 +345,56 @@ class DeveloperKeysController < ApplicationController
     end
 
     render json: developer_key_json(@key, @current_user, session, account_context)
+  rescue => e
+    report_error(e)
+    raise e
+  end
+
+  # @API Regenerate Developer Key Secret
+  #
+  # Regenerate the secret (api_key) for an existing Canvas API key. This invalidates
+  # the existing secret. Any applications using the old secret will stop working.
+  # Regenerating a secret for an LTI key is not supported.
+  #
+  # This endpoint requires the developer_key_regenerate_secret feature flag to be enabled.
+  # This feature flag can only be turned on by Site Admins
+  #
+  # @example_request
+  #   curl https://<canvas>/api/v1/developer_keys/<key_id>/regenerate_secret \
+  #     -X POST \
+  #     -H 'Authorization: Bearer <token>'
+  #
+  # @example_response
+  #   {
+  #     "id": "10000000000123",
+  #     "api_key": "abc123xyz789fullsecretkey",
+  #     "name": "My API Integration",
+  #     "created_at": "2026-01-15T12:00:00Z",
+  #     "workflow_state": "active",
+  #     "redirect_uri": "https://example.com/oauth/callback",
+  #     "access_token_count": 5,
+  #     ...
+  #   }
+  #
+  # @returns DeveloperKey
+  def regenerate_secret
+    unless account_context.root_account.feature_enabled?(:developer_key_regenerate_secret)
+      return render json: { errors: [{ message: "Feature not enabled" }] },
+                    status: :forbidden
+    end
+
+    if @key.is_lti_key
+      return render json: { errors: [{ message: "Cannot regenerate secret for LTI keys" }] },
+                    status: :bad_request
+    end
+
+    @key.generate_api_key(overwrite: true)
+    if @key.save
+      render json: developer_key_json(@key, @current_user, session, account_context, show_full_secret: true)
+    else
+      report_error(nil, 400)
+      render json: @key.errors, status: :bad_request
+    end
   rescue => e
     report_error(e)
     raise e

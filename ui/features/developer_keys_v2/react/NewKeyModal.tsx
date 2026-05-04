@@ -52,7 +52,11 @@ type Props = {
   }
   actions: typeof actions
   selectedScopes: Array<string>
-  handleSuccessfulSave: (warningMessage?: string | string[]) => void
+  handleSuccessfulSave: (
+    warningMessage?: string | string[],
+    developerKey?: DeveloperKey,
+    isCreate?: boolean,
+  ) => void
 }
 
 type ConfigurationMethod = 'manual' | 'json' | 'url'
@@ -116,7 +120,7 @@ export default class DeveloperKeyModal extends React.Component<Props, State> {
       ? {public_jwk_url: this.developerKey.public_jwk_url}
       : {}
     return {
-      ...(this.developerKey.tool_configuration || {}),
+      ...this.developerKey.tool_configuration,
       ...this.state.toolConfiguration,
       ...public_jwk,
       ...public_jwk_url,
@@ -209,12 +213,13 @@ export default class DeveloperKeyModal extends React.Component<Props, State> {
         method,
       ) as unknown as AnyAction,
     )
-      .then(() => {
+      .then((developerKey: DeveloperKey) => {
         this.setState({isSaving: false})
-        if (this.keySavedSuccessfully) {
-          this.props.handleSuccessfulSave()
-        }
         this.closeModal()
+
+        if (this.keySavedSuccessfully) {
+          this.props.handleSuccessfulSave(undefined, developerKey, !editing)
+        }
       })
       .catch(() => {
         this.setState({isSaving: false})

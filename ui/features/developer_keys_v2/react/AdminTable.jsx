@@ -283,6 +283,8 @@ class AdminTable extends React.Component {
                 ctx={this.props.ctx}
                 inherited={false}
                 onDelete={this.onDelete}
+                onRegenerateSecret={this.props.onRegenerateSecret}
+                isRegenerating={this.props.regeneratingKeyId === developerKey.id}
               />
             ))}
           </Table.Body>
@@ -308,6 +310,8 @@ AdminTable.propTypes = {
       contextId: string.isRequired,
     }),
   }).isRequired,
+  onRegenerateSecret: func,
+  regeneratingKeyId: string,
 }
 
 export default AdminTable

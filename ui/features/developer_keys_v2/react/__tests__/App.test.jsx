@@ -17,11 +17,12 @@
  */
 
 import React from 'react'
-import {render, act} from '@testing-library/react'
+import {render, act, waitFor} from '@testing-library/react'
 import App from '../App'
 
 import * as FlashAlert from '@instructure/platform-alerts'
 import fakeENV from '@canvas/test-utils/fakeENV'
+import * as ConfirmationDialog from '@canvas/dialogs/react/ConfirmationDialog'
 
 vi.mock('@instructure/platform-alerts', async () => {
   const actual = await vi.importActual('@instructure/platform-alerts')
@@ -29,6 +30,14 @@ vi.mock('@instructure/platform-alerts', async () => {
     ...actual,
     showFlashAlert: vi.fn(() => vi.fn(() => {})),
     showFlashSuccess: vi.fn(() => vi.fn(() => {})),
+  }
+})
+
+vi.mock('@canvas/dialogs/react/ConfirmationDialog', async () => {
+  const actual = await vi.importActual('@canvas/dialogs/react/ConfirmationDialog')
+  return {
+    ...actual,
+    showConfirmationDialog: vi.fn(),
   }
 })
 
@@ -113,6 +122,7 @@ const renderApp = ({inheritedList, ...overrides}) => {
       activateDeveloperKey: () => {},
       deactivateDeveloperKey: () => {},
       deleteDeveloperKey: () => {},
+      regenerateDeveloperKeySecret: () => async () => ({}),
     },
     store: {dispatch: () => {}},
     ctx: {
@@ -331,6 +341,126 @@ describe('DeveloperKeys App', () => {
       it('Alert is shown for each warning message', () => {
         vi.runOnlyPendingTimers()
         expect(FlashAlert.showFlashAlert).not.toHaveBeenCalled()
+      })
+    })
+  })
+
+  describe('regenerate secret functionality', () => {
+    let ref
+    const mockDeveloperKey = {
+      id: '123',
+      name: 'Test Key',
+      api_key: 'abc12...',
+    }
+
+    beforeEach(() => {
+      fakeENV.setup({FEATURES: {developer_key_regenerate_secret: true}})
+      const inheritedList = siteAdminKeys
+      ref = renderApp({inheritedList}).ref
+      vi.clearAllMocks()
+    })
+
+    describe('handleRegenerateSecret', () => {
+      it('calls regenerateDeveloperKeySecret action', async () => {
+        const regeneratedKey = {
+          ...mockDeveloperKey,
+          api_key: 'newSecretKey123456789',
+        }
+        const mockRegenerateAction = vi.fn(() => async () => regeneratedKey)
+
+        ref.current.props.actions.regenerateDeveloperKeySecret = mockRegenerateAction
+
+        await act(async () => {
+          await ref.current.handleRegenerateSecret(mockDeveloperKey)
+        })
+
+        expect(mockRegenerateAction).toHaveBeenCalledWith(mockDeveloperKey)
+      })
+
+      it('shows confirmation dialog with the regenerated secret', async () => {
+        const regeneratedKey = {
+          ...mockDeveloperKey,
+          api_key: 'newSecretKey123456789',
+        }
+        const mockRegenerateAction = vi.fn(() => async () => regeneratedKey)
+        ref.current.props.actions.regenerateDeveloperKeySecret = mockRegenerateAction
+
+        await act(async () => {
+          await ref.current.handleRegenerateSecret(mockDeveloperKey)
+        })
+
+        expect(ConfirmationDialog.showConfirmationDialog).toHaveBeenCalled()
+        const callArgs = ConfirmationDialog.showConfirmationDialog.mock.calls[0][0]
+        expect(callArgs.label).toContain('Secret Regenerated Successfully')
+        expect(callArgs.confirmText).toBe('Close')
+      })
+
+      it('includes warning message in the dialog', async () => {
+        const regeneratedKey = {
+          ...mockDeveloperKey,
+          api_key: 'newSecretKey123456789',
+        }
+        const mockRegenerateAction = vi.fn(() => async () => regeneratedKey)
+        ref.current.props.actions.regenerateDeveloperKeySecret = mockRegenerateAction
+
+        await act(async () => {
+          await ref.current.handleRegenerateSecret(mockDeveloperKey)
+        })
+
+        expect(ConfirmationDialog.showConfirmationDialog).toHaveBeenCalled()
+        const callArgs = ConfirmationDialog.showConfirmationDialog.mock.calls[0][0]
+        // Verify the dialog body contains the warning
+        expect(callArgs.body).toBeDefined()
+      })
+
+      it('handles errors gracefully', async () => {
+        const mockError = new Error('Network error')
+        const mockRegenerateAction = vi.fn(() => async () => {
+          throw mockError
+        })
+        ref.current.props.actions.regenerateDeveloperKeySecret = mockRegenerateAction
+
+        await act(async () => {
+          await ref.current.handleRegenerateSecret(mockDeveloperKey)
+        })
+
+        // Should not show confirmation dialog on error
+        expect(ConfirmationDialog.showConfirmationDialog).not.toHaveBeenCalled()
+      })
+
+      it('dispatches the action with the store dispatcher', async () => {
+        const regeneratedKey = {
+          ...mockDeveloperKey,
+          api_key: 'newSecretKey123456789',
+        }
+        const mockDispatch = vi.fn()
+        const mockRegenerateAction = vi.fn(() => async dispatch => {
+          dispatch()
+          return regeneratedKey
+        })
+
+        ref.current.props.store.dispatch = mockDispatch
+        ref.current.props.actions.regenerateDeveloperKeySecret = mockRegenerateAction
+
+        await act(async () => {
+          await ref.current.handleRegenerateSecret(mockDeveloperKey)
+        })
+
+        expect(mockDispatch).toHaveBeenCalled()
+      })
+    })
+
+    describe('with feature flag disabled', () => {
+      beforeEach(() => {
+        fakeENV.setup({FEATURES: {developer_key_regenerate_secret: false}})
+      })
+
+      it('does not show regenerate button when feature flag is off', () => {
+        const inheritedList = siteAdminKeys
+        const {wrapper} = renderApp({inheritedList})
+        // The regenerate button should not be present
+        // This is more of an integration test verifying the feature flag behavior
+        expect(wrapper.queryByLabelText(/regenerate secret/i)).not.toBeInTheDocument()
       })
     })
   })

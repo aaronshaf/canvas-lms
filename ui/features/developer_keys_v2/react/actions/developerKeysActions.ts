@@ -24,6 +24,7 @@ import parseLinkHeader from 'link-header-parsing/parseLinkHeader'
 import type {AnyAction, Dispatch} from 'redux'
 import type {DeveloperKey, DeveloperKeyAccountBinding} from '../../model/api/DeveloperKey'
 import type {LtiToolConfiguration} from 'features/developer_keys_v2/model/api/LtiToolConfiguration'
+import {showFlashError} from '@instructure/platform-alerts'
 
 const I18n = createI18nScope('react_developer_keys')
 
@@ -96,6 +97,9 @@ export type DeveloperKeyActionNames =
   | 'LIST_DEVELOPER_KEY_SCOPES_SET'
   | 'LTI_KEYS_SET_LTI_KEY'
   | 'RESET_LTI_STATE'
+  | 'REGENERATE_DEVELOPER_KEY_SECRET_START'
+  | 'REGENERATE_DEVELOPER_KEY_SECRET_SUCCESSFUL'
+  | 'REGENERATE_DEVELOPER_KEY_SECRET_FAILED'
 
 export const actions = {
   LIST_DEVELOPER_KEYS_START: 'LIST_DEVELOPER_KEYS_START',
@@ -287,7 +291,7 @@ export const actions = {
   createOrEditDeveloperKeyFailed: () => ({type: actions.CREATE_OR_EDIT_DEVELOPER_KEY_FAILED}),
 
   SET_EDITING_DEVELOPER_KEY: 'SET_EDITING_DEVELOPER_KEY',
-  setEditingDeveloperKey: (payload: DeveloperKey) => ({
+  setEditingDeveloperKey: (payload?: DeveloperKey) => ({
     type: actions.SET_EDITING_DEVELOPER_KEY,
     payload,
   }),
@@ -299,7 +303,6 @@ export const actions = {
       if (payload) {
         dispatch(actions.listDeveloperKeyScopesSet(payload.scopes))
       }
-      // @ts-expect-error
       dispatch(actions.setEditingDeveloperKey(payload))
     },
 
@@ -382,8 +385,8 @@ export const actions = {
   },
 
   setBindingWorkflowState:
-    // @ts-expect-error
-    (developerKey: DeveloperKey, accountId: string, workflowState: string) => dispatch => {
+    (developerKey: DeveloperKey, accountId: string, workflowState: string) =>
+    (dispatch: Function) => {
       dispatch(actions.setBindingWorkflowStateStart())
       const url = `/api/v1/accounts/${accountId}/developer_keys/${developerKey.id}/developer_key_account_bindings`
 
@@ -433,12 +436,15 @@ export const actions = {
       })
         .then(response => {
           const key = response.data
+          const maskedKey = maskKey(key)
           if (method === 'post') {
-            dispatch(actions.listDeveloperKeysPrepend(key))
+            dispatch(actions.listDeveloperKeysPrepend(maskedKey))
           } else {
-            dispatch(actions.listDeveloperKeysReplace(key))
+            dispatch(actions.listDeveloperKeysReplace(maskedKey))
+            console.log('successfully edited key, now what??')
           }
           dispatch(actions.createOrEditDeveloperKeySuccessful())
+          return key
         })
         .catch(error => {
           $.flashError(error.message)
@@ -587,6 +593,43 @@ export const actions = {
       .catch(err => dispatch(actions.deleteDeveloperKeyFailed(err)))
   },
 
+  REGENERATE_DEVELOPER_KEY_SECRET_START: 'REGENERATE_DEVELOPER_KEY_SECRET_START',
+  regenerateDeveloperKeySecretStart: (developerKeyId: string) => ({
+    type: actions.REGENERATE_DEVELOPER_KEY_SECRET_START,
+    payload: developerKeyId,
+  }),
+
+  REGENERATE_DEVELOPER_KEY_SECRET_SUCCESSFUL: 'REGENERATE_DEVELOPER_KEY_SECRET_SUCCESSFUL',
+  regenerateDeveloperKeySecretSuccessful: (payload: DeveloperKey) => ({
+    type: actions.REGENERATE_DEVELOPER_KEY_SECRET_SUCCESSFUL,
+    payload,
+  }),
+
+  REGENERATE_DEVELOPER_KEY_SECRET_FAILED: 'REGENERATE_DEVELOPER_KEY_SECRET_FAILED',
+  regenerateDeveloperKeySecretFailed: (error: unknown) => ({
+    type: actions.REGENERATE_DEVELOPER_KEY_SECRET_FAILED,
+    error: true,
+    payload: error,
+  }),
+
+  regenerateDeveloperKeySecret: (developerKey: DeveloperKey) => (dispatch: Function) => {
+    dispatch(actions.regenerateDeveloperKeySecretStart(developerKey.id))
+
+    const url = `/api/v1/developer_keys/${developerKey.id}/regenerate_secret`
+    return axios
+      .post<DeveloperKey>(url)
+      .then(response => {
+        dispatch(actions.listDeveloperKeysReplace(maskKey(response.data)))
+        dispatch(actions.regenerateDeveloperKeySecretSuccessful(response.data))
+        return response.data
+      })
+      .catch(err => {
+        showFlashError(I18n.t('Failed to regenerate secret: %{message}', {message: err.message}))
+        dispatch(actions.regenerateDeveloperKeySecretFailed(err))
+        throw err
+      })
+  },
+
   LTI_KEYS_SET_LTI_KEY: 'LTI_KEYS_SET_LTI_KEY',
   ltiKeysSetLtiKey: (payload: boolean) => ({
     type: actions.LTI_KEYS_SET_LTI_KEY,
@@ -686,6 +729,11 @@ export const actions = {
       })
   },
 } as const
+
+const maskKey = (key: DeveloperKey): DeveloperKey => ({
+  ...key,
+  api_key: `${key.api_key.substring(0, 5)}...`,
+})
 
 const inherited = 'inherited=true'
 

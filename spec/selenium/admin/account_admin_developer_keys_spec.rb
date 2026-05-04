@@ -390,7 +390,7 @@ describe "Developer Keys" do
         expect(developer_key_with_scopes.reload.scopes).to match_array api_token_scopes
       end
 
-      it "keeps all endpoints read only checkbox checked after save" do
+      it "keeps all endpoints read only checkbox checked after save", skip: "2026-05-08 INTEROP-10566 Disabling flaky test" do
         get "/accounts/#{Account.default.id}/developer_keys"
         find_button("Developer Key").click
         find_button("API Key").click

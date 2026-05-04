@@ -146,6 +146,45 @@ describe DeveloperKeysController do
           expect(developer_key["visible"]).to eq(key.visible)
         end
 
+        context "with developer_key_regenerate_secret feature flag" do
+          context "when feature flag is enabled" do
+            let(:api_key) { DeveloperKey.create! }
+
+            before do
+              Account.site_admin.enable_feature!(:developer_key_regenerate_secret)
+            end
+
+            it "masks the api_key in the response" do
+              full_key = api_key.api_key
+
+              get "index", params: { account_id: Account.site_admin.id }, format: :json
+              expect(response).to be_successful
+
+              developer_key = json_parse(response.body).find { |k| k["id"] == api_key.global_id }
+              expect(developer_key["api_key"]).to eq("#{full_key[0..4]}...")
+              expect(developer_key["api_key"]).not_to eq(full_key)
+            end
+          end
+
+          context "when feature flag is disabled" do
+            let(:api_key) { DeveloperKey.create! }
+
+            before do
+              Account.site_admin.disable_feature!(:developer_key_regenerate_secret)
+            end
+
+            it "includes the full api_key in the response" do
+              full_key = api_key.api_key
+
+              get "index", params: { account_id: Account.site_admin.id }, format: :json
+              expect(response).to be_successful
+
+              developer_key = json_parse(response.body).find { |k| k["id"] == api_key.global_id }
+              expect(developer_key["api_key"]).to eq(full_key)
+            end
+          end
+        end
+
         it "includes non-visible keys created in site admin" do
           site_admin_key = DeveloperKey.create!(name: "Site Admin Key", visible: false)
           get "index", params: { account_id: "site_admin" }, format: :json
@@ -205,6 +244,11 @@ describe DeveloperKeysController do
           let(:flag) { :site_admin_dev_key_secret_grace_window }
           let(:service_user) { user_model }
           let!(:key) { DeveloperKey.create!(name: "SA Key", service_user:) }
+
+          before do
+            # Disable the developer_key_regenerate_secret flag to prevent interference
+            Account.site_admin.disable_feature!(:developer_key_regenerate_secret)
+          end
 
           it "returns the full api_key when feature flag is disabled" do
             Account.site_admin.disable_feature!(flag) if Account.site_admin.feature_enabled?(flag)
@@ -658,6 +702,138 @@ describe DeveloperKeysController do
           it "reports error metric with code 500" do
             delete :destroy, params: { id: dk.id, account_id: Account.site_admin.id }
             expect(InstStatsd::Statsd).to have_received(:distributed_increment).with(error_metric_name, tags: { action: "destroy", code: 500 })
+          end
+        end
+      end
+    end
+
+    describe "POST 'regenerate_secret'" do
+      let(:dk) { DeveloperKey.create!(account: Account.site_admin) }
+
+      before do
+        user_session(@admin)
+      end
+
+      context "when feature flag is disabled" do
+        before do
+          Account.site_admin.disable_feature!(:developer_key_regenerate_secret)
+        end
+
+        it "returns 403 forbidden" do
+          post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }
+          expect(response).to have_http_status(:forbidden)
+          expect(json_parse(response.body)["errors"].first["message"]).to eq("Feature not enabled")
+        end
+      end
+
+      context "when feature flag is enabled" do
+        before do
+          Account.site_admin.enable_feature!(:developer_key_regenerate_secret)
+        end
+
+        it "regenerates the api_key" do
+          original_key = dk.api_key
+
+          post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }
+          expect(response).to be_successful
+
+          dk.reload
+          expect(dk.api_key).not_to eq(original_key)
+          expect(dk.api_key).to be_present
+        end
+
+        it "returns the full api_key in the response" do
+          post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }
+          expect(response).to be_successful
+
+          response_key = json_parse(response.body)["api_key"]
+          expect(response_key).to eq(dk.reload.api_key)
+          expect(response_key).not_to include("...")
+        end
+
+        context "when the key is an LTI key" do
+          let(:lti_key) { lti_developer_key_model(account: Account.site_admin) }
+
+          it "returns 400 bad request" do
+            post :regenerate_secret, params: { id: lti_key.id, account_id: Account.site_admin.id }
+            expect(response).to have_http_status(:bad_request)
+            expect(json_parse(response.body)["errors"].first["message"]).to eq("Cannot regenerate secret for LTI keys")
+          end
+        end
+
+        context "with permission checks" do
+          let(:other_account) { Account.create! }
+          let(:other_account_key) { DeveloperKey.create!(account: other_account) }
+          let(:parent_account_key) { DeveloperKey.create!(account: test_domain_root_account) }
+
+          context "when user lacks manage_developer_keys permission" do
+            let(:non_admin_user) { user_model }
+
+            before do
+              user_session(non_admin_user)
+            end
+
+            it "returns 403 forbidden" do
+              post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }, format: :json
+              expect(response).to have_http_status(:forbidden)
+            end
+          end
+
+          context "when attempting cross-account access" do
+            let(:other_account_admin) { account_admin_user(account: other_account) }
+
+            before do
+              other_account.enable_feature!(:developer_key_regenerate_secret)
+              user_session(other_account_admin)
+            end
+
+            it "returns 403 forbidden for site admin keys" do
+              post :regenerate_secret, params: { id: dk.id, account_id: other_account.id }, format: :json
+              expect(response).to have_http_status(:forbidden)
+            end
+
+            it "returns 403 forbidden for keys from different account" do
+              test_domain_root_account.enable_feature!(:developer_key_regenerate_secret)
+
+              post :regenerate_secret, params: { id: parent_account_key.id, account_id: other_account.id }, format: :json
+              expect(response).to have_http_status(:forbidden)
+            end
+          end
+
+          context "when child account tries to regenerate parent account key" do
+            let(:child_account) { test_domain_root_account.sub_accounts.create! }
+            let(:child_account_admin) { account_admin_user(account: child_account) }
+
+            before do
+              test_domain_root_account.enable_feature!(:developer_key_regenerate_secret)
+              user_session(child_account_admin)
+            end
+
+            it "returns 403 forbidden" do
+              post :regenerate_secret, params: { id: parent_account_key.id, account_id: child_account.id }, format: :json
+              expect(response).to have_http_status(:forbidden)
+            end
+          end
+
+          context "when account admin regenerates their own account key" do
+            let(:account_admin) { account_admin_user(account: test_domain_root_account) }
+            let(:account_key) { DeveloperKey.create!(account: test_domain_root_account) }
+
+            before do
+              test_domain_root_account.enable_feature!(:developer_key_regenerate_secret)
+              user_session(account_admin)
+            end
+
+            it "successfully regenerates the key" do
+              original_key = account_key.api_key
+
+              post :regenerate_secret, params: { id: account_key.id, account_id: test_domain_root_account.id }
+              expect(response).to be_successful
+
+              account_key.reload
+              expect(account_key.api_key).not_to eql(original_key)
+              expect(account_key.api_key).to be_present
+            end
           end
         end
       end

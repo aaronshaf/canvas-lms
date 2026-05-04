@@ -244,6 +244,7 @@ DeveloperKeyActionButtons.propTypes = {
     api_key: PropTypes.string,
     created_at: PropTypes.string.isRequired,
     is_lti_key: PropTypes.bool,
+    is_lti_registration: PropTypes.bool,
   }).isRequired,
   visible: PropTypes.bool.isRequired,
   developerName: PropTypes.string.isRequired,

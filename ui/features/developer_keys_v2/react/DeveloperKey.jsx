@@ -17,12 +17,14 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {getActiveCanvasTheme} from '@canvas/react'
 import React from 'react'
 import {bool, func, number, shape, string} from 'prop-types'
 
 import {Button, CloseButton, IconButton} from '@instructure/ui-buttons'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
+import {Text} from '@instructure/ui-text'
 import {IconExternalLinkLine, IconLtiLine} from '@instructure/ui-icons'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {Popover} from '@instructure/ui-popover'
@@ -30,7 +32,9 @@ import {Link} from '@instructure/ui-link'
 import {Img} from '@instructure/ui-img'
 import {Table} from '@instructure/ui-table'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
+import {Spinner} from '@instructure/ui-spinner'
 import {datetimeString} from '@canvas/datetime/date-functions'
+import {confirmDanger} from '@instructure/platform-instui-bindings'
 
 import DeveloperKeyActionButtons from './ActionButtons'
 import DeveloperKeyStateControl from './InheritanceStateControl'
@@ -124,6 +128,29 @@ class DeveloperKey extends React.Component {
     this.setState(state => ({showKey: !state.showKey}))
   }
 
+  handleRegenerateSecret = async () => {
+    const {developerKey, onRegenerateSecret} = this.props
+    const keyName = this.getToolName()
+
+    const confirmed = await confirmDanger({
+      title: I18n.t('Regenerate API Secret'),
+      heading: I18n.t('Are you sure you want to regenerate the secret for "%{keyName}"?', {
+        keyName,
+      }),
+      message: I18n.t(
+        'Regenerating this secret will invalidate the existing secret. Any applications using the old secret will stop working until updated with the new secret.',
+      ),
+      confirmButtonLabel: I18n.t('Regenerate'),
+      cancelButtonLabel: I18n.t('Cancel'),
+      closeButtonLabel: I18n.t('Close'),
+      theme: getActiveCanvasTheme(),
+    })
+
+    if (confirmed && onRegenerateSecret) {
+      onRegenerateSecret(developerKey)
+    }
+  }
+
   refActionButtons = link => {
     this.actionButtons = link
   }
@@ -132,14 +159,83 @@ class DeveloperKey extends React.Component {
     this.toggleGroup = link
   }
 
+  renderSecret = (developerKey, inherited) => {
+    const {isRegenerating} = this.props
+
+    if (ENV.developerKeyRegenerateSecretEnabled && !inherited) {
+      return (
+        <>
+          <div data-testid="masked-secret" style={{marginTop: '0.5rem'}}>
+            <Text size="small">{developerKey.api_key || 'N/A'}</Text>
+          </div>
+          {isRegenerating ? (
+            <div style={{marginTop: '0.5rem'}}>
+              <Spinner renderTitle={I18n.t('Regenerating secret...')} size="x-small" />
+            </div>
+          ) : (
+            <Button
+              data-testid="regenerate-secret"
+              onClick={this.handleRegenerateSecret}
+              size="small"
+              margin="small 0 0 0"
+            >
+              {I18n.t('Regenerate Secret')}
+              <ScreenReaderContent>{this.getToolName()}</ScreenReaderContent>
+            </Button>
+          )}
+        </>
+      )
+    } else {
+      // hide secret button if inherited, lti key with link, or backend
+      // returned only a hint (api_key_truncated) instead of the full secret
+      const showClientSecret = !inherited && !developerKey.api_key_truncated
+      return (
+        <>
+          {showClientSecret && (
+            <div>
+              <Popover
+                placement="top"
+                shouldAlignArrow={true}
+                on="click"
+                isShowingContent={this.state.showKey}
+                shouldContainFocus={true}
+                shouldReturnFocus={true}
+                shouldCloseOnDocumentClick={true}
+                onHideContent={this.handleShowKey}
+                screenReaderLabel={I18n.t('Key')}
+                renderTrigger={
+                  <Button data-testid="show-key" onClick={this.handleShowKey} size="small">
+                    {this.state.showKey ? I18n.t('Hide Key') : I18n.t('Show Key')}
+                    <ScreenReaderContent>{this.getToolName()}</ScreenReaderContent>
+                  </Button>
+                }
+              >
+                <CloseButton
+                  placement="end"
+                  offset="x-small"
+                  onClick={this.handleShowKey}
+                  screenReaderLabel={I18n.t('Close')}
+                />
+                <View padding="large small small small" display="block">
+                  <div>{developerKey.api_key}</div>
+                </View>
+              </Popover>
+            </div>
+          )}
+          {!inherited && developerKey.api_key_truncated && (
+            <div data-testid="api-key-hint" style={{wordBreak: 'break-all'}}>
+              {developerKey.api_key}
+            </div>
+          )}
+        </>
+      )
+    }
+  }
+
   render() {
     const {developerKey, inherited} = this.props
     const showLinkFlag = window.ENV.FEATURES.lti_link_to_apps_from_developer_keys
     const showLinkToApps = developerKey.is_lti_key && showLinkFlag
-    // hide secret button if inherited, lti key with link, or backend
-    // returned only a hint (api_key_truncated) instead of the full secret
-    const showClientSecret =
-      !(inherited || showLinkToApps) && !developerKey.api_key_truncated
 
     return (
       <Table.Row>
@@ -161,43 +257,7 @@ class DeveloperKey extends React.Component {
         <Table.Cell>
           <View maxWidth="200px" as="div">
             <div data-testid="developer-key-id">{developerKey.id}</div>
-            {showClientSecret && (
-              <div>
-                <Popover
-                  placement="top"
-                  shouldAlignArrow={true}
-                  on="click"
-                  isShowingContent={this.state.showKey}
-                  shouldContainFocus={true}
-                  shouldReturnFocus={true}
-                  shouldCloseOnDocumentClick={true}
-                  onHideContent={this.handleShowKey}
-                  screenReaderLabel={I18n.t('Key')}
-                  renderTrigger={
-                    <Button data-testid="show-key" onClick={this.handleShowKey} size="small">
-                      {this.state.showKey ? I18n.t('Hide Key') : I18n.t('Show Key')}
-                      <ScreenReaderContent>{this.getToolName()}</ScreenReaderContent>
-                    </Button>
-                  }
-                >
-                  <CloseButton
-                    placement="end"
-                    offset="x-small"
-                    onClick={this.handleShowKey}
-                    screenReaderLabel={I18n.t('Close')}
-                  />
-                  <View padding="large small small small" display="block">
-                    {developerKey.api_key}
-                  </View>
-                </Popover>
-              </div>
-            )}
-            {!inherited && developerKey.api_key_truncated && (
-              <div data-testid="api-key-hint" style={{wordBreak: 'break-all'}}>
-                {developerKey.api_key}
-              </div>
-            )}
-            {showLinkToApps && (
+            {showLinkToApps ? (
               <div style={{whiteSpace: 'nowrap'}}>
                 <Link
                   variant="standalone"
@@ -211,6 +271,8 @@ class DeveloperKey extends React.Component {
                   {I18n.t('View in Canvas Apps')}
                 </Link>
               </div>
+            ) : (
+              this.renderSecret(developerKey, inherited)
             )}
             {!inherited && (
               <div style={{wordBreak: 'break-all'}} data-testid="redirect-uri">
@@ -313,8 +375,13 @@ DeveloperKey.propTypes = {
   }).isRequired,
   inherited: bool,
   onDelete: func.isRequired,
+  onRegenerateSecret: func,
+  isRegenerating: bool,
 }
 
-DeveloperKey.defaultProps = {inherited: false}
+DeveloperKey.defaultProps = {
+  inherited: false,
+  isRegenerating: false,
+}
 
 export default DeveloperKey

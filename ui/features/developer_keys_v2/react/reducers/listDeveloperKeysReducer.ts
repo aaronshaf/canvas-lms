@@ -32,6 +32,7 @@ export interface ListDeveloperKeysState {
   inheritedList: Array<DeveloperKey>
   nextPage: string | null | undefined
   inheritedNextPage: string | null | undefined
+  regeneratingKeyId: string | null
 }
 
 const initialState: ListDeveloperKeysState = {
@@ -45,6 +46,7 @@ const initialState: ListDeveloperKeysState = {
   inheritedList: [],
   nextPage: null,
   inheritedNextPage: null,
+  regeneratingKeyId: null,
 }
 
 export default makeReducer(initialState, {
@@ -218,5 +220,17 @@ export default makeReducer(initialState, {
     ...state,
     listInheritedDeveloperKeysPending: false,
     listInheritedDeveloperKeysError: action.payload,
+  }),
+  [ACTION_NAMES.REGENERATE_DEVELOPER_KEY_SECRET_START]: (state, action) => ({
+    ...state,
+    regeneratingKeyId: action.payload,
+  }),
+  [ACTION_NAMES.REGENERATE_DEVELOPER_KEY_SECRET_SUCCESSFUL]: (state, _action) => ({
+    ...state,
+    regeneratingKeyId: null,
+  }),
+  [ACTION_NAMES.REGENERATE_DEVELOPER_KEY_SECRET_FAILED]: (state, _action) => ({
+    ...state,
+    regeneratingKeyId: null,
   }),
 })

@@ -2158,6 +2158,7 @@ CanvasRails::Application.routes.draw do
     scope(controller: :developer_keys) do
       delete "developer_keys/:id", action: :destroy
       put "developer_keys/:id", action: :update
+      post "developer_keys/:id/regenerate_secret", action: :regenerate_secret
 
       get "accounts/:account_id/developer_keys", action: :index, as: "account_developer_keys"
       post "accounts/:account_id/developer_keys", action: :create

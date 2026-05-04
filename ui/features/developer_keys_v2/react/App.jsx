@@ -35,6 +35,8 @@ import {showFlashAlert, showFlashSuccess} from '@instructure/platform-alerts'
 import DateHelper from '@canvas/datetime/dateHelper'
 import {DynamicRegistrationModal} from './dynamic_registration/DynamicRegistrationModal'
 import {Flex} from '@instructure/ui-flex'
+import {showConfirmationDialog} from '@canvas/dialogs/react/ConfirmationDialog'
+import {TextInput} from '@instructure/ui-text-input'
 
 const I18n = createI18nScope('react_developer_keys')
 /**
@@ -54,6 +56,44 @@ class DeveloperKeysApp extends React.Component {
 
   get isSiteAdmin() {
     return this.props.ctx.params.contextId === 'site_admin'
+  }
+
+  handleRegenerateSecret = async developerKey => {
+    const {
+      store: {dispatch},
+      actions: {regenerateDeveloperKeySecret, listDeveloperKeysReplace},
+    } = this.props
+
+    try {
+      const updatedKey = await regenerateDeveloperKeySecret(developerKey)(dispatch)
+
+      // Show the full secret in a confirmation dialog
+      showConfirmationDialog({
+        label: I18n.t('Secret Regenerated Successfully'),
+        body: (
+          <>
+            <View as="div" margin="0 0 medium 0">
+              <Alert variant="warning" margin="0 0 medium 0">
+                {I18n.t(
+                  "Copy this secret down now. Once you close this dialog you won't be able to retrieve the full secret anymore. The full secret is only shown immediately after creation or regeneration.",
+                )}
+              </Alert>
+            </View>
+            <View as="div">
+              <TextInput
+                renderLabel={I18n.t('New Secret')}
+                value={updatedKey.api_key || ''}
+                readOnly={true}
+                interaction="readonly"
+              />
+            </View>
+          </>
+        ),
+        confirmText: I18n.t('Close'),
+      })
+    } catch (err) {
+      // Error already flashed by action
+    }
   }
 
   setMainTableRef = node => {
@@ -147,8 +187,55 @@ class DeveloperKeysApp extends React.Component {
    * @todo Find a better way to avoid modal-focus-screenreader-bulldozing so
    * this isn't necessary.
    * @param {string | string[]} warningMessage - A warning message or a list of warning messages to show to the user.
+   * @param {object} developerKey - The developer key that was created/updated
+   * @param {boolean} isCreate - Whether this was a create operation
    */
-  developerKeySaveSuccessfulHandler(warningMessage) {
+  developerKeySaveSuccessfulHandler = (warningMessage, developerKey, isCreate) => {
+    const {
+      store: {dispatch},
+      actions: {listDeveloperKeysReplace},
+    } = this.props
+
+    // If this is an API key creation with the feature flag enabled, show the secret modal
+    if (
+      isCreate &&
+      developerKey &&
+      !developerKey.is_lti_key &&
+      ENV.developerKeyRegenerateSecretEnabled &&
+      developerKey.api_key
+    ) {
+      showConfirmationDialog({
+        label: I18n.t('Developer Key Created'),
+        body: (
+          <>
+            <View as="div" margin="0 0 medium 0">
+              <Alert variant="warning" margin="0 0 medium 0">
+                {I18n.t(
+                  "Copy this secret down now. Once you close this dialog you won't be able to retrieve the full secret anymore. The full secret is only shown immediately after creation or regeneration.",
+                )}
+              </Alert>
+            </View>
+            <View as="div">
+              <TextInput
+                renderLabel={I18n.t('API Key secret')}
+                value={developerKey.api_key || ''}
+                readOnly={true}
+                interaction="readonly"
+              />
+            </View>
+          </>
+        ),
+        confirmText: I18n.t('Close'),
+      })
+
+      // Immediately mask the secret in the Redux store
+      const maskedKey = {
+        ...developerKey,
+        api_key: `${developerKey.api_key.substring(0, 5)}...`,
+      }
+      dispatch(listDeveloperKeysReplace(maskedKey))
+    }
+
     setTimeout(() => {
       showFlashSuccess(I18n.t('Save successful.'))()
       if (Array.isArray(warningMessage)) {
@@ -231,6 +318,7 @@ class DeveloperKeysApp extends React.Component {
           inheritedList,
           listDeveloperKeysPending,
           listInheritedDeveloperKeysPending,
+          regeneratingKeyId,
         },
         createOrEditDeveloperKey,
         listDeveloperKeyScopes,
@@ -300,6 +388,8 @@ class DeveloperKeysApp extends React.Component {
               developerKeysList={list}
               ctx={ctx}
               setFocus={this.focusDevKeyButton}
+              onRegenerateSecret={this.handleRegenerateSecret}
+              regeneratingKeyId={regeneratingKeyId}
               data-testid="dev-key-admin-table"
             />
             <View as="div" margin="small" padding="large" textAlign="center">
@@ -370,6 +460,8 @@ DeveloperKeysApp.propTypes = {
     getRemainingDeveloperKeys: PropTypes.func.isRequired,
     getRemainingInheritedDeveloperKeys: PropTypes.func.isRequired,
     editDeveloperKey: PropTypes.func.isRequired,
+    regenerateDeveloperKeySecret: PropTypes.func.isRequired,
+    listDeveloperKeysReplace: PropTypes.func.isRequired,
   }).isRequired,
   applicationState: PropTypes.shape({
     createOrEditDeveloperKey: PropTypes.shape({
@@ -385,6 +477,7 @@ DeveloperKeysApp.propTypes = {
       listInheritedDeveloperKeysSuccessful: PropTypes.bool.isRequired,
       list: PropTypes.arrayOf(DeveloperKey.propTypes.developerKey).isRequired,
       inheritedList: PropTypes.arrayOf(DeveloperKey.propTypes.developerKey).isRequired,
+      regeneratingKeyId: PropTypes.string,
     }).isRequired,
   }).isRequired,
   ctx: PropTypes.shape({
