@@ -36,11 +36,12 @@ import {TextArea} from '@instructure/ui-text-area'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {CommentLibrary} from './CommentLibrary'
 import {CriteriaReadonlyComment} from './CriteriaReadonlyComment'
-import {findCriterionMatchingRatingId, htmlEscapeCriteriaLongDescription} from './utils/rubricUtils'
+import {findCriterionMatchingRatingId} from './utils/rubricUtils'
 import {possibleString} from '../Points'
 import {OutcomeTag} from './OutcomeTag'
 import {SelfAssessmentComment} from './SelfAssessmentComment'
 import {useGetRubricOutcome} from './queries/useGetRubricOutcome'
+import {sanitizeAndFormatHTML} from '../utils'
 
 const I18n = createI18nScope('rubrics-assessment-tray')
 
@@ -364,7 +365,9 @@ export const CriterionRow = ({
             size="small"
             weight="normal"
             themeOverride={{fontSizeXSmall: '0.875rem', paragraphMargin: 0}}
-            dangerouslySetInnerHTML={htmlEscapeCriteriaLongDescription(criterion)}
+            dangerouslySetInnerHTML={{
+              __html: sanitizeAndFormatHTML(criterion.longDescription ?? ''),
+            }}
           />
         </View>
         {criterion.learningOutcomeId && (

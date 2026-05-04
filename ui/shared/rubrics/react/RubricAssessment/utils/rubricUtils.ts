@@ -23,14 +23,6 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {ProficiencyRating} from '@canvas/graphql/codegen/graphql'
 const I18n = createI18nScope('enhanced-rubrics-assessment')
 
-export const htmlEscapeCriteriaLongDescription = (criteria: RubricCriterion) => {
-  const {longDescription} = criteria
-
-  return {
-    __html: longDescription ?? '',
-  }
-}
-
 export const escapeNewLineText = (text?: string) => {
   return {
     __html: htmlEscape(text ?? '').replace(/\n/g, '<br />'),

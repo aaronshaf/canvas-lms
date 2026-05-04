@@ -17,6 +17,7 @@
  */
 import React from 'react'
 import type {ReactNode} from 'react'
+import DOMPurify from 'dompurify'
 
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {Text} from '@instructure/ui-text'
@@ -142,7 +143,7 @@ const commentElement = (assessment: Assessment) => {
           {I18n.t('Comments')}
         </Text>
         {assessment.comments_html ? (
-          <div dangerouslySetInnerHTML={{__html: assessment.comments_html}} />
+          <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(assessment.comments_html)}} />
         ) : (
           <div>{assessment.comments}</div>
         )}

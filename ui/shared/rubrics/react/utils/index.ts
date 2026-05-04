@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {htmlEscape} from '@instructure/html-escape'
+import DOMPurify from 'dompurify'
 import type {RubricAssessment} from '@canvas/grading/grading'
 import type {
   Rubric,
@@ -150,18 +150,19 @@ export const decodeHTML = (str: string): string => {
 }
 
 /**
- * Prepares a long description string for safe use in dangerouslySetInnerHTML.
+ * Prepares an html string for safe use in dangerouslySetInnerHTML.
  * - Decodes all HTML entities from the backend (handles both &#39; and &#x27;)
  * - Strips legacy <br/> tags (backend sanitization artifact)
  * - Re-escapes for XSS safety
  * - Converts \n to <br /> for proper line break rendering
  */
-export const formatLongDescriptionHTML = (str: string): string => {
+export const sanitizeAndFormatHTML = (str: string): string => {
   // Normalize <br/> to \n before decoding so behavior is consistent
   // across real browsers and jsdom (textarea.value handles \n reliably
   // but does not guarantee <br> → \n conversion)
-  const decoded = decodeHTML(str.replace(/<br\s*\/?>/gi, '\n'))
-  return htmlEscape(decoded).replace(/\n/g, '<br />')
+  return DOMPurify.sanitize(str)
+    .replace(/\n/g, '<br />')
+    .replace(/<br\s*\/?>/gi, '<br />')
 }
 
 export const mapRubricAssessmentDataUnderscoredKeysToCamelCase = (

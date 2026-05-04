@@ -17,7 +17,7 @@
  */
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
-import React from 'react'
+import DOMPurify from 'dompurify'
 import {legacyRender, legacyUnmountComponentAtNode} from '@canvas/react'
 import htmlEscape from '@instructure/html-escape'
 import {truncateText} from '@canvas/util/TextHelper'
@@ -451,7 +451,7 @@ window.rubricAssessment = {
           .val(comments)
           .end()
           .find('.custom_rating_comments')
-          .html(comments_html)
+          .html(DOMPurify.sanitize(comments_html))
           .end()
           .find('.criterion_points')
           .val(window.rubricAssessment.roundAndFormat(rating.points))

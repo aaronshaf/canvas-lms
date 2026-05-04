@@ -17,10 +17,11 @@
  */
 
 import {useCallback, useRef, useEffect} from 'react'
+import DOMPurify from 'dompurify'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import type {RubricCriterion} from '@canvas/rubrics/react/types/rubric'
 import {possibleString} from '@canvas/rubrics/react/Points'
-import {formatLongDescriptionHTML} from '@canvas/rubrics/react/utils'
+import {sanitizeAndFormatHTML} from '@canvas/rubrics/react/utils'
 import {OutcomeTag} from '@canvas/rubrics/react/RubricAssessment'
 import classnames from 'classnames'
 import {Flex} from '@instructure/ui-flex'
@@ -217,7 +218,11 @@ export const RubricCriteriaRow = ({
                       )}
                       <View as="div" data-testid="rubric-criteria-row-description">
                         {/* html sanitized by server */}
-                        <Text dangerouslySetInnerHTML={{__html: longDescription ?? ''}} />
+                        <Text
+                          dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(longDescription ?? ''),
+                          }}
+                        />
                       </View>
                       {!hidePoints && (
                         <View
@@ -263,7 +268,7 @@ export const RubricCriteriaRow = ({
                            * line breaks regardless of the longDescription having <br/> or \n
                            */
                           dangerouslySetInnerHTML={{
-                            __html: formatLongDescriptionHTML(longDescription ?? ''),
+                            __html: sanitizeAndFormatHTML(longDescription ?? ''),
                           }}
                         />
                       </View>
