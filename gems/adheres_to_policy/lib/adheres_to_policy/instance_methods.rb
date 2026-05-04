@@ -308,7 +308,7 @@ module AdheresToPolicy
               Cache.write(
                 permission_cache_key_for(user, session, condition_right),
                 Success.instance,
-                use_rails_cache: config.cache_permissions && config.cache_related_permissions
+                use_rails_cache: false
               )
             end
 

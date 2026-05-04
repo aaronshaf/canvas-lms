@@ -515,27 +515,7 @@ describe AdheresToPolicy::InstanceMethods do
         instance.granted_rights(instance)
       end
 
-      it "must cache permissions calculated using the same given block by default" do
-        klass = Class.new do
-          extend AdheresToPolicy::ClassMethods
-
-          set_policy do
-            given { |_| true }
-            can :read, :write
-          end
-        end
-        instance = klass.new
-
-        allow(AdheresToPolicy::Cache).to receive(:write)
-          .with(/read/, AdheresToPolicy::Success.instance, an_instance_of(Hash))
-
-        expect(AdheresToPolicy::Cache).to receive(:write)
-          .with(/write/, AdheresToPolicy::Success.instance, an_instance_of(Hash))
-        instance.grants_right?("", :read)
-      end
-
-      it "must not cache related permissions when configured not to" do
-        AdheresToPolicy.configuration.cache_related_permissions = false
+      it "must cache permissions calculated using the same given block in-process only" do
         klass = Class.new do
           extend AdheresToPolicy::ClassMethods
 

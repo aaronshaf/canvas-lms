@@ -22,7 +22,6 @@ require "adheres_to_policy"
 ActiveRecord::Base.singleton_class.include(AdheresToPolicy::ClassMethods)
 
 AdheresToPolicy.configure do |config|
-  config.cache_related_permissions = false
   config.blacklist = ["discussion_entry.reply"]
   config.override_proc = lambda do |user, sought_right|
     # != false is intentional here. nil means the permissions check wasn't run against @current_user,
