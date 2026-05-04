@@ -247,6 +247,10 @@ export interface EnvCommon {
   FULLCALENDAR_LOCALE: string
   MOMENT_LOCALE: string
 
+  WS_URL?: string
+  WS_TOKEN?: string
+  CURRENT_USER_UUID?: string
+
   lolcalize: boolean
   rce_auto_save_max_age_ms: number
   K5_USER: boolean

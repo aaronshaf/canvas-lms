@@ -28,6 +28,8 @@ import {RequestDispatch} from '@canvas/network'
 import useStore from './stores/index'
 import {shouldUseGraphQL} from './utils/forceGqlParam'
 import {addCorrelationIdToUrl} from './utils/urlHelpers'
+import {QueryClientProvider} from '@tanstack/react-query'
+import {queryClient} from '@instructure/platform-query'
 
 type Props = {
   actionMenuNode: HTMLSpanElement
@@ -42,6 +44,7 @@ type Props = {
   gradebookSettingsModalContainer: HTMLSpanElement
   gridColorNode: HTMLElement
   locale: string
+  liveGradebookStatusContainer: Element | null
   settingsModalButtonContainer: HTMLElement
   viewOptionsMenuNode: HTMLElement
 }
@@ -207,37 +210,39 @@ export default function GradebookData(props: Props) {
   }, [loadStudentData, useGraphQL])
 
   return (
-    <Gradebook
-      {...props}
-      appliedFilters={appliedFilters}
-      assignmentMap={assignmentMap}
-      customColumns={customColumns}
-      fetchFinalGradeOverrides={fetchFinalGradeOverrides}
-      fetchGradingPeriodAssignments={fetchGradingPeriodAssignments}
-      finalGradeOverrides={finalGradeOverrides}
-      flashAlerts={flashMessages}
-      gradingPeriodAssignments={gradingPeriodAssignments}
-      isCustomColumnsLoaded={isCustomColumnsLoaded}
-      isFiltersLoading={isFiltersLoading}
-      isGridLoaded={false}
-      isModulesLoading={isModulesLoading}
-      isStudentDataLoaded={isStudentDataLoaded}
-      isStudentIdsLoading={isStudentIdsLoading}
-      loadDataForCustomColumn={loadDataForCustomColumn}
-      isSubmissionDataLoaded={isSubmissionDataLoaded}
-      modules={modules}
-      postGradesStore={postGradesStore.current}
-      recentlyLoadedAssignmentGroups={recentlyLoadedAssignmentGroups}
-      recentlyLoadedCustomColumnData={recentlyLoadedCustomColumnData}
-      recentlyLoadedStudents={recentlyLoadedStudents}
-      recentlyLoadedSubmissions={recentlyLoadedSubmissions}
-      reloadStudentData={reloadStudentData}
-      reorderCustomColumns={reorderCustomColumns}
-      sisOverrides={sisOverrides}
-      totalSubmissionsLoaded={totalSubmissionsLoaded}
-      studentIds={studentIds}
-      totalStudentsToLoad={totalStudentsToLoad}
-      updateColumnOrder={updateColumnOrder}
-    />
+    <QueryClientProvider client={queryClient}>
+      <Gradebook
+        {...props}
+        appliedFilters={appliedFilters}
+        assignmentMap={assignmentMap}
+        customColumns={customColumns}
+        fetchFinalGradeOverrides={fetchFinalGradeOverrides}
+        fetchGradingPeriodAssignments={fetchGradingPeriodAssignments}
+        finalGradeOverrides={finalGradeOverrides}
+        flashAlerts={flashMessages}
+        gradingPeriodAssignments={gradingPeriodAssignments}
+        isCustomColumnsLoaded={isCustomColumnsLoaded}
+        isFiltersLoading={isFiltersLoading}
+        isGridLoaded={false}
+        isModulesLoading={isModulesLoading}
+        isStudentDataLoaded={isStudentDataLoaded}
+        isStudentIdsLoading={isStudentIdsLoading}
+        loadDataForCustomColumn={loadDataForCustomColumn}
+        isSubmissionDataLoaded={isSubmissionDataLoaded}
+        modules={modules}
+        postGradesStore={postGradesStore.current}
+        recentlyLoadedAssignmentGroups={recentlyLoadedAssignmentGroups}
+        recentlyLoadedCustomColumnData={recentlyLoadedCustomColumnData}
+        recentlyLoadedStudents={recentlyLoadedStudents}
+        recentlyLoadedSubmissions={recentlyLoadedSubmissions}
+        reloadStudentData={reloadStudentData}
+        reorderCustomColumns={reorderCustomColumns}
+        sisOverrides={sisOverrides}
+        totalSubmissionsLoaded={totalSubmissionsLoaded}
+        studentIds={studentIds}
+        totalStudentsToLoad={totalStudentsToLoad}
+        updateColumnOrder={updateColumnOrder}
+      />
+    </QueryClientProvider>
   )
 }

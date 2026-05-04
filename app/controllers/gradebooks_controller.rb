@@ -562,6 +562,7 @@ class GradebooksController < ApplicationController
       attachment_url: authenticated_download_url(last_exported_attachment),
       change_gradebook_version_url: context_url(@context, :change_gradebook_version_context_gradebook_url, version: 2),
       colors:,
+      concurrent_grading: @context.feature_enabled?(:concurrent_grading),
       context_allows_gradebook_uploads: @context.allows_gradebook_uploads?,
       context_code: @context.asset_string,
       context_id: @context.id.to_s,
@@ -649,12 +650,25 @@ class GradebooksController < ApplicationController
       grading_periods_filter_dates_enabled: Account.site_admin.feature_enabled?(:grading_periods_filter_dates),
     }
 
-    js_env({
-             EMOJIS_ENABLED: @context.feature_enabled?(:submission_comment_emojis),
-             EMOJI_DENY_LIST: @context.root_account.settings[:emoji_deny_list],
-             GRADEBOOK_OPTIONS: gradebook_options,
-             PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED: @context.feature_enabled?(:peer_review_allocation_and_grading),
-           })
+    env = {
+      EMOJIS_ENABLED: @context.feature_enabled?(:submission_comment_emojis),
+      EMOJI_DENY_LIST: @context.root_account.settings[:emoji_deny_list],
+      GRADEBOOK_OPTIONS: gradebook_options,
+      PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED: @context.feature_enabled?(:peer_review_allocation_and_grading),
+    }
+
+    if @context.feature_enabled?(:concurrent_grading)
+      env[:WS_URL] = DynamicSettings.find("websockets", tree: :private)[:url]
+      env[:WS_TOKEN] = CanvasSecurity::ServicesJwt.ws_token(
+        request.domain,
+        @current_user,
+        real_user: @real_current_user,
+        context: "courses/#{@context.global_id}/gradebook"
+      )
+      env[:CURRENT_USER_ID] = @current_user.id
+    end
+
+    js_env(env)
   end
 
   def set_enhanced_individual_gradebook_env
@@ -1172,6 +1186,7 @@ class GradebooksController < ApplicationController
         can_delete_attachments: @context.root_account.grants_right?(@current_user, session, :become_user),
         RESTRICT_QUANTITATIVE_DATA_ENABLED: @context.restrict_quantitative_data?(@current_user),
         GRADE_BY_STUDENT_ENABLED: @context.root_account.feature_enabled?(:speedgrader_grade_by_student),
+        CONCURRENT_GRADING_ENABLED: @context.feature_enabled?(:concurrent_grading),
         STICKERS_ENABLED_FOR_ASSIGNMENT: @assignment.present? && @assignment.stickers_enabled?(@current_user),
         FILTER_SPEEDGRADER_BY_STUDENT_GROUP_ENABLED: @context.filter_speed_grader_by_student_group?,
         # create_tc_warning is provided by instructure_misc_plugin (separate repo)
@@ -1194,6 +1209,17 @@ class GradebooksController < ApplicationController
         show_inactive_enrollments: gradebook_settings(@context.global_id)&.[]("show_inactive_enrollments") == "true",
         show_concluded_enrollments: @context.completed? || gradebook_settings(@context.global_id)&.[]("show_concluded_enrollments") == "true",
       }
+
+      if @context.feature_enabled?(:concurrent_grading)
+        env[:WS_URL] = DynamicSettings.find("websockets", tree: :private)[:url]
+        env[:WS_TOKEN] = CanvasSecurity::ServicesJwt.ws_token(
+          request.domain,
+          @current_user,
+          real_user: @real_current_user,
+          context: "courses/#{@context.global_id}/gradebook"
+        )
+        env[:CURRENT_USER_ID] = @current_user.id
+      end
 
       if @current_user && @real_current_user && @real_current_user != @current_user
         masquerade_data = { is_fake_student: @current_user.fake_student? }

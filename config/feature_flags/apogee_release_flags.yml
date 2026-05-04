@@ -549,3 +549,10 @@ grading_rubrics_pagination:
       state: allowed_on
     development:
       state: allowed_on
+concurrent_grading:
+  state: hidden
+  applies_to: Course
+  display_name: Concurrent Grading in Gradebook
+  description: |
+    This feature enables graders to view other graders' changes in real time when
+    grading concurrently in the Gradebook.

@@ -148,6 +148,7 @@ import FinalGradeOverrides from './FinalGradeOverrides/index'
 import AssignmentRowCellPropFactory from './GradebookGrid/editors/AssignmentCellEditor/AssignmentRowCellPropFactory'
 import TotalGradeOverrideCellPropFactory from './GradebookGrid/editors/TotalGradeOverrideCellEditor/TotalGradeOverrideCellPropFactory'
 import PostPolicies from './PostPolicies/index'
+import LiveGradebookStatus from './components/LiveGradebookStatus'
 import GradebookMenu from '@canvas/gradebook-menu'
 import ViewOptionsMenu from './components/ViewOptionsMenu'
 import ActionMenu from './components/ActionMenu'
@@ -261,6 +262,7 @@ import {RubricAssessmentExportModal} from './RubricAssessmentExport/RubricAssess
 import PostGradesFrameModal from './components/PostGradesFrameModal'
 import {queryClient} from '@instructure/platform-query'
 import {QueryClientProvider} from '@tanstack/react-query'
+import {fetchLiveGradebookParticipantName} from './components/LiveGradebookParticipant'
 
 const I18n = createI18nScope('gradebook')
 
@@ -268,7 +270,7 @@ const GradebookGrid = React.lazy(() => import('./components/GradebookGrid'))
 
 const ASSIGNMENT_KEY_REGEX = /^assignment_(?!group)/
 
-export function Portal({node, children}: {node: HTMLElement; children: React.ReactNode}) {
+export function Portal({node, children}: {node: Element; children: React.ReactNode}) {
   return ReactDOM.createPortal(children, node)
 }
 // Allow unchecked access to module-specific ENV variables
@@ -318,6 +320,7 @@ export type GradebookProps = {
   reloadStudentData: () => void
   reorderCustomColumns: (customColumnIds: string[]) => Promise<void>
   settingsModalButtonContainer: HTMLElement
+  liveGradebookStatusContainer: Element | null
   sisOverrides: AssignmentGroup[]
   studentIds: string[]
   totalSubmissionsLoaded: number
@@ -342,7 +345,13 @@ type GradebookState = {
     filename?: string
   }
   exportManager: any
+  lastGradeChangeData: any
+  connectedUserUuids: string[]
   selectedLtiId: string | null
+  currentGridLocation: GridLocation | undefined
+  userGridLocations: {
+    [userUuid: string]: {row: number; cell: number}
+  }
 }
 
 class Gradebook extends React.Component<GradebookProps, GradebookState> {
@@ -490,7 +499,7 @@ class Gradebook extends React.Component<GradebookProps, GradebookState> {
 
   constructor(props: GradebookProps) {
     super(props)
-    this.options = {...(props.gradebookEnv || {}), ...props}
+    this.options = {...props.gradebookEnv, ...props}
     this.gradingPeriodSet = this.options.grading_period_set
       ? GradingPeriodSetsApi.deserializeSet(this.options.grading_period_set)
       : null
@@ -514,6 +523,10 @@ class Gradebook extends React.Component<GradebookProps, GradebookState> {
       exportState: undefined,
       exportManager: undefined,
       selectedLtiId: null,
+      lastGradeChangeData: null,
+      connectedUserUuids: [],
+      currentGridLocation: undefined,
+      userGridLocations: {},
     }
     // @ts-expect-error Legacy function return type not typed
     this.course = getCourseFromOptions(this.options)
@@ -2693,7 +2706,9 @@ class Gradebook extends React.Component<GradebookProps, GradebookState> {
   getVisibleGridColumns = () => {
     let parentColumnIds = this.gridData.columns.frozen.filter(
       columnId =>
-        !/^custom_col_/.test(columnId) && !/^student/.test(columnId) && !/^total/.test(columnId),
+        !columnId.startsWith('custom_col_') &&
+        !columnId.startsWith('student') &&
+        !columnId.startsWith('total'),
     )
     if (this.gridDisplaySettings.showSeparateFirstLastNames) {
       parentColumnIds = ['student_lastname', 'student_firstname'].concat(parentColumnIds)
@@ -2956,6 +2971,11 @@ class Gradebook extends React.Component<GradebookProps, GradebookState> {
               .querySelector('.student-grades-link')
             return ref1 != null ? ref1.focus() : undefined
           }, 0)
+        }
+
+        if (['body', 'unknown'].includes(location.region)) {
+          console.log('Active location changed', location)
+          this.setState({currentGridLocation: location})
         }
       },
     )
@@ -3422,7 +3442,7 @@ class Gradebook extends React.Component<GradebookProps, GradebookState> {
 
   toggleNotesColumn = () => {
     const parentColumnIds = this.gridData.columns.frozen.filter(
-      columnId => !/^custom_col_/.test(columnId),
+      columnId => !columnId.startsWith('custom_col_'),
     )
     const visibleCustomColumns = this.gradebookContent.customColumns.filter(
       column => !column.hidden,
@@ -4825,6 +4845,9 @@ class Gradebook extends React.Component<GradebookProps, GradebookState> {
       .then(response => {
         this.removePendingGradeInfo(submission)
         this.updateSubmissionsFromExternal(response.data.all_submissions)
+
+        this.setState({lastGradeChangeData: response.data.all_submissions})
+
         if (this.getSubmissionTrayState().open) {
           this.renderSubmissionTray(student)
         }
@@ -5471,6 +5494,120 @@ class Gradebook extends React.Component<GradebookProps, GradebookState> {
             colors={this.state.gridColors}
             afterUpdateStatusColors={this.updateGridColors}
           />
+        )}
+        {this.props.liveGradebookStatusContainer && (
+          <Portal node={this.props.liveGradebookStatusContainer}>
+            <LiveGradebookStatus
+              courseId={this.options.context_id}
+              lastGradeChangeData={this.state.lastGradeChangeData}
+              connectedUserUuids={this.state.connectedUserUuids}
+              currentGridLocation={this.state.currentGridLocation}
+              onMessage={parsedMessage => {
+                switch (parsedMessage.action) {
+                  case 'gradeChange':
+                    this.updateSubmissionsFromExternal(parsedMessage.allSubmissionsResponse)
+                    break
+                  case 'locationChange':
+                    console.log('locationChange', parsedMessage)
+
+                    this.setState(prevState => {
+                      const userUuid = parsedMessage.uuid
+                      let userGridLocations = prevState.userGridLocations
+                      if (!userGridLocations) {
+                        userGridLocations = {}
+                      }
+                      const oldLocation = userGridLocations[userUuid]
+                      if (oldLocation) {
+                        const oldSelectedElement = this.gradebookGrid?.grid.getCellNode(
+                          oldLocation.row,
+                          oldLocation.cell,
+                        )
+                        if (oldSelectedElement) {
+                          oldSelectedElement.classList.remove('active')
+                        }
+                      }
+
+                      const location = parsedMessage.data
+                      const selectedElement = this.gradebookGrid?.grid.getCellNode(
+                        location.row,
+                        location.cell,
+                      )
+                      if (selectedElement) {
+                        selectedElement.classList.add('active')
+                        const gradebookCell =
+                          selectedElement.getElementsByClassName('gradebook-cell')[0]
+                        if (!gradebookCell) {
+                          userGridLocations[userUuid] = location
+                          return {userGridLocations}
+                        }
+                        const tooltipClass =
+                          gradebookCell.getElementsByClassName('gradebook-tooltip')
+                        let tooltip = null
+                        if (tooltipClass.length > 0) {
+                          tooltip = tooltipClass[0]
+                        } else {
+                          tooltip = document.createElement('div')
+                          tooltip.classList.add('gradebook-tooltip')
+                          gradebookCell.appendChild(tooltip)
+                        }
+
+                        queryClient
+                          .fetchQuery({
+                            queryKey: ['liveGradebookParticipant', {uuid: userUuid}],
+                            queryFn: () =>
+                              fetchLiveGradebookParticipantName(this.options.context_id, userUuid),
+                            staleTime: 60 * 60 * 1000, // Cache for 60 minutes
+                          })
+                          .then(name => {
+                            if (tooltip.isConnected) {
+                              tooltip.textContent = name
+                            }
+                          })
+
+                        userGridLocations[userUuid] = location
+                      }
+
+                      return {
+                        userGridLocations,
+                      }
+                    })
+                    break
+                  case 'userConnected':
+                    this.setState(prevState => {
+                      const liveParticipants = prevState.connectedUserUuids
+
+                      liveParticipants.push(parsedMessage.uuid)
+
+                      return {
+                        connectedUserUuids: [...new Set(liveParticipants)],
+                      }
+                    })
+                    break
+                  case 'userDisconnected':
+                    this.setState(prevState => {
+                      const liveParticipants = prevState.connectedUserUuids.filter(
+                        item => item !== parsedMessage.uuid,
+                      )
+
+                      return {
+                        connectedUserUuids: [...new Set(liveParticipants)],
+                      }
+                    })
+                    break
+                  case 'setConnectedUsers':
+                    if (!parsedMessage.users) break
+
+                    this.setState({
+                      connectedUserUuids: parsedMessage.users,
+                    })
+                    break
+                  default:
+                    console.error('Unknown websocket message action: ', parsedMessage)
+                    break
+                }
+              }}
+            />
+          </Portal>
         )}
 
         <Portal node={this.props.settingsModalButtonContainer}>

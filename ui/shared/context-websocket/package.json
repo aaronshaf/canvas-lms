@@ -1,0 +1,7 @@
+{
+  "name": "@canvas/context-websocket",
+  "private": true,
+  "version": "1.0.0",
+  "author": "Weston Dransfield",
+  "main": "./index.ts"
+}

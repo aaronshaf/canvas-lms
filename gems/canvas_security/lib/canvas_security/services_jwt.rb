@@ -100,6 +100,29 @@ class CanvasSecurity::ServicesJwt
     CanvasSecurity.base64_encode(crypted_token)
   end
 
+  def self.ws_token(domain, user, real_user: nil, context: nil)
+    if domain.blank? || user.nil?
+      raise ArgumentError, "Must have a domain and a user to build a JWT"
+    end
+
+    payload = {
+      sub: user.uuid,
+      domain:,
+      context:
+    }
+    payload[:masq_sub] = real_user.uuid if real_user
+
+    payload = create_payload(payload)
+    payload[:aud] = DynamicSettings.find("websockets", tree: :private)[:url]
+
+    CanvasSecurity.create_jwt(
+      payload,
+      1.hour.from_now,
+      CanvasSecurity::ServicesJwt::KeyStorage.present_key,
+      :autodetect
+    )
+  end
+
   def self.for_user(domain, user, real_user: nil, workflows: nil, context: nil, symmetric: false, encrypt: true, audience: nil, root_account_uuid: nil, base64: true)
     if domain.blank? || user.nil?
       raise ArgumentError, "Must have a domain and a user to build a JWT"

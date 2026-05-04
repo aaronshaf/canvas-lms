@@ -32,6 +32,9 @@ ready(() => {
   const enhancedActionMenuNode = document.querySelector(
     '[data-component="EnhancedActionMenu"]',
   ) as HTMLSpanElement
+  const liveGradebookStatusContainer = document.querySelector(
+    '[id=live-gradebook-status-container]',
+  )
   const settingsModalButtonContainer = document.getElementById(
     'gradebook-settings-modal-button-container',
   ) as HTMLSpanElement
@@ -67,6 +70,7 @@ ready(() => {
       gridColorNode={gridColorNode}
       locale={ENV.LOCALE}
       settingsModalButtonContainer={settingsModalButtonContainer}
+      liveGradebookStatusContainer={liveGradebookStatusContainer}
       viewOptionsMenuNode={viewOptionsMenuNode}
     />,
     mountPoint,

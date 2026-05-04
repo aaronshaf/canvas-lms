@@ -40,6 +40,10 @@
         :id => "accessibility_warning", :class => "screenreader-only" %>
     </div>
 
+    <% if @context.feature_enabled?(:concurrent_grading) %>
+      <div id="live-gradebook-status-container"></div>
+    <% end %>
+
     <%# EVAL-3711 Remove ICE Evaluate feature flag, remove the class once feature flag is removed %>
     <div id="<%= instui_nav? ? 'gradebook-toolbar' : 'gradebook-toolbar-instui-nav' %>" class="<%= instui_nav? ? '' : 'toolbar' %>">
       <div class="gradebook-menus">
