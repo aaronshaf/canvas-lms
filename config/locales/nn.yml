@@ -25690,6 +25690,9 @@ nn:
   students_without_assessments_eb100e60: "Studentar utan vurdering"
   studentsperrangecount_out_of_totalstudentsenrolled_90cbfaf1: "%{studentsPerRangeCount} av %{totalStudentsEnrolled} studentar"
   studio_capture_a88ec4e: "Studio Opptak"
+  study_assist: 
+    chips: 
+      summarize: Oppsummere
   sub_account_daeadd0: Underkonto
   sub_accounts: 
     alerts: 
