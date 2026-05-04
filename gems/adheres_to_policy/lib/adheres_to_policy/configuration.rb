@@ -37,7 +37,6 @@ module AdheresToPolicy
 
     attr_accessor_with_default :blacklist, []
     attr_accessor_with_default :cache_intermediate_permissions, true
-    attr_accessor_with_default :cache_permissions, true
     attr_accessor :override_proc
 
     def initialize
