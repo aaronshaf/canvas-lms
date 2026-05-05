@@ -70,7 +70,7 @@ class CoursePace < ApplicationRecord
   end
 
   set_policy do
-    given { |user, session| course.grants_right?(user, session, :manage) }
+    given { |principal, session| course.grants_right?(principal, session, :manage) }
     can :read
   end
 

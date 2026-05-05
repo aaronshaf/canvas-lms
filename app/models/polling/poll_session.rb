@@ -28,18 +28,18 @@ module Polling
     validate :section_belongs_to_course
 
     set_policy do
-      given do |user, session|
-        poll.grants_right?(user, session, :update)
+      given do |principal, session|
+        poll.grants_right?(principal, session, :update)
       end
       can :read and can :create and can :delete and can :publish
 
-      given do |user, session|
-        visible_to?(user, session)
+      given do |principal, session|
+        visible_to?(principal, session)
       end
       can :read
 
-      given do |user, session|
-        visible_to?(user, session) && is_published?
+      given do |principal, session|
+        visible_to?(principal, session) && is_published?
       end
       can :submit
     end

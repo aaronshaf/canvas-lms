@@ -39,13 +39,13 @@ module Polling
     validate :poll_is_published
 
     set_policy do
-      given do |user, session|
-        poll.grants_right?(user, session, :update) || self.user == user
+      given do |principal, session|
+        poll.grants_right?(principal, session, :update) || user == principal&.user
       end
       can :read
 
-      given do |user, session|
-        poll_session.grants_right?(user, session, :submit)
+      given do |principal, session|
+        poll_session.grants_right?(principal, session, :submit)
       end
       can :submit
     end

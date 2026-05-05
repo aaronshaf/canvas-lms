@@ -158,29 +158,29 @@ class Quizzes::QuizSubmission < ApplicationRecord
   end
 
   set_policy do
-    given { |user| user && user.id == user_id }
+    given { |principal| principal&.user&.id == user_id }
     can :read
 
     # allow anonymous users take ungraded quizzes from a public course
-    given { |user| unenrolled_user_can_read?(user) }
+    given { |principal| unenrolled_user_can_read?(principal&.user) }
     can :record_events
 
-    given { |user| user && user.id == user_id && end_date_is_valid? }
+    given { |principal| principal&.user&.id == user_id && end_date_is_valid? }
     can :record_events
 
-    given { |user| user && user.id == user_id && untaken? }
+    given { |principal| principal&.user&.id == user_id && untaken? }
     can :update
 
-    given { |user, session| quiz.grants_right?(user, session, :review_grades) }
+    given { |principal, session| quiz.grants_right?(principal, session, :review_grades) }
     can :read
 
-    given do |user|
-      user &&
-        quiz.context.observer_enrollments.where(user_id: user, associated_user_id: user_id, workflow_state: "active").exists?
+    given do |principal|
+      principal&.user &&
+        quiz.context.observer_enrollments.where(user_id: principal.user, associated_user_id: user_id, workflow_state: "active").exists?
     end
     can :read
 
-    given { |user, session| quiz.context.grants_right?(user, session, :manage_grades) }
+    given { |principal, session| quiz.context.grants_right?(principal, session, :manage_grades) }
     can :update_scores and can :add_attempts and can :view_log
   end
 

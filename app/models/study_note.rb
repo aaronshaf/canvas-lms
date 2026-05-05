@@ -51,7 +51,7 @@ class StudyNote < ApplicationRecord
   scope :with_reactions, ->(reactions) { where("reaction && ARRAY[?]::varchar[]", reactions) }
 
   set_policy do
-    given { |user| self.user == user }
+    given { |principal| user == principal&.user }
     can :read and can :update and can :delete
   end
 

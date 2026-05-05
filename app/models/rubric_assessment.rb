@@ -232,35 +232,35 @@ class RubricAssessment < ApplicationRecord
   protected :update_artifact
 
   set_policy do
-    given { |user| user && assessor_id == user.id }
+    given { |principal| assessor_id == principal&.user&.id }
     can :create and can :read and can :update
 
-    given { |user| user && user_id == user.id }
+    given { |principal| user_id == principal&.user&.id }
     can :read
 
-    given do |user|
-      user &&
-        self.user &&
+    given do |principal|
+      principal&.user &&
+        user &&
         rubric_association &&
         rubric_association.context.is_a?(Course) &&
-        rubric_association.context.observer_enrollments.where(user_id: user, associated_user: self.user, workflow_state: "active").exists?
+        rubric_association.context.observer_enrollments.where(user_id: principal.user, associated_user: user, workflow_state: "active").exists?
     end
     can :read
 
-    given { |user, session| rubric_association&.grants_right?(user, session, :manage) }
+    given { |principal, session| rubric_association&.grants_right?(principal, session, :manage) }
     can :create and can :read and can :delete
 
-    given { |user, session| rubric_association&.grants_right?(user, session, :view_rubric_assessments) }
+    given { |principal, session| rubric_association&.grants_right?(principal, session, :view_rubric_assessments) }
     can :read
 
-    given do |user, session|
-      rubric_association&.grants_right?(user, session, :manage) &&
+    given do |principal, session|
+      rubric_association&.grants_right?(principal, session, :manage) &&
         rubric_association.association_object.try(:context)&.grants_right?(assessor, :manage_rubrics)
     end
     can :update
 
-    given do |user, session|
-      can_read_assessor_name?(user, session)
+    given do |principal, session|
+      can_read_assessor_name?(principal&.user, session)
     end
     can :read_assessor
   end

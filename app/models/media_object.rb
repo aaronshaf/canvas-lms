@@ -98,13 +98,13 @@ class MediaObject < ApplicationRecord
   end
 
   set_policy do
-    given do |user|
-      attachment.present? ? attachment.grants_right?(user, :update) : (context&.grants_right?(user, :manage_course_content_add) || (self.user && self.user == user))
+    given do |principal|
+      attachment.present? ? attachment.grants_right?(principal, :update) : (context&.grants_right?(principal, :manage_course_content_add) || (user && user == principal&.user))
     end
     can :add_captions
 
-    given do |user|
-      attachment.present? ? attachment.grants_right?(user, :update) : (context&.grants_right?(user, :manage_course_content_delete) || (self.user && self.user == user))
+    given do |principal|
+      attachment.present? ? attachment.grants_right?(principal, :update) : (context&.grants_right?(principal, :manage_course_content_delete) || (user && user == principal&.user))
     end
     can :delete_captions
   end

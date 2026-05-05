@@ -40,7 +40,7 @@ class EportfolioEntry < ApplicationRecord
   serialize :content
 
   set_policy do
-    given { |user| user && allow_comments }
+    given { |principal| principal && allow_comments }
     can :comment
   end
 

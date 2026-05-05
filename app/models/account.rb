@@ -1741,47 +1741,47 @@ class Account < ApplicationRecord
       launch_external_tool
     ]
 
-    given { |user| root_account? && cached_all_account_users_for(user).any? { |au| au.permitted_for_account?(self).success? } }
+    given { |principal| root_account? && cached_all_account_users_for(principal&.user).any? { |au| au.permitted_for_account?(self).success? } }
     can :read_terms
 
-    given { |user| user&.create_courses_right(self).present? }
+    given { |principal| principal&.user&.create_courses_right(self).present? }
     can :create_courses
 
     # allow teachers to view term dates
-    given { |user| root_account? && !site_admin? && enrollments.active.of_instructor_type.where(user_id: user).exists? }
+    given { |principal| root_account? && !site_admin? && enrollments.active.of_instructor_type.where(user_id: principal&.user).exists? }
     can :read_terms
 
     # any logged in user can read global outcomes, but must be checked against the site admin
-    given { |user| site_admin? && user }
+    given { |principal| site_admin? && principal }
     can :read_global_outcomes
 
     # any user with an association to this account can read the outcomes in the account
-    given { |user| user && user_account_associations.where(user_id: user).exists? }
+    given { |principal| principal && user_account_associations.where(user_id: principal.user).exists? }
     can [:read_outcomes, :launch_external_tool]
 
     # any user with an admin enrollment in one of the courses can read
-    given { |user| !site_admin? && user && courses.where(id: user.enrollments.active.admin.pluck(:course_id)).exists? }
+    given { |principal| !site_admin? && principal&.user && courses.where(id: principal.user.enrollments.active.admin.pluck(:course_id)).exists? }
     can [:read, :read_files]
 
-    given do |user|
-      root_account? && grants_right?(user, :read_roster) &&
-        (grants_right?(user, :view_notifications) || Account.site_admin.grants_right?(user, :read_messages))
+    given do |principal|
+      root_account? && grants_right?(principal, :read_roster) &&
+        (grants_right?(principal, :view_notifications) || Account.site_admin.grants_right?(principal, :read_messages))
     end
     can :view_bounced_emails
 
-    given do |user|
-      user &&
-        (user_account_associations.where(user_id: user).exists? || grants_right?(user, :read)) &&
-        (account_calendar_visible || grants_right?(user, :manage_account_calendar_visibility))
+    given do |principal|
+      principal &&
+        (user_account_associations.where(user_id: principal.user).exists? || grants_right?(principal, :read)) &&
+        (account_calendar_visible || grants_right?(principal, :manage_account_calendar_visibility))
     end
     can :view_account_calendar_details
 
-    given do |user|
-      limited_access_for_user?(user)
+    given do |principal|
+      limited_access_for_user?(principal&.user)
     end
     can :make_submission_comments
 
-    given { |user| grants_right?(user, :manage_grades) }
+    given { |principal| grants_right?(principal, :manage_grades) }
     can :manage_grading_schemes
   end
 

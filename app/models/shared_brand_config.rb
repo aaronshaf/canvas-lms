@@ -24,7 +24,7 @@ class SharedBrandConfig < ApplicationRecord
   validates :brand_config, presence: true
 
   set_policy do
-    given { |user, session| account.grants_right?(user, session, :manage_account_settings) }
+    given { |principal, session| account.grants_right?(principal, session, :manage_account_settings) }
     can :create and can :update and can :delete
   end
 end

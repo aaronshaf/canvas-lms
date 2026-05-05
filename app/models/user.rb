@@ -1502,7 +1502,7 @@ class User < ApplicationRecord
   end
 
   set_policy do
-    given { |user| user == self }
+    given { |principal| principal&.user == self }
     can %i[
       read
       read_grades
@@ -1531,91 +1531,91 @@ class User < ApplicationRecord
       read_observer_alerts
     ]
 
-    given { |user| user == self && user.user_can_edit_name? }
+    given { |principal| principal&.user == self && principal.user.user_can_edit_name? }
     can :rename
 
-    given { |user| user == self }
+    given { |principal| principal&.user == self }
     can :change_pronoun
 
-    given { |user| courses.any? { |c| c.user_is_instructor?(user) } }
+    given { |principal| courses.any? { |c| c.user_is_instructor?(principal&.user) } }
     can :read_profile
 
     # by default this means that the user we are given is an administrator
     # of an account of one of the courses that this user is enrolled in, or
     # an admin (teacher/ta/designer) in the course
-    given { |user| check_courses_right?(user, :read_reports) }
+    given { |principal| check_courses_right?(principal, :read_reports) }
     can :read_profile and can :remove_avatar and can :read_reports
 
     %i[read_email_addresses read_sis manage_sis].each do |permission|
-      given { |user| check_courses_right?(user, permission) }
+      given { |principal| check_courses_right?(principal, permission) }
       can permission
     end
 
-    given { |user| check_courses_right?(user, :generate_observer_pairing_code, enrollments.not_deleted) }
+    given { |principal| check_courses_right?(principal, :generate_observer_pairing_code, enrollments.not_deleted) }
     can :generate_observer_pairing_code
 
-    given { |user| check_accounts_right?(user, :view_statistics) }
+    given { |principal| check_accounts_right?(principal, :view_statistics) }
     can :view_statistics
 
-    given { |user| check_accounts_right?(user, :manage_students) }
+    given { |principal| check_accounts_right?(principal, :manage_students) }
     can :read_profile and can :read_reports and can :read_grades
 
-    given { |user| check_accounts_right?(user, :manage_user_logins) }
+    given { |principal| check_accounts_right?(principal, :manage_user_logins) }
     can %i[read read_reports read_profile api_show_user terminate_sessions read_files]
 
-    given { |user| check_accounts_right?(user, :read_roster) }
+    given { |principal| check_accounts_right?(principal, :read_roster) }
     can :read_full_profile and can :api_show_user
 
-    given { |user| check_accounts_right?(user, :view_all_grades) }
+    given { |principal| check_accounts_right?(principal, :view_all_grades) }
     can :read_grades
 
-    given { |user| check_accounts_right?(user, :view_user_logins) }
+    given { |principal| check_accounts_right?(principal, :view_user_logins) }
     can :view_user_logins
 
-    given { |user| check_accounts_right?(user, :view_user_generated_access_tokens) }
+    given { |principal| check_accounts_right?(principal, :view_user_generated_access_tokens) }
     can :view_user_generated_access_tokens
 
-    given { |user| check_accounts_right?(user, :read_email_addresses) }
+    given { |principal| check_accounts_right?(principal, :read_email_addresses) }
     can :read_email_addresses
 
-    given do |user|
-      can_manage_logins = check_accounts_right?(user, :manage_user_logins)
+    given do |principal|
+      can_manage_logins = check_accounts_right?(principal, :manage_user_logins)
       # Explicit truthy check because can_manage_logins can be a JustifiedFailures
       next can_manage_logins unless can_manage_logins == true
 
-      adminable_accounts.select(&:root_account?).all? { |a| has_subset_of_account_permissions?(user, a) }
+      adminable_accounts.select(&:root_account?).all? { |a| has_subset_of_account_permissions?(principal&.user, a) }
     end
     can :manage_user_details and can :rename and can :update_avatar and can :remove_avatar and
       can :manage_feature_flags and can :view_feature_flags and can :update_profile
 
-    given { |user| pseudonyms.shard(self).any? { |p| p.grants_right?(user, :update) } }
+    given { |principal| pseudonyms.shard(self).any? { |p| p.grants_right?(principal, :update) } }
     can :merge
 
-    given do |user|
+    given do |principal|
       # a user can reset their own MFA, but only if the setting isn't required
-      (self == user && mfa_settings != :required) ||
+      (self == principal&.user && mfa_settings != :required) ||
 
         # a site_admin with permission to reset_any_mfa
-        Account.site_admin.grants_right?(user, :reset_any_mfa) ||
+        Account.site_admin.grants_right?(principal, :reset_any_mfa) ||
         # an admin can reset another user's MFA only if they can manage *all*
         # of the user's pseudonyms
-        (self != user && pseudonyms.shard(self).all? do |p|
-          p.grants_right?(user, :update) ||
+        (self != principal&.user && pseudonyms.shard(self).all? do |p|
+          p.grants_right?(principal, :update) ||
             # the account does not have mfa enabled
             p.account.mfa_settings == :disabled ||
             # they are an admin user and have reset MFA permission
-            p.account.grants_right?(user, :reset_any_mfa)
+            p.account.grants_right?(principal, :reset_any_mfa)
         end)
     end
     can :reset_mfa
 
-    given { |user| user && user.as_observer_observation_links.where(user_id: id).exists? }
+    given { |principal| principal&.user && principal.user.as_observer_observation_links.where(user_id: id).exists? }
     can %i[read read_as_parent read_files]
 
-    given { |user| check_accounts_right?(user, :moderate_user_content) }
+    given { |principal| check_accounts_right?(principal, :moderate_user_content) }
     can :moderate_user_content
 
-    given { |user| trusted_account&.grants_right?(user, :manage_user_logins) }
+    given { |principal| trusted_account&.grants_right?(principal, :manage_user_logins) }
     can :read
   end
 

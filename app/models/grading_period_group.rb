@@ -35,23 +35,23 @@ class GradingPeriodGroup < ApplicationRecord
   after_destroy :cleanup_associations_and_recompute_scores_later
 
   set_policy do
-    given do |user|
-      (course || root_account).grants_right?(user, :read)
+    given do |principal|
+      (course || root_account).grants_right?(principal, :read)
     end
     can :read
 
-    given do |user|
-      root_account&.associated_user?(user)
+    given do |principal|
+      root_account&.associated_user?(principal&.user)
     end
     can :read
 
-    given do |user|
-      (course || root_account).grants_right?(user, :manage)
+    given do |principal|
+      (course || root_account).grants_right?(principal, :manage)
     end
     can :update and can :delete
 
-    given do |user|
-      root_account&.grants_right?(user, :manage)
+    given do |principal|
+      root_account&.grants_right?(principal, :manage)
     end
     can :create
   end

@@ -106,43 +106,43 @@ class Announcement < DiscussionTopic
   end
 
   set_policy do
-    given { |user| self.user.present? && self.user == user }
+    given { |principal| user.present? && user == principal&.user }
     can :update and can :read
 
-    given { |user| self.user.present? && self.user == user && !comments_disabled? }
+    given { |principal| user.present? && user == principal&.user && !comments_disabled? }
     can :reply
 
-    given { |user| self.user.present? && self.user == user && discussion_entries.active.empty? }
+    given { |principal| user.present? && user == principal&.user && discussion_entries.active.empty? }
     can :delete
 
-    given do |user|
-      grants_right?(user, :read) &&
+    given do |principal|
+      grants_right?(principal, :read) &&
         (context.is_a?(Group) ||
-         (user &&
-          (context.grants_right?(user, :read_as_admin) ||
+         (principal &&
+          (context.grants_right?(principal, :read_as_admin) ||
            (context.is_a?(Course) &&
-            context.includes_user?(user)))))
+            context.includes_user?(principal.user)))))
     end
     can :read_replies
 
-    given { |user, session| context.grants_right?(user, session, :read_announcements) && visible_for?(user) }
+    given { |principal, session| context.grants_right?(principal, session, :read_announcements) && visible_for?(principal&.user) }
     can :read
 
-    given { |user, session| context.grants_right?(user, session, :post_to_forum) && !locked? && !comments_disabled? }
+    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && !locked? && !comments_disabled? }
     can :reply
 
-    given { |user, session| context.is_a?(Group) && context.grants_right?(user, session, :create_forum) }
+    given { |principal, session| context.is_a?(Group) && context.grants_right?(principal, session, :create_forum) }
     can :create
 
-    given { |user, session| context.grants_all_rights?(user, session, :read_announcements, :moderate_forum) }
+    given { |principal, session| context.grants_all_rights?(principal, session, :read_announcements, :moderate_forum) }
     can :update and can :read_as_admin and can :delete and can :create and can :read and can :attach
 
-    given { |user, session| context.grants_all_rights?(user, session, :read_announcements, :moderate_forum) && !comments_disabled? }
+    given { |principal, session| context.grants_all_rights?(principal, session, :read_announcements, :moderate_forum) && !comments_disabled? }
     can :reply
 
-    given do |user, session|
+    given do |principal, session|
       allow_rating && (!only_graders_can_rate ||
-                            context.grants_right?(user, session, :manage_grades))
+                            context.grants_right?(principal, session, :manage_grades))
     end
     can :rate
   end

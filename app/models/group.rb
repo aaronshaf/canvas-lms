@@ -642,7 +642,7 @@ class Group < ApplicationRecord
     # - A valid user is present (`user`)
     # - The user can participate (`can_participate?(user)`)
     # - The user is a member of the group (`has_member?(user)`)
-    given { |user| !non_collaborative? && user && can_participate?(user) && has_member?(user) }
+    given { |principal| !non_collaborative? && principal && can_participate?(principal.user) && has_member?(principal.user) }
     can :participate,
         :manage_calendar,
         :manage_course_content_add,
@@ -665,10 +665,10 @@ class Group < ApplicationRecord
     # Conditions:
     # - The group is collaborative (`!non_collaborative?`)
     # - The context is either an Account or grants read permission to the user
-    given { |user, session| !non_collaborative? && (context.is_a?(Account) || context&.grants_right?(user, session, :read) || false) }
+    given { |principal, session| !non_collaborative? && (context.is_a?(Account) || context&.grants_right?(principal, session, :read) || false) }
 
     use_additional_policy do
-      given { |user| user && has_member?(user) }
+      given { |principal| principal && has_member?(principal.user) }
       can %i[
         read_forum
         read
@@ -678,23 +678,23 @@ class Group < ApplicationRecord
         read_files
       ]
 
-      given do |user, session|
-        next false unless user
+      given do |principal, session|
+        next false unless principal
 
         if context.nil? || context.is_a?(Account)
-          has_member?(user)
+          has_member?(principal.user)
         else
-          context.grants_any_right?(user, session, :send_messages, :send_messages_all)
+          context.grants_any_right?(principal, session, :send_messages, :send_messages_all)
         end
       end
       can :send_messages
       can :send_messages_all
       # if I am a member of this group and I can moderate_forum in the group's context
       # (makes it so group members cant edit each other's discussion entries)
-      given { |user, session| user && has_member?(user) && (!context || context.grants_right?(user, session, :moderate_forum)) }
+      given { |principal, session| principal && has_member?(principal.user) && (!context || context.grants_right?(principal, session, :moderate_forum)) }
       can :moderate_forum
 
-      given { |user| user && has_moderator?(user) }
+      given { |principal| principal && has_moderator?(principal.user) }
       can :delete and
         can :manage and
         can :allow_course_admin_actions and
@@ -702,26 +702,26 @@ class Group < ApplicationRecord
         can :moderate_forum and
         can :update
 
-      given { |user| user && leader == user }
+      given { |principal| principal && leader == principal.user }
       can :update
 
       given { group_category.try(:communities?) }
       can :create
 
-      given { |user, session| context&.grants_right?(user, session, :participate_as_student) }
+      given { |principal, session| context&.grants_right?(principal, session, :participate_as_student) }
       can :participate_as_student
 
-      given { |user, session| grants_right?(user, session, :participate_as_student) && context.allow_student_organized_groups }
+      given { |principal, session| grants_right?(principal, session, :participate_as_student) && context.allow_student_organized_groups }
       can :create
 
-      given do |user, session|
-        context.grants_right?(user, session, :manage_groups_add)
+      given do |principal, session|
+        context.grants_right?(principal, session, :manage_groups_add)
       end
       can %i[read read_files create]
 
       # permissions to update a group and manage actions within the context of a group
-      given do |user, session|
-        context.grants_right?(user, session, :manage_groups_manage)
+      given do |principal, session|
+        context.grants_right?(principal, session, :manage_groups_manage)
       end
       can %i[
         read
@@ -752,43 +752,43 @@ class Group < ApplicationRecord
         read_files
       ]
 
-      given do |user, session|
-        context.grants_right?(user, session, :manage_groups_delete)
+      given do |principal, session|
+        context.grants_right?(principal, session, :manage_groups_delete)
       end
       can %i[read read_files delete]
 
-      given { |user, session| context&.grants_all_rights?(user, session, :read_as_admin, :post_to_forum) }
+      given { |principal, session| context&.grants_all_rights?(principal, session, :read_as_admin, :post_to_forum) }
       can :post_to_forum
 
-      given { |user, session| context&.grants_all_rights?(user, session, :read_as_admin, :create_forum) }
+      given { |principal, session| context&.grants_all_rights?(principal, session, :read_as_admin, :create_forum) }
       can :create_forum
 
-      given { |user, session| context&.grants_right?(user, session, :view_group_pages) }
+      given { |principal, session| context&.grants_right?(principal, session, :view_group_pages) }
       can %i[read read_forum read_announcements read_roster read_files]
 
       # Join is participate + the group being in a state that allows joining directly (free_association)
-      given { |user| user && can_participate?(user) && free_association?(user) }
+      given { |principal| principal && can_participate?(principal.user) && free_association?(principal.user) }
       can :join and can :read_roster
 
-      given { |user| user && (self.group_category.try(:allows_multiple_memberships?) || allow_self_signup?(user)) }
+      given { |principal| principal && (self.group_category.try(:allows_multiple_memberships?) || allow_self_signup?(principal.user)) }
       can :leave
 
-      given do |user, session|
-        grants_right?(user, session, :manage_course_content_add) &&
-          context&.grants_right?(user, session, :create_conferences)
+      given do |principal, session|
+        grants_right?(principal, session, :manage_course_content_add) &&
+          context&.grants_right?(principal, session, :create_conferences)
       end
       can :create_conferences
 
-      given { |user, session| context&.grants_right?(user, session, :read_as_admin) }
+      given { |principal, session| context&.grants_right?(principal, session, :read_as_admin) }
       can :read_as_admin
 
-      given { |user, session| context&.grants_right?(user, session, :read_sis) }
+      given { |principal, session| context&.grants_right?(principal, session, :read_sis) }
       can :read_sis
 
-      given { |user, session| context&.grants_right?(user, session, :view_user_logins) }
+      given { |principal, session| context&.grants_right?(principal, session, :view_user_logins) }
       can :view_user_logins
 
-      given { |user, session| context&.grants_right?(user, session, :read_email_addresses) }
+      given { |principal, session| context&.grants_right?(principal, session, :read_email_addresses) }
       can :read_email_addresses
     end
 
@@ -798,10 +798,10 @@ class Group < ApplicationRecord
     # - The group is non-collaborative (`non_collaborative?`)
     # - The context grants read permission
     # - The context grants any manage_tag rights
-    given { |user, session| non_collaborative? && context&.grants_right?(user, session, :read) && context.grants_any_right?(user, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS) }
+    given { |principal, session| non_collaborative? && context&.grants_right?(principal, session, :read) && context.grants_any_right?(principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS) }
     use_additional_policy do
       # Base permissions for non-collaborative groups
-      given { |user| user }
+      given { |principal| principal }
       can :read,
           :read_roster
 
@@ -809,8 +809,8 @@ class Group < ApplicationRecord
       # Conditions:
       # - A valid user is present
       # - The context grants send_messages right
-      given do |user, session|
-        user && context.grants_right?(user, session, :send_messages)
+      given do |principal, session|
+        principal && context.grants_right?(principal, session, :send_messages)
       end
       can :send_messages
 
@@ -818,8 +818,8 @@ class Group < ApplicationRecord
       # Conditions:
       # - A valid user is present
       # - The context grants send_messages_all right
-      given do |user, session|
-        user && context.grants_right?(user, session, :send_messages_all)
+      given do |principal, session|
+        principal && context.grants_right?(principal, session, :send_messages_all)
       end
       can :send_messages_all
 
@@ -827,7 +827,7 @@ class Group < ApplicationRecord
       # Conditions:
       # - A valid user is present
       # - The context grants manage_tags_manage right
-      given { |user, session| user && context&.grants_right?(user, session, :manage_tags_manage) }
+      given { |principal, session| principal && context&.grants_right?(principal, session, :manage_tags_manage) }
       can :update,
           :manage,
           :allow_course_admin_actions,
@@ -837,29 +837,29 @@ class Group < ApplicationRecord
       # Conditions:
       # - A valid user is present
       # - The context grants manage_tags_manage right
-      given { |user, session| user && context.grants_right?(user, session, :manage_tags_delete) }
+      given { |principal, session| principal && context.grants_right?(principal, session, :manage_tags_delete) }
       can :delete
 
       # Permission to create the group
       # Conditions:
       # - A valid user is present
       # - The context grants manage_tags_add right
-      given { |user, session| user && context.grants_right?(user, session, :manage_tags_add) }
+      given { |principal, session| principal && context.grants_right?(principal, session, :manage_tags_add) }
       can :create
 
-      given { |user, session| context&.grants_right?(user, session, :view_group_pages) }
+      given { |principal, session| context&.grants_right?(principal, session, :view_group_pages) }
       can %i[read read_roster read_files]
 
-      given { |user, session| context&.grants_right?(user, session, :read_as_admin) }
+      given { |principal, session| context&.grants_right?(principal, session, :read_as_admin) }
       can :read_as_admin
 
-      given { |user, session| context&.grants_right?(user, session, :read_sis) }
+      given { |principal, session| context&.grants_right?(principal, session, :read_sis) }
       can :read_sis
 
-      given { |user, session| context&.grants_right?(user, session, :view_user_logins) }
+      given { |principal, session| context&.grants_right?(principal, session, :view_user_logins) }
       can :view_user_logins
 
-      given { |user, session| context&.grants_right?(user, session, :read_email_addresses) }
+      given { |principal, session| context&.grants_right?(principal, session, :read_email_addresses) }
       can :read_email_addresses
 
       # Permissions purposely excluded from non_collaborative groups because Non_collaborative groups will NEVER

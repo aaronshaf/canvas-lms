@@ -65,18 +65,18 @@ class AssessmentQuestion < ApplicationRecord
   def update_attachment_associations; end
 
   set_policy do
-    given do |user, session|
-      context&.grants_right?(user, session, :manage_assignments_edit)
+    given do |principal, session|
+      context&.grants_right?(principal, session, :manage_assignments_edit)
     end
     can :read and can :create and can :update and can :delete
 
-    given do |user, session|
-      context&.grants_right?(user, session, :manage_assignments_add)
+    given do |principal, session|
+      context&.grants_right?(principal, session, :manage_assignments_add)
     end
     can :read and can :create
 
-    given do |user, session|
-      context&.grants_right?(user, session, :manage_assignments_delete)
+    given do |principal, session|
+      context&.grants_right?(principal, session, :manage_assignments_delete)
     end
     can :read and can :delete
   end

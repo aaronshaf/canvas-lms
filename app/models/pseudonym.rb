@@ -521,8 +521,8 @@ class Pseudonym < ApplicationRecord
     # pseudonym's account does not allow canvas authentication (i.e. it uses
     # and requires delegated authentication), there is no canvas password to
     # change.
-    given do |user|
-      user_id == user.try(:id) &&
+    given do |principal|
+      user_id == principal&.user&.try(:id) &&
         passwordable? &&
         directly_editable?
     end
@@ -530,10 +530,10 @@ class Pseudonym < ApplicationRecord
 
     # an admin can set the initial canvas password (if there is one, see above)
     # on another user's new pseudonym.
-    given do |user|
+    given do |principal|
       new_record? &&
         passwordable? &&
-        grants_right?(user, :create) &&
+        grants_right?(principal, :create) &&
         directly_editable?
     end
     can :change_password
@@ -541,32 +541,32 @@ class Pseudonym < ApplicationRecord
     # an admin can only change another user's canvas password (if there is one,
     # see above) on an existing pseudonym when :admins_can_change_passwords is
     # enabled.
-    given do |user|
+    given do |principal|
       account.settings[:admins_can_change_passwords] &&
         passwordable? &&
-        grants_right?(user, :update) &&
+        grants_right?(principal, :update) &&
         directly_editable?
     end
     can :change_password
 
     # an admin can only update a pseudonym's SIS ID when they have :manage_sis
     # permission on the pseudonym's account
-    given do |user|
-      self.account.grants_right?(user, :manage_sis) &&
-        grants_right?(user, :update) &&
+    given do |principal|
+      self.account.grants_right?(principal, :manage_sis) &&
+        grants_right?(principal, :update) &&
         directly_editable?
     end
     can :manage_sis
 
     # an admin can delete any non-SIS pseudonym that they can update
-    given do |user|
-      !sis_user_id && grants_right?(user, :update) && directly_editable?
+    given do |principal|
+      !sis_user_id && grants_right?(principal, :update) && directly_editable?
     end
     can :delete
 
     # an admin can only delete an SIS pseudonym if they also can :manage_sis
-    given do |user|
-      sis_user_id && grants_right?(user, :manage_sis) && directly_editable?
+    given do |principal|
+      sis_user_id && grants_right?(principal, :manage_sis) && directly_editable?
     end
     can :delete
   end

@@ -1454,85 +1454,85 @@ class DiscussionTopic < ApplicationRecord
   set_policy do
     # Users may have can :read, but should not have access to all the data
     # because the topic is locked_for?(user)
-    given { |user| visible_for?(user) }
+    given { |principal| visible_for?(principal&.user) }
     can :read
 
-    given { |user| grants_right?(user, :read) }
+    given { |principal| grants_right?(principal, :read) }
     can :read_replies
 
-    given { |user| self.user && self.user == user && visible_for?(user) && !locked_for?(user, check_policies: true) && can_participate_in_course?(user) && !comments_disabled? }
+    given { |principal| user && user == principal&.user && visible_for?(principal.user) && !locked_for?(principal.user, check_policies: true) && can_participate_in_course?(principal.user) && !comments_disabled? }
     can :reply
 
-    given { |user| self.user && self.user == user && available_for?(user) && context.user_can_manage_own_discussion_posts?(user) && context.grants_right?(user, :participate_as_student) }
+    given { |principal| user && user == principal&.user && available_for?(principal.user) && context.user_can_manage_own_discussion_posts?(principal.user) && context.grants_right?(principal, :participate_as_student) }
     can :update
 
-    given { |user| self.user && self.user == user and discussion_entries.active.empty? && available_for?(user) && !root_topic_id && context.user_can_manage_own_discussion_posts?(user) && context.grants_right?(user, :participate_as_student) }
+    given { |principal| user && user == principal&.user and discussion_entries.active.empty? && available_for?(principal.user) && !root_topic_id && context.user_can_manage_own_discussion_posts?(principal.user) && context.grants_right?(principal, :participate_as_student) }
     can :delete
 
-    given do |user, session|
-      !locked_for?(user, check_policies: true) &&
-        context.grants_right?(user, session, :post_to_forum) && visible_for?(user) && can_participate_in_course?(user) && !comments_disabled?
+    given do |principal, session|
+      !locked_for?(principal&.user, check_policies: true) &&
+        context.grants_right?(principal, session, :post_to_forum) && visible_for?(principal&.user) && can_participate_in_course?(principal&.user) && !comments_disabled?
     end
     can :reply
 
-    given { |user, session| user_can_create(user, session) }
+    given { |principal, session| user_can_create(principal&.user, session) }
     can :create
 
-    given { |user, session| user_can_create(user, session) && user_can_duplicate(user, session) }
+    given { |principal, session| user_can_create(principal&.user, session) && user_can_duplicate(principal&.user, session) }
     can :duplicate
 
-    given { |user, session| context.respond_to?(:allow_student_forum_attachments) && context.allow_student_forum_attachments && context.grants_any_right?(user, session, :create_forum, :post_to_forum) }
+    given { |principal, session| context.respond_to?(:allow_student_forum_attachments) && context.allow_student_forum_attachments && context.grants_any_right?(principal, session, :create_forum, :post_to_forum) }
     can :attach
 
     given { course.student_reporting? }
     can :student_reporting
 
-    given { |user, session| !root_topic_id && context.grants_all_rights?(user, session, :read_forum, :moderate_forum) && available_for?(user) }
+    given { |principal, session| !root_topic_id && context.grants_all_rights?(principal, session, :read_forum, :moderate_forum) && available_for?(principal&.user) }
     can :update and can :read_as_admin and can :delete and can :create and can :read and can :attach
 
     # Moderators can still modify content even in unavailable topics (*especially* unlocking them)
-    given { |user, session| !root_topic_id && context.grants_all_rights?(user, session, :read_forum, :moderate_forum) }
+    given { |principal, session| !root_topic_id && context.grants_all_rights?(principal, session, :read_forum, :moderate_forum) }
     can :update and can :read_as_admin and can :delete and can :read and can :attach
 
-    given { |user, session| !root_topic_id && context.grants_all_rights?(user, session, :read_forum, :view_group_pages) }
+    given { |principal, session| !root_topic_id && context.grants_all_rights?(principal, session, :read_forum, :view_group_pages) }
     can :view_group_pages
 
-    given { |user, session| root_topic&.grants_right?(user, session, :read_as_admin) }
+    given { |principal, session| root_topic&.grants_right?(principal, session, :read_as_admin) }
     can :read_as_admin and can :view_group_pages
 
-    given { |user, session| root_topic&.grants_right?(user, session, :delete) }
+    given { |principal, session| root_topic&.grants_right?(principal, session, :delete) }
     can :delete
 
-    given { |user, session| root_topic&.grants_right?(user, session, :read) }
+    given { |principal, session| root_topic&.grants_right?(principal, session, :read) }
     can :read
 
-    given { |user, session| context.grants_all_rights?(user, session, :moderate_forum, :read_forum) }
+    given { |principal, session| context.grants_all_rights?(principal, session, :moderate_forum, :read_forum) }
     can :moderate_forum
 
-    given do |user, session|
+    given do |principal, session|
       allow_rating && (!only_graders_can_rate ||
-                            course.grants_right?(user, session, :manage_grades))
+                            course.grants_right?(principal, session, :manage_grades))
     end
     can :rate
 
-    given do |user, session|
-      next false unless user && context.is_a?(Course) && context.grants_right?(user, session, :moderate_forum)
+    given do |principal, session|
+      next false unless principal && context.is_a?(Course) && context.grants_right?(principal, session, :moderate_forum)
 
       if assignment_id
-        context.grants_right?(user, session, :manage_assignments_edit)
+        context.grants_right?(principal, session, :manage_assignments_edit)
       else
-        context.user_is_admin?(user) || context.account_membership_allows(user) || !context.visibility_limited_to_course_sections?(user)
+        context.user_is_admin?(principal.user) || context.account_membership_allows(principal.user) || !context.visibility_limited_to_course_sections?(principal.user)
       end
     end
     can :manage_assign_to
 
-    given do |user, session|
-      next false unless user && context.is_a?(Course) && context.grants_right?(user, session, :create_forum)
+    given do |principal, session|
+      next false unless principal && context.is_a?(Course) && context.grants_right?(principal, session, :create_forum)
 
       if assignment_id
-        context.grants_right?(user, session, :manage_assignments_add)
+        context.grants_right?(principal, session, :manage_assignments_add)
       else
-        context.user_is_admin?(user) || context.account_membership_allows(user) || !context.visibility_limited_to_course_sections?(user)
+        context.user_is_admin?(principal.user) || context.account_membership_allows(principal.user) || !context.visibility_limited_to_course_sections?(principal.user)
       end
     end
     can :create_assign_to

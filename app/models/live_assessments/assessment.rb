@@ -33,17 +33,17 @@ module LiveAssessments
     scope :for_context, ->(context) { where(context_id: context, context_type: context.class.to_s) }
 
     set_policy do
-      given do |user, session|
-        context.grants_right?(user, session, :manage_assignments_add)
+      given do |principal, session|
+        context.grants_right?(principal, session, :manage_assignments_add)
       end
       can :create
 
-      given do |user, session|
-        context.grants_right?(user, session, :manage_assignments_edit)
+      given do |principal, session|
+        context.grants_right?(principal, session, :manage_assignments_edit)
       end
       can :update
 
-      given { |user, session| context.grants_right?(user, session, :view_all_grades) }
+      given { |principal, session| context.grants_right?(principal, session, :view_all_grades) }
       can :read
     end
 

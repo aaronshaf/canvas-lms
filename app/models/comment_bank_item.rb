@@ -36,10 +36,10 @@ class CommentBankItem < ApplicationRecord
   end
 
   set_policy do
-    given { |user| self.user == user }
+    given { |principal| user == principal&.user }
     can :delete and can :read and can :update
 
-    given { |user, session| course.grants_right?(user, session, :manage_grades) }
+    given { |principal, session| course.grants_right?(principal, session, :manage_grades) }
     can :create
   end
 end

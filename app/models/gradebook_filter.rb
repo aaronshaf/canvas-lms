@@ -27,7 +27,7 @@ class GradebookFilter < ApplicationRecord
   validate :payload_is_hash
 
   set_policy do
-    given { |u| u.id == user_id }
+    given { |principal| principal&.user&.id == user_id }
     can :read and can :update and can :destroy
   end
 

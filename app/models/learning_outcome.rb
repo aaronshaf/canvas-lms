@@ -90,19 +90,19 @@ class LearningOutcome < ApplicationRecord
 
   set_policy do
     # managing a contextual outcome requires manage_outcomes on the outcome's context
-    given { |user, session| context_id && context.grants_right?(user, session, :manage_outcomes) }
+    given { |principal, session| context_id && context.grants_right?(principal, session, :manage_outcomes) }
     can :create and can :read and can :update and can :delete
 
     # reading a contextual outcome is also allowed by read_outcomes on the outcome's context
-    given { |user, session| context_id && context.grants_right?(user, session, :read_outcomes) }
+    given { |principal, session| context_id && context.grants_right?(principal, session, :read_outcomes) }
     can :read
 
     # managing a global outcome requires manage_global_outcomes on the site_admin
-    given { |user, session| context_id.nil? && Account.site_admin.grants_right?(user, session, :manage_global_outcomes) }
+    given { |principal, session| context_id.nil? && Account.site_admin.grants_right?(principal, session, :manage_global_outcomes) }
     can :create and can :read and can :update and can :delete
 
     # reading a global outcome is also allowed by just being logged in
-    given { |user| context_id.nil? && user }
+    given { |principal| context_id.nil? && principal }
     can :read
   end
 

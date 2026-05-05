@@ -105,10 +105,10 @@ class CommunicationChannel < ApplicationRecord
   end
 
   set_policy do
-    given { |user| self.user.grants_right?(user, :manage_user_details) }
+    given { |principal| user.grants_right?(principal, :manage_user_details) }
     can :force_confirm
 
-    given { |user| Account.site_admin.grants_right?(user, :read_messages) }
+    given { |principal| Account.site_admin.grants_right?(principal, :read_messages) }
     can :reset_bounce_count
     can :read_bounce_details
   end

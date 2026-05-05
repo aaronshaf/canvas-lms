@@ -99,8 +99,8 @@ class ContentTag < ApplicationRecord
   acts_as_list scope: :context_module
 
   set_policy do
-    given do |user, session|
-      user && context&.grants_right?(user, session, :manage_course_content_delete)
+    given do |principal, session|
+      principal && context&.grants_right?(principal, session, :manage_course_content_delete)
     end
     can :delete
   end

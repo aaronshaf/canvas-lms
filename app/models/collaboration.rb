@@ -65,37 +65,37 @@ class Collaboration < ApplicationRecord
   end
 
   set_policy do
-    given do |user|
-      user &&
+    given do |principal|
+      principal &&
         !new_record? &&
-        (user_id == user.id ||
-         users.include?(user) ||
+        (user_id == principal&.user&.id ||
+         users.include?(principal&.user) ||
          Collaborator
              .joins("INNER JOIN #{GroupMembership.quoted_table_name} ON collaborators.group_id = group_memberships.group_id AND group_memberships.workflow_state <> 'deleted'")
              .where('collaborators.group_id IS NOT NULL AND
                             group_memberships.user_id = ? AND
                             collaborators.collaboration_id = ?',
-                    user,
+                    principal&.user,
                     self).exists?)
     end
     can :read
 
-    given { |user, session| context.grants_right?(user, session, :create_collaborations) }
+    given { |principal, session| context.grants_right?(principal, session, :create_collaborations) }
     can :create
 
-    given do |user, session|
-      user && context.grants_right?(user, session, :manage_course_content_edit)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_course_content_edit)
     end
     can :read and can :update
 
-    given do |user, session|
-      user && context.grants_right?(user, session, :manage_course_content_delete)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_course_content_delete)
     end
     can :read and can :delete
 
-    given do |user, session|
-      user && user_id == user.id &&
-        context.grants_right?(user, session, :create_collaborations)
+    given do |principal, session|
+      user_id == principal&.user&.id &&
+        context.grants_right?(principal, session, :create_collaborations)
     end
     can :read and can :update and can :delete
   end

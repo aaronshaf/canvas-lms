@@ -1392,26 +1392,26 @@ class Enrollment < ApplicationRecord
   end
 
   set_policy do
-    given { |user, session| course.grants_any_right?(user, session, :manage_students, :allow_course_admin_actions, :read_roster) }
+    given { |principal, session| course.grants_any_right?(principal, session, :manage_students, :allow_course_admin_actions, :read_roster) }
     can :read
 
-    given { |user| self.user == user }
+    given { |principal| user == principal&.user }
     can :read and can :read_grades
 
-    given do |user, session|
-      course.students_visible_to(user, include: :priors).where(id: user_id).exists? &&
-        course.grants_any_right?(user, session, :manage_grades, :view_all_grades)
+    given do |principal, session|
+      course.students_visible_to(principal&.user, include: :priors).where(id: user_id).exists? &&
+        course.grants_any_right?(principal, session, :manage_grades, :view_all_grades)
     end
     can :read and can :read_grades
 
-    given { |user| course.observer_enrollments.where(user_id: user, associated_user_id: user_id).exists? }
+    given { |principal| course.observer_enrollments.where(user_id: principal&.user, associated_user_id: user_id).exists? }
     can :read and can :read_grades
 
-    given { |user, session| course.grants_right?(user, session, :participate_as_student) && self.user.show_user_services }
+    given { |principal, session| course.grants_right?(principal, session, :participate_as_student) && user.show_user_services }
     can :read_services
 
     # read_services says this person has permission to see what web services this enrollment has linked to their account
-    given { |user, session| grants_right?(user, session, :read) && self.user.show_user_services }
+    given { |principal, session| grants_right?(principal, session, :read) && user.show_user_services }
     can :read_services
   end
 

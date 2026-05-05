@@ -266,31 +266,31 @@ class AppointmentGroup < ApplicationRecord
   scope :intersecting, ->(start_date, end_date) { where("start_at<? AND end_at>?", end_date, start_date) }
 
   set_policy do
-    given do |user|
-      active? && participant_for(user)
+    given do |principal|
+      active? && participant_for(principal&.user)
     end
     can :reserve and can :read
 
-    given do |user|
+    given do |principal|
       next false if deleted?
-      next false unless active_contexts.any? { |c| c.grants_right? user, :manage_calendar }
+      next false unless active_contexts.any? { |c| c.grants_right? principal, :manage_calendar }
 
       if appointment_group_sub_contexts.present? && appointment_group_sub_contexts.first.sub_context_type == "CourseSection"
         all_sub_context_ids = appointment_group_sub_contexts.map(&:sub_context_id)
         deleted_section_ids = CourseSection.where(id: all_sub_context_ids, workflow_state: "deleted").pluck(:id)
         sub_context_ids = all_sub_context_ids - deleted_section_ids
         user_visible_section_ids = contexts.map do |c|
-          c.section_visibilities_for(user).pluck(:course_section_id)
+          c.section_visibilities_for(principal&.user).pluck(:course_section_id)
         end.flatten
         next true if (sub_context_ids - user_visible_section_ids).empty?
       end
-      contexts.any? { |c| c.enrollment_visibility_level_for(user) == :full }
+      contexts.any? { |c| c.enrollment_visibility_level_for(principal&.user) == :full }
     end
     can :manage and can :manage_calendar and can :read and can :read_appointment_participants and
       can :create and can :update and can :delete
 
-    given do |user|
-      participant_visibility == "protected" && grants_right?(user, :reserve)
+    given do |principal|
+      participant_visibility == "protected" && grants_right?(principal, :reserve)
     end
     can :read_appointment_participants
   end

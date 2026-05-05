@@ -71,7 +71,7 @@ class Progress < ApplicationRecord
   end
 
   set_policy do
-    given { |user| self.user.present? && self.user == user }
+    given { |principal| user.present? && user == principal&.user }
     can :cancel
   end
 

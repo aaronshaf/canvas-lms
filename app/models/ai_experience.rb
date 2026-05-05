@@ -68,20 +68,20 @@ class AiExperience < ApplicationRecord
 
   set_policy do
     # Students can read published experiences if they're enrolled in the course
-    given do |user, session|
-      published? && course.grants_right?(user, session, :read_as_member)
+    given do |principal, session|
+      published? && course.grants_right?(principal, session, :read_as_member)
     end
     can :read
 
     # Teachers/TAs/admins can read any experience (published or unpublished)
-    given do |user, session|
-      course.grants_any_right?(user, session, :manage_assignments_add, :manage_assignments_edit, :manage_assignments_delete)
+    given do |principal, session|
+      course.grants_any_right?(principal, session, :manage_assignments_add, :manage_assignments_edit, :manage_assignments_delete)
     end
     can :read and can :create and can :update and can :delete
 
     # Only teachers/TAs/admins can manage experiences
-    given do |user, session|
-      course.grants_any_right?(user, session, :manage_assignments_add, :manage_assignments_edit, :manage_assignments_delete)
+    given do |principal, session|
+      course.grants_any_right?(principal, session, :manage_assignments_add, :manage_assignments_edit, :manage_assignments_delete)
     end
     can :manage
   end

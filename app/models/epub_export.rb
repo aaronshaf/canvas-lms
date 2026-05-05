@@ -86,25 +86,25 @@ class EpubExport < ApplicationRecord
   scope :visible_to, ->(user) { where(user_id: user) }
 
   set_policy do
-    given do |user|
-      course.grants_right?(user, :read_as_admin) ||
-        course.grants_right?(user, :participate_as_student)
+    given do |principal|
+      course.grants_right?(principal, :read_as_admin) ||
+        course.grants_right?(principal, :participate_as_student)
     end
     can :create
 
-    given do |user|
-      self.user == user || course.grants_right?(user, :read_as_admin)
+    given do |principal|
+      user == principal&.user || course.grants_right?(principal, :read_as_admin)
     end
     can :read
 
-    given do |user|
-      grants_right?(user, :read) && generated?
+    given do |principal|
+      grants_right?(principal, :read) && generated?
     end
     can :download
 
-    given do |user|
+    given do |principal|
       ["generated", "failed"].include?(workflow_state) &&
-        grants_right?(user, :create)
+        grants_right?(principal, :create)
     end
     can :regenerate
   end

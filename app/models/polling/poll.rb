@@ -30,39 +30,39 @@ module Polling
     validates :description, length: { maximum: 255, allow_nil: true }
 
     set_policy do
-      given { |user| self.user.present? && self.user == user }
+      given { |principal| user.present? && user == principal&.user }
       can :update and can :read and can :delete
 
-      given { |user| TeacherEnrollment.active.where(user_id: user).exists? }
+      given { |principal| TeacherEnrollment.active.where(user_id: principal&.user).exists? }
       can :create
 
-      given do |user, http_session|
+      given do |principal, http_session|
         poll_sessions.shard(self).preload(:course).any? do |session|
-          session.course.grants_right?(user, http_session, :manage_course_content_add)
+          session.course.grants_right?(principal, http_session, :manage_course_content_add)
         end
       end
       can :read and can :submit
 
-      given do |user, http_session|
+      given do |principal, http_session|
         poll_sessions.shard(self).preload(:course).any? do |session|
-          session.course.grants_right?(user, http_session, :manage_course_content_edit)
+          session.course.grants_right?(principal, http_session, :manage_course_content_edit)
         end
       end
       can :read and can :update
 
-      given do |user, http_session|
+      given do |principal, http_session|
         poll_sessions.shard(self).preload(:course).any? do |session|
-          session.course.grants_right?(user, http_session, :manage_course_content_delete)
+          session.course.grants_right?(principal, http_session, :manage_course_content_delete)
         end
       end
       can :read and can :delete
 
-      given do |user|
+      given do |principal|
         can_read = false
         poll_sessions.shard(self).activate do |scope|
           if scope.where(["course_id IN (?) AND (course_section_id IS NULL OR course_section_id IN (?))",
-                          Enrollment.where(user_id: user).active.select(:course_id),
-                          Enrollment.where(user_id: user).active.select(:course_section_id)]).exists?
+                          Enrollment.where(user_id: principal&.user).active.select(:course_id),
+                          Enrollment.where(user_id: principal&.user).active.select(:course_section_id)]).exists?
             can_read = true
             break
           end

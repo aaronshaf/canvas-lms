@@ -406,64 +406,64 @@ class DiscussionEntry < ApplicationRecord
   end
 
   set_policy do
-    given { |user| self.user && self.user == user }
+    given { |principal| user && user == principal&.user }
     can :read
 
-    given { |user| self.user && self.user == user && discussion_topic.available_for?(user) && discussion_topic.can_participate_in_course?(user) && !discussion_topic.comments_disabled? && discussion_topic.threaded? }
+    given { |principal| user && user == principal&.user && discussion_topic.available_for?(principal&.user) && discussion_topic.can_participate_in_course?(principal&.user) && !discussion_topic.comments_disabled? && discussion_topic.threaded? }
     can :reply
 
-    given { |user| self.user && self.user == user && discussion_topic.available_for?(user) && context.user_can_manage_own_discussion_posts?(user) && discussion_topic.can_participate_in_course?(user) }
+    given { |principal| user && user == principal&.user && discussion_topic.available_for?(principal&.user) && context.user_can_manage_own_discussion_posts?(principal&.user) && discussion_topic.can_participate_in_course?(principal&.user) }
     can :update and can :delete
 
-    given { |user, session| discussion_topic.is_announcement && context.grants_right?(user, session, :read_announcements) && discussion_topic.visible_for?(user) }
+    given { |principal, session| discussion_topic.is_announcement && context.grants_right?(principal, session, :read_announcements) && discussion_topic.visible_for?(principal&.user) }
     can :read
 
-    given { |user, session| !discussion_topic.is_announcement && context.grants_right?(user, session, :read_forum) && discussion_topic.visible_for?(user) }
+    given { |principal, session| !discussion_topic.is_announcement && context.grants_right?(principal, session, :read_forum) && discussion_topic.visible_for?(principal&.user) }
     can :read
 
-    given { |user, session| discussion_topic.is_announcement && context.grants_right?(user, session, :participate_as_student) && discussion_topic.visible_for?(user) && !discussion_topic.locked_for?(user, check_policies: true) && !discussion_topic.comments_disabled? }
+    given { |principal, session| discussion_topic.is_announcement && context.grants_right?(principal, session, :participate_as_student) && discussion_topic.visible_for?(principal&.user) && !discussion_topic.locked_for?(principal&.user, check_policies: true) && !discussion_topic.comments_disabled? }
     can :create
 
-    given { |user, session| context.grants_right?(user, session, :post_to_forum) && !discussion_topic.locked_for?(user) && discussion_topic.visible_for?(user) }
+    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && !discussion_topic.locked_for?(principal&.user) && discussion_topic.visible_for?(principal&.user) }
     can :read
 
-    given { |user, session| context.grants_right?(user, session, :post_to_forum) && !discussion_topic.locked_for?(user) && discussion_topic.visible_for?(user) && !discussion_topic.comments_disabled? && discussion_topic.threaded? }
+    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && !discussion_topic.locked_for?(principal&.user) && discussion_topic.visible_for?(principal&.user) && !discussion_topic.comments_disabled? && discussion_topic.threaded? }
     can :reply
 
-    given { |user, session| context.grants_right?(user, session, :post_to_forum) && !discussion_topic.locked_for?(user) && discussion_topic.visible_for?(user) && !discussion_topic.comments_disabled? }
+    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && !discussion_topic.locked_for?(principal&.user) && discussion_topic.visible_for?(principal&.user) && !discussion_topic.comments_disabled? }
     can :create
 
-    given { |user, session| context.grants_right?(user, session, :post_to_forum) && discussion_topic.visible_for?(user) }
+    given { |principal, session| context.grants_right?(principal, session, :post_to_forum) && discussion_topic.visible_for?(principal&.user) }
     can :read
 
-    given { |user, session| context.respond_to?(:allow_student_forum_attachments) && context.allow_student_forum_attachments && context.grants_right?(user, session, :post_to_forum) && discussion_topic.available_for?(user) }
+    given { |principal, session| context.respond_to?(:allow_student_forum_attachments) && context.allow_student_forum_attachments && context.grants_right?(principal, session, :post_to_forum) && discussion_topic.available_for?(principal&.user) }
     can :attach
 
-    given { |user, session| !discussion_topic.root_topic_id && context.grants_right?(user, session, :moderate_forum) && !discussion_topic.locked_for?(user, check_policies: true) }
+    given { |principal, session| !discussion_topic.root_topic_id && context.grants_right?(principal, session, :moderate_forum) && !discussion_topic.locked_for?(principal&.user, check_policies: true) }
     can :update and can :delete and can :read and can :attach
 
-    given { |user, session| !discussion_topic.root_topic_id && context.grants_right?(user, session, :moderate_forum) && !discussion_topic.locked_for?(user, check_policies: true) && !discussion_topic.comments_disabled? && discussion_topic.threaded? }
+    given { |principal, session| !discussion_topic.root_topic_id && context.grants_right?(principal, session, :moderate_forum) && !discussion_topic.locked_for?(principal&.user, check_policies: true) && !discussion_topic.comments_disabled? && discussion_topic.threaded? }
     can :reply
 
-    given { |user, session| !discussion_topic.root_topic_id && context.grants_right?(user, session, :moderate_forum) && !discussion_topic.locked_for?(user, check_policies: true) && !discussion_topic.comments_disabled? }
+    given { |principal, session| !discussion_topic.root_topic_id && context.grants_right?(principal, session, :moderate_forum) && !discussion_topic.locked_for?(principal&.user, check_policies: true) && !discussion_topic.comments_disabled? }
     can :create
 
-    given { |user, session| !discussion_topic.root_topic_id && context.grants_right?(user, session, :moderate_forum) }
+    given { |principal, session| !discussion_topic.root_topic_id && context.grants_right?(principal, session, :moderate_forum) }
     can :update and can :delete and can :read and can :pin
 
-    given { |user, session| discussion_topic.root_topic&.context&.grants_right?(user, session, :moderate_forum) && !discussion_topic.locked_for?(user, check_policies: true) }
+    given { |principal, session| discussion_topic.root_topic&.context&.grants_right?(principal, session, :moderate_forum) && !discussion_topic.locked_for?(principal&.user, check_policies: true) }
     can :update and can :delete and can :read and can :attach
 
-    given { |user, session| discussion_topic.root_topic&.context&.grants_right?(user, session, :moderate_forum) && !discussion_topic.locked_for?(user, check_policies: true) && !discussion_topic.comments_disabled? && discussion_topic.threaded? }
+    given { |principal, session| discussion_topic.root_topic&.context&.grants_right?(principal, session, :moderate_forum) && !discussion_topic.locked_for?(principal&.user, check_policies: true) && !discussion_topic.comments_disabled? && discussion_topic.threaded? }
     can :reply
 
-    given { |user, session| discussion_topic.root_topic&.context&.grants_right?(user, session, :moderate_forum) && !discussion_topic.locked_for?(user, check_policies: true) && !discussion_topic.comments_disabled? }
+    given { |principal, session| discussion_topic.root_topic&.context&.grants_right?(principal, session, :moderate_forum) && !discussion_topic.locked_for?(principal&.user, check_policies: true) && !discussion_topic.comments_disabled? }
     can :create
 
-    given { |user, session| discussion_topic.root_topic&.context&.grants_right?(user, session, :moderate_forum) }
+    given { |principal, session| discussion_topic.root_topic&.context&.grants_right?(principal, session, :moderate_forum) }
     can :update and can :delete and can :read and can :pin
 
-    given { |user, session| discussion_topic.grants_right?(user, session, :rate) }
+    given { |principal, session| discussion_topic.grants_right?(principal, session, :rate) }
     can :rate
   end
 

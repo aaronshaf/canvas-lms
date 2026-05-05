@@ -44,7 +44,7 @@ class CustomGradeStatus < ApplicationRecord
   before_create :assign_icon
 
   set_policy do
-    given { |user, session| root_account&.grants_right?(user, session, :manage) }
+    given { |principal, session| root_account&.grants_right?(principal, session, :manage) }
     can :create and can :read and can :update and can :delete
   end
 

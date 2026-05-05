@@ -409,31 +409,31 @@ class ContextModule < ApplicationRecord
   end
 
   set_policy do
-    given do |user, session|
-      user && context.grants_right?(user, session, :manage_course_content_add)
+    given do |principal, session|
+      principal && context.grants_right?(principal, session, :manage_course_content_add)
     end
     can :read and can :read_as_admin and can :create
 
-    given do |user, session|
-      user && context.grants_right?(user, session, :manage_course_content_edit)
+    given do |principal, session|
+      principal && context.grants_right?(principal, session, :manage_course_content_edit)
     end
     can :read and can :read_as_admin and can :update
 
-    given do |user, session|
-      user && context.grants_right?(user, session, :manage_course_content_delete)
+    given do |principal, session|
+      principal && context.grants_right?(principal, session, :manage_course_content_delete)
     end
     can :read and can :read_as_admin and can :delete
 
-    given { |user, session| context.grants_right?(user, session, :read_as_admin) }
+    given { |principal, session| context.grants_right?(principal, session, :read_as_admin) }
     can :read and can :read_as_admin
 
-    given { |user, session| context.grants_right?(user, session, :view_unpublished_items) }
+    given { |principal, session| context.grants_right?(principal, session, :view_unpublished_items) }
     can :view_unpublished_items
 
-    given { |user, session| context.grants_right?(user, session, :read) && active? }
+    given { |principal, session| context.grants_right?(principal, session, :read) && active? }
     can :read
 
-    given { |user, session| user && context.grants_right?(user, session, :manage_course_content_edit) }
+    given { |principal, session| principal && context.grants_right?(principal, session, :manage_course_content_edit) }
     can :manage_assign_to
   end
 

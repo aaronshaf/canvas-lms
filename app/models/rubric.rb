@@ -83,38 +83,38 @@ class Rubric < ApplicationRecord
   scope :active, -> { where.not(workflow_state: %w[archived deleted draft]) }
 
   set_policy do
-    given { |user, session| context.grants_right?(user, session, :manage_rubrics) }
+    given { |principal, session| context.grants_right?(principal, session, :manage_rubrics) }
     can :read and can :create and can :delete_associations
 
-    given { |user, session| context.grants_right?(user, session, :manage_assignments_edit) }
+    given { |principal, session| context.grants_right?(principal, session, :manage_assignments_edit) }
     can :read and can :create and can :delete_associations
 
-    given { |user, session| context.grants_right?(user, session, :manage) }
+    given { |principal, session| context.grants_right?(principal, session, :manage) }
     can :read and can :create and can :delete_associations
 
-    given { |user, session| context.grants_right?(user, session, :read_rubrics) }
+    given { |principal, session| context.grants_right?(principal, session, :read_rubrics) }
     can :read
 
     # read_only means "associated with > 1 object for grading purposes"
-    given { |user, session| !read_only && rubric_associations.for_grading.count < 2 && context.grants_right?(user, session, :manage_assignments_edit) }
+    given { |principal, session| !read_only && rubric_associations.for_grading.count < 2 && context.grants_right?(principal, session, :manage_assignments_edit) }
     can :update and can :delete
 
-    given { |user, session| !read_only && rubric_associations.for_grading.count < 2 && context.grants_right?(user, session, :manage_rubrics) }
+    given { |principal, session| !read_only && rubric_associations.for_grading.count < 2 && context.grants_right?(principal, session, :manage_rubrics) }
     can :update and can :delete
 
-    given { |user, session| context.grants_right?(user, session, :manage_assignments_edit) }
+    given { |principal, session| context.grants_right?(principal, session, :manage_assignments_edit) }
     can :delete
 
-    given { |user, session| context.grants_right?(user, session, :manage_rubrics) }
+    given { |principal, session| context.grants_right?(principal, session, :manage_rubrics) }
     can :delete
 
-    given { |user, session| context.grants_right?(user, session, :read) }
+    given { |principal, session| context.grants_right?(principal, session, :read) }
     can :read
 
-    given { |user, session| context.grants_right?(user, session, :manage_rubrics) }
+    given { |principal, session| context.grants_right?(principal, session, :manage_rubrics) }
     can :archive
 
-    given { |user, session| context.grants_right?(user, session, :manage_rubrics) }
+    given { |principal, session| context.grants_right?(principal, session, :manage_rubrics) }
     can :unarchive
   end
 

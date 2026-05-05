@@ -34,29 +34,29 @@ class CanvadocsAnnotationContext < ApplicationRecord
 
   set_policy do
     # the submitting student can see their annotations for drafts and for prior attempts.
-    given { |user| user && user == submission.user }
+    given { |principal| principal && principal.user == submission.user }
     can :read
 
     # the submitting student can make new annotations on a draft, but not on a prior attempt.
-    given { |user| draft? && user && user == submission.user }
+    given { |principal| draft? && principal && principal.user == submission.user }
     can :annotate
 
     # assigned peer reviewers can see non-draft attempts of the assigned student, but
     # cannot make annotations.
-    given { |user| user && !draft? && submission.peer_reviewer?(user) }
+    given { |principal| principal && !draft? && submission.peer_reviewer?(principal.user) }
     can :read
 
     # observers can see non-draft attempts of their observed student, but
     # cannot make annotations.
-    given { |user| user && !draft? && submission.observer?(user) }
+    given { |principal| principal && !draft? && submission.observer?(principal.user) }
     can :read
 
     # users with permission to grade the submission OR provisional graders for a moderated
     # assignment can see and make annotations on non-draft attempts.
-    given do |user|
-      !draft? && user && (
-        submission.grants_right?(user, :grade) ||
-        (submission.assignment.moderated_grading? && submission.assignment.can_be_moderated_grader?(user))
+    given do |principal|
+      !draft? && principal && (
+        submission.grants_right?(principal, :grade) ||
+        (submission.assignment.moderated_grading? && submission.assignment.can_be_moderated_grader?(principal.user))
       )
     end
     can :read and can :annotate

@@ -1138,58 +1138,58 @@ class Quizzes::Quiz < ApplicationRecord
   end
 
   set_policy do
-    given do |user, session|
-      context.grants_right?(user, session, :manage_assignments_add)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_assignments_add)
     end
     can :read and can :create
 
-    given do |user, session|
-      context.grants_right?(user, session, :manage_assignments_edit)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_assignments_edit)
     end
     can :manage and can :read and can :update and can :submit and can :preview
 
-    given do |user, session|
-      context.grants_right?(user, session, :manage_assignments_delete) &&
-        (context.account_membership_allows(user) || !due_for_any_student_in_closed_grading_period?)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_assignments_delete) &&
+        (context.account_membership_allows(principal&.user) || !due_for_any_student_in_closed_grading_period?)
     end
     can :delete
 
-    given { |user, session| context.grants_right?(user, session, :manage_grades) } # admins.include? user }
+    given { |principal, session| context.grants_right?(principal, session, :manage_grades) } # admins.include? user }
     can :read_statistics and can :read and can :submit and can :grade and can :review_grades
 
-    given { |user| available? && context.try_rescue(:is_public) && !graded? && visible_to_user?(user) }
+    given { |principal| available? && context.try_rescue(:is_public) && !graded? && visible_to_user?(principal&.user) }
     can :submit
 
-    given { |user, session| context.grants_right?(user, session, :read_as_admin) }
+    given { |principal, session| context.grants_right?(principal, session, :read_as_admin) }
     can :read and can :submit and can :preview
 
-    given do |user, session|
-      published? && context.grants_right?(user, session, :read)
+    given do |principal, session|
+      published? && context.grants_right?(principal, session, :read)
     end
     can :read
 
-    given { |user, session| context.grants_right?(user, session, :view_all_grades) }
+    given { |principal, session| context.grants_right?(principal, session, :view_all_grades) }
     can :read_statistics and can :review_grades
 
-    given do |user, session|
+    given do |principal, session|
       available? &&
-        context.grants_right?(user, session, :participate_as_student) &&
-        visible_to_user?(user)
+        context.grants_right?(principal, session, :participate_as_student) &&
+        visible_to_user?(principal&.user)
     end
     can :read
 
-    given do |user, session|
+    given do |principal, session|
       available? &&
-        context.grants_right?(user, session, :participate_as_student) &&
-        visible_to_user?(user) &&
-        !excused_for_student?(user)
+        context.grants_right?(principal, session, :participate_as_student) &&
+        visible_to_user?(principal&.user) &&
+        !excused_for_student?(principal&.user)
     end
     can :submit
 
-    given { |user| context.grants_right?(user, :view_quiz_answer_audits) }
+    given { |principal| context.grants_right?(principal, :view_quiz_answer_audits) }
     can :view_answer_audits
 
-    given { |user, session| user && context.grants_right?(user, session, :manage_assignments_edit) }
+    given { |principal, session| principal && context.grants_right?(principal, session, :manage_assignments_edit) }
     can :manage_assign_to
   end
 

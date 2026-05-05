@@ -594,40 +594,40 @@ class Folder < ApplicationRecord
   alias_method :currently_locked?, :currently_locked
 
   set_policy do
-    given { |user, session| visible? && context.grants_right?(user, session, :read_files) }
+    given { |principal, session| visible? && context.grants_right?(principal, session, :read_files) }
     can :read
 
-    given { |user, session| context.grants_right?(user, session, :read_as_admin) }
+    given { |principal, session| context.grants_right?(principal, session, :read_as_admin) }
     can :read_as_admin, :read_contents, :read_contents_for_export
 
-    given do |user, session|
-      visible? && !locked? && context.grants_right?(user, session, :read_files) &&
+    given do |principal, session|
+      visible? && !locked? && context.grants_right?(principal, session, :read_files) &&
         !(context.is_a?(Course) && context.tab_hidden?(Course::TAB_FILES))
     end
     can :read_contents
 
-    given do |user, session|
-      !locked? && context.grants_right?(user, session, :read_files)
+    given do |principal, session|
+      !locked? && context.grants_right?(principal, session, :read_files)
     end
     can :read_contents_for_export
 
-    given do |user, session|
-      context.grants_any_right?(user, session, :manage_files_add, :manage_files_delete, :manage_files_edit)
+    given do |principal, session|
+      context.grants_any_right?(principal, session, :manage_files_add, :manage_files_delete, :manage_files_edit)
     end
     can :read and can :read_contents
 
-    given do |user, session|
-      !for_submissions? && context.grants_right?(user, session, :manage_files_add)
+    given do |principal, session|
+      !for_submissions? && context.grants_right?(principal, session, :manage_files_add)
     end
     can :create and can :manage_contents
 
-    given do |user, session|
-      !for_submissions? && context.grants_right?(user, session, :manage_files_edit)
+    given do |principal, session|
+      !for_submissions? && context.grants_right?(principal, session, :manage_files_edit)
     end
     can :update and can :manage_contents
 
-    given do |user, session|
-      !for_submissions? && context.grants_right?(user, session, :manage_files_delete)
+    given do |principal, session|
+      !for_submissions? && context.grants_right?(principal, session, :manage_files_delete)
     end
     can :delete and can :manage_contents
   end

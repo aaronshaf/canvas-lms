@@ -151,49 +151,49 @@ class CourseSection < ApplicationRecord
   end
 
   set_policy do
-    given do |user, session|
-      course.grants_right?(user, session, :manage_sections_add)
+    given do |principal, session|
+      course.grants_right?(principal, session, :manage_sections_add)
     end
     can :read and can :create
 
-    given do |user, session|
-      course.grants_right?(user, session, :manage_sections_edit)
+    given do |principal, session|
+      course.grants_right?(principal, session, :manage_sections_edit)
     end
     can :read and can :update
 
-    given do |user, session|
-      course.grants_right?(user, session, :manage_sections_delete)
+    given do |principal, session|
+      course.grants_right?(principal, session, :manage_sections_delete)
     end
     can :read and can :delete
 
-    given do |user, session|
-      course.grants_any_right?(user, session, :manage_students, :allow_course_admin_actions)
+    given do |principal, session|
+      course.grants_any_right?(principal, session, :manage_students, :allow_course_admin_actions)
     end
     can :read
 
-    given { |user| course.account_membership_allows(user, :read_roster) }
+    given { |principal| course.account_membership_allows(principal&.user, :read_roster) }
     can :read
 
-    given do |user, _session|
-      if user
-        enrollments = user.enrollments.shard(self).active_by_date.where(course:)
+    given do |principal, _session|
+      if principal&.user
+        enrollments = principal.user.enrollments.shard(self).active_by_date.where(course:)
         enrollments.where(limit_privileges_to_course_section: false).or(enrollments.where(course_section: self)).any? { |e| e.has_permission_to?(:manage_calendar) }
       end
     end
     can :manage_calendar
 
-    given { |user| course.account_membership_allows(user, :manage_calendar) }
+    given { |principal| course.account_membership_allows(principal&.user, :manage_calendar) }
     can :manage_calendar
 
-    given do |user, _session|
-      user && course.sections_visible_to(user).where(id: self).exists?
+    given do |principal, _session|
+      principal && course.sections_visible_to(principal.user).where(id: self).exists?
     end
     can :read
 
-    given { |user, session| course.grants_right?(user, session, :manage_grades) }
+    given { |principal, session| course.grants_right?(principal, session, :manage_grades) }
     can :manage_grades
 
-    given { |user, session| course.grants_right?(user, session, :read_as_admin) }
+    given { |principal, session| course.grants_right?(principal, session, :read_as_admin) }
     can :read_as_admin
   end
 

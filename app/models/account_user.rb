@@ -132,7 +132,7 @@ class AccountUser < ApplicationRecord
 
   set_policy do
     # NOTE: If modifying this, make sure `create_permissions_cache` stays accurate as well.
-    given { |user| account.grants_right?(user, :manage_account_memberships) && is_subset_of?(user) }
+    given { |principal| account.grants_right?(principal, :manage_account_memberships) && is_subset_of?(principal&.user) }
     can :create and can :destroy
   end
 

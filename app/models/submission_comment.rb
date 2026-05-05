@@ -221,20 +221,20 @@ class SubmissionComment < ApplicationRecord
   end
 
   set_policy do
-    given { |user, session| can_view_comment?(user, session) }
+    given { |principal, session| can_view_comment?(principal&.user, session) }
     can :read
 
-    given { |user| author_id == user.id && draft? }
+    given { |principal| author_id == principal&.user&.id && draft? }
     can :delete and can :update
 
-    given { |user, session| author_id == user.id && can_grader_modify_comment?(user, session) }
+    given { |principal, session| author_id == principal&.user&.id && can_grader_modify_comment?(principal&.user, session) }
     can :update
 
-    given { |user, session| can_grader_modify_comment?(user, session) }
+    given { |principal, session| can_grader_modify_comment?(principal&.user, session) }
     can :delete
 
-    given do |user, session|
-      can_read_author?(user, session)
+    given do |principal, session|
+      can_read_author?(principal&.user, session)
     end
     can :read_author
   end

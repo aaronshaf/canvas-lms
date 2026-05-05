@@ -84,11 +84,11 @@ class AccessToken < ApplicationRecord
   end
 
   set_policy do
-    given do |user, session|
+    given do |principal, session|
       # This block is only for checking if the user can manage their own tokens
-      next false unless user.id == user_id
+      next false unless principal&.user&.id == user_id
 
-      next false unless self.class.can_manage_own_access_tokens?(user)
+      next false unless self.class.can_manage_own_access_tokens?(principal)
 
       # if the session wasn't set up correctly, just ignore the additional restrictions
       next true unless (root_account = session&.dig(:root_account))
@@ -100,27 +100,27 @@ class AccessToken < ApplicationRecord
       # then if you're _only_ a student, only an observer, or only both, you can't create tokens
       # (a teacher that is a student/observer will still be allowed to)
       next false if root_account.restrict_personal_access_tokens_from_students? &&
-                    (roles = user.roles(root_account) - ["user"]) &&
+                    (roles = principal.user.roles(root_account) - ["user"]) &&
                     (roles.empty? || (roles - ["student", "observer"]).empty?)
 
       true
     end
     can :create and can :update
 
-    given { |user| user.id == user_id }
+    given { |principal| principal&.user&.id == user_id }
     can :read and can :delete
 
-    given do |user|
-      next false if user.id == user_id && !self.class.can_manage_own_access_tokens?(user)
+    given do |principal|
+      next false if principal&.user&.id == user_id && !self.class.can_manage_own_access_tokens?(principal)
 
-      self.user.check_accounts_right?(user, :create_access_tokens)
+      user.check_accounts_right?(principal, :create_access_tokens)
     end
     can :create and can :update
 
-    given { |user| self.user.check_accounts_right?(user, :delete_access_tokens) }
+    given { |principal| user.check_accounts_right?(principal, :delete_access_tokens) }
     can :delete
 
-    given { |user| self.user.check_accounts_right?(user, :view_user_generated_access_tokens) && developer_key_id == DeveloperKey.default.id }
+    given { |principal| user.check_accounts_right?(principal, :view_user_generated_access_tokens) && developer_key_id == DeveloperKey.default.id }
     can :read
   end
 

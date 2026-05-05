@@ -583,85 +583,82 @@ class Submission < ApplicationRecord
   end
 
   set_policy do
-    given do |user|
-      user &&
-        user.id == user_id &&
+    given do |principal|
+      principal&.user&.id == user_id &&
         assignment.published?
     end
     can :read and can :make_group_comment and can :submit and can :mark_item_read and can :read_comments
 
     # non-deleted students in accounts with limited access setting enabled should not be able to comment on submissions
-    given do |user|
-      user &&
-        user.id == user_id &&
+    given do |principal|
+      principal&.user&.id == user_id &&
         assignment.published? &&
-        !course.account.limited_access_for_user?(user)
+        !course.account.limited_access_for_user?(principal.user)
     end
     can :comment
 
     # see user_can_read_grade? before editing :read_grade permissions
-    given do |user|
-      user &&
-        user.id == user_id &&
+    given do |principal|
+      principal&.user&.id == user_id &&
         !hide_grade_from_student?
     end
     can :read_grade
 
-    given do |user, session|
+    given do |principal, session|
       assignment.published? &&
-        assignment.context.grants_right?(user, session, :manage_grades)
+        assignment.context.grants_right?(principal, session, :manage_grades)
     end
     can :read and can :comment and can :make_group_comment and can :read_grade and can :read_comments and can :download
 
-    given do |user, _session|
-      can_grade?(user)
+    given do |principal, _session|
+      can_grade?(principal)
     end
     can :grade
 
-    given do |user, session|
-      assignment.user_can_read_grades?(user, session)
+    given do |principal, session|
+      assignment.user_can_read_grades?(principal, session)
     end
     can :read and can :read_grade
 
-    given do |user|
+    given do |principal|
       assignment&.context &&
+        principal &&
         user &&
-        self.user &&
         assignment.context.observer_enrollments.where(
-          user_id: user,
-          associated_user_id: self.user,
+          user_id: principal.user,
+          associated_user_id: user,
           workflow_state: "active"
         ).exists?
     end
     can :read and can :read_comments
 
-    given do |user|
+    given do |principal|
       assignment &&
         posted? &&
         assignment.context &&
+        principal &&
         user &&
-        self.user &&
         assignment.context.observer_enrollments.where(
-          user_id: user,
-          associated_user_id: self.user,
+          user_id: principal.user,
+          associated_user_id: user,
           workflow_state: "active"
-        ).first.try(:grants_right?, user, :read_grades)
+        ).first.try(:grants_right?, principal, :read_grades)
     end
     can :read_grade
 
-    given do |user|
-      peer_reviewer?(user) && if assignment&.context&.feature_enabled?(:peer_review_allocation_and_grading)
-                                !assignment.peer_review_submission_required || !!assignment.submitted?(user:)
-                              else
-                                !!assignment&.submitted?(user:)
-                              end
+    given do |principal|
+      peer_reviewer?(principal&.user) && if assignment&.context&.feature_enabled?(:peer_review_allocation_and_grading)
+                                           !assignment.peer_review_submission_required || !!assignment.submitted?(user: principal&.user)
+                                         else
+                                           !!assignment&.submitted?(user: principal&.user)
+                                         end
     end
     can :read and can :comment and can :make_group_comment
 
-    given { |user, session| can_view_plagiarism_report("turnitin", user, session) }
+    given { |principal, session| can_view_plagiarism_report("turnitin", principal, session) }
     can :view_turnitin_report
 
-    given { |user, session| can_view_plagiarism_report("vericite", user, session) }
+    given { |principal, session| can_view_plagiarism_report("vericite", principal, session) }
     can :view_vericite_report
   end
 

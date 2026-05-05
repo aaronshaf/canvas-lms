@@ -103,8 +103,8 @@ class AssessmentRequest < ApplicationRecord
   }
 
   set_policy do
-    given do |user, session|
-      can_read_assessment_user_name?(user, session)
+    given do |principal, session|
+      can_read_assessment_user_name?(principal&.user, session)
     end
     can :read_assessment_user
   end

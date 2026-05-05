@@ -149,15 +149,15 @@ class Quizzes::QuizStatistics < ApplicationRecord
   delegate :readable_type, to: :report
 
   set_policy do
-    given do |user, session|
-      quiz.grants_right?(user, session, :read_statistics) &&
-        (!includes_sis_ids || quiz.context.grants_any_right?(user, session, :read_sis, :manage_sis))
+    given do |principal, session|
+      quiz.grants_right?(principal, session, :read_statistics) &&
+        (!includes_sis_ids || quiz.context.grants_any_right?(principal, session, :read_sis, :manage_sis))
     end
     can :read
 
-    given do |user, session|
-      quiz.grants_right?(user, session, :read_statistics) &&
-        context.grants_any_right?(user, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS)
+    given do |principal, session|
+      quiz.grants_right?(principal, session, :read_statistics) &&
+        context.grants_any_right?(principal, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS)
     end
     can :manage_files
   end

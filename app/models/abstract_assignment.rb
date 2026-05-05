@@ -2150,59 +2150,59 @@ class AbstractAssignment < ApplicationRecord
   attr_writer :peer_review_submissions
 
   set_policy do
-    given { |user, session| context.grants_right?(user, session, :read) && published? }
+    given { |principal, session| context.grants_right?(principal, session, :read) && published? }
     can :read and can :read_own_submission
 
-    given do |user, session|
+    given do |principal, session|
       (submittable_type? || submission_types == "discussion_topic") &&
-        context.grants_right?(user, session, :participate_as_student) &&
-        !locked_for?(user) &&
-        visible_to_user?(user) &&
-        !excused_for?(user) &&
-        enrollment_active_for_assignment?(user)
+        context.grants_right?(principal, session, :participate_as_student) &&
+        !locked_for?(principal&.user) &&
+        visible_to_user?(principal&.user) &&
+        !excused_for?(principal&.user) &&
+        enrollment_active_for_assignment?(principal&.user)
     end
     can :submit
 
-    given do |user, session|
+    given do |principal, session|
       (submittable_type? || %w[discussion_topic online_quiz none not_graded].include?(submission_types)) &&
-        context.grants_right?(user, session, :participate_as_student) &&
-        visible_to_user?(user) &&
-        !course.account.limited_access_for_user?(user)
+        context.grants_right?(principal, session, :participate_as_student) &&
+        visible_to_user?(principal&.user) &&
+        !course.account.limited_access_for_user?(principal&.user)
     end
     can :attach_submission_comment_files
 
-    given { |user, session| can_read_assignment?(user, session) }
+    given { |principal, session| can_read_assignment?(principal, session) }
     can :read
 
-    given { |user, session| context.grants_right?(user, session, :manage_grades) }
+    given { |principal, session| context.grants_right?(principal, session, :manage_grades) }
     can :grade and
       can :attach_submission_comment_files and
       can :manage_files_add and
       can :manage_files_edit and
       can :manage_files_delete
 
-    given { |user, session| context.grants_right?(user, session, :set_grading_scheme) }
+    given { |principal, session| context.grants_right?(principal, session, :set_grading_scheme) }
     can :set_grading_scheme
 
-    given do |user, session|
-      context.grants_right?(user, session, :manage_assignments_add)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_assignments_add)
     end
     can :create and can :read
 
-    given { |user, session| user_can_update?(user, session) }
+    given { |principal, session| user_can_update?(principal, session) }
     can :update
 
-    given do |user, session|
-      context.grants_right?(user, session, :manage_assignments_delete) &&
-        (context.account_membership_allows(user) || !in_closed_grading_period?)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_assignments_delete) &&
+        (context.account_membership_allows(principal&.user) || !in_closed_grading_period?)
     end
     can :delete
 
-    given do |user, session|
-      next false unless user
-      next false if submission_types == "discussion_topic" && !context.grants_right?(user, session, :moderate_forum)
+    given do |principal, session|
+      next false unless principal
+      next false if submission_types == "discussion_topic" && !context.grants_right?(principal, session, :moderate_forum)
 
-      context.grants_right?(user, session, :manage_assignments_edit)
+      context.grants_right?(principal, session, :manage_assignments_edit)
     end
     can :manage_assign_to
   end

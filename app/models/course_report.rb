@@ -96,8 +96,8 @@ class CourseReport < ApplicationRecord
   end
 
   set_policy do
-    given do |user, _, _|
-      self.user == user
+    given do |principal, _, _|
+      user == principal&.user
     end
     can :read
   end

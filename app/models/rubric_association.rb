@@ -215,13 +215,13 @@ class RubricAssociation < ApplicationRecord
   end
 
   set_policy do
-    given { |user, session| context.grants_right?(user, session, :manage_rubrics) }
+    given { |principal, session| context.grants_right?(principal, session, :manage_rubrics) }
     can :update and can :delete and can :manage
 
-    given { |user, session| context.grants_right?(user, session, :participate_as_student) }
+    given { |principal, session| context.grants_right?(principal, session, :participate_as_student) }
     can :submit
 
-    given { |user, session| context.grants_right?(user, session, :view_all_grades) }
+    given { |principal, session| context.grants_right?(principal, session, :view_all_grades) }
     can :view_rubric_assessments
   end
 

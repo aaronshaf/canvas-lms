@@ -97,22 +97,22 @@ class AssignmentGroup < ApplicationRecord
   end
 
   set_policy do
-    given { |user, session| context.grants_any_right?(user, session, :read, :view_all_grades, :manage_grades) }
+    given { |principal, session| context.grants_any_right?(principal, session, :read, :view_all_grades, :manage_grades) }
     can :read
 
-    given do |user, session|
-      context.grants_right?(user, session, :manage_assignments_add)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_assignments_add)
     end
     can :read and can :create
 
-    given do |user, session|
-      context.grants_right?(user, session, :manage_assignments_edit)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_assignments_edit)
     end
     can :read and can :update
 
-    given do |user, session|
-      context.grants_right?(user, session, :manage_assignments_delete) &&
-        (context.account_membership_allows(user) || !any_assignment_in_closed_grading_period?)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_assignments_delete) &&
+        (context.account_membership_allows(principal&.user) || !any_assignment_in_closed_grading_period?)
     end
     can :delete
   end

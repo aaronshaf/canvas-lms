@@ -2106,12 +2106,12 @@ class Course < ApplicationRecord
   end
 
   set_policy do
-    given { |user| unenrolled_user_can_read?(user, course_visibility) }
+    given { |principal| unenrolled_user_can_read?(principal&.user, course_visibility) }
     can :read and can :read_outcomes and can :read_syllabus
 
     CUSTOMIZABLE_PERMISSIONS.each_key do |type|
-      given do |user|
-        grants_right?(user, :read_as_member) || unenrolled_user_can_read?(user, custom_visibility_option(type))
+      given do |principal|
+        grants_right?(principal, :read_as_member) || unenrolled_user_can_read?(principal&.user, custom_visibility_option(type))
       end
       can :"read_#{type}"
     end
@@ -2124,29 +2124,29 @@ class Course < ApplicationRecord
       can permission
     end
 
-    given { |_user, session| session && session[:enrollment_uuid] && (hash = Enrollment.course_user_state(self, session[:enrollment_uuid]) || {}) && (hash[:enrollment_state] == "invited" || (hash[:enrollment_state] == "active" && hash[:user_state].to_s == "pre_registered")) && (available? || completed? || (claimed? && hash[:is_admin])) }
+    given { |_principal, session| session && session[:enrollment_uuid] && (hash = Enrollment.course_user_state(self, session[:enrollment_uuid]) || {}) && (hash[:enrollment_state] == "invited" || (hash[:enrollment_state] == "active" && hash[:user_state].to_s == "pre_registered")) && (available? || completed? || (claimed? && hash[:is_admin])) }
     can :read, :read_outcomes, :read_as_member
 
-    given { |user| (available? || completed?) && user && fetch_on_enrollments("has_not_inactive_enrollment", user) { enrollments.for_user(user).not_inactive_by_date.exists? } }
+    given { |principal| (available? || completed?) && principal && fetch_on_enrollments("has_not_inactive_enrollment", principal.user) { enrollments.for_user(principal.user).not_inactive_by_date.exists? } }
     can :read, :read_outcomes, :read_as_member
 
     # Active students
-    given do |user|
-      available? && user && fetch_on_enrollments("has_active_student_enrollment", user) { enrollments.for_user(user).active_by_date.of_student_type.exists? }
+    given do |principal|
+      available? && principal && fetch_on_enrollments("has_active_student_enrollment", principal.user) { enrollments.for_user(principal.user).active_by_date.of_student_type.exists? }
     end
     can :read, :participate_as_student, :read_grades, :read_outcomes, :read_as_member, :reset_what_if_grades
 
-    given do |user|
-      (available? || completed?) && user &&
-        fetch_on_enrollments("has_active_observer_enrollment", user) { enrollments.for_user(user).active_by_date.where(type: "ObserverEnrollment").where.not(associated_user_id: nil).exists? }
+    given do |principal|
+      (available? || completed?) && principal &&
+        fetch_on_enrollments("has_active_observer_enrollment", principal.user) { enrollments.for_user(principal.user).active_by_date.where(type: "ObserverEnrollment").where.not(associated_user_id: nil).exists? }
     end
     can :read_grades
 
     # Active admins (Teacher/TA/Designer)
-    given do |user|
-      user && (available? || created? || claimed?) &&
-        fetch_on_enrollments("has_active_admin_enrollment", user) do
-          enrollments.for_user(user).of_admin_type.active_by_date.exists?
+    given do |principal|
+      principal && (available? || created? || claimed?) &&
+        fetch_on_enrollments("has_active_admin_enrollment", principal.user) do
+          enrollments.for_user(principal.user).of_admin_type.active_by_date.exists?
         end
     end
     can %i[
@@ -2162,45 +2162,45 @@ class Course < ApplicationRecord
       use_student_view
     ]
 
-    given { |user| grants_right?(user, :manage) && !root_account.settings[:restrict_grading_scheme_editing_to_admins] }
+    given { |principal| grants_right?(principal, :manage) && !root_account.settings[:restrict_grading_scheme_editing_to_admins] }
     can :set_grading_scheme
 
-    given { |user| grants_right?(user, :manage_grades) && !root_account.settings[:restrict_grading_scheme_editing_to_admins] }
+    given { |principal| grants_right?(principal, :manage_grades) && !root_account.settings[:restrict_grading_scheme_editing_to_admins] }
     can :manage_grading_schemes
 
     # Teachers and Designers can reset content, but not TAs
-    given do |user|
-      user && !deleted? && !template? &&
-        fetch_on_enrollments("active_content_admin_enrollments", user) do
-          enrollments.for_user(user).of_content_admins.active_by_date.to_a
+    given do |principal|
+      principal && !deleted? && !template? &&
+        fetch_on_enrollments("active_content_admin_enrollments", principal.user) do
+          enrollments.for_user(principal.user).of_content_admins.active_by_date.to_a
         end.any? { |e| e.has_permission_to?(:manage_courses_reset) }
     end
     can :reset_content
 
     # Teachers and Designers can delete, but not TAs
-    given do |user|
-      user && !template? && !deleted? && !sis_source_id &&
-        fetch_on_enrollments("active_content_admin_enrollments", user) do
-          enrollments.for_user(user).of_content_admins.active_by_date.to_a
+    given do |principal|
+      principal && !template? && !deleted? && !sis_source_id &&
+        fetch_on_enrollments("active_content_admin_enrollments", principal.user) do
+          enrollments.for_user(principal.user).of_content_admins.active_by_date.to_a
         end.any? { |e| e.has_permission_to?(:manage_courses_delete) }
     end
     can :delete
 
     # Student view student
-    given { |user| user&.fake_student? && current_enrollments.for_user(user).exists? }
+    given { |principal| principal&.user&.fake_student? && current_enrollments.for_user(principal&.user).exists? }
     can %i[read participate_as_student read_grades read_outcomes read_as_member]
 
     # Prior users
-    given do |user|
-      (available? || completed?) && user &&
-        fetch_on_enrollments("has_completed_enrollment", user) { enrollments.for_user(user).completed_by_date.exists? }
+    given do |principal|
+      (available? || completed?) && principal &&
+        fetch_on_enrollments("has_completed_enrollment", principal.user) { enrollments.for_user(principal.user).completed_by_date.exists? }
     end
     can :read, :read_outcomes, :read_as_member
 
     # Admin (Teacher/TA/Designer) of a concluded course
-    given do |user|
-      !deleted? && user &&
-        fetch_on_enrollments("has_completed_admin_enrollment", user) { enrollments.for_user(user).of_admin_type.completed_by_date.exists? }
+    given do |principal|
+      !deleted? && principal &&
+        fetch_on_enrollments("has_completed_admin_enrollment", principal.user) { enrollments.for_user(principal.user).of_admin_type.completed_by_date.exists? }
     end
     can %i[read read_as_admin use_student_view read_outcomes view_unpublished_items read_rubrics read_as_member]
 
@@ -2208,38 +2208,38 @@ class Course < ApplicationRecord
     RoleOverride.concluded_permission_types.each do |permission, details|
       applicable_roles = details[:applies_to_concluded].is_a?(Array) && details[:applies_to_concluded]
 
-      given do |user|
-        !deleted? && user &&
-          fetch_on_enrollments("completed_enrollments", user) { enrollments.for_user(user).completed_by_date.to_a }.any? { |e| e.has_permission_to?(permission) && (!applicable_roles || applicable_roles.include?(e.type)) }
+      given do |principal|
+        !deleted? && principal &&
+          fetch_on_enrollments("completed_enrollments", principal.user) { enrollments.for_user(principal.user).completed_by_date.to_a }.any? { |e| e.has_permission_to?(permission) && (!applicable_roles || applicable_roles.include?(e.type)) }
       end
       can permission
     end
 
     # Teacher or Designer of a concluded course
-    given do |user|
-      user && !sis_source_id && !deleted? && !template? &&
-        enrollments.for_user(user).of_content_admins.completed_by_date.to_a.any? do |e|
+    given do |principal|
+      principal && !sis_source_id && !deleted? && !template? &&
+        enrollments.for_user(principal.user).of_content_admins.completed_by_date.to_a.any? do |e|
           e.has_permission_to?(:manage_courses_delete)
         end
     end
     can :delete
 
     # Student of a concluded course
-    given do |user|
-      (available? || completed?) && user &&
-        fetch_on_enrollments("has_completed_student_enrollment", user) do
-          enrollments.for_user(user).completed_by_date
+    given do |principal|
+      (available? || completed?) && principal &&
+        fetch_on_enrollments("has_completed_student_enrollment", principal.user) do
+          enrollments.for_user(principal.user).completed_by_date
                      .where("enrollments.type = ? OR (enrollments.type = ? AND enrollments.associated_user_id IS NOT NULL)", "StudentEnrollment", "ObserverEnrollment").exists?
         end
     end
     can :read, :read_grades, :read_outcomes, :read_as_member
 
     # Admin
-    given { |user| account_membership_allows(user) }
+    given { |principal| account_membership_allows(principal&.user) }
     can :read_as_admin and can :view_unpublished_items
 
-    given do |user|
-      account_membership_allows(user, :manage_courses_admin)
+    given do |principal|
+      account_membership_allows(principal&.user, :manage_courses_admin)
     end
     can %i[
       manage
@@ -2251,57 +2251,57 @@ class Course < ApplicationRecord
     ]
 
     # reset course content
-    given do |user|
-      !template? && account_membership_allows(user, :manage_courses_reset)
+    given do |principal|
+      !template? && account_membership_allows(principal&.user, :manage_courses_reset)
     end
     can :reset_content
 
     # delete or undelete a given course
-    given do |user|
-      !template? && account_membership_allows(user, :manage_courses_delete)
+    given do |principal|
+      !template? && account_membership_allows(principal&.user, :manage_courses_delete)
     end
     can :delete
 
-    given { |user| account_membership_allows(user, :read_course_content) }
+    given { |principal| account_membership_allows(principal&.user, :read_course_content) }
     can %i[read read_outcomes read_as_member]
 
     # Admins with read_roster can see prior enrollments (can't just check read_roster directly,
     # because students can't see prior enrollments)
-    given { |user| grants_all_rights?(user, :read_roster, :read_as_admin) }
+    given { |principal| grants_all_rights?(principal, :read_roster, :read_as_admin) }
     can :read_prior_roster
 
-    given do |user|
-      grants_right?(user, :manage_course_content_add) ||
-        (concluded? && grants_right?(user, :read_as_admin))
+    given do |principal|
+      grants_right?(principal, :manage_course_content_add) ||
+        (concluded? && grants_right?(principal, :read_as_admin))
     end
     can :direct_share
 
-    given do |user|
-      account.grants_right?(user, :manage_courses_admin) ||
-        (grants_right?(user, :manage) && !root_account.settings[:prevent_course_availability_editing_by_teachers])
+    given do |principal|
+      account.grants_right?(principal, :manage_courses_admin) ||
+        (grants_right?(principal, :manage) && !root_account.settings[:prevent_course_availability_editing_by_teachers])
     end
     can :edit_course_availability
 
-    given do |user|
+    given do |principal|
       # manage_feature_flags was extracted from the arrays where the :manage permission was granted.
       # When the Feature flag is disabled and the user has the :manage permission, this means they also have the :manage_feature_flags permission
       # Otherwise, also require the new permission
-      grants_right?(user, :manage) &&
-        (!account&.root_account&.feature_enabled?(:course_navigation_and_feature_options_permissions) || grants_right?(user, :manage_course_feature_options))
+      grants_right?(principal, :manage) &&
+        (!account&.root_account&.feature_enabled?(:course_navigation_and_feature_options_permissions) || grants_right?(principal, :manage_course_feature_options))
     end
     can :manage_feature_flags # match the permission name in the Account model (both models use the same controller)
 
-    given do |user|
-      grants_right?(user, :update) &&
-        (!account&.root_account&.feature_enabled?(:course_navigation_and_feature_options_permissions) || grants_right?(user, :manage_course_navigation))
+    given do |principal|
+      grants_right?(principal, :update) &&
+        (!account&.root_account&.feature_enabled?(:course_navigation_and_feature_options_permissions) || grants_right?(principal, :manage_course_navigation))
     end
     can :update_nav
 
-    given do |user|
+    given do |principal|
       if account&.root_account&.feature_enabled?(:course_navigation_and_feature_options_permissions)
-        grants_right?(user, :manage_course_details)
+        grants_right?(principal, :manage_course_details)
       else
-        grants_right?(user, :manage_course_content_edit)
+        grants_right?(principal, :manage_course_content_edit)
       end
     end
     can :update_course_details

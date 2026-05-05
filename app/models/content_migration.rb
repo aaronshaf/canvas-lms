@@ -76,8 +76,8 @@ class ContentMigration < ApplicationRecord
   end
 
   set_policy do
-    given do |user, session|
-      context.grants_any_right?(user, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS)
+    given do |principal, session|
+      context.grants_any_right?(principal, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS)
     end
     can :read
   end

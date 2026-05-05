@@ -720,58 +720,58 @@ class CalendarEvent < ApplicationRecord
   end
 
   set_policy do
-    given { |user, session| context.grants_right?(user, session, :read) } # students.include?(user) }
+    given { |principal, session| context.grants_right?(principal, session, :read) } # students.include?(user) }
     can :read
 
-    given do |user, session|
+    given do |principal, session|
       if appointment_group?
-        context.grants_right?(user, session, :read_appointment_participants)
+        context.grants_right?(principal, session, :read_appointment_participants)
       else
-        !hidden? || context.grants_right?(user, session, :manage_calendar)
+        !hidden? || context.grants_right?(principal, session, :manage_calendar)
       end
     end
     can :read_child_events
 
-    given { |user, session| parent_event && appointment_group? && parent_event.grants_right?(user, session, :manage) }
+    given { |principal, session| parent_event && appointment_group? && parent_event.grants_right?(principal, session, :manage) }
     can :read and can :delete
 
-    given { |user, session| appointment_group? && context.grants_right?(user, session, :manage) }
+    given { |principal, session| appointment_group? && context.grants_right?(principal, session, :manage) }
     can :manage
 
-    given do |user, session|
+    given do |principal, session|
       appointment_group? && (
-        grants_right?(user, session, :manage) ||
-        (context.grants_right?(user, :reserve) && context.participant_for(user).present?)
+        grants_right?(principal, session, :manage) ||
+        (context.grants_right?(principal, :reserve) && context.participant_for(principal&.user).present?)
       )
     end
     can :reserve
 
-    given do |user, session|
+    given do |principal, session|
       if account
-        context.grants_right?(user, session, :manage_account_calendar_events)
+        context.grants_right?(principal, session, :manage_account_calendar_events)
       else
-        context.grants_right?(user, session, :manage_calendar)
+        context.grants_right?(principal, session, :manage_calendar)
       end
     end
     can :read and can :create
 
-    given do |user, session|
+    given do |principal, session|
       (!locked? || context.is_a?(AppointmentGroup)) && !deleted? && (
       if account
-        context.grants_right?(user, session, :manage_account_calendar_events)
+        context.grants_right?(principal, session, :manage_account_calendar_events)
       else
-        context.grants_right?(user, session, :manage_calendar)
+        context.grants_right?(principal, session, :manage_calendar)
       end
     )
     end
     can :update and can :update_content
 
-    given do |user, session|
+    given do |principal, session|
       !deleted? && (
       if account
-        context.grants_right?(user, session, :manage_account_calendar_events)
+        context.grants_right?(principal, session, :manage_account_calendar_events)
       else
-        context.grants_right?(user, session, :manage_calendar)
+        context.grants_right?(principal, session, :manage_calendar)
       end
     )
     end

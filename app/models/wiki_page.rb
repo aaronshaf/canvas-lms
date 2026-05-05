@@ -428,22 +428,22 @@ class WikiPage < ApplicationRecord
   end
 
   set_policy do
-    given { |user, session| can_read_page?(user, session) }
+    given { |principal, session| can_read_page?(principal, session) }
     can :read
 
-    given { |user| user && can_edit_page?(user) }
+    given { |principal| principal && can_edit_page?(principal) }
     can :update_content and can :read_revisions
 
-    given { |user, session| user && wiki.grants_right?(user, session, :create_page) }
+    given { |principal, session| principal && wiki.grants_right?(principal, session, :create_page) }
     can :create
 
-    given { |user, session| user && can_edit_page?(user) && wiki.grants_right?(user, session, :update_page) }
+    given { |principal, session| principal && can_edit_page?(principal) && wiki.grants_right?(principal, session, :update_page) }
     can :update and can :read_revisions
 
-    given { |user, session| user && can_read_page?(user) && wiki.grants_right?(user, session, :delete_page) }
+    given { |principal, session| principal && can_read_page?(principal) && wiki.grants_right?(principal, session, :delete_page) }
     can :delete
 
-    given { |user, session| user && wiki.grants_right?(user, session, :manage_assign_to) }
+    given { |principal, session| principal && wiki.grants_right?(principal, session, :manage_assign_to) }
     can :manage_assign_to
   end
 

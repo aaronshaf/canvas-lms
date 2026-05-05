@@ -81,26 +81,26 @@ class Eportfolio < ApplicationRecord
   protected :assign_uuid
 
   set_policy do
-    given do |user|
-      user&.eportfolios_enabled? &&
-        !user.eportfolios.active.flagged_or_marked_as_spam.exists? &&
-        (user.has_enrollment? || user.account_membership?)
+    given do |principal|
+      principal&.user&.eportfolios_enabled? &&
+        !principal.user.eportfolios.active.flagged_or_marked_as_spam.exists? &&
+        (principal.user.has_enrollment? || principal.user.account_membership?)
     end
     can :create
 
     # User is the author and eportfolios are enabled (whether this eportfolio
     # is spam or not, the author can see it and delete it).
-    given { |user| active? && self.user == user && user.eportfolios_enabled? }
+    given { |principal| active? && user == principal&.user && principal&.user&.eportfolios_enabled? }
     can :read and can :delete
 
     # If an eportfolio has been flagged as possible spam or marked as spam, don't let the author
     # update it. If an admin marks the content as safe, the user will be able to make updates again,
     # but we don't want to let the user make changes before an admin can review the content.
-    given { |user| active? && self.user == user && user.eportfolios_enabled? && !spam? }
+    given { |principal| active? && user == principal&.user && principal&.user&.eportfolios_enabled? && !spam? }
     can :update and can :manage
 
     # The eportfolio is public, eportfolios are enabled, and it hasn't been flagged or marked as spam.
-    given { |_| active? && public && !spam? && self.user.eportfolios_enabled? }
+    given { |_| active? && public && !spam? && user.eportfolios_enabled? }
     can :read
 
     # The eportfolio is private and the user has access to the private link
@@ -110,17 +110,17 @@ class Eportfolio < ApplicationRecord
     given do |_, session|
       active? && session && session[:eportfolio_ids] &&
         session[:eportfolio_ids].include?(id) &&
-        !spam? && self.user.eportfolios_enabled?
+        !spam? && user.eportfolios_enabled?
     end
     can :read
 
-    given do |user|
-      self.user != user && active? && self.user&.grants_right?(user, :moderate_user_content)
+    given do |principal|
+      user != principal&.user && active? && user&.grants_right?(principal, :moderate_user_content)
     end
     can :read and can :moderate and can :delete and can :restore
 
-    given do |user|
-      self.user != user && deleted? && self.user&.grants_right?(user, :moderate_user_content)
+    given do |principal|
+      user != principal&.user && deleted? && user&.grants_right?(principal, :moderate_user_content)
     end
     can :restore
   end

@@ -178,13 +178,13 @@ class ContextExternalTool < ApplicationRecord
   end
 
   set_policy do
-    given do |user, session|
-      context.grants_right?(user, session, :manage_lti_edit)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_lti_edit)
     end
     can :read and can :update and can :update_manually
 
-    given do |user, session|
-      context.grants_right?(user, session, :manage_lti_delete)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_lti_delete)
     end
     can :read and can :delete
   end

@@ -93,32 +93,32 @@ class ContentExport < ApplicationRecord
 
   set_policy do
     # file managers (typically course admins) can read all course exports (not zip or user-data exports)
-    given do |user, session|
-      context.grants_any_right?(user, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS) &&
+    given do |principal, session|
+      context.grants_any_right?(principal, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS) &&
         NON_ADMIN_TYPES.exclude?(export_type)
     end
     can :read
 
     # admins can create exports of any type
-    given { |user, session| context.grants_right?(user, session, :read_as_admin) }
+    given { |principal, session| context.grants_right?(principal, session, :read_as_admin) }
     can :create
 
     # admins can read any export they created
-    given { |user, session| self.user.present? && self.user == user && context.grants_right?(user, session, :read_as_admin) }
+    given { |principal, session| user && user == principal&.user && context.grants_right?(principal, session, :read_as_admin) }
     can :read
 
     # all users can read zip/user data exports they created (in contexts they retain read permission)
     # NOTE: other exports may be created on their behalf that they do *not* have direct access to;
     # e.g. a common cartridge export created under the hood when a student creates a web zip export
-    given { |user, session| self.user.present? && self.user == user && NON_ADMIN_TYPES.include?(export_type) && context.grants_right?(user, session, :read) }
+    given { |principal, session| user && user == principal&.user && NON_ADMIN_TYPES.include?(export_type) && context.grants_right?(principal, session, :read) }
     can :read
 
     # non-admins can create zip or user-data exports, but not other types
-    given { |user, session| user.present? && NON_ADMIN_TYPES.include?(export_type) && context.grants_right?(user, session, :read) }
+    given { |principal, session| principal && NON_ADMIN_TYPES.include?(export_type) && context.grants_right?(principal, session, :read) }
     can :create
 
     # users can read exports that are shared with them
-    given { |user| user && user.content_shares.where(content_export: self).exists? }
+    given { |principal| principal&.user && principal.user.content_shares.where(content_export: self).exists? }
     can :read
   end
 

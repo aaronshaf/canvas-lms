@@ -42,25 +42,25 @@ class AssessmentQuestionBank < ApplicationRecord
   end
 
   set_policy do
-    given do |user, session|
-      context.grants_all_rights?(user, session, :read_question_banks, :manage_assignments_add)
+    given do |principal, session|
+      context.grants_all_rights?(principal, session, :read_question_banks, :manage_assignments_add)
     end
     can :read and can :create
 
-    given do |user, session|
-      context.grants_all_rights?(user, session, :read_question_banks, :manage_assignments_edit)
+    given do |principal, session|
+      context.grants_all_rights?(principal, session, :read_question_banks, :manage_assignments_edit)
     end
     can :read and can :update and can :manage
 
-    given do |user, session|
-      context.grants_all_rights?(user, session, :read_question_banks, :manage_assignments_delete)
+    given do |principal, session|
+      context.grants_all_rights?(principal, session, :read_question_banks, :manage_assignments_delete)
     end
     can :read and can :delete
 
-    given { |user, session| context.grants_right?(user, session, :read_question_banks) }
+    given { |principal, session| context.grants_right?(principal, session, :read_question_banks) }
     can :read
 
-    given { |user| user && assessment_question_bank_users.where(user_id: user).exists? }
+    given { |principal| principal && assessment_question_bank_users.where(user_id: principal.user).exists? }
     can :read
   end
 

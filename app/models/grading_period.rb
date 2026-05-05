@@ -59,9 +59,9 @@ class GradingPeriod < ApplicationRecord
 
   set_policy do
     %i[read create update delete].each do |permission|
-      given do |user|
+      given do |principal|
         grading_period_group.present? &&
-          grading_period_group.grants_right?(user, permission)
+          grading_period_group.grants_right?(principal, permission)
       end
       can permission
     end

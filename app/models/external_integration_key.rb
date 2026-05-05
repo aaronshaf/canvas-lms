@@ -47,10 +47,10 @@ class ExternalIntegrationKey < ApplicationRecord
   end
 
   set_policy do
-    given { |user| grants_right_for?(user, :read) }
+    given { |principal| grants_right_for?(principal&.user, :read) }
     can :read
 
-    given { |user| grants_right_for?(user, :write) }
+    given { |principal| grants_right_for?(principal&.user, :write) }
     can :write
   end
 

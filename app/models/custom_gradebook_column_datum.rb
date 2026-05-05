@@ -26,8 +26,8 @@ class CustomGradebookColumnDatum < ApplicationRecord
   validates :user_id, uniqueness: { scope: :custom_gradebook_column_id }
 
   set_policy do
-    given do |user|
-      custom_gradebook_column.grants_right? user, :manage
+    given do |principal|
+      custom_gradebook_column.grants_right? principal, :manage
     end
     can :update
   end

@@ -141,37 +141,37 @@ class Wiki < ApplicationRecord
   delegate :id, to: :context, prefix: true
 
   set_policy do
-    given { |user, session| context.grants_right?(user, session, :read) }
+    given { |principal, session| context.grants_right?(principal, session, :read) }
     can :read
 
-    given { |user, session| context.grants_right?(user, session, :view_unpublished_items) }
+    given { |principal, session| context.grants_right?(principal, session, :view_unpublished_items) }
     can :view_unpublished_items
 
-    given { |user, session| context.grants_right?(user, session, :participate_as_student) && context.respond_to?(:allow_student_wiki_edits) && context.allow_student_wiki_edits }
+    given { |principal, session| context.grants_right?(principal, session, :participate_as_student) && context.respond_to?(:allow_student_wiki_edits) && context.allow_student_wiki_edits }
     can :read and can :create_page and can :update_page
 
-    given do |user, session|
-      context.grants_right?(user, session, :manage_wiki_create)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_wiki_create)
     end
     can :read and can :create_page and can :view_unpublished_items
 
-    given do |user, session|
-      context.grants_right?(user, session, :manage_wiki_delete)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_wiki_delete)
     end
     can :read and can :delete_page and can :view_unpublished_items
 
-    given do |user, session|
-      context.grants_right?(user, session, :manage_wiki_update)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_wiki_update)
     end
     can :read and can :update and can :update_page and can :view_unpublished_items
 
     # Pages created by a user without this permission will be automatically published
-    given do |user, session|
-      context.grants_right?(user, session, :manage_wiki_update) && !context.is_a?(Group)
+    given do |principal, session|
+      context.grants_right?(principal, session, :manage_wiki_update) && !context.is_a?(Group)
     end
     can :publish_page
 
-    given { |user, session| user && context.is_a?(Course) && context.grants_right?(user, session, :manage_wiki_update) }
+    given { |principal, session| principal && context.is_a?(Course) && context.grants_right?(principal, session, :manage_wiki_update) }
     can :manage_assign_to
   end
 

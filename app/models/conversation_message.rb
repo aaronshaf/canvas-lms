@@ -147,7 +147,7 @@ class ConversationMessage < ApplicationRecord
   end
 
   set_policy do
-    given { |user, _| conversation_message_participants.where(user:).exists? }
+    given { |principal, _| conversation_message_participants.where(user: principal&.user).exists? }
     can :read
   end
 

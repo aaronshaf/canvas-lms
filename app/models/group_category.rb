@@ -560,12 +560,12 @@ class GroupCategory < ApplicationRecord
   end
 
   set_policy do
-    given do |user, session|
+    given do |principal, session|
       # For non_collaborative group_sets, we only give read access to users who can manage groups
-      if non_collaborative? && !context.grants_any_right?(user, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+      if non_collaborative? && !context.grants_any_right?(principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
         false
       else
-        context.grants_right?(user, session, :read)
+        context.grants_right?(principal, session, :read)
       end
     end
     can :read

@@ -57,7 +57,7 @@ class SisBatch < ApplicationRecord
   end
 
   set_policy do
-    given { |user| account.grants_any_right?(user, :manage_sis, :import_sis) }
+    given { |principal| account.grants_any_right?(principal, :manage_sis, :import_sis) }
     can :read
   end
 

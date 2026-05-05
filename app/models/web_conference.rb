@@ -507,35 +507,35 @@ class WebConference < ApplicationRecord
   scope :after, ->(date) { where("web_conferences.start_at IS NULL OR web_conferences.start_at>?", date) }
 
   set_policy do
-    given { |user, session| users.include?(user) && context.grants_right?(user, session, :read) }
+    given { |principal, session| users.include?(principal&.user) && context.grants_right?(principal, session, :read) }
     can :read and can :join
 
-    given { |user, session| users.include?(user) && context.grants_right?(user, session, :read) && long_running? && active? }
+    given { |principal, session| users.include?(principal&.user) && context.grants_right?(principal, session, :read) && long_running? && active? }
     can :resume
 
-    given { |user, session| context.grants_right?(user, session, :create_conferences) }
+    given { |principal, session| context.grants_right?(principal, session, :create_conferences) }
     can :create
 
-    given { |user, session| user && user.id == user_id && context.grants_right?(user, session, :create_conferences) }
+    given { |principal, session| principal&.user&.id == user_id && context.grants_right?(principal, session, :create_conferences) }
     can :initiate and can :close
 
-    given do |user, session|
-      user && context.grants_all_rights?(user, session, :manage_course_content_add, :create_conferences)
+    given do |principal, session|
+      context.grants_all_rights?(principal, session, :manage_course_content_add, :create_conferences)
     end
     can :read and can :join and can :initiate
 
-    given do |user, session|
-      user && context.grants_all_rights?(user, session, :manage_course_content_delete, :create_conferences)
+    given do |principal, session|
+      context.grants_all_rights?(principal, session, :manage_course_content_delete, :create_conferences)
     end
     can :read and can :join and can :delete and can :close
 
-    given do |user, session|
-      user && context.grants_all_rights?(user, session, :manage_course_content_edit, :create_conferences)
+    given do |principal, session|
+      context.grants_all_rights?(principal, session, :manage_course_content_edit, :create_conferences)
     end
     can :read and can :join and can :manage_recordings
 
-    given do |user, session|
-      user && !finished? && context.grants_all_rights?(user, session, :manage_course_content_edit, :create_conferences)
+    given do |principal, session|
+      !finished? && context.grants_all_rights?(principal, session, :manage_course_content_edit, :create_conferences)
     end
     can :update
   end

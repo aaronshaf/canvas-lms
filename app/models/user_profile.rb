@@ -84,10 +84,10 @@ class UserProfile < ApplicationRecord
   ].freeze
 
   set_policy do
-    given do |user, account|
-      return unless user
+    given do |principal, account|
+      return unless principal
 
-      user_roles = Lti::SubstitutionsHelper.new(account, account.root_account, user).all_roles
+      user_roles = Lti::SubstitutionsHelper.new(account, account.root_account, principal.user).all_roles
       user_roles.include?("urn:lti:instrole:ims/lis/Administrator")
     end
     can :view_lti_tool

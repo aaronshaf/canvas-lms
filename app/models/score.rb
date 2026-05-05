@@ -43,15 +43,15 @@ class Score < ApplicationRecord
   before_save :set_root_account_id
 
   set_policy do
-    given do |user, _session|
-      course.grants_any_right?(user, :manage_grades)
+    given do |principal, _session|
+      course.grants_any_right?(principal, :manage_grades)
     end
     can :read and can :update_custom_status
 
-    given do |user, _session|
-      (user&.id == enrollment.user_id && !course.hide_final_grades?) ||
-        course.grants_any_right?(user, :manage_grades, :view_all_grades) ||
-        enrollment.user.grants_right?(user, :read_as_parent)
+    given do |principal, _session|
+      (principal&.user&.id == enrollment.user_id && !course.hide_final_grades?) ||
+        course.grants_any_right?(principal, :manage_grades, :view_all_grades) ||
+        enrollment.user.grants_right?(principal, :read_as_parent)
     end
     can :read
   end

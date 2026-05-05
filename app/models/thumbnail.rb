@@ -37,19 +37,19 @@ class Thumbnail < ApplicationRecord
   before_save :set_namespace
 
   set_policy do
-    given { |user, session| attachment.grants_right?(user, session, :read) }
+    given { |principal, session| attachment.grants_right?(principal, session, :read) }
     can :read
 
-    given { |user, session| attachment.grants_right?(user, session, :download) }
+    given { |principal, session| attachment.grants_right?(principal, session, :download) }
     can :download
 
-    given { |user| attachment.grants_right?(user, :read) }
+    given { |principal| attachment.grants_right?(principal, :read) }
     can :read
 
-    given { |user| attachment.grants_right?(user, :download) }
+    given { |principal| attachment.grants_right?(principal, :download) }
     can :download
 
-    given { |user, session| attachment.grants_right?(user, session, :read_as_admin) }
+    given { |principal, session| attachment.grants_right?(principal, session, :read_as_admin) }
     can :read_as_admin
   end
 

@@ -38,7 +38,7 @@ class MigrationIssue < ApplicationRecord
   scope :by_created_at, -> { order(:created_at) }
 
   set_policy do
-    given { |user| Account.site_admin.grants_right?(user, :view_error_reports) }
+    given { |principal| Account.site_admin.grants_right?(principal, :view_error_reports) }
     can :read_errors
   end
 end

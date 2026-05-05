@@ -30,10 +30,10 @@ module LiveAssessments
     scope :for_user, ->(user) { where(user_id: user) }
 
     set_policy do
-      given { |user, session| assessment.grants_right?(user, session, :update) }
+      given { |principal, session| assessment.grants_right?(principal, session, :update) }
       can :create
 
-      given { |user, session| assessment.grants_right?(user, session, :read) }
+      given { |principal, session| assessment.grants_right?(principal, session, :read) }
       can :read
     end
   end

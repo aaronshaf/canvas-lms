@@ -28,7 +28,7 @@ class StandardGradeStatus < ApplicationRecord
   validates :root_account, presence: true
 
   set_policy do
-    given { |user, session| root_account&.grants_right?(user, session, :manage) }
+    given { |principal, session| root_account&.grants_right?(principal, session, :manage) }
     can :create and can :read and can :update
   end
 end

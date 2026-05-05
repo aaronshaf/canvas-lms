@@ -1494,54 +1494,54 @@ class Attachment < ApplicationRecord
     # know it exists), but to actually read the contents of the file,
     # you need download permissions.
     # TODO: Fix permissions to be more descriptive of what they actually do
-    given do |user, session|
-      context&.grants_right?(user, session, :manage_files_edit) &&
+    given do |principal, session|
+      context&.grants_right?(principal, session, :manage_files_edit) &&
         !associated_with_submission? &&
-        (!folder || folder.grants_right?(user, session, :manage_contents))
+        (!folder || folder.grants_right?(principal, session, :manage_contents))
     end
     can :read and can :update
 
-    given do |user, session|
-      context&.grants_right?(user, session, :manage_files_delete) &&
+    given do |principal, session|
+      context&.grants_right?(principal, session, :manage_files_delete) &&
         !associated_with_submission? &&
-        (!folder || folder.grants_right?(user, session, :manage_contents))
+        (!folder || folder.grants_right?(principal, session, :manage_contents))
     end
     can :read and can :delete
 
-    given do |user, session|
-      context&.grants_right?(user, session, :manage_files_add)
+    given do |principal, session|
+      context&.grants_right?(principal, session, :manage_files_add)
     end
     can :read and can :create and can :download and can :read_as_admin
 
     given { public? }
     can :read and can :download
 
-    given do |user, session|
-      user_can_read_through_context?(user, session, through_assessment: false)
+    given do |principal, session|
+      user_can_read_through_context?(principal&.user, session, through_assessment: false)
     end
     can :read
 
-    given { |user, session| context&.grants_right?(user, session, :read_as_admin) }
+    given { |principal, session| context&.grants_right?(principal, session, :read_as_admin) }
     can :read_as_admin
 
-    given do |user, session|
-      user_can_read_through_context?(user, session) && !locked_for?(user, check_policies: true)
+    given do |principal, session|
+      user_can_read_through_context?(principal&.user, session) && !locked_for?(principal&.user, check_policies: true)
     end
     can :read and can :download
 
-    given do |_user, session|
+    given do |_principal, session|
       (u = session.try(:file_access_user)) &&
         user_can_read_through_context?(u, session) &&
         session["file_access_expiration"] && session["file_access_expiration"].to_i > Time.zone.now.to_i
     end
     can :read
 
-    given do |user|
-      user && attachment_associations.joins(:submission).where(submissions: { user: }).exists?
+    given do |principal|
+      principal && attachment_associations.joins(:submission).where(submissions: { user: principal.user }).exists?
     end
     can :read
 
-    given do |_user, session|
+    given do |_principal, session|
       (u = session.try(:file_access_user)) &&
         user_can_read_through_context?(u, session) &&
         !locked_for?(u, check_policies: true) &&
@@ -1549,27 +1549,27 @@ class Attachment < ApplicationRecord
     end
     can :download
 
-    given do |user|
-      owner = self.user
-      context_type == "Assignment" && user == owner
+    given do |principal|
+      owner = user
+      context_type == "Assignment" && principal&.user == owner
     end
     can :attach_to_submission_comment
 
-    given do |user, session|
-      user &&
+    given do |principal, session|
+      principal &&
         context.is_a?(Course) &&
-        context.grants_right?(user, session, :manage_files_edit) &&
+        context.grants_right?(principal, session, :manage_files_edit) &&
         Account.site_admin.feature_enabled?(:differentiated_files)
     end
     can :manage_assign_to
 
-    given do |user|
-      grants_right?(user, :update)
+    given do |principal|
+      grants_right?(principal, :update)
     end
     can :add_captions
 
-    given do |user|
-      grants_right?(user, :update)
+    given do |principal|
+      grants_right?(principal, :update)
     end
     can :delete_captions
   end
