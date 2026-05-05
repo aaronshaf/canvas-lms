@@ -632,7 +632,7 @@ RSpec.configure do |config|
     def cause; end
 
     def backtrace
-      @error_report.backtrace.split("\n")
+      @error_report.backtrace&.split("\n")
     end
   end
 
