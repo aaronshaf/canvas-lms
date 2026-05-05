@@ -149,8 +149,6 @@ BASE_PERMISSIONS = {
     account_details: [
       { title: -> { I18n.t("Account Settings") },
         description: -> { I18n.t("Allows user to view and manage the Settings and Notifications tabs in Account Settings.") } },
-      { title: -> { I18n.t("Authentication") },
-        description: -> { I18n.t("Allows user to view and manage authentication options for the whole account.") } },
       { title: -> { I18n.t("Subaccounts") },
         description: -> { I18n.t("Allows user to view and manage subaccounts for the account.") } },
       { title: -> { I18n.t("Terms") },
@@ -167,6 +165,20 @@ BASE_PERMISSIONS = {
         description: -> { I18n.t("To view the Reports tab, Reports - manage must also be enabled.") } },
       { title: -> { I18n.t("Subaccount Navigation (Account Settings)") },
         description: -> { I18n.t("Not all settings options are available at the subaccount level, including the Notifications tab.") } }
+    ]
+  },
+  manage_authentication_provider: {
+    label: -> { I18n.t("Authentication Providers - manage") },
+    account_only: :root,
+    true_for: %w[AccountAdmin],
+    available_to: %w[AccountAdmin AccountMembership],
+    account_details: [
+      { title: -> { I18n.t("Authentication") },
+        description: -> { I18n.t("Allows user to add, edit, and delete authentication providers for the account.") } }
+    ],
+    account_considerations: [
+      { title: -> { I18n.t("Subaccounts") },
+        description: -> { I18n.t("Not available at the subaccount level.") } }
     ]
   },
   manage_alerts: {
@@ -1633,6 +1645,20 @@ BASE_PERMISSIONS = {
       { title: -> { I18n.t("Announcements") },
         description: -> { I18n.t("To add announcements, Discussions - moderate must also be enabled.") } },
       { description: -> { I18n.t("To view recent announcements on the home page, the Show recent announcements on Course home page checkbox must be selected in Course Settings.") } }
+    ]
+  },
+  read_authentication_provider: {
+    label: -> { I18n.t("Authentication Providers - read") },
+    account_only: :root,
+    true_for: %w[AccountAdmin],
+    available_to: %w[AccountAdmin AccountMembership],
+    account_details: [
+      { title: -> { I18n.t("Authentication") },
+        description: -> { I18n.t("Allows user to view authentication providers for the account.") } }
+    ],
+    account_considerations: [
+      { title: -> { I18n.t("Subaccounts") },
+        description: -> { I18n.t("Not available at the subaccount level.") } }
     ]
   },
   read_email_addresses: {

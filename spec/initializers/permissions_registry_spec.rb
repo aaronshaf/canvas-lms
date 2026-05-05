@@ -42,6 +42,38 @@ describe "Permission Registry" do
     )
   end
 
+  it "registers manage_authentication_provider as a root-only AccountAdmin permission" do
+    Rails.application.config.to_prepare_blocks.each(&:call)
+
+    perm = Permissions.retrieve[:manage_authentication_provider]
+    expect(perm).to include(
+      label: an_instance_of(Proc),
+      account_only: :root,
+      true_for: %w[AccountAdmin],
+      available_to: %w[AccountAdmin AccountMembership]
+    )
+  end
+
+  it "registers read_authentication_provider as a root-only AccountAdmin permission" do
+    Rails.application.config.to_prepare_blocks.each(&:call)
+
+    perm = Permissions.retrieve[:read_authentication_provider]
+    expect(perm).to include(
+      label: an_instance_of(Proc),
+      account_only: :root,
+      true_for: %w[AccountAdmin],
+      available_to: %w[AccountAdmin AccountMembership]
+    )
+  end
+
+  it "does not include Authentication in manage_account_settings account_details" do
+    Rails.application.config.to_prepare_blocks.each(&:call)
+
+    titles = Permissions.retrieve[:manage_account_settings][:account_details]
+                        .filter_map { |d| d[:title]&.call }
+    expect(titles).not_to include("Authentication")
+  end
+
   it "calls Permissions.retrieve after initialization" do
     expect(Permissions).to receive(:retrieve).and_call_original
 
