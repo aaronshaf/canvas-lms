@@ -231,6 +231,7 @@ zh-Hans:
     track_uploaded_successfully: 曲目已成功上载；请刷新您的浏览器。
     upload: 上传
     uploading: 正在上传...
+  _23978503: 。
   _2d4c0d31: …
   _5a374287: "..."
   __376f89ea: "--"
@@ -254,6 +255,7 @@ zh-Hans:
   a_canvas_security_token_was_just_generated_for_you_b03be18b: "刚才有人为您的帐户生成了 Canvas 安全令牌。您需要在此处激活该令牌才能使用它："
   a_canvas_security_token_was_just_generated_for_you_ef4021aa: "刚才有人为您的帐户生成了 Canvas 安全令牌。若您申请用户令牌，则无需采取进一步措施。您需要在此处激活该令牌才能使用它："
   a_canvas_security_token_was_just_generated_for_you_efeeac68: 刚刚为您的帐户生成Canvas安全令牌。若您申请用户令牌，则无需采取进一步措施。若您未申请令牌或想要管理您的Canvas访问令牌，您可在此操作：
+  a_category_cannot_have_more_than_limit_tags_b00eaf6d: "类别选项卡不能超过 %{limit} 个"
   a_comma_delimited_list_of_external_tools_urls_to_i_ffe707f2: "Drop Box 提交项计数”栏中需要包括的外部工具网址的逗号分隔的列表。"
   a_comma_delimited_list_of_user_ids_to_report_on_49e05a7: "要报告的 user_ids 的逗号分隔的列表"
   a_comma_delimited_string_containing_account_wide_a_b23cd19a: "包含要排除的帐户级 assignment_name 值的逗号分隔的字符串"
@@ -333,6 +335,7 @@ zh-Hans:
       K-5 帐户。
   a_single_certificate_file_e7f347f1: 单个证书文件
   a_sis_integration_is_not_configured_and_the_enable_3c560d89: "未配置 SIS 集成，且未启用“启用新 SIS 集成设置”功能"
+  a_source_file_failed_to_process_537beb59: 源文件处理失败
   a_sticker_with_a_picture_of_a_basketball_9660b3b8: 篮球图案的贴纸。
   a_sticker_with_a_picture_of_a_bell_2ff0210: 铃铛图案的贴纸。
   a_sticker_with_a_picture_of_a_book_2045caea: 书的图案的贴纸。
@@ -482,6 +485,8 @@ zh-Hans:
   access_denied_f922a9ff: 拒绝访问
   access_report_80d28095: 访问报告
   access_reports_66128235: 访问报告
+  access_requests_acb1610b: 访问请求
+  access_requests_approve_instructure_staff_access_99d40f01: "访问请求 - 批准 Instructure 工作人员访问"
   access_to_faculty_journal_will_end_on_deprecationd_a0774848: "教师期刊访问权限将于%{deprecationDate}结束。如有任何问题，请联系您的 Canvas 管理员。"
   access_to_these_tabs_requires_the_outcome_proficie_dd8ca732: "访问这些选项卡需要使用“结果熟练程度计算 - 添加/编辑”和“结果掌握程度量表 - 添加/编辑”权限。"
   access_token_3be22221: 访问令牌
@@ -524,6 +529,8 @@ zh-Hans:
   accessibility_checker_eap_912951a: "辅助功能检查器 EAP"
   accessibility_checker_ga2_features_e205d02c: "辅助功能检查器 GA2 功能"
   accessibility_checker_notifications_da5a49e6: 辅助功能检查器通知
+  accessibility_course_scans_fd2e5598: 辅助功能课程扫描
+  accessibility_course_statistics_dfaebbf5: 辅助功能课程统计
   accessibility_course_statistics_error_58ff7dda: 辅助功能课程统计错误
   accessibility_course_statistics_error_page_15a0ed4f: 辅助功能课程统计错误页面
   accessibility_documentation_a86a4120: 辅助功能文档
@@ -931,6 +938,7 @@ zh-Hans:
   account_standards_a657d5e2: 帐户标准
   account_statistics_2b52a1c9: 帐户统计
   account_surveys_b0039876: 帐户调查
+  account_tags_8e6aa4f5: 帐户选项卡
   account_user: 
     types: 
       account_admin: 帐户管理员
@@ -980,6 +988,7 @@ zh-Hans:
         consortium_can_create_own_accounts: 联盟管理员可以创建根帐户
         consortium_parent_account: 联盟母帐户
         enforce_access_consent: 需要学校管理员批准Instructure员工的访问权限
+        root_account_tier: 帐户等级：
         shard_per_account: 为每个新的根帐户创建新根帐户
       license: 许可证
       license_type: 许可类型
@@ -2467,6 +2476,8 @@ zh-Hans:
   activity_by_category_9c2033d1: 按类别划分的活动
   activity_by_date_878c5b49: 按日期划分的活动
   activity_compared_to_class_8133cb0: 活动与班级相比
+  activity_couldn_t_be_loaded_a_source_file_has_an_i_702eead7: "无法加载活动。源文件有问题。如需重试，请将 %{names} 移出 "
+  activity_couldn_t_be_loaded_a_source_file_has_an_i_fb1c3e40: "无法加载活动。源文件有问题。如需重试，请将 %{names} 移出您的配置"
   activity_report_e7982a49: 活动报告
   add_2nd_review_ea988088: 添加第2次审阅
   add_8523c19b: 添加
@@ -2492,6 +2503,7 @@ zh-Hans:
   add_a_new_outcome_group_e3fab2fc: 添加一个新结果小组
   add_a_new_user_9d041d3b: 添加新用户
   add_a_new_user_c440d053: 添加一个新用户
+  add_a_note_optional_42574f47: 添加备注（可选）。
   add_a_quiz_ip_filter_bfb8da4c: "添加测验 IP 筛选器"
   add_a_reviewer_for_the_selected_students_1c7b5d6f: 为选定的学生添加一个评审员
   add_a_section_to_start_your_page_9e67f320: 添加一个区域以启动您的页面
@@ -2645,6 +2657,7 @@ zh-Hans:
   add_new_row_for_a_letter_grade_to_grading_scheme_a_1472479e: 在此行后面添加新的行，用于字母评级方案
   add_new_set_of_due_dates_e8e240f: 添加新的截止日期
   add_new_term_d2217c0d: 添加新学期
+  add_note_optional_4b953c77: 添加备注（可选）
   add_observers_to_courses_6f494a29: 向课程添加观察员
   add_old_quiz_f4c546a: 添加旧测验
   add_other_calendar_c958e761: 添加其他日历
@@ -2735,6 +2748,9 @@ zh-Hans:
   add_your_assignments_you_can_just_make_a_long_list_8a7862dd: "添加您的作业。您可以只列一个长列表，或者将其分为几组 - 甚至可以为每个作业组指定权重。"
   add_your_zendesk_instance_s_custom_field_id_for_ea_3aeb75f4: "为以下每一项添加 Zendesk 实例的自定义字段 ID（没有 ID 的字段将不会记录在日志中）："
   added_caption_1895db92: 添加的标题
+  added_count_custom_data_fields_e892a741: 
+    one: "已添加 %{count} 个自定义数据字段"
+    other: "已添加 %{count} 个自定义数据字段"
   added_count_new_scopes_66caee03: 
     one: "已添加 %{count} 个新范围"
     other: "已添加 %{count} 个新范围"
@@ -2815,6 +2831,12 @@ zh-Hans:
   adds_menu_option_for_accessing_alignments_at_the_o_6d3bce6: 使用改进的结果管理在结果级别添加菜单选项用于访问作业
   adds_the_course_sis_id_if_present_to_the_additiona_2c0b759c: "在课程弹窗中的其他信息中添加课程 sis id（如果存在）"
   adds_the_option_to_grade_by_question_in_speedgrade_5eac06f3: "在 SpeedGrader 中为 Quizzes.Next 测验添加按问题评分的选项"
+  adds_three_different_permissions_for_more_granular_608df65d: |-
+      添加三个不同权限，以便更加精细地控制“课程设置”页。
+      每个权限控制“设置”页的一个选项卡。权限包括：
+        - 管理课程详情
+        - 管理课程导航
+        - 管理课程功能选项
   adds_visual_indicators_to_the_submission_details_p_c7b9d191: |-
       向提交详情页添加视觉指示符，以告诉学生
       存在未读的文档注释或评价量规说明
@@ -2822,6 +2844,7 @@ zh-Hans:
   adjacent_links_contain_the_same_url_15c7574c: "相邻链接包含相同的 URL。"
   adjust_events_and_due_dates_879744fc: 调整事件和截止时间
   adjust_final_grade_fa45e7e0: 调整最终成绩
+  adjust_your_filters_or_create_a_new_note_to_get_st_efb22044: 调整您的过滤器或创建新的笔记以开始。
   adjusting_due_dates_a5918b9c: 正在调整到期日期...
   admin_4d3ba42f: 管理员
   admin_analytics_course_readiness_c79f13e1: 管理分析-课程准备状态
@@ -3072,6 +3095,7 @@ zh-Hans:
   all_group_outcomes_25936010: 所有小组结果
   all_groups_cea25817: 所有组
   all_grouptitle_outcomes_dcc565d1: "所有 %{groupTitle} 结果"
+  all_hidden_assignments_d72ae1b9: 所有隐藏的作业
   all_image_types_allowed_9c65004d: 允许所有图像类型
   all_in_e5ddaee0: 全部加入
   all_items_a49b66c7: 所有项目
@@ -3084,6 +3108,7 @@ zh-Hans:
   all_my_files_a0213441: 我的所有文档
   all_my_sections_375248b3: 我的全部会话
   all_new_and_existing_users_in_the_sub_account_will_7ec9ca8d: 子帐户中的所有新用户和现有用户都将自动订阅所选日历。
+  all_notes_855f0602: 全部笔记
   all_notifications_6f482e61: 全部通知
   all_on_time_submissions_1c4bae93: 所有按时提交项
   all_outcomes_9f338636: 所有结果
@@ -3269,6 +3294,10 @@ zh-Hans:
   allows_account_course_level_mastery_scales_and_cal_da88d5a0: 允许帐户和课程级掌握程度量表和计算，取代按结果条件评级和计算方法
   allows_account_level_mastery_scales_and_proficienc_43899cf6: 允许帐户级别的掌握程度评分和熟练程度计算，取代按结果评分
   allows_admin_user_to_view_account_statistics_341f00d9: 允许管理员用户查看帐户统计信息。
+  allows_administrators_and_teachers_permissions_dep_901ea103: |-
+      允许管理员和教师（取决于权限）设置默认选项，以应用于新创建的讨论。
+      默认选项可以在“课程 > 讨论 > 设置”中进行设置。
+      另添加一个新权限用于修订讨论选项，以及另一个权限用于应用默认选项。
   allows_administrators_to_terminate_all_sessions_fo_81e86854: "允许管理员通过 UI 终止特定用户的所有会话"
   allows_admins_to_create_a_dsr_export_to_comply_wit_f1e9f23e: "允许管理员创建 DSR 导出，以满足用户的关于 Canvas 的信息请求。"
   allows_admins_to_create_events_in_root_and_sub_acc_2c634df: 允许管理员在根帐户和子帐户日历中创建事件，让帐户中的每个人都可以看到。
@@ -3280,6 +3309,7 @@ zh-Hans:
   allows_an_account_administrator_to_access_the_regu_cb8b4be: 允许帐户管理员访问智能见解的常规和实质性互动见解功能。
   allows_an_account_administrator_to_access_the_stud_4fd1f2d3: 允许帐户管理员访问智能见解的“需要关注的学生”功能。
   allows_an_account_administrator_to_access_the_titl_dc72ed14: 允许帐户管理员访问智能见解中的《高等教育法》第四章助学金报告。
+  allows_an_account_administrator_to_approve_instruc_cd7010c8: "允许帐户管理员批准 Instructure 支持人员的访问请求。"
   allows_an_account_administrator_to_manage_the_impa_71112028: "允许帐户管理员管理 Impact 服务集成。"
   allows_ask_your_data_users_to_access_and_manage_th_5aedc7d3: "允许“询问您的数据”用户访问和管理产品的上下文库功能，以影响和定制对所有用户的 AI 响应。"
   allows_ask_your_data_users_to_access_and_modify_th_2e4b1225: "允许“询问您的数据”用户访问和修改产品的上下文库功能，以影响和定制对所有用户的 AI 响应。"
@@ -3318,6 +3348,11 @@ zh-Hans:
   allows_learning_outcomes_to_be_selectable_when_mig_acf15555: 允许在迁移课程内容时可选择学习结果
   allows_lti_tools_with_assignment_edit_placement_to_2be71949: "允许在公告页上启动具有 assignment_edit 位置的 LTI 工具"
   allows_modifying_notification_settings_for_any_cou_5004ac71: 允许从帐户级通知设置页面中修改任何课程的通知设置。
+  allows_peer_reviewers_with_read_permission_on_a_su_3bbb19e2: |-
+      允许对提交项具有读权限的互评人
+      下载附件，即便该文件处于锁定状态。
+      若禁用此选项，锁定文件将回退到标准
+      locked_for? 校验。
   allows_result_data_stored_in_the_outcomes_service__69c12c18: "允许结果数据存储在结果服务中，以显示在 Canvas 报告（LMGB、sLMGB 和与结果相关的管理员报告）中。"
   allows_setting_account_course_level_mastery_scales_1939e0fd: 允许设置帐户和课程级掌握程度量表和计算方法，取代按结果标准等级和计算方法
   allows_setting_criterion_ratings_and_calculation_m_24542321: 允许为个别结果设置标准评级和计算方法选项。
@@ -3348,8 +3383,15 @@ zh-Hans:
   allows_the_missing_policy_applicator_to_emit_submi_338a9bb7: "允许缺失的政策申请人为每个标记为缺失的提交项发出 submission_updated 个实时活动。"
   allows_the_scheduling_of_recurring_calendar_events_aac71007: 允许日历的活动日程安排反复出现
   allows_the_tool_to_be_selected_when_creating_confe_de8a130f: 允许在创建会议时选择该工具。
+  allows_the_user_to_edit_anonymous_discussion_setti_c4a16d10: 允许用户编辑匿名讨论设置。
+  allows_the_user_to_edit_discussion_options_threade_8b8bf23a: 允许用户编辑讨论选项（帖子回复、播客、点赞等）。
+  allows_the_user_to_edit_discussion_view_settings_s_94936ae7: 允许用户编辑讨论视图设置（排序、帖子状态）。
+  allows_the_user_to_edit_the_course_details_tab_in__b5910728: 允许用户编辑“课程设置”页面中的“课程详情”选项卡。
   allows_the_user_to_navigate_away_while_submission__276d73b7: 允许用户在处理提交项重新上传时离开此页面
   allows_the_user_to_perform_bulk_actions_enroll_del_aea30da4: 允许用户对“人员”页面上列出的用户执行批量操作（注销、删除或暂停）。
+  allows_the_user_to_reorder_enable_or_disable_items_a31527b9: 允许用户在课程导航中重新排序、启用或禁用项目。
+  allows_the_user_to_toggle_the_state_of_feature_opt_fef3a327: 允许用户在课程设置中切换功能选项的状态。
+  allows_the_user_to_toggle_whether_or_not_a_newly_c_ff855589: 允许用户切换是否对新创建的讨论应用选定的默认选项。
   allows_uer_to_delete_a_submission_file_5302db48: 允许用户删除提交项文件。
   allows_use_of_full_screen_width_without_the_new_us_ca4e8006: |-
       允许使用全屏宽度，而不启用新用户教程功能。
@@ -4068,6 +4110,7 @@ zh-Hans:
   alt_text_c12d1c1c: "Alt 文本"
   alt_text_can_not_be_a_filename_69a7c3f5: 替代文本不能是文件名。
   alt_text_fixed_c196a7a9: 替代文本已修复
+  alt_text_generated_alttext_d4fc6550: "生成替代文本：%{altText}"
   alt_text_info_a69ad74: 替代文本信息
   alt_text_is_a_description_of_an_image_only_visible_7b64498c: |-
       替代文本是仅对屏幕朗读器可见的图像的描述。
@@ -4101,6 +4144,7 @@ zh-Hans:
   amharic_f36b6491: 阿姆哈拉语
   ams_enhanced_rubrics_8736a8a3: "AMS 增强的评价量规"
   ams_experimental_advanced_content_organization_3f661594: "AMS 实验高级内容组织功能"
+  an_account_cannot_have_more_than_limit_tag_categor_656475b8: "帐户的选项卡类别不能超过 %{limit} 个"
   an_active_role_already_exists_with_that_name_205864bf: 已存在具有该名称的活动身份
   an_alert_is_generated_for_each_student_that_meets__c36e3561: 为符合所有条件的每位学生生成警报。每天都会检查，并且在解决触发问题之前，将向学生、老师和/或帐户管理员发送通知。
   an_alert_is_generated_for_each_student_that_meets__fcd175ac: 为符合所有条件的每位学生生成警报。每天都会对其进行检查，并向学生和/或教师发送通知，直到触发问题得到解决。
@@ -4593,12 +4637,17 @@ zh-Hans:
   app_installed_successfully_279cb1a7: 应用程序已成功安装
   app_installed_successfully_462cb60: 已成功安装应用程序！
   app_installed_successfully_94ddd6f1: 应用程序已成功安装。
+  app_is_allowed_81221a85: 已允许应用
   app_is_locked_a46ca37b: 应用程序已锁定
+  app_is_off_344af9f1: 已关闭应用
+  app_is_on_c102c676: 已开启应用
   app_is_unlocked_d8ce4417: 应用程序已解锁
   app_locked_successfully_a6dc723c: 应用程序已成功锁定。
   app_name_3f58de4f: 应用程序名称
   app_placements_6d877225: 应用程序安置
   app_reregistration_87cc8817: 应用程序登记
+  app_turned_off_61a37b8: 应用已关闭。
+  app_turned_on_bd5e0576: 应用已开启。
   app_unlocked_successfully_88183336: 应用程序已成功解锁。
   app_updated_successfully_6c353a8e: 应用程序已成功更新！
   app_was_installed_by_admin_and_is_locked_3bee4d39: "%{app} 由管理员安装并已锁定"
@@ -4658,6 +4707,8 @@ zh-Hans:
   applied_cc7be774: 已申请
   applied_filters_63a90ccd: 应用的过滤器：
   applies_account_branding_to_confetti_splashes_c5989dce: 将帐户品牌应用于放礼花效果
+  applies_only_to_descendants_e9e1eecb: 仅应用于下级
+  applies_only_to_self_419ac349: 仅应用于本身
   apply_781a2546: 应用
   apply_changes_b1dffc70: 应用更改
   apply_conditions_9e941010: 应用条件
@@ -4674,10 +4725,12 @@ zh-Hans:
   apply_score_1edd7cda: 应用分数
   apply_score_to_ungraded_afd025d0: 对未评分的提交项应用分数
   apply_settings_10409ad9: 应用设置
+  apply_the_following_options_to_newly_created_discu_186de2ea: 对新创建的讨论应用以下选项
   apply_theme_7af08387: 应用主题
   apply_theme_bb31ac83: 应用主题
   apply_theme_confirmation_16604b04: 确认应用主题
   apply_to_92f70c8c: 应用到：
+  apply_to_a1b25dc1: 应用于...
   applying_changes_976b8b1e: 应用更改
   applying_new_styles_to_subaccounts_e8aeeef2: 应用新样式的子帐户
   applying_please_be_patient_f7b5f244: 正在使用中，请耐心等待
@@ -5094,6 +5147,7 @@ zh-Hans:
   assignment_does_not_accept_this_submission_type_38a55c27: 作业不接受此提交类型
   assignment_does_not_exist_74178c34: 作业不存在
   assignment_does_not_have_peer_reviews_enabled_47f74b42: 作业未启用互评
+  assignment_due_date_cannot_be_before_assignment_av_15810c99: 作业截止日期不能早于作业起始日期
   assignment_due_date_cannot_be_before_assignment_un_998e9322: 作业截止日期不能早于作业解锁日期
   assignment_duration_3dffce72: 作业持续时间
   assignment_edit_6dced39f: 作业编辑
@@ -6307,6 +6361,13 @@ zh-Hans:
   available_from_availabledate_until_untildate_f27b70aa: "从 %{availableDate} 到 %{untilDate} 可用"
   available_from_date_43b5e11d: 开始日期
   available_from_date_afc594fa: 开始日期：
+  available_from_date_cannot_be_after_due_date_79301945: 起始日期不能晚于到期日期
+  available_from_date_cannot_be_after_reply_to_topic_1a2cd950: 起始日期不能晚于回复主题的到期日期
+  available_from_date_cannot_be_after_required_repli_fcfa8021: 起始日期不能晚于必须回复的到期日期
+  available_from_date_cannot_be_after_until_date_fcffb360: 起始日期不能晚于截止日期
+  available_from_date_cannot_be_before_course_start_ac67d96c: 起始日期不能早于课程开始日期
+  available_from_date_cannot_be_before_section_start_90e3e198: 起始日期不能早于班次开始日期
+  available_from_date_cannot_be_before_term_start_42c290d: 起始日期不能早于学期开始日期
   available_from_date_must_precede_available_until_c9f9e533: “开始日期”必须早于“截止日期”
   available_from_f84e4611: 开始时间
   available_from_field_for_styleguide_7ced3861: 开始时间的字段格式
@@ -7468,6 +7529,7 @@ zh-Hans:
   cannot_be_empty_when_course_id_is_nil_and_account__ca96a97e: "当课程_ID 和账户_ID 均为无效时，则不能为空白"
   cannot_be_nil_when_account_id_is_nil_be6d1d60: "当 account_id 是零时就不能为零"
   cannot_be_nil_when_course_id_is_nil_f539388: "当 course_id 是零时就不能为零"
+  cannot_be_not_graded_for_peer_review_sub_assignmen_392bbdf3: "互评子作业不能是 not_graded"
   cannot_be_present_when_account_id_is_present_f7d9b51f: account_id，不能呈现。
   cannot_be_present_when_course_id_is_present_785e6a59: course_id，不能呈现。
   cannot_be_published_cc8a13af: 无法发布
@@ -7514,6 +7576,7 @@ zh-Hans:
   cannot_move_scheduler_appointments_between_calenda_253e5ea3: 无法在日历之间移动日程计划预约
   cannot_observe_user_with_another_user_that_is_bein_f2773e49: 无法使用正在被当前用户观察的另一名用户来观察用户
   cannot_publish_block_templates_61db9f37: 无法发布板块模板。
+  cannot_publish_remove_the_failed_source_file_and_s_83dad6ce: 无法发布：请删除失败的源文件后再次保存
   cannot_publish_source_files_are_still_processing_3b9bc0ce: "无法发布 - 源文件仍在处理中"
   cannot_publish_source_files_are_still_processing_a68db351: "无法发布 : 源文件仍在处理中"
   cannot_publish_while_source_files_are_still_proces_ef5c9003: 源文件仍在处理中，因此无法发布
@@ -7864,6 +7927,7 @@ zh-Hans:
   changed_by_person_c39615e: "更改者：%{person}"
   changed_from_oldprivacylevel_3eef0335: "更改前：*%{oldPrivacyLevel}*"
   changed_item_1d16a85f: 更改的项目
+  changed_privacy_level_to_level_3368c5c8: "将隐私级别改为 %{level}"
   changed_to_6d49d6a9: 更改后：
   changed_to_level_db733c2e: "已更改为 %{level}"
   changes_by_username_on_date_e1b3ec1a: "%{userName}于%{date}进行了更改"
@@ -8247,6 +8311,7 @@ zh-Hans:
   close_help_tray_bb1299f6: 关闭帮助托盘。
   close_modal_4d1e5368: 关闭模态
   close_move_tray_8609e988: 关闭移动托盘
+  close_notebook_panel_4c7f567c: 关闭笔记本面板
   close_opportunity_center_popup_9907d981: 关闭机会中心弹出窗口
   close_peer_comments_94453a35: 关闭互评评论
   close_peer_review_configuration_tray_2a5c2382: 关闭互评配置托盘
@@ -8657,7 +8722,7 @@ zh-Hans:
     differentiation_tags_settings: "https://community.canvaslms.com/t5/Differentiation-Tags/Differentiation-Tags-FAQ/ta-p/639336#toc-hId-278849060"
     guides_by_product: "https://community.canvaslms.com/t5/Guides/ct-p/guides"
     guides_home: "https://community.instructure.com/en/all-guides"
-    idea_conversations: "https://community.canvaslms.com/t5/Idea-Conversations/idb-p/ideas"
+    idea_conversations: "https://community.instructure.com/en/categories/product-connection"
     instructor_add_announcement: "https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-add-an-announcement-in-a-course/ta-p/1194"
     instructor_add_dashboard_image: "https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-add-an-image-to-a-course-card-in-the-Dashboard/ta-p/624"
     instructor_add_module: "https://community.canvaslms.com/t5/Instructor-Guide/How-do-I-add-a-module/ta-p/1151"
@@ -8915,6 +8980,7 @@ zh-Hans:
   configuration_location_ee0f6592: 配置位置
   configuration_type_25a084a4: 配置类型
   configuration_update_history_9c760033: 配置更新历史记录
+  configuration_updates_applied_to_appname_25b06b78: "配置更新已应用到 %{appName}"
   configuration_updates_applied_to_appname_5eaeff99: "配置更新已应用到 *%{appName}*"
   configurations_e6f92f1c: 配置
   configure_a_native_canvas_discovery_page_when_enab_16ea737e: "配置原生 Canvas 发现页。启用后，此页面将不会显示发现 URL，而是显示首个列出的身份验证方式。您可以在启用此页面之前对它进行配置，这样的话，启用此页码就不会删除上面保存的发现 URL。此页面将自动从主题编辑器继承您的登录页品牌。"
@@ -8934,6 +9000,7 @@ zh-Hans:
   configure_run_ad23fd92: 配置运行...
   configure_settings_for_toolname_10f51f11: "配置 %{toolName} 的设置。"
   configure_sign_in_options_4888ab31: 配置登录选项
+  configure_sign_in_options_831ce636: 配置登录选项
   configure_the_identity_service_discovery_page_when_5384c24f: "配置身份服务发现页。启用后，此页面将在 /登录/发现 时替代默认的发现体验。"
   configure_tool_app_3b1bb50b: "要配置 %{tool} 应用程序吗？"
   configure_toolname_app_651371be: "配置 %{toolName} 应用程序"
@@ -9287,10 +9354,12 @@ zh-Hans:
   content_migrations_8dd91d4f: 内容迁移
   content_migrations_c2841e9f: 内容迁移
   content_must_be_restricted_7ac7fd25: 内容必须受到限制
+  content_must_not_be_empty_af6255ec: 内容不能为空。
   content_name_4607507c: 内容名称
   content_name_fe0424ba: 内容名称
   content_not_available_7b2e004: 内容不可用
   content_on_this_page_violates_the_security_policy__25685d8a: 此页面的内容违反了安全策略，请联系管理员寻求帮助。
+  content_privacy_settings_7a5ae6: 内容隐私设置
   content_quality_753a703a: 内容质量
   content_security_policy_3bb8d922: 内容安全策略
   content_security_policy_settings_3e87fcb2: 内容安全策略设置
@@ -9843,6 +9912,7 @@ zh-Hans:
         unsubscribe: 取消订阅
       inbox_actions_description: 消息操作菜单
       read_more: 更多...
+    conversation_not_found: 对话不存在或您没有访问权限。
     course_options: 
       course_options: 
         concluded: 已结束
@@ -10239,6 +10309,7 @@ zh-Hans:
     other: "%{count} 项已选定"
   count_items_would_be_deleted_and_exceeds_the_set_t_a4a21dbe: "%{count} 项目将被删除并超出设定的阈值%{change_threshold}%"
   count_less_e65e028b: "减少 %{count} 个"
+  count_max_sign_in_options_added_b9cb301b: "已添加 %{count}/%{max} 个登录选项。"
   count_max_students_2db76773: "%{count} / %{max} 学生"
   count_max_users_bdebb537: "%{count} / %{max} 用户"
   count_maxlength_characters_entered_78c22ac9: 
@@ -10632,6 +10703,7 @@ zh-Hans:
   course_default_fd054879: （课程默认）
   course_default_grading_scheme_6b902d8: 课程默认评分方案
   course_details_25cdf103: 课程详细信息
+  course_details_navigation_and_feature_options_perm_de6e9446: 课程详情、导航和功能选项权限
   course_discussions_38c0b74f: 课程讨论
   course_does_not_exist_32ed9246: 课程不存在
   course_end_date_4c797823: 课程结束日期
@@ -10981,6 +11053,7 @@ zh-Hans:
   course_settings_for_coursename_e1ebf2e1: "%{courseName} 的课程设置"
   course_settings_sections_tab_4ae03a9a: 课程设置（“班次”选项卡）：
   course_settings_sub_navigation_b95deae: 课程设置的子导航
+  course_settings_were_not_imported_because_your_rol_973d2e34: 您的角色被限制修改课程设置，因此未能导入课程设置。
   course_setup_checklist_78dcff7e: 课程设置清单
   course_setup_checklist_course_home_page_f8baa04a: 课程设置清单，课程主页
   course_setup_wizard_is_showing_a7c087c1: 课程设置向导正在显示。
@@ -12036,6 +12109,8 @@ zh-Hans:
   current_theme_62e5e8cf: 目前主题
   current_total_67bf5f72: 当前总分：
   current_total_f67ec19d: 当前总计
+  current_total_learning_targets_67b0cbc5: "%{current}/%{total} 个学习目标"
+  current_total_learning_targets_met_1b9cef06: "%{current}/%{total} 个学习目标达成"
   current_total_score_is_higher_than_cutoff_c11e90b8: "当前总分高于 %{cutoff}%"
   current_total_score_is_higher_than_cutoff_f2ef8ae: "当前总分高于 %{cutoff}"
   current_total_score_is_lower_than_cutoff_5f78d46: "当前总分低于 %{cutoff}"
@@ -12410,6 +12485,7 @@ zh-Hans:
   default_course_pacing_d18b6cda: 默认的课程进度
   default_date_will_be_today_s_date_4f85dcdc: 以今天的日期为默认日期
   default_dates_a0a2ae26: 默认日期
+  default_discussion_options_8ce56ed4: 默认讨论选项
   default_discussion_view_options_31ec12b2: 默认讨论视图选项
   default_due_time_9d0e9140: 默认截止时间
   default_email_5cb9fa04: 默认电子邮件：
@@ -12427,6 +12503,7 @@ zh-Hans:
   default_question_bank_c7bcc5e7: 默认题库
   default_question_name: 问题
   default_question_text: 问题文本
+  default_settings_8082e6ab: 默认设置
   default_sis_sync_for_assignments_quizzes_grade_dis_3b2b4878: "作业、测验和评分讨论的默认 SIS Sync"
   default_skin_tone_f378d31c: 默认肤色
   default_sort_order_323b8d6: 默认排序
@@ -12547,6 +12624,7 @@ zh-Hans:
   delete_name_81c1b5b2: "删除%{name}"
   delete_name_94088f7c: "删除 %{name}"
   delete_name_calendar_ed00f8be: "删除%{name}日历"
+  delete_note_dfb62f21: 删除注释
   delete_operation_failed_3db8cd19: 删除操作失败
   delete_outcome_cc6546f1: 删除结果
   delete_outcome_group_6b399d34: 删除结果小组
@@ -12735,6 +12813,7 @@ zh-Hans:
   deprioritize_section_overrides_for_nonactive_enrol_9aa72d60: 降低“班次覆盖不活跃的注册”的优先级
   depth_3f96b530: 深度
   desc_12ad2869: "%{desc}"
+  descendants_c1c8fd06: 下级
   descending_b7828162: 降序
   descending_scores_2c3bf434: 按分数降序排列
   describe_the_ai_experience_c07fe581: "描述 AI 体验"
@@ -13344,6 +13423,7 @@ zh-Hans:
       my_settings: 我的设置
   discussion_topics_b35ac745: 讨论主题
   discussion_topics_b4f6c273: 讨论主题
+  discussion_topics_were_not_imported_because_your_r_7366b497: 您的角色被限制修改讨论设置，因此未能导入讨论主题。
   discussion_topics_will_not_query_permissions_for_e_7570e632: 讨论话题不会询问每个分组讨论的权限
   discussion_unpinned_successfully_2cb6d951: 已成功取消固定讨论
   discussionmention_ebaca35a: 讨论提及
@@ -13441,11 +13521,15 @@ zh-Hans:
   discussions_announcements_redesign_901c5528: 讨论/公告重新设计
   discussions_announcements_redesign_anonymity_bbe1e4a2: "讨论/公告重新设计 - 匿名"
   discussions_announcements_redesign_partial_anonymi_86f14c2f: "讨论/公告重新设计 - 部分匿名"
+  discussions_apply_default_options_78f01eaa: "讨论 - 应用默认选项"
   discussions_count_items_c2c381a3: 
     one: "讨论（%{count} 项）"
     other: "讨论（%{count} 项）"
   discussions_create_94dff604: "讨论 - 创建"
   discussions_document_processor_9a1ae44d: 讨论文档处理器
+  discussions_edit_anonymous_discussion_28fccb1b: "讨论 - 编辑匿名讨论"
+  discussions_edit_options_7c1806ba: "讨论 - 编辑选项"
+  discussions_edit_view_da88eca5: "讨论 - 编辑视图"
   discussions_in_coursename_3ad7148c: "%{courseName} 中的讨论"
   discussions_index_menu_42591bc9: 讨论索引菜单
   discussions_menu_f18eb4a2: 讨论菜单
@@ -13745,12 +13829,16 @@ zh-Hans:
   due_date_at_time_3ec54b07: "截止于 %{date}，%{time}"
   due_date_bf4eaf46: "截止%{date}"
   due_date_cannot_be_after_assignment_lock_date_fa947e1f: 截止日期不能晚于作业锁定日期
+  due_date_cannot_be_after_assignment_until_date_a2d8c7e8: 到期日期不能晚于作业截止日期
   due_date_cannot_be_after_course_end_fd128a14: 到期日期不能晚于课程结束日期
   due_date_cannot_be_after_lock_date_675b30aa: 截止日不能在锁定日之后。
   due_date_cannot_be_after_section_end_b0f54388: 到期日期不能晚于班级结束日期
   due_date_cannot_be_after_term_end_5d504cb1: 到期日期不能晚于学期结束日期
+  due_date_cannot_be_after_until_date_df6c6dde: 到期日期不能晚于截止日期
+  due_date_cannot_be_before_assignment_available_fro_46e4d30c: 到期日期不能早于作业可用日期
   due_date_cannot_be_before_assignment_due_date_bbe901d2: 截止日期不能早于作业截止日期
   due_date_cannot_be_before_assignment_unlock_date_70ec6128: 截止日期不能早于作业解锁日期
+  due_date_cannot_be_before_available_from_date_5b83699: 到期日期不能早于可用日期
   due_date_cannot_be_before_course_start_ecc523ba: 到期日期不能早于课程开始日期
   due_date_cannot_be_before_section_start_f8950484: 到期日期不能早于班级开始日期
   due_date_cannot_be_before_term_start_ea660b2c: 到期日期不能早于学期开始日期
@@ -13988,6 +14076,7 @@ zh-Hans:
   edit_naming_9c05ee26: 编辑命名
   edit_new_internal_setting_name_ce308469: 编辑新的内部设置名称
   edit_new_internal_setting_value_f618a7f4: 编辑新的内部设置值
+  edit_note_26707260: 编辑笔记
   edit_outcome_867a0381: 编辑结果
   edit_outcome_group_f82e0210: 编辑结果小组
   edit_page_5df5916a: 编辑页面
@@ -14037,6 +14126,7 @@ zh-Hans:
   edit_rule_modal_9d4969c5: 编辑规则模态弹框
   edit_section_name_558cc89: "编辑班级“%{name}”"
   edit_sections_7d0e4e34: 编辑班级
+  edit_settings_b3ddad69: 编辑设置
   edit_settings_for_title_fb55e398: "编辑 %{title} 的设置"
   edit_status_612572db: 编辑状态
   edit_status_dialog_for_editbuttonlabel_7e829fbd: "编辑 %{editButtonLabel} 的状态对话"
@@ -14304,6 +14394,7 @@ zh-Hans:
   enable_the_rich_content_editor_to_resize_editor_s__27e33ace: |-
       启用富内容编辑器，以调整编辑器的大小使其方便访问。
       这样允许用户在不影响无障碍功能的情况下调整编辑器的大小。
+  enable_the_root_account_tier_setting_under_the_roo_dbd530b2: 在根帐户设置下启用根帐户等级设置
   enable_the_security_tab_on_the_settings_page_to_ad_eab7c954: "启用设置页上的安全标签，以调整 CSP 设置"
   enable_this_to_include_instructure_identity_pseudo_8c5ee77c: "启用此选项以包括来自返回假名的 API 的 Instructure Identity 假名。"
   enable_to_allow_automated_onboarding_operations_to_3ee53da3: "启用允许自动注册操作使进行面向用户的更改（例如，开启新版登录 UI）。"
@@ -14325,6 +14416,8 @@ zh-Hans:
       从而防止引发 OAuth 随机数不匹配错误。
   enable_to_dynamically_adjust_redirect_rate_for_aut_91983fae: "启用此选项以动态调整来自 DD webhook 的身份验证提供者的跳转率。"
   enable_to_have_instructure_identity_be_the_primary_d3629ce3: "启用将 Instructure Identity 作为 Canvas 的主要身份验证服务提供商。"
+  enable_to_include_canvas_user_ids_in_the_user_data_13dc7c6c: "启用以将 Canvas 用户 ID 包含在用户数据中同步到 Instructure Identity。"
+  enable_to_include_salesforcebillingcountrycode_and_2ca0f294: "启用以将 salesforceBillingCountryCode 和 salesforceOrgType 包含在帐户数据中同步到 Instructure Identity。"
   enable_to_include_third_party_auth_provider_identi_751a7c95: 启用以在同步有效负载中包括第三方身份验证提供者标识符
   enable_to_include_two_credentials_one_of_implicitp_de9cef44: "允许在用户同步有效负载中包含两个凭证：implicitProvider 和 canvas 凭证。"
   enable_to_sync_account_account_settings_and_accoun_ef7832e3: 启用同步帐户、帐户设置和帐户信任
@@ -14417,6 +14510,7 @@ zh-Hans:
   enables_sending_additional_parameters_client_id_po_8be6c5f8: "启用在退出 Canvas 时发送更多参数（client_id、post_logout_redirect_uri 和 id_token_hint）到 `end_session_endpoint`。"
   enables_sending_metrics_when_the_comment_bank_item_310e4575: "在 user_type.comment_bank_items_connection 上使用 `comment_bank_items_count` 解析器时启用发送指标。"
   enables_sending_metrics_when_the_limit_argument_is_a4c63beb: "在 user_type.comment_bank_items_connection 上使用 `limit` 参数时启用发送指标。"
+  enables_sending_user_pii_and_impact_specific_field_e6762522: "启用向 Pendo 发送新用户及转化用户的用户 PII 与特定于 Impact 的字段数据。常规 Pendo 数据传输通过单独的功能选项进行管理。"
   enables_siteadmin_users_to_configure_release_notes_96c7a7e8: 允许站点管理员用户将发行说明设置为“对用户显示”
   enables_skill_management_in_canvas_career_f88a6a76: "在 Canvas Career 中启用技能管理。"
   enables_sorting_by_sis_id_integration_id_and_login_6aa901b9: "在新成绩册新评分册中按照SIS ID、集成ID和登录ID启用排序。"
@@ -14470,6 +14564,9 @@ zh-Hans:
   enables_the_new_reorder_blocks_functionality_in_th_6d3eeb36: |-
       在板块内容编辑器工具栏中启用新的板块重新排序功能。
       启用后，用户可以访问新的弹出框，以便拖放编辑器中的板块及重新排序。
+  enables_the_notebook_feature_when_enabled_students_979c9dec: |-
+      启用笔记本功能。启用后，学生可以
+      高亮显示 Wiki 页面上的文本并做笔记。
   enables_the_optimized_root_account_experience_in_c_974cfdcc: "在 Canvas Career 中启用优化的根帐户体验。"
   enables_the_quiz_me_tool_in_igniteai_study_tools_w_1c2edcae: |-
       在IgniteAI学习工具中启用测验工具。
@@ -14539,6 +14636,7 @@ zh-Hans:
   ends_at_9a62b528: 结束位置
   ends_e3a6843f: 结束
   enforce_developer_keys_modify_site_admin_keys_perm_dd28e9fb: "执行“开发者密钥 - 修改站点管理员密钥”权限"
+  enforce_expiration_limits_on_access_tokens_issued__8f45eec1: 对签发给站点管理员用户的访问令牌强制执行有效期限制。
   enforce_saml_onetimeuse_condition_a8f61873: "执行 SAML OneTimeUse 条件"
   enforce_scopes_be28989c: 执行范围
   enforce_service_token_tenant_matching_33946d58: 执行服务令牌租户匹配
@@ -14724,6 +14822,7 @@ zh-Hans:
   enrollments_tas: 助教
   enrollments_teachers: 教师
   ensures_that_outcomes_that_have_already_been_impor_c3ca3173: 确保已经导入到课程的结果在再次导入时不会重复
+  ensures_that_submission_lifecycle_manager_reads_fr_d1dd1dea: 确保提交项生命周期管理器在最近发生写入操作后从主数据库读取数据，以保持数据一致性。
   ensures_that_users_without_the_import_outcomes_per_42dfc56d: 确保没有“导入结果”权限的用户在“结果”选项卡内无法看到该按钮
   enter_a_course_to_narrow_results_e992f93: 输入课程以缩小结果范围
   enter_a_filename_for_the_photo_4f0fc10e: 为该照片输入文件名
@@ -15256,6 +15355,7 @@ zh-Hans:
   error_saving_draft_295be180: 保存草稿时出错
   error_saving_statustype_status_1d2b111: "保存 %{statusType} 状态时出错"
   error_saving_suggestion_preference_c36ecceb: 保存建议首选项时出错
+  error_saving_to_notebook_72b870ff: 保存到笔记本时出错。
   error_sending_messages_13c874eb: 发送消息时出现错误
   error_sending_submission_comment_dc15d24f: 发送提交项评论时出错
   error_sending_submission_d32dc075: 发送提交项时出错
@@ -15285,6 +15385,7 @@ zh-Hans:
   error_updating_moduleitemname_96819b43: "更新“%{moduleItemName}”时出错"
   error_updating_moduleitemname_a34c6a04: "更新“%{moduleItemName}”时出错"
   error_updating_modulename_settings_da982acf: "更新 %{moduleName} 设置时出错。"
+  error_updating_note_50f33d53: 更新备注时出错
   error_updating_notes_31b24785: 更新注释时出错
   error_updating_pacename_ad07f9df: "更新 %{paceName} 时出错"
   error_updating_preview_for_accessibility_issue_9c38458a: 更新辅助功能问题预览时出错
@@ -15783,6 +15884,7 @@ zh-Hans:
   external_urls_62082a38: "外部 URL"
   externaltooltext_4d0a5287: "%{externalToolText}"
   extra_credit_not_permitted_on_outcomes_score_adjus_714dd746: "不允许对结果额外增加学分，调整后的最高可能评分%{outcome}"
+  extra_data_459ed44f: 多余的数据
   extra_large_b6cdf1ff: 超大
   extract_error_error_file_names_a4989ed0: "提取错误，%{error}：%{file_names}"
   extreme_critical_emergency_80b3dbda: 极其重大的紧急事件！
@@ -15988,10 +16090,12 @@ zh-Hans:
   failed_to_load_important_info_da5b24dc: 无法加载重要信息。
   failed_to_load_instructor_data_please_try_again_643608b: 加载讲师数据失败。请重试。
   failed_to_load_job_stats_error_1b341afe: "任务统计信息加载失败：%{error}"
+  failed_to_load_knowledge_chat_please_refresh_the_p_b121aba3: 加载知识聊天失败。请刷新页面。
   failed_to_load_migration_data_please_try_again_bcca8c6b: 加载迁移数据失败。请重试。
   failed_to_load_module_items_error_204a99d2: "加载模块项目失败：%{error}"
   failed_to_load_modules_error_80776684: "加载模块失败：%{error}"
   failed_to_load_more_submissions_148ff11f: 无法加载更多提交项
+  failed_to_load_notes_5f56060b: 加载笔记失败
   failed_to_load_opportunities_52ab6404: 加载机遇失败
   failed_to_load_outcome_alignments_8062afca: 加载结果对齐失败
   failed_to_load_page_list_f2e89b5b: 无法加载页面列表
@@ -18555,6 +18659,7 @@ zh-Hans:
   hausa_455223ee: 豪萨语
   have_a_pairing_code_258090de: 是否有配对码？
   have_a_question_about_canvas_ask_it_here_5781cce: 对Canvas有疑问吗？请在此处提出。
+  have_a_suggestion_for_instructure_s_product_roadma_d6252cf7: "您对 Instructure 的产品路径图是否有任何建议？"
   have_an_idea_for_a_new_widget_8eb35e40: 您对新的小工具有何评价？
   have_not_been_graded_df2a5fd2: 尚未评分
   have_not_yet_submitted_57e6a58b: 尚未提交
@@ -19185,6 +19290,7 @@ zh-Hans:
       如果启用，Canvas 将再次尝试由于缺少 cookie 而失败的 LTI OIDC 启动。
       Safari 跟踪保护有时会阻止设置 cookie 为端点授权。
       为修复此问题，我们在表单中重新提交请求。
+  if_enabled_canvas_will_send_the_login_prompt_param_2be6fd56: "如果启用，Canvas 将在 OIDC Authn Request 中发送登录提示参数。"
   if_enabled_canvas_will_set_quizzesnext_media_type__dbf487f6: "如果启用，Canvas 将设置 quizzesnext 媒体类型，而不会设置作业"
   if_enabled_canvas_will_use_jwts_signed_by_a_shared_a4b38dd: "如果启用，Canvas 将使用通过共享密钥签名的 JWT 向 LearnPlatform 进行身份验证，以同步统一工具标识符 (UTID)。"
   if_enabled_common_cartridge_importers_will_convert_9bffff09: 如果启用，公共弹夹导入程序会将HTML文件转换为网页
@@ -19232,6 +19338,9 @@ zh-Hans:
       禁用/允许/启用按钮。
   if_enabled_scopes_will_be_validated_on_api_request_99cab83f: "如果启用，当使用的开发人员密钥要求提供作用域时，要求对 API 请求验证作用域。"
   if_enabled_searching_for_assignees_will_be_possibl_9767bf44: 如果启用，在加载所有任务接收者数据之前可以搜索任务接收者。
+  if_enabled_session_token_parsing_and_validation_wi_f147ae80: |-
+      如果启用，当会话令牌验证或解析失败时，
+      系统会向 Datadog 发送事件
   if_enabled_sourcedids_used_by_canvas_for_basic_out_aa2ea4b1: 如果启用，Canvas使用的适用于基本结果的Sourcedids将加密。
   if_enabled_submission_history_for_new_quizzes_quiz_fc295f42: "如果启用，New Quizzes 测验的提交记录将单独处理。"
   if_enabled_submission_history_for_quizzes_next_qui_fd70161: "如果启用，Quizzes.Next 测验的提交历史记录单独处理。"
@@ -19599,6 +19708,7 @@ zh-Hans:
   igniteai_study_tools_quiz_me_3fe084fb: "IgniteAI学习工具 - 测验"
   igniteai_study_tools_summarize_fde3aa4b: "IgniteAI学习工具 - 总结"
   igniteai_summaries_for_discussions_63b8c8eb: "IgniteAI 讨论汇总"
+  igniteai_translation_feedback_8d2ed96c: "IgniteAI 翻译反馈"
   igniteai_translations_for_discussions_announcement_c3be6962: "IgniteAI 讨论和公告翻译"
   igniteai_translations_for_inbox_5c3ee598: "IgniteAI 收件箱翻译"
   ignore_91750df8: 忽略
@@ -19696,6 +19806,7 @@ zh-Hans:
   important_dates_304e306a: 重要日期
   important_dates_53df2d2b: 重要日期：
   important_dates_tray_fa41a025: 重要日期托盘
+  important_e9286d69: 重要
   important_info_3bda6406: 重要信息
   important_info_for_course_baa4bce1: "%{course} 的重要信息"
   important_information_4ce0adc0: 重要信息
@@ -19732,6 +19843,7 @@ zh-Hans:
     title_for_topics_category: "%{category} 主题"
     warnings: 
       truncated_wiki_title: "以下维基页面的标题被截断：%{title}"
+  importing_a_discussion_via_the_import_course_conte_39fe3537: 通过“导入课程内容”功能导入讨论，将保留选中的原始选项。
   importing_course_content_into_the_same_course_will_b09c69e: 在同一门课程中导入课程内容将复制第一次导入的内容，以及如果继续将覆盖重复的内容。
   importing_name_8f2b131d: "正在导入“%{name}”"
   importing_outcomes_e62a0375: 正在导入结果
@@ -20019,8 +20131,13 @@ zh-Hans:
   institution_14179014: 机构
   institution_announcement_announcement_title_f017c1e0: "机构公告：“%{announcement_title}”"
   institution_members_325dcad8: 机构成员
+  institutional_tag_associations_7f9c26b: 机构标记关联
+  institutional_tag_associations_csv_fd721c01: "机构标记关联 CSV"
+  institutional_tag_categories_csv_489c58ab: "机构标记类别 CSV"
+  institutional_tag_categories_e37ae762: 机构标记类别
   institutional_tags_9b60543e: 机构标记
   institutional_tags_create_24b13c50: "机构标记 - 创建"
+  institutional_tags_csv_a78ed79a: "机构标记 CSV"
   institutional_tags_edit_dbf2faa7: "机构标记 - 编辑"
   institutional_tags_view_a43a8f33: "机构标记 - 查看"
   instructions: 
@@ -20120,6 +20237,7 @@ zh-Hans:
   instructure_identity_account_settings_sync_e06aba6b: "Instructure 身份帐户设置同步"
   instructure_identity_account_sync_2433a8f0: "Instructure 身份帐户同步"
   instructure_identity_allow_redirects_5a79701c: "Instructure Identity 允许跳转"
+  instructure_identity_auth_provider_segmentation_d0580342: "Instructure 身份验证服务提供商细分"
   instructure_identity_authentication_provider_sync_56c44243: "Instructure 身份验证服务提供商同步"
   instructure_identity_backfill_new_accounts_a7a2da30: "Instructure Identity 回填新帐户"
   instructure_identity_clear_session_on_force_login_1eec61da: "Instructure Identity 在强制登录时清除会话"
@@ -20128,6 +20246,8 @@ zh-Hans:
   instructure_identity_flag_to_perform_periodic_user_4f66d4a6: "Instructure Identity 标记，以执行带缓解措施的周期性用户同步"
   instructure_identity_force_saml_proxy_to_on_for_sy_3e73b7c7: "启用 Instructure 身份 Force SAML 代理用于同步"
   instructure_identity_global_30681bc5: "Instructure 身份全局"
+  instructure_identity_include_canvas_ids_in_user_sy_6957b195: "Instructure Identity 将 Canvas ID 包含在用户同步中"
+  instructure_identity_include_extended_salesforce_f_abf5dcca: "Instructure Identity 将 Extended Salesforce Fields 包含在帐户同步中"
   instructure_identity_is_source_of_truth_a244e73f: "Instructure Identity 是权威数据源"
   instructure_identity_login_percentage_598c22b4: "Instructure Identity 登录百分比"
   instructure_identity_manage_a3696f09: "Impact 身份 - 管理"
@@ -21449,6 +21569,7 @@ zh-Hans:
   loading_more_terms_4053e31f: 正在加载更多学期...
   loading_more_terms_b4640e67: 加载更多学期
   loading_name_data_c66ea65f: "正在加载 %{name} 数据"
+  loading_notes_98725fc1: 正在加载备注
   loading_notifications_651b79d7: 加载通知
   loading_observed_students_dfdda108: 正在加载观察的学生
   loading_options_c823e98b: 正在加载选项...
@@ -21540,6 +21661,7 @@ zh-Hans:
   lock_this_setting_for_sub_accounts_and_courses_4cb8cbd6: 为子帐户和课程锁定此设置
   lock_thread_state_for_students_7a5b64de: 锁定学生的讨论帖状态
   lock_until_549bb904: 锁定至
+  lockdown_browser_lti_1_3_support_c942935a: "LockDown 浏览器 LTI 1.3 支持"
   locked_1d1eaa8c: "已锁定： "
   locked_762f138b: 已锁定
   locked_796957c7: 已锁定：
@@ -21574,6 +21696,7 @@ zh-Hans:
   log_out_379ba28a: 退出
   log_out_url_2605c2c1: 退出URL
   log_out_url_is_not_a_valid_uri_6566751e: "注销 URL 不是有效的 URL"
+  log_session_token_failures_8cd12121: 记录会话令牌失败日志
   logged_in_user_id_5a54b1ae: 登录用户ID
   logged_out_724b3717: 已登出
   logged_out_user: "退出的用户 %{user_counter}"
@@ -21720,6 +21843,7 @@ zh-Hans:
   logoutresponse_from_idp_d45995f1: LogoutResponse发送人IdP
   logs_data_f8cd9aff: 日志数据
   long_description_7d89285c: 长说明
+  look_up_the_lockdown_browser_tool_as_an_lti_1_3_in_2031bd77: "在回退到 LTI 1.1 之前，查找作为 LTI 1.3 集成的 LockDown 浏览器工具。"
   looking_up_microsoft_users_by_remote_attribute_ema_58c65037: "按远程属性：电子邮件地址（邮件）查找 Microsoft 用户"
   looking_up_microsoft_users_by_remote_attribute_mai_452ac441: "按远程属性：邮件昵称查找 Microsoft 用户"
   looking_up_microsoft_users_by_remote_attribute_use_73ce13f0: "按远程属性：主用户名称 (UPN) 查找 Microsoft 用户"
@@ -21789,6 +21913,7 @@ zh-Hans:
   lti_context_id_d6a24cfc: "LTI 上下文 ID"
   lti_context_id_should_be_unique_7437a74d: "lti_context_id 应为唯一"
   lti_contextcontrols_91b76c7a: "LTI 上下文控制"
+  lti_custom_variable_substitutions_display_720c4b62: "LTI 自定义变量替换显示"
   lti_deep_linking_for_module_index_menu_881feeee: "LTI 单元索引菜单深度链接"
   lti_deep_linking_line_items_5e0079f7: "LTI 深度链接行项目"
   lti_deep_linking_line_items_on_assignment_create_e_30ccfc99: "作业创建/编辑页面的 LTI 深度链接行项目"
@@ -21826,6 +21951,7 @@ zh-Hans:
   lti_report_2b6193ab: LTI报告
   lti_resource_links_14385464: "LTI 资源链接"
   lti_submissions_require_a_url_to_submit_85ca9988: "LTI 提交文件要求通过 URL 进行提交"
+  lti_suppress_unresolved_variable_names_b72f5536: "LTI 隐藏未解析的变量名称"
   lti_tool_details_fetch_error_74722d7e: "获取 LTI 工具详情时出错"
   lti_tool_id_894a3f3: "LTI 工具 ID"
   lti_tool_management_is_now_live_in_canvas_apps_cha_2ca55ef: "LTI 工具管理现在已经在 *Canvas 应用程序*中上线！我们在为应用程序开发更多功能的过程中，会在两个页面之间同步更改。从现在起，应用程序将是 LTI 工具的主页。"
@@ -21847,6 +21973,7 @@ zh-Hans:
   magenta_4a65993c: 品红色
   mailbox_selection_92d9cbf: 邮箱选择
   main_navigation_3f080c80: 主导航
+  main_sign_in_options_621f711c: 主要登录选项
   main_sign_in_options_a98b3c1b: 主要登录选项
   main_text_color_7d65ab1b: 正文文本颜色
   maintenance_windows_days_weekday_of_the_month_from_e0113bb1: "维护时间：当月 %{days} %{weekday} %{time_range} 开始 (%{utc_time_range} UTC)"
@@ -21912,7 +22039,10 @@ zh-Hans:
   manage_blackout_dates_1f67216a: 管理不适用日期
   manage_comment_library_48f2d123: 管理评论库
   manage_course_content_fc5de138: 管理课程内容
+  manage_course_details_70beda1b: 管理课程详情
+  manage_course_feature_options_49bbe676: 管理课程功能选项
   manage_course_files_57e07038: 管理课程文件
+  manage_course_navigation_1e95c89b: 管理课程导航
   manage_course_sections_f482d1b3: 管理课程班次
   manage_course_templates_66c00052: 管理课程模板
   manage_courses_abe8335f: 管理课程
@@ -22011,6 +22141,7 @@ zh-Hans:
   mark_as_unread_4a413c41: 标记为未读
   mark_as_unread_4ded3977: 标记为未读
   mark_done_9d81bcd9: 做记号
+  mark_important_46df422: 标记为“重要”
   mark_post_as_read_46072272: 将帖子标记为已读
   mark_post_as_read_fe0456b4: 将文章标记为已读
   mark_post_as_unread_45fd6e90: 将帖子标记为未读
@@ -22020,6 +22151,7 @@ zh-Hans:
   mark_title_as_incomplete_71140b5e: "将%{title}标记为“未完成”"
   mark_title_as_read_5e567e94: "将 %{title} 标记为已读"
   mark_title_as_unread_6cad1599: "将 %{title} 标记为未读"
+  mark_unclear_9046321f: 标记为不清晰
   marked_as_safe_an_administrator_has_reviewed_this__4f57f42e: "'标记为安全'：管理员已评估此ePortfolio，并将其标记为安全。原预期受众均可见。"
   marked_as_safe_f7f953df: 标记为安全
   marked_as_spam_ab87846d: 标记为垃圾邮件
@@ -22029,6 +22161,7 @@ zh-Hans:
   marked_incomplete_1bfc7235: 已标记为未完成
   masquerade_as_name_8bb004c5: "仿冒为%{name}"
   masquerade_fdbc9594: 仿冒
+  masquerading_144d488d: 正在伪装
   master_courses_2aaa4841: 主课程
   master_lock_590266b6: 主锁
   mastered_34d4c857: 已掌握
@@ -24435,6 +24568,7 @@ zh-Hans:
   modify_settings_for_documentprocessingappname_dd98bbbe: "修改 %{documentProcessingAppName} 的设置"
   modify_the_placement_placement_cbf4f3b9: "修改 %{placement} 位置"
   modifying_existing_settings_will_affect_courses_on_5a9c58ef: "注册更改后，修改现有设置将会影响课程。考虑在“课程设置”页面上手动触发同步。请注意，设置不正确可能会导致 Canvas 用户无法映射到 Microsoft 用户，进而导致从课程现有的 Microsoft 群组中移除用户。"
+  modifying_this_option_has_been_disabled_by_adminis_42163098: 管理员已禁止修改此选项。
   module_90d9fd32: 单元
   module_9775f804: 单元
   module_access_updated_successfully_b21ed967: 已成功更新单元访问权限。
@@ -24683,6 +24817,7 @@ zh-Hans:
   more_results_were_added_at_the_bottom_of_the_page_dc323877: 多个结果已加载到页面底部。
   more_search_results_have_been_loaded_13f3872a: 已加载更多搜索结果
   more_sign_in_options_5b0811e1: 选项中的更多符号
+  more_sign_in_options_909c5ce6: 更多登录选项
   more_submission_options_c8d50818: 更多提交选项
   more_than_999_submissions_need_grading_bc087dd0: 超过999的提交需要评分
   more_than_9_submissions_need_grading_30157d49: 有超过9个需要评改的提交
@@ -25050,6 +25185,8 @@ zh-Hans:
   names_and_role_ebff0149: 名称和角色
   namespace_value_bc6ceca3: 命名空间值
   naming_1d7127cd: 命名
+  native_forwarding_cb18c9f0: 原生转发
+  native_forwarding_means_that_canvas_will_send_saml_3bce5621: "原生转发是指 Canvas 会将接收到的 SAML 断言原封不动地转发至 Instructure Identity，由 Identity 直接进行处理。这能确保与客户现有的 SAML 提供程序配置兼容，而不会强制要求更改任何配置。"
   nau_submission_data_cb3dc17c: "NAU 提交项数据"
   nav_avatar_border_3246beb1: 导航头像边框
   nav_background_fd299145: 导航背景
@@ -25068,6 +25205,7 @@ zh-Hans:
         nav_type_required: 至少必须启用一种导航类型
         url_html_tags: 不是有效的URL（不得包含HTML标记）
         url_invalid: "不是有效的 URL"
+        url_invalid_relative: "无效的相对 URL"
         url_relative_invalid: 不是有效的URL（以/开头的链接必须包含路径，不能包含主机名或协议）
   nav_menu_links_3ada377a: 导航菜单链接
   nav_text_94206145: 导航文本
@@ -25725,6 +25863,7 @@ zh-Hans:
   not_yet_graded_40475341: 尚未评分
   not_yet_graded_8b655a7: 尚未评分
   not_yet_submitted_2d2b7328: 尚未提交
+  note_2b416137: 备注
   note_8b73ce09: 注
   note_acbd8169: "注意， "
   note_associated_tools_are_only_listed_once_even_if_ab95c5f8: |-
@@ -25734,6 +25873,8 @@ zh-Hans:
       注: 关联的工具只列出一次，即使它们在多个
                       子账户内安装了。
   note_cb2ef6e1: 注意：
+  note_deleted_a91866cc: 已删除备注
+  note_deletion_failed_d7b68ef0: 删除备注失败
   note_for_differentiated_group_topics_some_threads__90adbb21: 注意：对于区分小组的题目，某些线程可能没有分配任何的学生。
   note_grades_and_notes_will_be_saved_automatically__e3270872: 注意：移出字段后将自动保存评分和备注。
   note_it_may_take_up_to_a_week_for_the_beta_url_to__d695bddc: 注意：测试网址可能需要最多一周时间完成设置，具体取决于测试版刷新周期。
@@ -25759,7 +25900,9 @@ zh-Hans:
   note_this_login_s_account_uses_delegated_authentic_89227914: "注：此登录帐户使用委托的身份验证，但允许回滚 Canvas 密码身份验证。此表中的密码字段更新回滚 Canvas 密码，*而不是* 委托身份验证。"
   note_this_login_s_account_uses_delegated_authentic_b340b00e: "注意：此登录帐户使用的是委托验证，但允许回退 Canvas 密码验证。此表单中的密码字段会更新回退 Canvas 密码，<b>不是</b>委托验证。"
   note_this_will_attempt_to_undo_the_merge_as_fully__41c9c4e9: 注意：这将尝试尽可能撤销合并；但是，合并的用户可能无法完全恢复至先前的状态。
+  note_updated_84b8be08: 已更新备注
   note_you_may_receive_this_email_when_new_authentic_5d9403f4: 注意：当有新的身份验证提供商类型可用于迁移，或者我们已准备好开始现有提供商类型的迁移过程时，您可能会收到此电子邮件。
+  notebook_4998c7e2: 笔记本
   notebook_b0eea5b4: 笔记本
   notes_5ef20d1: 笔记
   notes_6cfc3988: 备注：
@@ -26552,6 +26695,7 @@ zh-Hans:
   opening_behavior_b5a43f1e: 打开行为
   opens_block_settings_9f7afd76: 打开板块设置
   opens_edit_mode_6e25464: 打开编辑模式
+  opens_in_new_tab_3158fba4: （在新标签页中打开）
   opens_in_new_window_923de457: 在新窗口中打开
   opens_in_new_window_b4b99243: 在新窗口中打开
   opportunities_eb978a67: 机会
@@ -26652,6 +26796,7 @@ zh-Hans:
   other_ddacb37d: 其他
   other_incorrect_match_options_c1418af5: 其他错误的匹配选项：
   other_options_d25f199c: 其他选项
+  other_resources_d8672694: 其他资源
   other_resources_fee3ddda: 其他资源
   other_student_papers_bf318f4c: 其它学生论文
   other_timezones_42530564: 其他时区
@@ -26902,6 +27047,7 @@ zh-Hans:
   outcomes_rollup_read_31ace4f: 结果汇总已读
   outcomes_selected_e9f87772: 选择的结果
   outcomes_service_alignment_migration_5b4391ad: 结果服务对齐迁移
+  outcomes_service_api_write_3c51bc61: "结果服务 API 写入"
   outcomes_tutorial_tray_ebfce995: 结果教程托盘
   outcomes_with_no_results_7fbb5bb5: 无成绩的结果
   outcometitle_4d261a1c: "%{outcomeTitle}"
@@ -27117,6 +27263,7 @@ zh-Hans:
   parent_inherited_developer_keys_8e689519: 父级继承的开发人员密钥
   parent_of_a_canvas_user_afba1624: Canvas用户的家长？
   parent_override_due_date_cannot_be_before_parent_o_3cf68265: 父级覆盖截止日期不得早于父级覆盖解锁日期
+  parent_override_due_date_cannot_be_before_parent_o_83676577: 父级覆盖到期日期不得早于父级覆盖起始日期
   parent_references_not_found_prior_to_this_row_miss_31723438: "在此行之前找不到父级参考：%{missing}"
   parent_registration_custom_message_37f343d3: 父级注册自定义消息
   parent_signup_b7c6bf0a: 家长登记
@@ -27199,6 +27346,8 @@ zh-Hans:
   peer_review_allocation_feature_is_not_enabled_41e7be5d: 未启用互评分配功能
   peer_review_allocation_updates_6ae34936: 互评分配更新
   peer_review_assignment_7d314c59: 同伴互评作业
+  peer_review_available_from_date_cannot_be_before_a_1246bb6f: 互评起始日期不得早于作业起始日期
+  peer_review_available_from_date_cannot_be_before_a_59a6bcfb: 互评起始日期不得早于作业到期日期
   peer_review_available_from_date_must_be_before_ass_8fa0a0d1: 互评起始日期必须早于作业结束日期
   peer_review_available_from_date_must_be_on_or_afte_594d203c: 互评起始日期不得早于作业起始日期
   peer_review_available_to_date_must_be_after_assign_a4ba5c18: 互评结束日期必须晚于作业起始日期
@@ -27209,6 +27358,8 @@ zh-Hans:
   peer_review_completed_a74de33: 已完成同伴互评
   peer_review_configuration_ae9a31e8: 互评配置
   peer_review_due_date_cannot_be_after_assignment_lo_b75eaf3a: 互评截止日期不得晚于作业锁定日期
+  peer_review_due_date_cannot_be_after_assignment_un_56c32449: 互评到期日期不得晚于作业截止日期
+  peer_review_due_date_cannot_be_before_assignment_a_6e525cf2: 互评到期日期不得早于作业起始日期
   peer_review_due_date_cannot_be_before_assignment_d_f623d0f7: 互评截止日期不得早于作业截止日期
   peer_review_due_date_cannot_be_before_assignment_u_eb4486d0: 互评截止日期不得早于作业解锁日期
   peer_review_due_date_must_be_after_assignment_avai_dfbabc69: 互评截止日期必须晚于作业起始日期
@@ -27227,22 +27378,30 @@ zh-Hans:
   peer_review_not_yet_submitted_2ab13b19: 尚未提交同伴互评
   peer_review_number_of_total_9ab82afd: "互评（第 %{number}/%{total} 个）"
   peer_review_options_b0613216: 互评选项
+  peer_review_override_available_from_date_cannot_be_433ce95c: 互评覆盖起始日期不得早于父级覆盖起始日期
+  peer_review_override_available_from_date_cannot_be_e5eea32e: 互评覆盖起始日期不得早于父级覆盖到期日期
+  peer_review_override_due_date_cannot_be_after_pare_538bd9cb: 互评覆盖到期日期不得晚于父级覆盖截止日期
   peer_review_override_due_date_cannot_be_after_pare_5c6e032: 互评覆盖截止日期不得晚于父级覆盖锁定日期
   peer_review_override_due_date_cannot_be_before_par_503202ed: 互评覆盖截止日期不得早于父级覆盖解锁日期
+  peer_review_override_due_date_cannot_be_before_par_79fefd91: 互评覆盖到期日期不得早于父级覆盖起始日期
   peer_review_override_due_date_cannot_be_before_par_e8e24dfc: 互评覆盖截止日期不得早于父级覆盖截止日期
   peer_review_override_lock_date_cannot_be_after_par_4c421e84: 互评覆盖锁定日期不得晚于父级覆盖锁定日期
   peer_review_override_unlock_date_cannot_be_before__a47c00e1: 互评覆盖解锁日期不得早于父级覆盖解锁日期
   peer_review_override_unlock_date_cannot_be_before__bcd61406: 互评覆盖解锁日期不得早于父级覆盖截止日期
+  peer_review_override_until_date_cannot_be_after_pa_dca53825: 互评覆盖截止日期不得晚于父级覆盖截止日期
   peer_review_prompt_571c5d22: 同伴互评提示
   peer_review_rubric_55373076: 互评评价量规
   peer_review_score_379f41b7: 互评评分
   peer_review_sub_assignment_does_not_exist_e4ae9dbd: 互评子作业不存在
   peer_review_sub_assignment_exists_c28b0078: 互评子作业存在
+  peer_review_sub_assignments_cannot_have_a_not_grad_a2b89111: "互评子作业的评分类型不得为 not_graded"
   peer_review_support_in_assignment_enhancements_b1df2b76: 作业增强中的同伴互评支持
   peer_review_unlock_date_cannot_be_before_assignmen_1a5a4532: 互评解锁日期不得早于作业解锁日期
   peer_review_unlock_date_cannot_be_before_assignmen_b0773da0: 互评解锁日期不得早于作业截止日期
+  peer_review_until_date_cannot_be_after_assignment__7b1deaa2: 互评截止日期不得晚于作业截止日期
   peer_reviewed_assignments_are_not_yet_handled_in_t_5eef60fb: 新作业流中尚未处理同伴互评作业。要转到遗留项以创建作业页面吗？
   peer_reviewed_graded_discussion_b339df5b: 互评分讨论：
+  peer_reviewer_access_to_locked_submission_files_cbffc75b: 互评人对锁定提交文件的访问权限
   peer_reviews_api: 
     errors: 
       delete_reminder_failed: 删除失败
@@ -27551,6 +27710,7 @@ zh-Hans:
   please_complete_the_verification_38b3784c: 请完成验证。
   please_confirm_you_want_to_move_forward_with_these_69a3ed38: 请确认您是否确实要继续进行这些更改。
   please_contact_your_canvas_administrator_as_one_or_bb8bd4b0: "请联系 Canvas 管理员，因为以下一个或多个功能选项未启用，无法查看此互评作业："
+  please_contact_your_canvas_administrator_for_furth_6adbc755: "请联系 Canvas 管理员了解更多详情。"
   please_contact_your_lms_administrator_for_more_det_635afd97: "请联系您的 LMS 管理员以获取更多详情。"
   please_create_a_group_set_8db6e8fe: 请创建组集合
   please_do_not_reply_to_this_email_it_will_not_be_d_1e49982a: 请不要回复此电子邮件，因为邮件不会被递送。
@@ -28008,6 +28168,7 @@ zh-Hans:
         discovery_page_url: "发现页预览 URL"
         discovery_url: 探索URL
         enable_redirects: 启用重定向
+        identity_acs_url: "Identity ACS URL"
         oauth2_timeout_retries: "Oauth2 令牌超时重试"
         org_service_url: "组织服务 URL"
         skip_refresh_attributes: 跳过刷新属性
@@ -31167,6 +31328,7 @@ zh-Hans:
   remove_filtername_filter_6b6d7063: "删除 %{filterName} 筛选器"
   remove_folder_fc145232: 删除文件夹
   remove_from_course_6fb47aee: 从课程中删除
+  remove_from_notebook_128298b1: 移出笔记本
   remove_from_to_to_from_substitutes_4a6dc71d: "删除替换中的“%{from}”至“%{to}”"
   remove_grading_scheme_title_d3942a08: "删除评分方案%{title}"
   remove_group_5d2f2f2d: 移除小组
@@ -31262,6 +31424,9 @@ zh-Hans:
   remove_widgetname_fa9e96c7: "移除 %{widgetName}"
   removed_54e9ea9f: 已删除
   removed_assignment_assignment_name_835cc776: "已删除作业 %{assignment_name}"
+  removed_count_custom_data_fields_fea6306c: 
+    one: "已删除 %{count} 个自定义数据字段"
+    other: "已删除 %{count} 个自定义数据字段"
   removed_count_placements_94a891a8: 
     one: "已删除 %{count} 个位置"
     other: "已删除 %{count} 个位置"
@@ -31583,6 +31748,7 @@ zh-Hans:
   restoring_122bdbbf: "恢复： "
   restoring_acd5647d: 正在恢复...
   restrict_access_84ba6bb8: 限制访问
+  restrict_by_section_keeps_students_in_the_same_sec_82785672: “班次限制”使学生留在同一班次，但注册了多个班次的学生的分组无法预测。如需按具体班次分组，请手动创建组。
   restrict_instructors_from_changing_mastery_scales_5af13053: 限制讲师更改掌握程度评分量表
   restrict_instructors_from_changing_proficiency_cal_b4e62c95: 限制讲师更改熟练程度计算方法
   restrict_push_notifications_to_select_types_941d9da3: 限制仅所选类型推送通知
@@ -31887,6 +32053,7 @@ zh-Hans:
   root_account_3fb3aacf: root_account
   root_account_9d4fcb97: 母帐户
   root_account_id_e8d75734: "根帐户 id"
+  root_account_tier_setting_53ddb334: 根帐户等级设置
   root_accounts_cc035dcf: 根帐户
   root_learning_outcome_groups_4eb5a030: 根学习结果组
   root_level_deployment_created_1a586e1: 已创建根级别部署
@@ -32095,6 +32262,7 @@ zh-Hans:
   save_changes_a63787eb: 保存更改
   save_criterion_cce60085: 保存标准
   save_customizations_dde779d8: 保持自定义
+  save_discovery_page_db32e731: 保存发现页
   save_don_t_send_ba59fa2b: 保存但不发送
   save_failed_463cb2a8: 保存失败。
   save_filter_preset_37f32c02: 保存过滤器预设
@@ -32128,7 +32296,9 @@ zh-Hans:
   saved_comments_2f6ba95: 保存的评论
   saved_discussion_settings_successfully_ebd46a57: 已成功保存讨论设置
   saved_filter_presets_81b7a73d: 已保存的过滤器预设
+  saved_to_notebook_113126e2: 已保存到笔记本。
   saving_2521e616: 正在保存
+  saving_4d6854a8: 正在保存...
   saving_account_7fdb16cc: 保存帐户
   saving_assignment_dates_progress_9856153d: 保存作业日期进度
   saving_assignment_dates_progress_percent_a5ea89a1: "保存作业日期进度：%{percent}%"
@@ -32962,6 +33132,7 @@ zh-Hans:
   selective_release_query_caching_fc32c65e: "选择性发布 - 查询缓存"
   selective_release_ui_api_changes_a60b681a: "选择性发布 - UI/API 变更"
   selective_release_visibility_performance_improveme_5eb6b59c: 选择性发布可见性性能改进
+  self_3f850d7e: 自我
   self_assess_97468ed7: 自主评估
   self_assessment_2afe3903: 自我评估
   self_assessment_score_b02eea8f: 自评分
@@ -33074,7 +33245,9 @@ zh-Hans:
   send_to_b940900a: 发送至...
   send_to_ce05b460: 发送到
   send_turnitin_lti_v2_usage_logs_to_pandata_25f90392: "向 Pandata 发送 Turnitin LTI V2 使用日志"
+  send_usage_metrics_after_consent_21d83415: 同意后发送使用情况指标
   send_usage_metrics_cecc7a7d: 发送使用指标
+  send_usage_metrics_only_after_user_has_given_conse_252877a0: 仅当用户同意处理数据后，发送使用情况指标
   send_user_avatar_to_bigbluebutton_17cda2f6: "向 BigBlueButton 发送用户头像"
   sending_bf324366: 正在发送...
   sending_feedback_e6d728f9: 发送反馈
@@ -33262,6 +33435,7 @@ zh-Hans:
   shard_5d340495: 已共享
   shard_id_optional_382e5dda: "分区 ID（可选）"
   shard_shard_95c57736: "分片：%{shard}"
+  share_a_contribution_e0d833a6: 分享贡献
   share_alike_73044243: 相同方式共享
   share_important_information_about_your_course_with_dceacbf9: |-
       和所有用户共享有关您的课程的重要信息。
@@ -34223,6 +34397,7 @@ zh-Hans:
   show_user_agent_alert_on_developer_keys_page_b4bb7ceb: 在开发者密钥页面上显示用户代理提醒
   show_user_services_d8d6c2c2: 显示用户服务
   show_welcome_tour_a105aa2e: 显示欢迎导览
+  show_what_you_know_count_learning_targets_to_compl_e0639259: "展示您知道的东西达成 %{count} 个学习目标才能完成此活动。"
   showing_1ac6ed70: 正在显示：
   showing_all_announcements_36ff0cec: 显示全部的公告
   showing_all_discussions_7e09f4b7: 显示全部的讨论
@@ -34260,6 +34435,8 @@ zh-Hans:
   sighted_users_scan_web_pages_quickly_by_looking_fo_c2931bc9: "视力正常用户通过查找大标题或粗体标题快速浏览网页。同样，屏幕朗读器用户依赖于结构合理的标题来浏览内容并直接跳到重要部分。按逻辑顺序使用正确的标题级别（例如，H2、H3 等）可确保课程明了、条理清晰并且对所有人都易于访问。"
   sign_in_5301aa84: 注册
   sign_in_c6858e26: 登录
+  sign_in_options_limit_exceeded_count_max_please_re_3a5006b4: "登录选项已超出上限 (%{count}/%{max})。请删除选项后保存。"
+  sign_in_options_limit_reached_count_max_f4fcd4fe: "登录选项已达上限 (%{count}/%{max})。"
   sign_in_or_846772b8: 登录或
   sign_in_with_displayname_70f64764: "使用 %{displayName} 登录"
   sign_up_dafdee18: 注册
@@ -34356,6 +34533,9 @@ zh-Hans:
       group_categories: "小组类别：%{group_categories_count}"
       group_enrollments: "小组注册: %{group_enrollments_count}"
       groups: "小组: %{group_count}"
+      institutional_tag_associations: "机构标记关联：%{institutional_tag_associations_count}"
+      institutional_tag_categories: "机构标记类别：%{institutional_tag_categories_count}"
+      institutional_tags: "机构标记：%{institutional_tags_count}"
       logins: "登录：%{login_count}"
       sections: "班级数: %{section_count}"
       terms: "学期数: %{term_count}"
@@ -34413,6 +34593,7 @@ zh-Hans:
     users: 
       user_search_label: 用户搜索
       users_matching_label: 用户匹配
+  site_admin_access_token_expiration_6e120bf7: 站点管理员访问令牌有效期
   site_admin_d0417171: 网站管理员
   site_admin_level_flag_that_determines_if_we_should_450825a7: |-
       站点管理员级别的标记，决定在调用组织 API 时，
@@ -34427,6 +34608,7 @@ zh-Hans:
   site_admin_only_send_to_1_denominator_users_in_ena_b4b3ed14: "仅为网站管理员。每月发送到有启用帐户的1 / %{denominator} 用户。"
   site_admin_rate_limiting_b3222a4c: "站点管理员 - 速率限制"
   site_admin_service_authentication_8f424551: 站点管理员服务身份验证
+  site_admins_create_personal_access_tokens_9ffbdf19: "站点管理员 - 创建个人访问令牌"
   size_b30e1077: 大小
   size_by_cecd6002: 大小依据：
   size_f1873a2: "，大小： "
@@ -34826,6 +35008,8 @@ zh-Hans:
   start_at_c7a5789: "开始时间： "
   start_at_end_at_b375cbe7: "| %{start_at} - %{end_at}"
   start_auto_refresh_e2feafb2: 开始自动刷新
+  start_capturing_your_notes_dd9b1b56: 开始收集您的笔记
+  start_chatting_12c39a06: 开始聊天
   start_creating_1b8a6134: 开始创建
   start_date_490511b4: 开始日期
   start_date_and_time_da9a7a4e: 开始日期和时间
@@ -34931,6 +35115,7 @@ zh-Hans:
   status_for_key_keyname_47668960: "%{status}（密钥）：%{keyName}"
   status_for_the_reply_to_topic_checkpoint_fbbc6721: “回复主题”检查点的状态。
   status_for_the_required_replies_checkpoint_a0972f29: “需要的回复”检查点的状态。
+  status_of_permission_permission_for_role_role_stat_bedbc6cd: "%{role} 角色 %{permission} 权限的状态：%{status}"
   statuses_497dfa15: 状态...
   statuses_f41543d8: 状态
   statusname_status_successfully_saved_5f8ab9f: "%{statusName} 状态已成功保存"
@@ -35340,6 +35525,7 @@ zh-Hans:
   submission_is_missing_for_peerreviewsubassignment__6f961277: "PeerReviewSubAssignment %{assignment_id} 和用户%{user_id}缺少提交项"
   submission_is_missing_for_peerreviewsubassignment_b9aab466: "PeerReviewSubAssignment  缺少提交项"
   submission_items_b2db1b8d: 提交项项目
+  submission_lifecycle_manager_read_from_primary_db__acdab6f3: "提交项生命周期管理器 - 最近一次写入后，从主数据库读取"
   submission_locked_a6074f8b: 提交已锁定
   submission_locked_image_93aced38: 提交已锁定图像
   submission_must_be_a_text_entry_type_60ca9c01: 提交项必须是文本输入类型。
@@ -36077,6 +36263,7 @@ zh-Hans:
   terms_of_service_bedefcaf: 服务条款
   terms_of_service_f183ff7f: 服务条款
   terms_of_use_453eeb83: 使用条款
+  test_as_learner_2d07501: 以学员身份测试
   test_cluster_only_70e61c19: 仅测试群集
   test_conversation_4ae1cbc0: 测试转换
   test_feature_flag_980151e0: 测试功能标记
@@ -36213,6 +36400,7 @@ zh-Hans:
   the_column_it_s_in_7c3c2ae1: 所属的列
   the_columns_section_is_a_flexible_layout_that_allo_a6b3df4: “列”区域版式灵活，可用于并排添加多个区块。
   the_comments_left_on_submissions_by_the_subject_4986457c: 使用者在提交项上留下的备注。
+  the_completion_rules_pedagogical_guidance_and_sour_4749f13d: "完成规则、教学指导以及大语言模型 (LLM) 来源。"
   the_configuration_is_invalid_please_reach_out_to_t_3710068b: 配置无效。请联系应用程序提供商寻求帮助。
   the_connection_either_timed_out_or_was_refused_thi_570177f7: 连接超时或被拒绝。考虑：
   the_content_could_not_be_processed_or_the_processi_8547539c: 无法处理内容或处理失败。
@@ -36237,6 +36425,7 @@ zh-Hans:
                      （例如，*.instructure.com）。Canvas 和 Instructure 域
                      自动包括在内，不计入 50 个域限制数量中。
   the_content_will_not_be_processed_and_this_is_expe_ef8b7e73: "不会处理内容，这是内容处理工具的预期行为。 "
+  the_content_you_highlighted_is_no_longer_available_13b2c4c: 高亮显示的内容不再可用。
   the_conversation_has_been_successfully_starred_ce079a12: 该会话已成功标星
   the_conversation_has_been_successfully_unstarred_6514095d: 该会话已成功取消标星
   the_conversations_has_been_successfully_starred_315da1a: 
@@ -36294,6 +36483,7 @@ zh-Hans:
   the_device_can_be_a_code_generator_or_a_mobile_pho_c53f44b3: |-
       设备可以是验证码生成器或能够接收短信的手机。
       **强烈建议使用身份验证应用程序以提高安全性。**
+  the_discovery_page_is_currently_live_saving_will_i_2b92f91c: 发现页目前处于活跃状态。保存后，页面将立即更新为对用户可见。
   the_discovery_url_is_a_json_document_that_contains_d52546b4: |-
       Discovery URL 是一个含有 OpenID Connect 提供商配置的 JSON 文档。
       将自动填充颁发者标识、授权 URL、令牌 URL、令牌端点认证方法、
@@ -36363,6 +36553,7 @@ zh-Hans:
   the_featured_link_was_moved_to_the_top_of_list_6cabcda9: 精选链接已移动到列表顶部。
   the_field_field_is_required_56512820: "“%{field}”字段必填"
   the_field_field_must_have_no_spaces_d1c2fc37: "“%{field}”字段不能含有空格"
+  the_file_87d125ff: 文件
   the_file_exceeds_the_maximum_allowed_size_for_ai_p_d70d00fa: "文件大小超出 AI 处理允许的上限。"
   the_file_is_empty_or_does_not_contain_valid_assess_4284333e: 文件为空或不含有效的评估数据。
   the_file_is_empty_or_does_not_contain_valid_rubric_4788361a: 文件为空或不含有效的评价量规数据。
@@ -36857,6 +37048,8 @@ zh-Hans:
   there_was_an_error_uploading_your_file_please_try__ce458566: 上传您的文件时出错。请重试。
   there_was_an_error_upon_saving_your_conference_65e6b175: 保存会议时出错
   there_was_an_error_when_attempting_to_delete_the_r_35a4231c: 试图删除注册时出错。
+  there_was_an_error_when_attempting_to_turn_off_the_fd9ccbdd: 尝试关闭应用时出错。
+  there_was_an_error_when_attempting_to_turn_on_the__bd92bb31: 尝试开启应用时出错。
   there_was_an_error_when_creating_the_deployment_856553ec: 创建部署时出错。
   there_was_an_error_when_creating_the_deployment_b484e8bf: 创建部署时出错
   there_was_an_error_when_deleting_the_deployment_7f243c02: 删除部署时出错。
@@ -36929,6 +37122,7 @@ zh-Hans:
                   如果您要删除它们，应删除相关工具。
   these_features_and_the_tech_behind_them_belong_to__77f1746e: "这些功能（以及技术支持）属于 Instructure。您仅有权内部使用。不得分享或转售。"
   these_grading_periods_were_created_for_you_by_an_a_e977c2b5: 由管理员为您创建这些评分期限。
+  these_options_are_hidden_until_a_user_expands_the__44152815: 这些选项已隐藏，直到用户展开发现页上的“更多登录选项”部分。
   these_options_are_hidden_until_a_user_expands_the__e37e94af: 这些选项已隐藏，直到用户展开登录页上的“选项中的更多符号”部分。
   these_permissions_control_the_ability_to_create_ed_d4d043b7: 这些权限控制创建、编辑和删除差异化标记的权限。
   these_permissions_control_the_ability_to_manage_au_ca7062: 这些权限控制的是管理帐户上的自动化规则的权限。
@@ -36948,6 +37142,7 @@ zh-Hans:
   this_account_does_not_own_this_app_and_therefore_c_901eb52: 该帐户不负责该应用程序，因此无法删除它。
   this_account_does_not_own_this_app_and_therefore_c_9ab22b6e: 该帐户不负责该应用程序，因此无法重置它的配置。
   this_account_doesn_t_allow_for_microsoft_teams_syn_744dbd76: "此帐户不允许启用 Microsoft Teams Sync。在编辑任何设置之前，请启用“Microsoft Group 注册同步”功能标记"
+  this_account_has_underage_users_e0ed56e4: 此帐户有未成年用户
   this_action_has_been_disabled_by_your_admin_5e34bfa0: 此操作已被您的管理员禁用。
   this_adds_an_option_to_pick_the_tool_from_the_the__a1252655: 这会添加一个从“提交类型”下拉列表中选择该工具的选项
   this_ai_experience_e9ddf9b0: "此 AI 体验"
@@ -36971,10 +37166,14 @@ zh-Hans:
   this_app_has_been_locked_by_an_administrator_and_i_4d239b21: 该应用程序已被管理员锁定，无法安装。
   this_app_has_no_permissions_configured_f58796f8: 此应用未配置权限。
   this_app_is_locked_on_and_cannot_be_deleted_dc508f75: 此应用程序已锁定，无法删除。
+  this_app_is_locked_on_by_instructure_and_cannot_be_231197e5: "此应用被 Instructure 锁定，无法关闭。"
   this_app_is_locked_on_by_instructure_and_cannot_be_7d545f6d: "此应用程序被 Instructure 锁定，无法删除。"
   this_app_s_configuration_is_managed_by_instructure_73c6c109: "此应用程序的配置由 Instructure 管理，因此您无法进行更改。"
   this_app_will_become_deployable_via_client_id_and__57ed80b1: "该应用程序将可通过客户端 ID 和课程复制功能进行部署。您稍后可以随时锁定它，以阻止新的部署。"
+  this_app_will_no_longer_be_available_in_your_accou_9a85676b: 此应用在您的帐户中不再可用。您可以随时从该页面重新启用。
   this_app_will_no_longer_deployable_by_client_id_or_cb850139: "该应用程序将无法再通过客户端 ID 和课程复制功能进行部署。要在根帐户中进行部署和控制可用性，请使用 Canvas 应用程序。现有部署将不受影响。您将随时可以在此页面解锁该应用程序。"
+  this_app_will_now_be_available_in_your_account_b404030: 此应用目前在您的帐户中可用。
+  this_app_will_receive_the_following_additional_dat_8bbe1e02: 此应用在启动时将收到以下额外数据：
   this_area_will_be_used_by_the_assessor_to_leave_co_98a5db8b: 此区域将供评估人员留下有关此标准的评论。
   this_assignment_does_not_count_toward_the_final_gr_29ede05f: 此作业无法计入最终评分。
   this_assignment_does_not_count_toward_the_final_gr_a5c238e2: 此作业将不计入您的最终成绩。
@@ -37016,6 +37215,7 @@ zh-Hans:
   this_attachment_has_been_unpublished_by_the_author_37bff9c3: 作者未发表此附件。
   this_can_be_a_device_that_can_generate_verificatio_f0787dcf: 可以是可生成验证码的设备或可发送短信的手机。
   this_can_be_an_external_link_or_a_canvas_url_5af70d49: "这可以是外部链接或 Canvas URL。"
+  this_can_be_an_external_link_or_a_canvas_url_this__9adf9eb8: "这可以是外部链接或 Canvas URL。此链接将在新标签页中打开。"
   this_canvas_community_article_details_the_reasonin_37be9375: "*Canvas 社区文章*详细介绍了这一变更背后的原因、变更范围、具体变更说明，并针对 Canvas 管理员和 LTI 1.3 工具开发人员进行了进一步澄清。"
   this_canvas_installation_is_only_for_testing_and_w_12e52370: "此 Canvas 安装仅适用于测试，*并将每个月重置。*"
   this_canvas_installation_is_only_for_testing_and_w_17ce8bc2: 
@@ -37373,6 +37573,7 @@ zh-Hans:
   this_peer_review_sub_assignment_does_not_have_a_pa_be7d0127: 此互评子作业没有父级作业
   this_permission_allows_users_to_view_ip_address_in_36fe96e9: "此权限允许用户在活动日志上查看 IP 地址信息。"
   this_permission_allows_users_to_view_multi_session_f09730d: 此权限允许用户在活动日志和调整页面上查看多会话活动信息。
+  this_permission_cannot_be_exercised_while_acting_a_20f8cfb4: 以其他用户行事时，无法行使此权限。
   this_permission_controls_access_to_site_admin_deve_5c8f00ae: 此权限控制所有帐户继承的站点管理员开发者密钥的访问权限。根帐户级别的密钥不受影响。
   this_permission_controls_the_ability_to_b89ff32: 此权限控制以下权限：
   this_permission_does_not_affect_ability_to_manage__64b0f272: |-
@@ -37388,6 +37589,7 @@ zh-Hans:
               此权限不可在子帐户级别使用。
   this_permission_is_deprecated_please_reference_use_8ce8eb30: "此权限已弃用。请引用“用户 - 学生”和“用户 - 观察员”。"
   this_permission_is_only_available_in_site_admin_an_fd69fb94: 此权限仅在站点管理员中可用，控制全局开发者密钥的访问权限。
+  this_permission_is_only_available_to_site_admin_us_78c268b4: 此权限仅对站点管理员用户可用。
   this_permission_is_only_available_to_site_admin_us_8f59528a: "此权限仅提供给站点管理员用户，要求启用 api_rate_limits 功能标记。"
   this_permission_is_only_supported_when_canvas_insi_85cc2938: "仅当对帐户启用 Canvas Insights 时支持该权限。请联系您的客户成功经理了解详情。"
   this_permission_must_be_disabled_for_users_to_only_451cfcc5: 必须对用户禁用此权限，以仅查看由他们创建、其他用户与他们分享或直接通过他们以讲师身份注册的课程分享的内容库。
@@ -37599,6 +37801,7 @@ zh-Hans:
   ticketing_system_52205bff: 票务系统
   ticketing_system_configurations_c4fecd96: 票务系统配置
   tiff_c70066a3: TIFF
+  tii_migration_slack_alerts_3a6e47c2: "TII 迁移 Slack 警报"
   time: 
     am: 上午
     count_hours_ago: 
@@ -38378,6 +38581,7 @@ zh-Hans:
   to_top_e0e8b922: 移至顶部
   to_translate_text_please_choose_your_preferred_lan_e39af0c0: 要翻译文本，请选择首选语言。这是日后所有翻译的默认设置。您可以日后在翻译部分进行更改，或从单独的条目翻译菜单进行更改。设置好后，不会再次自动显示此提示。
   to_upload_some_submissions_for_this_assignment_cli_22368328: 要上传该作业的一些提交项，请单击上方的“返回作业”按钮。
+  to_use_the_notebook_feature_highlight_an_excerpt_f_f1c50d8e: 要使用笔记本功能，请高亮显示学习资料中的摘录并标记为“疑惑”或“重要”并留下可选笔记。
   to_view_a_course_outcomes_page_as_read_only_course_5bb7241f: |-
       要以只读方式查看“课程结果”页面，必须启用“课程内容 - 查看”。
       要从结果页面导入学习成果，还必须启用“评价量规 - 添加/编辑/删除”。
@@ -38901,12 +39105,16 @@ zh-Hans:
   tue_bb10b386: 星期二
   tuesday_698a01b: 星期二
   turkish_5b69578b: 土耳其语
+  turn_app_off_a67c7e85: 关闭应用
+  turn_app_on_7c527619: 启用应用
   turn_into_a_paragraph_8c88bfe9: 转换为段落
   turn_into_paragraph_8052ee9: 转化为段落
+  turn_off_60e7ea2f: 关闭
   turn_off_developer_key_c3ba42fe: 关闭开发人员密钥
   turn_off_summary_1a6387cc: 关闭摘要
   turn_off_summary_53423187: 关闭摘要
   turn_off_translation_19fa9ac2: 关闭翻译
+  turn_on_896ccd3c: 启用
   turn_on_developer_key_703ea8f: 开启开发人员密钥
   turn_on_rtl_even_for_non_rtl_languages_8a1a8bc2: "对非 RTL 语言启用 RTL"
   turn_on_youtube_content_migration_feature_adding_t_b29adc0: "启用 YouTube 内容迁移功能。在 YouTube 嵌入上添加扫描功能和转换选项。"
@@ -39099,6 +39307,7 @@ zh-Hans:
   unbookmark_bank_70569249: "取消书签%{bank}"
   unbookmark_this_question_bank_d87d1a07: 没有标记此题库
   unchanged_aca18e02: "[不变]"
+  unclear_d8d45821: 不清晰
   undated_15c2e5fe: 无期限
   undated_items_toggle_list_visibility_6219e641: 无期限项目切换列表的可见性
   undelivered_message_459916a9: 未发送的信息
@@ -39320,6 +39529,12 @@ zh-Hans:
   until_6437a827: 直到
   until_8bdea3de: 直到
   until_date_949017c4: "直到 %{date}"
+  until_date_cannot_be_after_course_end_83d42106: 截止日期不能晚于课程结束日期
+  until_date_cannot_be_after_section_end_8e9486a4: 截止日期不能晚于班次结束日期
+  until_date_cannot_be_after_term_end_9b8985bc: 截止日期不能晚于学期结束日期
+  until_date_cannot_be_before_due_date_785feaa7: 截止日期不能早于到期日期
+  until_date_cannot_be_before_reply_to_topic_due_dat_f5ff5b: 截止日期不能早于回复主题的到期日期
+  until_date_cannot_be_before_required_replies_due_d_2b228c33: 截止日期不能早于必须回复的到期日期
   until_date_must_be_after_the_available_date_8670dfcd: 结束日期必须在可用日期之后
   until_date_must_be_after_the_due_date_d961566c: 结束日期必须在截止日期之后
   until_date_must_be_after_the_event_start_date_972f759d: 截止日期必须晚于事件开始日期
@@ -39521,12 +39736,16 @@ zh-Hans:
   uri_redirect_uri_d4aad2b9: "URI：%{redirect_uri}"
   url_22a5f3b8: URL
   url_8c4ff7d2: URL
+  url_cannot_have_two_fragments_the_character_794b9c6b: "URL 包含两个片段（# 字符）"
   url_cc9398ca: URL：
   url_does_not_refer_to_a_jwks_f1667fb3: "%{url} 不是指 JWKS"
+  url_for_native_saml_forwarding_to_send_incoming_ac_b9613e52: "通过原生 SAML 将传入的 ACS 发送到的 URL。如果留空，则默认使用 https://{org_id}.<authentication_url's domain>/am/AuthConsumer/metaAlias/alpha/{org_id}。{org_id} 将替换为组织 ID。示例：https://{org_id}.auth.example.com/am/AuthConsumer/metaAlias/alpha/{org_id}"
   url_for_the_discovery_page_iframe_defaults_to_auth_5b1a3782: "发现页 iframe 的 URL。如果留空，将默认使用 <authentication_url>/discovery/<global_org_id>。必须包括端点的协议和完整路径。例如：https://auth.example.com/discovery/123456789"
   url_is_required_3893dea9: "必须提供 URL"
   url_is_required_4689ed84: "URL 是必需的。"
   url_is_too_long_maximum_max_characters_a6861e7a: "URL 太长（最多 %{max} 个字符）"
+  url_is_too_long_maximum_max_characters_after_url_e_e501a61a: "URL 太长（URL 编码后最多 %{max} 个字符）"
+  url_opens_in_new_tab_aa8cd07f: "%{url}（在新标签页中打开）"
   url_preview_5d1f4a4e: "URL 预览"
   url_submission_error_bc3dcd40: "URL 提交错误"
   url_submission_f76327e3: "URL 提交"
@@ -40383,6 +40602,7 @@ zh-Hans:
   view_conditional_content_settings_a2dca270: 查看有条件的内容设置
   view_configuration_af081ca6: 查看配置
   view_contributing_score_details_for_student_assign_1fedea96: "查看 %{student} %{assignment} 的贡献分数详情"
+  view_conversations_7bc6e975: 查看对话
   view_copy_grading_scheme_3c2b17ac: 查看/编辑评分方案
   view_count_outcomes_9609792: 
     one: "查看 %{count} 个结果"
@@ -40395,6 +40615,7 @@ zh-Hans:
   view_decorative_image_carousel_ba1e4d77: 查看装饰性图像轮播
   view_description_b6d8e52b: 查看说明
   view_details_for_key_developername_5530eb71: "查看密钥 %{developerName} 的详细信息"
+  view_discovery_page_d7a51d83: 查看发现页
   view_due_dates_925bf173: 查看到期日期
   view_due_items_due_today_for_course_coursename_129e433: "查看课程 %{courseName} 今天到期的 %{due} 个项目"
   view_edit_5e61d3e: 查看/编辑
@@ -40767,6 +40988,10 @@ zh-Hans:
       启用后，当用户尝试启动 LTI 工具但遇到由于缺少 cookie 而造成的重大 Heisenbug 时，
       将显示友好的错误页面。请参阅 INTEROP-8200 获取更多背景信息。
   when_enabled_accesstoken_reads_will_be_cached_usin_917f3375: "启用后，在请求身份验证期间将会缓存 AccessToken 读取（使用 MultiCache）。"
+  when_enabled_administrators_can_see_which_custom_v_4a21baaa: |-
+      启用后，管理员可以在注册向导和工具配置页
+      查看 LTI 请求访问的自定义变量替换
+      （例如，用户 ID、课程信息）。
   when_enabled_admins_can_enable_or_disable_existing_5e64ad5f: |-
       启用后，管理员可以启用和禁用安装于外部应用页面上的任意 LTI 工具的现有位置
       （以前仅允许用于 1.1 工具，
@@ -40794,12 +41019,17 @@ zh-Hans:
       子帐户管理员暂时只能看到“监控”选项卡，
       可以查看其应用程序的使用数据，
       但无法管理开发密钥的配置。
+  when_enabled_canvas_performs_crud_operations_via_a_cf6e2e8: "启用后，Canvas 通过 API 对结果服务执行 CRUD 操作。"
   when_enabled_canvas_will_inherit_account_survey_se_39875d62: "启用后，Canvas 将从 Salesforce 的 Canvas_Survey_Opt_Out__c 字段继承帐户调查设置。周期性作业将每隔 24 小时同步此设置，UI 将变为只读。"
   when_enabled_collect_internal_analytics_metrics_us_88e81ee5: 启用后，使用分布式系统收集内部分析指标。
   when_enabled_displays_sis_ids_in_the_inbox_recipie_71241a17: |-
       启用后，收件箱收件人选择器中显示 SIS ID，
       以帮助区分具有相同用户名的用户。仅对具有 read_sis 权限的用户（默认为老师）
       显示。
+  when_enabled_during_lti_1_3_launches_unresolvable__f26eabad: |-
+      启用后，在 LTI 1.3 启动期间，无法解析的 LIS 声明（例如
+      person_sourcedid）将发送空值，而不发送变量扩展名。这会影响
+      LIS person_sourcedid 和 course_offering_sourcedid 声明。
   when_enabled_external_url_module_items_set_to_load_eacdb54b: |-
       启用后，设为“在新标签页中加载”的外部网址模块项
       将在新标签页中无缝打开。Canvas 过渡页面（进度追踪页）
@@ -40872,6 +41102,9 @@ zh-Hans:
       启用后，设置中具有 `:ready_for_new_quizzes_provision` 密钥
       但尚未配置该密钥的根帐户将得到密钥配置。在该分片所在区域午夜前后对每个分片执行这种
       检查和配置。
+  when_enabled_sends_a_slack_alert_to_interop_alerts_f968b6e8: |-
+      启用后，当 TII 资产处理器
+      迁移作业失败时，向#互操作性警报发送 Slack 警报。
   when_enabled_sends_data_for_all_lti_launches_to_th_2c76d174: |-
       启用后，将所有 LTI 启动的数据发送到 PandataEvents 系统
       以用于查询和可视化。
@@ -41606,6 +41839,7 @@ zh-Hans:
   you_have_no_courses_favorited_reloading_this_page__a2bae9de: "您没有收藏课程。重新加载此页面，将显示您所有\n\
       \x20     当前课程。要添加收藏项，请转到 "
   you_have_no_ltis_configured_to_create_collaboratio_5cad28dd: 您没有LTIs与创建协作配置。联络您的老师以获得一些设置。
+  you_have_no_notes_for_the_selected_filter_a81a06e9: 所选筛选器没有备注
   you_have_no_outcomes_click_here_to_create_one_ebf262a3: "您没有结果。*单击此处* 创建一个结果。"
   you_have_no_outcomes_click_here_to_go_to_the_outco_574bd0af: 您没有结果。单击此处转到结果页面。
   you_have_not_added_any_availability_or_exceptions__b9acba54: 您未添加任何可用性或例外。搜索或浏览以进行添加。
@@ -41829,6 +42063,7 @@ zh-Hans:
   your_classic_quizzes_have_been_migrated_to_new_qui_e49244da: 经典测验已迁移到新测验！
   your_comment_is_not_posted_12677035: 您的评论未发布。
   your_comment_was_auto_saved_as_a_draft_c49d3510: 您的评论自动保存为草稿。
+  your_configurations_70c522b8: 您的配置
   your_content_6ee4d2e0: "您的内容： "
   your_content_has_been_exported_bbb57764: 您的内容已被导出。
   your_course_content_is_organized_into_modules_belo_4bc25dcc: 课程内容已整理到下面的模块。探索每个模块以了解并完成活动。
@@ -41873,6 +42108,7 @@ zh-Hans:
   your_migration_can_not_exceed_upload_limit_8f0bd239: "迁移不能超过 %{upload_limit}"
   your_modules_will_appear_here_after_they_re_assemb_bfd5abe8: 您的单元汇集后将显示在此处。
   your_name_7665e1d8: 您的名字
+  your_notes_from_learning_materials_will_appear_her_8757b67d: 您的学习资料笔记将显示在这里。突出显示重点或您在学习过程中的反思或问题。这些将全部保存在您的笔记本中，以方便日后查阅。
   your_outcomes_were_successfully_imported_c5de884: 您的结果已成功导入。
   your_password_has_been_changed_df0e72aa: 您的密码已更改。
   your_password_must_meet_the_following_requirements_283c85d1: 您的密码必须满足以下要求
