@@ -72,6 +72,7 @@ RUN --mount=target=/tmp/src \
     Rakefile \
     gulpfile.js \
     rspack.config.js \
+    schema.graphql \
     \
     | tee /tmp/dst/webpack-runner-dependencies.tar | md5sum > /tmp/dst/webpack-runner-dependencies.tar.md5 && \
   \
