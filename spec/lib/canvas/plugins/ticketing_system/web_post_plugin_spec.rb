@@ -27,7 +27,7 @@ module Canvas::Plugins::TicketingSystem
         endpoint = "http://someserver.com/some/endpoint"
         config = { endpoint_uri: endpoint }
         plugin = WebPostPlugin.new(ticketing)
-        expect(HTTParty).to receive(:post).with(endpoint, include(body: document.to_json))
+        expect(CanvasHttp).to receive(:post).with(endpoint, include(body: document.to_json))
         plugin.export_error(report, config)
       end
 
@@ -40,13 +40,20 @@ module Canvas::Plugins::TicketingSystem
         config = { endpoint_uri: endpoint }
         plugin = WebPostPlugin.new(ticketing)
 
-        allow(HTTParty).to receive(:post)
+        allow(CanvasHttp).to receive(:post)
         plugin.export_error(report, config)
 
-        expect(HTTParty).to have_received(:post) do |_url, opts|
+        expect(CanvasHttp).to have_received(:post) do |_url, opts|
           request_body = JSON.parse(opts[:body])
           expect(request_body.dig("reporter", "become_user_uri").length).to be <= ErrorReport.maximum_string_length
         end
+      end
+
+      it "rejects an insecure URI without posting" do
+        ticketing = instance_double(Canvas::Plugins::TicketingSystem)
+        report = instance_double(Canvas::Plugins::TicketingSystem::CustomError, to_document: { ok: 1 })
+        plugin = WebPostPlugin.new(ticketing)
+        expect { plugin.export_error(report, endpoint_uri: "http://169.254.169.254/latest/") }.to raise_error(CanvasHttp::InsecureUriError)
       end
     end
   end

@@ -45,7 +45,7 @@ module Canvas::Plugins::TicketingSystem
       if document.dig(:reporter, :become_user_uri).present?
         document[:reporter][:become_user_uri] = document[:reporter][:become_user_uri].truncate(ErrorReport.maximum_string_length)
       end
-      HTTParty.post(conf[:endpoint_uri], body: document.to_json)
+      CanvasHttp.post(conf[:endpoint_uri], body: document.to_json)
     end
   end
 end
