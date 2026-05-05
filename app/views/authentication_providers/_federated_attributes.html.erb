@@ -80,9 +80,11 @@ TEXT
               &nbsp;
             <% end %>
           </td>
+          <% if can_manage %>
           <td>
             <button type="button" class="Button Button--icon-action remove_federated_attribute"><i class="icon-trash"><span class="screenreader-only"><%= t 'Remove Attribute' %></span></i></button>
           </td>
+          <% end %>
         </tr>
       <% end %>
       <tr style="display: none" class="attribute_template" data-idsuffix="<%= presenter.id_suffix(aac) %>">
@@ -107,6 +109,7 @@ TEXT
       </tr>
     </tbody>
   </table>
+  <% if can_manage %>
   <% attrs = presenter.available_federated_attributes(aac) %>
   <div class="<%= attrs.empty? ? 'federated_attributes_none' : 'add_attribute' %>">
     <label class="ic-Label screenreader-only" for="aacfa_add_attribute_<%= presenter.id_suffix(aac) %>"><%= t 'Choose attribute to add' %></label>
@@ -121,6 +124,7 @@ TEXT
       <span aria-hidden="true"><%= t 'Attribute' %></span>
     </button>
   </div>
+  <% end %>
 
   <% if aac.federated_attributes.empty? %>
     <input type='hidden' name='authentication_provider[federated_attributes]' value='' class='no_federated_attributes'>

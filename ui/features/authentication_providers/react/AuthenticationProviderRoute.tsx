@@ -59,7 +59,9 @@ export function Component() {
   const portals: Array<PortalMount> = []
 
   ldapSettingsTest(portals, accountId!)
-  forcePasswordReset(portals, accountId!)
+  if (ENV.MANAGE_AUTHENTICATION_PROVIDER) {
+    forcePasswordReset(portals, accountId!)
+  }
 
   return (
     <>

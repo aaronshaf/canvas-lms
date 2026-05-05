@@ -25,6 +25,9 @@ ready(() => {
   const container = document.querySelector('#password_complexity_configuration')
 
   if (container) {
-    render(<PasswordComplexityConfiguration />, container)
+    render(
+      <PasswordComplexityConfiguration readOnly={!ENV.MANAGE_AUTHENTICATION_PROVIDER} />,
+      container,
+    )
   }
 })

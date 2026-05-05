@@ -479,4 +479,76 @@ describe DiscoveryPagesApiController do
       end
     end
   end
+
+  describe "manage vs. read authentication_provider permissions" do
+    let!(:auth_provider) { account.authentication_providers.create!(auth_type: "saml") }
+
+    before { Account.site_admin.enable_feature!(:granular_authentication_provider_permissions) }
+
+    def session_as_admin_with(role_changes)
+      role = custom_account_role("CustomAdmin", account:)
+      user = account_admin_user_with_role_changes(account:, role:, role_changes:)
+      user_session(user, pseudonym(user, account:))
+      user
+    end
+
+    describe "GET #show" do
+      it "succeeds with read_authentication_provider only" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
+        get :show
+        expect(response).to be_successful
+      end
+
+      it "is forbidden without either permission" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: false)
+        get :show
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    describe "PUT #upsert" do
+      it "is forbidden with only read_authentication_provider" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
+        put :upsert, params: {
+          discovery_page: {
+            primary: [{ authentication_provider_id: auth_provider.id, label: "Test" }],
+            secondary: []
+          }
+        }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    describe "POST #token" do
+      it "is forbidden with only read_authentication_provider" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
+        post :token, params: {
+          discovery_page: {
+            primary: [{ authentication_provider_id: auth_provider.id, label: "Test" }],
+            secondary: []
+          }
+        }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context "when granular_authentication_provider_permissions is disabled" do
+      before { Account.site_admin.disable_feature!(:granular_authentication_provider_permissions) }
+
+      it "permits show when only manage_account_settings is granted" do
+        session_as_admin_with(manage_authentication_provider: false,
+                              read_authentication_provider: false,
+                              manage_account_settings: true)
+        get :show
+        expect(response).to be_successful
+      end
+
+      it "denies show when only the new perms are granted" do
+        session_as_admin_with(manage_authentication_provider: true,
+                              read_authentication_provider: true)
+        get :show
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+  end
 end

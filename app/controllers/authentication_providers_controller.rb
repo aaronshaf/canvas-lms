@@ -232,7 +232,8 @@
 #
 class AuthenticationProvidersController < ApplicationController
   before_action :require_context
-  before_action :require_root_account_management, except: :show
+  before_action :require_manage_authentication_provider, except: %i[index show show_sso_settings]
+  before_action :require_read_or_manage_authentication_provider, only: %i[index show_sso_settings]
   before_action :require_elevated_auth_provider
 
   include Api::V1::AuthenticationProvider
@@ -279,11 +280,12 @@ class AuthenticationProvidersController < ApplicationController
   # @returns AuthenticationProvider
   def show
     aac = load_aac(params[:id])
-    return if aac.auth_type != "canvas" && !require_root_account_management
-
+    if aac.auth_type != "canvas"
+      return unless authorized_action(@context, @current_user, @context.read_or_manage_authentication_provider_permissions)
+    end
     render json: aac_json(aac)
   rescue ActiveRecord::RecordNotFound
-    return unless require_root_account_management
+    return unless authorized_action(@context, @current_user, @context.read_or_manage_authentication_provider_permissions)
 
     raise
   end
@@ -828,7 +830,7 @@ class AuthenticationProvidersController < ApplicationController
   # @API Restore a deleted authentication provider
   #
   # Restore an authentication provider back to active that was previously deleted. Only
-  # available to admins who can manage_account_settings for given root account.
+  # available to admins who can manage_authentication_provider for given root account.
   #
   # @example_request
   #   curl -X PUT 'https://<canvas>/api/v1/accounts/<account_id>/authentication_providers/<id>/restore' \
@@ -1192,5 +1194,13 @@ class AuthenticationProvidersController < ApplicationController
 
   def load_aac(aac_id)
     @account.authentication_providers.active.find(aac_id)
+  end
+
+  def require_manage_authentication_provider
+    authorized_action(@context, @current_user, @context.manage_authentication_provider_permissions)
+  end
+
+  def require_read_or_manage_authentication_provider
+    authorized_action(@context, @current_user, @context.read_or_manage_authentication_provider_permissions)
   end
 end

@@ -50,7 +50,8 @@ describe "Permission Registry" do
       label: an_instance_of(Proc),
       account_only: :root,
       true_for: %w[AccountAdmin],
-      available_to: %w[AccountAdmin AccountMembership]
+      available_to: %w[AccountAdmin AccountMembership],
+      account_allows: an_instance_of(Proc)
     )
   end
 
@@ -62,8 +63,31 @@ describe "Permission Registry" do
       label: an_instance_of(Proc),
       account_only: :root,
       true_for: %w[AccountAdmin],
-      available_to: %w[AccountAdmin AccountMembership]
+      available_to: %w[AccountAdmin AccountMembership],
+      account_allows: an_instance_of(Proc)
     )
+  end
+
+  describe "granular_authentication_provider_permissions flag gating" do
+    let(:root_account) { Account.create! }
+
+    before { Rails.application.config.to_prepare_blocks.each(&:call) }
+
+    it "gates manage_authentication_provider on the feature flag" do
+      account_allows = Permissions.retrieve[:manage_authentication_provider][:account_allows]
+      Account.site_admin.disable_feature!(:granular_authentication_provider_permissions)
+      expect(account_allows.call(root_account)).to be_falsey
+      Account.site_admin.enable_feature!(:granular_authentication_provider_permissions)
+      expect(account_allows.call(root_account)).to be_truthy
+    end
+
+    it "gates read_authentication_provider on the feature flag" do
+      account_allows = Permissions.retrieve[:read_authentication_provider][:account_allows]
+      Account.site_admin.disable_feature!(:granular_authentication_provider_permissions)
+      expect(account_allows.call(root_account)).to be_falsey
+      Account.site_admin.enable_feature!(:granular_authentication_provider_permissions)
+      expect(account_allows.call(root_account)).to be_truthy
+    end
   end
 
   it "does not include Authentication in manage_account_settings account_details" do

@@ -27,6 +27,21 @@ login_registration_ui_identity:
       state: hidden
     production:
       state: hidden
+granular_authentication_provider_permissions:
+  state: hidden
+  applies_to: SiteAdmin
+  display_name: Granular Authentication Provider Permissions
+  description: |-
+    Splits Authentication Provider management out of "Account Settings -
+    manage" into dedicated "Authentication Providers - manage" and
+    "Authentication Providers - read" permissions.
+  environments:
+    development:
+      state: allowed
+    beta:
+      state: hidden
+    production:
+      state: hidden
 force_login_after_logout:
   state: hidden
   applies_to: RootAccount

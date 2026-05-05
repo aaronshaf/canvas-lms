@@ -31,7 +31,7 @@ import type {DiscoveryPageProps} from '../types'
 const I18n = createI18nScope('discovery_page')
 const MODAL_HASH = '#discovery_config'
 
-export function DiscoveryPage({initialEnabled, onChange}: DiscoveryPageProps) {
+export function DiscoveryPage({initialEnabled, onChange, readOnly = false}: DiscoveryPageProps) {
   const [isEnabled, setIsEnabled] = useState(initialEnabled)
   const [modalOpen, setModalOpen] = useHashState(MODAL_HASH)
 
@@ -45,7 +45,12 @@ export function DiscoveryPage({initialEnabled, onChange}: DiscoveryPageProps) {
     <View as="div" data-testid="discovery-page">
       <Flex as="div" direction="row" alignItems="center" gap="small">
         <Flex.Item>
-          <Button onClick={() => setModalOpen(true)} margin="0" data-testid="configure-button">
+          <Button
+            onClick={() => setModalOpen(true)}
+            margin="0"
+            data-testid="configure-button"
+            interaction={readOnly ? 'disabled' : 'enabled'}
+          >
             {I18n.t('Configure')}
           </Button>
         </Flex.Item>
@@ -61,6 +66,7 @@ export function DiscoveryPage({initialEnabled, onChange}: DiscoveryPageProps) {
               labelPlacement="end"
               onChange={handleToggle}
               variant="toggle"
+              disabled={readOnly}
             />
           </FormFieldGroup>
         </Flex.Item>

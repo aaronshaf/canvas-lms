@@ -762,7 +762,7 @@ describe AuthenticationProvidersController do
         expect(auth_provider.reload).to be_active
       end
 
-      it "blocks show even though it skips require_root_account_management" do
+      it "blocks show" do
         get :show, params: { account_id: account.id, id: auth_provider.id }, format: :json
         expect(response).to have_http_status(:forbidden)
         expect(response.parsed_body["status"]).to eql "unauthorized"
@@ -784,6 +784,141 @@ describe AuthenticationProvidersController do
           post :create, params: { account_id: account.id, authentication_provider: cas_hash }, format: :json
         end.to change { account.authentication_providers.active.count }.by(1)
         expect(response).to be_successful
+      end
+    end
+  end
+
+  describe "manage_authentication_provider / read_authentication_provider permissions" do
+    let!(:auth_provider) { account.authentication_providers.create!(saml_hash) }
+
+    before { Account.site_admin.enable_feature!(:granular_authentication_provider_permissions) }
+
+    def session_as_admin_with(role_changes)
+      role = custom_account_role("CustomAdmin", account:)
+      user = account_admin_user_with_role_changes(account:, role:, role_changes:)
+      user_session(user, pseudonym(user, account:))
+      user
+    end
+
+    describe "GET #show" do
+      it "succeeds with manage_authentication_provider" do
+        # default account admin has manage_authentication_provider
+        get :show, params: { account_id: account.id, id: auth_provider.id }, format: :json
+        expect(response).to be_successful
+      end
+
+      it "succeeds with read_authentication_provider only" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
+        get :show, params: { account_id: account.id, id: auth_provider.id }, format: :json
+        expect(response).to be_successful
+      end
+
+      it "is forbidden without either permission" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: false)
+        get :show, params: { account_id: account.id, id: auth_provider.id }, format: :json
+        expect(response).to be_forbidden
+      end
+    end
+
+    describe "GET #index" do
+      it "succeeds with manage_authentication_provider" do
+        get :index, params: { account_id: account.id }
+        expect(response).to be_successful
+      end
+
+      it "succeeds with read_authentication_provider only" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
+        get :index, params: { account_id: account.id }
+        expect(response).to be_successful
+      end
+
+      it "is forbidden without either permission" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: false)
+        get :index, params: { account_id: account.id }, format: :json
+        expect(response).to be_forbidden
+      end
+    end
+
+    describe "GET #show_sso_settings" do
+      it "succeeds with manage_authentication_provider" do
+        get :show_sso_settings, params: { account_id: account.id }, format: :json
+        expect(response).to be_successful
+      end
+
+      it "succeeds with read_authentication_provider only" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
+        get :show_sso_settings, params: { account_id: account.id }, format: :json
+        expect(response).to be_successful
+      end
+
+      it "is forbidden without either permission" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: false)
+        get :show_sso_settings, params: { account_id: account.id }, format: :json
+        expect(response).to be_forbidden
+      end
+    end
+
+    describe "POST #create" do
+      it "is forbidden with only read_authentication_provider" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
+        post :create, params: { account_id: account.id, authentication_provider: cas_hash }, format: :json
+        expect(response).to be_forbidden
+      end
+    end
+
+    describe "PUT #update" do
+      it "is forbidden with only read_authentication_provider" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
+        put :update, params: { account_id: account.id, id: auth_provider.id, authentication_provider: { idp_entity_id: "x" } }, format: :json
+        expect(response).to be_forbidden
+      end
+    end
+
+    describe "DELETE #destroy" do
+      it "is forbidden with only read_authentication_provider" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
+        delete :destroy, params: { account_id: account.id, id: auth_provider.id }, format: :json
+        expect(response).to be_forbidden
+      end
+    end
+
+    describe "PUT #update_sso_settings" do
+      it "is forbidden with only read_authentication_provider" do
+        session_as_admin_with(manage_authentication_provider: false, read_authentication_provider: true)
+        put :update_sso_settings, params: { account_id: account.id, account: { settings: { login_handle_name: "Login" } } }, format: :json
+        expect(response).to be_forbidden
+      end
+    end
+
+    context "when granular_authentication_provider_permissions is disabled" do
+      before { Account.site_admin.disable_feature!(:granular_authentication_provider_permissions) }
+
+      it "permits access when only manage_account_settings is granted, regardless of new perms" do
+        session_as_admin_with(manage_authentication_provider: false,
+                              read_authentication_provider: false,
+                              manage_account_settings: true)
+        get :show, params: { account_id: account.id, id: auth_provider.id }, format: :json
+        expect(response).to be_successful
+      end
+
+      it "permits writes when only manage_account_settings is granted" do
+        session_as_admin_with(manage_authentication_provider: false,
+                              read_authentication_provider: false,
+                              manage_account_settings: true)
+        put :update, params: { account_id: account.id, id: auth_provider.id, authentication_provider: { idp_entity_id: "x" } }, format: :json
+        expect(response).not_to be_forbidden
+      end
+
+      it "denies access when only the new perms are granted (FF lockdown overrides them)" do
+        user = session_as_admin_with(manage_authentication_provider: true,
+                                     read_authentication_provider: true)
+
+        expect(account.grants_right?(user, :manage_account_settings)).to be false
+        expect(account.grants_right?(user, :manage_authentication_provider)).to be false
+        expect(account.grants_right?(user, :read_authentication_provider)).to be false
+
+        get :show, params: { account_id: account.id, id: auth_provider.id }, format: :json
+        expect(response).to be_forbidden
       end
     end
   end

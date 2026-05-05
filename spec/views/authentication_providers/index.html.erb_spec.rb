@@ -50,14 +50,37 @@ describe "authentication_providers/index" do
     expect(doc.css(".last_timeout_failure").length).to eq 1
   end
 
-  it "displays more than 2 LDAP configs" do
-    account.authentication_providers.scope.delete_all
-    4.times do
-      account.authentication_providers.create!(auth_type: "ldap")
+  describe "existing-only LDAP configs (no new-provider form)" do
+    before do
+      account.authentication_providers.scope.delete_all
+      4.times { account.authentication_providers.create!(auth_type: "ldap") }
     end
-    render "authentication_providers/index"
-    doc = Nokogiri::HTML5(response.body)
-    expect(doc.css("input[value=ldap]").length).to eq(5) # 4 + 1 hidden for new
+
+    context "with granular_authentication_provider_permissions disabled" do
+      before do
+        Account.site_admin.disable_feature!(:granular_authentication_provider_permissions)
+        account.role_overrides.create!(role: admin_role, permission: :manage_account_settings, enabled: false)
+      end
+
+      it "renders only existing LDAP configs when admin lacks manage_account_settings" do
+        render "authentication_providers/index"
+        doc = Nokogiri::HTML5(response.body)
+        expect(doc.css("input[value=ldap]").length).to eq(5) # existing configs plus new-provider form
+      end
+    end
+
+    context "with granular_authentication_provider_permissions enabled" do
+      before do
+        Account.site_admin.enable_feature!(:granular_authentication_provider_permissions)
+        account.role_overrides.create!(role: admin_role, permission: :manage_authentication_provider, enabled: false)
+      end
+
+      it "renders only existing LDAP configs when admin lacks manage_authentication_provider" do
+        render "authentication_providers/index"
+        doc = Nokogiri::HTML5(response.body)
+        expect(doc.css("input[value=ldap]").length).to eq(4) # existing configs only; new-provider form requires manage permission
+      end
+    end
   end
 
   it "doesn't display delete button for the config the current user logged in with" do

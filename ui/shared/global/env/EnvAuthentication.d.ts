@@ -22,4 +22,5 @@ export interface EnvAuthentication {
   }
   auth_providers?: Array<{id: string; url: string; auth_type: string}>
   discovery_page_url?: string
+  MANAGE_AUTHENTICATION_PROVIDER?: boolean
 }

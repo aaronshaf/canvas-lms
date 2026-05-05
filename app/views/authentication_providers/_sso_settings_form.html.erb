@@ -24,6 +24,7 @@
                    url: account_update_sso_settings_path(account),
                    method: :put,
                    html: { class: "ic-Form ic-Form--horizontal" }) do |f| %>
+      <fieldset <%= 'disabled' unless can_manage %> style="display: contents;">
         <div class="ic-Form-control">
           <%= f.label :login_handle_name, t("Login Label"),
                       class: 'ic-Label' %>
@@ -115,9 +116,12 @@
                   "If set, a 'Trouble logging in?' link will appear on the login page.") %>
           </div>
         </div>
-        <div class="ic-Form-actions">
-          <%= f.button t('Save'), class: "Button Button--primary" %>
-        </div>
+        <% if can_manage %>
+          <div class="ic-Form-actions">
+            <%= f.button t('Save'), class: "Button Button--primary" %>
+          </div>
+        <% end %>
+      </fieldset>
       <% end %>
     </div>
   </div>

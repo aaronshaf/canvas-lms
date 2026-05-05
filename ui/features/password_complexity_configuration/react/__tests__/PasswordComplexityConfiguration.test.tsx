@@ -277,4 +277,35 @@ describe('PasswordComplexityConfiguration Component', () => {
       })
     })
   })
+
+  describe('readOnly mode', () => {
+    it('still allows opening the tray', async () => {
+      render(<PasswordComplexityConfiguration readOnly={true} />)
+      await userEvent.click(await getViewOptionsButton())
+      expect(await screen.findByText('Current Password Configuration')).toBeInTheDocument()
+    })
+
+    it('disables the inner form controls', async () => {
+      render(<PasswordComplexityConfiguration readOnly={true} />)
+      await userEvent.click(await getViewOptionsButton())
+      expect(await screen.findByTestId('minimumCharacterLengthCheckbox')).toBeDisabled()
+      expect(screen.getByTestId('requireNumbersCheckbox')).toBeDisabled()
+      expect(screen.getByTestId('requireSymbolsCheckbox')).toBeDisabled()
+      expect(screen.getByTestId('customMaxLoginAttemptsCheckbox')).toBeDisabled()
+    })
+
+    it('hides the Apply button', async () => {
+      render(<PasswordComplexityConfiguration readOnly={true} />)
+      await userEvent.click(await getViewOptionsButton())
+      await screen.findByText('Current Password Configuration')
+      expect(screen.queryByTestId('saveButton')).not.toBeInTheDocument()
+    })
+
+    it('renders the close-only footer button labeled "Close"', async () => {
+      render(<PasswordComplexityConfiguration readOnly={true} />)
+      await userEvent.click(await getViewOptionsButton())
+      const closeButton = await screen.findByTestId('cancelButton')
+      expect(closeButton).toHaveTextContent('Close')
+    })
+  })
 })

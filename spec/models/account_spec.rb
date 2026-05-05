@@ -1166,6 +1166,63 @@ describe Account do
       expect(tabs.pluck(:id)).to include(Account::TAB_QUESTION_BANKS)
     end
 
+    describe "authentication tab" do
+      let(:root_account) { Account.create! }
+
+      context "when granular_authentication_provider_permissions is enabled" do
+        before { Account.site_admin.enable_feature!(:granular_authentication_provider_permissions) }
+
+        it "is shown for an account admin with manage_authentication_provider" do
+          admin = account_admin_user(account: root_account)
+          expect(root_account.tabs_available(admin).pluck(:id)).to include(Account::TAB_AUTHENTICATION)
+        end
+
+        it "is shown for a user with only read_authentication_provider" do
+          admin = account_admin_user_with_role_changes(
+            account: root_account,
+            role_changes: { manage_authentication_provider: false, read_authentication_provider: true }
+          )
+          expect(root_account.tabs_available(admin).pluck(:id)).to include(Account::TAB_AUTHENTICATION)
+        end
+
+        it "is not shown without either authentication provider permission" do
+          admin = account_admin_user_with_role_changes(
+            account: root_account,
+            role_changes: { manage_authentication_provider: false, read_authentication_provider: false }
+          )
+          expect(root_account.tabs_available(admin).pluck(:id)).not_to include(Account::TAB_AUTHENTICATION)
+        end
+
+        it "is not shown for a sub-account even with manage_authentication_provider" do
+          sub = root_account.sub_accounts.create!
+          admin = account_admin_user(account: sub)
+          expect(sub.tabs_available(admin).pluck(:id)).not_to include(Account::TAB_AUTHENTICATION)
+        end
+      end
+
+      context "when granular_authentication_provider_permissions is disabled" do
+        let(:auth_provider_custom_role) { custom_account_role("CustomAdmin", account: root_account) }
+
+        it "is shown for a user with only manage_account_settings granted on a custom role" do
+          admin = account_admin_user_with_role_changes(
+            account: root_account,
+            role: auth_provider_custom_role,
+            role_changes: { manage_account_settings: true }
+          )
+          expect(root_account.tabs_available(admin).pluck(:id)).to include(Account::TAB_AUTHENTICATION)
+        end
+
+        it "is not shown when only the new perms are granted (FF lockdown overrides them)" do
+          admin = account_admin_user_with_role_changes(
+            account: root_account,
+            role: auth_provider_custom_role,
+            role_changes: { manage_authentication_provider: true, read_authentication_provider: true }
+          )
+          expect(root_account.tabs_available(admin).pluck(:id)).not_to include(Account::TAB_AUTHENTICATION)
+        end
+      end
+    end
+
     describe "account calendars tab" do
       it "is shown if the user has manage_account_calendar_visibility permission" do
         account_admin_user_with_role_changes(account: @account)

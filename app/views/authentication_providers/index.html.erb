@@ -21,28 +21,32 @@
 <% provide :page_title do %>
   <%= @page_title %>
 <% end %>
+<% can_manage = @account.manage_authentication_provider_permissions.any? { |perm| can_do(@account, @current_user, perm) } %>
+<% js_env({'MANAGE_AUTHENTICATION_PROVIDER' => can_manage}) %>
 
 <% provide :right_side do %>
   <div id="auth-config-right-side">
 
-    <% if @presenter.ldap_config? %>
+    <% if @presenter.ldap_config? && can_manage %>
       <% js_env({LDAP_SETTINGS_TEST: { ldap_ips: @presenter.ldap_ips}}) %>
       <div id="ldap_settings_test_mount_point"></div>
     <% end %>
 
-    <div id="add-authentication-provider"
-         class="add_auth_div"
-         data-options="<%= @presenter.sso_options.to_json %>">
-    </div>
+    <% if can_manage %>
+      <div id="add-authentication-provider"
+           class="add_auth_div"
+           data-options="<%= @presenter.sso_options.to_json %>">
+      </div>
 
-    <% if @presenter.auth? %>
-      <br/>
-      <%= link_to(account_remove_all_authentication_providers_url(@account),
-          data: { confirm: t(:delete_auth_confirmation,
-            'Are you sure? Users may not be able to log in if this is removed.') },
-          method: :delete,
-          class: "delete_auth_link Button Button--danger icon-trash button-sidebar-wide") do %>
-          <%= t(:delete_auth_link, "Remove Authentication") %>
+      <% if @presenter.auth? %>
+        <br/>
+        <%= link_to(account_remove_all_authentication_providers_url(@account),
+            data: { confirm: t(:delete_auth_confirmation,
+              'Are you sure? Users may not be able to log in if this is removed.') },
+            method: :delete,
+            class: "delete_auth_link Button Button--danger icon-trash button-sidebar-wide") do %>
+            <%= t(:delete_auth_link, "Remove Authentication") %>
+        <% end %>
       <% end %>
     <% end %>
   </div>
@@ -63,7 +67,7 @@
 </p>
 
 <%= render partial: 'sso_settings_form',
-           locals: { presenter: @presenter, account: @account }%>
+           locals: { presenter: @presenter, account: @account, can_manage: can_manage }%>
 
 <h2><%= t("Current Provider") %></h2>
 
@@ -79,17 +83,20 @@
 <% else %>
   <% @presenter.configs.each do |aac| %>
     <%= render partial: "aac_settings",
-               locals: { aac: aac, presenter: @presenter, account: @account } %>
+               locals: { aac: aac, presenter: @presenter, account: @account, can_manage: can_manage } %>
   <% end %>
 <% end %>
 
-<% @presenter.new_auth_types.each do |auth_type| %>
-  <%= render partial: "aac_settings",
-             locals: {
-               account: @account,
-               presenter: @presenter,
-               aac: @presenter.new_config(auth_type.sti_name)
-             } %>
+<% if can_manage %>
+  <% @presenter.new_auth_types.each do |auth_type| %>
+    <%= render partial: "aac_settings",
+               locals: {
+                 account: @account,
+                 presenter: @presenter,
+                 aac: @presenter.new_config(auth_type.sti_name),
+                 can_manage: can_manage
+               } %>
+  <% end %>
 <% end %>
 
 <% js_bundle :authentication_providers %>

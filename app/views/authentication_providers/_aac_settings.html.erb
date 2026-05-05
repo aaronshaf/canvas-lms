@@ -33,6 +33,7 @@
                    }) do |f| %>
       <%= f.hidden_field :auth_type, value: aac.auth_type, id: nil %>
       <%= f.hidden_field :id, id: nil %>
+      <fieldset <%= 'disabled' unless can_manage %> style="display: contents;">
         <h3><%= aac.class.display_name %></h3>
         <% if !aac.new_record? %>
           <p><%= mt "You can log in directly with this provider by going to %{url}",
@@ -45,10 +46,10 @@
         <%= render partial: "additional_settings", locals: { f:, presenter:, provider: aac } %>
 
         <% if aac.class.recognized_federated_attributes != [] %>
-          <%= render partial: "federated_attributes", locals: { aac: aac, presenter: presenter, f: f } %>
+          <%= render partial: "federated_attributes", locals: { aac: aac, presenter: presenter, f: f, can_manage: can_manage } %>
         <% end %>
 
-        <% if !aac.new_record? && aac.class.supports_debugging? %>
+        <% if !aac.new_record? && aac.class.supports_debugging? && can_manage %>
           <%= render partial: "debugging", locals: { provider: aac } %>
         <% end %>
 
@@ -103,31 +104,39 @@
           </div>
         <% end %>
 
-        <div class="ic-Form-actions">
-          <% if !aac.new_record? && aac.auth_type == "saml" && @current_pseudonym.authentication_provider != aac %>
-              <%= link_to(account_authentication_provider_refresh_metadata_url(account, aac),
-                method: "get",
-                id: "refresh-metadata-#{aac.id}",
-                data: { disable_with: t('refreshing...')},
-                class: 'Button') do %>
-                <%= t("Refresh Metadata") %>
-              <% end %>
-          <% end %>
-          <% if !aac.new_record? && @current_pseudonym.authentication_provider != aac %>
-              <%= link_to(account_authentication_provider_url(account, aac),
-                method: "delete",
-                rel: 'nofollow',
-                id: "delete-aac-#{aac.id}",
-                data: {
-                  confirm: t('Are you sure?'),
-                  disable_with: t('deleting...')
-                },
-                class: 'Button Button--danger') do %>
-                <%= t("Delete") %>
-              <% end %>
-          <% end %>
-          <%= f.button t('Save'), class: "Button Button--primary" %>
-        </div>
+        <% if aac.auth_type == "canvas" && @domain_root_account.feature_enabled?(:password_complexity) && !@domain_root_account.site_admin? && can_do(@domain_root_account, @current_user, :manage_account_settings) %>
+          <% js_bundle :password_complexity_configuration %>
+          <div id="password_complexity_configuration"></div>
+        <% end %>
+
+        <% if can_manage %>
+          <div class="ic-Form-actions">
+            <% if !aac.new_record? && aac.auth_type == "saml" && @current_pseudonym.authentication_provider != aac %>
+                <%= link_to(account_authentication_provider_refresh_metadata_url(account, aac),
+                  method: "get",
+                  id: "refresh-metadata-#{aac.id}",
+                  data: { disable_with: t('refreshing...')},
+                  class: 'Button') do %>
+                  <%= t("Refresh Metadata") %>
+                <% end %>
+            <% end %>
+            <% if !aac.new_record? && @current_pseudonym.authentication_provider != aac %>
+                <%= link_to(account_authentication_provider_url(account, aac),
+                  method: "delete",
+                  rel: 'nofollow',
+                  id: "delete-aac-#{aac.id}",
+                  data: {
+                    confirm: t('Are you sure?'),
+                    disable_with: t('deleting...')
+                  },
+                  class: 'Button Button--danger') do %>
+                  <%= t("Delete") %>
+                <% end %>
+            <% end %>
+            <%= f.button t('Save'), class: "Button Button--primary" %>
+          </div>
+        <% end %>
+      </fieldset>
       <% end %>
     </div>
   </div>

@@ -53,7 +53,13 @@ interface QueryParams {
   account: Account
 }
 
-const PasswordComplexityConfiguration = () => {
+interface PasswordComplexityConfigurationProps {
+  readOnly?: boolean
+}
+
+const PasswordComplexityConfiguration = ({
+  readOnly = false,
+}: PasswordComplexityConfigurationProps = {}) => {
   const [showTray, setShowTray] = useState(false)
   const [enableApplyButton, setEnableApplyButton] = useState(false)
   const [minimumCharacterLengthEnabled, setMinimumCharacterLengthEnabled] = useState(true)
@@ -293,6 +299,7 @@ const PasswordComplexityConfiguration = () => {
                 />
               </Flex.Item>
             </Flex>
+            <fieldset disabled={readOnly} style={{display: 'contents'}}>
             <View as="div" margin="0 0 0 medium">
               <View as="div" margin="xxx-small auto small auto">
                 <Text size="small" lineHeight="fit">
@@ -425,6 +432,7 @@ const PasswordComplexityConfiguration = () => {
                 </View>
               </View>
             </View>
+            </fieldset>
           </Flex.Item>
           <Flex.Item as="footer">
             <View as="div" background="secondary" width="100%" textAlign="end">
@@ -435,17 +443,19 @@ const PasswordComplexityConfiguration = () => {
                   onClick={cancelChanges}
                   data-testid="cancelButton"
                 >
-                  {I18n.t('Cancel')}
+                  {readOnly ? I18n.t('Close') : I18n.t('Cancel')}
                 </Button>
-                <Button
-                  margin="small"
-                  color="primary"
-                  onClick={saveChanges}
-                  disabled={!enableApplyButton}
-                  data-testid="saveButton"
-                >
-                  {I18n.t('Apply')}
-                </Button>
+                {!readOnly && (
+                  <Button
+                    margin="small"
+                    color="primary"
+                    onClick={saveChanges}
+                    disabled={!enableApplyButton}
+                    data-testid="saveButton"
+                  >
+                    {I18n.t('Apply')}
+                  </Button>
+                )}
               </View>
             </View>
           </Flex.Item>

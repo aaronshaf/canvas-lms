@@ -67,7 +67,9 @@
 #     }
 
 class DiscoveryPagesApiController < ApplicationController
-  before_action :load_context, :require_root_account_management
+  before_action :load_context
+  before_action :require_manage_authentication_provider, except: :show
+  before_action :require_read_or_manage_authentication_provider, only: :show
 
   # @API Get Discovery Page
   # Get the discovery page configuration for the domain root account.
@@ -256,8 +258,12 @@ class DiscoveryPagesApiController < ApplicationController
   end
   alias_method :load_context, :context
 
-  def require_permission
-    authorized_action(context, @current_user, :manage_account_settings)
+  def require_manage_authentication_provider
+    authorized_action(context, @current_user, context.manage_authentication_provider_permissions)
+  end
+
+  def require_read_or_manage_authentication_provider
+    authorized_action(context, @current_user, context.read_or_manage_authentication_provider_permissions)
   end
 
   def discovery_page_permitted_keys

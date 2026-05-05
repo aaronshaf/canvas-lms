@@ -35,6 +35,7 @@ ready(() => {
         onChange={newValue => {
           hiddenField.value = String(newValue)
         }}
+        readOnly={!ENV.MANAGE_AUTHENTICATION_PROVIDER}
       />,
       reactRoot,
     )

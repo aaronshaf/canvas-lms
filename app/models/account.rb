@@ -2358,8 +2358,30 @@ class Account < ApplicationRecord
     Lti::ExternalToolTab.new(self, :account_navigation, tools, opts[:language]).tabs
   end
 
+  # Returns the permission(s) used to gate *managing* authentication
+  # providers. Flag-gated so the new dedicated permissions become the gate
+  # only when :granular_authentication_provider_permissions is on; otherwise
+  # the legacy :manage_account_settings continues to apply.
+  def manage_authentication_provider_permissions
+    if Account.site_admin.feature_enabled?(:granular_authentication_provider_permissions)
+      [:manage_authentication_provider]
+    else
+      [:manage_account_settings]
+    end
+  end
+
+  # Same as above, for any read-or-manage authentication provider access.
+  def read_or_manage_authentication_provider_permissions
+    if Account.site_admin.feature_enabled?(:granular_authentication_provider_permissions)
+      [:manage_authentication_provider, :read_authentication_provider]
+    else
+      [:manage_account_settings]
+    end
+  end
+
   def tabs_available(user = nil, opts = {})
     manage_settings = user && grants_right?(user, :manage_account_settings)
+    manage_auth_providers = user && grants_any_right?(user, *read_or_manage_authentication_provider_permissions)
     eportfolios_deprecated = root_account.settings[:enable_eportfolios] == true &&
                              root_account.feature_enabled?(:eportfolio_deprecation_notice)
 
@@ -2368,7 +2390,7 @@ class Account < ApplicationRecord
       tabs << { id: TAB_USERS, label: t("People"), css_class: "users", href: :account_users_path } if user && grants_right?(user, :read_roster)
       tabs << { id: TAB_PERMISSIONS, label: t("#account.tab_permissions", "Permissions"), css_class: "permissions", href: :account_permissions_path } if user && grants_right?(user, :manage_role_overrides)
       tabs << { id: TAB_SUB_ACCOUNTS, label: t("#account.tab_sub_accounts", "Sub-Accounts"), css_class: "sub_accounts", href: :account_sub_accounts_path } if manage_settings
-      tabs << { id: TAB_AUTHENTICATION, label: t("#account.tab_authentication", "Authentication"), css_class: "authentication", href: :account_authentication_providers_path } if root_account? && manage_settings
+      tabs << { id: TAB_AUTHENTICATION, label: t("#account.tab_authentication", "Authentication"), css_class: "authentication", href: :account_authentication_providers_path } if root_account? && manage_auth_providers
       tabs << { id: TAB_PLUGINS, label: t("#account.tab_plugins", "Plugins"), css_class: "plugins", href: :plugins_path, no_args: true } if root_account? && grants_right?(user, :manage_site_settings)
       tabs << { id: TAB_RELEASE_NOTES, label: t("Release Notes"), css_class: "release_notes", href: :account_release_notes_manage_path } if root_account? && ReleaseNote.enabled? && grants_right?(user, :manage_release_notes)
       tabs << { id: TAB_RATE_LIMITING, label: t("#account.tab_rate_limiting", "Rate Limiting"), css_class: "rate_limiting", href: :account_rate_limiting_path } if user && grants_right?(user, :manage_rate_limiting)
@@ -2397,7 +2419,7 @@ class Account < ApplicationRecord
       tabs << { id: TAB_SUB_ACCOUNTS, label: t("#account.tab_sub_accounts", "Sub-Accounts"), css_class: "sub_accounts", href: :account_sub_accounts_path } if manage_settings
       tabs << { id: TAB_ACCOUNT_CALENDARS, label: t("Account Calendars"), css_class: "account_calendars", href: :account_calendar_settings_path } if user && grants_right?(user, :manage_account_calendar_visibility)
       tabs << { id: TAB_TERMS, label: t("#account.tab_terms", "Terms"), css_class: "terms", href: :account_terms_path } if root_account? && manage_settings
-      tabs << { id: TAB_AUTHENTICATION, label: t("#account.tab_authentication", "Authentication"), css_class: "authentication", href: :account_authentication_providers_path } if root_account? && manage_settings
+      tabs << { id: TAB_AUTHENTICATION, label: t("#account.tab_authentication", "Authentication"), css_class: "authentication", href: :account_authentication_providers_path } if root_account? && manage_auth_providers
       tabs << { id: TAB_RATE_LIMITING, label: t("#account.tab_rate_limiting", "Rate Limiting"), css_class: "rate_limiting", href: :account_rate_limiting_path } if user && grants_right?(user, :manage_rate_limiting)
       if root_account? && allow_sis_import && user && grants_any_right?(user, :manage_sis, :import_sis)
         tabs << { id: TAB_SIS_IMPORT,

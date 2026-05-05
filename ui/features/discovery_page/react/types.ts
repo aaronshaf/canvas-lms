@@ -85,6 +85,7 @@ export interface DiscoveryPageIcon {
 export interface DiscoveryPageProps {
   initialEnabled: boolean
   onChange: (enabled: boolean) => void
+  readOnly?: boolean
 }
 
 export interface AuthProviderProps {

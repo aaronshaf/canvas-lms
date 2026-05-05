@@ -139,6 +139,20 @@ PERMISSION_GROUPS = {
       { description: -> { I18n.t("Disabling the Assignments and Quizzes - delete permission will override (if enabled) the Rubrics - add / edit / delete permission, preventing user from deleting rubrics for an individual assignment.") } }
     ]
   },
+  authentication_providers: {
+    label: -> { I18n.t("Authentication Providers") },
+    subtitle: -> { I18n.t("manage / read") },
+    account_details: [
+      { title: -> { I18n.t("Authentication Providers - manage") },
+        description: -> { I18n.t("Allows user to add, edit, and delete authentication providers for the account.") } },
+      { title: -> { I18n.t("Authentication Providers - read") },
+        description: -> { I18n.t("Allows user to view authentication providers for the account.") } }
+    ],
+    account_considerations: [
+      { title: -> { I18n.t("Subaccounts") },
+        description: -> { I18n.t("Not available at the subaccount level.") } }
+    ]
+  },
   manage_course_content: {
     label: -> { I18n.t("Manage Course Content") },
     subtitle: -> { I18n.t("add / delete / edit") },

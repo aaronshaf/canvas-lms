@@ -172,6 +172,8 @@ BASE_PERMISSIONS = {
     account_only: :root,
     true_for: %w[AccountAdmin],
     available_to: %w[AccountAdmin AccountMembership],
+    account_allows: ->(_a) { Account.site_admin.feature_enabled?(:granular_authentication_provider_permissions) },
+    group: :authentication_providers,
     account_details: [
       { title: -> { I18n.t("Authentication") },
         description: -> { I18n.t("Allows user to add, edit, and delete authentication providers for the account.") } }
@@ -1659,6 +1661,8 @@ BASE_PERMISSIONS = {
     account_only: :root,
     true_for: %w[AccountAdmin],
     available_to: %w[AccountAdmin AccountMembership],
+    account_allows: ->(_a) { Account.site_admin.feature_enabled?(:granular_authentication_provider_permissions) },
+    group: :authentication_providers,
     account_details: [
       { title: -> { I18n.t("Authentication") },
         description: -> { I18n.t("Allows user to view authentication providers for the account.") } }
