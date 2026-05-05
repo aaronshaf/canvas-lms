@@ -99,7 +99,10 @@ module Lti
     private
 
     def set_tool_proxy
-      @tool_proxy = Lti::ToolProxy.find(params[:tool_proxy_id])
+      @tool_proxy = Lti::ToolProxy.find_by!(
+        id: params[:tool_proxy_id],
+        context: @context
+      )
     end
 
     def update_workflow_state(workflow_state)
