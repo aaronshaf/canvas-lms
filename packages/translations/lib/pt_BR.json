@@ -257,6 +257,9 @@
     "captionname_caption_upload_failed_fa0f13a4": {
         "message": "{ captionName } falha no carregamento da legenda"
     },
+    "captions_99c57b5c": {
+        "message": "Legenda"
+    },
     "captions_have_been_added_for_lang_cd126cd": {
         "message": "Legendas foram adicionadas para { lang }"
     },
@@ -517,6 +520,9 @@
     },
     "custom_6979cd81": {
         "message": "Personalizar"
+    },
+    "custom_dimensions_96596dba": {
+        "message": "Dimensões personalizadas"
     },
     "cyan_c1d5f68a": {
         "message": "Ciano"

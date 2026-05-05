@@ -257,6 +257,9 @@
     "captionname_caption_upload_failed_fa0f13a4": {
         "message": "Nalaganje napisa { captionName } ni uspelo"
     },
+    "captions_99c57b5c": {
+        "message": "Podnapisi"
+    },
     "captions_have_been_added_for_lang_cd126cd": {
         "message": "Dodani so bili napisi za { lang }"
     },
@@ -517,6 +520,9 @@
     },
     "custom_6979cd81": {
         "message": "Po meri"
+    },
+    "custom_dimensions_96596dba": {
+        "message": "Dimenzije po meri"
     },
     "cyan_c1d5f68a": {
         "message": "Cijan"

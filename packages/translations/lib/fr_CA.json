@@ -257,6 +257,9 @@
     "captionname_caption_upload_failed_fa0f13a4": {
         "message": "Le téléversement de la légende { captionName } a échoué"
     },
+    "captions_99c57b5c": {
+        "message": "Légende"
+    },
     "captions_have_been_added_for_lang_cd126cd": {
         "message": "Des légendes ont été ajoutées pour { lang }"
     },
@@ -517,6 +520,9 @@
     },
     "custom_6979cd81": {
         "message": "Personnalisé"
+    },
+    "custom_dimensions_96596dba": {
+        "message": "Dimensions personnalisées"
     },
     "cyan_c1d5f68a": {
         "message": "Cyan"

@@ -257,6 +257,9 @@
     "captionname_caption_upload_failed_fa0f13a4": {
         "message": "Не удалось загрузить надпись { captionName }"
     },
+    "captions_99c57b5c": {
+        "message": "Подписи"
+    },
     "captions_have_been_added_for_lang_cd126cd": {
         "message": "Были добавлены заголовки для { lang }"
     },
@@ -517,6 +520,9 @@
     },
     "custom_6979cd81": {
         "message": "Пользовательская"
+    },
+    "custom_dimensions_96596dba": {
+        "message": "Пользовательские размеры"
     },
     "cyan_c1d5f68a": {
         "message": "Голубой"

@@ -257,6 +257,9 @@
     "captionname_caption_upload_failed_fa0f13a4": {
         "message": "Wedi methu uwchlwytho''r capsiwn { captionName }"
     },
+    "captions_99c57b5c": {
+        "message": "Capsiynau"
+    },
     "captions_have_been_added_for_lang_cd126cd": {
         "message": "Mae capsiynau wedi’u hychwanegu ar gyfer { lang }"
     },
@@ -517,6 +520,9 @@
     },
     "custom_6979cd81": {
         "message": "Personol"
+    },
+    "custom_dimensions_96596dba": {
+        "message": "Dimensiynau Personol "
     },
     "cyan_c1d5f68a": {
         "message": "Cyan"

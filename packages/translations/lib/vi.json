@@ -257,6 +257,9 @@
     "captionname_caption_upload_failed_fa0f13a4": {
         "message": "Tải lên chú thích { captionName } không thành công"
     },
+    "captions_99c57b5c": {
+        "message": "Chú Thích"
+    },
     "captions_have_been_added_for_lang_cd126cd": {
         "message": "Chú thích đã được thêm cho { lang }"
     },
@@ -517,6 +520,9 @@
     },
     "custom_6979cd81": {
         "message": "Tùy Chỉnh"
+    },
+    "custom_dimensions_96596dba": {
+        "message": "Tùy Chỉnh Kích Thước"
     },
     "cyan_c1d5f68a": {
         "message": "Xanh Lá Mạ"

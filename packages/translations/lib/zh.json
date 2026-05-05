@@ -257,6 +257,9 @@
     "captionname_caption_upload_failed_fa0f13a4": {
         "message": "上传 { captionName } 字幕失败"
     },
+    "captions_99c57b5c": {
+        "message": "字幕说明"
+    },
     "captions_have_been_added_for_lang_cd126cd": {
         "message": "已经添加 { lang } 的字幕"
     },
@@ -517,6 +520,9 @@
     },
     "custom_6979cd81": {
         "message": "自定义"
+    },
+    "custom_dimensions_96596dba": {
+        "message": "自定义尺寸"
     },
     "cyan_c1d5f68a": {
         "message": "青色"

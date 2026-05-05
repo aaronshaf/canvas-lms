@@ -257,6 +257,9 @@
     "captionname_caption_upload_failed_fa0f13a4": {
         "message": "{ captionName } 캡션을 업로드하지 못함"
     },
+    "captions_99c57b5c": {
+        "message": "캡션"
+    },
     "captions_have_been_added_for_lang_cd126cd": {
         "message": "{ lang }의 캡션을 추가했습니다"
     },
@@ -517,6 +520,9 @@
     },
     "custom_6979cd81": {
         "message": "사용자 지정"
+    },
+    "custom_dimensions_96596dba": {
+        "message": "사용자 지정 크기"
     },
     "cyan_c1d5f68a": {
         "message": "녹청"

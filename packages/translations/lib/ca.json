@@ -257,6 +257,9 @@
     "captionname_caption_upload_failed_fa0f13a4": {
         "message": "No s''ha pogut penjar el subtítol { captionName }"
     },
+    "captions_99c57b5c": {
+        "message": "Subtítols"
+    },
     "captions_have_been_added_for_lang_cd126cd": {
         "message": "S’han afegit els subtítols en { lang }"
     },
@@ -517,6 +520,9 @@
     },
     "custom_6979cd81": {
         "message": "Personalitzat"
+    },
+    "custom_dimensions_96596dba": {
+        "message": "Mides personalitzades"
     },
     "cyan_c1d5f68a": {
         "message": "Cian"

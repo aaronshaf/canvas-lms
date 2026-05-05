@@ -257,6 +257,9 @@
     "captionname_caption_upload_failed_fa0f13a4": {
         "message": "Upload der Untertitelung { captionName } fehlgeschlagen"
     },
+    "captions_99c57b5c": {
+        "message": "Untertitel"
+    },
     "captions_have_been_added_for_lang_cd126cd": {
         "message": "Untertitel hinzugefügt für { lang }"
     },
@@ -517,6 +520,9 @@
     },
     "custom_6979cd81": {
         "message": "Angepasst"
+    },
+    "custom_dimensions_96596dba": {
+        "message": "Benutzerdefinierte Abmessungen"
     },
     "cyan_c1d5f68a": {
         "message": "Cyan"

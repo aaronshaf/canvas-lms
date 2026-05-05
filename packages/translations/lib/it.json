@@ -257,6 +257,9 @@
     "captionname_caption_upload_failed_fa0f13a4": {
         "message": "Caricamento sottotitolo { captionName } non riuscito"
     },
+    "captions_99c57b5c": {
+        "message": "Sottotitoli"
+    },
     "captions_have_been_added_for_lang_cd126cd": {
         "message": "Aggiunti sottotitoli per { lang }"
     },
@@ -517,6 +520,9 @@
     },
     "custom_6979cd81": {
         "message": "Personalizzato"
+    },
+    "custom_dimensions_96596dba": {
+        "message": "Personalizza dimensioni"
     },
     "cyan_c1d5f68a": {
         "message": "Ciano"
