@@ -29,7 +29,7 @@ module CalendarConferencesHelper
     valid_params = calendar_event_params.merge(override_params).slice(:web_conference, :title, :context_code, :start_at, :end_at, :description)
     if calendar_event_params[:web_conference].calendar_event
       CalendarEvent.find(calendar_event_params[:web_conference].calendar_event.id).tap do |event|
-        if event.grants_right?(@current_user, session, :update)
+        if event.grants_right?(current_principal, session, :update)
           event.context = context
           event.assign_attributes(valid_params)
         end
@@ -48,7 +48,7 @@ module CalendarConferencesHelper
 
     if conference_params[:id]
       WebConference.find(conference_params[:id]).tap do |conf|
-        if conf.grants_right?(@current_user, session, :update)
+        if conf.grants_right?(current_principal, session, :update)
           conf.context = context
           conf.assign_attributes(valid_params)
         end
@@ -76,7 +76,7 @@ module CalendarConferencesHelper
   end
 
   def add_conference_types_to_js_env(contexts)
-    allowed_contexts = contexts.select { |c| c.grants_right?(@current_user, session, :create_conferences) }
+    allowed_contexts = contexts.select { |c| c.grants_right?(current_principal, session, :create_conferences) }
 
     type_to_contexts_map = {}
     conference_types = allowed_contexts.flat_map do |context|

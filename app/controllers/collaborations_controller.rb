@@ -139,11 +139,11 @@ class CollaborationsController < ApplicationController
   class NoCompatibleTool < StandardError; end
 
   def index
-    return unless authorized_action(@context, @current_user, :read) &&
+    return unless authorized_action(@context, current_principal, :read) &&
                   tab_enabled?(@context.class::TAB_COLLABORATIONS)
 
     add_crumb(t("#crumbs.collaborations", "Collaborations"), polymorphic_path([@context, :collaborations]))
-    @collaborations = @context.collaborations.active.select { |c| can_do(c, @current_user, :read) }
+    @collaborations = @context.collaborations.active.select { |c| can_do(c, current_principal, :read) }
     log_asset_access(["collaborations", @context], "collaborations", "other")
 
     # this will set @user_has_google_drive
@@ -179,7 +179,7 @@ class CollaborationsController < ApplicationController
   #
   # @returns [Collaboration]
   def api_index
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
     unless tab_enabled?(@context.class::TAB_COLLABORATIONS, no_render: true) || tab_enabled?(@context.class::TAB_COLLABORATIONS_NEW, no_render: true)
       return render_tab_disabled
     end
@@ -192,7 +192,7 @@ class CollaborationsController < ApplicationController
                                    .eager_load(:user)
                                    .where(type: "ExternalToolCollaboration")
 
-    unless @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    unless @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
       where_collaborators = Collaboration.arel_table[:user_id].eq(@current_user&.id)
                                          .or(Collaborator.arel_table[:user_id].eq(@current_user&.id))
       if @context.instance_of?(Course)
@@ -216,7 +216,7 @@ class CollaborationsController < ApplicationController
 
   def show
     @collaboration = @context.collaborations.find(params[:id])
-    if authorized_action(@collaboration, @current_user, :read)
+    if authorized_action(@collaboration, current_principal, :read)
       @collaboration.touch
       begin
         # error out when user tries to open a collaboration while masquerading
@@ -258,7 +258,7 @@ class CollaborationsController < ApplicationController
   end
 
   def lti_index
-    return unless authorized_action(@context, @current_user, :read) &&
+    return unless authorized_action(@context, current_principal, :read) &&
                   tab_enabled?(@context.class::TAB_COLLABORATIONS_NEW)
 
     @page_title = t("lti_collaborations", "External Collaborations")
@@ -277,7 +277,7 @@ class CollaborationsController < ApplicationController
              })
     end
 
-    js_env({ CREATE_PERMISSION: @context.grants_right?(@current_user, :create_collaborations) })
+    js_env({ CREATE_PERMISSION: @context.grants_right?(current_principal, :create_collaborations) })
 
     set_tutorial_js_env
 
@@ -285,7 +285,7 @@ class CollaborationsController < ApplicationController
   end
 
   def create
-    return unless authorized_action(@context.collaborations.build, @current_user, :create) && authorized_action(@context, @current_user, :create_collaborations)
+    return unless authorized_action(@context.collaborations.build, current_principal, :create) && authorized_action(@context, current_principal, :create_collaborations)
 
     content_item = params["contentItems"] ? JSON.parse(params["contentItems"]).first : nil
     if content_item
@@ -327,7 +327,7 @@ class CollaborationsController < ApplicationController
 
   def update
     @collaboration = @context.collaborations.find(params[:id])
-    return unless authorized_action(@collaboration, @current_user, :update)
+    return unless authorized_action(@collaboration, current_principal, :update)
 
     content_item = params["contentItems"] ? JSON.parse(params["contentItems"]).first : nil
     if content_item
@@ -374,7 +374,7 @@ class CollaborationsController < ApplicationController
 
   def destroy
     @collaboration = @context.collaborations.find(params[:id])
-    if authorized_action(@collaboration, @current_user, :delete)
+    if authorized_action(@collaboration, current_principal, :delete)
       @collaboration.delete_document if value_to_boolean(params[:delete_doc])
       @collaboration.destroy
       respond_to do |format|
@@ -400,7 +400,7 @@ class CollaborationsController < ApplicationController
   #
   # @returns [Collaborator]
   def members
-    return unless authorized_action(@collaboration, @current_user, :read)
+    return unless authorized_action(@collaboration, current_principal, :read)
 
     includes = Array(params[:include])
     options = { include: includes }
@@ -423,7 +423,7 @@ class CollaborationsController < ApplicationController
   #
   # @returns [User]
   def potential_collaborators
-    return unless authorized_action(@context, @current_user, :read_roster)
+    return unless authorized_action(@context, current_principal, :read_roster)
 
     scope = @context.is_a?(Course) ? @context.potential_collaborators_for(@current_user) : @context.potential_collaborators
     scope = scope.order(:sortable_name)

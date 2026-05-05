@@ -69,7 +69,7 @@ module Polling
     #   }
     #
     def index
-      if authorized_action(@poll, @current_user, :read)
+      if authorized_action(@poll, current_principal, :read)
         @poll_choices = @poll.poll_choices
         json, meta = paginate_for(@poll_choices)
 
@@ -88,7 +88,7 @@ module Polling
     #
     def show
       @poll_choice = @poll.poll_choices.find(params[:id])
-      if authorized_action(@poll, @current_user, :read)
+      if authorized_action(@poll, current_principal, :read)
         render json: serialize_jsonapi(@poll_choice)
       end
     end
@@ -116,7 +116,7 @@ module Polling
       @poll_choice = @poll.poll_choices.new(poll_choice_params)
       @poll_choice.is_correct = false if poll_choice_params && poll_choice_params[:is_correct].blank?
 
-      if authorized_action(@poll, @current_user, :update)
+      if authorized_action(@poll, current_principal, :update)
         if @poll_choice.save
           render json: serialize_jsonapi(@poll_choice)
         else
@@ -151,7 +151,7 @@ module Polling
         poll_choice_params[:is_correct] = @poll_choice.is_correct
       end
 
-      if authorized_action(@poll, @current_user, :update)
+      if authorized_action(@poll, current_principal, :update)
         if @poll_choice.update(poll_choice_params)
           render json: serialize_jsonapi(@poll_choice)
         else
@@ -166,7 +166,7 @@ module Polling
     def destroy
       @poll_choice = @poll.poll_choices.find(params[:id])
 
-      if authorized_action(@poll, @current_user, :delete)
+      if authorized_action(@poll, current_principal, :delete)
         @poll_choice.destroy
         head :no_content
       end

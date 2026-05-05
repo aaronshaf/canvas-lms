@@ -82,7 +82,7 @@ class Quizzes::QuizSubmissionQuestionsController < ApplicationController
       reject! "Cannot view questions due to quiz settings", 401
     end
 
-    if authorized_action(@quiz_submission, @current_user, :read)
+    if authorized_action(@quiz_submission, current_principal, :read)
       render json: quiz_submission_questions_json(@quiz_submission.quiz_questions,
                                                   @quiz_submission,
                                                   {
@@ -322,7 +322,7 @@ class Quizzes::QuizSubmissionQuestionsController < ApplicationController
   end
 
   def censored?
-    !@quiz.grants_right?(@current_user, session, :update)
+    !@quiz.grants_right?(current_principal, session, :update)
   end
 
   # @!appendix Question Answer Formats

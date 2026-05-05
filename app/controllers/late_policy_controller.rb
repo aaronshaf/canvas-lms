@@ -205,11 +205,11 @@ class LatePolicyController < ApplicationController
   private
 
   def require_manage_grades_for_course
-    render_json_unauthorized unless course.grants_right?(@current_user, :manage_grades)
+    render_json_unauthorized unless course.grants_right?(current_principal, :manage_grades)
   end
 
   def require_view_or_manage_grades_for_course
-    render_json_unauthorized unless course.grants_any_right?(@current_user, :manage_grades, :view_all_grades)
+    render_json_unauthorized unless course.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
   end
 
   def course

@@ -79,10 +79,10 @@ class Quizzes::QuizzesController < ApplicationController
     end
 
     GuardRail.activate(:secondary) do
-      return unless authorized_action(@context, @current_user, :read)
+      return unless authorized_action(@context, current_principal, :read)
       return unless tab_enabled?(@context.class::TAB_QUIZZES)
 
-      can_manage = @context.grants_right?(@current_user, session, :manage_assignments_edit)
+      can_manage = @context.grants_right?(current_principal, session, :manage_assignments_edit)
 
       quiz_index = scoped_quizzes_index
       quiz_index += scoped_new_quizzes_index if quiz_lti_enabled?
@@ -115,7 +115,7 @@ class Quizzes::QuizzesController < ApplicationController
           Assignment::QUIZZES_NEXT_SURVEY_TYPES.include?(q.settings&.dig("new_quizzes", "type"))
         end
       end
-      if scoped_new_quizzes_index.any? && @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+      if scoped_new_quizzes_index.any? && @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
         mc_status = setup_master_course_restrictions(scoped_new_quizzes_index, @context)
       end
       serializer_options = [@context,
@@ -152,10 +152,10 @@ class Quizzes::QuizzesController < ApplicationController
           new_quizzes_assignment_overrides: api_v1_course_new_quizzes_assignment_overrides_url(@context)
         },
         PERMISSIONS: {
-          create: can_do(@context.quizzes.temp_record, @current_user, :create),
+          create: can_do(@context.quizzes.temp_record, current_principal, :create),
           manage: can_manage,
-          read_question_banks: can_manage || can_do(@context, @current_user, :read_question_banks),
-          manage_assign_to: can_do(@context.quizzes.temp_record, @current_user, :manage_assign_to),
+          read_question_banks: can_manage || can_do(@context, current_principal, :read_question_banks),
+          manage_assign_to: can_do(@context.quizzes.temp_record, current_principal, :manage_assign_to),
         },
         FLAGS: {
           question_banks: feature_enabled?(:question_banks),
@@ -166,24 +166,24 @@ class Quizzes::QuizzesController < ApplicationController
           # TODO: remove this since it's set in application controller
           # Will need to update consumers of this in the UI to bring down
           # this permissions check as well
-          DIRECT_SHARE_ENABLED: @context.grants_right?(@current_user, session, :direct_share),
+          DIRECT_SHARE_ENABLED: @context.grants_right?(current_principal, session, :direct_share),
         },
         quiz_menu_tools: external_tools_display_hashes(:quiz_menu),
         quiz_index_menu_tools: external_tools_display_hashes(:quiz_index_menu),
         ALLOW_ASSIGN_TO_DIFFERENTIATION_TAGS: assign_to_tags,
-        CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
+        CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
         SIS_NAME: sis_name,
         MAX_NAME_LENGTH: max_name_length,
         DUE_DATE_REQUIRED_FOR_ACCOUNT: due_date_required_for_account,
         MAX_NAME_LENGTH_REQUIRED_FOR_ACCOUNT: max_name_length_required_for_account,
         SIS_INTEGRATION_SETTINGS_ENABLED: sis_integration_settings_enabled,
         NEW_QUIZZES_SELECTED: quiz_engine_selection,
-        SHOW_SPEED_GRADER_LINK: @current_user.present? && context.allows_speed_grader? && context.grants_any_right?(@current_user, :manage_grades, :view_all_grades),
+        SHOW_SPEED_GRADER_LINK: @current_user.present? && context.allows_speed_grader? && context.grants_any_right?(current_principal, :manage_grades, :view_all_grades),
         VALID_DATE_RANGE: CourseDateRange.new(@context),
         HAS_GRADING_PERIODS: @context.grading_periods?,
       }
       set_section_list_js_env
-      if @context.is_a?(Course) && @context.grants_right?(@current_user, session, :read)
+      if @context.is_a?(Course) && @context.grants_right?(current_principal, session, :read)
         hash[:COURSE_ID] = @context.id.to_s
       end
       append_default_due_time_js_env(@context, hash)
@@ -214,7 +214,7 @@ class Quizzes::QuizzesController < ApplicationController
       return
     end
 
-    if authorized_action(@quiz, @current_user, :read)
+    if authorized_action(@quiz, current_principal, :read)
       # optionally force auth even for public courses
       return if value_to_boolean(params[:force_user]) && !force_user
 
@@ -283,7 +283,7 @@ class Quizzes::QuizzesController < ApplicationController
       end
 
       setup_attachments
-      submission_counts if @quiz.grants_right?(@current_user, session, :grade) || @quiz.grants_right?(@current_user, session, :read_statistics)
+      submission_counts if @quiz.grants_right?(current_principal, session, :grade) || @quiz.grants_right?(current_principal, session, :read_statistics)
 
       assign_to_tags = @context.account.allow_assign_to_differentiation_tags?
 
@@ -295,7 +295,7 @@ class Quizzes::QuizzesController < ApplicationController
         COURSE_ID: @context.id,
         LOCKDOWN_BROWSER: @quiz.require_lockdown_browser?,
         ALLOW_ASSIGN_TO_DIFFERENTIATION_TAGS: assign_to_tags,
-        CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
+        CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
         QUIZ: quiz_json(@quiz, @context, @current_user, session),
         QUIZ_DETAILS_URL: course_quiz_managed_quiz_data_url(@context.id, @quiz.id),
         QUIZZES_URL: course_quizzes_url(@context),
@@ -343,7 +343,7 @@ class Quizzes::QuizzesController < ApplicationController
   end
 
   def new
-    if authorized_action(@context.quizzes.temp_record, @current_user, :create)
+    if authorized_action(@context.quizzes.temp_record, current_principal, :create)
       quiz = @context.quizzes.build
       title = params[:title] || params[:name]
       quiz.title = title if title
@@ -359,7 +359,7 @@ class Quizzes::QuizzesController < ApplicationController
   end
 
   def edit
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
 
       if params[:fixup_quiz_math_questions] == "1"
         InstStatsd::Statsd.distributed_increment("fixingup_quiz_math_question")
@@ -394,7 +394,7 @@ class Quizzes::QuizzesController < ApplicationController
                                                         @current_user,
                                                         include_names: true),
         ALLOW_ASSIGN_TO_DIFFERENTIATION_TAGS: assign_to_tags,
-        CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
+        CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
         DUE_DATE_REQUIRED_FOR_ACCOUNT: AssignmentUtil.due_date_required_for_account?(@context),
         QUIZ: quiz_json(@quiz, @context, @current_user, session),
         QUIZZES_URL: course_quizzes_url(@context),
@@ -417,7 +417,7 @@ class Quizzes::QuizzesController < ApplicationController
         hash[:active_grading_periods] = GradingPeriod.json_for(@context, @current_user)
       end
 
-      if @context.is_a?(Course) && @context.grants_right?(@current_user, session, :read)
+      if @context.is_a?(Course) && @context.grants_right?(current_principal, session, :read)
         hash[:COURSE_ID] = @context.id.to_s
       end
 
@@ -435,7 +435,7 @@ class Quizzes::QuizzesController < ApplicationController
   end
 
   def create
-    if authorized_action(@context.quizzes.temp_record, @current_user, :create)
+    if authorized_action(@context.quizzes.temp_record, current_principal, :create)
       @quiz = @context.quizzes.build
 
       return render_forbidden unless grading_periods_allow_submittable_create?(@quiz, params[:quiz])
@@ -493,7 +493,7 @@ class Quizzes::QuizzesController < ApplicationController
   end
 
   def update
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       quiz_params = get_quiz_params
       params[:quiz] ||= {}
 
@@ -626,7 +626,7 @@ class Quizzes::QuizzesController < ApplicationController
   end
 
   def destroy
-    if authorized_action(@quiz, @current_user, :delete)
+    if authorized_action(@quiz, current_principal, :delete)
       return render_unauthorized_action if editing_restricted?(@quiz)
 
       respond_to do |format|
@@ -642,7 +642,7 @@ class Quizzes::QuizzesController < ApplicationController
   end
 
   def publish
-    if authorized_action(@context, @current_user, :manage_assignments_edit)
+    if authorized_action(@context, current_principal, :manage_assignments_edit)
       @quizzes = @context.quizzes.active.where(id: params[:quizzes])
       @quizzes.each(&:publish!)
 
@@ -659,7 +659,7 @@ class Quizzes::QuizzesController < ApplicationController
   end
 
   def unpublish
-    if authorized_action(@context, @current_user, :manage_assignments_edit)
+    if authorized_action(@context, current_principal, :manage_assignments_edit)
       @quizzes = @context.quizzes.active.where(id: params[:quizzes]).select(&:available?)
       @quizzes.each(&:unpublish!)
 
@@ -677,7 +677,7 @@ class Quizzes::QuizzesController < ApplicationController
 
   # student_analysis report
   def statistics
-    if authorized_action(@quiz, @current_user, :read_statistics)
+    if authorized_action(@quiz, current_principal, :read_statistics)
       respond_to do |format|
         format.html do
           add_crumb(@quiz.title, named_context_url(@context, :context_quiz_url, @quiz))
@@ -699,7 +699,7 @@ class Quizzes::QuizzesController < ApplicationController
   def managed_quiz_data
     extend Api::V1::User
 
-    if authorized_action(@quiz, @current_user, [:grade, :read_statistics])
+    if authorized_action(@quiz, current_principal, [:grade, :read_statistics])
       student_scope = @context.students_visible_to(@current_user, include: :inactive)
       if @quiz.differentiated_assignments_applies?
         student_scope = student_scope.able_to_see_quiz_in_course_with_da(@quiz.id, @context.id)
@@ -744,7 +744,7 @@ class Quizzes::QuizzesController < ApplicationController
   end
 
   def history
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       add_crumb(@quiz.title, named_context_url(@context, :context_quiz_url, @quiz))
       if params[:quiz_submission_id]
         @submission = @quiz.quiz_submissions.find(params[:quiz_submission_id])
@@ -774,7 +774,7 @@ class Quizzes::QuizzesController < ApplicationController
         redirect_to named_context_url(@context, :context_quiz_url, @quiz)
         return
       end
-      if hide_quiz? && !@quiz.grants_right?(@current_user, session, :review_grades)
+      if hide_quiz? && !@quiz.grants_right?(current_principal, session, :review_grades)
         flash[:notice] = t("notices.cant_view_submission_while_muted", "You cannot view the quiz history while the quiz is muted.")
         redirect_to named_context_url(@context, :context_quiz_url, @quiz)
         return
@@ -783,7 +783,7 @@ class Quizzes::QuizzesController < ApplicationController
         js_env({ SCORE_UPDATED: true })
       end
       js_env({ GRADE_BY_QUESTION: @current_user&.preferences&.dig(:enable_speedgrader_grade_by_question) })
-      if authorized_action(@submission, @current_user, :read)
+      if authorized_action(@submission, current_principal, :read)
         if @current_user && !@quiz.visible_to_user?(@current_user)
           flash.now[:notice] = t "notices.submission_doesnt_count", "This quiz will no longer count towards your grade."
         end
@@ -827,7 +827,7 @@ class Quizzes::QuizzesController < ApplicationController
   end
 
   def moderate
-    if authorized_action(@quiz, @current_user, :grade)
+    if authorized_action(@quiz, current_principal, :grade)
       @students = @context.students_visible_to(@current_user)
       @students = @quiz.visible_students_with_da(@students)
       @students = @students.name_like(params[:search_term]) if params[:search_term].present?
@@ -853,7 +853,7 @@ class Quizzes::QuizzesController < ApplicationController
   end
 
   def submission_versions
-    if authorized_action(@quiz, @current_user, :read)
+    if authorized_action(@quiz, current_principal, :read)
       @submission = get_submission
       @versions   = @submission ? get_versions : []
 
@@ -867,7 +867,7 @@ class Quizzes::QuizzesController < ApplicationController
 
   def read_only
     @assignment = @quiz.assignment
-    if authorized_action(@quiz, @current_user, :read_statistics)
+    if authorized_action(@quiz, current_principal, :read_statistics)
       @banks_hash = get_banks(@quiz)
 
       add_crumb(@quiz.title, named_context_url(@context, :context_quiz_url, @quiz))
@@ -890,7 +890,7 @@ class Quizzes::QuizzesController < ApplicationController
   private
 
   def can_preview?
-    @quiz.grants_right?(@current_user, session, :preview)
+    @quiz.grants_right?(current_principal, session, :preview)
   end
 
   def get_banks(quiz)
@@ -962,7 +962,7 @@ class Quizzes::QuizzesController < ApplicationController
   # if this returns false, it's rendering or redirecting, so return from the
   # action that called it
   def check_lockdown_browser(security_level, redirect_return_url)
-    return true if @quiz.grants_right?(@current_user, session, :grade)
+    return true if @quiz.grants_right?(current_principal, session, :grade)
 
     plugin = Canvas::LockdownBrowser.plugin.base
     if plugin.require_authorization_redirect?(self)
@@ -987,7 +987,7 @@ class Quizzes::QuizzesController < ApplicationController
   # use this for all redirects while taking a quiz -- it'll add params to tell
   # the lockdown browser that it's ok to follow the redirect
   def quiz_redirect_params(opts = {})
-    return opts if !@quiz.require_lockdown_browser? || @quiz.grants_right?(@current_user, session, :grade)
+    return opts if !@quiz.require_lockdown_browser? || @quiz.grants_right?(current_principal, session, :grade)
 
     plugin = Canvas::LockdownBrowser.plugin.base
     plugin.redirect_params(opts)
@@ -1053,7 +1053,7 @@ class Quizzes::QuizzesController < ApplicationController
 
   def can_take_quiz?
     return true if params[:preview] && can_preview?
-    return false if params[:take] && !@quiz.grants_right?(@current_user, :submit)
+    return false if params[:take] && !@quiz.grants_right?(current_principal, :submit)
     return false if @submission&.completed? && @submission.attempts_left == 0
 
     @quiz_eligibility = Quizzes::QuizEligibility.new(course: @context,
@@ -1166,7 +1166,7 @@ class Quizzes::QuizzesController < ApplicationController
   def render_ams_service
     js_env({
              context_url: named_context_url(@context, :context_quizzes_url),
-             PERMISSIONS: { manage_rubrics: @context.grants_right?(@current_user, session, :manage_assignments_edit) }
+             PERMISSIONS: { manage_rubrics: @context.grants_right?(current_principal, session, :manage_assignments_edit) }
            })
     enhanced_rubrics_context_js_env
     remote_env(ams:
@@ -1212,7 +1212,7 @@ class Quizzes::QuizzesController < ApplicationController
 
     # students only get to see published quizzes, and they will fetch the
     # overrides later using the API:
-    scope = scope.available unless @context.grants_right?(@current_user, session, :read_as_admin)
+    scope = scope.available unless @context.grants_right?(current_principal, session, :read_as_admin)
 
     scope = DifferentiableAssignment.scope_filter(scope, @current_user, @context)
 
@@ -1232,7 +1232,7 @@ class Quizzes::QuizzesController < ApplicationController
 
     # students only get to see published quizzes, and they will fetch the
     # overrides later using the API:
-    scope = scope.available unless @context.grants_right?(@current_user, session, :read_as_admin)
+    scope = scope.available unless @context.grants_right?(current_principal, session, :read_as_admin)
 
     scope = DifferentiableAssignment.scope_filter(scope, @current_user, @context)
 

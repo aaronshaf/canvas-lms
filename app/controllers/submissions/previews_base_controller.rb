@@ -46,7 +46,7 @@ module Submissions
         @body_classes.push("full-width", "student-annotation-container")
       end
 
-      @anonymous_instructor_annotations = @context.grants_right?(@current_user, :manage_grades) &&
+      @anonymous_instructor_annotations = @context.grants_right?(current_principal, :manage_grades) &&
                                           @assignment.anonymous_instructor_annotations
 
       unless @assignment.visible_to_user?(@current_user)
@@ -54,7 +54,7 @@ module Submissions
       end
 
       @headers = false
-      if authorized_action(@submission, @current_user, :read)
+      if authorized_action(@submission, current_principal, :read)
         if redirect? && @assignment&.quiz&.id
           flash[:notice] = flash_message if flash_message
           redirect_to(named_context_url(@context, redirect_path_name, @assignment.quiz.id, redirect_params))

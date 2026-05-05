@@ -62,8 +62,8 @@ class GradebooksController < ApplicationController
       return render_unauthorized_action
     end
 
-    return unless authorized_action(@context, @current_user, :read) &&
-                  authorized_action(student_enrollment, @current_user, :read_grades)
+    return unless authorized_action(@context, current_principal, :read) &&
+                  authorized_action(student_enrollment, current_principal, :read_grades)
 
     log_asset_access(["grades", @context], "grades", "other")
 
@@ -71,7 +71,7 @@ class GradebooksController < ApplicationController
              course_id: @context.id,
              restrict_quantitative_data: @context.restrict_quantitative_data?(@current_user),
              student_grade_summary_upgrade: Account.site_admin.feature_enabled?(:student_grade_summary_upgrade),
-             can_clear_badge_counts: Account.site_admin.grants_right?(@current_user, :manage_students),
+             can_clear_badge_counts: Account.site_admin.grants_right?(current_principal, :manage_students),
              custom_grade_statuses: @context.custom_grade_statuses.as_json(include_root: false),
            })
     return render :grade_summary_list unless @presenter.student
@@ -244,7 +244,7 @@ class GradebooksController < ApplicationController
   end
 
   def save_assignment_order
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       allowed_orders = {
         "due_at" => :due_at,
         "title" => :title,
@@ -288,7 +288,7 @@ class GradebooksController < ApplicationController
 
   # LEGACY: Original implementation
   def grading_rubrics_legacy
-    return unless authorized_action(@context, @current_user, [:read_rubrics, :manage_rubrics])
+    return unless authorized_action(@context, current_principal, [:read_rubrics, :manage_rubrics])
 
     @rubric_contexts = @context.rubric_contexts(@current_user)
     if params[:context_code]
@@ -321,7 +321,7 @@ class GradebooksController < ApplicationController
 
   # OPTIMIZED: Uses context filtering to avoid loading all contexts when requesting specific one
   def grading_rubrics_optimized
-    return unless authorized_action(@context, @current_user, [:read_rubrics, :manage_rubrics])
+    return unless authorized_action(@context, current_principal, [:read_rubrics, :manage_rubrics])
 
     # Only load requested context instead of all contexts when filtering
     rubric_contexts = if params[:context_code]
@@ -360,7 +360,7 @@ class GradebooksController < ApplicationController
   end
 
   def show
-    if authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    if authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
       log_asset_access(["grades", @context], "grades")
 
       # nomenclature of gradebook "versions":
@@ -528,7 +528,7 @@ class GradebooksController < ApplicationController
   def set_default_gradebook_env
     set_student_context_cards_js_env
 
-    gradebook_is_editable = @context.grants_right?(@current_user, session, :manage_grades)
+    gradebook_is_editable = @context.grants_right?(current_principal, session, :manage_grades)
     per_page = Api::MAX_PER_PAGE
     teacher_notes = @context.custom_gradebook_columns.not_deleted.where(teacher_notes: true).first
 
@@ -618,7 +618,7 @@ class GradebooksController < ApplicationController
       post_grades_enhanced_modal: post_grades_enhanced_modal?,
       post_grades_ltis:,
       post_manually: @context.post_manually?,
-      proxy_submissions_allowed: Account.site_admin.feature_enabled?(:proxy_file_uploads) && @context.grants_right?(@current_user, session, :proxy_assignment_submission),
+      proxy_submissions_allowed: Account.site_admin.feature_enabled?(:proxy_file_uploads) && @context.grants_right?(current_principal, session, :proxy_assignment_submission),
       publish_to_sis_enabled:
         !!@context.sis_source_id && @context.allows_grade_publishing_by(@current_user) && gradebook_is_editable,
 
@@ -672,7 +672,7 @@ class GradebooksController < ApplicationController
   end
 
   def set_enhanced_individual_gradebook_env
-    gradebook_is_editable = @context.grants_right?(@current_user, session, :manage_grades)
+    gradebook_is_editable = @context.grants_right?(current_principal, session, :manage_grades)
     grading_standard = @context.grading_standard_or_default
     last_exported_gradebook_csv = GradebookCSV.last_successful_export(course: @context, user: @current_user)
     last_exported_attachment = last_exported_gradebook_csv.try(:attachment)
@@ -707,7 +707,7 @@ class GradebooksController < ApplicationController
       group_weighting_scheme: @context.group_weighting_scheme,
       outcome_gradebook_enabled: outcome_gradebook_enabled?,
       outcome_rollups_url: api_v1_course_outcome_rollups_url(@context, per_page: 100),
-      proxy_submissions_allowed: Account.site_admin.feature_enabled?(:proxy_file_uploads) && @context.grants_right?(@current_user, session, :proxy_assignment_submission),
+      proxy_submissions_allowed: Account.site_admin.feature_enabled?(:proxy_file_uploads) && @context.grants_right?(current_principal, session, :proxy_assignment_submission),
       publish_to_sis_enabled:
         !!@context.sis_source_id && @context.allows_grade_publishing_by(@current_user) && gradebook_is_editable,
       publish_to_sis_url: context_url(@context, :context_details_url, anchor: "tab-grade-publishing"),
@@ -730,7 +730,7 @@ class GradebooksController < ApplicationController
   def set_individual_gradebook_env
     set_student_context_cards_js_env
 
-    gradebook_is_editable = @context.grants_right?(@current_user, session, :manage_grades)
+    gradebook_is_editable = @context.grants_right?(current_principal, session, :manage_grades)
     per_page = Api::MAX_PER_PAGE
     teacher_notes = @context.custom_gradebook_columns.not_deleted.where(teacher_notes: true).first
     ag_includes = %i[assignments assignment_visibility grades_published]
@@ -810,7 +810,7 @@ class GradebooksController < ApplicationController
       outcome_rollups_url: api_v1_course_outcome_rollups_url(@context, per_page: 100),
       post_grades_feature: post_grades_feature?,
       post_manually: @context.post_manually?,
-      proxy_submissions_allowed: Account.site_admin.feature_enabled?(:proxy_file_uploads) && @context.grants_right?(@current_user, session, :proxy_assignment_submission),
+      proxy_submissions_allowed: Account.site_admin.feature_enabled?(:proxy_file_uploads) && @context.grants_right?(current_principal, session, :proxy_assignment_submission),
       publish_to_sis_enabled:
         !!@context.sis_source_id && @context.allows_grade_publishing_by(@current_user) && gradebook_is_editable,
 
@@ -862,7 +862,7 @@ class GradebooksController < ApplicationController
                outcome_proficiency:,
                message_attachment_upload_folder_id: @current_user.conversation_attachments_folder.id.to_s,
                permissions: {
-                 allow_assign_to_differentiation_tags: @context.account.allow_assign_to_differentiation_tags? && @context.grants_right?(@current_user, session, :manage_tags_add)
+                 allow_assign_to_differentiation_tags: @context.account.allow_assign_to_differentiation_tags? && @context.grants_right?(current_principal, session, :manage_tags_add)
                },
                sections: sections_json(visible_sections, @current_user, session, [], allow_sis_ids: true),
                settings: gradebook_settings(@context.global_id),
@@ -882,7 +882,7 @@ class GradebooksController < ApplicationController
   def post_grades_feature?
     @context.feature_enabled?(:post_grades) &&
       @context.allows_grade_publishing_by(@current_user) &&
-      can_do(@context, @current_user, :manage_grades)
+      can_do(@context, current_principal, :manage_grades)
   end
 
   def post_grades_enhanced_modal?
@@ -890,7 +890,7 @@ class GradebooksController < ApplicationController
   end
 
   def history
-    if authorized_action(@context, @current_user, %i[manage_grades view_all_grades])
+    if authorized_action(@context, current_principal, %i[manage_grades view_all_grades])
       crumbs.delete_if { |crumb| crumb[0] == "Grades" }
       add_crumb(t("Gradebook History"),
                 context_url(@context, controller: :gradebooks, action: :history))
@@ -909,7 +909,7 @@ class GradebooksController < ApplicationController
   end
 
   def update_submission
-    if authorized_action(@context, @current_user, :manage_grades)
+    if authorized_action(@context, current_principal, :manage_grades)
       if params[:submissions].blank? && params[:submission].blank?
         render nothing: true, status: :bad_request
         return
@@ -1092,7 +1092,7 @@ class GradebooksController < ApplicationController
   end
 
   def submissions_zip_upload
-    return unless authorized_action(@context, @current_user, :manage_grades)
+    return unless authorized_action(@context, current_principal, :manage_grades)
 
     assignment = @context.assignments.active.find(params[:assignment_id])
 
@@ -1115,7 +1115,7 @@ class GradebooksController < ApplicationController
   end
 
   def show_submissions_upload
-    return unless authorized_action(@context, @current_user, :manage_grades)
+    return unless authorized_action(@context, current_principal, :manage_grades)
 
     @assignment = @context.assignments.active.find(params[:assignment_id])
 
@@ -1138,7 +1138,7 @@ class GradebooksController < ApplicationController
       return
     end
 
-    return unless authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    return unless authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
 
     rce_js_env if @context.root_account.feature_enabled?(:rce_lite_enabled_speedgrader_comments)
     @assignment = if params[:assignment_id].blank?
@@ -1181,9 +1181,9 @@ class GradebooksController < ApplicationController
         EMOJI_DENY_LIST: @context.root_account.settings[:emoji_deny_list],
         ENHANCED_RUBRICS_ENABLED: @context.feature_enabled?(:enhanced_rubrics),
         PLATFORM_SERVICE_SPEEDGRADER_ENABLED: platform_service_speedgrader_enabled,
-        MANAGE_GRADES: @context.grants_right?(@current_user, session, :manage_grades),
-        VIEW_ALL_GRADES: @context.grants_right?(@current_user, session, :view_all_grades),
-        can_delete_attachments: @context.root_account.grants_right?(@current_user, session, :become_user),
+        MANAGE_GRADES: @context.grants_right?(current_principal, session, :manage_grades),
+        VIEW_ALL_GRADES: @context.grants_right?(current_principal, session, :view_all_grades),
+        can_delete_attachments: @context.root_account.grants_right?(current_principal, session, :become_user),
         RESTRICT_QUANTITATIVE_DATA_ENABLED: @context.restrict_quantitative_data?(@current_user),
         GRADE_BY_STUDENT_ENABLED: @context.root_account.feature_enabled?(:speedgrader_grade_by_student),
         CONCURRENT_GRADING_ENABLED: @context.feature_enabled?(:concurrent_grading),
@@ -1280,8 +1280,8 @@ class GradebooksController < ApplicationController
           GRADE_BY_QUESTION: !!@current_user.preferences[:enable_speedgrader_grade_by_question],
           EMOJIS_ENABLED: @context.feature_enabled?(:submission_comment_emojis),
           EMOJI_DENY_LIST: @context.root_account.settings[:emoji_deny_list],
-          MANAGE_GRADES: @context.grants_right?(@current_user, session, :manage_grades),
-          READ_AS_ADMIN: @context.grants_right?(@current_user, session, :read_as_admin),
+          MANAGE_GRADES: @context.grants_right?(current_principal, session, :manage_grades),
+          READ_AS_ADMIN: @context.grants_right?(current_principal, session, :read_as_admin),
           CONTEXT_ACTION_SOURCE: :speed_grader,
           can_view_audit_trail: @assignment.can_view_audit_trail?(@current_user),
           context_url: named_context_url(@context, :context_grades_url),
@@ -1308,7 +1308,7 @@ class GradebooksController < ApplicationController
           show_help_menu_item: true,
           help_url: I18n.t(:"community.instructor_guide_speedgrader"),
           update_submission_grade_url: context_url(@context, :update_submission_context_gradebook_url),
-          can_delete_attachments: @domain_root_account.grants_right?(@current_user, session, :become_user),
+          can_delete_attachments: @domain_root_account.grants_right?(current_principal, session, :become_user),
           media_comment_asset_string: @current_user.asset_string,
           late_policy: @context.late_policy&.as_json(include_root: false),
           assignment_missing_shortcut: Account.site_admin.feature_enabled?(:assignment_missing_shortcut),
@@ -1494,7 +1494,7 @@ class GradebooksController < ApplicationController
   end
 
   def change_gradebook_column_size
-    if authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    if authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
       sub_key = @current_user.shared_gradebook_column?(params[:column_id]) ? "shared" : @context.global_id
       size_hash = @current_user.get_preference(:gradebook_column_size, sub_key) || {}
       size_hash[params[:column_id]] = params[:column_size]
@@ -1504,14 +1504,14 @@ class GradebooksController < ApplicationController
   end
 
   def save_gradebook_column_order
-    if authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    if authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
       @current_user.set_preference(:gradebook_column_order, @context.global_id, params[:column_order].to_unsafe_h)
       render json: nil
     end
   end
 
   def final_grade_overrides
-    return unless authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    return unless authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
 
     final_grade_overrides = ::Gradebook::FinalGradeOverrides.new(@context, @current_user)
     render json: { final_grade_overrides: final_grade_overrides.to_h }
@@ -1555,7 +1555,7 @@ class GradebooksController < ApplicationController
   #
   # @returns Progress
   def update_final_grade_overrides
-    return unless authorized_action(@context, @current_user, :manage_grades)
+    return unless authorized_action(@context, current_principal, :manage_grades)
 
     unless @context.allow_final_grade_override?
       render_unauthorized_action and return
@@ -1615,7 +1615,7 @@ class GradebooksController < ApplicationController
   #
   # @returns Progress
   def apply_score_to_ungraded_submissions
-    return unless authorized_action(@context, @current_user, :manage_grades)
+    return unless authorized_action(@context, current_principal, :manage_grades)
     return render_unauthorized_action unless allow_apply_score_to_ungraded?
 
     excused = Canvas::Plugin.value_to_boolean(params[:excused])
@@ -1655,14 +1655,14 @@ class GradebooksController < ApplicationController
   end
 
   def user_ids
-    return unless authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    return unless authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
 
     gradebook_user_ids = GradebookUserIds.new(@context, @current_user)
     render json: { user_ids: gradebook_user_ids.user_ids }
   end
 
   def grading_period_assignments
-    return unless authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    return unless authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
 
     grading_period_assignments = GradebookGradingPeriodAssignments.new(
       @context,

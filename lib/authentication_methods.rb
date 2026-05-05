@@ -351,7 +351,7 @@ module AuthenticationMethods
         logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{LoggingFilter.filter_uri(request.url)}"
       elsif api_request? # fail silently for UI, but not for API
         result = { errors: "Invalid as_user_id" }
-        if user&.deleted? && user.merged_into_user_id && user.grants_right?(@current_user, :read)
+        if user&.deleted? && user.merged_into_user_id && user.grants_right?(current_principal, :read)
           result[:merged_into_user_id] = user.merged_into_user_id
         end
         # this should maybe be 404, not 401, but we can't change it now

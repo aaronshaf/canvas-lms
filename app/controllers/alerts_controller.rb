@@ -22,7 +22,7 @@ class AlertsController < ApplicationController
   before_action :require_context
 
   def create
-    if authorized_action(@context, @current_user, :manage_interaction_alerts)
+    if authorized_action(@context, current_principal, :manage_interaction_alerts)
       convert_recipients
       @alert = @context.alerts.build(alert_params)
       if @alert.save
@@ -35,7 +35,7 @@ class AlertsController < ApplicationController
   end
 
   def update
-    if authorized_action(@context, @current_user, :manage_interaction_alerts)
+    if authorized_action(@context, current_principal, :manage_interaction_alerts)
       convert_recipients
       @alert = @context.alerts.find(params[:id])
       if @alert.update(alert_params)
@@ -48,7 +48,7 @@ class AlertsController < ApplicationController
   end
 
   def destroy
-    if authorized_action(@context, @current_user, :manage_interaction_alerts)
+    if authorized_action(@context, current_principal, :manage_interaction_alerts)
       @alert = @context.alerts.find(params[:id])
       @alert.destroy
       render json: @alert

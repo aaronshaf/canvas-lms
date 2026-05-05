@@ -5580,6 +5580,7 @@ describe AssignmentsApiController, type: :request do
       def call_update_assignment_api(assignment, params, user)
         controller = AssignmentsApiController.new
         controller.instance_variable_set(:@current_user, user)
+        controller.instance_variable_set(:@current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(user))
         controller.instance_variable_set(:@context, assignment.context)
         # Extract assignment params just like the real controller does
         assignment_params = (params.is_a?(ActionController::Parameters) && params.key?(:assignment)) ? params[:assignment] : params

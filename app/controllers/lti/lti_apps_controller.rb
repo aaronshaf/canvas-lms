@@ -95,7 +95,7 @@ module Lti
     skip_before_action :require_user, only: [:launch_definitions]
 
     def index
-      if authorized_action(@context, @current_user, :read_as_admin)
+      if authorized_action(@context, current_principal, :read_as_admin)
         collection = app_collator.bookmarked_collection
 
         respond_to do |format|

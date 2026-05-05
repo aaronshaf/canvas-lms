@@ -28,8 +28,9 @@ describe SyllabusHelper do
     end
 
     context "when context grants :read permission to current_user" do
-      before :once do
+      before do
         assign(:current_user, @user)
+        allow(helper).to receive(:current_principal).and_return(Canvas::AdheresToPolicy::UserPrincipal.new(@user))
       end
 
       it "sends two arguments to `pulic_user_content`" do
@@ -39,8 +40,9 @@ describe SyllabusHelper do
     end
 
     context "when context does not grant :read permission to current_user" do
-      before :once do
+      before do
         assign(:current_user, nil)
+        allow(helper).to receive(:current_principal).and_return(nil)
       end
 
       it "sends two arguments to `pulic_user_content`" do

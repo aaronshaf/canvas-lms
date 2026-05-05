@@ -112,7 +112,7 @@ class BlockEditorTemplatesApiController < ApplicationController
       return render status: :forbidden
     end
 
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       log_api_asset_access(["block_editor_templates", @context], "block_editor_templates", "other")
 
       includes = Array(params[:include])
@@ -232,14 +232,14 @@ class BlockEditorTemplatesApiController < ApplicationController
   def template_editor?
     @context.root_account.feature_enabled?(:block_editor) &&
       @context.root_account.feature_enabled?(:block_template_editor) &&
-      (@context.grants_right?(@current_user, :block_editor_template_editor) ||
-       @context.grants_right?(@current_user, :block_editor_global_template_editor))
+      (@context.grants_right?(current_principal, :block_editor_template_editor) ||
+       @context.grants_right?(current_principal, :block_editor_global_template_editor))
   end
 
   def global_template_editor?
     @context.root_account.feature_enabled?(:block_editor) &&
       @context.root_account.feature_enabled?(:block_template_editor) &&
-      @context.grants_right?(@current_user, :block_editor_global_template_editor)
+      @context.grants_right?(current_principal, :block_editor_global_template_editor)
   end
 
   private

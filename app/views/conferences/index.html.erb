@@ -28,7 +28,7 @@
 <div id="conference-alternatives-container"></div>
 <div id="react-conference-modal-container"></div>
 
-<% if !@render_alternatives && can_do(WebConference.new(context: @context), @current_user, :create) %>
+<% if !@render_alternatives && can_do(WebConference.new(context: @context), current_principal, :create) %>
   <% if @domain_root_account.feature_enabled?(:instui_nav) %>
     <div class="page_header_container">
       <h1 class="page_header">

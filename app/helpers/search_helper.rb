@@ -62,9 +62,9 @@ module SearchHelper
           }.tap do |hash|
             hash[:permissions] =
               if include_all_permissions
-                course.rights_status(@current_user).select { |_key, value| value }
+                course.rights_status(current_principal).select { |_key, value| value }
               elsif permissions
-                course.rights_status(@current_user, *permissions).select { |_key, value| value }
+                course.rights_status(current_principal, *permissions).select { |_key, value| value }
               else
                 {}
               end
@@ -104,9 +104,9 @@ module SearchHelper
           }.tap do |hash|
             hash[:permissions] =
               if include_all_permissions
-                group.rights_status(@current_user).select { |_key, value| value }
+                group.rights_status(current_principal).select { |_key, value| value }
               elsif permissions
-                group.rights_status(@current_user, *permissions).select { |_key, value| value }
+                group.rights_status(current_principal, *permissions).select { |_key, value| value }
               else
                 {}
               end
@@ -130,9 +130,9 @@ module SearchHelper
           }.tap do |hash|
             hash[:permissions] =
               if include_all_permissions
-                tag.rights_status(@current_user).select { |_key, value| value }
+                tag.rights_status(current_principal).select { |_key, value| value }
               elsif permissions
-                tag.rights_status(@current_user, *permissions).select { |_key, value| value }
+                tag.rights_status(current_principal, *permissions).select { |_key, value| value }
               else
                 {}
               end
@@ -155,12 +155,12 @@ module SearchHelper
         add_sections.call sections
         add_groups.call context.groups.active, context
         if context.account.allow_assign_to_differentiation_tags? &&
-           context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+           context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
           add_differentiation_tags.call context.differentiation_tags.active, context
         end
 
       when Group
-        if context.grants_right?(@current_user, session, :read)
+        if context.grants_right?(current_principal, session, :read)
           add_groups.call [context]
           add_courses.call [context.context], :current if context.context.is_a?(Course)
         end

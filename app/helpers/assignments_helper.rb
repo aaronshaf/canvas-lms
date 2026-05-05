@@ -159,7 +159,7 @@ module AssignmentsHelper
   end
 
   def show_rubric_section?
-    !@context.horizon_course? && can_do(@assignment, @current_user, :update)
+    !@context.horizon_course? && can_do(@assignment, current_principal, :update)
   end
 
   def show_legacy_peer_reviews_link?

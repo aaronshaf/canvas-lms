@@ -74,10 +74,10 @@
     <li class="hover-container">
       <a href="<%= context_url(@context, :context_rubric_url, association.rubric_id) %>" class="title"><%= rubric.title %></a>
       <span class="links">
-        <% if can_do(rubric, @current_user, :update) %>
+        <% if can_do(rubric, current_principal, :update) %>
           <a href="<%= context_url(@context, :context_rubric_url, association.rubric_id) %>#edit" class="hide-till-hover" title="<%= t("Edit Rubric: %{title}", title: rubric.title) %>" aria-label="<%= t("Edit Rubric: %{title}", title: rubric.title) %>"><i class="icon-edit standalone-icon"></i></a>
         <% end %>
-        <% if can_do(association, @current_user, :delete) %>
+        <% if can_do(association, current_principal, :delete) %>
           <a href="<%= context_url(@context, :context_rubric_url, rubric.id) %>" class="delete_rubric_link hide-till-hover" title="<%= t("Delete Rubric: %{title}", title: rubric.title) %>" aria-label="<%= t("Delete Rubric: %{title}", title: rubric.title) %>"><i class="icon-end standalone-icon"></i></a>
         <% end %>
       </span>

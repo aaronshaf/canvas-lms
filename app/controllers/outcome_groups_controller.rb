@@ -22,7 +22,7 @@ class OutcomeGroupsController < ApplicationController
   before_action :require_context
 
   def create
-    if authorized_action(@context, @current_user, :manage_outcomes)
+    if authorized_action(@context, current_principal, :manage_outcomes)
       parent_id = params[:learning_outcome_group].delete(:learning_outcome_group_id)
       parent_outcome_group = parent_id ? @context.learning_outcome_groups.find(parent_id) : @context.root_outcome_group
       @outcome_group = parent_outcome_group.child_outcome_groups.build(params[:learning_outcome_group].merge(context: @context))
@@ -39,7 +39,7 @@ class OutcomeGroupsController < ApplicationController
   end
 
   def import
-    if authorized_action(@context, @current_user, :manage_outcomes)
+    if authorized_action(@context, current_principal, :manage_outcomes)
       data = begin
         JSON.parse(params[:file].read).with_indifferent_access
       rescue JSON::ParserError
@@ -59,7 +59,7 @@ class OutcomeGroupsController < ApplicationController
   end
 
   def update
-    if authorized_action(@context, @current_user, :manage_outcomes)
+    if authorized_action(@context, current_principal, :manage_outcomes)
       @outcome_group = @context.learning_outcome_groups.active.find(params[:id])
       respond_to do |format|
         parent_id = params[:learning_outcome_group].delete(:learning_outcome_group_id)
@@ -77,7 +77,7 @@ class OutcomeGroupsController < ApplicationController
   end
 
   def destroy
-    if authorized_action(@context, @current_user, :manage_outcomes)
+    if authorized_action(@context, current_principal, :manage_outcomes)
       @outcome_group = @context.learning_outcome_groups.active.find(params[:id])
       @outcome_group.skip_tag_touch = true
       @outcome_group.destroy

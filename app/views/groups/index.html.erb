@@ -82,7 +82,7 @@
         <tr>
           <td>
             <%# Don't show the link if the user no longer has access to this concluded course %>
-            <% if group.context.grants_right?(@current_user, session, :read_roster) %>
+            <% if group.context.grants_right?(current_principal, session, :read_roster) %>
               <%= link_to group.name, group_path(group) %>
             <% else %>
               <%= group.name %>

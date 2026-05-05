@@ -55,7 +55,7 @@ class CourseTagConversionController < ApplicationController
   end
 
   def check_authorized_action
-    authorized = @context.grants_any_right?(@current_user, @current_session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+    authorized = @context.grants_any_right?(current_principal, @current_session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
     render json: { error: "Unauthorized" }, status: :forbidden unless authorized
   end
 end

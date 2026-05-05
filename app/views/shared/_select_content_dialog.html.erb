@@ -237,7 +237,7 @@
         </div>
         <div style="margin-top: 5px;">
         <select class="module_item_select mathjax_ignore" aria-label="<%= quiz_label %>" multiple>
-          <% if @context.grants_right?(@current_user, session, :manage_assignments_add) %>
+          <% if @context.grants_right?(current_principal, session, :manage_assignments_add) %>
             <option value="new"><%= t :create_quiz_option, "[ Create Quiz ]" %></option>
           <% end %>
           <% @combined_active_quizzes.each do |id, title, type| %>
@@ -314,7 +314,7 @@
         </div>
         <div style="margin-top: 5px;">
         <select class="module_item_select mathjax_ignore" aria-label="<%= assignment_label %>" multiple>
-          <% if @context.grants_right?(@current_user, session, :manage_assignments_add) %>
+          <% if @context.grants_right?(current_principal, session, :manage_assignments_add) %>
             <option value="new"><%= t :create_assignment_option, "[ Create Assignment ]" %></option>
           <% end %>
           <% @context.assignment_groups.active.include_active_assignments.reorder(AssignmentGroup.best_unicode_collation_key("name")).each do |group| %>

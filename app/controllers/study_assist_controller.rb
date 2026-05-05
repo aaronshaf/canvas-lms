@@ -89,7 +89,7 @@ class StudyAssistController < ApplicationController
   end
 
   def require_student_access
-    authorized_action(@context, @current_user, :participate_as_student)
+    authorized_action(@context, current_principal, :participate_as_student)
   end
 
   def require_cedar_enabled

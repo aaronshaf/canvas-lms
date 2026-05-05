@@ -123,7 +123,7 @@ class TabsController < ApplicationController
   #     ]
   def index
     GuardRail.activate(:secondary) do
-      if @context.grants_right?(@current_user, session, :read)
+      if @context.grants_right?(current_principal, session, :read)
         render json: tabs_available_json(@context, @current_user, session)
       else
         raise ActiveRecord::RecordNotFound
@@ -150,7 +150,7 @@ class TabsController < ApplicationController
   #
   # @returns Tab
   def update
-    return unless @context.is_a?(Course) && authorized_action(@context, @current_user, :manage_course_content_edit)
+    return unless @context.is_a?(Course) && authorized_action(@context, current_principal, :manage_course_content_edit)
 
     css_class = params["tab_id"]
     new_pos = params["position"].to_i if params["position"]

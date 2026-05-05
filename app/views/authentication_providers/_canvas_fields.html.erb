@@ -39,7 +39,7 @@
       <%= f.label :enable_captcha, t("Require Captcha for Self Registration"), for: "enable_captcha_#{presenter.id_suffix(aac)}", class: "ic-Label" %>
     </div>
     <% end %>
-    <% if aac.account.mfa_settings != :disabled && aac.account.grants_right?(@current_user, :manage_mfa_settings) %>
+    <% if aac.account.mfa_settings != :disabled && aac.account.grants_right?(current_principal, :manage_mfa_settings) %>
     <div class="ic-Form-control ic-Form-control--checkbox">
       <%= f.check_box :otp_via_sms, class: "otp_via_sms_checkbox", id: "otp_via_sms_#{presenter.id_suffix(aac)}" %>
       <%= f.label :otp_via_sms, t("Send one-time passcodes via SMS (US carriers only)"), for: "otp_via_sms_#{presenter.id_suffix(aac)}", class: "ic-Label" %>

@@ -29,14 +29,14 @@
 
 <% provide :right_side do %>
   <div id="page_sidebar">
-    <% if can_do(@portfolio, @current_user, :manage) && !@owner_view %>
+    <% if can_do(@portfolio, current_principal, :manage) && !@owner_view %>
       <div class="rs-margin-bottom">
         <a href="#" class="wizard_popup_link"><%= help_link_text %></a>
       </div>
     <% end %>
 
     <div id="section_pages">
-      <% if @portfolio.grants_right?(@current_user, :moderate) %>
+      <% if @portfolio.grants_right?(current_principal, :moderate) %>
         <% if @portfolio.spam? %>
           <%= form_for @portfolio, url: eportfolio_path(@portfolio), html: { id: "mark_eportfolio_safe_form", class: "ic-Form-group" } do %>
             <input type="hidden" name="eportfolio[spam_status]" value="marked_as_safe"/>
@@ -68,7 +68,7 @@
       <div id='page_list_mount'></div>
     </div>
 
-    <% if can_do(@portfolio, @current_user, :manage) && !@owner_view %>
+    <% if can_do(@portfolio, current_principal, :manage) && !@owner_view %>
     <div class="edit_content_link_holder">
       <a href="#" class="edit_content_link btn button-sidebar-wide"><%= edit_link_text %></a>
       <a href="<%= eportfolio_path(@portfolio.id) %>" class="icon-arrow-left"><%= t("links.back", "Back to Portfolio Dashboard") %></a>
@@ -179,10 +179,10 @@
     </li>
   </ul>
 <% else %>
-  <% if can_do(@portfolio, @current_user, :manage) %>
+  <% if can_do(@portfolio, current_principal, :manage) %>
   <div style="float: <%= direction("right") %>; display: none;"><a href="#" class="edit_content_link icon-edit"><%= edit_link_text %></a></div>
   <% end %>
-  <% if @portfolio.spam? && @portfolio.grants_right?(@current_user, :moderate) %>
+  <% if @portfolio.spam? && @portfolio.grants_right?(current_principal, :moderate) %>
     <% if @portfolio.flagged_as_possible_spam? %>
       <p>
         <div class="ic-flash-warning eportfolio_spam_message">
@@ -255,7 +255,7 @@
   </table>
   <% end %>
   <%= render partial: "eportfolios/page_section", object: nil, locals: { idx: "blank" } %>
-  <% if can_do(@portfolio, @current_user, :manage) %>
+  <% if can_do(@portfolio, current_principal, :manage) %>
   <div id="edit_content_templates" style="display: none;">
     <div class="edit_rich_text_content form_content" style="display: none;">
       <textarea class="edit_section" id="edit_section_blank" style="width: 95%; margin-<%= direction("left") %>: auto; margin-<%= direction("right") %>: auto; height: 200px;"></textarea>
@@ -346,8 +346,8 @@
 <% end %>
 <% unless @owner_view %>
 <div id="page_comments_holder" style="margin-top: 50px;">
-  <h2 style="<%= hidden unless @page.show_comments || @page.allow_comments || can_do(@portfolio, @current_user, :update) %>"><%= t "headings.page_comments", "Page Comments" %></h2>
-  <% if @page.show_comments || can_do(@portfolio, @current_user, :update) %>
+  <h2 style="<%= hidden unless @page.show_comments || @page.allow_comments || can_do(@portfolio, current_principal, :update) %>"><%= t "headings.page_comments", "Page Comments" %></h2>
+  <% if @page.show_comments || can_do(@portfolio, current_principal, :update) %>
     <% if !@page.page_comments.empty? && !@page.show_comments %>
       <p><%= t(:private_comments,
                <<~TEXT,

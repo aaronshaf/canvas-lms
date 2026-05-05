@@ -376,7 +376,7 @@ class OutcomeGroupsApiController < ApplicationController
   # Intentionally undocumented in the API. Used by the UI to show a list of
   # accounts' root outcome groups for the account(s) above the context.
   def account_chain
-    return unless authorized_action(@context, @current_user, :manage_outcomes)
+    return unless authorized_action(@context, current_principal, :manage_outcomes)
 
     account_chain =
       if @context.is_a?(Account)
@@ -759,27 +759,27 @@ class OutcomeGroupsApiController < ApplicationController
 
   def can_read_outcomes
     if @context
-      authorized_action(@context, @current_user, :read_outcomes)
+      authorized_action(@context, current_principal, :read_outcomes)
     else
-      authorized_action(Account.site_admin, @current_user, :read_global_outcomes)
+      authorized_action(Account.site_admin, current_principal, :read_global_outcomes)
     end
   end
 
   def can_manage_outcomes
     if @context
-      authorized_action(@context, @current_user, :manage_outcomes)
+      authorized_action(@context, current_principal, :manage_outcomes)
     else
-      authorized_action(Account.site_admin, @current_user, :manage_global_outcomes)
+      authorized_action(Account.site_admin, current_principal, :manage_global_outcomes)
     end
   end
 
   def can_read_source_outcomes?(source_context)
     if source_context.nil?
-      Account.site_admin.grants_right?(@current_user, session, :read_global_outcomes)
+      Account.site_admin.grants_right?(current_principal, session, :read_global_outcomes)
     elsif source_context == @context
       true
     else
-      source_context.grants_right?(@current_user, session, :read_outcomes)
+      source_context.grants_right?(current_principal, session, :read_outcomes)
     end
   end
 

@@ -275,7 +275,7 @@ class RubricsApiController < ApplicationController
   # Returns the paginated list of active rubrics for the current context.
 
   def index
-    return unless authorized_action(@context, @current_user, :manage_rubrics)
+    return unless authorized_action(@context, current_principal, :manage_rubrics)
 
     rubrics = Api.paginate(@context.rubrics.active, self, rubric_pagination_url)
     render json: rubrics_json(rubrics, @current_user, session) unless performed?
@@ -290,7 +290,7 @@ class RubricsApiController < ApplicationController
   # @returns Rubric
 
   def show
-    return unless authorized_action(@context, @current_user, :manage_rubrics)
+    return unless authorized_action(@context, current_principal, :manage_rubrics)
 
     rubric = @context.rubric_associations.bookmarked.find_by(rubric_id: params[:id])&.rubric
     return render json: { message: "Rubric not found" }, status: :not_found unless rubric.present? && !rubric.deleted?
@@ -313,7 +313,7 @@ class RubricsApiController < ApplicationController
   # Returns the courses and assignments where a rubric is being used
   # @returns UsedLocations
   def used_locations
-    return unless authorized_action(@context, @current_user, :manage_rubrics)
+    return unless authorized_action(@context, current_principal, :manage_rubrics)
 
     rubric = @context.rubric_associations.bookmarked.find_by(rubric_id: params[:id])&.rubric
     return render json: { message: "Rubric not found" }, status: :not_found unless rubric.present? && !rubric.deleted?
@@ -325,7 +325,7 @@ class RubricsApiController < ApplicationController
   # Returns the rubric import object that was created
   # @returns RubricImport
   def upload
-    return unless authorized_action(@context, @current_user, :manage_rubrics)
+    return unless authorized_action(@context, current_principal, :manage_rubrics)
 
     file_obj = params[:attachment]
     if file_obj.nil?
@@ -360,7 +360,7 @@ class RubricsApiController < ApplicationController
   # Can return the latest rubric import for an account or course, or a specific import by id
   # @returns RubricImport
   def upload_status
-    return unless authorized_action(@context, @current_user, :manage_rubrics)
+    return unless authorized_action(@context, current_principal, :manage_rubrics)
 
     begin
       import = if params[:id] == "latest"
@@ -378,14 +378,14 @@ class RubricsApiController < ApplicationController
   end
 
   def rubrics_by_import_id
-    return unless authorized_action(@context, @current_user, :manage_rubrics)
+    return unless authorized_action(@context, current_principal, :manage_rubrics)
 
     rubrics = @context.rubrics.where(rubric_imports_id: params[:id])
     render json: rubrics_json(rubrics, @current_user, session)
   end
 
   def download_rubrics
-    return unless authorized_action(@context, @current_user, [:read_rubrics, :manage_rubrics])
+    return unless authorized_action(@context, current_principal, [:read_rubrics, :manage_rubrics])
 
     rubric_ids = params[:rubric_ids]
     if rubric_ids.blank?

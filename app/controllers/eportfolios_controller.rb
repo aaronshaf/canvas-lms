@@ -54,7 +54,7 @@ class EportfoliosController < ApplicationController
       session[:eportfolio_ids] << @portfolio.id
       session[:permissions_key] = SecureRandom.uuid
     end
-    if authorized_action(@portfolio, @current_user, :read)
+    if authorized_action(@portfolio, current_principal, :read)
       hash = rce_js_env
       hash[:eportfolio_id] = @portfolio.id
       @portfolio.ensure_defaults
@@ -85,13 +85,13 @@ class EportfoliosController < ApplicationController
           # profile
           @owner_url ||= profile_url if @current_user == @portfolio.user
           # otherwise, if  I can otherwise view the user, link directly to them
-          @owner_url ||= user_url(@portfolio.user) if @portfolio.user.grants_right?(@current_user, :view_statistics)
+          @owner_url ||= user_url(@portfolio.user) if @portfolio.user.grants_right?(current_principal, :view_statistics)
         end
 
         format.html do
           @show_left_side = true
           eportfolio_page_attributes
-          if can_do(@portfolio, @current_user, :update)
+          if can_do(@portfolio, current_principal, :update)
             content_for_head helpers.auto_discovery_link_tag(:atom, feeds_eportfolio_path(@portfolio.id, :atom, verifier: @portfolio.uuid), { title: t("titles.feed", "Eportfolio Atom Feed") })
           elsif @portfolio.public
             content_for_head helpers.auto_discovery_link_tag(:atom, feeds_eportfolio_path(@portfolio.id, :atom), { title: t("titles.feed", "Eportfolio Atom Feed") })
@@ -107,7 +107,7 @@ class EportfoliosController < ApplicationController
   end
 
   def create
-    if authorized_action(Eportfolio.new, @current_user, :create)
+    if authorized_action(Eportfolio.new, current_principal, :create)
       @portfolio = @current_user.eportfolios.build(eportfolio_params)
       respond_to do |format|
         if @portfolio.save
@@ -133,9 +133,9 @@ class EportfoliosController < ApplicationController
   end
 
   def update
-    update_params = if @portfolio.grants_right?(@current_user, session, :update)
+    update_params = if @portfolio.grants_right?(current_principal, session, :update)
                       eportfolio_params
-                    elsif @portfolio.grants_right?(@current_user, :moderate)
+                    elsif @portfolio.grants_right?(current_principal, :moderate)
                       eportfolio_moderation_params
                     end
     if update_params
@@ -159,7 +159,7 @@ class EportfoliosController < ApplicationController
   end
 
   def destroy
-    if authorized_action(@portfolio, @current_user, :delete)
+    if authorized_action(@portfolio, current_principal, :delete)
       respond_to do |format|
         if @portfolio.destroy
           flash[:notice] = t("notices.deleted", "ePortfolio successfully deleted")
@@ -174,7 +174,7 @@ class EportfoliosController < ApplicationController
   end
 
   def reorder_categories
-    if authorized_action(@portfolio, @current_user, :update)
+    if authorized_action(@portfolio, current_principal, :update)
       order = params[:order].split(",").map { |id| Shard.relative_id_for(id, Shard.current, @portfolio.shard) }
       @portfolio.eportfolio_categories.build.update_order(order)
       render json: @portfolio.eportfolio_categories.map { |c| [c.id, c.position] }, status: :ok
@@ -182,7 +182,7 @@ class EportfoliosController < ApplicationController
   end
 
   def reorder_entries
-    if authorized_action(@portfolio, @current_user, :update)
+    if authorized_action(@portfolio, current_principal, :update)
       order = params[:order].split(",").map { |id| Shard.relative_id_for(id, Shard.current, @portfolio.shard) }
       @category = @portfolio.eportfolio_categories.find(params[:eportfolio_category_id])
       @category.eportfolio_entries.build.update_order(order)
@@ -192,7 +192,7 @@ class EportfoliosController < ApplicationController
 
   def export
     zip_filename = "eportfolio.zip"
-    if authorized_action(@portfolio, @current_user, :update)
+    if authorized_action(@portfolio, current_principal, :update)
       @attachments = @portfolio.attachments.not_deleted
                                .where(display_name: zip_filename,
                                       workflow_state: %w[to_be_zipped zipping zipped unattached],
@@ -260,9 +260,9 @@ class EportfoliosController < ApplicationController
 
   # could be moved to submissions controller, but I'll leave it here for now
   def recent_submissions
-    if authorized_action(@portfolio, @current_user, :read)
+    if authorized_action(@portfolio, current_principal, :read)
 
-      if @portfolio.grants_right?(@current_user, session, :manage) && @current_user && @current_user == @portfolio.user
+      if @portfolio.grants_right?(current_principal, session, :manage) && @current_user && @current_user == @portfolio.user
         recent_submissions = Submission.joins(:course).joins(:assignment)
                                        .where(user_id: @current_user, workflow_state: %w[submitted graded])
                                        .where.not(course: { workflow_state: %w[created claimed deleted] })

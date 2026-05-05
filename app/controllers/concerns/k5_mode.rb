@@ -34,7 +34,7 @@ module K5Mode
     @set_k5_mode_run = true
 
     # Only students should see the details view
-    @k5_details_view = @context.try(:elementary_subject_course?) && !@context.grants_right?(@current_user, :read_as_admin)
+    @k5_details_view = @context.try(:elementary_subject_course?) && !@context.grants_right?(current_principal, :read_as_admin)
     if @context.try(:elementary_subject_course?)
       @show_left_side = !@k5_details_view
     end

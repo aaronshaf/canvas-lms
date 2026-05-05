@@ -173,7 +173,7 @@ class TermsController < ApplicationController
   def handle_sis_id_param(sis_id)
     if !sis_id.nil? &&
        sis_id != @account.sis_source_id &&
-       @context.root_account.grants_right?(@current_user, session, :manage_sis)
+       @context.root_account.grants_right?(current_principal, session, :manage_sis)
       @term.sis_source_id = sis_id.presence
       if @term.sis_source_id && @term.sis_source_id_changed?
         scope = @term.root_account.enrollment_terms.where(sis_source_id: @term.sis_source_id)

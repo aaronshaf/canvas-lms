@@ -17,7 +17,7 @@
 %>
 <% provide :right_side do %>
   <div class="rs-margin-bottom">
-    <% chain = (@context.account_chain rescue [@domain_root_account]).select { |a| can_do(a, @current_user, :manage) }; %>
+    <% chain = (@context.account_chain rescue [@domain_root_account]).select { |a| can_do(a, current_principal, :manage) }; %>
     <% unless chain.empty? %>
       <%= before_label :see_results, "See %{user_name}'s results for", user_name: @user.short_name %>
       <ul>

@@ -46,7 +46,7 @@ class AccessibilityIssuesController < ApplicationController
   def check_authorized_action
     return render_unauthorized_action unless tab_enabled?(Course::TAB_ACCESSIBILITY, no_render: true)
 
-    authorized_action(@context, @current_user, [:read, :update])
+    authorized_action(@context, current_principal, [:read, :update])
   end
 
   def set_issue

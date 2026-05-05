@@ -97,7 +97,7 @@ class CourseReportsController < ApplicationController
   #
   def show
     report = @context.course_reports.active.find(params[:id])
-    if authorized_action(report, @current_user, :read)
+    if authorized_action(report, current_principal, :read)
       render json: course_report_json(report, @current_user)
     end
   end
@@ -124,7 +124,7 @@ class CourseReportsController < ApplicationController
     return render json: { error: "invalid context type" }, status: :bad_request unless @context.is_a? Course
     return render json: { error: "invalid report type #{params[:report_type]}" }, status: :bad_request unless available_reports.include? params[:report_type]
 
-    if authorized_action(@context, @current_user, :read_reports)
+    if authorized_action(@context, current_principal, :read_reports)
       parameters = params[:parameters].permit(enrollment_ids: [], section_ids: []).to_h
 
       report = @context.course_reports.create(user: @current_user, course: @context, report_type: params.require(:report_type), root_account: @context.account.root_account, parameters:)

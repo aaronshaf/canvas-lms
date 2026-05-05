@@ -20,7 +20,7 @@
   course_home ||= false
   js_env({
            COLLAPSED_MODULES: @collapsed_modules,
-           IS_STUDENT: can_do(@context, @current_user, :participate_as_student),
+           IS_STUDENT: can_do(@context, current_principal, :participate_as_student),
            COURSE_ID: @context.id,
            PUBLISH_MENU_PROGRESS_ID: @progress&.id,
            NO_MODULE_PROGRESSIONS: @context.large_roster,
@@ -52,7 +52,7 @@ context_modules_header_props = {
     courseId: @context.id,
     runningProgressId: @progress&.id,
     disabled: @modules.empty?,
-    visible: @context.grants_right?(@current_user, session, :manage_course_content_edit),
+    visible: @context.grants_right?(current_principal, session, :manage_course_content_edit),
   },
   addModule: {
     label: t("Add Module"),
@@ -106,7 +106,7 @@ context_modules_header_props = {
           </button>
         <% end %>
       <% end %>
-      <% if @context.grants_right?(@current_user, session, :manage_course_content_edit) %>
+      <% if @context.grants_right?(current_principal, session, :manage_course_content_edit) %>
         <div id="context-modules-publish-menu" data-course-id="<%= @context.id %>" data-progress-id="<%= @progress&.id %>" style="display: inline-block;" data-disabled="<%= @modules.empty? %>"></div>
       <% end %>
       <% if @can_add %>
@@ -116,7 +116,7 @@ context_modules_header_props = {
           <%= t("Module") %>
         </button>
       <% end %>
-      <% if @context.grants_right?(@current_user, session, :manage_course_content_add) && (@menu_tools[:module_index_menu].present? || @menu_tools[:module_index_menu_modal].present?) %>
+      <% if @context.grants_right?(current_principal, session, :manage_course_content_add) && (@menu_tools[:module_index_menu].present? || @menu_tools[:module_index_menu_modal].present?) %>
         <div class="inline-block module_index_tools">
           <a class="al-trigger btn" role="button" aria-haspopup="true" aria-owns="toolbar-1" href="#" data-popup-collision="flip">
             <i class="icon-more" aria-hidden="true"></i>
@@ -195,7 +195,7 @@ context_modules_header_props = {
   </div>
 
   <div id="no_context_modules_message" style="display:none;">
-    <% if can_do(@context.context_modules.temp_record, @current_user, :create) %>
+    <% if can_do(@context.context_modules.temp_record, current_principal, :create) %>
       <div id="modules_homepage_user_create"></div>
     <% else %>
       <p><%= t("help.no_modules", %(No modules have been defined for this course.)) %></p>

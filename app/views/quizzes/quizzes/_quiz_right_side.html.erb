@@ -33,7 +33,7 @@
         <tr style="<%= hidden if @quiz.quiz_type == "survey" %>">
           <td colspan="2" class="footnote">
             *
-            <% if can_do(@quiz, @current_user, :grade) && !@quiz.survey? %>
+            <% if can_do(@quiz, current_principal, :grade) && !@quiz.survey? %>
               <%= link_to t(:questions_not_graded, "Some questions not yet graded"), context_url(@context, :context_quiz_history_url, @quiz, version: @submission.version_number, user_id: @submission.user_id) %>
             <% else %>
               <%= t(:questions_not_graded, "Some questions not yet graded") %>
@@ -74,27 +74,27 @@
         <%= @quiz.survey? ? t("links.preview_survey_again", "Preview the Survey Again") : t("links.preview_quiz_again", "Preview the Quiz Again") %>
       <% end %>
       <br/>
-    <% elsif !@quiz.single_attempt? || can_do(@quiz, @current_user, :update) %>
+    <% elsif !@quiz.single_attempt? || can_do(@quiz, current_principal, :update) %>
       <div style="margin-<%= direction("left") %>: 20px; margin-top: 20px; line-height: 1.3em;">
-        <% if (@submission.attempt > 1 || (@submission.attempt == 1 && can_do(@quiz, @current_user, :update))) &&
-              (can_do(@quiz, @current_user, :grade) || @submission.posted?) %>
+        <% if (@submission.attempt > 1 || (@submission.attempt == 1 && can_do(@quiz, current_principal, :update))) &&
+              (can_do(@quiz, current_principal, :grade) || @submission.posted?) %>
           <%= t(:attempts_so_far, { one: "1 Attempt so far", other: "%{count} Attempts so far" }, count: @submission.attempt) %><br/>
           <a href="<%= context_url(@context, :context_quiz_history_url, @quiz) %>" class="icon-clock"><%= t(:view_previous_attempts, "View Previous Attempts") %></a>
           <br/>
         <% end %>
         <% if @quiz.unlimited_attempts? %>
           <%= t(:unlimited_attempts, "Unlimited Attempts") %><br/>
-        <% elsif !can_do(@quiz, @current_user, :update) %>
+        <% elsif !can_do(@quiz, current_principal, :update) %>
           <% if @submission.attempts_left <= 0 %>
             <%= t(:no_more_attempts, "No More Attempts available") %><br/>
-          <% elsif can_do(@quiz, @current_user, :submit) %>
+          <% elsif can_do(@quiz, current_principal, :submit) %>
             <%= t(:attempts_left, { one: "1 More Attempt available", other: "%{count} More Attempts available" }, count: @submission.attempts_left) %><br/>
           <% end %>
         <% end %>
       </div>
-      <% if allow_take && can_do(@quiz, @current_user, :submit) %>
+      <% if allow_take && can_do(@quiz, current_principal, :submit) %>
         <div style="margin-top: 10px; font-size: 1.2em;">
-        <% if (!@locked && (@quiz.unlimited_attempts? || @submission.attempts_left > 0)) || can_do(@quiz, @current_user, :update) %>
+        <% if (!@locked && (@quiz.unlimited_attempts? || @submission.attempts_left > 0)) || can_do(@quiz, current_principal, :update) %>
           <%= link_to_take_or_retake_poll %><br/>
           <span style="font-size: 0.7em; padding-<%= direction("left") %>: 20px;">
             (<%= score_to_keep_message %>)

@@ -63,7 +63,7 @@ class PseudonymsController < ApplicationController
   #     }
   #   ]
   def index
-    return unless get_user && authorized_action(@user, @current_user, :read)
+    return unless get_user && authorized_action(@user, current_principal, :read)
 
     if @context.is_a?(Account)
       return unless context_is_root_account?
@@ -102,7 +102,7 @@ class PseudonymsController < ApplicationController
   #   }
   def forgot_password
     if api_request?
-      return unless authorized_action(@current_user.pseudonym.account, @current_user, [:manage_user_logins])
+      return unless authorized_action(current_principal.pseudonym.account, current_principal, [:manage_user_logins])
     end
 
     email = if api_request?
@@ -154,7 +154,7 @@ class PseudonymsController < ApplicationController
 
     if api_request?
       @ccs.each do |cc|
-        return unless authorized_action(cc.pseudonym.account, @current_user, [:manage_user_logins])
+        return unless authorized_action(cc.pseudonym.account, current_principal, [:manage_user_logins])
       end
 
       if @ccs.empty?
@@ -392,7 +392,7 @@ class PseudonymsController < ApplicationController
     @pseudonym = @account.pseudonyms.build(user: @user)
     return unless find_authentication_provider
     return unless update_pseudonym_from_params
-    return unless authorized_action(@pseudonym, @current_user, :create)
+    return unless authorized_action(@pseudonym, current_principal, :create)
     return unless authorized_per_site_admin_user_restrictions(@pseudonym.user)
 
     @pseudonym.generate_temporary_password unless params[:pseudonym][:password]
@@ -523,7 +523,7 @@ class PseudonymsController < ApplicationController
 
     return unless find_authentication_provider
     return unless update_pseudonym_from_params
-    return unless authorized_action(@pseudonym, @current_user, [:update, :change_password])
+    return unless authorized_action(@pseudonym, current_principal, [:update, :change_password])
     return unless authorized_per_site_admin_user_restrictions(@pseudonym.user)
 
     if @pseudonym.save_without_session_maintenance
@@ -562,7 +562,7 @@ class PseudonymsController < ApplicationController
     @pseudonym = Pseudonym.active.find(params[:id])
     @pseudonym.current_user = @current_user
     raise ActiveRecord::RecordNotFound unless @pseudonym.user_id == @user.id
-    return unless authorized_action(@pseudonym, @current_user, :delete)
+    return unless authorized_action(@pseudonym, current_principal, :delete)
 
     if @user.all_active_pseudonyms.length < 2
       @pseudonym.errors.add(:base, t("errors.login_required", "Users must have at least one login"))
@@ -751,7 +751,7 @@ class PseudonymsController < ApplicationController
   def authorized_if_requested_change?(key, right)
     return true unless params[:pseudonym].key?(key.to_sym)
 
-    if @pseudonym.grants_right?(@current_user, right.to_sym)
+    if @pseudonym.grants_right?(current_principal, right.to_sym)
       yield
       true
     else

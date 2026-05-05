@@ -144,7 +144,7 @@ class EpubExportsController < ApplicationController
   #
   # @returns EpubExport
   def create
-    if authorized_action(EpubExport.new(course: @context), @current_user, :create)
+    if authorized_action(EpubExport.new(course: @context), current_principal, :create)
       @course = Course.find(params[:course_id])
       @service = EpubExports::CreateService.new(@course, @current_user, :epub_export)
       status = @service.save ? 201 : 422
@@ -167,7 +167,7 @@ class EpubExportsController < ApplicationController
   def show
     @course = Course.find(params[:course_id])
     @epub_export = @course.epub_exports.where(id: params[:id]).first
-    if authorized_action(@epub_export, @current_user, :read)
+    if authorized_action(@epub_export, current_principal, :read)
       respond_to do |format|
         @course.latest_epub_export = @epub_export
         format.json { render json: course_epub_export_json(@course) }

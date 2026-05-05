@@ -62,7 +62,7 @@ class Quizzes::QuizIpFiltersController < ApplicationController
   #    "quiz_ip_filters": [QuizIPFilter]
   #  }
   def index
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       quiz_ip_filters = @quiz.available_ip_filters
       paginated_set = Api.paginate(quiz_ip_filters, self, api_v1_course_quiz_ip_filters_url(@context, @quiz))
 

@@ -24,7 +24,7 @@
   provide :page_title, join_title(translated_title, @context.name)
 
   css_bundle :roster, :addpeople
-  is_teacher = can_do(@context, @current_user, :manage_students)
+  is_teacher = can_do(@context, current_principal, :manage_students)
 %>
 
 <div class="ic-Action-header">
@@ -37,7 +37,7 @@
 </div>
 <% if @context.is_a?(Course) %>
   <% js_bundle :roster %>
-  <% js_env({ canManageCourse: can_do(@context, @current_user, :manage) }) %>
+  <% js_env({ canManageCourse: can_do(@context, current_principal, :manage) }) %>
 <% else %>
   <% if @context.is_a?(Group) %>
     <% js_bundle :context_roster_groups %>

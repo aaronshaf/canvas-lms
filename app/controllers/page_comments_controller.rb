@@ -22,7 +22,7 @@ class PageCommentsController < ApplicationController
   def create
     @portfolio = Eportfolio.active.find(params[:eportfolio_id])
     @page = @portfolio.eportfolio_entries.find(params[:entry_id])
-    if authorized_action(@page, @current_user, :comment)
+    if authorized_action(@page, current_principal, :comment)
       @comment = @page.page_comments.build(params.require(:page_comment).permit(:message))
       @comment.user = @current_user
       url = if @page.eportfolio_category.slug.blank?
@@ -49,7 +49,7 @@ class PageCommentsController < ApplicationController
     @portfolio = Eportfolio.active.find(params[:eportfolio_id])
     @page = @portfolio.eportfolio_entries.find(params[:entry_id])
     @comment = @page.page_comments.find(params[:id])
-    if authorized_action(@portfolio, @current_user, :update)
+    if authorized_action(@portfolio, current_principal, :update)
       @comment.destroy
       render json: @comment
     end

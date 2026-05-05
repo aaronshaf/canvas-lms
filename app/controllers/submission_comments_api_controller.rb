@@ -37,7 +37,7 @@ class SubmissionCommentsApiController < ApplicationController
   # @returns SubmissionComment
   def update
     submission_comment = SubmissionComment.find(params[:id])
-    if authorized_action(submission_comment, @current_user, :update)
+    if authorized_action(submission_comment, current_principal, :update)
       submission_comment.updating_user = @current_user
       submission_comment.reload unless submission_comment.update(submission_comment_params)
 
@@ -63,7 +63,7 @@ class SubmissionCommentsApiController < ApplicationController
   # @returns SubmissionComment
   def destroy
     submission_comment = SubmissionComment.find(params[:id])
-    if authorized_action(submission_comment, @current_user, :delete)
+    if authorized_action(submission_comment, current_principal, :delete)
       comment_data = anonymous_moderated_submission_comments_json(
         assignment: submission_comment.submission.assignment,
         course: @context,
@@ -121,7 +121,7 @@ class SubmissionCommentsApiController < ApplicationController
   # returns {}, status 200
   def annotation_notification
     GuardRail.activate(:secondary) do
-      if authorized_action?(Account.site_admin, @current_user, :send_messages)
+      if authorized_action?(Account.site_admin, current_principal, :send_messages)
         assignment = api_find(@context.assignments.active, params[:assignment_id])
         author = assignment.shard.activate { api_find(User.active, params[:author_id]) }
         user = api_find(@context.all_current_users, params[:user_id])

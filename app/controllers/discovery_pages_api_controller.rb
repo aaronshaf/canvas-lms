@@ -259,11 +259,11 @@ class DiscoveryPagesApiController < ApplicationController
   alias_method :load_context, :context
 
   def require_manage_authentication_provider
-    authorized_action(context, @current_user, context.manage_authentication_provider_permissions)
+    authorized_action(context, current_principal, context.manage_authentication_provider_permissions)
   end
 
   def require_read_or_manage_authentication_provider
-    authorized_action(context, @current_user, context.read_or_manage_authentication_provider_permissions)
+    authorized_action(context, current_principal, context.read_or_manage_authentication_provider_permissions)
   end
 
   def discovery_page_permitted_keys

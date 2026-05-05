@@ -101,7 +101,7 @@ class SubAccountsController < ApplicationController
                   api_find(Account.active, params[:account_id]).id
                 end
     @parent_account = subaccount_or_self(parent_id)
-    return unless authorized_action(@parent_account, @current_user, :manage_account_settings)
+    return unless authorized_action(@parent_account, current_principal, :manage_account_settings)
 
     account_attributes = account_params
     if account_attributes[:name].blank?
@@ -111,7 +111,7 @@ class SubAccountsController < ApplicationController
     @sub_account = @parent_account.sub_accounts.build(account_attributes)
     @sub_account.root_account = @context.root_account
     if params[:account][:sis_account_id]
-      can_manage_sis = @account.grants_right?(@current_user, :manage_sis)
+      can_manage_sis = @account.grants_right?(current_principal, :manage_sis)
       if can_manage_sis
         @sub_account.sis_source_id = params[:account][:sis_account_id]
       else

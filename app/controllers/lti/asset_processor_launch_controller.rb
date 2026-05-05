@@ -121,7 +121,7 @@ module Lti
     end
 
     def require_assignment_edit_permission
-      authorized_action(assignment, @current_user, :update)
+      authorized_action(assignment, current_principal, :update)
     end
 
     def require_report_view_permission

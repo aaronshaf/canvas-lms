@@ -64,7 +64,7 @@ class GradingSchemesJsonController < ApplicationController
   def show_account_default_grading_scheme
     return unless Account.site_admin.feature_enabled?(:default_account_grading_scheme)
     return unless @context.is_a?(Account)
-    return unless authorized_action(@context, @current_user, @context.grading_standard_read_permission)
+    return unless authorized_action(@context, current_principal, @context.grading_standard_read_permission)
 
     grading_standard = @context.grading_standard
 
@@ -80,7 +80,7 @@ class GradingSchemesJsonController < ApplicationController
   def update_account_default_grading_scheme
     return unless Account.site_admin.feature_enabled?(:default_account_grading_scheme)
     return unless @context.is_a?(Account)
-    return unless authorized_action(@context, @current_user, :manage)
+    return unless authorized_action(@context, current_principal, :manage)
 
     grading_standard = if params[:id].nil?
                          nil
@@ -124,7 +124,7 @@ class GradingSchemesJsonController < ApplicationController
   end
 
   def create
-    if authorized_action(@context, @current_user, :manage_grading_schemes)
+    if authorized_action(@context, current_principal, :manage_grading_schemes)
       grading_standard = @context.grading_standards.build(grading_scheme_payload)
 
       respond_to do |format|
@@ -140,7 +140,7 @@ class GradingSchemesJsonController < ApplicationController
 
   def update
     grading_standard = grading_standards_for_context(include_parent_accounts: false).find(params[:id])
-    if authorized_action(grading_standard, @current_user, :manage)
+    if authorized_action(grading_standard, current_principal, :manage)
       grading_standard.user = @current_user
 
       respond_to do |format|
@@ -156,14 +156,14 @@ class GradingSchemesJsonController < ApplicationController
 
   def used_locations
     grading_standard = grading_standards_for_context.find(params[:id])
-    return unless authorized_action(grading_standard, @current_user, :manage)
+    return unless authorized_action(grading_standard, current_principal, :manage)
 
     render json: courses_using(grading_standard)
   end
 
   def used_locations_for_course
     grading_standard = grading_standards_for_context.find(params[:id])
-    return unless authorized_action(grading_standard, @current_user, :manage)
+    return unless authorized_action(grading_standard, current_principal, :manage)
 
     scope = grading_standard.assignments
                             .where(context_id: params[:course_id], context_type: Course.to_s)
@@ -185,14 +185,14 @@ class GradingSchemesJsonController < ApplicationController
 
   def account_used_locations
     grading_standard = grading_standards_for_context.find(params[:id])
-    return unless authorized_action(grading_standard, @current_user, :manage)
+    return unless authorized_action(grading_standard, current_principal, :manage)
 
     render json: accounts_using(grading_standard)
   end
 
   def archive
     grading_standard = grading_standards_for_context.find(params[:id])
-    if authorized_action(grading_standard, @current_user, :manage)
+    if authorized_action(grading_standard, current_principal, :manage)
       respond_to do |format|
         if grading_standard.archive!
           track_update_metrics(grading_standard)
@@ -210,7 +210,7 @@ class GradingSchemesJsonController < ApplicationController
 
   def unarchive
     grading_standard = GradingStandard.archived.for_context(@context).find(params[:id])
-    if authorized_action(grading_standard, @current_user, :manage)
+    if authorized_action(grading_standard, current_principal, :manage)
       respond_to do |format|
         if grading_standard.unarchive!
           track_update_metrics(grading_standard)
@@ -228,7 +228,7 @@ class GradingSchemesJsonController < ApplicationController
 
   def destroy
     grading_standard = grading_standards_for_context.find(params[:id])
-    if authorized_action(grading_standard, @current_user, :manage)
+    if authorized_action(grading_standard, current_principal, :manage)
       respond_to do |format|
         if grading_standard.destroy
           format.json { render json: {} }
@@ -335,6 +335,6 @@ class GradingSchemesJsonController < ApplicationController
   end
 
   def validate_read_permission
-    authorized_action(@context, @current_user, @context.grading_standard_read_permission)
+    authorized_action(@context, current_principal, @context.grading_standard_read_permission)
   end
 end

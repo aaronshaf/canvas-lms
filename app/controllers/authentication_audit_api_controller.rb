@@ -154,7 +154,7 @@ class AuthenticationAuditApiController < AuditorApiController
   private
 
   def account_visible(account)
-    account.grants_any_right?(@current_user, :view_statistics, :manage_user_logins)
+    account.grants_any_right?(current_principal, :view_statistics, :manage_user_logins)
   end
 
   def render_events(events, context, route = nil)

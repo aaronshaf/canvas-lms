@@ -73,14 +73,14 @@ module LiveAssessments
     #  }
     #
     def create
-      return unless authorized_action(Assessment.new(context: @context), @current_user, :create)
+      return unless authorized_action(Assessment.new(context: @context), current_principal, :create)
 
       reject! "missing required key :assessments" unless params[:assessments].is_a?(Array)
 
       @assessments = []
 
       if params[:assessments].any? { |assessment_hash| assessment_hash.dig(:links, :outcome) }
-        return unless authorized_action(@context, @current_user, :manage_outcomes)
+        return unless authorized_action(@context, current_principal, :manage_outcomes)
       end
 
       Assessment.transaction do
@@ -120,7 +120,7 @@ module LiveAssessments
     #  }
     #
     def index
-      return unless authorized_action(Assessment.new(context: @context), @current_user, :read)
+      return unless authorized_action(Assessment.new(context: @context), current_principal, :read)
 
       @assessments = Assessment.for_context(@context)
       @assessments, meta = Api.jsonapi_paginate(@assessments, self, polymorphic_url([:api_v1, @context, :live_assessments]))

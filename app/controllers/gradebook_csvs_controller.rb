@@ -21,13 +21,13 @@
 class GradebookCsvsController < ApplicationController
   before_action :require_context
   def create
-    if authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    if authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
       current_time = Time.zone.now.strftime("%FT%H%M")
       name = t("grades_filename", "Grades") + "-" + @context.short_name.to_s
       filename = "#{current_time}_#{name}.csv".gsub(%r{/| }, "_")
 
       csv_options = {
-        include_sis_id: @context.grants_any_right?(@current_user, session, :read_sis, :manage_sis),
+        include_sis_id: @context.grants_any_right?(current_principal, session, :read_sis, :manage_sis),
         grading_period_id: params[:grading_period_id],
         student_order: params[:student_order],
         current_view: params[:current_view]

@@ -457,7 +457,7 @@ class AssignmentOverridesController < ApplicationController
     raise ActiveRecord::RecordNotFound if @course.deleted?
 
     @context = @course
-    authorized_action(@course, @current_user, :read)
+    authorized_action(@course, current_principal, :read)
   end
 
   def require_assignment
@@ -465,11 +465,11 @@ class AssignmentOverridesController < ApplicationController
   end
 
   def require_assignment_edit
-    authorized_action(@assignment, @current_user, :update)
+    authorized_action(@assignment, current_principal, :update)
   end
 
   def require_all_assignments_edit
-    authorized_action(@course, @current_user, :manage_assignments_edit)
+    authorized_action(@course, current_principal, :manage_assignments_edit)
   end
 
   def require_override

@@ -32,7 +32,7 @@ class GradebookUploadsController < ApplicationController
   end
 
   def new
-    if authorized_action(@context, @current_user, :manage_grades)
+    if authorized_action(@context, current_principal, :manage_grades)
       # GradebookUpload is a singleton.  If there is
       # already an instance we'll redirect to it or kill it
       previous_upload = gradebook_upload
@@ -49,7 +49,7 @@ class GradebookUploadsController < ApplicationController
   end
 
   def show
-    if authorized_action(@context, @current_user, :manage_grades)
+    if authorized_action(@context, current_principal, :manage_grades)
       upload = gradebook_upload
       unless upload
         redirect_to new_course_gradebook_upload_path(@context)
@@ -62,7 +62,7 @@ class GradebookUploadsController < ApplicationController
   end
 
   def create
-    if authorized_action(@context, @current_user, :manage_grades)
+    if authorized_action(@context, current_principal, :manage_grades)
       if params[:gradebook_upload]
         @progress = GradebookUpload.queue_from(@context, @current_user, gradebook_upload_params)
         js_env gradebook_env(@progress)
@@ -75,7 +75,7 @@ class GradebookUploadsController < ApplicationController
   end
 
   def data
-    if authorized_action(@context, @current_user, :manage_grades)
+    if authorized_action(@context, current_principal, :manage_grades)
       upload = gradebook_upload
       raise ActiveRecord::RecordNotFound unless upload
 

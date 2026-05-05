@@ -17,14 +17,14 @@
 %>
 <% provide :right_side do %>
   <div class="rs-margin-bottom">
-    <% if can_do(@bank.assessment_questions.temp_record, @current_user, :create) %>
+    <% if can_do(@bank.assessment_questions.temp_record, current_principal, :create) %>
       <button class="add_question_link btn button-sidebar-wide"><i class="icon-add"></i> <%= t "buttons.add_a_question", "Add a Question" %></button>
     <% end %>
-    <% if can_do(@bank, @current_user, :update) %>
+    <% if can_do(@bank, current_principal, :update) %>
       <a href="<%= context_url(@context, :context_question_bank_url, @bank.id) %>" class="btn button-sidebar-wide edit_bank_link"><i class="icon-edit"></i> <%= t "buttons.edit", "Edit Bank Details" %></a>
       <button type="button" class="btn button-sidebar-wide move_questions_link"><i class="icon-arrow-right" role="presentation"></i> <%= t "buttons.move_questions", "Move Multiple Questions" %></button>
     <% end %>
-    <% if can_do(@bank, @current_user, :delete) %>
+    <% if can_do(@bank, current_principal, :delete) %>
       <a href="<%= context_url(@context, :context_question_bank_url, @bank.id) %>" class="btn button-sidebar-wide delete_bank_link"><i class="icon-end" role="presentation"></i> <%= t "buttons.delete", "Delete Bank" %></a>
     <% end %>
     <% if @bank && !@bank.bookmarked_for?(@current_user) %>
@@ -83,7 +83,7 @@
     <span class="current_question_bank_id"><%= @bank.id %></span>
   </div>
 </div>
-<div id="questions" class="<%= "uneditable" unless can_do(@bank, @current_user, :manage) %> question_editing brief question_bank show_correct_answers mathjax_ignore">
+<div id="questions" class="<%= "uneditable" unless can_do(@bank, current_principal, :manage) %> question_editing brief question_bank show_correct_answers mathjax_ignore">
   <% if @questions.total_pages <= 1 %>
     <%= render partial: "quizzes/quizzes/display_question", collection: @questions.map(&:data), locals: { question_bank_id: @bank.id, editing: true } %>
   <% else %>

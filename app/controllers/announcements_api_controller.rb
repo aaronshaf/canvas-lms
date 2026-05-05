@@ -98,7 +98,7 @@ class AnnouncementsApiController < ApplicationController
     announcements = Shard.with_each_shard(shards) do
       scope = Announcement.where(context_type: "Course", context_id: courses)
 
-      include_unpublished = courses.all? { |course| course.grants_right?(@current_user, :view_unpublished_items) }
+      include_unpublished = courses.all? { |course| course.grants_right?(current_principal, :view_unpublished_items) }
       scope = if include_unpublished && !value_to_boolean(params[:active_only])
                 scope.where.not(workflow_state: "deleted")
               else
@@ -117,7 +117,7 @@ class AnnouncementsApiController < ApplicationController
       end
       unless params[:available_after].nil?
         show_expired_announcements = courses.all? do |course|
-          course.grants_right?(@current_user, session, :moderate_forum)
+          course.grants_right?(current_principal, session, :moderate_forum)
         end
         scope = scope.available_after(params[:available_after]) unless show_expired_announcements
       end
@@ -125,7 +125,7 @@ class AnnouncementsApiController < ApplicationController
       # only filter by section visibility if user has no course manage rights
       skip_section_filtering = courses.all? do |course|
         course.grants_any_right?(
-          @current_user,
+          current_principal,
           :read_as_admin,
           :manage_grades,
           *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS,
@@ -155,7 +155,7 @@ class AnnouncementsApiController < ApplicationController
   end
 
   def accessibility_scan
-    return unless authorized_action(@announcement, @current_user, :update)
+    return unless authorized_action(@announcement, current_principal, :update)
     return render_unauthorized_action unless @context.a11y_checker_enabled?
 
     scan = Accessibility::ResourceScannerService.new(resource: @announcement).call_sync
@@ -163,7 +163,7 @@ class AnnouncementsApiController < ApplicationController
   end
 
   def accessibility_queue_scan
-    return unless authorized_action(@announcement, @current_user, :update)
+    return unless authorized_action(@announcement, current_principal, :update)
     return render_unauthorized_action unless @context.a11y_checker_enabled?
 
     scan = Accessibility::ResourceScannerService.new(resource: @announcement).call

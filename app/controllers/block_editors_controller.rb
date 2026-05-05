@@ -22,7 +22,7 @@ class BlockEditorsController < ApplicationController
   before_action :load_block_editor, only: [:show]
 
   def show
-    if @block_editor.context.grants_right?(@current_user, :read)
+    if @block_editor.context.grants_right?(current_principal, :read)
       @exclude_account_js = true
       set_block_editor_iframe_security_headers
 

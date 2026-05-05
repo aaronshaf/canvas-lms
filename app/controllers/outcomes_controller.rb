@@ -35,7 +35,7 @@ class OutcomesController < ApplicationController
   include K5Mode
 
   def index
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
     return unless tab_enabled?(@context.class::TAB_OUTCOMES)
 
     log_asset_access(["outcomes", @context], "outcomes", "other")
@@ -51,14 +51,14 @@ class OutcomesController < ApplicationController
              GLOBAL_ROOT_OUTCOME_GROUP_ID:
         @context.is_a?(Course) ? nil : LearningOutcomeGroup.global_root_outcome_group.id,
              PERMISSIONS: {
-               manage_outcomes: @context.grants_right?(@current_user, session, :manage_outcomes),
-               manage_rubrics: @context.grants_right?(@current_user, session, :manage_rubrics),
-               can_manage_courses: @context.grants_right?(@current_user, session, :manage_courses_admin),
-               import_outcomes: @context.grants_right?(@current_user, session, :import_outcomes),
+               manage_outcomes: @context.grants_right?(current_principal, session, :manage_outcomes),
+               manage_rubrics: @context.grants_right?(current_principal, session, :manage_rubrics),
+               can_manage_courses: @context.grants_right?(current_principal, session, :manage_courses_admin),
+               import_outcomes: @context.grants_right?(current_principal, session, :import_outcomes),
                manage_proficiency_scales:
-          @context.grants_right?(@current_user, session, :manage_proficiency_scales),
+          @context.grants_right?(current_principal, session, :manage_proficiency_scales),
                manage_proficiency_calculations:
-          @context.grants_right?(@current_user, session, :manage_proficiency_calculations)
+          @context.grants_right?(current_principal, session, :manage_proficiency_calculations)
              },
              OUTCOMES_FRIENDLY_DESCRIPTION: Account.site_admin.feature_enabled?(:outcomes_friendly_description),
              OUTCOME_AVERAGE_CALCULATION: @context.root_account.feature_enabled?(:outcome_average_calculation),
@@ -83,7 +83,7 @@ class OutcomesController < ApplicationController
     end
 
     @outcome = @context.linked_learning_outcomes.find(params[:id])
-    return unless authorized_action(@context, @current_user, :manage_outcomes)
+    return unless authorized_action(@context, current_principal, :manage_outcomes)
 
     log_asset_access(@outcome, "outcomes", "outcomes")
 
@@ -101,14 +101,14 @@ class OutcomesController < ApplicationController
 
     js_env({
              PERMISSIONS: {
-               manage_outcomes: @context.grants_right?(@current_user, session, :manage_outcomes)
+               manage_outcomes: @context.grants_right?(current_principal, session, :manage_outcomes)
              }
            })
   end
 
   def details
     @outcome = @context.linked_learning_outcomes.find(params[:outcome_id])
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
 
     @outcome.tie_to(@context)
     render json: @outcome.as_json(
@@ -119,7 +119,7 @@ class OutcomesController < ApplicationController
 
   def outcome_results
     @outcome = @context.linked_learning_outcomes.find(params[:outcome_id])
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
 
     codes = [@context].map(&:asset_string)
     if @context.is_a?(Account)
@@ -144,7 +144,7 @@ class OutcomesController < ApplicationController
               @context.all_users.find(user_id)
             end
 
-    return unless authorized_action(@context, @current_user, :manage)
+    return unless authorized_action(@context, current_principal, :manage)
 
     @outcomes = if @user == @context
                   LearningOutcome.has_result_for(@user).active
@@ -164,7 +164,7 @@ class OutcomesController < ApplicationController
   end
 
   def list
-    return unless authorized_action(@context, @current_user, :manage_outcomes)
+    return unless authorized_action(@context, current_principal, :manage_outcomes)
 
     @account_contexts = @context.associated_accounts
     @current_outcomes = @context.linked_learning_outcomes
@@ -177,7 +177,7 @@ class OutcomesController < ApplicationController
 
   # as in, add existing outcome from another context to this context
   def add_outcome
-    return unless authorized_action(@context, @current_user, :manage_outcomes)
+    return unless authorized_action(@context, current_principal, :manage_outcomes)
 
     @account_contexts = @context.associated_accounts.uniq
     codes = @account_contexts.map(&:asset_string)
@@ -196,7 +196,7 @@ class OutcomesController < ApplicationController
   end
 
   def align
-    return unless authorized_action(@context, @current_user, :manage_outcomes)
+    return unless authorized_action(@context, current_principal, :manage_outcomes)
 
     @outcome = @context.linked_learning_outcomes.find(params[:outcome_id])
     @asset = @context.find_asset(params[:asset_string])
@@ -206,7 +206,7 @@ class OutcomesController < ApplicationController
   end
 
   def alignment_redirect
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
 
     @outcome = @context.available_outcome(params[:outcome_id].to_i)
     @alignment = @outcome.alignments.find(params[:id])
@@ -214,7 +214,7 @@ class OutcomesController < ApplicationController
   end
 
   def remove_alignment
-    return unless authorized_action(@context, @current_user, :manage_outcomes)
+    return unless authorized_action(@context, current_principal, :manage_outcomes)
 
     @outcome = @context.available_outcome(params[:outcome_id].to_i)
     @outcome.remove_alignment(params[:id], @context)
@@ -222,12 +222,12 @@ class OutcomesController < ApplicationController
   end
 
   def outcome_result
-    return unless authorized_action(@context, @current_user, :manage_outcomes)
+    return unless authorized_action(@context, current_principal, :manage_outcomes)
 
     @outcome = @context.linked_learning_outcomes.find(params[:outcome_id])
     @result = @outcome.learning_outcome_results.active.find(params[:id])
 
-    return unless authorized_action(@result.context, @current_user, :manage_outcomes)
+    return unless authorized_action(@result.context, current_principal, :manage_outcomes)
 
     if @result.artifact.is_a?(Submission)
       @submission = @result.artifact
@@ -271,7 +271,7 @@ class OutcomesController < ApplicationController
   end
 
   def create
-    return unless authorized_action(@context, @current_user, :manage_outcomes)
+    return unless authorized_action(@context, current_principal, :manage_outcomes)
 
     if params[:learning_outcome_group_id].present?
       @outcome_group = @context.learning_outcome_groups.find(params[:learning_outcome_group_id])
@@ -295,7 +295,7 @@ class OutcomesController < ApplicationController
   end
 
   def update
-    return unless authorized_action(@context, @current_user, :manage_outcomes)
+    return unless authorized_action(@context, current_principal, :manage_outcomes)
 
     @outcome = @context.created_learning_outcomes.find(params[:id])
     @outcome.saving_user = @current_user
@@ -314,7 +314,7 @@ class OutcomesController < ApplicationController
   end
 
   def destroy
-    return unless authorized_action(@context, @current_user, :manage_outcomes)
+    return unless authorized_action(@context, current_principal, :manage_outcomes)
 
     respond_to do |format|
       # TODO: params[:id] is overloaded to be either a native outcome id or

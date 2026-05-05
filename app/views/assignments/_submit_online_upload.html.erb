@@ -52,7 +52,7 @@
         </td>
       </tr>
       <% end %>
-      <% unless @context.account.grants_right?(@current_user, :make_submission_comments) %>
+      <% unless @context.account.grants_right?(current_principal, :make_submission_comments) %>
         <tr>
           <td colspan="2">
             <div class="textarea-emoji-container">

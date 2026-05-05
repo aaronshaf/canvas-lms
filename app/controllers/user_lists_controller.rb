@@ -32,13 +32,13 @@ class UserListsController < ApplicationController
             else
               [:manage_account_memberships, *add_temporary_enrollment_permissions]
             end
-    return unless authorized_action(@context, @current_user, perms)
+    return unless authorized_action(@context, current_principal, perms)
 
     respond_to do |format|
       format.json do
         if value_to_boolean(params[:v2])
           search_type = params[:search_type]
-          can_read_sis = @context.grants_right?(@current_user, :read_sis) || @context.root_account.grants_right?(@current_user, :manage_sis)
+          can_read_sis = @context.grants_right?(current_principal, :read_sis) || @context.root_account.grants_right?(current_principal, :manage_sis)
           return render_unauthorized_action if search_type == "sis_user_id" && !can_read_sis
 
           # in theory i could make this a whole new api thingy and document it

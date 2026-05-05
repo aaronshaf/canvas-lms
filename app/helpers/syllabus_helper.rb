@@ -22,7 +22,7 @@ module SyllabusHelper
     syllabus_body = @context.syllabus_body || return
     user = nil
     is_public = true
-    if @context.grants_right?(@current_user, session, :read)
+    if @context.grants_right?(current_principal, session, :read)
       user = @current_user
       is_public = false
     end

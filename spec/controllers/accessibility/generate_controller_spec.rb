@@ -278,12 +278,14 @@ RSpec.describe Accessibility::GenerateController do
   end
 
   describe "#check_authorized_action" do
-    let!(:course) { Course.create! }
-    let!(:user) { User.create! }
+    let(:course) { Course.create! }
+    let(:user) { User.create! }
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
 
     before do
       controller.instance_variable_set(:@context, course)
       controller.instance_variable_set(:@current_user, user)
+      controller.instance_variable_set(:@current_principal, current_principal)
       allow(controller).to receive(:authorized_action).and_return(true)
       allow(course).to receive(:a11y_checker_enabled?).and_return(true)
     end
@@ -297,7 +299,7 @@ RSpec.describe Accessibility::GenerateController do
     end
 
     it "calls authorized_action if a11y checker is enabled" do
-      expect(controller).to receive(:authorized_action).with(course, user, [:read, :update]).and_return(true)
+      expect(controller).to receive(:authorized_action).with(course, current_principal, [:read, :update]).and_return(true)
 
       controller.send(:check_authorized_action)
     end

@@ -112,7 +112,7 @@ class Quizzes::QuizReportsController < ApplicationController
   #
   # @returns [QuizReport]
   def index
-    if authorized_action(@quiz, @current_user, :read_statistics)
+    if authorized_action(@quiz, current_principal, :read_statistics)
       all_versions = value_to_boolean(params[:includes_all_versions])
       stats = Quizzes::QuizStatistics::REPORTS.map do |report_type|
         @quiz.current_statistics_for(report_type, {
@@ -150,7 +150,7 @@ class Quizzes::QuizReportsController < ApplicationController
   #
   # @returns QuizReport
   def create
-    authorized_action(@quiz, @current_user, :read_statistics)
+    authorized_action(@quiz, current_principal, :read_statistics)
 
     p = if accepts_jsonapi?
           Array(params[:quiz_reports]).first
@@ -187,7 +187,7 @@ class Quizzes::QuizReportsController < ApplicationController
   #
   # @returns QuizReport
   def show
-    if authorized_action(@quiz, @current_user, :read_statistics)
+    if authorized_action(@quiz, current_principal, :read_statistics)
       expose @quiz.quiz_statistics.find(params[:id]), backward_compatible_includes
     end
   end
@@ -210,7 +210,7 @@ class Quizzes::QuizReportsController < ApplicationController
   # - <code>422 Unprocessable Entity</code> if the report is not being generated
   #   or can not be aborted at this stage
   def abort
-    if authorized_action(@quiz, @current_user, :read_statistics)
+    if authorized_action(@quiz, current_principal, :read_statistics)
       statistics = @quiz.quiz_statistics.find(params[:id])
 
       # case 1: remove a generated report:
@@ -234,7 +234,7 @@ class Quizzes::QuizReportsController < ApplicationController
   private
 
   def include_sis_ids?
-    @context.grants_any_right?(@current_user, session, :read_sis, :manage_sis)
+    @context.grants_any_right?(current_principal, session, :read_sis, :manage_sis)
   end
 
   def expose(stats, includes = [])

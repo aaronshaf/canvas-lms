@@ -145,7 +145,7 @@ class NotificationPreferencesController < ApplicationController
       @cc = @user.communication_channels.unretired.of_type(params[:type]).by_path(params[:address]).first
       raise ActiveRecord::RecordNotFound unless @cc
     end
-    return unless @user == @current_user || authorized_action(@user, @current_user, :view_statistics)
+    return unless @user == @current_user || authorized_action(@user, current_principal, :view_statistics)
 
     @cc.user = @user
   end

@@ -107,7 +107,7 @@ module LiveAssessments
     #  }
     #
     def create
-      return unless authorized_action(@assessment.results.new, @current_user, :create)
+      return unless authorized_action(@assessment.results.new, current_principal, :create)
 
       reject! "missing required key :results" unless params[:results].is_a?(Array)
 
@@ -174,7 +174,7 @@ module LiveAssessments
     #  }
     #
     def index
-      return unless authorized_action(@assessment.results.new, @current_user, :read)
+      return unless authorized_action(@assessment.results.new, current_principal, :read)
 
       @results = @assessment.results
       @results = @results.for_user(params[:user_id]) if params[:user_id]

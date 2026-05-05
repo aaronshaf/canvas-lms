@@ -27,7 +27,7 @@ class ContentExportsController < ApplicationController
 
   def require_permission
     @context = @current_user if @context.nil? && request.path.match?(%r{\A/dashboard/data_exports(/|\z)})
-    authorized_action(@context, @current_user, [:read, :read_as_admin], all_rights: true)
+    authorized_action(@context, current_principal, [:read, :read_as_admin], all_rights: true)
   end
 
   def index

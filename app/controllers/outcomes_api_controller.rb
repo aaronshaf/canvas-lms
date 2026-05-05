@@ -182,7 +182,7 @@ class OutcomesApiController < ApplicationController
   # @returns Outcome
   #
   def show
-    if authorized_action(@outcome, @current_user, :read)
+    if authorized_action(@outcome, current_principal, :read)
       render json: outcome_json(@outcome, @current_user, session)
     end
   end
@@ -281,7 +281,7 @@ class OutcomesApiController < ApplicationController
   #        -H "Authorization: Bearer <token>"
   #
   def update
-    return unless authorized_action(@outcome, @current_user, :update)
+    return unless authorized_action(@outcome, current_principal, :update)
 
     if @domain_root_account.feature_enabled?(:account_level_mastery_scales)
       error_msg = nil
@@ -424,7 +424,7 @@ class OutcomesApiController < ApplicationController
     course = Course.find(params[:course_id])
 
     # Strict authorization: must have manage or view all grades
-    unless course.grants_any_right?(@current_user, session, :manage_grades, :view_all_grades)
+    unless course.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
       return render json: { message: "Unauthorized" }, status: :unauthorized
     end
 
@@ -450,7 +450,7 @@ class OutcomesApiController < ApplicationController
 
   def outcome_alignments_for_student
     course = Course.find(params[:course_id])
-    can_manage = course.grants_any_right?(@current_user, session, :manage_grades, :view_all_grades)
+    can_manage = course.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
     student_id = params[:student_id].to_i
     verify_readable_grade_enrollments([student_id]) unless can_manage
 

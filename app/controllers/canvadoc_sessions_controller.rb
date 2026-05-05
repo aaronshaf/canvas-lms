@@ -38,7 +38,7 @@ class CanvadocSessionsController < ApplicationController
       return render_unauthorized_action
     end
 
-    return unless authorized_action(submission, @current_user, :read)
+    return unless authorized_action(submission, current_principal, :read)
     return render_unauthorized_action if submission.assignment.annotatable_attachment_id.blank?
 
     is_draft = submission_attempt == "draft"
@@ -59,7 +59,7 @@ class CanvadocSessionsController < ApplicationController
     end
 
     # Check whether the user can view annotations
-    enable_annotations = annotation_context.grants_right?(@current_user, :read)
+    enable_annotations = annotation_context.grants_right?(current_principal, :read)
     # Allow observers to continue with annotations disabled (viewing draft) while others are unauthorized
     return render_unauthorized_action unless enable_annotations || submission.observer?(@current_user)
 
@@ -147,7 +147,7 @@ class CanvadocSessionsController < ApplicationController
         if blob["annotation_context"].present?
           opts[:annotation_context] = blob["annotation_context"]
           annotation_context = submission.canvadocs_annotation_contexts.find_by(launch_id: opts[:annotation_context])
-          opts[:read_only] = !annotation_context.grants_right?(@current_user, :annotate)
+          opts[:read_only] = !annotation_context.grants_right?(current_principal, :annotate)
         end
       end
 

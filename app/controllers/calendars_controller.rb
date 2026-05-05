@@ -28,7 +28,7 @@ class CalendarsController < ApplicationController
 
   def show
     get_context
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
 
     @show_account_calendars = @current_user.all_account_calendars.any?
     if params[:include_contexts]
@@ -37,7 +37,7 @@ class CalendarsController < ApplicationController
     end
     get_all_pertinent_contexts(include_groups: true, include_accounts: @show_account_calendars, favorites_first: true, cross_shard: true)
     @manage_contexts = @contexts.select do |c|
-      c.grants_right?(@current_user, session, :manage_calendar)
+      c.grants_right?(current_principal, session, :manage_calendar)
     end.map(&:asset_string)
     @feed_url = feeds_calendar_url((@context_enrollment || @context).feed_code)
 
@@ -65,14 +65,14 @@ class CalendarsController < ApplicationController
     end
     @contexts_json = @contexts.map do |context|
       ag_permission = false
-      if context.respond_to?(:appointment_groups) && context.grants_right?(@current_user, session, :manage_calendar) && !context&.horizon_course?
+      if context.respond_to?(:appointment_groups) && context.grants_right?(current_principal, session, :manage_calendar) && !context&.horizon_course?
         ag = AppointmentGroup.new(contexts: [context])
         ag.update_contexts_and_sub_contexts
         if ag.grants_right? @current_user, session, :create
           ag_permission = { all_sections: true }
         else
           all_course_sections = CourseSection.find(context.section_visibilities_for(@current_user).pluck(:course_section_id).map { |cs_id| Shard.global_id_for(cs_id, context.shard) })
-          section_ids = all_course_sections.select { |cs| cs.grants_right?(@current_user, session, :manage_calendar) }.pluck(:id)
+          section_ids = all_course_sections.select { |cs| cs.grants_right?(current_principal, session, :manage_calendar) }.pluck(:id)
           ag_permission = { all_sections: false, section_ids: } if section_ids.any?
         end
       end
@@ -91,21 +91,21 @@ class CalendarsController < ApplicationController
         assignment_url: context.respond_to?(:assignments) ? named_context_url(context, :api_v1_context_assignment_url, "{{ id }}") : "",
         assignment_override_url: context.respond_to?(:assignments) ? api_v1_assignment_override_url(course_id: context.id, assignment_id: "{{ assignment_id }}", id: "{{ id }}") : "",
         appointment_group_url: context.respond_to?(:appointment_groups) ? api_v1_appointment_groups_url(id: "{{ id }}") : "",
-        can_create_calendar_events: context.respond_to?(:calendar_events) && CalendarEvent.new.tap { |e| e.context = context }.grants_right?(@current_user, session, :create),
-        can_create_assignments: context.respond_to?(:assignments) && Assignment.new.tap { |a| a.context = context }.grants_right?(@current_user, session, :create),
+        can_create_calendar_events: context.respond_to?(:calendar_events) && CalendarEvent.new.tap { |e| e.context = context }.grants_right?(current_principal, session, :create),
+        can_create_assignments: context.respond_to?(:assignments) && Assignment.new.tap { |a| a.context = context }.grants_right?(current_principal, session, :create),
         assignment_groups: context.respond_to?(:assignments) ? context.assignment_groups.active.pluck(:id, :name).map { |id, name| { id:, name: } } : [],
         can_create_appointment_groups: ag_permission,
-        user_is_student: context.grants_right?(@current_user, :participate_as_student),
-        can_update_todo_date: context.grants_right?(@current_user, session, :manage_course_content_edit),
-        can_update_discussion_topic: context.grants_right?(@current_user, session, :moderate_forum),
-        can_update_wiki_page: context.grants_right?(@current_user, session, :update),
+        user_is_student: context.grants_right?(current_principal, :participate_as_student),
+        can_update_todo_date: context.grants_right?(current_principal, session, :manage_course_content_edit),
+        can_update_discussion_topic: context.grants_right?(current_principal, session, :moderate_forum),
+        can_update_wiki_page: context.grants_right?(current_principal, session, :update),
         concluded: context.is_a?(Course) ? context.concluded? : false,
         k5_course: context.is_a?(Course) && context.elementary_enabled?,
         k5_account: context.is_a?(Account) && context.enable_as_k5_account?,
         course_pacing_enabled: context.is_a?(Course) && context.enable_course_paces,
         user_is_observer: context.is_a?(Course) && context.enrollments.where(user_id: @current_user).first&.observer?,
         default_due_time: context.is_a?(Course) && context.default_due_time,
-        can_view_context: context.grants_right?(@current_user, session, :read),
+        can_view_context: context.grants_right?(current_principal, session, :read),
         allow_observers_in_appointment_groups: context.is_a?(Course) && context.account.allow_observers_in_appointment_groups?,
         default_allow_observer_signup: context.is_a?(Course) && context.account.default_allow_observer_signup?,
       }

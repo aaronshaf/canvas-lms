@@ -137,7 +137,7 @@ class AssignmentGroupsController < ApplicationController
   # @returns [AssignmentGroup]
   def index
     GuardRail.activate(:secondary) do
-      if authorized_action(@context.assignment_groups.temp_record, @current_user, :read)
+      if authorized_action(@context.assignment_groups.temp_record, current_principal, :read)
         groups = Api.paginate(@context.assignment_groups.active, self, api_v1_course_assignment_groups_url(@context))
 
         assignments = if include_params.include?("assignments")
@@ -164,7 +164,7 @@ class AssignmentGroupsController < ApplicationController
   end
 
   def reorder
-    if authorized_action(@context.assignment_groups.temp_record, @current_user, :update)
+    if authorized_action(@context.assignment_groups.temp_record, current_principal, :update)
       order = params[:order].split(",")
       @context.assignment_groups.first.update_order(order)
       new_order = @context.assignment_groups.pluck(:id)
@@ -174,7 +174,7 @@ class AssignmentGroupsController < ApplicationController
 
   def reorder_assignments
     @group = @context.assignment_groups.find(params[:assignment_group_id])
-    if authorized_action(@group, @current_user, :update)
+    if authorized_action(@group, current_principal, :update)
       order = params[:order].split(",").map(&:to_i)
       group_ids = ([@group.id] + (order.empty? ? [] : @context.assignments.where(id: order).distinct.except(:order).pluck(:assignment_group_id)))
       assignments = @context.active_assignments.where(id: order)
@@ -218,7 +218,7 @@ class AssignmentGroupsController < ApplicationController
       redirect_to named_context_url(@context, :assignments_url)
       return
     end
-    if authorized_action(@assignment_group, @current_user, :read)
+    if authorized_action(@assignment_group, current_principal, :read)
       respond_to do |format|
         format.html { redirect_to(named_context_url(@context, :context_assignments_url, @assignment_group.context_id)) }
         format.json { render json: @assignment_group.as_json(permissions: { user: @current_user, session: }) }
@@ -232,7 +232,7 @@ class AssignmentGroupsController < ApplicationController
     end
 
     @assignment_group = @context.assignment_groups.temp_record(assignment_group_params)
-    if authorized_action(@assignment_group, @current_user, :create)
+    if authorized_action(@assignment_group, current_principal, :create)
       respond_to do |format|
         if @assignment_group.save
           @assignment_group.insert_at(1)
@@ -252,7 +252,7 @@ class AssignmentGroupsController < ApplicationController
     end
 
     @assignment_group = @context.assignment_groups.find(params[:id])
-    if authorized_action(@assignment_group, @current_user, :update)
+    if authorized_action(@assignment_group, current_principal, :update)
       respond_to do |format|
         updated = update_assignment_group(@assignment_group, params["assignment_group"])
         if updated.present? && updated.save
@@ -269,7 +269,7 @@ class AssignmentGroupsController < ApplicationController
 
   def destroy
     @assignment_group = AssignmentGroup.find(params[:id])
-    if authorized_action(@assignment_group, @current_user, :delete)
+    if authorized_action(@assignment_group, current_principal, :delete)
       if @assignment_group.has_frozen_assignments?(@current_user)
         @assignment_group.errors.add("workflow_state", t("errors.cannot_delete_group", "You can not delete a group with a locked assignment.", att_name: "workflow_state"))
         respond_to do |format|
@@ -429,7 +429,7 @@ class AssignmentGroupsController < ApplicationController
   end
 
   def include_visibility?
-    include_params.include?("assignment_visibility") && @context.grants_any_right?(@current_user, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+    include_params.include?("assignment_visibility") && @context.grants_any_right?(current_principal, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
   end
 
   def override_dates?
@@ -482,7 +482,7 @@ class AssignmentGroupsController < ApplicationController
     # here rather than in assignments with multiple associations
     # referencing content_tags table and therefore aliased table names
     # the conditions on has_many :context_module_tags will break
-    if include_params.include?("module_ids") || !context.grants_right?(@current_user, session, :read_as_admin)
+    if include_params.include?("module_ids") || !context.grants_right?(current_principal, session, :read_as_admin)
       # loading the context module information here will improve performance for `locked_json` immensely
       Assignment.preload_context_module_tags(assignments)
     end

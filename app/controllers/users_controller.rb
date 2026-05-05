@@ -114,8 +114,8 @@ class UsersController < ApplicationController
   def grades
     @user = User.where(id: params[:user_id]).first if params[:user_id].present?
     @user ||= @current_user
-    if authorized_action(@user, @current_user, :read_grades)
-      crumb_url = polymorphic_url([@current_user]) if @user.grants_right?(@current_user, session, :view_statistics)
+    if authorized_action(@user, current_principal, :read_grades)
+      crumb_url = polymorphic_url([@current_user]) if @user.grants_right?(current_principal, session, :view_statistics)
       add_crumb(@current_user.short_name, crumb_url)
       add_crumb(t("crumbs.grades", "Grades"), grades_path)
 
@@ -150,14 +150,14 @@ class UsersController < ApplicationController
 
   def grades_for_student
     enrollment = Enrollment.active.find(params[:enrollment_id])
-    return unless authorized_action(enrollment, @current_user, :read_grades)
+    return unless authorized_action(enrollment, current_principal, :read_grades)
 
     grading_period_id = generate_grading_period_id(params[:grading_period_id])
     opts = { grading_period_id: } if grading_period_id
 
     grade_data = { hide_final_grades: enrollment.course.hide_final_grades? }
 
-    if enrollment.course.grants_any_right?(@current_user, session, :manage_grades, :view_all_grades)
+    if enrollment.course.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
       grade_data[:unposted_grade] = enrollment.unposted_current_score(opts)
       grade_data[:grade] = enrollment.computed_current_score(opts)
       # since this page is read_only, and enrollment.computed_current_score(opts) is a percentage value,
@@ -287,7 +287,7 @@ class UsersController < ApplicationController
   # @returns [User]
   def api_index
     get_context
-    return unless authorized_action(@context, @current_user, :read_roster)
+    return unless authorized_action(@context, current_principal, :read_roster)
 
     includes = (params[:include] || []) & %w[avatar_url email last_login time_zone uuid ui_invoked]
     includes << "last_login" if params[:sort] == "last_login" && !includes.include?("last_login")
@@ -556,7 +556,7 @@ class UsersController < ApplicationController
                OPEN_TEACHER_TODOS_IN_NEW_TAB: @current_user.feature_enabled?(:open_todos_in_new_tab),
                ACCOUNT_CALENDAR_CONTEXTS: account_calendar_contexts,
                CAN_READ_ROSTER: homeroom_courses.blank? ||
-                                homeroom_courses.all? { |c| c.grants_right?(@current_user, session, :read_roster) }
+                                homeroom_courses.all? { |c| c.grants_right?(current_principal, session, :read_roster) }
              })
 
       css_bundle :k5_common, :k5_dashboard, :dashboard_card
@@ -848,7 +848,7 @@ class UsersController < ApplicationController
 
   def manageable_courses
     get_context
-    return unless authorized_action(@context, @current_user, :manage)
+    return unless authorized_action(@context, current_principal, :manage)
 
     # include concluded enrollments as well as active ones if requested
     include_concluded = params[:include].try(:include?, "concluded")
@@ -880,7 +880,7 @@ class UsersController < ApplicationController
         )
       end
     else
-      @courses.select! { |c| c.grants_all_rights?(@current_user, :read_as_admin, :read) }
+      @courses.select! { |c| c.grants_all_rights?(current_principal, :read_as_admin, :read) }
     end
 
     current_course = Course.find_by(id: params[:current_course_id]) if params[:current_course_id].present?
@@ -990,7 +990,7 @@ class UsersController < ApplicationController
 
       grading_collection = BookmarkedCollection.wrap(bookmark, grading_scope)
       grading_collection = BookmarkedCollection.filter(grading_collection) do |assignment|
-        assignment.context.grants_right?(@current_user, session, :manage_grades)
+        assignment.context.grants_right?(current_principal, session, :manage_grades)
       end
       grading_collection = BookmarkedCollection.transform(grading_collection) do |a|
         todo_item_json(a, @current_user, session, "grading", include_grading_counts:)
@@ -1018,7 +1018,7 @@ class UsersController < ApplicationController
         ).reorder(:due_at, :id).preload(:external_tool_tag, :rubric_association, :rubric, :discussion_topic, :duplicate_of)
         checkpoint_grading_collection = BookmarkedCollection.wrap(sub_assignment_bookmark, checkpoint_grading_scope)
         checkpoint_grading_collection = BookmarkedCollection.filter(checkpoint_grading_collection) do |assignment|
-          assignment.context.grants_right?(@current_user, session, :manage_grades)
+          assignment.context.grants_right?(current_principal, session, :manage_grades)
         end
         checkpoint_grading_collection = BookmarkedCollection.transform(checkpoint_grading_collection) do |a|
           todo_item_json(a, @current_user, session, "grading", include_grading_counts:)
@@ -1197,7 +1197,7 @@ class UsersController < ApplicationController
   def missing_submissions
     GuardRail.activate(:secondary) do
       user = api_find(User, params[:user_id])
-      return unless authorized_action(user, @current_user, :read)
+      return unless authorized_action(user, current_principal, :read)
 
       included_course_ids = api_find_all(Course, Array(params[:course_ids])).pluck(:id)
 
@@ -1315,7 +1315,7 @@ class UsersController < ApplicationController
   def create_file
     @user = api_find(User, params[:user_id])
     @attachment = @user.attachments.build
-    if authorized_action(@attachment, @current_user, :create)
+    if authorized_action(@attachment, current_principal, :create)
       @context = @user
       api_attachment_preflight(@current_user, request, check_quota: true)
     end
@@ -1378,7 +1378,7 @@ class UsersController < ApplicationController
       @context_account = @context.is_a?(Account) ? @context : @domain_root_account
       scope = (value_to_boolean(params[:include_deleted_users]) && @context.is_a?(Account)) ? @context.pseudonym_users : (@context&.all_users || User)
       @user = api_find_all(scope, [params[:id]]).first
-      return unless authorized_action(@user, @current_user, :read_full_profile)
+      return unless authorized_action(@user, current_principal, :read_full_profile)
 
       @context ||= @user
 
@@ -1388,7 +1388,7 @@ class UsersController < ApplicationController
 
       # restrict group memberships view for other users
       if @user != @current_user
-        @group_memberships = @group_memberships.select { |m| m.grants_right?(@current_user, session, :read) }
+        @group_memberships = @group_memberships.select { |m| m.grants_right?(current_principal, session, :read) }
       end
 
       # course_section and enrollment term will only be used if the enrollment dates haven't been cached yet;
@@ -1402,14 +1402,14 @@ class UsersController < ApplicationController
 
       # restrict course enrollments view for other users
       if @user != @current_user
-        @enrollments = @enrollments.select { |e| e.grants_right?(@current_user, session, :read) }
+        @enrollments = @enrollments.select { |e| e.grants_right?(current_principal, session, :read) }
       end
 
       @enrollments = @enrollments.sort_by { |e| [e.state_sortable, e.rank_sortable, e.course.name] }
       # pre-populate the reverse association
       @enrollments.each { |e| e.user = @user }
 
-      @show_page_views = !!(page_views_enabled? && @user.grants_right?(@current_user, session, :view_statistics))
+      @show_page_views = !!(page_views_enabled? && @user.grants_right?(current_principal, session, :view_statistics))
 
       status = @user.deleted? ? 404 : 200
       respond_to do |format|
@@ -1417,24 +1417,24 @@ class UsersController < ApplicationController
           @body_classes << "full-width"
 
           js_permissions = {
-            can_view_user_generated_access_tokens: @user.grants_right?(@current_user, :view_user_generated_access_tokens),
-            can_manage_sis_pseudonyms: @context_account.root_account.grants_right?(@current_user, :manage_sis),
-            can_manage_user_details: @user.grants_right?(@current_user, :manage_user_details),
-            can_manage_dsr_requests: @context_account.grants_right?(@current_user, :manage_dsr_requests)
+            can_view_user_generated_access_tokens: @user.grants_right?(current_principal, :view_user_generated_access_tokens),
+            can_manage_sis_pseudonyms: @context_account.root_account.grants_right?(current_principal, :manage_sis),
+            can_manage_user_details: @user.grants_right?(current_principal, :manage_user_details),
+            can_manage_dsr_requests: @context_account.grants_right?(current_principal, :manage_dsr_requests)
           }
           if @context_account.root_account.feature_enabled?(:temporary_enrollments)
-            js_permissions[:can_read_sis] = @context_account.grants_right?(@current_user, session, :read_sis)
-            js_permissions[:can_add_temporary_enrollments] = @context_account.grants_right?(@current_user, session, :temporary_enrollments_add)
-            js_permissions[:can_edit_temporary_enrollments] = @context_account.grants_right?(@current_user, session, :temporary_enrollments_edit)
-            js_permissions[:can_delete_temporary_enrollments] = @context_account.grants_right?(@current_user, session, :temporary_enrollments_delete)
+            js_permissions[:can_read_sis] = @context_account.grants_right?(current_principal, session, :read_sis)
+            js_permissions[:can_add_temporary_enrollments] = @context_account.grants_right?(current_principal, session, :temporary_enrollments_add)
+            js_permissions[:can_edit_temporary_enrollments] = @context_account.grants_right?(current_principal, session, :temporary_enrollments_edit)
+            js_permissions[:can_delete_temporary_enrollments] = @context_account.grants_right?(current_principal, session, :temporary_enrollments_delete)
             js_permissions[:can_view_temporary_enrollments] =
-              @context_account.grants_any_right?(@current_user, session, *RoleOverride::MANAGE_TEMPORARY_ENROLLMENT_PERMISSIONS)
-            js_permissions[:can_allow_course_admin_actions] = @context_account.grants_right?(@current_user, session, :allow_course_admin_actions)
-            js_permissions[:can_add_ta] = @context_account.grants_right?(@current_user, session, :add_ta_to_course)
-            js_permissions[:can_add_student] = @context_account.grants_right?(@current_user, session, :add_student_to_course)
-            js_permissions[:can_add_teacher] = @context_account.grants_right?(@current_user, session, :add_teacher_to_course)
-            js_permissions[:can_add_designer] = @context_account.grants_right?(@current_user, session, :add_designer_to_course)
-            js_permissions[:can_add_observer] = @context_account.grants_right?(@current_user, session, :add_observer_to_course)
+              @context_account.grants_any_right?(current_principal, session, *RoleOverride::MANAGE_TEMPORARY_ENROLLMENT_PERMISSIONS)
+            js_permissions[:can_allow_course_admin_actions] = @context_account.grants_right?(current_principal, session, :allow_course_admin_actions)
+            js_permissions[:can_add_ta] = @context_account.grants_right?(current_principal, session, :add_ta_to_course)
+            js_permissions[:can_add_student] = @context_account.grants_right?(current_principal, session, :add_student_to_course)
+            js_permissions[:can_add_teacher] = @context_account.grants_right?(current_principal, session, :add_teacher_to_course)
+            js_permissions[:can_add_designer] = @context_account.grants_right?(current_principal, session, :add_designer_to_course)
+            js_permissions[:can_add_observer] = @context_account.grants_right?(current_principal, session, :add_observer_to_course)
           end
 
           timezones = I18nTimeZone.all.map { |tz| { name: tz.name, name_with_hour_offset: tz.to_s } }
@@ -1492,7 +1492,7 @@ class UsersController < ApplicationController
   # @returns Schemas::Docs::User
   def api_show
     @user = api_find(User, params[:id])
-    if @user.grants_right?(@current_user, session, :api_show_user)
+    if @user.grants_right?(current_principal, session, :api_show_user)
       includes = api_show_includes
       # would've preferred to pass User.with_last_login as the collection to
       # api_find but the implementation of that scope appears to be incompatible
@@ -1840,7 +1840,7 @@ class UsersController < ApplicationController
 
     case
     when request.get?
-      return unless authorized_action(user, @current_user, :read)
+      return unless authorized_action(user, current_principal, :read)
 
       results = BOOLEAN_PREFS.index_with { |pref| !!user.preferences[pref] }
 
@@ -1853,7 +1853,7 @@ class UsersController < ApplicationController
 
       render json: results
     when request.put?
-      return unless authorized_action(user, @current_user, [:manage, :manage_user_details])
+      return unless authorized_action(user, current_principal, [:manage, :manage_user_details])
 
       BOOLEAN_PREFS.each do |pref|
         user.preferences[pref] = value_to_boolean(params[pref]) unless params[pref].nil?
@@ -1876,7 +1876,7 @@ class UsersController < ApplicationController
     unless user == @current_user
       return render(json: { message: "This endpoint only works against the current user" }, status: :unauthorized)
     end
-    return unless authorized_action(user, @current_user, :manage)
+    return unless authorized_action(user, current_principal, :manage)
 
     render_new_user_tutorial_statuses(user)
   end
@@ -1942,7 +1942,7 @@ class UsersController < ApplicationController
   #
   def get_custom_colors
     user = api_find(User, params[:id])
-    return unless authorized_action(user, @current_user, :read)
+    return unless authorized_action(user, current_principal, :read)
 
     render(json: { custom_colors: user.custom_colors })
   end
@@ -1966,7 +1966,7 @@ class UsersController < ApplicationController
   def get_custom_color
     user = api_find(User, params[:id])
 
-    return unless authorized_action(user, @current_user, :read)
+    return unless authorized_action(user, current_principal, :read)
 
     if user.custom_colors[params[:asset_string]].nil?
       raise(ActiveRecord::RecordNotFound, "Asset does not have an associated color.")
@@ -2001,7 +2001,7 @@ class UsersController < ApplicationController
   def set_custom_color
     user = api_find(User, params[:id])
 
-    return unless authorized_action(user, @current_user, [:manage, :manage_user_details])
+    return unless authorized_action(user, current_principal, [:manage, :manage_user_details])
 
     raise(ActiveRecord::RecordNotFound, "Asset does not exist") unless (context = Context.find_by_asset_string(params[:asset_string]))
 
@@ -2053,7 +2053,7 @@ class UsersController < ApplicationController
   def set_text_editor_preference
     user = api_find(User, params[:id])
 
-    return unless authorized_action(user, @current_user, [:manage, :manage_user_details])
+    return unless authorized_action(user, current_principal, [:manage, :manage_user_details])
 
     raise ActiveRecord::RecordInvalid if %w[rce block_editor].exclude?(params[:text_editor_preference]) && params[:text_editor_preference] != ""
 
@@ -2088,7 +2088,7 @@ class UsersController < ApplicationController
   def set_files_ui_version_preference
     user = api_find(User, params[:id])
 
-    return unless authorized_action(user, @current_user, [:manage, :manage_user_details])
+    return unless authorized_action(user, current_principal, [:manage, :manage_user_details])
 
     if %w[v1 v2].exclude?(params[:files_ui_version])
       return render(json: { message: "Invalid files_ui_version provided" }, status: :bad_request)
@@ -2121,7 +2121,7 @@ class UsersController < ApplicationController
   #
   def get_dashboard_positions
     user = api_find(User, params[:id])
-    return unless authorized_action(user, @current_user, :read)
+    return unless authorized_action(user, current_principal, :read)
 
     render(json: { dashboard_positions: user.dashboard_positions })
   end
@@ -2155,14 +2155,14 @@ class UsersController < ApplicationController
   def set_dashboard_positions
     user = api_find(User, params[:id])
 
-    return unless authorized_action(user, @current_user, [:manage, :manage_user_details])
+    return unless authorized_action(user, current_principal, [:manage, :manage_user_details])
 
     params[:dashboard_positions].each do |key, val|
       context = Context.find_by_asset_string(key)
       if context.nil?
         raise(ActiveRecord::RecordNotFound, "Asset #{key} does not exist")
       end
-      return unless authorized_action(context, @current_user, :read)
+      return unless authorized_action(context, current_principal, :read)
 
       begin
         position = Integer(val)
@@ -2278,9 +2278,9 @@ class UsersController < ApplicationController
               params[:id] ? api_find(User, params[:id]) : @current_user
             end
 
-    update_email = @user.grants_right?(@current_user, :manage_user_details) && user_params[:email]
+    update_email = @user.grants_right?(current_principal, :manage_user_details) && user_params[:email]
     managed_attributes = []
-    managed_attributes.push(:name, :short_name, :sortable_name) if @user.grants_right?(@current_user, :rename)
+    managed_attributes.push(:name, :short_name, :sortable_name) if @user.grants_right?(current_principal, :rename)
     managed_attributes << :terms_of_use if @user == (@real_current_user || @current_user)
     managed_attributes << :email if update_email
 
@@ -2288,25 +2288,25 @@ class UsersController < ApplicationController
     user_params.delete("birthdate")
 
     if @domain_root_account.enable_profiles?
-      managed_attributes << :bio if @user.grants_right?(@current_user, :manage_user_details)
-      managed_attributes << :title if @user.grants_right?(@current_user, :rename)
-      managed_attributes << :pronunciation if @user.can_change_pronunciation?(@domain_root_account) && @user.grants_right?(@current_user, :manage_user_details)
+      managed_attributes << :bio if @user.grants_right?(current_principal, :manage_user_details)
+      managed_attributes << :title if @user.grants_right?(current_principal, :rename)
+      managed_attributes << :pronunciation if @user.can_change_pronunciation?(@domain_root_account) && @user.grants_right?(current_principal, :manage_user_details)
     end
 
-    can_admin_change_pronouns = @domain_root_account.can_add_pronouns? && @user.grants_right?(@current_user, :manage_user_details)
-    if can_admin_change_pronouns || (@domain_root_account.can_change_pronouns? && @user.grants_right?(@current_user, :change_pronoun))
+    can_admin_change_pronouns = @domain_root_account.can_add_pronouns? && @user.grants_right?(current_principal, :manage_user_details)
+    if can_admin_change_pronouns || (@domain_root_account.can_change_pronouns? && @user.grants_right?(current_principal, :change_pronoun))
       managed_attributes << :pronouns
     end
 
-    if @user.grants_right?(@current_user, :manage_user_details)
+    if @user.grants_right?(current_principal, :manage_user_details)
       managed_attributes.push(:event)
     end
 
-    if @user.grants_right?(@current_user, :update_profile)
+    if @user.grants_right?(current_principal, :update_profile)
       managed_attributes.push(:time_zone, :locale)
     end
 
-    if @user.grants_right?(@current_user, :update_avatar)
+    if @user.grants_right?(current_principal, :update_avatar)
       avatar = user_params.delete(:avatar)
 
       # delete any avatar_image passed, because we only allow updating avatars
@@ -2342,11 +2342,11 @@ class UsersController < ApplicationController
     new_email = user_params.delete(:email)
     # admins can update avatar images even if they are locked
     admin_avatar_update = user_params[:avatar_image] &&
-                          @user.grants_right?(@current_user, :update_avatar) &&
-                          @user.grants_right?(@current_user, :manage_user_details)
+                          @user.grants_right?(current_principal, :update_avatar) &&
+                          @user.grants_right?(current_principal, :manage_user_details)
 
     includes = %w[locale avatar_url email time_zone]
-    includes << "avatar_state" if @user.grants_right?(@current_user, :manage_user_details)
+    includes << "avatar_state" if @user.grants_right?(current_principal, :manage_user_details)
 
     if (title = user_params.delete(:title))
       @user.profile.title = title
@@ -2390,7 +2390,7 @@ class UsersController < ApplicationController
         if (event = user_params.delete(:event)) && %w[suspend unsuspend].include?(event) &&
            @user != @current_user
           @user.pseudonyms.active.shard(@user).each do |pseudo|
-            next unless pseudo.grants_right?(@current_user, :delete)
+            next unless pseudo.grants_right?(current_principal, :delete)
             next if pseudo.active? && event == "unsuspend"
             next if pseudo.suspended? && event == "suspend"
 
@@ -2447,7 +2447,7 @@ class UsersController < ApplicationController
   def terminate_sessions
     user = api_find(User, params[:id])
 
-    return unless authorized_action(user, @current_user, :terminate_sessions)
+    return unless authorized_action(user, current_principal, :terminate_sessions)
 
     now = Time.zone.now
     user.update!(last_logged_out: now)
@@ -2467,7 +2467,7 @@ class UsersController < ApplicationController
   # @argument skip_admins [Optional, Boolean]
   #  If true, will not expire mobile sessions for account administrators.
   def expire_mobile_sessions
-    return unless authorized_action(@domain_root_account, @current_user, :manage_user_logins)
+    return unless authorized_action(@domain_root_account, current_principal, :manage_user_logins)
 
     user = api_find(@domain_root_account.pseudonym_users, params[:id]) if params.key?(:id)
     skip_admins = value_to_boolean(params[:skip_admins])
@@ -2501,7 +2501,7 @@ class UsersController < ApplicationController
   def admin_merge
     @user = User.find(params[:user_id])
 
-    return unless authorized_action(@user, @current_user, :merge)
+    return unless authorized_action(@user, current_principal, :merge)
 
     title = t("Merge Users")
 
@@ -2516,7 +2516,7 @@ class UsersController < ApplicationController
 
     account_options_for_merge_users = @current_user.associated_accounts.shard(Shard.current).to_a
     account_options_for_merge_users.push(@domain_root_account) if @domain_root_account && !account_options_for_merge_users.include?(@domain_root_account)
-    account_options_for_merge_users = account_options_for_merge_users.sort_by(&:name).uniq.select { |a| a.grants_any_right?(@current_user, session, :manage_user_logins, :read_roster) }
+    account_options_for_merge_users = account_options_for_merge_users.sort_by(&:name).uniq.select { |a| a.grants_any_right?(current_principal, session, :manage_user_logins, :read_roster) }
 
     js_env({ ADMIN_MERGE_ACCOUNT_OPTIONS: account_options_for_merge_users.map { |a| { id: a.id, name: a.name } } })
 
@@ -2526,7 +2526,7 @@ class UsersController < ApplicationController
   def user_for_merge
     @user = User.find(params[:user_id])
 
-    return unless authorized_action(@user, @current_user, :merge)
+    return unless authorized_action(@user, current_principal, :merge)
 
     includes = %w[email]
     enrollments_for_display = @user.enrollments.current.map { |e| t("%{course_name} (%{enrollment_type})", course_name: e.course.name, enrollment_type: e.readable_type) }
@@ -2543,7 +2543,7 @@ class UsersController < ApplicationController
 
   def admin_split
     @user = User.find(params[:user_id])
-    return unless authorized_action(@user, @current_user, :merge)
+    return unless authorized_action(@user, current_principal, :merge)
 
     merge_data = UserMergeData.active.splitable.where(user_id: @user).shard(@user).preload(:from_user).to_a
     js_env({
@@ -2555,7 +2555,7 @@ class UsersController < ApplicationController
 
   def mark_avatar_image
     if params[:remove]
-      if authorized_action(@user, @current_user, :remove_avatar)
+      if authorized_action(@user, current_principal, :remove_avatar)
         @user.avatar_image = {}
         @user.save
         render json: @user
@@ -2581,7 +2581,7 @@ class UsersController < ApplicationController
 
   def update_avatar_image
     @user = User.find(params[:user_id])
-    if authorized_action(@user, @current_user, :remove_avatar)
+    if authorized_action(@user, current_principal, :remove_avatar)
       @user.avatar_state = params[:avatar][:state]
       @user.save
       render json: @user.as_json(include_root: false)
@@ -2614,7 +2614,7 @@ class UsersController < ApplicationController
   def teacher_activity
     @teacher = User.find(params[:user_id])
 
-    if @teacher == @current_user || authorized_action(@teacher, @current_user, :read_reports)
+    if @teacher == @current_user || authorized_action(@teacher, current_principal, :read_reports)
       @courses = {}
 
       if params[:student_id]
@@ -2622,7 +2622,7 @@ class UsersController < ApplicationController
         enrollments = student.student_enrollments.active.preload(:course).shard(student).to_a
         enrollments.each do |enrollment|
           should_include = enrollment.course.user_has_been_instructor?(@teacher) &&
-                           enrollment.course.grants_all_rights?(@current_user, :read_reports, :view_all_grades) &&
+                           enrollment.course.grants_all_rights?(current_principal, :read_reports, :view_all_grades) &&
                            enrollment.course.apply_enrollment_visibility(enrollment.course.all_student_enrollments, @teacher).where(id: enrollment).first
           if should_include
             @courses[enrollment.course] = teacher_activity_report(@teacher, enrollment.course, [enrollment])
@@ -2639,7 +2639,7 @@ class UsersController < ApplicationController
         if !course.user_has_been_instructor?(@teacher)
           flash[:error] = t("errors.user_not_teacher", "That user is not a teacher in this course")
           redirect_back_or_to root_url
-        elsif authorized_action(course, @current_user, :read_reports) && authorized_action(course, @current_user, :view_all_grades)
+        elsif authorized_action(course, current_principal, :read_reports) && authorized_action(course, current_principal, :view_all_grades)
           enrollments = course.apply_enrollment_visibility(course.all_student_enrollments, @teacher)
           @courses[course] = teacher_activity_report(@teacher, course, enrollments)
         end
@@ -2743,7 +2743,7 @@ class UsersController < ApplicationController
   # @returns User
   def merge_into
     user = api_find(User, params[:id])
-    if authorized_action(user, @current_user, :merge)
+    if authorized_action(user, current_principal, :merge)
 
       if (account_id = params[:destination_account_id])
         destination_account = Account.find_by_domain(account_id)
@@ -2754,7 +2754,7 @@ class UsersController < ApplicationController
 
       into_user = api_find(User, params[:destination_user_id], account: destination_account)
 
-      if authorized_action(into_user, @current_user, :merge)
+      if authorized_action(into_user, current_principal, :merge)
         UserMerge.from(user).into(into_user, merger: @current_user)
         render(json: user_json(into_user,
                                @current_user,
@@ -2843,7 +2843,7 @@ class UsersController < ApplicationController
       return render json: { message: t("Nothing to split off of this user") }, status: :bad_request
     end
 
-    if authorized_action(user, @current_user, :merge)
+    if authorized_action(user, current_principal, :merge)
       users = SplitUsers.split_db_users(user)
       render json: users.sort_by(&:short_name).map { |u| user_json(u, @current_user, session) }
     end
@@ -2859,10 +2859,10 @@ class UsersController < ApplicationController
 
     # returns the original list in :invited_users (with ids) if successfully added, or in :errored_users if not
     get_context
-    return unless authorized_action(@context, @current_user, %i[manage_students allow_course_admin_actions])
+    return unless authorized_action(@context, current_principal, %i[manage_students allow_course_admin_actions])
 
     root_account = context.root_account
-    unless root_account.open_registration? || root_account.grants_right?(@current_user, session, :manage_user_logins)
+    unless root_account.open_registration? || root_account.grants_right?(current_principal, session, :manage_user_logins)
       return render_unauthorized_action
     end
 
@@ -3000,7 +3000,7 @@ class UsersController < ApplicationController
   #
   def user_graded_submissions
     @user = api_find(User, params[:id])
-    if authorized_action(@user, @current_user, :read_grades)
+    if authorized_action(@user, current_principal, :read_grades)
       collections = []
       only_current_enrollments = value_to_boolean(params[:only_current_enrollments])
       only_published_assignments = value_to_boolean(params[:only_published_assignments])
@@ -3030,7 +3030,7 @@ class UsersController < ApplicationController
 
   def clear_cache
     user = api_find(User, params[:id])
-    if user && authorized_action(@domain_root_account, @current_user, :manage_site_settings)
+    if user && authorized_action(@domain_root_account, current_principal, :manage_site_settings)
       user.clear_caches
       user.update_account_associations
       render json: { status: "ok" }
@@ -3039,7 +3039,7 @@ class UsersController < ApplicationController
 
   def destroy
     @user = api_find(User, params[:id])
-    if @user && authorized_action(@domain_root_account, @current_user, :manage_site_settings)
+    if @user && authorized_action(@domain_root_account, current_principal, :manage_site_settings)
       if @user.destroy
         render json: { deleted: true, status: "ok" }
       else
@@ -3101,7 +3101,7 @@ class UsersController < ApplicationController
     get_context
     @context = @domain_root_account || Account.default unless @context.is_a?(Account)
     @context = @context.root_account
-    unless @context.grants_right?(@current_user, session, :manage_user_logins) ||
+    unless @context.grants_right?(current_principal, session, :manage_user_logins) ||
            @context.self_registration_allowed_for?(params[:user] && params[:user][:initial_enrollment_type])
       flash[:error] = t("no_self_registration", "Self registration has not been enabled for this account")
       respond_to do |format|
@@ -3238,8 +3238,8 @@ class UsersController < ApplicationController
 
   def api_show_includes
     allowed_includes = ["uuid", "last_login"]
-    allowed_includes << "avatar_state" if @user.grants_right?(@current_user, :manage_user_details)
-    allowed_includes << "confirmation_url" if @domain_root_account.grants_right?(@current_user, :manage_user_logins)
+    allowed_includes << "avatar_state" if @user.grants_right?(current_principal, :manage_user_details)
+    allowed_includes << "confirmation_url" if @domain_root_account.grants_right?(current_principal, :manage_user_logins)
     includes = %w[first_name last_name locale avatar_url permissions email effective_locale]
     includes += Array.wrap(params[:include]) & allowed_includes
     includes
@@ -3254,7 +3254,7 @@ class UsersController < ApplicationController
     params[:pseudonym] ||= {}
     params[:pseudonym][:unique_id].strip! if params[:pseudonym][:unique_id].is_a?(String)
 
-    if @context.grants_right?(@current_user, session, :manage_sis)
+    if @context.grants_right?(current_principal, session, :manage_sis)
       sis_user_id = params[:pseudonym].delete(:sis_user_id)
       integration_id = params[:pseudonym].delete(:integration_id)
     end
@@ -3276,7 +3276,7 @@ class UsersController < ApplicationController
 
     use_pairing_code = params[:user] && params[:user][:initial_enrollment_type] == "observer" && @domain_root_account.self_registration?
     force_validations = value_to_boolean(params[:force_validations])
-    manage_user_logins = @context.grants_right?(@current_user, session, :manage_user_logins)
+    manage_user_logins = @context.grants_right?(current_principal, session, :manage_user_logins)
     self_enrollment = params[:self_enrollment].present?
     allow_non_email_pseudonyms = (!force_validations && manage_user_logins) || (self_enrollment && params[:pseudonym_type] == "username")
     require_password = self_enrollment && allow_non_email_pseudonyms
@@ -3295,7 +3295,7 @@ class UsersController < ApplicationController
       cc_addr = nil if cc_type == CommunicationChannel::TYPE_EMAIL && !EmailAddressValidator.valid?(cc_addr)
 
       can_manage_students = [Account.site_admin, @context].any? do |role|
-        role.grants_right?(@current_user, :manage_students)
+        role.grants_right?(current_principal, :manage_students)
       end
 
       if can_manage_students || use_pairing_code
@@ -3632,10 +3632,10 @@ class UsersController < ApplicationController
 
       # Check grade visibility
       can_read_grades = if target_user.id == @current_user.id
-                          !course.hide_final_grades? || course.grants_any_right?(@current_user, :view_all_grades, :manage_grades)
+                          !course.hide_final_grades? || course.grants_any_right?(current_principal, :view_all_grades, :manage_grades)
                         else
                           observer_enrollment = observer_enrollments_by_course[course.id]
-                          observer_enrollment&.grants_right?(@current_user, :read_grades) || course.grants_any_right?(@current_user, :view_all_grades, :manage_grades)
+                          observer_enrollment&.grants_right?(current_principal, :read_grades) || course.grants_any_right?(current_principal, :view_all_grades, :manage_grades)
                         end
 
       # Get grade data if visible

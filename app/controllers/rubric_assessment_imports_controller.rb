@@ -26,7 +26,7 @@ class RubricAssessmentImportsController < ApplicationController
   before_action :require_context
   def show
     import = RubricAssessmentImport.find(params[:id])
-    return unless authorized_action(import.assignment.rubric_association, @current_user, :view_rubric_assessments)
+    return unless authorized_action(import.assignment.rubric_association, current_principal, :view_rubric_assessments)
 
     import_response = api_json(import, @current_user, session)
     import_response[:user] = user_json(import.user, @current_user, session) if import.user
@@ -46,7 +46,7 @@ class RubricAssessmentImportsController < ApplicationController
       return render json: { message: I18n.t("Assignment not found or does not have a rubric association") }, status: :bad_request
     end
 
-    return unless authorized_action(assignment.rubric_association, @current_user, :view_rubric_assessments)
+    return unless authorized_action(assignment.rubric_association, current_principal, :view_rubric_assessments)
 
     if assignment.anonymize_students?
       return render json: { message: I18n.t("Rubric import is not supported for assignments with anonymous grading") }, status: :bad_request

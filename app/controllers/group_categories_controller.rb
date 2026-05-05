@@ -131,7 +131,7 @@ class GroupCategoriesController < ApplicationController
   def index
     respond_to do |format|
       format.json do
-        if authorized_action(@context, @current_user, RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS + RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+        if authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS + RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
           collaboration_state = params[:collaboration_state].presence || "collaborative"
           collaboration_state = collaboration_state.downcase
           unless %w[all collaborative non_collaborative].include?(collaboration_state)
@@ -276,7 +276,7 @@ class GroupCategoriesController < ApplicationController
           includes = ["unassigned_users_count", "groups_count"]
           includes.concat(params[:includes]) if params[:includes]
           if (sis_id = params[:sis_group_category_id])
-            if @group_category.root_account.grants_right?(@current_user, :manage_sis)
+            if @group_category.root_account.grants_right?(current_principal, :manage_sis)
               @group_category.sis_source_id = sis_id
               @group_category.save!
             else
@@ -615,7 +615,7 @@ class GroupCategoriesController < ApplicationController
           render json: group_category_json(@group_category, @current_user, session, include: includes)
         end
         if (sis_id = params[:sis_group_category_id])
-          if @group_category.root_account.grants_right?(@current_user, :manage_sis)
+          if @group_category.root_account.grants_right?(current_principal, :manage_sis)
             @group_category.sis_source_id = sis_id
 
             SubmissionLifecycleManager.with_executing_user(@current_user) do
@@ -712,7 +712,7 @@ class GroupCategoriesController < ApplicationController
         non_collaborative: @group_category.non_collaborative?
       )
 
-        include_sis_id = @context.grants_any_right?(@current_user, session, :read_sis, :manage_sis)
+        include_sis_id = @context.grants_any_right?(current_principal, session, :read_sis, :manage_sis)
         csv_options = CSVWithI18n.csv_i18n_settings(@current_user)
         csv_string = CSVWithI18n.generate(**csv_options.slice(:encoding, :col_sep, :include_bom)) do |csv|
           section_names = @context.course_sections.select(:id, :name).index_by(&:id)
@@ -756,7 +756,7 @@ class GroupCategoriesController < ApplicationController
         return render(json: { "status" => "unauthorized" }, status: :unauthorized)
       end
 
-      include_sis_id = @context.grants_any_right?(@current_user, session, :read_sis, :manage_sis)
+      include_sis_id = @context.grants_any_right?(current_principal, session, :read_sis, :manage_sis)
       csv_options = CSVWithI18n.csv_i18n_settings(@current_user)
       csv_string = CSVWithI18n.generate(**csv_options.slice(:encoding, :col_sep, :include_bom)) do |csv|
         users = @context.participating_students
@@ -895,9 +895,9 @@ class GroupCategoriesController < ApplicationController
   # @returns [User]
   def users
     if @context.is_a? Course
-      return unless authorized_action(@context, @current_user, :read_roster)
+      return unless authorized_action(@context, current_principal, :read_roster)
     else
-      return unless authorized_action(@context, @current_user, :read)
+      return unless authorized_action(@context, current_principal, :read)
     end
 
     search_term = params[:search_term].presence

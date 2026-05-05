@@ -281,11 +281,11 @@ class AuthenticationProvidersController < ApplicationController
   def show
     aac = load_aac(params[:id])
     if aac.auth_type != "canvas"
-      return unless authorized_action(@context, @current_user, @context.read_or_manage_authentication_provider_permissions)
+      return unless authorized_action(@context, current_principal, @context.read_or_manage_authentication_provider_permissions)
     end
     render json: aac_json(aac)
   rescue ActiveRecord::RecordNotFound
-    return unless authorized_action(@context, @current_user, @context.read_or_manage_authentication_provider_permissions)
+    return unless authorized_action(@context, current_principal, @context.read_or_manage_authentication_provider_permissions)
 
     raise
   end
@@ -1135,10 +1135,10 @@ class AuthenticationProvidersController < ApplicationController
 
     # mfa_option is so we can keep mfa_required a boolean for backwards compatibility but still use a radio input for it
     data = data.permit(klass.recognized_params + [:mfa_option])
-    unless @domain_root_account.grants_right?(@current_user, :manage_site_settings)
+    unless @domain_root_account.grants_right?(current_principal, :manage_site_settings)
       data = data.reject { |k, _| klass.site_admin_params.include?(k.to_sym) }
     end
-    unless @account.grants_right?(@current_user, :manage_mfa_settings)
+    unless @account.grants_right?(current_principal, :manage_mfa_settings)
       data = data.except(:mfa_required, :skip_internal_mfa, :otp_via_sms, :mfa_option)
     end
 
@@ -1197,10 +1197,10 @@ class AuthenticationProvidersController < ApplicationController
   end
 
   def require_manage_authentication_provider
-    authorized_action(@context, @current_user, @context.manage_authentication_provider_permissions)
+    authorized_action(@context, current_principal, @context.manage_authentication_provider_permissions)
   end
 
   def require_read_or_manage_authentication_provider
-    authorized_action(@context, @current_user, @context.read_or_manage_authentication_provider_permissions)
+    authorized_action(@context, current_principal, @context.read_or_manage_authentication_provider_permissions)
   end
 end

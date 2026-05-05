@@ -84,7 +84,7 @@ class SharedBrandConfigsController < ApplicationController
   def create
     @shared_brand_config = @account.shared_brand_configs.new(shared_brand_config_params)
 
-    if authorized_action(@shared_brand_config, @current_user, :create)
+    if authorized_action(@shared_brand_config, current_principal, :create)
       if @shared_brand_config.save
         render json: @shared_brand_config.as_json(include_root: false), status: :created
       else
@@ -105,7 +105,7 @@ class SharedBrandConfigsController < ApplicationController
   #        -F 'shared_brand_config[brand_config_md5]=a1f113321fa024e7a14cb0948597a2a4'
   # @returns SharedBrandConfig
   def update
-    if authorized_action(@shared_brand_config, @current_user, :update)
+    if authorized_action(@shared_brand_config, current_principal, :update)
       if @shared_brand_config.update(shared_brand_config_params)
         render json: @shared_brand_config.as_json(include_root: false)
       else
@@ -124,7 +124,7 @@ class SharedBrandConfigsController < ApplicationController
   #          -H 'Authorization: Bearer <token>'
   # @returns SharedBrandConfig
   def destroy
-    if authorized_action(@shared_brand_config, @current_user, :delete)
+    if authorized_action(@shared_brand_config, current_principal, :delete)
       @shared_brand_config.destroy
       render json: @shared_brand_config.as_json(include_root: false)
     end

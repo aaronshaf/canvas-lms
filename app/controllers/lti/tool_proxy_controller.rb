@@ -25,14 +25,14 @@ module Lti
     before_action :set_tool_proxy, only: %i[destroy update accept_update dismiss_update]
 
     def destroy
-      if authorized_action(@context, @current_user, :update)
+      if authorized_action(@context, current_principal, :update)
         update_workflow_state("deleted")
         render json: '{"status":"success"}'
       end
     end
 
     def update
-      if authorized_action(@context, @current_user, :update)
+      if authorized_action(@context, current_principal, :update)
         update_workflow_state(params["workflow_state"])
 
         render json: '{"status":"success"}'
@@ -42,7 +42,7 @@ module Lti
     end
 
     def accept_update
-      if authorized_action(@context, @current_user, :update)
+      if authorized_action(@context, current_principal, :update)
         success = false
 
         if @tool_proxy.update?
@@ -83,7 +83,7 @@ module Lti
     end
 
     def dismiss_update
-      if authorized_action(@context, @current_user, :update)
+      if authorized_action(@context, current_principal, :update)
 
         ack_url = @tool_proxy.update_payload[:acknowledgement_url]
         @tool_proxy.update_payload = nil

@@ -98,7 +98,7 @@ class GradebookSettingsController < ApplicationController
   end
 
   def authorize
-    authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
   end
 
   def updated_settings

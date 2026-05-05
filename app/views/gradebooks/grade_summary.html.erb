@@ -265,7 +265,7 @@
                           <% if submission.try :pending_review? %>
                             <span class="screenreader-only"><%= hidden_text %></span>
                           <% end %>
-                          <%= student_score_display_for(submission, student_view: !can_do(@context, @current_user, :manage_grades)) %>
+                          <%= student_score_display_for(submission, student_view: !can_do(@context, current_principal, :manage_grades)) %>
                         <% end %>
                       </span>
                       <% if assignment_presenter.is_letter_graded_or_gpa_scaled? %>
@@ -404,7 +404,7 @@
                         anchor_title = t("Similarity score -- more information")
                         alt_text = t("See Turnitin results")
 
-                        if can_do(submission, @current_user, :view_turnitin_report)
+                        if can_do(submission, current_principal, :view_turnitin_report)
                           turnitin = assignment_presenter.turnitin
                           if assignment_presenter.is_text_entry? && !assignment_presenter.originality_report?
                             url = context_url(@context, :context_assignment_submission_turnitin_report_url, assignment.id, @presenter.student_id, submission.asset_string)
@@ -548,7 +548,7 @@
                               <% if sa_submission.try :pending_review? %>
                                 <span class="screenreader-only"><%= hidden_text %></span>
                               <% end %>
-                              <%= student_score_display_for(sa_submission, student_view: !can_do(@context, @current_user, :manage_grades)) %>
+                              <%= student_score_display_for(sa_submission, student_view: !can_do(@context, current_principal, :manage_grades)) %>
                             <% end %>
                           </span>
                           <% if sub_assignment_presenter.is_letter_graded_or_gpa_scaled? %>
@@ -748,7 +748,7 @@
                   <td colspan="6">
                     <% assignment_presenter.rubric_assessments.each do |assessment| %>
                       <div class="assessor" style="text-align: <%= direction("right") %>; margin-bottom: 5px">
-                        <% if can_do(assessment, @current_user, :read_assessor) %>
+                        <% if can_do(assessment, current_principal, :read_assessor) %>
                           <%= t("Assessment by %{name}", name: assessment.assessor_name) %>
                         <% else %>
                           <%= t("Anonymous User") %>

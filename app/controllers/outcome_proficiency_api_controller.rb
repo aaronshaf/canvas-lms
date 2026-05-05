@@ -115,7 +115,7 @@ class OutcomeProficiencyApiController < ApplicationController
   #        -H "Authorization: Bearer <token>"
   #
   def create
-    if authorized_action(@context, @current_user, :manage_proficiency_scales)
+    if authorized_action(@context, current_principal, :manage_proficiency_scales)
       proficiency = @context.outcome_proficiency.presence || OutcomeProficiency.new
       proficiency = update_ratings(proficiency, @context)
       render json: outcome_proficiency_json(proficiency, @current_user, session)
@@ -134,7 +134,7 @@ class OutcomeProficiencyApiController < ApplicationController
   #
   # @returns Proficiency
   def show
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
 
     proficiency = @context.resolved_outcome_proficiency or raise ActiveRecord::RecordNotFound
     render json: outcome_proficiency_json(proficiency, @current_user, session)

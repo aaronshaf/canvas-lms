@@ -139,7 +139,7 @@ class WebZipExportsController < ApplicationController
   # @returns WebZipExport
   def show
     web_zip = @context.web_zip_exports.where(id: params[:id]).first
-    return unless authorized_action(web_zip, @current_user, :read)
+    return unless authorized_action(web_zip, current_principal, :read)
 
     render json: web_zip_export_json(web_zip)
   end

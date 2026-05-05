@@ -40,7 +40,7 @@ class NewQuizzesController < ApplicationController
     setup_content_tag_context
 
     # Check authorization based on the action being performed
-    return unless authorized_action(@assignment, @current_user, :read)
+    return unless authorized_action(@assignment, current_principal, :read)
     return if assignment_locked_for_student?
 
     signed_launch_data = Services::NewQuizzes::Routes::LaunchHelper.default_launch_data(
@@ -69,7 +69,7 @@ class NewQuizzesController < ApplicationController
     placement = navigation_placement
     @tool = find_context_quiz_lti_tool(placement)
     return render_unauthorized_action unless @tool&.quiz_lti?
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
 
     signed_launch_data = Services::NewQuizzes::Routes::LaunchHelper.item_bank_launch_data(
       tool: @tool,
@@ -129,9 +129,9 @@ class NewQuizzesController < ApplicationController
   end
 
   def assignment_locked_for_student?
-    return false unless @context.grants_right?(@current_user, :participate_as_student)
+    return false unless @context.grants_right?(current_principal, :participate_as_student)
     return false unless taking_action?
-    return false if @context.grants_right?(@current_user, :manage_assignments)
+    return false if @context.grants_right?(current_principal, :manage_assignments)
 
     assignment_with_overrides = AssignmentOverrideApplicator.assignment_overridden_for(@assignment, @current_user)
     return false unless assignment_with_overrides.locked_for?(@current_user)

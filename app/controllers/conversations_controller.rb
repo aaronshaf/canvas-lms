@@ -421,13 +421,13 @@ class ConversationsController < ApplicationController
     if params[:context_code].present?
       context = Context.find_by_asset_string(params[:context_code])
 
-      if context.is_a?(Course) && missing_right_to_send_any_recipient(@recipients, context) && !context.grants_right?(@current_user, session, :send_messages)
+      if context.is_a?(Course) && missing_right_to_send_any_recipient(@recipients, context) && !context.grants_right?(current_principal, session, :send_messages)
         return render_error("Unable to send messages to users in #{context.name}", "")
       elsif !valid_context?(context)
         return render_error("context_code", "invalid")
       end
 
-      if context.is_a?(Course) && context.workflow_state == "completed" && !context.grants_right?(@current_user, session, :read_as_admin)
+      if context.is_a?(Course) && context.workflow_state == "completed" && !context.grants_right?(current_principal, session, :read_as_admin)
         return render_error("Course concluded", "Unable to send messages")
       end
 
@@ -791,7 +791,7 @@ class ConversationsController < ApplicationController
   #       -X DELETE \
   #       -H 'Authorization: Bearer <token>'
   def delete_for_all
-    return unless authorized_action(Account.site_admin, @current_user, :manage_students)
+    return unless authorized_action(Account.site_admin, current_principal, :manage_students)
 
     Conversation.find(params[:id]).delete_for_all
 

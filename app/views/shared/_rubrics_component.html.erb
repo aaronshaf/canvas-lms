@@ -21,32 +21,32 @@
 
   <% is_a2_student_view = false if is_a2_student_view.nil? %>
 
-  <% if can_do(@assignment, @current_user, :update) %>
+  <% if can_do(@assignment, current_principal, :update) %>
     <%# HACK! this is here because edit_rubric.js expects there to be a #add_rubric_url on the page and sets it's <form action="..."> to it %>
     <a href="<%= context_url(@context, :context_rubrics_url) %>" id="add_rubric_url" style="display: none;"></a>
   <% end %>
 
   <div id="rubrics" class="mathjax_ignore" style="margin-bottom: 10px;">
     <% if @assignment.active_rubric_association? && @assignment.rubric_association.rubric && !is_a2_student_view %>
-      <%= render partial: "shared/rubric", object: @assignment.rubric_association.rubric, locals: { association: @assignment, rubric_association: @assignment.rubric_association, editable: can_do(@assignment, @current_user, :update), has_assessments: !@assignment.rubric_association.rubric_assessments.empty?, edit_view: can_do(@assignment.rubric_association, @current_user, :update) } %>
+      <%= render partial: "shared/rubric", object: @assignment.rubric_association.rubric, locals: { association: @assignment, rubric_association: @assignment.rubric_association, editable: can_do(@assignment, current_principal, :update), has_assessments: !@assignment.rubric_association.rubric_assessments.empty?, edit_view: can_do(@assignment.rubric_association, current_principal, :update) } %>
     <% end %>
     <div style="display: none;" id="rubric_parameters">
       <input type="hidden" name="rubric_association[association_type]" value="Assignment"/>
       <input type="hidden" name="rubric_association[association_id]" value="<%= @assignment.id %>"/>
       <input type="hidden" name="rubric_association[purpose]" value="grading"/>
     </div>
-    <% if can_do(@assignment, @current_user, :update) %>
+    <% if can_do(@assignment, current_principal, :update) %>
       <%= render partial: "shared/rubric_dialog", locals: { assignment: @assignment, rubric: @assignment.active_rubric_association? ? @assignment.rubric_association.rubric : nil } %>
     <% end %>
     <%= render partial: "shared/rubric_criterion_dialog" %>
   </div>
-  <%= render partial: "shared/rubric", object: nil, locals: { association: @assignment, editable: can_do(@assignment, @current_user, :update), has_assessments: false, edit_view: true } %>
+  <%= render partial: "shared/rubric", object: nil, locals: { association: @assignment, editable: can_do(@assignment, current_principal, :update), has_assessments: false, edit_view: true } %>
 
   <% unless @current_user_submission&.has_submission? && @domain_root_account&.feature_enabled?(:lti_before_assignment_results) %>
   <div id="assignment_external_tools"></div>
   <% end %>
 
-  <% if can_do(@assignment, @current_user, :update) %>
+  <% if can_do(@assignment, current_principal, :update) %>
     <div style="text-align: center; font-size: 1.2em; margin-top: 10px; display: none;">
       <a href="<%= context_url(@context, :context_rubrics_url) %>" class="add_rubric_link rubric" style="<%= hidden if @assignment.active_rubric_association? %>"><%= t "links.assign_rubric", "Assign Rubric" %></a>
     </div>

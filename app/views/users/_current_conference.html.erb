@@ -18,7 +18,7 @@
 
 <% current_conference ||= nil %>
 <% conference = current_conference %>
-<% if conference.active?(allow_check: false) && can_do(conference, @current_user, :join) %>
+<% if conference.active?(allow_check: false) && can_do(conference, current_principal, :join) %>
 <div class="ic-notification conference">
   <div class="ic-notification__icon" role="presentation">
     <i class="icon-invitation"></i>
@@ -38,7 +38,7 @@
       %>
     </div>
     <div class="ic-notification__actions">
-      <% if can_do(conference, @current_user, :close) %>
+      <% if can_do(conference, current_principal, :close) %>
         <a href="<%= context_url(@context, :context_conference_close_url, conference.id) %>" class="btn btn-small close_conference_link">
           <%= t("#conferences.show.buttons.close", "End it now") %>
         </a>

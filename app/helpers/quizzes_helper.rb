@@ -29,12 +29,12 @@ module QuizzesHelper
     !quiz.available? || quiz.unpublished_changes?
   end
 
-  def can_read(quiz, user = @current_user)
-    can_do(quiz, user, :read)
+  def can_read(quiz, principal = current_principal)
+    can_do(quiz, principal, :read)
   end
 
-  def can_publish(quiz, user = @current_user)
-    can_do(quiz, user, :update) || can_do(quiz, user, :manage)
+  def can_publish(quiz, principal = current_principal)
+    can_do(quiz, principal, :update) || can_do(quiz, principal, :manage)
   end
 
   def unpublished_quiz_warning

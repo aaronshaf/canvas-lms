@@ -219,7 +219,7 @@ class Lti::ToolConfigurationsApiController < ApplicationController
   end
 
   def require_manage_lti
-    head :unauthorized unless @context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_LTI_PERMISSIONS)
+    head :unauthorized unless @context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_LTI_PERMISSIONS)
   end
 
   def manual_custom_fields
@@ -252,14 +252,14 @@ class Lti::ToolConfigurationsApiController < ApplicationController
   end
 
   def require_manage_developer_keys
-    authorized_action(account, @current_user, :manage_developer_keys)
+    authorized_action(account, current_principal, :manage_developer_keys)
   end
 
   def require_modify_site_admin_developer_keys
     return unless account.site_admin?
     return unless Account.site_admin.feature_enabled?(:modify_site_admin_developer_keys_permission)
 
-    unless Account.site_admin.grants_right?(@current_user, :modify_site_admin_developer_keys)
+    unless Account.site_admin.grants_right?(current_principal, :modify_site_admin_developer_keys)
       render json: { errors: [{ message: "You don't have permission to modify Site Admin developer keys" }] },
              status: :forbidden
     end

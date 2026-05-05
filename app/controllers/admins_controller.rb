@@ -67,7 +67,7 @@ class AdminsController < ApplicationController
   #
   # @returns [Admin]
   def index
-    if authorized_action(@context, @current_user, :manage_account_memberships)
+    if authorized_action(@context, current_principal, :manage_account_memberships)
       include_deleted = value_to_boolean(params[:include_deleted])
 
       # Get the list of admins
@@ -126,7 +126,7 @@ class AdminsController < ApplicationController
     admin = @context.account_users.where(user_id: user.id, role_id: @role.id).first_or_initialize
     admin.workflow_state = "active"
 
-    return unless authorized_action(admin, @current_user, :create)
+    return unless authorized_action(admin, current_principal, :create)
 
     if admin.new_record? || admin.workflow_state_changed?
       if admin.save
@@ -161,7 +161,7 @@ class AdminsController < ApplicationController
     user = api_find(User, params[:user_id])
     require_role
     admin = @context.account_users.where(user_id: user, role_id: @role.id).first!
-    if authorized_action(admin, @current_user, :destroy)
+    if authorized_action(admin, current_principal, :destroy)
       admin.current_user = @current_user
       admin.destroy
       render json: admin_json(admin, @current_user, session)
@@ -176,7 +176,7 @@ class AdminsController < ApplicationController
   #
   # @returns [Admin]
   def self_roles
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       scope = @context.account_users.active.where(user_id: @current_user)
       route = polymorphic_url([:api_v1, @context, :self_roles])
       admins = Api.paginate(scope.order(:id), self, route)

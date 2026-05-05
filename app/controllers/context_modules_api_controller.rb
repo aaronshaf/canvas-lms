@@ -161,7 +161,7 @@ class ContextModulesApiController < ApplicationController
   #
   # @returns [Module]
   def index
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       log_api_asset_access(["modules", @context], "modules", "other")
       route = polymorphic_url([:api_v1, @context, :context_modules])
       scope = @context.modules_visible_to(@student || @current_user)
@@ -187,7 +187,7 @@ class ContextModulesApiController < ApplicationController
         opts[:observed_student_ids] = ObserverEnrollment.observed_student_ids(context, @student || @current_user)
       end
 
-      opts[:can_view_published] = @context.grants_right?(@student || @current_user, session, :read_as_admin)
+      opts[:can_view_published] = @context.grants_right?(@student || current_principal, session, :read_as_admin)
       opts[:can_have_estimated_time] = @context.horizon_course?
       opts[:can_have_requirement_count] = @context.requirement_count_api_enabled?
       render json: modules_and_progressions.filter_map { |mod, prog| module_json(mod, @student || @current_user, session, prog, includes, opts) }
@@ -220,13 +220,13 @@ class ContextModulesApiController < ApplicationController
   #
   # @returns Module
   def show
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       mod = @context.modules_visible_to(@student || @current_user).find(params[:id])
       includes = Array(params[:include])
       ActiveRecord::Associations.preload(mod, content_tags: :content) if includes.include?("items")
       prog = @student ? mod.evaluate_for(@student) : nil
 
-      opts = { can_view_published: @context.grants_right?(@current_user, session, :read_as_admin) }
+      opts = { can_view_published: @context.grants_right?(current_principal, session, :read_as_admin) }
       opts[:can_have_estimated_time] = @context.horizon_course?
       opts[:can_have_requirement_count] = @context.requirement_count_api_enabled?
       render json: module_json(mod, @student || @current_user, session, prog, includes, opts)
@@ -234,7 +234,7 @@ class ContextModulesApiController < ApplicationController
   end
 
   def duplicate
-    if authorized_action(@context, @current_user, :manage_course_content_add)
+    if authorized_action(@context, current_principal, :manage_course_content_add)
       old_module = @context.modules_visible_to(@current_user).find(params[:module_id])
       return render json: { error: "unable to find module to duplicate" }, status: :bad_request unless old_module
       return render json: { error: "cannot duplicate this module" }, status: :bad_request unless old_module.can_be_duplicated?
@@ -288,7 +288,7 @@ class ContextModulesApiController < ApplicationController
   #      "progress": null,
   #    }
   def batch_update
-    if authorized_action(@context, @current_user, :manage_course_content_edit)
+    if authorized_action(@context, current_principal, :manage_course_content_edit)
       event = params[:event]
       return render(json: { message: "need to specify event" }, status: :bad_request) unless event.present?
       return render(json: { message: "invalid event" }, status: :bad_request) unless %w[publish unpublish delete].include? event
@@ -355,7 +355,7 @@ class ContextModulesApiController < ApplicationController
   #
   # @returns Module
   def create
-    if authorized_action(@context.context_modules.temp_record, @current_user, :create)
+    if authorized_action(@context.context_modules.temp_record, current_principal, :create)
       return render json: { message: "missing module parameter" }, status: :bad_request unless params[:module]
       return render json: { message: "missing module name" }, status: :bad_request unless params[:module][:name].present?
 
@@ -420,7 +420,7 @@ class ContextModulesApiController < ApplicationController
   # @returns Module
   def update
     @module = @context.context_modules.not_deleted.find(params[:id])
-    if authorized_action(@module, @current_user, :update)
+    if authorized_action(@module, current_principal, :update)
       return render json: { message: "missing module parameter" }, status: :bad_request unless params[:module]
 
       module_parameters = params.require(:module).permit(:name, :unlock_at, :require_sequential_progress, :publish_final_grade)
@@ -486,7 +486,7 @@ class ContextModulesApiController < ApplicationController
   # @returns Module
   def destroy
     @module = @context.context_modules.not_deleted.find(params[:id])
-    if authorized_action(@module, @current_user, :delete)
+    if authorized_action(@module, current_principal, :delete)
       @module.destroy
       render json: module_json(@module, @current_user, session, nil)
     end
@@ -509,7 +509,7 @@ class ContextModulesApiController < ApplicationController
   # @returns Module
   def relock
     @module = @context.context_modules.not_deleted.find(params[:id])
-    if authorized_action(@module, @current_user, :update)
+    if authorized_action(@module, current_principal, :update)
       @module.relock_progressions
       render json: module_json(@module, @current_user, session, nil)
     end
@@ -535,10 +535,10 @@ class ContextModulesApiController < ApplicationController
   def find_student
     if params[:student_id]
       student_enrollments = @context.student_enrollments.for_user(params[:student_id])
-      return render_unauthorized_action unless student_enrollments.any? { |e| e.grants_right?(@current_user, session, :read_grades) }
+      return render_unauthorized_action unless student_enrollments.any? { |e| e.grants_right?(current_principal, session, :read_grades) }
 
       @student = student_enrollments.first.user
-    elsif @context.grants_right?(@current_user, session, :participate_as_student)
+    elsif @context.grants_right?(current_principal, session, :participate_as_student)
       @student = @current_user
     else
       true

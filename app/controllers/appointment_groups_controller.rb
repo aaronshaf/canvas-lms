@@ -403,7 +403,7 @@ class AppointmentGroupsController < ApplicationController
       publish = value_to_boolean(params[:appointment_group].delete(:publish))
       @group = AppointmentGroup.new(appointment_group_params.merge(contexts:))
       @group.update_contexts_and_sub_contexts
-      if authorized_action(@group, @current_user, :manage)
+      if authorized_action(@group, current_principal, :manage)
         if @group.save
           @group.publish! if publish
           render json: appointment_group_json(@group, @current_user, session), status: :created
@@ -426,7 +426,7 @@ class AppointmentGroupsController < ApplicationController
   #   "appointments":: will always be returned
   #   "all_context_codes":: all context codes associated with this appointment group
   def show
-    if authorized_action(@group, @current_user, :read)
+    if authorized_action(@group, current_principal, :read)
       return web_show unless request.format == :json
 
       @request_shard = Shard.current
@@ -434,13 +434,13 @@ class AppointmentGroupsController < ApplicationController
                                           @current_user,
                                           session,
                                           include: ((params[:include] || []) | ["appointments"]),
-                                          include_past_appointments: @group.grants_right?(@current_user, :manage))
+                                          include_past_appointments: @group.grants_right?(current_principal, :manage))
     end
   end
 
   # Shows the edit page for an assignment group
   def edit
-    if request.format == :html && authorized_action(@group, @current_user, :update)
+    if request.format == :html && authorized_action(@group, current_principal, :update)
       @page_title = t("Edit %{title}", { title: @group.title })
       js_env({
                APPOINTMENT_GROUP_ID: @group.id,
@@ -520,7 +520,7 @@ class AppointmentGroupsController < ApplicationController
   def update
     contexts = get_contexts
     @group.contexts = contexts if contexts
-    if authorized_action(@group, @current_user, :update)
+    if authorized_action(@group, current_principal, :update)
       publish = params[:appointment_group].delete(:publish) == "1"
       if (publish && params[:appointment_group].blank?) || @group.update(appointment_group_params)
         @group.publish! if publish
@@ -546,7 +546,7 @@ class AppointmentGroupsController < ApplicationController
   #        -F 'cancel_reason=El Tigre Chino got fired' \
   #        -H "Authorization: Bearer <token>"
   def destroy
-    if authorized_action(@group, @current_user, :delete)
+    if authorized_action(@group, current_principal, :delete)
       @group.cancel_reason = params[:cancel_reason]
       if @group.destroy(@current_user)
         render json: appointment_group_json(@group, @current_user, session)
@@ -622,7 +622,7 @@ class AppointmentGroupsController < ApplicationController
   protected
 
   def participants(type, &)
-    if authorized_action(@group, @current_user, :read)
+    if authorized_action(@group, current_principal, :read)
       return render json: [] unless @group.participant_type == type
 
       render json: Api.paginate(
@@ -691,7 +691,7 @@ class AppointmentGroupsController < ApplicationController
                # event is a user event and the user does not own the event.
                # i.e. teacher viewing appointment slot filled by student.
                event = event.parent_event if event&.user && event.user != @current_user
-               event = nil unless event&.grants_right?(@current_user, :read)
+               event = nil unless event&.grants_right?(current_principal, :read)
                args[:view_start] = (event || @group).start_at.strftime("%Y-%m-%d")
                if event
                  calendar_args[:event_id] = event.id

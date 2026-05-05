@@ -534,7 +534,7 @@ class DeveloperKeysController < ApplicationController
   def read_only_mode?
     account_context.root_account.site_admin? &&
       Account.site_admin.feature_enabled?(:modify_site_admin_developer_keys_permission) &&
-      !Account.site_admin.grants_right?(@current_user, :modify_site_admin_developer_keys)
+      !Account.site_admin.grants_right?(current_principal, :modify_site_admin_developer_keys)
   end
 
   def require_modify_site_admin_developer_keys

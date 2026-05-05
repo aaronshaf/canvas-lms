@@ -19,7 +19,7 @@
 
 module SubmissionCommentsHelper
   def comment_author_name_for(comment)
-    if can_do(comment, @current_user, :read_author)
+    if can_do(comment, current_principal, :read_author)
       comment.author_name
     else
       I18n.t("Anonymous User")

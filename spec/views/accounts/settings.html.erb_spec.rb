@@ -44,6 +44,7 @@ describe "accounts/settings" do
       admin = account_admin_user
       view_context(@account, admin)
       assign(:current_user, admin)
+      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
       render
       expect(response).to have_tag("input#account_sis_source_id")
     end
@@ -52,6 +53,7 @@ describe "accounts/settings" do
       admin = account_admin_user_with_role_changes(role_changes: { "manage_sis" => false })
       view_context(@account, admin)
       assign(:current_user, admin)
+      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
       render
       expect(response).to have_tag("span.sis_source_id", @account.sis_source_id)
       expect(response).not_to have_tag("input#account_sis_source_id")
@@ -160,6 +162,7 @@ describe "accounts/settings" do
         assign(:context, account)
         assign(:root_account, account)
         assign(:current_user, admin)
+        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
         assign(:announcements, AccountNotification.none.paginate)
       end
 
@@ -181,6 +184,7 @@ describe "accounts/settings" do
         assign(:context, account)
         assign(:root_account, account)
         assign(:current_user, admin)
+        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
         assign(:announcements, AccountNotification.none.paginate)
       end
 
@@ -210,6 +214,7 @@ describe "accounts/settings" do
         assign(:context, account)
         assign(:root_account, account)
         assign(:current_user, admin)
+        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
         assign(:announcements, AccountNotification.none.paginate)
       end
 
@@ -232,6 +237,7 @@ describe "accounts/settings" do
         assign(:context, sub_account)
         assign(:root_account, sub_account)
         assign(:current_user, sub_account_admin)
+        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(sub_account_admin))
         assign(:announcements, AccountNotification.none.paginate)
       end
 
@@ -268,6 +274,7 @@ describe "accounts/settings" do
         assign(:context, site_admin_account)
         assign(:root_account, site_admin_account)
         assign(:current_user, site_admin)
+        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(site_admin))
         assign(:announcements, AccountNotification.none.paginate)
       end
 
@@ -377,6 +384,7 @@ describe "accounts/settings" do
         assign(:account, @account)
         assign(:root_account, @account)
         assign(:current_user, current_user)
+        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(current_user))
       end
 
       context "new_sis_integrations => false" do
@@ -501,6 +509,7 @@ describe "accounts/settings" do
       assign(:context, account)
       assign(:root_account, account)
       assign(:current_user, admin)
+      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
       assign(:announcements, AccountNotification.none.paginate)
       Account.site_admin.enable_feature!(:new_quizzes_separators)
     end
@@ -535,6 +544,7 @@ describe "accounts/settings" do
         admin = account_admin_user
         view_context(@account, admin)
         assign(:current_user, admin)
+        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
       end
 
       it "shows quota options" do
@@ -550,6 +560,7 @@ describe "accounts/settings" do
         admin = account_admin_user_with_role_changes(account: @account, role_changes: { "manage_storage_quotas" => false })
         view_context(@account, admin)
         assign(:current_user, admin)
+        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
       end
 
       it "does not show quota options" do
@@ -587,6 +598,7 @@ describe "accounts/settings" do
         admin = account_admin_user_with_role_changes(account: @account, role_changes: { "read_reports" => false })
         view_context(@account, admin)
         assign(:current_user, admin)
+        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
         render
         expect(response).not_to have_tag "#tab-reports-mount"
       end
@@ -620,6 +632,7 @@ describe "accounts/settings" do
       assign(:announcements, AccountNotification.none.paginate)
       view_context(@account, @admin)
       assign(:current_user, @admin)
+      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@admin))
     end
 
     it "shows the blocked emojis section when submission_comment_emojis is allowed" do
@@ -655,6 +668,7 @@ describe "accounts/settings" do
       admin = account_admin_user
       view_context(@account, admin)
       assign(:current_user, admin)
+      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
       render
       expect(response).to include("Let sub-accounts use the Theme Editor")
     end
@@ -669,6 +683,7 @@ describe "accounts/settings" do
       assign(:account, account)
       assign(:root_account, account)
       assign(:current_user, admin)
+      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
       assign(:account_users, [])
       assign(:associated_courses_count, 0)
       assign(:announcements, AccountNotification.none.paginate)
@@ -726,6 +741,7 @@ describe "accounts/settings" do
     before do
       view_context(account, admin)
       assign(:current_user, admin)
+      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(admin))
       assign(:context, account)
       assign(:account, account)
       assign(:account_users, [])
@@ -813,6 +829,7 @@ describe "accounts/settings" do
         assign(:account, @account)
         view_context(@account, @admin)
         assign(:current_user, @admin)
+        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@admin))
       end
 
       it "does not render" do
@@ -827,6 +844,7 @@ describe "accounts/settings" do
         assign(:account, @account)
         view_context(@account, @site_admin)
         assign(:current_user, @site_admin)
+        assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(@site_admin))
       end
 
       it "renders" do

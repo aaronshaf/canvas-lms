@@ -25,7 +25,7 @@ module Submissions
     before_action :require_context
 
     def show
-      return unless authorized_action(@submission, @current_user, :read)
+      return unless authorized_action(@submission, current_principal, :read)
 
       @attachment = Submissions::AttachmentForSubmissionDownload.new(
         @submission, params.slice(:comment_id, :download)

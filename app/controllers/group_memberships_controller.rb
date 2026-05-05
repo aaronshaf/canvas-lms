@@ -96,7 +96,7 @@ class GroupMembershipsController < ApplicationController
   #
   # @returns [GroupMembership]
   def index
-    if authorized_action(@group, @current_user, :read_roster)
+    if authorized_action(@group, current_principal, :read_roster)
       memberships_route = polymorphic_url([:api_v1, @group, :memberships])
       scope = @group.group_memberships.preload(group: :root_account)
 
@@ -126,7 +126,7 @@ class GroupMembershipsController < ApplicationController
   # @returns GroupMembership
   def show
     find_membership
-    if authorized_action(@membership, @current_user, :read)
+    if authorized_action(@membership, current_principal, :read)
       render json: group_membership_json(@membership, @current_user, session)
     end
   end
@@ -180,7 +180,7 @@ class GroupMembershipsController < ApplicationController
     return create_differentiation_tag_membership if params[:members] || params[:all_in_group_course]
 
     @user = api_find(User, params[:user_id])
-    if authorized_action(GroupMembership.new(group: @group, user: @user), @current_user, :create)
+    if authorized_action(GroupMembership.new(group: @group, user: @user), current_principal, :create)
       SubmissionLifecycleManager.with_executing_user(@current_user) do
         @membership = @group.add_user(@user)
 
@@ -212,7 +212,7 @@ class GroupMembershipsController < ApplicationController
 
     return head :bad_request if user_ids.blank?
 
-    if authorized_action(GroupMembership.new(group: @group, user: @current_user), @current_user, :create)
+    if authorized_action(GroupMembership.new(group: @group, user: current_principal), current_principal, :create)
       SubmissionLifecycleManager.with_executing_user(@current_user) do
         active_user_ids = differentiation_tag_context.all_current_enrollments.where(user_id: user_ids).pluck(:user_id)
         invalid_user_ids = user_ids - active_user_ids
@@ -267,7 +267,7 @@ class GroupMembershipsController < ApplicationController
   # @returns GroupMembership
   def update
     find_membership
-    if authorized_action(@membership, @current_user, :update)
+    if authorized_action(@membership, current_principal, :update)
       attrs = params.permit(*UPDATABLE_MEMBERSHIP_ATTRIBUTES)
       attrs.delete(:workflow_state) unless attrs[:workflow_state] == "accepted"
 
@@ -299,7 +299,7 @@ class GroupMembershipsController < ApplicationController
   #          -H 'Authorization: Bearer <token>'
   def destroy
     find_membership
-    if authorized_action(@membership, @current_user, :delete)
+    if authorized_action(@membership, current_principal, :delete)
       @membership.update(workflow_state: "deleted")
       render json: { "ok" => true }
     end
@@ -331,7 +331,7 @@ class GroupMembershipsController < ApplicationController
     memberships = @group.group_memberships.where(user_id: user_ids)
 
     unauthorized_memberships = memberships.reject do |membership|
-      can_do(membership, @current_user, :delete)
+      can_do(membership, current_principal, :delete)
     end
 
     memberships_to_delete = memberships - unauthorized_memberships

@@ -23,7 +23,7 @@ class HorizonController < ApplicationController
   before_action :require_context
 
   def validate_course
-    return unless authorized_action(@context, @current_user, :manage_courses_admin)
+    return unless authorized_action(@context, current_principal, :manage_courses_admin)
 
     errors = Courses::HorizonService.validate_course_contents(@context, method(:named_context_url))
 
@@ -31,7 +31,7 @@ class HorizonController < ApplicationController
   end
 
   def convert_course
-    return unless authorized_action(@context, @current_user, :manage_courses_admin)
+    return unless authorized_action(@context, current_principal, :manage_courses_admin)
 
     errors = Courses::HorizonService.validate_course_contents(@context, method(:named_context_url))
 
@@ -58,7 +58,7 @@ class HorizonController < ApplicationController
   end
 
   def revert_course
-    return unless authorized_action(@context, @current_user, :manage_courses_admin)
+    return unless authorized_action(@context, current_principal, :manage_courses_admin)
 
     @context.update!(horizon_course: false)
     render json: { success: true }

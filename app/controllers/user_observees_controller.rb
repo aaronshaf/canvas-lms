@@ -175,7 +175,7 @@ class UserObserveesController < ApplicationController
     end
 
     if observer != @current_user
-      common_root_accounts = common_root_accounts.select { |a| a.grants_right?(@current_user, :manage_user_observers) }
+      common_root_accounts = common_root_accounts.select { |a| a.grants_right?(current_principal, :manage_user_observers) }
       return render_unauthorized_action if common_root_accounts.empty?
     end
 
@@ -369,7 +369,7 @@ class UserObserveesController < ApplicationController
     return nil if matching_accounts.empty?
 
     matching_accounts.select do |a|
-      a.grants_right?(@current_user, :manage_user_observers)
+      a.grants_right?(current_principal, :manage_user_observers)
     end
   end
 

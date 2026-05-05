@@ -94,7 +94,7 @@ class HistoryController < ApplicationController
   # @returns [HistoryEntry]
   def index
     @user = api_find(User, params[:user_id])
-    return render_unauthorized_action unless @user.grants_right?(@current_user, :read)
+    return render_unauthorized_action unless @user.grants_right?(current_principal, :read)
 
     # ignore provided per_page argument since we have to manually filter page views that contain asset_user_accesses
     # and the default page size may result in a lot of empty pages

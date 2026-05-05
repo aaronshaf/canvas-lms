@@ -91,7 +91,7 @@ module Polling
     def show
       @poll = Polling::Poll.find(params[:id])
 
-      if authorized_action(@poll, @current_user, :read)
+      if authorized_action(@poll, current_principal, :read)
         render json: serialize_jsonapi(@poll)
       end
     end
@@ -113,7 +113,7 @@ module Polling
     #
     def create
       @poll = @current_user.polls.new(get_poll_params)
-      if authorized_action(@poll, @current_user, :create)
+      if authorized_action(@poll, current_principal, :create)
         if @poll.save
           render json: serialize_jsonapi(@poll)
         else
@@ -141,7 +141,7 @@ module Polling
       @poll = Polling::Poll.find(params[:id])
       poll_params = get_poll_params
 
-      if authorized_action(@poll, @current_user, :update)
+      if authorized_action(@poll, current_principal, :update)
         poll_params.delete(:is_correct) if poll_params && poll_params[:is_correct].blank?
 
         if @poll.update(poll_params)
@@ -157,7 +157,7 @@ module Polling
     # <b>204 No Content</b> response code is returned if the deletion was successful.
     def destroy
       @poll = Polling::Poll.find(params[:id])
-      if authorized_action(@poll, @current_user, :delete)
+      if authorized_action(@poll, current_principal, :delete)
         @poll.destroy
         head :no_content
       end

@@ -95,7 +95,7 @@ class ContentExportsApiController < ApplicationController
   #
   # @returns [ContentExport]
   def index
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       scope = @context.content_exports_visible_to(@current_user).active.not_for_copy
       scope = scope.order(id: :desc)
       route = polymorphic_url([:api_v1, @context, :content_exports])
@@ -111,7 +111,7 @@ class ContentExportsApiController < ApplicationController
   # @returns ContentExport
   def show
     export = @context.content_exports.not_for_copy.find(params[:id])
-    if authorized_action(export, @current_user, :read)
+    if authorized_action(export, current_principal, :read)
       render json: content_export_json(export, @current_user, session)
     end
   end
@@ -150,7 +150,7 @@ class ContentExportsApiController < ApplicationController
   #
   # @returns ContentExport
   def create
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       valid_types = %w[zip]
       valid_types += %w[qti common_cartridge quizzes2] if @context.is_a?(Course)
       return render json: { message: "invalid export_type" }, status: :bad_request unless valid_types.include?(params[:export_type])
@@ -168,7 +168,7 @@ class ContentExportsApiController < ApplicationController
   end
 
   def fail
-    if authorized_action(Account.site_admin, @current_user, :read)
+    if authorized_action(Account.site_admin, current_principal, :read)
       export = @context.content_exports.find(params[:id])
       export_fail_with_error export, "manually marked failed by a site administrator"
       render json: content_export_json(export, @current_user, session)
@@ -176,7 +176,7 @@ class ContentExportsApiController < ApplicationController
   end
 
   def content_list
-    if authorized_action(@context, @current_user, :read_as_admin)
+    if authorized_action(@context, current_principal, :read_as_admin)
       base_url = polymorphic_url([:api_v1, @context, :content_list])
       formatter = Canvas::Migration::Helpers::SelectiveContentFormatter.new(nil,
                                                                             base_url,

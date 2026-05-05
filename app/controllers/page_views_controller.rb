@@ -306,7 +306,7 @@ class PageViewsController < ApplicationController
   # @returns [PageView]
   def index
     @user = api_find(User, params[:user_id])
-    return unless authorized_action(@user, @current_user, :view_statistics)
+    return unless authorized_action(@user, current_principal, :view_statistics)
 
     date_options = {}
     url_options = { user_id: @user }
@@ -442,7 +442,7 @@ class PageViewsController < ApplicationController
 
     user_id, start_date, end_date, results_format = params.require(%i[user_id start_date end_date results_format])
     @user = api_find(User, user_id)
-    return unless authorized_action(@user, @current_user, :view_statistics)
+    return unless authorized_action(@user, current_principal, :view_statistics)
 
     query_id = pv5_enqueue_service.call(
       start_date,
@@ -705,7 +705,7 @@ class PageViewsController < ApplicationController
     # Find and authorize each user
     users = user_ids.map do |user_id|
       user = api_find(User, user_id)
-      return unless authorized_action(user, @current_user, :view_statistics)
+      return unless authorized_action(user, current_principal, :view_statistics)
 
       user
     end

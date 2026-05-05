@@ -220,7 +220,7 @@ class WikiPagesApiController < ApplicationController
   #
   # @returns Page
   def duplicate
-    return unless authorized_action(@page, @current_user, :create)
+    return unless authorized_action(@page, current_principal, :create)
     if @page.deleted?
       return render json: { error: "cannot duplicate deleted page" }, status: :bad_request
     end
@@ -295,7 +295,7 @@ class WikiPagesApiController < ApplicationController
   #
   # @returns [Page]
   def index
-    if authorized_action(@context.wiki, @current_user, :read) && tab_enabled?(@context.class::TAB_PAGES)
+    if authorized_action(@context.wiki, current_principal, :read) && tab_enabled?(@context.class::TAB_PAGES)
       log_api_asset_access(["pages", @context], "pages", "other")
       pages_route = polymorphic_url([:api_v1, @context, :wiki_pages])
       includes = Array(params[:include])
@@ -361,7 +361,7 @@ class WikiPagesApiController < ApplicationController
 
       wiki_pages = Api.paginate(scope, self, pages_route)
 
-      if @context.wiki.grants_right?(@current_user, :update)
+      if @context.wiki.grants_right?(current_principal, :update)
         mc_status = setup_master_course_restrictions(wiki_pages, @context)
       end
       render json: wiki_pages_json(wiki_pages,
@@ -418,7 +418,7 @@ class WikiPagesApiController < ApplicationController
 
     @wiki = @context.wiki
     @page = @wiki.build_wiki_page(@current_user, initial_params)
-    if authorized_action(@page, @current_user, :create)
+    if authorized_action(@page, current_principal, :create)
       allowed_fields = Set[:title, :body]
       allowed_fields << :block_editor_attributes if @context.account.feature_enabled?(:block_editor) || @context.try(:block_content_editor_enabled?)
       allowed_fields << :estimated_duration_attributes if @context.is_a?(Course) && @context.horizon_course?
@@ -450,7 +450,7 @@ class WikiPagesApiController < ApplicationController
   #
   # @returns Page
   def show
-    if authorized_action(@page, @current_user, :read)
+    if authorized_action(@page, current_principal, :read)
       log_asset_access(@page, "wiki", @wiki)
       render json: wiki_page_json(@page, @current_user, session, use_block_editor: true)
     end
@@ -506,10 +506,10 @@ class WikiPagesApiController < ApplicationController
   def update
     perform_update = false
     if @page.new_record?
-      perform_update = true if authorized_action(@page, @current_user, [:create])
+      perform_update = true if authorized_action(@page, current_principal, [:create])
       allowed_fields = Set[:title, :body]
       allowed_fields << :block_editor_attributes if @context.account.feature_enabled?(:block_editor) || @context.try(:block_content_editor_enabled?)
-    elsif authorized_action(@page, @current_user, [:update, :update_content])
+    elsif authorized_action(@page, current_principal, [:update, :update_content])
       perform_update = true
       allowed_fields = Set[]
     end
@@ -547,7 +547,7 @@ class WikiPagesApiController < ApplicationController
   #
   # @returns Page
   def destroy
-    if authorized_action(@page, @current_user, :delete)
+    if authorized_action(@page, current_principal, :delete)
       return render_unauthorized_action if editing_restricted?(@page)
 
       if @was_front_page
@@ -571,7 +571,7 @@ class WikiPagesApiController < ApplicationController
   #
   # @returns [PageRevision]
   def revisions
-    if authorized_action(@page, @current_user, :read_revisions)
+    if authorized_action(@page, current_principal, :read_revisions)
       route = polymorphic_url([:api_v1, @context, @page, :revisions])
       scope = @page.versions
       revisions = Api.paginate(scope, self, route)
@@ -605,7 +605,7 @@ class WikiPagesApiController < ApplicationController
         permission = :read
         revision = @page.versions.current
       end
-      if authorized_action(@page, @current_user, permission)
+      if authorized_action(@page, current_principal, permission)
         include_content = if params.key?(:summary)
                             !value_to_boolean(params[:summary])
                           else
@@ -658,7 +658,7 @@ class WikiPagesApiController < ApplicationController
   #
   # @returns PageRevision
   def revert
-    if authorized_action(@page, @current_user, :read_revisions) && authorized_action(@page, @current_user, :update)
+    if authorized_action(@page, current_principal, :read_revisions) && authorized_action(@page, current_principal, :update)
       revision_id = params[:revision_id].to_i
       @revision = @page.versions.where(number: revision_id).first!.model
       @page.body = @revision.body
@@ -681,7 +681,7 @@ class WikiPagesApiController < ApplicationController
   def check_title_availability
     return render status: :not_found, json: { errors: [message: "The specified resource does not exist."] } unless Account.site_admin.feature_enabled?(:permanent_page_links)
 
-    if authorized_action(@context.wiki, @current_user, :read) && tab_enabled?(@context.class::TAB_PAGES)
+    if authorized_action(@context.wiki, current_principal, :read) && tab_enabled?(@context.class::TAB_PAGES)
       title = params.require(:title)
       query = @context.wiki.wiki_pages.not_deleted.where(title:)
 
@@ -693,13 +693,13 @@ class WikiPagesApiController < ApplicationController
   end
 
   def ai_generate_alt_text
-    return unless authorized_action(@context, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
     return render json: { error: "The feature is not available" }, status: :forbidden unless ai_alt_text_feature_enabled?
     return render json: { error: "AI client is not available" }, status: :forbidden unless CedarClient.enabled?
     return render json: {}, status: :bad_request unless ai_alt_text_params_valid?
 
     attachment = Attachment.find(params.require(:attachment_id))
-    return unless authorized_action(attachment, @current_user, :read)
+    return unless authorized_action(attachment, current_principal, :read)
     return render json: { error: "Image too large" }, status: :bad_request if attachment.size > AI_ALT_TEXT_MAX_IMAGE_SIZE
 
     unless AI_ALT_TEXT_SUPPORTED_IMAGE_TYPES.include?(attachment.content_type)
@@ -727,7 +727,7 @@ class WikiPagesApiController < ApplicationController
   end
 
   def accessibility_scan
-    return render_unauthorized_action unless @context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return render_unauthorized_action unless @context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
     return render_unauthorized_action unless @context.a11y_checker_enabled?
 
     scan = Accessibility::ResourceScannerService.new(resource: @page).call_sync
@@ -735,7 +735,7 @@ class WikiPagesApiController < ApplicationController
   end
 
   def accessibility_queue_scan
-    return render_unauthorized_action unless @context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return render_unauthorized_action unless @context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
     return render_unauthorized_action unless @context.a11y_checker_enabled?
 
     scan = Accessibility::ResourceScannerService.new(resource: @page).call
@@ -826,7 +826,7 @@ class WikiPagesApiController < ApplicationController
 
     # check user permissions
     rejected_fields = Set[]
-    if @wiki.grants_right?(@current_user, session, :update)
+    if @wiki.grants_right?(current_principal, session, :update)
       allowed_fields.clear
     else
       if workflow_state && workflow_state != @page.workflow_state
@@ -840,13 +840,13 @@ class WikiPagesApiController < ApplicationController
         rejected_fields << :editing_roles if editing_roles_changed
       end
 
-      unless @page.grants_right?(@current_user, session, :update)
+      unless @page.grants_right?(current_principal, session, :update)
         allowed_fields << :body
         allowed_fields << :block_editor_attributes if @context.account.feature_enabled?(:block_editor) || @context.try(:block_content_editor_enabled?)
         allowed_fields << :estimated_duration_attributes if @context.is_a?(Course) && @context.horizon_course?
         rejected_fields << :title if page_params.include?(:title) && page_params[:title] != @page.title
 
-        rejected_fields << :front_page if change_front_page && !@wiki.grants_right?(@current_user, session, :update)
+        rejected_fields << :front_page if change_front_page && !@wiki.grants_right?(current_principal, session, :update)
       end
     end
 
@@ -896,7 +896,7 @@ class WikiPagesApiController < ApplicationController
   def assign_todo_date
     return if params.dig(:wiki_page, :student_todo_at).nil? && params.dig(:wiki_page, :student_planner_checkbox).nil?
 
-    if @page.context.grants_right?(@current_user, session, :manage_course_content_edit)
+    if @page.context.grants_right?(current_principal, session, :manage_course_content_edit)
       @page.todo_date = params.dig(:wiki_page, :student_todo_at) if params.dig(:wiki_page, :student_todo_at)
       # Only clear out if the checkbox is explicitly specified in the request
       if params[:wiki_page].key?("student_planner_checkbox") &&

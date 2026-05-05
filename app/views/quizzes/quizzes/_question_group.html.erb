@@ -35,7 +35,7 @@
   <% if question_bank %>data-bank_question_count="<%= question_count %>"<% end %>
 >
   <%= form_for :quiz_group, url: context_url(@context, :context_quiz_quiz_groups_url, @quiz.id), html: { class: "quiz_group_form" } do %>
-    <% if can_do(@quiz, @current_user, :update) %>
+    <% if can_do(@quiz, current_principal, :update) %>
     <%= render partial: "quizzes/quizzes/move_handle" %>
     <% end %>
 
@@ -71,7 +71,7 @@
         <span id="question_points_message_<%= hash_get(group, :id, "new") %>" class="input-message__text"></span>
       </span>
     </span>
-    <% if !group && @context.grants_right?(@current_user, :read_question_banks) %>
+    <% if !group && @context.grants_right?(current_principal, :read_question_banks) %>
       <div class="group_edit">
         <a href="#" class="icon-search find_bank_link"><%= t("links.link_to_a_question_bank", "Link to a Question Bank") %></a>
       </div>

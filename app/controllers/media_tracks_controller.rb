@@ -118,7 +118,7 @@ class MediaTracksController < ApplicationController
   # @returns MediaObject | MediaTrack
   def create
     captioned_record = @attachment || @media_object
-    if authorized_action(captioned_record, @current_user, :add_captions)
+    if authorized_action(captioned_record, current_principal, :add_captions)
       track = find_or_create_track(locale: params[:locale])
       track.update!(attachment: @attachment, **params.permit(*TRACK_SETTABLE_ATTRIBUTES))
       if @attachment.present?
@@ -153,7 +153,7 @@ class MediaTracksController < ApplicationController
   def create_asr
     return not_found unless @domain_root_account.feature_enabled?(:rce_asr_captioning_improvements)
 
-    return unless authorized_action?(@attachment || @media_object, @current_user, :add_captions)
+    return unless authorized_action?(@attachment || @media_object, current_principal, :add_captions)
 
     # In the previous authorization line we checked if the attachment OR media_object has the
     # right permissions, however we can generate caption only if the media object is present.
@@ -232,7 +232,7 @@ class MediaTracksController < ApplicationController
   # @returns MediaObject | MediaTrack
   def destroy
     captioned_record = @attachment || @media_object
-    if authorized_action(captioned_record, @current_user, :delete_captions)
+    if authorized_action(captioned_record, current_principal, :delete_captions)
       @media_track = find_track_from_media_object(track_id: params[:id]).first
       raise ActiveRecord::RecordNotFound unless @media_track.present?
 
@@ -272,7 +272,7 @@ class MediaTracksController < ApplicationController
   #
   # @returns [MediaTrack]
   def update
-    return unless @media_object.grants_all_rights?(@current_user, session, :add_captions, :delete_captions)
+    return unless @media_object.grants_all_rights?(current_principal, session, :add_captions, :delete_captions)
 
     new_tracks = JSON.parse(request.body.read) || []
     new_tracks_locales = new_tracks.pluck("locale")

@@ -400,7 +400,7 @@ class SisImportsApiController < ApplicationController
   #
   # @returns [SisImport]
   def index
-    if authorized_action(@account, @current_user, [:import_sis, :manage_sis])
+    if authorized_action(@account, current_principal, [:import_sis, :manage_sis])
       scope = @account.sis_batches.order(created_at: :desc)
       if (created_since = CanvasTime.try_parse(params[:created_since]))
         scope = scope.where("created_at > ?", created_since)
@@ -440,7 +440,7 @@ class SisImportsApiController < ApplicationController
   #
   # @returns SisImport
   def importing
-    if authorized_action(@account, @current_user, [:import_sis, :manage_sis])
+    if authorized_action(@account, current_principal, [:import_sis, :manage_sis])
       batches = @account.sis_batches.importing
       render json: { sis_imports: sis_imports_json(batches, @current_user, session) }
     end
@@ -615,7 +615,7 @@ class SisImportsApiController < ApplicationController
   #
   # @returns SisImport
   def create
-    if authorized_action(@account, @current_user, :import_sis)
+    if authorized_action(@account, current_principal, :import_sis)
       params[:import_type] ||= "instructure_csv"
       raise "invalid import type parameter" unless SisBatch.valid_import_types.key?(params[:import_type])
 
@@ -751,7 +751,7 @@ class SisImportsApiController < ApplicationController
   #
   # @returns SisImport
   def show
-    if authorized_action(@account, @current_user, [:import_sis, :manage_sis])
+    if authorized_action(@account, current_principal, [:import_sis, :manage_sis])
       @batch = @account.sis_batches.find(params[:id])
       render json: sis_import_json(@batch, @current_user, session, includes: ["errors"])
     end
@@ -789,7 +789,7 @@ class SisImportsApiController < ApplicationController
   #
   # @returns Progress
   def restore_states
-    if authorized_action(@account, @current_user, :manage_sis)
+    if authorized_action(@account, current_principal, :manage_sis)
       @batch = @account.sis_batches.find(params[:id])
       unless @batch.roll_back_data.not_expired.exists?
         return render json: { message: "restore data unavailable" }, status: :bad_request
@@ -821,7 +821,7 @@ class SisImportsApiController < ApplicationController
   #
   # @returns SisImport
   def abort
-    if authorized_action(@account, @current_user, [:import_sis, :manage_sis])
+    if authorized_action(@account, current_principal, [:import_sis, :manage_sis])
       SisBatch.transaction do
         @batch = @account.sis_batches.not_completed.lock.find(params[:id])
         @batch.abort_batch
@@ -840,7 +840,7 @@ class SisImportsApiController < ApplicationController
   #
   # @returns boolean
   def abort_all_pending
-    if authorized_action(@account, @current_user, [:import_sis, :manage_sis])
+    if authorized_action(@account, current_principal, [:import_sis, :manage_sis])
       SisBatch.abort_all_pending_for_account(@account)
       render json: { aborted: true }
     end

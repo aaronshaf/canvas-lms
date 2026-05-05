@@ -224,7 +224,7 @@ class MicrosoftSync::GroupsController < ApplicationController
   def validate_user_permissions
     # Only users who can update course settings
     # should be permitted to manage the sync group
-    authorized_action(course, @current_user, :update)
+    authorized_action(course, current_principal, :update)
   end
 
   def course
@@ -244,7 +244,7 @@ class MicrosoftSync::GroupsController < ApplicationController
 
   def group_json(grp = nil)
     excludes = [:job_state]
-    unless Account.site_admin.grants_right?(@current_user, :view_error_reports)
+    unless Account.site_admin.grants_right?(current_principal, :view_error_reports)
       excludes += %i[last_error_report_id debug_info]
     end
     json = (grp || group).as_json(include_root: false, except: excludes)

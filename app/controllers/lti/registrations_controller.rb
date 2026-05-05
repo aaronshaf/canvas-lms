@@ -1922,7 +1922,7 @@ class Lti::RegistrationsController < ApplicationController
                             .transform_values { |ids| ids.tap(&:pop).reverse }
     all_account_chain_ids = account_chains.values.flatten.uniq
     account_names = Account.where(id: all_account_chain_ids).pluck(:id, :name).to_h
-    can_read_sis = @account.grants_any_right?(@current_user, :read_sis, :manage_sis)
+    can_read_sis = @account.grants_any_right?(current_principal, :read_sis, :manage_sis)
 
     accounts_json = accounts.map do |account|
       display_path = account_chains[account.id].filter_map do |id|

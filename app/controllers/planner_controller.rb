@@ -227,7 +227,7 @@ class PlannerController < ApplicationController
 
     if params.key?(:user_id)
       @user = api_find(User, params[:user_id])
-      @user == @current_user || authorized_action(@user, @current_user, :read_as_parent)
+      @user == @current_user || authorized_action(@user, current_principal, :read_as_parent)
     elsif params.key?(:observed_user_id)
       if (!params.key?(:context_codes) || params[:context_codes].empty?) && !include_visible_courses
         return render_unauthorized_action
@@ -528,7 +528,7 @@ class PlannerController < ApplicationController
       @contexts = Context.find_all_by_asset_string(context_ids) if public_access?
 
       # so we get user notes too if a superobserver
-      @user_ids = [@user.id] if params.key?(:observed_user_id) && @user.grants_right?(@current_user, session, :read_as_parent)
+      @user_ids = [@user.id] if params.key?(:observed_user_id) && @user.grants_right?(current_principal, session, :read_as_parent)
     end
 
     # Lazily evaluate account calendars to avoid expensive queries when not needed

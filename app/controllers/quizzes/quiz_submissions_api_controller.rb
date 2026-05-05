@@ -170,13 +170,13 @@ class Quizzes::QuizSubmissionsApiController < ApplicationController
   #    "quiz_submissions": [QuizSubmission]
   #  }
   def index
-    quiz_submissions = if @context.grants_any_right?(@current_user, session, :manage_grades, :view_all_grades)
+    quiz_submissions = if @context.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
                          # teachers have access to all student submissions
                          visible_student_ids = @context.apply_enrollment_visibility(@context.student_enrollments, @current_user).pluck(:user_id)
                          Api.paginate @quiz.quiz_submissions.where(user_id: visible_student_ids),
                                       self,
                                       api_v1_course_quiz_submissions_url(@context, @quiz)
-                       elsif @quiz.grants_right?(@current_user, session, :submit)
+                       elsif @quiz.grants_right?(current_principal, session, :submit)
                          # students have access only to their own submissions, both in progress, or completed`
                          submission = @quiz.quiz_submissions.where(user_id: @current_user).first
                          if submission
@@ -214,7 +214,7 @@ class Quizzes::QuizSubmissionsApiController < ApplicationController
   #    "quiz_submissions": [QuizSubmission]
   #  }
   def submission
-    unless @quiz.grants_right?(@current_user, session, :submit)
+    unless @quiz.grants_right?(current_principal, session, :submit)
       return render_unauthorized_action
     end
 
@@ -236,7 +236,7 @@ class Quizzes::QuizSubmissionsApiController < ApplicationController
   #    "quiz_submissions": [QuizSubmission]
   #  }
   def show
-    if authorized_action(@quiz_submission, @current_user, :read)
+    if authorized_action(@quiz_submission, current_principal, :read)
       if params.key?(:attempt)
         retrieve_quiz_submission_attempt!(params[:attempt])
       end
@@ -411,7 +411,7 @@ class Quizzes::QuizSubmissionsApiController < ApplicationController
   #    "time_left": [Integer]
   #  }
   def time
-    if authorized_action(@quiz_submission, @current_user, :record_events)
+    if authorized_action(@quiz_submission, current_principal, :record_events)
       render json: {
         end_at: @quiz_submission && @quiz_submission.end_at,
         time_left: @quiz_submission && @quiz_submission.time_left

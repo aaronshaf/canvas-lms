@@ -43,7 +43,7 @@
         <%= select_tag :pronouns,
                        options_for_select(([[t("None"), ""]] + @domain_root_account.pronouns + [@user.pronouns]).compact.uniq, @user.pronouns),
                        class: "show-if-editing",
-                       disabled: !@domain_root_account.can_change_pronouns? && (!@domain_root_account.can_add_pronouns? || !@domain_root_account.grants_right?(@current_user, :manage_courses_admin)) %>
+                       disabled: !@domain_root_account.can_change_pronouns? && (!@domain_root_account.can_add_pronouns? || !@domain_root_account.grants_right?(current_principal, :manage_courses_admin)) %>
       <% end %>
 
       <div class="profileDetails">
@@ -59,7 +59,7 @@
       </div>
 
       <% if @user != @current_user %>
-        <% if can_do(@user, @current_user, :remove_avatar) %>
+        <% if can_do(@user, current_principal, :remove_avatar) %>
           <a id="remove_avatar_link" href="<%= update_avatar_image_url(@user.id) %>"><%= I18n.t("Remove avatar picture") %></a>
         <% elsif !session["reported_#{@user.id}"] %>
           <a id="report_avatar_link" href="<%= report_avatar_image_url(@user.id) %>"><%= I18n.t("Report inappropriate picture") %></a>

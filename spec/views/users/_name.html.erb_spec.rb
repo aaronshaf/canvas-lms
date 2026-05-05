@@ -102,6 +102,7 @@ describe "users/name" do
       assign(:domain_root_account, account)
       assign(:context, account)
       assign(:current_user, sally)
+      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(sally))
       assign(:user, bob)
       assign(:enrollments, [])
       render partial: "users/name"
@@ -114,6 +115,7 @@ describe "users/name" do
       assign(:domain_root_account, account)
       assign(:context, account)
       assign(:current_user, bob)
+      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(bob))
       assign(:user, sally)
       assign(:enrollments, [])
       render partial: "users/name"
@@ -128,6 +130,7 @@ describe "users/name" do
       assign(:domain_root_account, account)
       assign(:context, @course)
       assign(:current_user, bob)
+      assign(:current_principal, Canvas::AdheresToPolicy::UserPrincipal.new(bob))
       assign(:user, bob)
       assign(:enrollments, [])
       render partial: "users/name"

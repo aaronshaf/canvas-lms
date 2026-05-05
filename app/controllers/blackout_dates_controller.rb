@@ -69,7 +69,7 @@ class BlackoutDatesController < ApplicationController
   # @returns [BlackoutDate]
   #
   def index
-    return unless authorized_action(@context, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     @blackout_dates = @context.blackout_dates.order(:start_date)
     render json: @blackout_dates.as_json(include_root: false)
@@ -81,7 +81,7 @@ class BlackoutDatesController < ApplicationController
   # @returns BlackoutDate
   #
   def show
-    return unless authorized_action(@context, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     render json: @blackout_date.as_json
   end
@@ -92,7 +92,7 @@ class BlackoutDatesController < ApplicationController
   # @returns BlackoutDate
   #
   def new
-    return unless authorized_action(@context, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     @blackout_date = @context.blackout_dates.new
     render json: @blackout_date.as_json
@@ -111,7 +111,7 @@ class BlackoutDatesController < ApplicationController
   # @returns BlackoutDate
   #
   def create
-    return unless authorized_action(@context, @current_user, :manage_course_content_add)
+    return unless authorized_action(@context, current_principal, :manage_course_content_add)
 
     @blackout_date = @context.blackout_dates.build(blackout_date_params)
     if @blackout_date.save
@@ -134,7 +134,7 @@ class BlackoutDatesController < ApplicationController
   # @returns BlackoutDate
   #
   def update
-    return unless authorized_action(@context, @current_user, :manage_course_content_edit)
+    return unless authorized_action(@context, current_principal, :manage_course_content_edit)
 
     if @blackout_date.update(blackout_date_params)
       render json: @blackout_date.as_json
@@ -149,7 +149,7 @@ class BlackoutDatesController < ApplicationController
   # @returns BlackoutDate
   #
   def destroy
-    return unless authorized_action(@context, @current_user, :manage_course_content_delete)
+    return unless authorized_action(@context, current_principal, :manage_course_content_delete)
 
     @blackout_date.destroy
     head :no_content
@@ -167,7 +167,7 @@ class BlackoutDatesController < ApplicationController
   #   The result (which should match the input with maybe some different IDs).
   #
   def bulk_update
-    return unless authorized_action(@context, @current_user, :manage_course_content_edit)
+    return unless authorized_action(@context, current_principal, :manage_course_content_edit)
 
     incoming_blackout_dates = params.permit(blackout_dates: %i[id start_date end_date event_title])[:blackout_dates]
     @blackout_dates = @context.blackout_dates

@@ -26,6 +26,8 @@ describe WebZipExportHelper do
     @context = @course
   end
 
+  let(:current_principal) { @current_user && Canvas::AdheresToPolicy::UserPrincipal.new(@current_user) }
+
   describe "#course_allow_web_export_download?" do
     it "returns setting" do
       expect(course_allow_web_export_download?).to be false

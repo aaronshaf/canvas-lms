@@ -22,13 +22,13 @@
   js_bundle :course_settings
   set_active_tab "settings"
 
-  can_manage = can_do(@context, @current_user, :manage)
-  can_edit_course_content = can_do(@context, @current_user, :manage_course_content_edit)
-  can_set_grading_scheme = can_do(@context, @current_user, :set_grading_scheme)
-  can_change_visibility = can_do(@context, @current_user, :manage_course_visibility)
+  can_manage = can_do(@context, current_principal, :manage)
+  can_edit_course_content = can_do(@context, current_principal, :manage_course_content_edit)
+  can_set_grading_scheme = can_do(@context, current_principal, :set_grading_scheme)
+  can_change_visibility = can_do(@context, current_principal, :manage_course_visibility)
 
   if @context&.root_account&.feature_enabled?(:course_navigation_and_feature_options_permissions)
-    can_edit_course_details = can_do(@context, @current_user, :manage_course_details)
+    can_edit_course_details = can_do(@context, current_principal, :manage_course_details)
     can_manage &&= can_edit_course_details
     can_show_submit_button = can_manage || can_change_visibility || can_set_grading_scheme
   else
@@ -38,11 +38,11 @@
     can_show_submit_button = can_manage
   end
 
-  can_manage_courses = can_do(@context.account, @current_user, :manage_courses_admin)
+  can_manage_courses = can_do(@context.account, current_principal, :manage_courses_admin)
   can_rename_course = can_manage_courses || (can_manage && !@context.root_account.settings[:prevent_course_renaming_by_teachers])
-  can_manage_master_courses = can_manage_courses && can_do(@context.account, @current_user, :manage_master_courses)
+  can_manage_master_courses = can_manage_courses && can_do(@context.account, current_principal, :manage_master_courses)
   has_multiple_sections = @context.course_sections.active.many?
-  show_publish_controls = can_do(@context, @current_user, :manage_courses_publish) && (@context.unpublished? || @context.unpublishable?)
+  show_publish_controls = can_do(@context, current_principal, :manage_courses_publish) && (@context.unpublished? || @context.unpublishable?)
 
   is_master_course = MasterCourses::MasterTemplate.is_master_course?(@context)
   blueprint_subscription = @context.master_course_subscriptions.active.first
@@ -58,17 +58,17 @@
 <% tabs = [] %>
 <% tabs << { id: "details",   title: t("tabs.details",    default: "Course Details"), contentMount: "tab-details-mount" } %>
 <% tabs << { id: "sections",  title: t("tabs.sections",   default: "Sections"), contentMount: "tab-sections-mount" } %>
-<% if can_do(@context, @current_user, :update) && !@context.elementary_homeroom_course? %>
+<% if can_do(@context, current_principal, :update) && !@context.elementary_homeroom_course? %>
   <% tabs << { id: "navigation", title: t("tabs.navigation", default: "Navigation"), contentMount: "tab-navigation-mount" } %>
 <% end %>
-<% if can_do(@context, @current_user, :read_as_admin) && !@context.elementary_homeroom_course? %>
+<% if can_do(@context, current_principal, :read_as_admin) && !@context.elementary_homeroom_course? %>
   <% tabs << {
        id: "tools",
        title: t("tabs.apps", default: "Apps"),
        contentMount: "tab-tools-mount"
      } %>
 <% end %>
-<% if @context.root_account.feature_enabled?(:lti_apps_page_instructors) && can_do(@context, @current_user, :read_as_admin) &&
+<% if @context.root_account.feature_enabled?(:lti_apps_page_instructors) && can_do(@context, current_principal, :read_as_admin) &&
       !@context.elementary_homeroom_course? %>
   <% tabs << {
        id: "apps",
@@ -79,13 +79,13 @@
 <% if @publishing_enabled %>
   <% tabs << { id: "grade-publishing", title: t("tabs.grade_syncing", default: "Grade Syncing"), contentMount: "tab-grade-publishing-mount" } %>
 <% end %>
-<% if @context.root_account.settings[:enable_alerts] && can_do(@context, @current_user, :manage_interaction_alerts) %>
-  <% tabs << { id: "alerts", title: t("tabs.alerts", default: "Alerts"),                contentMount: "tab-alerts-mount" } %>
+<% if @context.root_account.settings[:enable_alerts] && can_do(@context, current_principal, :manage_interaction_alerts) %>
+  <% tabs << { id: "alerts", title: t("tabs.alerts", default: "Alerts"), contentMount: "tab-alerts-mount" } %>
 <% end %>
-<% if can_do(@context, @current_user, :view_feature_flags) && !@context.elementary_homeroom_course? %>
+<% if can_do(@context, current_principal, :view_feature_flags) && !@context.elementary_homeroom_course? %>
   <% tabs << { id: "features", title: t("tabs.feature_options", default: "Feature Options"), contentMount: "tab-features-mount" } %>
 <% end %>
-<% if @context.grants_right?(@current_user, session, :update) && @context.root_account.feature_enabled?(:microsoft_group_enrollments_syncing) %>
+<% if @context.grants_right?(current_principal, session, :update) && @context.root_account.feature_enabled?(:microsoft_group_enrollments_syncing) %>
   <% tabs << { id: "integrations", title: t("tabs.integrations", default: "Integrations"), contentMount: "tab-integrations-mount" } %>
 <% end %>
 <% if @context.feature_enabled?(:ams_course_integration) %>
@@ -200,7 +200,7 @@
         <div class="form-label nobr"><%= f.blabel :blueprint_course, en: "Blueprint Course" %></div>
         <div class="nobr">
           <% if master_course %>
-            <% if master_course.grants_right? @current_user, session, :read %>
+            <% if master_course.grants_right? current_principal, session, :read %>
               <a href="<%= course_url(master_course) %>"><%= master_course.nickname_for(@current_user) %></a>
             <% else %>
               <%= master_course.nickname_for(@current_user) %>
@@ -217,9 +217,9 @@
         <div class="form-label nobr"><%= f.blabel :course_template, en: "Course Template" %></div>
         <div class="nobr">
           <% editable = if @context.template?
-                          @context.can_stop_being_template? && @context.grants_right?(@current_user, session, :delete_course_template)
+                          @context.can_stop_being_template? && @context.grants_right?(current_principal, session, :delete_course_template)
                         else
-                          @context.can_become_template? && @context.grants_right?(@current_user, session, :add_course_template)
+                          @context.can_become_template? && @context.grants_right?(current_principal, session, :add_course_template)
                         end %>
           <div id="course_template_details" data-is-editable=<%= editable %> %>></div>
         </div>
@@ -235,11 +235,11 @@
             <%= t(:none, "None") %>
           <% end %>
         </div>
-      <% if (@context.sis_source_id && can_do(@context, @current_user, :read_sis)) || can_do(@context.root_account, @current_user, :manage_sis) %>
+      <% if (@context.sis_source_id && can_do(@context, current_principal, :read_sis)) || can_do(@context.root_account, current_principal, :manage_sis) %>
         </div><div class="form-row">
           <div class="form-label"><%= f.blabel :sis_source_id, en: "SIS ID" %></div>
           <div style="word-wrap: break-word;">
-            <% if can_manage && can_do(@context.root_account, @current_user, :manage_sis) %>
+            <% if can_manage && can_do(@context.root_account, current_principal, :manage_sis) %>
               <%= f.text_field :sis_source_id, title: t("sis_source_id", "SIS ID"), value: @context.sis_source_id %>
             <% else %>
               <span id="course_sis_source_id">
@@ -278,7 +278,7 @@
 
           <% unless can_edit_account %>
             <span id="course_account_id">
-              <% if can_do(@context.account, @current_user, :read) %>
+              <% if can_do(@context.account, current_principal, :read) %>
                 <%= link_to @context.account.name, account_url(@context.account.id) %>
               <% else %>
                 <%= @context.account.name %>
@@ -327,7 +327,7 @@
       <div class="form-row">
         <div class="form-label"><%= f.blabel :enrollment_term_id, en: "Term" %></div>
         <div>
-          <% if can_manage && can_do(@context.account, @current_user, :manage_courses_admin) %>
+          <% if can_manage && can_do(@context.account, current_principal, :manage_courses_admin) %>
             <select name="course[enrollment_term_id]" id="course_enrollment_term_id">
               <% @context.root_account.enrollment_terms.active.sort_by { |t| t.start_at || CanvasSort::First }.each do |term| %>
                 <option value="<%= term.id %>" <%= "selected" if term.id == @context.enrollment_term_id %>><%= term.name %></option>
@@ -402,7 +402,7 @@
       </div><div class="form-row">
         <div class="form-label"><%= f.blabel :storage_quota_mb, :storage_quota, en: "File Storage" %></div>
         <div>
-          <% if can_manage && can_do(@context.account, @current_user, :manage_storage_quotas) %>
+          <% if can_manage && can_do(@context.account, current_principal, :manage_storage_quotas) %>
             <%= f.text_field :storage_quota_mb, style: "width: 50px;", title: t("megabytes", "megabytes"), value: @context.storage_quota_mb %>
           <% else %>
             <%= @context.storage_quota_mb %>
@@ -746,7 +746,7 @@
         <footer class="sticky-footer">
           <div>
             <% if Setting.get("cross_root_account_course_moves", "false") == "true" &&
-                  Account.site_admin.grants_any_right?(@current_user, :manage_courses_admin) && Account.root_accounts.many? %>
+                  Account.site_admin.grants_any_right?(current_principal, :manage_courses_admin) && Account.root_accounts.many? %>
                 <a href="#" class="move_course_link btn"><i class="icon-arrow-right"></i> <%= t("links.move_course", %(Move To Another Account)) %></a>
             <% end %>
               <span class="course_form">
@@ -775,7 +775,7 @@
             }) %>
     </div>
     <ul id="sections">
-      <% if can_do(@context.course_sections.temp_record, @current_user, :create) %>
+      <% if can_do(@context.course_sections.temp_record, current_principal, :create) %>
         <li>
           <%= form_for :course_section, url: context_url(@context, :context_sections_url), html: { id: "add_section_form", class: "form-inline", style: "margin-top: 20px;" } do |f| %>
             <h3><%= f.blabel :name, :course_section_name, en: "Add a New Section" %></h3>
@@ -815,7 +815,7 @@
       </li>
       <% @context.course_sections.active.union(@context.moved_sections.active).order(CourseSection.best_unicode_collation_key("name")).each do |section| %>
         <li class="section">
-          <% if can_do(section, @current_user, :read) && section.course_id == @context.id %>
+          <% if can_do(section, current_principal, :read) && section.course_id == @context.id %>
             <a href="<%= context_url(@context, :context_section_url, section) %>" class="name">
               <%= section.display_name %>
             </a>
@@ -833,7 +833,7 @@
           </span>
           <% if section.course_id == @context.id %>
             <span class="section_links">
-              <% if can_do(section, @current_user, :update) && !section.defined_by_sis? %>
+              <% if can_do(section, current_principal, :update) && !section.defined_by_sis? %>
                 <a class="Button Button--icon-action edit_section_link"
                   role="button"
                   title="<%= t("links.title.edit_section", %(Edit Section)) %>"
@@ -842,7 +842,7 @@
                   <span class="screenreader-only"><%= t('Edit Section "%{name}"', name: section.name) %></span>
                 </a>
               <% end %>
-              <% if can_do(section, @current_user, :delete) %>
+              <% if can_do(section, current_principal, :delete) %>
                 <% if section.deletable? %>
                   <a class="Button Button--icon-action delete_section_link"
                     role="button"
@@ -891,7 +891,7 @@
   <% if @context.account.feature_enabled?(:intelligent_insights_modernisation) %>
     <div id="tab-criteria-mount"></div>
   <% end %>
-  <% if can_do(@context, @current_user, :update) && !@context.elementary_homeroom_course? %>
+  <% if can_do(@context, current_principal, :update) && !@context.elementary_homeroom_course? %>
   <div id="tab-navigation-mount">
     <h2 class="screenreader-only"><%= t("headings.navigation", %(Course Navigation)) %></h2>
     <div class="screenreader-only drag_and_drop_warning" tabindex="0">
@@ -919,13 +919,13 @@
   </div>
   <% end %>
 
-  <% if can_do(@context, @current_user, :read_as_admin) && !@context.elementary_homeroom_course? %>
+  <% if can_do(@context, current_principal, :read_as_admin) && !@context.elementary_homeroom_course? %>
     <div id="tab-tools-mount">
       <%= render partial: "external_tools/external_tools" %>
     </div>
   <% end %>
 
-  <% if @context.root_account.feature_enabled?(:lti_apps_page_instructors) && can_do(@context, @current_user, :read_as_admin) && !@context.elementary_homeroom_course? %>
+  <% if @context.root_account.feature_enabled?(:lti_apps_page_instructors) && can_do(@context, current_principal, :read_as_admin) && !@context.elementary_homeroom_course? %>
     <div id="tab-apps-mount"></div>
   <% end %>
 
@@ -938,27 +938,27 @@
     </div>
   <% end %>
 
-  <% if @context.root_account.settings[:enable_alerts] && can_do(@context, @current_user, :manage_interaction_alerts) && !@context.elementary_homeroom_course? %>
+  <% if @context.root_account.settings[:enable_alerts] && can_do(@context, current_principal, :manage_interaction_alerts) && !@context.elementary_homeroom_course? %>
     <div id="tab-alerts-mount">
       <div id="alerts_mount_point"></div>
     </div>
   <% end %>
 
-  <% if can_do(@context, @current_user, :view_feature_flags) && !@context.elementary_homeroom_course? %>
+  <% if can_do(@context, current_principal, :view_feature_flags) && !@context.elementary_homeroom_course? %>
     <div id="tab-features-mount"></div>
   <% end %>
 
-  <% if @context.grants_right?(@current_user, session, :update) && @context.root_account.feature_enabled?(:microsoft_group_enrollments_syncing) && !@context.elementary_homeroom_course? %>
+  <% if @context.grants_right?(current_principal, session, :update) && @context.root_account.feature_enabled?(:microsoft_group_enrollments_syncing) && !@context.elementary_homeroom_course? %>
     <div id="tab-integrations-mount"></div>
   <% end %>
   <% if @context.feature_enabled?(:ams_course_integration) %>
     <div id="tab-quiz-settings-mount"></div>
   <% end %>
-  <% if @context.account.feature_enabled?(:horizon_course_setting) && can_do(@context, @current_user, :read_as_admin) %>
+  <% if @context.account.feature_enabled?(:horizon_course_setting) && can_do(@context, current_principal, :read_as_admin) %>
     <% js_bundle :horizon_toggle %>
   <% end %>
 <% end %>
-<% if Account.site_admin.grants_any_right?(@current_user, :manage_courses_admin) %>
+<% if Account.site_admin.grants_any_right?(current_principal, :manage_courses_admin) %>
   <div id="move_course_dialog" style="display: none;">
     <h2><%= t("headings.move_course", %(Move the course to another root account)) %></h2>
     <%= t("deatils.move_course", %(Select a new root account for this course.  After you move the course you'll want to specify a new department for the course as well.)) %>

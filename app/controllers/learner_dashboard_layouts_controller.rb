@@ -25,14 +25,14 @@ class LearnerDashboardLayoutsController < ApplicationController
   before_action :extract_block_editor_data, only: %i[create update]
 
   def index
-    return unless authorized_action(@context, @current_user, :manage_learner_dashboards_view)
+    return unless authorized_action(@context, current_principal, :manage_learner_dashboards_view)
 
     layouts = LearnerDashboardLayout.visible_to_account(@context)
     render json: layouts.map { |l| learner_dashboard_layout_json(l, @current_user, session) }
   end
 
   def show
-    return unless authorized_action(@context, @current_user, :manage_learner_dashboards_view)
+    return unless authorized_action(@context, current_principal, :manage_learner_dashboards_view)
 
     layout = LearnerDashboardLayout.visible_to_account(@context).find(params[:id])
     render json: learner_dashboard_layout_json(layout, @current_user, session, include_block_editor_data: true)
@@ -43,7 +43,7 @@ class LearnerDashboardLayoutsController < ApplicationController
   end
 
   def create
-    return unless authorized_action(@context, @current_user, :manage_learner_dashboards_add)
+    return unless authorized_action(@context, current_principal, :manage_learner_dashboards_add)
 
     layout = @context.learner_dashboard_layouts.build(layout_params)
     if layout.save
@@ -59,7 +59,7 @@ class LearnerDashboardLayoutsController < ApplicationController
   end
 
   def update
-    return unless authorized_action(@context, @current_user, :manage_learner_dashboards_edit)
+    return unless authorized_action(@context, current_principal, :manage_learner_dashboards_edit)
 
     layout = @context.learner_dashboard_layouts.active.find(params[:id])
     if layout.update(layout_params)
@@ -77,7 +77,7 @@ class LearnerDashboardLayoutsController < ApplicationController
   end
 
   def destroy
-    return unless authorized_action(@context, @current_user, :manage_learner_dashboards_delete)
+    return unless authorized_action(@context, current_principal, :manage_learner_dashboards_delete)
 
     layout = @context.learner_dashboard_layouts.active.find(params[:id])
     layout.destroy

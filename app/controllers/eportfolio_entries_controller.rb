@@ -30,7 +30,7 @@ class EportfolioEntriesController < ApplicationController
   rescue_from EportfolioNotFound, with: :rescue_expected_error_type
 
   def create
-    if authorized_action(@portfolio, @current_user, :update)
+    if authorized_action(@portfolio, current_principal, :update)
       @category = @portfolio.eportfolio_categories.find(params[:eportfolio_entry].delete(:eportfolio_category_id))
 
       @page = @portfolio.eportfolio_entries.build(eportfolio_entry_params)
@@ -58,7 +58,7 @@ class EportfolioEntriesController < ApplicationController
       session[:eportfolio_ids] << @portfolio.id
       session[:permissions_key] = SecureRandom.uuid
     end
-    if authorized_action(@portfolio, @current_user, :read)
+    if authorized_action(@portfolio, current_principal, :read)
       browser_env = rce_js_env
       browser_env[:eportfolio_id] = @portfolio.id
       if params[:category_name]
@@ -84,7 +84,7 @@ class EportfolioEntriesController < ApplicationController
   end
 
   def update
-    if authorized_action(@portfolio, @current_user, :update)
+    if authorized_action(@portfolio, current_principal, :update)
       @entry = @portfolio.eportfolio_entries.find(params[:id])
       @entry.parse_content(params) if params[:section_count]
       category_id = params[:eportfolio_entry].delete(:eportfolio_category_id)
@@ -105,7 +105,7 @@ class EportfolioEntriesController < ApplicationController
   end
 
   def destroy
-    if authorized_action(@portfolio, @current_user, :update)
+    if authorized_action(@portfolio, current_principal, :update)
       @entry = @portfolio.eportfolio_entries.find(params[:id])
       @category = @entry.eportfolio_category
       respond_to do |format|
@@ -118,7 +118,7 @@ class EportfolioEntriesController < ApplicationController
   end
 
   def attachment
-    if authorized_action(@portfolio, @current_user, :read)
+    if authorized_action(@portfolio, current_principal, :read)
       @entry = @portfolio.eportfolio_entries.find(params[:entry_id])
       @category = @entry.eportfolio_category
       @attachment = @portfolio.user.all_attachments.shard(@portfolio.user).where(uuid: params[:attachment_id]).first
@@ -137,7 +137,7 @@ class EportfolioEntriesController < ApplicationController
   end
 
   def submission
-    if authorized_action(@portfolio, @current_user, :read)
+    if authorized_action(@portfolio, current_principal, :read)
       @entry = @portfolio.eportfolio_entries.find(params[:entry_id])
       # ensure the submission being requested actually exists in the current entry
       raise ActiveRecord::RecordNotFound unless @entry.submission_ids.map(&:to_i).include?(params[:submission_id].to_i)

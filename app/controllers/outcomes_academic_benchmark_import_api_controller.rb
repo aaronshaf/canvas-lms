@@ -68,7 +68,7 @@ class OutcomesAcademicBenchmarkImportApiController < ApplicationController
   protected
 
   def can_manage_global_outcomes
-    authorized_action(Account.site_admin, @current_user, :manage_global_outcomes)
+    authorized_action(Account.site_admin, current_principal, :manage_global_outcomes)
   end
 
   def has_api_config

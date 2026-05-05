@@ -197,7 +197,7 @@ module Quizzes
     end
 
     def user_has_teacher_level_access?
-      authorized_action(@quiz, @current_user, [:grade, :read_statistics])
+      authorized_action(@quiz, current_principal, [:grade, :read_statistics])
     end
   end
 end

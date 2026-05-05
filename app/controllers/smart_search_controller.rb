@@ -85,7 +85,7 @@ class SmartSearchController < ApplicationController
   #
   # @returns [SearchResult]
   def search
-    return render_unauthorized_action unless @context.grants_right?(@current_user, session, :read)
+    return render_unauthorized_action unless @context.grants_right?(current_principal, session, :read)
     return render_unauthorized_action unless SmartSearch.smart_search_available?(@context)
     return render json: { error: "missing 'q' param" }, status: :bad_request unless params.key?(:q)
 

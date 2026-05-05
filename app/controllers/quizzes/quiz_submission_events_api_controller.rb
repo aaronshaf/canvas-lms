@@ -76,7 +76,7 @@ class Quizzes::QuizSubmissionEventsApiController < ApplicationController
   #  }
   #
   def create
-    if authorized_action(@quiz_submission, @current_user, :record_events)
+    if authorized_action(@quiz_submission, current_principal, :record_events)
       params["quiz_submission_events"]&.each do |datum|
         Quizzes::QuizSubmissionEvent.create do |event|
           event.quiz_submission_id = @quiz_submission.id
@@ -118,7 +118,7 @@ class Quizzes::QuizSubmissionEventsApiController < ApplicationController
   #  }
   #
   def index
-    if authorized_action(@quiz_submission, @current_user, :view_log)
+    if authorized_action(@quiz_submission, current_principal, :view_log)
       unless @context.feature_enabled?(:quiz_log_auditing)
         reject! "quiz log auditing must be enabled", 400
       end

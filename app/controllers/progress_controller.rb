@@ -108,7 +108,7 @@ class ProgressController < ApplicationController
   # @returns Progress
   def show
     progress = Progress.find(params[:id])
-    if authorized_action(progress.context, @current_user, :read)
+    if authorized_action(progress.context, current_principal, :read)
       render json: progress_json(progress, @current_user, session)
     end
   end
@@ -122,7 +122,7 @@ class ProgressController < ApplicationController
   # @returns Progress
   def cancel
     progress = Progress.find(params[:id])
-    if authorized_action(progress, @current_user, :cancel)
+    if authorized_action(progress, current_principal, :cancel)
       progress.update!(workflow_state: "failed", message: params[:message])
       render json: progress_json(progress, @current_user, session)
     end

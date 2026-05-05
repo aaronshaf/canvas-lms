@@ -53,8 +53,8 @@
          Time.zone.today,
          Time.zone.name,
          recent_event.context.short_name,
-         recent_event.context.grants_right?(@current_user, :manage_grades),
-         recent_event.context.grants_right?(@current_user, :participate_as_student)].cache_key) do
+         recent_event.context.grants_right?(current_principal, :manage_grades),
+         recent_event.context.grants_right?(current_principal, :participate_as_student)].cache_key) do
      _icon_explanation, icon_aria_label, icon_class = icon_data(context: @context,
                                                                 contexts: @contexts,
                                                                 current_user: @current_user,

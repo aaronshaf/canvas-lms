@@ -184,7 +184,7 @@ class TranslationController < ApplicationController
   end
 
   def user_can_read?
-    @context.grants_right?(@current_user, session, :read)
+    @context.grants_right?(current_principal, session, :read)
   end
 
   def require_inbox_translation

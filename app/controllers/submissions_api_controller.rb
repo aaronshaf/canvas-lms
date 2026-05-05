@@ -253,7 +253,7 @@ class SubmissionsApiController < ApplicationController
   #
   # @returns [Submission]
   def index
-    if authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    if authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
       assignment_scope = AbstractAssignment.assignment_or_peer_review.where(context: @context).active
       @assignment = api_find(assignment_scope, params[:assignment_id])
       includes = Array.wrap(params[:include])
@@ -389,7 +389,7 @@ class SubmissionsApiController < ApplicationController
       student_ids << @current_user.id if student_ids.empty?
     end
 
-    can_view_all = @context.grants_any_right?(@current_user, session, :manage_grades, :view_all_grades)
+    can_view_all = @context.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
     if all && can_view_all
       # this is a scope, and will generate subqueries
       student_ids = @context.apply_enrollment_visibility(@context.all_student_enrollments, @current_user, section_ids).select(:user_id)
@@ -407,7 +407,7 @@ class SubmissionsApiController < ApplicationController
                                     .pluck(:associated_user_id)
 
       # can view self?
-      if @context.grants_right?(@current_user, session, :read_grades)
+      if @context.grants_right?(current_principal, session, :read_grades)
         allowed_student_ids << @current_user.id
       end
       return render_unauthorized_action if allowed_student_ids.empty?
@@ -490,7 +490,7 @@ class SubmissionsApiController < ApplicationController
     assignment_visibilities = AssignmentVisibility::AssignmentVisibilityService.users_with_visibility_by_assignment(course_id: @context.id, user_ids: student_ids, assignment_ids: assignments.map(&:id))
 
     # unless teacher, filter assignments down to only assignments current user can see
-    unless @context.grants_any_right?(@current_user, :read_as_admin, :manage_grades)
+    unless @context.grants_any_right?(current_principal, :read_as_admin, :manage_grades)
       assignments = assignments.select { |a| assignment_visibilities.fetch(a.id, []).intersect?(student_ids) }
     end
 
@@ -543,7 +543,7 @@ class SubmissionsApiController < ApplicationController
       submissions_for_user = submissions.group_by(&:user_id)
 
       result = []
-      show_sis_info = context.grants_any_right?(@current_user, :read_sis, :manage_sis)
+      show_sis_info = context.grants_any_right?(current_principal, :read_sis, :manage_sis)
 
       # preload the enrollments for this page of students, sorting to ensure active enrollments are preferred
       page_enrollments = enrollments.where(user_id: students.map(&:id))
@@ -644,8 +644,8 @@ class SubmissionsApiController < ApplicationController
   def show
     Submission.bulk_load_attachments_and_previews([@submission])
 
-    if authorized_action(@submission, @current_user, :read)
-      if @context.grants_any_right?(@current_user, :read_as_admin, :manage_grades) ||
+    if authorized_action(@submission, current_principal, :read)
+      if @context.grants_any_right?(current_principal, :read_as_admin, :manage_grades) ||
          @submission.assignment_visible_to_user?(@current_user)
         includes = Array(params[:include])
         @submission.visible_to_user = includes.include?("visibility") ? @assignment.visible_to_user?(@submission.user) : true
@@ -707,7 +707,7 @@ class SubmissionsApiController < ApplicationController
     # you'll also be able to use this api for uploading an attachment to
     # a submission comment.
     permission = :grade if @user != @current_user
-    if authorized_action(@assignment, @current_user, permission)
+    if authorized_action(@assignment, current_principal, permission)
       api_attachment_preflight(
         @user,
         request,
@@ -897,9 +897,9 @@ class SubmissionsApiController < ApplicationController
     @submission ||= @assignment.all_submissions.find_or_create_by!(user: @user)
 
     authorized = if params[:submission] || params[:rubric_assessment]
-                   authorized_action(@submission, @current_user, :grade)
+                   authorized_action(@submission, current_principal, :grade)
                  else
-                   authorized_action(@submission, @current_user, :comment)
+                   authorized_action(@submission, current_principal, :comment)
                  end
 
     if authorized
@@ -1030,7 +1030,7 @@ class SubmissionsApiController < ApplicationController
         if (file_ids = params[:comment][:file_ids])
           attachments = Attachment.where(id: file_ids).to_a
           attachable = attachments.all? do |a|
-            a.grants_right?(@current_user, :attach_to_submission_comment)
+            a.grants_right?(current_principal, :attach_to_submission_comment)
           end
           unless attachable
             render_unauthorized_action
@@ -1242,7 +1242,7 @@ class SubmissionsApiController < ApplicationController
   # @returns [AnonymousUserDisplay] if anonymous grading is enabled for the assignment and the
   #   allow_new_anonymous_id parameter is true
   def gradeable_students
-    if authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    if authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
       @assignment = api_find(@context.assignments.active, params[:assignment_id])
       includes = Array(params[:include])
 
@@ -1318,7 +1318,7 @@ class SubmissionsApiController < ApplicationController
   #     }
   #   ]
   def multiple_gradeable_students
-    if authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    if authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
       assignment_ids = Array(params[:assignment_ids])
 
       student_scope = context.students_visible_to(@current_user, include: :inactive)
@@ -1400,7 +1400,7 @@ class SubmissionsApiController < ApplicationController
     @assignments = api_find_all(@context.assignments_scope, assignment_ids)
 
     unless @assignments.all?(&:published?) &&
-           @context.grants_right?(@current_user, session, :manage_grades)
+           @context.grants_right?(current_principal, session, :manage_grades)
       return render_unauthorized_action
     end
 
@@ -1491,7 +1491,7 @@ class SubmissionsApiController < ApplicationController
   #        -H "Content-Length: 0"
   #
   def mark_submission_item_read
-    if authorized_action(@submission, @current_user, :mark_item_read)
+    if authorized_action(@submission, current_principal, :mark_item_read)
       item = params[:item]
 
       if item == "comment"
@@ -1518,7 +1518,7 @@ class SubmissionsApiController < ApplicationController
   #        -H "Content-Length: 0"
   #
   def submissions_clear_unread
-    return unless authorized_action(Account.site_admin, @current_user, :manage_students)
+    return unless authorized_action(Account.site_admin, current_principal, :manage_students)
 
     user_id = params[:user_id]
     course_id = params[:course_id]
@@ -1554,7 +1554,7 @@ class SubmissionsApiController < ApplicationController
   #   }
   #
   def rubric_assessments_read_state
-    if authorized_action(@submission, @current_user, :read)
+    if authorized_action(@submission, current_principal, :read)
       render json: { read: !@user.unread_rubric_assessments?(@submission) }
     end
   end
@@ -1607,7 +1607,7 @@ class SubmissionsApiController < ApplicationController
   #   }
   #
   def document_annotations_read_state
-    if authorized_action(@submission, @current_user, :read)
+    if authorized_action(@submission, current_principal, :read)
       render json: { read: !@user.unread_submission_annotations?(@submission) }
     end
   end
@@ -1661,7 +1661,7 @@ class SubmissionsApiController < ApplicationController
   #     "not_submitted": 42
   #   }
   def submission_summary
-    if authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    if authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
       @assignment = api_find(@context.assignments.active, params[:assignment_id])
       student_ids = if should_group?
                       @assignment.representatives(user: @current_user).map(&:id)

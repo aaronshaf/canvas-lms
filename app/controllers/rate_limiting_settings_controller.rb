@@ -165,7 +165,7 @@ class RateLimitingSettingsController < ApplicationController
   private
 
   def check_rate_limiting_permission
-    unless @context.grants_right?(@current_user, session, :manage_rate_limiting)
+    unless @context.grants_right?(current_principal, session, :manage_rate_limiting)
       respond_to do |format|
         format.html { redirect_to account_path(@context) }
         format.json { render json: { error: "Permission denied" }, status: :forbidden }

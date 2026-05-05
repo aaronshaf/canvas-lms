@@ -119,7 +119,7 @@ module Lti
     def require_access_to_context
       if context.is_a?(Account)
         require_user
-      elsif !context.grants_right?(@current_user, session, :read)
+      elsif !context.grants_right?(current_principal, session, :read)
         render_unauthorized_action
       end
     end

@@ -432,7 +432,7 @@ class SisApiController < ApplicationController
   end
 
   def require_view_all_grades
-    authorized_action(context, @current_user, :view_all_grades)
+    authorized_action(context, current_principal, :view_all_grades)
   end
 
   def require_grade_export

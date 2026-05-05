@@ -257,7 +257,7 @@ class AccountReportsController < ApplicationController
   #  ]
   #
   def available_reports
-    if authorized_action(@account, @current_user, :read_reports)
+    if authorized_action(@account, current_principal, :read_reports)
       @root_account = @account.root_account # used in partials
       available_reports = AccountReport.available_reports
       includes = Array(params[:include])
@@ -329,7 +329,7 @@ class AccountReportsController < ApplicationController
   # @returns Report
   #
   def create
-    if authorized_action(@context, @current_user, :read_reports)
+    if authorized_action(@context, current_principal, :read_reports)
       available_reports = AccountReport.available_reports.keys
       report_type = params[:report]
       raise ActiveRecord::RecordNotFound unless available_reports.include? report_type
@@ -374,7 +374,7 @@ class AccountReportsController < ApplicationController
   # @returns [Report]
   #
   def index
-    if authorized_action(@context, @current_user, :read_reports)
+    if authorized_action(@context, current_principal, :read_reports)
       reports = GuardRail.activate(:secondary) do
         Api.paginate(type_scope.active.most_recent.except(:limit), self, url_for({ action: :index, controller: :account_reports }))
       end
@@ -393,7 +393,7 @@ class AccountReportsController < ApplicationController
   # @returns Report
   #
   def show
-    if authorized_action(@context, @current_user, :read_reports)
+    if authorized_action(@context, current_principal, :read_reports)
 
       report = type_scope.active.find(params[:id])
       render json: account_report_json(report, @current_user)
@@ -411,7 +411,7 @@ class AccountReportsController < ApplicationController
   # @returns Report
   #
   def destroy
-    if authorized_action(@context, @current_user, :read_reports)
+    if authorized_action(@context, current_principal, :read_reports)
       report = type_scope.active.find(params[:id])
 
       if report.destroy
@@ -434,7 +434,7 @@ class AccountReportsController < ApplicationController
   # @returns Report
   #
   def abort
-    if authorized_action(@context, @current_user, :read_reports)
+    if authorized_action(@context, current_principal, :read_reports)
       report = type_scope.created_or_running.find(params[:id])
 
       if report.update(workflow_state: "aborted")

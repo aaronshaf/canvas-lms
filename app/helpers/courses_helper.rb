@@ -113,7 +113,7 @@ module CoursesHelper
     account ||= @domain_root_account.manually_created_courses_account
     course = Course.new(account_id: account.id)
     TeacherEnrollment.new(user: @current_user, course:)
-    account.grants_right?(@current_user, perm_name.to_sym)
+    account.grants_right?(current_principal, perm_name.to_sym)
   end
 
   def readable_grade(submission)

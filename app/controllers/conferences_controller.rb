@@ -185,13 +185,13 @@ class ConferencesController < ApplicationController
   #
   # @returns [Conference]
   def index
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
     return unless tab_enabled?(@context.class::TAB_CONFERENCES)
     return unless @current_user
 
     page_has_instui_topnav
     log_api_asset_access(["conferences", @context], "conferences", "other")
-    conferences = if @context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    conferences = if @context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
                     @context.web_conferences.active
                   else
                     @current_user.web_conferences.active.shard(@context.shard).where(context_type: @context.class.to_s, context_id: @context.id)
@@ -309,8 +309,8 @@ class ConferencesController < ApplicationController
              sections: @sections&.map { |s| { id: s.id, name: s.display_name } },
              group_user_ids_map: @group_user_ids_map,
              section_user_ids_map: @section_user_ids_map,
-             can_create_conferences: @context.grants_right?(@current_user, session, :create_conferences),
-             can_manage_calendar: @context.grants_right?(@current_user, session, :manage_calendar),
+             can_create_conferences: @context.grants_right?(current_principal, session, :create_conferences),
+             can_manage_calendar: @context.grants_right?(current_principal, session, :manage_calendar),
              render_alternatives: @render_alternatives,
              bbb_recording_enabled: bbb_config ? bbb_config[:recording_enabled] : false,
              context_name: @context&.name || nil
@@ -321,7 +321,7 @@ class ConferencesController < ApplicationController
   protected :web_index
 
   def show
-    if authorized_action(@conference, @current_user, :read)
+    if authorized_action(@conference, current_principal, :read)
       if params[:external_url]
         urls = @conference.external_url_for(params[:external_url], @current_user, params[:url_id])
         if request.xhr?
@@ -342,7 +342,7 @@ class ConferencesController < ApplicationController
   end
 
   def create
-    if authorized_action(@context.web_conferences.temp_record, @current_user, :create)
+    if authorized_action(@context.web_conferences.temp_record, current_principal, :create)
       calendar_event_param = params[:web_conference].try(:delete, :calendar_event)
       @conference = @context.web_conferences.build(conference_params)
       @conference.settings[:default_return_url] = named_context_url(@context, :context_url, include_host: true)
@@ -380,7 +380,7 @@ class ConferencesController < ApplicationController
   end
 
   def update
-    if authorized_action(@conference, @current_user, :update)
+    if authorized_action(@conference, current_principal, :update)
       @conference.user ||= @current_user
       respond_to do |format|
         params[:web_conference].try(:delete, :long_running)
@@ -413,17 +413,17 @@ class ConferencesController < ApplicationController
   end
 
   def join
-    if authorized_action(@conference, @current_user, :join)
+    if authorized_action(@conference, current_principal, :join)
       unless @conference.valid_config?
         flash[:error] = t(:type_disabled_error, "This type of conference is no longer enabled for this Canvas site")
         redirect_to named_context_url(@context, :context_conferences_url)
         return
       end
-      if @conference.grants_right?(@current_user, session, :initiate) ||
-         @conference.grants_right?(@current_user, session, :resume) ||
+      if @conference.grants_right?(current_principal, session, :initiate) ||
+         @conference.grants_right?(current_principal, session, :resume) ||
          @conference.active?(force_check: true)
         @conference.add_attendee(@current_user)
-        @conference.restart if @conference.ended_at && @conference.grants_right?(@current_user, session, :initiate)
+        @conference.restart if @conference.ended_at && @conference.grants_right?(current_principal, session, :initiate)
         log_asset_access(@conference, "conferences", "conferences", "participate")
         if (url = @conference.craft_url(@current_user, session, named_context_url(@context, :context_url, include_host: true)))
           redirect_to url
@@ -458,7 +458,7 @@ class ConferencesController < ApplicationController
   end
 
   def close
-    if authorized_action(@conference, @current_user, :close)
+    if authorized_action(@conference, current_principal, :close)
       unless @conference.active?
         return render json: { message: "conference is not active", status: :bad_request }
       end
@@ -473,7 +473,7 @@ class ConferencesController < ApplicationController
   end
 
   def settings
-    if authorized_action(@conference, @current_user, :update)
+    if authorized_action(@conference, current_principal, :update)
       if @conference.has_advanced_settings?
         redirect_to @conference.admin_settings_url(@current_user)
       else
@@ -484,7 +484,7 @@ class ConferencesController < ApplicationController
   end
 
   def destroy
-    if authorized_action(@conference, @current_user, :delete)
+    if authorized_action(@conference, current_principal, :delete)
       @conference.transaction do
         @conference.web_conference_participants.scope.delete_all
         CalendarEvent.where(web_conference_id: @conference.id).each do |calendar_event|
@@ -500,7 +500,7 @@ class ConferencesController < ApplicationController
   end
 
   def recording
-    if authorized_action(@conference, @current_user, :read)
+    if authorized_action(@conference, current_principal, :read)
       @response = @conference.recording(params[:recording_id]) || {}
       respond_to do |format|
         format.html { redirect_to named_context_url(@context, :context_conferences_url) }
@@ -510,7 +510,7 @@ class ConferencesController < ApplicationController
   end
 
   def delete_recording
-    if authorized_action(@conference, @current_user, :delete)
+    if authorized_action(@conference, current_principal, :delete)
       # Recordings live on a shared BBB server, so a recording_id from
       # another conference would otherwise be honored. Reject before
       # forwarding the delete to BBB.

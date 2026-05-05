@@ -21,7 +21,7 @@
   module_item ||= module_item_next
   item_data ||= { published_status: "unpublished" }
   completion_criteria ||= nil
-  can_direct_share = can_do(@context, @current_user, :direct_share)
+  can_direct_share = can_do(@context, current_principal, :direct_share)
   criterion = completion_criteria&.find { |c| c[:id] == module_item.id }
   show_checkpoints = @context.discussion_checkpoints_enabled? && module_item && module_item.content_type == "DiscussionTopic" && module_item.content.checkpoints?
   item_restrictions ||= nil
@@ -301,13 +301,13 @@
               <% if (@can_add || module_item.nil?) && module_item&.quiz_lti %>
                 <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>?build=true" title="<%= t("Build quiz") %>"><%= @module_item_image_tags["quiz"] %> <%= t("Build") %></a></li>
               <% end %>
-              <% if @context.allows_speed_grader? && @context.grants_any_right?(@current_user, :manage_grades, :view_all_grades) %>
+              <% if @context.allows_speed_grader? && @context.grants_any_right?(current_principal, :manage_grades, :view_all_grades) %>
                 <% speed_grader_id = module_item ? "#{module_item.content_type_class}-#{module_item.content_id}" : "blank" %>
                 <li id="<%= "speed-grader-container-#{speed_grader_id}" %>" role='presentation' class="speed-grader-link-container <%= (module_item&.assignment&.id && %w[assignment quiz lti-quiz discussion_topic].include?(module_item.content_type_class) && item_data[:published_status] == "published") ? "" : "hidden" %>">
                   <a href="<%= context_url(@context, :context_url) %>/gradebook/speed_grader?assignment_id=<%= module_item&.assignment.present? ? module_item.assignment.id : "{{ assignment_id }}" %>" target="_blank" rel="noopener" title="<%= t("SpeedGrader") %>"><%= @module_item_image_tags["speed_grader"] %> <%= t("SpeedGrader") %></a>
                 </li>
               <% end %>
-                <li class="assign-to-option <%= (module_item.present? && module_item.show_assign_to? && module_item.content&.grants_right?(@current_user, :manage_assign_to)) ? "" : "hidden" %>" role="presentation">
+                <li class="assign-to-option <%= (module_item.present? && module_item.show_assign_to? && module_item.content&.grants_right?(current_principal, :manage_assign_to)) ? "" : "hidden" %>" role="presentation">
                   <a
                     class="module-item-assign-to-link"
                     href="#<%= module_item ? module_item.id : "{{ id }}" %>"

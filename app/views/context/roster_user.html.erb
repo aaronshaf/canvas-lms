@@ -20,44 +20,44 @@
 <% provide :right_side do %>
   <h2><%= t "links.more_about_this_user", "More About This User" %></h2>
   <div class="page-action-list rs-margin-bottom" id="right_nav">
-    <% if can_do(@membership, @current_user, :read_grades) && @membership.is_a?(StudentEnrollment) %>
+    <% if can_do(@membership, current_principal, :read_grades) && @membership.is_a?(StudentEnrollment) %>
       <a href="<%= context_url(@context, controller: :gradebooks, action: :grade_summary, id: @user.id) %>">
         <i class="icon-check-plus" aria-hidden="true"></i>
         <%= t "links.user_grades", "Grades" %>
       </a>
     <% end %>
-    <% if can_do(@context, @current_user, :send_messages) %>
+    <% if can_do(@context, current_principal, :send_messages) %>
       <a href="<%= message_user_path(@user) %>">
         <i class="icon-email" aria-hidden="true"></i>
         <%= t "links.message_user", "Send Message" %>
       </a>
     <% end %>
     <% if @context.is_a?(Course) %>
-      <% if @context.user_is_instructor?(@user) && can_do(@user, @current_user, :read_reports) && can_do(@context, @current_user, :view_all_grades) %>
+      <% if @context.user_is_instructor?(@user) && can_do(@user, current_principal, :read_reports) && can_do(@context, current_principal, :view_all_grades) %>
         <a href="<%= user_course_teacher_activity_url(@user, @context) %>">
           <i class="icon-chat" aria-hidden="true"></i>
           <%= t "links.teacher_activity", "Student Interactions Report" %>
         </a>
-      <% elsif @context.user_has_been_student?(@user) && @context.user_is_instructor?(@current_user) && can_do(@context, @current_user, :read_reports) && can_do(@context, @current_user, :view_all_grades) %>
+      <% elsif @context.user_has_been_student?(@user) && @context.user_is_instructor?(@current_user) && can_do(@context, current_principal, :read_reports) && can_do(@context, current_principal, :view_all_grades) %>
         <%= link_to(user_student_teacher_activity_url(@current_user, @user)) do %>
           <i class="icon-chat" aria-hidden="true"></i>
           <%= t("Interactions Report") %>
         <% end %>
       <% end %>
     <% end %>
-    <% if can_do(@context, @current_user, :read_reports) %>
+    <% if can_do(@context, current_principal, :read_reports) %>
       <a href="<%= context_url(@context, :context_user_usage_url, @user) %>">
         <i class="icon-clock" aria-hidden="true"></i>
         <%= t "links.access_report", "Access Report" %>
       </a>
     <% end %>
-    <% if @context.is_a?(Course) && @context.has_outcomes? && can_do(@context, @current_user, :manage) %>
+    <% if @context.is_a?(Course) && @context.has_outcomes? && can_do(@context, current_principal, :manage) %>
       <a href="<%= context_url(@context, :context_user_outcomes_results_url, @user.id) %>">
         <i class="icon-outcomes" aria-hidden="true"></i>
         <%= t "Outcomes Report" %>
       </a>
     <% end %>
-    <% if @user.grants_right?(@current_user, :view_statistics) %>
+    <% if @user.grants_right?(current_principal, :view_statistics) %>
       <a href="<%= user_path(@user.id) %>">
         <i class="icon-user" aria-hidden="true"></i>
         <%= t("links.user_account_details", %(User Account Details)) %>
@@ -69,7 +69,7 @@
         <%= link[:text] %>
       </a>
     <% end %>
-    <% if @user.grants_right?(@current_user, :generate_observer_pairing_code) &&
+    <% if @user.grants_right?(current_principal, :generate_observer_pairing_code) &&
           @user.has_student_enrollment? &&
           @domain_root_account.self_registration? %>
       <div id="pairing-code"></div>
@@ -79,7 +79,7 @@
   <h2><%= t "headings.user_services", "Registered Web Services" %></h2>
   <div>
     <% services = @membership.user.user_services.to_a.select { |s| feature_and_service_enabled?(s.service) } %>
-    <% if can_do(@membership, @current_user, :read_services) && !services.empty? %>
+    <% if can_do(@membership, current_principal, :read_services) && !services.empty? %>
       <p>
       <% services.each do |service| %>
         <% service_name = service.service.titleize rescue "Unknown" %>
@@ -115,8 +115,8 @@
 
 <h1><%= @user.name %> <% if @user.pronouns %><i>(<%= @user.pronouns %>)</i><% end %></h1>
 
-<% can_manage_students = can_do(@context, @current_user, :manage_students) %>
-<% can_manage_admins = can_do(@context, @current_user, :allow_course_admin_actions) %>
+<% can_manage_students = can_do(@context, current_principal, :manage_students) %>
+<% can_manage_admins = can_do(@context, current_principal, :allow_course_admin_actions) %>
 
 <% if !@context.is_a?(Group) && (can_manage_students || can_manage_admins) %>
 <%= render partial: "users/name", locals: { login_history: false } %>
@@ -165,7 +165,7 @@
                       <a class="unconclude_enrollment_link" href="<%= context_url(@context, controller: :courses, action: :unconclude_user, id: enrollment.id) %>"><%= t("links.restore_enrollment", %(Restore this Enrollment)) %></a>
                     </div>
                   <% end %>
-                  <div><% if enrollment.defined_by_sis? && !@context.grants_any_right?(@current_user, session, :manage_account_settings, :manage_sis) %>
+                  <div><% if enrollment.defined_by_sis? && !@context.grants_any_right?(current_principal, session, :manage_account_settings, :manage_sis) %>
                     <a href="#" title="<%= t("links.title.enrollment_sis_defined", %(This enrollment was defined by the university, and can't be deleted)) %>"><%= t("links.cant_delete", %(Can't Delete)) %></a>
                   <% else %>
                     <a class="delete_enrollment_link" href="<%= context_url(@context, :context_unenroll_url, enrollment.id) %>"><%= t("links.delete_enrollment", %(Delete this Enrollment)) %></a>
@@ -175,7 +175,7 @@
               <% end %>
             </tr>
           <% end %>
-          <% if @context.is_a?(Course) && can_do(@context, @current_user, :allow_course_admin_actions) %>
+          <% if @context.is_a?(Course) && can_do(@context, current_principal, :allow_course_admin_actions) %>
             <tr>
               <td>
                 <%= before_label("user_privileges", %(Privileges)) %>
@@ -197,7 +197,7 @@
             </tr>
           <% end %>
         </table>
-        <% if @context.is_a?(Course) && can_do(@context, @current_user, :allow_course_admin_actions) %>
+        <% if @context.is_a?(Course) && can_do(@context, current_principal, :allow_course_admin_actions) %>
           <div id="student_last_attended__component"></div>
         <% end %>
       </fieldset>
@@ -208,7 +208,7 @@
 <% elsif service_enabled?(:avatars) %>
   <div style="margin-bottom: 20px;">
     <%= avatar(@user, url: nil) %>
-    <% if can_do(@user, @current_user, :remove_avatar) %>
+    <% if can_do(@user, current_principal, :remove_avatar) %>
       <a href="#" class="remove_avatar_picture_link"><%= t("links.remove_avatar", %(Remove avatar picture)) %></a>
     <% else %>
       <a href="<%= report_avatar_image_url(@user.id) %>" class="report_avatar_picture_link"><%= t("links.report_avatar", %(Report inappropriate picture)) %></a>
@@ -216,7 +216,7 @@
   </div>
 <% end %>
 
-<% if @user.grants_right?(@current_user, :view_user_generated_access_tokens) %>
+<% if @user.grants_right?(current_principal, :view_user_generated_access_tokens) %>
   <fieldset id="access_tokens">
     <legend><%= t("access_tokens", "Access Tokens") %></legend>
     <div id="user_access_tokens_react_mount_point"></div>

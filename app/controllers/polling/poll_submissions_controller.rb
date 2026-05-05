@@ -67,7 +67,7 @@ module Polling
     #
     def show
       @poll_submission = @poll_session.poll_submissions.find(params[:id])
-      if authorized_action(@poll_submission, @current_user, :read)
+      if authorized_action(@poll_submission, current_principal, :read)
         render json: serialize_jsonapi(@poll_submission)
       end
     end
@@ -93,7 +93,7 @@ module Polling
       poll_choice = @poll.poll_choices.find(poll_submission_params[:poll_choice_id])
       @poll_submission.poll_choice = poll_choice
 
-      if authorized_action(@poll_submission, @current_user, :submit)
+      if authorized_action(@poll_submission, current_principal, :submit)
         if @poll_submission.save
           render json: serialize_jsonapi(@poll_submission)
         else

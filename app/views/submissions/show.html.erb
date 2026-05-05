@@ -49,7 +49,7 @@
     rubric_assessment_user_param = { assessment_user_id: @submission.user_id }
   end
 
-  assessment_type = if !presenter.currently_peer_reviewing? && can_do(@submission, @current_user, :grade)
+  assessment_type = if !presenter.currently_peer_reviewing? && can_do(@submission, current_principal, :grade)
                       "grading"
                     else
                       "peer_review"
@@ -78,7 +78,7 @@
                   end,
       **submission_owner_param
     },
-    CURRENT_USER_CAN_GRADE_SUBMISSION: can_do(@assignment, @current_user, :grade),
+    CURRENT_USER_CAN_GRADE_SUBMISSION: can_do(@assignment, current_principal, :grade),
 
     CUSTOM_GRADE_STATUSES: @assignment.course.custom_grade_statuses.as_json(include_root: false)
   }
@@ -132,12 +132,12 @@
       </h1>
       <div class="submission-details-header__grade-summary">
         <% if @submission.user_can_read_grade?(@current_user, session) %>
-          <% if can_do(@assignment, @current_user, :grade) %>
+          <% if can_do(@assignment, current_principal, :grade) %>
             <%= render partial: "grade_values_can_grade" %>
           <% else %>
             <%= render partial: "grade_values_can_read", locals: { presenter: } %>
           <% end %>
-          <% if can_do(@submission, @current_user, :view_turnitin_report) &&
+          <% if can_do(@submission, current_principal, :view_turnitin_report) &&
                 (turnitin_score = @submission.turnitin_data[@submission.asset_string]) &&
                 @submission.turnitin_data[:provider].nil? && turnitin_score[:similarity_score] %>
             <% if show_updated_plagiarism_icons %>
@@ -186,10 +186,10 @@
              @submission.user_can_read_grade?(@current_user, session) ||
              @assignment.rubric_association.user_can_assess_for?(assessor: @current_user, assessee: @submission.user) ||
              @assignment.rubric_association.user_did_assess_for?(assessor: @current_user, assessee: @submission.user) ||
-             can_do(@assignment.rubric, @current_user, :read)
+             can_do(@assignment.rubric, current_principal, :read)
            ) %>
           <% unread_comments = @current_user.unread_rubric_assessments?(@submission) %>
-          <div class="submission-details-header__rubric <% if can_do(@assignment, @current_user, :grade) %>submission-details-header__rubric--can-grade<% end %>">
+          <div class="submission-details-header__rubric <% if can_do(@assignment, current_principal, :grade) %>submission-details-header__rubric--can-grade<% end %>">
             <a href="#" class="assess_submission_link Button Button--small Button--link" tabindex='0' title="<%= unread_comments ? t("There are unread rubric comments.") : "" %>">
               <i class="icon-rubric" aria-hidden="true"></i><%= t("show_rubric", "Show Rubric") %>
             </a>
@@ -236,13 +236,13 @@
         </div>
       </div>
       <div class="ic-Action-header__Secondary ic-Action-header__Secondary--auto">
-        <% if can_do(@context, @current_user, :manage_grades) || can_do(@context, @current_user, :view_all_grades) %>
+        <% if can_do(@context, current_principal, :manage_grades) || can_do(@context, current_principal, :view_all_grades) %>
           <a class="Button" href="<%= context_url(@context, :speed_grader_context_gradebook_url, assignment_id: @assignment.id, student_id: @submission.user_id) %>" target="_blank" rel="noopener">
             <i class="icon-speed-grader" aria-hidden="true"></i>
             <%= t("speedgrader", "SpeedGrader") %>
           </a>
         <% end %>
-        <% if @assignment.expects_submission? && can_do(@assignment, @current_user, :submit) && @current_user == @submission.user %>
+        <% if @assignment.expects_submission? && can_do(@assignment, current_principal, :submit) && @current_user == @submission.user %>
           <a href="<%= context_url(@context, :context_assignment_url, @assignment.id) %>#submit" class="Button Button--primary" <%= "disabled" if @submission&.attempts_left == 0 %>>
             <%= @submission.has_submission? ? t("links.resubmit", "Re-submit Assignment") : t("links.submit", "Submit Assignment") %>
           </a>
@@ -286,14 +286,14 @@
       <select id="rubric_assessments_select">
         <% @visible_rubric_assessments.each do |assessment| %>
           <option id="rubric_assessment_option_<%= assessment.id %>" value="<%= assessment.id %>">
-            <% if can_do(assessment, @current_user, :read_assessor) %>
+            <% if can_do(assessment, current_principal, :read_assessor) %>
               <%= assessment.assessor_name %>
             <% else %>
               <%= t(:anonymous_user, "Anonymous User") %>
             <% end %>
           </option>
         <% end %>
-        <% if can_do(@context, @current_user, :manage_grades) &&
+        <% if can_do(@context, current_principal, :manage_grades) &&
               @submission.user != @current_user &&
               !@visible_rubric_assessments.map(&:assessor_id).include?(@current_user.id) %>
           <option value="new" id="new_rubric_assessment_option"><%= t("options.new_assessment", "[New Assessment]") %></option>
@@ -306,7 +306,7 @@
                    object: @assignment.rubric,
                    locals: {
                      anonymize_student: presenter.anonymize_submission_owner?,
-                     assessing: @submission.grants_right?(@current_user, :grade) || presenter.currently_peer_reviewing?,
+                     assessing: @submission.grants_right?(current_principal, :grade) || presenter.currently_peer_reviewing?,
                      rubric_association: @assignment.rubric_association
                    }
                  }) %>
@@ -345,7 +345,7 @@
               <br/><br/>
             <% end %>
             <% submission_comments.each do |comment| %>
-              <% next unless can_do(comment, @current_user, :read) %>
+              <% next unless can_do(comment, current_principal, :read) %>
 
               <%
                 author_name = comment_author_name_for(comment)
@@ -407,8 +407,8 @@
             <div class="media_recording">
             </div>
           </div>
-          <% unless @context.account.grants_right?(@current_user, :make_submission_comments) %>
-            <div style="padding: 10px; <%= hidden unless can_do(@submission, @current_user, :comment) %>" id="add_comment_form">
+          <% unless @context.account.grants_right?(current_principal, :make_submission_comments) %>
+            <div style="padding: 10px; <%= hidden unless can_do(@submission, current_principal, :comment) %>" id="add_comment_form">
               <label class="add_a_comment">
                 <strong><%= before_label("add_a_comment", "Add a Comment") %></strong>
                 <div id="textarea-container">
@@ -427,7 +427,7 @@
                 <a href="#" style="float: <%= direction("right") %>;" class="attach_comment_file_link"><%= t("attach_file", "Attach File") %></a>
                 <div class="clear"></div>
               </div>
-              <% if @assignment.has_group_category? && can_do(@submission, @current_user, :make_group_comment) %>
+              <% if @assignment.has_group_category? && can_do(@submission, current_principal, :make_group_comment) %>
                 <% if @assignment.grade_as_group? %>
                   <span><%= t("All comments are sent to the whole group.") %></span>
                   <input type="checkbox" name="submission[group_comment]" id="submission_group_comment" style="display:none" checked />
@@ -437,7 +437,7 @@
                       <div class="ic-Radio">
                         <input type="radio" name="submission[group_comment]" id="not_submission_group_comment" value="0" checked />
                         <label class="ic-Label" for="not_submission_group_comment">
-                          <% if can_do(@submission, @current_user, :grade) %>
+                          <% if can_do(@submission, current_principal, :grade) %>
                             <%= t("Send comment to this student only") %>
                           <% else %>
                             <%= t("Send comment to instructor only") %>

@@ -25,7 +25,7 @@
 
 <div>
   <h1><%= t(:title, "SIS Import") %></h1>
-  <% if can_do(@account, @current_user, :import_sis) %>
+  <% if can_do(@account, current_principal, :import_sis) %>
     <div class="sis_messages" style="<%= hidden %>">
       <div class="ui-state-error sis_error_message" style="padding: 0.5em 1em"></div>
       <%= link_to t(:try_import_again_link, "Try import again"), account_sis_import_path %>

@@ -429,7 +429,7 @@ class OutcomeResultsController < ApplicationController
   #      ]
   #    }
   def contributing_scores
-    unless @context.grants_any_right?(@current_user, :manage_grades, :view_all_grades)
+    unless @context.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
       reject! "insufficient permissions", :forbidden
     end
 
@@ -537,7 +537,7 @@ class OutcomeResultsController < ApplicationController
   #     ]
   #   }
   def mastery_distribution
-    unless @context.grants_any_right?(@current_user, :manage_grades, :view_all_grades)
+    unless @context.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
       reject! "insufficient permissions", :forbidden
     end
 
@@ -652,7 +652,7 @@ class OutcomeResultsController < ApplicationController
     # check if the logged in user has manage_grades & view_all_grades permissions
     # if not, apply exclude_muted_associations to the assignment query
     @new_quiz_assignments =
-      if context.grants_any_right?(@current_user, :manage_grades, :view_all_grades)
+      if context.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
         Assignment.active.where(context:).quiz_lti
       else
         # return if there is more than one user in users as this would indicate
@@ -926,7 +926,7 @@ class OutcomeResultsController < ApplicationController
                                                 user_id: @all_users.map(&:id),
                                                 hidden: false
                                               )
-    unless @context.grants_any_right?(@current_user, :manage_grades, :view_all_grades)
+    unless @context.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
       all_canvas_results = all_canvas_results.exclude_muted_associations
     end
     all_canvas_results = all_canvas_results.to_a
@@ -1052,7 +1052,7 @@ class OutcomeResultsController < ApplicationController
   def require_outcome_context
     reject! "invalid context type" unless @context.is_a?(Course)
 
-    return true if @context.grants_any_right?(@current_user, session, :manage_grades, :view_all_grades)
+    return true if @context.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
 
     reject! "users not specified and no access to all grades", :forbidden unless params[:user_ids]
     user_id_params = Api.value_to_array(params[:user_ids])

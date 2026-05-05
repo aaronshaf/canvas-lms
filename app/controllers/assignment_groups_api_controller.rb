@@ -44,7 +44,7 @@ class AssignmentGroupsApiController < ApplicationController
   #
   # @returns AssignmentGroup
   def show
-    if authorized_action(@assignment_group, @current_user, :read)
+    if authorized_action(@assignment_group, current_principal, :read)
       includes = Array(params[:include])
       override_dates = value_to_boolean(params[:override_assignment_dates] || true)
       assignments = @assignment_group.visible_assignments(@current_user)
@@ -54,7 +54,7 @@ class AssignmentGroupsApiController < ApplicationController
       if assignments.any? && includes.include?("submission")
         submissions = submissions_hash(["submission"], assignments)
       end
-      includes.delete("assignment_visibility") unless @context.grants_any_right?(@current_user, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+      includes.delete("assignment_visibility") unless @context.grants_any_right?(current_principal, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
       render json: assignment_group_json(@assignment_group, @current_user, session, includes, {
                                            stringify_json_ids: stringify_json_ids?,
                                            override_dates:,
@@ -86,7 +86,7 @@ class AssignmentGroupsApiController < ApplicationController
   # @returns AssignmentGroup
   def create
     @assignment_group = @context.assignment_groups.temp_record
-    if authorized_action(@assignment_group, @current_user, :create)
+    if authorized_action(@assignment_group, current_principal, :create)
       unless valid_integration_data?(params)
         return render json: "Invalid integration data", status: :bad_request
       end
@@ -121,7 +121,7 @@ class AssignmentGroupsApiController < ApplicationController
   #
   # @returns AssignmentGroup
   def update
-    if authorized_action(@assignment_group, @current_user, :update)
+    if authorized_action(@assignment_group, current_principal, :update)
       unless valid_integration_data?(params)
         return render json: "Invalid integration data", status: :bad_request
       end
@@ -147,7 +147,7 @@ class AssignmentGroupsApiController < ApplicationController
   #
   # @returns AssignmentGroup
   def destroy
-    if authorized_action(@assignment_group, @current_user, :delete)
+    if authorized_action(@assignment_group, current_principal, :delete)
 
       if @assignment_group.assignments.active.exists?
         if @assignment_group.has_frozen_assignment_group_id_assignment?(@current_user)

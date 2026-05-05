@@ -49,7 +49,7 @@ module GranularPermissionEnforcement
     end
 
     permissions = overrides.concat(actions[action_name.to_sym])
-    authorized_action(object, @current_user, permissions)
+    authorized_action(object, current_principal, permissions)
   end
 
   private_instance_methods :enforce_granular_permissions

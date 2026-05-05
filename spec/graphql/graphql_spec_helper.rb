@@ -42,6 +42,7 @@ module GraphQLSpecHelper
       request: ActionDispatch::TestRequest.create,
       session: {}
     ).merge!(additional_context)
+    context[:current_principal] ||= context[:current_user] && Canvas::AdheresToPolicy::UserPrincipal.new(context[:current_user])
 
     CanvasSchema.execute(query, context:, variables:).to_h.with_indifferent_access
   end

@@ -19,38 +19,38 @@
 
 <% provide :right_side do %>
   <div id="right_nav">
-    <% if can_do(@membership, @current_user, :read_grades) && @membership.is_a?(StudentEnrollment) %>
+    <% if can_do(@membership, current_principal, :read_grades) && @membership.is_a?(StudentEnrollment) %>
       <a class="btn button-sidebar-wide" href="<%= context_url(@context, controller: :gradebooks, action: :grade_summary, id: @user.id) %>">
         <i class="icon-check-plus" aria-hidden="true"></i>
         <%= t "Student Grades" %>
       </a>
     <% end %>
     <% if @context.is_a?(Course) %>
-      <% if @context.user_is_instructor?(@user) && can_do(@user, @current_user, :read_reports) && can_do(@context, @current_user, :view_all_grades) %>
+      <% if @context.user_is_instructor?(@user) && can_do(@user, current_principal, :read_reports) && can_do(@context, current_principal, :view_all_grades) %>
         <a href="<%= user_course_teacher_activity_url(@user, @context) %>" class="btn button-sidebar-wide">
           <i class="icon-chat" aria-hidden="true"></i>
           <%= t "Student Interactions Report" %>
         </a>
-      <% elsif @context.user_has_been_student?(@user) && @context.user_is_instructor?(@current_user) && can_do(@context, @current_user, :read_reports) && can_do(@context, @current_user, :view_all_grades) %>
+      <% elsif @context.user_has_been_student?(@user) && @context.user_is_instructor?(@current_user) && can_do(@context, current_principal, :read_reports) && can_do(@context, current_principal, :view_all_grades) %>
         <a href="<%= user_student_teacher_activity_url(@current_user, @user) %>" class="btn button-sidebar-wide">
           <i class="icon-chat" aria-hidden="true"></i>
           <%= t "Interactions Report" %>
         </a>
       <% end %>
     <% end %>
-    <% if can_do(@context, @current_user, :read_reports) %>
+    <% if can_do(@context, current_principal, :read_reports) %>
       <a href="<%= context_url(@context, :context_user_usage_url, @user) %>" class="btn button-sidebar-wide">
         <i class="icon-clock" aria-hidden="true"></i>
         <%= t "Access Report" %>
       </a>
     <% end %>
-    <% if @context.is_a?(Course) && @context.has_outcomes? && can_do(@context, @current_user, :manage) %>
+    <% if @context.is_a?(Course) && @context.has_outcomes? && can_do(@context, current_principal, :manage) %>
       <a href="<%= context_url(@context, :context_user_outcomes_results_url, @user.id) %>" class="btn button-sidebar-wide">
         <i class="icon-outcomes" aria-hidden="true"></i>
         <%= t "Outcomes Report" %>
       </a>
     <% end %>
-    <% if @user.grants_right?(@current_user, :view_statistics) %>
+    <% if @user.grants_right?(current_principal, :view_statistics) %>
       <a href="<%= user_path(@user.id) %>" class="btn button-sidebar-wide">
         <i class="icon-user" aria-hidden="true"></i>
         <%= t("links.user_account_details", %(User Account Details)) %>
@@ -62,7 +62,7 @@
         <%= link[:text] %>
       </a>
     <% end %>
-    <% if @user.grants_right?(@current_user, :generate_observer_pairing_code) &&
+    <% if @user.grants_right?(current_principal, :generate_observer_pairing_code) &&
           @user.has_student_enrollment? &&
           @domain_root_account.self_registration? %>
       <div id="pairing-code"></div>
@@ -73,8 +73,8 @@
 
 <%= render partial: "shared/profile_main", locals: { is_roster_page: true } %>
 
-<% can_manage_students = can_do(@context, @current_user, :manage_students) %>
-<% can_manage_admins = can_do(@context, @current_user, :allow_course_admin_actions) %>
+<% can_manage_students = can_do(@context, current_principal, :manage_students) %>
+<% can_manage_admins = can_do(@context, current_principal, :allow_course_admin_actions) %>
 
 <% if !@context.is_a?(Group) && (can_manage_students || can_manage_admins) %>
 <div class="more_user_information">
@@ -122,7 +122,7 @@
             </td>
             <td style="width: 70px;">
               <div>
-                <% if enrollment.defined_by_sis? && !@context.grants_any_right?(@current_user, session, :manage_account_settings, :manage_sis) %>
+                <% if enrollment.defined_by_sis? && !@context.grants_any_right?(current_principal, session, :manage_account_settings, :manage_sis) %>
                   <a href="#" title="<%= t("links.title.enrollment_sis_defined", %(This enrollment was defined by the university, and can't be deleted)) %>"><%= t("links.cant_delete", %(Can't Delete)) %></a>
                 <% else %>
                   <a class="delete_enrollment_link" href="<%= context_url(@context, :context_unenroll_url, enrollment.id) %>"><%= t("links.delete_enrollment", %(Delete)) %></a>
@@ -132,7 +132,7 @@
             <% end %>
           </tr>
         <% end %>
-        <% if @context.is_a?(Course) && can_do(@context, @current_user, :allow_course_admin_actions) %>
+        <% if @context.is_a?(Course) && can_do(@context, current_principal, :allow_course_admin_actions) %>
           <tr id="priveleges">
             <td scope="row">
               <%= before_label("user_privileges", %(Privileges)) %>
@@ -150,7 +150,7 @@
           </tr>
         <% end %>
       </table>
-      <% if @context.is_a?(Course) && can_do(@context, @current_user, :allow_course_admin_actions) %>
+      <% if @context.is_a?(Course) && can_do(@context, current_principal, :allow_course_admin_actions) %>
         <div id="student_last_attended__component"></div>
       <% end %>
     </fieldset>

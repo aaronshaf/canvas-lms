@@ -39,7 +39,7 @@ module SubmittableHelper
     if assignment_params
       if assignment_params.key?(:set_assignment) &&
          !value_to_boolean(assignment_params[:set_assignment])
-        if submittable.assignment&.grants_right?(@current_user, session, :update)
+        if submittable.assignment&.grants_right?(current_principal, session, :update)
           assignment = submittable.assignment
           submittable.assignment = nil
           submittable.save!
@@ -50,7 +50,7 @@ module SubmittableHelper
       elsif (@assignment = submittable.assignment ||
                            submittable.restore_old_assignment ||
                            (submittable.assignment = @context.assignments.build)
-            ) && @assignment.grants_right?(@current_user, session, :update)
+            ) && @assignment.grants_right?(current_principal, session, :update)
         unless submittable.try(:group_category_id) || @assignment.has_submitted_submissions?
           assignment_params[:group_category_id] = nil
         end

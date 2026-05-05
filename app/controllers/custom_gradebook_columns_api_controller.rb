@@ -132,7 +132,7 @@ class CustomGradebookColumnsApiController < ApplicationController
   # @returns CustomColumn
   def destroy
     column = @context.custom_gradebook_columns.not_deleted.find(params[:id])
-    if authorized_action? column, @current_user, :manage
+    if authorized_action? column, current_principal, :manage
       column.destroy
       render json: custom_gradebook_column_json(column,
                                                 @current_user,
@@ -155,7 +155,7 @@ class CustomGradebookColumnsApiController < ApplicationController
   private
 
   def update_column(column)
-    if authorized_action? column, @current_user, :manage
+    if authorized_action? column, current_principal, :manage
       if column.save
         render json: custom_gradebook_column_json(column,
                                                   @current_user,

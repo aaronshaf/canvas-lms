@@ -226,7 +226,7 @@ class ProfileController < ApplicationController
   def settings
     if api_request?
       @user = api_find(User, params[:user_id])
-      return unless authorized_action(@user, @current_user, :read_profile)
+      return unless authorized_action(@user, current_principal, :read_profile)
     else
       return unless require_password_session
 
@@ -360,7 +360,7 @@ class ProfileController < ApplicationController
   # @returns [Avatar]
   def profile_pics
     @user = api_request? ? api_find(User, params[:user_id]) : @current_user
-    if authorized_action(@user, @current_user, :update_avatar)
+    if authorized_action(@user, current_principal, :update_avatar)
       render json: avatars_json_for_user(@user)
     end
   end
@@ -384,7 +384,7 @@ class ProfileController < ApplicationController
   end
 
   def admin?
-    @domain_root_account.grants_right?(@current_user, :manage_courses_admin)
+    @domain_root_account.grants_right?(current_principal, :manage_courses_admin)
   end
 
   def allowed_to_change_pronouns?

@@ -28,7 +28,7 @@ class SubmissionsBaseController < ApplicationController
   include Api::V1::SubmissionComment
 
   def show
-    return unless authorized_action(@submission.context, @current_user, :read)
+    return unless authorized_action(@submission.context, current_principal, :read)
 
     @visible_rubric_assessments = @submission.visible_rubric_assessments_for(@current_user)
     @assessment_request = @submission.assessment_requests.where(assessor_id: @current_user).first
@@ -80,7 +80,7 @@ class SubmissionsBaseController < ApplicationController
 
         if @submission.submission_type == "online_quiz" &&
            @submission.hide_grade_from_student? &&
-           !@assignment.grants_right?(@current_user, :grade)
+           !@assignment.grants_right?(current_principal, :grade)
           submission_json_exclusions << :body
         end
 
@@ -113,19 +113,19 @@ class SubmissionsBaseController < ApplicationController
 
     if @submission.submission_type == "online_quiz" &&
        @submission.hide_grade_from_student? &&
-       !@assignment.grants_right?(@current_user, :grade)
+       !@assignment.grants_right?(current_principal, :grade)
 
       submission_json_exclusions << :body
     end
 
-    if params[:submission][:student_entered_score] && @submission.grants_right?(@current_user, session, :comment)
+    if params[:submission][:student_entered_score] && @submission.grants_right?(current_principal, session, :comment)
       update_student_entered_score(params[:submission][:student_entered_score])
 
       render json: @submission.as_json(except: submission_json_exclusions, permissions:)
       return
     end
 
-    if authorized_action(@submission, @current_user, :comment)
+    if authorized_action(@submission, current_principal, :comment)
       params[:submission][:commenter] = @current_user
       admin_in_context = !@context_enrollment || @context_enrollment.admin?
 
@@ -140,7 +140,7 @@ class SubmissionsBaseController < ApplicationController
           attachment
         end
       end
-      unless @submission.grants_right?(@current_user, session, :submit)
+      unless @submission.grants_right?(current_principal, session, :submit)
         @request = @submission.assessment_requests.where(assessor_id: @current_user).first if @current_user
         params[:submission] = {
           attempt: params[:submission][:attempt],
@@ -167,10 +167,10 @@ class SubmissionsBaseController < ApplicationController
       end
       respond_to do |format|
         if @submissions
-          @submissions = @submissions.select { |s| s.grants_right?(@current_user, session, :read) }
+          @submissions = @submissions.select { |s| s.grants_right?(current_principal, session, :read) }
           is_final = provisional && params[:submission][:final] && @assignment.permits_moderation?(@current_user)
           @submissions.each do |s|
-            s.limit_comments(@current_user, session) unless @submission.grants_right?(@current_user, session, :submit)
+            s.limit_comments(@current_user, session) unless @submission.grants_right?(current_principal, session, :submit)
             s.apply_provisional_grade_filter!(s.provisional_grade(@current_user, final: is_final)) if provisional
           end
 
@@ -299,7 +299,7 @@ class SubmissionsBaseController < ApplicationController
     return head(:bad_request) if @submission.blank?
 
     @asset_string = params[:asset_string]
-    if authorized_action(@submission, @current_user, :read)
+    if authorized_action(@submission, current_principal, :read)
       url = if type == "originality_report"
               @submission.originality_report_url(@asset_string, @current_user, params[:attempt])
             else
@@ -330,7 +330,7 @@ class SubmissionsBaseController < ApplicationController
   def resubmit_to_plagiarism(type)
     return head(:bad_request) if @submission.blank?
 
-    if authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    if authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
       Canvas::LiveEvents.plagiarism_resubmit(@submission)
 
       if type == "vericite"

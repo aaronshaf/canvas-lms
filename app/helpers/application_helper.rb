@@ -190,10 +190,10 @@ module ApplicationHelper
 
   # Helper for easily checking vender/plugins/adheres_to_policy.rb
   # policies from within a view.
-  def can_do(object, user, *actions)
-    return false unless object
+  def can_do(resource, principal, *actions)
+    return false unless resource
 
-    object.grants_any_right?(user, session, *actions)
+    resource.grants_any_right?(principal, session, *actions)
   end
 
   def load_scripts_async_in_order(script_urls, cors_anonymous: false)
@@ -1136,7 +1136,7 @@ module ApplicationHelper
 
     is_enabled =
       @context.is_a?(Course) && tutorials_enabled? &&
-      @context.grants_right?(@current_user, session, :manage)
+      @context.grants_right?(current_principal, session, :manage)
 
     is_user_tutorial_enabled = @current_user&.show_new_user_tutorial?
     js_env({
@@ -1285,7 +1285,7 @@ module ApplicationHelper
                   .where(id: needed_tag_ids.uniq)
                   .preload(:context_module, content: [:current_lookup, :wiki])
                   .index_by(&:id)
-    opts = { can_view_published: @context.grants_right?(@current_user, session, :read_as_admin) }
+    opts = { can_view_published: @context.grants_right?(current_principal, session, :read_as_admin) }
 
     tag_indices.each do |ix|
       hash = {
@@ -1298,7 +1298,7 @@ module ApplicationHelper
         hash[:next] = module_item_json(needed_tags[tag_ids[ix + 1]], @current_user, session, nil, nil, [], opts)
       end
       if cyoe_enabled?(@context)
-        is_student = @context.grants_right?(@current_user, session, :participate_as_student)
+        is_student = @context.grants_right?(current_principal, session, :participate_as_student)
         opts = { context: @context, user: @current_user, session:, is_student: }
         hash[:mastery_path] =
           conditional_release_rule_for_module_item(needed_tags[tag_ids[ix]], opts)

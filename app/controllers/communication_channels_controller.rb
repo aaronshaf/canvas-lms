@@ -104,7 +104,7 @@ class CommunicationChannelsController < ApplicationController
   # @returns [CommunicationChannel]
   def index
     @user = api_find(User, params[:user_id])
-    return unless authorized_action(@user, @current_user, :read)
+    return unless authorized_action(@user, current_principal, :read)
 
     channels = Api.paginate(@user.communication_channels.unretired,
                             self,
@@ -167,7 +167,7 @@ class CommunicationChannelsController < ApplicationController
     params[:build_pseudonym] = false if api_request?
 
     skip_confirmation = value_to_boolean(params[:skip_confirmation]) &&
-                        (Account.site_admin.grants_right?(@current_user, :manage_students) || @domain_root_account.grants_right?(@current_user, :manage_students))
+                        (Account.site_admin.grants_right?(current_principal, :manage_students) || @domain_root_account.grants_right?(current_principal, :manage_students))
 
     InstStatsd::Statsd.distributed_increment("communication_channels.create.skip_confirmation") if skip_confirmation
 
@@ -484,7 +484,7 @@ class CommunicationChannelsController < ApplicationController
     if @enrollment
       return render_unauthorized_action unless @current_user.can_create_enrollment_for?(@enrollment.course, session, @enrollment.type)
     else
-      return unless authorized_action(@user, @current_user, [:manage, :manage_user_details])
+      return unless authorized_action(@user, current_principal, [:manage, :manage_user_details])
     end
 
     if @enrollment && (@enrollment.invited? || @enrollment.active?)
@@ -500,7 +500,7 @@ class CommunicationChannelsController < ApplicationController
 
   def confirmation_limit_reached
     @user = User.find(params[:user_id])
-    return unless authorized_action(@user, @current_user, [:manage, :manage_user_details])
+    return unless authorized_action(@user, current_principal, [:manage, :manage_user_details])
     return render json: {}, status: :bad_request unless params[:id].present?
 
     @cc = @user.communication_channels.find(params[:id])
@@ -510,7 +510,7 @@ class CommunicationChannelsController < ApplicationController
   def reset_bounce_count
     @user = api_request? ? api_find(User, params[:user_id]) : @current_user
     @cc = @user.communication_channels.unretired.find(params[:id])
-    return render_unauthorized_action unless @cc.grants_right?(@current_user, :reset_bounce_count) || (@real_current_user && @cc.grants_right?(@real_current_user, :reset_bounce_count))
+    return render_unauthorized_action unless @cc.grants_right?(current_principal, :reset_bounce_count) || (@real_current_user && @cc.grants_right?(@real_current_user, :reset_bounce_count))
 
     @cc.reset_bounce_count!
 
@@ -640,7 +640,7 @@ class CommunicationChannelsController < ApplicationController
   end
 
   def generate_bulk_report
-    if account.grants_right?(@current_user, session, :view_bounced_emails)
+    if account.grants_right?(current_principal, session, :view_bounced_emails)
       action = yield
       respond_to do |format|
         format.csv { send_data(action.csv_report, type: "text/csv") }
@@ -652,7 +652,7 @@ class CommunicationChannelsController < ApplicationController
   end
 
   def perform_bulk_action
-    if authorized_action(Account.site_admin, @current_user, :read_messages)
+    if authorized_action(Account.site_admin, current_principal, :read_messages)
       action = yield
       render json: action.perform!
     end
@@ -663,7 +663,7 @@ class CommunicationChannelsController < ApplicationController
   end
 
   def can_manage_user_details?
-    @user.grants_right?(@current_user, session, :manage_user_details)
+    @user.grants_right?(current_principal, session, :manage_user_details)
   end
 
   def add_additional_email_if_allowed

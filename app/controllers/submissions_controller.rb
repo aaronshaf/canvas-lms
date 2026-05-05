@@ -255,10 +255,10 @@ class SubmissionsController < SubmissionsBaseController
         end
       end
 
-      return unless authorized_action(user_sub, @current_user, :grade)
+      return unless authorized_action(user_sub, current_principal, :grade)
     end
 
-    if @assignment.locked_for?(@submission_user) && !@assignment.grants_right?(@current_user, :update)
+    if @assignment.locked_for?(@submission_user) && !@assignment.grants_right?(current_principal, :update)
       flash[:notice] = t("errors.can_not_submit_locked_assignment", "You can't submit an assignment when it is locked")
       redirect_to named_context_url(@context, :context_assignment_url, @assignment.id)
       return
@@ -397,7 +397,7 @@ class SubmissionsController < SubmissionsBaseController
   end
 
   def audit_events
-    return unless authorized_action(@context, @current_user, :view_audit_trail)
+    return unless authorized_action(@context, current_principal, :view_audit_trail)
 
     assignment = @context.assignments.active.find(params[:assignment_id])
     submission = assignment.submissions.find(params[:submission_id])

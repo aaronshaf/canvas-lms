@@ -24,7 +24,7 @@ class AssessmentQuestionsController < ApplicationController
   before_action :require_context
   before_action :require_bank
   def create
-    if authorized_action(@bank.assessment_questions.new, @current_user, :create)
+    if authorized_action(@bank.assessment_questions.new, current_principal, :create)
       params[:assessment_question] ||= {}
       params[:assessment_question][:form_question_data] ||= params[:question]
 
@@ -39,7 +39,7 @@ class AssessmentQuestionsController < ApplicationController
 
   def update
     @question = @bank.assessment_questions.find(params[:id])
-    if authorized_action(@question, @current_user, :update)
+    if authorized_action(@question, current_principal, :update)
       params[:assessment_question] ||= {}
       params[:assessment_question][:form_question_data] ||= params[:question]
       @question.edited_independent_of_quiz_question
@@ -53,7 +53,7 @@ class AssessmentQuestionsController < ApplicationController
 
   def destroy
     @question = @bank.assessment_questions.find(params[:id])
-    if authorized_action(@question, @current_user, :delete)
+    if authorized_action(@question, current_principal, :delete)
       @question.destroy
       render json: @question
     end

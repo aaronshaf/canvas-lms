@@ -271,7 +271,7 @@ class ContextModuleItemsApiController < ApplicationController
   #
   # @returns [ModuleItem]
   def index
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       mod = @context.modules_visible_to(@student || @current_user).find(params[:module_id])
       ActiveRecord::Associations.preload(mod, content_tags: [:content, :associated_asset])
       route = polymorphic_url([:api_v1, @context, mod, :items])
@@ -290,7 +290,7 @@ class ContextModuleItemsApiController < ApplicationController
       if includes.include?("mastery_paths")
         opts[:conditional_release_rules] = ConditionalRelease::Service.rules_for(@context, @student, session)
       end
-      opts[:can_view_published] = @context.grants_right?(@student || @current_user, session, :read_as_admin)
+      opts[:can_view_published] = @context.grants_right?(student_or_current_principal, session, :read_as_admin)
       opts[:can_have_estimated_time] = @context.horizon_course?
       render json: items.map { |item| module_item_json(item, @student || @current_user, session, mod, prog, includes, opts) }
     end
@@ -315,9 +315,9 @@ class ContextModuleItemsApiController < ApplicationController
   #
   # @returns ModuleItem
   def show
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       get_module_item
-      opts = { can_view_published: @context.grants_right?(@student || @current_user, session, :read_as_admin) }
+      opts = { can_view_published: @context.grants_right?(student_or_current_principal, session, :read_as_admin) }
       if @context.horizon_course?
         opts[:can_have_estimated_time] = true
         @item.context_module_action(@current_user, :read) if @current_user
@@ -331,9 +331,9 @@ class ContextModuleItemsApiController < ApplicationController
   # then redirect to the URL (vs. render in an iframe like content_tag_redirect).
   # Not documented directly; part of an opaque URL returned by above endpoints.
   def redirect
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       @tag = @context.context_module_tags.not_deleted.find(params[:id])
-      if !(@tag.unpublished? || @tag.context_module.unpublished?) || authorized_action(@tag.context_module, @current_user, :update)
+      if !(@tag.unpublished? || @tag.context_module.unpublished?) || authorized_action(@tag.context_module, current_principal, :update)
         if @tag.content_type == "ExternalUrl"
           @tag.context_module_action(@current_user, :read)
           redirect_to @tag.url
@@ -411,7 +411,7 @@ class ContextModuleItemsApiController < ApplicationController
   # @returns ModuleItem
   def create
     @module = @context.context_modules.not_deleted.find(params[:module_id])
-    if authorized_action(@module, @current_user, :update)
+    if authorized_action(@module, current_principal, :update)
       return render json: { message: "missing module item parameter" }, status: :bad_request unless params[:module_item] || params[:module_items]
 
       module_items = params[:module_items] || [params[:module_item]]
@@ -528,7 +528,7 @@ class ContextModuleItemsApiController < ApplicationController
   # @returns ModuleItem
   def update
     @tag = @context.context_module_tags.not_deleted.find(params[:id])
-    if authorized_action(@tag.context_module, @current_user, :update)
+    if authorized_action(@tag.context_module, current_principal, :update)
       return render json: { message: "missing module item parameter" }, status: :bad_request unless params[:module_item]
 
       @tag.title = params[:module_item][:title] if params[:module_item][:title]
@@ -604,8 +604,8 @@ class ContextModuleItemsApiController < ApplicationController
   #       -d 'assignment_set_id=2992'
   #
   def select_mastery_path
-    return unless authorized_action(@context, @current_user, :read)
-    return unless @student == @current_user || authorized_action(@context, @current_user, :manage_assignments_edit)
+    return unless authorized_action(@context, current_principal, :read)
+    return unless @student == @current_user || authorized_action(@context, current_principal, :manage_assignments_edit)
     return render json: { message: "mastery paths not enabled" }, status: :bad_request unless cyoe_enabled?(@context)
     return render json: { message: "assignment_set_id required" }, status: :bad_request unless params[:assignment_set_id]
 
@@ -647,7 +647,7 @@ class ContextModuleItemsApiController < ApplicationController
   # @returns ModuleItem
   def destroy
     @tag = @context.context_module_tags.not_deleted.find(params[:id])
-    if authorized_action(@tag.context_module, @current_user, :update)
+    if authorized_action(@tag.context_module, current_principal, :update)
       @module = @tag.context_module
       @tag.destroy
       @module.touch
@@ -666,7 +666,7 @@ class ContextModuleItemsApiController < ApplicationController
   #       -X Put \
   #       -H 'Authorization: Bearer <token>'
   def mark_as_done
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       get_module_item
       @item.context_module_action(@current_user, :done)
       sync_planner_completion(@item.content, @current_user, true) if planner_enabled?
@@ -675,7 +675,7 @@ class ContextModuleItemsApiController < ApplicationController
   end
 
   def mark_as_not_done
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       get_module_item
       if (progression = @item.progression_for_user(@current_user))
         progression.uncomplete_requirement(params[:id].to_i)
@@ -713,7 +713,7 @@ class ContextModuleItemsApiController < ApplicationController
   #
   # @returns ModuleItemSequence
   def item_sequence
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       asset_type = Api.api_type_to_canvas_name(params[:asset_type])
       return render json: { message: "invalid asset_type" }, status: :bad_request unless asset_type
 
@@ -740,7 +740,7 @@ class ContextModuleItemsApiController < ApplicationController
   #       -H 'Authorization: Bearer <token>'
   #
   def mark_item_read
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       get_module_item
       content = @item.content.respond_to?(:locked_for?) ? @item.content : @item
       return render json: { message: t("The module item is locked.") }, status: :forbidden if content.locked_for?(@current_user)
@@ -765,7 +765,7 @@ class ContextModuleItemsApiController < ApplicationController
 
   def duplicate
     original_tag = @context.context_module_tags.not_deleted.find(params[:id])
-    if authorized_action(original_tag.context_module, @current_user, :update)
+    if authorized_action(original_tag.context_module, current_principal, :update)
       if original_tag.duplicate_able?
         new_content = original_tag.content.duplicate({ user: @current_user })
         new_content.saving_user = @current_user if new_content.respond_to?(:saving_user)
@@ -791,7 +791,7 @@ class ContextModuleItemsApiController < ApplicationController
           assignment_id: new_tag.assignment.try(:id),
           is_checkpointed: new_tag.assignment.try(:has_sub_assignments),
           is_duplicate_able: new_tag.duplicate_able?,
-          can_manage_assign_to: new_tag.content&.grants_right?(@current_user, session, :manage_assign_to)
+          can_manage_assign_to: new_tag.content&.grants_right?(current_principal, session, :manage_assign_to)
         )
         render json:
       else
@@ -843,14 +843,23 @@ class ContextModuleItemsApiController < ApplicationController
   def find_student
     if params[:student_id]
       student_enrollments = @context.student_enrollments.for_user(params[:student_id])
-      return render_unauthorized_action unless student_enrollments.any? { |e| e.grants_right?(@current_user, session, :read_grades) }
+      return render_unauthorized_action unless student_enrollments.any? { |e| e.grants_right?(current_principal, session, :read_grades) }
 
       @student = student_enrollments.first.user
-    elsif @context.grants_right?(@current_user, session, :participate_as_student)
+    elsif @context.grants_right?(current_principal, session, :participate_as_student)
       @student = @current_user
     else
       true
     end
   end
   protected :find_student
+
+  private
+
+  def student_or_current_principal
+    return current_principal unless @student
+    return current_principal if @student == @current_user
+
+    @student_or_current_principal ||= Canvas::AdheresToPolicy::UserPrincipal.new(@student)
+  end
 end

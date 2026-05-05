@@ -29,7 +29,7 @@ class Quizzes::QuizSubmissionEventsController < ApplicationController
   protect_from_forgery only: [:index], with: :exception
 
   def index
-    if authorized_action(@quiz_submission, @current_user, :view_log)
+    if authorized_action(@quiz_submission, current_principal, :view_log)
 
       unless @context.feature_enabled?(:quiz_log_auditing)
         flash[:error] = t("errors.quiz_log_auditing_required",
@@ -60,7 +60,7 @@ class Quizzes::QuizSubmissionEventsController < ApplicationController
                questions_url: api_v1_course_quiz_questions_url(@context, @quiz, quiz_submission_id: @quiz_submission.id, quiz_submission_attempt: @quiz_submission.attempt),
                submission_url: api_v1_course_quiz_submission_url(@context, @quiz, @quiz_submission),
                events_url: api_v1_course_quiz_submission_events_url(@context, @quiz, @quiz_submission),
-               can_view_answer_audits: @quiz.grants_right?(@current_user, :view_answer_audits)
+               can_view_answer_audits: @quiz.grants_right?(current_principal, :view_answer_audits)
              })
     end
   end

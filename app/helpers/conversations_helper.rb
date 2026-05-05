@@ -266,17 +266,17 @@ module ConversationsHelper
   def valid_context?(context)
     case context
     when Account then valid_account_context?(context)
-    when Course, Group then context.membership_for_user(@current_user) || context.grants_right?(@current_user, session, :send_messages)
+    when Course, Group then context.membership_for_user(@current_user) || context.grants_right?(current_principal, session, :send_messages)
     else false
     end
   end
 
   def valid_account_context?(account)
     return false unless account.root_account?
-    return true if account.grants_right?(@current_user, session, :read_roster)
+    return true if account.grants_right?(current_principal, session, :read_roster)
 
     user_sub_accounts = @current_user.associated_accounts.shard(@current_user).where(root_account_id: account).to_a
-    user_sub_accounts.any? { |a| a.grants_right?(@current_user, session, :read_roster) }
+    user_sub_accounts.any? { |a| a.grants_right?(current_principal, session, :read_roster) }
   end
 
   def build_message
@@ -374,7 +374,7 @@ module ConversationsHelper
   def validate_context(context, recipients)
     if context.is_a?(Course) &&
        missing_right_to_send_any_recipient(recipients, context) &&
-       !context.grants_right?(@current_user, session, :send_messages)
+       !context.grants_right?(current_principal, session, :send_messages)
 
       raise InvalidContextPermissionsError
     elsif !valid_context?(context)

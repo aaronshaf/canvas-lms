@@ -80,7 +80,7 @@ class GradingPeriodsController < ApplicationController
   #   }
   #
   def index
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       if @context.is_a? Account
         grading_periods = @context.grading_periods.active.order(:start_date)
         read_only = false
@@ -109,7 +109,7 @@ class GradingPeriodsController < ApplicationController
   #   }
   #
   def show
-    if authorized_action(grading_period, @current_user, :read)
+    if authorized_action(grading_period, current_principal, :read)
       respond_to do |format|
         format.json { render json: serialize_json_api(grading_period) }
       end
@@ -136,7 +136,7 @@ class GradingPeriodsController < ApplicationController
   def update
     grading_period_params = params.require(:grading_periods).first.permit(:weight, :start_date, :end_date, :close_date, :title)
 
-    if authorized_action(grading_period(inherit: false), @current_user, :update)
+    if authorized_action(grading_period(inherit: false), current_principal, :update)
       respond_to do |format|
         SubmissionLifecycleManager.with_executing_user(@current_user) do
           if grading_period(inherit: false).update(grading_period_params)
@@ -156,7 +156,7 @@ class GradingPeriodsController < ApplicationController
   # <b>204 No Content</b> response code is returned if the deletion was
   # successful.
   def destroy
-    if authorized_action(grading_period(inherit: false), @current_user, :delete)
+    if authorized_action(grading_period(inherit: false), current_principal, :delete)
       SubmissionLifecycleManager.with_executing_user(@current_user) do
         grading_period(inherit: false).destroy
       end
@@ -202,7 +202,7 @@ class GradingPeriodsController < ApplicationController
   #   }
   #
   def batch_update
-    if authorized_action(@context, @current_user, :manage_grades)
+    if authorized_action(@context, current_principal, :manage_grades)
       SubmissionLifecycleManager.with_executing_user(@current_user) do
         method(:"#{@context.class.to_s.downcase}_batch_update").call
       end
@@ -322,11 +322,11 @@ class GradingPeriodsController < ApplicationController
   end
 
   def current_user_can_create?(periods)
-    periods.all? { |p| p.grants_right?(@current_user, :create) }
+    periods.all? { |p| p.grants_right?(current_principal, :create) }
   end
 
   def current_user_can_update?(periods)
-    periods.all? { |p| p.grants_right?(@current_user, :update) }
+    periods.all? { |p| p.grants_right?(current_principal, :update) }
   end
 
   def can_batch_update_in_context?(periods)
@@ -366,7 +366,7 @@ class GradingPeriodsController < ApplicationController
 
   def index_permissions
     can_create_grading_periods = @context.is_a?(Account) &&
-                                 @context.root_account? && @context.grants_right?(@current_user, :manage)
+                                 @context.root_account? && @context.grants_right?(current_principal, :manage)
     { can_create_grading_periods: }.as_json
   end
 end

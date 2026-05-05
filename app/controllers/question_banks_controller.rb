@@ -26,7 +26,7 @@ class QuestionBanksController < ApplicationController
   include QuizMathDataFixup
 
   def index
-    if @context == @current_user || authorized_action(@context, @current_user, :read_question_banks)
+    if @context == @current_user || authorized_action(@context, current_principal, :read_question_banks)
       @question_banks = @context.assessment_question_banks.active.except(:preload).to_a
       if params[:include_bookmarked] == "1"
         @question_banks += @current_user.assessment_question_banks.active
@@ -34,7 +34,7 @@ class QuestionBanksController < ApplicationController
       if params[:inherited] == "1" && @context != @current_user
         @question_banks += @context.inherited_assessment_question_banks.active
       end
-      @question_banks = @question_banks.select { |b| b.grants_right?(@current_user, :manage) } if params[:managed] == "1"
+      @question_banks = @question_banks.select { |b| b.grants_right?(current_principal, :manage) } if params[:managed] == "1"
       @question_banks = Canvas::ICU.collate_by(@question_banks.uniq) { |b| b.title || CanvasSort::Last }
       respond_to do |format|
         format.html
@@ -54,7 +54,7 @@ class QuestionBanksController < ApplicationController
 
   def reorder
     @bank = @context.assessment_question_banks.find(params[:question_bank_id])
-    if authorized_action(@bank, @current_user, :update)
+    if authorized_action(@bank, current_principal, :update)
       @bank.assessment_questions.active.first.update_order(params[:order].split(","))
       render json: { reorder: true }
     end
@@ -72,12 +72,12 @@ class QuestionBanksController < ApplicationController
 
     add_crumb(@bank.title)
 
-    if params[:fixup_quiz_math_questions] == "1" && @bank.grants_right?(@current_user, session, :update)
+    if params[:fixup_quiz_math_questions] == "1" && @bank.grants_right?(current_principal, session, :update)
       InstStatsd::Statsd.distributed_increment("fixingup_quiz_math_banks")
       @bank = fixup_quiz_questions_with_bad_math(@bank, question_bank: true)
     end
 
-    if authorized_action(@bank, @current_user, :read)
+    if authorized_action(@bank, current_principal, :read)
       @alignments = Canvas::ICU.collate_by(@bank.learning_outcome_alignments) { |a| a.learning_outcome.short_description }
       @questions = @bank.assessment_questions.active.paginate(per_page: 50, page: 1)
     end
@@ -90,7 +90,7 @@ class QuestionBanksController < ApplicationController
   def move_questions
     @bank = @context.assessment_question_banks.find(params[:question_bank_id])
     @new_bank = AssessmentQuestionBank.find(params[:assessment_question_bank_id])
-    if authorized_action(@bank, @current_user, :update) && authorized_action(@new_bank, @current_user, :manage)
+    if authorized_action(@bank, current_principal, :update) && authorized_action(@new_bank, current_principal, :manage)
       unless params[:questions].present?
         return render json: { error: "must specify questions to move" }, status: :unprocessable_content
       end
@@ -117,7 +117,7 @@ class QuestionBanksController < ApplicationController
   end
 
   def create
-    if authorized_action(@context.assessment_question_banks.temp_record, @current_user, :create)
+    if authorized_action(@context.assessment_question_banks.temp_record, current_principal, :create)
       @bank = @context.assessment_question_banks.build(bank_params)
       respond_to do |format|
         if @bank.save
@@ -139,14 +139,14 @@ class QuestionBanksController < ApplicationController
 
     if params[:unbookmark] == "1"
       render json: @bank.bookmark_for(@current_user, do_bookmark: false)
-    elsif authorized_action(@bank, @current_user, :update)
+    elsif authorized_action(@bank, current_principal, :update)
       render json: @bank.bookmark_for(@current_user)
     end
   end
 
   def update
     @bank = @context.assessment_question_banks.find(params[:id])
-    if authorized_action(@bank, @current_user, :update)
+    if authorized_action(@bank, current_principal, :update)
       if @bank.update(bank_params)
         @bank.reload
         render json: @bank.as_json(include: { learning_outcome_alignments: { include: { learning_outcome: { include_root: false } } } })
@@ -158,7 +158,7 @@ class QuestionBanksController < ApplicationController
 
   def destroy
     @bank = @context.assessment_question_banks.find(params[:id])
-    if authorized_action(@bank, @current_user, :delete)
+    if authorized_action(@bank, current_principal, :delete)
       @bank.destroy
       render json: @bank
     end

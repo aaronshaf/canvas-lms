@@ -176,7 +176,7 @@ class GroupsController < ApplicationController
 
   def context_group_members
     @group = @context
-    if authorized_action(@group, @current_user, :read_roster)
+    if authorized_action(@group, current_principal, :read_roster)
       render json: @group.members_json_cached
     end
   end
@@ -185,7 +185,7 @@ class GroupsController < ApplicationController
     category = @context.active_combined_group_and_differentiation_tag_categories.where(id: params[:category_id]).first
     return render json: {}, status: :not_found unless category
 
-    if category.non_collaborative? && !@context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+    if category.non_collaborative? && !@context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
       return render json: { message: "Not authorized to manage differentiation tag." },
                     status: :unauthorized
     end
@@ -208,7 +208,7 @@ class GroupsController < ApplicationController
 
     users = users.paginate(page:, per_page:)
 
-    if authorized_action(@context, @current_user, :manage)
+    if authorized_action(@context, current_principal, :manage)
       json = {
         pages: users.total_pages,
         current_page: users.current_page,
@@ -252,7 +252,7 @@ class GroupsController < ApplicationController
         groups_scope = groups_scope.preload(:group_category, :context, :root_account)
 
         groups = groups_scope.shard(@current_user).to_a
-        groups.select! { |group| group.context_type != "Course" || group.context.grants_right?(@current_user, :read) }
+        groups.select! { |group| group.context_type != "Course" || group.context.grants_right?(current_principal, :read) }
         groups.sort_by! { |group| Canvas::ICU.collation_key(group&.name) }
 
         # Split the groups out into those in concluded courses and those not in concluded courses.
@@ -309,7 +309,7 @@ class GroupsController < ApplicationController
   #
   # @returns [Group]
   def context_index
-    return unless authorized_action(@context, @current_user, :read_roster)
+    return unless authorized_action(@context, current_principal, :read_roster)
 
     page_has_instui_topnav
     @groups = @context.combined_groups_and_differentiation_tags.active
@@ -324,12 +324,12 @@ class GroupsController < ApplicationController
     when "collaborative"
       @groups = @groups.where(non_collaborative: false)
     when "non_collaborative"
-      return unless authorized_action(@context, @current_user, %i[manage_tags_add manage_tags_manage manage_tags_delete])
+      return unless authorized_action(@context, current_principal, %i[manage_tags_add manage_tags_manage manage_tags_delete])
 
       @groups = @groups.where(non_collaborative: true)
     when "all"
       # IF FAIL, EXCLUDE NON-COLLABORATIVE
-      unless @context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+      unless @context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
         @groups = @groups.where(non_collaborative: false)
       end
     end
@@ -383,7 +383,7 @@ class GroupsController < ApplicationController
           @categories = @categories.where(non_collaborative: true)
         when "all"
           # IF FAIL, EXCLUDE NON-COLLABORATIVE
-          unless @context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+          unless @context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
             @categories = @categories.where(non_collaborative: false)
           end
         end
@@ -397,13 +397,13 @@ class GroupsController < ApplicationController
             @user_groups = @user_groups.where(non_collaborative: true)
           when "all"
             # IF FAIL, EXCLUDE NON-COLLABORATIVE
-            unless @context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+            unless @context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
               @user_groups = @user_groups.where(non_collaborative: false)
             end
           end
         end
 
-        if @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS)
+        if @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS)
           categories_json = @categories.map { |cat| group_category_json(cat, @current_user, session, include: %w[progress_url unassigned_users_count groups_count]) }
           uncategorized = @context.groups.active.uncategorized.to_a
           if uncategorized.present?
@@ -413,9 +413,9 @@ class GroupsController < ApplicationController
           end
 
           js_permissions = {
-            can_add_groups: @context.grants_right?(@current_user, session, :manage_groups_add),
-            can_manage_groups: @context.grants_right?(@current_user, session, :manage_groups_manage),
-            can_delete_groups: @context.grants_right?(@current_user, session, :manage_groups_delete)
+            can_add_groups: @context.grants_right?(current_principal, session, :manage_groups_add),
+            can_manage_groups: @context.grants_right?(current_principal, session, :manage_groups_manage),
+            can_delete_groups: @context.grants_right?(current_principal, session, :manage_groups_delete)
           }
 
           js_env({
@@ -444,7 +444,7 @@ class GroupsController < ApplicationController
 
           @groups = @user_groups = @groups & (@user_groups || [])
           @available_groups = (all_groups - @user_groups).select do |group|
-            group.grants_right?(@current_user, :join)
+            group.grants_right?(current_principal, :join)
           end
           render :context_groups
         end
@@ -495,7 +495,7 @@ class GroupsController < ApplicationController
   #       "79": [3, 4, 5]
   #     }
   def bulk_user_tags
-    return unless authorized_action(@context, @current_user, %i[manage_tags_add manage_tags_manage manage_tags_delete])
+    return unless authorized_action(@context, current_principal, %i[manage_tags_add manage_tags_manage manage_tags_delete])
 
     course_id = params[:course_id].to_i
 
@@ -556,7 +556,7 @@ class GroupsController < ApplicationController
           flash[:notice] = t("notices.already_deleted", "That group has been deleted")
           redirect_to named_context_url(@group.context, :context_url)
           return
-        elsif @group.context.concluded? && !@group.context.grants_right?(@current_user, session, :read_roster)
+        elsif @group.context.concluded? && !@group.context.grants_right?(current_principal, session, :read_roster)
           flash[:error] = t("Cannot access group in concluded course")
           redirect_to dashboard_url
           return
@@ -564,14 +564,14 @@ class GroupsController < ApplicationController
         @current_conferences = @group.web_conferences.active.select { |c| c.active? && c.users.include?(@current_user) }
         @scheduled_conferences = @context.web_conferences.active.select { |c| c.scheduled? && c.users.include?(@current_user) }
         @stream_items = @current_user.try(:cached_recent_stream_items, { contexts: @context }) || []
-        if params[:join] && @group.grants_right?(@current_user, :join)
+        if params[:join] && @group.grants_right?(current_principal, :join)
           if @group.full?
             flash[:error] = t("errors.group_full", "The group is full.")
             redirect_to course_groups_url(@group.context)
             return
           end
           @group.request_user(@current_user)
-          if @group.grants_right?(@current_user, session, :read)
+          if @group.grants_right?(current_principal, session, :read)
             flash[:notice] = t("notices.welcome", "Welcome to the group %{group_name}!", group_name: @group.name)
             redirect_to named_context_url(@group.context, :context_groups_url)
           else
@@ -579,7 +579,7 @@ class GroupsController < ApplicationController
           end
           return
         end
-        if params[:leave] && @group.grants_right?(@current_user, :leave)
+        if params[:leave] && @group.grants_right?(current_principal, :leave)
           membership = @group.membership_for_user(@current_user)
           if membership
             membership.destroy
@@ -588,7 +588,7 @@ class GroupsController < ApplicationController
             return
           end
         end
-        if authorized_action(@group, @current_user, :read)
+        if authorized_action(@group, current_principal, :read)
           set_badge_counts_for(@group, @current_user)
           @home_page = @group.wiki.front_page
         end
@@ -600,7 +600,7 @@ class GroupsController < ApplicationController
         end
       end
       format.json do
-        if authorized_action(@group, @current_user, :read)
+        if authorized_action(@group, current_principal, :read)
           render json: group_json(@group, @current_user, session, include: Array(params[:include]))
         end
       end
@@ -608,7 +608,7 @@ class GroupsController < ApplicationController
   end
 
   def new
-    if authorized_action(@context, @current_user, :manage_groups_add)
+    if authorized_action(@context, current_principal, :manage_groups_add)
       @group = @context.groups.build
     end
   end
@@ -698,13 +698,13 @@ class GroupsController < ApplicationController
       end
     end
 
-    attrs.delete :storage_quota_mb unless @context.grants_right?(@current_user, session, :manage_storage_quotas)
+    attrs.delete :storage_quota_mb unless @context.grants_right?(current_principal, session, :manage_storage_quotas)
     @group = @context.groups.temp_record(attrs.slice(*SETTABLE_GROUP_ATTRIBUTES))
 
-    if authorized_action(@group, @current_user, :create)
+    if authorized_action(@group, current_principal, :create)
       @group.set_default_account
       if (sis_id = params.delete :sis_group_id)
-        if @group.root_account.grants_right?(@current_user, :manage_sis)
+        if @group.root_account.grants_right?(current_principal, :manage_sis)
           @group.sis_source_id = sis_id
         else
           return render json: { message: "You must have manage_sis permission to set sis attributes" }, status: :unauthorized
@@ -809,9 +809,9 @@ class GroupsController < ApplicationController
       attrs[:leader] = membership.user
     end
 
-    if authorized_action(@group, @current_user, :update)
+    if authorized_action(@group, current_principal, :update)
       if (sis_id = params.delete :sis_group_id)
-        if @group.root_account.grants_right?(@current_user, :manage_sis)
+        if @group.root_account.grants_right?(current_principal, :manage_sis)
           @group.sis_source_id = sis_id
         else
           return render json: { message: "You must have manage_sis permission to update sis attributes" }, status: :unauthorized
@@ -864,7 +864,7 @@ class GroupsController < ApplicationController
   # @returns Group
   def destroy
     find_group
-    if authorized_action(@group, @current_user, :delete)
+    if authorized_action(@group, current_principal, :delete)
       if @group.destroy
         flash[:notice] = t("notices.delete_success", "Group successfully deleted")
         respond_to do |format|
@@ -897,7 +897,7 @@ class GroupsController < ApplicationController
   #          -H 'Authorization: Bearer <token>'
   def invite
     find_group
-    if authorized_action(@group, @current_user, :manage)
+    if authorized_action(@group, current_principal, :manage)
       root_account = @group.context.try(:root_account) || @domain_root_account
       ul = UserList.new(params[:invitees],
                         root_account:,
@@ -934,7 +934,7 @@ class GroupsController < ApplicationController
 
   def add_user
     @group = @context
-    if authorized_action(@group, @current_user, :manage)
+    if authorized_action(@group, current_principal, :manage)
       SubmissionLifecycleManager.with_executing_user(@current_user) do
         @membership = @group.add_user(User.find(params[:user_id]))
         if @membership.valid?
@@ -949,7 +949,7 @@ class GroupsController < ApplicationController
 
   def remove_user
     @group = @context
-    if authorized_action(@group, @current_user, :manage)
+    if authorized_action(@group, current_principal, :manage)
       @membership = @group.group_memberships.where(user_id: params[:user_id]).first
       @membership.destroy
       render json: @membership
@@ -979,7 +979,7 @@ class GroupsController < ApplicationController
   #
   # @returns [User]
   def users
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
 
     search_term = params[:search_term].presence
     include_inactive = params[:exclude_inactive].present? ? !value_to_boolean(params[:exclude_inactive]) : true
@@ -1024,7 +1024,7 @@ class GroupsController < ApplicationController
     return unless get_feed_context(only: [:group])
 
     if @context.non_collaborative?
-      return render json: { message: "Not authorized to manage differentiation tag." }, status: :unauthorized unless @context.context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+      return render json: { message: "Not authorized to manage differentiation tag." }, status: :unauthorized unless @context.context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
     end
 
     title = t(:feed_title, "%{course_or_account_name} Feed", course_or_account_name: @context.full_name)
@@ -1065,7 +1065,7 @@ class GroupsController < ApplicationController
       return render json: { message: "Not authorized to upload file to Differentiation Tag" }, status: :unauthorized if @context.non_collaborative?
     end
 
-    if authorized_action(@attachment, @current_user, :create)
+    if authorized_action(@attachment, current_principal, :create)
       submit_assignment = value_to_boolean(params[:submit_assignment])
       opts = { check_quota: true, submit_assignment: }
       if submit_assignment && @context.respond_to?(:submissions_folder)
@@ -1096,7 +1096,7 @@ class GroupsController < ApplicationController
   #   }
   def preview_html
     get_context
-    if @context && authorized_action(@context, @current_user, :read)
+    if @context && authorized_action(@context, current_principal, :read)
       render_preview_html
     end
   end
@@ -1111,9 +1111,9 @@ class GroupsController < ApplicationController
   def activity_stream
     get_context
     if @context.non_collaborative?
-      return render json: { message: "Not authorized to manage differentiation tag." }, status: :unauthorized unless @context.context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+      return render json: { message: "Not authorized to manage differentiation tag." }, status: :unauthorized unless @context.context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
     end
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       api_render_stream(contexts: [@context], paginate_url: :api_v1_group_activity_stream_url)
     end
   end
@@ -1126,9 +1126,9 @@ class GroupsController < ApplicationController
   def activity_stream_summary
     get_context
     if @context.non_collaborative?
-      return render json: { message: "Not authorized to manage differentiation tag." }, status: :unauthorized unless @context.context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+      return render json: { message: "Not authorized to manage differentiation tag." }, status: :unauthorized unless @context.context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
     end
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       api_render_stream_summary(contexts: [@context])
     end
   end
@@ -1152,10 +1152,10 @@ class GroupsController < ApplicationController
   #   {'read_roster': 'true', 'send_messages_all': 'false'}
   def permissions
     get_context
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
 
     permissions = Array(params[:permissions]).map(&:to_sym)
-    render json: @context.rights_status(@current_user, session, *permissions)
+    render json: @context.rights_status(current_principal, session, *permissions)
   end
 
   protected

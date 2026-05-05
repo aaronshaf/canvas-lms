@@ -31,7 +31,7 @@ class Quizzes::QuizSubmissionsController < ApplicationController
   batch_jobs_in_actions only: [:update, :create], batch: { priority: Delayed::LOW_PRIORITY }
 
   def index
-    if params[:zip] && authorized_action(@quiz, @current_user, :review_grades)
+    if params[:zip] && authorized_action(@quiz, current_principal, :review_grades)
       generate_submission_zip(@quiz, @context)
     else
       redirect_to named_context_url(@context, :context_quiz_url, @quiz.id)
@@ -43,7 +43,7 @@ class Quizzes::QuizSubmissionsController < ApplicationController
     delete_session_access_key!
     if @quiz.ip_filter && !@quiz.valid_ip?(quiz_client_ip)
       flash[:error] = t("errors.protected_quiz", "This quiz is protected and is only available from certain locations.  The computer you are currently using does not appear to be at a valid location for taking this quiz.") # rubocop:disable Rails/ActionControllerFlashBeforeRender
-    elsif @quiz.grants_right?(@current_user, :submit)
+    elsif @quiz.grants_right?(current_principal, :submit)
       # If the submission is a preview, we don't add it to the user's submission history,
       # and it actually gets keyed by the temporary_user_code column instead of
       if @current_user.nil? || is_previewing?
@@ -88,7 +88,7 @@ class Quizzes::QuizSubmissionsController < ApplicationController
     if value_to_boolean(params[:leaving])
       delete_session_access_key!
     end
-    if authorized_action(@quiz, @current_user, :submit)
+    if authorized_action(@quiz, current_principal, :submit)
       if @current_user.nil? || is_previewing?
         @submission = @quiz.quiz_submissions.where(temporary_user_code: temporary_user_code(generate: false), user_id: nil).first
       else
@@ -106,7 +106,7 @@ class Quizzes::QuizSubmissionsController < ApplicationController
       if !@submission || (@quiz.ip_filter && !@quiz.valid_ip?(quiz_client_ip))
         # do nothing
       elsif is_previewing? || (@submission.temporary_user_code == temporary_user_code(generate: false)) ||
-            @submission.grants_right?(@current_user, session, :update)
+            @submission.grants_right?(current_principal, session, :update)
         if !@submission.completed? && (!@submission.overdue? || is_previewing?)
           if params[:action] == "record_answer"
             if (last_question = params[:last_question_id])
@@ -150,7 +150,7 @@ class Quizzes::QuizSubmissionsController < ApplicationController
   def extensions
     @student = @context.users_visible_to(@current_user, include_inactive: true).find(params[:user_id])
     @submission = Quizzes::SubmissionManager.new(@quiz).find_or_create_submission(@student, state: "settings_only")
-    if authorized_action(@submission, @current_user, :add_attempts)
+    if authorized_action(@submission, current_principal, :add_attempts)
       @submission.extra_attempts ||= 0
       @submission.extra_attempts = params[:extra_attempts].to_i if params[:extra_attempts]
       @submission.extra_time = params[:extra_time].to_i if params[:extra_time]
@@ -173,7 +173,7 @@ class Quizzes::QuizSubmissionsController < ApplicationController
 
   def update
     @submission = @quiz.quiz_submissions.find(params[:id])
-    if authorized_action(@submission, @current_user, :update_scores)
+    if authorized_action(@submission, current_principal, :update_scores)
       unless @quiz.visible_to_user?(@submission.user)
         return reject! t("Quiz not assigned to student"), 403
       end
@@ -188,7 +188,7 @@ class Quizzes::QuizSubmissionsController < ApplicationController
   end
 
   def show
-    if authorized_action(@quiz_submission, @current_user, :read)
+    if authorized_action(@quiz_submission, current_principal, :read)
       redirect_to named_context_url(@context,
                                     :context_quiz_history_url,
                                     @quiz.id,
@@ -205,7 +205,7 @@ class Quizzes::QuizSubmissionsController < ApplicationController
   end
 
   def is_previewing?
-    @previewing ||= params[:preview] && @quiz.grants_right?(@current_user, session, :preview)
+    @previewing ||= params[:preview] && @quiz.grants_right?(current_principal, session, :preview)
   end
 
   def previewing_params

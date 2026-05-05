@@ -167,7 +167,7 @@ class Login::OtpController < ApplicationController
            else
              User.find(params[:user_id])
            end
-    return unless authorized_action(user, @current_user, :reset_mfa)
+    return unless authorized_action(user, current_principal, :reset_mfa)
 
     user.otp_secret_key = nil
     user.otp_communication_channel = nil

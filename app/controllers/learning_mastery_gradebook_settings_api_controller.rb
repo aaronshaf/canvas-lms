@@ -166,7 +166,7 @@ class LearningMasteryGradebookSettingsApiController < ApplicationController
   end
 
   def authorize
-    authorized_action(@context, @current_user, %i[manage_grades view_all_grades])
+    authorized_action(@context, current_principal, %i[manage_grades view_all_grades])
   end
 
   def outcome_gradebook_enabled?

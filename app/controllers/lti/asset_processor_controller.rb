@@ -49,7 +49,7 @@ module Lti
     def resubmit_discussion_notices_all
       topic = assignment.discussion_topic
       return render json: { error: "Not a discussion assignment" }, status: :unprocessable_content unless topic
-      return render status: :forbidden, plain: "invalid_request" unless context.grants_any_right?(@current_user, session, :manage_grades)
+      return render status: :forbidden, plain: "invalid_request" unless context.grants_any_right?(current_principal, session, :manage_grades)
 
       entry_ids = topic.discussion_entries.active.where(user_id: student.id).pluck(:id)
       return head :no_content if entry_ids.empty?
@@ -111,7 +111,7 @@ module Lti
     end
 
     def require_access_to_context
-      return if context.is_a?(Course) && context.grants_any_right?(@current_user, session, :manage_grades, :view_all_grades)
+      return if context.is_a?(Course) && context.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
 
       render status: :forbidden, plain: "invalid_request"
     end

@@ -157,12 +157,12 @@ class FeatureFlagsController < ApplicationController
   #
   # @returns [Feature]
   def index
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       route = polymorphic_url([:api_v1, @context, :features])
       features = Feature.applicable_features(@context, type: params[:type])
       features = Api.paginate(features, self, route)
 
-      skip_cache = @context.grants_right?(@current_user, session, :manage_feature_flags)
+      skip_cache = @context.grants_right?(current_principal, session, :manage_feature_flags)
       @context.feature_flags.load if skip_cache
 
       flags = features.filter_map do |fd|
@@ -193,7 +193,7 @@ class FeatureFlagsController < ApplicationController
   #
   #   ["fancy_wickets", "automatic_essay_grading", "telepathic_navigation"]
   def enabled_features
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       features = Feature.applicable_features(@context).filter_map { |fd| @context.lookup_feature_flag(fd.feature) }
                                                       .select(&:enabled?).map(&:feature)
       render json: features
@@ -238,7 +238,7 @@ class FeatureFlagsController < ApplicationController
   #
   # @returns FeatureFlag
   def show
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       return render json: { message: "missing feature parameter" }, status: :bad_request unless params[:feature].present?
 
       feature = params[:feature]
@@ -247,7 +247,7 @@ class FeatureFlagsController < ApplicationController
       flag = @context.lookup_feature_flag(feature,
                                           override_hidden: can_read_site_admin?,
                                           include_shadowed: can_read_site_admin?,
-                                          skip_cache: @context.grants_right?(@current_user, session, :manage_feature_flags))
+                                          skip_cache: @context.grants_right?(current_principal, session, :manage_feature_flags))
       raise ActiveRecord::RecordNotFound unless flag
 
       render json: feature_flag_json(flag, @context, @current_user, session)
@@ -273,7 +273,7 @@ class FeatureFlagsController < ApplicationController
   #
   # @returns FeatureFlag
   def update
-    if authorized_action(@context, @current_user, :manage_feature_flags)
+    if authorized_action(@context, current_principal, :manage_feature_flags)
       return render json: { message: "must specify feature" }, status: :bad_request unless params[:feature].present?
 
       feature_def = Feature.definitions[params[:feature]]
@@ -295,13 +295,13 @@ class FeatureFlagsController < ApplicationController
          params[:state] != "off" &&
          @context.respond_to?(:root_account) &&
          !@context.root_account.early_access_program[:value] &&
-         !@context.root_account.grants_right?(@current_user, :manage_site_settings)
+         !@context.root_account.grants_right?(current_principal, :manage_site_settings)
         return render json: { message: "This feature requires acceptance of the terms of the Early Access Program. See #{account_settings_url(anchor: "tab-features")}" }, status: :forbidden
       end
 
       # require site admin privileges to unhide a hidden feature
       if !current_flag && feature_def.hidden?
-        return render json: { message: "invalid feature" }, status: :bad_request unless Account.site_admin.grants_right?(@current_user, session, :read)
+        return render json: { message: "invalid feature" }, status: :bad_request unless Account.site_admin.grants_right?(current_principal, session, :read)
 
         prior_state = "hidden"
       end
@@ -334,7 +334,7 @@ class FeatureFlagsController < ApplicationController
   def accept_early_access_terms
     raise ActiveRecord::RecordNotFound unless @context.is_a?(Account) && @context.root_account?
 
-    if authorized_action(@context, @current_user, :manage_feature_flags)
+    if authorized_action(@context, current_principal, :manage_feature_flags)
       @context.settings[:early_access_program] = { value: true }
       if @context.save
         render json: { early_access_program: true }
@@ -358,7 +358,7 @@ class FeatureFlagsController < ApplicationController
   #
   # @returns FeatureFlag
   def delete
-    if authorized_action(@context, @current_user, :manage_feature_flags)
+    if authorized_action(@context, current_principal, :manage_feature_flags)
       feature_param = params[:feature]
       return render json: { message: "must specify feature" }, status: :bad_request unless feature_param.present?
 
@@ -402,7 +402,7 @@ class FeatureFlagsController < ApplicationController
   end
 
   def can_read_site_admin?
-    @can_read_site_admin ||= Account.site_admin.grants_right?(@current_user, session, :read)
+    @can_read_site_admin ||= Account.site_admin.grants_right?(current_principal, session, :read)
   end
 
   def create_or_update_feature_flag(attributes, current_flag = nil)

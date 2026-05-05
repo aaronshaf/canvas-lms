@@ -34,7 +34,7 @@ class CalendarEventsController < ApplicationController
       redirect_to calendar_url_for(@context)
       return
     end
-    if authorized_action(@event, @current_user, :read)
+    if authorized_action(@event, current_principal, :read)
       # If param specifies to open event on calendar, redirect to view
       if params[:calendar] == "1" || @context.is_a?(CourseSection)
         return redirect_to calendar_url_for(@event.effective_context, event: @event)
@@ -53,13 +53,13 @@ class CalendarEventsController < ApplicationController
     add_crumb(t("crumbs.new", "New Calendar Event"), named_context_url(@context, :new_context_calendar_event_url))
     @event.assign_attributes(permit_params(params, [:title, :start_at, :end_at, :location_name, :location_address, web_conference: strong_anything]))
     add_conference_types_to_js_env([@context])
-    authorized_action(@event, @current_user, :create) && authorize_user_for_conference(@current_user, @event.web_conference)
+    authorized_action(@event, current_principal, :create) && authorize_user_for_conference(current_principal, @event.web_conference)
   end
 
   def create
     params[:calendar_event][:time_zone_edited] = Time.zone.name if params[:calendar_event]
     @event = @context.calendar_events.build(calendar_event_params)
-    if authorized_action(@event, @current_user, :create) && authorize_user_for_conference(@current_user, @event.web_conference)
+    if authorized_action(@event, current_principal, :create) && authorize_user_for_conference(current_principal, @event.web_conference)
       respond_to do |format|
         @event.updating_user = @current_user
         if @event.save
@@ -79,7 +79,7 @@ class CalendarEventsController < ApplicationController
     event_params = permit_params(params, [:title, :start_at, :end_at, :location_name, :location_address, web_conference: strong_anything])
     return unless authorize_user_for_conference(@current_user, event_params[:web_conference])
 
-    if authorized_action(@event, @current_user, :update_content)
+    if authorized_action(@event, current_principal, :update_content)
       add_conference_types_to_js_env([@context])
       render :new
     end
@@ -87,7 +87,7 @@ class CalendarEventsController < ApplicationController
 
   def update
     @event = CalendarEvent.find(params[:id])
-    if authorized_action(@event, @current_user, :update)
+    if authorized_action(@event, current_principal, :update)
       respond_to do |format|
         params_for_update = calendar_event_params
         params_for_update[:calendar_event][:time_zone_edited] = Time.zone.name if params_for_update[:calendar_event]
@@ -109,7 +109,7 @@ class CalendarEventsController < ApplicationController
 
   def destroy
     @event = CalendarEvent.find(params[:id])
-    if authorized_action(@event, @current_user, :delete)
+    if authorized_action(@event, current_principal, :delete)
       @event.cancel_reason = params[:cancel_reason]
       @event.destroy
       respond_to do |format|

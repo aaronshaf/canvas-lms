@@ -504,7 +504,7 @@ class DiscussionTopicsApiController < ApplicationController
   #     ]
   #   }
   def view
-    return unless authorized_action(@topic, @current_user, :read_replies)
+    return unless authorized_action(@topic, current_principal, :read_replies)
     return unless is_not_anonymous
 
     log_asset_access(@topic, "topics", "topics")
@@ -543,7 +543,7 @@ class DiscussionTopicsApiController < ApplicationController
         params[:include_context_card_info]
       )
       include_enrollment_state = params[:include_enrollment_state] && (@context.is_a?(Course) || @context.is_a?(Group)) &&
-                                 @context.grants_right?(@current_user, session, :read_as_admin)
+                                 @context.grants_right?(current_principal, session, :read_as_admin)
       if include_enrollment_state || include_context_card_info
         enrollment_context = @context.is_a?(Course) ? @context : @context.context
         all_enrollments = enrollment_context.enrollments.where(user_id: participants).to_a
@@ -617,7 +617,7 @@ class DiscussionTopicsApiController < ApplicationController
   #        -H "Authorization: Bearer <token>"
   def add_entry
     @entry = build_entry(@topic.discussion_entries)
-    if authorized_action(@topic, @current_user, :read) && authorized_action(@entry, @current_user, :create)
+    if authorized_action(@topic, current_principal, :read) && authorized_action(@entry, current_principal, :create)
       save_entry
     end
   end
@@ -641,7 +641,7 @@ class DiscussionTopicsApiController < ApplicationController
       render(json: { error: t("announcements cannot be duplicated") }, status: :bad_request) and return
     end
 
-    return unless authorized_action(@topic, @current_user, :duplicate)
+    return unless authorized_action(@topic, current_principal, :duplicate)
 
     @topic.updating_user = @current_user
     new_topic = @topic.duplicate({ user: @current_user })
@@ -652,7 +652,7 @@ class DiscussionTopicsApiController < ApplicationController
     end
     # People that can't moderate don't have power to publish separately, so
     # just publish their topics straightaway.
-    unless @context.grants_right?(@current_user, session, :moderate_forum)
+    unless @context.grants_right?(current_principal, session, :moderate_forum)
       new_topic.publish
     end
     if new_topic.save!
@@ -791,7 +791,7 @@ class DiscussionTopicsApiController < ApplicationController
   def add_reply
     @parent = all_entries(@topic).find(params[:entry_id])
     @entry = build_entry(@parent.discussion_subentries)
-    if authorized_action(@entry, @current_user, :create)
+    if authorized_action(@entry, current_principal, :create)
       @entry.saving_user = @current_user
       save_entry
     end
@@ -1064,7 +1064,7 @@ class DiscussionTopicsApiController < ApplicationController
       render(json: { message: "Invalid rating given" }, status: :bad_request) and return
     end
 
-    if authorized_action(@entry, @current_user, :rate)
+    if authorized_action(@entry, current_principal, :rate)
       render_state_change_result @entry.change_rating(rating, @current_user)
     end
   end
@@ -1100,7 +1100,7 @@ class DiscussionTopicsApiController < ApplicationController
   # TODO remove it after the alert is no longer needed
   def migrate_disallow
     raise ActiveRecord::RecordNotFound unless Account.site_admin.feature_enabled?(:disallow_threaded_replies_fix_alert)
-    return render_unauthorized_action unless @context.grants_right?(@current_user, session, :moderate_forum)
+    return render_unauthorized_action unless @context.grants_right?(current_principal, session, :moderate_forum)
 
     update_count = @context.active_discussion_topics
                            .only_discussion_topics
@@ -1118,7 +1118,7 @@ class DiscussionTopicsApiController < ApplicationController
   # same as migrate_disallow
   def update_discussion_types
     raise ActiveRecord::RecordNotFound unless Account.site_admin.feature_enabled?(:disallow_threaded_replies_manage)
-    return render_unauthorized_action unless @context.grants_right?(@current_user, session, :moderate_forum)
+    return render_unauthorized_action unless @context.grants_right?(current_principal, session, :moderate_forum)
 
     threaded = params[DiscussionTopic::DiscussionTypes::THREADED]
     not_threaded = params[DiscussionTopic::DiscussionTypes::NOT_THREADED]
@@ -1147,7 +1147,7 @@ class DiscussionTopicsApiController < ApplicationController
   end
 
   def accessibility_scan
-    return unless authorized_action(@topic, @current_user, :update)
+    return unless authorized_action(@topic, current_principal, :update)
     return render_unauthorized_action unless @context.a11y_checker_enabled?
 
     scan = Accessibility::ResourceScannerService.new(resource: @topic).call_sync
@@ -1155,7 +1155,7 @@ class DiscussionTopicsApiController < ApplicationController
   end
 
   def accessibility_queue_scan
-    return unless authorized_action(@topic, @current_user, :update)
+    return unless authorized_action(@topic, current_principal, :update)
     return render_unauthorized_action unless @context.a11y_checker_enabled?
 
     scan = Accessibility::ResourceScannerService.new(resource: @topic).call
@@ -1178,7 +1178,7 @@ class DiscussionTopicsApiController < ApplicationController
 
   def require_topic
     @topic = @context.all_discussion_topics.active.find(params[:topic_id])
-    authorized_action(@topic, @current_user, :read)
+    authorized_action(@topic, current_principal, :read)
   end
 
   def require_entry
@@ -1203,7 +1203,7 @@ class DiscussionTopicsApiController < ApplicationController
 
   def save_entry
     has_attachment = params[:attachment].present? && !params[:attachment].empty? &&
-                     @entry.grants_right?(@current_user, session, :attach)
+                     @entry.grants_right?(current_principal, session, :attach)
     return if has_attachment && !@topic.for_assignment? && params[:attachment].size > 1.kilobyte &&
               quota_exceeded(@current_user, named_context_url(@context, :context_discussion_topic_url, @topic.id))
 
@@ -1246,7 +1246,7 @@ class DiscussionTopicsApiController < ApplicationController
     topics = [topic]
     if topic.for_group_discussion? && !topic.child_topics.empty?
       groups = topic.group_category.groups.active.select do |group|
-        group.grants_right?(@current_user, session, :read)
+        group.grants_right?(current_principal, session, :read)
       end
       topic.child_topics.each { |t| topics << t if groups.include?(t.context) }
     end
@@ -1290,7 +1290,7 @@ class DiscussionTopicsApiController < ApplicationController
     require_entry
     opts = get_forced_option
 
-    if authorized_action(@entry, @current_user, :read)
+    if authorized_action(@entry, current_principal, :read)
       render_state_change_result @entry.change_read_state(new_state, @current_user, opts)
     end
   end

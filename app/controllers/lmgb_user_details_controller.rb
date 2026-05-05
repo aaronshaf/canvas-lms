@@ -87,13 +87,13 @@ class LmgbUserDetailsController < ApplicationController
   def require_outcome_context
     reject! "invalid context type" unless @context.is_a?(Course)
 
-    if @context.grants_any_right?(@current_user, session, :manage_grades, :view_all_grades)
+    if @context.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
       reject! "not authorized to read grades for specified user", :forbidden unless users_for_outcome_context.where(id: params[:id]).exists?
     else
       # Students can only access their own data
       user_id = params[:id].to_i
       reject! "not authorized to read grades for specified user", :forbidden unless user_id == @current_user.id
-      reject! "user is not allowed to read grades", :forbidden unless @context.grants_right?(@current_user, session, :read_grades)
+      reject! "user is not allowed to read grades", :forbidden unless @context.grants_right?(current_principal, session, :read_grades)
     end
   end
 

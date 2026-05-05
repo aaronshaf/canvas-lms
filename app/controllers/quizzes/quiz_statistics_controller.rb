@@ -256,7 +256,7 @@ class Quizzes::QuizStatisticsController < ApplicationController
   #    "quiz_statistics": [ QuizStatistics ]
   #  }
   def index
-    if authorized_action(@quiz, @current_user, :read_statistics)
+    if authorized_action(@quiz, current_principal, :read_statistics)
       updated = @quiz.quiz_submissions.not_settings_only.completed.order(updated_at: :desc).limit(1).pick(:updated_at)
       cache_key = [
         "quiz_statistics_1",
@@ -284,7 +284,7 @@ class Quizzes::QuizStatisticsController < ApplicationController
   private
 
   def include_sis_ids?
-    @context.grants_any_right?(@current_user, session, :read_sis, :manage_sis)
+    @context.grants_any_right?(current_principal, session, :read_sis, :manage_sis)
   end
 
   def prepare_service

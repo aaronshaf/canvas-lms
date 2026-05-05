@@ -93,7 +93,7 @@ class RubricAssociationsController < ApplicationController
     @association_object = nil unless @association_object && @association_object.try(:context) == @context
     rubric_id = association_params.delete(:rubric_id)
     @rubric = @association ? @association.rubric : Rubric.find(rubric_id)
-    # raise "User doesn't have access to this rubric" unless @rubric.grants_right?(@current_user, session, :read)
+    # raise "User doesn't have access to this rubric" unless @rubric.grants_right?(current_principal, session, :read)
     return unless can_manage_rubrics_or_association_object?(@association, @association_object)
     return unless can_update_association?(@association)
 
@@ -111,7 +111,7 @@ class RubricAssociationsController < ApplicationController
       @rubric.shard = @context.shard if from_different_shard
       @rubric.root_account_id = nil if from_different_shard
       @rubric.save!
-    elsif params[:rubric] && @rubric.grants_right?(@current_user, session, :update)
+    elsif params[:rubric] && @rubric.grants_right?(current_principal, session, :update)
       @rubric.update_criteria(params[:rubric])
     end
 
@@ -138,7 +138,7 @@ class RubricAssociationsController < ApplicationController
   def destroy
     @association = @context.rubric_associations.find(params[:id])
     @rubric = @association.rubric
-    if authorized_action(@association, @current_user, :delete)
+    if authorized_action(@association, current_principal, :delete)
       @association.updating_user = @current_user
       @association.destroy
       # If the rubric wasn't created as a general course rubric,
@@ -156,14 +156,14 @@ class RubricAssociationsController < ApplicationController
 
   def can_manage_rubrics_or_association_object?(association, association_object)
     return true if association ||
-                   @context.grants_right?(@current_user, session, :manage_rubrics) ||
-                   association_object&.grants_right?(@current_user, session, :update)
+                   @context.grants_right?(current_principal, session, :manage_rubrics) ||
+                   association_object&.grants_right?(current_principal, session, :update)
 
     render_unauthorized_action
     false
   end
 
   def can_update_association?(association)
-    !association || authorized_action(association, @current_user, :update)
+    !association || authorized_action(association, current_principal, :update)
   end
 end

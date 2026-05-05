@@ -308,7 +308,7 @@ class Quizzes::QuizzesApiController < ApplicationController
   #
   # @returns [Quiz]
   def index
-    if authorized_action(@context, @current_user, :read) && tab_enabled?(@context.class::TAB_QUIZZES)
+    if authorized_action(@context, current_principal, :read) && tab_enabled?(@context.class::TAB_QUIZZES)
       log_api_asset_access(["quizzes", @context], "quizzes", "other")
       updated = @context.quizzes.active.reorder("updated_at DESC").limit(1).pick(:updated_at)
       cache_key = ["quizzes",
@@ -352,7 +352,7 @@ class Quizzes::QuizzesApiController < ApplicationController
   #
   # @returns Quiz
   def show
-    if authorized_action(@quiz, @current_user, :read)
+    if authorized_action(@quiz, current_principal, :read)
       log_asset_access(@quiz, "quizzes", "quizzes")
       render_json
     end
@@ -480,7 +480,7 @@ class Quizzes::QuizzesApiController < ApplicationController
   #
   # @returns Quiz
   def create
-    if authorized_action(@context.quizzes.temp_record, @current_user, :create)
+    if authorized_action(@context.quizzes.temp_record, current_principal, :create)
       @quiz = @context.quizzes.build
       @quiz.saving_user = @current_user
       quiz_params = accepts_jsonapi? ? Array(params[:quizzes]).first : params[:quiz] || {}
@@ -506,7 +506,7 @@ class Quizzes::QuizzesApiController < ApplicationController
   #
   # @returns Quiz
   def update
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       @quiz.saving_user = @current_user
       quiz_params = accepts_jsonapi? ? Array(params[:quizzes]).first : params[:quiz] || {}
       return render_update_error(:forbidden) unless grading_periods_allow_submittable_update?(@quiz, quiz_params)
@@ -528,7 +528,7 @@ class Quizzes::QuizzesApiController < ApplicationController
   # Deletes a quiz and returns the deleted quiz object.
   # @returns Quiz
   def destroy
-    if authorized_action(@quiz, @current_user, :delete)
+    if authorized_action(@quiz, current_principal, :delete)
       return render_unauthorized_action if editing_restricted?(@quiz)
 
       @quiz.destroy
@@ -552,7 +552,7 @@ class Quizzes::QuizzesApiController < ApplicationController
   #
   # <b>204 No Content</b> response code is returned if the reorder was successful.
   def reorder
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       Quizzes::QuizSortables.new(quiz: @quiz, order: params[:order]).reorder!
 
       head :no_content
@@ -568,7 +568,7 @@ class Quizzes::QuizzesApiController < ApplicationController
   #
   # @returns boolean
   def validate_access_code
-    if authorized_action(@quiz, @current_user, :read)
+    if authorized_action(@quiz, current_principal, :read)
       correct = if @quiz.access_code.present?
                   @quiz.access_code == params[:access_code]
                 else

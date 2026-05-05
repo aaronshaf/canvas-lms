@@ -142,7 +142,7 @@ class ContentMigrationsController < ApplicationController
   #
   # @returns [ContentMigration]
   def index
-    return unless authorized_action(@context, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     Folder.root_folders(@context) # ensure course root folder exists so file imports can run
 
@@ -153,7 +153,7 @@ class ContentMigrationsController < ApplicationController
                UPLOAD_LIMIT: Attachment.quota_available(@context),
                QUESTION_BANKS: @context.assessment_question_banks.except(:preload).select([:title, :id]).active,
                SHOW_BP_SETTINGS_IMPORT_OPTION: MasterCourses::MasterTemplate.blueprint_eligible?(@context) &&
-                 @context.account.grants_all_rights?(@current_user, session, :manage_courses_admin, :manage_master_courses),
+                 @context.account.grants_all_rights?(current_principal, session, :manage_courses_admin, :manage_master_courses),
 
                # These values are used based on the same logic as ui/features/content_migrations/setup.js do.
                QUIZZES_NEXT_ENABLED: new_quizzes_enabled?,
@@ -211,7 +211,7 @@ class ContentMigrationsController < ApplicationController
                  NEW_QUIZZES_UNATTACHED_BANK_MIGRATIONS: new_quizzes_unattached_bank_migrations_enabled?,
                  BLUEPRINT_ELIGIBLE_IMPORT: MasterCourses::MasterTemplate.blueprint_eligible?(@context),
                  SHOW_BP_SETTINGS_IMPORT_OPTION: MasterCourses::MasterTemplate.blueprint_eligible?(@context) &&
-                   @context.account.grants_all_rights?(@current_user, session, :manage_courses_admin, :manage_master_courses),
+                   @context.account.grants_all_rights?(current_principal, session, :manage_courses_admin, :manage_master_courses),
                  MISSING_POLICY_ENABLED: @context.late_policy&.missing_submission_deduction_enabled || false
                })
         set_tutorial_js_env
@@ -230,7 +230,7 @@ class ContentMigrationsController < ApplicationController
   #
   # @returns ContentMigration
   def show
-    return unless authorized_action(@context, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     @content_migration = @context.content_migrations.find(params[:id])
     @content_migration.check_for_pre_processing_timeout
@@ -401,7 +401,7 @@ class ContentMigrationsController < ApplicationController
   #
   # @returns ContentMigration
   def create
-    return unless authorized_action(@context, @current_user, :manage_course_content_add)
+    return unless authorized_action(@context, current_principal, :manage_course_content_add)
 
     @plugin = find_migration_plugin params[:migration_type]
 
@@ -449,7 +449,7 @@ class ContentMigrationsController < ApplicationController
   #
   # @returns ContentMigration
   def update
-    return unless authorized_action(@context, @current_user, :manage_course_content_edit)
+    return unless authorized_action(@context, current_principal, :manage_course_content_edit)
 
     @content_migration = @context.content_migrations.find(params[:id])
     @content_migration.check_for_pre_processing_timeout
@@ -473,7 +473,7 @@ class ContentMigrationsController < ApplicationController
   #
   # @returns [Migrator]
   def available_migrators
-    return unless authorized_action(@context, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     systems = ContentMigration.migration_plugins(exclude_hidden: true).select { |sys| migration_plugin_supported?(sys) }
     json = systems.map do |p|
@@ -561,7 +561,7 @@ class ContentMigrationsController < ApplicationController
   #
   # @returns list of content items
   def content_list
-    return unless authorized_action(@context, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     @content_migration = @context.content_migrations.find(params[:id])
     base_url = api_v1_course_content_migration_selective_data_url(@context, @content_migration)
@@ -599,7 +599,7 @@ class ContentMigrationsController < ApplicationController
   #    }
   #
   def asset_id_mapping
-    return unless authorized_action(@context, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     content_migration = @context.content_migrations.find(params[:id])
     return render json: { message: "Migration is incomplete" }, status: :bad_request unless content_migration.imported?
@@ -695,7 +695,7 @@ class ContentMigrationsController < ApplicationController
   def link_content_export_attachment
     ret = false
     export = ContentExport.find_by(id: params[:settings][:content_export_id])
-    if export&.grants_right?(@current_user, session, :read)
+    if export&.grants_right?(current_principal, session, :read)
       if export.workflow_state == "exported" && export.attachment
         @content_migration.attachment = export.attachment.clone_for(@content_migration)
         ret = true

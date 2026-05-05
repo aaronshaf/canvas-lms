@@ -88,7 +88,7 @@ class PeerReviewsApiController < ApplicationController
   # @returns [PeerReview]
   def index
     assessment_requests = AssessmentRequest.for_assignment(@assignment.id)
-    unless @assignment.grants_any_right?(@current_user, session, :grade)
+    unless @assignment.grants_any_right?(current_principal, session, :grade)
       assessment_requests = assessment_requests.for_assessee @current_user.id
     end
 
@@ -113,7 +113,7 @@ class PeerReviewsApiController < ApplicationController
       return render json: { errors: { base: t("Create failed") } }, status: :bad_request
     end
 
-    if authorized_action(@assignment, @current_user, :grade)
+    if authorized_action(@assignment, current_principal, :grade)
       assessment_request = @assignment.assign_peer_review(@reviewer, @student)
       includes = Set.new(Array(params[:include]))
       render json: assessment_request_json(assessment_request, @current_user, session, includes)
@@ -128,7 +128,7 @@ class PeerReviewsApiController < ApplicationController
   #
   # @returns PeerReview
   def destroy
-    if authorized_action(@assignment, @current_user, :grade)
+    if authorized_action(@assignment, current_principal, :grade)
       assessment_request = AssessmentRequest.for_asset(@submission)
                                             .for_assessor(@reviewer)
                                             .for_assessee(@student).first

@@ -24,7 +24,7 @@ class LearnerDashboardActivationsController < ApplicationController
   before_action :require_feature_flag
 
   def show
-    return unless authorized_action(@context, @current_user, :manage_learner_dashboards_view)
+    return unless authorized_action(@context, current_principal, :manage_learner_dashboards_view)
 
     activation = @context.learner_dashboard_activations.first
     unless activation
@@ -35,7 +35,7 @@ class LearnerDashboardActivationsController < ApplicationController
   end
 
   def update
-    return unless authorized_action(@context, @current_user, :manage_learner_dashboards_edit)
+    return unless authorized_action(@context, current_principal, :manage_learner_dashboards_edit)
 
     layout = LearnerDashboardLayout.visible_to_account(@context).find(params[:learner_dashboard_layout_id])
 
@@ -53,7 +53,7 @@ class LearnerDashboardActivationsController < ApplicationController
   end
 
   def destroy
-    return unless authorized_action(@context, @current_user, :manage_learner_dashboards_delete)
+    return unless authorized_action(@context, current_principal, :manage_learner_dashboards_delete)
 
     activation = @context.learner_dashboard_activations.first
     unless activation

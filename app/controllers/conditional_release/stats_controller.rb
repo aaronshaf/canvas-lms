@@ -48,7 +48,7 @@ module ConditionalRelease
     end
 
     def require_course_grade_view_permissions
-      authorized_action(@context, @current_user, :view_all_grades)
+      authorized_action(@context, current_principal, :view_all_grades)
     end
 
     def require_trigger_assignment

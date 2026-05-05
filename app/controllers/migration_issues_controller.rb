@@ -109,7 +109,7 @@ class MigrationIssuesController < ApplicationController
   #
   # @returns [MigrationIssue]
   def index
-    return unless authorized_action(@context, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     @issues = Api.paginate(@content_migration.migration_issues.by_created_at, self, api_v1_course_content_migration_migration_issue_list_url(@context, @content_migration))
     render json: migration_issues_json(@issues, @content_migration, @current_user, session)
@@ -126,7 +126,7 @@ class MigrationIssuesController < ApplicationController
   #
   # @returns MigrationIssue
   def show
-    return unless authorized_action(@context, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     issue = @content_migration.migration_issues.find(params[:id])
     render json: migration_issue_json(issue, @content_migration, @current_user, session)
@@ -146,7 +146,7 @@ class MigrationIssuesController < ApplicationController
   #
   # @returns MigrationIssue
   def update
-    return unless authorized_action(@context, @current_user, :manage_course_content_edit)
+    return unless authorized_action(@context, current_principal, :manage_course_content_edit)
 
     issue = @content_migration.migration_issues.find(params[:id])
 

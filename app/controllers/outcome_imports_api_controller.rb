@@ -163,7 +163,7 @@ class OutcomeImportsApiController < ApplicationController
   #
   # @returns OutcomeImport
   def create
-    if authorized_action(@context, @current_user, :import_outcomes)
+    if authorized_action(@context, current_principal, :import_outcomes)
       params[:import_type] ||= "instructure_csv"
       raise "invalid import type parameter" unless OutcomeImport.valid_import_type?(params[:import_type])
 
@@ -195,7 +195,7 @@ class OutcomeImportsApiController < ApplicationController
   #
   # @returns OutcomeImport
   def show
-    if authorized_action(@context, @current_user, %i[import_outcomes manage_outcomes])
+    if authorized_action(@context, current_principal, %i[import_outcomes manage_outcomes])
       begin
         @import = if params[:id] == "latest"
                     @context.latest_outcome_import or raise ActiveRecord::RecordNotFound
@@ -222,7 +222,7 @@ class OutcomeImportsApiController < ApplicationController
   #
   # @returns array of outcome ids
   def created_group_ids
-    if authorized_action(@context, @current_user, %i[import_outcomes manage_outcomes])
+    if authorized_action(@context, current_principal, %i[import_outcomes manage_outcomes])
       begin
         import = if params[:id] == "latest"
                    @context.latest_outcome_import or raise ActiveRecord::RecordNotFound

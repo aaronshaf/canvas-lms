@@ -279,7 +279,7 @@ class MasterCourses::MasterTemplatesController < ApplicationController
   def associated_courses
     scope = @template.child_course_scope.order(:id).preload(:enrollment_term, :teachers)
     courses = Api.paginate(scope, self, api_v1_course_blueprint_associated_courses_url)
-    can_read_sis = @course.account.grants_any_right?(@current_user, :read_sis, :manage_sis)
+    can_read_sis = @course.account.grants_any_right?(current_principal, :read_sis, :manage_sis)
 
     preload_teachers(courses)
     json = courses.map do |course|
@@ -311,7 +311,7 @@ class MasterCourses::MasterTemplatesController < ApplicationController
   #     -d 'course_ids_to_remove[]=2' \
   #
   def update_associations
-    if authorized_action(@course.account, @current_user, :manage_courses_admin)
+    if authorized_action(@course.account, current_principal, :manage_courses_admin)
       # NOTE: that I'm additionally requiring course management rights on the account
       # since (for now) we're only allowed to associate courses derived from it
       ids_to_add = api_find_all(Course, Array(params[:course_ids_to_add])).pluck(:id)
@@ -690,11 +690,11 @@ class MasterCourses::MasterTemplatesController < ApplicationController
   protected
 
   def require_account_level_manage_rights
-    !!authorized_action(@course.account, @current_user, :manage_master_courses)
+    !!authorized_action(@course.account, current_principal, :manage_master_courses)
   end
 
   def require_course_level_manage_rights
-    !!authorized_action(@course, @current_user, :manage)
+    !!authorized_action(@course, current_principal, :manage)
   end
 
   def get_course

@@ -212,7 +212,7 @@ class WhatIfGradesApiController < ApplicationController
   # @returns {"grades": [Grades], "submission": Submission}
   def update
     submission = @current_user.submissions.find(params[:id])
-    return render_unauthorized_action unless submission.grants_right?(@current_user, :submit)
+    return render_unauthorized_action unless submission.grants_right?(current_principal, :submit)
 
     respond_to do |format|
       format.json do
@@ -238,7 +238,7 @@ class WhatIfGradesApiController < ApplicationController
   # @returns {"grades": [Grades]}
   def reset_for_student_course
     course = @domain_root_account.all_courses.active.find(params[:course_id])
-    return render_unauthorized_action unless course.grants_right?(@current_user, :reset_what_if_grades)
+    return render_unauthorized_action unless course.grants_right?(current_principal, :reset_what_if_grades)
 
     grades = Submissions::WhatIfGradesService.new(@current_user).reset_for_course(course)
 

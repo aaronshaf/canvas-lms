@@ -24,7 +24,7 @@ module WebZipExportHelper
   end
 
   def allow_web_export_for_course_user?
-    @context.grants_any_right?(@current_user, :participate_as_student, :read_as_admin)
+    @context.grants_any_right?(current_principal, :participate_as_student, :read_as_admin)
   end
 
   def allow_web_export_download?

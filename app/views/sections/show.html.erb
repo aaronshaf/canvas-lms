@@ -19,9 +19,9 @@
 <% provide(:page_title, @section.name) %>
 
 <% provide :right_side do %>
-  <% if can_do(@section, @current_user, :update) %>
+  <% if can_do(@section, current_principal, :update) %>
     <a href="#" class="btn button-sidebar-wide edit_section_link"><i class="icon-edit"></i> <%= t("buttons.edit_section", "Edit Section") %></a>
-    <% if @section.nonxlist_course_id && can_do(@section.nonxlist_course, @current_user, :manage_sections_edit) %>
+    <% if @section.nonxlist_course_id && can_do(@section.nonxlist_course, current_principal, :manage_sections_edit) %>
       <div
         id="uncrosslist_link_button_container"
         data-props="<%= {
@@ -143,12 +143,12 @@ h3 .tally {
     <td><label for="course_section_name">Section Name<abbr>*</abbr>:</label></td>
     <td><%= f.text_field :name, "aria-describedby" => "course_section_name_errors" %><div id="course_section_name_errors"></div></td>
   </tr>
-  <% if (@section.sis_source_id && can_do(@context, @current_user, :read_sis)) || can_do(@context.root_account, @current_user, :manage_sis) %>
+  <% if (@section.sis_source_id && can_do(@context, current_principal, :read_sis)) || can_do(@context.root_account, current_principal, :manage_sis) %>
     <tr>
       <td><%= f.blabel :sis_source_id, en: "SIS ID" %></td>
       <td>
         <span class="course_form">
-          <% if can_do(@context.root_account, @current_user, :manage_sis) %>
+          <% if can_do(@context.root_account, current_principal, :manage_sis) %>
             <%= f.text_field :sis_source_id, style: "width: 50px;", title: "SIS ID", value: @section.sis_source_id %>
           <% else %>
             <%= @section.sis_source_id %>
@@ -234,7 +234,7 @@ h3 .tally {
     <% end %>
     </table>
   </div>
-  <% if (@section&.sis_source_id && can_do(@context, @current_user, :read_sis)) || (@section && can_do(@context, @current_user, :manage_sis)) %>
+  <% if (@section&.sis_source_id && can_do(@context, current_principal, :read_sis)) || (@section && can_do(@context, current_principal, :manage_sis)) %>
     <div><%= before_label("sis_id", "SIS ID") %> <span class="sis_source_id"><%= @section.sis_source_id %></span></div>
   <% end %>
   <% if @section.start_at || @section.end_at %>
@@ -252,7 +252,7 @@ h3 .tally {
     </div>
   <% end %>
 </div>
-<% if can_do @context, @current_user, :read_roster, :manage_students, :allow_course_admin_actions %>
+<% if can_do @context, current_principal, :read_roster, :manage_students, :allow_course_admin_actions %>
   <div class="enrollments-lists">
     <h3><%= t("titles.current_enrollments", "Current Enrollments") %></h3>
     <div class="user-list-wrapper" id="current-enrollment-list">

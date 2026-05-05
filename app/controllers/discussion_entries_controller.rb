@@ -30,7 +30,7 @@ class DiscussionEntriesController < ApplicationController
       flash[:notice] = t :deleted_entry_notice, "That entry has been deleted"
       redirect_to named_context_url(@context, :context_discussion_topic_url, @entry.discussion_topic_id)
     end
-    if authorized_action(@entry, @current_user, :read)
+    if authorized_action(@entry, current_principal, :read)
       respond_to do |format|
         format.html { redirect_to named_context_url(@context, :context_discussion_topic_url, @entry.discussion_topic_id) }
         format.json { render json: @entry.as_json(methods: :read_state) }
@@ -51,7 +51,7 @@ class DiscussionEntriesController < ApplicationController
     @entry.user_id = @current_user&.id
     @entry.saving_user = @current_user
     @entry.parent_id = parent_id
-    if authorized_action(@entry, @current_user, :create)
+    if authorized_action(@entry, current_principal, :create)
 
       return if context_file_quota_exceeded?
 
@@ -111,7 +111,7 @@ class DiscussionEntriesController < ApplicationController
     @entry.saving_user = @current_user
     @entry.attachment_id = nil if @remove_attachment == "1" || params[:attachment].nil?
 
-    if authorized_action(@entry, @current_user, :update)
+    if authorized_action(@entry, current_principal, :update)
       return if context_file_quota_exceeded?
 
       @entry.editor = @current_user
@@ -145,7 +145,7 @@ class DiscussionEntriesController < ApplicationController
   def destroy
     @topic = @context.all_discussion_topics.active.find(params[:topic_id]) if params[:topic_id].present?
     @entry = (@topic || @context).discussion_entries.find(params[:id])
-    if authorized_action(@entry, @current_user, :delete)
+    if authorized_action(@entry, current_principal, :delete)
       @entry.editor = @current_user
       @entry.destroy
 
@@ -165,7 +165,7 @@ class DiscussionEntriesController < ApplicationController
       render "shared/unauthorized_feed", status: :bad_request, formats: [:html]
       return
     end
-    if authorized_action(@context, @current_user, :read) && authorized_action(@topic, @current_user, :read)
+    if authorized_action(@context, current_principal, :read) && authorized_action(@topic, current_principal, :read)
       @discussion_entries = @topic.entries_for_feed(@current_user, podcast_feed: request.format == :rss)
       respond_to do |format|
         format.atom do
@@ -205,7 +205,7 @@ class DiscussionEntriesController < ApplicationController
     return false unless (attachment = params[:attachment])
 
     attachment[:uploaded_data].try(:size).to_i > min_filesize &&
-      @entry.grants_right?(@current_user, session, :attach)
+      @entry.grants_right?(current_principal, session, :attach)
   end
 
   # Internal: Save an attachment on the context and entry.

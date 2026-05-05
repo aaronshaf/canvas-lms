@@ -89,7 +89,7 @@ module Polling
     #   }
     #
     def index
-      if authorized_action(@poll, @current_user, :update)
+      if authorized_action(@poll, current_principal, :update)
         @poll_sessions = @poll.poll_sessions
         json, meta = paginate_for(@poll_sessions, api_v1_poll_sessions_url(@poll))
 
@@ -109,7 +109,7 @@ module Polling
     def show
       @poll_session = @poll.poll_sessions.find(params[:id])
 
-      if authorized_action(@poll_session, @current_user, :read)
+      if authorized_action(@poll_session, current_principal, :read)
         render json: serialize_jsonapi(@poll_session)
       end
     end
@@ -150,7 +150,7 @@ module Polling
 
       @poll_session.has_public_results = false if poll_session_params[:has_public_results].blank?
 
-      if authorized_action(@poll, @current_user, :create) && authorized_action(@course, @current_user, :update)
+      if authorized_action(@poll, current_principal, :create) && authorized_action(@course, current_principal, :update)
         if @poll_session.save
           render json: serialize_jsonapi(@poll_session)
         else
@@ -179,7 +179,7 @@ module Polling
     #
     def update
       @poll_session = @poll.poll_sessions.find(params[:id])
-      if authorized_action(@poll, @current_user, :update)
+      if authorized_action(@poll, current_principal, :update)
         if @poll_session.update(get_poll_session_params)
           render json: serialize_jsonapi(@poll_session)
         else
@@ -194,7 +194,7 @@ module Polling
     def destroy
       @poll_session = @poll.poll_sessions.find(params[:id])
 
-      if authorized_action(@poll_session, @current_user, :delete)
+      if authorized_action(@poll_session, current_principal, :delete)
         @poll_session.destroy
         head :no_content
       end
@@ -210,7 +210,7 @@ module Polling
     def open
       @poll_session = @poll.poll_sessions.find(params[:id])
 
-      if authorized_action(@poll_session, @current_user, :publish)
+      if authorized_action(@poll_session, current_principal, :publish)
         @poll_session.publish!
         render json: serialize_jsonapi(@poll_session)
       end
@@ -226,7 +226,7 @@ module Polling
     def close
       @poll_session = @poll.poll_sessions.find(params[:id])
 
-      if authorized_action(@poll_session, @current_user, :publish)
+      if authorized_action(@poll_session, current_principal, :publish)
         @poll_session.close!
         render json: serialize_jsonapi(@poll_session)
       end

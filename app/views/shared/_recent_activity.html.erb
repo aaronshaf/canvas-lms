@@ -26,20 +26,20 @@
     </h1>
     <% if @context.is_a?(Group) %>
       <div class="actions_buttons-container">
-        <% if can_do(@context.announcements.temp_record, @current_user, :create) %>
+        <% if can_do(@context.announcements.temp_record, current_principal, :create) %>
           <a href="<%= group_announcements_path(@context) %>#new" title="Add Announcement" id="add-announcement" class="Button button-sidebar-wide hide-on-mobile">
             <i class="icon-plus" role="presentation"></i>
             <%= t "new_announcement", "Announcement" %>
           </a>
         <% end %>
-        <% if can_do(@context, @current_user, :update) %>
+        <% if can_do(@context, current_principal, :update) %>
           <a href="#" id="edit_group" title="Edit Group" class="Button Button--primary button-sidebar-wide">
             <i class="icon-edit" role="presentation"></i>
             <%= t "edit_group", "Edit Group" %>
           </a>
           <div id="student-group-dialog-mount-point"></div>
          <% end %>
-         <% if can_do(@context.announcements.temp_record, @current_user, :create) %>
+         <% if can_do(@context.announcements.temp_record, current_principal, :create) %>
            <a href="<%= group_announcements_path(@context) %>#new" title="Add Announcement" id="add-announcement" class="Button button-sidebar-wide show-only-on-mobile">
              <i class="icon-plus" role="presentation"></i>
              <%= t "new_announcement", "Announcement" %>

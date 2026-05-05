@@ -58,14 +58,14 @@
         <% end %>
     </div>
     <div  class="button-area-block">
-      <% if @user_data[:can_edit] && !can_do(@domain_root_account, @current_user, :manage) %>
+      <% if @user_data[:can_edit] && !can_do(@domain_root_account, current_principal, :manage) %>
         <button data-event="editProfile" class="hide-if-editing Button <%= primary_button %>"><i class="icon-edit"></i> <%= t("edit_profile", "Edit Profile") %></button>
         <button data-event="cancelEditProfile" class="show-if-editing Button">
           <% unless inst_env_feature_enabled %>
             <i class="icon-edit"></i>
           <% end %>
           <%= t("cancel_editing", "Cancel Editing") %></button>
-      <% elsif @user_data[:can_edit] && can_do(@domain_root_account, @current_user, :manage) %>
+      <% elsif @user_data[:can_edit] && can_do(@domain_root_account, current_principal, :manage) %>
         <% if inst_env_feature_enabled %>
           <button tabindex="1" data-event="editProfile" class="hide-if-editing Button <%= primary_button %>"><i class="icon-edit"></i> <%= t("edit_profile", "Edit Profile") %></button>
           <button tabindex="1" data-event="cancelEditProfile" class="show-if-editing Button"><%= t("cancel_editing", "Cancel Editing") %></button>

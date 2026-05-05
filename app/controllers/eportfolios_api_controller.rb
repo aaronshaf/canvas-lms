@@ -134,7 +134,7 @@ class EportfoliosApiController < ApplicationController
   # @returns [ePortfolio]
   def index
     user = api_find(User, params[:user_id])
-    return unless user == @current_user || authorized_action(user, @current_user, :moderate_user_content)
+    return unless user == @current_user || authorized_action(user, current_principal, :moderate_user_content)
 
     params[:include] ||= []
     scope = user.eportfolios
@@ -153,7 +153,7 @@ class EportfoliosApiController < ApplicationController
   # @returns ePortfolio
   def show
     portfolio = Eportfolio.find(params[:id])
-    return unless authorized_action(portfolio, @current_user, :read)
+    return unless authorized_action(portfolio, current_principal, :read)
 
     render json: eportfolio_json(portfolio, @current_user, session)
   end
@@ -165,7 +165,7 @@ class EportfoliosApiController < ApplicationController
   # @returns ePortfolio
   def delete
     portfolio = Eportfolio.find(params[:id])
-    return unless authorized_action(portfolio, @current_user, :delete)
+    return unless authorized_action(portfolio, current_principal, :delete)
 
     if portfolio.destroy
       render json: eportfolio_json(portfolio, @current_user, session)
@@ -181,7 +181,7 @@ class EportfoliosApiController < ApplicationController
   # @returns [ePortfolioPage]
   def pages
     portfolio = Eportfolio.find(params[:eportfolio_id])
-    return unless authorized_action(portfolio, @current_user, :read)
+    return unless authorized_action(portfolio, current_principal, :read)
 
     pages = Api.paginate(
       portfolio.eportfolio_entries.order(:position),
@@ -203,7 +203,7 @@ class EportfoliosApiController < ApplicationController
   # @returns ePortfolio
   def moderate
     portfolio = Eportfolio.find(params[:eportfolio_id])
-    return unless authorized_action(portfolio, @current_user, :moderate)
+    return unless authorized_action(portfolio, current_principal, :moderate)
 
     if Eportfolio::SPAM_MODERATIONS.exclude?(params[:spam_status])
       render json: { error: "spam_status must be one of #{Eportfolio::SPAM_MODERATIONS}" }, status: :bad_request
@@ -223,7 +223,7 @@ class EportfoliosApiController < ApplicationController
   #   The spam status for all the ePortfolios
   def moderate_all
     user = api_find(User, params[:user_id])
-    return unless authorized_action(user, @current_user, :moderate_user_content)
+    return unless authorized_action(user, current_principal, :moderate_user_content)
 
     if Eportfolio::SPAM_MODERATIONS.exclude?(params[:spam_status])
       render json: { error: "spam_status must be one of #{Eportfolio::SPAM_MODERATIONS}" }, status: :bad_request
@@ -242,7 +242,7 @@ class EportfoliosApiController < ApplicationController
   # @returns ePortfolio
   def restore
     portfolio = Eportfolio.find(params[:eportfolio_id])
-    return unless authorized_action(portfolio, @current_user, :restore)
+    return unless authorized_action(portfolio, current_principal, :restore)
 
     if portfolio.restore
       render json: eportfolio_json(portfolio, @current_user, session)

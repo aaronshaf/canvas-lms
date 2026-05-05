@@ -405,7 +405,7 @@ class AccountsController < ApplicationController
     @accounts = @current_user ? @current_user.adminable_accounts : []
     @all_accounts = Set.new
     @accounts.each do |a|
-      if a.grants_any_right?(@current_user, session, :manage_courses_admin, :create_courses)
+      if a.grants_any_right?(current_principal, session, :manage_courses_admin, :create_courses)
         @all_accounts << a
         @all_accounts.merge Account.active.sub_accounts_recursive(a.id)
       end
@@ -424,7 +424,7 @@ class AccountsController < ApplicationController
 
     adminable_accounts = @current_user.adminable_accounts
     accounts = adminable_accounts || []
-    accounts = accounts.select { |a| a.grants_any_right?(@current_user, session, :manage_courses_admin, :manage_courses_add) }
+    accounts = accounts.select { |a| a.grants_any_right?(current_principal, session, :manage_courses_admin, :manage_courses_add) }
     sub_accounts = []
     # Load and handle ids from now on to avoid excessive memory usage
     accounts.each { |a| sub_accounts.concat Account.active.sub_account_ids_recursive(a.id) }
@@ -436,7 +436,7 @@ class AccountsController < ApplicationController
 
       next unless a.root_account.students_can_create_courses_anywhere? ||
                   @current_user.active_k5_enrollments?(root_account: a.root_account) ||
-                  a.grants_any_right?(@current_user, session, :manage_courses_admin, :create_courses)
+                  a.grants_any_right?(current_principal, session, :manage_courses_admin, :create_courses)
 
       accounts << a.id
     end
@@ -446,7 +446,7 @@ class AccountsController < ApplicationController
 
       next unless a.root_account.teachers_can_create_courses_anywhere? ||
                   @current_user.active_k5_enrollments?(root_account: a.root_account) ||
-                  a.grants_any_right?(@current_user, session, :manage_courses_admin, :create_courses)
+                  a.grants_any_right?(current_principal, session, :manage_courses_admin, :create_courses)
 
       accounts << a.id
     end
@@ -499,7 +499,7 @@ class AccountsController < ApplicationController
   #
   # @returns Account
   def show
-    return unless authorized_action(@account, @current_user, :read)
+    return unless authorized_action(@account, current_principal, :read)
 
     respond_to do |format|
       format.html do
@@ -512,7 +512,7 @@ class AccountsController < ApplicationController
                                   @current_user,
                                   session,
                                   params[:includes] || [],
-                                  read_only: !@account.grants_right?(@current_user, session, :manage))
+                                  read_only: !@account.grants_right?(current_principal, session, :manage))
       end
     end
   end
@@ -529,7 +529,7 @@ class AccountsController < ApplicationController
   # @example_response
   #   {"microsoft_sync_enabled": true, "microsoft_sync_login_attribute_suffix": false}
   def show_settings
-    return unless authorized_action(@account, @current_user, :manage_account_settings)
+    return unless authorized_action(@account, current_principal, :manage_account_settings)
 
     public_attrs = %i[microsoft_sync_enabled
                       microsoft_sync_tenant
@@ -589,10 +589,10 @@ class AccountsController < ApplicationController
   # @example_response
   #   {'manage_account_memberships': 'false', 'become_user': 'true'}
   def permissions
-    return unless authorized_action(@account, @current_user, :read)
+    return unless authorized_action(@account, current_principal, :read)
 
     permissions = Array(params[:permissions]).map(&:to_sym)
-    render json: @account.rights_status(@current_user, session, *permissions)
+    render json: @account.rights_status(current_principal, session, *permissions)
   end
 
   # @API Get the sub-accounts of an account
@@ -618,7 +618,7 @@ class AccountsController < ApplicationController
   #
   # @returns [Account]
   def sub_accounts
-    return unless authorized_action(@account, @current_user, :manage_account_settings)
+    return unless authorized_action(@account, current_principal, :manage_account_settings)
 
     recursive = value_to_boolean(params[:recursive])
     @accounts = if recursive
@@ -706,7 +706,7 @@ class AccountsController < ApplicationController
   # @returns Account
   def manually_created_courses_account
     account = @domain_root_account.manually_created_courses_account
-    read_only = !account.grants_right?(@current_user, session, :read)
+    read_only = !account.grants_right?(current_principal, session, :read)
     render json: account_json(account, @current_user, session, [], read_only:)
   end
 
@@ -803,7 +803,7 @@ class AccountsController < ApplicationController
   #
   # @returns [Course]
   def courses_api
-    return unless authorized_action(@account, @current_user, :read_course_list)
+    return unless authorized_action(@account, current_principal, :read_course_list)
 
     starts_before = CanvasTime.try_parse(params[:starts_before])
     ends_after = CanvasTime.try_parse(params[:ends_after])
@@ -1014,7 +1014,7 @@ class AccountsController < ApplicationController
           or_clause = Course.shard(@account.shard).where(id: search_term).or(or_clause)
         end
 
-        if @account.grants_any_right?(@current_user, :read_sis, :manage_sis)
+        if @account.grants_any_right?(current_principal, :read_sis, :manage_sis)
           sis_source = ActiveRecord::Base.wildcard("courses.sis_source_id", search_term)
           or_clause = or_clause.or(Course.where(sis_source))
         end
@@ -1068,7 +1068,7 @@ class AccountsController < ApplicationController
   end
 
   def quiz_ip_filters
-    if authorized_action(@account, @current_user, :read)
+    if authorized_action(@account, current_principal, :read)
       available_filters = @account.available_ip_filters(params[:course_uuid], params[:search_term]) || []
 
       paginated_set = Api.paginate(available_filters, self, api_v1_quiz_ip_filters_url)
@@ -1079,7 +1079,7 @@ class AccountsController < ApplicationController
 
   # Get account accessibility issue summary
   def accessibility_issue_summary
-    if authorized_action(@account, @current_user, :read)
+    if authorized_action(@account, current_principal, :read)
       unless @account.can_see_accessibility_tab?(@current_user)
         return render json: { error: "Not authorized to view accessibility data" }, status: :unauthorized
       end
@@ -1113,14 +1113,14 @@ class AccountsController < ApplicationController
 
   # Delegated to by the update action (when the request is an api_request?)
   def update_api
-    if authorized_action(@account, @current_user, [:manage_account_settings, :manage_storage_quotas])
+    if authorized_action(@account, current_principal, [:manage_account_settings, :manage_storage_quotas])
       account_params = params[:account].present? ? strong_account_params.to_unsafe_h : {}
       includes = Array(params[:includes]) || []
       unauthorized = false
 
       if params[:account]&.key?(:sis_account_id)
         sis_id = params[:account].delete(:sis_account_id)
-        if @account.root_account.grants_right?(@current_user, session, :manage_sis) && !@account.root_account?
+        if @account.root_account.grants_right?(current_principal, session, :manage_sis) && !@account.root_account?
           @account.sis_source_id = sis_id.presence
         else
           if @account.root_account?
@@ -1133,9 +1133,9 @@ class AccountsController < ApplicationController
       end
 
       if params[:account]&.key?(:parent_account_id)
-        if !@account.root_account? && @account.parent_account&.grants_right?(@current_user, session, :manage_account_settings)
+        if !@account.root_account? && @account.parent_account&.grants_right?(current_principal, session, :manage_account_settings)
           new_parent_account = api_find(@account.root_account.all_accounts.active, params[:account][:parent_account_id])
-          if new_parent_account.grants_right?(@current_user, session, :manage_account_settings)
+          if new_parent_account.grants_right?(current_principal, session, :manage_account_settings)
             @account.parent_account = new_parent_account
           else
             @account.errors.add(:unauthorized, t("You are not authorized to manage the destination parent account."))
@@ -1151,7 +1151,7 @@ class AccountsController < ApplicationController
         end
       end
 
-      if params[:account]&.key?(:services) && authorized_action(@account, @current_user, :manage_account_settings)
+      if params[:account]&.key?(:services) && authorized_action(@account, current_principal, :manage_account_settings)
         params[:account][:services].slice(*Account.services_exposed_to_ui_hash(nil, @current_user, @account).keys).each do |key, value|
           @account.set_service_availability(key, value_to_boolean(value))
         end
@@ -1169,7 +1169,7 @@ class AccountsController < ApplicationController
       # account settings (:manage_account_settings)
       account_settings = account_params.slice(:name, :default_time_zone, :settings)
       unless account_settings.empty?
-        if @account.grants_right?(@current_user, session, :manage_account_settings)
+        if @account.grants_right?(current_principal, session, :manage_account_settings)
           if account_settings[:settings]
             if @account.password_complexity_enabled? && (policy_settings = account_settings[:settings][:password_policy])
               policy_settings = policy_settings.slice(*permitted_password_policy_settings)
@@ -1238,7 +1238,7 @@ class AccountsController < ApplicationController
                                             :default_user_storage_quota_mb,
                                             :default_group_storage_quota_mb)
       unless quota_settings.empty?
-        if @account.grants_right?(@current_user, session, :manage_storage_quotas)
+        if @account.grants_right?(current_principal, session, :manage_storage_quotas)
           %i[default_storage_quota_mb default_user_storage_quota_mb default_group_storage_quota_mb].each do |quota_type|
             next unless quota_settings.key?(quota_type)
 
@@ -1435,7 +1435,7 @@ class AccountsController < ApplicationController
   def update
     return update_api if api_request?
 
-    if authorized_action(@account, @current_user, :manage_account_settings)
+    if authorized_action(@account, current_principal, :manage_account_settings)
       respond_to do |format|
         if @account.root_account?
           terms_attrs = params[:account][:terms_of_service]
@@ -1503,11 +1503,11 @@ class AccountsController < ApplicationController
 
         set_app_center_access_token
 
-        unless @account.grants_right?(@current_user, :manage_mfa_settings)
+        unless @account.grants_right?(current_principal, :manage_mfa_settings)
           params[:account][:settings].try(:delete, :mfa_settings)
         end
 
-        if @account.grants_right?(@current_user, :manage_site_settings)
+        if @account.grants_right?(current_principal, :manage_site_settings)
           google_docs_domain = params[:account][:settings].try(:delete, :google_docs_domain)
           if @account.feature_enabled?(:google_docs_domain_restriction) &&
              @account.root_account? &&
@@ -1541,7 +1541,7 @@ class AccountsController < ApplicationController
         end
 
         # Handle impact_account_type setting (site admin only)
-        if Account.site_admin.grants_right?(@current_user, :manage)
+        if Account.site_admin.grants_right?(current_principal, :manage)
           impact_account_type = params[:account][:settings].try(:delete, :impact_account_type)
           @account.settings[:impact_account_type] = impact_account_type if impact_account_type.present?
         else
@@ -1592,7 +1592,7 @@ class AccountsController < ApplicationController
 
         if (sis_id = params[:account].delete(:sis_source_id)) &&
            !@account.root_account? && sis_id != @account.sis_source_id &&
-           @account.root_account.grants_right?(@current_user, session, :manage_sis)
+           @account.root_account.grants_right?(current_principal, session, :manage_sis)
           @account.sis_source_id = sis_id.presence
         end
 
@@ -1622,7 +1622,7 @@ class AccountsController < ApplicationController
         nav_menu_links_success = NavMenuLink.sync_with_link_objects_json(
           context: @account,
           link_objects_json: params[:account].delete(:nav_menu_links),
-          can_manage_links: @account.grants_right?(@current_user, session, :manage_nav_menu_links)
+          can_manage_links: @account.grants_right?(current_principal, session, :manage_nav_menu_links)
         )
 
         if nav_menu_links_success && @account.update(strong_account_params)
@@ -1639,7 +1639,7 @@ class AccountsController < ApplicationController
   end
 
   def reports_tab
-    if authorized_action(@account, @current_user, :read_reports)
+    if authorized_action(@account, current_principal, :read_reports)
       @available_reports = AccountReport.available_reports
       @root_account = @account.root_account
       @last_complete_reports = AccountReport.last_complete_reports(account: @account)
@@ -1651,7 +1651,7 @@ class AccountsController < ApplicationController
   def reports
     raise ActiveRecord::RecordNotFound unless @account.root_account.feature_enabled?(:new_account_reports_ui)
 
-    if authorized_action(@account, @current_user, :read_reports)
+    if authorized_action(@account, current_principal, :read_reports)
       add_crumb t("Reports")
       @page_title = join_title(t("Reports"), @account.name)
       set_active_tab "account_reports"
@@ -1692,7 +1692,7 @@ class AccountsController < ApplicationController
   end
 
   def settings
-    if authorized_action(@account, @current_user, :read_as_admin)
+    if authorized_action(@account, current_principal, :read_as_admin)
       add_crumb t(:settings_crumb, "Settings")
       page_has_instui_topnav
       @account_users = @account.account_users.active
@@ -1723,11 +1723,11 @@ class AccountsController < ApplicationController
       end
 
       js_permissions = {
-        manage_feature_flags: @account.grants_right?(@current_user, session, :manage_feature_flags),
-        add_tool_manually: @account.grants_right?(@current_user, session, :manage_lti_add),
-        edit_tool_manually: @account.grants_right?(@current_user, session, :manage_lti_edit),
-        delete_tool_manually: @account.grants_right?(@current_user, session, :manage_lti_delete),
-        manage_nav_menu_links: @account.grants_right?(@current_user, session, :manage_nav_menu_links)
+        manage_feature_flags: @account.grants_right?(current_principal, session, :manage_feature_flags),
+        add_tool_manually: @account.grants_right?(current_principal, session, :manage_lti_add),
+        edit_tool_manually: @account.grants_right?(current_principal, session, :manage_lti_edit),
+        delete_tool_manually: @account.grants_right?(current_principal, session, :manage_lti_delete),
+        manage_nav_menu_links: @account.grants_right?(current_principal, session, :manage_nav_menu_links)
       }
 
       can_set_token = %i[add_tool_manually edit_tool_manually delete_tool_manually].any? { |perm| js_permissions[perm] }
@@ -1769,7 +1769,7 @@ class AccountsController < ApplicationController
       js_env(edit_help_links_env, overwrite: true)
       if @account.root_account?
         js_env({ EARLY_ACCESS_PROGRAM: @account.early_access_program[:value] ||
-                                     @account.grants_right?(@current_user, :manage_site_settings) })
+                                     @account.grants_right?(current_principal, :manage_site_settings) })
       end
     end
   end
@@ -1786,12 +1786,12 @@ class AccountsController < ApplicationController
     add_crumb t("Admin tools")
     page_has_instui_topnav
 
-    authentication_logging = @account.grants_any_right?(@current_user, :view_statistics, :manage_user_logins)
-    grade_change_logging = @account.grants_right?(@current_user, :view_grade_changes)
-    search_as_subaccount = !@account.root_account.grants_any_right?(@current_user, :manage_grades, :view_all_grades)
-    course_logging = @account.grants_right?(@current_user, :view_course_changes)
+    authentication_logging = @account.grants_any_right?(current_principal, :view_statistics, :manage_user_logins)
+    grade_change_logging = @account.grants_right?(current_principal, :view_grade_changes)
+    search_as_subaccount = !@account.root_account.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
+    course_logging = @account.grants_right?(current_principal, :view_course_changes)
     mutation_logging = @account.feature_enabled?(:mutation_audit_log) &&
-                       @account.grants_right?(@current_user, :manage_account_settings)
+                       @account.grants_right?(current_principal, :manage_account_settings)
     if authentication_logging || grade_change_logging || course_logging || mutation_logging
       logging = {
         authentication: authentication_logging,
@@ -1805,16 +1805,16 @@ class AccountsController < ApplicationController
 
     js_env({
              PERMISSIONS: {
-               restore_course: @account.grants_right?(@current_user, session, :undelete_courses),
-               restore_user: @account.grants_right?(@current_user, session, :manage_user_logins),
+               restore_course: @account.grants_right?(current_principal, session, :undelete_courses),
+               restore_user: @account.grants_right?(current_principal, session, :manage_user_logins),
                # Permission caching issue makes explicitly checking the account setting
                # an easier option.
                view_messages: (@account.settings[:admins_can_view_notifications] &&
-                             @account.grants_right?(@current_user, session, :view_notifications)) ||
-                           Account.site_admin.grants_right?(@current_user, :read_messages),
+                             @account.grants_right?(current_principal, session, :view_notifications)) ||
+                           Account.site_admin.grants_right?(current_principal, :read_messages),
                logging:
              },
-             BOUNCED_EMAILS_ADMIN_TOOL: @account.grants_right?(@current_user, session, :view_bounced_emails)
+             BOUNCED_EMAILS_ADMIN_TOOL: @account.grants_right?(current_principal, session, :view_bounced_emails)
            })
   end
 
@@ -1897,7 +1897,7 @@ class AccountsController < ApplicationController
   #
   # @returns Progress
   def remove_users
-    return render_unauthorized_action unless @account.grants_right?(@current_user, :manage_users_in_bulk)
+    return render_unauthorized_action unless @account.grants_right?(current_principal, :manage_users_in_bulk)
 
     user_ids = params[:user_ids]
     if !user_ids.empty? && user_ids.size > 100
@@ -1932,7 +1932,7 @@ class AccountsController < ApplicationController
   #
   # @returns Progress
   def update_users
-    return render_unauthorized_action unless @account.grants_right?(@current_user, :manage_users_in_bulk)
+    return render_unauthorized_action unless @account.grants_right?(current_principal, :manage_users_in_bulk)
 
     allowed_attributes = [:event] # currently only used for suspend/unsuspend
     user_ids = params[:user_ids]
@@ -1971,7 +1971,7 @@ class AccountsController < ApplicationController
     pseudonym = user.pseudonym_for_restoration_in(@account)
 
     is_permissible =
-      pseudonym.account.grants_right?(@current_user, :manage_user_logins) &&
+      pseudonym.account.grants_right?(current_principal, :manage_user_logins) &&
       pseudonym.user.has_subset_of_account_permissions?(@current_user, user.account)
     return render_unauthorized_action unless is_permissible
 
@@ -1991,7 +1991,7 @@ class AccountsController < ApplicationController
   end
 
   def eportfolio_moderation
-    if authorized_action(@account, @current_user, :moderate_user_content)
+    if authorized_action(@account, current_principal, :moderate_user_content)
 
       @page_title = t("Eportfolio Moderation")
       add_crumb @page_title
@@ -2010,7 +2010,7 @@ class AccountsController < ApplicationController
   end
 
   def turnitin_confirmation
-    if authorized_action(@account, @current_user, :manage_account_settings)
+    if authorized_action(@account, current_principal, :manage_account_settings)
       host = validated_turnitin_host(params[:turnitin_host])
       begin
         turnitin = Turnitin::Client.new(
@@ -2026,15 +2026,15 @@ class AccountsController < ApplicationController
   end
 
   def statistics
-    if authorized_action(@account, @current_user, :view_statistics)
+    if authorized_action(@account, current_principal, :view_statistics)
       add_crumb(t(:crumb_statistics, "Statistics"))
       page_has_instui_topnav
-      if @account.grants_right?(@current_user, :read_course_list)
+      if @account.grants_right?(current_principal, :read_course_list)
         @recently_started_courses = @account.associated_courses.active.recently_started
         @recently_ended_courses = @account.associated_courses.active.recently_ended
         @recently_created_courses = @account.associated_courses.active.recently_created
       end
-      if @account.grants_right?(@current_user, :read_roster)
+      if @account.grants_right?(current_principal, :read_roster)
         @recently_logged_users = @account.all_users.recently_logged_in
       end
       @counts_report = @account.report_snapshots.detailed.order(:created_at).last.try(:data)
@@ -2042,7 +2042,7 @@ class AccountsController < ApplicationController
   end
 
   def statistics_graph
-    if authorized_action(@account, @current_user, :view_statistics)
+    if authorized_action(@account, current_principal, :view_statistics)
       @items = @account.report_snapshots.progressive.last.try(:report_value_over_time, params[:attribute])
       respond_to do |format|
         format.json { render json: @items }
@@ -2067,7 +2067,7 @@ class AccountsController < ApplicationController
   end
 
   def avatars
-    if authorized_action(@account, @current_user, :allow_course_admin_actions)
+    if authorized_action(@account, current_principal, :allow_course_admin_actions)
       @users = @account.all_users
       @avatar_counts = {
         all: format_avatar_count(@users.with_avatar_state("any").count),
@@ -2090,10 +2090,10 @@ class AccountsController < ApplicationController
   end
 
   def sis_import
-    if authorized_action(@account, @current_user, [:import_sis, :manage_sis])
+    if authorized_action(@account, current_principal, [:import_sis, :manage_sis])
       return redirect_to account_settings_url(@account) if !@account.allow_sis_import || !@account.root_account?
 
-      is_site_admin = Account.site_admin.grants_right?(@current_user, :read) &&
+      is_site_admin = Account.site_admin.grants_right?(current_principal, :read) &&
                       !@account.account_users.active.where(user_id: @current_user).exists?
       js_env({
                SHOW_SITE_ADMIN_CONFIRMATION: is_site_admin,
@@ -2116,14 +2116,14 @@ class AccountsController < ApplicationController
   def can_create_dsr
     Feature.definitions["enable_dsr_requests"] &&
       @account.root_account&.feature_enabled?(:enable_dsr_requests) &&
-      @account.grants_any_right?(@current_user, session, :manage_dsr_requests)
+      @account.grants_any_right?(current_principal, session, :manage_dsr_requests)
   end
 
   def course_user_search
-    return unless authorized_action(@account, @current_user, :read)
+    return unless authorized_action(@account, current_principal, :read)
 
-    can_read_course_list = @account.grants_right?(@current_user, session, :read_course_list)
-    can_read_roster = @account.grants_right?(@current_user, session, :read_roster)
+    can_read_course_list = @account.grants_right?(current_principal, session, :read_course_list)
+    can_read_roster = @account.grants_right?(current_principal, session, :read_roster)
 
     unless can_read_course_list || can_read_roster
       if @redirect_on_unauth
@@ -2144,45 +2144,45 @@ class AccountsController < ApplicationController
       can_read_course_list:,
       can_read_roster:,
       can_create_dsr:,
-      can_create_courses: @account.grants_right?(@current_user, session, :create_courses),
-      can_create_users: @account.root_account.grants_right?(@current_user, session, :manage_user_logins),
-      can_read_sis: @account.grants_right?(@current_user, session, :read_sis),
-      can_masquerade: @account.grants_right?(@current_user, session, :become_user),
-      can_message_users: @account.grants_right?(@current_user, session, :send_messages),
-      can_edit_users: @account.grants_any_right?(@current_user, session, :manage_user_logins),
+      can_create_courses: @account.grants_right?(current_principal, session, :create_courses),
+      can_create_users: @account.root_account.grants_right?(current_principal, session, :manage_user_logins),
+      can_read_sis: @account.grants_right?(current_principal, session, :read_sis),
+      can_masquerade: @account.grants_right?(current_principal, session, :become_user),
+      can_message_users: @account.grants_right?(current_principal, session, :send_messages),
+      can_edit_users: @account.grants_any_right?(current_principal, session, :manage_user_logins),
       can_manage_groups: # access to view account-level user groups, People --> hamburger menu
         @account.grants_any_right?(
-          @current_user,
+          current_principal,
           session,
           *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS
         ),
-      can_create_enrollments: @account.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_COURSE_ENROLLMENT_PERMISSIONS),
-      can_allow_course_admin_actions: @account.grants_right?(@current_user, session, :allow_course_admin_actions),
-      can_add_ta: @account.grants_right?(@current_user, session, :add_ta_to_course),
-      can_add_student: @account.grants_right?(@current_user, session, :add_student_to_course),
-      can_add_teacher: @account.grants_right?(@current_user, session, :add_teacher_to_course),
-      can_add_designer: @account.grants_right?(@current_user, session, :add_designer_to_course),
-      can_add_observer: @account.grants_right?(@current_user, session, :add_observer_to_course)
+      can_create_enrollments: @account.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_COURSE_ENROLLMENT_PERMISSIONS),
+      can_allow_course_admin_actions: @account.grants_right?(current_principal, session, :allow_course_admin_actions),
+      can_add_ta: @account.grants_right?(current_principal, session, :add_ta_to_course),
+      can_add_student: @account.grants_right?(current_principal, session, :add_student_to_course),
+      can_add_teacher: @account.grants_right?(current_principal, session, :add_teacher_to_course),
+      can_add_designer: @account.grants_right?(current_principal, session, :add_designer_to_course),
+      can_add_observer: @account.grants_right?(current_principal, session, :add_observer_to_course)
     }
 
     if @account.root_account.feature_enabled?(:institutional_tags)
       js_permissions[:can_view_institutional_tags] =
-        @account.root_account.grants_right?(@current_user, session, :manage_institutional_tags_view)
+        @account.root_account.grants_right?(current_principal, session, :manage_institutional_tags_view)
       js_permissions[:can_create_institutional_tags] =
-        @account.root_account.grants_right?(@current_user, session, :manage_institutional_tags_create)
+        @account.root_account.grants_right?(current_principal, session, :manage_institutional_tags_create)
       js_permissions[:can_edit_institutional_tags] =
-        @account.root_account.grants_right?(@current_user, session, :manage_institutional_tags_edit)
+        @account.root_account.grants_right?(current_principal, session, :manage_institutional_tags_edit)
     end
 
     if @account.root_account.feature_enabled?(:temporary_enrollments)
       js_permissions[:can_add_temporary_enrollments] =
-        @account.grants_right?(@current_user, session, :temporary_enrollments_add)
+        @account.grants_right?(current_principal, session, :temporary_enrollments_add)
       js_permissions[:can_edit_temporary_enrollments] =
-        @account.grants_right?(@current_user, session, :temporary_enrollments_edit)
+        @account.grants_right?(current_principal, session, :temporary_enrollments_edit)
       js_permissions[:can_delete_temporary_enrollments] =
-        @account.grants_right?(@current_user, session, :temporary_enrollments_delete)
+        @account.grants_right?(current_principal, session, :temporary_enrollments_delete)
       js_permissions[:can_view_temporary_enrollments] =
-        @account.grants_any_right?(@current_user, session, *RoleOverride::MANAGE_TEMPORARY_ENROLLMENT_PERMISSIONS)
+        @account.grants_any_right?(current_principal, session, *RoleOverride::MANAGE_TEMPORARY_ENROLLMENT_PERMISSIONS)
     end
 
     js_env({
@@ -2190,7 +2190,7 @@ class AccountsController < ApplicationController
              ROOT_ACCOUNT_ID: @account.root_account.id,
              customized_login_handle_name: @account.root_account.customized_login_handle_name,
              delegated_authentication: @account.root_account.delegated_authentication?,
-             SHOW_SIS_ID_IN_NEW_USER_FORM: @account.root_account.allow_sis_import && @account.root_account.grants_right?(@current_user, session, :manage_sis),
+             SHOW_SIS_ID_IN_NEW_USER_FORM: @account.root_account.allow_sis_import && @account.root_account.grants_right?(current_principal, session, :manage_sis),
              PERMISSIONS: js_permissions
            })
     render html: "", layout: true
@@ -2203,7 +2203,7 @@ class AccountsController < ApplicationController
       page_has_instui_topnav { add_crumb t("People") }
       return course_user_search
     end
-    return unless authorized_action(@context, @current_user, :read_roster)
+    return unless authorized_action(@context, current_principal, :read_roster)
 
     @root_account = @context.root_account
     @query = params[:term]
@@ -2260,7 +2260,7 @@ class AccountsController < ApplicationController
       admin = @context.account_users.where(user_id: user.id, role_id: role.id).first_or_initialize
       admin.user = user
       admin.workflow_state = "active"
-      return unless authorized_action(admin, @current_user, :create)
+      return unless authorized_action(admin, current_principal, :create)
 
       admin
     end
@@ -2291,7 +2291,7 @@ class AccountsController < ApplicationController
 
   def remove_account_user
     admin = @context.account_users.find(params[:id])
-    if authorized_action(admin, @current_user, :destroy)
+    if authorized_action(admin, current_principal, :destroy)
       admin.current_user = @current_user
       admin.destroy
       respond_to do |format|
@@ -2311,7 +2311,7 @@ class AccountsController < ApplicationController
   end
 
   def set_default_dashboard_view(new_view)
-    if new_view != @account.default_dashboard_view && authorized_action(@account, @current_user, :manage_account_settings)
+    if new_view != @account.default_dashboard_view && authorized_action(@account, current_principal, :manage_account_settings)
       # NOTE: Only _sets_ the property. It's up to the caller to `save` it
       @account.default_dashboard_view = new_view
     end
@@ -2322,7 +2322,7 @@ class AccountsController < ApplicationController
     token = params.dig(:account, :settings)&.delete(:app_center_access_token)
     return if token.nil?
 
-    return :unauthorized unless @account.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_LTI_PERMISSIONS)
+    return :unauthorized unless @account.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_LTI_PERMISSIONS)
 
     @account.settings[:app_center_access_token] = token
     :ok
@@ -2334,12 +2334,12 @@ class AccountsController < ApplicationController
     param = params[:account][:course_template_id]
     if param.blank?
       return if @account.course_template_id.nil?
-      return :unauthorized unless @account.grants_any_right?(@current_user, :delete_course_template, :edit_course_template)
+      return :unauthorized unless @account.grants_any_right?(current_principal, :delete_course_template, :edit_course_template)
 
       @account.course_template_id = nil
     elsif param.to_s == "0"
       return if @account.course_template_id == 0
-      return :unauthorized unless @account.grants_any_right?(@current_user, :delete_course_template, :edit_course_template)
+      return :unauthorized unless @account.grants_any_right?(current_principal, :delete_course_template, :edit_course_template)
 
       @account.course_template_id = 0
     else
@@ -2347,8 +2347,8 @@ class AccountsController < ApplicationController
 
       course = api_find(@account.root_account.all_courses.templates, param)
 
-      return :unauthorized if @account.course_template_id.nil? && !@account.grants_any_right?(@current_user, :add_course_template, :edit_course_template)
-      return :unauthorized if !@account.course_template_id.nil? && !@account.grants_right?(@current_user, :edit_course_template)
+      return :unauthorized if @account.course_template_id.nil? && !@account.grants_any_right?(current_principal, :add_course_template, :edit_course_template)
+      return :unauthorized if !@account.course_template_id.nil? && !@account.grants_right?(current_principal, :edit_course_template)
 
       @account.course_template = course
     end
@@ -2362,7 +2362,7 @@ class AccountsController < ApplicationController
   end
 
   def account_calendar_settings
-    return unless authorized_action(@account, @current_user, :manage_account_calendar_visibility)
+    return unless authorized_action(@account, current_principal, :manage_account_calendar_visibility)
 
     title = t("Account Calendars")
     @page_title = title

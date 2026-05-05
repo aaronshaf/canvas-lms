@@ -23,7 +23,7 @@
 
 <% provide :right_side do %>
   <% unless @domain_root_account.feature_enabled?(:instui_nav) %>
-    <% if can_do(@context, @current_user, :update) %>
+    <% if can_do(@context, current_principal, :update) %>
       <div>
         <a href="#" id="edit_group" title="Edit Group" class="Button button-sidebar-wide">
           <i class="icon-edit" role="presentation"></i>
@@ -32,7 +32,7 @@
       </div>
       <div id="student-group-dialog-mount-point"></div>
     <% end %>
-    <% if can_do(@context.announcements.temp_record, @current_user, :create) %>
+    <% if can_do(@context.announcements.temp_record, current_principal, :create) %>
       <div>
         <a href="<%= group_announcements_path(@context) %>#new" title="Add Announcement" id="add-announcement" class="Button button-sidebar-wide">
           <i class="icon-plus" role="presentation"></i>

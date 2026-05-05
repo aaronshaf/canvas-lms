@@ -814,7 +814,7 @@ class AssignmentsApiController < ApplicationController
   # @returns [Assignment]
   def index
     GuardRail.activate(:secondary) do
-      error_or_array = get_assignments(@current_user)
+      error_or_array = get_assignments(current_principal)
       render json: error_or_array unless performed?
     end
   end
@@ -825,7 +825,7 @@ class AssignmentsApiController < ApplicationController
   def user_index
     GuardRail.activate(:secondary) do
       @user.shard.activate do
-        error_or_array = get_assignments(@user)
+        error_or_array = get_assignments(Canvas::AdheresToPolicy::UserPrincipal.new(@user))
         render json: error_or_array unless performed?
       end
     end
@@ -866,10 +866,10 @@ class AssignmentsApiController < ApplicationController
       return render json: { error: t("quiz duplication not implemented") }, status: :bad_request
     end
 
-    return unless authorized_action(old_assignment, @current_user, :create)
+    return unless authorized_action(old_assignment, current_principal, :create)
 
     if target_course.present?
-      return unless authorized_action(target_course, @current_user, :manage_assignments_add)
+      return unless authorized_action(target_course, current_principal, :manage_assignments_add)
     end
 
     new_assignment = old_assignment.duplicate(
@@ -996,8 +996,9 @@ class AssignmentsApiController < ApplicationController
     render json: result_json
   end
 
-  def get_assignments(user)
-    if authorized_action(@context, user, :read)
+  def get_assignments(principal)
+    user = principal.user
+    if authorized_action(@context, principal, :read)
       log_api_asset_access(["assignments", @context], "assignments", "other")
       scope = Assignments::ScopedToUser.new(@context, user).scope
                                        .eager_load(:assignment_group)
@@ -1043,7 +1044,7 @@ class AssignmentsApiController < ApplicationController
         scope = scope.reorder(Arel.sql("#{Assignment.best_unicode_collation_key("assignments.title")}, assignment_groups.position, assignments.position, assignments.id"))
       when "due_at"
         context.shard.activate do
-          scope = if @context.grants_right?(user, :read_as_admin)
+          scope = if @context.grants_right?(principal, :read_as_admin)
                     scope.with_latest_due_date.reorder(Arel.sql("latest_due_date, #{Assignment.best_unicode_collation_key("assignments.title")}, assignment_groups.position, assignments.position, assignments.id"))
                   else
                     scope.with_user_due_date(user).reorder(Arel.sql("submissions.cached_due_date, #{Assignment.best_unicode_collation_key("assignments.title")}, assignment_groups.position, assignments.position, assignments.id"))
@@ -1067,7 +1068,7 @@ class AssignmentsApiController < ApplicationController
       submissions = submissions_hash(include_params, assignments)
 
       include_all_dates = include_params.include?("all_dates")
-      include_override_objects = include_params.include?("overrides") && @context.grants_any_right?(user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+      include_override_objects = include_params.include?("overrides") && @context.grants_any_right?(principal, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
 
       override_param = params[:override_assignment_dates] || true
       override_dates = value_to_boolean(override_param)
@@ -1081,7 +1082,7 @@ class AssignmentsApiController < ApplicationController
         end
       end
 
-      include_visibility = include_params.include?("assignment_visibility") && @context.grants_any_right?(user, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+      include_visibility = include_params.include?("assignment_visibility") && @context.grants_any_right?(principal, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
 
       if include_visibility
         assignment_visibilities = AssignmentVisibility::AssignmentVisibilityService.users_with_visibility_by_assignment(course_id: @context.id, assignment_ids: assignments.map(&:id))
@@ -1090,11 +1091,11 @@ class AssignmentsApiController < ApplicationController
       needs_grading_by_section_param = params[:needs_grading_count_by_section] || false
       needs_grading_count_by_section = value_to_boolean(needs_grading_by_section_param)
 
-      if @context.grants_right?(user, :manage_assignments_edit)
+      if @context.grants_right?(principal, :manage_assignments_edit)
         Assignment.preload_can_unpublish(assignments)
       end
 
-      unless @context.grants_right?(user, :read_as_admin)
+      unless @context.grants_right?(principal, :read_as_admin)
         Assignment.preload_context_module_tags(assignments) # running this again is fine
       end
 
@@ -1129,7 +1130,7 @@ class AssignmentsApiController < ApplicationController
       #   include_needs_grading_count && assignment.context.grants_right?(user, :manage_grades)
       # exclude_response_fields is not passed from this action so needs_grading_count
       # is never excluded here — manage_grades is the only effective condition.
-      if @context.grants_right?(user, session, :manage_grades)
+      if @context.grants_right?(principal, session, :manage_grades)
         grading_query = Assignments::NeedsGradingCountQuery.new(assignments, user)
         grading_query.count
         grading_query.count_by_section if needs_grading_count_by_section
@@ -1170,7 +1171,7 @@ class AssignmentsApiController < ApplicationController
   # @returns [BasicUser]
   def student_group_members
     assignment = api_find(@context.active_assignments, params[:assignment_id])
-    if authorized_action(assignment, @current_user, :read)
+    if authorized_action(assignment, current_principal, :read)
       student = @context.students.find(params[:user_id])
       _, students = assignment.group_students(student)
       render json: students.map { |user| { id: user.id.to_s, name: user.name } }
@@ -1196,7 +1197,7 @@ class AssignmentsApiController < ApplicationController
   # @returns Assignment
   def show
     @assignment = api_find(@context.active_assignments.preload(:assignment_group, :rubric_association, :rubric), params[:id])
-    if authorized_action(@assignment, @current_user, :read)
+    if authorized_action(@assignment, current_principal, :read)
       return render_unauthorized_action unless @assignment.visible_to_user?(@current_user)
 
       included_params = Array(params[:include])
@@ -1209,8 +1210,8 @@ class AssignmentsApiController < ApplicationController
           submissions_hash(included_params, [@assignment])[@assignment.id]
       end
 
-      include_visibility = included_params.include?("assignment_visibility") && @context.grants_any_right?(@current_user, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
-      include_override_objects = included_params.include?("overrides") && @context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+      include_visibility = included_params.include?("assignment_visibility") && @context.grants_any_right?(current_principal, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+      include_override_objects = included_params.include?("overrides") && @context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
 
       locked = @assignment.locked_for?(@current_user, check_policies: true)
       @assignment.context_module_action(@current_user, :read) unless locked && !locked[:can_view]
@@ -1453,7 +1454,7 @@ class AssignmentsApiController < ApplicationController
   def create
     @assignment = @context.assignments.build
     @assignment.workflow_state = "unpublished"
-    if authorized_action(@assignment, @current_user, :create)
+    if authorized_action(@assignment, current_principal, :create)
       @assignment.content_being_saved_by(@current_user)
       track_create_metrics(@assignment)
       result = create_api_assignment(@assignment,
@@ -1701,11 +1702,11 @@ class AssignmentsApiController < ApplicationController
   def update
     @assignment = api_find(@context.active_assignments, params[:id])
 
-    if needs_grading_permission? && !@assignment.grants_right?(@current_user, :grade)
+    if needs_grading_permission? && !@assignment.grants_right?(current_principal, :grade)
       render_unauthorized_action and return
     end
 
-    if authorized_action(@assignment, @current_user, :update)
+    if authorized_action(@assignment, current_principal, :update)
       @assignment.content_being_saved_by(@current_user)
       @assignment.updating_user = @current_user
       # update_api_assignment mutates params so this has to be done here
@@ -1759,7 +1760,7 @@ class AssignmentsApiController < ApplicationController
   #
   # @returns Progress
   def bulk_update
-    return render_json_unauthorized unless @context.grants_right?(@current_user, session, :manage_assignments_edit)
+    return render_json_unauthorized unless @context.grants_right?(current_principal, session, :manage_assignments_edit)
 
     data = params.permit(
       _json: [
@@ -1787,7 +1788,7 @@ class AssignmentsApiController < ApplicationController
   end
 
   def accessibility_scan
-    return render_unauthorized_action unless @context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return render_unauthorized_action unless @context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
     return render_unauthorized_action unless @context.a11y_checker_enabled?
 
     @assignment = api_find(@context.active_assignments, params[:assignment_id])
@@ -1796,7 +1797,7 @@ class AssignmentsApiController < ApplicationController
   end
 
   def accessibility_queue_scan
-    return render_unauthorized_action unless @context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return render_unauthorized_action unless @context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
     return render_unauthorized_action unless @context.a11y_checker_enabled?
 
     @assignment = api_find(@context.active_assignments, params[:assignment_id])
@@ -1837,10 +1838,10 @@ class AssignmentsApiController < ApplicationController
 
     @user = (params[:user_id] == "self") ? @current_user : api_find(User, params[:user_id])
     # teacher, ta
-    return if @context.grants_right?(@current_user, :view_all_grades) && @context.students_visible_to(@current_user).include?(@user)
+    return if @context.grants_right?(current_principal, :view_all_grades) && @context.students_visible_to(@current_user).include?(@user)
 
     # self, observer
-    authorized_action(@user, @current_user, %i[read_as_parent read])
+    authorized_action(@user, current_principal, %i[read_as_parent read])
   end
 
   def needs_grading_permission?

@@ -60,7 +60,7 @@ class TokensController < ApplicationController
   #
   # @returns [Token]
   def user_generated_tokens
-    unless @context.grants_right?(@current_user, session, :view_user_generated_access_tokens)
+    unless @context.grants_right?(current_principal, session, :view_user_generated_access_tokens)
       return render_unauthorized_action
     end
 
@@ -85,7 +85,7 @@ class TokensController < ApplicationController
   # The ID can be the actual database ID of the token, or the 'token_hint' value.
   #
   def show
-    unless @token.grants_right?(@current_user, session, :read)
+    unless @token.grants_right?(current_principal, session, :read)
       return render_unauthorized_action
     end
 

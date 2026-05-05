@@ -164,7 +164,7 @@ class GradingStandardsApiController < ApplicationController
   #     ]
   #   }
   def create
-    if authorized_action(@context, @current_user, :manage_grading_schemes)
+    if authorized_action(@context, current_principal, :manage_grading_schemes)
       @standard = @context.grading_standards.build(build_grading_scheme(params))
       @standard.user = @current_user
       respond_to do |format|
@@ -187,7 +187,7 @@ class GradingStandardsApiController < ApplicationController
   #
   # @returns [GradingStandard]
   def context_index
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       grading_standards_json = @context.grading_standards.map do |g|
         grading_standard_json(g, @current_user, session)
       end
@@ -205,7 +205,7 @@ class GradingStandardsApiController < ApplicationController
   #
   # @returns GradingStandard
   def context_show
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       grading_standard = @context.grading_standards.find(params[:grading_standard_id])
       render json: grading_standard_json(grading_standard, @current_user, session)
     end
@@ -276,7 +276,7 @@ class GradingStandardsApiController < ApplicationController
   # @returns GradingStandard
   def update
     grading_standard = @context.grading_standards.find(params[:grading_standard_id])
-    return unless authorized_action(grading_standard, @current_user, :manage)
+    return unless authorized_action(grading_standard, current_principal, :manage)
 
     if grading_standard.assessed_assignment?
       if params.key?(:grading_scheme_entry) || params.key?(:points_based) || params.key?(:scaling_factor)
@@ -313,7 +313,7 @@ class GradingStandardsApiController < ApplicationController
   # @returns GradingStandard
   def destroy
     grading_standard = @context.grading_standards.find(params[:grading_standard_id])
-    if authorized_action(grading_standard, @current_user, :manage)
+    if authorized_action(grading_standard, current_principal, :manage)
       respond_to do |format|
         if grading_standard.destroy
           format.json { render json: grading_standard_json(grading_standard, @current_user, session) }

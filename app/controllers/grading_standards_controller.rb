@@ -27,7 +27,7 @@ class GradingStandardsController < ApplicationController
   before_action { |c| c.active_tab = "grading_standards" }
 
   def index
-    if authorized_action(@context, @current_user, :manage_grading_schemes)
+    if authorized_action(@context, current_principal, :manage_grading_schemes)
       client_env = {
         GRADING_STANDARDS_URL: context_url(@context, :context_grading_standards_url),
         GRADING_PERIOD_SETS_URL: api_v1_account_grading_period_sets_url(@context),
@@ -61,7 +61,7 @@ class GradingStandardsController < ApplicationController
   end
 
   def create
-    if authorized_action(@context, @current_user, :manage_grading_schemes)
+    if authorized_action(@context, current_principal, :manage_grading_schemes)
       @standard = @context.grading_standards.build(grading_standard_params)
       if @standard["data"].blank?
         @standard.data = GradingStandard.default_grading_standard
@@ -79,7 +79,7 @@ class GradingStandardsController < ApplicationController
 
   def update
     @standard = GradingStandard.for(@context).find(params[:id])
-    if authorized_action(@standard, @current_user, :manage)
+    if authorized_action(@standard, current_principal, :manage)
       @standard.user = @current_user
       respond_to do |format|
         if @standard.update(grading_standard_params)
@@ -93,7 +93,7 @@ class GradingStandardsController < ApplicationController
 
   def destroy
     @standard = GradingStandard.for(@context).find(params[:id])
-    if authorized_action(@standard, @current_user, :manage)
+    if authorized_action(@standard, current_principal, :manage)
       respond_to do |format|
         if @standard.destroy
           format.json { render json: standard_as_json(@standard) }

@@ -120,7 +120,7 @@ class FoldersController < ApplicationController
   skip_before_action :require_user, only: %i[api_index index list_all_folders_and_files list_folders_and_files resolve_path show]
 
   def index
-    if authorized_action(@context, @current_user, :read_files)
+    if authorized_action(@context, current_principal, :read_files)
       render json: Folder.root_folders(@context).map { |f| f.as_json(permissions: { user: @current_user, session: }) }
     end
   end
@@ -137,7 +137,7 @@ class FoldersController < ApplicationController
   # @returns [Folder]
   def api_index
     @folder = Folder.find(params[:id])
-    return unless authorized_action(@folder, @current_user, :read_contents)
+    return unless authorized_action(@folder, current_principal, :read_contents)
 
     opts = lock_options(@folder.context, @current_user, session)
 
@@ -156,7 +156,7 @@ class FoldersController < ApplicationController
     return render_json_unauthorized unless Account.site_admin.feature_enabled?(:files_a11y_rewrite)
 
     @folder = Folder.find(params[:id])
-    return unless authorized_action(@folder, @current_user, :read_contents)
+    return unless authorized_action(@folder, current_principal, :read_contents)
 
     items, opts, all_item_count = paginated_folders_and_files(api_v1_list_folders_and_files_url)
     headers["X-Total-Items"] = all_item_count.to_s
@@ -166,7 +166,7 @@ class FoldersController < ApplicationController
   # internal API
   def list_all_folders_and_files
     return render_json_unauthorized unless Account.site_admin.feature_enabled?(:files_a11y_rewrite)
-    return unless authorized_action(@context, @current_user, :read_files)
+    return unless authorized_action(@context, current_principal, :read_files)
 
     base_url = polymorphic_url([:api, :v1, @context, :folders_and_files])
     items, opts, all_item_count = paginated_folders_and_files(base_url)
@@ -275,7 +275,7 @@ class FoldersController < ApplicationController
   #
   # @returns [Folder]
   def list_all_folders
-    if authorized_action(@context, @current_user, :read_files)
+    if authorized_action(@context, current_principal, :read_files)
       can_view_hidden_files = can_view_hidden_files?(@context, @current_user, session)
 
       scope = folder_index_scope(can_view_hidden_files)
@@ -308,7 +308,7 @@ class FoldersController < ApplicationController
   # @returns [Folder]
   def resolve_path
     # as long as one granted permission holds true, in most cases :read, user is authorized
-    if authorized_action(@context, @current_user, [:read_files, *RoleOverride::GRANULAR_FILE_PERMISSIONS])
+    if authorized_action(@context, current_principal, [:read_files, *RoleOverride::GRANULAR_FILE_PERMISSIONS])
       can_view_hidden_files = can_view_hidden_files?(@context, @current_user, session)
       folders = Folder.resolve_path(@context, params[:full_path], include_hidden_and_locked: can_view_hidden_files)
       raise ActiveRecord::RecordNotFound if folders.blank?
@@ -352,7 +352,7 @@ class FoldersController < ApplicationController
     end
     raise ActiveRecord::RecordNotFound if @folder.deleted?
 
-    if authorized_action(@folder, @current_user, :read_contents)
+    if authorized_action(@folder, current_principal, :read_contents)
       if api_request?
         render json: folder_json(@folder, @current_user, session)
       else
@@ -425,7 +425,7 @@ class FoldersController < ApplicationController
       require_context
       @folder = @context.folders.find(params[:id])
     end
-    if authorized_action(@folder, @current_user, :update)
+    if authorized_action(@folder, current_principal, :update)
       respond_to do |format|
         just_hide = folder_params.delete(:just_hide)
         if just_hide == "1"
@@ -436,7 +436,7 @@ class FoldersController < ApplicationController
           return if check_restricted_file_access_and_return?
 
           parent_folder = @context.folders.active.find(parent_folder_id)
-          return unless authorized_action(parent_folder, @current_user, :manage_contents)
+          return unless authorized_action(parent_folder, current_principal, :manage_contents)
 
           folder_params[:parent_folder] = parent_folder
         end
@@ -530,22 +530,22 @@ class FoldersController < ApplicationController
       end
     elsif @context.respond_to?(:folders) && folder_params[:parent_folder_path].is_a?(String)
       root = Folder.root_folders(@context).first
-      if authorized_action(root, @current_user, :create)
+      if authorized_action(root, current_principal, :create)
         parent_folder = Folder.assert_path(folder_params.delete(:parent_folder_path), @context)
       else
         return
       end
     end
-    return if parent_folder && !authorized_action(parent_folder, @current_user, :manage_contents)
+    return if parent_folder && !authorized_action(parent_folder, current_principal, :manage_contents)
 
     folder_params[:parent_folder] = parent_folder
 
     @folder = @context.folders.build(folder_params)
-    if authorized_action(@folder, @current_user, :create)
+    if authorized_action(@folder, current_principal, :create)
       if !@folder.parent_folder_id || !@context.folders.where(id: @folder.parent_folder_id).first
         @folder.parent_folder_id = Folder.unfiled_folder(@context).id
       end
-      if source_folder_id.present? && (source_folder = Folder.where(id: source_folder_id).first) && source_folder.grants_right?(@current_user, session, :read)
+      if source_folder_id.present? && (source_folder = Folder.where(id: source_folder_id).first) && source_folder.grants_right?(current_principal, session, :read)
         @folder = source_folder.clone_for(@context, @folder, { everything: true })
       end
       respond_to do |format|
@@ -584,7 +584,7 @@ class FoldersController < ApplicationController
 
   def destroy
     @folder = Folder.find(params[:id])
-    if authorized_action(@folder, @current_user, :delete)
+    if authorized_action(@folder, current_principal, :delete)
       @folder.destroy
       respond_to do |format|
         format.html { redirect_to named_context_url(@context, :context_files_url) } # show.rhtml
@@ -607,7 +607,7 @@ class FoldersController < ApplicationController
   #        -H 'Authorization: Bearer <token>'
   def api_destroy
     @folder = Folder.find(params[:id])
-    if authorized_action(@folder, @current_user, :delete)
+    if authorized_action(@folder, current_principal, :delete)
       if @folder.root_folder?
         render json: { message: t("no_deleting_root", "Can't delete the root folder") }, status: :bad_request
       elsif @folder.context.is_a?(Course) &&
@@ -639,7 +639,7 @@ class FoldersController < ApplicationController
     params[:parent_folder_id] = @folder.id
     @context = @folder.context
     @attachment = Attachment.new(context: @context)
-    if authorized_action(@attachment, @current_user, :create)
+    if authorized_action(@attachment, current_principal, :create)
       api_attachment_preflight(@context, request, params:, check_quota: true)
     end
   end
@@ -674,7 +674,7 @@ class FoldersController < ApplicationController
     end
 
     @dest_folder = Folder.find(params[:dest_folder_id])
-    return unless authorized_action(@dest_folder, @current_user, :manage_contents)
+    return unless authorized_action(@dest_folder, current_principal, :manage_contents)
 
     @context = @dest_folder.context
     @source_file = Attachment.find(params[:source_file_id])
@@ -682,9 +682,9 @@ class FoldersController < ApplicationController
       return render json: { message: "cannot copy across institutions" }, status: :bad_request
     end
 
-    if authorized_action(@source_file, @current_user, :download)
+    if authorized_action(@source_file, current_principal, :download)
       @attachment = @context.attachments.build(folder: @dest_folder)
-      if authorized_action(@attachment, @current_user, :create)
+      if authorized_action(@attachment, current_principal, :create)
         on_duplicate, name = params[:on_duplicate].presence, params[:name].presence
         duplicate_options = (on_duplicate == "rename" && name) ? { name: } : {}
         return render json: { message: "on_duplicate must be 'overwrite' or 'rename'" }, status: :bad_request if on_duplicate && %w[overwrite rename].exclude?(on_duplicate)
@@ -731,7 +731,7 @@ class FoldersController < ApplicationController
     end
 
     @dest_folder = Folder.find(params[:dest_folder_id])
-    return unless authorized_action(@dest_folder, @current_user, :manage_contents)
+    return unless authorized_action(@dest_folder, current_principal, :manage_contents)
 
     @context = @dest_folder.context
     @source_folder = Folder.find(params[:source_folder_id])
@@ -742,9 +742,9 @@ class FoldersController < ApplicationController
       return render json: { message: "source folder may not contain destination folder" }, status: :bad_request
     end
 
-    if authorized_action(@source_folder.context, @current_user, [*RoleOverride::GRANULAR_FILE_PERMISSIONS])
+    if authorized_action(@source_folder.context, current_principal, [*RoleOverride::GRANULAR_FILE_PERMISSIONS])
       @folder = @context.folders.build(parent_folder: @dest_folder)
-      if authorized_action(@folder, @current_user, :create)
+      if authorized_action(@folder, current_principal, :create)
         @folder = @source_folder.clone_for(@context, @folder, everything: true, force_copy: true)
         if @folder.save
           render json: folder_json(@folder, @current_user, session)
@@ -757,7 +757,7 @@ class FoldersController < ApplicationController
 
   def icon_maker_folder
     require_context
-    if @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS)
+    if @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS)
       @folder = Folder.icon_maker_folder(@context)
       render json: folder_json(@folder, @current_user, session)
     end
@@ -778,9 +778,9 @@ class FoldersController < ApplicationController
   # @returns Folder
   def media_folder
     require_context
-    if authorized_action(@context, @current_user, :read_files)
+    if authorized_action(@context, current_principal, :read_files)
       folder_context =
-        if @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS)
+        if @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS)
           @context
         else
           @current_user
@@ -797,7 +797,7 @@ class FoldersController < ApplicationController
 
     @folder = Folder.find(params[:id])
     return render_unauthorized_action unless @folder.context == @context
-    return unless authorized_action(@folder, @current_user, :read_contents)
+    return unless authorized_action(@folder, current_principal, :read_contents)
 
     duplicate_folders = find_duplicate_folders(@folder)
 

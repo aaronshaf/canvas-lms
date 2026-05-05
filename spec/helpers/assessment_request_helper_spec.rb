@@ -59,6 +59,8 @@ describe AssessmentRequestHelper do
                                                       assessor: @student2)
     end
 
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@current_user) if @current_user }
+
     it "returns assessment user name" do
       @current_user = @student1
       expect(submission_author_name_for(@assessment_request)).to eq(@student1.short_name)

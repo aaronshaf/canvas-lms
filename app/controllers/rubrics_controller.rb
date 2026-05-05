@@ -34,7 +34,7 @@ class RubricsController < ApplicationController
 
   def index
     permission = @context.is_a?(User) ? :manage : [:manage_rubrics, :read_rubrics]
-    return unless authorized_action(@context, @current_user, permission)
+    return unless authorized_action(@context, current_principal, permission)
 
     if @context.is_a?(Course) && @context.horizon_course?
       redirect_to named_context_url(@context, :context_context_modules_url)
@@ -44,8 +44,8 @@ class RubricsController < ApplicationController
     js_env({
              ROOT_OUTCOME_GROUP: get_root_outcome,
              PERMISSIONS: {
-               manage_outcomes: @context.grants_right?(@current_user, session, :manage_outcomes),
-               manage_rubrics: @context.grants_right?(@current_user, session, :manage_rubrics)
+               manage_outcomes: @context.grants_right?(current_principal, session, :manage_outcomes),
+               manage_rubrics: @context.grants_right?(current_principal, session, :manage_rubrics)
              },
              NON_SCORING_RUBRICS: @domain_root_account.feature_enabled?(:non_scoring_rubrics),
              OUTCOMES_NEW_DECAYING_AVERAGE_CALCULATION: @domain_root_account.feature_enabled?(:outcomes_new_decaying_average_calculation)
@@ -72,7 +72,7 @@ class RubricsController < ApplicationController
 
   def show
     permission = @context.is_a?(User) ? :manage : [:manage_rubrics, :read_rubrics]
-    return unless authorized_action(@context, @current_user, permission)
+    return unless authorized_action(@context, current_principal, permission)
 
     is_enhanced_rubrics = @context.feature_enabled?(:enhanced_rubrics)
 
@@ -80,7 +80,7 @@ class RubricsController < ApplicationController
       js_env({
                ROOT_OUTCOME_GROUP: get_root_outcome,
                PERMISSIONS: {
-                 manage_rubrics: @context.grants_right?(@current_user, session, :manage_rubrics)
+                 manage_rubrics: @context.grants_right?(current_principal, session, :manage_rubrics)
                },
                OUTCOMES_NEW_DECAYING_AVERAGE_CALCULATION: @domain_root_account.feature_enabled?(:outcomes_new_decaying_average_calculation)
              })
@@ -223,7 +223,7 @@ class RubricsController < ApplicationController
       # then create a new rubric
       if !@rubric || (
         @rubric.will_change_with_update?(params[:rubric]) && (
-          !@rubric.grants_right?(@current_user, session, :update) || (
+          !@rubric.grants_right?(current_principal, session, :update) || (
             @rubric.context.is_a?(Account) && @rubric.context != @context
           )
         )
@@ -233,7 +233,7 @@ class RubricsController < ApplicationController
         @rubric.rubric_id = original_rubric_id
         @rubric.user = @current_user
       end
-      if params[:rubric] && (@rubric.grants_right?(@current_user, session, :update) || @association&.grants_right?(@current_user, session, :update)) # authorized_action(@rubric, @current_user, :update)
+      if params[:rubric] && (@rubric.grants_right?(current_principal, session, :update) || @association&.grants_right?(current_principal, session, :update)) # authorized_action(@rubric, current_principal, :update)
         @association = @rubric.update_with_association(@current_user, params[:rubric], @context, association_params)
 
         return render json: { error: true, messages: @association.errors.to_a } unless @association.nil? || @association.valid?
@@ -379,7 +379,7 @@ class RubricsController < ApplicationController
   # @returns Rubric
   def destroy
     @rubric = RubricAssociation.active.where(rubric_id: params[:id], context_id: @context, context_type: @context.class.to_s).first.rubric
-    if authorized_action(@rubric, @current_user, :delete_associations) && authorized_action(@context, @current_user, :manage_rubrics)
+    if authorized_action(@rubric, current_principal, :delete_associations) && authorized_action(@context, current_principal, :manage_rubrics)
       @rubric.destroy_for(@context, current_user: @current_user)
       render json: @rubric
     end
@@ -412,15 +412,15 @@ class RubricsController < ApplicationController
   end
 
   def can_update?(object)
-    object.grants_right?(@current_user, session, :update)
+    object.grants_right?(current_principal, session, :update)
   end
 
   def can_read?(object)
-    object.grants_right?(@current_user, session, :read)
+    object.grants_right?(current_principal, session, :read)
   end
 
   def can_manage_rubrics_context?
-    @context.grants_right?(@current_user, session, :manage_rubrics)
+    @context.grants_right?(current_principal, session, :manage_rubrics)
   end
 
   def track_metrics

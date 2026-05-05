@@ -314,7 +314,7 @@ class GradebookHistoryApiController < ApplicationController
   private
 
   def require_manage_grades
-    authorized_action(@context, @current_user, :manage_grades)
+    authorized_action(@context, current_principal, :manage_grades)
   end
 
   def api_context(path)

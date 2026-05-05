@@ -91,7 +91,7 @@ class AiExperiencesController < ApplicationController
   # @returns [AiExperience]
   def index
     permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
-    can_manage = @context.grants_any_right?(@current_user, *permissions)
+    can_manage = @context.grants_any_right?(current_principal, *permissions)
 
     @experiences = @context.ai_experiences.active
     # Students (non-managers) should only see published experiences
@@ -126,10 +126,10 @@ class AiExperiencesController < ApplicationController
   def show
     @ai_experience = @experience
     permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
-    can_manage = @context.grants_any_right?(@current_user, *permissions)
+    can_manage = @context.grants_any_right?(current_principal, *permissions)
 
     # Use the policy to check if user can read this experience
-    return unless authorized_action(@ai_experience, @current_user, :read)
+    return unless authorized_action(@ai_experience, current_principal, :read)
 
     set_active_tab "ai_experiences"
     add_crumb t("#crumbs.ai_experiences", "AI Experiences"), course_ai_experiences_path(@context)
@@ -289,7 +289,7 @@ class AiExperiencesController < ApplicationController
   def ai_conversations_index
     # Ensure user has manage rights
     permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
-    unless @context.grants_any_right?(@current_user, *permissions)
+    unless @context.grants_any_right?(current_principal, *permissions)
       return render_unauthorized_action
     end
 
@@ -386,7 +386,7 @@ class AiExperiencesController < ApplicationController
   def ai_conversation_show
     # Ensure user has manage rights
     permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
-    unless @context.grants_any_right?(@current_user, *permissions)
+    unless @context.grants_any_right?(current_principal, *permissions)
       return render_unauthorized_action
     end
 
@@ -425,10 +425,10 @@ class AiExperiencesController < ApplicationController
 
   def require_access_right
     permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
-    can_manage = @context.grants_any_right?(@current_user, *permissions)
+    can_manage = @context.grants_any_right?(current_principal, *permissions)
 
     # Allow if user can manage OR is enrolled in the course
-    return if can_manage || @context.grants_right?(@current_user, :read_as_member)
+    return if can_manage || @context.grants_right?(current_principal, :read_as_member)
 
     render_unauthorized_action
     false
@@ -441,7 +441,7 @@ class AiExperiencesController < ApplicationController
 
   def require_manage_rights
     permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
-    unless @context.grants_any_right?(@current_user, *permissions)
+    unless @context.grants_any_right?(current_principal, *permissions)
       render_unauthorized_action
       false
     end

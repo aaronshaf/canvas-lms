@@ -24,7 +24,7 @@ class NotebookController < ApplicationController
 
   def index
     not_found unless @context.account.feature_enabled?(:notebook)
-    return unless authorized_action(@context, @current_user, :participate_as_student)
+    return unless authorized_action(@context, current_principal, :participate_as_student)
 
     set_active_tab "notebook"
     add_crumb t("#crumbs.notebook", "Notebook")

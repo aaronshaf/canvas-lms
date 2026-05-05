@@ -22,7 +22,7 @@
   js_env({
            RUBRIC_ASSESSMENT: {
              assessor_id: @current_user.id.to_s,
-             assessment_type: can_do(@assignment, @current_user, :grade) ? "grading" : "peer_review"
+             assessment_type: can_do(@assignment, current_principal, :grade) ? "grading" : "peer_review"
            },
            studio_media_capture_enabled: Account.site_admin.feature_enabled?(:speedgrader_studio_media_capture),
            ENTRY_ID: @entry_id
@@ -213,12 +213,12 @@
                         render partial: "shared/rubric",
                                object: @assignment.try_rescue(:rubric_association).try_rescue(:rubric),
                                locals: {
-                                 assessing: can_do(@context, @current_user, :manage_grades),
+                                 assessing: can_do(@context, current_principal, :manage_grades),
                                  rubric_association: @assignment.rubric_association
                                }
                       end %>
                   <div class="button-container">
-                    <% if can_do(@context, @current_user, :manage_grades) %>
+                    <% if can_do(@context, current_principal, :manage_grades) %>
                       <button type="button" class="save_rubric_button Button Button--primary"><%= t("Save") %></button>
                     <% end %>
                     <button type="button" class="hide_rubric_link Button"><%= t("Cancel") %></button>
@@ -229,7 +229,7 @@
             </div>
             <% end %>
 
-            <% if @assignment.active_rubric_association? || @assignment.can_view_audit_trail?(@current_user) || can_do(@context, @current_user, :manage_grades) || (@context.concluded? && can_do(@context, @current_user, :read_as_admin)) %>
+            <% if @assignment.active_rubric_association? || @assignment.can_view_audit_trail?(@current_user) || can_do(@context, current_principal, :manage_grades) || (@context.concluded? && can_do(@context, current_principal, :read_as_admin)) %>
             <div id="grades-loading-spinner"></div>
 
             <div style="display: flex;">
@@ -237,7 +237,7 @@
                 <div style="display: flex;">
                   <div style="flex: 1">
                     <h2 class="gradebookHeader--rightside"><%= t("headers.assessment", "Assessment") %></h2>
-                    <% if can_do(@context, @current_user, :manage_grades) || (@context.concluded? && can_do(@context, @current_user, :read_as_admin)) %>
+                    <% if can_do(@context, current_principal, :manage_grades) || (@context.concluded? && can_do(@context, current_principal, :read_as_admin)) %>
                     <div id="grade_container">
                       <%= render partial: "grading_box_extended", locals: { assignment: @assignment } %>
                       <span class="turnitin_score_container"></span>

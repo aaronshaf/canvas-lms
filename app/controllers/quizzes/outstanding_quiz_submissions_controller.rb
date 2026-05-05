@@ -40,7 +40,7 @@ class Quizzes::OutstandingQuizSubmissionsController < ApplicationController
   #
   # @returns [QuizSubmissions]
   def index
-    if authorized_action(@context, @current_user, :manage_grades)
+    if authorized_action(@context, current_principal, :manage_grades)
       api_route = api_v1_course_quizzes_url(@context)
       quiz = Quizzes::Quiz.find(params[:quiz_id])
       oqs = Quizzes::OutstandingQuizSubmissionManager.new(quiz).find_by_quiz
@@ -59,7 +59,7 @@ class Quizzes::OutstandingQuizSubmissionsController < ApplicationController
   #
   # <b>204 No Content<b> response code is returned if the grading was successful.
   def grade
-    if authorized_action(@context, @current_user, :manage_grades)
+    if authorized_action(@context, current_principal, :manage_grades)
       sub_ids = params[:quiz_submission_ids]
       quiz = Quizzes::Quiz.find(params[:quiz_id])
       Quizzes::OutstandingQuizSubmissionManager.new(quiz).grade_by_ids(sub_ids)

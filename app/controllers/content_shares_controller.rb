@@ -183,7 +183,7 @@ class ContentSharesController < ApplicationController
   #
   # @returns [ContentShare]
   def index
-    if authorized_action(@user, @current_user, :read)
+    if authorized_action(@user, current_principal, :read)
       if params[:list] == "received"
         shares = Api.paginate(@user.received_content_shares.by_date, self, api_v1_user_received_content_shares_url)
         render json: received_content_shares_json(shares, @current_user, session)
@@ -205,7 +205,7 @@ class ContentSharesController < ApplicationController
   #
   # @returns { "unread_count": "integer" }
   def unread_count
-    if authorized_action(@user, @current_user, :read)
+    if authorized_action(@user, current_principal, :read)
       unread_shares = @user.received_content_shares.where(read_state: "unread")
       render json: { unread_count: unread_shares.count }
     end
@@ -220,7 +220,7 @@ class ContentSharesController < ApplicationController
   #
   # @returns ContentShare
   def show
-    if authorized_action(@user, @current_user, :read)
+    if authorized_action(@user, current_principal, :read)
       @content_share = @user.content_shares.find(params[:id])
       render json: content_share_json(@content_share, @current_user, session)
     end
@@ -298,7 +298,7 @@ class ContentSharesController < ApplicationController
   end
 
   def authorized_receivers(receivers)
-    strict_checks = !Account.site_admin.grants_right?(@current_user, session, :send_messages)
+    strict_checks = !Account.site_admin.grants_right?(current_principal, session, :send_messages)
     self_user, others = receivers.partition { |u| u.id == @current_user.id }
     return self_user if others.empty?
 

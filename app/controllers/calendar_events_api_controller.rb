@@ -575,7 +575,7 @@ class CalendarEventsApiController < ApplicationController
     @event.updating_user = @current_user
     @event.validate_context! if @context.is_a?(AppointmentGroup)
 
-    if authorized_action(@event, @current_user, :create)
+    if authorized_action(@event, current_principal, :create)
       event_type_tag = nil
       rrule = params_for_create[:rrule]
       # Create multiple events if necessary
@@ -650,7 +650,7 @@ class CalendarEventsApiController < ApplicationController
 
   def show
     get_event(search_assignments: true)
-    if authorized_action(@event, @current_user, :read)
+    if authorized_action(@event, current_principal, :read)
       render json: event_json(@event, @current_user, session, include: includes + [:web_conference])
     end
   end
@@ -680,10 +680,10 @@ class CalendarEventsApiController < ApplicationController
     get_event
     @request_shard = Shard.current
     @event.shard.activate do
-      if authorized_action(@event, @current_user, :reserve) && check_for_past_signup(@event)
+      if authorized_action(@event, current_principal, :reserve) && check_for_past_signup(@event)
         begin
           participant_id = Shard.relative_id_for(params[:participant_id], @request_shard, Shard.current) if params[:participant_id]
-          if participant_id && @event.appointment_group.grants_right?(@current_user, session, :manage)
+          if participant_id && @event.appointment_group.grants_right?(current_principal, session, :manage)
             participant = @event.appointment_group.possible_participants.detect { |p| p.id == participant_id }
           else
             participant = @event.appointment_group.participant_for(@current_user)
@@ -713,7 +713,7 @@ class CalendarEventsApiController < ApplicationController
   # Pulling participants is done from the parent event that spawns the user's child calendar events
   def participants
     get_event
-    if authorized_action(@event, @current_user, :read_child_events)
+    if authorized_action(@event, current_principal, :read_child_events)
       return render json: [].to_json unless @event.appointment_group?
 
       participants = Api.paginate(@event.child_event_participants_scope.order(:id), self, api_v1_calendar_event_participants_url)
@@ -779,7 +779,7 @@ class CalendarEventsApiController < ApplicationController
   #        -H "Authorization: Bearer <token>"
   def update
     get_event(search_assignments: true)
-    if authorized_action(@event, @current_user, :update)
+    if authorized_action(@event, current_principal, :update)
       params_for_update = nil
       if @event.is_a?(Assignment)
         params_for_update = { due_at: params[:calendar_event][:start_at] }
@@ -805,7 +805,7 @@ class CalendarEventsApiController < ApplicationController
 
           @event.context = context
         end
-        return unless authorized_action(@event, @current_user, :create)
+        return unless authorized_action(@event, current_principal, :create)
       end
       if params_for_update.key?(:web_conference)
         web_conference_params = params_for_update[:web_conference]
@@ -858,7 +858,7 @@ class CalendarEventsApiController < ApplicationController
       destroy_from_series
       return
     end
-    if authorized_action(@event, @current_user, :delete) && check_for_past_signup(@event.parent_event)
+    if authorized_action(@event, current_principal, :delete) && check_for_past_signup(@event.parent_event)
       @event.updating_user = @current_user
       @event.cancel_reason = params[:cancel_reason]
       if @event.destroy
@@ -879,7 +879,7 @@ class CalendarEventsApiController < ApplicationController
     front_half_events = []
 
     events.each do |event|
-      return false unless authorized_action(event, @current_user, :delete) && check_for_past_signup(@event.parent_event)
+      return false unless authorized_action(event, current_principal, :delete) && check_for_past_signup(@event.parent_event)
     end
 
     error = nil
@@ -905,7 +905,7 @@ class CalendarEventsApiController < ApplicationController
             params_for_update_front_half = ActionController::Parameters.new(rrule: update_rrule_count_or_until(@event[:rrule], front_half_events.length)).permit(:rrule)
             front_half_events.each do |event|
               event.updating_user = @current_user
-              unless event.grants_any_right?(@current_user, session, :update)
+              unless event.grants_any_right?(current_principal, session, :update)
                 error = { message: t("Failed updating an event in the series, update not saved"), status: :unauthorized }
                 raise ActiveRecord::Rollback
               end
@@ -1072,7 +1072,7 @@ class CalendarEventsApiController < ApplicationController
           # truncate the list of events we're updating to how many
           # we'll end up with given the (possible updated) rrule
           events.drop(dtstart_list.length).each do |event|
-            unless event.grants_any_right?(@current_user, session, :delete)
+            unless event.grants_any_right?(current_principal, session, :delete)
               error = { message: t("Failed deleting an event from the series, update not saved"), status: :unauthorized }
               raise ActiveRecord::Rollback
             end
@@ -1096,7 +1096,7 @@ class CalendarEventsApiController < ApplicationController
           if event.nil?
             event = target_event.context.calendar_events.build(params_for_update)
             events << event
-            unless event.grants_any_right?(@current_user, session, :create)
+            unless event.grants_any_right?(current_principal, session, :create)
               error = { message: t("Failed creating an event for the series, update not saved"), status: :unauthorized }
               raise ActiveRecord::Rollback
             end
@@ -1107,7 +1107,7 @@ class CalendarEventsApiController < ApplicationController
             end
           else
             event.updating_user = @current_user
-            unless event.grants_any_right?(@current_user, session, :update)
+            unless event.grants_any_right?(current_principal, session, :update)
               error = { message: t("Failed updating an event in the series, update not saved"), status: :unauthorized }
               raise ActiveRecord::Rollback
             end
@@ -1130,7 +1130,7 @@ class CalendarEventsApiController < ApplicationController
           end
 
           (events - [target_event]).each do |event|
-            unless event.grants_any_right?(@current_user, session, :delete)
+            unless event.grants_any_right?(current_principal, session, :delete)
               error = { message: t("Failed deleting an event from the series, update not saved"), status: :unauthorized }
               raise ActiveRecord::Rollback
             end
@@ -1146,7 +1146,7 @@ class CalendarEventsApiController < ApplicationController
         # if we updated this-and-all-following, we had to update the front half's rrule
         front_half_events.each do |event|
           event.updating_user = @current_user
-          unless event.grants_any_right?(@current_user, session, :update)
+          unless event.grants_any_right?(current_principal, session, :update)
             error = { message: t("Failed updating an event in the series, update not saved"), status: :unauthorized }
             raise ActiveRecord::Rollback
           end
@@ -1380,7 +1380,7 @@ class CalendarEventsApiController < ApplicationController
         color: @current_user.custom_colors[context.asset_string],
         selected: selected_contexts.include?(context.asset_string),
         allow_observers_in_appointment_groups: context.is_a?(Course) && context.account.allow_observers_in_appointment_groups?,
-        can_create_appointment_groups: context.is_a?(Course) && context.grants_right?(@current_user, session, :manage_calendar)
+        can_create_appointment_groups: context.is_a?(Course) && context.grants_right?(current_principal, session, :manage_calendar)
       }
 
       if context.is_a?(Course)
@@ -1390,7 +1390,7 @@ class CalendarEventsApiController < ApplicationController
             name: section.name,
             asset_string: section.asset_string,
             selected: selected_contexts.include?(section.asset_string),
-            can_create_appointment_groups: section.grants_right?(@current_user, session, :manage_calendar)
+            can_create_appointment_groups: section.grants_right?(current_principal, session, :manage_calendar)
           }
         end
       end
@@ -1473,7 +1473,7 @@ class CalendarEventsApiController < ApplicationController
   #        -H "Authorization: Bearer <token>"
   def set_course_timetable
     get_context
-    if authorized_action(@context, @current_user, :manage_calendar)
+    if authorized_action(@context, current_principal, :manage_calendar)
       timetable_data = params[:timetables].to_unsafe_h
 
       builders = {}
@@ -1522,7 +1522,7 @@ class CalendarEventsApiController < ApplicationController
   #
   def get_course_timetable
     get_context
-    if authorized_action(@context, @current_user, :manage_calendar)
+    if authorized_action(@context, current_principal, :manage_calendar)
       timetable_data = @context.timetable_data || {}
       render json: timetable_data
     end
@@ -1560,7 +1560,7 @@ class CalendarEventsApiController < ApplicationController
   #
   def set_course_timetable_events
     get_context
-    if authorized_action(@context, @current_user, :manage_calendar)
+    if authorized_action(@context, current_principal, :manage_calendar)
       section = api_find(@context.active_course_sections, params[:course_section_id]) if params[:course_section_id]
       builder = Courses::TimetableEventBuilder.new(course: @context, course_section: section)
 
@@ -2097,7 +2097,7 @@ class CalendarEventsApiController < ApplicationController
 
     @observee = api_find(User, params[:user_id])
 
-    if @observee.grants_right?(@current_user, session, :read)
+    if @observee.grants_right?(current_principal, session, :read)
       true # parent or admin
     else
       # possibly an observer without a full link
@@ -2146,7 +2146,7 @@ class CalendarEventsApiController < ApplicationController
 
   def check_for_past_signup(event)
     if event && event.context.is_a?(AppointmentGroup) && event.end_at < Time.now.utc &&
-       !event.context.grants_right?(@current_user, :manage)
+       !event.context.grants_right?(current_principal, :manage)
       render json: { message: t("Cannot create or change reservation for past appointment") }, status: :forbidden
       return false
     end

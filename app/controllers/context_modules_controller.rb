@@ -101,11 +101,11 @@ class ContextModulesController < ApplicationController
 
       load_menu_tools
 
-      if @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+      if @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
         module_file_details = load_module_file_details
       end
 
-      @allow_menu_tools = @context.grants_right?(@current_user, session, :manage_course_content_add) &&
+      @allow_menu_tools = @context.grants_right?(current_principal, session, :manage_course_content_add) &&
                           (@menu_tools[:module_index_menu].present? || @menu_tools[:module_index_menu_modal].present?)
 
       assign_to_tags = @context.account.allow_assign_to_differentiation_tags?
@@ -120,10 +120,10 @@ class ContextModulesController < ApplicationController
         MODULE_FILE_DETAILS: module_file_details,
         MODULE_FILE_PERMISSIONS: {
           usage_rights_required: @context.usage_rights_required?,
-          manage_files_edit: @context.grants_right?(@current_user, session, :manage_files_edit)
+          manage_files_edit: @context.grants_right?(current_principal, session, :manage_files_edit)
         },
         ALLOW_ASSIGN_TO_DIFFERENTIATION_TAGS: assign_to_tags,
-        CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS) && assign_to_tags,
+        CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS) && assign_to_tags,
         PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED: @context.feature_enabled?(:peer_review_allocation_and_grading),
         MODULE_TOOLS: module_tool_definitions,
         DEFAULT_POST_TO_SIS: @context.account.sis_default_grade_export[:value] && !AssignmentUtil.due_date_required_for_account?(@context.account),
@@ -178,13 +178,13 @@ class ContextModulesController < ApplicationController
     end
 
     def load_permissions
-      @can_view = @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
-      @can_add = @context.grants_right?(@current_user, session, :manage_course_content_add)
-      @can_edit = @context.grants_right?(@current_user, session, :manage_course_content_edit)
-      @can_delete = @context.grants_right?(@current_user, session, :manage_course_content_delete)
-      @can_view_grades = can_do(@context, @current_user, :view_all_grades)
-      @is_student = @context.grants_right?(@current_user, session, :participate_as_student)
-      @can_view_unpublished = @context.grants_right?(@current_user, session, :read_as_admin)
+      @can_view = @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+      @can_add = @context.grants_right?(current_principal, session, :manage_course_content_add)
+      @can_edit = @context.grants_right?(current_principal, session, :manage_course_content_edit)
+      @can_delete = @context.grants_right?(current_principal, session, :manage_course_content_delete)
+      @can_view_grades = can_do(@context, current_principal, :view_all_grades)
+      @is_student = @context.grants_right?(current_principal, session, :participate_as_student)
+      @can_view_unpublished = @context.grants_right?(current_principal, session, :read_as_admin)
     end
 
     def load_menu_tools
@@ -216,13 +216,13 @@ class ContextModulesController < ApplicationController
     end
 
     def load_module_show_setting
-      @can_edit = @context.grants_right?(@current_user, session, :manage_course_content_edit)
+      @can_edit = @context.grants_right?(current_principal, session, :manage_course_content_edit)
       @feature_student_module_selection = @context.account.feature_enabled?(:modules_student_module_selection)
       @feature_teacher_module_selection = @context.account.feature_enabled?(:modules_teacher_module_selection)
 
       if @feature_student_module_selection || @feature_teacher_module_selection
         is_teacher = @context.user_has_been_teacher?(@current_user)
-        has_admin_permissions = @context.grants_right?(@current_user, :read_as_admin)
+        has_admin_permissions = @context.grants_right?(current_principal, :read_as_admin)
         @module_show_setting = if @feature_teacher_module_selection && is_teacher
                                  @context.show_teacher_only_module_id
                                elsif @feature_student_module_selection && !has_admin_permissions
@@ -270,7 +270,7 @@ class ContextModulesController < ApplicationController
   include ModuleIndexHelper
 
   def index
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       log_asset_access(["modules", @context], "modules", "other")
 
       load_modules
@@ -319,7 +319,7 @@ class ContextModulesController < ApplicationController
             courseId: @context.id,
             runningProgressId: @progress&.id,
             disabled: @modules.empty?,
-            visible: @context.grants_right?(@current_user, session, :manage_course_content_edit),
+            visible: @context.grants_right?(current_principal, session, :manage_course_content_edit),
           },
           addModule: {
             label: t("Add Module"),
@@ -352,9 +352,9 @@ class ContextModulesController < ApplicationController
           canDelete: @can_delete,
           canView: @can_view,
           canViewUnpublished: @can_view_unpublished,
-          canDirectShare: can_do(@context, @current_user, :direct_share),
-          readAsAdmin: @context.grants_right?(@current_user, session, :read_as_admin),
-          canManageSpeedGrader: @context.allows_speed_grader? && @context.grants_any_right?(@current_user, :manage_grades, :view_all_grades)
+          canDirectShare: can_do(@context, current_principal, :direct_share),
+          readAsAdmin: @context.grants_right?(current_principal, session, :read_as_admin),
+          canManageSpeedGrader: @context.allows_speed_grader? && @context.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
         }
 
         # Only set observer options if user has observer data
@@ -393,7 +393,7 @@ class ContextModulesController < ApplicationController
   end
 
   def choose_mastery_path
-    if authorized_action(@context, @current_user, :participate_as_student)
+    if authorized_action(@context, current_principal, :participate_as_student)
       id = params[:id]
       item = @context.context_module_tags.not_deleted.find(params[:id])
 
@@ -450,7 +450,7 @@ class ContextModulesController < ApplicationController
       return render status: :not_found, template: "shared/errors/404_message"
     end
 
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       @module = @context.modules_visible_to(@current_user).find_by(id: params[:context_module_id])
       return render status: :not_found, template: "shared/errors/404_message" unless @module
 
@@ -471,7 +471,7 @@ class ContextModulesController < ApplicationController
       return render status: :not_found, template: "shared/errors/404_message"
     end
 
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       module_ids = params[:module_ids] || []
       return render json: {}, status: :bad_request if module_ids.empty?
 
@@ -534,7 +534,7 @@ class ContextModulesController < ApplicationController
       return render status: :not_found, template: "shared/errors/404_message"
     end
 
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       @module = @context.modules_visible_to(@current_user).find_by(id: params[:context_module_id])
       return render status: :not_found, template: "shared/errors/404_message" unless @module
 
@@ -548,10 +548,10 @@ class ContextModulesController < ApplicationController
   end
 
   def item_redirect
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       @tag = @context.context_module_tags.not_deleted.find(params[:id])
 
-      if !(@tag.unpublished? || @tag.context_module.unpublished?) || authorized_action(@tag.context_module, @current_user, :view_unpublished_items)
+      if !(@tag.unpublished? || @tag.context_module.unpublished?) || authorized_action(@tag.context_module, current_principal, :view_unpublished_items)
         reevaluate_modules_if_locked(@tag)
         @progression = @tag.context_module.evaluate_for(@current_user) if @tag.context_module
         @progression.uncollapse! if @progression&.collapsed?
@@ -571,7 +571,7 @@ class ContextModulesController < ApplicationController
     }
 
     if @tag
-      if authorized_action(@tag.content, @current_user, :update)
+      if authorized_action(@tag.content, current_principal, :update)
         controller = type_controllers[@tag.content_type_class.to_sym]
 
         if controller.present?
@@ -592,7 +592,7 @@ class ContextModulesController < ApplicationController
   end
 
   def module_redirect
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       @module = @context.context_modules.not_deleted.find(params[:context_module_id])
       @tags = @module.content_tags_visible_to(@current_user)
       if params[:last]
@@ -625,7 +625,7 @@ class ContextModulesController < ApplicationController
   end
 
   def create
-    if authorized_action(@context.context_modules.temp_record, @current_user, :create)
+    if authorized_action(@context.context_modules.temp_record, current_principal, :create)
       @module = @context.context_modules.build
       @module.workflow_state = "unpublished"
       @module.attributes = context_module_params
@@ -642,7 +642,7 @@ class ContextModulesController < ApplicationController
   end
 
   def reorder
-    if authorized_action(@context.context_modules.temp_record, @current_user, :update)
+    if authorized_action(@context.context_modules.temp_record, current_principal, :update)
       first_module = @context.context_modules.not_deleted.first
 
       # A hash where the key is the module id and the value is the module position
@@ -674,7 +674,7 @@ class ContextModulesController < ApplicationController
   end
 
   def content_tag_assignment_data
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       info = {}
 
       all_tags = GuardRail.activate(:secondary) do
@@ -687,7 +687,7 @@ class ContextModulesController < ApplicationController
           @context.module_items_visible_to(@current_user).to_a
         end
       end
-      user_is_admin = @context.grants_right?(@current_user, session, :read_as_admin)
+      user_is_admin = @context.grants_right?(current_principal, session, :read_as_admin)
 
       all_tags.each_slice(1000) do |tags|
         ActiveRecord::Associations.preload(tags, content: [:context, :external_tool_tag])
@@ -785,7 +785,7 @@ class ContextModulesController < ApplicationController
   end
 
   def content_tag_estimated_duration_data
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       info = {}
       all_tags = GuardRail.activate(:secondary) do
         if context.account.feature_enabled?(:modules_perf) && params[:context_module_id]
@@ -807,7 +807,7 @@ class ContextModulesController < ApplicationController
   end
 
   def content_tag_master_course_data
-    if authorized_action(@context, @current_user, :read_as_admin)
+    if authorized_action(@context, current_principal, :read_as_admin)
       info = {}
       is_child_course = MasterCourses::ChildSubscription.is_child_course?(@context)
       is_master_course = MasterCourses::MasterTemplate.is_master_course?(@context)
@@ -933,7 +933,7 @@ class ContextModulesController < ApplicationController
   end
 
   def toggle_collapse
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       return unless params.key?(:collapse)
 
       @module = @context.modules_visible_to(@current_user).find(params[:context_module_id])
@@ -965,7 +965,7 @@ class ContextModulesController < ApplicationController
   end
 
   def toggle_collapse_all
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       return unless params.key?(:collapse)
 
       @modules = @context.modules_visible_to(@current_user)
@@ -977,7 +977,7 @@ class ContextModulesController < ApplicationController
 
   def show
     @module = @context.context_modules.not_deleted.find(params[:id])
-    if authorized_action @module, @current_user, :read
+    if authorized_action @module, current_principal, :read
       respond_to do |format|
         format.html { redirect_to named_context_url(@context, :context_context_modules_url, anchor: "module_#{params[:id]}") }
         format.json { render json: @module.content_tags_visible_to(@current_user) }
@@ -987,7 +987,7 @@ class ContextModulesController < ApplicationController
 
   def reorder_items
     @module = @context.context_modules.not_deleted.find(params[:context_module_id])
-    if authorized_action(@module, @current_user, :update)
+    if authorized_action(@module, current_principal, :update)
       order = params[:order].split(",").map(&:to_i)
       tags = @context.context_module_tags.not_deleted.where(id: order)
       affected_module_ids = (tags.map(&:context_module_id) + [@module.id]).uniq.compact
@@ -1011,7 +1011,7 @@ class ContextModulesController < ApplicationController
   end
 
   def item_details
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       # namespaced models are separated by : in the url
       code = params[:id].tr(":", "/").split("_")
       id = code.pop.to_i
@@ -1058,7 +1058,7 @@ class ContextModulesController < ApplicationController
   def add_item
     @module = @context.context_modules.not_deleted.find(params[:context_module_id])
 
-    if authorized_action(@context, @current_user, %i[manage_course_content_add manage_course_content_edit])
+    if authorized_action(@context, current_principal, %i[manage_course_content_add manage_course_content_edit])
       params[:item][:link_settings] = launch_dimensions
 
       # Resolve position conflicts by finding the next available slot
@@ -1086,7 +1086,7 @@ class ContextModulesController < ApplicationController
         is_checkpointed: @tag.assignment.try(:has_sub_assignments),
         is_cyoe_able: cyoe_able?(@tag),
         is_duplicate_able: @tag.duplicate_able?,
-        can_manage_assign_to: @tag.content&.grants_right?(@current_user, session, :manage_assign_to)
+        can_manage_assign_to: @tag.content&.grants_right?(current_principal, session, :manage_assign_to)
       )
       @context.touch
       render json:
@@ -1095,7 +1095,7 @@ class ContextModulesController < ApplicationController
 
   def remove_item
     @tag = @context.context_module_tags.not_deleted.find(params[:id])
-    if authorized_action(@tag.context_module, @current_user, :update)
+    if authorized_action(@tag.context_module, current_principal, :update)
       @module = @tag.context_module
       @tag.destroy
       render json: @tag
@@ -1142,7 +1142,7 @@ class ContextModulesController < ApplicationController
 
   def update_item
     @tag = @context.context_module_tags.not_deleted.find(params[:id])
-    if authorized_action(@tag.context_module, @current_user, :update)
+    if authorized_action(@tag.context_module, current_principal, :update)
       @tag.title = params[:content_tag][:title] if params[:content_tag] && params[:content_tag][:title]
       if LINK_ITEM_TYPES.include?(@tag.content_type) && params[:content_tag] && params[:content_tag][:url]
         @tag.url = params[:content_tag][:url]
@@ -1174,14 +1174,14 @@ class ContextModulesController < ApplicationController
   end
 
   def progressions
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       if request.format == :json
         base_modules_query = @context.context_modules.active
         if context.account.feature_enabled?(:modules_perf) && params[:context_module_id]
           base_modules_query = base_modules_query.where(id: params[:context_module_id])
           return render json: [], status: :not_found if base_modules_query.empty?
         end
-        if @context.grants_right?(@current_user, session, :view_all_grades)
+        if @context.grants_right?(current_principal, session, :view_all_grades)
           if params[:user_id] && (@user = @context.students.find(params[:user_id]))
             @progressions = base_modules_query.map { |m| m.evaluate_for(@user) }
           elsif @context.large_roster
@@ -1190,7 +1190,7 @@ class ContextModulesController < ApplicationController
             context_module_ids = base_modules_query.pluck(:id)
             @progressions = ContextModuleProgression.where(context_module_id: context_module_ids).each(&:evaluate)
           end
-        elsif @context.grants_right?(@current_user, session, :participate_as_student)
+        elsif @context.grants_right?(current_principal, session, :participate_as_student)
           @progressions = base_modules_query.order(:id).map { |m| m.evaluate_for(@current_user) }
         else
           # module progressions don't apply, but unlock_at still does
@@ -1202,7 +1202,7 @@ class ContextModulesController < ApplicationController
           end
         end
         render json: @progressions
-      elsif !@context.grants_right?(@current_user, session, :view_all_grades)
+      elsif !@context.grants_right?(current_principal, session, :view_all_grades)
         @restrict_student_list = true
         student_ids = @context.observer_enrollments.for_user(@current_user).map(&:associated_user_id)
         student_ids << @current_user.id if @context.user_is_student?(@current_user)
@@ -1214,7 +1214,7 @@ class ContextModulesController < ApplicationController
 
   def update
     @module = @context.context_modules.not_deleted.find(params[:id])
-    if authorized_action(@module, @current_user, :update)
+    if authorized_action(@module, current_principal, :update)
       if params[:publish]
         @module.publish
         @module.publish_items!(user: @current_user)
@@ -1233,7 +1233,7 @@ class ContextModulesController < ApplicationController
 
   def destroy
     @module = @context.context_modules.not_deleted.find(params[:id])
-    if authorized_action(@module, @current_user, :delete)
+    if authorized_action(@module, current_principal, :delete)
       @module.destroy
       respond_to do |format|
         format.html { redirect_to named_context_url(@context, :context_context_modules_url) }

@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% if can_do(@user, @current_user, :manage, :manage_user_details) %>
+<% if can_do(@user, current_principal, :manage, :manage_user_details) %>
   <% linked_observers_scope = @user&.linked_observers&.active&.where(workflow_state: "registered")&.linked_through_root_account(@domain_root_account) %>
   <% if linked_observers_scope&.exists? %>
     <% observers = linked_observers_scope.preload(:pseudonyms) %>

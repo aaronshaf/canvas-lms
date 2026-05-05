@@ -420,7 +420,7 @@ class AccountNotificationsController < ApplicationController
 
   def require_account_admin
     require_account_context
-    !!authorized_action(@account, @current_user, :manage_alerts)
+    !!authorized_action(@account, current_principal, :manage_alerts)
   end
 
   def roles_to_add(role_params)

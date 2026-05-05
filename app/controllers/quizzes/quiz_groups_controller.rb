@@ -86,7 +86,7 @@ class Quizzes::QuizGroupsController < ApplicationController
   #    "quiz_groups": [QuizGroup]
   #  }
   def index
-    if authorized_action(@quiz, @current_user, :read)
+    if authorized_action(@quiz, current_principal, :read)
       @groups = @quiz.quiz_groups
       render json: quiz_groups_compound_json(@groups, @context, @current_user, session)
     end
@@ -98,7 +98,7 @@ class Quizzes::QuizGroupsController < ApplicationController
   #
   # @returns QuizGroup
   def show
-    if authorized_action(@quiz, @current_user, :read)
+    if authorized_action(@quiz, current_principal, :read)
       @group = @quiz.quiz_groups.find(params[:id])
       render json: quiz_group_json(@group, @context, @current_user, session)
     end
@@ -127,7 +127,7 @@ class Quizzes::QuizGroupsController < ApplicationController
   #    "quiz_groups": [QuizGroup]
   #  }
   def create
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       @quiz.did_edit if @quiz.created?
 
       quiz_group_params = params[:quiz_groups][0].permit(:name, :pick_count, :question_points, :assessment_question_bank_id)
@@ -163,7 +163,7 @@ class Quizzes::QuizGroupsController < ApplicationController
   #    "quiz_groups": [QuizGroup]
   #  }
   def update
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       @group = @quiz.quiz_groups.find(params[:id])
       @quiz.did_edit if @quiz.created?
 
@@ -182,7 +182,7 @@ class Quizzes::QuizGroupsController < ApplicationController
   #
   # <b>204 No Content<b> response code is returned if the deletion was successful.
   def destroy
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       @group = @quiz.quiz_groups.find(params[:id])
       @group.destroy
 
@@ -202,7 +202,7 @@ class Quizzes::QuizGroupsController < ApplicationController
   #
   # <b>204 No Content<b> response code is returned if the reorder was successful.
   def reorder
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       @group = @quiz.quiz_groups.find(params[:id])
       Quizzes::QuizSortables.new(group: @group, order: params[:order]).reorder!
 

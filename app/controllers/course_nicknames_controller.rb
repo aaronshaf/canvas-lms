@@ -91,7 +91,7 @@ class CourseNicknamesController < ApplicationController
   # @returns CourseNickname
   def show
     course = api_find(Course, params[:course_id])
-    return unless authorized_action(course, @current_user, :read)
+    return unless authorized_action(course, current_principal, :read)
 
     render(json: course_nickname_json(@current_user, course))
   end
@@ -115,7 +115,7 @@ class CourseNicknamesController < ApplicationController
   # @returns CourseNickname
   def update
     course = api_find(Course, params[:course_id])
-    return unless authorized_action(course, @current_user, :read)
+    return unless authorized_action(course, current_principal, :read)
     return render(json: { message: "missing nickname" }, status: :bad_request) unless params[:nickname].present?
     return render(json: { message: "nickname too long" }, status: :bad_request) if params[:nickname].length >= 60
 

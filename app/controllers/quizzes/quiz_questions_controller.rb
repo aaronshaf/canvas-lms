@@ -224,7 +224,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
       return index_submission_questions
     end
 
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       # active_quiz_questions are primarily ordered by position, but since quiz_questions
       # are not guaranteed to be unique by position (due to the way we position questions in groups),
       # we also order by id here to ensure a consistent ordering. Without this secondary order,
@@ -250,7 +250,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
   #
   # @returns QuizQuestion
   def show
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       render json: question_json(@question,
                                  @current_user,
                                  session,
@@ -298,7 +298,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
   #
   # @returns QuizQuestion
   def create
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       if params[:existing_questions]
         return add_questions
       end
@@ -384,7 +384,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
   # @returns QuizQuestion
 
   def update
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       @question = @quiz.quiz_questions.active.find(params[:id])
       @question.updating_user = @current_user
       question_data = params[:question].to_unsafe_h
@@ -421,7 +421,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
   # <b>204 No Content</b> response code is returned if the deletion was successful.
 
   def destroy
-    if authorized_action(@quiz, @current_user, :update)
+    if authorized_action(@quiz, current_principal, :update)
       @question = @quiz.quiz_questions.active.find(params[:id])
       @question.updating_user = @current_user
       @question.destroy
@@ -451,7 +451,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
   end
 
   def censored?
-    !@quiz.grants_right?(@current_user, session, :update)
+    !@quiz.grants_right?(current_principal, session, :update)
   end
 
   # @private
@@ -471,7 +471,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
   def index_submission_questions
     require_quiz_submission
 
-    if authorized_action(@quiz_submission, @current_user, :read)
+    if authorized_action(@quiz_submission, current_principal, :read)
       retrieve_quiz_submission_attempt!(params[:quiz_submission_attempt])
 
       scope = Quizzes::QuizQuestion.where({

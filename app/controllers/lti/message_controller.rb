@@ -28,7 +28,7 @@ module Lti
     skip_before_action :verify_authenticity_token, only: [:registration]
 
     def registration
-      if authorized_action(@context, @current_user, :update)
+      if authorized_action(@context, current_principal, :update)
         return head :bad_request if tool_consumer_url.blank?
 
         @lti_launch = Launch.new
@@ -52,7 +52,7 @@ module Lti
     end
 
     def reregistration
-      return not_found unless @context.grants_right?(@current_user, :update) && (tp = ToolProxy.find(params["tool_proxy_id"]))
+      return not_found unless @context.grants_right?(current_principal, :update) && (tp = ToolProxy.find(params["tool_proxy_id"]))
 
       mh = tp.reregistration_message_handler
       return not_found unless mh.present?

@@ -200,7 +200,7 @@ class CustomDataController < ApplicationController
   #     }
   #   }
   def set_data
-    return unless authorized_action(@context, @current_user, [:manage, :manage_user_details])
+    return unless authorized_action(@context, current_principal, [:manage, :manage_user_details])
 
     cd = CustomData.unique_constraint_retry do
       CustomData.where(user_id: @context.id, namespace: @namespace).first_or_create!
@@ -257,7 +257,7 @@ class CustomDataController < ApplicationController
   #     "data": "pistachio ice cream"
   #   }
   def get_data
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
 
     begin
       data = @cd.get_data @scope
@@ -388,7 +388,7 @@ class CustomDataController < ApplicationController
   #     "data": "a bit sour"
   #   }
   def delete_data
-    return unless authorized_action(@context, @current_user, [:manage, :manage_user_details])
+    return unless authorized_action(@context, current_principal, [:manage, :manage_user_details])
 
     ret = nil
     begin

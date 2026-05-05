@@ -56,7 +56,7 @@
           <%= render partial: "debugging", locals: { provider: aac } %>
         <% end %>
 
-        <% if aac.show_mfa_configuration_options? && aac.account.grants_right?(@current_user, :manage_mfa_settings) %>
+        <% if aac.show_mfa_configuration_options? && aac.account.grants_right?(current_principal, :manage_mfa_settings) %>
           <div class="ic-Form-control ic-Form-control--radio">
             <span class="ic-Label"><%= t("MFA Required") %></span>
             <div class="ic-Radio">
@@ -117,7 +117,7 @@
           </div>
         <% end %>
 
-        <% if aac.auth_type == "canvas" && @domain_root_account.feature_enabled?(:password_complexity) && !@domain_root_account.site_admin? && can_do(@domain_root_account, @current_user, :manage_account_settings) %>
+        <% if aac.auth_type == "canvas" && @domain_root_account.feature_enabled?(:password_complexity) && !@domain_root_account.site_admin? && can_do(@domain_root_account, current_principal, :manage_account_settings) %>
           <% js_bundle :password_complexity_configuration %>
           <div id="password_complexity_configuration"></div>
         <% end %>

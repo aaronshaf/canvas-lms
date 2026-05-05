@@ -84,7 +84,7 @@
         <a href="<%= search_rubrics_url(q: "") %>"
            class="find_rubric_link icon-search"
            role="button"
-           style="<%= hidden unless !rubric || can_do(rubric_association, @current_user, :update) %>" title="<%= t "titles.find_existing_rubric", "Find Existing Rubric" %>">
+           style="<%= hidden unless !rubric || can_do(rubric_association, current_principal, :update) %>" title="<%= t "titles.find_existing_rubric", "Find Existing Rubric" %>">
           <%= t "links.find_a_rubric", "Find a Rubric" %>
         </a>
       </div>
@@ -101,7 +101,7 @@
         <a
           href="<%= context_url(context, :context_rubric_url, rubric ? rubric.id : "{{ id }}", hash) %>"
           class="<%= "copy_edit" if rubric && !can_do(rubric, @current_user, :update) %> edit_rubric_link no-print no-hover"
-          style="<%= hidden unless !rubric || can_do(rubric_association, @current_user, :update) %>"
+          style="<%= hidden unless !rubric || can_do(rubric_association, current_principal, :update) %>"
           title="<%= t "links.edit", "Edit Rubric" %>"
           aria-label="<%= t "links.edit", "Edit Rubric" %>"
           role="button"
@@ -109,7 +109,7 @@
         <a
           href="<%= search_rubrics_url(q: "") %>"
           class="find_rubric_link no-print no-hover"
-          style="<%= hidden unless !rubric || can_do(rubric_association, @current_user, :update) %>"
+          style="<%= hidden unless !rubric || can_do(rubric_association, current_principal, :update) %>"
           title="<%= t "links.find_another_rubric", "Find Another Rubric" %>"
           aria-label="<%= t "links.find_another_rubric", "Find Another Rubric" %>"
           role="button"
@@ -118,7 +118,7 @@
           <a
             href="<%= context_url(context, :context_rubric_url, rubric ? rubric.id : "{{ id }}") %>"
             class="delete_rubric_link no-print no-hover"
-            style="<%= hidden unless !rubric || can_do(rubric_association, @current_user, :delete) %>"
+            style="<%= hidden unless !rubric || can_do(rubric_association, current_principal, :delete) %>"
             title="<%= t "links.delete", "Delete Rubric" %>"
             aria-label="<%= t "links.delete", "Delete Rubric" %>"
             role="button"
@@ -127,7 +127,7 @@
           <a
             href="<%= context_url(context, :context_rubric_association_url, rubric_association ? rubric_association.id : "{{ rubric_association_id }}") %>"
             class="delete_rubric_link no-print no-hover"
-            style="<%= hidden unless !rubric || can_do(rubric_association, @current_user, :delete) %>"
+            style="<%= hidden unless !rubric || can_do(rubric_association, current_principal, :delete) %>"
             title="<%= t "links.delete", "Delete Rubric" %>"
             aria-label="<%= t "links.delete", "Delete Rubric" %>"
             role="button"

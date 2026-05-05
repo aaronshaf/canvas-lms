@@ -347,7 +347,7 @@ class ApplicationController < ActionController::Base
 
         cached_features = cached_js_env_account_features
         @js_env[:DOMAIN_ROOT_ACCOUNT_SFID] = Rails.cache.fetch(["sfid", @domain_root_account].cache_key) { @domain_root_account.salesforce_id } if @domain_root_account.respond_to?(:salesforce_id)
-        @js_env[:DIRECT_SHARE_ENABLED] = @context.respond_to?(:grants_right?) && @context.grants_right?(@current_user, session, :direct_share)
+        @js_env[:DIRECT_SHARE_ENABLED] = @context.respond_to?(:grants_right?) && @context.grants_right?(current_principal, session, :direct_share)
         @js_env[:CAN_VIEW_CONTENT_SHARES] = @current_user&.can_view_content_shares?
         @js_env[:FEATURES] = cached_features.merge(
           canvas_k6_theme: @context.try(:feature_enabled?, :canvas_k6_theme),
@@ -518,7 +518,7 @@ class ApplicationController < ActionController::Base
         end
 
         # partner context data
-        if @context&.grants_any_right?(@current_user, session, :read, :read_as_admin)
+        if @context&.grants_any_right?(current_principal, session, :read, :read_as_admin)
           @js_env[:current_context] = {
             id: @context.id,
             name: @context.name,
@@ -548,7 +548,7 @@ class ApplicationController < ActionController::Base
 
   def group_information
     if @context.is_a?(Group) &&
-       can_do(@context, @current_user, :manage) &&
+       can_do(@context, current_principal, :manage) &&
        @context.group_category
 
       @context.group_category.groups.active.sort_by(&:name).pluck(:id, :name).map { |item| { id: item[0], label: item[1] } }
@@ -781,7 +781,7 @@ class ApplicationController < ActionController::Base
   def rce_js_env(domain: request.host_with_port)
     rce_env_hash = rce_js_env_base
     if @context.is_a?(Course)
-      rce_env_hash[:RICH_CONTENT_FILES_TAB_DISABLED] = !@context.grants_right?(@current_user, session, :read_as_admin) &&
+      rce_env_hash[:RICH_CONTENT_FILES_TAB_DISABLED] = !@context.grants_right?(current_principal, session, :read_as_admin) &&
                                                        !tab_enabled?(@context.class::TAB_FILES, no_render: true)
     end
     account = Context.get_account(@context)
@@ -906,7 +906,7 @@ class ApplicationController < ActionController::Base
   helper_method :grading_periods?
 
   def setup_master_course_restrictions(objects, course, user_can_edit: false)
-    return unless course.is_a?(Course) && (user_can_edit || course.grants_right?(@current_user, session, :read_as_admin))
+    return unless course.is_a?(Course) && (user_can_edit || course.grants_right?(current_principal, session, :read_as_admin))
 
     if MasterCourses::MasterTemplate.is_master_course?(course)
       MasterCourses::Restrictor.preload_default_template_restrictions(objects, course)
@@ -935,7 +935,7 @@ class ApplicationController < ActionController::Base
 
   def load_blueprint_courses_ui
     return if js_env[:BLUEPRINT_COURSES_DATA]
-    return unless @context.is_a?(Course) && @context.grants_right?(@current_user, :manage)
+    return unless @context.is_a?(Course) && @context.grants_right?(current_principal, :manage)
 
     is_child = MasterCourses::ChildSubscription.is_child_course?(@context)
     is_master = MasterCourses::MasterTemplate.is_master_course?(@context)
@@ -959,7 +959,7 @@ class ApplicationController < ActionController::Base
       course: @context.slice(:id, :name, :enrollment_term_id),
     }
     if is_master
-      can_manage = @context.account.grants_right?(@current_user, :manage_master_courses)
+      can_manage = @context.account.grants_right?(current_principal, :manage_master_courses)
       bc_data.merge!(
         subAccounts: @context.account.sub_accounts.pluck(:id, :name).map { |id, name| { id:, name: } },
         terms: @context.account.root_account.enrollment_terms.active.to_a.map { |term| { id: term.id, name: term.name } },
@@ -1442,7 +1442,7 @@ class ApplicationController < ActionController::Base
   # the vendor/plugins/adheres_to_policy plugin.  If authorized,
   # returns true, otherwise renders unauthorized messages and returns
   # false.  To be used as follows:
-  # if authorized_action(object, @current_user, :update)
+  # if authorized_action(object, current_principal, :update)
   #   render
   # end
   def authorized_action(object, actor, rights, all_rights: false)
@@ -1583,7 +1583,7 @@ class ApplicationController < ActionController::Base
   end
 
   def require_context_and_read_access
-    require_context && authorized_action(@context, @current_user, :read)
+    require_context && authorized_action(@context, current_principal, :read)
   end
 
   helper_method :clean_return_to
@@ -1672,7 +1672,7 @@ class ApplicationController < ActionController::Base
 
         if request.format.html?
           if @context.is_a?(Account) && !@context.root_account?
-            account_chain = @context.account_chain.to_a.select { |a| a.grants_right?(@current_user, session, :read) }
+            account_chain = @context.account_chain.to_a.select { |a| a.grants_right?(current_principal, session, :read) }
             account_chain.slice!(0) # the first element is the current context
             count = account_chain.length
             account_chain.reverse.each_with_index do |a, idx|
@@ -1687,7 +1687,7 @@ class ApplicationController < ActionController::Base
           end
 
           if @context.respond_to?(:short_name)
-            crumb_url = named_context_url(@context, :context_url) if @context.grants_right?(@current_user, session, :read)
+            crumb_url = named_context_url(@context, :context_url) if @context.grants_right?(current_principal, session, :read)
             add_crumb(@context.nickname_for(@current_user, :short_name), crumb_url)
           end
 
@@ -1791,7 +1791,7 @@ class ApplicationController < ActionController::Base
       next if @contexts.any? { |c| c.asset_string == include_context }
 
       context = Context.find_by_asset_string(include_context)
-      @contexts << context if context&.grants_right?(@current_user, session, :read)
+      @contexts << context if context&.grants_right?(current_principal, session, :read)
     end
 
     @contexts = @contexts.uniq
@@ -2535,7 +2535,7 @@ class ApplicationController < ActionController::Base
   def content_tag_redirect(context, tag, error_redirect_symbol, tag_type = nil)
     url_params = (tag.tag_type == "context_module") ? { module_item_id: tag.id } : {}
     if tag.content_type == "Assignment"
-      use_edit_url = params[:build].nil? && @context.grants_right?(@current_user, :manage_assignments_edit) && tag.quiz_lti
+      use_edit_url = params[:build].nil? && @context.grants_right?(current_principal, :manage_assignments_edit) && tag.quiz_lti
       url_params[:quiz_lti] = true if use_edit_url
       redirect_symbol = use_edit_url ? :edit_context_assignment_url : :context_assignment_url
       redirect_to named_context_url(context, redirect_symbol, tag.content_id, url_params)
@@ -2691,9 +2691,9 @@ class ApplicationController < ActionController::Base
           @mark_done = MarkDonePresenter.new(self, @context, params["module_item_id"], @current_user, @assignment)
           @prepend_template = "assignments/lti_header" if render_external_tool_prepend_template?
 
-          can_read_submissions = @assignment.grants_right?(@current_user, session, :read_own_submission) && @context.grants_right?(@current_user, session, :read_grades)
+          can_read_submissions = @assignment.grants_right?(current_principal, session, :read_own_submission) && @context.grants_right?(current_principal, session, :read_grades)
           if can_read_submissions
-            @assigned_assessments = @current_user_submission&.assigned_assessments&.select { |request| request.submission.grants_right?(@current_user, session, :read) } || []
+            @assigned_assessments = @current_user_submission&.assigned_assessments&.select { |request| request.submission.grants_right?(current_principal, session, :read) } || []
           end
           begin
             @lti_launch.params = lti_launch_params(adapter)
@@ -2955,7 +2955,7 @@ class ApplicationController < ActionController::Base
       redirect_to named_context_url(@context, :context_url)
       return false
     else
-      return false unless authorized_action(@context, @current_user, permissions)
+      return false unless authorized_action(@context, current_principal, permissions)
     end
     true
   end
@@ -2969,7 +2969,7 @@ class ApplicationController < ActionController::Base
   end
 
   def require_context_with_permission(context, permission)
-    unless context.grants_right?(@current_user, permission)
+    unless context.grants_right?(current_principal, permission)
       respond_to do |format|
         format.html do
           if @current_user
@@ -3074,15 +3074,15 @@ class ApplicationController < ActionController::Base
     bank = @context.assessment_question_banks.active.where(id:).first || @current_user.assessment_question_banks.active.where(id:).first
     if bank
       (if block_given?
-         authorized_action(bank, @current_user, :read)
+         authorized_action(bank, current_principal, :read)
        else
-         bank.grants_right?(@current_user, session, :read)
+         bank.grants_right?(current_principal, session, :read)
        end) or return nil
     elsif check_context_chain
       (if block_given?
-         authorized_action(@context, @current_user, :read_question_banks)
+         authorized_action(@context, current_principal, :read_question_banks)
        else
-         @context.grants_right?(@current_user, session, :read_question_banks)
+         @context.grants_right?(current_principal, session, :read_question_banks)
        end) or return nil
       bank = @context.inherited_assessment_question_banks.where(id:).first
     end
@@ -3471,7 +3471,7 @@ class ApplicationController < ActionController::Base
       objtypes.each do |instance_symbol|
         instance_name = instance_symbol.to_s
         obj = instance_variable_get(:"@#{instance_name}")
-        policy = obj.check_policy(@current_user, session) unless obj.nil? || !obj.respond_to?(:check_policy)
+        policy = obj.try(:granted_rights, current_principal, session)
         hash[:"#{instance_name.upcase}_RIGHTS"] = ActiveSupport::HashWithIndifferentAccess[policy.map { |right| [right, true] }] unless policy.nil?
       end
 
@@ -3490,7 +3490,7 @@ class ApplicationController < ActionController::Base
     end
 
     if @page
-      if @page.grants_any_right?(@current_user, session, :update, :update_content)
+      if @page.grants_any_right?(current_principal, session, :update, :update_content)
         mc_status = setup_master_course_restrictions(@page, @context, user_can_edit: true)
       end
 
@@ -3502,7 +3502,7 @@ class ApplicationController < ActionController::Base
       hash[:WIKI_PAGE_HISTORY_PATH] = named_context_url(@context, :context_wiki_page_revisions_path, @page)
     end
 
-    if @context.is_a?(Course) && @context.grants_right?(@current_user, session, :read)
+    if @context.is_a?(Course) && @context.grants_right?(current_principal, session, :read)
       hash[:COURSE_ID] = @context.id.to_s
       hash[:MODULES_PATH] = polymorphic_path([@context, :context_modules])
     end
@@ -3513,15 +3513,15 @@ class ApplicationController < ActionController::Base
   ASSIGNMENT_GROUPS_TO_FETCH_PER_PAGE_ON_ASSIGNMENTS_INDEX = 50
   def set_js_assignment_data
     rights = [*RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS, :manage_grades, :read_grades, :manage, :moderate_forum]
-    permissions = @context.rights_status(@current_user, *rights)
+    permissions = @context.rights_status(current_principal, *rights)
     permissions[:manage_course] = permissions[:manage]
     permissions[:manage] = permissions[:manage_assignments_edit]
     permissions[:by_assignment_id] = @context.assignments.to_h do |assignment|
       [assignment.id,
        {
          update: assignment.user_can_update?(@current_user, session),
-         delete: assignment.grants_right?(@current_user, :delete),
-         manage_assign_to: assignment.grants_right?(@current_user, :manage_assign_to)
+         delete: assignment.grants_right?(current_principal, :delete),
+         manage_assign_to: assignment.grants_right?(current_principal, :manage_assign_to)
        }]
     end
 
@@ -3773,7 +3773,7 @@ class ApplicationController < ActionController::Base
   helper_method :load_learning_agent_env
 
   def show_student_view_button?
-    return false unless @context.is_a?(Course) && can_do(@context, @current_user, :use_student_view)
+    return false unless @context.is_a?(Course) && can_do(@context, current_principal, :use_student_view)
 
     return false if new_quizzes_navigation_updates? && new_quizzes_lti_tool?
 

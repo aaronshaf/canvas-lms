@@ -18,12 +18,12 @@
 
 <% extension_exclusions = %i[crypted_password password_salt persistence_token single_access_token single_access_token perishable_token reset_password_token].freeze %>
 
-<% if can_do(@user, @current_user, :manage, :manage_user_details) %>
+<% if can_do(@user, current_principal, :manage, :manage_user_details) %>
   <% css_bundle :user_logins %>
   <% js_bundle :user_logins %>
   <% js_env({ PASSWORD_POLICY: @domain_root_account.try(:password_policy) || {} }) %>
   <%
-    if can_do(Account.site_admin, @current_user, :manage_user_logins)
+    if can_do(Account.site_admin, current_principal, :manage_user_logins)
       js_env({
                PASSWORD_POLICIES: Account.root_accounts.active.non_shadow.to_h { |a| [a.id, a.password_policy] },
                ACCOUNT_SELECT_OPTIONS: Account.root_accounts
@@ -63,13 +63,13 @@
                 <%= t("must_reset_password", "Password reset required") %>
               </div>
             <% end %>
-            <% if (pseudonym&.sis_user_id && can_do(pseudonym.account, @current_user, :read_sis)) || (pseudonym && can_do(pseudonym, @current_user, :manage_sis)) %>
+            <% if (pseudonym&.sis_user_id && can_do(pseudonym.account, current_principal, :read_sis)) || (pseudonym && can_do(pseudonym, current_principal, :manage_sis)) %>
               <div>
                 <%= before_label("sis_id", "SIS ID") %> <span id="sis_user_id_<%= pseudonym.id %>" class="sis_user_id"><%= pseudonym.sis_user_id %></span>
               </div>
-              <div style="display:none" class="can_edit_sis_user_id"><%= can_do(pseudonym, @current_user, :manage_sis) %></div>
+              <div style="display:none" class="can_edit_sis_user_id"><%= can_do(pseudonym, current_principal, :manage_sis) %></div>
             <% end %>
-            <% if (pseudonym&.integration_id && can_do(pseudonym.account, @current_user, :read_sis)) || (pseudonym && can_do(pseudonym, @current_user, :manage_sis)) %>
+            <% if (pseudonym&.integration_id && can_do(pseudonym.account, current_principal, :read_sis)) || (pseudonym && can_do(pseudonym, current_principal, :manage_sis)) %>
                 <div>
                   <%= before_label("integration_id", "Integration ID") %> <span id="integration_id_<%= pseudonym.id %>" class="integration_id"><%= pseudonym.integration_id %></span>
                 </div>
@@ -93,11 +93,11 @@
           <td class='details'>
             <%= render partial: "users/last_login", locals: { pseudonym: } if pseudonyms.length > 2 && pseudonym %>
           </td>
-          <% if !pseudonym || can_do(pseudonym, @current_user, :update) %>
-            <td class='links <%= "passwordable" if pseudonym && can_do(pseudonym, @current_user, :change_password) %> <%= "delegated-auth" if pseudonym && !pseudonym.account.canvas_authentication? %>'
+          <% if !pseudonym || can_do(pseudonym, current_principal, :update) %>
+            <td class='links <%= "passwordable" if pseudonym && can_do(pseudonym, current_principal, :change_password) %> <%= "delegated-auth" if pseudonym && !pseudonym.account.canvas_authentication? %>'
                 data-passwordable="<%= pseudonym&.passwordable? %>">
               <a href="#" rel="<%= user_pseudonym_url(@user.id, pseudonym ? pseudonym.id : "{{ id }}") %>" class="edit_pseudonym_link" data-account-id="<%= pseudonym&.account&.id %>"><i class="icon-edit standalone-icon"></i></a>
-              <a href="#" rel="<%= user_pseudonym_url(@user.id, pseudonym ? pseudonym.id : "{{ id }}") %>" class="delete_pseudonym_link" style="<%= hidden if pseudonyms.length <= 2 || (pseudonym && !can_do(pseudonym, @current_user, :delete)) %>"><i class="icon-end standalone-icon"></i></a>
+              <a href="#" rel="<%= user_pseudonym_url(@user.id, pseudonym ? pseudonym.id : "{{ id }}") %>" class="delete_pseudonym_link" style="<%= hidden if pseudonyms.length <= 2 || (pseudonym && !can_do(pseudonym, current_principal, :delete)) %>"><i class="icon-end standalone-icon"></i></a>
               <div id="edit_pseudonym_mount_point"></div>
             </td>
           <% else %>
@@ -106,13 +106,13 @@
         </tr>
       <% end %>
       <% new_pseudonym = @user.pseudonyms.build(account: @domain_root_account) %>
-      <% can_add_pseudonym = can_do(new_pseudonym, @current_user, :create) %>
-      <% can_reset_mfa = @user.otp_secret_key && can_do(@user, @current_user, :reset_mfa) %>
+      <% can_add_pseudonym = can_do(new_pseudonym, current_principal, :create) %>
+      <% can_reset_mfa = @user.otp_secret_key && can_do(@user, current_principal, :reset_mfa) %>
       <% if can_add_pseudonym || can_reset_mfa %>
         <tr class="add_holder">
           <td colspan="5">
             <% if can_add_pseudonym %>
-              <a href="#" rel="<%= user_pseudonyms_url(@user.id) %>" data-can-manage-sis="<%= can_do(new_pseudonym, @current_user, :manage_sis) %>"  class="add_pseudonym_link"><%= t("add_login", "Add Login") %></a>
+              <a href="#" rel="<%= user_pseudonyms_url(@user.id) %>" data-can-manage-sis="<%= can_do(new_pseudonym, current_principal, :manage_sis) %>"  class="add_pseudonym_link"><%= t("add_login", "Add Login") %></a>
               <div id="add_pseudonym_mount_point"></div>
             <% end %>
             <% if can_add_pseudonym && can_reset_mfa %> | <% end %>

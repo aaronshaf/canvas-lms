@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% if @assignment.has_group_category? && can_do(@assignment.submissions.build(user: @current_user), @current_user, :make_group_comment) %>
+<% if @assignment.has_group_category? && can_do(@assignment.submissions.build(user: @current_user), current_principal, :make_group_comment) %>
   <% if @assignment.grade_as_group? %>
     <tr><td colspan="2">
       <%= t("All comments are sent to the whole group.") %>

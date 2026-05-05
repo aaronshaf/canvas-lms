@@ -146,7 +146,7 @@ module StreamItemsHelper
     context
   end
 
-  def extract_summary(category, item, user = @current_user)
+  def extract_summary(category, item, principal = current_principal)
     asset = item.data
     case category
     when "Announcement", "DiscussionTopic"
@@ -157,7 +157,7 @@ module StreamItemsHelper
       asset.subject
     when "AssessmentRequest"
       # TODO: I18N should use placeholders, not concatenation
-      asset.asset.assignment.title + " " + I18n.t("for", "for") + " " + assessment_author_name(asset, user)
+      asset.asset.assignment.title + " " + I18n.t("for", "for") + " " + assessment_author_name(asset, principal)
     when "DiscussionEntry"
       I18n.t("%{user_name} mentioned you in %{title}.", { user_name: asset.user.short_name, title: item.data["title"] })
     else
@@ -183,8 +183,8 @@ module StreamItemsHelper
     end
   end
 
-  def assessment_author_name(asset, user = @current_user)
-    if can_do(asset, user, :read_assessment_user)
+  def assessment_author_name(asset, principal = current_principal)
+    if can_do(asset, principal, :read_assessment_user)
       asset.asset.user.name
     else
       I18n.t(:anonymous_user, "Anonymous User")

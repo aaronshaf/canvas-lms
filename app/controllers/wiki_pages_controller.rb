@@ -40,8 +40,7 @@ class WikiPagesController < ApplicationController
 
   add_crumb(proc { t "#crumbs.wiki_pages", "Pages" }) do |c|
     context = c.instance_variable_get(:@context)
-    current_user = c.instance_variable_get(:@current_user)
-    if context.grants_right?(current_user, :read)
+    if context.grants_right?(c.current_principal, :read)
       c.send :polymorphic_path, [context, :wiki_pages]
     end
   end
@@ -52,7 +51,7 @@ class WikiPagesController < ApplicationController
   end
 
   def set_pandapub_read_token
-    if @page&.grants_right?(@current_user, session, :read) && CanvasPandaPub.enabled?
+    if @page&.grants_right?(current_principal, session, :read) && CanvasPandaPub.enabled?
       channel = "/private/wiki_page/#{@page.global_id}/update"
       js_env({
                WIKI_PAGE_PANDAPUB: {
@@ -69,7 +68,7 @@ class WikiPagesController < ApplicationController
   end
 
   def front_page
-    return unless authorized_action(@context.wiki, @current_user, :read) && tab_enabled?(@context.class::TAB_PAGES)
+    return unless authorized_action(@context.wiki, current_principal, :read) && tab_enabled?(@context.class::TAB_PAGES)
 
     if @page && !@page.new_record?
       wiki_pages_js_env(@context)
@@ -84,7 +83,7 @@ class WikiPagesController < ApplicationController
 
   def index
     GuardRail.activate(:secondary) do
-      if authorized_action(@context.wiki, @current_user, :read) && tab_enabled?(@context.class::TAB_PAGES)
+      if authorized_action(@context.wiki, current_principal, :read) && tab_enabled?(@context.class::TAB_PAGES)
         log_asset_access(["pages", @context], "pages", "other")
         js_env(ConditionalRelease::Service.env_for(@context))
         wiki_pages_js_env(@context)
@@ -99,7 +98,7 @@ class WikiPagesController < ApplicationController
       conditional_release_js_env
       if @page.new_record?
         wiki_page = @context.wiki_pages.deleted_last.where(url: @page.url).first
-        if @page.grants_any_right?(@current_user, session, :update, :update_content)
+        if @page.grants_any_right?(current_principal, session, :update, :update_content)
           flash[:info] = t("notices.create_non_existent_page", 'The page "%{title}" does not exist, but you can create it below', title: @page.title)
           InstStatsd::Statsd.distributed_increment("wikipage.show.page_does_not_exist.with_edit_rights") unless wiki_page&.deleted?
           encoded_name = @page_name && CGI.escape(@page_name).tr("+", " ")
@@ -116,7 +115,7 @@ class WikiPagesController < ApplicationController
         return
       end
 
-      if authorized_action(@page, @current_user, :read) && enforce_assignment_visible(@page)
+      if authorized_action(@page, current_principal, :read) && enforce_assignment_visible(@page)
         if params[:id] != @page.url
           InstStatsd::Statsd.distributed_increment("wikipage.show.page_url_resolved")
           redirect_to polymorphic_url([@context, :wiki_page], id: @page, titleize: params[:titleize], note_id: params[:note_id])
@@ -158,14 +157,14 @@ class WikiPagesController < ApplicationController
       unless @context.try(:block_content_editor_enabled?)
         return render_unauthorized_action
       end
-      unless authorized_action(@context.wiki, @current_user, :update)
+      unless authorized_action(@context.wiki, current_principal, :update)
         return render_unauthorized_action
       end
     end
   end
 
   def edit
-    if @page.grants_any_right?(@current_user, session, :update, :update_content) && !@page.editing_restricted?(:content)
+    if @page.grants_any_right?(current_principal, session, :update, :update_content) && !@page.editing_restricted?(:content)
       set_master_course_js_env_data(@page, @context)
       js_env(ConditionalRelease::Service.env_for(@context))
       wiki_pages_js_env(@context)
@@ -173,7 +172,7 @@ class WikiPagesController < ApplicationController
         add_crumb(@page.title)
         @padless = true
       end
-    elsif authorized_action(@page, @current_user, :read)
+    elsif authorized_action(@page, current_principal, :read)
       flash[:warning] = t("notices.cannot_edit", 'You are not allowed to edit the page "%{title}".', title: @page.title)
       redirect_to polymorphic_url([@context, @page])
     end
@@ -182,14 +181,14 @@ class WikiPagesController < ApplicationController
   end
 
   def revisions
-    if @page.grants_right?(@current_user, session, :read_revisions)
+    if @page.grants_right?(current_principal, session, :read_revisions)
       if enforce_assignment_visible(@page)
         add_crumb(@page.title, polymorphic_url([@context, @page]))
         add_crumb(t("#crumbs.revisions", "Revisions"))
 
         @padless = true
       end
-    elsif authorized_action(@page, @current_user, :read)
+    elsif authorized_action(@page, current_principal, :read)
       flash[:warning] = t("notices.cannot_read_revisions", 'You are not allowed to review the historical revisions of "%{title}".', title: @page.title)
       redirect_to polymorphic_url([@context, @page])
     end
@@ -229,9 +228,9 @@ class WikiPagesController < ApplicationController
       wiki_page_menu_tools: external_tools_display_hashes(:wiki_page_menu),
       wiki_index_menu_tools: external_tools_display_hashes(:wiki_index_menu),
       DISPLAY_SHOW_ALL_LINK: tab_enabled?(context.class::TAB_PAGES, no_render: true) && !@k5_details_view,
-      CAN_SET_TODO_DATE: context.grants_any_right?(@current_user, session, :manage_content, :manage_course_content_edit),
+      CAN_SET_TODO_DATE: context.grants_any_right?(current_principal, session, :manage_content, :manage_course_content_edit),
       ALLOW_ASSIGN_TO_DIFFERENTIATION_TAGS: assign_to_tags,
-      CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
+      CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
       EDITOR_FEATURE: editor_feature
     }
 

@@ -176,12 +176,12 @@ class CspSettingsController < ApplicationController
   end
 
   def require_read_permissions
-    !!authorized_action(@context, @current_user, :read_as_admin)
+    !!authorized_action(@context, current_principal, :read_as_admin)
   end
 
   def require_permissions
     account = @context.is_a?(Course) ? @context.account : @context
-    !!authorized_action(account, @current_user, :manage_account_settings)
+    !!authorized_action(account, current_principal, :manage_account_settings)
   end
 
   def get_domain

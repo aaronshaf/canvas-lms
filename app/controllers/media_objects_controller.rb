@@ -137,7 +137,7 @@ class MediaObjectsController < ApplicationController
     scope = if context
               root_folder = Folder.root_folders(context).first
 
-              if root_folder.grants_right?(@current_user, :read_contents)
+              if root_folder.grants_right?(current_principal, :read_contents)
                 attachment_scope = Attachment.not_deleted.is_media_object.where(context:)
                 attachment_scope = attachment_scope.select { |att| access_allowed(attachment: att, user: @current_user, access_type: :download) }
                 MediaObject.by_media_id(attachment_scope.pluck(:media_entry_id))
@@ -225,7 +225,7 @@ class MediaObjectsController < ApplicationController
   def create_media_object
     @context = Context.find_by_asset_string(params[:context_code])
 
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       if params[:id] && params[:type] && @context.respond_to?(:media_objects)
         extend TextHelper
 

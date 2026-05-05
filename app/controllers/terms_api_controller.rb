@@ -233,6 +233,6 @@ class TermsApiController < ApplicationController
   end
 
   def require_account_access
-    authorized_action(@context, @current_user, :read_terms)
+    authorized_action(@context, current_principal, :read_terms)
   end
 end

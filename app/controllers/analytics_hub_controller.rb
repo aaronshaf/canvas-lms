@@ -23,7 +23,7 @@ class AnalyticsHubController < ApplicationController
   before_action { |c| c.active_tab = "analytics_hub" }
 
   def require_view_analytics_hub_permission
-    !!authorized_action(@context, @current_user, :view_analytics_hub)
+    !!authorized_action(@context, current_principal, :view_analytics_hub)
   end
 
   def show

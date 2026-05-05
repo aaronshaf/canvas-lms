@@ -71,6 +71,7 @@ class GraphQLTypeTester
   # used to pass the _current_user_.
   def resolve(field_and_subfields, context = {})
     field_context = @context.merge(context)
+    field_context[:current_principal] ||= field_context[:current_user] && Canvas::AdheresToPolicy::UserPrincipal.new(field_context[:current_user])
 
     type, = CanvasSchema.resolve_type(nil, @obj, field_context)
     raise "couldn't resolve type for #{@obj.inspect}" unless type

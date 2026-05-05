@@ -250,7 +250,7 @@ class AssessmentQuestionBanksController < ApplicationController
   #
   # @returns [AssessmentQuestionBank]
   def index
-    if authorized_action(@context, @current_user, :read_question_banks)
+    if authorized_action(@context, current_principal, :read_question_banks)
       @banks = @context.assessment_question_banks.active
       render json: question_banks_json(@banks,
                                        @current_user,
@@ -271,7 +271,7 @@ class AssessmentQuestionBanksController < ApplicationController
   #
   # @returns AssessmentQuestionBank
   def show
-    if authorized_action(@bank, @current_user, :read)
+    if authorized_action(@bank, current_principal, :read)
       render json: question_bank_json(@bank,
                                       @current_user,
                                       session,
@@ -292,7 +292,7 @@ class AssessmentQuestionBanksController < ApplicationController
   #
   # @returns [AssessmentQuestion]
   def questions
-    if authorized_action(@bank, @current_user, :read)
+    if authorized_action(@bank, current_principal, :read)
       # Set @context for the assessment question helper
       @context = @bank.context
 

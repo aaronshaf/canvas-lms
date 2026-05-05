@@ -28,7 +28,7 @@ class GradebookFiltersApiController < ApplicationController
   end
 
   def show
-    return unless authorized_action(@gradebook_filter, @current_user, :read)
+    return unless authorized_action(@gradebook_filter, current_principal, :read)
 
     render json: @gradebook_filter.as_json, status: :created
   end
@@ -43,7 +43,7 @@ class GradebookFiltersApiController < ApplicationController
   end
 
   def update
-    return unless authorized_action(@gradebook_filter, @current_user, :update)
+    return unless authorized_action(@gradebook_filter, current_principal, :update)
 
     if @gradebook_filter.update(gradebook_filter_params)
       render json: @gradebook_filter
@@ -53,7 +53,7 @@ class GradebookFiltersApiController < ApplicationController
   end
 
   def destroy
-    return unless authorized_action(@gradebook_filter, @current_user, :destroy)
+    return unless authorized_action(@gradebook_filter, current_principal, :destroy)
 
     @gradebook_filter.destroy
     render json: @gradebook_filter.as_json, status: :ok

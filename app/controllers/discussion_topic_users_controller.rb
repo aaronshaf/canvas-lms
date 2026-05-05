@@ -42,7 +42,7 @@ class DiscussionTopicUsersController < ApplicationController
   def search
     if @topic.anonymous? &&
        !(@context.user_is_instructor?(@current_user) ||
-         @context.grants_right?(@current_user, session, :read_as_admin))
+         @context.grants_right?(current_principal, session, :read_as_admin))
       return render_unauthorized_action
     end
 
@@ -57,7 +57,7 @@ class DiscussionTopicUsersController < ApplicationController
 
   def require_topic_and_read_access
     @topic = @context.all_discussion_topics.active.find(params[:topic_id])
-    authorized_action(@topic, @current_user, :read) && check_differentiated_assignments(@topic)
+    authorized_action(@topic, current_principal, :read) && check_differentiated_assignments(@topic)
   end
 
   def messageable_user_pagination_url

@@ -201,7 +201,7 @@ class RoleOverridesController < ApplicationController
   #
   # @returns [Role]
   def api_index
-    if authorized_action(@context, @current_user, :manage_role_overrides)
+    if authorized_action(@context, current_principal, :manage_role_overrides)
       route = polymorphic_url([:api, :v1, @context, :roles])
       states = params[:state].to_a.reject { |s| %w[active inactive].exclude?(s) }
       states = %w[active] if states.empty?
@@ -220,7 +220,7 @@ class RoleOverridesController < ApplicationController
   end
 
   def index
-    if authorized_action(@context, @current_user, :manage_role_overrides)
+    if authorized_action(@context, current_principal, :manage_role_overrides)
 
       preloaded_overrides = RoleOverride.preload_overrides(@context, @context.available_account_roles)
       account_role_data = @context.available_account_roles.map do |role|
@@ -272,7 +272,7 @@ class RoleOverridesController < ApplicationController
   #
   # @returns Role
   def show
-    if authorized_action(@context, @current_user, :manage_role_overrides)
+    if authorized_action(@context, current_principal, :manage_role_overrides)
       render json: role_json(@context, @role, @current_user, session)
     end
   end
@@ -349,7 +349,7 @@ class RoleOverridesController < ApplicationController
   #
   # @returns Role
   def add_role
-    return unless authorized_action(@context, @current_user, :manage_role_overrides)
+    return unless authorized_action(@context, current_principal, :manage_role_overrides)
 
     name = api_request? ? (params[:label].presence || params[:role]) : params[:role_type]
 
@@ -411,7 +411,7 @@ class RoleOverridesController < ApplicationController
   #
   # @returns Role
   def remove_role
-    if authorized_action(@context, @current_user, :manage_role_overrides)
+    if authorized_action(@context, current_principal, :manage_role_overrides)
       if @role.inactive?
         return render json: { message: t("cannot_deactivate_inactive_role", "Cannot deactivate an already inactive role") }, status: :bad_request
       elsif @role.built_in?
@@ -438,7 +438,7 @@ class RoleOverridesController < ApplicationController
   #
   # @returns Role
   def activate_role
-    return unless authorized_action(@context, @current_user, :manage_role_overrides)
+    return unless authorized_action(@context, current_principal, :manage_role_overrides)
 
     if @role.built_in?
       return render json: { message: t("Cannot activate a built-in role") }, status: :bad_request
@@ -458,7 +458,7 @@ class RoleOverridesController < ApplicationController
   end
 
   def create
-    if authorized_action(@context, @current_user, :manage_role_overrides)
+    if authorized_action(@context, current_principal, :manage_role_overrides)
       roles = if params[:account_roles] || @context == Account.site_admin
                 @context.available_account_roles(include_inactive: true)
               else
@@ -527,7 +527,7 @@ class RoleOverridesController < ApplicationController
   #
   # @returns Role
   def update
-    return unless authorized_action(@context, @current_user, :manage_role_overrides)
+    return unless authorized_action(@context, current_principal, :manage_role_overrides)
 
     if (name = params[:label].presence) && @role.label != name
       if @role.built_in?
@@ -564,7 +564,7 @@ class RoleOverridesController < ApplicationController
   #
   # @returns [Permission]
   def manageable_permissions
-    if authorized_action(@context, @current_user, :manage_role_overrides)
+    if authorized_action(@context, current_principal, :manage_role_overrides)
       perms = RoleOverride.manageable_permissions(@context)
 
       perms.transform_values! do |info|

@@ -85,7 +85,7 @@ class ContentImportsController < ApplicationController
     if api_request?
       @context = api_find(Course, params[:course_id])
     end
-    if authorized_action(@context, @current_user, :manage_course_content_add)
+    if authorized_action(@context, current_principal, :manage_course_content_add)
       cm = ContentMigration.where(context_id: @context, id: params[:id]).first
       raise ActiveRecord::RecordNotFound unless cm
 
@@ -121,7 +121,7 @@ class ContentImportsController < ApplicationController
       @context = api_find(Course, params[:course_id])
     end
 
-    if authorized_action(@context, @current_user, :manage_course_content_add)
+    if authorized_action(@context, current_principal, :manage_course_content_add)
       if api_request?
         @source_course = api_find(Course, params[:source_course])
         copy_params = { everything: false }
@@ -143,7 +143,7 @@ class ContentImportsController < ApplicationController
       end
 
       # make sure the user can copy from the source course
-      return unless authorized_action(@source_course, @current_user, [:read, :read_as_admin], all_rights: true)
+      return unless authorized_action(@source_course, current_principal, [:read, :read_as_admin], all_rights: true)
 
       cm = ContentMigration.create!(context: @context,
                                     user: @current_user,

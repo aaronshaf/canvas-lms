@@ -36,7 +36,7 @@ class QuizzesNext::QuizzesApiController < ApplicationController
   #
   # @returns [Quiz]
   def index
-    if authorized_action(@context, @current_user, :read) && tab_enabled?(@context.class::TAB_QUIZZES)
+    if authorized_action(@context, current_principal, :read) && tab_enabled?(@context.class::TAB_QUIZZES)
       log_api_asset_access(["quizzes.next", @context], "quizzes", "other")
 
       base_cache_key = [

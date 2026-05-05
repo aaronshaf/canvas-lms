@@ -660,7 +660,7 @@ class ExternalToolsController < ApplicationController
   # @returns [ContextExternalTool]
   #
   def index
-    if authorized_action(@context, @current_user, :read)
+    if authorized_action(@context, current_principal, :read)
       @tools = if Canvas::Plugin.value_to_boolean(params[:include_parents])
                  Lti::ContextToolFinder.all_tools_for(@context, current_user: (params[:include_personal] ? @current_user : nil))
                else
@@ -939,7 +939,7 @@ class ExternalToolsController < ApplicationController
   def show
     Utils::InstStatsdUtils::Timing.track "lti.show.request_time" do |timing_meta|
       if api_request?
-        return unless authorized_action(@context, @current_user, :read)
+        return unless authorized_action(@context, current_principal, :read)
 
         tool = Lti::ContextToolFinder.only_for(@context).active.find(params[:external_tool_id])
         render json: external_tool_json(tool, @context, @current_user, session)
@@ -995,7 +995,7 @@ class ExternalToolsController < ApplicationController
   end
 
   def migration_info
-    return unless authorized_action(@context, @current_user, :read_as_admin)
+    return unless authorized_action(@context, current_principal, :read_as_admin)
 
     # Define tool to be the external tool associated with the external tool id from the route
     tool = ContextExternalTool.find(params[:external_tool_id])
@@ -1202,7 +1202,7 @@ class ExternalToolsController < ApplicationController
     end
     return nil unless assignment
 
-    raise Lti::Errors::UnauthorizedError unless assignment.grants_right?(@current_user, :read)
+    raise Lti::Errors::UnauthorizedError unless assignment.grants_right?(current_principal, :read)
 
     assignment
   end
@@ -1597,7 +1597,7 @@ class ExternalToolsController < ApplicationController
   #
   # @returns ContextExternalTool
   def create_tool_with_verification
-    if authorized_action(@context, @current_user, :update)
+    if authorized_action(@context, current_principal, :update)
       app_api = AppCenter::AppApi.new(@context)
 
       required_params = %i[
@@ -1646,7 +1646,7 @@ class ExternalToolsController < ApplicationController
   # @returns ContextExternalTool
   def update
     @tool = Lti::ContextToolFinder.only_for(@context).active.find(params[:id] || params[:external_tool_id])
-    if authorized_action(@tool, @current_user, :update_manually)
+    if authorized_action(@tool, current_principal, :update_manually)
       external_tool_params = (params[:external_tool] || params).to_unsafe_h
       if request.media_type == "application/x-www-form-urlencoded"
         custom_fields = Lti::AppUtil.custom_params(request.raw_post)
@@ -1710,7 +1710,7 @@ class ExternalToolsController < ApplicationController
   #   curl -X POST 'https://<canvas>/api/v1/accounts/<account_id>/external_tools/rce_favorites/<id>' \
   #        -H "Authorization: Bearer <token>"
   def mark_rce_favorite
-    if authorized_action(@context, @current_user, :manage_lti_edit)
+    if authorized_action(@context, current_principal, :manage_lti_edit)
       @tool = Lti::ToolFinder.from_id(params[:id], @context)
       raise ActiveRecord::RecordNotFound unless @tool
       unless @tool.can_be_rce_favorite?
@@ -1748,7 +1748,7 @@ class ExternalToolsController < ApplicationController
   #   curl -X DELETE 'https://<canvas>/api/v1/accounts/<account_id>/external_tools/rce_favorites/<id>' \
   #        -H "Authorization: Bearer <token>"
   def unmark_rce_favorite
-    if authorized_action(@context, @current_user, :manage_lti_edit)
+    if authorized_action(@context, current_principal, :manage_lti_edit)
       favorite_ids = @context.get_rce_favorite_tool_ids
       if favorite_ids.delete(Shard.global_id_for(params[:id]))
         @context.settings[:rce_favorite_tool_ids] = { value: favorite_ids }
@@ -1767,7 +1767,7 @@ class ExternalToolsController < ApplicationController
   #   curl -X POST 'https://<canvas>/api/v1/accounts/<account_id>/external_tools/top_nav_favorites/<id>' \
   #        -H "Authorization: Bearer <token>"
   def add_top_nav_favorite
-    if authorized_action(@context, @current_user, :manage_lti_add)
+    if authorized_action(@context, current_principal, :manage_lti_add)
       @tool = Lti::ToolFinder.from_id(params[:id], @context)
       raise ActiveRecord::RecordNotFound unless @tool
       unless @tool.can_be_top_nav_favorite?
@@ -1800,7 +1800,7 @@ class ExternalToolsController < ApplicationController
   #   curl -X DELETE 'https://<canvas>/api/v1/accounts/<account_id>/external_tools/top_nav_favorites/<id>' \
   #        -H "Authorization: Bearer <token>"
   def remove_top_nav_favorite
-    if authorized_action(@context, @current_user, :manage_lti_delete)
+    if authorized_action(@context, current_principal, :manage_lti_delete)
       favorite_ids = @context.get_top_nav_favorite_tool_ids
       if favorite_ids.delete(Shard.global_id_for(params[:id]))
         @context.settings[:top_nav_favorite_tool_ids] = { value: favorite_ids }
@@ -1843,7 +1843,7 @@ class ExternalToolsController < ApplicationController
   def all_visible_nav_tools
     GuardRail.activate(:secondary) do
       courses = api_find_all(Course, @course_ids)
-      return unless courses.all? { |course| authorized_action(course, @current_user, :read) }
+      return unless courses.all? { |course| authorized_action(course, current_principal, :read) }
 
       render json: external_tools_json_for_courses(courses)
     end
@@ -1862,7 +1862,7 @@ class ExternalToolsController < ApplicationController
   #        -H "Authorization: Bearer <token>"
   def visible_course_nav_tools
     GuardRail.activate(:secondary) do
-      return unless authorized_action(@context, @current_user, :read)
+      return unless authorized_action(@context, current_principal, :read)
       return render json: { message: "Only course context is supported" }, status: :bad_request unless context.is_a?(Course)
 
       render json: external_tools_json_for_courses([@context])
@@ -1936,15 +1936,15 @@ class ExternalToolsController < ApplicationController
 
     assignment = api_find(@context.assignments, params[:assignment_id])
 
-    return unless authorized_action(assignment, @current_user, :read)
+    return unless authorized_action(assignment, current_principal, :read)
 
     # Apply assignment overrides for the current user (critical for date-based locks)
     assignment = AssignmentOverrideApplicator.assignment_overridden_for(assignment, @current_user) if @current_user
 
     # For students, verify submit permission (includes: visible_to_user, locked_for, excused_for, enrollment_active)
-    if @context.grants_right?(@current_user, :participate_as_student) &&
-       !@context.grants_right?(@current_user, :manage_assignments) &&
-       !assignment.grants_right?(@current_user, :submit)
+    if @context.grants_right?(current_principal, :participate_as_student) &&
+       !@context.grants_right?(current_principal, :manage_assignments) &&
+       !assignment.grants_right?(current_principal, :submit)
       return render_unauthorized_action
     end
 
@@ -2129,7 +2129,7 @@ class ExternalToolsController < ApplicationController
   def require_access_to_context
     if @context.is_a?(Account)
       require_user
-    elsif !@context.grants_right?(@current_user, session, :read)
+    elsif !@context.grants_right?(current_principal, session, :read)
       render_unauthorized_action
     end
   end
@@ -2146,7 +2146,7 @@ class ExternalToolsController < ApplicationController
   end
 
   def require_tool_create_rights
-    authorized_action(@context, @current_user, :manage_lti_add)
+    authorized_action(@context, current_principal, :manage_lti_add)
   end
 
   def developer_key
@@ -2154,7 +2154,7 @@ class ExternalToolsController < ApplicationController
   end
 
   def delete_tool(tool)
-    if authorized_action(tool, @current_user, :delete)
+    if authorized_action(tool, current_principal, :delete)
       respond_to do |format|
         if tool.destroy
           if api_request?

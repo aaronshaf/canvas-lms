@@ -82,7 +82,7 @@ class AssignmentExtensionsController < ApplicationController
   #  }
   #
   def create
-    return unless authorized_action?(@assignment, @current_user, :create)
+    return unless authorized_action?(@assignment, current_principal, :create)
 
     unless params[:assignment_extensions].is_a?(Array)
       reject! "missing required key :assignment_extensions", 400

@@ -31,7 +31,7 @@ class AccountGradingSettingsController < ApplicationController
   before_action :load_canvas_career, only: [:index]
 
   def index
-    if authorized_action(@account, @current_user, :read_as_admin)
+    if authorized_action(@account, current_principal, :read_as_admin)
       js_env({
                CUSTOM_GRADEBOOK_STATUSES_ENABLED: Account.site_admin.feature_enabled?(:custom_gradebook_statuses),
                #  TODO: remove after archived grading schemes flag is removed

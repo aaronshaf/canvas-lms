@@ -150,7 +150,7 @@ class PlannerNotesController < ApplicationController
 
       # Append to our notes scope to include the context codes for courses
       contexts = Course.find_all_by_asset_string(context_codes, ["Course"])
-      accessible_courses = contexts.select { |c| c.grants_right?(@current_user, :read) }
+      accessible_courses = contexts.select { |c| c.grants_right?(current_principal, :read) }
 
       # include course-less events if the current user is passed in as a context
       accessible_courses << nil if context_codes.include?(@current_user.asset_string)
@@ -205,7 +205,7 @@ class PlannerNotesController < ApplicationController
 
       if course_id.present?
         course = Course.find(course_id)
-        return unless authorized_action(course, @current_user, :read)
+        return unless authorized_action(course, current_principal, :read)
 
         update_params[:course] = course
       else
@@ -247,7 +247,7 @@ class PlannerNotesController < ApplicationController
     create_params = params.permit(:title, :details, :course_id, :todo_date, :linked_object_type, :linked_object_id)
     if (course_id = create_params.delete(:course_id))
       course = Course.find(course_id)
-      return unless authorized_action(course, @current_user, :read)
+      return unless authorized_action(course, current_principal, :read)
 
       create_params[:course] = course
     end
@@ -261,7 +261,7 @@ class PlannerNotesController < ApplicationController
       return render(json: { message: "invalid linked_object_type" }, status: :bad_request) unless asset_klass
 
       asset = asset_klass.find_by!(id: asset_id, context_id: course_id, context_type: "Course")
-      return unless authorized_action(asset, @current_user, :read)
+      return unless authorized_action(asset, current_principal, :read)
 
       create_params[:linked_object] = asset
       create_params[:title] ||= Context.asset_name(asset)

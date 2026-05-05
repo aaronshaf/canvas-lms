@@ -26,7 +26,7 @@ class EportfolioCategoriesController < ApplicationController
   before_action :get_eportfolio
 
   def index
-    if authorized_action(@portfolio, @current_user, :read)
+    if authorized_action(@portfolio, current_principal, :read)
       @categories = @portfolio.eportfolio_categories
       respond_to do |format|
         format.html { redirect_to eportfolio_url(@portfolio) }
@@ -36,7 +36,7 @@ class EportfolioCategoriesController < ApplicationController
   end
 
   def create
-    if authorized_action(@portfolio, @current_user, :update)
+    if authorized_action(@portfolio, current_principal, :update)
       @category = @portfolio.eportfolio_categories.build(eportfolio_category_params)
       respond_to do |format|
         if @category.save
@@ -51,7 +51,7 @@ class EportfolioCategoriesController < ApplicationController
   end
 
   def update
-    if authorized_action(@portfolio, @current_user, :update)
+    if authorized_action(@portfolio, current_principal, :update)
       @category = @portfolio.eportfolio_categories.find(params[:id])
       respond_to do |format|
         if @category.update(eportfolio_category_params)
@@ -70,7 +70,7 @@ class EportfolioCategoriesController < ApplicationController
       session[:eportfolio_ids] << @portfolio.id
       session[:permissions_key] = SecureRandom.uuid
     end
-    if authorized_action(@portfolio, @current_user, :read)
+    if authorized_action(@portfolio, current_principal, :read)
       browser_env = rce_js_env
       browser_env[:eportfolio_id] = @portfolio.id
       if params[:id]
@@ -82,7 +82,7 @@ class EportfolioCategoriesController < ApplicationController
       browser_env[:owner_view] = @portfolio.user == @current_user && params[:view] != "preview"
       js_env(browser_env)
       @page = @category.eportfolio_entries.first
-      if @portfolio.grants_right?(@current_user, session, :update)
+      if @portfolio.grants_right?(current_principal, session, :update)
         @page ||= @portfolio.eportfolio_entries.create(
           eportfolio_category: @category,
           allow_comments: true,
@@ -104,7 +104,7 @@ class EportfolioCategoriesController < ApplicationController
   end
 
   def destroy
-    if authorized_action(@portfolio, @current_user, :update)
+    if authorized_action(@portfolio, current_principal, :update)
       @category = @portfolio.eportfolio_categories.find(params[:id])
       respond_to do |format|
         if @category.destroy
@@ -117,7 +117,7 @@ class EportfolioCategoriesController < ApplicationController
 
   # pages of a category
   def pages
-    return unless authorized_action(@portfolio, @current_user, :read)
+    return unless authorized_action(@portfolio, current_principal, :read)
 
     @category = @portfolio.eportfolio_categories.find(params[:category_id])
     entries = Api.paginate(

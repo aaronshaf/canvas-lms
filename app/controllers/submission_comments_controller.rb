@@ -23,14 +23,14 @@ class SubmissionCommentsController < ApplicationController
     submission = Submission.preload(assignment: :context, all_submission_comments: :author).find(params[:submission_id])
     course = submission.assignment.context
     return render_unauthorized_action if submission.assignment.anonymize_students?
-    return unless authorized_action(course, @current_user, [:manage_grades, :view_all_grades])
+    return unless authorized_action(course, current_principal, [:manage_grades, :view_all_grades])
 
     render pdf: :index, locals: index_pdf_locals(submission)
   end
 
   def update
     submission_comment = SubmissionComment.find(params[:id])
-    if authorized_action(submission_comment, @current_user, :update)
+    if authorized_action(submission_comment, current_principal, :update)
       submission_comment.updating_user = @current_user
       submission_comment.reload unless submission_comment.update(submission_comment_params)
 
@@ -42,7 +42,7 @@ class SubmissionCommentsController < ApplicationController
 
   def destroy
     submission_comment = SubmissionComment.find(params[:id])
-    if authorized_action(submission_comment, @current_user, :delete)
+    if authorized_action(submission_comment, current_principal, :delete)
       submission_comment.updating_user = @current_user
       submission_comment.destroy
       respond_to do |format|

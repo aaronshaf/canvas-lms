@@ -70,7 +70,7 @@
         <% end %>
         <% unless is_locked %>
           <li role="presentation">
-            <% if @quiz.grants_right?(@current_user, :delete) %>
+            <% if @quiz.grants_right?(current_principal, :delete) %>
               <a href="<%= context_url(@context, :context_quiz_url, @quiz) %>" class="delete_quiz_link" tabindex="-1" role="menuitem">
                 <i class="icon-trash"></i><span class="screenreader-only"><%= admin_delete_title %></span>
                 <%= admin_delete_title %>

@@ -120,8 +120,8 @@ class SectionsController < ApplicationController
   #
   # @returns [Section]
   def index
-    if authorized_action(@context, @current_user, %i[read read_roster view_all_grades manage_grades])
-      if params[:include].present? && !@context.grants_any_right?(@current_user, session, :read_roster, :view_all_grades, :manage_grades)
+    if authorized_action(@context, current_principal, %i[read read_roster view_all_grades manage_grades])
+      if params[:include].present? && !@context.grants_any_right?(current_principal, session, :read_roster, :view_all_grades, :manage_grades)
         params[:include] = nil
       end
 
@@ -165,10 +165,10 @@ class SectionsController < ApplicationController
   #
   # @returns Section
   def create
-    if authorized_action(@context.course_sections.temp_record, @current_user, :create)
+    if authorized_action(@context.course_sections.temp_record, current_principal, :create)
       sis_section_id = params[:course_section].try(:delete, :sis_section_id)
       integration_id = params[:course_section].try(:delete, :integration_id)
-      can_manage_sis = api_request? && @context.root_account.grants_right?(@current_user, session, :manage_sis)
+      can_manage_sis = api_request? && @context.root_account.grants_right?(current_principal, session, :manage_sis)
 
       if can_manage_sis && sis_section_id.present? && value_to_boolean(params[:enable_sis_reactivation])
         @section = @context.course_sections.where(sis_source_id: sis_section_id, workflow_state: "deleted").first
@@ -248,7 +248,7 @@ class SectionsController < ApplicationController
     # cross-listing should only be allowed within the same root account
     @new_course = @section.root_account.all_courses.not_deleted.where(id: course_id).first if Api::ID_REGEX.match?(course_id)
     @new_course ||= @section.root_account.all_courses.not_deleted.where(sis_source_id: course_id).first if course_id.present?
-    allowed = @new_course && MasterCourses::MasterTemplate.where(course_id: params[:new_course_id]).where.not(workflow_state: "deleted").none? && @section.grants_right?(@current_user, session, :update) && @new_course.grants_right?(@current_user, session, :manage)
+    allowed = @new_course && MasterCourses::MasterTemplate.where(course_id: params[:new_course_id]).where.not(workflow_state: "deleted").none? && @section.grants_right?(current_principal, session, :update) && @new_course.grants_right?(current_principal, session, :manage)
     res = { allowed: !!allowed }
     if allowed
       @account = @new_course.account
@@ -277,7 +277,7 @@ class SectionsController < ApplicationController
 
     return render json: { error: "cannot crosslist into blueprint courses" }, status: :forbidden if MasterCourses::MasterTemplate.where(course_id: params[:new_course_id]).where.not(workflow_state: "deleted").any?
 
-    if authorized_action(@section, @current_user, :update) && authorized_action(@new_course, @current_user, :manage)
+    if authorized_action(@section, current_principal, :update) && authorized_action(@new_course, current_principal, :manage)
       @section.crosslist_to_course(@new_course, updating_user: @current_user)
       respond_to do |format|
         flash[:notice] = t("section_crosslisted", "Section successfully cross-listed!")
@@ -300,7 +300,7 @@ class SectionsController < ApplicationController
     @new_course = @section.nonxlist_course
     return render(json: { message: "section is not cross-listed" }, status: :bad_request) if @new_course.nil?
 
-    if authorized_action(@section, @current_user, :update) && authorized_action(@new_course, @current_user, :manage)
+    if authorized_action(@section, current_principal, :update) && authorized_action(@new_course, current_principal, :manage)
       @section.uncrosslist(updating_user: @current_user, source:) if !params[:override_sis_stickiness] || value_to_boolean(params[:override_sis_stickiness])
       respond_to do |format|
         format.html do
@@ -340,12 +340,12 @@ class SectionsController < ApplicationController
   # @returns Section
   def update
     params[:course_section] ||= {}
-    if authorized_action(@section, @current_user, :update)
+    if authorized_action(@section, current_principal, :update)
       params[:course_section][:sis_source_id] = params[:course_section].delete(:sis_section_id) if api_request?
       sis_id = params[:course_section].delete(:sis_source_id)
       integration_id = params[:course_section].delete(:integration_id)
       if sis_id || integration_id
-        if @section.root_account.grants_right?(@current_user, :manage_sis)
+        if @section.root_account.grants_right?(current_principal, :manage_sis)
           @section.sis_source_id = (sis_id == "") ? nil : sis_id if sis_id
           @section.integration_id = (integration_id == "") ? nil : integration_id if integration_id
         elsif api_request?
@@ -385,7 +385,7 @@ class SectionsController < ApplicationController
   #
   # @returns Section
   def show
-    if authorized_action(@section, @current_user, :read)
+    if authorized_action(@section, current_principal, :read)
       respond_to do |format|
         format.html do
           add_crumb(@section.name, named_context_url(@context, :context_section_url, @section))
@@ -394,7 +394,7 @@ class SectionsController < ApplicationController
           @pending_enrollments_count = @section.enrollments.not_fake.where(workflow_state: %w[invited pending]).count
           @student_enrollments_count = @section.enrollments.not_fake.where(type: "StudentEnrollment").count
           js_env
-          if @context.grants_right?(@current_user, session, :manage)
+          if @context.grants_right?(current_principal, session, :manage)
             set_student_context_cards_js_env
           end
         end
@@ -408,7 +408,7 @@ class SectionsController < ApplicationController
   #
   # @returns Section
   def destroy
-    if authorized_action(@section, @current_user, :delete)
+    if authorized_action(@section, current_principal, :delete)
       respond_to do |format|
         if @section.deletable?
           @section.destroy
@@ -449,8 +449,8 @@ class SectionsController < ApplicationController
   #
   # @returns [User]
   def users
-    return unless authorized_action(@context, @current_user, :read)
-    return unless authorized_action(@context.course, @current_user, :read_roster)
+    return unless authorized_action(@context, current_principal, :read)
+    return unless authorized_action(@context.course, current_principal, :read_roster)
 
     user_can_interact_with_the_section = @context.course.sections_visible_to(@current_user).where(id: @context.id).exists?
 

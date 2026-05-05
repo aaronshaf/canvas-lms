@@ -563,7 +563,7 @@ class EnrollmentsApiController < ApplicationController
       # and make sure it belongs to a course associated with the account
       enrollment = @context.root_account.all_enrollments.find(params[:id])
 
-      return unless enrollment.user_id == @current_user.id || authorized_action(@context, @current_user, :read_roster)
+      return unless enrollment.user_id == @current_user.id || authorized_action(@context, current_principal, :read_roster)
 
       if !@context.root_account? && !enrollment.course.account_chain_ids.include?(@context.id)
         # same error message as api_find
@@ -1067,7 +1067,7 @@ class EnrollmentsApiController < ApplicationController
   #
   # @returns Enrollment
   def last_attended
-    return unless authorized_action(@context, @current_user, [:view_all_grades, :manage_grades])
+    return unless authorized_action(@context, current_principal, [:view_all_grades, :manage_grades])
 
     date = Time.zone.parse(params[:date])
     if date
@@ -1095,7 +1095,7 @@ class EnrollmentsApiController < ApplicationController
   def show_temporary_enrollment_status
     GuardRail.activate(:secondary) do
       if (user = api_find(User, params[:user_id])) && @domain_root_account&.feature_enabled?(:temporary_enrollments)
-        if user.grants_right?(@current_user, session, :api_show_user)
+        if user.grants_right?(current_principal, session, :api_show_user)
           scope = temporary_enrollment_scope
           is_provider = scope.temporary_enrollment_recipients_for_provider(user).exists?
           is_recipient = scope.temporary_enrollments_for_recipient(user).exists?
@@ -1136,7 +1136,7 @@ class EnrollmentsApiController < ApplicationController
 
     GuardRail.activate(:secondary) do
       users = User.where(id: user_ids).to_a
-      authorized_user_ids = users.filter_map { |u| u.id if u.grants_right?(@current_user, session, :api_show_user) }
+      authorized_user_ids = users.filter_map { |u| u.id if u.grants_right?(current_principal, session, :api_show_user) }
 
       scope = temporary_enrollment_scope
       provider_ids, recipient_ids, can_provide_ids = bulk_temporary_enrollment_sets(scope, authorized_user_ids)
@@ -1185,11 +1185,11 @@ class EnrollmentsApiController < ApplicationController
       return user_index_enrollments(course: @context)
     end
 
-    if @context.grants_any_right?(@current_user, session, :read_roster, :view_all_grades, :manage_grades)
+    if @context.grants_any_right?(current_principal, session, :read_roster, :view_all_grades, :manage_grades)
       scope = @context.apply_enrollment_visibility(@context.all_enrollments, @current_user).where(enrollment_index_conditions)
 
       unless params[:state].present?
-        include_inactive = @context.grants_right?(@current_user, session, :read_as_admin)
+        include_inactive = @context.grants_right?(current_principal, session, :read_as_admin)
         scope = include_inactive ? scope.all_active_or_pending : scope.active_or_pending
       end
       return scope
@@ -1222,7 +1222,7 @@ class EnrollmentsApiController < ApplicationController
         return Enrollment.none unless enrollments.present?
 
         authorized_enrollments = enrollments.select do |e|
-          e.course.account.grants_any_right?(@current_user, *RoleOverride::MANAGE_TEMPORARY_ENROLLMENT_PERMISSIONS)
+          e.course.account.grants_any_right?(current_principal, *RoleOverride::MANAGE_TEMPORARY_ENROLLMENT_PERMISSIONS)
         end
         return Enrollment.where(id: authorized_enrollments) if authorized_enrollments.present?
 
@@ -1267,22 +1267,22 @@ class EnrollmentsApiController < ApplicationController
         # with params[:user_id] in a course context we want to follow the
         # course_index_enrollments construct
         unless course.user_has_been_observer?(@current_user) ||
-               course.grants_any_right?(@current_user, session, :read_roster, :view_all_grades, :manage_grades)
+               course.grants_any_right?(current_principal, session, :read_roster, :view_all_grades, :manage_grades)
           render_unauthorized_action and return false
         end
 
         enrollments = user.enrollments.where(enrollment_index_conditions).where(course_id: course)
       else
-        is_approved_parent = user.grants_right?(@current_user, :read_as_parent)
+        is_approved_parent = user.grants_right?(current_principal, :read_as_parent)
         # otherwise check for read_roster rights on all of the requested
         # user's accounts
         approved_accounts = user.associated_root_accounts.filter_map do |ra|
-          ra.id if is_approved_parent || ra.grants_right?(@current_user, session, :read_roster)
+          ra.id if is_approved_parent || ra.grants_right?(current_principal, session, :read_roster)
         end
 
         # if there aren't any ids in approved_accounts, then the user doesn't have
         # permissions.
-        unless @domain_root_account.grants_right?(@current_user, session, :read_roster)
+        unless @domain_root_account.grants_right?(current_principal, session, :read_roster)
           render_unauthorized_action and return false if approved_accounts.empty?
         end
 
@@ -1388,7 +1388,7 @@ class EnrollmentsApiController < ApplicationController
 
   def check_sis_permissions(sis_context)
     sis_filters = %w[sis_account_id sis_course_id sis_section_id sis_user_id]
-    if params.keys.intersect?(sis_filters) && !sis_context.grants_any_right?(@current_user, :read_sis, :manage_sis)
+    if params.keys.intersect?(sis_filters) && !sis_context.grants_any_right?(current_principal, :read_sis, :manage_sis)
       return false
     end
 

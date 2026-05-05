@@ -38,7 +38,7 @@ module Accessibility
     def check_authorized_action
       return render status: :forbidden unless @context.try(:a11y_checker_enabled?)
 
-      authorized_action(@context, @current_user, [:read, :update])
+      authorized_action(@context, current_principal, [:read, :update])
     end
 
     def calculate_issue_summary

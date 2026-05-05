@@ -40,9 +40,9 @@ class AnnouncementsController < ApplicationController
     end
 
     def load_announcements
-      can_create = @context.announcements.temp_record.grants_right?(@current_user, session, :create)
-      can_edit = @context.grants_right?(@current_user, session, :manage_course_content_edit)
-      can_delete = @context.grants_right?(@current_user, session, :manage_course_content_delete)
+      can_create = @context.announcements.temp_record.grants_right?(current_principal, session, :create)
+      can_edit = @context.grants_right?(current_principal, session, :manage_course_content_edit)
+      can_delete = @context.grants_right?(current_principal, session, :manage_course_content_delete)
 
       js_env({
                permissions: {
@@ -62,7 +62,7 @@ class AnnouncementsController < ApplicationController
   include AnnouncementsIndexHelper
 
   def index
-    return unless authorized_action(@context, @current_user, :read)
+    return unless authorized_action(@context, current_principal, :read)
     return if @context.class.const_defined?(:TAB_ANNOUNCEMENTS) && !tab_enabled?(@context.class::TAB_ANNOUNCEMENTS)
 
     redirect_to named_context_url(@context, :context_url) if @context.is_a?(Course) && @context.elementary_homeroom_course?
@@ -83,7 +83,7 @@ class AnnouncementsController < ApplicationController
         feed_key = nil
         if @context_enrollment
           feed_key = @context_enrollment.feed_code
-        elsif can_do(@context, @current_user, :manage)
+        elsif can_do(@context, current_principal, :manage)
           feed_key = @context.feed_code
         elsif @context.available? && @context.respond_to?(:is_public) && @context.is_public
           feed_key = @context.asset_string

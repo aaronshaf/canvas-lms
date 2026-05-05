@@ -337,9 +337,9 @@ class DiscussionTopicsController < ApplicationController
     include_params = Array(params[:include])
     page_has_instui_topnav
     if params[:only_announcements]
-      return unless authorized_action(@context.announcements.temp_record, @current_user, :read)
+      return unless authorized_action(@context.announcements.temp_record, current_principal, :read)
     else
-      return unless authorized_action(@context.discussion_topics.temp_record, @current_user, :read)
+      return unless authorized_action(@context.discussion_topics.temp_record, current_principal, :read)
 
       if !api_request? && @context.is_a?(Course) && @context.horizon_course?
         redirect_to course_context_modules_path(@context.id)
@@ -394,7 +394,7 @@ class DiscussionTopicsController < ApplicationController
       end
     end
 
-    if params[:only_announcements] && !@context.grants_any_right?(@current_user, :manage, :read_as_admin)
+    if params[:only_announcements] && !@context.grants_any_right?(current_principal, :manage, :read_as_admin)
       scope = scope.active.where("((unlock_at IS NULL AND delayed_post_at IS NULL) OR (unlock_at<? OR delayed_post_at<?)) AND ( lock_at IS NULL OR lock_at>?)", Time.now.utc, Time.now.utc, Time.now.utc)
     end
 
@@ -476,22 +476,22 @@ class DiscussionTopicsController < ApplicationController
           USER_SETTINGS_URL: api_v1_user_settings_url(@current_user),
           FEATURE_FLAGS_URL: feature_flags_url,
           ALLOW_ASSIGN_TO_DIFFERENTIATION_TAGS: assign_to_tags,
-          CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
+          CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
           DISCUSSION_CHECKPOINTS_ENABLED: @context.discussion_checkpoints_enabled?,
           HAS_SIDE_COMMENT_DISCUSSIONS: has_side_comments,
           AMOUNT_OF_SIDE_COMMENT_DISCUSSIONS: side_comment_count,
           totalDiscussions: scope.count,
           permissions: {
-            create: @context.discussion_topics.temp_record.grants_right?(@current_user, session, :create),
+            create: @context.discussion_topics.temp_record.grants_right?(current_principal, session, :create),
             moderate: user_can_moderate,
             change_settings: user_can_edit_course_settings?,
-            manage_content: @context.grants_right?(@current_user, session, :manage_course_content_edit),
+            manage_content: @context.grants_right?(current_principal, session, :manage_course_content_edit),
             publish: user_can_moderate,
-            read_as_admin: @context.grants_right?(@current_user, session, :read_as_admin),
-            edit_discussion_anonymity: !default_discussion_options_enabled || @context.grants_right?(@current_user, session, :edit_discussion_anonymity),
-            edit_discussion_options: !default_discussion_options_enabled || @context.grants_right?(@current_user, session, :edit_discussion_options),
-            edit_discussion_views: !default_discussion_options_enabled || @context.grants_right?(@current_user, session, :edit_discussion_views),
-            apply_default_discussion_options: default_discussion_options_enabled && @context.grants_right?(@current_user, session, :apply_default_discussion_options),
+            read_as_admin: @context.grants_right?(current_principal, session, :read_as_admin),
+            edit_discussion_anonymity: !default_discussion_options_enabled || @context.grants_right?(current_principal, session, :edit_discussion_anonymity),
+            edit_discussion_options: !default_discussion_options_enabled || @context.grants_right?(current_principal, session, :edit_discussion_options),
+            edit_discussion_views: !default_discussion_options_enabled || @context.grants_right?(current_principal, session, :edit_discussion_views),
+            apply_default_discussion_options: default_discussion_options_enabled && @context.grants_right?(current_principal, session, :apply_default_discussion_options),
           },
           discussion_topic_menu_tools: external_tools_display_hashes(:discussion_topic_menu),
           student_reporting_enabled: @domain_root_account.feature_enabled?(:discussions_reporting),
@@ -500,7 +500,7 @@ class DiscussionTopicsController < ApplicationController
           show_additional_speed_grader_links: Account.site_admin.feature_enabled?(:additional_speedgrader_links),
           PER_PAGE: per_page,
         }
-        if @context.is_a?(Course) && @context.grants_right?(@current_user, session, :read) && @js_env&.dig(:COURSE_ID).blank?
+        if @context.is_a?(Course) && @context.grants_right?(current_principal, session, :read) && @js_env&.dig(:COURSE_ID).blank?
           hash[:COURSE_ID] = @context.id.to_s
           set_section_list_js_env
           hash[:VALID_DATE_RANGE] = CourseDateRange.new(@context)
@@ -541,7 +541,7 @@ class DiscussionTopicsController < ApplicationController
 
       format.json do
         log_api_asset_access(["topics", @context], "topics", "other")
-        if @context.grants_right?(@current_user, session, :moderate_forum)
+        if @context.grants_right?(current_principal, session, :moderate_forum)
           mc_status = setup_master_course_restrictions(@topics, @context)
         end
         root_topic_fields = [:delayed_post_at, :lock_at]
@@ -593,28 +593,28 @@ class DiscussionTopicsController < ApplicationController
       return redirect_to edit_course_discussion_topic_url(@context.context_id, @topic.root_topic_id)
     end
 
-    return unless authorized_action(@topic, @current_user, (@topic.new_record? ? :create : :update))
+    return unless authorized_action(@topic, current_principal, (@topic.new_record? ? :create : :update))
     return render_unauthorized_action unless @topic.visible_for?(@current_user)
 
     @context.try(:require_assignment_group) unless @topic.is_announcement
-    can_set_group = @context.respond_to?(:group_categories) && @context.grants_right?(@current_user, session, :manage_groups_add) # i.e. not a student
+    can_set_group = @context.respond_to?(:group_categories) && @context.grants_right?(current_principal, session, :manage_groups_add) # i.e. not a student
     default_discussion_options_enabled = @domain_root_account.feature_enabled?(:default_discussion_options)
     hash = {
       URL_ROOT: named_context_url(@context, :api_v1_context_discussion_topics_url),
       PERMISSIONS: {
-        CAN_CREATE_ASSIGNMENT: @context.respond_to?(:assignments) && @context.assignments.temp_record.grants_right?(@current_user, session, :create),
-        CAN_UPDATE_ASSIGNMENT: @context.respond_to?(:assignments) && @context.assignments.temp_record.grants_right?(@current_user, session, :update),
-        CAN_ATTACH: @topic.grants_right?(@current_user, session, :attach),
+        CAN_CREATE_ASSIGNMENT: @context.respond_to?(:assignments) && @context.assignments.temp_record.grants_right?(current_principal, session, :create),
+        CAN_UPDATE_ASSIGNMENT: @context.respond_to?(:assignments) && @context.assignments.temp_record.grants_right?(current_principal, session, :update),
+        CAN_ATTACH: @topic.grants_right?(current_principal, session, :attach),
         CAN_MODERATE: user_can_moderate,
         CAN_SET_GROUP: can_set_group,
-        CAN_EDIT_GRADES: can_do(@context, @current_user, :manage_grades),
+        CAN_EDIT_GRADES: can_do(@context, current_principal, :manage_grades),
         # if not a course content manager, or if topic is graded, do not show add to todo list checkbox
-        CAN_MANAGE_CONTENT: @context.grants_right?(@current_user, session, :manage_course_content_add),
-        CAN_MANAGE_ASSIGN_TO_GRADED: @context.discussion_topics.temp_record(assignment_id: 0).grants_right?(@current_user, session, @topic.new_record? ? :create_assign_to : :manage_assign_to),
-        CAN_MANAGE_ASSIGN_TO_UNGRADED: @context.discussion_topics.temp_record(assignment_id: nil).grants_right?(@current_user, session, @topic.new_record? ? :create_assign_to : :manage_assign_to),
-        CAN_EDIT_DISCUSSION_ANONYMITY: !default_discussion_options_enabled || @context.grants_right?(@current_user, session, :edit_discussion_anonymity),
-        CAN_EDIT_DISCUSSION_OPTIONS: !default_discussion_options_enabled || @context.grants_right?(@current_user, session, :edit_discussion_options),
-        CAN_EDIT_DISCUSSION_VIEWS: !default_discussion_options_enabled || @context.grants_right?(@current_user, session, :edit_discussion_views)
+        CAN_MANAGE_CONTENT: @context.grants_right?(current_principal, session, :manage_course_content_add),
+        CAN_MANAGE_ASSIGN_TO_GRADED: @context.discussion_topics.temp_record(assignment_id: 0).grants_right?(current_principal, session, @topic.new_record? ? :create_assign_to : :manage_assign_to),
+        CAN_MANAGE_ASSIGN_TO_UNGRADED: @context.discussion_topics.temp_record(assignment_id: nil).grants_right?(current_principal, session, @topic.new_record? ? :create_assign_to : :manage_assign_to),
+        CAN_EDIT_DISCUSSION_ANONYMITY: !default_discussion_options_enabled || @context.grants_right?(current_principal, session, :edit_discussion_anonymity),
+        CAN_EDIT_DISCUSSION_OPTIONS: !default_discussion_options_enabled || @context.grants_right?(current_principal, session, :edit_discussion_options),
+        CAN_EDIT_DISCUSSION_VIEWS: !default_discussion_options_enabled || @context.grants_right?(current_principal, session, :edit_discussion_views)
       }
     }
 
@@ -681,16 +681,16 @@ class DiscussionTopicsController < ApplicationController
                         .reject { |c| c.student_organized? || c.non_collaborative? }
                         .map { |category| { id: category.id, name: category.name } },
       ALLOW_ASSIGN_TO_DIFFERENTIATION_TAGS: assign_to_tags,
-      CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
+      CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
       HAS_GRADING_PERIODS: @context.grading_periods?,
       ANNOUNCEMENTS_LOCKED: announcements_locked?,
       CREATE_ANNOUNCEMENTS_UNLOCKED: @current_user.create_announcements_unlocked?,
       USAGE_RIGHTS_REQUIRED: usage_rights_required,
       IS_MODULE_ITEM: !@topic.context_module_tags.empty?,
       PERMISSIONS: {
-        manage_files: @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS),
-        manage_grading_schemes: can_do(@context, @current_user, :manage_grading_schemes),
-        set_grading_scheme: can_do(@context, @current_user, :set_grading_scheme)
+        manage_files: @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS),
+        manage_grading_schemes: can_do(@context, current_principal, :manage_grading_schemes),
+        set_grading_scheme: can_do(@context, current_principal, :set_grading_scheme)
       },
       REACT_DISCUSSIONS_POST: @context.feature_enabled?(:react_discussions_post),
       allow_student_anonymous_discussion_topics: @context.allow_student_anonymous_discussion_topics,
@@ -715,7 +715,7 @@ class DiscussionTopicsController < ApplicationController
       js_hash[:POST_TO_SIS_DEFAULT] = @context.account.sis_default_grade_export[:value]
     end
     js_hash[:STUDENT_PLANNER_ENABLED] =
-      @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+      @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     js_hash[:SECTION_SPECIFIC_DISCUSSIONS_ENABLED] = !@context.is_a?(Group)
     js_hash[:MAX_NAME_LENGTH_REQUIRED_FOR_ACCOUNT] = AssignmentUtil.name_length_required_for_account?(@context)
@@ -743,7 +743,7 @@ class DiscussionTopicsController < ApplicationController
       js_hash[:RESTRICT_QUANTITATIVE_DATA] = @context.settings[:restrict_quantitative_data]
     end
 
-    if @context.grants_right?(@current_user, session, :read)
+    if @context.grants_right?(current_principal, session, :read)
       js_hash[:context_id] = @context.id
       if @context.is_a?(Course)
         js_hash[:context_type] = "Course"
@@ -793,17 +793,17 @@ class DiscussionTopicsController < ApplicationController
       return
     end
 
-    if (can_read_and_visible = @topic.grants_right?(@current_user, session, :read) && @topic.visible_for?(@current_user))
+    if (can_read_and_visible = @topic.grants_right?(current_principal, session, :read) && @topic.visible_for?(@current_user))
       @topic.change_read_state("read", @current_user) unless @locked.is_a?(Hash) && !@locked[:can_view]
       add_rss_links_to_content
     end
 
-    if (@context.is_a?(Course) || @context.is_a?(Group)) && @context.grants_right?(@current_user, session, :manage)
+    if (@context.is_a?(Course) || @context.is_a?(Group)) && @context.grants_right?(current_principal, session, :manage)
       set_student_context_cards_js_env
     end
 
     @presenter = DiscussionTopicPresenter.new(@topic, @current_user)
-    can_attach_topic = @topic.grants_right?(@current_user, session, :attach)
+    can_attach_topic = @topic.grants_right?(current_principal, session, :attach)
     # Looking at the DiscussionEntry model, the policy for allowing to attach files to replies is
     # almost identical to the DiscussionTopic model, the code below adds the extra condition that
     # DiscussionEntry has but DiscussionTopic doesn't.
@@ -811,7 +811,7 @@ class DiscussionTopicsController < ApplicationController
                          (
                            @context.respond_to?(:allow_student_forum_attachments) &&
                            @context.allow_student_forum_attachments &&
-                           @context.grants_right?(@current_user, session, :post_to_forum) &&
+                           @context.grants_right?(current_principal, session, :post_to_forum) &&
                            @topic.available_for?(@current_user)
                          )
 
@@ -847,7 +847,7 @@ class DiscussionTopicsController < ApplicationController
     js_env(env_hash)
 
     topics = groups_and_group_topics if @topic.for_group_discussion?
-    if topics && topics.length == 1 && !@topic.grants_right?(@current_user, session, :update)
+    if topics && topics.length == 1 && !@topic.grants_right?(current_principal, session, :update)
       redirect_params = { root_discussion_topic_id: @topic.id }
       redirect_params[:module_item_id] = params[:module_item_id] if params[:module_item_id].present?
       # add in query parameters from the url, we want them preserved
@@ -910,7 +910,7 @@ class DiscussionTopicsController < ApplicationController
              INSIGHTS_URL: context_url(@topic.context, :insights_context_discussion_topic_url, @topic),
              PEER_REVIEWS_URL: @topic.assignment ? context_url(@topic.assignment.context, :context_assignment_peer_reviews_url, @topic.assignment.id) : nil,
              ALLOW_ASSIGN_TO_DIFFERENTIATION_TAGS: assign_to_tags,
-             CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
+             CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
              discussion_topic_id: @topic.id,
              manual_mark_as_read: @current_user&.manual_mark_as_read?,
              discussion_topic_menu_tools: external_tools_display_hashes(:discussion_topic_menu),
@@ -935,7 +935,7 @@ class DiscussionTopicsController < ApplicationController
              # GRADED_RUBRICS_URL must be within DISCUSSION to avoid page error
              DISCUSSION: {
                GRADED_RUBRICS_URL: (@topic.assignment ? context_url(@topic.assignment.context, :context_assignment_rubric_url, @topic.assignment.id) : nil),
-               CONTEXT_RUBRICS_URL: can_do(@topic.assignment, @current_user, :update) ? context_url(@topic.assignment.context, :context_rubrics_url) : "",
+               CONTEXT_RUBRICS_URL: can_do(@topic.assignment, current_principal, :update) ? context_url(@topic.assignment.context, :context_rubrics_url) : "",
                ATTACHMENTS_FOLDER_ID: @current_user.nil? ? Folder.unfiled_folder(@context).id : Folder.unfiled_folder(@current_user).id,
                ASSIGNMENT: @topic.assignment&.asset_string,
                preferences: {
@@ -1237,7 +1237,7 @@ class DiscussionTopicsController < ApplicationController
   #          -H 'Authorization: Bearer <token>'
   def destroy
     @topic = @context.all_discussion_topics.find(params[:id] || params[:topic_id])
-    if authorized_action(@topic, @current_user, :delete)
+    if authorized_action(@topic, current_principal, :delete)
       return render_unauthorized_action if editing_restricted?(@topic)
 
       @topic.destroy
@@ -1278,7 +1278,7 @@ class DiscussionTopicsController < ApplicationController
   #   (For example, "order=104,102,103".)
   #
   def reorder
-    if authorized_action(@context.discussion_topics.temp_record, @current_user, :update)
+    if authorized_action(@context.discussion_topics.temp_record, current_principal, :update)
       order = Api.value_to_array(params[:order])
       reject! "order parameter required" unless order.present?
       topics = pinned_topics.where(id: order)
@@ -1312,7 +1312,7 @@ class DiscussionTopicsController < ApplicationController
   end
 
   def user_can_moderate
-    @user_can_moderate = @context.grants_right?(@current_user, session, :moderate_forum) if @user_can_moderate.nil?
+    @user_can_moderate = @context.grants_right?(current_principal, session, :moderate_forum) if @user_can_moderate.nil?
     @user_can_moderate
   end
 
@@ -1432,13 +1432,13 @@ class DiscussionTopicsController < ApplicationController
        !params[:anonymous_state].nil? &&
        @context.is_a?(Course) &&
        !@context.settings[:allow_student_anonymous_discussion_topics] &&
-       !@context.grants_right?(@current_user, session, :manage)
+       !@context.grants_right?(current_principal, session, :manage)
       @errors[:anonymous_state] = t(:error_anonymous_state_unauthorized_create,
                                     "You are not able to create an anonymous discussion")
     end
 
     model_type = if value_to_boolean(params[:is_announcement]) &&
-                    @context.announcements.temp_record.grants_right?(@current_user, session, :create)
+                    @context.announcements.temp_record.grants_right?(current_principal, session, :create)
                    :announcements
                  else
                    :discussion_topics
@@ -1450,9 +1450,9 @@ class DiscussionTopicsController < ApplicationController
       prior_version = @topic.dup
 
       if default_discussion_options_enabled && @context.is_a?(Course)
-        can_edit_anonymity = @context.grants_right?(@current_user, session, :edit_discussion_anonymity)
-        can_edit_options   = @context.grants_right?(@current_user, session, :edit_discussion_options)
-        can_edit_views     = @context.grants_right?(@current_user, session, :edit_discussion_views)
+        can_edit_anonymity = @context.grants_right?(current_principal, session, :edit_discussion_anonymity)
+        can_edit_options   = @context.grants_right?(current_principal, session, :edit_discussion_options)
+        can_edit_views     = @context.grants_right?(current_principal, session, :edit_discussion_views)
 
         # Enforce granular discussion permissions — remove unauthorized user-submitted values
         params.delete(:anonymous_state) unless can_edit_anonymity
@@ -1492,10 +1492,10 @@ class DiscussionTopicsController < ApplicationController
 
       if default_discussion_options_enabled && @context.is_a?(Course)
         # Enforce granular discussion permissions for updates
-        unless @context.grants_right?(@current_user, session, :edit_discussion_anonymity)
+        unless @context.grants_right?(current_principal, session, :edit_discussion_anonymity)
           params.delete(:anonymous_state)
         end
-        unless @context.grants_right?(@current_user, session, :edit_discussion_options)
+        unless @context.grants_right?(current_principal, session, :edit_discussion_options)
           params.delete(:discussion_type)
           params.delete(:require_initial_post)
           params.delete(:podcast_enabled)
@@ -1505,7 +1505,7 @@ class DiscussionTopicsController < ApplicationController
           params.delete(:expanded)
           params.delete(:expanded_locked)
         end
-        unless @context.grants_right?(@current_user, session, :edit_discussion_views)
+        unless @context.grants_right?(current_principal, session, :edit_discussion_views)
           params.delete(:sort_order)
           params.delete(:sort_order_locked)
         end
@@ -1514,9 +1514,9 @@ class DiscussionTopicsController < ApplicationController
 
     if params.include?(:assignment)
       if is_new || @topic.assignment_id.nil?
-        return unless authorized_action(@context.assignments.temp_record, @current_user, :create)
+        return unless authorized_action(@context.assignments.temp_record, current_principal, :create)
       else
-        return unless authorized_action(@topic.assignment, @current_user, :update)
+        return unless authorized_action(@topic.assignment, current_principal, :update)
       end
     end
 
@@ -1549,7 +1549,7 @@ class DiscussionTopicsController < ApplicationController
 
     # allow pinning/unpinning if a subtopic and we can update the root
     topic_to_check = (only_pinning && @topic.root_topic) ? @topic.root_topic : @topic
-    return unless authorized_action(topic_to_check, @current_user, (is_new ? :create : :update))
+    return unless authorized_action(topic_to_check, current_principal, (is_new ? :create : :update))
 
     process_podcast_parameters(discussion_topic_hash)
 
@@ -1719,7 +1719,7 @@ class DiscussionTopicsController < ApplicationController
     end
     return unless params[:todo_date]
 
-    if !authorized_action(@topic.context, @current_user, :manage_course_content_add)
+    if !authorized_action(@topic.context, current_principal, :manage_course_content_add)
       @errors[:todo_date] = t(:error_todo_date_unauthorized,
                               "You do not have permission to add this topic to the student to-do list.")
     elsif (@topic.assignment || params[:assignment]) && !remove_assign
@@ -1820,7 +1820,7 @@ class DiscussionTopicsController < ApplicationController
 
   def can_set_group_category?
     error =
-      if !@context.grants_right?(@current_user, session, :manage_groups_add)
+      if !@context.grants_right?(current_principal, session, :manage_groups_add)
         t("You cannot set a grouped discussion as a student.")
       elsif @topic.is_announcement
         t(:error_group_announcement, "You cannot use grouped discussion on an announcement.")
@@ -1857,7 +1857,7 @@ class DiscussionTopicsController < ApplicationController
 
   def apply_attachment_parameters
     # handle creating/removing attachment
-    if @topic.grants_right?(@current_user, session, :attach)
+    if @topic.grants_right?(current_principal, session, :attach)
       attachment = params[:attachment].present? &&
                    params[:attachment]
 
@@ -1889,7 +1889,7 @@ class DiscussionTopicsController < ApplicationController
 
   def set_default_usage_rights(attachment)
     return unless @context.try(:usage_rights_required?)
-    return if @context.grants_any_right?(@current_user, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS)
+    return if @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS)
 
     attachment.usage_rights = @context.usage_rights.find_or_create_by(
       use_justification: "own_copyright",
@@ -1918,13 +1918,13 @@ class DiscussionTopicsController < ApplicationController
   end
 
   def user_can_edit_course_settings?
-    @context.is_a?(Course) && @context.grants_right?(@current_user, session, :update)
+    @context.is_a?(Course) && @context.grants_right?(current_principal, session, :update)
   end
 
   def handle_assignment_edit_params(hash)
     hash[:title] = params[:title] if params[:title]
     if params.slice(:due_at, :points_possible, :assignment_group_id).present?
-      if hash[:assignment].nil? && @context.respond_to?(:assignments) && @context.assignments.temp_record.grants_right?(@current_user, session, :create)
+      if hash[:assignment].nil? && @context.respond_to?(:assignments) && @context.assignments.temp_record.grants_right?(current_principal, session, :create)
         hash[:assignment] ||= {}
       end
 
@@ -1965,7 +1965,7 @@ class DiscussionTopicsController < ApplicationController
       @groups = override_groups if override_groups.present?
     end
     topics = @topic.child_topics
-    unless @context.grants_right?(@current_user, session, :read_as_admin)
+    unless @context.grants_right?(current_principal, session, :read_as_admin)
       @groups = @groups.joins(:group_memberships).merge(GroupMembership.active).where(group_memberships: { user_id: @current_user })
       topics = topics.where(context_type: "Group", context_id: @groups)
     end
@@ -2058,7 +2058,7 @@ class DiscussionTopicsController < ApplicationController
     return unless @current_user
     # We show EULA for users who will have their entry content sent, e.g., students
     return unless @context_enrollment.try(:student?) || @context_enrollment.is_a?(GroupMembership)
-    return unless @topic.grants_right?(@current_user, session, :reply)
+    return unless @topic.grants_right?(current_principal, session, :reply)
     return unless @topic.root_account.feature_enabled?(:lti_asset_processor_discussions)
     return unless @topic.assignment
 

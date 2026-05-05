@@ -38,7 +38,7 @@ module Lti
     def check_authorized_action
       if @current_user
         require_user
-        authorized_action(@context, @current_user, :read)
+        authorized_action(@context, current_principal, :read)
       elsif lti_tool_access_enabled?
         req = OAuth::RequestProxy.proxy(request)
         consumer_key, timestamp, nonce = req.oauth_consumer_key, req.oauth_timestamp, req.oauth_nonce

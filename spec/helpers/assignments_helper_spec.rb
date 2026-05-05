@@ -294,6 +294,8 @@ describe AssignmentsHelper do
       @current_user = @teacher
     end
 
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@current_user) if @current_user }
+
     it "returns false when context is a horizon course" do
       allow(self).to receive(:can_do).and_return(true)
       allow(@context).to receive(:horizon_course?).and_return(true)

@@ -21,7 +21,7 @@
 <% provide :page_title do %>
   <%= @page_title %>
 <% end %>
-<% can_manage = @account.manage_authentication_provider_permissions.any? { |perm| can_do(@account, @current_user, perm) } %>
+<% can_manage = @account.manage_authentication_provider_permissions.any? { |perm| can_do(@account, current_principal, perm) } %>
 <% js_env({ "MANAGE_AUTHENTICATION_PROVIDER" => can_manage }) %>
 
 <% provide :right_side do %>

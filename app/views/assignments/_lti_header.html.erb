@@ -37,7 +37,7 @@
       </span>
     </div>
   </div>
-  <% if can_do(@context, @current_user, :participate_as_student) %>
+  <% if can_do(@context, current_principal, :participate_as_student) %>
     <%= render "student_assignment_overview" %>
   <% end %>
 </div>

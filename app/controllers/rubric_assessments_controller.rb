@@ -63,7 +63,7 @@ class RubricAssessmentsController < ApplicationController
     @association = @context.rubric_associations.find(params[:rubric_association_id])
     @rubric = @association.rubric
     @request = @association.assessment_requests.find(params[:assessment_request_id])
-    if authorized_action(@association, @current_user, :manage)
+    if authorized_action(@association, current_principal, :manage)
       @request.send_reminder!
       render json: @request
     end
@@ -111,7 +111,7 @@ class RubricAssessmentsController < ApplicationController
     raise ActiveRecord::RecordNotFound if user_id.blank?
 
     # Funky flow to avoid a double-render, re-work it if you like
-    if @assessment && !authorized_action(@assessment, @current_user, :update)
+    if @assessment && !authorized_action(@assessment, current_principal, :update)
       nil
     else
       opts = {}
@@ -200,7 +200,7 @@ class RubricAssessmentsController < ApplicationController
     @association = @context.rubric_associations.find(params[:rubric_association_id])
     @rubric = @association.rubric
     @assessment = @rubric.rubric_assessments.find(params[:id])
-    if authorized_action(@assessment, @current_user, :delete)
+    if authorized_action(@assessment, current_principal, :delete)
       if @assessment.destroy
         render json: @assessment
       else
@@ -210,7 +210,7 @@ class RubricAssessmentsController < ApplicationController
   end
 
   def export
-    return unless authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+    return unless authorized_action(@context, current_principal, [:manage_grades, :view_all_grades])
 
     assignment = Assignment.find(params[:assignment_id])
 

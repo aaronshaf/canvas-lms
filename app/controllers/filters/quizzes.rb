@@ -35,6 +35,6 @@ module Filters::Quizzes
     @course = api_find(Course.active, params[:course_id])
     params[:context_id] = params[:course_id]
     params[:context_type] = "Course"
-    authorized_action(@course, @current_user, :read)
+    authorized_action(@course, current_principal, :read)
   end
 end

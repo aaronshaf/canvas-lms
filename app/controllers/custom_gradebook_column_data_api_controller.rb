@@ -57,7 +57,7 @@ class CustomGradebookColumnDataApiController < ApplicationController
     scope = value_to_boolean(params[:include_hidden]) ? :not_deleted : :active
     col = @context.custom_gradebook_columns.send(scope).find(params[:id])
 
-    if authorized_action? col, @current_user, :read
+    if authorized_action? col, current_principal, :read
       scope = col.custom_gradebook_column_data.where(user_id: allowed_user_ids)
 
       data = Api.paginate(scope,
@@ -84,7 +84,7 @@ class CustomGradebookColumnDataApiController < ApplicationController
 
     column = @context.custom_gradebook_columns.not_deleted.find(params[:id])
     datum = column.custom_gradebook_column_data.find_or_initialize_by(user_id: user.id)
-    if authorized_action? datum, @current_user, :update
+    if authorized_action? datum, current_principal, :update
       CustomGradebookColumnDatum.unique_constraint_retry do |retry_count|
         if retry_count > 0
           # query for the datum again if this is a retry
@@ -138,7 +138,7 @@ class CustomGradebookColumnDataApiController < ApplicationController
 
     cc = @context.custom_gradebook_columns.find(column_ids)
     cc.each do |col|
-      return render_unauthorized_action unless authorized_action? col, @current_user, :read
+      return render_unauthorized_action unless authorized_action? col, current_principal, :read
     end
 
     user_ids = column_data_as_array.map { |entry| entry.fetch(:user_id)&.to_i }

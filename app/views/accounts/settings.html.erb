@@ -25,7 +25,7 @@
              "site_admin" => @account.site_admin?,
              "root_account" => @account.root_account?
            }.tap do |h|
-             if can_do(@context, @current_user, :manage_storage_quotas)
+             if can_do(@context, current_principal, :manage_storage_quotas)
                h.merge!(
                  "default_storage_quota_mb" => @context.default_storage_quota_mb,
                  "default_user_storage_quota_mb" => @context.default_user_storage_quota_mb,
@@ -57,50 +57,50 @@
 
 <% tabs = [] %>
 
-<% if can_do(@context, @current_user, :manage_account_settings) %>
+<% if can_do(@context, current_principal, :manage_account_settings) %>
   <% tabs << { id: "settings", title: t(:tab_settings, "Settings"), contentMount: "tab-settings-mount" } %>
 <% end %>
 
-<% if can_do(@context, @current_user, :manage_storage_quotas) %>
+<% if can_do(@context, current_principal, :manage_storage_quotas) %>
   <% tabs << { id: "quotas", title: t(:tab_quotas, "Quotas"), contentMount: "tab-quotas-mount" } %>
 <% end %>
 
-<% if can_do(@context, @current_user, :manage_account_settings) && @account.root_account? && @account.feature_enabled?(:microsoft_group_enrollments_syncing) %>
+<% if can_do(@context, current_principal, :manage_account_settings) && @account.root_account? && @account.feature_enabled?(:microsoft_group_enrollments_syncing) %>
   <% tabs << { id: "integrations", title: t(:tab_integrations, "Integrations"), contentMount: "tab-integrations-mount" } %>
 <% end %>
 
-<% if can_do(@context, @current_user, :manage_account_settings) && @account.primary_settings_root_account? && !@account.site_admin? %>
+<% if can_do(@context, current_principal, :manage_account_settings) && @account.primary_settings_root_account? && !@account.site_admin? %>
   <% tabs << { id: "notifications", title: t(:tab_notifications, "Notifications"), contentMount: "tab-notifications-mount" } %>
 <% end %>
 
 <% tabs << { id: "users", title: t(:tab_admins, "Admins"), contentMount: "tab-users-mount" } %>
 <% tabs << { id: "announcements", title: t(:tab_announcements, "Announcements"), contentMount: "tab-announcements-mount" } %>
 
-<% if can_do(@context, @current_user, :read_reports) %>
+<% if can_do(@context, current_principal, :read_reports) %>
   <% tabs << { id: "reports", title: t(:tab_reports, "Reports"), contentMount: "tab-reports-mount" } %>
 <% end %>
 
-<% if can_do(@context, @current_user, :read_as_admin) %>
+<% if can_do(@context, current_principal, :read_as_admin) %>
   <% tabs << { id: "tools", title: t(:tab_external_tools, "Apps"), contentMount: "tab-tools-mount" } %>
 <% end %>
 
-<% if @context.root_account.settings[:enable_alerts] && can_do(@context, @current_user, :manage_interaction_alerts) %>
+<% if @context.root_account.settings[:enable_alerts] && can_do(@context, current_principal, :manage_interaction_alerts) %>
   <% tabs << { id: "alerts", title: t(:tab_alerts, "Alerts"), contentMount: "tab-alerts-mount" } %>
 <% end %>
 
-<% if can_do(@context, @current_user, :view_feature_flags) %>
+<% if can_do(@context, current_principal, :view_feature_flags) %>
   <% tabs << { id: "features", title: t("Feature Options"), contentMount: "tab-features-mount" } %>
 <% end %>
 
-<% if @account.site_admin? && can_do(@context, @current_user, :manage_internal_settings) %>
+<% if @account.site_admin? && can_do(@context, current_principal, :manage_internal_settings) %>
   <% tabs << { id: "internal-settings", title: t("Internal Settings"), contentMount: "tab-internal-settings-mount" } %>
 <% end %>
 
-<% if @account.root_account.feature_enabled?(:javascript_csp) && can_do(@context, @current_user, :manage_account_settings) && !@account.site_admin? %>
+<% if @account.root_account.feature_enabled?(:javascript_csp) && can_do(@context, current_principal, :manage_account_settings) && !@account.site_admin? %>
   <% tabs << { id: "security", title: t("Security"), contentMount: "tab-security-mount" } %>
 <% end %>
 
-<% if @account.feature_enabled?(:horizon_course_setting) && can_do(@context, @current_user, :read_as_admin) %>
+<% if @account.feature_enabled?(:horizon_course_setting) && can_do(@context, current_principal, :read_as_admin) %>
   <% tabs << { id: "canvas-career", title: t("Canvas Career"), contentMount: "tab-canvas-career-mount" } %>
 <% end %>
 
@@ -111,7 +111,7 @@
             } %>
 
 <%= tag.div id: "account_settings_tabs", style: "display: none;" do %>
-  <% if can_do(@context, @current_user, :manage_account_settings) %>
+  <% if can_do(@context, current_principal, :manage_account_settings) %>
     <div  tabindex="0" id="tab-settings-mount">
       <h2 class="screenreader-only"><%= t("headings.settings", "Account Settings") %></h2>
       <%= form_for :account, url: account_url(@account), html: { novalidate: true, method: :put, id: "account_settings", class: "account_settings" } do |f| %>
@@ -122,12 +122,12 @@
               <td><%= f.blabel :name, en: "Account Name" %></td>
               <td><%= f.text_field :name, class: "same-width-as-select" %></td>
             </tr>
-            <% if !@account.root_account? && ((@context.sis_source_id && can_do(@context.root_account, @current_user, :read_sis)) || can_do(@context.root_account, @current_user, :manage_sis)) %>
+            <% if !@account.root_account? && ((@context.sis_source_id && can_do(@context.root_account, current_principal, :read_sis)) || can_do(@context.root_account, current_principal, :manage_sis)) %>
               <tr>
                 <td><%= f.blabel :sis_source_id, en: "SIS ID" %></td>
                 <td>
                   <span class="course_form">
-                    <% if can_do(@context.root_account, @current_user, :manage_sis) %>
+                    <% if can_do(@context.root_account, current_principal, :manage_sis) %>
                       <%= f.text_field :sis_source_id, title: "SIS ID", value: @context.sis_source_id %>
                     <% else %>
                       <span class="sis_source_id"><%= @context.sis_source_id %></span>
@@ -180,7 +180,7 @@
               </tr>
               <% end %>
               <%= f.fields_for :settings do |settings| %>
-                <% if @account.grants_right?(@current_user, :manage_mfa_settings) %>
+                <% if @account.grants_right?(current_principal, :manage_mfa_settings) %>
                   <tr>
                     <td><%= settings.blabel :mfa_settings, en: "Multi-Factor Authentication" %></td>
                     <td>
@@ -193,7 +193,7 @@
                     </td>
                   </tr>
                 <% end %>
-                <% if @account.grants_right?(@current_user, :manage_site_settings) %>
+                <% if @account.grants_right?(current_principal, :manage_site_settings) %>
                   <tr>
                     <td><%= I18n.t("Mobile App QR Login") %></td>
                     <td>
@@ -227,7 +227,7 @@
                     </td>
                   </tr>
 
-                  <% if can_do(@context, @current_user, :manage_account_settings) %>
+                  <% if can_do(@context, current_principal, :manage_account_settings) %>
                     <tr>
                       <td><%= settings.blabel :default_dashboard_view, t("Default View for Dashboard") %></td>
                       <td>
@@ -257,7 +257,7 @@
                     <%= settings.label :allow_sending_scores_in_emails, en: "Students can opt-in to receiving scores in email notifications" %>
                     </td>
                   </tr>
-                  <% if @account.grants_right?(@current_user, :manage_site_settings) %>
+                  <% if @account.grants_right?(current_principal, :manage_site_settings) %>
                     <tr>
                       <td colspan="2"><%= settings.check_box :include_students_in_global_survey, checked: @account.include_students_in_global_survey? %>
                         <%= settings.label :include_students_in_global_survey, en: "Include students in global surveys" %>
@@ -537,7 +537,7 @@
           <fieldset>
             <legend><%= t("Personal Profile Settings") %></legend>
             <%= f.fields_for :settings do |settings| %>
-              <% if @account.grants_right?(@current_user, :manage_site_settings) %>
+              <% if @account.grants_right?(current_principal, :manage_site_settings) %>
                 <div>
                   <%= settings.check_box :enable_profiles, checked: @account.settings[:enable_profiles] %>
                   <%= settings.label :enable_profiles, en: "Enable Profiles" %>
@@ -600,7 +600,7 @@
             <% end %>
           </fieldset>
         <% end %>
-        <% if !@account.site_admin? && @account.root_account? && @account.grants_right?(@current_user, :manage_site_settings) %>
+        <% if !@account.site_admin? && @account.root_account? && @account.grants_right?(current_principal, :manage_site_settings) %>
           <fieldset>
             <legend><%= t("Content Privacy Settings") %></legend>
             <%= f.fields_for :settings do |settings| %>
@@ -615,7 +615,7 @@
             <% end %>
           </fieldset>
         <% end %>
-        <% if !@account.site_admin? && @account.root_account? && @account.grants_right?(@current_user, :manage_site_settings) %>
+        <% if !@account.site_admin? && @account.root_account? && @account.grants_right?(current_principal, :manage_site_settings) %>
           <% TermsOfService.ensure_terms_for_account(@account) %>
           <% js_bundle :terms_of_service_modal %>
           <fieldset>
@@ -636,7 +636,7 @@
           </div>
           <div id="terms_of_service_preview_link"></div>
         <% end %>
-        <% if Account.site_admin.grants_right?(@current_user, :manage) %>
+        <% if Account.site_admin.grants_right?(current_principal, :manage) %>
           <fieldset>
             <legend><%= t("Impact settings") %></legend>
             <%= f.fields_for :settings do |settings| %>
@@ -670,7 +670,7 @@
         <% if !@account.site_admin? &&
               @account.primary_settings_root_account? &&
               @account.feature_enabled?(:google_docs_domain_restriction) &&
-              @account.grants_right?(@current_user, :manage_site_settings) %>
+              @account.grants_right?(current_principal, :manage_site_settings) %>
           <fieldset id="google-docs-domain">
             <legend><%= t(:google_docs_domain, "Allowed Google Docs Domain") %></legend>
 
@@ -759,7 +759,7 @@
               </div>
             <% end %>
 
-            <% if @account.grants_right?(@current_user, :manage_account_settings) && @account.root_account.feature_enabled?(:allow_limited_access_for_students) %>
+            <% if @account.grants_right?(current_principal, :manage_account_settings) && @account.root_account.feature_enabled?(:allow_limited_access_for_students) %>
               <div>
                 <%= settings.check_box :enable_limited_access_for_students, checked: @account.enable_limited_access_for_students? %>
                 <%= settings.label :enable_limited_access_for_students, en: "Enable Limited Access for Students for this account" %>
@@ -767,7 +767,7 @@
             <% end %>
 
             <% if @account.primary_settings_root_account? %>
-              <% if @account.grants_right?(@current_user, :manage_site_settings) %>
+              <% if @account.grants_right?(current_principal, :manage_site_settings) %>
                 <div>
                   <%= settings.check_box :admins_can_change_passwords, checked: @account.settings[:admins_can_change_passwords] == true %>
                   <%= settings.label :admins_can_change_passwords, en: "Password setting by admins" %>
@@ -916,7 +916,7 @@
                 </div>
               <% end %>
             <% end %>
-            <% if @account.grants_right?(@current_user, :manage_site_settings) %>
+            <% if @account.grants_right?(current_principal, :manage_site_settings) %>
               <div>
                 <%= settings.check_box :enable_turnitin, checked: @account.settings[:enable_turnitin] %>
                 <%= settings.label :enable_turnitin, en: "Turnitin" %>
@@ -1039,7 +1039,7 @@
 
         <% if Account.site_admin.feature_enabled?(:new_quizzes_separators) &&
               !@account.site_admin? &&
-              @account.grants_right?(@current_user, :manage_account_settings) &&
+              @account.grants_right?(current_principal, :manage_account_settings) &&
               @context.root_account.settings[:provision]&.key?(Account::SERVICE_IDS[:new_quizzes]) %>
           <fieldset>
             <legend><%= t(:new_quizzes_settings_title, "New Quizzes Settings") %></legend>
@@ -1084,7 +1084,7 @@
         <% if !@account.site_admin? &&
               @account.primary_settings_root_account? &&
               @account.feature_allowed?(:submission_comment_emojis) &&
-              @account.grants_right?(@current_user, :manage_account_settings) %>
+              @account.grants_right?(current_principal, :manage_account_settings) %>
             <div id="emoji-deny-list"></div>
         <% end %>
 
@@ -1133,11 +1133,11 @@
 
             if @account.root_account?
               options << [t("No Template Selected"), nil]
-              disabled << nil unless @account.course_template_id.nil? || @account.grants_any_right?(@current_user, :delete_course_template, :edit_course_template)
+              disabled << nil unless @account.course_template_id.nil? || @account.grants_any_right?(current_principal, :delete_course_template, :edit_course_template)
             else
               options << [t("Inherit (%{course_name})", course_name: @account.parent_account.effective_course_template&.name || t("No Template Selected")), nil]
               options << [t("No Template Selected"), 0]
-              disabled.push(0, nil) unless @account.course_template_id == 0 || @account.grants_any_right?(@current_user, :delete_course_template, :edit_course_template)
+              disabled.push(0, nil) unless @account.course_template_id == 0 || @account.grants_any_right?(current_principal, :delete_course_template, :edit_course_template)
             end
 
             visible_templates = @account.root_account.all_courses.templates
@@ -1148,7 +1148,7 @@
             end
             options.concat(visible_templates)
 
-            unless @account.grants_right?(@current_user, :edit_course_template)
+            unless @account.grants_right?(current_principal, :edit_course_template)
               nonselected = visible_templates.map(&:last)
               nonselected.delete(@account.course_template_id)
               disabled.concat(nonselected)
@@ -1186,8 +1186,8 @@
 
         <%= render partial: "external_integration_keys", locals: { f: } %>
 
-        <% if               @account.root_account&.feature_enabled?(:smart_alerts) &&
-                            can_do(@account, @current_user, :manage_alerts) %>
+        <% if @account.root_account&.feature_enabled?(:smart_alerts) &&
+              can_do(@account, current_principal, :manage_alerts) %>
           <fieldset>
             <h2 class="screenreader-only"><%= t("Smart Assignment Alerts") %></h2>
             <legend><%= t("Smart Assignment Alerts") %></legend>
@@ -1222,17 +1222,17 @@
     </div>
   <% end %>
 
-  <% if can_do(@context, @current_user, :manage_storage_quotas) %>
+  <% if can_do(@context, current_principal, :manage_storage_quotas) %>
     <div  tabindex="0" id="tab-quotas-mount">
       <h2 class="screenreader-only"><%= t("headings.quotas", "Account Quotas") %></h2>
       <div id="quotas_tab_content_mount_point"></div>
     </div>
   <% end %>
-  <% if can_do(@context, @current_user, :manage_account_settings) && @account.root_account? && @account.feature_enabled?(:microsoft_group_enrollments_syncing) %>
+  <% if can_do(@context, current_principal, :manage_account_settings) && @account.root_account? && @account.feature_enabled?(:microsoft_group_enrollments_syncing) %>
     <div  tabindex="0" id="tab-integrations-mount">
     </div>
   <% end %>
-  <% if can_do(@context, @current_user, :manage_account_settings) && @account.primary_settings_root_account? && !@account.site_admin? %>
+  <% if can_do(@context, current_principal, :manage_account_settings) && @account.primary_settings_root_account? && !@account.site_admin? %>
     <div  tabindex="0" id="tab-notifications-mount" data-values="<%=
       default_name = @account.settings[:outgoing_email_default_name]
       {
@@ -1282,7 +1282,7 @@
 
   <div tabindex="0" id="tab-announcements-mount">
     <h2><%= t(:global_announcements_title, "Global Announcements") %></h2>
-        <% if can_do(@account, @current_user, :manage_alerts) %>
+        <% if can_do(@account, current_principal, :manage_alerts) %>
       <button id="add_announcement_button" class="Button Button--primary element_toggler add_notification_toggle_focus" title="<%= t("Add New Announcement") %>" aria-label="<%= t("Add New Announcement") %>">
         <i class="icon-plus"></i> <%= t("New Announcement") %>
       </button>
@@ -1481,7 +1481,7 @@
                   <span class="notification_message">
                     <%= user_content(announcement.message, location: announcement.asset_string) %>
                   </span>
-                  <% if can_do(@account, @current_user, :manage_alerts) %>
+                  <% if can_do(@account, current_principal, :manage_alerts) %>
                     <div class="ic-notification__admin-actions">
                       <button
                         type="button"
@@ -1569,7 +1569,7 @@
                 <%= t :announcement_sent_to_subset, "Sent to 1 / %{denominator} users each month", denominator: announcement.months_in_display_cycle %>
               </div>
             <% end %>
-            <% if can_do(@account, @current_user, :manage_alerts) %>
+            <% if can_do(@account, current_principal, :manage_alerts) %>
               <%= render(partial: "edit_account_notification", locals: { announcement: }) %>
             <% end %>
           </div>
@@ -1577,32 +1577,32 @@
       <% end %>
     </ul>
   </div>
-  <% if can_do(@context, @current_user, :read_reports) %>
+  <% if can_do(@context, current_principal, :read_reports) %>
     <div tabindex="0" id="tab-reports-mount" data-state="loading">
       <p><%= t("Loading...") %></p>
       <!-- this will be populated by an xhr request to AccountsController::reports_tab -->
     </div>
   <% end %>
-  <% if can_do(@context, @current_user, :read_as_admin) %>
+  <% if can_do(@context, current_principal, :read_as_admin) %>
       <div tabindex="0" id="tab-tools-mount">
         <%= render partial: "external_tools/external_tools" %>
       </div>
   <% end %>
-  <% if @context.root_account.settings[:enable_alerts] && can_do(@context, @current_user, :manage_interaction_alerts) %>
+  <% if @context.root_account.settings[:enable_alerts] && can_do(@context, current_principal, :manage_interaction_alerts) %>
       <div  tabindex="0" id="tab-alerts-mount">
         <div id="alerts_mount_point"></div>
       </div>
   <% end %>
-  <% if can_do(@context, @current_user, :view_feature_flags) %>
+  <% if can_do(@context, current_principal, :view_feature_flags) %>
     <div tabindex="0" id="tab-features-mount"></div>
   <% end %>
-  <% if @account.root_account.feature_enabled?(:javascript_csp) && can_do(@context, @current_user, :manage_account_settings) && !@account.site_admin? %>
+  <% if @account.root_account.feature_enabled?(:javascript_csp) && can_do(@context, current_principal, :manage_account_settings) && !@account.site_admin? %>
     <div tabindex="0" id="tab-security-mount"></div>
   <% end %>
-  <% if @account.site_admin? && can_do(@context, @current_user, :manage_internal_settings) %>
+  <% if @account.site_admin? && can_do(@context, current_principal, :manage_internal_settings) %>
     <div  tabindex="0" id="tab-internal-settings-mount"></div>
   <% end %>
-  <% if @account.feature_enabled?(:horizon_course_setting) && can_do(@context, @current_user, :read_as_admin) %>
+  <% if @account.feature_enabled?(:horizon_course_setting) && can_do(@context, current_principal, :read_as_admin) %>
     <div tabindex="0" id="tab-canvas-career-mount">
       <% js_bundle :horizon_toggle %>
     </div>

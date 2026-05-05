@@ -58,7 +58,7 @@ class AiConversationsController < ApplicationController
   def show
     # Teachers can view any student's conversation
     permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
-    unless @context.grants_any_right?(@current_user, *permissions)
+    unless @context.grants_any_right?(current_principal, *permissions)
       return render_unauthorized_action
     end
 
@@ -200,7 +200,7 @@ class AiConversationsController < ApplicationController
   def evaluation
     # Only teachers can request evaluations
     permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
-    unless @context.grants_any_right?(@current_user, *permissions)
+    unless @context.grants_any_right?(current_principal, *permissions)
       return render_unauthorized_action
     end
 
@@ -276,10 +276,10 @@ class AiConversationsController < ApplicationController
 
   def require_access_right
     permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
-    can_manage = @context.grants_any_right?(@current_user, *permissions)
+    can_manage = @context.grants_any_right?(current_principal, *permissions)
 
     # Allow if user can manage OR is enrolled in the course
-    return if can_manage || @context.grants_right?(@current_user, :read_as_member)
+    return if can_manage || @context.grants_right?(current_principal, :read_as_member)
 
     render_unauthorized_action
     false
@@ -299,7 +299,7 @@ class AiConversationsController < ApplicationController
   # "feedback actor authorization (M-2)".
   def load_conversation
     permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
-    @conversation = if @context.grants_any_right?(@current_user, *permissions)
+    @conversation = if @context.grants_any_right?(current_principal, *permissions)
                       # Teachers can view any conversation
                       @experience.ai_conversations.find_by(id: params[:id])
                     else

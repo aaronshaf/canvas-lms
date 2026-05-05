@@ -45,7 +45,7 @@ module HorizonMode
   def block_pending_access_consent?
     return false if Account.site_admin.cached_account_users_for(@current_user).empty?
 
-    !authorized_action(@domain_root_account, @current_user, :read_as_admin)
+    !authorized_action(@domain_root_account, current_principal, :read_as_admin)
   end
 
   def force_academic?

@@ -49,7 +49,7 @@
                   <span class="avatar_image">
                     <%= avatar @user, url: nil %>
                   </span>
-                  <% if can_do(@user, @current_user, :remove_avatar) %>
+                  <% if can_do(@user, current_principal, :remove_avatar) %>
                     <a href="<%= update_avatar_image_url(@user.id) %>" class="remove_avatar_picture_link"><%= t("remove_avatar", "Remove avatar picture") %></a>
                   <% elsif !session["reported_#{@user.id}"] %>
                     <a href="<%= report_avatar_image_url(@user.id) %>" class="report_avatar_picture_link"><%= t("report_naughtiness", "Report inappropriate picture") %></a>
@@ -57,7 +57,7 @@
                 </td>
               </tr>
             <% end %>
-            <% if @context.grants_right? @current_user, :read_email_addresses %>
+            <% if @context.grants_right? current_principal, :read_email_addresses %>
               <tr>
                 <th><%= before_label("default_email", "Default Email") %></th>
                 <td class="email" style="word-break: break-all"><%= h @user.email %></td>
@@ -71,7 +71,7 @@
             <%# order important: the can_do(...) check filters out contexts that don't respond to root_account (e.g. User) %>
               <% first = true %>
               <td class="links" colspan="2" style="text-align: <%= direction("right") %>; font-size: 0.8em; padding-top: 10px;">
-                <% if @user.grants_right?(@current_user, :rename) %>
+                <% if @user.grants_right?(current_principal, :rename) %>
                   <% first = false %>
                   <a href="#" class="edit_user_link"><%= t("edit", "Edit") %></a>
                 <% end %>
@@ -85,7 +85,7 @@
                   <% end %>
                 <% end %>
 
-                <% if @user.grants_right?(@current_user, :merge) %>
+                <% if @user.grants_right?(current_principal, :merge) %>
                   <%= "|" unless first %><% first = false %>
                   <a class="merge_user_link" href="<%= user_admin_merge_url(@user.id) %>"><%= t("merge_with_another_user", "Merge with Another User") %></a>
                   <% if UserMergeData.active.splitable.where(user_id: @user).shard(@user).exists? %>
@@ -93,7 +93,7 @@
                   <% end %>
                 <% end %>
 
-                <% if @user.grants_right?(@current_user, :manage_user_details) %>
+                <% if @user.grants_right?(current_principal, :manage_user_details) %>
                   <%= "|" unless first %><% first = false %>
                   <div style="display: inline;" id="suspend-reactivate-link"></div>
                 <% end %>
@@ -103,12 +103,12 @@
                   <a href="<%= account_confirm_delete_user_url(root_account.id, @user.id) %>"><%= t("delete_from_account", "Delete from %{account}", account: root_account.name) %></a>
                 <% end %>
 
-                <% if @domain_root_account.grants_right?(@current_user, :manage_site_settings) %>
+                <% if @domain_root_account.grants_right?(current_principal, :manage_site_settings) %>
                   <%= "|" unless first %><% first = false %>
                   <a class="destroy_user_link" href="<%= api_v1_destroy_user_url(@user) %>"><%= t("Delete from ALL accounts") %></a>
                 <% end %>
 
-                <% if Canvas::CacheRegister.enabled? && @domain_root_account.grants_right?(@current_user, :manage_site_settings) %>
+                <% if Canvas::CacheRegister.enabled? && @domain_root_account.grants_right?(current_principal, :manage_site_settings) %>
                   <%= "|" unless first %>
                   <a class="clear_user_cache_link" href="<%= api_v1_clear_cache_url(@user) %>"><%= t("Clear User Cache") %></a>
                 <% end %>

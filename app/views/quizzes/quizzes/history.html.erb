@@ -75,7 +75,7 @@
   <% provide_blank :right_side %>
 <% else %>
   <% provide :right_side do %>
-    <% if @current_version && can_do(@quiz, @current_user, :grade) %>
+    <% if @current_version && can_do(@quiz, current_principal, :grade) %>
       <p>
         <% if @quiz.survey? %>
           <%= t(:latest_survey_results, "Here's the latest survey results for %{user}. You can modify the points for any question and add more comments, then click \"Update Scores\" at the bottom of the page.", user: user_name) %>
@@ -99,7 +99,7 @@
             <a class="no-hover" href="?version=<%= version_instance.version_number %><%= "&user_id=#{@submission.user_id}" if @current_user.id != @submission.user_id %>">
               <% if version_instance.pending_review? %>
                 <% needs_review_title = t("titles.submission_needs_review", "This submission needs review") %>
-                <% if can_do(@quiz, @current_user, :grade) %>
+                <% if can_do(@quiz, current_principal, :grade) %>
                   <i class="icon-warning" title="<%= needs_review_title %>"><span class="screenreader-only"><%= needs_review_title %></span></i>
                 <% else %>
                   <% pending_review_title = t("titles.score_pending_review", "This score is pending review, and may change") %>
@@ -118,7 +118,7 @@
             <% else %>
               <%= t(:count_attempts_left, { one: "%{user} has 1 attempt left", other: "%{user} has %{count} attempts left" }, user: user_name, count: @current_submission.attempts_left) %>
             <% end %>
-            <% if can_do(@submission, @current_user, :add_attempts) %>
+            <% if can_do(@submission, current_principal, :add_attempts) %>
               <%= form_for :quiz_submission, url: context_url(@context, :context_quiz_extensions_url, @quiz.id, @submission.user_id), html: { method: :post } do %>
                 <input type="hidden" name="extra_attempts" value="<%= (@current_submission.extra_attempts || 0) + 1 %>"/>
                 <button type="submit" class="btn"><%= t("buttons.allow_extra_attempt", "Allow this student an extra attempt") %></button>
@@ -146,7 +146,7 @@
       <%= t(:unnamed_quiz_results, "Quiz Results for %{user}", user: user_name) %>
     <% end %>
 
-    <% if @context.feature_enabled?(:quiz_log_auditing) && can_do(@submission, @current_user, :view_log) %>
+    <% if @context.feature_enabled?(:quiz_log_auditing) && can_do(@submission, current_principal, :view_log) %>
       <%= link_to t(:view_log, "View Log"),
                   course_quiz_quiz_submission_events_url(@context, @quiz, @submission),
                   { "class" => "pull-right" } %>
@@ -176,7 +176,7 @@
       <input type="hidden" name="headless" value="1"/>
     <% end %>
     <input type="hidden" name="submission_version_number" value="<%= @submission.version_number %>"/>
-    <%= render partial: "quiz_submission", locals: { editable: can_do(@quiz, @current_user, :grade) } %>
+    <%= render partial: "quiz_submission", locals: { editable: can_do(@quiz, current_principal, :grade) } %>
   <% end %>
 <% end %>
 

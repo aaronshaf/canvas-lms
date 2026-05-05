@@ -22,7 +22,7 @@ module EportfolioPage
   def eportfolio_page_attributes
     GuardRail.activate(:secondary) do
       @categories = @portfolio.eportfolio_categories
-      if @portfolio.grants_right?(@current_user, session, :manage)
+      if @portfolio.grants_right?(current_principal, session, :manage)
         if @current_user && @current_user == @portfolio.user
           @recent_submissions ||= Submission.joins(:course).joins(:assignment)
                                             .where(user_id: @current_user, workflow_state: %w[submitted graded])

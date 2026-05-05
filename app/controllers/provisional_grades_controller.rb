@@ -221,7 +221,7 @@ class ProvisionalGradesController < ProvisionalGradesBaseController
   #        -X POST
   #
   def publish
-    can_manage_grades = @context.grants_right?(@current_user, :manage_grades)
+    can_manage_grades = @context.grants_right?(current_principal, :manage_grades)
     unless can_manage_grades && @assignment.permits_moderation?(@current_user)
       render_unauthorized_action and return
     end

@@ -299,7 +299,7 @@ class CoursePacesController < ApplicationController
   COURSE_PACES_PUBLISHING_LIMIT = 50
 
   def index
-    return unless authorized_action(@course, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@course, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     add_crumb(t("Course Pacing"))
     @course_pace = @context.course_paces.primary.first
@@ -395,7 +395,7 @@ class CoursePacesController < ApplicationController
   #     -H 'Authorization: Bearer <token>'
 
   def api_show
-    return unless authorized_action(@course, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@course, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     load_and_run_progress
     render json: {
@@ -405,7 +405,7 @@ class CoursePacesController < ApplicationController
   end
 
   def new
-    return unless authorized_action(@course, @current_user, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    return unless authorized_action(@course, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     @course_pace = CoursePace.pace_for_context(@course, @context, exact: true)
 
@@ -441,7 +441,7 @@ class CoursePacesController < ApplicationController
   end
 
   def publish
-    return unless authorized_action(@course, @current_user, :manage_course_content_edit)
+    return unless authorized_action(@course, current_principal, :manage_course_content_edit)
 
     publish_course_pace
     log_course_paces_publishing
@@ -494,7 +494,7 @@ class CoursePacesController < ApplicationController
   #     -H 'Authorization: Bearer <token>'
 
   def create
-    return unless authorized_action(@course, @current_user, :manage_course_content_add)
+    return unless authorized_action(@course, current_principal, :manage_course_content_add)
 
     @course_pace = @context.course_paces.new(create_params)
 
@@ -518,7 +518,7 @@ class CoursePacesController < ApplicationController
   end
 
   def bulk_create_enrollment_paces
-    return unless authorized_action(@course, @current_user, :manage_course_content_edit)
+    return unless authorized_action(@course, current_principal, :manage_course_content_edit)
 
     scoped_enrollment_ids = @course.enrollments.where(id: params[:enrollment_ids]).pluck(:id)
     @course.run_bulk_assign_enrollment_paces_delayed_job(scoped_enrollment_ids, bulk_create_params)
@@ -559,7 +559,7 @@ class CoursePacesController < ApplicationController
   #     -H 'Authorization: Bearer <token>'
 
   def update
-    return unless authorized_action(@course, @current_user, :manage_course_content_edit)
+    return unless authorized_action(@course, current_principal, :manage_course_content_edit)
 
     should_publish = false
 
@@ -588,7 +588,7 @@ class CoursePacesController < ApplicationController
   end
 
   def compress_dates
-    return unless authorized_action(@course, @current_user, :manage_course_content_edit)
+    return unless authorized_action(@course, current_principal, :manage_course_content_edit)
 
     @course_pace = @course.course_paces.new(create_params)
     if params[:blackout_dates]
@@ -638,7 +638,7 @@ class CoursePacesController < ApplicationController
   #     -H 'Authorization: Bearer <token>'
 
   def destroy
-    return unless authorized_action(@course, @current_user, :manage_course_content_delete)
+    return unless authorized_action(@course, current_principal, :manage_course_content_delete)
 
     if @course_pace.primary? && @course_pace.published?
       return render json: { success: false, errors: t("You cannot delete the default course pace.") }, status: :unprocessable_content

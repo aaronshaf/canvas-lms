@@ -331,11 +331,11 @@ class GradeChangeAuditApiController < AuditorApiController
   private
 
   def admin_authorized?
-    @domain_root_account.grants_right?(@current_user, session, :view_grade_changes)
+    @domain_root_account.grants_right?(current_principal, session, :view_grade_changes)
   end
 
   def course_authorized?(course)
-    course.grants_any_right?(@current_user, session, :manage_grades, :view_all_grades)
+    course.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
   end
 
   def render_events(events, route, course: nil, remove_anonymous: false)

@@ -145,7 +145,7 @@ class AccountCalendarsApiController < ApplicationController
   def show
     GuardRail.activate(:secondary) do
       account = api_find(Account.active, params[:account_id])
-      return unless authorized_action(account, @current_user, :view_account_calendar_details)
+      return unless authorized_action(account, current_principal, :view_account_calendar_details)
 
       render json: account_calendar_json(account, @current_user, session)
     end
@@ -175,7 +175,7 @@ class AccountCalendarsApiController < ApplicationController
   # @returns AccountCalendar
   def update
     account = api_find(Account.active, params[:account_id])
-    return unless authorized_action(account, @current_user, :manage_account_calendar_visibility)
+    return unless authorized_action(account, current_principal, :manage_account_calendar_visibility)
 
     account.account_calendar_visible = value_to_boolean(params[:visible]) if params.include?(:visible)
     if params.include?(:auto_subscribe)
@@ -211,7 +211,7 @@ class AccountCalendarsApiController < ApplicationController
   # Returns the count of updated accounts.
   def bulk_update
     account = api_find(Account.active, params[:account_id])
-    return unless authorized_action(account, @current_user, :manage_account_calendar_visibility)
+    return unless authorized_action(account, current_principal, :manage_account_calendar_visibility)
 
     data = params.permit(_json: %i[id visible auto_subscribe]).to_h[:_json]
     return render json: { errors: t("Expected array of objects") }, status: :bad_request unless data.is_a?(Array) && !data.empty?
@@ -264,7 +264,7 @@ class AccountCalendarsApiController < ApplicationController
     GuardRail.activate(:secondary) do
       account = api_find(Account.active, params[:account_id])
       search_term = params[:search_term]
-      return unless authorized_action(account, @current_user, :manage_account_calendar_visibility)
+      return unless authorized_action(account, current_principal, :manage_account_calendar_visibility)
 
       filter = params[:filter]
       if filter.present? && !%w[visible hidden].include?(filter)
@@ -300,7 +300,7 @@ class AccountCalendarsApiController < ApplicationController
   def visible_calendars_count
     GuardRail.activate(:secondary) do
       account = api_find(Account.active, params[:account_id])
-      return unless authorized_action(account, @current_user, :manage_account_calendar_visibility)
+      return unless authorized_action(account, current_principal, :manage_account_calendar_visibility)
 
       count = Account.active.where(id: [account.id] + Account.sub_account_ids_recursive(account.id)).where(account_calendar_visible: true).count
       render json: { count: }

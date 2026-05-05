@@ -58,7 +58,7 @@
   </div>
 <% end %>
 <div id="assignment_show" class="assignment content_underline_links" data-lti-page-content="true">
-  <% if can_do(@context, @current_user, :read_as_admin) %>
+  <% if can_do(@context, current_principal, :read_as_admin) %>
     <div class='assignment-title'>
       <div class='title-content'>
         <h1 class="title">
@@ -72,7 +72,7 @@
           data-id='<%= @assignment.id %>'
           class='btn <%= "published" if @assignment.published? %> <%= "disabled" if @context.horizon_course? || !assignment_publishing_enabled?(@assignment, @current_user) %>'>
         </button>
-        <% if @assignment.grants_right?(@current_user, :manage_assign_to) %>
+        <% if @assignment.grants_right?(current_principal, :manage_assign_to) %>
           <button
             class='btn assign-to-link'
           >
@@ -86,9 +86,9 @@
           </button>
         <% end %>
         <% if @context.grants_right?(@current_user, :manage_assignments_edit) %>
-          <a href="<%= edit_polymorphic_path([@context, @assignment]) %>" class='btn edit_assignment_link<%= " disabled" unless can_do(@assignment, @current_user, :update) %>'>
+          <a href="<%= edit_polymorphic_path([@context, @assignment]) %>" class='btn edit_assignment_link<%= " disabled" unless can_do(@assignment, current_principal, :update) %>'>
             <i class='icon-edit'></i> <%= t("links.edit", "Edit") %>
-            <% unless can_do(@assignment, @current_user, :update) %>
+            <% unless can_do(@assignment, current_principal, :update) %>
               <span class="screenreader-only">You do not have permissions to edit this moderated assignment</span>
             <% end %>
           </a>
@@ -177,9 +177,9 @@
     </div>
   <% end %>
 
-  <div class="description user_content <%= can_do(@context, @current_user, :read_as_admin) ? "teacher-version" : "" %>" data-resource-type="assignment.body" data-resource-id=<%= @assignment.id %>><%= description %></div>
+  <div class="description user_content <%= can_do(@context, current_principal, :read_as_admin) ? "teacher-version" : "" %>" data-resource-type="assignment.body" data-resource-id=<%= @assignment.id %>><%= description %></div>
 
-  <% if can_do(@context, @current_user, :read_as_admin) %>
+  <% if can_do(@context, current_principal, :read_as_admin) %>
     <!--Teacher view-->
 
     <form class="form-horizontal bootstrap-form display-only" style="margin-top:18px;">
@@ -289,18 +289,18 @@
 
 <% end %>
 
-<% if !@locked && can_do(@assignment, @current_user, :submit) %>
+<% if !@locked && can_do(@assignment, current_principal, :submit) %>
   <%= render partial: "submit_assignment", locals: { eula_url: } %>
 <% end %>
 
 <!--Show partial rubrics ERB if enhanced_rubrics_assignments is not enabled or in Student View-->
-<% if !Rubric.enhanced_rubrics_assignments_enabled?(@context) || !can_do(@context, @current_user, :read_as_admin) %>
+<% if !Rubric.enhanced_rubrics_assignments_enabled?(@context) || !can_do(@context, current_principal, :read_as_admin) %>
   <%= render partial: "shared/rubrics_component" %>
-  <% if Rubric.rubric_self_assessment_enabled?(@context) && can_do(@context, @current_user, :read_as_admin) %>
+  <% if Rubric.rubric_self_assessment_enabled?(@context) && can_do(@context, current_principal, :read_as_admin) %>
     <div id="enhanced-rubric-self-assessment-edit"></div>
   <% end %>
 <% end %>
 
-<% if Rubric.enhanced_rubrics_assignments_enabled?(@context) && can_do(@context, @current_user, :read_as_admin) %>
+<% if Rubric.enhanced_rubrics_assignments_enabled?(@context) && can_do(@context, current_principal, :read_as_admin) %>
   <%= render partial: "shared/sequence_footer", locals: { asset: @assignment } unless @assignment.context_module_tags.empty? %>
 <% end %>

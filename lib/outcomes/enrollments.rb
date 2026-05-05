@@ -25,7 +25,7 @@ module Outcomes
       enrollment_user_ids = enrollments.map(&:user_id).uniq
       reject! "specified users not enrolled" unless enrollment_user_ids.length == user_ids.length
       reject! "not authorized to read grades for specified users", :forbidden unless enrollments.all? do |e|
-        e.grants_right?(@current_user, session, :read_grades)
+        e.grants_right?(current_principal, session, :read_grades)
       end
     end
   end

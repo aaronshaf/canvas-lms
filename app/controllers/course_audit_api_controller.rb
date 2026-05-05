@@ -219,7 +219,7 @@ class CourseAuditApiController < AuditorApiController
   private
 
   def authorize
-    @domain_root_account.grants_right?(@current_user, session, :view_course_changes)
+    @domain_root_account.grants_right?(current_principal, session, :view_course_changes)
   end
 
   def render_events(events, route)
