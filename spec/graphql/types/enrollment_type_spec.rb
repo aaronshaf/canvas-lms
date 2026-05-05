@@ -405,6 +405,17 @@ describe Types::EnrollmentType do
     end
   end
 
+  describe "uuid" do
+    it "returns the uuid when the enrollment user is the current user" do
+      expect(enrollment_type.resolve("uuid")).to eq enrollment.uuid
+    end
+
+    it "returns nil when current user is a teacher viewing student enrollment" do
+      teacher_viewing_student = GraphQLTypeTester.new(enrollment, current_user: @teacher)
+      expect(teacher_viewing_student.resolve("uuid")).to be_nil
+    end
+  end
+
   describe "non-anonymous grading" do
     let(:context) { { hide_the_user_for_anonymous_grading: false } }
     let(:enrollment_type) { GraphQLTypeTester.new(enrollment, current_user: @student) }

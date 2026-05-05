@@ -230,6 +230,11 @@ module Types
     field :sis_role, String, null: true
 
     field :uuid, String, null: true
+    def uuid
+      return nil unless enrollment.user_id == current_user.id
+
+      enrollment.uuid
+    end
 
     field :invitation_sent_at, DateTimeType, null: true
 
