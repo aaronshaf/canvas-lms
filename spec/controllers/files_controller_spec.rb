@@ -808,6 +808,19 @@ describe FilesController do
       get "show", params: { course_id: @course.id, id: @file.id, download: 1, verifier: @file.uuid, download_frd: 1 }
     end
 
+    it "forces download for image/svg+xml even when inline=1 is requested" do
+      user_session(@teacher)
+      svg_attachment = attachment_with_context(
+        @course,
+        uploaded_data: stub_file_data("xss.svg", "<svg></svg>", "image/svg+xml")
+      )
+      # SVG inline rendering is the stored-XSS sink; the controller must
+      # route every SVG fetch through the attachment branch regardless
+      # of the inline param.
+      expect_any_instance_of(FilesController).to receive(:send_stored_file).with(svg_attachment, inline: false)
+      get "show", params: { course_id: @course.id, id: svg_attachment.id, inline: 1, download: 1, verifier: svg_attachment.uuid }
+    end
+
     context "sf_verifier" do
       it "remembers most recent valid sf_verifier in session" do
         enable_cache do

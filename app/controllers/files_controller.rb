@@ -897,9 +897,9 @@ class FilesController < ApplicationController
     # download param because the download param is used all over the place to mean stuff
     # other than actually download the file. Long term we probably ought to audit the files
     # controller, make download mean download, and remove download_frd.
-    if params[:inline] && !params[:download_frd] && attachment.content_type && (attachment.content_type&.start_with?("text") || attachment.mime_class == "text" || attachment.mime_class == "html" || attachment.mime_class == "code" || attachment.mime_class == "image")
+    if params[:inline] && !params[:download_frd] && !active_svg_payload?(attachment) && attachment.content_type && (attachment.content_type&.start_with?("text") || attachment.mime_class == "text" || attachment.mime_class == "html" || attachment.mime_class == "code" || attachment.mime_class == "image")
       send_stored_file(attachment)
-    elsif attachment.inline_content? && !params[:download_frd] && !@context.is_a?(AssessmentQuestion)
+    elsif attachment.inline_content? && !params[:download_frd] && !@context.is_a?(AssessmentQuestion) && !active_svg_payload?(attachment)
       if params[:file_path] || !params[:wrap]
         send_stored_file(attachment)
       else
@@ -911,6 +911,19 @@ class FilesController < ApplicationController
       send_stored_file(attachment, inline: false)
     end
   end
+
+  # SVG renders as an active document in browsers — embedded <script>,
+  # onload handlers, and <foreignObject><iframe srcdoc> all execute
+  # when the SVG is fetched with Content-Disposition: inline. Without
+  # an upload-time SVG sanitizer we cannot trust that user-uploaded
+  # SVG is inert, so force the attachment branch (Content-Disposition:
+  # attachment) to keep the file from rendering as a top-level
+  # document. The serve-as-image use case still works because <img
+  # src=...> ignores Content-Disposition.
+  def active_svg_payload?(attachment)
+    attachment.content_type.to_s.start_with?("image/svg")
+  end
+  protected :active_svg_payload?
   protected :send_attachment
 
   def send_stored_file(attachment, inline: true)
