@@ -18,9 +18,9 @@
 
 import {AboutSection} from './AboutSection'
 import {AboutTextHalf} from './AboutTextHalf'
-// @ts-expect-error
-import {IconInfoLine} from '@instructure/ui-icons/es/svg'
+import {IconInfoLine} from '@instructure/ui-icons'
+import {renderIconSvg} from '../../../../renderIconSvg'
 
-const AboutSectionIcon = IconInfoLine?.src
+const AboutSectionIcon = renderIconSvg(IconInfoLine)
 
 export {AboutSection, AboutTextHalf, AboutSectionIcon}

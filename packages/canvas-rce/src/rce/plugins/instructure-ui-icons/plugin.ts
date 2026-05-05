@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {renderIconSvg} from '../../../util/instui-icon-helper'
 import {
   IconArrowOpenDownLine,
   IconAttachMediaLine,
@@ -46,8 +47,7 @@ import {
   IconTextSubscriptLine,
   IconTextSuperscriptLine,
   IconUnderlineLine,
-  // @ts-expect-error
-} from '@instructure/ui-icons/es/svg'
+} from '@instructure/ui-icons'
 import tinymce from 'tinymce'
 
 tinymce.PluginManager.add('instructure-ui-icons', function (editor) {
@@ -170,7 +170,8 @@ tinymce.PluginManager.add('instructure-ui-icons', function (editor) {
     },
   }
   Object.keys(icons).forEach(key => {
-    // @ts-expect-error
-    editor.ui.registry.addIcon(key, icons[key].src)
+    const icon = (icons as Record<string, any>)[key]
+    const svg = typeof icon === 'function' ? renderIconSvg(icon) : icon.src
+    editor.ui.registry.addIcon(key, svg)
   })
 })

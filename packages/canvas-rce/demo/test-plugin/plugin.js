@@ -18,22 +18,23 @@
 
 import formatMessage from '../../src/format-message'
 import clickCallback from './clickCallback'
-import {IconAdminToolsLine} from '@instructure/ui-icons/es/svg'
+import {IconAdminToolsLine} from '@instructure/ui-icons'
+import {renderIconSvg} from '../../src/util/instui-icon-helper'
 
-const RceDemoTest = (ed) => {
+const RceDemoTest = ed => {
   ed.addCommand('RceDemoTest', clickCallback.bind(this, ed, document))
-  ed.ui.registry.addIcon('rce-demo-test', IconAdminToolsLine.src)
+  ed.ui.registry.addIcon('rce-demo-test', renderIconSvg(IconAdminToolsLine))
 
   ed.ui.registry.addButton('rce_demo_test', {
     tooltip: formatMessage('Demo test plugin'),
     onAction: _ => ed.execCommand('RceDemoTest'),
-    icon: 'rce-demo-test'
+    icon: 'rce-demo-test',
   })
 
   ed.ui.registry.addMenuItem('rce_demo_test', {
     text: formatMessage('Demo test plugin'),
     icon: 'rce-demo-test',
-    onAction: () => ed.execCommand('RceDemoTest')
+    onAction: () => ed.execCommand('RceDemoTest'),
   })
 }
 

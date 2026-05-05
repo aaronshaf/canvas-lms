@@ -17,9 +17,9 @@
  */
 
 import formatMessage from '../../../format-message'
+import {renderIconSvg} from '../../../util/instui-icon-helper'
 import clickCallback from './clickCallback'
-// @ts-expect-error
-import {IconEquationLine} from '@instructure/ui-icons/es/svg'
+import {IconEquationLine} from '@instructure/ui-icons'
 import tinymce from 'tinymce'
 
 function isEquationImage(node: Element) {
@@ -31,7 +31,7 @@ function isEquationImage(node: Element) {
 
 // Register plugin
 tinymce.PluginManager.add('instructure_equation', function (ed) {
-  ed.ui.registry.addIcon('equation', IconEquationLine.src)
+  ed.ui.registry.addIcon('equation', renderIconSvg(IconEquationLine))
 
   ed.addCommand('instructureEquation', () => clickCallback(ed, document))
 

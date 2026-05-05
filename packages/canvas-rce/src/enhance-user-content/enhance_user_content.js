@@ -16,7 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {IconDownloadLine} from '@instructure/ui-icons/es/svg'
+import {IconDownloadLine} from '@instructure/ui-icons'
+import {renderIconSvg} from '../util/instui-icon-helper'
 import formatMessage from '../format-message'
 import {closest, getData, hide, insertAfter, setData, show} from './jqueryish_funcs'
 import {isExternalLink, showFilePreview, youTubeID} from './instructure_helper'
@@ -28,8 +29,7 @@ import getTranslations from '../getTranslations'
 import {createOverlay} from './youtube_overlay'
 import {sanitizeUrl} from '../util/sanitizeUrl'
 
-// in jest the es directory doesn't exist so stub the undefined svg
-const IconDownloadSVG = IconDownloadLine?.src || '<svg></svg>'
+const IconDownloadSVG = renderIconSvg(IconDownloadLine)
 
 function makeDownloadButton(download_url, filename) {
   const a = document.createElement('a')

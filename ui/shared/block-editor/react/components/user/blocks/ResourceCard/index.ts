@@ -18,9 +18,9 @@
 
 import {ResourceCard} from './ResourceCard'
 import {type ResourceCardProps} from './types'
-// @ts-expect-error
-import {IconBookmarkLine} from '@instructure/ui-icons/es/svg'
+import {IconBookmarkLine} from '@instructure/ui-icons'
+import {renderIconSvg} from '../../../../renderIconSvg'
 
-const ResourceCardIcon = IconBookmarkLine?.src
+const ResourceCardIcon = renderIconSvg(IconBookmarkLine)
 
 export {ResourceCard, ResourceCardIcon, type ResourceCardProps}

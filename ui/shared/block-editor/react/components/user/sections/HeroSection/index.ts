@@ -16,11 +16,11 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// @ts-expect-error
-import {IconImageLine} from '@instructure/ui-icons/es/svg'
+import {IconImageLine} from '@instructure/ui-icons'
 import {HeroSection} from './HeroSection'
 import {HeroTextHalf} from './HeroTextHalf'
+import {renderIconSvg} from '../../../../renderIconSvg'
 
-const HeroSectionIcon = IconImageLine?.src
+const HeroSectionIcon = renderIconSvg(IconImageLine)
 
 export {HeroSection, HeroTextHalf, HeroSectionIcon}

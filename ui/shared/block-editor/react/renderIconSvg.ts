@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 - present Instructure, Inc.
+ * Copyright (C) 2026 - present Instructure, Inc.
  *
  * This file is part of Canvas.
  *
@@ -16,18 +16,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {IconTableInsertColumnAfterLine} from '@instructure/ui-icons'
-import {ColumnsSection, ColumnsSectionInner} from './ColumnsSection'
-import {type ColumnsSectionProps} from './types'
-import {ColumnsSectionToolbar} from './ColumnsSectionToolbar'
-import {renderIconSvg} from '../../../../renderIconSvg'
+import {createElement} from 'react'
+import {renderToStaticMarkup} from 'react-dom/server'
 
-const ColumnsSectionIcon = renderIconSvg(IconTableInsertColumnAfterLine)
-
-export {
-  ColumnsSection,
-  ColumnsSectionInner,
-  ColumnsSectionToolbar,
-  ColumnsSectionIcon,
-  type ColumnsSectionProps,
+// Emotion injects <style> tags during SSR; SVGIcon needs a raw SVG string
+export function renderIconSvg(IconComponent: React.ComponentType<any>): string {
+  return renderToStaticMarkup(createElement(IconComponent)).replace(
+    /<style\b[^>]*>[\s\S]*?<\/style>/g,
+    '',
+  )
 }

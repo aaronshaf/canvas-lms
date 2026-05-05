@@ -19,9 +19,9 @@
 import {IconBlock} from './IconBlock'
 import {type IconBlockProps} from './types'
 import {IconPicker} from './IconPicker'
-// @ts-expect-error
-import {IconLikeLine} from '@instructure/ui-icons/es/svg'
+import {IconLikeLine} from '@instructure/ui-icons'
+import {renderIconSvg} from '../../../../renderIconSvg'
 
-const IconBlockIcon = IconLikeLine?.src
+const IconBlockIcon = renderIconSvg(IconLikeLine)
 
 export {IconBlock, IconPicker, IconBlockIcon, type IconBlockProps}

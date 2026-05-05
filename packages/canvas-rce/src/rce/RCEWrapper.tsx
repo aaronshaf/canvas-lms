@@ -17,6 +17,7 @@
  */
 
 import React, {ReactNode, Suspense} from 'react'
+import {renderIconSvg} from '../util/instui-icon-helper'
 import {Editor} from '@tinymce/tinymce-react'
 
 import tinymce from 'tinymce'
@@ -24,7 +25,7 @@ import type {Editor as TinyMCEEditor} from 'tinymce'
 import {uniqBy} from 'es-toolkit/compat'
 import {StoreProvider} from './plugins/shared/StoreContext'
 
-import {IconKeyboardShortcutsLine} from '@instructure/ui-icons'
+import {IconKeyboardShortcutsLine, IconMoreSolid} from '@instructure/ui-icons'
 import {Alert} from '@instructure/ui-alerts'
 import {Spinner} from '@instructure/ui-spinner'
 import {View} from '@instructure/ui-view'
@@ -74,8 +75,6 @@ import {
   removePlaceholder,
 } from '../util/loadingPlaceholder'
 import {transformRceContentForEditing} from './transformContent'
-// @ts-expect-error
-import {IconMoreSolid} from '@instructure/ui-icons/es/svg'
 import EncryptedStorage from '../util/encrypted-storage'
 import buildStyle from './style'
 import {
@@ -112,7 +111,7 @@ const DEFAULT_RCE_HEIGHT = '400px'
 function addKebabIcon(editor: TinyMCEEditor) {
   // This has to be done here instead of of in plugins/instructure-ui-icons/plugin.ts
   // presumably because the toolbar gets created before that plugin is loaded?
-  editor.ui.registry.addIcon('more-drawer', IconMoreSolid.src)
+  editor.ui.registry.addIcon('more-drawer', renderIconSvg(IconMoreSolid))
 }
 
 // Get oxide the default skin injected into the DOM before the overrides loaded by themeable
@@ -1445,7 +1444,7 @@ class RCEWrapper extends React.Component<RCEWrapperProps, RCEWrapperState> {
       let i = 0
       let key
       while ((key = this.storage.key(i++))) {
-        if (/^rceautosave:/.test(key)) {
+        if (key.startsWith('rceautosave:')) {
           const autosaved = this.getAutoSaved(key)
           if (autosaved && autosaved.autosaveTimestamp < expiry) {
             this.storage.removeItem(key)

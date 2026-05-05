@@ -19,11 +19,8 @@
 import type {ExternalToolsEnv, RceLtiToolInfo} from './ExternalToolsEnv'
 import {openToolDialogFor} from './dialog-helper'
 import {simpleCache} from '../../../util/simpleCache'
-import {instUiIconsArray} from '../../../util/instui-icon-helper'
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import {IconLtiSolid} from '@instructure/ui-icons/es/svg'
+import {findInstUiIconSvg, renderIconSvg} from '../../../util/instui-icon-helper'
+import {IconLtiSolid} from '@instructure/ui-icons'
 
 export interface ExternalToolMenuItem {
   type: 'menuitem'
@@ -167,18 +164,15 @@ function registerToolIcon(env: ExternalToolsEnv, toolInfo: RceLtiToolInfo): stri
     return iconId
   } else if (iconGlyphName != null && iconGlyphName.length > 0) {
     // InstUI icon used
-    const instUiIcon = instUiIconsArray.find(
-      it => it.variant === 'Line' && it.glyphName === iconGlyphName,
-    )
-
-    if (instUiIcon != null) {
-      env.editor.ui.registry.addIcon(iconId, instUiIcon.src)
+    const svg = findInstUiIconSvg(iconGlyphName, 'Line')
+    if (svg != null) {
+      env.editor.ui.registry.addIcon(iconId, svg)
       return iconId
     }
   }
 
   // Fallback to default icon
-  env.editor.ui.registry.addIcon(iconId, IconLtiSolid.src)
+  env.editor.ui.registry.addIcon(iconId, renderIconSvg(IconLtiSolid))
   return iconId
 }
 

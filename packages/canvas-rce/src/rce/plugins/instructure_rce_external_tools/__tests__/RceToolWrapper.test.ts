@@ -19,9 +19,10 @@
  */
 
 import {addMruToolId, buildToolMenuItems, RceToolWrapper} from '../RceToolWrapper'
+import {renderIconSvg} from '../../../../util/instui-icon-helper'
 import {createDeepMockProxy} from '../../../../util/__tests__/deepMockProxy'
 import {ExternalToolsEditor, externalToolsEnvFor} from '../ExternalToolsEnv'
-import {IconLtiLine, IconLtiSolid} from '@instructure/ui-icons/es/svg'
+import {IconLtiLine, IconLtiSolid} from '@instructure/ui-icons'
 import {externalToolsForToolbar} from '../util/externalToolsForToolbar'
 
 describe('RceExternalToolHelper', () => {
@@ -68,7 +69,10 @@ describe('RceExternalToolHelper', () => {
           },
           [],
         )
-        expect(fakeEditor.ui.registry.addIcon).toHaveBeenCalledWith('lti_tool_b0', IconLtiLine.src)
+        expect(fakeEditor.ui.registry.addIcon).toHaveBeenCalledWith(
+          'lti_tool_b0',
+          renderIconSvg(IconLtiLine),
+        )
         expect(result.iconId).toEqual('lti_tool_b0')
       })
 
@@ -84,7 +88,10 @@ describe('RceExternalToolHelper', () => {
           },
           [],
         )
-        expect(fakeEditor.ui.registry.addIcon).toHaveBeenCalledWith('lti_tool_b0', IconLtiLine.src)
+        expect(fakeEditor.ui.registry.addIcon).toHaveBeenCalledWith(
+          'lti_tool_b0',
+          renderIconSvg(IconLtiLine),
+        )
         expect(result.iconId).toEqual('lti_tool_b0')
       })
 
@@ -100,7 +107,10 @@ describe('RceExternalToolHelper', () => {
           },
           [],
         )
-        expect(fakeEditor.ui.registry.addIcon).toHaveBeenCalledWith('lti_tool_b0', IconLtiLine.src)
+        expect(fakeEditor.ui.registry.addIcon).toHaveBeenCalledWith(
+          'lti_tool_b0',
+          renderIconSvg(IconLtiLine),
+        )
         expect(result.iconId).toEqual('lti_tool_b0')
       })
     })
@@ -115,7 +125,10 @@ describe('RceExternalToolHelper', () => {
       }
 
       const result = new RceToolWrapper(externalToolsEnvFor(fakeEditor), button, [])
-      expect(fakeEditor.ui.registry.addIcon).toHaveBeenCalledWith('lti_tool_b0', IconLtiSolid.src)
+      expect(fakeEditor.ui.registry.addIcon).toHaveBeenCalledWith(
+        'lti_tool_b0',
+        renderIconSvg(IconLtiSolid),
+      )
       expect(result.iconId).toEqual('lti_tool_b0')
     })
 

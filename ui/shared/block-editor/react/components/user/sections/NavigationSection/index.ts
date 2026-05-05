@@ -17,9 +17,9 @@
  */
 
 import {NavigationSection, NavigationSectionInner} from './NavigationSection'
-// @ts-expect-error
-import {IconMarkerLine} from '@instructure/ui-icons/es/svg'
+import {IconMarkerLine} from '@instructure/ui-icons'
+import {renderIconSvg} from '../../../../renderIconSvg'
 
-const NavigationSectionIcon = IconMarkerLine?.src
+const NavigationSectionIcon = renderIconSvg(IconMarkerLine)
 
 export {NavigationSection, NavigationSectionInner, NavigationSectionIcon}

@@ -17,8 +17,8 @@
  */
 
 import formatMessage from '../../../format-message'
-// @ts-expect-error
-import {IconKeyboardShortcutsLine} from '@instructure/ui-icons/es/svg'
+import {renderIconSvg} from '../../../util/instui-icon-helper'
+import {IconKeyboardShortcutsLine} from '@instructure/ui-icons'
 
 // Dynamically import the callback to avoid module resolution issues
 const clickCallbackPromise = import('./clickCallback')
@@ -26,7 +26,7 @@ const clickCallbackPromise = import('./clickCallback')
 // @ts-expect-error: tinymce is available as a global variable
 tinymce.PluginManager.add('instructure_keyboard_shortcuts_header', function (ed: any) {
   // Register custom icon
-  ed.ui.registry.addIcon('keyboard-shortcuts', IconKeyboardShortcutsLine.src)
+  ed.ui.registry.addIcon('keyboard-shortcuts', renderIconSvg(IconKeyboardShortcutsLine))
 
   ed.addCommand('instructureKeyboardShortcuts', () => {
     clickCallbackPromise.then(module => module.default(ed, document))

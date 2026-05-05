@@ -16,11 +16,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {IconExternalLinkLine} from '@instructure/ui-icons/es/svg'
+import {IconExternalLinkLine} from '@instructure/ui-icons'
+import {renderIconSvg} from '../util/instui-icon-helper'
 import {getTld} from './instructure_helper'
 import formatMessage from '../format-message'
 
-const IconExternalLinkSVG = IconExternalLinkLine?.src || '<svg></svg>'
+const IconExternalLinkSVG = renderIconSvg(IconExternalLinkLine)
 
 export function makeExternalLinkIcon(forLink) {
   const dir = (forLink && window.getComputedStyle(forLink).direction) || 'ltr'

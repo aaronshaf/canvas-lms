@@ -17,9 +17,9 @@
  */
 
 import {AnnouncementSection} from './AnnouncementSection'
-// @ts-expect-error
-import {IconAnnouncementSolid} from '@instructure/ui-icons/es/svg'
+import {IconAnnouncementSolid} from '@instructure/ui-icons'
+import {renderIconSvg} from '../../../../renderIconSvg'
 
-const AnnouncementSectionIcon = IconAnnouncementSolid?.src
+const AnnouncementSectionIcon = renderIconSvg(IconAnnouncementSolid)
 
 export {AnnouncementSection, AnnouncementSectionIcon}

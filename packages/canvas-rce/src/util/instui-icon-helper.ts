@@ -16,27 +16,41 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// @ts-expect-error
-import * as rawInstUiIcons from '@instructure/ui-icons/es/svg'
+import {createElement} from 'react'
+import {renderToStaticMarkup} from 'react-dom/server'
+import * as AllIcons from '@instructure/ui-icons'
 
-/**
- * All inst-ui icons as an array.
- *
- * Note that this does require including these all in the built modules, but it appears that they were already
- * present, as testing with and without this didn't yield much difference in module size.
- */
-export const instUiIconsArray = Object.values(rawInstUiIcons) as Array<InstUiIcon>
-
-/**
- * Type for inst ui icons
- */
 export interface InstUiIcon {
   variant: 'Line' | 'Solid'
   glyphName: string
-
-  /**
-   * SVG code for the icon
-   */
   src: string
   deprecated: boolean
+}
+
+// Emotion injects <style> tags during SSR; TinyMCE/SVGIcon need raw SVG strings
+export function renderIconSvg(IconComponent: React.ComponentType<any>): string {
+  return renderToStaticMarkup(createElement(IconComponent)).replace(
+    /<style\b[^>]*>[\s\S]*?<\/style>/g,
+    '',
+  )
+}
+
+// Map of "glyphName:variant" → component, built once on first use (no rendering)
+let _iconMap: Map<string, React.ComponentType<any>> | null = null
+
+function getIconMap(): Map<string, React.ComponentType<any>> {
+  if (!_iconMap) {
+    _iconMap = new Map()
+    for (const val of Object.values(AllIcons) as any[]) {
+      if (typeof val === 'function' && val.glyphName && val.variant) {
+        _iconMap.set(`${val.glyphName}:${val.variant}`, val)
+      }
+    }
+  }
+  return _iconMap
+}
+
+export function findInstUiIconSvg(glyphName: string, variant: 'Line' | 'Solid'): string | null {
+  const IconComponent = getIconMap().get(`${glyphName}:${variant}`)
+  return IconComponent ? renderIconSvg(IconComponent) : null
 }

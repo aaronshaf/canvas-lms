@@ -18,9 +18,9 @@
 
 import {KnowledgeCheckSection} from './KnowledgeCheckSection'
 import {QuizModal} from './QuizModal'
-// @ts-expect-error
-import {IconQuizSolid} from '@instructure/ui-icons/es/svg'
+import {IconQuizSolid} from '@instructure/ui-icons'
+import {renderIconSvg} from '../../../../renderIconSvg'
 
-const KnowledgeCheckSectionIcon = IconQuizSolid?.src
+const KnowledgeCheckSectionIcon = renderIconSvg(IconQuizSolid)
 
 export {KnowledgeCheckSection, QuizModal, KnowledgeCheckSectionIcon}
