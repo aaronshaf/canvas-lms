@@ -23,6 +23,110 @@ module AdheresToPolicy
   # These are temporary wrappers to facilitate transitioning from using {User} objects for permission checks to using
   # {AdheresToPolicy::Principal} objects, which allow for more flexible permission checks.
   module Canvas
+    VALID_LEVELS = %i[raise report count log ignore].freeze
+    # The lenient classes are needed for general backwards compatibility during the transition period with
+    # existing code.
+    # {:principal_as_user} is needed for general backwards compatibility, but should be the first one
+    # investigated and fixed as it uses `method_missing` and thus has a more significant performance impact.
+    # The other non-lenient classes are indications that you missed a callsite when converting some code
+    # to use principals, and should be fixed as part of the conversion, but is still allowed to work in
+    # production in case specs miss it.
+    VALID_CLASSES = %i[default
+                       nested_principal
+                       nil_principal
+                       principal_as_user
+                       principal_as_user_lenient
+                       user_as_principal
+                       user_as_principal_lenient].freeze
+
+    DEFAULT_DEPRECATION_CONFIG = if Rails.env.production?
+                                   Hash.new(:ignore).freeze
+                                 else
+                                   Hash.new(:log).merge(
+                                     {
+                                       nested_principal: :raise,
+                                       nil_principal: :raise,
+                                       user_as_principal: :raise
+                                     }
+                                   ).freeze
+                                 end
+
+    DeprecationFailure = Class.new(StandardError)
+
+    class << self
+      def deprecation_config
+        reset unless instance_variable_defined?(:@deprecation_config)
+        @deprecation_config
+      end
+
+      def deprecation_check(deprecation_class, actual: Principal, expected: ::User)
+        current_level = deprecation_config[deprecation_class]
+
+        return if current_level == :ignore
+
+        message = "AdheresToPolicy: The caller is treating a #{actual} as a #{expected}"
+        raise DeprecationFailure, message if current_level == :raise
+
+        # only log/count/report each unique (within the last 6 stackframes) callsite once per request
+        locations = caller(2, 6)
+        RequestCache.cache([:adheres_to_policy_deprecation_warnings, locations]) do
+          sentry_event = nil
+          if current_level == :report
+            Sentry.with_scope do |scope|
+              scope.set_tags(deprecation_class: deprecation_class.to_s)
+
+              sentry_event = Sentry.capture_message(message, level: :warning)
+            end
+          end
+
+          if %i[report count].include?(current_level)
+            tags = Utils::InstStatsdUtils::Tags.tags_for(::Shard.current)
+                                               .merge(::Canvas::ExecutionContext.to_h)
+                                               .merge(deprecation_class: deprecation_class.to_s)
+            tags[:sentry_event_id] = sentry_event.event_id if sentry_event
+
+            InstStatsd::Statsd.event(
+              message,
+              locations.join("\n"),
+              type: :adheres_to_policy_deprecation,
+              alert_type: :warning,
+              tags:
+            )
+          end
+
+          Rails.logger.warn("#{message}: #{locations.join("\n")}")
+        end
+      end
+
+      private
+
+      def reset
+        settings = YAML.safe_load(::DynamicSettings.find(tree: :private)["adheres_to_policy.yml", failsafe: nil] || "{}")
+        @deprecation_config = if settings["deprecation"]
+                                config = settings["deprecation"].to_h { |k, v| [k.to_sym, v.to_sym] }
+                                config.default = config[:default] || DEFAULT_DEPRECATION_CONFIG[:default]
+                                config
+                              else
+                                DEFAULT_DEPRECATION_CONFIG
+                              end
+        unless (extra_classes = @deprecation_config.keys - VALID_CLASSES).empty?
+          Rails.logger.error("Invalid adheres_to_policy deprecation classes: #{extra_classes.join(", ")}; using defaults")
+          @deprecation_config = DEFAULT_DEPRECATION_CONFIG
+          return
+        end
+        @deprecation_config.each do |k, v|
+          next if VALID_LEVELS.include?(v)
+
+          Rails.logger.error("Invalid adheres_to_policy deprecation level for #{k}: #{v}; using default")
+          @deprecation_config = DEFAULT_DEPRECATION_CONFIG
+          break
+        end
+        @deprecation_config.freeze
+      end
+    end
+
+    ::Canvas::Reloader.on_reload { reset }
+
     module InstanceMethods
       def check_right?(user, ...)
         if !user.is_a?(Principal) &&
@@ -30,6 +134,7 @@ module AdheresToPolicy
             (Rails.env.test? &&
             user.is_a?(RSpec::Mocks::InstanceVerifyingDouble) &&
             user.instance_variable_get(:@doubled_module).send(:object) == ::User))
+          AdheresToPolicy::Canvas.deprecation_check(:user_as_principal_lenient, actual: ::User, expected: Principal)
           # Uses RequestCache to avoid re-creating UserPrincipal objects for the same user repeatedly within a single
           # request, which is a common case when transitioning because permission checks are still passing only a user.
           user = RequestCache.cache(user) do
@@ -43,6 +148,7 @@ module AdheresToPolicy
     module Principal
       module ClassMethods
         def method_missing(...)
+          AdheresToPolicy::Canvas.deprecation_check(:principal_as_user)
           ::User.__send__(...)
         end
 
@@ -54,6 +160,7 @@ module AdheresToPolicy
       def method_missing(...)
         return super unless user
 
+        AdheresToPolicy::Canvas.deprecation_check(:principal_as_user)
         user.__send__(...)
       end
 
@@ -67,13 +174,19 @@ module AdheresToPolicy
       # against the underlying user. Lets `given` blocks written as `self.user == user` continue
       # to work when `user` is now a Principal-wrapped representation of the same underlying user.
       def ==(other)
-        return user == other if other.is_a?(::User)
+        if other.is_a?(::User)
+          AdheresToPolicy::Canvas.deprecation_check(:principal_as_user_lenient)
+          return user == other
+        end
 
         super
       end
 
       def is_a?(klass)
-        return true if klass == ::User
+        if klass == ::User
+          AdheresToPolicy::Canvas.deprecation_check(:principal_as_user_lenient)
+          return true
+        end
 
         super
       end
@@ -84,7 +197,10 @@ module AdheresToPolicy
     module Shard
       module ClassMethods
         def integral_id_for(any_id)
-          any_id = any_id.user if any_id.is_a?(AdheresToPolicy::Principal)
+          if any_id.is_a?(AdheresToPolicy::Principal)
+            AdheresToPolicy::Canvas.deprecation_check(:principal_as_user_lenient)
+            any_id = any_id.user
+          end
           super
         end
       end
@@ -93,7 +209,10 @@ module AdheresToPolicy
     module ActiveRecord
       module BelongsToAssociation
         def replace(record)
-          record = record.user if record.is_a?(AdheresToPolicy::Principal)
+          if record.is_a?(AdheresToPolicy::Principal)
+            AdheresToPolicy::Canvas.deprecation_check(:principal_as_user_lenient)
+            record = record.user
+          end
           super
         end
       end
@@ -106,12 +225,20 @@ module AdheresToPolicy
       # Compare against an AdheresToPolicy::Principal by recursing on the wrapped user, so `given`
       # blocks written as `self.user == user` keep working when `user` arrives as a Principal.
       def ==(other)
-        return super(other.user) if other.is_a?(AdheresToPolicy::Principal)
+        if other.is_a?(AdheresToPolicy::Principal)
+          AdheresToPolicy::Canvas.deprecation_check(:user_as_principal_lenient,
+                                                    actual: ::User,
+                                                    expected: Principal)
+          return super(other.user)
+        end
 
         super
       end
 
       def user
+        AdheresToPolicy::Canvas.deprecation_check(:user_as_principal,
+                                                  actual: ::User,
+                                                  expected: Principal)
         self
       end
     end

@@ -27,8 +27,14 @@ module Canvas
           # a transition state
           case user_or_pseudonym
           when nil
+            ::AdheresToPolicy::Canvas.deprecation_check(:nil_principal,
+                                                        actual: NilClass,
+                                                        expected: ::AdheresToPolicy::Principal)
             nil
           when ::AdheresToPolicy::Principal
+            ::AdheresToPolicy::Canvas.deprecation_check(:nested_principal,
+                                                        actual: ::AdheresToPolicy::Principal,
+                                                        expected: self)
             user_or_pseudonym
           else
             super
@@ -57,7 +63,10 @@ module Canvas
         end
       end
 
-      def cache_key(...) = user.cache_key(...)
+      def cache_key(*args)
+        ::AdheresToPolicy::Canvas.deprecation_check(:principal_as_user_lenient) unless args.empty?
+        user.cache_key(*args)
+      end
 
       def eql?(other)
         other.instance_of?(self.class) &&
