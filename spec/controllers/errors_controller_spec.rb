@@ -76,29 +76,29 @@ describe ErrorsController do
     end
 
     it "does not return nil.id if report creation failed" do
-      expect(ErrorReport).to receive(:where).once.and_raise("failed!")
-      post "create", params: { error: { id: 1 } }, format: "json"
+      allow_any_instance_of(ErrorReport).to receive(:save).and_raise("failed!")
+      post "create", params: { error: { message: "BigError" } }, format: "json"
       expect(response.parsed_body).to eq({ "logged" => true, "id" => nil })
     end
 
     it "does not record the user as nil.id if report creation failed" do
-      expect(ErrorReport).to receive(:where).once.and_raise("failed!")
-      post "create", params: { error: { id: 1 } }
+      allow_any_instance_of(ErrorReport).to receive(:save).and_raise("failed!")
+      post "create", params: { error: { message: "BigError" } }
       expect(ErrorReport.last.user_id).to be_nil
     end
 
     it "records the user if report creation failed" do
       user = User.create!
       user_session(user)
-      expect(ErrorReport).to receive(:where).once.and_raise("failed!")
-      post "create", params: { error: { id: 1 } }
+      allow_any_instance_of(ErrorReport).to receive(:save).and_raise("failed!")
+      post "create", params: { error: { message: "BigError" } }
       expect(ErrorReport.last.user_id).to eq user.id
     end
 
     it "infers user_roles" do
       student_in_course(active_all: true)
       user_session(@student)
-      post "create", params: { error: { id: 1, message: "it broke :(" } }
+      post "create", params: { error: { message: "it broke :(" } }
       assert_recorded_error
       expect(ErrorReport.order(:id).last.data["user_roles"]).to eq("user,student")
     end
@@ -165,6 +165,58 @@ describe ErrorsController do
     it "400s if username is sent" do
       post "create", params: { error: { username: "causes_error" } }
       expect(response).to be_bad_request
+    end
+
+    it "400s if error param is a plain string" do
+      post "create", params: { error: "somestring" }
+      expect(response).to be_bad_request
+    end
+
+    it "passes http_env through to the saved report, including nested values" do
+      post :create,
+           params: {
+             error: {
+               subject: "test error",
+               http_env: { "HTTP_HOST" => "example.com", "rack.session" => { "key" => "value" } }
+             }
+           },
+           format: :json
+      expect(ErrorReport.last.http_env).to include(
+        "HTTP_HOST" => "example.com",
+        "rack.session" => { "key" => "value" }
+      )
+    end
+
+    describe "input filtering" do
+      it "ignores a client-supplied id and creates a new report" do
+        existing = ErrorReport.create!(message: "victim", comments: "untouched")
+        post "create",
+             params: { error: { id: existing.id, message: "attacker", comments: "overwritten" } },
+             format: :json
+        existing.reload
+        expect(existing.message).to eq("victim")
+        expect(existing.comments).to eq("untouched")
+        expect(ErrorReport.count).to be > 1
+      end
+
+      it "filters non-permitted attributes during mass assignment" do
+        other_user = User.create!
+        other_account = Account.create!(name: "tenant b")
+        post "create",
+             params: { error: {
+               message: "ok",
+               user_id: other_user.id,
+               account_id: other_account.id,
+               request_context_id: "client-controlled",
+               during_tests: true
+             } },
+             format: :json
+        report = ErrorReport.last
+        expect(report.user_id).not_to eq(other_user.id)
+        expect(report.account_id).not_to eq(other_account.id)
+        expect(report.request_context_id).not_to eq("client-controlled")
+        expect(report.during_tests).to be_falsey
+      end
     end
 
     describe "captcha validation" do

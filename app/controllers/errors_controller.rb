@@ -99,6 +99,16 @@ class ErrorsController < ApplicationController
     render :index
   end
 
+  CREATE_PERMITTED_FIELDS = %i[subject
+                               url
+                               message
+                               comments
+                               email
+                               user_perceived_severity
+                               context_asset_string
+                               backtrace
+                               category].freeze
+
   # @API Create Error Report
   #
   # Create a new error report documenting an experienced problem
@@ -140,10 +150,19 @@ class ErrorsController < ApplicationController
     increment_request_cost(200)
 
     reporter = @current_user.try(:fake_student?) ? @real_current_user : @current_user
-    error = params[:error]&.to_unsafe_h || {}
 
-    # this is a honeypot field to catch spambots. it's hidden via css and should always be empty.
-    return head(:bad_request) if error.delete(:username).present?
+    # params[:error] can be nil, String, or ActionController::Parameters
+    raw_error = params[:error] || ActionController::Parameters.new
+    return head(:bad_request) if raw_error.is_a?(String)
+
+    # Honeypot field to catch spambots. Hidden via css; should always be empty.
+    # Checked on the raw params before strong-parameter filtering drops it.
+    if raw_error[:username].present?
+      return head(:bad_request)
+    end
+
+    error = raw_error.permit(*CREATE_PERMITTED_FIELDS, http_env: {}).to_h
+    error[:user_roles] = to_unsafe_unknown(raw_error[:user_roles]) if raw_error[:user_roles]
 
     unless Shard.current.in_current_region?
       logger.debug("Out of region error report received")
@@ -152,9 +171,10 @@ class ErrorsController < ApplicationController
 
     error[:user_agent] = request.headers["User-Agent"]
     begin
-      report_id = error.delete(:id)
-      report = ErrorReport.where(id: report_id.to_i).first if report_id.present? && report_id.to_i != 0
-      report ||= ErrorReport.where(id: session.delete(:last_error_id)).first if session[:last_error_id].present?
+      # The client is no longer permitted to target an existing ErrorReport
+      # by id; only the server-side session pointer can resume an in-flight
+      # report.
+      report = ErrorReport.where(id: session.delete(:last_error_id)).first if session[:last_error_id].present?
       report ||= ErrorReport.new
       error.delete(:category) if report.category.present?
       report.user = reporter
@@ -195,4 +215,15 @@ class ErrorsController < ApplicationController
     Setting.get("error_search_enabled", "true") == "true"
   end
   helper_method :error_search_enabled?
+
+  # .permit does not have a clean way to allow different shaped values for the same key
+  def to_unsafe_unknown(value)
+    if value.respond_to?(:to_unsafe_h)
+      value.to_unsafe_h
+    elsif value.respond_to?(:to_unsafe_a)
+      value.to_unsafe_a
+    else
+      value
+    end
+  end
 end
