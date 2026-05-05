@@ -288,11 +288,34 @@ const TRANSLATION_THUNKS: Record<string, TranslationThunk> = {
   // Educator ToDo Widget
   educatorTodoListSpeedGraderButton: () => I18n.t('Open in SpeedGrader'),
   educatorTodoListCompletionRate: (opts: Record<string, unknown> = {}) =>
-    I18n.t('%{rate} of assignments submitted', {
+    I18n.t('%{rate}% of assignments submitted', {
       rate: opts.rate,
     }),
   educatorTodoListViewAllButton: () => I18n.t('Show all'),
   educatorTodoListFailedToLoadItems: () => I18n.t('Failed to load ToDo items'),
+  educatorTodoListNothingToGradeTitle: () => I18n.t('Nothing to grade yet'),
+  educatorTodoListNothingToGradeDescription: () => I18n.t('Submissions will appear here.'),
+  educatorTodoListNothingToReviewTitle: () => I18n.t('Nothing to review'),
+  educatorTodoListNothingToReviewDescription: () => I18n.t('All submissions have been graded.'),
+  educatorTodoListSubmissionFilterLabel: () => I18n.t('Submissions'),
+  educatorTodoListSubmissionFilterAll: () => I18n.t('All'),
+  educatorTodoListSubmissionFilterOnTime: () => I18n.t('On time'),
+  educatorTodoListSubmissionFilterLate: () => I18n.t('Late'),
+  educatorTodoListSubmissionFilterResubmissions: () => I18n.t('Resubmitted'),
+  educatorTodoListSubmissionTagLate: (opts: Record<string, unknown> = {}) =>
+    I18n.t('Late (%{amount})', {
+      amount: opts.amount,
+    }),
+  educatorTodoListSubmissionTagResubmitted: (opts: Record<string, unknown> = {}) =>
+    I18n.t('Resubmitted (%{amount})', {
+      amount: opts.amount,
+    }),
+  educatorTodoListSubmissionTagOnTime: (opts: Record<string, unknown> = {}) =>
+    I18n.t('On time (%{amount})', {
+      amount: opts.amount,
+    }),
+  educatorTodoListCoursesFilterLabel: () => I18n.t('Courses'),
+  educatorTodoListLoadingAriaLabel: () => I18n.t('Loading todo items'),
 
   // Educator ToDo Modal
   educatorTodoListModalLabel: () => I18n.t('Full list of assignments to grade'),
