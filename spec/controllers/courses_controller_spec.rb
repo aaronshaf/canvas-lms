@@ -3110,6 +3110,16 @@ describe CoursesController do
       assert_unauthorized
     end
 
+    context "when course_navigation_and_feature_options_permissions is disabled" do
+      it "denies update when manage_course_content_edit is revoked" do
+        @course.root_account.disable_feature!(:course_navigation_and_feature_options_permissions)
+        @course.root_account.role_overrides.create!(permission: :manage_course_content_edit, role: teacher_role, enabled: false)
+        user_session(@teacher)
+        put "update", params: { id: @course.id, course: { name: "new name" } }
+        assert_unauthorized
+      end
+    end
+
     it "updates course details" do
       user_session(@teacher)
       put "update", params: { id: @course.id, course: { name: "new course name" } }
@@ -3150,11 +3160,217 @@ describe CoursesController do
         expect(response).to be_redirect
       end
 
-      it "denies update when manage_course_details is revoked" do
+      it "strips disallowed fields when manage_course_details is revoked" do
         @course.root_account.role_overrides.create!(permission: :manage_course_details, role: teacher_role, enabled: false)
+        original_name = @course.name
         user_session(@teacher)
-        put "update", params: { id: @course.id, course: { name: "new name" } }
-        assert_unauthorized
+        put "update", params: { id: @course.id, course: { name: "new name" } }, as: :json
+        expect(response).not_to have_http_status(:forbidden)
+        expect(@course.reload.name).to eq(original_name)
+      end
+
+      it "renders unauthorized when user has no relevant permissions" do
+        @course.root_account.role_overrides.create!(permission: :manage_course_details, role: teacher_role, enabled: false)
+        @course.root_account.role_overrides.create!(permission: :manage_course_visibility, role: teacher_role, enabled: false)
+        @course.root_account.settings[:restrict_grading_scheme_editing_to_admins] = true
+        @course.root_account.save!
+        user_session(@teacher)
+        put "update", params: { id: @course.id, course: { name: "new name" } }, as: :json
+        # render_unauthorized_action returns 403 for logged-in JSON requests
+        expect(response).to have_http_status(:forbidden)
+        expect(response.parsed_body["status"]).to eq("unauthorized")
+      end
+
+      it "renders HTML unauthorized page for non-JSON requests" do
+        @course.root_account.role_overrides.create!(permission: :manage_course_details, role: teacher_role, enabled: false)
+        @course.root_account.role_overrides.create!(permission: :manage_course_visibility, role: teacher_role, enabled: false)
+        @course.root_account.settings[:restrict_grading_scheme_editing_to_admins] = true
+        @course.root_account.save!
+        user_session(@teacher)
+        put "update", params: { id: @course.id, course: { name: "new name" }, format: :html }
+        expect(response).to have_http_status(:unauthorized)
+      end
+
+      context "when manage_course_details is revoked but set_grading_scheme is available" do
+        before do
+          @course.root_account.role_overrides.create!(permission: :manage_course_details, role: teacher_role, enabled: false)
+          user_session(@teacher)
+        end
+
+        it "allows updating grading scheme fields" do
+          @standard = @course.grading_standards.create!(title: "course standard", standard_data: { a: { name: "A", value: "95" }, b: { name: "B", value: "80" }, f: { name: "F", value: "" } })
+          put "update", params: { id: @course.id, course: { grading_standard_id: @standard.id, grading_standard_enabled: "1" } }, as: :json
+          expect(response).not_to have_http_status(:forbidden)
+        end
+
+        it "strips non-grading-scheme fields when only set_grading_scheme is available" do
+          original_name = @course.name
+          put "update", params: { id: @course.id, course: { name: "new name", grading_standard_enabled: "1" } }, as: :json
+          expect(response).not_to have_http_status(:forbidden)
+          expect(@course.reload.name).to eq(original_name)
+        end
+      end
+
+      context "when manage_course_details is revoked but manage_course_visibility is available" do
+        before do
+          @course.root_account.role_overrides.create!(permission: :manage_course_details, role: teacher_role, enabled: false)
+          user_session(@teacher)
+        end
+
+        it "allows updating visibility fields" do
+          put "update", params: { id: @course.id, course: { course_visibility: "public", indexed: "1" } }, as: :json
+          expect(response).not_to have_http_status(:forbidden)
+        end
+
+        it "strips non-visibility fields when only manage_course_visibility is available" do
+          original_name = @course.name
+          put "update", params: { id: @course.id, course: { name: "new name", course_visibility: "public" } }, as: :json
+          expect(response).not_to have_http_status(:forbidden)
+          expect(@course.reload.name).to eq(original_name)
+        end
+
+        it "allows updating public_syllabus with manage_course_visibility" do
+          @course.update!(public_syllabus: false)
+          put "update", params: { id: @course.id, course: { public_syllabus: true } }, as: :json
+          expect(response).not_to have_http_status(:forbidden)
+          expect(@course.reload.public_syllabus).to be_truthy
+        end
+
+        it "allows updating public_syllabus_to_auth with manage_course_visibility" do
+          @course.update!(public_syllabus_to_auth: false)
+          put "update", params: { id: @course.id, course: { public_syllabus_to_auth: true } }, as: :json
+          expect(response).not_to have_http_status(:forbidden)
+          expect(@course.reload.public_syllabus_to_auth).to be_truthy
+        end
+      end
+
+      context "when manage_course_visibility is revoked but manage_course_details is available" do
+        before do
+          @course.root_account.role_overrides.create!(permission: :manage_course_visibility, role: teacher_role, enabled: false)
+          user_session(@teacher)
+        end
+
+        it "allows updating non-visibility course detail fields" do
+          put "update", params: { id: @course.id, course: { name: "new name" } }, as: :json
+          expect(response).not_to have_http_status(:forbidden)
+        end
+
+        it "strips visibility fields when manage_course_visibility is revoked" do
+          @course.update!(is_public: false)
+          put "update", params: { id: @course.id, course: { course_visibility: "public" } }, as: :json
+          expect(response).not_to have_http_status(:forbidden)
+          expect(@course.reload.is_public).to be_falsey
+        end
+
+        it "strips public_syllabus when manage_course_visibility is revoked" do
+          @course.update!(public_syllabus: false)
+          put "update", params: { id: @course.id, course: { public_syllabus: true, name: "new name" } }, as: :json
+          expect(response).not_to have_http_status(:forbidden)
+          expect(@course.reload.public_syllabus).to be_falsey
+        end
+
+        it "strips public_syllabus_to_auth when manage_course_visibility is revoked" do
+          @course.update!(public_syllabus_to_auth: false)
+          put "update", params: { id: @course.id, course: { public_syllabus_to_auth: true, name: "new name" } }, as: :json
+          expect(response).not_to have_http_status(:forbidden)
+          expect(@course.reload.public_syllabus_to_auth).to be_falsey
+        end
+      end
+    end
+
+    describe "permission field classification drift guard" do
+      it "classifies every course_params permitted field into a permission bucket" do
+        # Collect the symbols from course_params permit list
+        all_permitted = %i[
+          name
+          group_weighting_scheme
+          start_at
+          conclude_at
+          grading_standard_id
+          grade_passback_setting
+          is_public
+          is_public_to_auth_users
+          allow_student_wiki_edits
+          show_public_context_messages
+          syllabus_body
+          syllabus_course_summary
+          public_description
+          allow_student_forum_attachments
+          allow_student_discussion_topics
+          allow_student_discussion_editing
+          show_total_grade_as_points
+          default_wiki_editing_roles
+          allow_student_organized_groups
+          course_code
+          default_view
+          open_enrollment
+          allow_wiki_comments
+          turnitin_comments
+          self_enrollment
+          license
+          indexed
+          abstract_course
+          storage_quota
+          storage_quota_mb
+          restrict_enrollments_to_course_dates
+          use_rights_required
+          restrict_student_past_view
+          restrict_student_future_view
+          restrict_quantitative_data
+          grading_standard
+          grading_standard_enabled
+          course_grading_standard_enabled
+          locale
+          integration_id
+          hide_final_grades
+          hide_distribution_graphs
+          hide_sections_on_course_users_page
+          lock_all_announcements
+          public_syllabus
+          quiz_engine_selected
+          public_syllabus_to_auth
+          course_format
+          time_zone
+          organize_epub_by_content_type
+          enable_offline_web_export
+          show_announcements_on_home_page
+          home_page_announcement_limit
+          allow_final_grade_override
+          filter_speed_grader_by_student_group
+          homeroom_course
+          template
+          course_color
+          homeroom_course_id
+          sync_enrollments_from_homeroom
+          friendly_name
+          enable_course_paces
+          default_due_time
+          conditional_release
+          post_manually
+          horizon_course
+          career_learning_library_only
+          disable_csp
+          default_student_gradebook_view
+        ].to_set(&:to_s)
+
+        visibility = CoursesController::VISIBILITY_FIELDS
+        grading    = CoursesController::GRADING_FIELDS
+        exempt     = CoursesController::EXEMPT_FIELDS
+        classified = visibility + grading + exempt
+
+        overlap = (visibility & grading).to_a
+        expect(overlap).to be_empty,
+                           "Fields in both VISIBILITY_FIELDS and GRADING_FIELDS: #{overlap.join(", ")}"
+
+        # Every classified field that's in course_params should be accounted for
+        classified_in_params = classified & all_permitted
+        expect(classified_in_params).not_to be_empty
+
+        # Every field in the classified sets that appears in course_params
+        # must actually be in the permit list (no stale entries)
+        stale = (classified - all_permitted - exempt).to_a.reject { |k| k.start_with?("course_visibility", "custom_course_visibility") }
+        expect(stale).to be_empty,
+                         "Classified fields not in course_params permit list (stale?): #{stale.join(", ")}"
       end
     end
 

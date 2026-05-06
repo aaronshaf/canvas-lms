@@ -333,6 +333,69 @@ describe "courses/settings" do
     end
   end
 
+  describe "course_navigation_and_feature_options_permissions feature flag" do
+    before :once do
+      @course.root_account.enable_feature!(:course_navigation_and_feature_options_permissions)
+      RoleOverride.create!(
+        context: @course.account,
+        permission: "manage_course_details",
+        role: teacher_role,
+        enabled: false
+      )
+    end
+
+    before do
+      # Re-enable in the per-example scope so @feature_flag_cache is set on
+      # the exact Account instance that the view will use.
+      @course.root_account.enable_feature!(:course_navigation_and_feature_options_permissions)
+      view_context(@course, @user)
+      assign(:current_user, @user)
+    end
+
+    it "shows the save button when manage_course_details is disabled but manage_course_visibility is enabled" do
+      render
+      doc = Nokogiri::HTML5(response.body)
+      expect(doc.at_css("footer.sticky-footer button[type=submit]")).not_to be_nil
+    end
+
+    it "shows the visibility select when manage_course_details is disabled but manage_course_visibility is enabled" do
+      render
+      doc = Nokogiri::HTML5(response.body)
+      expect(doc.at_css("select#course_course_visibility")).not_to be_nil
+    end
+
+    context "when manage_course_visibility is also disabled" do
+      before :once do
+        RoleOverride.create!(
+          context: @course.account,
+          permission: "manage_course_visibility",
+          role: teacher_role,
+          enabled: false
+        )
+      end
+
+      it "shows the save button because manage_grades is enabled" do
+        render
+        doc = Nokogiri::HTML5(response.body)
+        expect(doc.at_css("footer.sticky-footer button[type=submit]")).not_to be_nil
+      end
+
+      it "enables the grading scheme checkbox because manage_grades is enabled" do
+        render
+        doc = Nokogiri::HTML5(response.body)
+        checkbox = doc.at_css("input#course_course_grading_standard_enabled")
+        expect(checkbox["disabled"]).to be_nil
+      end
+
+      it "renders the visibility select as disabled" do
+        render
+        doc = Nokogiri::HTML5(response.body)
+        select = doc.at_css("select#course_course_visibility")
+        expect(select["disabled"]).to eq("disabled")
+      end
+    end
+  end
+
   describe "course pacing setting" do
     context "with course_pace_enable_from_account_setting ff off" do
       it "is visible" do

@@ -360,6 +360,29 @@ class CoursesController < ApplicationController
   include ObserverEnrollmentsHelper
   include DefaultDueTimeHelper
 
+  # Fields governed by :manage_course_visibility permission
+  VISIBILITY_FIELDS = %w[
+    course_visibility
+    indexed
+    is_public
+    is_public_to_auth_users
+    public_syllabus
+    public_syllabus_to_auth
+    custom_course_visibility
+  ].to_set.freeze
+
+  # Fields governed by :set_grading_scheme permission
+  GRADING_FIELDS = %w[
+    grading_standard_id
+    grading_standard
+    grading_standard_enabled
+    course_grading_standard_enabled
+  ].to_set.freeze
+
+  # Fields handled by their own permission checks elsewhere in #update,
+  # not subject to the three-bucket classification.
+  EXEMPT_FIELDS = %w[event].to_set.freeze
+
   skip_before_action :require_user, only: %i[api_settings
                                              enrollment_invitation
                                              locks
@@ -3353,7 +3376,6 @@ class CoursesController < ApplicationController
     logging_source = api_request? ? :api : :manual
 
     params[:course] ||= {}
-    params_for_update = course_params
     params[:course][:event] = :offer if value_to_boolean(params[:offer])
 
     if params[:course][:event] && params[:course].keys.size == 1
@@ -3374,326 +3396,339 @@ class CoursesController < ApplicationController
       return
     end
 
-    if authorized_action(@course, @current_user, :update_course_details)
-      return render_update_success if params[:for_reload]
+    if @course.root_account.feature_enabled?(:course_navigation_and_feature_options_permissions)
+      return unless enforce_course_details_tab_permissions
+    else
+      return unless authorized_action(@course, @current_user, :update_course_details)
+    end
 
-      unless @course.grants_right?(@current_user, :update)
-        params_for_update = params_for_update.slice(:syllabus_body)
-      end
-      if params_for_update.key?(:syllabus_body)
-        begin
-          params_for_update[:syllabus_body] = process_incoming_html_content(params_for_update[:syllabus_body])
-        rescue Api::Html::UnparsableContentError => e
-          @course.errors.add(:unparsable_content, e.message)
-        end
-      end
-      unless @course.grants_right?(@current_user, :manage_course_visibility)
-        params_for_update.delete(:indexed)
-      end
-      if params_for_update.key?(:template)
-        template = value_to_boolean(params_for_update.delete(:template))
-        if (template && @course.grants_right?(@current_user, session, :add_course_template)) ||
-           (!template && @course.grants_right?(@current_user, session, :delete_course_template))
-          @course.template = template
-        end
-      end
+    params_for_update = course_params
+    if @permission_stripped_keys.present?
+      params_for_update = params_for_update.except(*@permission_stripped_keys)
+    end
+    return render_update_success if params[:for_reload]
 
-      account_id = params[:course].delete :account_id
-      sticky_account_id = params.key?(:override_sis_stickiness) &&
-                          !value_to_boolean(params[:override_sis_stickiness]) &&
-                          @course.stuck_sis_fields.include?(:account_id)
-      if account_id && !sticky_account_id && @course.account.grants_right?(@current_user, session, :manage_courses_admin)
-        account = api_find(Account, account_id)
-        if account && account != @course.account && account.grants_right?(@current_user, session, :manage_courses_admin)
-          @course.account = account
-        end
+    unless @course.grants_right?(@current_user, :update)
+      params_for_update = params_for_update.slice(:syllabus_body)
+    end
+    if params_for_update.key?(:syllabus_body)
+      begin
+        params_for_update[:syllabus_body] = process_incoming_html_content(params_for_update[:syllabus_body])
+      rescue Api::Html::UnparsableContentError => e
+        @course.errors.add(:unparsable_content, e.message)
       end
-
-      root_account_id = params[:course].delete :root_account_id
-      if root_account_id && Account.site_admin.grants_right?(@current_user, session, :manage_courses_admin)
-        @course.root_account = Account.root_accounts.find(root_account_id)
-        @course.account = @course.root_account if @course.account.root_account != @course.root_account
+    end
+    # Legacy guard for FF-off; when FF is on, enforce_course_details_tab_permissions handles this.
+    unless @course.grants_right?(@current_user, :manage_course_visibility)
+      params_for_update.delete(:indexed)
+    end
+    if params_for_update.key?(:template)
+      template = value_to_boolean(params_for_update.delete(:template))
+      if (template && @course.grants_right?(@current_user, session, :add_course_template)) ||
+         (!template && @course.grants_right?(@current_user, session, :delete_course_template))
+        @course.template = template
       end
+    end
 
-      if params[:course].key?(:apply_assignment_group_weights)
-        @course.apply_assignment_group_weights =
-          value_to_boolean params[:course].delete(:apply_assignment_group_weights)
+    account_id = params[:course].delete :account_id
+    sticky_account_id = params.key?(:override_sis_stickiness) &&
+                        !value_to_boolean(params[:override_sis_stickiness]) &&
+                        @course.stuck_sis_fields.include?(:account_id)
+    if account_id && !sticky_account_id && @course.account.grants_right?(@current_user, session, :manage_courses_admin)
+      account = api_find(Account, account_id)
+      if account && account != @course.account && account.grants_right?(@current_user, session, :manage_courses_admin)
+        @course.account = account
       end
-      if params[:course].key?(:group_weighting_scheme)
-        @course.group_weighting_scheme = params[:course].delete(:group_weighting_scheme)
-      end
+    end
 
-      if @course.group_weighting_scheme_changed? && !can_change_group_weighting_scheme?
-        return render_unauthorized_action
-      end
+    root_account_id = params[:course].delete :root_account_id
+    if root_account_id && Account.site_admin.grants_right?(@current_user, session, :manage_courses_admin)
+      @course.root_account = Account.root_accounts.find(root_account_id)
+      @course.account = @course.root_account if @course.account.root_account != @course.root_account
+    end
 
-      term_id_param_was_sent = params[:course][:term_id] || params[:course][:enrollment_term_id]
-      term_id = params[:course].delete(:term_id)
-      enrollment_term_id = params[:course].delete(:enrollment_term_id) || term_id
-      if enrollment_term_id && @course.account.grants_right?(@current_user, session, :manage_courses_admin)
-        enrollment_term = api_find(@course.root_account.enrollment_terms, enrollment_term_id)
-        @course.enrollment_term = enrollment_term if enrollment_term && enrollment_term != @course.enrollment_term
-      end
+    if params_for_update.key?(:apply_assignment_group_weights)
+      @course.apply_assignment_group_weights =
+        value_to_boolean params_for_update.delete(:apply_assignment_group_weights)
+    end
+    if params_for_update.key?(:group_weighting_scheme)
+      @course.group_weighting_scheme = params_for_update.delete(:group_weighting_scheme)
+    end
 
-      if params_for_update.key? :grading_standard_id
-        standard_id = params_for_update.delete :grading_standard_id
-        grading_standard = GradingStandard.for(@course).where(id: standard_id).first if standard_id.present?
-        if grading_standard != @course.grading_standard
-          if standard_id.present?
-            @course.grading_standard = grading_standard if grading_standard
-          else
-            @course.grading_standard = nil
-          end
-        end
-      end
+    if @course.group_weighting_scheme_changed? && !can_change_group_weighting_scheme?
+      return render_unauthorized_action
+    end
 
-      if params_for_update.key?(:grade_passback_setting)
-        grade_passback_setting = params_for_update.delete(:grade_passback_setting)
-        return unless authorized_action?(@course, @current_user, :manage_grades)
+    term_id_param_was_sent = params[:course][:term_id] || params[:course][:enrollment_term_id]
+    term_id = params[:course].delete(:term_id)
+    enrollment_term_id = params[:course].delete(:enrollment_term_id) || term_id
+    if enrollment_term_id && @course.account.grants_right?(@current_user, session, :manage_courses_admin)
+      enrollment_term = api_find(@course.root_account.enrollment_terms, enrollment_term_id)
+      @course.enrollment_term = enrollment_term if enrollment_term && enrollment_term != @course.enrollment_term
+    end
 
-        update_grade_passback_setting(grade_passback_setting)
-      end
-
-      if params_for_update.key?(:post_manually)
-        @course.apply_post_policy!(post_manually: value_to_boolean(params_for_update[:post_manually]))
-
-        # attributes in params_for_update will be applied to the course
-        # since post_manually is not an attribute on the Course model, it needs to be removed
-        params_for_update.delete :post_manually
-      end
-
-      unless @course.account.grants_right? @current_user, session, :manage_storage_quotas
-        params_for_update.delete :storage_quota
-        params_for_update.delete :storage_quota_mb
-      end
-      if !@course.account.grants_right?(@current_user, session, :manage_courses_admin) &&
-         @course.root_account.settings[:prevent_course_renaming_by_teachers]
-        params_for_update.delete :name
-        params_for_update.delete :course_code
-      end
-      if !@course.account.grants_right?(@current_user, session, :manage_courses_admin) &&
-         @course.root_account.settings[:restrict_grading_scheme_editing_to_admins]
-        params_for_update.delete :grading_standard_enabled
-        params_for_update.delete :grading_standard_id
-      end
-      params[:course][:sis_source_id] = params[:course].delete(:sis_course_id) if api_request?
-      if (sis_id = params[:course].delete(:sis_source_id)) &&
-         sis_id != @course.sis_source_id &&
-         @course.root_account.grants_right?(@current_user, session, :manage_sis)
-        @course.sis_source_id = sis_id.presence
-      end
-
-      lock_announcements = params[:course].delete(:lock_all_announcements)
-      unless lock_announcements.nil?
-        if value_to_boolean(lock_announcements)
-          @course.lock_all_announcements = true
-          Announcement.lock_from_course(@course)
-        elsif @course.lock_all_announcements
-          @course.lock_all_announcements = false
-        end
-      end
-
-      if params[:course].key?(:usage_rights_required)
-        @course.usage_rights_required = value_to_boolean(params[:course].delete(:usage_rights_required))
-      end
-
-      if params_for_update.key?(:locale) && params_for_update[:locale].blank?
-        params_for_update[:locale] = nil
-      end
-
-      if params[:course][:event]
-        return unless verified_user_check
-
-        event = params[:course][:event].to_s
-        # check permissions on processable events
-        # allow invalid and non_events to pass through
-        return if %w[offer claim conclude delete undelete].include?(event) &&
-                  !authorized_action(@course, @current_user, permission_for_event(event))
-
-        # authorized, invalid, and non_events are processed
-        unless process_course_event
-          render_update_failure
-          return
-        end
-      end
-
-      color = params[:course][:course_color]
-      if color
-        if color.strip.empty? || color.length == 1
-          @course.course_color = nil
-          params_for_update.delete :course_color
-        elsif valid_hexcode?(color)
-          @course.course_color = normalize_hexcode(color)
-          params_for_update.delete :course_color
+    if params_for_update.key? :grading_standard_id
+      standard_id = params_for_update.delete :grading_standard_id
+      grading_standard = GradingStandard.for(@course).where(id: standard_id).first if standard_id.present?
+      if grading_standard != @course.grading_standard
+        if standard_id.present?
+          @course.grading_standard = grading_standard if grading_standard
         else
-          @course.errors.add(:course_color, t("Invalid hexcode provided"))
+          @course.grading_standard = nil
         end
       end
+    end
 
-      if (default_due_time = params_for_update.delete(:default_due_time))
-        @course.default_due_time = normalize_due_time(default_due_time)
+    if params_for_update.key?(:grade_passback_setting)
+      grade_passback_setting = params_for_update.delete(:grade_passback_setting)
+      return unless authorized_action?(@course, @current_user, :manage_grades)
+
+      update_grade_passback_setting(grade_passback_setting)
+    end
+
+    if params_for_update.key?(:post_manually)
+      @course.apply_post_policy!(post_manually: value_to_boolean(params_for_update[:post_manually]))
+
+      # attributes in params_for_update will be applied to the course
+      # since post_manually is not an attribute on the Course model, it needs to be removed
+      params_for_update.delete :post_manually
+    end
+
+    unless @course.account.grants_right? @current_user, session, :manage_storage_quotas
+      params_for_update.delete :storage_quota
+      params_for_update.delete :storage_quota_mb
+    end
+    if !@course.account.grants_right?(@current_user, session, :manage_courses_admin) &&
+       @course.root_account.settings[:prevent_course_renaming_by_teachers]
+      params_for_update.delete :name
+      params_for_update.delete :course_code
+    end
+    if !@course.account.grants_right?(@current_user, session, :manage_courses_admin) &&
+       @course.root_account.settings[:restrict_grading_scheme_editing_to_admins]
+      params_for_update.delete :grading_standard_enabled
+      params_for_update.delete :grading_standard_id
+    end
+    params[:course][:sis_source_id] = params[:course].delete(:sis_course_id) if api_request?
+    if (sis_id = params[:course].delete(:sis_source_id)) &&
+       sis_id != @course.sis_source_id &&
+       @course.root_account.grants_right?(@current_user, session, :manage_sis)
+      @course.sis_source_id = sis_id.presence
+    end
+
+    lock_announcements = params_for_update.delete(:lock_all_announcements)
+    unless lock_announcements.nil?
+      if value_to_boolean(lock_announcements)
+        @course.lock_all_announcements = true
+        Announcement.lock_from_course(@course)
+      elsif @course.lock_all_announcements
+        @course.lock_all_announcements = false
       end
+    end
 
+    if params[:course].key?(:usage_rights_required) && @course.grants_right?(@current_user, session, :update_course_details)
+      @course.usage_rights_required = value_to_boolean(params[:course].delete(:usage_rights_required))
+    end
+
+    if params_for_update.key?(:locale) && params_for_update[:locale].blank?
+      params_for_update[:locale] = nil
+    end
+
+    if params[:course][:event]
+      return unless verified_user_check
+
+      event = params[:course][:event].to_s
+      # check permissions on processable events
+      # allow invalid and non_events to pass through
+      return if %w[offer claim conclude delete undelete].include?(event) &&
+                !authorized_action(@course, @current_user, permission_for_event(event))
+
+      # authorized, invalid, and non_events are processed
+      unless process_course_event
+        render_update_failure
+        return
+      end
+    end
+
+    color = params_for_update[:course_color]
+    if color
+      if color.strip.empty? || color.length == 1
+        @course.course_color = nil
+        params_for_update.delete :course_color
+      elsif valid_hexcode?(color)
+        @course.course_color = normalize_hexcode(color)
+        params_for_update.delete :course_color
+      else
+        @course.errors.add(:course_color, t("Invalid hexcode provided"))
+      end
+    end
+
+    if (default_due_time = params_for_update.delete(:default_due_time))
+      @course.default_due_time = normalize_due_time(default_due_time)
+    end
+
+    if @course.grants_right?(@current_user, session, :update_course_details)
       update_image(params, "image")
       update_image(params, "banner_image")
+    end
 
-      params_for_update[:conclude_at] = params[:course].delete(:end_at) if api_request? && params[:course].key?(:end_at)
+    if api_request? && params[:course].key?(:end_at) && @course.grants_right?(@current_user, session, :update_course_details)
+      params_for_update[:conclude_at] = params[:course].delete(:end_at)
+    end
 
-      # Remove enrollment dates if "Term" enrollment is specified
-      if params_for_update.key?(:restrict_enrollments_to_course_dates)
-        restrict_enrollments_to_course_dates =
-          value_to_boolean(params_for_update[:restrict_enrollments_to_course_dates])
-        if restrict_enrollments_to_course_dates.nil?
-          unrecognized_message = t("The argument provided is expected to be of type boolean.")
-          @course.errors.add(:restrict_enrollments_to_course_dates, unrecognized_message)
-        end
-      else
-        restrict_enrollments_to_course_dates = @course.restrict_enrollments_to_course_dates
+    # Remove enrollment dates if "Term" enrollment is specified
+    if params_for_update.key?(:restrict_enrollments_to_course_dates)
+      restrict_enrollments_to_course_dates =
+        value_to_boolean(params_for_update[:restrict_enrollments_to_course_dates])
+      if restrict_enrollments_to_course_dates.nil?
+        unrecognized_message = t("The argument provided is expected to be of type boolean.")
+        @course.errors.add(:restrict_enrollments_to_course_dates, unrecognized_message)
       end
-      if @course.enrollment_term && !restrict_enrollments_to_course_dates
-        params_for_update[:start_at] = nil if @course.unpublished?
-        params_for_update[:conclude_at] = nil
+    else
+      restrict_enrollments_to_course_dates = @course.restrict_enrollments_to_course_dates
+    end
+    if @course.enrollment_term && !restrict_enrollments_to_course_dates
+      params_for_update[:start_at] = nil if @course.unpublished?
+      params_for_update[:conclude_at] = nil
+    end
+
+    can_change_csp = @course.can_update_csp_settings?(@current_user, session)
+    disable_csp = params_for_update.delete(:disable_csp)
+    if can_change_csp && !disable_csp.nil?
+      if value_to_boolean(disable_csp)
+        @course.disable_csp!
+      elsif !@course.csp_inherited?
+        @course.inherit_csp!
       end
+    end
 
-      can_change_csp = @course.can_update_csp_settings?(@current_user, session)
-      disable_csp = params_for_update.delete(:disable_csp)
-      if can_change_csp && !disable_csp.nil?
-        if value_to_boolean(disable_csp)
-          @course.disable_csp!
-        elsif !@course.csp_inherited?
-          @course.inherit_csp!
-        end
-      end
+    @default_wiki_editing_roles_was = @course.default_wiki_editing_roles || "teachers"
 
-      @default_wiki_editing_roles_was = @course.default_wiki_editing_roles || "teachers"
+    # Saving master course setting for statsd logging later
+    @old_save_master_course = false
+    @new_save_master_course = false
+    if params[:course].key?(:blueprint)
+      @old_save_master_course = MasterCourses::MasterTemplate.is_master_course?(@course)
+      master_course = value_to_boolean(params[:course].delete(:blueprint))
+      if master_course != MasterCourses::MasterTemplate.is_master_course?(@course)
+        return unless authorized_action(@course.account, @current_user, :manage_master_courses)
 
-      # Saving master course setting for statsd logging later
-      @old_save_master_course = false
-      @new_save_master_course = false
-      if params[:course].key?(:blueprint)
-        @old_save_master_course = MasterCourses::MasterTemplate.is_master_course?(@course)
-        master_course = value_to_boolean(params[:course].delete(:blueprint))
-        if master_course != MasterCourses::MasterTemplate.is_master_course?(@course)
-          return unless authorized_action(@course.account, @current_user, :manage_master_courses)
-
-          message = master_course && why_cant_i_enable_master_course(@course)
-          if message
-            @course.errors.add(:master_course, message)
-          else
-            action = master_course ? "set" : "remove"
-            MasterCourses::MasterTemplate.send(:"#{action}_as_master_course", @course)
-            @new_save_master_course = master_course
-          end
-        end
-      end
-      blueprint_keys = %i[blueprint_restrictions use_blueprint_restrictions_by_object_type blueprint_restrictions_by_object_type]
-      if blueprint_keys.any? { |k| params[:course].key?(k) } && MasterCourses::MasterTemplate.is_master_course?(@course)
-        template = MasterCourses::MasterTemplate.full_template_for(@course)
-
-        if params[:course].key?(:use_blueprint_restrictions_by_object_type)
-          template.use_default_restrictions_by_type = value_to_boolean(params[:course][:use_blueprint_restrictions_by_object_type])
-        end
-
-        if (mc_restrictions = params[:course][:blueprint_restrictions])
-          template.default_restrictions = mc_restrictions.to_unsafe_h.to_h { |k, v| [k.to_sym, value_to_boolean(v)] }
-        end
-
-        if (mc_restrictions_by_type = params[:course][:blueprint_restrictions_by_object_type])
-          parsed_restrictions_by_type = {}
-          mc_restrictions_by_type.to_unsafe_h.each do |type, restrictions|
-            class_name = (type == "quiz") ? "Quizzes::Quiz" : type.camelcase
-            parsed_restrictions_by_type[class_name] = restrictions.to_h { |k, v| [k.to_sym, value_to_boolean(v)] }
-          end
-          template.default_restrictions_by_type = parsed_restrictions_by_type
-        end
-
-        if template.changed?
-          return unless authorized_action(@course.account, @current_user, :manage_master_courses)
-
-          @course.errors.add(:master_course_restrictions, t("Invalid restrictions")) unless template.save
+        message = master_course && why_cant_i_enable_master_course(@course)
+        if message
+          @course.errors.add(:master_course, message)
+        else
+          action = master_course ? "set" : "remove"
+          MasterCourses::MasterTemplate.send(:"#{action}_as_master_course", @course)
+          @new_save_master_course = master_course
         end
       end
+    end
+    blueprint_keys = %i[blueprint_restrictions use_blueprint_restrictions_by_object_type blueprint_restrictions_by_object_type]
+    if blueprint_keys.any? { |k| params[:course].key?(k) } && MasterCourses::MasterTemplate.is_master_course?(@course)
+      template = MasterCourses::MasterTemplate.full_template_for(@course)
 
-      if params.key?(:override_sis_stickiness) && !value_to_boolean(params[:override_sis_stickiness])
-        params_for_update = params_for_update.except(*@course.stuck_sis_fields)
+      if params[:course].key?(:use_blueprint_restrictions_by_object_type)
+        template.use_default_restrictions_by_type = value_to_boolean(params[:course][:use_blueprint_restrictions_by_object_type])
       end
 
-      @course.attributes = params_for_update
-
-      if params[:course][:course_visibility].present? && @course.grants_right?(@current_user, :manage_course_visibility)
-        visibility_configuration(params[:course])
+      if (mc_restrictions = params[:course][:blueprint_restrictions])
+        template.default_restrictions = mc_restrictions.to_unsafe_h.to_h { |k, v| [k.to_sym, value_to_boolean(v)] }
       end
 
-      if params[:course][:homeroom_course].present? && value_to_boolean(params[:course][:homeroom_course]) && @course.enable_course_paces
-        homeroom_message = t("Homeroom Course cannot be used with Course Pacing")
-        @course.errors.add(:homeroom_course, homeroom_message)
-      end
-
-      if params[:course][:enable_course_paces].present? && value_to_boolean(params[:course][:enable_course_paces]) && @course.homeroom_course
-        pacing_message = t("Course Pacing cannot be used with Homeroom Course")
-        @course.errors.add(:enable_course_paces, pacing_message)
-      end
-
-      if params[:course][:horizon_course].present? && !@course.account.feature_enabled?(:horizon_course_setting)
-        horizon_message = t("Canvas Career cannot be set without the feature flag enabled")
-        @course.errors.add(:horizon_course, horizon_message)
-      end
-
-      changes = changed_settings(@course.changes, @course.settings, old_settings)
-      changes.delete(:start_at) if changes.dig(:start_at, 0)&.to_s == changes.dig(:start_at, 1)&.to_s
-      changes.delete(:conclude_at) if changes.dig(:conclude_at, 0)&.to_s == changes.dig(:conclude_at, 1)&.to_s
-      availability_changes = changes.keys & %w[start_at conclude_at restrict_enrollments_to_course_dates]
-      course_availability_changed = availability_changes.present?
-      # allow dates to be dropped if using term dates, even if update is done by someone without permission
-      unless @course.restrict_enrollments_to_course_dates
-        availability_changes -= ["start_at"] if @course.start_at.nil?
-        availability_changes -= ["conclude_at"] if @course.conclude_at.nil?
-      end
-      return if availability_changes.present? && !authorized_action(@course, @current_user, :edit_course_availability)
-
-      # Republish course paces if the course dates have been changed
-      term_changed = (@course.enrollment_term_id != enrollment_term_id) && term_id_param_was_sent
-      if course_availability_changed || term_changed
-        @course.course_paces.find_each(&:create_publish_progress)
-      end
-      disable_conditional_release if changes[:conditional_release]&.last == false
-
-      @course.delay_if_production(priority: Delayed::LOW_PRIORITY).touch_content_if_public_visibility_changed(changes)
-      @course.saving_user = @current_user
-
-      if @course.errors.none? && @course.save
-        Auditors::Course.record_updated(@course, @current_user, changes, source: logging_source)
-        @current_user.touch
-        if params[:update_default_pages]
-          @course.wiki.update_default_wiki_page_roles(@course.default_wiki_editing_roles, @default_wiki_editing_roles_was)
+      if (mc_restrictions_by_type = params[:course][:blueprint_restrictions_by_object_type])
+        parsed_restrictions_by_type = {}
+        mc_restrictions_by_type.to_unsafe_h.each do |type, restrictions|
+          class_name = (type == "quiz") ? "Quizzes::Quiz" : type.camelcase
+          parsed_restrictions_by_type[class_name] = restrictions.to_h { |k, v| [k.to_sym, value_to_boolean(v)] }
         end
-        # Sync homeroom enrollments and participation if enabled and course isn't a SIS import
-        if @course.can_sync_with_homeroom?
-          progress = Progress.new(context: @course, tag: :sync_homeroom_enrollments)
-          progress.user = @current_user
-          progress.reset!
-          progress.process_job(@course, :sync_homeroom_enrollments, { priority: Delayed::LOW_PRIORITY })
-          # Participation sync should be done in the normal request flow, as it only needs to update a couple of
-          # specific fields, delegating that to a job will cause the controller to return the old values, which will
-          # force the user to refresh the page after the job finishes to see the changes
-          @course.sync_homeroom_participation
-        end
-
-        # Increment a log if both master course and course pacing are on
-        if @old_save_master_course == @new_save_master_course
-          if !changes[:enable_course_paces].nil? && changes[:enable_course_paces][1] && MasterCourses::MasterTemplate.is_master_course?(@course)
-            InstStatsd::Statsd.distributed_increment("course.paced.blueprint_course")
-          end
-        elsif @old_save_master_course == false && @new_save_master_course == true
-          if @course.enable_course_paces == true
-            InstStatsd::Statsd.distributed_increment("course.paced.blueprint_course")
-          end
-        end
-
-        render_update_success
-      else
-        render_update_failure
+        template.default_restrictions_by_type = parsed_restrictions_by_type
       end
+
+      if template.changed?
+        return unless authorized_action(@course.account, @current_user, :manage_master_courses)
+
+        @course.errors.add(:master_course_restrictions, t("Invalid restrictions")) unless template.save
+      end
+    end
+
+    if params.key?(:override_sis_stickiness) && !value_to_boolean(params[:override_sis_stickiness])
+      params_for_update = params_for_update.except(*@course.stuck_sis_fields)
+    end
+
+    @course.attributes = params_for_update
+
+    if params[:course][:course_visibility].present? && @course.grants_right?(@current_user, :manage_course_visibility)
+      visibility_configuration(params[:course])
+    end
+
+    if params[:course][:homeroom_course].present? && value_to_boolean(params[:course][:homeroom_course]) && @course.enable_course_paces
+      homeroom_message = t("Homeroom Course cannot be used with Course Pacing")
+      @course.errors.add(:homeroom_course, homeroom_message)
+    end
+
+    if params[:course][:enable_course_paces].present? && value_to_boolean(params[:course][:enable_course_paces]) && @course.homeroom_course
+      pacing_message = t("Course Pacing cannot be used with Homeroom Course")
+      @course.errors.add(:enable_course_paces, pacing_message)
+    end
+
+    if params[:course][:horizon_course].present? && !@course.account.feature_enabled?(:horizon_course_setting)
+      horizon_message = t("Canvas Career cannot be set without the feature flag enabled")
+      @course.errors.add(:horizon_course, horizon_message)
+    end
+
+    changes = changed_settings(@course.changes, @course.settings, old_settings)
+    changes.delete(:start_at) if changes.dig(:start_at, 0)&.to_s == changes.dig(:start_at, 1)&.to_s
+    changes.delete(:conclude_at) if changes.dig(:conclude_at, 0)&.to_s == changes.dig(:conclude_at, 1)&.to_s
+    availability_changes = changes.keys & %w[start_at conclude_at restrict_enrollments_to_course_dates]
+    course_availability_changed = availability_changes.present?
+    # allow dates to be dropped if using term dates, even if update is done by someone without permission
+    unless @course.restrict_enrollments_to_course_dates
+      availability_changes -= ["start_at"] if @course.start_at.nil?
+      availability_changes -= ["conclude_at"] if @course.conclude_at.nil?
+    end
+    return if availability_changes.present? && !authorized_action(@course, @current_user, :edit_course_availability)
+
+    # Republish course paces if the course dates have been changed
+    term_changed = (@course.enrollment_term_id != enrollment_term_id) && term_id_param_was_sent
+    if course_availability_changed || term_changed
+      @course.course_paces.find_each(&:create_publish_progress)
+    end
+    disable_conditional_release if changes[:conditional_release]&.last == false
+
+    @course.delay_if_production(priority: Delayed::LOW_PRIORITY).touch_content_if_public_visibility_changed(changes)
+    @course.saving_user = @current_user
+
+    if @course.errors.none? && @course.save
+      Auditors::Course.record_updated(@course, @current_user, changes, source: logging_source)
+      @current_user.touch
+      if params[:update_default_pages]
+        @course.wiki.update_default_wiki_page_roles(@course.default_wiki_editing_roles, @default_wiki_editing_roles_was)
+      end
+      # Sync homeroom enrollments and participation if enabled and course isn't a SIS import
+      if @course.can_sync_with_homeroom?
+        progress = Progress.new(context: @course, tag: :sync_homeroom_enrollments)
+        progress.user = @current_user
+        progress.reset!
+        progress.process_job(@course, :sync_homeroom_enrollments, { priority: Delayed::LOW_PRIORITY })
+        # Participation sync should be done in the normal request flow, as it only needs to update a couple of
+        # specific fields, delegating that to a job will cause the controller to return the old values, which will
+        # force the user to refresh the page after the job finishes to see the changes
+        @course.sync_homeroom_participation
+      end
+
+      # Increment a log if both master course and course pacing are on
+      if @old_save_master_course == @new_save_master_course
+        if !changes[:enable_course_paces].nil? && changes[:enable_course_paces][1] && MasterCourses::MasterTemplate.is_master_course?(@course)
+          InstStatsd::Statsd.distributed_increment("course.paced.blueprint_course")
+        end
+      elsif @old_save_master_course == false && @new_save_master_course == true
+        if @course.enable_course_paces == true
+          InstStatsd::Statsd.distributed_increment("course.paced.blueprint_course")
+        end
+      end
+
+      render_update_success
+    else
+      render_update_failure
     end
   end
 
@@ -4567,6 +4602,46 @@ class CoursesController < ApplicationController
     end
   end
 
+  # Determines which fields the user lacks permission to update when the
+  # course_navigation_and_feature_options_permissions feature flag is enabled.
+  # Populates @permission_stripped_keys (applied to params_for_update later)
+  # without mutating params[:course]. Returns false (after rendering 401) only
+  # when the user lacks all three relevant permissions; returns true otherwise.
+  def enforce_course_details_tab_permissions
+    has_course_details = @course.grants_right?(@current_user, session, :update_course_details)
+    has_visibility     = @course.grants_right?(@current_user, session, :manage_course_visibility)
+    has_grading_scheme = @course.grants_right?(@current_user, session, :set_grading_scheme)
+
+    unless has_course_details || has_visibility || has_grading_scheme
+      render_unauthorized_action
+      return false
+    end
+
+    keys_to_strip = Set.new
+
+    unless has_visibility
+      VISIBILITY_FIELDS.each { |k| keys_to_strip << k }
+      params[:course].each_key do |k|
+        keys_to_strip << k.to_s if k.to_s.end_with?("_visibility_option")
+      end
+    end
+
+    unless has_grading_scheme
+      GRADING_FIELDS.each { |k| keys_to_strip << k }
+    end
+
+    unless has_course_details
+      special = VISIBILITY_FIELDS + GRADING_FIELDS + EXEMPT_FIELDS
+      params[:course].each_key do |k|
+        ks = k.to_s
+        keys_to_strip << ks unless special.include?(ks) || ks.end_with?("_visibility_option")
+      end
+    end
+
+    @permission_stripped_keys = keys_to_strip
+    true
+  end
+
   def visibility_configuration(params)
     @course.apply_visibility_configuration(params[:course_visibility])
 
@@ -4711,6 +4786,7 @@ class CoursesController < ApplicationController
 
     params[:course].permit(
       :name,
+      :apply_assignment_group_weights,
       :group_weighting_scheme,
       :start_at,
       :conclude_at,

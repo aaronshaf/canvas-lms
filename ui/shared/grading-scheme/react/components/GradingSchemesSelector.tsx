@@ -471,6 +471,7 @@ export const GradingSchemesSelector = ({
                     id={shortid()}
                     value={selectedGradingSchemeId || undefined}
                     onChange={onChangeSelectedGradingScheme}
+                    disabled={!canSet}
                   >
                     <option value="">{defaultSchemeLabel}</option>
                     {gradingSchemeSummaries.map(gradingSchemeSummary => (

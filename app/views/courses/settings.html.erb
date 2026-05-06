@@ -25,14 +25,17 @@
   can_manage = can_do(@context, @current_user, :manage)
   can_edit_course_content = can_do(@context, @current_user, :manage_course_content_edit)
   can_set_grading_scheme = can_do(@context, @current_user, :set_grading_scheme)
+  can_change_visibility = can_do(@context, @current_user, :manage_course_visibility)
 
   if @context&.root_account&.feature_enabled?(:course_navigation_and_feature_options_permissions)
     can_edit_course_details = can_do(@context, @current_user, :manage_course_details)
     can_manage &&= can_edit_course_details
-    can_set_grading_scheme &&= can_edit_course_details
+    can_show_submit_button = can_manage || can_change_visibility || can_set_grading_scheme
   else
     can_manage &&= can_edit_course_content
     can_set_grading_scheme &&= can_edit_course_content
+    can_change_visibility &&= can_manage
+    can_show_submit_button = can_manage
   end
 
   can_manage_courses = can_do(@context.account, @current_user, :manage_courses_admin)
@@ -476,7 +479,7 @@
       </div><div class="form-row course-visibility-row">
         <div class="form-label"><label for="course_visibility"><%= before_label('course_visibility', %{Visibility}) %></label></div>
         <div colspan="3" id="course_visibility">
-          <% if can_manage && can_do(@context, @current_user, :manage_course_visibility) %>
+          <% if can_change_visibility %>
             <span>
               <%= f.select :course_visibility, @context.course_visibility_options.map{ |id, attrs| [attrs[:setting], id] }, {}, {"aria-label" => t("Course Visibility Options")} %>
               <span id="visibility_mount"></span>
@@ -738,7 +741,7 @@
           <% end %>
         </div>
       </div>
-      <% if can_manage %>
+      <% if can_show_submit_button %>
         <footer class="sticky-footer">
           <div>
             <% if Setting.get('cross_root_account_course_moves', 'false') == 'true' &&
