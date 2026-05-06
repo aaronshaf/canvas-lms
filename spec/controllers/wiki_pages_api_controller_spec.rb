@@ -385,6 +385,14 @@ describe WikiPagesApiController, type: :request do
           update_wiki_page(@teacher, @wiki_page, { block_editor_data: })
         end
       end
+
+      context "when block_editor_data is absent (publish-only)" do
+        it "does not call update_block_editor_data" do
+          expect_any_instance_of(WikiPage).not_to receive(:update_block_editor_data)
+
+          update_wiki_page(@teacher, @wiki_page, { published: true })
+        end
+      end
     end
 
     describe "GET #show" do

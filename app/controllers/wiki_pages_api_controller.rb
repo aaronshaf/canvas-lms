@@ -956,6 +956,7 @@ class WikiPagesApiController < ApplicationController
 
   def update_external_content_ref
     return unless @context.account.horizon_block_content_editor?
+    return unless @block_editor_data
 
     @page.update_block_editor_data(user_uuid: @current_user.uuid, data: @block_editor_data)
   end
