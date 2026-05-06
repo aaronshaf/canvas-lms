@@ -72,10 +72,10 @@ module Canvas::OAuth
     # if we can reissue the same token to that client without asking for
     # user permission again. If the developer key is trusted, access
     # tokens will be automatically authorized without prompting the end-
-    # user
+    # user (unless it is commons, which has special legal authorization language)
     def authorized_token?(user, real_user: nil)
       unless self.class.is_oob?(redirect_uri)
-        return true if key.trusted?
+        return true if key.trusted? && !key.commons?
         return true if Token.find_reusable_access_token(user, key, scopes, purpose, real_user:)
       end
 

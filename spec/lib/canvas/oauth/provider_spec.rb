@@ -168,6 +168,27 @@ module Canvas::OAuth
         user.access_tokens.create!(developer_key:, scopes: ["#{TokenScopes::OAUTH2_SCOPE_NAMESPACE}userinfo"], remember_access: true)
         expect(Provider.new(developer_key.id, Canvas::OAuth::Provider::OAUTH2_OOB_URI, ["userinfo"], developer_key.name).authorized_token?(user)).to be false
       end
+
+      context "with a trusted key" do
+        let(:trusted_key) { DeveloperKey.create!(name: "trusted_key", trusted: true) }
+
+        it "returns true without requiring a pre-existing token" do
+          expect(Provider.new(trusted_key.id, "https://example.com", [], trusted_key.name).authorized_token?(user)).to be true
+        end
+
+        context "when the key is the commons developer key" do
+          before { Setting.set("commons_developer_key_id", trusted_key.global_id) }
+
+          it "does not bypass authorization despite being trusted" do
+            expect(Provider.new(trusted_key.id, "https://example.com", [], trusted_key.name).authorized_token?(user)).to be false
+          end
+
+          it "returns true when a reusable access token exists" do
+            user.access_tokens.create!(developer_key: trusted_key, scopes: ["#{TokenScopes::OAUTH2_SCOPE_NAMESPACE}userinfo"], remember_access: true)
+            expect(Provider.new(trusted_key.id, "https://example.com", ["userinfo"], trusted_key.name).authorized_token?(user)).to be true
+          end
+        end
+      end
     end
 
     describe "#can_issue_token?" do

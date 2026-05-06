@@ -515,6 +515,11 @@ class DeveloperKey < ApplicationRecord
     ims_registration.presence || referenced_tool_configuration
   end
 
+  def commons?
+    commons_dk_id = Setting.get("commons_developer_key_id", nil)
+    commons_dk_id.present? && commons_dk_id.to_s == global_id.to_s
+  end
+
   private
 
   def create_lti_registration

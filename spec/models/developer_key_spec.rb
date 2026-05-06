@@ -2027,6 +2027,32 @@ describe DeveloperKey do
     expect { DeveloperKey.default.deactivate }.to raise_error "Please never delete the default developer key"
   end
 
+  describe "#commons?" do
+    let(:key) { DeveloperKey.create! }
+
+    context "when the commons_developer_key_id setting matches the key's global_id" do
+      before { Setting.set("commons_developer_key_id", key.global_id) }
+
+      it "returns true" do
+        expect(key.commons?).to be true
+      end
+    end
+
+    context "when the commons_developer_key_id setting does not match the key's global_id" do
+      before { Setting.set("commons_developer_key_id", key.global_id + 1) }
+
+      it "returns false" do
+        expect(key.commons?).to be false
+      end
+    end
+
+    context "when the commons_developer_key_id setting is not set" do
+      it "returns false" do
+        expect(key.commons?).to be false
+      end
+    end
+  end
+
   describe "issue_token" do
     subject { DeveloperKey.create! }
 

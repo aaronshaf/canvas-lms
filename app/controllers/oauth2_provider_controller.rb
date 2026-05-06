@@ -252,8 +252,7 @@ class OAuth2ProviderController < ApplicationController
   end
 
   def special_confirm_message(provider)
-    commons_dk_id = Setting.get("commons_developer_key_id", nil)
-    if commons_dk_id.present? && commons_dk_id.to_s == provider.key.global_id.to_s
+    if provider.key.commons?
       case provider.redirect_uri
       when /commons\.ca-central\.canvaslms\.com/, /commons-yul-(prod|beta)\.instructure\.com/
         mt "Instructure hosts Canvas Commons in the region chosen by your institution, which is Canada. This means that when you use Canvas Commons your personal data will be stored and processed in Canada. These personal data elements include: name, email address, Canvas User ID, Canvas login name, Canvas Avatar, IP Address, Canvas Commons resources favorited by you, and comments you make to any resources in Canvas Commons. You can find more information about Instructure’s privacy practices [here](%{url}).", url: "https://www.instructure.com/policies/privacy"
