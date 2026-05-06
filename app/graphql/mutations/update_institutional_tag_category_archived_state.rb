@@ -33,7 +33,7 @@ module Mutations
     def resolve(input:)
       root_account = context[:domain_root_account]
       raise GraphQL::ExecutionError, "feature flag is disabled" unless root_account.feature_enabled?(:institutional_tags)
-      raise GraphQL::ExecutionError, "not authorized" unless root_account.grants_right?(current_user, session, :manage_institutional_tags_edit)
+      raise GraphQL::ExecutionError, "not authorized" unless root_account.grants_right?(current_principal, session, :manage_institutional_tags_edit)
 
       category = root_account.institutional_tag_categories.find_by(id: input[:id])
       raise GraphQL::ExecutionError, "not found" unless category

@@ -1264,11 +1264,10 @@ describe Types::DiscussionType do
           }
         }
       GQL
-      CanvasSchema.execute(query,
-                           variables: { "courseId" => course.id.to_s },
-                           context: { current_user: student,
-                                      request: ActionDispatch::TestRequest.create,
-                                      domain_root_account: course.root_account })
+      run_mutation(query,
+                   variables: { "courseId" => course.id.to_s },
+                   current_user: student,
+                   domain_root_account: course.root_account)
     end
 
     let_once(:course) { course_factory(active_all: true) }

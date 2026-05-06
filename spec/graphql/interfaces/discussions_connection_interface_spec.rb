@@ -29,6 +29,10 @@ describe Interfaces::DiscussionsConnectionInterface do
       def initialize(current_user)
         @current_user = current_user
       end
+
+      def current_principal
+        Canvas::AdheresToPolicy::UserPrincipal.new(@current_user) if @current_user
+      end
     end
   end
   let(:test_instance) { test_class.new(@teacher) }

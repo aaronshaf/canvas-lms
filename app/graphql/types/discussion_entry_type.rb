@@ -264,7 +264,7 @@ module Types
     def permissions
       load_association(:discussion_topic).then do
         {
-          loader: Loaders::PermissionsLoader.for(object, current_user:, session:),
+          loader: Loaders::PermissionsLoader.for(object, current_principal:, session:),
           discussion_entry: object
         }
       end
@@ -281,7 +281,7 @@ module Types
     def discussion_entry_versions
       is_course_teacher = object.context.is_a?(Course) && object.context.user_is_instructor?(current_user)
       is_group_teacher = object.context.is_a?(Group) && object.context&.course&.user_is_instructor?(current_user)
-      is_admin = object.context.grants_right?(current_user, session, :read_as_admin)
+      is_admin = object.context.grants_right?(current_principal, session, :read_as_admin)
       return nil unless is_course_teacher || is_group_teacher || is_admin || object.user == current_user
 
       if object.deleted?
@@ -295,7 +295,7 @@ module Types
     def report_type_counts
       is_course_teacher = object.context.is_a?(Course) && object.context.user_is_instructor?(current_user)
       is_group_teacher = object.context.is_a?(Group) && object.context&.course&.user_is_instructor?(current_user)
-      is_admin = object.context.grants_right?(current_user, session, :read_as_admin)
+      is_admin = object.context.grants_right?(current_principal, session, :read_as_admin)
       return nil unless is_course_teacher || is_group_teacher || is_admin
 
       if object.deleted?

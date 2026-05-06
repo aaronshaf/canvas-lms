@@ -31,7 +31,7 @@ class Mutations::UpdateSubmissionGrade < Mutations::BaseMutation
     submission = Submission.find_by(id: input[:submission_id])
     errors = {}
 
-    if submission&.grants_right?(current_user, :grade)
+    if submission&.grants_right?(current_principal, :grade)
       submission.update(score: input[:score])
     else
       errors["submissionId"] = "Not authorized to score Submission"

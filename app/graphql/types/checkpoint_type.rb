@@ -46,7 +46,7 @@ module Types
 
       define_method(field_name) do |apply_overrides:|
         load_association(:context).then do |course|
-          if !apply_overrides && course.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+          if !apply_overrides && course.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
             checkpoint.send(field_name)
           else
             # Due to how assigment overrides are caluclated for teachers/admins in self.overrides_for_assignment_and_user,

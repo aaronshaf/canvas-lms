@@ -43,10 +43,10 @@ module Types
     field :can_edit, Boolean, null: false
     def can_edit
       if object.context_id
-        return object.context.grants_right?(current_user, session, :manage_outcomes)
+        return object.context.grants_right?(current_principal, session, :manage_outcomes)
       end
 
-      Account.site_admin.grants_right?(current_user, session, :manage_global_outcomes)
+      Account.site_admin.grants_right?(current_principal, session, :manage_global_outcomes)
     end
 
     field :child_groups_count, Integer, null: false

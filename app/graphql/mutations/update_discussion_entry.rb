@@ -31,11 +31,11 @@ class Mutations::UpdateDiscussionEntry < Mutations::BaseMutation
   field :discussion_entry, Types::DiscussionEntryType, null: true
   def resolve(input:)
     entry = DiscussionEntry.find(input[:discussion_entry_id])
-    raise ActiveRecord::RecordNotFound unless entry.grants_right?(current_user, session, :read)
-    return validation_error(I18n.t("Insufficient Permissions")) unless entry.grants_right?(current_user, session, :update)
+    raise ActiveRecord::RecordNotFound unless entry.grants_right?(current_principal, session, :read)
+    return validation_error(I18n.t("Insufficient Permissions")) unless entry.grants_right?(current_principal, session, :update)
 
     if input.key?(:pin_type)
-      unless entry.grants_right?(current_user, session, :pin)
+      unless entry.grants_right?(current_principal, session, :pin)
         return validation_error(I18n.t("Insufficient pin permissions"))
       end
 
@@ -48,7 +48,7 @@ class Mutations::UpdateDiscussionEntry < Mutations::BaseMutation
       end
     end
 
-    if input[:file_id].present? && !entry.grants_right?(current_user, session, :attach)
+    if input[:file_id].present? && !entry.grants_right?(current_principal, session, :attach)
       return validation_error(I18n.t("Insufficient attach permissions"))
     end
 

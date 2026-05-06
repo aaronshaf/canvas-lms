@@ -48,7 +48,7 @@ class Mutations::CreateConversation < Mutations::BaseMutation
     context_id = context&.id
     shard = context ? context.shard : Shard.current
 
-    if context.blank? && !@current_user.associated_root_accounts.first.try(:grants_right?, @current_user, session, :read_roster)
+    if context.blank? && !@current_user.associated_root_accounts.first.try(:grants_right?, current_principal, session, :read_roster)
       return validation_error(
         I18n.t("Context cannot be blank"),
         attribute: "context_code"

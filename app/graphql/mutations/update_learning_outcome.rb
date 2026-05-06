@@ -53,7 +53,7 @@ class Mutations::UpdateLearningOutcome < Mutations::BaseLearningOutcomeMutation
   end
 
   def check_permission(outcome)
-    outcome.grants_right? current_user, :update
+    outcome.grants_right? current_principal, :update
   end
 
   def update_rubric_criterion(outcome, input)

@@ -349,7 +349,7 @@ module Types
       return false unless assignment.moderated_grader_limit_reached?
 
       load_association(:context).then do |context|
-        next false unless context.grants_any_right?(current_user, :manage_grades, :view_all_grades)
+        next false unless context.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
         next false if assignment.grades_published?
         next false if assignment.permits_moderation?(current_user)
         next false if assignment.provisional_moderation_graders.where(user: current_user).exists?
@@ -361,7 +361,7 @@ module Types
     field :grading_role, GradingRole, "The grading role of the current user for this assignment. Returns null if the user does not have sufficient grading permissions.", null: true
     def grading_role
       load_association(:context).then do |context|
-        next nil unless context.grants_any_right?(current_user, :manage_grades, :view_all_grades)
+        next nil unless context.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
 
         role = assignment.grading_role(current_user)
         role&.to_s
@@ -380,7 +380,7 @@ module Types
 
       define_method(field_name) do |apply_overrides: true|
         load_association(:context).then do |course|
-          if !apply_overrides && course.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+          if !apply_overrides && course.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
             assignment.send(field_name)
           else
             Loaders::OverrideAssignmentLoader.for(current_user).load(assignment).then(&field_name)
@@ -436,7 +436,7 @@ module Types
                prepare: GraphQLHelpers.relay_or_legacy_id_prepare_func("User")
     end
     def assessment_requests_for_user(user_id:)
-      return nil unless assignment.grants_right?(current_user, session, :grade)
+      return nil unless assignment.grants_right?(current_principal, session, :grade)
 
       Loaders::IDLoader.for(User).load(user_id).then do |assessor|
         next nil unless assessor
@@ -523,7 +523,7 @@ module Types
     end
     def assignment_visibility
       load_association(:context).then do |course|
-        next unless course.grants_any_right?(current_user, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+        next unless course.grants_any_right?(current_principal, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
 
         Loaders::DatesOverridableLoader.for.load(object).then do |assignment|
           Loaders::AssignmentVisibilityLoader.load(assignment)
@@ -653,7 +653,7 @@ module Types
 
     field :needs_grading_count, Int, null: true
     def needs_grading_count
-      return unless assignment.context.grants_right?(current_user, :manage_grades)
+      return unless assignment.context.grants_right?(current_principal, :manage_grades)
 
       Loaders::AssignmentNeedsGradingCountLoader.for(current_user).load(assignment)
     end
@@ -847,7 +847,7 @@ module Types
     field :post_policy, PostPolicyType, null: true
     def post_policy
       load_association(:context).then do |course|
-        if course.grants_right?(current_user, :manage_grades)
+        if course.grants_right?(current_principal, :manage_grades)
           load_association(:post_policy)
         end
       end
@@ -856,7 +856,7 @@ module Types
     field :scheduled_post, ScheduledPostType, null: true
     def scheduled_post
       load_association(:context).then do |course|
-        if course.grants_right?(current_user, :manage_grades)
+        if course.grants_right?(current_principal, :manage_grades)
           load_association(:scheduled_post)
         end
       end
@@ -865,7 +865,7 @@ module Types
     field :score_statistic, AssignmentScoreStatisticType, null: true
     def score_statistic
       load_association(:context).then do |course|
-        if course.grants_right?(current_user, :read_as_admin)
+        if course.grants_right?(current_principal, :read_as_admin)
           load_association(:score_statistic).then do |stat|
             stat if object.can_view_score_statistics?(current_user)
           end
@@ -888,7 +888,7 @@ module Types
     field :sis_id, String, null: true
     def sis_id
       load_association(:context).then do |course|
-        assignment.sis_source_id if course.grants_any_right?(current_user, :read_sis, :manage_sis)
+        assignment.sis_source_id if course.grants_any_right?(current_principal, :read_sis, :manage_sis)
       end
     end
 
@@ -906,7 +906,7 @@ module Types
     field :total_submissions, Int, null: true
     def total_submissions
       load_association(:context).then do |context|
-        if context.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+        if context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
           Loaders::AssignmentLoaders::TotalSubmissionsLoader.load(assignment.id)
         end
       end
@@ -915,7 +915,7 @@ module Types
     field :total_graded_submissions, Int, null: true
     def total_graded_submissions
       load_association(:context).then do |context|
-        if context.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+        if context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
           Loaders::AssignmentLoaders::TotalGradedSubmissionsLoader.load(assignment.id)
         end
       end
@@ -926,7 +926,7 @@ module Types
     end
     def assignment_target_connection(order_by: nil)
       load_association(:context).then do |context|
-        return unless context.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+        return unless context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
 
         scope = assignment.all_assignment_overrides.active
 
@@ -946,7 +946,7 @@ module Types
     field :anonymous_student_identities, [AnonymousStudentIdentityType], null: true
     def anonymous_student_identities
       load_association(:context).then do |context|
-        next nil unless context.grants_right?(current_user, :manage_grades)
+        next nil unless context.grants_right?(current_principal, :manage_grades)
 
         assignment.anonymous_student_identities.values
       end
@@ -1009,7 +1009,7 @@ module Types
       argument :filter, AssignedStudentsFilterInputType, required: false
     end
     def assigned_students(filter: {})
-      return nil unless assignment.context.grants_right?(current_user, :manage_grades)
+      return nil unless assignment.context.grants_right?(current_principal, :manage_grades)
 
       base_scope = assignment.context.participating_students_by_date.not_fake_student
       visible_students_subquery = assignment.context.apply_enrollment_visibility(base_scope, current_user)
@@ -1046,7 +1046,7 @@ module Types
     end
     def allocation_rules
       return nil unless object.is_a?(Assignment)
-      return nil unless assignment.context.grants_right?(current_user, :read_as_admin) &&
+      return nil unless assignment.context.grants_right?(current_principal, :read_as_admin) &&
                         assignment.context.feature_enabled?(:peer_review_allocation_and_grading) &&
                         assignment.peer_reviews
 

@@ -143,7 +143,7 @@ module Types
       return if attachment_access_blocked?(parent)
 
       Loaders::IDLoader.for(Submission).load(submission_id).then do |submission|
-        next unless submission.grants_right?(current_user, session, :read)
+        next unless submission.grants_right?(current_principal, session, :read)
 
         # We are checking first to see if the attachment is associated with the given submission id
         # to potentially avoid needing to load submission histories which is expensive.
@@ -170,7 +170,7 @@ module Types
     # it needs controller state.)
     def attachment_access_blocked?(parent)
       if Account.site_admin.feature_enabled?(:peer_reviewer_locked_file_access) &&
-         parent.is_a?(Submission) && parent.grants_right?(current_user, session, :read)
+         parent.is_a?(Submission) && parent.grants_right?(current_principal, session, :read)
         return false
       end
 
@@ -211,7 +211,7 @@ module Types
 
     def get_canvadoc_url(course, assignment, submission)
       opts = {
-        anonymous_instructor_annotations: assignment.anonymous_instructor_annotations && course.grants_right?(current_user, :manage_grades),
+        anonymous_instructor_annotations: assignment.anonymous_instructor_annotations && course.grants_right?(current_principal, :manage_grades),
         submission_id: submission.id,
         enable_annotations: true,
         enrollment_type: CoursesHelper.user_type(course, current_user)

@@ -72,7 +72,7 @@ module Types
         # this permission matches the REST api, but is probably too strict.
         # students are able to see groups in the canvas ui, so probably should
         # be able to see them here too
-        if set.context.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS)
+        if set.context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS)
           set.groups.active.by_name
         else
           nil
@@ -88,7 +88,7 @@ module Types
         # this permission matches the REST api, but is probably too strict.
         # students are able to see groups in the canvas ui, so probably should
         # be able to see them here too
-        if set.context.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS)
+        if set.context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS)
           set.groups.active.by_name
         else
           nil
@@ -106,7 +106,7 @@ module Types
     field :sis_id, String, null: true
     def sis_id
       load_association(:root_account).then do |root_account|
-        set.sis_source_id if root_account.grants_any_right?(current_user, :read_sis, :manage_sis)
+        set.sis_source_id if root_account.grants_any_right?(current_principal, :read_sis, :manage_sis)
       end
     end
 

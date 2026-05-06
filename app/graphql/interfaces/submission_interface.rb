@@ -239,7 +239,7 @@ module Interfaces::SubmissionInterface
             # Permissions checks are already applied in visible_submission_comments_for
             comments
           else
-            comments.select { |comment| comment.grants_right?(current_user, :read) }
+            comments.select { |comment| comment.grants_right?(current_principal, :read) }
           end
         end
       end
@@ -334,7 +334,7 @@ module Interfaces::SubmissionInterface
   field :ai_grade_result, Types::AiGradeResultType, null: true, description: "The AI grading result for the current submission attempt, if any."
   def ai_grade_result
     load_association(:course).then do |course|
-      next nil unless course.grants_any_right?(current_user, session, :manage_grades, :view_all_grades)
+      next nil unless course.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
 
       load_association(:auto_grade_results).then do |results|
         results.find { |r| r.attempt == (object.attempt || 1) }
@@ -481,7 +481,7 @@ module Interfaces::SubmissionInterface
   def vericite_data
     load_association(:assignment).then do
       next nil unless object.vericite_data(lookup_data: false).present? &&
-                      object.grants_right?(current_user, :view_vericite_report) &&
+                      object.grants_right?(current_principal, :view_vericite_report) &&
                       object.assignment.vericite_enabled
 
       object.vericite_data(lookup_data: false)
@@ -522,7 +522,7 @@ module Interfaces::SubmissionInterface
   field :turnitin_data, [Types::TurnitinDataType], null: true
   def turnitin_data
     load_association(:assignment).then do
-      next nil unless object.grants_right?(current_user, :view_turnitin_report)
+      next nil unless object.grants_right?(current_principal, :view_turnitin_report)
 
       Promise.all(
         [

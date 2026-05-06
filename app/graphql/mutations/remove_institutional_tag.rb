@@ -36,7 +36,7 @@ module Mutations
     def resolve(input:) # rubocop:disable GraphQL/UnusedArgument
       root_account = context[:domain_root_account]
       raise GraphQL::ExecutionError, "feature flag is disabled" unless root_account.feature_enabled?(:institutional_tags)
-      raise GraphQL::ExecutionError, "not authorized" unless root_account.grants_right?(current_user, session, :manage_institutional_tags_edit)
+      raise GraphQL::ExecutionError, "not authorized" unless root_account.grants_right?(current_principal, session, :manage_institutional_tags_edit)
 
       tag = InstitutionalTag.where(root_account_id: root_account.id, workflow_state: "active").find_by(id: input[:tag_id])
       raise GraphQL::ExecutionError, "not found" unless tag

@@ -36,7 +36,12 @@ describe Types::StudyNoteType do
     )
   end
 
-  let(:type) { GraphQLTypeTester.new(@note, current_user: @student, request: ActionDispatch::TestRequest.create) }
+  let(:type) do
+    GraphQLTypeTester.new(@note,
+                          current_user: @student,
+                          current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(@student),
+                          request: ActionDispatch::TestRequest.create)
+  end
 
   it "resolves id fields" do
     expect(type.resolve("_id")).to eq @note.id.to_s
@@ -66,7 +71,7 @@ describe Types::StudyNoteType do
   describe "studyNotesConnection query" do
     def execute_query(course_id:, filter_str: "", user_executing: @student)
       filter_arg = filter_str.empty? ? "" : ", filter: { #{filter_str} }"
-      CanvasSchema.execute(<<~GQL, context: { current_user: user_executing, request: ActionDispatch::TestRequest.create, session: {} })
+      run_mutation(<<~GQL, current_user: user_executing)
         {
           studyNotesConnection(courseId: "#{course_id}"#{filter_arg}) {
             nodes {
@@ -136,7 +141,7 @@ describe Types::StudyNoteType do
     end
 
     it "returns totalCount in pageInfo" do
-      result = CanvasSchema.execute(<<~GQL, context: { current_user: @student, request: ActionDispatch::TestRequest.create, session: {} })
+      result = run_mutation(<<~GQL, current_user: @student)
         {
           studyNotesConnection(courseId: "#{@course.id}", first: 1) {
             nodes { _id }
@@ -158,7 +163,7 @@ describe Types::StudyNoteType do
 
     it "supports cursor-based jump-to-page via `after`" do
       after_cursor = Base64.strict_encode64("1")
-      result = CanvasSchema.execute(<<~GQL, context: { current_user: @student, request: ActionDispatch::TestRequest.create, session: {} })
+      result = run_mutation(<<~GQL, current_user: @student)
         {
           studyNotesConnection(courseId: "#{@course.id}", first: 5, after: "#{after_cursor}") {
             nodes { _id }

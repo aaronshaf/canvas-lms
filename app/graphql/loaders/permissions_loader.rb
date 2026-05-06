@@ -21,15 +21,17 @@
 # this is not a generally useful loader (it should be passed into the
 # CoursePermissionType)
 class Loaders::PermissionsLoader < GraphQL::Batch::Loader
-  def initialize(record, current_user:, session:)
+  attr_reader :current_principal
+
+  def initialize(record, current_principal:, session:)
     super()
     @record = record
-    @current_user = current_user
+    @current_principal = current_principal
     @session = session
   end
 
   def perform(permissions)
-    rights = @record.rights_status(@current_user, @session, *permissions)
+    rights = @record.rights_status(current_principal, @session, *permissions)
     rights.each { |right, perm| fulfill(right, perm) }
   end
 end

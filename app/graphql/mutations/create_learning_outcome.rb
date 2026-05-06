@@ -46,6 +46,6 @@ class Mutations::CreateLearningOutcome < Mutations::BaseLearningOutcomeMutation
   end
 
   def check_permission(outcome)
-    raise GraphQL::ExecutionError, I18n.t("insufficient permission") unless outcome.grants_right? current_user, :create
+    raise GraphQL::ExecutionError, I18n.t("insufficient permission") unless outcome.grants_right? current_principal, :create
   end
 end

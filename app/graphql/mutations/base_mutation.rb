@@ -56,7 +56,7 @@ class Mutations::BaseMutation < GraphQL::Schema::Mutation
   end
 
   def verify_authorized_action!(obj, perm)
-    raise GraphQL::ExecutionError, "not found" unless obj.grants_right?(current_user, session, perm)
+    raise GraphQL::ExecutionError, "not found" unless obj.grants_right?(current_principal, session, perm)
   end
 
   def on_site_admin_domain?
@@ -69,7 +69,7 @@ class Mutations::BaseMutation < GraphQL::Schema::Mutation
   end
 
   def verify_any_authorized_actions!(obj, perms)
-    raise GraphQL::ExecutionError, "not found" unless obj.grants_any_right?(current_user, session, *Array(perms))
+    raise GraphQL::ExecutionError, "not found" unless obj.grants_any_right?(current_principal, session, *Array(perms))
   end
 
   # TODO: replace this with model validation where applicable

@@ -25,7 +25,7 @@ class Mutations::CreateInternalSetting < Mutations::BaseMutation
 
   field :internal_setting, Types::InternalSettingType, null: true
   def resolve(input:)
-    unless Account.site_admin.grants_right?(current_user, :manage_internal_settings) && on_site_admin_domain?
+    unless Account.site_admin.grants_right?(current_principal, :manage_internal_settings) && on_site_admin_domain?
       raise GraphQL::ExecutionError, "insufficient permission"
     end
 

@@ -28,7 +28,7 @@ class Mutations::PostDraftSubmissionComment < Mutations::BaseMutation
     submission_comment = SubmissionComment.find(input[:submission_comment_id])
 
     response = {}
-    if submission_comment.grants_right?(current_user, :update)
+    if submission_comment.grants_right?(current_principal, :update)
       submission_comment.reload unless submission_comment.update(draft: false)
 
       response[:submission_comment] = submission_comment

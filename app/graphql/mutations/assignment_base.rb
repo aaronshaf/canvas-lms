@@ -307,7 +307,7 @@ class Mutations::AssignmentBase::Mutation < Mutations::BaseMutation
 
   def ensure_destroyed
     # check for permissions no matter what
-    raise GraphQL::ExecutionError, "insufficient permission" unless @working_assignment.grants_right? current_user, :delete
+    raise GraphQL::ExecutionError, "insufficient permission" unless @working_assignment.grants_right? current_principal, :delete
 
     # if we are already destroyed, then dont do anything
     return if @working_assignment.workflow_state == "deleted"
@@ -321,7 +321,7 @@ class Mutations::AssignmentBase::Mutation < Mutations::BaseMutation
   def ensure_restored
     # if we are already not destroyed, then dont do anything
     return if @working_assignment.workflow_state != "deleted"
-    raise GraphQL::ExecutionError, "insufficient permission" unless @working_assignment.grants_right? current_user, :delete
+    raise GraphQL::ExecutionError, "insufficient permission" unless @working_assignment.grants_right? current_principal, :delete
 
     @working_assignment.restore
   end

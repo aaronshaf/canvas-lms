@@ -32,7 +32,7 @@ class Mutations::UpdateSubmissionsReadState < Mutations::BaseMutation
     errors = (input[:submission_ids] - found_submission_ids).index_with { "Unable to find Submission" }
 
     submissions.each do |submission|
-      if submission.grants_right?(current_user, :read)
+      if submission.grants_right?(current_principal, :read)
         submission.change_read_state(read_state, current_user)
       else
         errors[submission.id.to_s] = "Not authorized to read Submission"

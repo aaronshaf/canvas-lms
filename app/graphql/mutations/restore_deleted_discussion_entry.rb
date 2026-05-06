@@ -28,8 +28,8 @@ class Mutations::RestoreDeletedDiscussionEntry < Mutations::BaseMutation
 
     return validation_error(I18n.t("Insufficient Permissions")) unless entry.context.feature_enabled?(:restore_discussion_entry)
 
-    raise ActiveRecord::RecordNotFound unless entry.grants_right?(current_user, session, :read)
-    return validation_error(I18n.t("Insufficient Permissions")) unless entry.grants_right?(current_user, session, :update)
+    raise ActiveRecord::RecordNotFound unless entry.grants_right?(current_principal, session, :read)
+    return validation_error(I18n.t("Insufficient Permissions")) unless entry.grants_right?(current_principal, session, :update)
 
     if entry.deleted?
       entry.saving_user = current_user

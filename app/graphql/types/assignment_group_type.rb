@@ -71,7 +71,7 @@ module Types
         visible_enrollments = course.apply_enrollment_visibility(enrollments, current_user)
 
         # slim the scope down further because while students can see other student enrollments, they should not be able to see other student grades
-        unless course.grants_any_right?(current_user, :manage_grades, :read_as_admin)
+        unless course.grants_any_right?(current_principal, :manage_grades, :read_as_admin)
           visible_enrollments = visible_enrollments.where(enrollments: { user_id: current_user[:id] })
         end
         assignment_group.scores.where(enrollment_id: visible_enrollments)
@@ -81,7 +81,7 @@ module Types
     field :sis_id, String, null: true
     def sis_id
       load_association(:context).then do |course|
-        assignment_group.sis_source_id if course.grants_any_right?(current_user, :read_sis, :manage_sis)
+        assignment_group.sis_source_id if course.grants_any_right?(current_principal, :read_sis, :manage_sis)
       end
     end
 

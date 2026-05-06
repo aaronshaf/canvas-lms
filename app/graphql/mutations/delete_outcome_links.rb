@@ -64,9 +64,9 @@ class Mutations::DeleteOutcomeLinks < Mutations::BaseMutation
 
   def can_manage_outcomes?(outcome_link)
     if outcome_link.context.is_a?(LearningOutcomeGroup)
-      Account.site_admin.grants_right?(current_user, session, :manage_global_outcomes)
+      Account.site_admin.grants_right?(current_principal, session, :manage_global_outcomes)
     else
-      outcome_link.context.grants_right?(current_user, session, :manage_outcomes)
+      outcome_link.context.grants_right?(current_principal, session, :manage_outcomes)
     end
   end
 

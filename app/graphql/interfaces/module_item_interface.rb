@@ -55,7 +55,7 @@ module Interfaces::ModuleItemInterface
   field :can_manage_assign_to, Boolean, null: true
   def can_manage_assign_to
     is_differentiable_type = ["Assignment", "Quizzes::Quiz", "WikiPage"].include?(object.class.name) || (object.is_a?(DiscussionTopic) && (object.graded? || (!object.graded? && object.group_category_id.blank?)))
-    object.grants_right?(current_user, :manage_assign_to) && is_differentiable_type
+    object.grants_right?(current_principal, :manage_assign_to) && is_differentiable_type
   end
 
   field :is_locked_by_master_course, Boolean, null: false

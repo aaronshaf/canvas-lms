@@ -66,10 +66,10 @@ class Mutations::MoveOutcomeLinks < Mutations::BaseMutation
 
       if group.context
         raise GraphQL::ExecutionError, I18n.t("Insufficient permission") unless
-          group.context.grants_right?(current_user, session, :manage_outcomes)
+          group.context.grants_right?(current_principal, session, :manage_outcomes)
       else
         raise GraphQL::ExecutionError, I18n.t("Insufficient permission") unless
-          Account.site_admin.grants_right?(current_user, session, :manage_global_outcomes)
+          Account.site_admin.grants_right?(current_principal, session, :manage_global_outcomes)
       end
     end
   end

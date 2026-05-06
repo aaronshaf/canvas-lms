@@ -34,7 +34,7 @@ module Types
 
     field :locked, Boolean, null: false
     def locked
-      !object.context.grants_right?(current_user, :manage_proficiency_calculations)
+      !object.context.grants_right?(current_principal, :manage_proficiency_calculations)
     end
   end
 end

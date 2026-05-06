@@ -36,7 +36,7 @@ module Types
 
     field :locked, Boolean, null: false
     def locked
-      !object.context.grants_right?(current_user, :manage_proficiency_scales)
+      !object.context.grants_right?(current_principal, :manage_proficiency_scales)
     end
 
     field :mastery_points, Float, null: false

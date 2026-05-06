@@ -1461,20 +1461,15 @@ describe Types::UserType do
 
       expect(User).to receive(:preload_shard_associations).once.and_call_original
 
-      CanvasSchema.execute(
-        <<~GQL,
-          query($id1: ID!, $id2: ID!) {
-            u1: node(id: $id1) { ... on User { email } }
-            u2: node(id: $id2) { ... on User { email } }
-          }
-        GQL
-        variables: { id1:, id2: },
-        context: {
-          current_user: @batch_admin,
-          domain_root_account: @course.account.root_account,
-          request: ActionDispatch::TestRequest.create
+      run_mutation(<<~GQL,
+        query($id1: ID!, $id2: ID!) {
+          u1: node(id: $id1) { ... on User { email } }
+          u2: node(id: $id2) { ... on User { email } }
         }
-      )
+      GQL
+                   variables: { id1:, id2: },
+                   current_user: @batch_admin,
+                   domain_root_account: @course.account.root_account)
     end
   end
 

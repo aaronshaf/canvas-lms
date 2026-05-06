@@ -67,7 +67,7 @@ module Interfaces::DiscussionsConnectionInterface
     if is_announcement == true
       # Apply the exact same filtering logic as DiscussionTopicsController#index for announcements
       # For non-admins, apply time constraints just like the official announcements page
-      unless course.grants_any_right?(current_user, :manage, :read_as_admin)
+      unless course.grants_any_right?(current_principal, :manage, :read_as_admin)
         current_time = Time.now.utc
         discussions = discussions.active.where(
           "((unlock_at IS NULL AND delayed_post_at IS NULL) OR (unlock_at<? OR delayed_post_at<?)) AND (lock_at IS NULL OR lock_at>?)",

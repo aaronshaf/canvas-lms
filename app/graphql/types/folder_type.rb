@@ -51,14 +51,14 @@ module Types
 
     field :files, [Types::FileType], null: true
     def files
-      return nil unless object.grants_right?(current_user, :read_contents)
+      return nil unless object.grants_right?(current_principal, :read_contents)
 
       object.active_file_attachments
     end
 
     field :sub_folders, [Types::FolderType], null: true
     def sub_folders
-      return nil unless object.grants_right?(current_user, :read_contents)
+      return nil unless object.grants_right?(current_principal, :read_contents)
 
       object.active_sub_folders
     end
@@ -82,7 +82,7 @@ module Types
 
     field :can_upload, Boolean, null: false
     def can_upload
-      object.grants_right?(current_user, :manage_contents)
+      object.grants_right?(current_principal, :manage_contents)
     end
   end
 end

@@ -53,7 +53,7 @@ module Types
           "The user who will be doing the peer review",
           null: true
     def assessor
-      return unless object.assignment.grants_right?(current_user, :grade)
+      return unless object.assignment.grants_right?(current_principal, :grade)
 
       load_association(:assessor)
     end
@@ -63,7 +63,7 @@ module Types
           "The user who will be receiving the peer review",
           null: true
     def assessee
-      return unless object.assignment.grants_right?(current_user, :grade)
+      return unless object.assignment.grants_right?(current_principal, :grade)
 
       load_association(:assessee)
     end

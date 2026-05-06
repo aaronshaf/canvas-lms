@@ -35,7 +35,7 @@ class Mutations::CreateGroupInSet < Mutations::BaseMutation
 
     if input[:non_collaborative]
       if account&.allow_assign_to_differentiation_tags?
-        raise GraphQL::ExecutionError, "insufficient permissions to create non-collaborative groups" unless set.context&.grants_right?(current_user, session, :manage_tags_add)
+        raise GraphQL::ExecutionError, "insufficient permissions to create non-collaborative groups" unless set.context&.grants_right?(current_principal, session, :manage_tags_add)
       else
         raise GraphQL::ExecutionError, "cannot create non-collaborative groups when the differentiation tags feature flag is disabled"
       end

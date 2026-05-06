@@ -31,7 +31,7 @@ module Mutations
       custom_grade_status = input[:id] ? root_account.custom_grade_statuses.active.find(input[:id]) : CustomGradeStatus.new(root_account:, created_by: current_user)
 
       required_permission = custom_grade_status.new_record? ? :create : :update
-      unless custom_grade_status.grants_right?(current_user, session, required_permission)
+      unless custom_grade_status.grants_right?(current_principal, session, required_permission)
         raise GraphQL::ExecutionError, I18n.t("Insufficient permissions")
       end
 

@@ -32,7 +32,7 @@ class Mutations::CreateAssignment < Mutations::AssignmentBase::Mutation
     @course = Course.find_by(id: course_id)
     @working_assignment = @course.assignments.build if @course
 
-    raise GraphQL::ExecutionError, "invalid course: #{course_id}" unless @working_assignment&.grants_right? current_user, :create
+    raise GraphQL::ExecutionError, "invalid course: #{course_id}" unless @working_assignment&.grants_right? current_principal, :create
 
     # initialize published argument
     @working_assignment.workflow_state = "unpublished"

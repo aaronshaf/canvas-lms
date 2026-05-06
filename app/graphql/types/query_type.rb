@@ -364,7 +364,7 @@ module Types
       description "All internal settings"
     end
     def internal_settings
-      return [] unless Account.site_admin.grants_right?(context[:current_user], context[:session], :manage_internal_settings)
+      return [] unless Account.site_admin.grants_right?(context[:current_principal], context[:session], :manage_internal_settings)
 
       Setting.all
     end

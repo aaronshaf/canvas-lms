@@ -92,11 +92,11 @@ module Types
     def can_edit
       if outcome.context_id
         return outcome_context_promise.then do |context|
-          context.grants_right?(current_user, session, :manage_outcomes)
+          context.grants_right?(current_principal, session, :manage_outcomes)
         end
       end
 
-      Account.site_admin.grants_right?(current_user, session, :manage_global_outcomes)
+      Account.site_admin.grants_right?(current_principal, session, :manage_global_outcomes)
     end
 
     field :can_archive, Boolean, null: false do
@@ -138,7 +138,7 @@ module Types
     end
     def alignments(context_id:, context_type:)
       context = get_context(context_id, context_type)
-      Loaders::OutcomeAlignmentLoader.for(context).load(outcome) if context&.grants_right?(current_user, session, :manage_outcomes)
+      Loaders::OutcomeAlignmentLoader.for(context).load(outcome) if context&.grants_right?(current_principal, session, :manage_outcomes)
     end
 
     private

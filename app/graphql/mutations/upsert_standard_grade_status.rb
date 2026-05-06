@@ -31,7 +31,7 @@ module Mutations
       standard_grade_status = input[:id] ? root_account.standard_grade_statuses.find_by!(id: input[:id], status_name: input[:name]) : StandardGradeStatus.new(root_account:, status_name: input[:name])
 
       required_permission = standard_grade_status.new_record? ? :create : :update
-      unless standard_grade_status.grants_right?(current_user, session, required_permission)
+      unless standard_grade_status.grants_right?(current_principal, session, required_permission)
         raise GraphQL::ExecutionError, I18n.t("Insufficient permissions")
       end
 

@@ -78,7 +78,7 @@ module Types
     def view_group_pages
       Loaders::PermissionsLoader.for(
         object[:discussion_topic].context,
-        current_user:,
+        current_principal:,
         session:
       ).load(:view_group_pages)
     end
@@ -87,7 +87,7 @@ module Types
     def manage_course_content_add
       Loaders::PermissionsLoader.for(
         object[:discussion_topic].context,
-        current_user:,
+        current_principal:,
         session:
       ).load(:manage_course_content_add)
     end
@@ -96,7 +96,7 @@ module Types
     def manage_course_content_edit
       Loaders::PermissionsLoader.for(
         object[:discussion_topic].context,
-        current_user:,
+        current_principal:,
         session:
       ).load(:manage_course_content_edit)
     end
@@ -105,7 +105,7 @@ module Types
     def manage_course_content_delete
       Loaders::PermissionsLoader.for(
         object[:discussion_topic].context,
-        current_user:,
+        current_principal:,
         session:
       ).load(:manage_course_content_delete)
     end
@@ -133,7 +133,7 @@ module Types
         Loaders::AssociationLoader.for(Assignment, :context).load(object[:discussion_topic].assignment).then do
           Loaders::AssociationLoader.for(Course, :enrollment_term).load(object[:discussion_topic].assignment.context).then do
             permission = !object[:discussion_topic].assignment.context.large_roster? && object[:discussion_topic].assignment.published?
-            course_permission_loader = Loaders::PermissionsLoader.for(object[:discussion_topic].assignment.context, current_user:, session:)
+            course_permission_loader = Loaders::PermissionsLoader.for(object[:discussion_topic].assignment.context, current_principal:, session:)
             if object[:discussion_topic].assignment.context.concluded?
               course_permission_loader.load(:read_as_admin).then do |read_as_admin|
                 permission && read_as_admin
@@ -155,7 +155,7 @@ module Types
       return false if object[:discussion_topic].assignment_id.nil?
 
       Loaders::AssociationLoader.for(DiscussionTopic, :assignment).load(object[:discussion_topic]).then do
-        Loaders::PermissionsLoader.for(object[:discussion_topic].assignment, current_user:, session:).load(:grade).then do |can_grade|
+        Loaders::PermissionsLoader.for(object[:discussion_topic].assignment, current_principal:, session:).load(:grade).then do |can_grade|
           object[:discussion_topic].assignment.published? &&
             object[:discussion_topic].assignment.has_peer_reviews? &&
             can_grade
@@ -180,7 +180,7 @@ module Types
 
       Loaders::AssociationLoader.for(DiscussionTopic, :assignment).load(object[:discussion_topic]).then do |assignment|
         Loaders::AssociationLoader.for(Assignment, :rubric).load(assignment).then do |rubric|
-          Loaders::PermissionsLoader.for(assignment, current_user:, session:).load(:update).then do |can_add_rubric|
+          Loaders::PermissionsLoader.for(assignment, current_principal:, session:).load(:update).then do |can_add_rubric|
             rubric.nil? && can_add_rubric
           end
         end
@@ -215,7 +215,7 @@ module Types
 
     field :copy_and_send_to, Boolean, null: true
     def copy_and_send_to
-      Loaders::PermissionsLoader.for(object[:discussion_topic].context, current_user:, session:).load(:read_as_admin)
+      Loaders::PermissionsLoader.for(object[:discussion_topic].context, current_principal:, session:).load(:read_as_admin)
     end
   end
 end

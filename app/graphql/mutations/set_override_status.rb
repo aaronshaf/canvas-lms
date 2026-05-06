@@ -28,7 +28,7 @@ module Mutations
       raise GraphQL::ExecutionError, "custom gradebook statuses feature flag is disabled" unless Account.site_admin.feature_enabled?(:custom_gradebook_statuses)
 
       score = score(input:)
-      unless score.grants_right?(current_user, session, :update_custom_status)
+      unless score.grants_right?(current_principal, session, :update_custom_status)
         raise GraphQL::ExecutionError, I18n.t("Insufficient permissions")
       end
 

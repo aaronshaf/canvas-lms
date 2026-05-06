@@ -60,9 +60,9 @@ module Loaders
     end
 
     class InstitutionalTagsLoader < GraphQL::Batch::Loader
-      def initialize(current_user, session, account_id)
+      def initialize(current_principal, session, account_id)
         super()
-        @current_user = current_user
+        @current_principal = current_principal
         @session = session
         @account_id = account_id
       end
@@ -72,7 +72,7 @@ module Loaders
 
         unless root_account&.root_account? &&
                root_account.feature_enabled?(:institutional_tags) &&
-               root_account.grants_right?(@current_user, @session, :manage_institutional_tags_view)
+               root_account.grants_right?(@current_principal, @session, :manage_institutional_tags_view)
           user_ids.each { |user_id| fulfill(user_id, nil) }
           return
         end
@@ -94,9 +94,9 @@ module Loaders
     end
 
     class DifferentiationTagsLoader < GraphQL::Batch::Loader
-      def initialize(current_user, course_id)
+      def initialize(current_principal, course_id)
         super()
-        @current_user = current_user
+        @current_principal = current_principal
         @course_id = course_id
       end
 
@@ -105,7 +105,7 @@ module Loaders
 
         if course.present? &&
            course.account.allow_assign_to_differentiation_tags? &&
-           course.grants_any_right?(@current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+           course.grants_any_right?(@current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
 
           tags_by_user_id = GroupMembership
                             .active

@@ -128,12 +128,12 @@ module Types
 
     field :can_manage, Boolean, null: true
     def can_manage
-      preload_course_permissions.then { course.grants_right?(current_user, :manage_course_content_edit) }
+      preload_course_permissions.then { course.grants_right?(current_principal, :manage_course_content_edit) }
     end
 
     field :can_read_announcements, Boolean, null: true
     def can_read_announcements
-      preload_course_permissions.then { course.grants_right?(current_user, :read_announcements) }
+      preload_course_permissions.then { course.grants_right?(current_principal, :read_announcements) }
     end
 
     field :image, UrlType, null: true
@@ -174,7 +174,7 @@ module Types
 
     field :can_change_course_publish_state, Boolean, null: true
     def can_change_course_publish_state
-      preload_course_permissions.then { course.grants_right?(current_user, :manage_courses_publish) }
+      preload_course_permissions.then { course.grants_right?(current_principal, :manage_courses_publish) }
     end
 
     field :default_view, String, null: true

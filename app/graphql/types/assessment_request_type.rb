@@ -34,7 +34,7 @@ module Types
       load_association(:asset).then do |submission|
         Loaders::AssociationLoader.for(Submission, :assignment).load(submission).then do |assignment|
           Loaders::AssociationLoader.for(Assignment, :context).load(assignment).then do |_context|
-            if object.grants_right?(current_user, session, :read_assessment_user)
+            if object.grants_right?(current_principal, session, :read_assessment_user)
               load_association(:user)
             end
           end

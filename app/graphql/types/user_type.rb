@@ -153,12 +153,12 @@ module Types
       # In course context, skip expensive object.grants_right? that loads all user enrollments.
       preload_shard_associations.then do
         domain_root_account = context[:domain_root_account]
-        unless domain_root_account.grants_right?(context[:current_user], :read_email_addresses)
+        unless domain_root_account.grants_right?(context[:current_principal], :read_email_addresses)
           course = context[:course]
           has_permission = if course
-                             course.grants_right?(context[:current_user], :read_email_addresses)
+                             course.grants_right?(context[:current_principal], :read_email_addresses)
                            else
-                             object.grants_right?(context[:current_user], :read_email_addresses)
+                             object.grants_right?(context[:current_principal], :read_email_addresses)
                            end
 
           next nil unless has_permission
@@ -180,12 +180,12 @@ module Types
       # In course context, skip expensive object.grants_any_right? that loads all user enrollments.
       preload_shard_associations.then do
         domain_root_account = context[:domain_root_account]
-        unless domain_root_account.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+        unless domain_root_account.grants_any_right?(context[:current_principal], :read_sis, :manage_sis)
           course = context[:course]
           has_permission = if course
-                             course.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+                             course.grants_any_right?(context[:current_principal], :read_sis, :manage_sis)
                            else
-                             object.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+                             object.grants_any_right?(context[:current_principal], :read_sis, :manage_sis)
                            end
 
           next nil unless has_permission
@@ -210,12 +210,12 @@ module Types
       # In course context, skip expensive object.grants_any_right? that loads all user enrollments.
       preload_shard_associations.then do
         domain_root_account = context[:domain_root_account]
-        unless domain_root_account.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+        unless domain_root_account.grants_any_right?(context[:current_principal], :read_sis, :manage_sis)
           course = context[:course]
           has_permission = if course
-                             course.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+                             course.grants_any_right?(context[:current_principal], :read_sis, :manage_sis)
                            else
-                             object.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+                             object.grants_any_right?(context[:current_principal], :read_sis, :manage_sis)
                            end
 
           next nil unless has_permission
@@ -277,7 +277,7 @@ module Types
     def login_id
       course = context[:course]
       return nil unless course
-      return nil unless course.grants_right?(current_user, session, :view_user_logins)
+      return nil unless course.grants_right?(current_principal, session, :view_user_logins)
 
       load_association(:pseudonyms).then do
         pseudonym = SisPseudonym.for(
@@ -307,7 +307,7 @@ module Types
       ).load(object.id).then do |enrollments|
         (enrollments || []).select do |enrollment|
           object == context[:current_user] ||
-            enrollment.grants_right?(context[:current_user], context[:session], :read)
+            enrollment.grants_right?(context[:current_principal], context[:session], :read)
         end
       end
     end
@@ -351,8 +351,8 @@ module Types
     end
     def enrollments_connection(course_id: nil, course_ids: nil, current_only: false, order_by: [], exclude_concluded: false, horizon_courses: nil, sort: {}, enrollment_types: nil)
       unless object == current_user ||
-             object.grants_right?(current_user, session, :read_profile) ||
-             object.grants_right?(current_user, session, :read)
+             object.grants_right?(current_principal, session, :read_profile) ||
+             object.grants_right?(current_principal, session, :read)
         return Enrollment.none
       end
 
@@ -360,7 +360,7 @@ module Types
 
       if object != current_user
         domain_root_account = context[:domain_root_account]
-        has_manage_students = domain_root_account&.grants_right?(current_user, session, :manage_students)
+        has_manage_students = domain_root_account&.grants_right?(current_principal, session, :manage_students)
 
         if has_manage_students
           enrollments = enrollments.where(root_account_id: domain_root_account.id)
@@ -433,7 +433,7 @@ module Types
 
     field :notification_preferences, NotificationPreferencesType, null: true
     def notification_preferences
-      return nil unless object.grants_all_rights?(context[:current_user], :read_profile, :read_email_addresses)
+      return nil unless object.grants_all_rights?(context[:current_principal], :read_profile, :read_email_addresses)
 
       Loaders::AssociationLoader.for(User, :communication_channels).load(object).then do |comm_channels|
         {
@@ -597,7 +597,7 @@ module Types
       argument :course_id, ID, required: true, prepare: GraphQLHelpers.relay_or_legacy_id_prepare_func("Course")
     end
     def differentiation_tags_connection(course_id: nil)
-      Loaders::UserLoaders::DifferentiationTagsLoader.for(current_user, course_id).load(object.id)
+      Loaders::UserLoaders::DifferentiationTagsLoader.for(current_principal, course_id).load(object.id)
     end
 
     # TODO: deprecate this
@@ -1007,7 +1007,7 @@ module Types
       target_user = object
       course = context[:course]
       return if course.nil?
-      return unless course.grants_right?(current_user, session, :view_all_grades) || target_user.grants_right?(current_user, session, :read)
+      return unless course.grants_right?(current_principal, session, :view_all_grades) || target_user.grants_right?(current_principal, session, :read)
 
       progress = CourseProgress.new(context[:course], object, read_only: true)
       return unless progress.can_evaluate_progression?
@@ -1032,7 +1032,7 @@ module Types
       assignment = Assignment.find_by(id: assignment_id)
       return nil unless assignment
 
-      return nil unless assignment.grants_right?(current_user, :grade) &&
+      return nil unless assignment.grants_right?(current_principal, :grade) &&
                         assignment.context.feature_enabled?(:peer_review_allocation_and_grading) &&
                         assignment.peer_reviews
 
@@ -1059,7 +1059,7 @@ module Types
                prepare: GraphQLHelpers.relay_or_legacy_id_prepare_func("Account")
     end
     def institutional_tags_connection(account_id:)
-      Loaders::UserLoaders::InstitutionalTagsLoader.for(current_user, session, account_id).load(object.id)
+      Loaders::UserLoaders::InstitutionalTagsLoader.for(current_principal, session, account_id).load(object.id)
     end
   end
 end

@@ -46,12 +46,12 @@ module Types
 
     field :can_message, Boolean, null: false
     def can_message
-      group.grants_right?(current_user, :send_messages)
+      group.grants_right?(current_principal, :send_messages)
     end
 
     field :members_connection, GroupMembershipType.connection_type, null: true
     def members_connection
-      if group.grants_right?(current_user, :read_roster)
+      if group.grants_right?(current_principal, :read_roster)
         members_scope
       end
     end
@@ -63,7 +63,7 @@ module Types
                required: true
     end
     def member(user_id:)
-      if group.grants_right?(current_user, :read_roster)
+      if group.grants_right?(current_principal, :read_roster)
         members_scope.then do |m|
           Loaders::ForeignKeyLoader.for(m, :user_id).load(user_id)
                                    .then { |memberships| memberships&.first }
@@ -74,7 +74,7 @@ module Types
     field :sis_id, String, null: true
     def sis_id
       load_association(:root_account).then do |root_account|
-        group.sis_source_id if root_account.grants_any_right?(current_user, :read_sis, :manage_sis)
+        group.sis_source_id if root_account.grants_any_right?(current_principal, :read_sis, :manage_sis)
       end
     end
 
@@ -93,7 +93,7 @@ module Types
     field :group_category, GroupSetType, null: true
     def group_category
       Loaders::AssociationLoader.for(Group, :group_category).load(object).then do |group_category|
-        group_category if group_category&.grants_any_right?(current_user, :read, :manage)
+        group_category if group_category&.grants_any_right?(current_principal, :read, :manage)
       end
     end
 

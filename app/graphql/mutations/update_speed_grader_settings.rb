@@ -24,7 +24,7 @@ class Mutations::UpdateSpeedGraderSettings < Mutations::BaseMutation
   field :speed_grader_settings, Types::SpeedGraderSettingsType, null: false
 
   def resolve(input:)
-    unless current_user.grants_right?(current_user, :update_speed_grader_settings)
+    unless current_user.grants_right?(current_principal, :update_speed_grader_settings)
       raise GraphQL::ExecutionError, "Not authorized to update speed grader settings"
     end
 

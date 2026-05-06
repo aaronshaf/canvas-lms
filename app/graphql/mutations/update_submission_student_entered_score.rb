@@ -31,7 +31,7 @@ class Mutations::UpdateSubmissionStudentEnteredScore < Mutations::BaseMutation
 
     if submission.nil?
       errors = { message: I18n.t("Submission not found") }
-    elsif submission.grants_right?(current_user, :read)
+    elsif submission.grants_right?(current_principal, :read)
       submission.student_entered_score = entered_score
       submission.save!
     else

@@ -27,7 +27,7 @@ module Mutations
 
       custom_grade_status = CustomGradeStatus.active.find(input[:id])
 
-      unless custom_grade_status.grants_right?(current_user, session, :delete)
+      unless custom_grade_status.grants_right?(current_principal, session, :delete)
         raise GraphQL::ExecutionError, I18n.t("Insufficient permissions")
       end
 

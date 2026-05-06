@@ -27,7 +27,7 @@ class Mutations::UpdateDiscussionThreadReadState < Mutations::BaseMutation
   field :discussion_entry, Types::DiscussionEntryType, null: false
   def resolve(input:)
     root_entry = DiscussionEntry.find(input[:discussion_entry_id])
-    raise GraphQL::ExecutionError, "not found" unless root_entry.grants_right?(current_user, session, :read)
+    raise GraphQL::ExecutionError, "not found" unless root_entry.grants_right?(current_principal, session, :read)
 
     read_state = input[:read] ? "read" : "unread"
 

@@ -34,7 +34,7 @@ class Mutations::UpdateSubmissionSticker < Mutations::BaseMutation
       anonymous_id: input.fetch(:anonymous_id)
     )
 
-    raise GraphQL::ExecutionError, "not found" if submission.nil? || !submission.grants_right?(current_user, :grade)
+    raise GraphQL::ExecutionError, "not found" if submission.nil? || !submission.grants_right?(current_principal, :grade)
     raise GraphQL::ExecutionError, "Stickers feature flag must be enabled" unless submission.course.feature_enabled?(:submission_stickers)
 
     if submission.update(sticker: input.fetch(:sticker))

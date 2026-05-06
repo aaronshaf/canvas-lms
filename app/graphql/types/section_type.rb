@@ -40,7 +40,7 @@ module Types
     field :sis_id, String, null: true
     def sis_id
       load_association(:course).then do |course|
-        section.sis_source_id if course.grants_any_right?(current_user, :read_sis, :manage_sis)
+        section.sis_source_id if course.grants_any_right?(current_principal, :read_sis, :manage_sis)
       end
     end
 

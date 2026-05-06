@@ -241,7 +241,7 @@ module Types
     field :outcome_alignment_stats, CourseOutcomeAlignmentStatsType, null: true
     def outcome_alignment_stats
       preload_course_permissions.then do
-        Loaders::CourseOutcomeAlignmentStatsLoader.load(course) if course&.grants_right?(current_user, session, :manage_outcomes)
+        Loaders::CourseOutcomeAlignmentStatsLoader.load(course) if course&.grants_right?(current_principal, session, :manage_outcomes)
       end
     end
 
@@ -384,7 +384,7 @@ module Types
       context.scoped_merge!(course:)
       preload_course_permissions.then do
         next nil unless course.grants_any_right?(
-          current_user,
+          current_principal,
           session,
           :read_roster,
           :view_all_grades,
@@ -426,9 +426,9 @@ module Types
     end
     def submissions_connection(student_ids: nil, order_by: [], filter: {})
       allowed_user_ids_promise = preload_course_permissions.then do
-        if course.grants_any_right?(current_user, session, :manage_grades, :view_all_grades)
+        if course.grants_any_right?(current_principal, session, :manage_grades, :view_all_grades)
           Loaders::CourseVisibleStudentUserIdsLoader.for(current_user:).load(course)
-        elsif course.grants_right?(current_user, session, :read_grades)
+        elsif course.grants_right?(current_principal, session, :read_grades)
           Promise.resolve([current_user.id])
         else
           Promise.resolve([])
@@ -481,11 +481,11 @@ module Types
     end
     def groups_connection(include_non_collaborative: false)
       preload_course_permissions.then do
-        show_non_collaborative = include_non_collaborative && course&.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+        show_non_collaborative = include_non_collaborative && course&.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
         groups_scope = show_non_collaborative ? course.combined_groups_and_differentiation_tags.active : course.active_groups
 
         # TODO: share this with accounts when groups are added there
-        if course.grants_right?(current_user, session, :read_roster)
+        if course.grants_right?(current_principal, session, :read_roster)
           groups_scope
             .order(GroupCategory::Bookmarker.order_by, Group::Bookmarker.order_by)
             .eager_load(:group_category)
@@ -497,8 +497,8 @@ module Types
       return [] unless course
 
       # Check user permissions
-      can_manage_groups = course&.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS)
-      can_manage_tags   = course&.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
+      can_manage_groups = course&.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS)
+      can_manage_tags   = course&.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
 
       # Only return group sets if the user has permission to manage groups or tags
       return [] unless can_manage_groups || can_manage_tags
@@ -542,7 +542,7 @@ module Types
     end
     def folders_connection
       preload_course_permissions.then do
-        next nil unless course.grants_right?(current_user, :read)
+        next nil unless course.grants_right?(current_principal, :read)
 
         course.active_folders
       end
@@ -565,7 +565,7 @@ module Types
     def permissions
       Loaders::PermissionsLoader.for(
         course,
-        current_user:,
+        current_principal:,
         session:
       )
     end
@@ -573,7 +573,7 @@ module Types
     field :post_policy, PostPolicyType, "A course-specific post policy", null: true
     def post_policy
       preload_course_permissions.then do
-        next nil unless course.grants_right?(current_user, :manage_grades)
+        next nil unless course.grants_right?(current_principal, :manage_grades)
 
         load_association(:default_post_policy)
       end
@@ -587,7 +587,7 @@ module Types
           null: true
     def assignment_post_policies
       preload_course_permissions.then do
-        next nil unless course.grants_right?(current_user, :manage_grades)
+        next nil unless course.grants_right?(current_principal, :manage_grades)
 
         course.assignment_post_policies
       end
@@ -614,7 +614,7 @@ module Types
     field :sis_id, String, null: true
     def sis_id
       preload_course_permissions.then do
-        next nil unless course.grants_any_right?(current_user, :read_sis, :manage_sis)
+        next nil unless course.grants_any_right?(current_principal, :read_sis, :manage_sis)
 
         course.sis_course_id
       end
@@ -625,7 +625,7 @@ module Types
     end
     def submission_statistics(observed_user_id: nil)
       preload_course_permissions.then do
-        next nil unless course.grants_right?(current_user, :read)
+        next nil unless course.grants_right?(current_principal, :read)
 
         Loaders::ObservedStudentsLoader.for(current_user:, include_restricted_access: false).load(course).then do |observed_students_hash|
           observed_students = observed_students_hash.keys
@@ -650,7 +650,7 @@ module Types
     field :module_progression_statistics, ModuleProgressionStatisticsType, "Returns module progression statistics for the current user", null: true
     def module_progression_statistics
       preload_course_permissions.then do
-        next nil unless course.grants_right?(current_user, :read)
+        next nil unless course.grants_right?(current_principal, :read)
         next nil unless current_user
 
         Loaders::CourseModuleProgressionDataLoader.for(current_user:).load(course)
@@ -680,7 +680,7 @@ module Types
     field :available_moderators, UserType.connection_type, null: true
     def available_moderators
       preload_course_permissions.then do
-        next unless course.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+        next unless course.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
 
         course.moderators
       end
@@ -689,7 +689,7 @@ module Types
     field :available_moderators_count, Integer, null: true
     def available_moderators_count
       preload_course_permissions.then do
-        next unless course.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+        next unless course.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
 
         course.moderators.size
       end
@@ -698,7 +698,7 @@ module Types
     field :settings, CourseSettingsType, "Settings for the course", null: true
     def settings
       preload_course_permissions.then do
-        next nil unless course.grants_right?(current_user, :read)
+        next nil unless course.grants_right?(current_principal, :read)
 
         course
       end
@@ -753,7 +753,7 @@ module Types
       return true if user.id == current_user.id
 
       # Check if current user has permission to view other users' progress
-      can_view_grades = course.grants_any_right?(current_user, :manage_grades, :view_all_grades)
+      can_view_grades = course.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
       is_observer_of_user = course.observer_enrollments.active.where(user: current_user).exists? &&
                             current_user.as_observer_observation_links.active.where(user_id: user.id, root_account: course.root_account).exists?
 

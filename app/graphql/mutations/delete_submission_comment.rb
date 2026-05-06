@@ -29,7 +29,7 @@ class Mutations::DeleteSubmissionComment < Mutations::BaseMutation
     submission_comment = SubmissionComment.find_by(id: input[:submission_comment_id])
 
     response = {}
-    if submission_comment&.grants_right?(current_user, :delete)
+    if submission_comment&.grants_right?(current_principal, :delete)
       submission_comment.updating_user = @current_user
       submission_comment.destroy
 

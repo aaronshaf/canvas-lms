@@ -54,11 +54,11 @@ module Types
     end
 
     def can_manage_context_outcomes
-      object.context.grants_right?(current_user, session, :manage_outcomes)
+      object.context.grants_right?(current_principal, session, :manage_outcomes)
     end
 
     def can_manage_global_outcomes
-      Account.site_admin.grants_right?(current_user, session, :manage_global_outcomes)
+      Account.site_admin.grants_right?(current_principal, session, :manage_global_outcomes)
     end
 
     def session
@@ -67,6 +67,10 @@ module Types
 
     def current_user
       context[:current_user]
+    end
+
+    def current_principal
+      context[:current_principal]
     end
   end
 end

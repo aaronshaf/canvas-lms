@@ -29,8 +29,8 @@ class Mutations::DeleteDiscussionEntry < Mutations::BaseMutation
   field :discussion_entry, Types::DiscussionEntryType, null: true
   def resolve(input:)
     entry = DiscussionEntry.find(input[:id])
-    raise GraphQL::ExecutionError, "not found" unless entry.grants_right?(current_user, session, :read)
-    return validation_error(I18n.t("Insufficient permissions")) unless entry.grants_right?(current_user, session, :delete)
+    raise GraphQL::ExecutionError, "not found" unless entry.grants_right?(current_principal, session, :read)
+    return validation_error(I18n.t("Insufficient permissions")) unless entry.grants_right?(current_principal, session, :delete)
 
     entry.editor_id = current_user.id
     entry.destroy

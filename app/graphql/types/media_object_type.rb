@@ -40,7 +40,7 @@ module Types
 
     field :can_add_captions, Boolean, null: true
     def can_add_captions
-      object.grants_right?(current_user, session, :add_captions)
+      object.grants_right?(current_principal, session, :add_captions)
     end
 
     field :media_type, MediaType, null: true

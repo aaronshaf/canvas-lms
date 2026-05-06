@@ -56,7 +56,7 @@ module Types
 
     field :assessor, UserType, null: true
     def assessor
-      if object.grants_right?(current_user, session, :read_assessor)
+      if object.grants_right?(current_principal, session, :read_assessor)
         return load_association(:assessor)
       end
 

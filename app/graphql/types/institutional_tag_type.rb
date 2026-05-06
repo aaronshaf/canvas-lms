@@ -47,7 +47,7 @@ class Types::InstitutionalTagType < Types::ApplicationObjectType
   def users_connection(filter: {}, sort: {})
     root_account = context[:domain_root_account]
     return unless root_account&.feature_enabled?(:institutional_tags)
-    return unless root_account.grants_right?(current_user, session, :manage_institutional_tags_view)
+    return unless root_account.grants_right?(current_principal, session, :manage_institutional_tags_view)
 
     users = User.joins(:institutional_tag_associations)
                 .where(institutional_tag_associations: { institutional_tag_id: object.id, workflow_state: "active" })

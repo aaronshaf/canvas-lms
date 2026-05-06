@@ -127,7 +127,7 @@ class Mutations::DiscussionBase < Mutations::BaseMutation
       attachment = Attachment.find(input[:file_id])
       raise ActiveRecord::RecordNotFound unless attachment.user == current_user
 
-      unless discussion_topic.grants_right?(current_user, session, :attach)
+      unless discussion_topic.grants_right?(current_principal, session, :attach)
         return validation_error(I18n.t("Insufficient attach permissions"))
       end
 

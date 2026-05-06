@@ -32,7 +32,7 @@ class Mutations::UpdateDiscussionEntriesReadState < Mutations::BaseMutation
 
     # return error if provided any ids the user doesn't have permission to read
     entries.each do |entry|
-      raise GraphQL::ExecutionError, "not found" unless entry.grants_right?(current_user, session, :read)
+      raise GraphQL::ExecutionError, "not found" unless entry.grants_right?(current_principal, session, :read)
     end
 
     entry = entries.first

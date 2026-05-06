@@ -33,7 +33,7 @@ class Mutations::UpdateSubmissionGradeStatus < Mutations::BaseMutation
       submission = submission.effective_checkpoint_submission(input[:checkpoint_tag])
     end
 
-    return { errors: { submission.id => "Not authorized to set submission status" } } unless submission.grants_right?(current_user, :grade)
+    return { errors: { submission.id => "Not authorized to set submission status" } } unless submission.grants_right?(current_principal, :grade)
 
     if input[:custom_grade_status_id]
       status = submission.root_account.custom_grade_statuses.active.find_by(id: input[:custom_grade_status_id])

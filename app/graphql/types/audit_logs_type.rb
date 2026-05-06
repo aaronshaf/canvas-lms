@@ -31,7 +31,7 @@ module Types
 
     def mutation_logs(asset_string:, start_time: nil, end_time: nil)
       return nil unless AuditLogFieldExtension.enabled? &&
-                        context[:domain_root_account].grants_right?(current_user, :manage_account_settings)
+                        context[:domain_root_account].grants_right?(current_principal, :manage_account_settings)
 
       start_time ||= 1.year.ago
       end_time ||= 1.year.from_now

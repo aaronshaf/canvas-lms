@@ -71,7 +71,7 @@ module Types
 
     field :can_update_rubric, Boolean, null: false
     def can_update_rubric
-      object.grants_right?(current_user, session, :update)
+      object.grants_right?(current_principal, session, :update)
     end
 
     field :button_display, String, null: false

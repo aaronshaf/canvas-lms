@@ -34,7 +34,7 @@ module Mutations
         raise GraphQL::ExecutionError, I18n.t("Rubric Association not found")
       end
 
-      unless rubric_association.grants_right?(current_user, session, :update)
+      unless rubric_association.grants_right?(current_principal, session, :update)
         raise GraphQL::ExecutionError, I18n.t("Insufficient permissions")
       end
 

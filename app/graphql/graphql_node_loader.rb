@@ -79,11 +79,11 @@ module GraphQLNodeLoader
       Loaders::IDLoader.for(User).load(id).then(lambda do |user|
         return nil unless user && ctx[:current_user]
 
-        return user if user.grants_right?(ctx[:current_user], :read_full_profile)
-        return user if user.grants_right?(ctx[:current_user], :read)
+        return user if user.grants_right?(ctx[:current_principal], :read_full_profile)
+        return user if user.grants_right?(ctx[:current_principal], :read)
         return user if user == ctx[:current_user]
 
-        has_permission = Rails.cache.fetch(["node_user_perm", ctx[:current_user], user].cache_key) do
+        has_permission = Rails.cache.fetch(["node_user_perm", ctx[:current_principal], user].cache_key) do
           has_perm = Shard.with_each_shard(user.associated_shards & ctx[:current_user].associated_shards) do
             shared_courses = Enrollment
               .joins("INNER JOIN #{Enrollment.quoted_table_name} e2 ON e2.course_id = enrollments.course_id")
@@ -91,7 +91,7 @@ module GraphQLNodeLoader
               .select("enrollments.course_id")
 
             break true if Course.where(id: shared_courses).any? do |course|
-              course.grants_right?(ctx[:current_user], :read_roster) &&
+              course.grants_right?(ctx[:current_principal], :read_roster) &&
                 course.enrollments_visible_to(ctx[:current_user], include_concluded: true).where(user_id: user).exists?
             end
           end
@@ -104,7 +104,7 @@ module GraphQLNodeLoader
       Loaders::IDLoader.for(Enrollment).load(id).then do |enrollment|
         Loaders::IDLoader.for(Course).load(enrollment.course_id).then do |course|
           if enrollment.user_id == ctx[:current_user].id ||
-             course.grants_right?(ctx[:current_user], ctx[:session], :read_roster)
+             course.grants_right?(ctx[:current_principal], ctx[:session], :read_roster)
             enrollment
           else
             nil
@@ -132,11 +132,11 @@ module GraphQLNodeLoader
     when "GradingPeriodGroup"
       Loaders::IDLoader.for(GradingPeriodGroup).load(id).then(check_read_permission)
     when "InternalSetting"
-      return nil unless Account.site_admin.grants_right?(ctx[:current_user], ctx[:session], :manage_internal_settings)
+      return nil unless Account.site_admin.grants_right?(ctx[:current_principal], ctx[:session], :manage_internal_settings)
 
       Loaders::UnshardedIDLoader.for(Setting).load(id)
     when "InternalSettingByName"
-      return nil unless Account.site_admin.grants_right?(ctx[:current_user], ctx[:session], :manage_internal_settings)
+      return nil unless Account.site_admin.grants_right?(ctx[:current_principal], ctx[:session], :manage_internal_settings)
 
       Setting.find_by(name: id)
     when "MyInboxSettings"
@@ -155,7 +155,7 @@ module GraphQLNodeLoader
     when "ModuleItem"
       Loaders::IDLoader.for(ContentTag).load(id).then do |tag|
         Loaders::AssociationLoader.for(ContentTag, :context_module).load(tag).then do |mod|
-          next nil unless mod.grants_right?(ctx[:current_user], :read)
+          next nil unless mod.grants_right?(ctx[:current_principal], :read)
           next nil unless tag.visible_to_user?(ctx[:current_user]) # Checks context and content
 
           tag
@@ -176,7 +176,7 @@ module GraphQLNodeLoader
     when "PostPolicy"
       Loaders::IDLoader.for(PostPolicy).load(id).then do |policy|
         Loaders::AssociationLoader.for(PostPolicy, :course).load(policy).then do
-          next nil unless policy.course.grants_right?(ctx[:current_user], :manage_grades)
+          next nil unless policy.course.grants_right?(ctx[:current_principal], :manage_grades)
 
           policy
         end
@@ -184,7 +184,7 @@ module GraphQLNodeLoader
     when "ScheduledPost"
       Loaders::IDLoader.for(ScheduledPost).load(id).then do |scheduled_post|
         Loaders::AssociationLoader.for(ScheduledPost, :assignment).load(scheduled_post).then do |assignment|
-          next nil unless assignment.course.grants_right?(ctx[:current_user], :manage_grades)
+          next nil unless assignment.course.grants_right?(ctx[:current_principal], :manage_grades)
 
           scheduled_post
         end
@@ -201,7 +201,7 @@ module GraphQLNodeLoader
       Loaders::SISIDLoader.for(AssignmentGroup, root_account: ctx[:domain_root_account]).load(id).then(check_read_permission)
     when "Discussion"
       Loaders::IDLoader.for(DiscussionTopic).load(id).then do |topic|
-        next nil unless topic.grants_right?(ctx[:current_user], :read) && !topic.deleted?
+        next nil unless topic.grants_right?(ctx[:current_principal], :read) && !topic.deleted?
 
         topic
       end
@@ -224,7 +224,7 @@ module GraphQLNodeLoader
     when "Progress"
       Loaders::IDLoader.for(Progress).load(id).then do |progress|
         Loaders::AssociationLoader.for(Progress, :context).load(progress).then do
-          next nil unless progress.context.grants_right?(ctx[:current_user], :read)
+          next nil unless progress.context.grants_right?(ctx[:current_principal], :read)
 
           progress
         end
@@ -236,7 +236,7 @@ module GraphQLNodeLoader
         next nil unless enrollment_term
 
         Loaders::AssociationLoader.for(EnrollmentTerm, :root_account).load(enrollment_term).then do
-          next nil unless enrollment_term.root_account.grants_right?(ctx[:current_user], :read)
+          next nil unless enrollment_term.root_account.grants_right?(ctx[:current_principal], :read)
 
           enrollment_term
         end
@@ -246,29 +246,29 @@ module GraphQLNodeLoader
         next nil unless enrollment_term
 
         Loaders::AssociationLoader.for(EnrollmentTerm, :root_account).load(enrollment_term).then do
-          next nil unless enrollment_term.root_account.grants_right?(ctx[:current_user], :read)
+          next nil unless enrollment_term.root_account.grants_right?(ctx[:current_principal], :read)
 
           enrollment_term
         end
       end
     when "OutcomeCalculationMethod"
       Loaders::IDLoader.for(OutcomeCalculationMethod).load(id).then do |record|
-        next if !record || record.deleted? || !record.context.grants_right?(ctx[:current_user], :read)
+        next if !record || record.deleted? || !record.context.grants_right?(ctx[:current_principal], :read)
 
         record
       end
     when "OutcomeProficiency"
       Loaders::IDLoader.for(OutcomeProficiency).load(id).then do |record|
-        next if !record || record.deleted? || !record.context.grants_right?(ctx[:current_user], :read)
+        next if !record || record.deleted? || !record.context.grants_right?(ctx[:current_principal], :read)
 
         record
       end
     when "LearningOutcomeGroup"
       Loaders::IDLoader.for(LearningOutcomeGroup).load(id).then do |record|
         if record&.context
-          next unless record.context.grants_right?(ctx[:current_user], :read_outcomes)
+          next unless record.context.grants_right?(ctx[:current_principal], :read_outcomes)
         else
-          next unless Account.site_admin.grants_right?(ctx[:current_user], :read_global_outcomes)
+          next unless Account.site_admin.grants_right?(ctx[:current_principal], :read_global_outcomes)
         end
 
         record
@@ -282,35 +282,35 @@ module GraphQLNodeLoader
     when "LearningOutcome"
       Loaders::IDLoader.for(LearningOutcome).load(id).then do |record|
         if record&.context
-          next unless record.context.grants_right?(ctx[:current_user], :read_outcomes)
+          next unless record.context.grants_right?(ctx[:current_principal], :read_outcomes)
         else
-          next unless Account.site_admin.grants_right?(ctx[:current_user], :read_global_outcomes)
+          next unless Account.site_admin.grants_right?(ctx[:current_principal], :read_global_outcomes)
         end
 
         record
       end
     when "Folder"
       Loaders::IDLoader.for(Folder).load(id).then do |folder|
-        next nil unless folder&.grants_right?(ctx[:current_user], :read)
+        next nil unless folder&.grants_right?(ctx[:current_principal], :read)
 
         folder
       end
     when "CommentBankItem"
       Loaders::IDLoader.for(CommentBankItem).load(id).then do |record|
-        next if !record || record.deleted? || !record.grants_right?(ctx[:current_user], :read)
+        next if !record || record.deleted? || !record.grants_right?(ctx[:current_principal], :read)
 
         record
       end
     when "StudyNote"
       Loaders::IDLoader.for(StudyNote).load(id).then do |record|
-        next if !record || record.deleted? || !record.grants_right?(ctx[:current_user], :read)
+        next if !record || record.deleted? || !record.grants_right?(ctx[:current_principal], :read)
         next unless record.course.notebook_accessible?
 
         record
       end
     when "OutcomeFriendlyDescriptionType"
       Loaders::IDLoader.for(OutcomeFriendlyDescription).load(id).then do |record|
-        next if !record || record.deleted? || !record.context.grants_right?(ctx[:current_user], :read)
+        next if !record || record.deleted? || !record.context.grants_right?(ctx[:current_principal], :read)
 
         record
       end
@@ -320,8 +320,8 @@ module GraphQLNodeLoader
 
         Loaders::AssociationLoader.for(ContextModuleProgression, :context_module).load(progression).then do |mod|
           Loaders::AssociationLoader.for(ContextModule, :context).load(mod).then do
-            next nil unless mod.context.grants_right?(ctx[:current_user], :read)
-            next nil unless progression.user_id == ctx[:current_user].id || mod.context.grants_right?(ctx[:current_user], :view_all_grades)
+            next nil unless mod.context.grants_right?(ctx[:current_principal], :read)
+            next nil unless progression.user_id == ctx[:current_user].id || mod.context.grants_right?(ctx[:current_principal], :view_all_grades)
 
             progression
           end
@@ -329,7 +329,7 @@ module GraphQLNodeLoader
       end
     when "UsageRights"
       Loaders::IDLoader.for(UsageRights).load(id).then do |usage_rights|
-        next unless usage_rights.context.grants_right?(ctx[:current_user], :read)
+        next unless usage_rights.context.grants_right?(ctx[:current_principal], :read)
 
         usage_rights
       end
@@ -337,14 +337,14 @@ module GraphQLNodeLoader
       Loaders::IDLoader.for(AllocationRule).load(id).then do |record|
         next nil unless record && !record.deleted?
         next nil unless record.course.feature_enabled?(:peer_review_allocation_and_grading)
-        next nil unless record.course.grants_right?(ctx[:current_user], :read_as_admin)
+        next nil unless record.course.grants_right?(ctx[:current_principal], :read_as_admin)
 
         record
       end
     when "InstitutionalTag"
       Loaders::IDLoader.for(InstitutionalTag).load(id).then do |tag|
         next nil unless ctx[:domain_root_account]&.feature_enabled?(:institutional_tags)
-        next nil unless ctx[:domain_root_account]&.grants_right?(ctx[:current_user], ctx[:session], :manage_institutional_tags_view)
+        next nil unless ctx[:domain_root_account]&.grants_right?(ctx[:current_principal], ctx[:session], :manage_institutional_tags_view)
 
         tag
       end
@@ -353,7 +353,7 @@ module GraphQLNodeLoader
     when "InstitutionalTagCategory"
       Loaders::IDLoader.for(InstitutionalTagCategory).load(id).then do |category|
         next nil unless ctx[:domain_root_account]&.feature_enabled?(:institutional_tags)
-        next nil unless ctx[:domain_root_account]&.grants_right?(ctx[:current_user], ctx[:session], :manage_institutional_tags_view)
+        next nil unless ctx[:domain_root_account]&.grants_right?(ctx[:current_principal], ctx[:session], :manage_institutional_tags_view)
 
         category
       end
@@ -364,7 +364,7 @@ module GraphQLNodeLoader
 
   def self.make_permission_check(ctx, *permissions)
     lambda do |o|
-      o&.grants_any_right?(ctx[:current_user], ctx[:session], *permissions) ? o : nil
+      o&.grants_any_right?(ctx[:current_principal], ctx[:session], *permissions) ? o : nil
     end
   end
 

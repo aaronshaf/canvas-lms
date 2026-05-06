@@ -59,7 +59,7 @@ module Types
                required: false
     end
     def courses_connection(career_learning_library_only: nil)
-      return unless account.grants_right?(current_user, :read_course_list)
+      return unless account.grants_right?(current_principal, :read_course_list)
 
       courses = account.associated_courses
 
@@ -77,7 +77,7 @@ module Types
     field :custom_grade_statuses_connection, CustomGradeStatusType.connection_type, null: true
     def custom_grade_statuses_connection
       return unless Account.site_admin.feature_enabled?(:custom_gradebook_statuses)
-      return unless account.root_account.grants_right?(current_user, session, :manage)
+      return unless account.root_account.grants_right?(current_principal, session, :manage)
 
       account.custom_grade_statuses.active.order(:id)
     end
@@ -85,7 +85,7 @@ module Types
     field :standard_grade_statuses_connection, StandardGradeStatusType.connection_type, null: true
     def standard_grade_statuses_connection
       return unless Account.site_admin.feature_enabled?(:custom_gradebook_statuses)
-      return unless account.root_account.grants_right?(current_user, session, :manage)
+      return unless account.root_account.grants_right?(current_principal, session, :manage)
 
       account.standard_grade_statuses.order(:id)
     end
@@ -100,7 +100,7 @@ module Types
       return if account.root_account?
 
       load_association(:root_account).then do |root_account|
-        account.sis_source_id if root_account.grants_any_right?(current_user, :read_sis, :manage_sis)
+        account.sis_source_id if root_account.grants_any_right?(current_principal, :read_sis, :manage_sis)
       end
     end
 
@@ -116,7 +116,7 @@ module Types
       argument :sort,   Types::AccountUsersSortInputType,   required: false
     end
     def users_connection(filter: {}, sort: {})
-      return unless account.grants_any_right?(current_user, session, :read_roster, :manage_students)
+      return unless account.grants_any_right?(current_principal, session, :read_roster, :manage_students)
 
       options = {
         enrollment_type: filter[:enrollment_types],
@@ -147,7 +147,7 @@ module Types
       root_account = account.root_account? ? account : nil
       return unless root_account
       raise GraphQL::ExecutionError, "feature flag is disabled" unless root_account.feature_enabled?(:institutional_tags)
-      raise GraphQL::ExecutionError, "not authorized" unless root_account.grants_right?(current_user, session, :manage_institutional_tags_view)
+      raise GraphQL::ExecutionError, "not authorized" unless root_account.grants_right?(current_principal, session, :manage_institutional_tags_view)
 
       cats = root_account.institutional_tag_categories
       cats = cats.where(workflow_state:) unless workflow_state == "any"
@@ -183,7 +183,7 @@ module Types
       root_account = account.root_account? ? account : nil
       return unless root_account
       raise GraphQL::ExecutionError, "feature flag is disabled" unless root_account.feature_enabled?(:institutional_tags)
-      raise GraphQL::ExecutionError, "not authorized" unless root_account.grants_right?(current_user, session, :manage_institutional_tags_view)
+      raise GraphQL::ExecutionError, "not authorized" unless root_account.grants_right?(current_principal, session, :manage_institutional_tags_view)
 
       tags = InstitutionalTag.where(root_account_id: root_account.id, workflow_state:)
       tags = tags.where(category_id:) if category_id.present?

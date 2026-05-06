@@ -27,9 +27,9 @@ class Mutations::DeleteDiscussionTopic < Mutations::BaseMutation
 
   def resolve(input:)
     record = DiscussionTopic.active.find_by(id: input[:id])
-    raise GraphQL::ExecutionError, "Unable to find Discussion Topic" if record.nil? || !record.grants_right?(current_user, nil, :read)
+    raise GraphQL::ExecutionError, "Unable to find Discussion Topic" if record.nil? || !record.grants_right?(current_principal, nil, :read)
 
-    unless record.grants_right?(current_user, nil, :delete)
+    unless record.grants_right?(current_principal, nil, :delete)
       raise GraphQL::ExecutionError, "Insufficient permissions"
     end
 

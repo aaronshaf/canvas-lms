@@ -33,7 +33,7 @@ class Mutations::CreateDiscussionEntry < Mutations::BaseMutation
   field :my_sub_assignment_submissions, [Types::SubmissionType], null: true
   def resolve(input:)
     topic = DiscussionTopic.find(input[:discussion_topic_id])
-    raise ActiveRecord::RecordNotFound unless topic.grants_right?(current_user, session, :read)
+    raise ActiveRecord::RecordNotFound unless topic.grants_right?(current_principal, session, :read)
 
     # if the user is writing a threaded reply when the allow threaded replies feature is disabled
     if !topic.threaded? && !input[:parent_entry_id].nil?
@@ -57,10 +57,10 @@ class Mutations::CreateDiscussionEntry < Mutations::BaseMutation
       raise ActiveRecord::RecordNotFound unless attachment.user == current_user
 
       topic_context = topic.context
-      unless topic.grants_right?(current_user, session, :attach) ||
+      unless topic.grants_right?(current_principal, session, :attach) ||
              (topic_context.respond_to?(:allow_student_forum_attachments) &&
                topic_context.allow_student_forum_attachments &&
-               topic_context.grants_right?(current_user, session, :post_to_forum) &&
+               topic_context.grants_right?(current_principal, session, :post_to_forum) &&
                topic.available_for?(current_user)
              )
 
@@ -90,7 +90,7 @@ class Mutations::CreateDiscussionEntry < Mutations::BaseMutation
   def build_entry(association, message, topic, is_anonymous_author)
     message = Api::Html::Content.process_incoming(message, host: context[:request].host, port: context[:request].port)
     entry = association.build(message:, user: current_user, discussion_topic: topic, is_anonymous_author:)
-    raise InsufficientPermissionsError unless entry.grants_right?(current_user, session, :create)
+    raise InsufficientPermissionsError unless entry.grants_right?(current_principal, session, :create)
 
     entry
   end

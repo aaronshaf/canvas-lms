@@ -42,7 +42,7 @@ class Mutations::UpdateDiscussionTopic < Mutations::DiscussionBase
     @current_user = current_user
 
     discussion_topic = DiscussionTopic.find(input[:discussion_topic_id])
-    raise GraphQL::ExecutionError, "insufficient permission" unless discussion_topic.grants_right?(current_user, :update)
+    raise GraphQL::ExecutionError, "insufficient permission" unless discussion_topic.grants_right?(current_principal, :update)
 
     discussion_topic.updating_user = current_user
     if input[:message] != discussion_topic.message && discussion_topic.editing_restricted?(:content)

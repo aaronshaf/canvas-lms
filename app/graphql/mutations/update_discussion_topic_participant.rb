@@ -32,7 +32,7 @@ class Mutations::UpdateDiscussionTopicParticipant < Mutations::BaseMutation
 
   def resolve(input:)
     discussion_topic = DiscussionTopic.find(input[:discussion_topic_id])
-    raise GraphQL::ExecutionError, "insufficient permission" unless discussion_topic.grants_right?(current_user, session, :read)
+    raise GraphQL::ExecutionError, "insufficient permission" unless discussion_topic.grants_right?(current_principal, session, :read)
 
     discussion_topic.update_or_create_participant(current_user:, **input)
     { discussion_topic: }

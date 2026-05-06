@@ -41,12 +41,12 @@ module Types
       # Check account/course permissions before user-level to avoid N+1 queries.
       # In course context, skip expensive object.grants_any_right? that loads all user enrollments.
       domain_root_account = context[:domain_root_account]
-      unless domain_root_account.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+      unless domain_root_account.grants_any_right?(context[:current_principal], :read_sis, :manage_sis)
         course = context[:course]
         has_permission = if course
-                           course.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+                           course.grants_any_right?(context[:current_principal], :read_sis, :manage_sis)
                          else
-                           object.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+                           object.grants_any_right?(context[:current_principal], :read_sis, :manage_sis)
                          end
 
         return unless has_permission

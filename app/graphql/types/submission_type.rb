@@ -78,7 +78,7 @@ module Types
     def enrollments_connection
       load_association(:course).then do |course|
         return nil unless course.grants_any_right?(
-          current_user,
+          current_principal,
           session,
           :read_roster,
           :view_all_grades,
@@ -135,7 +135,7 @@ module Types
         next unless root_account.feature_enabled?(:lti_asset_processor)
         next if object.submission_type == "discussion_topic" && !root_account.feature_enabled?(:lti_asset_processor_discussions)
 
-        if object.assignment.context.grants_any_right?(current_user, :manage_grades, :view_all_grades)
+        if object.assignment.context.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
           Loaders::SubmissionLtiAssetReportsLoader.for(for_student: false, latest:).load(object.id)
         else
           Loaders::SubmissionLtiAssetReportsLoader.for(for_student: true, latest:).load(object.id)
@@ -152,7 +152,7 @@ module Types
 
     field :audit_events_connection, AuditEventType.connection_type, null: true
     def audit_events_connection
-      return unless object.assignment.context.grants_right?(current_user, :view_audit_trail)
+      return unless object.assignment.context.grants_right?(current_principal, :view_audit_trail)
 
       scoped_ctx = context.scoped
       Loaders::AuditEventsLoader.load(object.id).then do |audit_events|

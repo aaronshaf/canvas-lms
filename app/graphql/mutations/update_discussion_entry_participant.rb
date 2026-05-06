@@ -45,7 +45,7 @@ class Mutations::UpdateDiscussionEntryParticipant < Mutations::BaseMutation
   field :discussion_entry, Types::DiscussionEntryType, null: false
   def resolve(input:)
     discussion_entry = DiscussionEntry.find(input[:discussion_entry_id])
-    raise GraphQL::ExecutionError, "not found" unless discussion_entry.grants_right?(current_user, session, :read)
+    raise GraphQL::ExecutionError, "not found" unless discussion_entry.grants_right?(current_principal, session, :read)
 
     unless input[:read].nil?
       opt = input[:forced_read_state].nil? ? {} : { forced: input[:forced_read_state] }
@@ -53,7 +53,7 @@ class Mutations::UpdateDiscussionEntryParticipant < Mutations::BaseMutation
     end
 
     unless input[:rating].nil?
-      raise GraphQL::ExecutionError, "insufficient permissions" unless discussion_entry.grants_right?(current_user, session, :rate)
+      raise GraphQL::ExecutionError, "insufficient permissions" unless discussion_entry.grants_right?(current_principal, session, :rate)
 
       discussion_entry.change_rating(input[:rating], current_user)
     end

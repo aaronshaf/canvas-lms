@@ -66,9 +66,9 @@ class Mutations::UpdateLearningOutcomeGroup < Mutations::BaseMutation
 
   def can_manage_outcomes
     if @outcome_group.context
-      @outcome_group.context.grants_right?(current_user, session, :manage_outcomes)
+      @outcome_group.context.grants_right?(current_principal, session, :manage_outcomes)
     else
-      Account.site_admin.grants_right?(current_user, session, :manage_global_outcomes)
+      Account.site_admin.grants_right?(current_principal, session, :manage_global_outcomes)
     end
   end
 

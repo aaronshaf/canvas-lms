@@ -33,7 +33,13 @@ RSpec.describe Interfaces::ModuleItemInterface do
     )
   end
 
-  let(:context) { { current_user: @teacher, request: ActionDispatch::Request.new({}) } }
+  let(:context) do
+    {
+      current_user: @teacher,
+      current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(@teacher),
+      request: ActionDispatch::Request.new({})
+    }
+  end
 
   describe "can_duplicate field" do
     let(:query) do

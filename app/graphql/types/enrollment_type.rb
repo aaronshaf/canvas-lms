@@ -135,7 +135,7 @@ module Types
 
     field :sis_import_id, ID, null: true
     def sis_import_id
-      return nil unless enrollment.root_account.grants_right?(current_user, :manage_sis)
+      return nil unless enrollment.root_account.grants_right?(current_principal, :manage_sis)
 
       enrollment.sis_batch_id
     end
@@ -143,7 +143,7 @@ module Types
     field :sis_section_id, ID, null: true
     def sis_section_id
       load_association(:course).then do |course|
-        if course.grants_right?(current_user, :read_sis) || enrollment.root_account.grants_right?(current_user, :manage_sis)
+        if course.grants_right?(current_principal, :read_sis) || enrollment.root_account.grants_right?(current_principal, :manage_sis)
           load_association(:course_section).then(&:sis_source_id)
         end
         nil
@@ -205,7 +205,7 @@ module Types
         grades = Score.new(score_attrs)
       end
 
-      if grades.grants_right?(current_user, :read)
+      if grades.grants_right?(current_principal, :read)
         grades
       else
         nil
@@ -215,14 +215,14 @@ module Types
 
     field :last_activity_at, DateTimeType, null: true
     def last_activity_at
-      return nil unless enrollment.user_id == current_user.id || enrollment.course.grants_right?(current_user, session, :read_reports)
+      return nil unless enrollment.user_id == current_user.id || enrollment.course.grants_right?(current_principal, session, :read_reports)
 
       object.last_activity_at
     end
 
     field :total_activity_time, Integer, null: true
     def total_activity_time
-      return nil unless enrollment.user_id == current_user.id || enrollment.course.grants_right?(current_user, session, :read_reports)
+      return nil unless enrollment.user_id == current_user.id || enrollment.course.grants_right?(current_principal, session, :read_reports)
 
       object.total_activity_time
     end
