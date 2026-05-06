@@ -2660,6 +2660,12 @@ sv-x-k12:
   adds_menu_option_for_accessing_alignments_at_the_o_6d3bce6: "Lägger till menyalternativ för åtkomst till justeringar på lärandemålsnivå med Förbättrad lärandemålshantering"
   adds_the_course_sis_id_if_present_to_the_additiona_2c0b759c: "Lägger till kursens SIS-ID (om tillämpligt) till den ytterligare informationen i kursens popout-fönster"
   adds_the_option_to_grade_by_question_in_speedgrade_5eac06f3: "Lägger till alternativet att bedöma baserat på frågan i SpeedGrader för Quizzes.Next Quizzes"
+  adds_three_different_permissions_for_more_granular_608df65d: |-
+      Lägger till tre olika behörigheter för större granularitetskontroll av sidan Kursinställningar.
+      Varje behörighet reglerar en flik på sidan Inställningar. Behörigheterna är: 
+        - hantera kurs Information
+        - hantera kurs Navigering
+        - funktionsalternativ för Hantera kurs
   adds_visual_indicators_to_the_submission_details_p_c7b9d191: |-
       Lägger till indikatorer på sidan för inlämningsinformation som visar elever att det finns olästa
       dokumentnoteringar eller matriskommentarer
