@@ -3830,6 +3830,16 @@ describe AssignmentsController do
         get :peer_reviews, params: { course_id: @course.id, assignment_id: @assignment.id }
         expect(assigns[:js_env][:restrict_quantitative_data]).to be(false)
       end
+
+      it "sets full breadcrumb trail including assignment title and Peer Reviews" do
+        get :peer_reviews, params: { course_id: @course.id, assignment_id: @assignment.id }
+
+        expect(assigns[:_crumbs]).to have(5).items
+        assignment_crumb = assigns[:_crumbs][3]
+        expect(assignment_crumb[0]).to eql(@assignment.title)
+        expect(assignment_crumb[1]).to include("/courses/#{@course.id}/assignments/#{@assignment.id}")
+        expect(assigns[:_crumbs][4][0]).to eql("Peer Reviews")
+      end
     end
 
     context "when FF is enabled but assignment has legacy peer reviews (no sub-assignment)" do

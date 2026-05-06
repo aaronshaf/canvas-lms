@@ -278,11 +278,8 @@ class AssignmentsController < ApplicationController
              restrict_quantitative_data: @assignment.restrict_quantitative_data?(@current_user)
            })
 
-    if @context.root_account.feature_enabled?(:instui_nav)
-      add_crumb(@assignment.title, polymorphic_url([@context, @assignment]))
-      add_crumb(t("Peer Reviews"))
-    end
-
+    add_crumb(@assignment.title, polymorphic_url([@context, @assignment]))
+    add_crumb(t("Peer Reviews"))
     add_body_class("full-width")
     css_bundle :assignments_2_student
     js_bundle :assignments_peer_reviews_student
