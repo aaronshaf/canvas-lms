@@ -4,6 +4,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 5.0.0 - 2026-05-06
+
+### Added
+- ImmersiveView implementation for media
+- New Caption Manager for Media Tray with auto-captioning (ASR) support
+- ClosedCaptionPanelV2 wired into AudioOptionsTray
+- Real ASR endpoint integration into ClosedCaptionPanelV2
+- Delete button for failed ASR caption requests
+- Download caption option for Canvas media
+- Size selector for audio tray
+- Unsaved changes tooltip for audio/video trays
+- Inline-edit support via new studio-player version
+- Pendo analytics for Canvas media, wired through studio-player
+  `onTrackEvent` and extended for new player events
+
+### Changed
+- **Breaking:** Upgraded InstUI from v10 to v11
+- Upgraded `@instructure/studio-player` to 1.10.0
+- Upgraded TypeScript to 6.0.2
+- Removed lodash dependency (migrated to es-toolkit)
+- Removed `consolidated_media_player` feature flag
+- Enhanced error states for manual caption uploads
+- DX improvements to canvas-media
+
+### Fixed
+- Media recording save with disabled webcam
+- Media capture save loop after InstUI v11 upgrade
+- Caption file button a11y label format
+- A11y: caption creator label associations and accessibility
+- A11y: focus management in Caption Manager
+- A11y: SR alerts for caption add/delete and file selection
+- A11y: caption status text linked to language name via aria-describedby
+- A11y: caption file input linked via aria-describedby
+- A11y: captions wrapped in semantic list structure
+- A11y: corrected heading hierarchy in options tray
+- Stabilized flaky ClosedCaptionPanelV2 retry tests
+
+### Security
+- Upgraded axios to 1.13.5 (CSRF/security vulnerability)
+
+### Reverted
+- "Upgrade MediaCapture package to latest version"
+
+### Localization
+- Updated canvas-media translations
+
 ## 4.1.0 - 2025-10-16
 
 ### Changed
