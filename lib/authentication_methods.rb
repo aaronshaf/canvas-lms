@@ -164,6 +164,12 @@ module AuthenticationMethods
       @current_user = @access_token.user
       @real_current_user = @access_token.real_user
       @real_current_pseudonym = SisPseudonym.for(@real_current_user, @domain_root_account, type: :implicit, require_sis: false) if @real_current_user
+
+      if @real_current_user && @real_current_user != @current_user &&
+         !@current_user.can_masquerade?(@real_current_user, @domain_root_account)
+        raise AccessTokenError
+      end
+
       @current_pseudonym = SisPseudonym.for(@current_user, @domain_root_account, type: :implicit, require_sis: false)
       raise_if_pseudonym_suspended
 

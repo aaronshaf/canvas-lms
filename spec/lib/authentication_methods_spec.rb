@@ -376,6 +376,63 @@ describe AuthenticationMethods do
         expect(controller.send(:load_user)).to be false
         expect(controller.render_hash[:json][:errors]).to eq "Cannot change masquerade"
       end
+
+      describe "masquerade authority recheck (Chain N regression)" do
+        # PoC 011-ato-permanent-masquerade-token.py: a long-lived
+        # AccessToken row whose user_id points at the masquerade target
+        # and real_user_id points at the admin used to authenticate as
+        # the target on every subsequent request, with no per-request
+        # can_masquerade? recheck. The token survived admin demotion
+        # and full account deletion, becoming a permanent silent
+        # impersonation primitive.
+        it "raises AccessTokenError when the masquerader has lost masquerade authority" do
+          token = AccessToken.create!(user: @user, real_user: @real_user, purpose: "Chain N regression")
+          controller = setup_with_token(token)
+
+          # The token row is loaded fresh from the DB inside the
+          # controller, so stub at the class level: any User loaded with
+          # the masqueradee's id reports can_masquerade? = false against
+          # the admin (i.e., the masquerade authority has been revoked
+          # since the token was minted).
+          allow_any_instance_of(User).to receive(:can_masquerade?).and_wrap_original do |orig, masquerader, account|
+            (orig.receiver.id == @user.id) ? false : orig.call(masquerader, account)
+          end
+
+          expect { controller.send(:load_user) }.to raise_error(AuthenticationMethods::AccessTokenError)
+        end
+
+        it "raises AccessTokenError when the real_user has been removed from Site Admin" do
+          token = AccessToken.create!(user: @user, real_user: @real_user, purpose: "Chain N regression")
+          controller = setup_with_token(token)
+
+          # Concrete revocation: remove the admin's site-admin grant.
+          # Without per-request recheck the token would still load.
+          Account.site_admin.account_users.where(user_id: @real_user.id).destroy_all
+
+          expect { controller.send(:load_user) }.to raise_error(AuthenticationMethods::AccessTokenError)
+        end
+
+        it "still loads a token whose real_user equals user (no masquerade)" do
+          # Defense-in-depth: tokens minted outside masquerade context
+          # should be unaffected even if real_user_id is set redundantly
+          # to the same value as user_id.
+          token = AccessToken.create!(user: @user, purpose: "non-masquerade token")
+          # Force the redundant assignment via update_columns to bypass
+          # AccessToken's own real_user!=user guard.
+          token.update_columns(real_user_id: @user.id)
+          controller = setup_with_token(token)
+
+          expect(controller.send(:load_user)).to eq @user
+        end
+
+        it "still loads a non-masquerade token when real_user is nil" do
+          token = AccessToken.create!(user: @user, purpose: "non-masquerade token")
+          controller = setup_with_token(token)
+
+          expect(controller.send(:load_user)).to eq @user
+          expect(controller.instance_variable_get(:@real_current_user)).to be_nil
+        end
+      end
     end
 
     context "with an InstAccess token" do
