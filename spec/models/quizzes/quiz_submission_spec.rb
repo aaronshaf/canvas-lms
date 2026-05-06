@@ -1369,7 +1369,7 @@ describe Quizzes::QuizSubmission do
     end
 
     describe "set_final_score" do
-      it "marks a quiz_submission as complete" do
+      it "does not transition to complete when essay questions are ungraded" do
         quiz_with_graded_submission([
                                       { question_data: {
                                         :name => "question 1",
@@ -1379,7 +1379,44 @@ describe Quizzes::QuizSubmission do
                                     ])
         @quiz_submission.set_final_score(2)
         @quiz_submission.reload
-        expect(@quiz_submission.workflow_state).to eq("complete")
+        expect(@quiz_submission.workflow_state).to eq("pending_review")
+      end
+
+      context "when essay questions are still ungraded" do
+        before do
+          quiz_with_graded_submission([
+                                        { question_data: {
+                                          :name => "question 1",
+                                          :points_possible => 1,
+                                          "question_type" => "essay_question"
+                                        } }
+                                      ]) do
+            { "question_#{@questions[0].id}" => "<p>My essay answer</p>" }
+          end
+        end
+
+        it "does not transition to complete while unscored questions remain" do
+          expect(@quiz_submission.workflow_state).to eql("pending_review")
+
+          @quiz_submission.set_final_score(1)
+          @quiz_submission.reload
+
+          expect(@quiz_submission.workflow_state).to eql("pending_review")
+        end
+
+        it "transitions to complete once all questions are scored" do
+          @quiz_submission.update_scores(
+            "submission_version_number" => "1",
+            "question_score_#{@questions[0].id}" => "1"
+          )
+          @quiz_submission.update_column(:workflow_state, "pending_review")
+
+          @quiz_submission.set_final_score(1)
+          @quiz_submission.reload
+
+          expect(@quiz_submission.workflow_state).to eql("complete")
+          expect(@quiz_submission.has_seen_results).to be_falsey
+        end
       end
     end
 

@@ -412,7 +412,7 @@ shared_examples "Gradebook" do |ff_enabled|
       expect(f("#gradebook_grid .icon-not-graded")).to be_truthy
     end
 
-    it 'removes the "needs grading" icon when graded manually', priority: "1" do
+    it 'keeps the "needs grading" icon when a final score is set but essays remain ungraded', priority: "1" do
       essay_submission.complete!(essay_text)
       user_session(teacher)
 
@@ -424,7 +424,7 @@ shared_examples "Gradebook" do |ff_enabled|
       Gradebook::Cells.edit_grade(student, essay_quiz.assignment, 10)
       # Re-select element in case it's gone stale
       grading_cell = Gradebook::Cells.grading_cell(student, essay_quiz.assignment)
-      expect(grading_cell).not_to contain_css(".icon-not-graded")
+      expect(grading_cell).to contain_css(".icon-not-graded")
     end
   end
 

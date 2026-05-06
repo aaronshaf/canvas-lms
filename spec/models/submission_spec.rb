@@ -11112,8 +11112,7 @@ describe Submission do
       end
 
       Timecop.freeze(10.minutes.from_now(now)) do
-        @quiz_submission.set_final_score(7)
-        @quiz_submission.save!
+        @quiz_submission.update_scores({ "question_score_#{@questions.first.id}" => 7 })
       end
     end
 

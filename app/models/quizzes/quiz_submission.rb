@@ -583,8 +583,11 @@ class Quizzes::QuizSubmission < ApplicationRecord
     self.fudge_points = new_fudge
 
     if workflow_state == "pending_review"
-      self.workflow_state = "complete"
-      self.has_seen_results = false
+      still_pending = serialized_model.submission_data&.any? { |a| a.with_indifferent_access["correct"] == "undefined" }
+      unless still_pending
+        self.workflow_state = "complete"
+        self.has_seen_results = false
+      end
     end
 
     # exclude the score of the version we're curretly overwriting
