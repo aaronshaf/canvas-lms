@@ -392,12 +392,12 @@ module PostgreSQLAdapterExtensions
   end
 
   def non_empty_tables
-    non_empty_tables = tables.select do |t|
-      select_value("SELECT COUNT(*) FROM #{quote_table_name(t)}") > 0
-    end
-    non_empty_tables.delete(ActiveRecord::Base.schema_migrations_table_name)
-    non_empty_tables.delete(ActiveRecord::Base.internal_metadata_table_name)
-    non_empty_tables.delete(Shard.table_name)
+    query = (tables.sort - [ActiveRecord::Base.schema_migrations_table_name,
+                            ActiveRecord::Base.internal_metadata_table_name,
+                            Shard.table_name]).map do |t|
+      "SELECT #{quote(t)}, COUNT(*) FROM #{quote_table_name(t)}"
+    end.join(" UNION ALL ")
+    non_empty_tables = select_values("SELECT * FROM (#{query}) AS subquery WHERE count > 0")
     non_empty_tables.delete(Account.table_name) if non_empty_tables.include?(Account.table_name) && !Account.where.not(id: 0).exists?
     non_empty_tables.delete(Setting.table_name) if non_empty_tables.include?(Setting.table_name) && !Setting.where.not(name: ["session_secret_key", "encryption_key_hash"]).exists?
     non_empty_tables
