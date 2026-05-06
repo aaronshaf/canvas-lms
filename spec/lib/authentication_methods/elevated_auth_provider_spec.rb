@@ -134,7 +134,11 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
               get :index
               expect(InstStatsd::Statsd).to have_received(:event).with(
                 "Elevated Auth Provider Violation",
-                include("user '#{current_user.global_id}'"),
+                satisfy { |msg|
+                  msg.include?("A GET request to") &&
+                    msg.include?("request_id:") &&
+                    msg.include?("user '#{current_user.global_id}'")
+                },
                 hash_including(type: :elevated_auth_provider_violation, alert_type: :error)
               )
             end

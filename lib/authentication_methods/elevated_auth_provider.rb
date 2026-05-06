@@ -80,7 +80,7 @@ module AuthenticationMethods
     def handle_no_elevated_auth_provider(pseudonym_account)
       if Account.site_admin.feature_enabled? :log_elevated_auth_provider_violations
         # Intentionally not using request.url to avoid logging sensistive params
-        message = "A request to #{request.base_url + request.path} by user '#{@current_user&.global_id}' required elevated auth provider '#{pseudonym_account.elevated_auth_provider_global_id}', but '#{AuthenticationMethods::PseudonymAttributes.auth_provider&.global_id}' was used."
+        message = "A #{request.method} request to #{request.base_url + request.path} (request_id: #{Canvas::ExecutionContext[:request_id]}) by user '#{@current_user&.global_id}' required elevated auth provider '#{pseudonym_account.elevated_auth_provider_global_id}', but '#{AuthenticationMethods::PseudonymAttributes.auth_provider&.global_id}' was used."
 
         InstStatsd::Statsd.event(
           "Elevated Auth Provider Violation",
