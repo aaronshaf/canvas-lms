@@ -112,13 +112,17 @@ export const OutcomeHeader: React.FC<OutcomeHeaderProps> = ({
 
   const displayMenuGroup = (
     <Menu.Group label={I18n.t('Display')} key="display">
-      <Menu.Item onClick={handleToggleContributingScores}>
+      <Menu.Item onClick={handleToggleContributingScores} data-testid="lmgb-contributing-scores">
         {contributingScoresForOutcome.isVisible()
           ? I18n.t('Hide Contributing Scores')
           : I18n.t('Show Contributing Scores')}
       </Menu.Item>
-      <Menu.Item onClick={openODModal}>{I18n.t('Outcome Info')}</Menu.Item>
-      <Menu.Item onClick={openODP}>{I18n.t('Show Outcome Distribution')}</Menu.Item>
+      <Menu.Item onClick={openODModal} data-testid="lmgb-outcome-info">
+        {I18n.t('Outcome Info')}
+      </Menu.Item>
+      <Menu.Item onClick={openODP} data-testid="lmgb-outcome-distribution">
+        {I18n.t('Show Outcome Distribution')}
+      </Menu.Item>
     </Menu.Group>
   )
 
