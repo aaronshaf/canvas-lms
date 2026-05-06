@@ -5,6 +5,71 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 8.0.0 - 2026-05-06
+
+### Added
+- New Caption Manager for Media Tray with auto-captioning (ASR) support
+- ClosedCaptionPanelV2 wired into AudioOptionsTray
+- Player layout dropdown for video tray
+- Size selector for audio tray
+- Show rolling transcript option for Studio media
+- Studio embed options in options tray
+- Selected option highlighting for Studio toolbar options
+- Viewer restrictions for Canvas media
+- Title required validation in VideoOptionsTray with inline validation
+- Unsaved changes tooltip for audio/video trays
+- Reload mechanism for media after tray caption modifications
+- Pendo analytics for Canvas media
+- Community link in video and audio options trays
+- Subpath export for `@instructure/canvas-rce/enhance-user-content`
+  (exposes `Mathml` and `makeAllExternalLinksExternalLinks`)
+
+### Changed
+- **Breaking:** Upgraded InstUI from v10 to v11
+- Replaced barrel export with named exports for `enhance-user-content`
+- Upgraded TypeScript from 5.7.2 to 6.0.2
+- Replaced ESLint with oxlint
+- Removed lodash dependency (migrated to es-toolkit)
+- Cleaned up and refactored jQueryUI in enhanced-user-content
+- Removed unused Flickr code
+- Removed AI Text Tools feature flag and related code
+- Removed `consolidated_media_player` feature flag
+- Aligned label naming to "Viewer restrictions" in Media Options Tray
+- Enhanced error states for manual caption uploads
+- Deduped file types in file upload
+- Disabled browser translation for TinyMCE in Edge browser
+
+### Fixed
+- Multiple a11y issues: caption creator labels and accessibility, save
+  confirmation announcement, visible labels for custom dimension inputs,
+  heading hierarchy in options tray, Player layout helper text via
+  aria-describedby, tray overlay issue, descriptive label for
+  KBDShortcuts modal close button, 720px helper text linked to transcript
+  checkbox, WCAG 2.5.3 violations on RCE option buttons
+- Studio tray controller, Studio video tray opening, infinite tray loading
+  on Studio embeds, multiple Studio embed discovery
+- Hide new embed options in TinyMCE toolbar for old embeds
+- Sync media tray loading state with player
+- Tooltip mount node for MediaTrays
+- Word count for text files with MIME parameters
+- Microphone permissions in LTI tray/sidebar placements
+- Missing save alert
+
+### Security
+- Sanitized MathML and prevented XSS in the math equation editor
+- Removed `*` from allowed attributes on `<object>`/`<embed>` tags
+- Upgraded axios to 1.13.5 (CSRF/security vulnerability)
+- Upgraded minimatch (ReDoS vulnerability)
+- Upgraded js-beautify
+
+### Reverted
+- "Fix doc preview height to use min-height"
+- "Fix RCE toolbar vs Tray overlay issue"
+- "Upgrade MediaCapture package to latest version"
+
+### Localization
+- Updated RCE translations
+
 ## 7.3.1 - 2025-11-11
 
 ### Fixed
