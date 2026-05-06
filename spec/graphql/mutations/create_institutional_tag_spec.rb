@@ -51,15 +51,8 @@ describe Mutations::CreateInstitutionalTag do
     GQL
   end
 
-  def run_mutation(opts = {}, current_user: @admin)
-    CanvasSchema.execute(
-      mutation_str(**opts),
-      context: {
-        current_user:,
-        domain_root_account: @account,
-        request: ActionDispatch::TestRequest.create
-      }
-    ).to_h.with_indifferent_access
+  def run_mutation(query = {}, current_user: @admin, domain_root_account: @account)
+    super
   end
 
   it "creates a tag under the given category" do

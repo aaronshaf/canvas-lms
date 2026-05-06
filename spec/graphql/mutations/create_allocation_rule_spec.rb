@@ -59,8 +59,7 @@ RSpec.describe Mutations::CreateAllocationRule, type: :graphql do
         }
       }
     GQL
-    context = { current_user:, request: ActionDispatch::TestRequest.create }
-    CanvasSchema.execute(mutation_command, context:)
+    run_mutation(mutation_command, current_user:)
   end
 
   describe "permissions" do

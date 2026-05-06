@@ -76,8 +76,7 @@ describe Mutations::CreateDiscussionTopic do
         }
       }
     GQL
-    context = { current_user:, request: ActionDispatch::TestRequest.create, in_app: true }
-    CanvasSchema.execute(mutation_command, context:)
+    run_mutation(mutation_command, current_user:, in_app: true)
   end
 
   def execute_with_input_with_assignment(create_input, current_user = @teacher, in_app: true)
@@ -152,8 +151,7 @@ describe Mutations::CreateDiscussionTopic do
         }
       }
     GQL
-    context = { current_user:, request: ActionDispatch::TestRequest.create, in_app: }
-    CanvasSchema.execute(mutation_command, context:)
+    run_mutation(mutation_command, current_user:, in_app:)
   end
 
   it "successfully creates the discussion topic" do

@@ -47,15 +47,7 @@ RSpec.describe Mutations::UpdateRubricArchivedState do
   end
 
   def run_mutation(opts = {}, current_user = @teacher)
-    result = CanvasSchema.execute(
-      mutation_str(**opts),
-      context: {
-        current_user:,
-        domain_root_account: @course.account.root_account,
-        request: ActionDispatch::TestRequest.create
-      }
-    )
-    result.to_h.with_indifferent_access
+    super(opts, current_user:, domain_root_account: @course.account.root_account)
   end
 
   it "marks rubric as archived" do

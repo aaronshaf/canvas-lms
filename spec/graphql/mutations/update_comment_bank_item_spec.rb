@@ -46,8 +46,7 @@ describe Mutations::UpdateCommentBankItem do
         }
       }
     GQL
-    context = { current_user: user_executing, request: ActionDispatch::TestRequest.create, session: {} }
-    CanvasSchema.execute(mutation_command, context:)
+    run_mutation(mutation_command, current_user: user_executing)
   end
 
   it "updates a comment bank item" do

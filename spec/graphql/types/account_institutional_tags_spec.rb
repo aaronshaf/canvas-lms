@@ -39,14 +39,7 @@ describe "AccountType institutional tag queries" do
   end
 
   def run_query(query_str, current_user: @admin)
-    CanvasSchema.execute(
-      query_str,
-      context: {
-        current_user:,
-        domain_root_account: @account,
-        request: ActionDispatch::TestRequest.create
-      }
-    ).to_h.with_indifferent_access
+    run_mutation(query_str, current_user:, domain_root_account: @account)
   end
 
   def account_type

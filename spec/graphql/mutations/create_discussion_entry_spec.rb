@@ -64,14 +64,7 @@ RSpec.describe Mutations::CreateDiscussionEntry do
   end
 
   def run_mutation(opts = {}, current_user = @student)
-    result = CanvasSchema.execute(
-      mutation_str(**opts),
-      context: {
-        current_user:,
-        request: ActionDispatch::TestRequest.create
-      }
-    )
-    result.to_h.with_indifferent_access
+    super(opts, current_user:)
   end
 
   it "creates a discussion entry" do
@@ -159,7 +152,7 @@ RSpec.describe Mutations::CreateDiscussionEntry do
     end
 
     context "mySubAssignmentSubmissions" do
-      def checkpoints_mutation_str(
+      def mutation_str(
         discussion_topic_id: nil,
         message: nil,
         parent_entry_id: nil,
@@ -201,14 +194,7 @@ RSpec.describe Mutations::CreateDiscussionEntry do
       end
 
       def run_checkpoints_mutation(opts = {}, current_user = @student)
-        result = CanvasSchema.execute(
-          checkpoints_mutation_str(**opts),
-          context: {
-            current_user:,
-            request: ActionDispatch::TestRequest.create
-          }
-        )
-        result.to_h.with_indifferent_access
+        run_mutation(opts, current_user)
       end
 
       it "returns empty array for teachers" do

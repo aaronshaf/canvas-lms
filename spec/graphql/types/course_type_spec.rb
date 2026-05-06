@@ -53,7 +53,7 @@ describe Types::CourseType do
 
       # course
       expect(
-        CanvasSchema.execute(<<~GQL, context: { current_user: @student2 }).dig("data", "course")
+        run_mutation(<<~GQL, current_user: @student2).dig("data", "course")
           query { course(id: "#{course.id}") { id } }
         GQL
       ).to be_nil
@@ -70,7 +70,7 @@ describe Types::CourseType do
 
     it "returns sis_id if you have read_sis permissions" do
       expect(
-        CanvasSchema.execute(<<~GQL, context: { current_user: @teacher }).dig("data", "course", "sisId")
+        run_mutation(<<~GQL, current_user: @teacher).dig("data", "course", "sisId")
           query { course(id: "#{sis_course.id}") { sisId } }
         GQL
       ).to eq("SIScourseID")
@@ -78,7 +78,7 @@ describe Types::CourseType do
 
     it "returns sis_id if you have manage_sis permissions" do
       expect(
-        CanvasSchema.execute(<<~GQL, context: { current_user: admin }).dig("data", "course", "sisId")
+        run_mutation(<<~GQL, current_user: admin).dig("data", "course", "sisId")
           query { course(id: "#{sis_course.id}") { sisId } }
         GQL
       ).to eq("SIScourseID")
@@ -86,7 +86,7 @@ describe Types::CourseType do
 
     it "doesn't return sis_id if you don't have read_sis or management_sis permissions" do
       expect(
-        CanvasSchema.execute(<<~GQL, context: { current_user: @student }).dig("data", "course", "sisId")
+        run_mutation(<<~GQL, current_user: @student).dig("data", "course", "sisId")
           query { course(id: "#{sis_course.id}") { sisId } }
         GQL
       ).to be_nil
@@ -1566,7 +1566,7 @@ describe Types::CourseType do
           end
 
           it "throws error if search term is too short" do
-            result = CanvasSchema.execute(<<~GQL, context: { current_user: @teacher })
+            result = run_mutation(<<~GQL, current_user: @teacher)
               query {
                 course(id: "#{course.id}") {
                   usersConnection(filter: {searchTerm: "a"}) {
@@ -2551,7 +2551,7 @@ describe Types::CourseType do
   describe "moderators" do
     def execute_query(pagination_options: {}, user: @teacher)
       options_string = pagination_options.empty? ? "" : "(#{pagination_options.map { |key, value| "#{key}: #{value.inspect}" }.join(", ")})"
-      CanvasSchema.execute(<<~GQL, context: { current_user: user }).dig("data", "course")
+      run_mutation(<<~GQL, current_user: user).dig("data", "course")
         query {
           course(id: #{course.id}) {
             availableModerators#{options_string} {
@@ -2616,7 +2616,7 @@ describe Types::CourseType do
     let(:teacher) { @teacher }
 
     def execute_with_context(query, user)
-      CanvasSchema.execute(query, context: { current_user: user })
+      run_mutation(query, current_user: user)
     end
 
     before :once do

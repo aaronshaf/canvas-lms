@@ -35,7 +35,7 @@ describe Mutations::DismissAccountNotification do
     )
   end
 
-  def execute_mutation(notification_id, context_user = @student)
+  def execute_mutation(notification_id, current_user = @student)
     mutation = <<~GQL
       mutation DismissNotification($notificationId: ID!) {
         dismissAccountNotification(input: {notificationId: $notificationId}) {
@@ -46,12 +46,10 @@ describe Mutations::DismissAccountNotification do
         }
       }
     GQL
-
-    CanvasSchema.execute(
-      mutation,
-      context: { current_user: context_user, domain_root_account: @account },
-      variables: { notificationId: notification_id.to_s }
-    )
+    run_mutation(mutation,
+                 current_user:,
+                 domain_root_account: @account,
+                 variables: { notificationId: notification_id.to_s })
   end
 
   describe "dismissing notifications" do

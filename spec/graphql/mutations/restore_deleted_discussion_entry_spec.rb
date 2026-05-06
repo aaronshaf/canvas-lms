@@ -45,15 +45,8 @@ RSpec.describe Mutations::RestoreDeletedDiscussionEntry do
     GQL
   end
 
-  def run_mutation(opts = {})
-    current_user = opts.delete(:current_user) || @teacher
-    CanvasSchema.execute(
-      mutation_str(**opts),
-      context: {
-        current_user:,
-        request: ActionDispatch::TestRequest.create
-      }
-    )
+  def run_mutation(current_user: @teacher, **opts)
+    super(opts, current_user:)
   end
 
   subject { run_mutation(discussion_entry_id: entry.id, current_user:) }

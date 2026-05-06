@@ -35,7 +35,7 @@ describe Mutations::SaveRubricAssessment do
         submission_id: @student1_asset.id,
         assessment_details: get_assessment_details("grading")
       )
-      result = CanvasSchema.execute(mutation, context: student_context)
+      result = run_mutation(mutation, **student_context)
       expect(result["errors"]).to be_present
       expect(result["errors"].first["message"]).to eq("Not authorized to assess user")
     end
@@ -58,7 +58,7 @@ describe Mutations::SaveRubricAssessment do
         submission_id: @student1_asset.id,
         assessment_details: get_assessment_details("grading")
       )
-      result = CanvasSchema.execute(mutation, context: student_context)
+      result = run_mutation(mutation, **student_context)
       expect(result["errors"]).to be_present
       expect(result["errors"].first["message"]).to eq("Not authorized to assess user")
     end
@@ -80,7 +80,7 @@ describe Mutations::SaveRubricAssessment do
         submission_id: @student1_asset.id,
         assessment_details: get_assessment_details("grading")
       )
-      result = CanvasSchema.execute(mutation, context:)
+      result = run_mutation(mutation, **context)
       expect(result["errors"]).to be_nil
       expect(result["data"]["saveRubricAssessment"]["submission"]["_id"]).to eq(@student1_asset.id.to_s)
       expect(result["data"]["saveRubricAssessment"]["submission"]["score"]).to eq(10)
@@ -95,7 +95,7 @@ describe Mutations::SaveRubricAssessment do
         submission_id: "999",
         assessment_details: get_assessment_details("grading")
       )
-      result = CanvasSchema.execute(mutation, context:)
+      result = run_mutation(mutation, **context)
       expect(result["errors"]).to be_present
       expect(result["errors"].first["message"]).to eq("Submission not found")
     end
@@ -106,7 +106,7 @@ describe Mutations::SaveRubricAssessment do
         submission_id: @student1_asset.id,
         assessment_details: get_assessment_details("grading")
       )
-      result = CanvasSchema.execute(mutation, context:)
+      result = run_mutation(mutation, **context)
       expect(result["errors"]).to be_present
       expect(result["errors"].first["message"]).to eq("RubricAssociation not found")
     end
@@ -120,7 +120,7 @@ describe Mutations::SaveRubricAssessment do
         submission_id: @student1_asset.id,
         assessment_details: get_assessment_details("grading")
       )
-      result = CanvasSchema.execute(mutation, context:)
+      result = run_mutation(mutation, **context)
       expect(result["data"]["saveRubricAssessment"]["submission"]["_id"]).to eq(@student1_asset.id.to_s)
       expect(result["data"]["saveRubricAssessment"]["submission"]["score"]).to eq(10)
       expect(result["data"]["saveRubricAssessment"]["submission"]["grade"]).to eq("10")
@@ -150,7 +150,7 @@ describe Mutations::SaveRubricAssessment do
         submission_id: @student1_asset.id,
         assessment_details: get_assessment_details("grading")
       )
-      result = CanvasSchema.execute(mutation, context:)
+      result = run_mutation(mutation, **context)
       expect(result["data"]["saveRubricAssessment"]["submission"]["_id"]).to eq(@student1_asset.id.to_s)
       expect(result["data"]["saveRubricAssessment"]["submission"]["score"]).to eq(10)
       expect(result["data"]["saveRubricAssessment"]["submission"]["grade"]).to eq("10")
@@ -176,8 +176,8 @@ describe Mutations::SaveRubricAssessment do
         assessment_details: get_assessment_details("grading"),
         graded_anonymously: false
       )
-      result1 = CanvasSchema.execute(mutation1, context: { current_user: @teacher, domain_root_account: @course.root_account })
-      result2 = CanvasSchema.execute(mutation2, context: { current_user: @teacher2, domain_root_account: @course.root_account })
+      result1 = run_mutation(mutation1, current_user: @teacher, domain_root_account: @course.root_account)
+      result2 = run_mutation(mutation2, current_user: @teacher2, domain_root_account: @course.root_account)
       expect(result1["data"]["saveRubricAssessment"]["submission"]["_id"]).to eq(@student1_asset.id.to_s)
       expect(result1["data"]["saveRubricAssessment"]["submission"]["score"]).to eq(10)
       expect(result1["data"]["saveRubricAssessment"]["submission"]["grade"]).to eq("10")
@@ -203,8 +203,8 @@ describe Mutations::SaveRubricAssessment do
         assessment_details: get_assessment_details("peer_review", 10),
         graded_anonymously: false
       )
-      result1 = CanvasSchema.execute(mutation1, context: { current_user: @student2, domain_root_account: @course.root_account })
-      result2 = CanvasSchema.execute(mutation2, context: { current_user: @student3, domain_root_account: @course.root_account })
+      result1 = run_mutation(mutation1, current_user: @student2, domain_root_account: @course.root_account)
+      result2 = run_mutation(mutation2, current_user: @student3, domain_root_account: @course.root_account)
       expect(result1["data"]["saveRubricAssessment"]["submission"]["_id"]).to eq(@student1_asset.id.to_s)
       expect(result1["data"]["saveRubricAssessment"]["submission"]["score"]).to be_nil
       expect(result1["data"]["saveRubricAssessment"]["submission"]["grade"]).to be_nil
@@ -235,9 +235,9 @@ describe Mutations::SaveRubricAssessment do
         assessment_details: get_assessment_details("peer_review", 10),
         graded_anonymously: false
       )
-      result1 = CanvasSchema.execute(mutation1, context: { current_user: @teacher, domain_root_account: @course.root_account })
-      result2 = CanvasSchema.execute(mutation2, context: { current_user: @student2, domain_root_account: @course.root_account })
-      result3 = CanvasSchema.execute(mutation3, context: { current_user: @student3, domain_root_account: @course.root_account })
+      result1 = run_mutation(mutation1, current_user: @teacher, domain_root_account: @course.root_account)
+      result2 = run_mutation(mutation2, current_user: @student2, domain_root_account: @course.root_account)
+      result3 = run_mutation(mutation3, current_user: @student3, domain_root_account: @course.root_account)
       expect(result1["data"]["saveRubricAssessment"]["submission"]["_id"]).to eq(@student1_asset.id.to_s)
       expect(result1["data"]["saveRubricAssessment"]["submission"]["score"]).to eq(10)
       expect(result1["data"]["saveRubricAssessment"]["submission"]["grade"]).to eq("10")
@@ -264,7 +264,7 @@ describe Mutations::SaveRubricAssessment do
         provisional: true
       )
 
-      result = CanvasSchema.execute(mutation, context: { current_user: @teacher, domain_root_account: @course.root_account })
+      result = run_mutation(mutation, current_user: @teacher, domain_root_account: @course.root_account)
 
       expect(result["data"]["saveRubricAssessment"]["submission"]["_id"]).to eq(@student1_asset.id.to_s)
 
@@ -286,7 +286,7 @@ describe Mutations::SaveRubricAssessment do
         provisional: true
       )
 
-      CanvasSchema.execute(mutation, context: { current_user: @teacher, domain_root_account: @course.root_account })
+      run_mutation(mutation, current_user: @teacher, domain_root_account: @course.root_account)
 
       expect(@assignment.moderation_graders.count).to eq(1)
       expect(@assignment.moderation_graders.first.user_id).to eq(@teacher.id)
@@ -303,7 +303,7 @@ describe Mutations::SaveRubricAssessment do
         assessment_details: get_assessment_details("grading"),
         provisional: true
       )
-      CanvasSchema.execute(ta_mutation, context: { current_user: ta, domain_root_account: @course.root_account })
+      run_mutation(ta_mutation, current_user: ta, domain_root_account: @course.root_account)
 
       teacher2 = @course.enroll_user(User.create!, "TeacherEnrollment", enrollment_state: "active").user
       teacher2_mutation = mutation_str(
@@ -313,7 +313,7 @@ describe Mutations::SaveRubricAssessment do
         provisional: true
       )
 
-      result = CanvasSchema.execute(teacher2_mutation, context: { current_user: teacher2, domain_root_account: @course.root_account })
+      result = run_mutation(teacher2_mutation, current_user: teacher2, domain_root_account: @course.root_account)
 
       expect(result["errors"]).to be_present
       expect(result["errors"][0]["message"]).to eq("The maximum number of graders has been reached for this assignment.")

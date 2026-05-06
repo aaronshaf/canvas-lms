@@ -45,14 +45,7 @@ describe Mutations::UpdateInstitutionalTagCategory do
   end
 
   def run_mutation(opts = {}, current_user: @admin)
-    CanvasSchema.execute(
-      mutation_str(**opts),
-      context: {
-        current_user:,
-        domain_root_account: @account,
-        request: ActionDispatch::TestRequest.create
-      }
-    ).to_h.with_indifferent_access
+    super(opts, current_user:, domain_root_account: @account)
   end
 
   it "updates the category name" do

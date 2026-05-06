@@ -51,8 +51,7 @@ RSpec.describe Mutations::DeleteAllocationRule, type: :graphql do
         }
       }
     GQL
-    context = { current_user:, request: ActionDispatch::TestRequest.create }
-    CanvasSchema.execute(mutation_command, context:)
+    run_mutation(mutation_command, current_user:)
   end
 
   context "successful deletion" do

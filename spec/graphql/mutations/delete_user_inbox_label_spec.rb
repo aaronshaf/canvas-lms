@@ -39,9 +39,7 @@ describe Mutations::DeleteUserInboxLabel do
         }
       }
     GQL
-    context = { current_user: @user, request: ActionDispatch::TestRequest.create }
-
-    CanvasSchema.execute(mutation_str, context:)
+    super(mutation_str, current_user: @user)
   end
 
   it "deletes an inbox label" do

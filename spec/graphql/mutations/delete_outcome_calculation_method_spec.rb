@@ -44,8 +44,7 @@ describe Mutations::DeleteOutcomeCalculationMethod do
         }
       }
     GQL
-    context = { current_user: user_executing, deleted_models: {}, request: ActionDispatch::TestRequest.create, session: {} }
-    CanvasSchema.execute(mutation_command, context:)
+    run_mutation(mutation_command, current_user: user_executing, deleted_models: {})
   end
 
   it "deletes an outcome calculation method with legacy id" do

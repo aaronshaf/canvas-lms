@@ -47,8 +47,12 @@ describe Mutations::CreateGroupInSet do
     GQL
   end
 
+  def run_mutation(query = {}, current_user: @teacher)
+    super
+  end
+
   it "works" do
-    result = CanvasSchema.execute(mutation_str, context: { current_user: @teacher })
+    result = run_mutation
 
     new_group_id = result.dig(*%w[data createGroupInSet group _id])
     expect(Group.find(new_group_id).name).to eq "zxcv"
@@ -58,23 +62,20 @@ describe Mutations::CreateGroupInSet do
 
   it "fails gracefully for invalid group sets" do
     invalid_group_set_id = 111_111_111_111_111_111
-    result = CanvasSchema.execute(mutation_str(group_set_id: invalid_group_set_id), context: { current_user: @student })
+    result = run_mutation({ group_set_id: invalid_group_set_id }, current_user: @student)
     expect(result["errors"]).not_to be_nil
     expect(result.dig(*%w[data createGroupInSet])).to be_nil
   end
 
   it "requires permission" do
-    result = CanvasSchema.execute(mutation_str, context: { current_user: @student })
+    result = run_mutation(current_user: @student)
     expect(result["errors"]).not_to be_nil
     expect(result.dig(*%w[data createGroupInSet])).to be_nil
   end
 
   context "validation errors" do
     it "returns validation errors" do
-      result = CanvasSchema.execute(
-        mutation_str(name: "!" * (Group.maximum_string_length + 1)),
-        context: { current_user: @teacher }
-      )
+      result = run_mutation({ name: "!" * (Group.maximum_string_length + 1) })
 
       # top-level errors are nil since this is a user error
       expect(result["errors"]).to be_nil
@@ -107,7 +108,7 @@ describe Mutations::CreateGroupInSet do
     end
 
     def run_mutation(name: "non collaborative group", group_set_id: @gc_non_colab.id, non_collaborative: true, current_user: @teacher)
-      CanvasSchema.execute(mutation_str(name:, group_set_id:, non_collaborative:), context: { current_user: })
+      super({ name:, group_set_id:, non_collaborative: }, current_user:)
     end
 
     it "creates non-collaborative group" do

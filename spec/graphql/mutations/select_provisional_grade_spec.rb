@@ -94,7 +94,7 @@ describe Mutations::SelectProvisionalGrade do
       let(:context) { { current_user: final_grader, domain_root_account: account } }
 
       it "allows the mutation" do
-        result = CanvasSchema.execute(mutation_str, context:)
+        result = run_mutation(mutation_str, **context)
         expect(result["errors"]).to be_nil
         expect(result.dig("data", "selectProvisionalGrade", "provisionalGrade")).not_to be_nil
       end
@@ -114,7 +114,7 @@ describe Mutations::SelectProvisionalGrade do
       end
 
       it "allows the mutation" do
-        result = CanvasSchema.execute(mutation_str, context:)
+        result = run_mutation(mutation_str, **context)
         expect(result["errors"]).to be_nil
         expect(result.dig("data", "selectProvisionalGrade", "provisionalGrade")).not_to be_nil
       end
@@ -124,12 +124,12 @@ describe Mutations::SelectProvisionalGrade do
       let(:context) { { current_user: teacher, domain_root_account: account } }
 
       it "returns a not found error" do
-        result = CanvasSchema.execute(mutation_str, context:)
+        result = run_mutation(mutation_str, **context)
         expect(result.dig("errors", 0, "message")).to eq "not found"
       end
 
       it "does not return data" do
-        result = CanvasSchema.execute(mutation_str, context:)
+        result = run_mutation(mutation_str, **context)
         expect(result.dig("data", "selectProvisionalGrade")).to be_nil
       end
     end
@@ -139,7 +139,7 @@ describe Mutations::SelectProvisionalGrade do
       let(:context) { { current_user: other_user, domain_root_account: account } }
 
       it "returns a not found error" do
-        result = CanvasSchema.execute(mutation_str, context:)
+        result = run_mutation(mutation_str, **context)
         expect(result.dig("errors", 0, "message")).to eq "not found"
       end
     end
@@ -148,7 +148,7 @@ describe Mutations::SelectProvisionalGrade do
       let(:context) { { current_user: student, domain_root_account: account } }
 
       it "returns a not found error" do
-        result = CanvasSchema.execute(mutation_str, context:)
+        result = run_mutation(mutation_str, **context)
         expect(result.dig("errors", 0, "message")).to eq "not found"
       end
     end
@@ -159,23 +159,23 @@ describe Mutations::SelectProvisionalGrade do
 
     context "when assignment does not exist" do
       it "returns a not found error" do
-        result = CanvasSchema.execute(mutation_str(assignment_id: 0), context:)
+        result = run_mutation({ assignment_id: 0 }, **context)
         expect(result.dig("errors", 0, "message")).to eq "not found"
       end
     end
 
     context "when provisional grade does not exist" do
       it "returns a not found error" do
-        result = CanvasSchema.execute(mutation_str(provisional_grade_id: 0), context:)
+        result = run_mutation({ provisional_grade_id: 0 }, **context)
         expect(result.dig("errors", 0, "message")).to eq "not found"
       end
     end
 
     context "when provisional grade belongs to different assignment" do
       it "returns a not found error" do
-        result = CanvasSchema.execute(
-          mutation_str(provisional_grade_id: other_assignment_provisional_grade.id),
-          context:
+        result = run_mutation(
+          { provisional_grade_id: other_assignment_provisional_grade.id },
+          **context
         )
         expect(result.dig("errors", 0, "message")).to eq "not found"
       end
@@ -193,20 +193,20 @@ describe Mutations::SelectProvisionalGrade do
 
       it "creates a new ModeratedGrading::Selection record" do
         expect do
-          CanvasSchema.execute(mutation_str, context:)
+          run_mutation(mutation_str, **context)
         end.to change {
           ModeratedGrading::Selection.where(assignment:, student:).count
         }.from(0).to(1)
       end
 
       it "sets the correct provisional_grade_id on the selection" do
-        CanvasSchema.execute(mutation_str, context:)
+        run_mutation(mutation_str, **context)
         selection = ModeratedGrading::Selection.find_by(assignment:, student:)
         expect(selection.selected_provisional_grade_id).to eq provisional_grade_1.id
       end
 
       it "returns the provisional grade" do
-        result = CanvasSchema.execute(mutation_str, context:)
+        result = run_mutation(mutation_str, **context)
         returned_grade = result.dig("data", "selectProvisionalGrade", "provisionalGrade")
         expect(returned_grade["_id"]).to eq provisional_grade_1.id.to_s
         expect(returned_grade["score"]).to eq 8.0
@@ -215,7 +215,7 @@ describe Mutations::SelectProvisionalGrade do
 
       it "creates a moderation event" do
         expect do
-          CanvasSchema.execute(mutation_str, context:)
+          run_mutation(mutation_str, **context)
         end.to change {
           AnonymousOrModerationEvent.where(
             assignment:,
@@ -226,7 +226,7 @@ describe Mutations::SelectProvisionalGrade do
       end
 
       it "includes correct payload in the moderation event" do
-        CanvasSchema.execute(mutation_str, context:)
+        run_mutation(mutation_str, **context)
         event = AnonymousOrModerationEvent.where(
           assignment:,
           user: final_grader,
@@ -240,25 +240,25 @@ describe Mutations::SelectProvisionalGrade do
     context "when selection already exists" do
       before do
         # First select a provisional grade to create the selection
-        CanvasSchema.execute(mutation_str(provisional_grade_id: provisional_grade_1.id), context: { current_user: final_grader })
+        run_mutation({ provisional_grade_id: provisional_grade_1.id }, current_user: final_grader)
       end
 
       it "does not create a new selection record" do
         expect do
-          CanvasSchema.execute(mutation_str(provisional_grade_id: provisional_grade_2.id), context:)
+          run_mutation({ provisional_grade_id: provisional_grade_2.id }, **context)
         end.not_to change {
           ModeratedGrading::Selection.where(assignment:, student:).count
         }
       end
 
       it "updates the existing selection with new provisional_grade_id" do
-        CanvasSchema.execute(mutation_str(provisional_grade_id: provisional_grade_2.id), context:)
+        run_mutation({ provisional_grade_id: provisional_grade_2.id }, **context)
         selection = ModeratedGrading::Selection.find_by(assignment:, student:)
         expect(selection.selected_provisional_grade_id).to eq provisional_grade_2.id
       end
 
       it "returns the newly selected provisional grade" do
-        result = CanvasSchema.execute(mutation_str(provisional_grade_id: provisional_grade_2.id), context:)
+        result = run_mutation({ provisional_grade_id: provisional_grade_2.id }, **context)
         returned_grade = result.dig("data", "selectProvisionalGrade", "provisionalGrade")
         expect(returned_grade["_id"]).to eq provisional_grade_2.id.to_s
         expect(returned_grade["score"]).to eq 9.0
@@ -266,7 +266,7 @@ describe Mutations::SelectProvisionalGrade do
 
       it "still creates a moderation event for the update" do
         expect do
-          CanvasSchema.execute(mutation_str(provisional_grade_id: provisional_grade_2.id), context:)
+          run_mutation({ provisional_grade_id: provisional_grade_2.id }, **context)
         end.to change {
           AnonymousOrModerationEvent.where(
             assignment:,
@@ -282,7 +282,7 @@ describe Mutations::SelectProvisionalGrade do
     let(:context) { { current_user: final_grader } }
 
     it "includes all expected fields" do
-      result = CanvasSchema.execute(mutation_str, context:)
+      result = run_mutation(mutation_str, **context)
       returned_grade = result.dig("data", "selectProvisionalGrade", "provisionalGrade")
 
       expect(returned_grade).to include("_id")
@@ -294,7 +294,7 @@ describe Mutations::SelectProvisionalGrade do
     end
 
     it "does not include scorer_id field (anonymity check)" do
-      result = CanvasSchema.execute(mutation_str, context:)
+      result = run_mutation(mutation_str, **context)
       returned_grade = result.dig("data", "selectProvisionalGrade", "provisionalGrade")
 
       expect(returned_grade).not_to include("scorerId")
@@ -302,15 +302,15 @@ describe Mutations::SelectProvisionalGrade do
     end
 
     it "shows selected as true after selection" do
-      CanvasSchema.execute(mutation_str, context:)
-      result = CanvasSchema.execute(mutation_str, context:)
+      run_mutation(mutation_str, **context)
+      result = run_mutation(mutation_str, **context)
       returned_grade = result.dig("data", "selectProvisionalGrade", "provisionalGrade")
 
       expect(returned_grade["selected"]).to be true
     end
 
     it "includes scorerAnonymousId for anonymous grading support" do
-      result = CanvasSchema.execute(mutation_str, context:)
+      result = run_mutation(mutation_str, **context)
       returned_grade = result.dig("data", "selectProvisionalGrade", "provisionalGrade")
 
       # The scorerAnonymousId should be present (may be null if no anonymous grading setup)

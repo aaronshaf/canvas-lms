@@ -48,13 +48,13 @@ describe AuditLogFieldExtension do
 
   it "logs" do
     expect_any_instance_of(AuditLogFieldExtension::Logger).to receive(:log).once
-    CanvasSchema.execute(mutation, context: { current_user: @teacher })
+    run_mutation(mutation, current_user: @teacher)
   end
 
   it "creates a log for every item" do
     expect_any_instance_of(AuditLogFieldExtension::Logger).to receive(:log).twice
 
-    CanvasSchema.execute(<<~GQL, context: { current_user: @teacher })
+    run_mutation(<<~GQL, current_user: @teacher)
       mutation {
         hideAssignmentGrades(input: {assignmentId: "#{@assignment.id}"}) {
           assignment { _id }
@@ -65,7 +65,7 @@ describe AuditLogFieldExtension do
 
   it "doesn't log failed mutations" do
     expect_any_instance_of(AuditLogFieldExtension::Logger).not_to receive(:log)
-    CanvasSchema.execute(mutation, context: { current_user: @student })
+    run_mutation(mutation, current_user: @student)
   end
 
   it "fails gracefully when dynamo isn't working, with captured exception" do
@@ -82,7 +82,7 @@ describe AuditLogFieldExtension do
       expect(e.class).to eq(Aws::DynamoDB::Errors::ServiceError)
     end
     allow(Canvas::DynamoDB::DatabaseBuilder).to receive(:from_config).and_return(dynamo)
-    response = CanvasSchema.execute(mutation, context: { current_user: @teacher })
+    response = run_mutation(mutation, current_user: @teacher)
     expect(response.dig("data", "updateAssignment", "assignment", "name")).to eq "asdf"
     expect(response["error"]).to be_nil
   end

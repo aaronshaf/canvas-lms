@@ -21,8 +21,6 @@
 require_relative "../graphql_spec_helper"
 
 describe Mutations::PostAssignmentGrades do
-  include GraphQLSpecHelper
-
   let(:assignment) { course.assignments.create! }
   let(:course) { Course.create!(workflow_state: :available) }
   let(:student) { course.enroll_user(User.create!, "StudentEnrollment", enrollment_state: :active).user }
@@ -52,7 +50,7 @@ describe Mutations::PostAssignmentGrades do
   end
 
   def execute_query(mutation_str, context)
-    CanvasSchema.execute(mutation_str, context:)
+    run_mutation(mutation_str, **context)
   end
 
   context "when user has grade permission" do

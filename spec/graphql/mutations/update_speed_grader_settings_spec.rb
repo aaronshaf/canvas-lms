@@ -37,13 +37,7 @@ describe Mutations::UpdateSpeedGraderSettings do
         }
       }
     GQL
-    context = {
-      current_user: @teacher,
-      domain_root_account: @course.root_account,
-      request: ActionDispatch::TestRequest.create,
-      session: {},
-    }
-    CanvasSchema.execute(mutation_command, context:)
+    run_mutation(mutation_command, current_user: @teacher, domain_root_account: @course.root_account)
   end
 
   it "updates the speed grader settings" do

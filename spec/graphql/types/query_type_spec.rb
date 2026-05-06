@@ -36,9 +36,9 @@ describe Types::QueryType do
 
     # get query_type.allCourses
     expect(
-      CanvasSchema.execute(
+      run_mutation(
         "{ allCourses { _id } }",
-        context: { current_user: teacher }
+        current_user: teacher
       ).dig("data", "allCourses").pluck("_id")
     ).to match_array [test_course_1, test_course_2].map(&:to_param)
   end
@@ -51,9 +51,9 @@ describe Types::QueryType do
       teacher = user_factory(name: "Teacher")
       course1.enroll_user(teacher, "TeacherEnrollment", enrollment_state: "active")
 
-      result = CanvasSchema.execute(
+      result = run_mutation(
         "{ courses(ids: [\"#{course1.id}\", \"#{course2.id}\", \"#{course3.id}\"]) { _id } }",
-        context: { current_user: teacher }
+        current_user: teacher
       )
 
       expect(result.dig("data", "courses").pluck("_id"))
@@ -67,9 +67,9 @@ describe Types::QueryType do
       teacher = user_factory(name: "Teacher")
       course1.enroll_user(teacher, "TeacherEnrollment", enrollment_state: "active")
 
-      result = CanvasSchema.execute(
+      result = run_mutation(
         "{ courses(sisIds: [\"sis_course_1\", \"sis_course_2\", \"sis_course_3\"]) { _id } }",
-        context: { current_user: teacher }
+        current_user: teacher
       )
 
       expect(result.dig("data", "courses").pluck("_id"))
@@ -77,18 +77,18 @@ describe Types::QueryType do
     end
 
     it "errors when both ids and sis_ids provided" do
-      result = CanvasSchema.execute(
+      result = run_mutation(
         "{ courses(ids: [\"123\"], sisIds: [\"sis123\"]) { _id } }",
-        context: { current_user: user_factory }
+        current_user: user_factory
       )
 
       expect(result.dig("errors", 0, "message")).to eq "Must specify exactly one of ids or sisIds"
     end
 
     it "errors when neither ids nor sis_ids provided" do
-      result = CanvasSchema.execute(
+      result = run_mutation(
         "{ courses { _id } }",
-        context: { current_user: user_factory }
+        current_user: user_factory
       )
 
       expect(result.dig("errors", 0, "message")).to eq "Must specify exactly one of ids or sisIds"
@@ -96,9 +96,9 @@ describe Types::QueryType do
 
     it "errors when requesting more than 100 courses at once" do
       course_ids = (1..101).map(&:to_s)
-      result = CanvasSchema.execute(
+      result = run_mutation(
         "{ courses(ids: #{course_ids.to_json}) { _id } }",
-        context: { current_user: user_factory }
+        current_user: user_factory
       )
 
       expect(result.dig("errors", 0, "message")).to eq "Cannot request more than 100 courses at once"
@@ -106,9 +106,9 @@ describe Types::QueryType do
 
     it "errors when requesting more than 100 courses via sis_ids" do
       sis_ids = (1..101).map { |i| "sis_course_#{i}" }
-      result = CanvasSchema.execute(
+      result = run_mutation(
         "{ courses(sisIds: #{sis_ids.to_json}) { _id } }",
-        context: { current_user: user_factory }
+        current_user: user_factory
       )
 
       expect(result.dig("errors", 0, "message")).to eq "Cannot request more than 100 courses at once"
@@ -122,9 +122,9 @@ describe Types::QueryType do
       @calc_method = outcome_calculation_method_model(@course.account)
 
       expect(
-        CanvasSchema.execute(
+        run_mutation(
           "{ outcomeCalculationMethod(id: #{@calc_method.id}) { _id } }",
-          context: { current_user: @admin }
+          current_user: @admin
         ).dig("data", "outcomeCalculationMethod", "_id")
       ).to eq @calc_method.id.to_s
     end
@@ -137,9 +137,9 @@ describe Types::QueryType do
       @proficiency = outcome_proficiency_model(@course.account)
 
       expect(
-        CanvasSchema.execute(
+        run_mutation(
           "{ outcomeProficiency(id: #{@proficiency.id}) { _id } }",
-          context: { current_user: @admin }
+          current_user: @admin
         ).dig("data", "outcomeProficiency", "_id")
       ).to eq @proficiency.id.to_s
     end
@@ -167,14 +167,14 @@ describe Types::QueryType do
     %w[account course assignment assignmentGroup term].each do |type|
       it "doesn't allow searching #{type} when given both types of ids" do
         expect(
-          CanvasSchema.execute("{#{type}(id: \"123\", sisId: \"123\") { id }}").dig("errors", 0, "message")
+          run_mutation("{#{type}(id: \"123\", sisId: \"123\") { id }}").dig("errors", 0, "message")
         ).to eq("Must specify exactly one of id or sisId")
       end
 
       it "allows searching #{type} by sisId" do
         original_object = send(type)
         expect(
-          CanvasSchema.execute(%/{#{type}(sisId: "#{generic_sis_id}") { _id }}/, context: { current_user: admin })
+          run_mutation(%/{#{type}(sisId: "#{generic_sis_id}") { _id }}/, current_user: admin)
           .dig("data", type, "_id")
         ).to eq(original_object.id.to_s)
       end
@@ -207,9 +207,10 @@ describe Types::QueryType do
         user = user_factory
         course_1.enroll_teacher(user, enrollment_state: "active")
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           "{ course(sisId: \"#{shared_sis_id}\") { _id name } }",
-          context: { current_user: user, domain_root_account: root_account_1 }
+          current_user: user,
+          domain_root_account: root_account_1
         )
 
         expect(result.dig("data", "course", "_id")).to eq(course_1.id.to_s)
@@ -220,9 +221,10 @@ describe Types::QueryType do
         user = user_factory
         course_2.enroll_teacher(user, enrollment_state: "active")
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           "{ course(sisId: \"#{shared_sis_id}\") { _id name } }",
-          context: { current_user: user, domain_root_account: root_account_1 }
+          current_user: user,
+          domain_root_account: root_account_1
         )
 
         expect(result.dig("data", "course")).to be_nil
@@ -231,9 +233,10 @@ describe Types::QueryType do
       it "returns course from domain root account for siteadmin" do
         siteadmin = site_admin_user
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           "{ course(sisId: \"#{shared_sis_id}\") { _id name } }",
-          context: { current_user: siteadmin, domain_root_account: root_account_2 }
+          current_user: siteadmin,
+          domain_root_account: root_account_2
         )
 
         expect(result.dig("data", "course", "_id")).to eq(course_2.id.to_s)
@@ -245,9 +248,10 @@ describe Types::QueryType do
         account_2.update!(sis_source_id: shared_sis_id)
         siteadmin = site_admin_user
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           "{ account(sisId: \"#{shared_sis_id}\") { _id name } }",
-          context: { current_user: siteadmin, domain_root_account: root_account_1 }
+          current_user: siteadmin,
+          domain_root_account: root_account_1
         )
 
         expect(result.dig("data", "account", "_id")).to eq(account_1.id.to_s)
@@ -258,9 +262,10 @@ describe Types::QueryType do
         course_2.assignments.create!(name: "Assignment 2", sis_source_id: shared_sis_id)
         siteadmin = site_admin_user
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           "{ assignment(sisId: \"#{shared_sis_id}\") { _id name } }",
-          context: { current_user: siteadmin, domain_root_account: root_account_1 }
+          current_user: siteadmin,
+          domain_root_account: root_account_1
         )
 
         expect(result.dig("data", "assignment", "_id")).to eq(assignment_1.id.to_s)
@@ -272,9 +277,10 @@ describe Types::QueryType do
         term_2 = root_account_2.enrollment_terms.create!(name: "Term 2", sis_source_id: shared_sis_id)
         siteadmin = site_admin_user
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           "{ term(sisId: \"#{shared_sis_id}\") { _id name } }",
-          context: { current_user: siteadmin, domain_root_account: root_account_2 }
+          current_user: siteadmin,
+          domain_root_account: root_account_2
         )
 
         expect(result.dig("data", "term", "_id")).to eq(term_2.id.to_s)
@@ -291,9 +297,9 @@ describe Types::QueryType do
       outcome_with_rubric(context: @course)
 
       expect(
-        CanvasSchema.execute(
+        run_mutation(
           "{ learningOutcome(id: #{@outcome.id}) { _id } }",
-          context: { current_user: @admin }
+          current_user: @admin
         ).dig("data", "learningOutcome", "_id")
       ).to eq @outcome.id.to_s
     end
@@ -310,26 +316,26 @@ describe Types::QueryType do
       end
 
       it "loads by id" do
-        thing = CanvasSchema.execute("{internalSetting(id: #{@setting.id}) { name }}",
-                                     context: { current_user: @admin })
+        thing = run_mutation("{internalSetting(id: #{@setting.id}) { name }}",
+                             current_user: @admin)
         expect(thing["data"]).to eq({ "internalSetting" => { "name" => "sadmississippi_num_strands" } })
       end
 
       it "loads by name" do
-        thing = CanvasSchema.execute('{internalSetting(name: "sadmississippi_num_strands") { _id }}',
-                                     context: { current_user: @admin })
+        thing = run_mutation('{internalSetting(name: "sadmississippi_num_strands") { _id }}',
+                             current_user: @admin)
         expect(thing["data"]).to eq({ "internalSetting" => { "_id" => @setting.id.to_s } })
       end
 
       it "errors if neither is provided" do
-        thing = CanvasSchema.execute("{internalSetting { _id }}",
-                                     context: { current_user: @admin })
+        thing = run_mutation("{internalSetting { _id }}",
+                             current_user: @admin)
         expect(thing["errors"][0]["message"]).to eq "Must specify exactly one of id or name"
       end
 
       it "errors if both are provided" do
-        thing = CanvasSchema.execute('{internalSetting(id: 5, name: "foo") { _id }}',
-                                     context: { current_user: @admin })
+        thing = run_mutation('{internalSetting(id: 5, name: "foo") { _id }}',
+                             current_user: @admin)
         expect(thing["errors"][0]["message"]).to eq "Must specify exactly one of id or name"
       end
     end
@@ -340,14 +346,14 @@ describe Types::QueryType do
       end
 
       it "rejects by id" do
-        thing = CanvasSchema.execute("{internalSetting(id: #{@setting.id}) { name }}",
-                                     context: { current_user: @admin })
+        thing = run_mutation("{internalSetting(id: #{@setting.id}) { name }}",
+                             current_user: @admin)
         expect(thing["data"]).to eq({ "internalSetting" => nil })
       end
 
       it "rejects by name" do
-        thing = CanvasSchema.execute('{internalSetting(name: "sadmississippi_num_strands") { _id }}',
-                                     context: { current_user: @admin })
+        thing = run_mutation('{internalSetting(name: "sadmississippi_num_strands") { _id }}',
+                             current_user: @admin)
         expect(thing["data"]).to eq({ "internalSetting" => nil })
       end
     end
@@ -364,63 +370,63 @@ describe Types::QueryType do
 
     it "allows fetching the submission via ID as a teacher" do
       expect(
-        CanvasSchema.execute(
+        run_mutation(
           "{ submission(id: #{submission.id}) { _id } }",
-          context: { current_user: @teacher }
+          current_user: @teacher
         ).dig("data", "submission", "_id")
       ).to eq submission.id.to_s
     end
 
     it "allows fetching the submission via ID as the submission owner" do
       expect(
-        CanvasSchema.execute(
+        run_mutation(
           "{ submission(id: #{submission.id}) { _id } }",
-          context: { current_user: @student1 }
+          current_user: @student1
         ).dig("data", "submission", "_id")
       ).to eq submission.id.to_s
     end
 
     it "does not allow fetching the submission via ID as a non-owner student" do
       expect(
-        CanvasSchema.execute(
+        run_mutation(
           "{ submission(id: #{submission.id}) { _id } }",
-          context: { current_user: @student2 }
+          current_user: @student2
         ).dig("data", "submission")
       ).to be_nil
     end
 
     it "returns an error when fetching the submission via ID in combination with the assignment ID" do
       expect(
-        CanvasSchema.execute(
+        run_mutation(
           "{ submission(id: #{submission.id}, assignmentId: #{@assignment.id}) { _id } }",
-          context: { current_user: @teacher }
+          current_user: @teacher
         ).dig("errors", 0, "message")
       ).to eq "Must specify an id or an assignment_id and user_id or an assignment_id and an anonymous_id"
     end
 
     it "returns an error when fetching the submission via ID in combination with the user ID" do
       expect(
-        CanvasSchema.execute(
+        run_mutation(
           "{ submission(id: #{submission.id}, userId: #{@student1.id}) { _id } }",
-          context: { current_user: @teacher }
+          current_user: @teacher
         ).dig("errors", 0, "message")
       ).to eq "Must specify an id or an assignment_id and user_id or an assignment_id and an anonymous_id"
     end
 
     it "returns an error when fetching the submission via ID in combination with the anonymous ID" do
       expect(
-        CanvasSchema.execute(
+        run_mutation(
           "{ submission(id: #{submission.id}, anonymousId: #{@student1.id}) { _id } }",
-          context: { current_user: @teacher }
+          current_user: @teacher
         ).dig("errors", 0, "message")
       ).to eq "Must specify an id or an assignment_id and user_id or an assignment_id and an anonymous_id"
     end
 
     it "returns an error when not providing an id or assignment_id and user_id" do
       expect(
-        CanvasSchema.execute(
+        run_mutation(
           "{ submission { _id } }",
-          context: { current_user: @teacher }
+          current_user: @teacher
         ).dig("errors", 0, "message")
       ).to eq "Must specify an id or an assignment_id and user_id or an assignment_id and an anonymous_id"
     end
@@ -450,7 +456,7 @@ describe Types::QueryType do
     let(:root_account_id) { account.id }
 
     it "works" do
-      settings = CanvasSchema.execute(
+      settings = run_mutation(
         "{ myInboxSettings {
           userId,
           useSignature,
@@ -512,7 +518,7 @@ describe Types::QueryType do
           }
         }
       GQL
-      CanvasSchema.execute(query, context: { current_user: context_user, domain_root_account: @account })
+      run_mutation(query, current_user: context_user, domain_root_account: @account)
     end
 
     describe "fetching notifications" do
@@ -738,10 +744,10 @@ describe Types::QueryType do
     end
 
     it "returns instructors for current user's courses" do
-      result = CanvasSchema.execute(
+      result = run_mutation(
         query,
         variables: { courseIds: [@course1.id.to_s, @course2.id.to_s] },
-        context: { current_user: @student }
+        current_user: @student
       )
 
       instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -756,10 +762,10 @@ describe Types::QueryType do
       @teacher_enrollment4 = @course4.enroll_teacher(@instructor4)
       @teacher_enrollment4.accept!
       @course4.enroll_student(@student, enrollment_state: "invited")
-      result = CanvasSchema.execute(
+      result = run_mutation(
         query,
         variables: { courseIds: [@course4.id.to_s] },
-        context: { current_user: @student }
+        current_user: @student
       )
 
       instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -767,13 +773,13 @@ describe Types::QueryType do
     end
 
     it "returns instructors for observed user's courses when observer" do
-      result = CanvasSchema.execute(
+      result = run_mutation(
         query,
         variables: {
           courseIds: [@course1.id.to_s, @course2.id.to_s, @course3.id.to_s],
           observedUserId: @observed_user.id.to_s
         },
-        context: { current_user: @observer }
+        current_user: @observer
       )
 
       instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -783,13 +789,13 @@ describe Types::QueryType do
     end
 
     it "returns empty result for invalid observed user id" do
-      result = CanvasSchema.execute(
+      result = run_mutation(
         query,
         variables: {
           courseIds: [@course1.id.to_s],
           observedUserId: "999999"
         },
-        context: { current_user: @observer }
+        current_user: @observer
       )
 
       instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -797,13 +803,13 @@ describe Types::QueryType do
     end
 
     it "only returns instructors for courses observer is authorized to see" do
-      result = CanvasSchema.execute(
+      result = run_mutation(
         query,
         variables: {
           courseIds: [@course1.id.to_s, @course2.id.to_s, @course3.id.to_s],
           observedUserId: @observed_user.id.to_s
         },
-        context: { current_user: @observer }
+        current_user: @observer
       )
 
       nodes = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -825,10 +831,10 @@ describe Types::QueryType do
       enrollment3 = @course1.enroll_teacher(@instructor1, section: section3, allow_multiple_enrollments: true)
       enrollment3.accept!
 
-      result = CanvasSchema.execute(
+      result = run_mutation(
         query,
         variables: { courseIds: [@course1.id.to_s] },
-        context: { current_user: @student }
+        current_user: @student
       )
 
       instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -847,10 +853,10 @@ describe Types::QueryType do
       past_enrollment.accept!
       @past_course.enroll_student(@student, enrollment_state: "active")
 
-      result = CanvasSchema.execute(
+      result = run_mutation(
         query,
         variables: { courseIds: [@past_course.id.to_s] },
-        context: { current_user: @student }
+        current_user: @student
       )
 
       instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -862,10 +868,10 @@ describe Types::QueryType do
       # Make instructor2's enrollment inactive
       @teacher_enrollment2.deactivate
 
-      result = CanvasSchema.execute(
+      result = run_mutation(
         query,
         variables: { courseIds: [@course2.id.to_s] },
-        context: { current_user: @student }
+        current_user: @student
       )
 
       instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -881,10 +887,10 @@ describe Types::QueryType do
       unpublished_enrollment.accept!
       @unpublished_course.enroll_student(@student, enrollment_state: "active")
 
-      result = CanvasSchema.execute(
+      result = run_mutation(
         query,
         variables: { courseIds: [@unpublished_course.id.to_s] },
-        context: { current_user: @student }
+        current_user: @student
       )
 
       instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -918,10 +924,10 @@ describe Types::QueryType do
         }
       GQL
 
-      result = CanvasSchema.execute(
+      result = run_mutation(
         grouped_query,
         variables: { courseIds: [@course1.id.to_s, @course3.id.to_s] },
-        context: { current_user: @student }
+        current_user: @student
       )
 
       nodes = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -973,10 +979,10 @@ describe Types::QueryType do
       end
 
       it "respects the first parameter to limit results" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           paginated_query,
           variables: { courseIds: [@paginated_course.id.to_s], first: 5 },
-          context: { current_user: @paginated_student }
+          current_user: @paginated_student
         )
 
         nodes = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -990,10 +996,10 @@ describe Types::QueryType do
 
       it "handles cursor-based pagination correctly" do
         # First page
-        first_result = CanvasSchema.execute(
+        first_result = run_mutation(
           paginated_query,
           variables: { courseIds: [@paginated_course.id.to_s], first: 3 },
-          context: { current_user: @paginated_student }
+          current_user: @paginated_student
         )
 
         first_nodes = first_result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1005,10 +1011,10 @@ describe Types::QueryType do
         expect(end_cursor).not_to be_nil
 
         # Second page
-        second_result = CanvasSchema.execute(
+        second_result = run_mutation(
           paginated_query,
           variables: { courseIds: [@paginated_course.id.to_s], first: 3, after: end_cursor },
-          context: { current_user: @paginated_student }
+          current_user: @paginated_student
         )
 
         second_nodes = second_result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1035,10 +1041,10 @@ describe Types::QueryType do
         @paginated_course.enroll_teacher(multi_section_instructor, section: section2, allow_multiple_enrollments: true).accept!
         @paginated_course.enroll_teacher(multi_section_instructor, section: section3, allow_multiple_enrollments: true).accept!
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           paginated_query,
           variables: { courseIds: [@paginated_course.id.to_s] },
-          context: { current_user: @paginated_student }
+          current_user: @paginated_student
         )
 
         page_info = result.dig("data", "courseInstructorsConnection", "pageInfo")
@@ -1050,20 +1056,20 @@ describe Types::QueryType do
       end
 
       it "handles pagination when last page has fewer items than requested" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           paginated_query,
           variables: { courseIds: [@paginated_course.id.to_s], first: 7 },
-          context: { current_user: @paginated_student }
+          current_user: @paginated_student
         )
 
         result.dig("data", "courseInstructorsConnection", "nodes")
         first_page_info = result.dig("data", "courseInstructorsConnection", "pageInfo")
 
         # Get second page
-        second_result = CanvasSchema.execute(
+        second_result = run_mutation(
           paginated_query,
           variables: { courseIds: [@paginated_course.id.to_s], first: 7, after: first_page_info["endCursor"] },
-          context: { current_user: @paginated_student }
+          current_user: @paginated_student
         )
 
         second_nodes = second_result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1093,10 +1099,10 @@ describe Types::QueryType do
       end
 
       it "returns TAs alongside teachers" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           query,
           variables: { courseIds: [@ta_course.id.to_s] },
-          context: { current_user: @ta_student }
+          current_user: @ta_student
         )
 
         instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1107,7 +1113,7 @@ describe Types::QueryType do
       end
 
       it "correctly identifies enrollment type for TAs" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           <<~GQL,
             query($courseIds: [ID!]!) {
               courseInstructorsConnection(courseIds: $courseIds) {
@@ -1123,7 +1129,7 @@ describe Types::QueryType do
             }
           GQL
           variables: { courseIds: [@ta_course.id.to_s] },
-          context: { current_user: @ta_student }
+          current_user: @ta_student
         )
 
         nodes = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1142,10 +1148,10 @@ describe Types::QueryType do
         @ta_only_course.enroll_ta(@ta1).accept!
         @ta_only_course.enroll_ta(@ta2).accept!
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           query,
           variables: { courseIds: [@ta_only_course.id.to_s] },
-          context: { current_user: @ta_student }
+          current_user: @ta_student
         )
 
         instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1191,10 +1197,10 @@ describe Types::QueryType do
       end
 
       it "filters to only teachers when enrollmentTypes is [TeacherEnrollment]" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           filter_query,
           variables: { courseIds: [@filter_course.id.to_s], enrollmentTypes: ["TeacherEnrollment"] },
-          context: { current_user: @filter_student }
+          current_user: @filter_student
         )
 
         nodes = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1208,10 +1214,10 @@ describe Types::QueryType do
       end
 
       it "filters to only TAs when enrollmentTypes is [TaEnrollment]" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           filter_query,
           variables: { courseIds: [@filter_course.id.to_s], enrollmentTypes: ["TaEnrollment"] },
-          context: { current_user: @filter_student }
+          current_user: @filter_student
         )
 
         nodes = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1225,13 +1231,13 @@ describe Types::QueryType do
       end
 
       it "returns both teachers and TAs when enrollmentTypes includes both types" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           filter_query,
           variables: {
             courseIds: [@filter_course.id.to_s],
             enrollmentTypes: ["TeacherEnrollment", "TaEnrollment"]
           },
-          context: { current_user: @filter_student }
+          current_user: @filter_student
         )
 
         nodes = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1245,10 +1251,10 @@ describe Types::QueryType do
       end
 
       it "returns both teachers and TAs when enrollmentTypes is not provided" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           filter_query,
           variables: { courseIds: [@filter_course.id.to_s] },
-          context: { current_user: @filter_student }
+          current_user: @filter_student
         )
 
         nodes = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1259,10 +1265,10 @@ describe Types::QueryType do
       end
 
       it "returns both teachers and TAs when enrollmentTypes is empty array" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           filter_query,
           variables: { courseIds: [@filter_course.id.to_s], enrollmentTypes: [] },
-          context: { current_user: @filter_student }
+          current_user: @filter_student
         )
 
         nodes = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1273,10 +1279,10 @@ describe Types::QueryType do
       end
 
       it "does not include invalid enrollment types" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           filter_query,
           variables: { courseIds: [@filter_course.id.to_s], enrollmentTypes: ["InvalidType", "TeacherEnrollment"] },
-          context: { current_user: @filter_student }
+          current_user: @filter_student
         )
 
         nodes = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1307,10 +1313,10 @@ describe Types::QueryType do
         active_enrollment.accept!
         expect(active_enrollment.workflow_state).to eq("active")
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           query,
           variables: { courseIds: [@priority_course.id.to_s] },
-          context: { current_user: @priority_student }
+          current_user: @priority_student
         )
 
         instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1318,7 +1324,7 @@ describe Types::QueryType do
         expect(instructors[0].dig("user", "name")).to eq("Multi-State Instructor")
 
         # Verify the active enrollment is returned (we can check via enrollmentState field)
-        result_with_state = CanvasSchema.execute(
+        result_with_state = run_mutation(
           <<~GQL,
             query($courseIds: [ID!]!) {
               courseInstructorsConnection(courseIds: $courseIds) {
@@ -1332,7 +1338,7 @@ describe Types::QueryType do
             }
           GQL
           variables: { courseIds: [@priority_course.id.to_s] },
-          context: { current_user: @priority_student }
+          current_user: @priority_student
         )
 
         enrollment_state = result_with_state.dig("data", "courseInstructorsConnection", "nodes", 0, "enrollments", 0, "enrollmentState")
@@ -1347,10 +1353,10 @@ describe Types::QueryType do
         # Set restricted access
         enrollment.enrollment_state.update!(restricted_access: true)
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           query,
           variables: { courseIds: [@priority_course.id.to_s] },
-          context: { current_user: @priority_student }
+          current_user: @priority_student
         )
 
         instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1370,7 +1376,7 @@ describe Types::QueryType do
         ta_enrollment = @priority_course.enroll_ta(instructor, section: section2, allow_multiple_enrollments: true)
         ta_enrollment.accept!
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           <<~GQL,
             query($courseIds: [ID!]!) {
               courseInstructorsConnection(courseIds: $courseIds) {
@@ -1384,7 +1390,7 @@ describe Types::QueryType do
             }
           GQL
           variables: { courseIds: [@priority_course.id.to_s] },
-          context: { current_user: @priority_student }
+          current_user: @priority_student
         )
 
         nodes = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1402,10 +1408,10 @@ describe Types::QueryType do
         enrollment.accept!
         enrollment.complete!
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           query,
           variables: { courseIds: [@priority_course.id.to_s] },
-          context: { current_user: @priority_student }
+          current_user: @priority_student
         )
 
         instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1437,7 +1443,7 @@ describe Types::QueryType do
       end
 
       it "sorts instructors by sortable name, then courses within enrollments by name" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           <<~GQL,
             query($courseIds: [ID!]!) {
               courseInstructorsConnection(courseIds: $courseIds) {
@@ -1456,7 +1462,7 @@ describe Types::QueryType do
             }
           GQL
           variables: { courseIds: [@course_z.id.to_s, @course_a.id.to_s, @course_m.id.to_s] },
-          context: { current_user: @sort_student }
+          current_user: @sort_student
         )
 
         nodes = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1491,10 +1497,10 @@ describe Types::QueryType do
       end
 
       it "returns instructors from all user's courses when courseIds is empty array" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           query,
           variables: { courseIds: [] },
-          context: { current_user: @empty_student }
+          current_user: @empty_student
         )
 
         instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1530,10 +1536,10 @@ describe Types::QueryType do
           enroll.enrollment_state.update!(state: "active", restricted_access: false)
         end
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           query,
           variables: { courseIds: [course.id.to_s] },
-          context: { current_user: student }
+          current_user: student
         )
 
         instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1559,10 +1565,10 @@ describe Types::QueryType do
         e2 = course.enroll_student(student, section: section2, allow_multiple_enrollments: true)
         e2.accept!
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           query,
           variables: { courseIds: [course.id.to_s] },
-          context: { current_user: student }
+          current_user: student
         )
 
         instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1575,10 +1581,10 @@ describe Types::QueryType do
         student = User.create!(name: "Student")
         course.enroll_student(student, section: course.default_section, enrollment_state: "active")
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           query,
           variables: { courseIds: [course.id.to_s] },
-          context: { current_user: student }
+          current_user: student
         )
 
         instructors = result.dig("data", "courseInstructorsConnection", "nodes")
@@ -1626,10 +1632,11 @@ describe Types::QueryType do
       end
 
       it "returns all InstructorUserInfo fields" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           detailed_query,
           variables: { courseIds: [@lt_course.id.to_s] },
-          context: { current_user: @lt_student, domain_root_account: Account.default }
+          current_user: @lt_student,
+          domain_root_account: Account.default
         )
 
         user = result.dig("data", "courseInstructorsConnection", "nodes", 0, "user")
@@ -1642,10 +1649,11 @@ describe Types::QueryType do
       end
 
       it "returns all InstructorCourseInfo fields" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           detailed_query,
           variables: { courseIds: [@lt_course.id.to_s] },
-          context: { current_user: @lt_student, domain_root_account: Account.default }
+          current_user: @lt_student,
+          domain_root_account: Account.default
         )
 
         enrollment = result.dig("data", "courseInstructorsConnection", "nodes", 0, "enrollments", 0)
@@ -1658,10 +1666,11 @@ describe Types::QueryType do
       end
 
       it "returns nil for email when not cached on user" do
-        result = CanvasSchema.execute(
+        result = run_mutation(
           detailed_query,
           variables: { courseIds: [@lt_course.id.to_s] },
-          context: { current_user: @lt_student, domain_root_account: Account.default }
+          current_user: @lt_student,
+          domain_root_account: Account.default
         )
 
         user = result.dig("data", "courseInstructorsConnection", "nodes", 0, "user")
@@ -1806,7 +1815,7 @@ describe Types::QueryType do
     end
 
     def execute_query(query_string = query, user = @teacher, id = @peer_review_sub_assignment.id.to_s, other_context = {})
-      CanvasSchema.execute(
+      run_mutation(
         query_string,
         variables: { id: },
         context: { current_user: user }.merge(other_context)
@@ -1959,11 +1968,7 @@ describe Types::QueryType do
     end
 
     def execute_query(query_string, user, variables = {})
-      CanvasSchema.execute(
-        query_string,
-        variables:,
-        context: { current_user: user, request: ActionDispatch::TestRequest.create }
-      )
+      run_mutation(query_string, current_user: user, variables:)
     end
 
     context "default behavior (backward compatible)" do

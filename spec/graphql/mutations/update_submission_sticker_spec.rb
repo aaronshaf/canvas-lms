@@ -36,16 +36,7 @@ RSpec.describe Mutations::UpdateSubmissionSticker do
       }
     GQL
 
-    result = CanvasSchema.execute(
-      mutation_command,
-      context: {
-        current_user:,
-        domain_root_account: @course.root_account,
-        request: ActionDispatch::TestRequest.create
-      }
-    )
-
-    result.to_h.with_indifferent_access
+    super(mutation_command, current_user:, domain_root_account: @course.account.root_account)
   end
 
   before do

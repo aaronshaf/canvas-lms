@@ -57,7 +57,7 @@ describe Types::AssignmentGroupType do
         expect(@group_type.resolve("_id", current_user: some_person)).to be_nil
 
         expect(
-          CanvasSchema.execute(<<~GQL, context: { current_user: some_person }).dig("data", "ag")
+          run_mutation(<<~GQL, current_user: some_person).dig("data", "ag")
             query { ag: assignmentGroup(id: "#{@group.id}") { id } }
           GQL
         ).to be_nil
@@ -178,7 +178,7 @@ describe Types::AssignmentGroupType do
 
       it "returns sis_id if you have read_sis permissions" do
         expect(
-          CanvasSchema.execute(<<~GQL, context: { current_user: read_admin }).dig("data", "assignmentGroup", "sisId")
+          run_mutation(<<~GQL, current_user: read_admin).dig("data", "assignmentGroup", "sisId")
             query { assignmentGroup(id: "#{@group.id}") { sisId } }
           GQL
         ).to eq("sisGroup")
@@ -186,7 +186,7 @@ describe Types::AssignmentGroupType do
 
       it "returns sis_id if you have manage_sis permissions" do
         expect(
-          CanvasSchema.execute(<<~GQL, context: { current_user: manage_admin }).dig("data", "assignmentGroup", "sisId")
+          run_mutation(<<~GQL, current_user: manage_admin).dig("data", "assignmentGroup", "sisId")
             query { assignmentGroup(id: "#{@group.id}") { sisId } }
           GQL
         ).to eq("sisGroup")
@@ -194,7 +194,7 @@ describe Types::AssignmentGroupType do
 
       it "doesn't return sis_id if you don't have read_sis or management_sis permissions" do
         expect(
-          CanvasSchema.execute(<<~GQL, context: { current_user: @student }).dig("data", "assignmentGroup", "sisId")
+          run_mutation(<<~GQL, current_user: @student).dig("data", "assignmentGroup", "sisId")
             query { assignmentGroup(id: "#{@group.id}") { sisId } }
           GQL
         ).to be_nil

@@ -40,7 +40,7 @@ describe Types::ExternalUrlType do
 
   it "works" do
     expected = { "data" => { "moduleItem" => { "content" => { "url" => module_item.url } } } }
-    result = CanvasSchema.execute(<<~GQL, context: { current_user: @teacher })
+    result = run_mutation(<<~GQL, current_user: @teacher)
       query {
         moduleItem(id: "#{module_item.id}") {
           content {
@@ -56,7 +56,7 @@ describe Types::ExternalUrlType do
 
   it "has new tab" do
     expected = { "data" => { "moduleItem" => { "content" => { "newTab" => module_item.new_tab } } } }
-    result = CanvasSchema.execute(<<~GQL, context: { current_user: @teacher })
+    result = run_mutation(<<~GQL, current_user: @teacher)
       query {
         moduleItem(id: "#{module_item.id}") {
           content {
@@ -80,7 +80,7 @@ describe Types::ExternalUrlType do
         }
       }
     }
-    result = CanvasSchema.execute(<<~GQL, context: { current_user: @teacher })
+    result = run_mutation(<<~GQL, current_user: @teacher)
       query {
         moduleItem(id: "#{module_item.id}") {
           content {

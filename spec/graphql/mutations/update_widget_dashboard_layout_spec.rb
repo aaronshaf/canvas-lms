@@ -41,15 +41,7 @@ RSpec.describe Mutations::UpdateWidgetDashboardLayout do
   end
 
   def run_mutation(opts = {}, current_user = @student)
-    result = CanvasSchema.execute(
-      mutation_str,
-      variables: opts,
-      context: {
-        current_user:,
-        request: ActionDispatch::TestRequest.create
-      }
-    )
-    result.to_h.with_indifferent_access
+    super(current_user:, variables: opts)
   end
 
   let(:valid_layout) do
@@ -395,7 +387,7 @@ RSpec.describe Mutations::UpdateWidgetDashboardLayout do
       teacher_in_course(course: @course, user: @user, active_all: true)
     end
 
-    def mutation_str_with_type
+    def mutation_str
       <<~GQL
         mutation UpdateWidgetDashboardLayout($layout: String!, $dashboardType: WidgetDashboardType) {
           updateWidgetDashboardLayout(input: {
@@ -412,14 +404,7 @@ RSpec.describe Mutations::UpdateWidgetDashboardLayout do
     end
 
     def run_mutation_with_type(opts = {})
-      CanvasSchema.execute(
-        mutation_str_with_type,
-        variables: opts,
-        context: {
-          current_user: @user,
-          request: ActionDispatch::TestRequest.create
-        }
-      ).to_h.with_indifferent_access
+      run_mutation(opts, @user)
     end
 
     it "writes to :educator_dashboard_config when dashboardType is educator" do

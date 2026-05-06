@@ -77,10 +77,10 @@ describe Types::PeerReviewSubAssignmentType do
         }
       GQL
 
-      result = CanvasSchema.execute(
+      result = run_mutation(
         query,
         variables: { id: @peer_review_sub_assignment.id.to_s },
-        context: { current_user: teacher }
+        current_user: teacher
       )
 
       expect(result["errors"]).to be_nil
@@ -153,10 +153,10 @@ describe Types::PeerReviewSubAssignmentType do
           }
         GQL
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           query,
           variables: { id: peer_review_sub_assignment.id.to_s },
-          context: { current_user: teacher }
+          current_user: teacher
         )
 
         expect(result["errors"]).to be_nil
@@ -181,10 +181,10 @@ describe Types::PeerReviewSubAssignmentType do
         }
       GQL
 
-      result = CanvasSchema.execute(
+      result = run_mutation(
         query,
         variables: { id: @peer_review_sub_assignment.id.to_s },
-        context: { current_user: other_student }
+        current_user: other_student
       )
 
       expect(result.dig("data", "assignment")).to be_nil
@@ -202,10 +202,10 @@ describe Types::PeerReviewSubAssignmentType do
         }
       GQL
 
-      result = CanvasSchema.execute(
+      result = run_mutation(
         query,
         variables: { id: @peer_review_sub_assignment.id.to_s },
-        context: { current_user: other_student }
+        current_user: other_student
       )
 
       expect(result.dig("data", "peerReviewSubAssignment")).to be_nil

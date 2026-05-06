@@ -265,16 +265,7 @@ RSpec.describe Mutations::UpdateDiscussionTopic do
   end
 
   def run_mutation(current_user: @teacher, in_app: true, **)
-    result = CanvasSchema.execute(
-      mutation_str(**),
-      context: {
-        current_user:,
-        domain_root_account: @course.account.root_account,
-        request: ActionDispatch::TestRequest.create,
-        in_app:
-      }
-    )
-    result.to_h.with_indifferent_access
+    super(mutation_str(**), current_user:, domain_root_account: @course.account.root_account, in_app:)
   end
 
   def expect_error(result, message)

@@ -21,8 +21,6 @@
 require_relative "../graphql_spec_helper"
 
 describe Mutations::UpdateMyInboxSettings do
-  include GraphQLSpecHelper
-
   before do
     Account.site_admin.enable_feature!(:inbox_settings)
   end
@@ -71,7 +69,7 @@ describe Mutations::UpdateMyInboxSettings do
   end
 
   def execute_query(mutation_str, context)
-    CanvasSchema.execute(mutation_str, context:)
+    run_mutation(mutation_str, **context)
   end
 
   context "mutation" do

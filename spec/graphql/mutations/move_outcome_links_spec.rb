@@ -21,8 +21,6 @@
 require_relative "../graphql_spec_helper"
 
 describe Mutations::MoveOutcomeLinks do
-  include GraphQLSpecHelper
-
   before(:once) do
     @site_admin = site_admin_user
     course_with_teacher
@@ -66,8 +64,8 @@ describe Mutations::MoveOutcomeLinks do
     GQL
   end
 
-  def execute_query(mutation_str, context)
-    CanvasSchema.execute(mutation_str, context:)
+  def execute_query(mutation_str, context = {}, **)
+    run_mutation(mutation_str, **context, **)
   end
 
   it "moves the outcome links" do
@@ -126,7 +124,7 @@ describe Mutations::MoveOutcomeLinks do
         group_id: @destination_group.id,
         outcome_link_ids: [@outcome_link.id]
       ),
-      context
+      context:
     )
 
     expect(context[:group]).to eql(@destination_group)

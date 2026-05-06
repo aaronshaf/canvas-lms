@@ -57,7 +57,7 @@ describe Mutations::ImportOutcomes do
   end
 
   def execute_query(query, context)
-    CanvasSchema.execute(query, context:)
+    run_mutation(query, **context)
   end
 
   def exec_graphql(**attrs)

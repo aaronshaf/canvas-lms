@@ -37,9 +37,7 @@ describe Mutations::CreateUserInboxLabel do
         }
       }
     GQL
-    context = { current_user: @user, request: ActionDispatch::TestRequest.create }
-
-    CanvasSchema.execute(mutation_str, context:)
+    super(mutation_str, current_user: @user)
   end
 
   it "creates a new inbox label" do

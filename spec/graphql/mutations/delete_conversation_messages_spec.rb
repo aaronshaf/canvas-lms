@@ -39,8 +39,7 @@ describe Mutations::DeleteConversationMessages do
         }
       }
     GQL
-    context = { current_user: user_executing, request: ActionDispatch::TestRequest.create }
-    CanvasSchema.execute(mutation_command, context:)
+    run_mutation(mutation_command, current_user: user_executing)
   end
 
   def expect_error(result, message)

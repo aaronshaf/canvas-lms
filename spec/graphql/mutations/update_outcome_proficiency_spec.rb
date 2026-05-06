@@ -71,8 +71,7 @@ describe Mutations::UpdateOutcomeProficiency do
         }
       }
     GQL
-    context = { current_user: user_executing, request: ActionDispatch::TestRequest.create, session: {} }
-    CanvasSchema.execute(mutation_command, context:)
+    run_mutation(mutation_command, current_user: user_executing)
   end
 
   it "updates an outcome proficiency" do

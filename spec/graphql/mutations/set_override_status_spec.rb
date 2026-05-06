@@ -77,7 +77,7 @@ describe Mutations::SetOverrideStatus do
 
     it "allows setting a custom grade status for a score with an override" do
       score_for_enrollment.update!(override_score: 25)
-      result = CanvasSchema.execute(mutation_str(custom_grade_status_id: custom_grade_status.id), context:)
+      result = run_mutation({ custom_grade_status_id: custom_grade_status.id }, **context)
       expect(result.dig("data", "setOverrideStatus", "grades", "customGradeStatusId")).to eq custom_grade_status.id.to_s
       expect(score_for_enrollment.reload.custom_grade_status).to eq custom_grade_status
     end
@@ -85,20 +85,20 @@ describe Mutations::SetOverrideStatus do
     it "allows setting a custom grade status for a grading period score with an override" do
       score_for_grading_period.update!(override_score: 25)
       mutation = mutation_str(custom_grade_status_id: custom_grade_status.id, grading_period_id: grading_period.id)
-      result = CanvasSchema.execute(mutation, context:)
+      result = run_mutation(mutation, **context)
       expect(result.dig("data", "setOverrideStatus", "grades", "customGradeStatusId")).to eq custom_grade_status.id.to_s
       expect(score_for_grading_period.reload.custom_grade_status).to eq custom_grade_status
     end
 
     it "allows removing a custom grade status for a score with an override" do
       score_for_enrollment.update!(override_score: 25, custom_grade_status:)
-      result = CanvasSchema.execute(mutation_str(custom_grade_status_id: nil), context:)
+      result = run_mutation({ custom_grade_status_id: nil }, **context)
       expect(result.dig("data", "setOverrideStatus", "grades", "customGradeStatusId")).to be_nil
       expect(score_for_enrollment.reload.custom_grade_status).to be_nil
     end
 
     it "does allow setting a custom status on a score without an override" do
-      result = CanvasSchema.execute(mutation_str(custom_grade_status_id: custom_grade_status.id), context:)
+      result = run_mutation({ custom_grade_status_id: custom_grade_status.id }, **context)
       expect(result.dig("data", "setOverrideStatus", "grades", "customGradeStatusId")).to eq custom_grade_status.id.to_s
     end
 
@@ -110,7 +110,7 @@ describe Mutations::SetOverrideStatus do
         name: "new status"
       )
       score_for_enrollment.update!(override_score: 25)
-      result = CanvasSchema.execute(mutation_str(custom_grade_status_id: new_status.id), context:)
+      result = run_mutation({ custom_grade_status_id: new_status.id }, **context)
       expect(result.dig("errors", 0, "message")).to eq "CustomGradeStatus not found"
     end
   end
@@ -120,7 +120,7 @@ describe Mutations::SetOverrideStatus do
 
     it "does not allow setting a custom status" do
       score_for_enrollment.update!(override_score: 25)
-      result = CanvasSchema.execute(mutation_str(custom_grade_status_id: custom_grade_status.id), context:)
+      result = run_mutation({ custom_grade_status_id: custom_grade_status.id }, **context)
       expect(result.dig("errors", 0, "message")).to eq "Insufficient permissions"
     end
   end

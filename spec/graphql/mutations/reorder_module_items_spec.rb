@@ -88,7 +88,7 @@ describe Mutations::ReorderModuleItems do
         # New order: item3, item1, item2
         reordered_ids = [item3.id, item1.id, item2.id]
 
-        result = CanvasSchema.execute(mutation_str(item_ids: reordered_ids), context:)
+        result = run_mutation({ item_ids: reordered_ids }, **context)
 
         expect(result.dig("data", "reorderModuleItems", "errors")).to be_nil
         expect(result.dig("data", "reorderModuleItems", "module", "_id")).to eq module1.id.to_s
@@ -108,7 +108,7 @@ describe Mutations::ReorderModuleItems do
         # Reorder just the first two items: item2, item1, item3
         reordered_ids = [item2.id, item1.id]
 
-        result = CanvasSchema.execute(mutation_str(item_ids: reordered_ids), context:)
+        result = run_mutation({ item_ids: reordered_ids }, **context)
 
         expect(result.dig("data", "reorderModuleItems", "errors")).to be_nil
 
@@ -126,7 +126,7 @@ describe Mutations::ReorderModuleItems do
         # Reorder just items [item3, item1] - this should put item3 first, item1 second
         reordered_ids = [item3.id, item1.id]
 
-        result = CanvasSchema.execute(mutation_str(item_ids: reordered_ids), context:)
+        result = run_mutation({ item_ids: reordered_ids }, **context)
         expect(result.dig("data", "reorderModuleItems", "errors")).to be_nil
 
         # After reordering, ALL items should have unique, sequential positions
@@ -152,7 +152,7 @@ describe Mutations::ReorderModuleItems do
         # Reorder just item3 (should move it to first position)
         reordered_ids = [item3.id]
 
-        result = CanvasSchema.execute(mutation_str(item_ids: reordered_ids), context:)
+        result = run_mutation({ item_ids: reordered_ids }, **context)
         expect(result.dig("data", "reorderModuleItems", "errors")).to be_nil
 
         # After reordering, ALL items should have unique positions
@@ -181,13 +181,13 @@ describe Mutations::ReorderModuleItems do
         # Move item1 and item2 from module1 to module2
         transfer_ids = [item1.id, item2.id]
 
-        result = CanvasSchema.execute(
-          mutation_str(
+        result = run_mutation(
+          {
             module_id: module2.id,
             item_ids: transfer_ids,
             old_module_id: module1.id
-          ),
-          context:
+          },
+          **context
         )
 
         expect(result.dig("data", "reorderModuleItems", "errors")).to be_nil
@@ -206,13 +206,13 @@ describe Mutations::ReorderModuleItems do
       end
 
       it "returns both old and new modules" do
-        result = CanvasSchema.execute(
-          mutation_str(
+        result = run_mutation(
+          {
             module_id: module2.id,
             item_ids: [item1.id],
             old_module_id: module1.id
-          ),
-          context:
+          },
+          **context
         )
 
         expect(result.dig("data", "reorderModuleItems", "module", "_id")).to eq module2.id.to_s
@@ -221,14 +221,14 @@ describe Mutations::ReorderModuleItems do
 
       it "accepts target_position parameter" do
         # Move item1 from module1 to module2 with target_position = 2
-        result = CanvasSchema.execute(
-          mutation_str(
+        result = run_mutation(
+          {
             module_id: module2.id,
             item_ids: [item1.id],
             old_module_id: module1.id,
             target_position: 2
-          ),
-          context:
+          },
+          **context
         )
 
         # Verify mutation succeeds
@@ -247,17 +247,17 @@ describe Mutations::ReorderModuleItems do
 
     describe "validation and error handling" do
       it "returns error for non-existent course" do
-        result = CanvasSchema.execute(mutation_str(course_id: 0), context:)
+        result = run_mutation({ course_id: 0 }, **context)
         expect(result.dig("errors", 0, "message")).to eq "not found"
       end
 
       it "returns error for non-existent module" do
-        result = CanvasSchema.execute(mutation_str(module_id: 0), context:)
+        result = run_mutation({ module_id: 0 }, **context)
         expect(result.dig("errors", 0, "message")).to eq "not found"
       end
 
       it "returns error for non-existent items" do
-        result = CanvasSchema.execute(mutation_str(item_ids: [0, 999]), context:)
+        result = run_mutation({ item_ids: [0, 999] }, **context)
         expect(result.dig("data", "reorderModuleItems", "errors", 0, "message")).to eq "One or more items not found"
       end
 
@@ -266,26 +266,26 @@ describe Mutations::ReorderModuleItems do
         other_module = other_course.context_modules.create!(name: "Other Module")
         other_item = other_module.add_item(id: other_course.assignments.create!(title: "Other Assignment").id, type: "assignment")
 
-        result = CanvasSchema.execute(mutation_str(item_ids: [other_item.id]), context:)
+        result = run_mutation({ item_ids: [other_item.id] }, **context)
         expect(result.dig("data", "reorderModuleItems", "errors", 0, "message")).to eq "One or more items not found"
       end
 
       it "returns error when trying to move items that don't belong to old_module" do
         # Try to move item1 from module2 (but it's actually in module1)
-        result = CanvasSchema.execute(
-          mutation_str(
+        result = run_mutation(
+          {
             module_id: module2.id,
             item_ids: [item1.id],
             old_module_id: module2.id
-          ),
-          context:
+          },
+          **context
         )
 
         expect(result.dig("data", "reorderModuleItems", "errors", 0, "message")).to eq "Items do not belong to source module"
       end
 
       it "handles empty item list gracefully" do
-        result = CanvasSchema.execute(mutation_str(item_ids: []), context:)
+        result = run_mutation({ item_ids: [] }, **context)
         expect(result.dig("data", "reorderModuleItems", "errors")).to be_nil
       end
     end
@@ -295,19 +295,19 @@ describe Mutations::ReorderModuleItems do
     let(:context) { { current_user: student } }
 
     it "returns authorization error" do
-      result = CanvasSchema.execute(mutation_str, context:)
+      result = run_mutation(mutation_str, **context)
       expect(result.dig("errors", 0, "message")).to eq "not found"
     end
 
     it "does not return module data" do
-      result = CanvasSchema.execute(mutation_str, context:)
+      result = run_mutation(mutation_str, **context)
       expect(result.dig("data", "reorderModuleItems")).to be_nil
     end
   end
 
   context "when executed without authentication" do
     it "returns authorization error" do
-      result = CanvasSchema.execute(mutation_str, context: {})
+      result = run_mutation(mutation_str)
       expect(result.dig("errors", 0, "message")).to eq "not found"
     end
   end
@@ -318,7 +318,7 @@ describe Mutations::ReorderModuleItems do
     it "maintains position sequence integrity" do
       # Reorder items
       reordered_ids = [item2.id, item3.id, item1.id]
-      CanvasSchema.execute(mutation_str(item_ids: reordered_ids), context:)
+      run_mutation({ item_ids: reordered_ids }, **context)
 
       module1.reload
       ordered_items = module1.content_tags.ordered
@@ -331,7 +331,7 @@ describe Mutations::ReorderModuleItems do
     it "updates module timestamps" do
       original_time = module1.updated_at
       Timecop.travel(1.second.from_now) do
-        CanvasSchema.execute(mutation_str, context:)
+        run_mutation(mutation_str, **context)
       end
 
       module1.reload
@@ -342,7 +342,7 @@ describe Mutations::ReorderModuleItems do
       # This test ensures the transaction rollback works properly
       allow(ContentTag).to receive(:transaction).and_raise(StandardError, "Simulated error")
 
-      result = CanvasSchema.execute(mutation_str, context:)
+      result = run_mutation(mutation_str, **context)
       expect(result.dig("data", "reorderModuleItems", "errors", 0, "message")).to eq "Simulated error"
 
       # Verify no changes were made
@@ -360,12 +360,12 @@ describe Mutations::ReorderModuleItems do
       single_assignment = course.assignments.create!(title: "Single Assignment")
       single_item = single_module.add_item(id: single_assignment.id, type: "assignment")
 
-      result = CanvasSchema.execute(
-        mutation_str(
+      result = run_mutation(
+        {
           module_id: single_module.id,
           item_ids: [single_item.id]
-        ),
-        context:
+        },
+        **context
       )
 
       expect(result.dig("data", "reorderModuleItems", "errors")).to be_nil
@@ -385,12 +385,12 @@ describe Mutations::ReorderModuleItems do
       # Reverse the order
       reversed_ids = large_items.map(&:id).reverse
 
-      result = CanvasSchema.execute(
-        mutation_str(
+      result = run_mutation(
+        {
           module_id: large_module.id,
           item_ids: reversed_ids
-        ),
-        context:
+        },
+        **context
       )
 
       expect(result.dig("data", "reorderModuleItems", "errors")).to be_nil
@@ -401,9 +401,9 @@ describe Mutations::ReorderModuleItems do
 
     it "moves an item down within the same module using target_position" do
       reordered_ids = [item1.id]
-      result = CanvasSchema.execute(
-        mutation_str(item_ids: reordered_ids, target_position: 3),
-        context: { current_user: teacher }
+      result = run_mutation(
+        { item_ids: reordered_ids, target_position: 3 },
+        current_user: teacher
       )
 
       expect(result.dig("data", "reorderModuleItems", "errors")).to be_nil
@@ -413,9 +413,9 @@ describe Mutations::ReorderModuleItems do
 
     it "inserts an item at the very top with target_position = 1" do
       reordered_ids = [item2.id]
-      result = CanvasSchema.execute(
-        mutation_str(item_ids: reordered_ids, target_position: 1),
-        context: { current_user: teacher }
+      result = run_mutation(
+        { item_ids: reordered_ids, target_position: 1 },
+        current_user: teacher
       )
 
       expect(result.dig("data", "reorderModuleItems", "errors")).to be_nil

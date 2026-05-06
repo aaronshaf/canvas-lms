@@ -21,8 +21,6 @@
 require_relative "../graphql_spec_helper"
 
 describe Mutations::CreateLearningOutcomeGroup do
-  include GraphQLSpecHelper
-
   before :once do
     @admin = account_admin_user(account: @account)
     course_with_student
@@ -63,7 +61,7 @@ describe Mutations::CreateLearningOutcomeGroup do
   end
 
   def execute_query(mutation_str, context)
-    CanvasSchema.execute(mutation_str, context:)
+    run_mutation(mutation_str, **context)
   end
 
   context "Mutation" do

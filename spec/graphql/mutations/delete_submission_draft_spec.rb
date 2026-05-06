@@ -41,11 +41,7 @@ RSpec.describe Mutations::DeleteSubmissionDraft do
   end
 
   def run_mutation(submission_id: submission.id, current_user: student)
-    result = CanvasSchema.execute(
-      mutation_str(submission_id:),
-      context: { current_user:, request: ActionDispatch::TestRequest.create }
-    )
-    result.to_h.with_indifferent_access
+    super({ submission_id: }, current_user:)
   end
 
   it "deletes an existing draft on the specified submission" do

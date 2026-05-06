@@ -55,7 +55,7 @@ describe Types::TermType do
 
     it "returns sis_id if you have read_sis permissions" do
       expect(
-        CanvasSchema.execute(<<~GQL, context: { current_user: read_admin }).dig("data", "term", "sisId")
+        run_mutation(<<~GQL, current_user: read_admin).dig("data", "term", "sisId")
           query { term(id: "#{@term.id}") { sisId } }
         GQL
       ).to eq("sisTerm")
@@ -63,7 +63,7 @@ describe Types::TermType do
 
     it "returns sis_id if you have manage_sis permissions" do
       expect(
-        CanvasSchema.execute(<<~GQL, context: { current_user: manage_admin }).dig("data", "term", "sisId")
+        run_mutation(<<~GQL, current_user: manage_admin).dig("data", "term", "sisId")
           query { term(id: "#{@term.id}") { sisId } }
         GQL
       ).to eq("sisTerm")
@@ -71,7 +71,7 @@ describe Types::TermType do
 
     it "doesn't return sis_id if you don't have read_sis or management_sis permissions" do
       expect(
-        CanvasSchema.execute(<<~GQL, context: { current_user: @teacher }).dig("data", "term", "sisId")
+        run_mutation(<<~GQL, current_user: @teacher).dig("data", "term", "sisId")
           query { term(id: "#{@term.id}") { sisId } }
         GQL
       ).to be_nil

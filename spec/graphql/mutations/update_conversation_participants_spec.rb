@@ -42,8 +42,7 @@ describe Mutations::UpdateConversationParticipants do
         }
       }
     GQL
-    context = { current_user: user_executing, request: ActionDispatch::TestRequest.create }
-    CanvasSchema.execute(mutation_command, context:)
+    run_mutation(mutation_command, current_user: user_executing)
   end
 
   it "updates the requesting user's participation record" do

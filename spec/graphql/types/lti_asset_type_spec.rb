@@ -69,7 +69,7 @@ describe Types::LtiAssetType do
         }
       }
     TEXT
-    CanvasSchema.execute(query, context: { current_user: @ap_teacher })
+    run_mutation(query, current_user: @ap_teacher)
   end
 
   it "is accessible through ltiAssetReportsConnection" do

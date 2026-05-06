@@ -2646,9 +2646,10 @@ describe Types::UserType do
           }
         GQL
 
-        result = CanvasSchema.execute(
+        result = run_mutation(
           query,
-          context: { current_user: @student, domain_root_account: @course.account.root_account, request: ActionDispatch::TestRequest.create },
+          current_user: @student,
+          domain_root_account: @course.account.root_account,
           variables: { id: @student.id.to_s }
         )
 

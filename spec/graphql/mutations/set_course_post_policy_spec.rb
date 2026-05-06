@@ -52,7 +52,7 @@ describe Mutations::SetCoursePostPolicy do
   end
 
   def execute_query(mutation_str, context)
-    CanvasSchema.execute(mutation_str, context:)
+    run_mutation(mutation_str, **context)
   end
 
   context "when user has permission (aka teacher role)" do

@@ -26,8 +26,8 @@ describe "legacyNode" do
     @teacher = @course.enroll_user(User.create!, "TeacherEnrollment", enrollment_state: "active").user
   end
 
-  def run_query(query, user)
-    CanvasSchema.execute(query, context: { current_user: user })
+  def run_query(query, current_user)
+    run_mutation(query, current_user:)
   end
 
   context "OutcomeCalculationMethod" do

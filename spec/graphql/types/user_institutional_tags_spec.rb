@@ -86,7 +86,7 @@ describe "UserType institutionalTagsConnection" do
 
   describe "top-level user query" do
     def run_query(id, current_user: @admin)
-      CanvasSchema.execute(
+      run_mutation(
         <<~GQL,
           query {
             user(id: "#{id}") {
@@ -97,12 +97,9 @@ describe "UserType institutionalTagsConnection" do
             }
           }
         GQL
-        context: {
-          current_user:,
-          domain_root_account: @account,
-          request: ActionDispatch::TestRequest.create
-        }
-      ).to_h.with_indifferent_access
+        current_user:,
+        domain_root_account: @account
+      )
     end
 
     it "resolves the user by legacy id" do

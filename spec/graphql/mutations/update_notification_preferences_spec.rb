@@ -122,12 +122,7 @@ RSpec.describe Mutations::UpdateNotificationPreferences do
   end
 
   def run_mutation(opts = {}, current_user = @teacher)
-    result = CanvasSchema.execute(mutation_str(**opts), context: {
-                                    current_user:,
-                                    request: ActionDispatch::TestRequest.create,
-                                    domain_root_account: @account
-                                  })
-    result.to_h.with_indifferent_access
+    super(opts, current_user:, domain_root_account: @account)
   end
 
   context "privacy notice" do
@@ -336,16 +331,12 @@ RSpec.describe Mutations::UpdateNotificationPreferences do
 
     it "throw not found when communication channel doesn't belong to current_user" do
       Notification.create!(name: "Discussion Mention", subject: "Test", category: "DiscussionMention")
-      result = CanvasSchema.execute(mutation_str(context_type: "Account",
-                                                 account_id: @account.id,
-                                                 communication_channel_id: @teacher.communication_channels.first.id,
-                                                 notification_category: "DiscussionMention",
-                                                 frequency: "immediately"),
-                                    context: {
-                                      current_user: @student,
-                                      request: ActionDispatch::TestRequest.create,
-                                      domain_root_account: @account
-                                    })
+      result = run_mutation({ context_type: "Account",
+                              account_id: @account.id,
+                              communication_channel_id: @teacher.communication_channels.first.id,
+                              notification_category: "DiscussionMention",
+                              frequency: "immediately" },
+                            @student)
       result = result.to_h.with_indifferent_access
 
       expect(result[:errors][0][:message]).to be "not found"

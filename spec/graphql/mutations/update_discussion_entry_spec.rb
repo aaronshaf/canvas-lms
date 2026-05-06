@@ -69,14 +69,7 @@ RSpec.describe Mutations::UpdateDiscussionEntry do
   end
 
   def run_mutation(opts = {}, current_user = @student)
-    result = CanvasSchema.execute(
-      mutation_str(**opts),
-      context: {
-        current_user:,
-        request: ActionDispatch::TestRequest.create
-      }
-    )
-    result.to_h.with_indifferent_access
+    super(opts, current_user:)
   end
 
   it "updates a discussion entry message" do

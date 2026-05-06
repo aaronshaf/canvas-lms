@@ -47,7 +47,7 @@ describe Types::MutationLogType do
       current_user: @teacher,
     }.merge(ctx)
 
-    CanvasSchema.execute(<<~GQL, context: ctx)
+    run_mutation(<<~GQL, **ctx)
       mutation {
         updateAssignment(input: {id: "#{@assignment.id}"}) {
           assignment { name }
@@ -57,7 +57,7 @@ describe Types::MutationLogType do
   end
 
   def audit_log_query(variables, ctx = {})
-    CanvasSchema.execute(<<~GQL, context: ctx.reverse_merge(domain_root_account: Account.default))
+    run_mutation(<<~GQL, **ctx.reverse_merge(domain_root_account: Account.default))
       query {
         auditLogs {
           mutationLogs(

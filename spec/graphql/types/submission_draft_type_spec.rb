@@ -35,7 +35,7 @@ RSpec.describe Types::SubmissionDraftType do
     unless body_rewrite_urls.nil?
       body_args = "(rewriteUrls: #{body_rewrite_urls})"
     end
-    result = CanvasSchema.execute(<<~GQL, context: { current_user: @student, request: ActionDispatch::TestRequest.create, domain_root_account: root_account })
+    result = run_mutation(<<~GQL, current_user: @student, domain_root_account: root_account)
       query {
         submission(id: "#{@submission.id}") {
           submissionDraft {

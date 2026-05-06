@@ -105,8 +105,7 @@ describe Mutations::UpdateLearningOutcome do
         }
       }
     GQL
-    context = { current_user: user_executing, domain_root_account: @domain_root_account, request: ActionDispatch::TestRequest.create, session: {} }
-    CanvasSchema.execute(mutation_command, context:)
+    run_mutation(mutation_command, current_user: user_executing, domain_root_account: @domain_root_account)
   end
 
   it "updates learning outcome" do

@@ -162,7 +162,7 @@ describe Types::AssignmentType do
 
       # assignment
       expect(
-        CanvasSchema.execute(<<~GQL, context: { current_user: student }).dig("data", "assignment")
+        run_mutation(<<~GQL, current_user: student).dig("data", "assignment")
           query { assignment(id: "#{assignment.id}") { id } }
         GQL
       ).to be_nil
@@ -179,7 +179,7 @@ describe Types::AssignmentType do
 
     it "returns sis_id if you have read_sis permissions" do
       expect(
-        CanvasSchema.execute(<<~GQL, context: { current_user: teacher }).dig("data", "assignment", "sisId")
+        run_mutation(<<~GQL, current_user: teacher).dig("data", "assignment", "sisId")
           query { assignment(id: "#{sis_assignment.id}") { sisId } }
         GQL
       ).to eq("sisAssignment")
@@ -187,7 +187,7 @@ describe Types::AssignmentType do
 
     it "returns sis_id if you have manage_sis permissions" do
       expect(
-        CanvasSchema.execute(<<~GQL, context: { current_user: admin }).dig("data", "assignment", "sisId")
+        run_mutation(<<~GQL, current_user: admin).dig("data", "assignment", "sisId")
           query { assignment(id: "#{sis_assignment.id}") { sisId } }
         GQL
       ).to eq("sisAssignment")
@@ -195,7 +195,7 @@ describe Types::AssignmentType do
 
     it "doesn't return sis_id if you don't have read_sis or management_sis permissions" do
       expect(
-        CanvasSchema.execute(<<~GQL, context: { current_user: student }).dig("data", "assignment", "sisId")
+        run_mutation(<<~GQL, current_user: student).dig("data", "assignment", "sisId")
           query { assignment(id: "#{sis_assignment.id}") { sisId } }
         GQL
       ).to be_nil
@@ -2642,7 +2642,7 @@ describe Types::AssignmentType do
       end
 
       # Execute the GraphQL query
-      result = CanvasSchema.execute(query, context: { current_user: teacher, request: ActionDispatch::TestRequest.create })
+      result = run_mutation(query, current_user: teacher)
 
       # Should be bulk loading, not N+1 queries
       expect(module_query_count).to be <= 1
@@ -2711,7 +2711,7 @@ describe Types::AssignmentType do
       end
 
       # Execute the GraphQL query
-      result = CanvasSchema.execute(query, context: { current_user: teacher, request: ActionDispatch::TestRequest.create })
+      result = run_mutation(query, current_user: teacher)
 
       # Should use bulk loading from OverrideAssignmentLoader, not individual queries per assignment
       expect(override_query_count).to be <= 2, "Expected ≤2 bulk override queries, got #{override_query_count} (indicates N+1)"
@@ -3499,11 +3499,7 @@ describe Types::AssignmentType do
     end
 
     def execute_query(query_string, user, variables = {})
-      CanvasSchema.execute(
-        query_string,
-        variables:,
-        context: { current_user: user, request: ActionDispatch::TestRequest.create }
-      )
+      run_mutation(query_string, current_user: user, variables:)
     end
 
     describe "Assignment-only fields return nil for PRSA" do

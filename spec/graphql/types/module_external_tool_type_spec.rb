@@ -40,7 +40,7 @@ describe Types::ModuleExternalToolType do
 
   it "works" do
     expected = { "data" => { "moduleItem" => { "content" => { "url" => module_item.url } } } }
-    result = CanvasSchema.execute(<<~GQL, context: { current_user: @teacher })
+    result = run_mutation(<<~GQL, current_user: @teacher)
       query {
         moduleItem(id: "#{module_item.id}") {
           content {
@@ -64,7 +64,7 @@ describe Types::ModuleExternalToolType do
         }
       }
     }
-    result = CanvasSchema.execute(<<~GQL, context: { current_user: @teacher })
+    result = run_mutation(<<~GQL, current_user: @teacher)
       query {
         moduleItem(id: "#{module_item.id}") {
           content {

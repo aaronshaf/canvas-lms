@@ -57,7 +57,7 @@ describe Mutations::SetAssignmentPostPolicy do
   end
 
   def execute_query(mutation_str, context)
-    CanvasSchema.execute(mutation_str, context:)
+    run_mutation(mutation_str, **context)
   end
 
   context "when user has manage_grades permission" do

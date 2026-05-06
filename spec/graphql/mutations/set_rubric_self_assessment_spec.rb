@@ -57,13 +57,13 @@ describe Mutations::SetRubricSelfAssessment do
 
   context "missing assignment or rubric association" do
     it "returns error when assignment does not exist" do
-      result = CanvasSchema.execute(mutation_str(assignment_id: "123"), context:)
+      result = run_mutation({ assignment_id: "123" }, **context)
       expect(result.dig("errors", 0, "message")).to eq "Assignment not found"
     end
 
     it "returns error when rubric association for assignment does not exist" do
       new_assignment = course.assignments.create!(title: "hi", grading_type: "points", points_possible: 1)
-      result = CanvasSchema.execute(mutation_str(assignment_id: new_assignment.id), context:)
+      result = run_mutation({ assignment_id: new_assignment.id }, **context)
       expect(result.dig("errors", 0, "message")).to eq "Rubric Association not found"
     end
   end
@@ -71,13 +71,13 @@ describe Mutations::SetRubricSelfAssessment do
   context "when feature flags are not enabled" do
     it "returns error when enhanced rubrics feature is not enabled" do
       course.disable_feature!(:enhanced_rubrics)
-      result = CanvasSchema.execute(mutation_str, context:)
+      result = run_mutation(mutation_str, **context)
       expect(result.dig("errors", 0, "message")).to eq "enhanced_rubrics, rubric_self_assesment and assignments_2_student must be enabled"
     end
 
     it "returns errors when rubric self assessment feature is not enabled" do
       course.root_account.disable_feature!(:rubric_self_assessment)
-      result = CanvasSchema.execute(mutation_str, context:)
+      result = run_mutation(mutation_str, **context)
       expect(result.dig("errors", 0, "message")).to eq "enhanced_rubrics, rubric_self_assesment and assignments_2_student must be enabled"
     end
   end
@@ -88,19 +88,19 @@ describe Mutations::SetRubricSelfAssessment do
     end
 
     it "allows setting rubric self assessment to true" do
-      CanvasSchema.execute(mutation_str(rubric_self_assessment_enabled: true), context:)
+      run_mutation({ rubric_self_assessment_enabled: true }, **context)
       expect(@assignment.reload.rubric_self_assessment_enabled).to be true
     end
 
     it "allows setting rubric self assessment to false" do
       @assignment.update!(rubric_self_assessment_enabled: true)
-      CanvasSchema.execute(mutation_str(rubric_self_assessment_enabled: false), context:)
+      run_mutation({ rubric_self_assessment_enabled: false }, **context)
       expect(@assignment.reload.rubric_self_assessment_enabled).to be false
     end
 
     it "allows setting rubric self assessment when due date in the future" do
       @assignment.submissions.update_all(cached_due_date: 1.day.from_now)
-      CanvasSchema.execute(mutation_str(rubric_self_assessment_enabled: true), context:)
+      run_mutation({ rubric_self_assessment_enabled: true }, **context)
       expect(@assignment.reload.rubric_self_assessment_enabled).to be true
     end
   end
@@ -108,7 +108,7 @@ describe Mutations::SetRubricSelfAssessment do
   context "when executed by a user without permission to update rubric self assessment" do
     it "does not allow setting rubric self assessment" do
       student_context = { current_user: student, domain_root_account: account }
-      result = CanvasSchema.execute(mutation_str, context: student_context)
+      result = run_mutation(mutation_str, **student_context)
       expect(result.dig("errors", 0, "message")).to eq "Insufficient permissions"
     end
   end
@@ -118,14 +118,14 @@ describe Mutations::SetRubricSelfAssessment do
       @assignment.update!(rubric_self_assessment_enabled: true)
       rubric_assessment_model(context: course, rubric: @rubric, user: student, assessment_type: "self_assessment")
 
-      result = CanvasSchema.execute(mutation_str, context:)
+      result = run_mutation(mutation_str, **context)
       expect(result.dig("errors", 0, "message")).to eq "Assignment has self assessments or due date has passed"
     end
 
     it "returns error when the due date has passed on a submission" do
       submission_model(assignment: @assignment, user: student, cached_due_date: 1.day.ago)
 
-      result = CanvasSchema.execute(mutation_str, context:)
+      result = run_mutation(mutation_str, **context)
       expect(result.dig("errors", 0, "message")).to eq "Assignment has self assessments or due date has passed"
     end
   end
@@ -139,7 +139,7 @@ describe Mutations::SetRubricSelfAssessment do
     end
 
     it "returns error when group assignment" do
-      result = CanvasSchema.execute(mutation_str, context:)
+      result = run_mutation(mutation_str, **context)
       expect(result.dig("errors", 0, "message")).to eq "Cannot set rubric self assessment for group assignments"
     end
   end
@@ -165,7 +165,7 @@ describe Mutations::SetRubricSelfAssessment do
       quiz_assignment.save!
       rubric_association_model(user: teacher, context: course, association_object: quiz_assignment, purpose: "grading", rubric: @rubric)
 
-      result = CanvasSchema.execute(mutation_str(assignment_id: quiz_assignment.id), context:)
+      result = run_mutation({ assignment_id: quiz_assignment.id }, **context)
       expect(result.dig("errors", 0, "message")).to eq "Cannot set rubric self assessment for quiz assignments"
     end
 
@@ -179,7 +179,7 @@ describe Mutations::SetRubricSelfAssessment do
       quiz.save!
       rubric_association_model(user: teacher, context: course, association_object: quiz_assignment, purpose: "grading", rubric: @rubric)
 
-      result = CanvasSchema.execute(mutation_str(assignment_id: quiz_assignment.id), context:)
+      result = run_mutation({ assignment_id: quiz_assignment.id }, **context)
       expect(result.dig("errors", 0, "message")).to eq "Cannot set rubric self assessment for quiz assignments"
     end
   end
@@ -193,7 +193,7 @@ describe Mutations::SetRubricSelfAssessment do
       )
       rubric_association_model(user: teacher, context: course, association_object: discussion_assignment, purpose: "grading", rubric: @rubric)
 
-      result = CanvasSchema.execute(mutation_str(assignment_id: discussion_assignment.id), context:)
+      result = run_mutation({ assignment_id: discussion_assignment.id }, **context)
       expect(result.dig("errors", 0, "message")).to eq "Cannot set rubric self assessment for discussion assignments"
     end
   end

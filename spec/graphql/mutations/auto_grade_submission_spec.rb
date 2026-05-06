@@ -49,7 +49,7 @@ describe Mutations::AutoGradeSubmission do
         }
       }
     GQL
-    CanvasSchema.execute(mutation_command, context: { current_user:, request: ActionDispatch::TestRequest.create })
+    run_mutation(mutation_command, current_user:)
   end
 
   before do

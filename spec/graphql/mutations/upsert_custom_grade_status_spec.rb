@@ -44,13 +44,7 @@ describe Mutations::UpsertCustomGradeStatus do
         }
       }
     GQL
-    context = {
-      current_user: user_executing,
-      domain_root_account: @course.root_account,
-      request: ActionDispatch::TestRequest.create,
-      session: {},
-    }
-    CanvasSchema.execute(mutation_command, context:)
+    run_mutation(mutation_command, current_user: user_executing, domain_root_account: @course.root_account)
   end
 
   let(:create_query) do

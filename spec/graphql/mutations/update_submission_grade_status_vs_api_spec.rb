@@ -52,7 +52,7 @@ RSpec.describe "UpdateSubmissionGradeStatus vs SubmissionsApiController#update",
       )
     end
 
-    def graphql_mutation(submission_id:, late_policy_status: nil, custom_grade_status_id: nil)
+    def mutation_str(submission_id:, late_policy_status: nil, custom_grade_status_id: nil)
       late_policy_status = late_policy_status ? "\"#{late_policy_status}\"" : "null"
       custom_grade_status_id = custom_grade_status_id ? "\"#{custom_grade_status_id}\"" : "null"
       <<~GQL
@@ -80,11 +80,7 @@ RSpec.describe "UpdateSubmissionGradeStatus vs SubmissionsApiController#update",
     end
 
     def run_graphql_mutation(opts = {}, current_user = @teacher)
-      result = CanvasSchema.execute(
-        graphql_mutation(**opts),
-        context: { current_user:, request: ActionDispatch::TestRequest.create }
-      )
-      result.to_h.with_indifferent_access
+      run_mutation(opts, current_user:)
     end
 
     def rest_api_update(submission_params, student = @rest_student, user = @teacher)

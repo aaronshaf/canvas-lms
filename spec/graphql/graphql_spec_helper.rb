@@ -24,4 +24,33 @@ module GraphQLSpecHelper
   def gql_arguments(*args, **options)
     (args + options.map { |k, v| "#{k.to_s.camelize(:lower)}: #{v.to_json}" }).join(", ")
   end
+
+  # Executes a GraphQL mutation against CanvasSchema and returns the result as a HashWithIndifferentAccess.
+  #
+  # If current_user is provided in the context, current_principal will be inferred.
+  #
+  # @param query [String, Hash] the GraphQL mutation string, or a Hash of options to pass to a
+  #   spec-local `mutation_str` builder method
+  # @param variables [Hash, nil] optional variables to pass alongside the query (for `$var: Type` arguments)
+  # @param context [Hash] additional context keys (e.g. `domain_root_account:`, `session:`, `request:`)
+  #   that override or supplement the defaults. Defaults: `request:` is an ActionDispatch::TestRequest
+  #   and `session:` is an empty hash.
+  # @return [ActiveSupport::HashWithIndifferentAccess]
+  def run_mutation(query = nil, variables: nil, context: {}, **additional_context)
+    query = mutation_str(**query) unless query.is_a?(String)
+    context.reverse_merge!(
+      request: ActionDispatch::TestRequest.create,
+      session: {}
+    ).merge!(additional_context)
+
+    CanvasSchema.execute(query, context:, variables:).to_h.with_indifferent_access
+  end
+end
+
+RSpec.configure do |config|
+  config.define_derived_metadata(file_path: %r{spec/graphql/}) do |metadata|
+    metadata[:graphql] = true
+  end
+
+  config.include GraphQLSpecHelper, :graphql
 end

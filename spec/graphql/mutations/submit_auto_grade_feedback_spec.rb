@@ -61,10 +61,7 @@ describe Mutations::SubmitAutoGradeFeedback do
         }
       }
     GQL
-    CanvasSchema.execute(
-      mutation_command,
-      context: { current_user:, request: ActionDispatch::TestRequest.create }
-    )
+    run_mutation(mutation_command, current_user:)
   end
 
   describe "successful feedback submission" do
