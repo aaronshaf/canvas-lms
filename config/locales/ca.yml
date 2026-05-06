@@ -2468,6 +2468,12 @@ ca:
   adds_menu_option_for_accessing_alignments_at_the_o_6d3bce6: "Afegeix l’opció de menú per accedir a les alineacions de les competències amb la gestió de competències millorades"
   adds_the_course_sis_id_if_present_to_the_additiona_2c0b759c: "Afegeix l’ID del SIS de l'assignatura (si està present) a la informació addicional de la imatge amb efecte popout de les assignatures"
   adds_the_option_to_grade_by_question_in_speedgrade_5eac06f3: "Afegeix l’opció de qualificar per pregunta a SpeedGrader per a les proves Quizzes.Next"
+  adds_three_different_permissions_for_more_granular_608df65d: |-
+      Hi afegeix tres permisos diferents per tenir un control més precís de la pàgina Configuració de l’assignatura.
+      Cada permís controla una pestanya de la pàgina Configuració. Els permisos són: 
+        - gestiona les dades de l’assignatura
+        - gestiona la navegació del curs
+        - gestiona els atributs federats de l’assignatura
   adds_visual_indicators_to_the_submission_details_p_c7b9d191: |-
       Afegeix indicadors visuals a la pàgina d’informació sobre l’entrega perquè els estudiants sàpiguen que hi ha
       anotacions al document o comentaris a la rúbrica sense llegir
