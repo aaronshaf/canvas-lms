@@ -1660,6 +1660,111 @@ describe SubmissionsController do
         expect(returned_quizzes).to include(hash_including({ "id" => quiz.id, "role" => "grader" }))
       end
     end
+
+    describe "cross-course submission isolation" do
+      it "does not leak audit events from a submission in another course" do
+        teacher_course = @course
+        teacher_assignment = @assignment
+        teacher = @teacher
+
+        foreign_course = Course.create!(account: teacher_course.account)
+        foreign_student = course_with_user(
+          "StudentEnrollment",
+          course: foreign_course,
+          name: "Foreign",
+          active_all: true
+        ).user
+        foreign_assignment = foreign_course.assignments.create!(
+          name: "foreign anonymous",
+          anonymous_grading: true
+        )
+        foreign_submission = foreign_assignment.submissions.find_by!(user: foreign_student)
+        foreign_submission.submission_comments.create!(
+          author: foreign_student,
+          comment: "secret comment from another course"
+        )
+
+        user_session(teacher)
+
+        get :audit_events,
+            params: { course_id: teacher_course.id,
+                      assignment_id: teacher_assignment.id,
+                      submission_id: @submission.id },
+            format: :json
+        expect(response).to have_http_status(:ok),
+                            "baseline request failed (status=#{response.status} body=#{response.body})"
+
+        get :audit_events,
+            params: { course_id: teacher_course.id,
+                      assignment_id: teacher_assignment.id,
+                      submission_id: foreign_submission.id },
+            format: :json
+
+        expect(response).not_to have_http_status(:ok),
+                                "expected request to be rejected, but it returned 200 " \
+                                "(body: #{response.body.to_s[0, 300]})"
+      end
+
+      it "rejects a submission_id that belongs to a different assignment in the same course" do
+        teacher = @teacher
+        other_assignment = @course.assignments.create!(
+          name: "other anonymous",
+          anonymous_grading: true
+        )
+        other_student = course_with_user("StudentEnrollment", course: @course, active_all: true).user
+        other_submission = other_assignment.submissions.find_by!(user: other_student)
+
+        user_session(teacher)
+        get :audit_events,
+            params: { course_id: @course.id,
+                      assignment_id: @assignment.id,
+                      submission_id: other_submission.id },
+            format: :json
+
+        expect(response).to have_http_status(:not_found),
+                            "submission_id from a sibling assignment should 404 rather than leak " \
+                            "(status=#{response.status} body=#{response.body.to_s[0, 300]})"
+      end
+
+      it "404s rather than 403s on a foreign submission_id (no existence oracle)" do
+        teacher_course = @course
+        teacher_assignment = @assignment
+        teacher = @teacher
+
+        foreign_course = Course.create!(account: teacher_course.account)
+        foreign_student = course_with_user(
+          "StudentEnrollment",
+          course: foreign_course,
+          active_all: true
+        ).user
+        foreign_assignment = foreign_course.assignments.create!(
+          name: "foreign anonymous 2",
+          anonymous_grading: true
+        )
+        foreign_submission = foreign_assignment.submissions.find_by!(user: foreign_student)
+
+        user_session(teacher)
+
+        get :audit_events,
+            params: { course_id: teacher_course.id,
+                      assignment_id: teacher_assignment.id,
+                      submission_id: foreign_submission.id },
+            format: :json
+        foreign_status = response.status
+
+        get :audit_events,
+            params: { course_id: teacher_course.id,
+                      assignment_id: teacher_assignment.id,
+                      submission_id: 999_999_999 },
+            format: :json
+        nonexistent_status = response.status
+
+        expect(foreign_status).to eq(nonexistent_status),
+                                  "found-but-foreign and not-found responses must look identical, " \
+                                  "or the endpoint becomes a cross-course existence oracle " \
+                                  "(foreign=#{foreign_status} nonexistent=#{nonexistent_status})"
+      end
+    end
   end
 
   describe "PUT update with student_entered_score" do

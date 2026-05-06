@@ -399,7 +399,8 @@ class SubmissionsController < SubmissionsBaseController
   def audit_events
     return unless authorized_action(@context, @current_user, :view_audit_trail)
 
-    submission = Submission.find(params[:submission_id])
+    assignment = @context.assignments.active.find(params[:assignment_id])
+    submission = assignment.submissions.find(params[:submission_id])
 
     respond_to do |format|
       format.json do
