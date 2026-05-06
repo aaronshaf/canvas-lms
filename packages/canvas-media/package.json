@@ -68,6 +68,7 @@
     "@sheerun/mutationobserver-shim": "^0.3.2",
     "aphrodite": "^2",
     "axios": "^1.15.0",
+    "es-toolkit": "^1.42.0",
     "format-message": "^6",
     "format-message-generate-id": "^6",
     "prop-types": "^15",
