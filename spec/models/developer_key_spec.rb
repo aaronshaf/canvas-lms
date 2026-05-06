@@ -229,6 +229,49 @@ describe DeveloperKey do
     end
   end
 
+  describe "#elevated_operation_permitted?" do
+    subject { developer_key.elevated_operation_permitted?(request:) }
+
+    let(:scopes) { [] }
+    let(:developer_key) { DeveloperKey.create!(name: "key", scopes:) }
+    let(:request) do
+      instance_double(
+        ActionDispatch::Request,
+        params: ActiveSupport::HashWithIndifferentAccess.new(controller: "foo", action: "bar")
+      )
+    end
+
+    context "when scopes are empty" do
+      it { is_expected.to be false }
+    end
+
+    context "when scopes include the wildcard" do
+      let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"] }
+
+      it { is_expected.to be true }
+    end
+
+    context "when scopes include the matching controller/action" do
+      let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/foo/bar"] }
+
+      it { is_expected.to be true }
+    end
+
+    context "when scopes include only a different controller/action" do
+      let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/baz/qux"] }
+
+      it { is_expected.to be false }
+    end
+
+    context "when the key is not a client_credentials grant" do
+      let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"] }
+
+      it "still permits the bypass based on scopes alone" do
+        expect(subject).to be true
+      end
+    end
+  end
+
   context "validations" do
     describe "client_type" do
       context "when client_type is Confidential" do
@@ -1215,6 +1258,48 @@ describe DeveloperKey do
             scopes: valid_scopes
           )
         end.not_to raise_exception
+      end
+
+      context "with elevated operation scopes" do
+        it "allows scopes prefixed with ELEVATED_OPERATIONS_PREFIX" do
+          expect do
+            DeveloperKey.create!(
+              scopes: ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/foo/bar"]
+            )
+          end.not_to raise_exception
+        end
+
+        it "allows the wildcard /all elevated scope" do
+          expect do
+            DeveloperKey.create!(
+              scopes: ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"]
+            )
+          end.not_to raise_exception
+        end
+
+        it "rejects the bare ELEVATED_OPERATIONS_PREFIX with no trailing slash" do
+          expect do
+            DeveloperKey.create!(
+              scopes: [TokenScopes::ELEVATED_OPERATIONS_PREFIX]
+            )
+          end.to raise_exception(/Scopes cannot contain/)
+        end
+
+        it "rejects a scope that starts with the prefix but lacks a separator" do
+          expect do
+            DeveloperKey.create!(
+              scopes: ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}foo"]
+            )
+          end.to raise_exception(/Scopes cannot contain/)
+        end
+
+        it "lists only truly-invalid scopes when a mix is supplied" do
+          expect do
+            DeveloperKey.create!(
+              scopes: ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/foo/bar", "not_a_valid_scope"]
+            )
+          end.to raise_exception("Validation failed: Scopes cannot contain not_a_valid_scope")
+        end
       end
     end
 

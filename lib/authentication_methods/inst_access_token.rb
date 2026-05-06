@@ -97,15 +97,14 @@ module AuthenticationMethods
       auth_context
     end
 
-    def self.usable_developer_key?(token, domain_root_account)
-      # The token is not associated with a specific developer key
-      return true if token.client_id.blank?
+    def self.developer_key_for(token)
+      client_id = token&.client_id
+      return if client_id.blank?
 
-      DeveloperKey.find_cached(token.client_id).usable_in_context?(domain_root_account)
+      DeveloperKey.find_cached(client_id)
     rescue ActiveRecord::RecordNotFound
       # The developer key associated with the 'client_id' claim
       # does not exist or was deleted.
-      false
     end
 
     def self.token_matches_tenant?(token, domain_root_account)

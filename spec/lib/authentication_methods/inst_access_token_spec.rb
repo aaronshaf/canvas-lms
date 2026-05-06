@@ -63,17 +63,17 @@ describe AuthenticationMethods::InstAccessToken do
     end
   end
 
-  describe ".usable_developer_key?" do
-    subject { described_class.usable_developer_key?(token, account) }
+  describe ".developer_key_for" do
+    subject { described_class.developer_key_for(token) }
 
     let(:account) { Account.create!(name: "account") }
     let(:user) { user_model }
     let(:developer_key) { DeveloperKey.create!(name: "key", account:) }
 
-    before do
-      developer_key.developer_key_account_bindings.find_by(
-        account:
-      ).update!(workflow_state: "on")
+    context "when the token is blank" do
+      let(:token) { nil }
+
+      it { is_expected.to be_nil }
     end
 
     context "when the token has no client_id claim set" do
@@ -84,7 +84,7 @@ describe AuthenticationMethods::InstAccessToken do
         )
       end
 
-      it { is_expected.to be true }
+      it { is_expected.to be_nil }
     end
 
     describe "#tag_identifier" do
@@ -299,40 +299,16 @@ describe AuthenticationMethods::InstAccessToken do
         )
       end
 
-      context "and the the key is active and has a binding on" do
-        before do
-          developer_key.update!(
-            workflow_state: "active"
-          )
-
-          developer_key.developer_key_account_bindings.find_by(
-            account:
-          ).update!(workflow_state: "on")
+      context "and the developer key exists" do
+        it "returns the developer key" do
+          expect(subject).to eq developer_key
         end
-
-        it { is_expected.to be true }
       end
 
-      context "and the associated developer key is not found" do
+      context "and the developer key cannot be found" do
         before { developer_key.delete }
 
-        it { is_expected.to be false }
-      end
-
-      context "and the associated developer key is soft deleted" do
-        before { developer_key.destroy! }
-
-        it { is_expected.to be false }
-      end
-
-      context "and the developer key account binding is off" do
-        before do
-          developer_key.developer_key_account_bindings.find_by(
-            account:
-          ).update!(workflow_state: "off")
-        end
-
-        it { is_expected.to be false }
+        it { is_expected.to be_nil }
       end
     end
   end

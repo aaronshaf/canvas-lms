@@ -52,13 +52,19 @@ module AuthenticationMethods
     return false unless @token
 
     auth_context = ::AuthenticationMethods::InstAccessToken.load_user_and_pseudonym_context(@token, @domain_root_account)
+    developer_key = ::AuthenticationMethods::InstAccessToken.developer_key_for(@token)
 
+    raise AccessTokenError if developer_key.nil? && @token.client_id.present?
     raise AccessTokenError unless ::AuthenticationMethods::InstAccessToken.token_matches_tenant?(@token, @domain_root_account)
-    raise AccessTokenError unless ::AuthenticationMethods::InstAccessToken.usable_developer_key?(@token, @domain_root_account)
+    raise AccessTokenError unless developer_key.nil? || developer_key.usable_in_context?(@domain_root_account)
 
     @current_user = auth_context[:current_user]
     @current_pseudonym = auth_context[:current_pseudonym]
+
     raise AccessTokenError unless @current_user && @current_pseudonym
+
+    ::AuthenticationMethods::AccessTokenAttributes.current_token = @token
+    ::AuthenticationMethods::AccessTokenAttributes.current_developer_key = developer_key
 
     if auth_context[:real_current_user]
       @real_current_user = auth_context[:real_current_user]

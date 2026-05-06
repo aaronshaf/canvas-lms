@@ -487,6 +487,18 @@ describe DeveloperKeysController do
           put "update", params: { id: developer_key.id, developer_key: { scopes: "" } }
           expect(developer_key.reload.scopes).to be_empty
         end
+
+        it "preserves elevated_operations scopes" do
+          elevated_scope = "#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/foo/bar"
+          put "update", params: { id: developer_key.id, developer_key: { scopes: valid_scopes + [elevated_scope] } }
+          expect(developer_key.reload.scopes).to match_array(valid_scopes + [elevated_scope])
+        end
+
+        it "preserves the wildcard elevated_operations scope" do
+          elevated_scope = "#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"
+          put "update", params: { id: developer_key.id, developer_key: { scopes: [elevated_scope] } }
+          expect(developer_key.reload.scopes).to eql [elevated_scope]
+        end
       end
     end
 

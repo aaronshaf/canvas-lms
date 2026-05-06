@@ -38,6 +38,7 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
 
   before do
     AuthenticationMethods::PseudonymAttributes.reset
+    AuthenticationMethods::AccessTokenAttributes.reset
     site_admin = Account.site_admin
     allow(site_admin).to receive(:feature_enabled?).and_call_original
     allow(site_admin).to receive(:feature_enabled?).with(:log_elevated_auth_provider_violations).and_return(false)
@@ -204,6 +205,67 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
             get :index, format: :json
             expect(response).to have_http_status(:forbidden)
             expect(json_parse["status"]).to eql "unauthorized"
+          end
+        end
+
+        context "with a developer key bypass" do
+          let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/anonymous/index"] }
+          let(:developer_key) { DeveloperKey.create!(name: "key", scopes:) }
+
+          before do
+            allow(Account.site_admin).to receive(:feature_enabled?)
+              .with(:enforce_no_elevated_auth_provider_violations).and_return(true)
+            AuthenticationMethods::AccessTokenAttributes.current_developer_key = developer_key
+          end
+
+          context "when the key permits the controller/action" do
+            it_behaves_like "allows the action through"
+
+            it "does not emit a violation event" do
+              get :index
+              expect(InstStatsd::Statsd).not_to have_received(:event)
+            end
+
+            context "and log_elevated_auth_provider_violations is on" do
+              before do
+                allow(Account.site_admin).to receive(:feature_enabled?)
+                  .with(:log_elevated_auth_provider_violations).and_return(true)
+              end
+
+              it_behaves_like "allows the action through"
+
+              it "does not emit a violation event" do
+                get :index
+                expect(InstStatsd::Statsd).not_to have_received(:event)
+              end
+            end
+          end
+
+          context "when the key has the wildcard /all scope" do
+            let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"] }
+
+            it_behaves_like "allows the action through"
+          end
+
+          context "when the key's scope does not match the controller/action" do
+            let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/other/action"] }
+
+            it "redirects html requests to root_url" do
+              get :index, format: :html
+              expect(response).to redirect_to(root_url)
+            end
+
+            it "responds 403 unauthorized for json requests" do
+              get :index, format: :json
+              expect(response).to have_http_status(:forbidden)
+              expect(json_parse["status"]).to eql "unauthorized"
+            end
+          end
+
+          context "when the key is not a client_credentials grant" do
+            let(:developer_key) { DeveloperKey.create!(name: "key", scopes:) }
+
+            it_behaves_like "allows the action through"
           end
         end
       end

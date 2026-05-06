@@ -520,6 +520,16 @@ class DeveloperKey < ApplicationRecord
     commons_dk_id.present? && commons_dk_id.to_s == global_id.to_s
   end
 
+  def elevated_operation_permitted?(request:)
+    # The client is permitted all elevated operations
+    return true if scopes.include?("#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all")
+
+    controller = request.params[:controller]
+    action = request.params[:action]
+
+    scopes.include?("#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/#{controller}/#{action}")
+  end
+
   private
 
   def create_lti_registration
@@ -769,7 +779,9 @@ class DeveloperKey < ApplicationRecord
   def validate_scopes!
     return true if scopes.empty?
 
-    invalid_scopes = scopes - TokenScopes.all_scopes
+    invalid_scopes = (scopes - TokenScopes.all_scopes).reject do |scope|
+      scope.starts_with?("#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/")
+    end
     return true if invalid_scopes.empty?
 
     errors.add(:scopes, "cannot contain #{invalid_scopes.join(", ")}")

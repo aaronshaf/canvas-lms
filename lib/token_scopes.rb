@@ -142,6 +142,17 @@ class TokenScopes
     ]
   }.freeze
 
+  # Scopes that begin with this prefix are dynamic and not currently available
+  # to assign in the Developer Key user interface.
+  #
+  # These scopes grant a Developer Key, that uses client credentials, access to
+  # the elevated operation indicated by the scope.
+  #
+  # See:
+  # - DeveloperKey#elevated_operation_permitted
+  # - AuthenticationMethods::ElevatedAuthProvider
+  ELEVATED_OPERATIONS_PREFIX = "https://canvas.instructure.com/elevated_operations"
+
   ###
 
   def self.named_scopes

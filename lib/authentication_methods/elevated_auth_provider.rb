@@ -53,6 +53,10 @@ module AuthenticationMethods
         return false
       end
 
+      # Some OAuth2 clients are permitted to either perform all elevated
+      # operations or a subset of them based on their scope and grant type
+      return false if AuthenticationMethods::AccessTokenAttributes.current_developer_key&.elevated_operation_permitted?(request:)
+
       pseudonym_account.elevated_auth_provider_global_id.present?
     end
 
