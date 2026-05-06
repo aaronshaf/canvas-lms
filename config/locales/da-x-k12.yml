@@ -2663,6 +2663,12 @@ da-x-k12:
   adds_menu_option_for_accessing_alignments_at_the_o_6d3bce6: "Tilføjer menuvalg til at få adgang til justeringer på læringsudbytteniveau med forbedret læringsudbyttestyring"
   adds_the_course_sis_id_if_present_to_the_additiona_2c0b759c: "Tilføjer fagets SIS-ID (hvis til stede) til de yderligere oplysninger i fagenes popout"
   adds_the_option_to_grade_by_question_in_speedgrade_5eac06f3: "Tilføjer muligheden for at give vurdering pr. spørgsmål i SpeedGrader for Quizzes.Next-quizzer"
+  adds_three_different_permissions_for_more_granular_608df65d: |-
+      Tilføjer tre forskellige tilladelser for mere detaljeret kontrol over siden Fagindstillinger.
+      Hver tilladelse styrer én fane på siden Indstillinger. Tilladelserne er: 
+        - Administrer fagdetaljer
+        - Administrer fagnavigation
+        - Administrer fagfunktionsindstillinger
   adds_visual_indicators_to_the_submission_details_p_c7b9d191: |-
       Føjer visuelle indikatorer til siden med afleveringsdetaljer for at fortælle de elever, at der findes ikke-læste
       dokumentanmærkninger eller vurderingskriterie kommentarer
