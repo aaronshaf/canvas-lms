@@ -48,7 +48,9 @@ module FeatureFlags
     flag = feature_flags.find_or_initialize_by(feature:)
     flag.state = state
     @feature_flag_cache ||= {}
-    @feature_flag_cache[feature] = flag
+    # IU lookups memo on (feature, DRA); no DRA in scope here, so skip the
+    # optimistic populate and let lookup_feature_flag re-fetch from the DB.
+    @feature_flag_cache[feature_flag_memo_key(feature)] = flag unless inheritable_user_lookup?(feature)
     flag.save!
     association(:feature_flags).reset
   end
@@ -143,19 +145,28 @@ module FeatureFlags
 
     is_root_account = is_a?(Account) && root_account?
     is_site_admin = is_a?(Account) && site_admin?
+    inheritable_user_lookup = inheritable_user_lookup?(feature)
+    dra = inheritable_user_lookup ? Account.current_domain_root_account : nil
 
     # inherit the feature definition as a default unless it's a hidden feature
     retval = feature_def.clone_for_cache unless feature_def.hidden? && !is_site_admin && !override_hidden
 
     @feature_flag_cache ||= {}
-    return @feature_flag_cache[feature] if @feature_flag_cache.key?(feature) && !inherited_only
+    cache_key = feature_flag_memo_key(feature, dra)
+    return @feature_flag_cache[cache_key] if @feature_flag_cache.key?(cache_key) && !inherited_only && !skip_cache
 
     # find the highest flag that doesn't allow override,
     # or the most specific flag otherwise
-    accounts = feature_flag_account_ids.map do |id|
+    account_ids = inheritable_user_lookup ? inheritable_user_account_ids(dra) : feature_flag_account_ids
+    accounts = account_ids.map do |id|
       # optimizations for accounts we likely already have loaded (including their feature flags!)
       next Account.site_admin if id == Account.site_admin.global_id
-      next Account.current_domain_root_account if id == Account.current_domain_root_account&.global_id
+
+      if inheritable_user_lookup
+        next dra if dra && id == dra.global_id
+      elsif Account.current_domain_root_account&.global_id == id
+        next Account.current_domain_root_account
+      end
 
       account = Account.new
       account.id = id
@@ -185,15 +196,51 @@ module FeatureFlags
         # the feature doesn't exist beneath the root account until the root account opts in
         return nil
       else
-        return @feature_flag_cache[feature] = nil
+        @feature_flag_cache[cache_key] = nil
+        return nil
       end
     end
 
-    @feature_flag_cache[feature] = retval unless inherited_only
+    @feature_flag_cache[cache_key] = retval unless inherited_only
     retval
   end
 
   private
+
+  def inheritable_user_lookup?(feature)
+    is_a?(User) && Feature.definitions[feature.to_s]&.applies_to == "InheritableUser"
+  end
+
+  def feature_flag_memo_key(feature, dra = nil)
+    feature = feature.to_s
+    return feature unless inheritable_user_lookup?(feature)
+
+    dra ||= Account.current_domain_root_account
+    [feature, (dra&.root_account? ? dra.global_id : nil)]
+  end
+
+  # NOTE: reads process-global state (Account.current_domain_root_account) set
+  # by the LoadAccount middleware on each HTTP request. Outside the request
+  # cycle (delayed jobs, rake tasks, console without an explicit assignment)
+  # current_domain_root_account is nil and the chain falls back to SiteAdmin
+  # only. The root_account? guard hardens against any future caller that might
+  # set DRA to a sub-account.
+  # The chain walk mirrors Account-context lookup. When the
+  # multiple_root_accounts plugin is loaded, account_chain(include_site_admin:)
+  # includes consortium parents via its override of
+  # add_federated_parent_to_chain!; in core that override is a no-op, so the
+  # walk is effectively [DRA, SiteAdmin].
+  def inheritable_user_account_ids(dra = Account.current_domain_root_account)
+    return [Account.site_admin.global_id] unless dra&.root_account?
+
+    RequestCache.cache("inheritable_user_account_ids", dra) do
+      dra.shard.activate do
+        Rails.cache.fetch(["inheritable_user_account_ids", dra].cache_key) do
+          dra.account_chain(include_site_admin: true).reverse.map(&:global_id)
+        end
+      end
+    end
+  end
 
   def persist_result(feature, result)
     persist_result_context(feature, result)

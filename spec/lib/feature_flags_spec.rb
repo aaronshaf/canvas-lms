@@ -46,6 +46,9 @@ describe FeatureFlags do
                                                          "hidden_user_feature" => Feature.new(feature: "hidden_user_feature", applies_to: "User", state: "hidden"),
                                                          "shadow_feature" => Feature.new(feature: "shadow_feature", applies_to: "Course", state: "on", shadow: true),
                                                          "inheritable_user_feature" => Feature.new(feature: "inheritable_user_feature", applies_to: "InheritableUser", state: "allowed"),
+                                                         "hidden_inheritable_user_feature" => Feature.new(feature: "hidden_inheritable_user_feature", applies_to: "InheritableUser", state: "hidden"),
+                                                         "shadow_inheritable_user_feature" => Feature.new(feature: "shadow_inheritable_user_feature", applies_to: "InheritableUser", state: "on", shadow: true),
+                                                         "root_opt_in_inheritable_user_feature" => Feature.new(feature: "root_opt_in_inheritable_user_feature", applies_to: "InheritableUser", state: "allowed", root_opt_in: true),
                                                          "disabled_feature" => Feature::DISABLED_FEATURE
                                                        })
     allow(analytics_service).to receive(:persist_feature_evaluation)
@@ -110,6 +113,13 @@ describe FeatureFlags do
       allow(Feature.definitions).to receive(:[]).and_call_original
       expect(Feature.definitions).to receive(:[]).with("some_feature").and_return(feature)
       expect(t_course.lookup_feature_flag("some_feature")).to be_nil
+    end
+
+    it "skip_cache bypasses the per-instance memo for non-InheritableUser lookups" do
+      t_course.feature_flags.create! feature: "course_feature", state: "on"
+      t_course.lookup_feature_flag("course_feature")
+      t_course.instance_variable_get(:@feature_flag_cache)["course_feature"] = nil
+      expect(t_course.lookup_feature_flag("course_feature", skip_cache: true)&.state).to eq "on"
     end
 
     it "returns defaults when no flags exist" do
@@ -221,6 +231,341 @@ describe FeatureFlags do
 
       it "returns the default flag at the user context" do
         expect(t_user.lookup_feature_flag("inheritable_user_feature")).to be_default
+      end
+
+      context "user lookup with inheritance" do
+        around do |example|
+          prev = Account.current_domain_root_account
+          Account.current_domain_root_account = t_root_account
+          example.run
+        ensure
+          Account.current_domain_root_account = prev
+        end
+
+        it "a SiteAdmin 'on' flag wins over user-level overrides" do
+          t_site_admin.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          t_user.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_site_admin
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_truthy
+        end
+
+        it "a SiteAdmin 'off' flag wins over user-level overrides" do
+          t_site_admin.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+          t_user.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_site_admin
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_falsey
+        end
+
+        it "treats SiteAdmin 'allowed_on' as default-on but overridable" do
+          t_site_admin.feature_flags.create! feature: "inheritable_user_feature", state: "allowed_on"
+          flag = t_user.lookup_feature_flag("inheritable_user_feature")
+          expect(flag.context).to eq t_site_admin
+          expect(flag).to be_can_override
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_truthy
+        end
+
+        it "lets a RootAccount flag override SiteAdmin 'allowed_on'" do
+          t_site_admin.feature_flags.create! feature: "inheritable_user_feature", state: "allowed_on"
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "allowed"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_root_account
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_falsey
+        end
+
+        it "applies RootAccount 'on' as locked for the user" do
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_root_account
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_truthy
+        end
+
+        it "ignores RootAccount overrides when SiteAdmin locks the flag" do
+          t_site_admin.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_site_admin
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_falsey
+        end
+
+        it "applies a User-level flag when SiteAdmin and RootAccount allow override" do
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "allowed_on"
+          t_user.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_user
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_falsey
+        end
+
+        it "ignores a User-level flag when RootAccount locks the flag" do
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          t_user.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_root_account
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_truthy
+        end
+
+        it "excludes the user's own flag with inherited_only: true" do
+          t_user.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature", inherited_only: true).context).to eq t_root_account
+        end
+
+        it "exposes the RootAccount flag's state via inherited_only for parent_state" do
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          parent_flag = t_user.lookup_feature_flag("inheritable_user_feature", inherited_only: true)
+          expect(parent_flag.state).to eq "on"
+        end
+
+        it "treats a non-overridable RootAccount IU flag as locked for the user" do
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          flag = t_user.lookup_feature_flag("inheritable_user_feature")
+          expect(flag.locked?(t_user)).to be true
+        end
+
+        it "treats an overridable RootAccount IU flag as not locked for the user" do
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "allowed_on"
+          flag = t_user.lookup_feature_flag("inheritable_user_feature")
+          expect(flag.locked?(t_user)).to be false
+        end
+
+        it "round-trips set_feature_flag! through the DB without populating the per-instance memo" do
+          t_user.set_feature_flag!("inheritable_user_feature", "on")
+          cache = t_user.instance_variable_get(:@feature_flag_cache) || {}
+          expect(cache).not_to have_key("inheritable_user_feature")
+          expect(cache).not_to have_key(["inheritable_user_feature", t_root_account.global_id])
+          flag = t_user.lookup_feature_flag("inheritable_user_feature")
+          expect(flag.context).to eq t_user
+          expect(flag.state).to eq "on"
+        end
+      end
+
+      context "multi-root-account user" do
+        let(:other_root_account) { account_model }
+
+        around do |example|
+          prev = Account.current_domain_root_account
+          Account.current_domain_root_account = other_root_account
+          example.run
+        ensure
+          Account.current_domain_root_account = prev
+        end
+
+        it "resolves via the current domain root account, not the user's home root" do
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          other_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq other_root_account
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_falsey
+        end
+      end
+
+      context "without a current domain root account" do
+        around do |example|
+          prev = Account.current_domain_root_account
+          Account.current_domain_root_account = nil
+          example.run
+        ensure
+          Account.current_domain_root_account = prev
+        end
+
+        it "uses SiteAdmin-only chain when current_domain_root_account is unset" do
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature")).to be_default
+        end
+      end
+
+      context "with hidden feature" do
+        around do |example|
+          prev = Account.current_domain_root_account
+          Account.current_domain_root_account = t_root_account
+          example.run
+        ensure
+          Account.current_domain_root_account = prev
+        end
+
+        it "returns nil at user context with no admin-level flag" do
+          expect(t_user.lookup_feature_flag("hidden_inheritable_user_feature")).to be_nil
+        end
+
+        it "returns the cloned def when override_hidden is given" do
+          expect(t_user.lookup_feature_flag("hidden_inheritable_user_feature", override_hidden: true)).to be_default
+        end
+
+        it "is visible at user context once SiteAdmin sets a flag" do
+          t_site_admin.feature_flags.create! feature: "hidden_inheritable_user_feature"
+          expect(t_user.lookup_feature_flag("hidden_inheritable_user_feature").context).to eq t_site_admin
+        end
+
+        it "is visible at user context once RootAccount sets a flag" do
+          t_root_account.feature_flags.create! feature: "hidden_inheritable_user_feature"
+          expect(t_user.lookup_feature_flag("hidden_inheritable_user_feature").context).to eq t_root_account
+        end
+      end
+
+      context "with shadow feature" do
+        it "is filtered when include_shadowed: false" do
+          expect(t_user.lookup_feature_flag("shadow_inheritable_user_feature", include_shadowed: false)).to be_nil
+        end
+
+        it "is included by default" do
+          expect(t_user.lookup_feature_flag("shadow_inheritable_user_feature")).to be_default
+        end
+      end
+
+      context "with root_opt_in feature" do
+        around do |example|
+          prev = Account.current_domain_root_account
+          Account.current_domain_root_account = t_root_account
+          example.run
+        ensure
+          Account.current_domain_root_account = prev
+        end
+
+        it "returns nil at user context until the root account opts in" do
+          expect(t_user.lookup_feature_flag("root_opt_in_inheritable_user_feature")).to be_nil
+        end
+
+        it "becomes available at user context once the root account creates a flag" do
+          t_root_account.feature_flags.create! feature: "root_opt_in_inheritable_user_feature"
+          flag = t_user.lookup_feature_flag("root_opt_in_inheritable_user_feature")
+          expect(flag.context).to eq t_root_account
+          expect(t_user.feature_enabled?("root_opt_in_inheritable_user_feature")).to be_falsey
+        end
+
+        it "respects a user-level override after the root account opts in" do
+          t_root_account.feature_flags.create! feature: "root_opt_in_inheritable_user_feature"
+          t_user.feature_flags.create! feature: "root_opt_in_inheritable_user_feature", state: "on"
+          expect(t_user.lookup_feature_flag("root_opt_in_inheritable_user_feature").context).to eq t_user
+          expect(t_user.feature_enabled?("root_opt_in_inheritable_user_feature")).to be_truthy
+        end
+      end
+
+      context "with a consortium parent in the chain" do
+        let(:consortium_parent) { account_model }
+
+        around do |example|
+          prev = Account.current_domain_root_account
+          Account.current_domain_root_account = t_root_account
+          example.run
+        ensure
+          Account.current_domain_root_account = prev
+        end
+
+        before do
+          allow(t_root_account).to receive(:account_chain)
+            .with(include_site_admin: true)
+            .and_return([t_root_account, consortium_parent, Account.site_admin])
+        end
+
+        it "honors a flag set on the consortium parent" do
+          consortium_parent.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq consortium_parent
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_truthy
+        end
+
+        it "lets the current root account override consortium 'allowed_on'" do
+          consortium_parent.feature_flags.create! feature: "inheritable_user_feature", state: "allowed_on"
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_root_account
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_falsey
+        end
+
+        it "does not let the root account override a locked consortium flag" do
+          consortium_parent.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq consortium_parent
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_falsey
+        end
+      end
+
+      context "cross-shard" do
+        specs_require_sharding
+
+        around do |example|
+          prev = Account.current_domain_root_account
+          example.run
+        ensure
+          Account.current_domain_root_account = prev
+        end
+
+        it "resolves the current_domain_root_account on its own shard for a user on a different shard" do
+          @other_root_account = @shard1.activate { Account.create! }
+          @shard1.activate do
+            @other_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          end
+          Account.current_domain_root_account = @other_root_account
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq @other_root_account
+          expect(t_user.feature_enabled?("inheritable_user_feature")).to be_truthy
+        end
+
+        it "resolves correctly when the user lives on a different shard than the current_domain_root_account" do
+          shard1_user = @shard1.activate { user_with_pseudonym(account: Account.create!) }
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          Account.current_domain_root_account = t_root_account
+          expect(shard1_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_root_account
+          expect(shard1_user.feature_enabled?("inheritable_user_feature")).to be_truthy
+        end
+
+        it "resolves correctly when Shard.current differs from both user.shard and root_account.shard" do
+          shard1_user = @shard1.activate { user_with_pseudonym(account: Account.create!) }
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          Account.current_domain_root_account = t_root_account
+          @shard2.activate do
+            expect(shard1_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_root_account
+            expect(shard1_user.feature_enabled?("inheritable_user_feature")).to be_truthy
+          end
+        end
+
+        it "walks a consortium parent on a third shard" do
+          consortium_parent = @shard1.activate { Account.create! }
+          @shard1.activate do
+            consortium_parent.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          end
+          shard2_user = @shard2.activate { user_with_pseudonym(account: Account.create!) }
+          # Stub the actual plugin extension point so the real
+          # account_chain walk (and its internal shard activations) runs.
+          allow(Account).to receive(:add_federated_parent_to_chain!).and_wrap_original do |original, chain|
+            original.call(chain)
+            chain << consortium_parent unless chain.include?(consortium_parent)
+            chain
+          end
+          Account.current_domain_root_account = t_root_account
+          expect(shard2_user.lookup_feature_flag("inheritable_user_feature").context).to eq consortium_parent
+          expect(shard2_user.feature_enabled?("inheritable_user_feature")).to be_truthy
+        end
+      end
+
+      context "caching" do
+        around do |example|
+          prev = Account.current_domain_root_account
+          example.run
+        ensure
+          Account.current_domain_root_account = prev
+        end
+
+        it "re-evaluates when current_domain_root_account changes on the same user instance" do
+          other_root = account_model
+          t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+          other_root.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+
+          Account.current_domain_root_account = t_root_account
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_root_account
+
+          Account.current_domain_root_account = other_root
+          expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq other_root
+        end
+
+        context "with current_domain_root_account set" do
+          before { Account.current_domain_root_account = t_root_account }
+
+          it "re-walks when skip_cache is true" do
+            t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+            expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_root_account
+
+            t_root_account.feature_flags.where(feature: "inheritable_user_feature").update_all(state: "off")
+            expect(t_user.lookup_feature_flag("inheritable_user_feature", skip_cache: true).state).to eq "off"
+          end
+
+          it "does not poison the cache from an inherited_only lookup" do
+            t_user.feature_flags.create! feature: "inheritable_user_feature", state: "off"
+            t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "allowed_on"
+            expect(t_user.lookup_feature_flag("inheritable_user_feature", inherited_only: true).context).to eq t_root_account
+            expect(t_user.lookup_feature_flag("inheritable_user_feature").context).to eq t_user
+          end
+        end
       end
     end
 
