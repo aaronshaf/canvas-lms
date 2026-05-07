@@ -846,7 +846,11 @@ RSpec.describe ApplicationController do
 
       describe "usage metrics and cookie consent" do
         before do
-          Account.default.settings[:enable_usage_metrics] = true
+          account_model
+          @account.settings[:enable_usage_metrics] = true
+          @account.save
+          controller.instance_variable_set(:@context, @account)
+          controller.instance_variable_set(:@domain_root_account, @account)
           request.host = "trusty.instructure.com"
         end
 
@@ -884,31 +888,28 @@ RSpec.describe ApplicationController do
           it "returns true if the account's k12 FF is on" do
             allow(BrandConfig).to receive(:k12_config)
             controller.instance_variable_set(:@current_user, user_model)
-            Account.default.enable_feature!(:k12)
+            @account.enable_feature!(:k12)
             expect(controller.send(:potentially_underage_user?)).to be true
           end
 
           it "returns true if the account's has_underage_users setting is true" do
-            account_model
             @account.settings[:has_underage_users] = true
             @account.save
             @account.disable_feature!(:k12)
-            controller.instance_variable_set(:@context, @account)
-            controller.instance_variable_set(:@domain_root_account, @account)
             controller.instance_variable_set(:@current_user, user_model)
             expect(controller.send(:potentially_underage_user?)).to be true
           end
 
           it "returns true if the user is a k5 user" do
             expect(controller).to receive(:k5_user?).and_return(true)
-            Account.default.disable_feature!(:k12)
+            @account.disable_feature!(:k12)
             controller.instance_variable_set(:@current_user, user_model)
             expect(controller.send(:potentially_underage_user?)).to be true
           end
 
           it "returns false otherwise" do
             controller.instance_variable_set(:@current_user, user_model)
-            Account.default.disable_feature!(:k12)
+            @account.disable_feature!(:k12)
             expect(controller.send(:potentially_underage_user?)).to be false
           end
         end
@@ -921,22 +922,22 @@ RSpec.describe ApplicationController do
           describe "returns no_track_usage" do
             it "if there is no current user" do
               controller.instance_variable_set(:@current_user, nil)
-              Account.default.enable_feature!(:send_usage_metrics)
+              @account.enable_feature!(:send_usage_metrics)
               expect(controller.send(:should_track_usage)).to eq "no_track_usage"
             end
 
             it "if both SUM and SUMAC are disabled" do
               controller.instance_variable_set(:@current_user, user_model)
-              Account.default.disable_feature!(:send_usage_metrics)
-              Account.default.disable_feature!(:send_usage_metrics_after_consent)
+              @account.disable_feature!(:send_usage_metrics)
+              @account.disable_feature!(:send_usage_metrics_after_consent)
               expect(controller.send(:should_track_usage)).to eq "no_track_usage"
             end
 
             it "if the user might be a minor" do
               allow(BrandConfig).to receive(:k12_config)
               controller.instance_variable_set(:@current_user, user_model)
-              Account.default.enable_feature!(:send_usage_metrics)
-              Account.default.enable_feature!(:k12)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
+              @account.enable_feature!(:k12)
               expect(controller.send(:should_track_usage)).to eq "no_track_usage"
             end
           end
@@ -944,15 +945,22 @@ RSpec.describe ApplicationController do
           describe "returns track_usage" do
             it "if SUM is activated" do
               controller.instance_variable_set(:@current_user, user_model)
-              Account.default.enable_feature!(:send_usage_metrics)
-              Account.default.enable_feature!(:cookie_consent_necessary)
+              @account.enable_feature!(:send_usage_metrics)
+              @account.enable_feature!(:cookie_consent_necessary)
+              expect(controller.send(:should_track_usage)).to eq "track_usage"
+            end
+
+            it "if SUM is activated and the user is potentially underage" do
+              controller.instance_variable_set(:@current_user, user_model)
+              @account.enable_feature!(:send_usage_metrics)
+              @account.enable_feature!(:k12)
               expect(controller.send(:should_track_usage)).to eq "track_usage"
             end
 
             it "if SUMAC is activated but CCN is not" do
               controller.instance_variable_set(:@current_user, user_model)
-              Account.default.enable_feature!(:send_usage_metrics_after_consent)
-              Account.default.disable_feature!(:cookie_consent_necessary)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
+              @account.disable_feature!(:cookie_consent_necessary)
               expect(controller.send(:should_track_usage)).to eq "track_usage"
             end
           end
@@ -960,8 +968,8 @@ RSpec.describe ApplicationController do
           describe "returns ask_for_consent" do
             it "if SUMAC is activated and CCN is activated" do
               controller.instance_variable_set(:@current_user, user_model)
-              Account.default.enable_feature!(:send_usage_metrics_after_consent)
-              Account.default.enable_feature!(:cookie_consent_necessary)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
+              @account.enable_feature!(:cookie_consent_necessary)
               expect(controller.send(:should_track_usage)).to eq "ask_for_consent"
             end
           end
@@ -970,21 +978,21 @@ RSpec.describe ApplicationController do
         describe "PENDO_APP_ID" do
           describe "when used in classic SUM flow" do
             it "when send_usage_metrics is disabled and the ID is set, it is not included in js_env" do
-              Account.default.disable_feature!(:send_usage_metrics)
+              @account.disable_feature!(:send_usage_metrics)
               mock_dynamic_settings_for_pendo_cc("pendos!")
               expect(controller.js_env[:PENDO_APP_ID]).to be_nil
               expect(controller.js_env[:PENDO_APP_ENV]).to be_nil
             end
 
             it "when send_usage_metrics is enabled and the ID is not set, it is not included in js_env" do
-              Account.default.enable_feature!(:send_usage_metrics)
+              @account.enable_feature!(:send_usage_metrics)
               mock_dynamic_settings_for_pendo_cc
               expect(controller.js_env[:PENDO_APP_ID]).to be_nil
               expect(controller.js_env[:PENDO_APP_ENV]).to be_nil
             end
 
             it "when send_usage_metrics is enabled and the ID is set, it is included in js_env" do
-              Account.default.enable_feature!(:send_usage_metrics)
+              @account.enable_feature!(:send_usage_metrics)
               mock_dynamic_settings_for_pendo_cc("pendos!")
               expect(controller.js_env[:PENDO_APP_ID]).to eq "pendos!"
               expect(controller.js_env[:PENDO_APP_ENV]).to eq "io"
@@ -993,28 +1001,28 @@ RSpec.describe ApplicationController do
 
           describe "when used in SUMAC flow" do
             it "does not set envvars when SUMAC is off" do
-              Account.default.disable_feature!(:send_usage_metrics_after_consent)
+              @account.disable_feature!(:send_usage_metrics_after_consent)
               mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "jp")
               expect(controller.js_env[:PENDO_APP_ID]).to be_nil
               expect(controller.js_env[:PENDO_APP_ENV]).to be_nil
             end
 
             it "does not set envvars when the regional app ID is not set" do
-              Account.default.enable_feature!(:send_usage_metrics_after_consent)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
               mock_dynamic_settings_for_pendo_cc(nil, nil, "jp")
               expect(controller.js_env[:PENDO_APP_ID]).to be_nil
               expect(controller.js_env[:PENDO_APP_ENV]).to be_nil
             end
 
             it "does not set envvars when the regional app env is not set" do
-              Account.default.enable_feature!(:send_usage_metrics_after_consent)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
               mock_dynamic_settings_for_pendo_cc(nil, "pendos!", nil)
               expect(controller.js_env[:PENDO_APP_ID]).to be_nil
               expect(controller.js_env[:PENDO_APP_ENV]).to be_nil
             end
 
             it "when the ID and the env are set, they are included in js_env" do
-              Account.default.enable_feature!(:send_usage_metrics_after_consent)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
               mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "jp")
               expect(controller.js_env[:PENDO_APP_ID]).to eq "pendos!"
               expect(controller.js_env[:PENDO_APP_ENV]).to eq "jp"
@@ -1023,54 +1031,49 @@ RSpec.describe ApplicationController do
         end
 
         describe "PRE_COOKIE_CONSENT" do
-          describe "without SUM or SUMAC" do
-            it "is implied to be ''null''" do
-              Account.default.disable_feature!(:send_usage_metrics)
-              Account.default.disable_feature!(:send_usage_metrics_after_consent)
-              mock_dynamic_settings_for_pendo_cc
-              expect(controller.js_env[:PRE_COOKIE_CONSENT]).to eq("null")
-            end
+          it "is implied to be ''false'' if there is no user" do
+            controller.instance_variable_set(:@current_user, nil)
+            mock_dynamic_settings_for_pendo_cc("pendos!", "pendos!", "io", "cookie!")
+            expect(controller.js_env[:PRE_COOKIE_CONSENT]).to eq("false")
           end
 
-          describe "with SUM" do
-            before do
-              Account.default.enable_feature!(:send_usage_metrics)
-              mock_dynamic_settings_for_pendo_cc("pendos!", "pendos!", "io", "cookie!")
-            end
+          it "without SUM or SUMAC is implied to be ''false''" do
+            @account.disable_feature!(:send_usage_metrics)
+            @account.disable_feature!(:send_usage_metrics_after_consent)
+            mock_dynamic_settings_for_pendo_cc
+            expect(controller.js_env[:PRE_COOKIE_CONSENT]).to eq("false")
+          end
 
-            it "is implied to be ''true''" do
-              expect(controller.js_env[:PRE_COOKIE_CONSENT]).to eq("true")
-            end
-
-            it "is implied to be ''false'' if the user might be a minor" do
-              Account.default.enable_feature!(:k12)
-              allow(BrandConfig).to receive(:k12_config)
-              expect(controller.js_env[:PRE_COOKIE_CONSENT]).to eq("false")
-            end
+          it "with SUM is implied to be ''true''" do
+            @account.enable_feature!(:send_usage_metrics)
+            controller.instance_variable_set(:@current_user, user_model)
+            mock_dynamic_settings_for_pendo_cc("pendos!", "pendos!", "io", "cookie!")
+            expect(controller.js_env[:PRE_COOKIE_CONSENT]).to eq("true")
           end
 
           describe "with SUMAC" do
             before do
-              Account.default.enable_feature!(:send_usage_metrics_after_consent)
+              controller.instance_variable_set(:@current_user, user_model)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
               mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "jp", "cookie!")
             end
 
             it "is implied ''true'' if cookie consent is not necessary" do
               mock_session_for_webview(mobile_cookie_consent: true)
-              Account.default.disable_feature!(:cookie_consent_necessary)
+              @account.disable_feature!(:cookie_consent_necessary)
               expect(controller.js_env[:PRE_COOKIE_CONSENT]).to eq("true")
             end
 
             it "is implied ''false'' if cookie consent is not necessary but the user might be a minor" do
-              Account.default.disable_feature!(:cookie_consent_necessary)
-              Account.default.enable_feature!(:k12)
+              @account.disable_feature!(:cookie_consent_necessary)
+              @account.enable_feature!(:k12)
               allow(BrandConfig).to receive(:k12_config)
               expect(controller.js_env[:PRE_COOKIE_CONSENT]).to eq("false")
             end
 
             context "when cookie consent is necessary" do
               before do
-                Account.default.enable_feature!(:cookie_consent_necessary)
+                @account.enable_feature!(:cookie_consent_necessary)
               end
 
               it "is ''null'' when it's not a mobile webview request" do
@@ -1096,41 +1099,53 @@ RSpec.describe ApplicationController do
         end
 
         describe "ONETRUST_CONSENT_DOMAIN_ID" do
+          before do
+            controller.instance_variable_set(:@current_user, user_model)
+          end
+
           describe "when it should not be included" do
+            it "is not included if there is no user" do
+              controller.instance_variable_set(:@current_user, nil)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
+              @account.enable_feature!(:cookie_consent_necessary)
+              mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "io", "cookie!")
+              expect(controller.js_env[:ONETRUST_CONSENT_DOMAIN_ID]).to be_nil
+            end
+
             it "is not included if SUMAC is off" do
-              Account.default.disable_feature!(:send_usage_metrics_after_consent)
-              Account.default.enable_feature!(:cookie_consent_necessary)
+              @account.disable_feature!(:send_usage_metrics_after_consent)
+              @account.enable_feature!(:cookie_consent_necessary)
               mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "io", "cookie!")
               expect(controller.js_env[:ONETRUST_CONSENT_DOMAIN_ID]).to be_nil
             end
 
             it "is not included if SUM is on" do
-              Account.default.disable_feature!(:send_usage_metrics_after_consent)
-              Account.default.enable_feature!(:send_usage_metrics)
-              Account.default.enable_feature!(:cookie_consent_necessary)
+              @account.disable_feature!(:send_usage_metrics_after_consent)
+              @account.enable_feature!(:send_usage_metrics)
+              @account.enable_feature!(:cookie_consent_necessary)
               mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "io", "cookie!")
               expect(controller.js_env[:ONETRUST_CONSENT_DOMAIN_ID]).to be_nil
             end
 
             it "is not included if CCN is off" do
-              Account.default.enable_feature!(:send_usage_metrics_after_consent)
-              Account.default.disable_feature!(:cookie_consent_necessary)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
+              @account.disable_feature!(:cookie_consent_necessary)
               mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "io", "cookie!")
               expect(controller.js_env[:ONETRUST_CONSENT_DOMAIN_ID]).to be_nil
             end
 
             it "is not included if settings are missing" do
-              Account.default.enable_feature!(:send_usage_metrics_after_consent)
-              Account.default.enable_feature!(:cookie_consent_necessary)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
+              @account.enable_feature!(:cookie_consent_necessary)
               mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "io", nil)
               expect(controller.js_env[:ONETRUST_CONSENT_DOMAIN_ID]).to be_nil
             end
 
             it "is not included if it would be but the user might be a minor" do
               allow(BrandConfig).to receive(:k12_config)
-              Account.default.enable_feature!(:send_usage_metrics_after_consent)
-              Account.default.enable_feature!(:cookie_consent_necessary)
-              Account.default.enable_feature!(:k12)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
+              @account.enable_feature!(:cookie_consent_necessary)
+              @account.enable_feature!(:k12)
               mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "io", "cookie!")
               expect(controller.js_env[:ONETRUST_CONSENT_DOMAIN_ID]).to be_nil
             end
@@ -1138,8 +1153,8 @@ RSpec.describe ApplicationController do
 
           describe "when both SUMAC and CCN are enabled and settings exist" do
             before do
-              Account.default.enable_feature!(:send_usage_metrics_after_consent)
-              Account.default.enable_feature!(:cookie_consent_necessary)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
+              @account.enable_feature!(:cookie_consent_necessary)
             end
 
             it "is included in js_env" do
@@ -1149,7 +1164,7 @@ RSpec.describe ApplicationController do
 
             it "is not included in js_env if the user might be a minor" do
               allow(BrandConfig).to receive(:k12_config)
-              Account.default.enable_feature!(:k12)
+              @account.enable_feature!(:k12)
               mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "io", "cookie!")
               expect(controller.js_env[:ONETRUST_CONSENT_DOMAIN_ID]).to be_nil
             end
@@ -1175,12 +1190,13 @@ RSpec.describe ApplicationController do
 
           describe "account-level override" do
             before do
-              Account.default.settings[:onetrust_consent_domain_id] = "account_cookie!"
+              @account.settings[:onetrust_consent_domain_id] = "account_cookie!"
+              @account.save
             end
 
             it "respects account-level override" do
-              Account.default.enable_feature!(:send_usage_metrics_after_consent)
-              Account.default.enable_feature!(:cookie_consent_necessary)
+              @account.enable_feature!(:send_usage_metrics_after_consent)
+              @account.enable_feature!(:cookie_consent_necessary)
               mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "io", "cookie!")
               expect(controller.js_env[:ONETRUST_CONSENT_DOMAIN_ID]).to eq "account_cookie!"
             end

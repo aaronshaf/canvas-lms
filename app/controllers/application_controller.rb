@@ -348,8 +348,6 @@ class ApplicationController < ActionController::Base
           lti_asset_processor_course: @context.try(:feature_enabled?, :lti_asset_processor_course)
         )
 
-        @js_env[:PRE_COOKIE_CONSENT] = "null"
-
         classic_usage_metrics = load_usage_metrics?
         consented_usage_metrics = load_consented_usage_metrics?
         cookie_consent_necessary = cached_features[:cookie_consent_necessary]
@@ -362,19 +360,22 @@ class ApplicationController < ActionController::Base
           potentially_underage:
         )
 
-        if potentially_underage
-          @js_env[:PRE_COOKIE_CONSENT] = "false"
-        end
+        @js_env[:PRE_COOKIE_CONSENT] = if @js_env[:EXPECTED_USAGE_METRICS_BEHAVIOR] == "track_usage"
+                                         "true"
+                                       elsif @js_env[:EXPECTED_USAGE_METRICS_BEHAVIOR] == "no_track_usage"
+                                         "false"
+                                       else
+                                         "null"
+                                       end
 
         if classic_usage_metrics
           @js_env[:PENDO_APP_ID] = usage_metrics_api_key
           @js_env[:PENDO_APP_ENV] = "io"
-          @js_env[:PRE_COOKIE_CONSENT] = (!potentially_underage).to_s
         elsif consented_usage_metrics
           @js_env[:PENDO_APP_ID] = usage_metrics_regional_api_key
           @js_env[:PENDO_APP_ENV] = usage_metrics_regional_api_env
 
-          if cookie_consent_necessary && !potentially_underage
+          if cookie_consent_necessary && @current_user && !potentially_underage
             mobile_webview = session&.dig(:is_mobile_webview)
             mobile_consent = session&.dig(:mobile_cookie_consent)
 
@@ -395,8 +396,6 @@ class ApplicationController < ActionController::Base
               # we could fall back to @current_user.custom_data like this:
               # @current_user.custom_data.where(namespace: "MOBILE_CANVAS_COOKIE_CONSENT").first
             end
-          else
-            @js_env[:PRE_COOKIE_CONSENT] = (!potentially_underage).to_s
           end
         end
 
@@ -3700,7 +3699,7 @@ class ApplicationController < ActionController::Base
     cookie_consent_necessary ||= @domain_root_account&.feature_enabled?(:cookie_consent_necessary)
     potentially_underage ||= potentially_underage_user?
 
-    if !@current_user || potentially_underage || (!consented_usage_metrics && !classic_usage_metrics)
+    if !@current_user || (!consented_usage_metrics && !classic_usage_metrics) || (consented_usage_metrics && potentially_underage)
       "no_track_usage"
     elsif classic_usage_metrics || (consented_usage_metrics && !cookie_consent_necessary)
       "track_usage"
