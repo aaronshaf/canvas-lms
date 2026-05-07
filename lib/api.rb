@@ -702,6 +702,12 @@ module Api
   # This removes the verifier parameters that are added to attachment links by api_user_content
   # and adds context (e.g. /courses/:id/) if it is missing
   # exception: it leaves user-context file links alone
+  #
+  # SECURITY: this is a URL rewriter, not a sanitizer. It does not strip
+  # tags, attributes, or scripts. Callers that store the result must rely
+  # on a separate sanitize_field declaration (or equivalent) to defend
+  # against stored XSS — the method name is descriptive of "incoming"
+  # processing only, not of safety.
   def process_incoming_html_content(html)
     host, port = [request.host, request.port] if respond_to?(:request)
     Html::Content.process_incoming(html, host:, port:)

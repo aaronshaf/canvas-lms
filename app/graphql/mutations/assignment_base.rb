@@ -131,6 +131,8 @@ class Mutations::AssignmentBase::Mutation < Mutations::BaseMutation
 
     delegate :value_to_boolean, to: :"Canvas::Plugin"
 
+    # SECURITY: URL rewriter only — does not sanitize HTML. See the
+    # note on Api#process_incoming_html_content in lib/api.rb.
     def process_incoming_html_content(html)
       Api::Html::Content.process_incoming(html)
     end
