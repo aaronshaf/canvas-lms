@@ -34,7 +34,7 @@ module UserContent
     def processed_url
       uri = Addressable::URI.parse(match.url.gsub("&amp;", "&"))
       uri = replace_with_current_attachment(uri)
-      return unless attachment.present?
+      return uri.to_s unless attachment.present?
 
       query_values = (uri.query_values || {}).with_indifferent_access
       query_values.delete("location")
@@ -63,6 +63,12 @@ module UserContent
 
     def replace_with_current_attachment(uri)
       return uri unless match.obj_id
+      # AssessmentQuestion files seem to be course copied without being updated with new attachment ids
+      # but the old assessment question can be deleted, which disconnects it from the permissions structure
+      # we're using later to verify access and it throws an error.  The old code used to have a bug that meant
+      # it didn't actually find assessment question URLs, so short term, we're going to revert to that behavior
+      # by skipping these URLs.
+      return uri if match.context_type == "assessment_questions"
 
       uri_shard = uri.host.present? ? LoadAccount.infer_shard(uri.host) : Shard.current
       if uri_shard == Shard.current

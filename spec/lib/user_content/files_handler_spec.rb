@@ -54,7 +54,7 @@ describe UserContent::FilesHandler do
     end
 
     let(:current_user) do
-      student_in_course(active_all: true, course: attachment.context)
+      student_in_course(active_all: true, course:)
       @student
     end
     let(:preloaded_attachments) { {} }
@@ -62,6 +62,34 @@ describe UserContent::FilesHandler do
     describe "#processed_url" do
       it "delegates to ProcessedUrl" do
         expect(processed_url).to match(/#{attachment.context_type.tableize}/)
+      end
+
+      context "assessment question attachments linked from deleted assessment question" do
+        let(:assessment_question) do
+          aq = assessment_question_model(bank: course.assessment_question_banks.create!)
+          aq.destroy
+          aq.update_columns(assessment_question_bank_id: nil)
+          aq
+        end
+        let(:attachment) do
+          attachment_model(context: assessment_question, filename: "test.jpg", content_type: "image/jpeg")
+        end
+        let(:uri_match) do
+          UserContent::HtmlRewriter::UriMatch.new(
+            match_url,
+            "files",
+            Attachment,
+            attachment.id,
+            "/#{match_part}",
+            "/assessment_questions/#{assessment_question.id}",
+            "assessment_questions",
+            assessment_question.id
+          )
+        end
+
+        it "does not error on assessment_question links from deleted assessment question" do
+          expect(processed_url).to eq("/assessment_questions/#{assessment_question.id}/files/#{attachment.id}/download?wrap=1")
+        end
       end
 
       context "user does not have download rights" do

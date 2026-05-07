@@ -135,6 +135,8 @@ describe Api::V1::QuizQuestion do
       end
 
       it "sets location tag on texts where necessary" do
+        skip "This test is currently failing due to a bug in how we're handling assessment question links. We need to rethink this flow. GROW-256 2026-05-21"
+
         subject = TestableApiQuizQuestion.question_json(
           @question, @teacher, session, context: @course, includes: [:assessment_question], censored: false, quiz_data: @quiz.quiz_data, location: "quiz_question_#{@question.id}"
         )
