@@ -97,45 +97,27 @@ describe('Course paces header', () => {
       const {getByRole, getByTestId} = renderConnected(<ConnectedHeader {...defaultProps} />)
 
       await waitFor(
-        () => {
-          expect(getByRole('columnheader', {name: 'Students'})).toBeInTheDocument()
-          expect(getByRole('columnheader', {name: 'Sections'})).toBeInTheDocument()
-          expect(getByTestId('duration-col-header')).toBeInTheDocument()
-        },
-        {
-          timeout: 2000,
-        },
+        () => expect(getByRole('columnheader', {name: 'Students'})).toBeInTheDocument(),
+        {timeout: 2000},
       )
+      expect(getByRole('columnheader', {name: 'Sections'})).toBeInTheDocument()
+      expect(getByTestId('duration-col-header')).toBeInTheDocument()
 
-      await waitFor(
-        () => {
-          expect(getByTestId('number-of-students')).toBeInTheDocument()
-          expect(getByTestId('number-of-sections')).toBeInTheDocument()
-          expect(getByTestId('default-pace-duration')).toBeInTheDocument()
-        },
-        {
-          timeout: 2000,
-        },
-      )
+      await waitFor(() => expect(getByTestId('number-of-students')).toBeInTheDocument(), {
+        timeout: 2000,
+      })
+      expect(getByTestId('number-of-sections')).toBeInTheDocument()
+      expect(getByTestId('default-pace-duration')).toBeInTheDocument()
     })
 
     it('renders the data pulled from the context api', async () => {
       const {getByTestId} = renderConnected(<ConnectedHeader {...defaultProps} />)
 
-      await waitFor(
-        () => {
-          const studentsElement = getByTestId('number-of-students')
-          const sectionsElement = getByTestId('number-of-sections')
-          const durationElement = getByTestId('default-pace-duration')
-
-          expect(studentsElement).toBeInTheDocument()
-          expect(sectionsElement).toBeInTheDocument()
-          expect(durationElement).toBeInTheDocument()
-        },
-        {
-          timeout: 2000,
-        },
-      )
+      await waitFor(() => expect(getByTestId('number-of-students')).toBeInTheDocument(), {
+        timeout: 2000,
+      })
+      expect(getByTestId('number-of-sections')).toBeInTheDocument()
+      expect(getByTestId('default-pace-duration')).toBeInTheDocument()
     })
 
     it('renders the proper button for preexisting pace', async () => {

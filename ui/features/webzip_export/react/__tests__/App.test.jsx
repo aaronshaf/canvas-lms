@@ -218,9 +218,7 @@ describe('Webzip export app', () => {
     act(() => {
       ref.current.getExports('126')
     })
-    await waitFor(() => {
-      expect(wrapper.queryByText('Loading')).toBeNull()
-      expect(assignLocation).toHaveBeenCalledWith('http://example.com/thing')
-    })
+    await waitFor(() => expect(wrapper.queryByText('Loading')).toBeNull())
+    expect(assignLocation).toHaveBeenCalledWith('http://example.com/thing')
   })
 })

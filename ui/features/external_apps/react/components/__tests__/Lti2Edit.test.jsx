@@ -67,9 +67,7 @@ describe('ExternalApps.Lti2Edit', () => {
       handleCancel() {},
     }
     renderComponent(data)
-    await waitFor(() => {
-      expect(document.getElementById('fixtures')).toBeTruthy() // Checks if component has rendered
-      expect(document.getElementById('fixtures')).toBeInstanceOf(HTMLElement) // Check if component is rendered to DOM
-    })
+    await waitFor(() => expect(document.getElementById('fixtures')).toBeTruthy()) // Checks if component has rendered
+    expect(document.getElementById('fixtures')).toBeInstanceOf(HTMLElement) // Check if component is rendered to DOM
   })
 })

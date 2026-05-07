@@ -46,10 +46,8 @@ describe('CreatePortfolioForm', () => {
     )
 
     fireEvent.click(getByTestId('add-portfolio-button'))
-    await waitFor(() => {
-      expect(getByText('Portfolio name')).toBeVisible()
-      expect(getByText('Mark as Public')).toBeVisible()
-    })
+    await waitFor(() => expect(getByText('Portfolio name')).toBeVisible())
+    expect(getByText('Mark as Public')).toBeVisible()
   })
 
   it('sets focus and shows error if name is blank', async () => {
@@ -65,10 +63,8 @@ describe('CreatePortfolioForm', () => {
     const textInput = await waitFor(() => getByTestId('portfolio-name-field'))
     const saveButton = getByText('Submit')
     fireEvent.click(saveButton)
-    await waitFor(() => {
-      expect(textInput).toHaveFocus()
-      expect(getByText('Name is required.')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(textInput).toHaveFocus())
+    expect(getByText('Name is required.')).toBeInTheDocument()
   })
 
   it('makes POST request when submitting', async () => {

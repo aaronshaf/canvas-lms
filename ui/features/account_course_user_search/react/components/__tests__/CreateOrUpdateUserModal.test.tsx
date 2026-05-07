@@ -103,19 +103,17 @@ describe('CreateOrUpdateUserModal', () => {
       // submit
       await user.click(getByTestId('submit-button'))
 
-      await waitFor(() => {
-        expect(defaultProps.afterSave).toHaveBeenCalled()
-        expect(capturedBody).toEqual({
-          user: {
-            name: 'John Doe',
-            sortable_name: 'Doe, John',
-            short_name: 'John Doe',
-          },
-          pseudonym: {
-            send_confirmation: true,
-            unique_id: 'john.doe@example.com',
-          },
-        })
+      await waitFor(() => expect(defaultProps.afterSave).toHaveBeenCalled())
+      expect(capturedBody).toEqual({
+        user: {
+          name: 'John Doe',
+          sortable_name: 'Doe, John',
+          short_name: 'John Doe',
+        },
+        pseudonym: {
+          send_confirmation: true,
+          unique_id: 'john.doe@example.com',
+        },
       })
     })
 
@@ -240,16 +238,14 @@ describe('CreateOrUpdateUserModal', () => {
 
       await user.click(getByTestId('submit-button'))
 
-      await waitFor(() => {
-        expect(defaultProps.afterSave).toHaveBeenCalled()
-        expect(capturedBody).toEqual({
-          user: {
-            name: userWithBlankEmail.name,
-            sortable_name: userWithBlankEmail.sortable_name,
-            short_name: userWithBlankEmail.short_name,
-            time_zone: userWithBlankEmail.time_zone,
-          },
-        })
+      await waitFor(() => expect(defaultProps.afterSave).toHaveBeenCalled())
+      expect(capturedBody).toEqual({
+        user: {
+          name: userWithBlankEmail.name,
+          sortable_name: userWithBlankEmail.sortable_name,
+          short_name: userWithBlankEmail.short_name,
+          time_zone: userWithBlankEmail.time_zone,
+        },
       })
     })
 
@@ -275,17 +271,15 @@ describe('CreateOrUpdateUserModal', () => {
 
       await user.click(getByTestId('submit-button'))
 
-      await waitFor(() => {
-        expect(defaultProps.afterSave).toHaveBeenCalled()
-        expect(capturedBody).toEqual({
-          user: {
-            name: updatedUser.name,
-            sortable_name: updatedUser.sortable_name,
-            short_name: updatedUser.short_name,
-            email: updatedUser.email,
-            time_zone: updatedUser.time_zone,
-          },
-        })
+      await waitFor(() => expect(defaultProps.afterSave).toHaveBeenCalled())
+      expect(capturedBody).toEqual({
+        user: {
+          name: updatedUser.name,
+          sortable_name: updatedUser.sortable_name,
+          short_name: updatedUser.short_name,
+          email: updatedUser.email,
+          time_zone: updatedUser.time_zone,
+        },
       })
     })
 

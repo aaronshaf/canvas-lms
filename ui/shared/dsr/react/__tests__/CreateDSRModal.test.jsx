@@ -87,10 +87,8 @@ describe('CreateDSRModal', () => {
     const {getByText, getByTitle} = renderComponent()
     fireEvent.click(getByTitle('Create DSR Request for John Doe'))
 
-    await waitFor(() => {
-      expect(getByText('Latest DSR:')).toBeInTheDocument()
-      expect(getByText('Latest Request')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByText('Latest DSR:')).toBeInTheDocument())
+    expect(getByText('Latest Request')).toBeInTheDocument()
   })
 
   it('should not have a download link and show the status when pending', async () => {
@@ -144,12 +142,8 @@ describe('CreateDSRModal', () => {
     const {getByTitle, getByTestId, getByText} = renderComponent()
     fireEvent.click(getByTitle('Create DSR Request for John Doe'))
 
-    await waitFor(() => {
-      const submitButton = getByTestId('submit-button')
-      expect(submitButton).toBeDisabled()
-      const tooltip = getByText('A request is already in progress')
-      expect(tooltip).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByTestId('submit-button')).toBeDisabled())
+    expect(getByText('A request is already in progress')).toBeInTheDocument()
   })
 
   it('blocks creation when the previous report has not expired', async () => {
@@ -164,12 +158,8 @@ describe('CreateDSRModal', () => {
     const {getByTitle, getByTestId, getByText} = renderComponent()
     fireEvent.click(getByTitle('Create DSR Request for John Doe'))
 
-    await waitFor(() => {
-      const submitButton = getByTestId('submit-button')
-      expect(submitButton).toBeDisabled()
-      const tooltip = getByText(/The previous request expires/)
-      expect(tooltip).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByTestId('submit-button')).toBeDisabled())
+    expect(getByText(/The previous request expires/)).toBeInTheDocument()
   })
 
   it('does not block creation if the previous report is not running nor expired', async () => {

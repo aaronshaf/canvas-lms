@@ -131,10 +131,8 @@ describe('DashboardNotifications', () => {
 
     renderWithQueryClient(<DashboardNotifications />)
 
-    await waitFor(() => {
-      expect(screen.getByText('First Notification')).toBeInTheDocument()
-      expect(screen.getByText('Second Notification')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('First Notification')).toBeInTheDocument())
+    expect(screen.getByText('Second Notification')).toBeInTheDocument()
   })
 
   it('renders enrollment invitations', async () => {
@@ -151,10 +149,10 @@ describe('DashboardNotifications', () => {
 
     renderWithQueryClient(<DashboardNotifications />)
 
-    await waitFor(() => {
-      expect(screen.getByText(/You have been invited to join/)).toBeInTheDocument()
-      expect(screen.getByText('Test Course')).toBeInTheDocument()
-    })
+    await waitFor(() =>
+      expect(screen.getByText(/You have been invited to join/)).toBeInTheDocument(),
+    )
+    expect(screen.getByText('Test Course')).toBeInTheDocument()
   })
 
   it('handles dismiss notification', async () => {

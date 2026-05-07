@@ -47,12 +47,10 @@ describe('AutocompleteSearch', () => {
     const input = getByTestId('search-input')
     await user.click(input)
 
-    await waitFor(() => {
-      expect(getByTestId(`option-${options[0]}`)).toBeInTheDocument()
-      expect(getByTestId(`option-${options[1]}`)).toBeInTheDocument()
-      expect(getByTestId(`option-${options[2]}`)).toBeInTheDocument()
-      expect(getByTestId(`option-${options[3]}`)).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByTestId(`option-${options[0]}`)).toBeInTheDocument())
+    expect(getByTestId(`option-${options[1]}`)).toBeInTheDocument()
+    expect(getByTestId(`option-${options[2]}`)).toBeInTheDocument()
+    expect(getByTestId(`option-${options[3]}`)).toBeInTheDocument()
   })
 
   it('filters options based on input value', async () => {

@@ -171,10 +171,8 @@ describe('K-5 Subject Course', () => {
       })
       it("displays user's apps", async () => {
         const {getByText} = render(<K5Course {...defaultProps} defaultTab={TAB_IDS.RESOURCES} />)
-        await waitFor(() => {
-          expect(getByText('Studio')).toBeInTheDocument()
-          expect(getByText('Student Applications')).toBeInTheDocument()
-        })
+        await waitFor(() => expect(getByText('Studio')).toBeInTheDocument())
+        expect(getByText('Student Applications')).toBeInTheDocument()
       })
 
       it('shows some loading skeletons while apps are loading', async () => {

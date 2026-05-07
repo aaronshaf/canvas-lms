@@ -255,15 +255,15 @@ describe('CreateCourseModal (2)', () => {
         http.get('/api/v1/course_creation_accounts', () => HttpResponse.json(MANAGEABLE_COURSES)),
       )
       const {getByLabelText} = render(<CreateCourseModal {...getProps()} />)
-      await waitFor(() => {
+      await waitFor(() =>
         expect(
           getByLabelText('Which account will this subject be associated with?'),
-        ).toBeInTheDocument()
-        expect(getByLabelText('Subject Name')).toBeInTheDocument()
-        expect(
-          getByLabelText('Sync enrollments and subject start/end dates from homeroom'),
-        ).toBeInTheDocument()
-      })
+        ).toBeInTheDocument(),
+      )
+      expect(getByLabelText('Subject Name')).toBeInTheDocument()
+      expect(
+        getByLabelText('Sync enrollments and subject start/end dates from homeroom'),
+      ).toBeInTheDocument()
     })
 
     it('homeroom endpoint is called when user is not administrator of the selected account', async () => {

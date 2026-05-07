@@ -84,10 +84,8 @@ describe('HeadingBlock', () => {
       expect(heading).toBeInTheDocument()
       expect(screen.getByText('A Heading')).toBeInTheDocument()
 
-      await waitFor(() => {
-        expect(heading).toHaveAttribute('contenteditable', 'true')
-        expect(heading).toHaveAttribute('data-placeholder', 'Heading 2')
-      })
+      await waitFor(() => expect(heading).toHaveAttribute('contenteditable', 'true'))
+      expect(heading).toHaveAttribute('data-placeholder', 'Heading 2')
     })
 
     it('should stop being editable on blur', async () => {

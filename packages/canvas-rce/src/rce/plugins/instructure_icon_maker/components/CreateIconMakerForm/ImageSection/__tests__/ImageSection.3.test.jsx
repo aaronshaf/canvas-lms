@@ -297,11 +297,9 @@ describe('ImageSection', () => {
     })
 
     it('renders the image upload modal', async () => {
-      await waitFor(() => {
-        const uploadImages = rendered.getAllByText('Upload Image')
-        expect(uploadImages.length).toBeGreaterThan(0)
-        expect(uploadImages[0]).toBeInTheDocument()
-      })
+      const uploadImages = await waitFor(() => rendered.getAllByText('Upload Image'))
+      expect(uploadImages.length).toBeGreaterThan(0)
+      expect(uploadImages[0]).toBeInTheDocument()
     })
 
     describe('and the the "close" button is clicked', () => {

@@ -213,11 +213,9 @@ describe.skip('MessageStudentsWhoDialog - observers selection', () => {
     observerCells.forEach(cell => fireEvent.click(cell))
 
     const checkbox = (await findByRole('checkbox', {name: /Observers/})) as HTMLInputElement
-    await waitFor(() => {
-      expect(checkbox.checked).toBe(true)
-      expect(checkbox.indeterminate).toBe(false)
-      expect(checkbox.disabled).toBe(false)
-    })
+    await waitFor(() => expect(checkbox.checked).toBe(true))
+    expect(checkbox.indeterminate).toBe(false)
+    expect(checkbox.disabled).toBe(false)
   })
 
   it('sets the observers checkbox as unchecked when all observers are unselected', async () => {
@@ -233,11 +231,9 @@ describe.skip('MessageStudentsWhoDialog - observers selection', () => {
 
     const checkbox = (await findByRole('checkbox', {name: /Observers/})) as HTMLInputElement
 
-    await waitFor(() => {
-      expect(checkbox.checked).toBe(false)
-      expect(checkbox.indeterminate).toBe(false)
-      expect(checkbox.disabled).toBe(false)
-    })
+    await waitFor(() => expect(checkbox.checked).toBe(false))
+    expect(checkbox.indeterminate).toBe(false)
+    expect(checkbox.disabled).toBe(false)
   })
 
   it('sets the observers checkbox as indeterminate when selected students length is between 1 and the total number of students', async () => {
@@ -257,20 +253,16 @@ describe.skip('MessageStudentsWhoDialog - observers selection', () => {
 
     fireEvent.click(observerCells[0])
 
-    await waitFor(() => {
-      expect(checkbox.checked).toBe(false)
-      expect(checkbox.indeterminate).toBe(true)
-    })
+    await waitFor(() => expect(checkbox.checked).toBe(false))
+    expect(checkbox.indeterminate).toBe(true)
 
     fireEvent.click(observerCells[0])
     observerCells.forEach(cell => fireEvent.click(cell))
     fireEvent.click(observerCells[0])
 
-    await waitFor(() => {
-      expect(checkbox.checked).toBe(false)
-      expect(checkbox.indeterminate).toBe(true)
-      expect(checkbox.disabled).toBe(false)
-    })
+    await waitFor(() => expect(checkbox.checked).toBe(false))
+    expect(checkbox.indeterminate).toBe(true)
+    expect(checkbox.disabled).toBe(false)
   })
 
   it('sets the observers checkbox as disabled when the observer list is empty', async () => {
@@ -297,11 +289,9 @@ describe.skip('MessageStudentsWhoDialog - observers selection', () => {
 
     const checkbox = (await findByRole('checkbox', {name: /Observers/})) as HTMLInputElement
 
-    await waitFor(() => {
-      expect(checkbox.checked).toBe(false)
-      expect(checkbox.indeterminate).toBe(false)
-      expect(checkbox.disabled).toBe(true)
-    })
+    await waitFor(() => expect(checkbox.checked).toBe(false))
+    expect(checkbox.indeterminate).toBe(false)
+    expect(checkbox.disabled).toBe(true)
   })
 
   it('unselects a selected observer by clicking on the observer cell', async () => {

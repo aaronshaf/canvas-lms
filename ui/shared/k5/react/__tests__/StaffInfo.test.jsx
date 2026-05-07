@@ -131,11 +131,9 @@ describe('StaffInfo', () => {
         const wrapper = await openModal()
         fireEvent.change(wrapper.getByLabelText('Message'), {target: {value: 'hello'}})
         fireEvent.click(wrapper.getByText('Send'))
-        await waitFor(() => {
-          expect(wrapper.getByText('Sending message')).toBeInTheDocument()
-          expect(wrapper.getByText('Send').closest('button')).toBeDisabled()
-          expect(wrapper.getByText('Cancel').closest('button')).toBeDisabled()
-        })
+        await waitFor(() => expect(wrapper.getByText('Sending message')).toBeInTheDocument())
+        expect(wrapper.getByText('Send').closest('button')).toBeDisabled()
+        expect(wrapper.getByText('Cancel').closest('button')).toBeDisabled()
       }, 30000)
 
       it('shows success message if successful', async () => {
@@ -164,10 +162,10 @@ describe('StaffInfo', () => {
         fireEvent.change(wrapper.getByLabelText('Message'), {target: {value: 'hello'}})
         fireEvent.click(wrapper.getByText('Send'))
         fireEvent.click(wrapper.getByText('Send a message to Mrs. Thompson'))
-        await waitFor(() => {
-          expect(wrapper.getByLabelText('Message').closest('textarea').value).toBe('')
-          expect(wrapper.getByLabelText('Subject').closest('input').value).toBe('')
-        })
+        await waitFor(() =>
+          expect(wrapper.getByLabelText('Message').closest('textarea').value).toBe(''),
+        )
+        expect(wrapper.getByLabelText('Subject').closest('input').value).toBe('')
       }, 30000)
     })
   })

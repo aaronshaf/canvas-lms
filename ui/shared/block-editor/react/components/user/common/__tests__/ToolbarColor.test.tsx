@@ -228,10 +228,8 @@ describe('ToolbarColor', () => {
       const tabelems = getAllByRole('tab')
       tabelems[1].click()
 
-      await waitFor(() => {
-        expect(tabelems[1]).toHaveAttribute('aria-selected', 'true')
-        expect(document.getElementById('background')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(tabelems[1]).toHaveAttribute('aria-selected', 'true'))
+      expect(document.getElementById('background')).toBeInTheDocument()
     })
 
     it('renders the background tab panel', async () => {
@@ -296,10 +294,8 @@ describe('ToolbarColor', () => {
       const tabelems = getAllByRole('tab')
       tabelems[1].click()
 
-      await waitFor(() => {
-        expect(tabelems[1]).toHaveAttribute('aria-selected', 'true')
-        expect(document.getElementById('border')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(tabelems[1]).toHaveAttribute('aria-selected', 'true'))
+      expect(document.getElementById('border')).toBeInTheDocument()
     })
 
     it('renders the border tab panel', async () => {

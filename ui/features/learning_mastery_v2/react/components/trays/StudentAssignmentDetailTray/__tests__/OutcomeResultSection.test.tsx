@@ -162,10 +162,8 @@ describe('OutcomeResultSection', () => {
 
       render(<OutcomeResultSection {...defaultProps} />, {wrapper: createWrapper()})
 
-      await waitFor(() => {
-        expect(screen.getByText('Outcome 1')).toBeInTheDocument()
-        expect(screen.getByText('Outcome 2')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Outcome 1')).toBeInTheDocument())
+      expect(screen.getByText('Outcome 2')).toBeInTheDocument()
     })
 
     it('displays outcome display names', async () => {
@@ -177,10 +175,8 @@ describe('OutcomeResultSection', () => {
 
       render(<OutcomeResultSection {...defaultProps} />, {wrapper: createWrapper()})
 
-      await waitFor(() => {
-        expect(screen.getByText('Display Name 1')).toBeInTheDocument()
-        expect(screen.getByText('Display Name 2')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Display Name 1')).toBeInTheDocument())
+      expect(screen.getByText('Display Name 2')).toBeInTheDocument()
     })
 
     it('displays outcome scores', async () => {
@@ -192,10 +188,8 @@ describe('OutcomeResultSection', () => {
 
       render(<OutcomeResultSection {...defaultProps} />, {wrapper: createWrapper()})
 
-      await waitFor(() => {
-        expect(screen.getByText('4.5')).toBeInTheDocument()
-        expect(screen.getByText('8.0')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('4.5')).toBeInTheDocument())
+      expect(screen.getByText('8.0')).toBeInTheDocument()
     })
 
     it('renders StudentOutcomeScore components for each outcome', async () => {
@@ -261,10 +255,8 @@ describe('OutcomeResultSection', () => {
         wrapper: createWrapper(),
       })
 
-      await waitFor(() => {
-        expect(screen.getByText('Outcome 1')).toBeInTheDocument()
-        expect(screen.getByText('Outcome 2')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Outcome 1')).toBeInTheDocument())
+      expect(screen.getByText('Outcome 2')).toBeInTheDocument()
 
       // Outcome 1 should have a score
       expect(screen.getByText('4.5')).toBeInTheDocument()

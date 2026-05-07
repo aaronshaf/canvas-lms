@@ -361,10 +361,8 @@ describe('RCEWrapper', () => {
           expect(Object.keys(fakeElement.style)).toHaveLength(0)
           fakeElement.complete = true
           fakeElement.onload()
-          await waitFor(() => {
-            expect(fakeElement.style.border).toEqual('1px solid #000')
-            expect(fakeElement.style.padding).toEqual('2px')
-          })
+          await waitFor(() => expect(fakeElement.style.border).toEqual('1px solid #000'))
+          expect(fakeElement.style.padding).toEqual('2px')
         })
 
         it('sets the proper styles when the naturalWidth is 0', async () => {
@@ -375,10 +373,8 @@ describe('RCEWrapper', () => {
             style: {},
           }
           rce.checkImageLoadError(fakeElement)
-          await waitFor(() => {
-            expect(fakeElement.style.border).toEqual('1px solid #000')
-            expect(fakeElement.style.padding).toEqual('2px')
-          })
+          await waitFor(() => expect(fakeElement.style.border).toEqual('1px solid #000'))
+          expect(fakeElement.style.padding).toEqual('2px')
         })
       })
     })

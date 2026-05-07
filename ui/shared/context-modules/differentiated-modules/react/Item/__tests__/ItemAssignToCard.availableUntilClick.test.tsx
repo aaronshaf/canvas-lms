@@ -103,15 +103,14 @@ describe('ItemAssignToCard - Available Until Click Defaults', () => {
     const dateOption = await findByRole('option', {name: /10 november 2020/i})
     await userEvent.click(dateOption)
     await waitFor(
-      () => {
+      () =>
         expect(onCardDatesChangeMock).toHaveBeenCalledWith(
           expect.any(String),
           'lock_at',
           '2020-11-10T23:59:59.000Z',
-        )
-        expect(getAllByLabelText('Time')[2]).toHaveValue('11:59 PM')
-      },
+        ),
       {timeout: 30000},
     )
+    expect(getAllByLabelText('Time')[2]).toHaveValue('11:59 PM')
   })
 })

@@ -92,14 +92,12 @@ describe('CourseCopyImporter Inputs', () => {
 
   it('disable inputs while uploading', async () => {
     const {getByRole} = renderComponent({isSubmitting: true})
-    await waitFor(() => {
-      expect(getByRole('button', {name: 'Clear'})).toBeDisabled()
-      expect(getByRole('button', {name: /Adding.../})).toBeDisabled()
-      expect(getByRole('combobox', {name: searchForACourse})).toBeDisabled()
-      expect(getByRole('radio', {name: /All content/})).toBeDisabled()
-      expect(getByRole('radio', {name: 'Select specific content'})).toBeDisabled()
-      expect(getByRole('checkbox', {name: 'Adjust events and due dates'})).toBeDisabled()
-    })
+    await waitFor(() => expect(getByRole('button', {name: 'Clear'})).toBeDisabled())
+    expect(getByRole('button', {name: /Adding.../})).toBeDisabled()
+    expect(getByRole('combobox', {name: searchForACourse})).toBeDisabled()
+    expect(getByRole('radio', {name: /All content/})).toBeDisabled()
+    expect(getByRole('radio', {name: 'Select specific content'})).toBeDisabled()
+    expect(getByRole('checkbox', {name: 'Adjust events and due dates'})).toBeDisabled()
   })
 
   it('disable "Adjust events and due dates" inputs while uploading', async () => {
@@ -109,16 +107,14 @@ describe('CourseCopyImporter Inputs', () => {
 
     rerender(<CourseCopyImporter onSubmit={onSubmit} onCancel={onCancel} isSubmitting={true} />)
 
-    await waitFor(() => {
-      expect(getByRole('radio', {name: 'Shift dates'})).toBeInTheDocument()
-      expect(getByRole('radio', {name: 'Shift dates'})).toBeDisabled()
-      expect(getByRole('radio', {name: 'Remove dates'})).toBeDisabled()
-      expect(getByLabelText('Select original beginning date')).toBeDisabled()
-      expect(getByLabelText('Select new beginning date')).toBeDisabled()
-      expect(getByLabelText('Select original end date')).toBeDisabled()
-      expect(getByLabelText('Select new end date')).toBeDisabled()
-      expect(getByRole('button', {name: 'Add substitution'})).toBeDisabled()
-    })
+    await waitFor(() => expect(getByRole('radio', {name: 'Shift dates'})).toBeInTheDocument())
+    expect(getByRole('radio', {name: 'Shift dates'})).toBeDisabled()
+    expect(getByRole('radio', {name: 'Remove dates'})).toBeDisabled()
+    expect(getByLabelText('Select original beginning date')).toBeDisabled()
+    expect(getByLabelText('Select new beginning date')).toBeDisabled()
+    expect(getByLabelText('Select original end date')).toBeDisabled()
+    expect(getByLabelText('Select new end date')).toBeDisabled()
+    expect(getByRole('button', {name: 'Add substitution'})).toBeDisabled()
   })
 
   describe('source course adjust date field prefills', () => {

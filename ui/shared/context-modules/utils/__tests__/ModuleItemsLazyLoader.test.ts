@@ -704,15 +704,15 @@ describe('fetchModuleItems utility', () => {
 
         await moduleItemsLazyLoader.fetchModuleItemsHtml(moduleId, 1)
 
-        await waitFor(() => {
-          const pagination = screen.getByTestId(`module-${moduleId}-pagination`)
-          expect(pagination).toBeInTheDocument()
-          expect(pagination).toHaveAttribute('aria-label', `${moduleName} Pagination`)
+        await waitFor(() =>
+          expect(screen.getByTestId(`module-${moduleId}-pagination`)).toBeInTheDocument(),
+        )
+        const pagination = screen.getByTestId(`module-${moduleId}-pagination`)
+        expect(pagination).toHaveAttribute('aria-label', `${moduleName} Pagination`)
 
-          // The page button should exist with the correct aria label
-          const page1Button = pagination?.querySelector(`button[aria-label="${moduleName} Page 1"]`)
-          expect(page1Button).toBeInTheDocument()
-        })
+        // The page button should exist with the correct aria label
+        const page1Button = pagination?.querySelector(`button[aria-label="${moduleName} Page 1"]`)
+        expect(page1Button).toBeInTheDocument()
       })
 
       describe('behavior when a page is empty', () => {

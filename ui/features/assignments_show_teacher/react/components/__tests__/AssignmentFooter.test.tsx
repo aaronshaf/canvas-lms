@@ -95,10 +95,8 @@ describe('AssignmentFooter', () => {
       </MockedProvider>,
     )
 
-    await waitFor(() => {
-      expect(screen.getByText('Previous')).toBeInTheDocument()
-      expect(screen.getByText('Next')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Previous')).toBeInTheDocument())
+    expect(screen.getByText('Next')).toBeInTheDocument()
   })
 
   it('renders nothing when sequence is not loaded', async () => {

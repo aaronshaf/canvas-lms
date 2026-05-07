@@ -75,10 +75,8 @@ describe('RubricAssessmentTray View Mode Select Tests', () => {
     const roleOption = queryByRole('option', {name: 'Horizontal'}) as HTMLElement
     fireEvent.click(roleOption)
 
-    await waitFor(() => {
-      expect(viewModeSelect.value).toBe('Horizontal')
-      expect(queryAllByTestId('rubric-assessment-horizontal-display')).toHaveLength(2)
-    })
+    await waitFor(() => expect(viewModeSelect.value).toBe('Horizontal'))
+    expect(queryAllByTestId('rubric-assessment-horizontal-display')).toHaveLength(2)
   })
 
   it('should switch to the vertical view when the vertical option is selected', async () => {
@@ -89,10 +87,8 @@ describe('RubricAssessmentTray View Mode Select Tests', () => {
     const roleOption = queryByRole('option', {name: 'Vertical'}) as HTMLElement
     fireEvent.click(roleOption)
 
-    await waitFor(() => {
-      expect(viewModeSelect.value).toBe('Vertical')
-      expect(queryAllByTestId('rubric-assessment-vertical-display')).toHaveLength(2)
-    })
+    await waitFor(() => expect(viewModeSelect.value).toBe('Vertical'))
+    expect(queryAllByTestId('rubric-assessment-vertical-display')).toHaveLength(2)
   })
 
   it('should keep the selected rating when switching between view modes', async () => {

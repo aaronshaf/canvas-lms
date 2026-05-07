@@ -272,10 +272,8 @@ describe('DifferentiationTagModalForm', () => {
       await user.clear(tagInput)
       const saveButton = screen.getByLabelText('Save')
       await user.click(saveButton)
-      await waitFor(() => {
-        expect(screen.getByText('Tag Set Name is required')).toBeInTheDocument()
-        expect(screen.getByText('Tag Name is required')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Tag Set Name is required')).toBeInTheDocument())
+      expect(screen.getByText('Tag Name is required')).toBeInTheDocument()
       expect(document.activeElement).toBe(tagSetNameInput)
     })
   })

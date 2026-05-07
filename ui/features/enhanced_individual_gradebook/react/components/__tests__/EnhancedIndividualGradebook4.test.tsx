@@ -144,10 +144,12 @@ describe('Enhanced Individual Gradebook', () => {
         expect(
           within(gradingResults).getByText('Grade for Student 1 - Missing Assignment 2'),
         ).toBeInTheDocument()
-        expect(
-          within(gradingResults).getByText('This grade is currently dropped for this student.'),
-        ).toBeInTheDocument()
       })
+      expect(
+        within(getByTestId('grading-results')).getByText(
+          'This grade is currently dropped for this student.',
+        ),
+      ).toBeInTheDocument()
     })
 
     it('does not render another flash message when switching students after setting default grades for the assignment', async () => {

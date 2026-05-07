@@ -419,11 +419,9 @@ describe('PeerReviewSelector', () => {
         />,
       )
 
-      await waitFor(() => {
-        expect(setPeerReviewDueDate).toHaveBeenCalledWith(null)
-        expect(setPeerReviewAvailableFromDate).toHaveBeenCalledWith(null)
-        expect(setPeerReviewAvailableToDate).toHaveBeenCalledWith(null)
-      })
+      await waitFor(() => expect(setPeerReviewDueDate).toHaveBeenCalledWith(null))
+      expect(setPeerReviewAvailableFromDate).toHaveBeenCalledWith(null)
+      expect(setPeerReviewAvailableToDate).toHaveBeenCalledWith(null)
     })
   })
 

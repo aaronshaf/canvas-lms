@@ -153,14 +153,14 @@ describe('SubmissionManager', () => {
 
         await waitFor(() => expect(ContextModuleApi.getContextModuleData).toHaveBeenCalled())
         const footer = await findByTestId('student-footer')
-        await waitFor(() => {
+        await waitFor(() =>
           expect(
             within(footer).getByTestId('previous-assignment-btn', {name: /Previous/}),
-          ).toBeInTheDocument()
-          expect(
-            within(footer).getByTestId('next-assignment-btn', {name: /Next/}),
-          ).toBeInTheDocument()
-        })
+          ).toBeInTheDocument(),
+        )
+        expect(
+          within(footer).getByTestId('next-assignment-btn', {name: /Next/}),
+        ).toBeInTheDocument()
       })
 
       it('does not render module buttons if no next/previous modules exist for the assignment', async () => {

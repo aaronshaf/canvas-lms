@@ -31,7 +31,9 @@ import {confirmDanger} from '@instructure/platform-instui-bindings'
 const mockConfirmDanger = confirmDanger as MockedFunction<typeof confirmDanger>
 
 vi.mock('@instructure/platform-instui-bindings', async () => ({
-  ...(await vi.importActual<typeof import('@instructure/platform-instui-bindings')>('@instructure/platform-instui-bindings')),
+  ...(await vi.importActual<typeof import('@instructure/platform-instui-bindings')>(
+    '@instructure/platform-instui-bindings',
+  )),
   confirmDanger: vi.fn(),
 }))
 
@@ -150,11 +152,9 @@ describe('AccessTokensSection', () => {
   it('renders table headers correctly', async () => {
     renderWithQueryClient(<AccessTokensSection userId={userId} />)
 
-    await waitFor(() => {
-      expect(screen.getByText('ID')).toBeInTheDocument()
-      expect(screen.getByText('Token')).toBeInTheDocument()
-      expect(screen.getByText('Purpose')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('ID')).toBeInTheDocument())
+    expect(screen.getByText('Token')).toBeInTheDocument()
+    expect(screen.getByText('Purpose')).toBeInTheDocument()
 
     expect(screen.getByText('Created')).toBeInTheDocument()
     expect(screen.getByText('Expires')).toBeInTheDocument()

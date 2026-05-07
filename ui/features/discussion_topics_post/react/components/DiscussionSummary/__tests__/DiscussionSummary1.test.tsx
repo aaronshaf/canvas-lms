@@ -189,10 +189,10 @@ describe('DiscussionSummary', () => {
         fireEvent.click(generateButton!)
       })
 
-      await waitFor(() => {
-        expect(capturedUrl).toContain('/api/v1/courses/1234/discussion_topics/5678/summaries')
-        expect(capturedUrl).toContain('userInput=focus')
-      })
+      await waitFor(() =>
+        expect(capturedUrl).toContain('/api/v1/courses/1234/discussion_topics/5678/summaries'),
+      )
+      expect(capturedUrl).toContain('userInput=focus')
     })
 
     it('should call postDiscussionSummaryFeedback with like when like button is clicked', async () => {

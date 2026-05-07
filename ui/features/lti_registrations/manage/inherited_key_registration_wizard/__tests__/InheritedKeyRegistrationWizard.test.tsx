@@ -424,10 +424,8 @@ describe('RegistrationWizardModal', () => {
       const editNamingButton = getButtonByText(/Edit Naming/i)
       await userEvent.click(editNamingButton)
 
-      await waitFor(() => {
-        expect(getHeadingByText(/Nickname/i)).toBeInTheDocument()
-        expect(getButtonByText(/Back to Review/i)).toBeInTheDocument()
-      })
+      await waitFor(() => expect(getHeadingByText(/Nickname/i)).toBeInTheDocument())
+      expect(getButtonByText(/Back to Review/i)).toBeInTheDocument()
 
       await userEvent.click(getButtonByText(/Back to Review/i))
 
@@ -450,10 +448,8 @@ describe('RegistrationWizardModal', () => {
 
       await userEvent.click(getButtonByText(/Install App/i))
 
-      await waitFor(() => {
-        expect(installInheritedRegistration).toHaveBeenCalled()
-        expect(onSuccessfulInstallation).toHaveBeenCalled()
-      })
+      await waitFor(() => expect(installInheritedRegistration).toHaveBeenCalled())
+      expect(onSuccessfulInstallation).toHaveBeenCalled()
     })
 
     describe('Editing data on screens', () => {

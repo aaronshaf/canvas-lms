@@ -126,10 +126,8 @@ describe('useNavigateEntries', () => {
         }),
       )
 
-      await waitFor(() => {
-        expect(mockSetHighlightEntryId).toHaveBeenCalledWith('100')
-        expect(mockSetPageNumber).toHaveBeenCalledWith(1)
-      })
+      await waitFor(() => expect(mockSetHighlightEntryId).toHaveBeenCalledWith('100'))
+      expect(mockSetPageNumber).toHaveBeenCalledWith(1)
     })
 
     it('should NOT auto-navigate when highlightEntryId is found in entries', async () => {

@@ -143,10 +143,8 @@ describe('FindOutcomesModal - Import to Different Contexts', () => {
     expect(addButton).toBeEnabled()
     await clickEl(addButton)
 
-    await waitFor(() => {
-      expect(getByText('Added')).toBeInTheDocument()
-      expect(getByText('Added').closest('button')).toBeDisabled()
-    })
+    await waitFor(() => expect(getByText('Added')).toBeInTheDocument())
+    expect(getByText('Added').closest('button')).toBeDisabled()
   })
 
   it('imports Account outcome to Sub-account', async () => {

@@ -57,25 +57,22 @@ describe('MultiColor', () => {
       })
 
       // Wait for the async bits to resolve
-      await waitFor(() => {
+      await waitFor(() =>
         expect(dispatch).toHaveBeenNthCalledWith(3, {
           ...actions.SET_IMAGE,
           payload: expect.any(String),
-        })
-
-        expect(dispatch).toHaveBeenNthCalledWith(4, {
-          ...actions.SET_IMAGE_COLLECTION_OPEN,
-          payload: false,
-        })
-
-        expect(dispatch).toHaveBeenNthCalledWith(5, {
-          ...actions.STOP_LOADING,
-        })
-
-        expect(onChange).toHaveBeenCalledWith({
-          type: svgActions.SET_EMBED_IMAGE,
-          payload: expect.any(String),
-        })
+        }),
+      )
+      expect(dispatch).toHaveBeenNthCalledWith(4, {
+        ...actions.SET_IMAGE_COLLECTION_OPEN,
+        payload: false,
+      })
+      expect(dispatch).toHaveBeenNthCalledWith(5, {
+        ...actions.STOP_LOADING,
+      })
+      expect(onChange).toHaveBeenCalledWith({
+        type: svgActions.SET_EMBED_IMAGE,
+        payload: expect.any(String),
       })
     })
 

@@ -130,10 +130,8 @@ describe('PermissionsModal', () => {
             },
           ],
         })
-        await waitFor(() => {
-          expect(screen.getByText(/available from/i)).toBeInTheDocument()
-          expect(screen.getByText(/until/i)).toBeInTheDocument()
-        })
+        await waitFor(() => expect(screen.getByText(/available from/i)).toBeInTheDocument())
+        expect(screen.getByText(/until/i)).toBeInTheDocument()
       })
 
       it('for multiple files and folders', async () => {
@@ -146,10 +144,8 @@ describe('PermissionsModal', () => {
             lock_at: '2025-04-15T00:00:00Z',
           })),
         })
-        await waitFor(() => {
-          expect(screen.getByText(/available from/i)).toBeInTheDocument()
-          expect(screen.getByText(/until/i)).toBeInTheDocument()
-        })
+        await waitFor(() => expect(screen.getByText(/available from/i)).toBeInTheDocument())
+        expect(screen.getByText(/until/i)).toBeInTheDocument()
       })
 
       describe('with date errors', () => {
@@ -231,9 +227,7 @@ describe('PermissionsModal', () => {
 
   it('renders footer', async () => {
     renderComponent()
-    await waitFor(() => {
-      expect(screen.getByTestId('permissions-cancel-button')).toBeInTheDocument()
-      expect(screen.getByTestId('permissions-save-button')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByTestId('permissions-cancel-button')).toBeInTheDocument())
+    expect(screen.getByTestId('permissions-save-button')).toBeInTheDocument()
   })
 })

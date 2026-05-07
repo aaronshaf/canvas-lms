@@ -156,16 +156,16 @@ describe('useCanvasFileBrowser', () => {
         expect(result.current.selectedFolderID).toBe('123')
       })
 
-      await waitFor(() => {
+      await waitFor(() =>
         expect(mockAxiosGet).toHaveBeenCalledWith(
           '/api/v1/folders/123/files?include=user',
           undefined,
-        )
-        expect(mockAxiosGet).toHaveBeenCalledWith(
-          '/api/v1/folders/123/folders?include=user',
-          undefined,
-        )
-      })
+        ),
+      )
+      expect(mockAxiosGet).toHaveBeenCalledWith(
+        '/api/v1/folders/123/folders?include=user',
+        undefined,
+      )
     })
   })
 
@@ -264,16 +264,16 @@ describe('useCanvasFileBrowser', () => {
 
       result.current.handleUpdateSelectedFolder('124')
 
-      await waitFor(() => {
+      await waitFor(() =>
         expect(mockAxiosGet).toHaveBeenCalledWith(
           '/api/v1/folders/124/files?include=user',
           undefined,
-        )
-        expect(mockAxiosGet).toHaveBeenCalledWith(
-          '/api/v1/folders/124/folders?include=user',
-          undefined,
-        )
-      })
+        ),
+      )
+      expect(mockAxiosGet).toHaveBeenCalledWith(
+        '/api/v1/folders/124/folders?include=user',
+        undefined,
+      )
     })
 
     it('should not reload already-loaded folder contents', async () => {

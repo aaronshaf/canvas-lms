@@ -63,7 +63,7 @@ describe('ProficiencyCalculation', () => {
     method: {
       calculationMethod: 'decaying_average',
       calculationInt: 75,
-      ...(overrides.method || {}),
+      ...overrides.method,
     },
   })
 
@@ -294,10 +294,8 @@ describe('ProficiencyCalculation', () => {
         fireEvent.input(parameter, {target: {value: '40'}})
         fireEvent.click(getByText('Save Mastery Calculation'))
         fireEvent.click(getByText('Save'))
-        await waitFor(() => {
-          expect(update).toHaveBeenCalledTimes(1)
-          expect(update).toHaveBeenCalledWith('decaying_average', 40)
-        })
+        await waitFor(() => expect(update).toHaveBeenCalledTimes(1))
+        expect(update).toHaveBeenCalledWith('decaying_average', 40)
       })
     })
 
@@ -350,10 +348,8 @@ describe('ProficiencyCalculation', () => {
         fireEvent.input(parameter, {target: {value: '3'}})
         fireEvent.click(getByText('Save Mastery Calculation'))
         fireEvent.click(getByText('Save'))
-        await waitFor(() => {
-          expect(update).toHaveBeenCalledTimes(1)
-          expect(update).toHaveBeenCalledWith('n_mastery', 3)
-        })
+        await waitFor(() => expect(update).toHaveBeenCalledTimes(1))
+        expect(update).toHaveBeenCalledWith('n_mastery', 3)
       })
     })
   })

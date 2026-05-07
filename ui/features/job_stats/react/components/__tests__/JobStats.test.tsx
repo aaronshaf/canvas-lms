@@ -290,10 +290,8 @@ describe('JobStats', () => {
 
     fireEvent.click(getByText('9', {selector: 'td button'}))
 
-    await waitFor(() => {
-      expect(strandsCalled).toBe(true)
-      expect(singletonsCalled).toBe(true)
-    })
+    await waitFor(() => expect(strandsCalled).toBe(true))
+    expect(singletonsCalled).toBe(true)
 
     await waitFor(() => {
       const ss_links = getAllByText('baz', {selector: 'td a'})

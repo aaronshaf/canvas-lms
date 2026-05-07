@@ -149,11 +149,9 @@ describe('CreateFromTemplate', () => {
   it('renders', async () => {
     await renderComponent()
 
-    await waitFor(() => {
-      expect(screen.getByText('Create Page')).toBeInTheDocument()
-      expect(screen.getByText(/^Start from a blank page/)).toBeInTheDocument()
-      expect(screen.getByText('Back to Pages')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Create Page')).toBeInTheDocument())
+    expect(screen.getByText(/^Start from a blank page/)).toBeInTheDocument()
+    expect(screen.getByText('Back to Pages')).toBeInTheDocument()
 
     expect(screen.getByText('Clear All Filters')).toBeInTheDocument()
     expect(getByTagText('General Content')).toBeInTheDocument()

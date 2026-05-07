@@ -118,11 +118,8 @@ describe('GradesPage', () => {
 
     it('renders loading skeletons while fetching content', async () => {
       const {getAllByText} = render(<GradesPage {...getProps()} />)
-      await waitFor(() => {
-        const skeletons = getAllByText('Loading grades for History')
-        expect(skeletons[0]).toBeInTheDocument()
-        expect(skeletons).toHaveLength(10)
-      })
+      await waitFor(() => expect(getAllByText('Loading grades for History')[0]).toBeInTheDocument())
+      expect(getAllByText('Loading grades for History')).toHaveLength(10)
     })
 
     it('renders a flashAlert if an error happens on fetch', async () => {
@@ -186,13 +183,15 @@ describe('GradesPage', () => {
       const {getByText, getByTestId, getByRole, queryByText} = render(
         <GradesPage {...getProps({userIsCourseAdmin: true, userIsStudent: false})} />,
       )
-      await waitFor(() => expect(getByText('Students see their grades here.')).toBeInTheDocument())
-      expect(getByTestId('empty-grades-panda')).toBeInTheDocument()
-      const gradebookButton = getByRole('link', {name: 'View History Gradebook'})
-      expect(gradebookButton).toBeInTheDocument()
-      expect(getByText('View Gradebook')).toBeInTheDocument()
-      expect(gradebookButton.href).toContain('/courses/12/gradebook')
-      expect(queryByText('Assignment')).not.toBeInTheDocument()
+      await waitFor(() => {
+        expect(getByText('Students see their grades here.')).toBeInTheDocument()
+        expect(getByTestId('empty-grades-panda')).toBeInTheDocument()
+        const gradebookButton = getByRole('link', {name: 'View History Gradebook'})
+        expect(gradebookButton).toBeInTheDocument()
+        expect(getByText('View Gradebook')).toBeInTheDocument()
+        expect(gradebookButton.href).toContain('/courses/12/gradebook')
+        expect(queryByText('Assignment')).not.toBeInTheDocument()
+      })
     })
 
     it('shows view feedback link', async () => {
@@ -206,11 +205,11 @@ describe('GradesPage', () => {
     describe('totals', () => {
       it('displays fetched course total grade', async () => {
         const {getByText, queryByText} = render(<GradesPage {...getProps()} />)
-        await waitFor(() =>
-          expect(queryByText('Loading total grade for History')).not.toBeInTheDocument(),
-        )
-        expect(getByText('Total: 89.39%')).toBeInTheDocument()
-        expect(getByText('History Total: 89.39%')).toBeInTheDocument()
+        await waitFor(() => {
+          expect(queryByText('Loading total grade for History')).not.toBeInTheDocument()
+          expect(getByText('Total: 89.39%')).toBeInTheDocument()
+          expect(getByText('History Total: 89.39%')).toBeInTheDocument()
+        })
       })
 
       it('displays fetched course total Letter Grade when Restrict Quantitative Data', async () => {
@@ -219,20 +218,20 @@ describe('GradesPage', () => {
             {...getProps({gradingScheme: DEFAULT_GRADING_SCHEME, restrictQuantitativeData: true})}
           />,
         )
-        await waitFor(() =>
-          expect(queryByText('Loading total grade for History')).not.toBeInTheDocument(),
-        )
-        expect(getByText('Total: B+')).toBeInTheDocument()
-        expect(getByText('History Total: B+')).toBeInTheDocument()
+        await waitFor(() => {
+          expect(queryByText('Loading total grade for History')).not.toBeInTheDocument()
+          expect(getByText('Total: B+')).toBeInTheDocument()
+          expect(getByText('History Total: B+')).toBeInTheDocument()
+        })
       })
 
       it('displays button to expand assignment group totals', async () => {
         const {getByText, queryByText} = render(<GradesPage {...getProps()} />)
-        await waitFor(() =>
-          expect(queryByText('Loading assignment group totals')).not.toBeInTheDocument(),
-        )
-        expect(getByText('View Assignment Group Totals')).toBeInTheDocument()
-        expect(getByText("View History's Assignment Group Totals")).toBeInTheDocument()
+        await waitFor(() => {
+          expect(queryByText('Loading assignment group totals')).not.toBeInTheDocument()
+          expect(getByText('View Assignment Group Totals')).toBeInTheDocument()
+          expect(getByText("View History's Assignment Group Totals")).toBeInTheDocument()
+        })
       })
 
       it('displays assignment group totals when expanded', async () => {
@@ -395,9 +394,11 @@ describe('GradesPage', () => {
       const select = await findByText('Select Grading Period')
       act(() => select.click())
       act(() => getByText('All Grading Periods').click())
-      await waitFor(() => expect(getByText('WWII Report')).toBeInTheDocument())
-      expect(queryByText('Total: 89.39%')).not.toBeInTheDocument()
-      expect(queryByText('View Assignment Group Totals')).not.toBeInTheDocument()
+      await waitFor(() => {
+        expect(getByText('WWII Report')).toBeInTheDocument()
+        expect(queryByText('Total: 89.39%')).not.toBeInTheDocument()
+        expect(queryByText('View Assignment Group Totals')).not.toBeInTheDocument()
+      })
     })
 
     it('waits for grading periods to load before firing other requests', async () => {
@@ -427,8 +428,8 @@ describe('GradesPage', () => {
       await waitFor(() => {
         expect(getByText('WWII Report')).toBeInTheDocument()
         expect(getByText('Total: 89.39%')).toBeInTheDocument()
+        expect(apiCallCount).toBeGreaterThanOrEqual(3)
       })
-      expect(apiCallCount).toBeGreaterThanOrEqual(3)
     })
   })
 })

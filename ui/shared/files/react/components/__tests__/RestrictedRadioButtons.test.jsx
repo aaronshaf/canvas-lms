@@ -93,10 +93,8 @@ describe('RestrictedRadioButtons', () => {
 
     const unpublishOption = screen.getByLabelText('Unpublish')
     await user.click(unpublishOption)
-    await waitFor(() => {
-      expect(unpublishOption).toBeChecked()
-      expect(radioStateChange).toHaveBeenCalled()
-    })
+    await waitFor(() => expect(unpublishOption).toBeChecked())
+    expect(radioStateChange).toHaveBeenCalled()
   })
 
   it('shows date fields when schedule availability is selected', async () => {

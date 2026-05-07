@@ -154,14 +154,20 @@ describe('AppointmentGroup EditPage', () => {
       render(<EditPage {...defaultProps} />)
       const deleteButton = await testScreen.findByText('Delete Group')
       fireEvent.click(deleteButton)
-      await waitFor(() => {
-        expect(testScreen.getByTestId('delete-appointment-group-modal')).toBeInTheDocument()
-      }, {timeout: 10000})
+      await waitFor(
+        () => {
+          expect(testScreen.getByTestId('delete-appointment-group-modal')).toBeInTheDocument()
+        },
+        {timeout: 10000},
+      )
       const cancelButton = testScreen.getByTestId('cancel-delete-button')
       fireEvent.click(cancelButton)
-      await waitFor(() => {
-        expect(testScreen.queryByTestId('delete-appointment-group-modal')).not.toBeInTheDocument()
-      }, {timeout: 10000})
+      await waitFor(
+        () => {
+          expect(testScreen.queryByTestId('delete-appointment-group-modal')).not.toBeInTheDocument()
+        },
+        {timeout: 10000},
+      )
 
       expect(axios.delete).not.toHaveBeenCalled()
     })
@@ -176,10 +182,8 @@ describe('AppointmentGroup EditPage', () => {
       })
       const confirmButton = testScreen.getByTestId('confirm-delete-button')
       fireEvent.click(confirmButton)
-      await waitFor(() => {
-        expect(axios.delete).toHaveBeenCalledWith('/api/v1/appointment_groups/1')
-        expect(assignLocation).toHaveBeenCalledWith('/calendar')
-      })
+      await waitFor(() => expect(axios.delete).toHaveBeenCalledWith('/api/v1/appointment_groups/1'))
+      expect(assignLocation).toHaveBeenCalledWith('/calendar')
     })
 
     it('shows error message on failed delete', async () => {

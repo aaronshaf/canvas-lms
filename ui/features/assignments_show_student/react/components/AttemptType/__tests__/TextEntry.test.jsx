@@ -376,11 +376,9 @@ describe('TextEntry', () => {
     it('inserts a link for each content item if the message is A2ExternalContentReady', async () => {
       window.postMessage(realEvent, '*')
       await act(async () => vi.runOnlyPendingTimers())
-      await waitFor(() => {
-        expect(insertCode).toHaveBeenCalledTimes(2)
-        expect(insertCode).toHaveBeenNthCalledWith(1, expect.stringContaining('first item'))
-        expect(insertCode).toHaveBeenNthCalledWith(2, expect.stringContaining('second item'))
-      })
+      await waitFor(() => expect(insertCode).toHaveBeenCalledTimes(2))
+      expect(insertCode).toHaveBeenNthCalledWith(1, expect.stringContaining('first item'))
+      expect(insertCode).toHaveBeenNthCalledWith(2, expect.stringContaining('second item'))
     })
   })
 

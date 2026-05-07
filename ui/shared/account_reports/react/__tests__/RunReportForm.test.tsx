@@ -171,13 +171,11 @@ describe('RunReportForm', () => {
     const submitButton = getByTestId('run-report')
     await user.click(submitButton)
 
-    await waitFor(() => {
-      expect(props.onSuccess).toHaveBeenCalledWith(reportJson)
-      expect(postCalled).toBe(true)
-      expect(capturedFormData?.get('parameter[checkbox]')).toBeTruthy()
-      expect(capturedFormData?.get('parameter[select]')).toBe('option_1')
-      expect(capturedFormData?.has('parameter[unchecked]')).toBeFalsy()
-    })
+    await waitFor(() => expect(props.onSuccess).toHaveBeenCalledWith(reportJson))
+    expect(postCalled).toBe(true)
+    expect(capturedFormData?.get('parameter[checkbox]')).toBeTruthy()
+    expect(capturedFormData?.get('parameter[select]')).toBe('option_1')
+    expect(capturedFormData?.has('parameter[unchecked]')).toBeFalsy()
   })
 
   // custom reports use both these field types
@@ -205,12 +203,10 @@ describe('RunReportForm', () => {
     const submitButton = getByTestId('run-report')
     await user.click(submitButton)
 
-    await waitFor(() => {
-      expect(props.onSuccess).toHaveBeenCalledWith(reportJson)
-      expect(postCalled).toBe(true)
-      expect(capturedFormData?.get('parameter[textarea]')).toBe('test text')
-      expect(capturedFormData?.get('parameter[radio]')).toBe('Checked')
-    })
+    await waitFor(() => expect(props.onSuccess).toHaveBeenCalledWith(reportJson))
+    expect(postCalled).toBe(true)
+    expect(capturedFormData?.get('parameter[textarea]')).toBe('test text')
+    expect(capturedFormData?.get('parameter[radio]')).toBe('Checked')
   })
 
   it('sets up date/time pickers', async () => {
@@ -237,11 +233,9 @@ describe('RunReportForm', () => {
     const submitButton = getByTestId('run-report')
     await user.click(submitButton)
 
-    await waitFor(() => {
-      expect(props.onSuccess).toHaveBeenCalledWith(reportJson)
-      expect(postCalled).toBe(true)
-      expect(capturedFormData?.get('parameters[updated_after]')).toBe('2025-05-01T07:00:00.000Z')
-    })
+    await waitFor(() => expect(props.onSuccess).toHaveBeenCalledWith(reportJson))
+    expect(postCalled).toBe(true)
+    expect(capturedFormData?.get('parameters[updated_after]')).toBe('2025-05-01T07:00:00.000Z')
   })
 
   it('finds a date/time label in the previous table row', async () => {

@@ -115,10 +115,8 @@ describe('SubmissionModal', () => {
       </MockedQueryClientProvider>,
     )
 
-    await waitFor(() => {
-      expect(getByText('Add Page for Submission')).toBeInTheDocument()
-      expect(getByText("Pages in 'Section 1'")).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByText('Add Page for Submission')).toBeInTheDocument())
+    expect(getByText("Pages in 'Section 1'")).toBeInTheDocument()
   })
 
   it('shows correct pages for each section', async () => {
@@ -128,10 +126,8 @@ describe('SubmissionModal', () => {
       </MockedQueryClientProvider>,
     )
 
-    await waitFor(() => {
-      expect(getByText('Page 1')).toBeInTheDocument()
-      expect(getByText('Page 2')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByText('Page 1')).toBeInTheDocument())
+    expect(getByText('Page 2')).toBeInTheDocument()
 
     unmount()
 
@@ -146,10 +142,8 @@ describe('SubmissionModal', () => {
       </MockedQueryClientProvider>,
     )
 
-    await waitFor(() => {
-      expect(getByTextSecond('Page 3')).toBeInTheDocument()
-      expect(getByTextSecond('Page 4')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByTextSecond('Page 3')).toBeInTheDocument())
+    expect(getByTextSecond('Page 4')).toBeInTheDocument()
   })
 
   it('creates a new page with the selected submission', async () => {
@@ -166,9 +160,7 @@ describe('SubmissionModal', () => {
 
     await user.click(getByTestId('create-page-button'))
 
-    await waitFor(() => {
-      expect(createCalled).toBe(true)
-      expect(globalUtils.assignLocation).toHaveBeenCalledWith('path/to/new_entry')
-    })
+    await waitFor(() => expect(createCalled).toBe(true))
+    expect(globalUtils.assignLocation).toHaveBeenCalledWith('path/to/new_entry')
   })
 })

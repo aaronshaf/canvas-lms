@@ -252,11 +252,8 @@ describe('EditView - Points Tooltip', () => {
       view.handleQuizTypeChange('graded_survey')
     })
 
-    await waitFor(() => {
-      const tooltipWrapper = document.querySelector('#points_tooltip span')
-      expect(tooltipWrapper).toBeTruthy()
-      expect(tooltipWrapper.style.display).toBe('inline-block')
-    })
+    await waitFor(() => expect(document.querySelector('#points_tooltip span')).toBeTruthy())
+    expect(document.querySelector('#points_tooltip span').style.display).toBe('inline-block')
   })
 
   test('hides tooltip for graded_quiz', async () => {
@@ -264,11 +261,8 @@ describe('EditView - Points Tooltip', () => {
       view.handleQuizTypeChange('graded_quiz')
     })
 
-    await waitFor(() => {
-      const tooltipWrapper = document.querySelector('#points_tooltip span')
-      expect(tooltipWrapper).toBeTruthy()
-      expect(tooltipWrapper.style.display).toBe('none')
-    })
+    await waitFor(() => expect(document.querySelector('#points_tooltip span')).toBeTruthy())
+    expect(document.querySelector('#points_tooltip span').style.display).toBe('none')
   })
 
   test('hides tooltip for ungraded_survey', async () => {
@@ -276,11 +270,8 @@ describe('EditView - Points Tooltip', () => {
       view.handleQuizTypeChange('ungraded_survey')
     })
 
-    await waitFor(() => {
-      const tooltipWrapper = document.querySelector('#points_tooltip span')
-      expect(tooltipWrapper).toBeTruthy()
-      expect(tooltipWrapper.style.display).toBe('none')
-    })
+    await waitFor(() => expect(document.querySelector('#points_tooltip span')).toBeTruthy())
+    expect(document.querySelector('#points_tooltip span').style.display).toBe('none')
   })
 
   test('displays correct tooltip text on hover', async () => {
@@ -290,25 +281,22 @@ describe('EditView - Points Tooltip', () => {
     })
 
     // Wait for the tooltip to be visible
-    await waitFor(() => {
-      const tooltipWrapper = document.querySelector('#points_tooltip span')
-      expect(tooltipWrapper).toBeTruthy()
-      expect(tooltipWrapper.style.display).toBe('inline-block')
-    })
+    await waitFor(() => expect(document.querySelector('#points_tooltip span')).toBeTruthy())
+    expect(document.querySelector('#points_tooltip span').style.display).toBe('inline-block')
 
     const icon = document.querySelector('#points_tooltip svg')
     await user.hover(icon)
 
-    await waitFor(() => {
-      // Find the tooltip connected to our specific icon via data-position attributes
-      const positionTarget = icon.getAttribute('data-position-target')
-      const tooltipContent = document.querySelector(`[data-position-content="${positionTarget}"]`)
-      expect(tooltipContent).toBeTruthy()
-      expect(tooltipContent.textContent).toContain(
-        'Points earned here reflect participation and effort.',
-      )
-      expect(tooltipContent.textContent).toContain('Responses will not be graded for accuracy.')
-    })
+    // Find the tooltip connected to our specific icon via data-position attributes
+    const positionTarget = icon.getAttribute('data-position-target')
+    const tooltipContent = await waitFor(() =>
+      document.querySelector(`[data-position-content="${positionTarget}"]`),
+    )
+    expect(tooltipContent).toBeTruthy()
+    expect(tooltipContent.textContent).toContain(
+      'Points earned here reflect participation and effort.',
+    )
+    expect(tooltipContent.textContent).toContain('Responses will not be graded for accuracy.')
   })
 
   test('updates tooltip visibility when quiz type changes', async () => {

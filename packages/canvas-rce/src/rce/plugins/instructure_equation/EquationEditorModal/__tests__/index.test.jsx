@@ -309,10 +309,8 @@ describe('EquationEditorModal', () => {
       })
 
       basicEditor().dispatchEvent(event)
-      await waitFor(() => {
-        expect(toggle()).toBeChecked()
-        expect(toggle()).toBeEnabled()
-      })
+      await waitFor(() => expect(toggle()).toBeChecked())
+      expect(toggle()).toBeEnabled()
     })
 
     it('user enters an advanced only command in the advanced editor', async () => {

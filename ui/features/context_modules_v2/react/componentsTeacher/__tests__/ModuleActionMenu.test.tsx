@@ -382,11 +382,9 @@ describe('ModuleActionMenu', () => {
       fireEvent.click(menuButton)
 
       // Should still show external tool items
-      await waitFor(() => {
-        expect(screen.getByText('External Tool 1')).toBeInTheDocument()
-        expect(screen.getByText('External Tool 2')).toBeInTheDocument()
-        expect(screen.getByText('External Tool 3')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('External Tool 1')).toBeInTheDocument())
+      expect(screen.getByText('External Tool 2')).toBeInTheDocument()
+      expect(screen.getByText('External Tool 3')).toBeInTheDocument()
 
       // Should not show any standard menu items
       expect(screen.queryByText('Edit')).not.toBeInTheDocument()

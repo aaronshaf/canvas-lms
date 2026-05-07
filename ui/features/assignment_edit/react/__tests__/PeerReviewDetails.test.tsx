@@ -481,10 +481,10 @@ describe('PeerReviewDetails', () => {
       assignment.groupCategoryId = vi.fn(() => '456')
       fireEvent(document, new Event('group_category_changed'))
 
-      await waitFor(() => {
-        expect(screen.getByText('Allow peer reviews within groups')).toBeInTheDocument()
-        expect(screen.getByTestId('within-groups-checkbox')).toBeInTheDocument()
-      })
+      await waitFor(() =>
+        expect(screen.getByText('Allow peer reviews within groups')).toBeInTheDocument(),
+      )
+      expect(screen.getByTestId('within-groups-checkbox')).toBeInTheDocument()
     })
 
     it('hides within groups toggle when group_category_changed event fires without group category', async () => {

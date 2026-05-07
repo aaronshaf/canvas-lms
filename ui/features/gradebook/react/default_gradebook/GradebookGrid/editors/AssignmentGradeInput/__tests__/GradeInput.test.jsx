@@ -555,11 +555,9 @@ describe('GradebookGrid AssignmentGradeInput', () => {
       props.submission = {...props.submission, enteredScore: 8.13, enteredGrade: '8.13'}
       mountComponent()
       ref.current.focus()
-      await waitFor(() => {
-        const input = wrapper.container.querySelector('input[type="text"]')
-        expect(input.selectionStart).toBe(0)
-        expect(input.selectionEnd).toBe(input.value.length)
-      })
+      const input = wrapper.container.querySelector('input[type="text"]')
+      await waitFor(() => expect(input.selectionStart).toBe(0))
+      expect(input.selectionEnd).toBe(input.value.length)
     })
   })
 

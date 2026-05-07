@@ -213,10 +213,8 @@ describe('StudentSelect', () => {
 
       await user.type(input!, 'St')
 
-      await waitFor(() => {
-        expect(screen.getByText('Squirtle')).toBeInTheDocument()
-        expect(screen.getByText('Snorlax')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Squirtle')).toBeInTheDocument())
+      expect(screen.getByText('Snorlax')).toBeInTheDocument()
     })
   })
 

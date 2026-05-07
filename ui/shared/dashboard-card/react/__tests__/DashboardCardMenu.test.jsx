@@ -53,10 +53,8 @@ describe('DashboardCardMenu - reordering', () => {
 
     fireEvent.click(getByText('menu'))
 
-    await waitFor(() => {
-      expect(ref.current._tabList).toBeTruthy()
-      expect(ref.current._colorPicker).toBeTruthy()
-    })
+    await waitFor(() => expect(ref.current._tabList).toBeTruthy())
+    expect(ref.current._colorPicker).toBeTruthy()
 
     fireEvent.click(getByText('Move'))
     await waitFor(() => expect(ref.current._movementMenu).toBeTruthy())

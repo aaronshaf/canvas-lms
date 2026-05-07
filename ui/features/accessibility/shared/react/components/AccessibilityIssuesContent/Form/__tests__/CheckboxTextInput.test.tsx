@@ -321,10 +321,8 @@ describe('CheckboxTextInput', () => {
 
       expect(screen.getByTestId('loading-label')).toHaveTextContent('Generating alt text...')
 
-      await waitFor(() => {
-        expect(generateCalled).toBe(true)
-        expect(defaultProps.onChangeValue).toHaveBeenCalledWith(mockGeneratedText)
-      })
+      await waitFor(() => expect(generateCalled).toBe(true))
+      expect(defaultProps.onChangeValue).toHaveBeenCalledWith(mockGeneratedText)
     })
 
     it('announces generated alt text to screen readers', async () => {

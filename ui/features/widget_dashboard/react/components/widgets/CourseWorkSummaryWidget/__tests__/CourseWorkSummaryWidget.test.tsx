@@ -224,11 +224,11 @@ describe('CourseWorkSummaryWidget', () => {
       expect(screen.getByText('5')).toBeInTheDocument() // Due count (submissionsDueThisWeekCount)
       expect(screen.getByText('2')).toBeInTheDocument() // Missing count (missingSubmissionsCount)
       expect(screen.getByText('8')).toBeInTheDocument() // Submitted count (submittedSubmissionsCount)
-    })
 
-    expect(screen.getByText('Due')).toBeInTheDocument()
-    expect(screen.getByText('Missing')).toBeInTheDocument()
-    expect(screen.getByText('Submitted')).toBeInTheDocument()
+      expect(screen.getByText('Due')).toBeInTheDocument()
+      expect(screen.getByText('Missing')).toBeInTheDocument()
+      expect(screen.getByText('Submitted')).toBeInTheDocument()
+    })
 
     cleanup()
   })

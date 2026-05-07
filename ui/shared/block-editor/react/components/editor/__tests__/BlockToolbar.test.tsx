@@ -235,10 +235,10 @@ describe('BlockToolbar', () => {
       const {getByText} = renderBlockToolbar()
       const firstButton = getByText('Go up').closest('button') as HTMLButtonElement
       await user.type(firstButton, '{ArrowRight}')
-      await waitFor(() => {
-        expect(getByText('Drag to move').closest('button')?.getAttribute('tabindex')).toEqual('0')
-        expect(firstButton?.getAttribute('tabindex')).toEqual('-1')
-      })
+      await waitFor(() =>
+        expect(getByText('Drag to move').closest('button')?.getAttribute('tabindex')).toEqual('0'),
+      )
+      expect(firstButton?.getAttribute('tabindex')).toEqual('-1')
     })
 
     it('should move to the previous button on left arrow key', async () => {

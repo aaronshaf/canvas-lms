@@ -198,10 +198,8 @@ describe('AssignmentPostingPolicyTray ScheduledReleasePolicy tests', () => {
     await enterNewDateTime(sharedDateInput, pastDateString)
 
     const saveButton = await findByTestId('assignment-posting-policy-save-button')
-    await waitFor(() => {
-      expect(saveButton).toBeDisabled()
-      expect(screen.getByText('Date must be in the future')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(saveButton).toBeDisabled())
+    expect(screen.getByText('Date must be in the future')).toBeInTheDocument()
   })
 
   it('enables the "Save" button if scheduled post is selected and valid separate dates are set', async () => {
@@ -273,10 +271,8 @@ describe('AssignmentPostingPolicyTray ScheduledReleasePolicy tests', () => {
     await enterNewDateTime(dateInputs[1], pastDateString2) // Comment release date
 
     const saveButton = await findByTestId('assignment-posting-policy-save-button')
-    await waitFor(() => {
-      expect(saveButton).toBeDisabled()
-      expect(screen.getAllByText('Date must be in the future')).toHaveLength(2)
-    })
+    await waitFor(() => expect(saveButton).toBeDisabled())
+    expect(screen.getAllByText('Date must be in the future')).toHaveLength(2)
   })
 
   it('disables the "Save" button and displays error messages if the comment release date is after the grade release date', async () => {
@@ -311,19 +307,17 @@ describe('AssignmentPostingPolicyTray ScheduledReleasePolicy tests', () => {
     await enterNewDateTime(dateInputs[0], futureDateString2)
 
     const saveButton = screen.getByTestId('assignment-posting-policy-save-button')
-    await waitFor(() => {
-      expect(saveButton).toBeDisabled()
-      expect(
-        screen.getByText(
-          'Grades release date and time must be the same or after comments release date',
-        ),
-      ).toBeInTheDocument()
-      expect(
-        screen.getByText(
-          'Comments release date and time must be the same or before grades release date',
-        ),
-      ).toBeInTheDocument()
-    })
+    await waitFor(() => expect(saveButton).toBeDisabled())
+    expect(
+      screen.getByText(
+        'Grades release date and time must be the same or after comments release date',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Comments release date and time must be the same or before grades release date',
+      ),
+    ).toBeInTheDocument()
   })
 
   it('does not show validation error for pre-existing grades date when only comments date is changed', async () => {
@@ -476,10 +470,8 @@ describe('AssignmentPostingPolicyTray ScheduledReleasePolicy tests', () => {
     await enterNewDateTime(dateInputs[0], futureGradesDateString)
 
     // Verify that save button is still disabled and comments error persists
-    await waitFor(() => {
-      expect(saveButton).toBeDisabled()
-      expect(screen.getByText('Date must be in the future')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(saveButton).toBeDisabled())
+    expect(screen.getByText('Date must be in the future')).toBeInTheDocument()
 
     // The grades field should no longer have an error, only comments
     const remainingErrors = screen.getAllByText('Date must be in the future')

@@ -83,10 +83,8 @@ describe('PageEditModal', () => {
     const textInput = getByTestId('add-field')
     const saveButton = getByText('Save')
     saveButton.click()
-    await waitFor(() => {
-      expect(textInput).toHaveFocus()
-      expect(getByText('Name is required.')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(textInput).toHaveFocus())
+    expect(getByText('Name is required.')).toBeInTheDocument()
   })
 
   describe('delete', () => {

@@ -139,10 +139,8 @@ describe('UserDifferentiationTagManager', () => {
     const TagAsbutton = screen.getByTestId('user-diff-tag-manager-tag-as-button')
     await user.click(TagAsbutton)
 
-    await waitFor(() => {
-      expect(screen.getByText('Category 1')).toBeInTheDocument()
-      expect(screen.getByText('Category 2')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Category 1')).toBeInTheDocument())
+    expect(screen.getByText('Category 2')).toBeInTheDocument()
   })
 
   it('renders empty message when there are not any diff tag', async () => {
@@ -164,10 +162,8 @@ describe('UserDifferentiationTagManager', () => {
     const TagAsbutton = screen.getByTestId('user-diff-tag-manager-tag-as-button')
     await user.click(TagAsbutton)
 
-    await waitFor(() => {
-      expect(screen.getByText('Category 1')).toBeInTheDocument()
-      expect(screen.getByText('Category 2')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Category 1')).toBeInTheDocument())
+    expect(screen.getByText('Category 2')).toBeInTheDocument()
     await user.click(screen.getByText('Tag 1'))
     expect(mutateMock).toHaveBeenCalled()
   })
@@ -181,10 +177,8 @@ describe('UserDifferentiationTagManager', () => {
     const TagAsbutton = screen.getByTestId('user-diff-tag-manager-tag-as-button')
     await user.click(TagAsbutton)
 
-    await waitFor(() => {
-      expect(screen.getByText('Category 1')).toBeInTheDocument()
-      expect(screen.getByText('Category 2')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Category 1')).toBeInTheDocument())
+    expect(screen.getByText('Category 2')).toBeInTheDocument()
     await user.click(screen.getByText('Category 1'))
     expect(mutateMock).toHaveBeenCalled()
   })
@@ -198,11 +192,9 @@ describe('UserDifferentiationTagManager', () => {
     const TagAsbutton = screen.getByTestId('user-diff-tag-manager-tag-as-button')
     await user.click(TagAsbutton)
 
-    await waitFor(() => {
-      expect(screen.getByText('Category 1')).toBeInTheDocument()
-      expect(screen.getByText('Category 2')).toBeInTheDocument()
-      expect(screen.getByText('Tag 1')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Category 1')).toBeInTheDocument())
+    expect(screen.getByText('Category 2')).toBeInTheDocument()
+    expect(screen.getByText('Tag 1')).toBeInTheDocument()
     await user.click(screen.getByText('Tag 1'))
     expect(mutateMock).not.toHaveBeenCalled()
   })

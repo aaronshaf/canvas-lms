@@ -55,10 +55,8 @@ describe('useContentShareUserSearchApi', () => {
     renderHook(() =>
       useContentShareUserSearchApi({success, courseId: '42', params: {search_term: '123'}}),
     )
-    await waitFor(() => {
-      expect(requestMade).toBe(true)
-      expect(success).toHaveBeenCalledWith(['list of users'])
-    })
+    await waitFor(() => expect(requestMade).toBe(true))
+    expect(success).toHaveBeenCalledWith(['list of users'])
   })
 
   it('throws if the courseId parameter is missing', () => {

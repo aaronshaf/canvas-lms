@@ -210,10 +210,8 @@ describe('RateLimitingSettingsApp', () => {
       render(<RateLimitingSettingsApp />)
 
       // Wait for the table content to appear
-      await waitFor(() => {
-        expect(screen.getByText('Test Partner Integration')).toBeInTheDocument()
-        expect(screen.getByText('Another Tool')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Test Partner Integration')).toBeInTheDocument())
+      expect(screen.getByText('Another Tool')).toBeInTheDocument()
 
       // Look for action buttons using a more direct approach
       const actionButtons = screen.getAllByRole('button', {name: /actions for/i})

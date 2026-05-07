@@ -118,10 +118,8 @@ describe('ExternalItemForm', () => {
       it('shows all available tools', async () => {
         await prepareExternalToolSelector()
 
-        await waitFor(() => {
-          expect(screen.getByText('Google Docs')).toBeInTheDocument()
-          expect(screen.getByText('Youtube')).toBeInTheDocument()
-        })
+        await waitFor(() => expect(screen.getByText('Google Docs')).toBeInTheDocument())
+        expect(screen.getByText('Youtube')).toBeInTheDocument()
       })
 
       it('calls onChange with selected tool data', async () => {

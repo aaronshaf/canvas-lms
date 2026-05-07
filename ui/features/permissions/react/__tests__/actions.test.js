@@ -235,21 +235,17 @@ describe('api actions', () => {
 
     await waitFor(() => {
       expect(requestReceived).toBe(true)
-    })
-
-    await waitFor(() => {
       expect(mockDispatch).toHaveBeenCalled()
-    })
-
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'UPDATE_ROLE',
-      payload: {
-        id: '9',
-        role: 'steven',
-        label: 'steven',
-        base_role_type: 'StudentEnrollment',
-        workflow_state: 'active',
-      },
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'UPDATE_ROLE',
+        payload: {
+          id: '9',
+          role: 'steven',
+          label: 'steven',
+          base_role_type: 'StudentEnrollment',
+          workflow_state: 'active',
+        },
+      })
     })
   })
 
@@ -435,13 +431,13 @@ describe('api actions', () => {
     const mockDispatch = vi.fn()
     actions.deleteRole(ROLES[1], successCallbackMock, failCallbackMock)(mockDispatch, () => state)
 
+    const expectedDeleteRoleDispatch = {
+      type: 'DELETE_ROLE_SUCCESS',
+      payload: ROLES[1],
+    }
     await waitFor(() => {
       expect(successCallbackMock).toHaveBeenCalledTimes(1)
       expect(failCallbackMock).toHaveBeenCalledTimes(0)
-      const expectedDeleteRoleDispatch = {
-        type: 'DELETE_ROLE_SUCCESS',
-        payload: ROLES[1],
-      }
       expect(mockDispatch).toHaveBeenCalledTimes(2)
       expect(mockDispatch).toHaveBeenCalledWith(expectedDeleteRoleDispatch)
     })
@@ -461,10 +457,10 @@ describe('api actions', () => {
     actions.deleteRole(ROLES[1], successCallbackMock, failCallbackMock)(mockDispatch, () => state)
 
     await waitFor(() => {
-      expect(successCallbackMock).toHaveBeenCalledTimes(0)
       expect(failCallbackMock).toHaveBeenCalledTimes(1)
-      // Don't dispatch anything if api call fails
-      expect(mockDispatch).toHaveBeenCalledTimes(0)
+      expect(successCallbackMock).toHaveBeenCalledTimes(0)
     })
+    // Don't dispatch anything if api call fails
+    expect(mockDispatch).toHaveBeenCalledTimes(0)
   })
 })

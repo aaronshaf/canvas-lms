@@ -127,12 +127,10 @@ describe('GroupRemoveModal', () => {
     const {getByText} = render(<GroupRemoveModal {...defaultProps()} />)
     fireEvent.click(getByText('Remove Group'))
     expect(removeOutcomeGroup).toHaveBeenCalledWith('Account', '1', '123')
-    await waitFor(() => {
-      expect(onSuccessMock).toHaveBeenCalled()
-      expect(showFlashAlert).toHaveBeenCalledWith({
-        message: 'This group was successfully removed.',
-        type: 'success',
-      })
+    await waitFor(() => expect(onSuccessMock).toHaveBeenCalled())
+    expect(showFlashAlert).toHaveBeenCalledWith({
+      message: 'This group was successfully removed.',
+      type: 'success',
     })
   })
 

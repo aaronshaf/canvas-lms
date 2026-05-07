@@ -124,10 +124,8 @@ describe('CurrentDownloads', () => {
       })
     })
 
-    await waitFor(() => {
-      expect(screen.getByTestId('current-downloads')).toBeInTheDocument()
-      expect(screen.getAllByText(/Preparing download: 0% complete/)).toHaveLength(2)
-    })
+    await waitFor(() => expect(screen.getByTestId('current-downloads')).toBeInTheDocument())
+    expect(screen.getAllByText(/Preparing download: 0% complete/)).toHaveLength(2)
   })
 
   it('calls performRequest with correct parameters for groups', async () => {

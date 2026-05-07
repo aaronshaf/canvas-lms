@@ -26,9 +26,7 @@ import {useModuleItemContent} from '../../../hooks/queries/useModuleItemContent'
 
 vi.mock('../../../hooks/queries/useModuleItemContent')
 
-const mockUseModuleItemContent = useModuleItemContent as MockedFunction<
-  typeof useModuleItemContent
->
+const mockUseModuleItemContent = useModuleItemContent as MockedFunction<typeof useModuleItemContent>
 
 const mockAssignments = [
   {id: '1', name: 'Assignment 1'},
@@ -171,10 +169,8 @@ describe('ModuleItemMultiSelect', () => {
         selectedItemIds: ['1', '2'],
       })
 
-      await waitFor(() => {
-        expect(screen.getByText('Assignment 1')).toBeInTheDocument()
-        expect(screen.getByText('Assignment 2')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Assignment 1')).toBeInTheDocument())
+      expect(screen.getByText('Assignment 2')).toBeInTheDocument()
     })
 
     it('removes items when tag is dismissed', async () => {

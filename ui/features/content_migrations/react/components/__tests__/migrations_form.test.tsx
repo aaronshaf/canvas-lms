@@ -173,21 +173,19 @@ describe('ContentMigrationForm', () => {
 
     await userEvent.click(screen.getByTestId('submitMigration'))
 
-    await waitFor(() => {
-      expect(postCalled).toBe(true)
-      expect(postRequestBody).toStrictEqual({
-        course_id: '0',
-        migration_type: 'course_copy_importer',
-        settings: {import_quizzes_next: false, source_course_id: '3'},
-        selective_import: false,
-        date_shift_options: {
-          day_substitutions: {},
-          new_end_date: '',
-          new_start_date: '',
-          old_end_date: '',
-          old_start_date: '',
-        },
-      })
+    await waitFor(() => expect(postCalled).toBe(true))
+    expect(postRequestBody).toStrictEqual({
+      course_id: '0',
+      migration_type: 'course_copy_importer',
+      settings: {import_quizzes_next: false, source_course_id: '3'},
+      selective_import: false,
+      date_shift_options: {
+        day_substitutions: {},
+        new_end_date: '',
+        new_start_date: '',
+        old_end_date: '',
+        old_start_date: '',
+      },
     })
   })
 
@@ -222,7 +220,7 @@ describe('ContentMigrationForm', () => {
 
     await userEvent.click(screen.getByTestId('submitMigration'))
 
-    await waitFor(() => {
+    await waitFor(() =>
       expect(completeUpload).toHaveBeenCalledWith(
         {
           name: 'my_file.zip',
@@ -234,15 +232,14 @@ describe('ContentMigrationForm', () => {
           ignoreResult: true,
           onProgress: expect.any(Function),
         },
-      )
-
-      // The setMigrations function should have been called once
-      expect(setMigrationsMock).toHaveBeenCalledTimes(1)
-      const setterFunction = setMigrationsMock.mock.calls[0][0]
-      const result = setterFunction([])
-      expect(result[0].attachment.display_name).toBe(attachment.display_name)
-      expect(result[0].attachment.url).toBe(attachment.url)
-    })
+      ),
+    )
+    // The setMigrations function should have been called once
+    expect(setMigrationsMock).toHaveBeenCalledTimes(1)
+    const setterFunction = setMigrationsMock.mock.calls[0][0]
+    const result = setterFunction([])
+    expect(result[0].attachment.display_name).toBe(attachment.display_name)
+    expect(result[0].attachment.url).toBe(attachment.url)
   })
 
   it('calls setMigrations when submitting', async () => {

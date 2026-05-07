@@ -304,21 +304,17 @@ describe('RecentGradesWidget', () => {
   it('displays list of recent grades', async () => {
     setup()
 
-    await waitFor(() => {
-      expect(screen.getByTestId('recent-grades-list')).toBeInTheDocument()
-      expect(screen.getByText('Introduction to React Hooks')).toBeInTheDocument()
-      expect(screen.getByText('Data Structures Quiz')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByTestId('recent-grades-list')).toBeInTheDocument())
+    expect(screen.getByText('Introduction to React Hooks')).toBeInTheDocument()
+    expect(screen.getByText('Data Structures Quiz')).toBeInTheDocument()
   })
 
   it('displays grade items with correct information', async () => {
     setup()
 
-    await waitFor(() => {
-      expect(screen.getByText('Introduction to React Hooks')).toBeInTheDocument()
-      expect(screen.getByTestId('grade-status-badge-sub1')).toBeInTheDocument()
-      expect(screen.getByTestId('grade-status-badge-sub1')).toHaveTextContent('Graded')
-    })
+    await waitFor(() => expect(screen.getByText('Introduction to React Hooks')).toBeInTheDocument())
+    expect(screen.getByTestId('grade-status-badge-sub1')).toBeInTheDocument()
+    expect(screen.getByTestId('grade-status-badge-sub1')).toHaveTextContent('Graded')
   })
 
   it('displays pagination controls', async () => {
@@ -366,10 +362,10 @@ describe('RecentGradesWidget', () => {
     const select = screen.getByTestId('course-filter-select')
     await userEvent.click(select)
 
-    await waitFor(() => {
-      expect(screen.getAllByText('Advanced Web Development').length).toBeGreaterThan(0)
-      expect(screen.getAllByText('Computer Science 101').length).toBeGreaterThan(0)
-    })
+    await waitFor(() =>
+      expect(screen.getAllByText('Advanced Web Development').length).toBeGreaterThan(0),
+    )
+    expect(screen.getAllByText('Computer Science 101').length).toBeGreaterThan(0)
   })
 
   it('filters grades by course when course is selected', async () => {
@@ -623,10 +619,8 @@ describe('RecentGradesWidget', () => {
 
     setup()
 
-    await waitFor(() => {
-      expect(screen.getByText('Ungraded Assignment')).toBeInTheDocument()
-      expect(screen.getByTestId('grade-status-badge-sub-ungraded')).toHaveTextContent('Not graded')
-    })
+    await waitFor(() => expect(screen.getByText('Ungraded Assignment')).toBeInTheDocument())
+    expect(screen.getByTestId('grade-status-badge-sub-ungraded')).toHaveTextContent('Not graded')
 
     expect(screen.getByTestId('expand-grade-sub-ungraded')).toBeInTheDocument()
   })
@@ -653,12 +647,9 @@ describe('RecentGradesWidget', () => {
   it('provides accessible labels for each grade item group', async () => {
     setup()
 
-    await waitFor(() => {
-      const reactHooksGroup = screen.getByRole('group', {name: 'Introduction to React Hooks'})
-      expect(reactHooksGroup).toBeInTheDocument()
-
-      const quizGroup = screen.getByRole('group', {name: 'Data Structures Quiz'})
-      expect(quizGroup).toBeInTheDocument()
-    })
+    await waitFor(() =>
+      expect(screen.getByRole('group', {name: 'Introduction to React Hooks'})).toBeInTheDocument(),
+    )
+    expect(screen.getByRole('group', {name: 'Data Structures Quiz'})).toBeInTheDocument()
   })
 })

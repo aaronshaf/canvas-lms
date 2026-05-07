@@ -169,12 +169,11 @@ describe('AssetProcessorsAddModal', () => {
       expect(iframe.style.width).toBe(selection_width + 'px')
       expect(iframe.style.height).toBe(selection_height + 'px')
 
-      await waitFor(() => {
-        const closeButton = document.querySelector(
-          '[data-pendo="asset-processors-add-modal-close-button"]',
-        )
-        expect(closeButton).toBeTruthy()
-        expect(document.activeElement).toBe(closeButton)
+      const closeButton = await waitFor(() => {
+        const btn = document.querySelector('[data-pendo="asset-processors-add-modal-close-button"]')
+        expect(btn).toBeTruthy()
+        expect(document.activeElement).toBe(btn)
+        return btn
       })
     })
 
@@ -335,12 +334,11 @@ describe('AssetProcessorsAddModal', () => {
         expect(getByTitle('Configure new document processing app')).toBeInTheDocument()
       })
 
-      await waitFor(() => {
-        const closeButton = document.querySelector(
-          '[data-pendo="asset-processors-add-modal-close-button"]',
-        )
-        expect(closeButton).toBeTruthy()
-        expect(document.activeElement).toBe(closeButton)
+      const closeButton1 = await waitFor(() => {
+        const btn = document.querySelector('[data-pendo="asset-processors-add-modal-close-button"]')
+        expect(btn).toBeTruthy()
+        expect(document.activeElement).toBe(btn)
+        return btn
       })
     })
 
@@ -368,12 +366,11 @@ describe('AssetProcessorsAddModal', () => {
         expect(getByTitle('Configure new document processing app')).toBeInTheDocument()
       })
 
-      await waitFor(() => {
-        const closeButton = document.querySelector(
-          '[data-pendo="asset-processors-add-modal-close-button"]',
-        )
-        expect(closeButton).toBeTruthy()
-        expect(document.activeElement).toBe(closeButton)
+      const closeButton2 = await waitFor(() => {
+        const btn = document.querySelector('[data-pendo="asset-processors-add-modal-close-button"]')
+        expect(btn).toBeTruthy()
+        expect(document.activeElement).toBe(btn)
+        return btn
       })
     })
 

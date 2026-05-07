@@ -141,29 +141,28 @@ describe('<CustomHelpLinkForm/>', () => {
     fireEvent.change(featureHeadline, {target: {value: 'New Feature Headline'}})
     fireEvent.click(submitButton)
 
-    await waitFor(() => {
-      const [event] = submitSpy.mock.calls[0]
-      const elements = event.target.elements
-      expect(elements['account[custom_help_links][0][state]'].value).toBe('active')
-      expect(elements['account[custom_help_links][0][text]'].value).toBe('New Link Name')
-      expect(elements['account[custom_help_links][0][subtext]'].value).toBe('New Link Description')
-      const availableTo = Array.from(elements['account[custom_help_links][0][available_to][]'])
-        .filter(el => el.name && el.checked)
-        .map(el => ({
-          [el.name]: el.value,
-        }))
-      expect(availableTo).toEqual(
-        expect.arrayContaining([
-          {['account[custom_help_links][0][available_to][]']: 'student'},
-          {['account[custom_help_links][0][available_to][]']: 'teacher'},
-        ]),
-      )
-      expect(elements['account[custom_help_links][0][is_featured]'].checked).toBe(true)
-      expect(elements['account[custom_help_links][0][is_new]'].checked).toBe(false)
-      expect(elements['account[custom_help_links][0][feature_headline]'].value).toBe(
-        'New Feature Headline',
-      )
-      expect(elements['account[custom_help_links][0][type]'].value).toBe('default')
-    })
+    await waitFor(() => expect(submitSpy.mock.calls).toHaveLength(1))
+    const [event] = submitSpy.mock.calls[0]
+    const elements = event.target.elements
+    expect(elements['account[custom_help_links][0][state]'].value).toBe('active')
+    expect(elements['account[custom_help_links][0][text]'].value).toBe('New Link Name')
+    expect(elements['account[custom_help_links][0][subtext]'].value).toBe('New Link Description')
+    const availableTo = Array.from(elements['account[custom_help_links][0][available_to][]'])
+      .filter(el => el.name && el.checked)
+      .map(el => ({
+        [el.name]: el.value,
+      }))
+    expect(availableTo).toEqual(
+      expect.arrayContaining([
+        {['account[custom_help_links][0][available_to][]']: 'student'},
+        {['account[custom_help_links][0][available_to][]']: 'teacher'},
+      ]),
+    )
+    expect(elements['account[custom_help_links][0][is_featured]'].checked).toBe(true)
+    expect(elements['account[custom_help_links][0][is_new]'].checked).toBe(false)
+    expect(elements['account[custom_help_links][0][feature_headline]'].value).toBe(
+      'New Feature Headline',
+    )
+    expect(elements['account[custom_help_links][0][type]'].value).toBe('default')
   })
 })

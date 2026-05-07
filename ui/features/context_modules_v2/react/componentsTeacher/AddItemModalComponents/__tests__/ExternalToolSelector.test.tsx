@@ -177,9 +177,10 @@ describe('ExternalToolSelector', () => {
       const options = screen.getAllByRole('option')
       // First option should be "Select a tool", then tools in alphabetical order
       expect(options[1]).toHaveTextContent('Google Docs')
-      expect(options[2]).toHaveTextContent('Khan Academy')
-      expect(options[3]).toHaveTextContent('YouTube')
     })
+    const options = screen.getAllByRole('option')
+    expect(options[2]).toHaveTextContent('Khan Academy')
+    expect(options[3]).toHaveTextContent('YouTube')
   })
 
   it('handles tool selection through dropdown', async () => {
@@ -204,10 +205,8 @@ describe('ExternalToolSelector', () => {
     const selectInput = screen.getByRole('combobox', {name: /select external tool/i})
     await user.click(selectInput)
 
-    await waitFor(() => {
-      expect(screen.getByText('Google Docs')).toBeInTheDocument()
-      expect(screen.getByText('YouTube')).toBeInTheDocument()
-      expect(screen.getByText('Khan Academy')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Google Docs')).toBeInTheDocument())
+    expect(screen.getByText('YouTube')).toBeInTheDocument()
+    expect(screen.getByText('Khan Academy')).toBeInTheDocument()
   })
 })

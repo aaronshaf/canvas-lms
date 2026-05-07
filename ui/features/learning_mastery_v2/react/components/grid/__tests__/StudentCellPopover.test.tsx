@@ -435,10 +435,8 @@ describe('StudentCellPopover', () => {
       await user.click(screen.getByText('Message'))
 
       // Message modal should open
-      await waitFor(() => {
-        expect(screen.getByTestId('message-students-modal')).toBeInTheDocument()
-        expect(screen.getByText('Compose Message')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByTestId('message-students-modal')).toBeInTheDocument())
+      expect(screen.getByText('Compose Message')).toBeInTheDocument()
     })
 
     it('message modal can be closed', async () => {

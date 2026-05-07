@@ -284,12 +284,10 @@ describe('CreateTicketForm', () => {
       await userEvent.click(getByText('Just a casual question, comment, idea, or suggestion'))
       await userEvent.click(getByTestId('submit-button'))
       // disabled check
-      await waitFor(() => {
-        expect(getByTestId('subject-input')).toBeDisabled()
-        expect(getByTestId('description-input')).toBeDisabled()
-        expect(getByTestId('severity-select')).toBeDisabled()
-        expect(getByTestId('submit-button')).toBeDisabled()
-      })
+      await waitFor(() => expect(getByTestId('subject-input')).toBeDisabled())
+      expect(getByTestId('description-input')).toBeDisabled()
+      expect(getByTestId('severity-select')).toBeDisabled()
+      expect(getByTestId('submit-button')).toBeDisabled()
       // ensure fields are re-enabled after submission
       await waitFor(() => {
         expect(getByTestId('submit-button')).not.toBeDisabled()

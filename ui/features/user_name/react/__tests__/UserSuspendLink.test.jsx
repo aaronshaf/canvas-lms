@@ -157,10 +157,8 @@ describe('UserSuspendLink::', () => {
       fireEvent.click(button)
       button = await findByTestId('action-button')
       fireEvent.click(button)
-      await vi.waitFor(() => {
-        expect(capturedRequests).toHaveLength(1)
-        expect(capturedRequests[0]).toEqual({user: {event: 'suspend'}})
-      })
+      await vi.waitFor(() => expect(capturedRequests).toHaveLength(1))
+      expect(capturedRequests[0]).toEqual({user: {event: 'suspend'}})
     })
 
     it('makes the proper call for reactivating', async () => {
@@ -169,10 +167,8 @@ describe('UserSuspendLink::', () => {
       fireEvent.click(button)
       button = await findByTestId('action-button')
       fireEvent.click(button)
-      await vi.waitFor(() => {
-        expect(capturedRequests).toHaveLength(1)
-        expect(capturedRequests[0]).toEqual({user: {event: 'unsuspend'}})
-      })
+      await vi.waitFor(() => expect(capturedRequests).toHaveLength(1))
+      expect(capturedRequests[0]).toEqual({user: {event: 'unsuspend'}})
     })
   })
 })

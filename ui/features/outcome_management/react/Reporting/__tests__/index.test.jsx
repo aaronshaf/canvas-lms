@@ -148,11 +148,9 @@ describe('Reporting', () => {
 
     renderReporting()
 
-    await waitFor(() => {
-      expect(screen.getByText('3.5')).toBeInTheDocument()
-      // Use getAllByText since "Mastery" appears multiple times (screen readers + visible)
-      expect(screen.getAllByText('Mastery').length).toBeGreaterThan(0)
-    })
+    await waitFor(() => expect(screen.getByText('3.5')).toBeInTheDocument())
+    // Use getAllByText since "Mastery" appears multiple times (screen readers + visible)
+    expect(screen.getAllByText('Mastery').length).toBeGreaterThan(0)
   })
 
   it('renders StudentMasteryHeader with buckets', async () => {
@@ -164,10 +162,8 @@ describe('Reporting', () => {
 
     renderReporting()
 
-    await waitFor(() => {
-      expect(screen.getByText('2')).toBeInTheDocument() // No Evidence count
-      expect(screen.getByText('5')).toBeInTheDocument() // Mastery count
-    })
+    await waitFor(() => expect(screen.getByText('2')).toBeInTheDocument()) // No Evidence count
+    expect(screen.getByText('5')).toBeInTheDocument() // Mastery count
   })
 
   it('does not render StudentMasteryHeader when student not found', async () => {

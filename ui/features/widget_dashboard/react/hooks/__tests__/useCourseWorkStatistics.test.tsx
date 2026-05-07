@@ -273,10 +273,8 @@ describe('useCourseWorkStatistics', () => {
 
     const {result, cleanup} = setup()
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false)
-      expect(callCount).toBe(1)
-    })
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(callCount).toBe(1)
 
     // Trigger refetch
     result.current.refetch()

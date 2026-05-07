@@ -125,18 +125,18 @@ describe('ContextModulesPublishIcon', () => {
     await user.click(publishButton)
 
     // Verify updateModuleItem was called for each module item during publishing
-    await waitFor(() => {
+    await waitFor(() =>
       expect(updateModuleItem).toHaveBeenCalledWith(
         expect.objectContaining({assignment_117: expect.any(Object)}),
         expect.any(Object),
         expect.any(Object),
-      )
-      expect(updateModuleItem).toHaveBeenCalledWith(
-        expect.objectContaining({assignment_119: expect.any(Object)}),
-        expect.any(Object),
-        expect.any(Object),
-      )
-    })
+      ),
+    )
+    expect(updateModuleItem).toHaveBeenCalledWith(
+      expect.objectContaining({assignment_119: expect.any(Object)}),
+      expect.any(Object),
+      expect.any(Object),
+    )
   })
 
   it('calls updateModuleItem when unpublishing', async () => {
@@ -154,18 +154,18 @@ describe('ContextModulesPublishIcon', () => {
     await user.click(unpublishButton)
 
     // Verify updateModuleItem was called for each module item during unpublishing
-    await waitFor(() => {
+    await waitFor(() =>
       expect(updateModuleItem).toHaveBeenCalledWith(
         expect.objectContaining({assignment_117: expect.any(Object)}),
         expect.any(Object),
         expect.any(Object),
-      )
-      expect(updateModuleItem).toHaveBeenCalledWith(
-        expect.objectContaining({assignment_119: expect.any(Object)}),
-        expect.any(Object),
-        expect.any(Object),
-      )
-    })
+      ),
+    )
+    expect(updateModuleItem).toHaveBeenCalledWith(
+      expect.objectContaining({assignment_119: expect.any(Object)}),
+      expect.any(Object),
+      expect.any(Object),
+    )
   })
 
   it('disables the Publish All menu button when publishing or unpublishing', async () => {

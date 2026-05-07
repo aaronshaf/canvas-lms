@@ -660,13 +660,10 @@ describe('<ClosedCaptionPanelV2 />', () => {
 
       // Wait for upload failure — the upload path involves FileReader +
       // nested promises + axios, so give it extra time under CI load.
-      await waitFor(
-        () => {
-          expect(screen.getByText('Upload failed')).toBeInTheDocument()
-          expect(screen.getByText('Retry German')).toBeInTheDocument()
-        },
-        {timeout: 10000},
-      )
+      await waitFor(() => expect(screen.getByText('Upload failed')).toBeInTheDocument(), {
+        timeout: 10000,
+      })
+      expect(screen.getByText('Retry German')).toBeInTheDocument()
 
       // Phase 2: switch to success handler before retrying
       server.use(
@@ -1087,9 +1084,7 @@ describe('<ClosedCaptionPanelV2 />', () => {
     rerender(<ClosedCaptionPanelV2 {...props} subtitles={newSubtitles} />)
 
     // Should now show both captions
-    await waitFor(() => {
-      expect(screen.getByText('English')).toBeInTheDocument()
-      expect(screen.getByText('Spanish')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('English')).toBeInTheDocument())
+    expect(screen.getByText('Spanish')).toBeInTheDocument()
   })
 })

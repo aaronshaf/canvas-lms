@@ -424,10 +424,10 @@ describe('ContextModulesPublishMenu', () => {
           stopButton.click()
         })
 
-        await waitFor(() => {
-          expect(mockBatchUpdateAllModulesApiCall).toHaveBeenCalledWith('1', true, false)
-          expect(mockMonitorProgress).toHaveBeenCalled()
-        })
+        await waitFor(() =>
+          expect(mockBatchUpdateAllModulesApiCall).toHaveBeenCalledWith('1', true, false),
+        )
+        expect(mockMonitorProgress).toHaveBeenCalled()
       })
     })
 
@@ -474,11 +474,11 @@ describe('ContextModulesPublishMenu', () => {
           continueButton.click()
         })
 
-        await waitFor(() => {
-          expect(mockBatchUpdateAllModulesApiCall).toHaveBeenCalledWith('1', true, false)
-          expect(mockFetchAllItemPublishedStates).toHaveBeenCalled()
-          expect(mockMonitorProgress).toHaveBeenCalled()
-        })
+        await waitFor(() =>
+          expect(mockBatchUpdateAllModulesApiCall).toHaveBeenCalledWith('1', true, false),
+        )
+        expect(mockFetchAllItemPublishedStates).toHaveBeenCalled()
+        expect(mockMonitorProgress).toHaveBeenCalled()
       })
 
       it('shows alert on failed publish', async () => {
@@ -552,10 +552,8 @@ describe('ContextModulesPublishMenu', () => {
           continueButton.click()
         })
 
-        await waitFor(() => {
-          expect(mockMonitorProgress).toHaveBeenCalled()
-          expect(mockFetchAllItemPublishedStates).toHaveBeenCalled()
-        })
+        await waitFor(() => expect(mockMonitorProgress).toHaveBeenCalled())
+        expect(mockFetchAllItemPublishedStates).toHaveBeenCalled()
       })
 
       it('shows alert when failing to update results', async () => {

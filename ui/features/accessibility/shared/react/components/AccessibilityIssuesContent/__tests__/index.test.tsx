@@ -220,13 +220,13 @@ describe('AccessibilityWizard', () => {
 
       fireEvent.click(skipButton)
 
-      await waitFor(() => {
-        expect(screen.getByText(/outstanding issues remaining/i)).toBeInTheDocument()
-        expect(screen.getByRole('button', {name: /close remediation/i})).toBeInTheDocument()
-        expect(
-          screen.getByRole('heading', {name: /outstanding issues remaining/i, level: 3}),
-        ).toBeInTheDocument()
-      })
+      await waitFor(() =>
+        expect(screen.getByText(/outstanding issues remaining/i)).toBeInTheDocument(),
+      )
+      expect(screen.getByRole('button', {name: /close remediation/i})).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', {name: /outstanding issues remaining/i, level: 3}),
+      ).toBeInTheDocument()
     })
 
     it('navigates back to first issue from CloseRemediationView', async () => {
@@ -465,12 +465,10 @@ describe('AccessibilityWizard', () => {
 
     await userEvent.click(saveAndNext)
 
-    await waitFor(() => {
-      expect(mockSetSelectedScan).toHaveBeenCalled()
-      const calls = mockSetSelectedScan.mock.calls
-      const updatedScan = calls[calls.length - 1][0]
-      expect(updatedScan.issues).toHaveLength(1)
-    })
+    await waitFor(() => expect(mockSetSelectedScan).toHaveBeenCalled())
+    const calls = mockSetSelectedScan.mock.calls
+    const updatedScan = calls[calls.length - 1][0]
+    expect(updatedScan.issues).toHaveLength(1)
   })
 
   it('renders Open Page and Edit Page links', async () => {
@@ -850,10 +848,8 @@ describe('AccessibilityWizard', () => {
       await userEvent.click(closeButton)
 
       // onClose should be called immediately
-      await waitFor(() => {
-        expect(mockSetSelectedScan).toHaveBeenCalledWith(null)
-        expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
-      })
+      await waitFor(() => expect(mockSetSelectedScan).toHaveBeenCalledWith(null))
+      expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
 
       // Modal should NOT appear
       expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument()
@@ -885,10 +881,8 @@ describe('AccessibilityWizard', () => {
       await userEvent.click(saveButton)
 
       // Verify close was called after save
-      await waitFor(() => {
-        expect(mockSetSelectedScan).toHaveBeenCalledWith(null)
-        expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
-      })
+      await waitFor(() => expect(mockSetSelectedScan).toHaveBeenCalledWith(null))
+      expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
     })
 
     it('closes immediately when modal cancel clicked', async () => {
@@ -917,10 +911,8 @@ describe('AccessibilityWizard', () => {
       await userEvent.click(cancelButton)
 
       // Verify close was called without saving
-      await waitFor(() => {
-        expect(mockSetSelectedScan).toHaveBeenCalledWith(null)
-        expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
-      })
+      await waitFor(() => expect(mockSetSelectedScan).toHaveBeenCalledWith(null))
+      expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
     })
 
     it('does not show modal when feature flag is disabled', async () => {
@@ -942,10 +934,8 @@ describe('AccessibilityWizard', () => {
       await userEvent.click(closeButton)
 
       // onClose should be called immediately, no modal
-      await waitFor(() => {
-        expect(mockSetSelectedScan).toHaveBeenCalledWith(null)
-        expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
-      })
+      await waitFor(() => expect(mockSetSelectedScan).toHaveBeenCalledWith(null))
+      expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
       expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument()
     })
 
@@ -994,10 +984,8 @@ describe('AccessibilityWizard', () => {
       await userEvent.click(dontSaveButton)
 
       // Verify tray closed
-      await waitFor(() => {
-        expect(mockSetSelectedScan).toHaveBeenCalledWith(null)
-        expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
-      })
+      await waitFor(() => expect(mockSetSelectedScan).toHaveBeenCalledWith(null))
+      expect(mockSetIsTrayOpen).toHaveBeenCalledWith(false)
     })
 
     describe('Skip button with unsaved changes', () => {

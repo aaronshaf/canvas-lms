@@ -184,10 +184,8 @@ describe('DialogFormView', () => {
       expect(view.$el.css('display')).not.toBe('none')
     })
     closeDialog()
-    await waitFor(() => {
-      expect($dialog.css('display')).toBe('none')
-      expect(view.$el.css('display')).toBe('none')
-    })
+    await waitFor(() => expect($dialog.css('display')).toBe('none'))
+    expect(view.$el.css('display')).toBe('none')
   })
 
   it('submits the form', async () => {

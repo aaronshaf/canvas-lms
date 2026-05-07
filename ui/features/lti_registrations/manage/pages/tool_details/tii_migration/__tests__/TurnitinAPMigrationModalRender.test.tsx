@@ -206,12 +206,10 @@ describe('TurnitinAPMigrationModal Render', () => {
 
     render(<TurnitinAPMigrationModal {...defaultProps} />, {wrapper: createWrapper()})
 
-    await waitFor(() => {
-      expect(screen.getByText('Business School')).toBeInTheDocument()
-      expect(screen.getByText('Engineering Department')).toBeInTheDocument()
-      expect(screen.getByText('Sub Account 3')).toBeInTheDocument()
-      expect(screen.getByText('Failed Migration Account')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Business School')).toBeInTheDocument())
+    expect(screen.getByText('Engineering Department')).toBeInTheDocument()
+    expect(screen.getByText('Sub Account 3')).toBeInTheDocument()
+    expect(screen.getByText('Failed Migration Account')).toBeInTheDocument()
 
     // Verify account links open in new tab with correct href
     const businessSchoolLink = screen.getByRole('link', {name: 'Business School'})

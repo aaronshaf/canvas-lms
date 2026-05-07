@@ -54,27 +54,29 @@ const migration = {
 
 const queuedMigration = {
   ...migration,
-  ...{progress_url: 'https://mock.progress.url', workflow_state: 'queued'},
+  progress_url: 'https://mock.progress.url',
+  workflow_state: 'queued',
 }
 
 const runningMigration = {
   ...migration,
-  ...{progress_url: 'https://mock.progress.url', workflow_state: 'running'},
+  progress_url: 'https://mock.progress.url',
+  workflow_state: 'running',
 }
 
 const completedMigration = {
   ...migration,
-  ...{workflow_state: 'completed'},
+  workflow_state: 'completed',
 }
 
 const failedMigration = {
   ...migration,
-  ...{workflow_state: 'failed'},
+  workflow_state: 'failed',
 }
 
 const waitingForSelectMigration = {
   ...migration,
-  ...{workflow_state: 'waiting_for_select'},
+  workflow_state: 'waiting_for_select',
 }
 
 const progressHit = {method: 'GET', path: 'https://mock.progress.url'}
@@ -275,11 +277,9 @@ describe('MigrationRow', () => {
             ),
           )
           renderComponent({migration: queuedMigration, updateMigrationItem: mockCallback})
-          await waitFor(() => {
-            expect(mockCallback).toHaveBeenCalled()
-            // Progress workflow_state should be rendered
-            expect(screen.getByText('Failed')).toBeInTheDocument()
-          })
+          await waitFor(() => expect(mockCallback).toHaveBeenCalled())
+          // Progress workflow_state should be rendered
+          expect(screen.getByText('Failed')).toBeInTheDocument()
         })
       })
 
@@ -297,11 +297,9 @@ describe('MigrationRow', () => {
           )
           // The initial status
           renderComponent({migration: queuedMigration, updateMigrationItem: mockCallback})
-          await waitFor(() => {
-            expect(mockCallback).toHaveBeenCalled()
-            // The initial status should stay
-            expect(screen.getByText('Queued')).toBeInTheDocument()
-          })
+          await waitFor(() => expect(mockCallback).toHaveBeenCalled())
+          // The initial status should stay
+          expect(screen.getByText('Queued')).toBeInTheDocument()
         })
       })
     })

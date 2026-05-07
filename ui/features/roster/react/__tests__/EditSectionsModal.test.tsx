@@ -105,10 +105,8 @@ describe('EditSectionsModal', () => {
 
     fireEvent.click(getByText('Save'))
 
-    await waitFor(() => {
-      expect(defaultProps.onUpdate).toHaveBeenCalledWith(mockSections)
-      expect(defaultProps.onClose).toHaveBeenCalled()
-    })
+    await waitFor(() => expect(defaultProps.onUpdate).toHaveBeenCalledWith(mockSections))
+    expect(defaultProps.onClose).toHaveBeenCalled()
   })
 
   it('shows error flash message when update fails', async () => {

@@ -332,10 +332,8 @@ describe('CreateEditAllocationRuleModal', () => {
 
       await user.click(saveButton)
 
-      await waitFor(() => {
-        expect(screen.getByText('Reviewer is required')).toBeInTheDocument()
-        expect(screen.getByText('Recipient is required')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Reviewer is required')).toBeInTheDocument())
+      expect(screen.getByText('Recipient is required')).toBeInTheDocument()
     })
 
     it('validates additional subject fields', async () => {
@@ -521,11 +519,9 @@ describe('CreateEditAllocationRuleModal', () => {
       await user.click(addButton)
       await user.click(addButton)
 
-      await waitFor(() => {
-        expect(screen.getAllByText('Recipient Name')).toHaveLength(3)
-        expect(screen.getByTestId('delete-additional-subject-field-1-button')).toBeInTheDocument()
-        expect(screen.getByTestId('delete-additional-subject-field-2-button')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getAllByText('Recipient Name')).toHaveLength(3))
+      expect(screen.getByTestId('delete-additional-subject-field-1-button')).toBeInTheDocument()
+      expect(screen.getByTestId('delete-additional-subject-field-2-button')).toBeInTheDocument()
 
       const reciprocalRadio = screen.getByTestId('target-type-reciprocal')
       await user.click(reciprocalRadio)
@@ -545,10 +541,8 @@ describe('CreateEditAllocationRuleModal', () => {
       const reviewerRadio = screen.getByTestId('target-type-reviewer')
       await user.click(reviewerRadio)
 
-      await waitFor(() => {
-        expect(screen.getByTestId('add-subject-button')).toBeInTheDocument()
-        expect(screen.getAllByText('Recipient Name')).toHaveLength(1)
-      })
+      await waitFor(() => expect(screen.getByTestId('add-subject-button')).toBeInTheDocument())
+      expect(screen.getAllByText('Recipient Name')).toHaveLength(1)
     })
   })
 

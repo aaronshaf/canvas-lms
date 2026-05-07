@@ -441,10 +441,8 @@ describe('CrosslistForm', () => {
       await userEvent.type(searchInput, 'Bio')
 
       // Wait for debounce (500ms) + API call + render
-      await waitFor(() => {
-        expect(getByText('Biology 101')).toBeInTheDocument()
-        expect(getByText(/SIS ID: 2718281828.*Term: Spring 2026/)).toBeInTheDocument()
-      })
+      await waitFor(() => expect(getByText('Biology 101')).toBeInTheDocument())
+      expect(getByText(/SIS ID: 2718281828.*Term: Spring 2026/)).toBeInTheDocument()
     })
 
     it('displays course options without SIS ID', async () => {
@@ -595,10 +593,8 @@ describe('CrosslistForm', () => {
 
       await userEvent.click(getByText('Aviation 130'))
 
-      await waitFor(() => {
-        expect(getByTestId('selected-course-display')).toBeInTheDocument()
-        expect(getByTestId('selected-course-name')).toHaveTextContent('Aviation 130')
-      })
+      await waitFor(() => expect(getByTestId('selected-course-display')).toBeInTheDocument())
+      expect(getByTestId('selected-course-name')).toHaveTextContent('Aviation 130')
     })
 
     it('displays error message in search field when confirmation fails', async () => {
@@ -702,10 +698,8 @@ describe('CrosslistForm', () => {
       await userEvent.type(courseIdInput, '123')
       await userEvent.tab() // Blur the input
 
-      await waitFor(() => {
-        expect(getByTestId('selected-course-display')).toBeInTheDocument()
-        expect(getByTestId('selected-course-name')).toHaveTextContent('Test Course')
-      })
+      await waitFor(() => expect(getByTestId('selected-course-display')).toBeInTheDocument())
+      expect(getByTestId('selected-course-name')).toHaveTextContent('Test Course')
     })
 
     it('triggers confirmation when user presses Enter', async () => {
@@ -726,10 +720,8 @@ describe('CrosslistForm', () => {
       await userEvent.type(courseIdInput, '123')
       await userEvent.keyboard('{Enter}')
 
-      await waitFor(() => {
-        expect(getByTestId('selected-course-display')).toBeInTheDocument()
-        expect(getByTestId('selected-course-name')).toHaveTextContent('Test Course')
-      })
+      await waitFor(() => expect(getByTestId('selected-course-display')).toBeInTheDocument())
+      expect(getByTestId('selected-course-name')).toHaveTextContent('Test Course')
     })
 
     it('does not trigger confirmation for empty input', async () => {
@@ -969,10 +961,8 @@ describe('CrosslistForm', () => {
       await userEvent.type(courseIdInput, '123')
       await userEvent.tab()
 
-      await waitFor(() => {
-        expect(getByTestId('selected-course-display')).toBeInTheDocument()
-        expect(getByTestId('selected-course-name')).toHaveTextContent('Advanced Mathematics')
-      })
+      await waitFor(() => expect(getByTestId('selected-course-display')).toBeInTheDocument())
+      expect(getByTestId('selected-course-name')).toHaveTextContent('Advanced Mathematics')
     })
 
     it('displays SIS ID when available', async () => {
@@ -1226,12 +1216,8 @@ describe('CrosslistForm', () => {
       await userEvent.click(getByTestId('crosslist-submit-button'))
 
       // Should show error in selected course area
-      await waitFor(() => {
-        expect(getByTestId('selected-course-display')).toBeInTheDocument()
-        expect(
-          getByText('Please select and confirm a course before submitting.'),
-        ).toBeInTheDocument()
-      })
+      await waitFor(() => expect(getByTestId('selected-course-display')).toBeInTheDocument())
+      expect(getByText('Please select and confirm a course before submitting.')).toBeInTheDocument()
     })
 
     it('clears submission error when course is selected', async () => {

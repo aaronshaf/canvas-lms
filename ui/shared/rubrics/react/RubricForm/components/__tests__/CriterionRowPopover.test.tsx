@@ -45,10 +45,8 @@ describe('CriterionRowPopover', () => {
 
     await user.click(getByTestId('criterion-options-popover'))
 
-    await waitFor(() => {
-      expect(queryByTestId('move-up-criterion-menu-item')).toBeInTheDocument()
-      expect(queryByTestId('move-down-criterion-menu-item')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(queryByTestId('move-up-criterion-menu-item')).toBeInTheDocument())
+    expect(queryByTestId('move-down-criterion-menu-item')).toBeInTheDocument()
   })
 
   it('calls onMoveUp when Move Up is clicked', async () => {

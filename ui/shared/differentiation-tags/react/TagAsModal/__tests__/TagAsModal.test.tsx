@@ -192,10 +192,10 @@ describe('TagAsModal', () => {
       await user.click(await screen.findByRole('option', {name: 'Honors'}))
       await user.click(screen.getByTestId('submit-button'))
 
-      await waitFor(() => {
-        expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(101) // group id
-        expect(apiCalled).toBe(false)
-      })
+      await waitFor(
+        () => expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(101), // group id
+      )
+      expect(apiCalled).toBe(false)
     })
 
     it('calls onCreationSuccess with a multi-variant group ID without an API call', async () => {
@@ -212,10 +212,10 @@ describe('TagAsModal', () => {
       await user.click(await screen.findByRole('option', {name: 'Variant A'}))
       await user.click(screen.getByTestId('submit-button'))
 
-      await waitFor(() => {
-        expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(201) // Variant A group id
-        expect(apiCalled).toBe(false)
-      })
+      await waitFor(
+        () => expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(201), // Variant A group id
+      )
+      expect(apiCalled).toBe(false)
     })
 
     it('shows validation error when no tag is selected', async () => {
@@ -242,19 +242,15 @@ describe('TagAsModal', () => {
     it('shows validation errors when fields are empty', async () => {
       renderComponent({categories: []})
       await user.click(screen.getByTestId('submit-button'))
-      await waitFor(() => {
-        expect(screen.getByText('Variant name is required')).toBeInTheDocument()
-        expect(screen.getByText('Tag Set Name is required')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Variant name is required')).toBeInTheDocument())
+      expect(screen.getByText('Tag Set Name is required')).toBeInTheDocument()
     })
 
     it('clears only the variant name error when user types in that field', async () => {
       renderComponent({categories: []})
       await user.click(screen.getByTestId('submit-button'))
-      await waitFor(() => {
-        expect(screen.getByText('Variant name is required')).toBeInTheDocument()
-        expect(screen.getByText('Tag Set Name is required')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Variant name is required')).toBeInTheDocument())
+      expect(screen.getByText('Tag Set Name is required')).toBeInTheDocument()
 
       await user.type(screen.getByTestId('variant-name-input'), 'x')
 
@@ -283,13 +279,11 @@ describe('TagAsModal', () => {
       })
       await user.click(screen.getByTestId('submit-button'))
 
-      await waitFor(() => {
-        expect(requestBody).toBeDefined()
-        expect(requestBody.group_category.name).toBe('Reading Levels')
-        expect(requestBody.group_category.id).toBeUndefined()
-        expect(requestBody.operations.create).toEqual([{name: 'Level 1'}])
-        expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(999)
-      })
+      await waitFor(() => expect(requestBody).toBeDefined())
+      expect(requestBody.group_category.name).toBe('Reading Levels')
+      expect(requestBody.group_category.id).toBeUndefined()
+      expect(requestBody.operations.create).toEqual([{name: 'Level 1'}])
+      expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(999)
     })
 
     it('shows a flash error and does not call onCreationSuccess when the API fails', async () => {
@@ -372,13 +366,11 @@ describe('TagAsModal', () => {
       fireEvent.change(screen.getByTestId('new-variant-name-input'), {target: {value: 'Variant D'}})
       await user.click(screen.getByTestId('submit-button'))
 
-      await waitFor(() => {
-        expect(requestBody).toBeDefined()
-        expect(requestBody.group_category.id).toBe(3)
-        expect(requestBody.group_category.name).toBeUndefined()
-        expect(requestBody.operations.create).toEqual([{name: 'Variant D'}])
-        expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(999)
-      })
+      await waitFor(() => expect(requestBody).toBeDefined())
+      expect(requestBody.group_category.id).toBe(3)
+      expect(requestBody.group_category.name).toBeUndefined()
+      expect(requestBody.operations.create).toEqual([{name: 'Variant D'}])
+      expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(999)
     })
   })
 
@@ -422,12 +414,10 @@ describe('TagAsModal', () => {
       fireEvent.change(screen.getByTestId('tag-name-input'), {target: {value: 'Honors'}})
       await user.click(screen.getByTestId('submit-button'))
 
-      await waitFor(() => {
-        expect(requestBody).toBeDefined()
-        expect(requestBody.group_category.name).toBe('Honors')
-        expect(requestBody.operations.create).toEqual([{name: 'Honors'}])
-        expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(999)
-      })
+      await waitFor(() => expect(requestBody).toBeDefined())
+      expect(requestBody.group_category.name).toBe('Honors')
+      expect(requestBody.operations.create).toEqual([{name: 'Honors'}])
+      expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(999)
     })
   })
 

@@ -129,10 +129,8 @@ describe('useManagedCourseSearchApi', () => {
       renderHook(() => useManagedCourseSearchApi())
 
       // Wait for the request
-      await waitFor(() => {
-        expect(requestCount).toBe(1)
-        expect(lastRequestUrl).toContain('/users/self/manageable_courses')
-      })
+      await waitFor(() => expect(requestCount).toBe(1))
+      expect(lastRequestUrl).toContain('/users/self/manageable_courses')
     })
   })
 

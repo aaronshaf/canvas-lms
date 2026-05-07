@@ -81,11 +81,9 @@ describe('CreateGroupView', () => {
     view.firstOpen()
 
     // Wait for the drop options to be rendered
-    await waitFor(() => {
-      // Check for the container elements which should always be present
-      expect(view.$('.ag_0_drop_lowest_container').length).toBeGreaterThan(0)
-      expect(view.$('.ag_0_drop_highest_container').length).toBeGreaterThan(0)
-    })
+    // Check for the container elements which should always be present
+    await waitFor(() => expect(view.$('.ag_0_drop_lowest_container').length).toBeGreaterThan(0))
+    expect(view.$('.ag_0_drop_highest_container').length).toBeGreaterThan(0)
 
     // Now reset the assignments to empty and verify drop options are hidden
     view.assignmentGroup.get('assignments').reset([])

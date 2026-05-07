@@ -164,10 +164,8 @@ describe('Preview', () => {
 
       render(<Preview {...defaultProps} />)
 
-      await waitFor(() => {
-        expect(capturedUrl).toContain('/preview')
-        expect(capturedUrl).toContain('issue_id=1')
-      })
+      await waitFor(() => expect(capturedUrl).toContain('/preview'))
+      expect(capturedUrl).toContain('issue_id=1')
     })
 
     it('handles API error gracefully and shows error alert', async () => {
@@ -358,10 +356,8 @@ describe('Preview', () => {
       const ref = React.createRef<PreviewHandle>()
       render(<Preview {...defaultProps} ref={ref} />)
 
-      await waitFor(() => {
-        expect(ref.current).toBeDefined()
-        expect(typeof ref.current?.update).toBe('function')
-      })
+      await waitFor(() => expect(ref.current).toBeDefined())
+      expect(typeof ref.current?.update).toBe('function')
     })
 
     it('calls update API with correct parameters', async () => {
@@ -549,10 +545,8 @@ describe('Preview', () => {
 
       render(<Preview {...defaultProps} itemType={ResourceType.WikiPage} />)
 
-      await waitFor(() => {
-        expect(capturedUrl).toContain('/preview')
-        expect(capturedUrl).toContain('issue_id=1')
-      })
+      await waitFor(() => expect(capturedUrl).toContain('/preview'))
+      expect(capturedUrl).toContain('issue_id=1')
     })
 
     it('handles attachment content type', async () => {
@@ -569,10 +563,8 @@ describe('Preview', () => {
 
       render(<Preview {...defaultProps} itemType={ResourceType.Attachment} />)
 
-      await waitFor(() => {
-        expect(capturedUrl).toContain('/preview')
-        expect(capturedUrl).toContain('issue_id=1')
-      })
+      await waitFor(() => expect(capturedUrl).toContain('/preview'))
+      expect(capturedUrl).toContain('issue_id=1')
     })
   })
 
@@ -589,13 +581,13 @@ describe('Preview', () => {
 
       render(<Preview {...defaultProps} />)
 
-      await waitFor(() => {
-        const container = screen.getByText('Test content').closest('#a11y-issue-preview')
-        expect(container).toBeInTheDocument()
-        expect(container).toHaveStyle({
-          height: '15rem',
-          overflowY: 'auto',
-        })
+      const container = await waitFor(() =>
+        screen.getByText('Test content').closest('#a11y-issue-preview'),
+      )
+      expect(container).toBeInTheDocument()
+      expect(container).toHaveStyle({
+        height: '15rem',
+        overflowY: 'auto',
       })
     })
   })

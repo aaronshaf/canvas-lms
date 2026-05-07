@@ -280,12 +280,10 @@ describe('EnhancedActionMenu', () => {
       act(() => {
         selectDropdownOption('Export Current Gradebook View')
       })
-      await waitFor(() => {
-        expect(spy).toHaveBeenCalled()
-        expect(spy.mock.calls[0][0]).toEqual(
-          'Gradebook export has started. This may take a few minutes.',
-        )
-      })
+      await waitFor(() => expect(spy).toHaveBeenCalled())
+      expect(spy.mock.calls[0][0]).toEqual(
+        'Gradebook export has started. This may take a few minutes.',
+      )
     })
 
     it('changes the "Export Current Gradebook View" and "Export Entire Gradebook" menu items to indicate the export is in progress', async () => {
@@ -297,11 +295,11 @@ describe('EnhancedActionMenu', () => {
       clickOnDropdown('Export')
       const specificMenuItems = component.getAllByRole('menuitem', {name: /Export in progress/})
       await waitFor(() => {
-        expect(specificMenuItems[0]).toBeInTheDocument()
-        expect(specificMenuItems[1]).toBeInTheDocument()
         expect(specificMenuItems[0]).toHaveAttribute('aria-disabled', 'true')
         expect(specificMenuItems[1]).toHaveAttribute('aria-disabled', 'true')
       })
+      expect(specificMenuItems[0]).toBeInTheDocument()
+      expect(specificMenuItems[1]).toBeInTheDocument()
     })
 
     it('starts the export using the GradebookExportManager instance', async () => {
@@ -396,14 +394,12 @@ describe('EnhancedActionMenu', () => {
       await waitFor(() => {
         clickOnDropdown('Export')
       })
-      await waitFor(() => {
-        expect(messageSpy).toHaveBeenCalled()
-        expect(messageSpy.mock.calls[0][0]).toEqual(
-          'Gradebook export has started. This may take a few minutes.',
-        )
-        expect(messageSpy.mock.calls[1][0]).toEqual('Gradebook export has completed')
-        expect(handleUpdateSpyTimeout).toHaveBeenCalled()
-      })
+      await waitFor(() => expect(messageSpy).toHaveBeenCalledTimes(2))
+      expect(messageSpy.mock.calls[0][0]).toEqual(
+        'Gradebook export has started. This may take a few minutes.',
+      )
+      expect(messageSpy.mock.calls[1][0]).toEqual('Gradebook export has completed')
+      expect(handleUpdateSpyTimeout).toHaveBeenCalled()
     })
 
     it.skip('on failure, shows a message to the user indicating the export failed', async () => {
@@ -416,12 +412,8 @@ describe('EnhancedActionMenu', () => {
       act(() => {
         selectDropdownOption('Export Current Gradebook View')
       })
-      await waitFor(() => {
-        expect(spy).toHaveBeenCalled()
-        expect(spy.mock.calls[0][0]).toEqual(
-          'Gradebook Export Failed: Error: Export failure reason',
-        )
-      })
+      await waitFor(() => expect(spy).toHaveBeenCalled())
+      expect(spy.mock.calls[0][0]).toEqual('Gradebook Export Failed: Error: Export failure reason')
     })
 
     it('on failure, renables the "Export Current Gradebook View" and "Export Entire Gradebook" menu items', async () => {

@@ -211,11 +211,9 @@ describe('K-5 Dashboard with dashboard_graphql_integration on', () => {
   describe('Homeroom Section', () => {
     it('shows the latest announcement for each subject course if one exists', async () => {
       render(<K5Dashboard {...defaultProps} />)
-      await waitFor(() => {
-        const announcementLink = screen.getByText("This sure isn't a homeroom")
-        expect(announcementLink).toBeInTheDocument()
-        expect(announcementLink.closest('a')).toHaveAttribute('href', '/courses/1/announcements/21')
-      })
+      const announcementLink = await waitFor(() => screen.getByText("This sure isn't a homeroom"))
+      expect(announcementLink).toBeInTheDocument()
+      expect(announcementLink.closest('a')).toHaveAttribute('href', '/courses/1/announcements/21')
     })
     it('shows loading skeletons for course cards while they load', () => {
       queryClient.clear()
@@ -257,11 +255,12 @@ describe('K-5 Dashboard with dashboard_graphql_integration on', () => {
           url => typeof url === 'string' && url.includes('announcements'),
         )
         expect(announcementCalls).toHaveLength(0)
-        const externalToolsCalls = requestLog.filter(
-          url => typeof url === 'string' && url.includes('external_tools/visible_course_nav_tools'),
-        )
-        expect(externalToolsCalls).toHaveLength(0)
       })
+      expect(
+        requestLog.filter(
+          url => typeof url === 'string' && url.includes('external_tools/visible_course_nav_tools'),
+        ),
+      ).toHaveLength(0)
     })
   })
   describe('Important Dates', () => {

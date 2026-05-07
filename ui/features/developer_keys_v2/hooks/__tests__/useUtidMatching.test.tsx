@@ -194,10 +194,8 @@ describe('useUtidMatching', () => {
     rerender({uris: 'https://example4.com'})
 
     // Wait for debounce to complete and request to finish
-    await waitFor(() => {
-      expect(requestCount).toBe(2)
-      expect(lastCapturedUrl).toContain('example4.com')
-    })
+    await waitFor(() => expect(requestCount).toBe(2))
+    expect(lastCapturedUrl).toContain('example4.com')
   })
 
   it('trims and filters empty lines from redirect URIs', async () => {

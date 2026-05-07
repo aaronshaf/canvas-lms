@@ -196,19 +196,17 @@ describe('Course paces actions', () => {
 
       vi.advanceTimersByTime(PUBLISH_STATUS_POLLING_MS)
 
-      await waitFor(() => {
-        expect(dispatch.mock.calls).toHaveLength(6)
-        expect(dispatch.mock.calls[1]).toEqual([uiActions.clearCategoryError('checkPublishStatus')])
-        expect(dispatch.mock.calls[2]).toEqual([coursePaceActions.setProgress(undefined)])
-        expect(dispatch.mock.calls[4]).toEqual([
-          coursePaceActions.coursePaceSaved(getState().coursePace),
-        ])
-        expect(showFlashAlert).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: `${contextsPublishing[0].pace_context?.name} Pace updated`,
-          }),
-        )
-      })
+      await waitFor(() => expect(dispatch.mock.calls).toHaveLength(6))
+      expect(dispatch.mock.calls[1]).toEqual([uiActions.clearCategoryError('checkPublishStatus')])
+      expect(dispatch.mock.calls[2]).toEqual([coursePaceActions.setProgress(undefined)])
+      expect(dispatch.mock.calls[4]).toEqual([
+        coursePaceActions.coursePaceSaved(getState().coursePace),
+      ])
+      expect(showFlashAlert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: `${contextsPublishing[0].pace_context?.name} Pace updated`,
+        }),
+      )
     })
 
     it('stops polling and displays an error message if checking the progress API fails', async () => {

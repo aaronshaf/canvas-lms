@@ -79,10 +79,8 @@ describe('QRMobileLogin', () => {
       const {findByTestId, getAllByText, getByText} = render(<QRMobileLogin />)
       const image = (await findByTestId('qr-code-image')) as HTMLImageElement
       expect(image.src).toBe(`data:image/png;base64, ${loginImageJsons[0].png}`)
-      await waitFor(() => {
-        expect(getAllByText(/will expire in 10 minutes/i)).toHaveLength(2) // once in body, once in sr-only
-        expect(getByText(/has been successfully generated/i)).toBeInTheDocument() // screen reader success msg
-      })
+      await waitFor(() => expect(getAllByText(/will expire in 10 minutes/i)).toHaveLength(2)) // once in body, once in sr-only
+      expect(getByText(/has been successfully generated/i)).toBeInTheDocument() // screen reader success msg
     })
 
     it('updates the expiration as time elapses', async () => {

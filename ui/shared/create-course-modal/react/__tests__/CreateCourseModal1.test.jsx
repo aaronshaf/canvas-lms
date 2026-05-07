@@ -143,15 +143,15 @@ describe('CreateCourseModal (1)', () => {
   it('shows form fields for account and subject name and homeroom sync after loading accounts', async () => {
     server.use(http.get('/api/v1/manageable_accounts', () => HttpResponse.json(MANAGEABLE_COURSES)))
     const {getByLabelText} = render(<CreateCourseModal {...getProps()} />)
-    await waitFor(() => {
+    await waitFor(() =>
       expect(
         getByLabelText('Which account will this subject be associated with?'),
-      ).toBeInTheDocument()
-      expect(getByLabelText('Subject Name')).toBeInTheDocument()
-      expect(
-        getByLabelText('Sync enrollments and subject start/end dates from homeroom'),
-      ).toBeInTheDocument()
-    })
+      ).toBeInTheDocument(),
+    )
+    expect(getByLabelText('Subject Name')).toBeInTheDocument()
+    expect(
+      getByLabelText('Sync enrollments and subject start/end dates from homeroom'),
+    ).toBeInTheDocument()
   })
 
   it('closes the modal when clicking cancel', async () => {
@@ -279,10 +279,8 @@ describe('CreateCourseModal (1)', () => {
       )
       await waitFor(() => expect(getByLabelText('Subject Name')).toBeInTheDocument())
       fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
-      await waitFor(() => {
-        expect(getByText('Orange Elementary')).toBeInTheDocument()
-        expect(getByText('Clark HS')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(getByText('Orange Elementary')).toBeInTheDocument())
+      expect(getByText('Clark HS')).toBeInTheDocument()
     })
 
     it('hides the account select if there is only one enrollment', async () => {
@@ -332,10 +330,8 @@ describe('CreateCourseModal (1)', () => {
       await waitFor(() => expect(getByLabelText('Subject Name')).toBeInTheDocument())
       expect(queryByText('Unable to get accounts')).not.toBeInTheDocument()
       fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
-      await waitFor(() => {
-        expect(getByText('Orange Elementary')).toBeInTheDocument()
-        expect(getByText('Clark HS')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(getByText('Orange Elementary')).toBeInTheDocument())
+      expect(getByText('Clark HS')).toBeInTheDocument()
     })
 
     it('fetches accounts from the manually_created_courses_account api if restrictToMCCAccount is true', async () => {

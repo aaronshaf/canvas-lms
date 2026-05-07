@@ -130,15 +130,15 @@ describe('CurrentUploads', () => {
       renderComponent()
       executeCallbackTimes(3)
 
-      await waitFor(() => {
+      await waitFor(() =>
         expect(queryClient.refetchQueries).toHaveBeenCalledWith({
           queryKey: ['quota'],
           type: 'active',
-        })
-        expect(queryClient.refetchQueries).toHaveBeenCalledWith({
-          queryKey: ['files'],
-          type: 'active',
-        })
+        }),
+      )
+      expect(queryClient.refetchQueries).toHaveBeenCalledWith({
+        queryKey: ['files'],
+        type: 'active',
       })
     })
 

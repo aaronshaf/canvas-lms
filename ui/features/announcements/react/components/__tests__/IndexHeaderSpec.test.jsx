@@ -102,10 +102,8 @@ describe('"Announcement Filter" select', () => {
 
     await userEvent.click(filterDDown)
 
-    await waitFor(() => {
-      expect(screen.getByText('All')).toBeInTheDocument()
-      expect(screen.getByText('Unread')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('All')).toBeInTheDocument())
+    expect(screen.getByText('Unread')).toBeInTheDocument()
   })
 
   test('includes two options in the filter select component with instui_nav enabled', async () => {
@@ -122,10 +120,8 @@ describe('"Announcement Filter" select', () => {
 
     await userEvent.click(filterButton)
 
-    await waitFor(() => {
-      expect(screen.getByText('All Announcements')).toBeInTheDocument()
-      expect(screen.getByText('Unread Announcements')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('All Announcements')).toBeInTheDocument())
+    expect(screen.getByText('Unread Announcements')).toBeInTheDocument()
   })
 
   test('calls the searchAnnouncements prop when selecting a filter option with the selected value', async () => {

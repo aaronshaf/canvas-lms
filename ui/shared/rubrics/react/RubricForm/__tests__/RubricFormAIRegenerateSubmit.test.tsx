@@ -223,7 +223,7 @@ describe('RubricForm AI Regenerate Submit Test', () => {
       await vi.advanceTimersByTimeAsync(100)
     })
 
-    await waitFor(() => {
+    await waitFor(() =>
       expect(regenerateCriteriaMock).toHaveBeenCalledWith(
         courseId,
         assignmentId,
@@ -231,9 +231,9 @@ describe('RubricForm AI Regenerate Submit Test', () => {
         additionalPrompt,
         undefined,
         defaultGenerateCriteriaForm,
-      )
-      expect(queryAllByTestId('rubric-criteria-row-ai-icon')).toHaveLength(1)
-      expect(queryAllByTestId('regenerate-criteria-button')).toHaveLength(3)
-    })
+      ),
+    )
+    expect(queryAllByTestId('rubric-criteria-row-ai-icon')).toHaveLength(1)
+    expect(queryAllByTestId('regenerate-criteria-button')).toHaveLength(3)
   })
 })

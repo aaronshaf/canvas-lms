@@ -93,14 +93,11 @@ describe('CreateAssignmentViewAdapter Create Mode', () => {
     await user.click(getByTestId('save-button'))
     await waitFor(() => expect(saveSpy).toHaveBeenCalled())
 
-    await waitFor(() => {
-      const assignments = ag.get('assignments')
-      expect(assignments).toHaveLength(1)
-      const savedAssignment = assignments.at(0)
-      expect(savedAssignment.get('name')).toBe('Test')
-      expect(savedAssignment.get('points_possible')).toBe(100)
-      expect(savedAssignment.get('assignment_group_id')).toBe(ag.id)
-    })
+    await waitFor(() => expect(ag.get('assignments')).toHaveLength(1))
+    const savedAssignment = ag.get('assignments').at(0)
+    expect(savedAssignment.get('name')).toBe('Test')
+    expect(savedAssignment.get('points_possible')).toBe(100)
+    expect(savedAssignment.get('assignment_group_id')).toBe(ag.id)
   })
 
   it('sets manage_assign_to permission when assignment is saved successfully', async () => {

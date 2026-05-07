@@ -78,10 +78,8 @@ describe('SubaccountNameForm', () => {
 
     fireEvent.change(getByTestId('account-name-input'), {target: {value: 'New Name'}})
     await user.click(getByTestId('save-button'))
-    await waitFor(() => {
-      expect(postCalled).toBe(true)
-      expect(onSuccess).toBeCalledTimes(1)
-    })
+    await waitFor(() => expect(postCalled).toBe(true))
+    expect(onSuccess).toBeCalledTimes(1)
   })
 
   it('updates existing subaccount when passed in name is not blank', async () => {
@@ -97,10 +95,8 @@ describe('SubaccountNameForm', () => {
     const {getByTestId} = render(<SubaccountNameForm {...props} onSuccess={onSuccess} />)
 
     await user.click(getByTestId('save-button'))
-    await waitFor(() => {
-      expect(putCalled).toBe(true)
-      expect(onSuccess).toBeCalledTimes(1)
-    })
+    await waitFor(() => expect(putCalled).toBe(true))
+    expect(onSuccess).toBeCalledTimes(1)
   })
 
   it('triggers callback when cancelling', async () => {

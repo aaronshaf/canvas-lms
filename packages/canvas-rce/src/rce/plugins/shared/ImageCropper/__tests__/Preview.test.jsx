@@ -242,10 +242,10 @@ describe('Preview', () => {
 
     describe('calls dispatch', () => {
       it('when dragging once', async () => {
-        await waitFor(() => {
-          expect(dispatch).toHaveBeenCalledWith({type: 'SetTranslateX', payload: 15})
-          expect(dispatch).toHaveBeenCalledWith({type: 'SetTranslateY', payload: 30})
-        })
+        await waitFor(() =>
+          expect(dispatch).toHaveBeenCalledWith({type: 'SetTranslateX', payload: 15}),
+        )
+        expect(dispatch).toHaveBeenCalledWith({type: 'SetTranslateY', payload: 30})
       })
 
       it('when dragging and reuses previous position', async () => {
@@ -253,10 +253,10 @@ describe('Preview', () => {
         fireEvent.mouseMove(target, mouseMoveEvent)
         fireEvent.mouseUp(target, mouseUpEvent)
 
-        await waitFor(() => {
-          expect(dispatch).toHaveBeenCalledWith({type: 'SetTranslateX', payload: 30})
-          expect(dispatch).toHaveBeenCalledWith({type: 'SetTranslateY', payload: 60})
-        })
+        await waitFor(() =>
+          expect(dispatch).toHaveBeenCalledWith({type: 'SetTranslateX', payload: 30}),
+        )
+        expect(dispatch).toHaveBeenCalledWith({type: 'SetTranslateY', payload: 60})
       })
     })
 

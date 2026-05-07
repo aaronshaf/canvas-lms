@@ -157,13 +157,11 @@ describe('RCE "Icon Maker" Plugin > IconMakerTray', () => {
     it('loads the standard SVG metadata', async () => {
       const {getByLabelText, getAllByTestId} = subject()
 
-      await waitFor(() => {
-        expect(getByLabelText('Name').value).toEqual('')
-        expect(getByLabelText('Icon Shape').value).toEqual('Square')
-        expect(getByLabelText('Icon Size').value).toEqual('Small')
-        expect(getAllByTestId('colorPreview-none').length).toBeGreaterThan(0)
-        expect(getByLabelText('Outline Size').value).toEqual('None')
-      })
+      await waitFor(() => expect(getByLabelText('Name').value).toEqual(''))
+      expect(getByLabelText('Icon Shape').value).toEqual('Square')
+      expect(getByLabelText('Icon Size').value).toEqual('Small')
+      expect(getAllByTestId('colorPreview-none').length).toBeGreaterThan(0)
+      expect(getByLabelText('Outline Size').value).toEqual('None')
     })
   })
 })

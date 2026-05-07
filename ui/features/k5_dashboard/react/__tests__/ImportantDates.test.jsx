@@ -269,11 +269,9 @@ describe('ImportantDates', () => {
 
     it('requests observee calendar events when observing a student', async () => {
       const {getByText} = render(<ImportantDates {...getProps()} observedUserId="5" />)
-      await waitFor(() => {
-        expect(getByText('Number theory')).toBeInTheDocument()
-        expect(getByText('Dynamics')).toBeInTheDocument()
-        expect(getByText('First Quiz')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(getByText('Number theory')).toBeInTheDocument())
+      expect(getByText('Dynamics')).toBeInTheDocument()
+      expect(getByText('First Quiz')).toBeInTheDocument()
       expect(fetchMock.called(OBSERVER_ASSIGNMENTS_URL)).toBe(true)
       expect(fetchMock.called(OBSERVER_EVENTS_URL)).toBe(true)
     })

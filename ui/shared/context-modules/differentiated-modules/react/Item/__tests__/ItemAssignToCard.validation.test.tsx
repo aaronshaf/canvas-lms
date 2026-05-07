@@ -109,10 +109,8 @@ describe('ItemAssignToCard - Validation', () => {
     await userEvent.type(timeInput, '3:30 PM')
     await userEvent.tab()
 
-    await waitFor(async () => {
-      expect(timeInput).toHaveValue('3:30 PM')
-      expect(await getAllByText('Invalid date')[0]).toBeInTheDocument()
-    })
+    await waitFor(() => expect(timeInput).toHaveValue('3:30 PM'))
+    expect(getAllByText('Invalid date')[0]).toBeInTheDocument()
   })
 
   it('clears date field and time field when date field is manually cleared on blur', async () => {
@@ -124,10 +122,8 @@ describe('ItemAssignToCard - Validation', () => {
     await userEvent.clear(dateInput)
     await userEvent.tab()
 
-    await waitFor(async () => {
-      expect(dateInput).toHaveValue('')
-      expect(timeInput).toHaveValue('')
-    })
+    await waitFor(() => expect(dateInput).toHaveValue(''))
+    expect(timeInput).toHaveValue('')
   })
 
   describe('Peer Review Date Validation', () => {
@@ -142,10 +138,8 @@ describe('ItemAssignToCard - Validation', () => {
       await userEvent.type(peerReviewDueTimeInput, '3:30 PM')
       await userEvent.tab()
 
-      await waitFor(() => {
-        expect(peerReviewDueTimeInput).toHaveValue('3:30 PM')
-        expect(getAllByText('Invalid date')[0]).toBeInTheDocument()
-      })
+      await waitFor(() => expect(peerReviewDueTimeInput).toHaveValue('3:30 PM'))
+      expect(getAllByText('Invalid date')[0]).toBeInTheDocument()
     })
 
     it('shows error when peer review available from date has invalid time without date', async () => {
@@ -159,10 +153,8 @@ describe('ItemAssignToCard - Validation', () => {
       await userEvent.type(peerReviewAvailableFromTimeInput, '3:30 PM')
       await userEvent.tab()
 
-      await waitFor(async () => {
-        expect(peerReviewAvailableFromTimeInput).toHaveValue('3:30 PM')
-        expect(await getAllByText('Invalid date')[0]).toBeInTheDocument()
-      })
+      await waitFor(() => expect(peerReviewAvailableFromTimeInput).toHaveValue('3:30 PM'))
+      expect(getAllByText('Invalid date')[0]).toBeInTheDocument()
     })
 
     it('shows error when peer review available to date has invalid time without date', async () => {
@@ -176,10 +168,8 @@ describe('ItemAssignToCard - Validation', () => {
       await userEvent.type(peerReviewAvailableToTimeInput, '3:30 PM')
       await userEvent.tab()
 
-      await waitFor(async () => {
-        expect(peerReviewAvailableToTimeInput).toHaveValue('3:30 PM')
-        expect(await getAllByText('Invalid date')[0]).toBeInTheDocument()
-      })
+      await waitFor(() => expect(peerReviewAvailableToTimeInput).toHaveValue('3:30 PM'))
+      expect(getAllByText('Invalid date')[0]).toBeInTheDocument()
     })
 
     it('clears peer review due date field when date is manually cleared', async () => {
@@ -194,10 +184,8 @@ describe('ItemAssignToCard - Validation', () => {
       await userEvent.clear(peerReviewDueDateInput)
       await userEvent.tab()
 
-      await waitFor(async () => {
-        expect(peerReviewDueDateInput).toHaveValue('')
-        expect(peerReviewDueTimeInput).toHaveValue('')
-      })
+      await waitFor(() => expect(peerReviewDueDateInput).toHaveValue(''))
+      expect(peerReviewDueTimeInput).toHaveValue('')
     })
   })
 

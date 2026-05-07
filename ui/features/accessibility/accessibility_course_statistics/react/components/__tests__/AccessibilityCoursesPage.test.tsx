@@ -144,10 +144,8 @@ describe('AccessibilityCoursesPage', () => {
 
     renderPage()
 
-    await waitFor(() => {
-      expect(screen.getByText('Course 0')).toBeInTheDocument()
-      expect(screen.getByText('Course 1')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Course 0')).toBeInTheDocument())
+    expect(screen.getByText('Course 1')).toBeInTheDocument()
   })
 
   it('shows empty state when no courses are found', async () => {
@@ -188,15 +186,13 @@ describe('AccessibilityCoursesPage', () => {
 
     renderPage()
 
-    await waitFor(() => {
-      expect(screen.getByText('Course')).toBeInTheDocument()
-      expect(screen.getByText('Issues')).toBeInTheDocument()
-      expect(screen.getByText('Resolved')).toBeInTheDocument()
-      expect(screen.getByText('Term')).toBeInTheDocument()
-      expect(screen.getByText('Teacher')).toBeInTheDocument()
-      expect(screen.getByText('Sub-Account')).toBeInTheDocument()
-      expect(screen.getByText('Students')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Course')).toBeInTheDocument())
+    expect(screen.getByText('Issues')).toBeInTheDocument()
+    expect(screen.getByText('Resolved')).toBeInTheDocument()
+    expect(screen.getByText('Term')).toBeInTheDocument()
+    expect(screen.getByText('Teacher')).toBeInTheDocument()
+    expect(screen.getByText('Sub-Account')).toBeInTheDocument()
+    expect(screen.getByText('Students')).toBeInTheDocument()
   })
 
   describe('term filter', () => {
@@ -277,10 +273,8 @@ describe('AccessibilityCoursesPage', () => {
       const option = await screen.findByText('Spring 2026')
       await user.click(option)
 
-      await waitFor(() => {
-        expect(lastParams?.get('page')).toBe('1')
-        expect(lastParams?.get('enrollment_term_id')).toBe('10')
-      })
+      await waitFor(() => expect(lastParams?.get('page')).toBe('1'))
+      expect(lastParams?.get('enrollment_term_id')).toBe('10')
     })
 
     it('omits enrollment_term_id from request when "All terms" is selected', async () => {
@@ -438,10 +432,8 @@ describe('AccessibilityCoursesPage', () => {
       const issuesHeader = await screen.findByText('Issues')
       await user.click(issuesHeader)
 
-      await waitFor(() => {
-        expect(lastRequestParams?.get('page')).toBe('1')
-        expect(lastRequestParams?.get('sort')).toBe('a11y_active_issue_count')
-      })
+      await waitFor(() => expect(lastRequestParams?.get('page')).toBe('1'))
+      expect(lastRequestParams?.get('sort')).toBe('a11y_active_issue_count')
     })
 
     it('defaults to page 1 when invalid page number is in URL', async () => {

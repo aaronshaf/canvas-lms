@@ -137,11 +137,9 @@ describe('TurnitinAPMigrationModal Status', () => {
 
     render(<TurnitinAPMigrationModal {...defaultProps} />, {wrapper: createWrapper()})
 
-    await waitFor(() => {
-      const migrateButton = screen.getByRole('button', {name: /^Migrate$/i})
-      expect(migrateButton).toBeInTheDocument()
-      expect(migrateButton).toBeEnabled()
-    })
+    const migrateButton = await waitFor(() => screen.getByRole('button', {name: /^Migrate$/i}))
+    expect(migrateButton).toBeInTheDocument()
+    expect(migrateButton).toBeEnabled()
   })
 
   it('should show disabled Migrating button for running migrations', async () => {
@@ -156,11 +154,9 @@ describe('TurnitinAPMigrationModal Status', () => {
 
     render(<TurnitinAPMigrationModal {...defaultProps} />, {wrapper: createWrapper()})
 
-    await waitFor(() => {
-      const migratingButton = screen.getByRole('button', {name: /Migrating.../i})
-      expect(migratingButton).toBeInTheDocument()
-      expect(migratingButton).toBeDisabled()
-    })
+    const migratingButton = await waitFor(() => screen.getByRole('button', {name: /Migrating.../i}))
+    expect(migratingButton).toBeInTheDocument()
+    expect(migratingButton).toBeDisabled()
   })
 
   it('should not show migration button for completed migrations', async () => {

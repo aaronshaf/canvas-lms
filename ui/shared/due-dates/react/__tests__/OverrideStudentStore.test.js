@@ -294,10 +294,8 @@ describe('OverrideStudentStore', () => {
       }),
     )
     OverrideStudentStore.fetchStudentsByName('publiu')
-    await waitFor(() => {
-      expect(OverrideStudentStore.currentlySearching()).toBe(false)
-      expect(OverrideStudentStore.alreadySearchedForName('publiu')).toBe(true)
-    })
+    await waitFor(() => expect(OverrideStudentStore.currentlySearching()).toBe(false))
+    expect(OverrideStudentStore.alreadySearchedForName('publiu')).toBe(true)
     OverrideStudentStore.fetchStudentsByName('publiu')
     expect(localRequestCount).toBe(1)
   })
@@ -399,12 +397,13 @@ describe('OverrideStudentStore', () => {
     OverrideStudentStore.fetchStudentsForCourse()
     await waitFor(() => {
       const students = OverrideStudentStore.getStudents()
-      const studentArray = Object.values(students)
-      expect(studentArray.length).toBeGreaterThan(0)
-      // Check that all students have sections
-      studentArray.forEach(student => {
-        expect(student.sections).toBeDefined()
-      })
+      expect(Object.values(students).length).toBeGreaterThan(0)
+    })
+    const students = OverrideStudentStore.getStudents()
+    const studentArray = Object.values(students)
+    // Check that all students have sections
+    studentArray.forEach(student => {
+      expect(student.sections).toBeDefined()
     })
   })
 
@@ -413,14 +412,15 @@ describe('OverrideStudentStore', () => {
     OverrideStudentStore.fetchStudentsForCourse()
     await waitFor(() => {
       const students = OverrideStudentStore.getStudents()
-      const studentArray = Object.values(students)
-      expect(studentArray.length).toBeGreaterThan(0)
-      // Check that students with group_ids have them properly set
-      const studentsWithGroups = studentArray.filter(s => s.group_ids)
-      expect(studentsWithGroups.length).toBeGreaterThan(0)
-      studentsWithGroups.forEach(student => {
-        expect(Array.isArray(student.group_ids)).toBe(true)
-      })
+      expect(Object.values(students).length).toBeGreaterThan(0)
+    })
+    const students = OverrideStudentStore.getStudents()
+    const studentArray = Object.values(students)
+    // Check that students with group_ids have them properly set
+    const studentsWithGroups = studentArray.filter(s => s.group_ids)
+    expect(studentsWithGroups.length).toBeGreaterThan(0)
+    studentsWithGroups.forEach(student => {
+      expect(Array.isArray(student.group_ids)).toBe(true)
     })
   })
 

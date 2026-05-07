@@ -152,15 +152,15 @@ describe('GroupCategoryMessageAllUnassignedModal', () => {
     })
     fireEvent.click(getByText('Send Message'))
     expect(getAllByText(/Sending Message/i)).toBeTruthy()
-    await waitFor(() => {
+    await waitFor(() =>
       expect(capturedBody).toMatchObject({
         body: 'hi',
         context_code: 'course_1',
         recipients: ['1'],
-      })
-      expect(showFlashSuccess).toHaveBeenCalledWith('Message Sent!')
-      expect(onDismiss).toHaveBeenCalled()
-    })
+      }),
+    )
+    expect(showFlashSuccess).toHaveBeenCalledWith('Message Sent!')
+    expect(onDismiss).toHaveBeenCalled()
   })
 
   describe('errors', () => {

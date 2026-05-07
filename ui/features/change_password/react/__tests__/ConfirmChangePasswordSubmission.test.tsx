@@ -85,16 +85,16 @@ describe('ConfirmChangePassword form submission', () => {
     await userEvent.type(passwordConfirmation, passwordValue)
     await userEvent.click(submit)
 
-    await waitFor(() => {
+    await waitFor(() =>
       expect(capturedBody).toEqual({
         pseudonym: {
           id: pseudonyms[0].id,
           password: passwordValue,
           password_confirmation: passwordValue,
         },
-      })
-      expect(assignLocation).toHaveBeenCalledWith('/login/canvas?password_changed=1')
-    })
+      }),
+    )
+    expect(assignLocation).toHaveBeenCalledWith('/login/canvas?password_changed=1')
   })
 
   it('should redirect if the request fails due to link expiration', async () => {
@@ -115,16 +115,16 @@ describe('ConfirmChangePassword form submission', () => {
     await userEvent.type(passwordConfirmation, passwordValue)
     await userEvent.click(submit)
 
-    await waitFor(() => {
+    await waitFor(() =>
       expect(capturedBody).toEqual({
         pseudonym: {
           id: pseudonyms[0].id,
           password: passwordValue,
           password_confirmation: passwordValue,
         },
-      })
-      expect(assignLocation).toHaveBeenCalledWith('/login/canvas')
-    })
+      }),
+    )
+    expect(assignLocation).toHaveBeenCalledWith('/login/canvas')
   })
 
   it('should show an error if the request fails due to a validation error', async () => {

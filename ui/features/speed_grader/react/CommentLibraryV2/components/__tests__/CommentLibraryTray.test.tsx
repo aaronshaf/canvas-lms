@@ -161,11 +161,9 @@ describe('CommentLibraryTray', () => {
       const mocks = [createCommentsMock({commentCount: 3})]
       setup(mocks)
 
-      await waitFor(() => {
-        expect(screen.getByText('Test comment 0')).toBeInTheDocument()
-        expect(screen.getByText('Test comment 1')).toBeInTheDocument()
-        expect(screen.getByText('Test comment 2')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Test comment 0')).toBeInTheDocument())
+      expect(screen.getByText('Test comment 1')).toBeInTheDocument()
+      expect(screen.getByText('Test comment 2')).toBeInTheDocument()
     })
   })
 

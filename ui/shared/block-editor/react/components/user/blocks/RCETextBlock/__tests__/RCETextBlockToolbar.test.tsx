@@ -54,9 +54,7 @@ describe('RCETextBlockToolbar', () => {
     const szbtn = getByText('Block Size').closest('button') as HTMLButtonElement
     szbtn.click()
 
-    await waitFor(() => {
-      expect(screen.getByText('Fixed size')).toBeInTheDocument()
-      expect(screen.getByText('Percent size')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Fixed size')).toBeInTheDocument())
+    expect(screen.getByText('Percent size')).toBeInTheDocument()
   })
 })

@@ -115,8 +115,8 @@ describe('NeverDropCollectionView', () => {
     await waitFor(() => {
       const select = $('#fixtures').find('select')
       expect(select.length).toBeGreaterThan(0)
-      expect(select.val()).toBe(expected_val)
     })
+    expect($('#fixtures').find('select').val()).toBe(expected_val)
   })
 
   it('the number of <option>s with the value the same as availableValue should equal the number of selects', async function () {
@@ -159,11 +159,11 @@ describe('NeverDropCollectionView', () => {
     selectElement.value = target_id
     fireEvent.change(selectElement)
 
-    await waitFor(() => {
+    await waitFor(() =>
       // After changing first select to 3, option 3 should only appear in first select
-      expect($('#fixtures').find(`option[value="${target_id}"]`)).toHaveLength(1)
-      expect(never_drops.takenValues.find(nd => nd.id === target_id)).toBeTruthy()
-    })
+      expect($('#fixtures').find(`option[value="${target_id}"]`)).toHaveLength(1),
+    )
+    expect(never_drops.takenValues.find(nd => nd.id === target_id)).toBeTruthy()
   })
 
   it('changing a <select> will add all <option>s with the previous value to other selects', async function () {
@@ -182,12 +182,12 @@ describe('NeverDropCollectionView', () => {
     selectElement.value = '3'
     fireEvent.change(selectElement)
 
-    await waitFor(() => {
+    await waitFor(() =>
       // After change: first has 3, so option 1 becomes available to second select
       // Option 1 should now appear in the second select (2 total: first has it available, second has it available)
-      expect($('#fixtures').find(`option[value="1"]`)).toHaveLength(2)
-      expect(never_drops.availableValues.find(nd => nd.id === '1')).toBeTruthy()
-    })
+      expect($('#fixtures').find(`option[value="1"]`)).toHaveLength(2),
+    )
+    expect(never_drops.availableValues.find(nd => nd.id === '1')).toBeTruthy()
   })
 
   it('resetting NeverDrops with a chosen assignment renders a <span>', async function () {
@@ -201,10 +201,10 @@ describe('NeverDropCollectionView', () => {
       },
     ])
 
-    await waitFor(() => {
-      expect($('#fixtures').find('[data-testid="chosen-assignment"]')).toHaveLength(1)
-      expect(never_drops.takenValues.find(nd => nd.id === target_id)).toBeTruthy()
-    })
+    await waitFor(() =>
+      expect($('#fixtures').find('[data-testid="chosen-assignment"]')).toHaveLength(1),
+    )
+    expect(never_drops.takenValues.find(nd => nd.id === target_id)).toBeTruthy()
   })
 
   it('when there are no availableValues, the add assignment link is not rendered', function () {

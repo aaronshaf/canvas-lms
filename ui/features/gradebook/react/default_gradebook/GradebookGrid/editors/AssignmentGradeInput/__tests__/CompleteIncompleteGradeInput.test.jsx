@@ -352,12 +352,10 @@ describe('GradebookGrid CompleteIncompleteGradeInput', () => {
     test('includes "Complete", "Incomplete", "Ungraded", and "Excused"', async () => {
       mountComponent()
       await wrapper.getByRole('button').click()
-      await waitFor(() => {
-        expect(wrapper.getByText('Ungraded')).toBeInTheDocument()
-        expect(wrapper.getByText('Excused')).toBeInTheDocument()
-        expect(wrapper.getByText('Complete')).toBeInTheDocument()
-        expect(wrapper.getByText('Incomplete')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(wrapper.getByText('Ungraded')).toBeInTheDocument())
+      expect(wrapper.getByText('Excused')).toBeInTheDocument()
+      expect(wrapper.getByText('Complete')).toBeInTheDocument()
+      expect(wrapper.getByText('Incomplete')).toBeInTheDocument()
     })
 
     test('sets the value to the selected option when clicked', async () => {

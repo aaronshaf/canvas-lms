@@ -460,8 +460,10 @@ describe('ToolConfigurationJsonEditor', () => {
         expect(latestCall?.[0]?.message).toBe(
           'You have unsaved changes. Are you sure you want to leave?',
         )
-        expect(latestCall?.[0]?.when).toBe(true)
       })
+      const calls = mockUsePrompt.mock.calls
+      const latestCall = calls[calls.length - 1]
+      expect(latestCall?.[0]?.when).toBe(true)
     })
 
     it('does not prompt when there are no unsaved changes', async () => {

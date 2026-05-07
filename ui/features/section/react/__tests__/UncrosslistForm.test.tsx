@@ -195,13 +195,13 @@ describe('UncrosslistForm', () => {
     await userEvent.click(getByTestId('uncrosslist-trigger-button'))
     await userEvent.click(getByTestId('uncrosslist-submit-button'))
 
-    await waitFor(() => {
-      expect(mockShowFlashError).toHaveBeenCalledWith('Failed to de-cross-list section')
-      expect(mockFlashErrorCall).toHaveBeenCalled()
-      const errorArg = mockFlashErrorCall.mock.calls[0][0]
-      expect(errorArg).toBeInstanceOf(FetchApiError)
-      expect(errorArg.message).toContain('500 Internal Server Error')
-    })
+    await waitFor(() =>
+      expect(mockShowFlashError).toHaveBeenCalledWith('Failed to de-cross-list section'),
+    )
+    expect(mockFlashErrorCall).toHaveBeenCalled()
+    const errorArg = mockFlashErrorCall.mock.calls[0][0]
+    expect(errorArg).toBeInstanceOf(FetchApiError)
+    expect(errorArg.message).toContain('500 Internal Server Error')
   })
 
   it('re-enables buttons after API failure', async () => {

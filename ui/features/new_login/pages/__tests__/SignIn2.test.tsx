@@ -105,10 +105,10 @@ describe('SignIn', () => {
       await userEvent.type(usernameInput, 'user@example.com')
       await userEvent.type(passwordInput, 'password123')
       await userEvent.click(loginButton)
-      await waitFor(() => {
-        expect(assignLocation).toHaveBeenCalledWith('https://test.canvas.com/?login_success=1')
-        expect(assignLocation).toHaveBeenCalledTimes(1)
-      })
+      await waitFor(() =>
+        expect(assignLocation).toHaveBeenCalledWith('https://test.canvas.com/?login_success=1'),
+      )
+      expect(assignLocation).toHaveBeenCalledTimes(1)
     })
   })
 

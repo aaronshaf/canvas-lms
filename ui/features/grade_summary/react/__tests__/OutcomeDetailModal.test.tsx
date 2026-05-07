@@ -119,10 +119,8 @@ describe('OutcomeDetailModal', () => {
   it('renders alignment name for each outcome result', async () => {
     renderModal()
 
-    await waitFor(() => {
-      expect(screen.getByText('Assignment 1')).toBeInTheDocument()
-      expect(screen.getByText('Quiz 1')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Assignment 1')).toBeInTheDocument())
+    expect(screen.getByText('Quiz 1')).toBeInTheDocument()
   })
 
   it('results appear sorted by date descending (newest first)', async () => {

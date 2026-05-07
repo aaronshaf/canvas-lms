@@ -126,9 +126,7 @@ describe('SubaccountItem', () => {
 
     // submit form
     await user.click(getByTestId('save-button'))
-    await waitFor(() => {
-      expect(onEditSaved).toBeCalledTimes(1)
-      expect(requestCalled).toBe(true)
-    })
+    await waitFor(() => expect(onEditSaved).toBeCalledTimes(1))
+    expect(requestCalled).toBe(true)
   })
 })

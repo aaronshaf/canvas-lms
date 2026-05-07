@@ -116,10 +116,8 @@ describe('SmartSearch', () => {
 
     expect(queryByText('You may also be interested in')).toBeNull()
     expect(queryByText('No results')).toBeNull()
-    await waitFor(() => {
-      expect(getByTestId('indexing_progress')).toBeInTheDocument()
-      expect(getByText(/wait a moment while we get IgniteAI Search ready/)).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByTestId('indexing_progress')).toBeInTheDocument())
+    expect(getByText(/wait a moment while we get IgniteAI Search ready/)).toBeInTheDocument()
   })
 
   it('should render nothing when no search has been made', async () => {
@@ -170,12 +168,10 @@ describe('SmartSearch', () => {
       fireEvent.change(searchInput, {target: {value: SEARCH_TERM}})
       user.click(getByTestId('search-button'))
 
-      await waitFor(() => {
-        expect(getByText('You may also be interested in')).toBeInTheDocument()
-        expect(getByText('1 result')).toBeInTheDocument()
-        expect(getByText(results[0].title)).toBeInTheDocument()
-        expect(getByText(results[1].title)).toBeInTheDocument()
-      })
+      await waitFor(() => expect(getByText('You may also be interested in')).toBeInTheDocument())
+      expect(getByText('1 result')).toBeInTheDocument()
+      expect(getByText(results[0].title)).toBeInTheDocument()
+      expect(getByText(results[1].title)).toBeInTheDocument()
     })
 
     it('renders modules for each result', async () => {

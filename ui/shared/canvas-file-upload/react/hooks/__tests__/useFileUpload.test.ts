@@ -297,10 +297,8 @@ describe('useFileUpload', () => {
     await result.current.handleDrop([file1, file2], [])
 
     // Wait for both files to be uploaded
-    await waitFor(() => {
-      expect(mockUploadFile).toHaveBeenCalledTimes(2)
-      expect(mockOnFilesChange.mock.calls.length).toBeGreaterThanOrEqual(2)
-    })
+    await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(2))
+    expect(mockOnFilesChange.mock.calls.length).toBeGreaterThanOrEqual(2)
 
     // The last call should have both files
     const lastCall = mockOnFilesChange.mock.calls[mockOnFilesChange.mock.calls.length - 1][0]

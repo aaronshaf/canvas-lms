@@ -180,10 +180,8 @@ describe('RubricForm AI Regenerate Tests', () => {
         rubricId: '1',
       })
 
-      await waitFor(() => {
-        expect(queryAllByTestId('rubric-criteria-row')).toHaveLength(2)
-        expect(queryAllByTestId('regenerate-criteria-button')).toHaveLength(0)
-      })
+      await waitFor(() => expect(queryAllByTestId('rubric-criteria-row')).toHaveLength(2))
+      expect(queryAllByTestId('regenerate-criteria-button')).toHaveLength(0)
     })
 
     it('displays the regenerate dialog with proper content when regenerate all is initiated', async () => {

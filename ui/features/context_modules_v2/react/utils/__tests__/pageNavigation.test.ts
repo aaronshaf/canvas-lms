@@ -37,32 +37,40 @@ describe('pageNavigation', () => {
       await waitFor(() => {
         const eventDetail = eventHandler.mock.calls.at(-1)[0].detail as ModulePageNavigationDetail
         expect(eventDetail.moduleId).toBe('module-0')
-        expect(eventDetail.pageNumber).toBe(1)
       })
+      expect(
+        (eventHandler.mock.calls.at(-1)[0].detail as ModulePageNavigationDetail).pageNumber,
+      ).toBe(1)
 
       // Test with exactly one page
       expect(navigateToLastPage('module-1', PAGE_SIZE)).toBe(1)
       await waitFor(() => {
         const eventDetail = eventHandler.mock.calls.at(-1)[0].detail as ModulePageNavigationDetail
         expect(eventDetail.moduleId).toBe('module-1')
-        expect(eventDetail.pageNumber).toBe(1)
       })
+      expect(
+        (eventHandler.mock.calls.at(-1)[0].detail as ModulePageNavigationDetail).pageNumber,
+      ).toBe(1)
 
       // Test with exactly two pages
       expect(navigateToLastPage('module-2', PAGE_SIZE * 2)).toBe(2)
       await waitFor(() => {
         const eventDetail = eventHandler.mock.calls.at(-1)[0].detail as ModulePageNavigationDetail
         expect(eventDetail.moduleId).toBe('module-2')
-        expect(eventDetail.pageNumber).toBe(2)
       })
+      expect(
+        (eventHandler.mock.calls.at(-1)[0].detail as ModulePageNavigationDetail).pageNumber,
+      ).toBe(2)
 
       // Test with partial page
       expect(navigateToLastPage('module-3', PAGE_SIZE + 5)).toBe(2)
       await waitFor(() => {
         const eventDetail = eventHandler.mock.calls.at(-1)[0].detail as ModulePageNavigationDetail
         expect(eventDetail.moduleId).toBe('module-3')
-        expect(eventDetail.pageNumber).toBe(2)
       })
+      expect(
+        (eventHandler.mock.calls.at(-1)[0].detail as ModulePageNavigationDetail).pageNumber,
+      ).toBe(2)
     })
   })
 })

@@ -33,10 +33,8 @@ describe('AuditLogForm', () => {
     const {getByText} = render(<AuditLogForm onSubmit={cb} />)
 
     fireEvent.click(getByText(/Find/))
-    await waitFor(() => {
-      expect(getByText('Asset String is required.')).toBeInTheDocument()
-      expect(cb.mock.calls).toHaveLength(0)
-    })
+    await waitFor(() => expect(getByText('Asset String is required.')).toBeInTheDocument())
+    expect(cb.mock.calls).toHaveLength(0)
   })
 
   it('calls onSubmit when clicked', async () => {
@@ -49,13 +47,11 @@ describe('AuditLogForm', () => {
     fireEvent.change(assetStringInput, {target: {value: 'user_123'}})
     fireEvent.click(submitButton)
 
-    await waitFor(() => {
-      expect(cb.mock.calls).toHaveLength(1)
-      expect(cb.mock.calls[0][0]).toEqual({
-        assetString: 'user_123',
-        startDate: undefined,
-        endDate: undefined,
-      })
+    await waitFor(() => expect(cb.mock.calls).toHaveLength(1))
+    expect(cb.mock.calls[0][0]).toEqual({
+      assetString: 'user_123',
+      startDate: undefined,
+      endDate: undefined,
     })
   })
 })

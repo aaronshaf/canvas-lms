@@ -103,15 +103,18 @@ describe('K5Dashboard Tabs', () => {
       render(<K5Dashboard {...defaultProps} />)
 
       act(() => findTabByName('Grades', {selected: false}).click())
-      await waitFor(() => {
-        expect(findTabByName('Grades', {selected: true})).toBeInTheDocument()
-      }, {timeout: 10000})
+      await waitFor(
+        () => {
+          expect(findTabByName('Grades', {selected: true})).toBeInTheDocument()
+        },
+        {timeout: 10000},
+      )
 
       act(() => findTabByName('Resources', {selected: false}).click())
-      await waitFor(() => {
-        expect(findTabByName('Grades', {selected: false})).toBeInTheDocument()
-        expect(findTabByName('Resources', {selected: true})).toBeInTheDocument()
-      }, {timeout: 10000})
+      await waitFor(() => expect(findTabByName('Grades', {selected: false})).toBeInTheDocument(), {
+        timeout: 10000,
+      })
+      expect(findTabByName('Resources', {selected: true})).toBeInTheDocument()
     })
   })
 })

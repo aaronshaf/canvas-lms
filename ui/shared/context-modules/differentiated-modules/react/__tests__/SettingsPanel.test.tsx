@@ -419,14 +419,14 @@ describe('SettingsPanel', () => {
       const {getByRole, findByTestId} = renderComponent({moduleId: undefined, addModuleUI})
       getByRole('button', {name: 'Add Module'}).click()
       expect(await findByTestId('loading-overlay')).toBeInTheDocument()
-      await waitFor(() => {
+      await waitFor(() =>
         expect(showFlashAlert).toHaveBeenCalledWith({
           type: 'success',
           message: 'Week 1 created successfully.',
           politeness: 'polite',
-        })
-        expect(addModuleUI).toHaveBeenCalled()
-      })
+        }),
+      )
+      expect(addModuleUI).toHaveBeenCalled()
     })
 
     it('calls onDidSubmit instead of onDismiss if passed', async () => {

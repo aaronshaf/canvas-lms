@@ -158,11 +158,9 @@ describe('RubricForm AI Regenerate Replace Criterion Test', () => {
     fireEvent.click(getByTestId('rubric-criterion-save'))
 
     // Wait for criterion row and regenerate button together
-    await waitFor(() => {
-      expect(queryAllByTestId('rubric-criteria-row')).toHaveLength(1)
-      expect(queryAllByTestId('regenerate-criteria-button')).toHaveLength(1)
-      expect(queryByText('New Criterion Test')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(queryAllByTestId('rubric-criteria-row')).toHaveLength(1))
+    expect(queryAllByTestId('regenerate-criteria-button')).toHaveLength(1)
+    expect(queryByText('New Criterion Test')).toBeInTheDocument()
 
     // Open regenerate modal
     fireEvent.click(getByTestId('regenerate-criteria-button'))

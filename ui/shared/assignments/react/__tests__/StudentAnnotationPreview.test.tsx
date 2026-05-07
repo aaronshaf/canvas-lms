@@ -183,10 +183,8 @@ describe('StudentAnnotationPreview', () => {
 
       renderWithQueryClient(<StudentAnnotationPreview submission={createSubmission()} />)
 
-      await waitFor(() => {
-        expect(screen.getByTestId('canvadoc-error')).toBeInTheDocument()
-        expect(screen.getByText('There was an error loading the document.')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByTestId('canvadoc-error')).toBeInTheDocument())
+      expect(screen.getByText('There was an error loading the document.')).toBeInTheDocument()
     })
 
     it('does not render iframe when there is an error', async () => {
@@ -226,12 +224,10 @@ describe('StudentAnnotationPreview', () => {
 
       rerender(<StudentAnnotationPreview submission={createSubmission({_id: '456'})} />)
 
-      await waitFor(() => {
-        expect(callCount).toBe(2)
-        expect(lastRequestBody).toEqual({
-          submission_attempt: 1,
-          submission_id: '456',
-        })
+      await waitFor(() => expect(callCount).toBe(2))
+      expect(lastRequestBody).toEqual({
+        submission_attempt: 1,
+        submission_id: '456',
       })
     })
 
@@ -258,12 +254,10 @@ describe('StudentAnnotationPreview', () => {
 
       rerender(<StudentAnnotationPreview submission={createSubmission({attempt: 2})} />)
 
-      await waitFor(() => {
-        expect(callCount).toBe(2)
-        expect(lastRequestBody).toEqual({
-          submission_attempt: 2,
-          submission_id: '123',
-        })
+      await waitFor(() => expect(callCount).toBe(2))
+      expect(lastRequestBody).toEqual({
+        submission_attempt: 2,
+        submission_id: '123',
       })
     })
 

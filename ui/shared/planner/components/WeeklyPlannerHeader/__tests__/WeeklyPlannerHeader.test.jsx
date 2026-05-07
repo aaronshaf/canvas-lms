@@ -168,14 +168,14 @@ describe('WeeklyPlannerHeader', () => {
     const props = defaultProps({visible: false, scrollToToday, toggleMissing})
     const {rerender} = render(<WeeklyPlannerHeader {...props} />)
     rerender(<WeeklyPlannerHeader {...props} visible={true} />)
-    await waitFor(() => {
+    await waitFor(() =>
       expect(scrollToToday).toHaveBeenCalledWith({
         focusTarget: 'missing-items',
         isWeekly: true,
         autoFocus: true,
-      })
-      expect(toggleMissing).toHaveBeenCalledWith({forceExpanded: true})
-    })
+      }),
+    )
+    expect(toggleMissing).toHaveBeenCalledWith({forceExpanded: true})
   })
 })
 

@@ -274,14 +274,12 @@ describe('saveMediaRecording', () => {
     return saveMediaRecording({file: 'thing'}, rcsConfig, doneFunction2, progressFunction).then(
       async uploader => {
         uploader.dispatchEvent('K5.complete', {stuff: 'datatatatatatatat'}, uploader)
-        await waitFor(() => {
-          expect(doneFunction2).toHaveBeenCalledTimes(1)
-          expect(doneFunction2.mock.calls[0][1]).toEqual({
-            mediaObject: {data: 'media object data'},
-            uploadedFile: {file: 'thing'},
-          })
-          expect(doneFunction2.mock.calls[0][0]).toBe(null)
+        await waitFor(() => expect(doneFunction2).toHaveBeenCalledTimes(1))
+        expect(doneFunction2.mock.calls[0][1]).toEqual({
+          mediaObject: {data: 'media object data'},
+          uploadedFile: {file: 'thing'},
         })
+        expect(doneFunction2.mock.calls[0][0]).toBe(null)
       },
     )
   })
@@ -300,10 +298,8 @@ describe('saveMediaRecording', () => {
     return saveMediaRecording({file: 'thing'}, rcsConfig, doneFunction2, progressFunction).then(
       async uploader => {
         uploader.dispatchEvent('K5.complete', {stuff: 'datatatatatatatat'}, uploader)
-        await waitFor(() => {
-          expect(doneFunction2).toHaveBeenCalledTimes(1)
-          expect(doneFunction2.mock.calls[0][0].message).toBe('Request failed with status code 500')
-        })
+        await waitFor(() => expect(doneFunction2).toHaveBeenCalledTimes(1))
+        expect(doneFunction2.mock.calls[0][0].message).toBe('Request failed with status code 500')
       },
     )
   })
@@ -323,10 +319,8 @@ describe('saveMediaRecording', () => {
     return saveMediaRecording({file: 'thing'}, rcsConfig, doneFunction2, progressFunction).then(
       async uploader => {
         uploader.dispatchEvent('K5.complete', {stuff: 'datatatatatatatat'}, uploader)
-        await waitFor(() => {
-          expect(doneFunction2).toHaveBeenCalledTimes(1)
-          expect(doneFunction2.mock.calls[0][0].message).toBe('Request failed with status code 500')
-        })
+        await waitFor(() => expect(doneFunction2).toHaveBeenCalledTimes(1))
+        expect(doneFunction2.mock.calls[0][0].message).toBe('Request failed with status code 500')
       },
     )
   })

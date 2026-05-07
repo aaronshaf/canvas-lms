@@ -100,11 +100,9 @@ describe('CalendarEventDetailsForm frequency picker', () => {
 
     fireEvent.click(getByText('Submit'))
 
-    await waitFor(() => {
-      expect(defaultProps.event.save).toHaveBeenCalled()
-      // Property may exist with null value when not repeating, so check for falsy value
-      const savedData = defaultProps.event.save.mock.calls[0][0]
-      expect(savedData['calendar_event[rrule]']).toBeFalsy()
-    })
+    await waitFor(() => expect(defaultProps.event.save).toHaveBeenCalled())
+    // Property may exist with null value when not repeating, so check for falsy value
+    const savedData = defaultProps.event.save.mock.calls[0][0]
+    expect(savedData['calendar_event[rrule]']).toBeFalsy()
   })
 })

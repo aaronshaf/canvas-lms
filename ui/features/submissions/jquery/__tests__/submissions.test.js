@@ -267,11 +267,9 @@ describe('submissions', () => {
     input.value = '95'
     $(document).triggerHandler('grading_change')
 
-    await waitFor(() => {
-      expect(capturedRequest).toBeDefined()
-      expect(capturedRequest.get('submission[grade]')).toBe('95')
-      expect(capturedRequest.get('submission[assignment_id]')).toBe('27')
-    })
+    await waitFor(() => expect(capturedRequest).toBeDefined())
+    expect(capturedRequest.get('submission[grade]')).toBe('95')
+    expect(capturedRequest.get('submission[assignment_id]')).toBe('27')
   })
 
   test('grading_change submits letter grades via ajaxJSON', async () => {
@@ -294,10 +292,8 @@ describe('submissions', () => {
     input.value = 'A'
     $(document).triggerHandler('grading_change')
 
-    await waitFor(() => {
-      expect(capturedRequest).toBeDefined()
-      expect(capturedRequest.get('submission[grade]')).toBe('A')
-    })
+    await waitFor(() => expect(capturedRequest).toBeDefined())
+    expect(capturedRequest.get('submission[grade]')).toBe('A')
   })
 
   test('grading_change submits percent grades via ajaxJSON', async () => {
@@ -320,10 +316,8 @@ describe('submissions', () => {
     input.value = '85%'
     $(document).triggerHandler('grading_change')
 
-    await waitFor(() => {
-      expect(capturedRequest).toBeDefined()
-      expect(capturedRequest.get('submission[grade]')).toBe('85%')
-    })
+    await waitFor(() => expect(capturedRequest).toBeDefined())
+    expect(capturedRequest.get('submission[grade]')).toBe('85%')
   })
 
   test('grading_change submits negative grades via ajaxJSON', async () => {
@@ -346,10 +340,8 @@ describe('submissions', () => {
     input.value = '-5'
     $(document).triggerHandler('grading_change')
 
-    await waitFor(() => {
-      expect(capturedRequest).toBeDefined()
-      expect(capturedRequest.get('submission[grade]')).toBe('-5')
-    })
+    await waitFor(() => expect(capturedRequest).toBeDefined())
+    expect(capturedRequest.get('submission[grade]')).toBe('-5')
   })
 
   test('grading_change submits empty grade to clear it on the server', async () => {
@@ -372,9 +364,7 @@ describe('submissions', () => {
     input.value = ''
     $(document).triggerHandler('grading_change')
 
-    await waitFor(() => {
-      expect(capturedRequest).toBeDefined()
-      expect(capturedRequest.get('submission[grade]')).toBe('')
-    })
+    await waitFor(() => expect(capturedRequest).toBeDefined())
+    expect(capturedRequest.get('submission[grade]')).toBe('')
   })
 })

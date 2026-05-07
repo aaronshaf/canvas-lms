@@ -144,14 +144,12 @@ describe('DeleteCalendarEventDialog', () => {
 
     await new Promise(resolve => setTimeout(resolve, 0))
 
-    await waitFor(() => {
+    await waitFor(() =>
       expect(handleDeleted).toHaveBeenCalledWith([
         {title: 'deleted event', workflow_state: 'deleted'},
-      ])
-      expect(handleUpdated).toHaveBeenCalledWith([
-        {title: 'updated event', workflow_state: 'active'},
-      ])
-    })
+      ]),
+    )
+    expect(handleUpdated).toHaveBeenCalledWith([{title: 'updated event', workflow_state: 'active'}])
   })
 
   it('sends which=one when "this event" is selected', async () => {

@@ -198,21 +198,17 @@ describe('ModuleItemListSmart', () => {
         </QueryClientProvider>,
       )
 
-      await waitFor(() => {
-        expect(screen.getByText('Content 0')).toBeInTheDocument()
-        expect(screen.getByText(`Showing 1-${PAGE_SIZE} of ${itemCount} items`)).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Content 0')).toBeInTheDocument())
+      expect(screen.getByText(`Showing 1-${PAGE_SIZE} of ${itemCount} items`)).toBeInTheDocument()
 
       const pageTwoButton = screen.queryByText('2')?.closest('button')
       expect(pageTwoButton).toBeInTheDocument()
       await user.click(pageTwoButton!)
 
-      await waitFor(() => {
-        expect(screen.getByText(`Content ${PAGE_SIZE}`)).toBeInTheDocument()
-        expect(
-          screen.getByText(`Showing ${PAGE_SIZE + 1}-${PAGE_SIZE * 2} of ${itemCount} items`),
-        ).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText(`Content ${PAGE_SIZE}`)).toBeInTheDocument())
+      expect(
+        screen.getByText(`Showing ${PAGE_SIZE + 1}-${PAGE_SIZE * 2} of ${itemCount} items`),
+      ).toBeInTheDocument()
     })
 
     it('renders all items when pagination is not needed', async () => {
@@ -405,10 +401,8 @@ describe('ModuleItemListSmart', () => {
       )
 
       // The first page is rendered
-      await waitFor(() => {
-        expect(screen.getByText('Content 0')).toBeInTheDocument()
-        expect(screen.getByText(`Showing 1-${PAGE_SIZE} of ${itemCount} items`)).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Content 0')).toBeInTheDocument())
+      expect(screen.getByText(`Showing 1-${PAGE_SIZE} of ${itemCount} items`)).toBeInTheDocument()
 
       // navigate to page 2
       fireEvent(
@@ -422,12 +416,10 @@ describe('ModuleItemListSmart', () => {
       )
 
       // Verify that we navigated to page 2
-      await waitFor(() => {
-        expect(screen.getByText(`Content ${PAGE_SIZE}`)).toBeInTheDocument()
-        expect(
-          screen.getByText(`Showing ${PAGE_SIZE + 1}-${itemCount} of ${itemCount} items`),
-        ).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText(`Content ${PAGE_SIZE}`)).toBeInTheDocument())
+      expect(
+        screen.getByText(`Showing ${PAGE_SIZE + 1}-${itemCount} of ${itemCount} items`),
+      ).toBeInTheDocument()
     })
 
     it('ignores module-page-navigation events for different module IDs', async () => {

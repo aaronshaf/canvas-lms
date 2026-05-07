@@ -122,10 +122,8 @@ describe('SubmissionList', () => {
     expect(container.firstChild).toBeTruthy()
 
     // Wait for content to load
-    await waitFor(() => {
-      expect(getByText('Original Course')).toBeInTheDocument()
-      expect(getByText('Original Assignment')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByText('Original Course')).toBeInTheDocument())
+    expect(getByText('Original Assignment')).toBeInTheDocument()
   })
 
   it('renders submission modal when clicking create page', async () => {

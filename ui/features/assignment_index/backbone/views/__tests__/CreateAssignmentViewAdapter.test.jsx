@@ -126,12 +126,10 @@ describe('CreateAssignmentViewAdapter', () => {
 
     await user.click(getByTestId('save-button'))
 
-    await waitFor(() => {
-      expect(saveSpy).toHaveBeenCalled()
-      expect(showFlashAlert).toHaveBeenCalledWith({
-        message: expect.any(String),
-        type: 'error',
-      })
+    await waitFor(() => expect(saveSpy).toHaveBeenCalled())
+    expect(showFlashAlert).toHaveBeenCalledWith({
+      message: expect.any(String),
+      type: 'error',
     })
   })
 

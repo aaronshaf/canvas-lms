@@ -147,12 +147,12 @@ describe('RegisterService', () => {
       fireEvent.input(password, {target: {value: passwordValue}})
       fireEvent.click(button)
 
-      await waitFor(() => {
+      await waitFor(() =>
         expect(requestBodyCapture).toHaveBeenCalledWith({
           user_service: {service: serviceName, user_name: usernameValue, password: passwordValue},
-        })
-        expect(onSubmit).toHaveBeenCalled()
-      })
+        }),
+      )
+      expect(onSubmit).toHaveBeenCalled()
     })
   })
 })

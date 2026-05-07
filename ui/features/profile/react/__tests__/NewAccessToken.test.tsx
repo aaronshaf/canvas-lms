@@ -115,13 +115,8 @@ describe('NewAccessToken', () => {
 
     await user.click(submit)
 
-    await waitFor(
-      () => {
-        expect(requestBodyCapture).toHaveBeenCalledWith({token})
-        expect(onSubmit).toHaveBeenCalledWith({token})
-      },
-      {timeout: 20000},
-    )
+    await waitFor(() => expect(requestBodyCapture).toHaveBeenCalledWith({token}), {timeout: 20000})
+    expect(onSubmit).toHaveBeenCalledWith({token})
   }, 30000)
 
   it('should be able to submit the form if both the purpose and expirations fields are provided', async () => {
@@ -161,13 +156,8 @@ describe('NewAccessToken', () => {
     await user.tab() // blur the time field
     await user.click(submit)
 
-    await waitFor(
-      () => {
-        expect(requestBodyCapture).toHaveBeenCalledWith({token})
-        expect(onSubmit).toHaveBeenCalledWith({token})
-      },
-      {timeout: 20000}, // Increase timeout for CI
-    )
+    await waitFor(() => expect(requestBodyCapture).toHaveBeenCalledWith({token}), {timeout: 20000}) // Increase timeout for CI
+    expect(onSubmit).toHaveBeenCalledWith({token})
   }, 30000) // Add test timeout
 
   describe('Student expiration enforcement', () => {

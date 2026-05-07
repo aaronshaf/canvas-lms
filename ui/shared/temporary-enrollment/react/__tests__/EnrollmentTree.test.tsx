@@ -513,14 +513,12 @@ describe('EnrollmentTree', () => {
       })
       // check all children
       await user.click(screen.getByTestId('check-c1'))
-      await waitFor(() => {
-        expect(screen.getByTestId('check-c1')).toBeChecked()
-        expect(screen.getByTestId('check-s1')).toBeChecked()
-        expect(screen.getByTestId('check-s2')).toBeChecked()
-        expect(screen.getByTestId('tip-c1')).toBeInTheDocument()
-        expect(screen.getByTestId('tip-s1')).toBeInTheDocument()
-        expect(screen.getByTestId('tip-s2')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByTestId('check-c1')).toBeChecked())
+      expect(screen.getByTestId('check-s1')).toBeChecked()
+      expect(screen.getByTestId('check-s2')).toBeChecked()
+      expect(screen.getByTestId('tip-c1')).toBeInTheDocument()
+      expect(screen.getByTestId('tip-s1')).toBeInTheDocument()
+      expect(screen.getByTestId('tip-s2')).toBeInTheDocument()
     })
 
     it('removes tooltips when role changes to TeacherRole', async () => {

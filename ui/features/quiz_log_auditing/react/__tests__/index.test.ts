@@ -967,12 +967,10 @@ describe('canvas_quizzes/events', () => {
 
     const answerMatrix = await findByTestId(container, 'answer-matrix')
 
-    await waitFor(() => {
-      expect(answerMatrix).toBeTruthy()
-      const headers = answerMatrix.querySelectorAll('thead th')
-      const rows = answerMatrix.querySelectorAll('tbody tr')
-      expect(headers).toHaveLength(9) // 1 for Timestamp and 8 for questions
-      expect(rows).toHaveLength(4)
-    })
+    await waitFor(() => expect(answerMatrix).toBeTruthy())
+    const headers = answerMatrix.querySelectorAll('thead th')
+    const rows = answerMatrix.querySelectorAll('tbody tr')
+    expect(headers).toHaveLength(9) // 1 for Timestamp and 8 for questions
+    expect(rows).toHaveLength(4)
   })
 })

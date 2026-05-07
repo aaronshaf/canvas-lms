@@ -224,10 +224,8 @@ describe('DashboardTabs', () => {
   it('should render both tab labels', async () => {
     const {getByTestId, cleanup} = setup()
 
-    await waitFor(() => {
-      expect(getByTestId('tab-dashboard')).toBeInTheDocument()
-      expect(getByTestId('tab-courses')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByTestId('tab-dashboard')).toBeInTheDocument())
+    expect(getByTestId('tab-courses')).toBeInTheDocument()
 
     cleanup()
   })
@@ -326,11 +324,9 @@ describe('DashboardTabs', () => {
   it('should display Dashboard tab with course work widget', async () => {
     const {getByTestId, getByText, cleanup} = setup()
 
-    await waitFor(() => {
-      expect(getByTestId('dashboard-tab-content')).toBeInTheDocument()
-      expect(getByTestId('widget-course-work-combined-widget')).toBeInTheDocument()
-      expect(getByText('Course work')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByTestId('dashboard-tab-content')).toBeInTheDocument())
+    expect(getByTestId('widget-course-work-combined-widget')).toBeInTheDocument()
+    expect(getByText('Course work')).toBeInTheDocument()
 
     cleanup()
   })

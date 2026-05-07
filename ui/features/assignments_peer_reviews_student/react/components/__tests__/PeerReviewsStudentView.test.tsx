@@ -367,11 +367,11 @@ describe('PeerReviewsStudentView', () => {
 
     const {getByTestId} = setup({assignmentId: '8'})
 
-    await waitFor(() => {
-      const selector = getByTestId('peer-review-selector')
-      expect(selector).toBeInTheDocument()
-      expect(selector).toHaveAttribute('value', 'No peer reviews available')
-    })
+    await waitFor(() => expect(getByTestId('peer-review-selector')).toBeInTheDocument())
+    expect(getByTestId('peer-review-selector')).toHaveAttribute(
+      'value',
+      'No peer reviews available',
+    )
   })
 
   it('calls allocate when assessment requests count is less than peer reviews required', async () => {
@@ -2351,14 +2351,12 @@ describe('PeerReviewsStudentView', () => {
 
       fireEvent.click(getByText('Submissions to Review'))
 
-      await waitFor(() => {
-        expect(getByTestId('unavailable-peer-review')).toBeInTheDocument()
-        expect(
-          getByText(
-            'This student has not yet submitted their work. Check back later or contact your instructor.',
-          ),
-        ).toBeInTheDocument()
-      })
+      await waitFor(() => expect(getByTestId('unavailable-peer-review')).toBeInTheDocument())
+      expect(
+        getByText(
+          'This student has not yet submitted their work. Check back later or contact your instructor.',
+        ),
+      ).toBeInTheDocument()
     })
 
     it('displays UnavailablePeerReview when submission has no submittedAt', async () => {
@@ -2465,14 +2463,12 @@ describe('PeerReviewsStudentView', () => {
       await user.click(selector)
       await user.click(getByText('Peer Review (2 of 2)'))
 
-      await waitFor(() => {
-        expect(getByTestId('unavailable-peer-review')).toBeInTheDocument()
-        expect(
-          getByText(
-            'This student has not yet submitted their work. Check back later or contact your instructor.',
-          ),
-        ).toBeInTheDocument()
-      })
+      await waitFor(() => expect(getByTestId('unavailable-peer-review')).toBeInTheDocument())
+      expect(
+        getByText(
+          'This student has not yet submitted their work. Check back later or contact your instructor.',
+        ),
+      ).toBeInTheDocument()
     })
   })
 

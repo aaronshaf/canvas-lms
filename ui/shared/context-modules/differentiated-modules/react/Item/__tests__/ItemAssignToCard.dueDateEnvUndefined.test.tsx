@@ -103,15 +103,14 @@ describe('ItemAssignToCard - Due Date ENV Undefined Defaults', () => {
     await userEvent.type(dateInput, 'Nov 10, 2020')
     await userEvent.tab()
     await waitFor(
-      () => {
+      () =>
         expect(onCardDatesChangeMock).toHaveBeenCalledWith(
           expect.any(String),
           'due_at',
           '2020-11-10T08:00:00.000Z',
-        )
-        expect(getAllByLabelText('Time')[0]).toHaveValue('8:00 AM')
-      },
+        ),
       {timeout: 30000},
     )
+    expect(getAllByLabelText('Time')[0]).toHaveValue('8:00 AM')
   })
 })

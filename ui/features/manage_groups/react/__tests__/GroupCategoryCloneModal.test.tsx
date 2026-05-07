@@ -105,13 +105,13 @@ describe('GroupCategoryCloneModal', () => {
         .setup({pointerEventsCheck: PointerEventsCheckLevel.Never})
         .click(getByText('Submit'))
       expect(getAllByText(/cloning/i)).toBeTruthy()
-      await waitFor(() => {
+      await waitFor(() =>
         expect(capturedBody).toMatchObject({
           name: '(Clone) Course Admin View Group Set',
-        })
-        expect(getAllByText(/success/i)).toBeTruthy()
-        expect(onDismiss).toHaveBeenCalled()
-      })
+        }),
+      )
+      expect(getAllByText(/success/i)).toBeTruthy()
+      expect(onDismiss).toHaveBeenCalled()
     })
   })
 

@@ -241,13 +241,15 @@ describe('K-5 Dashboard', () => {
         r => typeof r === 'object' && r.url && r.url.includes('/api/v1/users/self/settings'),
       )
       expect(settingsRequests.length).toBeGreaterThan(0)
-      const lastRequest = settingsRequests[settingsRequests.length - 1]
-      expect(lastRequest.body).toEqual(
-        JSON.stringify({
-          elementary_dashboard_disabled: true,
-        }),
-      )
     })
+    const lastRequest = requestLog
+      .filter(r => typeof r === 'object' && r.url && r.url.includes('/api/v1/users/self/settings'))
+      .at(-1)
+    expect(lastRequest.body).toEqual(
+      JSON.stringify({
+        elementary_dashboard_disabled: true,
+      }),
+    )
   })
 
   describe('Homeroom Section', () => {
@@ -310,13 +312,14 @@ describe('K-5 Dashboard', () => {
           url => typeof url === 'string' && /\/api\/v1\/announcements.*/.test(url),
         )
         expect(announcementCalls).toHaveLength(0)
-        const externalToolsCalls = requestLog.filter(
+      })
+      expect(
+        requestLog.filter(
           url =>
             typeof url === 'string' &&
             /\/api\/v1\/external_tools\/visible_course_nav_tools.*/.test(url),
-        )
-        expect(externalToolsCalls).toHaveLength(0)
-      })
+        ),
+      ).toHaveLength(0)
     }, 30000)
 
     it('only fetches announcements based on cards once per page load', async () => {
@@ -340,14 +343,14 @@ describe('K-5 Dashboard', () => {
           url => typeof url === 'string' && /\/api\/v1\/announcements.*/.test(url),
         )
         expect(announcementCalls).toHaveLength(0)
-
-        const externalToolsCalls = requestLog.filter(
+      })
+      expect(
+        requestLog.filter(
           url =>
             typeof url === 'string' &&
             /\/api\/v1\/external_tools\/visible_course_nav_tools.*/.test(url),
-        )
-        expect(externalToolsCalls).toHaveLength(0)
-      })
+        ),
+      ).toHaveLength(0)
     })
   })
 })

@@ -470,13 +470,11 @@ describe('GradesPage', () => {
 
     it('does not filter any course if the observedUserId is null', async () => {
       const {getByText} = render(<GradesPage {...defaultProps} currentUser={{id: '1'}} />)
-      await waitFor(() => {
-        expect(getByText('Testing 4 Dummies')).toBeInTheDocument()
-        expect(getByText('ECON 500')).toBeInTheDocument()
-        expect(getByText('Mastering Grading Periods')).toBeInTheDocument()
-        expect(getByText('Mastering Canvas')).toBeInTheDocument()
-        expect(getByText('Canvas from zero to hero')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(getByText('Testing 4 Dummies')).toBeInTheDocument())
+      expect(getByText('ECON 500')).toBeInTheDocument()
+      expect(getByText('Mastering Grading Periods')).toBeInTheDocument()
+      expect(getByText('Mastering Canvas')).toBeInTheDocument()
+      expect(getByText('Canvas from zero to hero')).toBeInTheDocument()
     })
   })
 })

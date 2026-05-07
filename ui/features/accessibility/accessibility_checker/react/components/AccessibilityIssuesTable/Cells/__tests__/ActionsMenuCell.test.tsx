@@ -258,10 +258,8 @@ describe('ActionsMenuCell', () => {
       const okButton = screen.getByText(/^ok$/i)
       await user.click(okButton.closest('button')!)
 
-      await waitFor(() => {
-        expect(mockDoFetchAccessibilityScanData).toHaveBeenCalledWith({})
-        expect(mockDoFetchAccessibilityIssuesSummary).toHaveBeenCalledWith({})
-      })
+      await waitFor(() => expect(mockDoFetchAccessibilityScanData).toHaveBeenCalledWith({}))
+      expect(mockDoFetchAccessibilityIssuesSummary).toHaveBeenCalledWith({})
     })
   })
 

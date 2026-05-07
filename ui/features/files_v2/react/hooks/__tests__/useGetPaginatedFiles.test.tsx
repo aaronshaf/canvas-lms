@@ -91,8 +91,10 @@ describe('useGetPaginatedFiles', () => {
       () => useGetPaginatedFiles({folder: mockFolder as any, onSettled: mockOnSettled}),
       {wrapper},
     )
-    await waitFor(() => expect(mockOnSettled).toHaveBeenCalled())
-    expect(result.current.data).toBeTruthy()
+    await waitFor(() => {
+      expect(mockOnSettled).toHaveBeenCalled()
+      expect(result.current.data).toBeTruthy()
+    })
   })
 
   it('returns empty results when search term is a single character without making API call', async () => {
@@ -109,9 +111,8 @@ describe('useGetPaginatedFiles', () => {
     await waitFor(() => {
       expect(mockOnSettled).toHaveBeenCalledWith([])
       expect(result.current.data).toEqual([])
+      expect(result.current.search.term).toBe('a')
     })
-
-    expect(result.current.search.term).toBe('a')
   })
 
   it('handles search terms with more than one character', async () => {
@@ -143,10 +144,8 @@ describe('useGetPaginatedFiles', () => {
       () => useGetPaginatedFiles({folder: mockFolder as any, onSettled: mockOnSettled}),
       {wrapper},
     )
-    await waitFor(() => {
-      expect(mockOnSettled).toHaveBeenCalledWith([])
-      expect(result.current.data).toEqual([])
-    })
+    await waitFor(() => expect(mockOnSettled).toHaveBeenCalledWith([]))
+    expect(result.current.data).toEqual([])
   })
 
   it('calls backend with URL-encoded search term', async () => {

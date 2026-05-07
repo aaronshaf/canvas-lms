@@ -79,12 +79,12 @@ describe('CourseHomeDialog', () => {
     const saveButton = getByRole('button', {name: 'Save'})
     fireEvent.click(saveButton)
 
-    await waitFor(() => {
+    await waitFor(() =>
       expect(axios.put).toHaveBeenCalledWith('/api/v1/courses/1', {
         course: {default_view: 'assignments'},
-      })
-      expect(onSubmit).toHaveBeenCalled()
-    })
+      }),
+    )
+    expect(onSubmit).toHaveBeenCalled()
   })
 
   test('calls onRequestClose when cancel is clicked', () => {

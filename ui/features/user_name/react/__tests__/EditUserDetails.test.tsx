@@ -140,11 +140,9 @@ describe('EditUserDetails', () => {
       fireEvent.input(sortableName, {target: {value: newUserDetails.sortable_name}})
       fireEvent.click(submit)
 
-      await waitFor(() => {
-        expect(patchCalled).toBe(true)
-        expect(patchRequestBody).toEqual({user: newUserDetails})
-        expect(props.onSubmit).toHaveBeenCalledWith(newUserDetails)
-      })
+      await waitFor(() => expect(patchCalled).toBe(true))
+      expect(patchRequestBody).toEqual({user: newUserDetails})
+      expect(props.onSubmit).toHaveBeenCalledWith(newUserDetails)
     })
   })
 
@@ -194,11 +192,9 @@ describe('EditUserDetails', () => {
       fireEvent.input(sortableName, {target: {value: newUserDetails.sortable_name}})
       fireEvent.click(submit)
 
-      await waitFor(() => {
-        expect(patchCalled).toBe(true)
-        expect(patchRequestBody).toEqual({user: newUserDetails})
-        expect(props.onSubmit).toHaveBeenCalledWith(newUserDetails)
-      })
+      await waitFor(() => expect(patchCalled).toBe(true))
+      expect(patchRequestBody).toEqual({user: newUserDetails})
+      expect(props.onSubmit).toHaveBeenCalledWith(newUserDetails)
     })
 
     it('should show an error message if the email field is invalid', async () => {
@@ -247,11 +243,9 @@ describe('EditUserDetails', () => {
       fireEvent.input(email, {target: {value: newUserDetails.email}})
       fireEvent.click(submit)
 
-      await waitFor(() => {
-        expect(patchCalled).toBe(true)
-        expect(patchRequestBody).toEqual({user: newUserDetails})
-        expect(props.onSubmit).toHaveBeenCalledWith(newUserDetails)
-      })
+      await waitFor(() => expect(patchCalled).toBe(true))
+      expect(patchRequestBody).toEqual({user: newUserDetails})
+      expect(props.onSubmit).toHaveBeenCalledWith(newUserDetails)
     })
   })
 })

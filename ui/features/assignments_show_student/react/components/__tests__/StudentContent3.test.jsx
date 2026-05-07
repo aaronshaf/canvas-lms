@@ -200,14 +200,13 @@ describe('Assignment Student Content View', () => {
         </MockedQueryProvider>,
       )
 
-      await waitFor(() => {
+      await waitFor(() =>
         expect(initializeReaderButton).toHaveBeenCalledWith(element, {
           content: expect.anything(Function),
           title: 'name',
-        })
-
-        expect(initializeReaderButton.mock.calls[0][1].content()).toEqual('description')
-      })
+        }),
+      )
+      expect(initializeReaderButton.mock.calls[0][1].content()).toEqual('description')
     })
 
     it('sets up Immersive Reader if it finds the mobile mount point', async () => {
@@ -221,14 +220,13 @@ describe('Assignment Student Content View', () => {
         </MockedQueryProvider>,
       )
 
-      await waitFor(() => {
+      await waitFor(() =>
         expect(initializeReaderButton).toHaveBeenCalledWith(element, {
           content: expect.anything(Function),
           title: 'name',
-        })
-
-        expect(initializeReaderButton.mock.calls[0][1].content()).toEqual('description')
-      })
+        }),
+      )
+      expect(initializeReaderButton.mock.calls[0][1].content()).toEqual('description')
     })
 
     it('does not set up Immersive Reader if neither mount point is present', async () => {

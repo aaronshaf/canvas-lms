@@ -290,11 +290,9 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
     await act(async () => {
       ref.current.setState({detailsVisible: true})
     })
-    await waitFor(() => {
-      expect(formatSpy).toHaveBeenCalled()
-      const [gradeToFormat] = formatSpy.mock.calls[0]
-      expect(gradeToFormat).toBe(provisionalGrades[0])
-    })
+    await waitFor(() => expect(formatSpy).toHaveBeenCalled())
+    const [gradeToFormat] = formatSpy.mock.calls[0]
+    expect(gradeToFormat).toBe(provisionalGrades[0])
   })
 
   test('calls formatSubmissionGrade with the passed-in grading type', async () => {
@@ -315,10 +313,8 @@ describe('SpeedGraderProvisionalGradeSelector', () => {
     await act(async () => {
       ref.current.setState({detailsVisible: true})
     })
-    await waitFor(() => {
-      expect(formatSpy).toHaveBeenCalled()
-      expect(formatSpy.mock.calls[0][1].formatType).toBe('points')
-    })
+    await waitFor(() => expect(formatSpy).toHaveBeenCalled())
+    expect(formatSpy.mock.calls[0][1].formatType).toBe('points')
     formatSpy.mockRestore()
   })
 })

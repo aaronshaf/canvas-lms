@@ -133,11 +133,9 @@ describe('AIConversationsContainer', () => {
 
     await user.click(screen.getByLabelText('Filter by student'))
 
-    await waitFor(() => {
-      expect(screen.getByText('✓ Student One')).toBeInTheDocument()
-      expect(screen.getByText('✓ Student Two')).toBeInTheDocument()
-      expect(screen.getByText('Student Three (No conversation)')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('✓ Student One')).toBeInTheDocument())
+    expect(screen.getByText('✓ Student Two')).toBeInTheDocument()
+    expect(screen.getByText('Student Three (No conversation)')).toBeInTheDocument()
   })
 
   it('disables dropdown options for students without conversations', async () => {
@@ -173,10 +171,8 @@ describe('AIConversationsContainer', () => {
 
   it('loads conversation messages into Knowledge Chat card', async () => {
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
-    await waitFor(() => {
-      expect(screen.getByText('Hi there!')).toBeInTheDocument()
-      expect(screen.getByText('I am doing well!')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Hi there!')).toBeInTheDocument())
+    expect(screen.getByText('I am doing well!')).toBeInTheDocument()
   })
 
   it('shows Knowledge Chat card header', async () => {
@@ -202,10 +198,8 @@ describe('AIConversationsContainer', () => {
 
   it('shows IgniteAI and Student message count pills', async () => {
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
-    await waitFor(() => {
-      expect(screen.getByText('IgniteAI messages: 2')).toBeInTheDocument()
-      expect(screen.getByText('Student messages: 1')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('IgniteAI messages: 2')).toBeInTheDocument())
+    expect(screen.getByText('Student messages: 1')).toBeInTheDocument()
   })
 
   it('shows helpful message when navigating to a student without a conversation', async () => {
@@ -272,10 +266,10 @@ describe('AIConversationsContainer', () => {
 
   it('renders Previous and Next navigation buttons', async () => {
     render(<AIConversationsContainer aiExperience={mockAiExperience} courseId="123" />)
-    await waitFor(() => {
-      expect(screen.getByTestId('ai-conversations-previous-button')).toBeInTheDocument()
-      expect(screen.getByTestId('ai-conversations-next-button')).toBeInTheDocument()
-    })
+    await waitFor(() =>
+      expect(screen.getByTestId('ai-conversations-previous-button')).toBeInTheDocument(),
+    )
+    expect(screen.getByTestId('ai-conversations-next-button')).toBeInTheDocument()
   })
 
   it('Previous button is disabled when first student is selected', async () => {

@@ -155,12 +155,10 @@ describe('default proficiency', () => {
     fireEvent.change(masteryField, {target: {value: 'Mastery2'}})
     fireEvent.click(getByText('Save Mastery Scale'))
     fireEvent.click(getByText('Save'))
-    await waitFor(() => {
-      expect(updateSpy).toHaveBeenCalled()
-      expect(showFlashAlert).toHaveBeenCalledWith({
-        message: 'Mastery scale saved',
-        type: 'success',
-      })
+    await waitFor(() => expect(updateSpy).toHaveBeenCalled())
+    expect(showFlashAlert).toHaveBeenCalledWith({
+      message: 'Mastery scale saved',
+      type: 'success',
     })
   })
 
@@ -265,12 +263,10 @@ describe('default proficiency', () => {
     fireEvent.click(getByText('Save Mastery Scale'))
     fireEvent.click(getByText('Save'))
 
-    await waitFor(() => {
-      expect(onNotifyPendingChangesSpy.mock.calls).toHaveLength(2)
-      // first call first argument
-      expect(onNotifyPendingChangesSpy.mock.calls[0][0]).toBe(true)
-      // second call first argument
-      expect(onNotifyPendingChangesSpy.mock.calls[1][0]).toBe(false)
-    })
+    await waitFor(() => expect(onNotifyPendingChangesSpy.mock.calls).toHaveLength(2))
+    // first call first argument
+    expect(onNotifyPendingChangesSpy.mock.calls[0][0]).toBe(true)
+    // second call first argument
+    expect(onNotifyPendingChangesSpy.mock.calls[1][0]).toBe(false)
   })
 })

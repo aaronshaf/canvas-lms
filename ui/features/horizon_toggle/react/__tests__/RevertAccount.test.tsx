@@ -68,13 +68,13 @@ describe('RevertAccount', () => {
     expect(revertButton).not.toBeUndefined()
     fireEvent.click(revertButton!)
 
-    await waitFor(() => {
+    await waitFor(() =>
       expect(capturedBody).toEqual({
         id: '123',
         account: {settings: {horizon_account: {value: false}}},
-      })
-      expect(globalUtils.reloadWindow).toHaveBeenCalled()
-    })
+      }),
+    )
+    expect(globalUtils.reloadWindow).toHaveBeenCalled()
   })
 
   it('shows an error message when API call fails', async () => {

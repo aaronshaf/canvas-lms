@@ -280,12 +280,10 @@ describe('FileBrowser', () => {
 
       await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
 
-      await waitFor(() => {
-        expect(ref.current.state.collections[4].collections).toEqual([6])
-        expect(ref.current.state.collections[5].collections).toEqual([7])
-        expect(ref.current.state.collections[4].items).toEqual([1])
-        expect(ref.current.state.collections[5].items).toEqual([])
-      })
+      await waitFor(() => expect(ref.current.state.collections[4].collections).toEqual([6]))
+      expect(ref.current.state.collections[5].collections).toEqual([7])
+      expect(ref.current.state.collections[4].items).toEqual([1])
+      expect(ref.current.state.collections[5].items).toEqual([])
     })
 
     it('does not get new folder/file data on folder collapse', async () => {
@@ -343,10 +341,8 @@ describe('FileBrowser', () => {
       await userEvent.click(await findClosestElementByType(wrapper, 'folder 1', 'button'))
       await userEvent.click(await findClosestElementByType(wrapper, 'folder 4', 'button'))
 
-      await waitFor(() => {
-        expect(ref.current.state.collections[4].collections).toEqual([6])
-        expect(ref.current.state.collections[6].items).toEqual([1])
-      })
+      await waitFor(() => expect(ref.current.state.collections[4].collections).toEqual([6]))
+      expect(ref.current.state.collections[6].items).toEqual([1])
     })
 
     it('gets additional pages of data', async () => {
@@ -396,10 +392,8 @@ describe('FileBrowser', () => {
 
       await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
 
-      await waitFor(() => {
-        expect(ref.current.state.collections[4].collections).toEqual([6, 7])
-        expect(ref.current.state.collections[4].items).toEqual([1, 5])
-      })
+      await waitFor(() => expect(ref.current.state.collections[4].collections).toEqual([6, 7]))
+      expect(ref.current.state.collections[4].items).toEqual([1, 5])
     })
 
     it('does not get data for locked sub-folders', async () => {
@@ -427,11 +421,9 @@ describe('FileBrowser', () => {
 
       await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
 
-      await waitFor(() => {
-        expect(wrapper.getByText('Locked')).toBeInTheDocument()
-        expect(ref.current.state.collections[4].collections).toEqual([])
-        expect(ref.current.state.collections[4].items).toEqual([])
-      })
+      await waitFor(() => expect(wrapper.getByText('Locked')).toBeInTheDocument())
+      expect(ref.current.state.collections[4].collections).toEqual([])
+      expect(ref.current.state.collections[4].items).toEqual([])
     })
 
     it('replaces folder and file data if the folder has previously been loaded', async () => {
@@ -467,11 +459,9 @@ describe('FileBrowser', () => {
 
       await userEvent.click(getNthOfElementByType(wrapper, 0, 'button'))
 
-      await waitFor(() => {
-        expect(ref.current.state.collections[5].name).toEqual('sub folder 1')
-        expect(ref.current.state.collections[4].items).toEqual([1, 2])
-        expect(ref.current.state.items[1].name).toEqual('file 1')
-      })
+      await waitFor(() => expect(ref.current.state.collections[5].name).toEqual('sub folder 1'))
+      expect(ref.current.state.collections[4].items).toEqual([1, 2])
+      expect(ref.current.state.items[1].name).toEqual('file 1')
     })
   })
 
@@ -792,10 +782,8 @@ describe('FileBrowser', () => {
         },
       })
 
-      await waitFor(() => {
-        expect(ref.current.setSuccessMessage).toHaveBeenCalled()
-        expect(ref.current.setSuccessMessage).toHaveBeenCalledWith('Success: File uploaded')
-      })
+      await waitFor(() => expect(ref.current.setSuccessMessage).toHaveBeenCalled())
+      expect(ref.current.setSuccessMessage).toHaveBeenCalledWith('Success: File uploaded')
     })
 
     it('shows an alert on file upload fail', async () => {
@@ -830,10 +818,8 @@ describe('FileBrowser', () => {
         },
       })
 
-      await waitFor(() => {
-        expect(ref.current.setFailureMessage).toHaveBeenCalled()
-        expect(ref.current.setFailureMessage).toHaveBeenCalledWith('File upload failed')
-      })
+      await waitFor(() => expect(ref.current.setFailureMessage).toHaveBeenCalled())
+      expect(ref.current.setFailureMessage).toHaveBeenCalledWith('File upload failed')
     })
   })
 

@@ -69,11 +69,11 @@ describe('BulkActionButtons', () => {
     const moreButton = screen.getByTestId('bulk-actions-more-button')
     fireEvent.click(moreButton)
 
-    await waitFor(() => {
-      expect(screen.getByTestId('bulk-actions-manage-usage-rights-button')).toBeInTheDocument()
-      expect(screen.getByTestId('bulk-actions-edit-permissions-button')).toBeInTheDocument()
-      expect(screen.getByTestId('bulk-actions-move-button')).toBeInTheDocument()
-    })
+    await waitFor(() =>
+      expect(screen.getByTestId('bulk-actions-manage-usage-rights-button')).toBeInTheDocument(),
+    )
+    expect(screen.getByTestId('bulk-actions-edit-permissions-button')).toBeInTheDocument()
+    expect(screen.getByTestId('bulk-actions-move-button')).toBeInTheDocument()
   })
 
   it('does not render delete button when userCanDeleteFilesForContext is false', () => {
@@ -186,21 +186,21 @@ describe('BulkActionButtons', () => {
     })
     const moreButton = screen.getByTestId('bulk-actions-more-button')
     fireEvent.click(moreButton)
-    await waitFor(() => {
-      expect(screen.queryByTestId('bulk-actions-delete-button')).toHaveAttribute('disabled')
-      expect(screen.queryByTestId('bulk-actions-manage-usage-rights-button')).toHaveAttribute(
-        'aria-disabled',
-        'true',
-      )
-      expect(screen.queryByTestId('bulk-actions-edit-permissions-button')).toHaveAttribute(
-        'aria-disabled',
-        'true',
-      )
-      expect(screen.queryByTestId('bulk-actions-move-button')).toHaveAttribute(
-        'aria-disabled',
-        'true',
-      )
-    })
+    await waitFor(() =>
+      expect(screen.queryByTestId('bulk-actions-delete-button')).toHaveAttribute('disabled'),
+    )
+    expect(screen.queryByTestId('bulk-actions-manage-usage-rights-button')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    expect(screen.queryByTestId('bulk-actions-edit-permissions-button')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    expect(screen.queryByTestId('bulk-actions-move-button')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
   })
 
   describe('Folders', () => {

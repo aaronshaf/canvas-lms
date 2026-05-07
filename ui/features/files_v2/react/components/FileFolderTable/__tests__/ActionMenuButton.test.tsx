@@ -102,16 +102,14 @@ describe('ActionMenuButton', () => {
       expect(button).toBeInTheDocument()
 
       await user.click(button)
-      await waitFor(() => {
-        expect(screen.getByText('Rename')).toBeInTheDocument()
-        expect(screen.getByText('Download')).toBeInTheDocument()
-        expect(screen.getByText('Edit Permissions')).toBeInTheDocument()
-        expect(screen.getByText('Manage Usage Rights')).toBeInTheDocument()
-        expect(screen.getByText('Send To...')).toBeInTheDocument()
-        expect(screen.getByText('Copy To...')).toBeInTheDocument()
-        expect(screen.getByText('Move To...')).toBeInTheDocument()
-        expect(screen.getByText('Delete')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Rename')).toBeInTheDocument())
+      expect(screen.getByText('Download')).toBeInTheDocument()
+      expect(screen.getByText('Edit Permissions')).toBeInTheDocument()
+      expect(screen.getByText('Manage Usage Rights')).toBeInTheDocument()
+      expect(screen.getByText('Send To...')).toBeInTheDocument()
+      expect(screen.getByText('Copy To...')).toBeInTheDocument()
+      expect(screen.getByText('Move To...')).toBeInTheDocument()
+      expect(screen.getByText('Delete')).toBeInTheDocument()
     })
 
     it('does not render move button for file when student access is restricted', async () => {
@@ -246,7 +244,8 @@ describe('ActionMenuButton', () => {
         ...defaultProps,
         row: {
           ...FAKE_FILES[0],
-          ...{restricted_by_master_course: true, is_master_course_child_content: true},
+          restricted_by_master_course: true,
+          is_master_course_child_content: true,
         },
       })
 
@@ -359,14 +358,12 @@ describe('ActionMenuButton', () => {
       expect(button).toBeInTheDocument()
 
       await user.click(button)
-      await waitFor(() => {
-        expect(screen.getByText('Rename')).toBeInTheDocument()
-        expect(screen.getByText('Download')).toBeInTheDocument()
-        expect(screen.getByText('Edit Permissions')).toBeInTheDocument()
-        expect(screen.getByText('Manage Usage Rights')).toBeInTheDocument()
-        expect(screen.getByText('Move To...')).toBeInTheDocument()
-        expect(screen.getByText('Delete')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Rename')).toBeInTheDocument())
+      expect(screen.getByText('Download')).toBeInTheDocument()
+      expect(screen.getByText('Edit Permissions')).toBeInTheDocument()
+      expect(screen.getByText('Manage Usage Rights')).toBeInTheDocument()
+      expect(screen.getByText('Move To...')).toBeInTheDocument()
+      expect(screen.getByText('Delete')).toBeInTheDocument()
     })
 
     it('does not render move button for folder when student access is restricted', async () => {

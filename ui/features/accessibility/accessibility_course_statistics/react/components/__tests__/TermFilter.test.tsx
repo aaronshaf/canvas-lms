@@ -121,10 +121,8 @@ describe('TermFilter', () => {
 
     await openDropdown(user)
 
-    await waitFor(() => {
-      expect(screen.getByText('Show courses from')).toBeInTheDocument()
-      expect(screen.getByText('All terms')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Show courses from')).toBeInTheDocument())
+    expect(screen.getByText('All terms')).toBeInTheDocument()
   })
 
   it('renders an "Active Terms" group with active terms', async () => {
@@ -135,10 +133,8 @@ describe('TermFilter', () => {
 
     await openDropdown(user)
 
-    await waitFor(() => {
-      expect(screen.getByText('Active Terms')).toBeInTheDocument()
-      expect(screen.getByText('Spring 2026')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Active Terms')).toBeInTheDocument())
+    expect(screen.getByText('Spring 2026')).toBeInTheDocument()
   })
 
   it('renders a "Future Terms" group only when future terms exist', async () => {
@@ -149,10 +145,8 @@ describe('TermFilter', () => {
 
     await openDropdown(user)
 
-    await waitFor(() => {
-      expect(screen.getByText('Future Terms')).toBeInTheDocument()
-      expect(screen.getByText('Fall 2026')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Future Terms')).toBeInTheDocument())
+    expect(screen.getByText('Fall 2026')).toBeInTheDocument()
   })
 
   it('does not render a "Future Terms" group when no future terms exist', async () => {
@@ -192,10 +186,8 @@ describe('TermFilter', () => {
 
     await openDropdown(user)
 
-    await waitFor(() => {
-      expect(screen.getByText('Past Terms')).toBeInTheDocument()
-      expect(screen.getByText('Summer 2025')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Past Terms')).toBeInTheDocument())
+    expect(screen.getByText('Summer 2025')).toBeInTheDocument()
   })
 
   it('does not render a "Past Terms" group when no past terms exist', async () => {

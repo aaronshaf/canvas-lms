@@ -113,11 +113,9 @@ describe('SyllabusRevisionsTray', () => {
     )
     render(<SyllabusRevisionsTray {...defaultProps} />)
 
-    await waitFor(() => {
-      expect(screen.getByText('Latest revision')).toBeInTheDocument()
-      expect(screen.getByTestId('version-2')).toBeInTheDocument()
-      expect(screen.getByTestId('version-1')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Latest revision')).toBeInTheDocument())
+    expect(screen.getByTestId('version-2')).toBeInTheDocument()
+    expect(screen.getByTestId('version-1')).toBeInTheDocument()
   })
 
   it('shows restore button only when non-current version is selected', async () => {
@@ -192,12 +190,10 @@ describe('SyllabusRevisionsTray', () => {
 
     fireEvent.click(screen.getByTestId('confirm-restore'))
 
-    await waitFor(() => {
-      expect(restoreRequested).toBe(true)
-      expect(showFlashAlert).toHaveBeenCalledWith({
-        message: 'Revision successfully restored',
-        type: 'success',
-      })
+    await waitFor(() => expect(restoreRequested).toBe(true))
+    expect(showFlashAlert).toHaveBeenCalledWith({
+      message: 'Revision successfully restored',
+      type: 'success',
     })
   })
 
@@ -344,10 +340,8 @@ describe('SyllabusRevisionsTray', () => {
     )
     render(<SyllabusRevisionsTray {...defaultProps} />)
 
-    await waitFor(() => {
-      expect(screen.getByText(/by John Doe/)).toBeInTheDocument()
-      expect(screen.getByText(/by Jane Smith/)).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText(/by John Doe/)).toBeInTheDocument())
+    expect(screen.getByText(/by Jane Smith/)).toBeInTheDocument()
   })
 
   it('does not display user name when edited_by is not present', async () => {

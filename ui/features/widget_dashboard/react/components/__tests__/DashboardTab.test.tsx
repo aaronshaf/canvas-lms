@@ -252,10 +252,8 @@ describe('DashboardTab', () => {
   it('should render widget columns with course work widget', async () => {
     const {getByTestId, cleanup} = setup()
 
-    await waitFor(() => {
-      expect(getByTestId('widget-columns')).toBeInTheDocument()
-      expect(getByTestId('widget-course-work-combined-widget')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByTestId('widget-columns')).toBeInTheDocument())
+    expect(getByTestId('widget-course-work-combined-widget')).toBeInTheDocument()
 
     cleanup()
   })
@@ -273,11 +271,9 @@ describe('DashboardTab', () => {
   it('should display course work statistics when loaded', async () => {
     const {getByText, cleanup} = setup()
 
-    await waitFor(() => {
-      expect(getByText('5')).toBeInTheDocument() // Due count (3+2 from both courses)
-      expect(getByText('1')).toBeInTheDocument() // Missing count (1+0 from both courses)
-      expect(getByText('8')).toBeInTheDocument() // Submitted count (5+3 from both courses)
-    })
+    await waitFor(() => expect(getByText('5')).toBeInTheDocument()) // Due count (3+2 from both courses)
+    expect(getByText('1')).toBeInTheDocument() // Missing count (1+0 from both courses)
+    expect(getByText('8')).toBeInTheDocument() // Submitted count (5+3 from both courses)
 
     expect(getByText('Due')).toBeInTheDocument()
     expect(getByText('Missing')).toBeInTheDocument()

@@ -99,10 +99,8 @@ describe('App', () => {
   it('renders the content migrations table with data', async () => {
     render(<App />)
 
-    await waitFor(() => {
-      expect(screen.getByText(/Common Cartridge/)).toBeInTheDocument()
-      expect(screen.getByText(/Zip File/)).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText(/Common Cartridge/)).toBeInTheDocument())
+    expect(screen.getByText(/Zip File/)).toBeInTheDocument()
   })
 
   it('renders the form', async () => {
@@ -127,10 +125,8 @@ describe('App', () => {
 
     render(<App />)
 
-    await waitFor(() => {
-      expect(capturedUrl).toContain('per_page=25')
-      expect(capturedUrl).toContain('page=1')
-    })
+    await waitFor(() => expect(capturedUrl).toContain('per_page=25'))
+    expect(capturedUrl).toContain('page=1')
 
     expect(await screen.findByText(/Common Cartridge/)).toBeInTheDocument()
   })

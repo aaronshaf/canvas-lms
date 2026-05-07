@@ -545,10 +545,8 @@ describe('SplitScreenViewContainer', () => {
       expect(likeButtons).toHaveLength(2)
       expect(queryByTestId('liked-icon')).toBeFalsy()
       fireEvent.click(likeButtons[0])
-      await waitFor(() => {
-        expect(setOnSuccess.mock.calls).toHaveLength(1)
-        expect(setOnFailure.mock.calls).toHaveLength(0)
-      })
+      await waitFor(() => expect(setOnSuccess.mock.calls).toHaveLength(1))
+      expect(setOnFailure.mock.calls).toHaveLength(0)
       expect(queryByTestId('liked-icon')).toBeTruthy()
     })
 
@@ -578,10 +576,8 @@ describe('SplitScreenViewContainer', () => {
       await new Promise(resolve => setTimeout(resolve, 0))
       expect(queryByTestId('liked-icon')).toBeTruthy()
       fireEvent.click(queryByTestId('liked-icon'))
-      await waitFor(() => {
-        expect(setOnSuccess.mock.calls).toHaveLength(1)
-        expect(setOnFailure.mock.calls).toHaveLength(0)
-      })
+      await waitFor(() => expect(setOnSuccess.mock.calls).toHaveLength(1))
+      expect(setOnFailure.mock.calls).toHaveLength(0)
       expect(queryByTestId('liked-icon')).toBeFalsy()
     })
   })

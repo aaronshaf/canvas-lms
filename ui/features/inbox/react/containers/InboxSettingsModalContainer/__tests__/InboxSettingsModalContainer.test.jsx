@@ -290,10 +290,8 @@ describe('InboxSettingsModalContainer', () => {
 
   it('displays signature and auto response settings when inboxSignatureBlock and inboxAutoResponse props are true', async () => {
     const {getByText, getByTestId} = setup({...defaultProps()})
-    await waitFor(() => {
-      expect(getByTestId('inbox-signature-input')).toHaveValue('My signature')
-      expect(getByText('Out of Office')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(getByTestId('inbox-signature-input')).toHaveValue('My signature'))
+    expect(getByText('Out of Office')).toBeInTheDocument()
   })
 
   it('displays only signature settings when only inboxSignatureBlock prop is true', async () => {

@@ -88,10 +88,10 @@ it('renders enabled file drop with active billboard', async () => {
   })
   expect(ref.current.state.interaction).toBeTruthy()
   expect(ref.current.state.folder).toBeTruthy()
-  await waitFor(() => {
-    expect(component.queryByText('Drop files here to add to module')).toBeInTheDocument()
-    expect(component.queryByText('or choose files')).toBeInTheDocument()
-  })
+  await waitFor(() =>
+    expect(component.queryByText('Drop files here to add to module')).toBeInTheDocument(),
+  )
+  expect(component.queryByText('or choose files')).toBeInTheDocument()
 })
 
 it('renders invisible upload form when files are dropped', async () => {
@@ -105,10 +105,8 @@ it('renders invisible upload form when files are dropped', async () => {
       contextType: 'Course',
     })
   })
-  await waitFor(() => {
-    expect(component.getByRole('form', {hidden: true})).toBeInTheDocument()
-    expect(component.getByTestId('current-uploads')).toBeInTheDocument()
-  })
+  await waitFor(() => expect(component.getByRole('form', {hidden: true})).toBeInTheDocument())
+  expect(component.getByTestId('current-uploads')).toBeInTheDocument()
 })
 
 it('renders accessibility text with the module name', async () => {

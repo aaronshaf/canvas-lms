@@ -102,16 +102,15 @@ describe('ItemAssignToCard - Available Until Defaults', () => {
     await userEvent.type(dateInput, 'Nov 9, 2020')
     await userEvent.tab()
     await waitFor(
-      () => {
+      () =>
         expect(onCardDatesChangeMock).toHaveBeenCalledWith(
           expect.any(String),
           'lock_at',
           '2020-11-09T23:59:59.000Z',
-        )
-        expect(getAllByLabelText('Time')[2]).toHaveValue('11:59 PM')
-      },
+        ),
       {timeout: 30000},
     )
+    expect(getAllByLabelText('Time')[2]).toHaveValue('11:59 PM')
   })
 
   it('defaults to 11:59 PM for available until dates if it is undefined', async () => {
@@ -125,15 +124,14 @@ describe('ItemAssignToCard - Available Until Defaults', () => {
     await userEvent.type(dateInput, 'Nov 10, 2020')
     await userEvent.tab()
     await waitFor(
-      () => {
+      () =>
         expect(onCardDatesChangeMock).toHaveBeenCalledWith(
           expect.any(String),
           'lock_at',
           '2020-11-10T23:59:59.000Z',
-        )
-        expect(getAllByLabelText('Time')[2]).toHaveValue('11:59 PM')
-      },
+        ),
       {timeout: 30000},
     )
+    expect(getAllByLabelText('Time')[2]).toHaveValue('11:59 PM')
   })
 })

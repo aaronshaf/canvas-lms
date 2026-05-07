@@ -146,11 +146,10 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
         fireEvent.click(smallOption)
         const doneButton = screen.getByRole('button', {name: /done/i})
         fireEvent.click(doneButton)
-        await waitFor(() => {
-          const [{appliedHeight, appliedWidth}] = props.onSave.mock.calls[0]
-          expect(appliedWidth).toEqual(320)
-          expect(appliedHeight).toEqual(254)
-        })
+        await waitFor(() => expect(props.onSave).toHaveBeenCalled())
+        const [{appliedHeight, appliedWidth}] = props.onSave.mock.calls[0]
+        expect(appliedWidth).toEqual(320)
+        expect(appliedHeight).toEqual(254)
       })
 
       it('includes the size to be applied for Medium', async () => {
@@ -162,11 +161,10 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
         fireEvent.click(smallOption)
         const doneButton = screen.getByRole('button', {name: /done/i})
         fireEvent.click(doneButton)
-        await waitFor(() => {
-          const [{appliedHeight, appliedWidth}] = props.onSave.mock.calls[0]
-          expect(appliedWidth).toEqual(480)
-          expect(appliedHeight).toEqual(300)
-        })
+        await waitFor(() => expect(props.onSave).toHaveBeenCalled())
+        const [{appliedHeight, appliedWidth}] = props.onSave.mock.calls[0]
+        expect(appliedWidth).toEqual(480)
+        expect(appliedHeight).toEqual(300)
       })
 
       it('includes the size to be applied for Large', async () => {
@@ -178,11 +176,10 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
         fireEvent.click(smallOption)
         const doneButton = screen.getByRole('button', {name: /done/i})
         fireEvent.click(doneButton)
-        await waitFor(() => {
-          const [{appliedHeight, appliedWidth}] = props.onSave.mock.calls[0]
-          expect(appliedWidth).toEqual(700)
-          expect(appliedHeight).toEqual(441)
-        })
+        await waitFor(() => expect(props.onSave).toHaveBeenCalled())
+        const [{appliedHeight, appliedWidth}] = props.onSave.mock.calls[0]
+        expect(appliedWidth).toEqual(700)
+        expect(appliedHeight).toEqual(441)
       })
     })
   })
@@ -283,11 +280,10 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
       fireEvent.click(screen.getByLabelText('Player layout'))
       fireEvent.click(await screen.findByText(label, {selector: '[role="option"]'}))
       fireEvent.click(screen.getByText('Done'))
-      await waitFor(() => {
-        const [{appliedHeight, appliedWidth}] = props.onSave.mock.calls[0]
-        expect(appliedWidth).toEqual(expectedWidth)
-        expect(appliedHeight).toEqual(expectedHeight)
-      })
+      await waitFor(() => expect(props.onSave).toHaveBeenCalled())
+      const [{appliedHeight, appliedWidth}] = props.onSave.mock.calls[0]
+      expect(appliedWidth).toEqual(expectedWidth)
+      expect(appliedHeight).toEqual(expectedHeight)
     })
 
     it.each([
@@ -373,11 +369,10 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
           target: {value: 'A title'},
         })
         fireEvent.click(screen.getByText('Done'))
-        await waitFor(() => {
-          const [{appliedWidth, appliedHeight}] = props.onSave.mock.calls[0]
-          expect(appliedWidth).toEqual(400)
-          expect(appliedHeight).toEqual(273)
-        })
+        await waitFor(() => expect(props.onSave).toHaveBeenCalled())
+        const [{appliedWidth, appliedHeight}] = props.onSave.mock.calls[0]
+        expect(appliedWidth).toEqual(400)
+        expect(appliedHeight).toEqual(273)
       })
 
       it('derives height from width (sidebar, > 720)', async () => {
@@ -390,11 +385,10 @@ describe('RCE "Videos" Plugin > VideoOptionsTray', () => {
           target: {value: 'A title'},
         })
         fireEvent.click(screen.getByText('Done'))
-        await waitFor(() => {
-          const [{appliedWidth, appliedHeight}] = props.onSave.mock.calls[0]
-          expect(appliedWidth).toEqual(1032)
-          expect(appliedHeight).toEqual(460)
-        })
+        await waitFor(() => expect(props.onSave).toHaveBeenCalled())
+        const [{appliedWidth, appliedHeight}] = props.onSave.mock.calls[0]
+        expect(appliedWidth).toEqual(1032)
+        expect(appliedHeight).toEqual(460)
       })
     })
   })

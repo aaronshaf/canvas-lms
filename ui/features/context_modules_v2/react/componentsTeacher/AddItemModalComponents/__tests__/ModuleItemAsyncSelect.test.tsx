@@ -26,9 +26,7 @@ import {useModuleItemContent} from '../../../hooks/queries/useModuleItemContent'
 
 vi.mock('../../../hooks/queries/useModuleItemContent')
 
-const mockUseModuleItemContent = useModuleItemContent as MockedFunction<
-  typeof useModuleItemContent
->
+const mockUseModuleItemContent = useModuleItemContent as MockedFunction<typeof useModuleItemContent>
 
 const mockAssignments = [
   {id: '1', name: 'Assignment 1'},
@@ -92,10 +90,8 @@ describe('ModuleItemAsyncSelect', () => {
       const input = screen.getByLabelText('Select Assignment')
       await userEvent.type(input, 'Assignment')
 
-      await waitFor(() => {
-        expect(screen.getByText('Assignment 1')).toBeInTheDocument()
-        expect(screen.getByText('Assignment 2')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Assignment 1')).toBeInTheDocument())
+      expect(screen.getByText('Assignment 2')).toBeInTheDocument()
     })
 
     it('shows error state when loading fails', () => {
@@ -274,10 +270,8 @@ describe('ModuleItemAsyncSelect', () => {
       const input = screen.getByLabelText('Select Quiz')
       await userEvent.type(input, 'Quiz')
 
-      await waitFor(() => {
-        expect(screen.getByText('Quiz 1')).toBeInTheDocument()
-        expect(screen.getByText('Test Quiz')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Quiz 1')).toBeInTheDocument())
+      expect(screen.getByText('Test Quiz')).toBeInTheDocument()
     })
   })
 
@@ -300,10 +294,8 @@ describe('ModuleItemAsyncSelect', () => {
       await userEvent.click(input)
       await userEvent.type(input, 'Test')
 
-      await waitFor(() => {
-        expect(screen.getByText('Test Item 1')).toBeInTheDocument()
-        expect(screen.getByText('Test Item 50')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByText('Test Item 1')).toBeInTheDocument())
+      expect(screen.getByText('Test Item 50')).toBeInTheDocument()
     })
   })
 })

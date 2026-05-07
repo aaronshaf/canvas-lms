@@ -179,14 +179,12 @@ describe('AIExperienceShow', () => {
     const deleteButton = screen.getByText('Delete')
     fireEvent.click(deleteButton)
 
-    await waitFor(() => {
-      expect(screen.getByText('Delete Knowledge Chat')).toBeInTheDocument()
-      expect(
-        screen.getByText(
-          'Are you sure you want to delete "Customer Service Training"? This action cannot be undone.',
-        ),
-      ).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Delete Knowledge Chat')).toBeInTheDocument())
+    expect(
+      screen.getByText(
+        'Are you sure you want to delete "Customer Service Training"? This action cannot be undone.',
+      ),
+    ).toBeInTheDocument()
   })
 
   it('closes delete modal when Cancel is clicked', async () => {

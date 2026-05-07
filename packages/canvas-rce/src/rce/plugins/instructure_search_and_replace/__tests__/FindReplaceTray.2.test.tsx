@@ -194,11 +194,9 @@ describe('FindReplaceTray', () => {
       await type(user, findInput, 'a')
 
       // Wait for all selection context calls to complete
-      await waitFor(() => {
-        expect(props.getSelectionContext).toHaveBeenCalled()
-        const calls = props.getSelectionContext.mock.calls.length
-        expect(calls).toBeGreaterThanOrEqual(1)
-      })
+      await waitFor(() => expect(props.getSelectionContext).toHaveBeenCalled())
+      const calls = props.getSelectionContext.mock.calls.length
+      expect(calls).toBeGreaterThanOrEqual(1)
 
       // Then check for screen reader text
       const screenReaderContent = screen.getByText(content =>

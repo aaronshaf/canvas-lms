@@ -201,13 +201,13 @@ describe('MoveSelect', () => {
       positionSelect.dispatchEvent(new Event('change', {bubbles: true}))
 
       // Wait for sibling select to appear and verify options
-      await waitFor(() => {
-        const siblingSelect = testScreen.getByTestId('select-sibling')
-        expect(siblingSelect).toBeInTheDocument()
-
-        const options = Array.from(siblingSelect.options)
-        expect(options.map(o => o.text)).toEqual(['Item 1', 'Item 2'])
+      const siblingSelect = await waitFor(() => {
+        const el = testScreen.getByTestId('select-sibling')
+        expect(el).toBeInTheDocument()
+        return el
       })
+      const options = Array.from(siblingSelect.options)
+      expect(options.map(o => o.text)).toEqual(['Item 1', 'Item 2'])
     })
 
     it('shows an error when fetching items fails', async () => {

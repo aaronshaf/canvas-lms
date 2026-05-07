@@ -490,10 +490,10 @@ describe('ToolAvailability', () => {
 
       fireEvent.click(document.getElementById('update-exception-modal-button')!)
 
-      await waitFor(() => {
-        expect(mockEdit).toHaveBeenCalledWith(deployment.registration_id, control.id, true)
-        expect(fetchControlsByDeployment).toHaveBeenCalledTimes(2)
-      })
+      await waitFor(() =>
+        expect(mockEdit).toHaveBeenCalledWith(deployment.registration_id, control.id, true),
+      )
+      expect(fetchControlsByDeployment).toHaveBeenCalledTimes(2)
     })
 
     it('lets users close the modal without saving changes', async () => {
@@ -614,10 +614,10 @@ describe('ToolAvailability', () => {
 
       fireEvent.click(document.getElementById('update-exception-modal-button')!)
 
-      await waitFor(() => {
-        expect(mockEdit).toHaveBeenCalledWith(deployment.registration_id, control.id, true)
-        expect(fetchControlsByDeployment).toHaveBeenCalledTimes(2)
-      })
+      await waitFor(() =>
+        expect(mockEdit).toHaveBeenCalledWith(deployment.registration_id, control.id, true),
+      )
+      expect(fetchControlsByDeployment).toHaveBeenCalledTimes(2)
     })
 
     it('lets users edit the root level exception', async () => {
@@ -675,10 +675,10 @@ describe('ToolAvailability', () => {
 
       fireEvent.click(document.getElementById('update-exception-modal-button')!)
 
-      await waitFor(() => {
-        expect(mockEdit).toHaveBeenCalledWith(deployment.registration_id, rootControl.id, false)
-        expect(fetchControlsByDeployment).toHaveBeenCalledTimes(2)
-      })
+      await waitFor(() =>
+        expect(mockEdit).toHaveBeenCalledWith(deployment.registration_id, rootControl.id, false),
+      )
+      expect(fetchControlsByDeployment).toHaveBeenCalledTimes(2)
     })
   })
 
@@ -743,10 +743,10 @@ describe('ToolAvailability', () => {
 
       fireEvent.click(document.getElementById('delete-exception-modal-button')!)
 
-      await waitFor(() => {
-        expect(mockDelete).toHaveBeenCalledWith(deployment.registration_id, control.id)
-        expect(fetchControlsByDeployment).toHaveBeenCalledTimes(2)
-      })
+      await waitFor(() =>
+        expect(mockDelete).toHaveBeenCalledWith(deployment.registration_id, control.id),
+      )
+      expect(fetchControlsByDeployment).toHaveBeenCalledTimes(2)
     })
 
     it('lets users cancel a sub-account level exception deletion', async () => {
@@ -868,10 +868,10 @@ describe('ToolAvailability', () => {
       expect(deleteButton).toBeInTheDocument()
 
       fireEvent.click(deleteButton)
-      await waitFor(() => {
-        expect(mockDelete).toHaveBeenCalledWith(deployment.registration_id, control.id)
-        expect(fetchControlsByDeployment).toHaveBeenCalledTimes(2)
-      })
+      await waitFor(() =>
+        expect(mockDelete).toHaveBeenCalledWith(deployment.registration_id, control.id),
+      )
+      expect(fetchControlsByDeployment).toHaveBeenCalledTimes(2)
     })
 
     it('lets users cancel deleting a course level exception deletion', async () => {
@@ -994,14 +994,14 @@ describe('ToolAvailability', () => {
       expect(deleteButton).toBeInTheDocument()
 
       fireEvent.click(deleteButton!)
-      await waitFor(() => {
+      await waitFor(() =>
         expect(mockDelete).toHaveBeenCalledWith({
           registrationId: reg.id,
           accountId: reg.account_id,
           deploymentId: deployment.id,
-        })
-        expect(fetchControlsByDeployment).toHaveBeenCalledTimes(2)
-      })
+        }),
+      )
+      expect(fetchControlsByDeployment).toHaveBeenCalledTimes(2)
     })
 
     it("doesn't let users delete a root account level deployment", async () => {

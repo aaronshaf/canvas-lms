@@ -142,10 +142,8 @@ describe('OutcomeAlignmentsList', () => {
       const outcomeScores = createMockOutcomeScores(alignments, scores)
       render(<OutcomeAlignmentsList {...defaultProps} outcomeScores={outcomeScores} />)
 
-      await waitFor(() => {
-        expect(screen.getByTestId('alignment-item-A_1')).toBeInTheDocument()
-        expect(screen.getByTestId('alignment-item-A_2')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByTestId('alignment-item-A_1')).toBeInTheDocument())
+      expect(screen.getByTestId('alignment-item-A_2')).toBeInTheDocument()
     })
 
     it('renders alignment titles as links', async () => {
@@ -269,11 +267,9 @@ describe('OutcomeAlignmentsList', () => {
       const outcomeScores = createMockOutcomeScores(alignments, scores)
       render(<OutcomeAlignmentsList {...defaultProps} outcomeScores={outcomeScores} />)
 
-      await waitFor(() => {
-        // Both items should be present
-        expect(screen.getByTestId('alignment-item-A_1')).toBeInTheDocument()
-        expect(screen.getByTestId('alignment-item-A_2')).toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.getByTestId('alignment-item-A_1')).toBeInTheDocument())
+      // Both items should be present
+      expect(screen.getByTestId('alignment-item-A_2')).toBeInTheDocument()
     })
   })
 
@@ -381,9 +377,10 @@ describe('OutcomeAlignmentsList', () => {
         const items = screen.getAllByTestId(/alignment-item-/)
         // Items should be sorted: Oldest (Jan 10), Middle (Jan 15), Newest (Jan 20)
         expect(items[0]).toHaveAttribute('data-testid', 'alignment-item-A_2')
-        expect(items[1]).toHaveAttribute('data-testid', 'alignment-item-A_3')
-        expect(items[2]).toHaveAttribute('data-testid', 'alignment-item-A_1')
       })
+      const items = screen.getAllByTestId(/alignment-item-/)
+      expect(items[1]).toHaveAttribute('data-testid', 'alignment-item-A_3')
+      expect(items[2]).toHaveAttribute('data-testid', 'alignment-item-A_1')
     })
 
     it('places unassessed items at the end', async () => {
@@ -422,8 +419,9 @@ describe('OutcomeAlignmentsList', () => {
         const items = screen.getAllByTestId(/alignment-item-/)
         // Assessed should come first, unassessed last
         expect(items[0]).toHaveAttribute('data-testid', 'alignment-item-A_2')
-        expect(items[1]).toHaveAttribute('data-testid', 'alignment-item-A_1')
       })
+      const items = screen.getAllByTestId(/alignment-item-/)
+      expect(items[1]).toHaveAttribute('data-testid', 'alignment-item-A_1')
     })
   })
 

@@ -144,10 +144,8 @@ describe('CourseGradesWidget', () => {
   it('displays courses with shared data', async () => {
     setup()
 
-    await waitFor(() => {
-      expect(screen.getByText('Course 1')).toBeInTheDocument()
-      expect(screen.getByText('Course 2')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Course 1')).toBeInTheDocument())
+    expect(screen.getByText('Course 2')).toBeInTheDocument()
   })
 
   it('renders courses with null grades', async () => {
@@ -202,10 +200,8 @@ describe('CourseGradesWidget', () => {
 
     setup({}, courseDataWithGrade)
 
-    await waitFor(() => {
-      expect(screen.getByText('Course With Grade')).toBeInTheDocument()
-      expect(screen.getByText('92%')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Course With Grade')).toBeInTheDocument())
+    expect(screen.getByText('92%')).toBeInTheDocument()
   })
 
   it('handles mix of courses with and without grades', async () => {
@@ -230,20 +226,16 @@ describe('CourseGradesWidget', () => {
 
     setup({}, mixedCourseData)
 
-    await waitFor(() => {
-      expect(screen.getByText('Course With Grade')).toBeInTheDocument()
-      expect(screen.getByText('Course Without Grade')).toBeInTheDocument()
-      expect(screen.getByText('85%')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Course With Grade')).toBeInTheDocument())
+    expect(screen.getByText('Course Without Grade')).toBeInTheDocument()
+    expect(screen.getByText('85%')).toBeInTheDocument()
   })
 
   it('displays "Go to course" link for each course', async () => {
     setup()
 
-    await waitFor(() => {
-      expect(screen.getByText('Course 1')).toBeInTheDocument()
-      expect(screen.getByText('Course 2')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Course 1')).toBeInTheDocument())
+    expect(screen.getByText('Course 2')).toBeInTheDocument()
 
     expect(screen.getByTestId('course-1-link')).toBeInTheDocument()
     expect(screen.getByTestId('course-1-link')).toHaveAttribute('href', '/courses/1')
@@ -294,10 +286,8 @@ describe('CourseGradesWidget', () => {
     mockGradeVisibilities = {'1': false}
     setup()
 
-    await waitFor(() => {
-      expect(screen.getByText('Course 1')).toBeInTheDocument()
-      expect(screen.getByText('Course 2')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Course 1')).toBeInTheDocument())
+    expect(screen.getByText('Course 2')).toBeInTheDocument()
 
     expect(screen.getByTestId('course-1-grade')).toHaveTextContent('•••')
     expect(screen.getByTestId('course-2-grade')).toHaveTextContent('88%')
@@ -321,10 +311,8 @@ describe('CourseGradesWidget', () => {
     mockGradeVisibilities = {'1': true}
     setup()
 
-    await waitFor(() => {
-      expect(screen.getByText('Course 1')).toBeInTheDocument()
-      expect(screen.getByText('Course 2')).toBeInTheDocument()
-    })
+    await waitFor(() => expect(screen.getByText('Course 1')).toBeInTheDocument())
+    expect(screen.getByText('Course 2')).toBeInTheDocument()
 
     expect(screen.getByTestId('course-1-grade')).not.toHaveTextContent('•••')
     expect(screen.getByTestId('course-2-grade')).toHaveTextContent('•••')

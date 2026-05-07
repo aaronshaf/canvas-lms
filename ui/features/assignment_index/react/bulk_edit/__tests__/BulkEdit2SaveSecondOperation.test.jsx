@@ -145,10 +145,8 @@ describe('Assignment Bulk Edit Dates - Second Save Operation', () => {
     changeAndBlurInput(getAllByLabelText('Due At')[0], '2020-04-02')
     fireEvent.click(getByText('Save'))
 
-    await waitFor(() => {
-      // Progress should be called more times for second save
-      expect(progressCallCount).toBeGreaterThan(firstSaveProgressCalls)
-      expect(getByText(/saved successfully/)).toBeInTheDocument()
-    })
+    // Progress should be called more times for second save
+    await waitFor(() => expect(progressCallCount).toBeGreaterThan(firstSaveProgressCalls))
+    expect(getByText(/saved successfully/)).toBeInTheDocument()
   }, 30000)
 })

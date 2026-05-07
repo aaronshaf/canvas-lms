@@ -277,11 +277,9 @@ describe('GradesPage', () => {
 
     it('routes the user to the observee submissions when the "View feedback" link is clicked', async () => {
       const {getByRole} = render(<GradesPage {...getProps({observedUserId: '5'})} />)
-      await waitFor(() => {
-        const link = getByRole('link', {name: 'View feedback'})
-        expect(link).toBeInTheDocument()
-        expect(link.href).toBe('http://localhost:3000/courses/30/assignments/9/submissions/5')
-      })
+      const link = await waitFor(() => getByRole('link', {name: 'View feedback'}))
+      expect(link).toBeInTheDocument()
+      expect(link.href).toBe('http://localhost:3000/courses/30/assignments/9/submissions/5')
     })
   })
 

@@ -165,26 +165,22 @@ describe('RCE "Icon Maker" Plugin > IconMakerTray', () => {
     it('loads the standard SVG metadata', async () => {
       const {getByLabelText, getByTestId} = subject()
 
-      await waitFor(() => {
-        expect(getByLabelText('Name').value).toEqual('Test Icon')
-        expect(getByLabelText('Icon Shape').value).toEqual('Triangle')
-        expect(getByLabelText('Icon Size').value).toEqual('Large')
-        expect(getByTestId('colorPreview-#FF2717')).toBeInTheDocument() // icon color
-        expect(getByTestId('colorPreview-#06A3B7')).toBeInTheDocument() // icon outline
-        expect(getByLabelText('Outline Size').value).toEqual('Small')
-      })
+      await waitFor(() => expect(getByLabelText('Name').value).toEqual('Test Icon'))
+      expect(getByLabelText('Icon Shape').value).toEqual('Triangle')
+      expect(getByLabelText('Icon Size').value).toEqual('Large')
+      expect(getByTestId('colorPreview-#FF2717')).toBeInTheDocument() // icon color
+      expect(getByTestId('colorPreview-#06A3B7')).toBeInTheDocument() // icon outline
+      expect(getByLabelText('Outline Size').value).toEqual('Small')
     })
 
     it('loads the text-related SVG metadata', async () => {
       const {getByLabelText, getByTestId, getByText} = subject()
 
-      await waitFor(() => {
-        expect(getByText('Some Text')).toBeInTheDocument()
-        expect(getByLabelText('Text Size').value).toEqual('Medium')
-        expect(getByTestId('colorPreview-#009606')).toBeInTheDocument() // text color
-        expect(getByTestId('colorPreview-#E71F63')).toBeInTheDocument() // text background color
-        expect(getByLabelText('Text Position').value).toEqual('Below')
-      })
+      await waitFor(() => expect(getByText('Some Text')).toBeInTheDocument())
+      expect(getByLabelText('Text Size').value).toEqual('Medium')
+      expect(getByTestId('colorPreview-#009606')).toBeInTheDocument() // text color
+      expect(getByTestId('colorPreview-#E71F63')).toBeInTheDocument() // text background color
+      expect(getByLabelText('Text Position').value).toEqual('Below')
     })
 
     describe('when an icon has styling from RCE', () => {

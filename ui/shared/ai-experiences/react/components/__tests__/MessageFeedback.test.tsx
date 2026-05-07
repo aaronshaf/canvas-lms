@@ -114,10 +114,8 @@ describe('MessageFeedback', () => {
       render(<MessageFeedback {...defaultProps} initialFeedback={[disliked]} />)
       fireEvent.click(screen.getByTestId('message-feedback-like'))
 
-      await waitFor(() => {
-        expect(deleteCalled).toBe(true)
-        expect(postCalled).toBe(true)
-      })
+      await waitFor(() => expect(deleteCalled).toBe(true))
+      expect(postCalled).toBe(true)
     })
   })
 

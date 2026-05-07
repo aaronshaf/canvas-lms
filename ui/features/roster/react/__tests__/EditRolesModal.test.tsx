@@ -85,10 +85,10 @@ describe('EditRolesModal', () => {
     expect(roleSelect.value).toBe('TA')
 
     await user.click(getByTestId('update-roles'))
-    await waitFor(() => {
-      expect(defaultProps.onSubmit).toHaveBeenCalledWith(newEnrollments, deletedEnrollments)
-      expect(defaultProps.onClose).toHaveBeenCalled()
-    })
+    await waitFor(() =>
+      expect(defaultProps.onSubmit).toHaveBeenCalledWith(newEnrollments, deletedEnrollments),
+    )
+    expect(defaultProps.onClose).toHaveBeenCalled()
   })
 
   it('calls onClose when cancelling', async () => {
@@ -172,9 +172,9 @@ describe('EditRolesModal', () => {
     fireEvent.click(getByText('TA'))
     await user.click(getByTestId('update-roles'))
 
-    await waitFor(() => {
-      expect(props.onSubmit).toHaveBeenCalledWith(newEnrollments, deletedEnrollments)
-      expect(props.onClose).toHaveBeenCalled()
-    })
+    await waitFor(() =>
+      expect(props.onSubmit).toHaveBeenCalledWith(newEnrollments, deletedEnrollments),
+    )
+    expect(props.onClose).toHaveBeenCalled()
   })
 })

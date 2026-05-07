@@ -274,10 +274,8 @@ describe('publishOneModuleHelper', () => {
     it('updates the module items when skipping item update', async () => {
       spy = vi.spyOn(publishOneModuleHelperModule, 'updateModuleItemsPublishedStates')
       await batchUpdateOneModuleApiCall(1, 2, false, true, 'loading message', 'success message')
-      await waitFor(() => {
-        expect(spy).toHaveBeenCalledTimes(1)
-        expect(spy).toHaveBeenCalledWith(2, undefined, true)
-      })
+      await waitFor(() => expect(spy).toHaveBeenCalledTimes(1))
+      expect(spy).toHaveBeenCalledWith(2, undefined, true)
     })
 
     it('updates the module items when publishing item update', async () => {
@@ -319,17 +317,17 @@ describe('publishOneModuleHelper', () => {
       )
 
       await batchUpdateOneModuleApiCall(1, 2, false, false, 'loading message', 'success message')
-      await waitFor(() => {
-        expect(document.body.textContent).toContain('Some module items could not be published:')
-        expect(document.body.textContent).toContain('Secret File')
-        expect(document.body.textContent).toContain('file is in a hidden folder')
-        expect(document.body.textContent).toContain('Unlicensed Image')
-        expect(document.body.textContent).toContain('usage rights are required')
-        expect(document.body.textContent).toContain('Locked Item')
-        expect(document.body.textContent).toContain('cannot be published')
-        expect(document.body.textContent).toContain('Mystery Item')
-        expect(document.body.textContent).toContain('could not be published')
-      })
+      await waitFor(() =>
+        expect(document.body.textContent).toContain('Some module items could not be published:'),
+      )
+      expect(document.body.textContent).toContain('Secret File')
+      expect(document.body.textContent).toContain('file is in a hidden folder')
+      expect(document.body.textContent).toContain('Unlicensed Image')
+      expect(document.body.textContent).toContain('usage rights are required')
+      expect(document.body.textContent).toContain('Locked Item')
+      expect(document.body.textContent).toContain('cannot be published')
+      expect(document.body.textContent).toContain('Mystery Item')
+      expect(document.body.textContent).toContain('could not be published')
     })
 
     it('falls back to plain string when publish_warning_items is empty', async () => {
@@ -359,17 +357,17 @@ describe('publishOneModuleHelper', () => {
       )
 
       await batchUpdateOneModuleApiCall(1, 2, false, true, 'loading message', 'success message')
-      await waitFor(() => {
+      await waitFor(() =>
         expect(
           getAllByText(document.body, 'Some module items could not be unpublished.'),
-        ).toHaveLength(2)
-        expect(
-          getAllByText(
-            document.body,
-            'Items with student submissions or other restrictions cannot be unpublished.',
-          ),
-        ).toHaveLength(2)
-      })
+        ).toHaveLength(2),
+      )
+      expect(
+        getAllByText(
+          document.body,
+          'Items with student submissions or other restrictions cannot be unpublished.',
+        ),
+      ).toHaveLength(2)
     })
 
     it('shows an alert if the publish failed', async () => {

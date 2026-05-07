@@ -525,10 +525,8 @@ describe('feature_flags::FeatureFlagTable', () => {
       const acceptButton = getByTestId('eap-accept-button')
       await userEvent.click(acceptButton)
 
-      await waitFor(() => {
-        expect(eapApiCalled).toHaveBeenCalled()
-        expect(flagApiCalled).toHaveBeenCalled()
-      })
+      await waitFor(() => expect(eapApiCalled).toHaveBeenCalled())
+      expect(flagApiCalled).toHaveBeenCalled()
 
       await waitFor(() => {
         expect(queryByText('Early Access Program Terms and Conditions')).not.toBeInTheDocument()
