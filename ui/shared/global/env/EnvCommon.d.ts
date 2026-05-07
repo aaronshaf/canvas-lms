@@ -401,6 +401,7 @@ export type RootAccountFeatureId =
   | 'rce_transform_loaded_content'
   | 'restrict_student_access'
   | 'rubric_criterion_range'
+  | 'rubrics_page_pagination'
   | 'scheduled_page_publication'
   | 'send_usage_metrics'
   | 'substitution_variable_display'

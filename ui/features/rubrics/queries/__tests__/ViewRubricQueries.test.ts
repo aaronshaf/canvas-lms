@@ -19,7 +19,12 @@
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import qs from 'qs'
-import {duplicateRubric} from '../ViewRubricQueries'
+import {duplicateRubric, fetchAccountRubrics, fetchCourseRubrics} from '../ViewRubricQueries'
+
+const executeQueryMock = vi.fn()
+vi.mock('@canvas/graphql', () => ({
+  executeQuery: (...args: unknown[]) => executeQueryMock(...args),
+}))
 
 vi.mock('@instructure/platform-get-cookie', () => ({
   getCookie: () => 'test-csrf-token',
@@ -219,5 +224,77 @@ describe('duplicateRubric', () => {
     await expect(
       duplicateRubric({title: 'Test', pointsPossible: 10, accountId: '1'}),
     ).rejects.toThrow('Failed to duplicate rubric')
+  })
+})
+
+describe('fetchCourseRubrics / fetchAccountRubrics variable shape', () => {
+  beforeEach(() => {
+    executeQueryMock.mockReset()
+  })
+
+  it('forwards search, sort, paging, and workflowStates to the course query', async () => {
+    executeQueryMock.mockResolvedValue({
+      course: {rubricsConnection: {nodes: [], pageInfo: {totalCount: 0}}},
+    })
+
+    await fetchCourseRubrics(
+      {courseId: '42'},
+      {
+        first: 50,
+        after: 'cursor-x',
+        searchTerm: 'alpha',
+        sort: {field: 'title', direction: 'ascending'},
+        workflowStates: ['active', 'draft'],
+      },
+    )
+
+    expect(executeQueryMock).toHaveBeenCalledTimes(1)
+    const [, vars] = executeQueryMock.mock.calls[0]
+    expect(vars).toEqual({
+      courseId: '42',
+      first: 50,
+      after: 'cursor-x',
+      searchTerm: 'alpha',
+      sort: {field: 'title', direction: 'ascending'},
+      workflowStates: ['active', 'draft'],
+    })
+  })
+
+  it('forwards the same options to the account query', async () => {
+    executeQueryMock.mockResolvedValue({
+      account: {rubricsConnection: {nodes: [], pageInfo: {totalCount: 0}}},
+    })
+
+    await fetchAccountRubrics(
+      {accountId: '7'},
+      {
+        first: 50,
+        after: null,
+        searchTerm: undefined,
+        sort: {field: 'points_possible', direction: 'descending'},
+        workflowStates: ['archived'],
+      },
+    )
+
+    const [, vars] = executeQueryMock.mock.calls[0]
+    expect(vars).toMatchObject({
+      accountId: '7',
+      first: 50,
+      after: null,
+      sort: {field: 'points_possible', direction: 'descending'},
+      workflowStates: ['archived'],
+    })
+  })
+
+  it('unwraps the response to return the inner rubricsConnection holder', async () => {
+    const accountPayload = {rubricsConnection: {nodes: [{id: '1'}], pageInfo: {totalCount: 1}}}
+    executeQueryMock.mockResolvedValue({account: accountPayload})
+
+    const result = await fetchAccountRubrics(
+      {accountId: '7'},
+      {first: 50, after: null, workflowStates: ['active']},
+    )
+
+    expect(result).toBe(accountPayload)
   })
 })

@@ -217,6 +217,7 @@ export const RUBRICS_QUERY_RESPONSE: InfiniteData<RubricQueryResponse> = {
         pageInfo: {
           endCursor: 'asdf',
           hasNextPage: false,
+          totalCount: RUBRICS_DATA.length,
         },
       },
     },

@@ -650,6 +650,7 @@ class ApplicationController < ActionController::Base
     react_discussions_post
     restrict_student_access
     rubric_criterion_range
+    rubrics_page_pagination
     scheduled_page_publication
     send_usage_metrics
     send_usage_metrics_after_consent

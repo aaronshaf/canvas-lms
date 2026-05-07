@@ -22,6 +22,7 @@ module Types
   class AccountType < ApplicationObjectType
     implements GraphQL::Types::Relay::Node
     implements Interfaces::LegacyIDInterface
+    include GraphQLHelpers::RubricConnectionHelper
 
     alias_method :account, :object
 
@@ -196,19 +197,12 @@ module Types
                "Filter by rubric ID",
                required: false,
                prepare: GraphQLHelpers.relay_or_legacy_id_prepare_func("Rubric")
+      argument :search_term, String, "Filter by rubric title", required: false
+      argument :sort, Types::RubricSortInputType, required: false
+      argument :workflow_states, [String], "Filter by rubric workflow_state", required: false
     end
-    def rubrics_connection(id: nil)
-      rubric_associations = account.rubric_associations
-                                   .bookmarked
-                                   .include_rubric
-                                   .joins(:rubric)
-                                   .where.not(rubrics: { workflow_state: "deleted" })
-
-      rubric_associations = rubric_associations.where(rubric_id: id) if id
-
-      rubric_associations = rubric_associations.to_a
-      rubric_associations = Canvas::ICU.collate_by(rubric_associations.select(&:rubric_id).uniq(&:rubric_id)) { |r| r.rubric.title }
-      rubric_associations.map(&:rubric)
+    def rubrics_connection(id: nil, search_term: nil, sort: nil, workflow_states: nil)
+      resolve_rubrics_connection(account.rubric_associations, id:, search_term:, sort:, workflow_states:)
     end
   end
 end

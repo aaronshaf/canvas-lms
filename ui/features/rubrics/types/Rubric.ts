@@ -21,6 +21,7 @@ import type {Rubric} from '@canvas/rubrics/react/types/rubric'
 type PageInfo = {
   hasNextPage: boolean
   endCursor: string | null
+  totalCount: number | null
 }
 
 export type RubricQueryResponse = {

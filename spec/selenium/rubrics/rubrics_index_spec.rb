@@ -71,13 +71,18 @@ describe "Rubric index page" do
   end
 
   it "allows sorting by rubric name ascending/descending" do
-    RubricsIndex.rubric_name_header.click
+    # Rubrics are sorted by title ascending by default, so the first click on the
+    # name header toggles the existing sort to descending.
     expect(RubricsIndex.rubric_title(0)).to include_text(@rubric1.title)
     expect(RubricsIndex.rubric_title(1)).to include_text(@rubric2.title)
 
     RubricsIndex.rubric_name_header.click
     expect(RubricsIndex.rubric_title(0)).to include_text(@rubric2.title)
     expect(RubricsIndex.rubric_title(1)).to include_text(@rubric1.title)
+
+    RubricsIndex.rubric_name_header.click
+    expect(RubricsIndex.rubric_title(0)).to include_text(@rubric1.title)
+    expect(RubricsIndex.rubric_title(1)).to include_text(@rubric2.title)
   end
 
   it "allows sorting by total points ascending/descending" do

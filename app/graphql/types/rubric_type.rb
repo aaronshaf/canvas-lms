@@ -23,6 +23,8 @@ module Types
     implements GraphQL::Types::Relay::Node
     implements Interfaces::LegacyIDInterface
 
+    connection_type_class TotalCountConnection
+
     global_id_field :id
 
     field :criteria, [RubricCriterionType], <<~MD, null: false

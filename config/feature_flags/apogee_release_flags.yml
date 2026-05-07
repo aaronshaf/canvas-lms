@@ -546,3 +546,15 @@ concurrent_grading:
   description: |
     This feature enables graders to view other graders' changes in real time when
     grading concurrently in the Gradebook.
+rubrics_page_pagination:
+  state: hidden
+  applies_to: RootAccount
+  shadow: true
+  display_name: Rubrics Page Pagination
+  description: |
+    Enables backend pagination, search, and sorting for account and course rubric pages
+  environments:
+    ci:
+      state: allowed_on
+    development:
+      state: allowed_on

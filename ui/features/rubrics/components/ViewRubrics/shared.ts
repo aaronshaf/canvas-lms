@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 - present Instructure, Inc.
+ * Copyright (C) 2026 - present Instructure, Inc.
  *
  * This file is part of Canvas.
  *
@@ -16,15 +16,12 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {ViewRubricsLegacy} from './ViewRubricsLegacy'
-import {ViewRubricsPaginated} from './ViewRubricsPaginated'
-import type {ViewRubricsProps} from './shared'
+export const TABS = {
+  saved: 'Saved',
+  archived: 'Archived',
+}
 
-export {TABS, type ViewRubricsProps} from './shared'
-
-export const ViewRubrics = (props: ViewRubricsProps) => {
-  if (ENV.FEATURES.rubrics_page_pagination) {
-    return <ViewRubricsPaginated {...props} />
-  }
-  return <ViewRubricsLegacy {...props} />
+export type ViewRubricsProps = {
+  canManageRubrics?: boolean
+  showHeader?: boolean
 }

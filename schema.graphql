@@ -217,6 +217,17 @@ type Account implements LegacyIDInterface & Node {
     Returns the last _n_ elements from the list.
     """
     last: Int
+
+    """
+    Filter by rubric title
+    """
+    searchTerm: String
+    sort: RubricSortInput
+
+    """
+    Filter by rubric workflow_state
+    """
+    workflowStates: [String!]
   ): RubricConnection
   sisId: String
   standardGradeStatusesConnection(
@@ -2733,6 +2744,17 @@ type Course implements AssetString & AssignmentsConnectionInterface & Discussion
     Returns the last _n_ elements from the list.
     """
     last: Int
+
+    """
+    Filter by rubric title
+    """
+    searchTerm: String
+    sort: RubricSortInput
+
+    """
+    Filter by rubric workflow_state
+    """
+    workflowStates: [String!]
   ): RubricConnection
   sectionsConnection(
     """
@@ -10060,11 +10082,7 @@ type RubricConnection {
   A list of nodes.
   """
   nodes: [Rubric]
-
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
+  pageInfo: TotalCountPageInfo!
 }
 
 """
@@ -10117,6 +10135,37 @@ type RubricRating implements LegacyIDInterface {
   longDescription: String
   points: Float!
   rubricId: ID!
+}
+
+enum RubricSortField {
+  """
+  Sort by the number of criteria on the rubric.
+  """
+  criteria_count
+
+  """
+  Sort by whether the rubric is associated with an active Assignment in a
+  non-deleted Course. Mirrors the semantics of the `hasRubricAssociations`
+  field — Account-level rubric associations are intentionally not counted,
+  so a rubric whose only associations live on Accounts will sort as
+  "not used" by this field.
+  """
+  has_rubric_associations
+
+  """
+  Sort by the rubric's total points possible.
+  """
+  points_possible
+
+  """
+  Sort by rubric title (case-insensitive collation).
+  """
+  title
+}
+
+input RubricSortInput {
+  direction: OrderDirection = ascending
+  field: RubricSortField!
 }
 
 """

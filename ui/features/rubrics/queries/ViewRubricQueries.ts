@@ -29,83 +29,86 @@ import {getCookie} from '@instructure/platform-get-cookie'
 import qs from 'qs'
 import type {UsedLocation} from '@canvas/grading-scheme/gradingSchemeApiModel'
 import doFetchApi from '@canvas/do-fetch-api-effect'
-import {decodeHTML, stripLongDescriptionBrTags} from '@canvas/rubrics/react/utils'
+import {stripLongDescriptionBrTags} from '@canvas/rubrics/react/utils'
 
-const rubricsPerPage = 100
+export const RUBRICS_PER_PAGE = 50
+
+const RUBRIC_FIELDS = `
+  nodes {
+    id: _id
+    buttonDisplay
+    criteriaCount
+    criteria {
+      id: _id
+      ratings {
+        description
+        longDescription
+        points
+        id: _id
+      }
+      points
+      longDescription
+      description
+      ignoreForScoring
+      learningOutcomeId
+      criterionUseRange
+    }
+    hasRubricAssociations
+    hidePoints
+    freeFormCriterionComments
+    pointsPossible
+    ratingOrder
+    title
+    workflowState
+  }
+  pageInfo {
+    hasNextPage
+    endCursor
+    totalCount
+  }
+`
+
 const COURSE_RUBRICS_QUERY = gql`
-  query CourseRubricsQuery($courseId: ID!, $after: String) {
+  query CourseRubricsQuery(
+    $courseId: ID!
+    $first: Int!
+    $after: String
+    $searchTerm: String
+    $sort: RubricSortInput
+    $workflowStates: [String!]
+  ) {
     course(id: $courseId) {
-      rubricsConnection(first: ${rubricsPerPage}, after: $after) {
-        nodes {
-          id: _id
-          buttonDisplay
-          criteriaCount
-          criteria {
-            id: _id
-            ratings {
-              description
-              longDescription
-              points
-              id: _id
-            }
-            points
-            longDescription
-            description
-            ignoreForScoring
-            learningOutcomeId
-            criterionUseRange
-          }
-          hasRubricAssociations
-          hidePoints
-          freeFormCriterionComments
-          pointsPossible
-          ratingOrder
-          title
-          workflowState
-        }
-        pageInfo {
-          hasNextPage
-          endCursor
-        }
+      rubricsConnection(
+        first: $first
+        after: $after
+        searchTerm: $searchTerm
+        sort: $sort
+        workflowStates: $workflowStates
+      ) {
+        ${RUBRIC_FIELDS}
       }
     }
   }
 `
 
 const ACCOUNT_RUBRICS_QUERY = gql`
-  query AccountRubricsQuery($accountId: ID!, $after: String) {
+  query AccountRubricsQuery(
+    $accountId: ID!
+    $first: Int!
+    $after: String
+    $searchTerm: String
+    $sort: RubricSortInput
+    $workflowStates: [String!]
+  ) {
     account(id: $accountId) {
-      rubricsConnection(first: ${rubricsPerPage}, after: $after) {
-        nodes {
-          id: _id
-          buttonDisplay
-          criteriaCount
-          criteria {
-            id: _id
-            ratings {
-              description
-              longDescription
-              points
-            }
-            points
-            longDescription
-            description
-            ignoreForScoring
-            learningOutcomeId
-            criterionUseRange
-          }
-          hasRubricAssociations
-          hidePoints
-          freeFormCriterionComments
-          pointsPossible
-          ratingOrder
-          title
-          workflowState
-        }
-        pageInfo {
-          hasNextPage
-          endCursor
-        }
+      rubricsConnection(
+        first: $first
+        after: $after
+        searchTerm: $searchTerm
+        sort: $sort
+        workflowStates: $workflowStates
+      ) {
+        ${RUBRIC_FIELDS}
       }
     }
   }
@@ -157,6 +160,27 @@ const UPDATE_RUBRIC_ARCHIVE_STATE = gql`
     }
   }
 `
+
+export type RubricSortField =
+  | 'title'
+  | 'criteria_count'
+  | 'has_rubric_associations'
+  | 'points_possible'
+
+export type RubricSortDirection = 'ascending' | 'descending'
+
+export type RubricSortInput = {
+  field: RubricSortField
+  direction: RubricSortDirection
+}
+
+export type RubricFetchOptions = {
+  first: number
+  after: string | null
+  searchTerm?: string
+  sort?: RubricSortInput
+  workflowStates?: string[]
+}
 
 type AccountRubricsQueryVariables = {
   accountId: string
@@ -223,24 +247,24 @@ type RubricArchiveResponse = {
 export type FetchRubricVariables = AccountRubricsQueryVariables | CourseRubricsQueryVariables
 
 export const fetchCourseRubrics = async (
-  pageParam: string | null,
   queryVariables: FetchRubricVariables,
+  options: RubricFetchOptions,
 ) => {
   const {course} = await executeQuery<CourseRubricQueryResponse>(COURSE_RUBRICS_QUERY, {
     ...queryVariables,
-    after: pageParam,
+    ...options,
   })
 
   return course
 }
 
 export const fetchAccountRubrics = async (
-  pageParam: string | null,
   queryVariables: FetchRubricVariables,
+  options: RubricFetchOptions,
 ) => {
   const {account} = await executeQuery<AccountRubricQueryResponse>(ACCOUNT_RUBRICS_QUERY, {
     ...queryVariables,
-    after: pageParam,
+    ...options,
   })
 
   return account
