@@ -110,6 +110,19 @@ describe DiscussionEntriesController do
       expect(@student.submissions.not_placeholder.size).to eq 1
       expect(@student.submissions.not_placeholder.first.submission_type).to eq "discussion_topic"
     end
+
+    # SEC-21851 exploit: <object data="data:text/html;base64,..."> survives the
+    # legacy CanvasSanitize allowlist on DiscussionEntry#message. The base64
+    # below decodes to <script>alert(1)</script>.
+    it "strips the SEC-21851 data: object exploit before persistence and on read" do
+      user_session(@student)
+      payload = '<object data="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==">x</object>'
+      post "create", params: { course_id: @course.id, discussion_entry: { discussion_topic_id: @topic.id, message: payload } }
+      entry = assigns[:entry]
+      expect(entry.message).not_to include("data:text/html")
+      expect(DiscussionEntry.find(entry.id).message).not_to include("data:text/html")
+      expect(DiscussionEntry.find(entry.id).message).not_to include("PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg")
+    end
   end
 
   describe "PUT 'update'" do
@@ -169,6 +182,14 @@ describe DiscussionEntriesController do
       expect(assigns[:entry]).to eql(@entry)
       expect(assigns[:entry].message).to eql("ahem")
       expect(assigns[:entry].attachment).to be_nil
+    end
+
+    it "strips the SEC-21851 data: embed exploit on update" do
+      user_session(@teacher)
+      payload = '<embed src="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==">'
+      put "update", params: { course_id: @course.id, id: @entry.id, discussion_entry: { message: payload } }
+      expect(assigns[:entry].message).not_to include("data:text/html")
+      expect(@entry.reload.message).not_to include("data:text/html")
     end
 
     it "sets the editor_id to whoever edited to entry" do
