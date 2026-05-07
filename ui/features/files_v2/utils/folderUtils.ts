@@ -53,12 +53,17 @@ export const createStubRootFolder = ({
   pluralContextType: string
   rootFolderId: string
 }): Folder => {
+  // Match the Canvas API shape: capitalized singular class name (User, Course, Group, etc.).
+  // The Rails polymorphic association serializes context_type this way, and several
+  // consumers compare against this casing.
+  const singular = pluralContextType.slice(0, -1)
+  const capitalizedContextType = singular.charAt(0).toUpperCase() + singular.slice(1)
   return {
     id: rootFolderId,
     name: '',
     parent_folder_id: null,
     context_id: contextId,
-    context_type: pluralContextType.slice(0, -1),
+    context_type: capitalizedContextType,
     hidden: false,
     full_name: '',
     created_at: '',

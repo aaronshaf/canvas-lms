@@ -59,10 +59,12 @@ const USER_FILES_CONTEXT: FileContext[] = [
     name: 'My Files',
   },
 ]
-const mockFolders = [{id: 2, name: 'Folder 1', context_id: 1, context_type: 'User'}]
+// Canvas's defaultFetchOptions sends `Accept: application/json+canvas-string-ids`
+// so production API responses always have stringified IDs. Mocks must match.
+const mockFolders = [{id: '2', name: 'Folder 1', context_id: '1', context_type: 'User'}]
 const mockSubfolders = [
-  {id: 2, name: 'Folder 1', context_id: 1, context_type: 'User'},
-  {id: 3, name: 'profile pictrues', context_id: 1, context_type: 'User'},
+  {id: '2', name: 'Folder 1', context_id: '1', context_type: 'User'},
+  {id: '3', name: 'profile pictrues', context_id: '1', context_type: 'User'},
 ]
 
 describe('useGetFolders', () => {
@@ -73,6 +75,9 @@ describe('useGetFolders', () => {
 
   beforeEach(() => {
     requestMade = false
+    // Module-scoped queryClient persists across tests; clear it so cached results
+    // from a prior test don't leak into this one (the same query key is reused).
+    queryClient.clear()
     server.use(
       http.get(/\/folders\/by_path/, () => {
         requestMade = true
@@ -88,6 +93,7 @@ describe('useGetFolders', () => {
 
   afterEach(() => {
     server.resetHandlers()
+    queryClient.clear()
     requestMade = false
   })
 
@@ -100,7 +106,7 @@ describe('useGetFolders', () => {
       expect(result.current.data?.[0]).toMatchObject({
         id: '2',
         context_id: '1',
-        context_type: 'user',
+        context_type: 'User',
       })
     })
 
