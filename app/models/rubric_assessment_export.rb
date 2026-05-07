@@ -27,7 +27,8 @@ class RubricAssessmentExport
   delegate :association_object, to: :rubric_association
 
   def generate_file
-    CSV.generate do |csv|
+    csv_options = CSVWithI18n.csv_i18n_settings(user)
+    CSVWithI18n.generate(**csv_options.slice(:encoding, :col_sep, :include_bom)) do |csv|
       csv << export_headers
       export_rows.each do |row|
         csv << row

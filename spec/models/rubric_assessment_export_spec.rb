@@ -29,6 +29,17 @@ describe RubricAssessmentExport do
       @export = described_class.new(rubric_association: @rubric_association, user: @user, options:)
     end
 
+    context "when use_semi_colon_field_separators_in_gradebook_exports is enabled" do
+      before { @user.enable_feature!(:use_semi_colon_field_separators_in_gradebook_exports) }
+
+      it "uses semicolon as field separator" do
+        csv_content = @export.generate_file
+        expect(csv_content).to include(";")
+        rows = CSV.parse(csv_content, headers: true, col_sep: ";")
+        expect(rows.size).to eq(1)
+      end
+    end
+
     context "when not filters applied" do
       it "returns only one row" do
         csv_content = @export.generate_file
