@@ -19,6 +19,39 @@
 #
 
 describe OAuth2ProviderController do
+  describe "Fetch Metadata enforcement on POST accept" do
+    let_once(:user) { User.create! }
+    let_once(:key) { DeveloperKey.create! }
+    let(:session_hash) do
+      { oauth2: { client_id: key.id, redirect_uri: Canvas::OAuth::Provider::OAUTH2_OOB_URI, custom_csrf_token: "tok" } }
+    end
+
+    before { user_session(user) }
+
+    it "blocks programmatic fetch (Sec-Fetch-Mode: cors)" do
+      request.headers["Sec-Fetch-Mode"] = "cors"
+      post :accept, params: { custom_csrf_token: "tok" }, session: session_hash
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "blocks no-cors fetch (Sec-Fetch-Mode: no-cors)" do
+      request.headers["Sec-Fetch-Mode"] = "no-cors"
+      post :accept, params: { custom_csrf_token: "tok" }, session: session_hash
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "allows real browser form submission (Sec-Fetch-Mode: navigate)" do
+      request.headers["Sec-Fetch-Mode"] = "navigate"
+      post :accept, params: { custom_csrf_token: "tok" }, session: session_hash
+      expect(response).not_to have_http_status(:forbidden)
+    end
+
+    it "allows requests without Sec-Fetch-Mode (non-browser clients)" do
+      post :accept, params: { custom_csrf_token: "tok" }, session: session_hash
+      expect(response).not_to have_http_status(:forbidden)
+    end
+  end
+
   describe "GET auth" do
     let_once(:key) do
       d = DeveloperKey.create! redirect_uri: "https://example.com"

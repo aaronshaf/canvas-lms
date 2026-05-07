@@ -22,6 +22,7 @@ class OAuth2ProviderController < ApplicationController
   rescue_from Canvas::OAuth::RequestError, with: :oauth_error
   protect_from_forgery with: :exception, unless: :skip_csrf?
   before_action :run_login_hooks, only: %i[token]
+  before_action :enforce_fetch_metadata, only: %i[accept]
   skip_before_action :require_reacceptance_of_terms, only: %i[token destroy]
   skip_before_action :require_user, only: %i[accept auth confirm deny token]
 
@@ -232,6 +233,14 @@ class OAuth2ProviderController < ApplicationController
   end
 
   private
+
+  def enforce_fetch_metadata
+    fetch_mode = request.headers["Sec-Fetch-Mode"]
+    return unless fetch_mode.present?
+    return if fetch_mode == "navigate"
+
+    render plain: t("Direct browser navigation is required for this endpoint"), status: :forbidden
+  end
 
   def skip_csrf?
     return true if %w[token destroy accept].include?(action_name)
