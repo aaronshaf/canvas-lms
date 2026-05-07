@@ -23,11 +23,18 @@ class DiscussionEntryVersion < ApplicationRecord
   has_many :discussion_topic_insight_entries, class_name: "DiscussionTopicInsight::Entry", inverse_of: :discussion_entry_version
   has_one :lti_asset, class_name: "Lti::Asset", inverse_of: :discussion_entry_version, dependent: :nullify
 
+  # Use DiscussionEntry.sanitize_config so version rows get the same
+  # sanitization rules as the entries they version (e.g. id stripped from
+  # everything except inline-media-comment anchors). Without this, parity
+  # between `entry.message` and `entry.discussion_entry_versions.first.message`
+  # would diverge on id handling.
+  sanitize_field :message, DiscussionEntry.sanitize_config
+
   MESSAGE_INTRO_TRUNCATE_LENGTH = 300
 
   def message
     raw = super
-    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+    raw && Sanitize.clean(raw, DiscussionEntry.sanitize_config)
   end
 
   def message_intro

@@ -75,6 +75,88 @@ describe DiscussionEntryVersion do
     end
   end
 
+  describe "message sanitization on write" do
+    let(:user) { user_model }
+    let(:course) { course_model }
+    let(:topic) { course.discussion_topics.create!(title: "t", message: "m") }
+    let(:entry) { topic.discussion_entries.create!(user:, message: "Initial message") }
+    let(:version) { entry.discussion_entry_versions.first }
+
+    it "strips disallowed elements when assigned via the writer" do
+      version.update!(message: "<script>alert(1)</script>safe text")
+      expect(version.read_attribute(:message)).not_to include("<script>")
+      expect(version.read_attribute(:message)).to include("safe text")
+    end
+
+    it "strips disallowed attributes when assigned via the writer" do
+      version.update!(message: '<p onclick="alert(1)">x</p>')
+      expect(version.read_attribute(:message)).not_to include("onclick")
+    end
+
+    it "strips disallowed elements on create" do
+      v = entry.discussion_entry_versions.create!(
+        root_account: entry.root_account,
+        user:,
+        version: 99,
+        message: "<script>alert(1)</script>safe text"
+      )
+      expect(v.read_attribute(:message)).not_to include("<script>")
+      expect(v.read_attribute(:message)).to include("safe text")
+    end
+
+    it "strips id from non-anchor elements (parity with DiscussionEntry)" do
+      version.update!(message: '<p id="leak">x</p><div id="other">y</div>')
+      stored = version.read_attribute(:message)
+      expect(stored).not_to include('id="leak"')
+      expect(stored).not_to include('id="other"')
+    end
+
+    it "preserves id on inline media comment anchors" do
+      link = '<a class="instructure_inline_media_comment" ' \
+             'id="media_comment_xyz" href="/media">media</a>'
+      version.update!(message: link)
+      stored = version.read_attribute(:message)
+      expect(stored).to include('class="instructure_inline_media_comment"')
+      expect(stored).to include('id="media_comment_xyz"')
+    end
+
+    it "strips id from anchors without the inline-media-comment class" do
+      version.update!(message: '<a id="not_media" href="/x">link</a>')
+      expect(version.read_attribute(:message)).not_to include('id="not_media"')
+    end
+
+    it "preserves typical formatted content unchanged" do
+      safe = "<p>Hello <strong>world</strong> — see <em>this</em>.</p>"
+      version.update!(message: safe)
+      expect(version.read_attribute(:message)).to eq(safe)
+    end
+  end
+
+  describe "sanitization parity with DiscussionEntry" do
+    let(:user) { user_model }
+    let(:course) { course_model }
+    let(:topic) { course.discussion_topics.create!(title: "t", message: "m") }
+    let(:entry) { topic.discussion_entries.create!(user:, message: "Initial") }
+
+    it "produces identical sanitized output for entry and its newest version" do
+      risky = '<p id="leak" onclick="alert(1)">hello</p>' \
+              '<a class="instructure_inline_media_comment" id="m1" href="/x">m</a>' \
+              "<script>x</script>"
+      entry.update!(message: risky)
+
+      latest = entry.discussion_entry_versions.order(version: :desc).first
+      expect(latest.message).to eq(entry.message)
+    end
+
+    it "is idempotent — re-saving a version does not further mutate the message" do
+      entry.update!(message: "<p>safe <strong>html</strong></p>")
+      version = entry.discussion_entry_versions.order(version: :desc).first
+      before = version.read_attribute(:message)
+      version.save!
+      expect(version.read_attribute(:message)).to eq(before)
+    end
+  end
+
   describe "#message reader" do
     let(:user) { user_model }
     let(:course) { course_model }
