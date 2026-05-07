@@ -108,6 +108,11 @@ class DiscussionEntry < ApplicationRecord
 
   sanitize_field :message, sanitize_config
 
+  def message
+    raw = super
+    raw && Sanitize.clean(raw, self.class.sanitize_config)
+  end
+
   # parse_and_create_mentions has to run before has_a_broadcast_policy and the
   # after_save hook it adds.
   after_save :parse_and_create_mentions

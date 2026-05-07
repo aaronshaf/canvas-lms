@@ -1407,4 +1407,42 @@ describe DiscussionEntry do
       end
     end
   end
+
+  describe "#message reader" do
+    before(:once) do
+      course_with_teacher(active_all: true)
+    end
+
+    let(:entry) do
+      topic.discussion_entries.create!(user: @teacher, message: "placeholder")
+    end
+
+    it "strips disallowed attributes when the column was persisted unsanitized" do
+      entry.update_columns(message: '<object onerror="alert(1)">x</object>')
+      expect(entry.reload.message).not_to include("onerror")
+      expect(entry.message).not_to include("alert(1)")
+    end
+
+    it "strips disallowed elements when the column was persisted unsanitized" do
+      entry.update_columns(message: "<script>alert(1)</script>safe text")
+      expect(entry.reload.message).not_to include("<script>")
+      expect(entry.message).not_to include("alert(1)")
+      expect(entry.message).to include("safe text")
+    end
+
+    it "strips object data attributes pointing at javascript URIs" do
+      entry.update_columns(message: '<object data="javascript:alert(1)"></object>')
+      expect(entry.reload.message).not_to include("javascript:")
+    end
+
+    it "preserves allowed HTML on read" do
+      entry.update_columns(message: "<p>hello <strong>world</strong></p>")
+      expect(entry.reload.message).to eql("<p>hello <strong>world</strong></p>")
+    end
+
+    it "leaves nil unchanged on read" do
+      entry.update_columns(message: nil)
+      expect(entry.reload.message).to be_nil
+    end
+  end
 end
