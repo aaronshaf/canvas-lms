@@ -145,7 +145,7 @@ describe.skip('CreateOrEditSetModal', () => {
     fireEvent.input(getByPlaceholderText('Enter Group Set Name'), {
       target: {value: 'name'},
     })
-    getByTestId('checkbox-allow-self-signup').click()
+    fireEvent.click(getByTestId('checkbox-allow-self-signup'))
     fireEvent.click(getByText('Save'))
 
     await waitFor(() => {
@@ -176,8 +176,8 @@ describe.skip('CreateOrEditSetModal', () => {
     fireEvent.input(getByPlaceholderText('Enter Group Set Name'), {
       target: {value: 'name'},
     })
-    getByTestId('group-structure-selector').click()
-    await screen.getByTestId('group-structure-num-groups').click()
+    fireEvent.click(getByTestId('group-structure-selector'))
+    fireEvent.click(await screen.findByTestId('group-structure-num-groups'))
     fireEvent.click(getByText('Save'))
 
     await waitFor(() => {

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import {TagSelect, AvailableTags} from '../TagSelect'
 
 const renderComponent = (props = {}) => {
@@ -45,7 +45,7 @@ describe('TagSelect', () => {
     const {getByText, findByText} = renderComponent()
     const trigger = getByText('Apply Filters').closest('button')
 
-    trigger?.click()
+    fireEvent.click(trigger!)
     expect(await findByText('Home')).toBeInTheDocument()
     expect(await findByText('Resource')).toBeInTheDocument()
     expect(await findByText('Module Overview')).toBeInTheDocument()
@@ -57,7 +57,7 @@ describe('TagSelect', () => {
     const selectedTags = ['home', 'resource', 'intro']
     const {getByText, findByText} = renderComponent({selectedTags})
     const trigger = getByText('Apply Filters').closest('button')
-    trigger?.click()
+    fireEvent.click(trigger!)
 
     // Wait for the menu to appear
     await findByText(AvailableTags[Object.keys(AvailableTags)[0]])
@@ -74,10 +74,10 @@ describe('TagSelect', () => {
     const selectedTags = ['resource']
     const {getByText, findByText} = renderComponent({selectedTags, onChange})
     const trigger = getByText('Apply Filters').closest('button')
-    trigger?.click()
+    fireEvent.click(trigger!)
 
     const li = await findByText('Home')
-    li?.click()
+    fireEvent.click(li!)
     expect(onChange).toHaveBeenCalledWith(['resource', 'home'])
   })
 })

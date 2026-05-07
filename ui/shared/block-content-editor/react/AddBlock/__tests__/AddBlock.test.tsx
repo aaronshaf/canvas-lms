@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render, screen} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 import {AddBlock} from '../AddBlock'
 
 const openMock = vi.fn()
@@ -55,7 +55,7 @@ describe('AddBlock', () => {
   it('renders modal with "open" when add button is clicked', async () => {
     render(<AddBlock />)
     const button = await screen.findByTestId('add-block-button')
-    button.click()
+    fireEvent.click(button)
     expect(openMock).toHaveBeenCalled()
   })
 })

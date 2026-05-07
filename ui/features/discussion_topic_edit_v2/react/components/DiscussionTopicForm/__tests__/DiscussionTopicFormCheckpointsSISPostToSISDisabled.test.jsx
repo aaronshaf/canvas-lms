@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {fireEvent} from '@testing-library/react'
 import {Assignment} from '../../../../graphql/Assignment'
 import {DiscussionTopic} from '../../../../graphql/DiscussionTopic'
 import {REPLY_TO_ENTRY, REPLY_TO_TOPIC} from '../../../util/constants'
@@ -78,24 +79,20 @@ describe('DiscussionTopicForm Checkpoints SIS - Post to SIS Disabled', () => {
     mockOnSubmit.mockClear()
   })
 
-  it(
-    'allows submission when post to SIS is disabled',
-    () => {
-      const {queryByRole, queryByLabelText} = setupWithPreConfiguredCheckpoints({
-        dueDateRequired: true,
-        postToSis: false,
-        checkpointDueAt: null,
-      })
+  it('allows submission when post to SIS is disabled', () => {
+    const {queryByRole, queryByLabelText} = setupWithPreConfiguredCheckpoints({
+      dueDateRequired: true,
+      postToSis: false,
+      checkpointDueAt: null,
+    })
 
-      const titleInput = queryByLabelText('Topic Title')
-      titleInput.value = 'Test Checkpoint Discussion'
-      titleInput.dispatchEvent(new Event('change', {bubbles: true}))
+    const titleInput = queryByLabelText('Topic Title')
+    titleInput.value = 'Test Checkpoint Discussion'
+    titleInput.dispatchEvent(new Event('change', {bubbles: true}))
 
-      const submitButton = queryByRole('button', {name: /save/i})
-      submitButton.click()
+    const submitButton = queryByRole('button', {name: /save/i})
+    fireEvent.click(submitButton)
 
-      expect(mockOnSubmit).toHaveBeenCalled()
-    },
-    30000,
-  )
+    expect(mockOnSubmit).toHaveBeenCalled()
+  }, 30000)
 })

@@ -18,7 +18,7 @@
 import React from 'react'
 import Router from 'react-router'
 import {BrowserRouter} from 'react-router-dom'
-import {render, waitFor, cleanup} from '@testing-library/react'
+import {fireEvent, render, waitFor, cleanup} from '@testing-library/react'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import {DuplicateRubricModal} from '../DuplicateRubricModal'
 import * as ViewRubricQueries from '../../../queries/ViewRubricQueries'
@@ -146,7 +146,7 @@ describe('RubricForm Tests', () => {
   it('closes the modal when the cancel button is clicked', async () => {
     const {getByTestId} = renderComponent()
     const cancelButton = getByTestId('cancel-duplicate-rubric-modal-button')
-    cancelButton?.click()
+    fireEvent.click(cancelButton!)
     await waitFor(() => {
       expect(onDismiss).toHaveBeenCalled()
     })
@@ -158,7 +158,7 @@ describe('RubricForm Tests', () => {
     )
     const {getByTestId} = renderComponent()
     const duplicateButton = getByTestId('duplicate-rubric-modal-button')
-    duplicateButton?.click()
+    fireEvent.click(duplicateButton!)
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(getSRAlert()).toContain('Rubric duplicated successfully')
   })

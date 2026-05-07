@@ -18,7 +18,7 @@
 
 import React from 'react'
 import moment, {type Locale} from 'moment'
-import {render, act} from '@testing-library/react'
+import {act, fireEvent, render} from '@testing-library/react'
 import WeekdayPicker from '../WeekdayPicker'
 
 const defaultProps = (overrides: object = {}) => ({
@@ -91,7 +91,7 @@ describe('WeekdayPicker', () => {
     const props = defaultProps()
     const {getByText} = render(<WeekdayPicker {...props} />)
     act(() => {
-      getByText('Sunday').click()
+      fireEvent.click(getByText('Sunday'))
     })
     expect(props.onChange).toHaveBeenCalledWith(['SU'])
   })
@@ -100,7 +100,7 @@ describe('WeekdayPicker', () => {
     const props = defaultProps({selectedDays: ['SU', 'MO']})
     const {getByText} = render(<WeekdayPicker {...props} />)
     act(() => {
-      getByText('Tuesday').click()
+      fireEvent.click(getByText('Tuesday'))
     })
     expect(props.onChange).toHaveBeenCalledWith(['SU', 'MO', 'TU'])
   })

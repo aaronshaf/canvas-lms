@@ -95,7 +95,7 @@ describe('ItemAssignToCard - Available From Defaults', () => {
     const {getByLabelText, getByRole, getAllByLabelText} = renderComponent()
     const dateInput = getByLabelText('Available from')
     fireEvent.change(dateInput, {target: {value: 'Nov 9, 2020'}})
-    getByRole('option', {name: /10 november 2020/i}).click()
+    fireEvent.click(getByRole('option', {name: /10 november 2020/i}))
     await waitFor(() => {
       const timeInputs = getAllByLabelText('Time')
       expect(timeInputs[1]).toHaveValue('12:00 AM')
@@ -133,7 +133,7 @@ describe('ItemAssignToCard - Available From Defaults', () => {
     const {getByLabelText, getByRole, getAllByLabelText} = renderComponent({unlock_at: undefined})
     const dateInput = getByLabelText('Available from')
     fireEvent.change(dateInput, {target: {value: 'Nov 9, 2020'}})
-    getByRole('option', {name: /10 november 2020/i}).click()
+    fireEvent.click(getByRole('option', {name: /10 november 2020/i}))
     await waitFor(() => {
       const timeInputs = getAllByLabelText('Time')
       expect(timeInputs[1]).toHaveValue('12:00 AM')

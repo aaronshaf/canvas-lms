@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, cleanup, render, screen} from '@testing-library/react'
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react'
 
 import {PacePicker} from '../pace_picker'
 import {
@@ -53,18 +53,24 @@ describe('PacePicker', () => {
     expect(picker).toBeInTheDocument()
     expect(picker.value).toBe('Course')
 
-    act(() => picker.click())
+    act(() => {
+      fireEvent.click(picker)
+    })
     expect(screen.getByRole('menuitem', {name: 'Course'})).toBeInTheDocument()
 
     const sections = screen.getByRole('menuitem', {name: 'Sections'})
     expect(sections).toBeInTheDocument()
-    act(() => sections.click())
+    act(() => {
+      fireEvent.click(sections)
+    })
     expect(screen.getByRole('menuitem', {name: 'Hackers'})).toBeInTheDocument()
     expect(screen.getByRole('menuitem', {name: 'Mercenaries'})).toBeInTheDocument()
 
     const students = screen.getByRole('menuitem', {name: 'Students'})
     expect(students).toBeInTheDocument()
-    act(() => students.click())
+    act(() => {
+      fireEvent.click(students)
+    })
     const henry = screen.getByRole('menuitem', {name: 'Henry Dorsett Case'})
     expect(henry).toBeInTheDocument()
     expect(henry.querySelector('span[name="Henry Dorsett Case"]')).toBeInTheDocument()
@@ -77,18 +83,34 @@ describe('PacePicker', () => {
     const {getByLabelText} = render(<PacePicker {...defaultProps} />)
     const picker = getByLabelText('Course Pacing') as HTMLInputElement
 
-    act(() => picker.click())
-    act(() => screen.getByRole('menuitem', {name: 'Course'}).click())
+    act(() => {
+      fireEvent.click(picker)
+    })
+    act(() => {
+      fireEvent.click(screen.getByRole('menuitem', {name: 'Course'}))
+    })
     expect(selectPaceContextFn).toHaveBeenCalledWith('Course', COURSE.id)
 
-    act(() => picker.click())
-    act(() => screen.getByRole('menuitem', {name: 'Sections'}).click())
-    act(() => screen.getByRole('menuitem', {name: 'Hackers'}).click())
+    act(() => {
+      fireEvent.click(picker)
+    })
+    act(() => {
+      fireEvent.click(screen.getByRole('menuitem', {name: 'Sections'}))
+    })
+    act(() => {
+      fireEvent.click(screen.getByRole('menuitem', {name: 'Hackers'}))
+    })
     expect(selectPaceContextFn).toHaveBeenCalledWith('Section', SORTED_SECTIONS[0].id)
 
-    act(() => picker.click())
-    act(() => screen.getByRole('menuitem', {name: 'Students'}).click())
-    act(() => screen.getByRole('menuitem', {name: 'Molly Millions'}).click())
+    act(() => {
+      fireEvent.click(picker)
+    })
+    act(() => {
+      fireEvent.click(screen.getByRole('menuitem', {name: 'Students'}))
+    })
+    act(() => {
+      fireEvent.click(screen.getByRole('menuitem', {name: 'Molly Millions'}))
+    })
     expect(selectPaceContextFn).toHaveBeenCalledWith('Enrollment', ENROLLMENT_2.id)
   })
 
@@ -113,7 +135,9 @@ describe('PacePicker', () => {
   it('renders a drop-down with course and sections only if no enrolled students', () => {
     const {getByLabelText} = render(<PacePicker {...defaultProps} enrollments={[]} />)
     const picker = getByLabelText('Course Pacing') as HTMLInputElement
-    act(() => picker.click())
+    act(() => {
+      fireEvent.click(picker)
+    })
 
     expect(screen.getByRole('menuitem', {name: 'Course'})).toBeInTheDocument()
     expect(screen.getByRole('menuitem', {name: 'Sections'})).toBeInTheDocument()
@@ -123,7 +147,9 @@ describe('PacePicker', () => {
   it('renders a drop-down with course and students only if no sections exist', () => {
     const {getByLabelText} = render(<PacePicker {...defaultProps} sections={[]} />)
     const picker = getByLabelText('Course Pacing') as HTMLInputElement
-    act(() => picker.click())
+    act(() => {
+      fireEvent.click(picker)
+    })
 
     expect(screen.getByRole('menuitem', {name: 'Course'})).toBeInTheDocument()
     expect(screen.getByRole('menuitem', {name: 'Students'})).toBeInTheDocument()
@@ -137,9 +163,15 @@ describe('PacePicker', () => {
       )
       const picker = getByLabelText('Course Pacing') as HTMLInputElement
 
-      act(() => picker.click())
-      act(() => screen.getByRole('menuitem', {name: 'Students'}).click())
-      act(() => screen.getByRole('menuitem', {name: 'Molly Millions'}).click())
+      act(() => {
+        fireEvent.click(picker)
+      })
+      act(() => {
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Students'}))
+      })
+      act(() => {
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Molly Millions'}))
+      })
       expect(getByText(/You have unpublished changes to your course pace./)).toBeInTheDocument()
     })
 
@@ -149,9 +181,15 @@ describe('PacePicker', () => {
       )
       const picker = getByLabelText('Course Pacing') as HTMLInputElement
 
-      act(() => picker.click())
-      act(() => screen.getByRole('menuitem', {name: 'Students'}).click())
-      act(() => screen.getByRole('menuitem', {name: 'Molly Millions'}).click())
+      act(() => {
+        fireEvent.click(picker)
+      })
+      act(() => {
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Students'}))
+      })
+      act(() => {
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Molly Millions'}))
+      })
       expect(getByText(/You have unpublished changes to your section pace./)).toBeInTheDocument()
     })
 
@@ -161,11 +199,19 @@ describe('PacePicker', () => {
       )
       const picker = getByLabelText('Course Pacing') as HTMLInputElement
 
-      act(() => picker.click())
-      act(() => screen.getByRole('menuitem', {name: 'Students'}).click())
-      act(() => screen.getByRole('menuitem', {name: 'Molly Millions'}).click())
+      act(() => {
+        fireEvent.click(picker)
+      })
+      act(() => {
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Students'}))
+      })
+      act(() => {
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Molly Millions'}))
+      })
       const cancelBtn = getByText('Keep Editing').closest('button')
-      act(() => cancelBtn?.click())
+      act(() => {
+        fireEvent.click(cancelBtn!)
+      })
       expect(getByDisplayValue('Course')).toBeInTheDocument()
     })
 
@@ -175,11 +221,19 @@ describe('PacePicker', () => {
       )
       const picker = getByLabelText('Course Pacing') as HTMLInputElement
 
-      act(() => picker.click())
-      act(() => screen.getByRole('menuitem', {name: 'Students'}).click())
-      act(() => screen.getByRole('menuitem', {name: 'Molly Millions'}).click())
+      act(() => {
+        fireEvent.click(picker)
+      })
+      act(() => {
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Students'}))
+      })
+      act(() => {
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Molly Millions'}))
+      })
       const cancelBtn = getByText('Keep Editing').closest('button')
-      act(() => cancelBtn?.click())
+      act(() => {
+        fireEvent.click(cancelBtn!)
+      })
       expect(selectPaceContextFn).not.toHaveBeenCalledWith('Molly Millions', '98')
     })
 
@@ -189,11 +243,19 @@ describe('PacePicker', () => {
       )
       const picker = getByLabelText('Course Pacing') as HTMLInputElement
 
-      act(() => picker.click())
-      act(() => screen.getByRole('menuitem', {name: 'Students'}).click())
-      act(() => screen.getByRole('menuitem', {name: 'Molly Millions'}).click())
+      act(() => {
+        fireEvent.click(picker)
+      })
+      act(() => {
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Students'}))
+      })
+      act(() => {
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Molly Millions'}))
+      })
       const confirmBtn = getByText('Discard Changes').closest('button')
-      act(() => confirmBtn?.click())
+      act(() => {
+        fireEvent.click(confirmBtn!)
+      })
       expect(selectPaceContextFn).toHaveBeenCalledWith('Enrollment', '25')
     })
   })

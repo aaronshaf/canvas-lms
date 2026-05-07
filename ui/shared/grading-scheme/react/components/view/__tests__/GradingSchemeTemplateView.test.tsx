@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, render, within} from '@testing-library/react'
+import {act, render, within, fireEvent} from '@testing-library/react'
 
 import {MOCK_DEFAULT_GRADING_SCHEME} from './fixtures'
 import {GradingSchemeTemplateView} from '../GradingSchemeTemplateView'
@@ -74,7 +74,9 @@ describe('GradingSchemeTemplateView', () => {
   it('duplicate callback is invoked on delete button press', () => {
     const {getByTestId} = render(<GradingSchemeTemplateView {...testProps} />)
     const duplicateButton = getByTestId('default_canvas_grading_scheme_duplicate_button')
-    act(() => duplicateButton.click())
+    act(() => {
+      fireEvent.click(duplicateButton)
+    })
     expect(onDuplicationRequested).toHaveBeenCalled()
   })
 })

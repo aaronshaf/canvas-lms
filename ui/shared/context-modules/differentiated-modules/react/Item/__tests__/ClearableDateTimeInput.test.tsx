@@ -103,7 +103,7 @@ describe('ClearableDateTimeInput', () => {
 
   it('calls onClear when clear button is clicked', () => {
     const {getByText} = renderComponent()
-    getByText('Clear').click()
+    fireEvent.click(getByText('Clear'))
     expect(props.onClear).toHaveBeenCalled()
   })
 
@@ -160,7 +160,7 @@ describe('ClearableDateTimeInput', () => {
       })
 
       // Now click the clear button
-      getByText('Clear').click()
+      fireEvent.click(getByText('Clear'))
 
       // Verify the error message is cleared
       await waitFor(() => {

@@ -19,7 +19,13 @@
 import {resetCardCache} from '@canvas/dashboard-card'
 import {MOCK_ASSIGNMENTS, MOCK_CARDS, MOCK_EVENTS} from '@canvas/k5/react/__tests__/fixtures'
 import {resetPlanner} from '@canvas/planner'
-import {act, screen, render as testingLibraryRender, waitFor} from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  screen,
+  render as testingLibraryRender,
+  waitFor,
+} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import React from 'react'
@@ -221,7 +227,9 @@ describe('K-5 Dashboard', () => {
       <K5Dashboard {...defaultProps} canDisableElementaryDashboard={true} />,
     )
     const optionsButton = getByRole('button', {name: 'Dashboard Options'})
-    act(() => optionsButton.click())
+    act(() => {
+      fireEvent.click(optionsButton)
+    })
     // There should be an Homeroom View menu option already checked
     const elementaryViewOption = screen.getByRole('menuitemradio', {
       name: 'Homeroom View',
@@ -235,7 +243,9 @@ describe('K-5 Dashboard', () => {
     })
     expect(classicViewOption).toBeInTheDocument()
     // Clicking the Classic View option should update the user's dashboard setting
-    act(() => classicViewOption.click())
+    act(() => {
+      fireEvent.click(classicViewOption)
+    })
     await waitFor(() => {
       const settingsRequests = requestLog.filter(
         r => typeof r === 'object' && r.url && r.url.includes('/api/v1/users/self/settings'),

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 import {Quizzes} from '../Quizzes'
 import {HorizonToggleContext} from '../../HorizonToggleContext'
 import {CanvasCareerValidationResponse} from '../../types'
@@ -71,7 +71,7 @@ describe('Quizzes', () => {
     )
     expect(screen.getByText('Classic Quizzes (2 items)')).toBeInTheDocument()
     const toggle = screen.getByText('Classic Quizzes')
-    toggle.click()
+    fireEvent.click(toggle)
     expect(await screen.findByText('Quiz 1')).toBeInTheDocument()
     expect(screen.getByText('Quiz 2')).toBeInTheDocument()
   })

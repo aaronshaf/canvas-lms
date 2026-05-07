@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {cleanup, waitFor} from '@testing-library/react'
+import {cleanup, waitFor, fireEvent} from '@testing-library/react'
 import {
   DEFAULT_PROPS,
   OVERRIDES_URL,
@@ -162,14 +162,14 @@ describe('ItemAssignToTray - Rendering', () => {
   it('calls onClose when close button is clicked', () => {
     const onClose = vi.fn()
     const {getByRole} = renderComponent({onClose})
-    getByRole('button', {name: 'Close'}).click()
+    fireEvent.click(getByRole('button', {name: 'Close'}))
     expect(onClose).toHaveBeenCalled()
   })
 
   it('calls onDismiss when the cancel button is clicked', () => {
     const onDismiss = vi.fn()
     const {getByRole} = renderComponent({onDismiss})
-    getByRole('button', {name: 'Cancel'}).click()
+    fireEvent.click(getByRole('button', {name: 'Cancel'}))
     expect(onDismiss).toHaveBeenCalled()
   })
 
@@ -203,7 +203,7 @@ describe('ItemAssignToTray - Rendering', () => {
     // Wait for cards to load first
     await findAllByTestId('item-assign-to-card')
 
-    getAllByTestId('add-card')[0].click()
+    fireEvent.click(getAllByTestId('add-card')[0])
     expect(customAddCard).toHaveBeenCalled()
   })
 

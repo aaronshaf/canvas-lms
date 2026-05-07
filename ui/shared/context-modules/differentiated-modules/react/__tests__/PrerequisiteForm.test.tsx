@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import PrerequisiteForm, {type PrerequisiteFormProps} from '../PrerequisiteForm'
 
 describe('PrerequisiteForm', () => {
@@ -58,7 +58,7 @@ describe('PrerequisiteForm', () => {
 
   it('calls onAddPrerequisite when the add button is clicked', () => {
     const {getByText} = renderComponent()
-    getByText('Add Prerequisite').click()
+    fireEvent.click(getByText('Add Prerequisite'))
     expect(props.onAddPrerequisite).toHaveBeenCalled()
   })
 

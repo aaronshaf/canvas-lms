@@ -18,7 +18,7 @@
 
 import React from 'react'
 import AssignmentRowCell from '../AssignmentRowCell'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 
 describe('GradebookGrid AssignmentRowCell', () => {
   let props
@@ -543,14 +543,14 @@ describe('GradebookGrid AssignmentRowCell', () => {
       test('calls onToggleSubmissionTrayOpen when clicked', () => {
         props.onToggleSubmissionTrayOpen = vi.fn()
         wrapper = render(<AssignmentRowCell {...props} />)
-        wrapper.container.querySelector(buttonSelector).click()
+        fireEvent.click(wrapper.container.querySelector(buttonSelector))
         expect(props.onToggleSubmissionTrayOpen).toHaveBeenCalledTimes(1)
       })
 
       test('calls onToggleSubmissionTrayOpen with the student id and assignment id', () => {
         props.onToggleSubmissionTrayOpen = vi.fn()
         wrapper = render(<AssignmentRowCell {...props} />)
-        wrapper.container.querySelector(buttonSelector).click()
+        fireEvent.click(wrapper.container.querySelector(buttonSelector))
         expect(props.onToggleSubmissionTrayOpen).toHaveBeenCalledWith('1101', '2301')
       })
 
@@ -562,7 +562,7 @@ describe('GradebookGrid AssignmentRowCell', () => {
         }
         props.onToggleSubmissionTrayOpen = vi.fn()
         wrapper = render(<AssignmentRowCell {...props} />)
-        wrapper.container.querySelector(buttonSelector).click()
+        fireEvent.click(wrapper.container.querySelector(buttonSelector))
         expect(props.onToggleSubmissionTrayOpen).toHaveBeenCalledWith('1101', '2301')
       })
     })

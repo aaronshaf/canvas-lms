@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 import {QueryClient} from '@tanstack/react-query'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
 import {Gradebook, GradebookProps} from '../Gradebook'
@@ -191,7 +191,7 @@ describe('Gradebook', () => {
       const props = defaultProps({pagination: {currentPage: 1, perPage: 10, totalPages: 3}})
       const {getByText} = renderWithQueryClient(<Gradebook {...props} />)
       const page2Button = getByText('2')
-      page2Button.click()
+      fireEvent.click(page2Button)
       expect(props.setCurrentPage).toHaveBeenCalledWith(2)
     })
   })

@@ -94,7 +94,7 @@ describe('PeerReviewDueDateTimeInput', () => {
 
     const dateInput = screen.getByLabelText('Review Due Date')
     fireEvent.change(dateInput, {target: {value: 'Nov 15, 2024'}})
-    screen.getByRole('option', {name: /16 november 2024/i}).click()
+    fireEvent.click(screen.getByRole('option', {name: /16 november 2024/i}))
 
     await waitFor(() => {
       expect(handlePeerReviewDueDateChange).toHaveBeenCalled()

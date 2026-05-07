@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, screen, waitFor} from '@testing-library/react'
+import {act, fireEvent, screen, waitFor} from '@testing-library/react'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
 import {BLACKOUT_DATES, COURSE, PRIMARY_PACE} from '../../../../__tests__/fixtures'
@@ -61,14 +61,20 @@ describe('Settings Blackout Dates Modal', () => {
   it('shows and hides the blackout dates modal correctly', async () => {
     const {getByRole} = renderConnected(<Settings {...defaultProps} />)
     const settingsButton = getByRole('button', {name: 'Settings'})
-    act(() => settingsButton.click())
+    act(() => {
+      fireEvent.click(settingsButton)
+    })
 
-    act(() => screen.getByRole('menuitem', {name: 'Manage Blackout Dates'}).click())
+    act(() => {
+      fireEvent.click(screen.getByRole('menuitem', {name: 'Manage Blackout Dates'}))
+    })
     expect(screen.getByRole('heading', {name: 'Blackout Dates'})).toBeInTheDocument()
     const cancelButton = screen.getByRole('button', {name: 'Cancel'})
     expect(cancelButton).toBeInTheDocument()
 
-    act(() => cancelButton.click())
+    act(() => {
+      fireEvent.click(cancelButton)
+    })
     await waitFor(
       () => {
         expect(screen.queryByRole('heading', {name: 'Blackout Dates'})).not.toBeInTheDocument()
@@ -81,14 +87,20 @@ describe('Settings Blackout Dates Modal', () => {
   it('saves blackout dates from modal correctly', async () => {
     const {getByRole} = renderConnected(<Settings {...defaultProps} />)
     const settingsButton = getByRole('button', {name: 'Settings'})
-    act(() => settingsButton.click())
+    act(() => {
+      fireEvent.click(settingsButton)
+    })
 
-    act(() => screen.getByRole('menuitem', {name: 'Manage Blackout Dates'}).click())
+    act(() => {
+      fireEvent.click(screen.getByRole('menuitem', {name: 'Manage Blackout Dates'}))
+    })
     expect(screen.getByRole('heading', {name: 'Blackout Dates'})).toBeInTheDocument()
     const saveButton = screen.getByRole('button', {name: 'Save'})
     expect(saveButton).toBeInTheDocument()
 
-    act(() => saveButton.click())
+    act(() => {
+      fireEvent.click(saveButton)
+    })
     await waitFor(
       () => {
         expect(screen.queryByRole('heading', {name: 'Blackout Dates'})).not.toBeInTheDocument()

@@ -21,7 +21,7 @@ import 'jquery-migrate'
 import {registerFixDialogButtonsPlugin} from '@canvas/enhanced-user-content/jquery'
 import {http} from 'msw'
 import {setupServer} from 'msw/node'
-import {waitFor} from '@testing-library/react'
+import {fireEvent, waitFor} from '@testing-library/react'
 import SetDefaultGradeDialog from '../SetDefaultGradeDialog'
 import {windowAlert} from '@canvas/util/globalUtils'
 
@@ -80,7 +80,7 @@ describe('Shared > SetDefaultGradeDialog', () => {
     function clickSetDefaultGrade() {
       const buttons = Array.from(getDialog().querySelectorAll('button[role="button"]'))
       const button = buttons.find(node => node.textContent.trim() === 'Set Default Grade')
-      button.click()
+      fireEvent.click(button)
     }
 
     function setupSubmissionHandler(payload) {

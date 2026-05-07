@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {fireEvent} from '@testing-library/react'
 import {DiscussionTopic} from '../../../../graphql/DiscussionTopic'
 import {setup, setupDefaultEnv} from './DiscussionTopicFormTestHelpers'
 
@@ -71,7 +72,7 @@ describe('DiscussionTopicForm Announcements', () => {
     const {queryByTestId, queryByLabelText} = setup()
 
     const allowCommentsCheckbox = queryByLabelText('Allow Participants to Comment')
-    allowCommentsCheckbox.click()
+    fireEvent.click(allowCommentsCheckbox)
     expect(allowCommentsCheckbox).toBeChecked()
     expect(queryByLabelText('Disallow threaded replies')).toBeInTheDocument()
     expect(queryByTestId('require-initial-post-checkbox')).toBeInTheDocument()

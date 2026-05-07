@@ -18,7 +18,7 @@
 
 import React from 'react'
 import TimeZoneSelect from '../TimeZoneSelect'
-import {render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import {isEqual} from 'es-toolkit/compat'
 
 let liveRegion = null
@@ -85,7 +85,7 @@ describe('TimeZoneSelect', () => {
 
     // open the select dropdown
     const label = getByText('the label')
-    label.click()
+    fireEvent.click(label)
 
     const priorityOptions = document.querySelectorAll(
       '[data-testid="Group:Common Timezones"] span[role="option"]',
@@ -123,10 +123,10 @@ describe('TimeZoneSelect', () => {
 
     // open the select dropdown
     const label = getByText('the label')
-    label.click()
+    fireEvent.click(label)
 
     const eastern = await findByText('Eastern localized')
-    eastern.click()
+    fireEvent.click(eastern)
 
     // onChange's event.target.value === onChanges's 2nd argument
     await waitFor(() => expect(onChangeTZ).toHaveBeenCalled())

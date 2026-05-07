@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {GradebookPagination, GradebookPaginationProps} from '../GradebookPagination'
 
 const mockPagination = {
@@ -48,7 +48,7 @@ describe('GradebookPagination', () => {
     const props = makeProps()
     const {getByText} = render(<GradebookPagination {...props} />)
     const page3Button = getByText('3')
-    page3Button.click()
+    fireEvent.click(page3Button)
     expect(props.onPageChange).toHaveBeenCalledWith(3)
   })
 

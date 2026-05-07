@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render as testingLibraryRender} from '@testing-library/react'
+import {fireEvent, render as testingLibraryRender} from '@testing-library/react'
 import K5Dashboard from '../K5Dashboard'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -71,7 +71,7 @@ describe('K5Dashboard Schedule Section', () => {
     expect(jumpToNavButton).not.toBeVisible()
     jumpToNavButton.focus()
     expect(jumpToNavButton).toBeVisible()
-    jumpToNavButton.click()
+    fireEvent.click(jumpToNavButton)
     expect(document.activeElement.id).toBe('weekly-header-active-button')
     expect(jumpToNavButton).not.toBeVisible()
   })

@@ -89,7 +89,7 @@ describe('BlackoutDates', () => {
       fireEvent.blur(endDate)
     })
     act(() => {
-      addBtn.click()
+      fireEvent.click(addBtn)
     })
     expect(onChange).toHaveBeenCalled()
     expect(onChange.mock.calls[0][0]).toHaveLength(2)
@@ -100,7 +100,9 @@ describe('BlackoutDates', () => {
 
     const delBtn = getByRole('button', {name: 'Delete blackout date Spring break'})
 
-    act(() => delBtn.click())
+    act(() => {
+      fireEvent.click(delBtn)
+    })
     expect(onChange).toHaveBeenCalled()
     expect(onChange.mock.calls[0][0]).toHaveLength(0)
   })

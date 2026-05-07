@@ -19,7 +19,7 @@
 import {TAB_IDS} from '@canvas/k5/react/utils'
 import {OBSERVER_COOKIE_PREFIX} from '@canvas/observer-picker/ObserverGetObservee'
 import {MOCK_OBSERVED_USERS_LIST} from '@canvas/observer-picker/react/__tests__/fixtures'
-import {act, render, waitFor} from '@testing-library/react'
+import {act, fireEvent, render, waitFor} from '@testing-library/react'
 import React from 'react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -394,7 +394,9 @@ describe('K-5 Subject Course', () => {
       expect(getByText('Time to learn!')).toBeInTheDocument()
       expect(syllabusRequested).toBe(false)
       expect(appsRequested).toBe(false)
-      act(() => getByText('Resources').click())
+      act(() => {
+        fireEvent.click(getByText('Resources'))
+      })
       expect(await findByText('This is really important.')).toBeInTheDocument()
       expect(syllabusRequested).toBe(true)
       expect(appsRequested).toBe(true)

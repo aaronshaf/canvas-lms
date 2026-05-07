@@ -45,7 +45,9 @@ describe('BlackoutDatesModal', () => {
     expect(getByText('End Date')).toBeInTheDocument()
     const addBtn = getByRole('button', {name: 'Add'})
     expect(addBtn).toBeInTheDocument()
-    act(() => addBtn.click())
+    act(() => {
+      fireEvent.click(addBtn)
+    })
     expect(addBlackoutDate).not.toHaveBeenCalled()
   })
 
@@ -62,7 +64,9 @@ describe('BlackoutDatesModal', () => {
     act(() => addBtn.focus())
 
     expect(getByText('Title required')).toBeInTheDocument()
-    act(() => addBtn.click())
+    act(() => {
+      fireEvent.click(addBtn)
+    })
     expect(addBlackoutDate).not.toHaveBeenCalled()
   })
 
@@ -78,7 +82,9 @@ describe('BlackoutDatesModal', () => {
     act(() => addBtn.focus())
 
     expect(getByText('Date required')).toBeInTheDocument()
-    act(() => addBtn.click())
+    act(() => {
+      fireEvent.click(addBtn)
+    })
     expect(addBlackoutDate).not.toHaveBeenCalled()
   })
 
@@ -94,7 +100,9 @@ describe('BlackoutDatesModal', () => {
     act(() => addBtn.focus())
 
     expect(getByText('Date required')).toBeInTheDocument()
-    act(() => addBtn.click())
+    act(() => {
+      fireEvent.click(addBtn)
+    })
     expect(addBlackoutDate).not.toHaveBeenCalled()
   })
 
@@ -118,7 +126,9 @@ describe('BlackoutDatesModal', () => {
     act(() => addBtn.focus())
 
     expect(queryByText('End date cannot be before start date')).toBeInTheDocument()
-    act(() => addBtn.click())
+    act(() => {
+      fireEvent.click(addBtn)
+    })
     expect(addBlackoutDate).not.toHaveBeenCalled()
   })
 
@@ -134,7 +144,9 @@ describe('BlackoutDatesModal', () => {
 
     expect(getByText('Title required')).toBeInTheDocument()
     expect(getByText('Date required')).toBeInTheDocument()
-    act(() => addBtn.click())
+    act(() => {
+      fireEvent.click(addBtn)
+    })
     expect(addBlackoutDate).not.toHaveBeenCalled()
   })
 
@@ -154,7 +166,9 @@ describe('BlackoutDatesModal', () => {
       fireEvent.change(startDateInput, {target: {value: 'April 15, 2022'}})
     })
     act(() => addBtn.focus())
-    act(() => addBtn.click())
+    act(() => {
+      fireEvent.click(addBtn)
+    })
     expect(addBlackoutDate).toHaveBeenCalled() // yay!
   })
 })

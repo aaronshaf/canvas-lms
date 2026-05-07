@@ -93,7 +93,7 @@ describe('TeacherView', () => {
 
     // open the Until date editor
     const editButton = closest(getByText('Edit Until'), 'button')
-    editButton.click()
+    fireEvent.click(editButton)
     await findByTestId('EditableDateTime-editor')
 
     // edit the date
@@ -107,7 +107,7 @@ describe('TeacherView', () => {
     await findByTestId('TeacherFooter')
 
     const saveButton = closest(getByText('Save'), 'button')
-    saveButton.click()
+    fireEvent.click(saveButton)
     expect(await waitForNoElement(() => getByTestId('TeacherFooter'))).toBe(true)
   }, 10000 /* giving this a 10sec timeout since for some reason it is timing out in jenkins */)
 })

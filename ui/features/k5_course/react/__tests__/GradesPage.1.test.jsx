@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor, act} from '@testing-library/react'
+import {render, waitFor, act, fireEvent} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {GradesPage} from '../GradesPage'
@@ -238,7 +238,9 @@ describe('GradesPage', () => {
         const {getByText, findByText, queryByText} = render(<GradesPage {...getProps()} />)
         const totalsButton = await findByText('View Assignment Group Totals')
         expect(queryByText('Reports: 95.00%')).not.toBeInTheDocument()
-        act(() => totalsButton.click())
+        act(() => {
+          fireEvent.click(totalsButton)
+        })
         expect(getByText('Reports: 95.00%')).toBeInTheDocument()
       })
 
@@ -250,7 +252,9 @@ describe('GradesPage', () => {
         )
         const totalsButton = await findByText('View Assignment Group Totals')
         expect(queryByText('Reports: A')).not.toBeInTheDocument()
-        act(() => totalsButton.click())
+        act(() => {
+          fireEvent.click(totalsButton)
+        })
         expect(getByText('Reports: A')).toBeInTheDocument()
       })
 
@@ -334,7 +338,9 @@ describe('GradesPage', () => {
     it('shows a grading period select when grading periods are returned', async () => {
       const {getByText, findByText} = render(<GradesPage {...getProps()} />)
       const select = await findByText('Select Grading Period')
-      act(() => select.click())
+      act(() => {
+        fireEvent.click(select)
+      })
       expect(getByText('Quarter 1')).toBeInTheDocument()
       expect(getByText('Quarter 2 (Current)')).toBeInTheDocument()
       expect(getByText('All Grading Periods')).toBeInTheDocument()
@@ -371,8 +377,12 @@ describe('GradesPage', () => {
       const {getByText, findByText, queryByText} = render(<GradesPage {...getProps()} />)
       expect(await findByText('WWII Report')).toBeInTheDocument()
       const select = getByText('Select Grading Period')
-      act(() => select.click())
-      act(() => getByText('Quarter 1').click())
+      act(() => {
+        fireEvent.click(select)
+      })
+      act(() => {
+        fireEvent.click(getByText('Quarter 1'))
+      })
       await waitFor(() => expect(queryByText('Loading grades for history')).not.toBeInTheDocument())
       expect(queryByText('WWII Report')).not.toBeInTheDocument()
     })
@@ -392,13 +402,15 @@ describe('GradesPage', () => {
       )
       const {findByText, getByText, queryByText} = render(<GradesPage {...getProps()} />)
       const select = await findByText('Select Grading Period')
-      act(() => select.click())
-      act(() => getByText('All Grading Periods').click())
-      await waitFor(() => {
-        expect(getByText('WWII Report')).toBeInTheDocument()
-        expect(queryByText('Total: 89.39%')).not.toBeInTheDocument()
-        expect(queryByText('View Assignment Group Totals')).not.toBeInTheDocument()
+      act(() => {
+        fireEvent.click(select)
       })
+      act(() => {
+        fireEvent.click(getByText('All Grading Periods'))
+      })
+      await waitFor(() => expect(getByText('WWII Report')).toBeInTheDocument())
+      expect(queryByText('Total: 89.39%')).not.toBeInTheDocument()
+      expect(queryByText('View Assignment Group Totals')).not.toBeInTheDocument()
     })
 
     it('waits for grading periods to load before firing other requests', async () => {

@@ -160,7 +160,7 @@ describe('AccessibilityIssuesTable', () => {
       render(<AccessibilityIssuesTable />, {wrapper: Wrapper})
 
       act(() => {
-        screen.getByText('Type').click()
+        fireEvent.click(screen.getByText('Type'))
       })
 
       expect(mockDoFetch).toHaveBeenCalledTimes(1)
@@ -181,7 +181,7 @@ describe('AccessibilityIssuesTable', () => {
       })
 
       act(() => {
-        screen.getByText('Type').click()
+        fireEvent.click(screen.getByText('Type'))
       })
 
       expect(mockDoFetch).toHaveBeenCalledTimes(2)
@@ -202,7 +202,7 @@ describe('AccessibilityIssuesTable', () => {
       })
 
       act(() => {
-        screen.getByText('Type').click()
+        fireEvent.click(screen.getByText('Type'))
       })
 
       expect(mockDoFetch).toHaveBeenCalledTimes(3)

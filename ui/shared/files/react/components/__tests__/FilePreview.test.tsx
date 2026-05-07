@@ -19,7 +19,7 @@
 import React from 'react'
 import $ from 'jquery'
 import '@canvas/files/mockFilesENV'
-import {render, screen} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 import FilePreview from '@canvas/files/react/components/FilePreview'
 import Folder from '@canvas/files/backbone/models/Folder'
 import File from '@canvas/files/backbone/models/File'
@@ -254,7 +254,7 @@ describe.skip('File Preview Rendering', () => {
 
     const closeButton = $('.ef-file-preview-header-close')[0]
     expect(closeButton).toBeInTheDocument()
-    closeButton.click()
+    fireEvent.click(closeButton)
     expect(closePreviewCalled).toBe(true)
   })
 

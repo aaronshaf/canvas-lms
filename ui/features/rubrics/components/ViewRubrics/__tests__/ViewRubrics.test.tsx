@@ -87,7 +87,7 @@ describe.skip('ViewRubrics Tests', () => {
       expect(getByTestId('rubric-locations-1')).toHaveTextContent('courses and assignments')
 
       const archivedRubricsTab = getByText('Archived')
-      archivedRubricsTab.click()
+      fireEvent.click(archivedRubricsTab)
 
       expect(getByTestId('archived-rubrics-table').querySelectorAll('tr')).toHaveLength(2)
 
@@ -105,9 +105,9 @@ describe.skip('ViewRubrics Tests', () => {
       const {getByTestId} = renderComponent()
 
       const popover = getByTestId('rubric-options-1-button')
-      popover.click()
+      fireEvent.click(popover)
       const editButton = getByTestId('edit-rubric-button')
-      editButton.click()
+      fireEvent.click(editButton)
 
       expect(Router.useNavigate).toHaveBeenCalledWith()
       expect(Router.useNavigate).toHaveReturnedWith(expect.any(Function))
@@ -126,7 +126,7 @@ describe.skip('ViewRubrics Tests', () => {
       })
 
       const popover = getByTestId('rubric-options-1-button')
-      popover.click()
+      fireEvent.click(popover)
 
       expect(queryByTestId('copy-to-1-button')).not.toBeInTheDocument()
       expect(queryByTestId('share-course-1-tray')).not.toBeInTheDocument()
@@ -137,9 +137,9 @@ describe.skip('ViewRubrics Tests', () => {
       const {getByTestId} = renderComponent()
 
       const popover = getByTestId('rubric-options-1-button')
-      popover.click()
+      fireEvent.click(popover)
       const duplicateButton = getByTestId('duplicate-rubric-button')
-      duplicateButton.click()
+      fireEvent.click(duplicateButton)
 
       expect(getByTestId('duplicate-rubric-modal')).toBeInTheDocument()
     })
@@ -149,9 +149,9 @@ describe.skip('ViewRubrics Tests', () => {
       const {getByTestId} = renderComponent()
 
       const popover = getByTestId('rubric-options-1-button')
-      popover.click()
+      fireEvent.click(popover)
       const deleteButton = getByTestId('delete-rubric-button')
-      deleteButton.click()
+      fireEvent.click(deleteButton)
 
       expect(getByTestId('delete-rubric-modal')).toBeInTheDocument()
     })
@@ -160,11 +160,11 @@ describe.skip('ViewRubrics Tests', () => {
       queryClient.setQueryData(['accountRubrics-1'], RUBRICS_QUERY_RESPONSE)
       const {getByTestId} = renderComponent()
 
-      getByTestId('rubric-options-1-button').click()
+      fireEvent.click(getByTestId('rubric-options-1-button'))
       expect(getByTestId('delete-rubric-button')).not.toHaveAttribute('aria-disabled')
-      getByTestId('rubric-options-1-button').click()
+      fireEvent.click(getByTestId('rubric-options-1-button'))
 
-      getByTestId('rubric-options-3-button').click()
+      fireEvent.click(getByTestId('rubric-options-3-button'))
       expect(getByTestId('delete-rubric-button')).toHaveAttribute('aria-disabled', 'true')
     })
 
@@ -315,7 +315,7 @@ describe.skip('ViewRubrics Tests', () => {
       expect(getByTestId('rubric-locations-1')).toHaveTextContent('courses and assignments')
 
       const archivedRubricsTab = getByText('Archived')
-      archivedRubricsTab.click()
+      fireEvent.click(archivedRubricsTab)
 
       expect(getByTestId('archived-rubrics-table').querySelectorAll('tr')).toHaveLength(2)
 
@@ -333,9 +333,9 @@ describe.skip('ViewRubrics Tests', () => {
       const {getByTestId} = renderComponent()
 
       const popover = getByTestId('rubric-options-1-button')
-      popover.click()
+      fireEvent.click(popover)
       const editButton = getByTestId('edit-rubric-button')
-      editButton.click()
+      fireEvent.click(editButton)
 
       expect(Router.useNavigate).toHaveBeenCalledWith()
       expect(Router.useNavigate).toHaveReturnedWith(expect.any(Function))
@@ -348,9 +348,9 @@ describe.skip('ViewRubrics Tests', () => {
       queryClient.setQueryData(['courseRubrics-1'], RUBRICS_QUERY_RESPONSE)
       const {getByTestId} = renderComponent()
       const popover = getByTestId('rubric-options-1-button')
-      popover.click()
+      fireEvent.click(popover)
       const copyToButton = getByTestId('copy-to-1-button')
-      copyToButton.click()
+      fireEvent.click(copyToButton)
 
       expect(getByTestId('share-course-1-tray')).toBeInTheDocument()
     })
@@ -360,9 +360,9 @@ describe.skip('ViewRubrics Tests', () => {
       const {getByTestId} = renderComponent()
 
       const popover = getByTestId('rubric-options-1-button')
-      popover.click()
+      fireEvent.click(popover)
       const duplicateButton = getByTestId('duplicate-rubric-button')
-      duplicateButton.click()
+      fireEvent.click(duplicateButton)
 
       expect(getByTestId('duplicate-rubric-modal')).toBeInTheDocument()
     })
@@ -372,9 +372,9 @@ describe.skip('ViewRubrics Tests', () => {
       const {getByTestId} = renderComponent()
 
       const popover = getByTestId('rubric-options-1-button')
-      popover.click()
+      fireEvent.click(popover)
       const deleteButton = getByTestId('delete-rubric-button')
-      deleteButton.click()
+      fireEvent.click(deleteButton)
 
       expect(getByTestId('delete-rubric-modal')).toBeInTheDocument()
     })
@@ -383,11 +383,11 @@ describe.skip('ViewRubrics Tests', () => {
       queryClient.setQueryData(['courseRubrics-1'], RUBRICS_QUERY_RESPONSE)
       const {getByTestId} = renderComponent()
 
-      getByTestId('rubric-options-1-button').click()
+      fireEvent.click(getByTestId('rubric-options-1-button'))
       expect(getByTestId('delete-rubric-button')).not.toHaveAttribute('aria-disabled')
-      getByTestId('rubric-options-1-button').click()
+      fireEvent.click(getByTestId('rubric-options-1-button'))
 
-      getByTestId('rubric-options-3-button').click()
+      fireEvent.click(getByTestId('rubric-options-3-button'))
       expect(getByTestId('delete-rubric-button')).toHaveAttribute('aria-disabled', 'true')
     })
 
@@ -591,10 +591,10 @@ describe.skip('ViewRubrics Tests', () => {
       const {getByTestId} = renderComponent()
 
       const previewCell = getByTestId('rubric-title-preview-1')
-      previewCell.click()
+      fireEvent.click(previewCell)
       expect(getByTestId('traditional-criterion-1-ratings-0')).toBeInTheDocument()
 
-      previewCell.click()
+      fireEvent.click(previewCell)
       await waitFor(() => expect(getPreviewTray()).not.toBeInTheDocument())
     })
 
@@ -651,12 +651,12 @@ describe.skip('ViewRubrics Tests', () => {
       queryClient.setQueryData(['accountRubrics-1'], RUBRICS_QUERY_RESPONSE)
       const {getByTestId, getByText, getAllByText, queryByTestId} = renderComponent()
 
-      getByTestId('rubric-options-1-button').click()
-      getByTestId('archive-rubric-button').click()
+      fireEvent.click(getByTestId('rubric-options-1-button'))
+      fireEvent.click(getByTestId('archive-rubric-button'))
       await new Promise(resolve => setTimeout(resolve, 0))
       waitFor(() => getAllByText('Rubric archived successfully'))
       expect(queryByTestId('rubric-row-1')).not.toBeInTheDocument()
-      getByText('Archived').click()
+      fireEvent.click(getByText('Archived'))
       expect(getByTestId('rubric-row-1')).toHaveTextContent('Rubric 1')
       expect(getByTestId('archived-rubrics-panel').querySelectorAll('tr')).toHaveLength(3)
     })
@@ -672,16 +672,16 @@ describe.skip('ViewRubrics Tests', () => {
       queryClient.setQueryData(['accountRubrics-1'], RUBRICS_QUERY_RESPONSE)
       const {getByTestId, getByText, getAllByText, queryByTestId} = renderComponent()
 
-      getByText('Archived').click()
-      getByTestId('rubric-options-2-button').click()
+      fireEvent.click(getByText('Archived'))
+      fireEvent.click(getByTestId('rubric-options-2-button'))
       expect(getByTestId('archive-rubric-button')).toHaveTextContent('Un-Archive')
 
-      getByTestId('archive-rubric-button').click()
+      fireEvent.click(getByTestId('archive-rubric-button'))
       await new Promise(resolve => setTimeout(resolve, 0))
       waitFor(() => getAllByText('Rubric un-archived successfully'))
       expect(queryByTestId('rubric-row-2')).not.toBeInTheDocument()
 
-      getByText('Saved').click()
+      fireEvent.click(getByText('Saved'))
       expect(getByTestId('rubric-row-2')).toHaveTextContent('Rubric 2')
       expect(getByTestId('saved-rubrics-panel').querySelectorAll('tr')).toHaveLength(4)
     })
@@ -697,12 +697,12 @@ describe.skip('ViewRubrics Tests', () => {
       queryClient.setQueryData(['courseRubrics-1'], RUBRICS_QUERY_RESPONSE)
       const {getByTestId, getByText, getAllByText, queryByTestId} = renderComponent()
 
-      getByTestId('rubric-options-1-button').click()
-      getByTestId('archive-rubric-button').click()
+      fireEvent.click(getByTestId('rubric-options-1-button'))
+      fireEvent.click(getByTestId('archive-rubric-button'))
       await new Promise(resolve => setTimeout(resolve, 0))
       waitFor(() => getAllByText('Rubric archived successfully'))
       expect(queryByTestId('rubric-row-1')).not.toBeInTheDocument()
-      getByText('Archived').click()
+      fireEvent.click(getByText('Archived'))
       expect(getByTestId('rubric-row-1')).toHaveTextContent('Rubric 1')
       expect(getByTestId('archived-rubrics-panel').querySelectorAll('tr')).toHaveLength(3)
     })
@@ -718,16 +718,16 @@ describe.skip('ViewRubrics Tests', () => {
       queryClient.setQueryData(['courseRubrics-1'], RUBRICS_QUERY_RESPONSE)
       const {getByTestId, getByText, getAllByText, queryByTestId} = renderComponent()
 
-      getByText('Archived').click()
-      getByTestId('rubric-options-2-button').click()
+      fireEvent.click(getByText('Archived'))
+      fireEvent.click(getByTestId('rubric-options-2-button'))
       expect(getByTestId('archive-rubric-button')).toHaveTextContent('Un-Archive')
 
-      getByTestId('archive-rubric-button').click()
+      fireEvent.click(getByTestId('archive-rubric-button'))
       await new Promise(resolve => setTimeout(resolve, 0))
       waitFor(() => getAllByText('Rubric un-archived successfully'))
       expect(queryByTestId('rubric-row-2')).not.toBeInTheDocument()
 
-      getByText('Saved').click()
+      fireEvent.click(getByText('Saved'))
       expect(getByTestId('rubric-row-2')).toHaveTextContent('Rubric 2')
       expect(getByTestId('saved-rubrics-panel').querySelectorAll('tr')).toHaveLength(4)
     })

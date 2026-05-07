@@ -50,7 +50,9 @@ let defaultProps = eventFormProps()
 const changeValue = (component, testid, value) => {
   const child = component.getByTestId(testid)
   expect(child).toBeInTheDocument()
-  act(() => child.click())
+  act(() => {
+    fireEvent.click(child)
+  })
   fireEvent.change(child, {target: {value}})
   if (testid == 'edit-calendar-event-form-date') {
     fireEvent.keyUp(child, {key: 'Enter', code: 'Enter'})

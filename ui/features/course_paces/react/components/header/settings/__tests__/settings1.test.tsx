@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, screen} from '@testing-library/react'
+import {act, fireEvent, screen} from '@testing-library/react'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
 import {
@@ -68,7 +68,9 @@ describe('Settings', () => {
   it('renders a settings menu with toggles and a button to open the blackout dates modal', () => {
     renderConnected(<Settings {...defaultProps} />)
     const settingsButton = screen.getByRole('button', {name: 'Settings'})
-    act(() => settingsButton.click())
+    act(() => {
+      fireEvent.click(settingsButton)
+    })
 
     expect(screen.getByRole('menuitem', {name: 'Skip Selected Days'})).toBeInTheDocument()
     expect(screen.getByRole('menuitem', {name: 'Manage Blackout Dates'})).toBeInTheDocument()
@@ -77,7 +79,9 @@ describe('Settings', () => {
   it('disables all settings while syncing', async () => {
     renderConnected(<Settings {...{...defaultProps, isSyncing: true}} />)
     const settingsButton = screen.getByRole('button', {name: 'Settings'})
-    act(() => settingsButton.click())
+    act(() => {
+      fireEvent.click(settingsButton)
+    })
 
     // First check the Manage Blackout Dates button in main menu
     const blackoutDatesBtn = screen.getByRole('menuitem', {name: 'Manage Blackout Dates'})
@@ -85,7 +89,9 @@ describe('Settings', () => {
 
     // Click into Skip Selected Days submenu
     const skipSelectedDays = screen.getByTestId('skip-selected-days')
-    act(() => skipSelectedDays.click())
+    act(() => {
+      fireEvent.click(skipSelectedDays)
+    })
 
     // Verify weekends option is disabled
     const weekendsOption = screen.getByTestId('skip-weekends-toggle')
@@ -100,10 +106,14 @@ describe('Settings', () => {
     it('toggles the associated setting when the checkboxes are clicked', () => {
       renderConnected(<Settings {...defaultProps} />)
       const settingsButton = screen.getByRole('button', {name: 'Settings'})
-      act(() => settingsButton.click())
+      act(() => {
+        fireEvent.click(settingsButton)
+      })
 
       const skipSelectedDaysOption = screen.getByRole('menuitem', {name: 'Skip Selected Days'})
-      act(() => skipSelectedDaysOption.click())
+      act(() => {
+        fireEvent.click(skipSelectedDaysOption)
+      })
 
       const mondaysOption = screen.getByRole('menuitemcheckbox', {name: 'Mondays'})
       const fridaysOption = screen.getByRole('menuitemcheckbox', {name: 'Fridays'})
@@ -111,8 +121,12 @@ describe('Settings', () => {
       expect(mondaysOption).not.toBeDisabled()
       expect(fridaysOption).not.toBeDisabled()
 
-      act(() => mondaysOption.click())
-      act(() => fridaysOption.click())
+      act(() => {
+        fireEvent.click(mondaysOption)
+      })
+      act(() => {
+        fireEvent.click(fridaysOption)
+      })
 
       expect(toggleSelectedDaysToSkip).toHaveBeenCalledTimes(2)
     })
@@ -127,7 +141,9 @@ describe('Settings', () => {
 
       renderConnected(<Settings {...defaultProps} />, state)
       const settingsButton = screen.getByRole('button', {name: 'Settings'})
-      act(() => settingsButton.click())
+      act(() => {
+        fireEvent.click(settingsButton)
+      })
 
       const selectedDaysCounterPill = screen.getByTestId('selected_days_counter')
       expect(selectedDaysCounterPill).toHaveTextContent('5')
@@ -143,10 +159,14 @@ describe('Settings', () => {
 
       renderConnected(<Settings {...defaultProps} />, state)
       const settingsButton = screen.getByRole('button', {name: 'Settings'})
-      act(() => settingsButton.click())
+      act(() => {
+        fireEvent.click(settingsButton)
+      })
 
       const skipSelectedDaysOption = screen.getByRole('menuitem', {name: /Skip Selected Days/i})
-      act(() => skipSelectedDaysOption.click())
+      act(() => {
+        fireEvent.click(skipSelectedDaysOption)
+      })
 
       const sundaysOption = screen.getByRole('menuitemcheckbox', {name: 'Sundays'})
 
@@ -163,10 +183,14 @@ describe('Settings', () => {
 
       renderConnected(<Settings {...defaultProps} />, state)
       const settingsButton = screen.getByRole('button', {name: 'Settings'})
-      act(() => settingsButton.click())
+      act(() => {
+        fireEvent.click(settingsButton)
+      })
 
       const skipSelectedDaysOption = screen.getByRole('menuitem', {name: /Skip Selected Days/i})
-      act(() => skipSelectedDaysOption.click())
+      act(() => {
+        fireEvent.click(skipSelectedDaysOption)
+      })
 
       expect(
         screen.getByRole('menuitemcheckbox', {name: 'Weekends'}).getAttribute('aria-disabled'),
@@ -189,11 +213,15 @@ describe('Settings', () => {
     it('toggles the associated setting when the checkboxes are clicked', () => {
       renderConnected(<Settings {...defaultProps} />)
       const settingsButton = screen.getByRole('button', {name: 'Settings'})
-      act(() => settingsButton.click())
+      act(() => {
+        fireEvent.click(settingsButton)
+      })
 
       const skipWeekendsToggle = screen.getByRole('menuitemcheckbox', {name: 'Skip Weekends'})
       expect(skipWeekendsToggle).not.toBeDisabled()
-      act(() => skipWeekendsToggle.click())
+      act(() => {
+        fireEvent.click(skipWeekendsToggle)
+      })
       expect(toggleExcludeWeekends).toHaveBeenCalled()
     })
   })

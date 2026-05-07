@@ -141,7 +141,7 @@ describe('TeacherView', () => {
 
       // put name into edit
       const editNameBtn = closest(getByText('Edit assignment name'), 'button')
-      editNameBtn.click()
+      fireEvent.click(editNameBtn)
 
       // change the name
       const nameInput = await findByDisplayValue('old name')
@@ -163,7 +163,7 @@ describe('TeacherView', () => {
 
       // put name into edit
       const editNameBtn = closest(getByText('Edit assignment name'), 'button')
-      editNameBtn.click()
+      fireEvent.click(editNameBtn)
 
       // change the name
       const nameInput = await findByDisplayValue('old name')
@@ -173,7 +173,7 @@ describe('TeacherView', () => {
       expect(getByTestId('TeacherFooter')).toBeInTheDocument()
 
       const cancelBtn = closest(getByText('Cancel'), 'button')
-      cancelBtn.click()
+      fireEvent.click(cancelBtn)
 
       expect(await waitForNoElement(() => getByText('new name'))).toBe(true)
       expect(await waitForNoElement(() => getByTestId('TeacherFooter'))).toBe(true)
@@ -192,7 +192,7 @@ describe('TeacherView', () => {
 
       // put name into edit
       const editNameBtn = closest(getByText('Edit assignment name'), 'button')
-      editNameBtn.click()
+      fireEvent.click(editNameBtn)
 
       // delete the name (this is bad)
       const nameInput = await findByDisplayValue('old name')
@@ -202,7 +202,7 @@ describe('TeacherView', () => {
       expect(getByText('Assignment name is required')).toBeInTheDocument()
 
       const saveBtn = closest(getByText('Save'), 'button')
-      saveBtn.click()
+      fireEvent.click(saveBtn)
 
       expect(FlashAlert.showFlashAlert).toHaveBeenCalledWith(
         expect.objectContaining({message: 'You cannot save while there are errors'}),
@@ -222,7 +222,7 @@ describe('TeacherView', () => {
 
       // put name into edit
       const editNameBtn = closest(getByText('Edit assignment name'), 'button')
-      editNameBtn.click()
+      fireEvent.click(editNameBtn)
 
       // abort editing
       const nameInput = await findByDisplayValue('old name')

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, act} from '@testing-library/react'
+import {render, act, fireEvent} from '@testing-library/react'
 
 import CourseCreationSettings from '../CourseCreationSettings'
 
@@ -78,7 +78,9 @@ describe('CourseCreationSettings', () => {
     )
     expect(queryByText('Where can teachers create courses?')).not.toBeInTheDocument()
     const teacherCheckbox = getByRole('checkbox', {name: 'Teachers'})
-    act(() => teacherCheckbox.click())
+    act(() => {
+      fireEvent.click(teacherCheckbox)
+    })
     expect(getByText('Where can teachers create courses?')).toBeInTheDocument()
     const teacherRadio1 = getAllByRole('radio', {
       name: 'Allow creation anywhere the user has active enrollments',
@@ -103,7 +105,9 @@ describe('CourseCreationSettings', () => {
     )
     expect(queryByText('Where can students create courses?')).not.toBeInTheDocument()
     const studentCheckbox = getByRole('checkbox', {name: 'Students'})
-    act(() => studentCheckbox.click())
+    act(() => {
+      fireEvent.click(studentCheckbox)
+    })
     expect(getByText('Where can students create courses?')).toBeInTheDocument()
     const studentRadio1 = getAllByRole('radio', {
       name: 'Allow creation anywhere the user has active enrollments',
@@ -129,7 +133,9 @@ describe('CourseCreationSettings', () => {
       />,
     )
     const studentCheckbox = getByRole('checkbox', {name: 'Students'})
-    act(() => studentCheckbox.click())
+    act(() => {
+      fireEvent.click(studentCheckbox)
+    })
     const anywhereRadios = getAllByRole('radio', {
       name: 'Allow creation anywhere the user has active enrollments',
     })

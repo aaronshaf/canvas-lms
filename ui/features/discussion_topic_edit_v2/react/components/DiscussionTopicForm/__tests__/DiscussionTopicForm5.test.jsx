@@ -142,8 +142,8 @@ describe('DiscussionTopicForm', () => {
   it.skip('applies fancy midnight to assign reviews when needed', () => {
     const {getByTestId, getByText} = setup()
 
-    getByTestId('graded-checkbox').querySelector('input').click()
-    getByTestId('peer_review_auto').click()
+    fireEvent.click(getByTestId('graded-checkbox').querySelector('input'))
+    fireEvent.click(getByTestId('peer_review_auto'))
 
     const dueDate = getByTestId('reviews-due-date')
     const dueTime = getByTestId('reviews-due-time')
@@ -160,8 +160,8 @@ describe('DiscussionTopicForm', () => {
   it('does not apply fancy midnight to assign reviews when the user have other time set', () => {
     const {getByTestId, getByText} = setup()
 
-    getByTestId('graded-checkbox').querySelector('input').click()
-    getByTestId('peer_review_auto').click()
+    fireEvent.click(getByTestId('graded-checkbox').querySelector('input'))
+    fireEvent.click(getByTestId('peer_review_auto'))
 
     const dueDate = getByTestId('reviews-due-date')
     const dueTime = getByTestId('reviews-due-time')

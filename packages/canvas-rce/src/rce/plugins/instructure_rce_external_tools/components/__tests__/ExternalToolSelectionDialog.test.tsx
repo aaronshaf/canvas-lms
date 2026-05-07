@@ -115,7 +115,7 @@ describe('ExternalToolSelectionDialog', () => {
     const handleDismiss = jest.fn()
     const {getByText} = renderComponent({onDismiss: handleDismiss})
     const cancelButton = getByText('Done')
-    cancelButton.click()
+    fireEvent.click(cancelButton)
     expect(handleDismiss).toHaveBeenCalled()
   })
 
@@ -123,7 +123,7 @@ describe('ExternalToolSelectionDialog', () => {
     const handleDismiss = jest.fn()
     const {getByText} = renderComponent({onDismiss: handleDismiss})
     const closeButton = getByText('Close')
-    closeButton.click()
+    fireEvent.click(closeButton)
     expect(handleDismiss).toHaveBeenCalled()
   })
 
@@ -158,7 +158,7 @@ describe('ExternalToolSelectionDialog', () => {
       ltiButtons: helpers,
     })
     const tool1 = getByText('Tool 1')
-    tool1.click()
+    fireEvent.click(tool1)
 
     expect(onDismiss).toHaveBeenCalled()
     expect(doAction).toHaveBeenCalled()

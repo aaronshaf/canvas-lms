@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act} from '@testing-library/react'
+import {act, fireEvent} from '@testing-library/react'
 import {renderConnected} from '../../../__tests__/utils'
 import {
   PACE_CONTEXTS_SECTIONS_RESPONSE,
@@ -63,7 +63,9 @@ describe('PaceModal', () => {
     const {getByTestId} = renderConnected(<PaceModal {...defaultProps} />)
     const closeButton = getByTestId('course-pace-edit-close-x')
     expect(closeButton).toBeInTheDocument()
-    act(() => closeButton.click())
+    act(() => {
+      fireEvent.click(closeButton)
+    })
     expect(onClose).toHaveBeenCalled()
     expect(clearCategoryError).toHaveBeenCalled()
   })
@@ -107,10 +109,14 @@ describe('PaceModal', () => {
       )
 
       const settingsButton = getByRole('button', {name: 'Settings'})
-      act(() => settingsButton.click())
+      act(() => {
+        fireEvent.click(settingsButton)
+      })
 
       const weightedAssignmentsOpgion = getByTestId('weighted-assignment-duration-option')
-      act(() => weightedAssignmentsOpgion.click())
+      act(() => {
+        fireEvent.click(weightedAssignmentsOpgion)
+      })
 
       expect(getByTestId('weighted-assignments-tray')).toBeInTheDocument()
     })

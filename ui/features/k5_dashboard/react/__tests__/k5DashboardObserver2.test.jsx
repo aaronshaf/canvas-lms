@@ -22,7 +22,7 @@ import {MOCK_OBSERVED_USERS_LIST} from '@canvas/observer-picker/react/__tests__/
 import {fetchShowK5Dashboard} from '@canvas/observer-picker/react/utils'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import injectGlobalAlertContainers from '@canvas/util/react/testing/injectGlobalAlertContainers'
-import {act, render as testingLibraryRender, waitFor} from '@testing-library/react'
+import {act, fireEvent, render as testingLibraryRender, waitFor} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import React from 'react'
@@ -122,8 +122,12 @@ describe('K5Dashboard Parent Support - Dashboard Options', () => {
     expect(select.value).toBe('Geoffrey Jellineck')
     expect(await findByTestId('k5-dashboard-options')).toBeInTheDocument()
 
-    act(() => select.click())
-    act(() => getByText('Student 4').click())
+    act(() => {
+      fireEvent.click(select)
+    })
+    act(() => {
+      fireEvent.click(getByText('Student 4'))
+    })
     expect(select.value).toBe('Student 4')
     await waitFor(() => expect(queryByTestId('k5-dashboard-options')).not.toBeInTheDocument())
   })

@@ -60,7 +60,7 @@ describe('PreviewModal', () => {
 
     const tabletButton = getByText('Tablet').closest('button') as HTMLButtonElement
     expect(tabletButton).toBeInTheDocument()
-    tabletButton.click()
+    fireEvent.click(tabletButton)
 
     await waitFor(() => {
       expect(tabletButton).toHaveAttribute('aria-current', 'true')
@@ -79,7 +79,7 @@ describe('PreviewModal', () => {
 
     const mobileButton = getByText('Mobile').closest('button') as HTMLButtonElement
     expect(mobileButton).toBeInTheDocument()
-    mobileButton.click()
+    fireEvent.click(mobileButton)
 
     await waitFor(() => {
       expect(mobileButton).toHaveAttribute('aria-current', 'true')

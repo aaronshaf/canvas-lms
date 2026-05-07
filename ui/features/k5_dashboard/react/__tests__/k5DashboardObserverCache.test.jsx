@@ -23,7 +23,7 @@ import {MOCK_OBSERVED_USERS_LIST} from '@canvas/observer-picker/react/__tests__/
 import {fetchShowK5Dashboard} from '@canvas/observer-picker/react/utils'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import injectGlobalAlertContainers from '@canvas/util/react/testing/injectGlobalAlertContainers'
-import {act, render as testingLibraryRender} from '@testing-library/react'
+import {act, fireEvent, render as testingLibraryRender} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import React from 'react'
@@ -137,13 +137,21 @@ describe('K5Dashboard Parent Support - Cache', () => {
     const select = getByTestId('observed-student-dropdown')
     expect(select.value).toBe('Student 4')
     expect(requestUrls[requestUrls.length - 1]).toContain('observed_user_id=4')
-    act(() => select.click())
-    act(() => getByText('Student 2').click())
+    act(() => {
+      fireEvent.click(select)
+    })
+    act(() => {
+      fireEvent.click(getByText('Student 2'))
+    })
     expect(await findByText('Economics 203')).toBeInTheDocument()
     expect(queryByText('Economics 101')).not.toBeInTheDocument()
     expect(requestUrls[requestUrls.length - 1]).toContain('observed_user_id=2')
-    act(() => select.click())
-    act(() => getByText('Student 4').click())
+    act(() => {
+      fireEvent.click(select)
+    })
+    act(() => {
+      fireEvent.click(getByText('Student 4'))
+    })
     expect(await findByText('Economics 101')).toBeInTheDocument()
     expect(queryByText('Economics 203')).not.toBeInTheDocument()
     // Should not fetch student 4's cards again; they've been cached

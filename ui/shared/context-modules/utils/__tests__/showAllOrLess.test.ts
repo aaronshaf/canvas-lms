@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {screen} from '@testing-library/dom'
+import {fireEvent, screen} from '@testing-library/dom'
 import {DEFAULT_PAGE_SIZE} from '../types'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import {
@@ -361,7 +361,7 @@ describe('showAllOrLess', () => {
 
       addShowAllOrLess('1')
       const button = module.querySelector('.show-all-or-less-button') as HTMLButtonElement
-      button.click()
+      fireEvent.click(button)
 
       expect(button.dataset.isLoading).toBe('true')
       expect(button.disabled).toBe(true)
@@ -375,7 +375,7 @@ describe('showAllOrLess', () => {
       addShowAllOrLess('1')
       const button = module.querySelector('.show-all-or-less-button') as HTMLButtonElement
       button.dataset.isLoading = 'true'
-      button.click()
+      fireEvent.click(button)
 
       expect(spy).not.toHaveBeenCalled()
       spy.mockRestore()

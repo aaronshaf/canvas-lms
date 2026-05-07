@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import LinkSet from '../LinkSet'
 import RCEGlobals from '../../../../RCEGlobals'
 
@@ -109,7 +109,7 @@ describe('RCE "Links" Plugin > LinkSet', () => {
     })
 
     const loadMoreBtn = getByText('Load More')
-    loadMoreBtn.click()
+    fireEvent.click(loadMoreBtn)
     expect(fetchNextPage).toHaveBeenCalled()
   })
 

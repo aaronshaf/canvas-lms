@@ -17,7 +17,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render} from '@testing-library/react'
+import {render, fireEvent} from '@testing-library/react'
 import userEvent, {PointerEventsCheckLevel} from '@testing-library/user-event'
 import React from 'react'
 import GroupCategoryModal from '../GroupCategoryModal'
@@ -44,7 +44,7 @@ describe('GroupCategoryModal', () => {
     const user = userEvent.setup({pointerEventsCheck: PointerEventsCheckLevel.Never, delay: 0})
     const {getByText} = setup()
     await user.click(getByText('Allow'))
-    getByText('Require group members to be in the same section').click()
+    fireEvent.click(getByText('Require group members to be in the same section'))
     await user.click(getByText('Allow'))
     expect(getByText('Require group members to be in the same section')).not.toBeChecked()
   })
@@ -54,8 +54,8 @@ describe('GroupCategoryModal', () => {
     const {getByText} = setup()
     const allowCheckbox = getByText('Allow')
     await user.click(allowCheckbox)
-    getByText('Automatically assign a student group leader').click()
-    getByText('Set first student to join as group leader').click()
+    fireEvent.click(getByText('Automatically assign a student group leader'))
+    fireEvent.click(getByText('Set first student to join as group leader'))
     await user.click(allowCheckbox)
     await user.click(allowCheckbox)
     expect(getByText('Automatically assign a student group leader')).not.toBeChecked()

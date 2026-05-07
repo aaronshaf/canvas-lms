@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act} from '@testing-library/react'
+import {act, fireEvent} from '@testing-library/react'
 import moment from 'moment'
 
 import {PACE_MODULE_1, PRIMARY_PACE} from '../../../__tests__/fixtures'
@@ -56,7 +56,9 @@ describe('Module', () => {
     expect(queryByTestId('pp-due-date-columnheader')).toBeInTheDocument()
     expect(queryByTestId('pp-status-columnheader')).toBeInTheDocument()
 
-    act(() => moduleHeader.click())
+    act(() => {
+      fireEvent.click(moduleHeader)
+    })
     expect(getByRole('button', {name: '1. How 2 B A H4CK32'})).toBeInTheDocument()
     expect(queryByText(PACE_MODULE_1.items[0].assignment_title)).not.toBeInTheDocument()
     expect(queryByTestId('pp-duration-columnheader')).not.toBeInTheDocument()

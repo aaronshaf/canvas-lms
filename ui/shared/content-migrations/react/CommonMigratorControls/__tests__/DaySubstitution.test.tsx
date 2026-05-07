@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import DaySubstitution from '../DaySubstitution'
 import {DaySub} from '../types'
 
@@ -73,10 +73,10 @@ describe('DaySubstitution', () => {
     const {findByText, getByLabelText} = renderComponent()
 
     const selectMoveFrom = getByLabelText('Move from')
-    selectMoveFrom.click()
+    fireEvent.click(selectMoveFrom)
 
     const optionMonday = await findByText('Monday')
-    optionMonday.click()
+    fireEvent.click(optionMonday)
 
     await waitFor(() => {
       expect(mockOnChangeSubstitution).toHaveBeenCalledWith(
@@ -91,10 +91,10 @@ describe('DaySubstitution', () => {
     const {findByText, getByLabelText} = renderComponent()
 
     const selectMoveTo = getByLabelText('Move to')
-    selectMoveTo.click()
+    fireEvent.click(selectMoveTo)
 
     const optionTuesday = await findByText('Tuesday')
-    optionTuesday.click()
+    fireEvent.click(optionTuesday)
 
     await waitFor(() => {
       expect(mockOnChangeSubstitution).toHaveBeenCalledWith(
@@ -111,7 +111,7 @@ describe('DaySubstitution', () => {
     const removeButton = container.querySelector(
       `#remove-substitution-${mockSubstitution.id}`,
     ) as HTMLButtonElement
-    removeButton!.click()
+    fireEvent.click(removeButton!)
     expect(mockOnRemoveSubstitution).toHaveBeenCalledWith(mockSubstitution)
   })
 

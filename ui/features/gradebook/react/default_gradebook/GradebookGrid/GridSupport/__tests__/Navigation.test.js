@@ -17,6 +17,7 @@
  */
 
 import '@canvas/jquery-keycodes' // used by some SlickGrid editors
+import {fireEvent} from '@testing-library/react'
 import slickgrid from 'slickgrid'
 import GridSupport from '../index'
 
@@ -1333,7 +1334,7 @@ describe('GradebookGrid GridSupport Navigation', () => {
   describe('Click on a header', () => {
     test('activates the header location being clicked', () => {
       const headerColumn = document.querySelectorAll('.slick-header-column')[1]
-      headerColumn.click()
+      fireEvent.click(headerColumn)
       const activeLocation = gridSupport.state.getActiveLocation()
       expect(activeLocation.region).toBe('header')
       expect(activeLocation.cell).toBe(1)
@@ -1342,7 +1343,7 @@ describe('GradebookGrid GridSupport Navigation', () => {
 
     test('activates the header location when handling click on a header child element', () => {
       const headerChild = document.querySelectorAll('.slick-column-name')[1]
-      headerChild.click()
+      fireEvent.click(headerChild)
       const activeLocation = gridSupport.state.getActiveLocation()
       expect(activeLocation.region).toBe('header')
       expect(activeLocation.cell).toBe(1)

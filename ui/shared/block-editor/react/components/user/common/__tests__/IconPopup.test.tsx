@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {useNode} from '@craftjs/core'
 import {IconPopup, type IconPopupProps} from '../IconPopup'
@@ -82,7 +82,7 @@ describe('IconPopup', () => {
     expect(await findByText('Select an icon')).toBeInTheDocument()
 
     const icon = (await findByTitle('pencil')).closest('div[role="button"]') as HTMLElement
-    icon?.click()
+    fireEvent.click(icon!)
 
     expect(mockSetProp).toHaveBeenCalled()
     expect(props.iconName).toBe('pencil')
@@ -95,7 +95,7 @@ describe('IconPopup', () => {
     expect(await findByText('Select an icon')).toBeInTheDocument()
 
     const noIcon = (await findByText('No Icon')).closest('div[role="button"]') as HTMLElement
-    noIcon?.click()
+    fireEvent.click(noIcon!)
 
     expect(mockSetProp).toHaveBeenCalled()
     expect(props.iconName).toBe('')

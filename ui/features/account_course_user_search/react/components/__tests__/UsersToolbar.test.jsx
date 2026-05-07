@@ -18,7 +18,7 @@
 
 import React from 'react'
 import UsersToolbar from '../UsersToolbar'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 
 const props = {
   toggleSRMessage: () => {},
@@ -48,7 +48,7 @@ describe('UsersToolbar', () => {
       const {getByText} = render(<UsersToolbar {...props} />)
       const enrollCheck = getByText('Include deleted users in search results')
 
-      enrollCheck.click()
+      fireEvent.click(enrollCheck)
       expect(props.onUpdateFilters).toHaveBeenCalledWith({include_deleted_users: true})
     })
   })
@@ -73,7 +73,7 @@ describe('UsersToolbar', () => {
       const {getByTestId} = render(<UsersToolbar {...props} search_term="test" />)
       const clearButton = getByTestId('clear-search')
 
-      clearButton.click()
+      fireEvent.click(clearButton)
       expect(props.onUpdateFilters).toHaveBeenCalledWith({search_term: ''})
     })
   })

@@ -20,7 +20,7 @@
 
 import React from 'react'
 import {Editor} from '@craftjs/core'
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor, fireEvent} from '@testing-library/react'
 import {ToolbarColor} from '../ToolbarColor'
 
 const DEFAULT_FONT_COLOR = '#273540'
@@ -62,7 +62,7 @@ describe('ToolbarColor', () => {
   it('renders the popup', async () => {
     const {getAllByRole, getByText, getByTestId} = renderComponent()
     const button = getByText('Color').closest('button') as HTMLButtonElement
-    button.click()
+    fireEvent.click(button)
 
     await waitFor(() => {
       const tabs = getAllByRole('tab')
@@ -84,7 +84,7 @@ describe('ToolbarColor', () => {
 
     const {getByText} = renderComponent({tabs})
     const button = getByText('Color').closest('button') as HTMLButtonElement
-    button.click()
+    fireEvent.click(button)
 
     await waitFor(() => {
       const tabelems = screen.getAllByRole('tab')
@@ -98,7 +98,7 @@ describe('ToolbarColor', () => {
     delete tabs.foreground
     const {getByText} = renderComponent({tabs})
     const button = getByText('Color').closest('button') as HTMLButtonElement
-    button.click()
+    fireEvent.click(button)
 
     await waitFor(() => {
       const tabelems = screen.getAllByRole('tab')
@@ -123,7 +123,7 @@ describe('ToolbarColor', () => {
       },
     })
     const button = getByText('Color').closest('button') as HTMLButtonElement
-    button.click()
+    fireEvent.click(button)
 
     await waitFor(() => {
       const tabs = getAllByRole('tab')
@@ -141,14 +141,14 @@ describe('ToolbarColor', () => {
     })
     const {getByText} = renderComponent({tabs})
     const button = getByText('Color').closest('button') as HTMLButtonElement
-    button.click()
+    fireEvent.click(button)
 
     await waitFor(() => {
       expect(screen.getByDisplayValue('custom')).toBeInTheDocument()
     })
 
     // change to custom colors to enable ColorPresets
-    screen.getByDisplayValue('custom').click()
+    fireEvent.click(screen.getByDisplayValue('custom'))
 
     await waitFor(() => {
       const c1 = document
@@ -176,7 +176,7 @@ describe('ToolbarColor', () => {
       })
 
       const button = getByText('Color').closest('button') as HTMLButtonElement
-      button.click()
+      fireEvent.click(button)
 
       await waitFor(() => {
         const tabs = getAllByRole('tab')
@@ -199,7 +199,7 @@ describe('ToolbarColor', () => {
       const {getByText, getByTestId} = renderComponent({tabs})
 
       const button = getByText('Color').closest('button') as HTMLButtonElement
-      button.click()
+      fireEvent.click(button)
 
       await waitFor(() => {
         expect(getByTestId('color-contrast-summary')).toBeInTheDocument()
@@ -219,14 +219,14 @@ describe('ToolbarColor', () => {
       delete tabs.border
       const {getAllByRole, getByText} = renderComponent({tabs})
       const button = getByText('Color').closest('button') as HTMLButtonElement
-      button.click()
+      fireEvent.click(button)
 
       await waitFor(() => {
         expect(getAllByRole('tab')).toHaveLength(2)
       })
 
       const tabelems = getAllByRole('tab')
-      tabelems[1].click()
+      fireEvent.click(tabelems[1])
 
       await waitFor(() => expect(tabelems[1]).toHaveAttribute('aria-selected', 'true'))
       expect(document.getElementById('background')).toBeInTheDocument()
@@ -238,14 +238,14 @@ describe('ToolbarColor', () => {
       tabs.background.default = tabs.background.color
       const {getByText, getByDisplayValue, getByTestId} = renderComponent({tabs})
       const button = getByText('Color').closest('button') as HTMLButtonElement
-      button.click()
+      fireEvent.click(button)
 
       await waitFor(() => {
         expect(screen.getAllByRole('tab')).toHaveLength(2)
       })
 
       const tabelems = screen.getAllByRole('tab')
-      tabelems[1].click()
+      fireEvent.click(tabelems[1])
 
       await waitFor(() => {
         expect(getByDisplayValue('none')).toBeInTheDocument()
@@ -263,14 +263,14 @@ describe('ToolbarColor', () => {
       delete tabs.border
       const {getByText, getByTestId} = renderComponent({tabs})
       const button = getByText('Color').closest('button') as HTMLButtonElement
-      button.click()
+      fireEvent.click(button)
 
       await waitFor(() => {
         expect(screen.getAllByRole('tab')).toHaveLength(2)
       })
 
       const tabelems = screen.getAllByRole('tab')
-      tabelems[1].click()
+      fireEvent.click(tabelems[1])
 
       await waitFor(() => {
         const mixer = getByTestId('color-mixer')
@@ -285,14 +285,14 @@ describe('ToolbarColor', () => {
       delete tabs.foreground
       const {getAllByRole, getByText} = renderComponent({tabs})
       const button = getByText('Color').closest('button') as HTMLButtonElement
-      button.click()
+      fireEvent.click(button)
 
       await waitFor(() => {
         expect(getAllByRole('tab')).toHaveLength(2)
       })
 
       const tabelems = getAllByRole('tab')
-      tabelems[1].click()
+      fireEvent.click(tabelems[1])
 
       await waitFor(() => expect(tabelems[1]).toHaveAttribute('aria-selected', 'true'))
       expect(document.getElementById('border')).toBeInTheDocument()
@@ -303,14 +303,14 @@ describe('ToolbarColor', () => {
       delete tabs.foreground
       const {getByText, getByDisplayValue, queryByTestId} = renderComponent({tabs})
       const button = getByText('Color').closest('button') as HTMLButtonElement
-      button.click()
+      fireEvent.click(button)
 
       await waitFor(() => {
         expect(screen.getAllByRole('tab')).toHaveLength(2)
       })
 
       const tabelems = screen.getAllByRole('tab')
-      tabelems[1].click()
+      fireEvent.click(tabelems[1])
 
       await waitFor(() => {
         expect(getByDisplayValue('none')).toBeInTheDocument()
@@ -330,7 +330,7 @@ describe('ToolbarColor', () => {
       const {getByText, getByTestId} = renderComponent({tabs})
 
       const button = getByText('Color').closest('button') as HTMLButtonElement
-      button.click()
+      fireEvent.click(button)
 
       await waitFor(() => {
         expect(getByTestId('color-contrast-summary')).toBeInTheDocument()
@@ -343,7 +343,7 @@ describe('ToolbarColor', () => {
       const tabs = cloneBaseTabs()
       const {getByText, getByTestId, queryByTestId} = renderComponent({tabs})
       const button = getByText('Color').closest('button') as HTMLButtonElement
-      button.click()
+      fireEvent.click(button)
 
       await waitFor(() => {
         expect(getByTestId('color-contrast-summary')).toBeInTheDocument()
@@ -352,7 +352,7 @@ describe('ToolbarColor', () => {
       const toggle = getByTestId('color-contrast-summary')
       expect(queryByTestId('color-contrast')).not.toBeInTheDocument()
 
-      toggle.click()
+      fireEvent.click(toggle)
 
       await waitFor(() => {
         expect(queryByTestId('color-contrast')).toBeInTheDocument()

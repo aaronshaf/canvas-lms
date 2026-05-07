@@ -183,19 +183,19 @@ describe('ContextModulesPublishMenu', () => {
         // Open menu
         const menuButton = getByRole('button')
         act(() => {
-          menuButton.click()
+          fireEvent.click(menuButton)
         })
 
         // Click "Publish all modules and items"
         const publishAllButton = getByRole('menuitem', {name: /Publish all modules and items/})
         await act(async () => {
-          publishAllButton.click()
+          fireEvent.click(publishAllButton)
         })
 
         // Set state variables before clicking continue
         const continueButton = getByRole('button', {name: /Continue/})
         act(() => {
-          continueButton.click()
+          fireEvent.click(continueButton)
         })
 
         mockMonitorProgress.mockImplementation((id, callback) => {
@@ -218,19 +218,19 @@ describe('ContextModulesPublishMenu', () => {
         // Open menu
         const menuButton = getByRole('button')
         act(() => {
-          menuButton.click()
+          fireEvent.click(menuButton)
         })
 
         // Click "Publish all modules and items"
         const publishAllButton = getByRole('menuitem', {name: /Publish all modules and items/})
         await act(async () => {
-          publishAllButton.click()
+          fireEvent.click(publishAllButton)
         })
 
         // Set state variables before clicking continue
         const continueButton = getByRole('button', {name: /Continue/})
         act(() => {
-          continueButton.click()
+          fireEvent.click(continueButton)
         })
 
         mockMonitorProgress.mockImplementation((id, callback) => {
@@ -253,19 +253,19 @@ describe('ContextModulesPublishMenu', () => {
         // Open menu
         const menuButton = getByRole('button')
         act(() => {
-          menuButton.click()
+          fireEvent.click(menuButton)
         })
 
         // Click "Publish all modules and items"
         const publishAllButton = getByRole('menuitem', {name: /Publish all modules and items/})
         await act(async () => {
-          publishAllButton.click()
+          fireEvent.click(publishAllButton)
         })
 
         // Set state variables before clicking continue
         const continueButton = getByRole('button', {name: /Continue/})
         act(() => {
-          continueButton.click()
+          fireEvent.click(continueButton)
         })
 
         mockMonitorProgress.mockImplementation((id, callback) => {
@@ -290,19 +290,19 @@ describe('ContextModulesPublishMenu', () => {
         // Open menu
         const menuButton = getByRole('button')
         act(() => {
-          menuButton.click()
+          fireEvent.click(menuButton)
         })
 
         // Click "Publish all modules and items"
         const publishAllButton = getByRole('menuitem', {name: /Publish all modules and items/})
         await act(async () => {
-          publishAllButton.click()
+          fireEvent.click(publishAllButton)
         })
 
         // Set state variables before clicking continue
         const continueButton = getByRole('button', {name: /Continue/})
         act(() => {
-          continueButton.click()
+          fireEvent.click(continueButton)
         })
 
         mockMonitorProgress.mockImplementation((id, callback) => {
@@ -327,7 +327,9 @@ describe('ContextModulesPublishMenu', () => {
       it('renders the menu when clicked', () => {
         const {getByRole, getByText} = render(<ContextModulesPublishMenu {...defaultProps} />)
         const menuButton = getByRole('button')
-        act(() => menuButton.click())
+        act(() => {
+          fireEvent.click(menuButton)
+        })
         expect(getByText('Publish all modules and items')).toBeInTheDocument()
         expect(getByText('Publish modules only')).toBeInTheDocument()
         expect(getByText('Unpublish all modules and items')).toBeInTheDocument()
@@ -337,9 +339,13 @@ describe('ContextModulesPublishMenu', () => {
       it('calls publishAll when clicked publish all menu item is clicked', () => {
         const {getByRole, getByText} = render(<ContextModulesPublishMenu {...defaultProps} />)
         const menuButton = getByRole('button')
-        act(() => menuButton.click())
+        act(() => {
+          fireEvent.click(menuButton)
+        })
         const publishButton = getByText('Publish all modules and items')
-        act(() => publishButton.click())
+        act(() => {
+          fireEvent.click(publishButton)
+        })
         const modalTitle = getByRole('heading', {name: 'Publish all modules and items'})
         expect(modalTitle).toBeInTheDocument()
       })
@@ -347,9 +353,13 @@ describe('ContextModulesPublishMenu', () => {
       it('calls publishModuleOnly when clicked publish module menu item is clicked', () => {
         const {getByRole, getByText} = render(<ContextModulesPublishMenu {...defaultProps} />)
         const menuButton = getByRole('button')
-        act(() => menuButton.click())
+        act(() => {
+          fireEvent.click(menuButton)
+        })
         const publishButton = getByText('Publish modules only')
-        act(() => publishButton.click())
+        act(() => {
+          fireEvent.click(publishButton)
+        })
         const modalTitle = getByRole('heading', {name: 'Publish modules only'})
         expect(modalTitle).toBeInTheDocument()
       })
@@ -357,9 +367,13 @@ describe('ContextModulesPublishMenu', () => {
       it('calls unpublishAll when clicked unpublish all items is clicked', () => {
         const {getByRole, getByText} = render(<ContextModulesPublishMenu {...defaultProps} />)
         const menuButton = getByRole('button')
-        act(() => menuButton.click())
+        act(() => {
+          fireEvent.click(menuButton)
+        })
         const publishButton = getByText('Unpublish all modules and items')
-        act(() => publishButton.click())
+        act(() => {
+          fireEvent.click(publishButton)
+        })
         const modalTitle = getByRole('heading', {name: 'Unpublish all modules and items'})
         expect(modalTitle).toBeInTheDocument()
       })
@@ -367,9 +381,13 @@ describe('ContextModulesPublishMenu', () => {
       it('calls unpublishModuleOnly when unpublish modules only is clicked', () => {
         const {getByRole, getByText} = render(<ContextModulesPublishMenu {...defaultProps} />)
         const menuButton = getByRole('button')
-        act(() => menuButton.click())
+        act(() => {
+          fireEvent.click(menuButton)
+        })
         const publishButton = getByText('Unpublish modules only')
-        act(() => publishButton.click())
+        act(() => {
+          fireEvent.click(publishButton)
+        })
         const modalTitle = getByRole('heading', {name: 'Unpublish modules only'})
         expect(modalTitle).toBeInTheDocument()
       })
@@ -403,25 +421,25 @@ describe('ContextModulesPublishMenu', () => {
         // Open menu
         const menuButton = getByRole('button')
         act(() => {
-          menuButton.click()
+          fireEvent.click(menuButton)
         })
 
         // Click "Publish all modules and items"
         const publishAllButton = getByRole('menuitem', {name: /Publish all modules and items/})
         await act(async () => {
-          publishAllButton.click()
+          fireEvent.click(publishAllButton)
         })
 
         // Click continue in modal
         const continueButton = getByRole('button', {name: /Continue/})
         await act(async () => {
-          continueButton.click()
+          fireEvent.click(continueButton)
         })
 
         // Click stop in modal
         const stopButton = getByTestId('publish-button')
         await act(async () => {
-          stopButton.click()
+          fireEvent.click(stopButton)
         })
 
         await waitFor(() =>
@@ -459,19 +477,19 @@ describe('ContextModulesPublishMenu', () => {
         // Open menu
         const menuButton = getByRole('button')
         act(() => {
-          menuButton.click()
+          fireEvent.click(menuButton)
         })
 
         // Click "Publish all modules and items"
         const publishAllButton = getByRole('menuitem', {name: /Publish all modules and items/})
         await act(async () => {
-          publishAllButton.click()
+          fireEvent.click(publishAllButton)
         })
 
         // Click continue in modal
         const continueButton = getByRole('button', {name: /Continue/})
         await act(async () => {
-          continueButton.click()
+          fireEvent.click(continueButton)
         })
 
         await waitFor(() =>
@@ -490,19 +508,19 @@ describe('ContextModulesPublishMenu', () => {
         // Open menu
         const menuButton = getByRole('button')
         act(() => {
-          menuButton.click()
+          fireEvent.click(menuButton)
         })
 
         // Click "Publish all modules and items"
         const publishAllButton = getByRole('menuitem', {name: /Publish all modules and items/})
         await act(async () => {
-          publishAllButton.click()
+          fireEvent.click(publishAllButton)
         })
 
         // Set state variables before clicking continue
         const continueButton = getByRole('button', {name: /Continue/})
         await act(async () => {
-          continueButton.click()
+          fireEvent.click(continueButton)
         })
 
         await waitFor(() => {
@@ -537,19 +555,19 @@ describe('ContextModulesPublishMenu', () => {
         // Open menu
         const menuButton = getByRole('button')
         act(() => {
-          menuButton.click()
+          fireEvent.click(menuButton)
         })
 
         // Click "Publish all modules and items"
         const publishAllButton = getByRole('menuitem', {name: /Publish all modules and items/})
         await act(async () => {
-          publishAllButton.click()
+          fireEvent.click(publishAllButton)
         })
 
         // Set state variables before clicking continue
         const continueButton = getByRole('button', {name: /Continue/})
         await act(async () => {
-          continueButton.click()
+          fireEvent.click(continueButton)
         })
 
         await waitFor(() => expect(mockMonitorProgress).toHaveBeenCalled())
@@ -583,19 +601,19 @@ describe('ContextModulesPublishMenu', () => {
         // Open menu
         const menuButton = getByRole('button')
         act(() => {
-          menuButton.click()
+          fireEvent.click(menuButton)
         })
 
         // Click "Publish all modules and items"
         const publishAllButton = getByRole('menuitem', {name: /Publish all modules and items/})
         await act(async () => {
-          publishAllButton.click()
+          fireEvent.click(publishAllButton)
         })
 
         // Set state variables before clicking continue
         const continueButton = getByRole('button', {name: /Continue/})
         await act(async () => {
-          continueButton.click()
+          fireEvent.click(continueButton)
         })
 
         await waitFor(() => {

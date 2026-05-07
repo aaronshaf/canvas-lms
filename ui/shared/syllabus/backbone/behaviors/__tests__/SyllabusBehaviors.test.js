@@ -21,6 +21,7 @@ import Sidebar from '@canvas/rce/Sidebar'
 import editorUtils from '@canvas/rce/editorUtils'
 import RichContentEditor from '@canvas/rce/RichContentEditor'
 import $ from 'jquery'
+import {fireEvent} from '@testing-library/react'
 
 describe('SyllabusBehaviors', () => {
   let container
@@ -211,7 +212,7 @@ describe('SyllabusBehaviors', () => {
       SyllabusBehaviors.bindToMiniCalendar()
       expect(eventRow.classList.contains('selected')).toBe(false)
 
-      jumpLink.click()
+      fireEvent.click(jumpLink)
       expect(eventRow.classList.contains('selected')).toBe(true)
     })
 
@@ -245,7 +246,7 @@ describe('SyllabusBehaviors', () => {
       expect(event1.classList.contains('selected')).toBe(false)
       expect(event2.classList.contains('selected')).toBe(false)
 
-      jumpLink.click()
+      fireEvent.click(jumpLink)
       expect(event1.classList.contains('selected')).toBe(true)
       expect(event2.classList.contains('selected')).toBe(false)
     })
@@ -302,7 +303,7 @@ describe('SyllabusBehaviors', () => {
         expect(document.getElementById(event.id).classList.contains('selected')).toBe(false)
       })
 
-      jumpLink.click()
+      fireEvent.click(jumpLink)
       expect(document.getElementById('test2').classList.contains('selected')).toBe(true)
       events
         .filter(e => e.id !== 'test2')

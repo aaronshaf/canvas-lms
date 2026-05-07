@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import DifferentiatedModulesTray, {
   type DifferentiatedModulesTrayProps,
 } from '../DifferentiatedModulesTray'
@@ -65,7 +65,7 @@ describe('DifferentiatedModulesTray', () => {
   it('calls onDismiss when close button is clicked', () => {
     const onDismiss = vi.fn()
     const {getByRole} = renderComponent({onDismiss})
-    getByRole('button', {name: /close/i}).click()
+    fireEvent.click(getByRole('button', {name: /close/i}))
     expect(onDismiss).toHaveBeenCalled()
   })
 

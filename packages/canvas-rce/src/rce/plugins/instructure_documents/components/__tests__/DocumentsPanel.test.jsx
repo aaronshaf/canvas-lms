@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import DocumentsPanel from '../DocumentsPanel'
 
 function getDocumentProps(contextType, docprops) {
@@ -114,7 +114,7 @@ describe('RCE "Documents" Plugin > DocumentsPanel', () => {
     })
 
     const loadMoreBtn = getByText('Load More')
-    loadMoreBtn.click()
+    fireEvent.click(loadMoreBtn)
     expect(fetchNextDocs).toHaveBeenCalledWith()
   })
 

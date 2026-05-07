@@ -42,7 +42,7 @@ describe('CreateOrEditSetModal::SelfSignup::', () => {
     fireEvent.change(dateInput, {target: {value: 'Oct 30, 2024'}})
 
     const option = await findByText(/30 October 2024/i)
-    option.click()
+    fireEvent.click(option)
 
     await waitFor(() => {
       expect(onDatechangeMock).toHaveBeenCalled()

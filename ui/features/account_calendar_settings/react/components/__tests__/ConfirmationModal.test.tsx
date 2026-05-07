@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, fireEvent} from '@testing-library/react'
 import ConfirmationModal, {type ComponentProps} from '../ConfirmationModal'
 
 const defaultProps: ComponentProps = {
@@ -36,14 +36,14 @@ describe('ConfirmationModal', () => {
   it('calls onConfirm when Confirm button is pressed', () => {
     const onConfirm = vi.fn()
     const {getByRole} = render(<ConfirmationModal {...defaultProps} onConfirm={onConfirm} />)
-    getByRole('button', {name: 'Confirm'}).click()
+    fireEvent.click(getByRole('button', {name: 'Confirm'}))
     expect(onConfirm).toHaveBeenCalledTimes(1)
   })
 
   it('calls onCancel when Cancel button is pressed', () => {
     const onCancel = vi.fn()
     const {getByRole} = render(<ConfirmationModal {...defaultProps} onCancel={onCancel} />)
-    getByRole('button', {name: 'Cancel'}).click()
+    fireEvent.click(getByRole('button', {name: 'Cancel'}))
     expect(onCancel).toHaveBeenCalledTimes(1)
   })
 })

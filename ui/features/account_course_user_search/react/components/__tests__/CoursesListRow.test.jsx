@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {render, waitFor, fireEvent} from '@testing-library/react'
 import CoursesListRow from '../CoursesListRow'
 import axios from '@canvas/axios'
 
@@ -110,7 +110,7 @@ describe('opening add enrollment modal', () => {
     const {getAllByText, getByTestId} = renderRow(
       <CoursesListRow {...props} can_create_enrollments={true} concluded={false} />,
     )
-    getByTestId('add-enrollments-tooltip').click()
+    fireEvent.click(getByTestId('add-enrollments-tooltip'))
     await waitFor(() => {
       expect(getAllByText('Failed to open the Add People dialog')[0]).toBeInTheDocument()
     })
@@ -121,7 +121,7 @@ describe('opening add enrollment modal', () => {
     const {getByTestId} = renderRow(
       <CoursesListRow {...props} can_create_enrollments={true} concluded={false} />,
     )
-    getByTestId('add-enrollments-tooltip').click()
+    fireEvent.click(getByTestId('add-enrollments-tooltip'))
     expect(axios.get).toHaveBeenCalledWith('/api/v1/courses/1/sections?per_page=100')
   })
 })

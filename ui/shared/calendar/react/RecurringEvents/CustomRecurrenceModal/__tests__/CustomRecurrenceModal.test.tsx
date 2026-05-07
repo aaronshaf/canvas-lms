@@ -55,7 +55,7 @@ describe('CustomRecurrenceModal', () => {
     const onDismiss = vi.fn()
     const {getByText} = render(<CustomRecurrenceModal {...defaultProps({onDismiss})} />)
 
-    getByText('Close').click()
+    fireEvent.click(getByText('Close'))
 
     expect(onDismiss).toHaveBeenCalled()
   })
@@ -64,7 +64,7 @@ describe('CustomRecurrenceModal', () => {
     const onDismiss = vi.fn()
     const {getByText} = render(<CustomRecurrenceModal {...defaultProps({onDismiss})} />)
 
-    getByText('Cancel').click()
+    fireEvent.click(getByText('Cancel'))
 
     expect(onDismiss).toHaveBeenCalled()
   })
@@ -73,7 +73,7 @@ describe('CustomRecurrenceModal', () => {
     const onSave = vi.fn()
     const {getByText} = render(<CustomRecurrenceModal {...defaultProps({onSave})} />)
 
-    getByText('Done').click()
+    fireEvent.click(getByText('Done'))
 
     expect(onSave).toHaveBeenCalledWith('FREQ=DAILY;INTERVAL=1;COUNT=5')
   })
@@ -86,7 +86,7 @@ describe('CustomRecurrenceModal', () => {
 
     const interval = getByDisplayValue('1')
     fireEvent.change(interval, {target: {value: '2'}})
-    getByText('Done').click()
+    fireEvent.click(getByText('Done'))
 
     expect(onSave).toHaveBeenCalledWith('FREQ=DAILY;INTERVAL=2;COUNT=5')
   })

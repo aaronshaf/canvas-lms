@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {act, cleanup} from '@testing-library/react'
+import {act, cleanup, fireEvent} from '@testing-library/react'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import {queryClient} from '@instructure/platform-query'
 import {
@@ -92,7 +92,9 @@ describe('ItemAssignToTray - Add Card', () => {
     const {findAllByTestId, getAllByTestId} = renderComponent()
     const cards = await findAllByTestId('item-assign-to-card')
     expect(cards).toHaveLength(1)
-    act(() => getAllByTestId('add-card')[0].click())
+    act(() => {
+      fireEvent.click(getAllByTestId('add-card')[0])
+    })
     expect(getAllByTestId('item-assign-to-card')).toHaveLength(2)
   })
 })

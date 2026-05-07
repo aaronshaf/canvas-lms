@@ -83,7 +83,7 @@ describe('RCE "Documents" Plugin > Document', () => {
         const {getByText} = renderComponent({display_name: 'click me', onClick, ...props})
 
         const btn = getByText('click me')
-        btn.click()
+        fireEvent.click(btn)
 
         expect(onClick).not.toHaveBeenCalled()
       })
@@ -168,7 +168,7 @@ describe('RCE "Documents" Plugin > Document', () => {
       const {getByText} = renderComponent({display_name: 'click me', onClick})
 
       const btn = getByText('click me')
-      btn.click()
+      fireEvent.click(btn)
       expect(onClick).toHaveBeenCalled()
     })
 
@@ -183,7 +183,7 @@ describe('RCE "Documents" Plugin > Document', () => {
       })
 
       const btn = getByText('click me')
-      btn.click()
+      fireEvent.click(btn)
       expect(onClick).toHaveBeenCalledWith({
         class: 'instructure_file_link instructure_scribd_file inline_disabled',
         content_type: 'text/plain',

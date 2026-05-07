@@ -19,7 +19,7 @@
 import React from 'react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
-import {act, render, waitFor} from '@testing-library/react'
+import {act, fireEvent, render, waitFor} from '@testing-library/react'
 
 import FilterCalendarsModal from '../FilterCalendarsModal'
 import {destroyContainer} from '@instructure/platform-alerts'
@@ -82,7 +82,9 @@ describe('FilterCalendarsModal', () => {
   it('renders a cancel button that closes the modal', () => {
     const {getByRole} = render(<FilterCalendarsModal {...defaultProps} />)
 
-    act(() => getByRole('button', {name: 'Cancel'}).click())
+    act(() => {
+      fireEvent.click(getByRole('button', {name: 'Cancel'}))
+    })
 
     expect(defaultProps.closeModal).toHaveBeenCalledTimes(1)
   })
@@ -90,9 +92,15 @@ describe('FilterCalendarsModal', () => {
   it('renders a submit button that updates and saves the selected contexts', async () => {
     const {getByRole} = render(<FilterCalendarsModal {...defaultProps} />)
 
-    act(() => getByRole('checkbox', {name: 'The Maths'}).click())
-    act(() => getByRole('checkbox', {name: 'Home Room'}).click())
-    act(() => getByRole('button', {name: 'Submit'}).click())
+    act(() => {
+      fireEvent.click(getByRole('checkbox', {name: 'The Maths'}))
+    })
+    act(() => {
+      fireEvent.click(getByRole('checkbox', {name: 'Home Room'}))
+    })
+    act(() => {
+      fireEvent.click(getByRole('button', {name: 'Submit'}))
+    })
 
     expect(defaultProps.closeModal).toHaveBeenCalledTimes(1)
     expect(defaultProps.updateSelectedContextCodes).toHaveBeenCalledWith(['course_3'])
@@ -110,7 +118,9 @@ describe('FilterCalendarsModal', () => {
 
     const {findAllByText, getByRole} = render(<FilterCalendarsModal {...defaultProps} />)
 
-    act(() => getByRole('button', {name: 'Submit'}).click())
+    act(() => {
+      fireEvent.click(getByRole('button', {name: 'Submit'}))
+    })
 
     expect((await findAllByText('Failed to save selected calendars'))[0]).toBeInTheDocument()
   })
@@ -122,13 +132,17 @@ describe('FilterCalendarsModal', () => {
     expect(getByRole('checkbox', {name: 'Home Room', checked: true})).not.toBeDisabled()
     expect(getByRole('checkbox', {name: 'The Maths', checked: false})).not.toBeDisabled()
 
-    act(() => getByRole('checkbox', {name: 'Economics 101'}).click())
+    act(() => {
+      fireEvent.click(getByRole('checkbox', {name: 'Economics 101'}))
+    })
 
     expect(getByRole('checkbox', {name: 'Economics 101', checked: true})).not.toBeDisabled()
     expect(getByRole('checkbox', {name: 'Home Room', checked: true})).not.toBeDisabled()
     expect(getByRole('checkbox', {name: 'The Maths', checked: false})).toBeDisabled()
 
-    act(() => getByRole('checkbox', {name: 'Home Room'}).click())
+    act(() => {
+      fireEvent.click(getByRole('checkbox', {name: 'Home Room'}))
+    })
 
     expect(getByRole('checkbox', {name: 'Economics 101', checked: true})).not.toBeDisabled()
     expect(getByRole('checkbox', {name: 'Home Room', checked: false})).not.toBeDisabled()
@@ -141,11 +155,15 @@ describe('FilterCalendarsModal', () => {
     )
     expect(getByText('You have 2 calendars left')).toBeInTheDocument()
 
-    act(() => getByRole('checkbox', {name: 'Home Room', checked: false}).click())
+    act(() => {
+      fireEvent.click(getByRole('checkbox', {name: 'Home Room', checked: false}))
+    })
 
     expect(getByText('You have 1 calendar left')).toBeInTheDocument()
 
-    act(() => getByRole('checkbox', {name: 'The Maths', checked: false}).click())
+    act(() => {
+      fireEvent.click(getByRole('checkbox', {name: 'The Maths', checked: false}))
+    })
 
     expect(getByText('You have 0 calendars left')).toBeInTheDocument()
   })

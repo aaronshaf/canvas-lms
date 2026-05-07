@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {act, render, within} from '@testing-library/react'
+import {act, fireEvent, render, within} from '@testing-library/react'
 import {renderConnected} from '../../__tests__/utils'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
@@ -62,7 +62,9 @@ describe('Footer', () => {
     const {getByRole} = renderConnected(<Footer {...defaultProps} />)
     const publishButton = getByRole('button', {name: 'Apply Changes'})
     expect(publishButton).toBeInTheDocument()
-    act(() => publishButton.click())
+    act(() => {
+      fireEvent.click(publishButton)
+    })
     expect(syncUnpublishedChanges).toHaveBeenCalled()
   })
 
@@ -119,7 +121,7 @@ describe('Footer', () => {
     const pubButton = getByRole('button', {name: 'Apply Changes'})
     act(() => {
       pubButton.focus()
-      pubButton.click()
+      fireEvent.click(pubButton)
     })
     expect(document.activeElement).toBe(pubButton)
   })
@@ -129,7 +131,9 @@ describe('Footer', () => {
       const {getByRole} = renderConnected(<Footer {...defaultProps} studentPace={true} />)
       const publishButton = getByRole('button', {name: 'Apply Changes'})
       expect(publishButton).toBeInTheDocument()
-      act(() => publishButton.click())
+      act(() => {
+        fireEvent.click(publishButton)
+      })
       expect(syncUnpublishedChanges).toHaveBeenCalled()
     })
   })
@@ -265,7 +269,9 @@ describe('Footer', () => {
       it('opens a confirmation modal on click', () => {
         const {getByText} = renderConnected(<Footer {...defaultProps} sectionPace={true} />)
         const removeButton = getByText('Remove Pace', {selector: 'button span'})
-        act(() => removeButton.click())
+        act(() => {
+          fireEvent.click(removeButton)
+        })
         expect(getByText('Remove this Section Pace?')).toBeInTheDocument()
         expect(
           getByText(
@@ -279,21 +285,29 @@ describe('Footer', () => {
           <Footer {...defaultProps} sectionPace={true} />,
         )
         const removeButton = getByText('Remove Pace', {selector: 'button span'})
-        act(() => removeButton.click())
+        act(() => {
+          fireEvent.click(removeButton)
+        })
         const cancelButton = getAllByText('Close', {selector: 'button span'})[1]
         expect(cancelButton).toBeInTheDocument()
-        act(() => cancelButton.click())
+        act(() => {
+          fireEvent.click(cancelButton)
+        })
         expect(removePace).not.toHaveBeenCalled()
       })
 
       it('calls removePace when confirmed in modal', () => {
         const {getByText} = renderConnected(<Footer {...defaultProps} sectionPace={true} />)
         const removeButton = getByText('Remove Pace', {selector: 'button span'})
-        act(() => removeButton.click())
+        act(() => {
+          fireEvent.click(removeButton)
+        })
         const confirmButton = getByText('Remove', {selector: 'button span'})
         expect(confirmButton).toBeInTheDocument()
         expect(removePace).not.toHaveBeenCalled()
-        act(() => confirmButton.click())
+        act(() => {
+          fireEvent.click(confirmButton)
+        })
         expect(removePace).toHaveBeenCalledTimes(1)
       })
     })
@@ -302,7 +316,9 @@ describe('Footer', () => {
       const focusOnClose = vi.fn()
       const {getByRole} = renderConnected(<Footer {...defaultProps} focusOnClose={focusOnClose} />)
       const publishButton = getByRole('button', {name: 'Apply Changes'})
-      act(() => publishButton.click())
+      act(() => {
+        fireEvent.click(publishButton)
+      })
       expect(focusOnClose).toHaveBeenCalledTimes(1)
     })
   })

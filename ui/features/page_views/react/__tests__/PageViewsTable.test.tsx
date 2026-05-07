@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {cleanup, render, screen, waitFor} from '@testing-library/react'
+import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import {PageViewsTable, type PageViewsTableProps} from '../PageViewsTable'
@@ -219,7 +219,7 @@ describe('PageViewsTable', () => {
 
       // act - click page 2 button
       const page2Button = await findByText('2+')
-      page2Button.click()
+      fireEvent.click(page2Button)
 
       // assert - should navigate to page 2 (component integration test)
       expect(await findByText('2')).toBeInTheDocument() // Now showing page 2 as current

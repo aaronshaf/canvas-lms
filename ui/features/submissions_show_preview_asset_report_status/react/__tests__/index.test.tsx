@@ -20,7 +20,7 @@ import React from 'react'
 import {type MockedFunction} from 'vitest'
 import AttachmentAssetReportStatus from '../index'
 import {ASSET_REPORT_MODAL_EVENT} from '@canvas/lti-asset-processor/react/StudentAssetReportModalWrapper'
-import {render, screen} from '@testing-library/react'
+import {render, screen, fireEvent} from '@testing-library/react'
 import {useLtiAssetProcessorsAndReportsForStudent} from '@canvas/lti-asset-processor/react/hooks/useLtiAssetProcessorsAndReportsForStudent'
 import {defaultLtiAssetProcessors} from '@canvas/lti-asset-processor/shared-with-sg/replicated/__fixtures__/default/ltiAssetProcessors'
 import {defaultLtiAssetReportsForStudent} from '@canvas/lti-asset-processor/queries/__fixtures__/LtiAssetProcessorsAndReportsForStudent'
@@ -84,7 +84,7 @@ describe('AttachmentAssetReportStatus', () => {
       />,
     )
 
-    screen.getByText('Please review').click()
+    fireEvent.click(screen.getByText('Please review'))
 
     // Verify window.parent.postMessage was called with correct data
     expect(window.parent.postMessage).toHaveBeenCalledWith(

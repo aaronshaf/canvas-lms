@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {render, screen, fireEvent} from '@testing-library/react'
 import ItemAssignToCard, {type ItemAssignToCardProps} from '../ItemAssignToCard'
 import {SECTIONS_DATA, STUDENTS_DATA} from '../../__tests__/mocks'
 import {http, HttpResponse} from 'msw'
@@ -155,7 +155,7 @@ describe('ItemAssignToCard - Rendering', () => {
   it('calls onDelete when delete button is clicked', () => {
     const onDelete = vi.fn()
     const {getByTestId} = renderComponent({onDelete})
-    getByTestId('delete-card-button').click()
+    fireEvent.click(getByTestId('delete-card-button'))
     expect(onDelete).toHaveBeenCalledWith('assign-to-card-001')
   })
 

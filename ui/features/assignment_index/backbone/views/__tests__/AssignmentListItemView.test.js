@@ -16,7 +16,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {getByText, queryByText, findByText, waitForElementToBeRemoved} from '@testing-library/dom'
+import {
+  getByText,
+  queryByText,
+  findByText,
+  waitForElementToBeRemoved,
+  fireEvent,
+} from '@testing-library/dom'
 import {setupServer} from 'msw/node'
 import Backbone from '@canvas/backbone'
 import Assignment from '@canvas/assignments/backbone/models/Assignment'
@@ -755,7 +761,7 @@ describe.skip('AssignmentListItemViewSpec - opens and closes the direct share se
     const view = createView(model, {directShareEnabled: true})
     view.$('.send_assignment_to').click()
     expect(await findByText(document.body, 'Send to:')).toBeTruthy()
-    getByText(document.body, 'Close').click()
+    fireEvent.click(getByText(document.body, 'Close'))
     await waitForElementToBeRemoved(() => queryByText(document.body, 'Send to:'))
   })
 })
@@ -774,7 +780,7 @@ describe.skip('AssignmentListItemViewSpec - opens and closes the direct share co
     // Note: API call would need MSW mock for '/users/self/manageable_courses' if this test were enabled
     view.$('.copy_assignment_to').click()
     expect(await findByText(document.body, 'Select a Course')).toBeTruthy()
-    getByText(document.body, 'Close').click()
+    fireEvent.click(getByText(document.body, 'Close'))
     await waitForElementToBeRemoved(() => queryByText(document.body, 'Select a Course'))
   })
 })

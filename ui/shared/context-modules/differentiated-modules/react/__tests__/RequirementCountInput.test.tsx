@@ -18,7 +18,7 @@
 
 import React from 'react'
 import RequirementCountInput, {type RequirementCountInputProps} from '../RequirementCountInput'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 
 describe('RequirementCountInput', () => {
   const props: RequirementCountInputProps = {
@@ -75,19 +75,19 @@ describe('RequirementCountInput', () => {
 
   it('calls onChangeRequirementCount when complete all is clicked', () => {
     const {getByLabelText} = renderComponent()
-    getByLabelText('Complete all').click()
+    fireEvent.click(getByLabelText('Complete all'))
     expect(props.onChangeRequirementCount).toHaveBeenCalledWith('all')
   })
 
   it('calls onChangeRequirementCount when complete one is clicked', () => {
     const {getByLabelText} = renderComponent()
-    getByLabelText('Complete one').click()
+    fireEvent.click(getByLabelText('Complete one'))
     expect(props.onChangeRequirementCount).toHaveBeenCalledWith('one')
   })
 
   it('calls onToggleSequentialProgress when checkbox is clicked', () => {
     const {getByLabelText} = renderComponent()
-    getByLabelText('Students must move through requirements in sequential order').click()
+    fireEvent.click(getByLabelText('Students must move through requirements in sequential order'))
     expect(props.onToggleSequentialProgress).toHaveBeenCalled()
   })
 })

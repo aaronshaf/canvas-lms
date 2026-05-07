@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 import {ContentItems} from '../ContentItems'
 
 describe('ContentItems', () => {
@@ -60,7 +60,7 @@ describe('ContentItems', () => {
   it('renders all content items', async () => {
     render(<ContentItems {...defaultProps} />)
     const toggle = screen.getByText('Test Items')
-    toggle.click()
+    fireEvent.click(toggle)
     expect(await screen.findByText('Item 1')).toBeInTheDocument()
     expect(screen.getByText('Item 2')).toBeInTheDocument()
   })
@@ -68,7 +68,7 @@ describe('ContentItems', () => {
   it('links to the correct URLs', async () => {
     render(<ContentItems {...defaultProps} />)
     const toggle = screen.getByText('Test Items')
-    toggle.click()
+    fireEvent.click(toggle)
     const link1 = await screen.findByText('Item 1')
     const link2 = screen.getByText('Item 2')
     expect(link1).toHaveAttribute('href', '/item/1')

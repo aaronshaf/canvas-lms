@@ -103,7 +103,7 @@ describe('DiscussionTopicForm AssetProcessors Submission', () => {
 
     // Switch to graded and wait for form to update
     await act(async () => {
-      getByLabelText('Graded').click()
+      fireEvent.click(getByLabelText('Graded'))
     })
 
     // Wait for AssetProcessors section to appear (confirms form state updated)
@@ -120,7 +120,7 @@ describe('DiscussionTopicForm AssetProcessors Submission', () => {
     expect(useAssetProcessorsState.getState().attachedProcessors).toHaveLength(1)
 
     await act(async () => {
-      getByTestId('save-button').click()
+      fireEvent.click(getByTestId('save-button'))
     })
 
     await waitFor(() => {

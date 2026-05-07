@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {mockAssignment, mockOverride} from '../../test-utils'
 import Details from '../Details'
 
@@ -150,7 +150,7 @@ describe('Assignment Details', () => {
       .querySelector('button')
     expect(everyoneOverrideDetailButton.getAttribute('aria-expanded')).toBe('false')
 
-    everyoneOverrideDetailButton.click()
+    fireEvent.click(everyoneOverrideDetailButton)
     expect(everyoneOverrideDetailButton.getAttribute('aria-expanded')).toBe('true')
     expect(getByTestId('OverrideDetail')).toBeInTheDocument()
 

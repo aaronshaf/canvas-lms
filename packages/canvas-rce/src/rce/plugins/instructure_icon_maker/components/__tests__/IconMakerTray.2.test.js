@@ -94,7 +94,9 @@ describe('RCE "Icon Maker" Plugin > IconMakerTray', () => {
     it('disables the name field when checked', async () => {
       const {getByTestId} = render(<IconMakerTray {...defaults} editing={true} />)
 
-      act(() => getByTestId('cb-replace-all').click())
+      act(() => {
+        fireEvent.click(getByTestId('cb-replace-all'))
+      })
 
       await waitFor(() => expect(getByTestId('icon-name')).toBeDisabled())
     })

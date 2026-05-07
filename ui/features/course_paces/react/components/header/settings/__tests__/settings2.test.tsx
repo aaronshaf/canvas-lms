@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, screen} from '@testing-library/react'
+import {act, fireEvent, screen} from '@testing-library/react'
 import fakeENV from '@canvas/test-utils/fakeENV'
 
 import {BLACKOUT_DATES, COURSE, PRIMARY_PACE, SECTION_PACE} from '../../../../__tests__/fixtures'
@@ -77,7 +77,9 @@ describe('Settings', () => {
     it('renders manage blackout dates for course paces', () => {
       const {getByRole} = renderConnected(<Settings {...defaultProps} />)
       const settingsButton = getByRole('button', {name: 'Settings'})
-      act(() => settingsButton.click())
+      act(() => {
+        fireEvent.click(settingsButton)
+      })
 
       expect(screen.getByRole('menuitem', {name: 'Manage Blackout Dates'})).toBeInTheDocument()
       expect(screen.getByRole('menuitemcheckbox', {name: 'Skip Weekends'})).toBeInTheDocument()
@@ -85,7 +87,9 @@ describe('Settings', () => {
     it('does not render manage blackout dates for non-course paces', () => {
       const {getByRole} = renderConnected(<Settings {...defaultProps} coursePace={SECTION_PACE} />)
       const settingsButton = getByRole('button', {name: 'Settings'})
-      act(() => settingsButton.click())
+      act(() => {
+        fireEvent.click(settingsButton)
+      })
 
       expect(
         screen.queryByRole('menuitem', {name: 'Manage Blackout Dates'}),
@@ -106,7 +110,9 @@ describe('Settings', () => {
     it('renders set weighted assignment duration menu option', () => {
       renderConnected(<Settings {...defaultProps} />)
       const settingsButton = screen.getByRole('button', {name: 'Settings'})
-      act(() => settingsButton.click())
+      act(() => {
+        fireEvent.click(settingsButton)
+      })
 
       const weightedAssignmentsOption = screen.getByTestId('weighted-assignment-duration-option')
       expect(weightedAssignmentsOption).toBeInTheDocument()
@@ -116,7 +122,9 @@ describe('Settings', () => {
   it('set weighted assignment duration menu option is not displayed', () => {
     renderConnected(<Settings {...defaultProps} />)
     const settingsButton = screen.getByRole('button', {name: 'Settings'})
-    act(() => settingsButton.click())
+    act(() => {
+      fireEvent.click(settingsButton)
+    })
 
     expect(screen.queryByTestId('weighted-assignment-duration-option')).not.toBeInTheDocument()
   })

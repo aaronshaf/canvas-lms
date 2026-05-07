@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 import {Groups} from '../Groups'
 import {HorizonToggleContext} from '../../HorizonToggleContext'
 
@@ -61,7 +61,7 @@ describe('Groups', () => {
     )
     expect(screen.getByText('Groups (2 items)')).toBeInTheDocument()
     const toggle = screen.getByText('Groups')
-    toggle.click()
+    fireEvent.click(toggle)
     expect(await screen.findByText('Group 1')).toBeInTheDocument()
     expect(screen.getByText('Group 2')).toBeInTheDocument()
   })
@@ -93,7 +93,7 @@ describe('Groups', () => {
     )
     expect(screen.getByText('Groups (1 item)')).toBeInTheDocument()
     const toggle = screen.getByText('Groups')
-    toggle.click()
+    fireEvent.click(toggle)
     expect(await screen.findByText('Group 1')).toBeInTheDocument()
   })
 })

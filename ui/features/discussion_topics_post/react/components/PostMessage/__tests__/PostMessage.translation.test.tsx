@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import {PostMessage} from '../PostMessage'
-import {render, cleanup, waitFor} from '@testing-library/react'
+import {fireEvent, render, cleanup, waitFor} from '@testing-library/react'
 import {DiscussionManagerUtilityContext, SearchContext} from '../../../utils/constants'
 import {User} from '../../../../graphql/User'
 import {responsiveQuerySizes} from '../../../utils'
@@ -441,7 +441,7 @@ describe('PostMessage AI translation', () => {
       const {findByTestId} = setup()
 
       const changeLanguageLink = await findByTestId('change-language-link')
-      changeLanguageLink.click()
+      fireEvent.click(changeLanguageLink)
 
       expect(setModalOpenMock).toHaveBeenCalledWith('1', 'Posts are fun', undefined)
     })
@@ -470,7 +470,7 @@ describe('PostMessage AI translation', () => {
       const {findByTestId} = setup({discussionEntry: undefined})
 
       const changeLanguageLink = await findByTestId('change-language-link')
-      changeLanguageLink.click()
+      fireEvent.click(changeLanguageLink)
 
       expect(setModalOpenMock).toHaveBeenCalledWith('topic', 'Posts are fun', 'Thoughts')
     })
@@ -499,7 +499,7 @@ describe('PostMessage AI translation', () => {
       const {findByTestId} = setup()
 
       const hideTranslationLink = await findByTestId('hide-translation-link')
-      hideTranslationLink.click()
+      fireEvent.click(hideTranslationLink)
 
       expect(clearEntryMock).toHaveBeenCalledWith('1')
     })

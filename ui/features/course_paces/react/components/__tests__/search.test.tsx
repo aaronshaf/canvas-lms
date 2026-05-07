@@ -57,7 +57,9 @@ describe('Search', () => {
     const {getByRole} = render(<Search {...defaultProps} searchTerm="Test" />)
 
     const clearButton = getByRole('button', {name: 'Clear search'})
-    act(() => clearButton.click())
+    act(() => {
+      fireEvent.click(clearButton)
+    })
     expect(setSearchTerm).toHaveBeenCalledWith('')
   })
 
@@ -75,7 +77,9 @@ describe('Search', () => {
     const {getByRole} = render(<Search {...defaultProps} />)
 
     const searchButton = getByRole('button', {name: 'Search'})
-    act(() => searchButton.click())
+    act(() => {
+      fireEvent.click(searchButton)
+    })
     expect(fetchPaceContexts).toHaveBeenCalled()
   })
 
@@ -101,7 +105,9 @@ describe('Search', () => {
       const {getByRole, getByText} = render(
         <Search {...defaultProps} fetchPaceContexts={fetchPaceContextsMock} />,
       )
-      act(() => getByRole('button', {name: 'Search'}).click())
+      act(() => {
+        fireEvent.click(getByRole('button', {name: 'Search'}))
+      })
       expect(getByText('Showing 3 results below')).toBeInTheDocument()
     })
 
@@ -110,7 +116,9 @@ describe('Search', () => {
       const {getByRole, getByText} = render(
         <Search {...defaultProps} fetchPaceContexts={fetchPaceContextsMock} />,
       )
-      act(() => getByRole('button', {name: 'Search'}).click())
+      act(() => {
+        fireEvent.click(getByRole('button', {name: 'Search'}))
+      })
       expect(getByText('Showing 1 result below')).toBeInTheDocument()
     })
 
@@ -119,7 +127,9 @@ describe('Search', () => {
       const {getByRole, getByText} = render(
         <Search {...defaultProps} fetchPaceContexts={fetchPaceContextsMock} />,
       )
-      act(() => getByRole('button', {name: 'Search'}).click())
+      act(() => {
+        fireEvent.click(getByRole('button', {name: 'Search'}))
+      })
       expect(getByText('No results found')).toBeInTheDocument()
     })
   })

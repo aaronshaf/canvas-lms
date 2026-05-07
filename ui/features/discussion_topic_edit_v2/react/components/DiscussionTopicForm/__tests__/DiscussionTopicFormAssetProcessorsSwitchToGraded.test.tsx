@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render, act} from '@testing-library/react'
+import {render, act, fireEvent} from '@testing-library/react'
 import React from 'react'
 import DiscussionTopicForm from '../DiscussionTopicForm'
 import {useAssetProcessorsToolsList} from '@canvas/lti-asset-processor/react/hooks/useAssetProcessorsToolsList'
@@ -92,7 +92,7 @@ describe('DiscussionTopicForm AssetProcessors - Switch to Graded', () => {
       isEditing: false,
     })
     act(() => {
-      getByLabelText('Graded').click()
+      fireEvent.click(getByLabelText('Graded'))
     })
     expect(queryByText('Document Processing App(s)')).toBeInTheDocument()
   })

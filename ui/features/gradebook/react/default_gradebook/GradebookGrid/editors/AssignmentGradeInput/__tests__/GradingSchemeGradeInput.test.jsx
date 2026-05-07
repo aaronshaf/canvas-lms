@@ -70,12 +70,11 @@ describe('GradebookGrid AssignmentGradeInput using GradingSchemeGradeInput', () 
   }
 
   async function openAndClick(optionText) {
-    await wrapper.getByRole('button').click()
+    fireEvent.click(wrapper.getByRole('button'))
     resolveClose = () => {}
     waitFor(() => {
-      wrapper.getByText(optionText).click()
+      fireEvent.click(wrapper.getByText(optionText))
     })
-    // await wrapper.getByText(optionText).click()
   }
 
   function getTextInputValue() {
@@ -903,7 +902,7 @@ describe('GradebookGrid AssignmentGradeInput using GradingSchemeGradeInput', () 
   describe('Grading Scheme Menu Items', () => {
     test('includes an option for each grading scheme key', async () => {
       mountComponent()
-      await wrapper.getByRole('button', {name: 'Open Grading Scheme menu'}).click()
+      fireEvent.click(wrapper.getByRole('button', {name: 'Open Grading Scheme menu'}))
       await waitFor(() => {
         expect(wrapper.getAllByRole('menuitem')).toHaveLength(14)
       })
@@ -914,7 +913,7 @@ describe('GradebookGrid AssignmentGradeInput using GradingSchemeGradeInput', () 
         GradeFormatHelper.replaceDashWithMinus(key),
       ) // ['A+', 'A', …, 'F']
       mountComponent()
-      wrapper.getByRole('button').click()
+      fireEvent.click(wrapper.getByRole('button'))
       expectedLabels.map(async expectedLabel => {
         await waitFor(() => {
           expect(wrapper.getByText(expectedLabel)).toBeInTheDocument()
@@ -924,7 +923,7 @@ describe('GradebookGrid AssignmentGradeInput using GradingSchemeGradeInput', () 
 
     test('includes "Excused" as the last option', async () => {
       mountComponent()
-      await wrapper.getByRole('button').click()
+      fireEvent.click(wrapper.getByRole('button'))
       await waitFor(() => {
         expect(wrapper.getByText('Excused')).toBeInTheDocument()
       })

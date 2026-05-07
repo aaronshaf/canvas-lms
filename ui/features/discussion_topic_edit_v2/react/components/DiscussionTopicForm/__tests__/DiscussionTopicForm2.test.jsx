@@ -117,7 +117,7 @@ describe('DiscussionTopicForm', () => {
     it('shows empty title reminder', async () => {
       const {findByText, getByText, getByPlaceholderText} = setup()
       getByPlaceholderText('Topic Title').focus()
-      getByText('Save').click()
+      fireEvent.click(getByText('Save'))
       expect(await findByText('Title must not be empty.')).toBeInTheDocument()
     })
 
@@ -125,10 +125,10 @@ describe('DiscussionTopicForm', () => {
       const onSubmit = vi.fn()
       const {getByText, getByPlaceholderText} = setup({onSubmit})
       const saveButton = getByText('Save')
-      saveButton.click()
+      fireEvent.click(saveButton)
       expect(onSubmit).not.toHaveBeenCalled()
       fireEvent.input(getByPlaceholderText('Topic Title'), {target: {value: 'a title'}})
-      saveButton.click()
+      fireEvent.click(saveButton)
       expect(onSubmit).toHaveBeenCalled()
     })
 

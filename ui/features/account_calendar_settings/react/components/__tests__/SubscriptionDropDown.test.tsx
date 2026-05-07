@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {render, waitFor, fireEvent} from '@testing-library/react'
 import SubscriptionDropDown, {type ComponentProps} from '../SubscriptionDropDown'
 
 const defaultProps: ComponentProps = {
@@ -49,10 +49,10 @@ describe('SubscriptionDropDown', () => {
       <SubscriptionDropDown {...defaultProps} onChange={onChange} />,
     )
     // display options
-    getByTestId('subscription-dropdown').click()
+    fireEvent.click(getByTestId('subscription-dropdown'))
     // select new option
     const option = await findByText('Auto subscribe')
-    option.click()
+    fireEvent.click(option)
     await waitFor(() => expect(onChange).toHaveBeenCalledWith(defaultProps.accountId, true))
   })
 })

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, fireEvent} from '@testing-library/react'
 import '@canvas/files/mockFilesENV'
 import ShowFolder from '../ShowFolder'
 import FilesCollection from '@canvas/files/backbone/collections/FilesCollection'
@@ -119,7 +119,7 @@ describe.skip('ShowFolder', () => {
       ])
       props.currentFolder.files.loadedAll = true
       const {queryByRole} = render(<ShowFolder {...props} />)
-      queryByRole('menuitem', {hidden: true, name: 'Send To...'}).click()
+      fireEvent.click(queryByRole('menuitem', {hidden: true, name: 'Send To...'}))
       expect(queryByRole('dialog', {name: 'Send To...'})).toBeInTheDocument()
     })
   })
@@ -132,7 +132,7 @@ describe.skip('ShowFolder', () => {
       ])
       props.currentFolder.files.loadedAll = true
       const {queryByRole} = render(<ShowFolder {...props} />)
-      queryByRole('menuitem', {hidden: true, name: 'Copy To...'}).click()
+      fireEvent.click(queryByRole('menuitem', {hidden: true, name: 'Copy To...'}))
       expect(queryByRole('dialog', {name: 'Copy To...'})).toBeInTheDocument()
     })
   })

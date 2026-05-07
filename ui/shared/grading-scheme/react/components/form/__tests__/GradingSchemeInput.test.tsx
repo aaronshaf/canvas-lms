@@ -166,7 +166,9 @@ describe('GradingSchemeInput', () => {
       />,
     )
     const deleteRowButton = screen.getAllByText('Remove letter grade row')
-    act(() => deleteRowButton[0].click())
+    act(() => {
+      fireEvent.click(deleteRowButton[0])
+    })
     const maxRangeCells = screen.getAllByLabelText('Upper limit of range')
     expect(maxRangeCells[0].textContent).toBe('100%')
   })
@@ -186,7 +188,9 @@ describe('GradingSchemeInput', () => {
     )
     const deleteRowButtons = screen.getAllByText('Remove letter grade row')
     expect(deleteRowButtons).toHaveLength(2)
-    act(() => deleteRowButtons[1].click()) // delete the last row
+    act(() => {
+      fireEvent.click(deleteRowButtons[1])
+    }) // delete the last row
     const newDeleteRowButtons = screen.getAllByText('Remove letter grade row')
     expect(newDeleteRowButtons).toHaveLength(1)
     act(() => gradingSchemeInputRef.current?.savePressed())
@@ -213,7 +217,9 @@ describe('GradingSchemeInput', () => {
     )
     const deleteRowButtons = screen.getAllByText('Remove letter grade row')
     expect(deleteRowButtons).toHaveLength(2)
-    act(() => deleteRowButtons[0].click()) // delete the first row
+    act(() => {
+      fireEvent.click(deleteRowButtons[0])
+    }) // delete the first row
     const newDeleteRowButtons = screen.getAllByText('Remove letter grade row')
     expect(newDeleteRowButtons).toHaveLength(1)
     act(() => gradingSchemeInputRef.current?.savePressed())
@@ -241,7 +247,9 @@ describe('GradingSchemeInput', () => {
     )
     const deleteRowButtons = screen.getAllByText('Remove letter grade row')
     expect(deleteRowButtons).toHaveLength(5)
-    act(() => deleteRowButtons[4].click()) // delete the last row
+    act(() => {
+      fireEvent.click(deleteRowButtons[4])
+    }) // delete the last row
     act(() => gradingSchemeInputRef.current?.savePressed())
     // expect(onSave).toHaveBeenCalled()
     expect(onSave).toHaveBeenCalledWith({
@@ -275,7 +283,9 @@ describe('GradingSchemeInput', () => {
     )
 
     expect(addRowButtons).toHaveLength(2)
-    act(() => addRowButtons[0].click()) // add a row after the first row
+    act(() => {
+      fireEvent.click(addRowButtons[0])
+    }) // add a row after the first row
     const letterGradeInputs = screen.getAllByLabelText('Letter Grade')
     expect(letterGradeInputs).toHaveLength(3) // we've added a row between the initial two
     await userEvent.type(letterGradeInputs[1], 'X') // give the new row a letter grade
@@ -310,7 +320,9 @@ describe('GradingSchemeInput', () => {
       'Add new row for a letter grade to grading scheme after this row',
     )
     expect(addRowButtons).toHaveLength(2)
-    act(() => addRowButtons[0].click()) // add a row after the first row
+    act(() => {
+      fireEvent.click(addRowButtons[0])
+    }) // add a row after the first row
     const letterGradeInputs = screen.getAllByLabelText<HTMLInputElement>('Letter Grade')
     expect(letterGradeInputs).toHaveLength(3) // we've added a row between the initial two
     await userEvent.type(letterGradeInputs[1], 'X') // give the new row a letter grade

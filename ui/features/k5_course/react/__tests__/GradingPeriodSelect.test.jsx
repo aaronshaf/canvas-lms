@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, act} from '@testing-library/react'
+import {render, act, fireEvent} from '@testing-library/react'
 import GradingPeriodSelect from '../GradingPeriodSelect'
 import {GRADING_PERIODS} from '@canvas/k5/react/__tests__/fixtures'
 
@@ -35,7 +35,9 @@ describe('GradingPeriodSelect', () => {
     const {getByText, queryByText} = render(
       <GradingPeriodSelect {...getProps({currentGradingPeriodId: undefined})} />,
     )
-    act(() => getByText('Select Grading Period').click())
+    act(() => {
+      fireEvent.click(getByText('Select Grading Period'))
+    })
     expect(getByText('Spring 2020')).toBeInTheDocument()
     expect(getByText('Fall 2020')).toBeInTheDocument()
     expect(getByText('All Grading Periods')).toBeInTheDocument()
@@ -44,7 +46,9 @@ describe('GradingPeriodSelect', () => {
 
   it('marks the current grading period option', () => {
     const {getByText} = render(<GradingPeriodSelect {...getProps()} />)
-    act(() => getByText('Select Grading Period').click())
+    act(() => {
+      fireEvent.click(getByText('Select Grading Period'))
+    })
     expect(getByText('Fall 2020 (Current)')).toBeInTheDocument()
   })
 
@@ -52,12 +56,20 @@ describe('GradingPeriodSelect', () => {
     const onGradingPeriodSelected = vi.fn()
     const {getByText} = render(<GradingPeriodSelect {...getProps({onGradingPeriodSelected})} />)
 
-    act(() => getByText('Select Grading Period').click())
-    act(() => getByText('Spring 2020').click())
+    act(() => {
+      fireEvent.click(getByText('Select Grading Period'))
+    })
+    act(() => {
+      fireEvent.click(getByText('Spring 2020'))
+    })
     expect(onGradingPeriodSelected).toHaveBeenCalledWith('1')
 
-    act(() => getByText('Select Grading Period').click())
-    act(() => getByText('All Grading Periods').click())
+    act(() => {
+      fireEvent.click(getByText('Select Grading Period'))
+    })
+    act(() => {
+      fireEvent.click(getByText('All Grading Periods'))
+    })
     expect(onGradingPeriodSelected).toHaveBeenCalledWith(null)
   })
 

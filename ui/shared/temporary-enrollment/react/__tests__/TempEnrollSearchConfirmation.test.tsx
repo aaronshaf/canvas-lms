@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {TempEnrollSearchConfirmation} from '../TempEnrollSearchConfirmation'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import type {User, DuplicateUser} from '../types'
@@ -159,12 +159,12 @@ describe('TempEnrollSearchConfirmation', () => {
 
     // click on brother3
     const brother3 = getByLabelText('Click to select user brother_3')
-    brother3.click()
+    fireEvent.click(brother3)
     expect(getByText(/One user is ready/)).toBeInTheDocument()
 
     // click on brother3
     const sister2 = getByLabelText('Click to select user sister_2')
-    sister2.click()
+    fireEvent.click(sister2)
 
     expect(getByText(/2 users are ready/)).toBeInTheDocument()
   })

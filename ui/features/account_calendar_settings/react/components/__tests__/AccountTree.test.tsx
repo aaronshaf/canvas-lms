@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, act, waitFor} from '@testing-library/react'
+import {render, act, fireEvent, waitFor} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 
@@ -96,7 +96,9 @@ describe('AccountTree', () => {
     expect(await findByRole('button', {name: 'University, 5 accounts'})).toBeInTheDocument()
     const universityCheckbox = getByRole('checkbox', {name: 'Show account calendar for University'})
     expect(onAccountToggled).not.toHaveBeenCalled()
-    act(() => universityCheckbox.click())
+    act(() => {
+      fireEvent.click(universityCheckbox)
+    })
     expect(onAccountToggled).toHaveBeenCalledWith(1, false)
   })
 
@@ -111,7 +113,9 @@ describe('AccountTree', () => {
       <AccountTree {...defaultProps} onAccountExpandedToggled={onAccountExpandedToggled} />,
     )
     const cpmsButton = await findByRole('button', {name: 'CPMS, 2 accounts'})
-    act(() => cpmsButton.click())
+    act(() => {
+      fireEvent.click(cpmsButton)
+    })
     expect(onAccountExpandedToggled).toHaveBeenCalledWith(4, true)
   })
 
@@ -142,7 +146,9 @@ describe('AccountTree', () => {
 
     // Expand CPMS by clicking its toggle button
     const cpmsButton = await findByRole('button', {name: 'CPMS, 2 accounts'})
-    act(() => cpmsButton.click())
+    act(() => {
+      fireEvent.click(cpmsButton)
+    })
 
     // Verify that expansion callback was called
     expect(onAccountExpandedToggled).toHaveBeenCalledWith(4, true)

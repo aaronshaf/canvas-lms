@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {render, waitFor, fireEvent} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 
@@ -69,7 +69,7 @@ describe('Footer', () => {
   it('calls onApplyClicked when apply button is pressed', () => {
     const onApplyClicked = vi.fn()
     const {getByRole} = render(<Footer {...defaultProps} onApplyClicked={onApplyClicked} />)
-    getByRole('button', {name: 'Apply Changes'}).click()
+    fireEvent.click(getByRole('button', {name: 'Apply Changes'}))
     expect(onApplyClicked).toHaveBeenCalledTimes(1)
   })
 
@@ -103,10 +103,10 @@ describe('Footer', () => {
     const {getByRole, findByRole} = render(
       <Footer {...defaultProps} showConfirmation={true} onApplyClicked={onApplyClicked} />,
     )
-    getByRole('button', {name: 'Apply Changes'}).click()
+    fireEvent.click(getByRole('button', {name: 'Apply Changes'}))
     const modalTitle = await findByRole('heading', {name: 'Apply Changes'})
     expect(modalTitle).toBeInTheDocument()
-    getByRole('button', {name: 'Confirm'}).click()
+    fireEvent.click(getByRole('button', {name: 'Confirm'}))
     expect(onApplyClicked).toHaveBeenCalledTimes(1)
   })
 })

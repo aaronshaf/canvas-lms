@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render} from '@testing-library/react'
+import {render, fireEvent} from '@testing-library/react'
 import React from 'react'
 import {Assignment} from '../../../../graphql/Assignment'
 import {DiscussionTopic} from '../../../../graphql/DiscussionTopic'
@@ -92,7 +92,7 @@ describe('DiscussionTopicForm - Checkpoints Display', () => {
 
     expect(queryByTestId('checkpoints-checkbox')).not.toBeInTheDocument()
 
-    getByLabelText('Graded').click()
+    fireEvent.click(getByLabelText('Graded'))
 
     expect(queryByTestId('checkpoints-checkbox')).toBeInTheDocument()
   })
@@ -104,7 +104,7 @@ describe('DiscussionTopicForm - Checkpoints Display', () => {
 
     expect(queryByTestId('suppressed-assignment-checkbox')).not.toBeInTheDocument()
 
-    getByLabelText('Graded').click()
+    fireEvent.click(getByLabelText('Graded'))
 
     expect(queryByTestId('suppressed-assignment-checkbox')).toBeInTheDocument()
   })
@@ -120,7 +120,7 @@ describe('DiscussionTopicForm - Checkpoints Display', () => {
 
     const {queryByTestId, getByLabelText} = setup()
 
-    getByLabelText('Graded').click()
+    fireEvent.click(getByLabelText('Graded'))
 
     expect(queryByTestId('checkpoints-checkbox')).not.toBeInTheDocument()
   })
@@ -128,7 +128,7 @@ describe('DiscussionTopicForm - Checkpoints Display', () => {
   it('displays the checkpoints checkbox when RESTRICT_QUANTITATIVE_DATA is false', () => {
     const {queryByTestId, getByLabelText} = setup()
 
-    getByLabelText('Graded').click()
+    fireEvent.click(getByLabelText('Graded'))
 
     expect(queryByTestId('checkpoints-checkbox')).toBeInTheDocument()
   })
@@ -138,7 +138,7 @@ describe('DiscussionTopicForm - Checkpoints Display', () => {
 
     const {queryByTestId, getByLabelText} = setup()
 
-    getByLabelText('Graded').click()
+    fireEvent.click(getByLabelText('Graded'))
 
     expect(queryByTestId('checkpoints-checkbox')).not.toBeInTheDocument()
   })

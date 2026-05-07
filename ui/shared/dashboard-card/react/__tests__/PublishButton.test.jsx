@@ -20,7 +20,7 @@ import $ from 'jquery'
 import PublishButton from '../PublishButton'
 import * as apiClient from '@canvas/courses/courseAPIClient'
 import {waitFor} from '@testing-library/dom'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 
 vi.mock('@canvas/courses/courseAPIClient')
 
@@ -50,7 +50,7 @@ describe('PublishButton', () => {
       const wrapper = render(<PublishButton {...createMockProps()} ref={ref} />)
       expect(wrapper.queryByText('Choose Course Home Page')).toBeNull()
       apiClient.getModules.mockReturnValue(Promise.resolve({data: []}))
-      await wrapper.getByText('Publish').click()
+      fireEvent.click(wrapper.getByText('Publish'))
       expect(apiClient.getModules).toHaveBeenCalledWith({courseId: '0'})
       await waitFor(() => expect(ref.current.state.showModal).toBe(true))
       expect(wrapper.queryByText('Choose Course Home Page')).toBeInTheDocument()
@@ -59,23 +59,27 @@ describe('PublishButton', () => {
     it('publishes when modules do exist', async () => {
       const wrapper = render(<PublishButton {...createMockProps()} />)
       apiClient.getModules.mockReturnValue(Promise.resolve({data: ['module1']}))
-      await wrapper.getByText('Publish').click()
-      expect(apiClient.publishCourse).toHaveBeenCalledWith({courseId: '0', onSuccess: null})
+      fireEvent.click(wrapper.getByText('Publish'))
+      await waitFor(() =>
+        expect(apiClient.publishCourse).toHaveBeenCalledWith({courseId: '0', onSuccess: null}),
+      )
     })
 
     it('publishes when modules do exist calling onSuccess callback', async () => {
       const onSuccess = vi.fn()
       const wrapper = render(<PublishButton {...createMockProps({onSuccess})} />)
       apiClient.getModules.mockReturnValue(Promise.resolve({data: ['module1']}))
-      await wrapper.getByText('Publish').click()
-      expect(apiClient.publishCourse).toHaveBeenCalledWith({courseId: '0', onSuccess})
+      fireEvent.click(wrapper.getByText('Publish'))
+      await waitFor(() =>
+        expect(apiClient.publishCourse).toHaveBeenCalledWith({courseId: '0', onSuccess}),
+      )
     })
 
     it('flashes an error when getModules fails', async () => {
       apiClient.getModules.mockRejectedValue(Promise.resolve())
       const wrapper = render(<PublishButton {...createMockProps()} />)
 
-      await wrapper.getByText('Publish').click()
+      fireEvent.click(wrapper.getByText('Publish'))
       await waitFor(() => {
         expect($.flashError).toHaveBeenCalledWith(
           'An error ocurred while fetching course details. Please try again.',
@@ -87,7 +91,7 @@ describe('PublishButton', () => {
   describe('when defaultView is not modules', () => {
     it('calls publishCourse immediately', async () => {
       const wrapper = render(<PublishButton {...createMockProps({defaultView: 'assignments'})} />)
-      await wrapper.getByText('Publish').click()
+      fireEvent.click(wrapper.getByText('Publish'))
       expect(apiClient.getModules).not.toHaveBeenCalled()
       expect(apiClient.publishCourse).toHaveBeenCalledWith({courseId: '0', onSuccess: null})
     })
@@ -97,7 +101,7 @@ describe('PublishButton', () => {
       const wrapper = render(
         <PublishButton {...createMockProps({defaultView: 'assignments', onSuccess})} />,
       )
-      await wrapper.getByText('Publish').click()
+      fireEvent.click(wrapper.getByText('Publish'))
       expect(apiClient.getModules).not.toHaveBeenCalled()
       expect(apiClient.publishCourse).toHaveBeenCalledWith({courseId: '0', onSuccess})
     })

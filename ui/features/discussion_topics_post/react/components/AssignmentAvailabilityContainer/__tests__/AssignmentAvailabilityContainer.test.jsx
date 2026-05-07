@@ -200,7 +200,7 @@ describe('AssignmentAvailabilityContainer', () => {
         />,
       )
       act(() => {
-        getByTestId('show-due-dates-button').click()
+        fireEvent.click(getByTestId('show-due-dates-button'))
       })
 
       expect(await findByTestId('CoursePacingNotice')).toBeInTheDocument()
@@ -219,7 +219,7 @@ describe('AssignmentAvailabilityContainer', () => {
         />,
       )
       act(() => {
-        getByTestId('show-due-dates-button').click()
+        fireEvent.click(getByTestId('show-due-dates-button'))
       })
 
       expect(await findByTestId('CoursePacingNotice')).toBeInTheDocument()

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, act, within} from '@testing-library/react'
+import {fireEvent, render, act, within} from '@testing-library/react'
 import {Provider} from 'react-redux'
 
 import * as GradeActions from '../../grades/GradeActions'
@@ -209,7 +209,7 @@ describe('GradeSummary GradersTable', () => {
       })
       mountAndFinishLoading()
       const button = getGraderAcceptGradesButton('1101')
-      button.click()
+      fireEvent.click(button)
       expect(store.getState().grades.bulkSelectProvisionalGradeStatuses[1101]).toBe(
         GradeActions.STARTED,
       )

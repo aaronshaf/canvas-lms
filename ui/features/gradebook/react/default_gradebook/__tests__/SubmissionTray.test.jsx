@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {screen, waitFor} from '@testing-library/react'
+import {fireEvent, screen, waitFor} from '@testing-library/react'
 import $ from 'jquery'
 import {createGradebook} from './GradebookSpecHelper'
 import GradebookApi from '../apis/GradebookApi'
@@ -133,9 +133,9 @@ describe('Gradebook#renderSubmissionTray', () => {
     gradebook.setSubmissionTrayState(false)
 
     const submission = gradebook.getSubmission('1101', '2301')
-    vi
-      .spyOn(gradebook, 'updateSubmissionAndRenderSubmissionTray')
-      .mockResolvedValue({data: {all_submissions: [submission]}})
+    vi.spyOn(gradebook, 'updateSubmissionAndRenderSubmissionTray').mockResolvedValue({
+      data: {all_submissions: [submission]},
+    })
 
     vi.spyOn(gradebook, 'renderSubmissionTray').mockImplementation(() => {})
     vi.spyOn(gradebook, 'updateRowAndRenderSubmissionTray').mockImplementation(() => {})
@@ -716,9 +716,7 @@ describe('Gradebook#renderSubmissionTray', () => {
     })
 
     it('renders the tray before sending the request', () => {
-      const renderTraySpy = vi
-        .spyOn(gradebook, 'renderSubmissionTray')
-        .mockImplementation(() => {})
+      const renderTraySpy = vi.spyOn(gradebook, 'renderSubmissionTray').mockImplementation(() => {})
       gradebook.updateSubmissionAndRenderSubmissionTray({submission})
       expect(renderTraySpy).toHaveBeenCalledTimes(1)
     })
@@ -732,9 +730,7 @@ describe('Gradebook#renderSubmissionTray', () => {
     })
 
     it('on success the tray has been rendered a second time', () => {
-      const renderTraySpy = vi
-        .spyOn(gradebook, 'renderSubmissionTray')
-        .mockImplementation(() => {})
+      const renderTraySpy = vi.spyOn(gradebook, 'renderSubmissionTray').mockImplementation(() => {})
       vi.spyOn(gradebook, 'updateSubmissionsFromExternal').mockImplementation(() => {})
       gradebook.updateSubmissionAndRenderSubmissionTray({submission})
       promise.thenFn({data: {all_submissions: [{id: '293', ...submission}]}})
@@ -1029,13 +1025,11 @@ describe('Gradebook#renderSubmissionTray', () => {
         },
       }
 
-      vi
-        .spyOn(gradebook, 'listRows')
-        .mockImplementation(() => [
-          gradebook.students[1100],
-          gradebook.students[1101],
-          gradebook.students[1102],
-        ])
+      vi.spyOn(gradebook, 'listRows').mockImplementation(() => [
+        gradebook.students[1100],
+        gradebook.students[1101],
+        gradebook.students[1102],
+      ])
 
       gradebook.gradebookGrid.gridSupport = {
         helper: {
@@ -1159,7 +1153,7 @@ describe('Gradebook#renderSubmissionTray', () => {
       const nextButton = document.querySelector(
         '#student-carousel .right-arrow-button-container button',
       )
-      nextButton.click()
+      fireEvent.click(nextButton)
 
       expect(gradebook.loadTrayStudent).toHaveBeenCalledTimes(1)
       expect(gradebook.loadTrayStudent).toHaveBeenCalledWith('next')
@@ -1185,7 +1179,7 @@ describe('Gradebook#renderSubmissionTray', () => {
       const prevButton = document.querySelector(
         '#student-carousel .left-arrow-button-container button',
       )
-      prevButton.click()
+      fireEvent.click(prevButton)
 
       expect(gradebook.loadTrayStudent).toHaveBeenCalledTimes(1)
       expect(gradebook.loadTrayStudent).toHaveBeenCalledWith('previous')
@@ -1251,9 +1245,10 @@ describe('Gradebook#loadTrayStudent', () => {
       1101: {id: '1101', name: 'Student 2'},
     }
 
-    vi
-      .spyOn(gradebook, 'listRows')
-      .mockReturnValue([gradebook.students[1100], gradebook.students[1101]])
+    vi.spyOn(gradebook, 'listRows').mockReturnValue([
+      gradebook.students[1100],
+      gradebook.students[1101],
+    ])
     vi.spyOn(gradebook, 'updateRowAndRenderSubmissionTray').mockImplementation(() => {})
   })
 

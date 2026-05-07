@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 import {Collaborations} from '../Collaborations'
 import {HorizonToggleContext} from '../../HorizonToggleContext'
 
@@ -70,7 +70,7 @@ describe('Collaborations', () => {
     )
     expect(screen.getByText('Collaborations (2 items)')).toBeInTheDocument()
     const toggle = screen.getByText('Collaborations')
-    toggle.click()
+    fireEvent.click(toggle)
     expect(await screen.findByText('Collab 1')).toBeInTheDocument()
     expect(screen.getByText('Collab 2')).toBeInTheDocument()
   })
@@ -102,7 +102,7 @@ describe('Collaborations', () => {
     )
     expect(screen.getByText('Collaborations (1 item)')).toBeInTheDocument()
     const toggle = screen.getByText('Collaborations')
-    toggle.click()
+    fireEvent.click(toggle)
     expect(await screen.findByText('Collab 1')).toBeInTheDocument()
   })
 })

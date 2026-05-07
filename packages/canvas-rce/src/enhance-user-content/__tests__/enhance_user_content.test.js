@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {fireEvent} from '@testing-library/dom'
 import {enhanceUserContent} from '../enhance_user_content'
 import {Mathml} from '../mathml'
 import * as instructureHelper from '../instructure_helper'
@@ -157,7 +158,7 @@ describe('enhanceUserContent()', () => {
           subject(`<a class="instructure_file_link inline_disabled" href="${url}">file</a>`)
           enhanceUserContent()
           expect(document.querySelector('.instructure_file_holder')).toBeInTheDocument()
-          document.querySelector('.instructure_file_holder > a').click()
+          fireEvent.click(document.querySelector('.instructure_file_holder > a'))
           expect(showFilePreviewSpy).toHaveBeenCalled()
         })
 
@@ -169,7 +170,7 @@ describe('enhanceUserContent()', () => {
           subject(`<a class="instructure_file_link inline_disabled" href="${url}">file</a>`)
           enhanceUserContent()
           expect(document.querySelector('.instructure_file_holder')).toBeInTheDocument()
-          document.querySelector('.instructure_file_holder > a').click()
+          fireEvent.click(document.querySelector('.instructure_file_holder > a'))
           expect(showFilePreviewSpy).toHaveBeenCalled()
         })
 
@@ -181,7 +182,7 @@ describe('enhanceUserContent()', () => {
           subject(`<a class="instructure_file_link inline_disabled" href="${url}">file</a>`)
           enhanceUserContent()
           expect(document.querySelector('.instructure_file_holder')).toBeInTheDocument()
-          document.querySelector('.instructure_file_holder > a').click()
+          fireEvent.click(document.querySelector('.instructure_file_holder > a'))
           expect(showFilePreviewSpy).toHaveBeenCalled()
         })
 
@@ -193,7 +194,7 @@ describe('enhanceUserContent()', () => {
           subject(`<a class="instructure_file_link inline_disabled" href="${url}">file</a>`)
           enhanceUserContent()
           expect(document.querySelector('.instructure_file_holder')).toBeInTheDocument()
-          document.querySelector('.instructure_file_holder > a').click()
+          fireEvent.click(document.querySelector('.instructure_file_holder > a'))
           expect(showFilePreviewSpy).toHaveBeenCalled()
         })
       })
@@ -208,7 +209,7 @@ describe('enhanceUserContent()', () => {
         subject(`<a class="instructure_file_link inline_disabled" href="${url}">file</a>`)
         enhanceUserContent()
         expect(document.querySelector('.instructure_file_holder')).not.toBeInTheDocument()
-        document.querySelector('.instructure_file_link').click()
+        fireEvent.click(document.querySelector('.instructure_file_link'))
         expect(showFilePreviewSpy).not.toHaveBeenCalled()
       })
     })
@@ -244,7 +245,7 @@ describe('enhanceUserContent()', () => {
       )
       enhanceUserContent()
       expect(document.querySelector('.instructure_file_holder')).toBeInTheDocument()
-      document.querySelector('.instructure_file_holder > a').click()
+      fireEvent.click(document.querySelector('.instructure_file_holder > a'))
       expect(showFilePreviewSpy).toHaveBeenCalled()
     })
 

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, render, within} from '@testing-library/react'
+import {act, render, within, fireEvent} from '@testing-library/react'
 
 import {MOCK_COURSE_GRADING_SCHEME} from './fixtures'
 import {GradingSchemeView} from '../GradingSchemeView'
@@ -78,7 +78,9 @@ describe.skip('GradingSchemeView', () => {
   it('delete callback is invoked on delete button press', () => {
     const {getByTestId} = render(<GradingSchemeView {...testProps} />)
     const delBtn = getByTestId(`grading_scheme_${MOCK_COURSE_GRADING_SCHEME.id}_delete_button`)
-    act(() => delBtn.click())
+    act(() => {
+      fireEvent.click(delBtn)
+    })
     expect(onDeleteRequested).toHaveBeenCalled()
     // if edit expect(onDeleteRequested.mock.calls[0][0].length).toBe(0) // check params
   })
@@ -86,7 +88,9 @@ describe.skip('GradingSchemeView', () => {
   it('edit callback is invoked on edit button press', () => {
     const {getByTestId} = render(<GradingSchemeView {...testProps} />)
     const editBtn = getByTestId(`grading_scheme_${MOCK_COURSE_GRADING_SCHEME.id}_edit_button`)
-    act(() => editBtn.click())
+    act(() => {
+      fireEvent.click(editBtn)
+    })
     expect(onEditRequested).toHaveBeenCalled()
   })
 })

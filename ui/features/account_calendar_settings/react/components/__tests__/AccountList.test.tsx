@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, render, waitFor} from '@testing-library/react'
+import {act, fireEvent, render, waitFor} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 
@@ -139,7 +139,9 @@ describe('AccountList', () => {
     await findByText('CPMS')
     const cpmsCheckbox = getByRole('checkbox', {name: 'Show account calendar for CPMS'})
     expect(onAccountToggled).not.toHaveBeenCalled()
-    act(() => cpmsCheckbox.click())
+    act(() => {
+      fireEvent.click(cpmsCheckbox)
+    })
     expect(onAccountToggled).toHaveBeenCalledWith(4, false)
   })
 

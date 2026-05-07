@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import PageList from '../PageList'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
 import {queryClient} from '@instructure/platform-query'
@@ -79,7 +79,7 @@ describe('PageList', () => {
       </MockedQueryClientProvider>,
     )
     const addPage = await findByTestId('add-page-button')
-    addPage.click()
+    fireEvent.click(addPage)
     expect(await findByTestId('add-page-modal')).toBeInTheDocument()
   })
 
@@ -90,9 +90,9 @@ describe('PageList', () => {
       </MockedQueryClientProvider>,
     )
     const menuButton = await findByTestId('1-menu')
-    menuButton.click()
+    fireEvent.click(menuButton)
     const renameOption = await findByTestId('rename-menu-option')
-    renameOption.click()
+    fireEvent.click(renameOption)
     expect(await findByTestId('rename-page-modal')).toBeInTheDocument()
   })
 
@@ -103,9 +103,9 @@ describe('PageList', () => {
       </MockedQueryClientProvider>,
     )
     const menuButton = await findByTestId('2-menu')
-    menuButton.click()
+    fireEvent.click(menuButton)
     const deleteOption = await findByTestId('delete-menu-option')
-    deleteOption.click()
+    fireEvent.click(deleteOption)
     expect(await findByTestId('delete-page-modal')).toBeInTheDocument()
   })
 
@@ -116,9 +116,9 @@ describe('PageList', () => {
       </MockedQueryClientProvider>,
     )
     const menuButton = await findByTestId('1-menu')
-    menuButton.click()
+    fireEvent.click(menuButton)
     const moveOption = await findByTestId('move-menu-option')
-    moveOption.click()
+    fireEvent.click(moveOption)
     expect(await findByTestId('move-page-modal')).toBeInTheDocument()
   })
 })

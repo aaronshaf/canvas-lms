@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render, screen} from '@testing-library/react'
+import {render, screen, fireEvent} from '@testing-library/react'
 
 import {ScanStateCell} from '../ScanStateCell'
 import {
@@ -88,7 +88,7 @@ describe('ScanStateCell', () => {
       it('renders a working fix button', () => {
         render(<ScanStateCell item={baseItem} isMobile={false} />)
         expect(screen.getByTestId('issue-remediation-button')).toBeInTheDocument()
-        screen.getByTestId('issue-remediation-button').click()
+        fireEvent.click(screen.getByTestId('issue-remediation-button'))
         expect(mockSelectIssue).toHaveBeenCalledWith(expect.objectContaining(baseItem))
       })
     })
@@ -103,7 +103,7 @@ describe('ScanStateCell', () => {
       it('renders a working review button', () => {
         render(<ScanStateCell item={baseItem} isMobile={false} />)
         expect(screen.getByTestId('issue-review-button')).toBeInTheDocument()
-        screen.getByTestId('issue-review-button').click()
+        fireEvent.click(screen.getByTestId('issue-review-button'))
         expect(mockSelectIssue).toHaveBeenCalledWith(expect.objectContaining(baseItem))
       })
     })
@@ -202,7 +202,7 @@ describe('ScanStateCell', () => {
       const rescanButton = container.querySelector(
         '[data-pendo="resource-rescan-button"]',
       ) as HTMLElement
-      rescanButton.click()
+      fireEvent.click(rescanButton)
 
       expect(mockOnRescan).toHaveBeenCalledWith(baseFailedItem)
       expect(mockOnRescan).toHaveBeenCalledTimes(1)

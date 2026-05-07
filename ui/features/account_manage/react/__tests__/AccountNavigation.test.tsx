@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {AccountNavigation} from '../AccountNavigation'
 
 describe('AccountNavigation', () => {
@@ -31,14 +31,14 @@ describe('AccountNavigation', () => {
     it('calls onPageClick with index when a page is clicked', () => {
       const {getByText} = render(<AccountNavigation {...props} currentPage={1} pageCount={2} />)
       const nextPage = getByText(2)
-      nextPage.click()
+      fireEvent.click(nextPage)
       expect(props.onPageClick).toHaveBeenCalledWith(2)
     })
 
     it('does not call render again if current page number is clicked', () => {
       const {getByText} = render(<AccountNavigation {...props} currentPage={1} pageCount={1} />)
       const currPage = getByText(1)
-      currPage.click()
+      fireEvent.click(currPage)
       expect(props.onPageClick).not.toHaveBeenCalled()
     })
   })

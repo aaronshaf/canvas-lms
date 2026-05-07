@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, act, cleanup} from '@testing-library/react'
+import {render, act, cleanup, fireEvent} from '@testing-library/react'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
 import ItemAssignToTray from '../ItemAssignToTray'
 import {
@@ -82,7 +82,9 @@ describe.skip('ItemAssignToTray - Student Groups', () => {
     )
     const {findByText, findByTestId, getByText} = renderComponent()
     const assigneeSelector = await findByTestId('assignee_selector')
-    act(() => assigneeSelector.click())
+    act(() => {
+      fireEvent.click(assigneeSelector)
+    })
     await findByText(FIRST_GROUP_CATEGORY_DATA[0].name)
     FIRST_GROUP_CATEGORY_DATA.forEach(group => {
       expect(getByText(group.name)).toBeInTheDocument()
@@ -97,7 +99,9 @@ describe.skip('ItemAssignToTray - Student Groups', () => {
     )
     const {findByText, findByTestId, getByText, queryByText, rerender} = renderComponent()
     const assigneeSelector = await findByTestId('assignee_selector')
-    act(() => assigneeSelector.click())
+    act(() => {
+      fireEvent.click(assigneeSelector)
+    })
     await findByText(FIRST_GROUP_CATEGORY_DATA[0].name)
     SECOND_GROUP_CATEGORY_DATA.forEach(group => {
       expect(queryByText(group.name)).not.toBeInTheDocument()

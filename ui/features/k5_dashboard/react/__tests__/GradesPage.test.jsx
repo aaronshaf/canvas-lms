@@ -18,7 +18,7 @@
  */
 
 import React from 'react'
-import {act, render, waitFor} from '@testing-library/react'
+import {act, fireEvent, render, waitFor} from '@testing-library/react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import PropTypes from 'prop-types'
@@ -361,8 +361,12 @@ describe('GradesPage', () => {
     expect(getByText('A-')).toBeInTheDocument()
     expect(getByText('C')).toBeInTheDocument()
 
-    await act(async () => getByRole('combobox', {name: 'Select Grading Period'}).click())
-    await act(async () => getByText('The First One').click())
+    await act(async () => {
+      fireEvent.click(getByRole('combobox', {name: 'Select Grading Period'}))
+    })
+    await act(async () => {
+      fireEvent.click(getByText('The First One'))
+    })
 
     await waitFor(() => expect(getByText('B-')).toBeInTheDocument())
     expect(queryByText('F')).not.toBeInTheDocument()
@@ -370,8 +374,12 @@ describe('GradesPage', () => {
     expect(getByText('Not Graded')).toBeInTheDocument()
     expect(queryByText('C')).not.toBeInTheDocument()
 
-    act(() => getByRole('combobox', {name: 'Select Grading Period'}).click())
-    act(() => getByText('All Grading Periods').click())
+    act(() => {
+      fireEvent.click(getByRole('combobox', {name: 'Select Grading Period'}))
+    })
+    act(() => {
+      fireEvent.click(getByText('All Grading Periods'))
+    })
 
     expect(getByText('B+')).toBeInTheDocument()
     expect(getByText('Not Graded')).toBeInTheDocument()

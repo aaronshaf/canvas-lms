@@ -88,7 +88,7 @@ describe('RCE Plugins > CanvasContentTray', () => {
 
   function printCurrentTime() {
     const now = new Date()
-     
+
     console.log(`Current time: ${now.toLocaleTimeString()}`)
   }
 
@@ -133,7 +133,7 @@ describe('RCE Plugins > CanvasContentTray', () => {
     const close = await component.findByTestId('CloseButton_ContentTray')
     const closeButton = close.querySelector('button')
     closeButton.focus()
-    closeButton.click()
+    fireEvent.click(closeButton)
     await waitForElementToBeRemoved(() => component.queryByTestId('CanvasContentTray'))
     expect(mockOnChangeSearchString).toHaveBeenLastCalledWith('')
   })
@@ -345,7 +345,7 @@ describe('RCE Plugins > CanvasContentTray', () => {
 
       const closeBtn = component.getByTestId('CloseButton_ContentTray').querySelector('button')
       closeBtn.focus()
-      closeBtn.click()
+      fireEvent.click(closeBtn)
       // immediately after being asked to close, INSTUI Tray removes role='dialog' and
       // adds aria-hidden='true', so the getTray() function above does not work
       await waitForElementToBeRemoved(() => component.queryByTestId('CanvasContentTray'))

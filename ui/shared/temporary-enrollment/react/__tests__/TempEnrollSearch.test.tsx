@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {TempEnrollSearch} from '../TempEnrollSearch'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import type {User} from '../types'
@@ -56,13 +56,13 @@ describe('TempEnrollSearch', () => {
     ).toBeInTheDocument()
 
     const sis = getAllByText('SIS ID')[0]
-    sis.click()
+    fireEvent.click(sis)
     expect(
       getByText('Enter the SIS IDs of the users you would like to temporarily enroll'),
     ).toBeInTheDocument()
 
     const login = getAllByText('Login ID')[0]
-    login.click()
+    fireEvent.click(login)
     expect(
       getByText('Enter the login IDs of the users you would like to temporarily enroll'),
     ).toBeInTheDocument()

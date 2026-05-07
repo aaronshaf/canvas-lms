@@ -35,7 +35,9 @@ let defaultProps = eventFormProps()
 const changeValue = (component, testid, value) => {
   const child = component.getByTestId(testid)
   expect(child).toBeInTheDocument()
-  act(() => child.click())
+  act(() => {
+    fireEvent.click(child)
+  })
   fireEvent.change(child, {target: {value}})
   act(() => child.blur())
   return child
@@ -97,7 +99,9 @@ describe('CalendarEventDetailsForm', () => {
     const errMessage = component.getByText('End time cannot be before Start time')
     expect(errMessage).toBeInTheDocument()
 
-    act(() => start.click())
+    act(() => {
+      fireEvent.click(start)
+    })
     expect(errMessage).not.toBeInTheDocument()
   })
 
@@ -110,7 +114,9 @@ describe('CalendarEventDetailsForm', () => {
     const errMessage = component.getByText('Start Time cannot be after End Time')
     expect(errMessage).toBeInTheDocument()
 
-    act(() => end.click())
+    act(() => {
+      fireEvent.click(end)
+    })
     expect(errMessage).not.toBeInTheDocument()
   })
 

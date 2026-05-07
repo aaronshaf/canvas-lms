@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {AssignmentModulesUI as AssignmentModules} from '../AssignmentModules'
 
 /*
@@ -127,9 +127,9 @@ describe('AssignmentModulesUI', () => {
     )
 
     const input = container.querySelectorAll('input')[1] // SelectMultiple has 2 inputs
-    input.click()
+    fireEvent.click(input)
     const option = document.querySelectorAll('li[role="option"]')[0]
-    option.click()
+    fireEvent.click(option)
     container.querySelector('#focus-me').focus()
     expect(onchangemode).toHaveBeenCalledWith('view')
     expect(onchange).not.toHaveBeenCalled()

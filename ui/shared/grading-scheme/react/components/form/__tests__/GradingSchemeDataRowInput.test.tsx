@@ -169,7 +169,9 @@ describe('GradingSchemeDataRowInput', () => {
     const deleteRowButton = screen.getByRole<HTMLInputElement>('button', {
       name: /Remove letter grade row/,
     })
-    act(() => deleteRowButton.click())
+    act(() => {
+      fireEvent.click(deleteRowButton)
+    })
     expect(onRowDeleteRequested).toHaveBeenCalled()
   })
 
@@ -184,7 +186,9 @@ describe('GradingSchemeDataRowInput', () => {
     const addRowButton = screen.getByRole<HTMLInputElement>('button', {
       name: /Add new row for a letter grade to grading scheme after this row/,
     })
-    act(() => addRowButton.click())
+    act(() => {
+      fireEvent.click(addRowButton)
+    })
     expect(onRowAddRequested).toHaveBeenCalled()
   })
 

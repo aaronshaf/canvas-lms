@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import CoursePeople from '../CoursePeople'
 import useCoursePeopleQuery from '../hooks/useCoursePeopleQuery'
 import useSearch from '../hooks/useSearch'
@@ -136,7 +136,7 @@ describe('CoursePeople', () => {
     const {getByTestId} = render(<CoursePeople />)
     const filter = getByTestId('people-filter')
     expect(filter).toBeInTheDocument()
-    filter.click()
+    fireEvent.click(filter)
     await waitFor(() =>
       expect(useCoursePeopleQuery).toHaveBeenCalledWith(
         expect.objectContaining({

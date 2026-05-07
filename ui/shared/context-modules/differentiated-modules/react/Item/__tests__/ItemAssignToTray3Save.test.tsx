@@ -102,9 +102,13 @@ describe('ItemAssignToTray - Save Operations', () => {
   it.skip('creates new assignment overrides', async () => {
     const {findByTestId, findByText, getByRole, findAllByText} = renderComponent()
     const assigneeSelector = await findByTestId('assignee_selector')
-    act(() => assigneeSelector.click())
+    act(() => {
+      fireEvent.click(assigneeSelector)
+    })
     const option1 = await findByText(SECTIONS_DATA[0].name)
-    act(() => option1.click())
+    act(() => {
+      fireEvent.click(option1)
+    })
 
     getByRole('button', {name: 'Save'}).click()
     expect((await findAllByText(`${DEFAULT_PROPS.itemName} updated`))[0]).toBeInTheDocument()
@@ -176,7 +180,7 @@ describe('ItemAssignToTray - Save Operations', () => {
     const user = userEvent.setup(USER_EVENT_OPTIONS)
     const {getByTestId, findAllByTestId, findByText} = renderComponent()
     const assigneeSelector = (await findAllByTestId('assignee_selector'))[0]
-    assigneeSelector.click()
+    fireEvent.click(assigneeSelector)
     const option1 = await findByText(SECTIONS_DATA[0].name)
     await user.click(option1)
     const save = getByTestId('differentiated_modules_save_button')
@@ -192,9 +196,9 @@ describe('ItemAssignToTray - Save Operations', () => {
     const onSave = vi.fn()
     const {getByTestId, findAllByTestId, findByText, unmount} = renderComponent({onSave})
     const assigneeSelector = (await findAllByTestId('assignee_selector'))[0]
-    assigneeSelector.click()
+    fireEvent.click(assigneeSelector)
     const option1 = await findByText(SECTIONS_DATA[3].name)
-    option1.click()
+    fireEvent.click(option1)
 
     const save = getByTestId('differentiated_modules_save_button')
     await waitFor(() => expect(save).not.toBeDisabled())
@@ -226,9 +230,9 @@ describe('ItemAssignToTray - Save Operations', () => {
     const user = userEvent.setup(USER_EVENT_OPTIONS)
     const {findByTestId, findAllByText, findAllByTestId, findByText} = renderComponent()
     const assigneeSelector = (await findAllByTestId('assignee_selector'))[0]
-    assigneeSelector.click()
+    fireEvent.click(assigneeSelector)
     const option1 = await findByText(SECTIONS_DATA[0].name)
-    option1.click()
+    fireEvent.click(option1)
     const cards = await findAllByTestId('item-assign-to-card')
     // renders only 1 valid card
     expect(cards).toHaveLength(1)
@@ -280,11 +284,13 @@ describe('ItemAssignToTray - Save Operations', () => {
       expect(cards[0]).toBeInTheDocument()
 
       const addCardBtn = getAllByTestId('add-card')[0]
-      act(() => addCardBtn.click())
+      act(() => {
+        fireEvent.click(addCardBtn)
+      })
       const assigneeSelector = (await findAllByTestId('assignee_selector'))[0]
-      assigneeSelector.click()
+      fireEvent.click(assigneeSelector)
       const option1 = await findByText(SECTIONS_DATA[0].name)
-      option1.click()
+      fireEvent.click(option1)
 
       getByTestId('differentiated_modules_save_button').click()
 

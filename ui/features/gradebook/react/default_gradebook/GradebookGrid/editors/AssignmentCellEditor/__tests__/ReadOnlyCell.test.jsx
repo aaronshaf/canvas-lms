@@ -18,7 +18,7 @@
 
 import React from 'react'
 import ReadOnlyCell from '../ReadOnlyCell'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 
 describe('GradebookGrid ReadOnlyCell', () => {
   let props
@@ -171,14 +171,14 @@ describe('GradebookGrid ReadOnlyCell', () => {
     test('calls onToggleSubmissionTrayOpen when clicked', () => {
       props.onToggleSubmissionTrayOpen = vi.fn()
       mountComponent()
-      wrapper.container.querySelector('.Grid__GradeCell__Options button').click()
+      fireEvent.click(wrapper.container.querySelector('.Grid__GradeCell__Options button'))
       expect(props.onToggleSubmissionTrayOpen).toHaveBeenCalledTimes(1)
     })
 
     test('calls onToggleSubmissionTrayOpen with the student id and assignment id', () => {
       props.onToggleSubmissionTrayOpen = vi.fn()
       mountComponent()
-      wrapper.container.querySelector('.Grid__GradeCell__Options button').click()
+      fireEvent.click(wrapper.container.querySelector('.Grid__GradeCell__Options button'))
       expect(props.onToggleSubmissionTrayOpen).toHaveBeenCalledWith('1101', '2301')
     })
   })

@@ -81,8 +81,8 @@ describe('DiscussionTopicForm', () => {
     it('does not allow the automatic peer review per student input to go below 1', () => {
       const {getByTestId, getByLabelText} = setup()
 
-      getByLabelText('Graded').click()
-      getByLabelText('Automatically assign').click()
+      fireEvent.click(getByLabelText('Graded'))
+      fireEvent.click(getByLabelText('Automatically assign'))
       const automaticReviewsInput = getByTestId('peer-review-count-input')
       expect(automaticReviewsInput.value).toBe('1')
 

@@ -82,7 +82,9 @@ describe('ModuleAssignments', () => {
   it('displays sections and students as options', async () => {
     const {findByTestId, findByText} = renderComponent()
     const moduleAssignments = await findByTestId('assignee_selector')
-    act(() => moduleAssignments.click())
+    act(() => {
+      fireEvent.click(moduleAssignments)
+    })
     await findByText(SECTIONS_DATA[0].name)
     for (const section of SECTIONS_DATA) {
       expect(await findByText(section.name)).toBeInTheDocument()
@@ -95,7 +97,9 @@ describe('ModuleAssignments', () => {
   it('shows sis id in list', async () => {
     const {findByTestId, findByText} = renderComponent()
     const moduleAssignments = await findByTestId('assignee_selector')
-    act(() => moduleAssignments.click())
+    act(() => {
+      fireEvent.click(moduleAssignments)
+    })
     await findByText(STUDENTS_DATA[0].value)
     for (const student of STUDENTS_DATA) {
       expect(await findByText(student.sisID)).toBeInTheDocument()
@@ -105,7 +109,9 @@ describe('ModuleAssignments', () => {
   it('fetches filtered results from both APIs', async () => {
     const {findByTestId, findByText} = renderComponent()
     const moduleAssignments = await findByTestId('assignee_selector')
-    act(() => moduleAssignments.click())
+    act(() => {
+      fireEvent.click(moduleAssignments)
+    })
     fireEvent.change(moduleAssignments, {target: {value: 'sec'}})
     await findByText(FILTERED_SECTIONS_DATA[0].name)
     for (const section of FILTERED_SECTIONS_DATA) {
@@ -119,7 +125,9 @@ describe('ModuleAssignments', () => {
   it('allows filtering by SIS ID', async () => {
     const {findByTestId, findByText} = renderComponent()
     const moduleAssignments = await findByTestId('assignee_selector')
-    act(() => moduleAssignments.click())
+    act(() => {
+      fireEvent.click(moduleAssignments)
+    })
     fireEvent.change(moduleAssignments, {target: {value: 'raNDoM_iD_8'}})
     expect(await findByText('Secilia')).toBeInTheDocument()
   })
@@ -131,8 +139,12 @@ describe('ModuleAssignments', () => {
       ],
     })
     const moduleAssignments = await findByTestId('assignee_selector')
-    act(() => moduleAssignments.click())
-    act(() => getByTitle('Remove Peter').click())
+    act(() => {
+      fireEvent.click(moduleAssignments)
+    })
+    act(() => {
+      fireEvent.click(getByTitle('Remove Peter'))
+    })
     expect(await findByText('peter002')).toBeInTheDocument()
   })
 
@@ -140,9 +152,13 @@ describe('ModuleAssignments', () => {
     const onSelect = vi.fn()
     const {findByTestId, findByText} = renderComponent({onSelect})
     const moduleAssignments = await findByTestId('assignee_selector')
-    act(() => moduleAssignments.click())
+    act(() => {
+      fireEvent.click(moduleAssignments)
+    })
     const option1 = await findByText(SECTIONS_DATA[0].name)
-    act(() => option1.click())
+    act(() => {
+      fireEvent.click(option1)
+    })
     expect(onSelect).toHaveBeenCalledWith([
       {group: 'Sections', id: `section-${SECTIONS_DATA[0].id}`, value: SECTIONS_DATA[0].name},
     ])

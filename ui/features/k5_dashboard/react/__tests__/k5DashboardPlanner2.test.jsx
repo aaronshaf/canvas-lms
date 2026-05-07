@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, render as testingLibraryRender} from '@testing-library/react'
+import {act, fireEvent, render as testingLibraryRender} from '@testing-library/react'
 import K5Dashboard from '../K5Dashboard'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -72,7 +72,9 @@ describe('K5Dashboard Schedule Section', () => {
     expect(missingAssignments).toHaveTextContent('Show 2 missing items')
     expect(missingAssignments).toBeInTheDocument()
 
-    act(() => missingAssignments.click())
+    act(() => {
+      fireEvent.click(missingAssignments)
+    })
     expect(missingAssignments).toHaveTextContent('Hide 2 missing items')
     expect(await findByText('Assignment 1')).toBeInTheDocument()
     expect(await findByText('Assignment 2')).toBeInTheDocument()

@@ -18,7 +18,7 @@
 
 import React from 'react'
 import CoursesToolbar from '../CoursesToolbar'
-import {render, waitFor} from '@testing-library/react'
+import {render, waitFor, fireEvent} from '@testing-library/react'
 import injectGlobalAlertContainers from '@canvas/util/react/testing/injectGlobalAlertContainers'
 
 injectGlobalAlertContainers()
@@ -105,7 +105,7 @@ describe('CoursesToolbar', () => {
       const enrollCheck = getByText('Hide courses without students')
 
       expect(props.draftFilters.enrollment_type).toBe(null)
-      enrollCheck.click()
+      fireEvent.click(enrollCheck)
       expect(props.onUpdateFilters).toHaveBeenCalledWith({
         enrollment_type: ['student'],
         enrollment_workflow_state: ['active', 'invited', 'pending', 'creation_pending'],
@@ -117,7 +117,7 @@ describe('CoursesToolbar', () => {
       const pubCheck = getByText('Show only public courses')
 
       expect(props.draftFilters.public).toBe(null)
-      pubCheck.click()
+      fireEvent.click(pubCheck)
       expect(props.onUpdateFilters).toHaveBeenCalledWith({public: true})
     })
 
@@ -126,13 +126,13 @@ describe('CoursesToolbar', () => {
       const blueCheck = getByText('Show only blueprint courses')
 
       expect(props.draftFilters.blueprint).toBe(null)
-      blueCheck.click()
+      fireEvent.click(blueCheck)
       expect(props.onUpdateFilters).toHaveBeenCalledWith({blueprint: true})
     })
 
     it('terms are grouped correctly when term search is clicked', async () => {
       const container = render(<CoursesToolbar {...props} />)
-      container.getByText('Filter by term').click()
+      fireEvent.click(container.getByText('Filter by term'))
 
       const options = await waitFor(() => container.getAllByRole('option'))
 
@@ -191,7 +191,7 @@ describe('CoursesToolbar', () => {
       const {getByTestId} = render(<CoursesToolbar {...propsWithSearchTerm} />)
       const clearButton = getByTestId('clear-search')
 
-      clearButton.click()
+      fireEvent.click(clearButton)
 
       expect(propsWithSearchTerm.onUpdateFilters).toHaveBeenCalledWith({search_term: ''})
     })

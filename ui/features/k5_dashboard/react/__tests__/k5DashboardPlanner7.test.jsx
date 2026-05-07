@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, render as testingLibraryRender, waitFor} from '@testing-library/react'
+import {act, fireEvent, render as testingLibraryRender, waitFor} from '@testing-library/react'
 import K5Dashboard from '../K5Dashboard'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -93,7 +93,9 @@ describe('K5Dashboard Schedule Section', () => {
     )
     expect(await findByText('Assignment 15')).toBeInTheDocument()
     const countBefore = requestCount
-    act(() => getByText('Schedule').click())
+    act(() => {
+      fireEvent.click(getByText('Schedule'))
+    })
     await waitFor(() => expect(requestCount).toBe(countBefore + 2)) // 2 more requests for prev and next week preloads
   }, 15000)
 })

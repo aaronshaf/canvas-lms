@@ -284,11 +284,11 @@ describe('RCE "Icon Maker" Plugin > IconMakerTray', () => {
       setIconColor('#000000')
 
       act(() => {
-        getByTestId('cb-replace-all').click()
+        fireEvent.click(getByTestId('cb-replace-all'))
       })
 
       act(() => {
-        getByTestId('icon-maker-save').click()
+        fireEvent.click(getByTestId('icon-maker-save'))
       })
 
       await waitFor(() => {

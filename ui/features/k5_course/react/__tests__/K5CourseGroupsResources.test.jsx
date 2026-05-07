@@ -18,7 +18,7 @@
 
 import {vi} from 'vitest'
 import {TAB_IDS} from '@canvas/k5/react/utils'
-import {act, render, waitFor} from '@testing-library/react'
+import {act, fireEvent, render, waitFor} from '@testing-library/react'
 import fetchMock from 'fetch-mock'
 import React from 'react'
 import {http, HttpResponse} from 'msw'
@@ -200,7 +200,9 @@ describe('K-5 Subject Course', () => {
       expect(getByText('Time to learn!')).toBeInTheDocument()
       expect(fetchMock.called(FETCH_IMPORTANT_INFO_URL)).toBeFalsy()
       expect(fetchMock.called(FETCH_APPS_URL)).toBeFalsy()
-      await act(async () => getByText('Resources').click())
+      await act(async () => {
+        fireEvent.click(getByText('Resources'))
+      })
       expect(await findByText('This is really important.')).toBeInTheDocument()
       expect(fetchMock.called(FETCH_IMPORTANT_INFO_URL)).toBeTruthy()
       expect(fetchMock.called(FETCH_APPS_URL)).toBeTruthy()

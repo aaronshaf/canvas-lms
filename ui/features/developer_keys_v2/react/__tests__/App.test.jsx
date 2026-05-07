@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, act, waitFor} from '@testing-library/react'
+import {render, act, fireEvent} from '@testing-library/react'
 import App from '../App'
 
 import * as FlashAlert from '@instructure/platform-alerts'
@@ -151,7 +151,9 @@ describe('DeveloperKeys App', () => {
     getAllByRole = wrapper.getAllByRole
     queryByTestId = wrapper.queryByTestId
     // switch to inherited tab
-    act(() => getByText('Inherited').click())
+    act(() => {
+      fireEvent.click(getByText('Inherited'))
+    })
   }
 
   beforeEach(() => {

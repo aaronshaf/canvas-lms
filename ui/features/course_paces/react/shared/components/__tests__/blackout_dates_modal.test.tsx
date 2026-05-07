@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, render} from '@testing-library/react'
+import {act, fireEvent, render} from '@testing-library/react'
 
 import {BLACKOUT_DATES} from '../../../__tests__/fixtures'
 import BlackoutDatesModal from '../blackout_dates_modal'
@@ -53,7 +53,9 @@ describe('BlackoutDatesModal', () => {
     const {getByRole} = render(<BlackoutDatesModal {...defaultProps} />)
 
     const closeBtn = getByRole('button', {name: 'Close'})
-    act(() => closeBtn.click())
+    act(() => {
+      fireEvent.click(closeBtn)
+    })
 
     expect(onCancel).toHaveBeenCalled()
   })
@@ -62,7 +64,9 @@ describe('BlackoutDatesModal', () => {
     const {getByRole} = render(<BlackoutDatesModal {...defaultProps} />)
 
     const cancelBtn = getByRole('button', {name: 'Cancel'})
-    act(() => cancelBtn.click())
+    act(() => {
+      fireEvent.click(cancelBtn)
+    })
 
     expect(onCancel).toHaveBeenCalled()
   })
@@ -70,7 +74,9 @@ describe('BlackoutDatesModal', () => {
     const {getByRole} = render(<BlackoutDatesModal {...defaultProps} />)
 
     const saveBtn = getByRole('button', {name: 'Save'})
-    act(() => saveBtn.click())
+    act(() => {
+      fireEvent.click(saveBtn)
+    })
 
     expect(onSave).toHaveBeenCalledWith(defaultProps.blackoutDates)
   })

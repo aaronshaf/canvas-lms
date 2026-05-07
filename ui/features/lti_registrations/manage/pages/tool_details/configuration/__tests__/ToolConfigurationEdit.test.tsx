@@ -105,7 +105,7 @@ describe('ToolConfigurationEdit', () => {
 
         const submitBtn = getByText('Update Configuration')
         submitBtn.focus()
-        submitBtn.click()
+        fireEvent.click(submitBtn)
 
         expect(element).toHaveFocus()
       },
@@ -663,7 +663,7 @@ describe('ToolConfigurationEdit', () => {
       })(<ToolConfigurationEdit />)
 
       const submitBtn = getByText('Update Configuration')
-      submitBtn.click()
+      fireEvent.click(submitBtn)
 
       // Should not focus on redirect URIs field since we're not validating launch settings
       const redirectUrisElement = document.querySelector(`#${getInputIdForField('redirectURIs')}`)

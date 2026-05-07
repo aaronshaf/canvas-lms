@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, fireEvent} from '@testing-library/react'
 import {omit} from 'es-toolkit/compat'
 import CoursesList from '../CoursesList'
 
@@ -214,7 +214,7 @@ describe('Account Course User Search CoursesList Sorting', () => {
         />,
       )
 
-      wrapper.getByRole('button', {name: label}).click()
+      fireEvent.click(wrapper.getByRole('button', {name: label}))
       expect(onChangeSort).toHaveBeenCalledTimes(1)
       expect(onChangeSort).toHaveBeenCalledWith(columnID)
     })

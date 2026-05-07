@@ -60,7 +60,7 @@ describe('GradingSchemeCreateModal', () => {
     const saveButton = getByTestId('grading-scheme-create-modal-save-button')
     const input = getByTestId('grading-scheme-name-input') as HTMLInputElement
     fireEvent.change(input, {target: {value: 'New Scheme'}})
-    saveButton.click()
+    fireEvent.click(saveButton)
     expect(handleCreateScheme).toHaveBeenCalled()
   })
 
@@ -74,7 +74,7 @@ describe('GradingSchemeCreateModal', () => {
   it('should call the cancel function button when the cancel button is clicked', () => {
     const {getByTestId, handleCancelCreate} = renderGradingSchemeCreateModal()
     const cancelButton = getByTestId('grading-scheme-create-modal-cancel-button')
-    cancelButton.click()
+    fireEvent.click(cancelButton)
     expect(handleCancelCreate).toHaveBeenCalled()
   })
 })

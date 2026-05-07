@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, render, waitFor} from '@testing-library/react'
+import {act, render, waitFor, fireEvent} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -116,7 +116,9 @@ describe('ContextModulesPublishIcon', () => {
   it('renders the menu when clicked', () => {
     const {getByRole, getByText} = render(<ContextModulesPublishIcon {...defaultProps} />)
     const menuButton = getByRole('button', {hidden: true})
-    act(() => menuButton.click())
+    act(() => {
+      fireEvent.click(menuButton)
+    })
     expect(getByText('Publish module and all items')).toBeInTheDocument()
     expect(getByText('Publish module only')).toBeInTheDocument()
     expect(getByText('Unpublish module and all items')).toBeInTheDocument()

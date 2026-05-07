@@ -19,7 +19,7 @@
 import {showFlashAlert, showFlashError} from '@instructure/platform-alerts'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
 import {QueryClient} from '@tanstack/react-query'
-import {render, waitForElementToBeRemoved} from '@testing-library/react'
+import {render, waitForElementToBeRemoved, fireEvent} from '@testing-library/react'
 import {renderHook} from '@testing-library/react'
 import {AssetProcessors} from '../AssetProcessors'
 import {
@@ -126,7 +126,7 @@ describe.skip('AssetProcessors', () => {
     expect(tag).toBe('closed')
     const addButton = getByText('Add Document Processing App')
     expect(addButton).toHaveAttribute('aria-haspopup', 'dialog')
-    addButton.click()
+    fireEvent.click(addButton)
     tag = renderHook(() => useAssetProcessorsAddModalState(s => s.state.tag)).result.current
     expect(tag).toBe('toolList')
   })
@@ -199,10 +199,10 @@ describe.skip('AssetProcessors', () => {
       data: mockDeepLinkResponse,
     })
     expect(getByText('t2 · Lti 1.3 Tool Title')).toBeInTheDocument()
-    getByText('Actions for document processing app: t2 · Lti 1.3 Tool Title').click()
-    getByText('Remove').click()
+    fireEvent.click(getByText('Actions for document processing app: t2 · Lti 1.3 Tool Title'))
+    fireEvent.click(getByText('Remove'))
     expect(getByText('Confirm Removal')).toBeInTheDocument()
-    getByText('Remove').click()
+    fireEvent.click(getByText('Remove'))
     if (queryByText('t2 · Lti 1.3 Tool Title')) {
       await waitForElementToBeRemoved(() => queryByText('t2 · Lti 1.3 Tool Title'))
     }
@@ -212,10 +212,10 @@ describe.skip('AssetProcessors', () => {
   it('allows removing existing attached processors', async () => {
     const {queryByText, getByText} = renderAssetProcessors()
     expect(getByText('tool label · ap title')).toBeInTheDocument()
-    getByText('Actions for document processing app: tool label · ap title').click()
-    getByText('Remove').click()
+    fireEvent.click(getByText('Actions for document processing app: tool label · ap title'))
+    fireEvent.click(getByText('Remove'))
     expect(getByText('Confirm Removal')).toBeInTheDocument()
-    getByText('Remove').click()
+    fireEvent.click(getByText('Remove'))
     if (queryByText('tool label · ap title')) {
       await waitForElementToBeRemoved(() => queryByText('tool label · ap title'))
     }
@@ -224,8 +224,8 @@ describe.skip('AssetProcessors', () => {
   it('allows modifying existing attached processors', async () => {
     const {getByText} = renderAssetProcessors()
     expect(getByText('tool label · ap title')).toBeInTheDocument()
-    getByText('Actions for document processing app: tool label · ap title').click()
-    getByText('Modify').click()
+    fireEvent.click(getByText('Actions for document processing app: tool label · ap title'))
+    fireEvent.click(getByText('Modify'))
     expect(getByText('Modify Settings for tool label · ap title')).toBeInTheDocument()
 
     const iframe = document.querySelector('iframe')
@@ -243,7 +243,7 @@ describe.skip('AssetProcessors', () => {
       data: mockDeepLinkResponse,
     })
     expect(getByText('t2 · Lti 1.3 Tool Title')).toBeInTheDocument()
-    getByText('Actions for document processing app: t2 · Lti 1.3 Tool Title').click()
+    fireEvent.click(getByText('Actions for document processing app: t2 · Lti 1.3 Tool Title'))
     expect(getByText('Remove')).toBeInTheDocument()
     expect(queryByText('Modify')).not.toBeInTheDocument()
   })
@@ -253,7 +253,7 @@ describe.skip('AssetProcessors', () => {
     expect(getByText('window tool · window title')).toBeInTheDocument()
 
     // Open the menu to show the Modify option
-    getByText('Actions for document processing app: window tool · window title').click()
+    fireEvent.click(getByText('Actions for document processing app: window tool · window title'))
     // Check that the external link icon is displayed
     expect(getByTestId('external-link-icon')).toBeInTheDocument()
   })
@@ -263,8 +263,8 @@ describe.skip('AssetProcessors', () => {
     expect(getByText('window tool · window title')).toBeInTheDocument()
 
     // Open the menu to show the Modify option
-    getByText('Actions for document processing app: window tool · window title').click()
-    getByText('Modify').click()
+    fireEvent.click(getByText('Actions for document processing app: window tool · window title'))
+    fireEvent.click(getByText('Modify'))
 
     expect(window.open).toHaveBeenCalledWith(
       '/asset_processors/2/launch',
@@ -287,8 +287,8 @@ describe.skip('AssetProcessors', () => {
     }
 
     const {getByText} = renderAssetProcessors([processorWithTargetName])
-    getByText('Actions for document processing app: window tool · window title').click()
-    getByText('Modify').click()
+    fireEvent.click(getByText('Actions for document processing app: window tool · window title'))
+    fireEvent.click(getByText('Modify'))
 
     expect(window.open).toHaveBeenCalledWith(
       '/asset_processors/2/launch',
@@ -308,8 +308,8 @@ describe.skip('AssetProcessors', () => {
     }
 
     const {getByText} = renderAssetProcessors([processorWithCustomFeatures])
-    getByText('Actions for document processing app: window tool · window title').click()
-    getByText('Modify').click()
+    fireEvent.click(getByText('Actions for document processing app: window tool · window title'))
+    fireEvent.click(getByText('Modify'))
 
     expect(window.open).toHaveBeenCalledWith(
       '/asset_processors/2/launch',

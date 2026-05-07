@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {EditTemplateButtons} from '../EditTemplateButtons'
 
 const defaultProps = {
@@ -42,7 +42,7 @@ describe('EditTemplateButtons', () => {
     const {getByText} = renderComponent()
 
     const editBtn = getByText('Edit Template')
-    editBtn.click()
+    fireEvent.click(editBtn)
 
     expect(defaultProps.onEditTemplate).toHaveBeenCalledWith('1')
   })
@@ -51,7 +51,7 @@ describe('EditTemplateButtons', () => {
     const {getByText} = renderComponent()
 
     const deleteBtn = getByText('Delete Template')
-    deleteBtn.click()
+    fireEvent.click(deleteBtn)
 
     expect(defaultProps.onDeleteTemplate).toHaveBeenCalledWith('1')
   })

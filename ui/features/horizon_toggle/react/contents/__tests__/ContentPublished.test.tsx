@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 import {ContentPublished} from '../ContentPublished'
 import {HorizonToggleContext} from '../../HorizonToggleContext'
 
@@ -70,7 +70,7 @@ describe('Content Published', () => {
     )
     expect(screen.getByText('Content to be Unpublished (2 items)')).toBeInTheDocument()
     const toggle = screen.getByText('Content to be Unpublished')
-    toggle.click()
+    fireEvent.click(toggle)
     expect(await screen.findByText('Assignment 1')).toBeInTheDocument()
     expect(screen.getByText('Assignment 2')).toBeInTheDocument()
   })
@@ -102,7 +102,7 @@ describe('Content Published', () => {
     )
     expect(screen.getByText('Content to be Unpublished (1 item)')).toBeInTheDocument()
     const toggle = screen.getByText('Content to be Unpublished')
-    toggle.click()
+    fireEvent.click(toggle)
     expect(await screen.findByText('Assignment 1')).toBeInTheDocument()
   })
 })

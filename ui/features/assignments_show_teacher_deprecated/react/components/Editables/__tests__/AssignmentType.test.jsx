@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import AssignmentType from '../AssignmentType'
 
@@ -85,7 +85,7 @@ it.skip('has 3 options if quiz.next is not enabled', () => {
     />,
   )
   const input = container.querySelector('input')
-  input.click()
+  fireEvent.click(input)
   expect(document.querySelectorAll('li[role="option"]')).toHaveLength(3)
 })
 
@@ -102,7 +102,7 @@ it.skip('has 4 options if quiz.next is enabled', () => {
     />,
   )
   const input = container.querySelector('input')
-  input.click()
+  fireEvent.click(input)
   expect(document.querySelectorAll('li[role="option"]')).toHaveLength(4)
 })
 
@@ -125,9 +125,9 @@ it.skip('calls onChange when the selection changes', () => {
     </div>,
   )
   const input = container.querySelector('input')
-  input.click()
+  fireEvent.click(input)
   const option = document.querySelectorAll('li[role="option"]')[1]
-  option.click()
+  fireEvent.click(option)
   container.querySelector('#focus-me').focus()
   expect(onchangemode).toHaveBeenCalledWith('view')
   expect(onchange).not.toHaveBeenCalled()

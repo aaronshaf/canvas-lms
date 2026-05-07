@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 import {Assignments} from '../Assignments'
 import {HorizonToggleContext} from '../../HorizonToggleContext'
 
@@ -70,7 +70,7 @@ describe('Assignments', () => {
     )
     expect(screen.getByText('Assignments with Revisions (2 items)')).toBeInTheDocument()
     const toggle = screen.getByText('Assignments with Revisions')
-    toggle.click()
+    fireEvent.click(toggle)
     expect(await screen.findByText('Assignment 1')).toBeInTheDocument()
     expect(screen.getByText('Assignment 2')).toBeInTheDocument()
   })
@@ -102,7 +102,7 @@ describe('Assignments', () => {
     )
     expect(screen.getByText('Assignments with Revisions (1 item)')).toBeInTheDocument()
     const toggle = screen.getByText('Assignments with Revisions')
-    toggle.click()
+    fireEvent.click(toggle)
     expect(await screen.findByText('Assignment 1')).toBeInTheDocument()
   })
 })

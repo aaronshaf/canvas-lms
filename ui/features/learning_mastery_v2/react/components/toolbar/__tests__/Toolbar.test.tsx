@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import {cleanup, render, screen, waitFor} from '@testing-library/react'
+import {cleanup, render, screen, waitFor, fireEvent} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {Toolbar, ToolbarProps} from '../Toolbar'
 import {DEFAULT_GRADEBOOK_SETTINGS} from '@canvas/outcomes/react/utils/constants'
@@ -55,9 +55,9 @@ describe('Toolbar', () => {
   it('opens and closes the SettingsTray when settings button is clicked', async () => {
     const {getByTestId, queryByTestId} = render(<Toolbar {...makeProps()} />)
     expect(queryByTestId('lmgb-settings-tray')).toBeNull()
-    getByTestId('lmgb-settings-button').click()
+    fireEvent.click(getByTestId('lmgb-settings-button'))
     await waitFor(() => expect(getByTestId('lmgb-settings-tray')).toBeInTheDocument())
-    getByTestId('lmgb-close-settings-button').querySelector('button')!.click()
+    fireEvent.click(getByTestId('lmgb-close-settings-button').querySelector('button')!)
     // InstUI Tray remains in DOM with transition class, check for exited state
     await waitFor(() => {
       const tray = queryByTestId('lmgb-settings-tray')

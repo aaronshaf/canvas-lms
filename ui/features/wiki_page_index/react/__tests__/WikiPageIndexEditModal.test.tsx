@@ -77,7 +77,7 @@ describe('renderWikiPageTitle', () => {
     })
 
     fireEvent.change(screen.getByTestId('page-title-input'), {target: {value: 'hello'}})
-    screen.getByTestId('save-button').click()
+    fireEvent.click(screen.getByTestId('save-button'))
 
     expect(spy).toHaveBeenCalled()
   })
@@ -107,7 +107,7 @@ describe('renderWikiPageTitle', () => {
 
     const input = screen.getByTestId('page-title-input')
     fireEvent.change(input, {target: {value: ''}})
-    screen.getByTestId('save-button').click()
+    fireEvent.click(screen.getByTestId('save-button'))
 
     await waitFor(() => {
       expect(screen.getByText('A title is required')).toBeInTheDocument()
@@ -124,7 +124,7 @@ describe('renderWikiPageTitle', () => {
 
     const input = screen.getByTestId('page-title-input')
     fireEvent.change(input, {target: {value: 'a'.repeat(TITLE_MAX_LENGTH + 1)}})
-    screen.getByTestId('save-button').click()
+    fireEvent.click(screen.getByTestId('save-button'))
 
     await waitFor(() => {
       expect(

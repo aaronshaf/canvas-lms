@@ -131,7 +131,7 @@ function failADate(whichDate) {
     // click the edit button
     // @ts-expect-error
     const editDueBtn = closest(getByText(editButtonLabel[whichDate]), 'button')
-    editDueBtn.click()
+    fireEvent.click(editDueBtn)
     // @ts-expect-error
     const dateDisplay = DateTime.toLocaleString(override[whichDate], locale, timeZone, 'LL')
     let dinput

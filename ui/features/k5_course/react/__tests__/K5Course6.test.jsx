@@ -19,7 +19,7 @@
 import {TAB_IDS} from '@canvas/k5/react/utils'
 import {OBSERVER_COOKIE_PREFIX} from '@canvas/observer-picker/ObserverGetObservee'
 import {MOCK_OBSERVED_USERS_LIST} from '@canvas/observer-picker/react/__tests__/fixtures'
-import {act, render, waitFor} from '@testing-library/react'
+import {act, fireEvent, render, waitFor} from '@testing-library/react'
 import React from 'react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -292,8 +292,12 @@ describe('K-5 Subject Course', () => {
       )
       const formattedSubmittedDate = `Submitted ${dateFormatter('2021-09-20T23:55:08Z')}`
       const select = getByRole('combobox', {name: 'Select a student to view'})
-      act(() => select.click())
-      act(() => getByText('Student 5').click())
+      act(() => {
+        fireEvent.click(select)
+      })
+      act(() => {
+        fireEvent.click(getByText('Student 5'))
+      })
       await waitFor(() => {
         ;['Assignment 3', formattedSubmittedDate, 'Assignments', '6 pts', 'Out of 10 pts'].forEach(
           label => {

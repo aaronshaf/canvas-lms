@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {IconPicker} from '..'
 
 describe('IconPicker', () => {
@@ -36,7 +36,7 @@ describe('IconPicker', () => {
     const {getByTitle} = render(<IconPicker onSelect={onSelect} />)
 
     const icon = getByTitle('glasses').closest('div[role="button"]') as HTMLButtonElement
-    icon.click()
+    fireEvent.click(icon)
 
     expect(onSelect).toHaveBeenCalledWith('glasses')
   })

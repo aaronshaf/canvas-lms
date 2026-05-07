@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen, waitFor} from '@testing-library/react'
+import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 import {RCETextBlockPopup} from '../RCETextBlockPopup'
 
 describe('RCETextBlockPopup', () => {
@@ -56,7 +56,7 @@ describe('RCETextBlockPopup', () => {
       expect(document.querySelector('.rce-wrapper')).toBeInTheDocument()
     })
     const saveButton = screen.getByText('Save')
-    saveButton.click()
+    fireEvent.click(saveButton)
     await waitFor(() => {
       expect(onSave).toHaveBeenCalledWith('<p>content</p>')
     })
@@ -68,7 +68,7 @@ describe('RCETextBlockPopup', () => {
       <RCETextBlockPopup nodeId="1" content="<p>content</p>" onClose={onClose} onSave={() => {}} />,
     )
     const cancelButton = screen.getByText('Cancel')
-    cancelButton.click()
+    fireEvent.click(cancelButton)
     expect(onClose).toHaveBeenCalled()
   })
 
@@ -84,7 +84,7 @@ describe('RCETextBlockPopup', () => {
     )
     document.addEventListener('rce-text-block-popup-close', handleClose)
     const cancelButton = screen.getByText('Cancel')
-    cancelButton.click()
+    fireEvent.click(cancelButton)
     expect(handleClose).toHaveBeenCalled()
   })
 
@@ -106,7 +106,7 @@ describe('RCETextBlockPopup', () => {
       .getByTestId('rce-fullscreen-btn')
       .closest('button') as HTMLButtonElement
     expect(fullscreenButton.textContent).toEqual('Fullscreen')
-    fullscreenButton.click()
+    fireEvent.click(fullscreenButton)
     await waitFor(() => {
       expect(fullscreenButton.textContent).toEqual('Exit Fullscreen')
     })

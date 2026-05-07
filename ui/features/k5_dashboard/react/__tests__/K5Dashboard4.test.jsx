@@ -24,7 +24,7 @@ import {
   MOCK_EVENTS,
 } from '@canvas/k5/react/__tests__/fixtures'
 import {resetPlanner} from '@canvas/planner'
-import {act, render as testingLibraryRender, waitFor} from '@testing-library/react'
+import {act, fireEvent, render as testingLibraryRender, waitFor} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import React from 'react'
@@ -250,7 +250,9 @@ describe('K-5 Dashboard Important Dates', () => {
 
     // Only return assignments associated with course_3 on next call
     assignmentResponse = MOCK_ASSIGNMENTS.slice(1, 3)
-    act(() => getByTestId('filter-important-dates-button').click())
+    act(() => {
+      fireEvent.click(getByTestId('filter-important-dates-button'))
+    })
 
     const subjectCalendarEconomics = getByLabelText('Economics 101', {selector: 'input'})
     expect(subjectCalendarEconomics).toBeChecked()
@@ -258,9 +260,15 @@ describe('K-5 Dashboard Important Dates', () => {
     const subjectCalendarMaths = getByLabelText('The Maths', {selector: 'input'})
     expect(subjectCalendarMaths).not.toBeChecked()
 
-    act(() => subjectCalendarEconomics.click())
-    act(() => subjectCalendarMaths.click())
-    act(() => getByText('Submit').click())
+    act(() => {
+      fireEvent.click(subjectCalendarEconomics)
+    })
+    act(() => {
+      fireEvent.click(subjectCalendarMaths)
+    })
+    act(() => {
+      fireEvent.click(getByText('Submit'))
+    })
     await waitFor(() => {
       expect(queryByText('Algebra 2')).not.toBeInTheDocument()
       expect(getByText('History Discussion')).toBeInTheDocument()

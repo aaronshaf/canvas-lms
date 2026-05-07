@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import Footer, {type FooterProps} from '../Footer'
 
 describe('Footer', () => {
@@ -46,19 +46,19 @@ describe('Footer', () => {
 
   it('calls onDismiss when cancel button is clicked', () => {
     const {getByTestId} = renderComponent()
-    getByTestId('differentiated_modules_cancel_button').click()
+    fireEvent.click(getByTestId('differentiated_modules_cancel_button'))
     expect(props.onDismiss).toHaveBeenCalled()
   })
 
   it('calls onUpdate when update button is clicked', () => {
     const {getByTestId} = renderComponent()
-    getByTestId('differentiated_modules_save_button').click()
+    fireEvent.click(getByTestId('differentiated_modules_save_button'))
     expect(props.onUpdate).toHaveBeenCalled()
   })
 
   it('calls onUpdate when in-error', () => {
     const {getByTestId} = renderComponent({hasErrors: true})
-    getByTestId('differentiated_modules_save_button').click()
+    fireEvent.click(getByTestId('differentiated_modules_save_button'))
     expect(props.onUpdate).toHaveBeenCalled()
   })
 

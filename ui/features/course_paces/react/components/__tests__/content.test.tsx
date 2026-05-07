@@ -186,7 +186,9 @@ describe('PaceContextsContent', () => {
       const searchInput = getByPlaceholderText('Search for sections')
       const searchButton = getByText('Search', {selector: 'button span'})
       fireEvent.change(searchInput, {target: {value: 'A'}})
-      act(() => searchButton.click())
+      act(() => {
+        fireEvent.click(searchButton)
+      })
       const noResults = await findAllByText('No results found')
       expect(noResults).toHaveLength(1) // visible no results label only; SR alert verified via mock
       expect(vi.mocked(showFlashAlert)).toHaveBeenCalledWith(
@@ -290,7 +292,9 @@ describe('PaceContextsContent', () => {
       it('sorts the table in ascending order by default', async () => {
         const {getByRole} = renderConnected(<PaceContent />)
         const studentsTab = getByRole('tab', {name: 'Students'})
-        act(() => studentsTab.click())
+        act(() => {
+          fireEvent.click(studentsTab)
+        })
         expect(fetchMock.lastUrl()).toMatch(STUDENT_CONTEXTS_API)
       })
 
@@ -401,7 +405,9 @@ describe('PaceContextsContent', () => {
         const {findByTestId} = renderConnected(<PaceContent />, state)
 
         const selectAllPacesCheckbox = await findByTestId(`select-all-paces-checkbox`)
-        act(() => selectAllPacesCheckbox.click())
+        act(() => {
+          fireEvent.click(selectAllPacesCheckbox)
+        })
 
         const downloadButton = await findByTestId('download-selected-button')
         expect(downloadButton).toBeInTheDocument()

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, act} from '@testing-library/react'
+import {render, act, fireEvent} from '@testing-library/react'
 
 import ContextSelector from '../ContextSelector'
 
@@ -73,24 +73,32 @@ describe('Other Calendars modal ', () => {
     expect(button).toBeInTheDocument()
     const dropdown = getByTestId('context-selector-dropdown')
     expect(dropdown.classList.contains('hidden')).toBe(true)
-    act(() => button.click())
+    act(() => {
+      fireEvent.click(button)
+    })
     expect(dropdown.classList.contains('hidden')).toBe(false)
   })
 
   it('renders courses in the dropdown', () => {
     const {getByText, getByTestId} = render(<ContextSelector {...DEFAULT_PROPS} />)
-    act(() => getByTestId('select-calendars-button').click())
+    act(() => {
+      fireEvent.click(getByTestId('select-calendars-button'))
+    })
     expect(getByText('testcourse')).toBeInTheDocument()
   })
 
   it('shows sections in the dropdown when expanded', () => {
     const {getByText, getByTestId} = render(<ContextSelector {...DEFAULT_PROPS} />)
-    act(() => getByTestId('select-calendars-button').click())
+    act(() => {
+      fireEvent.click(getByTestId('select-calendars-button'))
+    })
     const testcourse = getByTestId('expand-course-1')
     expect(testcourse).toBeInTheDocument()
     const testsection = getByText('testsection').closest(`div#course_${COURSE_1.id}_sections`)
     expect(testsection.classList.contains('hiddenSection')).toBe(true)
-    act(() => testcourse.click())
+    act(() => {
+      fireEvent.click(testcourse)
+    })
     expect(testsection.classList.contains('hiddenSection')).toBe(false)
   })
 
@@ -99,8 +107,12 @@ describe('Other Calendars modal ', () => {
     const {getByText, getByTestId, rerender} = render(
       <ContextSelector {...DEFAULT_PROPS} setSelectedContexts={setSelectedContexts} />,
     )
-    act(() => getByTestId('select-calendars-button').click())
-    act(() => getByText('testcourse').click())
+    act(() => {
+      fireEvent.click(getByTestId('select-calendars-button'))
+    })
+    act(() => {
+      fireEvent.click(getByText('testcourse'))
+    })
     expect(setSelectedContexts).toHaveBeenCalledWith(new Set(['course_1']))
     rerender(
       <ContextSelector
@@ -109,7 +121,9 @@ describe('Other Calendars modal ', () => {
         selectedContexts={new Set(['course_1'])}
       />,
     )
-    act(() => getByText('testcourse2').click())
+    act(() => {
+      fireEvent.click(getByText('testcourse2'))
+    })
     expect(setSelectedContexts).toHaveBeenCalledWith(new Set(['course_1', 'course_2']))
   })
 
@@ -123,8 +137,12 @@ describe('Other Calendars modal ', () => {
         setSelectedSubContexts={setSelectedSubContexts}
       />,
     )
-    act(() => getByTestId('select-calendars-button').click())
-    act(() => getByText('testsection').click())
+    act(() => {
+      fireEvent.click(getByTestId('select-calendars-button'))
+    })
+    act(() => {
+      fireEvent.click(getByText('testsection'))
+    })
     expect(setSelectedContexts).toHaveBeenCalledWith(new Set(['course_1']))
     expect(setSelectedSubContexts).toHaveBeenCalledWith(new Set(['course_section_1']))
   })

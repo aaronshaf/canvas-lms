@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -185,7 +185,7 @@ describe('ContextModulesPublishIcon', () => {
       <ContextModulesPublishIcon {...defaultProps} published={true} />,
     )
     const menuButton = getByRole('button', {hidden: true})
-    menuButton.click()
+    fireEvent.click(menuButton)
     const publishButton = await findByText('Unpublish module and all items')
     userEvent.click(publishButton)
 

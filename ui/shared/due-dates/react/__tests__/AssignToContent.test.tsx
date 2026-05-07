@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, within, screen, waitFor} from '@testing-library/react'
+import {render, within, screen, waitFor, fireEvent} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import AssignToContent from '../AssignToContent'
 import AssignmentOverrideCollection from '@canvas/assignments/backbone/collections/AssignmentOverrideCollection'
@@ -342,10 +342,10 @@ describe('AssignToContent', () => {
       const onSyncMock = vi.fn()
       const {getByTestId} = setUp({onSync: onSyncMock})
 
-      getByTestId('important_dates').click()
+      fireEvent.click(getByTestId('important_dates'))
       expect(onSyncMock).toHaveBeenCalledWith(undefined, true)
 
-      getByTestId('important_dates').click()
+      fireEvent.click(getByTestId('important_dates'))
       expect(onSyncMock).toHaveBeenCalledWith(undefined, false)
     })
 

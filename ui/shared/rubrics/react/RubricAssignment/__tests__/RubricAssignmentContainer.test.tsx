@@ -154,7 +154,7 @@ describe('RubricAssignmentContainer Tests', () => {
 
     it('should render the create modal when the create button is clicked', async () => {
       const {getByTestId, findByTestId} = renderComponent()
-      getByTestId('create-assignment-rubric-button').click()
+      fireEvent.click(getByTestId('create-assignment-rubric-button'))
       expect(await findByTestId('rubric-assignment-create-modal')).toHaveTextContent(
         'Create Rubric',
       )

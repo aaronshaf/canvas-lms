@@ -182,7 +182,7 @@ describe('AnnotatedDocumentSelector', () => {
       props.onRemove = vi.fn()
       const {queryByText} = render(<AnnotatedDocumentSelector {...props} />)
       const button = queryByText('Remove selected attachment')
-      button.click()
+      fireEvent.click(button)
       expect(props.onRemove).toHaveBeenCalledTimes(1)
     })
   })

@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, render} from '@testing-library/react'
+import {act, render, fireEvent} from '@testing-library/react'
 import ContextModulesPublishModal from '../ContextModulesPublishModal'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -47,9 +47,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   // Default handler for progress API
-  server.use(
-    http.get('/api/v1/progress/:progressId', () => HttpResponse.json({completed: []})),
-  )
+  server.use(http.get('/api/v1/progress/:progressId', () => HttpResponse.json({completed: []})))
 })
 
 afterEach(() => {
@@ -100,7 +98,9 @@ describe('ContextModulesPublishModal', () => {
       <ContextModulesPublishModal {...defaultProps} onPublish={onPublish} />,
     )
     const publishButton = getByText('Continue')
-    act(() => publishButton.click())
+    act(() => {
+      fireEvent.click(publishButton)
+    })
     expect(onPublish).toHaveBeenCalled()
   })
 
@@ -110,7 +110,9 @@ describe('ContextModulesPublishModal', () => {
       <ContextModulesPublishModal {...defaultProps} onDismiss={onDismiss} />,
     )
     const closeButton = getByTestId('close-button')
-    act(() => closeButton.click())
+    act(() => {
+      fireEvent.click(closeButton)
+    })
     expect(onDismiss).toHaveBeenCalled()
   })
 

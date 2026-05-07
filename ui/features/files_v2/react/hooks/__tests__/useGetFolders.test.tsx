@@ -95,11 +95,13 @@ describe('useGetFolders', () => {
     const {result} = renderHook(() => useGetFolders(), {
       wrapper,
     })
-    await waitFor(() => expect(result.current.data).toHaveLength(1))
-    expect(result.current.data?.[0]).toMatchObject({
-      id: '2',
-      context_id: '1',
-      context_type: 'user',
+    await waitFor(() => {
+      expect(result.current.data).toHaveLength(1)
+      expect(result.current.data?.[0]).toMatchObject({
+        id: '2',
+        context_id: '1',
+        context_type: 'user',
+      })
     })
 
     expect(requestMade).toBe(false)

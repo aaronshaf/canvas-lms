@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, render, waitFor, waitForElementToBeRemoved} from '@testing-library/react'
+import {act, fireEvent, render, waitFor, waitForElementToBeRemoved} from '@testing-library/react'
 import moment from 'moment-timezone'
 import {ignoreTodo} from '@canvas/k5/react/utils'
 import {destroyContainer, showFlashError} from '@instructure/platform-alerts'
@@ -184,7 +184,9 @@ describe('Todo', () => {
     const ignoreButton = getByRole('button', {name: 'Ignore Plant a plant until new submission'})
     expect(ignoreButton).toBeInTheDocument()
 
-    act(() => ignoreButton.click())
+    act(() => {
+      fireEvent.click(ignoreButton)
+    })
 
     return waitForElementToBeRemoved(() => queryByText('Grade Plant a plant'))
   })
@@ -195,7 +197,7 @@ describe('Todo', () => {
     const {getByRole} = render(<Todo {...defaultProps} />)
     const ignoreButton = getByRole('button', {name: 'Ignore Plant a plant until new submission'})
 
-    ignoreButton.click()
+    fireEvent.click(ignoreButton)
     await waitFor(() => {
       expect(showFlashError).toHaveBeenCalledWith('Failed to ignore assignment')
     })

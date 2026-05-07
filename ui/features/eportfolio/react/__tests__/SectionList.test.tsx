@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import SectionList from '../SectionList'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
 import {queryClient} from '@instructure/platform-query'
@@ -73,7 +73,7 @@ describe('SectionList', () => {
       </MockedQueryClientProvider>,
     )
     const addSection = await findByTestId('add-section-button')
-    addSection.click()
+    fireEvent.click(addSection)
     expect(await findByTestId('add-section-modal')).toBeInTheDocument()
   })
 
@@ -84,9 +84,9 @@ describe('SectionList', () => {
       </MockedQueryClientProvider>,
     )
     const menuButton = await findByTestId('1-menu')
-    menuButton.click()
+    fireEvent.click(menuButton)
     const renameOption = await findByTestId('rename-menu-option')
-    renameOption.click()
+    fireEvent.click(renameOption)
     expect(await findByTestId('rename-section-modal')).toBeInTheDocument()
   })
 
@@ -97,9 +97,9 @@ describe('SectionList', () => {
       </MockedQueryClientProvider>,
     )
     const menuButton = await findByTestId('2-menu')
-    menuButton.click()
+    fireEvent.click(menuButton)
     const deleteOption = await findByTestId('delete-menu-option')
-    deleteOption.click()
+    fireEvent.click(deleteOption)
     expect(await findByTestId('delete-section-modal')).toBeInTheDocument()
   })
 
@@ -110,9 +110,9 @@ describe('SectionList', () => {
       </MockedQueryClientProvider>,
     )
     const menuButton = await findByTestId('1-menu')
-    menuButton.click()
+    fireEvent.click(menuButton)
     const moveOption = await findByTestId('move-menu-option')
-    moveOption.click()
+    fireEvent.click(moveOption)
     expect(await findByTestId('move-section-modal')).toBeInTheDocument()
   })
 

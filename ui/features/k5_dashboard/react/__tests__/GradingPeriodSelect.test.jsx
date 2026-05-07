@@ -18,7 +18,7 @@
  */
 
 import React from 'react'
-import {act, render} from '@testing-library/react'
+import {act, fireEvent, render} from '@testing-library/react'
 import GradingPeriodSelect from '../GradingPeriodSelect'
 import {GRADING_PERIODS} from '@canvas/k5/react/__tests__/fixtures'
 
@@ -45,7 +45,9 @@ describe('GradingPeriodSelect', () => {
 
   it('Renders an option for every active grading period plus current grading periods', () => {
     const {getByRole, getByText, queryByText} = render(<GradingPeriodSelect {...defaultProps} />)
-    act(() => getByRole('combobox', {name: 'Select Grading Period'}).click())
+    act(() => {
+      fireEvent.click(getByRole('combobox', {name: 'Select Grading Period'}))
+    })
 
     expect(getByText('Current Grading Period')).toBeInTheDocument()
     expect(getByText('Spring 2020')).toBeInTheDocument()
@@ -62,8 +64,12 @@ describe('GradingPeriodSelect', () => {
         handleSelectGradingPeriod={handleSelectGradingPeriod}
       />,
     )
-    act(() => getByRole('combobox', {name: 'Select Grading Period'}).click())
-    act(() => getByText('Fall 2020').click())
+    act(() => {
+      fireEvent.click(getByRole('combobox', {name: 'Select Grading Period'}))
+    })
+    act(() => {
+      fireEvent.click(getByText('Fall 2020'))
+    })
 
     expect(handleSelectGradingPeriod).toHaveBeenCalledWith(
       expect.anything(),

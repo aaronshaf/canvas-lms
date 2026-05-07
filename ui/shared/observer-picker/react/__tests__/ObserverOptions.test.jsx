@@ -53,7 +53,9 @@ describe('ObserverOptions', () => {
     const select = getByRole('combobox', {name: 'Select a student to view'})
     expect(select).toBeInTheDocument()
     expect(select.value).toBe('Zelda')
-    act(() => select.click())
+    act(() => {
+      fireEvent.click(select)
+    })
 
     const student2 = props.observedUsersList[2]
     expect(getByText(student2.name)).toBeInTheDocument()
@@ -81,8 +83,12 @@ describe('ObserverOptions', () => {
       <ObserverOptions {...getProps({handleChangeObservedUser})} />,
     )
     const select = getByRole('combobox', {name: 'Select a student to view'})
-    act(() => select.click())
-    act(() => getByText('Student 2').click())
+    act(() => {
+      fireEvent.click(select)
+    })
+    act(() => {
+      fireEvent.click(getByText('Student 2'))
+    })
     expect(handleChangeObservedUser).toHaveBeenCalledWith('2')
     expect(getCookie(observedUserCookieName)).toBe('2')
   })
@@ -119,7 +125,9 @@ describe('ObserverOptions', () => {
     const {getByRole, getByText} = render(<ObserverOptions {...getProps()} canAddObservee={true} />)
     const select = getByRole('combobox', {name: 'Select a student to view'})
     expect(select).toBeInTheDocument()
-    act(() => select.click())
+    act(() => {
+      fireEvent.click(select)
+    })
     expect(getByText('Add Student')).toBeInTheDocument()
   })
 
@@ -129,7 +137,9 @@ describe('ObserverOptions', () => {
     )
     const select = getByRole('combobox', {name: 'Select a student to view'})
     expect(select).toBeInTheDocument()
-    act(() => select.click())
+    act(() => {
+      fireEvent.click(select)
+    })
     expect(queryByText('Add Student')).not.toBeInTheDocument()
   })
 
@@ -137,21 +147,31 @@ describe('ObserverOptions', () => {
     const {getByRole, getByText} = render(<ObserverOptions {...getProps()} canAddObservee={true} />)
     const select = getByRole('combobox', {name: 'Select a student to view'})
     expect(select).toBeInTheDocument()
-    act(() => select.click())
-    act(() => getByText('Add Student').click())
+    act(() => {
+      fireEvent.click(select)
+    })
+    act(() => {
+      fireEvent.click(getByText('Add Student'))
+    })
     expect(getByText('Pair with student')).toBeInTheDocument()
   })
 
   it('highlights only the currently selected student', () => {
     const {getByRole} = render(<ObserverOptions {...getProps()} />)
     const select = getByRole('combobox', {name: 'Select a student to view'})
-    act(() => select.click())
+    act(() => {
+      fireEvent.click(select)
+    })
     expect(getByRole('option', {name: 'Zelda', selected: true})).toBeInTheDocument()
     expect(getByRole('option', {name: 'Student 2', selected: false})).toBeInTheDocument()
     const student4 = getByRole('option', {name: 'Student 4', selected: false})
     expect(student4).toBeInTheDocument()
-    act(() => student4.click())
-    act(() => select.click())
+    act(() => {
+      fireEvent.click(student4)
+    })
+    act(() => {
+      fireEvent.click(select)
+    })
     expect(getByRole('option', {name: 'Student 4', selected: true})).toBeInTheDocument()
     expect(getByRole('option', {name: 'Zelda', selected: false})).toBeInTheDocument()
     expect(getByRole('option', {name: 'Student 2', selected: false})).toBeInTheDocument()

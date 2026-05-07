@@ -18,7 +18,7 @@
 
 import React from 'react'
 import CoursePublishButton from '../CoursePublishButton'
-import {render, waitFor} from '@testing-library/react'
+import {render, waitFor, fireEvent} from '@testing-library/react'
 
 describe('CoursePublishButton', () => {
   const getProps = (props: object) => {
@@ -42,14 +42,16 @@ describe('CoursePublishButton', () => {
 
   it('opens menu and displays publish/unpublish buttons when button is clicked', async () => {
     const {getByText, findByText} = render(<CoursePublishButton {...getProps({})} />)
-    getByText('Unpublished').click()
+    fireEvent.click(getByText('Unpublished'))
     expect(await findByText('Publish')).toBeInTheDocument()
     expect(await findByText('Unpublish')).toBeInTheDocument()
   })
 
   it('unpublish option is disabled if course is unpublished', async () => {
-    const {getByText, findByText, findByLabelText} = render(<CoursePublishButton {...getProps({})} />)
-    getByText('Unpublished').click()
+    const {getByText, findByText, findByLabelText} = render(
+      <CoursePublishButton {...getProps({})} />,
+    )
+    fireEvent.click(getByText('Unpublished'))
     expect((await findByLabelText('Unpublish')).getAttribute('aria-disabled')).toBeTruthy()
     expect((await findByText('Publish')).getAttribute('aria-disabled')).toBeNull()
   })
@@ -58,7 +60,7 @@ describe('CoursePublishButton', () => {
     const {getByText, findByText, findByLabelText} = render(
       <CoursePublishButton {...getProps({isPublished: true})} />,
     )
-    getByText('Published').click()
+    fireEvent.click(getByText('Published'))
     expect((await findByLabelText('Publish')).getAttribute('aria-disabled')).toBeTruthy()
     expect((await findByText('Unpublish')).getAttribute('aria-disabled')).toBeNull()
   })

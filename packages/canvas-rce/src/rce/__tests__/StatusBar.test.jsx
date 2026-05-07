@@ -64,7 +64,7 @@ describe('RCE StatusBar', () => {
     const onkbcallback = jest.fn()
     const {getByText} = renderStatusBar({onKBShortcutModalOpen: onkbcallback})
     const kbBtn = getByText('View keyboard shortcuts')
-    kbBtn.click()
+    fireEvent.click(kbBtn)
     expect(onkbcallback).toHaveBeenCalled()
   })
 
@@ -72,7 +72,7 @@ describe('RCE StatusBar', () => {
     const onWordcountCallback = jest.fn()
     const {getByTestId} = renderStatusBar({onWordcountModalOpen: onWordcountCallback})
     const wordCountButton = getByTestId('status-bar-word-count').firstChild
-    wordCountButton.click()
+    fireEvent.click(wordCountButton)
     expect(onWordcountCallback).toHaveBeenCalled()
   })
 
@@ -358,7 +358,7 @@ describe('RCE StatusBar', () => {
     const onA11yCallback = jest.fn()
     const {getByText} = renderStatusBar({onA11yChecker: onA11yCallback})
     const a11yButton = getByText('Accessibility Checker')
-    a11yButton.click()
+    fireEvent.click(a11yButton)
     expect(onA11yCallback).toHaveBeenCalled()
   })
 
@@ -448,7 +448,7 @@ describe('RCE StatusBar', () => {
         })
 
         const increaseBtn = getByTestId('rce-resize-increase-btn')
-        increaseBtn.click()
+        fireEvent.click(increaseBtn)
         expect(onResize).toHaveBeenCalled()
       })
 
@@ -461,7 +461,7 @@ describe('RCE StatusBar', () => {
         })
 
         const increaseBtn = getByTestId('rce-resize-decrease-btn')
-        increaseBtn.click()
+        fireEvent.click(increaseBtn)
         expect(onResize).toHaveBeenCalled()
       })
 

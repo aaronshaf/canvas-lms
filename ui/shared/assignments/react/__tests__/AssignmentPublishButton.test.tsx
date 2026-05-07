@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {MockedProvider} from '@apollo/client/testing'
-import {render, screen} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 import {mockAssignment, mockSetWorkflowSuccess, mockSetWorkflowFailure} from './test-utils'
 import AssignmentPublishButton from '../AssignmentPublishButton'
 
@@ -58,18 +58,18 @@ describe('AssignmentPublishButton', () => {
 
   it('renders success flash alert', async () => {
     const {getByTestId, findByTestId} = setUp()
-    getByTestId('assignment-publish-menu').click()
+    fireEvent.click(getByTestId('assignment-publish-menu'))
     const unpublishOption = await findByTestId('unpublish-option')
-    unpublishOption.click()
+    fireEvent.click(unpublishOption)
     const alertMessages = await screen.findAllByText('This assignment has been unpublished.')
     expect(alertMessages.length).toBeGreaterThan(0)
   })
 
   it('renders failure flash alert', async () => {
     const {getByTestId, findByTestId} = setUp({}, false)
-    getByTestId('assignment-publish-menu').click()
+    fireEvent.click(getByTestId('assignment-publish-menu'))
     const unpublishOption = await findByTestId('unpublish-option')
-    unpublishOption.click()
+    fireEvent.click(unpublishOption)
     const alertMessages = await screen.findAllByText('This assignment has failed to unpublish.')
     expect(alertMessages.length).toBeGreaterThan(0)
   })

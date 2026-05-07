@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {fireEvent} from '@testing-library/react'
 import {Assignment} from '../../../../graphql/Assignment'
 import {DiscussionTopic} from '../../../../graphql/DiscussionTopic'
 import {REPLY_TO_ENTRY, REPLY_TO_TOPIC} from '../../../util/constants'
@@ -90,7 +91,7 @@ describe('DiscussionTopicForm Checkpoints SIS - Missing Dates Validation', () =>
     titleInput.dispatchEvent(new Event('change', {bubbles: true}))
 
     const submitButton = queryByRole('button', {name: /save/i})
-    submitButton.click()
+    fireEvent.click(submitButton)
 
     expect(mockOnSubmit).not.toHaveBeenCalled()
   }, 30000)

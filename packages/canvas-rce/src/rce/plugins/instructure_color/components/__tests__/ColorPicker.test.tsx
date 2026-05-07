@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, act} from '@testing-library/react'
+import {render, act, fireEvent} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {ColorPicker} from '../ColorPicker'
 
@@ -80,7 +80,7 @@ describe('ColorPicker', () => {
     const {getAllByRole, getByTestId} = renderComponent({tabs})
 
     const radioButtons = getAllByRole('radio')
-    radioButtons[1].click()
+    fireEvent.click(radioButtons[1])
     expect(getByTestId('color-mixer')).toHaveAttribute('aria-disabled', 'false')
     expect(getByTestId('color-preset').querySelectorAll('[disabled]')).toHaveLength(0)
   })
@@ -98,7 +98,7 @@ describe('ColorPicker', () => {
     const contrastSummary = getByTestId('color-contrast-summary')
     expect(contrastSummary.textContent).toContain('PASS')
     act(() => {
-      contrastSummary.click()
+      fireEvent.click(contrastSummary)
     })
     const constrast = getByTestId('color-contrast')
     expect(constrast.textContent).toContain('5.25:1')
@@ -116,7 +116,7 @@ describe('ColorPicker', () => {
     const contrastSummary = getByTestId('color-contrast-summary')
     expect(contrastSummary.textContent).toContain('PASS')
     act(() => {
-      contrastSummary.click()
+      fireEvent.click(contrastSummary)
     })
     const constrast = getByTestId('color-contrast')
     expect(constrast.textContent).toContain('21:1')
@@ -140,7 +140,7 @@ describe('ColorPicker', () => {
     const onCancel = jest.fn()
     const {getByText} = renderComponent({onCancel})
 
-    getByText('Cancel').click()
+    fireEvent.click(getByText('Cancel'))
     expect(onCancel).toHaveBeenCalled()
   })
 
@@ -161,7 +161,7 @@ describe('ColorPicker', () => {
     await user.keyboard('{Control>}a{/Control}40')
     await user.click(rgb[2])
     await user.keyboard('{Control>}a{/Control}40')
-    getByText('Apply').click()
+    fireEvent.click(getByText('Apply'))
 
     expect(onSave).toHaveBeenCalledWith({
       fgcolor: '#b82828',

@@ -350,8 +350,9 @@ describe('GradebookGrid CompleteIncompleteGradeInput', () => {
 
   describe('Complete/Incomplete Menu Items', () => {
     test('includes "Complete", "Incomplete", "Ungraded", and "Excused"', async () => {
+      const user = userEvent.setup()
       mountComponent()
-      await wrapper.getByRole('button').click()
+      await user.click(wrapper.getByRole('button'))
       await waitFor(() => expect(wrapper.getByText('Ungraded')).toBeInTheDocument())
       expect(wrapper.getByText('Excused')).toBeInTheDocument()
       expect(wrapper.getByText('Complete')).toBeInTheDocument()

@@ -148,7 +148,7 @@ describe('RCE "Media" Plugin > MediaPanel', () => {
     })
 
     const loadMoreBtn = getByText('Load More')
-    loadMoreBtn.click()
+    fireEvent.click(loadMoreBtn)
     expect(fetchNextMedia).toHaveBeenCalled()
   })
 

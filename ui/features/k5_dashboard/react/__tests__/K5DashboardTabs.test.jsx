@@ -20,7 +20,7 @@
 import React from 'react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
-import {act, render as testingLibraryRender, waitFor} from '@testing-library/react'
+import {act, fireEvent, render as testingLibraryRender, waitFor} from '@testing-library/react'
 import K5Dashboard from '../K5Dashboard'
 import {defaultK5DashboardProps as defaultProps} from './mocks'
 import {MockedQueryProvider} from '@canvas/test-utils/query'
@@ -102,7 +102,9 @@ describe('K5Dashboard Tabs', () => {
     it('and update the current tab as tabs are changed', async () => {
       render(<K5Dashboard {...defaultProps} />)
 
-      act(() => findTabByName('Grades', {selected: false}).click())
+      act(() => {
+        fireEvent.click(findTabByName('Grades', {selected: false}))
+      })
       await waitFor(
         () => {
           expect(findTabByName('Grades', {selected: true})).toBeInTheDocument()
@@ -110,7 +112,9 @@ describe('K5Dashboard Tabs', () => {
         {timeout: 10000},
       )
 
-      act(() => findTabByName('Resources', {selected: false}).click())
+      act(() => {
+        fireEvent.click(findTabByName('Resources', {selected: false}))
+      })
       await waitFor(() => expect(findTabByName('Grades', {selected: false})).toBeInTheDocument(), {
         timeout: 10000,
       })

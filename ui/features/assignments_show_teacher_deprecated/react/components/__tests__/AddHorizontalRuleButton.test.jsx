@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import AddHorizontalRuleButton from '../AddHorizontalRuleButton'
 
 it('renders', () => {
@@ -33,6 +33,6 @@ it('calls onClick when clicked', () => {
   const {getByText} = render(<AddHorizontalRuleButton onClick={onclick} label="click me" />)
 
   const btn = getByText('click me')
-  btn.click()
+  fireEvent.click(btn)
   expect(onclick).toHaveBeenCalled()
 })

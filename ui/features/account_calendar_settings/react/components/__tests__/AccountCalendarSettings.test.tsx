@@ -103,9 +103,13 @@ describe('AccountCalendarSettings', () => {
     const universityCheckbox = (await findAllByTestId('account-calendar-checkbox-University'))[0]
     const applyButton = getByTestId('save-button')
     expect(applyButton).toBeDisabled()
-    act(() => universityCheckbox.click())
+    act(() => {
+      fireEvent.click(universityCheckbox)
+    })
     expect(applyButton).toBeEnabled()
-    act(() => applyButton.click())
+    act(() => {
+      fireEvent.click(applyButton)
+    })
     await waitFor(() => expect(getByText('Loading accounts')).toBeInTheDocument())
     expect((await findAllByText('Updated 1 account'))[0]).toBeInTheDocument()
   })
@@ -152,10 +156,18 @@ describe('AccountCalendarSettings', () => {
       )
       expect(await findByText('Manually-Created Courses (2)')).toBeInTheDocument()
 
-      act(() => getAllByTestId('subscription-dropdown')[0].click())
-      act(() => getByText('Auto subscribe').click())
-      act(() => getByTestId('save-button').click())
-      act(() => getByTestId('confirm-button').click())
+      act(() => {
+        fireEvent.click(getAllByTestId('subscription-dropdown')[0])
+      })
+      act(() => {
+        fireEvent.click(getByText('Auto subscribe'))
+      })
+      act(() => {
+        fireEvent.click(getByTestId('save-button'))
+      })
+      act(() => {
+        fireEvent.click(getByTestId('confirm-button'))
+      })
       await waitFor(() => {
         expect(lastPutRequestBody).toEqual([{id: RESPONSE_ACCOUNT_5[0].id, auto_subscribe: true}])
       })
@@ -167,9 +179,15 @@ describe('AccountCalendarSettings', () => {
       )
       expect(await findByText('Manually-Created Courses (2)')).toBeInTheDocument()
 
-      act(() => getAllByTestId('subscription-dropdown')[0].click())
-      act(() => getByText('Auto subscribe').click())
-      act(() => getByTestId('save-button').click())
+      act(() => {
+        fireEvent.click(getAllByTestId('subscription-dropdown')[0])
+      })
+      act(() => {
+        fireEvent.click(getByText('Auto subscribe'))
+      })
+      act(() => {
+        fireEvent.click(getByTestId('save-button'))
+      })
       const modalTitle = getByRole('heading', {name: 'Apply Changes'})
       expect(modalTitle).toBeInTheDocument()
     })
@@ -195,10 +213,16 @@ describe('AccountCalendarSettings', () => {
       const applyButton = getByTestId('save-button')
 
       expect(applyButton).toBeDisabled()
-      act(() => getByTestId('subscription-dropdown').click())
-      act(() => getByText('Manual subscribe').click())
+      act(() => {
+        fireEvent.click(getByTestId('subscription-dropdown'))
+      })
+      act(() => {
+        fireEvent.click(getByText('Manual subscribe'))
+      })
       expect(applyButton).toBeEnabled()
-      act(() => applyButton.click())
+      act(() => {
+        fireEvent.click(applyButton)
+      })
       const modalTitle = queryByRole('heading', {name: 'Apply Changes'})
       expect(modalTitle).not.toBeInTheDocument()
     })
@@ -214,9 +238,13 @@ describe('AccountCalendarSettings', () => {
       })
       const applyButton = getByTestId('save-button')
       expect(applyButton).toBeDisabled()
-      act(() => visibilityCheckbox.click())
+      act(() => {
+        fireEvent.click(visibilityCheckbox)
+      })
       expect(applyButton).toBeEnabled()
-      act(() => applyButton.click())
+      act(() => {
+        fireEvent.click(applyButton)
+      })
       const modalTitle = queryByRole('heading', {name: 'Apply Changes'})
       expect(modalTitle).not.toBeInTheDocument()
     })
@@ -261,14 +289,18 @@ describe('AccountCalendarSettings', () => {
         const {findByText, getByRole} = render(<AccountCalendarSettings {...defaultProps} />)
         expect(await findByText('University (5)')).toBeInTheDocument()
 
-        act(() => getUniversityCheckbox().click())
+        act(() => {
+          fireEvent.click(getUniversityCheckbox())
+        })
 
         const event = new Event('beforeunload')
         event.preventDefault = vi.fn()
         window.dispatchEvent(event)
         expect(event.preventDefault).toHaveBeenCalled()
 
-        act(() => getUniversityCheckbox().click())
+        act(() => {
+          fireEvent.click(getUniversityCheckbox())
+        })
 
         event.preventDefault = vi.fn()
         window.dispatchEvent(event)
@@ -281,16 +313,24 @@ describe('AccountCalendarSettings', () => {
         )
         expect(await findByText('University (5)')).toBeInTheDocument()
 
-        act(() => getAllByTestId('subscription-dropdown')[0].click())
-        act(() => getByText('Auto subscribe').click())
+        act(() => {
+          fireEvent.click(getAllByTestId('subscription-dropdown')[0])
+        })
+        act(() => {
+          fireEvent.click(getByText('Auto subscribe'))
+        })
 
         const event = new Event('beforeunload')
         event.preventDefault = vi.fn()
         window.dispatchEvent(event)
         expect(event.preventDefault).toHaveBeenCalled()
 
-        act(() => getAllByTestId('subscription-dropdown')[0].click())
-        act(() => getByText('Manual subscribe').click())
+        act(() => {
+          fireEvent.click(getAllByTestId('subscription-dropdown')[0])
+        })
+        act(() => {
+          fireEvent.click(getByText('Manual subscribe'))
+        })
 
         event.preventDefault = vi.fn()
         window.dispatchEvent(event)

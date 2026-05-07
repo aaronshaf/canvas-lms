@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import PortfolioSettingsModal from '../PortfolioSettingsModal'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -76,7 +76,7 @@ describe('PortfolioSettingsModal', () => {
     )
     const textInput = getByTestId('portfolio-name-field')
     const saveButton = getByText('Save')
-    saveButton.click()
+    fireEvent.click(saveButton)
     await waitFor(() => {
       expect(textInput).toHaveFocus()
       expect(getByText('Name is required.')).toBeInTheDocument()
@@ -92,7 +92,7 @@ describe('PortfolioSettingsModal', () => {
       />,
     )
     const saveButton = getByText('Save')
-    saveButton.click()
+    fireEvent.click(saveButton)
     await waitFor(() => expect(putCalled).toBe(true))
     await waitFor(() => expect(mockConfirm).toHaveBeenCalled())
   })
@@ -106,7 +106,7 @@ describe('PortfolioSettingsModal', () => {
       />,
     )
     const cancelButton = getByText('Cancel')
-    cancelButton.click()
+    fireEvent.click(cancelButton)
     await waitFor(() => expect(putCalled).toBe(false))
     await waitFor(() => expect(mockCancel).toHaveBeenCalled())
   })

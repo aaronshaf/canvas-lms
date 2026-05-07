@@ -126,10 +126,11 @@ describe('useGetPaginatedFiles', () => {
       () => useGetPaginatedFiles({folder: mockFolder as any, onSettled: mockOnSettled}),
       {wrapper},
     )
-    await waitFor(() => expect(mockOnSettled).toHaveBeenCalled())
-
-    expect(mockGenerateTableUrl).toHaveBeenCalled()
-    expect(result.current.data).toBeTruthy()
+    await waitFor(() => {
+      expect(mockOnSettled).toHaveBeenCalled()
+      expect(mockGenerateTableUrl).toHaveBeenCalled()
+      expect(result.current.data).toBeTruthy()
+    })
   })
 
   it('handles search terms with spaces correctly', async () => {
@@ -144,8 +145,10 @@ describe('useGetPaginatedFiles', () => {
       () => useGetPaginatedFiles({folder: mockFolder as any, onSettled: mockOnSettled}),
       {wrapper},
     )
-    await waitFor(() => expect(mockOnSettled).toHaveBeenCalledWith([]))
-    expect(result.current.data).toEqual([])
+    await waitFor(() => {
+      expect(mockOnSettled).toHaveBeenCalledWith([])
+      expect(result.current.data).toEqual([])
+    })
   })
 
   it('calls backend with URL-encoded search term', async () => {

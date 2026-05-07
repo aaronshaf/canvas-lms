@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, act} from '@testing-library/react'
+import {render, act, fireEvent} from '@testing-library/react'
 import userEvent, {PointerEventsCheckLevel} from '@testing-library/user-event'
 
 import {UnpublishedChangesTrayContents} from '../unpublished_changes_tray_contents'
@@ -92,23 +92,31 @@ describe('UnpublishedChangesTrayContents', () => {
   it('does nothing if reset is canceled in the modal', () => {
     const {getByRole, getByText} = render(<UnpublishedChangesTrayContents {...defaultProps} />)
     const resetButton = getByRole('button', {name: 'Reset all'})
-    act(() => resetButton.click())
+    act(() => {
+      fireEvent.click(resetButton)
+    })
     expect(getByText('Reset all unpublished changes?')).toBeInTheDocument()
     expect(
       getByText('Your unpublished changes will be reverted to their previously saved state.'),
     ).toBeInTheDocument()
     const cancelButton = getByRole('button', {name: 'Cancel'})
-    act(() => cancelButton.click())
+    act(() => {
+      fireEvent.click(cancelButton)
+    })
     expect(onResetPace).not.toHaveBeenCalled()
   })
 
   it('calls onResetPace and handleTrayDismiss when the reset is confirmed in the modal', () => {
     const {getByRole} = render(<UnpublishedChangesTrayContents {...defaultProps} />)
     const resetButton = getByRole('button', {name: 'Reset all'})
-    act(() => resetButton.click())
+    act(() => {
+      fireEvent.click(resetButton)
+    })
     expect(onResetPace).not.toHaveBeenCalled()
     const cancelButton = getByRole('button', {name: 'Reset'})
-    act(() => cancelButton.click())
+    act(() => {
+      fireEvent.click(cancelButton)
+    })
     expect(onResetPace).toHaveBeenCalledTimes(1)
     expect(onTrayDismiss).toHaveBeenCalledWith(true)
   })

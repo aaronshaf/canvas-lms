@@ -82,7 +82,7 @@ describe('PageEditModal', () => {
     )
     const textInput = getByTestId('add-field')
     const saveButton = getByText('Save')
-    saveButton.click()
+    fireEvent.click(saveButton)
     await waitFor(() => expect(textInput).toHaveFocus())
     expect(getByText('Name is required.')).toBeInTheDocument()
   })
@@ -94,7 +94,7 @@ describe('PageEditModal', () => {
       )
 
       const cancelButton = getByText('Cancel')
-      cancelButton.click()
+      fireEvent.click(cancelButton)
 
       await waitFor(() => expect(wasApiCalled('DELETE')).toBe(false))
       await waitFor(() => expect(mockCancel).toHaveBeenCalled())
@@ -106,7 +106,7 @@ describe('PageEditModal', () => {
       )
 
       const deleteButton = getByText('Delete')
-      deleteButton.click()
+      fireEvent.click(deleteButton)
 
       await waitFor(() => expect(wasApiCalled('DELETE', '/entries/2')).toBe(true))
       await waitFor(() => expect(mockConfirm).toHaveBeenCalled())
@@ -122,7 +122,7 @@ describe('PageEditModal', () => {
       const textInput = getByTestId('add-field')
       fireEvent.change(textInput, {target: {value: 'Third Page'}})
       const cancelButton = getByText('Cancel')
-      cancelButton.click()
+      fireEvent.click(cancelButton)
 
       await waitFor(() => expect(wasApiCalled('POST', '/entries')).toBe(false))
       await waitFor(() => expect(mockCancel).toHaveBeenCalled())
@@ -136,7 +136,7 @@ describe('PageEditModal', () => {
       const textInput = getByTestId('add-field')
       fireEvent.change(textInput, {target: {value: 'Third Page'}})
       const saveButton = getByText('Save')
-      saveButton.click()
+      fireEvent.click(saveButton)
 
       await waitFor(() => expect(wasApiCalled('POST', '/entries')).toBe(true))
       await waitFor(() => expect(mockConfirm).toHaveBeenCalled())
@@ -149,7 +149,7 @@ describe('PageEditModal', () => {
       )
 
       const cancelButton = getByText('Cancel')
-      cancelButton.click()
+      fireEvent.click(cancelButton)
 
       await waitFor(() => expect(wasApiCalled('PUT')).toBe(false))
       await waitFor(() => expect(mockCancel).toHaveBeenCalled())
@@ -161,7 +161,7 @@ describe('PageEditModal', () => {
       )
 
       const saveButton = getByText('Save')
-      saveButton.click()
+      fireEvent.click(saveButton)
 
       await waitFor(() => expect(wasApiCalled('PUT', '/entries/2')).toBe(true))
       await waitFor(() => expect(mockConfirm).toHaveBeenCalled())
@@ -174,10 +174,10 @@ describe('PageEditModal', () => {
       )
 
       const select = getByTestId('move-select')
-      select.click()
-      ;(await findByText('First Page')).click()
+      fireEvent.click(select)
+      fireEvent.click(await findByText('First Page'))
       const cancelButton = getByText('Cancel')
-      cancelButton.click()
+      fireEvent.click(cancelButton)
 
       await waitFor(() => expect(wasApiCalled('POST', '/reorder_entries')).toBe(false))
       await waitFor(() => expect(mockCancel).toHaveBeenCalled())
@@ -189,10 +189,10 @@ describe('PageEditModal', () => {
       )
 
       const select = getByTestId('move-select')
-      select.click()
-      ;(await findByText('First Page')).click()
+      fireEvent.click(select)
+      fireEvent.click(await findByText('First Page'))
       const saveButton = getByText('Save')
-      saveButton.click()
+      fireEvent.click(saveButton)
 
       await waitFor(() => expect(wasApiCalled('POST', '/reorder_entries')).toBe(true))
       await waitFor(() => expect(mockConfirm).toHaveBeenCalled())

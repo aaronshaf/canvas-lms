@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {act, render as testingLibraryRender, waitFor} from '@testing-library/react'
+import {act, fireEvent, render as testingLibraryRender, waitFor} from '@testing-library/react'
 import K5Dashboard from '../K5Dashboard'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -132,8 +132,12 @@ describe('K5Dashboard Schedule Section', () => {
     expect(await findByTestId('missing-item-info')).toHaveTextContent('Show 2 missing items')
 
     const observerSelect = getByTestId('observed-student-dropdown')
-    act(() => observerSelect.click())
-    act(() => getByText('Student 2').click())
+    act(() => {
+      fireEvent.click(observerSelect)
+    })
+    act(() => {
+      fireEvent.click(getByText('Student 2'))
+    })
     expect(await findByText('Assignment for Observee')).toBeInTheDocument()
     expect(await findByTestId('missing-item-info')).toHaveTextContent('Show 1 missing item')
     await waitFor(() => expect(lastRequestUrl).toContain('observed_user_id=2'))

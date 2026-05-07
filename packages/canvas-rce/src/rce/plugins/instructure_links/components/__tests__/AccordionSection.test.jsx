@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import AccordionSection from '../AccordionSection'
 
 function renderComponent(props) {
@@ -56,7 +56,7 @@ describe('RCE "Links" Plugin > AccordionSection', () => {
     const {getByText} = renderComponent({onToggle})
 
     const expandBtn = getByText('Expand to see Assignments')
-    expandBtn.click()
+    fireEvent.click(expandBtn)
 
     expect(onToggle).toHaveBeenCalledWith('assignments')
   })

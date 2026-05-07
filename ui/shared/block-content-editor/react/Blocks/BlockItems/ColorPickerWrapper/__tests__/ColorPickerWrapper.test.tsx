@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {ColorPickerWrapper, ColorPickerWrapperProps} from '../ColorPickerWrapper'
 
 describe('ColorPickerWrapper', () => {
@@ -41,7 +41,7 @@ describe('ColorPickerWrapper', () => {
 
     const {findByText, getByRole} = render(<ColorPickerWrapper {...propsWithDifferentBaseColor} />)
     const colorPickerButton = getByRole('button')
-    colorPickerButton.click()
+    fireEvent.click(colorPickerButton)
 
     const color = await findByText('#000000')
     expect(color).toBeInTheDocument()
@@ -55,7 +55,7 @@ describe('ColorPickerWrapper', () => {
 
     const {findByText, getByRole} = render(<ColorPickerWrapper {...propsWithCustomLabel} />)
     const colorPickerButton = getByRole('button')
-    colorPickerButton.click()
+    fireEvent.click(colorPickerButton)
 
     const label = await findByText('Custom Base Label')
     expect(label).toBeInTheDocument()

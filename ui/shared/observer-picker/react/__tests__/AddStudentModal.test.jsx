@@ -50,7 +50,9 @@ describe('Add Student Modal', () => {
     const pairingCodeInput = getByTestId('pairing-code-input')
     const addStudentButton = getByTestId('add-student-btn')
     fireEvent.change(pairingCodeInput, {target: {value: 'sQsTC'}})
-    await act(async () => addStudentButton.click())
+    await act(async () => {
+      fireEvent.click(addStudentButton)
+    })
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(requestMade).toBe(true)
   })
@@ -67,7 +69,9 @@ describe('Add Student Modal', () => {
     const pairingCodeInput = getByTestId('pairing-code-input')
     const addStudentButton = getByTestId('add-student-btn')
     fireEvent.change(pairingCodeInput, {target: {value: ''}}) // setting to '' just to make the test case explicit
-    await act(async () => addStudentButton.click())
+    await act(async () => {
+      fireEvent.click(addStudentButton)
+    })
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(requestMade).toBe(false)
     expect(getByText('Please provide a pairing code.')).toBeInTheDocument()
@@ -88,7 +92,9 @@ describe('Add Student Modal', () => {
     const pairingCodeInput = getByTestId('pairing-code-input')
     const addStudentButton = getByTestId('add-student-btn')
     fireEvent.change(pairingCodeInput, {target: {value: 'sQsTC'}})
-    await act(async () => addStudentButton.click())
+    await act(async () => {
+      fireEvent.click(addStudentButton)
+    })
     expect(requestMade).toBe(true)
     await waitFor(() => {
       expect(onStudentPaired).toHaveBeenCalled()
@@ -110,7 +116,9 @@ describe('Add Student Modal', () => {
     const pairingCodeInput = getByTestId('pairing-code-input')
     const addStudentButton = getByTestId('add-student-btn')
     fireEvent.change(pairingCodeInput, {target: {value: '12121as'}})
-    await act(async () => addStudentButton.click())
+    await act(async () => {
+      fireEvent.click(addStudentButton)
+    })
     expect(requestMade).toBe(true)
     await waitFor(() => {
       expect(getByText('Invalid pairing code.')).toBeInTheDocument()
@@ -133,7 +141,9 @@ describe('Add Student Modal', () => {
     const pairingCodeInput = getByTestId('pairing-code-input')
     const addStudentButton = getByTestId('add-student-btn')
     fireEvent.change(pairingCodeInput, {target: {value: '12121as'}})
-    await act(async () => addStudentButton.click())
+    await act(async () => {
+      fireEvent.click(addStudentButton)
+    })
     expect(requestMade).toBe(true)
     await waitFor(() => {
       expect(getByText('Invalid pairing code.')).toBeInTheDocument()
@@ -148,7 +158,9 @@ describe('Add Student Modal', () => {
     const handleClose = vi.fn()
     const {getByTestId} = render(<AddStudentModal {...defaultProps} handleClose={handleClose} />)
     const closeBtn = getByTestId('close-modal')
-    act(() => closeBtn.click())
+    act(() => {
+      fireEvent.click(closeBtn)
+    })
     expect(handleClose).toHaveBeenCalled()
   })
 })

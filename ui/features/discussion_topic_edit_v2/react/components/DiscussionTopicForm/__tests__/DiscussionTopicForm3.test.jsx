@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render} from '@testing-library/react'
+import {render, fireEvent} from '@testing-library/react'
 import React from 'react'
 import {DiscussionTopic} from '../../../../graphql/DiscussionTopic'
 import {GroupSet} from '../../../../graphql/GroupSet'
@@ -87,24 +87,20 @@ describe('DiscussionTopicForm - UI Options', () => {
   })
 
   describe('Graded options', () => {
-    it(
-      'hides student ToDo, and ungraded options when Graded',
-      () => {
-        window.ENV.DISCUSSION_TOPIC.PERMISSIONS.CAN_MANAGE_CONTENT = true
-        window.ENV.DISCUSSION_TOPIC.ATTRIBUTES.id = 1
+    it('hides student ToDo, and ungraded options when Graded', () => {
+      window.ENV.DISCUSSION_TOPIC.PERMISSIONS.CAN_MANAGE_CONTENT = true
+      window.ENV.DISCUSSION_TOPIC.ATTRIBUTES.id = 1
 
-        const {queryByTestId, getByLabelText, queryByLabelText} = setup()
-        expect(queryByLabelText('Add to student to-do')).toBeInTheDocument()
-        queryByLabelText('Add to student to-do').click()
-        expect(queryByTestId('todo-date-section')).toBeInTheDocument()
-        expect(queryByTestId('discussion-assign-to-section')).toBeInTheDocument()
-        getByLabelText('Graded').click()
-        expect(queryByLabelText('Add to student to-do')).not.toBeInTheDocument()
-        expect(queryByTestId('todo-date-section')).not.toBeInTheDocument()
-        expect(queryByTestId('assignment-assign-to-section')).toBeInTheDocument()
-      },
-      30000,
-    )
+      const {queryByTestId, getByLabelText, queryByLabelText} = setup()
+      expect(queryByLabelText('Add to student to-do')).toBeInTheDocument()
+      fireEvent.click(queryByLabelText('Add to student to-do'))
+      expect(queryByTestId('todo-date-section')).toBeInTheDocument()
+      expect(queryByTestId('discussion-assign-to-section')).toBeInTheDocument()
+      fireEvent.click(getByLabelText('Graded'))
+      expect(queryByLabelText('Add to student to-do')).not.toBeInTheDocument()
+      expect(queryByTestId('todo-date-section')).not.toBeInTheDocument()
+      expect(queryByTestId('assignment-assign-to-section')).toBeInTheDocument()
+    }, 30000)
   })
 
   describe('Attachment options', () => {

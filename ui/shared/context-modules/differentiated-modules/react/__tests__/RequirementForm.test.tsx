@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import RequirementForm, {type RequirementFormProps} from '../RequirementForm'
 
 describe('RequirementForm', () => {
@@ -71,7 +71,7 @@ describe('RequirementForm', () => {
 
   it('calls onAddRequirement with the first requirement free module item when the add button is clicked', () => {
     const {getByText} = renderComponent()
-    getByText('Add Requirement').click()
+    fireEvent.click(getByText('Add Requirement'))
     expect(props.onAddRequirement).toHaveBeenCalledWith({
       ...props.moduleItems[2],
       type: 'view',

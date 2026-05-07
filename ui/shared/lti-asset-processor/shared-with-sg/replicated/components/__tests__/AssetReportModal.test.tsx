@@ -17,7 +17,7 @@
  */
 
 import '../../../__tests__/mockedDependenciesShims'
-import {screen} from '@testing-library/react'
+import {fireEvent, screen} from '@testing-library/react'
 import {vi} from 'vitest'
 import {renderComponent} from '../../../__tests__/renderingShims'
 import {useResubmitDiscussionNotices} from '../../../dependenciesShims'
@@ -183,7 +183,7 @@ describe('AssetReportModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(0)
     const closeButtons = screen.getAllByText('Close')
     // Click the footer close button (the second one)
-    closeButtons[1]?.click()
+    fireEvent.click(closeButtons[1]!)
     expect(mockOnClose).toHaveBeenCalledTimes(1)
   })
 

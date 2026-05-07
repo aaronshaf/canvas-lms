@@ -94,7 +94,7 @@ describe('SettingsPanel', () => {
 
   it('renders the date time input when lock until is checked', () => {
     const {getByRole, getByText} = renderComponent()
-    getByRole('checkbox').click()
+    fireEvent.click(getByRole('checkbox'))
     expect(getByText('Date')).toBeInTheDocument()
   })
 
@@ -257,7 +257,7 @@ describe('SettingsPanel', () => {
 
     it('makes a request to the modules update endpoint', async () => {
       const {getByRole, findByTestId} = renderComponent()
-      getByRole('button', {name: 'Save'}).click()
+      fireEvent.click(getByRole('button', {name: 'Save'}))
       expect(await findByTestId('loading-overlay')).toBeInTheDocument()
       await waitFor(() => {
         expect(lastCapturedRequest).not.toBeNull()
@@ -269,7 +269,7 @@ describe('SettingsPanel', () => {
 
     it('formats the form state for the request body', async () => {
       const {getByRole} = renderComponent()
-      getByRole('button', {name: 'Save'}).click()
+      fireEvent.click(getByRole('button', {name: 'Save'}))
       await waitFor(() => {
         expect(miscUtils.convertModuleSettingsForApi).toHaveBeenCalled()
       })
@@ -277,7 +277,7 @@ describe('SettingsPanel', () => {
 
     it('updates the modules page UI', async () => {
       const {getByRole} = renderComponent()
-      getByRole('button', {name: 'Save'}).click()
+      fireEvent.click(getByRole('button', {name: 'Save'}))
       await waitFor(() => {
         expect(moduleUtils.updateModuleUI).toHaveBeenCalled()
       })
@@ -285,7 +285,7 @@ describe('SettingsPanel', () => {
 
     it('shows a flash alert on success', async () => {
       const {getByRole} = renderComponent()
-      getByRole('button', {name: 'Save'}).click()
+      fireEvent.click(getByRole('button', {name: 'Save'}))
       await waitFor(() => {
         expect(showFlashAlert).toHaveBeenCalledWith({
           type: 'success',
@@ -298,7 +298,7 @@ describe('SettingsPanel', () => {
     it('shows a flash alert on failure', async () => {
       server.use(http.put('/courses/:courseId/modules/:moduleId', () => HttpResponse.error()))
       const {getByRole} = renderComponent()
-      getByRole('button', {name: 'Save'}).click()
+      fireEvent.click(getByRole('button', {name: 'Save'}))
       await waitFor(() => {
         expect(showFlashAlert).toHaveBeenCalledWith({
           err: expect.any(Error),
@@ -369,7 +369,7 @@ describe('SettingsPanel', () => {
         }
         const {getByRole, findByText} = renderComponent(overrideProps)
         const updateButton = getByRole('button', {name: 'Save'})
-        updateButton.click()
+        fireEvent.click(updateButton)
 
         expect(await findByText('Invalid input')).toBeInTheDocument()
       })
@@ -394,7 +394,7 @@ describe('SettingsPanel', () => {
         }
         const {getByRole} = renderComponent(overrideProps)
         const updateButton = getByRole('button', {name: 'Save'})
-        updateButton.click()
+        fireEvent.click(updateButton)
 
         expect(addModuleUI).not.toHaveBeenCalled()
       })
@@ -417,7 +417,7 @@ describe('SettingsPanel', () => {
     it('calls addModuleUI when module is created', async () => {
       const addModuleUI = vi.fn()
       const {getByRole, findByTestId} = renderComponent({moduleId: undefined, addModuleUI})
-      getByRole('button', {name: 'Add Module'}).click()
+      fireEvent.click(getByRole('button', {name: 'Add Module'}))
       expect(await findByTestId('loading-overlay')).toBeInTheDocument()
       await waitFor(() =>
         expect(showFlashAlert).toHaveBeenCalledWith({

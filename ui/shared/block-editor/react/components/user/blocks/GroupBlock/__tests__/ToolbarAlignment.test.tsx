@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import {ToolbarAlignment} from '../toolbar/ToolbarAlignment'
 
 describe('ToolbarAlignment', () => {
@@ -72,7 +72,7 @@ describe('ToolbarAlignment', () => {
     await waitFor(() => {
       expect(getByText('Align Horizontally')).toBeInTheDocument()
     })
-    getByText('Align Horizontally').click()
+    fireEvent.click(getByText('Align Horizontally'))
     await waitFor(() => {
       expect(getByText('Reset Default Alignment')).toBeInTheDocument()
     })
@@ -86,7 +86,7 @@ describe('ToolbarAlignment', () => {
     await waitFor(() => {
       expect(getByText('Reset Default Alignment')).toBeInTheDocument()
     })
-    getByText('Reset Default Alignment').click()
+    fireEvent.click(getByText('Reset Default Alignment'))
     await waitFor(() => {
       expect(queryByText('Reset Default Alignment')).not.toBeInTheDocument()
     })
@@ -110,7 +110,7 @@ describe('ToolbarAlignment', () => {
       expect(checkedMenuItems[2].textContent).toContain('Align to bottom')
     })
 
-    getByText('Reset Default Alignment').click()
+    fireEvent.click(getByText('Reset Default Alignment'))
     await waitFor(() => {
       const checkedMenuItems2 = document.querySelectorAll('[aria-checked="true"]')
       expect(checkedMenuItems2[0].textContent).toContain('Align Horizontally')

@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import moment from 'moment-timezone'
 import React from 'react'
 import {WeeklyPlannerHeader, processFocusTarget} from '../index'
@@ -99,7 +99,7 @@ describe('WeeklyPlannerHeader', () => {
     const props = defaultProps({wayFutureItemDate: '2021-03-25', loadNextWeekItems: callback})
     const {getByText} = render(<WeeklyPlannerHeader {...props} />)
     const button = getByText('View next week').closest('button')
-    button.click()
+    fireEvent.click(button)
     expect(callback).not.toHaveBeenCalled()
     expect(button.hasAttribute('disabled')).toEqual(true)
   })
@@ -109,7 +109,7 @@ describe('WeeklyPlannerHeader', () => {
     const props = defaultProps({wayPastItemDate: '2021-03-25', loadPastWeekItems: callback})
     const {getByText} = render(<WeeklyPlannerHeader {...props} />)
     const button = getByText('View previous week').closest('button')
-    button.click()
+    fireEvent.click(button)
     expect(callback).not.toHaveBeenCalled()
     expect(button.hasAttribute('disabled')).toEqual(true)
   })

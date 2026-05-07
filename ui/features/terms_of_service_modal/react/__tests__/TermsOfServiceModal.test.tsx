@@ -18,7 +18,7 @@
 
 import React from 'react'
 import $ from 'jquery'
-import {cleanup, render, screen, waitFor} from '@testing-library/react'
+import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import TermsOfServiceModal from '../TermsOfServiceModal'
@@ -75,7 +75,7 @@ describe('TermsOfServiceModal', () => {
     )
     const mockOpenWindow = openWindow as unknown as any
     renderTermsOfServiceModal()
-    screen.getByTestId('tos-link').click()
+    fireEvent.click(screen.getByTestId('tos-link'))
     // assert window open and no modal
     await waitFor(() =>
       expect(mockOpenWindow).toHaveBeenCalledWith(
@@ -95,7 +95,7 @@ describe('TermsOfServiceModal', () => {
     )
     const mockOpenWindow = openWindow as unknown as any
     renderTermsOfServiceModal()
-    screen.getByTestId('tos-link').click()
+    fireEvent.click(screen.getByTestId('tos-link'))
     // modal should appear
     await waitFor(() => expect(screen.queryByTestId('tos-modal')).not.toBeNull())
     expect(screen.getByText('Inline AUP')).toBeInTheDocument()
@@ -114,10 +114,10 @@ describe('TermsOfServiceModal', () => {
     renderTermsOfServiceModal()
     const link = screen.getByTestId('tos-link')
     // first click fetches + opens
-    link.click()
+    fireEvent.click(link)
     await waitFor(() => expect(mockOpenWindow).toHaveBeenCalledTimes(1))
     // second click should not refetch
-    link.click()
+    fireEvent.click(link)
     await waitFor(() => expect(mockOpenWindow).toHaveBeenCalledTimes(2))
     expect(fetchCount).toBe(1)
   })
@@ -133,15 +133,15 @@ describe('TermsOfServiceModal', () => {
     renderTermsOfServiceModal()
     const link = screen.getByTestId('tos-link')
     // first open
-    link.click()
+    fireEvent.click(link)
     await waitFor(() => expect(screen.getByText('Inline AUP')).toBeInTheDocument())
     expect(fetchCount).toBe(1)
     // close modal
     const closeWrapper = screen.getByTestId('instui-modal-close')
-    closeWrapper.querySelector('button')!.click()
+    fireEvent.click(closeWrapper.querySelector('button')!)
     await waitFor(() => expect(screen.queryByTestId('tos-modal')).toBeNull())
     // second open uses cached content
-    link.click()
+    fireEvent.click(link)
     await waitFor(() => expect(screen.getByText('Inline AUP')).toBeInTheDocument())
     expect(fetchCount).toBe(1)
   })
@@ -153,7 +153,7 @@ describe('TermsOfServiceModal', () => {
     )
     const mockOpenWindow = openWindow as unknown as any
     renderTermsOfServiceModal()
-    screen.getByTestId('tos-link').click()
+    fireEvent.click(screen.getByTestId('tos-link'))
     // wait a bit to ensure nothing happens
     await new Promise(resolve => setTimeout(resolve, 100))
     // modal should not open
@@ -173,7 +173,7 @@ describe('TermsOfServiceModal', () => {
     server.use(http.get('/api/v1/acceptable_use_policy', () => HttpResponse.json(null)))
     const mockOpenWindow = openWindow as unknown as any
     renderTermsOfServiceModal()
-    screen.getByTestId('tos-link').click()
+    fireEvent.click(screen.getByTestId('tos-link'))
     // wait a bit to ensure nothing happens
     await new Promise(resolve => setTimeout(resolve, 100))
     // modal should not open

@@ -64,9 +64,9 @@ describe('RequirementSelector', () => {
 
   it('calls onUpdateRequirement when a new module item is selected', async () => {
     const {getByDisplayValue, findByText} = renderComponent()
-    getByDisplayValue('Module 1').click()
+    fireEvent.click(getByDisplayValue('Module 1'))
     const option = await findByText('Module 2')
-    option.click()
+    fireEvent.click(option)
     await waitFor(() =>
       expect(props.onUpdateRequirement).toHaveBeenCalledWith(
         {id: '2', name: 'Module 2', resource: 'page', type: 'view'},
@@ -77,9 +77,9 @@ describe('RequirementSelector', () => {
 
   it('calls onUpdateRequirement when a new requirement type is selected', async () => {
     const {getByDisplayValue, findByText} = renderComponent()
-    getByDisplayValue('View the item').click()
+    fireEvent.click(getByDisplayValue('View the item'))
     const option = await findByText('Contribute to the page')
-    option.click()
+    fireEvent.click(option)
     await waitFor(() =>
       expect(props.onUpdateRequirement).toHaveBeenCalledWith(
         {id: '1', name: 'Module 1', resource: 'page', type: 'contribute'},
@@ -90,7 +90,7 @@ describe('RequirementSelector', () => {
 
   it('calls onDropRequirement when the remove button is clicked', () => {
     const {getByText} = renderComponent()
-    getByText('Remove Module 1 Content Requirement').click()
+    fireEvent.click(getByText('Remove Module 1 Content Requirement'))
     expect(props.onDropRequirement).toHaveBeenCalledWith(0)
   })
 
@@ -103,10 +103,10 @@ describe('RequirementSelector', () => {
         {id: '2', name: 'New Assignment', resource: 'assignment'},
       ],
     })
-    getByDisplayValue('New Assignment').click()
+    fireEvent.click(getByDisplayValue('New Assignment'))
     // two options with the same label — click the second one (the assignment)
     const options = await findAllByText('New Assignment')
-    options[1].click()
+    fireEvent.click(options[1])
     await waitFor(() =>
       expect(props.onUpdateRequirement).toHaveBeenCalledWith(
         {id: '2', name: 'New Assignment', resource: 'assignment', type: 'view'},

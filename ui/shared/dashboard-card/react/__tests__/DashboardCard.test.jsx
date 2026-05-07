@@ -18,7 +18,7 @@
 
 import DashboardCard, {DashboardCardHeaderHero} from '../DashboardCard'
 import React from 'react'
-import {render} from '@testing-library/react'
+import {render, fireEvent} from '@testing-library/react'
 import * as apiClient from '@canvas/courses/courseAPIClient'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -122,7 +122,7 @@ describe('PublishButton', () => {
         onPublishedCourse,
       })
       const wrapper = render(<DashboardCard {...props} />)
-      wrapper.getByText('Publish').click()
+      fireEvent.click(wrapper.getByText('Publish'))
       expect(apiClient.publishCourse).toHaveBeenCalledWith(expect.objectContaining({courseId: '0'}))
     })
   })

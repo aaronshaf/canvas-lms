@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {fireEvent} from '@testing-library/react'
 import $ from 'jquery'
 import htmlEscape from '@instructure/html-escape'
 import NotificationsHelper from '../helper'
@@ -124,7 +125,7 @@ describe('RailsFlashNotificationsHelper', () => {
       helper.createNode('success', 'Closable Alert')
       const holder = document.getElementById('flash_message_holder')
       const button = holder.querySelector('.close_link')
-      button.click()
+      fireEvent.click(button)
       expect(holder.firstChild).toBeNull()
     })
 
@@ -133,7 +134,7 @@ describe('RailsFlashNotificationsHelper', () => {
       helper.createNode('success', 'Closable Alert')
       const holder = document.getElementById('flash_message_holder')
       const alert = holder.querySelector('.flash-message-container')
-      alert.click()
+      fireEvent.click(alert)
       expect(holder.firstChild).toBeNull()
     })
   })

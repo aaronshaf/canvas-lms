@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {render, screen, waitFor} from '@testing-library/react'
+import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 import React from 'react'
 import PageNameContainer from '../PageNameContainer'
 import userEvent from '@testing-library/user-event'
@@ -63,7 +63,7 @@ describe('PageNameContainer', () => {
     expect(queryAllByText('Save')).toHaveLength(2)
 
     // previewing
-    previewButtons[0].click()
+    fireEvent.click(previewButtons[0])
     await waitFor(() => {
       expect(input).not.toBeVisible()
       expect(queryAllByText('Preview')).toHaveLength(0)
@@ -76,7 +76,7 @@ describe('PageNameContainer', () => {
   it('calls onSave when save button is clicked', () => {
     const {getAllByText} = renderComponent()
 
-    getAllByText('Save')[0].click()
+    fireEvent.click(getAllByText('Save')[0])
     expect(onSave).toHaveBeenCalled()
   })
 
@@ -87,14 +87,14 @@ describe('PageNameContainer', () => {
     const input = getByTestId('page-name-input')
     await userEvent.clear(input)
 
-    getAllByText('Save')[0].click()
+    fireEvent.click(getAllByText('Save')[0])
     expect(onSave).not.toHaveBeenCalled()
   })
 
   it('calls onCancel when cancel button is clicked', () => {
     const {getAllByText} = renderComponent()
 
-    getAllByText('Cancel')[0].click()
+    fireEvent.click(getAllByText('Cancel')[0])
     expect(onCancel).toHaveBeenCalled()
   })
 })

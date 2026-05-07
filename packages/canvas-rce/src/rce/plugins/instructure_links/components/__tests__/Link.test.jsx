@@ -271,7 +271,7 @@ describe('RCE "Links" Plugin > Link', () => {
       const {getByText} = renderComponent({link, onClick})
 
       const btn = getByText(link.title)
-      btn.click()
+      fireEvent.click(btn)
       expect(onClick).toHaveBeenCalled()
     })
 
@@ -329,7 +329,7 @@ describe('RCE "Links" Plugin > Link', () => {
 
     it('calls onEditClick when clicked', () => {
       const {getByText} = renderComponent(props)
-      getByText(props.link.title).click()
+      fireEvent.click(getByText(props.link.title))
       expect(props.onEditClick).toHaveBeenCalled()
     })
 
@@ -349,7 +349,7 @@ describe('RCE "Links" Plugin > Link', () => {
 
     it('calls onEditClick with the appropriate args for a publishable link type', () => {
       const {getByText} = renderComponent(props)
-      getByText(props.link.title).click()
+      fireEvent.click(getByText(props.link.title))
       expect(props.onEditClick).toHaveBeenCalledWith({
         href: 'the_url',
         published: true,
@@ -362,7 +362,7 @@ describe('RCE "Links" Plugin > Link', () => {
 
     it('calls onEditClick with the appropriate args for a non-publishable link type', () => {
       const {getByText} = renderComponent({...props, type: 'navigation'})
-      getByText(props.link.title).click()
+      fireEvent.click(getByText(props.link.title))
       expect(props.onEditClick).toHaveBeenCalledWith({
         href: 'the_url',
         published: true,

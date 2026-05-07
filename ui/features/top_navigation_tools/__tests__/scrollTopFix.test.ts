@@ -20,6 +20,8 @@
  * @vi-environment jsdom
  */
 
+import {fireEvent} from '@testing-library/react'
+
 // Mock the ready function to immediately execute the callback
 vi.mock('@instructure/ready', () => ({
   default: (callback: () => void) => callback(),
@@ -120,7 +122,7 @@ describe('href="#" scrollTop fix', () => {
     document.body.appendChild(link)
 
     // Simulate click event
-    link.click()
+    fireEvent.click(link)
 
     // Should have called scrollTo on drawer content
     expect(scrollToSpy).toHaveBeenCalledWith({top: 0})
@@ -137,7 +139,7 @@ describe('href="#" scrollTop fix', () => {
     link.href = '#'
     document.body.appendChild(link)
 
-    link.click()
+    fireEvent.click(link)
 
     // Should not interfere with default behavior
     expect(scrollToSpy).not.toHaveBeenCalled()
@@ -151,7 +153,7 @@ describe('href="#" scrollTop fix', () => {
     link.href = '#'
     document.body.appendChild(link)
 
-    link.click()
+    fireEvent.click(link)
 
     // Should not call scrollTo when already at top
     expect(scrollToSpy).not.toHaveBeenCalled()
@@ -162,7 +164,7 @@ describe('href="#" scrollTop fix', () => {
     button.textContent = 'Not a link'
     document.body.appendChild(button)
 
-    button.click()
+    fireEvent.click(button)
 
     expect(scrollToSpy).not.toHaveBeenCalled()
   })
@@ -172,7 +174,7 @@ describe('href="#" scrollTop fix', () => {
     link.href = '#section1'
     document.body.appendChild(link)
 
-    link.click()
+    fireEvent.click(link)
 
     expect(scrollToSpy).not.toHaveBeenCalled()
   })

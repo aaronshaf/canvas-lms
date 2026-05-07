@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {waitFor, screen} from '@testing-library/dom'
+import {fireEvent, waitFor, screen} from '@testing-library/dom'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import {ModuleItemsLazyLoader, type ModuleItemsCallback} from '../ModuleItemsLazyLoader'
@@ -652,7 +652,7 @@ describe('fetchModuleItems utility', () => {
           expect(retryButton).toBeInTheDocument()
           expect(requestSpy).toHaveBeenCalledTimes(1)
 
-          retryButton?.click()
+          fireEvent.click(retryButton!)
           await waitFor(() => {
             expect(requestSpy).toHaveBeenCalledTimes(2)
           })

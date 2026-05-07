@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import {AssignmentGroupUI as AssignmentGroup} from '../AssignmentGroup'
 
 /*
@@ -97,9 +97,9 @@ describe('AssignmenGroupUI', () => {
       </div>,
     )
     const input = container.querySelector('input')
-    input.click()
+    fireEvent.click(input)
     const option = document.querySelectorAll('li[role="option"]')[1]
-    option.click()
+    fireEvent.click(option)
     container.querySelector('#focus-me').focus()
     expect(onchangemode).toHaveBeenCalledWith('view')
     expect(onchange).not.toHaveBeenCalled()

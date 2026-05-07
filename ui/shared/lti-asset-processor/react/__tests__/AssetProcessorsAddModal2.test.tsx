@@ -157,7 +157,9 @@ describe('AssetProcessorsAddModal', () => {
 
         return foundCard
       }).then(toolCard => {
-        act(() => toolCard!.click())
+        act(() => {
+          fireEvent.click(toolCard!)
+        })
       })
 
       const iframe = await waitFor(() => getByTitle('Configure new document processing app'))

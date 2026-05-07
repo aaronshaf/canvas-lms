@@ -26,6 +26,7 @@ const TWO_YEARS_FROM_NOW = moment(CURRENT_TIME).add(2, 'years').toISOString()
 import {
   act,
   cleanup,
+  fireEvent,
   render,
   screen,
   waitForElementToBeRemoved,
@@ -184,7 +185,9 @@ describe('ImportantDates', () => {
     const {findByRole} = render(<ImportantDates {...getProps()} handleClose={handleCloseFunc} />)
     const closeButton = await findByRole('button', {name: 'Hide Important Dates'})
     expect(closeButton).toBeInTheDocument()
-    act(() => closeButton.click())
+    act(() => {
+      fireEvent.click(closeButton)
+    })
     expect(handleCloseFunc).toHaveBeenCalledTimes(1)
   })
 
@@ -203,14 +206,18 @@ describe('ImportantDates', () => {
     })
     expect(calendarsButton).not.toBeDisabled()
 
-    act(() => calendarsButton.click())
+    act(() => {
+      fireEvent.click(calendarsButton)
+    })
 
     expect(await findByText('Calendars')).toBeInTheDocument()
     expect(getByRole('checkbox', {name: 'Economics 101', checked: false})).toBeInTheDocument()
     expect(getByRole('checkbox', {name: 'Home Room', checked: false})).toBeInTheDocument()
     expect(getByRole('checkbox', {name: 'The Maths', checked: true})).toBeInTheDocument()
 
-    act(() => getByRole('button', {name: 'Cancel'}).click())
+    act(() => {
+      fireEvent.click(getByRole('button', {name: 'Cancel'}))
+    })
 
     await waitForElementToBeRemoved(() => queryByText('Calendars'))
   })
@@ -218,11 +225,13 @@ describe('ImportantDates', () => {
   it('defaults to the first <selectedContextsLimit> calendars when no selectedContextCodes are provided', async () => {
     const {getByRole, findByText} = render(<ImportantDates {...getProps()} />)
 
-    act(() =>
-      getByRole('button', {
-        name: 'Select calendars to retrieve important dates from',
-      }).click(),
-    )
+    act(() => {
+      fireEvent.click(
+        getByRole('button', {
+          name: 'Select calendars to retrieve important dates from',
+        }),
+      )
+    })
 
     expect(await findByText('Calendars')).toBeInTheDocument()
     expect(getByRole('checkbox', {name: 'Economics 101', checked: true})).toBeInTheDocument()
@@ -235,11 +244,13 @@ describe('ImportantDates', () => {
       <ImportantDates {...getProps()} selectedContextCodes={[]} />,
     )
 
-    act(() =>
-      getByRole('button', {
-        name: 'Select calendars to retrieve important dates from',
-      }).click(),
-    )
+    act(() => {
+      fireEvent.click(
+        getByRole('button', {
+          name: 'Select calendars to retrieve important dates from',
+        }),
+      )
+    })
 
     expect(await findByText('Calendars')).toBeInTheDocument()
     expect(getByRole('checkbox', {name: 'Economics 101', checked: true})).toBeInTheDocument()

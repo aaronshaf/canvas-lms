@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen, waitFor} from '@testing-library/react'
+import {render, screen, waitFor, fireEvent} from '@testing-library/react'
 import StudentAssetReportModalWrapper, {
   ASSET_REPORT_MODAL_EVENT,
   sendOpenAssetReportModalMessage,
@@ -119,7 +119,7 @@ describe.skip('StudentAssetReportModalWrapper', () => {
     })
 
     // Click close button
-    screen.getByTestId('close-modal').click()
+    fireEvent.click(screen.getByTestId('close-modal'))
 
     await waitFor(() => {
       expect(screen.queryByTestId('student-asset-report-modal')).not.toBeInTheDocument()
