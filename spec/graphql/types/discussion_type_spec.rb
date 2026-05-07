@@ -689,8 +689,11 @@ describe Types::DiscussionType do
         allow_any_instantiation_of(discussion).to receive(:locked_for?)
           .with(@student, check_policies: true)
           .and_return({ can_view: true })
+        entry = discussion.discussion_entries.create!(message: "visible", user: @student)
 
-        expect(GraphQLTypeTester.new(discussion, current_user: @student, request: ActionDispatch::TestRequest.create).resolve("message")).to eq discussion.message
+        type = GraphQLTypeTester.new(discussion, current_user: @student, request: ActionDispatch::TestRequest.create)
+        expect(type.resolve("message")).to eq discussion.message
+        expect(type.resolve("discussionEntriesConnection { nodes { _id } }")).to eq([entry.id.to_s])
       end
 
       describe "delayed post" do
@@ -1240,6 +1243,89 @@ describe Types::DiscussionType do
       discussion.discussion_entries.create!(message: "This is it", pinned_by: @teacher, pin_type: "reply")
 
       expect(discussion_type.resolve("pinnedEntries { _id }")).to eq([])
+    end
+  end
+
+  describe "locked_for batching" do
+    def query_lock_fields_for(course, student)
+      query = <<~GQL
+        query($courseId: ID!) {
+          course(id: $courseId) {
+            discussionsConnection {
+              nodes {
+                _id
+                message
+                lockInformation
+                availableForUser
+                discussionEntriesConnection { nodes { _id } }
+              }
+            }
+          }
+        }
+      GQL
+      CanvasSchema.execute(query,
+                           variables: { "courseId" => course.id.to_s },
+                           context: { current_user: student,
+                                      request: ActionDispatch::TestRequest.create,
+                                      domain_root_account: course.root_account })
+    end
+
+    let_once(:course) { course_factory(active_all: true) }
+    let_once(:student) { student_in_course(course:, active_all: true).user }
+    let(:override_query_re) { /FROM (?:"\w+"\.)?"assignment_overrides"/ }
+
+    context "when discussion count grows" do
+      before do
+        course
+        student
+        Array.new(2) { graded_discussion_topic(context: course) }
+      end
+
+      it "keeps override-query count constant" do
+        Rails.cache.clear
+        count_2 = RequestCache.enable do
+          count_sql_queries(matcher: override_query_re) { query_lock_fields_for(course, student) }
+        end
+
+        Array.new(3) { graded_discussion_topic(context: course) }
+        Rails.cache.clear
+        count_5 = RequestCache.enable do
+          count_sql_queries(matcher: override_query_re) { query_lock_fields_for(course, student) }
+        end
+
+        expect(count_5).to eql(count_2)
+        expect(count_2).to be <= 2
+      end
+
+      it "runs the batch loader once across all four fields" do
+        graded_discussion_topic(context: course)
+        call_count = 0
+        expect(Loaders::DiscussionLockedForLoader).to receive(:for).at_least(:once).and_wrap_original do |original, **kwargs|
+          loader = original.call(**kwargs)
+          allow(loader).to receive(:perform).and_wrap_original do |perform_original, ts|
+            call_count += 1
+            perform_original.call(ts)
+          end
+          loader
+        end
+
+        query_lock_fields_for(course, student)
+        expect(call_count).to be(1)
+      end
+    end
+
+    context "with an unlock_at-locked topic" do
+      it "returns [] for discussionEntriesConnection via GraphQL" do
+        topic = discussion_topic_model(context: course, unlock_at: 1.day.from_now)
+        topic.discussion_entries.create!(message: "should not show", user: student)
+
+        result = query_lock_fields_for(course, student)
+        nodes = result.dig("data", "course", "discussionsConnection", "nodes")
+        topic_node = nodes.find { |n| n["_id"] == topic.id.to_s }
+
+        expect(topic_node["availableForUser"]).to be(false)
+        expect(topic_node.dig("discussionEntriesConnection", "nodes")).to eq([])
+      end
     end
   end
 end

@@ -92,40 +92,39 @@ module Types
       # A discussion can be locked but still allow users to view the discussion
       # In these cases we want to return the discussion message, otherwise we want to
       # return the lock explanation
-      locked_info = object.locked_for?(current_user, check_policies: true)
-      if locked_info && !locked_info[:can_view]
-        return lock_explanation(locked_info, "topic", object.context, { only_path: true, include_js: false })
-      end
+      load_locked_info.then do |locked_info|
+        if locked_info && !locked_info[:can_view]
+          next lock_explanation(locked_info, "topic", object.context, { only_path: true, include_js: false })
+        end
 
-      Loaders::ApiContentAttachmentLoader.for(object.context).load(object.message).then do |preloaded_attachments|
-        GraphQLHelpers::UserContent.process(object.message,
-                                            request: context[:request],
-                                            context: object.context,
-                                            user: current_user,
-                                            in_app: context[:in_app],
-                                            preloaded_attachments:,
-                                            options: {
-                                              domain_root_account: context[:domain_root_account],
-                                            },
-                                            location: object.asset_string)
+        Loaders::ApiContentAttachmentLoader.for(object.context).load(object.message).then do |preloaded_attachments|
+          GraphQLHelpers::UserContent.process(object.message,
+                                              request: context[:request],
+                                              context: object.context,
+                                              user: current_user,
+                                              in_app: context[:in_app],
+                                              preloaded_attachments:,
+                                              options: {
+                                                domain_root_account: context[:domain_root_account],
+                                              },
+                                              location: object.asset_string)
+        end
       end
     end
 
     field :lock_information, String, null: true
     def lock_information
-      locked_info = object.locked_for?(current_user, check_policies: true)
-      return nil unless locked_info
+      load_locked_info.then do |locked_info|
+        next nil unless locked_info
 
-      lock_explanation(locked_info, "topic", object.context, { only_path: true, include_js: false })
+        lock_explanation(locked_info, "topic", object.context, { only_path: true, include_js: false })
+      end
     end
 
     field :available_for_user, Boolean, null: false
     def available_for_user
-      locked_info = object.locked_for?(current_user, check_policies: true)
-      if locked_info
-        !locked_info[:unlock_at]
-      else
-        !locked_info
+      load_locked_info.then do |locked_info|
+        !(locked_info && locked_info[:unlock_at])
       end
     end
 
@@ -436,17 +435,22 @@ module Types
     end
 
     def get_entries(search_term: nil, filter: nil, root_entries: false, user_search_id: nil, unread_before: nil)
-      return [] if object.initial_post_required?(current_user, session) || !available_for_user
+      return [] if object.initial_post_required?(current_user, session)
 
-      Loaders::DiscussionEntryLoader.for(
-        current_user:,
-        search_term:,
-        filter:,
-        sort_order: object.sort_order_for_user(current_user),
-        root_entries:,
-        user_search_id:,
-        unread_before:
-      ).load(object)
+      # available_for_user returns a Promise here; the !-truthy check would always be false. Read locked_info directly.
+      load_locked_info.then do |locked_info|
+        next [] if locked_info && locked_info[:unlock_at]
+
+        Loaders::DiscussionEntryLoader.for(
+          current_user:,
+          search_term:,
+          filter:,
+          sort_order: object.sort_order_for_user(current_user),
+          root_entries:,
+          user_search_id:,
+          unread_before:
+        ).load(object)
+      end
     end
 
     field :sort_order, Types::DiscussionSortOrderType, null: true do
@@ -467,6 +471,12 @@ module Types
       return [] unless object.context.feature_enabled?(:discussion_pin_post)
 
       object.pinned_entries
+    end
+
+    private
+
+    def load_locked_info
+      Loaders::DiscussionLockedForLoader.for(current_user:).load(object)
     end
   end
 end
