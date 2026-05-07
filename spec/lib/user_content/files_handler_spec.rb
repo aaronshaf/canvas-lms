@@ -89,6 +89,16 @@ describe UserContent::FilesHandler do
               expect(processed_url).to eq "/courses/#{course.id}/files/#{attachment.id}/download?hidden=1&wrap=1"
             end
 
+            context "url already has a hidden parameter" do
+              let(:match_part) { "download?hidden=1&amp;wrap=1" }
+
+              it "and file is locked" do
+                attachment.locked = true
+                attachment.save
+                expect(processed_url).to eq "/courses/#{course.id}/files/#{attachment.id}/download?hidden=1&wrap=1"
+              end
+            end
+
             it "returns match_url with hidden=1 if within a locked time window" do
               attachment.unlock_at = 1.hour.from_now
               attachment.save

@@ -36,7 +36,7 @@ module UserContent
       uri = replace_with_current_attachment(uri)
       return unless attachment.present?
 
-      query_values = uri.query_values || {}
+      query_values = (uri.query_values || {}).with_indifferent_access
       query_values.delete("location")
       if location.present?
         query_values[:location] = location
