@@ -270,6 +270,38 @@ describe DeveloperKey do
         expect(subject).to be true
       end
     end
+
+    context "when the require_client_credentials_for_elevated_operations flag is enabled" do
+      before do
+        allow(Account.site_admin).to receive(:feature_enabled?).and_call_original
+        allow(Account.site_admin).to receive(:feature_enabled?)
+          .with(:require_client_credentials_for_elevated_operations).and_return(true)
+      end
+
+      context "and the key is not a client_credentials service-auth key" do
+        let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"] }
+
+        it "denies the bypass even when scopes would otherwise permit it" do
+          expect(subject).to be false
+        end
+      end
+
+      context "and the key is a client_credentials service-auth key" do
+        let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"] }
+
+        before do
+          allow(developer_key).to receive(:site_admin_service_auth?).and_return(true)
+        end
+
+        it { is_expected.to be true }
+
+        context "but its scopes do not match" do
+          let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/baz/qux"] }
+
+          it { is_expected.to be false }
+        end
+      end
+    end
   end
 
   context "validations" do

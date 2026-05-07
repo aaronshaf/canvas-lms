@@ -521,6 +521,10 @@ class DeveloperKey < ApplicationRecord
   end
 
   def elevated_operation_permitted?(request:)
+    if Account.site_admin.feature_enabled?(:require_client_credentials_for_elevated_operations)
+      return false unless site_admin_service_auth?
+    end
+
     # The client is permitted all elevated operations
     return true if scopes.include?("#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all")
 

@@ -433,6 +433,58 @@ describe AuthenticationMethods do
           expect(controller.instance_variable_get(:@real_current_user)).to be_nil
         end
       end
+
+      describe "AccessTokenAttributes" do
+        before { AuthenticationMethods::AccessTokenAttributes.reset }
+
+        it "sets current_token to the access token" do
+          token = AccessToken.create!(user: @user, purpose: "Test Access Token")
+          controller = setup_with_token(token)
+
+          controller.send(:load_user)
+
+          expect(AuthenticationMethods::AccessTokenAttributes.current_token).to eq token
+        end
+
+        it "sets current_developer_key to the token's developer_key" do
+          developer_key = DeveloperKey.create!(name: "key")
+          developer_key.developer_key_account_bindings.first.update!(workflow_state: "on")
+          token = AccessToken.create!(user: @user, developer_key:, purpose: "Test Access Token")
+          controller = setup_with_token(token)
+
+          controller.send(:load_user)
+
+          expect(AuthenticationMethods::AccessTokenAttributes.current_developer_key).to eq developer_key
+        end
+
+        it "sets current_developer_key to the default developer_key for user-generated tokens" do
+          token = AccessToken.create!(user: @user, purpose: "Test Access Token")
+          controller = setup_with_token(token)
+
+          controller.send(:load_user)
+
+          expect(AuthenticationMethods::AccessTokenAttributes.current_developer_key).to eq DeveloperKey.default
+        end
+
+        it "does not set the attributes when the token is revoked" do
+          token = AccessToken.create!(user: @user, workflow_state: "deleted", purpose: "Test Access Token")
+          controller = setup_with_token(token)
+
+          expect { controller.send(:load_user) }.to raise_error(AuthenticationMethods::RevokedAccessTokenError)
+          expect(AuthenticationMethods::AccessTokenAttributes.current_token).to be_nil
+          expect(AuthenticationMethods::AccessTokenAttributes.current_developer_key).to be_nil
+        end
+
+        it "does not set the attributes when current_user and current_pseudonym are missing" do
+          allow(SisPseudonym).to receive(:for).and_return(nil)
+          token = AccessToken.create!(user: @user, purpose: "Test Access Token")
+          controller = setup_with_token(token)
+
+          expect { controller.send(:load_user) }.to raise_error(AuthenticationMethods::AccessTokenError)
+          expect(AuthenticationMethods::AccessTokenAttributes.current_token).to be_nil
+          expect(AuthenticationMethods::AccessTokenAttributes.current_developer_key).to be_nil
+        end
+      end
     end
 
     context "with an InstAccess token" do

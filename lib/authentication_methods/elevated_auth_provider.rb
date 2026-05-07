@@ -41,6 +41,15 @@ module AuthenticationMethods
       Rails.logger.public_send(level, "[ElevatedAuthProvider]: #{message}")
     end
 
+    def operation_permitted_by_client?
+      permitted = AuthenticationMethods::AccessTokenAttributes.current_developer_key&.elevated_operation_permitted?(request:)
+      if Account.site_admin.feature_enabled?(:require_client_credentials_for_elevated_operations)
+        permitted &&= AuthenticationMethods::AccessTokenAttributes.current_token.is_a?(InstAccess::Token)
+      end
+
+      permitted
+    end
+
     def elevated_auth_provider_required?(pseudonym_account)
       if pseudonym_account.nil?
         warn_no_pseudonym_account(@current_pseudonym)
@@ -54,8 +63,13 @@ module AuthenticationMethods
       end
 
       # Some OAuth2 clients are permitted to either perform all elevated
-      # operations or a subset of them based on their scope and grant type
-      return false if AuthenticationMethods::AccessTokenAttributes.current_developer_key&.elevated_operation_permitted?(request:)
+      # operations or a subset of them based on their scope and grant type.
+      #
+      # Check if the DeveloperKey has the needed scopes and grant types
+      # to permit the operation without a session required. Additionally
+      # check to see if the token was issued for a client credentials grant
+      # (detected by the token's type)
+      return false if operation_permitted_by_client?
 
       pseudonym_account.elevated_auth_provider_global_id.present?
     end

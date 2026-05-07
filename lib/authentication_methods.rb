@@ -182,6 +182,10 @@ module AuthenticationMethods
       raise AccessTokenError unless @current_user && @current_pseudonym
 
       validate_scopes
+
+      ::AuthenticationMethods::AccessTokenAttributes.current_token = @access_token
+      ::AuthenticationMethods::AccessTokenAttributes.current_developer_key = @access_token.developer_key
+
       @access_token.used!
 
       RequestContext::Generator.add_meta_header("at", @access_token.global_id)

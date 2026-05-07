@@ -230,3 +230,20 @@ require_elevated_auth_provider_for_csp_settings:
       state: hidden
     production:
       state: hidden
+require_client_credentials_for_elevated_operations:
+  state: hidden
+  shadow: true
+  applies_to: SiteAdmin
+  display_name: Permit Client Credentials Elevated Operations
+  description: |-
+    If enabled, OAuth2 service-auth keys (service_user_client_credentials
+    grant) may bypass the elevated authentication provider requirement when
+    their scopes include the matching elevated-operation scope. When
+    disabled, no developer key receives this bypass via scopes.
+  environments:
+    development:
+      state: allowed
+    beta:
+      state: hidden
+    production:
+      state: hidden

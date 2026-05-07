@@ -271,6 +271,66 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
 
             it_behaves_like "allows the action through"
           end
+
+          context "when require_client_credentials_for_elevated_operations is enabled" do
+            before do
+              allow(Account.site_admin).to receive(:feature_enabled?)
+                .with(:require_client_credentials_for_elevated_operations).and_return(true)
+            end
+
+            context "and the current token is an InstAccess::Token" do
+              let(:developer_key) do
+                DeveloperKey.create!(
+                  name: "key",
+                  scopes:,
+                  authorized_flows: ["service_user_client_credentials"],
+                  service_user: current_user
+                )
+              end
+
+              before do
+                AuthenticationMethods::AccessTokenAttributes.current_token =
+                  InstAccess::Token.for_user(user_uuid: "fake-user-uuid", account_uuid: "fake-acct-uuid")
+              end
+
+              it_behaves_like "allows the action through"
+
+              it "does not emit a violation event" do
+                get :index
+                expect(InstStatsd::Statsd).not_to have_received(:event)
+              end
+            end
+
+            context "and the current token is not an InstAccess::Token" do
+              before do
+                AuthenticationMethods::AccessTokenAttributes.current_token = AccessToken.new
+              end
+
+              it "redirects html requests to root_url" do
+                get :index, format: :html
+                expect(response).to redirect_to(root_url)
+              end
+
+              it "responds 403 unauthorized for json requests" do
+                get :index, format: :json
+                expect(response).to have_http_status(:forbidden)
+                expect(json_parse["status"]).to eql "unauthorized"
+              end
+            end
+
+            context "and there is no current token" do
+              it "redirects html requests to root_url" do
+                get :index, format: :html
+                expect(response).to redirect_to(root_url)
+              end
+
+              it "responds 403 unauthorized for json requests" do
+                get :index, format: :json
+                expect(response).to have_http_status(:forbidden)
+                expect(json_parse["status"]).to eql "unauthorized"
+              end
+            end
+          end
         end
       end
     end
