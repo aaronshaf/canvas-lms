@@ -34,6 +34,19 @@
   <%= preload_link_tag(font_path("/fonts/lato/extended/Lato-Italic.woff2"), { as: "font", type: "font/woff2", crossorigin: 'anonymous' }) %>
   <%= stylesheet_link_tag(css_url_for('fonts')) %>
   <%= stylesheet_link_tag(active_brand_config_url('css'), media: "all") %>
+  <% unless params && (params[:controller]&.starts_with?('login/') || params[:controller]&.starts_with?('oauth'))  # some windows apps need to do the oauth login dance from an ie11 webview %>
+  <% end %>
+  <%= yield :head %>
+  <%= benchmark("include_css_bundles") { include_css_bundles } %>
+  <%= favicon_link_tag(brand_variable('ic-brand-apple-touch-icon'), rel: 'apple-touch-icon', type: nil) %>
+  <%= favicon_link_tag(favicon) %>
+  <% @content_for_head&.each do |string| %>
+  <%= string %><% end %>
+  <%= include_account_css unless @exclude_account_css %>
+  <%= render_datadog_rum_js %>
+  <script>if (navigator.userAgent.match(/(MSIE|Trident\/)/)) location.replace('/ie-is-not-supported.html')</script>
+  <% js_bundle :navigation_header unless @headers == false %>
+  <% js_env({ active_context_tab: get_active_tab }) %>
   <% if @js_env %>
   <script type="text/javascript">
     window.CANVAS_COOKIE_CONSENT_STATE = <%= @js_env[:PRE_COOKIE_CONSENT] %>;
@@ -59,19 +72,6 @@
    }
   </script>
   <% end %>
-  <% unless params && (params[:controller]&.starts_with?('login/') || params[:controller]&.starts_with?('oauth'))  # some windows apps need to do the oauth login dance from an ie11 webview %>
-  <% end %>
-  <%= yield :head %>
-  <%= benchmark("include_css_bundles") { include_css_bundles } %>
-  <%= favicon_link_tag(brand_variable('ic-brand-apple-touch-icon'), rel: 'apple-touch-icon', type: nil) %>
-  <%= favicon_link_tag(favicon) %>
-  <% @content_for_head&.each do |string| %>
-  <%= string %><% end %>
-  <%= include_account_css unless @exclude_account_css %>
-  <%= render_datadog_rum_js %>
-  <script>if (navigator.userAgent.match(/(MSIE|Trident\/)/)) location.replace('/ie-is-not-supported.html')</script>
-  <% js_bundle :navigation_header unless @headers == false %>
-  <% js_env({ active_context_tab: get_active_tab }) %>
   <script>
     INST = <%= benchmark("rendering INST") { raw(inst_env.to_json) } %>;
     ENV = <%= benchmark("rendering ENV") { raw(render_js_env) } %>;
