@@ -41,16 +41,22 @@ import type {Token} from './types'
 const I18n = createI18nScope('profile')
 
 export const PURPOSE_MAX_LENGTH = 255
-const MAX_EXPIRATION_DAYS = 120
+const getMaxExpirationDays = () =>
+  ENV.FEATURES.non_admin_access_token_expiration
+    ? (ENV.non_admin_access_token_max_expiration_days ?? 30)
+    : 120
 
 const getMaxExpirationDate = () => {
   const maxDate = new Date()
-  maxDate.setDate(maxDate.getDate() + MAX_EXPIRATION_DAYS)
+  maxDate.setDate(maxDate.getDate() + getMaxExpirationDays())
   maxDate.setHours(0, 0, 0, 0) // Remove time, set to midnight
   return maxDate
 }
 
-const shouldEnforceMaxExpiration = () => ENV.user_is_only_student
+const shouldEnforceMaxExpiration = (): boolean =>
+  ENV.FEATURES.non_admin_access_token_expiration
+    ? !!ENV.user_is_non_admin
+    : ENV.user_is_only_student
 
 const defaultValues = {
   purpose: '',
@@ -202,7 +208,7 @@ const NewAccessToken = ({onSubmit, onClose}: NewAccessTokenProps) => {
                 disabledDateTimeMessage={I18n.t(
                   'Expiration date cannot be more than %{days} days in the future.',
                   {
-                    days: MAX_EXPIRATION_DAYS,
+                    days: getMaxExpirationDays(),
                   },
                 )}
                 dateRenderLabel={I18n.t('Expiration date')}
@@ -218,7 +224,7 @@ const NewAccessToken = ({onSubmit, onClose}: NewAccessTokenProps) => {
                         {
                           type: 'hint' as const,
                           text: I18n.t('Maximum expiration is %{days} days.', {
-                            days: MAX_EXPIRATION_DAYS,
+                            days: getMaxExpirationDays(),
                           }),
                         },
                       ]

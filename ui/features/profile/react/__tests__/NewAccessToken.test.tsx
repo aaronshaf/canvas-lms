@@ -16,13 +16,13 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react'
 import {cleanup, render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import moment from 'moment-timezone'
 import NewAccessToken, {PURPOSE_MAX_LENGTH} from '../NewAccessToken'
+import fakeEnv from '@canvas/test-utils/fakeENV'
 
 const server = setupServer()
 
@@ -31,7 +31,7 @@ describe('NewAccessToken', () => {
   const onClose = vi.fn()
   const onSubmit = vi.fn()
 
-  beforeAll(() => server.listen())
+  beforeAll(() => server.listen({onUnhandledRequest: 'error'}))
   afterAll(() => server.close())
 
   afterEach(() => {
@@ -311,6 +311,147 @@ describe('NewAccessToken', () => {
           },
           {timeout: 10000},
         )
+      })
+    })
+  })
+
+  describe('Non-admin expiration enforcement', () => {
+    describe('when user_is_non_admin is true', () => {
+      beforeEach(() => {
+        fakeEnv.setup({
+          user_is_non_admin: true,
+          FEATURES: {non_admin_access_token_expiration: true},
+        })
+      })
+
+      afterEach(() => {
+        fakeEnv.teardown()
+      })
+
+      it('should require an expiration date', async () => {
+        const user = userEvent.setup()
+        render(<NewAccessToken onSubmit={onSubmit} onClose={onClose} />)
+        const expirationDateInput = screen.getByLabelText(/Expiration date/)
+
+        expect(expirationDateInput).toBeRequired()
+
+        const purpose = screen.getByLabelText(/Purpose/)
+        const submit = screen.getByLabelText('Generate Token')
+        purpose.focus()
+        await user.paste('Test purpose')
+        await user.click(submit)
+
+        await waitFor(() => {
+          expect(screen.getByText('Expiration date is required.')).toBeInTheDocument()
+        })
+      })
+
+      it('should show maximum expiration hint message of 30 days', () => {
+        render(<NewAccessToken onSubmit={onSubmit} onClose={onClose} />)
+
+        expect(screen.getByText('Maximum expiration is 30 days.')).toBeInTheDocument()
+      })
+
+      it('should prevent selecting dates beyond 30 days', async () => {
+        const user = userEvent.setup()
+        render(<NewAccessToken onSubmit={onSubmit} onClose={onClose} />)
+        const purpose = screen.getByLabelText(/Purpose/)
+        const submit = screen.getByLabelText('Generate Token')
+
+        const futureDate = moment.tz(window.ENV.TIMEZONE).add(45, 'days').startOf('day')
+        const futureDateString = futureDate.format('MMMM D, YYYY')
+
+        const expirationDateInput = screen.getByLabelText(/Expiration date/)
+        const expirationTimeInput = screen.getByLabelText(/Expiration time/)
+
+        purpose.focus()
+        await user.paste('Test purpose')
+        expirationDateInput.focus()
+        await user.paste(futureDateString)
+        await user.tab()
+        expirationTimeInput.focus()
+        await user.paste('12:00 AM')
+        await user.tab()
+        await user.click(submit)
+
+        await waitFor(() => {
+          expect(
+            screen.getByText('Expiration date cannot be more than 30 days in the future.'),
+          ).toBeInTheDocument()
+        })
+      })
+    })
+
+    describe('when non_admin_access_token_max_expiration_days is customized', () => {
+      beforeEach(() => {
+        fakeEnv.setup({
+          user_is_non_admin: true,
+          non_admin_access_token_max_expiration_days: 14,
+          FEATURES: {non_admin_access_token_expiration: true},
+        })
+      })
+
+      afterEach(() => {
+        fakeEnv.teardown()
+      })
+
+      it('shows the custom max days in the hint message', () => {
+        render(<NewAccessToken onSubmit={onSubmit} onClose={onClose} />)
+
+        expect(screen.getByText('Maximum expiration is 14 days.')).toBeInTheDocument()
+      })
+
+      it('prevents selecting dates beyond the custom max', async () => {
+        const user = userEvent.setup()
+        render(<NewAccessToken onSubmit={onSubmit} onClose={onClose} />)
+        const purpose = screen.getByLabelText(/Purpose/)
+        const submit = screen.getByLabelText('Generate Token')
+
+        const futureDate = moment.tz(window.ENV.TIMEZONE).add(20, 'days').startOf('day')
+        const futureDateString = futureDate.format('MMMM D, YYYY')
+
+        const expirationDateInput = screen.getByLabelText(/Expiration date/)
+        const expirationTimeInput = screen.getByLabelText(/Expiration time/)
+
+        purpose.focus()
+        await user.paste('Test purpose')
+        expirationDateInput.focus()
+        await user.paste(futureDateString)
+        await user.tab()
+        expirationTimeInput.focus()
+        await user.paste('12:00 AM')
+        await user.tab()
+        await user.click(submit)
+
+        await waitFor(() => {
+          expect(
+            screen.getByText('Expiration date cannot be more than 14 days in the future.'),
+          ).toBeInTheDocument()
+        })
+      })
+    })
+
+    describe('when user is an account admin', () => {
+      beforeEach(() => {
+        fakeEnv.setup({
+          user_is_non_admin: false,
+          FEATURES: {non_admin_access_token_expiration: true},
+        })
+      })
+
+      it('should not require an expiration date', () => {
+        render(<NewAccessToken onSubmit={onSubmit} onClose={onClose} />)
+        const expirationDateInput = screen.getByLabelText('Expiration date')
+
+        expect(expirationDateInput).not.toBeRequired()
+      })
+
+      it('should show no-expiration hint message', () => {
+        render(<NewAccessToken onSubmit={onSubmit} onClose={onClose} />)
+
+        expect(
+          screen.getByText('Leave the expiration fields blank for no expiration.'),
+        ).toBeInTheDocument()
       })
     })
   })

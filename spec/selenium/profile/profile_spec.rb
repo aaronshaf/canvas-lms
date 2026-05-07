@@ -28,7 +28,7 @@ describe "profile" do
     edit_form
   end
 
-  def generate_access_token(expiration: nil, purpose: "testing", close_dialog: true)
+  def generate_access_token(expiration: format_date_for_view(15.days.from_now), purpose: "testing", close_dialog: true)
     f(".add_access_token_link").click
     access_token_dialog = f("[role=dialog][aria-label='New Access Token']")
     access_token_dialog.find_element(:name, "purpose").send_keys(purpose)
@@ -358,12 +358,6 @@ describe "profile" do
       expect(f(selector).selected?).to be_truthy
     end
 
-    it "generates a new access token without an expiration", priority: "2" do
-      get "/profile/settings"
-      generate_access_token
-      expect(fj(".access_token:visible .expires")).to include_text("never")
-    end
-
     it "generates a new access token with an expiration", priority: "2" do
       Timecop.freeze do
         get "/profile/settings"
@@ -444,6 +438,18 @@ describe "profile" do
         # using :visible because we don't want to grab the template element
         fj("#access_tokens .show_token_link:visible").click
         expect(element_exists?(".regenerate_token")).to be_falsey
+      end
+    end
+
+    context "when the user has any kind of account role" do
+      before do
+        tie_user_to_account(@user, account: Account.default)
+      end
+
+      it "generates a new access token without an expiration", priority: "2" do
+        get "/profile/settings"
+        generate_access_token(expiration: nil)
+        expect(fj(".access_token:visible .expires")).to include_text("never")
       end
     end
   end

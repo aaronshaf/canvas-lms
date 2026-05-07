@@ -478,6 +478,21 @@ nav_menu_links:
       state: allowed_on
     ci:
       state: allowed_on
+non_admin_access_token_expiration:
+  state: hidden
+  shadow: true
+  applies_to: SiteAdmin
+  display_name: Non-Admin Access Token Expiration
+  description: >-
+    When enabled, all non-admin users (students, observers, teachers, TAs,
+    and designers who do not hold an account-level admin role) are required
+    to set an expiration date of 30 days or less when creating access tokens.
+  environments:
+    development:
+      state: allowed_on
+    ci:
+      state: allowed_on
+
 oauth2_deny_post:
   state: hidden
   shadow: true

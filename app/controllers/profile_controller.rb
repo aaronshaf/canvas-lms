@@ -249,7 +249,9 @@ class ProfileController < ApplicationController
                                        :update)
     google_drive_oauth_url = oauth_url(service: "google_drive", return_to: settings_profile_url)
     user_is_only_student = user_has_only_student_enrollments?(@current_user)
-    js_env({ enable_gravatar: @domain_root_account&.enable_gravatar?, register_cc_tabs:, is_default_account:, google_drive_oauth_url:, user_is_only_student:, PERMISSIONS: { can_update_tokens: } })
+    user_is_non_admin = @current_user.adminable_accounts.empty?
+    non_admin_access_token_max_expiration_days = Setting.get("non_admin_access_token_max_expiration_days", 30).to_i
+    js_env({ enable_gravatar: @domain_root_account&.enable_gravatar?, register_cc_tabs:, is_default_account:, google_drive_oauth_url:, user_is_only_student:, user_is_non_admin:, non_admin_access_token_max_expiration_days:, PERMISSIONS: { can_update_tokens: } })
     respond_to do |format|
       format.html do
         @user_data = profile_data(@user.profile, current_principal, session, [])

@@ -550,6 +550,7 @@ describe TokensController do
       context "with restrict_personal_access_tokens_from_students setting on" do
         before(:once) do
           Account.default.change_root_account_setting!(:restrict_personal_access_tokens_from_students, true)
+          Account.site_admin.disable_feature!(:non_admin_access_token_expiration)
         end
 
         shared_examples_for "access token creation and update denied" do
@@ -631,7 +632,10 @@ describe TokensController do
       end
 
       context "with both limit_personal_access_tokens and restrict_personal_access_tokens_from_students setting off" do
-        before(:once) { Account.default.change_root_account_setting!(:limit_personal_access_tokens, false) }
+        before(:once) do
+          Account.default.change_root_account_setting!(:limit_personal_access_tokens, false)
+          Account.site_admin.disable_feature!(:non_admin_access_token_expiration)
+        end
 
         context "as non-admin" do
           it "allows creating an access token" do
@@ -694,6 +698,10 @@ describe TokensController do
       end
 
       context "student expiration enforcement" do
+        before(:once) do
+          Account.site_admin.disable_feature!(:non_admin_access_token_expiration)
+        end
+
         context "as an admin" do
           before(:once) { @admin = account_admin_user }
           before { user_session(@admin) }
@@ -750,6 +758,144 @@ describe TokensController do
             expires_at = (TokensController::MAXIMUM_EXPIRATION_DURATION - 1.day).from_now
             post "create", params: { user_id: "self", token: { purpose: "test", expires_at: } }
             expect(response).to be_successful
+          end
+        end
+      end
+
+      context "non-admin expiration enforcement" do
+        before do
+          Account.site_admin.enable_feature!(:non_admin_access_token_expiration)
+        end
+
+        shared_examples_for "non-admin role expiry testing" do
+          it "rejects tokens without expiry" do
+            post "create", params: { user_id: "self", token: { purpose: "test", expires_at: "" } }
+            expect(response).not_to be_successful
+            expect(response.parsed_body.first["message"]).to eq("Expiration date is required")
+          end
+
+          it "rejects tokens with an expiry past 30 days" do
+            expires_at = 31.days.from_now
+            post "create", params: { user_id: "self", token: { purpose: "test", expires_at: } }
+            expect(response).not_to be_successful
+            expect(response.parsed_body.first["message"]).to eq("Expiration date cannot be more than 30 days in the future")
+          end
+
+          it "allows tokens with an expiry within 30 days" do
+            expires_at = 29.days.from_now
+            post "create", params: { user_id: "self", token: { purpose: "test", expires_at: } }
+            expect(response).to be_successful
+          end
+
+          it "rejects update with an expiry past 30 days" do
+            token = @user.access_tokens.create!(purpose: "test", permanent_expires_at: 1.day.from_now, developer_key: DeveloperKey.default)
+            expires_at = 31.days.from_now
+            put "update", params: { user_id: "self", id: token.id, token: { expires_at: } }
+            expect(response).not_to be_successful
+            expect(response.parsed_body.first["message"]).to eq("Expiration date cannot be more than 30 days in the future")
+          end
+
+          it "allows update with an expiry within 30 days" do
+            token = @user.access_tokens.create!(purpose: "test", permanent_expires_at: 1.day.from_now, developer_key: DeveloperKey.default)
+            expires_at = 29.days.from_now
+            put "update", params: { user_id: "self", id: token.id, token: { expires_at: } }
+            expect(response).to be_successful
+          end
+        end
+
+        shared_examples_for "admin role expiry testing" do
+          it "does not enforce expiry" do
+            post "create", params: { user_id: "self", token: { purpose: "test", expires_at: "" } }
+            expect(response).to be_successful
+            expect(assigns[:token].permanent_expires_at).to be_nil
+          end
+        end
+
+        context "as an account admin" do
+          let_once(:admin) { account_admin_user }
+          before { user_session(admin) }
+
+          it_behaves_like "admin role expiry testing"
+        end
+
+        context "as a user with a custom account role" do
+          let_once(:user_with_custom_role) do
+            custom_role = custom_account_role("CustomRole", account: Account.default)
+            account_with_role_changes = Account.default
+            account_with_role_changes.account_users.create!(user: @user, role: custom_role)
+            @user
+          end
+
+          before { user_session(user_with_custom_role) }
+
+          it_behaves_like "admin role expiry testing"
+        end
+
+        context "as a teacher who is also an account admin" do
+          let_once(:teacher) do
+            course_with_teacher(active_all: true, user: @user)
+            tie_user_to_account(@user)
+            @user
+          end
+
+          before { user_session(teacher) }
+
+          it_behaves_like "admin role expiry testing"
+        end
+
+        context "as a teacher without account admin role" do
+          let_once(:teacher) do
+            course_with_teacher(active_all: true, user: @user)
+            @user
+          end
+
+          before { user_session(teacher) }
+
+          it_behaves_like "non-admin role expiry testing"
+        end
+
+        context "as a student" do
+          let_once(:student) do
+            course_with_student(active_all: true, user: @user)
+            @user
+          end
+
+          before { user_session(student) }
+
+          it_behaves_like "non-admin role expiry testing"
+        end
+
+        context "when an admin masquerades as a non-admin user" do
+          let_once(:admin) { account_admin_user }
+          let_once(:non_admin) { user_with_pseudonym(active_all: true) }
+
+          before { user_session(admin) }
+          before { session[:become_user_id] = non_admin.id }
+
+          it "enforces the 30-day limit for the masqueraded non-admin user" do
+            post "create", params: { user_id: "self", token: { purpose: "test", expires_at: "" } }
+            expect(response).not_to be_successful
+            expect(response.parsed_body.first["message"]).to eq("Expiration date is required")
+          end
+        end
+
+        context "when the admin role lives on a different shard than the request domain" do
+          specs_require_sharding
+
+          let(:cross_shard_admin) do
+            user = user_with_pseudonym(active_all: true)
+            @shard2.activate do
+              AccountUser.create!(user:, account: account_model, role: admin_role)
+            end
+            user
+          end
+
+          before { user_session(cross_shard_admin) }
+
+          it "does not enforce expiry" do
+            post "create", params: { user_id: "self", token: { purpose: "test", expires_at: "" } }
+            expect(response).to be_successful
+            expect(assigns[:token].permanent_expires_at).to be_nil
           end
         end
       end

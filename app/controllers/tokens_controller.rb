@@ -115,8 +115,11 @@ class TokensController < ApplicationController
 
     return render_unauthorized_action unless @token.grants_right?(logged_in_user, AccessToken.account_session_for_permissions(@domain_root_account), :create)
 
-    # Force an expiration date for students
-    if user_has_only_student_enrollments?(@current_user)
+    if Account.site_admin.feature_enabled?(:non_admin_access_token_expiration) &&
+       @current_user.adminable_accounts.none?
+      error = validate_non_admin_token_expiration(token_params)
+      return render_error(error) if error
+    elsif user_has_only_student_enrollments?(@current_user)
       return render_error("Expiration date is required") unless token_params[:permanent_expires_at].present?
 
       begin
@@ -166,6 +169,14 @@ class TokensController < ApplicationController
     end
 
     token_params = access_token_params
+
+    if Account.site_admin.feature_enabled?(:non_admin_access_token_expiration) &&
+       @current_user.adminable_accounts.none? &&
+       token_params.key?(:permanent_expires_at)
+      error = validate_non_admin_token_expiration(token_params)
+      return render_error(error) if error
+    end
+
     if Canvas::Plugin.value_to_boolean(token_params.delete(:regenerate)) && @token.manually_created?
       if @token.expired? && !token_params.key?(:permanent_expires_at)
         return render json: { errors: { message: "cannot regenerate an expired token without a new expiration date" } }, status: :bad_request
@@ -224,6 +235,25 @@ class TokensController < ApplicationController
     # rename for API
     result[:permanent_expires_at] = result.delete(:expires_at) if result.key?(:expires_at)
     result
+  end
+
+  def non_admin_max_expiration_days
+    @non_admin_max_expiration_days ||= Setting.get("non_admin_access_token_max_expiration_days", 30).to_i
+  end
+
+  def validate_non_admin_token_expiration(token_params)
+    return "Expiration date is required" if token_params[:permanent_expires_at].blank?
+
+    begin
+      expiration_date = Time.zone.parse(token_params[:permanent_expires_at])
+      if expiration_date.nil? || expiration_date > non_admin_max_expiration_days.days.from_now
+        return "Expiration date cannot be more than #{non_admin_max_expiration_days} days in the future"
+      end
+    rescue ArgumentError
+      return "Invalid expiration date format"
+    end
+
+    nil
   end
 
   def render_error(message, status = :bad_request)

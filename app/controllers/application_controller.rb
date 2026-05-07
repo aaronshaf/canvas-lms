@@ -594,6 +594,7 @@ class ApplicationController < ActionController::Base
     multiselect_gradebook_filters
     new_quizzes_media_type
     new_quizzes_navigation_updates
+    non_admin_access_token_expiration
     permanent_page_links
     rce_a11y_resize
     rce_find_replace

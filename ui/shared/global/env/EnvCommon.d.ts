@@ -135,6 +135,8 @@ export interface EnvCommon {
   current_user_is_student: boolean
   current_user_is_admin: boolean
   user_is_only_student: boolean
+  user_is_non_admin?: boolean
+  non_admin_access_token_max_expiration_days?: number
   current_user_types: string[]
   current_user_disabled_inbox: boolean
   current_user_visited_tabs: null | string[]
@@ -335,6 +337,7 @@ export type SiteAdminFeatureId =
   | 'media_links_use_attachment_id'
   | 'multiselect_gradebook_filters'
   | 'new_quizzes_navigation_updates'
+  | 'non_admin_access_token_expiration'
   | 'permanent_page_links'
   | 'render_both_to_do_lists'
   | 'scheduled_feedback_releases'
