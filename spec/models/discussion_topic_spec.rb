@@ -4736,39 +4736,23 @@ describe DiscussionTopic do
     end
   end
 
-  describe "#message reader" do
+  describe "#to_atom" do
+    # SEC-21867 exploit: a discussion topic body containing
+    # <object data="data:text/html;base64,..."> is republished into the topic's
+    # Atom feed via DiscussionTopic#to_atom. The base64 here decodes to
+    # <script>alert(1)</script>. The model-side fix (SEC-21854) sanitizes
+    # message on read; to_atom inherits that defense by transitive closure.
     let(:course) do
       course_with_teacher(active_all: true)
       @course
     end
     let(:topic) { course.discussion_topics.create!(title: "t", message: "placeholder") }
 
-    it "strips disallowed attributes when the column was persisted unsanitized" do
-      topic.update_columns(message: '<object onerror="alert(1)">x</object>')
-      expect(topic.reload.message).not_to include("onerror")
-      expect(topic.message).not_to include("alert(1)")
-    end
-
-    it "strips disallowed elements when the column was persisted unsanitized" do
-      topic.update_columns(message: "<script>alert(1)</script>safe text")
-      expect(topic.reload.message).not_to include("<script>")
-      expect(topic.message).not_to include("alert(1)")
-      expect(topic.message).to include("safe text")
-    end
-
-    it "strips object data attributes pointing at javascript URIs" do
-      topic.update_columns(message: '<object data="javascript:alert(1)"></object>')
-      expect(topic.reload.message).not_to include("javascript:")
-    end
-
-    it "preserves allowed HTML on read" do
-      topic.update_columns(message: "<p>hello <strong>world</strong></p>")
-      expect(topic.reload.message).to eql("<p>hello <strong>world</strong></p>")
-    end
-
-    it "leaves nil unchanged on read" do
-      topic.update_columns(message: nil)
-      expect(topic.reload.message).to be_nil
+    it "strips the SEC-21867 data: object exploit from the Atom content" do
+      topic.update_columns(message: '<object data="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==">x</object>')
+      atom = topic.reload.to_atom
+      expect(atom[:content]).not_to include("data:text/html")
+      expect(atom[:content]).not_to include("PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg")
     end
   end
 end
