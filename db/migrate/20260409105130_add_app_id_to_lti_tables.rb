@@ -25,18 +25,21 @@ class AddAppIdToLtiTables < ActiveRecord::Migration[8.0]
                   :app,
                   null: true,
                   foreign_key: { to_table: :lti_registrations },
-                  index: { where: "app_id IS NOT NULL", algorithm: :concurrently, if_not_exists: true }
+                  index: { where: "app_id IS NOT NULL", algorithm: :concurrently, if_not_exists: true },
+                  if_not_exists: true
 
     add_reference :lti_context_controls,
                   :app,
                   null: true,
                   foreign_key: { to_table: :lti_registrations },
-                  index: { where: "app_id IS NOT NULL", algorithm: :concurrently, if_not_exists: true }
+                  index: { where: "app_id IS NOT NULL", algorithm: :concurrently, if_not_exists: true },
+                  if_not_exists: true
 
     add_reference :lti_registration_history_entries,
                   :app,
                   null: true,
                   foreign_key: { to_table: :lti_registrations },
-                  index: { where: "app_id IS NOT NULL", algorithm: :concurrently, if_not_exists: true }
+                  index: { where: "app_id IS NOT NULL", algorithm: :concurrently, if_not_exists: true },
+                  if_not_exists: true
   end
 end
