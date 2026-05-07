@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {fireEvent, render, waitFor} from '@testing-library/react'
+import {fireEvent, render} from '@testing-library/react'
 import React from 'react'
 import {vi} from 'vitest'
 import {CC_FILE_MAX_BYTES} from '../../shared/constants'
@@ -112,14 +112,12 @@ describe('ClosedCaptionCreatorRow', () => {
   })
 
   describe('when editing caption data', () => {
-    const selectFile = async (element, file) => {
-      await waitFor(() =>
-        fireEvent.change(element, {
-          target: {
-            files: [file],
-          },
-        }),
-      )
+    const selectFile = (element, file) => {
+      fireEvent.change(element, {
+        target: {
+          files: [file],
+        },
+      })
     }
 
     it('renders normally', () => {

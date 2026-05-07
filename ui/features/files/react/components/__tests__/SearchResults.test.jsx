@@ -147,7 +147,7 @@ describe('SearchResults', () => {
       ])
       ref = React.createRef()
       render(<SearchResults {...props} ref={ref} />, {attachTo: document.body.firstChild})
-      await waitFor(() => {
+      await act(async () => {
         ref.current.setState({collection})
       })
     })

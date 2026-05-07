@@ -124,7 +124,8 @@ describe('StudentsSearcher', () => {
       },
     ])
     vi.runOnlyPendingTimers()
-    await waitFor(() => fireEvent.click(closest(getByText('Name'), 'button')))
+    await waitFor(() => expect(getByText('Name')).toBeInTheDocument())
+    fireEvent.click(closest(getByText('Name'), 'button'))
     vi.runOnlyPendingTimers()
     await waitFor(() => expect(getByText('searched user')).toBeInTheDocument())
 
@@ -142,7 +143,8 @@ describe('StudentsSearcher', () => {
       },
     ])
     vi.runOnlyPendingTimers()
-    await waitFor(() => fireEvent.click(closest(getByText('Score'), 'button')))
+    await waitFor(() => expect(getByText('Score')).toBeInTheDocument())
+    fireEvent.click(closest(getByText('Score'), 'button'))
     vi.runOnlyPendingTimers()
     await waitFor(() => expect(getByText('searched user')).toBeInTheDocument())
   })
@@ -156,7 +158,8 @@ describe('StudentsSearcher', () => {
       },
     ])
     vi.runOnlyPendingTimers()
-    await waitFor(() => fireEvent.click(closest(getByText('Submission Date'), 'button')))
+    await waitFor(() => expect(getByText('Submission Date')).toBeInTheDocument())
+    fireEvent.click(closest(getByText('Submission Date'), 'button'))
     vi.runOnlyPendingTimers()
     await waitFor(() => expect(getByText('searched user')).toBeInTheDocument())
   })

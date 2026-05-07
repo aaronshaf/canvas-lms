@@ -333,8 +333,10 @@ describe('TempEnrollView component', () => {
     describe('edit', () => {
       it('calls onEdit with correct enrollment data when clicked', async () => {
         await renderView(props)
-        await waitFor(() => fireEvent.click(screen.getByTestId('edit-button')))
-        expect(props.onEdit).toHaveBeenCalledWith(defaultEnrollment.user, [defaultEnrollment])
+        fireEvent.click(await screen.findByTestId('edit-button'))
+        await waitFor(() =>
+          expect(props.onEdit).toHaveBeenCalledWith(defaultEnrollment.user, [defaultEnrollment]),
+        )
       })
     })
 
@@ -351,20 +353,20 @@ describe('TempEnrollView component', () => {
 
       it('opens a confirmation dialog when delete button is clicked', async () => {
         await renderView(props)
-        await waitFor(() => fireEvent.click(screen.getByTestId('delete-button')))
-        expect(window.confirm).toHaveBeenCalled()
+        fireEvent.click(await screen.findByTestId('delete-button'))
+        await waitFor(() => expect(window.confirm).toHaveBeenCalled())
       })
 
       it('does not perform deletion if user cancels confirmation', async () => {
         window.confirm = vi.fn(() => false)
         await renderView(props)
-        await waitFor(() => fireEvent.click(screen.getByTestId('delete-button')))
+        fireEvent.click(await screen.findByTestId('delete-button'))
         expect(await screen.findByText('Recipient User')).toBeInTheDocument()
       })
 
       it('alerts when deletion is successful after confirming', async () => {
         await renderView(props)
-        await waitFor(() => fireEvent.click(screen.getByTestId('delete-button')))
+        fireEvent.click(await screen.findByTestId('delete-button'))
         await waitFor(() =>
           expect(
             screen.queryAllByText('1 enrollments deleted successfully.')[0],
@@ -376,9 +378,9 @@ describe('TempEnrollView component', () => {
     describe('add new', () => {
       it('calls onAddNew when clicked', async () => {
         await renderView(props)
-        await waitFor(() => fireEvent.click(screen.getByTestId('add-button')))
+        fireEvent.click(await screen.findByTestId('add-button'))
 
-        expect(props.onAddNew).toHaveBeenCalled()
+        await waitFor(() => expect(props.onAddNew).toHaveBeenCalled())
       })
     })
   })

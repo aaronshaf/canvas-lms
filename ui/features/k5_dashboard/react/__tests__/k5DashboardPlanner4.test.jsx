@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {fireEvent, render as testingLibraryRender} from '@testing-library/react'
+import {fireEvent, render as testingLibraryRender, waitFor} from '@testing-library/react'
 import K5Dashboard from '../K5Dashboard'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
@@ -63,16 +63,23 @@ describe('K5Dashboard Schedule Section', () => {
     await new Promise(resolve => setTimeout(resolve, 100))
   })
 
-  it.skip('renders an "jump to navigation" button at the bottom of the schedule tab', async () => {
+  it('renders an "jump to navigation" button at the bottom of the schedule tab', async () => {
     const {findByTestId} = render(
       <K5Dashboard {...defaultProps} defaultTab="tab-schedule" plannerEnabled={true} />,
     )
     const jumpToNavButton = await findByTestId('jump-to-weekly-nav-button')
+    // Wait for the weekly planner header's "today" button to render with the active id;
+    // focusHeader() looks it up by that id and won't move focus if it's missing.
+    await waitFor(() =>
+      expect(document.getElementById('weekly-header-active-button')).not.toBeNull(),
+    )
     expect(jumpToNavButton).not.toBeVisible()
+    // Use the real .focus() so document.activeElement actually moves;
+    // a later focus shift will then properly fire the onBlur handler.
     jumpToNavButton.focus()
-    expect(jumpToNavButton).toBeVisible()
+    await waitFor(() => expect(jumpToNavButton).toBeVisible())
     fireEvent.click(jumpToNavButton)
-    expect(document.activeElement.id).toBe('weekly-header-active-button')
-    expect(jumpToNavButton).not.toBeVisible()
+    await waitFor(() => expect(document.activeElement?.id).toBe('weekly-header-active-button'))
+    await waitFor(() => expect(jumpToNavButton).not.toBeVisible())
   })
 })

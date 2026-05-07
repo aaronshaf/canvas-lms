@@ -19,7 +19,7 @@
 import React from 'react'
 import {fireEvent, render, waitFor} from '@testing-library/react'
 import {setupServer} from 'msw/node'
-import {http} from 'msw'
+import {http, HttpResponse} from 'msw'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import {AnnotatedDocumentSelector} from '../EditAssignment'
 
@@ -62,11 +62,9 @@ vi.mock('@canvas/i18n', () => ({
 }))
 
 const server = setupServer(
-  http.get('/api/v1/courses/1/folders/root', (_req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.set('link', 'url; rel="current"'),
-      ctx.json({
+  http.get('/api/v1/courses/1/folders/root', () =>
+    HttpResponse.json(
+      {
         id: 1,
         name: 'Course files',
         context_id: 1,
@@ -74,14 +72,13 @@ const server = setupServer(
         can_upload: true,
         locked_for_user: false,
         parent_folder_id: null,
-      }),
-    )
-  }),
-  http.get('/api/v1/users/self/folders/root', (_req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.set('link', 'url; rel="current"'),
-      ctx.json({
+      },
+      {headers: {link: 'url; rel="current"'}},
+    ),
+  ),
+  http.get('/api/v1/users/self/folders/root', () =>
+    HttpResponse.json(
+      {
         id: 3,
         name: 'My files',
         context_id: 2,
@@ -89,14 +86,13 @@ const server = setupServer(
         can_upload: true,
         locked_for_user: false,
         parent_folder_id: null,
-      }),
-    )
-  }),
-  http.get('/api/v1/folders/1/files', (_req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.set('link', 'url; rel="current"'),
-      ctx.json([
+      },
+      {headers: {link: 'url; rel="current"'}},
+    ),
+  ),
+  http.get('/api/v1/folders/1/files', () =>
+    HttpResponse.json(
+      [
         {
           id: 2,
           display_name: 'thumbnail.jpg',
@@ -104,9 +100,10 @@ const server = setupServer(
           thumbnail_url: 'thumbnail.jpg',
           'content-type': 'text/html',
         },
-      ]),
-    )
-  }),
+      ],
+      {headers: {link: 'url; rel="current"'}},
+    ),
+  ),
 )
 
 beforeAll(() => {
@@ -208,23 +205,19 @@ describe('AnnotatedDocumentSelector', () => {
     })
 
     describe('FileBrowser', () => {
-      it('renders a FileBrowser', () => {
-        const {getByText} = render(<AnnotatedDocumentSelector {...props} />)
+      it('renders a FileBrowser', async () => {
+        const {findByText} = render(<AnnotatedDocumentSelector {...props} />)
 
-        waitFor(() => {
-          expect(getByText('Available folders')).toBeInTheDocument()
-        })
+        expect(await findByText('Available folders')).toBeInTheDocument()
       })
 
-      it('selecting a file in the FileBrowser calls onSelect', () => {
+      it('selecting a file in the FileBrowser calls onSelect', async () => {
         props.onSelect = vi.fn()
-        const {queryByText} = render(<AnnotatedDocumentSelector {...props} />)
+        const {findByText} = render(<AnnotatedDocumentSelector {...props} />)
 
-        waitFor(() => {
-          fireEvent.click(queryByText('Course files'))
-          fireEvent.click(queryByText('thumbnail.jpg'))
-          expect(props.onSelect).toHaveBeenCalledTimes(1)
-        })
+        fireEvent.click(await findByText('Course files'))
+        fireEvent.click(await findByText('thumbnail.jpg'))
+        await waitFor(() => expect(props.onSelect).toHaveBeenCalledTimes(1))
       })
     })
   })
