@@ -126,7 +126,8 @@ describe CareerController do
             horizon_native_permissions_page: false,
             horizon_block_content_editor: false,
             horizon_native_inbox: false,
-            horizon_autopilot: false
+            horizon_autopilot: false,
+            horizon_configurable_learner_dashboard: false
           )
         end
 

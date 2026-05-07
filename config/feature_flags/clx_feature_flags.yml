@@ -103,3 +103,10 @@ horizon_autopilot:
   display_name: "Canvas Career: Rule-Based Automations"
   description: |-
     Enables creating & running rule-based automations in Canvas Career.
+horizon_configurable_learner_dashboard:
+  applies_to: RootAccount
+  state: hidden
+  shadow: true
+  display_name: "Canvas Career: Configurable Learner Dashboard"
+  description: |-
+    Enables account-scoped admin-customizable learner dashboards in Canvas Career.
