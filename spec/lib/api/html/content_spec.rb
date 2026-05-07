@@ -192,6 +192,57 @@ module Api
         end
       end
 
+      describe ".add_overrides_to_html" do
+        let(:fragment) { Nokogiri::HTML5.fragment("<div>x</div>") }
+
+        def call_with(overrides)
+          Content.add_overrides_to_html(fragment, overrides)
+          fragment.to_s
+        end
+
+        it "rejects javascript: URIs in mobile_js_overrides" do
+          html = call_with(mobile_js_overrides: ["javascript:alert(1)"])
+          expect(html).not_to include("javascript:")
+          expect(html).not_to include("<script")
+        end
+
+        it "rejects data: URIs in mobile_js_overrides" do
+          html = call_with(mobile_js_overrides: ["data:text/html,<script>alert(1)</script>"])
+          expect(html).not_to include("<script src")
+        end
+
+        it "rejects javascript: URIs in mobile_css_overrides" do
+          html = call_with(mobile_css_overrides: ["javascript:alert(1)"])
+          expect(html).not_to include("javascript:")
+          expect(html).not_to include("<link")
+        end
+
+        it "rejects malformed URLs" do
+          html = call_with(mobile_js_overrides: ["http://[invalid"])
+          expect(html).not_to include("<script src")
+        end
+
+        it "accepts well-formed https URLs" do
+          html = call_with(mobile_js_overrides: ["https://example.com/x.js"])
+          expect(html).to include('<script src="https://example.com/x.js">')
+        end
+
+        it "accepts relative URLs (no scheme)" do
+          html = call_with(mobile_css_overrides: ["somewhere.css"])
+          expect(html).to include('<link rel="stylesheet" href="somewhere.css">')
+        end
+
+        it "accepts root-relative URLs" do
+          html = call_with(mobile_js_overrides: ["/assets/x.js"])
+          expect(html).to include('<script src="/assets/x.js">')
+        end
+
+        it "rejects file: URIs in mobile_js_overrides" do
+          html = call_with(mobile_js_overrides: ["file:///etc/passwd"])
+          expect(html).not_to include("<script src")
+        end
+      end
+
       describe "#self.collect_attachment_ids" do
         it "collects relevant attachment ids from html" do
           string = <<~HTML

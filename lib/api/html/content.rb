@@ -200,19 +200,44 @@ module Api
         raise UnparsableContentError, e.message
       end
 
+      ALLOWED_OVERRIDE_SCHEMES = %w[http https].freeze
+      private_constant :ALLOWED_OVERRIDE_SCHEMES
+
       def self.add_overrides_to_html(parsed_html, overrides)
         if (mobile_css_overrides = overrides[:mobile_css_overrides])
           mobile_css_overrides.reverse_each do |url|
+            next unless override_url_safe?(url)
+
             tag = parsed_html.document.create_element("link", rel: "stylesheet", href: url)
             parsed_html.prepend_child(tag)
           end
         end
         if (mobile_js_overrides = overrides[:mobile_js_overrides])
           mobile_js_overrides.each do |url|
+            next unless override_url_safe?(url)
+
             tag = parsed_html.document.create_element("script", src: url)
             parsed_html.add_child(tag)
           end
         end
+      end
+
+      # Reject BrandConfig override URLs whose scheme is dangerous (javascript:,
+      # data:, file:, etc.) so that a sub-account admin cannot weaponize this
+      # splice path. Relative URLs (no scheme) are accepted because legacy
+      # BrandConfigs use them. Hostname allowlisting is the next layer; for
+      # now scheme filtering is the minimum needed to close the worst
+      # inline-script case.
+      def self.override_url_safe?(url)
+        return false if url.blank?
+
+        parsed = URI.parse(url.to_s)
+        scheme = parsed.scheme&.downcase
+        return ALLOWED_OVERRIDE_SCHEMES.include?(scheme) if scheme
+
+        true
+      rescue URI::InvalidURIError
+        false
       end
 
       private
