@@ -144,6 +144,11 @@ class DiscussionTopic < ApplicationRecord
 
   sanitize_field :message, CanvasSanitize::SANITIZE
   copy_authorized_links(:message) { [context, nil] }
+
+  def message
+    raw = super
+    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+  end
   acts_as_list scope: { context: self, pinned: true }
 
   before_create :initialize_last_reply_at

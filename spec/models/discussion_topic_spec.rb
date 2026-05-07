@@ -4735,4 +4735,40 @@ describe DiscussionTopic do
       expect(announcement.send(:needs_normalizing?)).to be false
     end
   end
+
+  describe "#message reader" do
+    let(:course) do
+      course_with_teacher(active_all: true)
+      @course
+    end
+    let(:topic) { course.discussion_topics.create!(title: "t", message: "placeholder") }
+
+    it "strips disallowed attributes when the column was persisted unsanitized" do
+      topic.update_columns(message: '<object onerror="alert(1)">x</object>')
+      expect(topic.reload.message).not_to include("onerror")
+      expect(topic.message).not_to include("alert(1)")
+    end
+
+    it "strips disallowed elements when the column was persisted unsanitized" do
+      topic.update_columns(message: "<script>alert(1)</script>safe text")
+      expect(topic.reload.message).not_to include("<script>")
+      expect(topic.message).not_to include("alert(1)")
+      expect(topic.message).to include("safe text")
+    end
+
+    it "strips object data attributes pointing at javascript URIs" do
+      topic.update_columns(message: '<object data="javascript:alert(1)"></object>')
+      expect(topic.reload.message).not_to include("javascript:")
+    end
+
+    it "preserves allowed HTML on read" do
+      topic.update_columns(message: "<p>hello <strong>world</strong></p>")
+      expect(topic.reload.message).to eql("<p>hello <strong>world</strong></p>")
+    end
+
+    it "leaves nil unchanged on read" do
+      topic.update_columns(message: nil)
+      expect(topic.reload.message).to be_nil
+    end
+  end
 end
