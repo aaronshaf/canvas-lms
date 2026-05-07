@@ -94,16 +94,14 @@ module Login::Shared
 
     otp_passed ||= user.validate_otp_secret_key_remember_me_cookie(cookies["canvas_otp_remember_me"], request.remote_ip)
     session[:login_aac_skip_canvas_mfa] = auth_provider&.skip_internal_mfa
-    unless otp_passed || session[:login_aac_skip_canvas_mfa]
-      mfa_settings = user.mfa_settings(pseudonym_hint: @current_pseudonym)
-      if (mfa_settings == :optional && (user.otp_secret_key || auth_provider.mfa_required)) || mfa_settings == :required
-        session[:pending_otp] = true
-        respond_to do |format|
-          format.html { redirect_to otp_login_url }
-          format.json { render json: { otp_required: true }, status: :ok }
-        end
-        return
+    # TODO: check if this can safely be made just pseudonym instead of @current_pseudonym
+    unless otp_passed || !canvas_mfa_required?(user, pseudonym: @current_pseudonym)
+      session[:pending_otp] = true
+      respond_to do |format|
+        format.html { redirect_to otp_login_url }
+        format.json { render json: { otp_required: true }, status: :ok }
       end
+      return
     end
 
     add_mfa_verified_ip_and_user_agent if otp_passed

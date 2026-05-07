@@ -42,6 +42,7 @@ class ApplicationController < ActionController::Base
 
   include AuthenticationMethods
   include AuthenticationMethods::ElevatedAuthProvider
+  include MfaSessionConcern
 
   include Canvas::RequestForgeryProtection
 
@@ -1308,88 +1309,6 @@ class ApplicationController < ActionController::Base
       destroy_session
       redirect_to login_url
     end
-  end
-
-  def check_mfa_ips_and_user_agents
-    return unless logged_in_user&.canvas_mfa? && !session[:login_aac_skip_canvas_mfa] && in_app?
-
-    verified_ips = session[:mfa_verified_ips]
-    ip_match = verified_ips&.include?(request.remote_ip)
-
-    ua_md5 = Digest::MD5.hexdigest(request.user_agent.to_s)
-    verified_uas = session[:mfa_verified_uas]
-    ua_match = verified_uas&.include?(ua_md5)
-
-    is_site_admin = Account.site_admin.grants_right?(logged_in_user, :read)
-    is_account_admin = !is_site_admin && @domain_root_account.cached_all_account_users_for(logged_in_user).any?
-
-    user_type = if is_site_admin then "site_admin"
-                elsif is_account_admin then "account_admin"
-                else "regular"
-                end
-
-    if Account.site_admin.feature_enabled?(:mfa_event_collection)
-      event_tags = {
-        user_type:,
-        account_domain: request.host,
-        account_global_id: @domain_root_account&.global_id&.to_s,
-        user_global_id: logged_in_user&.global_id&.to_s
-      }.merge(
-        Canvas::ExecutionContext.to_h
-      )
-
-      InstStatsd::Statsd.event("MFA Request", "canvas.mfa_request", type: :mfa_request, alert_type: :info, tags: event_tags)
-
-      unless ip_match
-        InstStatsd::Statsd.event("MFA IP Mismatch", "canvas.mfa_ip_mismatch", type: :mfa_ip_mismatch, alert_type: :warning, tags: event_tags)
-      end
-
-      unless ua_match
-        InstStatsd::Statsd.event("MFA UA Mismatch", "canvas.mfa_ua_mismatch", type: :mfa_ua_mismatch, alert_type: :warning, tags: event_tags)
-      end
-    end
-
-    return if ip_match && ua_match
-
-    if @domain_root_account.feature_enabled?(:enforce_session_fingerprinting)
-      settings = DynamicSettings.find(tree: :private)
-      ip_enforce = unless ip_match
-                     (is_site_admin && settings["mfa_ip_enforce_site_admins"]) ||
-                       (is_account_admin && settings["mfa_ip_enforce_account_admins"]) ||
-                       settings["mfa_ip_enforce_all_mfa_users"]
-                   end
-      ua_enforce = unless ua_match
-                     (is_site_admin && settings["mfa_ua_enforce_site_admins"]) ||
-                       (is_account_admin && settings["mfa_ua_enforce_account_admins"]) ||
-                       settings["mfa_ua_enforce_all_mfa_users"]
-                   end
-      enforce = ip_enforce || ua_enforce
-    end
-
-    unless enforce
-      # If we aren't enforcing, update the session so that we avoid logging on every request after failure
-      add_mfa_verified_ip_and_user_agent
-      return
-    end
-
-    prompt_for_otp
-  end
-
-  def prompt_for_otp
-    store_location
-    session[:pending_otp] = true
-    redirect_to otp_login_url
-  end
-
-  def add_mfa_verified_ip_and_user_agent
-    ips = Array(session[:mfa_verified_ips]).reject { |ip| ip == request.remote_ip }
-    ips.shift if ips.size >= 5
-    session[:mfa_verified_ips] = ips + [request.remote_ip]
-
-    ua_md5 = Digest::MD5.hexdigest(request.user_agent.to_s)
-    uas = Array(session[:mfa_verified_uas]).reject { |ua| ua == ua_md5 }
-    uas.shift if uas.size >= 5
-    session[:mfa_verified_uas] = uas + [ua_md5]
   end
 
   def tab_enabled?(id, no_render: false)
