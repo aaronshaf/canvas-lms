@@ -74,4 +74,40 @@ describe DiscussionEntryVersion do
       expect(version.message_intro).to eq("x" * 301)
     end
   end
+
+  describe "#message reader" do
+    let(:user) { user_model }
+    let(:course) { course_model }
+    let(:topic) { course.discussion_topics.create!(title: "t", message: "m") }
+    let(:entry) { topic.discussion_entries.create!(user:, message: "Initial message") }
+    let(:version) { entry.discussion_entry_versions.first }
+
+    it "strips disallowed attributes when the column was persisted unsanitized" do
+      version.update_columns(message: '<object onerror="alert(1)">x</object>')
+      expect(version.reload.message).not_to include("onerror")
+      expect(version.message).not_to include("alert(1)")
+    end
+
+    it "strips disallowed elements when the column was persisted unsanitized" do
+      version.update_columns(message: "<script>alert(1)</script>safe text")
+      expect(version.reload.message).not_to include("<script>")
+      expect(version.message).not_to include("alert(1)")
+      expect(version.message).to include("safe text")
+    end
+
+    it "strips object data attributes pointing at javascript URIs" do
+      version.update_columns(message: '<object data="javascript:alert(1)"></object>')
+      expect(version.reload.message).not_to include("javascript:")
+    end
+
+    it "preserves allowed HTML on read" do
+      version.update_columns(message: "<p>hello <strong>world</strong></p>")
+      expect(version.reload.message).to eql("<p>hello <strong>world</strong></p>")
+    end
+
+    it "leaves nil unchanged on read" do
+      version.update_columns(message: nil)
+      expect(version.reload.message).to be_nil
+    end
+  end
 end

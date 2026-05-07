@@ -25,6 +25,11 @@ class DiscussionEntryVersion < ApplicationRecord
 
   MESSAGE_INTRO_TRUNCATE_LENGTH = 300
 
+  def message
+    raw = super
+    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+  end
+
   def message_intro
     HtmlTextHelper.strip_tags(message)[0..MESSAGE_INTRO_TRUNCATE_LENGTH]
   end
