@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import React, {useCallback, useEffect, useState} from 'react'
+import React, {useCallback, useEffect, useRef, useState} from 'react'
 import {showFlashError, showFlashSuccess} from '@instructure/platform-alerts'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Modal} from '@instructure/ui-modal'
@@ -98,7 +98,10 @@ export default function DefaultGradeModal({
     [savedGrade],
   )
 
+  const previousDefaultGradeStatus = useRef<ApiCallStatus>(defaultGradeStatus)
   useEffect(() => {
+    if (previousDefaultGradeStatus.current === defaultGradeStatus) return
+    previousDefaultGradeStatus.current = defaultGradeStatus
     switch (defaultGradeStatus) {
       case ApiCallStatus.FAILED:
         showFlashError(I18n.t('Failed to set default grade'))(new Error())

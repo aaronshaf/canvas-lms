@@ -175,11 +175,6 @@ describe('Enhanced Individual Gradebook', () => {
       await act(async () => {
         fireEvent.change(getByTestId('content-selection-student-select'), {target: {value: '5'}})
       })
-      // TODO: GradingResults has a bug where its handleGradeChange useEffect re-fires on student
-      // switch because onSubmissionSaved changes identity, re-running with a stale COMPLETED
-      // status and calling showFlashSuccess again. This clear masks that bug; the component
-      // fix is to stabilize handleGradeChange via a ref (see GradingResults/index.tsx:191).
-      vi.mocked(showFlashSuccess).mockClear()
       await waitFor(() => expect(vi.mocked(showFlashSuccess)).not.toHaveBeenCalled(), {
         timeout: 1000,
       })

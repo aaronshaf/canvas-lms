@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useCallback, useEffect, useState} from 'react'
+import React, {useCallback, useEffect, useRef, useState} from 'react'
 import {showFlashError, showFlashSuccess} from '@instructure/platform-alerts'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
@@ -196,7 +196,10 @@ export default function GradingResults({
     refetchComments()
   }, [refetchComments])
 
+  const previousSubmitScoreStatus = useRef<ApiCallStatus>(submitScoreStatus)
   useEffect(() => {
+    if (previousSubmitScoreStatus.current === submitScoreStatus) return
+    previousSubmitScoreStatus.current = submitScoreStatus
     handleGradeChange({
       status: submitScoreStatus,
       newSubmission: savedSubmission,
