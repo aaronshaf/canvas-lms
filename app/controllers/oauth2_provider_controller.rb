@@ -58,6 +58,7 @@ class OAuth2ProviderController < ApplicationController
     session[:oauth2] = provider.session_hash
     session[:oauth2][:state] = params[:state] if params.key?(:state)
     session[:oauth2][:nonce] = params[:nonce] if params.key?(:nonce)
+    session[:oauth2][:domain_root_account_id] = @domain_root_account.global_id
 
     if provider.key.require_scopes? && !provider.valid_scopes?
       return redirect_to Canvas::OAuth::Provider.final_redirect(self,

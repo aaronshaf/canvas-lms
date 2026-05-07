@@ -95,7 +95,7 @@ module Canvas::OAuth
     def authorized_token?(user, real_user: nil)
       unless self.class.is_oob?(redirect_uri)
         return true if key.trusted? && !key.commons?
-        return true if Token.find_reusable_access_token(user, key, scopes, purpose, real_user:)
+        return true if Token.find_reusable_access_token(user, key, scopes, purpose, real_user:, ignore_scoping: true)
       end
 
       false
@@ -173,7 +173,8 @@ module Canvas::OAuth
         purpose: oauth_session&.dig(:purpose),
         code_challenge: oauth_session&.dig(:code_challenge),
         code_challenge_method: oauth_session&.dig(:code_challenge_method),
-        resource: oauth_session&.dig(:resource)
+        resource: oauth_session&.dig(:resource),
+        domain_root_account_id: oauth_session&.dig(:domain_root_account_id)
       }
 
       code = Canvas::OAuth::Token.generate_code_for(current_user.global_id, real_user&.global_id, oauth_session[:client_id], options)

@@ -202,6 +202,52 @@ module Canvas::OAuth
         token.create_access_token_if_needed
         expect(AccessToken.not_deleted.where(id: old_token.id).exists?).to be(true)
       end
+
+      context "account scoping" do
+        let(:root_account) { Account.default }
+        let(:site_admin_user) do
+          u = User.create!
+          Account.site_admin.account_users.create!(user: u)
+          u
+        end
+
+        before do
+          allow(token).to receive(:domain_root_account_id).and_return(root_account.global_id)
+        end
+
+        it "sets scoped_to_root_account_id when the granting user is a site admin" do
+          allow(token).to receive_messages(user: site_admin_user, real_user: site_admin_user)
+          token.create_access_token_if_needed
+          expect(token.access_token.scoped_to_root_account_id).to eq root_account.global_id
+        end
+
+        it "does not set scoped_to_root_account_id for a non-site-admin user" do
+          token.create_access_token_if_needed
+          expect(token.access_token.scoped_to_root_account_id).to be_nil
+        end
+
+        it "does not set scoped_to_root_account_id when domain_root_account_id is nil" do
+          allow(token).to receive_messages(domain_root_account_id: nil, user: site_admin_user, real_user: site_admin_user)
+          token.create_access_token_if_needed
+          expect(token.access_token.scoped_to_root_account_id).to be_nil
+        end
+
+        context "masquerade" do
+          let(:regular_user) { User.create! }
+
+          it "uses real_user for site admin check when masquerading" do
+            allow(token).to receive_messages(user: regular_user, real_user: site_admin_user)
+            token.create_access_token_if_needed
+            expect(token.access_token.scoped_to_root_account_id).to eq root_account.global_id
+          end
+
+          it "does not pin when real_user is not site admin" do
+            allow(token).to receive_messages(user: site_admin_user, real_user: regular_user)
+            token.create_access_token_if_needed
+            expect(token.access_token.scoped_to_root_account_id).to be_nil
+          end
+        end
+      end
     end
 
     describe ".find_access_token" do
@@ -229,6 +275,14 @@ module Canvas::OAuth
         @user.access_tokens.destroy_all
         access_token = token.class.find_access_token(@user, @dev_key.reload, scopes, purpose)
         expect(access_token).to be_nil
+      end
+
+      it "ignores scoped_to_root_account_id when ignore_scoping is true" do
+        scoped_token = @user.access_tokens.first
+        scoped_token.update!(scoped_to_root_account_id: Account.default.global_id)
+
+        expect(token.class.find_access_token(@user, @dev_key, scopes, purpose, {}, scoped_to_root_account_id: nil)).to be_nil
+        expect(token.class.find_access_token(@user, @dev_key, scopes, purpose, {}, ignore_scoping: true)).to be_a AccessToken
       end
     end
 
@@ -329,11 +383,20 @@ module Canvas::OAuth
       end
 
       it "sets the new data hash into redis with 10 min ttl" do
-        code_data = { user: 1, real_user: 2, client_id: 3, scopes: nil, purpose: nil, remember_access: nil, resource: nil }
+        code_data = { user: 1, real_user: 2, client_id: 3, scopes: nil, purpose: nil, remember_access: nil, resource: nil, domain_root_account_id: nil }
         # should have 10 min (in seconds) ttl passed as second param
         expect(redis).to receive(:setex).with("oauth2:brand_new_code", 600, code_data.to_json)
         allow(Canvas).to receive_messages(redis:)
         Token.generate_code_for(1, 2, 3)
+      end
+
+      it "stores domain_root_account_id when provided" do
+        allow(Canvas).to receive_messages(redis:)
+        expect(redis).to receive(:setex) do |_key, _ttl, json|
+          data = JSON.parse(json)
+          expect(data["domain_root_account_id"]).to eq 42
+        end
+        Token.generate_code_for(1, 2, 3, { domain_root_account_id: 42 })
       end
 
       context "when PKCE is used in the authorization request" do

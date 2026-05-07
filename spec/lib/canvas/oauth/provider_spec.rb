@@ -564,5 +564,35 @@ module Canvas::OAuth
         end
       end
     end
+
+    describe ".final_redirect_params" do
+      let(:user) { User.create! }
+      let(:root_account) { Account.default }
+      let(:oauth_session) do
+        {
+          client_id: "123",
+          redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
+          domain_root_account_id: root_account.global_id
+        }
+      end
+
+      it "passes domain_root_account_id from the session to generate_code_for" do
+        expect(Token).to receive(:generate_code_for)
+          .with(anything, anything, anything, hash_including(domain_root_account_id: root_account.global_id))
+          .and_return("test_code")
+
+        Provider.final_redirect_params(oauth_session, user)
+      end
+
+      it "passes nil for domain_root_account_id when not present in session" do
+        session_without_account = oauth_session.except(:domain_root_account_id)
+
+        expect(Token).to receive(:generate_code_for)
+          .with(anything, anything, anything, hash_including(domain_root_account_id: nil))
+          .and_return("test_code")
+
+        Provider.final_redirect_params(session_without_account, user)
+      end
+    end
   end
 end

@@ -48,6 +48,8 @@ perform the OAuth flow again to receive a new token. You can differentiate this
 permission to access the resource by checking that the WWW-Authenticate header
 is set.
 
+Note that for applications using a single stored token across multiple Canvas domains, a 401 with a `WWW-Authenticate` header can also indicate that the token was issued on a different Canvas domain than the one being requested. In that case, re-running the OAuth flow on the same domain will not resolve the error - you must run the flow on the correct Canvas domain instead.
+
 Storing a token is in many ways equivalent to storing the user's
 password, so tokens should be stored and used in a secure manner,
 including but not limited to:

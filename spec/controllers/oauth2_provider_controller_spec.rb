@@ -182,6 +182,14 @@ describe OAuth2ProviderController do
       expect(response).to redirect_to(login_url)
     end
 
+    it "stores domain_root_account_id in the oauth2 session" do
+      get :auth,
+          params: { client_id: key.id,
+                    redirect_uri: Canvas::OAuth::Provider::OAUTH2_OOB_URI,
+                    response_type: "code" }
+      expect(session[:oauth2][:domain_root_account_id]).to eq Account.default.global_id
+    end
+
     it "passes on canvas_login if provided" do
       get :auth, params: { client_id: key.id,
                            redirect_uri: Canvas::OAuth::Provider::OAUTH2_OOB_URI,
@@ -1432,7 +1440,13 @@ describe OAuth2ProviderController do
         user.global_id,
         user.global_id,
         key.id,
-        { code_challenge: nil, code_challenge_method: nil, purpose: nil, remember_access: nil, scopes: nil, resource: nil }
+        { code_challenge: nil,
+          code_challenge_method: nil,
+          purpose: nil,
+          remember_access: nil,
+          scopes: nil,
+          resource: nil,
+          domain_root_account_id: nil }
       ).and_return("code")
       oauth_accept
 
@@ -1446,7 +1460,13 @@ describe OAuth2ProviderController do
         user.global_id,
         user.global_id,
         key.id,
-        { scopes:, remember_access: nil, purpose: nil, code_challenge: nil, code_challenge_method: nil, resource: nil }
+        { scopes:,
+          remember_access: nil,
+          purpose: nil,
+          code_challenge: nil,
+          code_challenge_method: nil,
+          resource: nil,
+          domain_root_account_id: nil }
       ).and_return("code")
 
       oauth_accept
@@ -1457,7 +1477,13 @@ describe OAuth2ProviderController do
         user.global_id,
         user.global_id,
         key.id,
-        { scopes: nil, remember_access: "1", purpose: nil, code_challenge: nil, code_challenge_method: nil, resource: nil }
+        { scopes: nil,
+          remember_access: "1",
+          purpose: nil,
+          code_challenge: nil,
+          code_challenge_method: nil,
+          resource: nil,
+          domain_root_account_id: nil }
       ).and_return("code")
       post :accept, params: { remember_access: "1", custom_csrf_token: }, session: session_hash
     end
@@ -1509,6 +1535,7 @@ describe OAuth2ProviderController do
             code_challenge:,
             code_challenge_method:,
             resource: nil,
+            domain_root_account_id: nil
           }
         ).and_return("code")
 

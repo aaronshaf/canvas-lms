@@ -712,6 +712,67 @@ describe AccessToken do
     end
   end
 
+  describe "#authorized_for_root_account?" do
+    let(:root_account) { Account.create! }
+    let(:other_account) { Account.create! }
+    let(:access_token) { AccessToken.create!(user: user_model, purpose: "test") }
+
+    it "returns true when scoped_to_root_account_id is nil" do
+      expect(access_token.authorized_for_root_account?(root_account)).to be true
+    end
+
+    it "returns true when scoped_to_root_account_id matches the domain root account global_id" do
+      access_token.update!(scoped_to_root_account_id: root_account.global_id)
+      expect(access_token.authorized_for_root_account?(root_account)).to be true
+    end
+
+    it "returns false when scoped_to_root_account_id does not match" do
+      access_token.update!(scoped_to_root_account_id: root_account.global_id)
+      expect(access_token.authorized_for_root_account?(other_account)).to be false
+    end
+
+    it "returns true for a mismatched account when the feature flag is disabled" do
+      access_token.update!(scoped_to_root_account_id: root_account.global_id)
+      other_account.disable_feature!(:oauth_token_account_scoping)
+      expect(access_token.authorized_for_root_account?(other_account)).to be true
+    end
+
+    it "returns true when the request comes from site admin" do
+      access_token.update!(scoped_to_root_account_id: root_account.global_id)
+      expect(access_token.authorized_for_root_account?(Account.site_admin)).to be true
+    end
+
+    context "when trust_exists? returns false (base Canvas, no consortium plugin)" do
+      it "does not grant access to a non-matching account" do
+        allow(Account).to receive(:find_by).and_call_original
+        allow(Account).to receive(:find_by).with(id: root_account.global_id).and_return(root_account)
+        allow(root_account).to receive(:trust_exists?).and_return(false)
+        access_token.update!(scoped_to_root_account_id: root_account.global_id)
+        expect(access_token.authorized_for_root_account?(other_account)).to be false
+      end
+    end
+
+    context "when trust_exists? returns true (consortium plugin installed)" do
+      it "returns true when the scoped account trusts the requesting account" do
+        allow(Account).to receive(:find_by).and_call_original
+        allow(Account).to receive(:find_by).with(id: root_account.global_id).and_return(root_account)
+        allow(root_account).to receive(:trust_exists?).and_return(true)
+        allow(root_account).to receive(:trusts_account?).with(other_account).and_return(:explicit)
+        access_token.update!(scoped_to_root_account_id: root_account.global_id)
+        expect(access_token.authorized_for_root_account?(other_account)).to be true
+      end
+
+      it "returns false when the scoped account does not trust the requesting account" do
+        allow(Account).to receive(:find_by).and_call_original
+        allow(Account).to receive(:find_by).with(id: root_account.global_id).and_return(root_account)
+        allow(root_account).to receive(:trust_exists?).and_return(true)
+        allow(root_account).to receive(:trusts_account?).with(other_account).and_return(false)
+        access_token.update!(scoped_to_root_account_id: root_account.global_id)
+        expect(access_token.authorized_for_root_account?(other_account)).to be false
+      end
+    end
+  end
+
   context "broadcast policy" do
     before(:once) do
       Notification.create!(name: "Manually Created Access Token Created")

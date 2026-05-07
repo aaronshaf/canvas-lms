@@ -252,7 +252,49 @@ class AccessToken < ApplicationRecord
   def authorized_for_account?(target_account)
     return true unless developer_key
 
-    developer_key.authorized_for_account?(target_account)
+    developer_key.authorized_for_account?(target_account) && authorized_for_root_account?(target_account.root_account)
+  end
+
+  def authorized_for_root_account?(domain_root_account)
+    return true if scoped_to_root_account_id.nil?
+    return true if domain_root_account.site_admin?
+
+    scoped_correctly = scoped_to_root_account_id == domain_root_account.global_id
+
+    unless scoped_correctly
+      scoped_account = Account.find_by(id: scoped_to_root_account_id)
+      if scoped_account&.trust_exists?
+        scoped_correctly = !!scoped_account.trusts_account?(domain_root_account)
+      end
+    end
+
+    enforced = domain_root_account.feature_enabled?(:oauth_token_account_scoping)
+
+    unless scoped_correctly
+      Rails.logger.warn(
+        "[AccessToken] account scope mismatch: token=#{global_id} " \
+        "scoped_to=#{scoped_to_root_account_id} request_account=#{domain_root_account.global_id} " \
+        "enforced=#{enforced}"
+      )
+      InstStatsd::Statsd.increment(
+        "access_token.scoped_account_mismatch",
+        tags: { enforced: enforced.to_s }
+      )
+      if Account.site_admin.feature_enabled?(:oauth_token_scope_mismatch_events)
+        InstStatsd::Statsd.event(
+          "OAuth token used against wrong root account",
+          "token=#{global_id} user=#{user_id} dev_key=#{global_developer_key_id} " \
+          "scoped_to=#{scoped_to_root_account_id} " \
+          "request_account=#{domain_root_account.global_id}",
+          type: "oauth_token_scope_mismatch",
+          alert_type: :warning
+        )
+      end
+    end
+
+    return true unless enforced
+
+    scoped_correctly
   end
 
   def site_admin?

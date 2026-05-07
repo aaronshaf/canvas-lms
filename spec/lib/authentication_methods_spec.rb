@@ -578,6 +578,40 @@ describe AuthenticationMethods do
           expect(AuthenticationMethods::AccessTokenAttributes.current_developer_key).to be_nil
         end
       end
+
+      context "with account-scoped tokens" do
+        let(:root_account) { Account.default }
+        let(:other_account) { Account.create! }
+
+        it "raises AccessTokenError when token is pinned to a different root account" do
+          token = AccessToken.create!(user: @user, purpose: "Test Access Token", scoped_to_root_account_id: other_account.global_id)
+          controller = setup_with_token(token)
+
+          expect { controller.send(:load_user) }.to raise_error(AuthenticationMethods::AccessTokenError)
+        end
+
+        it "succeeds when token is pinned to the request root account" do
+          token = AccessToken.create!(user: @user, purpose: "Test Access Token", scoped_to_root_account_id: root_account.global_id)
+          controller = setup_with_token(token)
+
+          expect(controller.send(:load_user)).to eq @user
+        end
+
+        it "succeeds when token has no scope pin" do
+          token = AccessToken.create!(user: @user, purpose: "Test Access Token")
+          controller = setup_with_token(token)
+
+          expect(controller.send(:load_user)).to eq @user
+        end
+
+        it "allows a mismatched account when the feature flag is disabled" do
+          Account.default.disable_feature!(:oauth_token_account_scoping)
+          token = AccessToken.create!(user: @user, purpose: "Test Access Token", scoped_to_root_account_id: other_account.global_id)
+          controller = setup_with_token(token)
+
+          expect(controller.send(:load_user)).to eq @user
+        end
+      end
     end
 
     context "with an InstAccess token" do

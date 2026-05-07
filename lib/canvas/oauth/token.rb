@@ -29,6 +29,7 @@ module Canvas::OAuth
     PURPOSE_KEY = "purpose"
     REMEMBER_ACCESS = "remember_access"
     RESOURCE_KEY = "resource"
+    DOMAIN_ROOT_ACCOUNT_ID_KEY = "domain_root_account_id"
 
     def initialize(key, code, access_token = nil)
       @key = key
@@ -71,6 +72,10 @@ module Canvas::OAuth
       @remember_access ||= !!code_data[REMEMBER_ACCESS]
     end
 
+    def domain_root_account_id
+      code_data[DOMAIN_ROOT_ACCOUNT_ID_KEY]
+    end
+
     def resource
       code_data[RESOURCE_KEY]
     end
@@ -84,7 +89,8 @@ module Canvas::OAuth
     end
 
     def create_access_token_if_needed(replace_tokens: false)
-      @access_token ||= self.class.find_reusable_access_token(user, key, scopes, purpose, real_user:)
+      target_scoped_account_id = compute_target_scoped_account_id
+      @access_token ||= self.class.find_reusable_access_token(user, key, scopes, purpose, real_user:, scoped_to_root_account_id: target_scoped_account_id)
 
       if @access_token.nil?
         # Clear other tokens issued under the same developer key if requested
@@ -98,6 +104,7 @@ module Canvas::OAuth
                                                  purpose:
                                                })
         @access_token.real_user = real_user if real_user && real_user != user
+        @access_token.scoped_to_root_account_id = target_scoped_account_id if target_scoped_account_id
 
         @access_token.set_permanent_expiration
 
@@ -113,13 +120,13 @@ module Canvas::OAuth
       @access_token
     end
 
-    def self.find_reusable_access_token(user, key, scopes, purpose, real_user: nil)
+    def self.find_reusable_access_token(user, key, scopes, purpose, real_user: nil, scoped_to_root_account_id: nil, ignore_scoping: false)
       if key.force_token_reuse
-        access_token = find_access_token(user, key, scopes, purpose, real_user:)
+        access_token = find_access_token(user, key, scopes, purpose, {}, real_user:, scoped_to_root_account_id:, ignore_scoping:)
         access_token&.regenerate_access_token unless AccessToken.scopes_match?(scopes, ["userinfo"])
         access_token
       elsif AccessToken.scopes_match?(scopes, ["userinfo"])
-        find_userinfo_access_token(user, key, purpose, real_user:)
+        find_userinfo_access_token(user, key, purpose, real_user:, scoped_to_root_account_id:, ignore_scoping:)
       end
     end
 
@@ -153,17 +160,19 @@ module Canvas::OAuth
       json
     end
 
-    def self.find_userinfo_access_token(user, developer_key, purpose, real_user: nil)
-      find_access_token(user, developer_key, ["userinfo"], purpose, { remember_access: true }, real_user:)
+    def self.find_userinfo_access_token(user, developer_key, purpose, real_user: nil, scoped_to_root_account_id: nil, ignore_scoping: false)
+      find_access_token(user, developer_key, ["userinfo"], purpose, { remember_access: true }, real_user:, scoped_to_root_account_id:, ignore_scoping:)
     end
 
-    def self.find_access_token(user, developer_key, scopes, purpose, conditions = {}, real_user: nil)
+    def self.find_access_token(user, developer_key, scopes, purpose, conditions = {}, real_user: nil, scoped_to_root_account_id: nil, ignore_scoping: false)
       real_user = nil if real_user == user
       # Issue query against the user's home shard.
       # User access_tokens association has a multi shard scope
       # so lookups have the potential to get expensive.
+      where_conditions = { developer_key_id: developer_key, purpose:, real_user: }
+      where_conditions[:scoped_to_root_account_id] = scoped_to_root_account_id unless ignore_scoping
       user.access_tokens.shard(user.shard).active
-          .where({ developer_key_id: developer_key, purpose:, real_user: }.merge(conditions))
+          .where(where_conditions.merge(conditions))
           .detect { |token| token.scoped_to?(scopes) }
     end
 
@@ -176,7 +185,8 @@ module Canvas::OAuth
         SCOPES_KEY => options[:scopes],
         PURPOSE_KEY => options[:purpose],
         REMEMBER_ACCESS => options[:remember_access],
-        RESOURCE_KEY => options[:resource]
+        RESOURCE_KEY => options[:resource],
+        DOMAIN_ROOT_ACCOUNT_ID_KEY => options[:domain_root_account_id]
       }
       Canvas.redis.setex("#{REDIS_PREFIX}#{code}", 10.minutes.to_i, code_data.to_json)
 
@@ -189,6 +199,16 @@ module Canvas::OAuth
 
     def self.expire_code(code)
       Canvas.redis.del "#{REDIS_PREFIX}#{code}"
+    end
+
+    private
+
+    def compute_target_scoped_account_id
+      return nil unless (raa_id = domain_root_account_id)
+
+      return nil unless Account.site_admin.account_users_for(real_user).any?
+
+      raa_id
     end
   end
 end
