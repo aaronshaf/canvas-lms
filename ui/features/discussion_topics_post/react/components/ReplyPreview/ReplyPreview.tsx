@@ -17,6 +17,7 @@
  */
 
 import DateHelper from '@canvas/datetime/dateHelper'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import PropTypes from 'prop-types'
 import React, {useState} from 'react'
@@ -58,11 +59,14 @@ export const ReplyPreview = ({...props}) => {
             <Text
               // @ts-expect-error TS18049 (typescriptify)
               size={responsiveProps.textSize}
-              dangerouslySetInnerHTML={{__html: `${message.slice(0, 165)} ...`}}
+              dangerouslySetInnerHTML={{__html: sanitizeHTML(`${message.slice(0, 165)} ...`)}}
             />
           ) : (
-            // @ts-expect-error TS18049 (typescriptify)
-            <Text size={responsiveProps.textSize} dangerouslySetInnerHTML={{__html: message}} />
+            <Text
+              // @ts-expect-error TS18049 (typescriptify)
+              size={responsiveProps.textSize}
+              dangerouslySetInnerHTML={{__html: sanitizeHTML(message)}}
+            />
           )
         }
 

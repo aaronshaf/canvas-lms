@@ -21,6 +21,7 @@ import {Text} from '@instructure/ui-text'
 import {theme} from '@instructure/canvas-theme'
 import {IconPinSolid, IconMoveDownLine, IconLikeLine} from '@instructure/ui-icons'
 import DateHelper from '@canvas/datetime/dateHelper'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {AuthorAvatar} from '../../AuthorInfo/AuthorAvatar'
 import {Timestamps} from '../../AuthorInfo/Timestamps'
 import {useScope as createI18nScope} from '@canvas/i18n'
@@ -133,7 +134,7 @@ const PinnedEntry = ({
                   fontSize: theme.typography.fontSizeSmall,
                   fontWeight: theme.typography.weightImportant,
                 }}
-                dangerouslySetInnerHTML={{__html: entry.message}}
+                dangerouslySetInnerHTML={{__html: sanitizeHTML(entry.message)}}
               ></div>
             </Flex.Item>
             <Flex.Item as="div">

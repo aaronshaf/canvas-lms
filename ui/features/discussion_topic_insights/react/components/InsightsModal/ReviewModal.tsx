@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import React, {useState, useEffect, useMemo, useRef} from 'react'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Button, IconButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import {Modal} from '@instructure/ui-modal'
@@ -132,7 +133,9 @@ const ReviewModal = () => {
           </Flex>
           <FlexItem>
             <div
-              dangerouslySetInnerHTML={{__html: entry.entry_content.replace(/<\/?p>/g, '')}}
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHTML(entry.entry_content.replace(/<\/?p>/g, '')),
+              }}
               style={{maxHeight: '150px', overflowY: 'auto', margin: '0'}}
             />
           </FlexItem>

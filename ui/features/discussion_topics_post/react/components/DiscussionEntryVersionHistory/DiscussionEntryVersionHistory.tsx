@@ -17,6 +17,7 @@
  */
 
 import PropTypes from 'prop-types'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {DiscussionEntryVersion} from '../../../graphql/DiscussionEntryVersion'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
@@ -141,7 +142,7 @@ export const DiscussionEntryVersionHistory = props => {
                   }
                   data-testid={'v' + version.version + '-toggle'}
                 >
-                  <div dangerouslySetInnerHTML={{__html: version.message}} />
+                  <div dangerouslySetInnerHTML={{__html: sanitizeHTML(version.message)}} />
                 </ToggleDetails>
               </View>
             )

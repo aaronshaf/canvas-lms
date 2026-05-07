@@ -60,6 +60,7 @@ import {
 import {ViewSettings} from '../DiscussionOptions/ViewSettings'
 
 import {AttachmentDisplay} from '@canvas/discussions/react/components/AttachmentDisplay/AttachmentDisplay'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {responsiveQuerySizes} from '@canvas/discussions/react/utils'
 import {UsageRightsContainer} from '../../containers/usageRights/UsageRightsContainer'
 import {AlertManagerContext} from '@instructure/platform-alerts'
@@ -1241,7 +1242,7 @@ function DiscussionTopicForm({
               >
                 <Text
                   dangerouslySetInnerHTML={{
-                    __html: currentDiscussionTopic?.message || '',
+                    __html: sanitizeHTML(currentDiscussionTopic?.message),
                   }}
                 />
               </View>

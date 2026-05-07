@@ -17,6 +17,7 @@
  */
 
 import React from 'react'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 interface SearchSpanProps {
   /**
@@ -114,8 +115,13 @@ export function SearchSpan({...props}: SearchSpanProps) {
     }`
   }
 
+  // Sanitize AFTER the string-based mutations: the helpers above use naive
+  // regex/character splitting that doesn't respect attribute boundaries, so
+  // a `title="<a ><img onerror=…>"` payload can be promoted to a real DOM
+  // <img> by `addTargetToLinks` (or a stray highlight span). Running
+  // DOMPurify on the final string strips anything that escaped.
   const processedHtml = addSearchHighlighting(props.searchTerm, props.htmlBody, props.isSplitView)
-  const finalHtml = addTargetToLinks(processedHtml)
+  const finalHtml = sanitizeHTML(addTargetToLinks(processedHtml))
 
   return (
     <span
