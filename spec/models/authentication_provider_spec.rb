@@ -388,6 +388,72 @@ describe AuthenticationProvider do
     end
   end
 
+  describe "#restore_soft_deleted_pseudonyms_after" do
+    let(:user) { user_model }
+    let(:aac) { account.authentication_providers.create!(auth_type: "cas") }
+    let(:timestamp) { 5.minutes.ago }
+
+    it "restores a pseudonym whose deleted_at is after the timestamp" do
+      pseudonym = user.pseudonyms.create!(unique_id: "user@example.com",
+                                          authentication_provider: aac,
+                                          workflow_state: "deleted",
+                                          deleted_at: 1.minute.ago)
+      expect { aac.restore_soft_deleted_pseudonyms_after(timestamp) }
+        .to change { pseudonym.reload.workflow_state }.from("deleted").to("active")
+      expect(pseudonym.deleted_at).to be_nil
+    end
+
+    it "restores a pseudonym whose deleted_at equals the timestamp" do
+      pseudonym = user.pseudonyms.create!(unique_id: "user@example.com",
+                                          authentication_provider: aac,
+                                          workflow_state: "deleted",
+                                          deleted_at: timestamp)
+      expect { aac.restore_soft_deleted_pseudonyms_after(timestamp) }
+        .to change { pseudonym.reload.workflow_state }.from("deleted").to("active")
+    end
+
+    it "does not restore a pseudonym whose deleted_at is before the timestamp" do
+      pseudonym = user.pseudonyms.create!(unique_id: "user@example.com",
+                                          authentication_provider: aac,
+                                          workflow_state: "deleted",
+                                          deleted_at: 10.minutes.ago)
+      expect { aac.restore_soft_deleted_pseudonyms_after(timestamp) }
+        .not_to change { pseudonym.reload.workflow_state }
+    end
+
+    it "does not affect active pseudonyms" do
+      active = user.pseudonyms.create!(unique_id: "active@example.com",
+                                       authentication_provider: aac)
+      expect { aac.restore_soft_deleted_pseudonyms_after(timestamp) }
+        .not_to change { active.reload.workflow_state }
+    end
+
+    it "does not restore pseudonyms belonging to a different AuthenticationProvider" do
+      other_aac = account.authentication_providers.create!(auth_type: "cas")
+      other = user.pseudonyms.create!(unique_id: "other@example.com",
+                                      authentication_provider: other_aac,
+                                      workflow_state: "deleted",
+                                      deleted_at: 1.minute.ago)
+      expect { aac.restore_soft_deleted_pseudonyms_after(timestamp) }
+        .not_to change { other.reload.workflow_state }
+    end
+
+    it "is a no-op when there are no matching pseudonyms" do
+      expect { aac.restore_soft_deleted_pseudonyms_after(timestamp) }.not_to raise_error
+    end
+
+    it "suspends the requested callbacks while restoring" do
+      pseudonym = user.pseudonyms.create!(unique_id: "user@example.com",
+                                          authentication_provider: aac,
+                                          workflow_state: "deleted",
+                                          deleted_at: 1.minute.ago)
+      expect_any_instance_of(Pseudonym).not_to receive(:update_account_associations_if_account_changed)
+      aac.restore_soft_deleted_pseudonyms_after(timestamp,
+                                                suspended_callbacks: [:update_account_associations_if_account_changed])
+      expect(pseudonym.reload.workflow_state).to eql "active"
+    end
+  end
+
   describe ".active" do
     let!(:aac) { account.authentication_providers.create!(auth_type: "cas") }
 

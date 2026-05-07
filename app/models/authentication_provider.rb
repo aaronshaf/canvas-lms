@@ -225,6 +225,12 @@ class AuthenticationProvider < ApplicationRecord
     end
   end
 
+  def restore_soft_deleted_pseudonyms_after(timestamp, suspended_callbacks: [])
+    Pseudonym.suspend_callbacks(*suspended_callbacks) do
+      pseudonyms.deleted.where(deleted_at: timestamp..).find_each(&:restore)
+    end
+  end
+
   def auth_password=(password)
     return if password.blank?
 
