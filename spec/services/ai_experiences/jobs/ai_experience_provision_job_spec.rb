@@ -19,7 +19,7 @@
 #
 
 describe AiExperiences::Jobs::AiExperienceProvisionJob do
-  let_once(:account) { account_model }
+  let_once(:root_account) { account_model }
   let(:provision_service) { instance_double(AiExperiences::ProvisionService) }
 
   before do
@@ -27,30 +27,18 @@ describe AiExperiences::Jobs::AiExperienceProvisionJob do
     allow(provision_service).to receive(:provision)
   end
 
-  describe ".provision_account_for_ai_experiences" do
-    context "when the ai_experiences_v2_auth feature flag is disabled" do
-      before { account.disable_feature!(:ai_experiences_v2_auth) }
+  describe ".provision_root_account_for_ai_experiences" do
+    it "calls the provision service with the root account" do
+      described_class.provision_root_account_for_ai_experiences(root_account)
 
-      it "raises AiExperienceProvisionError" do
-        expect { described_class.provision_account_for_ai_experiences(account) }
-          .to raise_error(AiExperiences::AiExperienceProvisionError, /#{account.uuid}/)
-      end
-
-      it "does not call the provision service" do
-        described_class.provision_account_for_ai_experiences(account)
-      rescue AiExperiences::AiExperienceProvisionError
-        expect(provision_service).not_to have_received(:provision)
-      end
+      expect(provision_service).to have_received(:provision).with(root_account)
     end
 
-    context "when the ai_experiences_v2_auth feature flag is enabled" do
-      before { account.enable_feature!(:ai_experiences_v2_auth) }
+    it "does not raise when the root account is already provisioned" do
+      allow(provision_service).to receive(:provision)
+        .and_raise(LlmConversation::Errors::ConflictError, "already provisioned")
 
-      it "calls the provision service with the account" do
-        described_class.provision_account_for_ai_experiences(account)
-
-        expect(provision_service).to have_received(:provision).with(account)
-      end
+      expect { described_class.provision_root_account_for_ai_experiences(root_account) }.not_to raise_error
     end
   end
 end

@@ -22,13 +22,19 @@ require "webmock/rspec"
 
 describe LlmConversation::HttpClient do
   let_once(:account) { account_model }
+  let(:enc_key) { LlmConversation::TokenCache::ENCRYPTION_KEY }
 
   before do
     Setting.set("llm_conversation_base_url", "http://localhost:3001")
     account.enable_feature!(:ai_experiences_v2_auth)
+
+    api_enc, api_salt = Canvas::Security.encrypt_password("api-token", enc_key)
+    refresh_enc, refresh_salt = Canvas::Security.encrypt_password("refresh-token", enc_key)
     account.settings[:llm_conversation_service] = {
-      api_jwt_token: "api-token",
-      refresh_jwt_token: "refresh-token"
+      encrypted_api_jwt_token: api_enc,
+      encrypted_api_jwt_token_salt: api_salt,
+      encrypted_refresh_jwt_token: refresh_enc,
+      encrypted_refresh_jwt_token_salt: refresh_salt
     }
     account.save!
     allow(LlmConversation::TokenCache).to receive(:get_api_token).with(account).and_return("api-token")
@@ -50,7 +56,7 @@ describe LlmConversation::HttpClient do
             { status: 200, body: { "data" => [] }.to_json, headers: { "Content-Type" => "application/json" } }
           )
         stub_request(:post, "http://localhost:3001/token/refresh")
-          .with(headers: { "Authorization" => "Bearer refresh-token", "x-account-id" => account.uuid })
+          .with(headers: { "Authorization" => "Bearer refresh-token" })
           .to_return(status: 200, body: refresh_response, headers: { "Content-Type" => "application/json" })
       end
 
@@ -59,11 +65,17 @@ describe LlmConversation::HttpClient do
         expect(result).to eql({ "data" => [] })
       end
 
-      it "persists the new tokens to account settings" do
+      it "persists the new tokens to account settings encrypted" do
         client.get("/conversations")
         account.reload
-        expect(account.settings.dig(:llm_conversation_service, :api_jwt_token)).to eql("new-api-token")
-        expect(account.settings.dig(:llm_conversation_service, :refresh_jwt_token)).to eql("new-refresh-token")
+
+        new_api_enc = account.settings.dig(:llm_conversation_service, :encrypted_api_jwt_token)
+        new_api_salt = account.settings.dig(:llm_conversation_service, :encrypted_api_jwt_token_salt)
+        expect(Canvas::Security.decrypt_password(new_api_enc, new_api_salt, enc_key)).to eql("new-api-token")
+
+        new_refresh_enc = account.settings.dig(:llm_conversation_service, :encrypted_refresh_jwt_token)
+        new_refresh_salt = account.settings.dig(:llm_conversation_service, :encrypted_refresh_jwt_token_salt)
+        expect(Canvas::Security.decrypt_password(new_refresh_enc, new_refresh_salt, enc_key)).to eql("new-refresh-token")
       end
 
       it "writes the new api token to the cache" do
@@ -74,7 +86,7 @@ describe LlmConversation::HttpClient do
 
     context "when the refresh token is missing from account settings" do
       before do
-        account.settings[:llm_conversation_service] = { api_jwt_token: "api-token" }
+        account.settings[:llm_conversation_service] = {}
         account.save!
         stub_request(:get, "http://localhost:3001/conversations").to_return(status: 401, body: "Unauthorized")
       end
@@ -98,7 +110,6 @@ describe LlmConversation::HttpClient do
     end
 
     context "when the account does not have V2 auth enabled" do
-      let(:v1_account) { account_model }
       let(:v1_client) do
         allow(Rails.application.credentials).to receive(:llm_conversation_bearer_token).and_return("v1-token")
         described_class.new

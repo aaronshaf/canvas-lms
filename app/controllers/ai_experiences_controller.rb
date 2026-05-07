@@ -99,7 +99,7 @@ class AiExperiencesController < ApplicationController
 
     # Sync index status for actively indexing experiences
     if @context.feature_enabled?(:ai_experiences_context_file_upload)
-      sync_in_progress_index_statuses(@experiences, @context.account)
+      sync_in_progress_index_statuses(@experiences, @context.root_account)
     end
 
     set_active_tab "ai_experiences"
@@ -152,7 +152,7 @@ class AiExperiencesController < ApplicationController
         failed_file_names = []
         if @context.feature_enabled?(:ai_experiences_context_file_upload) &&
            @ai_experience.llm_conversation_context_id.present?
-          result = AiExperiences::ConversationContextDocumentsService.new(account: @context.account).sync_index_status(ai_experience: @ai_experience)
+          result = AiExperiences::ConversationContextDocumentsService.new(account: @context.root_account).sync_index_status(ai_experience: @ai_experience)
           failed_file_names = result&.dig(:failed_file_names) || []
         end
         render json: ai_experience_json(@ai_experience, @current_user, session, can_manage:, failed_context_file_names: failed_file_names)
@@ -378,7 +378,7 @@ class AiExperiencesController < ApplicationController
       return render json: { error: "Conversation not found" }, status: :not_found
     end
 
-    messages_and_progress = AiExperiences::ConversationMessagesService.new(account: @context.account).fetch_with_progress(
+    messages_and_progress = AiExperiences::ConversationMessagesService.new(account: @context.root_account).fetch_with_progress(
       conversation_id: @conversation.llm_conversation_id,
       requesting_user: @current_user
     )

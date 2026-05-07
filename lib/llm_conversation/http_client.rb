@@ -26,10 +26,10 @@ module LlmConversation
   class HttpClient
     def initialize(account: nil, use_initial_token: false)
       @base_url = resolve_base_url
-      @account = account
+      @root_account = account
       @v2_auth = account&.feature_enabled?(:ai_experiences_v2_auth)
 
-      if use_initial_token && @account.present? && !@v2_auth
+      if use_initial_token && @root_account.present? && !@v2_auth
         raise LlmConversation::Errors::ConversationError,
               "Cannot use initial token: account does not have ai_experiences_v2_auth enabled"
       end
@@ -37,7 +37,7 @@ module LlmConversation
       @bearer_token = if use_initial_token
                         Rails.application.credentials.dig(:llm_conversation_service, :initial_token)
                       elsif @v2_auth
-                        LlmConversation::TokenCache.get_api_token(@account)
+                        LlmConversation::TokenCache.get_api_token(@root_account)
                       else
                         Rails.application.credentials.llm_conversation_bearer_token
                       end
@@ -62,8 +62,11 @@ module LlmConversation
     private
 
     def refresh_v2_token!
-      refresh_token = @account.settings.dig(:llm_conversation_service, :refresh_jwt_token)
-      raise LlmConversation::Errors::ConversationError, "No refresh token available for account" if refresh_token.blank?
+      enc = @root_account.settings.dig(:llm_conversation_service, :encrypted_refresh_jwt_token)
+      salt = @root_account.settings.dig(:llm_conversation_service, :encrypted_refresh_jwt_token_salt)
+      raise LlmConversation::Errors::ConversationError, "No refresh token available for account" unless enc && salt
+
+      refresh_token = Canvas::Security.decrypt_password(enc, salt, LlmConversation::TokenCache::ENCRYPTION_KEY)
 
       uri = URI("#{@base_url}/token/refresh")
       http = Net::HTTP.new(uri.host, uri.port)
@@ -74,8 +77,7 @@ module LlmConversation
 
       req = Net::HTTP::Post.new(uri.request_uri,
                                 "Content-Type" => "application/json",
-                                "Authorization" => "Bearer #{refresh_token}",
-                                "x-account-id" => @account.uuid)
+                                "Authorization" => "Bearer #{refresh_token}")
 
       response = http.request(req)
       raise LlmConversation::Errors::ConversationError, "Token refresh failed" unless response.is_a?(Net::HTTPSuccess)
@@ -84,13 +86,18 @@ module LlmConversation
       new_api_token = result["api_token"]
       new_refresh_token = result["refresh_token"]
 
-      @account.settings[:llm_conversation_service] = {
-        api_jwt_token: new_api_token,
-        refresh_jwt_token: new_refresh_token
-      }
-      @account.save!
+      api_enc, api_salt = Canvas::Security.encrypt_password(new_api_token, LlmConversation::TokenCache::ENCRYPTION_KEY)
+      refresh_enc, refresh_salt = Canvas::Security.encrypt_password(new_refresh_token, LlmConversation::TokenCache::ENCRYPTION_KEY)
 
-      LlmConversation::TokenCache.set_api_token(@account, new_api_token)
+      @root_account.settings[:llm_conversation_service] = {
+        encrypted_api_jwt_token: api_enc,
+        encrypted_api_jwt_token_salt: api_salt,
+        encrypted_refresh_jwt_token: refresh_enc,
+        encrypted_refresh_jwt_token_salt: refresh_salt
+      }
+      @root_account.save!
+
+      LlmConversation::TokenCache.set_api_token(@root_account, new_api_token)
       @bearer_token = new_api_token
     end
 
@@ -134,8 +141,7 @@ module LlmConversation
 
       headers = {
         "Content-Type" => "application/json",
-        "Authorization" => "Bearer #{@bearer_token}",
-        "x-account-id" => @account&.uuid
+        "Authorization" => "Bearer #{@bearer_token}"
       }
 
       req = case method

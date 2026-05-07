@@ -712,6 +712,36 @@ describe FeatureFlags::Hooks do
     end
   end
 
+  describe "provision_ai_experience_after_change_hook" do
+    let_once(:course) { course_model }
+    let(:root_account) { course.root_account }
+
+    before do
+      allow(AiExperiences::Jobs::AiExperienceProvisionJob).to receive(:delay).and_return(AiExperiences::Jobs::AiExperienceProvisionJob)
+      allow(AiExperiences::Jobs::AiExperienceProvisionJob).to receive(:provision_root_account_for_ai_experiences)
+    end
+
+    %w[on allowed_on].each do |state|
+      context "when new_state is '#{state}'" do
+        it "enqueues the provision job with the root account" do
+          FeatureFlags::Hooks.provision_ai_experience_after_change_hook(nil, course, nil, state)
+
+          expect(AiExperiences::Jobs::AiExperienceProvisionJob).to have_received(:provision_root_account_for_ai_experiences).with(root_account)
+        end
+      end
+    end
+
+    %w[off allowed hidden].each do |state|
+      context "when new_state is '#{state}'" do
+        it "does not enqueue the provision job" do
+          FeatureFlags::Hooks.provision_ai_experience_after_change_hook(nil, course, nil, state)
+
+          expect(AiExperiences::Jobs::AiExperienceProvisionJob).not_to have_received(:provision_root_account_for_ai_experiences)
+        end
+      end
+    end
+  end
+
   describe "study_assist_visible_on_hook" do
     let(:context) { instance_double(Account) }
 

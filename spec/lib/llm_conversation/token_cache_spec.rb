@@ -22,6 +22,7 @@ describe LlmConversation::TokenCache do
   let_once(:account) { account_model }
   let(:cache_key) { "llm_conversation_service:auth:#{account.global_id}:api_token" }
   let(:redis) { instance_double(Redis) }
+  let(:enc_key) { LlmConversation::TokenCache::ENCRYPTION_KEY }
 
   before do
     allow(Canvas).to receive_messages(redis_enabled?: true, redis:)
@@ -50,11 +51,15 @@ describe LlmConversation::TokenCache do
       before do
         allow(redis).to receive(:get).with(cache_key).and_return(nil)
         allow(redis).to receive(:setex)
-        account.settings[:llm_conversation_service] = { api_jwt_token: "db-token" }
+        api_enc, api_salt = Canvas::Security.encrypt_password("db-token", enc_key)
+        account.settings[:llm_conversation_service] = {
+          encrypted_api_jwt_token: api_enc,
+          encrypted_api_jwt_token_salt: api_salt
+        }
         account.save!
       end
 
-      it "returns the token from account settings" do
+      it "returns the decrypted token from account settings" do
         expect(described_class.get_api_token(account)).to eql("db-token")
       end
 
@@ -82,11 +87,15 @@ describe LlmConversation::TokenCache do
     context "when Redis is disabled" do
       before do
         allow(Canvas).to receive(:redis_enabled?).and_return(false)
-        account.settings[:llm_conversation_service] = { api_jwt_token: "db-token" }
+        api_enc, api_salt = Canvas::Security.encrypt_password("db-token", enc_key)
+        account.settings[:llm_conversation_service] = {
+          encrypted_api_jwt_token: api_enc,
+          encrypted_api_jwt_token_salt: api_salt
+        }
         account.save!
       end
 
-      it "returns the token from account settings" do
+      it "returns the decrypted token from account settings" do
         expect(described_class.get_api_token(account)).to eql("db-token")
       end
 

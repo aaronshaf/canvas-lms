@@ -22,6 +22,7 @@ describe AiExperiences::ProvisionService do
   let_once(:account) { account_model }
   let(:http_client) { instance_double(LlmConversation::HttpClient) }
   let(:service) { described_class.new }
+  let(:enc_key) { LlmConversation::TokenCache::ENCRYPTION_KEY }
   let(:provision_response) do
     {
       "data" => {
@@ -40,18 +41,27 @@ describe AiExperiences::ProvisionService do
   describe "#provision" do
     before do
       allow(http_client).to receive(:post)
-        .with("/provision", payload: { account_id: account.uuid, root_account_id: account.root_account.uuid })
+        .with("/provision", payload: { root_account_id: account.root_account.uuid, audience: "canvas" })
         .and_return(provision_response)
     end
 
-    it "saves the api_token and refresh_token to account settings" do
+    it "saves the api_token and refresh_token to account settings encrypted" do
       service.provision(account)
 
       account.reload
-      expect(account.settings[:llm_conversation_service]).to eql({
-                                                                   api_jwt_token: "test-api-token",
-                                                                   refresh_jwt_token: "test-refresh-token"
-                                                                 })
+      settings = account.settings[:llm_conversation_service]
+
+      expect(Canvas::Security.decrypt_password(
+               settings[:encrypted_api_jwt_token],
+               settings[:encrypted_api_jwt_token_salt],
+               enc_key
+             )).to eql("test-api-token")
+
+      expect(Canvas::Security.decrypt_password(
+               settings[:encrypted_refresh_jwt_token],
+               settings[:encrypted_refresh_jwt_token_salt],
+               enc_key
+             )).to eql("test-refresh-token")
     end
 
     it "handles a flat response without a data envelope" do
@@ -61,7 +71,12 @@ describe AiExperiences::ProvisionService do
       service.provision(account)
 
       account.reload
-      expect(account.settings.dig(:llm_conversation_service, :api_jwt_token)).to eql("flat-token")
+      settings = account.settings[:llm_conversation_service]
+      expect(Canvas::Security.decrypt_password(
+               settings[:encrypted_api_jwt_token],
+               settings[:encrypted_api_jwt_token_salt],
+               enc_key
+             )).to eql("flat-token")
     end
 
     it "uses the initial token http client" do

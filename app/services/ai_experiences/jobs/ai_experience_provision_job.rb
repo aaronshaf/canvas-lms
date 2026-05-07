@@ -20,21 +20,17 @@
 
 class AiExperiences::Jobs::AiExperienceProvisionJob
   class << self
-    def provision_account_for_ai_experiences(account)
-      unless account.feature_enabled?(:ai_experiences_v2_auth)
-        raise AiExperiences::AiExperienceProvisionError, "Account #{account.uuid} attempted to provision while AI Experiences V2 Auth Feature Flag was disabled"
-      end
-
-      provision_account(account)
+    def provision_root_account_for_ai_experiences(root_account)
+      provision_root_account(root_account)
     end
 
     private
 
-    def provision_account(account)
-      AiExperiences::ProvisionService.new.provision(account)
+    def provision_root_account(root_account)
+      AiExperiences::ProvisionService.new.provision(root_account)
     rescue LlmConversation::Errors::ConflictError => e
-      # 409 means already provisioned — not an error worth retrying
-      Rails.logger.info("AiExperienceProvisionJob: account #{account.uuid} already provisioned: #{e.message}")
+      # Already provisioned — not an error worth retrying
+      Rails.logger.info("AiExperienceProvisionJob: root_account #{root_account.uuid} already provisioned: #{e.message}")
     end
   end
 end

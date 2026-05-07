@@ -150,13 +150,16 @@ module FeatureFlags
       end
     end
 
-    def self.provision_ai_experience_after_change_hook(_user, context, _old_state, _new_state)
+    def self.provision_ai_experience_after_change_hook(_user, context, _old_state, new_state)
+      return unless ["on", "allowed_on"].include? new_state
+
+      root_account = context.root_account
       AiExperiences::Jobs::AiExperienceProvisionJob.delay(
         run_at: 10.seconds.from_now,
-        singleton: "ai_experience_provision:#{context.uuid}",
+        singleton: "ai_experience_provision:#{root_account.uuid}",
         on_conflict: :overwrite, # Ensures that job launches 10 seconds after final feature flag flip
         max_attempts: 3
-      ).provision_account_for_ai_experiences(context)
+      ).provision_root_account_for_ai_experiences(root_account)
     end
 
     def self.assignment_enhancements_prereq_for_stickers_hook(_user, context, _old_state, new_state)

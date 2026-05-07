@@ -22,6 +22,7 @@ module LlmConversation
   class TokenCache
     KEY_PREFIX = "llm_conversation_service:auth"
     TTL = 1.hour.to_i
+    ENCRYPTION_KEY = "llm_conversation_service_token"
 
     def self.get_api_token(account)
       if Canvas.redis_enabled?
@@ -29,7 +30,11 @@ module LlmConversation
         return cached if cached
       end
 
-      token = account.settings.dig(:llm_conversation_service, :api_jwt_token)
+      enc = account.settings.dig(:llm_conversation_service, :encrypted_api_jwt_token)
+      salt = account.settings.dig(:llm_conversation_service, :encrypted_api_jwt_token_salt)
+      return nil unless enc && salt
+
+      token = Canvas::Security.decrypt_password(enc, salt, ENCRYPTION_KEY)
       Canvas.redis.setex(cache_key(account), TTL, token) if Canvas.redis_enabled? && token.present?
       token
     end
