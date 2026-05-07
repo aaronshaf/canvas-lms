@@ -322,13 +322,24 @@ describe('AssignmentSubmission', () => {
     ...overrides,
   })
 
+  const createAssessmentRequest = (submissionId: string, overrides = {}) => ({
+    _id: 'ar-1',
+    available: true,
+    workflowState: 'assigned',
+    createdAt: '2025-01-01T00:00:00Z',
+    anonymousId: null,
+    anonymizedUser: null,
+    submission: createSubmission({_id: submissionId}),
+    rubricAssessment: null,
+    ...overrides,
+  })
+
   const createDefaultProps = (overrides = {}) => ({
     submission: createSubmission(),
     assignment: createAssignment(),
     reviewerSubmission: createReviewerSubmission(),
     isPeerReviewCompleted: false,
     handleNextPeerReview: vi.fn(),
-    onPeerReviewSubmitted: vi.fn(),
     hasSeenPeerReviewModal: false,
     isMobile: false,
     isAnonymous: false,
@@ -715,14 +726,94 @@ describe('AssignmentSubmission', () => {
   })
 
   describe('peer review footer', () => {
-    it('shows submit peer review button when peer review is not completed', () => {
+    it('shows next peer review button when peer review is not completed', () => {
       render(<AssignmentSubmission {...createDefaultProps({isPeerReviewCompleted: false})} />)
 
       expect(screen.getByTestId('submit-peer-review-button')).toBeInTheDocument()
+      expect(screen.getByTestId('submit-peer-review-button')).toHaveTextContent('Next Peer Review')
     })
 
-    it('hides submit peer review button when peer review is completed', () => {
+    it('shows next peer review button when peer review is already completed', () => {
       render(<AssignmentSubmission {...createDefaultProps({isPeerReviewCompleted: true})} />)
+
+      expect(screen.getByTestId('submit-peer-review-button')).toBeInTheDocument()
+      expect(screen.getByTestId('submit-peer-review-button')).toHaveTextContent('Next Peer Review')
+    })
+
+    it('shows finish peer reviews button when on the last required review', () => {
+      const submission = createSubmission({_id: 'sub-1'})
+      const assignment = createAssignment({
+        peerReviews: {
+          count: 1,
+          submissionRequired: false,
+          pointsPossible: null,
+          anonymousReviews: false,
+        },
+        assessmentRequestsForCurrentUser: [createAssessmentRequest('sub-1')],
+      })
+
+      render(
+        <AssignmentSubmission
+          {...createDefaultProps({submission, assignment, isPeerReviewCompleted: false})}
+        />,
+      )
+
+      expect(screen.getByTestId('submit-peer-review-button')).toHaveTextContent(
+        'Finish Peer Reviews',
+      )
+    })
+
+    it('shows next peer review button when other incomplete reviews still exist', () => {
+      const submission = createSubmission({_id: 'sub-1'})
+      const assignment = createAssignment({
+        peerReviews: {
+          count: 2,
+          submissionRequired: false,
+          pointsPossible: null,
+          anonymousReviews: false,
+        },
+        assessmentRequestsForCurrentUser: [
+          createAssessmentRequest('sub-1'),
+          createAssessmentRequest('sub-2', {
+            _id: 'ar-2',
+            submission: createSubmission({_id: 'sub-2'}),
+          }),
+        ],
+      })
+
+      render(
+        <AssignmentSubmission
+          {...createDefaultProps({submission, assignment, isPeerReviewCompleted: false})}
+        />,
+      )
+
+      expect(screen.getByTestId('submit-peer-review-button')).toHaveTextContent('Next Peer Review')
+    })
+
+    it('does not show submit button when all peer reviews are completed', () => {
+      const submission = createSubmission({_id: 'sub-1'})
+      const assignment = createAssignment({
+        peerReviews: {
+          count: 2,
+          submissionRequired: false,
+          pointsPossible: null,
+          anonymousReviews: false,
+        },
+        assessmentRequestsForCurrentUser: [
+          createAssessmentRequest('sub-1', {workflowState: 'completed'}),
+          createAssessmentRequest('sub-2', {
+            _id: 'ar-2',
+            workflowState: 'completed',
+            submission: createSubmission({_id: 'sub-2'}),
+          }),
+        ],
+      })
+
+      render(
+        <AssignmentSubmission
+          {...createDefaultProps({submission, assignment, isPeerReviewCompleted: true})}
+        />,
+      )
 
       expect(screen.queryByTestId('submit-peer-review-button')).not.toBeInTheDocument()
     })
@@ -766,7 +857,7 @@ describe('AssignmentSubmission', () => {
       expect(screen.queryByTestId('submit-peer-review-button')).not.toBeInTheDocument()
     })
 
-    it('hides button when peer review is completed', () => {
+    it('shows button when peer review is completed and modal not seen', () => {
       render(
         <AssignmentSubmission
           {...createDefaultProps({
@@ -776,7 +867,7 @@ describe('AssignmentSubmission', () => {
         />,
       )
 
-      expect(screen.queryByTestId('submit-peer-review-button')).not.toBeInTheDocument()
+      expect(screen.getByTestId('submit-peer-review-button')).toBeInTheDocument()
     })
 
     it('hides button when both peer review completed and modal seen', () => {
@@ -793,24 +884,6 @@ describe('AssignmentSubmission', () => {
     })
   })
 
-  describe('onPeerReviewSubmitted callback', () => {
-    it('calls onPeerReviewSubmitted when comment is successfully submitted', () => {
-      const onPeerReviewSubmitted = vi.fn()
-
-      render(
-        <AssignmentSubmission
-          {...createDefaultProps({
-            onPeerReviewSubmitted,
-          })}
-        />,
-      )
-
-      expect(mockOnSuccessfulPeerReview).toBeTruthy()
-      mockOnSuccessfulPeerReview!()
-      expect(onPeerReviewSubmitted).toHaveBeenCalledTimes(1)
-    })
-  })
-
   describe('submission change detection', () => {
     it('maintains button visibility when same submission is re-rendered with updated isPeerReviewCompleted', () => {
       const props = createDefaultProps({
@@ -824,12 +897,10 @@ describe('AssignmentSubmission', () => {
       expect(screen.getByTestId('submit-peer-review-button')).toBeInTheDocument()
 
       rerender(<AssignmentSubmission {...props} isPeerReviewCompleted={true} />)
-
-      // Button should still be visible because initialIsPeerReviewCompleted was false
       expect(screen.getByTestId('submit-peer-review-button')).toBeInTheDocument()
     })
 
-    it('resets button visibility when navigating to a different submission', () => {
+    it('shows next peer review button when navigating to a completed submission', () => {
       const props = createDefaultProps({
         submission: createSubmission({_id: 'submission-1'}),
         isPeerReviewCompleted: false,
@@ -848,10 +919,11 @@ describe('AssignmentSubmission', () => {
         />,
       )
 
-      expect(screen.queryByTestId('submit-peer-review-button')).not.toBeInTheDocument()
+      expect(screen.getByTestId('submit-peer-review-button')).toBeInTheDocument()
+      expect(screen.getByTestId('submit-peer-review-button')).toHaveTextContent('Next Peer Review')
     })
 
-    it('resets button visibility when navigating to another incomplete submission', () => {
+    it('shows button when navigating from a completed submission to an incomplete one', () => {
       const props = createDefaultProps({
         submission: createSubmission({_id: 'submission-1'}),
         isPeerReviewCompleted: true,
@@ -860,7 +932,7 @@ describe('AssignmentSubmission', () => {
 
       const {rerender} = render(<AssignmentSubmission {...props} />)
 
-      expect(screen.queryByTestId('submit-peer-review-button')).not.toBeInTheDocument()
+      expect(screen.getByTestId('submit-peer-review-button')).toBeInTheDocument()
 
       rerender(
         <AssignmentSubmission
@@ -1539,7 +1611,7 @@ describe('AssignmentSubmission', () => {
       expect(screen.getByTestId('send-button')).toHaveFocus()
     })
 
-    it('does not show error alert when peer review is already completed', async () => {
+    it('does not show error alert and navigates when peer review is already completed', async () => {
       const user = userEvent.setup()
       const mockHandleNext = vi.fn()
 
@@ -1553,7 +1625,10 @@ describe('AssignmentSubmission', () => {
         />,
       )
 
+      await user.click(screen.getByTestId('submit-peer-review-button'))
+
       expect(FlashAlert.showFlashAlert).not.toHaveBeenCalled()
+      expect(mockHandleNext).toHaveBeenCalled()
     })
   })
 })

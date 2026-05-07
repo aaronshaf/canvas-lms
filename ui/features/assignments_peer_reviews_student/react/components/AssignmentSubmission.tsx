@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useState, useEffect, useRef, useCallback} from 'react'
+import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react'
 import apiUserContent from '@canvas/util/jquery/apiUserContent'
 import {sanitizeHTML} from '@canvas/sanitize-html'
 import ErrorShip from '@instructure/platform-images/assets/ErrorShip.svg'
@@ -59,7 +59,6 @@ interface AssignmentSubmissionProps {
   reviewerSubmission?: ReviewerSubmission | null
   isMobile?: boolean
   handleNextPeerReview: () => void
-  onPeerReviewSubmitted: () => void
   hasSeenPeerReviewModal: boolean
   isReadOnly?: boolean
   isAnonymous: boolean
@@ -73,7 +72,6 @@ const AssignmentSubmission: React.FC<AssignmentSubmissionProps> = ({
   rubricAssessment,
   reviewerSubmission,
   handleNextPeerReview,
-  onPeerReviewSubmitted,
   isMobile = false,
   hasSeenPeerReviewModal,
   isReadOnly = false,
@@ -87,8 +85,6 @@ const AssignmentSubmission: React.FC<AssignmentSubmissionProps> = ({
   const [commentFocusTrigger, setCommentFocusTrigger] = useState(0)
   const [peerReviewCommentCompleted, setPeerReviewCommentCompleted] =
     useState(isPeerReviewCompleted)
-  const [initialIsPeerReviewCompleted, setInitialIsPeerReviewCompleted] =
-    useState(isPeerReviewCompleted)
   const previousSubmissionIdRef = useRef(submission._id)
   const commentsButtonRef = useRef<HTMLButtonElement | null>(null)
   const rubricButtonRef = useRef<HTMLButtonElement | null>(null)
@@ -99,8 +95,6 @@ const AssignmentSubmission: React.FC<AssignmentSubmissionProps> = ({
 
   useEffect(() => {
     if (submission._id !== previousSubmissionIdRef.current) {
-      // reset initialIsPeerReviewCompleted value
-      setInitialIsPeerReviewCompleted(isPeerReviewCompleted)
       previousSubmissionIdRef.current = submission._id
       if (pendingFocusAfterSubmit.current) {
         pendingFocusAfterSubmit.current = false
@@ -117,7 +111,7 @@ const AssignmentSubmission: React.FC<AssignmentSubmissionProps> = ({
         }
       }
     }
-  }, [submission._id, isPeerReviewCompleted])
+  }, [submission._id])
 
   const {
     rubricAssessmentData,
@@ -133,12 +127,56 @@ const AssignmentSubmission: React.FC<AssignmentSubmissionProps> = ({
     submissionAnonymousId: submission.anonymousId,
     rubricAssessment,
     isPeerReviewCompleted,
-    onRubricSubmitted: onPeerReviewSubmitted,
   })
 
   useEffect(() => {
     setPeerReviewCommentCompleted(isPeerReviewCompleted)
   }, [isPeerReviewCompleted])
+
+  const isCurrentReviewCompleted = useMemo(
+    () =>
+      isPeerReviewCompleted ||
+      (assignment.rubric ? rubricAssessmentCompleted : peerReviewCommentCompleted),
+    [
+      isPeerReviewCompleted,
+      assignment.rubric,
+      rubricAssessmentCompleted,
+      peerReviewCommentCompleted,
+    ],
+  )
+
+  // True when completing this review would satisfy all required peer reviews:
+  // the server hasn't marked it done yet, enough reviews are allocated, and no
+  // other assigned+available reviews remain for the user to complete.
+  // Uses isPeerReviewCompleted (server state) rather than isCurrentReviewCompleted
+  // so that the label stays "Finish Peer Reviews" even after a local comment submit.
+  const isLastRequiredReview = useMemo(() => {
+    if (isPeerReviewCompleted) return false
+    const assessmentRequests = assignment.assessmentRequestsForCurrentUser
+    const requiredCount = assignment.peerReviews?.count || 0
+    if (!assessmentRequests || assessmentRequests.length < requiredCount) return false
+    const currentAssessment = assessmentRequests.find(a => a.submission?._id === submission._id)
+    if (!currentAssessment) return false
+    return !assessmentRequests.some(
+      a =>
+        a.workflowState === 'assigned' && a.available === true && a._id !== currentAssessment._id,
+    )
+  }, [
+    isPeerReviewCompleted,
+    assignment.assessmentRequestsForCurrentUser,
+    assignment.peerReviews?.count,
+    submission._id,
+  ])
+
+  const allPeerReviewsCompleted = useMemo(() => {
+    return (
+      isPeerReviewCompleted &&
+      !!assignment.assessmentRequestsForCurrentUser &&
+      !assignment.assessmentRequestsForCurrentUser.some(
+        a => a.workflowState === 'assigned' && a.available === true,
+      )
+    )
+  }, [isPeerReviewCompleted, assignment.assessmentRequestsForCurrentUser])
 
   const handleToggleComments = useCallback(() => {
     if (!showComments) {
@@ -167,36 +205,37 @@ const AssignmentSubmission: React.FC<AssignmentSubmissionProps> = ({
   }, [])
 
   const handlePeerReviewCompletion = () => {
-    if (assignment.rubric && !rubricAssessmentCompleted) {
-      showFlashAlert({
-        message: I18n.t('You must fill out the rubric in order to submit your peer review.'),
-        type: 'error',
-      })
-      if (!showRubric) {
-        pendingFocusPanel.current = null
-        setShowComments(false)
-        setShowRubric(true)
+    if (!isCurrentReviewCompleted) {
+      if (assignment.rubric && !rubricAssessmentCompleted) {
+        showFlashAlert({
+          message: I18n.t('You must fill out the rubric in order to submit your peer review.'),
+          type: 'error',
+        })
+        if (!showRubric) {
+          pendingFocusPanel.current = null
+          setShowComments(false)
+          setShowRubric(true)
+        }
+        setRubricFocusTrigger(t => t + 1)
+        return
       }
-      setRubricFocusTrigger(t => t + 1)
-      return
+
+      if (!assignment.rubric && !peerReviewCommentCompleted) {
+        showFlashAlert({
+          message: I18n.t(
+            'Before you can submit this peer review, you must leave a comment for your peer.',
+          ),
+          type: 'error',
+        })
+        if (!showComments) {
+          pendingFocusPanel.current = null
+          setShowComments(true)
+        }
+        setCommentFocusTrigger(t => t + 1)
+        return
+      }
     }
 
-    if (!assignment.rubric && !peerReviewCommentCompleted) {
-      showFlashAlert({
-        message: I18n.t(
-          'Before you can submit this peer review, you must leave a comment for your peer.',
-        ),
-        type: 'error',
-      })
-      if (!showComments) {
-        pendingFocusPanel.current = null
-        setShowComments(true)
-      }
-      setCommentFocusTrigger(t => t + 1)
-      return
-    }
-
-    // reset the values
     pendingFocusAfterSubmit.current = true
     setPeerReviewCommentCompleted(false)
     resetRubricAssessment()
@@ -358,7 +397,6 @@ const AssignmentSubmission: React.FC<AssignmentSubmissionProps> = ({
             onClose={handleCloseComments}
             onSuccessfulPeerReview={() => {
               setPeerReviewCommentCompleted(true)
-              onPeerReviewSubmitted()
             }}
             isReadOnly={isReadOnly}
             suppressSuccessAlert={true}
@@ -427,18 +465,23 @@ const AssignmentSubmission: React.FC<AssignmentSubmissionProps> = ({
                 </Flex.Item>
               </Flex>
             </Flex.Item>
-            {!isReadOnly && !initialIsPeerReviewCompleted && !hasSeenPeerReviewModal && (
-              <Flex.Item>
-                <Button
-                  color="primary"
-                  data-testid="submit-peer-review-button"
-                  size={isMobile ? 'small' : 'medium'}
-                  onClick={handlePeerReviewCompletion}
-                >
-                  {I18n.t('Submit Peer Review')}
-                </Button>
-              </Flex.Item>
-            )}
+            {!isReadOnly &&
+              !hasSeenPeerReviewModal &&
+              !pendingFocusAfterSubmit.current &&
+              !allPeerReviewsCompleted && (
+                <Flex.Item>
+                  <Button
+                    color="primary"
+                    data-testid="submit-peer-review-button"
+                    size={isMobile ? 'small' : 'medium'}
+                    onClick={handlePeerReviewCompletion}
+                  >
+                    {!isPeerReviewCompleted && isLastRequiredReview
+                      ? I18n.t('Finish Peer Reviews')
+                      : I18n.t('Next Peer Review')}
+                  </Button>
+                </Flex.Item>
+              )}
           </Flex>
         </View>
       </footer>

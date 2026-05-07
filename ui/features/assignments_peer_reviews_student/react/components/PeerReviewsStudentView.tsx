@@ -143,12 +143,9 @@ const PeerReviewsStudentView: React.FC<PeerReviewsStudentViewProps> = ({
     }
   }, [shouldNavigateToNext, data, selectedAssessmentIndex])
 
-  const handleNextPeerReview = () => {
+  const handleNextPeerReview = async () => {
+    await queryClient.invalidateQueries({queryKey: ['peerReviewAssignment', assignmentId]})
     setShouldNavigateToNext(true)
-  }
-
-  const handlePeerReviewSubmitted = () => {
-    queryClient.invalidateQueries({queryKey: ['peerReviewAssignment', assignmentId]})
   }
 
   const isUnavailableReviewSelected = () => {
@@ -357,7 +354,6 @@ const PeerReviewsStudentView: React.FC<PeerReviewsStudentViewProps> = ({
                   reviewerSubmission={reviewerSubmission}
                   isMobile={isMobile}
                   handleNextPeerReview={handleNextPeerReview}
-                  onPeerReviewSubmitted={handlePeerReviewSubmitted}
                   hasSeenPeerReviewModal={hasSeenPeerReviewModal}
                   isReadOnly={isPastLockDate}
                   isAnonymous={isAnonymous}

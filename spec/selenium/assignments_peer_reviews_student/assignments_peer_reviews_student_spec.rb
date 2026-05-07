@@ -243,7 +243,7 @@ describe "peer review student landing page" do
       expect(f("body")).to include_text("This is a peer review comment")
     end
 
-    it "displays submit peer review button", custom_timeout: 30 do
+    it "displays next peer review button", custom_timeout: 30 do
       visit_peer_reviews_page(@course.id, @assignment.id)
 
       submission_tab = f("div[id='tab-submission']")
@@ -252,7 +252,7 @@ describe "peer review student landing page" do
 
       submit_button = f("button[data-testid='submit-peer-review-button']")
       expect(submit_button).to be_displayed
-      expect(submit_button.text).to include("Submit Peer Review")
+      expect(submit_button.text).to include("Next Peer Review")
     end
 
     it "maintains comments tray state when switching between peer reviews", custom_timeout: 30 do
@@ -388,7 +388,7 @@ describe "peer review student landing page" do
       expect(f("body")).to include_text("Before you can submit this peer review, you must leave a comment for your peer.")
     end
 
-    it "focuses comment textarea when Submit Peer Review is clicked without leaving a comment", custom_timeout: 30 do
+    it "focuses comment textarea when Next Peer Review is clicked without leaving a comment", custom_timeout: 30 do
       visit_peer_reviews_page(@course.id, @assignment.id)
 
       submission_tab = f("div[id='tab-submission']")
@@ -403,7 +403,7 @@ describe "peer review student landing page" do
       expect(focused_element).to eq(comment_textarea)
     end
 
-    it "focuses Send Comment button when Submit Peer Review is clicked and textarea has text", custom_timeout: 30 do
+    it "focuses Send Comment button when Next Peer Review is clicked and textarea has text", custom_timeout: 30 do
       visit_peer_reviews_page(@course.id, @assignment.id)
 
       submission_tab = f("div[id='tab-submission']")
@@ -837,7 +837,7 @@ describe "peer review student landing page" do
       expect(f("body")).to include_text("You must fill out the rubric in order to submit your peer review.")
     end
 
-    it "opens rubric panel when Submit Peer Review is clicked without completing rubric", custom_timeout: 30 do
+    it "opens rubric panel when Next Peer Review is clicked without completing rubric", custom_timeout: 30 do
       visit_peer_reviews_page(@course.id, @assignment.id)
 
       submission_tab = f("div[id='tab-submission']")
@@ -853,7 +853,7 @@ describe "peer review student landing page" do
       expect(f("body")).to include_text("Peer Review Rubric")
     end
 
-    it "focuses first incomplete criterion score input when Submit Peer Review is clicked without completing scored rubric", custom_timeout: 30 do
+    it "focuses first incomplete criterion score input when Next Peer Review is clicked without completing scored rubric", custom_timeout: 30 do
       visit_peer_reviews_page(@course.id, @assignment.id)
 
       submission_tab = f("div[id='tab-submission']")
@@ -889,7 +889,7 @@ describe "peer review student landing page" do
         assoc.update!(hide_points: true)
       end
 
-      it "focuses first incomplete criterion rating button when Submit Peer Review is clicked without completing scale/unscored rubric", custom_timeout: 30 do
+      it "focuses first incomplete criterion rating button when Next Peer Review is clicked without completing scale/unscored rubric", custom_timeout: 30 do
         visit_peer_reviews_page(@course.id, @scale_assignment.id)
 
         submission_tab = f("div[id='tab-submission']")
@@ -944,7 +944,7 @@ describe "peer review student landing page" do
         assoc.update!(hide_points: true)
       end
 
-      it "focuses first incomplete criterion comment area when Submit Peer Review is clicked without completing written feedback rubric", custom_timeout: 30 do
+      it "focuses first incomplete criterion comment area when Next Peer Review is clicked without completing written feedback rubric", custom_timeout: 30 do
         visit_peer_reviews_page(@course.id, @written_assignment.id)
 
         submission_tab = f("div[id='tab-submission']")
