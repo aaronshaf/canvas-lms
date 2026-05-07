@@ -1412,8 +1412,8 @@ CanvasRails::Application.routes.draw do
 
     scope(controller: :temporary_enrollment_pairings_api) do
       get "accounts/:account_id/temporary_enrollment_pairings", action: :index
-      get "accounts/:account_id/temporary_enrollment_pairings/:id", action: :show
       get "accounts/:account_id/temporary_enrollment_pairings/new", action: :new
+      get "accounts/:account_id/temporary_enrollment_pairings/:id", action: :show
       post "accounts/:account_id/temporary_enrollment_pairings", action: :create
       delete "accounts/:account_id/temporary_enrollment_pairings/:id", action: :destroy
     end

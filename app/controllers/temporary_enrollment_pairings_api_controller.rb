@@ -48,11 +48,16 @@ class TemporaryEnrollmentPairingsApiController < ApplicationController
   # @API List temporary enrollment pairings
   # Returns the list of temporary enrollment pairings for a root account.
   #
+  # @argument include_deleted [Boolean]
+  #   If true, include deleted pairings in the response. Defaults to false.
+  #
   # @returns [TemporaryEnrollmentPairing]
   #
   def index
-    @temporary_enrollment_pairings = @domain_root_account.temporary_enrollment_pairings.order(:created_at)
-    render json: @temporary_enrollment_pairing.as_json
+    scope = @domain_root_account.temporary_enrollment_pairings
+    scope = scope.active unless value_to_boolean(params[:include_deleted])
+    @temporary_enrollment_pairings = scope.order(:created_at)
+    render json: @temporary_enrollment_pairings.as_json
   end
 
   # @API Get a single temporary enrollment pairing
@@ -114,7 +119,10 @@ class TemporaryEnrollmentPairingsApiController < ApplicationController
     @temporary_enrollment_pairing.deleted_by = @current_user
 
     if @temporary_enrollment_pairing.save
-      head :no_content
+      render json: @temporary_enrollment_pairing.as_json
+    else
+      render json: { success: false, errors: @temporary_enrollment_pairing.errors.full_messages },
+             status: :unprocessable_content
     end
   end
 

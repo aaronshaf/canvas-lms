@@ -31,11 +31,41 @@ describe TemporaryEnrollmentPairingsApiController do
   end
 
   describe "GET #index" do
+    def pairing_ids
+      response.parsed_body.pluck("temporary_enrollment_pairing").pluck("id")
+    end
+
+    def create_deleted_pairing
+      @account.temporary_enrollment_pairings.create!(created_by: @admin).tap do |p|
+        p.update!(workflow_state: "deleted")
+      end
+    end
+
     it "lists temporary enrollment pairings" do
       get :index, params: { account_id: @account.id }
 
       expect(response).to be_successful
-      expect(assigns[:temporary_enrollment_pairings]).to include(@temporary_enrollment_pairing)
+      expect(response.parsed_body).to be_an(Array)
+      expect(pairing_ids).to include(@temporary_enrollment_pairing.id)
+    end
+
+    it "excludes deleted pairings by default" do
+      deleted_pairing = create_deleted_pairing
+
+      get :index, params: { account_id: @account.id }
+
+      expect(response).to be_successful
+      expect(pairing_ids).to include(@temporary_enrollment_pairing.id)
+      expect(pairing_ids).not_to include(deleted_pairing.id)
+    end
+
+    it "includes deleted pairings when include_deleted=true" do
+      deleted_pairing = create_deleted_pairing
+
+      get :index, params: { account_id: @account.id, include_deleted: true }
+
+      expect(response).to be_successful
+      expect(pairing_ids).to include(@temporary_enrollment_pairing.id, deleted_pairing.id)
     end
   end
 
@@ -45,18 +75,31 @@ describe TemporaryEnrollmentPairingsApiController do
 
       expect(response).to be_successful
       expect(assigns[:temporary_enrollment_pairing]).to eq(@temporary_enrollment_pairing)
+      json_response = response.parsed_body
+      expect(json_response["temporary_enrollment_pairing"]["id"]).to eq(@temporary_enrollment_pairing.id)
     end
   end
 
   describe "GET #new" do
+    it "routes /new to the new action rather than show" do
+      expect(get: "/api/v1/accounts/#{@account.id}/temporary_enrollment_pairings/new")
+        .to route_to(
+          controller: "temporary_enrollment_pairings_api",
+          action: "new",
+          account_id: @account.id.to_s,
+          format: "json"
+        )
+    end
+
     it "instantiates a temporary enrollment pairing" do
       get :new, params: { account_id: @account.id }
 
       expect(response).to be_successful
-      temporary_enrollment_pairing = assigns[:temporary_enrollment_pairing]
-      expect(temporary_enrollment_pairing.id).to be_nil
-      expect(temporary_enrollment_pairing.root_account_id).to eq(@account.id)
-      expect(temporary_enrollment_pairing.workflow_state).to eq("active")
+      expect(response.parsed_body["temporary_enrollment_pairing"]).to include(
+        "id" => nil,
+        "root_account_id" => @account.id,
+        "workflow_state" => "active"
+      )
     end
   end
 
@@ -100,12 +143,31 @@ describe TemporaryEnrollmentPairingsApiController do
   end
 
   describe "DELETE #destroy" do
-    it "deletes a temporary enrollment pairing" do
+    it "deletes a temporary enrollment pairing and returns it" do
       delete :destroy, params: { account_id: @account.id, id: @temporary_enrollment_pairing.id }
 
       expect(response).to be_successful
       expect(@temporary_enrollment_pairing.reload).to be_deleted
-      expect(@temporary_enrollment_pairing["deleted_by_id"]).to eq(@admin.id)
+      expect(response.parsed_body["temporary_enrollment_pairing"]).to include(
+        "id" => @temporary_enrollment_pairing.id,
+        "workflow_state" => "deleted",
+        "deleted_by_id" => @admin.id
+      )
+    end
+
+    it "returns 422 with errors when save fails" do
+      allow_any_instance_of(TemporaryEnrollmentPairing).to receive(:save) do |pairing|
+        pairing.errors.add(:base, "boom")
+        false
+      end
+
+      delete :destroy, params: { account_id: @account.id, id: @temporary_enrollment_pairing.id }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body).to include(
+        "success" => false,
+        "errors" => include("boom")
+      )
     end
   end
 end
