@@ -1946,6 +1946,7 @@ describe AccountsController do
     context "accessibility_course_statistic" do
       before do
         @account.enable_feature!(:a11y_checker)
+        @account.enable_feature!(:a11y_checker_ga1)
         Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
       end
 
@@ -2282,6 +2283,7 @@ describe AccountsController do
       context "when the a11y_checker and a11y_checker_account_statistics features are enabled" do
         before do
           @account.enable_feature!(:a11y_checker)
+          @account.enable_feature!(:a11y_checker_ga1)
           Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
         end
 
@@ -2414,6 +2416,7 @@ describe AccountsController do
       context "when the a11y_checker and a11y_checker_account_statistics features are enabled" do
         before do
           @account.enable_feature!(:a11y_checker)
+          @account.enable_feature!(:a11y_checker_ga1)
           Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
         end
 
@@ -3102,6 +3105,7 @@ describe AccountsController do
     context "when both a11y_checker and a11y_checker_account_statistics feature flags are enabled" do
       before(:once) do
         @account.enable_feature!(:a11y_checker)
+        @account.enable_feature!(:a11y_checker_ga1)
         Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
         account_admin_user(account: @account)
       end
@@ -3174,6 +3178,7 @@ describe AccountsController do
 
       it "allows access when user has permission and feature flags enabled" do
         @account.enable_feature!(:a11y_checker)
+        @account.enable_feature!(:a11y_checker_ga1)
         Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
         account_admin_user(account: @account)
         user_session(@user)
@@ -3185,6 +3190,7 @@ describe AccountsController do
     context "data retrieval" do
       before(:once) do
         @account.enable_feature!(:a11y_checker)
+        @account.enable_feature!(:a11y_checker_ga1)
         Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
         account_admin_user(account: @account)
       end
@@ -3242,6 +3248,7 @@ describe AccountsController do
     context "workflow state filtering" do
       before(:once) do
         @account.enable_feature!(:a11y_checker)
+        @account.enable_feature!(:a11y_checker_ga1)
         Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
         account_admin_user(account: @account)
       end
@@ -3295,6 +3302,7 @@ describe AccountsController do
     context "enrollment term filtering" do
       before(:once) do
         @account.enable_feature!(:a11y_checker)
+        @account.enable_feature!(:a11y_checker_ga1)
         Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
         account_admin_user(account: @account)
       end

@@ -96,6 +96,7 @@ describe Accessibility::CourseScanService do
       before do
         Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
         Account.site_admin.enable_feature!(:a11y_checker_ga2_features)
+        course.account.enable_feature!(:a11y_checker_ga1)
       end
 
       it "queues course statistics calculation after scan completes" do

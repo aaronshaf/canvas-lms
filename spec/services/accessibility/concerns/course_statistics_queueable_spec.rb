@@ -33,6 +33,7 @@ describe Accessibility::Concerns::CourseStatisticsQueueable do
       before do
         Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
         course.account.enable_feature!(:a11y_checker)
+        course.account.enable_feature!(:a11y_checker_ga1)
       end
 
       it "queues course statistics calculation" do

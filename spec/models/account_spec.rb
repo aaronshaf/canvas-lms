@@ -4066,24 +4066,48 @@ describe Account do
         Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
       end
 
-      it "returns true when account has a11y_checker enabled" do
-        account.enable_feature!(:a11y_checker)
-        expect(account.a11y_checker_account_statistics?).to be true
+      context "when account a11y_checker_ga1 is enabled" do
+        before do
+          account.enable_feature!(:a11y_checker_ga1)
+        end
+
+        it "returns true when account has a11y_checker enabled" do
+          account.enable_feature!(:a11y_checker)
+          expect(account.a11y_checker_account_statistics?).to be true
+        end
+
+        it "returns true when site_admin has a11y_checker_ga2_features enabled" do
+          Account.site_admin.enable_feature!(:a11y_checker_ga2_features)
+          expect(account.a11y_checker_account_statistics?).to be true
+        end
+
+        it "returns true when both a11y_checker and a11y_checker_ga2_features are enabled" do
+          account.enable_feature!(:a11y_checker)
+          Account.site_admin.enable_feature!(:a11y_checker_ga2_features)
+          expect(account.a11y_checker_account_statistics?).to be true
+        end
+
+        it "returns false when neither a11y_checker nor a11y_checker_ga2_features are enabled" do
+          expect(account.a11y_checker_account_statistics?).to be false
+        end
       end
 
-      it "returns true when site_admin has a11y_checker_ga2_features enabled" do
-        Account.site_admin.enable_feature!(:a11y_checker_ga2_features)
-        expect(account.a11y_checker_account_statistics?).to be true
-      end
+      context "when account a11y_checker_ga1 is disabled" do
+        it "returns false even if account has a11y_checker enabled" do
+          account.enable_feature!(:a11y_checker)
+          expect(account.a11y_checker_account_statistics?).to be false
+        end
 
-      it "returns true when both a11y_checker and a11y_checker_ga2_features are enabled" do
-        account.enable_feature!(:a11y_checker)
-        Account.site_admin.enable_feature!(:a11y_checker_ga2_features)
-        expect(account.a11y_checker_account_statistics?).to be true
-      end
+        it "returns false even if site_admin has a11y_checker_ga2_features enabled" do
+          Account.site_admin.enable_feature!(:a11y_checker_ga2_features)
+          expect(account.a11y_checker_account_statistics?).to be false
+        end
 
-      it "returns false when neither a11y_checker nor a11y_checker_ga2_features are enabled" do
-        expect(account.a11y_checker_account_statistics?).to be false
+        it "returns false even if both a11y_checker and a11y_checker_ga2_features are enabled" do
+          account.enable_feature!(:a11y_checker)
+          Account.site_admin.enable_feature!(:a11y_checker_ga2_features)
+          expect(account.a11y_checker_account_statistics?).to be false
+        end
       end
     end
   end

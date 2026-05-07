@@ -128,6 +128,7 @@ describe Api::V1::Course do
 
       before do
         @account.enable_feature!(:a11y_checker)
+        @account.enable_feature!(:a11y_checker_ga1)
         Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
       end
 

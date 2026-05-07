@@ -176,32 +176,20 @@ describe AccessibilityCourseStatisticsController do
         expect(course_ids).not_to include(other_course.id)
       end
 
-      it "excludes courses where a11y_checker is not enabled" do
+      it "returns 403 when a11y_checker_ga1 is disabled on the account" do
         @account.disable_feature!(:a11y_checker_ga1)
-        @course1.enable_feature!(:a11y_checker_eap)
-        # course2 intentionally has no a11y_checker_eap
 
         AccessibilityCourseStatistic.create!(
           course: @course1,
           workflow_state: "active",
           active_issue_count: 5
         )
-        AccessibilityCourseStatistic.create!(
-          course: @course2,
-          workflow_state: "active",
-          active_issue_count: 10
-        )
 
         get :index, params: { user_id: @teacher.id }, format: :json
-        expect(response).to be_successful
-        course_ids = response.parsed_body.pluck("course_id")
-        expect(course_ids).to contain_exactly(@course1.id)
-        expect(course_ids).not_to include(@course2.id)
+        expect(response).to be_forbidden
       end
 
       it "includes all teacher courses when a11y_checker_ga1 is enabled" do
-        # ga1 is on (set in before(:once)), so all courses are eligible
-        # without needing the per-course a11y_checker_eap flag
         AccessibilityCourseStatistic.create!(
           course: @course1,
           workflow_state: "active",

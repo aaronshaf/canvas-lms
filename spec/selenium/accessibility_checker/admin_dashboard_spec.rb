@@ -37,6 +37,7 @@ describe "Accessibility Checker - Admin Dashboard", :ignore_js_errors do
     @account = Account.default
     Account.site_admin.enable_feature!(:a11y_checker_account_statistics)
     @account.enable_feature!(:a11y_checker)
+    @account.enable_feature!(:a11y_checker_ga1)
     @admin = account_admin_user(account: @account)
   end
 

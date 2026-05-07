@@ -3110,7 +3110,7 @@ class Account < ApplicationRecord
   end
 
   def a11y_checker_account_statistics?
-    Account.site_admin.feature_enabled?(:a11y_checker_account_statistics) &&
+    Account.site_admin.feature_enabled?(:a11y_checker_account_statistics) && feature_enabled?(:a11y_checker_ga1) &&
       (feature_enabled?(:a11y_checker) || Account.site_admin.feature_enabled?(:a11y_checker_ga2_features))
   end
 
