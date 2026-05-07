@@ -3752,6 +3752,19 @@ class ApplicationController < ActionController::Base
 
   private
 
+  # Rejects any JS-initiated request (fetch, XHR, sendBeacon, etc.) by
+  # inspecting the Sec-Fetch-Mode header, which browsers set automatically
+  # and JavaScript cannot spoof. Only real browser navigations (e.g. form
+  # submissions) produce Sec-Fetch-Mode: navigate. Requests without the
+  # header (curl, server-to-server, older browsers) are allowed through.
+  def require_navigation_request
+    fetch_mode = request.headers["Sec-Fetch-Mode"]
+    return unless fetch_mode.present?
+    return if fetch_mode == "navigate"
+
+    render plain: t("Direct browser navigation is required for this endpoint"), status: :forbidden
+  end
+
   def recursively_transform_errors(obj)
     case obj.class.name
     when "ActiveModel::Errors"
