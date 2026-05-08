@@ -34,6 +34,12 @@ class Group < ApplicationRecord
   attr_readonly :non_collaborative
   validate :validate_non_collaborative_constraints
 
+  sanitize_field :description, CanvasSanitize::SANITIZE
+  def description
+    raw = super
+    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+  end
+
   # use to skip queries in can_participate?, called by policy block
   attr_accessor :can_participate
 

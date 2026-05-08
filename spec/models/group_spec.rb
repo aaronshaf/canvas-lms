@@ -1287,4 +1287,43 @@ describe Group do
       end
     end
   end
+
+  describe "#description sanitization" do
+    it "strips disallowed elements on save" do
+      @group.update!(description: "<script>alert(1)</script>" \
+                                  "<form><input name='x'/></form>safe")
+      expect(@group.description).to eql("safe")
+    end
+
+    it "strips disallowed elements when persisted unsanitized" do
+      @group.update_columns(description: "<script>alert(1)</script>safe")
+      expect(@group.reload.description).not_to include("<script>")
+      expect(@group.description).to include("safe")
+    end
+
+    it "strips disallowed attributes from allowed tags" do
+      @group.update!(description: "<a href='#' onclick='alert(1)'>ok</a>")
+      expect(@group.description).to eql('<a href="#">ok</a>')
+    end
+
+    it "strips javascript: URIs from href/src/data attributes" do
+      @group.update_columns(
+        description: "<a href='javascript:alert(1)'>x</a>" \
+                     "<iframe src='javascript:alert(2)'></iframe>" \
+                     "<embed src='javascript:alert(3)'>" \
+                     "<object data='javascript:alert(4)'></object>"
+      )
+      expect(@group.reload.description).not_to include("javascript:")
+    end
+
+    it "preserves allowed HTML on read" do
+      @group.update_columns(description: "<p>hello <strong>world</strong></p>")
+      expect(@group.reload.description).to eql("<p>hello <strong>world</strong></p>")
+    end
+
+    it "leaves nil unchanged on read" do
+      @group.update_columns(description: nil)
+      expect(@group.reload.description).to be_nil
+    end
+  end
 end
