@@ -20,6 +20,7 @@ import {Modal} from '@instructure/ui-modal'
 import {useTranslation} from '@canvas/i18next'
 import {Heading} from '@instructure/ui-heading'
 import {CloseButton} from '@instructure/ui-buttons'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 interface Props {
   descHTML: string
@@ -41,7 +42,7 @@ export default function ReportDescription(props: Props) {
           screenReaderLabel={t('Close')}
         />
       </Modal.Header>
-      <Modal.Body dangerouslySetInnerHTML={{__html: props.descHTML}} />
+      <Modal.Body dangerouslySetInnerHTML={{__html: sanitizeHTML(props.descHTML)}} />
     </Modal>
   )
 }

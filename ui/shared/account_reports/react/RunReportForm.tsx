@@ -28,8 +28,9 @@ import {Portal} from '@instructure/ui-portal'
 import {DateTimeInput} from '@instructure/ui-date-time-input'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {View} from '@instructure/ui-view'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {AccountReport} from '../types'
-import $ from 'jquery'
+import SisCsvToggle from './SisCsvToggle'
 
 interface Props {
   formHTML: string
@@ -133,25 +134,13 @@ export default function ConfigureReportForm(props: Props) {
         }
       })
       setDateRefs({...record})
-
-      const script = $(form).find('script')
-      if (script) {
-        // there's only one script tag in each form
-        const scriptElem = script.get(0)
-        const newScript = document.createElement('script')
-        if (scriptElem?.src) {
-          newScript.src = scriptElem.src
-        } else {
-          newScript.textContent = script.text()
-        }
-        if (scriptElem) {
-          Array.from(scriptElem.attributes).forEach(attr =>
-            newScript.setAttribute(attr.name, attr.value),
-          )
-        }
-        // replacing the script with a "new" script makes the script run
-        script.replaceWith(newScript)
-      }
+      // NOTE: previously this effect also re-injected any inline
+      // <script> shipped inside the form HTML so it would actually
+      // run. CFA-865 now sanitizes the form HTML at the
+      // dangerouslySetInnerHTML sink, which strips <script> tags
+      // outright. The one legitimate caller that depended on this
+      // (provisioning_csv parameters checkbox toggle) is now
+      // implemented natively via <SisCsvToggle />.
     }
     // don't run this effect when dateRefs change; causes looping
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -199,9 +188,11 @@ export default function ConfigureReportForm(props: Props) {
         <div
           id="configure_modal_body"
           ref={formRef}
-          dangerouslySetInnerHTML={{__html: props.formHTML}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(props.formHTML)}}
         ></div>
-
+        {['provisioning_csv', 'sis_export_csv'].includes(props.reportName?.toLocaleLowerCase()) && (
+          <SisCsvToggle containerRef={formRef} />
+        )}
         {Object.entries(dateRefs).map(pair => {
           const dateKey = pair[0]
           const dateLabel = pair[1][0]

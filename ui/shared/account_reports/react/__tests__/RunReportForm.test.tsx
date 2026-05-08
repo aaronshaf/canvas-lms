@@ -286,13 +286,19 @@ describe('RunReportForm', () => {
     })
   })
 
-  it('executes script tags', async () => {
-    const user = userEvent.setup()
-    const {getByText, getByTestId} = render(<RunReportForm {...props} formHTML={innerHtml4} />)
+  // CFA-865 / CFA-838: client-side sanitization at the
+  // `dangerouslySetInnerHTML` sink strips <script> tags and inline event
+  // handlers, even though the prior implementation re-injected the script
+  // out of `formRef` and ran it. This is intentional: server-supplied
+  // script execution in admin context is the exact XSS surface being
+  // closed. Forms that need dynamic behavior should ship dedicated
+  // React components rather than embedded <script> blobs.
+  it('strips <script> tags from form HTML', () => {
+    const {container, getByText} = render(<RunReportForm {...props} formHTML={innerHtml4} />)
 
-    expect(getByText('This text is visible').getAttribute('style')).toBe('display: none;')
-    const checkbox = getByTestId('show_text')
-    await user.click(checkbox)
-    expect(getByText('This text is visible').getAttribute('style')).toBe('display: block;')
+    expect(container.querySelector('script')).toBeNull()
+    // visible-text element survives, but the inline script that would
+    // have hidden it has been removed by sanitization
+    expect(getByText('This text is visible').getAttribute('style')).toBeNull()
   })
 })
