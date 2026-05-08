@@ -263,6 +263,88 @@ describe('Preview', () => {
         expect(screen.getByText('Test content')).toBeInTheDocument()
       })
     })
+
+    describe('XSS regression', () => {
+      // The a11y issue preview renders raw page HTML returned by the
+      // API. Scanned resources include user-authored surfaces
+      // (discussion entries, group wiki pages). CFA-894 wraps the
+      // sink with @canvas/sanitize-html as defense-in-depth.
+
+      afterEach(() => {
+        delete (window as any).__xss_fired
+      })
+
+      it('strips inline event handlers from preview content', async () => {
+        // No <img> in payload — JSDOM never fires image load/error
+        // events, so useWaitForPreviewImages would hang the spinner.
+        server.use(
+          http.get('/preview', () =>
+            HttpResponse.json({
+              content: '<div onmouseover="window.__xss_fired = true">hover me</div>',
+              path: '//div',
+            }),
+          ),
+        )
+
+        render(<Preview {...defaultProps} />)
+
+        await waitFor(() => {
+          expect(screen.queryByText('Loading preview...')).not.toBeInTheDocument()
+        })
+
+        const previewEl = document.getElementById('a11y-issue-preview') as HTMLElement
+        expect(previewEl.innerHTML).not.toMatch(/\son[a-z]+\s*=/i)
+        expect((window as any).__xss_fired).toBeUndefined()
+      })
+
+      it('strips <script> tags from preview content', async () => {
+        server.use(
+          http.get('/preview', () =>
+            HttpResponse.json({
+              content:
+                '<div>before</div><script>window.__xss_fired = true</script><div>after</div>',
+              path: '//div',
+            }),
+          ),
+        )
+
+        render(<Preview {...defaultProps} />)
+
+        await waitFor(() => {
+          expect(screen.queryByText('Loading preview...')).not.toBeInTheDocument()
+        })
+
+        const previewEl = document.getElementById('a11y-issue-preview') as HTMLElement
+        expect(previewEl.querySelector('script')).toBeNull()
+        expect(previewEl.innerHTML).not.toMatch(/<script/i)
+        expect((window as any).__xss_fired).toBeUndefined()
+      })
+
+      it('strips javascript: hrefs from preview content', async () => {
+        server.use(
+          http.get('/preview', () =>
+            HttpResponse.json({
+              content: '<div><a href="javascript:window.__xss_fired = true">click</a></div>',
+              path: '//div',
+            }),
+          ),
+        )
+
+        render(<Preview {...defaultProps} />)
+
+        await waitFor(() => {
+          expect(screen.queryByText('Loading preview...')).not.toBeInTheDocument()
+        })
+
+        const previewEl = document.getElementById('a11y-issue-preview') as HTMLElement
+        const anchor = previewEl.querySelector('a')
+        if (anchor) {
+          expect(anchor.getAttribute('href') || '').not.toMatch(/^javascript:/i)
+        }
+        expect(previewEl.innerHTML).not.toMatch(/javascript:/i)
+        expect((window as any).__xss_fired).toBeUndefined()
+      })
+    })
   })
 
   describe('ref functionality', () => {

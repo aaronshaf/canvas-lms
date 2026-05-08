@@ -27,6 +27,7 @@ import {CondensedButton} from '@instructure/ui-buttons'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import doFetchApi, {FetchApiError} from '@canvas/do-fetch-api-effect'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 import {AccessibilityIssue, FormValue, PreviewResponse, ResourceType} from '../../types'
 import {getAsContentItemType} from '../../utils/apiData'
@@ -250,7 +251,7 @@ const Preview: React.FC<PreviewProps & React.RefAttributes<PreviewHandle>> = for
           height="15rem"
           overflowY="auto"
           padding="x-small x-small x-small x-small"
-          dangerouslySetInnerHTML={{__html: contentResponse?.content || ''}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(contentResponse?.content || '')}}
         />
       </View>
     )
