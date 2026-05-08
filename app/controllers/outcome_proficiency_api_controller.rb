@@ -118,7 +118,7 @@ class OutcomeProficiencyApiController < ApplicationController
     if authorized_action(@context, current_principal, :manage_proficiency_scales)
       proficiency = @context.outcome_proficiency.presence || OutcomeProficiency.new
       proficiency = update_ratings(proficiency, @context)
-      render json: outcome_proficiency_json(proficiency, @current_user, session)
+      render json: outcome_proficiency_json(proficiency, current_principal, session)
     end
   end
 
@@ -137,7 +137,7 @@ class OutcomeProficiencyApiController < ApplicationController
     return unless authorized_action(@context, current_principal, :read)
 
     proficiency = @context.resolved_outcome_proficiency or raise ActiveRecord::RecordNotFound
-    render json: outcome_proficiency_json(proficiency, @current_user, session)
+    render json: outcome_proficiency_json(proficiency, current_principal, session)
   rescue ActiveRecord::RecordNotFound => e
     render json: { message: e.message }, status: :not_found
   end

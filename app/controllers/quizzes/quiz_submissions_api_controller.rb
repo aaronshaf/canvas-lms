@@ -435,7 +435,7 @@ class Quizzes::QuizSubmissionsApiController < ApplicationController
     render json: quiz_submissions_json(
       quiz_submissions,
       @quiz,
-      @current_user,
+      current_principal,
       session,
       @context,
       Array(params[:include]),

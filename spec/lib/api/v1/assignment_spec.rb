@@ -68,11 +68,12 @@ describe "Api::V1::Assignment" do
 
   describe "#assignment_json" do
     let(:user) { user_model }
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
     let(:session) { Object.new }
 
     it "returns json" do
       allow(assignment.context).to receive(:grants_right?).and_return(true)
-      json = api.assignment_json(assignment, user, session, { override_dates: false })
+      json = api.assignment_json(assignment, current_principal, session, { override_dates: false })
       expect(json["needs_grading_count"]).to eq(0)
       expect(json["needs_grading_count_by_section"]).to be_nil
       expect(json["new_quizzes_anonymous_participants"]).to be false
@@ -81,7 +82,7 @@ describe "Api::V1::Assignment" do
     it "includes section-based counts when grading flag is passed" do
       allow(assignment.context).to receive(:grants_right?).and_return(true)
       json = api.assignment_json(assignment,
-                                 user,
+                                 current_principal,
                                  session,
                                  { override_dates: false, needs_grading_count_by_section: true })
       expect(json["needs_grading_count"]).to eq(0)
@@ -92,14 +93,14 @@ describe "Api::V1::Assignment" do
       assignment.settings = { "new_quizzes" => { "anonymous_participants" => true } }
       assignment.save!
 
-      json = api.assignment_json(assignment, user, session)
+      json = api.assignment_json(assignment, current_principal, session)
       expect(json["new_quizzes_anonymous_participants"]).to be true
     end
 
     it "includes an associated planner override when flag is passed" do
       po = planner_override_model(user:, plannable: assignment)
       json = api.assignment_json(assignment,
-                                 user,
+                                 current_principal,
                                  session,
                                  { include_planner_override: true })
       expect(json).to have_key("planner_override")
@@ -109,12 +110,12 @@ describe "Api::V1::Assignment" do
     it "includes the assignment's post policy" do
       assignment.post_policy.update!(post_manually: true)
 
-      json = api.assignment_json(assignment, user, session)
+      json = api.assignment_json(assignment, current_principal, session)
       expect(json["post_manually"]).to be true
     end
 
     it "returns nil for planner override when flag is passed and there is no override" do
-      json = api.assignment_json(assignment, user, session, { include_planner_override: true })
+      json = api.assignment_json(assignment, current_principal, session, { include_planner_override: true })
       expect(json).to have_key("planner_override")
       expect(json["planner_override"]).to be_nil
     end
@@ -123,13 +124,13 @@ describe "Api::V1::Assignment" do
       original_assignment = assignment_model
       allow(original_assignment).to receive(:lti_resource_link_id).and_return("b85797748e3f0ffc2d0c21eb9865e76676cf67d0")
       assignment.update!(duplicate_of: original_assignment)
-      json = api.assignment_json(assignment, user, session, { override_dates: false })
+      json = api.assignment_json(assignment, current_principal, session, { override_dates: false })
 
       expect(json["original_lti_resource_link_id"]).to eq "b85797748e3f0ffc2d0c21eb9865e76676cf67d0"
     end
 
     it "returns nil for lti_resource_link_id if the assignment is not a duplicate" do
-      json = api.assignment_json(assignment, user, session, { override_dates: false })
+      json = api.assignment_json(assignment, current_principal, session, { override_dates: false })
 
       expect(json["original_lti_resource_link_id"]).to be_nil
     end
@@ -137,23 +138,23 @@ describe "Api::V1::Assignment" do
     describe "the allowed_attempts attribute" do
       it "returns -1 if set to nil" do
         assignment.update_attribute(:allowed_attempts, nil)
-        json = api.assignment_json(assignment, user, session, { override_dates: false })
+        json = api.assignment_json(assignment, current_principal, session, { override_dates: false })
         expect(json["allowed_attempts"]).to eq(-1)
       end
 
       it "returns -1 if set to -1" do
         assignment.update_attribute(:allowed_attempts, -1)
-        json = api.assignment_json(assignment, user, session, { override_dates: false })
+        json = api.assignment_json(assignment, current_principal, session, { override_dates: false })
         expect(json["allowed_attempts"]).to eq(-1)
       end
 
       it "returns any other values as set in the databse" do
         assignment.update_attribute(:allowed_attempts, 1)
-        json = api.assignment_json(assignment, user, session, { override_dates: false })
+        json = api.assignment_json(assignment, current_principal, session, { override_dates: false })
         expect(json["allowed_attempts"]).to eq(1)
 
         assignment.update_attribute(:allowed_attempts, 2)
-        json = api.assignment_json(assignment, user, session, { override_dates: false })
+        json = api.assignment_json(assignment, current_principal, session, { override_dates: false })
         expect(json["allowed_attempts"]).to eq(2)
       end
     end
@@ -173,7 +174,7 @@ describe "Api::V1::Assignment" do
           Account.default.save!
 
           my_session = user_session @teacher
-          json = api.assignment_json(assignment, @teacher, my_session)
+          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher), my_session)
           expect(json["restrict_quantitative_data"]).to be_falsey
         end
       end
@@ -192,7 +193,7 @@ describe "Api::V1::Assignment" do
           Account.default.save!
 
           my_session = user_session @student
-          json = api.assignment_json(assignment, @student, my_session)
+          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student), my_session)
           expect(json["restrict_quantitative_data"]).to be_truthy
         end
 
@@ -205,7 +206,7 @@ describe "Api::V1::Assignment" do
           Account.default.save!
 
           my_session = user_session @student
-          json = api.assignment_json(assignment, @student, my_session)
+          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student), my_session)
           expect(json["restrict_quantitative_data"]).to be_falsey
         end
 
@@ -218,7 +219,7 @@ describe "Api::V1::Assignment" do
           Account.default.save!
 
           my_session = user_session @student
-          json = api.assignment_json(assignment, @student, my_session)
+          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student), my_session)
           expect(json["restrict_quantitative_data"]).to be_falsey
         end
       end
@@ -228,7 +229,7 @@ describe "Api::V1::Assignment" do
       context "not in-place" do
         it "json does not have has_sub_assignments and checkpoints when FF is turned off" do
           assignment.course.account.disable_feature!(:discussion_checkpoints)
-          json = api.assignment_json(assignment, user, session, { include_checkpoints: true })
+          json = api.assignment_json(assignment, current_principal, session, { include_checkpoints: true })
           expect(json).not_to have_key "has_sub_assignments"
           expect(json).not_to have_key "checkpoints"
         end
@@ -240,7 +241,7 @@ describe "Api::V1::Assignment" do
         end
 
         it "returns false for the has_sub_assignments attribute and [] for the checkpoints attribute" do
-          json = api.assignment_json(assignment, user, session, { include_checkpoints: true })
+          json = api.assignment_json(assignment, current_principal, session, { include_checkpoints: true })
           expect(json["has_sub_assignments"]).to be_falsey
           expect(json["checkpoints"]).to eq []
         end
@@ -264,7 +265,7 @@ describe "Api::V1::Assignment" do
         end
 
         it "returns the checkpoints attribute with the correct values for student" do
-          json = api.assignment_json(assignment, @student, session, { include_checkpoints: true })
+          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student), session, { include_checkpoints: true })
           checkpoints = json["checkpoints"]
           first_checkpoint = checkpoints.find { |c| c[:tag] == CheckpointLabels::REPLY_TO_TOPIC }
           second_checkpoint = checkpoints.find { |c| c[:tag] == CheckpointLabels::REPLY_TO_ENTRY }
@@ -281,7 +282,7 @@ describe "Api::V1::Assignment" do
         end
 
         it "returns the checkpoints attribute with the correct values" do
-          json = api.assignment_json(assignment, @teacher, session, { include_checkpoints: true })
+          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher), session, { include_checkpoints: true })
           checkpoints = json["checkpoints"]
           first_checkpoint = checkpoints.find { |c| c[:tag] == CheckpointLabels::REPLY_TO_TOPIC }
           second_checkpoint = checkpoints.find { |c| c[:tag] == CheckpointLabels::REPLY_TO_ENTRY }
@@ -303,18 +304,18 @@ describe "Api::V1::Assignment" do
 
     context "for an assignment" do
       it "provides a submissions download URL" do
-        json = api.assignment_json(assignment, user, session)
+        json = api.assignment_json(assignment, current_principal, session)
 
         expect(json["submissions_download_url"]).to eq "/course/#{@course.id}/assignment/#{assignment.id}/submissions?zip=1"
       end
 
       it "optionally includes 'grades_published' for moderated assignments" do
-        json = api.assignment_json(assignment, user, session, { include_grades_published: true })
+        json = api.assignment_json(assignment, current_principal, session, { include_grades_published: true })
         expect(json["grades_published"]).to be(true)
       end
 
       it "excludes 'grades_published' by default" do
-        json = api.assignment_json(assignment, user, session)
+        json = api.assignment_json(assignment, current_principal, session)
         expect(json).not_to have_key "grades_published"
       end
     end
@@ -336,18 +337,18 @@ describe "Api::V1::Assignment" do
       end
 
       it "includes assessment_requests list when the flag is enabled" do
-        json = api.assignment_json(@assignment, @student1, session, { include_assessment_requests: false })
+        json = api.assignment_json(@assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student1), session, { include_assessment_requests: false })
         expect(json["assessment_requests"]).not_to be_present
       end
 
       it "excludes assessment_requests list when the flag is disabled" do
-        json = api.assignment_json(@assignment, @student1, session, { include_assessment_requests: true })
+        json = api.assignment_json(@assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student1), session, { include_assessment_requests: true })
         expect(json["assessment_requests"]).to be_present
       end
 
       it "includes workflow_state, user_id, user_name when anonymous_peer_reviews is false" do
         @assignment.update_attribute(:anonymous_peer_reviews, false)
-        json = api.assignment_json(@assignment, @student1, session, { include_assessment_requests: true })
+        json = api.assignment_json(@assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student1), session, { include_assessment_requests: true })
         assessment_request = json["assessment_requests"][0]
         expect(assessment_request["workflow_state"]).to eq @assessment_request.workflow_state
         expect(assessment_request["user_id"]).to eq @assessment_request.user.id
@@ -357,7 +358,7 @@ describe "Api::V1::Assignment" do
 
       it "includes workflow_state, anonymous_id when anonymous_peer_reviews is true" do
         @assignment.update_attribute(:anonymous_peer_reviews, true)
-        json = api.assignment_json(@assignment, @student1, session, { include_assessment_requests: true })
+        json = api.assignment_json(@assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@student1), session, { include_assessment_requests: true })
         assessment_request = json["assessment_requests"][0]
         expect(assessment_request["workflow_state"]).to eq @assessment_request.workflow_state
         expect(assessment_request["anonymous_id"]).to eq @assessment_request.asset.anonymous_id
@@ -388,7 +389,7 @@ describe "Api::V1::Assignment" do
         end
 
         it "returns all_dates associated with a checkpointed assignment's sub_assignments" do
-          json = api.assignment_json(@topic.assignment, @teacher, session, { include_all_dates: true, include_discussion_topic: false, override_dates: false })
+          json = api.assignment_json(@topic.assignment, Canvas::AdheresToPolicy::UserPrincipal.new(@teacher), session, { include_all_dates: true, include_discussion_topic: false, override_dates: false })
 
           # Should return dates for sub_assignment overrides and the checkpointed due dates
           expect(json["all_dates"].length).to eq 4
@@ -414,7 +415,7 @@ describe "Api::V1::Assignment" do
           )
         end
 
-        json = api.assignment_json(assignment, teacher, session, { include_all_dates: true })
+        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, { include_all_dates: true })
 
         expect(json["all_dates"]).to eq([])
         expect(json["all_dates_count"]).to eq(26)
@@ -430,7 +431,7 @@ describe "Api::V1::Assignment" do
       end
 
       it "provides a submissions download URL" do
-        json = api.assignment_json(@assignment, user, session)
+        json = api.assignment_json(@assignment, current_principal, session)
 
         expect(json["submissions_download_url"]).to eq "/course/#{@course.id}/quizzes/#{@quiz.id}/submissions?zip=1"
       end
@@ -444,7 +445,7 @@ describe "Api::V1::Assignment" do
       expect(orphaned_quiz_assignment.submission_types).to eq "online_quiz"
       expect(orphaned_quiz_assignment.quiz).to be_nil
 
-      json = api.assignment_json(orphaned_quiz_assignment, user, session, { include_module_ids: true })
+      json = api.assignment_json(orphaned_quiz_assignment, current_principal, session, { include_module_ids: true })
 
       expect(json["module_ids"]).to be_nil
       expect(json["module_positions"]).to be_nil
@@ -458,7 +459,7 @@ describe "Api::V1::Assignment" do
       expect(orphaned_discussion_assignment.submission_types).to eq "discussion_topic"
       expect(orphaned_discussion_assignment.discussion_topic).to be_nil
 
-      json = api.assignment_json(orphaned_discussion_assignment, user, session, { include_module_ids: true })
+      json = api.assignment_json(orphaned_discussion_assignment, current_principal, session, { include_module_ids: true })
 
       expect(json["module_ids"]).to be_nil
       expect(json["module_positions"]).to be_nil
@@ -469,7 +470,7 @@ describe "Api::V1::Assignment" do
         attachment = Attachment.create!(context: user, filename: "user_avatar_pic", uploaded_data: StringIO.new("sometextgoeshere"))
         assignment.description = "<img src='/users/#{user.id}/files/#{attachment.id}>"
 
-        json = api.assignment_json(assignment, user, session, { override_dates: false })
+        json = api.assignment_json(assignment, current_principal, session, { override_dates: false })
         expect(json["description"]).to eq(api.api_user_content(assignment.description, @course, user, {}, location: assignment.asset_string))
       end
     end
@@ -477,7 +478,7 @@ describe "Api::V1::Assignment" do
     it "includes all assignment overrides fields when an assignment_override exists" do
       assignment.assignment_overrides.create(workflow_state: "active")
       overrides = assignment.assignment_overrides
-      json = api.assignment_json(assignment, user, session, { overrides: })
+      json = api.assignment_json(assignment, current_principal, session, { overrides: })
       expect(json).to be_a(Hash)
       expect(json["overrides"].first.keys.sort).to eq %w[assignment_id id title student_ids unassign_item].sort
     end
@@ -485,7 +486,7 @@ describe "Api::V1::Assignment" do
     it "excludes descriptions when exclude_response_fields flag is passed and includes 'description'" do
       assignment.description = "Foobers"
       json = api.assignment_json(assignment,
-                                 user,
+                                 current_principal,
                                  session,
                                  { override_dates: false })
       expect(json).to be_a(Hash)
@@ -493,14 +494,14 @@ describe "Api::V1::Assignment" do
       expect(json["description"]).to eq(api.api_user_content("Foobers", @course, user, {}, location: assignment.asset_string))
 
       json = api.assignment_json(assignment,
-                                 user,
+                                 current_principal,
                                  session,
                                  { override_dates: false, exclude_response_fields: ["description"] })
       expect(json).to be_a(Hash)
       expect(json).not_to have_key "description"
 
       json = api.assignment_json(assignment,
-                                 user,
+                                 current_principal,
                                  session,
                                  { override_dates: false })
       expect(json).to be_a(Hash)
@@ -511,13 +512,13 @@ describe "Api::V1::Assignment" do
     it "excludes needs_grading_counts when exclude_response_fields flag is " \
        "passed and includes 'needs_grading_count'" do
       params = { override_dates: false, exclude_response_fields: ["needs_grading_count"] }
-      json = api.assignment_json(assignment, user, session, params)
+      json = api.assignment_json(assignment, current_principal, session, params)
       expect(json).not_to have_key "needs_grading_count"
     end
 
     describe "include_can_submit" do
       it "includes can_submit when the flag is passed" do
-        json = api.assignment_json(assignment, user, session, { include_can_submit: true })
+        json = api.assignment_json(assignment, current_principal, session, { include_can_submit: true })
         expect(json).to have_key "can_submit"
       end
 
@@ -531,7 +532,7 @@ describe "Api::V1::Assignment" do
 
         expect(context_module.published?).to be false
         expect(assignment.published?).to be true
-        json = api.assignment_json(assignment, student, session, { include_can_submit: true })
+        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(student), session, { include_can_submit: true })
         expect(json).to have_key "can_submit"
         expect(json[:can_submit]).to be false
       end
@@ -556,12 +557,12 @@ describe "Api::V1::Assignment" do
       end
 
       it "includes ignore_for_scoring when it is on the rubric" do
-        json = api.assignment_json(assignment, user, session)
+        json = api.assignment_json(assignment, current_principal, session)
         expect(json["rubric"][0]["ignore_for_scoring"]).to be true
       end
 
       it "includes hide_score_total setting in rubric_settings" do
-        json = api.assignment_json(assignment, user, session)
+        json = api.assignment_json(assignment, current_principal, session)
         expect(json["rubric_settings"]["hide_score_total"]).to be false
       end
 
@@ -569,12 +570,12 @@ describe "Api::V1::Assignment" do
         ra = assignment.rubric_association
         ra.hide_score_total = true
         ra.save!
-        json = api.assignment_json(assignment, user, session)
+        json = api.assignment_json(assignment, current_principal, session)
         expect(json["rubric_settings"]["hide_score_total"]).to be true
       end
 
       it "includes hide_points setting in rubric_settings" do
-        json = api.assignment_json(assignment, user, session)
+        json = api.assignment_json(assignment, current_principal, session)
         expect(json["rubric_settings"]["hide_points"]).to be false
       end
 
@@ -582,13 +583,13 @@ describe "Api::V1::Assignment" do
         ra = assignment.rubric_association
         ra.hide_points = true
         ra.save!
-        json = api.assignment_json(assignment, user, session)
+        json = api.assignment_json(assignment, current_principal, session)
         expect(json["rubric_settings"]["hide_points"]).to be true
       end
 
       it "excludes rubric when exclude_response_fields contains 'rubric'" do
         opts = { exclude_response_fields: ["rubric"] }
-        json = api.assignment_json(assignment, user, session, opts)
+        json = api.assignment_json(assignment, current_principal, session, opts)
         expect(json).not_to have_key "rubric"
       end
 
@@ -596,7 +597,7 @@ describe "Api::V1::Assignment" do
         ra = assignment.rubric_association
         ra.workflow_state = "deleted"
         ra.save!
-        json = api.assignment_json(assignment, user, session)
+        json = api.assignment_json(assignment, current_principal, session)
         expect(json).not_to have_key "rubric"
       end
     end
@@ -613,7 +614,7 @@ describe "Api::V1::Assignment" do
         end
 
         it "serializes require_lockdown_browser to be true" do
-          json = api.assignment_json(assignment, user, session, {})
+          json = api.assignment_json(assignment, current_principal, session, {})
           expect(json).to have_key("require_lockdown_browser")
           expect(json["require_lockdown_browser"]).to be_truthy
         end
@@ -630,7 +631,7 @@ describe "Api::V1::Assignment" do
         end
 
         it "serializes require_lockdown_browser to be false" do
-          json = api.assignment_json(assignment, user, session, {})
+          json = api.assignment_json(assignment, current_principal, session, {})
           expect(json).to have_key("require_lockdown_browser")
           expect(json["require_lockdown_browser"]).to be_falsy
         end
@@ -638,7 +639,7 @@ describe "Api::V1::Assignment" do
 
       context "when N.Q respondus setting is off (default)" do
         it "serializes require_lockdown_browser to be false" do
-          json = api.assignment_json(assignment, user, session, {})
+          json = api.assignment_json(assignment, current_principal, session, {})
           expect(json).to have_key("require_lockdown_browser")
           expect(json["require_lockdown_browser"]).to be_falsy
         end
@@ -656,7 +657,7 @@ describe "Api::V1::Assignment" do
       end
 
       it "returns estimated duration" do
-        json = api.assignment_json(assignment, user, session, {})
+        json = api.assignment_json(assignment, current_principal, session, {})
         expect(json).to have_key("estimated_duration")
       end
     end
@@ -672,13 +673,13 @@ describe "Api::V1::Assignment" do
       end
 
       it "includes peer_review_count" do
-        json = api.assignment_json(@assignment, user, session, {})
+        json = api.assignment_json(@assignment, current_principal, session, {})
         expect(json).to have_key("peer_review_count")
         expect(json["peer_review_count"]).to eq 2
       end
 
       it "includes has_peer_review_submissions as false when no peer reviews completed" do
-        json = api.assignment_json(@assignment, user, session, {})
+        json = api.assignment_json(@assignment, current_principal, session, {})
         expect(json).to have_key("has_peer_review_submissions")
         expect(json["has_peer_review_submissions"]).to be false
       end
@@ -694,20 +695,20 @@ describe "Api::V1::Assignment" do
           workflow_state: "completed"
         )
 
-        json = api.assignment_json(@assignment, user, session, {})
+        json = api.assignment_json(@assignment, current_principal, session, {})
         expect(json).to have_key("has_peer_review_submissions")
         expect(json["has_peer_review_submissions"]).to be true
       end
 
       it "does not include has_peer_review_submissions when peer reviews are disabled" do
         @assignment.update_attribute(:peer_reviews, false)
-        json = api.assignment_json(@assignment, user, session, {})
+        json = api.assignment_json(@assignment, current_principal, session, {})
         expect(json).not_to have_key("has_peer_review_submissions")
       end
 
       it "does not include has_peer_review_submissions when feature flag is disabled" do
         @assignment.course.disable_feature!(:peer_review_allocation_and_grading)
-        json = api.assignment_json(@assignment, user, session, {})
+        json = api.assignment_json(@assignment, current_principal, session, {})
         expect(json).not_to have_key("has_peer_review_submissions")
       end
     end
@@ -718,7 +719,7 @@ describe "Api::V1::Assignment" do
         parent_assignment = assignment_model(course:)
         peer_review_sub_assignment = PeerReviewSubAssignment.create!(parent_assignment:)
 
-        json = api.assignment_json(peer_review_sub_assignment, user, session, {})
+        json = api.assignment_json(peer_review_sub_assignment, current_principal, session, {})
 
         expect(json["html_url"]).to eq("assignment/url/#{course.id}/#{parent_assignment.id}")
       end
@@ -727,7 +728,7 @@ describe "Api::V1::Assignment" do
         course = course_model
         regular_assignment = assignment_model(course:)
 
-        json = api.assignment_json(regular_assignment, user, session, {})
+        json = api.assignment_json(regular_assignment, current_principal, session, {})
 
         expect(json["html_url"]).to eq("assignment/url/#{course.id}/#{regular_assignment.id}")
       end
@@ -739,7 +740,7 @@ describe "Api::V1::Assignment" do
         teacher = teacher_in_course(course:, active_all: true).user
         assignment = assignment_model(course:, lock_at: 5.days.from_now)
 
-        json = api.assignment_json(assignment, teacher, session, {})
+        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, {})
 
         expect(json).to have_key("availability_status")
         expect(json["availability_status"]["status"]).to eq("open")
@@ -751,7 +752,7 @@ describe "Api::V1::Assignment" do
         teacher = teacher_in_course(course:, active_all: true).user
         assignment = assignment_model(course:, unlock_at: 5.days.from_now, due_at: 10.days.from_now)
 
-        json = api.assignment_json(assignment, teacher, session, {})
+        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, {})
 
         expect(json).to have_key("availability_status")
         expect(json["availability_status"]["status"]).to eq("pending")
@@ -763,7 +764,7 @@ describe "Api::V1::Assignment" do
         teacher = teacher_in_course(course:, active_all: true).user
         assignment = assignment_model(course:, lock_at: 5.days.ago, due_at: 10.days.ago)
 
-        json = api.assignment_json(assignment, teacher, session, {})
+        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, {})
 
         expect(json).to have_key("availability_status")
         expect(json["availability_status"]["status"]).to eq("closed")
@@ -775,7 +776,7 @@ describe "Api::V1::Assignment" do
         teacher = teacher_in_course(course:, active_all: true).user
         assignment = assignment_model(course:, unlock_at: nil, lock_at: nil)
 
-        json = api.assignment_json(assignment, teacher, session, {})
+        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, {})
 
         expect(json).not_to have_key("availability_status")
       end
@@ -785,7 +786,7 @@ describe "Api::V1::Assignment" do
         teacher = teacher_in_course(course:, active_all: true).user
         assignment = assignment_model(course:, unlock_at: 5.days.ago, lock_at: nil)
 
-        json = api.assignment_json(assignment, teacher, session, {})
+        json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, {})
 
         expect(json).not_to have_key("availability_status")
       end
@@ -803,7 +804,7 @@ describe "Api::V1::Assignment" do
             lock_at: 10.days.from_now
           )
 
-          json = api.assignment_json(assignment, teacher, session, { include_all_dates: true })
+          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, { include_all_dates: true })
 
           expect(json["all_dates"]).to be_present
           open_dates = json["all_dates"].select { |d| d["availability_status"]&.dig("status") == "open" }
@@ -818,7 +819,7 @@ describe "Api::V1::Assignment" do
           teacher = teacher_in_course(course:, active_all: true).user
           assignment = assignment_model(course:, unlock_at: nil, lock_at: nil)
 
-          json = api.assignment_json(assignment, teacher, session, { include_all_dates: true })
+          json = api.assignment_json(assignment, Canvas::AdheresToPolicy::UserPrincipal.new(teacher), session, { include_all_dates: true })
 
           expect(json["all_dates"]).to be_present
           json["all_dates"].each do |date|
@@ -1437,6 +1438,7 @@ describe "Api::V1::Assignment" do
 
     let(:opts) { {} }
     let(:user) { user_model }
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
 
     context "when param[force_updated_at] is true" do
       let(:assignment_update_params) do
@@ -1500,7 +1502,7 @@ describe "Api::V1::Assignment" do
 
           expect(subject).to eq :ok
 
-          json = api.assignment_json(assignment, user, session, opts)
+          json = api.assignment_json(assignment, current_principal, session, opts)
           expect(json).to be_a(Hash)
           expect(json).to have_key "migrated_urls_content_migration_id"
         end
@@ -1513,7 +1515,7 @@ describe "Api::V1::Assignment" do
 
           expect(subject).to eq :ok
 
-          json = api.assignment_json(assignment, user, session, opts)
+          json = api.assignment_json(assignment, current_principal, session, opts)
           expect(json).to be_a(Hash)
           expect(json).not_to have_key "migrated_urls_content_migration_id"
         end
@@ -1528,7 +1530,7 @@ describe "Api::V1::Assignment" do
 
           expect(subject).to eq :ok
 
-          json = api.assignment_json(assignment, user, session, opts)
+          json = api.assignment_json(assignment, current_principal, session, opts)
           expect(json).to be_a(Hash)
           expect(json).not_to have_key "migrated_urls_content_migration_id"
         end

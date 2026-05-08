@@ -39,8 +39,8 @@ module Api::V1::StreamItem
     ActiveRecord::Associations.preload(submissions, asset: { assignment: :context })
   end
 
-  def stream_item_json(stream_item_instance, stream_item, current_user, session)
-    data = stream_item.data(current_user.id)
+  def stream_item_json(stream_item_instance, stream_item, current_principal, session)
+    data = stream_item.data(current_principal.user.id)
     {}.tap do |hash|
       # generic attributes common to all stream item types
       hash["created_at"] = stream_item.created_at
@@ -85,7 +85,7 @@ module Api::V1::StreamItem
         hash["participant_count"] = data.participant_count
         hash["html_url"] = conversation_url(stream_item.asset_id)
         hash["latest_messages"] = data.latest_messages_from_stream_item if data.latest_messages_from_stream_item.present?
-        hash["read_state"] = stream_item.data.conversation_participants.find_by(user_id: current_user)&.read?
+        hash["read_state"] = stream_item.data.conversation_participants.find_by(user_id: current_principal.user)&.read?
       when "Message"
         hash["message_id"] = stream_item.asset_id
         # this type encompasses a huge number of different types of messages,
@@ -100,7 +100,7 @@ module Api::V1::StreamItem
         # to ensure correct assignment IDs and URLs in notifications
         assignment = assignment.parent_assignment if assignment.checkpoint? && assignment.parent_assignment
         includes = %w[submission_comments assignment course html_url user]
-        json = submission_json(submission, assignment, current_user, session, nil, includes, params)
+        json = submission_json(submission, assignment, current_principal, session, nil, includes, params)
         json.delete("id")
         hash.merge! json
         hash["submission_id"] = stream_item.asset_id
@@ -136,76 +136,82 @@ module Api::V1::StreamItem
     end
   end
 
-  def api_render_stream(opts)
-    items = @current_user.shard.activate do
-      scope = @current_user.visible_stream_item_instances(opts).preload(:stream_item)
-      if opts.key?(:asset_type)
-        is_cross_shard = @current_user.visible_stream_item_instances(opts)
-                                      .where("stream_item_id > ?", Shard::IDS_PER_SHARD).exists?
+  def api_render_stream(paginate_url:, context: nil, contexts: nil, asset_type: nil, submission_user_id: nil, only_active_courses: false, notification_categories: nil, current_principal: nil)
+    items = current_principal.user.shard.activate do
+      scope = current_principal.user.visible_stream_item_instances({ contexts:, context:, only_active_courses: }).preload(:stream_item)
+      if asset_type
+        is_cross_shard = current_principal.user
+                                          .visible_stream_item_instances({ contexts:, context:, only_active_courses: })
+                                          .where("stream_item_id > ?", Shard::IDS_PER_SHARD).exists?
         if is_cross_shard
           # the old join doesn't work for cross-shard stream items, so we basically have to pre-calculate everything
-          scope = scope.where(stream_item_id: filtered_stream_item_ids(opts))
+          scope = scope.where(stream_item_id: filtered_stream_item_ids(asset_type:,
+                                                                       contexts:,
+                                                                       context:,
+                                                                       only_active_courses:,
+                                                                       submission_user_id:,
+                                                                       current_principal:))
         else
-          scope = scope.eager_load(:stream_item).where(stream_items: { asset_type: opts[:asset_type] })
+          scope = scope.eager_load(:stream_item).where(stream_items: { asset_type: })
           # join table for submissions when there are more asset types is different
-          if opts[:asset_type].is_a?(Array) && opts[:asset_type].include?("Submission")
+          if asset_type.is_a?(Array) && asset_type.include?("Submission")
             scope = scope.joins("LEFT JOIN #{Submission.quoted_table_name} ON submissions.id=asset_id AND submissions.workflow_state <> 'deleted' AND submissions.submission_comments_count>0")
-            scope = scope.where("submissions.user_id=?", opts[:submission_user_id]) if opts.key?(:submission_user_id)
+            scope = scope.where("submissions.user_id=?", submission_user_id) if submission_user_id
           end
-          if opts[:asset_type] == "Submission"
+          if asset_type == "Submission"
             scope = scope.joins("INNER JOIN #{Submission.quoted_table_name} ON submissions.id=asset_id")
             # just because there are comments doesn't mean the user can see them.
             # we still need to filter after the pagination :(
             scope = scope.where("submissions.workflow_state <> 'deleted' AND submissions.submission_comments_count>0")
-            scope = scope.where("submissions.user_id=?", opts[:submission_user_id]) if opts.key?(:submission_user_id)
+            scope = scope.where("submissions.user_id=?", submission_user_id) if submission_user_id
           end
         end
       end
-      if opts.key?(:notification_categories) && opts[:notification_categories].is_a?(Array)
-        notification_categories = opts[:notification_categories].map { |c| (c == "null") ? nil : c }
+      if notification_categories.is_a?(Array)
+        notification_categories = notification_categories.map { |c| (c == "null") ? nil : c }
         scope = scope.eager_load(:stream_item).where(stream_items: { notification_category: notification_categories })
       end
-      paginate_url = opts[:paginate_url]
       raise ArgumentError, "Invalid paginate_url: #{paginate_url.inspect}" unless ALLOWED_PAGINATE_URLS.include?(paginate_url)
 
       Api.paginate(scope, self, send(paginate_url, @context), default_per_page: 21).to_a
     end
     items.select!(&:stream_item)
     stream_item_preloads(items.map(&:stream_item))
-    json = items.map { |i| stream_item_json(i, i.stream_item, @current_user, session) }
-    json.select! { |hash| hash["submission_comments"].present? } if opts[:asset_type] == "Submission"
+    json = items.map { |i| stream_item_json(i, i.stream_item, current_principal, session) }
+    json.select! { |hash| hash["submission_comments"].present? } if asset_type == "Submission"
     render json:
   end
 
-  def filtered_stream_item_ids(opts)
-    all_stream_item_ids = @current_user.visible_stream_item_instances(opts).pluck(:stream_item_id)
+  def filtered_stream_item_ids(asset_type:, only_active_courses:, contexts: nil, context: nil, submission_user_id: nil, current_principal: nil)
+    current_principal ||= @current_user
+    all_stream_item_ids = current_principal.user.visible_stream_item_instances({ contexts:, context:, only_active_courses: }).pluck(:stream_item_id)
     filtered_ids = []
 
     Shard.partition_by_shard(all_stream_item_ids) do |sliced_ids|
-      si_scope = StreamItem.where(id: sliced_ids).where(asset_type: opts[:asset_type])
-      if opts[:asset_type] == "Submission"
+      si_scope = StreamItem.where(id: sliced_ids).where(asset_type:)
+      if asset_type == "Submission"
         si_scope = si_scope.joins("INNER JOIN #{Submission.quoted_table_name} ON submissions.id=asset_id")
         # just because there are comments doesn't mean the user can see them.
         # we still need to filter after the pagination :(
         si_scope = si_scope.where("submissions.workflow_state <> 'deleted' AND submissions.submission_comments_count>0")
-        si_scope = si_scope.where("submissions.user_id=?", opts[:submission_user_id]) if opts.key?(:submission_user_id)
-        filtered_ids += si_scope.pluck(:id).map { |id| Shard.relative_id_for(id, Shard.current, @current_user.shard) }
+        si_scope = si_scope.where("submissions.user_id=?", submission_user_id) if submission_user_id
+        filtered_ids += si_scope.pluck(:id).map { |id| Shard.relative_id_for(id, Shard.current, current_principal.user.shard) }
       end
     end
     filtered_ids
   end
 
-  def api_render_stream_summary(opts)
-    items = calculate_stream_summary(opts)
+  def api_render_stream_summary(current_principal:, contexts: nil, only_active_courses: false)
+    items = calculate_stream_summary(contexts:, only_active_courses:, current_principal:)
     render json: items
   end
 
-  def calculate_stream_summary(opts)
+  def calculate_stream_summary(current_principal:, contexts: nil, only_active_courses: false)
     items = []
 
     GuardRail.activate(:secondary) do
-      @current_user.shard.activate do
-        base_scope = @current_user.visible_stream_item_instances(opts).joins(:stream_item)
+      current_principal.user.shard.activate do
+        base_scope = current_principal.user.visible_stream_item_instances(contexts:, only_active_courses:).joins(:stream_item)
 
         full_counts = base_scope.except(:order).group("stream_items.asset_type",
                                                       "stream_items.notification_category",
@@ -235,7 +241,7 @@ module Api::V1::StreamItem
           total_counts[new_key] += count
         end
 
-        cross_shard_totals, cross_shard_unreads = cross_shard_stream_item_counts(opts)
+        cross_shard_totals, cross_shard_unreads = cross_shard_stream_item_counts(contexts:, only_active_courses:, current_principal:)
         cross_shard_totals.each do |k, v|
           total_counts[k] ||= 0
           total_counts[k] += v
@@ -258,16 +264,18 @@ module Api::V1::StreamItem
     items
   end
 
-  def cross_shard_stream_item_counts(opts)
+  def cross_shard_stream_item_counts(current_principal:, contexts: nil, only_active_courses: false)
     total_counts = {}
     unread_counts = {}
     # handle cross-shard stream items -________-
-    stream_item_ids = @current_user.visible_stream_item_instances(opts)
-                                   .where("stream_item_id > ?", Shard::IDS_PER_SHARD).pluck(:stream_item_id)
+    stream_item_ids = current_principal.user
+                                       .visible_stream_item_instances(contexts:, only_active_courses:)
+                                       .where("stream_item_id > ?", Shard::IDS_PER_SHARD).pluck(:stream_item_id)
     if stream_item_ids.any?
-      unread_stream_item_ids = @current_user.visible_stream_item_instances(opts)
-                                            .where("stream_item_id > ?", Shard::IDS_PER_SHARD)
-                                            .where(workflow_state: "unread").pluck(:stream_item_id)
+      unread_stream_item_ids = current_principal.user
+                                                .visible_stream_item_instances(contexts:, only_active_courses:)
+                                                .where("stream_item_id > ?", Shard::IDS_PER_SHARD)
+                                                .where(workflow_state: "unread").pluck(:stream_item_id)
 
       total_counts = StreamItem.where(id: stream_item_ids).except(:order).group(:asset_type, :notification_category).count
       if unread_stream_item_ids.any?

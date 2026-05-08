@@ -21,7 +21,7 @@
 module Api::V1::FeatureFlag
   include Api::V1::Json
 
-  def feature_json(feature, _current_user, _session)
+  def feature_json(feature, _current_principal, _session)
     # this isn't an AR object, so api_json doesn't work
     hash = feature.as_json.slice("feature",
                                  "applies_to",
@@ -39,24 +39,24 @@ module Api::V1::FeatureFlag
     hash
   end
 
-  def feature_with_flag_json(feature_flag, context, current_user, session)
+  def feature_with_flag_json(feature_flag, context, current_principal, session)
     feature = Feature.definitions[feature_flag.feature]
-    hash = feature_json(feature, current_user, session)
-    hash["feature_flag"] = feature_flag_json(feature_flag, context, current_user, session)
+    hash = feature_json(feature, current_principal, session)
+    hash["feature_flag"] = feature_flag_json(feature_flag, context, current_principal, session)
     hash
   end
 
-  def feature_flag_json(feature_flag, context, current_user, session)
+  def feature_flag_json(feature_flag, context, current_principal, session)
     hash = if feature_flag.default?
              feature_flag.as_json.slice("feature", "state")
            else
              keys = %w[feature context_id context_type state]
-             api_json(feature_flag, current_user, session, only: keys)
+             api_json(feature_flag, current_principal, session, only: keys)
            end
     hash["locking_account_id"] = nil unless feature_flag.default?
-    hash["transitions"] = Feature.transitions(feature_flag.feature, current_user, context, feature_flag.state)
+    hash["transitions"] = Feature.transitions(feature_flag.feature, current_principal, context, feature_flag.state)
     hash["locked"] = feature_flag.locked?(context)
-    if Account.site_admin.grants_right?(current_user, :read)
+    if Account.site_admin.grants_right?(current_principal, :read)
       # return 'hidden' if the feature is hidden or if this flag is the one that unhides it
       # (so removing it would re-hide the feature)
       hash["hidden"] = feature_flag.hidden? ||

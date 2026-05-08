@@ -100,7 +100,7 @@ class ContentExportsApiController < ApplicationController
       scope = scope.order(id: :desc)
       route = polymorphic_url([:api_v1, @context, :content_exports])
       exports = Api.paginate(scope, self, route)
-      render json: exports.map { |export| content_export_json(export, @current_user, session) }
+      render json: exports.map { |export| content_export_json(export, current_principal, session) }
     end
   end
 
@@ -112,7 +112,7 @@ class ContentExportsApiController < ApplicationController
   def show
     export = @context.content_exports.not_for_copy.find(params[:id])
     if authorized_action(export, current_principal, :read)
-      render json: content_export_json(export, @current_user, session)
+      render json: content_export_json(export, current_principal, session)
     end
   end
 
@@ -160,7 +160,7 @@ class ContentExportsApiController < ApplicationController
 
       if export.id
         includes = Array(params[:include]) || []
-        render json: content_export_json(export, @current_user, session, includes)
+        render json: content_export_json(export, current_principal, session, includes)
       else
         render json: export.errors, status: :bad_request
       end
@@ -171,7 +171,7 @@ class ContentExportsApiController < ApplicationController
     if authorized_action(Account.site_admin, current_principal, :read)
       export = @context.content_exports.find(params[:id])
       export_fail_with_error export, "manually marked failed by a site administrator"
-      render json: content_export_json(export, @current_user, session)
+      render json: content_export_json(export, current_principal, session)
     end
   end
 
@@ -196,7 +196,7 @@ class ContentExportsApiController < ApplicationController
     if export.update(update_params)
       export.export if export.new_quizzes_export_state_completed?
       export_fail_with_error(export, "New Quizzes failed to export") if export.new_quizzes_export_state_failed?
-      render json: content_export_json(export, @current_user, session, ["new_quizzes_export_settings"])
+      render json: content_export_json(export, current_principal, session, ["new_quizzes_export_settings"])
     else
       render json: export.errors, status: :bad_request
     end

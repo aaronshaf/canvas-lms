@@ -262,7 +262,7 @@ class MasterCourses::MasterTemplatesController < ApplicationController
   #       -H 'Authorization: Bearer <ACCESS_TOKEN>'
   #
   def show
-    render json: master_template_json(@template, @current_user, session)
+    render json: master_template_json(@template, current_principal, session)
   end
 
   # @API Get associated course information
@@ -283,7 +283,7 @@ class MasterCourses::MasterTemplatesController < ApplicationController
 
     preload_teachers(courses)
     json = courses.map do |course|
-      course_summary_json(course, can_read_sis:, include_teachers: true)
+      course_summary_json(course, can_read_sis:, include_teachers: true, current_principal:)
     end
     render json:
   end
@@ -402,7 +402,7 @@ class MasterCourses::MasterTemplatesController < ApplicationController
     end
 
     migration = MasterCourses::MasterMigration.start_new_migration!(@template, @current_user, options)
-    render json: master_migration_json(migration, @current_user, session)
+    render json: master_migration_json(migration, current_principal, session)
   end
 
   # @API Set or remove restrictions on a blueprint course object
@@ -558,7 +558,7 @@ class MasterCourses::MasterTemplatesController < ApplicationController
     # sort id desc
     migrations = Api.paginate(@template.master_migrations.order(id: :desc), self, api_v1_course_blueprint_migrations_url)
     ActiveRecord::Associations.preload(migrations, :user)
-    render json: migrations.map { |migration| master_migration_json(migration, @current_user, session) }
+    render json: migrations.map { |migration| master_migration_json(migration, current_principal, session) }
   end
 
   # @API Show a blueprint migration
@@ -574,7 +574,7 @@ class MasterCourses::MasterTemplatesController < ApplicationController
   # @returns BlueprintMigration
   def migrations_show
     migration = @template.master_migrations.find(params[:id])
-    render json: master_migration_json(migration, @current_user, session)
+    render json: master_migration_json(migration, current_principal, session)
   end
 
   # @API Get migration details
@@ -612,7 +612,7 @@ class MasterCourses::MasterTemplatesController < ApplicationController
     scope = @course.master_course_subscriptions.active
     subs = Api.paginate(scope, self, api_v1_course_blueprint_subscriptions_url)
     # TODO: preload subscription -> master template -> course if we ever support multiple subscriptions
-    render json: subs.map { |sub| child_subscription_json(sub) }
+    render json: subs.map { |sub| child_subscription_json(sub, current_principal:) }
   end
 
   # @API List blueprint imports
@@ -637,7 +637,7 @@ class MasterCourses::MasterTemplatesController < ApplicationController
     ActiveRecord::Associations.preload(migrations, :user)
     render json: migrations.map { |migration|
                    master_migration_json(migration.master_migration,
-                                         @current_user,
+                                         current_principal,
                                          session,
                                          child_migration: migration,
                                          subscription: @subscription)
@@ -660,7 +660,7 @@ class MasterCourses::MasterTemplatesController < ApplicationController
                        .where(migration_type: "master_course_import", child_subscription_id: @subscription)
                        .find(params[:id])
     render json: master_migration_json(migration.master_migration,
-                                       @current_user,
+                                       current_principal,
                                        session,
                                        child_migration: migration,
                                        subscription: @subscription)

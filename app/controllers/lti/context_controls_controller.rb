@@ -252,7 +252,7 @@ module Lti
         .group_by(&:deployment)
         .map do |deployment, context_controls|
           context_controls_calculated_attrs = Lti::ContextControlService.preload_calculated_attrs(context_controls)
-          lti_deployment_json(deployment, @current_user, session, @account, context_controls:, context_controls_calculated_attrs:)
+          lti_deployment_json(deployment, current_principal, session, @account, context_controls:, context_controls_calculated_attrs:)
         end
       )
     rescue => e
@@ -271,7 +271,7 @@ module Lti
     #   curl -X GET 'https://<canvas>/api/v1/accounts/<account_id>/lti_registrations/<registration_id>/controls/<control_id>' \
     #        -H "Authorization: Bearer <token>"
     def show
-      render json: lti_context_control_json(control, @current_user, session, @account, include_users: true)
+      render json: lti_context_control_json(control, current_principal, session, @account, include_users: true)
     rescue => e
       report_error(e)
       raise e
@@ -321,7 +321,7 @@ module Lti
 
       invalidate_navigation_cache_for_deployments(control.deployment)
 
-      render json: lti_context_control_json(control, @current_user, session, @account, include_users: true), status: :created
+      render json: lti_context_control_json(control, current_principal, session, @account, include_users: true), status: :created
     rescue Lti::ContextControlErrors => e
       render_errors(e.errors.full_messages)
     rescue => e
@@ -474,7 +474,7 @@ module Lti
       )
 
       json = controls.map do |control|
-        lti_context_control_json(control, @current_user, session, @account, include_users: true, calculated_attrs: calculated_attrs[control.id])
+        lti_context_control_json(control, current_principal, session, @account, include_users: true, calculated_attrs: calculated_attrs[control.id])
       end
 
       render json:, status: :created
@@ -509,7 +509,7 @@ module Lti
 
       invalidate_navigation_cache_for_deployments(control.deployment)
 
-      render json: lti_context_control_json(control, @current_user, session, @account, include_users: true)
+      render json: lti_context_control_json(control, current_principal, session, @account, include_users: true)
     rescue => e
       report_error(e)
       raise e
@@ -535,7 +535,7 @@ module Lti
         .track_control_changes(control:, current_user: @current_user, comment: params[:comment]) do
         if control.destroy
           invalidate_navigation_cache_for_deployments(control.deployment)
-          render json: lti_context_control_json(control, @current_user, session, @account, include_users: true)
+          render json: lti_context_control_json(control, current_principal, session, @account, include_users: true)
         else
           render_errors(control.errors.full_messages, status: :unprocessable_entity)
         end

@@ -30,7 +30,7 @@ class EportfolioCategoriesController < ApplicationController
       @categories = @portfolio.eportfolio_categories
       respond_to do |format|
         format.html { redirect_to eportfolio_url(@portfolio) }
-        format.json { render json: @categories.map { |c| eportfolio_category_json(c, @current_user, session) } }
+        format.json { render json: @categories.map { |c| eportfolio_category_json(c, current_principal, session) } }
       end
     end
   end
@@ -95,7 +95,7 @@ class EportfolioCategoriesController < ApplicationController
       eportfolio_page_attributes
       respond_to do |format|
         format.html { render "eportfolios/show", stream: can_stream_template? }
-        format.json { render json: eportfolio_category_json(@category, @current_user, session) }
+        format.json { render json: eportfolio_category_json(@category, current_principal, session) }
       end
     end
   rescue ActiveRecord::RecordNotFound
@@ -128,7 +128,7 @@ class EportfolioCategoriesController < ApplicationController
 
     entries_json = entries.map do |e|
       entry_url = @category.slug.presence && e.slug.presence && eportfolio_named_category_entry_path(@portfolio, @category.slug, e.slug)
-      hash = eportfolio_entry_json(e, @current_user, session)
+      hash = eportfolio_entry_json(e, current_principal, session)
       hash["entry_url"] = entry_url
       hash
     end

@@ -278,7 +278,7 @@ class RubricsApiController < ApplicationController
     return unless authorized_action(@context, current_principal, :manage_rubrics)
 
     rubrics = Api.paginate(@context.rubrics.active, self, rubric_pagination_url)
-    render json: rubrics_json(rubrics, @current_user, session) unless performed?
+    render json: rubrics_json(rubrics, current_principal, session) unless performed?
   end
 
   # @API Get a single rubric
@@ -301,7 +301,7 @@ class RubricsApiController < ApplicationController
       assessments = rubric_assessments(rubric)
       associations = rubric_associations(rubric)
       render json: rubric_json(rubric,
-                               @current_user,
+                               current_principal,
                                session,
                                assessments:,
                                associations:,
@@ -338,8 +338,8 @@ class RubricsApiController < ApplicationController
 
     import.schedule
 
-    import_response = api_json(import, @current_user, session)
-    import_response[:user] = user_json(import.user, @current_user, session) if import.user
+    import_response = api_json(import, current_principal, session)
+    import_response[:user] = user_json(import.user, current_principal, session) if import.user
     import_response[:attachment] = import.attachment.slice(:id, :filename, :size)
     render json: import_response
   end
@@ -368,8 +368,8 @@ class RubricsApiController < ApplicationController
                else
                  RubricImport.find_specific_rubric_import(@context, params[:id]) or raise ActiveRecord::RecordNotFound
                end
-      import_response = api_json(import, @current_user, session)
-      import_response[:user] = user_json(import.user, import.user, session) if import.user
+      import_response = api_json(import, current_principal, session)
+      import_response[:user] = user_json(import.user, current_principal, session) if import.user
       import_response[:attachment] = import.attachment.slice(:id, :filename, :size) if import.attachment
       render json: import_response
     rescue ActiveRecord::RecordNotFound => e
@@ -381,7 +381,7 @@ class RubricsApiController < ApplicationController
     return unless authorized_action(@context, current_principal, :manage_rubrics)
 
     rubrics = @context.rubrics.where(rubric_imports_id: params[:id])
-    render json: rubrics_json(rubrics, @current_user, session)
+    render json: rubrics_json(rubrics, current_principal, session)
   end
 
   def download_rubrics

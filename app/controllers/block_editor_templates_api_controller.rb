@@ -144,7 +144,7 @@ class BlockEditorTemplatesApiController < ApplicationController
       id_clause = { id: :desc } if params[:order] == "desc"
       scope = scope.order(id_clause)
 
-      render json: block_editor_templates_json(scope, @current_user, session)
+      render json: block_editor_templates_json(scope, current_principal, session)
     end
   end
 

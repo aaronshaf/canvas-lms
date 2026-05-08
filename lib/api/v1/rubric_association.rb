@@ -36,12 +36,12 @@ module Api::V1::RubricAssociation
     ]
   }.freeze
 
-  def rubric_associations_json(rubric_associations, user, session, opts = {})
-    rubric_associations.map { |ra| rubric_association_json(ra, user, session, opts) }
+  def rubric_associations_json(rubric_associations, current_principal, session, opts = {})
+    rubric_associations.map { |ra| rubric_association_json(ra, current_principal, session, opts) }
   end
 
-  def rubric_association_json(rubric_association, user, session, _opts = {})
+  def rubric_association_json(rubric_association, current_principal, session, _opts = {})
     json_attributes = API_ALLOWED_RUBRIC_ASSOCIATION_OUTPUT_FIELDS
-    api_json(rubric_association, user, session, json_attributes)
+    api_json(rubric_association, current_principal, session, json_attributes)
   end
 end

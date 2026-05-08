@@ -296,7 +296,7 @@ class RubricsController < ApplicationController
 
     InstStatsd::Statsd.distributed_increment("rubrics.ai_generated")
 
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 
   ALLOWED_REGENERATE_PARAMS = %w[criterion_id additional_user_prompt].freeze
@@ -369,7 +369,7 @@ class RubricsController < ApplicationController
 
     InstStatsd::Statsd.distributed_increment("rubrics.ai_regenerated")
 
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 
   # @API Delete a single
@@ -397,7 +397,7 @@ class RubricsController < ApplicationController
 
     return nil if root_outcome.nil?
 
-    outcome_group_json(root_outcome, @current_user, session)
+    outcome_group_json(root_outcome, current_principal, session)
   end
   protected :get_root_outcome
 

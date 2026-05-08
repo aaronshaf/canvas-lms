@@ -11226,12 +11226,13 @@ describe AssignmentsApiController, type: :request do
   end
 
   describe "assignment_json" do
-    let(:result) { assignment_json(@assignment, @user, {}) }
-
     before :once do
       course_with_teacher(active_all: true)
       @assignment = @course.assignments.create!(title: "some assignment")
     end
+
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@user) }
+    let(:result) { assignment_json(@assignment, current_principal, {}) }
 
     context "when turnitin_enabled is true on the context" do
       before(:once) do
@@ -11473,12 +11474,14 @@ describe AssignmentsApiController, type: :request do
         )
       end
 
+      let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@teacher) }
+
       context "when include_peer_review is false" do
         it "does not include peer_review_sub_assignment in JSON" do
           @course.enable_feature!(:peer_review_allocation_and_grading)
           peer_review_model(parent_assignment: @assignment, points_possible: 50)
 
-          result = assignment_json(@assignment, @teacher, {}, { include_peer_review: false })
+          result = assignment_json(@assignment, current_principal, {}, { include_peer_review: false })
 
           expect(result).not_to have_key("peer_review_sub_assignment")
         end
@@ -11489,7 +11492,7 @@ describe AssignmentsApiController, type: :request do
           @course.enable_feature!(:peer_review_allocation_and_grading)
           peer_review_model(parent_assignment: @assignment, points_possible: 50)
 
-          result = assignment_json(@assignment, @teacher, {}, {})
+          result = assignment_json(@assignment, current_principal, {}, {})
 
           expect(result).not_to have_key("peer_review_sub_assignment")
         end
@@ -11503,7 +11506,7 @@ describe AssignmentsApiController, type: :request do
 
           context "when peer review sub assignment does not exist" do
             it "does not include peer_review_sub_assignment in JSON" do
-              result = assignment_json(@assignment, @teacher, {}, { include_peer_review: true })
+              result = assignment_json(@assignment, current_principal, {}, { include_peer_review: true })
 
               expect(result).not_to have_key("peer_review_sub_assignment")
             end
@@ -11519,14 +11522,14 @@ describe AssignmentsApiController, type: :request do
             end
 
             it "includes peer_review_sub_assignment in JSON" do
-              result = assignment_json(@assignment, @teacher, {}, { include_peer_review: true })
+              result = assignment_json(@assignment, current_principal, {}, { include_peer_review: true })
 
               expect(result).to have_key("peer_review_sub_assignment")
               expect(result["peer_review_sub_assignment"]).to be_a(Hash)
             end
 
             it "serializes peer review sub assignment with correct attributes" do
-              result = assignment_json(@assignment, @teacher, {}, { include_peer_review: true })
+              result = assignment_json(@assignment, current_principal, {}, { include_peer_review: true })
 
               peer_review_data = result["peer_review_sub_assignment"]
               expect(peer_review_data["name"]).to eq(@peer_review_sub.title)
@@ -11555,14 +11558,14 @@ describe AssignmentsApiController, type: :request do
             end
 
             it "includes peer_review_sub_assignment in JSON" do
-              result = assignment_json(@assignment, @teacher, {}, { include_peer_review: true })
+              result = assignment_json(@assignment, current_principal, {}, { include_peer_review: true })
 
               expect(result).to have_key("peer_review_sub_assignment")
               expect(result["peer_review_sub_assignment"]).to be_a(Hash)
             end
 
             it "serializes peer review sub assignment with correct attributes" do
-              result = assignment_json(@assignment, @teacher, {}, { include_peer_review: true })
+              result = assignment_json(@assignment, current_principal, {}, { include_peer_review: true })
 
               peer_review_data = result["peer_review_sub_assignment"]
               expect(peer_review_data["name"]).to eq(@peer_review_sub.title)
@@ -11573,7 +11576,7 @@ describe AssignmentsApiController, type: :request do
             end
 
             it "includes dates when present" do
-              result = assignment_json(@assignment, @teacher, {}, { include_peer_review: true })
+              result = assignment_json(@assignment, current_principal, {}, { include_peer_review: true })
 
               peer_review_data = result["peer_review_sub_assignment"]
               expect(peer_review_data["due_at"]).to be_present
@@ -11582,7 +11585,7 @@ describe AssignmentsApiController, type: :request do
             end
 
             it "does not include recursive peer_review_sub_assignment in the serialized peer review sub assignment" do
-              result = assignment_json(@assignment, @teacher, {}, { include_peer_review: true })
+              result = assignment_json(@assignment, current_principal, {}, { include_peer_review: true })
 
               peer_review_data = result["peer_review_sub_assignment"]
               expect(peer_review_data).not_to have_key("peer_review_sub_assignment")
@@ -11591,7 +11594,7 @@ describe AssignmentsApiController, type: :request do
 
           context "when peer review sub assignment does not exist" do
             it "includes peer_review_sub_assignment as nil in JSON" do
-              result = assignment_json(@assignment, @teacher, {}, { include_peer_review: true })
+              result = assignment_json(@assignment, current_principal, {}, { include_peer_review: true })
 
               expect(result).to have_key("peer_review_sub_assignment")
               expect(result["peer_review_sub_assignment"]).to be_nil

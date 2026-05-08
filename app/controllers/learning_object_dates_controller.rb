@@ -171,8 +171,8 @@ class LearningObjectDatesController < ApplicationController
     include_child_override_due_dates = @context.discussion_checkpoints_enabled? &&
                                        !excludes.include?("child_override_due_dates")
     include_child_peer_review_override_dates = includes.include?("child_peer_review_override_dates")
-    all_overrides = assignment_overrides_json(overrides, @current_user, include_names: true, include_child_override_due_dates:, include_child_peer_review_override_dates:)
-    all_overrides += section_visibility_to_override_json(section_visibilities, overridable) if visibilities_to_override
+    all_overrides = assignment_overrides_json(overrides, current_principal, include_names: true, include_child_override_due_dates:, include_child_peer_review_override_dates:)
+    all_overrides += section_visibility_to_override_json(section_visibilities, overridable, current_principal:) if visibilities_to_override
 
     include_peer_review = includes.include?("peer_review")
     exclude_peer_review_overrides = excludes.include?("peer_review_overrides")

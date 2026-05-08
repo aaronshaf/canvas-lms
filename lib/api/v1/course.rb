@@ -70,8 +70,8 @@ module Api::V1::Course
     settings
   end
 
-  def courses_json(courses, user, session, includes, enrollments)
-    courses.map { |course| course_json(course, user, session, includes, enrollments) }
+  def courses_json(courses, current_principal, session, includes, enrollments)
+    courses.map { |course| course_json(course, current_principal, session, includes, enrollments) }
   end
 
   # Public: Returns a course hash to serialize for a json api request.
@@ -103,21 +103,21 @@ module Api::V1::Course
   #     "uuid" => "WvAHhY5FINzq5IyRIJybGeiXyFkG3SqHUPb7jZY5"
   #   }
   #
-  def course_json(course, user, session, includes, enrollments, subject_user = user, preloaded_progressions: nil, precalculated_permissions: nil, prefer_friendly_name: true)
-    if includes.include?("access_restricted_by_date") && enrollments&.all?(&:inactive?) && !course.grants_right?(user, :read_as_admin)
+  def course_json(course, current_principal, session, includes, enrollments, subject_user = current_principal, preloaded_progressions: nil, precalculated_permissions: nil, prefer_friendly_name: true)
+    if includes.include?("access_restricted_by_date") && enrollments&.all?(&:inactive?) && !course.grants_right?(current_principal, :read_as_admin)
       return { "id" => course.id, "access_restricted_by_date" => true }
     end
 
     Api::V1::CourseJson.to_hash(course,
-                                user,
+                                current_principal,
                                 includes,
                                 enrollments,
                                 precalculated_permissions:) do |builder, allowed_attributes, methods, permissions_to_include|
-      hash = api_json(course, user, session, { only: allowed_attributes, methods: }, permissions_to_include)
-      hash["term"] = enrollment_term_json(course.enrollment_term, user, session, enrollments, []) if includes.include?("term")
+      hash = api_json(course, current_principal, session, { only: allowed_attributes, methods: }, permissions_to_include)
+      hash["term"] = enrollment_term_json(course.enrollment_term, current_principal, session, enrollments, []) if includes.include?("term")
       if includes.include?("grading_periods")
         hash["grading_periods"] = course.enrollment_term&.grading_period_group&.grading_periods&.map do |gp|
-          api_json(gp, user, session, only: %w[id title start_date end_date workflow_state])
+          api_json(gp, current_principal, session, only: %w[id title start_date end_date workflow_state])
         end
       end
       if includes.include?("course_progress")
@@ -147,19 +147,19 @@ module Api::V1::Course
       if includes.include?("active_teachers")
         hash["teachers"] = course.active_teachers.uniq(&:id).map { |teacher| user_display_json(teacher) }
       end
-      hash["tabs"] = tabs_available_json(course, user, session, ["external"], precalculated_permissions:) if includes.include?("tabs")
+      hash["tabs"] = tabs_available_json(course, current_principal, session, ["external"], precalculated_permissions:) if includes.include?("tabs")
       hash["locale"] = course.locale unless course.locale.nil?
-      hash["account"] = account_json(course.account, user, session, []) if includes.include?("account")
+      hash["account"] = account_json(course.account, current_principal, session, []) if includes.include?("account")
       # undocumented, but leaving for backwards compatibility.
       hash["subaccount_id"] = course.account.id if includes.include?("subaccount")
       hash["subaccount_name"] = course.account.name if includes.include?("subaccount")
       add_helper_dependant_entries(hash, course, builder)
-      apply_nickname(hash, course, user, prefer_friendly_name:)
+      apply_nickname(hash, course, current_principal, prefer_friendly_name:)
 
       hash["image_download_url"] = course.image if includes.include?("course_image")
       hash["banner_image_download_url"] = course.banner_image if includes.include?("banner_image")
       hash["concluded"] = course.concluded? if includes.include?("concluded")
-      apply_master_course_settings(hash, course, user)
+      apply_master_course_settings(hash, course, current_principal)
       hash["template"] = course.template?
       if course.template? && includes.include?("templated_accounts")
         hash["templated_accounts"] = course.templated_accounts.map { |a| { id: a.id, name: a.name } }
@@ -171,23 +171,23 @@ module Api::V1::Course
         hash["points_based_grading_scheme"] = grading_standard.points_based?
         hash["scaling_factor"] = grading_standard.scaling_factor
       end
-      hash["restrict_quantitative_data"] = course.restrict_quantitative_data?(user) if includes.include?("restrict_quantitative_data")
+      hash["restrict_quantitative_data"] = course.restrict_quantitative_data?(current_principal) if includes.include?("restrict_quantitative_data")
       if includes.include?("post_manually")
         hash["post_manually"] = course.post_manually?
       end
-      if course.account.feature_enabled?(:syllabus_versioning) && includes.include?("syllabus_versions") && course.grants_right?(user, :manage_course_content_edit)
+      if course.account.feature_enabled?(:syllabus_versioning) && includes.include?("syllabus_versions") && course.grants_right?(current_principal, :manage_course_content_edit)
         hash["syllabus_versions"] = syllabus_versions_json(course)
       end
-      if includes.include?("accessibility_course_statistic") && course.account.can_see_accessibility_tab?(user)
-        hash["accessibility_course_statistic"] = accessibility_course_statistic_json(course.accessibility_course_statistic, user, session)
+      if includes.include?("accessibility_course_statistic") && course.account.can_see_accessibility_tab?(current_principal)
+        hash["accessibility_course_statistic"] = accessibility_course_statistic_json(course.accessibility_course_statistic, current_principal, session)
       end
       # return hash from the block for additional processing in Api::V1::CourseJson
       hash
     end
   end
 
-  def copy_status_json(import, course, user, session)
-    hash = api_json(import, user, session, only: %w[id progress created_at workflow_state integration_id])
+  def copy_status_json(import, course, current_principal, session)
+    hash = api_json(import, current_principal, session, only: %w[id progress created_at workflow_state integration_id])
 
     # the type of object for course copy changed but we don't want the api to change
     # so map the workflow states to the old ones
@@ -238,9 +238,9 @@ module Api::V1::Course
     end
   end
 
-  def apply_nickname(hash, course, user, prefer_friendly_name: true)
+  def apply_nickname(hash, course, current_principal, prefer_friendly_name: true)
     nickname = course.friendly_name if prefer_friendly_name
-    nickname ||= course.preloaded_nickname? ? course.preloaded_nickname : user&.course_nickname(course)
+    nickname ||= course.preloaded_nickname? ? course.preloaded_nickname : current_principal&.course_nickname(course)
     if nickname
       hash["original_name"] = hash["name"]
       hash["name"] = nickname

@@ -19,13 +19,13 @@
 
 module Api::V1
   class ApiContext
-    attr_reader :controller, :path, :user, :session
+    attr_reader :controller, :path, :current_principal, :session
     attr_accessor :page, :per_page
 
-    def initialize(controller, path, user, session, options = {})
+    def initialize(controller, path, current_principal, session, options = {})
       @controller = controller
       @path = path
-      @user = user
+      @current_principal = current_principal
       @session = session
       @page = options.fetch(:page, 1)
       @per_page = options[:per_page]

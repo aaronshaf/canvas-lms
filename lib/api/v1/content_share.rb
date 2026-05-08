@@ -32,17 +32,17 @@ module Api::V1::ContentShare
     "content_tags" => "module_item"
   }.freeze
 
-  def content_share_json(content_share, user, session, opts = {})
-    json = api_json(content_share, user, session, opts.merge(only: %w[id name created_at updated_at user_id read_state]))
+  def content_share_json(content_share, current_principal, session, opts = {})
+    json = api_json(content_share, current_principal, session, opts.merge(only: %w[id name created_at updated_at user_id read_state]))
     json["sender"] = (content_share.respond_to?(:sender) && content_share.sender) ? user_display_json(content_share.sender) : nil
     json["receivers"] = content_share.respond_to?(:receivers) ? content_share.receivers.map { |rec| user_display_json(rec) } : []
     if content_share.content_export
       json["content_type"] = get_content_type_from_export_settings(content_share.content_export.settings)
-      json["content_export"] = content_export_json(content_share.content_export, user, session)
+      json["content_export"] = content_export_json(content_share.content_export, current_principal, session)
       if content_share.content_export.context_type == "Course"
         json["source_course"] = {
           id: content_share.content_export.context.id,
-          name: content_share.content_export.context.nickname_for(user)
+          name: content_share.content_export.context.nickname_for(current_principal)
         }
       end
     end
@@ -60,19 +60,19 @@ module Api::V1::ContentShare
                                        ])
   end
 
-  def sent_content_shares_json(content_shares, user, session, opts = {})
+  def sent_content_shares_json(content_shares, current_principal, session, opts = {})
     preload_content_exports(content_shares, [:receivers])
-    content_shares_json(content_shares, user, session, opts)
+    content_shares_json(content_shares, current_principal, session, opts)
   end
 
-  def received_content_shares_json(content_shares, user, session, opts = {})
+  def received_content_shares_json(content_shares, current_principal, session, opts = {})
     preload_content_exports(content_shares, [:sender])
-    content_shares_json(content_shares, user, session, opts)
+    content_shares_json(content_shares, current_principal, session, opts)
   end
 
-  def content_shares_json(content_shares, user, session, opts = {})
+  def content_shares_json(content_shares, current_principal, session, opts = {})
     content_shares.map do |content_share|
-      content_share_json(content_share, user, session, opts)
+      content_share_json(content_share, current_principal, session, opts)
     end
   end
 

@@ -58,6 +58,9 @@ describe Api::V1::DiscussionTopics do
     @topic = @course.discussion_topics.create
   end
 
+  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@me) }
+  let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@student) }
+
   describe "include root data if requested" do
     before :once do
       @delayed_post_time = 1.day.from_now
@@ -82,7 +85,7 @@ describe Api::V1::DiscussionTopics do
       json = @test_api.discussion_topic_api_json(
         @group_topic.child_topics.first,
         @course,
-        @user,
+        current_principal,
         {},
         { root_topic_fields: },
         nil
@@ -98,7 +101,7 @@ describe Api::V1::DiscussionTopics do
       json = @test_api.discussion_topic_api_json(
         @group_topic.child_topics.first,
         @course,
-        @user,
+        current_principal,
         {},
         { root_topic_fields: },
         root_topics
@@ -113,7 +116,7 @@ describe Api::V1::DiscussionTopics do
       json = @test_api.discussion_topic_api_json(
         @group_topic.child_topics.first,
         @course,
-        @user,
+        current_principal,
         {},
         { root_topic_fields: }
       )
@@ -129,10 +132,10 @@ describe Api::V1::DiscussionTopics do
     @me.account.save!
 
     expect(
-      @test_api.discussion_topic_api_json(@topic, @topic.context, @me, nil)
+      @test_api.discussion_topic_api_json(@topic, @topic.context, current_principal, nil)
     ).to have_key("user_pronouns")
     expect(
-      @test_api.discussion_topic_api_json(@topic, @topic.context, @me, nil)["user_pronouns"]
+      @test_api.discussion_topic_api_json(@topic, @topic.context, current_principal, nil)["user_pronouns"]
     ).to eq "she/her"
   end
 
@@ -141,7 +144,7 @@ describe Api::V1::DiscussionTopics do
       @course.enable_course_paces = true
       @course.save!
       expect(
-        @test_api.discussion_topic_api_json(@topic, @topic.context, @me, nil)[:in_paced_course]
+        @test_api.discussion_topic_api_json(@topic, @topic.context, current_principal, nil)[:in_paced_course]
       ).to be true
     end
 
@@ -149,7 +152,7 @@ describe Api::V1::DiscussionTopics do
       @course.enable_course_paces = false
       @course.save!
       expect(
-        @test_api.discussion_topic_api_json(@topic, @topic.context, @me, nil)[:in_paced_course]
+        @test_api.discussion_topic_api_json(@topic, @topic.context, current_principal, nil)[:in_paced_course]
       ).to be_nil
     end
   end
@@ -158,26 +161,26 @@ describe Api::V1::DiscussionTopics do
     @topic.update_attribute :podcast_enabled, true
     data = nil
     expect do
-      data = @test_api.discussion_topic_api_json(@topic, @topic.context, @me, {})
+      data = @test_api.discussion_topic_api_json(@topic, @topic.context, current_principal, {})
     end.not_to raise_error
     expect(data[:podcast_url]).to match(/feeds_topic_format_path/)
   end
 
   it "sets can_post_attachments" do
-    data = @test_api.discussion_topic_api_json(@topic, @topic.context, @me, nil)
+    data = @test_api.discussion_topic_api_json(@topic, @topic.context, current_principal, nil)
     expect(data[:permissions][:attach]).to be true # teachers can always attach
 
-    data = @test_api.discussion_topic_api_json(@topic, @topic.context, @student, nil)
+    data = @test_api.discussion_topic_api_json(@topic, @topic.context, student_principal, nil)
     expect(data[:permissions][:attach]).to be true # students can attach by default
 
     @topic.context.update_attribute(:allow_student_forum_attachments, true)
     AdheresToPolicy::Cache.clear
-    data = @test_api.discussion_topic_api_json(@topic, @topic.context, @student, nil)
+    data = @test_api.discussion_topic_api_json(@topic, @topic.context, student_principal, nil)
     expect(data[:permissions][:attach]).to be true
   end
 
   it "includes assignment" do
-    data = @test_api.discussion_topic_api_json(@topic, @topic.context, @me, nil)
+    data = @test_api.discussion_topic_api_json(@topic, @topic.context, current_principal, nil)
     expect(data[:assignment]).to be_nil
   end
 
@@ -193,17 +196,17 @@ describe Api::V1::DiscussionTopics do
     end
 
     it "includes assignment" do
-      data = @test_api.discussion_topic_api_json(@topic, @topic.context, @me, nil)
+      data = @test_api.discussion_topic_api_json(@topic, @topic.context, current_principal, nil)
       expect(data[:assignment]).not_to be_nil
     end
 
     it "includes all_dates" do
-      data = @test_api.discussion_topic_api_json(@topic, @topic.context, @me, nil)
+      data = @test_api.discussion_topic_api_json(@topic, @topic.context, current_principal, nil)
       expect(data[:assignment][:all_dates]).to be_nil
 
       data = @test_api.discussion_topic_api_json(@topic,
                                                  @topic.context,
-                                                 @me,
+                                                 current_principal,
                                                  nil,
                                                  include_all_dates: true)
       expect(data[:assignment][:all_dates]).not_to be_nil

@@ -46,13 +46,10 @@ module Types
       @current_user = context[:current_user]
       case @context_type
       when "User"
-        only_active_courses = context[:only_active_courses] || false
-        opts = { only_active_courses: }
-        items = calculate_stream_summary(opts)
+        items = calculate_stream_summary(current_principal:, only_active_courses: context[:only_active_courses])
         format_items(items)
       when "Group"
-        opts = { contexts: object }
-        items = calculate_stream_summary(opts)
+        items = calculate_stream_summary(current_principal:, contexts: object)
         format_items(items)
       else
         # batch load course stream summaries

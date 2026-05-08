@@ -21,18 +21,18 @@
 module Api::V1::EpubExport
   include Api::V1::Attachment
 
-  def course_epub_export_json(course)
-    api_json(course, @current_user, session, {
+  def course_epub_export_json(course, current_principal: self.current_principal)
+    api_json(course, current_principal, session, {
                only: [:name, :id]
              }).tap do |hash|
       if course.latest_epub_export.present?
-        hash["epub_export"] = epub_export_json(course.latest_epub_export)
+        hash["epub_export"] = epub_export_json(course.latest_epub_export, current_principal:)
       end
     end
   end
 
-  def epub_export_json(epub_export)
-    api_json(epub_export, @current_user, session, {}, [
+  def epub_export_json(epub_export, current_principal: self.current_principal)
+    api_json(epub_export, current_principal, session, {}, [
                :download, :regenerate
              ]).tap do |hash|
       hash["progress_id"] = epub_export.job_progress.id
@@ -41,7 +41,7 @@ module Api::V1::EpubExport
       [:epub_attachment, :zip_attachment].each do |attachment_type|
         next if (type = epub_export.send(attachment_type)).blank?
 
-        hash[attachment_type.to_s] = attachment_json(type, @current_user, {}, {
+        hash[attachment_type.to_s] = attachment_json(type, current_principal, {}, {
                                                        can_view_hidden_files: true
                                                      })
       end

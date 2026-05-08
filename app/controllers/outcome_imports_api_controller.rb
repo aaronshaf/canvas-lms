@@ -178,7 +178,7 @@ class OutcomeImportsApiController < ApplicationController
       )
       import.schedule
 
-      render json: outcome_import_json(import, @current_user, session)
+      render json: outcome_import_json(import, current_principal, session)
     end
   end
 
@@ -202,7 +202,7 @@ class OutcomeImportsApiController < ApplicationController
                   else
                     @context.outcome_imports.find(params[:id])
                   end
-        render json: outcome_import_json(@import, @current_user, session)
+        render json: outcome_import_json(@import, current_principal, session)
       rescue ActiveRecord::RecordNotFound => e
         render json: { message: e.message }, status: :not_found
       end

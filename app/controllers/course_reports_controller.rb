@@ -98,7 +98,7 @@ class CourseReportsController < ApplicationController
   def show
     report = @context.course_reports.active.find(params[:id])
     if authorized_action(report, current_principal, :read)
-      render json: course_report_json(report, @current_user)
+      render json: course_report_json(report, current_principal)
     end
   end
 
@@ -134,7 +134,7 @@ class CourseReportsController < ApplicationController
                            :run_report,
                            { priority: Delayed::LOW_PRIORITY, strand: })
 
-      render json: course_report_json(report, @current_user)
+      render json: course_report_json(report, current_principal)
     end
   end
 
@@ -150,7 +150,7 @@ class CourseReportsController < ApplicationController
   def last
     report = @context.course_reports.active.where(user: @current_user, report_type: params[:report_type]).by_recency.take
     render json: {} unless report
-    render json: course_report_json(report, @current_user)
+    render json: course_report_json(report, current_principal)
   end
 
   private

@@ -53,7 +53,7 @@ describe Api::V1::Course do
     before :once do
       @test_api = TestCourseApi.new
       course_with_teacher(active_all: true, user: user_with_pseudonym)
-      @me = @user
+      @me = Canvas::AdheresToPolicy::UserPrincipal.new(@user)
       @course1 = @course
       course_with_student(user: @user, active_all: true)
       @course2 = @course
@@ -303,7 +303,7 @@ describe Api::V1::Course do
         future_assignment.unmute!
 
         @course.save!
-        @me = @teacher
+        @me = Canvas::AdheresToPolicy::UserPrincipal.new(@teacher)
       end
 
       let(:json) do
@@ -365,7 +365,7 @@ describe Api::V1::Course do
       end
 
       it "does not include unposted scores if user does not have permission" do
-        @me = @student
+        @me = Canvas::AdheresToPolicy::UserPrincipal.new(@student)
 
         enrollment = student_enrollment
         expect(enrollment).to include(expected_fields_without_unposted)
@@ -500,7 +500,7 @@ describe CoursesController, type: :request do
 
     before :once do
       course_with_teacher(active_all: true, user: user_with_pseudonym(name: "UWP"))
-      @me = @user
+      @me = Canvas::AdheresToPolicy::UserPrincipal.new(@user)
       @course1 = @course
       course_with_student(user: @user, active_all: true)
       @course2 = @course
@@ -4464,7 +4464,7 @@ describe CoursesController, type: :request do
         end
 
         it "allows specifying course sis id" do
-          @user = @me
+          @user = @me.user
           first_user = @user
           new_user = User.create!(name: "Zombo")
           @course2.update_attribute(:sis_source_id, "TEST-SIS-ONE.2011")
@@ -4602,7 +4602,7 @@ describe CoursesController, type: :request do
       end
 
       it "does not show other course enrollments to other students" do
-        @me = @student
+        @me = Canvas::AdheresToPolicy::UserPrincipal.new(@student)
         student2 = student_in_course(course: @course1, name: "student").user
         @course2.enroll_student(student2)
         json = api_call(:get,

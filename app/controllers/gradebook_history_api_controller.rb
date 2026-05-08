@@ -318,6 +318,6 @@ class GradebookHistoryApiController < ApplicationController
   end
 
   def api_context(path)
-    Api::V1::ApiContext.new(self, path, @current_user, session, params.slice(:page))
+    Api::V1::ApiContext.new(self, path, current_principal, session, params.slice(:page))
   end
 end

@@ -211,7 +211,7 @@ class CollaborationsController < ApplicationController
       url
     )
 
-    render json: collaborations.map { |c| collaboration_json(c, @current_user, session) }
+    render json: collaborations.map { |c| collaboration_json(c, current_principal, session) }
   end
 
   def show
@@ -410,7 +410,7 @@ class CollaborationsController < ApplicationController
                                  api_v1_collaboration_members_url)
 
     UserPastLtiId.manual_preload_past_lti_ids(collaborators, @context) if includes.include? "collaborator_lti_id"
-    render(json: collaborators.map { |c| collaborator_json(c, @current_user, session, options, context: @context) })
+    render(json: collaborators.map { |c| collaborator_json(c, current_principal, session, options, context: @context) })
   end
 
   # @API List potential members
@@ -429,7 +429,7 @@ class CollaborationsController < ApplicationController
     scope = scope.order(:sortable_name)
 
     users = Api.paginate(scope, self, polymorphic_url([:api_v1, @context, :potential_collaborators]))
-    render json: users.map { |u| user_json(u, @current_user, session) }
+    render json: users.map { |u| user_json(u, current_principal, session) }
   end
 
   private

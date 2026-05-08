@@ -80,7 +80,7 @@ class PseudonymsController < ApplicationController
       @pseudonyms = Api.paginate(@pseudonyms, self, api_v1_user_pseudonyms_url)
     end
 
-    render json: @pseudonyms.map { |p| pseudonym_json(p, @current_user, session) }
+    render json: @pseudonyms.map { |p| pseudonym_json(p, current_principal, session) }
   end
 
   def user_scope
@@ -400,7 +400,7 @@ class PseudonymsController < ApplicationController
       respond_to do |format|
         flash[:notice] = t "notices.account_registered", "Account registered!"
         format.html { redirect_to user_profile_url(@current_user) }
-        format.json { render json: pseudonym_json(@pseudonym, @current_user, session) }
+        format.json { render json: pseudonym_json(@pseudonym, current_principal, session) }
       end
     else
       respond_to do |format|
@@ -530,7 +530,7 @@ class PseudonymsController < ApplicationController
       flash[:notice] = t "notices.account_updated", "Account updated!"
       respond_to do |format|
         format.html { redirect_to user_profile_url(@current_user) }
-        format.json { render json: pseudonym_json(@pseudonym, @current_user, session) }
+        format.json { render json: pseudonym_json(@pseudonym, current_principal, session) }
       end
     else
       respond_to do |format|
@@ -569,7 +569,7 @@ class PseudonymsController < ApplicationController
       render json: @pseudonym.errors, status: :bad_request
     elsif @pseudonym.destroy
       if api_request?
-        render(json: pseudonym_json(@pseudonym, @current_user, session))
+        render(json: pseudonym_json(@pseudonym, current_principal, session))
       else
         render(json: @pseudonym)
       end

@@ -50,7 +50,7 @@ module Api::V1
 
       model = version.model
       json = model.without_versioned_attachments do
-        submission_attempt_json(model, assignment, api_context.user, api_context.session, course, params)
+        submission_attempt_json(model, assignment, api_context.current_principal, api_context.session, course, params)
           .with_indifferent_access
       end
       grader = (json[:grader_id] && json[:grader_id] > 0 && user_cache[json[:grader_id]]) || default_grader
@@ -194,7 +194,7 @@ module Api::V1
 
       hash[grader.id][:assignments][submission.assignment_id] ||= begin
         assignment = assignment_cache[submission.assignment_id]
-        assignment_json(assignment, api_context.user, api_context.session)
+        assignment_json(assignment, api_context.current_principal, api_context.session)
       end
     end
 

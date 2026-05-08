@@ -38,13 +38,13 @@ module Api::V1::Conferences
     ].freeze
   }.freeze
 
-  def api_conferences_json(conferences, user, session)
-    json = conferences.map { |c| api_conference_json(c, user, session) }
+  def api_conferences_json(conferences, current_principal, session)
+    json = conferences.map { |c| api_conference_json(c, current_principal, session) }
     { "conferences" => json }
   end
 
-  def api_conference_json(conference, user, session)
-    api_json(conference, user, session, API_CONFERENCE_JSON_OPTS).tap do |j|
+  def api_conference_json(conference, current_principal, session)
+    api_json(conference, current_principal, session, API_CONFERENCE_JSON_OPTS).tap do |j|
       j["lti_settings"] = conference.lti_settings if Account.site_admin.feature_enabled?(:conference_selection_lti_placement)
       j["has_advanced_settings"] = value_to_boolean(j["has_advanced_settings"])
       j["long_running"] = value_to_boolean(j["long_running"])
@@ -56,11 +56,11 @@ module Api::V1::Conferences
     end
   end
 
-  def ui_conferences_json(conferences, context, user, session)
+  def ui_conferences_json(conferences, context, current_principal, session)
     cs = conferences.map do |c|
       c.as_json(
         permissions: {
-          user:,
+          user: current_principal,
           session:,
         },
         url: named_context_url(context, :context_conference_url, c)
@@ -74,7 +74,7 @@ module Api::V1::Conferences
     cs.compact
   end
 
-  def default_conference_json(context, user, session)
+  def default_conference_json(context, current_principal, session)
     conference = context.web_conferences.build(
       title: I18n.t(:default_conference_title, "%{course_name} Conference", course_name: context.name),
       duration: WebConference::DEFAULT_DURATION
@@ -82,7 +82,7 @@ module Api::V1::Conferences
 
     conference.as_json(
       permissions: {
-        user:,
+        user: current_principal,
         session:,
       },
       url: named_context_url(context, :context_conferences_url)

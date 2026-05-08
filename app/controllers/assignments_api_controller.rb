@@ -951,7 +951,7 @@ class AssignmentsApiController < ApplicationController
                     else
                       # Include the updated positions in the response so the frontend can
                       # update them appropriately
-                      assignment_json(new_assignment, @current_user, session)
+                      assignment_json(new_assignment, current_principal, session)
                     end
 
       result_json["new_positions"] = positions_hash
@@ -990,7 +990,7 @@ class AssignmentsApiController < ApplicationController
     result_json = if use_quiz_json?
                     quiz_json(target_assignment, @context, @current_user, session, {}, QuizzesNext::QuizSerializer)
                   else
-                    assignment_json(target_assignment, @current_user, session)
+                    assignment_json(target_assignment, current_principal, session)
                   end
     result_json["new_positions"] = { target_assignment.id => target_assignment.position }
     render json: result_json
@@ -1141,7 +1141,7 @@ class AssignmentsApiController < ApplicationController
         submission = submissions[assignment.id]
 
         assignment_json(assignment,
-                        user,
+                        principal,
                         session,
                         submission:,
                         override_dates:,
@@ -1236,7 +1236,7 @@ class AssignmentsApiController < ApplicationController
       result_json = if use_quiz_json?
                       quiz_json(@assignment, @context, @current_user, session, {}, QuizzesNext::QuizSerializer)
                     else
-                      assignment_json(@assignment, @current_user, session, options)
+                      assignment_json(@assignment, current_principal, session, options)
                     end
 
       render json: result_json
@@ -1784,7 +1784,7 @@ class AssignmentsApiController < ApplicationController
                          :run,
                          { strand: "assignment_bulk_update:#{@context.global_id}" },
                          data)
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 
   def accessibility_scan
@@ -1817,7 +1817,7 @@ class AssignmentsApiController < ApplicationController
 
   def render_create_or_update_result(result, opts = {})
     if [:created, :ok].include?(result)
-      render json: assignment_json(@assignment, @current_user, session, opts), status: result
+      render json: assignment_json(@assignment, current_principal, session, opts), status: result
     else
       status = (result == :forbidden) ? :forbidden : :bad_request
       errors = ::Api::Errors::Reporter.to_json(@assignment.errors)[:errors]

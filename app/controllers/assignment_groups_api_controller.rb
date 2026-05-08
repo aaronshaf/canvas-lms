@@ -55,7 +55,7 @@ class AssignmentGroupsApiController < ApplicationController
         submissions = submissions_hash(["submission"], assignments)
       end
       includes.delete("assignment_visibility") unless @context.grants_any_right?(current_principal, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
-      render json: assignment_group_json(@assignment_group, @current_user, session, includes, {
+      render json: assignment_group_json(@assignment_group, current_principal, session, includes, {
                                            stringify_json_ids: stringify_json_ids?,
                                            override_dates:,
                                            assignments:,
@@ -164,7 +164,7 @@ class AssignmentGroupsApiController < ApplicationController
       end
 
       @assignment_group.destroy
-      render json: assignment_group_json(@assignment_group, @current_user, session, [], { stringify_json_ids: stringify_json_ids? })
+      render json: assignment_group_json(@assignment_group, current_principal, session, [], { stringify_json_ids: stringify_json_ids? })
     end
   end
 
@@ -174,7 +174,7 @@ class AssignmentGroupsApiController < ApplicationController
 
   def process_assignment_group(updated)
     if updated && @assignment_group.save
-      render json: assignment_group_json(@assignment_group, @current_user, session, [], { stringify_json_ids: stringify_json_ids? })
+      render json: assignment_group_json(@assignment_group, current_principal, session, [], { stringify_json_ids: stringify_json_ids? })
     else
       render json: @assignment_group.errors, status: :bad_request
     end

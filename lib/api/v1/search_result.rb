@@ -20,11 +20,11 @@ module Api::V1::SearchResult
   include Api::V1::Json
   include HtmlTextHelper
 
-  def search_results_json(objects, user, includes)
-    objects.map { |object| search_result_json(object, user, includes) }
+  def search_results_json(objects, current_principal, includes)
+    objects.map { |object| search_result_json(object, current_principal, includes) }
   end
 
-  def search_result_json(object, user, includes)
+  def search_result_json(object, current_principal, includes)
     hash = {}
 
     hash["content_id"] = object.id
@@ -36,7 +36,7 @@ module Api::V1::SearchResult
     hash["distance"] = object.try(:distance)
     hash["relevance"] = SmartSearch.result_relevance(object)
     hash = include_modules_json(object, hash) if includes.include?("modules")
-    hash = include_status_json(object, user, hash) if includes.include?("status")
+    hash = include_status_json(object, current_principal, hash) if includes.include?("status")
     hash
   end
 
@@ -46,10 +46,10 @@ module Api::V1::SearchResult
     hash
   end
 
-  def include_status_json(object, user, hash)
+  def include_status_json(object, current_principal, hash)
     due_date = if object.is_a?(DifferentiableAssignment)
                  assignment = object.differentiable
-                 overridden_assignment = assignment&.overridden_for(user)
+                 overridden_assignment = assignment&.overridden_for(current_principal)
                  # announcements and wikpages are differentiable w/ no due date
                  if overridden_assignment.respond_to?(:due_at)
                    overridden_assignment.due_at

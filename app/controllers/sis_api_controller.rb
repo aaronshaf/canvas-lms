@@ -355,7 +355,7 @@ class SisApiController < ApplicationController
   #
   def sis_assignments
     includes = { student_overrides: include_student_overrides? }
-    render json: sis_assignments_json(paginated_assignments, includes:, current_user: @current_user)
+    render json: sis_assignments_json(paginated_assignments, includes:, current_principal:)
   end
 
   private

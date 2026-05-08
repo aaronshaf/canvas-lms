@@ -156,7 +156,7 @@ class AssignmentGroupsController < ApplicationController
 
         respond_to do |format|
           format.json do
-            render json: index_groups_json(@context, @current_user, groups, assignments, submissions)
+            render json: index_groups_json(@context, current_principal, groups, assignments, submissions)
           end
         end
       end
@@ -358,8 +358,8 @@ class AssignmentGroupsController < ApplicationController
     end
   end
 
-  def index_groups_json(context, current_user, groups, assignments, submissions = {})
-    current_user_is_student = context.respond_to?(:user_is_student?) && context.user_is_student?(current_user)
+  def index_groups_json(context, current_principal, groups, assignments, submissions = {})
+    current_user_is_student = context.try(:user_is_student?, current_principal&.user)
     can_include_assessment_requests = current_user_is_student && context.respond_to?(:feature_enabled?) && context.feature_enabled?(:assignments_2_student)
     all_submissions = submissions&.values&.flatten || []
     unless all_submissions.empty?
@@ -381,7 +381,7 @@ class AssignmentGroupsController < ApplicationController
       closed_grading_period_hash = in_closed_grading_period_hash(context, assignments)
     end
 
-    if assignments.any? && context.grants_any_right?(current_user, session, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+    if assignments.any? && context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
       mc_status = setup_master_course_restrictions(assignments, context)
     end
 
@@ -424,7 +424,7 @@ class AssignmentGroupsController < ApplicationController
         preloaded_enrollments_by_user_id:
       }
 
-      assignment_group_json(group, current_user, session, overwritten_includes, options)
+      assignment_group_json(group, current_principal, session, overwritten_includes, options)
     end
   end
 

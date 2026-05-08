@@ -25,8 +25,8 @@ module Api::V1::Plugin
 
   # unfortunately we can't get some information like created and updated at out of plugin.settings that we can off of
   # plugin_setting, so we'll pass both into this method.
-  def plugin_json(plugin, plugin_setting, user, session, _opts = {})
-    api_json(plugin_setting, user, session, only: %w[settings created_at updated_at]).tap do |hash|
+  def plugin_json(plugin, plugin_setting, current_principal, session, _opts = {})
+    api_json(plugin_setting, current_principal, session, only: %w[settings created_at updated_at]).tap do |hash|
       hash["id"] = plugin.id
 
       hash["plugin_setting"] = { disabled: plugin_setting.disabled }

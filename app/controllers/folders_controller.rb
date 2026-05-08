@@ -148,7 +148,7 @@ class FoldersController < ApplicationController
               scope.by_name
             end
     @folders = Api.paginate(scope, self, api_v1_list_folders_url(@folder))
-    render json: folders_json(@folders, @current_user, session, opts)
+    render json: folders_json(@folders, current_principal, session, opts)
   end
 
   # internal API
@@ -160,7 +160,7 @@ class FoldersController < ApplicationController
 
     items, opts, all_item_count = paginated_folders_and_files(api_v1_list_folders_and_files_url)
     headers["X-Total-Items"] = all_item_count.to_s
-    render json: folders_or_files_json(items, @current_user, session, opts)
+    render json: folders_or_files_json(items, current_principal, session, opts)
   end
 
   # internal API
@@ -171,7 +171,7 @@ class FoldersController < ApplicationController
     base_url = polymorphic_url([:api, :v1, @context, :folders_and_files])
     items, opts, all_item_count = paginated_folders_and_files(base_url)
     headers["X-Total-Items"] = all_item_count.to_s
-    render json: folders_or_files_json(items, @current_user, session, opts)
+    render json: folders_or_files_json(items, current_principal, session, opts)
   end
 
   # Setup additional options based on context and permissions
@@ -287,7 +287,7 @@ class FoldersController < ApplicationController
 
       url = named_context_url(@context, :api_v1_context_folders_url, include_host: true)
       folders = Api.paginate(scope, self, url)
-      render json: folders_json(folders, @current_user, session, can_view_hidden_files:, context: @context)
+      render json: folders_json(folders, current_principal, session, can_view_hidden_files:, context: @context)
     end
   end
 
@@ -313,7 +313,7 @@ class FoldersController < ApplicationController
       folders = Folder.resolve_path(@context, params[:full_path], include_hidden_and_locked: can_view_hidden_files)
       raise ActiveRecord::RecordNotFound if folders.blank?
 
-      render json: folders_json(folders, @current_user, session, can_view_hidden_files:, context: @context)
+      render json: folders_json(folders, current_principal, session, can_view_hidden_files:, context: @context)
     end
   end
 
@@ -354,7 +354,7 @@ class FoldersController < ApplicationController
 
     if authorized_action(@folder, current_principal, :read_contents)
       if api_request?
-        render json: folder_json(@folder, @current_user, session)
+        render json: folder_json(@folder, current_principal, session)
       else
         respond_to do |format|
           format.html { redirect_to named_context_url(@context, :context_files_url, folder_id: @folder.id) }
@@ -448,7 +448,7 @@ class FoldersController < ApplicationController
           flash[:notice] = t :event_updated, "Event was successfully updated."
           format.html { redirect_to named_context_url(@context, :context_files_url) }
           if api_request?
-            format.json { render json: folder_json(@folder, @current_user, session) }
+            format.json { render json: folder_json(@folder, current_principal, session) }
           else
             format.json { render json: @folder.as_json(methods: [:currently_locked], permissions: { user: @current_user, session: }), status: :ok }
           end
@@ -553,7 +553,7 @@ class FoldersController < ApplicationController
           flash.now[:notice] = t :folder_created, "Folder was successfully created."
           format.html { redirect_to named_context_url(@context, :context_files_url) }
           if api_request?
-            format.json { render json: folder_json(@folder, @current_user, session) }
+            format.json { render json: folder_json(@folder, current_principal, session) }
           else
             format.json { render json: @folder.as_json(permissions: { user: @current_user, session: }) }
           end
@@ -619,7 +619,7 @@ class FoldersController < ApplicationController
       else
         @context = @folder.context
         @folder.destroy
-        render json: folder_json(@folder, @current_user, session)
+        render json: folder_json(@folder, current_principal, session)
       end
     end
   end
@@ -696,7 +696,7 @@ class FoldersController < ApplicationController
         if @attachment.save
           # default to rename on race condition (if a file happened to be created after the check above, and on_duplicate was not given)
           @attachment.handle_duplicates((on_duplicate == "overwrite") ? :overwrite : :rename, duplicate_options)
-          render json: attachment_json(@attachment, @current_user, {}, { omit_verifier_in_app: true })
+          render json: attachment_json(@attachment, current_principal, {}, { omit_verifier_in_app: true })
         else
           render json: @attachment.errors
         end
@@ -747,7 +747,7 @@ class FoldersController < ApplicationController
       if authorized_action(@folder, current_principal, :create)
         @folder = @source_folder.clone_for(@context, @folder, everything: true, force_copy: true)
         if @folder.save
-          render json: folder_json(@folder, @current_user, session)
+          render json: folder_json(@folder, current_principal, session)
         else
           render json: @folder.errors
         end
@@ -759,7 +759,7 @@ class FoldersController < ApplicationController
     require_context
     if @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS)
       @folder = Folder.icon_maker_folder(@context)
-      render json: folder_json(@folder, @current_user, session)
+      render json: folder_json(@folder, current_principal, session)
     end
   end
 
@@ -786,7 +786,7 @@ class FoldersController < ApplicationController
           @current_user
         end
       @folder = Folder.media_folder(folder_context)
-      render json: folder_json(@folder, @current_user, session)
+      render json: folder_json(@folder, current_principal, session)
     end
   end
 
@@ -801,7 +801,7 @@ class FoldersController < ApplicationController
 
     duplicate_folders = find_duplicate_folders(@folder)
 
-    render json: { duplicates: folders_json(duplicate_folders, @current_user, session) }
+    render json: { duplicates: folders_json(duplicate_folders, current_principal, session) }
   end
 
   def find_duplicate_folders(folder)

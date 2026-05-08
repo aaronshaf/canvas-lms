@@ -41,8 +41,8 @@ module Api::V1::ContextModule
   }.freeze
 
   # optionally pass progression to include 'state', 'completed_at'
-  def module_json(context_module, current_user, session, progression = nil, includes = [], opts = {})
-    hash = api_json(context_module, current_user, session, only: MODULE_JSON_ATTRS)
+  def module_json(context_module, current_principal, session, progression = nil, includes = [], opts = {})
+    hash = api_json(context_module, current_principal, session, only: MODULE_JSON_ATTRS)
     hash["require_sequential_progress"] = !!context_module.require_sequential_progress?
     hash["requirement_type"] = context_module.requirement_type
     if opts.fetch(:can_have_requirement_count, false)
@@ -54,9 +54,9 @@ module Api::V1::ContextModule
       hash["state"] = progression.workflow_state
       hash["completed_at"] = progression.completed_at
     end
-    can_view_published = context_module.grants_right?(current_user, :update) || opts[:can_view_published]
+    can_view_published = context_module.grants_right?(current_principal, :update) || opts[:can_view_published]
     hash["published"] = context_module.active? if can_view_published
-    tags = context_module.content_tags_visible_to(current_user, opts.slice(:observed_student_ids))
+    tags = context_module.content_tags_visible_to(current_principal, opts.slice(:observed_student_ids))
     count = tags.count
     hash["items_count"] = count
     hash["items_url"] = polymorphic_url([:api_v1, context_module.context, context_module, :items])
@@ -74,7 +74,7 @@ module Api::V1::ContextModule
       item_includes = includes & ["content_details", "estimated_durations"]
       ActiveRecord::Associations.preload(tags, content: [:current_lookup, :wiki])
       hash["items"] = tags.map do |tag|
-        module_item_json(tag, current_user, session, context_module, progression, item_includes, opts)
+        module_item_json(tag, current_principal, session, context_module, progression, item_includes, opts)
       end
     end
     hash
@@ -82,10 +82,10 @@ module Api::V1::ContextModule
 
   # optionally pass context_module to avoid redundant queries when rendering multiple items
   # optionally pass progression to include completion status
-  def module_item_json(content_tag, current_user, session, context_module = nil, progression = nil, includes = [], opts = {})
+  def module_item_json(content_tag, current_principal, session, context_module = nil, progression = nil, includes = [], opts = {})
     context_module ||= content_tag.context_module
 
-    hash = api_json(content_tag, current_user, session, only: MODULE_ITEM_JSON_ATTRS)
+    hash = api_json(content_tag, current_principal, session, only: MODULE_ITEM_JSON_ATTRS)
     hash["type"] = Api::API_DATA_TYPE[content_tag.content_type] || content_tag.content_type
     hash["indent"] ||= 0
     hash["module_id"] = content_tag.context_module_id
@@ -172,21 +172,21 @@ module Api::V1::ContextModule
     can_view_published = if opts.key? :can_view_published
                            opts[:can_view_published]
                          else
-                           context_module.grants_right?(current_user, :update)
+                           context_module.grants_right?(current_principal, :update)
                          end
     if can_view_published
       hash["published"] = content_tag.active?
       hash["unpublishable"] = module_item_unpublishable?(content_tag)
     end
 
-    hash["content_details"] = content_details(content_tag, current_user) if includes.include?("content_details")
+    hash["content_details"] = content_details(content_tag, current_principal) if includes.include?("content_details")
 
     if opts.fetch(:can_have_estimated_time, false) && includes.include?("estimated_durations")
       hash["estimated_duration"] = estimated_duration(content_tag)
     end
 
     if includes.include?("mastery_paths")
-      hash["mastery_paths"] = conditional_release_json(content_tag, current_user, opts)
+      hash["mastery_paths"] = conditional_release_json(content_tag, current_principal, opts)
     end
 
     # this is a bit of a hack.
@@ -204,12 +204,12 @@ module Api::V1::ContextModule
     hash
   end
 
-  def content_details(content_tag, current_user, opts = {})
+  def content_details(content_tag, current_principal, opts = {})
     details = {}
     item = content_tag.content
 
     item = item.assignment if item.is_a?(DiscussionTopic) && item.assignment
-    item = item.overridden_for(current_user) if item.respond_to?(:overridden_for)
+    item = item.overridden_for(current_principal) if item.respond_to?(:overridden_for)
 
     attrs = %i[usage_rights locked hidden lock_explanation display_name due_at unlock_at lock_at points_possible]
 
@@ -223,7 +223,7 @@ module Api::V1::ContextModule
       details[:thumbnail_url] = authenticated_thumbnail_url(item) if item.is_a?(Attachment)
       item_type = ITEM_TYPE[content_tag.content_type.to_sym] || ""
       lock_item = item.respond_to?(:locked_for?) ? item : content_tag
-      locked_json(details, lock_item, current_user, item_type)
+      locked_json(details, lock_item, current_principal, item_type)
     end
 
     details

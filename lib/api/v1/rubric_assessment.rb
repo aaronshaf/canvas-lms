@@ -35,17 +35,17 @@ module Api::V1::RubricAssessment
     ]
   }.freeze
 
-  def rubric_assessments_json(rubric_assessments, user, session, opts = {})
-    rubric_assessments.map { |ra| rubric_assessment_json(ra, user, session, opts) }
+  def rubric_assessments_json(rubric_assessments, current_principal, session, opts = {})
+    rubric_assessments.map { |ra| rubric_assessment_json(ra, current_principal, session, opts) }
   end
 
-  def rubric_assessment_json(rubric_assessment, user, session, opts = {})
+  def rubric_assessment_json(rubric_assessment, current_principal, session, opts = {})
     json_attributes = API_ALLOWED_RUBRIC_ASSESSMENT_OUTPUT_FIELDS
-    hash = api_json(rubric_assessment, user, session, json_attributes)
+    hash = api_json(rubric_assessment, current_principal, session, json_attributes)
     hash["data"] = rubric_assessment.data if opts[:style] == "full"
     if opts[:style] == "full" && rubric_assessment.active_rubric_association?
       hash["rubric_association"] = rubric_assessment.rubric_association.as_json["rubric_association"]
-      hash["rubric_association"]["hide_points"] = rubric_assessment.rubric_association.hide_points(user)
+      hash["rubric_association"]["hide_points"] = rubric_assessment.rubric_association.hide_points(current_principal)
     end
     hash["comments"] = rubric_assessment.data.pluck(:comments) if opts[:style] == "comments_only"
     hash
@@ -57,8 +57,8 @@ module Api::V1::RubricAssessment
     end
   end
 
-  def full_rubric_assessment_json_for_submissions(rubric_assessment, user, session)
-    hash = rubric_assessment_json(rubric_assessment, user, session, { style: "full" })
+  def full_rubric_assessment_json_for_submissions(rubric_assessment, current_principal, session)
+    hash = rubric_assessment_json(rubric_assessment, current_principal, session, { style: "full" })
     assessor = User.find(rubric_assessment.assessor_id)
     hash["assessor_name"] = assessor.name
     hash["assessor_avatar_url"] = assessor.avatar_image_url

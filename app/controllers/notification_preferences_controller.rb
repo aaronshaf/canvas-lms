@@ -67,7 +67,7 @@ class NotificationPreferencesController < ApplicationController
   # @returns [NotificationPreference]
   def index
     policies = NotificationPolicy.find_all_for(@cc)
-    render json: { notification_preferences: policies.map { |p| notification_policy_json(p, @current_user, session) } }
+    render json: { notification_preferences: policies.map { |p| notification_policy_json(p, current_principal, session) } }
   end
 
   # @API List of preference categories
@@ -106,7 +106,7 @@ class NotificationPreferencesController < ApplicationController
     category = parse_category(params[:category])
 
     policies = NotificationPolicy.find_or_update_for_category(@cc, category, preference[:frequency])
-    render json: { notification_preferences: policies.map { |p| notification_policy_json(p, @current_user, session) } }
+    render json: { notification_preferences: policies.map { |p| notification_policy_json(p, current_principal, session) } }
   end
 
   # @API Update multiple preferences
@@ -119,7 +119,7 @@ class NotificationPreferencesController < ApplicationController
     policies = preferences.map do |preference|
       NotificationPolicy.find_or_update_for(@cc, preference[:notification], preference[:frequency])
     end
-    render json: { notification_preferences: policies.map { |p| notification_policy_json(p, @current_user, session) } }
+    render json: { notification_preferences: policies.map { |p| notification_policy_json(p, current_principal, session) } }
   end
 
   private

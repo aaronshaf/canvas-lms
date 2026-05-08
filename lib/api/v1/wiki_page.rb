@@ -28,7 +28,7 @@ module Api::V1::WikiPage
   WIKI_PAGE_JSON_ATTRS = %w[url title created_at editing_roles].freeze
 
   def wiki_page_json(wiki_page,
-                     current_user,
+                     current_principal,
                      session,
                      include_body: true,
                      include_assignment: true,
@@ -38,7 +38,7 @@ module Api::V1::WikiPage
                      use_block_editor: false)
     include_assignment = false unless wiki_page.context.try(:conditional_release?)
 
-    hash = api_json(wiki_page, current_user, session, only: WIKI_PAGE_JSON_ATTRS)
+    hash = api_json(wiki_page, current_principal, session, only: WIKI_PAGE_JSON_ATTRS)
     hash["page_id"] = wiki_page.id || 0 # for new page js_env; otherwise Backbone will try to POST instead of PUT
     hash["editing_roles"] ||= "teachers"
     hash["last_edited_by"] = user_display_json(wiki_page.user, wiki_page.context) if wiki_page.user
@@ -62,13 +62,13 @@ module Api::V1::WikiPage
 
     hash["updated_at"] = wiki_page.revised_at
     if include_assignment && wiki_page.for_assignment?
-      hash["assignment"] = assignment_json(wiki_page.assignment, current_user, session, assignment_opts)
+      hash["assignment"] = assignment_json(wiki_page.assignment, current_principal, session, assignment_opts)
       hash["assignment"]["assignment_overrides"] =
         assignment_overrides_json(
-          wiki_page.assignment.overrides_for(current_user, ensure_set_not_empty: true)
+          wiki_page.assignment.overrides_for(current_principal, ensure_set_not_empty: true)
         )
     end
-    locked_json(hash, wiki_page, current_user, "page", deep_check_if_needed:)
+    locked_json(hash, wiki_page, current_principal, "page", deep_check_if_needed:)
     if include_body && !hash["locked_for_user"] && !hash["lock_info"]
       if use_block_editor && @context.account.horizon_block_content_editor?
         if wiki_page.external_content_reference
@@ -91,24 +91,24 @@ module Api::V1::WikiPage
       else
         hash["body"] = api_user_content(wiki_page.body, wiki_page.context, location: wiki_page.asset_string)
       end
-      wiki_page.context_module_action(current_user, wiki_page.context, :read)
+      wiki_page.context_module_action(current_principal, wiki_page.context, :read)
     end
     if master_course_status
       hash.merge!(wiki_page.master_course_api_restriction_data(master_course_status))
     end
     if @context.is_a?(Course) && @context.horizon_course? && wiki_page.estimated_duration&.marked_for_destruction? == false
-      hash["estimated_duration"] = estimated_duration_json(wiki_page.estimated_duration, current_user, session)
+      hash["estimated_duration"] = estimated_duration_json(wiki_page.estimated_duration, current_principal, session)
     end
     hash
   end
 
-  def wiki_pages_json(wiki_pages, current_user, session, include_body: false, master_course_status: nil)
+  def wiki_pages_json(wiki_pages, current_principal, session, include_body: false, master_course_status: nil)
     ActiveRecord::Associations.preload(wiki_pages, :assignment)
     DatesOverridable.preload_override_data_for_objects(wiki_pages.filter_map(&:assignment))
-    wiki_pages.map { |page| wiki_page_json(page, current_user, session, include_body:, master_course_status:) }
+    wiki_pages.map { |page| wiki_page_json(page, current_principal, session, include_body:, master_course_status:) }
   end
 
-  def wiki_page_revision_json(version, _current_user, _session, include_content: true, latest_version: nil)
+  def wiki_page_revision_json(version, _current_principal, _session, include_content: true, latest_version: nil)
     page = version.model
     hash = {
       "revision_id" => version.number,
@@ -128,7 +128,7 @@ module Api::V1::WikiPage
     hash
   end
 
-  def wiki_page_revisions_json(versions, current_user, current_session, latest_version = nil)
-    versions.map { |ver| wiki_page_revision_json(ver, current_user, current_session, include_content: false, latest_version:) }
+  def wiki_page_revisions_json(versions, current_principal, current_session, latest_version = nil)
+    versions.map { |ver| wiki_page_revision_json(ver, current_principal, current_session, include_content: false, latest_version:) }
   end
 end

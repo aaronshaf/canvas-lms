@@ -183,7 +183,7 @@ class BrandConfigsController < ApplicationController
     BrandConfig.destroy_if_unused(old_md5)
 
     render json: {
-      subAccountProgresses: [progress_json(progress, @current_user, session)]
+      subAccountProgresses: [progress_json(progress, current_principal, session)]
     }
   end
 

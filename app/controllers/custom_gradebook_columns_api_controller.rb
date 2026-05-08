@@ -88,7 +88,7 @@ class CustomGradebookColumnsApiController < ApplicationController
                              api_v1_course_custom_gradebook_columns_url(@context))
 
       render json: columns.map { |c|
-        custom_gradebook_column_json(c, @current_user, session)
+        custom_gradebook_column_json(c, current_principal, session)
       }
     end
   end
@@ -135,7 +135,7 @@ class CustomGradebookColumnsApiController < ApplicationController
     if authorized_action? column, current_principal, :manage
       column.destroy
       render json: custom_gradebook_column_json(column,
-                                                @current_user,
+                                                current_principal,
                                                 session)
     end
   end
@@ -158,7 +158,7 @@ class CustomGradebookColumnsApiController < ApplicationController
     if authorized_action? column, current_principal, :manage
       if column.save
         render json: custom_gradebook_column_json(column,
-                                                  @current_user,
+                                                  current_principal,
                                                   session)
       else
         render json: column.errors, status: :bad_request

@@ -34,7 +34,7 @@ module Api::V1::LearningObjectDates
   GRADED_MODELS = [Assignment, Quizzes::Quiz].freeze
   LOCKABLE_PSEUDO_COLUMNS = %i[due_dates availability_dates].freeze
 
-  def learning_object_dates_json(learning_object, overridable, include_peer_review: false, exclude_peer_review_overrides: false)
+  def learning_object_dates_json(learning_object, overridable, include_peer_review: false, exclude_peer_review_overrides: false, current_principal: self.current_principal)
     hash = learning_object.slice(BASE_FIELDS)
     LEARNING_OBJECT_DATES_FIELDS.each do |field|
       hash[field] = overridable.send(field) if overridable.respond_to?(field)
@@ -44,8 +44,8 @@ module Api::V1::LearningObjectDates
       group_category_id = group_category_id(learning_object)
       hash[:group_category_id] = group_category_id if group_category_id
     end
-    add_checkpoint_info(hash, learning_object, overridable)
-    add_peer_review_info(hash, overridable, exclude_overrides: exclude_peer_review_overrides) if include_peer_review
+    add_checkpoint_info(hash, learning_object, overridable, current_principal:)
+    add_peer_review_info(hash, overridable, exclude_overrides: exclude_peer_review_overrides, current_principal:) if include_peer_review
     hash
   end
 
@@ -67,13 +67,13 @@ module Api::V1::LearningObjectDates
 
   private
 
-  def add_checkpoint_info(hash, learning_object, overridable)
+  def add_checkpoint_info(hash, learning_object, overridable, current_principal: self.current_principal)
     if learning_object.context.discussion_checkpoints_enabled? && overridable.respond_to?(:has_sub_assignments?) && overridable.has_sub_assignments?
-      hash["checkpoints"] = overridable.sub_assignments.map { |sub_assignment| Checkpoint.new(sub_assignment, @current_user).as_json.except("name", "points_possible") }
+      hash["checkpoints"] = overridable.sub_assignments.map { |sub_assignment| Checkpoint.new(sub_assignment, current_principal).as_json.except("name", "points_possible") }
     end
   end
 
-  def add_peer_review_info(hash, overridable, exclude_overrides: false)
+  def add_peer_review_info(hash, overridable, exclude_overrides: false, current_principal: self.current_principal)
     return unless peer_review_overrides_supported?(overridable)
 
     peer_review_sub = overridable.peer_review_sub_assignment
@@ -91,7 +91,7 @@ module Api::V1::LearningObjectDates
       peer_review_overrides = peer_review_sub.active_assignment_overrides
       peer_review_overrides_json = assignment_overrides_json(
         peer_review_overrides,
-        @current_user,
+        current_principal,
         include_names: true,
         include_child_override_due_dates: false
       )

@@ -128,8 +128,8 @@ class AssignmentOverridesController < ApplicationController
   #
   # @returns [AssignmentOverride]
   def index
-    @overrides = assignment_override_collection(@assignment, include_students: true)
-    render json: assignment_overrides_json(@overrides, @current_user)
+    @overrides = assignment_override_collection(@assignment, current_principal:, include_students: true)
+    render json: assignment_overrides_json(@overrides, current_principal)
   end
 
   # @API Get a single assignment override
@@ -138,7 +138,7 @@ class AssignmentOverridesController < ApplicationController
   #
   # @returns AssignmentOverride
   def show
-    render json: assignment_override_json(@override)
+    render json: assignment_override_json(@override, current_principal:)
   end
 
   # @API Redirect to the assignment override for a group
@@ -146,7 +146,7 @@ class AssignmentOverridesController < ApplicationController
   # Responds with a redirect to the override for the given group, if any
   # (404 otherwise).
   def group_alias
-    @override = find_assignment_override(@assignment, @group)
+    @override = find_assignment_override(@assignment, @group, current_principal:)
     raise ActiveRecord::RecordNotFound unless @override
 
     redirect_to api_v1_assignment_override_url(
@@ -161,7 +161,7 @@ class AssignmentOverridesController < ApplicationController
   # Responds with a redirect to the override for the given section, if any
   # (404 otherwise).
   def section_alias
-    @override = find_assignment_override(@assignment, @section)
+    @override = find_assignment_override(@assignment, @section, current_principal:)
     raise ActiveRecord::RecordNotFound unless @override
 
     redirect_to api_v1_assignment_override_url(
@@ -235,11 +235,11 @@ class AssignmentOverridesController < ApplicationController
   def create
     @override = @assignment.assignment_overrides.build
 
-    data, errors = interpret_assignment_override_data(@assignment, params[:assignment_override])
+    data, errors = interpret_assignment_override_data(@assignment, params[:assignment_override], current_principal:)
     return bad_request(errors:) if errors
 
     if update_assignment_override(@override, data, updating_user: @current_user)
-      render json: assignment_override_json(@override), status: :created
+      render json: assignment_override_json(@override, current_principal:), status: :created
     else
       bad_request(@override.errors)
     end
@@ -291,11 +291,11 @@ class AssignmentOverridesController < ApplicationController
   #        -H "Authorization: Bearer <token>"
   #
   def update
-    data, errors = interpret_assignment_override_data(@assignment, params[:assignment_override], @override.set_type)
+    data, errors = interpret_assignment_override_data(@assignment, params[:assignment_override], @override.set_type, current_principal:)
     return bad_request(errors:) if errors
 
     if update_assignment_override(@override, data, updating_user: @current_user)
-      render json: assignment_override_json(@override)
+      render json: assignment_override_json(@override, current_principal:)
     else
       bad_request(@override.errors)
     end
@@ -315,7 +315,7 @@ class AssignmentOverridesController < ApplicationController
   #
   def destroy
     if @override.destroy
-      render json: assignment_override_json(@override)
+      render json: assignment_override_json(@override, current_principal:)
     else
       bad_request(@override.errors)
     end
@@ -356,7 +356,7 @@ class AssignmentOverridesController < ApplicationController
       assignment = assignments.find { |a| a.id == assignment_id }
       next unless assignment
 
-      find_assignment_overrides(assignment, override_ids)
+      find_assignment_overrides(assignment, override_ids, current_principal:)
     end.flatten.compact
 
     # reorder to match request
@@ -366,7 +366,7 @@ class AssignmentOverridesController < ApplicationController
       end
     end
 
-    render json: assignment_overrides_json(sorted, @current_user)
+    render json: assignment_overrides_json(sorted, current_principal)
   end
 
   # @API Batch create overrides in a course
@@ -443,12 +443,12 @@ class AssignmentOverridesController < ApplicationController
   protected
 
   def require_group
-    @group = find_group(nil, params[:group_id])
+    @group = find_group(nil, params[:group_id], current_principal:)
     @course = @group.context
   end
 
   def require_section
-    @section = find_section(nil, params[:course_section_id])
+    @section = find_section(nil, params[:course_section_id], current_principal:)
     @course = @section.course
   end
 
@@ -473,7 +473,7 @@ class AssignmentOverridesController < ApplicationController
   end
 
   def require_override
-    @override = find_assignment_override(@assignment, params[:id])
+    @override = find_assignment_override(@assignment, params[:id], current_principal:)
     raise ActiveRecord::RecordNotFound unless @override # i.e. if params[:id] was nil
   end
 
@@ -483,7 +483,7 @@ class AssignmentOverridesController < ApplicationController
 
   def batch_edit(is_update)
     override_params = deserialize_overrides(params[:assignment_overrides])
-    all_data, all_errors = interpret_batch_assignment_overrides_data(@course, override_params, is_update)
+    all_data, all_errors = interpret_batch_assignment_overrides_data(@course, override_params, is_update, current_principal:)
     return bad_request(errors: all_errors) if all_errors.present?
 
     overrides = all_data.map do |data|
@@ -491,7 +491,7 @@ class AssignmentOverridesController < ApplicationController
     end
 
     if update_assignment_overrides(overrides, all_data, updating_user: @current_user)
-      render json: assignment_overrides_json(overrides, @current_user)
+      render json: assignment_overrides_json(overrides, current_principal)
     else
       errors = overrides.map do |override|
         override.errors.presence ? ::Api::Errors::Reporter.to_json(override.errors) : nil

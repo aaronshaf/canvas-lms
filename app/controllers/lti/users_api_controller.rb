@@ -59,7 +59,7 @@ module Lti
     #
     # @returns User
     def show
-      render json: user_json(user, user, nil, [], tool_proxy.context, tool_includes: USER_INCLUDES)
+      render json: user_json(user, Canvas::AdheresToPolicy::UserPrincipal.new(user), nil, [], tool_proxy.context, tool_includes: USER_INCLUDES)
     end
 
     # @API Get all users in a group (lti)
@@ -72,7 +72,7 @@ module Lti
       users = Api.paginate(group.participating_users, self, lti_user_group_index_url)
       user_json_preloads(users)
       UserPastLtiId.manual_preload_past_lti_ids(users, group.context)
-      render json: users.map { |user| user_json(user, user, nil, [], group.context, tool_includes: USER_INCLUDES) }
+      render json: users.map { |user| user_json(user, Canvas::AdheresToPolicy::UserPrincipal.new(user), nil, [], group.context, tool_includes: USER_INCLUDES) }
     end
 
     private

@@ -1212,7 +1212,7 @@ class Lti::RegistrationsController < ApplicationController
     paginated_registrations, _metadata = Api.jsonapi_paginate(registrations, self, url_for, { per_page: })
     render json: {
       total: registrations.size,
-      data: lti_registrations_json(paginated_registrations, @current_user, session, @context, includes:, preloads:)
+      data: lti_registrations_json(paginated_registrations, current_principal, session, @context, includes:, preloads:)
     }
   rescue => e
     report_error(e)
@@ -1355,7 +1355,7 @@ class Lti::RegistrationsController < ApplicationController
       end
 
       render json: lti_registration_json(registration,
-                                         @current_user,
+                                         current_principal,
                                          session,
                                          @context,
                                          includes:,
@@ -1440,7 +1440,7 @@ class Lti::RegistrationsController < ApplicationController
     registration = Lti::CreateRegistrationService.call(**create_params)
 
     render status: :created, json: lti_registration_json(registration,
-                                                         @current_user,
+                                                         current_principal,
                                                          session,
                                                          @context,
                                                          includes: %i[account_binding configuration overlay],
@@ -1475,7 +1475,7 @@ class Lti::RegistrationsController < ApplicationController
 
       render json: lti_registration_json(
         registration,
-        @current_user,
+        current_principal,
         session,
         @context,
         includes: %i[account_binding configuration overlaid_configuration],
@@ -1518,7 +1518,7 @@ class Lti::RegistrationsController < ApplicationController
 
       render json: lti_registration_json(
         registration,
-        @current_user,
+        current_principal,
         session,
         @context
       )
@@ -1576,7 +1576,7 @@ class Lti::RegistrationsController < ApplicationController
 
       render json: lti_registration_json(
         registration,
-        @current_user,
+        current_principal,
         session,
         @context
       )
@@ -1656,7 +1656,7 @@ class Lti::RegistrationsController < ApplicationController
     registration = Lti::UpdateRegistrationService.call(**update_params)
 
     render json: lti_registration_json(registration,
-                                       @current_user,
+                                       current_principal,
                                        session,
                                        @context,
                                        includes: %i[account_binding
@@ -1685,7 +1685,7 @@ class Lti::RegistrationsController < ApplicationController
     registration.overlay_for(@context)&.update!(data: {}, updated_by: @current_user)
 
     render json: lti_registration_json(registration,
-                                       @current_user,
+                                       current_principal,
                                        session,
                                        @context,
                                        includes: %i[overlaid_configuration overlay overlay_versions],
@@ -1712,7 +1712,7 @@ class Lti::RegistrationsController < ApplicationController
 
     registration.destroy
     render json: lti_registration_json(registration,
-                                       @current_user,
+                                       current_principal,
                                        session,
                                        @context,
                                        includes: %i[account_binding configuration overlay],
@@ -1767,7 +1767,7 @@ class Lti::RegistrationsController < ApplicationController
 
     rab = result.dig(:bindings, :lti_registration_account_binding)
 
-    render json: lti_registration_account_binding_json(rab, @current_user, session, @context)
+    render json: lti_registration_account_binding_json(rab, current_principal, session, @context)
   rescue ArgumentError => e
     render_error(:invalid_template, e.message)
   rescue => e
@@ -1799,7 +1799,7 @@ class Lti::RegistrationsController < ApplicationController
       local_copy&.destroy
     end
 
-    render json: lti_registration_account_binding_json(rab, @current_user, session, @context)
+    render json: lti_registration_account_binding_json(rab, current_principal, session, @context)
   rescue => e
     report_error(e)
     raise e
@@ -1834,7 +1834,7 @@ class Lti::RegistrationsController < ApplicationController
     account_binding = result.dig(:bindings, :lti_registration_account_binding)
     overlay = local_registration.overlay_for(@context)
     includes = %i[account_binding configuration overlay]
-    json = lti_registration_json(local_registration, @current_user, session, @context, includes:, account_binding:, overlay:)
+    json = lti_registration_json(local_registration, current_principal, session, @context, includes:, account_binding:, overlay:)
 
     render json:
   rescue => e
@@ -1973,7 +1973,7 @@ class Lti::RegistrationsController < ApplicationController
       if overlay
         limit = validate_limit_param(params[:limit])
         history_items = overlay.lti_overlay_versions.preload(:created_by).limit(limit)
-        render json: lti_overlay_versions_json(history_items, @current_user, session, @context)
+        render json: lti_overlay_versions_json(history_items, current_principal, session, @context)
       else
         render json: []
       end
@@ -2007,7 +2007,7 @@ class Lti::RegistrationsController < ApplicationController
       params[:per_page] = Api.per_page_for(self)
       paginated_items = Api.paginate(bookmarked_collection, self, api_v1_lti_registration_history_url, params)
 
-      render json: lti_registration_history_entries_json(paginated_items, @current_user, session, @context)
+      render json: lti_registration_history_entries_json(paginated_items, current_principal, session, @context)
     end
   rescue => e
     report_error(e)
@@ -2038,7 +2038,7 @@ class Lti::RegistrationsController < ApplicationController
 
     render json: lti_registration_update_request_json(
       registration_update_request,
-      @current_user,
+      current_principal,
       session,
       @context
     )
@@ -2069,7 +2069,7 @@ class Lti::RegistrationsController < ApplicationController
 
     render json: lti_registration_update_request_json(
       most_recent,
-      @current_user,
+      current_principal,
       session,
       @context
     )
@@ -2127,7 +2127,7 @@ class Lti::RegistrationsController < ApplicationController
 
     render json: lti_registration_json(
       lti_registration,
-      @current_user,
+      current_principal,
       session,
       @context,
       includes: %i[

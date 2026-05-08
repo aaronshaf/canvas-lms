@@ -26,11 +26,11 @@ module Api::V1::DeveloperKey
   ].freeze
   INHERITED_DEVELOPER_KEY_JSON_ATTRS = %w[name created_at icon_url workflow_state lti_registration_id].freeze
 
-  def developer_keys_json(keys, user, session, context, inherited: false, include_tool_config: false, show_full_secret: false)
-    keys.map { |k| developer_key_json(k, user, session, context, inherited:, include_tool_config:, show_full_secret:) }
+  def developer_keys_json(keys, current_principal, session, context, inherited: false, include_tool_config: false, show_full_secret: false)
+    keys.map { |k| developer_key_json(k, current_principal, session, context, inherited:, include_tool_config:, show_full_secret:) }
   end
 
-  def developer_key_json(key, user, session, context, inherited: false, include_tool_config: false, show_full_secret: false)
+  def developer_key_json(key, current_principal, session, context, inherited: false, include_tool_config: false, show_full_secret: false)
     context ||= Account.site_admin
     account_binding = key.account_binding_for(context)
     keys_to_show = if inherited
@@ -42,8 +42,8 @@ module Api::V1::DeveloperKey
     keys_to_show += ["test_cluster_only"] if DeveloperKey.test_cluster_checks_enabled?
     regenerate_secret_enabled = context.root_account.feature_enabled?(:developer_key_regenerate_secret)
 
-    api_json(key, user, session, only: keys_to_show).tap do |hash|
-      if (context.grants_right?(user, session, :manage_developer_keys) || user.try(:id) == key.user_id) && !inherited
+    api_json(key, current_principal, session, only: keys_to_show).tap do |hash|
+      if (context.grants_right?(current_principal, session, :manage_developer_keys) || current_principal.try(:id) == key.user_id) && !inherited
         if developer_key_secret_suppressed?(key)
           hash["api_key"] = key.api_key_hint
           hash["api_key_truncated"] = true

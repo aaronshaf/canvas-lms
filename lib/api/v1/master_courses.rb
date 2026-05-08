@@ -20,17 +20,17 @@
 module Api::V1::MasterCourses
   include Api::V1::User
 
-  def master_template_json(template, user, session, **)
-    hash = api_json(template, user, session, only: %w[id course_id], methods: %w[last_export_completed_at associated_course_count])
+  def master_template_json(template, current_principal, session, **)
+    hash = api_json(template, current_principal, session, only: %w[id course_id], methods: %w[last_export_completed_at associated_course_count])
     migration = template.active_migration
-    hash[:latest_migration] = master_migration_json(migration, user, session) if migration
+    hash[:latest_migration] = master_migration_json(migration, current_principal, session) if migration
     hash
   end
 
-  def master_migration_json(migration, user, session, opts = {})
+  def master_migration_json(migration, current_principal, session, opts = {})
     migration.expire_if_necessary!
     hash = api_json(migration,
-                    user,
+                    current_principal,
                     session,
                     only: %w[id user_id workflow_state created_at exports_started_at imports_queued_at imports_completed_at comment])
     if opts[:subscription]
@@ -108,13 +108,13 @@ module Api::V1::MasterCourses
     }
   end
 
-  def course_summary_json(course, opts = {})
-    can_read_sis = opts[:can_read_sis] || course.account.grants_any_right?(@current_user, :read_sis, :manage_sis)
-    hash = api_json(course, @current_user, session, only: %w[id name course_code])
+  def course_summary_json(course, current_principal: nil, can_read_sis: false, include_teachers: false)
+    can_read_sis ||= course.account.grants_any_right?(current_principal, :read_sis, :manage_sis)
+    hash = api_json(course, current_principal, session, only: %w[id name course_code])
     hash["sis_course_id"] = course.sis_source_id if can_read_sis
     hash["term_name"] = course.enrollment_term.name
     hash["concluded"] = course.concluded? if Account.site_admin.feature_enabled?(:ux_list_concluded_courses_in_bp)
-    if opts[:include_teachers]
+    if include_teachers
       if course.teacher_count
         hash["teacher_count"] = course.teacher_count
       else
@@ -124,11 +124,11 @@ module Api::V1::MasterCourses
     hash
   end
 
-  def child_subscription_json(sub)
+  def child_subscription_json(sub, current_principal:)
     {
       id: sub.id,
       template_id: sub.master_template_id,
-      blueprint_course: course_summary_json(sub.master_template.course)
+      blueprint_course: course_summary_json(sub.master_template.course, current_principal:)
     }
   end
 end

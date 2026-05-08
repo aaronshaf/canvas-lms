@@ -175,7 +175,7 @@ class RubricAssessmentsController < ApplicationController
             json[:artifact][:submission_comments] = anonymous_moderated_submission_comments_json(
               assignment: submission.assignment,
               course: submission.assignment.course,
-              current_user: @current_user,
+              current_principal:,
               avatars: service_enabled?(:avatars),
               submission_comments: submission.visible_submission_comments_for(@current_user),
               submissions: [submission]

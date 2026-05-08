@@ -23,14 +23,14 @@ module Api::V1::AssignmentOverride
 
   OVERRIDABLE_ID_FIELDS = %i[assignment_id quiz_id context_module_id discussion_topic_id wiki_page_id attachment_id].freeze
 
-  def assignment_override_json(override, visible_users = nil, student_names: nil, module_names: nil, include_child_override_due_dates: nil, include_child_peer_review_override_dates: nil, peer_review_override: nil)
+  def assignment_override_json(override, visible_users = nil, current_principal:, student_names: nil, module_names: nil, include_child_override_due_dates: nil, include_child_peer_review_override_dates: nil, peer_review_override: nil)
     fields = %i[id title unassign_item]
     fields << :parent_override_id if override.parent_override_id.present?
     OVERRIDABLE_ID_FIELDS.each { |f| fields << f if override.send(f).present? }
     fields.push(:due_at, :all_day, :all_day_date) if override.due_at_overridden
     fields << :unlock_at if override.unlock_at_overridden
     fields << :lock_at if override.lock_at_overridden
-    api_json(override, @current_user, session, only: fields).tap do |json|
+    api_json(override, current_principal, session, only: fields).tap do |json|
       json[:context_module_name] = module_names[override.context_module_id] if module_names && override.context_module_id
       case override.set_type
       when "ADHOC"
@@ -50,7 +50,7 @@ module Api::V1::AssignmentOverride
         json[:title] = override.set.name
 
         # Remove the title from the override if the group is non_collaborative AND the user does not have read permission
-        if override.set.non_collaborative? && !override.set.grants_right?(@current_user, session, :read)
+        if override.set.non_collaborative? && !override.set.grants_right?(current_principal, session, :read)
           json.delete(:title)
         end
       when "CourseSection"
@@ -81,10 +81,10 @@ module Api::V1::AssignmentOverride
 
   # temporary function to convert discussion_topic_section_visibilities to section overrides
   # will be able to remove once we deprecate the old section visibilities table
-  def section_visibility_to_override_json(section_visibilities, discussion)
+  def section_visibility_to_override_json(section_visibilities, discussion, current_principal:)
     section_visibilities.map do |section_visibility|
       fields = %i[]
-      api_json(section_visibility, @current_user, session, only: fields).tap do |json|
+      api_json(section_visibility, current_principal, session, only: fields).tap do |json|
         json[:discussion_topic_id] = section_visibility.discussion_topic_id
         json[:course_section_id] = section_visibility.course_section_id
         json[:unlock_at] = discussion.unlock_at if discussion.unlock_at
@@ -94,8 +94,8 @@ module Api::V1::AssignmentOverride
     end
   end
 
-  def assignment_overrides_json(overrides, user = nil, include_names: false, include_child_override_due_dates: false, include_child_peer_review_override_dates: false)
-    visible_users_ids = ::AssignmentOverride.visible_enrollments_for(overrides.compact, user).select(:user_id)
+  def assignment_overrides_json(overrides, current_principal = nil, include_names: false, include_child_override_due_dates: false, include_child_peer_review_override_dates: false)
+    visible_users_ids = ::AssignmentOverride.visible_enrollments_for(overrides.compact, current_principal).select(:user_id)
     # we most likely already have the student_ids preloaded here because of overridden_for, but just in case
     if overrides.any? { |ov| ov.present? && ov.set_type == "ADHOC" && !ov.preloaded_student_ids }
       AssignmentOverrideApplicator.preload_student_ids_for_adhoc_overrides(overrides.select { |ov| ov.set_type == "ADHOC" }, visible_users_ids)
@@ -127,24 +127,24 @@ module Api::V1::AssignmentOverride
                                nil
                              end
 
-      assignment_override_json(override, visible_users_ids, student_names:, module_names:, include_child_override_due_dates:, include_child_peer_review_override_dates:, peer_review_override:)
+      assignment_override_json(override, visible_users_ids, current_principal:, student_names:, module_names:, include_child_override_due_dates:, include_child_peer_review_override_dates:, peer_review_override:)
     end
   end
 
-  def assignment_override_collection(learning_object, include_students: false)
-    overrides = AssignmentOverrideApplicator.overrides_for_assignment_and_user(learning_object, @current_user)
+  def assignment_override_collection(learning_object, current_principal:, include_students: false)
+    overrides = AssignmentOverrideApplicator.overrides_for_assignment_and_user(learning_object, current_principal)
     if include_students
       ActiveRecord::Associations.preload(overrides, :assignment_override_students)
     end
     overrides
   end
 
-  def find_assignment_override(learning_object, set_or_id)
-    find_assignment_overrides(learning_object, [set_or_id])[0]
+  def find_assignment_override(learning_object, set_or_id, current_principal:)
+    find_assignment_overrides(learning_object, [set_or_id], current_principal:)[0]
   end
 
-  def find_assignment_overrides(learning_object, sets_or_ids)
-    overrides = assignment_override_collection(learning_object)
+  def find_assignment_overrides(learning_object, sets_or_ids, current_principal:)
+    overrides = assignment_override_collection(learning_object, current_principal:)
     sets_or_ids.map do |set_or_id|
       filter_assignment_overrides(overrides, set_or_id)
     end
@@ -164,7 +164,7 @@ module Api::V1::AssignmentOverride
     end
   end
 
-  def find_group(assignment, group_id, group_category_id = nil)
+  def find_group(assignment, group_id, group_category_id = nil, current_principal:)
     scope = Group.active.where(context_type: "Course").where.not(group_category_id: nil)
     if assignment
       scope = scope.where(
@@ -173,21 +173,21 @@ module Api::V1::AssignmentOverride
       )
     end
     group = scope.find(group_id)
-    raise ActiveRecord::RecordNotFound unless group.grants_right?(@current_user, session, :read)
+    raise ActiveRecord::RecordNotFound unless group.grants_right?(current_principal, session, :read)
 
     group
   end
 
-  def find_section(context, section_id)
+  def find_section(context, section_id, current_principal:)
     scope = CourseSection.active
     scope = scope.where(course_id: context) if context
     section = api_find(scope, section_id)
-    raise ActiveRecord::RecordNotFound unless section.grants_right?(@current_user, session, :read)
+    raise ActiveRecord::RecordNotFound unless section.grants_right?(current_principal, session, :read)
 
     section
   end
 
-  def interpret_assignment_override_data(learning_object, data, set_type = nil)
+  def interpret_assignment_override_data(learning_object, data, set_type = nil, current_principal:)
     @domain_root_account ||= LoadAccount.default_domain_root_account
 
     data ||= {}
@@ -259,7 +259,7 @@ module Api::V1::AssignmentOverride
 
       # look up the section
       begin
-        section = find_section(learning_object.context, data[:course_section_id])
+        section = find_section(learning_object.context, data[:course_section_id], current_principal:)
       rescue ActiveRecord::RecordNotFound
         errors << "unknown section id #{data[:course_section_id].inspect}"
       end
@@ -319,7 +319,7 @@ module Api::V1::AssignmentOverride
 
   # receives data of shape [{ id: 2, assignment_id: 1, ...update_params }, ... ]
   # responds with data of shape [{ assignment: model, override: model, ...update_params }, ...]
-  def interpret_batch_assignment_overrides_data(course, assignment_overrides_data, for_update)
+  def interpret_batch_assignment_overrides_data(course, assignment_overrides_data, for_update, current_principal:)
     return nil, ["no assignment override data present"] unless assignment_overrides_data.present?
     return nil, ["must specify an array of overrides"] unless assignment_overrides_data.is_a? Array
 
@@ -338,7 +338,7 @@ module Api::V1::AssignmentOverride
     if for_update
       overrides = grouped.map do |assignment_id, overrides_data|
         assignment = assignments.find { |a| a.id.to_s == assignment_id.to_s }
-        find_assignment_overrides(assignment, overrides_data.pluck("id")) if assignment
+        find_assignment_overrides(assignment, overrides_data.pluck("id"), current_principal:) if assignment
       end.flatten.compact
     end
 
@@ -357,7 +357,7 @@ module Api::V1::AssignmentOverride
         set_type = override.set_type
       end
 
-      update_data, errors = interpret_assignment_override_data(assignment, override_data, set_type)
+      update_data, errors = interpret_assignment_override_data(assignment, override_data, set_type, current_principal:)
       if errors
         all_errors[i] = errors
         next
@@ -487,9 +487,9 @@ module Api::V1::AssignmentOverride
     false
   end
 
-  def invisible_users_and_overrides_for_user(context, user, existing_overrides)
+  def invisible_users_and_overrides_for_user(context, current_principal, existing_overrides)
     # get the student overrides the user can't see and ensure those overrides are included
-    visible_user_ids = context.enrollments_visible_to(user).select(:user_id)
+    visible_user_ids = context.enrollments_visible_to(current_principal).select(:user_id)
     invisible_user_ids = context.enrollments.where.not(user_id: visible_user_ids).distinct.pluck(:user_id)
     invisible_override_ids = existing_overrides.select do |ov|
       ov.set_type == "ADHOC" &&
@@ -510,10 +510,10 @@ module Api::V1::AssignmentOverride
     end
   end
 
-  def prepare_assignment_overrides_for_batch_update(learning_object, overrides_params, user)
+  def prepare_assignment_overrides_for_batch_update(learning_object, overrides_params, current_principal)
     existing_overrides = learning_object.all_assignment_overrides.active
     invisible_user_ids, invisible_override_ids = invisible_users_and_overrides_for_user(
-      learning_object.context, user, existing_overrides
+      learning_object.context, current_principal, existing_overrides
     )
 
     override_param_ids = invisible_override_ids + overrides_params.map { |ov| ov[:id].to_i }
@@ -532,7 +532,7 @@ module Api::V1::AssignmentOverride
       override = get_override_from_params(override_params, learning_object, overrides_to_keep)
       update_override_with_invisible_data(override_params, override, invisible_override_ids, invisible_user_ids)
 
-      data, errors = interpret_assignment_override_data(learning_object, override_params, override.set_type)
+      data, errors = interpret_assignment_override_data(learning_object, override_params, override.set_type, current_principal:)
       if errors
         override_errors << errors.join(",")
       else
@@ -575,9 +575,9 @@ module Api::V1::AssignmentOverride
     learning_object.run_if_overrides_changed_later!(updating_user:) if learning_object.respond_to?(:run_if_overrides_changed_later!)
   end
 
-  def batch_update_assignment_overrides(learning_object, overrides_params, user)
-    prepared_overrides = prepare_assignment_overrides_for_batch_update(learning_object, overrides_params, user)
-    perform_batch_update_assignment_overrides(learning_object, prepared_overrides, updating_user: user)
+  def batch_update_assignment_overrides(learning_object, overrides_params, current_principal)
+    prepared_overrides = prepare_assignment_overrides_for_batch_update(learning_object, overrides_params, current_principal)
+    perform_batch_update_assignment_overrides(learning_object, prepared_overrides, updating_user: current_principal)
   end
 
   def get_override_from_params(override_params, learning_object, potential_overrides)

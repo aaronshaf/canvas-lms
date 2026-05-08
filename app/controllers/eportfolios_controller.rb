@@ -98,7 +98,7 @@ class EportfoliosController < ApplicationController
           end
         end
         format.json do
-          hash = eportfolio_json(@portfolio, @current_user, session)
+          hash = eportfolio_json(@portfolio, current_principal, session)
           hash["profile_url"] = @owner_url
           render json: hash
         end

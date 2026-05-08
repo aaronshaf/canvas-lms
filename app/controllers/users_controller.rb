@@ -354,7 +354,7 @@ class UsersController < ApplicationController
         User.preload_last_login(users, @context.resolved_root_account_id)
       end
 
-      render json: users.map { |u| user_json(u, @current_user, session, includes) }
+      render json: users.map { |u| user_json(u, current_principal, session, includes) }
     end
   end
 
@@ -806,13 +806,13 @@ class UsersController < ApplicationController
       # this endpoint has undocumented params (context_code, submission_user_id and asset_type) to
       # support submission comments in the conversations inbox.
       # please replace this with a more reasonable solution at your earliest convenience
-      opts = { paginate_url: :api_v1_user_activity_stream_url }
+      opts = { paginate_url: :api_v1_user_activity_stream_url, current_principal: }
       opts[:asset_type] = params[:asset_type] if params.key?(:asset_type)
       opts[:context] = Context.find_by_asset_string(params[:context_code]) if params[:context_code]
       opts[:submission_user_id] = params[:submission_user_id] if params.key?(:submission_user_id)
       opts[:only_active_courses] = value_to_boolean(params[:only_active_courses]) if params.key?(:only_active_courses)
       opts[:notification_categories] = params[:notification_categories] if params.key?(:notification_categories)
-      api_render_stream(opts)
+      api_render_stream(**opts)
     else
       render_unauthorized_action
     end
@@ -838,9 +838,8 @@ class UsersController < ApplicationController
   #   ]
   def activity_stream_summary
     if @current_user
-      opts = {}
-      opts[:only_active_courses] = value_to_boolean(params[:only_active_courses]) if params.key?(:only_active_courses)
-      api_render_stream_summary(opts)
+      api_render_stream_summary(only_active_courses: value_to_boolean(params[:only_active_courses]),
+                                current_principal:)
     else
       render_unauthorize_action
     end
@@ -993,11 +992,11 @@ class UsersController < ApplicationController
         assignment.context.grants_right?(current_principal, session, :manage_grades)
       end
       grading_collection = BookmarkedCollection.transform(grading_collection) do |a|
-        todo_item_json(a, @current_user, session, "grading", include_grading_counts:)
+        todo_item_json(a, current_principal, session, "grading", include_grading_counts:)
       end
       submitting_collection = BookmarkedCollection.wrap(bookmark, submitting_scope)
       submitting_collection = BookmarkedCollection.transform(submitting_collection) do |a|
-        todo_item_json(a, @current_user, session, "submitting")
+        todo_item_json(a, current_principal, session, "submitting")
       end
       collections = [
         ["grading", grading_collection],
@@ -1021,7 +1020,7 @@ class UsersController < ApplicationController
           assignment.context.grants_right?(current_principal, session, :manage_grades)
         end
         checkpoint_grading_collection = BookmarkedCollection.transform(checkpoint_grading_collection) do |a|
-          todo_item_json(a, @current_user, session, "grading", include_grading_counts:)
+          todo_item_json(a, current_principal, session, "grading", include_grading_counts:)
         end
         collections << ["checkpoint_grading", checkpoint_grading_collection]
 
@@ -1035,7 +1034,7 @@ class UsersController < ApplicationController
         ).reorder(:due_at, :id).preload(:external_tool_tag, :rubric_association, :rubric, :discussion_topic).eager_load(:duplicate_of)
         checkpoint_submitting_collection = BookmarkedCollection.wrap(sub_assignment_bookmark, checkpoint_submitting_scope)
         checkpoint_submitting_collection = BookmarkedCollection.transform(checkpoint_submitting_collection) do |a|
-          todo_item_json(a, @current_user, session, "submitting")
+          todo_item_json(a, current_principal, session, "submitting")
         end
         collections << ["checkpoint_submitting", checkpoint_submitting_collection]
       end
@@ -1051,7 +1050,7 @@ class UsersController < ApplicationController
                         .reorder(:due_at, :id)
         quizzes_collection = BookmarkedCollection.wrap(quizzes_bookmark, quizzes_scope)
         quizzes_collection = BookmarkedCollection.transform(quizzes_collection) do |a|
-          todo_item_json(a, @current_user, session, "submitting")
+          todo_item_json(a, current_principal, session, "submitting")
         end
 
         collections << ["quizzes", quizzes_collection]
@@ -1161,7 +1160,7 @@ class UsersController < ApplicationController
       prepare_current_user_dashboard_items
 
       events = @upcoming_events.map do |e|
-        event_json(e, @current_user, session)
+        event_json(e, current_principal, session)
       end
 
       render json: events
@@ -1238,9 +1237,10 @@ class UsersController < ApplicationController
       ActiveRecord::Associations.preload(assignments, :context) if include_course
       DatesOverridable.preload_override_data_for_objects(assignments)
 
+      user_principal = (user == @current_user) ? current_principal : Canvas::AdheresToPolicy::UserPrincipal.new(user)
       json = assignments.map do |as|
-        assmt_json = assignment_json(as, user, session, include_planner_override: planner_overrides)
-        assmt_json["course"] = course_json(as.context, user, session, [], nil) if include_course
+        assmt_json = assignment_json(as, user_principal, session, include_planner_override: planner_overrides)
+        assmt_json["course"] = course_json(as.context, user_principal, session, [], nil) if include_course
         assmt_json
       end
 
@@ -1456,7 +1456,7 @@ class UsersController < ApplicationController
           includes = %w[locale avatar_url]
           includes << "deleted_pseudonyms" if value_to_boolean(params[:include_deleted_users])
           render json: user_json(@user,
-                                 @current_user,
+                                 current_principal,
                                  session,
                                  includes,
                                  @current_user.pseudonym.account),
@@ -1510,7 +1510,7 @@ class UsersController < ApplicationController
         @user.last_login = pseudonyms&.filter_map(&:current_login_at)&.max
       end
 
-      render json: user_json(@user, @current_user, session, includes, @domain_root_account),
+      render json: user_json(@user, current_principal, session, includes, @domain_root_account),
              status: @user.deleted? ? 404 : 200
     else
       raise ActiveRecord::RecordNotFound
@@ -2429,7 +2429,7 @@ class UsersController < ApplicationController
         end
 
         format.html { redirect_to user_url(@user) }
-        format.json { render json: user_json(@user, @current_user, session, includes, @domain_root_account) }
+        format.json { render json: user_json(@user, current_principal, session, includes, @domain_root_account) }
       else
         format.html { render :edit }
         format.json { render json: @user.errors, status: :bad_request }
@@ -2534,7 +2534,7 @@ class UsersController < ApplicationController
     communication_channels_for_display = @user.communication_channels.unretired.email.map(&:path).uniq
 
     render json: {
-      **user_json(@user, @current_user, session, includes, @domain_root_account),
+      **user_json(@user, current_principal, session, includes, @domain_root_account),
       enrollments: enrollments_for_display,
       pseudonyms: pseudonyms_for_display,
       communication_channels: communication_channels_for_display
@@ -2757,7 +2757,7 @@ class UsersController < ApplicationController
       if authorized_action(into_user, current_principal, :merge)
         UserMerge.from(user).into(into_user, merger: @current_user)
         render(json: user_json(into_user,
-                               @current_user,
+                               current_principal,
                                session,
                                %w[locale],
                                destination_account))
@@ -2845,7 +2845,7 @@ class UsersController < ApplicationController
 
     if authorized_action(user, current_principal, :merge)
       users = SplitUsers.split_db_users(user)
-      render json: users.sort_by(&:short_name).map { |u| user_json(u, @current_user, session) }
+      render json: users.sort_by(&:short_name).map { |u| user_json(u, current_principal, session) }
     end
   end
 
@@ -3024,7 +3024,7 @@ class UsersController < ApplicationController
       submissions = Api.paginate(scope, self, api_v1_user_submissions_url)
 
       includes = params[:include] || []
-      render(json: submissions.map { |s| submission_json(s, s.assignment, @current_user, session, nil, includes) })
+      render(json: submissions.map { |s| submission_json(s, s.assignment, current_principal, session, nil, includes) })
     end
   end
 
@@ -3459,7 +3459,7 @@ class UsersController < ApplicationController
 
     if save_user
       data = if api_request?
-               user_json(@user, @current_user, session, includes)
+               user_json(@user, current_principal, session, includes)
              else
                { user: @user, pseudonym: @pseudonym, channel: @cc, message_sent:, course: @user.self_enrollment_course }
              end

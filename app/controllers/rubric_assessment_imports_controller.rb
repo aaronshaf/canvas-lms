@@ -28,8 +28,8 @@ class RubricAssessmentImportsController < ApplicationController
     import = RubricAssessmentImport.find(params[:id])
     return unless authorized_action(import.assignment.rubric_association, current_principal, :view_rubric_assessments)
 
-    import_response = api_json(import, @current_user, session)
-    import_response[:user] = user_json(import.user, @current_user, session) if import.user
+    import_response = api_json(import, current_principal, session)
+    import_response[:user] = user_json(import.user, current_principal, session) if import.user
     import_response[:attachment] = import.attachment.slice(:id, :filename, :size)
     render json: import_response
   end
@@ -63,8 +63,8 @@ class RubricAssessmentImportsController < ApplicationController
 
         import.schedule
 
-        import_response = api_json(import, @current_user, session)
-        import_response[:user] = user_json(import.user, @current_user, session) if import.user
+        import_response = api_json(import, current_principal, session)
+        import_response[:user] = user_json(import.user, current_principal, session) if import.user
         import_response[:attachment] = import.attachment.slice(:id, :filename, :size)
         render json: import_response
       end

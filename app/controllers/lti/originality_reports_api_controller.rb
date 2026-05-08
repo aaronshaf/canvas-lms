@@ -195,7 +195,7 @@ module Lti
         @report = OriginalityReport.new(create_report_params)
         if @report.save
           @report.copy_to_group_submissions_later!
-          render json: api_json(@report, @current_user, session), status: :created
+          render json: api_json(@report, current_principal, session), status: :created
         else
           render json: @report.errors, status: :bad_request
         end
@@ -257,7 +257,7 @@ module Lti
 
       if updated
         @report.copy_to_group_submissions_later!
-        render json: api_json(@report, @current_user, session)
+        render json: api_json(@report, current_principal, session)
       else
         render json: @report.errors, status: :bad_request
       end
@@ -268,7 +268,7 @@ module Lti
     #
     # @returns OriginalityReport
     def show
-      render json: api_json(@report, @current_user, session)
+      render json: api_json(@report, current_principal, session)
     end
 
     def lti2_service_name

@@ -332,7 +332,7 @@ class ContextController < ApplicationController
       if enable_profiles
         @user_data = profile_data(
           @user.profile,
-          @current_user,
+          current_principal,
           session,
           ["links", "user_services"]
         )

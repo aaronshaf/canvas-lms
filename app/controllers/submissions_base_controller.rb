@@ -54,7 +54,7 @@ class SubmissionsBaseController < ApplicationController
         js_env({
                  nonScoringRubrics: @domain_root_account.feature_enabled?(:non_scoring_rubrics),
                  outcome_extra_credit_enabled: @context.feature_enabled?(:outcome_extra_credit),
-                 rubric: rubric ? rubric_json(rubric, @current_user, session, style: "full") : nil,
+                 rubric: rubric ? rubric_json(rubric, current_principal, session, style: "full") : nil,
                  rubricAssociation: rubric_association_json ? rubric_association_json["rubric_association"] : nil,
                  outcome_proficiency:,
                  media_comment_asset_string: @current_user.asset_string,
@@ -191,7 +191,7 @@ class SubmissionsBaseController < ApplicationController
               avatars: service_enabled?(:avatars),
               submissions: @submissions,
               submission_comments: submission.visible_submission_comments_for(@current_user),
-              current_user: @current_user,
+              current_principal:,
               course: @context
             )
             submission_json

@@ -93,7 +93,7 @@ class FavoritesController < ApplicationController
       end
 
       course_json(course,
-                  @current_user,
+                  current_principal,
                   session,
                   includes,
                   enrollments,
@@ -119,9 +119,9 @@ class FavoritesController < ApplicationController
       fave_group_memberships = @current_user.groups.active.shard(@current_user).where(id: @current_user.favorite_context_ids("Group"))
     end
     if fave_group_memberships.any?
-      render json: fave_group_memberships.map { |g| group_json(g, @current_user, session) }
+      render json: fave_group_memberships.map { |g| group_json(g, current_principal, session) }
     else
-      render json: @current_user.groups.active.shard(@current_user).map { |g| group_json(g, @current_user, session) }
+      render json: @current_user.groups.active.shard(@current_user).map { |g| group_json(g, current_principal, session) }
     end
   end
 
@@ -151,7 +151,7 @@ class FavoritesController < ApplicationController
       fave = Favorite.create_or_find_by(user: @current_user, context: course)
     end
 
-    render json: favorite_json(fave, @current_user, session)
+    render json: favorite_json(fave, current_principal, session)
   end
 
   # @API Add group to favorites
@@ -178,7 +178,7 @@ class FavoritesController < ApplicationController
       fave = Favorite.create_or_find_by(user: @current_user, context: group)
     end
 
-    render json: favorite_json(fave, @current_user, session)
+    render json: favorite_json(fave, current_principal, session)
   end
 
   # @API Remove course from favorites
@@ -200,7 +200,7 @@ class FavoritesController < ApplicationController
     course = api_find(Course, params[:id])
     fave = @current_user.favorites.where(context_type: "Course", context_id: course.id).first
     if fave
-      result = favorite_json(fave, @current_user, session)
+      result = favorite_json(fave, current_principal, session)
       fave.destroy
       render json: result
     else
@@ -228,7 +228,7 @@ class FavoritesController < ApplicationController
     group = api_find(Group, params[:id])
     fave = @current_user.favorites.where(context_type: "Group", context_id: group.id).first
     if fave
-      result = favorite_json(fave, @current_user, session)
+      result = favorite_json(fave, current_principal, session)
       fave.destroy
       render json: result
     else

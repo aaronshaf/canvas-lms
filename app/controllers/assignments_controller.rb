@@ -403,7 +403,7 @@ class AssignmentsController < ApplicationController
         env = js_env({
                        COURSE_ID: @context.id,
                        MODULE_ITEM_ID: params[:module_item_id],
-                       ROOT_OUTCOME_GROUP: outcome_group_json(@context.root_outcome_group, @current_user, session),
+                       ROOT_OUTCOME_GROUP: outcome_group_json(@context.root_outcome_group, current_principal, session),
                        HAS_GRADING_PERIODS: @context.grading_periods?,
                        VALID_DATE_RANGE: CourseDateRange.new(@context),
                        POST_TO_SIS: Assignment.sis_grade_export_enabled?(@context),
@@ -433,7 +433,7 @@ class AssignmentsController < ApplicationController
 
           eligible_categories = can_view_tags ? @context.active_combined_group_and_differentiation_tag_categories : @context.group_categories.active
           eligible_categories = eligible_categories.where(id: @assignment.group_category) if @assignment.group_category.present?
-          env[:group_categories] = group_categories_json(eligible_categories, @current_user, session, { include: ["groups"] })
+          env[:group_categories] = group_categories_json(eligible_categories, current_principal, session, { include: ["groups"] })
 
           selected_group_id = @current_user&.get_preference(:gradebook_settings, @context.global_id)&.dig("filter_rows_by", "student_group_id")
           # If this is a group assignment and we had previously filtered by a
@@ -616,7 +616,7 @@ class AssignmentsController < ApplicationController
 
   def rubric
     @assignment = @context.assignments.active.find(params[:assignment_id])
-    @root_outcome_group = outcome_group_json(@context.root_outcome_group, @current_user, session)
+    @root_outcome_group = outcome_group_json(@context.root_outcome_group, current_principal, session)
     if authorized_action(@assignment, current_principal, :read)
       render partial: "shared/assignment_rubric_dialog"
     end
@@ -633,11 +633,11 @@ class AssignmentsController < ApplicationController
     if assignment.active_rubric_association?
       rubric_association = assignment.rubric_association
       can_update_rubric = can_do(rubric_association.rubric, current_principal, :update)
-      assigned_rubric = rubric_json(rubric_association.rubric, @current_user, session, style: "full")
+      assigned_rubric = rubric_json(rubric_association.rubric, current_principal, session, style: "full")
       assigned_rubric[:unassessed] = Rubric.active.unassessed.where(id: rubric_association.rubric.id).exists?
       assigned_rubric[:can_update] = can_update_rubric
       assigned_rubric[:association_count] = RubricAssociation.active.where(rubric_id: rubric_association.rubric.id).count
-      rubric_association = rubric_association_json(rubric_association, @current_user, session)
+      rubric_association = rubric_association_json(rubric_association, current_principal, session)
       rubric_association[:can_update] = can_do(assignment.rubric_association, current_principal, :update)
       rubric_association[:can_delete] = can_do(assignment.rubric_association, current_principal, :delete)
     end
@@ -961,7 +961,7 @@ class AssignmentsController < ApplicationController
       end
 
       json_for_assignment_groups = assignment_groups.map do |group|
-        assignment_group_json(group, @current_user, session, [], { stringify_json_ids: true })
+        assignment_group_json(group, current_principal, session, [], { stringify_json_ids: true })
       end
 
       post_to_sis = Assignment.sis_grade_export_enabled?(@context)
@@ -970,7 +970,7 @@ class AssignmentsController < ApplicationController
 
       hash = {
         ROOT_FOLDER_ID: Folder.root_folders(@context).first&.id,
-        ROOT_OUTCOME_GROUP: outcome_group_json(@context.root_outcome_group, @current_user, session),
+        ROOT_OUTCOME_GROUP: outcome_group_json(@context.root_outcome_group, current_principal, session),
         ALLOW_ASSIGN_TO_DIFFERENTIATION_TAGS: assign_to_tags,
         CAN_MANAGE_DIFFERENTIATION_TAGS: @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS),
         ASSIGNMENT_GROUPS: json_for_assignment_groups,
@@ -1024,7 +1024,7 @@ class AssignmentsController < ApplicationController
       end
 
       hash[:POST_TO_SIS_DEFAULT] = @context.account.sis_default_grade_export[:value] if post_to_sis && @assignment.new_record?
-      hash[:ASSIGNMENT] = assignment_json(@assignment, @current_user, session, override_dates: false, include_peer_review: true)
+      hash[:ASSIGNMENT] = assignment_json(@assignment, current_principal, session, override_dates: false, include_peer_review: true)
       hash[:ASSIGNMENT][:has_submitted_submissions] = @assignment.has_submitted_submissions?
       hash[:URL_ROOT] = polymorphic_url([:api_v1, @context, :assignments])
       hash[:CANCEL_TO] = set_cancel_to_url
@@ -1133,7 +1133,7 @@ class AssignmentsController < ApplicationController
 
       respond_to do |format|
         format.html { redirect_to(named_context_url(@context, :context_assignments_url)) }
-        format.json { render json: assignment_json(@assignment, @current_user, session) }
+        format.json { render json: assignment_json(@assignment, current_principal, session) }
       end
     end
   end
@@ -1220,7 +1220,7 @@ class AssignmentsController < ApplicationController
         grader_id: final_grader_id,
         id: @assignment.final_grader_id
       },
-      GRADERS: moderation_graders_json(@assignment, @current_user, session),
+      GRADERS: moderation_graders_json(@assignment, current_principal, session),
     }
   end
 

@@ -266,7 +266,7 @@ class AccountReportsController < ApplicationController
       last_runs = AccountReport.last_reports(account: @account)
 
       available_reports.each do |key, value|
-        last_run = account_report_json(last_runs[key], @current_user) if last_runs.key?(key)
+        last_run = account_report_json(last_runs[key], current_principal) if last_runs.key?(key)
 
         report = {
           title: value.title,
@@ -344,7 +344,7 @@ class AccountReportsController < ApplicationController
         # Respond with 409 Conflict and include a Location header
         # Clients can use this header instead of parsing the response body to obtain the report URL.
         headers["Location"] = api_v1_account_report_url(@account, report_type, existing_report.id)
-        return render json: account_report_json(existing_report, @current_user), status: :conflict
+        return render json: account_report_json(existing_report, current_principal), status: :conflict
       end
 
       report = @account.account_reports.build(user: @current_user, report_type:, parameters:)
@@ -352,7 +352,7 @@ class AccountReportsController < ApplicationController
       report.progress = 0
       report.save
       report.run_report
-      render json: account_report_json(report, @current_user)
+      render json: account_report_json(report, current_principal)
     end
   end
 
@@ -379,7 +379,7 @@ class AccountReportsController < ApplicationController
         Api.paginate(type_scope.active.most_recent.except(:limit), self, url_for({ action: :index, controller: :account_reports }))
       end
 
-      render json: account_reports_json(reports, @current_user)
+      render json: account_reports_json(reports, current_principal)
     end
   end
 
@@ -396,7 +396,7 @@ class AccountReportsController < ApplicationController
     if authorized_action(@context, current_principal, :read_reports)
 
       report = type_scope.active.find(params[:id])
-      render json: account_report_json(report, @current_user)
+      render json: account_report_json(report, current_principal)
     end
   end
 
@@ -415,7 +415,7 @@ class AccountReportsController < ApplicationController
       report = type_scope.active.find(params[:id])
 
       if report.destroy
-        render json: account_report_json(report, @current_user)
+        render json: account_report_json(report, current_principal)
       else
         render json: report.errors, status: :bad_request
       end
@@ -438,7 +438,7 @@ class AccountReportsController < ApplicationController
       report = type_scope.created_or_running.find(params[:id])
 
       if report.update(workflow_state: "aborted")
-        render json: account_report_json(report, @current_user)
+        render json: account_report_json(report, current_principal)
       else
         render json: report.errors, status: :bad_request
       end

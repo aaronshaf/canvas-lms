@@ -414,7 +414,7 @@ class ContextModulesController < ApplicationController
               }
 
               option[:assignments] = (set[:assignments] || set[:assignment_set_associations]).map do |a|
-                assg = assignment_json(a[:model], @current_user, session)
+                assg = assignment_json(a[:model], current_principal, session)
                 assg[:assignmentId] = a[:assignment_id]
                 assg
               end
@@ -1207,7 +1207,7 @@ class ContextModulesController < ApplicationController
         student_ids = @context.observer_enrollments.for_user(@current_user).map(&:associated_user_id)
         student_ids << @current_user.id if @context.user_is_student?(@current_user)
         students = UserSearch.scope_for(@context, @current_user, { enrollment_type: "student" }).where(id: student_ids)
-        @visible_students = students.map { |u| user_json(u, @current_user, session) }
+        @visible_students = students.map { |u| user_json(u, current_principal, session) }
       end
     end
   end

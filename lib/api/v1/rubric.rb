@@ -42,16 +42,16 @@ module Api::V1::Rubric
     ]
   }.freeze
 
-  def rubrics_json(rubrics, user, session, opts = {})
-    rubrics.map { |r| rubric_json(r, user, session, opts) }
+  def rubrics_json(rubrics, current_principal, session, opts = {})
+    rubrics.map { |r| rubric_json(r, current_principal, session, opts) }
   end
 
-  def rubric_json(rubric, user, session, opts = {})
+  def rubric_json(rubric, current_principal, session, opts = {})
     json_attributes = API_ALLOWED_RUBRIC_OUTPUT_FIELDS
-    hash = api_json(rubric, user, session, json_attributes)
+    hash = api_json(rubric, current_principal, session, json_attributes)
     hash["criteria"] = rubric.data if opts[:style] == "full"
-    hash["assessments"] = rubric_assessments_json(opts[:assessments], user, session, opts) unless opts[:assessments].nil?
-    hash["associations"] = rubric_associations_json(opts[:associations], user, session, opts) unless opts[:associations].nil?
+    hash["assessments"] = rubric_assessments_json(opts[:assessments], current_principal, session, opts) unless opts[:assessments].nil?
+    hash["associations"] = rubric_associations_json(opts[:associations], current_principal, session, opts) unless opts[:associations].nil?
     hash
   end
 
@@ -82,13 +82,13 @@ module Api::V1::Rubric
     assigned_rubric = nil
     if assignment.active_rubric_association?
       rubric_association = assignment.rubric_association
-      assigned_rubric = rubric_json(rubric_association.rubric, @current_user, session, style: "full")
+      assigned_rubric = rubric_json(rubric_association.rubric, current_principal, session, style: "full")
       assigned_rubric[:unassessed] = Rubric.active.unassessed.where(id: rubric_association.rubric.id).exists?
-      assigned_rubric[:can_update] = can_do(rubric_association.rubric, @current_user, :update)
+      assigned_rubric[:can_update] = can_do(rubric_association.rubric, current_principal, :update)
       assigned_rubric[:association_count] = RubricAssociation.active.where(rubric_id: rubric_association.rubric.id).count
-      rubric_association = rubric_association_json(rubric_association, @current_user, session)
-      rubric_association[:can_update] = can_do(assignment.rubric_association, @current_user, :update)
-      rubric_association[:can_delete] = can_do(assignment.rubric_association, @current_user, :delete)
+      rubric_association = rubric_association_json(rubric_association, current_principal, session)
+      rubric_association[:can_update] = can_do(assignment.rubric_association, current_principal, :update)
+      rubric_association[:can_delete] = can_do(assignment.rubric_association, current_principal, :delete)
     end
 
     rubrics_hash = {
@@ -113,7 +113,7 @@ module Api::V1::Rubric
       COURSE_ID: @context.id,
       ai_rubrics_enabled: Rubric.ai_rubrics_enabled?(@context),
       rubric_self_assessment_ff_enabled: Rubric.rubric_self_assessment_enabled?(@context) && is_valid_self_assessment_assignment_type,
-      ROOT_OUTCOME_GROUP: outcome_group_json(@context.root_outcome_group, @current_user, session),
+      ROOT_OUTCOME_GROUP: outcome_group_json(@context.root_outcome_group, current_principal, session),
     }
     js_env(rubrics_hash)
   end

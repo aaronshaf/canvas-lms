@@ -143,7 +143,7 @@ class EportfoliosApiController < ApplicationController
     end
 
     portfolios = Api.paginate(scope.order(:updated_at), self, api_v1_eportfolios_url)
-    render json: portfolios.map { |e| eportfolio_json(e, @current_user, session) }
+    render json: portfolios.map { |e| eportfolio_json(e, current_principal, session) }
   end
 
   # @API Get an ePortfolio
@@ -155,7 +155,7 @@ class EportfoliosApiController < ApplicationController
     portfolio = Eportfolio.find(params[:id])
     return unless authorized_action(portfolio, current_principal, :read)
 
-    render json: eportfolio_json(portfolio, @current_user, session)
+    render json: eportfolio_json(portfolio, current_principal, session)
   end
 
   # @API Delete an ePortfolio
@@ -168,7 +168,7 @@ class EportfoliosApiController < ApplicationController
     return unless authorized_action(portfolio, current_principal, :delete)
 
     if portfolio.destroy
-      render json: eportfolio_json(portfolio, @current_user, session)
+      render json: eportfolio_json(portfolio, current_principal, session)
     else
       render json: { error: "There was an error destroying the ePortfolio" }, status: :bad_request
     end
@@ -189,7 +189,7 @@ class EportfoliosApiController < ApplicationController
       api_v1_eportfolio_pages_url
     )
 
-    render json: pages.map { |p| eportfolio_entry_json(p, @current_user, session) }
+    render json: pages.map { |p| eportfolio_entry_json(p, current_principal, session) }
   end
 
   # @API Moderate an ePortfolio
@@ -208,7 +208,7 @@ class EportfoliosApiController < ApplicationController
     if Eportfolio::SPAM_MODERATIONS.exclude?(params[:spam_status])
       render json: { error: "spam_status must be one of #{Eportfolio::SPAM_MODERATIONS}" }, status: :bad_request
     elsif portfolio.update(spam_status: params[:spam_status])
-      render json: eportfolio_json(portfolio, @current_user, session)
+      render json: eportfolio_json(portfolio, current_principal, session)
     else
       render json: portfolio.errors, status: :bad_request
     end
@@ -245,7 +245,7 @@ class EportfoliosApiController < ApplicationController
     return unless authorized_action(portfolio, current_principal, :restore)
 
     if portfolio.restore
-      render json: eportfolio_json(portfolio, @current_user, session)
+      render json: eportfolio_json(portfolio, current_principal, session)
     else
       render json: { error: "There was an error restoring the ePortfolio" }, status: :bad_request
     end

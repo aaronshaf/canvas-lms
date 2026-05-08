@@ -3410,27 +3410,27 @@ class ApplicationController < ActionController::Base
       request.user_agent.to_s.match?(%r{Word/\d+\.\d+})
   end
 
-  def profile_data(profile, viewer, session, includes)
+  def profile_data(profile, current_principal, session, includes)
     extend Api::V1::UserProfile
     extend Api::V1::Course
     extend Api::V1::Group
 
     includes ||= []
     profile_owner = profile.user
-    is_profile_owner = viewer == profile_owner
+    is_profile_owner = current_principal.user == profile_owner
     profile_permissions = profile_owner.details_editable_by_user
     profile_permissions = profile_permissions.transform_values { false } unless is_profile_owner
 
-    data = user_profile_json(profile, viewer, session, includes, profile)
+    data = user_profile_json(profile, current_principal, session, includes, profile)
     data = data.merge(profile_permissions)
     data[:can_edit_avatar] = data[:can_edit] && profile_owner.avatar_state != :locked
-    data[:known_user] = viewer.address_book.known_user(profile_owner)
-    if data[:known_user] && viewer != profile_owner
-      common_courses = viewer.address_book.common_courses(profile_owner)
+    data[:known_user] = current_principal.user.address_book.known_user(profile_owner)
+    if data[:known_user] && current_principal.user != profile_owner
+      common_courses = current_principal.user.address_book.common_courses(profile_owner)
       # address book can return a fake record in common courses with course_id
       # 0 which represents an admin -> user commonality.
       common_courses.delete(0)
-      common_groups = viewer.address_book.common_groups(profile.user)
+      common_groups = current_principal.user.address_book.common_groups(profile_owner)
     else
       common_courses = {}
       common_groups = {}
@@ -3494,7 +3494,7 @@ class ApplicationController < ActionController::Base
         mc_status = setup_master_course_restrictions(@page, @context, user_can_edit: true)
       end
 
-      hash[:WIKI_PAGE] = wiki_page_json(@page, @current_user, session, include_body: true, deep_check_if_needed: true, master_course_status: mc_status)
+      hash[:WIKI_PAGE] = wiki_page_json(@page, current_principal, session, include_body: true, deep_check_if_needed: true, master_course_status: mc_status)
       version_number = Rails.cache.fetch(["page_version", @page].cache_key) { @page.versions.maximum(:number) }
       hash[:WIKI_PAGE_REVISION] = version_number && StringifyIds.stringify_id(version_number)
       hash[:WIKI_PAGE_SHOW_PATH] = named_context_url(@context, :context_wiki_page_path, @page)

@@ -35,22 +35,22 @@ module Api::V1::Account
     Api::V1::Account.extensions << extension
   end
 
-  def account_json(account, user, session, includes, read_only: false)
+  def account_json(account, current_principal, session, includes, read_only: false)
     attributes = %w[id name parent_account_id root_account_id workflow_state uuid]
     if read_only
-      return api_json(account, user, session, only: attributes).tap do |hash|
+      return api_json(account, current_principal, session, only: attributes).tap do |hash|
         hash["root_account_id"] = nil if account.root_account?
         hash["default_time_zone"] = account.default_time_zone.tzinfo.name
       end
     end
 
     methods = %w[default_storage_quota_mb default_user_storage_quota_mb default_group_storage_quota_mb]
-    api_json(account, user, session, only: attributes, methods:).tap do |hash|
+    api_json(account, current_principal, session, only: attributes, methods:).tap do |hash|
       hash["root_account_id"] = nil if account.root_account?
       hash["default_time_zone"] = account.default_time_zone.tzinfo.name
-      hash["sis_account_id"] = account.sis_source_id if !account.root_account? && account.root_account.grants_any_right?(user, :read_sis, :manage_sis)
-      hash["sis_import_id"] = account.sis_batch_id if !account.root_account? && account.root_account.grants_right?(user, session, :manage_sis)
-      hash["integration_id"] = account.integration_id if !account.root_account? && account.root_account.grants_any_right?(user, :read_sis, :manage_sis)
+      hash["sis_account_id"] = account.sis_source_id if !account.root_account? && account.root_account.grants_any_right?(current_principal, :read_sis, :manage_sis)
+      hash["sis_import_id"] = account.sis_batch_id if !account.root_account? && account.root_account.grants_right?(current_principal, session, :manage_sis)
+      hash["integration_id"] = account.integration_id if !account.root_account? && account.root_account.grants_any_right?(current_principal, :read_sis, :manage_sis)
       hash["lti_guid"] = account.lti_guid if includes.include?("lti_guid")
       hash["site_admin"] = true if includes.include?("site_admin") && account.site_admin?
       hash["course_template_id"] = account.course_template_id
@@ -66,8 +66,8 @@ module Api::V1::Account
           hash["recaptcha_key"] = account.recaptcha_key
         end
       end
-      if includes.include?("services") && account.grants_right?(user, session, :manage_account_settings)
-        hash["services"] = Account.services_exposed_to_ui_hash(nil, user, account).keys.index_with { |k| account.service_enabled?(k) }
+      if includes.include?("services") && account.grants_right?(current_principal, session, :manage_account_settings)
+        hash["services"] = Account.services_exposed_to_ui_hash(nil, current_principal, account).keys.index_with { |k| account.service_enabled?(k) }
       end
       hash["course_count"] = account.course_count if includes.include?("course_count")
       hash["sub_account_count"] = account.sub_account_count if includes.include?("sub_account_count")
@@ -79,12 +79,12 @@ module Api::V1::Account
       end
 
       Api::V1::Account.extensions.each do |extension|
-        hash = extension.extend_account_json(hash, account, user, session, includes)
+        hash = extension.extend_account_json(hash, account, current_principal, session, includes)
       end
     end
   end
 
-  def accounts_json(accounts, user, session, includes)
-    accounts.map { |account| account_json(account, user, session, includes) }
+  def accounts_json(accounts, current_principal, session, includes)
+    accounts.map { |account| account_json(account, current_principal, session, includes) }
   end
 end

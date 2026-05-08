@@ -38,7 +38,7 @@ module Lti
     # @returns DeveloperKey
     def update
       developer_key.update!(public_jwk:)
-      render json: developer_key_json(developer_key, @current_user, session, context), content_type: MIME_TYPE
+      render json: developer_key_json(developer_key, current_principal, session, context), content_type: MIME_TYPE
     end
 
     private

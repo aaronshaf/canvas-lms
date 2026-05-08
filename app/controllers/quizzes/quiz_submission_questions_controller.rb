@@ -85,13 +85,11 @@ class Quizzes::QuizSubmissionQuestionsController < ApplicationController
     if authorized_action(@quiz_submission, current_principal, :read)
       render json: quiz_submission_questions_json(@quiz_submission.quiz_questions,
                                                   @quiz_submission,
-                                                  {
-                                                    user: @current_user,
-                                                    session:,
-                                                    includes: extract_includes,
-                                                    censored: censored?,
-                                                    shuffle_answers: @quiz.shuffle_answers_for_user?(@current_user)
-                                                  })
+                                                  current_principal:,
+                                                  session:,
+                                                  includes: extract_includes,
+                                                  censored: censored?,
+                                                  shuffle_answers: @quiz.shuffle_answers_for_user?(@current_user))
     end
   end
 
@@ -161,7 +159,7 @@ class Quizzes::QuizSubmissionQuestionsController < ApplicationController
 
     @service.update_question(record, @quiz_submission, params[:attempt])
 
-    render json: quiz_submission_questions_json(quiz_questions.all, @quiz_submission.reload, censored: true)
+    render json: quiz_submission_questions_json(quiz_questions.all, @quiz_submission.reload, current_principal:, censored: true)
   end
 
   # @API Get a formatted student numerical answer.
@@ -229,7 +227,8 @@ class Quizzes::QuizSubmissionQuestionsController < ApplicationController
     end
     flag_current_question(true)
     render json: quiz_submission_questions_json([@question],
-                                                @quiz_submission.reload)
+                                                @quiz_submission.reload,
+                                                current_principal:)
   end
 
   # @API Unflagging a question.
@@ -261,7 +260,8 @@ class Quizzes::QuizSubmissionQuestionsController < ApplicationController
     end
     flag_current_question(false)
     render json: quiz_submission_questions_json([@question],
-                                                @quiz_submission.reload)
+                                                @quiz_submission.reload,
+                                                current_principal:)
   end
 
   private

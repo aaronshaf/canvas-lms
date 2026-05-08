@@ -97,7 +97,7 @@ class PlannerOverridesController < ApplicationController
   # @returns [PlannerOverride]
   def index
     planner_overrides = Api.paginate(PlannerOverride.for_user(@current_user).active, self, api_v1_planner_overrides_url)
-    render json: planner_overrides.map { |po| planner_override_json(po, @current_user, session) }
+    render json: planner_overrides.map { |po| planner_override_json(po, current_principal, session) }
   end
 
   # @API Show a planner override
@@ -107,7 +107,7 @@ class PlannerOverridesController < ApplicationController
   # @returns PlannerOverride
   def show
     planner_override = PlannerOverride.for_user(@current_user).find(params[:id])
-    render json: planner_override_json(planner_override, @current_user, session)
+    render json: planner_override_json(planner_override, current_principal, session)
   end
 
   # @API Update a planner override
@@ -129,7 +129,7 @@ class PlannerOverridesController < ApplicationController
 
     if planner_override.save
       Rails.cache.delete(planner_meta_cache_key)
-      render json: planner_override_json(planner_override, @current_user, session), status: :ok
+      render json: planner_override_json(planner_override, current_principal, session), status: :ok
     else
       render json: planner_override.errors, status: :bad_request
     end
@@ -166,7 +166,7 @@ class PlannerOverridesController < ApplicationController
     begin
       if planner_override.save
         Rails.cache.delete(planner_meta_cache_key)
-        render json: planner_override_json(planner_override, @current_user, session), status: :created
+        render json: planner_override_json(planner_override, current_principal, session), status: :created
       else
         render json: planner_override.errors, status: :bad_request
       end
@@ -191,7 +191,7 @@ class PlannerOverridesController < ApplicationController
 
     if planner_override.destroy
       Rails.cache.delete(planner_meta_cache_key)
-      render json: planner_override_json(planner_override, @current_user, session), status: :ok
+      render json: planner_override_json(planner_override, current_principal, session), status: :ok
     else
       render json: planner_override.errors, status: :bad_request
     end

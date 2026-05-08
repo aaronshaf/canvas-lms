@@ -280,7 +280,7 @@ class ConversationsController < ApplicationController
         # OPTIMIZE: loading the most recent messages for each conversation into a single query
         ConversationParticipant.preload_latest_messages(conversations, @current_user)
         @conversations_json = conversations_json(conversations,
-                                                 @current_user,
+                                                 current_principal,
                                                  session,
                                                  include_participant_avatars: (Array(params[:include]).include? "participant_avatars"),
                                                  include_participant_uuid: include_participant_uuid?,
@@ -507,7 +507,7 @@ class ConversationsController < ApplicationController
         Conversation.preload_participants(conversations.map(&:conversation))
         ConversationParticipant.preload_latest_messages(conversations, @current_user)
         visibility_map = infer_visibility(conversations)
-        render json: conversations.map { |c| conversation_json(c, @current_user, session, include_participant_avatars: false, include_participant_uuid: include_participant_uuid?, include_participant_contexts: false, visible: visibility_map[c.conversation_id]) }, status: :created
+        render json: conversations.map { |c| conversation_json(c, current_principal, session, include_participant_avatars: false, include_participant_uuid: include_participant_uuid?, include_participant_contexts: false, visible: visibility_map[c.conversation_id]) }, status: :created
       else
         @conversation = @current_user.initiate_conversation(@recipients, !group_conversation, subject: params[:subject], context_type:, context_id:)
         @conversation.add_message(message, tags: @tags, update_for_sender: false, cc_author: true)
@@ -527,7 +527,7 @@ class ConversationsController < ApplicationController
           InstStatsd::Statsd.distributed_increment("inbox.message.sent.attachment.legacy")
         end
         InstStatsd::Statsd.count("inbox.message.sent.recipients.legacy", @recipients.count)
-        render json: [conversation_json(@conversation.reload, @current_user, session, include_indirect_participants: true, include_participant_uuid: include_participant_uuid?, messages: [message])], status: :created
+        render json: [conversation_json(@conversation.reload, current_principal, session, include_indirect_participants: true, include_participant_uuid: include_participant_uuid?, messages: [message])], status: :created
       end
     end
   rescue ActiveRecord::RecordInvalid => e
@@ -566,7 +566,7 @@ class ConversationsController < ApplicationController
     batches = Api.paginate(@current_user.conversation_batches.in_progress.order(:id),
                            self,
                            api_v1_conversations_batches_url)
-    render json: batches.map { |m| conversation_batch_json(m, @current_user, session) }
+    render json: batches.map { |m| conversation_batch_json(m, current_principal, session) }
   end
 
   # @API Get a single conversation
@@ -686,7 +686,7 @@ class ConversationsController < ApplicationController
     end
 
     render json: conversation_json(@conversation,
-                                   @current_user,
+                                   current_principal,
                                    session,
                                    include_participant_contexts: value_to_boolean(params.fetch(:include_participant_contexts, true)),
                                    include_indirect_participants: true,
@@ -748,7 +748,7 @@ class ConversationsController < ApplicationController
       InstStatsd::Statsd.distributed_increment("inbox.conversation.starred.legacy") if ActiveModel::Type::Boolean.new.cast(params[:conversation][:starred]) && !prev_conversation_state.starred
       InstStatsd::Statsd.distributed_increment("inbox.conversation.unstarred.legacy") if !ActiveModel::Type::Boolean.new.cast(params[:conversation][:starred]) && prev_conversation_state.starred
       InstStatsd::Statsd.distributed_increment("inbox.conversation.unread.legacy") if params.require(:conversation)["workflow_state"] == "unread" && prev_conversation_state.workflow_state == "read"
-      render json: conversation_json(@conversation, @current_user, session, include_participant_uuid: include_participant_uuid?)
+      render json: conversation_json(@conversation, current_principal, session, include_participant_uuid: include_participant_uuid?)
     else
       render json: @conversation.errors, status: :bad_request
     end
@@ -782,7 +782,7 @@ class ConversationsController < ApplicationController
   #   }
   def destroy
     @conversation.remove_messages(:all)
-    render json: conversation_json(@conversation, @current_user, session, visible: false, include_participant_uuid: include_participant_uuid?)
+    render json: conversation_json(@conversation, current_principal, session, visible: false, include_participant_uuid: include_participant_uuid?)
   end
 
   # internal api
@@ -811,7 +811,7 @@ class ConversationsController < ApplicationController
         api_v1_deleted_conversations_url
       )
 
-      participants.map { |p| deleted_conversation_json(p, @current_user, session) }
+      participants.map { |p| deleted_conversation_json(p, current_principal, session) }
     end
 
     conversation_messages = if params["conversation_id"]
@@ -846,7 +846,7 @@ class ConversationsController < ApplicationController
       participant.last_message_at = messages.first.created_at
       participant.save!
 
-      render json: cmp.map { |c| conversation_message_json(c.conversation_message, @current_user, session) }
+      render json: cmp.map { |c| conversation_message_json(c.conversation_message, current_principal, session) }
     end
   end
 
@@ -900,7 +900,7 @@ class ConversationsController < ApplicationController
     if @recipients.present?
       if @conversation.conversation.can_add_participants?(@recipients)
         @conversation.add_participants(@recipients, tags: @tags, root_account_id: @domain_root_account.id)
-        render json: conversation_json(@conversation.reload, @current_user, session, messages: [@conversation.messages.first], include_participant_uuid: include_participant_uuid?)
+        render json: conversation_json(@conversation.reload, current_principal, session, messages: [@conversation.messages.first], include_participant_uuid: include_participant_uuid?)
       else
         render_error("recipients", "too many participants for group conversation")
       end
@@ -1001,7 +1001,7 @@ class ConversationsController < ApplicationController
       InstStatsd::Statsd.distributed_increment("inbox.message.sent.attachment.legacy")
     end
     InstStatsd::Statsd.count("inbox.message.sent.recipients.legacy", message[:recipients_count])
-    render json: message[:message].nil? ? [] : conversation_json(@conversation.reload, @current_user, session, messages: [message[:message]], include_participant_uuid: include_participant_uuid?), status: message[:status]
+    render json: message[:message].nil? ? [] : conversation_json(@conversation.reload, current_principal, session, messages: [message[:message]], include_participant_uuid: include_participant_uuid?), status: message[:status]
   rescue ConversationsHelper::RepliesLockedForUser
     render_unauthorized_action
   rescue ConversationsHelper::Error => e
@@ -1035,7 +1035,7 @@ class ConversationsController < ApplicationController
       if @conversation.conversation_message_participants.where.not(workflow_state: "deleted").empty?
         @conversation.update_attribute(:last_message_at, nil)
       end
-      render json: conversation_json(@conversation, @current_user, session, include_participant_uuid: include_participant_uuid?)
+      render json: conversation_json(@conversation, current_principal, session, include_participant_uuid: include_participant_uuid?)
     end
   end
 
@@ -1074,7 +1074,7 @@ class ConversationsController < ApplicationController
     InstStatsd::Statsd.count("inbox.conversation.unread.legacy", conversation_count) if params[:event] == "mark_as_unread"
 
     progress = ConversationParticipant.batch_update(@current_user, conversation_ids, update_params)
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 
   # @API Find recipients

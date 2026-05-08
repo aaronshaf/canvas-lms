@@ -98,7 +98,7 @@ class PeerReviewsApiController < ApplicationController
 
     includes = Set.new(Array(params[:include]))
 
-    render json: assessment_requests_json(assessment_requests, @current_user, session, includes)
+    render json: assessment_requests_json(assessment_requests, current_principal, session, includes)
   end
 
   # @API Create Peer Review
@@ -116,7 +116,7 @@ class PeerReviewsApiController < ApplicationController
     if authorized_action(@assignment, current_principal, :grade)
       assessment_request = @assignment.assign_peer_review(@reviewer, @student)
       includes = Set.new(Array(params[:include]))
-      render json: assessment_request_json(assessment_request, @current_user, session, includes)
+      render json: assessment_request_json(assessment_request, current_principal, session, includes)
     end
   end
 
@@ -134,7 +134,7 @@ class PeerReviewsApiController < ApplicationController
                                             .for_assessee(@student).first
       if assessment_request
         assessment_request.destroy
-        render json: assessment_request_json(assessment_request, @current_user, session, [])
+        render json: assessment_request_json(assessment_request, current_principal, session, [])
       else
         render json: { errors: { base: t("errors.delete_reminder_failed", "Delete failed") } },
                status: :bad_request
@@ -167,7 +167,7 @@ class PeerReviewsApiController < ApplicationController
 
     if result[:success]
       includes = Set.new(Array(params[:include]))
-      render json: assessment_requests_json(result[:assessment_requests], @current_user, session, includes)
+      render json: assessment_requests_json(result[:assessment_requests], current_principal, session, includes)
     else
       status_code = result[:status] || :bad_request
       render json: { errors: { base: result[:message] } }, status: status_code

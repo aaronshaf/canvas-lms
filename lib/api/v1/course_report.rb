@@ -22,14 +22,14 @@ module Api::V1::CourseReport
   include Api::V1::Json
   include Api::V1::Attachment
 
-  def course_reports_json(reports, user)
+  def course_reports_json(reports, current_principal)
     reports.map do |f|
-      course_report_json(f, user)
+      course_report_json(f, current_principal)
     end
   end
 
-  def course_report_json(report, user)
-    json = api_json(report, user, nil, only: %w[id parameters])
+  def course_report_json(report, current_principal)
+    json = api_json(report, current_principal, nil, only: %w[id parameters])
     json[:status] = report.workflow_state
     json[:report_type] = report.report_type
     json[:course_id] = report.course_id
@@ -38,7 +38,7 @@ module Api::V1::CourseReport
     json[:ended_at] = report.end_at&.iso8601
     json[:file_url] = (report.attachment.nil? ? nil : verified_file_download_url(report.attachment, report.course))
     if report.attachment
-      json[:attachment] = attachment_json(report.attachment, user)
+      json[:attachment] = attachment_json(report.attachment, current_principal)
     end
     json[:progress] = if report.progress
                         report.progress.completion.to_i

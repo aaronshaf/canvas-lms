@@ -61,15 +61,15 @@ module Api::V1::CourseEvent
     }
   end
 
-  def course_events_json(events, user, session)
-    events.map { |event| course_event_json(event, user, session) }
+  def course_events_json(events, current_principal, session)
+    events.map { |event| course_event_json(event, current_principal, session) }
   end
 
-  def course_events_compound_json(events, user, session)
+  def course_events_compound_json(events, current_principal, session)
     {
       links: links_json,
-      events: course_events_json(events, user, session),
-      linked: linked_json(events, user, session)
+      events: course_events_json(events, current_principal, session),
+      linked: linked_json(events, current_principal, session)
     }
   end
 
@@ -83,7 +83,7 @@ module Api::V1::CourseEvent
     }
   end
 
-  def linked_json(events, user, session)
+  def linked_json(events, current_principal, session)
     course_ids = events.filter_map(&:course_id)
     course_ids.concat(events.filter_map do |event|
       event.event_data[event.event_type] if event.event_data
@@ -103,9 +103,9 @@ module Api::V1::CourseEvent
     # which would result in inconsistent ids. This is to make sure that the ids are always the same type
     # (strings) on the returned object.
     StringifyIds.recursively_stringify_ids({
-                                             page_views: page_views_json(page_views, user, session),
-                                             courses: courses_json(courses, user, session, [], []),
-                                             users: users_json(users, user, session, [], @domain_root_account)
+                                             page_views: page_views_json(page_views, current_principal, session),
+                                             courses: courses_json(courses, current_principal, session, [], []),
+                                             users: users_json(users, current_principal, session, [], @domain_root_account)
                                            })
   end
 end

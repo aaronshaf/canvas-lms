@@ -252,7 +252,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
   def show
     if authorized_action(@quiz, current_principal, :update)
       render json: question_json(@question,
-                                 @current_user,
+                                 current_principal,
                                  session,
                                  context: @context,
                                  includes: parse_includes,
@@ -316,7 +316,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
       guard_against_big_fields do
         @question = @quiz.quiz_questions.create(quiz_group: @group, question_data:, updating_user: @current_user)
         @quiz.did_edit if @quiz.created?
-        render json: question_json(@question, @current_user, session, context: @context, includes: [:assessment_question, :plain_html], location: "quiz_question_#{@question.id}")
+        render json: question_json(@question, current_principal, session, context: @context, includes: [:assessment_question, :plain_html], location: "quiz_question_#{@question.id}")
       end
 
     end
@@ -335,7 +335,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
 
       bank_outcome_ids = @bank.learning_outcome_alignments.select(:learning_outcome_id)
       LearningOutcome.ensure_presence_in_context(bank_outcome_ids, @context)
-      render json: questions_json(@questions, @current_user, session, context: @context, includes: [:assessment_question])
+      render json: questions_json(@questions, current_principal, session, context: @context, includes: [:assessment_question])
     end
   end
   protected :add_questions
@@ -405,7 +405,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
         @question.question_data = question_data
         @question.save
         @quiz.did_edit if @quiz.created?
-        render json: question_json(@question, @current_user, session, context: @context, includes: [:assessment_question, :plain_html], location: "quiz_question_#{@question.id}")
+        render json: question_json(@question, current_principal, session, context: @context, includes: [:assessment_question, :plain_html], location: "quiz_question_#{@question.id}")
       end
     end
   end
@@ -492,7 +492,7 @@ class Quizzes::QuizQuestionsController < ApplicationController
     location = quiz_data ? "quiz_submission_#{@quiz_submission.id}" : nil
 
     render json: questions_json(questions,
-                                @current_user,
+                                current_principal,
                                 session,
                                 context: @context,
                                 includes: parse_includes,

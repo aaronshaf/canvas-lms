@@ -32,22 +32,22 @@ module Api::V1::Pseudonym
                                declared_user_type
                                must_reset_password].freeze
 
-  def pseudonym_json(pseudonym, current_user, session)
+  def pseudonym_json(pseudonym, current_principal, session)
     opts = API_PSEUDONYM_JSON_OPTS.dup
     opts -= %i[sis_user_id integration_id] unless pseudonym.account.grants_any_right?(
-      current_user, :read_sis, :manage_sis
+      current_principal, :read_sis, :manage_sis
     )
-    api_json(pseudonym, current_user, session, only: opts).tap do |result|
+    api_json(pseudonym, current_principal, session, only: opts).tap do |result|
       if pseudonym.authentication_provider
         result[:authentication_provider_type] = pseudonym.authentication_provider.auth_type
       end
     end
   end
 
-  def pseudonyms_json(pseudonyms, current_user, session)
+  def pseudonyms_json(pseudonyms, current_principal, session)
     ActiveRecord::Associations.preload(pseudonyms, :authentication_provider)
     pseudonyms.map do |p|
-      pseudonym_json(p, current_user, session)
+      pseudonym_json(p, current_principal, session)
     end
   end
 end

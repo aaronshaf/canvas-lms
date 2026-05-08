@@ -725,8 +725,8 @@ class Quizzes::QuizzesController < ApplicationController
         submitted_students_json = @submitted_students.map(&:id)
         unsubmitted_students_json = @unsubmitted_students.map(&:id)
       else
-        submitted_students_json = @submitted_students.map { |u| user_json(u, @current_user, session) }
-        unsubmitted_students_json = @unsubmitted_students.map { |u| user_json(u, @current_user, session) }
+        submitted_students_json = @submitted_students.map { |u| user_json(u, current_principal, session) }
+        unsubmitted_students_json = @unsubmitted_students.map { |u| user_json(u, current_principal, session) }
       end
 
       @quiz_submission_list = { UNSUBMITTED_STUDENTS: unsubmitted_students_json,

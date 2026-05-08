@@ -359,7 +359,7 @@ class SubmissionsController < SubmissionsBaseController
                    status: :created
           elsif api_request?
             includes = %(submission_comments attachments)
-            json = submission_json(@submission, @assignment, @current_user, session, @context, includes, params)
+            json = submission_json(@submission, @assignment, current_principal, session, @context, includes, params)
             render json:,
                    status: :created,
                    location: api_v1_course_assignment_submission_url(@context, @assignment, @current_user)

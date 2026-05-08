@@ -20,10 +20,10 @@
 module Api::V1::EnrollmentTerm
   include Api::V1::Json
 
-  def enrollment_term_json(enrollment_term, user, session, enrollments = [], includes = [], course_counts = nil, filtered_terms = nil)
-    api_json(enrollment_term, user, session, only: %w[id name start_at end_at workflow_state grading_period_group_id created_at]).tap do |hash|
-      hash["sis_term_id"] = enrollment_term.sis_source_id if enrollment_term.root_account.grants_any_right?(user, :read_sis, :manage_sis)
-      if enrollment_term.root_account.grants_right?(user, :manage_sis)
+  def enrollment_term_json(enrollment_term, current_principal, session, enrollments = [], includes = [], course_counts = nil, filtered_terms = nil)
+    api_json(enrollment_term, current_principal, session, only: %w[id name start_at end_at workflow_state grading_period_group_id created_at]).tap do |hash|
+      hash["sis_term_id"] = enrollment_term.sis_source_id if enrollment_term.root_account.grants_any_right?(current_principal, :read_sis, :manage_sis)
+      if enrollment_term.root_account.grants_right?(current_principal, :manage_sis)
         hash["sis_import_id"] = enrollment_term.sis_batch_id
       end
       hash["start_at"], hash["end_at"] = enrollment_term.overridden_term_dates(enrollments) if enrollments.present?
@@ -38,7 +38,7 @@ module Api::V1::EnrollmentTerm
     end
   end
 
-  def enrollment_terms_json(enrollment_terms, user, session, root_account, enrollments = [], includes = [], subaccount = nil)
+  def enrollment_terms_json(enrollment_terms, current_principal, session, root_account, enrollments = [], includes = [], subaccount = nil)
     if includes.include?("overrides")
       ActiveRecord::Associations.preload(enrollment_terms, :enrollment_dates_overrides)
     end
@@ -53,7 +53,7 @@ module Api::V1::EnrollmentTerm
       filtered_terms = filtered_term_ids.to_set
     end
     course_counts = EnrollmentTerm.course_counts(enrollment_terms) if includes.include?("course_count")
-    enrollment_terms.map { |t| enrollment_term_json(t, user, session, enrollments, includes, course_counts, filtered_terms) }
+    enrollment_terms.map { |t| enrollment_term_json(t, current_principal, session, enrollments, includes, course_counts, filtered_terms) }
   end
 
   protected

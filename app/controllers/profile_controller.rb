@@ -188,7 +188,7 @@ class ProfileController < ApplicationController
 
     @user_data = profile_data(
       @user.profile,
-      @current_user,
+      current_principal,
       session,
       ["links", "user_services"]
     )
@@ -252,7 +252,7 @@ class ProfileController < ApplicationController
     js_env({ enable_gravatar: @domain_root_account&.enable_gravatar?, register_cc_tabs:, is_default_account:, google_drive_oauth_url:, user_is_only_student:, PERMISSIONS: { can_update_tokens: } })
     respond_to do |format|
       format.html do
-        @user_data = profile_data(@user.profile, @current_user, session, [])
+        @user_data = profile_data(@user.profile, current_principal, session, [])
         @password_pseudonyms = @pseudonyms.reject(&:managed_password?)
         @email_channels = @channels.select { |c| c.path_type == "email" }
         @sms_channels = @channels.select { |c| c.path_type == "sms" }
@@ -271,7 +271,7 @@ class ProfileController < ApplicationController
         render :profile
       end
       format.json do
-        render json: user_profile_json(@user.profile, @current_user, session, params[:include])
+        render json: user_profile_json(@user.profile, current_principal, session, params[:include])
       end
     end
   end
@@ -549,7 +549,7 @@ class ProfileController < ApplicationController
       end
       respond_to do |format|
         format.html { redirect_to user_profile_path(@user) }
-        format.json { render json: user_profile_json(@user.profile, @current_user, session, params[:includes]) }
+        format.json { render json: user_profile_json(@user.profile, current_principal, session, params[:includes]) }
       end
     else
       flash[:success] = false

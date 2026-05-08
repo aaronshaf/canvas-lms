@@ -81,7 +81,7 @@ module Api::V1::DiscussionTopics
   # session - The current session.
   # opts - see discussion_topic_api_json in this file for what the options are
   # Returns an array of hashes
-  def discussion_topics_api_json(topics, context, user, session, opts = {})
+  def discussion_topics_api_json(topics, context, current_principal, session, opts = {})
     DiscussionTopic.preload_can_unpublish(context, topics) if context
     root_topics = {}
     if opts[:root_topic_fields]&.length
@@ -124,9 +124,9 @@ module Api::V1::DiscussionTopics
     end
 
     # we're gonna preload only the current user's discussion_topic_participant
-    if user
+    if current_principal
       participants_by_topic = DiscussionTopicParticipant
-                              .where(discussion_topic_id: topics.map(&:id), user_id: user)
+                              .where(discussion_topic_id: topics.map(&:id), user_id: current_principal.user)
                               .index_by(&:discussion_topic_id)
 
       topics.each do |topic|
@@ -164,8 +164,8 @@ module Api::V1::DiscussionTopics
     DatesOverridable.preload_override_data_for_objects([*topics, *topics.filter_map(&:assignment)])
     opts[:use_preload] = true
     topics.each_with_object([]) do |topic, result|
-      if topic.visible_for?(user)
-        result << discussion_topic_api_json(topic, context || topic.context, user, session, opts, root_topics)
+      if topic.visible_for?(current_principal&.user)
+        result << discussion_topic_api_json(topic, context || topic.context, current_principal, session, opts, root_topics)
       end
     end
   end
@@ -186,7 +186,7 @@ module Api::V1::DiscussionTopics
   #   them in.  Useful if this is to be called repeatedly and you don't want to make a
   #   db call each time.
   # Returns a hash.
-  def discussion_topic_api_json(topic, context, user, session, opts = {}, root_topics = nil)
+  def discussion_topic_api_json(topic, context, current_principal, session, opts = {}, root_topics = nil)
     opts.reverse_merge!(
       include_assignment: true,
       include_all_dates: false,
@@ -197,13 +197,13 @@ module Api::V1::DiscussionTopics
       assignment_opts: {}
     )
 
-    opts[:user_can_moderate] = context.grants_right?(user, session, :moderate_forum) if opts[:user_can_moderate].nil?
+    opts[:user_can_moderate] = context.grants_right?(current_principal, session, :moderate_forum) if opts[:user_can_moderate].nil?
     permissions = opts[:skip_permissions] ? [] : %i[attach update reply delete manage_assign_to]
-    json = api_json(topic, user, session, { only: ALLOWED_TOPIC_FIELDS, methods: ALLOWED_TOPIC_METHODS }, permissions)
+    json = api_json(topic, current_principal, session, { only: ALLOWED_TOPIC_FIELDS, methods: ALLOWED_TOPIC_METHODS }, permissions)
 
-    json.merge!(serialize_additional_topic_fields(topic, context, user, opts))
+    json.merge!(serialize_additional_topic_fields(topic, context, current_principal, opts))
 
-    if (hold = topic.subscription_hold(user, session))
+    if (hold = topic.subscription_hold(current_principal, session))
       json[:subscription_hold] = hold
     end
     if topic.checkpoints?
@@ -213,7 +213,7 @@ module Api::V1::DiscussionTopics
     if opts[:include_assignment] && topic.assignment
       excludes = opts[:exclude_assignment_description] ? ["description"] : []
       json[:assignment] = assignment_json(topic.assignment,
-                                          user,
+                                          current_principal,
                                           session,
                                           { include_discussion_topic: false,
                                             override_dates: opts[:override_dates],
@@ -232,7 +232,7 @@ module Api::V1::DiscussionTopics
       section_includes = []
       section_includes.push("user_count") if opts[:include_sections_user_count]
       section_options = opts[:section_user_counts] ? { section_user_counts: opts[:section_user_counts] } : {}
-      json[:sections] = sections_json(topic.course_sections, user, session, section_includes, section_options)
+      json[:sections] = sections_json(topic.course_sections, current_principal, session, section_includes, section_options)
     end
 
     json[:todo_date] = topic.todo_date
@@ -247,8 +247,8 @@ module Api::V1::DiscussionTopics
       end
     end
 
-    if user&.pronouns
-      json[:user_pronouns] = user.pronouns
+    if current_principal&.pronouns
+      json[:user_pronouns] = current_principal.pronouns
     end
 
     # topic can be announcement
@@ -269,10 +269,10 @@ module Api::V1::DiscussionTopics
   # user - Requesting user.
   #
   # Returns a hash.
-  def serialize_additional_topic_fields(topic, context, user, opts = {})
+  def serialize_additional_topic_fields(topic, context, current_principal, opts = {})
     attachment_opts = {}
     attachment_opts[:include] = ["usage_rights"] if opts[:include_usage_rights]
-    attachments = topic.attachment ? [attachment_json(topic.attachment, user, {}, attachment_opts)] : []
+    attachments = topic.attachment ? [attachment_json(topic.attachment, current_principal, {}, attachment_opts)] : []
     html_url    = named_context_url(context,
                                     :context_discussion_topic_url,
                                     topic,
@@ -285,11 +285,11 @@ module Api::V1::DiscussionTopics
           end
 
     fields = { require_initial_post: topic.require_initial_post?,
-               user_can_see_posts: topic.user_can_see_posts?(user),
+               user_can_see_posts: topic.user_can_see_posts?(current_principal),
                podcast_url: url,
-               read_state: topic.read_state(user),
-               unread_count: topic.unread_count(user, opts:),
-               subscribed: topic.subscribed?(user, opts:),
+               read_state: topic.read_state(current_principal),
+               unread_count: topic.unread_count(current_principal, opts:),
+               subscribed: topic.subscribed?(current_principal, opts:),
                attachments:,
                published: topic.published?,
                can_unpublish: opts[:user_can_moderate] ? topic.can_unpublish?(opts) : false,
@@ -308,7 +308,7 @@ module Api::V1::DiscussionTopics
     fields[:group_topic_children] = child_topic_data.map { |id, group_id| { id:, group_id: } }
 
     fields[:context_code] = Context.context_code_for(topic) if opts[:include_context_code]
-    fields[:ungraded_discussion_overrides] = topic.ungraded_discussion_overrides(user) unless topic.assignment_id
+    fields[:ungraded_discussion_overrides] = topic.ungraded_discussion_overrides(current_principal) unless topic.assignment_id
 
     topic_course = nil
     if context.is_a?(Course)
@@ -320,7 +320,7 @@ module Api::V1::DiscussionTopics
     paced_course = topic_course&.enable_course_paces?
     fields[:in_paced_course] = paced_course if paced_course
 
-    locked_json(fields, topic, user, "topic", check_policies: true, deep_check_if_needed: true)
+    locked_json(fields, topic, current_principal, "topic", check_policies: true, deep_check_if_needed: true)
     can_view = !fields[:lock_info].is_a?(Hash) || fields[:lock_info][:can_view]
     unless opts[:exclude_messages]
       fields[:message] =
@@ -355,9 +355,9 @@ module Api::V1::DiscussionTopics
   #   Recognized fields: user_name, subentries.
   #
   # Returns an array of hashes ready to be serialized.
-  def discussion_entry_api_json(entries, context, user, session, includes = %i[user_name subentries display_user])
+  def discussion_entry_api_json(entries, context, current_principal, session, includes = %i[user_name subentries display_user])
     entries.map do |entry|
-      serialize_entry(entry, user, context, session, includes)
+      serialize_entry(entry, current_principal, context, session, includes)
     end
   end
 
@@ -370,26 +370,26 @@ module Api::V1::DiscussionTopics
   # includes - An array of optional fields to include in the response.
   #
   # Returns a hash.
-  def serialize_entry(entry, user, context, session, includes)
+  def serialize_entry(entry, current_principal, context, session, includes)
     allowed_fields  = %w[id created_at updated_at parent_id rating_count rating_sum]
     allowed_methods = []
     allowed_fields << "editor_id" if entry.deleted? || entry.editor_id
     allowed_fields << "user_id"   unless entry.deleted?
     allowed_methods << "user_name" if !entry.deleted? && includes.include?(:user_name)
 
-    json = api_json(entry, user, session, only: allowed_fields, methods: allowed_methods)
+    json = api_json(entry, current_principal, session, only: allowed_fields, methods: allowed_methods)
 
     if entry.deleted?
       json[:deleted] = true
     else
-      json[:message] = api_user_content(entry.message, context, user, location: entry.asset_string)
+      json[:message] = api_user_content(entry.message, context, current_principal, location: entry.asset_string)
     end
 
     json[:user] = user_display_json(entry.user, context) if includes.include?(:display_user)
 
-    json.merge!(discussion_entry_attachment(entry, user))
-    json.merge!(discussion_entry_read_state(entry, user))
-    json.merge!(discussion_entry_subentries(entry, user, context, session, includes))
+    json.merge!(discussion_entry_attachment(entry, current_principal))
+    json.merge!(discussion_entry_read_state(entry, current_principal))
+    json.merge!(discussion_entry_subentries(entry, current_principal, context, session, includes))
 
     json
   end
@@ -401,7 +401,7 @@ module Api::V1::DiscussionTopics
   # context - The current context.
   #
   # Returns a hash.
-  def discussion_entry_attachment(entry, user)
+  def discussion_entry_attachment(entry, current_principal)
     return {} unless entry.attachment
 
     url_options = {}
@@ -409,7 +409,7 @@ module Api::V1::DiscussionTopics
       url_options[:host] = Api::PLACEHOLDER_HOST
       url_options[:protocol] = Api::PLACEHOLDER_PROTOCOL
     end
-    json = { attachment: attachment_json(entry.attachment, user, url_options) }
+    json = { attachment: attachment_json(entry.attachment, current_principal, url_options) }
     json[:attachments] = [json[:attachment]]
 
     json
@@ -421,10 +421,10 @@ module Api::V1::DiscussionTopics
   # user - The current user.
   #
   # Returns a hash.
-  def discussion_entry_read_state(entry, user)
-    return {} unless user
+  def discussion_entry_read_state(entry, current_principal)
+    return {} unless current_principal
 
-    participant = entry.find_existing_participant(user)
+    participant = entry.find_existing_participant(current_principal)
 
     { read_state: participant.workflow_state,
       forced_read_state: participant.forced_read_state? }
@@ -439,7 +439,7 @@ module Api::V1::DiscussionTopics
   # includes - An array of optional fields to include in the response.
   #
   # Returns a hash.
-  def discussion_entry_subentries(entry, user, context, session, includes)
+  def discussion_entry_subentries(entry, current_principal, context, session, includes)
     return {} unless includes.include?(:subentries) && entry.root_entry_id.nil?
 
     replies = entry.flattened_discussion_subentries.active.newest_first.limit(11).to_a
@@ -447,7 +447,7 @@ module Api::V1::DiscussionTopics
     if replies.empty?
       {}
     else
-      { recent_replies: discussion_entry_api_json(replies.first(10), context, user, session, includes),
+      { recent_replies: discussion_entry_api_json(replies.first(10), context, current_principal, session, includes),
         has_more_replies: replies.size > 10 }
     end
   end

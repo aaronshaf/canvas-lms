@@ -92,7 +92,7 @@ class ModuleAssignmentOverridesController < ApplicationController
     GuardRail.activate(:secondary) do
       overrides = @context_module.assignment_overrides.active
       paginated_overrides = Api.paginate(overrides, self, api_v1_module_assignment_overrides_index_url)
-      render json: module_assignment_overrides_json(paginated_overrides, @current_user)
+      render json: module_assignment_overrides_json(paginated_overrides, current_principal)
     end
   end
 

@@ -150,7 +150,7 @@ class SearchController < ApplicationController
         recipients = Api.paginate(recipients, self, api_v1_search_recipients_url)
       end
 
-      render json: conversation_recipients_json(recipients, @current_user, session)
+      render json: conversation_recipients_json(recipients, current_principal, session)
     end
   end
 

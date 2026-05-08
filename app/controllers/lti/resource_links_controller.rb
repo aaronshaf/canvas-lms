@@ -251,7 +251,7 @@ class Lti::ResourceLinksController < ApplicationController
       create_params[:url],
       create_params[:title]
     )
-    render json: lti_resource_link_json(resource_link, @current_user, session, :rich_content, nil)
+    render json: lti_resource_link_json(resource_link, current_principal, session, :rich_content, nil)
   rescue => e
     report_error(e)
     raise e
@@ -318,7 +318,7 @@ class Lti::ResourceLinksController < ApplicationController
 
     links = bulk_create_links(possible_links, @context)
 
-    render json: links.map { |link| lti_resource_link_json(link, @current_user, session, :rich_content, nil) }
+    render json: links.map { |link| lti_resource_link_json(link, current_principal, session, :rich_content, nil) }
   rescue => e
     report_error(e)
     raise e
@@ -414,7 +414,7 @@ class Lti::ResourceLinksController < ApplicationController
   end
 
   def resource_link_json(link)
-    lti_resource_link_json(link, @current_user, session, resource_link_type(link), link_id_to_module_item_id[link.id])
+    lti_resource_link_json(link, current_principal, session, resource_link_type(link), link_id_to_module_item_id[link.id])
   end
 
   def resource_link_type(link)

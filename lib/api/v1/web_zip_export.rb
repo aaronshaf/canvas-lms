@@ -21,13 +21,14 @@
 module Api::V1::WebZipExport
   include Api::V1::Attachment
 
-  def web_zip_export_json(web_zip_export)
-    api_json(web_zip_export, @current_user, session).tap do |hash|
+  def web_zip_export_json(web_zip_export, current_principal: nil)
+    current_principal ||= self.current_principal
+    api_json(web_zip_export, current_principal, session).tap do |hash|
       hash["progress_id"] = web_zip_export.job_progress.id
       hash["progress_url"] = polymorphic_url([:api_v1, web_zip_export.job_progress])
 
       if web_zip_export.zip_attachment.present?
-        hash["zip_attachment"] = attachment_json(web_zip_export.zip_attachment, @current_user, {}, {
+        hash["zip_attachment"] = attachment_json(web_zip_export.zip_attachment, current_principal, {}, {
                                                    can_view_hidden_files: true
                                                  })
       end

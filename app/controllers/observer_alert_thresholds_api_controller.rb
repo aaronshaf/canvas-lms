@@ -30,14 +30,14 @@ class ObserverAlertThresholdsApiController < ApplicationController
 
     thresholds = thresholds.select(&:users_are_still_linked?)
 
-    render json: thresholds.map { |threshold| observer_alert_threshold_json(threshold, @current_user, session) }
+    render json: thresholds.map { |threshold| observer_alert_threshold_json(threshold, current_principal, session) }
   end
 
   def show
     threshold = ObserverAlertThreshold.active.find(params[:observer_alert_threshold_id])
     return render_unauthorized_action unless threshold.observer_id == @current_user.id && threshold.users_are_still_linked?
 
-    render json: observer_alert_threshold_json(threshold, @current_user, session)
+    render json: observer_alert_threshold_json(threshold, current_principal, session)
   end
 
   def create
@@ -58,7 +58,7 @@ class ObserverAlertThresholdsApiController < ApplicationController
     end
 
     if threshold.valid?
-      render json: observer_alert_threshold_json(threshold, @current_user, session)
+      render json: observer_alert_threshold_json(threshold, current_principal, session)
     else
       render json: threshold.errors, status: :bad_request
     end
@@ -69,7 +69,7 @@ class ObserverAlertThresholdsApiController < ApplicationController
     return render_unauthorized_action unless threshold.observer_id == @current_user.id && threshold.users_are_still_linked?
 
     threshold.update(threshold: params[:threshold])
-    render json: observer_alert_threshold_json(threshold, @current_user, session)
+    render json: observer_alert_threshold_json(threshold, current_principal, session)
   end
 
   def destroy
@@ -77,7 +77,7 @@ class ObserverAlertThresholdsApiController < ApplicationController
     return render_unauthorized_action unless threshold.observer_id == @current_user.id && threshold.users_are_still_linked?
 
     threshold.destroy
-    render json: observer_alert_threshold_json(threshold, @current_user, session)
+    render json: observer_alert_threshold_json(threshold, current_principal, session)
   end
 
   def create_params

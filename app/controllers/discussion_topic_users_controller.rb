@@ -49,7 +49,7 @@ class DiscussionTopicUsersController < ApplicationController
     calculator = ::MessageableUser::Calculator.new(@current_user)
     users = calculator.search_messageable_users(context: @topic, search: params[:search])
     users = Api.paginate(users, self, messageable_user_pagination_url)
-               .map { |user| conversation_user_json(user, @current_user, session) }
+               .map { |user| conversation_user_json(user, current_principal, session) }
     render json: users
   end
 

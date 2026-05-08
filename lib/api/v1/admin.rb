@@ -22,13 +22,13 @@ module Api::V1::Admin
   include Api::V1::Json
   include Api::V1::User
 
-  def admin_json(admin, current_user, session, includes = [])
+  def admin_json(admin, current_principal, session, includes = [])
     # admin is an AccountUser
     {
       id: admin.id,
       role: admin.role.name,
       role_id: admin.role_id,
-      user: user_json(admin.user, current_user, session, includes),
+      user: user_json(admin.user, current_principal, session, includes),
       workflow_state: admin.workflow_state
     }
   end

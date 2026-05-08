@@ -41,7 +41,7 @@ class EportfolioEntriesController < ApplicationController
           format.html { redirect_to eportfolio_entry_url(@portfolio, @page) }
           format.json do
             entry_url = @category.slug.presence && @page.slug.presence && eportfolio_named_category_entry_path(@portfolio, @category.slug, @page.slug)
-            hash = eportfolio_entry_json(@page, @current_user, session)
+            hash = eportfolio_entry_json(@page, current_principal, session)
             hash["entry_url"] = entry_url
             render json: hash
           end

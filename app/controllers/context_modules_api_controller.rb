@@ -372,7 +372,7 @@ class ContextModulesApiController < ApplicationController
       @module.workflow_state = "unpublished"
 
       if @module.save && set_position
-        render json: module_json(@module, @current_user, session, nil)
+        render json: module_json(@module, current_principal, session, nil)
       else
         render json: @module.errors, status: :bad_request
       end
@@ -461,7 +461,7 @@ class ContextModulesApiController < ApplicationController
       relock_warning = @module.relock_warning?
 
       if @module.update(module_parameters) && set_position
-        json = module_json(@module, @current_user, session, nil)
+        json = module_json(@module, current_principal, session, nil)
         json["relock_warning"] = true if relock_warning || @module.relock_warning?
         json["publish_warning"] = publish_warning.present?
         json["publish_warning_items"] = publish_warning_items if publish_warning_items.present?
@@ -488,7 +488,7 @@ class ContextModulesApiController < ApplicationController
     @module = @context.context_modules.not_deleted.find(params[:id])
     if authorized_action(@module, current_principal, :delete)
       @module.destroy
-      render json: module_json(@module, @current_user, session, nil)
+      render json: module_json(@module, current_principal, session, nil)
     end
   end
 
@@ -511,7 +511,7 @@ class ContextModulesApiController < ApplicationController
     @module = @context.context_modules.not_deleted.find(params[:id])
     if authorized_action(@module, current_principal, :update)
       @module.relock_progressions
-      render json: module_json(@module, @current_user, session, nil)
+      render json: module_json(@module, current_principal, session, nil)
     end
   end
 

@@ -71,11 +71,11 @@ module Api::V1::Lti::RegistrationUpdateRequest
   private
 
   # Renders a user JSON or returns "Instructure" if the user has site admin read access
-  def render_user_or_instructure(target_user, current_user, session, context)
+  def render_user_or_instructure(target_user, current_principal, session, context)
     if Account.site_admin.grants_right?(target_user, session, :read)
       "Instructure"
     else
-      user_json(target_user, current_user, session, [], context, nil, ["pseudonym"])
+      user_json(target_user, current_principal, session, [], context, nil, ["pseudonym"])
     end
   end
 end

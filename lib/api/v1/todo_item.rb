@@ -23,7 +23,7 @@ module Api::V1::TodoItem
   include Api::V1::Quiz
   include Api::V1::Context
 
-  def todo_item_json(assignment_or_quiz, user, session, todo_type, include_grading_counts: false)
+  def todo_item_json(assignment_or_quiz, current_principal, session, todo_type, include_grading_counts: false)
     context_data(assignment_or_quiz).merge({
                                              context_name: assignment_or_quiz&.context&.name,
                                              context_short_name: assignment_or_quiz&.context&.short_name,
@@ -33,11 +33,11 @@ module Api::V1::TodoItem
                                            }).tap do |hash|
       if assignment_or_quiz.is_a?(Quizzes::Quiz)
         quiz = assignment_or_quiz
-        hash[:quiz] = quiz_json(quiz, quiz.context, user, session)
+        hash[:quiz] = quiz_json(quiz, quiz.context, current_principal, session)
         hash[:html_url] = course_quiz_url(quiz.context_id, quiz.id)
       else
         assignment = assignment_or_quiz
-        hash[:assignment] = assignment_json(assignment, user, session, include_all_dates: true)
+        hash[:assignment] = assignment_json(assignment, current_principal, session, include_all_dates: true)
 
         # Add checkpoint-specific data for SubAssignments
         if assignment.is_a?(SubAssignment)
@@ -52,10 +52,10 @@ module Api::V1::TodoItem
                           end
 
         if todo_type == "grading"
-          hash["needs_grading_count"] = Assignments::NeedsGradingCountQuery.new([assignment], user).count[assignment.global_id]
+          hash["needs_grading_count"] = Assignments::NeedsGradingCountQuery.new([assignment], current_principal&.user).count[assignment.global_id]
 
           if include_grading_counts && @domain_root_account&.feature_enabled?(:educator_dashboard)
-            metrics = Assignments::TeacherTodoMetricsQuery.new(assignment, user).metrics
+            metrics = Assignments::TeacherTodoMetricsQuery.new(assignment, current_principal).metrics
             hash["on_time_needs_grading_count"] = metrics[:on_time_needs_grading_count]
             hash["late_needs_grading_count"] = metrics[:late_needs_grading_count]
             hash["resubmitted_needs_grading_count"] = metrics[:resubmitted_needs_grading_count]

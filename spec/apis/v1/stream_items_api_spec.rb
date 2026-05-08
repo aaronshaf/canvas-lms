@@ -613,7 +613,7 @@ describe UsersController, type: :request do
                     { controller: "users", action: "activity_stream", format: "json" })
     @assignment.reload
     assign_json = assignment_json(@assignment,
-                                  @user,
+                                  Canvas::AdheresToPolicy::UserPrincipal.new(@user),
                                   session,
                                   include_discussion_topic: false)
     assign_json["created_at"] = @assignment.created_at.as_json
@@ -759,7 +759,7 @@ describe UsersController, type: :request do
                     { controller: "users", action: "activity_stream", format: "json" })
     @assignment.reload
     assign_json = assignment_json(@assignment,
-                                  @user,
+                                  Canvas::AdheresToPolicy::UserPrincipal.new(@user),
                                   session,
                                   include_discussion_topic: false)
     assign_json["created_at"] = @assignment.created_at.as_json

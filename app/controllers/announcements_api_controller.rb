@@ -144,7 +144,7 @@ class AnnouncementsApiController < ApplicationController
 
     render json: discussion_topics_api_json(@topics,
                                             nil,
-                                            @current_user,
+                                            current_principal,
                                             session,
                                             user_can_moderate: false,
                                             include_assignment: false,

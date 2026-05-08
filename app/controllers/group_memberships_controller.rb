@@ -106,7 +106,7 @@ class GroupMembershipsController < ApplicationController
       scope = scope.preload(group: :root_account)
 
       @memberships = Api.paginate(scope, self, memberships_route)
-      render json: @memberships.map { |gm| group_membership_json(gm, @current_user, session) }
+      render json: @memberships.map { |gm| group_membership_json(gm, current_principal, session) }
     end
   end
 
@@ -127,7 +127,7 @@ class GroupMembershipsController < ApplicationController
   def show
     find_membership
     if authorized_action(@membership, current_principal, :read)
-      render json: group_membership_json(@membership, @current_user, session)
+      render json: group_membership_json(@membership, current_principal, session)
     end
   end
 
@@ -185,7 +185,7 @@ class GroupMembershipsController < ApplicationController
         @membership = @group.add_user(@user)
 
         if @membership.valid?
-          render json: group_membership_json(@membership, @current_user, session, include: ["just_created"])
+          render json: group_membership_json(@membership, current_principal, session, include: ["just_created"])
         else
           render json: @membership.errors, status: :bad_request
         end
@@ -273,7 +273,7 @@ class GroupMembershipsController < ApplicationController
 
       SubmissionLifecycleManager.with_executing_user(@current_user) do
         if @membership.update(attrs)
-          render json: group_membership_json(@membership, @current_user, session)
+          render json: group_membership_json(@membership, current_principal, session)
         else
           render json: @membership.errors, status: :bad_request
         end

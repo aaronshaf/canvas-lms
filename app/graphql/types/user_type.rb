@@ -862,7 +862,7 @@ module Types
       is_cross_shard = current_user.visible_stream_item_instances(opts).where("stream_item_id > ?", Shard::IDS_PER_SHARD).exists?
       if is_cross_shard
         # the old join doesn't work for cross-shard stream items, so we basically have to pre-calculate everything
-        ssi_scope = ssi_scope.where(stream_item_id: filtered_stream_item_ids(opts))
+        ssi_scope = ssi_scope.where(stream_item_id: filtered_stream_item_ids(**opts))
       else
         ssi_scope = ssi_scope.eager_load(:stream_item).where("stream_items.asset_type=?", "Submission")
         ssi_scope = ssi_scope.joins("INNER JOIN #{Submission.quoted_table_name} ON submissions.id=asset_id")

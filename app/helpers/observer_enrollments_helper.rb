@@ -52,7 +52,7 @@ module ObserverEnrollmentsHelper
     @selected_observed_user = users.detect { |u| u.id.to_s == cookies[observed_user_cookie_name] } || users.first
     cookies.delete(observed_user_cookie_name) if @selected_observed_user == users.first
     user_json_preloads(users, accounts: true, pseudonyms: true)
-    users.map { |u| user_json(u, @current_user, session, ["avatar_url"], @context, nil, ["pseudonym"]) }
+    users.map { |u| user_json(u, current_principal, session, ["avatar_url"], @context, nil, ["pseudonym"]) }
   end
 
   # Helper method for GraphQL loaders to determine which observed student is currently selected

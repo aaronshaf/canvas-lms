@@ -22,14 +22,14 @@ module Api::V1::ContentMigration
   include Api::V1::Json
   include Api::V1::Attachment
 
-  def content_migrations_json(migrations, current_user, session)
+  def content_migrations_json(migrations, current_principal, session)
     migrations.reject { |m| m.migration_settings["hide_from_index"] }.map do |migration|
-      content_migration_json(migration, current_user, session)
+      content_migration_json(migration, current_principal, session)
     end
   end
 
-  def content_migration_json(migration, current_user, session, attachment_preflight = nil, includes = [])
-    json = api_json(migration, current_user, session, only: %w[id user_id workflow_state started_at finished_at migration_type])
+  def content_migration_json(migration, current_principal, session, attachment_preflight = nil, includes = [])
+    json = api_json(migration, current_principal, session, only: %w[id user_id workflow_state started_at finished_at migration_type])
     json[:created_at] = migration.created_at
     if json[:workflow_state] == "created"
       json[:workflow_state] = "pre_processing"
@@ -50,7 +50,7 @@ module Api::V1::ContentMigration
     elsif migration.attachment && !migration.expired? && include_attachment
       options = { can_view_hidden_files: true }
       options[:omit_verifier_in_app] = true if Account.site_admin.feature_enabled?(:disable_verified_content_export_links)
-      json[:attachment] = attachment_json(migration.attachment, current_user, {}, options)
+      json[:attachment] = attachment_json(migration.attachment, current_principal, {}, options)
     end
 
     source = migration.source_course
@@ -75,7 +75,7 @@ module Api::V1::ContentMigration
     end
 
     # For easier auditing for support requests
-    if Account.site_admin.grants_right?(current_user, :read) || (includes || []).include?("audit_info")
+    if Account.site_admin.grants_right?(current_principal, :read) || (includes || []).include?("audit_info")
       json[:audit_info] = migration.respond_to?(:slice) &&
                           migration.slice(:id,
                                           :user_id,
@@ -93,16 +93,16 @@ module Api::V1::ContentMigration
     json
   end
 
-  def migration_issues_json(issues, migration, current_user, session)
+  def migration_issues_json(issues, migration, current_principal, session)
     issues.map do |issue|
-      migration_issue_json(issue, migration, current_user, session)
+      migration_issue_json(issue, migration, current_principal, session)
     end
   end
 
-  def migration_issue_json(issue, migration, current_user, session)
-    json = api_json(issue, current_user, session, only: %w[id description workflow_state fix_issue_html_url issue_type created_at updated_at])
+  def migration_issue_json(issue, migration, current_principal, session)
+    json = api_json(issue, current_principal, session, only: %w[id description workflow_state fix_issue_html_url issue_type created_at updated_at])
     json[:content_migration_url] = api_v1_course_content_migration_url(migration.context_id, issue.content_migration_id)
-    if issue.grants_right?(current_user, :read_errors)
+    if issue.grants_right?(current_principal, :read_errors)
       json[:error_message] = issue.error_message
       json[:error_report_html_url] = error_url(issue.error_report_id) if issue.error_report_id
     end

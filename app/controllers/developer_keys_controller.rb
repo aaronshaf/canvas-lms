@@ -242,7 +242,7 @@ class DeveloperKeysController < ApplicationController
         @keys = Api.paginate(index_scope, self, api_v1_account_developer_keys_url(@context))
         render json: developer_keys_json(
           @keys,
-          @current_user,
+          current_principal,
           session,
           account_context,
           inherited: params[:inherited].present?,
@@ -287,7 +287,7 @@ class DeveloperKeysController < ApplicationController
     @key.current_user = @current_user
     @key.account = @context if params[:account_id] && @context != Account.site_admin
     if @key.save
-      render json: developer_key_json(@key, @current_user, session, account_context, show_full_secret: true)
+      render json: developer_key_json(@key, current_principal, session, account_context, show_full_secret: true)
     else
       report_error(nil, 400)
       render json: @key.errors, status: :bad_request
@@ -334,7 +334,7 @@ class DeveloperKeysController < ApplicationController
       end
     end
     if @key.save
-      render json: developer_key_json(@key, @current_user, session, account_context)
+      render json: developer_key_json(@key, current_principal, session, account_context)
     else
       report_error(nil, 400)
       render json: @key.errors, status: :bad_request
@@ -354,7 +354,7 @@ class DeveloperKeysController < ApplicationController
       raise ActiveRecord::RecordNotDestroyed unless @key.destroy
     end
 
-    render json: developer_key_json(@key, @current_user, session, account_context)
+    render json: developer_key_json(@key, current_principal, session, account_context)
   rescue => e
     report_error(e)
     raise e
@@ -415,7 +415,7 @@ class DeveloperKeysController < ApplicationController
 
     @key.generate_api_key(overwrite: true)
     if @key.save
-      render json: developer_key_json(@key, @current_user, session, account_context, show_full_secret: true)
+      render json: developer_key_json(@key, current_principal, session, account_context, show_full_secret: true)
     else
       report_error(nil, 400)
       render json: @key.errors, status: :bad_request

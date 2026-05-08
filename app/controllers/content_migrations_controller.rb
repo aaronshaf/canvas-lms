@@ -174,7 +174,7 @@ class ContentMigrationsController < ApplicationController
       scope = @context.content_migrations.where(child_subscription_id: nil).order(id: :desc)
       @migrations = Api.paginate(scope, self, api_v1_course_content_migration_list_url(@context))
       @migrations.each(&:check_for_pre_processing_timeout)
-      content_migration_json_hash = content_migrations_json(@migrations, @current_user, session)
+      content_migration_json_hash = content_migrations_json(@migrations, current_principal, session)
 
       if api_request?
         render json: content_migration_json_hash
@@ -234,7 +234,7 @@ class ContentMigrationsController < ApplicationController
 
     @content_migration = @context.content_migrations.find(params[:id])
     @content_migration.check_for_pre_processing_timeout
-    render json: content_migration_json(@content_migration, @current_user, session, nil, params[:include])
+    render json: content_migration_json(@content_migration, current_principal, session, nil, params[:include])
   end
 
   def fetch_external_tools
@@ -677,7 +677,7 @@ class ContentMigrationsController < ApplicationController
         end
       end
 
-      render json: content_migration_json(@content_migration, @current_user, session, preflight_json)
+      render json: content_migration_json(@content_migration, current_principal, session, preflight_json)
     else
       render json: @content_migration.errors, status: :bad_request
     end

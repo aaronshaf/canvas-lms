@@ -95,7 +95,7 @@ class AdminsController < ApplicationController
       route = polymorphic_url([:api_v1, @context, :admins])
       admins = Api.paginate(scope.order(:id), self, route).reject { |admin| admin.user.nil? }
       includes = Array(params[:include])
-      render json: admins.collect { |admin| admin_json(admin, @current_user, session, includes) }
+      render json: admins.collect { |admin| admin_json(admin, current_principal, session, includes) }
     end
   end
 
@@ -143,7 +143,7 @@ class AdminsController < ApplicationController
         return render json: admin.errors, status: :bad_request
       end
     end
-    render json: admin_json(admin, @current_user, session)
+    render json: admin_json(admin, current_principal, session)
   end
 
   # @API Remove account admin
@@ -164,7 +164,7 @@ class AdminsController < ApplicationController
     if authorized_action(admin, current_principal, :destroy)
       admin.current_user = @current_user
       admin.destroy
-      render json: admin_json(admin, @current_user, session)
+      render json: admin_json(admin, current_principal, session)
     end
   end
 
@@ -180,7 +180,7 @@ class AdminsController < ApplicationController
       scope = @context.account_users.active.where(user_id: @current_user)
       route = polymorphic_url([:api_v1, @context, :self_roles])
       admins = Api.paginate(scope.order(:id), self, route)
-      render json: admins.map { |admin| admin_json(admin, @current_user, session) }
+      render json: admins.map { |admin| admin_json(admin, current_principal, session) }
     end
   end
 

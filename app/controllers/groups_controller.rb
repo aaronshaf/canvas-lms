@@ -281,7 +281,7 @@ class GroupsController < ApplicationController
           scope.preload(:group_category, :context)
         end
         @groups = Api.paginate(@groups, self, api_v1_current_user_groups_url)
-        render json: @groups.map { |g| group_json(g, @current_user, session, includes) }
+        render json: @groups.map { |g| group_json(g, current_principal, session, includes) }
       end
     end
   end
@@ -404,11 +404,11 @@ class GroupsController < ApplicationController
         end
 
         if @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_MANAGE_GROUPS_PERMISSIONS)
-          categories_json = @categories.map { |cat| group_category_json(cat, @current_user, session, include: %w[progress_url unassigned_users_count groups_count]) }
+          categories_json = @categories.map { |cat| group_category_json(cat, current_principal, session, include: %w[progress_url unassigned_users_count groups_count]) }
           uncategorized = @context.groups.active.uncategorized.to_a
           if uncategorized.present?
             json = group_category_json(GroupCategory.uncategorized(context: @context), @current_user, session)
-            json["groups"] = uncategorized.map { |group| group_json(group, @current_user, session) }
+            json["groups"] = uncategorized.map { |group| group_json(group, current_principal, session) }
             categories_json << json
           end
 
@@ -461,7 +461,7 @@ class GroupsController < ApplicationController
         render json: @paginated_groups.map { |g|
           include_inactive_users = value_to_boolean(params[:include_inactive_users])
           group_json(g,
-                     @current_user,
+                     current_principal,
                      session,
                      include: Array(params[:include]),
                      include_inactive_users:).tap do |json|
@@ -601,7 +601,7 @@ class GroupsController < ApplicationController
       end
       format.json do
         if authorized_action(@group, current_principal, :read)
-          render json: group_json(@group, @current_user, session, include: Array(params[:include]))
+          render json: group_json(@group, current_principal, session, include: Array(params[:include]))
         end
       end
     end
@@ -719,7 +719,7 @@ class GroupsController < ApplicationController
           @group.invitees = params[:invitees]
           flash[:notice] = t("notices.create_success", "Group was successfully created.")
           format.html { redirect_to group_url(@group) }
-          format.json { render json: group_json(@group, @current_user, session, { include: %w[users group_category permissions] }) }
+          format.json { render json: group_json(@group, current_principal, session, { include: %w[users group_category permissions] }) }
         else
           format.html { render :new }
           format.json { render json: @group.errors, status: :bad_request }
@@ -843,7 +843,7 @@ class GroupsController < ApplicationController
           @group.users.touch_all
           flash[:notice] = t("notices.update_success", "Group was successfully updated.")
           format.html { redirect_to clean_return_to(params[:return_to]) || group_url(@group) }
-          format.json { render json: group_json(@group, @current_user, session, { include: %w[users group_category permissions] }) }
+          format.json { render json: group_json(@group, current_principal, session, { include: %w[users group_category permissions] }) }
         else
           format.html { render :edit }
           format.json { render json: @group.errors, status: :bad_request }
@@ -869,7 +869,7 @@ class GroupsController < ApplicationController
         flash[:notice] = t("notices.delete_success", "Group successfully deleted")
         respond_to do |format|
           format.html { redirect_to(dashboard_url) }
-          format.json { render json: group_json(@group, @current_user, session) }
+          format.json { render json: group_json(@group, current_principal, session) }
         end
       else
         respond_to do |format|
@@ -905,7 +905,7 @@ class GroupsController < ApplicationController
                         current_user: @current_user)
       @memberships = []
       ul.users.each { |u| @memberships << @group.invite_user(u) }
-      render json: @memberships.map { |gm| group_membership_json(gm, @current_user, session) }
+      render json: @memberships.map { |gm| group_membership_json(gm, current_principal, session) }
     end
   end
 
@@ -921,7 +921,7 @@ class GroupsController < ApplicationController
       flash[:notice] = t("notices.welcome", "Welcome to the group %{group_name}!", group_name: @group.name)
       respond_to do |format|
         format.html { redirect_to(group_url(@group)) }
-        format.json { render json: group_membership_json(@membership, @current_user, session) }
+        format.json { render json: group_membership_json(@membership, current_principal, session) }
       end
     else
       flash[:notice] = t("notices.invalid_invitation", "", group_name: @group.name)
@@ -999,7 +999,7 @@ class GroupsController < ApplicationController
     includes = Array(params[:include])
     users = Api.paginate(users, self, api_v1_group_users_url)
     UserPastLtiId.manual_preload_past_lti_ids(users, @context) if ["uuid", "lti_id"].any? { |id| includes.include? id }
-    json_users = users_json(users, @current_user, session, includes, @context, nil, Array(params[:exclude]))
+    json_users = users_json(users, current_principal, session, includes, @context, nil, Array(params[:exclude]))
 
     if includes.include?("group_submissions") && @context.context_type == "Course"
       submissions_by_user = @context.group_category.submission_ids_by_user_id(users.map(&:id))
@@ -1114,7 +1114,7 @@ class GroupsController < ApplicationController
       return render json: { message: "Not authorized to manage differentiation tag." }, status: :unauthorized unless @context.context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
     end
     if authorized_action(@context, current_principal, :read)
-      api_render_stream(contexts: [@context], paginate_url: :api_v1_group_activity_stream_url)
+      api_render_stream(contexts: [@context], paginate_url: :api_v1_group_activity_stream_url, current_principal:)
     end
   end
 
@@ -1129,7 +1129,7 @@ class GroupsController < ApplicationController
       return render json: { message: "Not authorized to manage differentiation tag." }, status: :unauthorized unless @context.context.grants_any_right?(current_principal, *RoleOverride::GRANULAR_MANAGE_TAGS_PERMISSIONS)
     end
     if authorized_action(@context, current_principal, :read)
-      api_render_stream_summary(contexts: [@context])
+      api_render_stream_summary(contexts: [@context], current_principal:)
     end
   end
 

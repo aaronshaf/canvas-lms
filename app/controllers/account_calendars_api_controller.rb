@@ -126,7 +126,7 @@ class AccountCalendarsApiController < ApplicationController
       accounts = Account.search_by_attribute(accounts, :name, search_term) if search_term.present?
       paginated_accounts = Api.paginate(accounts.sort_by { |a| Canvas::ICU.collation_key(a.name.to_s) }, self, api_v1_account_calendars_url, total_entries: accounts.count)
       json = {
-        account_calendars: account_calendars_json(paginated_accounts, @current_user, session),
+        account_calendars: account_calendars_json(paginated_accounts, current_principal, session),
         total_results: accounts.count
       }
       render json:
@@ -147,7 +147,7 @@ class AccountCalendarsApiController < ApplicationController
       account = api_find(Account.active, params[:account_id])
       return unless authorized_action(account, current_principal, :view_account_calendar_details)
 
-      render json: account_calendar_json(account, @current_user, session)
+      render json: account_calendar_json(account, current_principal, session)
     end
   end
 
@@ -188,7 +188,7 @@ class AccountCalendarsApiController < ApplicationController
       end
     end
     account.save! if account.changed?
-    render json: account_calendar_json(account, @current_user, session)
+    render json: account_calendar_json(account, current_principal, session)
   end
 
   # @API Update several calendars
@@ -284,7 +284,7 @@ class AccountCalendarsApiController < ApplicationController
                  end
 
       paginated_accounts = Api.paginate(accounts, self, api_v1_all_account_calendars_url)
-      render json: account_calendars_json(paginated_accounts, @current_user, session, include: ["sub_account_count"])
+      render json: account_calendars_json(paginated_accounts, current_principal, session, include: ["sub_account_count"])
     end
   end
 

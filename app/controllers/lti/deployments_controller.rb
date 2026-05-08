@@ -101,7 +101,7 @@ module Lti
     #   curl -X GET 'https://<canvas>/api/v1/accounts/<account_id>/lti_registrations/<registration_id>/deployments/<deployment_id>' \
     #        -H "Authorization: Bearer <token>"
     def show
-      render json: lti_deployment_json(deployment, @current_user, session, @context)
+      render json: lti_deployment_json(deployment, current_principal, session, @context)
     end
 
     # @API Create LTI Deployment
@@ -140,7 +140,7 @@ module Lti
       deployment = lti_registration.new_external_tool(context, current_user: @current_user, available: params[:available])
 
       ContextExternalTool.invalidate_nav_tabs_cache(deployment, @domain_root_account)
-      render json: lti_deployment_json(deployment, @current_user, session, @context)
+      render json: lti_deployment_json(deployment, current_principal, session, @context)
     rescue Lti::ContextExternalToolErrors => e
       render json: e.errors, status: :bad_request, content_type: MIME_TYPE
     end
@@ -158,7 +158,7 @@ module Lti
     def destroy
       if deployment.destroy
         ContextExternalTool.invalidate_nav_tabs_cache(deployment, @domain_root_account)
-        render json: lti_deployment_json(deployment, @current_user, session, @context)
+        render json: lti_deployment_json(deployment, current_principal, session, @context)
       else
         render json: { error: "Failed to delete LTI deployment" }, status: :internal_server_error
       end
@@ -180,7 +180,7 @@ module Lti
       tool_collection = BookmarkedCollection.wrap(bookmark, ContextExternalTool.active.for_lti_registration(lti_registration, @context))
       tools = Api.paginate(tool_collection, self, api_v1_list_deployments_path)
 
-      render json: tools.map { |tool| lti_deployment_json(tool, @current_user, session, @context) }
+      render json: tools.map { |tool| lti_deployment_json(tool, current_principal, session, @context) }
     end
 
     # @API List LTI Context Controls
@@ -202,7 +202,7 @@ module Lti
       calculated_attrs = Lti::ContextControlService.preload_calculated_attrs(controls)
 
       json = controls.map do |control|
-        lti_context_control_json(control, @current_user, session, @context, include_users: true, calculated_attrs: calculated_attrs[control.id])
+        lti_context_control_json(control, current_principal, session, @context, include_users: true, calculated_attrs: calculated_attrs[control.id])
       end
       render json:
     end

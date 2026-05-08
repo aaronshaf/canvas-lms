@@ -95,7 +95,7 @@ module Lti
       def lti_registration_by_uuid
         reg = Lti::IMS::Registration.find_by!(guid: params[:registration_uuid])
         render json: lti_registration_json(reg.lti_registration,
-                                           @current_user,
+                                           current_principal,
                                            session,
                                            @context,
                                            includes: %i[configuration overlay],
@@ -104,7 +104,7 @@ module Lti
 
       def lti_registration_update_request_by_uuid
         registration_update_request = Lti::RegistrationUpdateRequest.find_by!(uuid: params[:registration_uuid])
-        render json: lti_registration_update_request_json(registration_update_request, @current_user, session, @context)
+        render json: lti_registration_update_request_json(registration_update_request, current_principal, session, @context)
       end
 
       def ims_registration_by_uuid

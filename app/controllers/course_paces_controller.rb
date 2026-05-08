@@ -326,7 +326,7 @@ class CoursePacesController < ApplicationController
     js_env({
              BLACKOUT_DATES: @blackout_dates.as_json(include_root: false),
              CALENDAR_EVENT_BLACKOUT_DATES: @calendar_event_blackout_dates.as_json(include_root: false),
-             COURSE: course_json(@context, @current_user, session, [], nil),
+             COURSE: course_json(@context, current_principal, session, [], nil),
              ENROLLMENTS: enrollments_json(@context),
              SECTIONS: sections_json(@context),
              COURSE_ID: @context.id,
@@ -445,7 +445,7 @@ class CoursePacesController < ApplicationController
 
     publish_course_pace
     log_course_paces_publishing
-    render json: progress_json(@progress, @current_user, session)
+    render json: progress_json(@progress, current_principal, session)
   end
 
   # @API Create a Course pace
@@ -510,7 +510,7 @@ class CoursePacesController < ApplicationController
 
       render json: {
         course_pace: CoursePacePresenter.new(@course_pace).as_json,
-        progress: @progress.present? ? progress_json(@progress, @current_user, session) : nil
+        progress: @progress.present? ? progress_json(@progress, current_principal, session) : nil
       }
     else
       render json: { success: false, errors: @course_pace.errors.full_messages }, status: :unprocessable_content
@@ -580,7 +580,7 @@ class CoursePacesController < ApplicationController
 
       render json: {
         course_pace: CoursePacePresenter.new(@course_pace).as_json,
-        progress: @progress.present? ? progress_json(@progress, @current_user, session) : nil
+        progress: @progress.present? ? progress_json(@progress, current_principal, session) : nil
       }
     else
       render json: { success: false, errors: @course_pace.errors.full_messages }, status: :unprocessable_content
@@ -671,7 +671,7 @@ class CoursePacesController < ApplicationController
           @progress.delayed_job.update(run_at: Time.zone.now)
         end
       end
-      @progress_json = progress_json(@progress, @current_user, session)
+      @progress_json = progress_json(@progress, current_principal, session)
     end
   end
 

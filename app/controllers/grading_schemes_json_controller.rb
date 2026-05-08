@@ -30,10 +30,10 @@ class GradingSchemesJsonController < ApplicationController
     standards = grading_standards_for_context.sorted.limit(GRADING_SCHEMES_LIMIT)
     render json: {
       archived: standards.select(&:archived?).map do |grading_standard|
-        GradingSchemesJsonController.to_grading_scheme_json(grading_standard, @current_user)
+        GradingSchemesJsonController.to_grading_scheme_json(grading_standard, current_principal)
       end,
       active: standards.select(&:active?).map do |grading_standard|
-        GradingSchemesJsonController.to_grading_scheme_json(grading_standard, @current_user)
+        GradingSchemesJsonController.to_grading_scheme_json(grading_standard, current_principal)
       end
     }
   end
@@ -44,7 +44,7 @@ class GradingSchemesJsonController < ApplicationController
     respond_to do |format|
       format.json do
         render json: grading_standards.map { |grading_standard|
-          GradingSchemesJsonController.to_grading_scheme_json(grading_standard, @current_user)
+          GradingSchemesJsonController.to_grading_scheme_json(grading_standard, current_principal)
         }
       end
     end
@@ -72,7 +72,7 @@ class GradingSchemesJsonController < ApplicationController
       if grading_standard.nil?
         format.json { render json: nil }
       else
-        format.json { render json: GradingSchemesJsonController.to_grading_scheme_json(grading_standard, @current_user) }
+        format.json { render json: GradingSchemesJsonController.to_grading_scheme_json(grading_standard, current_principal) }
       end
     end
   end
@@ -92,7 +92,7 @@ class GradingSchemesJsonController < ApplicationController
     response = if grading_standard.nil?
                  nil
                else
-                 GradingSchemesJsonController.to_grading_scheme_json(grading_standard, @current_user)
+                 GradingSchemesJsonController.to_grading_scheme_json(grading_standard, current_principal)
                end
 
     respond_to do |format|
@@ -108,7 +108,7 @@ class GradingSchemesJsonController < ApplicationController
   def show
     grading_standard = grading_standards_for_context.find(params[:id])
     respond_to do |format|
-      format.json { render json: GradingSchemesJsonController.to_grading_scheme_json(grading_standard, @current_user) }
+      format.json { render json: GradingSchemesJsonController.to_grading_scheme_json(grading_standard, current_principal) }
     end
   end
 
@@ -130,7 +130,7 @@ class GradingSchemesJsonController < ApplicationController
       respond_to do |format|
         if grading_standard.save
           track_create_metrics(grading_standard)
-          format.json { render json: GradingSchemesJsonController.to_grading_scheme_json(grading_standard, @current_user) }
+          format.json { render json: GradingSchemesJsonController.to_grading_scheme_json(grading_standard, current_principal) }
         else
           format.json { render json: grading_standard.errors, status: :bad_request }
         end
@@ -146,7 +146,7 @@ class GradingSchemesJsonController < ApplicationController
       respond_to do |format|
         if grading_standard.update(grading_scheme_payload)
           track_update_metrics(grading_standard)
-          format.json { render json: GradingSchemesJsonController.to_grading_scheme_json(grading_standard, @current_user) }
+          format.json { render json: GradingSchemesJsonController.to_grading_scheme_json(grading_standard, current_principal) }
         else
           format.json { render json: grading_standard.errors, status: :bad_request }
         end
@@ -196,7 +196,7 @@ class GradingSchemesJsonController < ApplicationController
       respond_to do |format|
         if grading_standard.archive!
           track_update_metrics(grading_standard)
-          format.json { render json: GradingSchemesJsonController.to_grading_scheme_json(grading_standard, @current_user) }
+          format.json { render json: GradingSchemesJsonController.to_grading_scheme_json(grading_standard, current_principal) }
         else
           if grading_standard.halted_because
             grading_standard.errors.add(:workflow_state, grading_standard.halted_because)
@@ -214,7 +214,7 @@ class GradingSchemesJsonController < ApplicationController
       respond_to do |format|
         if grading_standard.unarchive!
           track_update_metrics(grading_standard)
-          format.json { render json: GradingSchemesJsonController.to_grading_scheme_json(grading_standard, @current_user) }
+          format.json { render json: GradingSchemesJsonController.to_grading_scheme_json(grading_standard, current_principal) }
         else
           if grading_standard.halted_because
             grading_standard.errors.add(:workflow_state, grading_standard.halted_because)

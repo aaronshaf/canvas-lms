@@ -294,7 +294,7 @@ class AppointmentGroupsController < ApplicationController
                                           { appointment_group_contexts: :context },
                                           :appointment_group_sub_contexts])
     end
-    render json: groups.map { |group| appointment_group_json(group, @current_user, session, include: params[:include]) }
+    render json: groups.map { |group| appointment_group_json(group, current_principal, session, include: params[:include]) }
   end
 
   # @API Create an appointment group
@@ -406,7 +406,7 @@ class AppointmentGroupsController < ApplicationController
       if authorized_action(@group, current_principal, :manage)
         if @group.save
           @group.publish! if publish
-          render json: appointment_group_json(@group, @current_user, session), status: :created
+          render json: appointment_group_json(@group, current_principal, session), status: :created
         else
           render json: @group.errors, status: :bad_request
         end
@@ -431,7 +431,7 @@ class AppointmentGroupsController < ApplicationController
 
       @request_shard = Shard.current
       render json: appointment_group_json(@group,
-                                          @current_user,
+                                          current_principal,
                                           session,
                                           include: ((params[:include] || []) | ["appointments"]),
                                           include_past_appointments: @group.grants_right?(current_principal, :manage))
@@ -524,7 +524,7 @@ class AppointmentGroupsController < ApplicationController
       publish = params[:appointment_group].delete(:publish) == "1"
       if (publish && params[:appointment_group].blank?) || @group.update(appointment_group_params)
         @group.publish! if publish
-        render json: appointment_group_json(@group, @current_user, session)
+        render json: appointment_group_json(@group, current_principal, session)
       else
         render json: @group.errors, status: :bad_request
       end
@@ -549,7 +549,7 @@ class AppointmentGroupsController < ApplicationController
     if authorized_action(@group, current_principal, :delete)
       @group.cancel_reason = params[:cancel_reason]
       if @group.destroy(@current_user)
-        render json: appointment_group_json(@group, @current_user, session)
+        render json: appointment_group_json(@group, current_principal, session)
       else
         render json: @group.errors, status: :bad_request
       end
@@ -565,7 +565,7 @@ class AppointmentGroupsController < ApplicationController
   # @argument registration_status ["all"|"registered"|"registered"]
   #   Limits results to the a given participation status, defaults to "all"
   def users
-    participants("User") { |u| user_json(u, @current_user, session) }
+    participants("User") { |u| user_json(u, current_principal, session) }
   end
 
   # @API List student group participants
@@ -577,7 +577,7 @@ class AppointmentGroupsController < ApplicationController
   # @argument registration_status ["all"|"registered"|"registered"]
   #   Limits results to the a given participation status, defaults to "all"
   def groups
-    participants("Group") { |g| group_json(g, @current_user, session) }
+    participants("Group") { |g| group_json(g, current_principal, session) }
   end
 
   # @API Get next appointment
@@ -615,7 +615,7 @@ class AppointmentGroupsController < ApplicationController
       end
     end
     render json: events.sort_by(&:start_at)[0..0].map { |event|
-      calendar_event_json(event, @current_user, session)
+      calendar_event_json(event, current_principal, session)
     }
   end
 

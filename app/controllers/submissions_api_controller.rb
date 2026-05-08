@@ -289,7 +289,7 @@ class SubmissionsApiController < ApplicationController
 
                submissions.map do |s|
                  s.visible_to_user = true
-                 submission_json(s, @assignment, @current_user, session, @context, includes, params)
+                 submission_json(s, @assignment, current_principal, session, @context, includes, params)
                end
              end
 
@@ -578,7 +578,7 @@ class SubmissionsApiController < ApplicationController
 
             visible_assignments = assignment_visibilities.fetch(submission.user_id, [])
             submission.visible_to_user = visible_assignments.include? submission.assignment_id
-            hash[:submissions] << submission_json(submission, submission.assignment, @current_user, session, @context, includes, params)
+            hash[:submissions] << submission_json(submission, submission.assignment, current_principal, session, @context, includes, params)
           end
         end
         if includes.include?("total_scores")
@@ -628,7 +628,7 @@ class SubmissionsApiController < ApplicationController
         s.assignment = assignments_hash[s.assignment_id]
         visible_assignments = assignment_visibilities.fetch(s.user_id, [])
         s.visible_to_user = visible_assignments.include? s.assignment_id
-        submission_json(s, s.assignment, @current_user, session, @context, includes, params)
+        submission_json(s, s.assignment, current_principal, session, @context, includes, params)
       end
     end
 
@@ -652,7 +652,7 @@ class SubmissionsApiController < ApplicationController
         render json: submission_json(
           @submission,
           @assignment,
-          @current_user,
+          current_principal,
           session,
           @context,
           includes,
@@ -942,7 +942,7 @@ class SubmissionsApiController < ApplicationController
 
       if submission[:grade] || submission[:excuse]
         begin
-          @submissions = @assignment.grade_student(@user, submission)
+          @submissions = @assignment.grade_student(@user, **submission)
           graded_just_now = true
         rescue Assignment::GradeError => e
           logger.info "GRADES: grade_student failed because '#{e.message}'"
@@ -1064,7 +1064,7 @@ class SubmissionsApiController < ApplicationController
       json = submission_json(
         @submission,
         @assignment,
-        @current_user,
+        current_principal,
         session,
         @context,
         includes,
@@ -1081,7 +1081,7 @@ class SubmissionsApiController < ApplicationController
         submission_json(
           s,
           @assignment,
-          @current_user,
+          current_principal,
           session,
           @context,
           includes,
@@ -1283,7 +1283,7 @@ class SubmissionsApiController < ApplicationController
             course: @context,
             assignment: @assignment,
             submission:,
-            current_user: @current_user,
+            current_principal:,
             avatars: service_enabled?(:avatars) && !@assignment.grade_as_group?,
             includes:
           )
@@ -1414,7 +1414,7 @@ class SubmissionsApiController < ApplicationController
     end
 
     progress = Submission.queue_bulk_update(@context, @section, @current_user, grade_data)
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 
   # @API Mark submission as read
@@ -1765,7 +1765,7 @@ class SubmissionsApiController < ApplicationController
 
       submission_array = submission_batch.map do |submission|
         submission.visible_to_user = users_with_visibility.include?(submission.user_id)
-        submission_json(submission, @assignment, @current_user, session, @context, includes, params)
+        submission_json(submission, @assignment, current_principal, session, @context, includes, params)
       end
 
       result.concat(submission_array)

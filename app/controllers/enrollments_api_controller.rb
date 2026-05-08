@@ -543,7 +543,7 @@ class EnrollmentsApiController < ApplicationController
 
       render json: enrollments.map { |e|
         enrollment_json(e,
-                        @current_user,
+                        current_principal,
                         session,
                         includes:,
                         opts: { grading_period: })
@@ -570,7 +570,7 @@ class EnrollmentsApiController < ApplicationController
         raise(ActiveRecord::RecordNotFound, "Couldn't find #{Enrollment.name} with API id '#{params[:id]}'")
       end
 
-      render json: enrollment_json(enrollment, @current_user, session)
+      render json: enrollment_json(enrollment, current_principal, session)
     end
   end
 
@@ -776,7 +776,7 @@ class EnrollmentsApiController < ApplicationController
     end
 
     if @enrollment.valid?
-      render(json: enrollment_json(@enrollment, @current_user, session))
+      render(json: enrollment_json(@enrollment, current_principal, session))
     else
       render(json: @enrollment.errors, status: :bad_request)
     end
@@ -822,7 +822,7 @@ class EnrollmentsApiController < ApplicationController
 
     SubmissionLifecycleManager.with_executing_user(@current_user) do
       if @current_user.save
-        render(json: enrollment_json(@current_user.self_enrollment, @current_user, session))
+        render(json: enrollment_json(@current_user.self_enrollment, current_principal, session))
       else
         render(json: { user: ::Api::Errors::Reporter.to_json(@current_user.errors) }, status: :bad_request)
       end
@@ -927,7 +927,7 @@ class EnrollmentsApiController < ApplicationController
 
     progress.process_job(Enrollment::BulkUpdate.new(@context, @current_user), :bulk_enrollment, { run_at: Time.zone.now, priority: Delayed::NORMAL_PRIORITY }, **process_params)
 
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 
   # @API Conclude, deactivate, or delete an enrollment
@@ -970,7 +970,7 @@ class EnrollmentsApiController < ApplicationController
     end
 
     if @enrollment.send(action)
-      render json: enrollment_json(@enrollment, @current_user, session)
+      render json: enrollment_json(@enrollment, current_principal, session)
     else
       render json: @enrollment.errors, status: :bad_request
     end
@@ -1049,7 +1049,7 @@ class EnrollmentsApiController < ApplicationController
     end
 
     if @enrollment.reactivate
-      render json: enrollment_json(@enrollment, @current_user, session)
+      render json: enrollment_json(@enrollment, current_principal, session)
     else
       render json: @enrollment.errors, status: :bad_request
     end

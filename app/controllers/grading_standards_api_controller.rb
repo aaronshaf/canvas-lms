@@ -169,7 +169,7 @@ class GradingStandardsApiController < ApplicationController
       @standard.user = @current_user
       respond_to do |format|
         if @standard.save
-          format.json { render json: grading_standard_json(@standard, @current_user, session) }
+          format.json { render json: grading_standard_json(@standard, current_principal, session) }
         else
           format.json { render json: @standard.errors, status: :bad_request }
         end
@@ -189,7 +189,7 @@ class GradingStandardsApiController < ApplicationController
   def context_index
     if authorized_action(@context, current_principal, :read)
       grading_standards_json = @context.grading_standards.map do |g|
-        grading_standard_json(g, @current_user, session)
+        grading_standard_json(g, current_principal, session)
       end
       render json: grading_standards_json
     end
@@ -207,7 +207,7 @@ class GradingStandardsApiController < ApplicationController
   def context_show
     if authorized_action(@context, current_principal, :read)
       grading_standard = @context.grading_standards.find(params[:grading_standard_id])
-      render json: grading_standard_json(grading_standard, @current_user, session)
+      render json: grading_standard_json(grading_standard, current_principal, session)
     end
   end
 
@@ -295,7 +295,7 @@ class GradingStandardsApiController < ApplicationController
 
     respond_to do |format|
       if grading_standard.update(grading_standard_params)
-        format.json { render json: grading_standard_json(grading_standard, @current_user, session) }
+        format.json { render json: grading_standard_json(grading_standard, current_principal, session) }
       else
         format.json { render json: grading_standard.errors, status: :bad_request }
       end
@@ -316,7 +316,7 @@ class GradingStandardsApiController < ApplicationController
     if authorized_action(grading_standard, current_principal, :manage)
       respond_to do |format|
         if grading_standard.destroy
-          format.json { render json: grading_standard_json(grading_standard, @current_user, session) }
+          format.json { render json: grading_standard_json(grading_standard, current_principal, session) }
         else
           format.json { render json: grading_standard.errors, status: :bad_request }
         end

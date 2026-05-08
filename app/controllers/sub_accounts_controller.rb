@@ -120,7 +120,7 @@ class SubAccountsController < ApplicationController
       end
     end
     if @sub_account.save
-      render json: account_json(@sub_account, @current_user, session, [])
+      render json: account_json(@sub_account, current_principal, session, [])
     else
       render json: @sub_account.errors, status: :bad_request
     end
@@ -130,7 +130,7 @@ class SubAccountsController < ApplicationController
     @sub_account = subaccount_or_self(params[:id])
     params[:account].delete(:parent_account_id)
     if @sub_account.update(account_params)
-      render json: account_json(@sub_account, @current_user, session, [])
+      render json: account_json(@sub_account, current_principal, session, [])
     else
       render json: @sub_account.errors, status: :bad_request
     end
@@ -156,7 +156,7 @@ class SubAccountsController < ApplicationController
     end
 
     @sub_account.destroy
-    render json: account_json(@sub_account, @current_user, session, [])
+    render json: account_json(@sub_account, current_principal, session, [])
   end
 
   protected

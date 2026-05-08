@@ -350,7 +350,7 @@ class PageViewsController < ApplicationController
         page_views = @user.page_views(date_options)
         url = api_v1_user_page_views_url(url_options)
         @page_views = Api.paginate(page_views, self, url, { total_entries: nil, max_per_page: PAGE_VIEWS_MAX_PER_PAGE })
-        render json: page_views_json(@page_views, @current_user, session)
+        render json: page_views_json(@page_views, current_principal, session)
       end
       format.csv do
         cancel_cache_buster

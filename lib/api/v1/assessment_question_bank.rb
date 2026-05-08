@@ -33,14 +33,14 @@ module Api::V1::AssessmentQuestionBank
     ]
   }.freeze
 
-  def question_bank_json(bank, user, session, options = {})
-    api_json(bank, user, session, API_ALLOWED_QUESTION_BANK_OUTPUT_FIELDS).tap do |json|
+  def question_bank_json(bank, current_principal, session, options = {})
+    api_json(bank, current_principal, session, API_ALLOWED_QUESTION_BANK_OUTPUT_FIELDS).tap do |json|
       json[:assessment_question_count] = bank.assessment_question_count if options[:include_question_count]
       json[:context_code] = bank.context_code
     end
   end
 
-  def question_banks_json(banks, user, session, options = {})
-    banks.map { |bank| question_bank_json(bank, user, session, options) }
+  def question_banks_json(banks, current_principal, session, options = {})
+    banks.map { |bank| question_bank_json(bank, current_principal, session, options) }
   end
 end

@@ -77,7 +77,7 @@ class TokensController < ApplicationController
 
     tokens = Api.paginate(paginated_tokens, self, api_v1_user_generated_tokens_path, pagination_args)
 
-    render json: tokens.map { |token| token_json(token, @current_user, session) }
+    render json: tokens.map { |token| token_json(token, current_principal, session) }
   end
 
   # @API Show an access token
@@ -89,7 +89,7 @@ class TokensController < ApplicationController
       return render_unauthorized_action
     end
 
-    render json: token_json(@token, @current_user, session)
+    render json: token_json(@token, current_principal, session)
   end
 
   #
@@ -136,7 +136,7 @@ class TokensController < ApplicationController
     @token.set_permanent_expiration
 
     if @token.save
-      render json: token_json(@token, @current_user, session)
+      render json: token_json(@token, current_principal, session)
     else
       render json: @token.errors, status: :bad_request
     end
@@ -177,7 +177,7 @@ class TokensController < ApplicationController
     end
 
     if @token.update(token_params)
-      render json: token_json(@token, @current_user, session)
+      render json: token_json(@token, current_principal, session)
     else
       render json: @token.errors, status: :bad_request
     end
@@ -198,7 +198,7 @@ class TokensController < ApplicationController
     end
 
     @token.destroy
-    render json: token_json(@token, @current_user, session)
+    render json: token_json(@token, current_principal, session)
   end
 
   def activate
@@ -206,7 +206,7 @@ class TokensController < ApplicationController
     return render json: { errors: { token: ["is already active"] } }, status: :bad_request unless @token.pending?
 
     @token.activate!
-    render json: token_json(@token, @current_user, session)
+    render json: token_json(@token, current_principal, session)
   end
 
   private

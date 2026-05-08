@@ -56,27 +56,27 @@ module Api::V1::Quiz
           ).freeze
   }.freeze
 
-  def quizzes_json(quizzes, context, user, session, options = {})
+  def quizzes_json(quizzes, context, current_principal, session, options = {})
     unless options[:skip_description]
       # bulk preload all description attachments to prevent N+1 query
       preloaded_attachments = api_bulk_load_user_content_attachments(quizzes.map(&:description), context)
-      options[:description_formatter] = description_formatter(context, user, preloaded_attachments)
+      options[:description_formatter] = description_formatter(context, current_principal, preloaded_attachments)
     end
     DatesOverridable.preload_override_data_for_objects(quizzes)
-    if context.grants_right?(user, session, :manage_assignments_edit)
+    if context.grants_right?(current_principal, session, :manage_assignments_edit)
       options[:master_course_status] = setup_master_course_restrictions(quizzes, context)
     end
 
     quizzes.map do |quiz|
-      quiz_json(quiz, context, user, session, options)
+      quiz_json(quiz, context, current_principal, session, options)
     end
   end
 
-  def quiz_json(quiz, context, user, session, options = {}, serializer = nil)
-    options[:description_formatter] = description_formatter(context, user, {}, quiz) unless options[:description_formatter]
+  def quiz_json(quiz, context, current_principal, session, options = {}, serializer = nil)
+    options[:description_formatter] = description_formatter(context, current_principal, {}, quiz) unless options[:description_formatter]
     if accepts_jsonapi?
       Canvas::APIArraySerializer.new([quiz],
-                                     scope: user,
+                                     scope: current_principal,
                                      session:,
                                      root: :quizzes,
                                      each_serializer: Quizzes::QuizApiSerializer,
@@ -84,7 +84,7 @@ module Api::V1::Quiz
                                      serializer_options: options).as_json
     else
       (serializer || Quizzes::QuizSerializer).new(quiz,
-                                                  scope: user,
+                                                  scope: current_principal,
                                                   session:,
                                                   root: false,
                                                   controller: self,
@@ -92,11 +92,11 @@ module Api::V1::Quiz
     end
   end
 
-  def description_formatter(context, user, preloaded_attachments = {}, quiz = nil)
+  def description_formatter(context, current_principal, preloaded_attachments = {}, quiz = nil)
     # adds verifiers - lambda here (as opposed to
     # inside the serializer) to capture context
     lambda do |description|
-      api_user_content(description, context, user, preloaded_attachments, location: quiz&.asset_string)
+      api_user_content(description, context, current_principal, preloaded_attachments, location: quiz&.asset_string)
     end
   end
 
@@ -120,7 +120,7 @@ module Api::V1::Quiz
   def add_meta_permissions!(meta)
     meta[:permissions] ||= {}
     meta[:permissions][:quizzes] = {
-      create: context.grants_right?(@current_user, session, :manage_assignments_add)
+      create: context.grants_right?(current_principal, session, :manage_assignments_add)
     }
   end
 

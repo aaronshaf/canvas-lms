@@ -1085,7 +1085,7 @@ class CoursesController < ApplicationController
           format.json do
             render json: course_json(
               @course,
-              @current_user,
+              current_principal,
               session,
               [:start_at,
                course_end,
@@ -1160,7 +1160,7 @@ class CoursesController < ApplicationController
     if authorized_action(@context, current_principal, :read_roster)
       proxy = @context.students_visible_to(@current_user).order_by_sortable_name
       user_json_preloads(proxy)
-      render json: proxy.map { |u| user_json(u, @current_user, session) }
+      render json: proxy.map { |u| user_json(u, current_principal, session) }
     end
   end
 
@@ -1341,7 +1341,7 @@ class CoursesController < ApplicationController
           if @context.sections_hidden_on_roster_page?(current_user: @current_user)
             excludes.append("course_section_id")
           end
-          user_json(u, @current_user, session, includes, @context, enrollments, excludes).tap do |json|
+          user_json(u, current_principal, session, includes, @context, enrollments, excludes).tap do |json|
             json[:group_ids] = active_group_memberships(users)[u.id]&.map(&:group_id) || [] if include_group_ids
             json[:has_non_collaborative_groups] = user_ids_with_diff_tags.include?(u.id) if include_diff_tags
           end
@@ -1369,7 +1369,7 @@ class CoursesController < ApplicationController
       scope = scope.order("last_login DESC NULLS LAST")
       users = Api.paginate(scope, self, api_v1_course_recent_students_url)
       user_json_preloads(users)
-      render json: users.map { |u| user_json(u, @current_user, session, ["last_login"]) }
+      render json: users.map { |u| user_json(u, current_principal, session, ["last_login"]) }
     end
   end
 
@@ -1391,7 +1391,7 @@ class CoursesController < ApplicationController
       user_json_preloads(users, preload_email: includes.include?("email"))
       user = users.first or raise ActiveRecord::RecordNotFound
       enrollments = user.not_ended_enrollments.where(course_id: @context).preload(:course, :root_account, :sis_pseudonym) if includes.include?("enrollments")
-      render json: user_json(user, @current_user, session, includes, @context, enrollments)
+      render json: user_json(user, current_principal, session, includes, @context, enrollments)
     end
   end
 
@@ -1426,7 +1426,7 @@ class CoursesController < ApplicationController
                   .order(:name)
                   .distinct
     users = Api.paginate(union_scope, self, api_v1_course_content_share_users_url)
-    render json: users_json(users, @current_user, session, ["avatar_url", "email"], @context, nil, ["pseudonym"])
+    render json: users_json(users, current_principal, session, ["avatar_url", "email"], @context, nil, ["pseudonym"])
   end
 
   def admin_scope(scope, root_account_id)
@@ -1487,7 +1487,7 @@ class CoursesController < ApplicationController
   def activity_stream
     get_context
     if authorized_action(@context, current_principal, :read)
-      api_render_stream(contexts: [@context], paginate_url: :api_v1_course_activity_stream_url)
+      api_render_stream(contexts: [@context], paginate_url: :api_v1_course_activity_stream_url, current_principal:)
     end
   end
 
@@ -1499,7 +1499,7 @@ class CoursesController < ApplicationController
   def activity_stream_summary
     get_context
     if authorized_action(@context, current_principal, :read)
-      api_render_stream_summary(contexts: [@context])
+      api_render_stream_summary(contexts: [@context], current_principal:)
     end
   end
 
@@ -1527,11 +1527,11 @@ class CoursesController < ApplicationController
 
         grading_collection = BookmarkedCollection.wrap(bookmark, grading_scope)
         grading_collection = BookmarkedCollection.transform(grading_collection) do |a|
-          todo_item_json(a, @current_user, session, "grading")
+          todo_item_json(a, current_principal, session, "grading")
         end
         submitting_collection = BookmarkedCollection.wrap(bookmark, submitting_scope)
         submitting_collection = BookmarkedCollection.transform(submitting_collection) do |a|
-          todo_item_json(a, @current_user, session, "submitting")
+          todo_item_json(a, current_principal, session, "submitting")
         end
 
         collections = [
@@ -1550,7 +1550,7 @@ class CoursesController < ApplicationController
                           .reorder(:due_at, :id)
           quizzes_collection = BookmarkedCollection.wrap(quizzes_bookmark, quizzes_scope)
           quizzes_collection = BookmarkedCollection.transform(quizzes_collection) do |a|
-            todo_item_json(a, @current_user, session, "submitting")
+            todo_item_json(a, current_principal, session, "submitting")
           end
 
           collections << ["quizzes", quizzes_collection]
@@ -2001,7 +2001,7 @@ class CoursesController < ApplicationController
   def student_view_student
     get_context
     if authorized_action(@context, current_principal, :use_student_view)
-      render json: user_json(@context.student_view_student, @current_user, session)
+      render json: user_json(@context.student_view_student, current_principal, session)
     end
   end
 
@@ -2416,7 +2416,7 @@ class CoursesController < ApplicationController
           end
 
           includes << :hide_final_grades
-          render json: course_json(@course, @current_user, session, includes, enrollments)
+          render json: course_json(@course, current_principal, session, includes, enrollments)
         end
         return
       end
@@ -3843,7 +3843,7 @@ class CoursesController < ApplicationController
       end
       format.json do
         if api_request?
-          render json: course_json(@course, @current_user, session, [:hide_final_grades], nil)
+          render json: course_json(@course, current_principal, session, [:hide_final_grades], nil)
         else
           render json: @course.as_json(methods: %i[readable_license quota account_name term_name grading_standard_title storage_quota_mb]), status: :ok
         end
@@ -3896,7 +3896,7 @@ class CoursesController < ApplicationController
       return render(json: { message: "invalid event" }, status: :bad_request) unless %w[offer conclude delete undelete].include? update_params[:event]
 
       progress = Course.batch_update(@account, @current_user, @course_ids, update_params, :api)
-      render json: progress_json(progress, @current_user, session)
+      render json: progress_json(progress, current_principal, session)
     end
   end
 
@@ -3964,7 +3964,7 @@ class CoursesController < ApplicationController
     @new_course = @context.reset_content
     Auditors::Course.record_reset(@context, @new_course, @current_user, source: api_request? ? :api : :manual)
     if api_request?
-      render json: course_json(@new_course, @current_user, session, [], nil)
+      render json: course_json(@new_course, current_principal, session, [], nil)
     else
       redirect_to course_settings_path(@new_course.id)
     end
@@ -4219,7 +4219,7 @@ class CoursesController < ApplicationController
     return unless authorized_action(@context, current_principal, RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
 
     if (progress = CourseLinkValidator.current_progress(@context))
-      render json: progress_json(progress, @current_user, session)
+      render json: progress_json(progress, current_principal, session)
     else
       render json: {}
     end
@@ -4581,7 +4581,7 @@ class CoursesController < ApplicationController
     enrollments_by_course.each do |course_enrollments|
       course = course_enrollments.first.course
       hash << course_json(course,
-                          @current_user,
+                          current_principal,
                           session,
                           includes,
                           course_enrollments,
@@ -4734,7 +4734,7 @@ class CoursesController < ApplicationController
     @context.saving_user = @current_user
 
     if @context.save
-      render json: course_json(@context, @current_user, session, [], nil)
+      render json: course_json(@context, current_principal, session, [], nil)
     else
       render json: @context.errors, status: :unprocessable_content
     end

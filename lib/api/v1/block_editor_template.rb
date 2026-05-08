@@ -21,13 +21,13 @@
 module Api::V1::BlockEditorTemplate
   include Api::V1::Json
 
-  def block_editor_template_json(block_editor_template, user, session)
-    api_json(block_editor_template, user, session).tap do |json|
+  def block_editor_template_json(block_editor_template, current_principal, session)
+    api_json(block_editor_template, current_principal, session).tap do |json|
       json["global_id"] = block_editor_template.global_id
     end
   end
 
-  def block_editor_templates_json(block_editor_templates, user, session)
-    block_editor_templates.map { |template| block_editor_template_json(template, user, session) }
+  def block_editor_templates_json(block_editor_templates, current_principal, session)
+    block_editor_templates.map { |template| block_editor_template_json(template, current_principal, session) }
   end
 end

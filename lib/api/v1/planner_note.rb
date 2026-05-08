@@ -32,8 +32,8 @@ module Api::V1::PlannerNote
     only: %w[id todo_date title details user_id course_id workflow_state created_at updated_at]
   }.freeze
 
-  def planner_note_json(note, user, session, opts = {})
-    api_json(note, user, session, opts.merge(API_JSON_OPTS)).tap do |json|
+  def planner_note_json(note, current_principal, session, opts = {})
+    api_json(note, current_principal, session, opts.merge(API_JSON_OPTS)).tap do |json|
       if note.linked_object_type.present?
         json["linked_object_id"] = note.linked_object_id
         json["linked_object_type"] = LINKED_OBJECT_TYPES.key(note.linked_object_type)
@@ -42,9 +42,9 @@ module Api::V1::PlannerNote
     end
   end
 
-  def planner_notes_json(notes, user, session, opts = {})
+  def planner_notes_json(notes, current_principal, session, opts = {})
     notes.map do |note|
-      planner_note_json(note, user, session, opts)
+      planner_note_json(note, current_principal, session, opts)
     end
   end
 

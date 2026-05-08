@@ -163,7 +163,7 @@ class PlannerNotesController < ApplicationController
     notes = notes.after(start_at) if start_at
     notes = notes.before(end_at) if end_at
 
-    render json: planner_notes_json(notes, @current_user, session)
+    render json: planner_notes_json(notes, current_principal, session)
   rescue InvalidDates => e
     render json: { errors: e.message.as_json }, status: :bad_request
   end
@@ -175,7 +175,7 @@ class PlannerNotesController < ApplicationController
   # @returns PlannerNote
   def show
     note = @current_user.planner_notes.find(params[:id])
-    render json: planner_note_json(note, @current_user, session)
+    render json: planner_note_json(note, current_principal, session)
   end
 
   # @API Update a planner note
@@ -214,7 +214,7 @@ class PlannerNotesController < ApplicationController
     end
     if note.update(update_params)
       Rails.cache.delete(planner_meta_cache_key)
-      render json: planner_note_json(note, @current_user, session), status: :ok
+      render json: planner_note_json(note, current_principal, session), status: :ok
     else
       render json: note.errors, status: :bad_request
     end
@@ -271,7 +271,7 @@ class PlannerNotesController < ApplicationController
     begin
       if note.save
         Rails.cache.delete(planner_meta_cache_key)
-        render json: planner_note_json(note, @current_user, session), status: :created
+        render json: planner_note_json(note, current_principal, session), status: :created
       else
         render json: note.errors, status: :bad_request
       end
@@ -290,7 +290,7 @@ class PlannerNotesController < ApplicationController
 
     if note.destroy
       Rails.cache.delete(planner_meta_cache_key)
-      render json: planner_note_json(note, @current_user, session), status: :ok
+      render json: planner_note_json(note, current_principal, session), status: :ok
     else
       render json: note.errors, status: :bad_request
     end

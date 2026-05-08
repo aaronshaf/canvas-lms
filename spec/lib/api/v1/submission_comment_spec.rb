@@ -26,7 +26,10 @@ describe Api::V1::SubmissionComment do
       include Api::V1::SubmissionComment
       include Rails.application.routes.url_helpers
 
-      attr_writer :current_user
+      def current_user=(value)
+        @current_user = value
+        @current_principal = value && Canvas::AdheresToPolicy::UserPrincipal.new(value)
+      end
 
       private
 
@@ -137,7 +140,7 @@ describe Api::V1::SubmissionComment do
         assignment:,
         avatars: nil,
         course:,
-        current_user: teacher,
+        current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(teacher),
         submissions: [student_sub],
         submission_comments: student_sub.submission_comments
       ).pluck(:anonymous_id)
@@ -151,7 +154,7 @@ describe Api::V1::SubmissionComment do
         assignment:,
         avatars: nil,
         course:,
-        current_user: teacher,
+        current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(teacher),
         submissions: [student_sub],
         submission_comments: student_sub.submission_comments
       ).find { |comment| comment[:anonymous_id] == student3_sub.anonymous_id }
@@ -165,7 +168,7 @@ describe Api::V1::SubmissionComment do
         assignment:,
         avatars: nil,
         course:,
-        current_user: student,
+        current_principal: Canvas::AdheresToPolicy::UserPrincipal.new(student),
         submissions: [student_sub],
         submission_comments: student_sub.submission_comments
       ).find { |comment| comment[:author_id] == student_sub.user_id }

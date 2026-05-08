@@ -109,7 +109,7 @@ class TermsController < ApplicationController
 
     if @term.save
       if api_request?
-        render json: enrollment_term_json(@term, @current_user, session)
+        render json: enrollment_term_json(@term, current_principal, session)
       else
         render json: @term
       end
@@ -185,7 +185,7 @@ class TermsController < ApplicationController
 
   def serialized_term
     if api_request?
-      enrollment_term_json(@term, @current_user, session, nil, ["overrides"])
+      enrollment_term_json(@term, current_principal, session, nil, ["overrides"])
     else
       @term.as_json(include: :enrollment_dates_overrides, methods: :filter_courses_by_term)
     end

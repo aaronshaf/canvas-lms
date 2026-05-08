@@ -290,12 +290,12 @@ describe Api::V1::SisAssignment do
         assignments = Assignment.where(id: assignment_1.id)
                                 .preload(active_assignment_overrides: [{ assignment_override_students: [{ user: [:pseudonym] }] }])
 
-        viewer = @student1
+        viewer = Canvas::AdheresToPolicy::UserPrincipal.new(@student1)
         allow(SisPseudonym).to receive(:for).and_call_original
         expect(SisPseudonym).to receive(:for)
           .with(@student1, anything, hash_including(current_user: viewer))
           .and_call_original
-        generator.sis_assignments_json(assignments, includes: { student_overrides: true }, current_user: viewer)
+        generator.sis_assignments_json(assignments, includes: { student_overrides: true }, current_principal: viewer)
       end
     end
   end

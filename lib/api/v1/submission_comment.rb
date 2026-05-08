@@ -35,7 +35,7 @@ module Api::V1::SubmissionComment
     media_comment_type
   ].freeze
 
-  def submission_comment_json(submission_comment, user, use_html_comment: false)
+  def submission_comment_json(submission_comment, current_principal, use_html_comment: false)
     sc_hash = submission_comment.as_json(
       include_root: false,
       only: %w[id author_id author_name created_at edited_at comment attempt]
@@ -56,10 +56,10 @@ module Api::V1::SubmissionComment
 
     unless submission_comment.attachments.blank?
       sc_hash["attachments"] = submission_comment.attachments.map do |a|
-        attachment_json(a, user, { location: submission_comment.asset_string })
+        attachment_json(a, current_principal, { location: submission_comment.asset_string })
       end
     end
-    if @current_user && submission_comment.grants_right?(@current_user, :read_author)
+    if current_principal && submission_comment.grants_right?(current_principal, :read_author)
       sc_hash["author"] = user_display_json(submission_comment.author, submission_comment.context)
     else
       if sc_hash.delete("avatar_path")
@@ -74,11 +74,11 @@ module Api::V1::SubmissionComment
     sc_hash
   end
 
-  def submission_comments_json(submission_comments, user, use_html_comment: false)
-    submission_comments.map { |submission_comment| submission_comment_json(submission_comment, user, use_html_comment:) }
+  def submission_comments_json(submission_comments, current_principal, use_html_comment: false)
+    submission_comments.map { |submission_comment| submission_comment_json(submission_comment, current_principal, use_html_comment:) }
   end
 
-  def anonymous_moderated_submission_comments_json(assignment:, submissions:, submission_comments:, current_user:, course:, avatars:)
+  def anonymous_moderated_submission_comments_json(assignment:, submissions:, submission_comments:, current_principal:, course:, avatars:)
     display_avatars = avatars && !assignment.grade_as_group?
     comment_methods = display_avatars ? [:avatar_path] : []
 
@@ -89,27 +89,27 @@ module Api::V1::SubmissionComment
       end
 
       json = comment.as_json(include_root: false, methods: comment_methods, only: ANONYMOUS_MODERATED_JSON_ATTRIBUTES)
-      json[:publishable] = comment.publishable_for?(current_user)
+      json[:publishable] = comment.publishable_for?(current_principal)
       author_id = comment.author_id.to_s
       student_anonymous_ids = student_ids_to_anonymous_ids(
         assignment:,
         course:,
-        current_user:,
+        current_principal:,
         submissions:
       )
 
-      if anonymous_students?(current_user:, assignment:) &&
+      if anonymous_students?(current_principal:, assignment:) &&
          student_anonymous_ids.key?(author_id) &&
-         comment.author != current_user
+         comment.author != current_principal
 
         json.delete(:author_id)
         json.delete(:author_name)
         json[:anonymous_id] = student_anonymous_ids[author_id]
         json[:avatar_path] = User.default_avatar_fallback if display_avatars
-      elsif anonymous_graders?(current_user:, assignment:) && assignment.grader_ids_to_anonymous_ids.key?(author_id)
+      elsif anonymous_graders?(current_principal:, assignment:) && assignment.grader_ids_to_anonymous_ids.key?(author_id)
         json.delete(:author_id)
         json[:anonymous_id] = assignment.grader_ids_to_anonymous_ids[author_id]
-        unless author_id == current_user.id.to_s
+        unless author_id == current_principal.user.id.to_s
           json[:avatar_path] = User.default_avatar_fallback if display_avatars
           json.delete(:author_name)
         end
@@ -121,29 +121,29 @@ module Api::V1::SubmissionComment
 
   private
 
-  def anonymous_students?(current_user:, assignment:)
+  def anonymous_students?(current_principal:, assignment:)
     return @anonymous_students if defined? @anonymous_students
 
-    @anonymous_students = !assignment.can_view_student_names?(current_user)
+    @anonymous_students = !assignment.can_view_student_names?(current_principal)
   end
 
-  def anonymous_graders?(current_user:, assignment:)
+  def anonymous_graders?(current_principal:, assignment:)
     return @anonymous_graders if defined? @anonymous_graders
 
-    @anonymous_graders = !assignment.can_view_other_grader_identities?(current_user)
+    @anonymous_graders = !assignment.can_view_other_grader_identities?(current_principal)
   end
 
-  def grader_comments_hidden?(current_user:, assignment:)
+  def grader_comments_hidden?(current_principal:, assignment:)
     return @grader_comments_hidden if defined? @grader_comments_hidden
 
-    @grader_comments_hidden = !assignment.can_view_other_grader_comments?(current_user)
+    @grader_comments_hidden = !assignment.can_view_other_grader_comments?(current_principal)
   end
 
-  def student_ids_to_anonymous_ids(current_user:, assignment:, course:, submissions:)
+  def student_ids_to_anonymous_ids(current_principal:, assignment:, course:, submissions:)
     return @student_ids_to_anonymous_ids if defined? @student_ids_to_anonymous_ids
 
     # ensure each student has membership, even without a submission
-    student_ids = students(current_user:, assignment:, course:).pluck(:id)
+    student_ids = students(current_principal:, assignment:, course:).pluck(:id)
     @student_ids_to_anonymous_ids = student_ids.to_h { |student_id| [student_id.to_s, nil] }
     missing_student_ids = student_ids - submissions.map(&:user_id)
     missing_submissions = if missing_student_ids.empty?
@@ -158,20 +158,20 @@ module Api::V1::SubmissionComment
     @student_ids_to_anonymous_ids
   end
 
-  def students(course:, assignment:, current_user:)
+  def students(course:, assignment:, current_principal:)
     @students ||= begin
-      includes = gradebook_includes(user: current_user, course:)
-      assignment.representatives(user: current_user, includes:)
+      includes = gradebook_includes(user: current_principal, course:)
+      assignment.representatives(user: current_principal, includes:)
     end
   end
 
-  def other_grader?(user_id:, current_user:, course:, assignment:, submissions:)
+  def other_grader?(user_id:, current_principal:, course:, assignment:, submissions:)
     anonymous_ids = student_ids_to_anonymous_ids(
-      current_user:,
+      current_principal:,
       assignment:,
       course:,
       submissions:
     )
-    !anonymous_ids.key?(user_id.to_s) && user_id != current_user.id
+    !anonymous_ids.key?(user_id.to_s) && user_id != current_principal.user.id
   end
 end

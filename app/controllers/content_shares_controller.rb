@@ -169,7 +169,7 @@ class ContentSharesController < ApplicationController
     name = Context.asset_name(content)
     sender_share = @current_user.sent_content_shares.create(content_export: export, name:, read_state: "read")
     create_receiver_shares(sender_share, @receivers)
-    render json: content_share_json(sender_share, @current_user, session), status: :created
+    render json: content_share_json(sender_share, current_principal, session), status: :created
   end
 
   # @API List content shares
@@ -186,10 +186,10 @@ class ContentSharesController < ApplicationController
     if authorized_action(@user, current_principal, :read)
       if params[:list] == "received"
         shares = Api.paginate(@user.received_content_shares.by_date, self, api_v1_user_received_content_shares_url)
-        render json: received_content_shares_json(shares, @current_user, session)
+        render json: received_content_shares_json(shares, current_principal, session)
       else
         shares = Api.paginate(@user.sent_content_shares.by_date, self, api_v1_user_sent_content_shares_url)
-        render json: sent_content_shares_json(shares, @current_user, session)
+        render json: sent_content_shares_json(shares, current_principal, session)
       end
     end
   end
@@ -222,7 +222,7 @@ class ContentSharesController < ApplicationController
   def show
     if authorized_action(@user, current_principal, :read)
       @content_share = @user.content_shares.find(params[:id])
-      render json: content_share_json(@content_share, @current_user, session)
+      render json: content_share_json(@content_share, current_principal, session)
     end
   end
 
@@ -256,7 +256,7 @@ class ContentSharesController < ApplicationController
 
     create_receiver_shares(@content_share, @receivers - @content_share.receivers)
     @content_share.reload
-    render json: content_share_json(@content_share, @current_user, session)
+    render json: content_share_json(@content_share, current_principal, session)
   end
 
   # @API Update a content share
@@ -274,7 +274,7 @@ class ContentSharesController < ApplicationController
     @content_share = @current_user.content_shares.find(params[:id])
     update_params = params.permit(:read_state)
     if @content_share.update(update_params)
-      render json: content_share_json(@content_share, @current_user, session)
+      render json: content_share_json(@content_share, current_principal, session)
     else
       render json: @content_share.errors, status: :bad_request
     end

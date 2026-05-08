@@ -160,6 +160,6 @@ class AuthenticationAuditApiController < AuditorApiController
   def render_events(events, context, route = nil)
     route ||= polymorphic_url([:api_v1, :audit_authentication, context])
     events = Api.paginate(events, self, route)
-    render json: authentication_events_compound_json(events, @current_user, session)
+    render json: authentication_events_compound_json(events, current_principal, session)
   end
 end

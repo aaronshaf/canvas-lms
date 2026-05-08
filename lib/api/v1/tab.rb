@@ -28,14 +28,14 @@ module Api::V1::Tab
     context.class.const_defined?(const_name) && tab[:id] == context.class.const_get(const_name)
   end
 
-  def tabs_available_json(context, user, session, _includes = [], precalculated_permissions: nil)
-    json = context_tabs(context, user, session:, precalculated_permissions:).map do |tab|
-      tab_json(tab.with_indifferent_access, context, user, session)
+  def tabs_available_json(context, current_principal, session, _includes = [], precalculated_permissions: nil)
+    json = context_tabs(context, current_principal.user, session:, precalculated_permissions:).map do |tab|
+      tab_json(tab.with_indifferent_access, context, current_principal, session)
     end
     json.sort_by! { |a| a["position"] }
   end
 
-  def tab_json(tab, context, user, session)
+  def tab_json(tab, context, current_principal, session)
     hash = {}
     hash[:id] = tab[:css_class]
     hash[:html_url] = html_url(tab, context)
@@ -50,7 +50,7 @@ module Api::V1::Tab
       launch_type = context.is_a?(Account) ? "account_navigation" : "course_navigation"
       hash[:url] = sessionless_launch_url(context, id: tab[:args][1], launch_type:)
     end
-    api_json(hash, user, session)
+    api_json(hash, current_principal, session)
   end
 
   def html_url(tab, context, full_url: false)

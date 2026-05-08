@@ -37,7 +37,7 @@ module Lti
 
     def create
       progress = create_migration_progress(@context, params[:email])
-      render json: progress_json(progress, @current_user, session)
+      render json: progress_json(progress, current_principal, session)
     end
 
     def migrate_all

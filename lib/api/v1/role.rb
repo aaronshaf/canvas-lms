@@ -22,7 +22,7 @@ module Api::V1::Role
   include Api::V1::Json
   include Api::V1::Account
 
-  def role_json(account, role, current_user, session, skip_permissions: false, preloaded_overrides: nil)
+  def role_json(account, role, current_principal, session, skip_permissions: false, preloaded_overrides: nil)
     json = {
       id: role.id,
       role: role.name,
@@ -35,7 +35,7 @@ module Api::V1::Role
       is_account_role: role.account_role?
     }
 
-    json[:account] = account_json(role.account, current_user, session, []) if role.account_id
+    json[:account] = account_json(role.account, current_principal, session, []) if role.account_id
 
     return json if skip_permissions
 
@@ -44,13 +44,13 @@ module Api::V1::Role
       perm = RoleOverride.permission_for(account, permission, role, account, caching: false, preloaded_overrides:)
       next if permission == :manage_developer_keys && !account.root_account?
 
-      json[:permissions][permission] = permission_json(perm, current_user, session) if perm[:account_allows]
+      json[:permissions][permission] = permission_json(perm, current_principal, session) if perm[:account_allows]
     end
 
     json
   end
 
-  def permission_json(permission, _current_user, _session)
+  def permission_json(permission, _current_principal, _session)
     permission = permission.slice(:enabled, :locked, :readonly, :explicit, :prior_default, :group)
 
     if permission[:enabled]

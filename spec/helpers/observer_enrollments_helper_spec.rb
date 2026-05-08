@@ -37,6 +37,8 @@ describe ObserverEnrollmentsHelper do
     instance_variable_set(:@current_user, @observer)
   end
 
+  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@observer) }
+
   def enroll_observer(course, observer, linked_student)
     course.enroll_user(observer, "ObserverEnrollment", { associated_user_id: linked_student.id })
   end

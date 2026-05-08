@@ -104,7 +104,7 @@ class SmartSearchController < ApplicationController
       items = Api.paginate(scope, self, api_v1_course_smart_search_query_url(@context))
       filtered_items = filter_for_current_user(items)
       includes = Array(params[:include])
-      response[:results].concat(search_results_json(filtered_items, @current_user, includes || []))
+      response[:results].concat(search_results_json(filtered_items, current_principal, includes || []))
     end
 
     render json: response

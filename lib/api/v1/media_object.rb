@@ -23,10 +23,10 @@ API_MEDIA_OBJECT_JSON_OPTS = {
 }.freeze
 
 module Api::V1::MediaObject
-  def media_object_api_json(media_object, current_user, session, exclude = [])
-    api_json(media_object, current_user, session, API_MEDIA_OBJECT_JSON_OPTS).tap do |json|
+  def media_object_api_json(media_object, current_principal, session, exclude = [])
+    api_json(media_object, current_principal, session, API_MEDIA_OBJECT_JSON_OPTS).tap do |json|
       json["title"] = media_object.guaranteed_title
-      json["can_add_captions"] = media_object.grants_right?(current_user, session, :add_captions)
+      json["can_add_captions"] = media_object.grants_right?(current_principal, session, :add_captions)
       json["media_sources"] = media_sources_json(media_object) unless exclude.include?("sources")
       json["embedded_iframe_url"] = media_object_iframe_url(media_object.media_id)
       json["auto_caption_status"] = media_object.auto_caption_status
@@ -35,7 +35,7 @@ module Api::V1::MediaObject
 
       unless exclude.include?("tracks")
         json["media_tracks"] = media_object.media_tracks.map do |track|
-          api_json(track, current_user, session, only: %w[kind created_at updated_at id locale workflow_state]).tap do |json2|
+          api_json(track, current_principal, session, only: %w[kind created_at updated_at id locale workflow_state]).tap do |json2|
             json2[:asr] = track.asr?
             json2[:url] = show_media_tracks_url(media_object.media_id, track.id)
           end
@@ -44,10 +44,10 @@ module Api::V1::MediaObject
     end
   end
 
-  def media_attachment_api_json(attachment, media_object, current_user, session, exclude = [], verifier: nil, access_token: nil, instfs_id: nil, location: nil)
-    api_json(media_object, current_user, session, API_MEDIA_OBJECT_JSON_OPTS).tap do |json|
+  def media_attachment_api_json(attachment, media_object, current_principal, session, exclude = [], verifier: nil, access_token: nil, instfs_id: nil, location: nil)
+    api_json(media_object, current_principal, session, API_MEDIA_OBJECT_JSON_OPTS).tap do |json|
       json["title"] = media_object.guaranteed_title
-      json["can_add_captions"] = attachment.grants_right?(current_user, session, :update)
+      json["can_add_captions"] = attachment.grants_right?(current_principal, session, :update)
       json["media_sources"] = media_sources_json(media_object, attachment:, verifier:, access_token:, instfs_id:, location:) unless exclude.include?("sources")
       json["embedded_iframe_url"] = media_attachment_iframe_url(attachment.id)
       json["auto_caption_status"] = media_object.auto_caption_status
@@ -56,7 +56,7 @@ module Api::V1::MediaObject
 
       unless exclude.include?("tracks")
         json["media_tracks"] = attachment.media_tracks_include_originals.map do |track|
-          api_json(track, current_user, session, only: %w[kind created_at updated_at id locale workflow_state inherited]).tap do |json2|
+          api_json(track, current_principal, session, only: %w[kind created_at updated_at id locale workflow_state inherited]).tap do |json2|
             json2[:asr] = track.asr?
             json2[:url] = show_media_attachment_tracks_url(attachment.id, track.id, access_token:, instfs_id:, location:)
           end

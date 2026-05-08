@@ -370,7 +370,7 @@ class CalendarEventsApiController < ApplicationController
   #
   # @returns [CalendarEvent]
   def index
-    render_events_for_user(@current_user, api_v1_calendar_events_url)
+    render_events_for_user(current_principal, api_v1_calendar_events_url)
   end
 
   # @API List calendar events for a user
@@ -419,10 +419,11 @@ class CalendarEventsApiController < ApplicationController
   #
   # @returns [CalendarEvent]
   def user_index
-    render_events_for_user(@observee, api_v1_user_calendar_events_url)
+    render_events_for_user(Canvas::AdheresToPolicy::UserPrincipal.new(@observee), api_v1_user_calendar_events_url)
   end
 
-  def render_events_for_user(user, route_url)
+  def render_events_for_user(principal, route_url)
+    user = principal&.user
     @request_shard = Shard.current
 
     assignment = @type == :assignment
@@ -488,7 +489,7 @@ class CalendarEventsApiController < ApplicationController
         json = events.map do |event|
           subs = submissions[event.id] if submissions
           sub = subs.max_by(&:submitted_at) if subs
-          event_json(event, user, session, { include: includes, excludes: params[:excludes], submission: sub })
+          event_json(event, principal, session, { include: includes, excludes: params[:excludes], submission: sub })
         end
         render json:
       else
@@ -634,7 +635,7 @@ class CalendarEventsApiController < ApplicationController
 
           render json: event_json(
             original_event,
-            @current_user,
+            current_principal,
             session,
             { duplicates: events, include: includes(["web_conference", "series_natural_language"]) }
           ),
@@ -651,7 +652,7 @@ class CalendarEventsApiController < ApplicationController
   def show
     get_event(search_assignments: true)
     if authorized_action(@event, current_principal, :read)
-      render json: event_json(@event, @current_user, session, include: includes + [:web_conference])
+      render json: event_json(@event, current_principal, session, include: includes + [:web_conference])
     end
   end
 
@@ -695,14 +696,14 @@ class CalendarEventsApiController < ApplicationController
                                            @current_user,
                                            cancel_existing: value_to_boolean(params[:cancel_existing]),
                                            comments: params["comments"])
-          render json: event_json(reservation, @current_user, session, request_shard: @request_shard)
+          render json: event_json(reservation, current_principal, session, request_shard: @request_shard)
         rescue CalendarEvent::ReservationError => e
           reservations = participant ? @event.appointment_group.reservations_for(participant) : []
           render json: [{
             attribute: "reservation",
             type: "calendar_event",
             message: e.message,
-            reservations: reservations.map { |r| event_json(r, @current_user, session, request_shard: @request_shard) }
+            reservations: reservations.map { |r| event_json(r, current_principal, session, request_shard: @request_shard) }
           }],
                  status: :bad_request
         end
@@ -827,7 +828,7 @@ class CalendarEventsApiController < ApplicationController
       end
 
       if @event.update(params_for_update)
-        render json: event_json(@event, @current_user, session, include: includes("web_conference"))
+        render json: event_json(@event, current_principal, session, include: includes("web_conference"))
       else
         render json: @event.errors, status: :bad_request
       end
@@ -865,7 +866,7 @@ class CalendarEventsApiController < ApplicationController
         if @event.appointment_group && @event.appointment_group.appointments.count == 0
           @event.appointment_group.destroy(@current_user)
         end
-        render json: event_json(@event, @current_user, session)
+        render json: event_json(@event, current_principal, session)
       else
         render json: @event.errors, status: :bad_request
       end
@@ -926,7 +927,7 @@ class CalendarEventsApiController < ApplicationController
 
     json = (events + front_half_events).map do |event|
       event.reload
-      event_json(event, @current_user, session, include: includes(["web_conference", "series_natural_language"]))
+      event_json(event, current_principal, session, include: includes(["web_conference", "series_natural_language"]))
     end
     render json:
   end
@@ -1000,7 +1001,7 @@ class CalendarEventsApiController < ApplicationController
         render json: { message: t("You may not update a locked event") }, status: :bad_request
         return
       elsif target_event.update(params_for_update)
-        render json: event_json(target_event, @current_user, session, include: includes(["web_conference", "series_natural_language"]))
+        render json: event_json(target_event, current_principal, session, include: includes(["web_conference", "series_natural_language"]))
       else
         render json: { message: t("Update failed") }, status: bad_request
       end
@@ -1177,7 +1178,7 @@ class CalendarEventsApiController < ApplicationController
     json = all_events.map do |event|
       event_json(
         event,
-        @current_user,
+        current_principal,
         session,
         { include: includes(["web_conference", "series_natural_language"]) }
       )

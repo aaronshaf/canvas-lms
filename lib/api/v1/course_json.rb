@@ -43,11 +43,11 @@ module Api::V1
 
     OPTIONAL_FIELDS = %w[needs_grading_count public_description enrollments].freeze
 
-    attr_reader :course, :user, :includes, :enrollments, :hash
+    attr_reader :course, :current_principal, :includes, :enrollments, :hash
 
-    def initialize(course, user, includes, enrollments, precalculated_permissions: nil)
+    def initialize(course, current_principal, includes, enrollments, precalculated_permissions: nil)
       @course = course
-      @user = user
+      @current_principal = current_principal
       @includes = includes.map(&:to_sym)
       @enrollments = enrollments
       @precalculated_permissions = precalculated_permissions
@@ -92,8 +92,8 @@ module Api::V1
       clear_unneeded_fields(@hash)
     end
 
-    def self.to_hash(course, user, includes, enrollments, precalculated_permissions: nil, &)
-      new(course, user, includes, enrollments, precalculated_permissions:, &).to_hash
+    def self.to_hash(course, current_principal, includes, enrollments, precalculated_permissions: nil, &)
+      new(course, current_principal, includes, enrollments, precalculated_permissions:, &).to_hash
     end
 
     def clear_unneeded_fields(hash)
@@ -109,7 +109,7 @@ module Api::V1
         if @precalculated_permissions&.key?(permission)
           @precalculated_permissions[permission]
         else
-          @course.grants_right?(@user, permission)
+          @course.grants_right?(current_principal, permission)
         end
       end
     end
@@ -132,7 +132,7 @@ module Api::V1
     def needs_grading_count(enrollments, course)
       if include_grading && enrollments&.any?(&:participating_instructor?)
         assignments = course.assignments.active.to_a
-        Assignments::NeedsGradingCountQuery.new(assignments, user).count.values.sum
+        Assignments::NeedsGradingCountQuery.new(assignments, current_principal&.user).count.values.sum
       end
     end
 
@@ -185,7 +185,7 @@ module Api::V1
     def total_scores(student_enrollment)
       scores = {}
 
-      if @course.grants_any_right?(@user, :manage_grades, :view_all_grades)
+      if @course.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
         scores[:computed_current_grade] = student_enrollment.computed_current_grade
         scores[:computed_current_score] = student_enrollment.computed_current_score
         scores[:computed_final_grade] = student_enrollment.computed_final_grade
@@ -204,7 +204,7 @@ module Api::V1
         scores[:computed_current_score] = student_enrollment.effective_current_score
         # score_to_grade will return nil if user is not quantitative data restricted.
         # consumers can continue using :computed_current_grade instead
-        scores[:computed_current_letter_grade] = @course.score_to_grade(student_enrollment.effective_current_score, user: @user)
+        scores[:computed_current_letter_grade] = @course.score_to_grade(student_enrollment.effective_current_score, user: current_principal)
         scores[:computed_final_grade] = student_enrollment.effective_final_grade
         scores[:computed_final_score] = student_enrollment.effective_final_score
       end
@@ -233,7 +233,7 @@ module Api::V1
         current_period_computed_final_grade: grading_period_grade(student_enrollment, :final)
       }
 
-      if @course.grants_any_right?(@user, :manage_grades, :view_all_grades)
+      if @course.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
         scores[:current_period_unposted_current_score] =
           grading_period_score(student_enrollment, :current, unposted: true)
         scores[:current_period_unposted_final_score] =
@@ -265,7 +265,7 @@ module Api::V1
     def grading_period_score_or_grade(enrollment, current_or_final, score_or_grade, unposted)
       return nil unless current_grading_period
 
-      prefix = if @course.grants_any_right?(@user, :manage_grades, :view_all_grades)
+      prefix = if @course.grants_any_right?(current_principal, :manage_grades, :view_all_grades)
                  unposted ? "unposted" : "computed"
                else
                  "effective"

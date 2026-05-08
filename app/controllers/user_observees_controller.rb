@@ -53,7 +53,7 @@ class UserObserveesController < ApplicationController
     observed_users = Api.paginate(observed_users, self, api_v1_user_observees_url)
 
     UserPastLtiId.manual_preload_past_lti_ids(users, @domain_root_account) if ["uuid", "lti_id"].any? { |id| includes.include? id }
-    data = users_json(observed_users, @current_user, session, includes, @domain_root_account)
+    data = users_json(observed_users, current_principal, session, includes, @domain_root_account)
     add_linked_root_account_ids_to_user_json(data)
     render json: data
   end
@@ -83,7 +83,7 @@ class UserObserveesController < ApplicationController
     users = Api.paginate(users, self, api_v1_user_observers_url)
 
     UserPastLtiId.manual_preload_past_lti_ids(users, @domain_root_account) if ["uuid", "lti_id"].any? { |id| includes.include? id }
-    data = users_json(users, @current_user, session, includes, @domain_root_account)
+    data = users_json(users, current_principal, session, includes, @domain_root_account)
     add_linked_root_account_ids_to_user_json(data)
     render json: data
   end
@@ -222,7 +222,7 @@ class UserObserveesController < ApplicationController
     scope = student.as_student_observation_links.where(observer:)
     raise ActiveRecord::RecordNotFound unless scope.exists?
 
-    json = user_json(observer, @current_user, session)
+    json = user_json(observer, current_principal, session)
     add_linked_root_account_ids_to_user_json([json])
     render json:
   end
@@ -374,7 +374,7 @@ class UserObserveesController < ApplicationController
   end
 
   def render_student_json
-    json = user_json(student, @current_user, session)
+    json = user_json(student, current_principal, session)
     add_linked_root_account_ids_to_user_json([json])
     render json:
   end

@@ -79,7 +79,7 @@ class DiscussionTopicsApiController < ApplicationController
     log_asset_access(@topic, "topics", "topics")
     render(json: discussion_topics_api_json([@topic],
                                             @context,
-                                            @current_user,
+                                            current_principal,
                                             session,
                                             include_all_dates: include_params.include?("all_dates"),
                                             include_sections: include_params.include?("sections"),
@@ -658,7 +658,7 @@ class DiscussionTopicsApiController < ApplicationController
     if new_topic.save!
       result = discussion_topic_api_json(new_topic,
                                          @context,
-                                         @current_user,
+                                         current_principal,
                                          session,
                                          include_sections: true)
       # If pinned, make the new topic show up just below the old one
@@ -1222,7 +1222,7 @@ class DiscussionTopicsApiController < ApplicationController
         @entry.saving_user = @current_user
         @entry.save
       end
-      render json: discussion_entry_api_json([@entry], @context, @current_user, session, [:user_name, :display_user]).first, status: :created
+      render json: discussion_entry_api_json([@entry], @context, current_principal, session, [:user_name, :display_user]).first, status: :created
     else
       render json: @entry.errors, status: :bad_request
     end

@@ -125,7 +125,7 @@ class MediaTracksController < ApplicationController
         render json: media_track_api_json(track)
       else
         exclude = params[:exclude] || []
-        render json: media_object_api_json(@media_object, @current_user, session, exclude)
+        render json: media_object_api_json(@media_object, current_principal, session, exclude)
       end
     end
   end
@@ -192,7 +192,7 @@ class MediaTracksController < ApplicationController
       render json: media_track_api_json(track)
     else
       exclude = params[:exclude] || []
-      render json: media_object_api_json(@media_object, @current_user, session, exclude)
+      render json: media_object_api_json(@media_object, current_principal, session, exclude)
     end
   end
 
@@ -240,7 +240,7 @@ class MediaTracksController < ApplicationController
         render json: if @attachment.present?
                        media_track_api_json(@media_track)
                      else
-                       media_object_api_json(@media_object, @current_user, session)
+                       media_object_api_json(@media_object, current_principal, session)
                      end
       end
     end

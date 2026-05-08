@@ -43,7 +43,7 @@ class SubmissionCommentsApiController < ApplicationController
 
       render json: submission_comment_json(
         submission_comment,
-        @current_user
+        current_principal
       )
     end
   end
@@ -67,7 +67,7 @@ class SubmissionCommentsApiController < ApplicationController
       comment_data = anonymous_moderated_submission_comments_json(
         assignment: submission_comment.submission.assignment,
         course: @context,
-        current_user: @current_user,
+        current_principal:,
         avatars: service_enabled?(:avatars),
         submission_comments: [submission_comment],
         submissions: [submission_comment.submission]

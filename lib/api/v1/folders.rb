@@ -21,16 +21,16 @@
 module Api::V1::Folders
   include Api::V1::Json
 
-  def folders_json(folders, user, session, opts = {})
+  def folders_json(folders, current_principal, session, opts = {})
     folders.map do |f|
-      folder_json(f, user, session, opts)
+      folder_json(f, current_principal, session, opts)
     end
   end
 
-  def folder_json(folder, user, session, opts = {})
-    can_view_hidden_files = opts.key?(:can_view_hidden_files) ? opts[:can_view_hidden_files] : folder.grants_right?(user, :update)
+  def folder_json(folder, current_principal, session, opts = {})
+    can_view_hidden_files = opts.key?(:can_view_hidden_files) ? opts[:can_view_hidden_files] : folder.grants_right?(current_principal, :update)
     json = api_json(folder,
-                    user,
+                    current_principal,
                     session,
                     only: %w[id name full_name position parent_folder_id context_type context_id unlock_at lock_at created_at updated_at category])
     if folder
@@ -48,18 +48,18 @@ module Api::V1::Folders
       json["locked_for_user"] = can_view_hidden_files ? false : !!folder.currently_locked
       json["hidden_for_user"] = can_view_hidden_files ? false : !!folder.hidden?
       json["for_submissions"] = folder.for_submissions?
-      json["can_upload"] = folder.grants_right?(user, :manage_contents)
+      json["can_upload"] = folder.grants_right?(current_principal, :manage_contents)
     end
     json
   end
 
-  def folders_or_files_json(items, user, session, opts = {})
+  def folders_or_files_json(items, current_principal, session, opts = {})
     items.map do |item|
       case item
       when Folder
-        folder_json(item, user, session, opts)
+        folder_json(item, current_principal, session, opts)
       when Attachment
-        attachment_json(item, user, {}, opts)
+        attachment_json(item, current_principal, {}, opts)
       end
     end
   end

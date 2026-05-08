@@ -28,14 +28,14 @@ module Api::V1::OutcomeResults
   # results - The OutcomeResults to serialize
   #
   # Returns a hash that can be converted into json
-  def outcome_results_json(results)
+  def outcome_results_json(results, current_principal: self.current_principal)
     {
-      outcome_results: results.map { |r| outcome_result_json(r) }
+      outcome_results: results.map { |r| outcome_result_json(r, current_principal:) }
     }
   end
 
-  def outcome_result_json(result)
-    hash = api_json(result, @current_user, session, {
+  def outcome_result_json(result, current_principal: self.current_principal)
+    hash = api_json(result, current_principal, session, {
                       methods: :submitted_or_assessed_at,
                       only: %w[id score mastery possible percent hide_points hidden]
                     })
@@ -62,7 +62,7 @@ module Api::V1::OutcomeResults
   # Public: Serializes outcomes in a hash that can be added to the linked hash.
   #
   # Returns a Hash containing serialized outcomes.
-  def outcome_results_include_outcomes_json(outcomes, context, percents = {}, outcome_links = [])
+  def outcome_results_include_outcomes_json(outcomes, context, percents = {}, outcome_links = [], current_principal: self.current_principal)
     alignment_asset_string_map = {}
     outcomes.each_slice(50).each do |outcomes_slice|
       ActiveRecord::Associations.preload(outcomes_slice, [:context])
@@ -97,7 +97,7 @@ module Api::V1::OutcomeResults
     outcomes.map do |o|
       hash = outcome_json(
         o,
-        @current_user,
+        current_principal,
         session,
         assessed_outcomes:,
         rating_percents: percents[o.id],
@@ -114,15 +114,15 @@ module Api::V1::OutcomeResults
   # Public: Serializes outcome groups in a hash that can be added to the linked hash.
   #
   # Returns a Hash containing serialized outcome groups.
-  def outcome_results_include_outcome_groups_json(outcome_groups)
-    outcome_groups.map { |g| outcome_group_json(g, @current_user, session) }
+  def outcome_results_include_outcome_groups_json(outcome_groups, current_principal: self.current_principal)
+    outcome_groups.map { |g| outcome_group_json(g, current_principal, session) }
   end
 
   # Public: Serializes outcome links in a hash that can be added to the linked hash.
   #
   # Returns a Hash containing serialized outcome links.
-  def outcome_results_include_outcome_links_json(outcome_links, context)
-    outcome_links_json(outcome_links, @current_user, session, { context: })
+  def outcome_results_include_outcome_links_json(outcome_links, context, current_principal: self.current_principal)
+    outcome_links_json(outcome_links, current_principal, session, { context: })
   end
 
   # Public: Returns an Array of serialized Course objects for linked hash.
@@ -131,11 +131,11 @@ module Api::V1::OutcomeResults
   end
 
   # Public: Returns an Array of serialized User objects for the linked hash.
-  def outcome_results_linked_users_json(users, context)
+  def outcome_results_linked_users_json(users, context, current_principal: self.current_principal)
     includes = %w[sis_user_id avatar_url]
     excludes = %w[personal_info]
     user_json_preloads(users, accounts: true)
-    users = users_json(users, @current_user, session, includes, context, nil, excludes)
+    users = users_json(users, current_principal, session, includes, context, nil, excludes)
 
     allowed_fields = %w[id name display_name sortable_name sis_id integration_id login_id avatar_url]
     users.map do |u|
@@ -255,8 +255,8 @@ module Api::V1::OutcomeResults
     { outcome: score.outcome.id.to_s }
   end
 
-  def outcome_results_rollups_csv(current_user, _context, rollups, outcomes, outcome_paths)
-    options = CSVWithI18n.csv_i18n_settings(current_user)
+  def outcome_results_rollups_csv(current_principal, _context, rollups, outcomes, outcome_paths)
+    options = CSVWithI18n.csv_i18n_settings(current_principal)
     CSVWithI18n.generate(**options) do |csv|
       row = []
       row << I18n.t(:student_name, "Student name")

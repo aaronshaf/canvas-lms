@@ -345,7 +345,7 @@ class JobsV2Controller < ApplicationController
                            :run_unstucker!,
                            { priority: Delayed::HIGH_PRIORITY },
                            shard_ids: Array(params[:job_shards]))
-      render json: { status: "pending", progress: progress_json(progress, @current_user, session) }
+      render json: { status: "pending", progress: progress_json(progress, current_principal, session) }
     end
   end
 
@@ -582,7 +582,7 @@ class JobsV2Controller < ApplicationController
   def job_json(job, base_time: nil)
     job_fields = %w[id tag strand singleton shard_id max_concurrent priority attempts max_attempts locked_by run_at locked_at handler]
     job_fields += %w[failed_at original_job_id requeued_job_id last_error] if job.is_a?(Delayed::Job::Failed)
-    json = api_json(job, @current_user, nil, only: job_fields)
+    json = api_json(job, current_principal, nil, only: job_fields)
     if @bucket && base_time
       json["info"] = list_info_data(job, base_time:)
     else

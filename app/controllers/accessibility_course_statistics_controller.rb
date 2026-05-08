@@ -151,7 +151,7 @@ class AccessibilityCourseStatisticsController < ApplicationController
     )
 
     render json: paginated.map { |stat|
-      accessibility_course_statistic_json(stat, @current_user, session, include_closed: true, include_course_details: true)
+      accessibility_course_statistic_json(stat, current_principal, session, include_closed: true, include_course_details: true)
     }
   end
 end

@@ -25,7 +25,10 @@ describe Api::V1::Submission do
       include Api::V1::Submission
       include Rails.application.routes.url_helpers
 
-      attr_writer :current_user
+      def current_user=(value)
+        @current_user = value
+        @current_principal = value && Canvas::AdheresToPolicy::UserPrincipal.new(value)
+      end
 
       private
 
@@ -36,6 +39,7 @@ describe Api::V1::Submission do
   end
 
   let(:user) { User.create! }
+  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
   let(:course) { Course.create! }
   let(:assignment) { course.assignments.create! }
   let(:teacher) do
@@ -43,6 +47,7 @@ describe Api::V1::Submission do
     course.enroll_teacher(teacher)
     teacher
   end
+  let(:teacher_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(teacher) }
   let(:session) { {} }
   let(:context) { nil }
   let(:params) { { includes: [field] } }
@@ -58,7 +63,7 @@ describe Api::V1::Submission do
           assignment:,
           submission:,
           provisional_grade:,
-          current_user: user
+          current_principal:
         )
         path = "/courses/#{course.id}/gradebook/speed_grader"
         query = { assignment_id: assignment.id, student_id: user.id }
@@ -72,7 +77,7 @@ describe Api::V1::Submission do
           assignment:,
           submission:,
           provisional_grade:,
-          current_user: user
+          current_principal:
         )
         path = "/courses/#{course.id}/gradebook/speed_grader"
         query = { assignment_id: assignment.id, anonymous_id: submission.anonymous_id }
@@ -99,7 +104,7 @@ describe Api::V1::Submission do
         submission.media_comment_id = 1
         submission.media_comment_type = "video/mp4"
         fake_controller.current_user = student
-        json = fake_controller.submission_json(submission, assignment, teacher, session, context)
+        json = fake_controller.submission_json(submission, assignment, teacher_principal, session, context)
 
         expect(json["attachments"].first["url"]).to include("location=#{submission.asset_string}")
         expect(json["media_comment"]["url"]).to include("location=#{submission.asset_string}")
@@ -108,7 +113,7 @@ describe Api::V1::Submission do
       it "should add asset location tag to all other fields of the json for online_text_entry" do
         student = course_with_user("StudentEnrollment", course:, active_all: true, name: "Student").user
         submission = assignment.submit_homework(student, submission_type: "online_text_entry", body: "<img src='/users/#{teacher.id}/files/#{attachment.id}'>", attachments: [attachment])
-        json = fake_controller.submission_json(submission, assignment, teacher, session, context)
+        json = fake_controller.submission_json(submission, assignment, teacher_principal, session, context)
 
         expect(json["body"]).to include("location=#{submission.asset_string}")
       end
@@ -132,7 +137,7 @@ describe Api::V1::Submission do
         sub1.submissions.find_by(user_id: student.id) || sub1.submissions.create!(user: student, workflow_state: "unsubmitted")
         sub2.submissions.find_by(user_id: student.id) || sub2.submissions.create!(user: student, workflow_state: "unsubmitted")
 
-        json = fake_controller.submission_json(parent_submission, parent_assignment, teacher, session, parent_assignment.context, field, params)
+        json = fake_controller.submission_json(parent_submission, parent_assignment, teacher_principal, session, parent_assignment.context, field, params)
         expect(json["has_sub_assignment_submissions"]).to be true
         sas = json["sub_assignment_submissions"]
 
@@ -172,7 +177,7 @@ describe Api::V1::Submission do
         expect(Submission.unscoped.find_by(user_id: student.id, assignment_id: sub1.id)).to be_nil
 
         expect do
-          fake_controller.submission_json(parent_submission, parent_assignment, teacher, session, parent_assignment.context, field, params)
+          fake_controller.submission_json(parent_submission, parent_assignment, teacher_principal, session, parent_assignment.context, field, params)
         end.to raise_error(Checkpoints::SubAssignmentSubmissionSerializer::MissingSubAssignmentSubmissionError, /Submission is missing for SubAssignment/)
       end
 
@@ -193,7 +198,7 @@ describe Api::V1::Submission do
         expect(Submission.unscoped.find_by(user_id: student.id, assignment_id: sub2.id)).not_to be_nil
 
         expect do
-          json = fake_controller.submission_json(parent_submission, parent_assignment, teacher, session, parent_assignment.context, field, params)
+          json = fake_controller.submission_json(parent_submission, parent_assignment, teacher_principal, session, parent_assignment.context, field, params)
           expect(json["has_sub_assignment_submissions"]).to be false
           expect(json["sub_assignment_submissions"]).to be_empty
         end.not_to raise_error
@@ -213,7 +218,7 @@ describe Api::V1::Submission do
 
         expect(Submission.unscoped.find_by(user_id: student.id, assignment_id: sub2.id)).not_to be_nil
 
-        json = fake_controller.submission_json(parent_submission, parent_assignment, teacher, session, parent_assignment.context, field, params)
+        json = fake_controller.submission_json(parent_submission, parent_assignment, teacher_principal, session, parent_assignment.context, field, params)
         expect(json["has_sub_assignment_submissions"]).to be true
         expect(json["sub_assignment_submissions"].length).to eq(1)
         expect(json["sub_assignment_submissions"].first["sub_assignment_tag"]).to eq(CheckpointLabels::REPLY_TO_TOPIC)
@@ -224,7 +229,7 @@ describe Api::V1::Submission do
         assignment = course.assignments.create!(title: "Assignment 1", has_sub_assignments: false)
         submission = assignment.submissions.find_by(user_id: student.id)
 
-        json = fake_controller.submission_json(submission, assignment, teacher, session, assignment.context, field, params)
+        json = fake_controller.submission_json(submission, assignment, teacher_principal, session, assignment.context, field, params)
         expect(json["has_sub_assignment_submissions"]).to be false
         expect(json["sub_assignment_submissions"]).to be_empty
       end
@@ -237,7 +242,7 @@ describe Api::V1::Submission do
         parent_assignment.sub_assignments.create!(context: parent_assignment.context, sub_assignment_tag: CheckpointLabels::REPLY_TO_ENTRY, points_possible: 10, due_at: 5.days.from_now, submission_types: "discussion_topics")
         topic_sub_assignment.submit_homework(student, submission_type: "discussion_topics")
 
-        json = fake_controller.submission_json(parent_submission, parent_assignment, teacher, session, parent_assignment.context, field, params)
+        json = fake_controller.submission_json(parent_submission, parent_assignment, teacher_principal, session, parent_assignment.context, field, params)
         # gradebook uses these fields to determine a submission needs grading
         expect(json["workflow_state"]).to  eq("pending_review")
         expect(json["submission_type"]).to eq("discussion_topics")
@@ -248,7 +253,7 @@ describe Api::V1::Submission do
         assignment = course.assignments.create!(title: "Assignment 1", has_sub_assignments: true)
         submission = assignment.submit_homework(student, submission_type: "online_text_entry", body: "pay attention to me")
 
-        json = fake_controller.submission_json(submission, assignment, teacher, session, assignment.context, field, params)
+        json = fake_controller.submission_json(submission, assignment, teacher_principal, session, assignment.context, field, params)
         expect(json["submission_type"]).to eq("online_text_entry")
       end
     end
@@ -257,7 +262,7 @@ describe Api::V1::Submission do
       let(:field) { "anonymous_id" }
       let(:submission) { assignment.submissions.build(user:) }
       let(:json) do
-        fake_controller.submission_json(submission, assignment, user, session, context, [field], params)
+        fake_controller.submission_json(submission, assignment, current_principal, session, context, [field], params)
       end
 
       context "when not an account user" do
@@ -294,7 +299,7 @@ describe Api::V1::Submission do
       let(:submission) { assignment.submissions.build(user:) }
       let(:submission_status) do
         lambda do |submission|
-          json = fake_controller.submission_json(submission, assignment, user, session, context, [field], params)
+          json = fake_controller.submission_json(submission, assignment, current_principal, session, context, [field], params)
           json.fetch(field)
         end
       end
@@ -472,7 +477,7 @@ describe Api::V1::Submission do
       let(:field) { "grading_status" }
       let(:grading_status) do
         lambda do |submission|
-          json = fake_controller.submission_json(submission, assignment, user, session, context, [field], params)
+          json = fake_controller.submission_json(submission, assignment, current_principal, session, context, [field], params)
           json.fetch(field)
         end
       end
@@ -608,7 +613,7 @@ describe Api::V1::Submission do
       let(:student) { course_with_user("StudentEnrollment", course:, active_all: true, name: "Student").user }
       let(:attachment) { attachment_model(content_type: "application/pdf", context: student) }
       let(:submission) { assignment.submit_homework(student, submission_type: "online_upload", attachments: [attachment]) }
-      let(:json) { fake_controller.submission_json(submission, assignment, teacher, session) }
+      let(:json) { fake_controller.submission_json(submission, assignment, teacher_principal, session) }
 
       before do
         allow(Canvadocs).to receive_messages(annotations_supported?: true, enabled?: true)
@@ -642,7 +647,7 @@ describe Api::V1::Submission do
       let(:submission) { assignment.submissions.build(user:) }
 
       let(:json) do
-        fake_controller.submission_json(submission, assignment, user, session, context, [field], params)
+        fake_controller.submission_json(submission, assignment, current_principal, session, context, [field], params)
       end
 
       let(:urls) do
@@ -717,7 +722,7 @@ describe Api::V1::Submission do
         assignment.submit_homework(user, submission_type: "online_text_entry", body: "pay attention to me")
 
         submission = assignment.submission_for_student(user)
-        submission_json = fake_controller.submission_json(submission, assignment, user, session, context, [field], params)
+        submission_json = fake_controller.submission_json(submission, assignment, current_principal, session, context, [field], params)
         expect(submission_json.fetch(field)).to eq "pay attention to me"
       end
 
@@ -731,14 +736,14 @@ describe Api::V1::Submission do
         let(:course) { quiz_assignment.course }
 
         it "is included if the caller has permission to see the user's grade" do
-          submission_json = fake_controller.submission_json(submission_for_quiz, quiz_assignment, teacher, session, course, [field], params)
+          submission_json = fake_controller.submission_json(submission_for_quiz, quiz_assignment, teacher_principal, session, course, [field], params)
           # submissions for quizzes set the "body" field to a string of the form
           # user: <id>, quiz: <id>, score: <score>, time: <time graded>
           expect(submission_json.fetch(field)).to include("quiz: #{quiz.id}")
         end
 
         it "is not included if the caller does not have permission to see the user's grade" do
-          submission_json = fake_controller.submission_json(submission_for_quiz, quiz_assignment, user, session, course, [field], params)
+          submission_json = fake_controller.submission_json(submission_for_quiz, quiz_assignment, current_principal, session, course, [field], params)
           expect(submission_json.fetch(field)).to be_nil
         end
       end
@@ -752,12 +757,12 @@ describe Api::V1::Submission do
       end
 
       it "is included when requested by include[]=read_state" do
-        submission_json = fake_controller.submission_json(submission, assignment, user, session, course, [field], params)
+        submission_json = fake_controller.submission_json(submission, assignment, current_principal, session, course, [field], params)
         expect(submission_json.fetch(field)).to eq("unread")
       end
 
       it "is marked as read after being queried" do
-        fake_controller.submission_json(submission, assignment, user, session, course, [field], params)
+        fake_controller.submission_json(submission, assignment, current_principal, session, course, [field], params)
         expect(submission).to be_read(user)
       end
     end
@@ -767,7 +772,7 @@ describe Api::V1::Submission do
       submission.media_comment_id = 1
       submission.media_comment_type = "video/mp4"
       fake_controller.current_user = user
-      submission_json = fake_controller.submission_json(submission, assignment, user, session, context)
+      submission_json = fake_controller.submission_json(submission, assignment, current_principal, session, context)
       expect(submission_json.fetch("media_comment")["media_type"]).to eq "video"
     end
 
@@ -781,7 +786,7 @@ describe Api::V1::Submission do
       it "returns submission comments without html tags" do
         submission = assignment.submission_for_student(user)
         fake_controller.current_user = user
-        submission_json = fake_controller.submission_json(submission, assignment, user, session, context, ["submission_comments"])
+        submission_json = fake_controller.submission_json(submission, assignment, current_principal, session, context, ["submission_comments"])
         expect(submission_json.fetch("submission_comments").first["comment"]).to eq "My html comment"
       end
     end
@@ -796,7 +801,7 @@ describe Api::V1::Submission do
       it "returns submission comments with html tags" do
         submission = assignment.submission_for_student(user)
         fake_controller.current_user = user
-        submission_json = fake_controller.submission_json(submission, assignment, user, session, context, ["submission_html_comments"])
+        submission_json = fake_controller.submission_json(submission, assignment, current_principal, session, context, ["submission_html_comments"])
         expect(submission_json.fetch("submission_html_comments").first["comment"]).to eq "<div>My html comment</div>"
       end
     end

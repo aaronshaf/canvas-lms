@@ -59,7 +59,7 @@ class ProvisionalGradesBaseController < ApplicationController
         assignment: @assignment,
         submission:,
         provisional_grade: pg,
-        current_user: @current_user,
+        current_principal:,
         avatars: service_enabled?(:avatars) && !@assignment.grade_as_group?,
         includes: %w[submission_comments rubric_assessment]
       )

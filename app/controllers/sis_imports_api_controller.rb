@@ -425,7 +425,7 @@ class SisImportsApiController < ApplicationController
 
       # we don't need to know how many there are
       @batches = Api.paginate(scope, self, api_v1_account_sis_imports_url, total_entries: nil)
-      render json: { sis_imports: sis_imports_json(@batches, @current_user, session) }
+      render json: { sis_imports: sis_imports_json(@batches, current_principal, session) }
     end
   end
 
@@ -442,7 +442,7 @@ class SisImportsApiController < ApplicationController
   def importing
     if authorized_action(@account, current_principal, [:import_sis, :manage_sis])
       batches = @account.sis_batches.importing
-      render json: { sis_imports: sis_imports_json(batches, @current_user, session) }
+      render json: { sis_imports: sis_imports_json(batches, current_principal, session) }
     end
   end
 
@@ -737,7 +737,7 @@ class SisImportsApiController < ApplicationController
         @account.save
       end
 
-      render json: sis_import_json(batch, @current_user, session, attachment_preflight:)
+      render json: sis_import_json(batch, current_principal, session, attachment_preflight:)
     end
   end
 
@@ -753,7 +753,7 @@ class SisImportsApiController < ApplicationController
   def show
     if authorized_action(@account, current_principal, [:import_sis, :manage_sis])
       @batch = @account.sis_batches.find(params[:id])
-      render json: sis_import_json(@batch, @current_user, session, includes: ["errors"])
+      render json: sis_import_json(@batch, current_principal, session, includes: ["errors"])
     end
   end
 
@@ -803,7 +803,7 @@ class SisImportsApiController < ApplicationController
       end
 
       progress = @batch.restore_states_later(batch_mode:, undelete_only:, unconclude_only:)
-      render json: progress_json(progress, @current_user, session)
+      render json: progress_json(progress, current_principal, session)
     end
   end
 
@@ -826,7 +826,7 @@ class SisImportsApiController < ApplicationController
         @batch = @account.sis_batches.not_completed.lock.find(params[:id])
         @batch.abort_batch
       end
-      render json: sis_import_json(@batch.reload, @current_user, session, includes: ["errors"])
+      render json: sis_import_json(@batch.reload, current_principal, session, includes: ["errors"])
     end
   end
 

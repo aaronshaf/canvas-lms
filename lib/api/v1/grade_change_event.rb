@@ -26,7 +26,7 @@ module Api::V1::GradeChangeEvent
   include Api::V1::Submission
   include Api::V1::PageView
 
-  def grade_change_event_json(event, _user, _session)
+  def grade_change_event_json(event, _current_principal, _session)
     links = {
       course: Shard.relative_id_for(event.course_id, Shard.current, Shard.current),
       student: Shard.relative_id_for(event.student_id, Shard.current, Shard.current)&.to_s,
@@ -55,15 +55,15 @@ module Api::V1::GradeChangeEvent
     json
   end
 
-  def grade_change_events_json(events, user, session)
-    events.map { |event| grade_change_event_json(event, user, session) }
+  def grade_change_events_json(events, current_principal, session)
+    events.map { |event| grade_change_event_json(event, current_principal, session) }
   end
 
-  def grade_change_events_compound_json(events, user, session)
+  def grade_change_events_compound_json(events, current_principal, session)
     {
       links: links_json,
-      events: grade_change_events_json(events, user, session),
-      linked: linked_json(events, user, session)
+      events: grade_change_events_json(events, current_principal, session),
+      linked: linked_json(events, current_principal, session)
     }
   end
 
@@ -82,7 +82,7 @@ module Api::V1::GradeChangeEvent
     }
   end
 
-  def linked_json(events, user, session)
+  def linked_json(events, current_principal, session)
     course_ids = events.filter_map(&:course_id)
     courses = Course.where(id: course_ids).to_a unless course_ids.empty?
     courses ||= []
@@ -101,10 +101,10 @@ module Api::V1::GradeChangeEvent
     page_views ||= []
 
     {
-      page_views: page_views_json(page_views, user, session),
-      assignments: assignments_json(assignments, user, session),
-      courses: courses_json(courses, user, session, [], []),
-      users: users_json(users, user, session, [], @domain_root_account)
+      page_views: page_views_json(page_views, current_principal, session),
+      assignments: assignments_json(assignments, current_principal, session),
+      courses: courses_json(courses, current_principal, session, [], []),
+      users: users_json(users, current_principal, session, [], @domain_root_account)
     }
   end
 

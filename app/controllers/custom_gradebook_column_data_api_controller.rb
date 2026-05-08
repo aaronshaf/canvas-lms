@@ -65,7 +65,7 @@ class CustomGradebookColumnDataApiController < ApplicationController
                           api_v1_course_custom_gradebook_column_data_url(@context, col))
 
       render json: data.map { |d|
-        custom_gradebook_column_datum_json(d, @current_user, session)
+        custom_gradebook_column_datum_json(d, current_principal, session)
       }
     end
   end
@@ -93,9 +93,9 @@ class CustomGradebookColumnDataApiController < ApplicationController
         datum.attributes = params.require(:column_data).permit(:content)
         if datum.content.blank?
           datum.destroy
-          render json: custom_gradebook_column_datum_json(datum, @current_user, session)
+          render json: custom_gradebook_column_datum_json(datum, current_principal, session)
         elsif datum.save
-          render json: custom_gradebook_column_datum_json(datum, @current_user, session)
+          render json: custom_gradebook_column_datum_json(datum, current_principal, session)
         else
           render json: datum.errors
         end
@@ -145,7 +145,7 @@ class CustomGradebookColumnDataApiController < ApplicationController
     return render_unauthorized_action if (user_ids - allowed_users.pluck(:id)).any?
 
     progress = CustomGradebookColumnDatum.queue_bulk_update_custom_columns(@context, column_data_as_array)
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 
   def allowed_users

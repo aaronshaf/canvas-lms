@@ -109,7 +109,7 @@ class CommunicationChannelsController < ApplicationController
     channels = Api.paginate(@user.communication_channels.unretired,
                             self,
                             api_v1_communication_channels_url).map do |cc|
-      communication_channel_json(cc, @current_user, session)
+      communication_channel_json(cc, current_principal, session)
     end
 
     render json: channels
@@ -236,7 +236,7 @@ class CommunicationChannelsController < ApplicationController
         @cc.notify_email_added!
       end
       flash[:notice] = t("profile.notices.contact_registered", "Contact method registered!")
-      render json: communication_channel_json(@cc, @current_user, session)
+      render json: communication_channel_json(@cc, current_principal, session)
     else
       render json: @cc.errors, status: :bad_request
     end
@@ -514,7 +514,7 @@ class CommunicationChannelsController < ApplicationController
 
     @cc.reset_bounce_count!
 
-    render json: communication_channel_json(@cc, @current_user, session)
+    render json: communication_channel_json(@cc, current_principal, session)
   end
 
   def redirect_with_success_flash
@@ -573,7 +573,7 @@ class CommunicationChannelsController < ApplicationController
         @cc.notify_email_removed!
       end
       if api_request?
-        render json: communication_channel_json(@cc, @current_user, session)
+        render json: communication_channel_json(@cc, current_principal, session)
       else
         render json: @cc.as_json
       end

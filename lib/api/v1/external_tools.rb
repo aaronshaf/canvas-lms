@@ -22,19 +22,19 @@ module Api::V1::ExternalTools
   include Api::V1::Json
   include Api::V1::EstimatedDuration
 
-  def external_tools_json(tools, context, user, session, extension_types = Lti::ResourcePlacement.valid_placements(@domain_root_account))
+  def external_tools_json(tools, context, current_principal, session, extension_types = Lti::ResourcePlacement.valid_placements(@domain_root_account))
     tools.map do |topic|
-      external_tool_json(topic, context, user, session, extension_types)
+      external_tool_json(topic, context, current_principal, session, extension_types)
     end
   end
 
-  def external_tool_json(tool, context, user, session, extension_types = Lti::ResourcePlacement.valid_placements(@domain_root_account))
+  def external_tool_json(tool, context, current_principal, session, extension_types = Lti::ResourcePlacement.valid_placements(@domain_root_account))
     methods = %w[privacy_level custom_fields workflow_state message_settings]
     methods += extension_types
     only = %w[id name description url domain consumer_key created_at updated_at description]
     only << "allow_membership_service_access" if tool.context.root_account.feature_enabled?(:membership_service_for_lti_tools)
     json = api_json(tool,
-                    user,
+                    current_principal,
                     session,
                     only:,
                     methods:)
@@ -68,7 +68,7 @@ module Api::V1::ExternalTools
     end
 
     if context.try(:horizon_course?) && tool.estimated_duration&.marked_for_destruction? == false
-      json["estimated_duration"] = estimated_duration_json(tool.estimated_duration, user, session)
+      json["estimated_duration"] = estimated_duration_json(tool.estimated_duration, current_principal, session)
     end
 
     json

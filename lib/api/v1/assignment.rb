@@ -104,7 +104,7 @@ module Api::V1::Assignment
     grader_names_visible_to_final_grader
   ].freeze
 
-  def assignments_json(assignments, user, session, opts = {})
+  def assignments_json(assignments, current_principal, session, opts = {})
     # check if all assignments being serialized belong to the same course
     contexts = assignments.map { |a| [a.context_id, a.context_type] }.uniq
     if contexts.length == 1
@@ -115,7 +115,7 @@ module Api::V1::Assignment
     end
 
     assignments.map do |assignment|
-      json = assignment_json(assignment, user, session, opts)
+      json = assignment_json(assignment, current_principal, session, opts)
       unless json.key? "in_closed_grading_period"
         json["in_closed_grading_period"] = due_dates.in_closed_grading_period?(assignment)
       end
@@ -123,7 +123,7 @@ module Api::V1::Assignment
     end
   end
 
-  def assignment_json(assignment, user, session, opts = {})
+  def assignment_json(assignment, current_principal, session, opts = {})
     opts.reverse_merge!(
       include_discussion_topic: true,
       include_all_dates: false,
@@ -138,10 +138,10 @@ module Api::V1::Assignment
     )
 
     if opts[:override_dates] && !assignment.new_record?
-      assignment = assignment.overridden_for(user)
+      assignment = assignment.overridden_for(current_principal&.user)
       if assignment.has_sub_assignments?
         assignment.sub_assignments = assignment.sub_assignments.map do |sub_assignment|
-          sub_assignment.overridden_for(user)
+          sub_assignment.overridden_for(current_principal&.user)
         end
       end
     end
@@ -153,10 +153,10 @@ module Api::V1::Assignment
       fields = { only: fields_copy }
     end
 
-    hash = api_json(assignment, user, session, fields)
+    hash = api_json(assignment, current_principal, session, fields)
     description = api_user_content(hash["description"],
                                    @context || assignment.context,
-                                   user,
+                                   current_principal,
                                    opts[:preloaded_user_content_attachments] || {},
                                    location: assignment.asset_string)
 
@@ -185,7 +185,7 @@ module Api::V1::Assignment
 
     if opts[:include_checkpoints] && assignment.context.discussion_checkpoints_enabled?
       hash["has_sub_assignments"] = assignment.has_sub_assignments?
-      hash["checkpoints"] = assignment.sub_assignments.map { |sub_assignment| Checkpoint.new(sub_assignment, user).as_json }
+      hash["checkpoints"] = assignment.sub_assignments.map { |sub_assignment| Checkpoint.new(sub_assignment, current_principal).as_json }
     end
 
     if assignment.checkpoint?
@@ -193,9 +193,9 @@ module Api::V1::Assignment
     end
 
     if opts[:overrides].present?
-      hash["overrides"] = assignment_overrides_json(opts[:overrides], user)
+      hash["overrides"] = assignment_overrides_json(opts[:overrides], current_principal)
     elsif opts[:include_overrides]
-      hash["overrides"] = assignment_overrides_json(assignment.assignment_overrides.select(&:active?), user)
+      hash["overrides"] = assignment_overrides_json(assignment.assignment_overrides.select(&:active?), current_principal)
     end
 
     unless assignment.user_submitted.nil?
@@ -218,8 +218,8 @@ module Api::V1::Assignment
 
     if PluginSetting.settings_for_plugin(:assignment_freezer)
       hash["freeze_on_copy"] = assignment.freeze_on_copy?
-      hash["frozen"] = assignment.frozen_for_user?(user)
-      hash["frozen_attributes"] = assignment.frozen_attributes_for_user(user)
+      hash["frozen"] = assignment.frozen_for_user?(current_principal)
+      hash["frozen_attributes"] = assignment.frozen_attributes_for_user(current_principal)
     end
 
     hash["is_quiz_assignment"] = assignment.quiz? && assignment.quiz.assignment?
@@ -251,12 +251,12 @@ module Api::V1::Assignment
       hash["description"] = description
     end
 
-    can_manage = assignment.context.grants_any_right?(user, :manage, :manage_grades, :manage_assignments_edit)
+    can_manage = assignment.context.grants_any_right?(current_principal, :manage, :manage_grades, :manage_assignments_edit)
     hash["muted"] = assignment.muted?
     # For peer review sub-assignments, use the parent assignment in the URL
     assignment_for_url = (assignment.is_a?(PeerReviewSubAssignment) && assignment.parent_assignment) ? assignment.parent_assignment : assignment
     hash["html_url"] = course_assignment_url(assignment.context_id, assignment_for_url)
-    if assignment.can_view_speed_grader?(user)
+    if assignment.can_view_speed_grader?(current_principal)
       hash["speed_grader_url"] = speed_grader_course_gradebook_url(assignment.context, assignment_id: assignment.id)
     end
     if can_manage
@@ -290,18 +290,18 @@ module Api::V1::Assignment
     hash.merge!(peer_review_params) if peer_review_params
 
     include_needs_grading_count = opts[:exclude_response_fields].exclude?("needs_grading_count")
-    if include_needs_grading_count && assignment.context.grants_right?(user, :manage_grades)
+    if include_needs_grading_count && assignment.context.grants_right?(current_principal, :manage_grades)
       # Results are served from RequestCache when the caller pre-warmed the
       # batch (e.g. assignments_api_controller, assignment_group_json).
       # Falls back to a per-assignment computation when called without prior warming.
-      query = Assignments::NeedsGradingCountQuery.new([assignment], user)
+      query = Assignments::NeedsGradingCountQuery.new([assignment], current_principal&.user)
       if opts[:needs_grading_count_by_section]
         hash["needs_grading_count_by_section"] = query.count_by_section[assignment.global_id]
       end
       hash["needs_grading_count"] = query.count[assignment.global_id]
     end
 
-    if assignment.context.grants_any_right?(user, :read_sis, :manage_sis)
+    if assignment.context.grants_any_right?(current_principal, :read_sis, :manage_sis)
       hash["sis_assignment_id"] = assignment.sis_source_id
       hash["integration_id"] = assignment.integration_id
       hash["integration_data"] = assignment.integration_data
@@ -317,10 +317,10 @@ module Api::V1::Assignment
     end
 
     if opts[:include_assessment_requests]
-      if user.assigned_assessments.any?
-        submission = assignment.submission_for_student(user)
-        assessment_requests = user.assigned_assessments.where(assessor_asset: submission).preload(:asset, assessor_asset: :assignment)
-        hash["assessment_requests"] = assessment_requests.map { |assessment_request| assessment_request_json(assessment_request, anonymous_peer_reviews: assignment.anonymous_peer_reviews?) }
+      if current_principal.user.assigned_assessments.any?
+        submission = assignment.submission_for_student(current_principal.user)
+        assessment_requests = current_principal.user.assigned_assessments.where(assessor_asset: submission).preload(:asset, assessor_asset: :assignment)
+        hash["assessment_requests"] = assessment_requests.map { |assessment_request| assessment_request_json(assessment_request, current_principal, anonymous_peer_reviews: assignment.anonymous_peer_reviews?) }
       else
         hash["assessment_requests"] = []
       end
@@ -372,7 +372,7 @@ module Api::V1::Assignment
       hash["discussion_topic"] = discussion_topic_api_json(
         assignment.discussion_topic,
         assignment.discussion_topic.context,
-        user,
+        current_principal,
         session,
         include_assignment: false,
         exclude_messages: opts[:exclude_response_fields].include?("description")
@@ -389,10 +389,10 @@ module Api::V1::Assignment
           hash["all_dates"] = []
 
           assignment.sub_assignments.each do |sub_assignment|
-            hash["all_dates"].concat(sub_assignment.dates_hash_visible_to(user))
+            hash["all_dates"].concat(sub_assignment.dates_hash_visible_to(current_principal))
           end
         elsif override_count < ALL_DATES_LIMIT
-          hash["all_dates"] = assignment.dates_hash_visible_to(user)
+          hash["all_dates"] = assignment.dates_hash_visible_to(current_principal)
         else
           hash["all_dates_count"] = override_count
           hash["all_dates"] = []
@@ -401,7 +401,7 @@ module Api::V1::Assignment
     end
 
     if opts[:include_can_edit]
-      can_edit_assignment = assignment.user_can_update?(user, session)
+      can_edit_assignment = assignment.user_can_update?(current_principal, session)
       hash["can_edit"] = can_edit_assignment
       hash["all_dates"]&.each do |date_hash|
         in_closed_grading_period = date_in_closed_grading_period?(date_hash["due_at"])
@@ -441,14 +441,14 @@ module Api::V1::Assignment
     end
 
     if (submission = opts[:submission])
-      should_show_statistics = opts[:include_score_statistics] && assignment.can_view_score_statistics?(user)
+      should_show_statistics = opts[:include_score_statistics] && assignment.can_view_score_statistics?(current_principal)
 
       if submission.is_a?(Array)
         ActiveRecord::Associations.preload(submission, :quiz_submission) if assignment.quiz?
         hash["submission"] = submission.map do |s|
           submission_json(s,
                           assignment,
-                          user,
+                          current_principal,
                           session,
                           assignment.context,
                           params[:include],
@@ -462,7 +462,7 @@ module Api::V1::Assignment
       else
         hash["submission"] = submission_json(submission,
                                              assignment,
-                                             user,
+                                             current_principal,
                                              session,
                                              assignment.context,
                                              params[:include],
@@ -493,7 +493,7 @@ module Api::V1::Assignment
       hash["bucket"] = opts[:bucket]
     end
 
-    locked_json(hash, assignment, user, "assignment")
+    locked_json(hash, assignment, current_principal, "assignment")
 
     if assignment.context.present?
       hash["submissions_download_url"] = submissions_download_url(assignment.context, assignment)
@@ -504,8 +504,8 @@ module Api::V1::Assignment
     end
 
     if opts[:include_planner_override]
-      override = assignment.planner_override_for(user)
-      hash["planner_override"] = planner_override_json(override, user, session)
+      override = assignment.planner_override_for(current_principal)
+      hash["planner_override"] = planner_override_json(override, current_principal, session)
     end
 
     hash["post_manually"] = assignment.post_manually?
@@ -517,8 +517,8 @@ module Api::V1::Assignment
 
     if opts[:include_can_submit] && !assignment.quiz? && !submission.is_a?(Array)
       hash["can_submit"] = assignment.expects_submission? &&
-                           !assignment.locked_for?(user) &&
-                           assignment.rights_status(user, :submit)[:submit] &&
+                           !assignment.locked_for?(current_principal) &&
+                           assignment.rights_status(current_principal, :submit)[:submit] &&
                            (submission.nil? || submission.attempts_left.nil? || submission.attempts_left > 0)
     end
 
@@ -526,14 +526,14 @@ module Api::V1::Assignment
       hash["ab_guid"] = assignment.ab_guid.presence || assignment.ab_guid_through_rubric
     end
 
-    hash["restrict_quantitative_data"] = assignment.restrict_quantitative_data?(user, check_extra_permissions: true) || false
+    hash["restrict_quantitative_data"] = assignment.restrict_quantitative_data?(current_principal, check_extra_permissions: true) || false
 
     if opts[:migrated_urls_content_migration_id]
       hash["migrated_urls_content_migration_id"] = opts[:migrated_urls_content_migration_id]
     end
 
     if estimated_duration_enabled?(assignment) && assignment.estimated_duration&.marked_for_destruction? == false
-      hash["estimated_duration"] = estimated_duration_json(assignment.estimated_duration, user, session)
+      hash["estimated_duration"] = estimated_duration_json(assignment.estimated_duration, current_principal, session)
     end
 
     if opts[:include_peer_review]
@@ -541,7 +541,7 @@ module Api::V1::Assignment
       if peer_review_sub_assignment
         # Exclude recursive peer_review_sub_assignment
         sub_opts = opts.merge(include_peer_review: false)
-        peer_review_json = assignment_json(peer_review_sub_assignment, user, session, sub_opts)
+        peer_review_json = assignment_json(peer_review_sub_assignment, current_principal, session, sub_opts)
         hash["peer_review_sub_assignment"] = peer_review_json
       elsif assignment.context.feature_enabled?(:peer_review_allocation_and_grading)
         # Only set to null when feature flag is enabled and no peer review sub-assignment exists
@@ -1663,9 +1663,9 @@ module Api::V1::Assignment
     assignment.settings = settings
   end
 
-  def assessment_request_json(assessment_request, anonymous_peer_reviews: false)
+  def assessment_request_json(assessment_request, current_principal, anonymous_peer_reviews: false)
     fields = %i[workflow_state]
-    api_json(assessment_request, @current_user, session, only: fields).tap do |json|
+    api_json(assessment_request, current_principal, session, only: fields).tap do |json|
       if anonymous_peer_reviews
         json[:anonymous_id] = assessment_request.asset.anonymous_id
       else

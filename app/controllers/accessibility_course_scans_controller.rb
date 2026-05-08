@@ -55,6 +55,6 @@ class AccessibilityCourseScansController < ApplicationController
     return render_unauthorized_action unless has_educator_enrollment
 
     progress = Accessibility::UserCourseScanService.queue_user_courses_scan(user, @domain_root_account)
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 end

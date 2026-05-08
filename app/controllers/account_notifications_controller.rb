@@ -128,7 +128,7 @@ class AccountNotificationsController < ApplicationController
       closed_ids = @current_user.get_preference(:closed_notifications) || []
 
       notifications_json = notifications.map do |notification|
-        notification_json = account_notification_json(notification, @current_user, session, display_author: admin)
+        notification_json = account_notification_json(notification, current_principal, session, display_author: admin)
         notification_json[:closed] = closed_ids.include?(notification.id)
         notification_json
       end
@@ -136,7 +136,7 @@ class AccountNotificationsController < ApplicationController
       render json: notifications_json and return
     end
 
-    render json: account_notifications_json(notifications, @current_user, session, display_author: admin)
+    render json: account_notifications_json(notifications, current_principal, session, display_author: admin)
   end
 
   def user_index_deprecated
@@ -184,7 +184,7 @@ class AccountNotificationsController < ApplicationController
     notifications = AccountNotification.for_user_and_account(@current_user, @domain_root_account)
     notification = AccountNotification.find(params[:id])
     if notifications.include? notification
-      render json: account_notification_json(notification, @current_user, session)
+      render json: account_notification_json(notification, current_principal, session)
     else
       render_unauthorized_action
     end
@@ -257,7 +257,7 @@ class AccountNotificationsController < ApplicationController
     respond_to do |format|
       if @notification.save
         if api_request?
-          format.json { render json: account_notification_json(@notification, @current_user, session) }
+          format.json { render json: account_notification_json(@notification, current_principal, session) }
         else
           format.html do
             flash[:notice] = t("Announcement successfully created")
@@ -341,7 +341,7 @@ class AccountNotificationsController < ApplicationController
       respond_to do |format|
         if updated
           flash[:notice] = t("Announcement successfully updated")
-          format.json { render json: account_notification_json(account_notification, @current_user, session) }
+          format.json { render json: account_notification_json(account_notification, current_principal, session) }
           format.html { redirect_to account_settings_path(@account, anchor: "tab-announcements") }
         else
           flash[:error] = t("Announcement update failed")
@@ -384,7 +384,7 @@ class AccountNotificationsController < ApplicationController
       close_notification
     end
 
-    render json: account_notification_json(@notification, @current_user, session)
+    render json: account_notification_json(@notification, current_principal, session)
   end
 
   def destroy

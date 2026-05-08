@@ -388,7 +388,7 @@ class FilesController < ApplicationController
 
       log_asset_access(["files", @context], "files")
 
-      render json: attachments_json(@files, @current_user, {}, {
+      render json: attachments_json(@files, current_principal, {}, {
                                       can_view_hidden_files: can_view_hidden_files?(@context || @folder, @current_user, session),
                                       context: @context || @folder.context,
                                       include: params[:include],
@@ -591,7 +591,7 @@ class FilesController < ApplicationController
         options[:context] = @context || @folder&.context || @attachment.context
         options[:can_view_hidden_files] = can_view_hidden_files?(options[:context], @current_user, session)
       end
-      json = attachment_json(@attachment, @current_user, { verifier: sanitized_verifier, location: params[:location] }, options)
+      json = attachment_json(@attachment, current_principal, { verifier: sanitized_verifier, location: params[:location] }, options)
 
       # Add canvadoc session URL if the file is unlocked
       json.merge!(
@@ -617,7 +617,7 @@ class FilesController < ApplicationController
     raise ActiveRecord::RecordNotFound unless @attachment
     return unless authorized_action(@attachment, current_principal, :read)
 
-    render json: attachment_json(@attachment, @current_user, session, params)
+    render json: attachment_json(@attachment, current_principal, session, params)
   end
 
   def context_for_file_after_user_merge(search_context, file_id)
@@ -829,7 +829,7 @@ class FilesController < ApplicationController
                          end
 
           json[:attachment].merge!(
-            attachment_json(attachment, @current_user, { verifier: sanitized_verifier }, json_include)
+            attachment_json(attachment, current_principal, { verifier: sanitized_verifier }, json_include)
           )
 
           # Add canvadoc session URL if the file is unlocked
@@ -1231,7 +1231,10 @@ class FilesController < ApplicationController
     end
 
     render status: :created,
-           json: attachment_json(@attachment, @attachment.user, { verifier: sanitized_verifier }, { include: includes }),
+           json: attachment_json(@attachment,
+                                 Canvas::AdheresToPolicy::UserPrincipal.new(@attachment.user),
+                                 { verifier: sanitized_verifier },
+                                 { include: includes }),
            location: api_v1_attachment_url(@attachment, include: includes)
   end
 
@@ -1282,7 +1285,7 @@ class FilesController < ApplicationController
       json_params[:master_course_status] = setup_master_course_restrictions([@attachment], @attachment.context)
     end
 
-    json = attachment_json(@attachment, @current_user, {}, json_params)
+    json = attachment_json(@attachment, current_principal, {}, json_params)
 
     render json: json.merge!(doc_preview_json(@attachment))
   end
@@ -1412,7 +1415,7 @@ class FilesController < ApplicationController
       end
       if @attachment.save
         @attachment.handle_duplicates(on_duplicate) if on_duplicate
-        render json: attachment_json(@attachment, @current_user, { verifier: sanitized_verifier }, { omit_verifier_in_app: true })
+        render json: attachment_json(@attachment, current_principal, { verifier: sanitized_verifier }, { omit_verifier_in_app: true })
       else
         render json: @attachment.errors, status: :bad_request
       end
@@ -1456,7 +1459,7 @@ class FilesController < ApplicationController
       @context = @attachment.context
       if can_replace_file?
         @attachment.destroy_content_and_replace(@current_user)
-        return render json: attachment_json(@attachment, @current_user, {}, { omit_verifier_in_app: true })
+        return render json: attachment_json(@attachment, current_principal, {}, { omit_verifier_in_app: true })
       else
         return render_unauthorized_action
       end
@@ -1471,7 +1474,7 @@ class FilesController < ApplicationController
           redirect_to named_context_url(@context, :context_files_url)
         end
         if api_request?
-          format.json { render json: attachment_json(@attachment, @current_user, {}, { omit_verifier_in_app: true }) }
+          format.json { render json: attachment_json(@attachment, current_principal, {}, { omit_verifier_in_app: true }) }
         else
           format.json { render json: @attachment }
         end
@@ -1587,7 +1590,7 @@ class FilesController < ApplicationController
     @context = @attachment.context
     if can_replace_file?
       @attachment.reset_uuid!
-      render json: attachment_json(@attachment, @current_user, { verifier: sanitized_verifier }, { omit_verifier_in_app: true })
+      render json: attachment_json(@attachment, current_principal, { verifier: sanitized_verifier }, { omit_verifier_in_app: true })
     else
       render_unauthorized_action
     end

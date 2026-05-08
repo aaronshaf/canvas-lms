@@ -30,25 +30,24 @@ module Api::V1::QuizSubmissionQuestion
   # @param [User] meta[:user]
   # @param [Hash] meta[:session]
   # @param [Boolean] meta[:censored] if answer correctness should be censored out
-  def quiz_submission_questions_json(quiz_questions, quiz_submission, meta = {})
-    meta[:censored] ||= true
+  def quiz_submission_questions_json(quiz_questions, quiz_submission, current_principal:, session: {}, includes: [], censored: false, shuffle_answers: false)
     quiz_questions = Array(quiz_questions) unless quiz_questions.is_a?(Array)
-    includes = (meta[:includes] || []) & INCLUDABLES
+    includes &= INCLUDABLES
 
     data = {}
     data[:quiz_submission_questions] = quiz_questions.map do |qq|
-      quiz_submission_question_json(qq, quiz_submission, meta)
+      quiz_submission_question_json(qq, quiz_submission, current_principal:, session:, includes:, censored:, shuffle_answers:)
     end
 
     if includes.include?("quiz_question")
       data[:quiz_questions] = questions_json(quiz_questions,
-                                             meta[:user],
-                                             meta[:session],
+                                             current_principal,
+                                             session,
                                              context: nil,
                                              includes: [],
-                                             censored: meta[:censored],
+                                             censored:,
                                              quiz_data: quiz_submission.quiz_data,
-                                             shuffle_answers: meta[:shuffle_answers],
+                                             shuffle_answers:,
                                              location: "quiz_submission_#{quiz_submission.id}")
     end
 
@@ -86,17 +85,16 @@ module Api::V1::QuizSubmissionQuestion
   #     flagged: true,
   #     answer: 123
   #   }
-  def quiz_submission_question_json(qq, qs, meta = {})
+  def quiz_submission_question_json(qq, qs, current_principal:, session: {}, includes: [], censored: false, shuffle_answers: false)
     answer_serializer = Quizzes::QuizQuestion::AnswerSerializers.serializer_for(qq)
-    meta[:includes] ||= []
     data = question_json(qq,
-                         meta[:user],
-                         meta[:session],
+                         current_principal,
+                         session,
                          context: nil,
-                         includes: meta[:includes],
-                         censored: meta[:censored],
+                         includes:,
+                         censored:,
                          quiz_data: qs[:quiz_data],
-                         shuffle_answers: meta[:shuffle_answers],
+                         shuffle_answers:,
                          location: "quiz_submission_#{qs.id}")
 
     if qs.submission_data.is_a? Hash # ungraded

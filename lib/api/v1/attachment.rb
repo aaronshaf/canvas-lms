@@ -26,9 +26,9 @@ module Api::V1::Attachment
   include Api::V1::User
   include Api::V1::UsageRights
 
-  def can_view_hidden_files?(context = @context, user = @current_user, session = nil)
+  def can_view_hidden_files?(context = @context, principal = current_principal, session = nil)
     context.grants_any_right?(
-      user,
+      principal,
       session,
       :read_as_admin,
       :manage_contents,
@@ -36,7 +36,7 @@ module Api::V1::Attachment
     )
   end
 
-  def attachments_json(files, user, url_options = {}, options = {})
+  def attachments_json(files, current_principal, url_options = {}, options = {})
     if options[:can_view_hidden_files] && options[:context]
       options[:master_course_status] = setup_master_course_restrictions(files, options[:context])
     end
@@ -44,14 +44,14 @@ module Api::V1::Attachment
     ActiveRecord::Associations::Preloader.new(records: files, associations: [:root_account, :last_attachment_upload_status]).call
 
     files.map do |f|
-      attachment_json(f, user, url_options, options)
+      attachment_json(f, current_principal, url_options, options)
     end
   end
 
-  def attachment_json(attachment, user, url_options = {}, options = {})
+  def attachment_json(attachment, current_principal, url_options = {}, options = {})
     hash = attachment.slice("id", "folder_id", "display_name", "filename")
 
-    if (attachment.context_type == "User" && attachment.context_id == user&.id) || !attachment.root_account.feature_enabled?(:deprecate_uuid_in_files_api)
+    if (attachment.context_type == "User" && attachment.context_id == current_principal&.user&.id) || !attachment.root_account.feature_enabled?(:deprecate_uuid_in_files_api)
       hash["uuid"] = attachment.uuid
     end
 
@@ -86,10 +86,10 @@ module Api::V1::Attachment
                       elsif options.key?(:can_view_hidden_files)
                         options[:can_view_hidden_files]
                       else
-                        !can_view_hidden_files?(attachment.context, user)
+                        !can_view_hidden_files?(attachment.context, current_principal)
                       end
 
-    downloadable = skip_permission_checks || !attachment.locked_for?(user, check_policies: true)
+    downloadable = skip_permission_checks || !attachment.locked_for?(current_principal, check_policies: true)
 
     if downloadable
       url_options[:location] = nil unless attachment.root_account.feature_enabled?(:file_association_access)
@@ -151,7 +151,7 @@ module Api::V1::Attachment
     if skip_permission_checks
       hash["locked_for_user"] = false
     else
-      locked_json(hash, attachment, user, "file")
+      locked_json(hash, attachment, current_principal, "file")
     end
 
     if attachment.supports_visibility?
@@ -159,12 +159,12 @@ module Api::V1::Attachment
     end
 
     if attachment.context.try(:horizon_course?) && attachment.estimated_duration&.marked_for_destruction? == false
-      hash["estimated_duration"] = estimated_duration_json(attachment.estimated_duration, user, nil)
+      hash["estimated_duration"] = estimated_duration_json(attachment.estimated_duration, current_principal, nil)
     end
 
     if includes.include? "user"
       context = attachment.context
-      context = :profile if context == user
+      context = :profile if context == current_principal.user
       hash["user"] = user_display_json(attachment.user, context)
     end
     if includes.include? "preview_url"
@@ -176,7 +176,7 @@ module Api::V1::Attachment
         access_token: options[:access_token],
         instfs_id: options[:instfs_id]
       }
-      hash["preview_url"] = attachment.canvadoc_url(user, url_opts)
+      hash["preview_url"] = attachment.canvadoc_url(current_principal, url_opts)
     end
     if includes.include?("canvadoc_document_id")
       hash["canvadoc_document_id"] = attachment&.canvadoc&.document_id
@@ -195,13 +195,13 @@ module Api::V1::Attachment
       hash["preview_url"] = context_url(attachment.context, :context_file_file_preview_url, attachment, url_opts)
     end
     if includes.include? "usage_rights"
-      hash["usage_rights"] = usage_rights_json(attachment.usage_rights, user)
+      hash["usage_rights"] = usage_rights_json(attachment.usage_rights, current_principal)
     end
     if includes.include? "context_asset_string"
       hash["context_asset_string"] = attachment.context.try(:asset_string)
     end
     if includes.include?("avatar") && respond_to?(:avatar_json)
-      hash["avatar"] = avatar_json(user, attachment, type: "attachment")
+      hash["avatar"] = avatar_json(current_principal, attachment, type: "attachment")
     end
     if includes.include? "instfs_uuid"
       # This option has been included to facilitate inst-fs end-to-end tests,

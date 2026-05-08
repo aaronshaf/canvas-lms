@@ -25,12 +25,12 @@ module Api::V1::PageView
     methods: ::PageView::EXPORTED_COLUMNS,
   }.freeze
 
-  def page_views_json(page_views, current_user, session)
-    page_views.map { |pv| page_view_json(pv, current_user, session) }
+  def page_views_json(page_views, current_principal, session)
+    page_views.map { |pv| page_view_json(pv, current_principal, session) }
   end
 
-  def page_view_json(page_view, current_user, session)
-    json_hash = api_json(page_view, current_user, session, API_PAGE_VIEW_JSON_OPTS)
+  def page_view_json(page_view, current_principal, session)
+    json_hash = api_json(page_view, current_principal, session, API_PAGE_VIEW_JSON_OPTS)
     json_hash[:id] = json_hash.delete(:request_id)
     json_hash[:contributed] = false # for backwards compatibility
     json_hash[:links] = {

@@ -153,7 +153,7 @@ class PlannerController < ApplicationController
           items = Api.paginate(items, self, params.key?(:user_id) ? api_v1_user_planner_items_url : api_v1_planner_items_url)
           use_html_comment = params[:use_html_comment] || false
           {
-            json: planner_items_json(items, @user, session, { due_after: start_date, due_before: end_date, use_html_comment: }),
+            json: planner_items_json(items, @principal, session, { due_after: start_date, due_before: end_date, use_html_comment: }),
             link: response.headers["Link"].to_s,
           }
         end
@@ -227,13 +227,19 @@ class PlannerController < ApplicationController
 
     if params.key?(:user_id)
       @user = api_find(User, params[:user_id])
-      @user == @current_user || authorized_action(@user, current_principal, :read_as_parent)
+      @principal = if @user == @current_user
+                     current_principal
+                   else
+                     authorized_action(@user, current_principal, :read_as_parent)
+                     Canvas::AdheresToPolicy::UserPrincipal.new(@user)
+                   end
     elsif params.key?(:observed_user_id)
       if (!params.key?(:context_codes) || params[:context_codes].empty?) && !include_visible_courses
         return render_unauthorized_action
       end
 
       @user = api_find(User, params[:observed_user_id])
+      @principal = Canvas::AdheresToPolicy::UserPrincipal.new(@user)
       unless include_visible_courses
         valid_course_ids = @current_user.observer_enrollments.active.where(associated_user_id: params[:observed_user_id]).shard(@current_user).pluck(:course_id)
         params[:context_codes] = params[:context_codes].select do |code|
@@ -243,7 +249,8 @@ class PlannerController < ApplicationController
         render_unauthorized_action if params[:context_codes].empty?
       end
     else
-      @user = @current_user
+      @principal = current_principal
+      @user = @principal&.user
     end
   end
 
@@ -298,7 +305,7 @@ class PlannerController < ApplicationController
 
   # returns all pages and ungraded discussions in supplied contexts with todo dates (no needing-viewing filter)
   def all_ungraded_todo_items
-    @unpub_contexts, @pub_contexts = @contexts.partition { |c| c.grants_right?(@user, :view_unpublished_items) }
+    @unpub_contexts, @pub_contexts = @contexts.partition { |c| c.grants_right?(@principal, :view_unpublished_items) }
     collections = []
     wiki_page_todo_scopes.each_with_index do |scope, i|
       collections << item_collection("pages_#{i}", scope, WikiPage, [:todo_date, :created_at], :id)
@@ -597,7 +604,7 @@ class PlannerController < ApplicationController
       perms = public_access? ? [:read, :read_syllabus] : [:read]
 
       return render_json_unauthorized unless contexts_to_check_permissions.all? do |context|
-        next unless context.grants_any_right?(@user, session, *perms)
+        next unless context.grants_any_right?(@principal, session, *perms)
 
         if params.key?(:observed_user_id) && context.is_a?(Course)
           student_valid_course_ids = @user.course_ids_for_todo_lists(:student, course_ids: [context.id], include_concluded:)

@@ -547,7 +547,7 @@ class DiscussionTopicsController < ApplicationController
         root_topic_fields = [:delayed_post_at, :lock_at]
         render json: discussion_topics_api_json(@topics,
                                                 @context,
-                                                @current_user,
+                                                current_principal,
                                                 session,
                                                 user_can_moderate:,
                                                 plain_messages: value_to_boolean(params[:plain_messages]),
@@ -638,7 +638,7 @@ class DiscussionTopicsController < ApplicationController
       hash[:ATTRIBUTES] = discussion_topic_api_json(
         @topic,
         @context,
-        @current_user,
+        current_principal,
         session,
         override_dates: false,
         include_usage_rights:
@@ -1677,7 +1677,7 @@ class DiscussionTopicsController < ApplicationController
         if @context.is_a?(Course)
           render json: discussion_topic_api_json(@topic,
                                                  @context,
-                                                 @current_user,
+                                                 current_principal,
                                                  session,
                                                  {
                                                    include_sections: true,
@@ -1687,7 +1687,7 @@ class DiscussionTopicsController < ApplicationController
         else
           render json: discussion_topic_api_json(@topic,
                                                  @context,
-                                                 @current_user,
+                                                 current_principal,
                                                  session,
                                                  {
                                                    include_usage_rights:

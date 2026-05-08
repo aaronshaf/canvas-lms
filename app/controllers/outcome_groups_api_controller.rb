@@ -170,7 +170,7 @@ class OutcomeGroupsApiController < ApplicationController
 
     url = polymorphic_url [:api_v1, @context || :global, :outcome_groups]
     groups = Api.paginate(context_outcome_groups, self, url)
-    render json: groups.map { |group| outcome_group_json(group, @current_user, session) }
+    render json: groups.map { |group| outcome_group_json(group, current_principal, session) }
   end
 
   # @API Get all outcome links for context
@@ -208,7 +208,7 @@ class OutcomeGroupsApiController < ApplicationController
     end
     outcome_params[:context] = @context
 
-    render json: outcome_links_json(links, @current_user, session, outcome_params)
+    render json: outcome_links_json(links, current_principal, session, outcome_params)
   end
 
   # @API Show an outcome group
@@ -219,7 +219,7 @@ class OutcomeGroupsApiController < ApplicationController
     return unless can_read_outcomes
 
     @outcome_group = context_outcome_groups.find(params[:id])
-    render json: outcome_group_json(@outcome_group, @current_user, session)
+    render json: outcome_group_json(@outcome_group, current_principal, session)
   end
 
   # @API Update an outcome group
@@ -285,7 +285,7 @@ class OutcomeGroupsApiController < ApplicationController
           return
         end
       end
-      render json: outcome_group_json(@outcome_group, @current_user, session)
+      render json: outcome_group_json(@outcome_group, current_principal, session)
     else
       render json: @outcome_group.errors, status: :bad_request
     end
@@ -321,7 +321,7 @@ class OutcomeGroupsApiController < ApplicationController
       @outcome_group.skip_tag_touch = true
       @outcome_group.destroy
       @context.try(:touch)
-      render json: outcome_group_json(@outcome_group, @current_user, session)
+      render json: outcome_group_json(@outcome_group, current_principal, session)
     rescue ContentTag::LastLinkToOutcomeNotDestroyed => e
       render json: e.to_json, status: :bad_request
     rescue ActiveRecord::RecordNotSaved
@@ -370,7 +370,7 @@ class OutcomeGroupsApiController < ApplicationController
     end
 
     # render to json and serve
-    render json: outcome_links_json(@links, @current_user, session, outcome_params)
+    render json: outcome_links_json(@links, current_principal, session, outcome_params)
   end
 
   # Intentionally undocumented in the API. Used by the UI to show a list of
@@ -522,7 +522,7 @@ class OutcomeGroupsApiController < ApplicationController
         end
 
         @outcome_group.adopt_outcome_link(@outcome_link)
-        render json: outcome_link_json(@outcome_link, @current_user, session)
+        render json: outcome_link_json(@outcome_link, current_principal, session)
         return
       end
 
@@ -552,7 +552,7 @@ class OutcomeGroupsApiController < ApplicationController
     end
     @outcome_link = @outcome_group.add_outcome(@outcome)
     @outcome_link.context = @outcome_group.context
-    render json: outcome_link_json(@outcome_link, @current_user, session)
+    render json: outcome_link_json(@outcome_link, current_principal, session)
   end
 
   # @API Unlink an outcome
@@ -580,7 +580,7 @@ class OutcomeGroupsApiController < ApplicationController
 
     begin
       @outcome_link.destroy
-      render json: outcome_link_json(@outcome_link, @current_user, session)
+      render json: outcome_link_json(@outcome_link, current_principal, session)
     rescue ContentTag::LastLinkToOutcomeNotDestroyed => e
       render json: { "message" => e.message }, status: :bad_request
     rescue ActiveRecord::RecordNotSaved
@@ -609,7 +609,7 @@ class OutcomeGroupsApiController < ApplicationController
     @subgroups.each { |group| group.context = @outcome_group.context }
 
     # render to json and serve
-    render json: @subgroups.map { |group| outcome_group_json(group, @current_user, session, :abbrev) }
+    render json: @subgroups.map { |group| outcome_group_json(group, current_principal, session, :abbrev) }
   end
 
   # @API Create a subgroup
@@ -656,7 +656,7 @@ class OutcomeGroupsApiController < ApplicationController
     @child_outcome_group = @outcome_group.child_outcome_groups.build(outcome_groups_incoming_params)
     @child_outcome_group.saving_user = @current_user
     if @child_outcome_group.save
-      render json: outcome_group_json(@child_outcome_group, @current_user, session)
+      render json: outcome_group_json(@child_outcome_group, current_principal, session)
     else
       render json: "error".to_json, status: :bad_request
     end
@@ -740,10 +740,10 @@ class OutcomeGroupsApiController < ApplicationController
         @source_outcome_group,
         polymorphic_path([:api_v1, @context, :outcome_groups])
       )
-      render json: progress_json(progress, @current_user, session)
+      render json: progress_json(progress, current_principal, session)
     else
       @child_outcome_group = @outcome_group.add_outcome_group(@source_outcome_group, {}, @current_user)
-      render json: outcome_group_json(@child_outcome_group, @current_user, session)
+      render json: outcome_group_json(@child_outcome_group, current_principal, session)
     end
   end
 

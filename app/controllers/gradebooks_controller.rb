@@ -191,8 +191,8 @@ class GradebooksController < ApplicationController
       effective_due_dates:,
       exclude_total: @exclude_total,
       gradebook_non_scoring_rubrics_enabled: root_account.feature_enabled?(:non_scoring_rubrics),
-      rubric_assessments: rubric_assessments_json(@presenter.rubric_assessments, @current_user, session, style: "full"),
-      rubrics: rubrics_json(@presenter.rubrics, @current_user, session, style: "full"),
+      rubric_assessments: rubric_assessments_json(@presenter.rubric_assessments, current_principal, session, style: "full"),
+      rubrics: rubrics_json(@presenter.rubrics, current_principal, session, style: "full"),
       save_assignment_order_url: course_save_assignment_order_url(@context),
       student_outcome_gradebook_enabled: @context.feature_enabled?(:student_outcome_gradebook),
       default_student_grade_summary_tab:,
@@ -221,7 +221,7 @@ class GradebooksController < ApplicationController
                                        end
                                      end
     course_active_grading_scheme = if course_active_grading_standard
-                                     GradingSchemesJsonController.base_grading_scheme_json(course_active_grading_standard, @current_user)
+                                     GradingSchemesJsonController.base_grading_scheme_json(course_active_grading_standard, current_principal)
                                    else
                                      nil
                                    end
@@ -522,7 +522,7 @@ class GradebooksController < ApplicationController
   end
 
   def active_grading_periods_json
-    @agp_json ||= GradingPeriod.periods_json(active_grading_periods, @current_user)
+    @agp_json ||= GradingPeriod.periods_json(active_grading_periods, current_principal)
   end
 
   def set_default_gradebook_env
@@ -627,7 +627,7 @@ class GradebooksController < ApplicationController
       restrict_quantitative_data: @context.restrict_quantitative_data?(@current_user),
       reorder_custom_columns_url: api_v1_custom_gradebook_columns_reorder_url(@context),
       rubric_assessment_imports_exports_enabled: Rubric.rubric_assessment_import_export_enabled?(@context),
-      sections: sections_json(visible_sections, @current_user, session, [], allow_sis_ids: true),
+      sections: sections_json(visible_sections, current_principal, session, [], allow_sis_ids: true),
       setting_update_url: api_v1_course_settings_url(@context),
       settings: gradebook_settings(@context.global_id),
       settings_update_url: api_v1_course_gradebook_settings_update_url(@context),
@@ -640,7 +640,7 @@ class GradebooksController < ApplicationController
       speed_grader_enabled: @context.allows_speed_grader?,
       student_groups: gradebook_group_categories_json,
       stickers_enabled: @context.feature_enabled?(:submission_stickers),
-      teacher_notes: teacher_notes && custom_gradebook_column_json(teacher_notes, @current_user, session),
+      teacher_notes: teacher_notes && custom_gradebook_column_json(teacher_notes, current_principal, session),
       user_asset_string: @current_user&.asset_string,
       performance_improvements_for_gradebook: @context.feature_enabled?(:performance_improvements_for_gradebook) &&
                                               Services::PlatformServiceGradebook.use_graphql?(@context.account.global_id, @context.global_id),
@@ -718,7 +718,7 @@ class GradebooksController < ApplicationController
       settings_update_url: api_v1_course_gradebook_settings_update_url(@context),
       show_total_grade_as_points: @context.show_total_grade_as_points?,
       stickers_enabled: @context.feature_enabled?(:submission_stickers),
-      teacher_notes: teacher_notes && custom_gradebook_column_json(teacher_notes, @current_user, session),
+      teacher_notes: teacher_notes && custom_gradebook_column_json(teacher_notes, current_principal, session),
       message_attachment_upload_folder_id: @current_user.conversation_attachments_folder.id.to_s,
       download_assignment_submissions_url: named_context_url(@context, :context_assignment_submissions_url, ":assignment", zip: 1),
     }
@@ -818,7 +818,7 @@ class GradebooksController < ApplicationController
       re_upload_submissions_url: named_context_url(@context, :submissions_upload_context_gradebook_url, "{{ assignment_id }}"),
       reorder_custom_columns_url: api_v1_custom_gradebook_columns_reorder_url(@context),
       save_view_ungraded_as_zero_to_server: allow_view_ungraded_as_zero?,
-      sections: sections_json(visible_sections, @current_user, session, [], allow_sis_ids: true),
+      sections: sections_json(visible_sections, current_principal, session, [], allow_sis_ids: true),
       sections_url: api_v1_course_sections_url(@context),
       setting_update_url: api_v1_course_settings_url(@context),
       settings: gradebook_settings(@context.global_id),
@@ -832,7 +832,7 @@ class GradebooksController < ApplicationController
       speed_grader_enabled: @context.allows_speed_grader?,
       student_groups: gradebook_group_categories_json,
       submissions_url: api_v1_course_student_submissions_url(@context, grouped: "1"),
-      teacher_notes: teacher_notes && custom_gradebook_column_json(teacher_notes, @current_user, session),
+      teacher_notes: teacher_notes && custom_gradebook_column_json(teacher_notes, current_principal, session),
       user_asset_string: @current_user&.asset_string,
       version: params.fetch(:version, nil)
     }
@@ -864,7 +864,7 @@ class GradebooksController < ApplicationController
                permissions: {
                  allow_assign_to_differentiation_tags: @context.account.allow_assign_to_differentiation_tags? && @context.grants_right?(current_principal, session, :manage_tags_add)
                },
-               sections: sections_json(visible_sections, @current_user, session, [], allow_sis_ids: true),
+               sections: sections_json(visible_sections, current_principal, session, [], allow_sis_ids: true),
                settings: gradebook_settings(@context.global_id),
                settings_update_url: api_v1_course_gradebook_settings_update_url(@context),
                IMPROVED_LMGB: @context.feature_enabled?(:improved_lmgb),
@@ -1067,7 +1067,7 @@ class GradebooksController < ApplicationController
           avatars: service_enabled?(:avatars),
           submissions:,
           submission_comments: submission.visible_submission_comments_for(@current_user),
-          current_user: @current_user,
+          current_principal:,
           course: @context
         ).map { |c| { submission_comment: c } }
 
@@ -1076,7 +1076,7 @@ class GradebooksController < ApplicationController
             result = Checkpoints::SubAssignmentSubmissionSerializer.serialize(assignment:, user_id: submission.user_id)
 
             sub_assignment_submissions = result[:submissions]&.filter_map do |sub_assignment_submission|
-              sub_assignment_submission_json(sub_assignment_submission, sub_assignment_submission.assignment, @current_user, @session, @context)
+              sub_assignment_submission_json(sub_assignment_submission, sub_assignment_submission.assignment, current_principal, @session, @context)
             end
 
             submission_json[:has_sub_assignment_submissions] = result[:has_active_submissions]
@@ -1299,7 +1299,7 @@ class GradebooksController < ApplicationController
           assignment_id: @assignment.id,
           custom_grade_statuses: Account.site_admin.feature_enabled?(:custom_gradebook_statuses) ? @context.custom_grade_statuses.as_json(include_root: false) : [],
           assignment_title: @assignment.title,
-          rubric: rubric ? rubric_json(rubric, @current_user, session, style: "full") : nil,
+          rubric: rubric ? rubric_json(rubric, current_principal, session, style: "full") : nil,
           nonScoringRubrics: @domain_root_account.feature_enabled?(:non_scoring_rubrics),
           outcome_extra_credit_enabled: @context.feature_enabled?(:outcome_extra_credit), # for outcome-based rubrics
           outcome_proficiency:, # for outcome-based rubrics
@@ -1367,7 +1367,7 @@ class GradebooksController < ApplicationController
           end
 
           if updated_group_info[:group].present?
-            env[:selected_student_group] = group_json(updated_group_info[:group], @current_user, session)
+            env[:selected_student_group] = group_json(updated_group_info[:group], current_principal, session)
           end
           env[:student_group_reason_for_change] = updated_group_info[:reason_for_change] if updated_group_info[:reason_for_change].present?
         end
@@ -1392,7 +1392,7 @@ class GradebooksController < ApplicationController
       format.json do
         render json: SpeedGrader::Assignment.new(
           @assignment,
-          @current_user,
+          current_principal,
           avatars: service_enabled?(:avatars),
           grading_role: @assignment.grading_role(@current_user)
         ).json
@@ -1570,7 +1570,7 @@ class GradebooksController < ApplicationController
     override_score_updates = params.permit(override_scores: %i[student_id override_score override_status_id]).to_h[:override_scores]
 
     progress = ::Gradebook::FinalGradeOverrides.queue_bulk_update(@context, @current_user, override_score_updates, grading_period)
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 
   # @API Apply score to ungraded submissions
@@ -1651,7 +1651,7 @@ class GradebooksController < ApplicationController
       grader: @current_user,
       options:
     )
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 
   def user_ids

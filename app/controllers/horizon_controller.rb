@@ -54,7 +54,7 @@ class HorizonController < ApplicationController
     }
 
     progress.process_job(Courses::HorizonService, :convert_course_to_horizon, { run_at: Time.zone.now, priority: Delayed::HIGH_PRIORITY }, **convert_params)
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 
   def revert_course

@@ -23,20 +23,20 @@ module Api::V1::ModuleAssignmentOverride
 
   FIELDS = %i[id context_module_id title].freeze
 
-  def module_assignment_overrides_json(overrides, user)
+  def module_assignment_overrides_json(overrides, current_principal)
     adhoc_overrides = overrides.select { |override| override.set_type == "ADHOC" }
-    visible_users_ids = ::AssignmentOverride.visible_enrollments_for(overrides.compact, user).select(:user_id)
+    visible_users_ids = ::AssignmentOverride.visible_enrollments_for(overrides.compact, current_principal).select(:user_id)
     if adhoc_overrides.any? { |override| !override.preloaded_student_ids }
       AssignmentOverrideApplicator.preload_student_ids_for_adhoc_overrides(adhoc_overrides, visible_users_ids)
     end
     user_names = User.where(id: adhoc_overrides.flat_map(&:preloaded_student_ids)).pluck(:id, :name).to_h
-    overrides.map { |override| module_assignment_override_json(override, user_names) }
+    overrides.map { |override| module_assignment_override_json(override, user_names, current_principal:) }
   end
 
   private
 
-  def module_assignment_override_json(override, user_names)
-    api_json(override, @current_user, session, only: FIELDS).tap do |json|
+  def module_assignment_override_json(override, user_names, current_principal: self.current_principal)
+    api_json(override, current_principal, session, only: FIELDS).tap do |json|
       case override.set_type
       when "ADHOC"
         json[:students] = override.preloaded_student_ids.map { |user_id| { id: user_id, name: user_names[user_id] } }

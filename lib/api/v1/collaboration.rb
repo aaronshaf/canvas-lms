@@ -21,14 +21,14 @@
 module Api::V1::Collaboration
   include Api::V1::Json
 
-  def collaboration_json(collaboration, current_user, session)
+  def collaboration_json(collaboration, current_principal, session)
     attribute_whitelist = %w[id collaboration_type document_id user_id context_id context_type url created_at updated_at description title type update_url]
-    api_json(collaboration, current_user, session, only: attribute_whitelist).tap do |hash|
+    api_json(collaboration, current_principal, session, only: attribute_whitelist).tap do |hash|
       hash["user_name"] = collaboration.user[:name]
       hash["update_url"] = collaboration.update_url
       hash["permissions"] = {
-        update: collaboration.grants_right?(current_user, session, :update),
-        delete: collaboration.grants_right?(current_user, session, :delete)
+        update: collaboration.grants_right?(current_principal, session, :update),
+        delete: collaboration.grants_right?(current_principal, session, :delete)
       }
     end
   end

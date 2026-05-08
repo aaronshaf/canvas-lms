@@ -24,7 +24,7 @@ module Api::V1::CommunicationChannel
   # Public: Given a communication channel, return it in an API-friendly format.
   #
   # channel - The communication channel to turn into a hash.
-  # current_user - The requesting user.
+  # current_principal - The requesting user.
   # session - The current session (or nil, if no session is available)
   #
   # Returns a Hash of communication channel attributes:
@@ -35,7 +35,7 @@ module Api::V1::CommunicationChannel
   #   :user_id
   #   :workflow_state
   #   :created_at
-  def communication_channel_json(channel, current_user, session)
+  def communication_channel_json(channel, current_principal, session)
     only = %w[id path_type position workflow_state user_id created_at]
     # Uses the method "path_description" instead of the field "path" because
     # when path_type is yo, it goes and fetches tha user's account
@@ -43,7 +43,7 @@ module Api::V1::CommunicationChannel
     methods = %w[path_description]
 
     # If the user is super special, show them this channel's bounce details
-    if channel.grants_right?(current_user, :read_bounce_details)
+    if channel.grants_right?(current_principal, :read_bounce_details)
       only += %w[
         bounce_count
         last_bounce_at
@@ -56,7 +56,7 @@ module Api::V1::CommunicationChannel
       ]
     end
 
-    api_json(channel, current_user, session, only:, methods:).tap do |json|
+    api_json(channel, current_principal, session, only:, methods:).tap do |json|
       # Rename attributes for mass-consumption
       json[:address] = json.delete(:path_description)
       json[:type] = json.delete(:path_type)

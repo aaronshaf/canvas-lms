@@ -23,14 +23,14 @@ module Api::V1::AccountReport
   include Api::V1::User
   include Api::V1::Attachment
 
-  def account_reports_json(reports, user)
+  def account_reports_json(reports, current_principal)
     reports.map do |f|
-      account_report_json(f, user)
+      account_report_json(f, current_principal)
     end
   end
 
-  def account_report_json(report, user)
-    json = api_json(report, user, nil, only: %w[id progress parameters current_line])
+  def account_report_json(report, current_principal)
+    json = api_json(report, current_principal, nil, only: %w[id progress parameters current_line])
     json[:status] = report.workflow_state
     json[:report] = report.report_type
     json[:created_at] = report.created_at&.iso8601
@@ -41,7 +41,7 @@ module Api::V1::AccountReport
     json[:message] = report.message
     json[:user] = user_display_json(report.user)
     if report.attachment
-      json[:attachment] = attachment_json(report.attachment, user)
+      json[:attachment] = attachment_json(report.attachment, current_principal)
     end
     json
   end

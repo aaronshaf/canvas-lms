@@ -44,7 +44,7 @@ class ModerationSetController < ApplicationController
     end
 
     users = Api.paginate(scope, self, api_v1_moderated_students_url(@context, @assignment))
-    render json: users_json(users, @current_user, session)
+    render json: users_json(users, current_principal, session)
   end
 
   # @API Select students for moderation
@@ -67,7 +67,7 @@ class ModerationSetController < ApplicationController
 
     incremental_create(all_student_ids)
 
-    render json: all_students.map { |u| user_json(u, @current_user, session) }
+    render json: all_students.map { |u| user_json(u, current_principal, session) }
   end
 
   private

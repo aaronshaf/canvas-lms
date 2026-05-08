@@ -23,19 +23,19 @@ module Api::V1::Eportfolio
   EPORTFOLIO_ATTRIBUTES = %w[id user_id name public created_at updated_at workflow_state deleted_at spam_status].freeze
   ENTRY_ATTRIBUTES = %w[id eportfolio_id position name content created_at updated_at].freeze
 
-  def eportfolio_json(eportfolio, current_user, session)
-    api_json(eportfolio, current_user, session, only: EPORTFOLIO_ATTRIBUTES).tap do |hash|
+  def eportfolio_json(eportfolio, current_principal, session)
+    api_json(eportfolio, current_principal, session, only: EPORTFOLIO_ATTRIBUTES).tap do |hash|
       hash["public"] = !!hash["public"]
     end
   end
 
-  def eportfolio_entry_json(entry, current_user, session)
-    api_json(entry, current_user, session, only: ENTRY_ATTRIBUTES)
+  def eportfolio_entry_json(entry, current_principal, session)
+    api_json(entry, current_principal, session, only: ENTRY_ATTRIBUTES)
   end
 
-  def eportfolio_category_json(category, current_user, session)
+  def eportfolio_category_json(category, current_principal, session)
     category_url = category.slug.presence && eportfolio_named_category_path(category.eportfolio, category.slug)
-    api_json(category, current_user, session, only: ENTRY_ATTRIBUTES).tap do |hash|
+    api_json(category, current_principal, session, only: ENTRY_ATTRIBUTES).tap do |hash|
       hash["category_url"] = category_url
     end
   end

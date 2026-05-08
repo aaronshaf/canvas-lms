@@ -37,6 +37,9 @@ describe Api::V1::CourseEvent do
     false
   end
 
+  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@user) if @user }
+  let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@student) if @student }
+
   before do
     @request_id = SecureRandom.uuid
     allow(RequestContextGenerator).to receive_messages(request_id: @request_id)
@@ -71,7 +74,7 @@ describe Api::V1::CourseEvent do
   end
 
   it "is formatted as a course content event hash" do
-    event = course_event_json(@event, @student, @session)
+    event = course_event_json(@event, student_principal, @session)
 
     expect(event[:id]).to eq @event.id
     expect(event[:created_at]).to eq @event.created_at.in_time_zone
@@ -88,11 +91,11 @@ describe Api::V1::CourseEvent do
   end
 
   it "is formatted as an array of course content event hashes" do
-    expect(course_events_json(@events, @student, @session).size).to eql(@events.size)
+    expect(course_events_json(@events, student_principal, @session).size).to eql(@events.size)
   end
 
   it "is formatted as an array of compound course content event hashes" do
-    json_hash = course_events_compound_json(@events, @user, @session)
+    json_hash = course_events_compound_json(@events, current_principal, @session)
 
     expect(json_hash.keys.sort).to eq %i[events linked links]
 
@@ -102,7 +105,7 @@ describe Api::V1::CourseEvent do
                                       "events.sis_batch" => nil
                                     })
 
-    expect(json_hash[:events]).to eq course_events_json(@events, @user, @session)
+    expect(json_hash[:events]).to eq course_events_json(@events, current_principal, @session)
 
     linked = json_hash[:linked]
     expect(linked.keys.sort).to eq %i[courses page_views users]
@@ -112,10 +115,10 @@ describe Api::V1::CourseEvent do
   end
 
   it "handles an empty result set" do
-    json_hash = course_events_compound_json([], @user, @session)
+    json_hash = course_events_compound_json([], current_principal, @session)
 
     expect(json_hash.keys.sort).to eq %i[events linked links]
-    expect(json_hash[:events]).to eq course_events_json([], @user, @session)
+    expect(json_hash[:events]).to eq course_events_json([], current_principal, @session)
 
     linked = json_hash[:linked]
     expect(linked.keys.sort).to eq %i[courses page_views users]

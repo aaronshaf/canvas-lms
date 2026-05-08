@@ -160,7 +160,7 @@ class MediaObjectsController < ApplicationController
     exclude = params[:exclude] || []
     media_objects =
       Api.paginate(scope, self, url).map do |mo|
-        media_object_api_json(mo, @current_user, session, exclude)
+        media_object_api_json(mo, current_principal, session, exclude)
       end
     render json: media_objects
   end
@@ -188,7 +188,7 @@ class MediaObjectsController < ApplicationController
       # polling until the media is ready.
       render json: media_attachment_api_json(@attachment, @media_object || MediaObject.new, @current_user, session)
     else
-      render json: media_object_api_json(@media_object, @current_user, session)
+      render json: media_object_api_json(@media_object, current_principal, session)
     end
   end
 
@@ -219,7 +219,7 @@ class MediaObjectsController < ApplicationController
     @media_object.viewer_restrictions.merge!(permitted_viewer_restrictions)
     @media_object.save!
 
-    render json: media_object_api_json(@media_object, @current_user, session, %w[sources tracks])
+    render json: media_object_api_json(@media_object, current_principal, session, %w[sources tracks])
   end
 
   def create_media_object
@@ -338,7 +338,7 @@ class MediaObjectsController < ApplicationController
                          location: params[:location]
                        )
                      elsif @media_object
-                       media_object_api_json(@media_object, @current_user, session)
+                       media_object_api_json(@media_object, current_principal, session)
                      end
 
     js_env({ media_object: media_api_json }) if media_api_json
@@ -371,7 +371,7 @@ class MediaObjectsController < ApplicationController
                          location: params[:location]
                        )
                      elsif @media_object
-                       media_object_api_json(@media_object, @current_user, session)
+                       media_object_api_json(@media_object, current_principal, session)
                      end
 
     js_env({ media_object: media_api_json }) if media_api_json

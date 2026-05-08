@@ -40,15 +40,15 @@ module Api::V1::AuthenticationEvent
     }
   end
 
-  def authentication_events_json(events, user, session)
-    events.map { |event| authentication_event_json(event, user, session) }
+  def authentication_events_json(events, current_principal, session)
+    events.map { |event| authentication_event_json(event, current_principal, session) }
   end
 
-  def authentication_events_compound_json(events, user, session)
+  def authentication_events_compound_json(events, current_principal, session)
     {
       links: links_json,
-      events: authentication_events_json(events, user, session),
-      linked: linked_json(events, user, session)
+      events: authentication_events_json(events, current_principal, session),
+      linked: linked_json(events, current_principal, session)
     }
   end
 
@@ -65,7 +65,7 @@ module Api::V1::AuthenticationEvent
     }
   end
 
-  def linked_json(events, user, session)
+  def linked_json(events, current_principal, session)
     pseudonyms = []
     accounts = []
     pseudonym_ids = events.map(&:pseudonym_id).uniq.compact
@@ -86,10 +86,10 @@ module Api::V1::AuthenticationEvent
     page_views ||= []
 
     {
-      logins: pseudonyms_json(pseudonyms, user, session),
-      accounts: accounts_json(accounts, user, session, []),
-      users: users_json(users, user, session, [], @domain_root_account),
-      page_views: page_views_json(page_views, user, session)
+      logins: pseudonyms_json(pseudonyms, current_principal, session),
+      accounts: accounts_json(accounts, current_principal, session, []),
+      users: users_json(users, current_principal, session, [], @domain_root_account),
+      page_views: page_views_json(page_views, current_principal, session)
     }
   end
 end

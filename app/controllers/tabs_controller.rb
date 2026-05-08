@@ -124,7 +124,7 @@ class TabsController < ApplicationController
   def index
     GuardRail.activate(:secondary) do
       if @context.grants_right?(current_principal, session, :read)
-        render json: tabs_available_json(@context, @current_user, session)
+        render json: tabs_available_json(@context, current_principal, session)
       else
         raise ActiveRecord::RecordNotFound
       end

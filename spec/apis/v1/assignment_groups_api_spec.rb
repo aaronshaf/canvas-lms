@@ -179,8 +179,8 @@ describe AssignmentGroupsController, type: :request do
         "integration_data" => {},
         "sis_source_id" => nil,
         "assignments" => [
-          controller.assignment_json(@a3, @user, session).as_json,
-          controller.assignment_json(@a4, @user, session, include_discussion_topic: false).as_json
+          controller.assignment_json(@a3, Canvas::AdheresToPolicy::UserPrincipal.new(@user), session).as_json,
+          controller.assignment_json(@a4, Canvas::AdheresToPolicy::UserPrincipal.new(@user), session, include_discussion_topic: false).as_json
         ]
       },
       {
@@ -193,8 +193,8 @@ describe AssignmentGroupsController, type: :request do
         "integration_data" => {},
         "sis_source_id" => nil,
         "assignments" => [
-          controller.assignment_json(@a1, @user, session).as_json,
-          controller.assignment_json(@a2, @user, session).as_json
+          controller.assignment_json(@a1, Canvas::AdheresToPolicy::UserPrincipal.new(@user), session).as_json,
+          controller.assignment_json(@a2, Canvas::AdheresToPolicy::UserPrincipal.new(@user), session).as_json
         ]
       }
     ]
@@ -689,8 +689,8 @@ describe AssignmentGroupsController, type: :request do
         "integration_data" => {},
         "sis_source_id" => nil,
         "assignments" => [
-          controller.assignment_json(a1, @user, session).as_json,
-          controller.assignment_json(a2, @user, session).as_json
+          controller.assignment_json(a1, Canvas::AdheresToPolicy::UserPrincipal.new(@user), session).as_json,
+          controller.assignment_json(a2, Canvas::AdheresToPolicy::UserPrincipal.new(@user), session).as_json
         ]
       }
     ]
@@ -734,8 +734,8 @@ describe AssignmentGroupsController, type: :request do
         "integration_data" => {},
         "sis_source_id" => nil,
         "assignments" => [
-          controller.assignment_json(a1, @user, session, include_all_dates: true, include_can_edit: true).as_json,
-          controller.assignment_json(a2, @user, session, include_all_dates: true, include_can_edit: true).as_json
+          controller.assignment_json(a1, Canvas::AdheresToPolicy::UserPrincipal.new(@user), session, include_all_dates: true, include_can_edit: true).as_json,
+          controller.assignment_json(a2, Canvas::AdheresToPolicy::UserPrincipal.new(@user), session, include_all_dates: true, include_can_edit: true).as_json
         ]
       }
     ]

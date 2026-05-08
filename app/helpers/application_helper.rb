@@ -1289,13 +1289,13 @@ module ApplicationHelper
 
     tag_indices.each do |ix|
       hash = {
-        current: module_item_json(needed_tags[tag_ids[ix]], @current_user, session, nil, nil, [], opts),
+        current: module_item_json(needed_tags[tag_ids[ix]], current_principal, session, nil, nil, [], opts),
         prev: nil,
         next: nil
       }
-      hash[:prev] = module_item_json(needed_tags[tag_ids[ix - 1]], @current_user, session, nil, nil, [], opts) if ix > 0
+      hash[:prev] = module_item_json(needed_tags[tag_ids[ix - 1]], current_principal, session, nil, nil, [], opts) if ix > 0
       if ix < tag_ids.size - 1
-        hash[:next] = module_item_json(needed_tags[tag_ids[ix + 1]], @current_user, session, nil, nil, [], opts)
+        hash[:next] = module_item_json(needed_tags[tag_ids[ix + 1]], current_principal, session, nil, nil, [], opts)
       end
       if cyoe_enabled?(@context)
         is_student = @context.grants_right?(current_principal, session, :participate_as_student)
@@ -1306,7 +1306,7 @@ module ApplicationHelper
       result[:items] << hash
     end
     modules = needed_tags.values.map(&:context_module).uniq
-    result[:modules] = modules.map { |mod| module_json(mod, @current_user, session, nil, [], opts) }
+    result[:modules] = modules.map { |mod| module_json(mod, current_principal, session, nil, [], opts) }
     result
   end
 

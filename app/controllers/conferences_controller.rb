@@ -219,7 +219,7 @@ class ConferencesController < ApplicationController
   # @returns [Conference]
   def for_user
     return render_unauthorized_action unless @current_user
-    return render json: api_conferences_json([], @current_user, session) unless WebConference.config
+    return render json: api_conferences_json([], current_principal, session) unless WebConference.config
 
     log_api_asset_access(["conferences"], "conferences", "other")
     bookmarker = Plannable::Bookmarker.new(WebConference, true, :created_at, :id)
@@ -251,13 +251,13 @@ class ConferencesController < ApplicationController
     )
 
     results_page = Api.paginate(merged_collection, self, api_v1_conferences_url)
-    render json: api_conferences_json(results_page, @current_user, session)
+    render json: api_conferences_json(results_page, current_principal, session)
   end
 
   def api_index(conferences, route)
     web_conferences = Api.paginate(conferences, self, route)
     preload_recordings(web_conferences)
-    render json: api_conferences_json(web_conferences, @current_user, session)
+    render json: api_conferences_json(web_conferences, current_principal, session)
   end
   protected :api_index
 
@@ -302,7 +302,7 @@ class ConferencesController < ApplicationController
     js_env({
              current_conferences: ui_conferences_json(@new_conferences, @context, @current_user, session),
              concluded_conferences: ui_conferences_json(@concluded_conferences, @context, @current_user, session),
-             default_conference: default_conference_json(@context, @current_user, session),
+             default_conference: default_conference_json(@context, current_principal, session),
              conference_type_details: conference_types_json(WebConference.conference_types(@context)),
              users: @users.map { |u| { id: u.id, name: u.last_name_first } },
              groups: @groups&.map { |g| { id: g.id, name: g.full_name } },

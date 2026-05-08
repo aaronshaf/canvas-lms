@@ -97,15 +97,15 @@ module Api::V1::QuizQuestion
   #   the questions will be modified to use the fields found in that
   #   data. This is needed if you're rendering questions for a submission
   #   as each submission might have differen data.
-  def questions_json(questions, user, session, context: nil, includes: [], censored: false, quiz_data: nil, shuffle_answers: false, location: nil)
+  def questions_json(questions, current_principal, session, context: nil, includes: [], censored: false, quiz_data: nil, shuffle_answers: false, location: nil)
     questions.map do |question|
       this_location = location.nil? ? "quiz_question_#{question.id}" : location
-      question_json(question, user, session, context:, includes:, censored:, quiz_data:, shuffle_answers:, location: this_location)
+      question_json(question, current_principal, session, context:, includes:, censored:, quiz_data:, shuffle_answers:, location: this_location)
     end
   end
 
-  def question_json(question, user, session, context: nil, includes: [], censored: false, quiz_data: nil, shuffle_answers: false, location: nil)
-    hsh = api_json(question, user, session, API_ALLOWED_QUESTION_OUTPUT_FIELDS).tap do |json|
+  def question_json(question, current_principal, session, context: nil, includes: [], censored: false, quiz_data: nil, shuffle_answers: false, location: nil)
+    hsh = api_json(question, current_principal, session, API_ALLOWED_QUESTION_OUTPUT_FIELDS).tap do |json|
       API_ALLOWED_QUESTION_DATA_OUTPUT_FIELDS.each do |field|
         question_data = quiz_data&.find { |data_question| data_question[:id] == question[:id] } || question.question_data
         json[field] = question_data[field]
@@ -115,7 +115,7 @@ module Api::V1::QuizQuestion
       end
     end
 
-    user ||= @current_user
+    user = current_principal&.user
     unless includes.include?(:plain_html)
       hsh = handle_question_html_content(hsh, @context, user, location)
     end
@@ -125,7 +125,7 @@ module Api::V1::QuizQuestion
     end
 
     if includes.include?(:assessment_question)
-      hsh[:assessment_question] = api_json(question.assessment_question, user, session)
+      hsh[:assessment_question] = api_json(question.assessment_question, current_principal, session)
       if censored
         q_data = hsh[:assessment_question][:question_data]
         hsh[:assessment_question][:question_data] = censor(q_data)

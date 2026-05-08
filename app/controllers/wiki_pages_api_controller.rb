@@ -229,7 +229,7 @@ class WikiPagesApiController < ApplicationController
     new_page.saving_user = @current_user
     new_page.save!
 
-    render json: wiki_page_json(new_page, @current_user, session)
+    render json: wiki_page_json(new_page, current_principal, session)
   end
 
   # @API Update/create front page
@@ -365,7 +365,7 @@ class WikiPagesApiController < ApplicationController
         mc_status = setup_master_course_restrictions(wiki_pages, @context)
       end
       render json: wiki_pages_json(wiki_pages,
-                                   @current_user,
+                                   current_principal,
                                    session,
                                    include_body: includes.include?("body"),
                                    master_course_status: mc_status)
@@ -429,7 +429,7 @@ class WikiPagesApiController < ApplicationController
         log_asset_access(@page, "wiki", @wiki, "participate")
         create_external_content_ref
 
-        render json: wiki_page_json(@page, @current_user, session, use_block_editor: true)
+        render json: wiki_page_json(@page, current_principal, session, use_block_editor: true)
       else
         render json: @page.errors, status: update_params.is_a?(Symbol) ? update_params : :bad_request
       end
@@ -452,7 +452,7 @@ class WikiPagesApiController < ApplicationController
   def show
     if authorized_action(@page, current_principal, :read)
       log_asset_access(@page, "wiki", @wiki)
-      render json: wiki_page_json(@page, @current_user, session, use_block_editor: true)
+      render json: wiki_page_json(@page, current_principal, session, use_block_editor: true)
     end
   rescue InstructureMiscPlugin::Extensions::ContentServiceClient::ClientError => e
     rescue_content_service_error(e)
@@ -526,7 +526,7 @@ class WikiPagesApiController < ApplicationController
         @page.context_module_action(@current_user, @context, :contributed)
         update_external_content_ref
 
-        render json: wiki_page_json(@page, @current_user, session, use_block_editor: true)
+        render json: wiki_page_json(@page, current_principal, session, use_block_editor: true)
       else
         render json: @page.errors, status: update_params.is_a?(Symbol) ? update_params : :bad_request
       end
@@ -556,7 +556,7 @@ class WikiPagesApiController < ApplicationController
       else
         @page.destroy
         process_front_page
-        render json: wiki_page_json(@page, @current_user, session)
+        render json: wiki_page_json(@page, current_principal, session)
       end
     end
   end
@@ -575,7 +575,7 @@ class WikiPagesApiController < ApplicationController
       route = polymorphic_url([:api_v1, @context, @page, :revisions])
       scope = @page.versions
       revisions = Api.paginate(scope, self, route)
-      render json: wiki_page_revisions_json(revisions, @current_user, session, @page.current_version)
+      render json: wiki_page_revisions_json(revisions, current_principal, session, @page.current_version)
     end
   end
 
@@ -614,7 +614,7 @@ class WikiPagesApiController < ApplicationController
         output_json = nil
         begin
           output_json = wiki_page_revision_json(revision,
-                                                @current_user,
+                                                current_principal,
                                                 session,
                                                 include_content:,
                                                 latest_version: @page.current_version)
@@ -633,7 +633,7 @@ class WikiPagesApiController < ApplicationController
             revision.save
           end
           output_json = wiki_page_revision_json(revision,
-                                                @current_user,
+                                                current_principal,
                                                 session,
                                                 include_content:,
                                                 latest_version: @page.current_version)
@@ -668,7 +668,7 @@ class WikiPagesApiController < ApplicationController
       @page.saving_user = @current_user
       if @page.save
         render json: wiki_page_revision_json(@page.versions.current,
-                                             @current_user,
+                                             current_principal,
                                              session,
                                              include_content: true,
                                              latest_version: @page.current_version)

@@ -181,7 +181,7 @@ class GroupCategoriesController < ApplicationController
           includes = ["progress_url"]
           includes.concat(params[:includes]) if params[:includes]
 
-          render json: paginated_categories.map { |c| group_category_json(c, @current_user, session, include: includes) }
+          render json: paginated_categories.map { |c| group_category_json(c, current_principal, session, include: includes) }
         end
       end
     end
@@ -208,7 +208,7 @@ class GroupCategoriesController < ApplicationController
         )
           includes = ["progress_url"]
           includes.concat(params[:includes]) if params[:includes]
-          render json: group_category_json(@group_category, @current_user, session, include: includes)
+          render json: group_category_json(@group_category, current_principal, session, include: includes)
         end
       end
     end
@@ -283,7 +283,7 @@ class GroupCategoriesController < ApplicationController
               return render json: { message: "You must have manage_sis permission to set sis attributes" }, status: :unauthorized
             end
           end
-          render json: group_category_json(@group_category, @current_user, session, include: includes)
+          render json: group_category_json(@group_category, current_principal, session, include: includes)
         else
           flash[:notice] = t("notices.create_category_success", "Category was successfully created.")
           render json: [@group_category.as_json, @group_category.groups.map { |g| g.as_json(include: :users) }]
@@ -484,7 +484,7 @@ class GroupCategoriesController < ApplicationController
                end
 
     progress = GroupAndMembershipImporter.create_import_with_attachment(@context, file_obj)
-    render(json: progress_json(progress, @current_user, session))
+    render(json: progress_json(progress, current_principal, session))
   end
 
   # @API Import category groups
@@ -552,7 +552,7 @@ class GroupCategoriesController < ApplicationController
                  end
 
       progress = GroupAndMembershipImporter.create_import_with_attachment(@group_category, file_obj)
-      render(json: progress_json(progress, @current_user, session))
+      render(json: progress_json(progress, current_principal, session))
     end
   end
 
@@ -612,7 +612,7 @@ class GroupCategoriesController < ApplicationController
         if populate_group_category_from_params
           includes = ["progress_url"]
           includes.concat(params[:includes]) if params[:includes]
-          render json: group_category_json(@group_category, @current_user, session, include: includes)
+          render json: group_category_json(@group_category, current_principal, session, include: includes)
         end
         if (sis_id = params[:sis_group_category_id])
           if @group_category.root_account.grants_right?(current_principal, :manage_sis)
@@ -660,7 +660,7 @@ class GroupCategoriesController < ApplicationController
 
       if @group_category.destroy
         if api_request?
-          render json: group_category_json(@group_category, @current_user, session)
+          render json: group_category_json(@group_category, current_principal, session)
         else
           render json: { deleted: true }
         end
@@ -691,7 +691,7 @@ class GroupCategoriesController < ApplicationController
 
       @groups = @group_category.groups.active.by_name.preload(:root_account)
       @groups = Api.paginate(@groups, self, api_v1_group_category_groups_url)
-      render json: @groups.map { |g| group_json(g, @current_user, session) }
+      render json: @groups.map { |g| group_json(g, current_principal, session) }
     end
   end
 
@@ -929,7 +929,7 @@ class GroupCategoriesController < ApplicationController
     users = Api.paginate(users, self, api_v1_group_category_users_url)
     UserPastLtiId.manual_preload_past_lti_ids(users, @group_category.groups) if ["uuid", "lti_id"].any? { |id| includes.include? id }
     user_json_preloads(users, profile: true)
-    json_users = users_json(users, @current_user, session, includes, @context, nil, Array(params[:exclude]))
+    json_users = users_json(users, current_principal, session, includes, @context, nil, Array(params[:exclude]))
 
     if includes.include?("group_submissions") && @group_category.context_type == "Course"
       submissions_by_user = @group_category.submission_ids_by_user_id(users.map(&:id))
@@ -1057,7 +1057,7 @@ class GroupCategoriesController < ApplicationController
       render json:
     else
       @group_category.assign_unassigned_members_in_background(by_section:, updating_user: @current_user)
-      render json: progress_json(@group_category.current_progress, @current_user, session)
+      render json: progress_json(@group_category.current_progress, current_principal, session)
     end
   end
 

@@ -292,7 +292,7 @@ class ContextModuleItemsApiController < ApplicationController
       end
       opts[:can_view_published] = @context.grants_right?(student_or_current_principal, session, :read_as_admin)
       opts[:can_have_estimated_time] = @context.horizon_course?
-      render json: items.map { |item| module_item_json(item, @student || @current_user, session, mod, prog, includes, opts) }
+      render json: items.map { |item| module_item_json(item, student_or_current_principal, session, mod, prog, includes, opts) }
     end
   end
 
@@ -323,7 +323,7 @@ class ContextModuleItemsApiController < ApplicationController
         @item.context_module_action(@current_user, :read) if @current_user
       end
       prog = @student ? @module.evaluate_for(@student) : nil
-      render json: module_item_json(@item, @student || @current_user, session, @module, prog, Array(params[:include]), opts)
+      render json: module_item_json(@item, student_or_current_principal, session, @module, prog, Array(params[:include]), opts)
     end
   end
 
@@ -448,7 +448,7 @@ class ContextModuleItemsApiController < ApplicationController
             original_params = params[:module_item]
             params[:module_item] = module_item_params
             if set_position && set_completion_requirement
-              created_items << module_item_json(@tag, @current_user, session, @module, nil)
+              created_items << module_item_json(@tag, current_principal, session, @module, nil)
             elsif @tag.errors.any?
               errors << { index:, message: @tag.errors.full_messages.join(", ") }
             end
@@ -574,7 +574,7 @@ class ContextModuleItemsApiController < ApplicationController
 
       if @tag.save && set_position && set_completion_requirement
         @tag.update_asset_name!(@current_user) if params[:module_item][:title]
-        render json: module_item_json(@tag, @current_user, session, @tag.context_module, nil)
+        render json: module_item_json(@tag, current_principal, session, @tag.context_module, nil)
       else
         render json: @tag.errors, status: :bad_request
       end
@@ -629,8 +629,8 @@ class ContextModuleItemsApiController < ApplicationController
 
     render json: {
       meta: { primaryCollection: "assignments" },
-      items: items.map { |item| module_item_json(item, @student || @current_user, session, @module) },
-      assignments: assignments_json(assignments, @current_user, session)
+      items: items.map { |item| module_item_json(item, student_or_current_principal, session, @module) },
+      assignments: assignments_json(assignments, current_principal, session)
     }
   end
 
@@ -651,7 +651,7 @@ class ContextModuleItemsApiController < ApplicationController
       @module = @tag.context_module
       @tag.destroy
       @module.touch
-      render json: module_item_json(@tag, @current_user, session, @module, nil)
+      render json: module_item_json(@tag, current_principal, session, @module, nil)
     end
   end
 

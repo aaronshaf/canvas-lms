@@ -150,7 +150,7 @@ class AiExperiencesController < ApplicationController
           result = AiExperiences::ConversationContextDocumentsService.new(account: @context.root_account).sync_index_status(ai_experience: @ai_experience)
           failed_file_names = result&.dig(:failed_file_names) || []
         end
-        render json: ai_experience_json(@ai_experience, @current_user, session, can_manage:, failed_context_file_names: failed_file_names)
+        render json: ai_experience_json(@ai_experience, current_principal, session, can_manage:, failed_context_file_names: failed_file_names)
       end
     end
   end
@@ -212,7 +212,7 @@ class AiExperiencesController < ApplicationController
     if @experience.save
       track_experience_metrics(:create, @experience, new_publish_state: @experience.workflow_state)
       respond_to do |format|
-        format.json { render json: ai_experience_json(@experience, @current_user, session), status: :created }
+        format.json { render json: ai_experience_json(@experience, current_principal, session), status: :created }
       end
     else
       respond_to do |format|
@@ -250,7 +250,7 @@ class AiExperiencesController < ApplicationController
       track_experience_metrics(:update, @experience, initial_publish_state:, new_publish_state:)
 
       respond_to do |format|
-        format.json { render json: ai_experience_json(@experience, @current_user, session), status: :ok }
+        format.json { render json: ai_experience_json(@experience, current_principal, session), status: :ok }
       end
     else
       respond_to do |format|
@@ -271,7 +271,7 @@ class AiExperiencesController < ApplicationController
       track_experience_metrics(:destroy, @experience, initial_publish_state:)
 
       respond_to do |format|
-        format.json { render json: ai_experience_json(@experience, @current_user, session), status: :ok }
+        format.json { render json: ai_experience_json(@experience, current_principal, session), status: :ok }
       end
     else
       respond_to do |format|
@@ -353,14 +353,14 @@ class AiExperiencesController < ApplicationController
 
       if latest_conversation
         # Need to manually build student info to pass enrollment
-        student_info = user_json(latest_conversation.user, @current_user, session, ["avatar_url"], @context, nil, [], enrollment)
-        json = api_json(latest_conversation, @current_user, session, {})
+        student_info = user_json(latest_conversation.user, current_principal, session, ["avatar_url"], @context, nil, [], enrollment)
+        json = api_json(latest_conversation, current_principal, session, {})
         json[:student] = student_info
         json
       else
         # Include students without conversations
         # Pass enrollment to user_json to avoid N+1 query for sis_pseudonym
-        student_info = user_json(student, @current_user, session, ["avatar_url"], @context, nil, [], enrollment)
+        student_info = user_json(student, current_principal, session, ["avatar_url"], @context, nil, [], enrollment)
         {
           id: nil,
           user_id: student.id.to_s,
@@ -404,7 +404,7 @@ class AiExperiencesController < ApplicationController
 
     render json: ai_conversation_json(
       @conversation,
-      @current_user,
+      current_principal,
       session,
       include_student: true,
       messages: messages_and_progress[:messages],
@@ -485,7 +485,7 @@ class AiExperiencesController < ApplicationController
   end
 
   def experiences_json_for_teacher(can_manage)
-    ai_experiences_json(@experiences, @current_user, session, can_manage:)
+    ai_experiences_json(@experiences, current_principal, session, can_manage:)
   end
 
   def experiences_json_for_student(can_manage)
@@ -505,7 +505,7 @@ class AiExperiencesController < ApplicationController
                             "in_progress"
                           end
 
-      ai_experience_json(experience, @current_user, session, { submission_status:, can_manage: })
+      ai_experience_json(experience, current_principal, session, { submission_status:, can_manage: })
     end
   end
 

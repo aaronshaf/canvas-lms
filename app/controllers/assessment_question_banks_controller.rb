@@ -253,7 +253,7 @@ class AssessmentQuestionBanksController < ApplicationController
     if authorized_action(@context, current_principal, :read_question_banks)
       @banks = @context.assessment_question_banks.active
       render json: question_banks_json(@banks,
-                                       @current_user,
+                                       current_principal,
                                        session,
                                        include_question_count: params[:include_question_count])
     end
@@ -273,7 +273,7 @@ class AssessmentQuestionBanksController < ApplicationController
   def show
     if authorized_action(@bank, current_principal, :read)
       render json: question_bank_json(@bank,
-                                      @current_user,
+                                      current_principal,
                                       session,
                                       include_question_count: params[:include_question_count])
     end
@@ -306,7 +306,7 @@ class AssessmentQuestionBanksController < ApplicationController
 
       # Render using the assessment question JSON serializer
       render json: questions_json(assessment_questions,
-                                  @current_user,
+                                  current_principal,
                                   session,
                                   includes: parse_includes)
     end

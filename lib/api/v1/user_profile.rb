@@ -22,12 +22,12 @@
 module Api::V1::UserProfile
   include Api::V1::User
 
-  def user_profile_json(profile, current_user, session, includes = [], context = @context)
+  def user_profile_json(profile, current_principal, session, includes = [], context = @context)
     includes ||= []
 
     user = profile.user
 
-    json = user_json(user, current_user, session, "avatar_url", context)
+    json = user_json(user, current_principal, session, "avatar_url", context)
     # don't unintentionally include stuff added to user_json
     json.slice! :id,
                 :name,
@@ -43,21 +43,21 @@ module Api::V1::UserProfile
     json[:title] = profile.title
     json[:bio] = profile.bio
     json[:pronunciation] = profile.pronunciation
-    json[:primary_email] = user.email if user.grants_right?(current_user, :read_email_addresses)
+    json[:primary_email] = user.email if user.grants_right?(current_principal, :read_email_addresses)
     pseudo = SisPseudonym.for(user,
                               context.respond_to?(:root_account) ? context : nil,
                               type: :implicit,
                               require_sis: false,
-                              current_user:)
+                              current_user: current_principal)
     json[:login_id] ||= pseudo&.unique_id
-    json[:sis_user_id] ||= pseudo&.sis_user_id if user.grants_right?(current_user, :read_sis)
+    json[:sis_user_id] ||= pseudo&.sis_user_id if user.grants_right?(current_principal, :read_sis)
     json[:integration_id] ||= pseudo&.integration_id
     zone = user.time_zone || @domain_root_account.try(:default_time_zone) || Time.zone
     json[:time_zone] = zone.tzinfo.name
     json[:locale] = user.locale
-    json[:effective_locale] = I18n.locale if user == current_user
 
-    if user == current_user
+    if user == current_principal&.user
+      json[:effective_locale] = I18n.locale
       json[:calendar] = { ics: "#{feeds_calendar_url(user.feed_code)}.ics" }
       json[:lti_user_id] = user.lti_context_id if user.lti_context_id.present?
       json[:k5_user] = k5_user?
@@ -65,18 +65,18 @@ module Api::V1::UserProfile
     end
 
     if includes.include? "user_services"
-      services = if user == current_user
+      services = if user == current_principal&.user
                    user.user_services
                  else
                    user.user_services.visible
                  end
 
       services = services.select { |s| feature_and_service_enabled?(s.service) }
-      json[:user_services] = services.map { |s| user_service_json(s, current_user, session) }
+      json[:user_services] = services.map { |s| user_service_json(s, current_principal, session) }
     end
 
     if includes.include? "links"
-      json[:links] = profile.links.map { |l| user_profile_link_json(l, current_user, session) }
+      json[:links] = profile.links.map { |l| user_profile_link_json(l, current_principal, session) }
     end
 
     if includes.include? "uuid"
@@ -88,15 +88,15 @@ module Api::V1::UserProfile
     json
   end
 
-  def user_service_json(user_service, current_user, session)
+  def user_service_json(user_service, current_principal, session)
     api_json(user_service,
-             current_user,
+             current_principal,
              session,
              only: %w[service visible],
              methods: %(service_user_link))
   end
 
-  def user_profile_link_json(link, current_user, session)
-    api_json(link, current_user, session, only: %w[url title])
+  def user_profile_link_json(link, current_principal, session)
+    api_json(link, current_principal, session, only: %w[url title])
   end
 end

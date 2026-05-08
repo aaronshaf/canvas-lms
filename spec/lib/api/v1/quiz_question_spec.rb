@@ -40,7 +40,7 @@ describe Api::V1::QuizQuestion do
   describe ".question_json" do
     subject do
       TestableApiQuizQuestion.question_json(
-        question, user, session, context:, includes:, censored:, quiz_data:, shuffle_answers:
+        question, current_principal, session, context:, includes:, censored:, quiz_data:, shuffle_answers:
       )
     end
 
@@ -50,6 +50,7 @@ describe Api::V1::QuizQuestion do
     let(:question_data) { { "answers" => answers } }
     let(:question) { Quizzes::QuizQuestion.new(question_data:) }
     let(:user) { User.new }
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
     let(:session) { nil }
     let(:context) { Course.create!(account:) }
     let(:includes) { [] }
@@ -138,7 +139,14 @@ describe Api::V1::QuizQuestion do
         skip "This test is currently failing due to a bug in how we're handling assessment question links. We need to rethink this flow. GROW-256 2026-05-21"
 
         subject = TestableApiQuizQuestion.question_json(
-          @question, @teacher, session, context: @course, includes: [:assessment_question], censored: false, quiz_data: @quiz.quiz_data, location: "quiz_question_#{@question.id}"
+          @question,
+          Canvas::AdheresToPolicy::UserPrincipal.new(@teacher),
+          session,
+          context: @course,
+          includes: [:assessment_question],
+          censored: false,
+          quiz_data: @quiz.quiz_data,
+          location: "quiz_question_#{@question.id}"
         )
         expect(subject["question_text"]).to include(@correct_location)
         expect(subject["correct_comments_html"]).to include(@correct_location)
@@ -162,7 +170,13 @@ describe Api::V1::QuizQuestion do
 
       it "sets location tag for student" do
         subject = TestableApiQuizQuestion.question_json(
-          @question, @pupil, session, context: @course, censored: true, quiz_data: @quiz.quiz_data, location: "quiz_submission_#{@submission.id}"
+          @question,
+          @pupil && Canvas::AdheresToPolicy::UserPrincipal.new(@pupil),
+          session,
+          context: @course,
+          censored: true,
+          quiz_data: @quiz.quiz_data,
+          location: "quiz_submission_#{@submission.id}"
         )
         expect(subject["question_text"]).to include(@correct_submission_location)
         subject["answers"].each do |a|
@@ -174,7 +188,14 @@ describe Api::V1::QuizQuestion do
         @correct_location = "location="
         @course.root_account.disable_feature!(:file_association_access)
         subject = TestableApiQuizQuestion.question_json(
-          @question, @teacher, session, context: @course, includes: [:assessment_question], censored: false, quiz_data: @quiz.quiz_data, location: "quiz_question_#{@question.id}"
+          @question,
+          Canvas::AdheresToPolicy::UserPrincipal.new(@teacher),
+          session,
+          context: @course,
+          includes: [:assessment_question],
+          censored: false,
+          quiz_data: @quiz.quiz_data,
+          location: "quiz_question_#{@question.id}"
         )
         expect(subject["question_text"]).not_to include(@correct_location)
         expect(subject["correct_comments_html"]).not_to include(@correct_location)
@@ -189,11 +210,12 @@ describe Api::V1::QuizQuestion do
   end
 
   describe "as a student" do
-    subject { TestableApiQuizQuestion.question_json(question, user, session, context: nil, includes: [], censored: true) }
+    subject { TestableApiQuizQuestion.question_json(question, principal, session, context: nil, includes: [], censored: true) }
 
     let(:answers) { [] }
     let(:question) { Quizzes::QuizQuestion.new(question_data:) }
     let(:user) { User.new }
+    let(:principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
     let(:account) { Account.create! }
     let(:course) { Course.create!(account:) }
     let(:session) { nil }

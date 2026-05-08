@@ -358,7 +358,7 @@ class AccountsController < ApplicationController
 
         # originally had 'includes' instead of 'include' like other endpoints
         includes = params[:include] || params[:includes]
-        render json: @accounts.map { |a| account_json(a, @current_user, session, includes || []) }
+        render json: @accounts.map { |a| account_json(a, current_principal, session, includes || []) }
       end
     end
   end
@@ -392,7 +392,7 @@ class AccountsController < ApplicationController
     ActiveRecord::Associations.preload(@accounts, :root_account)
 
     includes = params[:include] || params[:includes]
-    render json: @accounts.map { |a| account_json(a, @current_user, session, includes || []) }
+    render json: @accounts.map { |a| account_json(a, current_principal, session, includes || []) }
   end
 
   # @API Get accounts that admins can manage
@@ -411,7 +411,7 @@ class AccountsController < ApplicationController
       end
     end
     @all_accounts = Api.paginate(@all_accounts, self, api_v1_manageable_accounts_url)
-    render json: @all_accounts.map { |a| account_json(a, @current_user, session, []) }
+    render json: @all_accounts.map { |a| account_json(a, current_principal, session, []) }
   end
 
   # @API Get accounts that users can create courses in
@@ -464,7 +464,7 @@ class AccountsController < ApplicationController
     account_active_records = Account.where(id: accounts)
     accounts_json = accounts.map do |a|
       a = account_active_records.find { |ar| ar.id == a }
-      hash = account_json(a, @current_user, session, [])
+      hash = account_json(a, current_principal, session, [])
       hash[:adminable] = adminable_accounts.include?(a) if Account.site_admin.feature_enabled?(:enhanced_course_creation_account_fetching)
       hash
     end
@@ -490,7 +490,7 @@ class AccountsController < ApplicationController
       @accounts = []
     end
     ActiveRecord::Associations.preload(@accounts, :root_account)
-    render json: @accounts.map { |a| account_json(a, @current_user, session, params[:includes] || [], read_only: true) }
+    render json: @accounts.map { |a| account_json(a, current_principal, session, params[:includes] || [], read_only: true) }
   end
 
   # @API Get a single account
@@ -509,7 +509,7 @@ class AccountsController < ApplicationController
       end
       format.json do
         render json: account_json(@account,
-                                  @current_user,
+                                  current_principal,
                                   session,
                                   params[:includes] || [],
                                   read_only: !@account.grants_right?(current_principal, session, :manage))
@@ -665,7 +665,7 @@ class AccountsController < ApplicationController
       @accounts.each { |a| a.instance_variable_set(:@sub_account_count, sub_account_counts.fetch(a.id, 0)) }
     end
 
-    render json: @accounts.map { |a| account_json(a, @current_user, session, includes) }
+    render json: @accounts.map { |a| account_json(a, current_principal, session, includes) }
   end
 
   # @API Get the Terms of Service
@@ -707,7 +707,7 @@ class AccountsController < ApplicationController
   def manually_created_courses_account
     account = @domain_root_account.manually_created_courses_account
     read_only = !account.grants_right?(current_principal, session, :read)
-    render json: account_json(account, @current_user, session, [], read_only:)
+    render json: account_json(account, current_principal, session, [], read_only:)
   end
 
   include Api::V1::Course
@@ -1058,7 +1058,7 @@ class AccountsController < ApplicationController
 
     render json: @courses.map { |c|
                    course_json(c,
-                               @current_user,
+                               current_principal,
                                session,
                                includes,
                                nil,
@@ -1261,7 +1261,7 @@ class AccountsController < ApplicationController
         render json: @account.errors, status: :unauthorized
       elsif @account.errors.empty? && @account.update(account_settings.merge(quota_settings))
         update_user_dashboards
-        render json: account_json(@account, @current_user, session, includes)
+        render json: account_json(@account, current_principal, session, includes)
       else
         render json: @account.errors, status: :bad_request
       end
@@ -1911,7 +1911,7 @@ class AccountsController < ApplicationController
 
     progress.process_job(Account::BulkUpdate.new(@account, @current_user), :remove_users, { run_at: Time.zone.now, priority: Delayed::NORMAL_PRIORITY }, **process_params)
 
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 
   # @API Update multiple users
@@ -1948,7 +1948,7 @@ class AccountsController < ApplicationController
       user_params:,
     }
     progress.process_job(Account::BulkUpdate.new(@account, @current_user), :update_users, { run_at: Time.zone.now, priority: Delayed::NORMAL_PRIORITY }, **process_params)
-    render json: progress_json(progress, @current_user, session)
+    render json: progress_json(progress, current_principal, session)
   end
 
   # @API Restore a deleted user from a root account
@@ -1987,7 +1987,7 @@ class AccountsController < ApplicationController
     pseudonym.clear_permissions_cache(user)
     user.update_account_associations
     user.clear_caches
-    render json: user_json(user, @current_user, session, [], @account)
+    render json: user_json(user, current_principal, session, [], @account)
   end
 
   def eportfolio_moderation

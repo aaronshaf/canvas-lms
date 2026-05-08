@@ -20,8 +20,11 @@
 class LearningObjectDatesApiHarness
   include Api::V1::LearningObjectDates
 
+  attr_reader :current_principal
+
   def initialize(current_user = nil)
     @current_user = current_user
+    @current_principal = Canvas::AdheresToPolicy::UserPrincipal.new(current_user) if current_user
   end
 
   def session

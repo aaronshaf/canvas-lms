@@ -135,7 +135,7 @@ class SectionsController < ApplicationController
         sections = Api.paginate(sections, self, api_v1_course_sections_url)
       end
 
-      render json: sections_json(sections, @current_user, session, includes)
+      render json: sections_json(sections, current_principal, session, includes)
     end
   end
 
@@ -185,7 +185,7 @@ class SectionsController < ApplicationController
           @context.touch
           flash[:notice] = t("section_created", "Section successfully created!")
           format.html { redirect_to course_settings_url(@context) }
-          format.json { render json: (api_request? ? section_json(@section, @current_user, session, []) : @section) }
+          format.json { render json: (api_request? ? section_json(@section, current_principal, session, []) : @section) }
         else
           flash[:error] = t("section_creation_failed", "Section creation failed")
           format.html { redirect_to course_settings_url(@context) }
@@ -272,7 +272,7 @@ class SectionsController < ApplicationController
     @new_course = api_find(@section.root_account.all_courses.not_deleted, params[:new_course_id])
 
     if params[:override_sis_stickiness] && !value_to_boolean(params[:override_sis_stickiness])
-      return render json: (api_request? ? section_json(@section, @current_user, session, []) : @section)
+      return render json: (api_request? ? section_json(@section, current_principal, session, []) : @section)
     end
 
     return render json: { error: "cannot crosslist into blueprint courses" }, status: :forbidden if MasterCourses::MasterTemplate.where(course_id: params[:new_course_id]).where.not(workflow_state: "deleted").any?
@@ -282,7 +282,7 @@ class SectionsController < ApplicationController
       respond_to do |format|
         flash[:notice] = t("section_crosslisted", "Section successfully cross-listed!")
         format.html { redirect_to named_context_url(@new_course, :context_section_url, @section.id) }
-        format.json { render json: (api_request? ? section_json(@section, @current_user, session, []) : @section) }
+        format.json { render json: (api_request? ? section_json(@section, current_principal, session, []) : @section) }
       end
     end
   end
@@ -307,7 +307,7 @@ class SectionsController < ApplicationController
           flash[:notice] = t("Section successfully de-cross-listed!")
           redirect_to named_context_url(@new_course, :context_section_url, @section.id)
         end
-        format.json { render json: (api_request? ? section_json(@section, @current_user, session, []) : @section) }
+        format.json { render json: (api_request? ? section_json(@section, current_principal, session, []) : @section) }
       end
     end
   end
@@ -358,7 +358,7 @@ class SectionsController < ApplicationController
           @context.touch
           flash[:notice] = t("section_updated", "Section successfully updated!")
           format.html { redirect_to course_section_url(@context, @section) }
-          format.json { render json: (api_request? ? section_json(@section, @current_user, session, []) : @section) }
+          format.json { render json: (api_request? ? section_json(@section, current_principal, session, []) : @section) }
         else
           flash[:error] = t("section_update_error", "Section update failed")
           format.html { redirect_to course_section_url(@context, @section) }
@@ -398,7 +398,7 @@ class SectionsController < ApplicationController
             set_student_context_cards_js_env
           end
         end
-        format.json { render json: section_json(@section, @current_user, session, Array(params[:include])) }
+        format.json { render json: section_json(@section, current_principal, session, Array(params[:include])) }
       end
     end
   end
@@ -415,7 +415,7 @@ class SectionsController < ApplicationController
           @context.touch
           flash[:notice] = t("section_deleted", "Course section successfully deleted!")
           format.html { redirect_to course_settings_url(@context) }
-          format.json { render json: (api_request? ? section_json(@section, @current_user, session, []) : @section) }
+          format.json { render json: (api_request? ? section_json(@section, current_principal, session, []) : @section) }
         else
           flash[:error] = t("section_delete_not_allowed", "You can't delete a section that has enrollments")
           format.html { redirect_to course_section_url(@context, @section) }
@@ -470,7 +470,7 @@ class SectionsController < ApplicationController
     includes = Array(params[:include])
     users = Api.paginate(users, self, api_v1_section_users_url)
     UserPastLtiId.manual_preload_past_lti_ids(users, @context) if ["uuid", "lti_id"].any? { |id| includes.include? id }
-    json_users = users_json(users, @current_user, session, includes, @context, nil, Array(params[:exclude]))
+    json_users = users_json(users, current_principal, session, includes, @context, nil, Array(params[:exclude]))
 
     render json: json_users
   end

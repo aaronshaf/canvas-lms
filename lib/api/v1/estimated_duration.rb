@@ -23,7 +23,7 @@ module Api::V1::EstimatedDuration
 
   ESTIMATED_DURATION_JSON_ATTRS = %w[id duration created_at updated_at].freeze
 
-  def estimated_duration_json(estimated_duration, current_user, session)
-    api_json(estimated_duration, current_user, session, only: ESTIMATED_DURATION_JSON_ATTRS)
+  def estimated_duration_json(estimated_duration, current_principal, session)
+    api_json(estimated_duration, current_principal, session, only: ESTIMATED_DURATION_JSON_ATTRS)
   end
 end

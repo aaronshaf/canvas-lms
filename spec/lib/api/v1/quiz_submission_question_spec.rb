@@ -57,7 +57,7 @@ describe Api::V1::QuizSubmissionQuestion do
   let(:api) { harness_class.new(context: @course) }
 
   describe "#quiz_submissions_questions_json" do
-    subject { api.quiz_submission_questions_json(quiz_questions, @quiz_submission) }
+    subject { api.quiz_submission_questions_json(quiz_questions, @quiz_submission, current_principal: nil) }
 
     let(:quiz_questions) do
       Array.new(3) { create_question "multiple_choice" }
@@ -96,7 +96,7 @@ describe Api::V1::QuizSubmissionQuestion do
     end
 
     describe "shuffle_answers true" do
-      subject { api.quiz_submission_questions_json(quiz_questions, @quiz_submission, { shuffle_answers: true }) }
+      subject { api.quiz_submission_questions_json(quiz_questions, @quiz_submission, shuffle_answers: true, current_principal: nil) }
 
       it "shuffles answers when opt is given" do
         expect_any_instance_of(Array).to receive(:shuffle!).at_least(:once)
@@ -105,7 +105,7 @@ describe Api::V1::QuizSubmissionQuestion do
     end
 
     describe "shuffle_answers false" do
-      subject { api.quiz_submission_questions_json(quiz_questions, @quiz_submission, { shuffle_answers: false }) }
+      subject { api.quiz_submission_questions_json(quiz_questions, @quiz_submission, shuffle_answers: false, current_principal: nil) }
 
       it "shuffles answers when opt is given" do
         expect_any_instance_of(Array).not_to receive(:shuffle!)

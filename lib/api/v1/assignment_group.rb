@@ -32,15 +32,15 @@ module Api::V1::AssignmentGroup
     integration_data
   ].freeze
 
-  def assignment_group_json(group, user, session, includes = [], opts = {}, preloaded_enrollments_by_user_id: nil)
+  def assignment_group_json(group, current_principal, session, includes = [], opts = {}, preloaded_enrollments_by_user_id: nil)
     includes ||= []
     opts.reverse_merge!(override_assignment_dates: true, exclude_response_fields: [])
 
-    hash = api_json(group, user, session, only: %w[id name position group_weight sis_source_id integration_data])
+    hash = api_json(group, current_principal, session, only: %w[id name position group_weight sis_source_id integration_data])
     hash["rules"] = group.rules_hash(stringify_json_ids: opts[:stringify_json_ids])
 
     if includes.include?("assignments")
-      assignments = opts[:assignments] || group.visible_assignments(user)
+      assignments = opts[:assignments] || group.visible_assignments(current_principal)
 
       # Preload assignments' post policies for Assignment#assignment_json.
       if assignments.present?
@@ -59,11 +59,11 @@ module Api::V1::AssignmentGroup
       #   include_needs_grading_count && assignment.context.grants_right?(user, :manage_grades)
       # needs_grading_count_by_section is not passed from here so only count needs warming.
       if opts[:exclude_response_fields].exclude?("needs_grading_count") &&
-         group.context.grants_right?(user, session, :manage_grades)
-        Assignments::NeedsGradingCountQuery.new(assignments, user).count
+         group.context.grants_right?(current_principal, session, :manage_grades)
+        Assignments::NeedsGradingCountQuery.new(assignments, current_principal&.user).count
       end
 
-      unless includes.include?("module_ids") || group.context.grants_right?(user, session, :read_as_admin)
+      unless includes.include?("module_ids") || group.context.grants_right?(current_principal, session, :read_as_admin)
         Assignment.preload_context_module_tags(assignments) # running this again is fine
       end
 
@@ -92,7 +92,7 @@ module Api::V1::AssignmentGroup
         exclude_fields = opts[:exclude_response_fields] | ["in_closed_grading_period"] # array union
 
         json = assignment_json(assignment,
-                               user,
+                               current_principal,
                                session,
                                include_discussion_topic: includes.include?("discussion_topic"),
                                include_all_dates: includes.include?("all_dates"),
