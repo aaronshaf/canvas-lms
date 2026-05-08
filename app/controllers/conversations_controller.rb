@@ -749,7 +749,7 @@ class ConversationsController < ApplicationController
   # @API Mark all as read
   # Mark all conversations as read.
   def mark_all_as_read
-    @current_user.mark_all_conversations_as_read!
+    @current_user.mark_all_conversations_as_read!(real_user: @real_current_user)
     render json: {}
   end
 
@@ -973,6 +973,7 @@ class ConversationsController < ApplicationController
       conversation: @conversation,
       context: @conversation.conversation.context,
       current_user: @current_user,
+      real_user: @real_current_user,
       session:,
       recipients: params[:recipients],
       context_code: params[:context_code],
@@ -1160,19 +1161,23 @@ class ConversationsController < ApplicationController
 
     @conversations_scope = case params[:scope]
                            when "unread"
-                             @current_user.conversations.unread
+                             @current_user.visible_conversations(@real_current_user).unread
                            when "starred"
-                             @current_user.starred_conversations
+                             @current_user.starred_conversations_for(@real_current_user)
                            when "sent"
-                             @current_user.all_conversations.sent
+                             @current_user.conversations_for_masquerading_user(@real_current_user).sent
                            when "archived"
-                             @current_user.conversations.archived
+                             @current_user.visible_conversations(@real_current_user).archived
                            else
                              params[:scope] = "inbox"
-                             @current_user.conversations.default
+                             @current_user.visible_conversations(@real_current_user).default
                            end
 
     filters = param_array(:filter)
+    # Defense-in-depth: the wrapper calls above already apply
+    # for_masquerading_user. This re-application guards against a future
+    # refactor that re-introduces an unwrapped @current_user.all_conversations
+    # call site.
     @conversations_scope = @conversations_scope.for_masquerading_user(@real_current_user, @current_user) if @real_current_user
     @conversations_scope = @conversations_scope.tagged(*filters, mode: filter_mode) if filters.present?
     @set_visibility = true
@@ -1194,7 +1199,7 @@ class ConversationsController < ApplicationController
   end
 
   def get_conversation(allow_deleted: false)
-    scope = @current_user.all_conversations
+    scope = @current_user.conversations_for_masquerading_user(@real_current_user)
     scope = scope.where("message_count>0") unless allow_deleted
     @conversation = scope.where(conversation_id: params[:id] || params[:conversation_id] || 0).first
     unless @conversation

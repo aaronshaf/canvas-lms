@@ -200,4 +200,36 @@ RSpec.describe Mutations::AddConversationMessage do
       result.dig("data", "addConversationMessage", "errors", 0, "message")
     ).to eq "Unauthorized, unable to add messages to conversation"
   end
+
+  describe "masquerade scope" do
+    before :once do
+      @ra1 = Account.create!
+      @ra2 = Account.create!
+      @target = user_factory
+      @ra1.pseudonyms.create!(user: @target, unique_id: "target_ra1")
+      @ra2.pseudonyms.create!(user: @target, unique_id: "target_ra2")
+      @other = user_factory
+      @ra2.pseudonyms.create!(user: @other, unique_id: "other_ra2")
+      @masquerader = user_factory
+      @ra1.account_users.create!(user: @masquerader)
+
+      @cross_ra = @target.initiate_conversation([@other])
+      @cross_ra.add_message("cross-ra", root_account_id: @ra2.id)
+    end
+
+    it "refuses to add a message to a cross-root-account conversation under masquerade" do
+      result = CanvasSchema.execute(
+        mutation_str(conversation_id: @cross_ra.conversation_id, body: "should be blocked", recipients: [@other.id.to_s]),
+        context: {
+          current_user: @target,
+          real_current_user: @masquerader,
+          domain_root_account: @ra1,
+          request: ActionDispatch::TestRequest.create
+        }
+      )
+      messages = (result["errors"] || []).pluck("message")
+      expect(messages).to include(/not found/)
+      expect(@cross_ra.reload.messages.length).to eq 1
+    end
+  end
 end

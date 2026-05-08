@@ -144,4 +144,35 @@ describe Mutations::DeleteConversations do
       expect(sender.all_conversations.find_by(conversation: conv).messages.length).to eq 1
     end
   end
+
+  describe "masquerade scope" do
+    before :once do
+      @ra1 = Account.create!
+      @ra2 = Account.create!
+      @target = user_factory
+      @ra1.pseudonyms.create!(user: @target, unique_id: "target_ra1")
+      @ra2.pseudonyms.create!(user: @target, unique_id: "target_ra2")
+      @masquerader = user_factory
+      @ra1.account_users.create!(user: @masquerader)
+
+      @cross_ra = @target.initiate_conversation([user_factory])
+      @cross_ra.add_message("cross-ra", root_account_id: @ra2.id)
+    end
+
+    it "refuses to delete a cross-root-account conversation under masquerade" do
+      mutation_command = <<~GQL
+        mutation {
+          deleteConversations(input: { ids: [#{@cross_ra.conversation_id}] }) {
+            conversationIds
+            errors { attribute message }
+          }
+        }
+      GQL
+      context = { current_user: @target, real_current_user: @masquerader, request: ActionDispatch::TestRequest.create }
+      result = CanvasSchema.execute(mutation_command, context:)
+      errors = result.dig("data", "deleteConversations", "errors") || []
+      expect(errors.pluck("message")).to include("Insufficient permissions")
+      expect(@target.all_conversations.find_by(conversation_id: @cross_ra.conversation_id).messages.length).to be > 0
+    end
+  end
 end

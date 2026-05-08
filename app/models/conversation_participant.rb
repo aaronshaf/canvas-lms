@@ -57,16 +57,24 @@ class ConversationParticipant < ApplicationRecord
     # we're also counting on conversations being in the join
 
     own_root_account_ids = Shard.birth.activate do
-      # check the target user's accounts - the masquerader may still have rights even if they're not directly associated
-      accts = (
-          masquerading_user.associated_root_accounts.shard(masquerading_user.in_region_associated_shards).to_a +
-          user_being_viewed.associated_root_accounts.shard(user_being_viewed.in_region_associated_shards).to_a
-        ).uniq.select { |a| a.grants_right?(masquerading_user, :become_user) }
-      # we really shouldn't need the global id here, but we've got a lot of participants with
-      # global id's in their root_account_ids for some reason
-      accts.map(&:id) + accts.map(&:global_id)
+      # The accounts query + grants_right? checks are stable for the lifetime
+      # of a request, but every wrapper-converted call site re-applies the
+      # scope, so memoize per-request keyed on (masquerader, viewed user).
+      RequestCache.cache(
+        "for_masquerading_user_root_account_ids",
+        masquerading_user.global_id,
+        user_being_viewed.global_id
+      ) do
+        # check the target user's accounts - the masquerader may still have rights even if they're not directly associated
+        accts = (
+            masquerading_user.associated_root_accounts.shard(masquerading_user.in_region_associated_shards).to_a +
+            user_being_viewed.associated_root_accounts.shard(user_being_viewed.in_region_associated_shards).to_a
+          ).uniq.select { |a| a.grants_right?(masquerading_user, :become_user) }
+        # we really shouldn't need the global id here, but we've got a lot of participants with
+        # global id's in their root_account_ids for some reason
+        (accts.map(&:id) + accts.map(&:global_id)).sort.uniq
+      end
     end
-    own_root_account_ids.sort!.uniq!
     id_string = "[" + own_root_account_ids.join("][") + "]"
     root_account_id_matcher = "'%[' || REPLACE(conversation_participants.root_account_ids, ',', ']%[') || ']%'"
     where("conversation_participants.root_account_ids <> '' AND " + like_condition("?", root_account_id_matcher, downcase: false), id_string)

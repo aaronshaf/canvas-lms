@@ -308,4 +308,40 @@ describe Mutations::UpdateConversationParticipants do
       end
     end
   end
+
+  describe "masquerade scope" do
+    before :once do
+      @ra1 = Account.create!
+      @ra2 = Account.create!
+      @target = user_factory
+      @ra1.pseudonyms.create!(user: @target, unique_id: "target_ra1")
+      @ra2.pseudonyms.create!(user: @target, unique_id: "target_ra2")
+      @masquerader = user_factory
+      @ra1.account_users.create!(user: @masquerader)
+
+      @cross_ra = @target.initiate_conversation([user_factory])
+      @cross_ra.add_message("cross-ra", root_account_id: @ra2.id)
+      @cross_ra.update!(workflow_state: "read", subscribed: true)
+    end
+
+    it "refuses to update a cross-root-account conversation under masquerade" do
+      query = <<~GQL
+        conversationIds: [#{@cross_ra.conversation_id}],
+        workflowState: "archived"
+      GQL
+      mutation_command = <<~GQL
+        mutation {
+          updateConversationParticipants(input: { #{query} }) {
+            conversationParticipants { workflowState }
+            errors { attribute message }
+          }
+        }
+      GQL
+      context = { current_user: @target, real_current_user: @masquerader, request: ActionDispatch::TestRequest.create }
+      result = CanvasSchema.execute(mutation_command, context:)
+      errors = result.dig("data", "updateConversationParticipants", "errors") || []
+      expect(errors.pluck("message")).to include("Insufficient permissions")
+      expect(@cross_ra.reload.workflow_state).to eq "read"
+    end
+  end
 end

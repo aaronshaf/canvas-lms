@@ -6466,4 +6466,119 @@ describe User do
       expect(result).not_to include(concluded_course.id)
     end
   end
+
+  describe "conversation masquerade scope wrappers" do
+    before :once do
+      @ra1 = Account.create!
+      @ra2 = Account.create!
+      @target_user = user_factory
+      @ra1.pseudonyms.create!(user: @target_user, unique_id: "target_ra1")
+      @ra2.pseudonyms.create!(user: @target_user, unique_id: "target_ra2")
+      @masquerader = user_factory
+      @ra1.account_users.create!(user: @masquerader)
+
+      @in_ra1 = @target_user.initiate_conversation([user_factory])
+      @in_ra1.add_message("hello in-ra1", root_account_id: @ra1.id)
+      @cross_ra2 = @target_user.initiate_conversation([user_factory])
+      @cross_ra2.add_message("hello cross-ra2", root_account_id: @ra2.id)
+    end
+
+    describe "#conversations_for_masquerading_user" do
+      it "returns all_conversations unchanged when real_user is nil" do
+        ids = @target_user.conversations_for_masquerading_user(nil).pluck(:conversation_id).sort
+        expect(ids).to eq [@in_ra1.conversation_id, @cross_ra2.conversation_id].sort
+      end
+
+      it "returns all_conversations unchanged when real_user is self (no double-application)" do
+        ids = @target_user.conversations_for_masquerading_user(@target_user).pluck(:conversation_id).sort
+        expect(ids).to eq [@in_ra1.conversation_id, @cross_ra2.conversation_id].sort
+      end
+
+      it "applies for_masquerading_user when real_user is a different user" do
+        ids = @target_user.conversations_for_masquerading_user(@masquerader).pluck(:conversation_id)
+        expect(ids).to eq [@in_ra1.conversation_id]
+      end
+
+      it "lets a site admin masquerader see all conversations" do
+        Account.site_admin.account_users.create!(user: @masquerader)
+        allow(Account.site_admin).to receive(:grants_right?).with(@masquerader, :become_user).and_return(false)
+        ids = @target_user.conversations_for_masquerading_user(@masquerader).pluck(:conversation_id).sort
+        expect(ids).to eq [@in_ra1.conversation_id, @cross_ra2.conversation_id].sort
+      end
+    end
+
+    describe "#visible_conversations" do
+      it "matches #conversations when real_user is nil" do
+        expect(@target_user.visible_conversations(nil).pluck(:conversation_id).sort)
+          .to eq @target_user.conversations.pluck(:conversation_id).sort
+      end
+
+      it "filters cross-root-account conversations under masquerade" do
+        ids = @target_user.visible_conversations(@masquerader).pluck(:conversation_id)
+        expect(ids).to eq [@in_ra1.conversation_id]
+      end
+    end
+
+    describe "#starred_conversations_for" do
+      before :once do
+        @target_user.all_conversations.where(conversation_id: @in_ra1.conversation_id).update_all(label: "starred")
+        @target_user.all_conversations.where(conversation_id: @cross_ra2.conversation_id).update_all(label: "starred")
+      end
+
+      it "matches #starred_conversations when real_user is nil" do
+        expect(@target_user.starred_conversations_for(nil).pluck(:conversation_id).sort)
+          .to eq @target_user.starred_conversations.pluck(:conversation_id).sort
+      end
+
+      it "filters cross-root-account conversations under masquerade" do
+        ids = @target_user.starred_conversations_for(@masquerader).pluck(:conversation_id)
+        expect(ids).to eq [@in_ra1.conversation_id]
+      end
+    end
+
+    describe "#conversation_participant" do
+      it "returns the CP when real_user is nil" do
+        expect(@target_user.conversation_participant(@cross_ra2.conversation_id)).to be_present
+      end
+
+      it "returns nil for a cross-root-account conversation under masquerade" do
+        expect(@target_user.conversation_participant(@cross_ra2.conversation_id, real_user: @masquerader)).to be_nil
+      end
+
+      it "returns the CP for an in-root-account conversation under masquerade" do
+        expect(@target_user.conversation_participant(@in_ra1.conversation_id, real_user: @masquerader)).to be_present
+      end
+    end
+
+    describe "#mark_all_conversations_as_read!" do
+      before :once do
+        @target_user.all_conversations.update_all(workflow_state: "unread")
+      end
+
+      it "marks every conversation read when real_user is nil" do
+        @target_user.mark_all_conversations_as_read!
+        states = @target_user.all_conversations.pluck(:workflow_state).uniq
+        expect(states).to eq ["read"]
+      end
+
+      it "leaves cross-root-account conversations unread under masquerade" do
+        @target_user.mark_all_conversations_as_read!(real_user: @masquerader)
+        in_ra1_state = @target_user.all_conversations.find_by(conversation_id: @in_ra1.conversation_id).workflow_state
+        cross_ra2_state = @target_user.all_conversations.find_by(conversation_id: @cross_ra2.conversation_id).workflow_state
+        expect(in_ra1_state).to eq "read"
+        expect(cross_ra2_state).to eq "unread"
+      end
+    end
+
+    context "cross-shard masquerade" do
+      specs_require_sharding
+
+      it "applies the wrapper through Switchman" do
+        cross_shard_masquerader = @shard1.activate { user_factory }
+        @ra1.account_users.create!(user: cross_shard_masquerader)
+        ids = @target_user.conversations_for_masquerading_user(cross_shard_masquerader).pluck(:conversation_id)
+        expect(ids).to eq [@in_ra1.conversation_id]
+      end
+    end
+  end
 end

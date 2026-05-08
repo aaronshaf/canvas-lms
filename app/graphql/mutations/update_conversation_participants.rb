@@ -38,7 +38,7 @@ class Mutations::UpdateConversationParticipants < Mutations::BaseMutation
     c_ids = Conversation.where(id: input[:conversation_ids]).pluck(:id).map(&:to_s)
     errors = (input[:conversation_ids] - c_ids).index_with { "Unable to find Conversation" }
 
-    conversation_participants = current_user.all_conversations.where(conversation_id: c_ids)
+    conversation_participants = current_user.conversations_for_masquerading_user(context[:real_current_user]).where(conversation_id: c_ids)
     cp_ids = conversation_participants.map { |cp| cp.conversation_id.to_s }
     errors.merge!((c_ids - cp_ids).index_with { "Insufficient permissions" })
 

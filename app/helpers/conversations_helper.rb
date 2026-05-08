@@ -31,6 +31,7 @@ module ConversationsHelper
     domain_root_account_id:,
     media_comment_id:,
     media_comment_type:,
+    real_user: nil,
     automated: false
   )
     if conversation.conversation.replies_locked_for?(current_user, recipients)
@@ -76,6 +77,7 @@ module ConversationsHelper
       media_comment_id:,
       media_comment_type:,
       current_user:,
+      real_user:,
       automated:
     )
 
@@ -289,6 +291,7 @@ module ConversationsHelper
     media_comment_id: nil,
     media_comment_type: nil,
     current_user: @current_user,
+    real_user: nil,
     automated: false
   )
     if defined?(params)
@@ -308,6 +311,7 @@ module ConversationsHelper
         automated:,
         root_account_id: domain_root_account_id,
         media_comment: infer_media_comment(media_comment_id, media_comment_type, domain_root_account_id, current_user),
+        real_user:,
       }
     ]
   end

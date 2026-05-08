@@ -30,7 +30,7 @@ module StreamItemsHelper
     attr_accessor :id, :type, :name, :linked_to, :time_zone
   end
 
-  def categorize_stream_items(stream_items, user = @user || @current_user)
+  def categorize_stream_items(stream_items, user = @user || @current_user, real_user: defined?(@real_current_user) ? @real_current_user : nil)
     categorized_items = {}
     return categorized_items unless stream_items.present? # if we have no items (possibly because we have no user), don't try to activate the user's shard
 
@@ -55,7 +55,7 @@ module StreamItemsHelper
 
       case category
       when "Conversation"
-        participant = user.conversation_participant(item.asset_id)
+        participant = user.conversation_participant(item.asset_id, real_user:)
 
         next if participant.nil? || participant.last_message.nil? || participant.last_author?
 

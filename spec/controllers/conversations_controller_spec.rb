@@ -1657,4 +1657,53 @@ describe ConversationsController do
       end
     end
   end
+
+  describe "masquerade scope on direct-id actions" do
+    before :once do
+      @ra1 = Account.default
+      @ra2 = Account.create!
+      @target = user_with_pseudonym(active_all: true)
+      @ra2.pseudonyms.create!(user: @target, unique_id: "target_ra2")
+
+      @teacher_admin = user_with_pseudonym(active_all: true)
+      @ra1.account_users.create!(user: @teacher_admin)
+
+      @cross_ra = @target.initiate_conversation([user_factory])
+      @cross_ra.add_message("cross-ra body", root_account_id: @ra2.id)
+    end
+
+    before do
+      user_session(@teacher_admin)
+      session[:become_user_id] = @target.id
+    end
+
+    it "404s GET show for a cross-root-account conversation" do
+      get "show", params: { id: @cross_ra.conversation_id }, format: "json"
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "404s PUT update for a cross-root-account conversation" do
+      put "update", params: { id: @cross_ra.conversation_id, conversation: { workflow_state: "archived" } }, format: "json"
+      expect(response).to have_http_status(:not_found)
+      expect(@cross_ra.reload.workflow_state).not_to eq "archived"
+    end
+
+    it "404s DELETE destroy for a cross-root-account conversation" do
+      delete "destroy", params: { id: @cross_ra.conversation_id }, format: "json"
+      expect(response).to have_http_status(:not_found)
+      expect(ConversationParticipant.where(id: @cross_ra.id)).to exist
+    end
+
+    it "404s POST add_recipients for a cross-root-account conversation" do
+      post "add_recipients", params: { id: @cross_ra.conversation_id, recipients: [user_factory.id.to_s] }, format: "json"
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "404s POST remove_messages for a cross-root-account conversation" do
+      message_id = @cross_ra.messages.first.id
+      post "remove_messages", params: { id: @cross_ra.conversation_id, remove: [message_id.to_s] }, format: "json"
+      expect(response).to have_http_status(:not_found)
+      expect(ConversationMessage.where(id: message_id)).to exist
+    end
+  end
 end

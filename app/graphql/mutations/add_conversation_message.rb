@@ -41,6 +41,7 @@ class Mutations::AddConversationMessage < Mutations::BaseMutation
       conversation:,
       context: conversation.conversation.context,
       current_user:,
+      real_user: context[:real_current_user],
       session:,
       recipients: input[:recipients],
       context_code: input[:context_code] || conversation.conversation.context&.asset_string || nil,
@@ -70,7 +71,7 @@ class Mutations::AddConversationMessage < Mutations::BaseMutation
   end
 
   def get_conversation(id)
-    conversation = current_user.all_conversations.find_by(conversation_id: id)
+    conversation = current_user.conversations_for_masquerading_user(context[:real_current_user]).find_by(conversation_id: id)
     raise ActiveRecord::RecordNotFound unless conversation
 
     conversation

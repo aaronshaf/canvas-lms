@@ -324,6 +324,25 @@ class User < ApplicationRecord
     all_conversations.order(updated_at: :desc, conversation_id: :desc).starred
   end
 
+  # Wrapper that applies the for_masquerading_user scope when the request
+  # is being served under masquerade. real_user is the masquerader (admin);
+  # self is the user being viewed. Use this — not all_conversations directly —
+  # at every reachable read or mutate site so a masquerading admin cannot
+  # cross root-account boundaries by guessing or scraping a conversation_id.
+  def conversations_for_masquerading_user(real_user)
+    return all_conversations if real_user.nil? || real_user.global_id == global_id
+
+    all_conversations.for_masquerading_user(real_user, self)
+  end
+
+  def visible_conversations(real_user)
+    conversations_for_masquerading_user(real_user).visible.order(last_message_at: :desc, conversation_id: :desc)
+  end
+
+  def starred_conversations_for(real_user)
+    conversations_for_masquerading_user(real_user).order(updated_at: :desc, conversation_id: :desc).starred
+  end
+
   def page_views(options = {})
     PageView.for_user(self, options)
   end
@@ -3346,15 +3365,19 @@ class User < ApplicationRecord
            :messageable_groups,
            to: :messageable_user_calculator
 
-  def mark_all_conversations_as_read!
-    updated = conversations.unread.update_all(workflow_state: "read")
-    if updated > 0
+  def mark_all_conversations_as_read!(real_user: nil)
+    updated = conversations_for_masquerading_user(real_user).unread.update_all(workflow_state: "read")
+    # The cached unread count only matches reality when every unread CP was
+    # cleared. Under masquerade we only cleared the in-account subset, so
+    # leave the count alone and let the next reset_unread_conversations_counter
+    # call recompute it.
+    if updated > 0 && (real_user.nil? || real_user.global_id == global_id)
       User.where(id:).update_all(unread_conversations_count: 0)
     end
   end
 
-  def conversation_participant(conversation_id)
-    all_conversations.where(conversation_id:).first
+  def conversation_participant(conversation_id, real_user: nil)
+    conversations_for_masquerading_user(real_user).where(conversation_id:).first
   end
 
   # Public: Reset the user's cached unread conversations count.

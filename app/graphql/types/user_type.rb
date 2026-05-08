@@ -441,22 +441,23 @@ module Types
     def conversations_connection(scope: nil, filter: nil, show_horizon_conversations: false)
       if object == context[:current_user]
 
+        real_user = context[:real_current_user]
         conversations_scope = case scope
                               when "unread"
                                 InstStatsd::Statsd.distributed_increment("inbox.visit.scope.unread.pages_loaded.react")
-                                object.conversations.unread
+                                object.visible_conversations(real_user).unread
                               when "starred"
                                 InstStatsd::Statsd.distributed_increment("inbox.visit.scope.starred.pages_loaded.react")
-                                object.starred_conversations
+                                object.starred_conversations_for(real_user)
                               when "sent"
                                 InstStatsd::Statsd.distributed_increment("inbox.visit.scope.sent.pages_loaded.react")
-                                object.all_conversations.sent
+                                object.conversations_for_masquerading_user(real_user).sent
                               when "archived"
                                 InstStatsd::Statsd.distributed_increment("inbox.visit.scope.archived.pages_loaded.react")
-                                object.conversations.archived
+                                object.visible_conversations(real_user).archived
                               else
                                 InstStatsd::Statsd.distributed_increment("inbox.visit.scope.inbox.pages_loaded.react")
-                                object.conversations.default
+                                object.visible_conversations(real_user).default
                               end
 
         # Filter out conversations from horizon courses unless explicitly shown

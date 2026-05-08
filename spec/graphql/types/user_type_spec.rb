@@ -1886,6 +1886,54 @@ describe Types::UserType do
       expect(InstStatsd::Statsd).to have_received(:distributed_increment).with("inbox.visit.scope.archived.pages_loaded.react")
       @conversation.update!(workflow_state: "read")
     end
+
+    context "under masquerade" do
+      before :once do
+        @ra1 = Account.create!
+        @ra2 = Account.create!
+        @target = user_factory
+        @ra1.pseudonyms.create!(user: @target, unique_id: "target_ra1_conn")
+        @ra2.pseudonyms.create!(user: @target, unique_id: "target_ra2_conn")
+        @masquerader = user_factory
+        @ra1.account_users.create!(user: @masquerader)
+
+        @in_ra = @target.initiate_conversation([user_factory])
+        @in_ra.add_message("in-ra body", root_account_id: @ra1.id)
+        @cross_ra = @target.initiate_conversation([user_factory])
+        @cross_ra.add_message("cross-ra body", root_account_id: @ra2.id)
+      end
+
+      before do
+        allow(InstStatsd::Statsd).to receive(:distributed_increment)
+      end
+
+      def resolve_inbox(scope: "inbox")
+        type = GraphQLTypeTester.new(
+          @target,
+          current_user: @target,
+          real_current_user: @masquerader,
+          domain_root_account: @ra1,
+          request: ActionDispatch::TestRequest.create
+        )
+        type.resolve(
+          "conversationsConnection(scope: \"#{scope}\") { nodes { conversation { conversationMessagesConnection { nodes { body } } } } }"
+        )
+      end
+
+      it "filters cross-root-account conversations from the inbox scope" do
+        bodies = resolve_inbox.flatten
+        expect(bodies).to include("in-ra body")
+        expect(bodies).not_to include("cross-ra body")
+      end
+
+      it "filters cross-root-account conversations from the sent scope" do
+        @in_ra.update!(visible_last_authored_at: Time.zone.now)
+        @cross_ra.update!(visible_last_authored_at: Time.zone.now)
+        bodies = resolve_inbox(scope: "sent").flatten
+        expect(bodies).to include("in-ra body")
+        expect(bodies).not_to include("cross-ra body")
+      end
+    end
   end
 
   context "recipients" do

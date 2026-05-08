@@ -41,7 +41,7 @@ class Mutations::DeleteConversations < Mutations::BaseMutation
         next
       end
 
-      participant_record = current_user.all_conversations.find_by(conversation_id: conversation.id)
+      participant_record = current_user.conversations_for_masquerading_user(context[:real_current_user]).find_by(conversation_id: conversation.id)
       if participant_record.nil?
         errors[id] = "Insufficient permissions"
         next

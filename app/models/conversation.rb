@@ -353,7 +353,7 @@ class Conversation < ApplicationRecord
       messages = ConversationMessage.where(id: options[:forwarded_message_ids].map(&:to_i))
       conversation_ids = messages.select(&:forwardable?).map(&:conversation_id).uniq
       raise "can only forward one conversation at a time" if conversation_ids.size != 1
-      raise "user doesn't have permission to forward these messages" unless current_user.all_conversations.where(conversation_id: conversation_ids.first).exists?
+      raise "user doesn't have permission to forward these messages" unless current_user.conversations_for_masquerading_user(options[:real_user]).where(conversation_id: conversation_ids.first).exists?
 
       # TODO: optimize me
       message.forwarded_message_ids = messages.map(&:id).join(",")

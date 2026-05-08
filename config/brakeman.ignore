@@ -593,13 +593,13 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "750eb4c930157426d6110fe086f4f5567c5baacf015a038468b99519ac0ede2f",
+      "fingerprint": "5188a21feb72c498f94d1f29df55684fb14dcb6fa851c1dd05ea2fca2f6209f6",
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/conversation_participant.rb",
-      "line": 72,
+      "line": 80,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "where((\"conversation_participants.root_account_ids <> '' AND \" + like_condition(\"?\", \"'%[' || REPLACE(conversation_participants.root_account_ids, ',', ']%[') || ']%'\", :downcase => false)), ((\"[\" + Shard.birth.activate do\n accts = (masquerading_user.associated_root_accounts.shard(masquerading_user.in_region_associated_shards).to_a + user_being_viewed.associated_root_accounts.shard(user_being_viewed.in_region_associated_shards).to_a).uniq.select do\n a.grants_right?(masquerading_user, :become_user)\n end\n((masquerading_user.associated_root_accounts.shard(masquerading_user.in_region_associated_shards).to_a + user_being_viewed.associated_root_accounts.shard(user_being_viewed.in_region_associated_shards).to_a).uniq.select do\n a.grants_right?(masquerading_user, :become_user)\n end.map(&:id) + (masquerading_user.associated_root_accounts.shard(masquerading_user.in_region_associated_shards).to_a + user_being_viewed.associated_root_accounts.shard(user_being_viewed.in_region_associated_shards).to_a).uniq.select do\n a.grants_right?(masquerading_user, :become_user)\n end.map(&:global_id))\n\n end.join(\"][\")) + \"]\"))",
+      "code": "where((\"conversation_participants.root_account_ids <> '' AND \" + like_condition(\"?\", \"'%[' || REPLACE(conversation_participants.root_account_ids, ',', ']%[') || ']%'\", :downcase => false)), ((\"[\" + Shard.birth.activate do\n RequestCache.cache(\"for_masquerading_user_root_account_ids\", masquerading_user.global_id, user_being_viewed.global_id) do\n accts = (masquerading_user.associated_root_accounts.shard(masquerading_user.in_region_associated_shards).to_a + user_being_viewed.associated_root_accounts.shard(user_being_viewed.in_region_associated_shards).to_a).uniq.select do\n a.grants_right?(masquerading_user, :become_user)\n end\n((masquerading_user.associated_root_accounts.shard(masquerading_user.in_region_associated_shards).to_a + user_being_viewed.associated_root_accounts.shard(user_being_viewed.in_region_associated_shards).to_a).uniq.select do\n a.grants_right?(masquerading_user, :become_user)\n end.map(&:id) + (masquerading_user.associated_root_accounts.shard(masquerading_user.in_region_associated_shards).to_a + user_being_viewed.associated_root_accounts.shard(user_being_viewed.in_region_associated_shards).to_a).uniq.select do\n a.grants_right?(masquerading_user, :become_user)\n end.map(&:global_id)).sort.uniq\n\n end\n end.join(\"][\")) + \"]\"))",
       "render_path": null,
       "location": {
         "type": "method",
