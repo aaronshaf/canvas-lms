@@ -47,7 +47,7 @@ import GradeFormatHelper from '@canvas/grading/GradeFormatHelper'
 import {usePostComment} from '../../hooks/useComments'
 import {showFlashError} from '@instructure/platform-alerts'
 import DefaultGradeInput from './DefaultGradeInput'
-import sanitizeHtml from 'sanitize-html-with-tinymce'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {containsHtmlTags, formatMessage} from '@canvas/util/TextHelper'
 import {CheckpointGradeInputs} from './CheckpointGradeInputs'
 import {REPLY_TO_ENTRY, REPLY_TO_TOPIC} from './index'
@@ -181,7 +181,7 @@ type SubmissionCommentProps = {
 function SubmissionComment({comment, showDivider}: SubmissionCommentProps) {
   const {attachments, author, mediaObject} = comment
   const formattedComment = containsHtmlTags(comment.htmlComment)
-    ? sanitizeHtml(comment.htmlComment)
+    ? sanitizeHTML(comment.htmlComment)
     : formatMessage(comment.htmlComment)
   return (
     <View
