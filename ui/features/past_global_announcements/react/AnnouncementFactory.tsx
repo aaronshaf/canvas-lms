@@ -21,6 +21,7 @@ import NoResultsDesert from '../images/NoResultsDesert.svg'
 import {Text} from '@instructure/ui-text'
 import AnnouncementsPagination from './AnnouncementPagination'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('past_global_announcements')
 
@@ -46,7 +47,7 @@ const AnnouncementFactory = (announcements: string[], section: string) => {
         </div>
       )
     case 1:
-      return <div dangerouslySetInnerHTML={{__html: announcements[0]}} />
+      return <div dangerouslySetInnerHTML={{__html: sanitizeHTML(announcements[0])}} />
     default:
       return <AnnouncementsPagination announcements={announcements} section={section} />
   }

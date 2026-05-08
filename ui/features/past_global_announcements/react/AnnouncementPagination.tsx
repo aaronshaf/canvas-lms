@@ -19,6 +19,7 @@
 import React from 'react'
 import {Pagination} from '@instructure/ui-pagination'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('past_global_announcements')
 
@@ -51,7 +52,11 @@ export default class AnnouncementPagination extends React.Component<Announcement
     ))
     return (
       <>
-        <div dangerouslySetInnerHTML={{__html: this.props.announcements[this.state.currentPage]}} />
+        <div
+          dangerouslySetInnerHTML={{
+            __html: sanitizeHTML(this.props.announcements[this.state.currentPage]),
+          }}
+        />
         <Pagination
           as="nav"
           margin="small"
