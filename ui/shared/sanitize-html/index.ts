@@ -42,6 +42,19 @@ const CONFIG = {
     'sandbox',
     'data-media-id',
     'data-media-type',
+    // anchor target — RCE produces target="_blank" for external links.
+    // DOMPurify omits target by default to limit tabnabbing surface, but
+    // modern browsers treat target="_blank" as implicit rel="noopener",
+    // and the backend allowlist already includes target.
+    'target',
+    // legacy / vendor iframe attributes the RCE still produces and the
+    // backend allowlist accepts — kept here so RCE-authored content
+    // survives intact on egress paths (sanitizeData, RCE round-trip).
+    // XSS-irrelevant: vendor-prefixed booleans + a deprecated layout attr
+    // that does not execute.
+    'webkitallowfullscreen',
+    'mozallowfullscreen',
+    'scrolling',
   ],
 }
 
