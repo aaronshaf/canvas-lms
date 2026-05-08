@@ -18,6 +18,7 @@
 
 import formatMessage from '../format-message'
 import {closest, getData, setData} from './jqueryish_funcs'
+import {sanitizeUrl} from './doc_previews'
 
 const MEDIA_COMMENT_THUMBNAIL_SIZES = {
   normal: {width: 140, height: 100},
@@ -27,17 +28,16 @@ const MEDIA_COMMENT_THUMBNAIL_SIZES = {
 function createMediaCommentThumbnail(elem, size, keepOriginalText, kalturaSettings) {
   // a lot of places in canvas rely on INST.kalturaSettings. Fallback if they are not provided
   const kalturaSettings_ = kalturaSettings || window.INST?.kalturaSettings
-   
+
   if (!kalturaSettings_) return console.log('Kaltura has not been enabled for this account')
   let idAttr, url
   const $link = elem
 
   try {
     const a = document.createElement('a')
-    a.href = $link.getAttribute('href')
+    a.href = sanitizeUrl($link.getAttribute('href'))
     url = a
   } catch (error) {
-     
     console.error(error)
   }
 

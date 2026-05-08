@@ -26,6 +26,7 @@ import {MathJaxDirective, Mathml} from './mathml'
 import {makeExternalLinkIcon} from './external_links'
 import getTranslations from '../getTranslations'
 import {createOverlay} from './youtube_overlay'
+import {sanitizeUrl} from './doc_previews'
 
 // in jest the es directory doesn't exist so stub the undefined svg
 const IconDownloadSVG = IconDownloadLine?.src || '<svg></svg>'
@@ -36,7 +37,7 @@ function makeDownloadButton(download_url, filename) {
   a.setAttribute('role', 'button')
   a.setAttribute('download', '')
   a.setAttribute('style', 'margin-inline-start: 5px; text-decoration: none;')
-  a.setAttribute('href', download_url)
+  a.setAttribute('href', sanitizeUrl(download_url))
 
   const $icon = document.createElement('span')
   $icon.setAttribute('role', 'presentation')
@@ -60,7 +61,7 @@ function handleYoutubeLink($link) {
   const id = youTubeID(href || '')
   if (id && !$link.classList.contains('inline_disabled')) {
     const $after = document.createElement('a')
-    $after.setAttribute('href', href)
+    $after.setAttribute('href', sanitizeUrl(href))
     $after.setAttribute('class', 'youtubed')
 
     const img = document.createElement('img')
@@ -225,7 +226,7 @@ export function enhanceUserContent(container = document, opts = {}) {
       // if the image file is unpublished it's replaced with the lock image
       // and canvas adds hidden=1 to the URL.
       // we also need to strip the alt text
-      if (/hidden=1$/.test(src)) {
+      if (src.endsWith('hidden=1')) {
         img.setAttribute('alt', formatMessage('This image is currently unavailable'))
       }
     })
@@ -363,7 +364,7 @@ export function enhanceUserContent(container = document, opts = {}) {
         if (file_link.classList.contains('instructure_scribd_file')) {
           if (file_link.classList.contains('no_preview')) {
             // link downloads
-            file_link.setAttribute('href', download_url)
+            file_link.setAttribute('href', sanitizeUrl(download_url))
             file_link.removeAttribute('target')
           } else if (file_link.classList.contains('inline_disabled')) {
             // link opens in overlay

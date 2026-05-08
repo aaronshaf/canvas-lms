@@ -20,6 +20,7 @@ import {DeepPartialNullable} from '../../../../util/DeepPartialNullable'
 import {ExternalToolsEnv, externalToolsEnvFor} from '../ExternalToolsEnv'
 import {emptyAsNull} from '../../../../util/string-util'
 import {addParentFrameContextToUrl} from '../util/addParentFrameContextToUrl'
+import {sanitizeUrl} from '../../../../enhance-user-content/doc_previews'
 import tinymce from 'tinymce'
 import {
   StudioContentItemCustomJson,
@@ -198,7 +199,7 @@ export class RceLti11ContentItem {
     const div = document.createElement('div')
     const a = document.createElement('a')
 
-    if (this.url) a.href = this.url
+    if (this.url) a.href = sanitizeUrl(this.url)
     if (this.contentItem.title) a.title = this.contentItem.title
     if (this.linkTarget) a.target = this.linkTarget
     if (this.linkClassName) a.className = this.linkClassName

@@ -28,6 +28,7 @@ import {RceLti11ContentItem} from '../../lti11-content-items/RceLti11ContentItem
 import formatMessage from '../../../../../format-message'
 import {ExternalToolsEnv} from '../../ExternalToolsEnv'
 import {RceToolWrapper} from '../../RceToolWrapper'
+import {sanitizeUrl} from '../../../../../enhance-user-content/doc_previews'
 import {instuiPopupMountNodeFn} from '../../../../../util/fullscreenHelpers'
 import {ExternalToolDialogTray} from './ExternalToolDialogTray'
 import {ExternalToolDialogModal} from './ExternalToolDialogModal'
@@ -238,7 +239,7 @@ export default class ExternalToolDialog extends React.Component<
         <form
           ref={this.formRef}
           method="POST"
-          action={state.form.url}
+          action={sanitizeUrl(state.form.url)}
           target="external_tool_launch"
           style={{margin: 0}}
         >

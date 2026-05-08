@@ -28,6 +28,7 @@
 //     trigger) to wait until it's loaded and send the event
 //
 import {registerJQueryValueHandler} from '@canvas/serialize-form'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 export const RCELOADED_EVENT_NAME = 'RceLoaded'
 
@@ -65,7 +66,7 @@ export function send($target, methodName, ...args) {
       // correct for link insertion api difference between editor_box and
       // canvas-rce
       methodName = 'insertLink'
-      args[0].href = args[0].url
+      args[0].href = sanitizeUrl(args[0].url)
       args[0].class = args[0].classes
       const dataAttributes = args[0].dataAttributes
       args[0]['data-preview-alt'] = dataAttributes && dataAttributes['preview-alt']

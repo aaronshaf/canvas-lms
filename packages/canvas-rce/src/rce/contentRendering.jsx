@@ -26,13 +26,14 @@ import {
 } from './plugins/instructure_record/VideoOptionsTray/TrayController'
 import {mediaPlayerURLFromFile} from './plugins/shared/fileTypeUtils'
 import {prepEmbedSrc, prepLinkedSrc, absoluteToRelativeUrl} from '../common/fileUrl'
+import {sanitizeUrl} from '../enhance-user-content/doc_previews'
 
 export function renderLink(data, contents, canvasOrigin) {
   const linkAttrs = {...data}
   linkAttrs.href = prepLinkedSrc(linkAttrs.href || linkAttrs.url)
   delete linkAttrs.url
   if (linkAttrs.href) {
-    linkAttrs.href = absoluteToRelativeUrl(cleanUrl(linkAttrs.href), canvasOrigin)
+    linkAttrs.href = sanitizeUrl(absoluteToRelativeUrl(cleanUrl(linkAttrs.href), canvasOrigin))
   }
   linkAttrs.title = linkAttrs.title || formatMessage('Link')
   const children = contents || linkAttrs.text || linkAttrs.title
@@ -54,7 +55,7 @@ export function renderLinkedImage(linkElem, image, canvasOrigin) {
   image.href = prepEmbedSrc(image.href, canvasOrigin)
 
   return renderToStaticMarkup(
-    <a href={absoluteToRelativeUrl(linkHref, canvasOrigin)} data-mce-href={linkHref}>
+    <a href={sanitizeUrl(absoluteToRelativeUrl(linkHref, canvasOrigin))} data-mce-href={linkHref}>
       {constructJSXImageElement(image, canvasOrigin, {doNotLink: true})}
     </a>,
   )
@@ -94,7 +95,11 @@ export function constructJSXImageElement(image, canvasOrigin, opts = {}) {
   )
   if (link && !opts.doNotLink) {
     return (
-      <a href={absoluteToRelativeUrl(link, canvasOrigin)} target="_blank" rel="noopener noreferrer">
+      <a
+        href={sanitizeUrl(absoluteToRelativeUrl(link, canvasOrigin))}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         {ret}
       </a>
     )
@@ -118,9 +123,7 @@ export function renderVideo(video, canvasOrigin) {
       data-media-type="video"
       loading="lazy"
       src="${src}"
-      style="width:${videoSize.width};height:${
-        videoSize.height
-      };display:inline-block;"
+      style="width:${videoSize.width};height:${videoSize.height};display:inline-block;"
       title="${formatMessage('Video player for {title}', {
         title: video.title || video.name || video.text,
       })}"></iframe>

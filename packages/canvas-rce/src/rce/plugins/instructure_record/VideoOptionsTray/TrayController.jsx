@@ -34,6 +34,7 @@ import {
   validateStudioEmbedOptions,
 } from '../../shared/StudioLtiSupportUtils'
 import VideoOptionsTray from '.'
+import {sanitizeUrl} from '../../../../enhance-user-content/doc_previews'
 
 export const CONTAINER_ID = 'instructure-video-options-tray-container'
 
@@ -155,7 +156,7 @@ export default class TrayController {
         const title =
           videoOptions.titleText || this._editor.dom.getAttrib(this.$videoContainer, 'title')
         const link = document.createElement('a')
-        link.setAttribute('href', href)
+        link.setAttribute('href', sanitizeUrl(href))
         link.setAttribute('target', '_blank')
         link.setAttribute('rel', 'noreferrer noopener')
         link.textContent = title
