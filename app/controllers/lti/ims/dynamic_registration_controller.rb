@@ -258,6 +258,11 @@ module Lti
           return
         end
 
+        unless claim_registration_token(jwt["uuid"], jwt["exp"])
+          respond_with_error(:unauthorized, "Registration token has already been used")
+          return
+        end
+
         root_account = Account.find(jwt["root_account_global_id"])
         if root_account.nil?
           Rails.logger.info "Couldn't find root account: #{jwt.inspect}"
@@ -348,6 +353,15 @@ module Lti
             developer_key.save!
             ims_registration.save!
             registration.save!
+
+            Lti::AccountBindingService.call(
+              account: root_account,
+              registration:,
+              user: current_user,
+              # If the admin actually wants to use the key, it will be enabled at the end
+              # of the flow in the UI.
+              workflow_state: :off
+            )
 
             if root_account.feature_enabled?(:lti_registrations_next)
               deployment = registration.new_external_tool(root_account, current_user:, available: false, enabled: false)
@@ -469,6 +483,20 @@ module Lti
           registration_client_uri: get_lti_registration_url(registration_id: registration.global_id),
           deployment_id: deployment&.deployment_id
         }.compact
+      end
+
+      # Atomically claims a registration token uuid so it can only be used once.
+      # Returns true if the token was successfully claimed (first use),
+      # false if it was already claimed (replay attempt).
+      # Fails open (returns true) if Redis is unavailable.
+      def claim_registration_token(uuid, exp)
+        key = "lti_dr_token_used:#{uuid}"
+        ttl = [exp.to_i - Time.now.to_i, 0].max
+        # NX means "only set if not exists" — atomic single-use claim.
+        # You might think, why not Rails.cache.write(..., unless_exists: true)?
+        # Because for some unknown reason, that doesn't want to work in tests, so
+        # we have to go a level down.
+        Rails.cache.redis.set(key, 1, ex: ttl, nx: true, failsafe: true)
       end
 
       def respond_with_error(status_code, message)

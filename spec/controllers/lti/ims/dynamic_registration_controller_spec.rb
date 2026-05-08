@@ -50,6 +50,8 @@ describe Lti::IMS::DynamicRegistrationController do
   end
 
   describe "#create" do
+    specs_require_cache(:redis_cache_store)
+
     let(:scopes) do
       [
         "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly",
@@ -208,7 +210,8 @@ describe Lti::IMS::DynamicRegistrationController do
           subject
           registration = Lti::Registration.last
           expect(registration.account.global_id).to eq(token_hash[:root_account_global_id])
-          expect(registration.workflow_state).to eq("active")
+          expect(registration.workflow_state).to eq("inactive")
+          expect(registration.account_binding_for(Account.default).workflow_state).to eql("off")
           expect(registration.created_by.id).to eq(token_hash[:user_id])
           expect(registration.updated_by.id).to eq(token_hash[:user_id])
           expect(registration.admin_nickname).to eq(registration_params["client_name"])
@@ -247,6 +250,25 @@ describe Lti::IMS::DynamicRegistrationController do
             context_control = Lti::ContextControl.last
             expect(context_control.deployment).to eq ContextExternalTool.last
             expect(context_control.available).to be false
+          end
+        end
+
+        context "single-use token enforcement" do
+          it "rejects a token that has already been used" do
+            request.headers["Authorization"] = "Bearer #{valid_token}"
+            post :create, params: { **registration_params }
+            expect(response).to have_http_status(:ok)
+
+            request.headers["Authorization"] = "Bearer #{valid_token}"
+            post :create, params: { **registration_params }
+            expect(response).to have_http_status(:unauthorized)
+            expect(response.parsed_body["errorMessage"]).to match(/already been used/)
+          end
+
+          it "allows a fresh token to succeed" do
+            request.headers["Authorization"] = "Bearer #{valid_token}"
+            post :create, params: { **registration_params }
+            expect(response).to have_http_status(:ok)
           end
         end
 
