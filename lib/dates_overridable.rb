@@ -93,6 +93,13 @@ module DatesOverridable
   end
 
   def all_assignment_overrides
+    # When module_ids is empty, where(context_module_id: []) generates a
+    # WHERE 1=0 branch that pollutes the OR and prevents the planner from
+    # using the assignment_id/quiz_id index directly.
+    if module_ids.empty? && Account.site_admin.feature_enabled?(:cogs_fix_all_assignment_overrides_empty_modules)
+      return assignment_overrides.strict_loading(false)
+    end
+
     assignment_overrides.or(AssignmentOverride.active.where(context_module_id: module_ids))
   end
 

@@ -558,3 +558,16 @@ rubrics_page_pagination:
       state: allowed_on
     development:
       state: allowed_on
+cogs_fix_all_assignment_overrides_empty_modules:
+  state: hidden
+  applies_to: SiteAdmin
+  display_name: Fix all_assignment_overrides 1=0 for empty modules
+  description: |
+    When a learning object belongs to no context modules, skip the
+    OR branch in all_assignment_overrides to avoid WHERE 1=0 polluting
+    the query and preventing index use on assignment_id/quiz_id.
+  environments:
+    ci:
+      state: allowed_on
+    development:
+      state: allowed_on
