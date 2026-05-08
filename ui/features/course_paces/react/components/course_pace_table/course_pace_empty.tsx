@@ -19,6 +19,7 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {IconArrowEndSolid} from '@instructure/ui-icons'
 import {Button} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
@@ -133,16 +134,17 @@ export const CoursePaceEmpty = ({
         color="secondary"
         as="div"
         dangerouslySetInnerHTML={{
-          __html:
+          __html: sanitizeHTML(
             '* ' +
-            I18n.t(
-              'Please note that once a Course Pace is saved, all due dates for existing assessments and learning materials will be controlled by Course Pacing. Learn more about Course Pacing in the *Course Pacing User Group*.',
-              {
-                wrappers: [
-                  `<a target="_blank" href="https://community.canvaslms.com/t5/Course-Pacing-Feature-Preview/gh-p/course_pacing">$1</a>`,
-                ],
-              },
-            ),
+              I18n.t(
+                'Please note that once a Course Pace is saved, all due dates for existing assessments and learning materials will be controlled by Course Pacing. Learn more about Course Pacing in the *Course Pacing User Group*.',
+                {
+                  wrappers: [
+                    `<a target="_blank" href="https://community.canvaslms.com/t5/Course-Pacing-Feature-Preview/gh-p/course_pacing">$1</a>`,
+                  ],
+                },
+              ),
+          ),
         }}
       />
     </View>
