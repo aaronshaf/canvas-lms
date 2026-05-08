@@ -19,6 +19,7 @@ import * as React from 'react'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
 import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {htmlEscape} from '@instructure/html-escape'
 import {Alert} from '@instructure/ui-alerts'
@@ -156,9 +157,11 @@ export const InheritedKeyRegistrationReview = (props: InheritedKeyRegistrationRe
                 <Text
                   size="small"
                   dangerouslySetInnerHTML={{
-                    __html: toolConfiguration.description
-                      ? htmlEscape(toolConfiguration.description)
-                      : I18n.t('*No description provided.*', {wrappers: ['<i>$1</i>']}),
+                    __html: sanitizeHTML(
+                      toolConfiguration.description
+                        ? htmlEscape(toolConfiguration.description)
+                        : I18n.t('*No description provided.*', {wrappers: ['<i>$1</i>']}),
+                    ),
                   }}
                 />
               </div>
@@ -171,9 +174,11 @@ export const InheritedKeyRegistrationReview = (props: InheritedKeyRegistrationRe
                     <Text
                       size="small"
                       dangerouslySetInnerHTML={{
-                        __html: labels[p.placement]
-                          ? htmlEscape(labels[p.placement])
-                          : I18n.t('**No label provided.**', {wrappers: ['<i>$1</i>']}),
+                        __html: sanitizeHTML(
+                          labels[p.placement]
+                            ? htmlEscape(labels[p.placement])
+                            : I18n.t('**No label provided.**', {wrappers: ['<i>$1</i>']}),
+                        ),
                       }}
                     />
                   </div>

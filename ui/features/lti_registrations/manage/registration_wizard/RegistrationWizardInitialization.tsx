@@ -17,6 +17,7 @@
  */
 
 import {AccountId} from '@canvas/lti-apps/models/AccountId'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Alert} from '@instructure/ui-alerts'
 import {Button} from '@instructure/ui-buttons'
 import {Modal} from '@instructure/ui-modal'
@@ -214,14 +215,16 @@ export const RegistrationWizardInitialization = (props: RegistrationWizardInitia
           <View display="block" margin="medium 0" padding="small" background="secondary">
             <Text
               dangerouslySetInnerHTML={{
-                __html: I18n.t(
-                  'Thank you for your interest in 1.1. We are exploring the possibility of enabling 1.1 installs from the new apps page in future releases. For now, you can install 1.1 tools from the *%{legacyAppPage}*.',
-                  {
-                    legacyAppPage: 'legacy apps page',
-                    wrappers: [
-                      `<a href=/accounts/${props.accountId}/settings/configurations#tab-tools>$1</a>`,
-                    ],
-                  },
+                __html: sanitizeHTML(
+                  I18n.t(
+                    'Thank you for your interest in 1.1. We are exploring the possibility of enabling 1.1 installs from the new apps page in future releases. For now, you can install 1.1 tools from the *%{legacyAppPage}*.',
+                    {
+                      legacyAppPage: 'legacy apps page',
+                      wrappers: [
+                        `<a href=/accounts/${props.accountId}/settings/configurations#tab-tools>$1</a>`,
+                      ],
+                    },
+                  ),
                 ),
               }}
             />
