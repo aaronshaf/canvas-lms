@@ -12,15 +12,18 @@
 copy = "wt step copy-ignored"
 
 # For each plugin repo, create a matching worktree
+# Disabled: created plugin sub-worktrees were tripping up
+# `inst canvas rebuild` (bundler/yarn picking up dirs on
+# branches that lacked expected gemspecs/package.jsons).
 [post-create]
-plugins = """
-for dir in {{ primary_worktree_path }}/gems/plugins/*/; do
-  plugin=$(basename "$dir")
-  [ ! -d "$dir/.git" ] && continue
-  wt -C "$dir" switch --create {{ branch }} --yes --no-cd 2>&1 &
-done
-wait
-"""
+# plugins = """
+# for dir in {{ primary_worktree_path }}/gems/plugins/*/; do
+#   plugin=$(basename "$dir")
+#   [ ! -d "$dir/.git" ] && continue
+#   wt -C "$dir" switch --create {{ branch }} --yes --no-cd 2>&1 &
+# done
+# wait
+# """
 # Ensure dependencies are installed in new worktrees
 # (Fallback in case node_modules wasn't copied or is stale)
 yarn = "yarn install --frozen-lockfile"
