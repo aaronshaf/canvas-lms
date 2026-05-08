@@ -60,6 +60,9 @@ class DeveloperKeyAccountBindingsController < ApplicationController
   before_action :developer_key_in_account, only: :create_or_update
   before_action :require_root_account
   before_action :restrict_federated_child_accounts
+  before_action :require_elevated_auth_provider,
+                only: :create_or_update,
+                if: :require_elevated_auth_provider_for_developer_key_bindings?
 
   # @API Create a Developer Key Account Binding
   # Create a new Developer Key Account Binding. The developer key specified
@@ -168,5 +171,9 @@ class DeveloperKeyAccountBindingsController < ApplicationController
     if !account.primary_settings_root_account? && developer_key.account != account
       raise ActiveRecord::RecordNotFound
     end
+  end
+
+  def require_elevated_auth_provider_for_developer_key_bindings?
+    AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_for_developer_key_bindings")
   end
 end

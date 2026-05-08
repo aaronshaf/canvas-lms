@@ -40,6 +40,10 @@ RSpec.describe DeveloperKeyAccountBindingsController do
     }
   end
 
+  before do
+    allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_return(false)
+  end
+
   shared_examples "the developer key account binding create endpoint" do
     let(:authorized_admin) { raise "set in example" }
     let(:unauthorized_admin) { raise "set in example" }
@@ -345,6 +349,90 @@ RSpec.describe DeveloperKeyAccountBindingsController do
 
       it "does not require modify_site_admin_developer_keys for regular account keys" do
         post :create_or_update, params: regular_binding_params, format: :json
+        expect(response).to be_successful
+      end
+    end
+  end
+
+  describe "elevated auth provider enforcement" do
+    let(:account) { Account.site_admin }
+    let!(:elevated_provider) { account.authentication_providers.create!(auth_type: "saml") }
+    let(:site_admin_key) { DeveloperKey.create! }
+    let(:enforce_flag_enabled) { true }
+    let(:bindings_flag_enabled) { true }
+    let(:binding_params) do
+      {
+        account_id: account.id,
+        developer_key_id: site_admin_key.global_id,
+        developer_key_account_binding: { workflow_state: "on" }
+      }
+    end
+
+    before do
+      site_admin_key.developer_key_account_bindings.destroy_all
+      account_admin_user(account:)
+      user_with_pseudonym(user: @admin, account:)
+      user_session(@admin, @pseudonym)
+
+      AuthenticationMethods::PseudonymAttributes.reset
+
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_return(false)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+        .with("enforce_violations").and_return(enforce_flag_enabled)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+        .with("require_for_developer_key_bindings").and_return(bindings_flag_enabled)
+    end
+
+    context "when an elevated provider is configured" do
+      before do
+        account.settings[:elevated_auth_provider_global_id] = elevated_provider.global_id
+        account.save(validate: false)
+      end
+
+      context "and the session uses the elevated provider" do
+        before { AuthenticationMethods::PseudonymAttributes.auth_provider_id = elevated_provider.id }
+
+        it "allows create_or_update" do
+          post :create_or_update, params: binding_params, format: :json
+          expect(response).to be_successful
+        end
+      end
+
+      context "and the session does not use the elevated provider" do
+        it "blocks create_or_update json with 403" do
+          post :create_or_update, params: binding_params, format: :json
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        it "redirects create_or_update html with a flash error" do
+          post :create_or_update, params: binding_params
+          expect(response).to be_redirect
+          expect(flash[:error][:html]).to include("requires using an elevated authentication provider")
+        end
+
+        context "but the enforce_violations flag is off" do
+          let(:enforce_flag_enabled) { false }
+
+          it "allows the request through" do
+            post :create_or_update, params: binding_params, format: :json
+            expect(response).to be_successful
+          end
+        end
+
+        context "but the require_for_developer_key_bindings flag is off" do
+          let(:bindings_flag_enabled) { false }
+
+          it "allows the request through" do
+            post :create_or_update, params: binding_params, format: :json
+            expect(response).to be_successful
+          end
+        end
+      end
+    end
+
+    context "when no elevated provider is configured" do
+      it "allows the request" do
+        post :create_or_update, params: binding_params, format: :json
         expect(response).to be_successful
       end
     end

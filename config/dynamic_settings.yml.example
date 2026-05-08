@@ -120,6 +120,7 @@ development:
       # elevated_auth_provider.yml: |
       #   require_for_plugins: 'true'
       #   require_for_developer_keys: 'true'
+      #   require_for_developer_key_bindings: 'true'
       #   log_violations: 'true'
       #   enforce_violations: 'true'
       # datadog_apm.yml: |
