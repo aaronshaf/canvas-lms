@@ -74,4 +74,49 @@ describe('AssignmentDescription', () => {
 
     expect(apiUserContent.convert).not.toHaveBeenCalled()
   })
+
+  describe('XSS regression', () => {
+    // AssignmentDescription is shared across many assignment views.
+    // It pipes teacher-authored description HTML through
+    // dangerouslySetInnerHTML. Backend CanvasSanitize allowlists the
+    // title attribute, so attribute-value mXSS payloads can survive
+    // backend sanitization. CFA-897 wraps the sink with
+    // @canvas/sanitize-html as defense-in-depth.
+
+    afterEach(() => {
+      delete (window as any).__xss_fired
+    })
+
+    it('strips inline event handlers from description', () => {
+      const {getByTestId} = render(
+        <AssignmentDescription description='<p>before <img src=x onerror="window.__xss_fired = true"> after</p>' />,
+      )
+      const el = getByTestId('assignments-2-assignment-description')
+      expect(el.innerHTML).not.toMatch(/\son[a-z]+\s*=/i)
+      expect((window as any).__xss_fired).toBeUndefined()
+    })
+
+    it('strips <script> tags from description', () => {
+      const {getByTestId} = render(
+        <AssignmentDescription description="<p>before</p><script>window.__xss_fired = true</script><p>after</p>" />,
+      )
+      const el = getByTestId('assignments-2-assignment-description')
+      expect(el.querySelector('script')).toBeNull()
+      expect(el.innerHTML).not.toMatch(/<script/i)
+      expect((window as any).__xss_fired).toBeUndefined()
+    })
+
+    it('strips javascript: hrefs from description', () => {
+      const {getByTestId} = render(
+        <AssignmentDescription description='<p><a href="javascript:window.__xss_fired = true">click</a></p>' />,
+      )
+      const el = getByTestId('assignments-2-assignment-description')
+      const anchor = el.querySelector('a')
+      if (anchor) {
+        expect(anchor.getAttribute('href') || '').not.toMatch(/^javascript:/i)
+      }
+      expect(el.innerHTML).not.toMatch(/javascript:/i)
+      expect((window as any).__xss_fired).toBeUndefined()
+    })
+  })
 })

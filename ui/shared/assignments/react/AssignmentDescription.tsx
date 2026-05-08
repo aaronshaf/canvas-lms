@@ -21,6 +21,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 
 import {View} from '@instructure/ui-view'
 import apiUserContent from '@canvas/util/jquery/apiUserContent'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('assignment_2_assignment_details')
 
@@ -30,14 +31,13 @@ interface AssignmentToggleDetailsProps {
 
 function AssignmentDetailsText(description?: string): string {
   return description
-    ? apiUserContent.convert(description)
+    ? sanitizeHTML(apiUserContent.convert(description))
     : I18n.t('No additional details were added for this assignment.')
 }
 
 const AssignmentDescription = (props: AssignmentToggleDetailsProps) => {
   return (
     <View margin="0" padding="0">
-      {/* html is sanitized on the server side */}
       <div
         className="user_content"
         dangerouslySetInnerHTML={{__html: AssignmentDetailsText(props.description)}}
