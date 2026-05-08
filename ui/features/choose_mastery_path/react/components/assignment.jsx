@@ -20,6 +20,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import apiUserContent from '@canvas/util/jquery/apiUserContent'
 import assignmentShape from '../shapes/assignment-shape'
 
@@ -89,7 +90,8 @@ export default class Assignment extends React.Component {
           <div
             className="ig-description"
             dangerouslySetInnerHTML={{
-              __html: apiUserContent.convert(this.props.assignment.description),
+              // xsslint safeString.function sanitizeHTML
+              __html: sanitizeHTML(apiUserContent.convert(this.props.assignment.description)),
             }}
           />
         </div>
