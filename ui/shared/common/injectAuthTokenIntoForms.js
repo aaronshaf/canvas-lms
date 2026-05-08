@@ -17,10 +17,11 @@
 
 import $ from 'jquery'
 import authenticityToken from '@canvas/authenticity-token'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const getHostname = function (href) {
   const a = document.createElement('a')
-  a.href = href
+  a.href = sanitizeUrl(href)
   return a.hostname
 }
 

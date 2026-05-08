@@ -28,7 +28,7 @@
 // into a DOM fragment via DOMParser so we can inspect the resulting
 // tree without giving the test browser a chance to execute the payload.
 
-import {anchorTag} from '../helpers'
+import {anchorTag, iframeTag, imageTag} from '../helpers'
 
 const EVENT_HANDLER_ATTR = /^on[a-z]+$/i
 
@@ -97,5 +97,43 @@ describe('deep-linking helpers anchorTag — XSS regression', () => {
     expect(anchor.querySelector('strong')?.textContent).toBe('bold')
     expect(anchor.querySelector('em')?.textContent).toBe('italic')
     expectNoEventHandlers(anchor)
+  })
+})
+
+describe('deep-linking helpers imageTag — URL sanitization', () => {
+  const parseImg = (html: string): HTMLImageElement => {
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    const img = doc.querySelector('img')
+    if (!img) throw new Error(`imageTag did not return an <img>: ${html}`)
+    return img as HTMLImageElement
+  }
+
+  it('replaces a javascript: src with about:blank', () => {
+    const img = parseImg(imageTag('javascript:alert(1)'))
+    expect(img.getAttribute('src')).toBe('about:blank')
+  })
+
+  it('passes through legitimate https: src unchanged', () => {
+    const img = parseImg(imageTag('https://example.com/thumb.png'))
+    expect(img.getAttribute('src')).toBe('https://example.com/thumb.png')
+  })
+})
+
+describe('deep-linking helpers iframeTag — URL sanitization', () => {
+  const parseIframe = (html: string): HTMLIFrameElement => {
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    const frame = doc.querySelector('iframe')
+    if (!frame) throw new Error(`iframeTag did not return an <iframe>: ${html}`)
+    return frame as HTMLIFrameElement
+  }
+
+  it('replaces a javascript: iframe.src with about:blank', () => {
+    const frame = parseIframe(iframeTag({iframe: {src: 'javascript:alert(1)'}}))
+    expect(frame.getAttribute('src')).toBe('about:blank')
+  })
+
+  it('passes through legitimate https: iframe.src unchanged', () => {
+    const frame = parseIframe(iframeTag({iframe: {src: 'https://tool.example.com/launch'}}))
+    expect(frame.getAttribute('src')).toBe('https://tool.example.com/launch')
   })
 })

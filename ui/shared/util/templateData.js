@@ -19,6 +19,7 @@
 import $ from 'jquery'
 import htmlEscape, {raw} from '@instructure/html-escape'
 import replaceTags from './replaceTags'
+import sanitizeUrl from './sanitizeUrl'
 
 // Fills the selected object(s) with data values as specified.  Plaintext values should be specified in the
 //  data: data used to fill template.
@@ -108,7 +109,7 @@ $.fn.fillTemplateData = function (options) {
               if (dataHref) {
                 $obj.data('href', newHref)
               } else {
-                $obj.attr('href', newHref)
+                $obj.attr('href', sanitizeUrl(newHref))
               }
               if (orig) {
                 $obj.text(orig)

@@ -17,6 +17,7 @@
  */
 
 import $ from 'jquery'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 // Shows an ajax-loading image on the given object.
 $.fn.loadingImg = function (options) {
@@ -94,7 +95,7 @@ $.fn.loadingImg = function (options) {
   }
   const zIndex = $obj.zIndex() + 1
   const $imageHolder = $(document.createElement('div')).addClass('loading_image_holder')
-  const $image = $(document.createElement('img')).attr('src', image.url)
+  const $image = $(document.createElement('img')).attr('src', sanitizeUrl(image.url))
   $imageHolder.append($image)
   list = $obj.data('loading_images') || []
   list.push($imageHolder)

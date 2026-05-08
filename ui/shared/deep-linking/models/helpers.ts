@@ -19,6 +19,7 @@
 import iframeAllowances from '@canvas/external-apps/iframeAllowances'
 import {IframeDimensions} from '@canvas/lti/model/common'
 import {sanitizeHTML} from '@canvas/sanitize-html'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 export type ContentItemIframeDimensions = IframeDimensions
 
@@ -70,7 +71,7 @@ export const imageTag = (
   height?: string | number,
 ) => {
   const imgTag = document.createElement('img')
-  imgTag.setAttribute('src', url)
+  imgTag.setAttribute('src', sanitizeUrl(url))
 
   if (text) {
     imgTag.setAttribute('alt', text)
@@ -102,7 +103,7 @@ export const iframeTag = (item: {title?: string; iframe: ContentItemIframe}) => 
   const iframe = item.iframe
   const iframeTag = document.createElement('iframe')
 
-  iframeTag.setAttribute('src', iframe.src)
+  iframeTag.setAttribute('src', sanitizeUrl(iframe.src))
   iframeTag.setAttribute('title', item.title || '')
   iframeTag.setAttribute('allowfullscreen', 'true')
   iframeTag.setAttribute('allow', iframeAllowances())

@@ -24,6 +24,7 @@ import PaginatedCollectionView from '@canvas/pagination/backbone/views/Paginated
 import TreeItemView from './TreeItemView'
 import collectionTemplate from '../../jst/TreeCollection.handlebars'
 import htmlEscape from '@instructure/html-escape'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 extend(TreeView, Backbone.View)
 
@@ -160,7 +161,10 @@ TreeView.prototype.renderSelf = function () {
     })(this)())
   this.$labelInner.text(this.title_text())
   this.$label
-    .attr('href', (typeof this.href === 'function' ? this.href(this.model) : void 0) || '#')
+    .attr(
+      'href',
+      sanitizeUrl((typeof this.href === 'function' ? this.href(this.model) : void 0) || '#'),
+    )
     .toggleClass('expanded', !!this.model.isExpanded)
     .toggleClass('loading after', !!this.model.isExpanding)
   if (this.selectedStyleClass) {

@@ -23,6 +23,7 @@ import {find, result} from 'es-toolkit/compat'
 import {uniqueId} from 'es-toolkit/compat'
 import FakeXHR from './FakeXHR'
 import authenticity_token from '@canvas/authenticity-token'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import htmlEscape, {raw} from '@instructure/html-escape'
 import './jquery.ajaxJSON' /* ajaxJSON, defaultAjaxError */
 import './jquery.disableWhileLoading'
@@ -396,7 +397,7 @@ $.ajaxJSONPreparedFiles = function (options) {
 
 $.ajaxJSONFiles = function (url, submit_type, formData, files, success, error, options) {
   const $newForm = $(document.createElement('form'))
-  $newForm.attr('action', url).attr('method', submit_type)
+  $newForm.attr('action', sanitizeUrl(url)).attr('method', submit_type)
   // TODO: remove me once we stop proxying file uploads
   formData.authenticity_token = authenticity_token()
   const fileNames = {}
@@ -605,7 +606,7 @@ $.toMultipartForm = function (params, callback) {
     return
   }
   function sanitizeQuotedString(text) {
-    return text.replace(/\"/g, '')
+    return text.replace(/"/g, '')
   }
   function finished() {
     result.body = body.substring(0, body.length - 2) + '--'
