@@ -21,6 +21,7 @@ import calculateResponseRatio from '../../../backbone/models/ratio_calculator'
 import classSet from '@canvas/quiz-legacy-client-apps/util/class_set'
 import CorrectAnswerDonut from '../correct_answer_donut'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import Question from '../question'
 import QuestionHeader from './header'
 import React from 'react'
@@ -58,7 +59,7 @@ class FillInMultipleBlanks extends React.Component {
             <div
               className="question-text"
               aria-hidden={true}
-              dangerouslySetInnerHTML={{__html: this.props.questionText}}
+              dangerouslySetInnerHTML={{__html: sanitizeHTML(this.props.questionText)}}
             />
 
             <nav className="row-fluid answer-set-tabs">

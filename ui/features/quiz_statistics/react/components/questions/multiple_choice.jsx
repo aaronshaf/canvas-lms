@@ -23,6 +23,7 @@ import DiscriminationIndex from '../discrimination_index/index'
 import Question from '../question'
 import QuestionHeader from './header'
 import React from 'react'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const MultipleChoice = props => (
   <Question>
@@ -38,7 +39,7 @@ const MultipleChoice = props => (
         <div
           className="question-text"
           aria-hidden={true}
-          dangerouslySetInnerHTML={{__html: props.questionText}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(props.questionText)}}
         />
       </div>
       <div className="col-sm-4 question-top-right">

@@ -18,6 +18,7 @@
 
 import d3 from 'd3'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import React from 'react'
 import PropTypes from 'prop-types'
 import UserListDialog from './user_list_dialog'
@@ -148,7 +149,7 @@ class AnswerRow extends React.Component {
           <span
             className="answerText"
             aria-hidden="true"
-            dangerouslySetInnerHTML={{__html: answerText}}
+            dangerouslySetInnerHTML={{__html: sanitizeHTML(answerText)}}
           />
         </th>
         <td className="respondent-link">{this.dialogBuilder(datum.answer)}</td>

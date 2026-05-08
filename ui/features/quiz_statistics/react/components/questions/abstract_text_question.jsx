@@ -20,6 +20,7 @@ import AnswerTable from './answer_table'
 import Question from '../question'
 import QuestionHeader from './header'
 import React from 'react'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const AbstractTextQuestion = props => (
   <Question>
@@ -35,7 +36,7 @@ const AbstractTextQuestion = props => (
         <div
           className="question-text"
           aria-hidden={true}
-          dangerouslySetInnerHTML={{__html: props.questionText}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(props.questionText)}}
         />
       </div>
       <div className="col-sm-4 question-top-right" />

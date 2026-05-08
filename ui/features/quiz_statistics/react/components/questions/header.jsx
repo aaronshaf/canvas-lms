@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import React from 'react'
 import ScreenReaderContent from '@canvas/quiz-legacy-client-apps/react/components/screen_reader_content'
 
@@ -31,7 +32,7 @@ const QuestionHeader = ({position = 1, responseCount = 0, participantCount = 0, 
     {/*
       we'd like SR to read the question description after its position
     */}
-    <ScreenReaderContent dangerouslySetInnerHTML={{__html: questionText}} />
+    <ScreenReaderContent dangerouslySetInnerHTML={{__html: sanitizeHTML(questionText)}} />
 
     <span className="question-attempts">
       {I18n.t('attempts', 'Attempts: %{count} out of %{total}', {
