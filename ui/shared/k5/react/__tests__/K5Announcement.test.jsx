@@ -159,6 +159,65 @@ describe('K5Announcement', () => {
     )
   })
 
+  describe('XSS regression', () => {
+    // K-5 students view announcement.message rendered via
+    // dangerouslySetInnerHTML. Backend CanvasSanitize allowlists the
+    // title attribute, so attribute-value mXSS payloads can survive
+    // backend sanitization. CFA-896 wraps the sink with
+    // @canvas/sanitize-html as defense-in-depth.
+
+    afterEach(() => {
+      delete window.__xss_fired
+    })
+
+    it('strips inline event handlers from announcement message', () => {
+      const {container} = render(
+        <K5Announcement
+          {...getProps(
+            {},
+            {message: '<p>before <img src=x onerror="window.__xss_fired = true"> after</p>'},
+          )}
+        />,
+      )
+      const body = container.querySelector('.user_content')
+      expect(body.innerHTML).not.toMatch(/\son[a-z]+\s*=/i)
+      expect(window.__xss_fired).toBeUndefined()
+    })
+
+    it('strips <script> tags from announcement message', () => {
+      const {container} = render(
+        <K5Announcement
+          {...getProps(
+            {},
+            {message: '<p>before</p><script>window.__xss_fired = true</script><p>after</p>'},
+          )}
+        />,
+      )
+      const body = container.querySelector('.user_content')
+      expect(body.querySelector('script')).toBeNull()
+      expect(body.innerHTML).not.toMatch(/<script/i)
+      expect(window.__xss_fired).toBeUndefined()
+    })
+
+    it('strips javascript: hrefs from announcement message', () => {
+      const {container} = render(
+        <K5Announcement
+          {...getProps(
+            {},
+            {message: '<p><a href="javascript:window.__xss_fired = true">click</a></p>'},
+          )}
+        />,
+      )
+      const body = container.querySelector('.user_content')
+      const anchor = body.querySelector('a')
+      if (anchor) {
+        expect(anchor.getAttribute('href') || '').not.toMatch(/^javascript:/i)
+      }
+      expect(body.innerHTML).not.toMatch(/javascript:/i)
+      expect(window.__xss_fired).toBeUndefined()
+    })
+  })
+
   it('shows an edit button if teacher', () => {
     const {getByText} = render(<K5Announcement {...getProps()} />)
     expect(getByText('Edit announcement 20 minutes of weekly reading')).toBeInTheDocument()

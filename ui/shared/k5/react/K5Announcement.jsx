@@ -32,6 +32,7 @@ import {PresentationContent} from '@instructure/ui-a11y-content'
 import {showFlashAlert} from '@instructure/platform-alerts'
 
 import apiUserContent from '@canvas/util/jquery/apiUserContent'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import LoadingSkeleton from './LoadingSkeleton'
 import EmptyK5Announcement, {K5AddAnnouncementButton} from './EmptyK5Announcement'
@@ -335,8 +336,9 @@ export default function K5Announcement({
       <>
         <div
           className="user_content"
-          /* html sanitized by server */
-          dangerouslySetInnerHTML={{__html: apiUserContent.convert(currentAnnouncement.message)}}
+          dangerouslySetInnerHTML={{
+            __html: sanitizeHTML(apiUserContent.convert(currentAnnouncement.message)),
+          }}
         />
         {currentAnnouncement.attachment && (
           <Text size="small">
