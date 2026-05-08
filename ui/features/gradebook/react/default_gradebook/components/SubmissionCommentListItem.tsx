@@ -26,7 +26,7 @@ import {IconEditLine, IconTrashLine} from '@instructure/ui-icons'
 import DateHelper from '@canvas/datetime/dateHelper'
 import {truncateText, containsHtmlTags, formatMessage} from '@canvas/util/TextHelper'
 import SubmissionCommentUpdateForm from './SubmissionCommentUpdateForm'
-import sanitizeHtml from 'sanitize-html-with-tinymce'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('gradebook')
 
@@ -96,7 +96,7 @@ export default class SubmissionCommentListItem extends React.Component<Props> {
     }
 
     const formattedComment = containsHtmlTags(this.props.comment)
-      ? sanitizeHtml(this.props.comment)
+      ? sanitizeHTML(this.props.comment)
       : formatMessage(this.props.comment)
     return (
       <div>
