@@ -38,7 +38,7 @@ import '@canvas/media-comments'
 import '@canvas/media-comments/jquery/mediaCommentThumbnail'
 import 'jquery-scroll-to-visible/jquery.scrollTo'
 import '@canvas/rubrics/jquery/rubric_assessment'
-import sanitizeHtml from 'sanitize-html-with-tinymce'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {containsHtmlTags, formatMessage} from '@canvas/util/TextHelper'
 import CheckpointGradeRoot from '../react/CheckpointGradeRoot'
 import StudentAssetReportModalWrapper from '@canvas/lti-asset-processor/react/StudentAssetReportModalWrapper'
@@ -371,7 +371,7 @@ export function setup(): void {
     Array.from(comments).forEach(comment => {
       const content = comment instanceof HTMLElement ? (comment.dataset.content ?? '') : ''
       const formattedComment = containsHtmlTags(content)
-        ? sanitizeHtml(content)
+        ? sanitizeHTML(content)
         : formatMessage(content)
       if (comment instanceof HTMLElement) {
         comment.innerHTML = formattedComment

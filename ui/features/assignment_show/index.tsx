@@ -51,8 +51,7 @@ import {
 import {PeerReviewWidget} from '@canvas/assignments/react/PeerReviewWidget'
 import {queryClient} from '@instructure/platform-query'
 import {QueryClientProvider} from '@tanstack/react-query'
-import sanitizeHtml from 'sanitize-html-with-tinymce'
-import {containsHtmlTags, formatMessage} from '@canvas/util/TextHelper'
+import {renderSanitizedComments} from './renderSanitizedComments'
 import type {Root} from 'react-dom/client'
 
 // @ts-expect-error - INST is a Canvas global not in Window types
@@ -85,14 +84,7 @@ function unmountRoot(elementId: string) {
 }
 
 ready(() => {
-  const comments = document.getElementsByClassName('comment_content')
-  Array.from(comments).forEach(comment => {
-    const content = (comment instanceof HTMLElement ? comment.dataset.content : '') || ''
-    const formattedComment = containsHtmlTags(content)
-      ? sanitizeHtml(content)
-      : formatMessage(content)
-    comment.innerHTML = formattedComment
-  })
+  renderSanitizedComments()
 
   const lockManager = new LockManager()
   lockManager.init({itemType: 'assignment', page: 'show'})
