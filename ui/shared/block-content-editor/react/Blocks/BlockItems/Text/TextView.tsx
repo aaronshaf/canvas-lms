@@ -16,8 +16,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {TextViewProps} from './types'
 
 export const TextView = ({content}: TextViewProps) => {
-  return <div dangerouslySetInnerHTML={{__html: content}}></div>
+  return <div dangerouslySetInnerHTML={{__html: sanitizeHTML(content)}}></div>
 }

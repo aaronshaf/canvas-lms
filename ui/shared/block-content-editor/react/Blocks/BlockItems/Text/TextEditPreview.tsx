@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {TextEditPreviewProps} from './types'
 import {Text} from '@instructure/ui-text'
 
@@ -26,7 +27,7 @@ export const TextEditPreview = (props: TextEditPreviewProps) => {
   const isContentDefined = props.content.trim().length > 0
 
   return isContentDefined ? (
-    <div dangerouslySetInnerHTML={{__html: props.content}}></div>
+    <div dangerouslySetInnerHTML={{__html: sanitizeHTML(props.content)}}></div>
   ) : (
     <Text as="p" color="secondary" variant="content">
       {I18n.t('Click to edit')}
