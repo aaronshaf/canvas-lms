@@ -383,7 +383,6 @@ describe "submissions" do
     end
 
     it "does not allow submissions that contain placeholders for unfinished file uploads" do
-      skip("RCX-5124 2026-05-08")
       @assignment.update(submission_types: "online_text_entry")
       get "/courses/#{@course.id}/assignments/#{@assignment.id}"
       f(".submit_assignment_link").click

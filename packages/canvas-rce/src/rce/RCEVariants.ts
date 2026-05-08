@@ -86,7 +86,7 @@ export function getMenuForVariant(variant: RCEVariant): MenusSpec {
       },
       view: {
         title: formatMessage('View'),
-        items: 'instructure_fullscreen instructure_exit_fullscreen',
+        items: 'instructure_fullscreen instructure_exit_fullscreen instructure_html_view',
       },
     }
   }
@@ -248,7 +248,7 @@ export function getToolbarForVariant(
 
 const DESKTOP_FEATURES: StatusBarFeature[] = ['keyboard_shortcuts', 'a11y_checker', 'word_count']
 const MOBILE_FEATURES: StatusBarFeature[] = ['a11y_checker', 'word_count']
-const EXTENDED_FEATURES: StatusBarFeature[] = ['fullscreen', 'resize_handle']
+const EXTENDED_FEATURES: StatusBarFeature[] = ['html_view', 'fullscreen', 'resize_handle']
 const A11Y_RESIZERS: StatusBarFeature[] = ['a11y_resize_handlers']
 
 export function getStatusBarFeaturesForVariant(

@@ -72,7 +72,6 @@ describe "quizzes questions" do
     end
 
     it "sanitizes any html added to the quiz question description", priority: "1" do
-      skip("RCX-5124 2026-05-08")
       bad_html = '<div id="question_16740547_question_text" class="question_text user_content enhanced">
                     <p>For Mead, what is the "essence" of the self?</p>
                   </div>

@@ -729,7 +729,6 @@ describe "threaded discussions", :ignore_js_errors do
   end
 
   it "replies with iframe element" do
-    skip("RCX-5124 2026-05-08")
     user_session(@teacher)
 
     entry_text = "<iframe src='https://example.com'></iframe>"

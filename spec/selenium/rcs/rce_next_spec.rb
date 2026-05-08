@@ -180,7 +180,6 @@ describe "RCE next tests", :ignore_js_errors do
       end
 
       it "updates the text when editing a link" do
-        skip("RCX-5124 2026-05-08")
         title = "test_page"
         unpublished = false
         edit_roles = "public"
@@ -854,7 +853,6 @@ describe "RCE next tests", :ignore_js_errors do
       end
 
       it "shows notification badge" do
-        skip("RCX-5124 2026-05-08")
         visit_front_page_edit(@course)
 
         switch_to_html_view
@@ -1305,7 +1303,6 @@ describe "RCE next tests", :ignore_js_errors do
       end
 
       it "remembers preferred html editor" do
-        skip("RCX-5124 2026-05-08")
         get "/"
         rce_wysiwyg_state_setup(@course)
         click_editor_view_button
@@ -1317,7 +1314,6 @@ describe "RCE next tests", :ignore_js_errors do
       end
 
       it "sanitizes the HTML set in the HTML editor" do
-        skip("RCX-5124 2026-05-08")
         get "/"
 
         html = <<~HTML
@@ -1340,7 +1336,6 @@ describe "RCE next tests", :ignore_js_errors do
     # rubocop:disable Specs/NoSeleniumWebDriverWait
     describe "fullscreen" do
       it "restores the rce to its original size after switching to pretty html view" do
-        skip("RCX-5124 2026-05-08")
         visit_front_page_edit(@course)
 
         rce_wrapper = f(".rce-wrapper")
@@ -1360,7 +1355,6 @@ describe "RCE next tests", :ignore_js_errors do
       end
 
       it "restores the rce to its original size after switching from pretty html view" do
-        skip("RCX-5124 2026-05-08")
         visit_front_page_edit(@course)
         switch_to_html_view
 
