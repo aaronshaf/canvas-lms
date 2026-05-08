@@ -27,6 +27,7 @@ import '@canvas/datetime/jquery/datepicker'
 import easy_student_view from '@canvas/easy-student-view'
 import htmlEscape from '@instructure/html-escape'
 import {escape} from 'es-toolkit/compat'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 RichContentEditor.preloadRemoteModule()
 
@@ -474,13 +475,14 @@ const bindToEditSyllabus = function (course_summary_enabled) {
       if (data.course.settings.syllabus_course_summary !== course_summary_enabled) {
         return window.location.reload()
       }
-      /*
-      xsslint safeString.property syllabus_body
-      */
+      // syllabus_body is RCE-authored HTML; sanitize at this sink as
+      // defense-in-depth on top of backend CanvasSanitize.
+      // xsslint safeString.identifier sanitizedBody
+      const sanitizedBody = sanitizeHTML(data.course.syllabus_body)
       // removing the 'enhanced' class allows any math in the syllabus to re-render on save
       $course_syllabus.removeClass('enhanced')
-      $course_syllabus.loadingImage('remove').html(data.course.syllabus_body)
-      $course_syllabus.data('syllabus_body', data.course.syllabus_body)
+      $course_syllabus.loadingImage('remove').html(sanitizedBody)
+      $course_syllabus.data('syllabus_body', sanitizedBody)
       $course_syllabus_details.hide()
     },
 

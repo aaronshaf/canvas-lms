@@ -32,6 +32,7 @@ import {Spinner} from '@instructure/ui-spinner'
 import {dateString} from '@instructure/moment-utils'
 import $ from 'jquery'
 import RichContentEditor from '@canvas/rce/RichContentEditor'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 interface SyllabusVersion {
   version: number
@@ -84,7 +85,7 @@ export default function SyllabusRevisionsTray({
         const selectedContent = (selectedVersion?.syllabus_body || '').trim()
 
         if (currentContent === selectedContent && currentContent !== currentSyllabusBody.trim()) {
-          syllabusElement.innerHTML = currentSyllabusBody
+          syllabusElement.innerHTML = sanitizeHTML(currentSyllabusBody)
         }
         $(syllabusElement).removeData('revision_preview')
       }
@@ -165,7 +166,7 @@ export default function SyllabusRevisionsTray({
         shouldUpdateDOM = normalizedCurrent !== normalizedNew
 
         if (shouldUpdateDOM) {
-          syllabusElement.innerHTML = version.syllabus_body || ''
+          syllabusElement.innerHTML = sanitizeHTML(version.syllabus_body || '')
           $(syllabusElement).data('revision_preview', version.syllabus_body || '')
           setIsPreviewingVersion(true)
         }
