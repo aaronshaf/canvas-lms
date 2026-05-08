@@ -21,6 +21,7 @@ import PropTypes from 'prop-types'
 import classnames from 'classnames'
 import filesEnv from '@canvas/files/react/modules/filesEnv'
 import customPropTypes from '@canvas/files/react/modules/customPropTypes'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 class BreadcrumbCollapsedContainer extends React.Component {
   static displayName = 'BreadcrumbCollapsedContainer'
@@ -75,11 +76,11 @@ class BreadcrumbCollapsedContainer extends React.Component {
               {this.props.foldersToContain.map(folder => (
                 <li key={folder.cid}>
                   <a
-                    href={
+                    href={sanitizeUrl(
                       folder.urlPath()
                         ? `${filesEnv.baseUrl}/folder/${folder.urlPath()}`
-                        : filesEnv.baseUrl
-                    }
+                        : filesEnv.baseUrl,
+                    )}
                     className="ellipsis"
                   >
                     <i className="ef-big-icon icon-folder" />

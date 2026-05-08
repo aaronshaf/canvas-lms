@@ -23,6 +23,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
 import preventDefault from '@canvas/util/preventDefault'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import customPropTypes from '@canvas/files/react/modules/customPropTypes'
 import filesEnv from '@canvas/files/react/modules/filesEnv'
 import File from '@canvas/files/backbone/models/File'
@@ -112,7 +113,7 @@ class ItemCog extends React.Component {
           return (
             <li key={tool.title} role="presentation">
               <a
-                href={`${tool.base_url}&files[]=${this.props.model.id}`}
+                href={sanitizeUrl(`${tool.base_url}&files[]=${this.props.model.id}`)}
                 role="menuitem"
                 tabIndex="-1"
               >
@@ -180,7 +181,7 @@ class ItemCog extends React.Component {
           <li key="download" role="presentation">
             <a
               onClick={wrap(this.downloadFile)}
-              href={this.props.model.get('url')}
+              href={sanitizeUrl(this.props.model.get('url'))}
               data-testid="download"
               role="menuitem"
               tabIndex="-1"

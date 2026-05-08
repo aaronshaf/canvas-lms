@@ -22,6 +22,7 @@ import createReactClass from 'create-react-class'
 import FolderChild from '../legacy/components/FolderChild'
 import filesEnv from '@canvas/files/react/modules/filesEnv'
 import classnames from 'classnames'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import ItemCog from './ItemCog'
 import PublishCloud from '@canvas/files/react/components/PublishCloud'
 import MasterCourseLock from '../../MasterCourseLock'
@@ -144,7 +145,7 @@ FolderChild.renderEditingState = function () {
     return (
       <a
         ref={this.nameLinkRef}
-        href={`${filesEnv.baseUrl}/folder/${this.props.model.urlPath()}`}
+        href={sanitizeUrl(`${filesEnv.baseUrl}/folder/${this.props.model.urlPath()}`)}
         className="ef-name-col__link"
         params={{splat: this.props.model.urlPath()}}
         role="button"
@@ -170,7 +171,7 @@ FolderChild.renderEditingState = function () {
   } else {
     return (
       <a
-        href={this.props.model.get('url')}
+        href={sanitizeUrl(this.props.model.get('url'))}
         onClick={preventDefault(this.handleFileLinkClick)}
         className="ef-name-col__link"
         ref={this.nameLinkRef}
@@ -252,7 +253,7 @@ FolderChild.render = function () {
       </div>
 
       <div className="ef-modified-by-col ellipsis" role="gridcell">
-        <a href={user.html_url} className="ef-plain-link">
+        <a href={sanitizeUrl(user.html_url)} className="ef-plain-link">
           {user.display_name}
         </a>
       </div>

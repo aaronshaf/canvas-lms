@@ -23,6 +23,7 @@ import Breadcrumbs from '../legacy/components/Breadcrumbs'
 import filesEnv from '@canvas/files/react/modules/filesEnv'
 import BreadcrumbCollapsedContainer from './BreadcrumbCollapsedContainer'
 import splitAssetString from '@canvas/util/splitAssetString'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('react_files')
 
@@ -49,11 +50,11 @@ Breadcrumbs.renderSingleCrumb = function (folder, isLastCrumb, isRootCrumb) {
   return (
     <li key={name} aria-current={isLastCrumb ? 'page' : undefined}>
       <a
-        href={
+        href={sanitizeUrl(
           isRootCrumb && isContextRoot
             ? filesEnv.baseUrl
-            : `${filesEnv.baseUrl}/folder/${folder ? folder.urlPath() : null}`
-        }
+            : `${filesEnv.baseUrl}/folder/${folder ? folder.urlPath() : null}`,
+        )}
         // only add title tooltips if there's a chance they could be ellipsized
         title={this.state.maxCrumbWidth < 500 ? name : null}
       >
@@ -124,7 +125,7 @@ Breadcrumbs.render = function () {
           </a>
         </li>
         <li>
-          <a href={this.state.contextUrl}>
+          <a href={sanitizeUrl(this.state.contextUrl)}>
             <span className="ellipsible">{this.state.contextName}</span>
           </a>
         </li>

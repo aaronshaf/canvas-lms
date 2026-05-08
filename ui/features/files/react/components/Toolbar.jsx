@@ -21,6 +21,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
 import {legacyRender, legacyUnmountComponentAtNode} from '@canvas/react'
 import page from 'page'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import FocusStore from '../legacy/modules/FocusStore'
 import openMoveDialog from '../../openMoveDialog'
 import deleteStuff from '../legacy/util/deleteStuff'
@@ -365,7 +366,7 @@ export default class Toolbar extends React.Component {
         return (
           <a
             className="ui-button btn-download"
-            href={this.props.selectedItems[0].get('url')}
+            href={sanitizeUrl(this.props.selectedItems[0].get('url'))}
             download={true}
             title={this.downloadTitle}
             aria-label={this.downloadTitle}

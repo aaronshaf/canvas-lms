@@ -18,6 +18,7 @@
 
 import React, {Suspense} from 'react'
 import page from 'page'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import $ from 'jquery'
 import {each, find} from 'es-toolkit/compat'
 import classnames from 'classnames'
@@ -211,9 +212,11 @@ export default class FilePreview extends React.PureComponent {
     return (
       <div className="col-xs-1 ef-file-arrow_container">
         <a
-          href={`${baseUrl}${this.getRouteIdentifier()}?${$.param(
-            this.getNavigationParams({id: nextItem.id}),
-          )}`}
+          href={sanitizeUrl(
+            `${baseUrl}${this.getRouteIdentifier()}?${$.param(
+              this.getNavigationParams({id: nextItem.id}),
+            )}`,
+          )}
           className="ef-file-preview-container-arrow-link"
           onClick={e => page.clickHandler(e.nativeEvent)}
         >
@@ -272,7 +275,7 @@ export default class FilePreview extends React.PureComponent {
         allowFullScreen={true}
         title={I18n.t('File Preview')}
         aria-label={ariaLabel}
-        src={item.get('preview_url')}
+        src={sanitizeUrl(item.get('preview_url'))}
         className={iFrameClasses}
         {...(disableSandboxing ? {} : {sandbox})}
       />
@@ -326,7 +329,7 @@ export default class FilePreview extends React.PureComponent {
                   !this.state.displayedItem.get('locked_for_user') &&
                   !isAccessRestricted && (
                     <a
-                      href={this.state.displayedItem.get('url')}
+                      href={sanitizeUrl(this.state.displayedItem.get('url'))}
                       download={true}
                       className="ef-file-preview-header-download ef-file-preview-button"
                     >

@@ -21,6 +21,7 @@ import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import FriendlyDatetime from '@canvas/datetime/react/components/FriendlyDatetime'
 import friendlyBytes from '../../util/friendlyBytes'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import customPropTypes from '../modules/customPropTypes'
 import getFileStatus from '../../util/getFileStatus'
 import mimeClass from '@canvas/mime/mimeClass'
@@ -86,7 +87,7 @@ class FilePreviewInfoPanel extends React.Component {
               <tr>
                 <th scope="row">{I18n.t('Last Modified By')}</th>
                 <td data-testid="modified-by" ref={this.modifedByRef}>
-                  <a href={this.props.displayedItem.get('user').html_url}>
+                  <a href={sanitizeUrl(this.props.displayedItem.get('user').html_url)}>
                     {this.props.displayedItem.get('user').display_name}
                   </a>
                 </td>

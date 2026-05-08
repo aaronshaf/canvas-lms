@@ -17,6 +17,7 @@
  */
 import React, {useEffect, useRef, useState} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import type {File} from '../../../interfaces/File'
 
 const I18n = createI18nScope('files_v2')
@@ -58,7 +59,7 @@ const FilePreviewIframe = ({item}: {item: File}) => {
       key={item.id}
       sandbox={sandboxSettings(item)}
       allowFullScreen
-      src={item.preview_url}
+      src={sanitizeUrl(item.preview_url)}
       style={{
         ...(item.mime_class === 'html' ? {backgroundColor: '#F2F4F4'} : {}),
         ...(isChildFocused ? {border: '2px solid #FFFFFF'} : {border: 'none'}),
