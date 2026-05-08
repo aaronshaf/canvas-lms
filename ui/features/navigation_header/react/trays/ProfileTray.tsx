@@ -36,6 +36,7 @@ import {getUnreadCount} from '../queries/unreadCountQuery'
 import type {ProfileTab, TabCountsObj} from '../../../../api.d'
 import {useQuery} from '@tanstack/react-query'
 import {sessionStoragePersister} from '@instructure/platform-query'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('ProfileTray')
 
@@ -67,7 +68,12 @@ function ProfileTabLink({id, html_url, label, counts, type}: ProfileTab) {
   const target = isNavMenuLink || html_url.includes('display=borderless') ? '_blank' : undefined
   return (
     <View className={`profile-tab-${id}`} as="div" margin="small 0">
-      <Link isWithinText={false} href={html_url} target={target}>
+      <Link
+        isWithinText={false}
+        href={sanitizeUrl(html_url)}
+        target={target}
+        rel={target === '_blank' ? 'noopener noreferrer' : undefined}
+      >
         {label}
         <CountBadge counts={counts} id={id} />
         {isNavMenuLink && <IconExternalLinkLine size="x-small" style={{paddingLeft: '0.3em'}} />}

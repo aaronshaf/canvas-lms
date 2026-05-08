@@ -58,6 +58,7 @@ import {
 } from '@instructure/ui-icons'
 
 import {Link} from '@instructure/ui-link'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('MobileNavigation')
 
@@ -159,9 +160,10 @@ export default function MobileContextMenu({
             <Grid.Col>
               <Link
                 renderIcon={Icon}
-                href={tab.html_url}
+                href={sanitizeUrl(tab.html_url)}
                 isWithinText={false}
                 target={isNavMenuLink ? '_blank' : undefined}
+                rel={isNavMenuLink ? 'noopener noreferrer' : undefined}
               >
                 <Text weight={isCurrentTab ? 'bold' : 'normal'}>{tab.label}</Text>
                 {isTabOff && <ScreenReaderContent>{'- ' + srText(tab)}</ScreenReaderContent>}

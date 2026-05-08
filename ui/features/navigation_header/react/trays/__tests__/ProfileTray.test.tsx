@@ -97,6 +97,25 @@ describe('ProfileTray', () => {
     expect(toolLink).toHaveAttribute('target', '_blank')
   })
 
+  it('sanitizes javascript: tab html_url so it does not reach the DOM', () => {
+    queryClient.setQueryData(
+      ['profile'],
+      [{id: 'evil', label: 'Evil Tab', html_url: 'javascript:alert(1)'}],
+    )
+    const {getByText} = render(<ProfileTray />)
+    const link = getByText('Evil Tab').closest('a')
+    expect(link?.getAttribute('href') ?? '').not.toMatch(/^javascript:/i)
+  })
+
+  it('emits rel="noopener noreferrer" when target is _blank', () => {
+    queryClient.setQueryData(['profile'], profileTabs)
+    const {getByText} = render(<ProfileTray />)
+    const link = getByText('Custom Link').closest('a')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link?.getAttribute('rel') ?? '').toMatch(/noopener/)
+    expect(link?.getAttribute('rel') ?? '').toMatch(/noreferrer/)
+  })
+
   describe('nav_menu_link tabs', () => {
     it('opens in new tab', () => {
       queryClient.setQueryData(['profile'], profileTabs)

@@ -146,6 +146,14 @@ describe('MobileContextMenu', () => {
       expect(link).toHaveAttribute('target', '_blank')
     })
 
+    it('emits rel="noopener noreferrer" when target is _blank', async () => {
+      const {getAllByRole, getByText} = render(<MobileContextMenu {...props} />)
+      await waitFor(() => getAllByRole('link'))
+      const link = getByText('Custom Link').closest('a')
+      expect(link?.getAttribute('rel') ?? '').toMatch(/noopener/)
+      expect(link?.getAttribute('rel') ?? '').toMatch(/noreferrer/)
+    })
+
     it('shows LTI icon (not external link icon) for non-nav_menu_link external tabs', async () => {
       const {container, getAllByRole, getByText} = render(<MobileContextMenu {...props} />)
       await waitFor(() => getAllByRole('link'))
@@ -156,5 +164,19 @@ describe('MobileContextMenu', () => {
       expect(externalIcon).not.toBeInTheDocument()
       expect(ltiIcon).toBeInTheDocument()
     })
+  })
+
+  it('sanitizes javascript: tab html_url so it does not reach the DOM', async () => {
+    server.use(
+      http.get('*', () =>
+        HttpResponse.json([
+          {id: 'evil', html_url: 'javascript:alert(1)', label: 'Evil Tab', type: 'internal'},
+        ]),
+      ),
+    )
+    const {getAllByRole, getByText} = render(<MobileContextMenu {...props} />)
+    await waitFor(() => getAllByRole('link'))
+    const link = getByText('Evil Tab').closest('a')
+    expect(link?.getAttribute('href') ?? '').not.toMatch(/^javascript:/i)
   })
 })

@@ -27,6 +27,7 @@ import {ActiveText} from './utils'
 import profileQuery from '../queries/profileQuery'
 import {useQuery} from '@tanstack/react-query'
 import {sessionStoragePersister} from '@instructure/platform-query'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('CoursesTray')
 
@@ -47,7 +48,7 @@ export default function CoursesList() {
       {isSuccess &&
         data.map(tab => (
           <List.Item key={tab.id}>
-            <Link href={tab.html_url} isWithinText={false} display="block">
+            <Link href={sanitizeUrl(tab.html_url)} isWithinText={false} display="block">
               <ActiveText url={tab.html_url}>{tab.label}</ActiveText>
             </Link>
           </List.Item>
