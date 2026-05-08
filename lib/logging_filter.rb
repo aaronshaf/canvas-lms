@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #
-# Copyright (C) 2012 - present Instructure, Inc.
+# Copyright (C) 2026 - present Instructure, Inc.
 #
 # This file is part of Canvas.
 #
@@ -42,8 +42,15 @@ module LoggingFilter
     login[old_password]
   ].freeze
 
+  AWS_S3_PRESIGNED_URL_PARAMETERS = %w[
+    x-amz-signedheaders
+    x-amz-credential
+    x-amz-signature
+    x-amz-security-token
+  ].freeze
+
   def self.all_filtered_parameters
-    FILTERED_PARAMETERS.map(&:to_s) + EXTENDED_FILTERED_PARAMETERS
+    FILTERED_PARAMETERS.map(&:to_s) + EXTENDED_FILTERED_PARAMETERS + AWS_S3_PRESIGNED_URL_PARAMETERS
   end
 
   def self.filter_uri(uri)
@@ -52,7 +59,7 @@ module LoggingFilter
 
   def self.filter_query_string(qs)
     regs = all_filtered_parameters.map { |p| p.gsub("[", "\\[").gsub("]", "\\]") }.join("|")
-    @@filtered_parameters_regex ||= /([?&](?:#{regs}))=[^&]+/
+    @@filtered_parameters_regex ||= /([?&](?:#{regs}))=[^&]+/i
     qs.gsub(@@filtered_parameters_regex, '\1=[FILTERED]')
   end
 
