@@ -158,7 +158,7 @@ import replaceTags from '@canvas/util/replaceTags'
 import {isPreviewable} from '@instructure/canvas-rce/es/rce/plugins/shared/Previewable'
 import type {Root} from 'react-dom/client'
 import {AmsLoader} from '@canvas/ams/react/AmsLoader'
-import sanitizeHtml from 'sanitize-html-with-tinymce'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {SpeedGraderCheckpointsWrapper} from '../react/SpeedGraderCheckpoints/SpeedGraderCheckpointsWrapper'
 import {SpeedGraderDiscussionsNavigation2} from '../react/SpeedGraderDiscussionsNavigation2'
 import {StudentUserIdOrAnonymousId} from '@canvas/lti-asset-processor/shared-with-sg/replicated/queries/getLtiAssetReports'
@@ -3865,7 +3865,7 @@ EG = {
     }
 
     const formattedComment = containsHtmlTags(comment.comment)
-      ? sanitizeHtml(comment.comment)
+      ? sanitizeHTML(comment.comment)
       : formatMessage(comment.comment)
     commentElement.find('span.comment').html(formattedComment)
 
