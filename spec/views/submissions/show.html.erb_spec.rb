@@ -844,6 +844,123 @@ describe "submissions/show" do
       expect(comment_text.include?("good job!")).to be true
       expect(media_comment.include?("This is a media comment")).to be true
     end
+
+    it "uses double-quoted HTML attributes on the media comment link" do
+      render "submissions/show"
+      expect(response.body).to match(/data-author="[^"]*"/)
+      expect(response.body).to match(/data-created_at="[^"]*"/)
+    end
+
+    context "when the comment author name contains a single-quote XSS payload" do
+      let_once(:malicious_comment) do
+        c = sub.add_comment(
+          author: student,
+          comment: "watch this",
+          media_comment_id: 2,
+          media_comment_type: "video"
+        )
+        c.update_column(:author_name, "' onclick='alert(1)' x='")
+        c
+      end
+
+      it "does not render onclick as a standalone attribute on the media comment link" do
+        render "submissions/show"
+        html = Nokogiri::HTML5.fragment(response.body)
+        anchor = html.at_css("div#submission_comment_#{malicious_comment.id} div.comment_media a")
+        expect(anchor["onclick"]).to be_nil
+      end
+
+      it "encodes the payload inside the data-author attribute value" do
+        render "submissions/show"
+        html = Nokogiri::HTML5.fragment(response.body)
+        anchor = html.at_css("div#submission_comment_#{malicious_comment.id} div.comment_media a")
+        expect(anchor["data-author"]).to eq("' onclick='alert(1)' x='")
+      end
+    end
+
+    context "when the comment author name contains a legitimate apostrophe" do
+      let_once(:apostrophe_comment) do
+        c = sub.add_comment(
+          author: student,
+          comment: "good work",
+          media_comment_id: 3,
+          media_comment_type: "video"
+        )
+        c.update_column(:author_name, "O'Brien")
+        c
+      end
+
+      it "renders the apostrophe correctly in the data-author attribute" do
+        render "submissions/show"
+        html = Nokogiri::HTML5.fragment(response.body)
+        anchor = html.at_css("div#submission_comment_#{apostrophe_comment.id} div.comment_media a")
+        expect(anchor["data-author"]).to eq("O'Brien")
+        expect(anchor["onclick"]).to be_nil
+      end
+    end
+
+    context "when the comment author name contains angle brackets" do
+      let_once(:angle_bracket_comment) do
+        c = sub.add_comment(
+          author: student,
+          comment: "interesting",
+          media_comment_id: 4,
+          media_comment_type: "video"
+        )
+        c.update_column(:author_name, "Alice <Programmer>")
+        c
+      end
+
+      it "preserves the full name without stripping the angle-bracketed portion" do
+        render "submissions/show"
+        html = Nokogiri::HTML5.fragment(response.body)
+        anchor = html.at_css("div#submission_comment_#{angle_bracket_comment.id} div.comment_media a")
+        expect(anchor["data-author"]).to eq("Alice <Programmer>")
+      end
+    end
+
+    context "when the comment author name contains a tag-injection payload" do
+      let_once(:tag_injection_comment) do
+        c = sub.add_comment(
+          author: student,
+          comment: "watch this",
+          media_comment_id: 5,
+          media_comment_type: "video"
+        )
+        c.update_column(:author_name, %{'><img src=x onerror=alert(1)>})
+        c
+      end
+
+      it "preserves the full payload as the attribute value without injecting tags" do
+        render "submissions/show"
+        html = Nokogiri::HTML5.fragment(response.body)
+        anchor = html.at_css("div#submission_comment_#{tag_injection_comment.id} div.comment_media a")
+        expect(anchor["data-author"]).to eq(%{'><img src=x onerror=alert(1)>})
+        expect(html.at_css("div#submission_comment_#{tag_injection_comment.id}").css("img")).to be_empty
+        expect(html.at_css("div#submission_comment_#{tag_injection_comment.id}").css("[onerror]")).to be_empty
+      end
+    end
+
+    context "when the comment author name contains a double-quote XSS payload" do
+      let_once(:double_quote_comment) do
+        c = sub.add_comment(
+          author: student,
+          comment: "sneaky",
+          media_comment_id: 6,
+          media_comment_type: "video"
+        )
+        c.update_column(:author_name, %(" onclick="alert(1)))
+        c
+      end
+
+      it "does not break out of the double-quoted attribute" do
+        render "submissions/show"
+        html = Nokogiri::HTML5.fragment(response.body)
+        anchor = html.at_css("div#submission_comment_#{double_quote_comment.id} div.comment_media a")
+        expect(anchor["onclick"]).to be_nil
+        expect(anchor["data-author"]).to eq(%(" onclick="alert(1)))
+      end
+    end
   end
 
   describe "asset report status containers" do
