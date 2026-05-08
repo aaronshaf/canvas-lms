@@ -137,7 +137,9 @@ module SeleniumExtensions
 
       location = CallStackUtils.best_line_for($ERROR_INFO.backtrace)
       warn "WARNING: StaleElementReferenceError at #{location.first}, attempting to recover..."
-      @id = finder_proc.call.ref
+      # Element#ref returns [:element, id] in selenium-webdriver 4.x; @id must be the bare id string
+      ref = finder_proc.call.ref
+      @id = ref.is_a?(Array) ? ref.last : ref
       retry
     end
   end

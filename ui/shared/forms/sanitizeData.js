@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import sanitizeHtml from 'sanitize-html-with-tinymce'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 export default function sanitizeData(data, dataItems = ['message']) {
   const sanitizedData = {...data}
@@ -24,7 +24,7 @@ export default function sanitizeData(data, dataItems = ['message']) {
   dataItems.forEach(item => {
     if (!sanitizedData[item]) return
 
-    sanitizedData[item] = sanitizeHtml(sanitizedData[item])
+    sanitizedData[item] = sanitizeHTML(sanitizedData[item])
   })
 
   return sanitizedData
