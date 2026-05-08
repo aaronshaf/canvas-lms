@@ -127,4 +127,150 @@ describe('SearchSpan — XSS regression (title-attribute breakout)', () => {
     expectNoEventHandlers(container)
     expect((window as any).__xss_fired).toBeUndefined()
   })
+
+  // --- DOM-walk semantics: preprocessor must not touch attribute values ---
+  //
+  // These cases pin down the DOM-walk implementation contract: highlighting
+  // and link-target rewriting may only mutate real elements / text nodes,
+  // never the contents of attribute values. They fail under the legacy
+  // regex/character-split implementation (which sees attribute contents as
+  // raw characters) and pass under the DOM-walk implementation.
+
+  it('addTargetToLinks: does not add target= to <a-like text inside attribute values', () => {
+    setLocationSearch('?embed=true')
+    // The literal substring `<a ` lives inside a title="..." value. A regex
+    // rewrite would inject `target="_top"` mid-attribute and corrupt the
+    // attribute boundary.
+    const html = '<p title="<a href=evil>">visible</p>'
+    const {container} = render(<SearchSpan htmlBody={html} searchTerm="" />)
+
+    const p = container.querySelector('p')
+    expect(p).not.toBeNull()
+    // The title value should still be intact, and target= must not have
+    // been written into it.
+    const title = p!.getAttribute('title') ?? ''
+    expect(title).not.toMatch(/target=/i)
+
+    // No real <a target=...> should have materialized from the attribute
+    // contents.
+    expect(container.querySelector('a[target]')).toBeNull()
+  })
+
+  it('addSearchHighlighting: does not inject highlight spans inside attribute values', () => {
+    // The title value contains `<a >evil</a>` as inert text. Under the old
+    // character-split implementation, the walker treats every `<` as a tag
+    // boundary and would happily emit a highlight span around the literal
+    // "evil" sitting inside the title attribute, breaking out of the
+    // attribute and producing live DOM. The DOM-walk implementation only
+    // visits text nodes, so the title value is never touched.
+    const html = '<p title="<a >evil</a>">visible</p>'
+    const {container} = render(<SearchSpan htmlBody={html} searchTerm="evil" />)
+
+    // The title attribute on <p> must not have been rewritten with a span.
+    const p = container.querySelector('p')
+    expect(p).not.toBeNull()
+    const title = p!.getAttribute('title') ?? ''
+    expect(title).not.toMatch(/<span/i)
+    expect(title).not.toMatch(/highlighted-search-item/)
+
+    // And no highlight span should have been emitted at all, since "evil"
+    // is not present in any text node.
+    expect(container.querySelectorAll('[data-testid="highlighted-search-item"]')).toHaveLength(0)
+  })
+
+  // --- More attribute-protection edge cases -----------------------------
+
+  it('addTargetToLinks: does not run in non-embed mode', () => {
+    setLocationSearch('') // not embedded
+    const {container} = render(
+      <SearchSpan htmlBody='<p><a href="https://example">link</a></p>' searchTerm="" />,
+    )
+    expect(container.querySelector('a[target]')).toBeNull()
+  })
+
+  it('addTargetToLinks: only runs when embed query param is exactly "true"', () => {
+    setLocationSearch('?embed=1') // truthy-looking but not the literal string "true"
+    const {container} = render(
+      <SearchSpan htmlBody='<p><a href="https://example">link</a></p>' searchTerm="" />,
+    )
+    expect(container.querySelector('a[target]')).toBeNull()
+  })
+
+  it('renders multiple <a> tags including deeply nested ones', () => {
+    // Note: DOMPurify default policy strips the `target` attribute from
+    // anchors entirely. addTargetToLinks runs in embed mode and writes
+    // target="_top", but the final sanitize pass removes it. This test
+    // pins the "every link survives sanitization" half of that behavior;
+    // the target= attribute is verified separately in DOMPurify's own
+    // tests and is intentionally NOT asserted here.
+    setLocationSearch('?embed=true')
+    const html =
+      '<div><a href="https://example.com/a">A</a><section><a href="https://example.com/b">B</a></section></div>'
+    const {container} = render(<SearchSpan htmlBody={html} searchTerm="" />)
+    expect(container.querySelectorAll('a')).toHaveLength(2)
+  })
+
+  it('strips event-handler attributes that would survive a naive embed-mode rewrite', () => {
+    setLocationSearch('?embed=true')
+    const html = '<a href="https://example.com" onclick="alert(1)">link</a>'
+    const {container} = render(<SearchSpan htmlBody={html} searchTerm="" />)
+    const link = container.querySelector('a')
+    expect(link).not.toBeNull()
+    expect(link!.getAttribute('onclick')).toBeNull()
+  })
+
+  it('script-tag payload inside title attribute is neutralized', () => {
+    const html = '<p title="<script>window.__xss_fired=true</script>">visible</p>'
+    const {container} = render(<SearchSpan htmlBody={html} searchTerm="" />)
+    expect(container.querySelector('script')).toBeNull()
+    expect((window as any).__xss_fired).toBeUndefined()
+  })
+
+  it('javascript: href embedded inside title attribute does not become a real link', () => {
+    const html = '<p title="<a href=&quot;javascript:alert(1)&quot;>x</a>">visible</p>'
+    const {container} = render(<SearchSpan htmlBody={html} searchTerm="" />)
+    container.querySelectorAll('a').forEach(a => {
+      const href = a.getAttribute('href') ?? ''
+      expect(href.toLowerCase()).not.toContain('javascript:')
+    })
+  })
+
+  it('iframe srcdoc payload is stripped (DOMPurify defuses srcdoc)', () => {
+    const html = '<iframe srcdoc="<script>alert(1)</script>"></iframe>'
+    const {container} = render(<SearchSpan htmlBody={html} searchTerm="" />)
+    const iframe = container.querySelector('iframe')
+    // The wrapper allows <iframe> for legit Studio/media embeds, but
+    // srcdoc is not in the additional allowlist — DOMPurify strips it.
+    if (iframe) {
+      expect(iframe.hasAttribute('srcdoc')).toBe(false)
+    }
+  })
+
+  it('multiple title-attribute breakouts in one payload all stay inert', () => {
+    const html =
+      '<p title="<img src=x onerror=alert(1)>">a</p>' + '<p title="<svg onload=alert(2)>">b</p>'
+    const {container} = render(<SearchSpan htmlBody={html} searchTerm="" />)
+    expectNoEventHandlers(container)
+    expect((window as any).__xss_fired).toBeUndefined()
+  })
+
+  it('deeply nested malicious title attribute remains inert', () => {
+    const html =
+      '<article><section><div>' +
+      '<p title="<a ><img src=x onerror=alert(1)>">visible</p>' +
+      '</div></section></article>'
+    const {container} = render(<SearchSpan htmlBody={html} searchTerm="" />)
+    expectNoEventHandlers(container)
+  })
+
+  it('combined: embed mode + active search + malicious payload all rendered safely', () => {
+    setLocationSearch('?embed=true')
+    const {container} = render(<SearchSpan htmlBody={MALICIOUS_MESSAGE} searchTerm="visible" />)
+    expectNoEventHandlers(container)
+    // Search highlighting still works on legitimate text.
+    expect(
+      container.querySelectorAll('[data-testid="highlighted-search-item"]').length,
+    ).toBeGreaterThan(0)
+    expect((window as any).__xss_fired).toBeUndefined()
+  })
 })

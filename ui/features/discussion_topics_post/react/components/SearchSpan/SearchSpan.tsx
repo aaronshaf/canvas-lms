@@ -39,69 +39,97 @@ interface SearchSpanProps {
   lang?: string
 }
 
-// Highlights plaintext while not modifying any existing HTML or styling.
-const addSearchHighlighting = (
-  searchTerm?: string,
-  searchArea?: string,
-  isSplitView?: boolean,
-): string => {
-  // Check for conditions where highlighting should not be applied
-  if (!searchArea || !searchTerm || isSplitView) {
-    return searchArea || ''
-  }
+const HIGHLIGHT_STYLE =
+  'font-weight: bold; background-color: rgba(0,142,226,0.2); border-radius: .25rem; padding-bottom: 3px; padding-top: 1px;'
 
-  // If no HTML tags, bypass parsing for performance
-  if (!searchArea.includes('<')) return highlightText(searchArea, searchTerm)
+// Tags whose text content we should not search inside, matching the prior
+// behavior where `<iframe>...iframe...</iframe>` text content was excluded
+// from highlighting. Browsers keep iframe inner content as a text node when
+// parsed via DOMParser, so we need to skip it explicitly.
+const SKIP_HIGHLIGHT_PARENTS = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'NOSCRIPT', 'TEMPLATE'])
 
-  const textAndTags: string[] = [] // Stores HTML tags and plaintext as separate elements
-  const textAndTagsMatches: number[] = [] // Stores indexes of matched elements
-  let tempString = ''
+const escapeRegExp = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-  // Parse the input to split HTML tags from plaintext elements
-  for (let i = 0; i < searchArea.length; i++) {
-    if (searchArea[i] === '<' && tempString) {
-      // Check if the plaintext element contains the search term
-      if (tempString.toLowerCase().includes(searchTerm.toLowerCase())) {
-        textAndTagsMatches.push(textAndTags.length)
-      }
-      // Add the plaintext element to array and reset for the tag element
-      textAndTags.push(tempString)
-      tempString = searchArea[i]
-    } else if (searchArea[i] === '>' || i === searchArea.length - 1) {
-      // Add the tag element to array and reset for next element
-      tempString += searchArea[i]
-      textAndTags.push(tempString)
-      tempString = ''
-    } else {
-      tempString += searchArea[i]
-    }
-  }
+// Sets target="_top" on every <a> in the parsed tree when the page is
+// rendered in embedded mode. Operating on the DOM tree (rather than a regex
+// over the raw HTML string) means attribute values that happen to contain
+// the literal text `<a ` cannot be mutated — they remain inert text inside
+// the title/alt/etc. attribute on the parent element.
+const addTargetToLinks = (root: HTMLElement): void => {
+  const isEmbedded = new URLSearchParams(window.location.search).get('embed') === 'true'
+  if (!isEmbedded) return
 
-  textAndTagsMatches.forEach(index => {
-    textAndTags[index] = highlightText(textAndTags[index], searchTerm)
+  root.querySelectorAll('a').forEach(a => {
+    a.setAttribute('target', '_top')
+  })
+}
+
+// Walks text nodes in the parsed tree and wraps matches of `searchTerm`
+// with a highlight <span>. Because we only visit Node.TEXT_NODE, attribute
+// values (which are stored on Element nodes, not as children) are never
+// mutated. This also means HTML tag names like <iframe> aren't accidentally
+// highlighted just because the search term matches the tag name.
+const addSearchHighlighting = (root: HTMLElement, searchTerm: string): void => {
+  if (!searchTerm) return
+
+  const pattern = new RegExp(escapeRegExp(searchTerm), 'gi')
+  const doc = root.ownerDocument || document
+
+  // Collect first, mutate after — replacing a text node mid-walk would
+  // confuse a live TreeWalker.
+  const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node: Node) => {
+      const parent = node.parentElement
+      if (!parent) return NodeFilter.FILTER_REJECT
+      if (SKIP_HIGHLIGHT_PARENTS.has(parent.tagName)) return NodeFilter.FILTER_REJECT
+      if (!node.nodeValue) return NodeFilter.FILTER_REJECT
+      if (!pattern.test(node.nodeValue)) return NodeFilter.FILTER_REJECT
+      return NodeFilter.FILTER_ACCEPT
+    },
   })
 
-  return textAndTags.join('')
-}
+  const matches: Text[] = []
+  let current = walker.nextNode()
+  while (current) {
+    matches.push(current as Text)
+    current = walker.nextNode()
+  }
 
-// Highlight the search term and remove HTML
-const highlightText = (text: string, searchTerm: string): string => {
-  const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const searchExpression = new RegExp(`(${escapedSearchTerm})`, 'gi')
+  matches.forEach(textNode => {
+    const text = textNode.nodeValue ?? ''
+    // Reset regex state — `g` flag pattern is stateful across .exec().
+    pattern.lastIndex = 0
 
-  return text
-    .replace(/<[^>]*>/gm, '')
-    .replace(
-      searchExpression,
-      '<span data-testid="highlighted-search-item" style="font-weight: bold; background-color: rgba(0,142,226,0.2); border-radius: .25rem; padding-bottom: 3px; padding-top: 1px;">$1</span>',
-    )
-}
+    const fragment = doc.createDocumentFragment()
+    let lastIndex = 0
+    let match: RegExpExecArray | null = pattern.exec(text)
 
-const addTargetToLinks = (html: string): string => {
-  const isEmbedded = new URLSearchParams(window.location.search).get('embed') === 'true'
-  if (!isEmbedded) return html
+    while (match) {
+      if (match.index > lastIndex) {
+        fragment.appendChild(doc.createTextNode(text.slice(lastIndex, match.index)))
+      }
+      const span = doc.createElement('span')
+      span.setAttribute('data-testid', 'highlighted-search-item')
+      span.setAttribute('style', HIGHLIGHT_STYLE)
+      span.textContent = match[0]
+      fragment.appendChild(span)
 
-  return html.replace(/<a\s/gi, '<a target="_top" ')
+      lastIndex = match.index + match[0].length
+
+      // Guard against zero-width matches (defensive — escapeRegExp output
+      // shouldn't produce them, but be safe).
+      if (match[0].length === 0) {
+        pattern.lastIndex++
+      }
+      match = pattern.exec(text)
+    }
+
+    if (lastIndex < text.length) {
+      fragment.appendChild(doc.createTextNode(text.slice(lastIndex)))
+    }
+
+    textNode.parentNode?.replaceChild(fragment, textNode)
+  })
 }
 
 export function SearchSpan({...props}: SearchSpanProps) {
@@ -115,13 +143,17 @@ export function SearchSpan({...props}: SearchSpanProps) {
     }`
   }
 
-  // Sanitize AFTER the string-based mutations: the helpers above use naive
-  // regex/character splitting that doesn't respect attribute boundaries, so
-  // a `title="<a ><img onerror=…>"` payload can be promoted to a real DOM
-  // <img> by `addTargetToLinks` (or a stray highlight span). Running
-  // DOMPurify on the final string strips anything that escaped.
-  const processedHtml = addSearchHighlighting(props.searchTerm, props.htmlBody, props.isSplitView)
-  const finalHtml = sanitizeHTML(addTargetToLinks(processedHtml))
+  // Parse once into a real DOM tree, mutate via element APIs, serialize back.
+  // This replaces the previous regex/character-split string mutators which
+  // could escape attribute boundaries (e.g. promoting <img onerror=…>
+  // embedded inside a title="…" value into a real DOM node). sanitizeHTML
+  // remains the final defense-in-depth pass.
+  const doc = new DOMParser().parseFromString(props.htmlBody ?? '', 'text/html')
+  addTargetToLinks(doc.body)
+  if (props.searchTerm && !props.isSplitView) {
+    addSearchHighlighting(doc.body, props.searchTerm)
+  }
+  const finalHtml = sanitizeHTML(doc.body.innerHTML)
 
   return (
     <span
