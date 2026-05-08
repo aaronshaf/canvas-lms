@@ -39,11 +39,7 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
   before do
     AuthenticationMethods::PseudonymAttributes.reset
     AuthenticationMethods::AccessTokenAttributes.reset
-    site_admin = Account.site_admin
-    allow(site_admin).to receive(:feature_enabled?).and_call_original
-    allow(site_admin).to receive(:feature_enabled?).with(:log_elevated_auth_provider_violations).and_return(false)
-    allow(site_admin).to receive(:feature_enabled?).with(:enforce_no_elevated_auth_provider_violations).and_return(false)
-    allow(Account).to receive(:site_admin).and_return(site_admin)
+    allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_return(false)
     allow(InstStatsd::Statsd).to receive(:distributed_increment).and_call_original
     allow(InstStatsd::Statsd).to receive(:event).and_call_original
   end
@@ -113,7 +109,7 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
             AuthenticationMethods::PseudonymAttributes.auth_provider_id = other_provider.id
           end
 
-          context "with both feature flags off" do
+          context "with both rollout switches off" do
             it_behaves_like "allows the action through"
 
             it "does not emit a violation event" do
@@ -122,10 +118,10 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
             end
           end
 
-          context "with log_elevated_auth_provider_violations on" do
+          context "with log_violations on" do
             before do
-              allow(Account.site_admin).to receive(:feature_enabled?)
-                .with(:log_elevated_auth_provider_violations).and_return(true)
+              allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+                .with("log_violations").and_return(true)
             end
 
             it_behaves_like "allows the action through"
@@ -144,10 +140,10 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
             end
           end
 
-          context "with enforce_no_elevated_auth_provider_violations on" do
+          context "with enforce_violations on" do
             before do
-              allow(Account.site_admin).to receive(:feature_enabled?)
-                .with(:enforce_no_elevated_auth_provider_violations).and_return(true)
+              allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+                .with("enforce_violations").and_return(true)
             end
 
             it "redirects html requests to root_url with a flash error" do
@@ -196,8 +192,8 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
 
         context "and there is no auth provider in the session" do
           before do
-            allow(Account.site_admin).to receive(:feature_enabled?)
-              .with(:enforce_no_elevated_auth_provider_violations).and_return(true)
+            allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+              .with("enforce_violations").and_return(true)
           end
 
           it "redirects html requests to root_url" do
@@ -217,8 +213,8 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
           let(:developer_key) { DeveloperKey.create!(name: "key", scopes:) }
 
           before do
-            allow(Account.site_admin).to receive(:feature_enabled?)
-              .with(:enforce_no_elevated_auth_provider_violations).and_return(true)
+            allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+              .with("enforce_violations").and_return(true)
             AuthenticationMethods::AccessTokenAttributes.current_developer_key = developer_key
           end
 
@@ -230,10 +226,10 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
               expect(InstStatsd::Statsd).not_to have_received(:event)
             end
 
-            context "and log_elevated_auth_provider_violations is on" do
+            context "and log_violations is on" do
               before do
-                allow(Account.site_admin).to receive(:feature_enabled?)
-                  .with(:log_elevated_auth_provider_violations).and_return(true)
+                allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+                  .with("log_violations").and_return(true)
               end
 
               it_behaves_like "allows the action through"
@@ -272,10 +268,10 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
             it_behaves_like "allows the action through"
           end
 
-          context "when require_client_credentials_for_elevated_operations is enabled" do
+          context "when require_client_credentials is enabled" do
             before do
-              allow(Account.site_admin).to receive(:feature_enabled?)
-                .with(:require_client_credentials_for_elevated_operations).and_return(true)
+              allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+                .with("require_client_credentials").and_return(true)
             end
 
             context "and the current token is an InstAccess::Token" do

@@ -172,7 +172,7 @@ class CspSettingsController < ApplicationController
   protected
 
   def require_elevated_auth_provider_for_csp_settings?
-    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_csp_settings)
+    AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_for_csp_settings")
   end
 
   def require_read_permissions

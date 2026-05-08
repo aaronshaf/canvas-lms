@@ -130,15 +130,13 @@ describe PluginsController do
 
       AuthenticationMethods::PseudonymAttributes.reset
 
-      site_admin = Account.site_admin
-      allow(site_admin).to receive(:feature_enabled?).and_call_original
-      allow(site_admin).to receive(:feature_enabled?)
-        .with(:log_elevated_auth_provider_violations).and_return(log_flag_enabled)
-      allow(site_admin).to receive(:feature_enabled?)
-        .with(:enforce_no_elevated_auth_provider_violations).and_return(enforce_flag_enabled)
-      allow(site_admin).to receive(:feature_enabled?)
-        .with(:require_elevated_auth_provider_for_plugins).and_return(plugins_flag_enabled)
-      allow(Account).to receive(:site_admin).and_return(site_admin)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_return(false)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+        .with("log_violations").and_return(log_flag_enabled)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+        .with("enforce_violations").and_return(enforce_flag_enabled)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+        .with("require_for_plugins").and_return(plugins_flag_enabled)
     end
 
     context "when no elevated provider is configured" do

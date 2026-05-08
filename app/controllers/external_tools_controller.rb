@@ -1870,7 +1870,7 @@ class ExternalToolsController < ApplicationController
   private
 
   def require_elevated_auth_provider_for_sessionless_launch?
-    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_sessionless_launch)
+    AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_for_sessionless_launch")
   end
 
   def external_tools_json_for_courses(courses)

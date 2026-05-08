@@ -271,11 +271,10 @@ describe DeveloperKey do
       end
     end
 
-    context "when the require_client_credentials_for_elevated_operations flag is enabled" do
+    context "when require_client_credentials is enabled" do
       before do
-        allow(Account.site_admin).to receive(:feature_enabled?).and_call_original
-        allow(Account.site_admin).to receive(:feature_enabled?)
-          .with(:require_client_credentials_for_elevated_operations).and_return(true)
+        allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+          .with("require_client_credentials").and_return(true)
       end
 
       context "and the key is not a client_credentials service-auth key" do

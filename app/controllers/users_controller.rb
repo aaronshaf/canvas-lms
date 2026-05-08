@@ -3115,7 +3115,7 @@ class UsersController < ApplicationController
   private
 
   def require_elevated_auth_provider_for_login_management?
-    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_login_management)
+    AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_for_login_management")
   end
 
   def load_dashboard_learning_agent_env

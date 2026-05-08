@@ -521,7 +521,7 @@ class DeveloperKey < ApplicationRecord
   end
 
   def elevated_operation_permitted?(request:)
-    if Account.site_admin.feature_enabled?(:require_client_credentials_for_elevated_operations)
+    if AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_client_credentials")
       return false unless site_admin_service_auth?
     end
 

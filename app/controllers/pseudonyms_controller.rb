@@ -532,7 +532,7 @@ class PseudonymsController < ApplicationController
   protected
 
   def require_elevated_auth_provider_for_login_management?
-    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_login_management)
+    AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_for_login_management")
   end
 
   def context_is_root_account?

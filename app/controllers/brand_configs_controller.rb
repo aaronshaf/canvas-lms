@@ -203,7 +203,7 @@ class BrandConfigsController < ApplicationController
   protected
 
   def require_elevated_auth_provider_for_brand_configs?
-    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_brand_configs)
+    AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_for_brand_configs")
   end
 
   def visible_shared_brand_configs

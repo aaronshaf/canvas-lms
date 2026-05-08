@@ -106,7 +106,7 @@ class PluginsController < ApplicationController
   end
 
   def require_elevated_auth_provider_for_plugins?
-    Account.site_admin.feature_enabled?(:require_elevated_auth_provider_for_plugins)
+    AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_for_plugins")
   end
 
   def set_navigation

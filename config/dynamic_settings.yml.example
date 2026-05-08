@@ -117,6 +117,10 @@ development:
           key_type: RSA
           e: AQAB
           n: totally_definitely_342_base64_characters_long
+      # elevated_auth_provider.yml: |
+      #   require_for_plugins: 'true'
+      #   log_violations: 'true'
+      #   enforce_violations: 'true'
       # datadog_apm.yml: |
       #   sample_rate: 0.0
       #   host_sample_rate: 0.0

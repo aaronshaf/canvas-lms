@@ -19,6 +19,17 @@
 
 module AuthenticationMethods
   module ElevatedAuthProvider
+    DYNAMIC_SETTINGS_KEY = "elevated_auth_provider.yml"
+
+    def self.setting_enabled?(name)
+      yaml = DynamicSettings.find(tree: :private)[DYNAMIC_SETTINGS_KEY, failsafe_cache: Rails.root.join("config")]
+      settings = YAML.safe_load(yaml || "{}") || {}
+      ActiveModel::Type::Boolean.new.cast(settings[name])
+    rescue Psych::Exception => e
+      Rails.logger.warn("[ElevatedAuthProvider] Failed to parse #{DYNAMIC_SETTINGS_KEY}: #{e.message}")
+      false
+    end
+
     def require_elevated_auth_provider
       pseudonym_account = @current_pseudonym&.account
 
@@ -43,7 +54,7 @@ module AuthenticationMethods
 
     def operation_permitted_by_client?
       permitted = AuthenticationMethods::AccessTokenAttributes.current_developer_key&.elevated_operation_permitted?(request:)
-      if Account.site_admin.feature_enabled?(:require_client_credentials_for_elevated_operations)
+      if AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_client_credentials")
         permitted &&= AuthenticationMethods::AccessTokenAttributes.current_token.is_a?(InstAccess::Token)
       end
 
@@ -92,7 +103,7 @@ module AuthenticationMethods
     end
 
     def handle_no_elevated_auth_provider(pseudonym_account)
-      if Account.site_admin.feature_enabled? :log_elevated_auth_provider_violations
+      if AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("log_violations")
         # Intentionally not using request.url to avoid logging sensistive params
         message = "A #{request.method} request to #{request.base_url + request.path} (request_id: #{Canvas::ExecutionContext[:request_id]}) by user '#{@current_user&.global_id}' required elevated auth provider '#{pseudonym_account.elevated_auth_provider_global_id}', but '#{AuthenticationMethods::PseudonymAttributes.auth_provider&.global_id}' was used."
 
@@ -107,7 +118,7 @@ module AuthenticationMethods
         log_message(message, level: :warn)
       end
 
-      if Account.site_admin.feature_enabled? :enforce_no_elevated_auth_provider_violations
+      if AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("enforce_violations")
         respond_to do |format|
           format.html do
             if @current_user
