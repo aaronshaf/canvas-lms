@@ -16,20 +16,18 @@
 #
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-#
 
-class ExternalContentReference < ApplicationRecord
-  belongs_to :root_account, class_name: "Account"
-  belongs_to :context, polymorphic: [:wiki_page, :learner_dashboard_layout], separate_columns: true, optional: false
+class CreateLearnerDashboardActivations < ActiveRecord::Migration[8.0]
+  tag :predeploy
 
-  before_validation :set_root_account_id, on: :create
+  def change
+    create_table :learner_dashboard_activations do |t|
+      t.references :account, null: false, foreign_key: true, index: { unique: true }
+      t.references :root_account, null: false, foreign_key: { to_table: :accounts }, index: false
+      t.references :learner_dashboard_layout, null: false, foreign_key: true
+      t.timestamps
 
-  validates :content_id, presence: true
-  validates :root_account, presence: true
-
-  private
-
-  def set_root_account_id
-    self.root_account_id ||= context&.root_account_id
+      t.replica_identity_index
+    end
   end
 end

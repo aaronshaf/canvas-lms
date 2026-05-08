@@ -16,20 +16,23 @@
 #
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-#
 
-class ExternalContentReference < ApplicationRecord
-  belongs_to :root_account, class_name: "Account"
-  belongs_to :context, polymorphic: [:wiki_page, :learner_dashboard_layout], separate_columns: true, optional: false
+class LearnerDashboardLayout < ApplicationRecord
+  include Canvas::SoftDeletable
+
+  belongs_to :account, optional: false
+  belongs_to :root_account, class_name: "Account", optional: false
+
+  has_one :external_content_reference, dependent: :destroy, inverse_of: :learner_dashboard_layout
+  has_many :learner_dashboard_activations, dependent: :destroy
 
   before_validation :set_root_account_id, on: :create
 
-  validates :content_id, presence: true
-  validates :root_account, presence: true
+  validates :name, presence: true, length: { maximum: 255 }
 
   private
 
   def set_root_account_id
-    self.root_account_id ||= context&.root_account_id
+    self.root_account_id ||= account&.resolved_root_account_id
   end
 end

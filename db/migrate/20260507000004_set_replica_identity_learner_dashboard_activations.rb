@@ -16,20 +16,11 @@
 #
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-#
 
-class ExternalContentReference < ApplicationRecord
-  belongs_to :root_account, class_name: "Account"
-  belongs_to :context, polymorphic: [:wiki_page, :learner_dashboard_layout], separate_columns: true, optional: false
+class SetReplicaIdentityLearnerDashboardActivations < ActiveRecord::Migration[8.0]
+  tag :predeploy
 
-  before_validation :set_root_account_id, on: :create
-
-  validates :content_id, presence: true
-  validates :root_account, presence: true
-
-  private
-
-  def set_root_account_id
-    self.root_account_id ||= context&.root_account_id
+  def change
+    set_replica_identity :learner_dashboard_activations
   end
 end
