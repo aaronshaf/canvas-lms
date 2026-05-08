@@ -19,7 +19,7 @@
 #
 
 class OneTimePasswordsController < ApplicationController
-  before_action :require_password_session, :disallow_masquerading, :require_otp
+  before_action :require_password_session, :disallow_masquerading, :require_otp, :require_navigation_request
 
   def index
     @current_user.generate_one_time_passwords

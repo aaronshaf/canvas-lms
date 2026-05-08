@@ -22,6 +22,6 @@ describe OneTimePassword do
   it "automatically generates a random code" do
     u = User.create!
     otp = u.one_time_passwords.create!
-    expect(otp.code).to match(/\d{8}/)
+    expect(otp.code).to match(/\A[a-zA-Z0-9]{12}\z/)
   end
 end
