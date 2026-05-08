@@ -22,6 +22,7 @@ import DatetimeDisplay from '@canvas/datetime/react/components/DatetimeDisplay'
 import DeleteConfirmation from './DeleteConfirmation'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import splitAssetString from '@canvas/util/splitAssetString'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import store from './store'
 
 const I18n = createI18nScope('react_collaborations')
@@ -69,7 +70,7 @@ class Collaboration extends React.Component {
         <div className="Collaboration-body">
           <a
             className="Collaboration-title"
-            href={`/${context}/${contextId}/collaborations/${collaboration.id}`}
+            href={sanitizeUrl(`/${context}/${contextId}/collaborations/${collaboration.id}`)}
             target="_blank"
             rel="noreferrer"
             data-testid="collaboration-title"
@@ -81,7 +82,7 @@ class Collaboration extends React.Component {
           </p>
           <a
             className="Collaboration-author"
-            href={`/users/${collaboration.user_id}`}
+            href={sanitizeUrl(`/users/${collaboration.user_id}`)}
             data-testid="collaboration-author"
           >
             {collaboration.user_name},
@@ -90,7 +91,7 @@ class Collaboration extends React.Component {
         </div>
         <div className="Collaboration-actions">
           {canEdit && (
-            <a className="icon-edit" href={editUrl} data-testid="edit-collaboration">
+            <a className="icon-edit" href={sanitizeUrl(editUrl)} data-testid="edit-collaboration">
               <span className="screenreader-only">{I18n.t('Edit Collaboration')}</span>
             </a>
           )}

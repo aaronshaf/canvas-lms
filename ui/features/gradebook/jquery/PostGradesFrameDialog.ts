@@ -19,6 +19,7 @@
 import $ from 'jquery'
 import postGradesFrameDialog from '../jst/PostGradesFrameDialog.handlebars'
 import iframeAllowances from '@canvas/external-apps/iframeAllowances'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import 'jqueryui/dialog'
 
 type PostGradesFrameDialogOptions = {
@@ -72,7 +73,7 @@ export default class PostGradesFrameDialog {
 
     // other init
     if (this.baseUrl) {
-      this.$dialog.find('.post-grades-frame').attr('src', this.baseUrl)
+      this.$dialog.find('.post-grades-frame').attr('src', sanitizeUrl(this.baseUrl))
     }
   }
 

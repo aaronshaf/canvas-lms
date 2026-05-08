@@ -35,6 +35,7 @@ import {Spinner} from '@instructure/ui-spinner'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
 import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('react_developer_keys')
 type DynamicRegistrationModalProps = {
@@ -120,13 +121,13 @@ const DynamicRegistrationModalBody = ({contextId}: DynamicRegistrationModalBodyP
       return (
         <Modal.Body padding="none">
           <iframe
-            src={
+            src={sanitizeUrl(
               `/api/lti/accounts/${contextId}/dr_iframe?url=` +
-              addParams(state.dynamicRegistrationUrl, {
-                openid_configuration: state.registrationToken.oidc_configuration_url,
-                registration_token: state.registrationToken.token,
-              })
-            }
+                addParams(state.dynamicRegistrationUrl, {
+                  openid_configuration: state.registrationToken.oidc_configuration_url,
+                  registration_token: state.registrationToken.token,
+                }),
+            )}
             style={{width: '100%', height: '600px', border: '0', display: 'block'}}
             title={I18n.t('Register App')}
             data-testid="dynamic-reg-modal-iframe"

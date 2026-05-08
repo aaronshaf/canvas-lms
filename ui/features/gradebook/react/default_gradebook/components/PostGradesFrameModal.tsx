@@ -24,6 +24,7 @@ import {Lti} from '../gradebook.d'
 import {CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import {onLtiClosePostMessage} from '@canvas/lti/jquery/messages'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('gradebook')
 
@@ -67,7 +68,7 @@ function PostGradesFrameModal({postGradesLtis, selectedLtiId, onClose}: PostGrad
       <Modal.Body padding="none">
         {baseUrl ? (
           <iframe
-            src={baseUrl}
+            src={sanitizeUrl(baseUrl)}
             ref={iframeRef}
             className="post-grades-frame"
             style={{border: 'none', width: '100%', height: '75vh'}}

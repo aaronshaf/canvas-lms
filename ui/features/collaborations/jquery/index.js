@@ -26,6 +26,7 @@ import 'jquery-scroll-to-visible/jquery.scrollTo'
 import '@canvas/rails-flash-notifications'
 import {addDeepLinkingListener, onExternalContentReady} from '@canvas/deep-linking/collaborations'
 import {handleExternalContentMessages} from '@canvas/external-tools/messages'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('collaborations')
 
@@ -112,7 +113,7 @@ CollaborationsPage.Events = {
     if (launch_url) {
       $('.collaborate_data, #google_docs_description').hide()
       $('#collaborate_authorize_google_docs').hide()
-      $('#lti_new_collaboration_iframe').attr('src', launch_url).show()
+      $('#lti_new_collaboration_iframe').attr('src', sanitizeUrl(launch_url)).show()
     } else {
       $('#lti_new_collaboration_iframe').hide()
       $('.collaborate_data, #google_docs_description').show()

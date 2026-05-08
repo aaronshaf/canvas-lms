@@ -19,6 +19,7 @@
 import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import splitAssetString from '@canvas/util/splitAssetString'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('react_collaborations')
 
@@ -35,7 +36,9 @@ class NewCollaborationsDropDown extends React.Component {
           <a
             className="Button Button--primary"
             aria-label={I18n.t('Add Collaboration')}
-            href={`/${context}/${contextId}/lti_collaborations/external_tools/${this.props?.ltiCollaborators[0].id}?launch_type=collaboration&display=borderless`}
+            href={sanitizeUrl(
+              `/${context}/${contextId}/lti_collaborations/external_tools/${this.props?.ltiCollaborators[0].id}?launch_type=collaboration&display=borderless`,
+            )}
           >
             {I18n.t('+ Collaboration')}
           </a>
@@ -62,7 +65,7 @@ class NewCollaborationsDropDown extends React.Component {
                 const itemUrl = `lti_collaborations/external_tools/${ltiCollaborator.id}?launch_type=collaboration&display=borderless`
                 return (
                   <li key={ltiCollaborator.id}>
-                    <a href={itemUrl} rel="external" role="menuitem">
+                    <a href={sanitizeUrl(itemUrl)} rel="external" role="menuitem">
                       {ltiCollaborator?.collaboration?.text}
                     </a>
                   </li>

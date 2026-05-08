@@ -18,6 +18,7 @@
 
 import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('react_collaborations')
 
@@ -32,7 +33,7 @@ class GettingStartedCollaborations extends React.Component {
           'Collaborations are web-based tools to work collaboratively on tasks like taking notes or grouped papers. Get started by adding a collaboration app.',
         )
         link = (
-          <a rel="external" href={I18n.t('#community.basics_collaborations')}>
+          <a rel="external" href={sanitizeUrl(I18n.t('#community.basics_collaborations'))}>
             {I18n.t('Learn more about collaborations')}
           </a>
         )
@@ -54,7 +55,7 @@ class GettingStartedCollaborations extends React.Component {
         )
       }
       link = (
-        <a href={I18n.t('#community.basics_collaborations')}>
+        <a href={sanitizeUrl(I18n.t('#community.basics_collaborations'))}>
           {I18n.t('Learn more about collaborations')}
         </a>
       )

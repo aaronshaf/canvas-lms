@@ -50,6 +50,7 @@ import {isLtiPlacementWithIcon} from '../model/LtiPlacement'
 import {filterPlacementsByFeatureFlags} from '@canvas/lti/model/LtiPlacementFilter'
 import {getInputIdForField} from '../registration_overlay/validateLti1p3RegistrationOverlayState'
 import {Lti1p3RegistrationWizardStep} from '../lti_1p3_registration_form/Lti1p3RegistrationWizardState'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('lti_registrations')
 
@@ -294,10 +295,12 @@ const renderStepContent = (
       return (
         <RegistrationModalBody padding="none" bottomSpacing={false}>
           <iframe
-            src={addParams(props.dynamicRegistrationUrl, {
-              openid_configuration: state.registrationToken.oidc_configuration_url,
-              registration_token: state.registrationToken.token,
-            })}
+            src={sanitizeUrl(
+              addParams(props.dynamicRegistrationUrl, {
+                openid_configuration: state.registrationToken.oidc_configuration_url,
+                registration_token: state.registrationToken.token,
+              }),
+            )}
             style={{
               width: '100%',
               height: '100%',

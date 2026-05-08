@@ -42,6 +42,7 @@ import {useAssetProcessorsToolsList} from './hooks/useAssetProcessorsToolsList'
 import {onLtiClosePostMessage} from '@canvas/lti/jquery/messages'
 import {AssetProcessorType} from '@canvas/lti/model/AssetProcessor'
 import {ToolContextName} from './ToolContextName'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('asset_processors_selection')
 
@@ -250,10 +251,10 @@ function AssetProcessorsAddModalBodyToolLaunch(
 
   return (
     <iframe
-      src={
+      src={sanitizeUrl(
         `/courses/${courseId}/external_tools/${tool.definition_id}/resource_selection` +
-        `?display=borderless&launch_type=${props.type}&secure_params=${secureParams}`
-      }
+          `?display=borderless&launch_type=${props.type}&secure_params=${secureParams}`,
+      )}
       style={{width, height, border: '0', display: 'block'}}
       title={I18n.t('Configure new document processing app')}
       ref={iframeRef}

@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import React from 'react'
 
 const I18n = createI18nScope('external_tools')
@@ -46,7 +47,7 @@ export default function AppTile({baseUrl, app}: AppTileProps) {
   return (
     <a
       tabIndex={0}
-      href={`${baseUrl}/app/${app.short_name}`}
+      href={sanitizeUrl(`${baseUrl}/app/${app.short_name}`)}
       aria-label={I18n.t('View %{name} app', {name: app.name})}
       aria-describedby={`${appId}-desc`}
       className="app"

@@ -37,6 +37,7 @@ import '@canvas/rails-flash-notifications'
 import 'jquery-scroll-to-visible/jquery.scrollTo'
 import '@canvas/quizzes/jquery/behaviors/quiz_selectmenu'
 import {renderError, restoreOriginalMessage} from '@canvas/quizzes/jquery/quiz_form_utils'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('quizzes.take_quiz')
 
@@ -550,7 +551,7 @@ $(document).ready(() => {
         const button = $('#submit_quiz_button')
         button.prop('disabled', true)
         const action = button.data('action')
-        $('#submit_quiz_form').attr('action', action).submit()
+        $('#submit_quiz_form').attr('action', sanitizeUrl(action)).submit()
       },
     }
   })()
@@ -989,7 +990,7 @@ $(document).ready(() => {
       quizSubmission.clearAccessCode = false
       const action = $(this).data('action')
       if (action != undefined) {
-        $('#submit_quiz_form').attr('action', action)
+        $('#submit_quiz_form').attr('action', sanitizeUrl(action))
       }
     })
 

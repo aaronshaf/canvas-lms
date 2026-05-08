@@ -24,6 +24,7 @@ import PropTypes from 'prop-types'
 import page from 'page'
 import Header from './Header'
 import AddApp from './AddApp'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import '@canvas/rails-flash-notifications'
 
 const I18n = createI18nScope('external_tools')
@@ -80,12 +81,12 @@ export default class AppDetails extends React.Component {
       <div className="AppDetails">
         <Header>
           <a
-            href={`${this.props.baseUrl}/configurations`}
+            href={sanitizeUrl(`${this.props.baseUrl}/configurations`)}
             className="btn view_tools_link lm pull-right"
           >
             {I18n.t('View App Configurations')}
           </a>
-          <a href={this.props.baseUrl} className="btn view_tools_link lm pull-right">
+          <a href={sanitizeUrl(this.props.baseUrl)} className="btn view_tools_link lm pull-right">
             {I18n.t('View App Center')}
           </a>
         </Header>
@@ -109,7 +110,7 @@ export default class AppDetails extends React.Component {
                     handleToolInstalled={this.handleToolInstalled}
                   />
 
-                  <a href={this.props.baseUrl} className="app_cancel">
+                  <a href={sanitizeUrl(this.props.baseUrl)} className="app_cancel">
                     &laquo; {I18n.t('Back to App Center')}
                   </a>
                 </td>

@@ -25,6 +25,7 @@ import ConfigurationFormManual from './ConfigurationFormManual'
 import ConfigurationFormUrl from './ConfigurationFormUrl'
 import ConfigurationFormXml from './ConfigurationFormXml'
 import ConfigurationTypeSelector from './ConfigurationTypeSelector'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('external_tools')
 
@@ -287,7 +288,7 @@ export default class ConfigurationForm extends React.Component {
           onSubmit={this.handleSubmit}
           target={this.iframeTarget()}
           method="post"
-          action={ENV.LTI_LAUNCH_URL}
+          action={sanitizeUrl(ENV.LTI_LAUNCH_URL)}
         >
           <div
             className="ReactModal__Body"
