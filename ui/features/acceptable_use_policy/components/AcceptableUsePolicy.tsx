@@ -27,6 +27,7 @@ import React, {useCallback} from 'react'
 import {useAUPContent} from '../hooks/useAUPContent'
 import {assignLocation} from '@canvas/util/globalUtils'
 import {useLocation, useNavigate, useNavigationType} from 'react-router-dom'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 import styles from './AcceptableUsePolicy.module.css'
 
@@ -95,7 +96,7 @@ const AcceptableUsePolicy = () => {
               as="div"
               data-testid="aup-content"
               className={styles.acceptableUsePolicy__content}
-              dangerouslySetInnerHTML={{__html: content}}
+              dangerouslySetInnerHTML={{__html: sanitizeHTML(content)}}
             />
           ) : error ? (
             alertTermsUnavailable()
