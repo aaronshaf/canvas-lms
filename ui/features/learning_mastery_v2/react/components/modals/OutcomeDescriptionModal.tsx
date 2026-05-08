@@ -19,6 +19,7 @@
 import React from 'react'
 import {InstUIModal as Modal} from '@instructure/platform-instui-bindings'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
@@ -145,7 +146,7 @@ const OutcomeModalBody = ({
           margin="small none"
           width="100%"
           data-testid="outcome-description"
-          dangerouslySetInnerHTML={{__html: outcome.description ?? ''}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(outcome.description)}}
         />
       )}
 

@@ -18,6 +18,7 @@
 
 import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import PropTypes from 'prop-types'
 import {Text} from '@instructure/ui-text'
 import {TruncateText} from '@instructure/ui-truncate-text'
@@ -113,7 +114,7 @@ const OutcomeDescription = ({
           padding="0 small 0 0"
           data-testid="description-expanded"
           className="user_content"
-          dangerouslySetInnerHTML={{__html: fullDescription}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(fullDescription)}}
         />
       )}
 

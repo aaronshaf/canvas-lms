@@ -20,6 +20,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Button} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
@@ -44,7 +45,7 @@ const GroupDescriptionModal = ({outcomeGroup, isOpen, onCloseHandler}) => (
         <View
           as="div"
           padding="small 0"
-          dangerouslySetInnerHTML={{__html: outcomeGroup.description}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(outcomeGroup.description)}}
         />
       </View>
     </Modal.Body>

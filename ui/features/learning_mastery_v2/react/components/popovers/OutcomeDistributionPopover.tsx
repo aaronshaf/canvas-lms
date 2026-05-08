@@ -25,6 +25,7 @@ import {CloseButton, IconButton} from '@instructure/ui-buttons'
 import {IconInfoLine, IconArrowOpenEndLine} from '@instructure/ui-icons'
 import {TruncateText} from '@instructure/ui-truncate-text'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Outcome, Student} from '@canvas/outcomes/react/types/rollup'
 import {MasteryDistributionChart} from '../charts'
 import {Text} from '@instructure/ui-text'
@@ -104,7 +105,7 @@ const InfoSection: React.FC<{
             display="block"
             width="100%"
             data-testid="outcome-description"
-            dangerouslySetInnerHTML={{__html: outcome.description ?? ''}}
+            dangerouslySetInnerHTML={{__html: sanitizeHTML(outcome.description)}}
           />
         )}
       </View>

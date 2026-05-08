@@ -26,6 +26,7 @@ import {IconButton} from '@instructure/ui-buttons'
 import {PresentationContent, ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {IconArrowOpenEndLine, IconArrowOpenDownLine} from '@instructure/ui-icons'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {stripHtmlTags} from '@canvas/outcomes/stripHtmlTags'
 import {addZeroWidthSpace} from '@canvas/outcomes/addZeroWidthSpace'
 import useCanvasContext from '@canvas/outcomes/react/hooks/useCanvasContext'
@@ -141,7 +142,7 @@ const AlignmentOutcomeItem = ({title, description, alignments}) => {
                 padding="0 small 0 0"
                 data-testid="alignment-summary-description-expanded"
                 className="user_content"
-                dangerouslySetInnerHTML={{__html: description}}
+                dangerouslySetInnerHTML={{__html: sanitizeHTML(description)}}
               />
             )}
 

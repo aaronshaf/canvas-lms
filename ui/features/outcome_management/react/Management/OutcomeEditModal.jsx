@@ -20,6 +20,7 @@
 import React, {useState} from 'react'
 import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {TextInput} from '@instructure/ui-text-input'
 import {TextArea} from '@instructure/ui-text-area'
 import {Text} from '@instructure/ui-text'
@@ -275,7 +276,10 @@ const OutcomeEditModal = ({outcome, isOpen, onCloseHandler, onEditLearningOutcom
               <View as="div" data-testid="readonly-description">
                 <Text weight="bold">{I18n.t('Description')}</Text> <br />
                 <View as="div" margin="small 0 0">
-                  <Text as="p" dangerouslySetInnerHTML={{__html: outcome.description}} />
+                  <Text
+                    as="p"
+                    dangerouslySetInnerHTML={{__html: sanitizeHTML(outcome.description)}}
+                  />
                 </View>
               </View>
             )}

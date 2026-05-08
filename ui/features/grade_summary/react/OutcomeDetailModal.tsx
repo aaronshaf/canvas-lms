@@ -23,10 +23,10 @@ import {Heading} from '@instructure/ui-heading'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
-import {raw} from '@instructure/html-escape'
 import {ProgressBar} from '@instructure/ui-progress'
 import numberFormat from '@canvas/i18n/numberFormat'
 import doFetchApi from '@canvas/do-fetch-api-effect'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {useQuery} from '@tanstack/react-query'
 import {Spinner} from '@instructure/ui-spinner'
 import {Fragment} from 'react/jsx-runtime'
@@ -194,7 +194,7 @@ function OutcomeDetailModal({
             </Flex>
             <Flex direction="column">
               {outcome.description && (
-                <span dangerouslySetInnerHTML={{__html: raw(outcome.description)}} />
+                <span dangerouslySetInnerHTML={{__html: sanitizeHTML(outcome.description)}} />
               )}
             </Flex>
           </Flex>
