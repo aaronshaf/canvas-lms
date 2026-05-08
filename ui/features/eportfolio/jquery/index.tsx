@@ -36,7 +36,7 @@ import {render, rerender} from '@canvas/react'
 import userSettings from '@canvas/user-settings'
 import RichContentEditor from '@canvas/rce/RichContentEditor'
 import {fetchContent} from './eportfolio_section'
-import sanitizeHtml from 'sanitize-html-with-tinymce'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {raw} from '@instructure/html-escape'
 import '@canvas/jquery/jquery.ajaxJSON'
 import '@canvas/jquery/jquery.tree' /* instTree */
@@ -357,14 +357,14 @@ $(document).ready(function () {
         textValues: ['section_type'],
       }).section_type as string | undefined
       if (section_type === 'html') {
-        // xsslint safeString.function sanitizeHtml
-        $preview.html(sanitizeHtml($section.find('.edit_section').val() as string))
+        // xsslint safeString.function sanitizeHTML
+        $preview.html(sanitizeHTML($section.find('.edit_section').val() as string))
         $section.find('.section_content').after($preview)
       } else if (section_type === 'rich_text') {
         const $richText = $section.find('.edit_section')
         const editorContent = RichContentEditor.callOnRCE($richText, 'get_code')
         if (editorContent) {
-          $preview.html(sanitizeHtml(editorContent))
+          $preview.html(sanitizeHTML(editorContent))
         }
         $section.find('.section_content').after($preview)
       }
@@ -413,11 +413,11 @@ $(document).ready(function () {
             const $richText = $section.find('.edit_section')
             const editorContent = RichContentEditor.callOnRCE($richText, 'get_code')
             if (editorContent) {
-              $section.find('.section_content').html(sanitizeHtml(editorContent))
+              $section.find('.section_content').html(sanitizeHTML(editorContent))
             }
             RichContentEditor.destroyRCE($richText)
           } else {
-            const code = sanitizeHtml($section.find('.edit_section').val() as string)
+            const code = sanitizeHTML($section.find('.edit_section').val() as string)
             $section.find('.section_content').html(raw(code) as unknown as string)
           }
         } else if (!$section.hasClass('read_only')) {
