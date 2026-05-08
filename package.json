@@ -424,6 +424,7 @@
     "@tanstack/query-core": "5.95.2",
     "@tanstack/query-persist-client-core": "5.95.2",
     "decode-uri-component": "0.2.2",
+    "follow-redirects": "^1.15.6",
     "form-data": ">=4.0.4",
     "graphael": "https://github.com/instructure/graphael.git",
     "@instructure/canvas-theme": "11.6.0",
