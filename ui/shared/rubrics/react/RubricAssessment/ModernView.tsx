@@ -18,6 +18,7 @@
 
 import React, {useEffect, useState, useRef} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
@@ -366,7 +367,7 @@ export const CriterionRow = ({
             weight="normal"
             themeOverride={{fontSizeXSmall: '0.875rem', paragraphMargin: 0}}
             dangerouslySetInnerHTML={{
-              __html: sanitizeAndFormatHTML(criterion.longDescription ?? ''),
+              __html: sanitizeHTML(sanitizeAndFormatHTML(criterion.longDescription ?? '')),
             }}
           />
         </View>

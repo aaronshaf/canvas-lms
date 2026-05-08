@@ -17,8 +17,8 @@
  */
 
 import {useCallback, useRef, useEffect} from 'react'
-import DOMPurify from 'dompurify'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import type {RubricCriterion} from '@canvas/rubrics/react/types/rubric'
 import {possibleString} from '@canvas/rubrics/react/Points'
 import {sanitizeAndFormatHTML} from '@canvas/rubrics/react/utils'
@@ -220,7 +220,7 @@ export const RubricCriteriaRow = ({
                         {/* html sanitized by server */}
                         <Text
                           dangerouslySetInnerHTML={{
-                            __html: DOMPurify.sanitize(longDescription ?? ''),
+                            __html: sanitizeHTML(longDescription),
                           }}
                         />
                       </View>
@@ -268,7 +268,7 @@ export const RubricCriteriaRow = ({
                            * line breaks regardless of the longDescription having <br/> or \n
                            */
                           dangerouslySetInnerHTML={{
-                            __html: sanitizeAndFormatHTML(longDescription ?? ''),
+                            __html: sanitizeHTML(sanitizeAndFormatHTML(longDescription ?? '')),
                           }}
                         />
                       </View>

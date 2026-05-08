@@ -18,6 +18,7 @@
 
 import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Modal} from '@instructure/ui-modal'
 import {CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
@@ -60,7 +61,7 @@ export const LongDescriptionModal = ({
           lineHeight="double"
           wrap="break-word"
           dangerouslySetInnerHTML={{
-            __html: sanitizeAndFormatHTML(longDescription ?? ''),
+            __html: sanitizeHTML(sanitizeAndFormatHTML(longDescription ?? '')),
           }}
         />
       </Modal.Body>
