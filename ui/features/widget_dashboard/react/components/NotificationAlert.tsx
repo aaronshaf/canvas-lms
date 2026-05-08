@@ -27,7 +27,7 @@ import {
   IconCalendarMonthLine,
 } from '@instructure/ui-icons'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import sanitizeHtml from 'sanitize-html-with-tinymce'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('account_notifications')
 
@@ -113,7 +113,7 @@ const NotificationAlert: React.FC<NotificationAlertProps> = ({notification, onDi
         <View
           as="div"
           margin="x-small 0 0 0"
-          dangerouslySetInnerHTML={{__html: sanitizeHtml(notification.message)}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(notification.message)}}
         />
         <View as="div" margin="small 0 0 0">
           {accountMessage}

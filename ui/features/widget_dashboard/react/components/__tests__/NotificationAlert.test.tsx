@@ -122,7 +122,7 @@ describe('NotificationAlert', () => {
     expect(linkElement.tagName).toBe('A')
   })
 
-  it('sanitizes HTML content using sanitize-html-with-tinymce', () => {
+  it('sanitizes HTML content using @canvas/sanitize-html', () => {
     const htmlNotification = {
       ...baseNotification,
       message: '<script>alert("xss")</script><p>Safe content</p><strong>Bold</strong>',
