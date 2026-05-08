@@ -80,7 +80,9 @@ Rails.application.configure do
   end
 
   # allow docker dev setup to use http proxy
-  config.hosts << ENV["VIRTUAL_HOST"] if ENV["VIRTUAL_HOST"]
+  ENV["VIRTUAL_HOST"]&.split(",")&.each do |host|
+    config.hosts << host
+  end
 
   # allow any additional hosts
   ENV["ADDITIONAL_ALLOWED_HOSTS"]&.split(",")&.each do |host|
