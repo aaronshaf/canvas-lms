@@ -55,7 +55,16 @@ module Canvas::OAuth
     end
 
     def has_valid_redirect?
-      self.class.is_oob?(redirect_uri) || key.redirect_domain_matches?(redirect_uri)
+      return true if self.class.is_oob?(redirect_uri)
+      return false unless key.redirect_domain_matches?(redirect_uri)
+
+      report = OAuthRedirectUriValidationConfig.report?
+      enforce = OAuthRedirectUriValidationConfig.enforce?
+      return true unless report || enforce
+      return true if key.redirect_uri_matches?(redirect_uri)
+
+      report_lenient_redirect_violation(enforce:) if report
+      !enforce
     end
 
     delegate :icon_url, to: :key
@@ -177,6 +186,38 @@ module Canvas::OAuth
 
     def default_app_name
       I18n.t("pseudonym_sessions.default_app_name", "Third-Party Application")
+    end
+
+    def report_lenient_redirect_violation(enforce:)
+      registered_host = parse_host(key.redirect_uri)
+      presented_host = parse_host(redirect_uri)
+      request_id = Canvas::ExecutionContext[:request_id]
+
+      message = "OAuth redirect_uri lenient (subdomain) match accepted on developer key " \
+                "#{key.global_id}: registered=#{registered_host} presented=#{presented_host} " \
+                "request_id=#{request_id}"
+
+      tags = Utils::InstStatsdUtils::Tags.tags_for(Shard.current).merge(
+        developer_key_id: key.global_id.to_s,
+        registered_host: registered_host.to_s,
+        presented_host: presented_host.to_s,
+        enforce: enforce.to_s
+      )
+
+      InstStatsd::Statsd.event(
+        "OAuth Redirect URI Lenient Match",
+        message,
+        type: :oauth_redirect_uri_lenient_match,
+        alert_type: :warning,
+        tags:
+      )
+      Rails.logger.warn("[OAuthRedirectUri] #{message}")
+    end
+
+    def parse_host(uri)
+      URI.parse(uri.to_s).host
+    rescue URI::Error
+      nil
     end
   end
 end

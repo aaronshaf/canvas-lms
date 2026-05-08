@@ -115,19 +115,113 @@ module Canvas::OAuth
     end
 
     describe "#has_valid_redirect?" do
-      it "is true when the redirect url is the OOB uri" do
+      let(:provider) { Provider.new("123", "http://evil.example.com/x") }
+
+      def stub_matchers(lenient:, strict:)
+        stub_dev_key(instance_double(
+                       DeveloperKey,
+                       redirect_domain_matches?: lenient,
+                       redirect_uri_matches?: strict,
+                       global_id: 10_000_000_000_001,
+                       redirect_uri: "http://example.com/callback"
+                     ))
+      end
+
+      before { OAuthRedirectUriValidationConfig.reset! }
+      after { OAuthRedirectUriValidationConfig.reset! }
+
+      it "is true when the redirect url is the OOB uri (without consulting matchers)" do
         provider = Provider.new("123", Provider::OAUTH2_OOB_URI)
-        expect(provider.has_valid_redirect?).to be_truthy
+        expect(provider.has_valid_redirect?).to be true
       end
 
-      it "is true when the redirect url is kosher for the developerKey" do
-        stub_dev_key(instance_double(DeveloperKey, redirect_domain_matches?: true))
-        expect(provider.has_valid_redirect?).to be_truthy
+      context "with default config (no Consul gate active)" do
+        before { allow(OAuthRedirectUriValidationConfig).to receive_messages(report?: false, enforce?: false) }
+
+        it "accepts a lenient (subdomain) match" do
+          stub_matchers(lenient: true, strict: false)
+          expect(InstStatsd::Statsd).not_to receive(:event)
+          expect(provider.has_valid_redirect?).to be true
+        end
+
+        it "accepts a strict match" do
+          stub_matchers(lenient: true, strict: true)
+          expect(provider.has_valid_redirect?).to be true
+        end
+
+        it "rejects a non-matching redirect" do
+          stub_matchers(lenient: false, strict: false)
+          expect(provider.has_valid_redirect?).to be false
+        end
       end
 
-      it "is false otherwise" do
-        stub_dev_key(instance_double(DeveloperKey, redirect_domain_matches?: false))
-        expect(provider.has_valid_redirect?).to be_falsey
+      context "with report mode" do
+        before { allow(OAuthRedirectUriValidationConfig).to receive_messages(report?: true, enforce?: false) }
+
+        it "emits a Datadog event and accepts the redirect on lenient-only match" do
+          stub_matchers(lenient: true, strict: false)
+          expect(InstStatsd::Statsd).to receive(:event).with(
+            "OAuth Redirect URI Lenient Match",
+            kind_of(String),
+            hash_including(
+              type: :oauth_redirect_uri_lenient_match,
+              alert_type: :warning,
+              tags: hash_including(
+                developer_key_id: "10000000000001",
+                registered_host: "example.com",
+                presented_host: "evil.example.com",
+                enforce: "false"
+              )
+            )
+          )
+          expect(Rails.logger).to receive(:warn).with(/OAuthRedirectUri/)
+          expect(provider.has_valid_redirect?).to be true
+        end
+
+        it "does not emit on a strict match" do
+          stub_matchers(lenient: true, strict: true)
+          expect(InstStatsd::Statsd).not_to receive(:event)
+          expect(provider.has_valid_redirect?).to be true
+        end
+
+        it "does not emit on OOB" do
+          provider = Provider.new("123", Provider::OAUTH2_OOB_URI)
+          expect(InstStatsd::Statsd).not_to receive(:event)
+          expect(provider.has_valid_redirect?).to be true
+        end
+      end
+
+      context "with enforce mode" do
+        before { allow(OAuthRedirectUriValidationConfig).to receive_messages(report?: false, enforce?: true) }
+
+        it "rejects a lenient-only match" do
+          stub_matchers(lenient: true, strict: false)
+          expect(provider.has_valid_redirect?).to be false
+        end
+
+        it "accepts a strict match" do
+          stub_matchers(lenient: true, strict: true)
+          expect(provider.has_valid_redirect?).to be true
+        end
+
+        it "still accepts OOB" do
+          provider = Provider.new("123", Provider::OAUTH2_OOB_URI)
+          expect(provider.has_valid_redirect?).to be true
+        end
+      end
+
+      context "with report + enforce both on" do
+        before { allow(OAuthRedirectUriValidationConfig).to receive_messages(report?: true, enforce?: true) }
+
+        it "emits the event and rejects on lenient-only match" do
+          stub_matchers(lenient: true, strict: false)
+          expect(InstStatsd::Statsd).to receive(:event).with(
+            "OAuth Redirect URI Lenient Match",
+            kind_of(String),
+            hash_including(tags: hash_including(enforce: "true"))
+          )
+          expect(provider.has_valid_redirect?).to be false
+        end
       end
     end
 

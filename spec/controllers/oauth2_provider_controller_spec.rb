@@ -72,6 +72,42 @@ describe OAuth2ProviderController do
       expect(response.body).to match(/redirect_uri does not match/)
     end
 
+    context "with a subdomain (lenient-only) redirect_uri" do
+      let(:lenient_uri) { "https://evil.example.com/steal" }
+      let(:auth_params) do
+        { client_id: key.id, redirect_uri: lenient_uri, response_type: "code" }
+      end
+
+      before { OAuthRedirectUriValidationConfig.reset! }
+      after { OAuthRedirectUriValidationConfig.reset! }
+
+      it "accepts the redirect and emits no event in default mode" do
+        allow(OAuthRedirectUriValidationConfig).to receive_messages(report?: false, enforce?: false)
+        expect(InstStatsd::Statsd).not_to receive(:event)
+        get :auth, params: auth_params
+        expect(response).to be_redirect
+        expect(response).to redirect_to(login_url)
+      end
+
+      it "accepts the redirect and emits a Datadog event in report mode" do
+        allow(OAuthRedirectUriValidationConfig).to receive_messages(report?: true, enforce?: false)
+        expect(InstStatsd::Statsd).to receive(:event).with(
+          "OAuth Redirect URI Lenient Match",
+          kind_of(String),
+          hash_including(tags: hash_including(developer_key_id: key.global_id.to_s))
+        )
+        get :auth, params: auth_params
+        expect(response).to redirect_to(login_url)
+      end
+
+      it "rejects the redirect with the existing 400 error contract in enforce mode" do
+        allow(OAuthRedirectUriValidationConfig).to receive_messages(report?: false, enforce?: true)
+        get :auth, params: auth_params
+        assert_status(400)
+        expect(response.body).to match(/redirect_uri does not match/)
+      end
+    end
+
     context "with invalid scopes" do
       let(:dev_key) { DeveloperKey.create! redirect_uri: "https://example.com", require_scopes: true, scopes: [] }
 
