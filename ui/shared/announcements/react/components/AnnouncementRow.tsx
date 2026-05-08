@@ -31,6 +31,7 @@ import SectionsTooltip from '@canvas/sections-tooltip'
 import CourseItemRow from './CourseItemRow'
 import UnreadBadge from '@canvas/unread-badge'
 import {makeTimestamp} from '@canvas/datetime/react/date-utils'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('shared_components')
 
@@ -182,9 +183,13 @@ export default function AnnouncementRow({
     return menuList
   }
 
-  // necessary because announcements return html from RCE
+  // necessary because announcements return html from RCE.
+  // sanitize before assigning to innerHTML even though only textContent
+  // is consumed: the html parser fires side-effect-bearing attribute
+  // values (e.g. <img src=x onerror=...>) during the write itself, so
+  // the parse path needs to be inert.
   const contentWrapper = document.createElement('span')
-  contentWrapper.innerHTML = announcement.message
+  contentWrapper.innerHTML = sanitizeHTML(announcement.message)
   const textContent = contentWrapper.textContent?.trim() || ''
 
   return (
