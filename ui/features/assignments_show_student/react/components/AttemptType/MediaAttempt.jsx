@@ -45,6 +45,7 @@ import {Flex} from '@instructure/ui-flex'
 import theme from '@instructure/canvas-theme'
 import {View} from '@instructure/ui-view'
 import FormattedErrorMessage from '@canvas/assignments/react/FormattedErrorMessage'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('assignments_2_media_attempt')
 const MEDIA_ERROR_MESSAGE = I18n.t('At least one submission type is required')
@@ -172,7 +173,7 @@ class MediaAttempt extends React.Component {
               }}
             >
               <iframe
-                src={this.props.iframeURL}
+                src={sanitizeUrl(this.props.iframeURL)}
                 title="preview"
                 style={{
                   position: 'absolute',

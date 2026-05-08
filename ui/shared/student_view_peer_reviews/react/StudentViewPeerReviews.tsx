@@ -23,6 +23,7 @@ import {Text} from '@instructure/ui-text'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {dateString} from '@canvas/datetime/date-functions'
 import type {Assignment, AssessmentRequest} from '../../../api.d'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('assignment')
 
@@ -152,7 +153,7 @@ const PeerReview = ({assessment, assignment, index, isSubAssignment}: PeerReview
                 <a
                   aria-label={screenreaderLabel}
                   className="ig-title title item_link"
-                  href={studentPeerReviewUrl()}
+                  href={sanitizeUrl(studentPeerReviewUrl())}
                 >
                   {title}
                 </a>

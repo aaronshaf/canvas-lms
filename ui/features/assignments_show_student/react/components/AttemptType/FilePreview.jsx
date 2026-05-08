@@ -36,6 +36,7 @@ import elideString from '../../helpers/elideString'
 import OriginalityReport from '../OriginalityReport'
 import {LtiAssetReportsForStudentSubmission} from '@canvas/lti-asset-processor/react/LtiAssetReportsForStudentSubmission'
 import {useShouldShowLtiAssetReportsForStudent} from '@canvas/lti-asset-processor/react/hooks/useLtiAssetProcessorsAndReportsForStudent'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('assignments_2')
 
@@ -232,7 +233,7 @@ export default function FilePreview({submission, isOriginalityReportVisible}) {
       <div style={iframeContainerStyle} data-testid="assignments_2_submission_preview">
         <ScreenReaderContent>{selectedFile?.displayName}</ScreenReaderContent>
         <iframe
-          src={selectedFile?.submissionPreviewUrl}
+          src={sanitizeUrl(selectedFile?.submissionPreviewUrl || '')}
           title="preview"
           style={iframeStyle}
           allowFullScreen={true}

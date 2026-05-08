@@ -20,6 +20,7 @@ import axios from 'axios'
 import React, {useState, useCallback} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import useFetchApi from '@canvas/use-fetch-api-hook'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('course_settings')
 
@@ -52,7 +53,9 @@ function useSettings(courseId) {
           error: response.last_error,
         })
         if (response.last_error_report_id) {
-          message = <a href={`/error_reports/${response.last_error_report_id}`}>{message}</a>
+          message = (
+            <a href={sanitizeUrl(`/error_reports/${response.last_error_report_id}`)}>{message}</a>
+          )
         }
         setError({message})
       }

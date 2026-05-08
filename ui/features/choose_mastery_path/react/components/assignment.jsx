@@ -23,6 +23,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {sanitizeHTML} from '@canvas/sanitize-html'
 import apiUserContent from '@canvas/util/jquery/apiUserContent'
 import assignmentShape from '../shapes/assignment-shape'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('choose_mastery_path')
 
@@ -38,7 +39,9 @@ export default class Assignment extends React.Component {
     if (this.props.isSelected) {
       return (
         <a
-          href={`/courses/${this.props.assignment.course_id}/assignments/${this.props.assignment.assignmentId}`}
+          href={sanitizeUrl(
+            `/courses/${this.props.assignment.course_id}/assignments/${this.props.assignment.assignmentId}`,
+          )}
           title={this.props.assignment.name}
           className="item_name cmp-assignment__title-link"
         >

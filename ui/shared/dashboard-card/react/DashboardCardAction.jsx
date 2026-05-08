@@ -26,6 +26,7 @@ import {
   IconDiscussionLine,
   IconFolderLine,
 } from '@instructure/ui-icons'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('dashcards')
 
@@ -69,7 +70,7 @@ class DashboardCardAction extends React.Component {
   render() {
     return (
       <a
-        href={this.props.path}
+        href={sanitizeUrl(this.props.path)}
         className={classnames('ic-DashboardCard__action', this.props.linkClass)}
         title={this.props.screenReaderLabel}
       >

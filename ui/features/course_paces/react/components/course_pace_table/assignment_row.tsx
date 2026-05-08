@@ -64,6 +64,7 @@ import CyoeHelper from '@canvas/conditional-release-cyoe-helper'
 import {Link} from '@instructure/ui-link'
 import {Pill} from '@instructure/ui-pill'
 import {Tooltip} from '@instructure/ui-tooltip'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('course_paces_assignment_row')
 
@@ -317,7 +318,7 @@ export class AssignmentRow extends React.Component<ComponentProps, LocalState> {
         <div>
           <Text weight="bold">
             <a
-              href={this.props.coursePaceItem.assignment_link}
+              href={sanitizeUrl(this.props.coursePaceItem.assignment_link)}
               style={{color: 'inherit', overflowWrap: 'anywhere'}}
             >
               {this.props.coursePaceItem.assignment_title}

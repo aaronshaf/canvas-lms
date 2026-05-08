@@ -23,6 +23,7 @@ import {JobDialog} from '../react/components'
 import ready from '@instructure/ready'
 import $ from 'jquery'
 import Slick from 'slickgrid'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('jobs')
 /*
@@ -76,7 +77,7 @@ function fillin_job_data(job: Job) {
     const field_name = field.id.replace('job-', '')
     $(field).text((job as any)[field_name] || '')
   })
-  $('#job-id-link').attr('href', `/jobs?flavor=id&q=${job.id}`)
+  $('#job-id-link').attr('href', sanitizeUrl(`/jobs?flavor=id&q=${job.id}`))
 }
 
 let selected_job: Job | null = null

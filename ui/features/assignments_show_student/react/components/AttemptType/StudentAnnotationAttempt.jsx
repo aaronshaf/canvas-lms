@@ -20,6 +20,7 @@ import React, {useState, useEffect} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
 import axios from '@canvas/axios'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('assignments_2_student_annotation')
 
@@ -65,7 +66,7 @@ export default function StudentAnnotationAttempt(props) {
       {validResponse ? (
         <div className="ef-file-preview-stretch">
           <iframe
-            src={iframeURL}
+            src={sanitizeUrl(iframeURL)}
             data-testid="canvadocs-iframe"
             allowFullScreen={true}
             title={I18n.t('Document to annotate')}

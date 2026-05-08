@@ -27,6 +27,7 @@ import {underscoreString} from '@canvas/convert-case'
 import {dateString} from '@instructure/moment-utils'
 import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
 import {initializeTopNavPortal} from '@canvas/top-navigation/react/TopNavPortal'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('terms.index')
 
@@ -153,7 +154,10 @@ $(document).ready(() => {
       $tr.fillFormData(data, {object_name: 'enrollment_term'})
       $tr.removeClass('editing_term')
       $('.edit_term_link', $tr).focus()
-      $('#term_' + term.id + ' a.filter_link').prop('href', term.filter_courses_by_term)
+      $('#term_' + term.id + ' a.filter_link').prop(
+        'href',
+        sanitizeUrl(term.filter_courses_by_term),
+      )
     },
 
     error(data) {

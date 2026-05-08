@@ -31,6 +31,7 @@ import {
   notebookTranslate,
   HIGHLIGHT_THEME,
 } from '@canvas/notebook'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 const DEFAULT_PAGE_SIZE = 20
 
 const queryClient = new QueryClient({
@@ -66,7 +67,7 @@ function NotesGrid() {
       children: React.ReactNode
       ariaLabel?: string
     }) => (
-      <a href={href} aria-label={ariaLabel}>
+      <a href={sanitizeUrl(href)} aria-label={ariaLabel}>
         {children}
       </a>
     ),

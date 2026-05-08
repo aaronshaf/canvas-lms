@@ -22,6 +22,7 @@ import {Flex} from '@instructure/ui-flex'
 import {Responsive} from '@instructure/ui-responsive'
 import {canvas} from '@instructure/ui-themes'
 import type {PreviewAndSidebarProps} from '../types'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('discovery_page')
 
@@ -81,7 +82,7 @@ export function PreviewAndSidebar({previewUrl, children, iframeRef}: PreviewAndS
                 <iframe
                   ref={frameRef}
                   data-testid="preview-iframe"
-                  src={previewUrl}
+                  src={previewUrl ? sanitizeUrl(previewUrl) : undefined}
                   style={{width: '100%', height: '100%', border: 'none', display: 'block'}}
                   title={I18n.t('Discovery Page Preview')}
                 />

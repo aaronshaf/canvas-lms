@@ -35,6 +35,7 @@ import Filter from './Filter'
 import NewStudentGroupModal from './NewStudentGroupModal'
 import ManageGroupDialog from './ManageGroupDialog'
 import PropTypes from 'prop-types'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('student_groups')
 
@@ -297,7 +298,7 @@ const StudentView = createReactClass({
           >
             <ul className="collectionViewItems ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
               <li className="ui-state-default ui-corner-top">
-                <a href={`/courses/${ENV.course_id}/users`}>{I18n.t('Everyone')}</a>
+                <a href={sanitizeUrl(`/courses/${ENV.course_id}/users`)}>{I18n.t('Everyone')}</a>
               </li>
               <li className="ui-state-default ui-corner-top ui-tabs-active ui-state-active">
                 <a href="#" tabIndex="0">

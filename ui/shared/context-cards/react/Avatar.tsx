@@ -22,6 +22,7 @@ import PropTypes from 'prop-types'
 import {Link} from '@instructure/ui-link'
 import {Text} from '@instructure/ui-text'
 import {Avatar as InstUIAvatar} from '@instructure/ui-avatar'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('student_context_trayAvatar')
 
@@ -56,7 +57,7 @@ class Avatar extends React.Component {
             <Text size="x-small" weight="bold" as="div">
               <a
                 id="act-as-user" // EVAL-4241
-                href={`/courses/${courseId}?become_user_id=${user._id}`}
+                href={sanitizeUrl(`/courses/${courseId}?become_user_id=${user._id}`)}
                 aria-label={I18n.t('Act as %{name}', {name: user.short_name})}
               >
                 {I18n.t('Act as User')}

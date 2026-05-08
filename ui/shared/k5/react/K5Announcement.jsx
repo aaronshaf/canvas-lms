@@ -37,6 +37,7 @@ import doFetchApi from '@canvas/do-fetch-api-effect'
 import LoadingSkeleton from './LoadingSkeleton'
 import EmptyK5Announcement, {K5AddAnnouncementButton} from './EmptyK5Announcement'
 import {transformAnnouncement} from './utils'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('k5_announcement')
 
@@ -343,7 +344,7 @@ export default function K5Announcement({
         {currentAnnouncement.attachment && (
           <Text size="small">
             <a
-              href={currentAnnouncement.attachment.url}
+              href={sanitizeUrl(currentAnnouncement.attachment.url)}
               title={currentAnnouncement.attachment.filename}
               /* classes request download button and preview overlay in instructure.js's postprocessing */
               className="instructure_file_link preview_in_overlay"

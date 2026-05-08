@@ -17,6 +17,7 @@
  */
 
 import {create} from 'zustand'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 export type Breadcrumb = {
   name: string
@@ -118,7 +119,7 @@ const syncBreadcrumbs = (crumbs: Breadcrumb[]) => {
 
     if (index < crumbs.length - 1) {
       const a = document.createElement('a')
-      a.href = crumb.url
+      a.href = sanitizeUrl(crumb.url)
       a.appendChild(span)
       li.appendChild(a)
     } else {

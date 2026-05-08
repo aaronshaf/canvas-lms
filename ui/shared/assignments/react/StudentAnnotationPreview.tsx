@@ -23,6 +23,7 @@ import doFetchApi from '@canvas/do-fetch-api-effect'
 import {View} from '@instructure/ui-view'
 import {Submission} from './AssignmentsPeerReviewsStudentTypes'
 import {useQuery} from '@tanstack/react-query'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('student_annotation_preview')
 
@@ -71,7 +72,7 @@ const StudentAnnotationPreview: React.FC<StudentAnnotationPreviewProps> = ({subm
         iframeURL && (
           <div className="ef-file-preview-stretch" style={{height: '100%'}}>
             <iframe
-              src={iframeURL}
+              src={sanitizeUrl(iframeURL)}
               data-testid="canvadocs-iframe"
               allowFullScreen={true}
               title={I18n.t('Document to annotate')}

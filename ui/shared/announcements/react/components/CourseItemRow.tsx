@@ -36,6 +36,7 @@ import {IconMoreLine, IconDragHandleLine, IconPeerReviewLine} from '@instructure
 import LockIconView from '@canvas/lock-icon'
 import {author as authorShape} from '@canvas/users/react/proptypes/user'
 import masterCourseDataShape from '@canvas/courses/react/proptypes/masterCourseData'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('shared_components')
 
@@ -204,7 +205,7 @@ export default class CourseItemRow extends Component {
 
     return (
       // @ts-expect-error TS2339 (typescriptify)
-      <a className="ic-item-row__content-link" ref={refFn} href={this.props.itemUrl}>
+      <a className="ic-item-row__content-link" ref={refFn} href={sanitizeUrl(this.props.itemUrl)}>
         <div
           className="ic-item-row__content-link-container"
           data-testid="single-announcement-test-id"

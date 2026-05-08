@@ -21,6 +21,7 @@ import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 import {datetimeString} from '@canvas/datetime/date-functions'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('webzip_exports')
 
@@ -34,7 +35,7 @@ class ExportListItem extends React.Component {
 
   render() {
     let text = <span>{I18n.t('Package export from')}</span>
-    let body = <a href={this.props.link}>{datetimeString(this.props.date)}</a>
+    let body = <a href={sanitizeUrl(this.props.link)}>{datetimeString(this.props.date)}</a>
     if (this.props.workflowState === 'failed') {
       text = <span className="text-error">{I18n.t('Export failed')}</span>
       body = datetimeString(this.props.date)

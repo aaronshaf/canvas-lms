@@ -73,6 +73,7 @@ import EmptyHome from './EmptyHome'
 import EmptyModules from './EmptyModules'
 import {GradesPage} from './GradesPage'
 import OverviewPage from './OverviewPage'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('k5_course')
 
@@ -511,10 +512,10 @@ export function K5Course({
     const resetStudentBtn = document.querySelector('a.leave_student_view[data-method="delete"]')
     const leaveStudentModeBtn = document.querySelector('a.reset_test_student[data-method="delete"]')
     if (resetStudentBtn) {
-      resetStudentBtn.href = addCurrentTabSegment(resetStudentBtn.href)
+      resetStudentBtn.href = sanitizeUrl(addCurrentTabSegment(resetStudentBtn.href))
     }
     if (leaveStudentModeBtn) {
-      leaveStudentModeBtn.href = addCurrentTabSegment(leaveStudentModeBtn.href)
+      leaveStudentModeBtn.href = sanitizeUrl(addCurrentTabSegment(leaveStudentModeBtn.href))
     }
   }, [currentTab, modulesExist, canManage])
 

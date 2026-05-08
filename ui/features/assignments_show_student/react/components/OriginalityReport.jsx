@@ -19,6 +19,7 @@ import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {View} from '@instructure/ui-view'
 import {TurnitinData} from '@canvas/assignments/graphql/student/TurnitinData'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('assignments_2')
 export default function OriginalityReport({originalityData}) {
@@ -27,7 +28,7 @@ export default function OriginalityReport({originalityData}) {
       <span className="turnitin_score_container" data-testid="originality_report">
         <span className={'turnitin_score_container_caret ' + originalityData.state + '_score'} />
         <a
-          href={originalityData.reportUrl}
+          href={sanitizeUrl(originalityData.reportUrl)}
           className={'turnitin_similarity_score ' + originalityData.state + '_score'}
           data-testid="originality_report_url"
           title={I18n.t('Similarity score')}

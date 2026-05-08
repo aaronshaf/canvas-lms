@@ -20,6 +20,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {isObject} from 'es-toolkit/compat'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('epub_exports')
 
@@ -42,7 +43,7 @@ class DownloadLink extends React.Component {
   downloadLink = (attachment, message) => {
     if (isObject(attachment)) {
       return (
-        <a href={attachment.url} className="icon-download">
+        <a href={sanitizeUrl(attachment.url)} className="icon-download">
           {message}
         </a>
       )

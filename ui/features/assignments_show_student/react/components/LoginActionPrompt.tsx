@@ -24,6 +24,7 @@ import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import React from 'react'
 import lockedSVG from '../../images/Locked1.svg'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('assignments_2_login_action_prompt')
 
@@ -69,7 +70,7 @@ function LoginActionButton(props: LoginActionButtonProps) {
   if (props.nonAcceptedEnrollment) {
     return (
       <a
-        href={`/courses/${ENV.COURSE_ID}/enrollment_invitation?accept=true`}
+        href={sanitizeUrl(`/courses/${ENV.COURSE_ID}/enrollment_invitation?accept=true`)}
         className="Button"
         data-method="POST"
         data-url={`/courses/${ENV.COURSE_ID}/enrollment_invitation?accept=true`}

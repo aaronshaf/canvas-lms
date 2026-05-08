@@ -37,6 +37,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import preventDefault from '@canvas/util/preventDefault'
 import unflatten from 'obj-unflatten'
 import {InstUIModal as Modal} from '@instructure/platform-instui-bindings'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('dsr')
 
@@ -181,7 +182,11 @@ export default class CreateDSRModal extends React.Component {
     switch (this.state.latestRequest.progress_status) {
       case 'completed':
         return (
-          <a href={this.state.latestRequest.download_url} target="_blank" rel="noopener noreferrer">
+          <a
+            href={sanitizeUrl(this.state.latestRequest.download_url)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             {this.state.latestRequest.request_name}{' '}
             <IconCloudDownloadLine title={I18n.t('Download')} />
           </a>

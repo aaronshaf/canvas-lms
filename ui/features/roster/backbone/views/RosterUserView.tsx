@@ -37,6 +37,7 @@ import UserTaggedModal from '@canvas/differentiation-tags/react/UserTaggedModal/
 import MessageBus from '@canvas/util/MessageBus'
 import {queryClient} from '@instructure/platform-query'
 import {createSectionEnrollments, deleteExistingSectionEnrollments} from '../../react/api'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('RosterUserView')
 
@@ -618,7 +619,7 @@ export default class RosterUserView extends View {
     const container = this.$el.find(`#${this.model.attributes.avatarId}`)[0]
     if (container) {
       const root = render(
-        <a href={`users/${this.model.id}`}>
+        <a href={sanitizeUrl(`users/${this.model.id}`)}>
           <Avatar
             name={this.model.attributes.name}
             src={this.model.attributes.avatar_url}

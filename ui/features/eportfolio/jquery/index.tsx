@@ -55,6 +55,7 @@ import {Portal} from '@instructure/ui-portal'
 import PageNameContainer from '../react/PageNameContainer'
 import DeprecationNoticeAlert from '../react/DeprecationNoticeAlert'
 import type {ePortfolioPage} from '../react/types'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('eportfolio')
 
@@ -622,15 +623,15 @@ $(document).ready(function () {
           url = replaceTags(url, 'uuid', uuid)
           if ($file.hasClass('image')) {
             const $image = $('#eportfolio_view_image').clone(true).removeAttr('id')
-            $image.find('.eportfolio_image').attr('src', url).attr('alt', name)
-            $image.find('.eportfolio_download').attr('href', url)
+            $image.find('.eportfolio_image').attr('src', sanitizeUrl(url)).attr('alt', name)
+            $image.find('.eportfolio_download').attr('href', sanitizeUrl(url))
             $section.find('.section_content').empty().append($image)
           } else {
             const $download = $('#eportfolio_download_file').clone(true).removeAttr('id')
             ;($download as any).fillTemplateData({
               data: {filename: name},
             })
-            $download.find('.eportfolio_download').attr('href', url)
+            $download.find('.eportfolio_download').attr('href', sanitizeUrl(url))
             $section.find('.section_content').empty().append($download)
           }
           $(this).remove()
@@ -647,15 +648,18 @@ $(document).ready(function () {
       url = replaceTags(url, 'uuid', attachment.uuid)
       if (attachment['content-type'].indexOf('image') !== -1) {
         const $image = $('#eportfolio_view_image').clone(true).removeAttr('id')
-        $image.find('.eportfolio_image').attr('src', url).attr('alt', attachment.display_name)
-        $image.find('.eportfolio_download').attr('href', url)
+        $image
+          .find('.eportfolio_image')
+          .attr('src', sanitizeUrl(url))
+          .attr('alt', attachment.display_name)
+        $image.find('.eportfolio_download').attr('href', sanitizeUrl(url))
         $section.find('.section_content').empty().append($image)
       } else {
         const $download = $('#eportfolio_download_file').clone(true).removeAttr('id')
         ;($download as any).fillTemplateData({
           data: {filename: attachment.display_name},
         })
-        $download.find('.eportfolio_download').attr('href', url)
+        $download.find('.eportfolio_download').attr('href', sanitizeUrl(url))
         $section.find('.section_content').empty().append($download)
       }
       $(this).remove()
@@ -794,7 +798,7 @@ $(document).ready(function () {
       $details.find('.header').after($this.find('.details').clone(true).show())
       const url = $this.find('.header').attr('href') || ''
       if (url !== '#') {
-        $details.find('.link').show().attr('href', url)
+        $details.find('.link').show().attr('href', sanitizeUrl(url))
       } else {
         $details.find('.link').hide()
       }

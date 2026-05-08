@@ -29,6 +29,7 @@ import CourseActivitySummaryStore from './CourseActivitySummaryStore'
 import DashboardCardAction from './DashboardCardAction'
 import DashboardCardMenu from './DashboardCardMenu'
 import PublishButton from './PublishButton'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('dashcards')
 
@@ -328,7 +329,7 @@ export const DashboardCard = ({
           hideColorOverlays={hideColorOverlays}
           onClick={headerClick}
         />
-        <a href={href} className="ic-DashboardCard__link">
+        <a href={sanitizeUrl(href)} className="ic-DashboardCard__link">
           <div className="ic-DashboardCard__header_content">
             <CardHeading
               className="ic-DashboardCard__header-title ellipsis"

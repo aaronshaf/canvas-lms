@@ -20,6 +20,7 @@ import $ from 'jquery'
 import '@canvas/jquery/jquery.instructure_misc_plugins'
 import '@canvas/util/templateData'
 import ready from '@instructure/ready'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 ready(() => {
   $(window)
@@ -39,7 +40,7 @@ ready(() => {
   $(
     '#modules .context_module_item.attachment a.title,#modules .context_module_item.external_url a.title',
   ).each(function () {
-    $(this).attr('href', `${$(this).attr('href')}?already_inline=1`)
+    $(this).attr('href', sanitizeUrl(`${$(this).attr('href')}?already_inline=1`))
   })
 
   $('#modules .context_module_item')

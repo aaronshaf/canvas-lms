@@ -54,6 +54,7 @@ import {Modal} from '@instructure/ui-modal'
 import {type CanvasProgress} from '@canvas/progress/ProgressHelpers'
 import {Paginator} from '@instructure/platform-instui-bindings'
 import {Pill} from '@instructure/ui-pill'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 export interface AppProps {
   courseId: string
@@ -555,7 +556,7 @@ const EmbedsModal: React.FC<{
                   <Flex justifyItems="center">
                     <Flex.Item>
                       <iframe
-                        src={embed.src}
+                        src={sanitizeUrl(embed.src)}
                         title={I18n.t('YouTube Embed')}
                         width="500"
                         height="315"

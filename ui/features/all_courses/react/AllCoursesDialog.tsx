@@ -24,6 +24,7 @@ import {View} from '@instructure/ui-view'
 import {Heading} from '@instructure/ui-heading'
 import {Flex} from '@instructure/ui-flex'
 import {CloseButton} from '@instructure/ui-buttons'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const DEFAULT_IFRAME_HEIGHT = '300px'
 const ADDITIONAL_PADDING = 30
@@ -101,7 +102,7 @@ export default function AllCoursesDialog(props: Props) {
         id="self-enroll-modal-iframe"
         data-testid="all-courses-iframe"
         style={style}
-        src={embeddedLink}
+        src={sanitizeUrl(embeddedLink)}
         title={t('Course Catalog')}
         onLoad={stopLoading}
       />

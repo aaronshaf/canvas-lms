@@ -41,6 +41,7 @@ import {View} from '@instructure/ui-view'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import {Modal} from '@instructure/ui-modal'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('assignments_2_MoreOptions')
 
@@ -261,7 +262,12 @@ function ExternalTool({launchUrl, tool}) {
   return (
     <BaseUploadTool icon={icon} label={tool.name}>
       {() => (
-        <iframe allow={iframeAllowances()} style={iframeStyle} src={launchUrl} title={tool.name} />
+        <iframe
+          allow={iframeAllowances()}
+          style={iframeStyle}
+          src={sanitizeUrl(launchUrl)}
+          title={tool.name}
+        />
       )}
     </BaseUploadTool>
   )

@@ -42,6 +42,7 @@ import LLMConversationView from '../../../../shared/ai-experiences/react/compone
 import AIExperiencePublishButton from './AIExperiencePublishButton'
 import AIConversationsContainer from '@canvas/ai-experiences/react/components/AIConversationsContainer'
 import {navyButtonTheme, roundedTheme} from '../../../../shared/ai-experiences/react/brand'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('ai_experiences_show')
 
@@ -177,7 +178,9 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
                   },
                 )}
                 <a
-                  href={`/courses/${aiExperience.course_id}/ai_experiences/${aiExperience.id}/edit`}
+                  href={sanitizeUrl(
+                    `/courses/${aiExperience.course_id}/ai_experiences/${aiExperience.id}/edit`,
+                  )}
                   data-testid="ai-experience-show-index-failed-edit-button"
                 >
                   {I18n.t('your configurations')}

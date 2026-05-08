@@ -30,6 +30,7 @@ import previewUnavailable from '@canvas/assignments/images/PreviewUnavailable.sv
 import {View} from '@instructure/ui-view'
 import {Img} from '@instructure/ui-img'
 import {List} from '@instructure/ui-list'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('peer_reviews_student')
 
@@ -180,7 +181,7 @@ const renderFilePreview = (selectedFile?: Attachment) => {
     <View display="block" data-testid="file_submission_preview" height="100%" minHeight="600px">
       <ScreenReaderContent>{selectedFile.displayName}</ScreenReaderContent>
       <iframe
-        src={selectedFile.submissionPreviewUrl}
+        src={sanitizeUrl(selectedFile.submissionPreviewUrl)}
         title="preview"
         style={iframeStyle}
         allowFullScreen={true}

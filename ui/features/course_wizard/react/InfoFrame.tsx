@@ -22,6 +22,7 @@ import React, {useState, useEffect, useRef} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import ListItems, {type ListItem} from './ListItems'
 import {getCookie} from '@instructure/platform-get-cookie'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('course_wizard')
 
@@ -149,7 +150,7 @@ export default function InfoFrame({
           <form
             acceptCharset="UTF-8"
             // @ts-expect-error - ENV.COURSE_WIZARD not typed in GlobalEnv
-            action={window.ENV.COURSE_WIZARD.publish_course}
+            action={sanitizeUrl(window.ENV.COURSE_WIZARD.publish_course)}
             method="post"
           >
             <input name="utf8" type="hidden" value="✓" />

@@ -33,6 +33,7 @@ import {
 } from '../../utilities/statusUtils'
 import {animatable} from '../../dynamic-ui'
 import buildStyle from './style'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('planner')
 
@@ -313,7 +314,7 @@ export class Grouping extends Component {
       this.getLayout() === 'large' ? {backgroundImage: `url(${this.props.image_url || ''})`} : null
     return (
       <a
-        href={this.props.url || '#'}
+        href={sanitizeUrl(this.props.url || '#')}
         ref={this.groupingLinkRef}
         className={`${this.style.classNames.hero} ${this.style.classNames.heroHover}`}
         style={style}

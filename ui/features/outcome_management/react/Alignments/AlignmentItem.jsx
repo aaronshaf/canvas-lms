@@ -31,6 +31,7 @@ import {
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {alignmentShape} from './propTypeShapes'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('AlignmentSummary')
 
@@ -124,7 +125,7 @@ const AlignmentItem = ({
       <Flex.Item size="50%" shouldGrow={true}>
         <Flex as="div" direction="column">
           <Flex.Item as="div" padding="xxx-small">
-            <a href={url} target="_blank" rel="noreferrer">
+            <a href={sanitizeUrl(url)} target="_blank" rel="noreferrer">
               <TruncateText>
                 <Text size="medium" data-testid="alignment-item-title">
                   {assignmentWorkflowState === 'unpublished'
@@ -143,7 +144,7 @@ const AlignmentItem = ({
                 {moduleTitle && moduleUrl ? (
                   <div style={{paddingTop: '0.14rem'}}>
                     <Text size="small">
-                      <a href={moduleUrl} target="_blank" rel="noreferrer">
+                      <a href={sanitizeUrl(moduleUrl)} target="_blank" rel="noreferrer">
                         <TruncateText>
                           {moduleWorkflowState === 'unpublished'
                             ? I18n.t('%{moduleTitle} (unpublished)', {moduleTitle})

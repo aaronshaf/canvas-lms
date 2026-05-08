@@ -21,6 +21,7 @@ import React from 'react'
 import natcompare from '@canvas/util/natcompare'
 import {Button} from '@instructure/ui-buttons'
 import {Link} from '@instructure/ui-link'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('student_groups')
 
@@ -111,7 +112,7 @@ class Group extends React.Component {
     const visitLink =
       ENV.CAN_VIEW_PAGES || isMember ? (
         <a
-          href={`/groups/${this.props.group.id}`}
+          href={sanitizeUrl(`/groups/${this.props.group.id}`)}
           aria-label={I18n.t('Visit group %{group_name}', {group_name: groupName})}
           onClick={e => e.stopPropagation()}
         >
