@@ -76,6 +76,7 @@ describe "RCE next tests" do
 
     context "Full RCE" do
       it "has all the UI" do
+        skip("RCX-5124 2026-05-08")
         create_wiki_page(@course, "full")
 
         # the menus

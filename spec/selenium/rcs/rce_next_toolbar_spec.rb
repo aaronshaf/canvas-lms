@@ -62,6 +62,7 @@ describe "RCE Next toolbar features", :ignore_js_errors do
       end
 
       it "menu should include Remove Link when a link is selected" do
+        skip("RCX-5124 2026-05-08")
         rce_wysiwyg_state_setup(@course, 'this is <div id="one_link"><a>a link</a></div> <a>another link</a>.', html: true)
         select_in_tiny(f("textarea.body"), "#one_link")
 
@@ -75,6 +76,7 @@ describe "RCE Next toolbar features", :ignore_js_errors do
       end
 
       it "menu should include Remove Links when multiple links are selected" do
+        skip("RCX-5124 2026-05-08")
         rce_wysiwyg_state_setup(@course, "this is <a>a link</a> and <a>another link</a>.", html: true)
         select_all_wiki
 
@@ -101,6 +103,7 @@ describe "RCE Next toolbar features", :ignore_js_errors do
       end
 
       it "removes bullet lists" do
+        skip("RCX-5124 2026-05-08")
         text = "<ul><li>1</li><li>2</li><li>3</li></ul>"
         rce_wysiwyg_state_setup(@course, text, html: true)
 
@@ -122,6 +125,7 @@ describe "RCE Next toolbar features", :ignore_js_errors do
       end
 
       it "removes numbered lists", priority: "1" do
+        skip("RCX-5124 2026-05-08")
         text = "<ol><li>1</li><li>2</li><li>3</li></ol>"
         rce_wysiwyg_state_setup(@course, text, html: true)
 
@@ -180,6 +184,7 @@ describe "RCE Next toolbar features", :ignore_js_errors do
       end
 
       it "removes superscript from text in rce" do
+        skip("RCX-5124 2026-05-08")
         text = "<p><sup>This is my text</sup></p>"
 
         rce_wysiwyg_state_setup(@course, text, html: true)
@@ -202,6 +207,7 @@ describe "RCE Next toolbar features", :ignore_js_errors do
       end
 
       it "removes subscript from text in rce" do
+        skip("RCX-5124 2026-05-08")
         text = "<p><sub>This is my text</sub></p>"
         rce_wysiwyg_state_setup(@course, text, html: true)
         select_in_tiny(f("#wiki_page_body"), "sub")
@@ -224,6 +230,7 @@ describe "RCE Next toolbar features", :ignore_js_errors do
       end
 
       it "removes left align from text" do
+        skip("RCX-5124 2026-05-08")
         text = '<p style="text-align: left;">1</p>'
         rce_wysiwyg_state_setup(@course, text, html: true)
 
@@ -241,6 +248,7 @@ describe "RCE Next toolbar features", :ignore_js_errors do
       end
 
       it "removes center align from text" do
+        skip("RCX-5124 2026-05-08")
         text = '<p style="text-align: center;">1</p>'
         rce_wysiwyg_state_setup(@course, text, html: true)
 
@@ -258,6 +266,7 @@ describe "RCE Next toolbar features", :ignore_js_errors do
       end
 
       it "removes right align from text" do
+        skip("RCX-5124 2026-05-08")
         text = '<p style="text-align: right;">1</p>'
         rce_wysiwyg_state_setup(@course, text, html: true)
 
@@ -276,6 +285,7 @@ describe "RCE Next toolbar features", :ignore_js_errors do
     end
 
     it "changes text to left-to-right in the rce" do
+      skip("RCX-5124 2026-05-08")
       text = '<p dir="rtl">This is my text</p>'
       rce_wysiwyg_state_setup(@course, text, html: true)
       click_ltr

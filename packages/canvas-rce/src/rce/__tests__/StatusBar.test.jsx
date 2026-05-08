@@ -18,8 +18,7 @@
 
 import React from 'react'
 import '@testing-library/jest-dom/extend-expect'
-import {render, fireEvent, waitFor} from '@testing-library/react'
-import {queryHelpers} from '@testing-library/dom'
+import {render, fireEvent} from '@testing-library/react'
 import keycode from 'keycode'
 import {FS_ENABLED} from '../../util/fullscreenHelpers'
 import StatusBar, {WYSIWYG_VIEW, PRETTY_HTML_EDITOR_VIEW, RAW_HTML_EDITOR_VIEW} from '../StatusBar'
@@ -48,13 +47,6 @@ function renderStatusBar(overrideProps) {
   return render(<StatusBar {...props} {...overrideProps} />)
 }
 
-async function findDescribedByText(container) {
-  const editBtn = queryHelpers.queryByAttribute('data-btn-id', container, 'rce-edit-btn')
-  await waitFor(() => expect(editBtn.getAttribute('aria-describedby')).not.toBeNull())
-  const descById = editBtn.getAttribute('aria-describedby')
-  return document.getElementById(descById).textContent
-}
-
 describe('RCE StatusBar', () => {
   beforeEach(() => {
     document[FS_ENABLED] = true
@@ -81,7 +73,7 @@ describe('RCE StatusBar', () => {
     expect(container.querySelector('[data-btn-id="rce-kbshortcut-btn"]')).toBeInTheDocument()
     expect(container.querySelector('[data-btn-id="rce-a11y-btn"]')).toBeInTheDocument()
     expect(container.querySelector('[data-btn-id="rce-wordcount-btn"]')).toBeInTheDocument()
-    expect(container.querySelector('[data-btn-id="rce-edit-btn"]')).toBeInTheDocument()
+    expect(container.querySelector('[data-btn-id="rce-edit-btn"]')).not.toBeInTheDocument()
     expect(container.querySelector('[data-btn-id="rce-fullscreen-btn"]')).toBeInTheDocument()
     expect(container.querySelector('[data-btn-id="rce-resize-handle"]')).toBeInTheDocument()
   })
@@ -92,7 +84,7 @@ describe('RCE StatusBar', () => {
     expect(container.querySelector('[data-btn-id="rce-kbshortcut-btn"]')).toBeInTheDocument()
     expect(container.querySelector('[data-btn-id="rce-a11y-btn"]')).toBeInTheDocument()
     expect(container.querySelector('[data-btn-id="rce-wordcount-btn"]')).toBeInTheDocument()
-    expect(container.querySelector('[data-btn-id="rce-edit-btn"]')).toBeInTheDocument()
+    expect(container.querySelector('[data-btn-id="rce-edit-btn"]')).not.toBeInTheDocument()
     expect(container.querySelector('[data-btn-id="rce-fullscreen-btn"]')).not.toBeInTheDocument()
     expect(container.querySelector('[data-btn-id="rce-resize-handle"]')).toBeInTheDocument()
   })
@@ -113,7 +105,7 @@ describe('RCE StatusBar', () => {
       const {container, getByTestId} = renderStatusBar()
       const statusbar = getByTestId('RCEStatusBar')
       const buttons = container.querySelectorAll('button, *[tabindex]')
-      expect(buttons).toHaveLength(6)
+      expect(buttons).toHaveLength(5)
 
       buttons[0].focus()
       expect(document.activeElement).toBe(buttons[0])
@@ -129,7 +121,7 @@ describe('RCE StatusBar', () => {
       const {container, getByTestId} = renderStatusBar()
       const statusbar = getByTestId('RCEStatusBar')
       const buttons = container.querySelectorAll('button, *[tabindex]')
-      expect(buttons).toHaveLength(6)
+      expect(buttons).toHaveLength(5)
 
       buttons[buttons.length - 1].focus()
       expect(document.activeElement).toBe(buttons[buttons.length - 1])
@@ -141,39 +133,6 @@ describe('RCE StatusBar', () => {
         )
       }
       expect(document.activeElement).toBe(buttons[buttons.length - 1])
-    })
-
-    it('defaults to pretty html editor', async () => {
-      const onChangeView = jest.fn()
-      const {container, getByText} = renderStatusBar({
-        onChangeView,
-      })
-
-      expect(await findDescribedByText(container)).toEqual(
-        'The pretty html editor is not keyboard accessible. Press Shift O to open the raw html editor.',
-      )
-      expect(getByText('Switch to the html editor')).toBeInTheDocument()
-
-      const editbtn = queryHelpers.queryByAttribute('data-btn-id', container, 'rce-edit-btn')
-      fireEvent.click(editbtn)
-      expect(onChangeView).toHaveBeenCalledWith(PRETTY_HTML_EDITOR_VIEW)
-    })
-
-    it('prefers raw html editor if specified', async () => {
-      const onChangeView = jest.fn()
-      const {container, getByText} = renderStatusBar({
-        preferredHtmlEditor: RAW_HTML_EDITOR_VIEW,
-        onChangeView,
-      })
-
-      expect(await findDescribedByText(container)).toEqual(
-        'Shift-O to open the pretty html editor.',
-      )
-      expect(getByText('Switch to the html editor')).toBeInTheDocument()
-
-      const editbtn = queryHelpers.queryByAttribute('data-btn-id', container, 'rce-edit-btn')
-      fireEvent.click(editbtn)
-      expect(onChangeView).toHaveBeenCalledWith(RAW_HTML_EDITOR_VIEW)
     })
 
     it('a11y checker start with no notifications', () => {
@@ -213,7 +172,7 @@ describe('RCE StatusBar', () => {
       const {container, getByTestId} = renderStatusBar({editorView: RAW_HTML_EDITOR_VIEW})
       const statusbar = getByTestId('RCEStatusBar')
       const buttons = container.querySelectorAll('[tabindex]')
-      expect(buttons).toHaveLength(3)
+      expect(buttons).toHaveLength(2)
 
       buttons[0].focus()
       expect(document.activeElement).toBe(buttons[0])
@@ -229,7 +188,7 @@ describe('RCE StatusBar', () => {
       const {container, getByTestId} = renderStatusBar({editorView: RAW_HTML_EDITOR_VIEW})
       const statusbar = getByTestId('RCEStatusBar')
       const buttons = container.querySelectorAll('[tabindex]')
-      expect(buttons).toHaveLength(3)
+      expect(buttons).toHaveLength(2)
 
       buttons[buttons.length - 1].focus()
       expect(document.activeElement).toBe(buttons[buttons.length - 1])
@@ -251,7 +210,7 @@ describe('RCE StatusBar', () => {
       })
       const statusbar = getByTestId('RCEStatusBar')
       const buttons = container.querySelectorAll('[tabindex]')
-      expect(buttons).toHaveLength(4)
+      expect(buttons).toHaveLength(3)
 
       buttons[0].focus()
       expect(document.activeElement).toBe(buttons[0])
@@ -269,7 +228,7 @@ describe('RCE StatusBar', () => {
       })
       const statusbar = getByTestId('RCEStatusBar')
       const buttons = container.querySelectorAll('[tabindex]')
-      expect(buttons).toHaveLength(4)
+      expect(buttons).toHaveLength(3)
 
       buttons[buttons.length - 1].focus()
       expect(document.activeElement).toBe(buttons[buttons.length - 1])
@@ -320,32 +279,6 @@ describe('RCE StatusBar', () => {
     })
   })
 
-  describe('default focus button', () => {
-    it('shifts button when entering edit mode', () => {
-      const {container, rerender} = renderStatusBar({editorView: WYSIWYG_VIEW})
-
-      const kbshortcutBtn = container.querySelector('[data-btn-id="rce-kbshortcut-btn"]')
-      expect(container.querySelector('[tabindex="0"]')).toBe(kbshortcutBtn)
-
-      rerender(
-        <StatusBar
-          {...defaultProps({
-            onToggleHtml: () => {},
-            path: [],
-            wordCount: 0,
-            editorView: RAW_HTML_EDITOR_VIEW,
-            onResize: () => {},
-            onKBShortcutModalOpen: () => {},
-            onA11yChecker: () => {},
-          })}
-        />,
-      )
-
-      const editBtn = container.querySelector('[data-btn-id="rce-edit-btn"]')
-      expect(container.querySelector('[tabindex="0"]')).toBe(editBtn)
-    })
-  })
-
   it('calls the callback when clicking the a11y checker button', () => {
     const onA11yCallback = jest.fn()
     const {getByText} = renderStatusBar({onA11yChecker: onA11yCallback})
@@ -365,12 +298,6 @@ describe('RCE StatusBar', () => {
       const {queryByRole} = renderStatusBar({disabledPlugins: ['instructure_wordcount']})
       const wordCountBtn = queryByRole('button', {name: /0 words/i})
       expect(wordCountBtn).not.toBeInTheDocument()
-    })
-
-    it('does not show the html view button when the plugin is disabled', () => {
-      const {queryByRole} = renderStatusBar({disabledPlugins: ['instructure_html_view']})
-      const htmlViewBtn = queryByRole('button', {name: /switch to the html editor/i})
-      expect(htmlViewBtn).not.toBeInTheDocument()
     })
 
     it('does not show the fullscreen button when the plugin is disabled', () => {

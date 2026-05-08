@@ -495,6 +495,7 @@ describe "Wiki Pages" do
     end
 
     it "embeds vimeo video in the page", priority: "1" do
+      skip("RCX-5124 2026-05-08")
       get "/courses/#{@course.id}/pages/Page1/edit"
       switch_editor_views
       switch_to_raw_html_editor

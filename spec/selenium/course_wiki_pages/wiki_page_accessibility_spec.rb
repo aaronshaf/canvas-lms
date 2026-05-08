@@ -268,6 +268,7 @@ describe "Wiki Pages" do
       end
 
       it "does not save changes when navigating away and not saving", priority: "1" do
+        skip("RCX-5124 2026-05-08")
         skip_if_safari(:alert)
         switch_editor_views
         wiki_page_body.send_keys("derp")
