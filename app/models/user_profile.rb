@@ -41,6 +41,13 @@ class UserProfile < ApplicationRecord
             },
             allow_blank: true
 
+  sanitize_field :bio, CanvasSanitize::SANITIZE
+
+  def bio
+    raw = super
+    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+  end
+
   TAB_PROFILE,
   TAB_COMMUNICATION_PREFERENCES,
   TAB_FILES,

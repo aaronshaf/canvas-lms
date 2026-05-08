@@ -19,6 +19,58 @@
 #
 
 describe UserProfile do
+  describe "bio sanitization" do
+    let(:user) { user_factory(active_all: true) }
+    let(:profile) do
+      p = user.profile
+      p.save! if p.new_record?
+      p
+    end
+
+    it "strips <script> tags on save" do
+      profile.update!(bio: "<script>alert(1)</script>safe text")
+      expect(profile.bio).not_to include("<script>")
+      expect(profile.bio).not_to include("alert(1)")
+      expect(profile.bio).to include("safe text")
+    end
+
+    it "strips disallowed event handler attributes on save" do
+      profile.update!(bio: '<a href="#" onclick="alert(1)">click me</a>')
+      expect(profile.bio).not_to include("onclick")
+      expect(profile.bio).not_to include("alert(1)")
+    end
+
+    it "preserves allowed HTML on save" do
+      profile.update!(bio: "<p>hello <strong>world</strong></p>")
+      expect(profile.bio).to eql("<p>hello <strong>world</strong></p>")
+    end
+
+    it "leaves plain text unchanged on save" do
+      profile.update!(bio: "just a bio")
+      expect(profile.bio).to eql("just a bio")
+    end
+
+    describe "#bio reader" do
+      it "strips disallowed elements on read when the column was persisted unsanitized" do
+        profile.update_columns(bio: "<script>alert(1)</script>safe text")
+        expect(profile.reload.bio).not_to include("<script>")
+        expect(profile.bio).not_to include("alert(1)")
+        expect(profile.bio).to include("safe text")
+      end
+
+      it "strips disallowed attributes on read when the column was persisted unsanitized" do
+        profile.update_columns(bio: '<object onerror="alert(1)">x</object>')
+        expect(profile.reload.bio).not_to include("onerror")
+        expect(profile.bio).not_to include("alert(1)")
+      end
+
+      it "returns nil when bio is nil" do
+        profile.update_columns(bio: nil)
+        expect(profile.reload.bio).to be_nil
+      end
+    end
+  end
+
   describe "tabs available" do
     let(:account) { Account.default }
 
