@@ -107,6 +107,28 @@ describe "submissions/show_preview" do
       expect(response.body).to include %(<span class="submission_annotation unread_indicator")
     end
 
+    # EGG-2681 / audit finding M7
+    it "html-escapes attachment.display_name in data-dialog-title" do
+      hostile = %{evil"><script>alert('XSS-M7')</script>.pdf}
+      # Bypass any future validation on display_name so the raw bytes
+      # survive into the ERB sink.
+      @attachment.update_columns(display_name: hostile)
+
+      assignment = @course.assignments.create!(title: "some assignment", submission_types: "online_upload")
+      submission = assignment.submit_homework(@user, attachments: [@attachment])
+      assign(:assignment, assignment)
+      assign(:submission, submission)
+      render template: "submissions/show_preview", locals: { anonymize_students: assignment.anonymize_students? }
+
+      doc  = Nokogiri::HTML.fragment(response.body)
+      link = doc.at_css("a[data-dialog-title]")
+      expect(link).not_to be_nil
+      expect(link.attribute_nodes.map(&:name)).not_to include("onerror", "onclick", "onmouseover")
+      expect(link.css("script")).to be_empty
+      expect(response.body).to include("&lt;script&gt;alert(&#39;XSS-M7&#39;)&lt;/script&gt;")
+      expect(response.body).not_to include("<script>alert('XSS-M7')</script>")
+    end
+
     it "renders an iframe with a src to canvadoc sessions controller when assignment is a student annotation" do
       assignment = @course.assignments.create!(
         annotatable_attachment: @attachment,
