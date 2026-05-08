@@ -20,6 +20,7 @@ import $ from 'jquery'
 import Answer from './answer'
 import classSet from '@canvas/quiz-legacy-client-apps/util/class_set'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import K from '../../../constants'
 import NoAnswer from './answers/no_answer'
 import React from 'react'
@@ -99,7 +100,7 @@ class QuestionInspector extends React.Component<QuestionInspectorProps> {
 
         <div
           className="ic-QuestionInspector__QuestionText"
-          dangerouslySetInnerHTML={{__html: question.questionText}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(question.questionText)}}
         />
 
         <hr />

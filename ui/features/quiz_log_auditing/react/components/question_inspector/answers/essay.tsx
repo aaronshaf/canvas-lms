@@ -18,6 +18,7 @@
 
 import Button from '../../button'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import K from '../../../../constants'
 import React from 'react'
 
@@ -46,7 +47,7 @@ class Essay extends React.Component<EssayProps, EssayState> {
     let content
 
     if (this.state.htmlView) {
-      content = <div dangerouslySetInnerHTML={{__html: this.props.answer || ''}} />
+      content = <div dangerouslySetInnerHTML={{__html: sanitizeHTML(this.props.answer)}} />
     } else {
       content = <pre>{this.props.answer}</pre>
     }
