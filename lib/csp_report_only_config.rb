@@ -97,7 +97,15 @@ module CspReportOnlyConfig
 
   def self.format_directives(domains, report_uri)
     sources = ["'self'", *domains].join(" ")
-    "default-src 'unsafe-inline' #{sources}; form-action #{sources}; base-uri 'self'; report-uri #{report_uri};"
+    # Trusted Types directives are emitted in report-only first so the browser collects
+    # violation telemetry without blocking. The frontend registers a `default` policy at
+    # boot (ui/shared/trusted-types) for sink discovery; per-sink sanitizeHTML wrappers
+    # remain the real XSS defense. `dompurify` is allowlisted because DOMPurify
+    # auto-registers a policy of that name on first use; without it the report endpoint
+    # logs trusted-types-policy violations on every pageload, and the future enforce
+    # phase would crash the sanitizer outright.
+    "default-src 'unsafe-inline' #{sources}; form-action #{sources}; base-uri 'self'; " \
+      "require-trusted-types-for 'script'; trusted-types default dompurify; report-uri #{report_uri};"
   end
 
   def self.build_static_config

@@ -158,6 +158,7 @@ describe CspReportOnlyConfig do
         "default-src 'unsafe-inline' 'self' https://*.instructure.com; " \
         "form-action 'self' https://*.instructure.com; " \
         "base-uri 'self'; " \
+        "require-trusted-types-for 'script'; trusted-types default dompurify; " \
         "report-uri https://r.example/csp;"
       )
     end
@@ -166,6 +167,19 @@ describe CspReportOnlyConfig do
       stub_per_account
       result = described_class.directives_for(account, request)
       expect(result).to include("base-uri 'self';")
+    end
+
+    it "includes the require-trusted-types-for directive ahead of report-uri" do
+      stub_per_account
+      result = described_class.directives_for(account, request)
+      expect(result).to include("require-trusted-types-for 'script';")
+      expect(result.index("require-trusted-types-for")).to be < result.index("report-uri")
+    end
+
+    it "includes the trusted-types policy allowlist directive (default + dompurify)" do
+      stub_per_account
+      result = described_class.directives_for(account, request)
+      expect(result).to include("trusted-types default dompurify;")
     end
 
     it "returns nil when static config is unconfigured, regardless of account" do
@@ -197,12 +211,12 @@ describe CspReportOnlyConfig do
     end
 
     it "truncates per-Account domains to fit the header cap, keeping static intact" do
-      stub_const("CspReportOnlyConfig::HEADER_BYTES_CAP", 200)
+      stub_const("CspReportOnlyConfig::HEADER_BYTES_CAP", 300)
       stub_per_account("*.first.example.com", "*.second.example.com", "*.third.example.com")
       expect(Rails.logger).to receive(:warn).with(/truncated \d+ per-account domain/)
       allow(InstStatsd::Statsd).to receive(:distributed_increment)
       result = described_class.directives_for(account, request)
-      expect(result.bytesize).to be <= 200
+      expect(result.bytesize).to be <= 300
       expect(result).to include("https://*.instructure.com") # static preserved
     end
 

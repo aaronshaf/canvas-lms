@@ -20,6 +20,7 @@
 
 import './boot/initializers/setWebpackCdnHost'
 import '@canvas/jquery/jquery.instructure_jquery_patches' // this needs to be before anything else that requires jQuery
+import '@canvas/trusted-types' // register Trusted Types default policy before any innerHTML write
 import './boot'
 import './boot/featureRegistry'
 import {captureException} from '@sentry/browser'
