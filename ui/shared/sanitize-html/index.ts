@@ -92,6 +92,12 @@ const CONFIG = {
   // gets widened to `boolean` at the variable boundary and matches the
   // string-returning overload instead.
   RETURN_TRUSTED_TYPE: true as const,
+  // Rails UJS treats certain `data-*` attributes as instructions, not
+  // opaque metadata: a data-method/data-url pair on a clickable element
+  // turns a click into a state-changing request with the victim's session.
+  // DOMPurify allows all `data-*` by default (ALLOW_DATA_ATTR); deny the
+  // UJS-actionable subset explicitly.
+  FORBID_ATTR: ['data-method', 'data-remote', 'data-url', 'data-confirm', 'data-disable-with'],
 }
 
 export const sanitizeHTML = (html: string | null | undefined): string =>
