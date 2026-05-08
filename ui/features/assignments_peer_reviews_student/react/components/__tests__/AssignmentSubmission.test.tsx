@@ -413,6 +413,104 @@ describe('AssignmentSubmission', () => {
       const content = screen.getByTestId('text-entry-content')
       expect(content).toBeEmptyDOMElement()
     })
+
+    describe('XSS regression', () => {
+      // The reviewer renders peer-authored submission body via
+      // dangerouslySetInnerHTML. Backend CanvasSanitize allowlists
+      // the title attribute, so attribute-value mXSS payloads can
+      // survive backend sanitization. CFA-895 wraps the sink with
+      // @canvas/sanitize-html as defense-in-depth.
+      //
+      // Scope: these are sink-wiring smoke tests — they verify that
+      // sanitizeHTML is wired into the dangerouslySetInnerHTML path
+      // for this component. Full mXSS coverage of the wrapper
+      // (title-attribute breakout, noscript double-decode,
+      // foreignObject, srcdoc, formaction, etc.) lives in
+      // ui/shared/sanitize-html/__tests__/sanitize-html.test.ts.
+      // The file-level vi.mock above stubs apiUserContent.convert
+      // as identity, so the convert() parse→serialize round-trip is
+      // out of scope here.
+
+      afterEach(() => {
+        delete (window as any).__xss_fired
+      })
+
+      it('strips inline event handlers from peer-authored submission body', () => {
+        render(
+          <AssignmentSubmission
+            {...createDefaultProps({
+              submission: createSubmission({
+                body: '<p>before <img src=x onerror="window.__xss_fired = true"> after</p>',
+              }),
+            })}
+          />,
+        )
+
+        const content = screen.getByTestId('text-entry-content')
+        expect(content.innerHTML).not.toMatch(/\son[a-z]+\s*=/i)
+        expect((window as any).__xss_fired).toBeUndefined()
+      })
+
+      it('strips <script> tags from peer-authored submission body', () => {
+        render(
+          <AssignmentSubmission
+            {...createDefaultProps({
+              submission: createSubmission({
+                body: '<p>before</p><script>window.__xss_fired = true</script><p>after</p>',
+              }),
+            })}
+          />,
+        )
+
+        const content = screen.getByTestId('text-entry-content')
+        expect(content.querySelector('script')).toBeNull()
+        expect(content.innerHTML).not.toMatch(/<script/i)
+        expect((window as any).__xss_fired).toBeUndefined()
+      })
+
+      it('strips javascript: hrefs from peer-authored submission body', () => {
+        render(
+          <AssignmentSubmission
+            {...createDefaultProps({
+              submission: createSubmission({
+                body: '<p><a href="javascript:window.__xss_fired = true">click</a></p>',
+              }),
+            })}
+          />,
+        )
+
+        const content = screen.getByTestId('text-entry-content')
+        const anchor = content.querySelector('a')
+        if (anchor) {
+          expect(anchor.getAttribute('href') || '').not.toMatch(/^javascript:/i)
+        }
+        expect(content.innerHTML).not.toMatch(/javascript:/i)
+        expect((window as any).__xss_fired).toBeUndefined()
+      })
+
+      it('neutralizes title-attribute breakout payloads', () => {
+        // On-point regression shape: a title attribute whose value
+        // tries to break out into a sibling <img onerror=...>.
+        // Backend CanvasSanitize allows the title attribute, so the
+        // raw string survives the server. After sanitization +
+        // browser parsing, no real <img> element should materialize
+        // and no event handler should fire.
+        render(
+          <AssignmentSubmission
+            {...createDefaultProps({
+              submission: createSubmission({
+                body: '<p title="></p><img src=x onerror=\'window.__xss_fired = true\'>">x</p>',
+              }),
+            })}
+          />,
+        )
+
+        const content = screen.getByTestId('text-entry-content')
+        expect(content.querySelector('img')).toBeNull()
+        expect(content.querySelector('[onerror]')).toBeNull()
+        expect((window as any).__xss_fired).toBeUndefined()
+      })
+    })
   })
 
   describe('view mode persistence', () => {
