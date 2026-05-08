@@ -18,6 +18,7 @@
 
 import iframeAllowances from '@canvas/external-apps/iframeAllowances'
 import {IframeDimensions} from '@canvas/lti/model/common'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 export type ContentItemIframeDimensions = IframeDimensions
 
@@ -56,7 +57,9 @@ export const anchorTag = (
   anchorTagEl.setAttribute('href', safeUrl(item.url))
   anchorTagEl.setAttribute('title', item.title || '')
   anchorTagEl.setAttribute('target', '_blank')
-  anchorTagEl.innerHTML = innerHTML || ''
+  // innerHTML may originate from external LTI tools — sanitize before
+  // setting so a malicious tool cannot inject script/event handlers.
+  anchorTagEl.innerHTML = sanitizeHTML(innerHTML || '')
   return anchorTagEl.outerHTML
 }
 
