@@ -25,7 +25,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {SubmissionHtmlComment} from '@canvas/assignments/graphql/student/SubmissionComment'
 import {Link} from '@instructure/ui-link'
-import sanitizeHtml from 'sanitize-html-with-tinymce'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import CanvasStudioPlayer from '@canvas/canvas-studio-player'
 import {containsHtmlTags, formatMessage, stripHtmlTags} from '@canvas/util/TextHelper'
 
@@ -68,7 +68,7 @@ export default function CommentRow(props) {
           data-testid="commentContent"
           dangerouslySetInnerHTML={{
             __html: containsHtmlTags(htmlComment)
-              ? sanitizeHtml(htmlComment)
+              ? sanitizeHTML(htmlComment)
               : formatMessage(htmlComment),
           }}
         />
