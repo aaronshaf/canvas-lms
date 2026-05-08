@@ -24,6 +24,7 @@ import {useClassNames} from '../../../../utils'
 import {type RCEBlockProps} from './types'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('block-editor')
 
@@ -127,7 +128,7 @@ export const RCEBlock = ({id, text, onContentChange}: RCEBlockProps) => {
         }}
         className={clazz}
         data-placeholder={I18n.t('Click to enter rich text')}
-        dangerouslySetInnerHTML={{__html: text || ''}}
+        dangerouslySetInnerHTML={{__html: sanitizeHTML(text || '')}}
       />
     )
   }

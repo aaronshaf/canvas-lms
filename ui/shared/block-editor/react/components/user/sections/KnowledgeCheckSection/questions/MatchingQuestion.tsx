@@ -21,6 +21,7 @@ import React, {useCallback, useState} from 'react'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('block-editor')
 
@@ -106,7 +107,10 @@ const MatchingQuestion = ({question, onAnswerChange}: MatchingQuestionProps) => 
 
   return (
     <div className="quiz-section__body">
-      <div style={{margin: '0 0 .75rem'}} dangerouslySetInnerHTML={{__html: question.item_body}} />
+      <div
+        style={{margin: '0 0 .75rem'}}
+        dangerouslySetInnerHTML={{__html: sanitizeHTML(question.item_body)}}
+      />
       {renderChoices()}
     </div>
   )

@@ -28,6 +28,7 @@ import {LATEST_BLOCK_DATA_VERSION} from '../../utils/transformations'
 import {IconDesktop, IconTablet, IconMobile} from '../../assets/internal-icons'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('block-editor')
 
@@ -388,7 +389,7 @@ const PreviewModal = ({open, onDismiss}: PreviewModalProps) => {
           <div
             style={frameStyle()}
             dangerouslySetInnerHTML={{
-              __html: `${frames[viewSize].clippath}${frames[viewSize].frame}`,
+              __html: sanitizeHTML(`${frames[viewSize].clippath}${frames[viewSize].frame}`),
             }}
           />
           <div style={viewStyle()} className="block-editor-view">

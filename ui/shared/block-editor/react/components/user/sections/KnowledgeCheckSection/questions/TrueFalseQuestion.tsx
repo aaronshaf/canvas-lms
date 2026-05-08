@@ -22,6 +22,7 @@ import {RadioInputGroup, RadioInput} from '@instructure/ui-radio-input'
 import {uid} from '@instructure/uid'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('block-editor')
 
@@ -45,7 +46,10 @@ const TrueFalseQuestion = ({question, onAnswerChange}: TrueFalseQuestionProps) =
 
   return (
     <div className="quiz-section__body">
-      <div style={{margin: '0 0 .75rem'}} dangerouslySetInnerHTML={{__html: question.item_body}} />
+      <div
+        style={{margin: '0 0 .75rem'}}
+        dangerouslySetInnerHTML={{__html: sanitizeHTML(question.item_body)}}
+      />
       <RadioInputGroup
         description={<ScreenReaderContent>{I18n.t('Choose one')}</ScreenReaderContent>}
         name={qid}

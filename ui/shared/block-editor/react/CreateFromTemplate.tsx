@@ -38,6 +38,7 @@ import DisplayLayoutButtons, {
   type DisplayType,
 } from './components/create_from_templates/DisplayLayoutButtons'
 import {TagSelect, AvailableTags} from './components/create_from_templates/TagSelect'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('block-editor')
 
@@ -167,11 +168,13 @@ export default function CreateFromTemplate(props: {course_id: string; noBlocks: 
           </div>
           <div
             dangerouslySetInnerHTML={{
-              __html: I18n.t('Custom layouts are available through *Design Services*', {
-                wrappers: [
-                  `<a href="https://learn.instructure.com/courses/5/pages/content-and-design-services" target="_blank">$1</a>`,
-                ],
-              }),
+              __html: sanitizeHTML(
+                I18n.t('Custom layouts are available through *Design Services*', {
+                  wrappers: [
+                    `<a href="https://learn.instructure.com/courses/5/pages/content-and-design-services" target="_blank">$1</a>`,
+                  ],
+                }),
+              ),
             }}
           />
         </Text>

@@ -23,6 +23,7 @@ import {type RCETextBlockProps} from './types'
 import {RCETextBlockPopup} from './RCETextBlockPopup'
 import {RCETextBlockToolbar} from './RCETextBlockToolbar'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('block-editor')
 
@@ -113,7 +114,7 @@ export const RCETextBlock = ({text, width, height, sizeVariant = 'auto'}: RCETex
         />
       )
     } else if (text) {
-      return <div dangerouslySetInnerHTML={{__html: text || ''}} />
+      return <div dangerouslySetInnerHTML={{__html: sanitizeHTML(text || '')}} />
     }
     return null
   }
@@ -146,7 +147,7 @@ export const RCETextBlock = ({text, width, height, sizeVariant = 'auto'}: RCETex
         className={clazz}
         ref={el => setBlockRef(el)}
         style={styl}
-        dangerouslySetInnerHTML={{__html: text || ''}}
+        dangerouslySetInnerHTML={{__html: sanitizeHTML(text || '')}}
       />
     )
   }

@@ -30,6 +30,7 @@ import {QuizModal} from './QuizModal'
 import {renderQuestion} from './utils/questionUtils'
 import {type QuestionProps, type KnowledgeCheckSectionProps} from './types'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('block-editor')
 
@@ -143,9 +144,8 @@ const KnowledgeCheckSection = ({id, entry}: KnowledgeCheckSectionProps) => {
         <Flex.Item shouldGrow={true}>
           {showResult && (
             <Alert variant={isCorrect ? 'success' : 'error'} margin="0 small 0 0">
-              <div dangerouslySetInnerHTML={{__html: renderFeedback()}} />
-              {/* @ts-expect-error */}
-              <div dangerouslySetInnerHTML={{__html: renderNeutralFeedback()}} />
+              <div dangerouslySetInnerHTML={{__html: sanitizeHTML(renderFeedback())}} />
+              <div dangerouslySetInnerHTML={{__html: sanitizeHTML(renderNeutralFeedback())}} />
             </Alert>
           )}
         </Flex.Item>

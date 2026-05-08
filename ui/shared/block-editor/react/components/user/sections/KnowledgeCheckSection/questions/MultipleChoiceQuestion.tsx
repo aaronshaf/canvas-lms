@@ -23,6 +23,7 @@ import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {uid} from '@instructure/uid'
 import {type QuestionChoice} from '../../../../../assets/data/quizQuestions'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('block-editor')
 
@@ -46,7 +47,10 @@ const MultipleChoiceQuestion = ({question, onAnswerChange}: MultipleChoiceQuesti
 
   return (
     <div className="quiz-section__body">
-      <div style={{margin: '0 0 .75rem'}} dangerouslySetInnerHTML={{__html: question.item_body}} />
+      <div
+        style={{margin: '0 0 .75rem'}}
+        dangerouslySetInnerHTML={{__html: sanitizeHTML(question.item_body)}}
+      />
       <RadioInputGroup
         description={<ScreenReaderContent>{I18n.t('Choose one')}</ScreenReaderContent>}
         name={qid}
@@ -59,7 +63,7 @@ const MultipleChoiceQuestion = ({question, onAnswerChange}: MultipleChoiceQuesti
             <RadioInput
               key={choice.id}
               value={choice.id}
-              label={<span dangerouslySetInnerHTML={{__html: choice.item_body}} />}
+              label={<span dangerouslySetInnerHTML={{__html: sanitizeHTML(choice.item_body)}} />}
             />
           )
         })}

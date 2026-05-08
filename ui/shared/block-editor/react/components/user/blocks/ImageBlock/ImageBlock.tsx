@@ -25,6 +25,7 @@ import {BlockResizer} from '../../../editor/BlockResizer'
 import {Spinner} from '@instructure/ui-spinner'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('block-editor')
 
@@ -174,7 +175,7 @@ const ImageBlock = ({
         <div
           // @ts-expect-error
           ref={imgRef}
-          dangerouslySetInnerHTML={{__html: svg || ''}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(svg || '')}}
           style={{width: '100%', height: '100%', objectFit: imgConstrain, display: 'inline-block'}}
         />
       </div>

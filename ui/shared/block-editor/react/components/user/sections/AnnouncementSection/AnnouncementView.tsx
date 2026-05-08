@@ -22,6 +22,7 @@ import {users, type Announcement, type User} from '../../../../assets/data/annou
 import {Flex} from '@instructure/ui-flex'
 
 import {Text} from '@instructure/ui-text'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 type AnnouncementViewProps = {
   announcement: Announcement
@@ -40,7 +41,7 @@ export const AnnouncementView = ({announcement}: AnnouncementViewProps) => {
       </Flex>
       <Flex direction="column" gap="none">
         <h1>{announcement.title}</h1>
-        <span dangerouslySetInnerHTML={{__html: announcement.message}} />
+        <span dangerouslySetInnerHTML={{__html: sanitizeHTML(announcement.message)}} />
       </Flex>
     </Flex>
   )

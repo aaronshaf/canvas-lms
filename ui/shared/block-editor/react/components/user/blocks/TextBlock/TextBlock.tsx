@@ -24,6 +24,7 @@ import {TextBlockToolbar} from './TextBlockToolbar'
 import {type TextBlockProps} from './types'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('block-editor')
 
@@ -123,7 +124,7 @@ export const TextBlock = ({text = '', fontSize, textAlign, color}: TextBlockProp
         tabIndex={-1}
         className={clazz}
         style={styl}
-        dangerouslySetInnerHTML={{__html: text}}
+        dangerouslySetInnerHTML={{__html: sanitizeHTML(text)}}
       />
     )
   }
