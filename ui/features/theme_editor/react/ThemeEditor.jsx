@@ -39,6 +39,7 @@ import {Text} from '@instructure/ui-text'
 import {Alert} from '@instructure/ui-alerts'
 import {View} from '@instructure/ui-view'
 import doFetchApi from '@canvas/do-fetch-api-effect'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('theme_editor')
 
@@ -491,7 +492,7 @@ export default function ThemeEditor({
             ) : null}
             <iframe
               id={PREVIEW_IFRAME_ID}
-              src={`/accounts/${accountID}/theme-preview/?editing_brand_config=1`}
+              src={sanitizeUrl(`/accounts/${accountID}/theme-preview/?editing_brand_config=1`)}
               title={I18n.t('Preview')}
               aria-hidden={somethingHasChanged()}
               tabIndex={somethingHasChanged() ? '-1' : '0'}

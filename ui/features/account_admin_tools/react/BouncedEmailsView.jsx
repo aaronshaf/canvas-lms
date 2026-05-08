@@ -33,6 +33,7 @@ import CanvasDateInput2 from '@canvas/datetime/react/components/DateInput2'
 import FriendlyDatetime from '@canvas/datetime/react/components/FriendlyDatetime'
 import * as tz from '@instructure/moment-utils'
 import {encodeQueryString} from '@instructure/query-string-encoding'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('bounced_emails')
 
@@ -77,10 +78,10 @@ export default function BouncedEmailsView({accountId}) {
     return body_data.map(row => (
       <Table.Row key={row[2] /* communication channel id */}>
         <Table.Cell>
-          <a href={`/about/${row[0]}`}>{row[1]}</a>
+          <a href={sanitizeUrl(`/about/${row[0]}`)}>{row[1]}</a>
         </Table.Cell>
         <Table.Cell>
-          <a href={`mailto:${row[4]}`}>{row[4]}</a>
+          <a href={sanitizeUrl(`mailto:${row[4]}`)}>{row[4]}</a>
         </Table.Cell>
         <Table.Cell>
           <FriendlyDatetime dateTime={row[5]} format={I18n.t('#date.formats.medium')} />

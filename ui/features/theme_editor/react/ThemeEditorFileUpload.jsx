@@ -20,6 +20,7 @@ import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import customTypes from '@canvas/theme-editor/react/PropTypes'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('theme_editor')
 
@@ -105,7 +106,7 @@ export default class ThemeEditorFileUpload extends Component {
   viewFileLink() {
     return !this.hasUserInput() && this.props.currentValue ? (
       <a
-        href={this.props.currentValue}
+        href={sanitizeUrl(this.props.currentValue)}
         target="_blank"
         rel="noopener noreferrer"
         className="ThemeEditorFileUpload__view-file"

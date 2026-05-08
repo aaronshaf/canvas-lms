@@ -17,6 +17,7 @@
 
 import {isRTL} from '@canvas/i18n/rtlHelper'
 import invariant from 'invariant'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const loadedStylesheets = {}
 
@@ -53,7 +54,7 @@ const brandableCss = {
 
     const linkElement = document.createElement('link')
     linkElement.rel = 'stylesheet'
-    linkElement.href = brandableCss.urlFor(bundleName, opts)
+    linkElement.href = sanitizeUrl(brandableCss.urlFor(bundleName, opts))
 
     // give the person trying to track down a bug a hint on how this link tag got on the page
     linkElement.setAttribute('data-loaded-by-brandableCss', true)

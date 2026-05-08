@@ -22,6 +22,7 @@ import React, {useCallback, useState} from 'react'
 import {Button} from '@instructure/ui-buttons'
 import {IconWarningLine} from '@instructure/ui-icons'
 import {useTranslation} from '@canvas/i18next'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 interface User {
   id: string
@@ -83,7 +84,7 @@ export default function AdminSplit({
         <ul>
           {results.map(u => (
             <li key={u.id}>
-              <a href={`/users/${u.id}`}>{u.short_name}</a>
+              <a href={sanitizeUrl(`/users/${u.id}`)}>{u.short_name}</a>
             </li>
           ))}
         </ul>
@@ -105,7 +106,7 @@ export default function AdminSplit({
       <p>{t('The following users will be split into separate user accounts:')}</p>
       <ul>
         <li key={user.id}>
-          <a href={user.html_url}>{user.display_name}</a>
+          <a href={sanitizeUrl(user.html_url)}>{user.display_name}</a>
         </li>
         {splitUsers.map(u => (
           <li key={u.id}>

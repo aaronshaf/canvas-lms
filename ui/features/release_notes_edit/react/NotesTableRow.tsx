@@ -31,6 +31,7 @@ import {Menu} from '@instructure/ui-menu'
 import {View} from '@instructure/ui-view'
 import {rolesObject} from './util'
 import {type ReleaseNote} from './types'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('release_notes')
 
@@ -61,7 +62,7 @@ export default function NotesTableRow({
           .join(', ')}
       </Table.Cell>
       <Table.Cell>
-        <a href={note.langs.en.url}>{note.langs.en.url}</a>
+        <a href={sanitizeUrl(note.langs.en.url || '')}>{note.langs.en.url}</a>
       </Table.Cell>
       <Table.Cell>
         <IconButton

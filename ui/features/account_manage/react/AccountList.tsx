@@ -31,6 +31,7 @@ import {IconButton} from '@instructure/ui-buttons'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {useQuery} from '@tanstack/react-query'
 import {sessionStoragePersister} from '@instructure/platform-query'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('account_manage')
 
@@ -103,10 +104,12 @@ export function AccountList() {
             return (
               <Table.Row key={account.id}>
                 <Table.Cell>
-                  <a href={`/accounts/${account.id}`}>{account.name}</a>
+                  <a href={sanitizeUrl(`/accounts/${account.id}`)}>{account.name}</a>
                 </Table.Cell>
                 <Table.Cell>
-                  <a href={`/accounts/${account.id}/sub_accounts`}>{account.sub_account_count}</a>
+                  <a href={sanitizeUrl(`/accounts/${account.id}/sub_accounts`)}>
+                    {account.sub_account_count}
+                  </a>
                 </Table.Cell>
                 <Table.Cell>{account.course_count}</Table.Cell>
                 <Table.Cell textAlign="end">

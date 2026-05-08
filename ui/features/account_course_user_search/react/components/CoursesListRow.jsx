@@ -40,6 +40,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import UserLink from './UserLink'
 import AddPeopleApp from '@canvas/add-people'
 import {showFlashError} from '@instructure/platform-alerts'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('account_course_user_search')
 
@@ -225,7 +226,7 @@ export default class CoursesListRow extends React.Component {
       <Table.Row>
         <Table.RowHeader textAlign="center">{this.renderCourseStatusIcon()}</Table.RowHeader>
         <Table.Cell>
-          <a href={url}>
+          <a href={sanitizeUrl(url)}>
             <span style={{paddingRight: '0.5em'}}>{name}</span>
             {blueprint && (
               <Tooltip renderTip={blueprintTip}>
@@ -264,7 +265,7 @@ export default class CoursesListRow extends React.Component {
           {!teachers && teacher_count && I18n.t('%{teacher_count} teachers', {teacher_count})}
         </Table.Cell>
         <Table.Cell>
-          <a href={sub_url}>{subaccount_name}</a>
+          <a href={sanitizeUrl(sub_url)}>{subaccount_name}</a>
         </Table.Cell>
         <Table.Cell>
           {template ? '\u2014' : I18n.n(total_students + newlyEnrolledStudents)}

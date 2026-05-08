@@ -36,6 +36,7 @@ import 'jqueryui/sortable'
 import 'jqueryui/tabs'
 
 import {GradingSchemesSelector} from '@canvas/grading-scheme'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('course_settings')
 
@@ -251,7 +252,7 @@ $(document).ready(function () {
       data = $section.getTemplateData({textValues: ['name']})
     $edit_section_form.fillFormData(data, {object_name: 'course_section'})
     $section.find('.name').hide().after($edit_section_form.show())
-    $edit_section_form.attr('action', $this.attr('href'))
+    $edit_section_form.attr('action', sanitizeUrl($this.attr('href')))
     $edit_section_form.find(':text:first').focus().select()
     return false
   })
