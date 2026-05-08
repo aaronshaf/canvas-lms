@@ -33,6 +33,10 @@ describe DeveloperKeysController do
     "canvas.developer_keys_controller.request_error"
   end
 
+  before do
+    allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_return(false)
+  end
+
   context "Site admin" do
     before do
       account_admin_user(account: Account.site_admin)
@@ -1301,6 +1305,118 @@ describe DeveloperKeysController do
           put :update, params: { id: account_key.id, developer_key: { name: "Updated" }, account_id: root_account.id }, format: :json
           expect(response).to be_successful
         end
+      end
+    end
+  end
+
+  describe "elevated auth provider enforcement" do
+    let(:account) { Account.site_admin }
+    let!(:elevated_provider) { account.authentication_providers.create!(auth_type: "saml") }
+    let(:dk) { DeveloperKey.create! }
+    let(:enforce_flag_enabled) { true }
+    let(:developer_keys_flag_enabled) { true }
+
+    before do
+      account_admin_user(account:)
+      user_with_pseudonym(user: @admin, account:)
+      user_session(@admin, @pseudonym)
+
+      AuthenticationMethods::PseudonymAttributes.reset
+
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_return(false)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+        .with("enforce_violations").and_return(enforce_flag_enabled)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+        .with("require_for_developer_keys").and_return(developer_keys_flag_enabled)
+    end
+
+    context "when an elevated provider is configured" do
+      before do
+        account.settings[:elevated_auth_provider_global_id] = elevated_provider.global_id
+        account.save(validate: false)
+      end
+
+      context "and the session uses the elevated provider" do
+        before { AuthenticationMethods::PseudonymAttributes.auth_provider_id = elevated_provider.id }
+
+        it "allows index" do
+          get :index, params: { account_id: account.id }, format: :json
+          expect(response).to be_successful
+        end
+
+        it "allows create" do
+          post :create, params: { account_id: account.id, developer_key: { redirect_uri: "http://example.com/sdf" } }
+          expect(response).to be_successful
+        end
+
+        it "allows update" do
+          put :update, params: { id: dk.id, developer_key: { event: :deactivate }, account_id: account.id }
+          expect(response).to be_successful
+        end
+
+        it "allows destroy" do
+          delete :destroy, params: { id: dk.id, account_id: account.id }
+          expect(response).to be_successful
+        end
+      end
+
+      context "and the session does not use the elevated provider" do
+        it "blocks index json with 401" do
+          get :index, params: { account_id: account.id }, format: :json
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        it "redirects index html with a flash error" do
+          get :index, params: { account_id: account.id }
+          expect(response).to be_redirect
+          expect(flash[:error][:html]).to include("requires using an elevated authentication provider")
+        end
+
+        it "blocks create" do
+          post :create, params: { account_id: account.id, developer_key: { redirect_uri: "http://example.com/sdf" } }, format: :json
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        it "blocks update" do
+          put :update, params: { id: dk.id, developer_key: { event: :deactivate }, account_id: account.id }, format: :json
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        it "blocks destroy" do
+          delete :destroy, params: { id: dk.id, account_id: account.id }, format: :json
+          expect(response).to have_http_status(:forbidden)
+        end
+
+        context "but the enforce_violations flag is off" do
+          let(:enforce_flag_enabled) { false }
+
+          it "allows the request through" do
+            get :index, params: { account_id: account.id }, format: :json
+            expect(response).to be_successful
+          end
+        end
+
+        context "but the require_for_developer_keys flag is off" do
+          let(:developer_keys_flag_enabled) { false }
+
+          it "allows the request through" do
+            get :index, params: { account_id: account.id }, format: :json
+            expect(response).to be_successful
+          end
+        end
+
+        it "does not gate lookup_utids" do
+          allow(LearnPlatform::GlobalApi).to receive(:lookup_api_registrations).and_return([])
+          post :lookup_utids, params: { account_id: account.id, redirect_uris: ["https://example.com/cb"] }, format: :json
+          expect(response).to be_successful
+        end
+      end
+    end
+
+    context "when no elevated provider is configured" do
+      it "allows the request" do
+        get :index, params: { account_id: account.id }, format: :json
+        expect(response).to be_successful
       end
     end
   end

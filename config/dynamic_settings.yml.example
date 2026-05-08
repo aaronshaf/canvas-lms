@@ -119,6 +119,7 @@ development:
           n: totally_definitely_342_base64_characters_long
       # elevated_auth_provider.yml: |
       #   require_for_plugins: 'true'
+      #   require_for_developer_keys: 'true'
       #   log_violations: 'true'
       #   enforce_violations: 'true'
       # datadog_apm.yml: |

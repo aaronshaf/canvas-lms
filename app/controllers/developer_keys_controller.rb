@@ -195,6 +195,9 @@ class DeveloperKeysController < ApplicationController
   before_action :require_manage_developer_keys
   before_action :require_modify_site_admin_developer_keys, except: %i[index lookup_utids]
   before_action :require_root_account, only: %i[index create]
+  before_action :require_elevated_auth_provider,
+                only: %i[index create update destroy],
+                if: :require_elevated_auth_provider_for_developer_keys?
 
   include HorizonMode
 
@@ -532,6 +535,10 @@ class DeveloperKeysController < ApplicationController
 
   def require_root_account
     raise ActiveRecord::RecordNotFound unless @context.root_account?
+  end
+
+  def require_elevated_auth_provider_for_developer_keys?
+    AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_for_developer_keys")
   end
 
   def developer_key_params

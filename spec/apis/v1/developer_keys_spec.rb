@@ -24,6 +24,10 @@ describe DeveloperKeysController, type: :request do
   include_context "key_storage_helper"
   let(:sa_id) { Account.site_admin.id }
 
+  before do
+    allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_return(false)
+  end
+
   describe "GET 'index'" do
     it "requires authorization" do
       unauthorized_api_call(:get, "/api/v1/accounts/#{sa_id}/developer_keys.json", {
