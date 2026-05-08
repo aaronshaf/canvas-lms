@@ -110,10 +110,20 @@ $.extend(proto, {
         }
 
         if (parent.prev().length && !parent.prev().children('a').length) {
-          parent
-            .prev()
+          // Wrap the existing label text in a ui-menu-input-group span using
+          // text-based DOM construction, not an HTML string round-trip.
+          // Reading parent.prev().html() and re-emitting it via .html() is the
+          // same shape that bit the discussion render path: attribute-encoded
+          // markup the browser parsed inertly on the first pass can be
+          // re-parsed on the second and break out into live DOM. The visual
+          // intent is "wrap the existing label text in a span" — text-only —
+          // so we never need a second HTML-parse step.
+          const $label = parent.prev()
+          const labelText = $label.text()
+          $label
             .addClass('ui-state-disabled')
-            .html("<span class='ui-menu-input-group'>" + parent.prev().html() + '</span>')
+            .empty()
+            .append($('<span/>', {class: 'ui-menu-input-group', text: labelText}))
             .bind('click.menu', function (event) {
               return false
             })
