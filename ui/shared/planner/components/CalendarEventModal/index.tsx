@@ -29,6 +29,7 @@ import {Modal} from '@instructure/ui-modal'
 import {View} from '@instructure/ui-view'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {dateString, dateTimeString, dateRangeString} from '../../utilities/dateUtils'
 import {convertApiUserContent} from '../../utilities/contentUtils'
 import {userShape} from '../plannerPropTypes'
@@ -111,7 +112,7 @@ export default class CalendarEventModal extends React.Component {
       return (
         <List.Item margin="large 0 0 0">
           <Text weight="bold">{I18n.t('Details:')}</Text>
-          <div dangerouslySetInnerHTML={{__html: convertedHtml}} />
+          <div dangerouslySetInnerHTML={{__html: sanitizeHTML(convertedHtml)}} />
         </List.Item>
       )
     }

@@ -20,6 +20,7 @@ import $ from 'jquery'
 import React from 'react'
 import PropTypes from 'prop-types'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Breadcrumb} from '@instructure/ui-breadcrumb'
 import {Button} from '@instructure/ui-buttons'
 import {Grid} from '@instructure/ui-grid'
@@ -446,10 +447,12 @@ class EditPage extends React.Component {
                   className="ic-Label"
                   htmlFor="limit_users_per_slot"
                   dangerouslySetInnerHTML={{
-                    __html: I18n.t('Limit each time slot to %{input_value} user(s). ', {
-                      input_value:
-                        '<input class="ic-Input EditPage__Options-Input EditPage__Options-LimitUsersPerSlot" />',
-                    }),
+                    __html: sanitizeHTML(
+                      I18n.t('Limit each time slot to %{input_value} user(s). ', {
+                        input_value:
+                          '<input class="ic-Input EditPage__Options-Input EditPage__Options-LimitUsersPerSlot" />',
+                      }),
+                    ),
                   }}
                 />
               </div>
@@ -476,10 +479,12 @@ class EditPage extends React.Component {
                   className="ic-Label"
                   htmlFor="limit_slots_per_user"
                   dangerouslySetInnerHTML={{
-                    __html: I18n.t('Limit students to attend %{input_value} slot(s). ', {
-                      input_value:
-                        '<input class="ic-Input EditPage__Options-Input EditPage__Options-LimitSlotsPerUser" />',
-                    }),
+                    __html: sanitizeHTML(
+                      I18n.t('Limit students to attend %{input_value} slot(s). ', {
+                        input_value:
+                          '<input class="ic-Input EditPage__Options-Input EditPage__Options-LimitSlotsPerUser" />',
+                      }),
+                    ),
                   }}
                 />
               </div>
