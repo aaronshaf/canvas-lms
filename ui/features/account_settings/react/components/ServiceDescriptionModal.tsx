@@ -21,6 +21,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Heading} from '@instructure/ui-heading'
 import {CloseButton} from '@instructure/ui-buttons'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('account_reports')
 
