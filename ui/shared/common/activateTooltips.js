@@ -33,7 +33,23 @@
 
 import $ from 'jquery'
 import htmlEscape, {raw} from '@instructure/html-escape'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import 'jqueryui/tooltip'
+
+// Every jQuery UI tooltip funnels through `_open(event, target, content)`,
+// which sets `content` as innerHTML on `.ui-tooltip-content`. Patching the
+// prototype once runs DOMPurify on every content path (title attr,
+// data-html-tooltip-title, custom content callbacks, direct `.tooltip()`
+// callers) before it reaches the sink.
+const baseOpen = $.ui.tooltip.prototype._open
+$.ui.tooltip.prototype._open = function (event, target, content) {
+  return baseOpen.call(
+    this,
+    event,
+    target,
+    typeof content === 'string' ? sanitizeHTML(content) : content,
+  )
+}
 
 const tooltipsToShortCirtuit = {}
 const shortCircutTooltip = target =>
