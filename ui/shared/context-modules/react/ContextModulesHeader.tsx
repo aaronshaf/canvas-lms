@@ -38,6 +38,7 @@ import {
 import ContextModulesPublishMenu from './ContextModulesPublishMenu'
 import {openExternalTool} from '../jquery/utils'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('context_modules')
 
@@ -134,7 +135,7 @@ type MoreMenuProps = {
 const ContextModulesHeaderMoreMenu = ({component, items}: MoreMenuProps) => {
   // @ts-expect-error
   const onClickToolHandler = (e, tool) => {
-    e.target.href = tool.href
+    e.target.href = sanitizeUrl(tool.href)
     e.target.dataset.toolId = tool['data-tool-id']
     e.target.dataset.toolLaunchType = tool['data-tool-launch-type']
     openExternalTool(e)

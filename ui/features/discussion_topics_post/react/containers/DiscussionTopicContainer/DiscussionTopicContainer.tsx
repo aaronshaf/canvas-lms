@@ -79,6 +79,7 @@ import {
 const I18n = createI18nScope('discussion_posts')
 
 import('@canvas/rubrics/jquery/rubricEditBinding')
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 export const DiscussionTopicContainer = ({
   // @ts-expect-error TS7031 (typescriptify)
@@ -806,7 +807,7 @@ export const DiscussionTopicContainer = ({
             // eslint-disable-next-line jsx-a11y/anchor-has-content
             <a
               // @ts-expect-error TS2339 (typescriptify)
-              href={ENV.DISCUSSION?.CONTEXT_RUBRICS_URL}
+              href={sanitizeUrl(ENV.DISCUSSION?.CONTEXT_RUBRICS_URL)}
               id="add_rubric_url"
               data-testid="add_rubric_url"
               style={{display: 'none'}}

@@ -22,6 +22,7 @@ import htmlEscape from '@instructure/html-escape'
 import Spinner from 'spin.js'
 import '@canvas/jquery/jquery.ajaxJSON'
 import '@canvas/jquery/jquery.instructure_misc_helpers'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('prerequisites_lookup')
 
@@ -79,7 +80,7 @@ INST.lookupPrerequisites = function () {
             $pre.addClass('requirement')
             $pre.toggleClass('locked_requirement', !pre.available)
             const $a = $('<a/>')
-            $a.attr('href', pre.url)
+            $a.attr('href', sanitizeUrl(pre.url))
             $a.text(pre.title)
             $a.toggleClass('icon-lock', !pre.available)
             $pre.append($a)

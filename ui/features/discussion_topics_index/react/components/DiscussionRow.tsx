@@ -76,6 +76,7 @@ import actions from '../actions'
 import propTypes from '../propTypes'
 import discussionShape from '../proptypes/discussion'
 import DiscussionManageMenu from './DiscussionManageMenu'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('discussion_row')
 
@@ -1159,7 +1160,9 @@ class DiscussionRow extends Component {
     // @ts-expect-error TS2339 (typescriptify)
     const maybeRenderMasteryPathsLink = this.props.displayMasteryPathsLink ? (
       <a
-        href={`discussion_topics/${discussionId}/edit?return_to=${returnTo}#mastery-paths-editor`}
+        href={sanitizeUrl(
+          `discussion_topics/${discussionId}/edit?return_to=${returnTo}#mastery-paths-editor`,
+        )}
         className="discussion-index-mastery-paths-link"
       >
         {I18n.t('Mastery Paths')}

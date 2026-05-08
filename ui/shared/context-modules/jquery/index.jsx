@@ -99,6 +99,7 @@ import {
 } from '../utils/showAllOrLess'
 import {ModuleItemsStore} from '../utils/ModuleItemsStore'
 import {fetchItemTitles} from '../utils/fetchItemTitles'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 if (!('INST' in window)) window.INST = {}
 
@@ -2328,7 +2329,7 @@ function initContextModuleItems(moduleId) {
       let url = $link.attr('data-item-href')
       if (url) {
         url += url.includes('?') ? '&follow_redirect=1' : '?follow_redirect=1'
-        $link.attr('href', url)
+        $link.attr('href', sanitizeUrl(url))
       }
     } else {
       $link.click(function (event) {
@@ -2486,7 +2487,7 @@ function initContextModules() {
         let url = $link.attr('data-item-href')
         if (url) {
           url += url.includes('?') ? '&follow_redirect=1' : '?follow_redirect=1'
-          $link.attr('href', url)
+          $link.attr('href', sanitizeUrl(url))
         }
       } else {
         $link.click(function (event) {

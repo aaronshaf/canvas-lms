@@ -28,6 +28,7 @@ import fcUtil from '@canvas/calendar/jquery/fcUtil'
 import ValidatedFormView from '@canvas/forms/backbone/views/ValidatedFormView'
 import '../../fcMomentHandlebarsHelpers'
 import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('calendar')
 
@@ -72,7 +73,10 @@ export default class EditToDoItemDetails extends ValidatedFormView {
     }
     $('#edit_event_tabs .edit_todo_item_option').text(title)
 
-    $('#edit_todo_item_form_holder .more_options_link').attr('href', this.event.editUrl)
+    $('#edit_todo_item_form_holder .more_options_link').attr(
+      'href',
+      sanitizeUrl(this.event.editUrl),
+    )
   }
 
   setupTimeAndDatePickers() {

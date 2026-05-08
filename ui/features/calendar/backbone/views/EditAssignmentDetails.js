@@ -39,6 +39,7 @@ import '@canvas/jquery/jquery.instructure_misc_helpers'
 import '../../fcMomentHandlebarsHelpers'
 import {encodeQueryString} from '@instructure/query-string-encoding'
 import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('calendar')
 
@@ -100,7 +101,7 @@ export default class EditAssignmentDetailsRewrite extends ValidatedFormView {
     this.$el.find('#assignment_override_course_pacing_message').show()
     this.$el
       .find('#assignment_override_course_pacing_link')
-      .attr('href', `/courses/${this.event.contextInfo.id}/course_pacing`)
+      .attr('href', sanitizeUrl(`/courses/${this.event.contextInfo.id}/course_pacing`))
   }
 
   enableDateField() {
@@ -187,11 +188,11 @@ export default class EditAssignmentDetailsRewrite extends ValidatedFormView {
     }
 
     // Update the edit and more options links with the new context
-    this.$el.attr('action', this.currentContextInfo.create_assignment_url)
+    this.$el.attr('action', sanitizeUrl(this.currentContextInfo.create_assignment_url))
     const moreOptionsUrl = this.event.assignment
       ? `${this.event.assignment.html_url}/edit`
       : this.currentContextInfo.new_assignment_url
-    return this.$el.find('.more_options_link').attr('href', moreOptionsUrl)
+    return this.$el.find('.more_options_link').attr('href', sanitizeUrl(moreOptionsUrl))
   }
 
   generateNewEvent() {
