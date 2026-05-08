@@ -223,6 +223,8 @@ module AttachmentHelper
                                        download: !inline,
                                        authorization: @attachment_authorization,
                                        query_params: options.slice(:location))
+    elsif !files_domain?
+      raise "A files domain must be configured in domain.yml for files access."
     elsif attachment.stored_locally?
       @headers = false if @files_domain
       send_file(attachment.full_filename, type: attachment.content_type_with_encoding, disposition: (inline ? "inline" : "attachment"), filename: attachment.display_name)

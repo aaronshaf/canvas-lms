@@ -1564,6 +1564,7 @@ describe "Submissions API", type: :request do
                       assignment_id: a1.id.to_s },
                     { include: %w[submission_history submission_comments rubric_assessment] })
     url = json[0]["attachments"][0]["url"]
+    allow_any_instance_of(FilesController).to receive(:files_domain?).and_return(true)
     get(url)
     follow_redirect! while response.redirect?
     expect(response).to be_successful

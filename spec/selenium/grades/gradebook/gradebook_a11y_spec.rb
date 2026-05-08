@@ -76,6 +76,7 @@ shared_examples "Gradebook" do |ff_enabled|
       end
 
       it "maintains focus to Actions menu trigger during past csv export", priority: "2" do
+        allow_any_instance_of(ApplicationController).to receive(:files_domain?).and_return(true)
         Gradebook.select_previous_grade_export
 
         expect(current_active_element.tag_name).to eq("button")
@@ -111,6 +112,7 @@ shared_examples "Gradebook" do |ff_enabled|
       end
 
       it "maintains focus to Actions menu trigger during past csv export", priority: "2" do
+        allow_any_instance_of(ApplicationController).to receive(:files_domain?).and_return(true)
         Gradebook.select_export(@course)
         Gradebook.select_previous_grade_export
 

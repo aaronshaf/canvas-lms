@@ -1527,48 +1527,44 @@ describe FilesController do
         expect(response).to be_redirect
       end
 
-      it "renders inline for html files" do
-        s3_storage!
-        allow(HostUrl).to receive(:file_host).and_return("files.test")
-        request.host = "files.test"
-        @file.update_attribute(:content_type, "text/html")
-        handle = instance_double(StringIO, read: "hello")
-        allow_any_instantiation_of(@file).to receive(:open).and_return(handle)
-        get "show_relative", params: { file_id: @file.id, course_id: @course.id, file_path: @file.full_display_path, inline: 1, download: 1 }
-        expect(response).to be_successful
-        expect(response.body).to eq "hello"
-        expect(response.media_type).to eq "text/html"
-      end
+      context "with files domain" do
+        before do
+          s3_storage!
+          allow(controller).to receive_messages(safer_domain_available?: false, files_domain?: true)
+          allow(HostUrl).to receive(:has_file_host?).and_return(true)
+        end
 
-      it "redirects for large html files" do
-        s3_storage!
-        allow(HostUrl).to receive(:file_host).and_return("files.test")
-        request.host = "files.test"
-        @file.update_attribute(:content_type, "text/html")
-        @file.update_attribute(:size, 1024 * 1024)
-        allow_any_instance_of(FileAuthenticator).to receive(:inline_url).and_return("https://s3/myfile")
-        get "show_relative", params: { file_id: @file.id, course_id: @course.id, file_path: @file.full_display_path, inline: 1, download: 1 }
-        expect(response).to redirect_to("https://s3/myfile")
-      end
+        it "renders inline for html files" do
+          @file.update_attribute(:content_type, "text/html")
+          handle = instance_double(StringIO, read: "hello")
+          allow_any_instantiation_of(@file).to receive(:open).and_return(handle)
+          get "show_relative", params: { file_id: @file.id, course_id: @course.id, file_path: @file.full_display_path, inline: 1, download: 1 }
+          expect(response).to be_successful
+          expect(response.body).to eq "hello"
+          expect(response.media_type).to eq "text/html"
+        end
 
-      it "redirects for image files" do
-        s3_storage!
-        allow(HostUrl).to receive(:file_host).and_return("files.test")
-        request.host = "files.test"
-        @file.update_attribute(:content_type, "image/jpeg")
-        allow_any_instance_of(FileAuthenticator).to receive(:inline_url).and_return("https://s3/myfile")
-        get "show_relative", params: { file_id: @file.id, course_id: @course.id, file_path: @file.full_display_path, inline: 1, download: 1 }
-        expect(response).to redirect_to("https://s3/myfile")
-      end
+        it "redirects for large html files" do
+          @file.update_attribute(:content_type, "text/html")
+          @file.update_attribute(:size, 1024 * 1024)
+          allow_any_instance_of(FileAuthenticator).to receive(:inline_url).and_return("https://s3/myfile")
+          get "show_relative", params: { file_id: @file.id, course_id: @course.id, file_path: @file.full_display_path, inline: 1, download: 1 }
+          expect(response).to redirect_to("https://s3/myfile")
+        end
 
-      it "redirects for non-html files" do
-        s3_storage!
-        allow(HostUrl).to receive(:file_host).and_return("files.test")
-        request.host = "files.test"
-        # it's a .doc file
-        allow_any_instance_of(FileAuthenticator).to receive(:download_url).and_return("https://s3/myfile")
-        get "show_relative", params: { file_id: @file.id, course_id: @course.id, file_path: @file.full_display_path, inline: 1, download: 1 }
-        expect(response).to redirect_to("https://s3/myfile")
+        it "redirects for image files" do
+          @file.update_attribute(:content_type, "image/jpeg")
+          allow_any_instance_of(FileAuthenticator).to receive(:inline_url).and_return("https://s3/myfile")
+          get "show_relative", params: { file_id: @file.id, course_id: @course.id, file_path: @file.full_display_path, inline: 1, download: 1 }
+          expect(response).to redirect_to("https://s3/myfile")
+        end
+
+        it "redirects for non-html files" do
+          # it's a .doc file
+          allow_any_instance_of(FileAuthenticator).to receive(:download_url).and_return("https://s3/myfile")
+          get "show_relative", params: { file_id: @file.id, course_id: @course.id, file_path: @file.full_display_path, inline: 1, download: 1 }
+          expect(response).to redirect_to("https://s3/myfile")
+        end
       end
 
       it "prioritizes matches on display name vs. filename" do
@@ -1639,8 +1635,8 @@ describe FilesController do
       end
 
       before do
-        allow(HostUrl).to receive(:file_host).and_return("files.test")
-        request.host = "files.test"
+        allow(controller).to receive_messages(safer_domain_available?: false, files_domain?: true)
+        allow(HostUrl).to receive(:has_file_host?).and_return(true)
         user_session(@teacher)
       end
 
@@ -1668,7 +1664,8 @@ describe FilesController do
         @file.update!(file_state: "hidden", instfs_uuid: "stuff")
         user_with_pseudonym
         allow(InstFS).to receive(:enabled?).and_return(true)
-        allow_any_instance_of(FilesController).to receive(:safer_domain_available?).and_return(false)
+        allow(controller).to receive_messages(safer_domain_available?: false, files_domain?: true)
+        allow(HostUrl).to receive(:has_file_host?).and_return(true)
       end
 
       it "does not allow access if the user can't see the file" do

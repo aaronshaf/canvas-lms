@@ -50,6 +50,7 @@ describe FilesController do
         location = response["Location"]
         remove_user_session
 
+        allow_any_instance_of(ApplicationController).to receive(:files_domain?).and_return(true)
         get location
         # could be success or redirect, depending on S3 config
         expect(response.status).to be_in [200, 302]
@@ -62,10 +63,7 @@ describe FilesController do
     it "without safefiles" do
       allow(HostUrl).to receive(:file_host_with_shard).and_return(["test.host", Shard.default])
       get "http://test.host/files/#{@submission.attachment.id}/download", params: { inline: "1", verifier: @submission.attachment.uuid }
-      # could be success or redirect, depending on S3 config
-      expect(response.status).to be_in [200, 302]
-      expect(response["Pragma"]).to be_nil
-      expect(response["Cache-Control"]).not_to match(/no-cache/)
+      expect(response).to have_http_status(:bad_request)
     end
   end
 
@@ -92,6 +90,7 @@ describe FilesController do
         location = response["Location"]
         remove_user_session
 
+        allow_any_instance_of(ApplicationController).to receive(:files_domain?).and_return(true)
         get location
         expect(response).to be_successful
         expect(response.media_type).to eq "image/png"
@@ -104,10 +103,7 @@ describe FilesController do
     it "without safefiles" do
       allow(HostUrl).to receive(:file_host).and_return("test.host")
       get "http://test.host/users/#{@me.id}/files/#{@att.id}/download"
-      expect(response).to be_successful
-      expect(response.media_type).to eq "image/png"
-      expect(response["Pragma"]).to be_nil
-      expect(response["Cache-Control"]).not_to match(/no-cache/)
+      expect(response).to have_http_status(:bad_request)
     end
 
     context "with inlineable html files" do
@@ -168,6 +164,7 @@ describe FilesController do
           allow(HostUrl).to receive(:file_host_with_shard).and_return(["files-test.host", Shard.default])
           get "http://test.host/users/#{@me.id}/files/#{@att.id}/download?download_frd=1&verifier=#{@att.uuid}"
           expect(response).to be_redirect
+          allow_any_instance_of(FilesController).to receive(:files_domain?).and_return(true)
           follow_redirect!
           expect(response.headers["Content-Disposition"]).to match(/attachment/)
         end
@@ -193,6 +190,7 @@ describe FilesController do
       location = response["Location"]
       remove_user_session
 
+      allow_any_instance_of(FilesController).to receive(:files_domain?).and_return(true)
       get location
       # could be success or redirect, depending on S3 config
       expect(response.status).to be_in [200, 302]
@@ -206,17 +204,11 @@ describe FilesController do
     enable_cache do
       course_with_teacher(active_all: true, user: @user, name: "Teacher 1")
       @course.root_account.enable_feature!(:file_association_access)
-      ad1 = @course.root_account.account_domains.new(host: "test.host")
-      ad1.save(validate: false)
-      ad2 = @course.root_account.account_domains.new(host: "files-test.host")
-      ad2.save(validate: false)
-      AccountDomain.reload
-      MultiCache.delete(AccountDomain.domain_lookup_cache_key("test.host", force_current_test_cluster: false))
-      MultiCache.delete(AccountDomain.domain_lookup_cache_key("files-test.host", force_current_test_cluster: false))
       host!("test.host")
+      allow(LoadAccount).to receive(:from_host).and_return(@course.account)
+      allow(HostUrl).to receive(:file_host_with_shard).and_return(["files-test.host", Shard.default])
       attachment_model(uploaded_data: stub_png_data, content_type: "image/png", context: @teacher)
       wiki_page_model(title: "Test Page", body: %(<p><a href="http://test.host/users/#{@teacher.id}/files/#{@attachment.id}/download">File 1</a></p>), saving_user: @teacher, context: @course)
-      allow(HostUrl).to receive(:file_host_with_shard).and_return(["files-test.host", Shard.default])
 
       course_with_student_logged_in(course: @course, name: "Student 1")
       get "http://test.host/users/#{@teacher.id}/files/#{@attachment.id}/download", params: { download_frd: "1", location: @page.asset_string }
@@ -231,6 +223,7 @@ describe FilesController do
       location = response["Location"]
       remove_user_session
 
+      allow_any_instance_of(FilesController).to receive(:files_domain?).and_return(true)
       get location
       # could be success or redirect, depending on S3 config
       expect(response.status).to be_in [200, 302]
@@ -245,15 +238,8 @@ describe FilesController do
       Account.site_admin.enable_feature!(:disable_file_verifiers_in_public_syllabus)
       course_model(name: "Public Course", public_syllabus: true, is_public: false)
       @course.offer!
-      ad1 = @course.root_account.account_domains.new(host: "test.host")
-      ad1.save(validate: false)
-      ad2 = @course.root_account.account_domains.new(host: "files-test.host")
-      ad2.save(validate: false)
-      # Clear AccountDomain caches so find_cached picks up the new domains
-      AccountDomain.reload
-      MultiCache.delete(AccountDomain.domain_lookup_cache_key("test.host", force_current_test_cluster: false))
-      MultiCache.delete(AccountDomain.domain_lookup_cache_key("files-test.host", force_current_test_cluster: false))
       host!("test.host")
+      allow(LoadAccount).to receive(:from_host).and_return(@course.account)
       allow(HostUrl).to receive(:file_host_with_shard).and_return(["files-test.host", Shard.default])
       att1 = attachment_model(uploaded_data: stub_png_data, content_type: "image/png", context: @teacher)
       att2 = attachment_model(uploaded_data: stub_png_data, content_type: "image/png", context: @course)
@@ -269,14 +255,17 @@ describe FilesController do
       uri = Addressable::URI.parse response["Location"]
       expect(uri.host).to eq "files-test.host"
       uri.query_values = uri.query_values.except("location")
+      allow_any_instance_of(FilesController).to receive(:files_domain?).and_return(true)
       get uri.to_s
       expect(response.status).to be_in [200, 302]
 
+      allow_any_instance_of(FilesController).to receive(:files_domain?).and_return(false)
       get "http://test.host/courses/#{@course.id}/files/#{att2.id}/download", params: { download_frd: "1", location: "course_syllabus_#{@course.id}" }
       expect(response).to be_redirect
       uri = Addressable::URI.parse response["Location"]
       expect(uri.host).to eq "files-test.host"
       uri.query_values = uri.query_values.except("location")
+      allow_any_instance_of(FilesController).to receive(:files_domain?).and_return(true)
       get uri.to_s
       expect(response.status).to be_in [200, 302]
     end
@@ -319,6 +308,7 @@ describe FilesController do
       expect(response).to be_redirect
       files_domain_location = response["Location"]
 
+      allow_any_instance_of(ApplicationController).to receive(:files_domain?).and_return(true)
       get files_domain_location
       expect(response).to be_redirect
       instfs_location = response["Location"]
@@ -363,6 +353,7 @@ describe FilesController do
     location = response["Location"]
     remove_user_session
 
+    allow_any_instance_of(ApplicationController).to receive(:files_domain?).and_return(true)
     get location
     expect(response).to be_successful
     expect(response.media_type).to eq "image/png"
@@ -385,6 +376,7 @@ describe FilesController do
     location = response["Location"]
     remove_user_session
 
+    allow_any_instance_of(ApplicationController).to receive(:files_domain?).and_return(true)
     get location
     expect(response).to be_successful
     expect(response.media_type).to eq "image/png"
@@ -417,6 +409,7 @@ describe FilesController do
       # now reset the user session (simulating accessing via a separate domain), grab the document,
       # and verify the module progress was recorded
       remove_user_session
+      allow_any_instance_of(ApplicationController).to receive(:files_domain?).and_return(true)
       get location
       # could be success or redirect, depending on S3 config
       expect(response.status).to be_in [200, 302]
@@ -447,6 +440,7 @@ describe FilesController do
       location = response["Location"]
       remove_user_session
 
+      allow_any_instance_of(ApplicationController).to receive(:files_domain?).and_return(true)
       get location
       expect(response).to be_successful
       expect(response.media_type).to eq "image/png"
@@ -466,10 +460,7 @@ describe FilesController do
     def do_without_safefiles_test(url)
       allow(HostUrl).to receive(:file_host).and_return("test.host")
       get url
-      expect(response).to be_successful
-      expect(response.media_type).to eq "image/png"
-      expect(response["Pragma"]).to be_nil
-      expect(response["Cache-Control"]).not_to match(/no-cache/)
+      expect(response).to have_http_status(:bad_request)
     end
 
     context "without safefiles" do
@@ -495,6 +486,7 @@ describe FilesController do
     location = response["Location"]
     remove_user_session
 
+    allow_any_instance_of(ApplicationController).to receive(:files_domain?).and_return(true)
     get location
     expect(response).to be_successful
     expect(response.media_type).to eq "image/png"
@@ -554,6 +546,7 @@ describe FilesController do
     expect(response).to be_redirect
     expect(response["Location"]).to include("files/#{attachment.id}")
 
+    allow_any_instance_of(ApplicationController).to receive(:files_domain?).and_return(true)
     get response["Location"]
     expect(response).to be_successful
   end

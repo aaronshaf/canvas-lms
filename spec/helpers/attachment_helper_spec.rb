@@ -258,6 +258,7 @@ describe AttachmentHelper do
         cancel_cache_buster: nil,
         set_cache_header: nil,
         safer_domain_available?: false,
+        files_domain?: true,
         csp_enforced?: false,
         file_location_mode?: false
       )

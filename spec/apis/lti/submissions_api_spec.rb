@@ -244,6 +244,7 @@ module Lti
       it_behaves_like "authorization"
 
       it "allows a user to download a file" do
+        allow_any_instance_of(SubmissionsApiController).to receive(:files_domain?).and_return(true)
         get "/api/lti/assignments/#{assignment.id}/submissions/#{submission.id}", headers: request_headers
         json = JSON.parse(response.body)
         url = json["attachments"].first["url"]
@@ -260,6 +261,7 @@ module Lti
 
       context "sharding" do
         it "retrieves attachments when tool proxy is installed on another shard" do
+          allow_any_instance_of(SubmissionsApiController).to receive(:files_domain?).and_return(true)
           get "/api/lti/assignments/#{assignment.global_id}/submissions/#{submission.global_id}", headers: request_headers
           json = JSON.parse(response.body)
           url = json["attachments"].first["url"]
