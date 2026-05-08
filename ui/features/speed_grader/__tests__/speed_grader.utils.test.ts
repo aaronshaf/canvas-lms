@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {isStudentConcluded} from '../jquery/speed_grader.utils'
+import {buildAlertMessage, isStudentConcluded} from '../jquery/speed_grader.utils'
 import type {Student, Enrollment, WorkflowState} from '../../../api.d'
 
 type SpeedGraderEnrollment = Enrollment
@@ -309,5 +309,75 @@ describe('isStudentConcluded', () => {
 
   it('return true if the student is concluded in this specific section, but active in another', () => {
     expect(isStudentConcluded(studentMap, '2', '1')).toBe(true)
+  })
+})
+
+describe('buildAlertMessage', () => {
+  const originalEnv = window.ENV
+
+  afterEach(() => {
+    window.ENV = originalEnv
+  })
+
+  it('returns a plain message when the student group feature flag is disabled', () => {
+    window.ENV = {
+      ...originalEnv,
+      filter_speed_grader_by_student_group_feature_enabled: false,
+    } as any
+    const result = buildAlertMessage()
+    expect(result.__html).toContain('Something went wrong')
+    expect(result.__html).not.toContain('<a ')
+  })
+
+  it('returns a link to course settings when the feature is enabled but no group is selected', () => {
+    window.ENV = {
+      ...originalEnv,
+      filter_speed_grader_by_student_group_feature_enabled: true,
+      filter_speed_grader_by_student_group: false,
+      course_id: '42',
+    } as any
+    const result = buildAlertMessage()
+    expect(result.__html).toContain('<a href="/courses/42/settings')
+  })
+
+  describe('XSS hardening for course_id interpolation', () => {
+    beforeEach(() => {
+      window.ENV = {
+        ...originalEnv,
+        filter_speed_grader_by_student_group_feature_enabled: true,
+        filter_speed_grader_by_student_group: false,
+      } as any
+    })
+
+    it('strips disallowed elements injected via course_id', () => {
+      window.ENV.course_id =
+        '"><script>alert(1)</script><embed src="x"><object data="x"></object>' as any
+      const html = buildAlertMessage().__html
+      expect(html).not.toContain('<script')
+      expect(html).not.toContain('<embed')
+      expect(html).not.toContain('<object')
+    })
+
+    it('strips disallowed attributes from allowed tags', () => {
+      window.ENV.course_id = '"><img src=x onerror="alert(1)"><a onclick="alert(2)">x</a>' as any
+      const html = buildAlertMessage().__html
+      expect(html).not.toContain('onerror')
+      expect(html).not.toContain('onclick')
+    })
+
+    it('strips javascript: URIs from href/src/data attributes', () => {
+      window.ENV.course_id = ('"><a href="javascript:alert(1)">x</a>' +
+        '<iframe src="javascript:alert(2)"></iframe>' +
+        '<embed src="javascript:alert(3)">' +
+        '<object data="javascript:alert(4)"></object>') as any
+      expect(buildAlertMessage().__html).not.toContain('javascript:')
+    })
+
+    it('preserves the legitimate course settings link after sanitization', () => {
+      window.ENV.course_id = '42' as any
+      const html = buildAlertMessage().__html
+      expect(html).toContain('<a href="/courses/42/settings#course_large_course">')
+      expect(html).toContain('</a>')
+    })
   })
 })

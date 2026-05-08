@@ -21,6 +21,7 @@
 import {isGraded, isPostable} from '@canvas/grading/SubmissionHelper'
 import type {RubricAssessment} from '@canvas/grading/grading.d'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import htmlEscape from '@instructure/html-escape'
 import * as Alerts from '@instructure/ui-alerts'
 import {Pill} from '@instructure/ui-pill'
@@ -189,12 +190,15 @@ export function buildAlertMessage() {
   ) {
     alertMessage = I18n.t(
       'Something went wrong. Please try refreshing the page. If the problem persists, you can try loading a single student group in SpeedGrader by using the *Large Course setting*.',
-      {wrappers: [`<a href="/courses/${ENV.course_id}/settings#course_large_course">$1</a>`]},
+      {
+        wrappers: ['<a href="/courses/%{course_id}/settings#course_large_course">$1</a>'],
+        course_id: ENV.course_id,
+      },
     ).string
   } else {
     alertMessage = I18n.t('Something went wrong. Please try refreshing the page.')
   }
-  return {__html: alertMessage}
+  return {__html: sanitizeHTML(alertMessage)}
 }
 
 export function initKeyCodes(
