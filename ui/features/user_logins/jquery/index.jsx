@@ -47,13 +47,16 @@ ready(() => {
       const overviewElement = currentLoginElement.find('.overview')
       overviewElement.append(
         $(
+          // xsslint safeString.method t data
           `<div>${I18n.t('SIS ID')}: <span class="sis_user_id"></span></div>
          <div style="display:none" class="can_edit_sis_user_id">${$('.add_pseudonym_link').data('can-manage-sis')}</div>`,
         ),
       )
       overviewElement.append(
+        // xsslint safeString.method t
         $(`<div>${I18n.t('Integration ID')}: <span class="integration_id"></span></div>`),
       )
+      // xsslint jqueryObject.identifier currentLoginElement
       $('#login_information .add_holder').before(currentLoginElement)
       const accountName =
         accountSelectOptions.find(({value}) => `${value}` === currentPseudonym.account_id)?.label ??

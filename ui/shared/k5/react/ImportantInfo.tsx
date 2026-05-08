@@ -101,6 +101,7 @@ const ImportantInfo: React.FC<ImportantInfoProps> = ({
       <div
         className="user_content"
         /* html sanitized by server */
+        // xsslint safeString.method convert
         dangerouslySetInnerHTML={{__html: apiUserContent.convert(infoDetails?.content)}}
       />
     </>

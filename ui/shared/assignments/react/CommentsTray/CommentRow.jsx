@@ -66,6 +66,7 @@ export default function CommentRow(props) {
           color={props.comment._id === 'pending' ? 'secondary' : null}
           wrap="break-word"
           data-testid="commentContent"
+          // xsslint safeString.function formatMessage
           dangerouslySetInnerHTML={{
             __html: containsHtmlTags(htmlComment)
               ? sanitizeHTML(htmlComment)

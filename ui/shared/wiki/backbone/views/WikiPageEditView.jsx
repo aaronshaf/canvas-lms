@@ -24,6 +24,7 @@ import {redirectWithHorizonParams} from '@canvas/horizon/utils'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import MasteryPathToggle from '@canvas/mastery-path-toggle/react/MasteryPathToggle'
 import RichContentEditor from '@canvas/rce/RichContentEditor'
+import htmlEscape from '@instructure/html-escape'
 import {unfudgeDateForProfileTimezone} from '@instructure/moment-utils'
 import $ from 'jquery'
 import React, {lazy, Suspense} from 'react'
@@ -445,7 +446,7 @@ export default class WikiPageEditView extends ValidatedFormView {
           'aria-live': 'assertive',
         })
           .append($('<i>', {class: 'icon-warning icon-Solid'}))
-          .append(' ' + error.message)
+          .append(' ' + htmlEscape(error.message))
           .hide()
           .insertBefore('#wiki_page_body_statusbar')
           .show()

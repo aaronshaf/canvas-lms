@@ -204,6 +204,7 @@ function SubmissionComment({comment, showDivider}: SubmissionCommentProps) {
               {author.name}
             </Link>
           </Heading>
+          {/* xsslint safeString.identifier formattedComment */}
           <Text size="small" dangerouslySetInnerHTML={{__html: formattedComment}} />
           {mediaObject && (
             <View as="div">

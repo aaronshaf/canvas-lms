@@ -95,6 +95,8 @@ function ContextModuleLink({courseId, contextModuleId, contextModuleName}: Conte
         dangerouslySetInnerHTML={{
           __html: I18n.t('Inherited from *%{contextModuleName}*', {
             contextModuleName,
+            // xsslint safeString.identifier courseId contextModuleId
+            // xsslint safeString.property current
             wrappers: [
               `<a class=${linkClassRef.current} target="_blank" href="/courses/${courseId}/modules#${contextModuleId}">$1</a>`,
             ],

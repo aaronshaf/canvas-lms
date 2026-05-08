@@ -40,6 +40,7 @@ const AssignmentDescription = (props: AssignmentToggleDetailsProps) => {
     <View margin="0" padding="0">
       <div
         className="user_content"
+        // xsslint safeString.function AssignmentDetailsText
         dangerouslySetInnerHTML={{__html: AssignmentDetailsText(props.description)}}
         data-testid="assignments-2-assignment-description"
       />

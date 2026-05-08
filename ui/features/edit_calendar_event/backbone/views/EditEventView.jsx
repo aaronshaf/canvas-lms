@@ -767,6 +767,7 @@ export default class EditCalendarEventView extends Backbone.View {
         text: message,
       })
 
+      // xsslint jqueryObject.identifier errorContainer icon text
       errorContainer.append(icon, text)
 
       $(containerSelector || fieldSelector)

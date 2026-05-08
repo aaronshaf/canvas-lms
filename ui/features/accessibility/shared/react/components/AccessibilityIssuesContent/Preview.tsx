@@ -251,6 +251,7 @@ const Preview: React.FC<PreviewProps & React.RefAttributes<PreviewHandle>> = for
           height="15rem"
           overflowY="auto"
           padding="x-small x-small x-small x-small"
+          // xsslint safeString.property content sanitizeHTML
           dangerouslySetInnerHTML={{__html: sanitizeHTML(contentResponse?.content || '')}}
         />
       </View>

@@ -92,6 +92,7 @@ export default class Assignment extends React.Component {
           </div>
           <div
             className="ig-description"
+            // xsslint safeString.method convert
             dangerouslySetInnerHTML={{
               // xsslint safeString.function sanitizeHTML
               __html: sanitizeHTML(apiUserContent.convert(this.props.assignment.description)),

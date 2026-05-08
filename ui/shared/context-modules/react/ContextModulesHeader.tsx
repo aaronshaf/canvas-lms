@@ -157,6 +157,7 @@ const ContextModulesHeaderMoreMenu = ({component, items}: MoreMenuProps) => {
         items.menuTools.items.map(tool => {
           return (
             <MenuItem key={tool.href} onClick={e => onClickToolHandler(e, tool)}>
+              {/* xsslint safeString.property icon */}
               {tool.icon && <span dangerouslySetInnerHTML={{__html: tool.icon}} />} {tool.title}
             </MenuItem>
           )

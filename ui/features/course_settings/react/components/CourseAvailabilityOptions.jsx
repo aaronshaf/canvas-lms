@@ -156,6 +156,7 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
         <Text
           size="small"
           weight="light"
+          // xsslint safeString.function participationExplanationText
           dangerouslySetInnerHTML={{__html: participationExplanationText()}}
         />
 

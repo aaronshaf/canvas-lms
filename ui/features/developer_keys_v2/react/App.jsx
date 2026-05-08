@@ -260,6 +260,7 @@ class DeveloperKeysApp extends React.Component {
           I18n.t(
             `You are being notified because this Canvas instance has recently received requests which would be blocked. You can review any current GET requests with a body on the *Reports Page*, read more in the **API Changelog**, and learn how to mitigate this change in the blog post linked there.`,
             {
+              // xsslint safeString.property ACCOUNT_ID
               wrappers: [
                 `<a data-pendo='dev-key-reports-page' target='_blank' href='/accounts/${window.ENV.ACCOUNT_ID}/settings#tab-reports' style='text-decoration: underline'>$1</a>`,
                 `<a data-pendo='api-cdn-change-log' target='_blank' href='https://community.instructure.com/en/discussion/664378/2026-api-and-cli-change-log' style='text-decoration: underline'>$1</a>`,
@@ -283,6 +284,7 @@ class DeveloperKeysApp extends React.Component {
           I18n.t(
             `You can review any current calls without a User-Agent set in Test and Production on the *Reports Page* until the enforcement date, and read more about the change on our **blog**.`,
             {
+              // xsslint safeString.property ACCOUNT_ID
               wrappers: [
                 `<a data-pendo='dev-key-reports-page' target='_blank' href='/accounts/${window.ENV.ACCOUNT_ID}/settings#tab-reports' style='text-decoration: underline'>$1</a>`,
                 `<a data-pendo='dev-key-blog' target='_blank' href='https://community.canvaslms.com/t5/Canvas-LMS-Blog/Enforcing-User-Agent-Header-for-Canvas-API-Requests/ba-p/658205' style='text-decoration: underline'>$1</a>`,
@@ -298,6 +300,7 @@ class DeveloperKeysApp extends React.Component {
           I18n.t(
             `LTI tool management is now live in *Canvas Apps*! Changes sync between both pages as we develop more features for Apps. From now on, Apps is the primary home for LTI tools.`,
             {
+              // xsslint safeString.property ACCOUNT_ID
               wrappers: [
                 `<a data-pendo='dev-key-apps-link' target='_blank' href='/accounts/${window.ENV.ACCOUNT_ID}/apps/manage' style='text-decoration: underline'>$1</a>`,
               ],
@@ -351,6 +354,7 @@ class DeveloperKeysApp extends React.Component {
                 {alert.text.map((text, j) => (
                   <Text
                     key={j}
+                    // xsslint safeString.identifier text
                     dangerouslySetInnerHTML={{
                       __html: text,
                     }}

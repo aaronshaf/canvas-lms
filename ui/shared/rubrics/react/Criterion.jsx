@@ -79,6 +79,7 @@ const LongDescriptionDialog = ({open, close, longDescription}) => {
       </Modal.Header>
       <Modal.Body>
         <Text lineHeight="double" wrap="break-word">
+          {/* xsslint safeString.method sanitize */}
           <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(longDescription)}} />
         </Text>
       </Modal.Body>

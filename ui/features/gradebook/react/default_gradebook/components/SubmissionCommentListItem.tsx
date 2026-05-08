@@ -104,6 +104,7 @@ export default class SubmissionCommentListItem extends React.Component<Props> {
           <p
             style={{margin: '0 0 0.75rem'}}
             data-testid="comment"
+            // xsslint safeString.identifier formattedComment
             dangerouslySetInnerHTML={{__html: formattedComment}}
           />
         </Text>

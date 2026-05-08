@@ -451,6 +451,7 @@ window.rubricAssessment = {
           .val(comments)
           .end()
           .find('.custom_rating_comments')
+          // xsslint safeString.method sanitize
           .html(DOMPurify.sanitize(comments_html))
           .end()
           .find('.criterion_points')

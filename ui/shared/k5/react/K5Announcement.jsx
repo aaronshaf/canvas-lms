@@ -337,6 +337,8 @@ export default function K5Announcement({
       <>
         <div
           className="user_content"
+          /* html sanitized by server */
+          // xsslint safeString.method convert sanitizeHTML
           dangerouslySetInnerHTML={{
             __html: sanitizeHTML(apiUserContent.convert(currentAnnouncement.message)),
           }}

@@ -351,6 +351,7 @@ $(document).ready(function (_event) {
           if (!sis_batch || sis_batch.workflow_state === 'imported') {
             $('#sis_importer').hide()
             $('.copy_progress').progressbar('option', 'value', 100)
+            // xsslint safeString.function raw
             $('.progress_message').html(
               raw(
                 htmlEscape(
@@ -382,6 +383,7 @@ $(document).ready(function (_event) {
                 I18n.t('errors.import_failed_messages', 'The import failed with these messages:'),
               )
               message += createMessageHtml(sis_batch)
+              // xsslint safeString.function raw
               $('.sis_messages .sis_error_message').html(raw(message) as unknown as string)
             }
             $('.sis_messages').show()
@@ -397,6 +399,7 @@ $(document).ready(function (_event) {
               )
               message += createMessageHtml(sis_batch)
               message += createCountsHtml(sis_batch)
+              // xsslint safeString.function raw
               $('.sis_messages')
                 .show()
                 .html(raw(message) as unknown as string)

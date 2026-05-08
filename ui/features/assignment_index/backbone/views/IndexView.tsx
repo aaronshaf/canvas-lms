@@ -239,6 +239,7 @@ IndexView.prototype.afterRender = function () {
 IndexView.prototype.requestBulkEdit = function () {
   if (window.ENV.FEATURES?.instui_nav) {
     const bulkEditCrumb = $('<li>').text('Edit Assignment Dates')
+    // xsslint jqueryObject.identifier bulkEditCrumb
     $('#breadcrumbs ul').append(bulkEditCrumb)
   }
   easy_student_view.hide()
@@ -343,6 +344,7 @@ IndexView.prototype.filterResults = function () {
         this.noAssignmentsRoot = render(<NoAssignmentsSearch />, li)
         this.noAssignments = li
         ul = this.assignmentGroupsView.$el.children('.collectionViewItems')
+        // xsslint jqueryObject.property noAssignments
         return ul.append(this.noAssignments)
       }
     } else if (this.noAssignments != null) {

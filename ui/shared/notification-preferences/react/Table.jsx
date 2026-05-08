@@ -179,6 +179,7 @@ const renderNotificationCategory = (
                   <View as="div" data-testid={`${formatCategoryKey(category)}_description`}>
                     <Text
                       variant="legend"
+                      // xsslint safeString.method replace
                       dangerouslySetInnerHTML={{
                         __html: categoryValue.notification.categoryDescription
                           .replace(/<p>/g, '<span style="display: block;">')

@@ -18,6 +18,7 @@
 
 import type {AssignmentOverridePayload, AssignmentOverridesPayload, ItemType} from '../react/types'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import htmlEscape from '@instructure/html-escape'
 import type {
   DateDetailsPayload,
   ItemAssignToCardSpec,
@@ -650,7 +651,9 @@ export function updateModuleUI(moduleElement: HTMLDivElement, payload: Assignmen
   const assignToButtonContainer = moduleElement.querySelector('.view_assign')
   if (assignToButtonContainer) {
     if (payload.overrides.length > 0) {
-      const moduleId = moduleElement.getAttribute('data-module-id') ?? ''
+      const moduleId = htmlEscape(moduleElement.getAttribute('data-module-id') ?? '')
+      // xsslint safeString.identifier moduleId
+      // xsslint safeString.method t
       assignToButtonContainer.innerHTML = `
         <i aria-hidden="true" class="icon-group"></i>
         <a

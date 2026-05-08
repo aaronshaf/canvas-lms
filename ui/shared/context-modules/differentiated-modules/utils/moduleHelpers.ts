@@ -293,7 +293,7 @@ function updatePrerequisites(moduleElement: HTMLDivElement, moduleSettings: Sett
     // Would love to simplify this, but we need backwards compatitibility
     moduleSettings.prerequisites.forEach(prerequisite => {
       const div = document.createElement('div')
-      div.classList.add(...['prerequisite_criterion', 'context_module_criterion'])
+      div.classList.add('prerequisite_criterion', 'context_module_criterion')
       div.style.float = 'left'
 
       const idSpan = document.createElement('span')
@@ -342,6 +342,7 @@ function updateRequirements(moduleElement: HTMLDivElement, moduleSettings: Setti
     } else {
       const requirementText =
         moduleSettings.requirementCount === 'all' ? 'Complete All Items' : 'Complete One Item'
+      // xsslint safeString.identifier requirementText
       requirementsMessageElement.innerHTML = `
         <ul class="pill">
           <li aria-label="${requirementText}">${requirementText}</li>
@@ -373,10 +374,13 @@ function updateRequirements(moduleElement: HTMLDivElement, moduleSettings: Setti
       if (descriptionElement) {
         const scoreElement =
           requirement.type === 'score' || requirement.type === 'percentage'
-            ? `<span class="min_score"> ${requirement.minimumScore}</span>`
+            ? // xsslint safeString.property minimumScore
+              `<span class="min_score"> ${requirement.minimumScore}</span>`
             : ''
 
         const percentageSymbol = requirement.type === 'percentage' ? '%' : ''
+        // xsslint safeString.identifier requirementTypeMapReverse requirementFriendlyLabelMap scoreElement percentageSymbol
+        // xsslint safeString.function requirementScreenreaderMessage
         descriptionElement.innerHTML = `
           <span class="requirement_type ${requirementTypeMapReverse[requirement.type]}">
             <span class="unfulfilled">

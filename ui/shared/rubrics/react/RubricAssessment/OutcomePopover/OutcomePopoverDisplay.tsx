@@ -80,6 +80,7 @@ export const OutcomePopoverDisplay = ({outcome}: OutcomePopoverDisplayProps) => 
             <View
               as="div"
               data-testid="outcome-popover-display-content-description"
+              // xsslint safeString.method sanitize
               dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(outcome.description ?? '')}}
             />
             <OutcomeContextTag

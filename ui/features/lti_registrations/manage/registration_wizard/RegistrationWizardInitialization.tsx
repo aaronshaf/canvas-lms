@@ -220,6 +220,7 @@ export const RegistrationWizardInitialization = (props: RegistrationWizardInitia
                     'Thank you for your interest in 1.1. We are exploring the possibility of enabling 1.1 installs from the new apps page in future releases. For now, you can install 1.1 tools from the *%{legacyAppPage}*.',
                     {
                       legacyAppPage: 'legacy apps page',
+                      // xsslint safeString.property accountId
                       wrappers: [
                         `<a href=/accounts/${props.accountId}/settings/configurations#tab-tools>$1</a>`,
                       ],

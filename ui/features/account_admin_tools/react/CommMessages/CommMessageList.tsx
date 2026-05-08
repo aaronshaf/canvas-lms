@@ -172,6 +172,7 @@ export default function CommMessageList({query}: CommMessageListProps): JSX.Elem
       <View margin="moduleElements none" as="div" data-testid="message-list-description">
         <Text
           variant="descriptionSection"
+          // xsslint safeString.function headingText
           dangerouslySetInnerHTML={{
             __html: headingText(),
           }}

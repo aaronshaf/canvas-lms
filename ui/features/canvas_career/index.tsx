@@ -42,6 +42,7 @@ ready(() => {
   mountPoint.style.position = 'relative'
 
   // Modifying the DOM to add the mount point
+  // xsslint jqueryObject.identifier mountPoint
   body.prepend(mountPoint)
   body.style.lineHeight = 'normal'
   body.style.margin = '0'

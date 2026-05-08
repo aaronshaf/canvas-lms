@@ -339,6 +339,7 @@ const AddEditPseudonym = ({
             <Text
               size="small"
               color="secondary"
+              // xsslint safeString.method t
               dangerouslySetInnerHTML={{
                 __html: I18n.t(
                   "Note: This login's account uses delegated authentication, but allows fallback Canvas password authentication. The password fields in this form update the fallback Canvas password, <b>not</b> the delegated authentication.",

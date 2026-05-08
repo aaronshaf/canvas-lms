@@ -63,6 +63,7 @@ const ManageThreadedRepliesAlert: React.FC<ManageThreadedRepliesAlertProps> = ({
   const alertText = I18n.t(
     'Following the *issue* related to disallowing threaded replies, we now provide a quick and easy way to update and manage all your discussions to allow or disallow threaded replies.',
     {
+      // xsslint safeString.identifier linkHref
       wrappers: [`<a target="_blank" href="${linkHref}">$1</a>`],
     },
   )

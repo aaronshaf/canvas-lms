@@ -419,6 +419,7 @@ $(document).ready(function () {
             RichContentEditor.destroyRCE($richText)
           } else {
             const code = sanitizeHTML($section.find('.edit_section').val() as string)
+            // xsslint safeString.function raw
             $section.find('.section_content').html(raw(code) as unknown as string)
           }
         } else if (!$section.hasClass('read_only')) {

@@ -154,6 +154,7 @@ function DisallowThreadedFixAlertBase({breakpoints}) {
   const alertText = I18n.t(
     'Following the *recent issues* around disallowing threaded replies, we provide a quick and easy way to update all of your discussions to be threaded.',
     {
+      // xsslint safeString.identifier linkHref
       wrappers: [`<a target="_blank" href="${linkHref}">$1</a>`],
     },
   )

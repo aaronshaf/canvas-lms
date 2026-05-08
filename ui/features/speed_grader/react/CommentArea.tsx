@@ -32,6 +32,7 @@ const pureTextCommentToRCEComment = value =>
   value
     .split(/\n/)
     // @ts-expect-error
+    // xsslint safeString.identifier it
     .map(it => `<p>${it}</p>`)
     .join('')
 

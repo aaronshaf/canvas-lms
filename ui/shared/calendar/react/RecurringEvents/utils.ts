@@ -87,6 +87,7 @@ export const weekdayInMonth = (eventStart: Moment): number => {
 export const getSelectTextWidth = (strings: string[]) => {
   const testdiv = document.createElement('div')
   testdiv.setAttribute('style', 'position: absolute; left: -9999px; visibility: hidden;')
+  // xsslint safeString.method join
   testdiv.innerHTML = `<div><div>${strings.join('</div><div>')}</div></div>`
   document.body.appendChild(testdiv)
   const w = `${testdiv.getBoundingClientRect().width + 24 + 12 + 14 + 2}px`

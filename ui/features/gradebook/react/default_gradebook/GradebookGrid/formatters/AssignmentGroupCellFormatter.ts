@@ -49,6 +49,8 @@ function render(assignmentGroupCellData: AssignmentGroupCellData) {
       ? assignmentGroupCellData.percentage
       : '–'
   }
+  // xsslint safeString.identifier assignmentGroupGrade
+  // xsslint safeString.property score possible
   return `
     <div class="gradebook-cell">
       <div class="gradebook-tooltip">${assignmentGroupCellData.score} / ${assignmentGroupCellData.possible}</div>

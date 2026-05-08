@@ -104,6 +104,7 @@ class RailsFlashNotificationsHelper {
     const closeButtonLabel = htmlEscape(I18n.t('Close'))
 
     // see generateScreenreaderNodeHtml() for SR features
+    // xsslint safeString.identifier escapedType escapedIcon escapedContent closeButtonLabel
     return `
       <div class="ic-flash-${escapedType} flash-message-container" aria-hidden="true">
         <div class="ic-flash__icon">

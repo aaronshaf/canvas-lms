@@ -40,12 +40,17 @@ function render(
   const escapedGrade = lodashEscape(formattedGrade)
 
   const {finalGradeOverrides} = useStore.getState()
-  const customGradeStatusId = studentId != null
-    ? gradeOverrideCustomStatus(finalGradeOverrides, studentId, selectedGradingPeriodId ?? undefined)
-    : null
+  const customGradeStatusId =
+    studentId != null
+      ? gradeOverrideCustomStatus(
+          finalGradeOverrides,
+          studentId,
+          selectedGradingPeriodId ?? undefined,
+        )
+      : null
   const colorClass = customGradeStatusId ? `custom-grade-status-${customGradeStatusId}` : ''
 
-  // xsslint safeString.identifier escapedGrade
+  // xsslint safeString.identifier escapedGrade colorClass
   // xsslint safeString.function renderStartContainer
   return `
     <div class="gradebook-cell ${colorClass}">
@@ -97,7 +102,13 @@ export default class TotalGradeOverrideCellFormatter {
     this.render = this.render.bind(this)
   }
 
-  render(_row: unknown, _cell: unknown, _value: unknown, _columnDef: unknown, student: {id: string}) {
+  render(
+    _row: unknown,
+    _cell: unknown,
+    _value: unknown,
+    _columnDef: unknown,
+    student: {id: string},
+  ) {
     const gradeInfo = this.options.getGradeInfoForUser(student.id)
     const formattedGrade = this.options.formatGradeInfo(gradeInfo)
     const studentId = this.options.customGradeStatusesEnabled ? student.id : null

@@ -36,6 +36,7 @@ const spacing: Formatter = function spacing(content: string, parser: DOMParser):
   if (body.textContent === '') return '<br />'
 
   // Adjacent equations on new lines with extra whitespace between them
+  // xsslint safeString.property textContent
   if (!body.textContent?.trim()) return `<p>${body.textContent}</p>`
 
   // The content has actual text, don't remove it

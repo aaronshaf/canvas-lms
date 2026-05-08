@@ -34,6 +34,7 @@ export default function OpenRegistrationWarning(props: Props) {
   const warningMessage = I18n.t(
     `An external identity provider is enabled, and users created via open registration may not be able to log in unless
       the external identity provider's login form has a link back to *%{url}*.`,
+    // xsslint safeString.property loginUrl
     {url: props.loginUrl, wrapper: `<a href="${props.loginUrl}" target="_blank">$1</a>`},
   )
   return (

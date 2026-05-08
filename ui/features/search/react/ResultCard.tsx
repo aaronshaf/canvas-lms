@@ -175,6 +175,7 @@ export default function ResultCard(props: ResultCardProps): React.JSX.Element {
             key="result-body"
             variant="content"
             wrap="break-word"
+            // xsslint safeString.function addSearchHighlighting
             dangerouslySetInnerHTML={{
               __html: addSearchHighlighting(props.searchTerm, htmlEscape(body)),
             }}

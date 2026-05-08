@@ -2195,29 +2195,33 @@ function updateSubAssignmentData(contextModuleItem, subAssignments) {
         .find('.ig-details')
         .prepend('<div class="ig-details__item reply_to_topic_display"></div>')
     }
-    const title =
+    const titleHtml = htmlEscape(
       subAssignment.sub_assignment_tag === 'reply_to_topic'
         ? I18n.t('Reply to Topic')
         : I18n.t('Required Replies (%{required_replies})', {
             required_replies: subAssignment.replies_required,
-          })
-    let dueDate = ''
+          }),
+    )
+    let dueDateHtml = ''
     if (!(ENV.IN_PACED_COURSE && !ENV.IS_STUDENT)) {
       if (subAssignment.has_many_overrides != null) {
-        dueDate = I18n.t('Multiple Due Dates')
+        dueDateHtml = htmlEscape(I18n.t('Multiple Due Dates'))
       } else if (subAssignment.vdd_tooltip != null) {
         subAssignment.vdd_tooltip.link_href = contextModuleItem.find('a.title').attr('href')
-        dueDate = vddTooltipView(subAssignment.vdd_tooltip)
+        // vddTooltipView is a Handlebars template — output is already HTML-escaped
+        dueDateHtml = vddTooltipView(subAssignment.vdd_tooltip)
       } else if (subAssignment.due_date) {
-        dueDate = dateString(subAssignment.due_date)
+        dueDateHtml = htmlEscape(dateString(subAssignment.due_date))
       } else {
-        dueDate = I18n.t('No Due Date')
+        dueDateHtml = htmlEscape(I18n.t('No Due Date'))
       }
       contextModuleItem
         .find(`.${subAssignment.sub_assignment_tag}_display`)
-        .html(`<b>${title}:</b> ${dueDate}`)
+        .html(`<b>${titleHtml}:</b> ${dueDateHtml}`)
     } else {
-      contextModuleItem.find(`.${subAssignment.sub_assignment_tag}_display`).html(`<b>${title}</b>`)
+      contextModuleItem
+        .find(`.${subAssignment.sub_assignment_tag}_display`)
+        .html(`<b>${titleHtml}</b>`)
     }
   })
 }

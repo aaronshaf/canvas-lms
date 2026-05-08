@@ -286,6 +286,8 @@ export default class SpeedgraderSelectMenu {
       html = htmlEscape(option.name)
     }
 
+    // xsslint safeString.identifier html
+    // xsslint safeString.function getIconHtml
     return `
         ${html}
         ${getIconHtml(htmlEscape(option.className?.raw || ''))}

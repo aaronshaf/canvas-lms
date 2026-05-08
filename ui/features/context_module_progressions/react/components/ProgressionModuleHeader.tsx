@@ -45,6 +45,7 @@ const ProgressionModuleHeader = ({bridge}: Props) => {
 
     const user = state.attributes
     const href = `${ENV.COURSE_USERS_PATH}/${user.id}`
+    // xsslint safeString.identifier href
     return I18n.t('Module Progress for *%{name}*', {
       name: user.name,
       wrappers: [`<a href="${href}">$1</a>`],
@@ -55,6 +56,7 @@ const ProgressionModuleHeader = ({bridge}: Props) => {
     <Flex margin="0 0 medium">
       <Flex.Item>
         <Heading level="h1">
+          {/* xsslint safeString.function renderTitle */}
           <span dangerouslySetInnerHTML={{__html: renderTitle() || ''}} />
         </Heading>
       </Flex.Item>

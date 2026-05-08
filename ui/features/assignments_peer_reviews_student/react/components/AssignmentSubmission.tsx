@@ -235,6 +235,7 @@ const AssignmentSubmission: React.FC<AssignmentSubmissionProps> = ({
           data-testid="text-entry-content"
           role="document"
           style={{maxHeight: isMobile ? undefined : '43vh', overflow: 'auto'}}
+          // xsslint safeString.method convert
           dangerouslySetInnerHTML={{
             __html: sanitizeHTML(apiUserContent.convert(submission.body || '')),
           }}

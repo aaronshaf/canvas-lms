@@ -143,6 +143,7 @@ const commentElement = (assessment: Assessment) => {
           {I18n.t('Comments')}
         </Text>
         {assessment.comments_html ? (
+          // xsslint safeString.method sanitize
           <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(assessment.comments_html)}} />
         ) : (
           <div>{assessment.comments}</div>

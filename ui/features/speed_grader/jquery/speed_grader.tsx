@@ -2742,6 +2742,7 @@ EG = {
         count: wordCount,
       })}`
     }
+    // xsslint safeString.identifier wordCountHTML
     $word_count.html(wordCountHTML)
   },
 
@@ -2955,6 +2956,7 @@ EG = {
 
       renderProgressIcon(attachment)
     })
+    // xsslint safeString.identifier studentViewedAtHTML
     $submission_attachment_viewed_at.html(studentViewedAtHTML)
 
     $submission_files_container.showIf(
@@ -3120,6 +3122,7 @@ EG = {
         }),
       })
     }
+    // xsslint safeString.identifier innerHTML
     $multiple_submissions.html(innerHTML || '')
     StatusPill.renderPills(ENV.custom_grade_statuses)
   },
@@ -3370,6 +3373,7 @@ EG = {
       {frameborder: 0, allowfullscreen: true},
       domElement,
     )
+    // xsslint safeString.identifier iframe
     $iframe_holder.html(iframe).show()
 
     renderDiscussionsNavigation(temporaryDiscussionContextView)
@@ -3401,6 +3405,7 @@ EG = {
       allow: iframeAllowances(),
       allowfullscreen: true,
     })
+    // xsslint safeString.identifier iframe
     $div.html(iframe).show()
   },
 
@@ -3869,6 +3874,7 @@ EG = {
     const formattedComment = containsHtmlTags(comment.comment)
       ? sanitizeHTML(comment.comment)
       : formatMessage(comment.comment)
+    // xsslint safeString.identifier formattedComment
     commentElement.find('span.comment').html(formattedComment)
 
     deleteCommentLinkText = I18n.t('Delete comment: %{commentText}', {commentText: spokenComment})

@@ -68,7 +68,7 @@ const SimilarityPledge = ({
 
   const label = eulaUrl ? (
     <span>
-      <Text dangerouslySetInnerHTML={{__html: eulaHTML(eulaUrl)}} />
+      <Text dangerouslySetInnerHTML={{__html: sanitizeHTML(eulaHTML(eulaUrl))}} />
       {!!pledgeText && (
         <div>
           <Text>{pledgeText}</Text>
