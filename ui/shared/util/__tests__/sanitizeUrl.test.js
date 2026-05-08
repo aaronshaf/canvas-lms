@@ -55,3 +55,39 @@ it('leaves relative urls alone', () => {
 it('replaces totally invalid urls with about:blank', () => {
   expect(sanitizeUrl('https://#')).toBe('about:blank')
 })
+
+it('replaces data:text/html urls with about:blank', () => {
+  expect(sanitizeUrl('data:text/html,<script>alert(1)</script>')).toBe('about:blank')
+})
+
+it('replaces data:image/svg+xml urls with about:blank', () => {
+  expect(sanitizeUrl('data:image/svg+xml,<svg onload=alert(1)></svg>')).toBe('about:blank')
+})
+
+it('replaces vbscript: scheme urls with about:blank', () => {
+  expect(sanitizeUrl('vbscript:alert(1)')).toBe('about:blank')
+})
+
+it('replaces file: scheme urls with about:blank', () => {
+  expect(sanitizeUrl('file:///etc/passwd')).toBe('about:blank')
+})
+
+it('replaces unknown schemes (e.g. chrome-extension:) with about:blank', () => {
+  expect(sanitizeUrl('chrome-extension://abc/page.html')).toBe('about:blank')
+})
+
+it('leaves mailto: urls alone', () => {
+  expect(sanitizeUrl('mailto:user@example.com')).toBe('mailto:user@example.com')
+})
+
+it('leaves tel: urls alone', () => {
+  expect(sanitizeUrl('tel:+15551234567')).toBe('tel:+15551234567')
+})
+
+it('replaces javascript: with leading whitespace with about:blank', () => {
+  expect(sanitizeUrl('  javascript:alert(1)')).toBe('about:blank')
+})
+
+it('replaces javascript: with leading tab with about:blank', () => {
+  expect(sanitizeUrl('\tjavascript:alert(1)')).toBe('about:blank')
+})

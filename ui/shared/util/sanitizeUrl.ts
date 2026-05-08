@@ -17,14 +17,21 @@
  */
 
 /**
- * Replaces bad urls with harmless urls in cases where bad urls might cause harm
+ * Replaces bad urls with harmless urls in cases where bad urls might cause harm.
+ *
+ * Uses an allowlist of schemes considered safe to navigate to from an `<a href>`,
+ * `<iframe src>`, or similar attribute. Anything else (data:, vbscript:, file:,
+ * unknown schemes, malformed input) is replaced with about:blank. Relative URLs
+ * resolve through window.location.origin and pass as http(s).
  */
+const SAFE_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:'])
+
 export default function sanitizeUrl(url: string): string {
   const defaultUrl = 'about:blank'
   try {
     const parsedUrl = new URL(url, window.location.origin)
 
-    if (parsedUrl.protocol === 'javascript:') {
+    if (!SAFE_SCHEMES.has(parsedUrl.protocol)) {
       return defaultUrl
     }
     return url
