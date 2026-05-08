@@ -23,6 +23,7 @@ import {Flex} from '@instructure/ui-flex'
 import {TextInput} from '@instructure/ui-text-input'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {
   firstNameFirst,
   lastNameFirst,
@@ -230,7 +231,7 @@ export default function CreateOrUpdateUserModal(props: Props) {
           )
         : I18n.t('*%{userName}* saved successfully!', {userName, wrapper})
       showFlashAlert({
-        message: <span dangerouslySetInnerHTML={{__html: message.toString()}} />,
+        message: <span dangerouslySetInnerHTML={{__html: sanitizeHTML(message.toString())}} />,
         type: 'success',
       })
     }
@@ -247,7 +248,7 @@ export default function CreateOrUpdateUserModal(props: Props) {
       const wrapper = `<a href='/users/${json.id}'>$1</a>`
       const message = I18n.t('*%{userName}* saved successfully!', {userName, wrapper})
       showFlashAlert({
-        message: <span dangerouslySetInnerHTML={{__html: message.toString()}} />,
+        message: <span dangerouslySetInnerHTML={{__html: sanitizeHTML(message.toString())}} />,
         type: 'success',
       })
     }

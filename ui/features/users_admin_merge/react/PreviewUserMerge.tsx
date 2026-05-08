@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
@@ -233,8 +234,10 @@ const PreviewMerge = ({
         </Heading>
         <Text
           dangerouslySetInnerHTML={{
-            __html: I18n.t(
-              "This process will consolidate the users into a single user account with the information shown. <b>This process cannot be undone, so please make sure you're certain before you continue.</b>",
+            __html: sanitizeHTML(
+              I18n.t(
+                "This process will consolidate the users into a single user account with the information shown. <b>This process cannot be undone, so please make sure you're certain before you continue.</b>",
+              ),
             ),
           }}
         />

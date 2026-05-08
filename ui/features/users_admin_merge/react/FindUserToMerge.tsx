@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Button} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
@@ -130,11 +131,12 @@ const FindUserToMerge = ({sourceUserId, accountSelectOptions, onFind}: FindUserT
       <>
         <Text
           dangerouslySetInnerHTML={{
-            __html: I18n.t('Merge *%{userName} %{userEmail}* into the selected user.', {
+            __html: sanitizeHTML(
+              I18n.t('Merge *%{userName} %{userEmail}* into the selected user.', {
                 userName: sourceUser.name,
                 userEmail: sourceUser.email ? `(${sourceUser.email})` : '',
-                wrappers: ['<b>$1</b>']
-              },
+                wrappers: ['<b>$1</b>'],
+              }).toString(),
             ),
           }}
         />
