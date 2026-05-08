@@ -17,6 +17,7 @@
  */
 import {showFlashAlert, showFlashError, showFlashSuccess} from '@instructure/platform-alerts'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {confirm} from '@instructure/platform-instui-bindings'
 import {Button, IconButton} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
@@ -170,10 +171,12 @@ export const DeploymentAvailability = (props: DeploymentAvailabilityProps) => {
                 renderTip={
                   <Text
                     dangerouslySetInnerHTML={{
-                      __html: I18n.t('Modify availability for *%{context_name}*', {
-                        context_name: rootControl.context_name,
-                        wrapper: ['<strong>$1</strong>'],
-                      }),
+                      __html: sanitizeHTML(
+                        I18n.t('Modify availability for *%{context_name}*', {
+                          context_name: rootControl.context_name,
+                          wrapper: ['<strong>$1</strong>'],
+                        }),
+                      ),
                     }}
                   />
                 }
@@ -197,10 +200,12 @@ export const DeploymentAvailability = (props: DeploymentAvailabilityProps) => {
                   renderTip={
                     <Text
                       dangerouslySetInnerHTML={{
-                        __html: I18n.t('Delete Deployment for *%{context_name}*', {
-                          context_name: rootControl.context_name,
-                          wrapper: ['<strong>$1</strong>'],
-                        }),
+                        __html: sanitizeHTML(
+                          I18n.t('Delete Deployment for *%{context_name}*', {
+                            context_name: rootControl.context_name,
+                            wrapper: ['<strong>$1</strong>'],
+                          }),
+                        ),
                       }}
                     />
                   }
@@ -335,10 +340,12 @@ export const DeploymentAvailability = (props: DeploymentAvailabilityProps) => {
                           renderTip={
                             <Text
                               dangerouslySetInnerHTML={{
-                                __html: I18n.t('Edit Exception for *%{context_name}*', {
-                                  context_name: control.context_name,
-                                  wrapper: ['<strong>$1</strong>'],
-                                }),
+                                __html: sanitizeHTML(
+                                  I18n.t('Edit Exception for *%{context_name}*', {
+                                    context_name: control.context_name,
+                                    wrapper: ['<strong>$1</strong>'],
+                                  }),
+                                ),
                               }}
                             />
                           }
@@ -366,10 +373,12 @@ export const DeploymentAvailability = (props: DeploymentAvailabilityProps) => {
                           renderTip={
                             <Text
                               dangerouslySetInnerHTML={{
-                                __html: I18n.t('Delete Exception for *%{context_name}*', {
-                                  context_name: control.context_name,
-                                  wrapper: ['<strong>$1</strong>'],
-                                }),
+                                __html: sanitizeHTML(
+                                  I18n.t('Delete Exception for *%{context_name}*', {
+                                    context_name: control.context_name,
+                                    wrapper: ['<strong>$1</strong>'],
+                                  }),
+                                ),
                               }}
                             />
                           }

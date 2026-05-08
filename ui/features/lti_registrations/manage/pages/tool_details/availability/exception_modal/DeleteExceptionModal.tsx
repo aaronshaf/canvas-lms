@@ -19,6 +19,7 @@
 import {Modal} from '@instructure/ui-modal'
 import {View} from '@instructure/ui-view'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import {Alert} from '@instructure/ui-alerts'
@@ -158,14 +159,18 @@ const CourseControlDeletionBody = ({
         <Alert variant="info" margin="0">
           <Text
             dangerouslySetInnerHTML={{
-              __html: I18n.t(
-                'After this change, %{toolName} will be *%{status}* for the %{courseName} course.',
-                {
-                  toolName: toolName,
-                  status: availableInParentContext ? I18n.t('Available') : I18n.t('Not Available'),
-                  courseName: control.context_name,
-                  wrapper: ['<strong>$1</strong>'],
-                },
+              __html: sanitizeHTML(
+                I18n.t(
+                  'After this change, %{toolName} will be *%{status}* for the %{courseName} course.',
+                  {
+                    toolName: toolName,
+                    status: availableInParentContext
+                      ? I18n.t('Available')
+                      : I18n.t('Not Available'),
+                    courseName: control.context_name,
+                    wrapper: ['<strong>$1</strong>'],
+                  },
+                ),
               ),
             }}
           />
@@ -215,14 +220,18 @@ const AccountControlDeletionBody = ({
         <Alert variant="info" margin="0">
           <Text
             dangerouslySetInnerHTML={{
-              __html: I18n.t(
-                'After this change, %{toolName} will be *%{status}* for the %{accountName} sub-account and its children.',
-                {
-                  toolName: toolName,
-                  status: availableInParentContext ? I18n.t('Available') : I18n.t('Not Available'),
-                  accountName: parent.context_name,
-                  wrapper: ['<strong>$1</strong>', '<em>$1</em>', '<u>$1</u>'],
-                },
+              __html: sanitizeHTML(
+                I18n.t(
+                  'After this change, %{toolName} will be *%{status}* for the %{accountName} sub-account and its children.',
+                  {
+                    toolName: toolName,
+                    status: availableInParentContext
+                      ? I18n.t('Available')
+                      : I18n.t('Not Available'),
+                    accountName: parent.context_name,
+                    wrapper: ['<strong>$1</strong>', '<em>$1</em>', '<u>$1</u>'],
+                  },
+                ),
               ),
             }}
           />

@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
 import {TextInput} from '@instructure/ui-text-input'
@@ -108,10 +109,12 @@ export const NamingConfirmation = React.memo(
           </Heading>
           <Text
             dangerouslySetInnerHTML={{
-              __html: I18n.t('Choose a nickname for *%{toolName}*.', {
-                toolName: toolName,
-                wrapper: ['<strong>$1</strong>'],
-              }),
+              __html: sanitizeHTML(
+                I18n.t('Choose a nickname for *%{toolName}*.', {
+                  toolName: toolName,
+                  wrapper: ['<strong>$1</strong>'],
+                }),
+              ),
             }}
           />
           <View margin="medium 0 0 0" as="div">

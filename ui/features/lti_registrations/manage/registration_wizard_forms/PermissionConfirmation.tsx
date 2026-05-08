@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
@@ -100,10 +101,12 @@ const renderBody = ({
     return (
       <Text
         dangerouslySetInnerHTML={{
-          __html: I18n.t("*%{toolName}* hasn't requested any permissions.", {
-            wrapper: '<strong>$1</strong>',
-            toolName: appName,
-          }),
+          __html: sanitizeHTML(
+            I18n.t("*%{toolName}* hasn't requested any permissions.", {
+              wrapper: '<strong>$1</strong>',
+              toolName: appName,
+            }),
+          ),
         }}
       />
     )
@@ -115,27 +118,31 @@ const renderBody = ({
         {mode === 'new' ? (
           <Text
             dangerouslySetInnerHTML={{
-              __html: I18n.t(
-                "*%{toolName}* is requesting permission to perform the following actions. We have chosen the app's recommended default settings. Please note that altering these defaults might impact the app's performance.",
-                {toolName: appName, wrapper: '<strong>$1</strong>'},
+              __html: sanitizeHTML(
+                I18n.t(
+                  "*%{toolName}* is requesting permission to perform the following actions. We have chosen the app's recommended default settings. Please note that altering these defaults might impact the app's performance.",
+                  {toolName: appName, wrapper: '<strong>$1</strong>'},
+                ),
               ),
             }}
           />
         ) : (
           <Text
             dangerouslySetInnerHTML={{
-              __html: showAllSettings
-                ? I18n.t(
-                    'Select the permissions for *%{toolName}*. Services must be supported by the tool in order to work. Check with your app vendor to see what permissions are required.',
-                    {toolName: appName, wrapper: '<strong>$1</strong>'},
-                  )
-                : I18n.t(
-                    "Select the permissions for *%{toolName}*. Please note that altering these defaults might impact the app's performance.",
-                    {
-                      toolName: appName,
-                      wrapper: '<strong>$1</strong>',
-                    },
-                  ),
+              __html: sanitizeHTML(
+                showAllSettings
+                  ? I18n.t(
+                      'Select the permissions for *%{toolName}*. Services must be supported by the tool in order to work. Check with your app vendor to see what permissions are required.',
+                      {toolName: appName, wrapper: '<strong>$1</strong>'},
+                    )
+                  : I18n.t(
+                      "Select the permissions for *%{toolName}*. Please note that altering these defaults might impact the app's performance.",
+                      {
+                        toolName: appName,
+                        wrapper: '<strong>$1</strong>',
+                      },
+                    ),
+              ),
             }}
           />
         )}

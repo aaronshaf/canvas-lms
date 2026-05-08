@@ -18,6 +18,7 @@
 
 import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {SimpleSelect} from '@instructure/ui-simple-select'
 import {View} from '@instructure/ui-view'
 import {Heading} from '@instructure/ui-heading'
@@ -87,10 +88,12 @@ export const PrivacyConfirmation = React.memo(
         </Heading>
         <Text
           dangerouslySetInnerHTML={{
-            __html: I18n.t('Select what data *%{toolName}* has access to.', {
-              toolName: appName,
-              wrapper: ['<strong>$1</strong>'],
-            }),
+            __html: sanitizeHTML(
+              I18n.t('Select what data *%{toolName}* has access to.', {
+                toolName: appName,
+                wrapper: ['<strong>$1</strong>'],
+              }),
+            ),
           }}
         />
         <View margin="medium 0 medium 0" as="div">

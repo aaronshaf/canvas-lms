@@ -18,6 +18,7 @@
 
 import {showFlashAlert} from '@instructure/platform-alerts'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import type {LtiScope} from '@canvas/lti/model/LtiScope'
 import {Flex} from '@instructure/ui-flex'
 import {ProgressBar} from '@instructure/ui-progress'
@@ -275,10 +276,12 @@ export const RegistrationUpdateWizardInner = ({
             <Text size="medium">
               <span
                 dangerouslySetInnerHTML={{
-                  __html: I18n.t('This update has already been applied to *%{appName}*.', {
-                    appName,
-                    wrappers: ['<strong>$1</strong>'],
-                  }),
+                  __html: sanitizeHTML(
+                    I18n.t('This update has already been applied to *%{appName}*.', {
+                      appName,
+                      wrappers: ['<strong>$1</strong>'],
+                    }),
+                  ),
                 }}
               />
             </Text>
@@ -305,10 +308,12 @@ export const RegistrationUpdateWizardInner = ({
             <Text size="medium">
               <span
                 dangerouslySetInnerHTML={{
-                  __html: I18n.t('This update has already been rejected for *%{appName}*.', {
-                    appName,
-                    wrappers: ['<strong>$1</strong>'],
-                  }),
+                  __html: sanitizeHTML(
+                    I18n.t('This update has already been rejected for *%{appName}*.', {
+                      appName,
+                      wrappers: ['<strong>$1</strong>'],
+                    }),
+                  ),
                 }}
               />
             </Text>

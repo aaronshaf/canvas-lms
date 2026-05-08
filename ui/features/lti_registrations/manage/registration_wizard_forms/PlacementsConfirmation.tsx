@@ -18,6 +18,7 @@
 
 import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {LtiPlacements, type LtiPlacement} from '../model/LtiPlacement'
 import {i18nLtiPlacement} from '../model/i18nLtiPlacement'
 import {Heading} from '@instructure/ui-heading'
@@ -119,15 +120,17 @@ export const PlacementsConfirmation = React.memo(
         </Heading>
         <Text
           dangerouslySetInnerHTML={{
-            __html: I18n.t(
-              'Choose where *%{appName}* may be accessed from. Find more details in the **placements documentation.**',
-              {
-                appName,
-                wrappers: [
-                  '<strong>$1</strong>',
-                  "<a id='placements-documentation-link' href='https://canvas.instructure.com/doc/api/file.placements_overview.html' style='text-decoration: underline' target='_blank'>$1</a>",
-                ],
-              },
+            __html: sanitizeHTML(
+              I18n.t(
+                'Choose where *%{appName}* may be accessed from. Find more details in the **placements documentation.**',
+                {
+                  appName,
+                  wrappers: [
+                    '<strong>$1</strong>',
+                    "<a id='placements-documentation-link' href='https://canvas.instructure.com/doc/api/file.placements_overview.html' style='text-decoration: underline' target='_blank'>$1</a>",
+                  ],
+                },
+              ),
             ),
           }}
         />

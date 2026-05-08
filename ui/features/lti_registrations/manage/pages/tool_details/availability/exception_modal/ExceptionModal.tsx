@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Button, CloseButton, IconButton} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
@@ -224,10 +225,12 @@ export const ExceptionModal = ({
                             renderTip={
                               <Text
                                 dangerouslySetInnerHTML={{
-                                  __html: I18n.t('Delete exception for *%{context_name}*', {
-                                    context_name: control.context.context.name,
-                                    wrapper: ['<strong>$1</strong>'],
-                                  }),
+                                  __html: sanitizeHTML(
+                                    I18n.t('Delete exception for *%{context_name}*', {
+                                      context_name: control.context.context.name,
+                                      wrapper: ['<strong>$1</strong>'],
+                                    }),
+                                  ),
                                 }}
                               />
                             }

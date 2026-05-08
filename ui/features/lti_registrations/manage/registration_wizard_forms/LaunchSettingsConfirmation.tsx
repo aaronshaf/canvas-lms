@@ -19,6 +19,7 @@ import React from 'react'
 import {Heading} from '@instructure/ui-heading'
 import {Text} from '@instructure/ui-text'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {TextArea} from '@instructure/ui-text-area'
 import {useValidateLaunchSettings} from '../lti_1p3_registration_form/hooks/useValidateLaunchSettings'
 import {TextInput} from '@instructure/ui-text-input'
@@ -124,13 +125,15 @@ export const LaunchSettingsConfirmation = (props: LaunchSettingsConfirmationProp
         <Heading level="h3">{props.title ? props.title : I18n.t('LTI 1.3 Registration')}</Heading>
         <Text
           dangerouslySetInnerHTML={{
-            __html: I18n.t(
-              'Find more information about manual configuration in the *Canvas documentation.*',
-              {
-                wrapper: [
-                  '<a href="https://canvas.instructure.com/doc/api/file.lti_dev_key_config.html" target="_blank">$1</a>',
-                ],
-              },
+            __html: sanitizeHTML(
+              I18n.t(
+                'Find more information about manual configuration in the *Canvas documentation.*',
+                {
+                  wrapper: [
+                    '<a href="https://canvas.instructure.com/doc/api/file.lti_dev_key_config.html" target="_blank">$1</a>',
+                  ],
+                },
+              ),
             ),
           }}
         />
@@ -275,11 +278,13 @@ export const LaunchSettingsConfirmation = (props: LaunchSettingsConfirmationProp
                 >
                   <Text
                     dangerouslySetInnerHTML={{
-                      __html: I18n.t('Refer to the *Canvas documentation* for more details.', {
-                        wrapper: [
-                          '<a href="https://canvas.instructure.com/doc/api/file.tools_variable_substitutions.html" target="_blank">$1</a>',
-                        ],
-                      }),
+                      __html: sanitizeHTML(
+                        I18n.t('Refer to the *Canvas documentation* for more details.', {
+                          wrapper: [
+                            '<a href="https://canvas.instructure.com/doc/api/file.tools_variable_substitutions.html" target="_blank">$1</a>',
+                          ],
+                        }),
+                      ),
                     }}
                   />
                 </View>

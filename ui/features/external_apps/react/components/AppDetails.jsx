@@ -18,6 +18,7 @@
 
 import $ from 'jquery'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import React from 'react'
 import PropTypes from 'prop-types'
 import page from 'page'
@@ -116,7 +117,7 @@ export default class AppDetails extends React.Component {
                   <h2 ref={this.appNameRef}>{this.state.app.name}</h2>
                   <p
                     ref={this.appDescriptionRef}
-                    dangerouslySetInnerHTML={{__html: this.state.app.description}}
+                    dangerouslySetInnerHTML={{__html: sanitizeHTML(this.state.app.description)}}
                   />
                 </td>
               </tr>

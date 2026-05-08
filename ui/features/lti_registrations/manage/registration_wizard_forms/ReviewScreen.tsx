@@ -18,6 +18,7 @@
 
 import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {htmlEscape} from '@instructure/html-escape'
 import {IconButton} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
@@ -202,9 +203,11 @@ export const ReviewScreen = ({
               <Text
                 size="small"
                 dangerouslySetInnerHTML={{
-                  __html: description
-                    ? htmlEscape(description)
-                    : I18n.t('*No description provided.*', {wrappers: ['<i>$1</i>']}),
+                  __html: sanitizeHTML(
+                    description
+                      ? htmlEscape(description)
+                      : I18n.t('*No description provided.*', {wrappers: ['<i>$1</i>']}),
+                  ),
                 }}
               />
             </div>
@@ -217,9 +220,11 @@ export const ReviewScreen = ({
                   <Text
                     size="small"
                     dangerouslySetInnerHTML={{
-                      __html: labels[placement]
-                        ? htmlEscape(labels[placement])
-                        : I18n.t('*No label provided.*', {wrappers: ['<i>$1</i>']}),
+                      __html: sanitizeHTML(
+                        labels[placement]
+                          ? htmlEscape(labels[placement])
+                          : I18n.t('*No label provided.*', {wrappers: ['<i>$1</i>']}),
+                      ),
                     }}
                   />
                 </div>
@@ -530,7 +535,7 @@ const DuplicateAlert = ({domainDuplicates, accountId}: DuplicateAlertProps) => {
       <Alert variant="warning" renderCloseButtonLabel={I18n.t('Close')}>
         <Text
           dangerouslySetInnerHTML={{
-            __html: createDuplicateMessage(domainDuplicates, accountId),
+            __html: sanitizeHTML(createDuplicateMessage(domainDuplicates, accountId)),
           }}
         />
       </Alert>
