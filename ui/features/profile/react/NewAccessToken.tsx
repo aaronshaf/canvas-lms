@@ -24,7 +24,6 @@ import {Heading} from '@instructure/ui-heading'
 import {Modal} from '@instructure/ui-modal'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
-import {raw} from '@instructure/html-escape'
 import {Flex} from '@instructure/ui-flex'
 import {TextInput} from '@instructure/ui-text-input'
 import {zodResolver} from '@hookform/resolvers/zod'
@@ -34,6 +33,7 @@ import {
 } from '@canvas/forms/react/react-hook-form/utils'
 import {showFlashError} from '@instructure/platform-alerts'
 import doFetchApi from '@canvas/do-fetch-api-effect'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {DateTimeInput} from '@instructure/ui-date-time-input'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import type {Token} from './types'
@@ -147,7 +147,7 @@ const NewAccessToken = ({onSubmit, onClose}: NewAccessTokenProps) => {
         <Flex direction="column" gap="small">
           <Text
             dangerouslySetInnerHTML={{
-              __html: raw(
+              __html: sanitizeHTML(
                 I18n.t(
                   "Access tokens are what allow third-party applications to access Canvas resources on your behalf. These tokens are normally created automatically for applications as needed, but if *you're developing a new or limited project* you can just generate the token from here.",
                   {

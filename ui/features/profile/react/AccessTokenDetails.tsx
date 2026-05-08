@@ -23,11 +23,11 @@ import {Modal} from '@instructure/ui-modal'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
 import {Tooltip} from '@instructure/ui-tooltip'
-import {raw} from '@instructure/html-escape'
 import {Flex} from '@instructure/ui-flex'
 import {datetimeString} from '@canvas/datetime/date-functions'
 import './AccessTokenDetails.css'
 import doFetchApi from '@canvas/do-fetch-api-effect'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {showFlashError} from '@instructure/platform-alerts'
 import {Spinner} from '@instructure/ui-spinner'
 import type {Token} from './types'
@@ -137,7 +137,7 @@ const AccessTokenDetails = ({
                 size="small"
                 wrap="break-word"
                 dangerouslySetInnerHTML={{
-                  __html: raw(
+                  __html: sanitizeHTML(
                     I18n.t(
                       "*Copy this token down now*. Once you leave this page you won't be able to retrieve the full token anymore, you'll have to regenerate it to get a new value.",
                       {wrapper: '<b>$1</b>'},
@@ -195,7 +195,7 @@ const AccessTokenDetails = ({
         <Flex direction="column" gap="medium">
           <Text
             dangerouslySetInnerHTML={{
-              __html: raw(
+              __html: sanitizeHTML(
                 I18n.t(
                   'Access tokens can be used to allow other applications to make API calls on your behalf. You can also generate access tokens and *use the Canvas Open API* to come up with your own integrations.',
                   {

@@ -22,8 +22,8 @@ import {Heading} from '@instructure/ui-heading'
 import {Modal} from '@instructure/ui-modal'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
-import {raw} from '@instructure/html-escape'
 import {Flex} from '@instructure/ui-flex'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('profile')
 
@@ -57,7 +57,7 @@ const ConfirmEmailAddress = ({email, children, onClose}: ConfirmEmailAddressProp
         <Flex direction="column" gap="medium" padding="small 0 0 0">
           <Text
             dangerouslySetInnerHTML={{
-              __html: raw(
+              __html: sanitizeHTML(
                 I18n.t(
                   'We emailed a confirmation link to *%{email}*. Click the link in that email to finish registering. Make sure to check your spam box in case it got filtered.',
                   {wrapper: '<b>$1</b>', email},

@@ -22,10 +22,10 @@ import {Heading} from '@instructure/ui-heading'
 import {Modal} from '@instructure/ui-modal'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
-import {raw} from '@instructure/html-escape'
 import {TextInput} from '@instructure/ui-text-input'
 import {Flex} from '@instructure/ui-flex'
 import doFetchApi from '@canvas/do-fetch-api-effect'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import {Controller, useForm, type SubmitHandler} from 'react-hook-form'
@@ -117,7 +117,7 @@ const ConfirmCommunicationChannel = ({
         <Flex direction="column" gap="medium" padding="small 0 0 0">
           <Text
             dangerouslySetInnerHTML={{
-              __html: raw(
+              __html: sanitizeHTML(
                 I18n.t(
                   'To activate this communication channel, enter the four-character confirmation code sent to *%{phoneNumberOrEmail}*. The code is case sensitive.',
                   {wrapper: '<b>$1</b>', phoneNumberOrEmail},
