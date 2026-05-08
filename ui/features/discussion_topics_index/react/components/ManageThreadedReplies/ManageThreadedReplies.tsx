@@ -22,6 +22,7 @@ import {Button, CloseButton, type ButtonProps} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import ManageThreadedRepliesAlert from './ManageThreadedRepliesAlert'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
@@ -186,11 +187,13 @@ const ManageThreadedReplies: React.FC<ManageThreadedRepliesProps> = ({
                 as="div"
                 margin="0 0 small 0"
                 dangerouslySetInnerHTML={{
-                  __html: I18n.t(
-                    "Please set all Discussions to either *'Threaded'* or *'Not threaded'*. Use the *'Set to Threaded'* and *'Set to Not threaded'* actions to bulk update multiple selected Discussions. Use the dropdown menus to decide on individual Discussions.",
-                    {
-                      wrappers: [`<i>$1</i>`],
-                    },
+                  __html: sanitizeHTML(
+                    I18n.t(
+                      "Please set all Discussions to either *'Threaded'* or *'Not threaded'*. Use the *'Set to Threaded'* and *'Set to Not threaded'* actions to bulk update multiple selected Discussions. Use the dropdown menus to decide on individual Discussions.",
+                      {
+                        wrappers: [`<i>$1</i>`],
+                      },
+                    ),
                   ),
                 }}
               />

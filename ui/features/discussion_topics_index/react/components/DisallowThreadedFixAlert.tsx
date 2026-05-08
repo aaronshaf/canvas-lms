@@ -18,6 +18,7 @@
 
 import React, {useState, useContext} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {WithBreakpoints} from '@instructure/platform-with-breakpoints'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
 import {AlertManager, AlertManagerContext} from '@instructure/platform-alerts'
@@ -165,7 +166,7 @@ function DisallowThreadedFixAlertBase({breakpoints}) {
       onDismiss={() => setShouldMount(false)}
     >
       <Flex gap="x-small" direction="column">
-        <Text dangerouslySetInnerHTML={{__html: alertText}} />
+        <Text dangerouslySetInnerHTML={{__html: sanitizeHTML(alertText)}} />
         <Flex gap="small" direction={breakpoints.mobileOnly ? 'column' : 'row'}>
           {/* We cannot use reverse wrap because that messes up tab order, so we show one of the buttons on mobile and on the other above */}
           {breakpoints.mobileOnly && <UpdateButton onUpdateComplete={onUpdateComplete} />}

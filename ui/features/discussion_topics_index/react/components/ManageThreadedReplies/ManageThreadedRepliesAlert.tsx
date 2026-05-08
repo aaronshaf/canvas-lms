@@ -23,6 +23,7 @@ import {Alert} from '@instructure/ui-alerts'
 import {Button} from '@instructure/ui-buttons'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Responsive} from '@instructure/ui-responsive'
 import {responsiveQuerySizes} from '@canvas/discussions/react/utils'
 import {GlobalEnv} from '@canvas/global/env/GlobalEnv'
@@ -69,8 +70,8 @@ const ManageThreadedRepliesAlert: React.FC<ManageThreadedRepliesAlertProps> = ({
   return (
     <Alert variant="warning" margin="mediumSmall 0" open={showAlert}>
       <Flex gap="x-small" direction="column">
-        <Text dangerouslySetInnerHTML={{__html: alertTitle}} />
-        <Text dangerouslySetInnerHTML={{__html: alertText}} />
+        <Text dangerouslySetInnerHTML={{__html: sanitizeHTML(alertTitle)}} />
+        <Text dangerouslySetInnerHTML={{__html: sanitizeHTML(alertText)}} />
         <Responsive
           match="media"
           query={{...responsiveQuerySizes({mobile: true, desktop: true})}}
