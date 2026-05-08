@@ -58,16 +58,20 @@ export const PeerReviewWidget = ({assignmentId, courseId}: PeerReviewWidgetProps
         <FormFieldGroup
           description={<ScreenReaderContent>{I18n.t('Peer Review')}</ScreenReaderContent>}
         >
-          <Flex alignItems="center" gap="small">
-            <Flex.Item>
-              <IconPeerReviewLine />
+          <Flex alignItems="center" justifyItems="space-between" gap="small" wrap="wrap">
+            <Flex.Item shouldGrow shouldShrink overflowX="hidden">
+              <Flex alignItems="center" gap="small">
+                <Flex.Item>
+                  <IconPeerReviewLine />
+                </Flex.Item>
+                <Flex.Item>
+                  <Text aria-hidden="true" data-testid="peer-review-text">
+                    {I18n.t('Peer Review')}
+                  </Text>
+                </Flex.Item>
+              </Flex>
             </Flex.Item>
             <Flex.Item>
-              <Text aria-hidden="true" data-testid="peer-review-text">
-                {I18n.t('Peer Review')}
-              </Text>
-            </Flex.Item>
-            <Flex.Item margin="0 0 0 medium">
               <Button
                 renderIcon={<IconSettingsLine />}
                 data-testid="view-configuration-button"
