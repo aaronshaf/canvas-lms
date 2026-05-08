@@ -110,4 +110,35 @@ describe('Reply Preview', () => {
       expect(container.getByText('Anonymous 1')).toBeTruthy()
     })
   })
+
+  describe('XSS hardening', () => {
+    afterEach(() => {
+      delete window.__xss
+    })
+
+    it('strips dangerous attributes/tags from the full message', () => {
+      const container = setup(
+        mockProps({
+          message: '<p onclick="window.__xss=1">click</p><script>window.__xss=2</script>safe text',
+        }),
+      )
+      const html = container.getByTestId('reply-preview').innerHTML
+      expect(html).not.toMatch(/\son[a-z]+\s*=/i)
+      expect(html).not.toContain('<script')
+      expect(window.__xss).toBeUndefined()
+    })
+
+    it('renders the truncated branch as plain text, not HTML', () => {
+      // The unsafe pattern is HTML-string truncation: `message.slice(N) + '...'`
+      // followed by innerHTML. Anything within the first N chars (tags,
+      // attributes, javascript: URIs) survives. Plaintext truncation
+      // sidesteps the entire class.
+      const message = `<a href="javascript:alert(1)" onclick="alert(2)">click</a>${'a'.repeat(200)}`
+      const container = setup(mockProps({message}))
+      const html = container.getByTestId('reply-preview').innerHTML
+      expect(html).not.toContain('javascript:')
+      expect(html).not.toMatch(/\son[a-z]+\s*=/i)
+      expect(html).not.toContain('<a ')
+    })
+  })
 })

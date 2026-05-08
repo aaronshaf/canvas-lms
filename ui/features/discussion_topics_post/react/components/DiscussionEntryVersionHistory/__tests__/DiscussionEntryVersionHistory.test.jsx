@@ -109,4 +109,38 @@ describe('DiscussionEntryVersionHistory', () => {
     expect(container.queryByText('Expand all')).toBeFalsy()
     expect(container.queryByText('Collapse all')).toBeTruthy()
   })
+
+  describe('XSS hardening', () => {
+    // The version-history modal renders into a portal, so assertions must
+    // look at document.body, not the render() container.
+    const MALICIOUS = '<p onclick="window.__xss=1">click</p><script>window.__xss=2</script>safe'
+
+    afterEach(() => {
+      delete window.__xss
+    })
+
+    it('strips dangerous attributes/tags when expanding all versions', () => {
+      const {getByText} = setup([DiscussionEntryVersion.mock({version: 1, message: MALICIOUS})])
+      fireEvent.click(getByText('View History'))
+      fireEvent.click(getByText('Expand all'))
+
+      const html = document.body.innerHTML
+      expect(html).not.toMatch(/\son[a-z]+\s*=/i)
+      expect(html).not.toContain('<script')
+      expect(window.__xss).toBeUndefined()
+    })
+
+    it('strips dangerous attributes/tags when toggling an individual version', () => {
+      const {getByText, getByTestId} = setup([
+        DiscussionEntryVersion.mock({version: 1, message: MALICIOUS}),
+      ])
+      fireEvent.click(getByText('View History'))
+      fireEvent.click(getByTestId('v1-toggle'))
+
+      const html = document.body.innerHTML
+      expect(html).not.toMatch(/\son[a-z]+\s*=/i)
+      expect(html).not.toContain('<script')
+      expect(window.__xss).toBeUndefined()
+    })
+  })
 })
