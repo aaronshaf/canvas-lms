@@ -136,6 +136,7 @@ I18n.t({one: '1 item', other: '%{count} items'}, {count: itemCount})
 - Don't use CSS modules
 - Minimize custom CSS; use InstUI props
 - When simulating API calls in a test, do not mock `doFetchApi` — use MSW to emulate server responses and test `doFetchApi` behavior directly in the test
+- Don't mock `@canvas/i18n` to skip i18nliner's html-escape — security/XSS specs must run against the real i18n contract, otherwise any red→green diff is fabricated by the mock
 
 ### Avoid When Possible
 - jQuery wrappers (only for legacy integration)
