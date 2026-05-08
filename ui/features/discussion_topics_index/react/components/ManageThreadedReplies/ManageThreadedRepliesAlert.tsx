@@ -28,7 +28,6 @@ import {Responsive} from '@instructure/ui-responsive'
 import {responsiveQuerySizes} from '@canvas/discussions/react/utils'
 import {GlobalEnv} from '@canvas/global/env/GlobalEnv'
 import {useManageThreadedRepliesStore} from '../../hooks/useManageThreadedRepliesStore'
-import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('discussions_v2')
 

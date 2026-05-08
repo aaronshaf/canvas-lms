@@ -22,7 +22,6 @@ import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Heading} from '@instructure/ui-heading'
 import {CloseButton} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
-import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('account_settings')
 

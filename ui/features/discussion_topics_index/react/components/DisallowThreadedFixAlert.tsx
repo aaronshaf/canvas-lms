@@ -22,7 +22,6 @@ import {sanitizeHTML} from '@canvas/sanitize-html'
 import {WithBreakpoints} from '@instructure/platform-with-breakpoints'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
 import {AlertManager, AlertManagerContext} from '@instructure/platform-alerts'
-import {sanitizeHTML} from '@canvas/sanitize-html'
 
 import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
