@@ -28,10 +28,18 @@ XSSLint.configure({
   'jqueryObject.identifier': [/^\$/],
   'jqueryObject.property': [/^\$/],
   'safeString.identifier': [/(_html|Html|View|Template)$/, 'html', 'id'],
-  'safeString.function': ['h', 'raw', 'htmlEscape', 'template', /(Template|View|Dialog)$/],
+  'safeString.function': [
+    'h',
+    'raw',
+    'htmlEscape',
+    'sanitizeHTML',
+    'template',
+    /(Template|View|Dialog)$/,
+  ],
   'safeString.property': ['template', 'id', 'height', 'width', /_id$/],
   'safeString.method': [
     'escapeContent',
+    'sanitizeHTML',
     'template',
     /(Template|Html)$/,
     'toISOString',
@@ -58,7 +66,7 @@ Linter.prototype.isSafeString = function (node) {
   if (lastArg.type !== 'ObjectExpression') return false
 
   const hasWrapper = lastArg.properties.some(
-    prop => prop.key.name === 'wrapper' || prop.key.name === 'wrappers'
+    prop => prop.key.name === 'wrapper' || prop.key.name === 'wrappers',
   )
   return hasWrapper
 }
@@ -118,7 +126,7 @@ allPaths.forEach(({paths, glob, defaultIgnores = ['**/__tests__/**/*.js'], trans
             .toString()
             .trim()
             .split(/\r?\n|\r/)
-        : []
+        : [],
     )
     let candidates = getFilesAndDirs('.')
     candidates = {files: candidates[0], dirs: candidates[1]}
