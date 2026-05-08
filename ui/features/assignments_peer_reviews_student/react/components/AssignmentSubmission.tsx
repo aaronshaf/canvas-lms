@@ -18,6 +18,7 @@
 
 import React, {useState, useEffect, useRef, useCallback} from 'react'
 import apiUserContent from '@canvas/util/jquery/apiUserContent'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import ErrorShip from '@instructure/platform-images/assets/ErrorShip.svg'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
 import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
@@ -235,7 +236,7 @@ const AssignmentSubmission: React.FC<AssignmentSubmissionProps> = ({
           role="document"
           style={{maxHeight: isMobile ? undefined : '43vh', overflow: 'auto'}}
           dangerouslySetInnerHTML={{
-            __html: apiUserContent.convert(submission.body || ''),
+            __html: sanitizeHTML(apiUserContent.convert(submission.body || '')),
           }}
         />
       </View>
