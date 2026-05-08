@@ -33,6 +33,7 @@
 
   long_description_text = criterion.try(:long_description) || ''
   long_description_text = Sanitize.clean(long_description_text) if learning_outcome_criterion
+  friendly_description = Sanitize.clean(friendly_description, CanvasSanitize::SANITIZE) if friendly_description.present?
 
   description = criterion.try(:description) || t('defaults.description', "Description of criterion")
 %>

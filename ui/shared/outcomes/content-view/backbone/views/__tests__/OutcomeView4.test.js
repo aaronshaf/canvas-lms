@@ -19,6 +19,7 @@
 import $ from 'jquery'
 import 'jquery-migrate'
 import I18nStubber from '@canvas/test-utils/I18nStubber'
+import fakeENV from '@canvas/test-utils/fakeENV'
 import Outcome from '../../../../backbone/models/Outcome'
 import OutcomeContentBase from '../OutcomeContentBase'
 import OutcomeView from '../OutcomeView'
@@ -77,10 +78,60 @@ function createView(opts) {
 describe('OutcomeView', () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="fixtures"></div>'
+    fakeENV.setup({CONTEXT_URL_ROOT: '/courses/1'})
   })
 
   afterEach(() => {
     document.body.innerHTML = ''
+    fakeENV.teardown()
+  })
+
+  describe('friendly_description sanitization', () => {
+    it('strips script tags from friendly_description before rendering', () => {
+      const view = createView({
+        model: newOutcome({friendly_description: "<script>alert('xss')</script>safe"}),
+        state: 'show',
+      })
+      expect(view.$('.friendly-description-info').html()).not.toContain('<script>')
+      expect(view.$('.friendly-description-info').text()).toContain('safe')
+      view.remove()
+    })
+
+    it('strips onerror attributes from friendly_description before rendering', () => {
+      const view = createView({
+        model: newOutcome({friendly_description: '<img src="x" onerror="alert(1)">'}),
+        state: 'show',
+      })
+      expect(view.$('.friendly-description-info').html()).not.toContain('onerror')
+      view.remove()
+    })
+
+    it('strips javascript: hrefs from friendly_description before rendering', () => {
+      const view = createView({
+        model: newOutcome({friendly_description: '<a href="javascript:alert(1)">click</a>'}),
+        state: 'show',
+      })
+      expect(view.$('.friendly-description-info').html()).not.toContain('javascript:')
+      view.remove()
+    })
+
+    it('preserves safe HTML in friendly_description', () => {
+      const view = createView({
+        model: newOutcome({friendly_description: '<p>Hello <strong>world</strong></p>'}),
+        state: 'show',
+      })
+      expect(view.$('.friendly-description-info strong').text()).toBe('world')
+      view.remove()
+    })
+
+    it('does not render friendly_description section when absent', () => {
+      const view = createView({
+        model: newOutcome({friendly_description: null}),
+        state: 'show',
+      })
+      expect(view.$('.friendly-description')).toHaveLength(0)
+      view.remove()
+    })
   })
 
   describe('Form Validation', () => {

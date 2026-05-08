@@ -18,6 +18,7 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import numberHelper from '@canvas/i18n/numberHelper'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import $ from 'jquery'
 import {map, maxBy, isNaN, isEqual, extend as lodashExtend} from 'es-toolkit/compat'
 import OutcomeContentBase from './OutcomeContentBase'
@@ -330,6 +331,9 @@ export default class OutcomeView extends OutcomeContentBase {
         }
         if (!data.mastery_points) {
           data.mastery_points = 0
+        }
+        if (data.friendly_description) {
+          data.friendly_description = sanitizeHTML(data.friendly_description)
         }
 
         if (ENV.ACCOUNT_LEVEL_MASTERY_SCALES) {
