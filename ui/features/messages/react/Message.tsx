@@ -28,6 +28,7 @@ import {TextArea} from '@instructure/ui-text-area'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {showFlashError, showFlashSuccess} from '@instructure/platform-alerts'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 import type {MessageDataSet} from './Messages'
 
@@ -110,7 +111,9 @@ export default function Message(props: MessageProps): JSX.Element {
             renderTitle={tab.title}
             isSelected={selectedTab === index}
           >
-            <div dangerouslySetInnerHTML={{__html: elementTabs[tab.id].innerHTML}}></div>
+            <div
+              dangerouslySetInnerHTML={{__html: sanitizeHTML(elementTabs[tab.id].innerHTML)}}
+            ></div>
           </Tabs.Panel>
         ))}
       </Tabs>
