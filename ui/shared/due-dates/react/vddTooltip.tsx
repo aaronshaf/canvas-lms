@@ -20,6 +20,7 @@ import {createRoot} from 'react-dom/client'
 import {render, rerender} from '@canvas/react/index'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {Portal} from '@instructure/ui-portal'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 let _vddRoot: ReturnType<typeof createRoot> | null = null
 
@@ -43,13 +44,13 @@ export default function vddTooltip() {
               renderTip={
                 <span
                   data-testid={`vdd_contents_${index}`}
-                  dangerouslySetInnerHTML={{__html: el?.innerHTML}}
+                  dangerouslySetInnerHTML={{__html: sanitizeHTML(el?.innerHTML ?? '')}}
                 />
               }
             >
               <span
                 data-testid={`vdd_tooltip_${index}`}
-                dangerouslySetInnerHTML={{__html: tooltipElement}}
+                dangerouslySetInnerHTML={{__html: sanitizeHTML(tooltipElement)}}
               />
             </Tooltip>
           </Portal>
@@ -60,9 +61,9 @@ export default function vddTooltip() {
     })
 
     if (_vddRoot) {
-      rerender(_vddRoot, <>{toolTipElements}</>)
+      rerender(_vddRoot, <>{toolTipElements}</>, {sync: true})
     } else {
-      _vddRoot = render(<>{toolTipElements}</>, tooltipMount)
+      _vddRoot = render(<>{toolTipElements}</>, tooltipMount, {sync: true})
     }
   }
 }
