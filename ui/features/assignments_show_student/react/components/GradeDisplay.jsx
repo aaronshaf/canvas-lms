@@ -20,6 +20,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import numberFormat from '@canvas/i18n/numberFormat'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {Flex} from '@instructure/ui-flex'
@@ -122,7 +123,7 @@ export default function PointsDisplay(props) {
       <Flex aria-hidden="true" direction="column" textAlign="end">
         <Flex.Item>
           <Text
-            dangerouslySetInnerHTML={{__html: formatGrade()}}
+            dangerouslySetInnerHTML={{__html: sanitizeHTML(formatGrade())}}
             data-testid="grade-display"
             lineHeight="fit"
             size={window.ENV.FEATURES?.instui_nav ? 'medium' : 'x-large'}

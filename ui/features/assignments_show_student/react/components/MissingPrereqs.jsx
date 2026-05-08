@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import React from 'react'
 import {string} from 'prop-types'
 
@@ -53,7 +54,7 @@ export default function MissingPrereqs(props) {
           <Flex.Item>
             <Text
               weight="normal"
-              dangerouslySetInnerHTML={{__html: modulesPage(props.moduleUrl)}}
+              dangerouslySetInnerHTML={{__html: sanitizeHTML(modulesPage(props.moduleUrl))}}
             />
           </Flex.Item>
         </Flex>

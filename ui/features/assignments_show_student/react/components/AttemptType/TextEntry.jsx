@@ -21,6 +21,7 @@ import React, {createRef} from 'react'
 import CanvasRce from '@canvas/rce/react/CanvasRce'
 import {RceLti11ContentItem} from '@instructure/canvas-rce/es/rce/plugins/instructure_rce_external_tools/lti11-content-items/RceLti11ContentItem'
 import {Submission} from '@canvas/assignments/graphql/student/Submission'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import apiUserContent from '@canvas/util/jquery/apiUserContent'
 import theme from '@instructure/canvas-theme'
 import StudentViewContext from '@canvas/assignments/react/StudentViewContext'
@@ -257,7 +258,7 @@ export default class TextEntry extends React.Component {
           width: '100%',
         }}
         dangerouslySetInnerHTML={{
-          __html: apiUserContent.convert(this.props.submission.body),
+          __html: sanitizeHTML(apiUserContent.convert(this.props.submission.body)),
         }}
       />
     )
