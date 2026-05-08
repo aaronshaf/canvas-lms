@@ -29,7 +29,7 @@ import useStore from './stores'
 import {Badge} from '@instructure/ui-badge'
 import {Link} from '@instructure/ui-link'
 import {getIconByType} from '@canvas/mime/react/mimeClassIconHelper'
-import sanitizeHtml from 'sanitize-html-with-tinymce'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {containsHtmlTags, formatMessage} from '@canvas/util/TextHelper'
 import {StudioPlayer, type StudioPlayerProps} from '@instructure/studio-player'
 
@@ -98,7 +98,7 @@ function SubmissionAttemptComments({comments}: SubmissionAttemptProps) {
       {comments.map((comment, i) => {
         const mediaObject = comment.media_object
         const formattedComment = containsHtmlTags(comment.comment)
-          ? sanitizeHtml(comment.comment)
+          ? comment.comment
           : formatMessage(comment.comment)
 
         return (
@@ -131,7 +131,7 @@ function SubmissionAttemptComments({comments}: SubmissionAttemptProps) {
                 size="small"
                 data-testid="submission-comment-content"
                 dangerouslySetInnerHTML={{
-                  __html: formattedComment,
+                  __html: sanitizeHTML(formattedComment),
                 }}
               />
             </View>
