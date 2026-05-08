@@ -124,4 +124,31 @@ describe('HistoryList', () => {
     expect(dates).toHaveAttribute('data-timestamp', historyPage1[0].visited_at)
     expect(discussions).toHaveLength(1)
   })
+
+  it('sanitizes javascript: visited_url so it does not reach the DOM', () => {
+    queryClient.setQueryData(['history'], {
+      pages: [
+        {
+          json: [
+            {
+              asset_code: 'evil_1',
+              asset_icon: 'icon',
+              asset_name: 'Evil Entry',
+              asset_readable_category: 'Page',
+              context_id: 1,
+              context_name: 'Course',
+              context_type: 'Course',
+              visited_at: '2026-05-01T00:00:00Z',
+              visited_url: 'javascript:alert(1)',
+            },
+          ],
+          nextPage: null,
+        },
+      ],
+      pageParams: [''],
+    })
+    const {getByText} = renderWithClient(<HistoryList />)
+    const link = getByText('Evil Entry')
+    expect(link.getAttribute('href') ?? '').not.toMatch(/^javascript:/i)
+  })
 })

@@ -26,6 +26,7 @@ import {Text} from '@instructure/ui-text'
 import {formatTimeAgoTitle} from '@canvas/enhanced-user-content'
 import {fromNow} from '@canvas/fuzzy-relative-time'
 import doFetchApi from '@canvas/do-fetch-api-effect'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {Alert} from '@instructure/ui-alerts'
 import {useInfiniteQuery} from '@tanstack/react-query'
 import type {QueryFunctionContext} from '@tanstack/react-query'
@@ -152,7 +153,7 @@ export default function HistoryList() {
                   </Flex.Item>
                   <Flex.Item shouldGrow={true}>
                     <Link
-                      href={entry.visited_url}
+                      href={sanitizeUrl(entry.visited_url)}
                       aria-label={`${entry.asset_name}, ${entry.asset_readable_category}`}
                       aria-describedby={`history_list_${entry.asset_code}`}
                     >

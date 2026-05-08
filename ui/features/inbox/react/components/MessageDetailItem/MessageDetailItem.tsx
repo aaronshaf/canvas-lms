@@ -34,6 +34,7 @@ import {ConversationContext} from '../../../util/constants'
 import {formatMessage, containsHtmlTags} from '@canvas/util/TextHelper'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {sanitizeHTML} from '@canvas/sanitize-html'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('conversations_2')
 
@@ -176,7 +177,10 @@ export const MessageDetailItem = ({
               {conversationMessage.attachments.map(attachment => {
                 return (
                   <List.Item as="div" key={attachment.id}>
-                    <Link href={attachment.url} renderIcon={<IconPaperclipLine size="x-small" />}>
+                    <Link
+                      href={sanitizeUrl(attachment.url)}
+                      renderIcon={<IconPaperclipLine size="x-small" />}
+                    >
                       {attachment.displayName}
                     </Link>
                   </List.Item>

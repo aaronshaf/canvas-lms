@@ -219,6 +219,23 @@ describe('MessageDetailItem', () => {
     expect(getByText('attachment1.jpeg')).toBeInTheDocument()
   })
 
+  it('sanitizes javascript: attachment urls so they do not reach the DOM', () => {
+    const props = {
+      conversationMessage: {
+        author: {name: 'Tom Thompson', shortName: 'Tom Thompson'},
+        recipients: [{name: 'Tom Thompson', shortName: 'Tom Thompson'}],
+        createdAt: 'Tue, 20 Apr 2021 14:31:25 UTC +00:00',
+        body: 'body',
+        htmlBody: 'body',
+        attachments: [{id: '1', displayName: 'evil.jpeg', url: 'javascript:alert(1)'}],
+      },
+      contextName: 'Fake Course 1',
+    }
+    const {getByText} = render(<MessageDetailItem {...props} />)
+    const link = getByText('evil.jpeg').closest('a')
+    expect(link?.getAttribute('href') ?? '').not.toMatch(/^javascript:/i)
+  })
+
   it('shows media player if it exists', () => {
     const props = {
       conversationMessage: {
