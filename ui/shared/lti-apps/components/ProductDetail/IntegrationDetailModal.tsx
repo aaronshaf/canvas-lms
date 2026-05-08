@@ -19,6 +19,7 @@
 import React from 'react'
 import {InstUIModal as Modal} from '@instructure/platform-instui-bindings'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Button} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
 
@@ -41,7 +42,7 @@ const ImplementationDetailModal = (props: ImplementationDetailModalProps) => {
         onDismiss={() => props.setModalOpen(false)}
       >
         <Modal.Body>
-          <Text dangerouslySetInnerHTML={{__html: props.content || ''}} />
+          <Text dangerouslySetInnerHTML={{__html: sanitizeHTML(props.content || '')}} />
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={() => props.setModalOpen(false)}>{I18n.t('Close')}</Button>

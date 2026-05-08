@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import useBreakpoints from '@canvas/lti-apps/hooks/useBreakpoints'
 import Badges from './Badges'
 import {Flex} from '@instructure/ui-flex'
@@ -79,7 +80,11 @@ const LtiConfigurationDetail = (props: LtiConfigurationDetailProps) => {
               {props.integrationData?.description.length === undefined ? (
                 emptyDescription
               ) : (
-                <div dangerouslySetInnerHTML={{__html: props.integrationData.description}} />
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeHTML(props.integrationData.description),
+                  }}
+                />
               )}
             </Flex.Item>
           </Flex>

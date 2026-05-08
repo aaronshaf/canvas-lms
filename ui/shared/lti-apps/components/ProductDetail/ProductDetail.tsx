@@ -20,6 +20,7 @@ import {GenericErrorPage} from '@instructure/platform-generic-error-page'
 import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import useBreakpoints from '@canvas/lti-apps/hooks/useBreakpoints'
 import {pickPreferredIntegration} from '@canvas/lti-apps/utils/pickPreferredIntegration'
 import {instructorAppsRoute} from '@canvas/lti-apps/utils/routes'
@@ -247,7 +248,7 @@ const ProductDetailDisplay = (props: ProductDetailDisplayProps) => {
     const renderComments = comments ? (
       <Flex>
         <Flex.Item direction="row">
-          <Text dangerouslySetInnerHTML={{__html: comments || ''}} />
+          <Text dangerouslySetInnerHTML={{__html: sanitizeHTML(comments || '')}} />
         </Flex.Item>
       </Flex>
     ) : null
