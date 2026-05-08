@@ -20,7 +20,6 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {Modal} from '@instructure/ui-modal'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
-import {raw} from '@instructure/html-escape'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
 import {Select} from '@instructure/ui-select'
@@ -31,6 +30,7 @@ import doFetchApi from '@canvas/do-fetch-api-effect'
 import {Spinner} from '@instructure/ui-spinner'
 import {Avatar} from '@instructure/ui-avatar'
 import {showFlashError, showFlashSuccess} from '@instructure/platform-alerts'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('link_to_students')
 
@@ -427,8 +427,8 @@ const LinkToStudents = ({
           </Text>
           <Text
             dangerouslySetInnerHTML={{
-              __html: raw(
-                I18n.t(
+              __html: sanitizeHTML(
+                 I18n.t(
                   "To link the course observer *%{observerName}* to a student, start typing the student's name below to find them and then click Update.",
                   {wrapper: '<b>$1</b>', observerName: observer.name},
                 ),
