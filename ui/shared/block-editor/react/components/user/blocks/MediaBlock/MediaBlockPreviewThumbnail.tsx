@@ -17,6 +17,7 @@
  */
 
 import React, {type CSSProperties, useState} from 'react'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {MediaPreviewModal} from './MediaPreviewModal'
 import {Link} from '@instructure/ui-link'
@@ -84,7 +85,7 @@ export const MediaBlockPreviewThumbnail = ({
           />
         )}
       </Link>
-      <iframe style={{display: 'none'}} title={title || ''} src={src} />
+      <iframe style={{display: 'none'}} title={title || ''} src={sanitizeUrl(src)} />
       <MediaPreviewModal
         open={openMediaPreview}
         attachmentId={attachmentId}

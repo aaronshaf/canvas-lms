@@ -17,6 +17,7 @@
  */
 
 import {useState} from 'react'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {MediaBlockSettings} from './MediaBlockSettings'
 import {BaseBlock} from '../BaseBlock'
 import {MediaBlockProps, MediaSources} from './types'
@@ -51,7 +52,7 @@ const Player = ({mediaId, src, attachment_id}: MediaSources) => {
 
   return (
     <iframe
-      src={src}
+      src={sanitizeUrl(src || '')}
       title={'Media content'}
       width="100%"
       height="100%"

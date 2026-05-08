@@ -17,6 +17,7 @@
  */
 
 import React, {useEffect, useState} from 'react'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {useEditor, useNode} from '@craftjs/core'
 import {MediaBlockToolbar} from './MediaBlockToolbar'
 import {MediaBlockPreviewThumbnail} from './MediaBlockPreviewThumbnail'
@@ -106,7 +107,7 @@ const MediaBlock = ({src, title, height = '50', width = '50', attachmentId}: Med
             title={title || ''}
             data-media-type="video"
             allow="fullscreen"
-            src={src || MediaBlock.craft.defaultProps.src}
+            src={sanitizeUrl(src || MediaBlock.craft.defaultProps.src)}
           />
         )}
       </div>

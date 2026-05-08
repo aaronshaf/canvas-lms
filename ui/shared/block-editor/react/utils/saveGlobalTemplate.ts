@@ -17,6 +17,7 @@
  */
 
 import * as uuid from 'uuid'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {type BlockTemplate} from '../types'
 
 type GlobalTemplate = Partial<BlockTemplate>
@@ -66,7 +67,7 @@ const getImageFilename = (src: string): Promise<string> => {
 const saveTemplateImage = async (src: string): Promise<ImageMapping> => {
   const filename = await getImageFilename(src)
   const link = document.createElement('a')
-  link.href = src
+  link.href = sanitizeUrl(src)
   link.download = filename
   document.body.appendChild(link)
   link.click()
