@@ -34,7 +34,6 @@ import {
   type JsonFetchStatus,
 } from './RegistrationWizardModalState'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Header} from '../registration_wizard_forms/Header'
 import {View} from '@instructure/ui-view'
 import {isValidHttpUrl} from '../../common/lib/validators/isValidHttpUrl'
