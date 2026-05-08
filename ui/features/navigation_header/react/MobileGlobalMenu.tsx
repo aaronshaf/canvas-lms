@@ -18,6 +18,7 @@
 
 import HelpDialog from '@canvas/help-dialog'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {sessionStoragePersister} from '@instructure/platform-query'
 import {Avatar} from '@instructure/ui-avatar'
 import {Badge} from '@instructure/ui-badge'
@@ -290,7 +291,7 @@ export default function MobileGlobalMenu(props: Props) {
 
         {processedTools.map((tool: ProcessedTool) => (
           <List.Item key={tool.toolId}>
-            <Link href={tool.href || '#'} isWithinText={false} display="block">
+            <Link href={sanitizeUrl(tool.href || '#')} isWithinText={false} display="block">
               <Flex>
                 <Flex.Item width="3rem">
                   {tool.svgPath ? (

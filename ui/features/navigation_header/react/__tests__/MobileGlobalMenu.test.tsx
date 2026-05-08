@@ -252,4 +252,19 @@ describe('MobileGlobalMenu', () => {
       expect(mutateMock).toHaveBeenCalled()
     })
   })
+
+  it('sanitizes javascript: tool href so it does not reach the DOM', async () => {
+    setup([
+      {
+        label: 'Evil Tool',
+        toolId: 'evil-tool-1',
+        toolImg: null,
+        href: 'javascript:alert(1)',
+        svgPath: null,
+      },
+    ] as ProcessedTool[])
+    expect(await screen.findByText('Evil Tool')).toBeInTheDocument()
+    const link = screen.getByText('Evil Tool').closest('a')
+    expect(link?.getAttribute('href') ?? '').not.toMatch(/^javascript:/i)
+  })
 })

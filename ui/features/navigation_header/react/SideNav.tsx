@@ -57,6 +57,7 @@ import {getSettingAsync, setSetting} from '@canvas/settings-query/react/settings
 import {SVGIcon} from '@instructure/ui-svg-images'
 import {sessionStoragePersister} from '@instructure/platform-query'
 import {useBroadcastQuery} from '@instructure/platform-query/broadcast'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('sidenav')
 
@@ -428,7 +429,7 @@ const SideNav: React.FC<ISideNav> = ({externalTools = []}) => {
           />
 
           {processedTools.map(tool => {
-            let toolHref = tool.href?.toString() || '#'
+            let toolHref = sanitizeUrl(tool.href?.toString() || '#')
             if (!tool.href?.includes('toolId')) {
               toolHref += `&toolId=${tool.toolId}`
             }

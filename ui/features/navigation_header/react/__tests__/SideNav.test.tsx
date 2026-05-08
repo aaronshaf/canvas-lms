@@ -341,6 +341,25 @@ describe('SideNav', () => {
       const fallbackIcon = screen.getByTestId('IconExternalLinkLine')
       expect(fallbackIcon).toBeInTheDocument()
     })
+
+    it('sanitizes javascript: tool href so it does not reach the DOM', () => {
+      const externalTools: ExternalTool[] = [
+        {
+          label: 'Evil Tool',
+          imgSrc: null,
+          href: 'javascript:alert(1)',
+          svgPath: null,
+          toolId: 'evil-tool-1',
+        },
+      ]
+      render(
+        <MockedQueryClientProvider client={queryClient}>
+          <SideNav externalTools={externalTools} />
+        </MockedQueryClientProvider>,
+      )
+      const link = screen.getByText('Evil Tool').closest('a')
+      expect(link?.getAttribute('href') ?? '').not.toMatch(/^javascript:/i)
+    })
   })
 
   describe('Release Notes Badge', () => {
