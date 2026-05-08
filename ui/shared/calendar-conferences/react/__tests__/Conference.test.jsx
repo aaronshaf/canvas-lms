@@ -145,7 +145,7 @@ describe('Conference', () => {
       url: 'invalid://foo',
       lti_settings: {
         type: 'html',
-        html: '<div><a href="invalid://foo">This is some text</a></div>',
+        html: '<div><a href="https://example.com/foo">This is some text</a></div>',
       },
     }
 
@@ -158,7 +158,7 @@ describe('Conference', () => {
         url: 'invalid://foo',
         lti_settings: {
           type: 'html',
-          html: '<div><a href="invalid://foo">This is some text</a></div>',
+          html: '<div><a href="https://example.com/foo">This is some text</a></div>',
         },
       }
 
@@ -166,23 +166,23 @@ describe('Conference', () => {
         <Conference conference={freshConference} conferenceType={msTeamsConferenceType} />,
       )
       const link = getByRole('link', {name: 'This is some text'})
-      expect(link.href).toBe('invalid://foo')
+      expect(link.href).toBe('https://example.com/foo')
     })
 
     it('sanitizes html text', () => {
       const conference = {...htmlConference}
       conference.lti_settings.html = `
         <script>alert('badness')</script>
-        <script src="invalid://evil"></script>
-        <img src="invalid://image" />
-        <a href="invalid://link">I'm okay</a>`
+        <script src="https://evil.example/x"></script>
+        <img src="https://example.com/image" />
+        <a href="https://example.com/link">I'm okay</a>`
       render(<Conference conference={htmlConference} conferenceType={msTeamsConferenceType} />)
       const content = document.body.innerHTML
       expect(content).not.toMatch(/alert/)
       expect(content).not.toMatch(/script/)
       expect(content).not.toMatch(/evil/)
-      expect(content).toMatch(/invalid:\/\/image/)
-      expect(content).toMatch(/invalid:\/\/link/)
+      expect(content).toMatch(/example\.com\/image/)
+      expect(content).toMatch(/example\.com\/link/)
       expect(content).toMatch(/I'm okay/)
     })
 

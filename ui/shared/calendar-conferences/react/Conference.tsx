@@ -24,7 +24,7 @@ import {Img} from '@instructure/ui-img'
 import {Link} from '@instructure/ui-link'
 import {Text} from '@instructure/ui-text'
 import {TruncateText} from '@instructure/ui-truncate-text'
-import sanitizeHtml from 'sanitize-html-with-tinymce'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import RichContentEditor from '@canvas/rce/RichContentEditor'
 import {useScope as createI18nScope} from '@canvas/i18n'
 const I18n = createI18nScope('conferences')
@@ -88,7 +88,7 @@ const HtmlConference = ({
         </Flex.Item>
       )}
       <Flex.Item shouldGrow={true}>
-        <div dangerouslySetInnerHTML={{__html: sanitizeHtml(html)}} />
+        <div dangerouslySetInnerHTML={{__html: sanitizeHTML(html)}} />
       </Flex.Item>
     </Flex>
   )
