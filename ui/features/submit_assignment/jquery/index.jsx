@@ -46,6 +46,7 @@ import ready from '@instructure/ready'
 import {Flex} from '@instructure/ui-flex'
 import OnlineUrlSubmission from '../react/OnlineUrlSubmission'
 import FormattedErrorMessage from '@canvas/assignments/react/FormattedErrorMessage'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('submit_assignment')
 
@@ -737,7 +738,7 @@ ready(function () {
     )
   }
   function getFilename(fileInput) {
-    return fileInput.val().replace(/^.*?([^\\\/]*)$/, '$1')
+    return fileInput.val().replace(/^.*?([^\\/]*)$/, '$1')
   }
   function updateRemoveLinkAltText(fileInput) {
     let altText = I18n.t('remove empty attachment')
@@ -772,7 +773,7 @@ ready(function () {
         submission_id: ENV.SUBMISSION_ID,
       })
       .then(result => {
-        $(annotatedDocumentSubmission).attr('src', result.data.canvadocs_session_url)
+        $(annotatedDocumentSubmission).attr('src', sanitizeUrl(result.data.canvadocs_session_url))
       })
       .catch(error => {
         annotatedDocumentSubmission.replaceWith(

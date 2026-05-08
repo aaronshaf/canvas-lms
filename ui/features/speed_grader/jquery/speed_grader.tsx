@@ -163,6 +163,7 @@ import {SpeedGraderCheckpointsWrapper} from '../react/SpeedGraderCheckpoints/Spe
 import {SpeedGraderDiscussionsNavigation2} from '../react/SpeedGraderDiscussionsNavigation2'
 import {StudentUserIdOrAnonymousId} from '@canvas/lti-asset-processor/shared-with-sg/replicated/queries/getLtiAssetReports'
 import {ensureCompatibleSubmissionType} from '@canvas/lti-asset-processor/shared-with-sg/replicated/types/LtiAssetReports'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 declare global {
   interface Window {
@@ -2495,7 +2496,8 @@ EG = {
   }) {
     const {status, similarity_score} = plagiarismAsset
 
-    const $indicator = reportUrl != null ? $('<a />').attr('href', reportUrl) : $('<span />')
+    const $indicator =
+      reportUrl != null ? $('<a />').attr('href', sanitizeUrl(reportUrl)) : $('<span />')
     $indicator
       .attr('title', String(tooltip))
       .addClass('similarity_score_container')

@@ -19,6 +19,7 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import AbstractTextQuestion from './abstract_text_question'
 import React from 'react'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('quiz_statistics')
 
@@ -32,7 +33,7 @@ const Essay = props => (
 const SpeedGraderLink = props => (
   <a
     className="btn"
-    href={props.speedGraderUrl}
+    href={sanitizeUrl(props.speedGraderUrl)}
     target="_blank"
     rel="noopener noreferrer"
     style={{marginBottom: '20px', maxWidth: '50%'}}

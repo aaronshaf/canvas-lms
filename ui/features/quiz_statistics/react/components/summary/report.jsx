@@ -24,6 +24,7 @@ import PropTypes from 'prop-types'
 import ScreenReaderContent from '@canvas/quiz-legacy-client-apps/react/components/screen_reader_content'
 import SightedUserContent from '@canvas/quiz-legacy-client-apps/react/components/sighted_user_content'
 import ReportStatus from './report_status'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 class Report extends React.Component {
   static propTypes = {
@@ -99,7 +100,7 @@ class Report extends React.Component {
     const srLabel = Descriptor.getInteractionLabel(this.props)
 
     return (
-      <a href={this.props.file.url} className="btn download-report">
+      <a href={sanitizeUrl(this.props.file.url)} className="btn download-report">
         <ScreenReaderContent>{srLabel}</ScreenReaderContent>
 
         <SightedUserContent>

@@ -25,6 +25,7 @@ import '@canvas/jquery/jquery.instructure_misc_plugins' /* confirmDelete */
 import '@canvas/jquery-keycodes'
 import '@canvas/loading-image'
 import '@canvas/util/templateData'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('question_banks')
 
@@ -68,10 +69,10 @@ $(document).ready(function () {
     $bank.find('.header_content').hide()
     const $form = $('#edit_bank_form')
     $bank.find('.header').prepend($form.show())
-    $form.attr('action', $(this).attr('href'))
+    $form.attr('action', sanitizeUrl($(this).attr('href')))
     $form.attr('method', 'PUT')
     if ($bank.attr('id') === 'question_bank_new') {
-      $form.attr('action', $('#bank_urls .add_bank_url').attr('href'))
+      $form.attr('action', sanitizeUrl($('#bank_urls .add_bank_url').attr('href')))
       $form.attr('method', 'POST')
     }
     $form.fillFormData(data, {object_name: 'assessment_question_bank'})

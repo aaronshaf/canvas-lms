@@ -19,6 +19,7 @@
 import AbstractTextQuestion from './abstract_text_question'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('quiz_statistics')
 
@@ -28,7 +29,7 @@ const FileUpload = props => (
     linkButtonComponent={
       <a
         className="btn"
-        href={props.quizSubmissionsZipUrl}
+        href={sanitizeUrl(props.quizSubmissionsZipUrl)}
         target="_blank"
         rel="noopener noreferrer"
         style={{marginBottom: '20px', maxWidth: '50%'}}

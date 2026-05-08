@@ -18,6 +18,7 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import React from 'react'
 import {render, rerender} from '@canvas/react'
 import MessageStudentsDialog from '@canvas/message-students-dialog'
@@ -111,7 +112,10 @@ $(document).ready(function () {
   }
 
   $('#preview_quiz_button').click(_e => {
-    $('#js-sequential-warning-dialogue div a').attr('href', $('#preview_quiz_button').attr('href'))
+    $('#js-sequential-warning-dialogue div a').attr(
+      'href',
+      sanitizeUrl($('#preview_quiz_button').attr('href')),
+    )
   })
 
   function ensureStudentsLoaded(callback) {

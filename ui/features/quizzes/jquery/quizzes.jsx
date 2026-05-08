@@ -76,6 +76,7 @@ import MasteryPathToggleView from '@canvas/mastery-path-toggle/backbone/views/Ma
 import {renderError, restoreOriginalMessage} from '@canvas/quizzes/jquery/quiz_form_utils'
 import {isChangeMultiFuncBound} from './utils/changeMultiFunc'
 import {RegradeOption} from '../react/QuizRegradeModal.utils'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 // Re-export for backward compatibility
 export {isChangeMultiFuncBound}
@@ -4497,7 +4498,7 @@ ready(function () {
           const href = link.attr('href')
 
           ques.attr('id', 'question_' + question_data.id)
-          link.attr('href', href.replace(/ions\/.*/, 'ions/' + question_data.id))
+          link.attr('href', sanitizeUrl(href.replace(/ions\/.*/, 'ions/' + question_data.id)))
           qId.html(question_data.id)
 
           $question.find('.edit_question_link').click()
