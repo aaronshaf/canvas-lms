@@ -52,24 +52,24 @@ const captureRegisteredPolicy = async (): Promise<CapturedPolicy> => {
 }
 
 describe('@canvas/trusted-types default policy', () => {
-  let warnSpy: ReturnType<typeof vi.spyOn>
+  let debugSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
     vi.resetModules()
     vi.restoreAllMocks()
     removeTrustedTypesStub()
-    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {})
   })
 
   afterEach(() => {
-    warnSpy.mockRestore()
+    debugSpy.mockRestore()
     vi.unstubAllEnvs()
   })
 
   it('is a no-op when window.trustedTypes is undefined', async () => {
     removeTrustedTypesStub()
     await expect(importPolicyModule()).resolves.toBeUndefined()
-    expect(warnSpy).not.toHaveBeenCalled()
+    expect(debugSpy).not.toHaveBeenCalled()
   })
 
   it('registers a default policy when createPolicy exists', async () => {
@@ -87,37 +87,60 @@ describe('@canvas/trusted-types default policy', () => {
       expect(policy.createHTML(dirty)).toBe(dirty)
     })
 
-    it('console.warns in non-production with sink + sample + length', async () => {
+    it('console.debugs in non-production with sink + sample + length', async () => {
       vi.stubEnv('NODE_ENV', 'development')
       const policy = await captureRegisteredPolicy()
 
       policy.createHTML('<p>hello world</p>', 'Element innerHTML')
 
-      expect(warnSpy).toHaveBeenCalledOnce()
-      expect(warnSpy).toHaveBeenCalledWith(
+      expect(debugSpy).toHaveBeenCalledOnce()
+      expect(debugSpy).toHaveBeenCalledWith(
         '[trusted-types] default.createHTML (Element innerHTML)',
         {sample: '<p>hello world</p>', length: 18},
       )
     })
 
-    it('does not console.warn in production', async () => {
+    it('does not console.debug in production', async () => {
       vi.stubEnv('NODE_ENV', 'production')
       const policy = await captureRegisteredPolicy()
 
       expect(policy.createHTML('<p>hello</p>')).toBe('<p>hello</p>')
-      expect(warnSpy).not.toHaveBeenCalled()
+      expect(debugSpy).not.toHaveBeenCalled()
     })
 
-    it('truncates the warn sample to 80 characters but reports full length', async () => {
+    it('truncates the sample to 80 characters but reports full length', async () => {
       vi.stubEnv('NODE_ENV', 'development')
       const policy = await captureRegisteredPolicy()
 
       policy.createHTML('a'.repeat(200))
 
-      expect(warnSpy).toHaveBeenCalledOnce()
-      const payload = warnSpy.mock.calls[0][1] as {sample: string; length: number}
+      expect(debugSpy).toHaveBeenCalledOnce()
+      const payload = debugSpy.mock.calls[0][1] as {sample: string; length: number}
       expect(payload.sample).toHaveLength(80)
       expect(payload.length).toBe(200)
+    })
+
+    it('dedupes repeated calls from the same site (logs once per page-load)', async () => {
+      vi.stubEnv('NODE_ENV', 'development')
+      const policy = await captureRegisteredPolicy()
+
+      for (let i = 0; i < 5; i++) {
+        policy.createHTML(`iter-${i}`)
+      }
+
+      expect(debugSpy).toHaveBeenCalledOnce()
+    })
+
+    it('logs separately for distinct call sites', async () => {
+      vi.stubEnv('NODE_ENV', 'development')
+      const policy = await captureRegisteredPolicy()
+
+      const callFromA = () => policy.createHTML('A')
+      const callFromB = () => policy.createHTML('B')
+      callFromA()
+      callFromB()
+
+      expect(debugSpy).toHaveBeenCalledTimes(2)
     })
   })
 
@@ -129,25 +152,25 @@ describe('@canvas/trusted-types default policy', () => {
       expect(policy.createScript(code)).toBe(code)
     })
 
-    it('console.warns in non-production with sink + sample + length', async () => {
+    it('console.debugs in non-production with sink + sample + length', async () => {
       vi.stubEnv('NODE_ENV', 'development')
       const policy = await captureRegisteredPolicy()
 
       policy.createScript('window.foo = 1', 'HTMLScriptElement text')
 
-      expect(warnSpy).toHaveBeenCalledOnce()
-      expect(warnSpy).toHaveBeenCalledWith(
+      expect(debugSpy).toHaveBeenCalledOnce()
+      expect(debugSpy).toHaveBeenCalledWith(
         '[trusted-types] default.createScript (HTMLScriptElement text)',
         {sample: 'window.foo = 1', length: 14},
       )
     })
 
-    it('does not console.warn in production', async () => {
+    it('does not console.debug in production', async () => {
       vi.stubEnv('NODE_ENV', 'production')
       const policy = await captureRegisteredPolicy()
 
       expect(policy.createScript('window.foo = 1')).toBe('window.foo = 1')
-      expect(warnSpy).not.toHaveBeenCalled()
+      expect(debugSpy).not.toHaveBeenCalled()
     })
   })
 

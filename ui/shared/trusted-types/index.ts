@@ -18,13 +18,17 @@
 
 // Trusted Types `default` policy registration. Side-effect-only module.
 //
-// Phase 1 is a discovery slice: console.warn each policy invocation in
-// non-production so unwrapped sinks surface in local dev. The warn
-// branch is dead-code-eliminated in production by webpack/rspack
-// DefinePlugin, so end users see zero runtime cost or log noise. The
-// per-sink sanitizeHTML wrappers in the rest of the codebase remain the
-// real XSS defense; this policy intentionally does not sanitize (see
-// createHTML below).
+// Phase 1 is a discovery slice: console.debug each unique policy
+// invocation in non-production so unwrapped sinks surface in local dev
+// without flooding DevTools. console.debug is hidden by default and
+// requires the Verbose filter to view, so engineers who don't want the
+// signal don't see it. Stack-signature dedupe further trims a hot
+// render loop at the same call site to a single log per page-load.
+// The dev branch is dead-code-eliminated in production by
+// webpack/rspack DefinePlugin, so end users see zero runtime cost or
+// log noise. The per-sink sanitizeHTML wrappers in the rest of the
+// codebase remain the real XSS defense; this policy intentionally
+// does not sanitize (see createHTML below).
 //
 // Import as early as possible from the frontend boot entry, *after* the
 // jQuery patch but *before* any application code runs. The policy must
@@ -33,6 +37,22 @@
 // exists.
 
 const SAMPLE_MAX_LENGTH = 80
+const STACK_SIGNATURE_LENGTH = 600
+
+// Dedupe set: each unique stack signature logs once per page-load.
+// Bounded by call-site count (a property of the source), not by call
+// frequency, so hot loops do not grow the set.
+const seenSinks = new Set<string>()
+
+const logSinkOnce = (label: string, input: string, sink: string | undefined): void => {
+  const signature = (new Error().stack ?? '').slice(0, STACK_SIGNATURE_LENGTH)
+  if (seenSinks.has(signature)) return
+  seenSinks.add(signature)
+  console.debug(`[trusted-types] ${label}${sink ? ` (${sink})` : ''}`, {
+    sample: input.slice(0, SAMPLE_MAX_LENGTH),
+    length: input.length,
+  })
+}
 
 interface TrustedTypePolicyOptions {
   createHTML?: (input: string, sink?: string) => string
@@ -57,10 +77,7 @@ if (typeof window !== 'undefined' && window.trustedTypes?.createPolicy) {
   window.trustedTypes.createPolicy('default', {
     createHTML: (input: string, sink?: string): string => {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn(`[trusted-types] default.createHTML${sink ? ` (${sink})` : ''}`, {
-          sample: input.slice(0, SAMPLE_MAX_LENGTH),
-          length: input.length,
-        })
+        logSinkOnce('default.createHTML', input, sink)
       }
       // Phase 1 pass-through: per-sink sanitizeHTML wrappers stay the
       // real defense. Sanitizing here would silently mutate production
@@ -81,10 +98,7 @@ if (typeof window !== 'undefined' && window.trustedTypes?.createPolicy) {
     // job is discovery, not enforcement.
     createScript: (input: string, sink?: string): string => {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn(`[trusted-types] default.createScript${sink ? ` (${sink})` : ''}`, {
-          sample: input.slice(0, SAMPLE_MAX_LENGTH),
-          length: input.length,
-        })
+        logSinkOnce('default.createScript', input, sink)
       }
       return input
     },
