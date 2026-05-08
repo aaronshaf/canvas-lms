@@ -766,6 +766,80 @@ describe AiExperiencesController do
           created_experience = AiExperience.last
           expect(created_experience.context_files).to include(attachment)
         end
+
+        it "rejects context_file_ids referencing attachments from another course" do
+          other_course = Course.create!(name: "Other Course", account: Account.default)
+          other_course_attachment = attachment_model(context: other_course, size: 1.megabyte)
+          experience_params = {
+            title: "Cross-tenant attempt",
+            learning_objective: "Test objective",
+            pedagogical_guidance: "Test pedagogical guidance",
+            context_file_ids: [other_course_attachment.id]
+          }
+
+          expect do
+            post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+          end.not_to change(AiExperience, :count)
+
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
+        end
+
+        it "rejects context_file_ids referencing soft-deleted attachments" do
+          attachment = attachment_model(context: @course, size: 1.megabyte)
+          attachment.destroy # soft delete (file_state = 'deleted')
+          experience_params = {
+            title: "Deleted attachment attempt",
+            learning_objective: "Test objective",
+            pedagogical_guidance: "Test pedagogical guidance",
+            context_file_ids: [attachment.id]
+          }
+
+          expect do
+            post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+          end.not_to change(AiExperience, :count)
+
+          expect(response).to have_http_status(:unprocessable_content)
+        end
+
+        it "rejects when any submitted id is unauthorized, even if others are valid" do
+          good_attachment = attachment_model(context: @course, size: 1.megabyte)
+          other_course = Course.create!(name: "Other Course", account: Account.default)
+          bad_attachment = attachment_model(context: other_course, size: 1.megabyte)
+          experience_params = {
+            title: "Mixed",
+            learning_objective: "Test objective",
+            pedagogical_guidance: "Test pedagogical guidance",
+            context_file_ids: [good_attachment.id, bad_attachment.id]
+          }
+
+          expect do
+            post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+          end.not_to change(AiExperience, :count)
+
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
+        end
+
+        # Personal (User-context) files are rejected even when the current user
+        # owns them: AI Experiences belong to the course, so source materials
+        # must be discoverable/auditable under /courses/:id/files.
+        it "rejects context_file_ids referencing the current user's personal files" do
+          personal_attachment = attachment_model(context: @teacher, size: 1.megabyte)
+          experience_params = {
+            title: "Personal file attempt",
+            learning_objective: "Test objective",
+            pedagogical_guidance: "Test pedagogical guidance",
+            context_file_ids: [personal_attachment.id]
+          }
+
+          expect do
+            post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+          end.not_to change(AiExperience, :count)
+
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
+        end
       end
 
       context "with ai_experiences_context_file_upload feature flag disabled" do
@@ -951,6 +1025,57 @@ describe AiExperiencesController do
 
           @ai_experience.reload
           expect(@ai_experience.context_files).to include(attachment)
+        end
+
+        it "rejects context_file_ids referencing attachments from another course" do
+          other_course = Course.create!(name: "Other Course", account: Account.default)
+          other_course_attachment = attachment_model(context: other_course, size: 1.megabyte)
+          update_params = {
+            title: "Cross-tenant attempt",
+            context_file_ids: [other_course_attachment.id]
+          }
+
+          put :update, params: { course_id: @course.id, id: @ai_experience.id, ai_experience: update_params }, format: :json
+
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
+          @ai_experience.reload
+          expect(@ai_experience.title).to eq("Customer Service Training") # unchanged
+          expect(@ai_experience.context_files).to be_empty
+        end
+
+        it "rejects update when any submitted id is unauthorized, even if others are valid" do
+          good_attachment = attachment_model(context: @course, size: 1.megabyte)
+          other_course = Course.create!(name: "Other Course", account: Account.default)
+          bad_attachment = attachment_model(context: other_course, size: 1.megabyte)
+          update_params = {
+            title: "Mixed update",
+            context_file_ids: [good_attachment.id, bad_attachment.id]
+          }
+
+          put :update, params: { course_id: @course.id, id: @ai_experience.id, ai_experience: update_params }, format: :json
+
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
+          @ai_experience.reload
+          expect(@ai_experience.title).to eq("Customer Service Training")
+          expect(@ai_experience.context_files).to be_empty
+        end
+
+        it "rejects update with context_file_ids referencing the current user's personal files" do
+          personal_attachment = attachment_model(context: @teacher, size: 1.megabyte)
+          update_params = {
+            title: "Personal file attempt",
+            context_file_ids: [personal_attachment.id]
+          }
+
+          put :update, params: { course_id: @course.id, id: @ai_experience.id, ai_experience: update_params }, format: :json
+
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
+          @ai_experience.reload
+          expect(@ai_experience.title).to eq("Customer Service Training")
+          expect(@ai_experience.context_files).to be_empty
         end
       end
 

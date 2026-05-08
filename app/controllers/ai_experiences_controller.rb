@@ -78,6 +78,7 @@ class AiExperiencesController < ApplicationController
   before_action :require_access_right, only: [:index, :show]
   before_action :require_manage_rights, except: [:index, :show]
   before_action :load_experience, only: %i[show edit update destroy ai_conversations_index ai_conversation_show]
+  before_action :authorize_context_file_ids!, only: %i[create update]
 
   # @API List AI experiences
   #
@@ -213,6 +214,8 @@ class AiExperiencesController < ApplicationController
     @experience = @context.ai_experiences.build(experience_params)
     @experience.root_account = @context.root_account
     @experience.account = @context.account
+    @experience.current_user = @current_user
+    @experience.current_session = session
 
     if @experience.save
       track_experience_metrics(:create, @experience, new_publish_state: @experience.workflow_state)
@@ -247,6 +250,8 @@ class AiExperiencesController < ApplicationController
   # @returns AiExperience
   def update
     initial_publish_state = @experience.workflow_state
+    @experience.current_user = @current_user
+    @experience.current_session = session
 
     if @experience.update(experience_params)
       new_publish_state = @experience.workflow_state
@@ -437,6 +442,33 @@ class AiExperiencesController < ApplicationController
     else
       params.expect(ai_experience: base_params)
     end
+  end
+
+  # Reject context_file_ids that reference attachments outside this course.
+  # Without this gate, a teacher could submit any global attachment_id
+  # (cross-course, cross-account) and have its contents ingested into the LLM
+  # context. require_manage_rights already gates the request itself, so we only
+  # need to verify each id belongs to the current course (and is not deleted).
+  def authorize_context_file_ids!
+    return unless @context.feature_enabled?(:ai_experiences_context_file_upload)
+
+    submitted_ids = Array(params.dig(:ai_experience, :context_file_ids)).map(&:to_i).reject(&:zero?).uniq
+    return if submitted_ids.empty?
+
+    authorized_ids = @context.attachments
+                             .not_deleted
+                             .where(id: submitted_ids)
+                             .pluck(:id)
+
+    unauthorized_ids = submitted_ids - authorized_ids
+    return if unauthorized_ids.empty?
+
+    Rails.logger.warn(
+      "AiExperiencesController: rejected unauthorized context_file_ids " \
+      "user_id=#{@current_user&.id} course_id=#{@context.id} ids=#{unauthorized_ids.inspect}"
+    )
+    render json: { errors: { context_file_ids: [I18n.t("One or more selected files cannot be accessed")] } },
+           status: :unprocessable_content
   end
 
   def render_404

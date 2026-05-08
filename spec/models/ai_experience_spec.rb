@@ -70,6 +70,72 @@ describe AiExperience do
       experience = AiExperience.new(valid_attributes.except(:facts))
       expect(experience).to be_valid
     end
+
+    describe "context_file_ids authorization (defense-in-depth)" do
+      let(:teacher) { course_with_teacher(course:, active_all: true).user }
+      let(:course_attachment) { attachment_model(context: course, size: 1.megabyte) }
+
+      it "is valid when current_user is set and ids belong to the experience's course" do
+        experience = AiExperience.new(valid_attributes)
+        experience.current_user = teacher
+        experience.context_file_ids = [course_attachment.id.to_s]
+        expect(experience).to be_valid
+      end
+
+      it "is invalid when current_user is set and any id belongs to another course" do
+        other_course = course_factory(active_all: true)
+        other_attachment = attachment_model(context: other_course, size: 1.megabyte)
+        experience = AiExperience.new(valid_attributes)
+        experience.current_user = teacher
+        experience.context_file_ids = [other_attachment.id.to_s]
+        expect(experience).not_to be_valid
+        expect(experience.errors[:context_file_ids]).to be_present
+      end
+
+      it "skips validation when current_user is nil (preserves service-layer callers)" do
+        other_course = course_factory(active_all: true)
+        other_attachment = attachment_model(context: other_course, size: 1.megabyte)
+        experience = AiExperience.new(valid_attributes)
+        experience.context_file_ids = [other_attachment.id.to_s]
+        expect(experience).to be_valid
+      end
+
+      it "is valid when context_file_ids are not assigned" do
+        experience = AiExperience.new(valid_attributes)
+        experience.current_user = teacher
+        expect(experience).to be_valid
+      end
+
+      it "is invalid when an id references the current user's personal files" do
+        personal_attachment = attachment_model(context: teacher, size: 1.megabyte)
+        experience = AiExperience.new(valid_attributes)
+        experience.current_user = teacher
+        experience.context_file_ids = [personal_attachment.id.to_s]
+        expect(experience).not_to be_valid
+        expect(experience.errors[:context_file_ids]).to be_present
+      end
+
+      # Locks in the O(1) query shape of authorize_context_file_ids: a single
+      # pluck against course.attachments — no per-attachment grants_right? loop.
+      # If a future change reintroduces an N+1 (e.g. .select { ... } over hydrated
+      # records), this spec will fail.
+      it "validates context_file_ids in a single SQL query regardless of count" do
+        attachments = Array.new(5) { attachment_model(context: course, size: 1.megabyte) }
+        experience = AiExperience.new(valid_attributes)
+        experience.current_user = teacher
+        experience.context_file_ids = attachments.map { |a| a.id.to_s }
+
+        attachment_query_count = 0
+        subscription = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+          attachment_query_count += 1 if /FROM (?:"\w+"\.)?"attachments"/i.match?(payload[:sql])
+        end
+
+        experience.valid?
+
+        ActiveSupport::Notifications.unsubscribe(subscription)
+        expect(attachment_query_count).to eq(1)
+      end
+    end
   end
 
   describe "scopes" do

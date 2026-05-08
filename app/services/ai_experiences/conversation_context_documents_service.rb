@@ -57,6 +57,7 @@ module AiExperiences
       { status: new_status, failed_file_names: }
     rescue LlmConversation::Errors::ConversationError => e
       Rails.logger.warn("Document index status sync failed for ai_experience #{ai_experience.id}: #{e.message}")
+      nil
     end
 
     def trigger_indexing(ai_experience:, context_file_ids: nil)

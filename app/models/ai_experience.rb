@@ -35,6 +35,11 @@ class AiExperience < ApplicationRecord
            source: :attachment,
            class_name: "Attachment"
 
+  # Set by AiExperiencesController before save so authorize_context_file_ids
+  # can verify pending attachments against the acting user. Service-layer callers
+  # that legitimately bypass user auth (jobs, fixtures) leave this nil.
+  attr_accessor :current_user, :current_session
+
   validates :title, presence: true, length: { maximum: 255 }
   validates :learning_objective, presence: true
   validates :pedagogical_guidance, presence: true
@@ -42,6 +47,7 @@ class AiExperience < ApplicationRecord
   validates :context_index_status, presence: true, inclusion: { in: %w[not_started in_progress completed failed] }
   validate :unpublish_ok?, if: -> { will_save_change_to_workflow_state?(to: "unpublished") }
   validate :publish_ok?, if: -> { will_save_change_to_workflow_state?(to: "published") }
+  validate :authorize_context_file_ids, if: :pending_context_file_ids?
 
   scope :published, -> { where(workflow_state: "published") }
   scope :unpublished, -> { where(workflow_state: "unpublished") }
@@ -171,6 +177,29 @@ class AiExperience < ApplicationRecord
 
   def pending_context_file_ids?
     !@pending_context_file_ids.nil?
+  end
+
+  # Belt-and-suspenders for the controller's authorize_context_file_ids! check.
+  # Skips when current_user is nil (preserves service/job/fixture callers that do
+  # not have a user context). When the controller sets current_user, every pending
+  # attachment must belong to this experience's course (and not be soft-deleted).
+  # Per-attachment :read is intentionally not checked here — the controller's
+  # require_manage_rights already gates the request, and re-checking would also
+  # iterate hydrated AR objects (one grants_right? call per row).
+  def authorize_context_file_ids
+    return if current_user.nil?
+
+    submitted_ids = @pending_context_file_ids.map(&:to_i).reject(&:zero?).uniq
+    return if submitted_ids.empty?
+
+    authorized_ids = course.attachments
+                           .not_deleted
+                           .where(id: submitted_ids)
+                           .pluck(:id)
+
+    return if (submitted_ids - authorized_ids).empty?
+
+    errors.add(:context_file_ids, I18n.t("One or more selected files cannot be accessed"))
   end
 
   def sync_context_files
