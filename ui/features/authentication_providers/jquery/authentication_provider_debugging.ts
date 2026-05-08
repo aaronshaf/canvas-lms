@@ -17,7 +17,7 @@
  */
 
 import $ from 'jquery'
-import {raw} from '@instructure/html-escape'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 interface DebugResponse {
   debugging?: boolean
@@ -50,7 +50,7 @@ $(document).ready(() => {
       if (data) {
         if (data.debugging) {
           debug_data = $link.closest('div.debugging').find('.debug_data')
-          debug_data.html(raw(data.debug_data || '').toString())
+          debug_data.html(sanitizeHTML(data.debug_data || ''))
           debug_data.show()
         } else {
           stop_debugging($link)
