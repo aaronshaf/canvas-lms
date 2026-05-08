@@ -18,6 +18,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+require "sanitize"
+
 class Quizzes::QuizSubmissionEvent < ApplicationRecord
   extend RootAccountResolver
   include CanvasPartman::Concerns::Partitioned
@@ -36,6 +38,8 @@ class Quizzes::QuizSubmissionEvent < ApplicationRecord
   # for a more meaningful API when dealing with EVT_QUESTION_ANSWERED events:
   alias_attribute :answers, :event_data
 
+  before_create :sanitize_essay_answers
+
   after_initialize do
     # We ALWAYS want this to be set, otherwise the event won't be stored in the
     # right partition.
@@ -52,6 +56,19 @@ class Quizzes::QuizSubmissionEvent < ApplicationRecord
       answers.blank?
     else
       false
+    end
+  end
+
+  private
+
+  def sanitize_essay_answers
+    return unless event_type == EVT_QUESTION_ANSWERED
+    return unless event_data.is_a?(Array)
+
+    event_data.each do |answer_data|
+      next unless answer_data.is_a?(Hash) && answer_data["answer"].is_a?(String)
+
+      answer_data["answer"] = Sanitize.clean(answer_data["answer"], CanvasSanitize::SANITIZE)
     end
   end
 end

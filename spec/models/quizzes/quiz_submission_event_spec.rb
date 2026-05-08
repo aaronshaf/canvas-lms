@@ -44,4 +44,66 @@ describe Quizzes::QuizSubmissionEvent do
       expect(qse.root_account_id).to eq Account.default.id
     end
   end
+
+  describe "#sanitize_essay_answers" do
+    before(:once) do
+      course_factory
+      @quiz = @course.quizzes.create!
+      @quiz_submission = Quizzes::QuizSubmission.create!(quiz: @quiz, attempt: 1)
+    end
+
+    def create_answered_event(event_data)
+      Quizzes::QuizSubmissionEvent.create!(
+        quiz_submission: @quiz_submission,
+        event_type: Quizzes::QuizSubmissionEvent::EVT_QUESTION_ANSWERED,
+        attempt: @quiz_submission.attempt,
+        event_data:
+      )
+    end
+
+    it "strips script tags from essay answers" do
+      event = create_answered_event([{ "quiz_question_id" => "1", "answer" => "<script>alert('xss')</script>safe" }])
+      expect(event.event_data.first["answer"]).not_to include("<script>")
+      expect(event.event_data.first["answer"]).to include("safe")
+    end
+
+    it "strips onerror attributes from essay answers" do
+      event = create_answered_event([{ "quiz_question_id" => "1", "answer" => '<img src="x" onerror="alert(1)">' }])
+      expect(event.event_data.first["answer"]).not_to include("onerror")
+    end
+
+    it "strips javascript: hrefs from essay answers" do
+      event = create_answered_event([{ "quiz_question_id" => "1", "answer" => '<a href="javascript:alert(1)">click</a>' }])
+      expect(event.event_data.first["answer"]).not_to include("javascript:")
+    end
+
+    it "preserves safe HTML in essay answers" do
+      event = create_answered_event([{ "quiz_question_id" => "1", "answer" => "<p>I think the answer is <strong>obvious</strong>.</p>" }])
+      expect(event.event_data.first["answer"]).to include("<strong>obvious</strong>")
+    end
+
+    it "does not affect non-string answers" do
+      event = create_answered_event([{ "quiz_question_id" => "1", "answer" => 42 }])
+      expect(event.event_data.first["answer"]).to be(42)
+    end
+
+    it "sanitizes all answer objects in the array" do
+      event = create_answered_event([
+                                      { "quiz_question_id" => "1", "answer" => "<script>xss</script>text" },
+                                      { "quiz_question_id" => "2", "answer" => '<img onerror="xss" src="x">text' }
+                                    ])
+      expect(event.event_data[0]["answer"]).not_to include("<script>")
+      expect(event.event_data[1]["answer"]).not_to include("onerror")
+    end
+
+    it "does not modify event_data for non-question_answered events" do
+      event = Quizzes::QuizSubmissionEvent.create!(
+        quiz_submission: @quiz_submission,
+        event_type: Quizzes::QuizSubmissionEvent::EVT_QUESTION_FLAGGED,
+        attempt: @quiz_submission.attempt,
+        event_data: [{ "quiz_question_id" => "1", "flagged" => true }]
+      )
+      expect(event.event_data.first["flagged"]).to be true
+    end
+  end
 end
