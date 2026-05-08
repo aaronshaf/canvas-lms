@@ -26,6 +26,7 @@ import $ from 'jquery'
 import {debounce} from 'es-toolkit/compat'
 import htmlEscape from '@instructure/html-escape'
 import numberHelper from '@canvas/i18n/numberHelper'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import '@canvas/outcomes/find_outcome'
 import '@canvas/jquery/jquery.ajaxJSON'
 import '@canvas/jquery/jquery.instructure_forms' /* formSubmit, fillFormData, getFormData */
@@ -218,7 +219,7 @@ const rubricEditing = {
 
     $criterion.find('.cancel_button').click()
     const tmpEl = document.createElement('div')
-    tmpEl.innerHTML = outcome.get('description')
+    tmpEl.innerHTML = sanitizeHTML(outcome.get('description') ?? '')
     const outcomeDescription = tmpEl.textContent || tmpEl.innerText || ''
     $criterion.find('div.long_description').text(outcomeDescription)
     $criterion.find('.long_description_holder').toggleClass('empty', !outcome.get('description'))
