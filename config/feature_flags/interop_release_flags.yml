@@ -37,6 +37,7 @@ developer_key_user_agent_alert:
       state: allowed_on
 developer_key_regenerate_secret:
   shadow: true
+  state: hidden
   display_name: Developer Key Secret Regeneration
   description: |-
     Enables the ability to regenerate API secrets for developer keys.
