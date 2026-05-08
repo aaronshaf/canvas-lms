@@ -81,4 +81,46 @@ describe CommentBankItem do
       expect(item.assignment).to eql(peer_review_sub_assignment)
     end
   end
+
+  describe "comment sanitization" do
+    it "strips <script> tags on save" do
+      item = CommentBankItem.create!(course:, user:, comment: "<script>alert(1)</script>safe text")
+      expect(item.comment).not_to include("<script>")
+      expect(item.comment).not_to include("alert(1)")
+      expect(item.comment).to include("safe text")
+    end
+
+    it "strips disallowed event handler attributes on save" do
+      item = CommentBankItem.create!(course:, user:, comment: '<a href="#" onclick="alert(1)">click me</a>')
+      expect(item.comment).not_to include("onclick")
+      expect(item.comment).not_to include("alert(1)")
+    end
+
+    it "preserves allowed HTML on save" do
+      item = CommentBankItem.create!(course:, user:, comment: "<p>hello <strong>world</strong></p>")
+      expect(item.comment).to eql("<p>hello <strong>world</strong></p>")
+    end
+
+    it "leaves plain text unchanged on save" do
+      item = CommentBankItem.create!(course:, user:, comment: "just a comment")
+      expect(item.comment).to eql("just a comment")
+    end
+
+    describe "#comment reader" do
+      let(:item) { CommentBankItem.create!(course:, user:, comment: "placeholder") }
+
+      it "strips disallowed elements on read when the column was persisted unsanitized" do
+        item.update_columns(comment: "<script>alert(1)</script>safe text")
+        expect(item.reload.comment).not_to include("<script>")
+        expect(item.comment).not_to include("alert(1)")
+        expect(item.comment).to include("safe text")
+      end
+
+      it "strips disallowed attributes on read when the column was persisted unsanitized" do
+        item.update_columns(comment: '<object onerror="alert(1)">x</object>')
+        expect(item.reload.comment).not_to include("onerror")
+        expect(item.comment).not_to include("alert(1)")
+      end
+    end
+  end
 end

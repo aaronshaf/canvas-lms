@@ -29,6 +29,12 @@ class CommentBankItem < ApplicationRecord
 
   validates :comment, length: { maximum: maximum_text_length, allow_blank: false }
 
+  sanitize_field :comment, CanvasSanitize::SANITIZE
+
+  def comment
+    Sanitize.clean(super, CanvasSanitize::SANITIZE)
+  end
+
   set_policy do
     given { |user| self.user == user }
     can :delete and can :read and can :update
