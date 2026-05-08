@@ -34,7 +34,6 @@ import {ConversationContext} from '../../../util/constants'
 import {formatMessage, containsHtmlTags} from '@canvas/util/TextHelper'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {sanitizeHTML} from '@canvas/sanitize-html'
-import sanitizeHtml from 'sanitize-html-with-tinymce'
 
 const I18n = createI18nScope('conversations_2')
 
@@ -63,7 +62,7 @@ export const MessageDetailItem = ({
 
   const messageBody = isMessageHtml
     ? // @ts-expect-error TS2339 (typescriptify)
-      sanitizeHtml(conversationMessage?.htmlBody)
+      sanitizeHTML(conversationMessage?.htmlBody)
     : // @ts-expect-error TS2339 (typescriptify)
       formatMessage(conversationMessage?.body)
 
