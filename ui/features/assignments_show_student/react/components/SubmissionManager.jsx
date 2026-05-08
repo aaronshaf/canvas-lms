@@ -36,6 +36,7 @@ import doFetchApi from '@canvas/do-fetch-api-effect'
 import {showConfirmationDialog} from '@canvas/dialogs/react/ConfirmationDialog'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {assignLocation} from '@canvas/util/globalUtils'
 import {Button} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
@@ -509,7 +510,7 @@ const SubmissionManager = ({
     updateUploadingFiles(false)
     const element = document.createElement('div')
     if (body) {
-      element.insertAdjacentHTML('beforeend', body)
+      element.insertAdjacentHTML('beforeend', sanitizeHTML(body))
     }
 
     if (success) {
