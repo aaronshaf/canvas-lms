@@ -28,6 +28,7 @@ import {IconAddLine, IconTrashLine} from '@instructure/ui-icons'
 import {Table} from '@instructure/ui-table'
 import {View} from '@instructure/ui-view'
 import {Alert} from '@instructure/ui-alerts'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('conversations_2')
 
@@ -199,7 +200,11 @@ export const ManageUserLabels: React.FC<ManageUserLabelsProps> = ({
             {internalLabels.map(label => (
               <Table.Row key={label.name} data-testid="label">
                 <Table.Cell>
-                  <Text dangerouslySetInnerHTML={{__html: label.name.replaceAll(' ', '&nbsp;')}} />
+                  <Text
+                    dangerouslySetInnerHTML={{
+                      __html: sanitizeHTML(label.name.replaceAll(' ', '&nbsp;')),
+                    }}
+                  />
                 </Table.Cell>
                 <Table.Cell textAlign="end">
                   <IconButton

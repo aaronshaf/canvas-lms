@@ -33,6 +33,7 @@ import {Text} from '@instructure/ui-text'
 import {ConversationContext} from '../../../util/constants'
 import {formatMessage, containsHtmlTags} from '@canvas/util/TextHelper'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import sanitizeHtml from 'sanitize-html-with-tinymce'
 
 const I18n = createI18nScope('conversations_2')
@@ -167,7 +168,7 @@ export const MessageDetailItem = ({
             wrap="break-word"
             // @ts-expect-error TS18049 (typescriptify)
             size={responsiveProps.messageBody}
-            dangerouslySetInnerHTML={{__html: messageBody}}
+            dangerouslySetInnerHTML={{__html: sanitizeHTML(messageBody)}}
           />
           {/* @ts-expect-error TS2339 (typescriptify) */}
           {conversationMessage.attachments?.length > 0 && (
