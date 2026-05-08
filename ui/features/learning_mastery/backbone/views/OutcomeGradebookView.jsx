@@ -34,6 +34,7 @@ import 'jquery-tinypubsub'
 import '@canvas/rails-flash-notifications'
 import '@canvas/jquery/jquery.instructure_misc_plugins'
 import '@canvas/jquery/jquery.disableWhileLoading'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('gradebookOutcomeGradebookView')
 
@@ -627,7 +628,7 @@ OutcomeGradebookView.prototype.updateExportLink = function (section) {
   if (params !== '') {
     url += '?' + params
   }
-  return $('.export-content').attr('href', url)
+  return $('.export-content').attr('href', sanitizeUrl(url))
 }
 
 export default OutcomeGradebookView

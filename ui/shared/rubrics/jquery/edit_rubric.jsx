@@ -42,6 +42,7 @@ import {showFlashAlert} from '@instructure/platform-alerts'
 import replaceTags from '@canvas/util/replaceTags'
 import useStore from '../stores'
 import {FocusRegionManager} from '@instructure/ui-a11y-utils'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('edit_rubric')
 
@@ -489,7 +490,7 @@ const rubricEditing = {
       .addClass('edit_rubric')
     const $form = $editRubric.find('#edit_rubric_form')
     $rubric.append($editRubric)
-    $form.attr('method', 'POST').attr('action', $('#add_rubric_url').attr('href'))
+    $form.attr('method', 'POST').attr('action', sanitizeUrl($('#add_rubric_url').attr('href')))
     // I believe this should only be visible on the assignment page (not
     // rubric page or quiz page) but we need to audit uses of the add rubric
     // dialog before we make it that restrictive
@@ -587,7 +588,7 @@ const rubricEditing = {
     const createText = I18n.t('buttons.create_rubric', 'Create Rubric')
     const updateText = I18n.t('buttons.update_rubric', 'Update Rubric')
     $form.find('.save_button').text($rubric.attr('id') === 'rubric_new' ? createText : updateText)
-    $form.attr('method', 'PUT').attr('action', url)
+    $form.attr('method', 'PUT').attr('action', sanitizeUrl(url))
     rubricEditing.sizeRatings()
     rubricEditing.updateAddCriterionLinks($rubric)
 
@@ -642,7 +643,7 @@ const rubricEditing = {
     let url = replaceTags($rubric.find('.edit_rubric_url').attr('href'), 'rubric_id', rubric.id)
     $rubric
       .find('.edit_rubric_link')
-      .attr('href', url)
+      .attr('href', sanitizeUrl(url))
       .showIf(rubric.permissions.update_association)
 
     url = replaceTags(
@@ -652,7 +653,7 @@ const rubricEditing = {
     )
     $rubric
       .find('.delete_rubric_link')
-      .attr('href', url)
+      .attr('href', sanitizeUrl(url))
       .showIf(rubric.permissions.delete_association)
 
     $rubric

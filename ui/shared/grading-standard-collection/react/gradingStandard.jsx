@@ -25,6 +25,7 @@ import $ from 'jquery'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {map, some, compact, uniq} from 'es-toolkit/compat'
 import splitAssetString from '@canvas/util/splitAssetString'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('gradinggradingStandard')
 
@@ -340,7 +341,7 @@ class GradingStandard extends React.Component {
       return (
         <a
           className="links cannot-manage-notification"
-          href={url}
+          href={sanitizeUrl(url)}
           title={titleText}
           data-tooltip="left"
         >

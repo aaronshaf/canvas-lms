@@ -27,6 +27,7 @@ import '@canvas/jquery/jquery.instructure_misc_plugins' /* ifExists, .dim, undim
 import '@canvas/rails-flash-notifications'
 import '@canvas/util/templateData' /* fillTemplateData, getTemplateData */
 import 'jquery-scroll-to-visible/jquery.scrollTo'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('grading_standards')
 
@@ -124,7 +125,7 @@ $(document).ready(() => {
       $standard.addClass('editing')
       $standard
         .find('.update_grading_standard_url')
-        .attr('href', $('#update_grading_standard_url').attr('href'))
+        .attr('href', sanitizeUrl($('#update_grading_standard_url').attr('href')))
       const data = JSON.parse($('#default_grading_standard_data').val())
       const standard = {title: '', id: null, data}
       $standard

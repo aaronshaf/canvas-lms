@@ -24,6 +24,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {i18nGrade} from '@canvas/conditional-release-score'
 import StudentAssignmentItem from './student-assignment-item'
 import {assignmentShape, studentShape} from '../shapes/index'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('cyoe_assignment_sidebar_student_details_view')
 
@@ -87,7 +88,7 @@ export default class StudentDetailsView extends React.Component {
     const {assignment} = triggerAssignment
 
     const studentAvatar = student.avatar_image_url || '/images/messages/avatar-50.png'
-    const conversationUrl = `/conversations?context_id=course_${assignment.course_id}&user_id=${student.id}&user_name=${student.name}`
+    const conversationUrl = `/conversations?context_id=course_${assignment.course_id}&user_id=${student.id}&user_name=${encodeURIComponent(student.name)}`
 
     return (
       <section
@@ -114,7 +115,7 @@ export default class StudentDetailsView extends React.Component {
           <a
             target="_blank"
             rel="noopener noreferrer"
-            href={conversationUrl}
+            href={sanitizeUrl(conversationUrl)}
             className="crs-breakdown__link"
           >
             <i aria-hidden={true} className="icon-email crs-icon-email" />
@@ -162,7 +163,7 @@ export default class StudentDetailsView extends React.Component {
         <a
           target="_blank"
           rel="noopener noreferrer"
-          href={submissionUrl}
+          href={sanitizeUrl(submissionUrl)}
           className="crs-breakdown__link"
         >
           {I18n.t('View Submission')}

@@ -23,6 +23,7 @@ import {setupSubmitHandler} from '@canvas/assignments/jquery/reuploadSubmissions
 import $ from 'jquery'
 import '@canvas/jquery/jquery.instructure_misc_helpers'
 import replaceTags from '@canvas/util/replaceTags'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import type {Assignment} from '../../../../api.d'
 
 class ReuploadSubmissionsDialogManager {
@@ -85,7 +86,7 @@ class ReuploadSubmissionsDialogManager {
 
   showDialog(cb: () => void) {
     const form = this.getReuploadForm(cb)
-    form.attr('action', this.reuploadUrl).dialog('open')
+    form.attr('action', sanitizeUrl(this.reuploadUrl)).dialog('open')
   }
 }
 

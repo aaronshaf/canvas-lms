@@ -41,6 +41,7 @@ import {View} from '@instructure/ui-view'
 import WhatIfGrade from '../WhatIfGrade'
 import {getDisplayStatus, getDisplayScore, submissionCommentsPresent} from '../utils'
 import LtiAssetProcessorCell from '../../LtiAssetProcessorCell'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('grade_summary')
 
@@ -190,7 +191,7 @@ export const assignmentRow = (
       <Table.Cell textAlign="start">
         <Flex direction="column">
           <Flex.Item>
-            <a data-testid="assignment-link" href={assignment.htmlUrl}>
+            <a data-testid="assignment-link" href={sanitizeUrl(assignment.htmlUrl)}>
               {assignment.name}
             </a>
           </Flex.Item>

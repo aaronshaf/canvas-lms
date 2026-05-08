@@ -23,6 +23,7 @@ import {IconAiColoredSolid} from '@instructure/ui-icons'
 import {Text} from '@instructure/ui-text'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import RegenerateCriteriaButton from './RegenerateCriteriaButton'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('rubrics-form-generated-criteria')
 
@@ -60,7 +61,7 @@ export const GeneratedCriteriaHeader = ({
           <Flex.Item>
             <a
               data-testid="give-feedback-link"
-              href={aiFeedbackLink}
+              href={sanitizeUrl(aiFeedbackLink)}
               target="_blank"
               rel="noopener noreferrer"
             >
