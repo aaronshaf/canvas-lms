@@ -20,6 +20,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
 import PropTypes from 'prop-types'
 import htmlEscape from '@instructure/html-escape'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('external_tools')
 
@@ -30,7 +31,7 @@ export default function Lti2Permissions(props) {
   return (
     <div className="Lti2Permissions">
       <div className="ReactModal__Body">
-        <p dangerouslySetInnerHTML={{__html: p1}} />
+        <p dangerouslySetInnerHTML={{__html: sanitizeHTML(p1)}} />
         <p>{I18n.t('Would you like to enable this app?')}</p>
       </div>
       <div className="ReactModal__Footer">

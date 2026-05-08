@@ -22,6 +22,7 @@ import {View} from '@instructure/ui-view'
 import {Text} from '@instructure/ui-text'
 import {Link} from '@instructure/ui-link'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('discussion_survey_link')
 
@@ -37,7 +38,7 @@ export const SurveyLinkBox = ({url, text, marginTop}) => {
       <Text
         data-testid="discussion-ai-survey-text"
         dangerouslySetInnerHTML={{
-          __html: text,
+          __html: sanitizeHTML(text),
         }}
       ></Text>
       <Link href={url} target="_blank" margin="0 0 0 x-small">

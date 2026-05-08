@@ -19,6 +19,7 @@
 import React from 'react'
 import {bool, string, func, oneOf} from 'prop-types'
 import apiUserContent from '@canvas/util/jquery/apiUserContent'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 import {InPlaceEdit} from '@instructure/ui-editable'
 import {Text} from '@instructure/ui-text'
@@ -108,7 +109,7 @@ export default class EditableRichText extends React.Component {
       <View as="div" margin="small 0">
         {/* @ts-expect-error */}
         {hasContent || this.props.readOnly ? (
-          <div dangerouslySetInnerHTML={{__html: html}} />
+          <div dangerouslySetInnerHTML={{__html: sanitizeHTML(html)}} />
         ) : (
           // @ts-expect-error
           <Text color="secondary">{this.props.placeholder}</Text>

@@ -18,6 +18,7 @@
 
 import {Modal} from '@instructure/ui-modal'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Heading} from '@instructure/ui-heading'
 import {CloseButton} from '@instructure/ui-buttons'
 
@@ -41,7 +42,7 @@ export default function ServiceDescriptionModal(props: Props) {
           screenReaderLabel={I18n.t('Close')}
         />
       </Modal.Header>
-      <Modal.Body dangerouslySetInnerHTML={{__html: props.descHTML}}></Modal.Body>
+      <Modal.Body dangerouslySetInnerHTML={{__html: sanitizeHTML(props.descHTML)}}></Modal.Body>
     </Modal>
   )
 }

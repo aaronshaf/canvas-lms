@@ -20,6 +20,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
 import PropTypes from 'prop-types'
 import htmlEscape from '@instructure/html-escape'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('external_tools')
 
@@ -57,7 +58,7 @@ export default class Lti2Edit extends React.Component {
     return (
       <div className="Lti2Permissions">
         <div className="ReactModal__Body">
-          <p dangerouslySetInnerHTML={{__html: p1}} />
+          <p dangerouslySetInnerHTML={{__html: sanitizeHTML(p1)}} />
         </div>
         <div className="ReactModal__Footer">
           <div className="ReactModal__Footer-Actions">

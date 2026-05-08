@@ -30,6 +30,7 @@ import ThemeEditorSidebar from './ThemeEditorSidebar'
 import {getCookie} from '@instructure/platform-get-cookie'
 import {showFlashError} from '@instructure/platform-alerts'
 import {addFlashNoticeForNextPage} from '@canvas/rails-flash-notifications'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Modal} from '@instructure/ui-modal'
 import {Heading} from '@instructure/ui-heading'
@@ -102,7 +103,7 @@ export default function ThemeEditor({
       .reduce(
         (acc, next) => ({
           ...acc,
-          ...{[next.variable_name]: next.default},
+          [next.variable_name]: next.default,
         }),
         {},
       )
@@ -189,12 +190,16 @@ export default function ThemeEditor({
       const index = files.findIndex(x => x.variable_name === key)
       if (index !== -1) files[index] = fileStorageObject
       else files.push(fileStorageObject)
-    } else properties = {...properties, ...{[key]: value}}
+    } else
+      properties = {
+        ...properties,
+        [key]: value,
+      }
 
     if (opts.resetValue) {
       properties = {
         ...properties,
-        ...{[key]: originalThemeProperties[key]},
+        [key]: originalThemeProperties[key],
       }
       const index = files.findIndex(x => x.variable_name === key)
       if (index !== -1)
@@ -431,11 +436,13 @@ export default function ThemeEditor({
           <p
             className="ic-flash__text"
             dangerouslySetInnerHTML={{
-              __html: I18n.t(
-                'To preview Theme Editor branding, you will need to *turn off High Contrast UI*.',
-                {
-                  wrappers: ['<a href="/profile/settings">$1</a>'],
-                },
+              __html: sanitizeHTML(
+                I18n.t(
+                  'To preview Theme Editor branding, you will need to *turn off High Contrast UI*.',
+                  {
+                    wrappers: ['<a href="/profile/settings">$1</a>'],
+                  },
+                ),
               ),
             }}
           />

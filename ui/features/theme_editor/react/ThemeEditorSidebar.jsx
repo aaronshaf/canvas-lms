@@ -22,6 +22,7 @@ import {bool, func, object} from 'prop-types'
 import {Tabs} from '@instructure/ui-tabs'
 import {View} from '@instructure/ui-view'
 import types from '@canvas/theme-editor/react/PropTypes'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import ThemeEditorAccordion from './ThemeEditorAccordion'
 import ThemeEditorFileUpload from './ThemeEditorFileUpload'
 
@@ -82,11 +83,13 @@ export default function ThemeEditorSidebar({
                 </p>
                 <p
                   dangerouslySetInnerHTML={{
-                    __html: I18n.t(
-                      'Before implementing custom CSS or Javascript, please refer to *our documentation*.',
-                      {
-                        wrappers: ['<a href="' + customCssLink + '" target="_blank">$1</a>'],
-                      },
+                    __html: sanitizeHTML(
+                      I18n.t(
+                        'Before implementing custom CSS or Javascript, please refer to *our documentation*.',
+                        {
+                          wrappers: ['<a href="' + customCssLink + '" target="_blank">$1</a>'],
+                        },
+                      ),
                     ),
                   }}
                 />

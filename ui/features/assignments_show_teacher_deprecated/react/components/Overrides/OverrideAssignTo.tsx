@@ -66,7 +66,7 @@ function renderSummary(assignedTo) {
   const list = assignedTo.length > 0 ? assignedTo.map(renderOverrideName).join(', ') : null
   return (
     <Text weight="bold" color="primary" data-testid="OverrideAssignTo" size="large">
-      {list || <span dangerouslySetInnerHTML={{__html: '&nbsp;'}} />}
+      {list || <span>{' '}</span>}
     </Text>
   )
 }

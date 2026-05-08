@@ -18,6 +18,7 @@
 
 import {Modal} from '@instructure/ui-modal'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Heading} from '@instructure/ui-heading'
 import {CloseButton} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
@@ -50,7 +51,7 @@ export default function OpenRegistrationWarning(props: Props) {
       <Modal.Body>
         <Text
           data-testid="open_registration_warning"
-          dangerouslySetInnerHTML={{__html: warningMessage}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(warningMessage)}}
         ></Text>
       </Modal.Body>
     </Modal>

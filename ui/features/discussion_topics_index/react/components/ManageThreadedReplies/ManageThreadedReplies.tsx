@@ -32,6 +32,7 @@ import {gql, useQuery} from '@apollo/client'
 import {AlertManagerContext} from '@instructure/platform-alerts'
 import {updateDiscussionTopicTypes} from '../../apiClient'
 import {Alert} from '@instructure/ui-alerts'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('discussions_v2')
 

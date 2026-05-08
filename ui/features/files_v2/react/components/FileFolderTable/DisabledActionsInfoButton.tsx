@@ -26,6 +26,7 @@ import {IconInfoLine} from '@instructure/ui-icons'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('files_v2')
 
@@ -123,7 +124,7 @@ export function DisabledActionsInfoButton({size}: DisabledActionsInfoButtonProps
               </Heading>
             </Flex.Item>
             <Flex.Item>
-              <Text dangerouslySetInnerHTML={{__html: lockedFilesText}} />
+              <Text dangerouslySetInnerHTML={{__html: sanitizeHTML(lockedFilesText)}} />
             </Flex.Item>
 
             <Flex.Item className="disabled-actions-heading" padding="small 0 0 0">
@@ -139,7 +140,7 @@ export function DisabledActionsInfoButton({size}: DisabledActionsInfoButtonProps
               </Heading>
             </Flex.Item>
             <Flex.Item>
-              <Text dangerouslySetInnerHTML={{__html: lockedFoldersText}} />
+              <Text dangerouslySetInnerHTML={{__html: sanitizeHTML(lockedFoldersText)}} />
             </Flex.Item>
           </>
         </Flex>

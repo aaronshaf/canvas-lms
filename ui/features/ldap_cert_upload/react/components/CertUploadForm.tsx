@@ -24,6 +24,7 @@ import {IconUploadSolid, IconCertifiedLine, IconTrashLine} from '@instructure/ui
 import {isCa, parseCertificate, withinValidityPeriod} from '../../utils/certUtils'
 import {X509Certificate} from '@peculiar/x509'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Flex} from '@instructure/ui-flex'
 import {Button} from '@instructure/ui-buttons'
 
@@ -130,9 +131,11 @@ export const CertUploadForm = ({inputField}: CertUploadFormProps) => {
                   size="small"
                   as="div"
                   dangerouslySetInnerHTML={{
-                    __html: I18n.t('Drag and drop or *browse your files* to replace', {
-                      wrapper: '<span style="color: var(--ic-brand-primary)">$1</span>',
-                    }),
+                    __html: sanitizeHTML(
+                      I18n.t('Drag and drop or *browse your files* to replace', {
+                        wrapper: '<span style="color: var(--ic-brand-primary)">$1</span>',
+                      }),
+                    ),
                   }}
                 />
                 <br />
@@ -149,9 +152,11 @@ export const CertUploadForm = ({inputField}: CertUploadFormProps) => {
                 </Text>
                 <Text
                   dangerouslySetInnerHTML={{
-                    __html: I18n.t('Drag and drop or *browse your files*', {
-                      wrapper: '<span style="color: var(--ic-brand-primary)">$1</span>',
-                    }),
+                    __html: sanitizeHTML(
+                      I18n.t('Drag and drop or *browse your files*', {
+                        wrapper: '<span style="color: var(--ic-brand-primary)">$1</span>',
+                      }),
+                    ),
                   }}
                 />
                 <Text size="small" as="div" lineHeight="double">

@@ -22,6 +22,7 @@ import {InstUIModal as Modal} from '@instructure/platform-instui-bindings'
 import RichContentEditor from '@canvas/rce/RichContentEditor'
 import {Link} from '@instructure/ui-link'
 import doFetchApi from '@canvas/do-fetch-api-effect'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import type {ViewOwnProps} from '@instructure/ui-view'
 import {openWindow} from '@canvas/util/globalUtils'
 
@@ -86,7 +87,7 @@ function TermsOfServiceCustomContents({
     [content, setContent, setUrl, url],
   )
 
-  if (content) return <div dangerouslySetInnerHTML={{__html: content}} />
+  if (content) return <div dangerouslySetInnerHTML={{__html: sanitizeHTML(content)}} />
   if (url) return null
   return <span>{t('Loading...')}</span>
 }
@@ -173,7 +174,7 @@ export default function TermsOfServiceModal(props: TermsOfServiceModalProps): Re
     if (preview && typeof customContent === 'undefined') return null
 
     const body = preview ? (
-      <div dangerouslySetInnerHTML={{__html: customContent!}} />
+      <div dangerouslySetInnerHTML={{__html: sanitizeHTML(customContent!)}} />
     ) : (
       <TermsOfServiceCustomContents
         content={tosContentHTML}

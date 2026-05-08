@@ -24,6 +24,7 @@ import {InstUIModal as Modal} from '@instructure/platform-instui-bindings'
 import ConfigOptionField from './ConfigOptionField'
 import {Button} from '@instructure/ui-buttons'
 import {View} from '@instructure/ui-view'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('external_tools')
 
@@ -109,17 +110,19 @@ export default class ManageAppListButton extends React.Component {
           <Modal.Body>
             <p
               dangerouslySetInnerHTML={{
-                __html: I18n.t(
-                  `Enter the access token for your organization from \
+                __html: sanitizeHTML(
+                  I18n.t(
+                    `Enter the access token for your organization from \
                     *eduappcenter.com*. Once applied, only apps your organization has approved in the \
                     EduAppCenter will be listed on the External Apps page. \
                     Learn how to **generate an access token**.`,
-                  {
-                    wrappers: [
-                      '<a href="https://www.eduappcenter.com">$1</a>',
-                      '<a href="' + allowListLink + '">$1</a>',
-                    ],
-                  },
+                    {
+                      wrappers: [
+                        '<a href="https://www.eduappcenter.com">$1</a>',
+                        '<a href="' + allowListLink + '">$1</a>',
+                      ],
+                    },
+                  ),
                 ),
               }}
             />
