@@ -72,6 +72,24 @@ describe WebConference do
     end
   end
 
+  describe "#description sanitization" do
+    before { user_model }
+
+    let(:conference) do
+      WimbaConference.create!(title: "my conference", user: @user, context: course_factory)
+    end
+
+    it "strips dangerous markup on save" do
+      conference.update!(description: "<a href='#' onclick='alert(1)'>ok</a><script>alert(2)</script>")
+      expect(conference.description).to eq('<a href="#">ok</a>')
+    end
+
+    it "sanitizes legacy unsanitized description on read" do
+      conference.update_columns(description: "<script>alert(1)</script>safe")
+      expect(conference.reload.description).to eq("safe")
+    end
+  end
+
   context "user settings" do
     before do
       user_model

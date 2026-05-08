@@ -45,6 +45,11 @@ class Collaboration < ApplicationRecord
   validates :title, :workflow_state, :context_id, :context_type, presence: true
   validates :title, length: { maximum: TITLE_MAX_LENGTH }
   validates :description, length: { maximum: maximum_text_length, allow_blank: true }
+  sanitize_field :description, CanvasSanitize::SANITIZE
+  def description
+    raw = super
+    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+  end
 
   serialize :data
 

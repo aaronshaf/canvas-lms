@@ -155,4 +155,29 @@ describe Collaboration do
       expect(collab.url).to eq "http://example.com/legacy-uri"
     end
   end
+
+  describe "#description sanitization" do
+    before :once do
+      PluginSetting.create!(name: "etherpad", settings: {})
+      course_factory(active_all: true)
+      @user = user_with_pseudonym(active_all: true)
+    end
+
+    let(:collab) do
+      c = @course.collaborations.new(title: "test", user: @user)
+      c.type = "EtherpadCollaboration"
+      c.save!
+      c
+    end
+
+    it "strips dangerous markup on save" do
+      collab.update!(description: "<a href='#' onclick='alert(1)'>ok</a><script>alert(2)</script>")
+      expect(collab.description).to eq('<a href="#">ok</a>')
+    end
+
+    it "sanitizes legacy unsanitized description on read" do
+      collab.update_columns(description: "<script>alert(1)</script>safe")
+      expect(collab.reload.description).to eq("safe")
+    end
+  end
 end

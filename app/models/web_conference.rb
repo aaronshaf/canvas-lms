@@ -58,6 +58,12 @@ class WebConference < ApplicationRecord
     self["settings"] ||= {}
   end
 
+  sanitize_field :description, CanvasSanitize::SANITIZE
+  def description
+    raw = super
+    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+  end
+
   # whether they replace the whole hash or just update some values, make sure
   # we save those changes (after we sanitize it)
   before_save :merge_user_settings
