@@ -19,7 +19,7 @@
 import {Heading} from '@instructure/ui-heading'
 import {Modal} from '@instructure/ui-modal'
 import {useTranslation} from '@canvas/i18next'
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Spinner} from '@instructure/ui-spinner'
 import {showFlashError} from '@instructure/platform-alerts'
@@ -92,6 +92,18 @@ export default function ConfigureReportForm(props: Props) {
   const [isLoading, setIsLoading] = useState(false)
   const [dateRefs, setDateRefs] = useState<Record<string, [string, HTMLElement]>>({})
   const [dateValues, setDateValues] = useState<Record<string, string>>({})
+
+  // Memoize the sanitized form HTML so dangerouslySetInnerHTML's `__html`
+  // keeps stable identity across re-renders. sanitizeHTML returns a
+  // TrustedHTML object (reference-equality), so a fresh call on every
+  // render makes React's reconciliation re-apply innerHTML — which wipes
+  // the imperative td.innerHTML='' the useEffect below does to mount the
+  // InstUI DateTimeInputs via Portals. Pinning to the input string keeps
+  // identity stable AND preserves the TrustedHTML benefit at the sink.
+  const sanitizedFormHTML = useMemo(
+    () => ({__html: sanitizeHTML(props.formHTML)}),
+    [props.formHTML],
+  )
 
   useEffect(() => {
     if (formRef.current) {
@@ -188,7 +200,7 @@ export default function ConfigureReportForm(props: Props) {
         <div
           id="configure_modal_body"
           ref={formRef}
-          dangerouslySetInnerHTML={{__html: sanitizeHTML(props.formHTML)}}
+          dangerouslySetInnerHTML={sanitizedFormHTML}
         ></div>
         {['provisioning_csv', 'sis_export_csv'].includes(props.reportName?.toLocaleLowerCase()) && (
           <SisCsvToggle containerRef={formRef} />

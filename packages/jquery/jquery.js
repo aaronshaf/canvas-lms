@@ -46,6 +46,20 @@
 
 var arr = [];
 
+// CFA-932 BACKPORT (jQuery 4 PR #4927) — Trusted Types support.
+// Accept TrustedHTML wrappers anywhere a plain HTML string is accepted by
+// jQuery's HTML-manipulation APIs (.html(), .append(), .prepend(), .before(),
+// .after(), .replaceWith(), .wrap*(), and the $(html) constructor). Without
+// this, jQuery 3.7.1 silently produces an empty DOM when handed a TrustedHTML
+// (toType -> "object", no .nodeType, falls through to a no-op merge).
+// Remove this BACKPORT (and the three call sites tagged with the same marker)
+// when Canvas upgrades to jQuery 4.x — see CFA-931.
+function isTrustedHTML( value ) {
+	return typeof value === "object" && value !== null &&
+		typeof window !== "undefined" && window.trustedTypes &&
+		window.trustedTypes.isHTML( value );
+}
+
 var getProto = Object.getPrototypeOf;
 
 var slice = arr.slice;
@@ -2756,7 +2770,7 @@ var siblings = function( n, elem ) {
 
 var rneedsContext = jQuery.expr.match.needsContext;
 
-var rsingleTag = ( /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i );
+var rsingleTag = ( /^<([a-z][^/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i );
 
 
 
@@ -2872,17 +2886,26 @@ var rootjQuery,
 		root = root || rootjQuery;
 
 		// Handle HTML strings
-		if ( typeof selector === "string" ) {
-			if ( selector[ 0 ] === "<" &&
-				selector[ selector.length - 1 ] === ">" &&
-				selector.length >= 3 ) {
+		// CFA-932 BACKPORT (jQuery 4 PR #4927): also accept TrustedHTML.
+		// The string-coerced view is used for the obvious-HTML check; the
+		// original (potentially TrustedHTML) value is preserved in match[1]
+		// so it flows downstream into innerHTML without invoking the
+		// @canvas/trusted-types default policy. Remove on jQuery 4 upgrade
+		// (CFA-931).
+		if ( typeof selector === "string" || isTrustedHTML( selector ) ) {
+			var __cfa932_selectorStr = typeof selector === "string" ?
+				selector : "" + selector;
+			if ( __cfa932_selectorStr[ 0 ] === "<" &&
+				__cfa932_selectorStr[ __cfa932_selectorStr.length - 1 ] === ">" &&
+				__cfa932_selectorStr.length >= 3 ) {
 
 				// Assume that strings that start and end with <> are HTML and skip the regex check
 				match = [ null, selector, null ];
 
-			} else {
+			} else if ( typeof selector === "string" ) {
 				match = rquickExpr.exec( selector );
 			}
+			// END CFA-932 BACKPORT
 
 			// Match html or make sure no context is specified for #id
 			if ( match && ( match[ 1 ] || !context ) ) {
@@ -4637,7 +4660,7 @@ jQuery.fn.extend( {
 } );
 var rcheckableType = ( /^(?:checkbox|radio)$/i );
 
-var rtagName = ( /<([a-z][^\/\0>\x20\t\r\n\f]*)/i );
+var rtagName = ( /<([a-z][^/\0>\x20\t\r\n\f]*)/i );
 
 var rscriptType = ( /^$|^module$|\/(?:java|ecma)script/i );
 
@@ -4751,8 +4774,12 @@ function buildFragment( elems, context, scripts, selection, ignored ) {
 
 		if ( elem || elem === 0 ) {
 
+			// CFA-932 BACKPORT (jQuery 4 PR #4927): exclude TrustedHTML from the
+			// "object" branch so it falls through to the HTML branch below.
+			// jQuery 4 does this via `&& (elem.nodeType || isArrayLike(elem))`;
+			// the explicit isTrustedHTML check is equivalent for our purposes.
 			// Add nodes directly
-			if ( toType( elem ) === "object" ) {
+			if ( toType( elem ) === "object" && !isTrustedHTML( elem ) ) {
 
 				// Support: Android <=4.0 only, PhantomJS 1 only
 				// push.apply(_, arraylike) throws on ancient WebKit
@@ -4769,7 +4796,20 @@ function buildFragment( elems, context, scripts, selection, ignored ) {
 				// Deserialize a standard representation
 				tag = ( rtagName.exec( elem ) || [ "", "" ] )[ 1 ].toLowerCase();
 				wrap = wrapMap[ tag ] || wrapMap._default;
-				tmp.innerHTML = wrap[ 1 ] + jQuery.htmlPrefilter( elem ) + wrap[ 2 ];
+
+				// CFA-932 BACKPORT: when input is TrustedHTML AND no wrapping
+				// is needed (the common case for sanitizeHTML output), assign
+				// it directly to innerHTML so the browser receives a
+				// TrustedHTML and skips the @canvas/trusted-types default
+				// policy. Wrapped tags (table parts, etc.) still go through
+				// string concat; those are rare in Canvas usage and the
+				// default policy firing once per call is acceptable there.
+				if ( isTrustedHTML( elem ) && wrap[ 0 ] === 0 ) {
+					tmp.innerHTML = elem;
+				} else {
+					tmp.innerHTML = wrap[ 1 ] + jQuery.htmlPrefilter( elem ) + wrap[ 2 ];
+				}
+				// END CFA-932 BACKPORT
 
 				// Descend through wrappers to the right content
 				j = wrap[ 0 ];
@@ -10141,9 +10181,12 @@ support.createHTMLDocument = ( function() {
 // defaults to document
 // keepScripts (optional): If true, will include scripts passed in the html string
 jQuery.parseHTML = function( data, context, keepScripts ) {
-	if ( typeof data !== "string" ) {
+	// CFA-932 BACKPORT (jQuery 4 PR #4927): also accept TrustedHTML.
+	// Remove on jQuery 4 upgrade (CFA-931).
+	if ( typeof data !== "string" && !isTrustedHTML( data ) ) {
 		return [];
 	}
+	// END CFA-932 BACKPORT
 	if ( typeof context === "boolean" ) {
 		keepScripts = context;
 		context = false;

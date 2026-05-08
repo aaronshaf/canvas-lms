@@ -16,6 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import DOMPurify from 'dompurify'
+import {vi} from 'vitest'
 import {sanitizeHTML} from '../index'
 
 const EVENT_HANDLER_ATTR = /^on[a-z]+$/i
@@ -271,6 +273,26 @@ describe('@canvas/sanitize-html sanitizeHTML', () => {
 
     it('preserves benign plain text', () => {
       expect(sanitizeHTML('hello world')).toBe('hello world')
+    })
+  })
+
+  describe('Trusted Types contract', () => {
+    // Locks in that we ask DOMPurify for TrustedHTML output. The runtime
+    // shape (TrustedHTML object vs string fallback) is then DOMPurify's
+    // responsibility — but this test catches a future regression where
+    // the flag accidentally gets dropped, which would silently flip every
+    // wrapped sink in Canvas back to invoking the default policy.
+    it('passes RETURN_TRUSTED_TYPE: true to DOMPurify so wrapped sites can bypass the default policy', () => {
+      const spy = vi.spyOn(DOMPurify, 'sanitize')
+      try {
+        sanitizeHTML('<p>x</p>')
+        expect(spy).toHaveBeenCalledWith(
+          '<p>x</p>',
+          expect.objectContaining({RETURN_TRUSTED_TYPE: true}),
+        )
+      } finally {
+        spy.mockRestore()
+      }
     })
   })
 })
