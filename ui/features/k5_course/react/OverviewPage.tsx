@@ -24,6 +24,7 @@ import {IconEditLine} from '@instructure/ui-icons'
 import {Flex} from '@instructure/ui-flex'
 
 import apiUserContent from '@canvas/util/jquery/apiUserContent'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {ImmersiveReaderButton} from '@canvas/immersive-reader/ImmersiveReader'
 
 interface OverviewPageProps {
@@ -67,8 +68,8 @@ export default function OverviewPage({
       </Flex>
       <div
         className="user_content"
-        /* html sanitized by server */
-        dangerouslySetInnerHTML={{__html: html}}
+        /* html sanitized by server, defense-in-depth at the sink */
+        dangerouslySetInnerHTML={{__html: sanitizeHTML(html)}}
       />
     </>
   )
