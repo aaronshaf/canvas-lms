@@ -67,7 +67,7 @@ function createMediaCommentThumbnail(elem, size, keepOriginalText, kalturaSettin
     altText = formatMessage('Play media comment.')
   }
 
-  if (id) {
+  if (id && /^[\w-]+$/.test(id)) {
     const domain = `https://${kalturaSettings_.resource_domain}`
 
     const backgroundUrl =

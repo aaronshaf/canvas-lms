@@ -92,4 +92,23 @@ describe('mediaCommentThumbnail', () => {
       .textContent.trim()
     expect(screenreaderText).toEqual('Play media comment.')
   })
+
+  it('does not render a thumbnail when the media_comment_id contains CSS-injection characters', async () => {
+    document.body.innerHTML = `<div id="fixtures">
+      <a
+        id="media_comment_bad"
+        data-media_comment_id="1_abc);background:url(http://evil.example/x"
+        class="instructure_inline_media_comment"
+      >media</a>
+    </div>`
+
+    await mediaCommentThumbnail(
+      document.getElementById('media_comment_bad'),
+      'normal',
+      true,
+      kalturaSettings,
+    )
+
+    expect(document.querySelector('.media_comment_thumbnail')).toBeNull()
+  })
 })
