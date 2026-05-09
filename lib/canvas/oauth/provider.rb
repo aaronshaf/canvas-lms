@@ -23,12 +23,13 @@ module Canvas::OAuth
 
     attr_reader :client_id, :scopes, :purpose
 
-    def initialize(client_id, redirect_uri = "", scopes = [], purpose = nil, key: nil, pkce: {})
+    def initialize(client_id, redirect_uri = "", scopes = [], purpose = nil, key: nil, pkce: {}, sec_fetch_dest: nil)
       @client_id = client_id
       @redirect_uri = redirect_uri
       @scopes = scopes
       @purpose = purpose
       @pkce = pkce
+      @sec_fetch_dest = sec_fetch_dest
 
       # Some grant types have already loaded the developer key. If that's the case allow
       # passing the key into this provider rather than re-querying for it.
@@ -56,6 +57,14 @@ module Canvas::OAuth
 
     def has_valid_redirect?
       return false if !self.class.is_oob?(redirect_uri) && !key.redirect_domain_matches?(redirect_uri)
+
+      if self.class.is_oob?(redirect_uri) &&
+         OAuthRedirectUriValidationConfig.disallow_non_document_oob_sec_fetch_dest? &&
+         non_document_sec_fetch_dest?
+        enforce_fetch_dest = OAuthRedirectUriValidationConfig.enforce_disallow_non_document_oob_sec_fetch_dest?
+        report_oob_non_document_fetch_dest_violation(enforce: enforce_fetch_dest)
+        return false if enforce_fetch_dest
+      end
 
       report = OAuthRedirectUriValidationConfig.report?
       enforce = OAuthRedirectUriValidationConfig.enforce?
@@ -224,6 +233,32 @@ module Canvas::OAuth
       URI.parse(uri.to_s).host
     rescue URI::Error
       nil
+    end
+
+    def non_document_sec_fetch_dest?
+      @sec_fetch_dest.present? && @sec_fetch_dest != "document"
+    end
+
+    def report_oob_non_document_fetch_dest_violation(enforce:)
+      request_id = Canvas::ExecutionContext[:request_id]
+
+      message = "OAuth OOB redirect with non-document Sec-Fetch-Dest on developer key " \
+                "#{key.global_id}: sec_fetch_dest=#{@sec_fetch_dest} request_id=#{request_id}"
+
+      tags = Utils::InstStatsdUtils::Tags.tags_for(Shard.current).merge(
+        developer_key_id: key.global_id.to_s,
+        sec_fetch_dest: @sec_fetch_dest.to_s,
+        enforce: enforce.to_s
+      )
+
+      InstStatsd::Statsd.event(
+        "OAuth OOB Non-Document Sec-Fetch-Dest",
+        message,
+        type: :oauth_oob_non_document_sec_fetch_dest,
+        alert_type: :warning,
+        tags:
+      )
+      Rails.logger.warn("[OAuthRedirectUri] #{message}")
     end
   end
 end

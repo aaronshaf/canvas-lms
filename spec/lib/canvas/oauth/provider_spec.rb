@@ -339,6 +339,109 @@ module Canvas::OAuth
             end
           end
         end
+
+        context "with the Sec-Fetch-Dest gate" do
+          let(:provider) { Provider.new("123", Provider::OAUTH2_OOB_URI, sec_fetch_dest:) }
+          let(:sec_fetch_dest) { nil }
+
+          context "with no Sec-Fetch-Dest config set" do
+            let(:sec_fetch_dest) { "iframe" }
+
+            it "ignores the header (does not emit, allows the redirect)" do
+              expect(InstStatsd::Statsd).not_to receive(:event)
+              expect(provider.has_valid_redirect?).to be true
+            end
+          end
+
+          context "with disallow_non_document_oob_sec_fetch_dest enabled (report-only)" do
+            before do
+              allow(OAuthRedirectUriValidationConfig).to receive(:disallow_non_document_oob_sec_fetch_dest?).and_return(true)
+            end
+
+            context "and Sec-Fetch-Dest is missing" do
+              let(:sec_fetch_dest) { nil }
+
+              it "does not emit and allows the redirect" do
+                expect(InstStatsd::Statsd).not_to receive(:event)
+                expect(provider.has_valid_redirect?).to be true
+              end
+            end
+
+            context "and Sec-Fetch-Dest is 'document'" do
+              let(:sec_fetch_dest) { "document" }
+
+              it "does not emit and allows the redirect" do
+                expect(InstStatsd::Statsd).not_to receive(:event)
+                expect(provider.has_valid_redirect?).to be true
+              end
+            end
+
+            context "and Sec-Fetch-Dest is non-document" do
+              let(:sec_fetch_dest) { "iframe" }
+
+              it "emits an instrumentation event and allows the redirect" do
+                expect(InstStatsd::Statsd).to receive(:event).with(
+                  "OAuth OOB Non-Document Sec-Fetch-Dest",
+                  kind_of(String),
+                  hash_including(
+                    type: :oauth_oob_non_document_sec_fetch_dest,
+                    alert_type: :warning,
+                    tags: hash_including(
+                      developer_key_id: "10000000000001",
+                      sec_fetch_dest: "iframe",
+                      enforce: "false"
+                    )
+                  )
+                )
+                expect(Rails.logger).to receive(:warn).with(/OAuthRedirectUri/)
+                expect(provider.has_valid_redirect?).to be true
+              end
+            end
+          end
+
+          context "with enforce_disallow_non_document_oob_sec_fetch_dest enabled" do
+            before do
+              allow(OAuthRedirectUriValidationConfig).to receive_messages(
+                disallow_non_document_oob_sec_fetch_dest?: true,
+                enforce_disallow_non_document_oob_sec_fetch_dest?: true
+              )
+            end
+
+            context "and Sec-Fetch-Dest is non-document" do
+              let(:sec_fetch_dest) { "iframe" }
+
+              it "emits an instrumentation event with enforce=true and rejects the redirect" do
+                expect(InstStatsd::Statsd).to receive(:event).with(
+                  "OAuth OOB Non-Document Sec-Fetch-Dest",
+                  kind_of(String),
+                  hash_including(tags: hash_including(sec_fetch_dest: "iframe", enforce: "true"))
+                )
+                expect(provider.has_valid_redirect?).to be false
+              end
+            end
+
+            context "and Sec-Fetch-Dest is 'document'" do
+              let(:sec_fetch_dest) { "document" }
+              let(:oob_explicitly_registered) { true }
+
+              it "allows the redirect" do
+                expect(InstStatsd::Statsd).not_to receive(:event)
+                expect(provider.has_valid_redirect?).to be true
+              end
+            end
+
+            context "and the redirect is non-OOB with a non-document Sec-Fetch-Dest" do
+              let(:provider) { Provider.new("123", "http://evil.example.com/x", sec_fetch_dest: "iframe") }
+
+              before { stub_matchers(lenient: true, strict: true) }
+
+              it "does not emit (the gate only applies to OOB)" do
+                expect(InstStatsd::Statsd).not_to receive(:event)
+                expect(provider.has_valid_redirect?).to be true
+              end
+            end
+          end
+        end
       end
     end
 

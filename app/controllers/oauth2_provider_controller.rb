@@ -47,7 +47,8 @@ class OAuth2ProviderController < ApplicationController
       pkce: {
         code_challenge: params[:code_challenge],
         code_challenge_method: params[:code_challenge_method]
-      }
+      },
+      sec_fetch_dest: request.headers["Sec-Fetch-Dest"]
     )
 
     raise Canvas::OAuth::RequestError, :invalid_client_id unless provider.has_valid_key?

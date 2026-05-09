@@ -83,6 +83,29 @@ describe OAuthRedirectUriValidationConfig do
     end
   end
 
+  describe ".disallow_non_document_oob_sec_fetch_dest? / .enforce_disallow_non_document_oob_sec_fetch_dest?" do
+    it "both default to false when no config is present" do
+      stub_consul(nil)
+      expect(described_class.disallow_non_document_oob_sec_fetch_dest?).to be false
+      expect(described_class.enforce_disallow_non_document_oob_sec_fetch_dest?).to be false
+    end
+
+    it "returns true when each key is set" do
+      stub_consul(
+        "disallow_non_document_oob_sec_fetch_dest" => true,
+        "enforce_disallow_non_document_oob_sec_fetch_dest" => true
+      )
+      expect(described_class.disallow_non_document_oob_sec_fetch_dest?).to be true
+      expect(described_class.enforce_disallow_non_document_oob_sec_fetch_dest?).to be true
+    end
+
+    it "can enable only the report flag" do
+      stub_consul("disallow_non_document_oob_sec_fetch_dest" => true)
+      expect(described_class.disallow_non_document_oob_sec_fetch_dest?).to be true
+      expect(described_class.enforce_disallow_non_document_oob_sec_fetch_dest?).to be false
+    end
+  end
+
   describe "caching" do
     it "memoizes the config across calls within a process" do
       stub_consul("report" => true)
