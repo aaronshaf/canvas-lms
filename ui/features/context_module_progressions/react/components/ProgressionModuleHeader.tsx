@@ -20,8 +20,7 @@ import React, {useState} from 'react'
 import {Heading} from '@instructure/ui-heading'
 import {Flex} from '@instructure/ui-flex'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import {sanitizeHTML} from '@canvas/sanitize-html'
-import htmlEscape from '@instructure/html-escape'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('progression_module_header')
 
@@ -42,22 +41,16 @@ const ProgressionModuleHeader = ({bridge}: Props) => {
   const [state, setState] = useState<State | null>(null)
   bridge.on('selectionChanged', setState)
 
-  const renderTitle = () => {
-    if (!state) return null
+  if (!state) return null
 
-    const user = state.attributes
-    const href = `${ENV.COURSE_USERS_PATH}/${user.id}`
-    return I18n.t('Module Progress for *%{name}*', {
-      name: user.name,
-      wrappers: [`<a href="${htmlEscape(href)}">$1</a>`],
-    })
-  }
+  const user = state.attributes
 
   return (
     <Flex margin="0 0 medium">
       <Flex.Item>
         <Heading level="h1">
-          <span dangerouslySetInnerHTML={{__html: sanitizeHTML(renderTitle() || '')}} />
+          {I18n.t('Module Progress for ')}
+          <a href={sanitizeUrl(`${ENV.COURSE_USERS_PATH}/${user.id}`)}>{user.name}</a>
         </Heading>
       </Flex.Item>
     </Flex>
