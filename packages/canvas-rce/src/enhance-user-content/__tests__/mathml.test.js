@@ -239,6 +239,20 @@ describe('mathEquationHelper', () => {
     expect(document.querySelector('.math_equation_latex').textContent).toEqual('\\(17\\)')
   })
 
+  it('does not copy style attribute from equation image to span', () => {
+    const root = document.body
+    root.innerHTML = `
+      <img
+        class="equation_image"
+        src="http://localhost:3000/equation_images/17?scale=1.5"
+        style="background:url(javascript:alert(1))"
+      >
+    `
+    mathImageHelper.catchEquationImages(root)
+    const span = document.querySelector('.math_equation_latex')
+    expect(span.getAttribute('style')).toBeNull()
+  })
+
   it('catchEquationImages doesnt break with an array of equation images', () => {
     const root = document.body
     root.innerHTML = `
