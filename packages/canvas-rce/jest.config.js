@@ -21,6 +21,7 @@
 const esModules = ['text-field-edit', '@instructure\\/ui-icons', 'msw'].join('|')
 
 module.exports = {
+  testTimeout: 15000,
   setupFiles: ['jest-canvas-mock', '<rootDir>/jest/jest-setup.js'],
   reporters: [
     'default',

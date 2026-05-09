@@ -204,7 +204,7 @@
     "jest-canvas-mock": "^2",
     "jest-junit": "^7",
     "jest-mock-proxy": "3.1.2",
-    "jest": "^29",
+    "jest": "^30",
     "mathjax": "^3.2.0",
     "msw": "^2.7",
     "nyc": "^13",

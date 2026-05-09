@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-const fs = jest.genMockFromModule('fs')
+const fs = jest.createMockFromModule('fs')
 
 const createFakeDirent = (name, isDirectory = false) => {
   const dirent = new fs.Dirent()
@@ -27,9 +27,9 @@ const createFakeDirent = (name, isDirectory = false) => {
 
 const mockFiles = {
   '/canvas/packages/translations/lib': ['en.json', 'fr.json', 'es.json'].map(name =>
-    createFakeDirent(name)
+    createFakeDirent(name),
   ),
-  '/canvas/packages': ['canvas-planner', 'canvas-rce']
+  '/canvas/packages': ['canvas-planner', 'canvas-rce'],
 }
 
 fs.promises = {
@@ -39,7 +39,7 @@ fs.promises = {
   mkdir: () => {
     return Promise.resolve()
   },
-  writeFile: jest.fn(() => Promise.resolve())
+  writeFile: jest.fn(() => Promise.resolve()),
 }
 
 module.exports = fs

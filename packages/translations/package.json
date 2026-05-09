@@ -16,7 +16,7 @@
     "lint": "biome lint bin/**/*.js lib/**/*.json"
   },
   "devDependencies": {
-    "jest": "^28",
+    "jest": "^30",
     "@biomejs/biome": "*"
   }
 }
