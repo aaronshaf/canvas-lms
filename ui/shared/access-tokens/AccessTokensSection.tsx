@@ -34,7 +34,6 @@ import {Flex} from '@instructure/ui-flex'
 import {memo} from 'react'
 import {confirmDanger} from '@instructure/platform-instui-bindings'
 import {TruncateWithTooltip} from '@instructure/platform-instui-bindings'
-
 const I18n = createI18nScope('access_tokens')
 
 export type AccessTokensTableProps = {

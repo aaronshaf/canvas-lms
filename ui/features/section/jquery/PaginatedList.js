@@ -199,6 +199,8 @@ export default class PaginatedList {
   // @return String
   // @api private
   noResults() {
-    return this.el.list.append(`<li>${htmlEscape(this.keys.noResults)}</li>`)
+    const li = document.createElement('li')
+    li.textContent = this.keys.noResults
+    return this.el.list[0].appendChild(li)
   }
 }

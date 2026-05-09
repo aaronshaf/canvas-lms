@@ -26,7 +26,6 @@ import {IconOffLine} from '@instructure/ui-icons'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {showFlashError} from '@instructure/platform-alerts'
 import {addFlashNoticeForNextPage} from '@canvas/rails-flash-notifications'
-
 const I18n = createI18nScope('section')
 
 interface UncrosslistFormProps {

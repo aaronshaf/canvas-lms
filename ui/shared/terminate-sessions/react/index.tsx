@@ -26,7 +26,6 @@ import {IconDeactivateUserLine} from '@instructure/ui-icons'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {Flex} from '@instructure/ui-flex'
 import {showFlashError, showFlashSuccess} from '@instructure/platform-alerts'
-import {raw} from '@instructure/html-escape'
 
 const I18n = createI18nScope('terminate_sessions')
 
@@ -95,11 +94,9 @@ export default function TerminateSessions({user}: TerminateSessionsProps) {
           <Flex direction="column" gap="small">
             <Text
               dangerouslySetInnerHTML={{
-                __html: raw(
-                  I18n.t(
-                    'This will terminate all user sessions for *%{userName}*. This includes all browser-based sessions and all access tokens, including manually generated ones and Canvas mobile apps.',
-                    {userName: user.name, wrapper: '<b>$1</b>'},
-                  ),
+                __html: I18n.t(
+                  'This will terminate all user sessions for *%{userName}*. This includes all browser-based sessions and all access tokens, including manually generated ones and Canvas mobile apps.',
+                  {userName: user.name, wrapper: '<b>$1</b>'},
                 ),
               }}
             />

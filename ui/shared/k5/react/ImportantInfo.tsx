@@ -101,7 +101,9 @@ const ImportantInfo: React.FC<ImportantInfoProps> = ({
       )}
       <div
         className="user_content"
-        dangerouslySetInnerHTML={{__html: sanitizeHTML(apiUserContent.convert(infoDetails?.content))}}
+        dangerouslySetInnerHTML={{
+          __html: sanitizeHTML(apiUserContent.convert(infoDetails?.content)),
+        }}
       />
     </>
   )

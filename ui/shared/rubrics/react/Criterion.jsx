@@ -17,7 +17,7 @@
  */
 import React from 'react'
 import PropTypes from 'prop-types'
-import DOMPurify from 'dompurify'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {get, isNil, find} from 'es-toolkit/compat'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {Dialog} from '@instructure/ui-dialog'
@@ -79,8 +79,7 @@ const LongDescriptionDialog = ({open, close, longDescription}) => {
       </Modal.Header>
       <Modal.Body>
         <Text lineHeight="double" wrap="break-word">
-          {/* xsslint safeString.method sanitize */}
-          <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(longDescription)}} />
+          <div dangerouslySetInnerHTML={{__html: sanitizeHTML(longDescription)}} />
         </Text>
       </Modal.Body>
     </Modal>

@@ -60,4 +60,18 @@ describe('ImportantInfo', () => {
     const {getByText} = render(<ImportantInfo {...getProps()} />)
     expect(getByText('Hello class!')).toBeInTheDocument()
   })
+
+  it('sanitizes important-info content before rendering via dangerouslySetInnerHTML', () => {
+    // infoDetails.content goes through apiUserContent.convert (entity
+    // decoding etc.) and then into a dangerouslySetInnerHTML sink. A
+    // backend regression that lets attacker HTML survive into the
+    // response would otherwise re-arm at this client-side sink.
+    // sanitizeHTML at the sink is defense-in-depth.
+    const {container} = render(
+      <ImportantInfo {...getProps({}, {content: '<img src="x" onerror="window.__pwned=1">'})} />,
+    )
+    const img = container.querySelector('img[src="x"]')
+    expect(img).not.toBeNull()
+    expect(img.getAttribute('onerror')).toBeNull()
+  })
 })

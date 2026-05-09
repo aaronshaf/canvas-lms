@@ -124,7 +124,9 @@ $('.remove_federated_attribute').click(function (this: HTMLElement) {
   const $federated_attributes = $attribute_row.closest('.federated_attributes')
   const $canvas_attribute_select = $federated_attributes.find('.add_attribute .canvas_attribute')
   const canvas_attribute_html = $attribute_row.find('.canvas_attribute_name').text()
-  $canvas_attribute_select.append(`<option>${canvas_attribute_html}</option>`)
+  const option = document.createElement('option')
+  option.textContent = canvas_attribute_html
+  $canvas_attribute_select[0].appendChild(option)
   const $next = $attribute_row.nextAll(':visible').first().find('input:visible').first()
   $attribute_row.remove()
   $federated_attributes.find('.add_attribute').show()

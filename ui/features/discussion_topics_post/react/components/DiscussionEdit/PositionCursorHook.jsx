@@ -18,6 +18,7 @@
 
 import React from 'react'
 import * as ReactDOMServer from 'react-dom/server'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const positionCursor = rceRef => {
   // Don't do anything until RCE is initialized
@@ -31,12 +32,17 @@ const positionCursor = rceRef => {
   positionForCreateReply(editor, mentionContainer)
 }
 
-const positionForCreateReply = (editor, mentionContainer) => {
-  // Save the current html
+// Exported for unit tests; not part of the public API.
+export const positionForCreateReply = (editor, mentionContainer) => {
+  // Round-trip the existing innerHTML and append a static sentinel
+  // span. Even though `currentText` is already in the DOM (and was
+  // presumably sanitized when first inserted), the parse->serialize
+  // round-trip can re-arm an mXSS payload, so re-sanitize before
+  // assigning back to innerHTML.
   const currentText = mentionContainer.innerHTML
-  // Inject a element right after the inserted mention
-  mentionContainer.innerHTML =
-    currentText + ReactDOMServer.renderToString(<span className="post_mention" />)
+  mentionContainer.innerHTML = sanitizeHTML(
+    currentText + ReactDOMServer.renderToString(<span className="post_mention" />),
+  )
   // Move cursor to the paragraph
   const target = editor.dom.select('span.post_mention')[0]
   editor.selection.setCursorLocation(target, 0)

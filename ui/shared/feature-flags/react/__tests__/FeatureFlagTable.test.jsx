@@ -92,6 +92,24 @@ describe('feature_flags::FeatureFlagTable', () => {
     expect(queryByText('This does great feature4y things')).toBeInTheDocument()
   })
 
+  it('sanitizes feature.description before injecting via dangerouslySetInnerHTML', () => {
+    // Description is server-rendered HTML; if a backend regression ever
+    // lets an attacker-influenced string flow into it, the unsanitized
+    // sink at the React `dangerouslySetInnerHTML` would fire on every
+    // page load. Defense-in-depth — wrap with @canvas/sanitize-html.
+    const malicious = {
+      ...sampleData.allowedOnFeature,
+      feature: 'malicious_feature',
+      display_name: 'Malicious',
+      autoexpand: true,
+      description: '<img src="x" onerror="window.__pwned=1">',
+    }
+    const {container} = wrapper([malicious], title)
+    const img = container.querySelector('img[src="x"]')
+    expect(img).not.toBeNull()
+    expect(img.getAttribute('onerror')).toBeNull()
+  })
+
   it('updates status pills dynamically', async () => {
     window.ENV.CONTEXT_BASE_URL = '/accounts/1'
     const apiCalled = vi.fn()

@@ -38,8 +38,8 @@ import {
 import ContextModulesPublishMenu from './ContextModulesPublishMenu'
 import {openExternalTool} from '../jquery/utils'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {sanitizeHTML} from '@canvas/sanitize-html'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('context_modules')
 

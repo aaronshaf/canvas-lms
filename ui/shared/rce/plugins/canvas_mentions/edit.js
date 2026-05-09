@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {MARKER_SELECTOR, MARKER_ID, TRIGGER_CHAR} from './constants'
 
 /**
@@ -72,9 +73,11 @@ export function insertMentionFor(user, editor = tinymce.activeEditor) {
 }
 
 /**
- * Removes the trigger char from the editor body
+ * Removes the trigger char from the editor body.
+ *
+ * Exported for unit tests; not part of the public API.
  */
-function removeTriggerChar(editor) {
+export function removeTriggerChar(editor) {
   const markerElem = editor.dom.select(MARKER_SELECTOR)[0]
   const parentElem = markerElem?.parentElement
   // xsslint safeString.identifier TRIGGER_CHAR
@@ -85,7 +88,13 @@ function removeTriggerChar(editor) {
     const {innerHTML} = parentElem
     const triggerIndex = innerHTML.lastIndexOf(triggerMatcher)
 
-    // slice out the trigger char and keep all surrounding content
-    parentElem.innerHTML = innerHTML.slice(0, triggerIndex) + innerHTML.slice(triggerIndex + 1)
+    // slice out the trigger char, sanitize on the way back into innerHTML.
+    // surrounding content is already in the live DOM and presumed
+    // already-sanitized at insertion, but parse->serialize round-trip
+    // can re-arm an mxss bypass against the prior sanitization, so
+    // re-sanitize here.
+    parentElem.innerHTML = sanitizeHTML(
+      innerHTML.slice(0, triggerIndex) + innerHTML.slice(triggerIndex + 1),
+    )
   }
 }

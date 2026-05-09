@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import DOMPurify from 'dompurify'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Heading} from '@instructure/ui-heading'
 import {Responsive} from '@instructure/ui-responsive'
@@ -80,8 +80,7 @@ export const OutcomePopoverDisplay = ({outcome}: OutcomePopoverDisplayProps) => 
             <View
               as="div"
               data-testid="outcome-popover-display-content-description"
-              // xsslint safeString.method sanitize
-              dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(outcome.description ?? '')}}
+              dangerouslySetInnerHTML={{__html: sanitizeHTML(outcome.description ?? '')}}
             />
             <OutcomeContextTag
               outcomeContextType={outcome.contextType ?? undefined}

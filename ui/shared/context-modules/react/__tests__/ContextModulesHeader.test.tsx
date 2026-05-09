@@ -291,6 +291,42 @@ describe('ContextModulesHeader', () => {
       expect(getByText(defaultProps.moreMenu.menuTools.items[0].title)).toBeInTheDocument()
     })
 
+    it('sanitizes external-tool icon HTML rendered via dangerouslySetInnerHTML', async () => {
+      // tool.icon is LTI-vendor-supplied HTML (typically an <img> tag).
+      // A compromised vendor could ship an <img onerror=...> payload;
+      // sanitizeHTML strips the event handler at the render boundary.
+      const props = {
+        ...defaultProps,
+        moreMenu: {
+          ...defaultProps.moreMenu,
+          exportCourseContent: {
+            ...defaultProps.moreMenu.exportCourseContent,
+            visible: false,
+          },
+          menuTools: {
+            visible: true,
+            items: [
+              {
+                href: '#evil',
+                'data-tool-id': 99,
+                'data-tool-launch-type': null,
+                title: 'Hostile Tool',
+                icon: '<img src="x" onerror="window.__pwned=1">',
+              },
+            ],
+          },
+        },
+      }
+      // @ts-expect-error
+      const {getByRole, container} = render(<ContextModulesHeader {...props} />)
+      await userEvent.click(getByRole('button', {name: 'More'}))
+      // Find the rendered tool icon img. Wherever it lives in the menu,
+      // it must NOT carry an onerror after sanitization.
+      const img = container.ownerDocument.querySelector('img[src="x"]')
+      expect(img).not.toBeNull()
+      expect(img!.getAttribute('onerror')).toBeNull()
+    })
+
     it('"Export Course Content" is visible outside "More Menu"', () => {
       const props = {
         ...defaultProps,

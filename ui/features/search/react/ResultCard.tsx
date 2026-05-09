@@ -36,6 +36,7 @@ import {fudgeDateForProfileTimezone} from '@canvas/datetime/date-functions'
 import {addSearchHighlighting} from './searchHighlighting'
 import {Link} from '@instructure/ui-link'
 import {List} from '@instructure/ui-list'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('SmartSearch')
 
@@ -175,9 +176,10 @@ export default function ResultCard(props: ResultCardProps): React.JSX.Element {
             key="result-body"
             variant="content"
             wrap="break-word"
-            // xsslint safeString.function addSearchHighlighting
             dangerouslySetInnerHTML={{
-              __html: addSearchHighlighting(props.searchTerm, htmlEscape(body)),
+              __html: sanitizeHTML(
+                addSearchHighlighting(props.searchTerm, htmlEscape(body).toString()),
+              ),
             }}
           />
           {props.result.modules && renderModuleList(props.result.modules)}

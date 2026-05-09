@@ -17,7 +17,7 @@
  */
 import React from 'react'
 import type {ReactNode} from 'react'
-import DOMPurify from 'dompurify'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {Text} from '@instructure/ui-text'
@@ -143,8 +143,7 @@ const commentElement = (assessment: Assessment) => {
           {I18n.t('Comments')}
         </Text>
         {assessment.comments_html ? (
-          // xsslint safeString.method sanitize
-          <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(assessment.comments_html)}} />
+          <div dangerouslySetInnerHTML={{__html: sanitizeHTML(assessment.comments_html)}} />
         ) : (
           <div>{assessment.comments}</div>
         )}

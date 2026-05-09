@@ -15,7 +15,8 @@
  * You should have received a copy of the GNU Affero General Public License along
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import {insert, insertMentionFor, replace} from '../edit'
+import {insert, insertMentionFor, removeTriggerChar, replace} from '../edit'
+import {MARKER_ID, TRIGGER_CHAR} from '../constants'
 import FakeEditor from './FakeEditor'
 
 let editor
@@ -118,5 +119,54 @@ describe('insertMentionFor()', () => {
     subject()
     expect(editor.getContent()).not.toContain('@<')
     expect(editor.getContent().match(/@/g)).toHaveLength(1)
+  })
+})
+
+describe('removeTriggerChar() — sanitization round-trip', () => {
+  // The function reads parentElem.innerHTML, drops the trigger char by
+  // string-slicing, then writes the result back. The surrounding content
+  // is assumed already-sanitized at original insertion, but the parse->
+  // serialize round-trip can re-arm an mxss bypass — sanitize on the
+  // way out closes that path.
+  it('strips event handler attributes that survive the round-trip', () => {
+    // Build a parent element containing:
+    //   - a benign sibling carrying an onerror payload (the mxss surface)
+    //   - the trigger char + marker span (what the function targets)
+    const parent = document.createElement('div')
+    parent.innerHTML =
+      `<img src="x" onerror="window.__pwned=1">` + `${TRIGGER_CHAR}<span id="${MARKER_ID}"></span>`
+    document.body.appendChild(parent)
+    // Sanity: the onerror is in DOM before the function runs.
+    expect(parent.querySelector('img').getAttribute('onerror')).toBe('window.__pwned=1')
+
+    const editorMock = {
+      dom: {
+        select: selector => Array.from(parent.querySelectorAll(selector)),
+      },
+    }
+    removeTriggerChar(editorMock)
+
+    const img = parent.querySelector('img')
+    expect(img).not.toBeNull()
+    expect(img.getAttribute('onerror')).toBeNull()
+    document.body.removeChild(parent)
+  })
+
+  it('strips inline <script> tags from the round-trip', () => {
+    const parent = document.createElement('div')
+    parent.innerHTML =
+      `<script>window.__pwned=1</script>` + `${TRIGGER_CHAR}<span id="${MARKER_ID}"></span>`
+    document.body.appendChild(parent)
+    expect(parent.querySelector('script')).not.toBeNull()
+
+    const editorMock = {
+      dom: {
+        select: selector => Array.from(parent.querySelectorAll(selector)),
+      },
+    }
+    removeTriggerChar(editorMock)
+
+    expect(parent.querySelector('script')).toBeNull()
+    document.body.removeChild(parent)
   })
 })

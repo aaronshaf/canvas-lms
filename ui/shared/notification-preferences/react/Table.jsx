@@ -23,12 +23,12 @@ import React, {useEffect, useState} from 'react'
 
 import {Checkbox} from '@instructure/ui-checkbox'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Table} from '@instructure/ui-table'
 import {Text} from '@instructure/ui-text'
 import theme from '@instructure/canvas-theme'
 import {TruncateText} from '@instructure/ui-truncate-text'
 import {View} from '@instructure/ui-view'
-import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('notification_preferences')
 

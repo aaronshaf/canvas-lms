@@ -26,6 +26,7 @@ import StatusPill from './StatusPill'
 import FeatureFlagButton from './FeatureFlagButton'
 import {isEnabled, isLocked, doesAllowDefaults} from './util'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import EarlyAccessModal from './EarlyAccessModal'
 
 const I18n = createI18nScope('feature_flags')
@@ -277,8 +278,7 @@ const FeatureFlagRow = React.memo(
       <Row key={feature.feature} data-testid="ff-table-row">
         <Cell>
           <ToggleDetails summary={feature.display_name} defaultExpanded={feature.autoexpand}>
-            {/* xsslint safeString.property description */}
-            <div dangerouslySetInnerHTML={{__html: feature.description}} />
+            <div dangerouslySetInnerHTML={{__html: sanitizeHTML(feature.description)}} />
           </ToggleDetails>
         </Cell>
         <Cell>

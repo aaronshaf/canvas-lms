@@ -32,12 +32,12 @@ import InheritedTable from './InheritedTable'
 import DeveloperKey from './DeveloperKey'
 import NewKeyModal from './NewKeyModal'
 import {showFlashAlert, showFlashSuccess} from '@instructure/platform-alerts'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import DateHelper from '@canvas/datetime/dateHelper'
 import {DynamicRegistrationModal} from './dynamic_registration/DynamicRegistrationModal'
 import {Flex} from '@instructure/ui-flex'
 import {showConfirmationDialog} from '@canvas/dialogs/react/ConfirmationDialog'
 import {TextInput} from '@instructure/ui-text-input'
-import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('react_developer_keys')
 /**

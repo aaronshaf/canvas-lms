@@ -1488,9 +1488,11 @@ function renderSubmissionCommentsDownloadLink(submission: HistoricalSubmission) 
   if (isAnonymous) {
     mountPoint.innerHTML = ''
   } else {
-    mountPoint.innerHTML = `<a href="/submissions/${htmlEscape(
-      submission.id || '',
-    )}/comments.pdf" target="_blank">${htmlEscape(I18n.t('Download Submission Comments'))}</a>`
+    const a = document.createElement('a')
+    a.href = sanitizeUrl(`/submissions/${submission.id || ''}/comments.pdf`)
+    a.target = '_blank'
+    a.textContent = I18n.t('Download Submission Comments')
+    mountPoint.replaceChildren(a)
   }
   return mountPoint
 }

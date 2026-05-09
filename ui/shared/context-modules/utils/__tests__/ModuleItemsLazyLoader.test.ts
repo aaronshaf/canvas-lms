@@ -742,4 +742,48 @@ describe('fetchModuleItems utility', () => {
       })
     })
   })
+
+  describe('renderResult sanitization', () => {
+    // Server-rendered module-items HTML lands in the DOM via
+    // insertAdjacentHTML. The shim wraps the input through
+    // @canvas/sanitize-html so a Flavor-2 backend regression that
+    // entity-decodes attacker content into the response cannot fire
+    // event handlers or scripts at the sink. Defense-in-depth on top
+    // of the server-side allowlist.
+    const sanitizationModuleId = '9999'
+
+    beforeEach(() => {
+      // beforeEach above resets document.body and only recreates the
+      // mock modules listed in `modules`. Add our own mock module so
+      // renderResult has something to insertAdjacentHTML into.
+      createMockModule(sanitizationModuleId)
+    })
+
+    it('strips event handler attributes injected via the items HTML response', () => {
+      const malicious = '<ul><li id="21"><img src="x" onerror="window.__pwned=1"></li></ul>'
+
+      moduleItemsLazyLoader.renderResult(sanitizationModuleId, malicious)
+
+      const container = document.querySelector(
+        `#context_module_content_${sanitizationModuleId}`,
+      ) as HTMLElement | null
+      expect(container).not.toBeNull()
+      const img = container!.querySelector('img')
+      expect(img).not.toBeNull()
+      expect(img!.getAttribute('onerror')).toBeNull()
+    })
+
+    it('strips inline <script> tags from the items HTML response', () => {
+      const malicious = '<ul><li id="21">a</li><script>window.__pwned=1</script></ul>'
+
+      moduleItemsLazyLoader.renderResult(sanitizationModuleId, malicious)
+
+      const container = document.querySelector(
+        `#context_module_content_${sanitizationModuleId}`,
+      ) as HTMLElement | null
+      expect(container).not.toBeNull()
+      expect(container!.querySelector('script')).toBeNull()
+      expect(container!.querySelector('li[id="21"]')).not.toBeNull()
+    })
+  })
 })
