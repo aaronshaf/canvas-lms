@@ -63,6 +63,8 @@ export const SpeedGraderDiscussionsNavigation2 = ({studentId}: Props) => {
 
   const onMessage = useCallback(
     (e: MessageEvent) => {
+      // reject messages from cross-origin frames
+      if (e.origin !== window.location.origin) return
       const message = e.data
       switch (message.subject) {
         case 'DT.previousStudentReplyTab': {
