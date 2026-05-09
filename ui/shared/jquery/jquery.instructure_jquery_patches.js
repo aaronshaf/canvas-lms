@@ -18,6 +18,7 @@
 
 import $ from 'jquery'
 import 'jquery-migrate'
+import './jquery.htmlSanitizeShim'
 import {getCookie} from '@instructure/platform-get-cookie'
 
 $.migrateMute = true
