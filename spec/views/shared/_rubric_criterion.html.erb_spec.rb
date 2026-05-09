@@ -25,14 +25,16 @@ describe "shared/_rubric_criterion" do
   let_once(:student) { student_in_course(course:, active_all: true).user }
   let_once(:rubric) { rubric_model(context: course) }
 
+  let(:long_description_text) { "" }
+  let(:learning_outcome_id) { nil }
   let(:criterion) do
     Rubric::Criterion.new(
       "Test criterion",
-      "",
+      long_description_text,
       5.0,
       "crit1",
       false,
-      nil,
+      learning_outcome_id,
       nil,
       false,
       [Rubric::Rating.new("Full", "", 5.0, "rat1", "crit1", nil, nil)],
@@ -87,6 +89,47 @@ describe "shared/_rubric_criterion" do
     it "renders nothing when friendly_description is blank" do
       render_criterion(friendly_description: "")
       expect(html.css(".long_description").text.strip).to be_empty
+    end
+  end
+
+  describe "long_description sanitization (non-outcome criterion)" do
+    before { allow(course).to receive(:user_is_student?).and_return(false) }
+
+    context "with a script payload" do
+      let(:long_description_text) { "<script>alert('xss')</script>safe" }
+
+      it "strips script tags" do
+        render_criterion
+        expect(html.to_s).not_to include("<script>")
+        expect(html.css(".long_description").text).to include("safe")
+      end
+    end
+
+    context "with an onerror payload" do
+      let(:long_description_text) { '<img src="x" onerror="alert(1)">' }
+
+      it "strips event handler attributes" do
+        render_criterion
+        expect(html.to_s).not_to include("onerror")
+      end
+    end
+
+    context "with a javascript: href" do
+      let(:long_description_text) { '<a href="javascript:alert(1)">click</a>' }
+
+      it "strips javascript: schemes" do
+        render_criterion
+        expect(html.to_s).not_to include("javascript:")
+      end
+    end
+
+    context "with safe formatting markup" do
+      let(:long_description_text) { "<p>Hello <strong>world</strong></p>" }
+
+      it "preserves benign HTML" do
+        render_criterion
+        expect(html.css(".long_description strong").text).to eq("world")
+      end
     end
   end
 end

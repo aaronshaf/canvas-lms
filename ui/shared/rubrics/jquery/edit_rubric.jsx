@@ -666,7 +666,11 @@ const rubricEditing = {
       criterion.criterion_id = criterion.id
       const $criterion = $rubric.find('.criterion.blank:first').clone(true).show().removeAttr('id')
       $criterion.removeClass('blank')
-      $criterion.fillTemplateData({data: criterion, htmlValues: ['long_description']})
+      const sanitizedCriterion = {
+        ...criterion,
+        long_description: sanitizeHTML(criterion.long_description),
+      }
+      $criterion.fillTemplateData({data: sanitizedCriterion, htmlValues: ['long_description']})
       $criterion.find('.long_description_holder').toggleClass('empty', !criterion.long_description)
       $criterion
         .find('.criterion_use_range')

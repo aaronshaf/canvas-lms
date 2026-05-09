@@ -22,6 +22,7 @@
 // HTML through sanitizeHTML (or use DOMParser) so a future refactor that
 // swaps .text() for .html() does not silently introduce stored XSS.
 
+import $ from 'jquery'
 import 'jquery-migrate'
 import rubricEditing from '../edit_rubric'
 import {vi} from 'vitest'
@@ -129,5 +130,90 @@ describe('rubricEditing.onFindOutcome — XSS regression (defense-in-depth)', ()
     const desc = document.querySelector('.criterion:not(.blank) .long_description')
     expect(desc).not.toBeNull()
     expect(desc.textContent).toContain('Demonstrates mastery of subject.')
+  })
+})
+
+// XSS regression coverage for rubricEditing.updateRubric — criterion data
+// returned from the server (originally CC-import-authored) is fed through
+// fillTemplateData with htmlValues=['long_description'], which writes the
+// raw value via jQuery .html(). Backend sanitization is the primary
+// defense; this is the last-line check at the DOM sink.
+
+const buildUpdateRubricFixture = () => {
+  const html = `
+    <div id="rubric_1" class="rubric_holder rubric">
+      <div class="rubric_title"><span class="title"></span></div>
+      <a class="edit_rubric_url" href="/rubrics/{{ rubric_id }}/edit"></a>
+      <a class="edit_rubric_link" href="#"></a>
+      <a class="delete_rubric_url" href="/rubric_associations/{{ association_id }}"></a>
+      <a class="delete_rubric_link" href="#"></a>
+      <a class="find_rubric_link" href="#"></a>
+      <table class="rubric_table">
+        <tbody>
+          <tr class="criterion blank">
+            <td>
+              <div class="long_description"></div>
+              <div class="long_description_holder"></div>
+              <div class="hide_when_learning_outcome"></div>
+              <input class="criterion_use_range" type="checkbox" />
+              <span class="outcome_sr_content"></span>
+              <a class="long_description_link"></a>
+              <div class="ratings">
+                <span class="rating"><a class="add_rating_link"></a></span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`
+  document.body.insertAdjacentHTML('beforeend', html)
+}
+
+const fakeRubric = longDescription => ({
+  id: 1,
+  rubric_association_id: 9,
+  permissions: {update_association: true, delete_association: true},
+  criteria: [
+    {
+      id: 'crit1',
+      points: 5,
+      ratings: [{id: 'rat1', points: 5, description: 'Full', long_description: ''}],
+      long_description: longDescription,
+    },
+  ],
+})
+
+describe('rubricEditing.updateRubric — XSS regression (defense-in-depth)', () => {
+  beforeEach(() => {
+    delete window.__rubric_xss_fired
+    buildUpdateRubricFixture()
+  })
+
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  PAYLOADS.forEach(payload => {
+    it(`renders ${payload.slice(0, 30)}… with no executable handlers`, () => {
+      rubricEditing.updateRubric($('#rubric_1'), fakeRubric(payload))
+      const desc = document.querySelector('.criterion:not(.blank) .long_description')
+      expect(desc).not.toBeNull()
+      expect(desc.querySelector('script')).toBeNull()
+      desc.querySelectorAll('*').forEach(el => {
+        el.getAttributeNames().forEach(name => {
+          expect(name).not.toMatch(/^on[a-z]+$/i)
+        })
+        const href = el.getAttribute('href') || ''
+        expect(href.toLowerCase()).not.toContain('javascript:')
+      })
+    })
+  })
+
+  it('preserves benign HTML formatting in long_description', () => {
+    rubricEditing.updateRubric($('#rubric_1'), fakeRubric('<p>Hello <strong>world</strong></p>'))
+    const desc = document.querySelector('.criterion:not(.blank) .long_description')
+    expect(desc).not.toBeNull()
+    expect(desc.querySelector('strong')).not.toBeNull()
+    expect(desc.querySelector('strong').textContent).toBe('world')
   })
 })

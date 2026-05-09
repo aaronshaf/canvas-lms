@@ -79,7 +79,7 @@ module Importers
         item.free_form_criterion_comments = hash[:free_form_criterion_comments] unless hash[:free_form_criterion_comments].nil?
         item.rating_order = hash[:rating_order] if hash[:rating_order].present?
 
-        item.data = hash[:data]
+        item.data = sanitize_criteria_html(hash[:data])
         item.data.each do |crit|
           if crit[:learning_outcome_migration_id].present?
             if migration.respond_to?(:outcome_to_id_map) && (id = migration.outcome_to_id_map[crit[:learning_outcome_migration_id]])
@@ -113,6 +113,33 @@ module Importers
       track_metrics(migration)
 
       item
+    end
+
+    # CC packages are authored outside Canvas — sanitize HTML before it
+    # reaches the rubric data JSONB so render paths can trust the field.
+    def self.sanitize_criteria_html(criteria)
+      return criteria unless criteria.is_a?(Array)
+
+      criteria.map do |crit|
+        next crit unless crit.is_a?(Hash)
+
+        crit = crit.with_indifferent_access
+        if crit[:long_description].is_a?(String)
+          crit[:long_description] = Sanitize.clean(crit[:long_description], CanvasSanitize::SANITIZE)
+        end
+        if crit[:ratings].is_a?(Array)
+          crit[:ratings] = crit[:ratings].map do |rating|
+            next rating unless rating.is_a?(Hash)
+
+            rating = rating.with_indifferent_access
+            if rating[:long_description].is_a?(String)
+              rating[:long_description] = Sanitize.clean(rating[:long_description], CanvasSanitize::SANITIZE)
+            end
+            rating
+          end
+        end
+        crit
+      end
     end
 
     def self.process_rubric_association(context, migration, item)

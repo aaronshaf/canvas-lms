@@ -150,6 +150,93 @@ describe "Importing Rubrics" do
     end
   end
 
+  describe "long_description sanitization" do
+    let(:context) { course_model }
+    let(:migration) do
+      m = double
+      allow(m).to receive(:add_imported_item)
+      allow(m).to receive_messages(context:, migration_settings: {}, cross_institution?: false)
+      m
+    end
+
+    let(:base_hash) do
+      {
+        migration_id: "rubric_xss_1",
+        title: "Rubric",
+        points_possible: 5,
+        rubrics_to_import: { "rubric_xss_1" => true },
+        data: [
+          {
+            description: "Crit",
+            long_description:,
+            points: 5,
+            id: "crit1",
+            ratings: [
+              { description: "Full", long_description: rating_long_description, points: 5, id: "rat1" },
+            ],
+          },
+        ],
+      }
+    end
+
+    let(:rating_long_description) { "" }
+
+    def stored_long_description
+      Rubric.where(migration_id: "rubric_xss_1").first.data.first[:long_description]
+    end
+
+    def stored_rating_long_description
+      Rubric.where(migration_id: "rubric_xss_1").first.data.first[:ratings].first[:long_description]
+    end
+
+    context "with a script payload" do
+      let(:long_description) { "<script>alert('xss')</script>safe text" }
+
+      it "strips the script tag before persisting" do
+        Importers::RubricImporter.import_from_migration(base_hash, migration)
+        expect(stored_long_description).not_to include("<script")
+        expect(stored_long_description).to include("safe text")
+      end
+    end
+
+    context "with an onerror payload" do
+      let(:long_description) { '<img src="x" onerror="alert(1)">' }
+
+      it "strips the event handler attribute" do
+        Importers::RubricImporter.import_from_migration(base_hash, migration)
+        expect(stored_long_description).not_to include("onerror")
+      end
+    end
+
+    context "with a javascript: href" do
+      let(:long_description) { '<a href="javascript:alert(1)">click</a>' }
+
+      it "strips the javascript: scheme" do
+        Importers::RubricImporter.import_from_migration(base_hash, migration)
+        expect(stored_long_description).not_to include("javascript:")
+      end
+    end
+
+    context "with safe formatting markup" do
+      let(:long_description) { "<p>Hello <strong>world</strong></p>" }
+
+      it "preserves benign HTML" do
+        Importers::RubricImporter.import_from_migration(base_hash, migration)
+        expect(stored_long_description).to include("<strong>world</strong>")
+      end
+    end
+
+    context "with a payload nested in a rating" do
+      let(:long_description) { "" }
+      let(:rating_long_description) { '<img src="x" onerror="alert(1)">' }
+
+      it "sanitizes nested rating long_description" do
+        Importers::RubricImporter.import_from_migration(base_hash, migration)
+        expect(stored_rating_long_description).not_to include("onerror")
+      end
+    end
+  end
+
   context "with the account_level_mastery_scales FF" do
     before do
       @data = get_import_data("vista", "rubric")
