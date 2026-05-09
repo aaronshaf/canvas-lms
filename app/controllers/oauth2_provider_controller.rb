@@ -22,7 +22,7 @@ class OAuth2ProviderController < ApplicationController
   rescue_from Canvas::OAuth::RequestError, with: :oauth_error
   protect_from_forgery with: :exception, unless: :skip_csrf?
   before_action :run_login_hooks, only: %i[token]
-  before_action :require_navigation_request, only: %i[accept]
+  before_action :require_navigation_request, only: %i[accept auth]
   skip_before_action :require_reacceptance_of_terms, only: %i[token destroy]
   skip_before_action :require_user, only: %i[accept auth confirm deny token]
 
