@@ -60,6 +60,29 @@ describe OAuthRedirectUriValidationConfig do
     end
   end
 
+  describe ".disallow_implicit_oob_redirect_uri? / .enforce_disallow_implicit_oob_redirect_uri?" do
+    it "both default to false when no config is present" do
+      stub_consul(nil)
+      expect(described_class.disallow_implicit_oob_redirect_uri?).to be false
+      expect(described_class.enforce_disallow_implicit_oob_redirect_uri?).to be false
+    end
+
+    it "returns true when each key is set" do
+      stub_consul(
+        "disallow_implicit_oob_redirect_uri" => true,
+        "enforce_disallow_implicit_oob_redirect_uri" => true
+      )
+      expect(described_class.disallow_implicit_oob_redirect_uri?).to be true
+      expect(described_class.enforce_disallow_implicit_oob_redirect_uri?).to be true
+    end
+
+    it "can enable only the report flag" do
+      stub_consul("disallow_implicit_oob_redirect_uri" => true)
+      expect(described_class.disallow_implicit_oob_redirect_uri?).to be true
+      expect(described_class.enforce_disallow_implicit_oob_redirect_uri?).to be false
+    end
+  end
+
   describe "caching" do
     it "memoizes the config across calls within a process" do
       stub_consul("report" => true)

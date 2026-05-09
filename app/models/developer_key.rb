@@ -184,6 +184,8 @@ class DeveloperKey < ApplicationRecord
 
   def validate_redirect_uris
     uris = redirect_uris&.map do |value|
+      next value if value == Canvas::OAuth::Provider::OAUTH2_OOB_URI
+
       value, _ = CanvasHttp.validate_url(value, allowed_schemes: nil)
       value
     end

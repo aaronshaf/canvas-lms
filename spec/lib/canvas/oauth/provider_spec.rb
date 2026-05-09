@@ -185,6 +185,7 @@ module Canvas::OAuth
         end
 
         it "does not emit on OOB" do
+          stub_matchers(lenient: false, strict: false)
           provider = Provider.new("123", Provider::OAUTH2_OOB_URI)
           expect(InstStatsd::Statsd).not_to receive(:event)
           expect(provider.has_valid_redirect?).to be true
@@ -205,6 +206,7 @@ module Canvas::OAuth
         end
 
         it "still accepts OOB" do
+          stub_matchers(lenient: false, strict: false)
           provider = Provider.new("123", Provider::OAUTH2_OOB_URI)
           expect(provider.has_valid_redirect?).to be true
         end
@@ -221,6 +223,121 @@ module Canvas::OAuth
             hash_including(tags: hash_including(enforce: "true"))
           )
           expect(provider.has_valid_redirect?).to be false
+        end
+      end
+
+      context "with OOB redirect_uri" do
+        let(:provider) { Provider.new("123", Provider::OAUTH2_OOB_URI) }
+        let(:oob_explicitly_registered) { false }
+
+        before do
+          stub_matchers(lenient: false, strict: oob_explicitly_registered)
+        end
+
+        context "with no validation config set" do
+          it "is allowed without reporting" do
+            expect(InstStatsd::Statsd).not_to receive(:event)
+            expect(provider.has_valid_redirect?).to be true
+          end
+        end
+
+        context "with report mode enabled and disallow_implicit_oob_redirect_uri enabled" do
+          before do
+            allow(OAuthRedirectUriValidationConfig).to receive_messages(
+              report?: true,
+              enforce?: false,
+              disallow_implicit_oob_redirect_uri?: true
+            )
+          end
+
+          context "and the key does not have OOB as an explicit redirect_uri" do
+            it "reports the violation and still allows the redirect" do
+              expect(InstStatsd::Statsd).to receive(:event).with(
+                "OAuth Redirect URI Lenient Match",
+                kind_of(String),
+                hash_including(tags: hash_including(enforce: "false"))
+              )
+              expect(provider.has_valid_redirect?).to be true
+            end
+          end
+
+          context "and the key has OOB as an explicit redirect_uri" do
+            let(:oob_explicitly_registered) { true }
+
+            it "does not report and allows the redirect" do
+              expect(InstStatsd::Statsd).not_to receive(:event)
+              expect(provider.has_valid_redirect?).to be true
+            end
+          end
+        end
+
+        context "with disallow_implicit_oob_redirect_uri and enforce enabled" do
+          before do
+            allow(OAuthRedirectUriValidationConfig).to receive_messages(
+              report?: false,
+              enforce?: true,
+              disallow_implicit_oob_redirect_uri?: true
+            )
+          end
+
+          context "and the key does not have OOB as an explicit redirect_uri" do
+            it "rejects the redirect" do
+              expect(provider.has_valid_redirect?).to be false
+            end
+          end
+
+          context "and the key has OOB as an explicit redirect_uri" do
+            let(:oob_explicitly_registered) { true }
+
+            it "allows the redirect" do
+              expect(provider.has_valid_redirect?).to be true
+            end
+          end
+        end
+
+        context "with disallow_implicit_oob_redirect_uri and enforce_disallow_implicit_oob_redirect_uri enabled" do
+          before do
+            allow(OAuthRedirectUriValidationConfig).to receive_messages(
+              report?: false,
+              enforce?: false,
+              disallow_implicit_oob_redirect_uri?: true,
+              enforce_disallow_implicit_oob_redirect_uri?: true
+            )
+          end
+
+          context "and the key does not have OOB as an explicit redirect_uri" do
+            it "rejects the redirect without affecting non-OOB lenient matching" do
+              expect(provider.has_valid_redirect?).to be false
+            end
+
+            it "reports the violation when report mode is also on" do
+              allow(OAuthRedirectUriValidationConfig).to receive(:report?).and_return(true)
+              expect(InstStatsd::Statsd).to receive(:event).with(
+                "OAuth Redirect URI Lenient Match",
+                kind_of(String),
+                hash_including(tags: hash_including(enforce: "true"))
+              )
+              expect(provider.has_valid_redirect?).to be false
+            end
+          end
+
+          context "and the key has OOB as an explicit redirect_uri" do
+            let(:oob_explicitly_registered) { true }
+
+            it "allows the redirect" do
+              expect(provider.has_valid_redirect?).to be true
+            end
+          end
+
+          context "and a non-OOB redirect with only a lenient (subdomain) match is presented" do
+            let(:provider) { Provider.new("123", "http://evil.example.com/x") }
+
+            before { stub_matchers(lenient: true, strict: false) }
+
+            it "allows the lenient match (OOB enforcement does not affect lenient redirects)" do
+              expect(provider.has_valid_redirect?).to be true
+            end
+          end
         end
       end
     end

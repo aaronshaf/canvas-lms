@@ -31,6 +31,14 @@ module OAuthRedirectUriValidationConfig
     !!config["enforce"]
   end
 
+  def self.disallow_implicit_oob_redirect_uri?
+    !!config["disallow_implicit_oob_redirect_uri"]
+  end
+
+  def self.enforce_disallow_implicit_oob_redirect_uri?
+    !!config["enforce_disallow_implicit_oob_redirect_uri"]
+  end
+
   def self.reset!
     @config = nil
   end

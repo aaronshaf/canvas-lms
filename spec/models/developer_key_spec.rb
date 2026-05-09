@@ -1860,6 +1860,12 @@ describe DeveloperKey do
     expect(developer_key_not_saved).to be_valid
   end
 
+  it "allows the OAuth2 OOB URI in redirect_uris" do
+    developer_key_not_saved.redirect_uris = [Canvas::OAuth::Provider::OAUTH2_OOB_URI]
+    expect(developer_key_not_saved).to be_valid
+    expect(developer_key_not_saved.redirect_uris).to eq [Canvas::OAuth::Provider::OAUTH2_OOB_URI]
+  end
+
   it "doesn't allow redirect_uris over 4096 characters" do
     developer_key_not_saved.redirect_uris = ["https://test.example.com/" + ("a" * 4097), "https://example.com"]
     expect(developer_key_not_saved).not_to be_valid
