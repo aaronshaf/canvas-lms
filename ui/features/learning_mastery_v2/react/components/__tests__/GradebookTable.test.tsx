@@ -21,6 +21,7 @@ import {render, screen} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import LMGBContext from '@canvas/outcomes/react/contexts/LMGBContext'
 import {GradebookTable} from '../GradebookTable'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {SortBy, DEFAULT_GRADEBOOK_SETTINGS} from '@canvas/outcomes/react/utils/constants'
 import {MOCK_STUDENTS, MOCK_OUTCOMES, MOCK_ROLLUPS} from '../../__fixtures__/rollups'
 import {useContributingScores} from '@canvas/outcomes/react/hooks/useContributingScores'
@@ -40,7 +41,7 @@ vi.mock('../grid/StudentCellPopover', () => ({
   }) => (
     <>
       <span>{studentName}</span>
-      <a href={studentGradesUrl} data-testid="student-grades-link">
+      <a href={sanitizeUrl(studentGradesUrl)} data-testid="student-grades-link">
         View Mastery Report
       </a>
     </>

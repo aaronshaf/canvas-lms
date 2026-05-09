@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
   "plugins": ["react", "jsx_a11y", "import", "promise", "typescript"],
-  "jsPlugins": ["./config/canvas-copyright.js"],
+  "jsPlugins": ["./config/canvas-copyright.js", "./config/canvas-sanitize-url.js"],
   "env": {
     "browser": true,
     "node": true
@@ -70,7 +70,8 @@
     {
       "files": ["ui/**/*.{js,mjs,ts,jsx,tsx}"],
       "rules": {
-        "canvas-copyright/notice": "error"
+        "canvas-copyright/notice": "error",
+        "canvas-sanitize-url/at-href": "error"
       }
     },
     {

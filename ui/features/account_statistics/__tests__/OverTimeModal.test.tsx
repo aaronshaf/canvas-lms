@@ -23,13 +23,14 @@ import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import {queryClient} from '@instructure/platform-query'
 import {MockedQueryClientProvider} from '@canvas/test-utils/query'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 // Mock the OverTimeGraph component from its separate file
 vi.mock('../OverTimeGraph', () => ({
   default: vi.fn(({name, url}) => (
     <div data-testid="over-time-graph">
       <div>Mocked Graph for {name}</div>
-      <a href={url}>Download CSV</a>
+      <a href={sanitizeUrl(url)}>Download CSV</a>
     </div>
   )),
 }))

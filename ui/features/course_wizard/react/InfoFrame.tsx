@@ -174,7 +174,7 @@ export default function InfoFrame({
       return (
         <a
           ref={callToAction as React.RefObject<HTMLAnchorElement>}
-          href={getHref()}
+          href={sanitizeUrl(getHref())}
           className="Button Button--primary"
           aria-label={`Start task: ${itemShown.title}`}
           aria-describedby="ic-wizard-box__message-text"

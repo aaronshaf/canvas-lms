@@ -22,6 +22,7 @@ import {resetAndGetFilesEnv} from '../../../../utils/filesEnvUtils'
 import {createFilesContexts} from '../../../../fixtures/fileContexts'
 import {windowPathname} from '@canvas/util/globalUtils'
 import Breadcrumbs from '../Breadcrumbs'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {
   FileManagementProvider,
   FileManagementContextProps,
@@ -29,7 +30,7 @@ import {
 import {createMockFileManagementContext} from '../../../__tests__/createMockContext'
 
 vi.mock('@canvas/util/globalUtils', async () => ({
-  ...await vi.importActual('@canvas/util/globalUtils'),
+  ...(await vi.importActual('@canvas/util/globalUtils')),
   windowPathname: vi.fn(),
 }))
 
@@ -126,7 +127,7 @@ const renderComponent = (props = {}, context: Partial<FileManagementContextProps
 }
 
 vi.mock('react-router-dom', () => ({
-  Link: (props: any) => <a href={props.to}>{props.children}</a>,
+  Link: (props: any) => <a href={sanitizeUrl(props.to)}>{props.children}</a>,
 }))
 
 describe('Breadcrumbs', () => {
