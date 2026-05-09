@@ -22,6 +22,7 @@ import {FormMessage} from '@instructure/ui-form-field/types/FormPropTypes'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('assignments_similarity_pledge')
 
@@ -130,7 +131,7 @@ const SimilarityPledge = ({
       {comments && (
         <Text
           as="p"
-          dangerouslySetInnerHTML={{__html: comments}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(comments)}}
           data-testid="similarity-pledge-comments"
           size="small"
         />
