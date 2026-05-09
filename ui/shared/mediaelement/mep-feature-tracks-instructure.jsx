@@ -35,6 +35,7 @@ import {render} from '@canvas/react'
 import InheritedCaptionTooltip from './InheritedCaptionTooltip'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {languageCodes} from './mediaLanguageCodes'
+import {sanitizeCaption} from './captionSanitizer'
 
 const I18n = createI18nScope('mepfeaturetracksinstructure')
 ;(function ($) {
@@ -613,38 +614,7 @@ const I18n = createI18nScope('mepfeaturetracksinstructure')
       }
     },
     sanitize(html) {
-      const parser = new DOMParser()
-      const doc = parser.parseFromString(html, 'text/html')
-
-      // Remove all nodes except those that are whitelisted
-      const elementWhitelist = ['i', 'b', 'u', 'v', 'c', 'ruby', 'rt', 'lang', 'link']
-      let elements = Array.from(doc.body.children || [])
-      while (elements.length) {
-        const node = elements.shift()
-        if (elementWhitelist.includes(node.tagName.toLowerCase())) {
-          elements = elements.concat(Array.from(node.children || []))
-        } else {
-          node.parentNode.removeChild(node)
-        }
-      }
-
-      // Loop the elements and remove anything that contains value="javascript:" or an `on*` attribute
-      // (`onerror`, `onclick`, etc.)
-      // also remove any style or data-* attributes
-      const allElements = doc.body.getElementsByTagName('*')
-      for (let i = 0, n = allElements.length; i < n; i++) {
-        const attributesObj = allElements[i].attributes,
-          attributes = Array.prototype.slice.call(attributesObj)
-        for (let j = 0, total = attributes.length; j < total; j++) {
-          if (attributes[j].name.startsWith('on') || attributes[j].value.startsWith('javascript')) {
-            allElements[i].parentNode.removeChild(allElements[i])
-          } else if (attributes[j].name === 'style' || attributes[j].name.startsWith('data-')) {
-            allElements[i].removeAttribute(attributes[j].name)
-          }
-        }
-      }
-
-      return doc.body.innerHTML
+      return sanitizeCaption(html)
     },
     displayCaptions() {
       if (typeof this.tracks === 'undefined') return
@@ -818,7 +788,7 @@ const I18n = createI18nScope('mepfeaturetracksinstructure')
   mejs.TrackFormatParser = {
     webvtt: {
       pattern_timecode:
-        /^((?:[0-9]{1,2}:)?[0-9]{2}:[0-9]{2}([,.][0-9]{1,3})?) --\> ((?:[0-9]{1,2}:)?[0-9]{2}:[0-9]{2}([,.][0-9]{3})?)(.*)$/,
+        /^((?:[0-9]{1,2}:)?[0-9]{2}:[0-9]{2}([,.][0-9]{1,3})?) --> ((?:[0-9]{1,2}:)?[0-9]{2}:[0-9]{2}([,.][0-9]{3})?)(.*)$/,
 
       parse(trackText) {
         let i = 0,
@@ -843,7 +813,7 @@ const I18n = createI18nScope('mepfeaturetracksinstructure')
               i++
             }
             text = $.trim(text).replace(
-              /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi,
+              /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi,
               "<a href='$1' target='_blank'>$1</a>",
             )
             // Text is in a different array so I can use .join
@@ -910,7 +880,7 @@ const I18n = createI18nScope('mepfeaturetracksinstructure')
           if (_temp_times.start === 0) _temp_times.start = 0.2
           entries.times.push(_temp_times)
           text = $.trim(lines.eq(i).html()).replace(
-            /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi,
+            /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi,
             "<a href='$1' target='_blank'>$1</a>",
           )
           entries.text.push(text)
