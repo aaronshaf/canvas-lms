@@ -18,6 +18,7 @@
 
 import React from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 import {Heading} from '@instructure/ui-heading'
 import {Flex} from '@instructure/ui-flex'
@@ -100,9 +101,7 @@ const ImportantInfo: React.FC<ImportantInfoProps> = ({
       )}
       <div
         className="user_content"
-        /* html sanitized by server */
-        // xsslint safeString.method convert
-        dangerouslySetInnerHTML={{__html: apiUserContent.convert(infoDetails?.content)}}
+        dangerouslySetInnerHTML={{__html: sanitizeHTML(apiUserContent.convert(infoDetails?.content))}}
       />
     </>
   )
