@@ -17,7 +17,7 @@
  */
 
 const {resolve, join} = require('path')
-const ReactRefreshRspackPlugin = require('@rspack/plugin-react-refresh')
+const {ReactRefreshRspackPlugin} = require('@rspack/plugin-react-refresh')
 
 // determines which folder public assets are compiled to
 const webpackPublicPath = require('./webpackPublicPath')
@@ -182,7 +182,6 @@ module.exports = {
     modules: [resolve(canvasDir, 'public/javascripts'), 'node_modules'],
 
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.graphql'],
-
   },
   module: {
     parser: {
