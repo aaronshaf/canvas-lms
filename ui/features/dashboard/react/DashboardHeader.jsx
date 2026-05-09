@@ -47,6 +47,7 @@ import {Button} from '@instructure/ui-buttons'
 import {dateString, datetimeString, timeString} from '@canvas/datetime/date-functions'
 import {toggleDashboardView} from '@canvas/dashboard-toggle/utils/dashboardToggle'
 import {LearningAgentButton} from '@canvas/learning-agent'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('dashboard')
 
@@ -183,9 +184,7 @@ class DashboardHeader extends React.Component {
     $dashboardActivity.show().disableWhileLoading(
       Promise.all([promiseToGetCode, promiseToGetHtml])
         .then(([{default: DashboardView}, axiosResponse]) => {
-          // xsslint safeString.identifier axiosResponse
-          // xsslint safeString.property data
-          $dashboardActivity.html(axiosResponse.data)
+          $dashboardActivity.html(sanitizeHTML(axiosResponse.data))
           this.streamItemDashboard = new DashboardView()
         })
         .catch(showFlashError(I18n.t('Failed to load recent activity'))),
