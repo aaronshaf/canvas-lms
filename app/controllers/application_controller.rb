@@ -1339,6 +1339,11 @@ class ApplicationController < ActionController::Base
   #   render
   # end
   def authorized_action(object, actor, rights, all_rights: false)
+    if object.nil?
+      render_unauthorized_action
+      return false
+    end
+
     can_do = object.send(all_rights ? :grants_all_rights? : :grants_any_right?, actor, session, *Array(rights), with_justifications: true)
     unless can_do.success?
       if can_do.justifications.present?

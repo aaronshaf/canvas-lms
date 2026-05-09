@@ -307,6 +307,33 @@ describe AdheresToPolicy::InstanceMethods do
         expect(reasonless_failure.justifications.length).to eq(0)
       end
     end
+
+    context "with multiple justifications" do
+      let(:actor_class) do
+        Class.new do
+          extend AdheresToPolicy::ClassMethods
+
+          set_policy do
+            given { |actor| actor == "allowed actor" || AdheresToPolicy::JustifiedFailures.new([AdheresToPolicy::JustifiedFailure.new(:wrong_actor)]) }
+            can :read
+
+            given { |actor| actor == "allowed actor" }
+            can :read_more
+          end
+        end
+      end
+
+      it "returns detailed information if requested and denied" do
+        non_context = actor_class.new
+        expect(non_context.grants_any_right?("allowed actor", :read, :read_more, with_justifications: true).success?).to be true
+        reasoned_failure = non_context.grants_any_right?("disallowed actor", :read, :read_more, with_justifications: true)
+        expect(reasoned_failure.success?).to be false
+        expect(reasoned_failure.justifications.first.justification).to eq(:wrong_actor)
+        reasonless_failure = non_context.grants_any_right?("disallowed actor", :read_more, with_justifications: true)
+        expect(reasonless_failure.success?).to be false
+        expect(reasonless_failure.justifications.length).to eq(0)
+      end
+    end
   end
 
   context "grants_all_rights?" do

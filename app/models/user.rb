@@ -1405,13 +1405,13 @@ class User < ApplicationRecord
   def check_accounts_right?(user, sought_right)
     return false unless user && sought_right
 
-    check_accounts(user) { |account| account.grants_right?(user, sought_right) }
+    check_accounts(user) { |account| account.grants_right?(user, sought_right, with_justifications: true) }
   end
 
   def check_accounts_any_right?(user, *sought_rights)
     return false unless user && sought_rights.any?
 
-    check_accounts(user) { |account| account.grants_any_right?(user, *sought_rights) }
+    check_accounts(user) { |account| account.grants_any_right?(user, *sought_rights, with_justifications: true) } == true
   end
 
   def check_accounts(user, &)
@@ -1433,21 +1433,30 @@ class User < ApplicationRecord
       end
 
     common_shards = associated_shards & user.associated_shards
-    search_method = lambda do |shard|
+    account_list = lambda do |shard|
       # new users with creation pending enrollments don't have account associations
       if accounts_to_search.shard(shard).empty? && common_shards.length == 1 && !unavailable?
-        yield(account)
+        [account]
       else
-        accounts_to_search.shard(shard).any?(&)
+        accounts_to_search.shard(shard)
       end
     end
+    justified_failures = []
     # search shards the two users have in common first, since they're most likely
-    return true if common_shards.any?(&search_method)
-    # now do an exhaustive search, since it's possible to have admin permissions for accounts
+    # then do an exhaustive search, since it's possible to have admin permissions for accounts
     # you're not associated with
-    return true if (associated_shards - common_shards).any?(&search_method)
+    sorted_shards = common_shards + (associated_shards - common_shards)
+    sorted_shards.each do |s|
+      account_list.call(s).each do |a|
+        res = yield(a)
+        # Short circuit on success
+        return true if res.success?
 
-    false
+        justified_failures << res if res.is_a?(AdheresToPolicy::JustifiedFailures)
+      end
+    end
+
+    justified_failures.empty? ? false : AdheresToPolicy::JustifiedFailures.new(justified_failures.map(&:justifications).flatten.uniq)
   end
 
   def active_merged_into_user
@@ -1544,7 +1553,11 @@ class User < ApplicationRecord
     can :read_email_addresses
 
     given do |user|
-      check_accounts_right?(user, :manage_user_logins) && adminable_accounts.select(&:root_account?).all? { |a| has_subset_of_account_permissions?(user, a) }
+      can_manage_logins = check_accounts_right?(user, :manage_user_logins)
+      # Explicit truthy check because can_manage_logins can be a JustifiedFailures
+      next can_manage_logins unless can_manage_logins == true
+
+      adminable_accounts.select(&:root_account?).all? { |a| has_subset_of_account_permissions?(user, a) }
     end
     can :manage_user_details and can :rename and can :update_avatar and can :remove_avatar and
       can :manage_feature_flags and can :view_feature_flags and can :update_profile

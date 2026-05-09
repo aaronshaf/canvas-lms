@@ -1378,7 +1378,7 @@ class UsersController < ApplicationController
       @context_account = @context.is_a?(Account) ? @context : @domain_root_account
       scope = (value_to_boolean(params[:include_deleted_users]) && @context.is_a?(Account)) ? @context.pseudonym_users : (@context&.all_users || User)
       @user = api_find_all(scope, [params[:id]]).first
-      return render_unauthorized_action unless @user&.grants_right?(@current_user, session, :read_full_profile)
+      return unless authorized_action(@user, @current_user, :read_full_profile)
 
       @context ||= @user
 

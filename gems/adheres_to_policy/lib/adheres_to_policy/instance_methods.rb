@@ -293,6 +293,11 @@ module AdheresToPolicy
             condition_applies = false
           end
 
+          if condition_applies.is_a?(JustifiedFailures)
+            failure_justifications += condition_applies.justifications
+            condition_applies = false
+          end
+
           if condition_applies
             # Since the condition is true we can loop through all the rights
             # that belong to it and cache them.  This will short circut the above
