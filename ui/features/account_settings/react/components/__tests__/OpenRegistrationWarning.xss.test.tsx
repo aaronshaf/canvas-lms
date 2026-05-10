@@ -99,4 +99,15 @@ describe('OpenRegistrationWarning — XSS regression', () => {
     expect(loginAnchor).toBeDefined()
     expectNoEventHandlers(baseElement as HTMLElement)
   })
+
+  it('escapes a quote in loginUrl at the wrapper interpolation site', () => {
+    // Pre-sink hardening: the wrapper template now html-escapes loginUrl so a
+    // stray `"` cannot break out of the href attribute even before sanitizeHTML
+    // runs. The single rendered <a> should still contain the (now-escaped)
+    // payload as one href value, not as multiple attributes.
+    const {baseElement} = render(<OpenRegistrationWarning loginUrl={'a"b'} closeModal={() => {}} />)
+    const anchors = Array.from(baseElement.querySelectorAll('a'))
+    const loginAnchor = anchors.find(a => a.getAttribute('href')?.includes('a'))
+    expect(loginAnchor?.getAttribute('href')).toBe('a"b')
+  })
 })

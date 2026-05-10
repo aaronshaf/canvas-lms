@@ -121,8 +121,7 @@ function renderStartContainer(options: {
   if (options.statusIcon) {
     const title = htmlEscape(options.statusIcon.title)
     // xsslint safeString.identifier title
-    // xsslint safeString.property iconUrl
-    content += `<div class="Grid__GradeCell__StatusIcon"><img src="${options.statusIcon.iconUrl}" alt="" title="${title}" /></div>`
+    content += `<div class="Grid__GradeCell__StatusIcon"><img src="${htmlEscape(options.statusIcon.iconUrl)}" alt="" title="${title}" /></div>`
   }
 
   if (options.showUnpostedIndicator) {

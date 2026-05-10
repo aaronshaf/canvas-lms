@@ -48,8 +48,12 @@ function render(
           selectedGradingPeriodId ?? undefined,
         )
       : null
-  const colorClass = customGradeStatusId ? `custom-grade-status-${customGradeStatusId}` : ''
+  const colorClass = customGradeStatusId
+    ? `custom-grade-status-${lodashEscape(String(customGradeStatusId))}`
+    : ''
 
+  // colorClass is `custom-grade-status-${lodashEscape(...)}`; lodashEscape isn't
+  // on xsslint's safeString.function list, so name colorClass explicitly safe.
   // xsslint safeString.identifier escapedGrade colorClass
   // xsslint safeString.function renderStartContainer
   return `

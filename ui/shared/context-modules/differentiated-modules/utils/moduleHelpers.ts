@@ -24,6 +24,7 @@ import {convertFriendlyDatetimeToUTC} from './miscHelpers'
 import {isModuleCollapsed, isModulePaginated} from '@canvas/context-modules/utils/showAllOrLess'
 import {fetchItemTitles} from '@canvas/context-modules/utils/fetchItemTitles'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import htmlEscape from '@instructure/html-escape'
 
 const I18n = createI18nScope('differentiated_modules')
 
@@ -69,7 +70,7 @@ function requirementScreenreaderMessage(requirement: Requirement) {
   switch (requirement.type) {
     case 'score':
       return I18n.t('Must score at least %{points} to complete this module item', {
-        points: requirement.minimumScore,
+        points: htmlEscape(String(requirement.minimumScore)),
       })
     case 'view':
       return I18n.t('Must view in order to complete this module item')
@@ -81,7 +82,7 @@ function requirementScreenreaderMessage(requirement: Requirement) {
       return I18n.t('Must submit this module item to complete it')
     case 'percentage':
       return I18n.t('Must score at least %{points}% to complete this module item', {
-        points: requirement.minimumScore,
+        points: htmlEscape(String(requirement.minimumScore)),
       })
   }
 }
@@ -374,8 +375,7 @@ function updateRequirements(moduleElement: HTMLDivElement, moduleSettings: Setti
       if (descriptionElement) {
         const scoreElement =
           requirement.type === 'score' || requirement.type === 'percentage'
-            ? // xsslint safeString.property minimumScore
-              `<span class="min_score"> ${requirement.minimumScore}</span>`
+            ? `<span class="min_score"> ${htmlEscape(String(requirement.minimumScore))}</span>`
             : ''
 
         const percentageSymbol = requirement.type === 'percentage' ? '%' : ''

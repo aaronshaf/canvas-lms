@@ -23,17 +23,15 @@ import {TextArea} from '@instructure/ui-text-area'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {EmojiPicker, EmojiQuickPicker} from '@canvas/emoji'
+import htmlEscape from '@instructure/html-escape'
 import ReactDOM from 'react-dom'
 import {CommentLibrary as CommentLibraryV2} from './CommentLibraryV2/CommentLibrary'
 import RCEWrapper from '@instructure/canvas-rce/es/rce/RCEWrapper'
 
-// @ts-expect-error
-const pureTextCommentToRCEComment = value =>
+const pureTextCommentToRCEComment = (value: string) =>
   value
     .split(/\n/)
-    // @ts-expect-error
-    // xsslint safeString.identifier it
-    .map(it => `<p>${it}</p>`)
+    .map(it => `<p>${htmlEscape(it)}</p>`)
     .join('')
 
 const I18n = createI18nScope('speed_grader')
@@ -123,7 +121,7 @@ export default function CommentArea({
             handleContentChange(content, false)
             if (useRCELite) {
               const editor = textAreaRef.current?.editor
-              editor?.setContent(pureTextCommentToRCEComment(editor?.dom.encode(content)))
+              editor?.setContent(pureTextCommentToRCEComment(content))
             }
           }}
         />

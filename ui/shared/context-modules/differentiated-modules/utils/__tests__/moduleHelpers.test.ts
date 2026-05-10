@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {parseModule} from '../moduleHelpers'
+import {parseModule, updateModuleUI} from '../moduleHelpers'
 import {getFixture} from './fixtures'
 import moment from 'moment'
 
@@ -181,5 +181,45 @@ describe('parseModule', () => {
         pointsPossible: '10',
       },
     ])
+  })
+})
+
+describe('updateModuleUI requirements', () => {
+  it('escapes hostile HTML in requirement.minimumScore', () => {
+    const moduleElement = document.createElement('div') as HTMLDivElement
+    moduleElement.innerHTML = `
+      <div class="requirements_message"></div>
+      <div id="context_module_item_42" class="ig-row">
+        <div class="requirement-description"></div>
+      </div>
+    `
+    const moduleSettings = {
+      moduleName: 'M',
+      unlockAt: '',
+      lockUntilChecked: false,
+      requirementCount: 'all',
+      requireSequentialProgress: false,
+      publishFinalGrade: false,
+      prerequisites: [],
+      requirements: [
+        {
+          id: '42',
+          type: 'score' as const,
+          minimumScore: '<img src=x onerror="window.__xss_fired = true">',
+        },
+      ],
+    }
+
+    delete (window as any).__xss_fired
+    // @ts-expect-error — partial SettingsPanelState shape; only the requirement code path is exercised
+    updateModuleUI(moduleElement, moduleSettings)
+
+    const description = moduleElement.querySelector('.requirement-description')!
+    // Visible <span class="min_score"> branch and screenreader-only branch both interpolate
+    // requirement.minimumScore into innerHTML; both must reject hostile HTML.
+    expect(description.querySelector('img')).toBeNull()
+    expect(description.querySelector('.screenreader-only img')).toBeNull()
+    expect(description.querySelectorAll('[onerror]')).toHaveLength(0)
+    expect((window as any).__xss_fired).toBeUndefined()
   })
 })

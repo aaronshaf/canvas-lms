@@ -19,6 +19,7 @@
 import {Modal} from '@instructure/ui-modal'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {sanitizeHTML} from '@canvas/sanitize-html'
+import htmlEscape from '@instructure/html-escape'
 import {Heading} from '@instructure/ui-heading'
 import {CloseButton} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
@@ -34,8 +35,10 @@ export default function OpenRegistrationWarning(props: Props) {
   const warningMessage = I18n.t(
     `An external identity provider is enabled, and users created via open registration may not be able to log in unless
       the external identity provider's login form has a link back to *%{url}*.`,
-    // xsslint safeString.property loginUrl
-    {url: props.loginUrl, wrapper: `<a href="${props.loginUrl}" target="_blank">$1</a>`},
+    {
+      url: props.loginUrl,
+      wrapper: `<a href="${htmlEscape(props.loginUrl)}" target="_blank">$1</a>`,
+    },
   )
   return (
     <Modal size="medium" open label={I18n.t('An External Identity Provider is Enabled')}>

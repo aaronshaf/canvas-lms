@@ -339,5 +339,38 @@ describe('ContextModulesHeader', () => {
         /Unable to find an accessible element/,
       )
     })
+
+    it('sanitizes hostile HTML in LTI tool icon', async () => {
+      const props = {
+        ...defaultProps,
+        moreMenu: {
+          ...defaultProps.moreMenu,
+          exportCourseContent: {
+            ...defaultProps.moreMenu.exportCourseContent,
+            visible: false,
+          },
+          menuTools: {
+            ...defaultProps.moreMenu.menuTools,
+            items: [
+              {
+                ...defaultProps.moreMenu.menuTools.items[0],
+                icon: '<img src=x onerror="window.__xss_fired = true"><script>window.__xss_fired = true</script>',
+              },
+            ],
+            visible: true,
+          },
+        },
+      }
+      delete (window as any).__xss_fired
+      // @ts-expect-error
+      const {getByRole, baseElement} = render(<ContextModulesHeader {...props} />)
+      const button = getByRole('button', {name: 'More'})
+      await userEvent.click(button)
+      expect(baseElement.querySelector('script')).toBeNull()
+      baseElement.querySelectorAll('img').forEach(img => {
+        expect(img.getAttribute('onerror')).toBeNull()
+      })
+      expect((window as any).__xss_fired).toBeUndefined()
+    })
   })
 })

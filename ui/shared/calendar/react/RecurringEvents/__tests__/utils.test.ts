@@ -19,6 +19,7 @@
 import moment from 'moment'
 import {
   cardinalDayInMonth,
+  getSelectTextWidth,
   getWeekdayName,
   isLastWeekdayInMonth,
   weekdaysFromMoment,
@@ -90,5 +91,16 @@ describe('isLastWeekdayInMonth', () => {
   it('returns the correct weekdays', () => {
     expect(isLastWeekdayInMonth(moment('2023-06-29'))).toEqual(true)
     expect(isLastWeekdayInMonth(moment('2023-06-22'))).toEqual(false)
+  })
+})
+
+describe('getSelectTextWidth', () => {
+  it('escapes hostile HTML in input strings before measuring', () => {
+    delete (window as any).__xss_fired
+    expect(() =>
+      getSelectTextWidth(['<script>window.__xss_fired = true</script>', '<img src=x onerror=1>']),
+    ).not.toThrow()
+    expect(document.querySelector('script')).toBeNull()
+    expect((window as any).__xss_fired).toBeUndefined()
   })
 })

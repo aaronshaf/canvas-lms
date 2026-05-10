@@ -37,6 +37,7 @@ import {DynamicRegistrationModal} from './dynamic_registration/DynamicRegistrati
 import {Flex} from '@instructure/ui-flex'
 import {showConfirmationDialog} from '@canvas/dialogs/react/ConfirmationDialog'
 import {TextInput} from '@instructure/ui-text-input'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('react_developer_keys')
 /**
@@ -354,9 +355,8 @@ class DeveloperKeysApp extends React.Component {
                 {alert.text.map((text, j) => (
                   <Text
                     key={j}
-                    // xsslint safeString.identifier text
                     dangerouslySetInnerHTML={{
-                      __html: text,
+                      __html: sanitizeHTML(text),
                     }}
                   />
                 ))}
