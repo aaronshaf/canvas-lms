@@ -1258,7 +1258,9 @@ export default class Calendar {
 
       ContextColorer.persistContextColors(newCustomColors, this.options.userId)
 
-      $styleContainer.html(`<style>${html}</style>`)
+      const styleEl = document.createElement('style')
+      styleEl.textContent = html
+      $styleContainer[0].replaceChildren(styleEl)
     })
   }
 
