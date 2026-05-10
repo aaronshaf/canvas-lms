@@ -29,15 +29,19 @@ import {SubmissionMocks} from '@canvas/assignments/graphql/student/Submission'
 
 vi.mock('@canvas/upload-file')
 
-// Mock LazyLoad to render children immediately in tests
+// Mock LazyLoad to render children immediately in tests.
+// .catch(() => {}) prevents an unhandled rejection if the dynamic import
+// resolves after jsdom teardown and the .then() callback touches dead globals.
 vi.mock('@canvas/lazy-load', () => ({
   __esModule: true,
   default: ({children}) => children,
   lazy: fn => {
-    let Component
-    fn().then(mod => {
-      Component = mod.default
-    })
+    let Component = null
+    fn()
+      .then(mod => {
+        Component = mod.default
+      })
+      .catch(() => {})
     return props => (Component ? <Component {...props} /> : null)
   },
 }))
@@ -53,6 +57,12 @@ const defaultMocks = (result = {data: {}}) => [
 ]
 const CUSTOM_TIMEOUT_LIMIT = 1000
 describe('ContentTabs', () => {
+  afterEach(async () => {
+    // Flush any micro-tasks queued by the lazy import .then() callbacks so
+    // they complete within this test's environment, not after teardown.
+    await new Promise(resolve => setTimeout(resolve, 0))
+  })
+
   beforeAll(() => {
     window.INST = window.INST || {}
     window.INST.editorButtons = []
@@ -599,15 +609,17 @@ describe('ContentTabs', () => {
     })
 
     function fireEventWithContentItem(contentItem) {
-      fireEvent(
-        window,
-        new MessageEvent('message', {
-          data: {
-            subject: 'LtiDeepLinkingResponse',
-            content_items: [contentItem],
-          },
-        }),
-      )
+      act(() => {
+        fireEvent(
+          window,
+          new MessageEvent('message', {
+            data: {
+              subject: 'LtiDeepLinkingResponse',
+              content_items: [contentItem],
+            },
+          }),
+        )
+      })
     }
 
     it('shows the URL of a file being uploaded if no name is present', async () => {
