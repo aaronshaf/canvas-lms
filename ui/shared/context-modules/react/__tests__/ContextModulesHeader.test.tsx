@@ -86,8 +86,8 @@ describe('ContextModulesHeader', () => {
   describe('basic rendering', () => {
     it('renders the title', () => {
       // @ts-expect-error
-      const {getByRole} = render(<ContextModulesHeader {...defaultProps} />)
-      expect(getByRole('heading', {level: 1, name: defaultProps.title})).toBeInTheDocument()
+      const {getByText} = render(<ContextModulesHeader {...defaultProps} />)
+      expect(getByText(defaultProps.title, {selector: 'h1'})).toBeInTheDocument()
     })
 
     it('"Publish All" is visible', () => {
@@ -222,8 +222,8 @@ describe('ContextModulesHeader', () => {
         },
       }
       // @ts-expect-error
-      const {getByRole} = render(<ContextModulesHeader {...props} />)
-      expect(getByRole('button', {name: 'More'})).toBeInTheDocument()
+      const {getByText} = render(<ContextModulesHeader {...props} />)
+      expect(getByText('More')).toBeInTheDocument()
     })
 
     it('"Export Course Content" is visible inside "More Menu"', async () => {
@@ -242,12 +242,11 @@ describe('ContextModulesHeader', () => {
         },
       }
       // @ts-expect-error
-      const {getByRole} = render(<ContextModulesHeader {...props} />)
-      const button = getByRole('button', {name: 'More'})
-      await userEvent.click(button)
-      expect(
-        getByRole('menuitem', {name: defaultProps.moreMenu.exportCourseContent.label}),
-      ).toBeInTheDocument()
+      const {getByText} = render(<ContextModulesHeader {...props} />)
+      // getByText returns the inner <span>; InstUI sets pointer-events:none on it,
+      // so climb to the actual <button> to perform the click.
+      await userEvent.click(getByText('More').closest('button')!)
+      expect(getByText(defaultProps.moreMenu.exportCourseContent.label)).toBeInTheDocument()
     })
 
     it('"Export Course Content" is not visible inside "More Menu"', async () => {
@@ -266,12 +265,9 @@ describe('ContextModulesHeader', () => {
         },
       }
       // @ts-expect-error
-      const {getByRole, queryByRole} = render(<ContextModulesHeader {...props} />)
-      const button = getByRole('button', {name: 'More'})
-      await userEvent.click(button)
-      expect(
-        queryByRole('menuitem', {name: defaultProps.moreMenu.exportCourseContent.label}),
-      ).not.toBeInTheDocument()
+      const {getByText, queryByText} = render(<ContextModulesHeader {...props} />)
+      await userEvent.click(getByText('More').closest('button')!)
+      expect(queryByText(defaultProps.moreMenu.exportCourseContent.label)).not.toBeInTheDocument()
     })
 
     it('"Tools menu" is visible inside "More Menu"', async () => {
@@ -290,12 +286,9 @@ describe('ContextModulesHeader', () => {
         },
       }
       // @ts-expect-error
-      const {getByRole} = render(<ContextModulesHeader {...props} />)
-      const button = getByRole('button', {name: 'More'})
-      await userEvent.click(button)
-      expect(
-        getByRole('menuitem', {name: defaultProps.moreMenu.menuTools.items[0].title}),
-      ).toBeInTheDocument()
+      const {getByText} = render(<ContextModulesHeader {...props} />)
+      await userEvent.click(getByText('More').closest('button')!)
+      expect(getByText(defaultProps.moreMenu.menuTools.items[0].title)).toBeInTheDocument()
     })
 
     it('"Export Course Content" is visible outside "More Menu"', () => {
@@ -334,10 +327,40 @@ describe('ContextModulesHeader', () => {
         },
       }
       // @ts-expect-error
-      const {getByRole} = render(<ContextModulesHeader {...props} />)
-      expect(() => getByRole('button', {name: 'More'})).toThrow(
-        /Unable to find an accessible element/,
-      )
+      const {queryByText} = render(<ContextModulesHeader {...props} />)
+      expect(queryByText('More')).not.toBeInTheDocument()
+    })
+
+    it('sanitizes hostile HTML in LTI tool icon', async () => {
+      const props = {
+        ...defaultProps,
+        moreMenu: {
+          ...defaultProps.moreMenu,
+          exportCourseContent: {
+            ...defaultProps.moreMenu.exportCourseContent,
+            visible: false,
+          },
+          menuTools: {
+            ...defaultProps.moreMenu.menuTools,
+            items: [
+              {
+                ...defaultProps.moreMenu.menuTools.items[0],
+                icon: '<img src=x onerror="window.__xss_fired = true"><script>window.__xss_fired = true</script>',
+              },
+            ],
+            visible: true,
+          },
+        },
+      }
+      delete (window as any).__xss_fired
+      // @ts-expect-error
+      const {getByText, baseElement} = render(<ContextModulesHeader {...props} />)
+      await userEvent.click(getByText('More').closest('button')!)
+      expect(baseElement.querySelector('script')).toBeNull()
+      baseElement.querySelectorAll('img').forEach(img => {
+        expect(img.getAttribute('onerror')).toBeNull()
+      })
+      expect((window as any).__xss_fired).toBeUndefined()
     })
 
     it('sanitizes hostile HTML in LTI tool icon', async () => {

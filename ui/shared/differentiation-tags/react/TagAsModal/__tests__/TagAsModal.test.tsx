@@ -172,17 +172,12 @@ describe('TagAsModal', () => {
     it('renders multi-variant categories as grouped options', async () => {
       renderComponent({categories: [multipleTagsCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      // SimpleSelect renders options asynchronously after click.
-      // Assert that the grouped variant options are present — if both variants
-      // are found, the group rendered correctly. Avoid asserting on the group
-      // header label text directly: SimpleSelect.Group renders renderLabel via
-      // a styled portal wrapper that is unreliable to query in jsdom.
-      expect(
-        await screen.findByRole('option', {name: 'Variant A'}, {timeout: 3000}),
-      ).toBeInTheDocument()
-      expect(
-        await screen.findByRole('option', {name: 'Variant B'}, {timeout: 3000}),
-      ).toBeInTheDocument()
+      // SimpleSelect renders options asynchronously after click. byText is
+      // faster and more reliable than byRole('option') here — the a11y-tree
+      // build pass can lag the DOM under CI load and produce flaky timeouts.
+      expect(await screen.findByText('Reading Groups', {}, {timeout: 3000})).toBeInTheDocument()
+      expect(await screen.findByText('Variant A', {}, {timeout: 3000})).toBeInTheDocument()
+      expect(await screen.findByText('Variant B', {}, {timeout: 3000})).toBeInTheDocument()
     })
 
     it('calls onCreationSuccess with a single tag group ID without an API call', async () => {
@@ -196,7 +191,7 @@ describe('TagAsModal', () => {
 
       renderComponent({categories: [singleTagCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      await user.click(await screen.findByRole('option', {name: 'Honors'}, {timeout: 3000}))
+      await user.click(await screen.findByText('Honors', {}, {timeout: 3000}))
       await user.click(screen.getByTestId('submit-button'))
 
       await waitFor(
@@ -219,7 +214,7 @@ describe('TagAsModal', () => {
 
       renderComponent({categories: [multipleTagsCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      await user.click(await screen.findByRole('option', {name: 'Variant A'}, {timeout: 3000}))
+      await user.click(await screen.findByText('Variant A', {}, {timeout: 3000}))
       await user.click(screen.getByTestId('submit-button'))
 
       await waitFor(

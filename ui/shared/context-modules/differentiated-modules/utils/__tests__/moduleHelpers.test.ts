@@ -185,6 +185,15 @@ describe('parseModule', () => {
 })
 
 describe('updateModuleUI requirements', () => {
+  beforeEach(() => {
+    delete (window as any).__xss_fired
+  })
+
+  afterEach(() => {
+    delete (window as any).__xss_fired
+    document.body.innerHTML = ''
+  })
+
   it('escapes hostile HTML in requirement.minimumScore', () => {
     const moduleElement = document.createElement('div') as HTMLDivElement
     moduleElement.innerHTML = `
