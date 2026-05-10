@@ -22,6 +22,17 @@ import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
 import {ResolvedName} from '../../../FilesHeader/UploadButton/FileOptions'
 
+// Mock platform-alerts to prevent flash notification timer leakage.
+// sendMoveRequests calls showFlashAlert/showFlashSuccess/showFlashError which
+// schedule window.setTimeout callbacks (100ms, 10s) and jQuery animation timers
+// that fire after jsdom teardown, causing "ReferenceError: window is not defined".
+// These tests cover move request logic, not flash notification behaviour.
+vi.mock('@instructure/platform-alerts', () => ({
+  showFlashAlert: vi.fn(),
+  showFlashSuccess: vi.fn(() => vi.fn()),
+  showFlashError: vi.fn(() => vi.fn()),
+}))
+
 const server = setupServer()
 
 describe('MoveModal utils', () => {
