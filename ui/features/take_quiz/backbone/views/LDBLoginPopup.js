@@ -18,8 +18,8 @@
 import {map, isBoolean, extend, compact} from 'es-toolkit/compat'
 import Backbone from '@canvas/backbone'
 import $ from 'jquery'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import Markup from '../../jst/LDBLoginPopup.handlebars'
-import htmlEscape from '@instructure/html-escape'
 import '@canvas/jquery/jquery.toJSON'
 
 // Consumes an event and stops it from propagating.
@@ -198,11 +198,12 @@ export default class LDBLoginPopup extends Backbone.View {
     // @emits open
     function render() {
       const $document = $(whnd.document)
-      const $head = $(whnd.document.head)
 
-      // Inject the stylesheets.
       styleSheets.forEach(href => {
-        $head.append(`<link rel="stylesheet" href="${htmlEscape(href)}" />`)
+        const linkEl = whnd.document.createElement('link')
+        linkEl.rel = 'stylesheet'
+        linkEl.href = sanitizeUrl(href)
+        whnd.document.head.appendChild(linkEl)
       })
 
       // Show the form.
