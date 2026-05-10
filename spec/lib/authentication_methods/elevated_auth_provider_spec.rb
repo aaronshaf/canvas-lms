@@ -331,4 +331,63 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
       end
     end
   end
+
+  describe "tag helpers" do
+    subject(:instance) { host_class.new(user, pseudonym_obj) }
+
+    let(:host_class) do
+      Class.new do
+        include AuthenticationMethods::ElevatedAuthProvider
+
+        def initialize(user, pseudonym)
+          @current_user = user
+          @current_pseudonym = pseudonym
+        end
+        public :metric_tags, :event_tags
+      end
+    end
+    let(:user) { user_factory }
+    let(:account) { account_model }
+    let(:pseudonym_obj) { pseudonym(user, account:) }
+
+    describe "#metric_tags" do
+      it "includes the cluster tag" do
+        expect(instance.metric_tags).to have_key(:cluster)
+      end
+
+      it "omits user_global_id (high cardinality on metrics)" do
+        expect(instance.metric_tags).not_to have_key(:user_global_id)
+      end
+
+      it "omits pseudonym_account_global_id (high cardinality on metrics)" do
+        expect(instance.metric_tags).not_to have_key(:pseudonym_account_global_id)
+      end
+    end
+
+    describe "#event_tags" do
+      it "includes the cluster tag" do
+        expect(instance.event_tags).to have_key(:cluster)
+      end
+
+      it "includes user_global_id" do
+        expect(instance.event_tags[:user_global_id]).to eq(user.global_id)
+      end
+
+      it "includes pseudonym_account_global_id" do
+        expect(instance.event_tags[:pseudonym_account_global_id]).to eq(account.global_id)
+      end
+
+      it "omits user_global_id when current_user is nil" do
+        niluser_instance = host_class.new(nil, pseudonym_obj)
+        expect { niluser_instance.event_tags }.not_to raise_error
+        expect(niluser_instance.event_tags).not_to have_key(:user_global_id)
+      end
+
+      it "omits pseudonym_account_global_id when current_pseudonym is nil" do
+        nilpseudo_instance = host_class.new(user, nil)
+        expect { nilpseudo_instance.event_tags }.not_to raise_error
+        expect(nilpseudo_instance.event_tags).not_to have_key(:pseudonym_account_global_id)
+      end
+    end
+  end
 end

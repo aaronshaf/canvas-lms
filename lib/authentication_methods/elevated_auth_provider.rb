@@ -86,7 +86,7 @@ module AuthenticationMethods
     end
 
     def warn_no_pseudonym_account(pseudonym)
-      InstStatsd::Statsd.distributed_increment("elevated_auth_provider.no_pseudonym_account", tags:)
+      InstStatsd::Statsd.distributed_increment("elevated_auth_provider.no_pseudonym_account", tags: metric_tags)
 
       log_message("No pseudonym account found for pseudonym '#{pseudonym&.id}'", level: :warn)
     end
@@ -98,8 +98,20 @@ module AuthenticationMethods
       AuthenticationMethods::PseudonymAttributes.load_auth_provider&.global_id.to_s == pseudonym_account.elevated_auth_provider_global_id.to_s
     end
 
-    def tags
+    # low-cardinality only
+    # safe for metrics where tag-value cardinality drives Datadog billing
+    def metric_tags
       Utils::InstStatsdUtils::Tags.tags_for(Shard.current)
+    end
+
+    # enriched with per-user/per-account ids; only safe on events, where
+    # cardinality affects explorer faceting rather than metric cost
+    # required for the auto-deactivation monitor's `group by @user_global_id` query
+    def event_tags
+      metric_tags.merge(
+        user_global_id: @current_user&.global_id,
+        pseudonym_account_global_id: @current_pseudonym&.account&.global_id
+      ).compact
     end
 
     def handle_no_elevated_auth_provider(pseudonym_account)
@@ -112,7 +124,7 @@ module AuthenticationMethods
           message,
           type: :elevated_auth_provider_violation,
           alert_type: :error,
-          tags:
+          tags: event_tags
         )
 
         log_message(message, level: :warn)
