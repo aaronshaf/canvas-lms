@@ -35,7 +35,10 @@ class Mutations::UpdateSubmissionGradeStatus < Mutations::BaseMutation
     return { errors: { submission.id => "Not authorized to set submission status" } } unless submission.grants_right?(current_user, :grade)
 
     if input[:custom_grade_status_id]
-      submission.update(custom_grade_status_id: input[:custom_grade_status_id], grader: current_user)
+      status = submission.root_account.custom_grade_statuses.active.find_by(id: input[:custom_grade_status_id])
+      return { errors: { submission.id => "Invalid custom grade status" } } if status.nil?
+
+      submission.update(custom_grade_status: status, grader: current_user)
     elsif input[:late_policy_status] && input[:late_policy_status] != "none"
       if input[:late_policy_status] == "excused"
         submission.assignment.grade_student(

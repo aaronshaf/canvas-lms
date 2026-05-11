@@ -10358,6 +10358,45 @@ describe Submission do
     end
   end
 
+  describe "#custom_grade_status_in_root_account" do
+    let(:submission) { @assignment.submissions.find_by(user: @student) }
+    let(:custom_grade_status) do
+      admin = account_admin_user(account: @assignment.root_account)
+      @assignment.root_account.custom_grade_statuses.create!(
+        name: "Custom Status",
+        color: "#ABC",
+        created_by: admin
+      )
+    end
+
+    it "is valid when custom_grade_status_id is nil" do
+      submission.custom_grade_status_id = nil
+      expect(submission).to be_valid
+    end
+
+    it "is valid when the custom_grade_status belongs to the submission's root account" do
+      submission.custom_grade_status = custom_grade_status
+      expect(submission).to be_valid
+    end
+
+    it "is invalid when the custom_grade_status belongs to a different root account" do
+      other_root_account = Account.create!
+      foreign_status = other_root_account.custom_grade_statuses.create!(
+        name: "Foreign",
+        color: "#DEF",
+        created_by: account_admin_user(account: other_root_account)
+      )
+      submission.custom_grade_status_id = foreign_status.id
+      expect(submission).not_to be_valid
+      expect(submission.errors[:custom_grade_status_id]).to include("must belong to the submission's root account")
+    end
+
+    it "does not raise when custom_grade_status_id references a non-existent record" do
+      submission.custom_grade_status_id = 0
+      expect { submission.valid? }.not_to raise_error
+    end
+  end
+
   describe "#attempts_left" do
     let(:submission) { @assignment.submissions.first }
 

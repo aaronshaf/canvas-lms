@@ -144,4 +144,42 @@ RSpec.describe Mutations::UpdateSubmissionGrade do
     expect(result[:data][:updateSubmissionGradeStatus][:submission][:customGradeStatus]).to eq ""
     expect(result[:data][:updateSubmissionGradeStatus][:submission][:excused]).to be false
   end
+
+  describe "custom_grade_status root_account scoping" do
+    it "rejects a custom_grade_status_id from a different root_account" do
+      foreign_account = Account.create!
+      foreign_status = CustomGradeStatus.create!(name: "foreign", color: "#000000", root_account_id: foreign_account.id, created_by: @teacher)
+      result = run_mutation({ submission_id: @submission.id, custom_grade_status_id: foreign_status.id })
+      expect(result[:data][:updateSubmissionGradeStatus][:submission]).to be_nil
+      expect(result[:data][:updateSubmissionGradeStatus][:errors]).to be_present
+      expect(@submission.reload.custom_grade_status_id).to be_nil
+    end
+
+    it "rejects a nonexistent custom_grade_status_id" do
+      result = run_mutation({ submission_id: @submission.id, custom_grade_status_id: 999_999_999 })
+      expect(result[:data][:updateSubmissionGradeStatus][:submission]).to be_nil
+      expect(result[:data][:updateSubmissionGradeStatus][:errors]).to be_present
+    end
+
+    it "rejects a soft-deleted same-account custom_grade_status_id" do
+      status = CustomGradeStatus.create!(name: "going away", color: "#000000", root_account_id: @course.root_account, created_by: @teacher)
+      status.update!(workflow_state: "deleted", deleted_by: @teacher)
+      result = run_mutation({ submission_id: @submission.id, custom_grade_status_id: status.id })
+      expect(result[:data][:updateSubmissionGradeStatus][:submission]).to be_nil
+      expect(result[:data][:updateSubmissionGradeStatus][:errors]).to be_present
+    end
+
+    it "accepts a same-root-account custom_grade_status_id supplied as a Switchman global id" do
+      # GraphQL ID input may arrive as a Switchman global id rather than a
+      # shard-local id. find_by(id:) on a Switchman-aware association must
+      # translate the global id back to the local row. A genuine cross-shard
+      # CustomGradeStatus is not constructable (FK on root_account_id is
+      # shard-local); this exercises the global-id translation path on the
+      # same shard.
+      status = CustomGradeStatus.create!(name: "global", color: "#111111", root_account_id: @course.root_account, created_by: @teacher)
+      result = run_mutation({ submission_id: @submission.id, custom_grade_status_id: status.global_id })
+      expect(result[:data][:updateSubmissionGradeStatus][:submission][:_id]).to eq @submission.id.to_s
+      expect(result[:data][:updateSubmissionGradeStatus][:submission][:customGradeStatus]).to eq "global"
+    end
+  end
 end

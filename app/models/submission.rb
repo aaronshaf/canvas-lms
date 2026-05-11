@@ -214,6 +214,7 @@ class Submission < ApplicationRecord
   validate :ensure_attempts_are_in_range, unless: :proxy_submission?
   validate :submission_type_is_valid, if: :require_submission_type_is_valid
   validate :preserve_lti_id, on: :update
+  validate :custom_grade_status_in_root_account
 
   scope :active, -> { where("submissions.workflow_state <> 'deleted'") }
   scope :deleted, -> { where("submissions.workflow_state = 'deleted'") }
@@ -1942,6 +1943,14 @@ class Submission < ApplicationRecord
     )
     errors.add(:grade, error_msg)
     false
+  end
+
+  def custom_grade_status_in_root_account
+    return if custom_grade_status_id.nil?
+    return unless custom_grade_status
+    return if custom_grade_status.root_account_id == root_account_id
+
+    errors.add(:custom_grade_status_id, "must belong to the submission's root account")
   end
 
   def grader_can_grade?
