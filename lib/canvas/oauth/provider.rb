@@ -204,18 +204,16 @@ module Canvas::OAuth
     end
 
     def report_lenient_redirect_violation(enforce:)
-      registered_host = parse_host(key.redirect_uri)
-      presented_host = parse_host(redirect_uri)
       request_id = Canvas::ExecutionContext[:request_id]
 
       message = "OAuth redirect_uri lenient (subdomain) match accepted on developer key " \
-                "#{key.global_id}: registered=#{registered_host} presented=#{presented_host} " \
+                "#{key.global_id}: registered=#{key.redirect_uri} presented=#{redirect_uri} " \
                 "request_id=#{request_id}"
 
       tags = Utils::InstStatsdUtils::Tags.tags_for(Shard.current).merge(
         developer_key_id: key.global_id.to_s,
-        registered_host: registered_host.to_s,
-        presented_host: presented_host.to_s,
+        registered_host: key.redirect_uri.to_s,
+        presented_host: redirect_uri.to_s,
         enforce: enforce.to_s
       )
 
@@ -227,12 +225,6 @@ module Canvas::OAuth
         tags:
       )
       Rails.logger.warn("[OAuthRedirectUri] #{message}")
-    end
-
-    def parse_host(uri)
-      URI.parse(uri.to_s).host
-    rescue URI::Error
-      nil
     end
 
     def non_document_sec_fetch_dest?

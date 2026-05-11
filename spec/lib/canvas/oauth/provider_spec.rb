@@ -168,8 +168,8 @@ module Canvas::OAuth
               alert_type: :warning,
               tags: hash_including(
                 developer_key_id: "10000000000001",
-                registered_host: "example.com",
-                presented_host: "evil.example.com",
+                registered_host: "http://example.com/callback",
+                presented_host: "http://evil.example.com/x",
                 enforce: "false"
               )
             )
