@@ -49,6 +49,8 @@ class CoursePace < ApplicationRecord
 
   validates :course_id, presence: true
   validate :valid_secondary_context
+  validate :course_section_belongs_to_course
+  validate :user_enrolled_in_course
 
   scope :primary, -> { not_deleted.where(course_section_id: nil, user_id: nil) }
   scope :for_section, ->(section) { where(course_section_id: section) }
@@ -112,6 +114,23 @@ class CoursePace < ApplicationRecord
     if course_section_id.present? && user_id.present?
       errors.add(:base, "Only one of course_section_id and user_id can be given")
     end
+  end
+
+  def course_section_belongs_to_course
+    return unless course_section_id.present? && course_id.present?
+
+    unless course.course_sections.where(id: course_section_id).exists?
+      errors.add(:course_section_id, "must belong to the same course")
+    end
+  end
+
+  def user_enrolled_in_course
+    return unless user_id.present? && course_id.present?
+
+    enrolled = course.shard.activate do
+      course.enrollments.where(user_id:).where.not(workflow_state: %w[rejected deleted]).exists?
+    end
+    errors.add(:user_id, "must be enrolled in the course") unless enrolled
   end
 
   def duplicate(opts = {})

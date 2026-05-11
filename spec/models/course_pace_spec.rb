@@ -93,6 +93,50 @@ describe CoursePace do
       bad_plan.course_section = nil
       expect(bad_plan).to be_valid
     end
+
+    it "disallows a course_section that belongs to a different course" do
+      our_course = @course
+      other_course = Course.create!(account: @course.account, name: "stranger course")
+      other_section = other_course.course_sections.create!(name: "other course section")
+      bad_plan = our_course.course_paces.build(course_section: other_section)
+      expect(bad_plan).not_to be_valid
+      expect(bad_plan.errors[:course_section_id]).to include("must belong to the same course")
+    end
+
+    it "disallows a user that is not enrolled in the course" do
+      stranger = user_factory(active_all: true)
+      bad_plan = @course.course_paces.build(user: stranger)
+      expect(bad_plan).not_to be_valid
+      expect(bad_plan.errors[:user_id]).to include("must be enrolled in the course")
+    end
+
+    it "allows a user enrolled in the course" do
+      good_plan = @course.course_paces.build(user: @student)
+      expect(good_plan).to be_valid
+    end
+
+    it "allows a course_section belonging to the course" do
+      section = @course.course_sections.create!(name: "another section")
+      good_plan = @course.course_paces.build(course_section: section)
+      expect(good_plan).to be_valid
+    end
+
+    it "rejects update that repoints course_section_id to a foreign section" do
+      section = @course.course_sections.create!(name: "in-course section")
+      pace = @course.course_paces.create!(course_section: section)
+      foreign_section = Course.create!(account: @course.account, name: "stranger").course_sections.create!(name: "foreign")
+      pace.course_section_id = foreign_section.id
+      expect(pace).not_to be_valid
+      expect(pace.errors[:course_section_id]).to include("must belong to the same course")
+    end
+
+    it "rejects update that repoints user_id to an unenrolled user" do
+      pace = @course.course_paces.create!(user: @student)
+      stranger = user_factory(active_all: true)
+      pace.user_id = stranger.id
+      expect(pace).not_to be_valid
+      expect(pace.errors[:user_id]).to include("must be enrolled in the course")
+    end
   end
 
   context "constraints" do

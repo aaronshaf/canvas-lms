@@ -762,7 +762,6 @@ class CoursePacesController < ApplicationController
       permitted_params = params.require(:course_pace).permit(
         :context_id,
         :context_type,
-        :course_id,
         :course_section_id,
         :user_id,
         :end_date,

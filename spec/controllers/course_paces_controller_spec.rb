@@ -643,6 +643,14 @@ describe CoursePacesController do
       expect(response_body["progress"]["id"]).to eq(progress.id)
     end
 
+    it "ignores mass-assigned course_id in the payload" do
+      foreign_course = Course.create!(account: @course.account, name: "stranger")
+      payload = create_params.merge(course_id: foreign_course.id)
+      post :create, params: { course_id: @course.id, course_pace: payload }
+      expect(response).to be_successful
+      expect(CoursePace.last.course_id).to eq(@course.id)
+    end
+
     describe "create pace in draft state" do
       before :once do
         @course.root_account.enable_feature!(:course_pace_draft_state)
