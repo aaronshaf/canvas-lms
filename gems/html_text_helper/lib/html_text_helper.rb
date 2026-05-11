@@ -195,7 +195,7 @@ module HtmlTextHelper
       elements.each do |element|
         final_attributes[element] ||= []
       end
-      output = Sanitize.clean(html, elements:, attributes: final_attributes)
+      output = Sanitize.clean(html, elements:, attributes: final_attributes, protocols: config[:protocols])
     else
       output = Sanitize.clean(html, config)
     end

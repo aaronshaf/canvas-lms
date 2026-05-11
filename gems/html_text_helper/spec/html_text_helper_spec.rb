@@ -261,6 +261,26 @@ describe HtmlTextHelper do
       expect(html).to match(/table border/)
       expect(html).not_to match(/tr border/)
     end
+
+    it "strips javascript: protocol in href when custom tags are passed" do
+      html = th.html_to_simple_html('<a href="javascript:alert(1)">Click</a>',
+                                    tags: ["table"])
+      expect(html).not_to match(/javascript/)
+      expect(html).to include("Click")
+    end
+
+    it "strips javascript: protocol in href when custom attributes are passed" do
+      html = th.html_to_simple_html('<a href="javascript:alert(1)">Click</a>',
+                                    attributes: { "table" => ["border"] })
+      expect(html).not_to match(/javascript/)
+      expect(html).to include("Click")
+    end
+
+    it "preserves https links when custom tags are passed" do
+      html = th.html_to_simple_html('<a href="https://example.com">Link</a>',
+                                    tags: ["table"])
+      expect(html).to include('href="https://example.com"')
+    end
   end
 
   context "banner" do
