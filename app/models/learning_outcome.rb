@@ -108,7 +108,7 @@ class LearningOutcome < ApplicationRecord
 
   def infer_defaults
     if data && data[:rubric_criterion]
-      data[:rubric_criterion][:description] = short_description
+      data[:rubric_criterion][:description] = sanitize_rubric_criterion_field(short_description)
     end
     self.context_code = context_type && "#{context_type.underscore}_#{context_id}"
 
@@ -361,12 +361,14 @@ class LearningOutcome < ApplicationRecord
 
     if hash
       criterion = {}
-      criterion[:description] = hash[:description] || t(:no_description, "No Description")
+      criterion[:description] = sanitize_rubric_criterion_field(hash[:description]) ||
+                                t(:no_description, "No Description")
       criterion[:ratings] = []
       ratings = hash[:enable] ? hash[:ratings].values : (hash[:ratings] || [])
       ratings.each do |rating|
         criterion[:ratings] << {
-          description: rating[:description] || t(:no_comment, "No Comment"),
+          description: sanitize_rubric_criterion_field(rating[:description]) ||
+                       t(:no_comment, "No Comment"),
           points: rating[:points].to_f
         }
       end
@@ -379,6 +381,13 @@ class LearningOutcome < ApplicationRecord
 
     self.data[:rubric_criterion] = criterion
   end
+
+  def sanitize_rubric_criterion_field(value)
+    return value unless value.is_a?(String)
+
+    Sanitize.clean(value, CanvasSanitize::SANITIZE)
+  end
+  private :sanitize_rubric_criterion_field
 
   alias_method :destroy_permanently!, :destroy
   def destroy

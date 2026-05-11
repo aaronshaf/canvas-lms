@@ -1910,4 +1910,73 @@ describe LearningOutcome do
       end
     end
   end
+
+  describe "HTML sanitization" do
+    before :once do
+      course_model
+    end
+
+    describe "#rubric_criterion=" do
+      it "strips scripts from criterion description" do
+        outcome = @course.created_learning_outcomes.create!(short_description: "outcome")
+        outcome.rubric_criterion = {
+          description: "<script>alert(1)</script>desc",
+          ratings: [{ description: "ok", points: 5 }],
+          mastery_points: 5,
+        }
+        outcome.save!
+        # infer_defaults overwrites this with short_description on save, but the
+        # in-memory assignment must also be safe before save.
+        expect(outcome.data[:rubric_criterion][:description]).not_to include("<script")
+      end
+
+      it "strips event handlers from rating descriptions" do
+        outcome = @course.created_learning_outcomes.create!(short_description: "outcome")
+        outcome.rubric_criterion = {
+          description: "desc",
+          ratings: [
+            { description: '<img src="x" onerror="alert(1)">bad', points: 5 },
+            { description: "ok", points: 0 },
+          ],
+          mastery_points: 5,
+        }
+        outcome.save!
+        descriptions = outcome.data[:rubric_criterion][:ratings].pluck(:description)
+        expect(descriptions.join).not_to include("onerror")
+      end
+    end
+
+    describe "Rubric#update_learning_outcome_criterion propagation" do
+      it "sanitizes outcome fields when fanning out to aligned rubrics" do
+        outcome = @course.created_learning_outcomes.create!(
+          short_description: "title",
+          description: "long"
+        )
+        rubric = Rubric.create!(context: @course)
+        rubric.data = [{
+          id: "crit1",
+          description: "old title",
+          long_description: "old long",
+          learning_outcome_id: outcome.id,
+          points: 5,
+          ratings: [{ id: "r1", description: "Full", long_description: "", points: 5 }],
+        }]
+        rubric.save!
+
+        # Simulate a legacy row whose outcome columns predate the sanitize_field
+        # hook (e.g. backfill territory) — bypass callbacks and stuff raw HTML
+        # in. The Rubric layer must still strip it.
+        outcome.update_columns(
+          short_description: "<script>alert(1)</script>title",
+          description: '<img src="x" onerror="alert(1)">long'
+        )
+
+        rubric.update_learning_outcome_criteria(outcome.reload)
+
+        criterion = rubric.reload.data.first
+        expect(criterion[:description]).not_to include("<script")
+        expect(criterion[:long_description]).not_to include("onerror")
+      end
+    end
+  end
 end

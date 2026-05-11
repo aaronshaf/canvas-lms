@@ -422,14 +422,21 @@ class Rubric < ApplicationRecord
   end
 
   def update_learning_outcome_criterion(criterion, outcome)
-    criterion[:description] = outcome.short_description
-    criterion[:long_description] = outcome.description
+    criterion[:description] = sanitize_outcome_html(outcome.short_description)
+    criterion[:long_description] = sanitize_outcome_html(outcome.description)
     unless context.root_account.feature_enabled?(:account_level_mastery_scales)
       criterion[:points] = outcome.points_possible
       criterion[:mastery_points] = outcome.mastery_points
       criterion[:ratings] = outcome.rubric_criterion.nil? ? [] : generate_criterion_ratings(outcome, criterion[:id])
     end
   end
+
+  def sanitize_outcome_html(value)
+    return value unless value.is_a?(String)
+
+    Sanitize.clean(value, CanvasSanitize::SANITIZE)
+  end
+  private :sanitize_outcome_html
 
   def generate_criterion_ratings(outcome, criterion_id)
     outcome.rubric_criterion[:ratings].map do |rating|
