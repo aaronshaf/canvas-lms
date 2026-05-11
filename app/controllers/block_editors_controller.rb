@@ -24,7 +24,7 @@ class BlockEditorsController < ApplicationController
   def show
     if @block_editor.context.grants_right?(@current_user, :read)
       @exclude_account_js = true
-      @embeddable = true
+      set_block_editor_iframe_security_headers
 
       block_editor = BlockEditor.find(params[:id])
       js_env({
@@ -36,7 +36,7 @@ class BlockEditorsController < ApplicationController
              })
       js_bundle :block_editor_iframe_content
 
-      render html: "<div id='block_editor_viewer_container'>#{I18n.t("Loading...")}</div>".html_safe,
+      render html: helpers.tag.div(I18n.t("Loading..."), id: "block_editor_viewer_container"),
              layout: "layouts/bare"
     else
       render "shared/unauthorized", status: :unauthorized, layout: "layouts/bare"
@@ -45,5 +45,12 @@ class BlockEditorsController < ApplicationController
 
   def load_block_editor
     @block_editor = BlockEditor.find(params[:id])
+  end
+
+  private
+
+  def set_block_editor_iframe_security_headers
+    response.set_header("Cross-Origin-Opener-Policy", "same-origin")
+    response.set_header("Cross-Origin-Resource-Policy", "same-origin")
   end
 end
