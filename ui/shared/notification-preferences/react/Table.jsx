@@ -28,6 +28,7 @@ import {Text} from '@instructure/ui-text'
 import theme from '@instructure/canvas-theme'
 import {TruncateText} from '@instructure/ui-truncate-text'
 import {View} from '@instructure/ui-view'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('notification_preferences')
 
@@ -179,11 +180,12 @@ const renderNotificationCategory = (
                   <View as="div" data-testid={`${formatCategoryKey(category)}_description`}>
                     <Text
                       variant="legend"
-                      // xsslint safeString.method replace
                       dangerouslySetInnerHTML={{
-                        __html: categoryValue.notification.categoryDescription
-                          .replace(/<p>/g, '<span style="display: block;">')
-                          .replace(/<\/p>/g, '</span>'),
+                        __html: sanitizeHTML(
+                          categoryValue.notification.categoryDescription
+                            .replace(/<p>/g, '<span style="display: block;">')
+                            .replace(/<\/p>/g, '</span>'),
+                        ),
                       }}
                     />
                   </View>
