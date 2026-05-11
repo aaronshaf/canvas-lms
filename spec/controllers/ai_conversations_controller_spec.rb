@@ -22,6 +22,7 @@ describe AiConversationsController do
     course_with_teacher(active_all: true)
     student_in_course(active_all: true)
     @course.root_account.enable_feature!(:ai_experiences)
+    @course.root_account.enable_feature!(:ai_experiences_evaluation)
     @ai_experience = @course.ai_experiences.create!(
       title: "Customer Service Training",
       description: "Practice customer service scenarios",
@@ -29,6 +30,13 @@ describe AiConversationsController do
       learning_objective: "Students will learn to handle customer complaints professionally",
       pedagogical_guidance: "A customer calls about incorrect billing"
     )
+  end
+
+  before do
+    # By default, bypass the InstLLMHelper.with_rate_limit so action specs aren't sensitive to
+    # per-user daily counters bleeding across examples. The dedicated "rate limiting" describe
+    # overrides this to assert the real behavior.
+    allow(InstLLMHelper).to receive(:with_rate_limit).and_yield
   end
 
   describe "GET #active_conversation" do
@@ -796,6 +804,149 @@ describe AiConversationsController do
           expect(json_response["error"]).to eq("Resource Not Found")
         end
       end
+    end
+  end
+
+  describe "ai_experiences_evaluation feature flag (only gates :evaluation)" do
+    before :once do
+      @eval_conversation = @ai_experience.ai_conversations.create!(
+        llm_conversation_id: "eval-ff-conv",
+        user: @student,
+        course: @course,
+        root_account: @course.root_account,
+        account: @course.account,
+        workflow_state: "active"
+      )
+    end
+
+    before do
+      user_session(@teacher)
+      @course.root_account.disable_feature!(:ai_experiences_evaluation)
+    end
+
+    it "returns 404 from #evaluation when the evaluation FF is off" do
+      get :evaluation,
+          params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @eval_conversation.id },
+          format: :json
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "does NOT block #create when only the evaluation FF is off" do
+      mock_service = instance_double(AiExperiences::ConversationStartService)
+      allow(AiExperiences::ConversationStartService).to receive(:new).and_return(mock_service)
+      allow(mock_service).to receive(:start).and_return({ conversation_id: "x", messages: [] })
+
+      post :create,
+           params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
+           format: :json
+
+      expect(response).to have_http_status(:created)
+    end
+
+    it "does NOT block #post_message when only the evaluation FF is off" do
+      mock_service = instance_double(AiExperiences::ConversationContinueService)
+      allow(AiExperiences::ConversationContinueService).to receive(:new).and_return(mock_service)
+      allow(mock_service).to receive(:continue).and_return({ messages: [], progress: nil })
+
+      post :post_message,
+           params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @eval_conversation.id, message: "hi" },
+           format: :json
+
+      expect(response).to have_http_status(:ok)
+    end
+  end
+
+  describe "rate limiting (InstLLMHelper.with_rate_limit)" do
+    before do
+      user_session(@teacher)
+      @rl_conversation = @ai_experience.ai_conversations.create!(
+        llm_conversation_id: "rl-conv",
+        user: @teacher,
+        course: @course,
+        root_account: @course.root_account,
+        account: @course.account,
+        workflow_state: "active"
+      )
+    end
+
+    def stub_over_limit(config_name, limit:)
+      allow(InstLLMHelper).to receive(:with_rate_limit) do |llm_config:, **, &block|
+        if llm_config.name == config_name
+          raise InstLLMHelper::RateLimitExceededError.new(limit:)
+        else
+          block.call
+        end
+      end
+    end
+
+    it "renders 429 when #create is over the daily limit, without leaking the limit number" do
+      stub_over_limit("ai_experiences_create_conversation", limit: 100)
+
+      post :create,
+           params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
+           format: :json
+
+      expect(response).to have_http_status(:too_many_requests)
+      body = json_parse(response.body)["error"]
+      expect(body).to include("rate limit")
+      expect(body).not_to include("100")
+    end
+
+    it "renders 429 when #post_message is over the daily limit, without leaking the limit number" do
+      stub_over_limit("ai_experiences_post_message", limit: 1000)
+
+      post :post_message,
+           params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @rl_conversation.id, message: "hi" },
+           format: :json
+
+      expect(response).to have_http_status(:too_many_requests)
+      body = json_parse(response.body)["error"]
+      expect(body).to include("rate limit")
+      expect(body).not_to include("1,000")
+      expect(body).not_to include("1000")
+    end
+
+    it "renders 429 when #evaluation is over the daily limit, without leaking the limit number" do
+      stub_over_limit("ai_experiences_evaluation", limit: 1000)
+
+      get :evaluation,
+          params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @rl_conversation.id },
+          format: :json
+
+      expect(response).to have_http_status(:too_many_requests)
+      body = json_parse(response.body)["error"]
+      expect(body).to include("rate limit")
+      expect(body).not_to include("1,000")
+      expect(body).not_to include("1000")
+    end
+
+    it "passes Setting-tunable limits to InstLLMHelper for #create" do
+      Setting.set("ai_experiences.rate_limit.ai_experiences_create_conversation_daily", "42")
+
+      received = nil
+      allow(InstLLMHelper).to receive(:with_rate_limit) do |llm_config:, **, &block|
+        received = llm_config
+        block.call
+      end
+      mock_service = instance_double(AiExperiences::ConversationStartService)
+      allow(AiExperiences::ConversationStartService).to receive(:new).and_return(mock_service)
+      allow(mock_service).to receive(:start).and_return({ conversation_id: "x", messages: [] })
+
+      post :create,
+           params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
+           format: :json
+
+      expect(received.name).to eq("ai_experiences_create_conversation")
+      expect(received.rate_limit).to eq({ limit: 42, period: "day" })
+    end
+
+    it "does not throttle #destroy, #show, #active_conversation, or feedback actions" do
+      expect(InstLLMHelper).not_to receive(:with_rate_limit)
+      delete :destroy,
+             params: { course_id: @course.id, ai_experience_id: @ai_experience.id, id: @rl_conversation.id },
+             format: :json
+      expect(response).to have_http_status(:ok)
     end
   end
 end

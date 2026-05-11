@@ -23,11 +23,28 @@
 class AiConversationsController < ApplicationController
   include Api::V1::AiExperience
 
+  # Lightweight duck-type for InstLLMHelper.with_rate_limit. The helper only reads
+  # `#name` and `#rate_limit` — no template/model_id involved because llma owns the
+  # prompt and model selection (we just need the daily-cap bookkeeping).
+  RateLimitConfig = Struct.new(:name, :rate_limit, keyword_init: true)
+
+  RATE_LIMIT_DEFAULTS = {
+    "ai_experiences_create_conversation" => 100,
+    "ai_experiences_post_message" => 1000,
+    "ai_experiences_evaluation" => 1000
+  }.freeze
+
   before_action :require_context
   before_action :check_ai_experiences_feature_flag
+  before_action :check_evaluation_feature_flag, only: :evaluation
   before_action :require_access_right
   before_action :load_experience
   before_action :load_conversation, only: %i[post_message destroy show evaluation create_feedback delete_feedback]
+
+  rescue_from InstLLMHelper::RateLimitExceededError do
+    render json: { error: t("You've hit the AI Experiences rate limit. Please try again later.") },
+           status: :too_many_requests
+  end
 
   # @API Show conversation
   #
@@ -96,17 +113,20 @@ class AiConversationsController < ApplicationController
                                        .for_user(@current_user.id)
                                        .first
 
-    # If active conversation exists, complete it before creating a new one
-    existing_conversation&.complete!
+    result = nil
+    InstLLMHelper.with_rate_limit(user: @current_user, llm_config: rate_limit_config_for("ai_experiences_create_conversation")) do
+      # If active conversation exists, complete it before creating a new one
+      existing_conversation&.complete!
 
-    result = AiExperiences::ConversationStartService.new(account: @context.root_account).start(
-      current_user: @current_user,
-      root_account_uuid: @context.root_account.uuid,
-      conversation_context_id: @experience.llm_conversation_context_id,
-      facts: @experience.facts,
-      learning_objectives: @experience.learning_objective,
-      scenario: @experience.pedagogical_guidance
-    )
+      result = AiExperiences::ConversationStartService.new(account: @context.root_account).start(
+        current_user: @current_user,
+        root_account_uuid: @context.root_account.uuid,
+        conversation_context_id: @experience.llm_conversation_context_id,
+        facts: @experience.facts,
+        learning_objectives: @experience.learning_objective,
+        scenario: @experience.pedagogical_guidance
+      )
+    end
 
     # Save the conversation record
     conversation_record = nil
@@ -140,11 +160,14 @@ class AiConversationsController < ApplicationController
       return render json: { error: "message is required" }, status: :bad_request
     end
 
-    result = AiExperiences::ConversationContinueService.new(account: @context.root_account).continue(
-      conversation_id: @conversation.llm_conversation_id,
-      new_user_message: params[:message],
-      requesting_user: @current_user
-    )
+    result = nil
+    InstLLMHelper.with_rate_limit(user: @current_user, llm_config: rate_limit_config_for("ai_experiences_post_message")) do
+      result = AiExperiences::ConversationContinueService.new(account: @context.root_account).continue(
+        conversation_id: @conversation.llm_conversation_id,
+        new_user_message: params[:message],
+        requesting_user: @current_user
+      )
+    end
 
     # Return only the Canvas conversation ID, messages, and progress
     render json: { id: @conversation.id, messages: result[:messages], progress: result[:progress] }
@@ -174,9 +197,12 @@ class AiConversationsController < ApplicationController
       return render_unauthorized_action
     end
 
-    evaluation_data = AiExperiences::ConversationEvaluationService.new(account: @context.root_account).evaluate(
-      conversation_id: @conversation.llm_conversation_id
-    )
+    evaluation_data = nil
+    InstLLMHelper.with_rate_limit(user: @current_user, llm_config: rate_limit_config_for("ai_experiences_evaluation")) do
+      evaluation_data = AiExperiences::ConversationEvaluationService.new(account: @context.root_account).evaluate(
+        conversation_id: @conversation.llm_conversation_id
+      )
+    end
 
     render json: {
       id: @conversation.id,
@@ -231,6 +257,19 @@ class AiConversationsController < ApplicationController
       render_404
       false
     end
+  end
+
+  def check_evaluation_feature_flag
+    unless @context&.feature_enabled?(:ai_experiences_evaluation)
+      render_404
+      false
+    end
+  end
+
+  def rate_limit_config_for(name)
+    default = RATE_LIMIT_DEFAULTS.fetch(name)
+    limit = Setting.get("ai_experiences.rate_limit.#{name}_daily", default.to_s).to_i
+    RateLimitConfig.new(name:, rate_limit: { limit:, period: "day" })
   end
 
   def require_access_right
