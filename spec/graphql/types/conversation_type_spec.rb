@@ -115,6 +115,16 @@ describe Types::ConversationType do
       expect(result).to include(@student.name)
     end
 
+    it "sanitizes the message body field" do
+      message = @conversation.conversation.conversation_messages.first
+      message.update_columns(body: "<script>alert(1)</script><img src=x onerror=alert(2)>safe")
+      result = conversation_type.resolve("conversationMessagesConnection { nodes { body } }")
+      expect(result.join).not_to include("<script>")
+      expect(result.join).not_to include("onerror")
+      expect(result.join).not_to include("alert(")
+      expect(result.join).to include("safe")
+    end
+
     it "returns attachments" do
       result = conversation_type.resolve("conversationMessagesConnection { nodes { attachmentsConnection { nodes { displayName } } } }")
       expect(result[0][0]).to eq(@attachment.display_name)

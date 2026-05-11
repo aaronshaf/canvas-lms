@@ -38,6 +38,8 @@ class ConversationMessage < ApplicationRecord
   delegate :participants, to: :conversation
   delegate :subscribed_participants, to: :conversation
 
+  # generated rows store a YAML event blob in `body`, not HTML — skip sanitization
+  before_save :sanitize_body, unless: :generated?
   before_create :set_root_account_ids
   after_create :log_conversation_message_metrics
   after_create :check_for_out_of_office_participants, unless: :automated_message?
@@ -252,7 +254,17 @@ class ConversationMessage < ApplicationRecord
   end
 
   def body
-    generated? ? format_event_message : super
+    return format_event_message if generated?
+
+    raw = super
+    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+  end
+
+  def sanitize_body
+    return unless will_save_change_to_attribute?(:body)
+
+    raw = self[:body]
+    self[:body] = Sanitize.clean(raw, CanvasSanitize::SANITIZE) if raw.is_a?(String)
   end
 
   def event_data

@@ -903,4 +903,64 @@ describe ConversationMessage do
       expect(message.recipients.map(&:id)).to include(@future_recipient.id)
     end
   end
+
+  describe "body sanitization" do
+    before(:once) do
+      course_with_teacher(active_all: true)
+      @other = student_in_course(active_all: true).user
+      @third = student_in_course(active_all: true).user
+      @conversation = @teacher.initiate_conversation([@other], false)
+      @conversation.add_message("seed", root_account_id: Account.default.id)
+    end
+
+    it "strips disallowed attributes from the persisted body on save" do
+      message = @conversation.add_message('<img src="x" onerror="alert(1)">hi', root_account_id: Account.default.id)
+      expect(message.reload[:body]).not_to include("onerror")
+      expect(message[:body]).not_to include("alert(1)")
+      expect(message[:body]).to include("hi")
+    end
+
+    it "strips disallowed elements from the persisted body on save" do
+      message = @conversation.add_message("<script>alert(1)</script>safe text", root_account_id: Account.default.id)
+      expect(message.reload[:body]).not_to include("<script>")
+      expect(message[:body]).not_to include("alert(1)")
+      expect(message[:body]).to include("safe text")
+    end
+
+    it "sanitizes on read for rows persisted before the callback existed" do
+      message = @conversation.add_message("placeholder", root_account_id: Account.default.id)
+      message.update_columns(body: "<script>alert(1)</script>hi")
+      expect(message.reload.body).not_to include("<script>")
+      expect(message.body).not_to include("alert(1)")
+      expect(message.body).to include("hi")
+    end
+
+    it "preserves allowed HTML through the round trip" do
+      message = @conversation.add_message("<p>hello <strong>world</strong></p>", root_account_id: Account.default.id)
+      expect(message.reload.body).to eql("<p>hello <strong>world</strong></p>")
+    end
+
+    it "leaves nil bodies unchanged on read" do
+      message = @conversation.add_message("placeholder", root_account_id: Account.default.id)
+      message.update_columns(body: nil)
+      expect(message.reload[:body]).to be_nil
+    end
+
+    it "does not sanitize generated event message bodies (YAML round-trips)" do
+      @conversation.add_participants([@third])
+      event = @conversation.conversation.conversation_messages.where(generated: true).last
+
+      expect(event).not_to be_nil
+      expect(event[:body]).to start_with("---")
+      expect(event.event_data[:event_type]).to eq(:users_added)
+      expect(event.event_data[:user_ids]).to include(@third.id)
+    end
+
+    it "still sanitizes a human message saved after a generated message in the same conversation" do
+      @conversation.add_participants([@third])
+      message = @conversation.add_message("<script>alert(1)</script>followup", root_account_id: Account.default.id)
+      expect(message.reload[:body]).not_to include("<script>")
+      expect(message[:body]).to include("followup")
+    end
+  end
 end
