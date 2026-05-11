@@ -175,3 +175,8 @@ export function htmlDecode(input?: string | null): string {
   if (!input) return input || ''
   return new DOMParser().parseFromString(input, 'text/html').documentElement.textContent || input
 }
+
+// Converts \n to <br /> and normalizes any existing <br> variants to <br />.
+// Does NOT sanitize — pair with sanitizeHTML at the dangerouslySetInnerHTML sink.
+export const newlinesToBrTags = (str: string): string =>
+  str.replace(/\n/g, '<br />').replace(/<br\s*\/?>/gi, '<br />')

@@ -21,24 +21,23 @@
 // untrusted HTML through DOMPurify (via @canvas/sanitize-html) before it
 // becomes real DOM.
 //
-// LongDescriptionModal also runs the input through `sanitizeAndFormatHTML`
-// (which itself calls DOMPurify). To verify that the @canvas/sanitize-html
-// wrapper at the sink provides independent defense-in-depth, we mock
-// `sanitizeAndFormatHTML` to a pass-through. That isolates the sink-level
-// wrapper as the only sanitizer, so removing the wrapper would let the
-// payload through and turn these tests red.
+// LongDescriptionModal formats the input through `newlinesToBrTags` (a
+// pure string transform with no sanitization). To verify that the
+// @canvas/sanitize-html wrapper at the sink provides independent
+// defense-in-depth, we mock `newlinesToBrTags` to a pass-through. That
+// isolates the sink-level sanitizer as the only defense, so removing
+// sanitizeHTML would let the payload through and turn these tests red.
 
 import {render} from '@testing-library/react'
 import React from 'react'
 
-vi.mock('@canvas/rubrics/react/utils', async importOriginal => {
-  const actual = await importOriginal<typeof import('@canvas/rubrics/react/utils')>()
+vi.mock('@canvas/util/TextHelper', async importOriginal => {
+  const actual = await importOriginal<typeof import('@canvas/util/TextHelper')>()
   return {
     ...actual,
-    // Pass-through: simulates an upstream sanitizer that has been bypassed
-    // or regressed. The remaining safety must come from the @canvas/sanitize-html
-    // wrapper at the dangerouslySetInnerHTML sink.
-    sanitizeAndFormatHTML: (str: string) => str,
+    // Pass-through: simulates the formatter being bypassed.
+    // Safety must come from the @canvas/sanitize-html wrapper at the sink.
+    newlinesToBrTags: (str: string) => str,
   }
 })
 

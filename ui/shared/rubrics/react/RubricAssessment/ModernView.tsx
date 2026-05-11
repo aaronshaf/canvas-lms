@@ -42,7 +42,7 @@ import {possibleString} from '../Points'
 import {OutcomeTag} from './OutcomeTag'
 import {SelfAssessmentComment} from './SelfAssessmentComment'
 import {useGetRubricOutcome} from './queries/useGetRubricOutcome'
-import {sanitizeAndFormatHTML} from '../utils'
+import {newlinesToBrTags} from '@canvas/util/TextHelper'
 
 const I18n = createI18nScope('rubrics-assessment-tray')
 
@@ -367,7 +367,7 @@ export const CriterionRow = ({
             weight="normal"
             themeOverride={{fontSizeXSmall: '0.875rem', paragraphMargin: 0}}
             dangerouslySetInnerHTML={{
-              __html: sanitizeHTML(sanitizeAndFormatHTML(criterion.longDescription ?? '')),
+              __html: sanitizeHTML(newlinesToBrTags(criterion.longDescription ?? '')),
             }}
           />
         </View>

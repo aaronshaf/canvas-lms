@@ -197,6 +197,36 @@ describe('stripHtmlTags', () => {
   })
 })
 
+describe('newlinesToBrTags', () => {
+  it('returns empty string unchanged', () => {
+    expect(TextHelper.newlinesToBrTags('')).toBe('')
+  })
+
+  it('returns plain text unchanged', () => {
+    expect(TextHelper.newlinesToBrTags('hello world')).toBe('hello world')
+  })
+
+  it('converts \\n to <br />', () => {
+    expect(TextHelper.newlinesToBrTags('line1\nline2')).toBe('line1<br />line2')
+  })
+
+  it('normalizes <br/> to <br />', () => {
+    expect(TextHelper.newlinesToBrTags('line1<br/>line2')).toBe('line1<br />line2')
+  })
+
+  it('normalizes <br> to <br />', () => {
+    expect(TextHelper.newlinesToBrTags('line1<br>line2')).toBe('line1<br />line2')
+  })
+
+  it('normalizes <BR /> (case-insensitive) to <br />', () => {
+    expect(TextHelper.newlinesToBrTags('line1<BR />line2')).toBe('line1<br />line2')
+  })
+
+  it('handles mixed \\n and <br/>', () => {
+    expect(TextHelper.newlinesToBrTags('a<br/>b\nc')).toBe('a<br />b<br />c')
+  })
+})
+
 describe('htmlDecode', () => {
   test('should return the same result when decoding twice', () => {
     fc.assert(
