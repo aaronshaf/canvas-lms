@@ -186,9 +186,14 @@ module HtmlTextHelper
       elements_with_attributes =
         (config[:attributes]&.keys || []) | (options[:attributes]&.keys || [])
       elements_with_attributes.each do |element|
-        basic_attributes = config[:attributes][element] || []
-        given_attributes = options[:attributes][element] || []
+        basic_attributes = config[:attributes]&.[](element) || []
+        given_attributes = options[:attributes]&.[](element) || []
         final_attributes[element] = basic_attributes | given_attributes
+      end
+      # Ensure all custom tags get an empty attributes array if not specified
+      # to prevent Sanitize from using permissive defaults
+      elements.each do |element|
+        final_attributes[element] ||= []
       end
       output = Sanitize.clean(html, elements:, attributes: final_attributes)
     else

@@ -101,6 +101,41 @@ describe "submission_comment" do
     end
   end
 
+  context "HTML sanitization" do
+    before :once do
+      @submission.add_comment(
+        comment: "<p>Test with <ul><li>unordered list</li></ul> and <style=\"background-image: url(https://attacker.com/track.gif)\">dangerous CSS</style>."
+      )
+    end
+
+    describe ".email" do
+      let(:path_type) { :email }
+
+      it "preserves ul and li tags" do
+        @comment.update!(comment: "<p>Test with <ul><li>item one</li><li>item two</li></ul> content</p>")
+        message = generate_message(notification_name, path_type, @comment)
+        expect(message.html_body).to include("<ul>")
+        expect(message.html_body).to include("<li>")
+      end
+
+      it "strips style attributes with dangerous CSS properties" do
+        @comment.update!(comment: '<p style="background-image: url(https://attacker.com/track.gif)">Tracking pixel test</p>')
+        message = generate_message(notification_name, path_type, @comment)
+        expect(message.html_body).not_to include("background-image")
+        expect(message.html_body).not_to include("attacker.com")
+        expect(message.html_body).to include("Tracking pixel test")
+      end
+
+      it "strips all style attributes from allowed tags" do
+        @comment.update!(comment: '<span style="color: red">Red text</span>')
+        message = generate_message(notification_name, path_type, @comment)
+        expect(message.html_body).not_to include('<span style="color: red">')
+        expect(message.html_body).not_to include("<span style=")
+        expect(message.html_body).to include("Red text")
+      end
+    end
+  end
+
   context "discussion checkpoint submissions" do
     before :once do
       @course.account.enable_feature!(:discussion_checkpoints)
