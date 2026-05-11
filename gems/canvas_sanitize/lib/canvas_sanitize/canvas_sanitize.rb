@@ -681,7 +681,6 @@ module CanvasSanitize # :nodoc:
         border
         border-radius
         clear
-        clip
         color
         column-gap
         cursor
@@ -702,7 +701,6 @@ module CanvasSanitize # :nodoc:
         justify-content
         justify-items
         justify-self
-        left
         line-height
         list-style
         margin
@@ -715,23 +713,19 @@ module CanvasSanitize # :nodoc:
         overflow-x
         overflow-y
         padding
-        position
         place-content
         place-items
         place-self
-        right
         row-gap
         text-align
         table-layout
         text-decoration
         text-indent
-        top
         user-select
         vertical-align
         visibility
         white-space
         width
-        z-index
         zoom
       ] +
       %w[area auto-columns auto-flow auto-rows column gap row template].map { |i| "grid-#{i}" } +

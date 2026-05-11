@@ -255,6 +255,44 @@ describe CanvasSanitize do
     expect(res).to eq str
   end
 
+  describe "overlay-capable CSS property blocking" do
+    %w[position z-index top left right clip].each do |prop|
+      it "strips the #{prop} CSS property" do
+        res = Sanitize.clean(%(<div style="#{prop}:fixed">x</div>), CanvasSanitize::SANITIZE)
+        expect(res).not_to match(/#{Regexp.escape(prop)}/)
+      end
+    end
+
+    it "strips a full clickjacking overlay declaration" do
+      res = Sanitize.clean(
+        %(<div style="position:fixed; top:0; left:0; right:0; z-index:99999">x</div>),
+        CanvasSanitize::SANITIZE
+      )
+      %w[position top left right z-index].each do |prop|
+        expect(res).not_to match(/#{Regexp.escape(prop)}/)
+      end
+    end
+
+    it "preserves safe CSS properties alongside removed overlay ones" do
+      res = Sanitize.clean(
+        %(<p style="color:red; position:fixed; padding:8px; text-align:center">x</p>),
+        CanvasSanitize::SANITIZE
+      )
+      expect(res).to match(/color/)
+      expect(res).to match(/padding/)
+      expect(res).to match(/text-align/)
+      expect(res).not_to match(/position/)
+    end
+
+    it "does not strip safe-only declarations" do
+      str = %(<p style="color:red; padding:8px; text-align:center">x</p>)
+      res = Sanitize.clean(str, CanvasSanitize::SANITIZE)
+      expect(res).to match(/color/)
+      expect(res).to match(/padding/)
+      expect(res).to match(/text-align/)
+    end
+  end
+
   Dir.glob(File.expand_path(File.join(__FILE__, "..", "..", "fixtures", "xss", "*.xss"))) do |filename|
     name = File.split(filename).last
     it "sanitizes xss attempts for #{name}" do
