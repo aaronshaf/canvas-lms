@@ -105,8 +105,14 @@ export const PeerReviewConfigurationTray = ({
           data-testid="peer-review-config-list"
         >
           {renderConfigRow(I18n.t('Reviews Required'), peerReviews.count)}
-          {renderConfigRow(I18n.t('Points Per Review'), pointsPerReview)}
-          {renderConfigRow(I18n.t('Total Points'), totalPoints)}
+          {renderConfigRow(
+            I18n.t('Points Per Review'),
+            I18n.n(pointsPerReview, {precision: 2, strip_insignificant_zeros: true}),
+          )}
+          {renderConfigRow(
+            I18n.t('Total Points'),
+            I18n.n(totalPoints, {precision: 2, strip_insignificant_zeros: true}),
+          )}
           {renderConfigRow(
             I18n.t('Across Sections'),
             peerReviews.acrossSections ? I18n.t('Allowed') : I18n.t('Not allowed'),

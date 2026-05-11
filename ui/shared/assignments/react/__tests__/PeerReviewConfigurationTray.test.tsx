@@ -285,6 +285,22 @@ describe('PeerReviewConfigurationTray', () => {
       expect(screen.getByText('Anonymous')).toBeInTheDocument()
     })
 
+    it('formats pointsPerReview with max 2 decimal places when division is not exact', () => {
+      mockUsePeerReviewConfiguration.mockReturnValue({
+        ...mockConfig,
+        peerReviews: {
+          ...mockConfig.peerReviews,
+          count: 3,
+        },
+        peerReviewSubAssignment: {
+          pointsPossible: 10,
+        },
+      })
+      renderWithQueryClient()
+
+      expect(screen.getByText('3.33')).toBeInTheDocument()
+    })
+
     it('handles zero total points', () => {
       mockUsePeerReviewConfiguration.mockReturnValue({
         ...mockConfig,
