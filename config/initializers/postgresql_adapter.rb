@@ -404,9 +404,14 @@ module PostgreSQLAdapterExtensions
   end
 
   def non_empty_tables_message(non_empty_tables)
+    Rails.application.eager_load! unless Rails.autoloaders.main.eager_loaded?
     message = "Test database is not empty! Tables with data: #{non_empty_tables.join(", ")}"
     non_empty_tables.each do |table|
       model = ActiveRecord::Base.descendants.find { |m| m.table_name == table }
+      unless model
+        message += "\n  (no model registered for #{table})"
+        next
+      end
       records = model.limit(5).to_a
       count = model.count
 
