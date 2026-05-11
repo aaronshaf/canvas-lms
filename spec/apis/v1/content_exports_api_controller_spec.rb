@@ -296,6 +296,16 @@ describe ContentExportsApiController, type: :request do
                        {},
                        { expected_status: 403 })
     end
+
+    it "denies an anonymous caller reading a user_id=NULL export on a public course" do
+      t_course.update!(is_public: true)
+      @null_user_zip = past_export(t_course, nil, "zip")
+      @user = nil
+      raw_api_call(:get,
+                   "/api/v1/courses/#{t_course.id}/content_exports/#{@null_user_zip.id}",
+                   { controller: "content_exports_api", action: "show", format: "json", course_id: t_course.to_param, id: @null_user_zip.to_param })
+      expect(response).not_to have_http_status(:ok)
+    end
   end
 
   describe "create" do
@@ -1435,6 +1445,14 @@ describe ContentExportsApiController, type: :request do
                    { controller: "content_exports_api", action: "create", format: "json", course_id: t_course.to_param, export_type: "zip" })
       assert_status(401)
       expect(t_course.content_exports.where(user_id: nil)).not_to exist
+    end
+
+    it "rejects showing an export to an anonymous caller" do
+      zip_export = past_export(t_course, t_teacher, "zip")
+      raw_api_call(:get,
+                   "/api/v1/courses/#{t_course.id}/content_exports/#{zip_export.id}",
+                   { controller: "content_exports_api", action: "show", format: "json", course_id: t_course.to_param, id: zip_export.to_param })
+      assert_status(401)
     end
   end
 end

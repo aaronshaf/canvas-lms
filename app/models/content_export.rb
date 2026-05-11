@@ -103,13 +103,13 @@ class ContentExport < ApplicationRecord
     can :create
 
     # admins can read any export they created
-    given { |user, session| self.user == user && context.grants_right?(user, session, :read_as_admin) }
+    given { |user, session| self.user.present? && self.user == user && context.grants_right?(user, session, :read_as_admin) }
     can :read
 
     # all users can read zip/user data exports they created (in contexts they retain read permission)
     # NOTE: other exports may be created on their behalf that they do *not* have direct access to;
     # e.g. a common cartridge export created under the hood when a student creates a web zip export
-    given { |user, session| self.user == user && [ZIP, USER_DATA].include?(export_type) && context.grants_right?(user, session, :read) }
+    given { |user, session| self.user.present? && self.user == user && [ZIP, USER_DATA].include?(export_type) && context.grants_right?(user, session, :read) }
     can :read
 
     # non-admins can create zip or user-data exports, but not other types

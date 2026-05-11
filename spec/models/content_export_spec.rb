@@ -791,4 +791,17 @@ describe ContentExport do
       end
     end
   end
+
+  describe "set_policy" do
+    context "with a user_id=NULL export and anonymous caller on a public course" do
+      before :once do
+        @course.update!(is_public: true)
+        @null_user_zip = @course.content_exports.create!(export_type: ContentExport::ZIP, workflow_state: "exported", user: nil)
+      end
+
+      it "does not grant :read to an anonymous caller (nil == nil must not pass)" do
+        expect(@null_user_zip.grants_right?(nil, nil, :read)).to be false
+      end
+    end
+  end
 end
