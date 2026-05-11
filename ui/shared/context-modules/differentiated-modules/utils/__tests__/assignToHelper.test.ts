@@ -34,6 +34,7 @@ import {
   hasPeerReviewOverrideDates,
   getPeerReviewOverride,
   getAssignmentAndPeerReviewOverrides,
+  updateModuleUI,
 } from '../assignToHelper'
 
 describe('assitnToHelper', () => {
@@ -1904,6 +1905,43 @@ describe('assitnToHelper', () => {
       expect(result.peerReview?.peer_review_overrides?.[0].due_at).toBeNull()
       expect(result.peerReview?.peer_review_overrides?.[0].unlock_at).toBeNull()
       expect(result.peerReview?.peer_review_overrides?.[0].lock_at).toBe('2024-01-25T12:00:00Z')
+    })
+  })
+
+  describe('updateModuleUI', () => {
+    afterEach(() => {
+      delete (window as any).__xss_fired
+      document.body.innerHTML = ''
+    })
+
+    it('renders the view_assign link when overrides exist', () => {
+      const moduleElement = document.createElement('div') as HTMLDivElement
+      moduleElement.setAttribute('data-module-id', '99')
+      moduleElement.innerHTML = '<div class="view_assign"></div>'
+      updateModuleUI(moduleElement, {overrides: [{} as any]} as any)
+      const link = moduleElement.querySelector('.view_assign_link') as HTMLAnchorElement
+      expect(link).not.toBeNull()
+      expect(link.href).toContain('#99')
+      expect(moduleElement.querySelector('.icon-group')).not.toBeNull()
+    })
+
+    it('clears the container when there are no overrides', () => {
+      const moduleElement = document.createElement('div') as HTMLDivElement
+      moduleElement.innerHTML = '<div class="view_assign"><a class="stale">old</a></div>'
+      updateModuleUI(moduleElement, {overrides: []} as any)
+      expect(moduleElement.querySelector('.view_assign')!.textContent).toBe('')
+    })
+
+    it('does not inject HTML from a hostile data-module-id', () => {
+      const moduleElement = document.createElement('div') as HTMLDivElement
+      moduleElement.setAttribute(
+        'data-module-id',
+        '"><img src=x onerror="window.__xss_fired=true">',
+      )
+      moduleElement.innerHTML = '<div class="view_assign"></div>'
+      updateModuleUI(moduleElement, {overrides: [{} as any]} as any)
+      expect(moduleElement.querySelector('img')).toBeNull()
+      expect((window as any).__xss_fired).toBeUndefined()
     })
   })
 })

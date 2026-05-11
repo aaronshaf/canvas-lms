@@ -24,7 +24,6 @@ import {convertFriendlyDatetimeToUTC} from './miscHelpers'
 import {isModuleCollapsed, isModulePaginated} from '@canvas/context-modules/utils/showAllOrLess'
 import {fetchItemTitles} from '@canvas/context-modules/utils/fetchItemTitles'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import htmlEscape from '@instructure/html-escape'
 
 const I18n = createI18nScope('differentiated_modules')
 
@@ -70,7 +69,7 @@ function requirementScreenreaderMessage(requirement: Requirement) {
   switch (requirement.type) {
     case 'score':
       return I18n.t('Must score at least %{points} to complete this module item', {
-        points: htmlEscape(String(requirement.minimumScore)),
+        points: String(requirement.minimumScore),
       })
     case 'view':
       return I18n.t('Must view in order to complete this module item')
@@ -82,7 +81,7 @@ function requirementScreenreaderMessage(requirement: Requirement) {
       return I18n.t('Must submit this module item to complete it')
     case 'percentage':
       return I18n.t('Must score at least %{points}% to complete this module item', {
-        points: htmlEscape(String(requirement.minimumScore)),
+        points: String(requirement.minimumScore),
       })
   }
 }
@@ -338,17 +337,17 @@ function updateRequirements(moduleElement: HTMLDivElement, moduleSettings: Setti
       moduleSettings.requirementCount,
     )
 
-    if (moduleSettings.requirements.length === 0) {
-      requirementsMessageElement.innerHTML = ``
-    } else {
+    requirementsMessageElement.textContent = ''
+    if (moduleSettings.requirements.length > 0) {
       const requirementText =
         moduleSettings.requirementCount === 'all' ? 'Complete All Items' : 'Complete One Item'
-      // xsslint safeString.identifier requirementText
-      requirementsMessageElement.innerHTML = `
-        <ul class="pill">
-          <li aria-label="${requirementText}">${requirementText}</li>
-        </ul>
-      `
+      const ul = document.createElement('ul')
+      ul.className = 'pill'
+      const li = document.createElement('li')
+      li.setAttribute('aria-label', requirementText)
+      li.textContent = requirementText
+      ul.appendChild(li)
+      requirementsMessageElement.appendChild(ul)
     }
   }
 
@@ -373,22 +372,37 @@ function updateRequirements(moduleElement: HTMLDivElement, moduleSettings: Setti
 
       const descriptionElement = moduleItemElement.querySelector('.requirement-description')
       if (descriptionElement) {
-        const scoreElement =
-          requirement.type === 'score' || requirement.type === 'percentage'
-            ? `<span class="min_score"> ${htmlEscape(String(requirement.minimumScore))}</span>`
-            : ''
-
         const percentageSymbol = requirement.type === 'percentage' ? '%' : ''
-        // xsslint safeString.identifier requirementTypeMapReverse requirementFriendlyLabelMap scoreElement percentageSymbol
-        // xsslint safeString.function requirementScreenreaderMessage
-        descriptionElement.innerHTML = `
-          <span class="requirement_type ${requirementTypeMapReverse[requirement.type]}">
-            <span class="unfulfilled">
-              ${requirementFriendlyLabelMap[requirement.type]}${scoreElement}${percentageSymbol}
-              <span class="screenreader-only">${requirementScreenreaderMessage(requirement)}</span>
-            </span>
-          </span>
-        `
+
+        descriptionElement.textContent = ''
+
+        const outerSpan = document.createElement('span')
+        outerSpan.className = `requirement_type ${requirementTypeMapReverse[requirement.type]}`
+
+        const unfulfilledSpan = document.createElement('span')
+        unfulfilledSpan.className = 'unfulfilled'
+        unfulfilledSpan.appendChild(
+          document.createTextNode(requirementFriendlyLabelMap[requirement.type]),
+        )
+
+        if (requirement.type === 'score' || requirement.type === 'percentage') {
+          const minScoreSpan = document.createElement('span')
+          minScoreSpan.className = 'min_score'
+          minScoreSpan.textContent = ` ${String(requirement.minimumScore)}`
+          unfulfilledSpan.appendChild(minScoreSpan)
+        }
+
+        if (percentageSymbol) {
+          unfulfilledSpan.appendChild(document.createTextNode(percentageSymbol))
+        }
+
+        const screenreaderSpan = document.createElement('span')
+        screenreaderSpan.className = 'screenreader-only'
+        screenreaderSpan.textContent = requirementScreenreaderMessage(requirement)
+        unfulfilledSpan.appendChild(screenreaderSpan)
+
+        outerSpan.appendChild(unfulfilledSpan)
+        descriptionElement.appendChild(outerSpan)
       }
 
       const pointsPossibleElement = moduleItemElement.querySelector('.points_possible_display')

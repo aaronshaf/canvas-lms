@@ -231,4 +231,30 @@ describe('updateModuleUI requirements', () => {
     expect(description.querySelectorAll('[onerror]')).toHaveLength(0)
     expect((window as any).__xss_fired).toBeUndefined()
   })
+
+  it('renders minimumScore literally in screen-reader text (no double-encoding)', () => {
+    const moduleElement = document.createElement('div') as HTMLDivElement
+    moduleElement.innerHTML = `
+      <div class="requirements_message"></div>
+      <div id="context_module_item_7" class="ig-row">
+        <div class="requirement-description"></div>
+      </div>
+    `
+    const moduleSettings = {
+      moduleName: 'M',
+      unlockAt: '',
+      lockUntilChecked: false,
+      requirementCount: 'all',
+      requireSequentialProgress: false,
+      publishFinalGrade: false,
+      prerequisites: [],
+      requirements: [{id: '7', type: 'score' as const, minimumScore: '80'}],
+    }
+    // @ts-expect-error — partial SettingsPanelState shape
+    updateModuleUI(moduleElement, moduleSettings)
+    const srText = moduleElement.querySelector('.screenreader-only')!.textContent ?? ''
+    expect(srText).toContain('80')
+    expect(srText).not.toContain('&lt;')
+    expect(srText).not.toContain('&amp;')
+  })
 })

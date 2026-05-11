@@ -18,7 +18,6 @@
 
 import type {AssignmentOverridePayload, AssignmentOverridesPayload, ItemType} from '../react/types'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import htmlEscape from '@instructure/html-escape'
 import type {
   DateDetailsPayload,
   ItemAssignToCardSpec,
@@ -650,22 +649,20 @@ const getAssigneesByType = (assignees: string[], type: string) => {
 export function updateModuleUI(moduleElement: HTMLDivElement, payload: AssignmentOverridesPayload) {
   const assignToButtonContainer = moduleElement.querySelector('.view_assign')
   if (assignToButtonContainer) {
+    assignToButtonContainer.textContent = ''
     if (payload.overrides.length > 0) {
-      const moduleId = htmlEscape(moduleElement.getAttribute('data-module-id') ?? '')
-      // xsslint safeString.identifier moduleId
-      // xsslint safeString.method t
-      assignToButtonContainer.innerHTML = `
-        <i aria-hidden="true" class="icon-group"></i>
-        <a
-          href="#${moduleId}"
-          class="view_assign_link"
-          title="${I18n.t('View Assign To')}"
-        >
-          ${I18n.t('View Assign To')}
-        </a>
-        `
-    } else {
-      assignToButtonContainer.innerHTML = ''
+      const icon = document.createElement('i')
+      icon.setAttribute('aria-hidden', 'true')
+      icon.className = 'icon-group'
+
+      const link = document.createElement('a')
+      link.href = `#${moduleElement.getAttribute('data-module-id') ?? ''}`
+      link.className = 'view_assign_link'
+      link.title = I18n.t('View Assign To')
+      link.textContent = I18n.t('View Assign To')
+
+      assignToButtonContainer.appendChild(icon)
+      assignToButtonContainer.appendChild(link)
     }
   }
 }
