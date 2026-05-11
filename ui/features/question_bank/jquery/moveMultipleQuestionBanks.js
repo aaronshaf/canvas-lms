@@ -20,6 +20,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 import moveQuestionTemplate from '../jst/move_question.handlebars'
 import htmlEscape from '@instructure/html-escape'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import loadBanks from './loadBanks'
 import '@canvas/jquery/jquery.ajaxJSON'
 import '@canvas/jquery/jquery.instructure_forms' /* formSubmit, getFormData, formErrors */
@@ -90,6 +91,12 @@ const moveQuestions = {
     )
   },
   onData(data) {
+    if (Array.isArray(data.questions)) {
+      data.questions.forEach(q => {
+        const qd = q?.assessment_question?.question_data
+        if (qd) qd.question_text = sanitizeHTML(qd.question_text || '')
+      })
+    }
     const html = moveQuestionTemplate(data)
     this.elements.$loadMessage.remove()
     this.elements.$questions().append(html)
