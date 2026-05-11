@@ -359,16 +359,16 @@ describe ProfileController do
     end
 
     it "lets you set visibility on user_services" do
-      @user.user_services.create! service: "diigo", service_user_name: "user", service_user_id: "user", visible: false
+      @user.user_services.create! service: "google_drive", service_user_name: "user@gmail.com", service_user_id: "user@gmail.com", visible: false
 
       put "update_profile",
           params: { user_profile: { bio: "..." },
-                    user_services: { diigo: "1" } },
+                    user_services: { google_drive: "1" } },
           format: "json"
       expect(response).to be_successful
 
       @user.reload
-      expect(@user.user_services.where(service: "diigo").first.visible?).to be_truthy
+      expect(@user.user_services.where(service: "google_drive").first.visible?).to be_truthy
     end
 
     it "lets you set your profile links" do

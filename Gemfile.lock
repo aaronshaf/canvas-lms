@@ -213,8 +213,6 @@ PATH
     csv_diff (1.0.0)
       csv
       sqlite3
-    diigo (1.0.0)
-      nokogiri
     dynamic_settings (0.1.0)
       activesupport (>= 5.0)
       config_file
@@ -1360,7 +1358,6 @@ DEPENDENCIES
   datadog (~> 2.1)
   db-query-matchers (~> 0.12)
   debug (~> 1.10)
-  diigo!
   diplomat (~> 2.6)
   docx (~> 0.8)
   dotenv (~> 3.0)

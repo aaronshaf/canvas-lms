@@ -63,7 +63,6 @@ export function getUserServices(service_types, success, error) {
   )
 }
 
-let lastLookup // used to keep track of diigo requests
 export function findLinkForService(service_type, callback) {
   let $dialog = $('#instructure_bookmark_search')
   if (!$dialog.length) {
@@ -81,30 +80,11 @@ export function findLinkForService(service_type, callback) {
     $dialog.find('form').submit(event => {
       event.preventDefault()
       event.stopPropagation()
-      const now = new Date()
-      if (service_type === 'diigo' && lastLookup && now - lastLookup < 15000) {
-        // let the user know we have to take things slow because of Diigo
-        setTimeout(
-          () => {
-            $dialog.find('form').submit()
-          },
-          15000 - (now - lastLookup),
-        )
-        $dialog
-          .find('.results')
-          .empty()
-          .append(
-            htmlEscape(
-              I18n.t(
-                'status.diigo_search_throttling',
-                'Diigo limits users to one search every ten seconds.  Please wait...',
-              ),
-            ),
-          )
-        return
-      }
       $dialog.find('.results').text(I18n.t('status.searching', 'Searching...'))
-      lastLookup = new Date()
+      $dialog
+        .find('.results')
+        .empty()
+        .append(htmlEscape(I18n.t('status.searching', 'Searching...')))
       $.ajaxJSON(
         url,
         'GET',

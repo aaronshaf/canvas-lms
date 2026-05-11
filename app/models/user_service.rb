@@ -101,25 +101,8 @@ class UserService < ApplicationRecord
     user_service
   end
 
-  def self.register_from_params(user, params = {})
-    opts = {}
-    opts[:user] = user
-    opts[:access_token] = nil
-    opts[:token] = nil
-    opts[:secret] = nil
-    opts[:service] = params[:service]
-
-    if opts[:service] == "diigo"
-      opts[:service_domain] = "diigo.com"
-      opts[:protocol] = "http-auth"
-      opts[:service_user_id] = params[:user_name]
-      opts[:service_user_name] = params[:user_name]
-      opts[:password] = params[:password]
-    else
-      raise "Unknown Service Type"
-    end
-
-    register(opts)
+  def self.register_from_params(_user, _params = {})
+    raise "Unknown Service Type"
   end
 
   def has_profile_link?
@@ -134,8 +117,6 @@ class UserService < ApplicationRecord
     case type
     when "google_drive"
       2
-    when "diigo"
-      8
     else
       999
     end
@@ -145,8 +126,6 @@ class UserService < ApplicationRecord
     case type
     when "google_drive"
       t "#user_service.descriptions.google_drive", "Students can use Google Drive to collaborate on group projects.  Google Drive allows for real-time collaborative editing of documents, spreadsheets and presentations."
-    when "diigo"
-      t "#user_service.descriptions.diigo", "Diigo is a collaborative link-sharing tool.  You can tag any page on the Internet for later reference.  You can also link to other users' Diigo accounts to share links of similar interest."
     else # 'google_calendar'
       ""
     end
@@ -158,8 +137,6 @@ class UserService < ApplicationRecord
       "https://www.google.com/drive/"
     when "google_calendar"
       "http://calendar.google.com"
-    when "diigo"
-      "https://www.diigo.com/sign-up"
     else
       nil
     end
@@ -171,8 +148,6 @@ class UserService < ApplicationRecord
       "https://myaccount.google.com/?pli=1"
     when "google_calendar"
       "http://calendar.google.com"
-    when "diigo"
-      "http://www.diigo.com/user/#{service_user_name}"
     else
       "http://www.instructure.com"
     end
@@ -182,8 +157,6 @@ class UserService < ApplicationRecord
     case type
     when "google_docs", "google_drive"
       "DocumentService"
-    when "diigo"
-      "BookmarkService"
     else
       "UserService"
     end

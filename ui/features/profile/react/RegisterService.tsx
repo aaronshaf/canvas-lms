@@ -33,7 +33,7 @@ import {showFlashError} from '@instructure/platform-alerts'
 
 const I18n = createI18nScope('profile')
 
-type ServiceName = 'google_drive' | 'diigo'
+type ServiceName = 'google_drive'
 
 export const USERNAME_MAX_LENGTH = 255
 
@@ -81,49 +81,6 @@ export const serviceConfigByName: Record<
           href={ENV.google_drive_oauth_url ?? '#'}
           aria-label={buttonText}
         >
-          {buttonText}
-        </Button>
-      )
-    },
-  },
-  diigo: {
-    title: I18n.t('Diigo login'),
-    description: I18n.t(
-      "Diigo is a social bookmarking tool tailored specifically to research and education. Canvas's rich content editor will let you search your Diigo tags to easily link from within Canvas to other resources you find useful.",
-    ),
-    image: {path: '/images/diigo.png', alt: I18n.t('Diigo logo')},
-    fields: control => (
-      <>
-        <Controller
-          name="username"
-          control={control}
-          render={({field, formState: {errors}}) => (
-            <TextInput
-              {...field}
-              renderLabel={I18n.t('Username')}
-              messages={getFormErrorMessage(errors, 'username')}
-            />
-          )}
-        />
-        <Controller
-          name="password"
-          control={control}
-          render={({field, formState: {errors}}) => (
-            <TextInput
-              {...field}
-              type="password"
-              renderLabel={I18n.t('Password')}
-              messages={getFormErrorMessage(errors, 'password')}
-            />
-          )}
-        />
-      </>
-    ),
-    button: ({isSubmitting}) => {
-      const buttonText = isSubmitting ? I18n.t('Saving Login...') : I18n.t('Save Login')
-
-      return (
-        <Button type="submit" color="primary" aria-label={buttonText}>
           {buttonText}
         </Button>
       )

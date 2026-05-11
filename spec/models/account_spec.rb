@@ -285,7 +285,6 @@ describe Account do
 
     it "is able to specify a list of enabled services" do
       @a.allowed_services = "fakeService"
-      expect(@a.service_enabled?(:diigo)).to be_falsey
       expect(@a.service_enabled?(:avatars)).to be_falsey
     end
 

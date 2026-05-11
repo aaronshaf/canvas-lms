@@ -146,7 +146,6 @@ path "../gems" do
   gem "canvas_unzip"
   gem "config_file"
   gem "csv_diff"
-  gem "diigo"
   gem "dynamic_settings"
   gem "event_stream"
   gem "google_drive"

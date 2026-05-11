@@ -1336,17 +1336,10 @@ class UsersController < ApplicationController
 
   ServiceCredentials = Struct.new(:service_user_name, :decrypted_password)
 
+  # TODO: delete this endpoint as there a no longer any services created
+  # with this flow?
   def create_user_service
-    user_name = params[:user_service][:user_name]
-    password = params[:user_service][:password]
-    service = ServiceCredentials.new(user_name, password)
-    if params[:user_service][:service] == "diigo"
-      Diigo::Connection.diigo_get_bookmarks(service)
-    else
-      return render json: { errors: true }, status: :bad_request
-    end
-    @service = UserService.register_from_params(@current_user, params[:user_service])
-    render json: @service
+    render json: { errors: true }, status: :bad_request
   rescue => e
     Canvas::Errors.capture_exception(:user_service, e)
     render json: { errors: true }, status: :bad_request

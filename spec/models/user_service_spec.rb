@@ -73,21 +73,6 @@ describe UserService do
       expect(@registration.type).to eql("DocumentService")
     end
 
-    it "is able to register a diigo service" do
-      params = {}
-      params[:service] = "diigo"
-      params[:user_name] = "some username"
-      params[:password] = "password"
-
-      us = UserService.register_from_params(user_model, params)
-
-      expect(us.service_domain).to eql("diigo.com")
-      expect(us.protocol).to eql("http-auth")
-      expect(us.service_user_id).to eql("some username")
-      expect(us.service_user_name).to eql("some username")
-      expect(us.decrypted_password).to eql("password")
-    end
-
     it "allows user services to be setup cross shard" do
       user = User.new
       @shard1.activate { user.save! }
@@ -127,10 +112,6 @@ describe UserService do
       expect(UserService.service_type("google_drive")).to eql("DocumentService")
     end
 
-    it "knows that diigo means BookmarkService" do
-      expect(UserService.service_type("diigo")).to eql("BookmarkService")
-    end
-
     it "uses other things as a generic UserService" do
       expect(UserService.service_type("anything else")).to eql("UserService")
     end
@@ -143,24 +124,6 @@ describe UserService do
       expect(s.decrypted_password).to eql("asdf")
       s.password = "2t87aot72gho8a37gh4g[awg'waegawe-,v-3o7fya23oya2o3"
       expect(s.decrypted_password).to eql("2t87aot72gho8a37gh4g[awg'waegawe-,v-3o7fya23oya2o3")
-    end
-  end
-
-  describe "valid?" do
-    it "validates character length maximum (255) for user input fields" do
-      lorem_ipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-      exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
-      dolor in reprehenderit."
-      params = {}
-      params[:service] = "diigo"
-      params[:user_name] = lorem_ipsum
-      params[:password] = "password"
-      expect { UserService.register_from_params(user_model, params) }
-        .to raise_error(
-          ActiveRecord::RecordInvalid,
-          "Validation failed: Service user is too long (maximum is 255 characters), Service user name is too long (maximum is 255 characters)"
-        )
     end
   end
 end

@@ -39,12 +39,6 @@ module AccountServices
                                       description: "",
                                       expose_to_ui: :service
                                     },
-                                    diigo: {
-                                      name: I18n.t("Diigo"),
-                                      description: "",
-                                      expose_to_ui: :service,
-                                      expose_to_ui_proc: proc { !!Diigo::Connection.config }
-                                    },
                                     # TODO: move avatars to :settings hash, it makes more sense there
                                     # In the meantime, we leave it as a service but expose it in the
                                     # "Features" (settings) portion of the account admin UI

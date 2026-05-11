@@ -232,12 +232,13 @@ describe "User Profile API", type: :request do
 
   context "user_services" do
     before :once do
-      @student.user_services.create! service: "diigo", service_user_name: "diigo_user", service_user_id: "diigo_user", visible: false
+      @student.user_services.create! service: "google_drive", service_user_name: "student@gmail.com", service_user_id: "student@gmail.com", visible: false
       @student.user_services.create! service: "somethingthatdoesntexistanymore", service_user_name: "user", service_user_id: "user", visible: true
     end
 
     it "returns user_services, if requested" do
-      allow(Diigo::Connection).to receive(:config).and_return(true)
+      PluginSetting.create!(name: "google_drive", settings: {})
+      Account.default.enable_service(:google_drive)
       @user = @student
       json = api_call(:get,
                       "/api/v1/users/#{@student.id}/profile?include[]=user_services",
@@ -247,7 +248,7 @@ describe "User Profile API", type: :request do
                       format: "json",
                       include: ["user_services"])
       expect(json["user_services"]).to eq [
-        { "service" => "diigo", "visible" => false, "service_user_link" => "http://www.diigo.com/user/diigo_user" }
+        { "service" => "google_drive", "visible" => false, "service_user_link" => "https://myaccount.google.com/?pli=1" }
       ]
     end
 

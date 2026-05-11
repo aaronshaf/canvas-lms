@@ -78,16 +78,6 @@ module Canvas::Plugins::DefaultPlugins
                             version: "1.0.0",
                             settings_partial: "plugins/microsoft_settings",
                             encrypted_settings: [:application_secret])
-    Canvas::Plugin.register("diigo", nil, {
-                              name: -> { t :name, "Diigo" },
-                              description: -> { t :description, "Diigo integration" },
-                              website: "https://www.diigo.com",
-                              author: "Instructure",
-                              author_website: "http://www.instructure.com",
-                              version: "1.0.0",
-                              settings_partial: "plugins/diigo_settings",
-                              validator: "DiigoValidator"
-                            })
     Canvas::Plugin.register("etherpad", :collaborations, {
                               name: -> { t :name, "EtherPad" },
                               description: -> { t :description, "EtherPad document sharing" },

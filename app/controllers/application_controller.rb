@@ -2908,8 +2908,6 @@ class ApplicationController < ActionController::Base
 
     @features_enabled[feature] ||= if [:question_banks].include?(feature)
                                      true
-                                   elsif feature == :diigo
-                                     !!Diigo::Connection.config
                                    elsif feature == :google_drive
                                      Canvas::Plugin.find(:google_drive).try(:enabled?)
                                    elsif feature == :etherpad

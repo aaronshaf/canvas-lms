@@ -25,53 +25,21 @@ class BookmarkService < UserService
     url = opts[:url]
     return unless url
 
-    title = opts[:title] || t(:default_title, "No Title")
-    description = opts[:comments] || ""
-    tags = opts[:tags] || ["instructure"]
+    opts[:title] || t(:default_title, "No Title")
+    opts[:comments] || ""
+    opts[:tags] || ["instructure"]
     begin
-      case service
-      when "diigo"
-        Diigo::Connection.diigo_post_bookmark(self, url, title, description, tags)
-      else
-        raise "Unknown bookmark service: #{service}"
-      end
+      raise "Unknown bookmark service: #{service}"
     rescue
       # Should probably save the data to try again if it fails... at least one more try
     end
   end
 
   def find_bookmarks
-    if service == "diigo"
-      last_get = Rails.cache.fetch("last_diigo_lookup") { 1.minute.ago }
-      if Time.zone.now - last_get < 8
-        Rails.cache.write("last_diigo_lookup", Time.zone.now)
-        sleep Time.zone.now - last_get
-      end
-      Rails.cache.write("last_diigo_lookup", Time.zone.now)
-    end
     bookmark_search(self)
   end
 
   def bookmark_search(service)
-    bookmarks = []
-    case service.service
-    when "diigo"
-      data = Diigo::Connection.diigo_get_bookmarks(service)
-      if data.instance_of?(Array) && data.first.is_a?(Hash)
-        data.each do |bookmark|
-          bookmarks << {
-            title: bookmark["title"],
-            url: bookmark["url"],
-            description: bookmark["desc"],
-            tags: bookmark["tags"].split(/\s/).join(",")
-          }
-        end
-      else
-        bookmarks
-      end
-    else
-      raise "Unknown bookmark service: #{service}"
-    end
-    bookmarks
+    raise "Unknown bookmark service: #{service.service}"
   end
 end

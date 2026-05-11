@@ -28,26 +28,6 @@ describe "profile" do
     edit_form
   end
 
-  def add_diigo_service
-    f("#unregistered_service_diigo > a").click
-    diigo_dialog = f("[role=dialog][aria-label='Diigo login']")
-    diigo_dialog.find_element(:name, "username").send_keys("diigo")
-    diigo_dialog.find_element(:name, "password").send_keys("password")
-    wait_for_new_page_load { submit_form(diigo_dialog) }
-    expect(f("#registered_services")).to include_text("Diigo")
-  end
-
-  def set_up_diigo_service
-    # Mock Diigo connection and API calls
-    allow(Diigo::Connection).to receive_messages(
-      config: { api_key: "test_key" },
-      verify_credentials: true,
-      diigo_get_bookmarks: []
-    )
-    allow_any_instance_of(UserService).to receive(:verify_diigo_credentials).and_return(true)
-    @user.account.enable_service(:diigo)
-  end
-
   def generate_access_token(expiration: nil, purpose: "testing", close_dialog: true)
     f(".add_access_token_link").click
     access_token_dialog = f("[role=dialog][aria-label='New Access Token']")
@@ -363,29 +343,9 @@ describe "profile" do
       expect(f(".other_channels .path")).to include_text(test_slack_email)
     end
 
-    it "registers a service" do
-      set_up_diigo_service
-      get "/profile/settings"
-      add_diigo_service
-    end
-
-    it "deletes a service" do
-      set_up_diigo_service
-      get "/profile/settings"
-      add_diigo_service
-      driver.action.move_to(f(".service")).perform
-      f(".delete_service_link").click
-      expect(driver.switch_to.alert).not_to be_nil
-      driver.switch_to.alert.accept
-      wait_for_ajaximations
-      expect(f("#unregistered_services")).to include_text("Diigo")
-    end
-
     it "toggles user services visibility" do
-      set_up_diigo_service
-      get "/profile/settings"
-      add_diigo_service
       selector = "#show_user_services"
+      get "/profile/settings"
       expect(f(selector).selected?).to be_truthy
       f(selector).click
       wait_for_ajaximations
