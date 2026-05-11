@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen, waitFor, fireEvent} from '@testing-library/react'
+import {render, screen, waitFor, fireEvent, within} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -189,7 +189,9 @@ describe('TagAsModal', () => {
 
       renderComponent({categories: [singleTagCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      await user.click(await screen.findByRole('option', {name: 'Honors'}))
+      await user.click(
+        within(await screen.findByRole('listbox')).getByRole('option', {name: 'Honors'}),
+      )
       await user.click(screen.getByTestId('submit-button'))
 
       await waitFor(
@@ -209,7 +211,9 @@ describe('TagAsModal', () => {
 
       renderComponent({categories: [multipleTagsCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      await user.click(await screen.findByRole('option', {name: 'Variant A'}))
+      await user.click(
+        within(await screen.findByRole('listbox')).getByRole('option', {name: 'Variant A'}),
+      )
       await user.click(screen.getByTestId('submit-button'))
 
       await waitFor(
