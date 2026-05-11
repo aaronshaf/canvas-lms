@@ -18,6 +18,7 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import useBreakpoints from '@canvas/lti-apps/hooks/useBreakpoints'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import Badges from './Badges'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
@@ -50,7 +51,11 @@ const ExternalLinks = (props: ExternalLinksProps) => {
               margin={product.privacy_and_security_badges.length > 0 ? '0 0 large 0' : '0 0 0 0'}
             >
               <Flex.Item>
-                <Link href={product.privacy_policy_url} isWithinText={false} target="_blank">
+                <Link
+                  href={sanitizeUrl(product.privacy_policy_url)}
+                  isWithinText={false}
+                  target="_blank"
+                >
                   <Text weight="bold">
                     {I18n.t('Partner Privacy Policy')} <IconExternalLinkLine />
                   </Text>
@@ -73,7 +78,11 @@ const ExternalLinks = (props: ExternalLinksProps) => {
           {product.terms_of_service_url ? (
             <Flex direction="column">
               <Flex.Item>
-                <Link href={product.terms_of_service_url} isWithinText={false} target="_blank">
+                <Link
+                  href={sanitizeUrl(product.terms_of_service_url)}
+                  isWithinText={false}
+                  target="_blank"
+                >
                   <Text weight="bold">
                     {I18n.t('Terms of Service')} <IconExternalLinkLine />
                   </Text>
@@ -102,7 +111,11 @@ const ExternalLinks = (props: ExternalLinksProps) => {
               margin={product.accessibility_badges.length > 0 ? '0 0 large 0' : '0 0 0 0'}
             >
               <Flex.Item>
-                <Link href={product.accessibility_url} isWithinText={false} target="_blank">
+                <Link
+                  href={sanitizeUrl(product.accessibility_url)}
+                  isWithinText={false}
+                  target="_blank"
+                >
                   <Text weight="bold">
                     {I18n.t('Accessibility Documentation')} <IconExternalLinkLine />
                   </Text>

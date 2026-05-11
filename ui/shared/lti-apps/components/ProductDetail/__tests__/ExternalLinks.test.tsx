@@ -42,4 +42,19 @@ describe('ExternalLinks', () => {
     expect(getByText('Partner Privacy Policy')).toBeInTheDocument()
     expect(getByText('Accessibility Documentation')).toBeInTheDocument()
   })
+
+  it('sanitizes non-allowlist URL schemes to about:blank', () => {
+    const maliciousProduct = {
+      ...product[0],
+      privacy_policy_url: 'javascript:alert(1)',
+      terms_of_service_url: 'data:text/html,<script>alert(1)</script>',
+      accessibility_url: 'javascript:void(0)',
+    }
+    const {getAllByRole} = render(<ExternalLinks product={maliciousProduct} />)
+    const links = getAllByRole('link')
+    links.forEach(link => {
+      expect(link).not.toHaveAttribute('href', expect.stringMatching(/^javascript:/i))
+      expect(link).not.toHaveAttribute('href', expect.stringMatching(/^data:/i))
+    })
+  })
 })

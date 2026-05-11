@@ -18,6 +18,7 @@
 
 import TruncateWithTooltip from '../common/TruncateWithTooltip'
 import useBreakpoints from '../../hooks/useBreakpoints'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {IconExternalLinkLine} from '@instructure/ui-icons'
 import {Img} from '@instructure/ui-img'
 import {Flex} from '@instructure/ui-flex'
@@ -53,7 +54,7 @@ const Badges = (props: BadgesProps) => {
 
           <Flex direction="column">
             <Flex.Item margin="0 0 x-small 0">
-              <Link href={badges.link} isWithinText={false} target="_blank">
+              <Link href={sanitizeUrl(badges.link)} isWithinText={false} target="_blank">
                 <Text weight="bold">
                   {badges.name} <IconExternalLinkLine />
                 </Text>
