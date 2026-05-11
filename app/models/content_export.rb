@@ -55,6 +55,7 @@ class ContentExport < ApplicationRecord
   ZIP = "zip"
   QUIZZES2 = "quizzes2"
   CC_EXPORT_TYPES = [COMMON_CARTRIDGE, COURSE_COPY, MASTER_COURSE_COPY, QTI, QUIZZES2].freeze
+  NON_ADMIN_TYPES = [USER_DATA, ZIP].freeze
 
   class ExternalExportNotCompletedError < StandardError; end
 
@@ -94,7 +95,7 @@ class ContentExport < ApplicationRecord
     # file managers (typically course admins) can read all course exports (not zip or user-data exports)
     given do |user, session|
       context.grants_any_right?(user, session, *RoleOverride::GRANULAR_FILE_PERMISSIONS) &&
-        [ZIP, USER_DATA].exclude?(export_type)
+        NON_ADMIN_TYPES.exclude?(export_type)
     end
     can :read
 
@@ -109,11 +110,11 @@ class ContentExport < ApplicationRecord
     # all users can read zip/user data exports they created (in contexts they retain read permission)
     # NOTE: other exports may be created on their behalf that they do *not* have direct access to;
     # e.g. a common cartridge export created under the hood when a student creates a web zip export
-    given { |user, session| self.user.present? && self.user == user && [ZIP, USER_DATA].include?(export_type) && context.grants_right?(user, session, :read) }
+    given { |user, session| self.user.present? && self.user == user && NON_ADMIN_TYPES.include?(export_type) && context.grants_right?(user, session, :read) }
     can :read
 
     # non-admins can create zip or user-data exports, but not other types
-    given { |user, session| user.present? && [ZIP, USER_DATA].include?(export_type) && context.grants_right?(user, session, :read) }
+    given { |user, session| user.present? && NON_ADMIN_TYPES.include?(export_type) && context.grants_right?(user, session, :read) }
     can :create
 
     # users can read exports that are shared with them
@@ -693,16 +694,12 @@ class ContentExport < ApplicationRecord
   scope :running, -> { where(workflow_state: ["created", "exporting"]) }
   scope :admin, lambda { |user|
     where("content_exports.export_type NOT IN (?) OR content_exports.user_id=?",
-          [
-            ZIP, USER_DATA
-          ],
+          NON_ADMIN_TYPES,
           user)
   }
   scope :non_admin, lambda { |user|
     where("content_exports.export_type IN (?) AND content_exports.user_id=?",
-          [
-            ZIP, USER_DATA
-          ],
+          NON_ADMIN_TYPES,
           user)
   }
   scope :without_epub, -> { eager_load(:epub_export).where(epub_exports: { id: nil }) }

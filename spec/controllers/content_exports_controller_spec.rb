@@ -252,6 +252,7 @@ describe ContentExportsController do
         @tzx = @student.content_exports.create!(user: @teacher, export_type: "zip")
         @sdx = @student.content_exports.create!(user: @student, export_type: "user_data")
         @szx = @student.content_exports.create!(user: @student, export_type: "zip")
+        @course_cx = @course.content_exports.create!(user: @student, export_type: "common_cartridge")
       end
 
       describe "index" do
@@ -260,6 +261,12 @@ describe ContentExportsController do
           get :index
           expect(response).to be_successful
           expect(assigns(:exports).map(&:id)).to match_array [@sdx.id, @szx.id]
+        end
+
+        it "does not list course-scoped exports created on the user's behalf" do
+          user_session(@student)
+          get :index
+          expect(assigns(:exports).map(&:id)).not_to include(@course_cx.id)
         end
       end
 
@@ -274,6 +281,21 @@ describe ContentExportsController do
           user_session(@student)
           get :show, params: { id: @tzx.id }
           assert_status(404)
+        end
+
+        it "does not find a course-scoped export created on the user's behalf" do
+          user_session(@student)
+          get :show, params: { id: @course_cx.id }
+          assert_status(404)
+        end
+      end
+
+      describe "destroy" do
+        it "cannot destroy a course-scoped export created on the user's behalf" do
+          user_session(@student)
+          delete :destroy, params: { id: @course_cx.id }
+          assert_status(404)
+          expect(@course_cx.reload.workflow_state).not_to eq "deleted"
         end
       end
     end

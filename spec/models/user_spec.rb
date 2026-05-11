@@ -6581,4 +6581,36 @@ describe User do
       end
     end
   end
+
+  describe "#content_exports_visible_to" do
+    let(:owner) { user_factory(active_all: true) }
+
+    it "returns user-context user_data exports owned by the user" do
+      export = owner.content_exports.create!(user: owner, export_type: ContentExport::USER_DATA)
+      expect(owner.content_exports_visible_to(owner)).to include(export)
+    end
+
+    it "returns user-context zip exports owned by the user" do
+      export = owner.content_exports.create!(user: owner, export_type: ContentExport::ZIP)
+      expect(owner.content_exports_visible_to(owner)).to include(export)
+    end
+
+    it "excludes exports owned by a different user" do
+      other = user_factory(active_all: true)
+      export = owner.content_exports.create!(user: other, export_type: ContentExport::USER_DATA)
+      expect(owner.content_exports_visible_to(owner)).not_to include(export)
+    end
+
+    it "excludes user-context exports whose export_type is not user_data or zip" do
+      export = owner.content_exports.create!(user: owner, export_type: ContentExport::COMMON_CARTRIDGE)
+      expect(owner.content_exports_visible_to(owner)).not_to include(export)
+    end
+
+    it "excludes course-context exports even when user_id matches" do
+      course = course_factory(active_all: true)
+      course.enroll_teacher(owner, enrollment_state: "active")
+      export = course.content_exports.create!(user: owner, export_type: ContentExport::COMMON_CARTRIDGE)
+      expect(owner.content_exports_visible_to(owner)).not_to include(export)
+    end
+  end
 end

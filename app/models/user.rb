@@ -3894,7 +3894,12 @@ class User < ApplicationRecord
   end
 
   def content_exports_visible_to(user)
-    content_exports.where(user_id: user)
+    content_exports.where(
+      user_id: user,
+      context_type: "User",
+      context_id: id,
+      export_type: ContentExport::NON_ADMIN_TYPES
+    )
   end
 
   def show_bouncing_channel_message!
