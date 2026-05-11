@@ -91,6 +91,8 @@ class ContentSharesController < ApplicationController
   include ContentExportApiHelper
   include Api::V1::ContentShare
 
+  MAX_RECEIVERS = 100
+
   before_action :get_user_param
   before_action :require_current_user, except: %w[show index unread_count]
   before_action :get_receivers, only: %w[create add_users]
@@ -281,15 +283,27 @@ class ContentSharesController < ApplicationController
   private
 
   def get_receivers
-    receiver_ids = params.require(:receiver_ids)
-    candidates = api_find_all(User, Array(receiver_ids))
-    known_ids = @current_user.address_book.known_users(candidates, strict_checks: true).to_set(&:global_id)
-    @receivers = candidates.select { |u| known_ids.include?(u.global_id) }
+    receiver_ids = Array(params.require(:receiver_ids))
+    if receiver_ids.size > MAX_RECEIVERS
+      render(json: { message: "Too many recipients (max #{MAX_RECEIVERS})" }, status: :bad_request)
+      return false
+    end
+
+    @receivers = authorized_receivers(api_find_all(User, receiver_ids))
 
     unless @receivers.any?
       render(json: { message: "No valid receiving users found" }, status: :bad_request)
       false
     end
+  end
+
+  def authorized_receivers(receivers)
+    strict_checks = !Account.site_admin.grants_right?(@current_user, session, :send_messages)
+    self_user, others = receivers.partition { |u| u.id == @current_user.id }
+    return self_user if others.empty?
+
+    known_ids = @current_user.address_book.known_users(others, strict_checks:).to_set(&:global_id)
+    self_user + others.select { |u| known_ids.include?(u.global_id) }
   end
 
   def create_receiver_shares(sender_share, receivers)

@@ -26,7 +26,9 @@ describe ContentSharesController do
     course_with_teacher(active_all: true)
     @course_2 = @course
     @teacher_2 = @teacher
-    @course_1.enroll_student(@teacher_2, enrollment_state: "active")
+    @shared_course = course_factory(active_all: true)
+    @shared_course.enroll_teacher(@teacher_1, enrollment_state: "active")
+    @shared_course.enroll_teacher(@teacher_2, enrollment_state: "active")
     assignment_model(course: @course_1, name: "assignment share")
   end
 
@@ -239,13 +241,45 @@ describe ContentSharesController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "rejects recipients with no shared context with sender" do
-      outsider = user_with_pseudonym(active_user: true)
-      expect do
-        post :create, params: { user_id: @teacher_1.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [outsider.id] }
-      end.not_to change { outsider.received_content_shares.count }
-      expect(response).to have_http_status(:bad_request)
-      expect(response.body).to include "No valid receiving users found"
+    context "recipient authorization" do
+      let_once(:unrelated_user) { user_with_pseudonym(active_user: true) }
+
+      before do
+        user_session(@teacher_1)
+      end
+
+      it "rejects when the only recipient has no shared course or group with the sender" do
+        post :create, params: { user_id: @teacher_1.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [unrelated_user.id] }
+        expect(response).to have_http_status(:bad_request)
+        expect(response.body).to include "No valid receiving users found"
+        expect(ReceivedContentShare.where(user_id: unrelated_user.id)).not_to exist
+        expect(SentContentShare.where(user_id: @teacher_1.id)).not_to exist
+        expect(ContentExport.where(user_id: @teacher_1.id)).not_to exist
+      end
+
+      it "silently drops unauthorized recipients when at least one is authorized" do
+        post :create, params: { user_id: @teacher_1.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [@teacher_2.id, unrelated_user.id] }
+        expect(response).to have_http_status(:created)
+        expect(ReceivedContentShare.where(user_id: @teacher_2.id)).to exist
+        expect(ReceivedContentShare.where(user_id: unrelated_user.id)).not_to exist
+      end
+
+      it "lets site admins with :send_messages share with unrelated users" do
+        site_admin = account_admin_user(account: Account.site_admin)
+        user_session(site_admin)
+        post :create, params: { user_id: site_admin.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [unrelated_user.id] }
+        expect(response).to have_http_status(:created)
+        expect(ReceivedContentShare.where(user_id: unrelated_user.id)).to exist
+      end
+
+      it "rejects when receiver_ids exceeds the per-request cap" do
+        stub_const("ContentSharesController::MAX_RECEIVERS", 2)
+        post :create, params: { user_id: @teacher_1.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [@teacher_2.id, @teacher_2.id, @teacher_2.id] }
+        expect(response).to have_http_status(:bad_request)
+        expect(response.body).to include "Too many recipients"
+        expect(SentContentShare.where(user_id: @teacher_1.id)).not_to exist
+        expect(ContentExport.where(user_id: @teacher_1.id)).not_to exist
+      end
     end
   end
 
@@ -412,8 +446,7 @@ describe ContentSharesController do
     describe "POST #add_users" do
       before :once do
         @teacher_3 = user_with_pseudonym(active_user: true)
-        @course_1.enroll_teacher(@teacher_3, enrollment_state: "active")
-        @course_2.enroll_teacher(@teacher_3, enrollment_state: "active")
+        @shared_course.enroll_teacher(@teacher_3, enrollment_state: "active")
       end
 
       it "adds users" do
@@ -452,22 +485,23 @@ describe ContentSharesController do
         expect(response.body).to include "No valid receiving users found"
       end
 
-      it "rejects recipients with no shared context with sender" do
+      it "drops unauthorized recipients" do
         user_session @teacher_1
-        outsider = user_with_pseudonym(active_user: true)
-        post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [outsider.id] }
-        expect(response).to have_http_status(:bad_request)
-        expect(response.body).to include "No valid receiving users found"
-        expect(@sent_share.receivers.pluck(:id)).not_to include(outsider.id)
+        unrelated_user = user_with_pseudonym(active_user: true)
+        post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [unrelated_user.id, @teacher_3.id] }
+        expect(response).to be_successful
+        expect(@sent_share.reload.receivers.pluck(:id)).to match_array([@teacher_2.id, @teacher_3.id])
+        expect(ReceivedContentShare.where(user_id: unrelated_user.id)).not_to exist
       end
 
-      it "silently drops unauthorized recipients in a mixed batch" do
+      it "rejects when receiver_ids exceeds the per-request cap" do
+        stub_const("ContentSharesController::MAX_RECEIVERS", 2)
         user_session @teacher_1
-        outsider = user_with_pseudonym(active_user: true)
-        post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [@teacher_3.id, outsider.id] }
-        expect(response).to be_successful
-        expect(@sent_share.receivers.pluck(:id)).to match_array([@teacher_2.id, @teacher_3.id])
-        expect(@sent_share.receivers.pluck(:id)).not_to include(outsider.id)
+        expect do
+          post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [@teacher_3.id, @teacher_3.id, @teacher_3.id] }
+        end.not_to change { @sent_share.reload.receivers.pluck(:id) }
+        expect(response).to have_http_status(:bad_request)
+        expect(response.body).to include "Too many recipients"
       end
 
       it "disallows resharing somebody else's share" do
