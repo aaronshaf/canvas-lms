@@ -138,6 +138,9 @@ class EportfolioEntriesController < ApplicationController
   def submission
     if authorized_action(@portfolio, @current_user, :read)
       @entry = @portfolio.eportfolio_entries.find(params[:entry_id])
+      # ensure the submission being requested actually exists in the current entry
+      raise ActiveRecord::RecordNotFound unless @entry.submission_ids.map(&:to_i).include?(params[:submission_id].to_i)
+
       @category = @entry.eportfolio_category
       @submission = @portfolio.user.submissions.find(params[:submission_id])
       @assignment = @submission.assignment
@@ -149,6 +152,9 @@ class EportfolioEntriesController < ApplicationController
         anonymize_students: @assignment.anonymize_students?
       }
     end
+  rescue ActiveRecord::RecordNotFound
+    flash[:notice] = t("notices.missing_page", "Couldn't find that page")
+    redirect_to eportfolio_url(@portfolio.id)
   end
 
   protected

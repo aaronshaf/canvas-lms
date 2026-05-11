@@ -239,17 +239,37 @@ describe EportfolioEntriesController do
     before(:once) do
       eportfolio_entry(@category)
       @student = @user
-      course = Course.create!
-      course.enroll_student(@student).accept(force: true)
-      teacher = teacher_in_course(course:, active_all: true).user
-      @assignment = course.assignments.create!
+      @course = Course.create!
+      @course.enroll_student(@student).accept(force: true)
+      teacher = teacher_in_course(course: @course, active_all: true).user
+      @assignment = @course.assignments.create!
       @submission = @assignment.submissions.find_by(user: @student)
       @assignment.grade_student(@student, grader: teacher, score: 5)
+      @entry.update!(content: [{ section_type: "submission", submission_id: @submission.id }])
     end
 
     it "requires authorization" do
       get "submission", params: { eportfolio_id: @portfolio.id, entry_id: @entry.id, submission_id: @submission.id }
       assert_unauthorized
+    end
+
+    it "redirects to the eportfolio when the submission is not referenced by the entry" do
+      other_assignment = @course.assignments.create!
+      other_submission = other_assignment.submissions.find_by(user: @student)
+
+      @portfolio.update!(public: true)
+      viewer = user_model
+      viewer.account_users.create!(account: Account.default, role: student_role)
+      user_session(viewer)
+
+      get "submission", params: {
+        eportfolio_id: @portfolio.id,
+        entry_id: @entry.id,
+        submission_id: other_submission.id
+      }
+
+      expect(response).to redirect_to(eportfolio_url(@portfolio))
+      expect(flash[:notice]).to eql("Couldn't find that page")
     end
 
     it "passes anonymize_students: false to the template if the assignment is not anonymous" do
