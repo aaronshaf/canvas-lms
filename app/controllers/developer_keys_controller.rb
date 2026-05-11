@@ -386,6 +386,16 @@ class DeveloperKeysController < ApplicationController
                     status: :forbidden
     end
 
+    if @access_token&.manually_created?
+      return render json: { errors: [{ message: "Cannot regenerate secret using a user-generated access token" }] },
+                    status: :forbidden
+    end
+
+    if @access_token && @access_token.developer_key != @key
+      return render json: { errors: [{ message: "Cannot regenerate secret for a developer key other than the one associated with this access token" }] },
+                    status: :forbidden
+    end
+
     if @key.is_lti_key
       return render json: { errors: [{ message: "Cannot regenerate secret for LTI keys" }] },
                     status: :bad_request

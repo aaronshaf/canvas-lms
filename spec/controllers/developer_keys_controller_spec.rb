@@ -765,6 +765,51 @@ describe DeveloperKeysController do
           end
         end
 
+        context "when the request uses an access token" do
+          context "when the token is user-generated (default developer key)" do
+            before do
+              controller.instance_variable_set(:@access_token,
+                                               AccessToken.create!(user: @admin, developer_key: DeveloperKey.default, purpose: "test token"))
+            end
+
+            it "returns 403 forbidden" do
+              post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }
+              expect(response).to have_http_status(:forbidden)
+              expect(json_parse(response.body)["errors"].first["message"]).to eq("Cannot regenerate secret using a user-generated access token")
+            end
+          end
+
+          context "when the token belongs to a different developer key" do
+            let(:other_dk) { DeveloperKey.create!(account: Account.site_admin, name: "Other Key") }
+
+            before do
+              controller.instance_variable_set(:@access_token,
+                                               AccessToken.create!(user: @admin, developer_key: other_dk))
+            end
+
+            it "returns 403 forbidden" do
+              post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }
+              expect(response).to have_http_status(:forbidden)
+              expect(json_parse(response.body)["errors"].first["message"]).to include("other than the one associated with this access token")
+            end
+          end
+
+          context "when the token belongs to the same developer key" do
+            before do
+              controller.instance_variable_set(:@access_token,
+                                               AccessToken.create!(user: @admin, developer_key: dk, purpose: "test token"))
+            end
+
+            it "successfully regenerates the secret" do
+              original_key = dk.api_key
+              post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }
+              expect(response).to be_successful
+              dk.reload
+              expect(dk.api_key).not_to eq(original_key)
+            end
+          end
+        end
+
         context "with permission checks" do
           let(:other_account) { Account.create! }
           let(:other_account_key) { DeveloperKey.create!(account: other_account) }
