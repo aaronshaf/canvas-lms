@@ -2117,4 +2117,39 @@ describe WikiPage do
       end
     end
   end
+
+  describe "#body reader" do
+    let(:page) do
+      course_with_teacher(active_all: true)
+      @course.wiki_pages.create!(title: "some page", body: "placeholder")
+    end
+
+    it "strips disallowed attributes on read when the column was persisted unsanitized" do
+      page.update_columns(body: '<object onerror="alert(1)">x</object>')
+      expect(page.reload.body).not_to include("onerror")
+      expect(page.body).not_to include("alert(1)")
+    end
+
+    it "strips disallowed elements on read when the column was persisted unsanitized" do
+      page.update_columns(body: "<script>alert(1)</script>safe text")
+      expect(page.reload.body).not_to include("<script>")
+      expect(page.body).not_to include("alert(1)")
+      expect(page.body).to include("safe text")
+    end
+
+    it "preserves allowed HTML on read" do
+      page.update_columns(body: "<p>hello <strong>world</strong></p>")
+      expect(page.reload.body).to eql("<p>hello <strong>world</strong></p>")
+    end
+
+    it "leaves plain text unchanged on read" do
+      page.update_columns(body: "just a page")
+      expect(page.reload.body).to eql("just a page")
+    end
+
+    it "returns nil when body is nil" do
+      page.update_columns(body: nil)
+      expect(page.reload.body).to be_nil
+    end
+  end
 end

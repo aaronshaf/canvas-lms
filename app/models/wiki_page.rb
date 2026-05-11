@@ -292,6 +292,11 @@ class WikiPage < ApplicationRecord
   sanitize_field :body, CanvasSanitize::SANITIZE
   copy_authorized_links(:body) { [context, user] }
 
+  def body
+    raw = super
+    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+  end
+
   validates_each :title do |record, attr, value|
     if value.blank?
       record.errors.add(attr, t("errors.blank_title", "Title can't be blank"))

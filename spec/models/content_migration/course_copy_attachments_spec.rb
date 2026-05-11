@@ -156,7 +156,7 @@ describe ContentMigration do
       run_course_copy
       att_to = @copy_to.attachments.find_by(migration_id: mig_id(att))
       page_to = @copy_to.wiki_pages.find_by(migration_id: mig_id(page))
-      expect(page_to.body).to include %(src="/media_attachments_iframe/#{att_to.id}?type=video&embedded=true")
+      expect(page_to.body).to include %(src="/media_attachments_iframe/#{att_to.id}?type=video&amp;embedded=true")
     end
 
     it "copies media tracks from media objects that do not have associated attachments" do
