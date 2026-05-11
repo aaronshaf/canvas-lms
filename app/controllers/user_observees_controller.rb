@@ -135,6 +135,9 @@ class UserObserveesController < ApplicationController
     elsif params[:pairing_code]
       code = find_observer_pairing_code(params[:pairing_code])
       if code.nil?
+        # in an account w/ self-registration, a user could continuously guess pairing_codes until
+        # finding a match with an existing, active code
+        increment_request_cost(200)
         render json: { errors: [{ "message" => "Invalid pairing code." }] }, status: :unprocessable_content
         return
       end

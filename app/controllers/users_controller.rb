@@ -3368,6 +3368,9 @@ class UsersController < ApplicationController
     if @user.initial_enrollment_type == "observer"
       @pairing_code = find_observer_pairing_code(params[:pairing_code]&.[](:code))
       if @pairing_code.nil?
+        # in an account w/ self-registration, a user could continuously guess pairing_codes until
+        # finding a match with an existing, active code
+        increment_request_cost(200)
         @invalid_observee_code = ObserverPairingCode.new
         @invalid_observee_code.errors.add("code", "invalid")
       else
