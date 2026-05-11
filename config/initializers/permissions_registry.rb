@@ -2275,7 +2275,7 @@ BASE_PERMISSIONS = {
 
   },
   view_accessibility_insights: {
-    label: -> { I18n.t("Accessibility Insights") },
+    label: -> { I18n.t("Accessibility Analytics") },
     group: :view_advanced_analytics,
     available_to: %w[AccountAdmin AccountMembership],
     true_for: %w[AccountAdmin],
