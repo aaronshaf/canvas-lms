@@ -290,12 +290,23 @@ class WikiPage < ApplicationRecord
   end
 
   sanitize_field :body, CanvasSanitize::SANITIZE
-  copy_authorized_links(:body) { [context, user] }
+
+  # Stricter on-read sanitize: drops <object> and <embed> entirely.
+  # CanvasSanitize::SANITIZE permits them with data/src http(s) attrs,
+  # which is the SEC-21943 / SEC-21419-family cross-tenant XSS primitive.
+  # <iframe> kept because legitimate wiki bodies embed Canvas Studio,
+  # LTI tools, YouTube, etc., and no per-account iframe host allowlist
+  # exists yet (see canvas_sanitize.rb:258 TODO).
+  BODY_READ_SANITIZE = CanvasSanitize::SANITIZE
+                       .merge(elements: CanvasSanitize::SANITIZE[:elements] - %w[object embed])
+                       .freeze
 
   def body
     raw = super
-    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+    raw && Sanitize.clean(raw, BODY_READ_SANITIZE)
   end
+
+  copy_authorized_links(:body) { [context, user] }
 
   validates_each :title do |record, attr, value|
     if value.blank?

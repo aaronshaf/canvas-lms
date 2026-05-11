@@ -2137,6 +2137,23 @@ describe WikiPage do
       expect(page.body).to include("safe text")
     end
 
+    it "strips object data attributes pointing at javascript URIs" do
+      page.update_columns(body: '<object data="javascript:alert(1)"></object>')
+      expect(page.reload.body).not_to include("javascript:")
+    end
+
+    it "strips object tags even with allowed-protocol data attribute" do
+      page.update_columns(body: '<object data="https://attacker.tld/p.html" type="text/html" width="0" height="0"></object>')
+      expect(page.reload.body).not_to include("<object")
+      expect(page.body).not_to include("attacker.tld")
+    end
+
+    it "strips embed tags even with allowed-protocol src attribute" do
+      page.update_columns(body: '<embed src="https://attacker.tld/p.html" type="text/html">')
+      expect(page.reload.body).not_to include("<embed")
+      expect(page.body).not_to include("attacker.tld")
+    end
+
     it "preserves allowed HTML on read" do
       page.update_columns(body: "<p>hello <strong>world</strong></p>")
       expect(page.reload.body).to eql("<p>hello <strong>world</strong></p>")
