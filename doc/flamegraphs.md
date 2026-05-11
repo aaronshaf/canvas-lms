@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-Add the `flamegraph=true&flamename=my-custom-name` query params to any request, and view/download flamegraphs in your Canvas Files.
+Add the `flamegraph=true&flamename=my-custom-name` query params to any request, and download flamegraphs from your Canvas Files to view them locally.
 
 ## Why Flamegraphs?
 
@@ -34,7 +34,7 @@ flamename=my-kewl-stuff
 
 query parameter, which will make the filename `flamegraph-my-kewl-stuff-<controller>#<action>-<iso8601 timestamp>`.
 
-You can preview the file within Canvas and interact with it (try clicking things and using the search bar, it's interactive!). You can also download the HTML file and view it locally in your browser.
+Note that you **cannot preview the file within Canvas Files** since the flamegraph file needs JavaScript to work and we do not allow scripts to be run on HTML previews in Canvas Files. You need to download the file first and then open the local file in your browser. After opening the local file, you can interact with it. Try clicking things and using the search bar, it's interactive!
 
 ## More Info
 
