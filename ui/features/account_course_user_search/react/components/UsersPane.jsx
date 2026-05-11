@@ -126,7 +126,7 @@ export default class UsersPane extends React.Component {
 
   handleUpdateSearchFilter = searchFilter => {
     this.props.store.dispatch(UserActions.updateSearchFilter({page: null, ...searchFilter}))
-    const termLength = searchFilter.search_term.length
+    const termLength = searchFilter.search_term?.length || 0
     const isShortQuery = termLength > 0 && termLength <= MIN_SEARCH_LENGTH
     if (isShortQuery) {
       this.debouncedDispatchApplySearchFilter.cancel()
