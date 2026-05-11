@@ -131,6 +131,7 @@ module Canvas::OAuth
       after { OAuthRedirectUriValidationConfig.reset! }
 
       it "is true when the redirect url is the OOB uri (without consulting matchers)" do
+        stub_matchers(lenient: false, strict: false)
         provider = Provider.new("123", Provider::OAUTH2_OOB_URI)
         expect(provider.has_valid_redirect?).to be true
       end
@@ -223,6 +224,26 @@ module Canvas::OAuth
             hash_including(tags: hash_including(enforce: "true"))
           )
           expect(provider.has_valid_redirect?).to be false
+        end
+      end
+
+      context "when the developer key is in never_enforce_developer_keys" do
+        before do
+          allow(OAuthRedirectUriValidationConfig).to receive_messages(
+            report?: true,
+            enforce?: true,
+            never_enforce_developer_keys: Set["10000000000001"]
+          )
+        end
+
+        it "accepts a lenient-only match even though global enforce? is true" do
+          stub_matchers(lenient: true, strict: false)
+          expect(InstStatsd::Statsd).to receive(:event).with(
+            "OAuth Redirect URI Lenient Match",
+            kind_of(String),
+            hash_including(tags: hash_including(enforce: "false"))
+          )
+          expect(provider.has_valid_redirect?).to be true
         end
       end
 

@@ -106,6 +106,40 @@ describe OAuthRedirectUriValidationConfig do
     end
   end
 
+  describe ".enforce_for_developer_key?" do
+    it "returns enforce? when the key is not in the never list" do
+      stub_consul("enforce" => true)
+      expect(described_class.enforce_for_developer_key?("10000000000001")).to be true
+      described_class.reset!
+      stub_consul("enforce" => false)
+      expect(described_class.enforce_for_developer_key?("10000000000001")).to be false
+    end
+
+    it "returns false when the key is in never_enforce_developer_keys, regardless of enforce?" do
+      stub_consul(
+        "enforce" => true,
+        "never_enforce_developer_keys" => ["10000000000003"]
+      )
+      expect(described_class.enforce_for_developer_key?("10000000000003")).to be false
+    end
+
+    it "coerces the global_id argument to a string for comparison" do
+      stub_consul("never_enforce_developer_keys" => ["10000000000005"], "enforce" => true)
+      expect(described_class.enforce_for_developer_key?(10_000_000_000_005)).to be false
+    end
+
+    it "coerces config values to strings (handles numeric YAML entries)" do
+      stub_consul("never_enforce_developer_keys" => [10_000_000_000_006])
+      expect(described_class.enforce_for_developer_key?("10000000000006")).to be false
+    end
+
+    it "defaults to enforce? when no never list is configured" do
+      stub_consul("enforce" => true)
+      expect(described_class.never_enforce_developer_keys).to be_empty
+      expect(described_class.enforce_for_developer_key?("10000000000007")).to be true
+    end
+  end
+
   describe "caching" do
     it "memoizes the config across calls within a process" do
       stub_consul("report" => true)

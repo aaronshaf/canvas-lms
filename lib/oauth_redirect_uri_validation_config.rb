@@ -47,8 +47,19 @@ module OAuthRedirectUriValidationConfig
     !!config["enforce_disallow_non_document_oob_sec_fetch_dest"]
   end
 
+  def self.never_enforce_developer_keys
+    @never_enforce_developer_keys ||= Array(config["never_enforce_developer_keys"]).to_set(&:to_s)
+  end
+
+  def self.enforce_for_developer_key?(global_id)
+    return false if never_enforce_developer_keys.include?(global_id.to_s)
+
+    enforce?
+  end
+
   def self.reset!
     @config = nil
+    @never_enforce_developer_keys = nil
   end
 
   def self.config

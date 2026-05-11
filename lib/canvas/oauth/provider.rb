@@ -67,7 +67,7 @@ module Canvas::OAuth
       end
 
       report = OAuthRedirectUriValidationConfig.report?
-      enforce = OAuthRedirectUriValidationConfig.enforce?
+      enforce = OAuthRedirectUriValidationConfig.enforce_for_developer_key?(key.global_id)
       disallow_implicit_oob = OAuthRedirectUriValidationConfig.disallow_implicit_oob_redirect_uri?
       return true unless report || enforce || disallow_implicit_oob
       return true if key.redirect_uri_matches?(redirect_uri)
