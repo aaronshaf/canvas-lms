@@ -25,10 +25,16 @@ class Login::OtpController < ApplicationController
   include Login::Shared
   include Login::OtpHelper
 
-  before_action :require_password_session
+  before_action :require_password_session, except: [:send_verification]
   before_action :forbid_on_files_domain
   skip_before_action :require_password_reset
   skip_before_action :check_mfa_ips_and_user_agents, except: :destroy
+  before_action :require_authenticated_user, only: [:send_verification]
+  skip_before_action :require_user, only: [:send_verification]
+
+  OTP_ALLOWED_DRIFT = 30
+  OTP_ALLOWED_DRIFT_SMS = 300
+  OTP_SEND_REQUEST_COST = 100
 
   def new
     # if we waiting on OTP for login, but we're not yet configured, start configuring
@@ -98,10 +104,10 @@ class Login::OtpController < ApplicationController
 
     verification_code = params[:otp_login][:verification_code].delete(" ")
 
-    drift = 30
+    drift = OTP_ALLOWED_DRIFT
     # give them 5 minutes to enter an OTP sent via SMS
-    drift = 300 if session[:pending_otp_communication_channel_id] ||
-                   (!session[:pending_otp_secret_key] && @current_user.otp_communication_channel_id)
+    drift = OTP_ALLOWED_DRIFT_SMS if session[:pending_otp_communication_channel_id] ||
+                                     (!session[:pending_otp_secret_key] && @current_user.otp_communication_channel_id)
 
     if Canvas.redis_enabled?
       key = "otp_used:#{@current_user.global_id}:#{verification_code}"
@@ -161,6 +167,47 @@ class Login::OtpController < ApplicationController
     render json: { message: "Multi-factor authentication process has been cancelled." }, status: :ok
   end
 
+  def send_verification
+    # Only send if user has MFA configured
+    unless @current_user.otp_secret_key.present?
+      return render json: { error: t("mfa_not_configured", "Multi-factor authentication is not configured") },
+                    status: :unprocessable_content
+    end
+
+    # Check if user has a communication channel for OTP (SMS or email)
+    # If not, they're using an authenticator app and don't need OTP sent
+    cc = @current_user.otp_communication_channel
+    unless cc
+      return render json: { otp_not_required: true }
+    end
+
+    # Rate limit this endpoint to prevent SMS/email spam abuse
+    # Allow ~6 sends before hitting rate limit
+    # Only increment cost when actually sending (not for authenticator app users)
+    increment_request_cost(OTP_SEND_REQUEST_COST)
+
+    # Use existing helper to send OTP (includes backup email for otp_impaired)
+    send_otp(cc, user: @current_user)
+
+    # Mask the destination for security
+    masked_path = case cc.path_type
+                  when CommunicationChannel::TYPE_SMS
+                    # Show last 4 digits of phone number
+                    cc.path.gsub(/\d(?=\d{4})/, "*")
+                  when CommunicationChannel::TYPE_EMAIL
+                    # Mask email (show first char and domain)
+                    cc.path.sub(/(?<=.).+(?=@)/, "***")
+                  else
+                    "***"
+                  end
+
+    render json: {
+      otp_sent: true,
+      channel_type: cc.path_type,
+      masked_path:
+    }
+  end
+
   def destroy
     user = if params[:user_id] == "self"
              @current_user
@@ -168,6 +215,36 @@ class Login::OtpController < ApplicationController
              User.find(params[:user_id])
            end
     return unless authorized_action(user, current_principal, :reset_mfa)
+
+    # Determine whose OTP to verify:
+    # - If removing your own MFA (or masquerading): verify with that user's code
+    # - If admin directly removing another user's MFA: verify with admin's code
+    verifying_user = (user == @current_user) ? @current_user : logged_in_user
+
+    if Account.site_admin.feature_enabled?(:require_mfa_verification_for_removal) &&
+       verifying_user.otp_secret_key.present?
+      verification_code = params[:verification_code]
+
+      unless verification_code.present?
+        return render json: { error: t("verification_code_required", "Verification code is required to disable multi-factor authentication") },
+                      status: :unprocessable_content
+      end
+
+      # Remove spaces from verification code
+      verification_code = verification_code.delete(" ")
+
+      # Verify the OTP code against the logged-in user's (not target user's) MFA
+      drift = OTP_ALLOWED_DRIFT
+      drift = OTP_ALLOWED_DRIFT_SMS if verifying_user.otp_communication_channel_id
+
+      otp_valid = ROTP::TOTP.new(verifying_user.otp_secret_key).verify(verification_code, drift_behind: drift, drift_ahead: drift) ||
+                  verifying_user.authenticate_one_time_password(verification_code)
+
+      unless otp_valid
+        return render json: { error: t("invalid_verification_code", "Invalid verification code") },
+                      status: :unprocessable_content
+      end
+    end
 
     user.otp_secret_key = nil
     user.otp_communication_channel = nil
@@ -179,23 +256,35 @@ class Login::OtpController < ApplicationController
 
   protected
 
-  def send_otp(cc = nil)
-    cc ||= @current_user.otp_communication_channel
-    key = ROTP::TOTP.new(secret_key).now
+  def send_otp(cc = nil, user: nil)
+    user ||= @current_user
+    cc ||= user.otp_communication_channel
+    key = ROTP::TOTP.new(user_secret_key(user)).now
     cc&.send_otp!(key, @domain_root_account)
     if cc&.otp_impaired?
-      @current_user.email_channel&.send_otp!(key, @domain_root_account)
+      user.email_channel&.send_otp!(key, @domain_root_account)
     end
   end
 
   def secret_key
-    session[:pending_otp_secret_key] || @current_user.otp_secret_key
+    user_secret_key(@current_user)
+  end
+
+  def user_secret_key(user)
+    session[:pending_otp_secret_key] || user.otp_secret_key
   end
 
   def clear_pending_otp
     session.delete(:pending_otp)
     session.delete(:pending_otp_secret_key)
     session.delete(:pending_otp_communication_channel_id)
+  end
+
+  def require_authenticated_user
+    return true if @current_user && @current_pseudonym
+
+    render json: { error: "Unauthorized" }, status: :unauthorized
+    false
   end
 
   def increment_statsd(...)

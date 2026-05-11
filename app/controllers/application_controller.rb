@@ -589,6 +589,7 @@ class ApplicationController < ActionController::Base
     permanent_page_links
     rce_a11y_resize
     rce_find_replace
+    require_mfa_verification_for_removal
     render_both_to_do_lists
     scheduled_feedback_releases
     speedgrader_studio_media_capture

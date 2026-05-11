@@ -24,6 +24,7 @@ import '@canvas/jquery/jquery.instructure_forms' /* formSubmit, fillFormData, fo
 import '@canvas/jquery/jquery.instructure_misc_plugins' /* confirmDelete, showIf */
 import '@canvas/util/templateData'
 import AddEditPseudonym from '../react/AddEditPseudonym'
+import {promptForMfaCode} from '@canvas/mfa'
 import ready from '@instructure/ready'
 
 const I18n = createI18nScope('user_logins')
@@ -138,7 +139,13 @@ ready(() => {
         const loginElement = $(this).parents('.login')
         const {can_edit_sis_user_id, must_reset_password, ...restOfTemplateData} =
           loginElement.getTemplateData({
-            textValues: ['unique_id', 'sis_user_id', 'integration_id', 'can_edit_sis_user_id', 'must_reset_password'],
+            textValues: [
+              'unique_id',
+              'sis_user_id',
+              'integration_id',
+              'can_edit_sis_user_id',
+              'must_reset_password',
+            ],
           })
         const ssoIconCell = loginElement.find('[data-pseudonym-id]')
         const pseudonym = {
@@ -203,13 +210,54 @@ ready(() => {
         })
       })
 
-    $('.reset_mfa_link').on('click', function (event) {
+    $('.reset_mfa_link').on('click', async function (event) {
       event.preventDefault()
       const $disable_mfa_link = $(this)
-      $.ajaxJSON($disable_mfa_link.attr('href'), 'DELETE', {}, () => {
-        $.flashMessage(I18n.t('notices.mfa_reset', 'Multi-factor authentication reset'))
-        $disable_mfa_link.parent().remove()
-      })
+      let verificationCode
+
+      if (ENV.FEATURES?.require_mfa_verification_for_removal) {
+        try {
+          // Show dialog to prompt admin for their verification code
+          verificationCode = await promptForMfaCode({
+            label: I18n.t('titles.reset_mfa', 'Reset Multi-Factor Authentication'),
+            confirmText: I18n.t('buttons.reset_mfa', 'Reset MFA'),
+          })
+
+          // If admin doesn't provide a code, show error
+          if (!verificationCode || verificationCode === '') {
+            $.flashError(
+              I18n.t(
+                'errors.verification_code_required',
+                'Verification code is required to reset multi-factor authentication',
+              ),
+            )
+            return
+          }
+        } catch (error) {
+          // Admin cancelled the dialog - do nothing
+          return
+        }
+      }
+
+      // Send DELETE request with verification code (if required)
+      const requestData = verificationCode ? {verification_code: verificationCode} : {}
+
+      $.ajaxJSON(
+        $disable_mfa_link.attr('href'),
+        'DELETE',
+        requestData,
+        () => {
+          $.flashMessage(I18n.t('notices.mfa_reset', 'Multi-factor authentication reset'))
+          $disable_mfa_link.parent().remove()
+        },
+        data => {
+          // Handle error response
+          const errorMessage =
+            data?.error ||
+            I18n.t('errors.mfa_reset_failed', 'Failed to reset multi-factor authentication')
+          $.flashError(errorMessage)
+        },
+      )
     })
 
     // TODO: the user's pseudonyms are listed in this bundle (user_logins) but the

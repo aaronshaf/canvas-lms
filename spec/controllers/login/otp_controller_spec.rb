@@ -553,6 +553,120 @@ describe Login::OtpController, type: :request do
     end
   end
 
+  describe "#send_verification" do
+    before :once do
+      Account.default.settings[:mfa_settings] = :optional
+      Account.default.save!
+
+      user_with_pseudonym(active_all: 1, password: "qwertyuiop")
+      @user.otp_secret_key = ROTP::Base32.random
+      @user.save!
+    end
+
+    before do
+      user_session(@user)
+    end
+
+    it "requires an authenticated user" do
+      remove_user_session
+      post "/users/self/mfa/send_otp"
+      expect(response).to have_http_status(:unauthorized)
+      json = response.parsed_body
+      expect(json["error"]).to eq "Unauthorized"
+    end
+
+    it "returns error if user does not have MFA configured" do
+      @user.otp_secret_key = nil
+      @user.save!
+      post "/users/self/mfa/send_otp"
+      expect(response).to have_http_status(:unprocessable_content)
+      json = response.parsed_body
+      expect(json["error"]).to include("Multi-factor authentication is not configured")
+    end
+
+    it "returns otp_not_required for authenticator app users" do
+      # User has MFA but no communication channel (using authenticator app)
+      post "/users/self/mfa/send_otp"
+      expect(response).to be_successful
+      json = response.parsed_body
+      expect(json["otp_not_required"]).to be true
+    end
+
+    it "sends OTP to SMS channel and returns masked phone number" do
+      cc = @user.communication_channels.sms.create!(path: "1234567890")
+      @user.otp_communication_channel = cc
+      @user.save!
+
+      expect_any_instantiation_of(cc).to receive(:send_otp!)
+
+      post "/users/self/mfa/send_otp"
+      expect(response).to be_successful
+      json = response.parsed_body
+      expect(json["otp_sent"]).to be true
+      expect(json["channel_type"]).to eq "sms"
+      expect(json["masked_path"]).to eq "******7890"
+    end
+
+    it "sends OTP to email channel and returns masked email" do
+      cc = @user.communication_channels.email.create!(path: "user@example.com")
+      cc.confirm!
+      @user.otp_communication_channel = cc
+      @user.save!
+
+      expect_any_instantiation_of(cc).to receive(:send_otp!)
+
+      post "/users/self/mfa/send_otp"
+      expect(response).to be_successful
+      json = response.parsed_body
+      expect(json["otp_sent"]).to be true
+      expect(json["channel_type"]).to eq "email"
+      expect(json["masked_path"]).to eq "u***@example.com"
+    end
+
+    it "sends backup email for otp_impaired channels" do
+      cc = @user.communication_channels.sms.create!(path: "1234567890@txt.att.net")
+      @user.otp_communication_channel = cc
+      @user.save!
+
+      expect_any_instantiation_of(cc).to receive(:send_otp!)
+      # Backup email is only sent if the channel is marked as otp_impaired
+      # which requires checking the otp_impaired? method on the channel
+
+      post "/users/self/mfa/send_otp"
+      expect(response).to be_successful
+    end
+
+    it "increments request cost for rate limiting" do
+      cc = @user.communication_channels.sms.create!(path: "1234567890")
+      @user.otp_communication_channel = cc
+      @user.save!
+
+      allow_any_instantiation_of(cc).to receive(:send_otp!)
+
+      post "/users/self/mfa/send_otp"
+      expect(request.env.fetch("extra-request-cost").to_f).to eq 100
+    end
+
+    it "sends OTP to the currently logged-in user" do
+      # Create admin with MFA and SMS channel
+      @admin = user_with_pseudonym(active_all: 1, unique_id: "admin")
+      @admin.otp_secret_key = ROTP::Base32.random
+      admin_cc = @admin.communication_channels.sms.create!(path: "9876543210")
+      @admin.otp_communication_channel = admin_cc
+      @admin.save!
+      Account.default.account_users.create!(user: @admin)
+
+      # Admin logs in and sends OTP to themselves
+      user_session(@admin)
+      expect_any_instantiation_of(admin_cc).to receive(:send_otp!)
+
+      post "/users/self/mfa/send_otp"
+      expect(response).to be_successful
+      json = response.parsed_body
+      expect(json["masked_path"]).to eq "******3210"
+    end
+  end
+
   describe "#destroy" do
     before :once do
       Account.default.settings[:mfa_settings] = :optional
@@ -566,6 +680,8 @@ describe Login::OtpController, type: :request do
     end
 
     before do
+      # Disable feature flag for tests that expect the old behavior
+      Account.site_admin.disable_feature!(:require_mfa_verification_for_removal)
       user_session(@user)
     end
 
@@ -701,6 +817,121 @@ describe Login::OtpController, type: :request do
       end
       expect(response).to be_successful
       expect(@user.reload.otp_secret_key).to be_nil
+    end
+
+    context "with require_mfa_verification_for_removal feature flag" do
+      before do
+        Account.site_admin.enable_feature!(:require_mfa_verification_for_removal)
+      end
+
+      after do
+        Account.site_admin.disable_feature!(:require_mfa_verification_for_removal)
+      end
+
+      it "requires verification code when feature flag is enabled" do
+        delete "/users/self/mfa"
+        expect(response).to have_http_status(:unprocessable_content)
+        json = response.parsed_body
+        expect(json["error"]).to include("Verification code is required")
+        expect(@user.reload.otp_secret_key).not_to be_nil
+      end
+
+      it "rejects removal with invalid verification code" do
+        delete "/users/self/mfa", params: { verification_code: "000000" }
+        expect(response).to have_http_status(:unprocessable_content)
+        json = response.parsed_body
+        expect(json["error"]).to include("Invalid verification code")
+        expect(@user.reload.otp_secret_key).not_to be_nil
+      end
+
+      it "accepts valid TOTP code and removes MFA" do
+        code = ROTP::TOTP.new(@user.otp_secret_key).now
+        delete "/users/self/mfa", params: { verification_code: code }
+        expect(response).to be_successful
+        expect(@user.reload.otp_secret_key).to be_nil
+        expect(@user.otp_communication_channel).to be_nil
+      end
+
+      it "accepts verification code with spaces" do
+        code = ROTP::TOTP.new(@user.otp_secret_key).now
+        spaced_code = "#{code[0..2]} #{code[3..]}"
+        delete "/users/self/mfa", params: { verification_code: spaced_code }
+        expect(response).to be_successful
+        expect(@user.reload.otp_secret_key).to be_nil
+      end
+
+      it "accepts backup code and removes MFA" do
+        backup_code = @user.one_time_passwords.first.code
+        delete "/users/self/mfa", params: { verification_code: backup_code }
+        expect(response).to be_successful
+        expect(@user.reload.otp_secret_key).to be_nil
+        expect(@user.otp_communication_channel).to be_nil
+      end
+
+      it "uses 30 seconds drift for TOTP verification" do
+        # Remove SMS channel so we use authenticator app (30 second drift)
+        @user.otp_communication_channel = nil
+        @user.save!
+
+        expect_any_instance_of(ROTP::TOTP).to receive(:verify)
+          .with("123456", drift_behind: 30, drift_ahead: 30)
+          .and_call_original
+        delete "/users/self/mfa", params: { verification_code: "123456" }
+        # Expect failure since 123456 is not a valid code
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it "uses 5 minutes drift for SMS-based MFA" do
+        expect_any_instance_of(ROTP::TOTP).to receive(:verify)
+          .with("123456", drift_behind: 300, drift_ahead: 300)
+          .and_return(false)
+        delete "/users/self/mfa", params: { verification_code: "123456" }
+      end
+
+      context "when admin is removing another user's MFA" do
+        before :once do
+          @target_user = @user
+          @admin = user_with_pseudonym(active_all: 1, unique_id: "admin")
+          @admin.otp_secret_key = ROTP::Base32.random
+          @admin.save!
+          Account.default.account_users.create!(user: @admin)
+        end
+
+        before do
+          user_session(@admin)
+        end
+
+        it "requires admin's verification code when admin has MFA, not target user's" do
+          target_code = ROTP::TOTP.new(@target_user.otp_secret_key).now
+          delete "/users/#{@target_user.id}/mfa", params: { verification_code: target_code }
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(@target_user.reload.otp_secret_key).not_to be_nil
+        end
+
+        it "accepts admin's verification code to remove target user's MFA" do
+          admin_code = ROTP::TOTP.new(@admin.otp_secret_key).now
+          delete "/users/#{@target_user.id}/mfa", params: { verification_code: admin_code }
+          expect(response).to be_successful
+          expect(@target_user.reload.otp_secret_key).to be_nil
+        end
+
+        it "allows admin without MFA to remove target user's MFA" do
+          @admin.otp_secret_key = nil
+          @admin.save!
+          delete "/users/#{@target_user.id}/mfa"
+          expect(response).to be_successful
+          expect(@target_user.reload.otp_secret_key).to be_nil
+        end
+      end
+    end
+
+    context "without require_mfa_verification_for_removal feature flag" do
+      it "allows removal without verification code" do
+        Account.site_admin.disable_feature!(:require_mfa_verification_for_removal)
+        delete "/users/self/mfa"
+        expect(response).to be_successful
+        expect(@user.reload.otp_secret_key).to be_nil
+      end
     end
   end
 end

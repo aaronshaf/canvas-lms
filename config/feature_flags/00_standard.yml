@@ -7,6 +7,22 @@ ada_chatbot:
   applies_to: RootAccount
   shadow: true
   after_state_change_proc: sync_with_salesforce
+require_mfa_verification_for_removal:
+  type: setting
+  state: hidden
+  shadow: true
+  applies_to: SiteAdmin
+  display_name: Require MFA Verification to Disable MFA
+  description: |-
+    When enabled, users must provide their current MFA token (TOTP or backup code)
+    before they can disable multi-factor authentication on their account. This prevents
+    attacks where MFA is disabled without the user's knowledge. For administrators removing
+    MFA for another user, the admin's MFA token is required (not the target user's).
+  environments:
+    development:
+      state: allowed_on
+    ci:
+      state: allowed_on
 allow_opt_out_of_inbox:
   type: setting
   state: hidden

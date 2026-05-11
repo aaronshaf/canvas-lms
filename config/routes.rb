@@ -1002,6 +1002,7 @@ CanvasRails::Application.routes.draw do
   # deprecated redirect
   get "login/:id" => "login#new"
 
+  post "users/:user_id/mfa/send_otp" => "login/otp#send_verification", :as => :send_mfa_verification
   delete "users/:user_id/mfa" => "login/otp#destroy", :as => :disable_mfa
   get "file_session/clear" => "login#clear_file_session", :as => :clear_file_session
 

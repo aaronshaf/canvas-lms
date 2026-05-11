@@ -33,6 +33,7 @@ import '@canvas/rails-flash-notifications'
 import AccessTokenDetails from '../react/AccessTokenDetails'
 import NewAccessToken from '../react/NewAccessToken'
 import RegisterService from '../react/RegisterService'
+import {promptForMfaCode} from '@canvas/mfa'
 
 const I18n = createI18nScope('profile')
 
@@ -350,12 +351,53 @@ $(document)
   })
   .fragmentChange()
 
-$('#disable_mfa_link').click(function (event) {
-  const $disable_mfa_link = $(this)
-  $.ajaxJSON($disable_mfa_link.attr('href'), 'DELETE', {}, () => {
-    $.flashMessage(I18n.t('notices.mfa_disabled', 'Multi-factor authentication disabled'))
-    $disable_mfa_link.remove()
-    $('#otp_backup_codes_link').remove()
-  })
+$('#disable_mfa_link').click(async function (event) {
   event.preventDefault()
+  const $disable_mfa_link = $(this)
+  let verificationCode
+
+  if (ENV.FEATURES.require_mfa_verification_for_removal) {
+    try {
+      // Show dialog to prompt user for verification code
+      verificationCode = await promptForMfaCode({
+        label: I18n.t('titles.disable_mfa', 'Disable Multi-Factor Authentication'),
+        confirmText: I18n.t('buttons.disable_mfa', 'Disable MFA'),
+      })
+
+      // If user doesn't provide a code, show error
+      if (!verificationCode || verificationCode === '') {
+        $.flashError(
+          I18n.t(
+            'errors.verification_code_required',
+            'Verification code is required to disable multi-factor authentication',
+          ),
+        )
+        return
+      }
+    } catch (error) {
+      // User cancelled the dialog - do nothing
+      return
+    }
+  }
+
+  // Send DELETE request with verification code (if required)
+  const requestData = verificationCode ? {verification_code: verificationCode} : {}
+
+  $.ajaxJSON(
+    $disable_mfa_link.attr('href'),
+    'DELETE',
+    requestData,
+    () => {
+      $.flashMessage(I18n.t('notices.mfa_disabled', 'Multi-factor authentication disabled'))
+      $disable_mfa_link.remove()
+      $('#otp_backup_codes_link').remove()
+    },
+    data => {
+      // Handle error response
+      const errorMessage =
+        data?.error ||
+        I18n.t('errors.mfa_disable_failed', 'Failed to disable multi-factor authentication')
+      $.flashError(errorMessage)
+    },
+  )
 })

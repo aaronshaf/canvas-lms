@@ -54,4 +54,49 @@ describe "one time passwords" do
       expect(response).to be_successful
     end
   end
+
+  context "MFA removal integration tests" do
+    before do
+      Account.default.settings[:mfa_settings] = :optional
+      Account.default.save!
+      Account.site_admin.enable_feature!(:require_mfa_verification_for_removal)
+    end
+
+    it "requires verification code to remove own MFA through web request" do
+      user_with_pseudonym(active_all: 1, password: "qwertyuiop")
+      @user.otp_secret_key = ROTP::Base32.random
+      @user.save!
+
+      post "/login/canvas", params: { pseudonym_session: { unique_id: @pseudonym.unique_id, password: "qwertyuiop" } }
+      follow_redirect!
+      code = ROTP::TOTP.new(@user.otp_secret_key).now
+      post "/login/otp", params: { otp_login: { verification_code: code } }
+      follow_redirect!
+
+      # Attempt to remove MFA without verification code
+      delete "/users/self/mfa"
+      expect(response).to have_http_status(:unprocessable_content)
+      json = response.parsed_body
+      expect(json["error"]).to include("Verification code is required")
+      expect(@user.reload.otp_secret_key).not_to be_nil
+    end
+
+    it "successfully removes MFA with valid verification code" do
+      user_with_pseudonym(active_all: 1, password: "qwertyuiop")
+      @user.otp_secret_key = ROTP::Base32.random
+      @user.save!
+
+      post "/login/canvas", params: { pseudonym_session: { unique_id: @pseudonym.unique_id, password: "qwertyuiop" } }
+      follow_redirect!
+      code = ROTP::TOTP.new(@user.otp_secret_key).now
+      post "/login/otp", params: { otp_login: { verification_code: code } }
+      follow_redirect!
+
+      # Remove MFA with valid verification code
+      valid_code = ROTP::TOTP.new(@user.otp_secret_key).now
+      delete "/users/self/mfa", params: { verification_code: valid_code }
+      expect(response).to be_successful
+      expect(@user.reload.otp_secret_key).to be_nil
+    end
+  end
 end
