@@ -135,6 +135,56 @@ describe('@canvas/sanitize-html sanitizeHTML', () => {
     })
   })
 
+  describe('CSS property allowlist', () => {
+    it('strips position:fixed from style attribute', () => {
+      const out = sanitizeHTML('<div style="position:fixed; z-index:99999">x</div>')
+      const div = parse(out).querySelector('div')
+      const style = div?.getAttribute('style') ?? ''
+      expect(style).not.toMatch(/position/)
+      expect(style).not.toMatch(/z-index/)
+    })
+
+    it('strips position:absolute from style attribute', () => {
+      const out = sanitizeHTML(
+        '<div style="position:absolute; top:0; left:0; right:0; bottom:0">x</div>',
+      )
+      const div = parse(out).querySelector('div')
+      const style = div?.getAttribute('style') ?? ''
+      expect(style).not.toMatch(/position/)
+      expect(style).not.toMatch(/\btop\b/)
+      expect(style).not.toMatch(/\bleft\b/)
+      expect(style).not.toMatch(/\bright\b/)
+      expect(style).not.toMatch(/\bbottom\b/)
+    })
+
+    it('strips clip from style attribute', () => {
+      const out = sanitizeHTML('<div style="clip:rect(0,0,0,0)">x</div>')
+      const div = parse(out).querySelector('div')
+      expect(div?.getAttribute('style') ?? '').not.toMatch(/\bclip\b/)
+    })
+
+    it('preserves safe CSS properties untouched', () => {
+      const out = sanitizeHTML('<p style="color:red; padding:8px; font-weight:bold">x</p>')
+      const p = parse(out).querySelector('p')
+      const style = p?.getAttribute('style') ?? ''
+      expect(style).toContain('color')
+      expect(style).toContain('padding')
+      expect(style).toContain('font-weight')
+    })
+
+    it('preserves full-overlay shorthand stripped while keeping other declarations', () => {
+      const out = sanitizeHTML(
+        '<div style="position:fixed; z-index:99999; color:blue; font-size:14px">x</div>',
+      )
+      const div = parse(out).querySelector('div')
+      const style = div?.getAttribute('style') ?? ''
+      expect(style).not.toMatch(/position/)
+      expect(style).not.toMatch(/z-index/)
+      expect(style).toContain('color')
+      expect(style).toContain('font-size')
+    })
+  })
+
   describe('content preservation (RCE-shaped output)', () => {
     it('preserves inline style attribute on a paragraph', () => {
       const out = sanitizeHTML('<p style="color: red; font-size: 14px">hi</p>')

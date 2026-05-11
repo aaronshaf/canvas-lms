@@ -64,6 +64,155 @@
 
 import DOMPurify from 'dompurify'
 
+// CSS properties allowed in style attributes, mirroring the backend
+// CanvasSanitize allowlist (gems/canvas_sanitize/lib/canvas_sanitize/canvas_sanitize.rb)
+// minus overlay-capable primitives (position, z-index, top/left/right/bottom, clip).
+const ALLOWED_CSS_PROPERTIES = new Set([
+  // layout
+  'display',
+  'float',
+  'clear',
+  'overflow',
+  'overflow-x',
+  'overflow-y',
+  'visibility',
+  'cursor',
+  'direction',
+  'user-select',
+  'zoom',
+  // sizing
+  'width',
+  'height',
+  'min-width',
+  'min-height',
+  'max-width',
+  'max-height',
+  // spacing
+  'margin',
+  'margin-top',
+  'margin-right',
+  'margin-bottom',
+  'margin-left',
+  'margin-offset',
+  'padding',
+  'padding-top',
+  'padding-right',
+  'padding-bottom',
+  'padding-left',
+  // typography
+  'font',
+  'font-family',
+  'font-size',
+  'font-style',
+  'font-variant',
+  'font-weight',
+  'font-stretch',
+  'font-width',
+  'line-height',
+  'text-align',
+  'text-decoration',
+  'text-indent',
+  'white-space',
+  'vertical-align',
+  // color & background
+  'color',
+  'background',
+  'background-color',
+  'background-image',
+  'background-attachment',
+  'background-position',
+  'background-position-x',
+  'background-position-y',
+  'background-repeat',
+  // border
+  'border',
+  'border-color',
+  'border-style',
+  'border-width',
+  'border-radius',
+  'border-collapse',
+  'border-spacing',
+  'border-top',
+  'border-top-color',
+  'border-top-style',
+  'border-top-width',
+  'border-right',
+  'border-right-color',
+  'border-right-style',
+  'border-right-width',
+  'border-bottom',
+  'border-bottom-color',
+  'border-bottom-style',
+  'border-bottom-width',
+  'border-left',
+  'border-left-color',
+  'border-left-style',
+  'border-left-width',
+  // list
+  'list-style',
+  'list-style-image',
+  'list-style-position',
+  'list-style-type',
+  // table
+  'table-layout',
+  // flex
+  'flex',
+  'flex-basis',
+  'flex-direction',
+  'flex-flow',
+  'flex-grow',
+  'flex-shrink',
+  'flex-wrap',
+  'align-content',
+  'align-items',
+  'align-self',
+  'justify-content',
+  'justify-items',
+  'justify-self',
+  'order',
+  'gap',
+  'row-gap',
+  'column-gap',
+  'place-content',
+  'place-items',
+  'place-self',
+  // grid
+  'grid',
+  'grid-area',
+  'grid-auto-columns',
+  'grid-auto-flow',
+  'grid-auto-rows',
+  'grid-column',
+  'grid-column-end',
+  'grid-column-gap',
+  'grid-column-start',
+  'grid-gap',
+  'grid-row',
+  'grid-row-end',
+  'grid-row-gap',
+  'grid-row-start',
+  'grid-template',
+  'grid-template-areas',
+  'grid-template-columns',
+  'grid-template-rows',
+])
+
+// Strip disallowed CSS properties from every style attribute after sanitization.
+// DOMPurify does not natively filter CSS property names, only attribute names.
+// We use the afterSanitizeAttributes hook so the check runs on the final DOM
+// after all other sanitization is complete.
+DOMPurify.addHook('afterSanitizeAttributes', node => {
+  if (!(node instanceof Element) || !node.hasAttribute('style')) return
+  const style = (node as HTMLElement).style
+  const toRemove: string[] = []
+  for (let i = 0; i < style.length; i++) {
+    const prop = style.item(i)
+    if (!ALLOWED_CSS_PROPERTIES.has(prop)) toRemove.push(prop)
+  }
+  for (const prop of toRemove) style.removeProperty(prop)
+  if (style.length === 0) node.removeAttribute('style')
+})
+
 const CONFIG = {
   ADD_TAGS: ['iframe'],
   ADD_ATTR: [
