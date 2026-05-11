@@ -203,8 +203,11 @@ module BrandableCSS
     end
 
     def all_brand_variable_values_as_css(active_brand_config = nil)
+      values = all_brand_variable_values(active_brand_config, css_urls: true).reject do |k, _|
+        variables_map.dig(k, "type") == "textarea"
+      end
       ":root {
-        #{all_brand_variable_values(active_brand_config, css_urls: true).map { |k, v| "--#{k}: #{v};" }.join("\n")}
+        #{values.map { |k, v| "--#{k}: #{v};" }.join("\n")}
       }"
     end
 

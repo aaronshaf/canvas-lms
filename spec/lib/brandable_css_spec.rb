@@ -90,10 +90,22 @@ describe BrandableCSS do
 
   describe "all_brand_variable_values_as_css" do
     it "defines the right default css values in the root scope" do
+      values = BrandableCSS.all_brand_variable_values(nil, css_urls: true).reject do |k, _|
+        BrandableCSS.variables_map.dig(k, "type") == "textarea"
+      end
       expected_css = ":root {
-        #{BrandableCSS.all_brand_variable_values(nil, css_urls: true).map { |k, v| "--#{k}: #{v};" }.join("\n")}
+        #{values.map { |k, v| "--#{k}: #{v};" }.join("\n")}
       }"
       expect(BrandableCSS.default("css")).to eq expected_css
+    end
+
+    it "omits textarea-typed variables to prevent CSS injection via free-text values" do
+      textarea_vars = BrandableCSS.variables_map.select { |_, c| c["type"] == "textarea" }.keys
+      expect(textarea_vars).not_to be_empty
+      css = BrandableCSS.default("css")
+      textarea_vars.each do |name|
+        expect(css).not_to include("--#{name}:")
+      end
     end
   end
 

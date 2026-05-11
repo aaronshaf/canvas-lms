@@ -218,28 +218,56 @@ class BrandConfigsController < ApplicationController
     end
   end
 
+  COLOR_VALUE_REGEX = /\A#(\h{3}|\h{4}|\h{6}|\h{8})\z/
+  PERCENTAGE_VALUE_REGEX = /\A(0|[1-9]\d?|100)(\.\d+)?%?\z/
+  IMAGE_URL_FORBIDDEN_CHARS = /[\x00-\x1F\x7F'"()<>\\]/
+  IMAGE_URL_MAX_LENGTH = 2048
+  TEXTAREA_FORBIDDEN_CHARS = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/
+  TEXTAREA_MAX_LENGTH = 500
+
   def process_variables(variables)
     return unless variables
 
     variables.to_unsafe_h.each_with_object({}) do |(key, value), memo|
       next unless value.present? && (config = BrandableCSS.variables_map[key])
 
-      if config["type"] == "textarea"
-        if value.match?(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/)
+      case config["type"]
+      when "color"
+        unless value.match?(COLOR_VALUE_REGEX)
+          raise ActionController::BadRequest, "#{key} is not a valid color"
+        end
+
+        memo[key] = value
+      when "percentage"
+        unless value.match?(PERCENTAGE_VALUE_REGEX)
+          raise ActionController::BadRequest, "#{key} is not a valid percentage"
+        end
+
+        memo[key] = value
+      when "textarea"
+        if value.match?(TEXTAREA_FORBIDDEN_CHARS)
           raise ActionController::BadRequest, "#{key} contains invalid characters"
         end
 
-        if value.length > 500
-          raise ActionController::BadRequest, "#{key} cannot exceed 500 characters"
+        if value.length > TEXTAREA_MAX_LENGTH
+          raise ActionController::BadRequest, "#{key} cannot exceed #{TEXTAREA_MAX_LENGTH} characters"
         end
 
-        sanitized_value = Sanitize.clean(value)
-        memo[key] = sanitized_value
-      elsif config["type"] == "image"
-        value = process_file(value)
-        memo[key] = value
+        memo[key] = Sanitize.clean(value)
+      when "image"
+        if value.is_a?(String)
+          if value.length > IMAGE_URL_MAX_LENGTH
+            raise ActionController::BadRequest, "#{key} cannot exceed #{IMAGE_URL_MAX_LENGTH} characters"
+          end
+
+          if value.match?(IMAGE_URL_FORBIDDEN_CHARS)
+            raise ActionController::BadRequest, "#{key} contains invalid characters"
+          end
+        end
+
+        memo[key] = process_file(value)
       else
-        memo[key] = value
+        raise ActionController::BadRequest, "#{key} has an unsupported type"
       end
     end
   end
