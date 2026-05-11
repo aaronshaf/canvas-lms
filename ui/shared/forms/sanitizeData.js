@@ -24,7 +24,12 @@ export default function sanitizeData(data, dataItems = ['message']) {
   dataItems.forEach(item => {
     if (!sanitizedData[item]) return
 
-    sanitizedData[item] = sanitizeHTML(sanitizedData[item])
+    // Coerce to plain string so JSON.stringify serializes correctly.
+    // sanitizeHTML() returns TrustedHTML (not a plain string) in browsers
+    // that support the Trusted Types API. JSON.stringify cannot serialize
+    // TrustedHTML and would produce {} for the field, causing silent data
+    // loss when Backbone sends the object to the server.
+    sanitizedData[item] = String(sanitizeHTML(sanitizedData[item]))
   })
 
   return sanitizedData

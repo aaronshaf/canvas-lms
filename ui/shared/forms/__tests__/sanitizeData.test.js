@@ -34,6 +34,27 @@ const expectNoEventHandlersInField = html => {
 }
 
 describe('sanitizeData()', () => {
+  describe('return type — plain string (Trusted Types safety)', () => {
+    it('returns a plain string, not a TrustedHTML object', () => {
+      const out = sanitizeData({message: '<p>hello</p>'})
+      expect(typeof out.message).toBe('string')
+    })
+
+    it('survives JSON.stringify round-trip without data loss', () => {
+      const out = sanitizeData({message: '<b>hi</b>'})
+      const json = JSON.parse(JSON.stringify(out))
+      expect(typeof json.message).toBe('string')
+      expect(json.message).toContain('hi')
+    })
+
+    it('JSON.stringify produces a string-valued message field, not {}', () => {
+      const out = sanitizeData({message: '<p>content</p>'})
+      const json = JSON.parse(JSON.stringify(out))
+      expect(json.message).not.toEqual({})
+      expect(json.message.length).toBeGreaterThan(0)
+    })
+  })
+
   describe('default field selection', () => {
     it('sanitizes the message field by default', () => {
       const out = sanitizeData({message: '<script>window.__x=1</script>'})

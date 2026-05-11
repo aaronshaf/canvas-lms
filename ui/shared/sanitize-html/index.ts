@@ -91,6 +91,9 @@ const CONFIG = {
   // resolution picks the TrustedHTML-returning signature. A bare boolean
   // gets widened to `boolean` at the variable boundary and matches the
   // string-returning overload instead.
+  // NOTE: callers on egress-to-server paths (e.g. sanitizeData) must coerce
+  // the result via String(...) before JSON.stringify — TrustedHTML is not
+  // JSON-serializable and produces {} for the field.
   RETURN_TRUSTED_TYPE: true as const,
   // Rails UJS treats certain `data-*` attributes as instructions, not
   // opaque metadata: a data-method/data-url pair on a clickable element
