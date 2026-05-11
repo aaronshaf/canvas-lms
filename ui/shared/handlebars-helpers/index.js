@@ -30,6 +30,7 @@ import apiUserContent from '@canvas/util/jquery/apiUserContent'
 import {formatMessage, truncateText} from '@canvas/util/TextHelper'
 import numberFormat from '@canvas/i18n/numberFormat'
 import listFormatterPolyfill from '@canvas/util/listFormatter'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {
   datetimeString,
   friendlyDatetime as friendlyDatetime_,
@@ -70,7 +71,10 @@ const object = {
     if (wrappers['*']) {
       options.wrapper = wrappers
     }
-    if (typeof this !== 'undefined' && (typeof Window === 'undefined' || !(this instanceof Window))) {
+    if (
+      typeof this !== 'undefined' &&
+      (typeof Window === 'undefined' || !(this instanceof Window))
+    ) {
       for (key of Array.from(this)) {
         options[key] = this[key]
       }
@@ -150,7 +154,7 @@ const object = {
       return new Handlebars.SafeString(titleText)
     } else {
       return new Handlebars.SafeString(
-        `data-tooltip data-html-tooltip-title=\"${htmlEscape(titleText)}\"`,
+        `data-tooltip data-html-tooltip-title="${htmlEscape(titleText)}"`,
       )
     }
   },
@@ -418,7 +422,7 @@ const object = {
     // if the content is going to get picked up by tinymce, do not mark as safe
     // because we WANT it to be escaped again.
     if (!hash || !hash.forEditing) {
-      content = new Handlebars.SafeString(content)
+      content = new Handlebars.SafeString(sanitizeHTML(content))
     }
     return content
   },
@@ -696,7 +700,7 @@ const object = {
       for (key in inputProps) {
         const val = inputProps[key]
         if (val != null) {
-          result.push(`${htmlEscape(key)}=\"${htmlEscape(val)}\"`)
+          result.push(`${htmlEscape(key)}="${htmlEscape(val)}"`)
         }
       }
       return result
@@ -918,7 +922,7 @@ const object = {
 
     backboneView.render()
     onNextFrame(replace)
-    return new Handlebars.SafeString(`<span id=\"${id}\">pk</span>`)
+    return new Handlebars.SafeString(`<span id="${id}">pk</span>`)
   },
 
   // Public: yields the first non-nil argument
