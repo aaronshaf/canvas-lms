@@ -65,6 +65,17 @@ describe CanvasSanitize do
     expect(cleaned).to eq("<math>CLICKME</math>")
   end
 
+  it "sanitizes javascript protocol in math altimg attribute" do
+    cleaned = Sanitize.clean('<math altimg="javascript:alert(1)">CLICKME</math>', CanvasSanitize::SANITIZE)
+    expect(cleaned).not_to match(/javascript/)
+    expect(cleaned).to include("CLICKME")
+  end
+
+  it "allows legitimate https url in math altimg attribute" do
+    cleaned = Sanitize.clean('<math altimg="https://example.com/alt.png">x</math>', CanvasSanitize::SANITIZE)
+    expect(cleaned).to include('altimg="https://example.com/alt.png"')
+  end
+
   it "allows abbr elements" do
     cleaned = Sanitize.clean("<abbr title=\"Internationalization\">I18N</abbr>", CanvasSanitize::SANITIZE)
     expect(cleaned).to eq("<abbr title=\"Internationalization\">I18N</abbr>")

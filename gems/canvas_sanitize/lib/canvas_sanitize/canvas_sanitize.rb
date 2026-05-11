@@ -47,6 +47,7 @@ module CanvasSanitize # :nodoc:
   end
 
   DEFAULT_PROTOCOLS = ["http", "https", :relative].freeze
+  URL_PROTOCOL_ATTRIBUTES = %w[href src cite altimg].freeze
 
   remove_spaces_from_ids = lambda do |env|
     return unless env[:node]&.element? && env[:node][:id] && env[:node][:id].match?(/\s/)
@@ -759,7 +760,7 @@ module CanvasSanitize # :nodoc:
   missing_protocol_elements = SANITIZE[:elements].to_set - SANITIZE[:protocols].keys.to_set
   missing_protocol_elements.each do |element|
     elements_allowed_attributes = SANITIZE[:attributes][element]
-    element_protocols = %w[href src cite].each_with_object({}) do |attribute, hash|
+    element_protocols = URL_PROTOCOL_ATTRIBUTES.each_with_object({}) do |attribute, hash|
       hash[attribute] = DEFAULT_PROTOCOLS if elements_allowed_attributes&.include?(attribute)
     end
     SANITIZE[:protocols][element] = element_protocols.freeze unless element_protocols.empty?
