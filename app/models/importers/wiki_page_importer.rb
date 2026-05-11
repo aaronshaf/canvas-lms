@@ -273,7 +273,7 @@ module Importers
             editor_version: block_editor["editor_version"],
             blocks: migration.convert_block_editor_blocks(block_editor["blocks"], hash[:migration_id], :wiki_page)
           )
-          item.update! body: "<iframe class=\"block_editor_view\" src=\"/block_editors/#{created_block_editor.id}\"></iframe>"
+          item.update! body: created_block_editor.viewer_iframe_html
         end
 
         migration.add_imported_item(item)

@@ -48,7 +48,7 @@ describe ContentMigration do
 
         # general data
         destination_page = @copy_to.wiki_pages.where(migration_id: mig_id(@block_editor_page)).first
-        expect(destination_page.body).to eq("<iframe class=\"block_editor_view\" src=\"/block_editors/#{destination_page.block_editor.id}\"></iframe>")
+        expect(destination_page.body).to match(%r{<iframe[^>]*\bclass="block_editor_view"[^>]*\bsrc="/block_editors/#{destination_page.block_editor.id}"[^>]*\bsandbox="allow-scripts"})
         expect(destination_page.block_editor).to be_a(BlockEditor)
         expect(destination_page.block_editor.editor_version).to eq("0.2")
 
@@ -82,7 +82,7 @@ describe ContentMigration do
         # general data
         destination_page = @copy_to.wiki_pages.where(migration_id: mig_id(@block_editor_page)).first
 
-        expect(destination_page.body).to eq("<iframe class=\"block_editor_view\" src=\"/block_editors/#{destination_page.block_editor.id}\"></iframe>")
+        expect(destination_page.body).to match(%r{<iframe[^>]*\bclass="block_editor_view"[^>]*\bsrc="/block_editors/#{destination_page.block_editor.id}"[^>]*\bsandbox="allow-scripts"})
         expect(destination_page.block_editor).to be_a(BlockEditor)
         expect(destination_page.block_editor.editor_version).to eq("0.2")
 
@@ -116,7 +116,7 @@ describe ContentMigration do
         # general data
         destination_page = @copy_to.wiki_pages.where(migration_id: mig_id(@block_editor_page)).first
 
-        expect(destination_page.body).to eq("<iframe class=\"block_editor_view\" src=\"/block_editors/#{destination_page.block_editor.id}\"></iframe>")
+        expect(destination_page.body).to match(%r{<iframe[^>]*\bclass="block_editor_view"[^>]*\bsrc="/block_editors/#{destination_page.block_editor.id}"[^>]*\bsandbox="allow-scripts"})
         expect(destination_page.block_editor).to be_a(BlockEditor)
         expect(destination_page.block_editor.editor_version).to eq("0.2")
 
@@ -132,7 +132,7 @@ describe ContentMigration do
         # general data
         destination_page = @copy_to.wiki_pages.where(migration_id: mig_id(@block_editor_page)).first
 
-        expect(destination_page.body).to eq("<iframe class=\"block_editor_view\" src=\"/block_editors/#{destination_page.block_editor.id}\"></iframe>")
+        expect(destination_page.body).to match(%r{<iframe[^>]*\bclass="block_editor_view"[^>]*\bsrc="/block_editors/#{destination_page.block_editor.id}"[^>]*\bsandbox="allow-scripts"})
         expect(destination_page.block_editor).to be_a(BlockEditor)
         expect(destination_page.block_editor.editor_version).to eq("0.2")
 
