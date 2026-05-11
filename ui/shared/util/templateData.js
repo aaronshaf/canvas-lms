@@ -17,7 +17,7 @@
  */
 
 import $ from 'jquery'
-import htmlEscape, {raw} from '@instructure/html-escape'
+import {raw} from '@instructure/html-escape'
 import replaceTags from './replaceTags'
 import sanitizeUrl from './sanitizeUrl'
 
@@ -82,7 +82,7 @@ $.fn.fillTemplateData = function (options) {
             } else {
               try {
                 const str = options.data[item].toString()
-                $found.html(htmlEscape(str))
+                $found.text(str)
               } catch (e) {
                 // no-op
               }

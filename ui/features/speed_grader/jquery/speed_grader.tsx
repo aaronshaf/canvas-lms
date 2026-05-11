@@ -16,6 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// xsslint safeString.identifier opt checkbox
+
 import {showFlashError} from '@instructure/platform-alerts'
 import {datetimeString} from '@canvas/datetime/date-functions'
 import iframeAllowances from '@canvas/external-apps/iframeAllowances'
@@ -1486,7 +1488,7 @@ function renderSubmissionCommentsDownloadLink(submission: HistoricalSubmission) 
   const mountPoint = document.getElementById(SPEED_GRADER_SUBMISSION_COMMENTS_DOWNLOAD_MOUNT_POINT)
   if (!mountPoint) throw new Error('SpeedGrader: mount point not found')
   if (isAnonymous) {
-    mountPoint.innerHTML = ''
+    mountPoint.replaceChildren()
   } else {
     const a = document.createElement('a')
     a.href = sanitizeUrl(`/submissions/${submission.id || ''}/comments.pdf`)
@@ -1866,11 +1868,16 @@ EG = {
         modal: true,
         create(_e: Event, _ui: JQueryUI.DialogUIParams) {
           const pane = $(this).dialog('widget').find('.ui-dialog-buttonpane')
-          $(
-            `<label class='do-not-show-again'><input type='checkbox'/>&nbsp;${I18n.t(
-              'Do not show again for this assignment',
-            )}</label>`,
-          ).prependTo(pane)
+          const label = document.createElement('label')
+          label.className = 'do-not-show-again'
+          const checkbox = document.createElement('input')
+          checkbox.type = 'checkbox'
+          label.append(
+            checkbox,
+            ' ',
+            document.createTextNode(I18n.t('Do not show again for this assignment')),
+          )
+          $(label).prependTo(pane)
         },
         buttons: [
           {
@@ -2508,7 +2515,7 @@ EG = {
     if (status === 'scored') {
       const $similarityScore = $('<span />')
         .addClass('turnitin_similarity_score')
-        .html(htmlEscape(`${similarity_score}%`))
+        .text(`${similarity_score}%`)
       $indicator.append($similarityScore)
     }
 
@@ -2731,21 +2738,21 @@ EG = {
   },
 
   updateWordCount(wordCount?: number | null) {
-    let wordCountHTML = ''
     if (
       wordCount &&
       !['basic_lti_launch', 'external_tool'].includes(
         this.currentStudent.submission?.submission_type as string,
       )
     ) {
-      // xsslint safeString.method toLocaleString
-      // xsslint safeString.method t
-      wordCountHTML = `<label>${I18n.t('Word Count')}:</label> ${I18n.t('word', {
-        count: wordCount,
-      })}`
+      const label = document.createElement('label')
+      label.textContent = `${I18n.t('Word Count')}:`
+      $word_count[0]?.replaceChildren(
+        label,
+        document.createTextNode(` ${I18n.t('word', {count: wordCount})}`),
+      )
+    } else {
+      $word_count.empty()
     }
-    // xsslint safeString.identifier wordCountHTML
-    $word_count.html(wordCountHTML)
   },
 
   handleSubmissionSelectionChange() {
@@ -3634,9 +3641,10 @@ EG = {
 
       selectMenu.find('option').remove()
       selectMenuOptions.forEach(option => {
-        selectMenu.append(
-          `<option value="${htmlEscape(option.id)}">${htmlEscape(option?.name || '')}</option>`,
-        )
+        const opt = document.createElement('option')
+        opt.value = option.id
+        opt.textContent = option?.name || ''
+        selectMenu.append(opt)
       })
 
       let idToSelect = ''

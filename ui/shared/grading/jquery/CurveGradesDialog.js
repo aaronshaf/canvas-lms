@@ -16,6 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// xsslint safeString.identifier td
+
 import {useScope as createI18nScope} from '@canvas/i18n'
 import numberHelper from '@canvas/i18n/numberHelper'
 import $ from 'jquery'
@@ -296,7 +298,9 @@ export default (function () {
         htmlEscape(I18n.n(0)) +
         '</div></div></td>',
     )
-    $('#results_values').prepend('<td>&nbsp;</td>')
+    const td = document.createElement('td')
+    td.textContent = ' '
+    $('#results_values').prepend(td)
     return finalScores
   }
 

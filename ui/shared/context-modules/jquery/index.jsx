@@ -16,6 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// xsslint safeString.identifier mpIcon spanID spanType spanName div replyToEntryDiv replyToTopicDiv
+
 import $ from 'jquery'
 import ModuleDuplicationSpinner from '../react/ModuleDuplicationSpinner'
 import React from 'react'
@@ -32,8 +34,6 @@ import vddTooltip from '@canvas/due-dates/react/vddTooltip'
 import vddTooltipView from '../jst/_vddTooltip.handlebars'
 import Publishable from '../backbone/models/Publishable'
 import PublishButtonView from '@canvas/publish-button-view'
-// eslint-disable-next-line import/no-named-as-default
-import htmlEscape from '@instructure/html-escape'
 import {get} from 'es-toolkit/compat'
 import axios from '@canvas/axios'
 import {showFlashError, showFlashAlert} from '@instructure/platform-alerts'
@@ -756,8 +756,8 @@ window.modules = (function () {
           '<span class="pill mastery-path-icon" aria-hidden="true" data-tooltip><i class="icon-mastery-paths" /></span>',
         )
           .attr('title', fullText)
-          .append(htmlEscape(cyoe.releasedLabel))
-        const $srPath = $('<span class="screenreader-only">').append(htmlEscape(fullText))
+          .append(document.createTextNode(cyoe.releasedLabel))
+        const $srPath = $('<span class="screenreader-only">').text(fullText)
         $admin.prepend($srPath)
         $admin.prepend($pathIcon)
       }
@@ -779,14 +779,10 @@ window.modules = (function () {
           $admin.prepend($mpLink.clone())
         }
 
-        $admin
-          .find('.delete_link')
-          .parent()
-          .before(
-            $('<li role="presentation" />').append(
-              $mpLink.prepend('<i class="icon-mastery-path" /> '),
-            ),
-          )
+        const mpIcon = document.createElement('i')
+        mpIcon.className = 'icon-mastery-path'
+        $mpLink.prepend(mpIcon, document.createTextNode(' '))
+        $admin.find('.delete_link').parent().before($('<li role="presentation" />').append($mpLink))
       }
     },
 
@@ -980,29 +976,27 @@ const updatePrerequisites = function ($module, prereqs) {
 
   if (prereqs.length > 0) {
     for (const i in prereqs) {
-      const $div = $('<div />', {
-        class: 'prerequisite_criterion ' + prereqs[i].type + '_criterion',
-        style: 'float: left;',
-      })
-      const $spanID = $('<span />', {
-        text: htmlEscape(prereqs[i].id),
-        class: 'id',
-        style: 'display: none;',
-      })
-      const $spanType = $('<span />', {
-        text: htmlEscape(prereqs[i].type),
-        class: 'type',
-        style: 'display: none;',
-      })
-      const $spanName = $('<span />', {
-        text: htmlEscape(prereqs[i].name),
-        class: 'name',
-        style: 'display: none;',
-      })
-      $div.append($spanID)
-      $div.append($spanType)
-      $div.append($spanName)
-      $prerequisitesDiv.append($div)
+      const div = document.createElement('div')
+      div.className = `prerequisite_criterion ${prereqs[i].type}_criterion`
+      div.style.cssFloat = 'left'
+
+      const spanID = document.createElement('span')
+      spanID.className = 'id'
+      spanID.style.display = 'none'
+      spanID.textContent = prereqs[i].id
+
+      const spanType = document.createElement('span')
+      spanType.className = 'type'
+      spanType.style.display = 'none'
+      spanType.textContent = prereqs[i].type
+
+      const spanName = document.createElement('span')
+      spanName.className = 'name'
+      spanName.style.display = 'none'
+      spanName.textContent = prereqs[i].name
+
+      div.append(spanID, spanType, spanName)
+      $prerequisitesDiv.append(div)
 
       prereqsList += prereqs[i].name + ', '
     }
@@ -2188,40 +2182,44 @@ function updateSubAssignmentData(contextModuleItem, subAssignments) {
     const replyToTopicElement = contextModuleItem.find('.reply_to_topic_display')
     if (!replyToTopicElement.length && !ENV.IS_STUDENT) {
       // prepending reply to topic last so that it is listed first
-      contextModuleItem
-        .find('.ig-details')
-        .prepend('<div class="ig-details__item reply_to_entry_display"></div>')
-      contextModuleItem
-        .find('.ig-details')
-        .prepend('<div class="ig-details__item reply_to_topic_display"></div>')
+      const replyToEntryDiv = document.createElement('div')
+      replyToEntryDiv.className = 'ig-details__item reply_to_entry_display'
+      const replyToTopicDiv = document.createElement('div')
+      replyToTopicDiv.className = 'ig-details__item reply_to_topic_display'
+      contextModuleItem.find('.ig-details').prepend(replyToEntryDiv)
+      contextModuleItem.find('.ig-details').prepend(replyToTopicDiv)
     }
-    const titleHtml = htmlEscape(
+    const titleText =
       subAssignment.sub_assignment_tag === 'reply_to_topic'
         ? I18n.t('Reply to Topic')
         : I18n.t('Required Replies (%{required_replies})', {
             required_replies: subAssignment.replies_required,
-          }),
-    )
-    let dueDateHtml = ''
+          })
+    const displayEl = contextModuleItem.find(`.${subAssignment.sub_assignment_tag}_display`)[0]
+    const b = document.createElement('b')
     if (!(ENV.IN_PACED_COURSE && !ENV.IS_STUDENT)) {
+      b.textContent = `${titleText}:`
+      let dueDateNode
       if (subAssignment.has_many_overrides != null) {
-        dueDateHtml = htmlEscape(I18n.t('Multiple Due Dates'))
+        dueDateNode = document.createTextNode(` ${I18n.t('Multiple Due Dates')}`)
       } else if (subAssignment.vdd_tooltip != null) {
         subAssignment.vdd_tooltip.link_href = contextModuleItem.find('a.title').attr('href')
         // vddTooltipView is a Handlebars template — output is already HTML-escaped
-        dueDateHtml = vddTooltipView(subAssignment.vdd_tooltip)
+        const dateSpan = document.createElement('span')
+        dateSpan.innerHTML = vddTooltipView(subAssignment.vdd_tooltip)
+        const fragment = document.createDocumentFragment()
+        fragment.appendChild(document.createTextNode(' '))
+        fragment.appendChild(dateSpan)
+        dueDateNode = fragment
       } else if (subAssignment.due_date) {
-        dueDateHtml = htmlEscape(dateString(subAssignment.due_date))
+        dueDateNode = document.createTextNode(` ${dateString(subAssignment.due_date)}`)
       } else {
-        dueDateHtml = htmlEscape(I18n.t('No Due Date'))
+        dueDateNode = document.createTextNode(` ${I18n.t('No Due Date')}`)
       }
-      contextModuleItem
-        .find(`.${subAssignment.sub_assignment_tag}_display`)
-        .html(`<b>${titleHtml}:</b> ${dueDateHtml}`)
+      displayEl?.replaceChildren(b, dueDateNode)
     } else {
-      contextModuleItem
-        .find(`.${subAssignment.sub_assignment_tag}_display`)
-        .html(`<b>${titleHtml}</b>`)
+      b.textContent = titleText
+      displayEl?.replaceChildren(b)
     }
   })
 }

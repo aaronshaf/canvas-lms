@@ -18,7 +18,6 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
-import htmlEscape, {raw} from '@instructure/html-escape'
 import '@canvas/jquery/jquery.ajaxJSON'
 import 'jqueryui/dialog'
 import 'jqueryui/progressbar'
@@ -69,10 +68,16 @@ ready(() => {
               const linkText = I18n.t('Click here to download %{size_of_file}', {
                 size_of_file: attachment.readable_size,
               })
-              const link = `<a href="${htmlEscape(url)}"><b>${htmlEscape(linkText)}</b></a>`
+              const b = document.createElement('b')
+              b.textContent = linkText
+              const a = document.createElement('a')
+              a.href = url
+              a.appendChild(b)
 
-              $('#download_submissions_dialog .status').html(
-                `${htmlEscape(message)}<br>${raw(link)}`,
+              $('#download_submissions_dialog .status')[0]?.replaceChildren(
+                document.createTextNode(message),
+                document.createElement('br'),
+                a,
               )
               $('#download_submissions_dialog .status_loader').css('visibility', 'hidden')
 

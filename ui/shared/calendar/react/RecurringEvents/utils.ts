@@ -18,7 +18,6 @@
 
 import moment from 'moment'
 import type {Moment} from 'moment-timezone'
-import htmlEscape from '@instructure/html-escape'
 import {
   AllRRULEDayValues,
   type FrequencyValue,
@@ -88,9 +87,13 @@ export const weekdayInMonth = (eventStart: Moment): number => {
 export const getSelectTextWidth = (strings: string[]) => {
   const testdiv = document.createElement('div')
   testdiv.setAttribute('style', 'position: absolute; left: -9999px; visibility: hidden;')
-  // xsslint safeString.identifier escapedSegments
-  const escapedSegments = strings.map(s => htmlEscape(s)).join('</div><div>')
-  testdiv.innerHTML = `<div><div>${escapedSegments}</div></div>`
+  const outer = document.createElement('div')
+  strings.forEach(s => {
+    const inner = document.createElement('div')
+    inner.textContent = s
+    outer.appendChild(inner)
+  })
+  testdiv.appendChild(outer)
   document.body.appendChild(testdiv)
   const w = `${testdiv.getBoundingClientRect().width + 24 + 12 + 14 + 2}px`
   testdiv.remove()

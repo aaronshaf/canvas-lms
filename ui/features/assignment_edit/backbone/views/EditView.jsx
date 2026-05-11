@@ -478,9 +478,10 @@ EditView.prototype.checkboxAccessibleAdvisory = function (box) {
       : 'screenreader-only'
   advisory = label.find('div.accessible_label')
   if (!advisory.length) {
-    advisory = $(
-      "<div class='" + srOnly + " accessible_label' style='font-size: 0.9em'></div>",
-    ).appendTo(label)
+    const advisoryEl = document.createElement('div')
+    advisoryEl.className = `${srOnly} accessible_label`
+    advisoryEl.style.fontSize = '0.9em'
+    advisory = $(advisoryEl).appendTo(label)
   }
   return advisory
 }
@@ -1709,8 +1710,8 @@ EditView.prototype.getFormData = function () {
     const storedPeerReviewData = this.assignment.get('peer_review_data')
     if (data.peer_reviews) {
       data.peer_review = {
-        ...(data.peer_review || {}),
-        ...(storedPeerReviewData || {}),
+        ...data.peer_review,
+        ...storedPeerReviewData,
       }
       // Auto-set peer review available/until from assignment dates
       data.peer_review.unlock_at = data.due_at

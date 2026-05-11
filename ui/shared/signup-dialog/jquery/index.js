@@ -126,7 +126,7 @@ const signupDialog = function (id, title, path) {
           error_msg = data.error.message
           $("input[name='" + htmlEscape(data.error.input_name) + "']")
             .next('.error_message')
-            .text(htmlEscape(error_msg))
+            .text(error_msg)
           return $.screenReaderFlashMessage(error_msg)
         }
       }

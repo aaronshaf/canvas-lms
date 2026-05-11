@@ -81,7 +81,8 @@ const GradePublishing = {
       $message.text(message)
       const $item = $('<li/>')
       $item.append($message)
-      $item.append(' - <b>' + users.length + '</b>')
+      const $count = $('<b>').text(users.length)
+      $item.append(document.createTextNode(' - '), $count)
       $messages.append($item)
     })
   },

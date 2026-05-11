@@ -16,9 +16,9 @@
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 //
 
-import $ from 'jquery'
+// xsslint safeString.identifier icon span a
 
-import h from '@instructure/html-escape'
+import $ from 'jquery'
 import Outcome from '../../../backbone/models/Outcome'
 import OutcomeIconBase from './OutcomeIconBase'
 import '@canvas/jquery/jquery.disableWhileLoading'
@@ -61,13 +61,23 @@ export default class OutcomeGroupIconView extends OutcomeIconBase {
   }
 
   render() {
+    const title = this.model.get('title')
     this.$el.attr('data-id', this.model.get('id'))
-    this.$el.html(`\
-<a href="#" class="ellipsis" title="${h(this.model.get('title'))}">
-<i class="icon-folder"></i>
-<span>${h(this.model.get('title'))}</span>
-</a>\
-`)
+
+    const a = document.createElement('a')
+    a.href = '#'
+    a.className = 'ellipsis'
+    a.title = title
+
+    const icon = document.createElement('i')
+    icon.className = 'icon-folder'
+
+    const span = document.createElement('span')
+    span.textContent = title
+
+    a.append(icon, span)
+    this.$el.empty().append(a)
+
     this.initDroppable()
     return super.render(...arguments)
   }

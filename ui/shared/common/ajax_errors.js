@@ -61,7 +61,7 @@ $(document).ready(function () {
             I18n.t('error_heading', 'Ajax Error: %{status_code}', {status_code: status}),
           ),
         )
-        $body.append(htmlEscape(text))
+        $body.append(document.createTextNode(text))
         $('#instructure_ajax_error_box').hide()
         message = htmlEscape(message)
         if (debugOnly) {

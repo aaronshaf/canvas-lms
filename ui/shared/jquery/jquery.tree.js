@@ -22,8 +22,8 @@
 /* eslint-disable import/no-named-as-default */
 
 // xsslint jqueryObject.identifier tree
+// xsslint safeString.identifier sign
 import $ from 'jquery'
-import htmlEscape from '@instructure/html-escape'
 import 'jqueryui/draggable'
 import 'jqueryui/droppable'
 
@@ -260,11 +260,13 @@ $.fn.instTree = function (options) {
       if (activeElement) {
         const li = $(activeElement).parents('li:first')
 
-        $(activeElement).replaceWith(
-          '<span class="text">&nbsp;</span><input type="text" value="' +
-            htmlEscape($(activeElement).text()) +
-            '" />',
-        )
+        const textSpan = document.createElement('span')
+        textSpan.className = 'text'
+        textSpan.textContent = ' '
+        const inputEl = document.createElement('input')
+        inputEl.type = 'text'
+        inputEl.value = $(activeElement).text()
+        $(activeElement).replaceWith([textSpan, inputEl])
 
         li.find('input:text')
           .focus()
@@ -302,7 +304,10 @@ $.fn.instTree = function (options) {
 
       const val = $.trim(input.get(0).value) !== '' ? input.get(0).value : '_____'
 
-      input.replaceWith('<span class="active text">' + htmlEscape(val) + '</span>')
+      const activeSpan = document.createElement('span')
+      activeSpan.className = 'active text'
+      activeSpan.textContent = val
+      input.replaceWith(activeSpan)
 
       $.fn.instTree.InitInstTree(obj)
     } // SaveInput
@@ -317,11 +322,9 @@ $.fn.instTree = function (options) {
     } // Clean
     it.AddSigns = function () {
       tree.find('li.node').each(function () {
-        if ($(this).hasClass('open')) {
-          $(this).find('span.sign').remove().end().append('<span class="sign minus"></span>')
-        } else {
-          $(this).find('span.sign').remove().end().append('<span class="sign plus"></span>')
-        }
+        const sign = document.createElement('span')
+        sign.className = $(this).hasClass('open') ? 'sign minus' : 'sign plus'
+        $(this).find('span.sign').remove().end().append(sign)
       })
     } // AddSigns
     it.BindEvents = function (obj) {

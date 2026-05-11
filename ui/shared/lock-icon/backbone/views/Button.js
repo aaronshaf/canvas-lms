@@ -20,7 +20,6 @@ import {extend} from '@canvas/backbone/utils'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 import Backbone from '@canvas/backbone'
-import htmlEscape from '@instructure/html-escape'
 import '@canvas/jquery/jquery.instructure_forms'
 
 const I18n = createI18nScope('LockButton')
@@ -226,7 +225,7 @@ LockButton.prototype.render = function () {
   if (!this.disabled) {
     this.$el.attr('tabindex', '0')
   }
-  this.$el.html('<i></i><span class="lock-text screenreader-only"></span>')
+  this.$el.empty().append($('<i>'), $('<span>').addClass('lock-text screenreader-only'))
   this.cacheEls()
   if (this.isLocked()) {
     return this.renderLocked()
@@ -298,7 +297,7 @@ LockButton.prototype.renderState = function (options) {
     this.$el.attr('aria-disabled', true)
   }
   this.$icon.attr('class', options.iconClass)
-  this.$text.html('' + htmlEscape(options.label || options.hint))
+  this.$text.text(options.label || options.hint)
   return this.$el.attr('title', options.hint) // tooltip picks this up (and htmlEscapes it)
 }
 

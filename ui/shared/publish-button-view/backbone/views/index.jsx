@@ -20,7 +20,6 @@ import {extend} from '@canvas/backbone/utils'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 import Backbone from '@canvas/backbone'
-import htmlEscape from '@instructure/html-escape'
 import '@canvas/jquery/jquery.instructure_forms'
 import * as tz from '@instructure/moment-utils'
 import React from 'react'
@@ -351,7 +350,9 @@ export default (function (superClass) {
       this.$el.attr('role', 'button')
     }
     this.$el.attr('tabindex', '0')
-    this.$el.html('<i></i><span class="publish-text"></span><span class="dpd-mount"></span>')
+    this.$el
+      .empty()
+      .append($('<i>'), $('<span>').addClass('publish-text'), $('<span>').addClass('dpd-mount'))
     this.cacheEls()
     // don't read text of button with screenreader
     this.$text.attr('tabindex', '-1')
@@ -435,7 +436,7 @@ export default (function (superClass) {
     this.$el.addClass(options.buttonClass)
     this.$el.attr('aria-pressed', options.buttonClass === this.publishedClass)
     this.$icon.addClass(options.iconClass)
-    this.$text.html('&nbsp;' + htmlEscape(options.text))
+    this.$text.text(' ' + options.text)
 
     // a riff on the code from initPublishButton
     const $row = this.$el.closest('.ig-row')

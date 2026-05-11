@@ -160,7 +160,7 @@ async function setupMathML() {
   if (!/quizzes\/\d*\/edit/.test(window.location.pathname)) {
     if (document.querySelector('.math_equation_latex')) {
       const elem = document.createElement('math')
-      elem.innerHTML = '&nbsp;'
+      elem.textContent = ' '
       document.body.appendChild(elem)
     }
   }

@@ -100,10 +100,7 @@ export function findLinkForService(service_type, callback) {
           )
         return
       }
-      $dialog
-        .find('.results')
-        .empty()
-        .append(htmlEscape(I18n.t('status.searching', 'Searching...')))
+      $dialog.find('.results').text(I18n.t('status.searching', 'Searching...'))
       lastLookup = new Date()
       $.ajaxJSON(
         url,
@@ -112,9 +109,7 @@ export function findLinkForService(service_type, callback) {
         data => {
           $dialog.find('.results').empty()
           if (!data.length) {
-            $dialog
-              .find('.results')
-              .append(htmlEscape(I18n.t('no_results_found', 'No Results Found')))
+            $dialog.find('.results').text(I18n.t('no_results_found', 'No Results Found'))
           }
           for (const idx in data) {
             data[idx].short_title = data[idx].title
@@ -142,8 +137,7 @@ export function findLinkForService(service_type, callback) {
         () => {
           $dialog
             .find('.results')
-            .empty()
-            .append(htmlEscape(I18n.t('errors.search_failed', 'Search failed, please try again.')))
+            .text(I18n.t('errors.search_failed', 'Search failed, please try again.'))
         },
       )
     })

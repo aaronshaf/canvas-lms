@@ -16,8 +16,9 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// xsslint safeString.identifier opt
+
 import {useScope as createI18nScope} from '@canvas/i18n'
-import htmlEscape from '@instructure/html-escape'
 import React from 'react'
 import {legacyRender} from '@canvas/react'
 import AuthTypePicker, {type AuthType} from '../react/AuthTypePicker'
@@ -60,7 +61,7 @@ $('.parent_reg_warning').click(function (this: HTMLElement) {
     msg = I18n.t(
       'Another configuration is currently selected.  Selecting this configuration will deselect the other.',
     )
-    $('.parent_warning_message').append(htmlEscape(msg))
+    $('.parent_warning_message').append(document.createTextNode(msg))
     $.screenReaderFlashMessage(msg)
     $('.parent_form_message').addClass('ic-Form-message ic-Form-message--warning')
     $('.parent_form_message_layout').addClass('ic-Form-message__Layout')
@@ -123,10 +124,10 @@ $('.remove_federated_attribute').click(function (this: HTMLElement) {
   const $attribute_row = $(this).closest('tr')
   const $federated_attributes = $attribute_row.closest('.federated_attributes')
   const $canvas_attribute_select = $federated_attributes.find('.add_attribute .canvas_attribute')
-  const canvas_attribute_html = $attribute_row.find('.canvas_attribute_name').text()
-  const option = document.createElement('option')
-  option.textContent = canvas_attribute_html
-  $canvas_attribute_select[0].appendChild(option)
+  const canvas_attribute_text = $attribute_row.find('.canvas_attribute_name').text()
+  const opt = document.createElement('option')
+  opt.textContent = canvas_attribute_text
+  $canvas_attribute_select[0].appendChild(opt)
   const $next = $attribute_row.nextAll(':visible').first().find('input:visible').first()
   $attribute_row.remove()
   $federated_attributes.find('.add_attribute').show()

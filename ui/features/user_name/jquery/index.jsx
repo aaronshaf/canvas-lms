@@ -20,7 +20,6 @@ import React from 'react'
 import {render} from '@canvas/react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
-import htmlEscape from '@instructure/html-escape'
 import '@canvas/jquery/jquery.ajaxJSON'
 import '@canvas/jquery/jquery.instructure_forms' /* formSubmit */
 import '@canvas/rails-flash-notifications'
@@ -113,7 +112,9 @@ ready(function () {
       'POST',
       {},
       _data => {
-        $link.after(htmlEscape(I18n.t('notices.image_reported', 'This image has been reported')))
+        $link.after(
+          document.createTextNode(I18n.t('notices.image_reported', 'This image has been reported')),
+        )
         $link.remove()
       },
       _data => {

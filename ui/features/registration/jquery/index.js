@@ -21,7 +21,6 @@ import preventDefault from '@canvas/util/preventDefault'
 import {loadSignupDialog} from '@canvas/signup-dialog'
 import loginForm from '../jst/login.handlebars'
 import authenticity_token from '@canvas/authenticity-token'
-import htmlEscape from '@instructure/html-escape'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import extensions from '@canvas/bundles/extensions'
 
@@ -43,14 +42,20 @@ $('.signup_link').click(
 
 $('#registration_video a').click(
   preventDefault(function () {
-    // xsslint safeString.property REGISTRATION_VIDEO_URL
-    return $(
-      "<div style='padding:0;'><iframe style='float:left;' src='" +
-        ENV.REGISTRATION_VIDEO_URL +
-        "' width='800' height='450' frameborder='0' title='" +
-        htmlEscape(I18n.t('Video Player')) +
-        "' webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe></div>",
-    ).dialog({
+    const iframe = document.createElement('iframe')
+    iframe.style.cssFloat = 'left'
+    iframe.src = ENV.REGISTRATION_VIDEO_URL
+    iframe.width = '800'
+    iframe.height = '450'
+    iframe.frameBorder = '0'
+    iframe.title = I18n.t('Video Player')
+    iframe.setAttribute('webkitAllowFullScreen', '')
+    iframe.setAttribute('mozallowfullscreen', '')
+    iframe.setAttribute('allowFullScreen', '')
+    const wrapper = document.createElement('div')
+    wrapper.style.padding = '0'
+    wrapper.appendChild(iframe)
+    return $(wrapper).dialog({
       width: 800,
       title: I18n.t('Canvas Introduction Video'),
       modal: true,

@@ -166,7 +166,7 @@ class VisibleContextManager {
 function generateEmptyState() {
   const emptyStateContainer = document.createElement('div')
   emptyStateContainer.classList.add('accounts-empty-state')
-  emptyStateContainer.innerHTML = I18n.t('Click the "+" icon to add a calendar')
+  emptyStateContainer.textContent = I18n.t('Click the "+" icon to add a calendar')
   return emptyStateContainer
 }
 
@@ -192,7 +192,7 @@ function setupCalendarFeedsWithSpecialAccessibilityConsiderationsForNVDA() {
             .addClass('ui-dialog-titlebar-close ui-corner-all')
             .attr('type', 'button')
             .attr('aria-label', I18n.t('Close'))
-            .html('<span class="ui-icon ui-icon-closethick"></span>')
+            .append($('<span>').addClass('ui-icon ui-icon-closethick'))
             .on('click', event => {
               event.preventDefault()
               $calendarFeedModalContent.dialog('close')

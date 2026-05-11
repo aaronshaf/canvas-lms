@@ -3213,7 +3213,7 @@ ready(function () {
     REGRADE_OPTIONS[$question.data('questionID')] = optionValue
     $question.find('.regrade_option_text').remove()
     const $regradeInfoSpan = $('<span id="regrade_info_span">')
-    $regradeInfoSpan.append(htmlEscape(optionLabel))
+    $regradeInfoSpan.append(document.createTextNode(optionLabel))
     $(newAnswerData.newAnswer).append($regradeInfoSpan)
     const $optionTextSpan = $('<span class="regrade_option_text" style="display:none">').text(
       optionLabel,

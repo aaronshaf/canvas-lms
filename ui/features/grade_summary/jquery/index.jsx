@@ -16,6 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// xsslint safeString.identifier mutedIcon quizIcon
+
 import {forEach, extend as lodashExtend} from 'es-toolkit/compat'
 import $ from 'jquery'
 import '@canvas/jquery/jquery.ajaxJSON'
@@ -29,7 +31,6 @@ import {camelizeProperties} from '@canvas/convert-case'
 import React from 'react'
 import {render, rerender} from '@canvas/react'
 import gradingPeriodSetsApi from '@canvas/grading/jquery/gradingPeriodSetsApi'
-import {htmlEscape} from '@instructure/html-escape'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import round from '@canvas/round'
 import numberHelper from '@canvas/i18n/numberHelper'
@@ -183,7 +184,7 @@ const GradeSummary = {
     if (score.numericalValue == null) {
       $grade.html($grade.data('originalValue'))
     } else {
-      $grade.html(htmlEscape(score.formattedValue))
+      $grade.text(score.formattedValue)
     }
 
     addTooltipElementForAssignment($assignment)
@@ -239,12 +240,18 @@ const GradeSummary = {
 
     if ($assignment.data('muted')) {
       title = I18n.t('Instructor has not posted this grade')
-      // xsslint safeString.identifier title
-      $grade.html(`<i class="icon-off" aria-hidden="true" title="${title}"></i>`)
+      const mutedIcon = document.createElement('i')
+      mutedIcon.className = 'icon-off'
+      mutedIcon.setAttribute('aria-hidden', 'true')
+      mutedIcon.title = title
+      $grade.empty().append(mutedIcon)
     } else if ($assignment.data('pending_quiz')) {
       title = I18n.t('Instructor has not posted this grade')
-      // xsslint safeString.identifier title
-      $grade.html(`<i class="icon-quiz" aria-hidden="true" title="${title}"></i>`)
+      const quizIcon = document.createElement('i')
+      quizIcon.className = 'icon-quiz'
+      quizIcon.setAttribute('aria-hidden', 'true')
+      quizIcon.title = title
+      $grade.empty().append(quizIcon)
     } else {
       title = I18n.t('Click to test a different score')
       $grade.text(score.formattedValue)

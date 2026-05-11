@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import htmlEscape from '@instructure/html-escape'
 import React from 'react'
 import {legacyRender, legacyUnmountComponentAtNode, render} from '@canvas/react'
 import $ from 'jquery'
@@ -30,7 +31,6 @@ import WikiPageReloadView from '@canvas/wiki/backbone/views/WikiPageReloadView'
 import renderChooseEditorModal from '@canvas/block-editor/react/renderChooseEditorModal'
 import PublishButtonView from '@canvas/publish-button-view'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import htmlEscape from '@instructure/html-escape'
 import {publish} from 'jquery-tinypubsub'
 import '@canvas/modules/jquery/prerequisites_lookup'
 import lockExplanation from '@canvas/content-locks/jquery/lock_reason'
@@ -98,7 +98,8 @@ export default class WikiPageView extends Backbone.View {
 
     if (this.model.get('locked_for_user')) {
       const lock_info = this.model.get('lock_info')
-      $('.lock_explanation').html(htmlEscape(lockExplanation(lock_info, 'page')))
+      const lockEl = document.querySelector('.lock_explanation')
+      if (lockEl) lockEl.innerHTML = htmlEscape(lockExplanation(lock_info, 'page')).toString()
       if (lock_info.context_module && lock_info.context_module.id) {
         const prerequisites_lookup = `${ENV.MODULES_PATH}/${
           lock_info.context_module.id

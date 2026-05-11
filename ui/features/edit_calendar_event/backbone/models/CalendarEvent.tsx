@@ -187,7 +187,7 @@ export default class CalendarEvent extends Backbone.Model {
     if (!this.view.el.querySelector('.error-msg')) {
       const msg = document.createElement('div')
       msg.setAttribute('class', 'error-msg')
-      msg.innerHTML = I18n.t('Failed loading course sections. Refresh page to try again.')
+      msg.textContent = I18n.t('Failed loading course sections. Refresh page to try again.')
       // @ts-expect-error TS2339 (typescriptify)
       this.view.el.appendChild(msg)
     }

@@ -15,41 +15,45 @@
 // You should have received a copy of the GNU Affero General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
+// xsslint safeString.function mkOption
+
 import I18n from '@canvas/i18n'
 import $ from 'jquery'
-import h from '@instructure/html-escape'
 import {clone, defaults} from 'es-toolkit/compat'
 
-/*
-xsslint safeString.identifier i
-*/
+function mkOption(value, label) {
+  const opt = document.createElement('option')
+  opt.value = String(value)
+  opt.textContent = String(label)
+  return opt
+}
 
 const builders = {
   year(options, htmlOptions) {
     const step = options.startYear < options.endYear ? 1 : -1
     const $result = $('<select />', htmlOptions)
-    if (options.includeBlank) $result.append('<option />')
+    if (options.includeBlank) $result.append(document.createElement('option'))
     let i = options.startYear
     while (i * step <= options.endYear * step) {
       i += step
-      $result.append($(`<option value="${i}">${i}</option>`))
+      $result.append(mkOption(i, i))
     }
     return $result
   },
   month(options, htmlOptions) {
     const months = I18n.lookup('date.month_names')
     const $result = $('<select />', htmlOptions)
-    if (options.includeBlank) $result.append('<option />')
+    if (options.includeBlank) $result.append(document.createElement('option'))
     for (let i = 1; i <= 12; i++) {
-      $result.append($(`<option value="${i}">${h(months[i])}</option>`))
+      $result.append(mkOption(i, months[i]))
     }
     return $result
   },
   day(options, htmlOptions) {
     const $result = $('<select />', htmlOptions)
-    if (options.includeBlank) $result.append('<option />')
+    if (options.includeBlank) $result.append(document.createElement('option'))
     for (let i = 1; i <= 31; i++) {
-      $result.append($(`<option value="${i}">${i}</option>`))
+      $result.append(mkOption(i, i))
     }
     return $result
   },

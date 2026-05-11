@@ -28,9 +28,12 @@ export default class FileInputManager {
       this.$fileInput.off('change', callback)
       this.$fileInput.remove()
     }
-    const fileInputHtml = `<input id='${id}' type='file' style='display: none;'>`
-    $(parentId).append(fileInputHtml)
-    this.$fileInput = $(`#${id}`)
+    const fileInput = document.createElement('input')
+    fileInput.id = id
+    fileInput.type = 'file'
+    fileInput.style.display = 'none'
+    $(parentId)[0]?.appendChild(fileInput)
+    this.$fileInput = $(fileInput)
     return this.$fileInput.on('change', callback)
   }
 

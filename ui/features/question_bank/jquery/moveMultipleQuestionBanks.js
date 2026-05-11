@@ -19,7 +19,6 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 import moveQuestionTemplate from '../jst/move_question.handlebars'
-import htmlEscape from '@instructure/html-escape'
 import {sanitizeHTML} from '@canvas/sanitize-html'
 import loadBanks from './loadBanks'
 import '@canvas/jquery/jquery.ajaxJSON'
@@ -38,7 +37,7 @@ const moveQuestions = {
   elements: {
     $dialog: () => $('#move_question_dialog'),
     $questions: () => $('#move_question_dialog .questions'),
-    $loadMessage: $('<li />').append(htmlEscape(I18n.t('load_questions', 'Loading Questions...'))),
+    $loadMessage: $('<li />').text(I18n.t('load_questions', 'Loading Questions...')),
   },
   messages: {
     move_copy_questions: I18n.t('title.move_copy_questions', 'Move/Copy Questions'),

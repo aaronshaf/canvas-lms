@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {addEmptyModuleUI, MODULE_ITEM_LIST} from '@canvas/context-modules/utils/moduleHelpers'
+import {addEmptyModuleUI, createModuleItemList} from '@canvas/context-modules/utils/moduleHelpers'
 import ready from '@instructure/ready'
 
 ready(() => {
@@ -28,7 +28,7 @@ ready(() => {
     if (!content) return
     const itemslist = content?.querySelector('.context_module_items')
     if (!itemslist) {
-      content.insertAdjacentHTML('afterbegin', MODULE_ITEM_LIST)
+      content.insertAdjacentElement('afterbegin', createModuleItemList())
     }
     const moduleDnd = zone.querySelector('.module_dnd')
     if (moduleDnd) {

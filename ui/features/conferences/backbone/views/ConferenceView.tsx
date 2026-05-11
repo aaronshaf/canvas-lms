@@ -250,7 +250,7 @@ ConferenceView.prototype.updateConferenceDetails = function (id) {
   $recordings.remove()
   // Shift the link to text
   const $link = $info.children('a.ig-title')
-  const $text = $('<span />').addClass('ig-title').html($link.text())
+  const $text = $('<span />').addClass('ig-title').text($link.text())
   $info.prepend($text)
   return $link.remove()
 }

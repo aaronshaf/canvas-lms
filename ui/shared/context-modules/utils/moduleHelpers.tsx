@@ -201,5 +201,9 @@ export function getModuleAriaLabel(module: HTMLElement) {
   return module.getAttribute('aria-label')
 }
 
-export const MODULE_ITEM_LIST =
-  '<ul class="ig-list items context_module_items manageable ui-sortable" data-total-items="0"></ul>'
+export function createModuleItemList(): HTMLUListElement {
+  const ul = document.createElement('ul')
+  ul.className = 'ig-list items context_module_items manageable ui-sortable'
+  ul.dataset.totalItems = '0'
+  return ul
+}

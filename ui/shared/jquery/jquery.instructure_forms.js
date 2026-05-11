@@ -1240,7 +1240,8 @@ $.fn.errorBox = function (message, scroll, override_position) {
   }
 
   $box.appendTo('body')
-  $box.find('.error_text').html(htmlEscape(message))
+  const errorTextEl = $box.find('.error_text')[0]
+  if (errorTextEl) errorTextEl.innerHTML = htmlEscape(message).toString()
 
   const offset = $obj.offset()
   const height = $box.outerHeight()

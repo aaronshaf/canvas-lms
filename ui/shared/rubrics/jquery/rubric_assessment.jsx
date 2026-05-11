@@ -325,18 +325,14 @@ window.rubricAssessment = {
           $saved_custom_rating = $holder.find('.saved_custom_rating')
 
         $saved_custom_rating.find('.comment').remove()
-        $saved_custom_rating
-          .empty()
-          .append('<option value="">' + htmlEscape(I18n.t('[ Select ]')) + '</option>')
+        const $blankOpt = $('<option>').val('').text(I18n.t('[ Select ]'))
+        $saved_custom_rating.empty().append($blankOpt)
         for (const jdx in comments) {
           if (comments[jdx]) {
-            $saved_custom_rating.append(
-              '<option value="' +
-                htmlEscape(comments[jdx]) +
-                '">' +
-                htmlEscape(truncateText(comments[jdx], {max: 50})) +
-                '</option>',
-            )
+            const $opt = $('<option>')
+              .val(comments[jdx])
+              .text(truncateText(comments[jdx], {max: 50}))
+            $saved_custom_rating.append($opt)
             $holder.show()
           }
         }

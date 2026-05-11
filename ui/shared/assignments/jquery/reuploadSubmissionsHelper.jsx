@@ -16,6 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// xsslint safeString.identifier attachmentInput
+
 import $ from 'jquery'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import '@canvas/jquery/jquery.instructure_forms' // brings in $.fn.formSubmit
@@ -49,8 +51,11 @@ function success(attachment) {
   // submissions_zip input, and we need to add an input with the attachment ID.
   $form.find('input[name="submissions_zip"]').remove()
   $form.removeAttr('enctype')
-  // xsslint safeString.property id
-  $form.append(`<input type="hidden" name="attachment_id" value="${attachment.id}">`)
+  const attachmentInput = document.createElement('input')
+  attachmentInput.type = 'hidden'
+  attachmentInput.name = 'attachment_id'
+  attachmentInput.value = attachment.id
+  $form.append(attachmentInput)
   // Now that we've generated an attachment and included its ID in the form, submit the form
   // "normally" (don't trigger jQuery submit) to POST to gradebooks#submissions_zip_upload.
   document.getElementById(formId).submit()

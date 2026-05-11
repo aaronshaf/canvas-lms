@@ -16,6 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// xsslint safeString.identifier savingImg
+
 import {useScope as createI18nScope} from '@canvas/i18n'
 import * as pubsub from 'jquery-tinypubsub'
 import $ from 'jquery'
@@ -404,7 +406,7 @@ $.mediaComment.init = function (mediaType, opts) {
 
           params = $.extend({}, params, {name: 'KRecordVideo'})
           recordVars = $.extend({}, recordVars, {useCamera: '1'})
-          $('#video_record').html('Flash required for recording video.')
+          $('#video_record').text('Flash required for recording video.')
           swfobject.embedSWF(
             '/media_record/KRecord.swf',
             'video_record',
@@ -682,10 +684,13 @@ $.mediaComment.init = function (mediaType, opts) {
 
 $(document).ready(function () {
   $(document).bind('reset_media_comment_forms', () => {
+    const savingImg = document.createElement('img')
+    savingImg.src = '/images/media-saving.gif'
     $('#audio_record_holder_message,#video_record_holder_message')
       .removeClass('saving')
       .find('.recorder_message')
-      .html("Saving Recording...<img src='/images/media-saving.gif'/>")
+      .empty()
+      .append(document.createTextNode('Saving Recording...'), savingImg)
     $('#audio_record_holder')
       .stop(true, true)
       .clearQueue()

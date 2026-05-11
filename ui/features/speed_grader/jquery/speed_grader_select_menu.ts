@@ -327,16 +327,22 @@ export default class SpeedgraderSelectMenu {
     option.text(newStudentInfo).removeClass(submissionStates).addClass(className.raw)
 
     if (className.raw === 'graded' || className.raw === 'not_gradeable') {
-      $queryIcon.text('').append("<i class='icon-check'></i>")
+      // xsslint safeString.function mkCheckIcon
+      const mkCheckIcon = () => {
+        const i = document.createElement('i')
+        i.className = 'icon-check'
+        return i
+      }
+      $queryIcon.empty().append(mkCheckIcon())
       if (isCurrentStudent) {
         $status.addClass('graded')
-        $statusIcon.text('').append("<i class='icon-check'></i>")
+        $statusIcon.empty().append(mkCheckIcon())
       }
     } else if (className.raw === 'not_graded') {
-      $queryIcon.text('').append('&#9679;')
+      $queryIcon.text('●')
       if (isCurrentStudent) {
         $status.removeClass('graded')
-        $statusIcon.text('').append('&#9679;')
+        $statusIcon.text('●')
       }
     } else {
       $queryIcon.text('')

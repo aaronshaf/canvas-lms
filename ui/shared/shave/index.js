@@ -27,8 +27,13 @@ export default function shave(target, maxHeight, opts = {}) {
   const character = opts.character || '…'
   const classname = opts.classname || 'js-shave'
   const spaces = typeof opts.spaces === 'boolean' ? opts.spaces : true
-  // xsslint safeString.identifier character
-  const charHtml = `<span class="js-shave-char" aria-hidden="true">${character}</span>`
+  const makeCharSpan = () => {
+    const span = document.createElement('span')
+    span.className = 'js-shave-char'
+    span.setAttribute('aria-hidden', 'true')
+    span.textContent = character
+    return span
+  }
 
   let trucated = false
 
@@ -75,13 +80,13 @@ export default function shave(target, maxHeight, opts = {}) {
     while (min < max) {
       pivot = (min + max + 1) >> 1
       el[textProp] = spaces ? words.slice(0, pivot).join(' ') : words.slice(0, pivot)
-      el.insertAdjacentHTML('beforeend', charHtml)
+      el.insertAdjacentElement('beforeend', makeCharSpan())
       if (el.offsetHeight > maxHeight) max = pivot - 1
       else min = pivot
     }
 
     el[textProp] = spaces ? words.slice(0, max).join(' ') : words.slice(0, max)
-    el.insertAdjacentHTML('beforeend', charHtml)
+    el.insertAdjacentElement('beforeend', makeCharSpan())
     const diff = spaces ? ` ${words.slice(max).join(' ')}` : words.slice(max)
 
     const shavedText = document.createTextNode(diff)

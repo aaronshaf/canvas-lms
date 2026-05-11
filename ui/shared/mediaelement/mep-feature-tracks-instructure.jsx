@@ -570,11 +570,10 @@ const I18n = createI18nScope('mepfeaturetracksinstructure')
       t.adjustLanguageBox()
 
       if (track_el && track_el.getAttribute('data-inherited-track') == 'true') {
-        const tooltip_container = $li
-          .append('<span class="track-tip-container"></span>')
-          .find('.track-tip-container')
-
-        render(<InheritedCaptionTooltip />, tooltip_container[0])
+        const tipContainer = document.createElement('span')
+        tipContainer.className = 'track-tip-container'
+        $li.append(tipContainer)
+        render(<InheritedCaptionTooltip />, tipContainer)
       }
 
       // remove this from the dropdownlist (if it exists)

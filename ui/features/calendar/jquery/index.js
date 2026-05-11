@@ -395,18 +395,16 @@ export default class Calendar {
           )
 
     $element.attr('title', newTitle)
-    $element
-      .find('.fc-content')
-      .prepend(
-        $(
-          `<span class='screenreader-only'>${htmlEscape(
-            I18n.t('calendar_title', 'Calendar:'),
-          )} ${htmlEscape(event.contextInfo.name)}</span>`,
-        ),
-      )
-    $element
-      .find('.fc-title')
-      .prepend($(`<span class='screenreader-only'>${htmlEscape(screenReaderTitleHint)} </span>`))
+    $element.find('.fc-content').prepend(
+      $('<span>')
+        .addClass('screenreader-only')
+        .text(`${I18n.t('calendar_title', 'Calendar:')} ${event.contextInfo.name}`),
+    )
+    $element.find('.fc-title').prepend(
+      $('<span>')
+        .addClass('screenreader-only')
+        .text(screenReaderTitleHint + ' '),
+    )
     $element.find('.fc-title').toggleClass('calendar__event--completed', event.isCompleted())
     element.find('.fc-content').prepend($('<i />', {class: `icon-${event.iconType()}`}))
     return true
@@ -1242,15 +1240,16 @@ export default class Calendar {
             newCustomColors[contextCode] = color
           }
 
-          color = htmlEscape(color)
-          contextCode = htmlEscape(contextCode)
+          // CSS.escape prevents class-name breakout; color validated to safe chars only
+          const safeCode = CSS.escape(contextCode)
+          const safeColor = /^[#a-zA-Z0-9()%.,\s+-]+$/.test(String(color)) ? color : colors[index]
           return `
-            .group_${contextCode},
-            .group_${contextCode}:hover,
-            .group_${contextCode}:focus{
-              color: ${color};
-              border-color: ${color};
-              background-color: ${color};
+            .group_${safeCode},
+            .group_${safeCode}:hover,
+            .group_${safeCode}:focus{
+              color: ${safeColor};
+              border-color: ${safeColor};
+              background-color: ${safeColor};
             }
           `
         })

@@ -18,8 +18,9 @@
 // copied from
 // https://github.com/rails/jquery-ujs
 
+// xsslint safeString.identifier methodInput tokenInput
+
 import $ from 'jquery'
-import htmlEscape from '@instructure/html-escape'
 import authenticityToken from '@canvas/authenticity-token'
 
 // #
@@ -31,14 +32,22 @@ function handleMethod(link) {
   const method = link.data('method')
   const target = link.attr('target')
   const token = authenticityToken() || 'tokenWasEmpty'
-  const form = $(`<form method="post" action="${htmlEscape(href)}"></form>`)
-  const metadataInputHtml = `
-    <input name="_method" value="${htmlEscape(method)}" type="hidden" />
-    <input name="authenticity_token" value="${htmlEscape(token)}" type="hidden" />
-  `
+  const form = document.createElement('form')
+  form.method = 'post'
+  form.action = href
 
-  if (target) form.attr('target', target)
-  form.hide().append(metadataInputHtml).appendTo('body').submit()
+  const methodInput = document.createElement('input')
+  methodInput.name = '_method'
+  methodInput.value = method
+  methodInput.type = 'hidden'
+
+  const tokenInput = document.createElement('input')
+  tokenInput.name = 'authenticity_token'
+  tokenInput.value = token
+  tokenInput.type = 'hidden'
+
+  if (target) form.setAttribute('target', target)
+  $(form).hide().append(methodInput, tokenInput).appendTo('body').submit()
 }
 
 // For 'data-confirm' attribute:

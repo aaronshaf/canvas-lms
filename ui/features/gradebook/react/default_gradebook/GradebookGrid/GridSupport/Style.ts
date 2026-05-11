@@ -56,14 +56,14 @@ export default class Style {
     } else if (location.region === 'body') {
       this.buildClassesForBody(location)
     } else {
-      this.$styles.innerHTML = ''
+      this.$styles.textContent = ''
     }
   }
 
   // @ts-expect-error
   buildClassesForHeader(location) {
     const {options} = this.gridSupport
-    this.$styles.innerHTML = `
+    this.$styles.textContent = `
       .slick-header .slick-header-column.${location.columnId} {
         border: 1px solid ${options.activeBorderColor};
         padding-${direction('left')}: 0;
@@ -81,7 +81,7 @@ export default class Style {
   // @ts-expect-error
   buildClassesForBody(location) {
     const {options} = this.gridSupport
-    this.$styles.innerHTML = `
+    this.$styles.textContent = `
       .slick-header .slick-header-column.${location.columnId}:not(.primary-column) {
         border: 1px solid ${options.activeBorderColor};
         padding-${direction('left')}: 0;

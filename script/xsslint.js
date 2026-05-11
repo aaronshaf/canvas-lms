@@ -51,6 +51,9 @@ XSSLint.configure({
     'toISOString',
     'friendlyDatetime',
     /^(date|(date)?time)String$/,
+    // DOM constructors — always produce safe nodes, never raw HTML strings
+    'createElement',
+    'createTextNode',
   ],
 })
 

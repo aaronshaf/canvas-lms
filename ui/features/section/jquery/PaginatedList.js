@@ -31,10 +31,11 @@
 // PaginatedList expects an empty <ul> wrapped in a <div>. The element
 // passed to the constructor should be the <div>.
 
+// xsslint safeString.identifier li
+
 import $ from 'jquery'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import Spinner from 'spin.js'
-import htmlEscape from '@instructure/html-escape'
 import parseLinkHeader from '@canvas/parse-link-header'
 
 const I18n = createI18nScope('paginated_list')
@@ -178,7 +179,7 @@ export default class PaginatedList {
     if (linkHeader && linkHeader.next) {
       this.options.requestParams.page = linkHeader.next.page
       if (!this.pageLinkPresent) {
-        this.el.wrapper.append(this.viewMoreLinkHtml())
+        this.el.wrapper[0].appendChild(this.viewMoreLinkElement())
         this.pageLinkPresent = true
       }
     } else {
@@ -188,10 +189,14 @@ export default class PaginatedList {
 
   // #
   // template for view more link
-  // @return String
+  // @return Element
   // @api private
-  viewMoreLinkHtml() {
-    return `<a class="view-more-link" href="#">${htmlEscape(this.keys.viewMore)}</a>`
+  viewMoreLinkElement() {
+    const a = document.createElement('a')
+    a.className = 'view-more-link'
+    a.href = '#'
+    a.textContent = this.keys.viewMore
+    return a
   }
 
   // #
