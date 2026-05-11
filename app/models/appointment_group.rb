@@ -61,6 +61,14 @@ class AppointmentGroup < ApplicationRecord
   validates :title, length: { maximum: maximum_string_length }
   validates :location_name, length: { maximum: maximum_string_length }
   validates :description, length: { maximum: maximum_long_text_length, allow_blank: true }
+
+  sanitize_field :description, CanvasSanitize::SANITIZE
+
+  def description
+    raw = super
+    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+  end
+
   validates :participant_visibility, inclusion: { in: ["private", "protected"] } # presumably we might add public if we decide to show appointments on the public calendar feed
   validates_each :appointments do |record, attr, value|
     next unless record.new_appointments.present? || record.validation_event_override

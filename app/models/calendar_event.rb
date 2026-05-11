@@ -39,6 +39,11 @@ class CalendarEvent < ApplicationRecord
   sanitize_field :description, CanvasSanitize::SANITIZE
   copy_authorized_links(:description) { [effective_context, nil] }
 
+  def description
+    raw = super
+    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+  end
+
   include Workflow
   include LinkedAttachmentHandler
 

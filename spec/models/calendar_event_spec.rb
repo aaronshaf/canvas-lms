@@ -1341,4 +1341,37 @@ describe CalendarEvent do
       expect(CalendarEvent.valid_ranges).to include(@ce4)
     end
   end
+
+  describe "description sanitization" do
+    before :once do
+      course_with_teacher(active_all: true)
+    end
+
+    let(:event) do
+      @course.calendar_events.create!(title: "t", start_at: 1.day.from_now)
+    end
+
+    it "strips script tags from description on write" do
+      event.update!(description: "hello<script>alert(1)</script>world")
+      expect(event.read_attribute(:description)).not_to include("<script>")
+      expect(event.description).not_to include("<script>")
+    end
+
+    it "sanitizes legacy unsanitized description on read" do
+      event.update_columns(description: "<script>alert(1)</script>safe")
+      expect(event.read_attribute(:description)).to include("<script>")
+      expect(event.reload.description).not_to include("<script>")
+    end
+
+    it "preserves legitimate formatting and links" do
+      html = '<p>see <a href="https://example.com">link</a></p>'
+      event.update!(description: html)
+      expect(event.description).to include('<a href="https://example.com">link</a>')
+      expect(event.description).to include("<p>")
+    end
+
+    it "returns nil when description is nil" do
+      expect(event.description).to be_nil
+    end
+  end
 end

@@ -853,4 +853,51 @@ describe AppointmentGroup do
       expect(@ag.users_with_reservations_through_group).not_to include @not_group_user.id
     end
   end
+
+  describe "description sanitization" do
+    before :once do
+      course_with_teacher(active_all: true)
+    end
+
+    let(:ag) do
+      AppointmentGroup.create!(title: "t", contexts: [@course])
+    end
+
+    it "strips script tags from description on write" do
+      ag.update!(description: "hello<script>alert(1)</script>world")
+      expect(ag.read_attribute(:description)).not_to include("<script>")
+      expect(ag.description).not_to include("<script>")
+    end
+
+    it "sanitizes legacy unsanitized description on read" do
+      ag.update_columns(description: "<script>alert(1)</script>safe")
+      expect(ag.read_attribute(:description)).to include("<script>")
+      expect(ag.reload.description).not_to include("<script>")
+    end
+
+    it "preserves legitimate formatting and links" do
+      html = '<p>see <a href="https://example.com">link</a></p>'
+      ag.update!(description: html)
+      expect(ag.description).to include('<a href="https://example.com">link</a>')
+      expect(ag.description).to include("<p>")
+    end
+
+    it "returns nil when description is nil" do
+      expect(ag.description).to be_nil
+    end
+
+    it "propagates sanitized description to child appointments despite update_all bypass" do
+      ag_with_appts = AppointmentGroup.create!(
+        title: "t",
+        description: "init",
+        contexts: [@course],
+        new_appointments: [["#{Time.zone.now.year + 1}-01-01 12:00:00",
+                            "#{Time.zone.now.year + 1}-01-01 13:00:00"]]
+      )
+      ag_with_appts.update!(description: "evil<script>alert(1)</script>tail")
+      appt = ag_with_appts.appointments.first
+      expect(appt.read_attribute(:description)).not_to include("<script>")
+      expect(appt.description).not_to include("<script>")
+    end
+  end
 end
