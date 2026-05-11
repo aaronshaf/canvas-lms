@@ -71,6 +71,36 @@ describe('TemplateCardSkeleton', () => {
     expect(describedby).toHaveTextContent('Template Description')
   })
 
+  describe('thumbnail rendering', () => {
+    it('passes thumbnail through CSS.escape before interpolating into url()', () => {
+      const escapeSpy = vi.spyOn(CSS, 'escape')
+      renderComponent({
+        template: {...blocktemplate, thumbnail: 'https://example.com/thumb.png'},
+      })
+      expect(escapeSpy).toHaveBeenCalledWith('https://example.com/thumb.png')
+      escapeSpy.mockRestore()
+    })
+
+    it('passes CSS-breakout payload through CSS.escape', () => {
+      const escapeSpy = vi.spyOn(CSS, 'escape')
+      const evil = '");}body{background:url("//attacker.tld/log'
+      renderComponent({
+        template: {...blocktemplate, thumbnail: evil},
+      })
+      expect(escapeSpy).toHaveBeenCalledWith(evil)
+      escapeSpy.mockRestore()
+    })
+
+    it('does not call CSS.escape when thumbnail is empty', () => {
+      const escapeSpy = vi.spyOn(CSS, 'escape')
+      renderComponent({
+        template: {...blocktemplate, thumbnail: ''},
+      })
+      expect(escapeSpy).not.toHaveBeenCalled()
+      escapeSpy.mockRestore()
+    })
+  })
+
   describe('The blank page template', () => {
     it('renders', () => {
       const {getByText, getByTestId} = renderComponent({template: {id: 'blank_page'}})

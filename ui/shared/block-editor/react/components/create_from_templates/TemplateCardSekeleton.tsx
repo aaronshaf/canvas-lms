@@ -103,7 +103,11 @@ export default function TemplateCardSkeleton({
       position="relative"
       shadow="above"
       tabIndex={0}
-      style={{backgroundImage: template?.thumbnail && `url(${template.thumbnail})`}}
+      style={{
+        backgroundImage: template?.thumbnail
+          ? `url("${CSS.escape(template.thumbnail)}")`
+          : undefined,
+      }}
       aria-label={I18n.t('%{name} template', {name: template.name})}
       aria-describedby={template.description ? `${template.id}-description` : undefined}
     >

@@ -21,8 +21,18 @@
 class BlockEditorTemplate < ApplicationRecord
   include Workflow
 
+  THUMBNAIL_MAX_LENGTH = 4096
+  THUMBNAIL_DATA_URI_REGEX = %r{\Adata:image/(png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=]+\z}
+  THUMBNAIL_RELATIVE_REGEX = %r{\A/[A-Za-z0-9\-._~?#\[\]@!$&*+,=%][A-Za-z0-9\-._~/?#\[\]@!$&*+,=%]*\z}
+  THUMBNAIL_FORBIDDEN_CHARS = /[()'"\s;\\]/
+  private_constant :THUMBNAIL_MAX_LENGTH,
+                   :THUMBNAIL_DATA_URI_REGEX,
+                   :THUMBNAIL_RELATIVE_REGEX,
+                   :THUMBNAIL_FORBIDDEN_CHARS
+
   belongs_to :context, polymorphic: %i[account course user]
   before_create :set_root_account_id
+  validate :validate_thumbnail
 
   def set_root_account_id
     self.root_account_id = context&.root_account_id unless root_account_id
@@ -48,4 +58,34 @@ class BlockEditorTemplate < ApplicationRecord
   include Canvas::SoftDeletable
 
   alias_method :published?, :active?
+
+  private
+
+  def validate_thumbnail
+    return if thumbnail.blank?
+
+    if thumbnail.length > THUMBNAIL_MAX_LENGTH
+      errors.add(:thumbnail, "is too long")
+      return
+    end
+
+    return if thumbnail.match?(THUMBNAIL_DATA_URI_REGEX)
+
+    if THUMBNAIL_FORBIDDEN_CHARS.match?(thumbnail)
+      errors.add(:thumbnail, "contains forbidden characters")
+      return
+    end
+
+    return if thumbnail.match?(THUMBNAIL_RELATIVE_REGEX)
+    return if valid_https_thumbnail_url?
+
+    errors.add(:thumbnail, "must be an https URL, relative path, or data:image URI")
+  end
+
+  def valid_https_thumbnail_url?
+    CanvasHttp.validate_url(thumbnail, allowed_schemes: %w[https])
+    true
+  rescue CanvasHttp::Error, URI::Error, ArgumentError
+    false
+  end
 end

@@ -67,4 +67,60 @@ describe BlockEditorTemplate do
     expect(template.active?).to be_truthy
     expect(template.published?).to be_truthy
   end
+
+  describe "thumbnail validation" do
+    let(:template) do
+      BlockEditorTemplate.new(
+        context_type: "Course",
+        context_id: @course.id,
+        name: "name",
+        node_tree: '{"ROOT": {}}',
+        editor_version: "1.0",
+        template_type: "block"
+      )
+    end
+
+    [
+      nil,
+      "",
+      "https://example.com/thumb.png",
+      "/files/123/preview-style",
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+      "data:image/jpeg;base64,AAAA",
+      "data:image/webp;base64,AAAA",
+    ].each do |value|
+      it "accepts #{value.inspect}" do
+        template.thumbnail = value
+        expect(template).to be_valid
+      end
+    end
+
+    {
+      "http://example.com/thumb.png" => "http scheme",
+      "//attacker.tld/log" => "protocol-relative URL",
+      "javascript:alert(1)" => "javascript: scheme",
+      "vbscript:msgbox(1)" => "vbscript: scheme",
+      "file:///etc/passwd" => "file:// scheme",
+      "data:text/html;base64,PHNjcmlwdD4=" => "non-image data: URI",
+      "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=" => "svg+xml data: URI",
+      "\");}body{background:url(\"//attacker.tld/log" => "CSS-breakout payload",
+      "https://example.com/x'.png" => "single quote",
+      "https://example.com/x\".png" => "double quote",
+      "https://example.com/x;.png" => "semicolon",
+      "https://example.com/x\nfoo.png" => "newline",
+      "https://example.com/x\\.png" => "backslash",
+    }.each do |value, label|
+      it "rejects #{label}" do
+        template.thumbnail = value
+        expect(template).not_to be_valid
+        expect(template.errors[:thumbnail]).to be_present
+      end
+    end
+
+    it "rejects thumbnail over max length" do
+      template.thumbnail = "https://example.com/#{"a" * 4096}"
+      expect(template).not_to be_valid
+      expect(template.errors[:thumbnail]).to be_present
+    end
+  end
 end
