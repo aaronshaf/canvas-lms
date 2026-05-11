@@ -2451,6 +2451,50 @@ BASE_PERMISSIONS = {
         description: -> { I18n.t("Allows user to delete automation rules on the account.") } }
     ]
   },
+  manage_learner_dashboards_view: {
+    label: -> { I18n.t("Learner Dashboards - view") },
+    group: :manage_learner_dashboards,
+    available_to: %w[AccountAdmin AccountMembership],
+    true_for: %w[AccountAdmin],
+    account_allows: ->(a) { a.horizon_account? && a.root_account.feature_enabled?(:horizon_configurable_learner_dashboard) },
+    account_details: [
+      { title: -> { I18n.t("Learner Dashboards") },
+        description: -> { I18n.t("Allows user to view the account's learner dashboards.") } }
+    ]
+  },
+  manage_learner_dashboards_add: {
+    label: -> { I18n.t("Learner Dashboards - add") },
+    group: :manage_learner_dashboards,
+    available_to: %w[AccountAdmin AccountMembership],
+    true_for: %w[AccountAdmin],
+    account_allows: ->(a) { a.horizon_account? && a.root_account.feature_enabled?(:horizon_configurable_learner_dashboard) },
+    account_details: [
+      { title: -> { I18n.t("Learner Dashboards") },
+        description: -> { I18n.t("Allows user to create learner dashboards on the account.") } }
+    ]
+  },
+  manage_learner_dashboards_edit: {
+    label: -> { I18n.t("Learner Dashboards - edit") },
+    group: :manage_learner_dashboards,
+    available_to: %w[AccountAdmin AccountMembership],
+    true_for: %w[AccountAdmin],
+    account_allows: ->(a) { a.horizon_account? && a.root_account.feature_enabled?(:horizon_configurable_learner_dashboard) },
+    account_details: [
+      { title: -> { I18n.t("Learner Dashboards") },
+        description: -> { I18n.t("Allows user to edit learner dashboards on the account.") } }
+    ]
+  },
+  manage_learner_dashboards_delete: {
+    label: -> { I18n.t("Learner Dashboards - delete") },
+    group: :manage_learner_dashboards,
+    available_to: %w[AccountAdmin AccountMembership],
+    true_for: %w[AccountAdmin],
+    account_allows: ->(a) { a.horizon_account? && a.root_account.feature_enabled?(:horizon_configurable_learner_dashboard) },
+    account_details: [
+      { title: -> { I18n.t("Learner Dashboards") },
+        description: -> { I18n.t("Allows user to delete learner dashboards on the account.") } }
+    ]
+  },
   manage_course_details: {
     label: -> { I18n.t("Manage Course Details") },
     available_to: %w[AccountAdmin AccountMembership TeacherEnrollment TaEnrollment DesignerEnrollment],

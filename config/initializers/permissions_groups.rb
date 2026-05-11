@@ -763,5 +763,13 @@ PERMISSION_GROUPS = {
       { title: -> { I18n.t("Overview") },
         description: -> { I18n.t("These permissions control the ability to manage automation rules on the account.") } }
     ]
+  },
+  manage_learner_dashboards: {
+    label: -> { I18n.t("Learner Dashboards") },
+    subtitle: -> { I18n.t("view / add / edit / delete") },
+    account_details: [
+      { title: -> { I18n.t("Overview") },
+        description: -> { I18n.t("These permissions control the ability to manage customizable learner dashboards on the account.") } }
+    ]
   }
 }.freeze
