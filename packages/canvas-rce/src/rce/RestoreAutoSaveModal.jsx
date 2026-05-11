@@ -25,6 +25,7 @@ import {Button, CloseButton} from '@instructure/ui-buttons'
 import {ToggleGroup} from '@instructure/ui-toggle-details'
 import {View} from '@instructure/ui-view'
 import formatMessage from '../format-message'
+import {sanitizeHtml} from './sanitizeHtml'
 
 export default function RestoreAutoSaveModal(props) {
   const [previewExpanded, setPreviewExpanded] = useState(false)
@@ -72,7 +73,7 @@ export default function RestoreAutoSaveModal(props) {
         >
           <View
             as="div"
-            dangerouslySetInnerHTML={{__html: props.savedContent}}
+            dangerouslySetInnerHTML={{__html: sanitizeHtml(props.savedContent)}}
             padding="0 x-small"
             overflowX="auto"
           />
