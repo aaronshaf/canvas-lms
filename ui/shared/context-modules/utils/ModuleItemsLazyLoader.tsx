@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import doFetchApi, {type DoFetchApiResults} from '@canvas/do-fetch-api-effect'
 import {type Links} from '@canvas/parse-link-header'
 import {FetchError} from './FetchError'
@@ -73,7 +74,7 @@ class ModuleItemsLazyLoader {
     if (!moduleItemContainer) return
 
     this.emptyModuleOfItems(moduleItemContainer, text.trim().length === 0)
-    moduleItemContainer.insertAdjacentHTML('afterbegin', text)
+    moduleItemContainer.insertAdjacentHTML('afterbegin', sanitizeHTML(text))
 
     const module = moduleFromId(moduleId)
     if (!module) return
