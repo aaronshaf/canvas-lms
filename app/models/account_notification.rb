@@ -31,6 +31,10 @@ class AccountNotification < ApplicationRecord
   validates :message, length: { maximum: maximum_text_length, allow_blank: false }
   validates :subject, length: { maximum: maximum_string_length }
   sanitize_field :message, CanvasSanitize::SANITIZE
+  def message
+    raw = super
+    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+  end
 
   after_save :create_alert, unless: -> { saved_change_to_workflow_state?(to: "deleted") }
   after_save :queue_message_broadcast, unless: -> { saved_change_to_workflow_state?(to: "deleted") }
