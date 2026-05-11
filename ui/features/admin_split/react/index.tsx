@@ -65,7 +65,14 @@ export default function AdminSplit({
   }, [splitUrl])
 
   const returnToReferrer = () => {
-    window.location.href = document.referrer
+    const safe = sanitizeUrl(document.referrer)
+    try {
+      if (safe && new URL(safe, window.location.href).origin === window.location.origin) {
+        window.location.href = safe
+      }
+    } catch {
+      // invalid URL — do nothing
+    }
   }
 
   if (failed) {
