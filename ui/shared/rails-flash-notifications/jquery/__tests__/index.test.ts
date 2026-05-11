@@ -48,11 +48,11 @@ describe('FlashNotifications', () => {
     )
   })
 
-  test('html messages', () => {
+  test('html messages are sanitized', () => {
     $.flashError({html: '<div class="blah">test</div>'})
-    expect(
-      document.querySelector('#flash_message_holder .ic-flash-error div.blah'),
-    ).toHaveTextContent('test')
+    expect(document.querySelector('#flash_message_holder .ic-flash-error')).toContainHTML(
+      '<div class="blah">test</div>',
+    )
   })
 
   test('flashErrorSafe with text is the same as flashError', () => {
@@ -62,11 +62,11 @@ describe('FlashNotifications', () => {
     )
   })
 
-  test('flashErrorSafe with "html" escapes HTML', () => {
+  test('flashErrorSafe with "html" escapes then sanitizes HTML', () => {
     $.flashErrorSafe({html: '<script>evil()</script>'})
-    expect(document.querySelector('#flash_message_holder .ic-flash-error')).toContainHTML(
-      '&lt;script&gt;',
-    )
+    const errorElement = document.querySelector('#flash_message_holder .ic-flash-error')
+    expect(errorElement).toBeTruthy()
+    expect(errorElement!.innerHTML).toContain('&lt;script&gt;')
   })
 
   test('screenreader message', () => {

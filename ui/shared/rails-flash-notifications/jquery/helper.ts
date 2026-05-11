@@ -19,6 +19,7 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 import htmlEscape from '@instructure/html-escape'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import 'jquery.cookie'
 
 const I18n = createI18nScope('shared.flash_notices')
@@ -207,7 +208,7 @@ class RailsFlashNotificationsHelper {
   // xsslint safeString.method escapeContent
   escapeContent(content: string | {html: string}) {
     if (typeof content === 'object' && 'html' in content) {
-      return content.html
+      return sanitizeHTML(content.html)
     } else {
       return htmlEscape(content)
     }

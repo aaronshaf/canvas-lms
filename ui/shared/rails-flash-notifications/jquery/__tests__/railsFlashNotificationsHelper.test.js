@@ -278,10 +278,11 @@ describe('RailsFlashNotificationsHelper', () => {
   })
 
   describe('#escapeContent', () => {
-    it('returns html if content has html property', () => {
-      const content = {html: '<script>Some Script</script>'}
+    it('sanitizes html if content has html property', () => {
+      const content = {html: '<a href="/test">Link</a>'}
       const result = helper.escapeContent(content)
-      expect(result).toBe(content.html)
+      expect(result).toContain('<a')
+      expect(result).toContain('Link')
     })
 
     it('returns html if content has string property', () => {
@@ -294,6 +295,36 @@ describe('RailsFlashNotificationsHelper', () => {
       const content = '<script>Some Data</script>'
       const result = helper.escapeContent(content)
       expect(result).toBe(htmlEscape(content))
+    })
+
+    it('removes script tags in html property', () => {
+      const content = {html: '<script>alert(1)</script>'}
+      const result = helper.escapeContent(content)
+      expect(result).not.toContain('<script>')
+      expect(result).not.toContain('alert(1)')
+    })
+
+    it('removes onerror handlers in html property', () => {
+      const content = {html: '<img onerror="alert(1)" src="x">'}
+      const result = helper.escapeContent(content)
+      expect(result).not.toContain('onerror')
+      expect(result).not.toContain('alert(1)')
+    })
+
+    it('removes onclick handlers in html property', () => {
+      const content = {html: '<div onclick="alert(1)">Click me</div>'}
+      const result = helper.escapeContent(content)
+      expect(result).not.toContain('onclick')
+      expect(result).not.toContain('alert(1)')
+      expect(result).toContain('Click me')
+    })
+
+    it('allows safe HTML like links and br tags', () => {
+      const content = {html: 'Error<br/><a href="/login">Login</a>'}
+      const result = helper.escapeContent(content)
+      expect(result).toContain('<br')
+      expect(result).toContain('<a')
+      expect(result).toContain('href')
     })
   })
 
