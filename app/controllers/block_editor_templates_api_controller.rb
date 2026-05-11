@@ -152,7 +152,7 @@ class BlockEditorTemplatesApiController < ApplicationController
       template = BlockEditorTemplate.new(template_params)
       template.context = @context
       template.name = params[:name] || "Untitled Template"
-      template.node_tree = params[:node_tree] || "{}"
+      template.node_tree = params[:node_tree] || {}
       template.editor_version = params[:editor_version] || "0.2"
       template.template_type = params[:template_type] || "page"
       template.thumbnail = params[:thumbnail] if params[:thumbnail].present?

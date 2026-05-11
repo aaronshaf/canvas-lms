@@ -32,7 +32,7 @@ describe BlockEditorTemplatesApiController do
     BlockEditorTemplate.create!(
       context: course1,
       name: "Course 1 Template",
-      node_tree: '{"ROOT":{}}',
+      node_tree: { "ROOT" => {} },
       editor_version: "0.2",
       template_type: "page",
       workflow_state: "unpublished"
@@ -42,7 +42,7 @@ describe BlockEditorTemplatesApiController do
     BlockEditorTemplate.create!(
       context: course2,
       name: "Course 2 Template",
-      node_tree: '{"ROOT":{}}',
+      node_tree: { "ROOT" => {} },
       editor_version: "0.2",
       template_type: "page",
       workflow_state: "unpublished"
@@ -52,6 +52,61 @@ describe BlockEditorTemplatesApiController do
   before do
     user_session(teacher)
     allow(controller).to receive(:template_editor?).and_return(true)
+  end
+
+  describe "POST #create" do
+    let(:create_params) do
+      {
+        course_id: course1.id,
+        name: "New Template",
+        node_tree: { "ROOT" => {} },
+        editor_version: "0.2",
+        template_type: "page",
+        workflow_state: "unpublished"
+      }
+    end
+
+    it "returns 422 for unknown template_type and does not persist" do
+      before_count = BlockEditorTemplate.count
+      post :create, params: create_params.merge(template_type: "evil"), format: :json
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(BlockEditorTemplate.count).to eq(before_count)
+    end
+
+    it "returns 422 for svg thumbnail and does not persist" do
+      before_count = BlockEditorTemplate.count
+      post :create, params: create_params.merge(thumbnail: "data:image/svg+xml;base64,PHN2Zy8+"), format: :json
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(BlockEditorTemplate.count).to eq(before_count)
+    end
+
+    it "sanitizes script tags from node_tree on create" do
+      payload = {
+        "ROOT" => { "props" => { "html" => "<p>ok</p><script>alert(1)</script>" } }
+      }
+      post :create, params: create_params.merge(node_tree: payload), format: :json
+      expect(response).to be_successful
+      template = BlockEditorTemplate.last
+      expect(template.node_tree.dig("ROOT", "props", "html")).not_to include("<script>")
+    end
+
+    it "blanks scalar javascript: prop values at the HTTP boundary" do
+      payload = { "ROOT" => { "props" => { "href" => "javascript:alert(1)" } } }
+      post :create, params: create_params.merge(node_tree: payload), format: :json, as: :json
+      expect(response).to be_successful
+      expect(BlockEditorTemplate.last.node_tree.dig("ROOT", "props", "href")).to eq("")
+    end
+
+    it "blanks scalar base64 data:text/html prop values at the HTTP boundary" do
+      payload = {
+        "ROOT" => {
+          "props" => { "href" => "data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==" }
+        }
+      }
+      post :create, params: create_params.merge(node_tree: payload), format: :json, as: :json
+      expect(response).to be_successful
+      expect(BlockEditorTemplate.last.node_tree.dig("ROOT", "props", "href")).to eq("")
+    end
   end
 
   describe "PUT #update" do

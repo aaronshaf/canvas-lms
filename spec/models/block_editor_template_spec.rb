@@ -29,7 +29,7 @@ describe BlockEditorTemplate do
                                          context_id: @course.id,
                                          name: "name",
                                          description: "description",
-                                         node_tree: '{"ROOT": {}}',
+                                         node_tree: { "ROOT" => {} },
                                          editor_version: "1.0",
                                          template_type: "block"
                                        })
@@ -43,7 +43,7 @@ describe BlockEditorTemplate do
                                              context_id: @course.id,
                                              name: "name",
                                              description: "description",
-                                             node_tree: '{"ROOT": {}}',
+                                             node_tree: { "ROOT" => {} },
                                              editor_version: "1.0",
                                              template_type: "block"
                                            })
@@ -57,7 +57,7 @@ describe BlockEditorTemplate do
                                              context_id: @course.id,
                                              name: "name",
                                              description: "description",
-                                             node_tree: '{"ROOT": {}}',
+                                             node_tree: { "ROOT" => {} },
                                              editor_version: "1.0",
                                              template_type: "block"
                                            })
@@ -74,7 +74,7 @@ describe BlockEditorTemplate do
         context_type: "Course",
         context_id: @course.id,
         name: "name",
-        node_tree: '{"ROOT": {}}',
+        node_tree: { "ROOT" => {} },
         editor_version: "1.0",
         template_type: "block"
       )
@@ -121,6 +121,156 @@ describe BlockEditorTemplate do
       template.thumbnail = "https://example.com/#{"a" * 4096}"
       expect(template).not_to be_valid
       expect(template.errors[:thumbnail]).to be_present
+    end
+  end
+
+  describe "validations and sanitization" do
+    let(:base_attrs) do
+      {
+        context_type: "Course",
+        context_id: @course.id,
+        name: "name",
+        description: "description",
+        node_tree: { "ROOT" => {} },
+        editor_version: "1.0",
+        template_type: "block"
+      }
+    end
+
+    it "rejects unknown template_type" do
+      template = BlockEditorTemplate.new(base_attrs.merge(template_type: "evil"))
+      expect(template).not_to be_valid
+      expect(template.errors[:template_type]).to be_present
+    end
+
+    it "rejects blank name" do
+      template = BlockEditorTemplate.new(base_attrs.merge(name: ""))
+      expect(template).not_to be_valid
+      expect(template.errors[:name]).to be_present
+    end
+
+    it "rejects node_tree that is not a Hash" do
+      template = BlockEditorTemplate.new(base_attrs.merge(node_tree: "<script>alert(1)</script>"))
+      expect(template).not_to be_valid
+      expect(template.errors[:node_tree]).to be_present
+    end
+
+    it "strips script tags from string values inside node_tree" do
+      payload = {
+        "ROOT" => {
+          "type" => "Container",
+          "props" => { "html" => "hi<script>alert(1)</script>" }
+        }
+      }
+      template = BlockEditorTemplate.create!(base_attrs.merge(node_tree: payload))
+      expect(template.node_tree.dig("ROOT", "props", "html")).to eq("hi")
+    end
+
+    it "strips on* event handler attributes inside node_tree" do
+      payload = {
+        "ROOT" => {
+          "props" => { "html" => '<img src=x onerror="alert(1)">' }
+        }
+      }
+      template = BlockEditorTemplate.create!(base_attrs.merge(node_tree: payload))
+      expect(template.node_tree.dig("ROOT", "props", "html")).not_to include("onerror")
+      expect(template.node_tree.dig("ROOT", "props", "html")).not_to include("alert")
+    end
+
+    it "strips javascript: URLs inside node_tree" do
+      payload = {
+        "ROOT" => {
+          "props" => { "html" => '<a href="javascript:alert(1)">x</a>' }
+        }
+      }
+      template = BlockEditorTemplate.create!(base_attrs.merge(node_tree: payload))
+      expect(template.node_tree.dig("ROOT", "props", "html")).not_to include("javascript:")
+    end
+
+    it "blanks bare javascript: scalar prop values" do
+      payload = { "ROOT" => { "props" => { "href" => "javascript:alert(1)" } } }
+      template = BlockEditorTemplate.create!(base_attrs.merge(node_tree: payload))
+      expect(template.node_tree.dig("ROOT", "props", "href")).to eq("")
+    end
+
+    it "blanks scalar URL schemes with leading control chars and mixed case" do
+      payload = { "ROOT" => { "props" => { "href" => "\tJavaScript:alert(1)" } } }
+      template = BlockEditorTemplate.create!(base_attrs.merge(node_tree: payload))
+      expect(template.node_tree.dig("ROOT", "props", "href")).to eq("")
+    end
+
+    it "blanks vbscript: scalar prop values" do
+      payload = { "ROOT" => { "props" => { "src" => "vbscript:msgbox(1)" } } }
+      template = BlockEditorTemplate.create!(base_attrs.merge(node_tree: payload))
+      expect(template.node_tree.dig("ROOT", "props", "src")).to eq("")
+    end
+
+    it "blanks base64 data:text/html scalar prop values" do
+      payload = {
+        "ROOT" => {
+          "props" => { "href" => "data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==" }
+        }
+      }
+      template = BlockEditorTemplate.create!(base_attrs.merge(node_tree: payload))
+      expect(template.node_tree.dig("ROOT", "props", "href")).to eq("")
+    end
+
+    it "blanks bare data: scalar prop values" do
+      payload = { "ROOT" => { "props" => { "src" => "data:image/svg+xml,<svg/onload=alert(1)>" } } }
+      template = BlockEditorTemplate.create!(base_attrs.merge(node_tree: payload))
+      expect(template.node_tree.dig("ROOT", "props", "src")).to eq("")
+    end
+
+    it "blanks file: and blob: scalar prop values" do
+      payload = {
+        "ROOT" => {
+          "props" => {
+            "a" => "file:///etc/passwd",
+            "b" => "blob:https://example.com/abc"
+          }
+        }
+      }
+      template = BlockEditorTemplate.create!(base_attrs.merge(node_tree: payload))
+      expect(template.node_tree.dig("ROOT", "props", "a")).to eq("")
+      expect(template.node_tree.dig("ROOT", "props", "b")).to eq("")
+    end
+
+    it "blanks dangerous schemes nested in arrays" do
+      payload = { "ROOT" => { "props" => { "items" => [{ "href" => "javascript:alert(1)" }] } } }
+      template = BlockEditorTemplate.create!(base_attrs.merge(node_tree: payload))
+      expect(template.node_tree.dig("ROOT", "props", "items", 0, "href")).to eq("")
+    end
+
+    it "leaves safe URL scalars unchanged" do
+      payload = { "ROOT" => { "props" => { "href" => "https://example.com/x" } } }
+      template = BlockEditorTemplate.create!(base_attrs.merge(node_tree: payload))
+      expect(template.node_tree.dig("ROOT", "props", "href")).to eq("https://example.com/x")
+    end
+
+    it "strips HTML from name and description" do
+      template = BlockEditorTemplate.create!(base_attrs.merge(
+                                               name: "ok<script>alert(1)</script>",
+                                               description: '<img src=x onerror="alert(1)">desc'
+                                             ))
+      expect(template.name).not_to include("<script>")
+      expect(template.name).not_to include("alert")
+      expect(template.description).not_to include("onerror")
+    end
+
+    it "rejects node_tree exceeding max depth" do
+      stub_const("BlockEditorTemplate::MAX_NODE_TREE_DEPTH", 3)
+      deep = (1..5).inject({ "leaf" => true }) { |acc, _| { "child" => acc } }
+      template = BlockEditorTemplate.new(base_attrs.merge(node_tree: deep))
+      expect(template).not_to be_valid
+      expect(template.errors[:node_tree]).to be_present
+    end
+
+    it "rejects node_tree exceeding max node count" do
+      stub_const("BlockEditorTemplate::MAX_NODE_TREE_NODES", 3)
+      wide = { "a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5 }
+      template = BlockEditorTemplate.new(base_attrs.merge(node_tree: wide))
+      expect(template).not_to be_valid
+      expect(template.errors[:node_tree]).to be_present
     end
   end
 end
