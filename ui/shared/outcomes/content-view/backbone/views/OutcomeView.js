@@ -335,6 +335,9 @@ export default class OutcomeView extends OutcomeContentBase {
         if (data.friendly_description) {
           data.friendly_description = sanitizeHTML(data.friendly_description)
         }
+        if (data.description) {
+          data.description = sanitizeHTML(data.description)
+        }
 
         if (ENV.ACCOUNT_LEVEL_MASTERY_SCALES) {
           if (ENV.MASTERY_SCALE?.outcome_proficiency) {
