@@ -187,6 +187,14 @@ describe('stripHtmlTags', () => {
       'Hello & welcome to <Canvas>!',
     )
   })
+
+  test('decodes &#39; (decimal apostrophe from Ruby html_escape)', () => {
+    expect(TextHelper.stripHtmlTags('it&#39;s')).toBe("it's")
+  })
+
+  test('decodes &#x27; (hex apostrophe from JS htmlEscape)', () => {
+    expect(TextHelper.stripHtmlTags('it&#x27;s')).toBe("it's")
+  })
 })
 
 describe('htmlDecode', () => {

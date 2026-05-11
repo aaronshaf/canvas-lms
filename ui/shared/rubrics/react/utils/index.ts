@@ -17,6 +17,7 @@
  */
 
 import DOMPurify from 'dompurify'
+import {htmlDecode} from '@canvas/util/TextHelper'
 import type {RubricAssessment} from '@canvas/grading/grading'
 import type {
   Rubric,
@@ -139,16 +140,7 @@ export const mapRubricUnderscoredKeysToCamelCase = (
   }
 }
 
-/**
- * Decodes all HTML entities (including &#39; from Ruby's html_escape)
- * using the browser's own HTML parser. More complete than front end package htmlEscape
- * unescape, which only handles entities it produces itself (e.g. &#x27; not &#39;).
- */
-export const decodeHTML = (str: string): string => {
-  const el = document.createElement('textarea')
-  el.innerHTML = str
-  return el.value
-}
+export const decodeHTML = (str: string): string => htmlDecode(str) ?? ''
 
 /**
  * Prepares an html string for safe use in dangerouslySetInnerHTML.

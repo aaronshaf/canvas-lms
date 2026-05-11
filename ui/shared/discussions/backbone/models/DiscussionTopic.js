@@ -27,14 +27,9 @@ import DiscussionEntriesCollection from '../collections/DiscussionEntriesCollect
 import Assignment from '@canvas/assignments/backbone/models/Assignment'
 import DateGroup from '@canvas/date-group/backbone/models/DateGroup'
 import axios from '@canvas/axios'
+import {stripHtmlTags} from '@canvas/util/TextHelper'
 
 const I18n = createI18nScope('discussion_topics')
-
-const stripTags = function (str) {
-  const div = document.createElement('div')
-  div.innerHTML = str
-  return div.textContent || div.innerText || ''
-}
 
 extend(DiscussionTopic, Backbone.Model)
 
@@ -228,7 +223,7 @@ DiscussionTopic.prototype.fetchEntries = function () {
 }
 
 DiscussionTopic.prototype.summary = function () {
-  return stripTags(this.get('message'))
+  return stripHtmlTags(this.get('message'))
 }
 
 // TODO: this would belong in Backbone.model, but I dont know of others are going to need it much
