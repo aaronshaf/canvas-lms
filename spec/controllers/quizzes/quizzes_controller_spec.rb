@@ -454,6 +454,18 @@ describe Quizzes::QuizzesController do
         end
       end
     end
+
+    context "default_due_time" do
+      before do
+        Account.default.update(settings: { default_due_time: { value: "09:00:00" } })
+        user_session(@teacher)
+      end
+
+      it "sets DEFAULT_DUE_TIME in the js_env" do
+        get "index", params: { course_id: @course.id }
+        expect(controller.js_env[:DEFAULT_DUE_TIME]).to eq "09:00:00"
+      end
+    end
   end
 
   describe "POST 'new'" do
@@ -1006,6 +1018,19 @@ describe Quizzes::QuizzesController do
           expect(assigns[:js_env][:assigned_rubric]).to be_nil
           expect(assigns[:js_env][:rubric_association]).to be_nil
         end
+      end
+    end
+
+    context "default_due_time" do
+      before do
+        Account.default.update(settings: { default_due_time: { value: "09:00:00" } })
+        user_session(@teacher)
+      end
+
+      it "sets DEFAULT_DUE_TIME in the js_env" do
+        course_quiz
+        get "show", params: { course_id: @course.id, id: @quiz.id }
+        expect(controller.js_env[:DEFAULT_DUE_TIME]).to eq "09:00:00"
       end
     end
   end

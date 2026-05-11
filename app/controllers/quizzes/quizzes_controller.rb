@@ -186,6 +186,7 @@ class Quizzes::QuizzesController < ApplicationController
       if @context.is_a?(Course) && @context.grants_right?(@current_user, session, :read)
         hash[:COURSE_ID] = @context.id.to_s
       end
+      append_default_due_time_js_env(@context, hash)
       js_env(hash)
 
       set_tutorial_js_env
@@ -306,6 +307,7 @@ class Quizzes::QuizzesController < ApplicationController
       }
       set_section_list_js_env
       append_sis_data(hash)
+      append_default_due_time_js_env(@context, hash)
       js_env(hash)
       conditional_release_js_env(@quiz.assignment, includes: [:rule])
       enhanced_rubrics_assignments_js_env(@assignment) if Rubric.enhanced_rubrics_assignments_enabled?(@context)
