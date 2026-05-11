@@ -105,6 +105,8 @@ module Login::Shared
       end
     end
 
+    add_mfa_verified_ip if otp_passed
+
     # ensure the next page rendered includes an instfs pixel to log them in
     # there
     session.delete(:shown_instfs_pixel)
@@ -245,6 +247,12 @@ module Login::Shared
     )
 
     false
+  end
+
+  def add_mfa_verified_ip
+    ips = Array(session[:mfa_verified_ips]).reject { |ip| ip == request.remote_ip }
+    ips.shift if ips.size >= 5
+    session[:mfa_verified_ips] = ips + [request.remote_ip]
   end
 
   def increment_statsd(counter, tags: {}, action: nil, reason: nil, authentication_provider: nil)

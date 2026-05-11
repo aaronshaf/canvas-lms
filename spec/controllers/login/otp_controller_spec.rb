@@ -210,6 +210,25 @@ describe Login::OtpController do
         expect(session[:pending_otp_secret_key]).to be_nil
       end
 
+      it "stores the request IP in mfa_verified_ips" do
+        post :create, params: { otp_login: { verification_code: ROTP::TOTP.new(@secret_key).now } }
+        expect(session[:mfa_verified_ips]).to include(request.remote_ip)
+      end
+
+      it "evicts the oldest IP when the verified list is full" do
+        request.env["REMOTE_ADDR"] = "6.6.6.6"
+        session[:mfa_verified_ips] = %w[1.1.1.1 2.2.2.2 3.3.3.3 4.4.4.4 5.5.5.5]
+        post :create, params: { otp_login: { verification_code: ROTP::TOTP.new(@secret_key).now } }
+        expect(session[:mfa_verified_ips]).to eq %w[2.2.2.2 3.3.3.3 4.4.4.4 5.5.5.5 6.6.6.6]
+      end
+
+      it "does not duplicate an IP already in the verified list" do
+        request.env["REMOTE_ADDR"] = "3.3.3.3"
+        session[:mfa_verified_ips] = %w[1.1.1.1 3.3.3.3 2.2.2.2]
+        post :create, params: { otp_login: { verification_code: ROTP::TOTP.new(@secret_key).now } }
+        expect(session[:mfa_verified_ips]).to eq %w[1.1.1.1 2.2.2.2 3.3.3.3]
+      end
+
       it "continues to the dashboard if part of the login flow" do
         session[:pending_otp] = true
         post :create, params: { otp_login: { verification_code: ROTP::TOTP.new(@secret_key).now } }
@@ -269,6 +288,22 @@ describe Login::OtpController do
         expect(cookies["canvas_otp_remember_me"]).to be_nil
         expect(Canvas.redis.get("otp_used:#{@user.global_id}:#{code}")).to eq "1" if Canvas.redis_enabled?
         expect(request.env.fetch("extra-request-cost").to_f >= 150).to be_truthy
+      end
+
+      it "is not blocked by an IP mismatch" do
+        request.env["REMOTE_ADDR"] = "9.9.9.9"
+        session[:mfa_verified_ips] = ["1.2.3.4"]
+        override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_all_mfa_users" => true } } }) do
+          code = ROTP::TOTP.new(@user.otp_secret_key).now
+          post :create, params: { otp_login: { verification_code: code } }
+        end
+        expect(response).to redirect_to dashboard_url(login_success: 1)
+      end
+
+      it "stores the request IP in the session as mfa_verified_ips" do
+        code = ROTP::TOTP.new(@user.otp_secret_key).now
+        post :create, params: { otp_login: { verification_code: code } }
+        expect(session[:mfa_verified_ips]).to include(request.remote_ip)
       end
 
       it "verifies a code entered with spaces" do
@@ -560,6 +595,17 @@ describe Login::OtpController do
       expect(response).to be_successful
       expect(@other_user.reload.otp_secret_key).to be_nil
       expect(@other_user.otp_communication_channel).to be_nil
+    end
+
+    it "enforces IP check on destroy" do
+      request.env["REMOTE_ADDR"] = "9.9.9.9"
+      session[:mfa_verified_ips] = ["1.2.3.4"]
+      override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_all_mfa_users" => true } } }) do
+        delete :destroy, params: { user_id: "self" }
+      end
+      expect(response).to redirect_to(otp_login_url)
+      expect(session[:pending_otp]).to be_truthy
+      expect(@user.reload.otp_secret_key).not_to be_nil
     end
   end
 end

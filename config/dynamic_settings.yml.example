@@ -81,6 +81,9 @@ development:
 
   private:
     canvas:
+      mfa_ip_enforce_site_admins: true
+      # mfa_ip_enforce_account_admins: true
+      # mfa_ip_enforce_all_mfa_users: true
       pendo_app_id: "stub-key-please-see-MRA-plugin"
       pendo_regional_app_id: "stub-key-please-see-MRA-plugin"
       pendo_regional_app_env: "io"

@@ -73,6 +73,7 @@ class ApplicationController < ActionController::Base
   before_action :annotate_apm
   before_action :annotate_sentry
   before_action :check_pending_otp
+  before_action :check_mfa_ips
   before_action :set_user_id_header
   before_action :set_time_zone
   before_action :set_page_view
@@ -1277,6 +1278,34 @@ class ApplicationController < ActionController::Base
       destroy_session
       redirect_to login_url
     end
+  end
+
+  def check_mfa_ips
+    return unless logged_in_user
+    return unless logged_in_user.canvas_mfa?
+
+    verified_ips = session[:mfa_verified_ips]
+    return if verified_ips&.include?(request.remote_ip)
+
+    is_site_admin = Account.site_admin.grants_right?(logged_in_user, :read)
+    is_account_admin = !is_site_admin && @domain_root_account.cached_all_account_users_for(logged_in_user).any?
+
+    user_type = if is_site_admin then "site_admin"
+                elsif is_account_admin then "account_admin"
+                else "regular"
+                end
+
+    InstStatsd::Statsd.increment("canvas.mfa_ip_mismatch", tags: { user_type: })
+
+    settings = DynamicSettings.find(tree: :private)
+    enforce = (is_site_admin && settings["mfa_ip_enforce_site_admins"]) ||
+              (is_account_admin && settings["mfa_ip_enforce_account_admins"]) ||
+              settings["mfa_ip_enforce_all_mfa_users"]
+
+    return unless enforce
+
+    session[:pending_otp] = true
+    redirect_to otp_login_url
   end
 
   def tab_enabled?(id, no_render: false)

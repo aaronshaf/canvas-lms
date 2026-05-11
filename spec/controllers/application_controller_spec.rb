@@ -4840,3 +4840,189 @@ RSpec.describe ApplicationController, "#require_password_reset" do
     end
   end
 end
+
+RSpec.describe ApplicationController, "#check_mfa_ips" do
+  controller do
+    def index
+      render json: { ok: true }
+    end
+  end
+
+  shared_examples "emits mfa_ip_mismatch metric" do |user_type:|
+    it "emits canvas.mfa_ip_mismatch tagged user_type:#{user_type}" do
+      allow(InstStatsd::Statsd).to receive(:increment)
+      expect(InstStatsd::Statsd).to receive(:increment)
+        .with("canvas.mfa_ip_mismatch", tags: { user_type: })
+      get :index, format: :html
+    end
+  end
+
+  shared_examples "enforces mfa ip" do
+    it "requires re-entering OTP" do
+      get :index, format: :html
+      expect(response).to redirect_to(otp_login_url)
+      expect(session[:pending_otp]).to be_truthy
+    end
+  end
+
+  shared_examples "allows request through" do
+    it "allows the request through without redirecting" do
+      get :index, format: :html
+      expect(response).to be_successful
+    end
+  end
+
+  let(:user) { user_model }
+  let(:pseudonym) { user.pseudonyms.create!(unique_id: "user@example.com", password: "qwertyuiop", password_confirmation: "qwertyuiop") }
+
+  before do
+    user_session(user, pseudonym)
+  end
+
+  it "allows the request when the IP is in the verified list" do
+    session[:mfa_verified_ips] = [request.remote_ip]
+    get :index, format: :html
+    expect(response).to be_successful
+  end
+
+  it "allows the request when the user does not have Canvas MFA enrolled, regardless of mfa_verified_ips" do
+    request.env["REMOTE_ADDR"] = "9.9.9.9"
+    expect(user.canvas_mfa?).to be false
+    get :index, format: :html
+    expect(response).to be_successful
+  end
+
+  it "allows the request when the user does not have Canvas MFA enrolled" do
+    session[:mfa_verified_ips] = ["1.2.3.4"]
+    request.env["REMOTE_ADDR"] = "9.9.9.9"
+    expect(user.canvas_mfa?).to be false
+    get :index, format: :html
+    expect(response).to be_successful
+  end
+
+  context "when mfa_verified_ips is absent (pre-existing session)" do
+    before do
+      user.otp_secret_key = "secret"
+      user.save!
+      request.env["REMOTE_ADDR"] = "9.9.9.9"
+    end
+
+    context "with no enforcement keys set" do
+      around { |example| override_dynamic_settings({}) { example.run } }
+
+      it_behaves_like "allows request through"
+    end
+
+    context "with mfa_ip_enforce_all_mfa_users: true" do
+      around do |example|
+        override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_all_mfa_users" => true } } }) { example.run }
+      end
+
+      it_behaves_like "enforces mfa ip"
+    end
+  end
+
+  context "when IP differs from stored MFA IPs" do
+    before do
+      user.otp_secret_key = "secret"
+      user.save!
+      session[:mfa_verified_ips] = ["1.2.3.4"]
+      request.env["REMOTE_ADDR"] = "9.9.9.9"
+    end
+
+    context "with no enforcement keys set" do
+      around { |example| override_dynamic_settings({}) { example.run } }
+
+      it_behaves_like "emits mfa_ip_mismatch metric", user_type: "regular"
+      it_behaves_like "allows request through"
+    end
+
+    context "with mfa_ip_enforce_site_admins: true" do
+      around do |example|
+        override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_site_admins" => true } } }) { example.run }
+      end
+
+      context "for a site admin" do
+        let(:user) { site_admin_user }
+
+        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "site_admin"
+        it_behaves_like "enforces mfa ip"
+      end
+
+      context "for an account admin" do
+        let(:user) { account_admin_user(account: Account.default) }
+
+        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "account_admin"
+        it_behaves_like "allows request through"
+      end
+
+      context "for a regular user" do
+        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "regular"
+        it_behaves_like "allows request through"
+      end
+
+      context "when a site admin is masquerading as a regular user" do
+        let(:masquerader) { site_admin_user }
+
+        before do
+          masquerader.otp_secret_key = "secret"
+          masquerader.save!
+          controller.instance_variable_set(:@real_current_user, masquerader)
+        end
+
+        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "site_admin"
+        it_behaves_like "enforces mfa ip"
+      end
+    end
+
+    context "with mfa_ip_enforce_account_admins: true" do
+      around do |example|
+        override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_account_admins" => true } } }) { example.run }
+      end
+
+      context "for a site admin" do
+        let(:user) { site_admin_user }
+
+        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "site_admin"
+        it_behaves_like "allows request through"
+      end
+
+      context "for an account admin" do
+        let(:user) { account_admin_user(account: Account.default) }
+
+        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "account_admin"
+        it_behaves_like "enforces mfa ip"
+      end
+
+      context "for a regular user" do
+        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "regular"
+        it_behaves_like "allows request through"
+      end
+    end
+
+    context "with mfa_ip_enforce_all_mfa_users: true" do
+      around do |example|
+        override_dynamic_settings({ private: { canvas: { "mfa_ip_enforce_all_mfa_users" => true } } }) { example.run }
+      end
+
+      context "for a site admin" do
+        let(:user) { site_admin_user }
+
+        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "site_admin"
+        it_behaves_like "enforces mfa ip"
+      end
+
+      context "for an account admin" do
+        let(:user) { account_admin_user(account: Account.default) }
+
+        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "account_admin"
+        it_behaves_like "enforces mfa ip"
+      end
+
+      context "for a regular user" do
+        it_behaves_like "emits mfa_ip_mismatch metric", user_type: "regular"
+        it_behaves_like "enforces mfa ip"
+      end
+    end
+  end
+end

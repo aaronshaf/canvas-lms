@@ -3609,6 +3609,10 @@ class User < ApplicationRecord
       Canvas::Security.verify_hmac_sha1(hmac, otp_secret_key_remember_me_cookie(time, value, nil, hmac_string: true))
   end
 
+  def canvas_mfa?
+    otp_secret_key_enc.present?
+  end
+
   def otp_secret_key
     return nil unless otp_secret_key_enc
 
