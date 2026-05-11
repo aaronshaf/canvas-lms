@@ -2687,11 +2687,17 @@ class Account < ApplicationRecord
   def create_default_objects
     return if dummy?
 
+    # Built-in roles must exist before any AccountUser is created against this
+    # account (e.g. inside the same transaction that created it), so seed them
+    # synchronously rather than in after_transaction_commit.
+    create_built_in_roles if root_account?
+
     work = lambda do
       default_enrollment_term
       enable_canvas_authentication
-      TermsOfService.ensure_terms_for_account(self, is_new_account: true) if root_account? && !TermsOfService.skip_automatic_terms_creation
-      create_built_in_roles if root_account?
+      if root_account? && !TermsOfService.skip_automatic_terms_creation
+        TermsOfService.ensure_terms_for_account(self, is_new_account: true)
+      end
     end
     return work.call if Rails.env.test?
 

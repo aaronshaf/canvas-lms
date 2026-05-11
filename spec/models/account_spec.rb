@@ -4269,4 +4269,21 @@ describe Account do
       expect(account.suppress_notification?(announcement_notification)).to be true
     end
   end
+
+  describe "#create_default_objects" do
+    it "seeds built-in roles synchronously even when the deferred work has not run" do
+      # warm the cache before stubbing Rails.env.test?
+      Account.site_admin
+      # simulate production: defer the work lambda, but don't actually run it
+      allow(Rails.env).to receive(:test?).and_return(false)
+      allow_any_instance_of(ActiveRecord::ConnectionAdapters::AbstractAdapter)
+        .to receive(:after_transaction_commit)
+
+      account = Account.create!(name: "New Root")
+
+      expect(
+        Role.where(workflow_state: "built_in", root_account_id: account.id, name: "AccountAdmin")
+      ).to exist
+    end
+  end
 end
