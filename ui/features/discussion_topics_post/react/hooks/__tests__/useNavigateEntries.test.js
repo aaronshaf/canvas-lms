@@ -194,4 +194,115 @@ describe('useNavigateEntries', () => {
       })
     })
   })
+
+  describe('postMessage origin validation', () => {
+    const dispatchMessage = (origin, subject) => {
+      window.dispatchEvent(new MessageEvent('message', {data: {subject}, origin}))
+    }
+
+    const renderForMessages = () => {
+      const entries = [
+        {_id: '100', rootEntryPageNumber: 1, rootEntryId: null},
+        {_id: '200', rootEntryPageNumber: 2, rootEntryId: null},
+        {_id: '300', rootEntryPageNumber: 3, rootEntryId: null},
+      ]
+      mockStudentEntriesQuery(false, entries)
+
+      return renderHook(() =>
+        useNavigateEntries({
+          ...defaultProps,
+          highlightEntryId: '200',
+        }),
+      )
+    }
+
+    it('ignores DT.firstStudentReply from a foreign origin', async () => {
+      renderForMessages()
+      await waitFor(() => {
+        expect(mockSetHighlightEntryId).not.toHaveBeenCalled()
+      })
+
+      dispatchMessage('https://evil.example', 'DT.firstStudentReply')
+
+      expect(mockSetHighlightEntryId).not.toHaveBeenCalled()
+      expect(mockSetPageNumber).not.toHaveBeenCalled()
+    })
+
+    it('ignores DT.nextStudentReply from a typosquat origin', async () => {
+      renderForMessages()
+      await waitFor(() => {
+        expect(mockSetHighlightEntryId).not.toHaveBeenCalled()
+      })
+
+      dispatchMessage('http://localhost.evil.example', 'DT.nextStudentReply')
+
+      expect(mockSetHighlightEntryId).not.toHaveBeenCalled()
+      expect(mockSetPageNumber).not.toHaveBeenCalled()
+    })
+
+    it('ignores messages from origin "" (sandbox iframe)', async () => {
+      renderForMessages()
+      await waitFor(() => {
+        expect(mockSetHighlightEntryId).not.toHaveBeenCalled()
+      })
+
+      dispatchMessage('', 'DT.firstStudentReply')
+
+      expect(mockSetHighlightEntryId).not.toHaveBeenCalled()
+      expect(mockSetPageNumber).not.toHaveBeenCalled()
+    })
+
+    it('ignores messages whose data is not an object', async () => {
+      renderForMessages()
+      await waitFor(() => {
+        expect(mockSetHighlightEntryId).not.toHaveBeenCalled()
+      })
+
+      window.dispatchEvent(
+        new MessageEvent('message', {data: 'DT.firstStudentReply', origin: window.location.origin}),
+      )
+      window.dispatchEvent(
+        new MessageEvent('message', {data: null, origin: window.location.origin}),
+      )
+
+      expect(mockSetHighlightEntryId).not.toHaveBeenCalled()
+      expect(mockSetPageNumber).not.toHaveBeenCalled()
+    })
+
+    it('accepts DT.firstStudentReply from the same Canvas origin', async () => {
+      renderForMessages()
+      await waitFor(() => {
+        expect(mockSetHighlightEntryId).not.toHaveBeenCalled()
+      })
+
+      dispatchMessage(window.location.origin, 'DT.firstStudentReply')
+
+      expect(mockSetHighlightEntryId).toHaveBeenCalledWith('100')
+      expect(mockSetPageNumber).toHaveBeenCalledWith(1)
+    })
+
+    it('accepts DT.lastStudentReply from the same Canvas origin', async () => {
+      renderForMessages()
+      await waitFor(() => {
+        expect(mockSetHighlightEntryId).not.toHaveBeenCalled()
+      })
+
+      dispatchMessage(window.location.origin, 'DT.lastStudentReply')
+
+      expect(mockSetHighlightEntryId).toHaveBeenCalledWith('300')
+      expect(mockSetPageNumber).toHaveBeenCalledWith(3)
+    })
+
+    it('accepts DT.nextStudentReplyTab from the same Canvas origin and sets focus', async () => {
+      renderForMessages()
+      await waitFor(() => {
+        expect(mockSetHighlightEntryId).not.toHaveBeenCalled()
+      })
+
+      dispatchMessage(window.location.origin, 'DT.nextStudentReplyTab')
+
+      expect(mockSetFocusSelector).toHaveBeenCalledWith('#next-in-speedgrader')
+      expect(mockSetHighlightEntryId).toHaveBeenCalledWith('300')
+    })
+  })
 })

@@ -125,7 +125,9 @@ export default function useNavigateEntries({
 
   const onMessage = useCallback(
     e => {
+      if (e.origin !== window.location.origin) return
       const message = e.data
+      if (!message || typeof message !== 'object') return
       if (highlightEntryId) {
         switch (message.subject) {
           case 'DT.firstStudentReply':
