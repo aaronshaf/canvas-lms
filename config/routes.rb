@@ -2010,6 +2010,7 @@ CanvasRails::Application.routes.draw do
       put "accounts/:account_id/authentication_providers/:id", action: :update, as: "account_update_ap"
       delete "accounts/:account_id/authentication_providers/:id", action: :destroy, as: "account_delete_ap"
       put "accounts/:account_id/authentication_providers/:id/restore", action: :restore, as: "account_restore_ap"
+      post "accounts/:account_id/authentication_providers/force_password_reset", action: :force_password_reset, as: "account_force_password_reset_ap"
     end
 
     scope(controller: :page_views) do

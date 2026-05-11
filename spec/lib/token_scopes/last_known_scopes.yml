@@ -61,6 +61,8 @@
   path: '/api/v1/accounts/:account_id/authentication_providers/:id'
 - verb: PUT
   path: "/api/v1/accounts/:account_id/authentication_providers/:id/restore"
+- verb: POST
+  path: '/api/v1/accounts/:account_id/authentication_providers/force_password_reset'
 - verb: GET
   path: '/api/v1/accounts/:account_id/blackout_dates'
 - verb: POST

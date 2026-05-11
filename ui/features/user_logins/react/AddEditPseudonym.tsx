@@ -21,6 +21,7 @@ import {Controller, useForm, type SubmitHandler} from 'react-hook-form'
 import * as z from 'zod'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Button, CloseButton} from '@instructure/ui-buttons'
+import {Checkbox} from '@instructure/ui-checkbox'
 import {Heading} from '@instructure/ui-heading'
 import {Flex} from '@instructure/ui-flex'
 import {TextInput} from '@instructure/ui-text-input'
@@ -48,6 +49,7 @@ const createValidationSchema = (
       account_id: z.number().optional(),
       password: z.string(),
       password_confirmation: z.string(),
+      must_reset_password: z.boolean().optional(),
     })
     .superRefine(({account_id, password, password_confirmation}, ctx) => {
       const anyPasswordProvided = password.length || password_confirmation.length
@@ -100,6 +102,7 @@ interface Pseudonym {
   sis_user_id?: string
   integration_id?: string
   account_id: number
+  must_reset_password?: boolean
 }
 
 export interface AddEditPseudonymProps {
@@ -107,6 +110,7 @@ export interface AddEditPseudonymProps {
   pseudonym?: Pseudonym
   canManageSis: boolean
   canChangePassword: boolean
+  canManagePasswordReset?: boolean
   isDelegatedAuth: boolean
   accountSelectOptions: Array<{label: string; value: number}>
   accountIdPasswordPolicyMap?: Record<string, PasswordPolicy>
@@ -121,6 +125,7 @@ const AddEditPseudonym = ({
   pseudonym,
   canManageSis,
   canChangePassword,
+  canManagePasswordReset,
   isDelegatedAuth,
   accountSelectOptions,
   accountIdPasswordPolicyMap,
@@ -136,6 +141,7 @@ const AddEditPseudonym = ({
     account_id: pseudonym?.account_id ?? accountSelectOptions?.[0]?.value,
     password: '',
     password_confirmation: '',
+    must_reset_password: pseudonym?.must_reset_password ?? false,
   }
   const {
     control,
@@ -334,6 +340,19 @@ const AddEditPseudonym = ({
                 )}
               />
             </>
+          )}
+          {isEdit && canManagePasswordReset && (
+            <Controller
+              control={control}
+              name="must_reset_password"
+              render={({field}) => (
+                <Checkbox
+                  label={I18n.t('Require password change on next login')}
+                  checked={field.value ?? false}
+                  onChange={e => field.onChange(e.target.checked)}
+                />
+              )}
+            />
           )}
           {isDelegatedAuth && (
             <Text

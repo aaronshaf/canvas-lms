@@ -477,6 +477,62 @@ describe AuthenticationProvidersController do
     end
   end
 
+  describe "POST force_password_reset" do
+    let(:operation) { instance_double(Operations::ForceCanvasPasswordReset, run_later: nil) }
+
+    def do_post
+      post :force_password_reset, params: { account_id: account.id }, format: :json
+    end
+
+    before do
+      allow(Operations::ForceCanvasPasswordReset).to receive(:new).and_return(operation)
+    end
+
+    context "when the account has canvas authentication" do
+      it "enqueues a ForceCanvasPasswordReset operation" do
+        do_post
+        expect(Operations::ForceCanvasPasswordReset).to have_received(:new).with(root_account: account)
+        expect(operation).to have_received(:run_later)
+      end
+
+      it "returns 202 with enqueued status" do
+        do_post
+        expect(response).to have_http_status(:accepted)
+        expect(response.parsed_body["status"]).to eql("enqueued")
+      end
+    end
+
+    context "when the account does not have canvas authentication" do
+      before do
+        # A non-canvas provider must exist first so that destroying the canvas
+        # AP does not trigger its re-creation via enable_canvas_authentication.
+        account.authentication_providers.create!(auth_type: "google")
+        account.authentication_providers.where(auth_type: "canvas").destroy_all
+      end
+
+      it "does not enqueue a job" do
+        do_post
+        expect(operation).not_to have_received(:run_later)
+      end
+
+      it "returns 422" do
+        do_post
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+    end
+
+    context "when the current user lacks root account management permissions" do
+      let(:non_admin) { user_with_pseudonym(account:) }
+
+      before { user_session(non_admin, non_admin.pseudonyms.first) }
+
+      it "returns forbidden" do
+        do_post
+        expect(response).to be_forbidden
+      end
+    end
+  end
+
   describe "discovery_page_active SSO setting" do
     before do
       Account.site_admin.enable_feature!(:new_login_ui_identity_discovery_page)

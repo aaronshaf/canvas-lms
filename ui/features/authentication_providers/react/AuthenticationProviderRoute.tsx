@@ -18,6 +18,7 @@
 
 import {Portal} from '@instructure/ui-portal'
 import LDAPSettingsTest from './ldap/LDAPSettingsTest'
+import ForcePasswordResetButton from './ForcePasswordResetButton'
 import {useParams} from 'react-router-dom'
 
 type PortalMount = {
@@ -40,11 +41,25 @@ function ldapSettingsTest(portals: PortalMount[], accountId: string): void {
   })
 }
 
+function forcePasswordReset(portals: PortalMount[], accountId: string): void {
+  const mountPoint = document.getElementById('force_password_reset_mount_point')
+
+  if (!mountPoint) {
+    return
+  }
+
+  portals.push({
+    mountPoint,
+    component: <ForcePasswordResetButton accountId={accountId} />,
+  })
+}
+
 export function Component() {
   const {accountId} = useParams<{accountId: string}>()
   const portals: Array<PortalMount> = []
 
   ldapSettingsTest(portals, accountId!)
+  forcePasswordReset(portals, accountId!)
 
   return (
     <>

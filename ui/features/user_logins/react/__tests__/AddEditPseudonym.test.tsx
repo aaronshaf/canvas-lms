@@ -71,6 +71,84 @@ describe('AddEditPseudonym', () => {
   const CREATE_LOGIN_URL = `/users/${props.userId}/pseudonyms`
   const UPDATE_LOGIN_URL = `/users/${props.userId}/pseudonyms/${pseudonym.id}`
 
+  describe('must_reset_password checkbox', () => {
+    const editProps = {...props, isEdit: true, canManagePasswordReset: true}
+
+    it('renders the checkbox when canManagePasswordReset is true', () => {
+      render(<AddEditPseudonym {...editProps} />)
+      expect(screen.getByLabelText('Require password change on next login')).toBeInTheDocument()
+    })
+
+    it('does not render the checkbox when not editing', () => {
+      render(<AddEditPseudonym {...props} isEdit={false} canManagePasswordReset={true} />)
+      expect(
+        screen.queryByLabelText('Require password change on next login'),
+      ).not.toBeInTheDocument()
+    })
+
+    it('does not render the checkbox when canManagePasswordReset is false', () => {
+      render(<AddEditPseudonym {...editProps} canManagePasswordReset={false} />)
+      expect(
+        screen.queryByLabelText('Require password change on next login'),
+      ).not.toBeInTheDocument()
+    })
+
+    it('does not render the checkbox when canManagePasswordReset is not provided', () => {
+      render(<AddEditPseudonym {...editProps} canManagePasswordReset={undefined} />)
+      expect(
+        screen.queryByLabelText('Require password change on next login'),
+      ).not.toBeInTheDocument()
+    })
+
+    it('checks the checkbox when must_reset_password is true', () => {
+      const pseudonymWithReset = {...pseudonym, must_reset_password: true}
+      render(<AddEditPseudonym {...editProps} pseudonym={pseudonymWithReset} />)
+      expect(screen.getByLabelText('Require password change on next login')).toBeChecked()
+    })
+
+    it('leaves the checkbox unchecked when must_reset_password is false', () => {
+      const pseudonymWithoutReset = {...pseudonym, must_reset_password: false}
+      render(<AddEditPseudonym {...editProps} pseudonym={pseudonymWithoutReset} />)
+      expect(screen.getByLabelText('Require password change on next login')).not.toBeChecked()
+    })
+
+    it('submits must_reset_password: true when checked', async () => {
+      let requestBody: Record<string, unknown> = {}
+      server.use(
+        http.put(UPDATE_LOGIN_URL, async ({request}) => {
+          requestBody = (await request.json()) as Record<string, unknown>
+          return HttpResponse.json({...pseudonym, must_reset_password: true})
+        }),
+      )
+      render(
+        <AddEditPseudonym {...editProps} pseudonym={{...pseudonym, must_reset_password: false}} />,
+      )
+
+      await userEvent.click(screen.getByLabelText('Require password change on next login'))
+      await userEvent.click(screen.getByTestId('add-edit-pseudonym-submit'))
+
+      expect((requestBody.pseudonym as Record<string, unknown>).must_reset_password).toBe(true)
+    })
+
+    it('submits must_reset_password: false when unchecked', async () => {
+      let requestBody: Record<string, unknown> = {}
+      server.use(
+        http.put(UPDATE_LOGIN_URL, async ({request}) => {
+          requestBody = (await request.json()) as Record<string, unknown>
+          return HttpResponse.json({...pseudonym, must_reset_password: false})
+        }),
+      )
+      render(
+        <AddEditPseudonym {...editProps} pseudonym={{...pseudonym, must_reset_password: true}} />,
+      )
+
+      await userEvent.click(screen.getByLabelText('Require password change on next login'))
+      await userEvent.click(screen.getByTestId('add-edit-pseudonym-submit'))
+
+      expect((requestBody.pseudonym as Record<string, unknown>).must_reset_password).toBe(false)
+    })
+  })
+
   describe('when the user editing a pseudonym', () => {
     const editProps = {
       ...props,

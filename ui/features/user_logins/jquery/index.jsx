@@ -68,6 +68,12 @@ ready(() => {
       hrefValues: ['id', 'account_id'],
     })
 
+    if (isEdit) {
+      currentLoginElement
+        .find('.must-reset-password-indicator')
+        .toggle(currentPseudonym.must_reset_password === true)
+    }
+
     const $logins = $('#login_information .login')
     $('.delete_pseudonym_link', $logins)[$logins.filter(':visible').length < 2 ? 'hide' : 'show']()
   }
@@ -78,6 +84,7 @@ ready(() => {
     canManageSis,
     canChangePassword,
     isDelegatedAuth,
+    canManagePasswordReset,
   }) => {
     const mountPoint = document.getElementById(nodeIdToMount)
 
@@ -96,6 +103,7 @@ ready(() => {
         pseudonym={pseudonym}
         canManageSis={canManageSis}
         canChangePassword={canChangePassword}
+        canManagePasswordReset={canManagePasswordReset}
         isDelegatedAuth={isDelegatedAuth}
         userId={userId}
         accountIdPasswordPolicyMap={accountIdPasswordPolicyMap}
@@ -128,17 +136,21 @@ ready(() => {
         event.preventDefault()
 
         const loginElement = $(this).parents('.login')
-        const {can_edit_sis_user_id, ...restOfTemplateData} = loginElement.getTemplateData({
-          textValues: ['unique_id', 'sis_user_id', 'integration_id', 'can_edit_sis_user_id'],
-        })
+        const {can_edit_sis_user_id, must_reset_password, ...restOfTemplateData} =
+          loginElement.getTemplateData({
+            textValues: ['unique_id', 'sis_user_id', 'integration_id', 'can_edit_sis_user_id', 'must_reset_password'],
+          })
+        const ssoIconCell = loginElement.find('[data-pseudonym-id]')
         const pseudonym = {
-          id: loginElement.find('[data-pseudonym-id]').data('pseudonym-id'),
+          id: ssoIconCell.data('pseudonym-id'),
           ...restOfTemplateData,
+          must_reset_password: must_reset_password === 'true',
         }
+        const linksCell = $(this).parents('.links')
         const canManageSis = can_edit_sis_user_id === 'true'
-        const canChangePassword = $(this).parents('.links').hasClass('passwordable')
-        const isDelegatedAuth =
-          canChangePassword && $(this).parents('.links').hasClass('delegated-auth')
+        const canChangePassword = linksCell.hasClass('passwordable')
+        const isDelegatedAuth = canChangePassword && linksCell.hasClass('delegated-auth')
+        const canManagePasswordReset = linksCell.data('passwordable') === true
 
         renderAddEditPseudonym({
           nodeIdToMount: 'edit_pseudonym_mount_point',
@@ -146,6 +158,7 @@ ready(() => {
           canManageSis,
           canChangePassword,
           isDelegatedAuth,
+          canManagePasswordReset,
         })
       })
       .on('click', '.delete_pseudonym_link', function (event) {

@@ -1025,6 +1025,26 @@ class AuthenticationProvidersController < ApplicationController
     redirect_to :account_authentication_providers
   end
 
+  # @API Force password reset
+  #
+  # Enqueues a job to set the must_reset_password flag on all active Canvas
+  # login pseudonyms for the account. Affected users will be required to
+  # change their password on next login. Only available for accounts that have
+  # Canvas authentication enabled.
+  #
+  # @example_request
+  #   curl -X POST 'https://<canvas>/api/v1/accounts/<account_id>/authentication_providers/force_password_reset' \
+  #        -H 'Authorization: Bearer <token>'
+  def force_password_reset
+    unless @account.canvas_authentication?
+      return render json: { errors: [t("no Canvas authentication provider")] }, status: :unprocessable_content
+    end
+
+    Operations::ForceCanvasPasswordReset.new(root_account: @account).run_later
+
+    render json: { status: "enqueued" }, status: :accepted
+  end
+
   def refresh_saml_metadata
     ap = @account.authentication_providers.active.find(params[:authentication_provider_id])
 
