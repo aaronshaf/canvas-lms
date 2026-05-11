@@ -106,6 +106,7 @@ const ModuleStudent: React.FC<ModuleStudentProps> = ({
             className={`context_module module_${id} ${isExpanded ? 'expanded' : 'collapsed'}`}
             id={`context_module_${id}`}
           >
+            <span id={`module_${id}`} aria-hidden="true" />
             <Flex direction="column">
               <Flex.Item>
                 <ModuleHeaderStudent

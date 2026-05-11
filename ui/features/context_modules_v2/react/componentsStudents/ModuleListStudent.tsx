@@ -16,7 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useState, useEffect, useCallback, memo} from 'react'
+import React, {useState, useEffect, useCallback, useRef, memo} from 'react'
+import {useIsFetching} from '@tanstack/react-query'
 import {debounce} from '@instructure/debounce'
 import {View} from '@instructure/ui-view'
 import {Text} from '@instructure/ui-text'
@@ -31,20 +32,32 @@ import {Spinner} from '@instructure/ui-spinner'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {useContextModule} from '../hooks/useModuleContext'
 import {showFlashAlert} from '@instructure/platform-alerts'
-import {STUDENT} from '../utils/constants'
+import {MODULES, STUDENT} from '../utils/constants'
 
 const I18n = createI18nScope('context_modules_v2')
+
+const QUERIES_IDLE_GRACE_MS = 200
+const LAYOUT_SETTLE_MS = 300
+const LAYOUT_SETTLE_MAX_MS = 5000
 
 const MemoizedModuleStudent = memo(ModuleStudent, validateModuleStudentRenderRequirements)
 
 const ModulesListStudent: React.FC = () => {
   const {courseId, moduleCursorState, setModuleCursorState} = useContextModule()
   const {data, isLoading, error, isFetchingNextPage, hasNextPage} = useModules(courseId, STUDENT)
-  const {moduleFetchingCount, maxFetchingCount, fetchComplete} = useHowManyModulesAreFetchingItems()
+  const {moduleFetchingCount, maxFetchingCount, fetchComplete} =
+    useHowManyModulesAreFetchingItems(STUDENT)
   const [expandCollapseButtonDisabled, setExpandCollapseButtonDisabled] = useState(false)
 
   // Initialize with an empty Map - all modules will be collapsed by default
   const [expandedModules, setExpandedModules] = useState<Map<string, boolean>>(new Map())
+
+  const didScrollToAnchorRef = useRef(false)
+  // Capture hash once: later URL changes mid-mount shouldn't retarget.
+  const [initialHash] = useState(() => window.location.hash)
+  const modulesQueryFetching = useIsFetching({queryKey: [MODULES]})
+  const modulesFetching = modulesQueryFetching + moduleFetchingCount
+  const [allQueriesIdle, setAllQueriesIdle] = useState(false)
 
   const toggleAllCollapse = useToggleAllCollapse(courseId)
 
@@ -95,6 +108,54 @@ const ModulesListStudent: React.FC = () => {
   useEffect(() => {
     setExpandCollapseButtonDisabled(moduleFetchingCount > 0)
   }, [moduleFetchingCount])
+
+  useEffect(() => {
+    if (modulesFetching > 0) {
+      setAllQueriesIdle(false)
+      return
+    }
+    const t = setTimeout(() => setAllQueriesIdle(true), QUERIES_IDLE_GRACE_MS)
+    return () => clearTimeout(t)
+  }, [modulesFetching])
+
+  const hasData = (data?.pages?.length ?? 0) > 0
+  useEffect(() => {
+    if (didScrollToAnchorRef.current) return
+    if (!allQueriesIdle) return
+    if (!hasData) return
+
+    const match = initialHash.match(/^#module_(\d+)$/)
+    if (!match) return
+
+    let raf = 0
+    let lastTop: number | null = null
+    let stableSince = Date.now()
+    const startedAt = Date.now()
+    const tick = () => {
+      const el = document.getElementById(`module_${match[1]}`)
+      if (!el) {
+        if (Date.now() - startedAt > LAYOUT_SETTLE_MAX_MS) return
+        raf = requestAnimationFrame(tick)
+        return
+      }
+      const top = el.getBoundingClientRect().top
+      const settled = top === lastTop && Date.now() - stableSince >= LAYOUT_SETTLE_MS
+      const timedOut = Date.now() - startedAt > LAYOUT_SETTLE_MAX_MS
+      if (settled || timedOut) {
+        didScrollToAnchorRef.current = true
+        el.scrollIntoView({block: 'start'})
+        return
+      }
+      if (top !== lastTop) {
+        lastTop = top
+        stableSince = Date.now()
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+
+    return () => cancelAnimationFrame(raf)
+  }, [allQueriesIdle, hasData, initialHash])
 
   useEffect(() => {
     if (fetchComplete && maxFetchingCount > 1) {
