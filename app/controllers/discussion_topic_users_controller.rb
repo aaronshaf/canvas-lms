@@ -40,6 +40,12 @@ class DiscussionTopicUsersController < ApplicationController
   # @response_field full_name Only set for users. The full name of the user
   # @response_field avatar_url Avatar image url for the user/context
   def search
+    if @topic.anonymous? &&
+       !(@context.user_is_instructor?(@current_user) ||
+         @context.grants_right?(@current_user, session, :read_as_admin))
+      return render_unauthorized_action
+    end
+
     calculator = ::MessageableUser::Calculator.new(@current_user)
     users = calculator.search_messageable_users(context: @topic, search: params[:search])
     users = Api.paginate(users, self, messageable_user_pagination_url)

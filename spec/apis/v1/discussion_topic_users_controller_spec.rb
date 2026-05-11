@@ -101,4 +101,127 @@ describe DiscussionTopicUsersController, type: :request do
       expect(response.length).to eq 0
     end
   end
+
+  describe "anonymous discussion topics," do
+    before :once do
+      course_with_teacher(active_all: true)
+      ta_in_course(course: @course, active_all: true)
+      designer_in_course(course: @course, active_all: true)
+      @other_student = student_in_course(course: @course, active_all: true).user
+      student_in_course(course: @course, active_all: true)
+    end
+
+    def search_path(topic)
+      "/api/v1/courses/#{@course.id}/discussion_topics/#{topic.id}/messageable_users"
+    end
+
+    def search_params(topic)
+      {
+        format: "json",
+        controller: "discussion_topic_users",
+        action: "search",
+        course_id: @course.id.to_s,
+        topic_id: topic.id.to_s,
+        search: ""
+      }
+    end
+
+    def search_as(user, topic)
+      api_call_as_user(user, :get, search_path(topic), search_params(topic))
+    end
+
+    def raw_search(topic)
+      raw_api_call(:get, search_path(topic), search_params(topic))
+    end
+
+    it "prevents non-instructors from searching users on full_anonymity topics" do
+      topic = @course.discussion_topics.create!(title: "anon", anonymous_state: "full_anonymity")
+      raw_search(topic)
+      expect(response).to have_http_status :forbidden
+      expect(response.body).not_to include @other_student.name
+    end
+
+    it "prevents non-instructors from searching users on partial_anonymity topics" do
+      topic = @course.discussion_topics.create!(title: "partial anon", anonymous_state: "partial_anonymity")
+      raw_search(topic)
+      expect(response).to have_http_status :forbidden
+    end
+
+    it "allows teachers to search users on full_anonymity topics" do
+      topic = @course.discussion_topics.create!(title: "anon", anonymous_state: "full_anonymity")
+      json = search_as(@teacher, topic)
+      expect(response).to have_http_status :ok
+      expect(json.pluck("id")).to include(@other_student.id)
+    end
+
+    it "allows teachers to search users on partial_anonymity topics" do
+      topic = @course.discussion_topics.create!(title: "partial anon", anonymous_state: "partial_anonymity")
+      json = search_as(@teacher, topic)
+      expect(response).to have_http_status :ok
+      expect(json.pluck("id")).to include(@other_student.id)
+    end
+
+    it "allows TAs to search users on full_anonymity topics" do
+      topic = @course.discussion_topics.create!(title: "anon", anonymous_state: "full_anonymity")
+      json = search_as(@ta, topic)
+      expect(response).to have_http_status :ok
+      expect(json.pluck("id")).to include(@other_student.id)
+    end
+
+    it "allows TAs to search users on partial_anonymity topics" do
+      topic = @course.discussion_topics.create!(title: "partial anon", anonymous_state: "partial_anonymity")
+      json = search_as(@ta, topic)
+      expect(response).to have_http_status :ok
+      expect(json.pluck("id")).to include(@other_student.id)
+    end
+
+    it "allows designers to search users on full_anonymity topics" do
+      topic = @course.discussion_topics.create!(title: "anon", anonymous_state: "full_anonymity")
+      json = search_as(@designer, topic)
+      expect(response).to have_http_status :ok
+      expect(json.pluck("id")).to include(@other_student.id)
+    end
+
+    it "allows designers to search users on partial_anonymity topics" do
+      topic = @course.discussion_topics.create!(title: "partial anon", anonymous_state: "partial_anonymity")
+      json = search_as(@designer, topic)
+      expect(response).to have_http_status :ok
+      expect(json.pluck("id")).to include(@other_student.id)
+    end
+
+    it "allows account admins to search users on full_anonymity topics" do
+      admin = account_admin_user(account: @course.root_account)
+      topic = @course.discussion_topics.create!(title: "anon", anonymous_state: "full_anonymity")
+      search_as(admin, topic)
+      expect(response).to have_http_status :ok
+    end
+
+    it "allows account admins to search users on partial_anonymity topics" do
+      admin = account_admin_user(account: @course.root_account)
+      topic = @course.discussion_topics.create!(title: "partial anon", anonymous_state: "partial_anonymity")
+      search_as(admin, topic)
+      expect(response).to have_http_status :ok
+    end
+
+    it "allows site admins to search users on full_anonymity topics" do
+      admin = site_admin_user
+      topic = @course.discussion_topics.create!(title: "anon", anonymous_state: "full_anonymity")
+      search_as(admin, topic)
+      expect(response).to have_http_status :ok
+    end
+
+    it "allows site admins to search users on partial_anonymity topics" do
+      admin = site_admin_user
+      topic = @course.discussion_topics.create!(title: "partial anon", anonymous_state: "partial_anonymity")
+      search_as(admin, topic)
+      expect(response).to have_http_status :ok
+    end
+
+    it "allows students to search users on non-anonymous topics" do
+      topic = @course.discussion_topics.create!(title: "open")
+      json = search_as(@student, topic)
+      expect(response).to have_http_status :ok
+      expect(json.pluck("id")).to include(@other_student.id)
+    end
+  end
 end
