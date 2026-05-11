@@ -21,6 +21,11 @@ import {render, screen} from '@testing-library/react'
 import NotebookIndexPage from '../NotebookIndexPage'
 
 const mockUseNotesData = vi.fn()
+const mockUseNotesColumnCount = vi.fn()
+
+vi.mock('../../hooks/useNotesColumnCount', () => ({
+  useNotesColumnCount: (...args: unknown[]) => mockUseNotesColumnCount(...args),
+}))
 
 vi.mock('@instructure/platform-notebook', () => ({
   NotebookProvider: ({children}: {children: React.ReactNode}) => (
@@ -30,12 +35,14 @@ vi.mock('@instructure/platform-notebook', () => ({
     notes,
     isLoading,
     isError,
+    columnCount,
     noteHref,
     renderNoteLink,
   }: {
     notes: {id: string; objectId: string; courseId: string}[]
     isLoading: boolean
     isError: boolean
+    columnCount?: number
     noteHref?: (noteId: string, note: {id: string; objectId: string; courseId: string}) => string
     renderNoteLink?: (props: {href: string; children: React.ReactNode}) => React.ReactNode
   }) => {
@@ -43,7 +50,7 @@ vi.mock('@instructure/platform-notebook', () => ({
     if (isError) return <div data-testid="notes-error" />
     if (notes.length === 0) return <div data-testid="notes-empty" />
     return (
-      <div data-testid="notes-grid">
+      <div data-testid="notes-grid" data-column-count={columnCount}>
         {notes.map(note => {
           const href = noteHref?.(note.id, note)
           return renderNoteLink ? (
@@ -60,6 +67,11 @@ vi.mock('@instructure/platform-notebook', () => ({
     courseId: '42',
   }),
   useNotesData: (...args: unknown[]) => mockUseNotesData(...args),
+  useReactionFilter: () => ({
+    filterElement: <div data-testid="reaction-filter" />,
+    reactionFilterOptions: [],
+    handleReactionFilterChange: vi.fn(),
+  }),
   REACTION_TYPE: {IMPORTANT: 'Important', CONFUSING: 'Confusing'},
 }))
 
@@ -88,6 +100,19 @@ const makeNote = (id: string) => ({
   updatedAt: '2026-01-01T00:00:00Z',
 })
 
+const defaultNotesDataReturn = {
+  notes: [] as ReturnType<typeof makeNote>[],
+  pageInfo: undefined,
+  isLoading: false,
+  isError: false,
+  filter: null,
+  setFilter: vi.fn(),
+  courseFilter: null,
+  setCourseFilter: vi.fn(),
+  fetchNextPage: vi.fn(),
+  fetchPreviousPage: vi.fn(),
+}
+
 describe('NotebookIndexPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -97,14 +122,8 @@ describe('NotebookIndexPage', () => {
       current_user_id: 'user-1',
       COURSE_ID: '42',
     } as typeof window.ENV
-    mockUseNotesData.mockReturnValue({
-      notes: [],
-      pageInfo: undefined,
-      isLoading: false,
-      isError: false,
-      fetchNextPage: vi.fn(),
-      fetchPreviousPage: vi.fn(),
-    })
+    mockUseNotesColumnCount.mockReturnValue(4)
+    mockUseNotesData.mockReturnValue(defaultNotesDataReturn)
   })
 
   it('renders nothing when JOURNEY_URL is not set', () => {
@@ -115,12 +134,8 @@ describe('NotebookIndexPage', () => {
 
   it('renders the notes grid when data is present', () => {
     mockUseNotesData.mockReturnValue({
+      ...defaultNotesDataReturn,
       notes: [makeNote('1'), makeNote('2')],
-      pageInfo: undefined,
-      isLoading: false,
-      isError: false,
-      fetchNextPage: vi.fn(),
-      fetchPreviousPage: vi.fn(),
     })
     render(<NotebookIndexPage />)
     expect(screen.getByTestId('notes-grid')).toBeInTheDocument()
@@ -128,12 +143,8 @@ describe('NotebookIndexPage', () => {
 
   it('renders note links to the source page', () => {
     mockUseNotesData.mockReturnValue({
+      ...defaultNotesDataReturn,
       notes: [makeNote('1')],
-      pageInfo: undefined,
-      isLoading: false,
-      isError: false,
-      fetchNextPage: vi.fn(),
-      fetchPreviousPage: vi.fn(),
     })
     render(<NotebookIndexPage />)
     const link = screen.getByRole('link')
@@ -142,12 +153,8 @@ describe('NotebookIndexPage', () => {
 
   it('renders the loading state', () => {
     mockUseNotesData.mockReturnValue({
-      notes: [],
-      pageInfo: undefined,
+      ...defaultNotesDataReturn,
       isLoading: true,
-      isError: false,
-      fetchNextPage: vi.fn(),
-      fetchPreviousPage: vi.fn(),
     })
     render(<NotebookIndexPage />)
     expect(screen.getByTestId('notes-loading')).toBeInTheDocument()
@@ -155,12 +162,8 @@ describe('NotebookIndexPage', () => {
 
   it('renders the error state', () => {
     mockUseNotesData.mockReturnValue({
-      notes: [],
-      pageInfo: undefined,
-      isLoading: false,
+      ...defaultNotesDataReturn,
       isError: true,
-      fetchNextPage: vi.fn(),
-      fetchPreviousPage: vi.fn(),
     })
     render(<NotebookIndexPage />)
     expect(screen.getByTestId('notes-error')).toBeInTheDocument()
@@ -169,5 +172,25 @@ describe('NotebookIndexPage', () => {
   it('renders the empty state', () => {
     render(<NotebookIndexPage />)
     expect(screen.getByTestId('notes-empty')).toBeInTheDocument()
+  })
+
+  it('renders the reaction filter above the grid', () => {
+    render(<NotebookIndexPage />)
+    expect(screen.getByTestId('reaction-filter')).toBeInTheDocument()
+  })
+
+  it('passes the default page size to useNotesData', () => {
+    render(<NotebookIndexPage />)
+    expect(mockUseNotesData).toHaveBeenCalledWith(expect.objectContaining({pageSize: 20}))
+  })
+
+  it('applies columnCount from useNotesColumnCount to NotesListView', () => {
+    mockUseNotesColumnCount.mockReturnValue(1)
+    mockUseNotesData.mockReturnValue({
+      ...defaultNotesDataReturn,
+      notes: [makeNote('1')],
+    })
+    render(<NotebookIndexPage />)
+    expect(screen.getByTestId('notes-grid')).toHaveAttribute('data-column-count', '1')
   })
 })

@@ -32,6 +32,9 @@ import {
   HIGHLIGHT_THEME,
 } from '@canvas/notebook'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
+import NotebookFilters from './NotebookFilters'
+import {useNotesColumnCount} from '../hooks/useNotesColumnCount'
+
 const DEFAULT_PAGE_SIZE = 20
 
 const queryClient = new QueryClient({
@@ -43,13 +46,15 @@ const queryClient = new QueryClient({
   },
 })
 
-function NotesGrid() {
+function NotebookIndexBody() {
   const {api, courseId} = useNotebook()
-  const {notes, pageInfo, isLoading, isError, fetchNextPage, fetchPreviousPage} = useNotesData({
-    api,
-    courseId,
-    pageSize: DEFAULT_PAGE_SIZE,
-  })
+  const columnCount = useNotesColumnCount()
+  const {notes, pageInfo, isLoading, isError, filter, setFilter, fetchNextPage, fetchPreviousPage} =
+    useNotesData({
+      api,
+      courseId,
+      pageSize: DEFAULT_PAGE_SIZE,
+    })
 
   const noteHref = useCallback(
     (noteId: string, note: NoteType) =>
@@ -75,18 +80,21 @@ function NotesGrid() {
   )
 
   return (
-    <NotesListView
-      notes={notes}
-      isLoading={isLoading}
-      isError={isError}
-      pageInfo={pageInfo}
-      onPreviousPage={fetchPreviousPage}
-      onNextPage={fetchNextPage}
-      highlightTheme={HIGHLIGHT_THEME}
-      noteHref={noteHref}
-      columnCount={4}
-      renderNoteLink={renderNoteLink}
-    />
+    <>
+      <NotebookFilters filter={filter} setFilter={setFilter} />
+      <NotesListView
+        notes={notes}
+        isLoading={isLoading}
+        isError={isError}
+        pageInfo={pageInfo}
+        onPreviousPage={fetchPreviousPage}
+        onNextPage={fetchNextPage}
+        highlightTheme={HIGHLIGHT_THEME}
+        noteHref={noteHref}
+        columnCount={columnCount}
+        renderNoteLink={renderNoteLink}
+      />
+    </>
   )
 }
 
@@ -107,7 +115,7 @@ export default function NotebookIndexPage() {
         translations={notebookTranslations}
         translate={notebookTranslate}
       >
-        <NotesGrid />
+        <NotebookIndexBody />
       </NotebookProvider>
     </QueryClientProvider>
   )
