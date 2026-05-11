@@ -126,4 +126,83 @@ describe LlmConversation::HttpClient do
       end
     end
   end
+
+  describe "llma error sanitization" do
+    let(:client) { described_class.new(account:) }
+
+    context "when llma returns 5xx with internal diagnostics in the body" do
+      let(:leaky_body) do
+        {
+          "message" => "audience mismatch for account uuid abc-123 at /usr/src/app/lib/auth.rb:42",
+          "stack" => "Traceback (most recent call last)..."
+        }.to_json
+      end
+
+      before do
+        stub_request(:get, "http://localhost:3001/conversations")
+          .to_return(status: 500, body: leaky_body, headers: { "Content-Type" => "application/json" })
+        allow(Rails.logger).to receive(:warn)
+      end
+
+      it "raises ConversationError with a generic user_message (never the llma body)" do
+        client.get("/conversations")
+      rescue LlmConversation::Errors::ConversationError => e
+        expect(e.user_message).to eq(LlmConversation::Errors::ConversationError::DEFAULT_USER_MESSAGE)
+        expect(e.user_message).not_to include("audience mismatch")
+        expect(e.user_message).not_to include("/usr/src/app")
+        expect(e.user_message).not_to include("Traceback")
+      else
+        raise "expected ConversationError to be raised"
+      end
+
+      it "preserves the internal detail on #message for logs/Sentry" do
+        client.get("/conversations")
+      rescue LlmConversation::Errors::ConversationError => e
+        expect(e.message).to include("audience mismatch")
+      end
+
+      it "logs the verbatim llma body at warn level" do
+        expect { client.get("/conversations") }
+          .to raise_error(LlmConversation::Errors::ConversationError)
+        expect(Rails.logger).to have_received(:warn).with(a_string_including("audience mismatch"))
+      end
+    end
+
+    context "when llma returns a whitelisted error code" do
+      before do
+        stub_request(:get, "http://localhost:3001/conversations")
+          .to_return(
+            status: 429,
+            body: { "code" => "rate_limited", "message" => "internal rate-limit counter overflow" }.to_json,
+            headers: { "Content-Type" => "application/json" }
+          )
+      end
+
+      it "renders the friendly user_message for the whitelisted code" do
+        client.get("/conversations")
+      rescue LlmConversation::Errors::ConversationError => e
+        expect(e.user_message)
+          .to eq(LlmConversation::Errors::ConversationError::SAFE_USER_MESSAGES["rate_limited"])
+        expect(e.user_message).not_to include("internal rate-limit counter overflow")
+      end
+    end
+
+    context "when llma returns an unknown error code" do
+      before do
+        stub_request(:get, "http://localhost:3001/conversations")
+          .to_return(
+            status: 400,
+            body: { "code" => "some_new_code_we_dont_recognize", "message" => "boom" }.to_json,
+            headers: { "Content-Type" => "application/json" }
+          )
+      end
+
+      it "falls back to the generic user_message rather than echoing the unknown code's message" do
+        client.get("/conversations")
+      rescue LlmConversation::Errors::ConversationError => e
+        expect(e.user_message).to eq(LlmConversation::Errors::ConversationError::DEFAULT_USER_MESSAGE)
+        expect(e.user_message).not_to include("boom")
+      end
+    end
+  end
 end

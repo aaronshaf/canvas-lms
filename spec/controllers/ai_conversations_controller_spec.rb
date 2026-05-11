@@ -266,11 +266,11 @@ describe AiConversationsController do
         expect(new_conversation.id).not_to eq(existing_conversation.id)
       end
 
-      it "returns service unavailable on conversation error" do
+      it "returns service unavailable with a generic user-safe error on conversation error" do
         mock_service = instance_double(AiExperiences::ConversationStartService)
         allow(AiExperiences::ConversationStartService).to receive(:new).and_return(mock_service)
         allow(mock_service).to receive(:start)
-          .and_raise(LlmConversation::Errors::ConversationError, "Service unavailable")
+          .and_raise(LlmConversation::Errors::ConversationError, "internal stack trace from llma")
 
         post :create,
              params: { course_id: @course.id, ai_experience_id: @ai_experience.id },
@@ -278,7 +278,8 @@ describe AiConversationsController do
 
         expect(response).to have_http_status(:service_unavailable)
         json_response = json_parse(response.body)
-        expect(json_response["error"]).to eq("Service unavailable")
+        expect(json_response["error"]).to eq(LlmConversation::Errors::ConversationError::DEFAULT_USER_MESSAGE)
+        expect(json_response["error"]).not_to include("internal stack trace")
       end
     end
 
@@ -561,7 +562,7 @@ describe AiConversationsController do
         expect(response).to have_http_status(:not_found)
       end
 
-      it "returns service unavailable on conversation error" do
+      it "returns service unavailable with a generic user-safe error on conversation error" do
         mock_service = instance_double(AiExperiences::ConversationEvaluationService)
         allow(AiExperiences::ConversationEvaluationService).to receive(:new).and_return(mock_service)
         allow(mock_service).to receive(:evaluate)
@@ -573,7 +574,7 @@ describe AiConversationsController do
 
         expect(response).to have_http_status(:service_unavailable)
         json_response = json_parse(response.body)
-        expect(json_response["error"]).to eq("Evaluation service unavailable")
+        expect(json_response["error"]).to eq(LlmConversation::Errors::ConversationError::DEFAULT_USER_MESSAGE)
       end
     end
 
@@ -643,7 +644,7 @@ describe AiConversationsController do
         expect(json_response["feedback"]["vote"]).to eq("liked")
       end
 
-      it "returns service unavailable on conversation error" do
+      it "returns service unavailable with a generic user-safe error on conversation error" do
         mock_service = instance_double(AiExperiences::ConversationMessageFeedbackService)
         allow(AiExperiences::ConversationMessageFeedbackService).to receive(:new).and_return(mock_service)
         allow(mock_service).to receive(:create)
@@ -661,7 +662,7 @@ describe AiConversationsController do
 
         expect(response).to have_http_status(:service_unavailable)
         json_response = json_parse(response.body)
-        expect(json_response["error"]).to eq("Feedback service error")
+        expect(json_response["error"]).to eq(LlmConversation::Errors::ConversationError::DEFAULT_USER_MESSAGE)
       end
     end
 
@@ -737,7 +738,7 @@ describe AiConversationsController do
         expect(json_response["success"]).to be true
       end
 
-      it "returns service unavailable on conversation error" do
+      it "returns service unavailable with a generic user-safe error on conversation error" do
         mock_service = instance_double(AiExperiences::ConversationMessageFeedbackService)
         allow(AiExperiences::ConversationMessageFeedbackService).to receive(:new).and_return(mock_service)
         allow(mock_service).to receive(:delete)
@@ -755,7 +756,7 @@ describe AiConversationsController do
 
         expect(response).to have_http_status(:service_unavailable)
         json_response = json_parse(response.body)
-        expect(json_response["error"]).to eq("Delete feedback error")
+        expect(json_response["error"]).to eq(LlmConversation::Errors::ConversationError::DEFAULT_USER_MESSAGE)
       end
     end
   end

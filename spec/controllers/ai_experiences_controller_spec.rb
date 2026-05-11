@@ -1590,17 +1590,18 @@ describe AiExperiencesController do
         expect(response).to have_http_status(:not_found)
       end
 
-      it "returns service unavailable when LLM service fails" do
+      it "returns service unavailable with a generic user-safe error when LLM service fails" do
         mock_service = instance_double(AiExperiences::ConversationMessagesService)
         allow(AiExperiences::ConversationMessagesService).to receive(:new).and_return(mock_service)
         allow(mock_service).to receive(:fetch_with_progress)
-          .and_raise(LlmConversation::Errors::ConversationError.new("Service unavailable"))
+          .and_raise(LlmConversation::Errors::ConversationError.new("internal llma stack trace"))
 
         get :ai_conversation_show, params: { course_id: @course.id, id: @ai_experience.id, conversation_id: @conversation.id }, format: :json
         expect(response).to have_http_status(:service_unavailable)
 
         json_response = json_parse(response.body)
-        expect(json_response["error"]).to include("Service unavailable")
+        expect(json_response["error"]).to eq(LlmConversation::Errors::ConversationError::DEFAULT_USER_MESSAGE)
+        expect(json_response["error"]).not_to include("stack trace")
       end
     end
 

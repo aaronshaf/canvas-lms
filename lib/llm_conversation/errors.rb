@@ -19,7 +19,28 @@
 
 module LlmConversation
   module Errors
-    class ConversationError < StandardError; end
+    # ConversationError carries two layers of information:
+    #   - #message — internal detail (full llma body, validation reason, etc.) — safe to log,
+    #     never safe to render to API clients (may contain stack traces, uuids, internal paths).
+    #   - #user_message — generic, client-safe string. Controllers MUST render this, never #message.
+    class ConversationError < StandardError
+      DEFAULT_USER_MESSAGE = "AI service is temporarily unavailable. Please try again."
+
+      # Whitelisted llma error codes whose friendly variant we surface to the client.
+      # Any code not in this map falls back to DEFAULT_USER_MESSAGE.
+      SAFE_USER_MESSAGES = {
+        "rate_limited" => "You're sending messages too quickly. Please wait a moment and try again.",
+        "content_filtered" => "Your message could not be processed by the AI service.",
+        "conversation_completed" => "This conversation has already been completed."
+      }.freeze
+
+      attr_reader :user_message
+
+      def initialize(message = nil, user_message: nil)
+        super(message)
+        @user_message = user_message || DEFAULT_USER_MESSAGE
+      end
+    end
 
     # Raised on HTTP 409 Conflict. Retrying a conflict
     # (e.g. account already provisioned) would not resolve it.

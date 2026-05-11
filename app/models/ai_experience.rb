@@ -228,7 +228,7 @@ class AiExperience < ApplicationRecord
       index_new_context_files(added_context_file_ids)
     end
   rescue LlmConversation::Errors::ConversationError => e
-    errors.add(:base, e.message)
+    errors.add(:base, e.user_message)
     raise ActiveRecord::RecordInvalid, self
   ensure
     @pending_context_file_ids = nil

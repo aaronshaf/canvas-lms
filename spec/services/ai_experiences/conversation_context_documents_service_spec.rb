@@ -171,8 +171,9 @@ describe AiExperiences::ConversationContextDocumentsService do
       end
 
       it "logs a warning and does not raise" do
-        expect(Rails.logger).to receive(:warn).with(/Document index status sync failed/)
+        allow(Rails.logger).to receive(:warn)
         expect { service.sync_index_status(ai_experience:) }.not_to raise_error
+        expect(Rails.logger).to have_received(:warn).with(/Document index status sync failed/)
       end
     end
   end

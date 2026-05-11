@@ -57,7 +57,7 @@ class AiConversationsController < ApplicationController
       progress: messages_and_progress[:progress]
     }
   rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.message }, status: :service_unavailable
+    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Get active conversation
@@ -81,7 +81,7 @@ class AiConversationsController < ApplicationController
       render json: {}
     end
   rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.message }, status: :service_unavailable
+    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Create AI conversation
@@ -124,7 +124,7 @@ class AiConversationsController < ApplicationController
     # Return only the Canvas conversation ID, messages, and progress
     render json: { id: conversation_record&.id, messages: result[:messages], progress: result[:progress] }, status: :created
   rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.message }, status: :service_unavailable
+    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Post message to conversation
@@ -149,7 +149,7 @@ class AiConversationsController < ApplicationController
     # Return only the Canvas conversation ID, messages, and progress
     render json: { id: @conversation.id, messages: result[:messages], progress: result[:progress] }
   rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.message }, status: :service_unavailable
+    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Delete AI conversation
@@ -183,7 +183,7 @@ class AiConversationsController < ApplicationController
       evaluation: evaluation_data
     }
   rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.message }, status: :service_unavailable
+    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Create feedback on a conversation message
@@ -205,7 +205,7 @@ class AiConversationsController < ApplicationController
     )
     render json: { feedback: }
   rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.message }, status: :service_unavailable
+    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   # @API Delete feedback on a conversation message
@@ -221,7 +221,7 @@ class AiConversationsController < ApplicationController
     )
     render json: { success: true }
   rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.message }, status: :service_unavailable
+    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   private

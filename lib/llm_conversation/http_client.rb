@@ -167,16 +167,29 @@ module LlmConversation
           return request(method, path, payload:)
         end
 
+        llma_code = nil
         begin
           error_json = JSON.parse(response.body)
-          error_detail = error_json["message"] || error_json["error"] || response.body
+          if error_json.is_a?(Hash)
+            error_detail = error_json["message"] || error_json["error"] || response.body
+            llma_code = error_json["code"]
+          else
+            error_detail = response.body
+          end
         rescue JSON::ParserError
           error_detail = response.body
         end
 
+        Rails.logger.warn(
+          "[llm_conversation] HTTP #{response.code} from llma #{method.to_s.upcase} #{path}: #{response.body.to_s[0, 1000]}"
+        )
+
         raise LlmConversation::Errors::ConflictError, error_detail if response.is_a?(Net::HTTPConflict)
 
-        raise LlmConversation::Errors::ConversationError, error_detail
+        raise LlmConversation::Errors::ConversationError.new(
+          error_detail,
+          user_message: LlmConversation::Errors::ConversationError::SAFE_USER_MESSAGES[llma_code]
+        )
       end
 
       response.body.present? ? JSON.parse(response.body) : nil

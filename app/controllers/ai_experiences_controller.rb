@@ -397,7 +397,7 @@ class AiExperiencesController < ApplicationController
       progress: messages_and_progress[:progress]
     )
   rescue LlmConversation::Errors::ConversationError => e
-    render json: { error: e.message }, status: :service_unavailable
+    render json: { error: e.user_message }, status: :service_unavailable
   end
 
   private
