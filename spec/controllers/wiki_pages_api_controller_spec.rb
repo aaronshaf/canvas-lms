@@ -296,6 +296,34 @@ describe WikiPagesApiController, type: :request do
 
           create_wiki_page(@teacher, { title: "New Page", block_editor_data: })
         end
+
+        it "passes deeply nested block_editor_data through as a plain Hash" do
+          deep_data = {
+            "nodes" => [
+              { "type" => "html", "content" => "test" },
+              { "type" => "text", "value" => "hello" }
+            ],
+            "version" => "1.0",
+            "metadata" => { "author" => "teacher" }
+          }
+          expect_any_instance_of(WikiPage).to receive(:create_block_editor_data) do |_, user_uuid:, data:|
+            expect(user_uuid).to eql @teacher.uuid
+            expect(data).to be_a(Hash)
+            expect(data).not_to be_a(ActionController::Parameters)
+            expect(data).to eql deep_data
+          end
+
+          create_wiki_page(@teacher, { title: "New Page", block_editor_data: deep_data })
+        end
+
+        it "tolerates non-Hash block_editor_data without raising" do
+          expect_any_instance_of(WikiPage).to receive(:create_block_editor_data) do |_, user_uuid:, data:|
+            expect(user_uuid).to eql @teacher.uuid
+            expect(data).to eql "raw string"
+          end
+
+          create_wiki_page(@teacher, { title: "New Page", block_editor_data: "raw string" })
+        end
       end
 
       context "when the feature flag is disabled" do

@@ -962,11 +962,11 @@ class WikiPagesApiController < ApplicationController
 
   def extract_block_editor_data
     return unless params[:wiki_page] && @context.account.horizon_block_content_editor?
+    return if params[:wiki_page][:block_editor_data].blank?
 
-    if params[:wiki_page][:block_editor_data].present?
-      # Extract and convert to hash to avoid ActionController::UnfilteredParameters errors
-      block_editor_data_params = params[:wiki_page].delete(:block_editor_data)
-      @block_editor_data = block_editor_data_params.respond_to?(:to_unsafe_h) ? block_editor_data_params.to_unsafe_h : block_editor_data_params
-    end
+    permitted = params[:wiki_page].permit(block_editor_data: strong_anything)
+    extracted = permitted[:block_editor_data]
+    @block_editor_data = extracted.is_a?(Hash) ? extracted.to_h : extracted
+    params[:wiki_page].delete(:block_editor_data)
   end
 end
