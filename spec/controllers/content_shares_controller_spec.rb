@@ -26,6 +26,7 @@ describe ContentSharesController do
     course_with_teacher(active_all: true)
     @course_2 = @course
     @teacher_2 = @teacher
+    @course_1.enroll_student(@teacher_2, enrollment_state: "active")
     assignment_model(course: @course_1, name: "assignment share")
   end
 
@@ -237,6 +238,15 @@ describe ContentSharesController do
       post :create, params: { user_id: @teacher_1.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [@teacher_2.id] }
       expect(response).to have_http_status(:forbidden)
     end
+
+    it "rejects recipients with no shared context with sender" do
+      outsider = user_with_pseudonym(active_user: true)
+      expect do
+        post :create, params: { user_id: @teacher_1.id, content_type: "assignment", content_id: @assignment.id, receiver_ids: [outsider.id] }
+      end.not_to change { outsider.received_content_shares.count }
+      expect(response).to have_http_status(:bad_request)
+      expect(response.body).to include "No valid receiving users found"
+    end
   end
 
   describe "rest of CRUD" do
@@ -402,6 +412,8 @@ describe ContentSharesController do
     describe "POST #add_users" do
       before :once do
         @teacher_3 = user_with_pseudonym(active_user: true)
+        @course_1.enroll_teacher(@teacher_3, enrollment_state: "active")
+        @course_2.enroll_teacher(@teacher_3, enrollment_state: "active")
       end
 
       it "adds users" do
@@ -438,6 +450,24 @@ describe ContentSharesController do
         post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [0] }
         expect(response).to have_http_status(:bad_request)
         expect(response.body).to include "No valid receiving users found"
+      end
+
+      it "rejects recipients with no shared context with sender" do
+        user_session @teacher_1
+        outsider = user_with_pseudonym(active_user: true)
+        post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [outsider.id] }
+        expect(response).to have_http_status(:bad_request)
+        expect(response.body).to include "No valid receiving users found"
+        expect(@sent_share.receivers.pluck(:id)).not_to include(outsider.id)
+      end
+
+      it "silently drops unauthorized recipients in a mixed batch" do
+        user_session @teacher_1
+        outsider = user_with_pseudonym(active_user: true)
+        post :add_users, params: { user_id: @teacher_1.id, id: @sent_share.id, receiver_ids: [@teacher_3.id, outsider.id] }
+        expect(response).to be_successful
+        expect(@sent_share.receivers.pluck(:id)).to match_array([@teacher_2.id, @teacher_3.id])
+        expect(@sent_share.receivers.pluck(:id)).not_to include(outsider.id)
       end
 
       it "disallows resharing somebody else's share" do

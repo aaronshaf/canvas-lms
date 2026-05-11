@@ -282,14 +282,14 @@ class ContentSharesController < ApplicationController
 
   def get_receivers
     receiver_ids = params.require(:receiver_ids)
-    @receivers = api_find_all(User, Array(receiver_ids))
+    candidates = api_find_all(User, Array(receiver_ids))
+    known_ids = @current_user.address_book.known_users(candidates, strict_checks: true).to_set(&:global_id)
+    @receivers = candidates.select { |u| known_ids.include?(u.global_id) }
 
     unless @receivers.any?
       render(json: { message: "No valid receiving users found" }, status: :bad_request)
       false
     end
-
-    # TODO: verify we're allowed to send content to these users, once we decide how to do that
   end
 
   def create_receiver_shares(sender_share, receivers)
