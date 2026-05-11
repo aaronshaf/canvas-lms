@@ -135,6 +135,7 @@ describe('ModuleItemStudent', () => {
     expect(titleElement).toBeInTheDocument()
     expect(container.queryByTestId('module-item-supplemental-info')).toBeNull()
     expect(container.queryByTestId('module-item-status-icon')).toBeNull()
+    expect(container.container.querySelector('a')).toBeNull()
   })
 
   // add a test here to check the presence of module-discussion-checkpoint

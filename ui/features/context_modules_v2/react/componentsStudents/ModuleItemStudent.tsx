@@ -93,38 +93,48 @@ const ModuleItemStudent: React.FC<ModuleItemStudentProps> = ({
   // Early return after hooks
   if (!content) return null
 
+  const isSubHeader = content.type === 'SubHeader'
   const cr = completionRequirement
   if (cr) {
     cr.completed = isCompleted
   }
 
-  const moduleItemWrapContent = (content: JSX.Element, otherProps = {}) => (
-    <Link
-      href={url}
-      isWithinText={false}
-      themeOverride={{
-        hoverTextDecorationOutsideText: 'none',
-      }}
+  const moduleItemInnerView = (content: JSX.Element, otherProps = {}) => (
+    <View
+      as="div"
+      className="context_module_item"
+      padding="paddingCardMedium"
+      background="primary"
+      borderWidth="0"
+      borderRadius="large"
+      overflowX="hidden"
+      margin="paddingCardMedium 0"
+      minHeight="5.125rem"
+      display="flex"
+      {...otherProps}
     >
-      <View
-        as="div"
-        className="context_module_item"
-        padding="paddingCardMedium"
-        background="primary"
-        borderWidth="0"
-        borderRadius="large"
-        overflowX="hidden"
-        margin="paddingCardMedium 0"
-        minHeight="5.125rem"
-        display="flex"
-        {...otherProps}
-      >
-        <Flex wrap="wrap" width="100%" gap="x-small" direction={smallScreen ? 'column' : 'row'}>
-          {content}
-        </Flex>
-      </View>
-    </Link>
+      <Flex wrap="wrap" width="100%" gap="x-small" direction={smallScreen ? 'column' : 'row'}>
+        {content}
+      </Flex>
+    </View>
   )
+
+  const moduleItemWrapContent = (innerContent: JSX.Element, otherProps = {}) => {
+    if (isSubHeader) {
+      return moduleItemInnerView(innerContent, otherProps)
+    }
+    return (
+      <Link
+        href={url}
+        isWithinText={false}
+        themeOverride={{
+          hoverTextDecorationOutsideText: 'none',
+        }}
+      >
+        {moduleItemInnerView(innerContent, otherProps)}
+      </Link>
+    )
+  }
 
   const moduleItemMainContent = moduleItemWrapContent(
     <>
@@ -144,7 +154,7 @@ const ModuleItemStudent: React.FC<ModuleItemStudentProps> = ({
               />
             </Flex.Item>
             {/* Due Date and Points Possible */}
-            {content.type !== 'SubHeader' && (
+            {!isSubHeader && (
               <Flex.Item>
                 <Flex wrap="wrap" direction="column">
                   <Flex.Item>
@@ -164,7 +174,7 @@ const ModuleItemStudent: React.FC<ModuleItemStudentProps> = ({
           </Flex>
         </div>
       </Flex.Item>
-      {content.type !== 'SubHeader' && (
+      {!isSubHeader && (
         <Flex.Item margin={smallScreen ? 'x-small 0 0 0' : '0 0 0 small'}>
           <ModuleItemStatusIcon moduleCompleted={isCompleted} content={content} />
         </Flex.Item>
