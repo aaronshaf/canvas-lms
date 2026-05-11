@@ -1,7 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
   "plugins": ["react", "jsx_a11y", "import", "promise", "typescript"],
-  "jsPlugins": ["./config/canvas-copyright.js", "./config/canvas-sanitize-url.js"],
+  "jsPlugins": [
+    "./config/canvas-copyright.js",
+    "./config/canvas-sanitize-url.js",
+    "./config/canvas-no-env-write.js"
+  ],
   "env": {
     "browser": true,
     "node": true
@@ -35,15 +39,18 @@
     "no-redeclare": "warn",
     "no-global-assign": "warn",
     "typescript/ban-ts-comment": "warn",
-    "typescript/no-unused-vars": ["warn", {
-      "args": "all",
-      "argsIgnorePattern": "^_",
-      "caughtErrors": "all",
-      "caughtErrorsIgnorePattern": "^_",
-      "destructuredArrayIgnorePattern": "^_",
-      "varsIgnorePattern": "^_",
-      "ignoreRestSiblings": true
-    }],
+    "typescript/no-unused-vars": [
+      "warn",
+      {
+        "args": "all",
+        "argsIgnorePattern": "^_",
+        "caughtErrors": "all",
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ],
     "typescript/no-this-alias": "off",
     "typescript/no-explicit-any": "off",
     "typescript/no-unused-expressions": "warn",
@@ -71,7 +78,20 @@
       "files": ["ui/**/*.{js,mjs,ts,jsx,tsx}"],
       "rules": {
         "canvas-copyright/notice": "error",
-        "canvas-sanitize-url/at-href": "error"
+        "canvas-sanitize-url/at-href": "error",
+        "canvas-no-env-write/no-env-write": "warn"
+      }
+    },
+    {
+      "files": [
+        "ui/shared/test-utils/**",
+        "ui/shared/stub-env/**",
+        "ui/shared/files/mockFilesENV.js",
+        "**/__tests__/**",
+        "**/*.{test,spec}.{js,ts,jsx,tsx}"
+      ],
+      "rules": {
+        "canvas-no-env-write/no-env-write": "off"
       }
     },
     {
