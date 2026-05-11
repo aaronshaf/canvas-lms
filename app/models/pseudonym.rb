@@ -56,6 +56,8 @@ class Pseudonym < ApplicationRecord
   validates :integration_id, length: { maximum: maximum_string_length, allow_blank: true }
   validates :account_id, presence: true
   validate :must_be_root_account
+  validate :must_reset_password_requires_passwordable
+  validate :password_must_differ_when_reset_required
   # allows us to validate the user and pseudonym together, before saving either
   validates_each :user_id do |record, attr, value|
     record.errors.add(attr, "blank?") unless value || record.user
@@ -67,7 +69,7 @@ class Pseudonym < ApplicationRecord
             allow_nil: true,
             inclusion: { in: %w[administrative observer staff student student_other teacher] }
 
-  before_save :set_password_changed
+  before_save :handle_password_change
   before_validation :infer_defaults, :verify_unique_sis_user_id, :verify_unique_integration_id
   after_save :update_account_associations_if_account_changed
   has_a_broadcast_policy
@@ -251,6 +253,22 @@ class Pseudonym < ApplicationRecord
     end
   end
 
+  def must_reset_password_requires_passwordable
+    if must_reset_password? && !passwordable?
+      errors.add(:must_reset_password, "cannot be set on a pseudonym that does not support passwords")
+    end
+  end
+
+  def password_must_differ_when_reset_required
+    return if new_record?
+    return unless must_reset_password?
+    return if password.blank?
+
+    if valid_password?(password)
+      errors.add(:password, :must_differ, message: "must differ from the current password when password reset is required")
+    end
+  end
+
   def send_registration_notification!
     @send_registration_notification = true
     save!
@@ -334,8 +352,11 @@ class Pseudonym < ApplicationRecord
     Auditors::Pseudonym.record(self, performing_user, action:)
   end
 
-  def set_password_changed
+  def handle_password_change
     @password_changed = password && password_confirmation == password
+    if @password_changed && !new_record? && !must_reset_password_changed?
+      self.must_reset_password = false
+    end
   end
 
   def password=(new_pass)

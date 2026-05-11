@@ -149,7 +149,8 @@ describe "AuthenticationAudit API", type: :request do
           "integration_id" => nil,
           "authentication_provider_id" => nil,
           "workflow_state" => "active",
-          "declared_user_type" => nil
+          "declared_user_type" => nil,
+          "must_reset_password" => false
         }]
       end
     end

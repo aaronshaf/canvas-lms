@@ -49,7 +49,8 @@ describe PseudonymsController, type: :request do
             "user_id" => p.user_id,
             "created_at" => p.created_at,
             "workflow_state" => "active",
-            "declared_user_type" => nil
+            "declared_user_type" => nil,
+            "must_reset_password" => false
           }
         end)
       end
@@ -160,7 +161,8 @@ describe PseudonymsController, type: :request do
                              "user_id" => @student.id,
                              "created_at" => json["created_at"],
                              "workflow_state" => "active",
-                             "declared_user_type" => "teacher"
+                             "declared_user_type" => "teacher",
+                             "must_reset_password" => false
                            })
       end
 
@@ -279,9 +281,28 @@ describe PseudonymsController, type: :request do
                              "user_id" => @student.id,
                              "created_at" => @student.pseudonym.created_at.iso8601,
                              "workflow_state" => "active",
-                             "declared_user_type" => "teacher"
+                             "declared_user_type" => "teacher",
+                             "must_reset_password" => false
                            })
         expect(@student.pseudonym.reload.valid_password?("password123")).to be_truthy
+      end
+
+      it "is able to set must_reset_password" do
+        json = api_call(:put, @path, @path_options, {
+                          login: { must_reset_password: "1" }
+                        })
+        expect(json["must_reset_password"]).to be true
+        expect(@student.pseudonym.reload.must_reset_password?).to be true
+      end
+
+      it "is able to set both password and must_reset_password in the same request" do
+        json = api_call(:put, @path, @path_options, {
+                          login: { password: "newpassword123", must_reset_password: "1" }
+                        })
+        expect(json["must_reset_password"]).to be true
+        @student.pseudonym.reload
+        expect(@student.pseudonym.must_reset_password?).to be true
+        expect(@student.pseudonym.valid_password?("newpassword123")).to be true
       end
 
       it "can suspend the pseudonym" do
@@ -528,7 +549,8 @@ describe PseudonymsController, type: :request do
                                "user_id" => @student.id,
                                "created_at" => pseudonym.created_at.iso8601,
                                "workflow_state" => "deleted",
-                               "declared_user_type" => nil
+                               "declared_user_type" => nil,
+                               "must_reset_password" => false
                              })
         end
 

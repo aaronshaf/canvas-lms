@@ -54,7 +54,7 @@ describe('ConfirmChangePassword form submission', () => {
     },
     passwordPoliciesAndPseudonyms: singlePolicyAndPseudonym,
   }
-  const CONFIRM_CHANGE_PASSWORD_URL = `/pseudonyms/${pseudonyms[0].id}/change_password/${props.cc.confirmation_code}`
+  const CONFIRM_CHANGE_PASSWORD_URL = `/pseudonyms/${pseudonyms[0].id}/change_password/${props.cc!.confirmation_code}`
 
   const server = setupServer()
 
@@ -176,5 +176,76 @@ describe('ConfirmChangePassword form submission', () => {
       'An error occurred while updating your password.',
     )
     expect(errorAlerts.length).toBeTruthy()
+  })
+
+  describe('forced reset (no cc)', () => {
+    const forcedProps: ConfirmChangePasswordProps = {...props, cc: undefined}
+    const FORCED_RESET_URL = `/profile/pseudonyms/${pseudonyms[0].id}`
+
+    it('submits a PUT request to the profile pseudonyms endpoint', async () => {
+      let capturedBody: any = null
+      let capturedMethod: string | null = null
+      server.use(
+        http.put(FORCED_RESET_URL, async ({request}) => {
+          capturedMethod = request.method
+          capturedBody = await request.json()
+          return new HttpResponse(null, {status: 200})
+        }),
+      )
+
+      render(<ConfirmChangePassword {...forcedProps} />)
+      const password = screen.getByLabelText('New Password *')
+      const passwordConfirmation = screen.getByLabelText('Confirm New Password *')
+      const passwordValue = 'password1234'
+
+      await userEvent.type(password, passwordValue)
+      await userEvent.type(passwordConfirmation, passwordValue)
+      await userEvent.click(screen.getByLabelText('Update Password'))
+
+      await waitFor(() => {
+        expect(capturedMethod).toBe('PUT')
+        expect(capturedBody).toEqual({
+          pseudonym: {
+            id: pseudonyms[0].id,
+            password: passwordValue,
+            password_confirmation: passwordValue,
+          },
+        })
+        expect(assignLocation).toHaveBeenCalledWith('/login/canvas?password_changed=1')
+      })
+    })
+
+    it('renders validation errors returned in the errors envelope', async () => {
+      server.use(
+        http.put(FORCED_RESET_URL, () =>
+          HttpResponse.json(
+            {
+              errors: {
+                password: [
+                  {
+                    attribute: 'password',
+                    type: 'no_symbols',
+                    message: 'no_symbols',
+                  },
+                ],
+              },
+            },
+            {status: 400},
+          ),
+        ),
+      )
+
+      render(<ConfirmChangePassword {...forcedProps} />)
+      const password = screen.getByLabelText('New Password *')
+      const passwordConfirmation = screen.getByLabelText('Confirm New Password *')
+      const passwordValue = 'password1234'
+
+      await userEvent.type(password, passwordValue)
+      await userEvent.type(passwordConfirmation, passwordValue)
+      await userEvent.click(screen.getByLabelText('Update Password'))
+
+      const errorText = await screen.findByText('Must include at least one symbol')
+      expect(errorText).toBeInTheDocument()
+    })
   })
 })

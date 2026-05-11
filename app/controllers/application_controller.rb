@@ -77,6 +77,7 @@ class ApplicationController < ActionController::Base
   before_action :set_time_zone
   before_action :set_page_view
   before_action :require_reacceptance_of_terms
+  before_action :require_password_reset
   before_action :clear_policy_cache
   around_action :manage_live_events_context
   before_action :initiate_session_from_token
@@ -1981,6 +1982,17 @@ class ApplicationController < ActionController::Base
       render "shared/terms_required", status: :unauthorized
       false
     end
+  end
+
+  def require_password_reset
+    return unless @current_pseudonym&.must_reset_password? && request.get? && !api_request? && !verified_file_request?
+
+    ap = @current_pseudonym.authentication_provider
+    return unless ap.is_a?(AuthenticationProvider::Canvas) || (ap.nil? && session[:login_aac_is_canvas])
+
+    store_location
+    redirect_to set_password_url
+    false
   end
 
   def clear_policy_cache

@@ -25,7 +25,7 @@ ready(() => {
 
   render(
     <ConfirmChangePassword
-      cc={ENV.CC}
+      cc={ENV.CC || undefined}
       pseudonym={ENV.PSEUDONYM}
       defaultPolicy={ENV.PASSWORD_POLICY}
       passwordPoliciesAndPseudonyms={ENV.PASSWORD_POLICIES}

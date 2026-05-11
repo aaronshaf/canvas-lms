@@ -1118,4 +1118,128 @@ describe Pseudonym do
       expect(pseudonym.instance_variable_get(:@canvas_generated_password)).to be_nil
     end
   end
+
+  describe "must_reset_password" do
+    let(:account) { Account.default }
+    let(:user) { User.create! }
+    let(:pseudonym) do
+      ps = Pseudonym.create!(
+        user:,
+        account:,
+        unique_id: "reset-me@example.com",
+        password: "original_password",
+        password_confirmation: "original_password"
+      )
+      # re-fetch to drop the in-memory `password` attr set by `create!`,
+      # which would otherwise interfere with `password_must_differ_when_reset_required`
+      Pseudonym.find(ps.id)
+    end
+
+    it "defaults to false" do
+      expect(pseudonym.must_reset_password?).to be false
+    end
+
+    describe "must_reset_password_requires_passwordable validation" do
+      it "allows setting must_reset_password on a passwordable pseudonym" do
+        pseudonym.must_reset_password = true
+        expect(pseudonym).to be_valid
+      end
+
+      it "prevents setting must_reset_password on a pseudonym not backed by Canvas auth" do
+        ldap = account.authentication_providers.create!(auth_type: "ldap")
+        pseudonym.authentication_provider = ldap
+        pseudonym.must_reset_password = true
+
+        expect(pseudonym).not_to be_valid
+        expect(pseudonym.errors[:must_reset_password]).to include(
+          "cannot be set on a pseudonym that does not support passwords"
+        )
+      end
+    end
+
+    describe "password_must_differ_when_reset_required validation" do
+      before do
+        pseudonym.update!(must_reset_password: true)
+      end
+
+      it "rejects an update that reuses the current password" do
+        pseudonym.password = "original_password"
+        pseudonym.password_confirmation = "original_password"
+
+        expect(pseudonym).not_to be_valid
+        expect(pseudonym.errors[:password]).to include(
+          "must differ from the current password when password reset is required"
+        )
+      end
+
+      it "allows an update with a different password" do
+        pseudonym.password = "brand_new_password"
+        pseudonym.password_confirmation = "brand_new_password"
+
+        expect(pseudonym).to be_valid
+      end
+
+      it "does not apply on new records" do
+        new_pseudonym = Pseudonym.new(
+          user:,
+          account:,
+          unique_id: "fresh@example.com",
+          password: "any_password",
+          password_confirmation: "any_password",
+          must_reset_password: true
+        )
+
+        expect(new_pseudonym).to be_valid
+      end
+
+      it "is a no-op when must_reset_password is false" do
+        pseudonym.update!(must_reset_password: false)
+        pseudonym.password = "original_password"
+        pseudonym.password_confirmation = "original_password"
+
+        expect(pseudonym).to be_valid
+      end
+    end
+
+    describe "#handle_password_change" do
+      it "clears must_reset_password when the password is changed" do
+        pseudonym.update!(must_reset_password: true)
+        pseudonym.password = "brand_new_password"
+        pseudonym.password_confirmation = "brand_new_password"
+        pseudonym.save!
+
+        expect(pseudonym.reload.must_reset_password?).to be false
+      end
+
+      it "leaves must_reset_password set when other fields are saved without a password change" do
+        pseudonym.update!(must_reset_password: true)
+        pseudonym.update!(unique_id: "renamed@example.com")
+
+        expect(pseudonym.reload.must_reset_password?).to be true
+      end
+
+      it "preserves must_reset_password when setting both password and must_reset_password=true on a new pseudonym" do
+        new_pseudonym = Pseudonym.new(
+          user:,
+          account:,
+          unique_id: "admin-created@example.com",
+          password: "temp_password",
+          password_confirmation: "temp_password",
+          must_reset_password: true
+        )
+        new_pseudonym.save!
+
+        expect(new_pseudonym.reload.must_reset_password?).to be true
+      end
+
+      it "preserves must_reset_password when setting both password and must_reset_password=true on an existing pseudonym" do
+        pseudonym.password = "brand_new_password"
+        pseudonym.password_confirmation = "brand_new_password"
+        pseudonym.must_reset_password = true
+        pseudonym.save!
+
+        expect(pseudonym.reload.must_reset_password?).to be true
+      end
+    end
+  end
 end

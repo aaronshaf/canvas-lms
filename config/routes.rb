@@ -76,6 +76,7 @@ CanvasRails::Application.routes.draw do
   match "forgot_password" => "pseudonyms#forgot_password", :as => :forgot_password, :via => [:get, :post]
   get "pseudonyms/:pseudonym_id/change_password/:nonce" => "pseudonyms#confirm_change_password", :as => :confirm_change_password
   post "pseudonyms/:pseudonym_id/change_password/:nonce" => "pseudonyms#change_password", :as => :change_password
+  get "set_password" => "pseudonyms#set_password", :as => :set_password
 
   # callback urls for oauth authorization processes
   get "oauth" => "users#oauth"

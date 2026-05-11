@@ -29,7 +29,8 @@ module Api::V1::Pseudonym
                                authentication_provider_id
                                created_at
                                workflow_state
-                               declared_user_type].freeze
+                               declared_user_type
+                               must_reset_password].freeze
 
   def pseudonym_json(pseudonym, current_user, session)
     opts = API_PSEUDONYM_JSON_OPTS.dup

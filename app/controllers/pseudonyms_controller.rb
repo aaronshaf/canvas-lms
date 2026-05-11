@@ -23,6 +23,7 @@
 class PseudonymsController < ApplicationController
   before_action :get_context, only: [:index, :create]
   skip_before_action :require_user, only: %i[change_password confirm_change_password forgot_password]
+  skip_before_action :require_password_reset, only: %i[set_password]
   before_action :reject_student_view_student, only: %i[create show edit update]
   before_action :require_elevated_auth_provider, only: %i[create update destroy], if: :require_elevated_auth_provider_for_login_management?
   protect_from_forgery except: %i[registration_confirmation change_password forgot_password], with: :exception
@@ -44,6 +45,8 @@ class PseudonymsController < ApplicationController
   #                 provider that this login is associated with
   # @response_field workflow_state The current status of the login
   # @response_field declared_user_type The declared intention for this user's role
+  # @response_field must_reset_password Whether the user must change the
+  #                 password the next time they sign in with this login
   #
   # @example_response
   #   [
@@ -170,6 +173,32 @@ class PseudonymsController < ApplicationController
     end
   end
 
+  def set_password
+    unless @current_pseudonym&.must_reset_password?
+      redirect_to root_url
+      return
+    end
+
+    @headers = false
+    js_env({
+             PASSWORD_POLICY: @current_pseudonym.account.password_policy,
+             PASSWORD_POLICIES: {
+               @current_pseudonym.id => {
+                 pseudonym: {
+                   unique_id: @current_pseudonym.unique_id,
+                   account_display_name: @current_pseudonym.account.display_name
+                 },
+                 policy: @current_pseudonym.account.password_policy
+               }
+             },
+             PSEUDONYM: {
+               id: @current_pseudonym.id,
+               user_name: @current_pseudonym.user.name,
+             },
+             CC: nil
+           })
+  end
+
   def confirm_change_password
     @pseudonym = Pseudonym.find(params[:pseudonym_id])
     @cc = @pseudonym.user.communication_channels.where(confirmation_code: params[:nonce]).first
@@ -293,6 +322,11 @@ class PseudonymsController < ApplicationController
   #     * student
   #     * student_other
   #     * teacher
+  #
+  # @argument login[must_reset_password] [Boolean]
+  #   If true, the user will be required to change their password the next time
+  #   they sign in with this login. Only valid for logins that support Canvas
+  #   passwords.
   #
   # @argument user[existing_user_id] [String]
   #   A Canvas User ID to identify a user in a trusted account (alternative to `id`,
@@ -431,6 +465,11 @@ class PseudonymsController < ApplicationController
   #     * student_other
   #     * teacher
   #
+  # @argument login[must_reset_password] [Boolean]
+  #   If true, the user will be required to change their password the next time
+  #   they sign in with this login. Cleared automatically when the password is
+  #   changed. Only valid for logins that support Canvas passwords.
+  #
   # @argument override_sis_stickiness [boolean]
   #   Default is true. If false, any fields containing “sticky” changes will not be updated.
   #   See SIS CSV Format documentation for information on which fields can have SIS stickiness
@@ -451,7 +490,8 @@ class PseudonymsController < ApplicationController
   #     "integration_id": null,
   #     "authentication_provider_id": null,
   #     "workflow_state": "active",
-  #     "declared_user_type": "teacher"
+  #     "declared_user_type": "teacher",
+  #     "must_reset_password": false
   #   }
   def update
     if api_request?
@@ -561,7 +601,8 @@ class PseudonymsController < ApplicationController
       :authentication_provider_id,
       :integration_id,
       :workflow_state,
-      :declared_user_type
+      :declared_user_type,
+      :must_reset_password
     ).blank?
       render json: { message: "missing required parameter" }, status: :bad_request
       return false
@@ -617,6 +658,10 @@ class PseudonymsController < ApplicationController
         @pseudonym.password = params[:pseudonym][:password]
         @pseudonym.password_confirmation = params[:pseudonym][:password_confirmation]
       end
+    end or return false
+
+    authorized_if_requested_change?(:must_reset_password, :update) do
+      @pseudonym.must_reset_password = value_to_boolean(params[:pseudonym][:must_reset_password])
     end or return false
 
     # give a 400 instead of a 401 if the workflow_state doesn't make sense

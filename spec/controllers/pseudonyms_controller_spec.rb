@@ -179,6 +179,50 @@ describe PseudonymsController do
     end
   end
 
+  describe "set_password" do
+    before :once do
+      user_with_pseudonym(active_all: true)
+    end
+
+    before do
+      # re-fetch so the in-memory password attribute used by the factory does
+      # not trip the must_reset_password validation when set in tests below
+      @pseudonym = Pseudonym.find(@pseudonym.id)
+      user_session(@user, @pseudonym)
+    end
+
+    context "when the current pseudonym requires a password reset" do
+      before do
+        @pseudonym.update!(must_reset_password: true)
+      end
+
+      it "renders the change password view" do
+        get "set_password"
+        expect(response).to be_successful
+        expect(response).to render_template("set_password")
+      end
+
+      it "sets js_env values needed by the change password UI" do
+        get "set_password"
+        js_env = controller.js_env
+        expect(js_env[:PSEUDONYM]).to eq(id: @pseudonym.id, user_name: @user.name)
+        expect(js_env[:CC]).to be_nil
+        expect(js_env[:PASSWORD_POLICY]).to eq(@pseudonym.account.password_policy)
+        expect(js_env[:PASSWORD_POLICIES][@pseudonym.id][:pseudonym]).to eq(
+          unique_id: @pseudonym.unique_id,
+          account_display_name: @pseudonym.account.display_name
+        )
+      end
+    end
+
+    context "when the current pseudonym does not require a password reset" do
+      it "redirects to the home page" do
+        get "set_password"
+        expect(response).to redirect_to(root_url)
+      end
+    end
+  end
+
   describe "destroy" do
     before :once do
       user_with_pseudonym(active_all: true)
@@ -478,6 +522,82 @@ describe PseudonymsController do
       bob.pseudonym.reload
       expect(bob.pseudonym.unique_id).to eq "old_username"
       expect(bob.pseudonym).to be_valid_password("new_password")
+    end
+
+    describe "must_reset_password" do
+      let(:account) { Account.default }
+      let(:target_user) { user_with_pseudonym(username: "target@example.com", password: "old_password", account:) }
+      let(:target_pseudonym) { target_user.pseudonym }
+      let(:admin) { account_admin_user(account:) }
+
+      it "allows an authorized admin to set must_reset_password" do
+        target_pseudonym
+        user_session(admin)
+        put "update",
+            params: {
+              id: target_pseudonym.id,
+              user_id: target_user.id,
+              pseudonym: { must_reset_password: "1" },
+            },
+            format: "json"
+
+        expect(response).to be_successful
+        expect(target_pseudonym.reload.must_reset_password?).to be true
+      end
+
+      it "does not allow a regular user to set must_reset_password on themselves" do
+        bob = user_with_pseudonym(username: "bob@example.com", password: "old_password")
+        user_session(bob)
+        put "update",
+            params: {
+              id: bob.pseudonym.id,
+              user_id: bob.id,
+              pseudonym: { must_reset_password: "1" },
+            },
+            format: "json"
+
+        expect(response).not_to be_successful
+        expect(bob.pseudonym.reload.must_reset_password?).to be false
+      end
+
+      it "clears must_reset_password when only the password is changed" do
+        target_pseudonym.update!(must_reset_password: true)
+        account.settings[:admins_can_change_passwords] = true
+        account.save!
+        user_session(admin)
+        put "update",
+            params: {
+              id: target_pseudonym.id,
+              user_id: target_user.id,
+              pseudonym: { password: "brand_new_password", password_confirmation: "brand_new_password" },
+            },
+            format: "json"
+
+        expect(response).to be_successful
+        expect(target_pseudonym.reload.must_reset_password?).to be false
+      end
+
+      it "preserves must_reset_password when the password and must_reset_password=true are set in the same request" do
+        account.settings[:admins_can_change_passwords] = true
+        account.save!
+        user_session(admin)
+        put "update",
+            params: {
+              id: target_pseudonym.id,
+              user_id: target_user.id,
+              pseudonym: {
+                password: "brand_new_password",
+                password_confirmation: "brand_new_password",
+                must_reset_password: "1",
+              },
+            },
+            format: "json"
+
+        expect(response).to be_successful
+        target_pseudonym.reload
+        expect(target_pseudonym.must_reset_password?).to be true
+        expect(target_pseudonym.valid_password?("brand_new_password")).to be true
+      end
     end
 
     it "returns an error message when trying to duplicate a sis id" do

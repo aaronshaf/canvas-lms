@@ -106,7 +106,7 @@ export interface ConfirmChangePasswordProps {
   pseudonym: Pseudonym
   defaultPolicy: PasswordPolicyAndPseudonym['policy']
   passwordPoliciesAndPseudonyms: {[pseudonymId: string]: PasswordPolicyAndPseudonym}
-  cc: CC
+  cc?: CC
 }
 
 const ConfirmChangePassword = ({
@@ -115,6 +115,7 @@ const ConfirmChangePassword = ({
   passwordPoliciesAndPseudonyms,
   cc,
 }: ConfirmChangePasswordProps) => {
+  const isForcedReset = !cc
   const {
     control,
     formState: {errors, isSubmitting},
@@ -136,8 +137,10 @@ const ConfirmChangePassword = ({
   const handleFormSubmit: SubmitHandler<FormValues> = async data => {
     try {
       await doFetchApi({
-        path: `/pseudonyms/${pseudonym.id}/change_password/${cc.confirmation_code}`,
-        method: 'POST',
+        path: isForcedReset
+          ? `/profile/pseudonyms/${data.id}`
+          : `/pseudonyms/${data.id}/change_password/${cc!.confirmation_code}`,
+        method: isForcedReset ? 'PUT' : 'POST',
         body: {
           pseudonym: data,
         },
@@ -159,7 +162,11 @@ const ConfirmChangePassword = ({
         const normalizedError: Record<
           keyof FormValues,
           Array<string>
-        > = PseudonymModel.prototype.normalizeErrors(errorResponse.pseudonym, policy)
+        > = PseudonymModel.prototype.normalizeErrors(
+          errorResponse.pseudonym || errorResponse.errors,
+          policy,
+        )
+        console.log([errorResponse, normalizedError])
 
         for (const key in normalizedError) {
           const fieldName = key as keyof FormValues
@@ -193,9 +200,20 @@ const ConfirmChangePassword = ({
       <View as="section" padding="small">
         <View as="div" margin="0 0 small 0">
           <Text as="h2" size="x-large">
-            {I18n.t('Change login password for %{userName}', {userName: pseudonym.user_name})}
+            {isForcedReset
+              ? I18n.t('You must change your password to continue')
+              : I18n.t('Change login password for %{userName}', {userName: pseudonym.user_name})}
           </Text>
         </View>
+        {isForcedReset && (
+          <View as="div" margin="0 0 small 0">
+            <Text>
+              {I18n.t(
+                'Your administrator requires you to choose a new password before continuing. You will need to sign in again after updating it.',
+              )}
+            </Text>
+          </View>
+        )}
         <form noValidate={true} onSubmit={handleSubmit(handleFormSubmit)}>
           <Flex gap="small" direction="column">
             {passwordPolicyAndPseudonymEntries.length > 1 ? (
@@ -218,11 +236,11 @@ const ConfirmChangePassword = ({
                   </SimpleSelect>
                 )}
               />
-            ) : (
+            ) : cc ? (
               <Text size="large" weight="bold">
                 {cc.path}
               </Text>
-            )}
+            ) : null}
             <Controller
               control={control}
               name="password"

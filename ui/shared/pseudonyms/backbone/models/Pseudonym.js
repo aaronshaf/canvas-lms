@@ -86,6 +86,7 @@ Pseudonym.prototype.errorMap = function (policy) {
       no_digits: I18n.t('errors.no_digits', 'Must include at least one number'),
       no_symbols: I18n.t('errors.no_symbols', 'Must include at least one symbol'),
       confirmation: I18n.t('errors.mismatch', "Doesn't match"),
+      must_differ: I18n.t('errors.must_differ', 'Must differ from the current password'),
       unexpected: I18n.t(
         'errors.unexpected',
         'An unexpected error occurred. Please try again later.',

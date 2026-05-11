@@ -159,6 +159,7 @@ class Login::CanvasController < ApplicationController
       ap = pseudonym.authentication_provider
 
       session[:login_aac] ||= ap.id
+      session[:login_aac_is_canvas] = true if ap&.auth_type == "canvas"
       successful_login(user, pseudonym)
     else
       link_url = @domain_root_account.login_help_url.presence ||

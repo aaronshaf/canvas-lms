@@ -74,7 +74,7 @@ describe('ConfirmChangePassword', () => {
 
   it('should render without select if only one password pseudonym is provided', async () => {
     render(<ConfirmChangePassword {...props} />)
-    const ccPath = screen.getByText(props.cc.path)
+    const ccPath = screen.getByText(props.cc!.path)
     const select = screen.queryByLabelText('Which login to change')
 
     expect(ccPath).toBeInTheDocument()
@@ -135,5 +135,37 @@ describe('ConfirmChangePassword', () => {
 
     const errorText = await screen.findByText('Passwords do not match.')
     expect(errorText).toBeInTheDocument()
+  })
+
+  describe('when in forced-reset mode (no cc)', () => {
+    const forcedProps: ConfirmChangePasswordProps = {
+      ...props,
+      cc: undefined,
+    }
+
+    it('renders the forced-reset heading instead of the standard one', () => {
+      render(<ConfirmChangePassword {...forcedProps} />)
+      expect(screen.getByText('You must change your password to continue')).toBeInTheDocument()
+      expect(
+        screen.queryByText(`Change login password for ${pseudonyms[0].user_name}`),
+      ).not.toBeInTheDocument()
+    })
+
+    it('renders the administrator explanation', () => {
+      render(<ConfirmChangePassword {...forcedProps} />)
+      expect(
+        screen.getByText(
+          'Your administrator requires you to choose a new password before continuing. You will need to sign in again after updating it.',
+        ),
+      ).toBeInTheDocument()
+    })
+
+    it('does not render the cc path or the multi-select when cc is missing', () => {
+      render(<ConfirmChangePassword {...forcedProps} />)
+      expect(
+        screen.queryByText(singlePolicyAndPseudonym[pseudonyms[0].id].pseudonym.unique_id),
+      ).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Which login to change')).not.toBeInTheDocument()
+    })
   })
 })

@@ -36,7 +36,8 @@ module Factories
         works_for_account?: true,
         suspended?: false,
         unique_id: "unique_id",
-        global_id: 10_000_000_000_001
+        global_id: 10_000_000_000_001,
+        must_reset_password?: false
       )
       # at least one thing cares about the id of the pseudonym... using the
       # object_id should make it unique (but obviously things will fail if

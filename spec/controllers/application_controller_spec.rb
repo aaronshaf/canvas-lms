@@ -4682,3 +4682,106 @@ RSpec.describe ApplicationController, "#set_js_assignment_data peer_review inclu
     expect(course_has_peer_reviews_enabled).to be false
   end
 end
+
+RSpec.describe ApplicationController, "#require_password_reset" do
+  controller do
+    def index
+      render json: { ok: true }
+    end
+  end
+
+  let(:user) { user_factory }
+  let(:pseudonym) do
+    ps = user.pseudonyms.create!(unique_id: "needs-reset@example.com", password: "old_password", password_confirmation: "old_password")
+    Pseudonym.find(ps.id)
+  end
+
+  before do
+    user_session(user, pseudonym)
+  end
+
+  context "when the current pseudonym requires a password reset" do
+    before do
+      pseudonym.update!(must_reset_password: true)
+    end
+
+    context "when the pseudonym uses a Canvas authentication provider" do
+      before do
+        pseudonym.update!(authentication_provider: Account.default.canvas_authentication_provider)
+      end
+
+      it "redirects to set_password_url on GET html requests" do
+        get :index, format: :html
+        expect(response).to redirect_to(set_password_url)
+      end
+
+      it "stores the originally-requested path in the session as return_to" do
+        get :index, format: :html
+        expect(session[:return_to]).to end_with("/anonymous.html")
+      end
+    end
+
+    context "when the pseudonym has no auth provider but the session was Canvas-authenticated" do
+      before do
+        session[:login_aac_is_canvas] = true
+      end
+
+      it "redirects to set_password_url" do
+        get :index, format: :html
+        expect(response).to redirect_to(set_password_url)
+      end
+    end
+
+    context "when the pseudonym has a non-Canvas auth provider" do
+      before do
+        ldap_ap = Account.default.authentication_providers.create!(auth_type: "ldap")
+        # bypass passwordable validation — the model rejects must_reset_password
+        # on non-passwordable providers, but the scenario we want to exercise
+        # is the controller seeing that combination in the DB
+        pseudonym.update_column(:authentication_provider_id, ldap_ap.id)
+        session[:login_aac_is_canvas] = true
+      end
+
+      it "does not redirect" do
+        get :index, format: :html
+        expect(response).to be_successful
+      end
+    end
+
+    context "when the pseudonym has no auth provider and the session was not Canvas-authenticated" do
+      it "does not redirect" do
+        get :index, format: :html
+        expect(response).to be_successful
+      end
+    end
+
+    it "does not block API requests" do
+      allow(controller).to receive(:api_request?).and_return(true)
+      get :index, format: :json
+      expect(response).to be_successful
+    end
+
+    it "does not block non-GET requests" do
+      post :index, format: :html
+      expect(response).to be_successful
+    end
+  end
+
+  context "when the current pseudonym does not require a password reset" do
+    it "does not interfere with the request" do
+      get :index, format: :html
+      expect(response).to be_successful
+    end
+  end
+
+  context "without a current pseudonym" do
+    before do
+      controller.instance_variable_set(:@current_pseudonym, nil)
+    end
+
+    it "does not interfere with the request" do
+      get :index, format: :html
+      expect(response).to be_successful
+    end
+  end
+end
