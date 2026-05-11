@@ -146,6 +146,18 @@ describe Login::CanvasController do
     end
   end
 
+  describe "params[:message] flash" do
+    it "sets flash.now[:error] for a plain string message" do
+      get :new, params: { message: "something went wrong" }
+      expect(flash.now[:error]).to eq("something went wrong")
+    end
+
+    it "does not set flash.now[:error] for a hash-shaped message" do
+      get :new, params: { message: { html: "<a>1</a>" } }
+      expect(flash.now[:error]).to be_nil
+    end
+  end
+
   it "shows sso buttons on load" do
     aac = Account.default.authentication_providers.create!(auth_type: "facebook")
     allow(Canvas::Plugin.find(:facebook)).to receive(:settings).and_return({})

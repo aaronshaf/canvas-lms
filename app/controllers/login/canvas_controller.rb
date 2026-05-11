@@ -37,7 +37,7 @@ class Login::CanvasController < ApplicationController
     end
     @pseudonym_session = PseudonymSession.new
     @headers = false
-    flash.now[:error] = params[:message] if params[:message]
+    flash.now[:error] = params[:message] if params[:message].is_a?(String)
     flash.now[:notice] = t("Your password has been changed.") if params[:password_changed] == "1"
     @include_recaptcha = recaptcha_enabled?(failsafe: false)
 
