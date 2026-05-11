@@ -26,12 +26,30 @@
  */
 const SAFE_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:'])
 
+// Protocol-relative URLs (//host/path) are resolved by the WHATWG URL
+// parser against the current origin. If the resolved host is cross-origin,
+// reject — the only reason //host appears in user-supplied content on an
+// HTTPS-only app is to defeat a scheme-only allowlist. Same-origin //host
+// forms (e.g. //canvas.example.com/x) are accepted because the resolved
+// origin matches. Backslash variants (\\host) are rejected unconditionally
+// because browsers may normalize them to // and they have no legitimate use.
+const BACKSLASH_RE = /^\s*\\\\/
+
 export default function sanitizeUrl(url: string): string {
   const defaultUrl = 'about:blank'
+  if (BACKSLASH_RE.test(url)) return defaultUrl
   try {
     const parsedUrl = new URL(url, window.location.origin)
 
     if (!SAFE_SCHEMES.has(parsedUrl.protocol)) {
+      return defaultUrl
+    }
+    // Reject protocol-relative cross-origin URLs: //evil.com resolves to
+    // https://evil.com (safe scheme) but points cross-origin.
+    if (
+      (url as unknown as string | null)?.trimStart().startsWith('//') &&
+      parsedUrl.origin !== window.location.origin
+    ) {
       return defaultUrl
     }
     return url

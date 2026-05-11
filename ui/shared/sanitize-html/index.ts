@@ -213,6 +213,42 @@ DOMPurify.addHook('afterSanitizeAttributes', node => {
   if (style.length === 0) node.removeAttribute('style')
 })
 
+// URL-bearing attributes to check for protocol-relative values.
+// DOMPurify's default ALLOWED_URI_REGEXP permits //host/path — the browser
+// resolves it to https://host/path, enabling cross-origin loads. Strip any
+// attribute whose value (after trimming) starts with // or \\.
+const URL_ATTRS = new Set([
+  'src',
+  'href',
+  'action',
+  'formaction',
+  'data',
+  'poster',
+  'background',
+  'cite',
+  'longdesc',
+  'xlink:href',
+])
+const PROTOCOL_RELATIVE_RE = /^\s*(\/\/|\\)/
+
+DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
+  if (!URL_ATTRS.has(data.attrName)) return
+  if (PROTOCOL_RELATIVE_RE.test(data.attrValue)) {
+    data.keepAttr = false
+  }
+})
+
+// For srcset, strip the entire attribute if any candidate URL is protocol-relative.
+DOMPurify.addHook('afterSanitizeAttributes', node => {
+  if (!(node instanceof Element) || !node.hasAttribute('srcset')) return
+  const srcset = node.getAttribute('srcset') ?? ''
+  const hasProtocolRelative = srcset
+    .split(',')
+    .map(candidate => candidate.trim().split(/\s+/)[0])
+    .some(url => PROTOCOL_RELATIVE_RE.test(url))
+  if (hasProtocolRelative) node.removeAttribute('srcset')
+})
+
 const CONFIG = {
   ADD_TAGS: ['iframe'],
   ADD_ATTR: [
