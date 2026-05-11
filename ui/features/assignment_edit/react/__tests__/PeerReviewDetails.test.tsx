@@ -565,6 +565,7 @@ describe('PeerReviewDetails', () => {
             subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS,
             enabled: false,
           },
+          origin: window.location.origin,
         }),
       )
 
@@ -583,6 +584,7 @@ describe('PeerReviewDetails', () => {
             subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS,
             enabled: false,
           },
+          origin: window.location.origin,
         }),
       )
 
@@ -598,6 +600,7 @@ describe('PeerReviewDetails', () => {
             subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS,
             enabled: true,
           },
+          origin: window.location.origin,
         }),
       )
 
@@ -622,6 +625,7 @@ describe('PeerReviewDetails', () => {
             subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS,
             enabled: false,
           },
+          origin: window.location.origin,
         }),
       )
 
@@ -644,6 +648,7 @@ describe('PeerReviewDetails', () => {
             subject: 'DIFFERENT.subject',
             enabled: false,
           },
+          origin: window.location.origin,
         }),
       )
       await waitFor(() => {

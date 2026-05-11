@@ -246,7 +246,12 @@ describe('ItemAssignToCard - PeerReviewSelector Integration', () => {
 
       await act(async () => {
         mockCheckbox.checked = true
-        window.postMessage({subject: 'ASGMT.togglePeerReviews', enabled: true}, '*')
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {subject: 'ASGMT.togglePeerReviews', enabled: true},
+            origin: window.location.origin,
+          }),
+        )
         await new Promise(resolve => setTimeout(resolve, 10))
       })
 

@@ -261,7 +261,12 @@ describe('PeerReviewSelector', () => {
 
       await act(async () => {
         mockCheckbox.checked = true
-        window.postMessage({subject: 'ASGMT.togglePeerReviews', enabled: true}, '*')
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {subject: 'ASGMT.togglePeerReviews', enabled: true},
+            origin: window.location.origin,
+          }),
+        )
         await new Promise(resolve => setTimeout(resolve, 10))
       })
 
@@ -277,7 +282,12 @@ describe('PeerReviewSelector', () => {
       renderComponent()
 
       await act(async () => {
-        window.postMessage({subject: 'SOME_OTHER_MESSAGE'}, '*')
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {subject: 'SOME_OTHER_MESSAGE'},
+            origin: window.location.origin,
+          }),
+        )
         await new Promise(resolve => setTimeout(resolve, 10))
       })
 
@@ -289,7 +299,12 @@ describe('PeerReviewSelector', () => {
       expect(screen.getByText('Review Due Date')).toBeInTheDocument()
 
       await act(async () => {
-        window.postMessage({subject: 'ASGMT.togglePeerReviews', enabled: false}, '*')
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {subject: 'ASGMT.togglePeerReviews', enabled: false},
+            origin: window.location.origin,
+          }),
+        )
         await new Promise(resolve => setTimeout(resolve, 10))
       })
 
@@ -303,7 +318,12 @@ describe('PeerReviewSelector', () => {
       const {rerender} = renderComponent()
 
       await act(async () => {
-        window.postMessage({subject: 'ASGMT.togglePeerReviews', enabled: false}, '*')
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {subject: 'ASGMT.togglePeerReviews', enabled: false},
+            origin: window.location.origin,
+          }),
+        )
         await new Promise(resolve => setTimeout(resolve, 10))
       })
 
@@ -314,7 +334,12 @@ describe('PeerReviewSelector', () => {
       })
 
       await act(async () => {
-        window.postMessage({subject: 'ASGMT.togglePeerReviews', enabled: true}, '*')
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {subject: 'ASGMT.togglePeerReviews', enabled: true},
+            origin: window.location.origin,
+          }),
+        )
         await new Promise(resolve => setTimeout(resolve, 10))
       })
 

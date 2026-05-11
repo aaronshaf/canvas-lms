@@ -50,6 +50,11 @@ export function useSettingDependency(
 
   const handleMessage = useCallback(
     (event: MessageEvent) => {
+      // Only accept messages from the same origin. The legitimate sender is
+      // window.top.postMessage(...) from the Canvas page itself; cross-origin
+      // frames (e.g. embedded LTI tools) must not be able to mutate setting
+      // dependencies in the teacher's session.
+      if (event.origin !== window.location.origin) return
       if (event.data?.subject === subject) {
         if (event.data.enabled === false) {
           onDisabled()

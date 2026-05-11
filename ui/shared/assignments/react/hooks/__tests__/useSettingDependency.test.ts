@@ -35,7 +35,12 @@ describe('useSettingDependency', () => {
     )
 
     await act(async () => {
-      window.postMessage({subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS, enabled: false}, '*')
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS, enabled: false},
+          origin: window.location.origin,
+        }),
+      )
       await new Promise(resolve => setTimeout(resolve, 10))
     })
 
@@ -55,7 +60,12 @@ describe('useSettingDependency', () => {
     )
 
     await act(async () => {
-      window.postMessage({subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS, enabled: true}, '*')
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS, enabled: true},
+          origin: window.location.origin,
+        }),
+      )
       await new Promise(resolve => setTimeout(resolve, 10))
     })
 
@@ -75,7 +85,12 @@ describe('useSettingDependency', () => {
     )
 
     await act(async () => {
-      window.postMessage({subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS}, '*')
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS},
+          origin: window.location.origin,
+        }),
+      )
       await new Promise(resolve => setTimeout(resolve, 10))
     })
 
@@ -93,7 +108,12 @@ describe('useSettingDependency', () => {
     )
 
     await act(async () => {
-      window.postMessage({subject: 'SOME_OTHER_SUBJECT', enabled: false}, '*')
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {subject: 'SOME_OTHER_SUBJECT', enabled: false},
+          origin: window.location.origin,
+        }),
+      )
       await new Promise(resolve => setTimeout(resolve, 10))
     })
 
@@ -125,10 +145,77 @@ describe('useSettingDependency', () => {
     )
 
     await act(async () => {
-      window.postMessage({subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS, enabled: true}, '*')
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS, enabled: true},
+          origin: window.location.origin,
+        }),
+      )
       await new Promise(resolve => setTimeout(resolve, 10))
     })
 
     expect(onDisabled).not.toHaveBeenCalled()
+  })
+
+  it('ignores cross-origin messages', async () => {
+    const onDisabled = vi.fn()
+    const onEnabled = vi.fn()
+
+    renderHook(() =>
+      useSettingDependency(SETTING_MESSAGES.TOGGLE_PEER_REVIEWS, {
+        onDisabled,
+        onEnabled,
+      }),
+    )
+
+    await act(async () => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS, enabled: false},
+          origin: 'https://evil.example',
+        }),
+      )
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS, enabled: true},
+          origin: 'https://evil.example',
+        }),
+      )
+      await new Promise(resolve => setTimeout(resolve, 10))
+    })
+
+    expect(onDisabled).not.toHaveBeenCalled()
+    expect(onEnabled).not.toHaveBeenCalled()
+  })
+
+  it('processes same-origin messages dispatched directly', async () => {
+    const onDisabled = vi.fn()
+    const onEnabled = vi.fn()
+
+    renderHook(() =>
+      useSettingDependency(SETTING_MESSAGES.TOGGLE_PEER_REVIEWS, {
+        onDisabled,
+        onEnabled,
+      }),
+    )
+
+    await act(async () => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS, enabled: false},
+          origin: window.location.origin,
+        }),
+      )
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {subject: SETTING_MESSAGES.TOGGLE_PEER_REVIEWS, enabled: true},
+          origin: window.location.origin,
+        }),
+      )
+      await new Promise(resolve => setTimeout(resolve, 10))
+    })
+
+    expect(onDisabled).toHaveBeenCalledTimes(1)
+    expect(onEnabled).toHaveBeenCalledTimes(1)
   })
 })
