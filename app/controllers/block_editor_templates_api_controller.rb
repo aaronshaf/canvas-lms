@@ -79,6 +79,8 @@
 class BlockEditorTemplatesApiController < ApplicationController
   include Api::V1::BlockEditorTemplate
 
+  VALID_TEMPLATE_TYPES = %w[block section page].freeze
+
   before_action :require_context
 
   # @API List block templates
@@ -147,58 +149,77 @@ class BlockEditorTemplatesApiController < ApplicationController
   end
 
   def create
-    if template_editor?
-      template_params = get_update_params(params)
-      template = BlockEditorTemplate.new(template_params)
-      template.context = @context
-      template.name = params[:name] || "Untitled Template"
-      template.node_tree = params[:node_tree] || {}
-      template.editor_version = params[:editor_version] || "0.2"
-      template.template_type = params[:template_type] || "page"
-      template.thumbnail = params[:thumbnail] if params[:thumbnail].present?
-      template.workflow_state = params[:workflow_state]
-      template.save!
-      render json: block_editor_template_json(template, @current_user, session)
-    else
-      render status: :forbidden, json: { message: t("Cannot create block templates.") }
+    unless template_editor?
+      return render status: :forbidden, json: { message: t("Cannot create block templates.") }
     end
+
+    template_type = params[:template_type]
+    unless VALID_TEMPLATE_TYPES.include?(template_type)
+      return render status: :bad_request, json: { message: t("template_type must be one of: %{types}", types: VALID_TEMPLATE_TYPES.join(", ")) }
+    end
+    unless authorized_to_edit_type?(template_type)
+      return render status: :forbidden, json: { message: t("Cannot create block templates.") }
+    end
+
+    template_params = get_update_params(params)
+    template = BlockEditorTemplate.new(template_params)
+    template.context = @context
+    template.name = params[:name] || "Untitled Template"
+    template.node_tree = params[:node_tree] || {}
+    template.editor_version = params[:editor_version] || "0.2"
+    template.template_type = template_type
+    template.thumbnail = params[:thumbnail] if params[:thumbnail].present?
+    template.workflow_state = params[:workflow_state]
+    template.save!
+    render json: block_editor_template_json(template, @current_user, session)
   end
 
   def update
-    if template_editor?
-      template = @context.block_editor_templates.find(params[:id])
-      template.update!(get_update_params(params))
-      render json: block_editor_template_json(template, @current_user, session)
-    else
-      render status: :forbidden, json: { message: t("Cannot update block templates.") }
+    unless template_editor?
+      return render status: :forbidden, json: { message: t("Cannot update block templates.") }
     end
+
+    template = @context.block_editor_templates.find(params[:id])
+    new_type = params[:template_type] || template.template_type
+    unless VALID_TEMPLATE_TYPES.include?(new_type)
+      return render status: :bad_request, json: { message: t("template_type must be one of: %{types}", types: VALID_TEMPLATE_TYPES.join(", ")) }
+    end
+    unless authorized_to_edit_type?(template.template_type) && authorized_to_edit_type?(new_type)
+      return render status: :forbidden, json: { message: t("Cannot update block templates.") }
+    end
+
+    template.update!(get_update_params(params))
+    render json: block_editor_template_json(template, @current_user, session)
   end
 
   def publish
-    if template_editor?
-      template = @context.block_editor_templates.find(params[:id])
-      if template.present?
-        template.publish!
-        render json: block_editor_template_json(template, @current_user, session)
-      else
-        render status: :bad_request
-      end
-    else
-      render status: :forbidden, json: { message: t("Cannot publish block templates.") }
+    unless template_editor?
+      return render status: :forbidden, json: { message: t("Cannot publish block templates.") }
     end
+
+    template = @context.block_editor_templates.find(params[:id])
+    unless authorized_to_edit_type?(template.template_type)
+      return render status: :forbidden, json: { message: t("Cannot publish block templates.") }
+    end
+
+    template.publish!
+    render json: block_editor_template_json(template, @current_user, session)
   end
 
   def destroy
-    if template_editor?
-      template = @context.block_editor_templates.find(params[:id])
+    unless template_editor?
+      return render status: :forbidden, json: { message: t("Cannot delete block templates.") }
+    end
 
-      if template&.destroy
-        render json: template.to_json
-      else
-        render status: :bad_request
-      end
+    template = @context.block_editor_templates.find(params[:id])
+    unless authorized_to_edit_type?(template.template_type)
+      return render status: :forbidden, json: { message: t("Cannot delete block templates.") }
+    end
+
+    if template.destroy
+      render json: template.to_json
     else
-      render status: :forbidden, json: { message: t("Cannot delete block templates.") }
+      render status: :bad_request
     end
   end
 
@@ -209,19 +230,30 @@ class BlockEditorTemplatesApiController < ApplicationController
   end
 
   def template_editor?
-    @current_user.account.feature_enabled?(:block_editor) &&
-      @current_user.account.feature_enabled?(:block_template_editor) &&
+    @context.root_account.feature_enabled?(:block_editor) &&
+      @context.root_account.feature_enabled?(:block_template_editor) &&
       (@context.grants_right?(@current_user, :block_editor_template_editor) ||
        @context.grants_right?(@current_user, :block_editor_global_template_editor))
   end
 
   def global_template_editor?
-    @current_user.account.feature_enabled?(:block_editor) &&
-      @current_user.account.feature_enabled?(:block_template_editor) &&
+    @context.root_account.feature_enabled?(:block_editor) &&
+      @context.root_account.feature_enabled?(:block_template_editor) &&
       @context.grants_right?(@current_user, :block_editor_global_template_editor)
   end
 
   private
+
+  def authorized_to_edit_type?(template_type)
+    return false unless template_editor?
+    return global_template_editor? if requires_global_editor?(template_type)
+
+    true
+  end
+
+  def requires_global_editor?(template_type)
+    template_type == "page" || @context.is_a?(Account)
+  end
 
   def get_update_params(incoming_params)
     allowed_fields = Set[:id, :name, :description, :node_tree, :editor_version, :template_type, :thumbnail, :workflow_state].freeze
