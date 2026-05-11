@@ -2897,10 +2897,11 @@ class ApplicationController < ActionController::Base
   end
   helper_method :page_views_enabled?
 
-  def verified_file_download_url(attachment, context = nil, permission_map_id = nil, *opts)
+  def verified_file_download_url(attachment, context = nil, permission_map_id = nil, *opts, expires: nil)
     verifier = Attachments::Verification.new(attachment).verifier_for_user(@current_user,
                                                                            context: context.try(:asset_string),
-                                                                           permission_map_id:)
+                                                                           permission_map_id:,
+                                                                           expires:)
     file_download_url(attachment, { verifier: }, *opts)
   end
   helper_method :verified_file_download_url

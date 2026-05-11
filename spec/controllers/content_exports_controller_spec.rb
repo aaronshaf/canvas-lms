@@ -223,6 +223,25 @@ describe ContentExportsController do
             expect(response.parsed_body.dig("content_export", "download_url")).not_to include "verifier="
           end
         end
+
+        context "disable_verified_content_export_links disabled" do
+          before do
+            Account.site_admin.disable_feature!(:disable_verified_content_export_links)
+          end
+
+          it "issues a user-scoped JWT verifier rather than the attachment uuid" do
+            user_session(@teacher)
+            expect_any_instance_of(Attachments::Verification)
+              .to receive(:verifier_for_user)
+              .with(@teacher, hash_including(expires: be_within(5.seconds).of(1.day.from_now)))
+              .and_call_original
+            get :show, params: { course_id: @course.id, id: @acx.id }
+            url = response.parsed_body.dig("content_export", "download_url")
+            verifier = Rack::Utils.parse_nested_query(URI.parse(url).query)["verifier"]
+            expect(verifier).to be_present
+            expect(verifier).not_to eq @attachment.uuid
+          end
+        end
       end
     end
 
