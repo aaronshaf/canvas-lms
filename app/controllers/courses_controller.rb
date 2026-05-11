@@ -3784,7 +3784,7 @@ class CoursesController < ApplicationController
     respond_to do |format|
       format.html do
         flash[:notice] = t("notices.updated", "Course was successfully updated.")
-        redirect_to(params[:continue_to].presence || course_url(@course))
+        redirect_to(clean_return_to(params[:continue_to]) || course_url(@course))
       end
       format.json do
         if api_request?

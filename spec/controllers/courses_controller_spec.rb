@@ -3109,6 +3109,27 @@ describe CoursesController do
       expect(assigns[:course]).to eql(@course)
     end
 
+    context "continue_to redirect validation" do
+      before do
+        user_session(@teacher)
+      end
+
+      it "rejects external domain redirects" do
+        put "update", params: { id: @course.id, course: { name: "updated" }, continue_to: "https://evil.com" }
+        expect(response).to redirect_to(course_url(@course))
+      end
+
+      it "accepts relative path redirects" do
+        put "update", params: { id: @course.id, course: { name: "updated" }, continue_to: "/courses/#{@course.id}/settings" }
+        expect(response).to redirect_to("/courses/#{@course.id}/settings")
+      end
+
+      it "accepts same-host redirects" do
+        put "update", params: { id: @course.id, course: { name: "updated" }, continue_to: "http://#{request.host_with_port}/courses/#{@course.id}/settings" }
+        expect(response).to redirect_to("http://#{request.host_with_port}/courses/#{@course.id}/settings")
+      end
+    end
+
     context "when course_navigation_and_feature_options_permissions is enabled" do
       before do
         @course.root_account.enable_feature!(:course_navigation_and_feature_options_permissions)
