@@ -37,32 +37,18 @@ module AiExperiences
       )
       conversation_id = conversation["id"]
 
-      Rails.logger.info "=== AiExperiences::ConversationStartService#start DEBUG ==="
-      Rails.logger.info "Conversation ID: #{conversation_id}"
-      Rails.logger.info "Conversation has learning_objective_progress: #{conversation["learning_objective_progress"].present?}"
-      Rails.logger.info "Conversation learning_objective_progress: #{conversation["learning_objective_progress"].inspect}"
-
       messages_result = fetch_messages(conversation_id:)
-
-      Rails.logger.info "Messages data progress: #{messages_result[:progress].inspect}"
 
       progress = messages_result[:progress]
       if progress.nil? && conversation["learning_objective_progress"]
-        Rails.logger.info "Extracting progress from conversation object"
         progress = extract_progress(conversation["learning_objective_progress"])
-        Rails.logger.info "Extracted progress: #{progress.inspect}"
       end
 
-      result = {
+      {
         conversation_id:,
         messages: messages_result[:messages],
         progress:
       }
-
-      Rails.logger.info "Final result progress: #{result[:progress].inspect}"
-      Rails.logger.info "=== END DEBUG ==="
-
-      result
     end
 
     private

@@ -109,6 +109,29 @@ describe LlmConversation::HttpClient do
       end
     end
 
+    context "when the retried request also returns 401" do
+      let(:refresh_response) do
+        { "api_token" => "new-api-token", "refresh_token" => "new-refresh-token" }.to_json
+      end
+
+      before do
+        stub_request(:get, "http://localhost:3001/conversations")
+          .to_return(
+            { status: 401, body: "Unauthorized" },
+            { status: 401, body: "Still unauthorized" }
+          )
+        stub_request(:post, "http://localhost:3001/token/refresh")
+          .to_return(status: 200, body: refresh_response, headers: { "Content-Type" => "application/json" })
+      end
+
+      it "raises ConversationError without recursing into a second refresh" do
+        expect { client.get("/conversations") }
+          .to raise_error(LlmConversation::Errors::ConversationError)
+        expect(WebMock).to have_requested(:post, "http://localhost:3001/token/refresh").once
+        expect(WebMock).to have_requested(:get, "http://localhost:3001/conversations").twice
+      end
+    end
+
     context "when the account does not have V2 auth enabled" do
       let(:v1_client) do
         allow(Rails.application.credentials).to receive(:llm_conversation_bearer_token).and_return("v1-token")

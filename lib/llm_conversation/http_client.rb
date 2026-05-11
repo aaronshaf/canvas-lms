@@ -128,7 +128,7 @@ module LlmConversation
       end
     end
 
-    def request(method, path, payload: nil)
+    def request(method, path, payload: nil, retried: false)
       raise LlmConversation::Errors::ConversationError, "Bearer token not configured for LLM Conversation Service" if @bearer_token.nil?
 
       uri = URI("#{@base_url}#{path}")
@@ -162,9 +162,9 @@ module LlmConversation
       response = http.request(req)
 
       unless response.is_a?(Net::HTTPSuccess)
-        if response.is_a?(Net::HTTPUnauthorized) && @v2_auth
+        if response.is_a?(Net::HTTPUnauthorized) && @v2_auth && !retried
           refresh_v2_token!
-          return request(method, path, payload:)
+          return request(method, path, payload:, retried: true)
         end
 
         llma_code = nil
