@@ -2771,7 +2771,7 @@ class Course < ApplicationRecord
   end
 
   def bulk_assign_enrollment_paces(_, enrollment_ids, pace_create_params)
-    Enrollment.where(id: enrollment_ids).find_each do |enrollment|
+    enrollments.where(id: enrollment_ids).find_each do |enrollment|
       pace_create_params[:user_id] = enrollment.user_id
       pace_create_params[:workflow_state] = "active"
       pace_create_params[:course_id] = enrollment.course_id

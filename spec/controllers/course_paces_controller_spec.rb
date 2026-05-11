@@ -919,6 +919,39 @@ describe CoursePacesController do
       expect(response).to be_successful
       expect(Progress.where(tag: "bulk_assign_paces").count).to eq(1)
     end
+
+    context "with cross-course inputs" do
+      before :once do
+        @other_course = course_factory(active_all: true)
+        @other_course.update!(enable_course_paces: true)
+        @other_enrollment = @other_course.enroll_student(
+          User.create!,
+          enrollment_state: "active",
+          allow_multiple_enrollments: true
+        )
+      end
+
+      it "does not create paces in another course when its enrollment ids are supplied" do
+        post :bulk_create_enrollment_paces, params: {
+          course_id: @course.id,
+          course_pace: create_params,
+          enrollment_ids: [@student_enrollment.id, @other_enrollment.id]
+        }
+        run_jobs
+        expect(CoursePace.where(course_id: @other_course.id)).to be_empty
+      end
+
+      it "does not bind paces to a course_section_id from another course" do
+        foreign_section = @other_course.course_sections.first
+        post :bulk_create_enrollment_paces, params: {
+          course_id: @course.id,
+          course_pace: create_params.merge(course_section_id: foreign_section.id),
+          enrollment_ids: [@student_enrollment.id]
+        }
+        run_jobs
+        expect(CoursePace.where(course_section_id: foreign_section.id)).to be_empty
+      end
+    end
   end
 
   describe "POST #compress_dates" do

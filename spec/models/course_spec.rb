@@ -10803,4 +10803,25 @@ describe Course do
       end
     end
   end
+
+  describe "#bulk_assign_enrollment_paces" do
+    let_once(:victim_course) do
+      course_factory(active_all: true).tap { |c| c.update!(enable_course_paces: true) }
+    end
+    let_once(:victim_enrollment) do
+      victim_course.enroll_student(User.create!, enrollment_state: "active")
+    end
+    let_once(:attacker_course) do
+      course_factory(active_all: true).tap { |c| c.update!(enable_course_paces: true) }
+    end
+
+    it "does not create paces in another course when given that course's enrollment ids" do
+      attacker_course.bulk_assign_enrollment_paces(
+        nil,
+        [victim_enrollment.id],
+        { workflow_state: "active" }
+      )
+      expect(CoursePace.where(course_id: victim_course.id)).to be_empty
+    end
+  end
 end

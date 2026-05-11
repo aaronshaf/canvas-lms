@@ -520,7 +520,8 @@ class CoursePacesController < ApplicationController
   def bulk_create_enrollment_paces
     return unless authorized_action(@course, @current_user, :manage_course_content_edit)
 
-    @course.run_bulk_assign_enrollment_paces_delayed_job(params[:enrollment_ids], bulk_create_params)
+    scoped_enrollment_ids = @course.enrollments.where(id: params[:enrollment_ids]).pluck(:id)
+    @course.run_bulk_assign_enrollment_paces_delayed_job(scoped_enrollment_ids, bulk_create_params)
   end
 
   # @API Update a Course pace
@@ -779,13 +780,9 @@ class CoursePacesController < ApplicationController
 
   def bulk_create_params
     @bulk_create_params ||= params.require(:course_pace).permit(
-      :course_id,
-      :course_section_id,
-      :user_id,
       :end_date,
       :exclude_weekends,
       :hard_end_dates,
-      :workflow_state,
       :time_to_complete_calendar_days,
       course_pace_module_items_attributes: %i[duration module_item_id root_account_id],
       selected_days_to_skip: [],
