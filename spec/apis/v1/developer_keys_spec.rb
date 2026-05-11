@@ -234,6 +234,10 @@ describe DeveloperKeysController, type: :request do
   end
 
   describe "PUT 'update'" do
+    before do
+      set_domain_root_account(account: Account.site_admin)
+    end
+
     it "requires authorization" do
       key = DeveloperKey.create!
       unauthorized_api_call(:put,
@@ -253,6 +257,10 @@ describe DeveloperKeysController, type: :request do
   end
 
   describe "DELETE 'destroy'" do
+    before do
+      set_domain_root_account(account: Account.site_admin)
+    end
+
     it "requires authorization" do
       key = DeveloperKey.create!
       unauthorized_api_call(:delete, "/api/v1/developer_keys/#{key.id}.json", {

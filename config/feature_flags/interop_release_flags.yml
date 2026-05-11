@@ -409,6 +409,20 @@ modify_site_admin_developer_keys_permission:
       state: allowed_on
     ci:
       state: allowed_on
+developer_key_domain_root_account_restriction:
+  state: hidden
+  shadow: true
+  applies_to: SiteAdmin
+  display_name: 'Enforce Developer Key Domain Root Account Restriction'
+  description: |-
+    Requires that Developer Key create/update/delete API requests
+    originate from the same domain as the key's root account.
+    Prevents cross-domain mutation of Developer Keys via API.
+  environments:
+    development:
+      state: allowed_on
+    ci:
+      state: allowed_on
 nav_menu_links:
   state: hidden
   shadow: true

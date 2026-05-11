@@ -18,14 +18,17 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 require_relative "../helpers/developer_keys_common"
+require_relative "../../support/account_domain_spec_helper"
 
 describe "Developer Keys" do
   include_context "in-process server selenium tests"
   include DeveloperKeysCommon
+  include AccountDomainSpecHelper
 
   describe "as an admin" do
     before do
       admin_logged_in
+      set_domain_root_account(account: Account.default)
     end
 
     let(:root_developer_key) do
@@ -150,6 +153,7 @@ describe "Developer Keys" do
     end
 
     it "renders the key visible" do
+      set_domain_root_account(account: Account.site_admin)
       site_admin_developer_key
       site_admin_logged_in
       get "/accounts/site_admin/developer_keys"
@@ -176,9 +180,11 @@ describe "Developer Keys" do
       it "root account inherits 'on' binding workflow state from site admin key" do
         site_admin_logged_in
         site_admin_developer_key.update(visible: true)
+        set_domain_root_account(account: Account.site_admin)
         get "/accounts/site_admin/developer_keys"
         fj("div:contains('On'):last").click
         find_button("Switch to On").click
+        set_domain_root_account(account: Account.default)
         get "/accounts/#{Account.default.id}/developer_keys"
         click_inherited_tab
         expect(f("input[type='checkbox']:disabled")).to be_truthy
@@ -188,8 +194,10 @@ describe "Developer Keys" do
       it "root account inherits 'off' binding workflow state from site admin key" do
         site_admin_logged_in
         site_admin_developer_key.update(visible: true)
+        set_domain_root_account(account: Account.site_admin)
         get "/accounts/site_admin/developer_keys"
         fj("div:contains('Off'):last").click
+        set_domain_root_account(account: Account.default)
         get "/accounts/#{Account.default.id}/developer_keys"
         click_inherited_tab
         # checks that the state toggle is disabled from interaction
@@ -205,12 +213,14 @@ describe "Developer Keys" do
         click_inherited_tab
         fj("div:has(input[type='checkbox']:not(:checked):last) > label").click
         find_button("Switch to On").click
+        set_domain_root_account(account: Account.site_admin)
         get "/accounts/site_admin/developer_keys"
         fj("div:contains('Off'):last").click
         find_button("Switch to Off").click
         expect(DeveloperKeyAccountBinding.where(account_id: Account.site_admin.id).first.workflow_state).to eq "off"
         fj("div:contains('Allow'):last").click
         find_button("Switch to Allow").click
+        set_domain_root_account(account: Account.default)
         get "/accounts/#{Account.default.id}/developer_keys"
         click_inherited_tab
         expect(DeveloperKeyAccountBinding.where(account_id: Account.default.id).first.workflow_state).to eq "on"

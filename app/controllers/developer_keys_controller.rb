@@ -196,8 +196,9 @@ class DeveloperKeysController < ApplicationController
   before_action :require_modify_site_admin_developer_keys, except: %i[index lookup_utids]
   before_action :require_root_account, only: %i[index create]
   before_action :require_elevated_auth_provider,
-                only: %i[index create update destroy],
+                only: %i[index create update destroy regenerate_secret],
                 if: :require_elevated_auth_provider_for_developer_keys?
+  before_action :restrict_cross_domain_modifications, only: %i[create update destroy regenerate_secret]
 
   include HorizonMode
 
@@ -546,6 +547,16 @@ class DeveloperKeysController < ApplicationController
   rescue ActiveRecord::RecordNotFound => e
     report_error(e)
     raise e
+  end
+
+  def restrict_cross_domain_modifications
+    return unless Account.site_admin.feature_enabled?(:developer_key_domain_root_account_restriction)
+
+    key_account = @key ? (@key.account || Account.site_admin) : @context
+    return if @domain_root_account == key_account
+
+    render json: { errors: [{ message: "Developer keys may only be managed from their account's domain" }] },
+           status: :forbidden
   end
 
   def require_root_account

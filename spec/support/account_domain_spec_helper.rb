@@ -25,4 +25,18 @@ module AccountDomainSpecHelper
     # which works as long as test_cluster_name is nil
     allow(HostUrl).to receive_messages(context_host: host, default_host: host)
   end
+
+  def set_domain_root_account(account: nil)
+    raise ArgumentError, "account must be an Account" if account.nil? || !account.instance_of?(Account)
+
+    if respond_to?(:controller) && controller.present?
+      controller.instance_variable_set(:@domain_root_account, account)
+    end
+    allow(LoadAccount).to receive(:default_domain_root_account).and_return(account)
+  end
+end
+
+RSpec.configure do |config|
+  config.include AccountDomainSpecHelper, type: :controller
+  config.include AccountDomainSpecHelper, type: :request
 end

@@ -40,6 +40,7 @@ describe DeveloperKeysController do
   context "Site admin" do
     before do
       account_admin_user(account: Account.site_admin)
+      set_domain_root_account(account: Account.site_admin)
     end
 
     describe "GET 'index'" do
@@ -103,6 +104,7 @@ describe DeveloperKeysController do
             sample_scopes_for_root_account
           end
 
+          set_domain_root_account(account: Account.default)
           get "index", params: { account_id: Account.default.id }
           expect(acct_id_from_stub).to eq(Account.default.id)
 
@@ -374,6 +376,10 @@ describe DeveloperKeysController do
         let(:invalid_scopes) { ["url:POST/banana", "url:POST/invalid/scope"] }
         let(:root_account) { account_model }
 
+        before do
+          set_domain_root_account(account: root_account)
+        end
+
         it 'allows setting "allow_includes"' do
           post "create", params: { account_id: root_account.id, developer_key: { scopes: valid_scopes, allow_includes: true } }
           expect(DeveloperKey.find(json_parse["id"]).allow_includes).to be true
@@ -504,11 +510,12 @@ describe DeveloperKeysController do
         end
         let(:invalid_scopes) { ["url:POST|/api/v1/banana", "not_a_scope"] }
         let(:root_account) { account_model }
-        let(:developer_key) { DeveloperKey.create!(account: account_model) }
+        let(:developer_key) { DeveloperKey.create!(account: root_account) }
         let(:site_admin_key) { DeveloperKey.create! }
 
         before do
           user_session(@admin)
+          set_domain_root_account(account: root_account)
         end
 
         it 'allows setting "allow_includes"' do
@@ -517,6 +524,7 @@ describe DeveloperKeysController do
         end
 
         it "allows setting scopes for site admin keys" do
+          set_domain_root_account(account: Account.site_admin)
           put "update", params: { id: site_admin_key.id, developer_key: { scopes: valid_scopes } }
           expect(site_admin_key.reload.scopes).to match_array valid_scopes
         end
@@ -572,6 +580,7 @@ describe DeveloperKeysController do
         let_once(:account) { account_model }
 
         before do
+          set_domain_root_account(account:)
           allow_any_instance_of(DeveloperKey).to receive(:destroy).and_return(false)
         end
 
@@ -621,6 +630,10 @@ describe DeveloperKeysController do
         end
         let(:tool_config) { lti_registration.manual_configuration }
 
+        before do
+          set_domain_root_account(account:)
+        end
+
         it "soft deletes the tool configuration and the registration" do
           tool_config
           delete :destroy, params: { id: dk.id, account_id: account.id }
@@ -654,6 +667,10 @@ describe DeveloperKeysController do
         let(:dk) { dev_key_model_dyn_reg(account:) }
         let(:lti_registration) { dk.lti_registration }
         let(:ims_registration) { dk.ims_registration }
+
+        before do
+          set_domain_root_account(account:)
+        end
 
         it "soft deletes the registration" do
           delete :destroy, params: { id: dk.id, account_id: account.id }
@@ -883,6 +900,7 @@ describe DeveloperKeysController do
             before do
               test_domain_root_account.enable_feature!(:developer_key_regenerate_secret)
               user_session(account_admin)
+              set_domain_root_account(account: test_domain_root_account)
             end
 
             it "successfully regenerates the key" do
@@ -1272,7 +1290,10 @@ describe DeveloperKeysController do
         end
 
         context "when user has modify_site_admin_developer_keys permission" do
-          before { user_session(site_admin_admin) }
+          before do
+            user_session(site_admin_admin)
+            set_domain_root_account(account: Account.site_admin)
+          end
 
           it "allows creating a site admin developer key" do
             post :create, params: create_params, format: :json
@@ -1283,7 +1304,10 @@ describe DeveloperKeysController do
         end
 
         context "when user lacks modify_site_admin_developer_keys permission" do
-          before { user_session(site_admin_without_permission) }
+          before do
+            user_session(site_admin_without_permission)
+            set_domain_root_account(account: Account.site_admin)
+          end
 
           it "returns forbidden" do
             post :create, params: create_params, format: :json
@@ -1297,7 +1321,10 @@ describe DeveloperKeysController do
         let(:site_admin_key) { DeveloperKey.create!(name: "Site Admin Key") }
 
         context "when user has modify_site_admin_developer_keys permission" do
-          before { user_session(site_admin_admin) }
+          before do
+            user_session(site_admin_admin)
+            set_domain_root_account(account: Account.site_admin)
+          end
 
           it "allows updating a site admin developer key" do
             put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated Name" }, account_id: Account.site_admin.id }, format: :json
@@ -1321,7 +1348,10 @@ describe DeveloperKeysController do
         let(:site_admin_key) { DeveloperKey.create!(name: "Site Admin Key") }
 
         context "when user has modify_site_admin_developer_keys permission" do
-          before { user_session(site_admin_admin) }
+          before do
+            user_session(site_admin_admin)
+            set_domain_root_account(account: Account.site_admin)
+          end
 
           it "allows deleting a site admin developer key" do
             delete :destroy, params: { id: site_admin_key.id, account_id: Account.site_admin.id }, format: :json
@@ -1331,7 +1361,10 @@ describe DeveloperKeysController do
         end
 
         context "when user lacks modify_site_admin_developer_keys permission" do
-          before { user_session(site_admin_without_permission) }
+          before do
+            user_session(site_admin_without_permission)
+            set_domain_root_account(account: Account.site_admin)
+          end
 
           it "returns forbidden" do
             delete :destroy, params: { id: site_admin_key.id, account_id: Account.site_admin.id }, format: :json
@@ -1356,12 +1389,74 @@ describe DeveloperKeysController do
           user
         end
 
-        before { user_session(account_admin) }
+        before do
+          user_session(account_admin)
+          set_domain_root_account(account: root_account)
+        end
 
         it "does not require modify_site_admin_developer_keys for account-level keys" do
           put :update, params: { id: account_key.id, developer_key: { name: "Updated" }, account_id: root_account.id }, format: :json
           expect(response).to be_successful
         end
+      end
+    end
+  end
+
+  describe "developer_key_domain_root_account_restriction feature flag" do
+    let(:site_admin_key) { DeveloperKey.create!(name: "Site Admin Key") }
+    let(:root_account) { Account.create! }
+    let(:account_key) { DeveloperKey.create!(name: "Account Key", account: root_account) }
+    let(:site_admin_admin) { account_admin_user(account: Account.site_admin) }
+
+    context "when flag is disabled" do
+      before do
+        Account.site_admin.disable_feature!(:developer_key_domain_root_account_restriction)
+        user_session(site_admin_admin)
+        set_domain_root_account(account: Account.default)
+      end
+
+      it "allows updating a site admin key from a non-site-admin domain" do
+        put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated" } }, format: :json
+        expect(response).to be_successful
+      end
+    end
+
+    context "when domain does not match key's root account" do
+      before do
+        user_session(site_admin_admin)
+        set_domain_root_account(account: root_account)
+      end
+
+      it "returns forbidden when updating a site admin key" do
+        put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated" } }, format: :json
+        expect(response).to be_forbidden
+        expect(json_parse(response.body)["errors"].first["message"]).to include("account's domain")
+      end
+
+      it "returns forbidden when deleting a site admin key" do
+        delete :destroy, params: { id: site_admin_key.id }, format: :json
+        expect(response).to be_forbidden
+      end
+
+      it "returns forbidden when creating a site admin key" do
+        post :create, params: { account_id: Account.site_admin.id, developer_key: { name: "New Key" } }, format: :json
+        expect(response).to be_forbidden
+      end
+
+      it "allows updating a key that belongs to the current domain" do
+        set_domain_root_account(account: root_account)
+        account_admin_user(account: root_account)
+        user_session(@admin)
+        put :update, params: { id: account_key.id, developer_key: { name: "Updated" }, account_id: root_account.id }, format: :json
+        expect(response).to be_successful
+      end
+
+      it "returns forbidden when updating a key from a different root account domain" do
+        other_account = Account.create!
+        other_key = DeveloperKey.create!(account: other_account)
+        set_domain_root_account(account: root_account)
+        put :update, params: { id: other_key.id, developer_key: { name: "Updated" } }, format: :json
+        expect(response).to be_forbidden
       end
     end
   end
@@ -1377,6 +1472,7 @@ describe DeveloperKeysController do
       account_admin_user(account:)
       user_with_pseudonym(user: @admin, account:)
       user_session(@admin, @pseudonym)
+      set_domain_root_account(account:)
 
       AuthenticationMethods::PseudonymAttributes.reset
 
