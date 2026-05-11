@@ -598,7 +598,7 @@ function showFilePreviewInOverlayHandler({file_id, verifier, access_token, instf
     })
 }
 
-function wireUpFilePreview() {
+export function wireUpFilePreview() {
   if (
     ENV?.PLATFORM_SERVICE_SPEEDGRADER_ENABLED &&
     window.location.href.includes('gradebook/speed_grader')
@@ -606,7 +606,22 @@ function wireUpFilePreview() {
     return
   }
   window.addEventListener('message', event => {
-    if (event.data.subject === 'preview_file') {
+    // Origin guard: the legitimate sender is the canvas-rce iframe in
+    // packages/canvas-rce/src/enhance-user-content/instructure_helper.js, which
+    // posts to window.top with canvasOrigin. Without this check, any cross-origin
+    // frame (malicious LTI tool, injected iframe, pop-under) could trigger the
+    // file-preview overlay with attacker-supplied file_id/verifier/access_token
+    // in the victim's session. Mirrors the trusted-origin convention used at
+    // the top of this file (DEEP_LINKING_POST_MESSAGE_ORIGIN || location.origin).
+    //
+    // Caveats:
+    //   - event.data is also null-checked because any page can postMessage a
+    //     primitive; reading .subject off null would throw
+    //   - In a sandboxed iframe with origin "null", a sibling "null"-origin
+    //     frame would match. Not a realistic concern for Canvas's deploy.
+    const expectedOrigin = ENV?.DEEP_LINKING_POST_MESSAGE_ORIGIN || window.location?.origin
+    if (event.origin !== expectedOrigin) return
+    if (event.data && event.data.subject === 'preview_file') {
       showFilePreviewInOverlayHandler(event.data)
     }
   })
