@@ -610,10 +610,14 @@ describe('ContentTabs', () => {
     })
 
     function fireEventWithContentItem(contentItem) {
+      const trustedOrigin = 'http://canvas.test'
+      window.ENV = window.ENV || {}
+      window.ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN = trustedOrigin
       act(() => {
         fireEvent(
           window,
           new MessageEvent('message', {
+            origin: trustedOrigin,
             data: {
               subject: 'LtiDeepLinkingResponse',
               content_items: [contentItem],

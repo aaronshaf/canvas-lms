@@ -80,8 +80,21 @@ async function makeProps(overrides) {
 }
 
 describe('FileUpload - Upload and LTI', () => {
+  const TRUSTED_ORIGIN = 'http://canvas.test'
+  let originalDeepLinkingOrigin
+
   beforeAll(() => {
     $('body').append('<div role="alert" id="flash_screenreader_holder" />')
+  })
+
+  beforeEach(() => {
+    window.ENV = window.ENV || {}
+    originalDeepLinkingOrigin = window.ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN
+    window.ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN = TRUSTED_ORIGIN
+  })
+
+  afterEach(() => {
+    window.ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN = originalDeepLinkingOrigin
   })
 
   const uploadFiles = (element, files) => {
@@ -173,6 +186,7 @@ describe('FileUpload - Upload and LTI', () => {
     fireEvent(
       window,
       new MessageEvent('message', {
+        origin: TRUSTED_ORIGIN,
         data: {
           subject: 'LtiDeepLinkingResponse',
           content_items: [
@@ -220,6 +234,7 @@ describe('FileUpload - Upload and LTI', () => {
     fireEvent(
       window,
       new MessageEvent('message', {
+        origin: TRUSTED_ORIGIN,
         data: {
           subject: 'A2ExternalContentReady',
           content_items: [
@@ -263,6 +278,7 @@ describe('FileUpload - Upload and LTI', () => {
     fireEvent(
       window,
       new MessageEvent('message', {
+        origin: TRUSTED_ORIGIN,
         data: {
           subject: 'A2ExternalContentReady',
           content_items: [],
@@ -289,6 +305,7 @@ describe('FileUpload - Upload and LTI', () => {
     fireEvent(
       window,
       new MessageEvent('message', {
+        origin: TRUSTED_ORIGIN,
         data: {
           subject: 'LtiDeepLinkingResponse',
           errormsg,
@@ -315,6 +332,7 @@ describe('FileUpload - Upload and LTI', () => {
     fireEvent(
       window,
       new MessageEvent('message', {
+        origin: TRUSTED_ORIGIN,
         data: {
           subject: 'LtiDeepLinkingResponse',
           content_items: [
@@ -330,5 +348,70 @@ describe('FileUpload - Upload and LTI', () => {
     )
 
     expect(props.onUploadRequested).not.toHaveBeenCalled()
+  })
+
+  it('ignores LTI postMessages from an untrusted origin', async () => {
+    const mocks = await createGraphqlMocks()
+    const setOnFailure = vi.fn()
+    const setOnSuccess = vi.fn()
+    const props = await makeProps({
+      Submission: {attempt: 0},
+    })
+
+    render(
+      <MockedProvider mocks={mocks}>
+        <AlertManagerContext.Provider value={{setOnFailure, setOnSuccess}}>
+          <FileUpload {...props} />
+        </AlertManagerContext.Provider>
+      </MockedProvider>,
+    )
+
+    fireEvent(
+      window,
+      new MessageEvent('message', {
+        origin: 'http://evil.example.com',
+        data: {
+          subject: 'LtiDeepLinkingResponse',
+          content_items: [
+            {
+              url: 'http://evil.example.com/malicious.txt',
+              title: 'malicious.txt',
+              mediaType: 'plain/txt',
+            },
+          ],
+        },
+      }),
+    )
+
+    fireEvent(
+      window,
+      new MessageEvent('message', {
+        origin: 'http://evil.example.com',
+        data: {
+          subject: 'LtiDeepLinkingResponse',
+          errormsg: 'attacker-controlled error text',
+        },
+      }),
+    )
+
+    fireEvent(
+      window,
+      new MessageEvent('message', {
+        origin: 'http://evil.example.com',
+        data: {
+          subject: 'A2ExternalContentReady',
+          content_items: [
+            {
+              url: 'http://evil.example.com/malicious.txt',
+              title: 'malicious.txt',
+              mediaType: 'plain/txt',
+            },
+          ],
+        },
+      }),
+    )
+
+    expect(props.onUploadRequested).not.toHaveBeenCalled()
+    expect(setOnFailure).not.toHaveBeenCalled()
   })
 })

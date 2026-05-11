@@ -122,6 +122,9 @@ class FileUpload extends Component {
   }
 
   handleLTIFiles = async e => {
+    if (e.origin !== ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN) return
+    if (!e.data || typeof e.data !== 'object') return
+
     if (e.data.subject === 'LtiDeepLinkingResponse') {
       if (e.data.errormsg) {
         this.context.setOnFailure(e.data.errormsg)
