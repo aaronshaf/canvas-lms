@@ -1429,22 +1429,12 @@ describe ContentExportsApiController, type: :request do
       assert_status(200)
     end
 
-    it "allows creating a zip export" do
+    it "blocks anonymous create of a zip export" do
       raw_api_call(:post,
                    "/api/v1/courses/#{t_course.id}/content_exports?export_type=zip",
                    { controller: "content_exports_api", action: "create", format: "json", course_id: t_course.to_param, export_type: "zip" })
-      assert_status(200)
-    end
-
-    it "allows showing an export created by an anonymous user" do
-      raw_api_call(:post,
-                   "/api/v1/courses/#{t_course.id}/content_exports?export_type=zip",
-                   { controller: "content_exports_api", action: "create", format: "json", course_id: t_course.to_param, export_type: "zip" })
-      export_id = response.parsed_body["id"]
-      raw_api_call(:get,
-                   "/api/v1/courses/#{t_course.id}/content_exports/#{export_id}",
-                   { controller: "content_exports_api", action: "show", format: "json", course_id: t_course.to_param, id: export_id.to_s })
-      assert_status(200)
+      assert_status(401)
+      expect(t_course.content_exports.where(user_id: nil)).not_to exist
     end
   end
 end

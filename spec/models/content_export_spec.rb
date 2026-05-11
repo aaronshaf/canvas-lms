@@ -495,6 +495,28 @@ describe ContentExport do
     end
   end
 
+  describe "permissions" do
+    before :once do
+      @course.update!(is_public: true)
+    end
+
+    it "does not grant :create on zip exports to an anonymous user on a public course" do
+      export = @course.content_exports.build(export_type: ContentExport::ZIP)
+      expect(export.grants_right?(nil, :create)).to be false
+    end
+
+    it "does not grant :create on user_data exports to an anonymous user on a public course" do
+      export = @course.content_exports.build(export_type: ContentExport::USER_DATA)
+      expect(export.grants_right?(nil, :create)).to be false
+    end
+
+    it "still grants :create on zip exports to an enrolled student" do
+      student = student_in_course(course: @course, active_all: true).user
+      export = @course.content_exports.build(export_type: ContentExport::ZIP)
+      expect(export.grants_right?(student, :create)).to be true
+    end
+  end
+
   describe "#expired" do
     it "marks as expired after X days" do
       ContentExport.where(id: @ce.id).update_all(created_at: 35.days.ago)

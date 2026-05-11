@@ -80,7 +80,7 @@
 #     }
 #
 class ContentExportsApiController < ApplicationController
-  skip_before_action :require_user, only: %i[create index show]
+  skip_before_action :require_user, only: %i[index show]
   include ContentExportApiHelper
   include SupportHelpers::ControllerHelpers
   include Api::V1::ContentExport
