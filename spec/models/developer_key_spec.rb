@@ -1942,99 +1942,99 @@ describe DeveloperKey do
     end
   end
 
-  describe "#redirect_domain_matches?" do
+  describe "#redirect_uri_matches?" do
     it "matches domains exactly, and sub-domains" do
       developer_key_not_saved.redirect_uri = "http://example.com/a/b"
 
-      expect(developer_key_not_saved.redirect_domain_matches?("http://example.com/a/b")).to be_truthy
+      expect(developer_key_not_saved.redirect_uri_matches?("http://example.com/a/b")).to be_truthy
 
       # other paths on the same domain are ok
-      expect(developer_key_not_saved.redirect_domain_matches?("http://example.com/other")).to be_truthy
+      expect(developer_key_not_saved.redirect_uri_matches?("http://example.com/other")).to be_truthy
 
       # completely separate domain
-      expect(developer_key_not_saved.redirect_domain_matches?("http://example2.com/a/b")).to be_falsey
+      expect(developer_key_not_saved.redirect_uri_matches?("http://example2.com/a/b")).to be_falsey
 
       # not a sub-domain
-      expect(developer_key_not_saved.redirect_domain_matches?("http://wwwexample.com/a/b")).to be_falsey
-      expect(developer_key_not_saved.redirect_domain_matches?("http://example.com.evil/a/b")).to be_falsey
-      expect(developer_key_not_saved.redirect_domain_matches?("http://www.example.com.evil/a/b")).to be_falsey
+      expect(developer_key_not_saved.redirect_uri_matches?("http://wwwexample.com/a/b")).to be_falsey
+      expect(developer_key_not_saved.redirect_uri_matches?("http://example.com.evil/a/b")).to be_falsey
+      expect(developer_key_not_saved.redirect_uri_matches?("http://www.example.com.evil/a/b")).to be_falsey
 
       # sub-domains are ok
-      expect(developer_key_not_saved.redirect_domain_matches?("http://www.example.com/a/b")).to be_truthy
-      expect(developer_key_not_saved.redirect_domain_matches?("http://a.b.example.com/a/b")).to be_truthy
-      expect(developer_key_not_saved.redirect_domain_matches?("http://a.b.example.com/other")).to be_truthy
+      expect(developer_key_not_saved.redirect_uri_matches?("http://www.example.com/a/b")).to be_truthy
+      expect(developer_key_not_saved.redirect_uri_matches?("http://a.b.example.com/a/b")).to be_truthy
+      expect(developer_key_not_saved.redirect_uri_matches?("http://a.b.example.com/other")).to be_truthy
     end
 
     it "does not allow subdomains when it matches in redirect_uris" do
       developer_key_not_saved.redirect_uris << "http://example.com/a/b"
 
-      expect(developer_key_not_saved.redirect_domain_matches?("http://example.com/a/b")).to be true
+      expect(developer_key_not_saved.redirect_uri_matches?("http://example.com/a/b")).to be true
 
       # other paths on the same domain are NOT ok
-      expect(developer_key_not_saved.redirect_domain_matches?("http://example.com/other")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches?("http://example.com/other")).to be false
       # sub-domains are not ok either
-      expect(developer_key_not_saved.redirect_domain_matches?("http://www.example.com/a/b")).to be false
-      expect(developer_key_not_saved.redirect_domain_matches?("http://a.b.example.com/a/b")).to be false
-      expect(developer_key_not_saved.redirect_domain_matches?("http://a.b.example.com/other")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches?("http://www.example.com/a/b")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches?("http://a.b.example.com/a/b")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches?("http://a.b.example.com/other")).to be false
     end
 
     it "requires scheme to match on lenient matches" do
       developer_key_not_saved.redirect_uri = "http://example.com/a/b"
 
-      expect(developer_key_not_saved.redirect_domain_matches?("http://www.example.com/a/b")).to be true
-      expect(developer_key_not_saved.redirect_domain_matches?("intents://www.example.com/a/b")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches?("http://www.example.com/a/b")).to be :lenient
+      expect(developer_key_not_saved.redirect_uri_matches?("intents://www.example.com/a/b")).to be false
     end
   end
 
-  describe "redirect_uri_matches?" do
+  describe "redirect_uri_matches_for_lti?" do
     it "returns true when the URI exactly matches a URI in redirect_uris" do
       developer_key_not_saved.redirect_uris = ["https://example.com/callback", "http://example.org/cb"]
-      expect(developer_key_not_saved.redirect_uri_matches?("https://example.com/callback")).to be true
-      expect(developer_key_not_saved.redirect_uri_matches?("https://exAmple.com:443/cb")).to be true
-      expect(developer_key_not_saved.redirect_uri_matches?("http://exAmple.org:80/cb")).to be true
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("https://example.com/callback")).to be true
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("https://exAmple.com:443/cb")).to be true
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("http://exAmple.org:80/cb")).to be true
     end
 
     it "returns false when the URI doesn't match any in redirect_uris" do
       developer_key_not_saved.redirect_uris = ["https://example.com/callback"]
-      expect(developer_key_not_saved.redirect_uri_matches?("https://example2.com/different")).to be false
-      expect(developer_key_not_saved.redirect_uri_matches?("https://different.com/callback")).to be false
-      expect(developer_key_not_saved.redirect_uri_matches?("http://example.com/callback")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("https://example2.com/different")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("https://different.com/callback")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("http://example.com/callback")).to be false
     end
 
     it "returns false when both the redirect uris and the input url is invalid" do
       developer_key_not_saved.redirect_uris = ["string"]
-      expect(developer_key_not_saved.redirect_uri_matches?("string")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("astring")).to be false
     end
 
     it "returns true when the normalized site matches a URI in redirect_uris" do
       developer_key_not_saved.redirect_uris = ["https://example.com/callback"]
-      expect(developer_key_not_saved.redirect_uri_matches?("https://example.com/callback?param=value")).to be true
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("https://example.com/callback?param=value")).to be true
     end
 
     it "returns false when the site matches but the scheme doesn't" do
       developer_key_not_saved.redirect_uris = ["https://example.com/callback"]
-      expect(developer_key_not_saved.redirect_uri_matches?("http://example.com/callback")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("http://example.com/callback")).to be false
     end
 
     it "returns false when the port doesn't match" do
       developer_key_not_saved.redirect_uris = ["https://example.com:8080/callback"]
-      expect(developer_key_not_saved.redirect_uri_matches?("https://example.com/callback")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("https://example.com/callback")).to be false
     end
 
     it "returns false for invalid URIs" do
       developer_key_not_saved.redirect_uris = ["https://example.com/callback"]
-      expect(developer_key_not_saved.redirect_uri_matches?("not a uri")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("not a uri")).to be false
     end
 
     it "returns false when redirect_uri is blank" do
       developer_key_not_saved.redirect_uris = ["https://example.com/callback"]
-      expect(developer_key_not_saved.redirect_uri_matches?("")).to be false
-      expect(developer_key_not_saved.redirect_uri_matches?(nil)).to be false
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("")).to be false
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?(nil)).to be false
     end
 
     it "returns true when the site matches including port" do
       developer_key_not_saved.redirect_uris = ["http://example.com/callback"]
-      expect(developer_key_not_saved.redirect_uri_matches?("http://example.com:80/different_path")).to be true
+      expect(developer_key_not_saved.redirect_uri_matches_for_lti?("http://example.com:80/different_path")).to be true
     end
   end
 

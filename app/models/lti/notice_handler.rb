@@ -45,7 +45,7 @@ class Lti::NoticeHandler < ApplicationRecord
   def validate_tool_url
     if !url&.match?(URI::DEFAULT_PARSER.make_regexp)
       errors.add(:url, "is not a valid URL")
-    elsif !context_external_tool&.matches_host?(url) && !context_external_tool&.developer_key&.redirect_uri_matches?(url)
+    elsif !context_external_tool&.matches_host?(url) && !context_external_tool&.developer_key&.redirect_uri_matches_for_lti?(url)
       errors.add(:url, "should match tool's domain or redirect uri")
     end
   end

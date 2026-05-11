@@ -117,11 +117,10 @@ module Canvas::OAuth
     describe "#has_valid_redirect?" do
       let(:provider) { Provider.new("123", "http://evil.example.com/x") }
 
-      def stub_matchers(lenient:, strict:)
+      def stub_matchers(matches:)
         stub_dev_key(instance_double(
                        DeveloperKey,
-                       redirect_domain_matches?: lenient,
-                       redirect_uri_matches?: strict,
+                       redirect_uri_matches?: matches,
                        global_id: 10_000_000_000_001,
                        redirect_uri: "http://example.com/callback"
                      ))
@@ -131,7 +130,7 @@ module Canvas::OAuth
       after { OAuthRedirectUriValidationConfig.reset! }
 
       it "is true when the redirect url is the OOB uri (without consulting matchers)" do
-        stub_matchers(lenient: false, strict: false)
+        stub_matchers(matches: false)
         provider = Provider.new("123", Provider::OAUTH2_OOB_URI)
         expect(provider.has_valid_redirect?).to be true
       end
@@ -140,18 +139,18 @@ module Canvas::OAuth
         before { allow(OAuthRedirectUriValidationConfig).to receive_messages(report?: false, enforce?: false) }
 
         it "accepts a lenient (subdomain) match" do
-          stub_matchers(lenient: true, strict: false)
+          stub_matchers(matches: :lenient)
           expect(InstStatsd::Statsd).not_to receive(:event)
           expect(provider.has_valid_redirect?).to be true
         end
 
         it "accepts a strict match" do
-          stub_matchers(lenient: true, strict: true)
+          stub_matchers(matches: true)
           expect(provider.has_valid_redirect?).to be true
         end
 
         it "rejects a non-matching redirect" do
-          stub_matchers(lenient: false, strict: false)
+          stub_matchers(matches: false)
           expect(provider.has_valid_redirect?).to be false
         end
       end
@@ -160,7 +159,7 @@ module Canvas::OAuth
         before { allow(OAuthRedirectUriValidationConfig).to receive_messages(report?: true, enforce?: false) }
 
         it "emits a Datadog event and accepts the redirect on lenient-only match" do
-          stub_matchers(lenient: true, strict: false)
+          stub_matchers(matches: :lenient)
           expect(InstStatsd::Statsd).to receive(:event).with(
             "OAuth Redirect URI Lenient Match",
             kind_of(String),
@@ -180,13 +179,13 @@ module Canvas::OAuth
         end
 
         it "does not emit on a strict match" do
-          stub_matchers(lenient: true, strict: true)
+          stub_matchers(matches: true)
           expect(InstStatsd::Statsd).not_to receive(:event)
           expect(provider.has_valid_redirect?).to be true
         end
 
         it "does not emit on OOB" do
-          stub_matchers(lenient: false, strict: false)
+          stub_matchers(matches: false)
           provider = Provider.new("123", Provider::OAUTH2_OOB_URI)
           expect(InstStatsd::Statsd).not_to receive(:event)
           expect(provider.has_valid_redirect?).to be true
@@ -197,17 +196,17 @@ module Canvas::OAuth
         before { allow(OAuthRedirectUriValidationConfig).to receive_messages(report?: false, enforce?: true) }
 
         it "rejects a lenient-only match" do
-          stub_matchers(lenient: true, strict: false)
+          stub_matchers(matches: :lenient)
           expect(provider.has_valid_redirect?).to be false
         end
 
         it "accepts a strict match" do
-          stub_matchers(lenient: true, strict: true)
+          stub_matchers(matches: true)
           expect(provider.has_valid_redirect?).to be true
         end
 
         it "still accepts OOB" do
-          stub_matchers(lenient: false, strict: false)
+          stub_matchers(matches: false)
           provider = Provider.new("123", Provider::OAUTH2_OOB_URI)
           expect(provider.has_valid_redirect?).to be true
         end
@@ -217,7 +216,7 @@ module Canvas::OAuth
         before { allow(OAuthRedirectUriValidationConfig).to receive_messages(report?: true, enforce?: true) }
 
         it "emits the event and rejects on lenient-only match" do
-          stub_matchers(lenient: true, strict: false)
+          stub_matchers(matches: :lenient)
           expect(InstStatsd::Statsd).to receive(:event).with(
             "OAuth Redirect URI Lenient Match",
             kind_of(String),
@@ -237,7 +236,7 @@ module Canvas::OAuth
         end
 
         it "accepts a lenient-only match even though global enforce? is true" do
-          stub_matchers(lenient: true, strict: false)
+          stub_matchers(matches: :lenient)
           expect(InstStatsd::Statsd).to receive(:event).with(
             "OAuth Redirect URI Lenient Match",
             kind_of(String),
@@ -252,7 +251,7 @@ module Canvas::OAuth
         let(:oob_explicitly_registered) { false }
 
         before do
-          stub_matchers(lenient: false, strict: oob_explicitly_registered)
+          stub_matchers(matches: oob_explicitly_registered)
         end
 
         context "with no validation config set" do
@@ -353,7 +352,7 @@ module Canvas::OAuth
           context "and a non-OOB redirect with only a lenient (subdomain) match is presented" do
             let(:provider) { Provider.new("123", "http://evil.example.com/x") }
 
-            before { stub_matchers(lenient: true, strict: false) }
+            before { stub_matchers(matches: :lenient) }
 
             it "allows the lenient match (OOB enforcement does not affect lenient redirects)" do
               expect(provider.has_valid_redirect?).to be true
@@ -454,7 +453,7 @@ module Canvas::OAuth
             context "and the redirect is non-OOB with a non-document Sec-Fetch-Dest" do
               let(:provider) { Provider.new("123", "http://evil.example.com/x", sec_fetch_dest: "iframe") }
 
-              before { stub_matchers(lenient: true, strict: true) }
+              before { stub_matchers(matches: true) }
 
               it "does not emit (the gate only applies to OOB)" do
                 expect(InstStatsd::Statsd).not_to receive(:event)

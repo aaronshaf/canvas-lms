@@ -56,7 +56,8 @@ module Canvas::OAuth
     end
 
     def has_valid_redirect?
-      return false if !self.class.is_oob?(redirect_uri) && !key.redirect_domain_matches?(redirect_uri)
+      redirect_matches = key.redirect_uri_matches?(redirect_uri)
+      return false if !self.class.is_oob?(redirect_uri) && !redirect_matches
 
       if self.class.is_oob?(redirect_uri) &&
          OAuthRedirectUriValidationConfig.disallow_non_document_oob_sec_fetch_dest? &&
@@ -70,7 +71,7 @@ module Canvas::OAuth
       enforce = OAuthRedirectUriValidationConfig.enforce_for_developer_key?(key.global_id)
       disallow_implicit_oob = OAuthRedirectUriValidationConfig.disallow_implicit_oob_redirect_uri?
       return true unless report || enforce || disallow_implicit_oob
-      return true if key.redirect_uri_matches?(redirect_uri)
+      return true if redirect_matches == true
 
       if self.class.is_oob?(redirect_uri)
         return true unless disallow_implicit_oob

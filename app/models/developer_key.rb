@@ -365,8 +365,9 @@ class DeveloperKey < ApplicationRecord
 
   # verify that the given uri has the same domain as this key's
   # redirect_uri domain.
-  def redirect_domain_matches?(redirect_uri)
+  def redirect_uri_matches?(redirect_uri)
     return false if redirect_uri.blank?
+    return true if redirect_uri == self.redirect_uri
     return true if redirect_uris.include?(redirect_uri)
 
     # legacy deprecated
@@ -377,25 +378,23 @@ class DeveloperKey < ApplicationRecord
     result = self_domain.present? && other_domain.present? &&
              self_uri.scheme == other_uri.scheme &&
              (self_domain == other_domain || other_domain.end_with?(".#{self_domain}"))
-    if result && redirect_uri != self.redirect_uri
-      Rails.logger.info("Allowed lenient OAuth redirect uri #{redirect_uri} on developer key #{global_id}")
-    end
-    result
+    result && :lenient
   rescue URI::Error
     false
   end
 
   # Verify that the given uri has the same scheme, domain and port as this key's
   # redirect_uri's.
-  def redirect_uri_matches?(redirect_uri)
+  def redirect_uri_matches_for_lti?(redirect_uri)
     return false if redirect_uri.blank?
+    return true if redirect_uri == self.redirect_uri
+    return true if redirect_uris.include?(redirect_uri)
 
     normalized_redirect_uri = Addressable::URI.parse(redirect_uri).normalized_site
     return false if normalized_redirect_uri.blank?
-    return true if redirect_uris.include?(redirect_uri)
+    return true if Addressable::URI.parse(self.redirect_uri)&.normalized_site == normalized_redirect_uri
 
-    redirect_uris.map { |uri| Addressable::URI.parse(uri).normalized_site }
-                 .include?(normalized_redirect_uri)
+    redirect_uris.any? { |uri| Addressable::URI.parse(uri).normalized_site == normalized_redirect_uri }
   rescue Addressable::URI::InvalidURIError
     false
   end
