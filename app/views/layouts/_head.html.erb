@@ -47,13 +47,19 @@
   <script>if (navigator.userAgent.match(/(MSIE|Trident\/)/)) location.replace('/ie-is-not-supported.html')</script>
   <% js_bundle :navigation_header unless @headers == false %>
   <% js_env({ active_context_tab: get_active_tab }) %>
-  <% if @js_env %>
+  <script>
+    INST = <%= benchmark("rendering INST") { raw(inst_env.to_json) } %>;
+    ENV = <%= benchmark("rendering ENV") { raw(render_js_env) } %>;
+    BRANDABLE_CSS_HANDLEBARS_INDEX = <%= benchmark("rendering BRANDABLE_CSS_HANDLEBARS_INDEX") { raw(BrandableCSS.handlebars_index_json) } %>
+      REMOTES = <%= benchmark("rendering REMOTES") { raw(remote_env.to_json) } %>;
+  </script>
+  <% if js_env && js_env.present? %>
   <script type="text/javascript">
-    window.CANVAS_COOKIE_CONSENT_STATE = <%= @js_env[:PRE_COOKIE_CONSENT] %>;
+    window.CANVAS_COOKIE_CONSENT_STATE = <%= js_env[:PRE_COOKIE_CONSENT] %>;
   </script>
   <% end %>
-  <% if @js_env && @js_env[:ONETRUST_CONSENT_DOMAIN_ID].present? %>
-  <script src="https://cdn.cookielaw.org/consent/<%= @js_env[:ONETRUST_CONSENT_DOMAIN_ID] %>/otSDKStub.js" data-document-language="true" type="text/javascript" charset="UTF-8" data-domain-script="<%= @js_env[:ONETRUST_CONSENT_DOMAIN_ID] %>" ></script>
+  <% if js_env && js_env.present? && js_env[:ONETRUST_CONSENT_DOMAIN_ID]&.present? %>
+  <script src="https://cdn.cookielaw.org/consent/<%= js_env[:ONETRUST_CONSENT_DOMAIN_ID] %>/otSDKStub.js" data-document-language="true" type="text/javascript" charset="UTF-8" data-domain-script="<%= js_env[:ONETRUST_CONSENT_DOMAIN_ID] %>" ></script>
   <script type="text/javascript">
     if (window.ENV && window.ENV['RAILS_ENVIRONMENT'] === 'development') {
       console.warn("OneTrust will initialize.");
@@ -65,19 +71,13 @@
         window.CANVAS_COOKIE_CONSENT_STATE = false;
       }
     });
-  function OptanonWrapper() {
-    OneTrust.OnConsentChanged(function() {
-      console.log(`OneTrust cookie consent preferences have been updated: ${JSON.stringify(OnetrustActiveGroups)}`);
-    });
-   }
+    function OptanonWrapper() {
+      OneTrust.OnConsentChanged(function() {
+        console.log(`OneTrust cookie consent preferences have been updated: ${JSON.stringify(OnetrustActiveGroups)}`);
+      });
+    }
   </script>
   <% end %>
-  <script>
-    INST = <%= benchmark("rendering INST") { raw(inst_env.to_json) } %>;
-    ENV = <%= benchmark("rendering ENV") { raw(render_js_env) } %>;
-    BRANDABLE_CSS_HANDLEBARS_INDEX = <%= benchmark("rendering BRANDABLE_CSS_HANDLEBARS_INDEX") { raw(BrandableCSS.handlebars_index_json) } %>
-      REMOTES = <%= benchmark("rendering REMOTES") { raw(remote_env.to_json) } %>;
-  </script>
   <%= benchmark("include_head_js") { include_head_js } %>
   <% @xhrs_to_prefetch_from_controller&.each do |(args, kwargs)| -%>
     <%= prefetch_xhr(*args, **kwargs) %>
