@@ -28,19 +28,19 @@ class Mutations::UpdateSubmissionGrade < Mutations::BaseMutation
   field :submission, Types::SubmissionType, null: true
 
   def resolve(input:)
-    submission = Submission.find(input[:submission_id])
+    submission = Submission.find_by(id: input[:submission_id])
     errors = {}
 
-    if submission.grants_right?(current_user, :grade)
+    if submission&.grants_right?(current_user, :grade)
       submission.update(score: input[:score])
     else
-      errors[submission.id.to_s] = "Not authorized to score Submission"
+      errors["submissionId"] = "Not authorized to score Submission"
     end
 
     response = {}
 
     # Grab parent submission data if this submission is for a child assignment (i.e. a checkpointed discussion)
-    if submission.course.discussion_checkpoints_enabled? && submission.assignment.is_a?(SubAssignment) && errors.none?
+    if errors.none? && submission.course.discussion_checkpoints_enabled? && submission.assignment.is_a?(SubAssignment)
       sub_assignment = submission.assignment
       parent_assignment = Assignment.find(sub_assignment.parent_assignment_id)
       parent_assignment_submission = Submission.find_by(assignment_id: parent_assignment.id, user_id: submission.user_id)

@@ -88,6 +88,32 @@ RSpec.describe Mutations::UpdateSubmissionGrade do
     expect(errors[0][:message]).to eq "Not authorized to score Submission"
   end
 
+  it "does not leak existence of submissions across courses" do
+    other_account = Account.create!
+    other_course = other_account.courses.create!
+    other_student = other_course.enroll_student(User.create!, enrollment_state: "active").user
+    other_assignment = other_course.assignments.create!(title: "Foreign Assignment")
+    foreign_submission = other_assignment.submit_homework(
+      other_student,
+      submission_type: "online_text_entry",
+      body: "body"
+    )
+
+    nonexistent_id = Submission.maximum(:id).to_i + 1_000_000
+
+    foreign_result = run_mutation({ submission_id: foreign_submission.id, score: 12 }, @student)
+    missing_result = run_mutation({ submission_id: nonexistent_id, score: 12 }, @student)
+
+    expect(foreign_result).to eq(missing_result)
+    expect(foreign_result.dig("data", "updateSubmissionGrade", "submission")).to be_nil
+    expect(foreign_result["errors"]).to be_nil
+
+    payload_errors = foreign_result.dig("data", "updateSubmissionGrade", "errors")
+    expect(payload_errors).not_to be_nil
+    expect(payload_errors[0][:attribute]).to eq "submissionId"
+    expect(payload_errors[0][:attribute]).not_to eq foreign_submission.id.to_s
+  end
+
   it "results should not include parent assignment submission if checkpoints are disabled" do
     result = run_mutation({ submission_id: @submission.id, score: 9 })
     expect(result.dig("data", "updateSubmissionGrade", "errors")).to be_nil
