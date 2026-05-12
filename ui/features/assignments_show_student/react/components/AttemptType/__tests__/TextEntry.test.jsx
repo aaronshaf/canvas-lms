@@ -22,6 +22,7 @@ import {mockSubmission} from '@canvas/assignments/graphql/studentMocks'
 import React, {createRef} from 'react'
 import TextEntry, {ERROR_MESSAGE} from '../TextEntry'
 import StudentViewContext from '@canvas/assignments/react/StudentViewContext'
+import {RceLti11ContentItem} from '@instructure/canvas-rce/es/rce/plugins/instructure_rce_external_tools/lti11-content-items/RceLti11ContentItem'
 
 vi.mock(
   '@instructure/canvas-rce/es/rce/plugins/instructure_rce_external_tools/lti11-content-items/RceLti11ContentItem',
@@ -361,7 +362,7 @@ describe('TextEntry', () => {
       ],
     }
 
-    function dispatchMessage({origin, data}) {
+    const dispatchMessage = ({origin, data}) => {
       fireEvent(window, new MessageEvent('message', {origin, data}))
     }
 
@@ -428,6 +429,166 @@ describe('TextEntry', () => {
         })
         await act(async () => vi.runOnlyPendingTimers())
         expect(insertCode).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('content sanitization (defense-in-depth against malicious LTI tool)', () => {
+      const originalFromJSON = RceLti11ContentItem.fromJSON
+
+      const stubCodePayload = payload => {
+        RceLti11ContentItem.fromJSON = () => ({codePayload: payload})
+      }
+
+      const postContentItem = () => {
+        dispatchMessage({
+          origin: trustedOrigin,
+          data: {subject: 'A2ExternalContentReady', content_items: [{}]},
+        })
+      }
+
+      afterEach(() => {
+        RceLti11ContentItem.fromJSON = originalFromJSON
+      })
+
+      describe('legitimate payloads survive sanitization', () => {
+        it('preserves a benign anchor with target="_blank"', async () => {
+          stubCodePayload(
+            '<a href="https://example.com/resource" title="Resource" target="_blank">Resource</a>',
+          )
+          postContentItem()
+
+          await waitFor(() => expect(insertCode).toHaveBeenCalledTimes(1))
+          const inserted = String(insertCode.mock.calls[0][0])
+          expect(inserted).toContain('href="https://example.com/resource"')
+          expect(inserted).toContain('target="_blank"')
+          expect(inserted).toContain('Resource')
+        })
+
+        it('preserves a legitimate LTI iframe with src/allow/allowfullscreen', async () => {
+          stubCodePayload(
+            '<iframe src="https://tool.example/launch?id=42" title="Tool" ' +
+              'allow="microphone; camera; midi" allowfullscreen="true" ' +
+              'width="640" height="480"></iframe>',
+          )
+          postContentItem()
+
+          await waitFor(() => expect(insertCode).toHaveBeenCalledTimes(1))
+          const inserted = String(insertCode.mock.calls[0][0])
+          expect(inserted).toContain('<iframe')
+          expect(inserted).toContain('src="https://tool.example/launch?id=42"')
+          expect(inserted).toContain('allow="microphone; camera; midi"')
+          expect(inserted).toContain('allowfullscreen')
+          expect(inserted).toContain('width="640"')
+          expect(inserted).toContain('height="480"')
+        })
+
+        it('preserves an embedded image with alt and dimensions', async () => {
+          stubCodePayload(
+            '<img src="https://cdn.example/img.png" alt="diagram" ' +
+              'style="width: 320px; height: 240px;">',
+          )
+          postContentItem()
+
+          await waitFor(() => expect(insertCode).toHaveBeenCalledTimes(1))
+          const inserted = String(insertCode.mock.calls[0][0])
+          expect(inserted).toContain('<img')
+          expect(inserted).toContain('src="https://cdn.example/img.png"')
+          expect(inserted).toContain('alt="diagram"')
+        })
+
+        it('preserves an anchor wrapping a thumbnail image', async () => {
+          stubCodePayload(
+            '<a href="https://example.com/r" title="t" target="_blank">' +
+              '<img src="https://cdn.example/thumb.png" style="height: 48px; width: 48px;" alt="t">' +
+              '</a>',
+          )
+          postContentItem()
+
+          await waitFor(() => expect(insertCode).toHaveBeenCalledTimes(1))
+          const inserted = String(insertCode.mock.calls[0][0])
+          expect(inserted).toContain('<a')
+          expect(inserted).toContain('href="https://example.com/r"')
+          expect(inserted).toContain('<img')
+          expect(inserted).toContain('src="https://cdn.example/thumb.png"')
+        })
+
+        it('inserts each content item separately when multiple are returned', async () => {
+          // Restore original mock so each contentItem gets its own payload
+          RceLti11ContentItem.fromJSON = contentItem => ({
+            codePayload: `<a href="${contentItem.url}">${contentItem.title}</a>`,
+          })
+          dispatchMessage({
+            origin: trustedOrigin,
+            data: {
+              subject: 'A2ExternalContentReady',
+              content_items: [
+                {url: 'https://example.com/1', title: 'one'},
+                {url: 'https://example.com/2', title: 'two'},
+              ],
+            },
+          })
+
+          await waitFor(() => expect(insertCode).toHaveBeenCalledTimes(2))
+          expect(String(insertCode.mock.calls[0][0])).toContain('href="https://example.com/1"')
+          expect(String(insertCode.mock.calls[1][0])).toContain('href="https://example.com/2"')
+        })
+      })
+
+      describe('malicious payloads are neutralized', () => {
+        it('strips <script> tags', async () => {
+          stubCodePayload('<a href="https://example.com">ok</a><script>alert(1)</script>')
+          postContentItem()
+
+          await waitFor(() => expect(insertCode).toHaveBeenCalledTimes(1))
+          const inserted = String(insertCode.mock.calls[0][0]).toLowerCase()
+          expect(inserted).not.toContain('<script')
+          expect(inserted).not.toContain('alert(1)')
+          expect(inserted).toContain('href="https://example.com"')
+        })
+
+        it('strips inline event-handler attributes (onerror, onload)', async () => {
+          stubCodePayload(
+            '<img src="x" onerror="alert(1)"><iframe src="https://t.example" onload="alert(2)"></iframe>',
+          )
+          postContentItem()
+
+          await waitFor(() => expect(insertCode).toHaveBeenCalledTimes(1))
+          const inserted = String(insertCode.mock.calls[0][0]).toLowerCase()
+          expect(inserted).not.toContain('onerror')
+          expect(inserted).not.toContain('onload')
+          expect(inserted).not.toContain('alert(')
+        })
+
+        it('strips javascript: URLs from anchors', async () => {
+          stubCodePayload('<a href="javascript:alert(1)">click me</a>')
+          postContentItem()
+
+          await waitFor(() => expect(insertCode).toHaveBeenCalledTimes(1))
+          const inserted = String(insertCode.mock.calls[0][0]).toLowerCase()
+          expect(inserted).not.toContain('javascript:')
+        })
+
+        it('strips iframe srcdoc which can host arbitrary script', async () => {
+          stubCodePayload(
+            '<iframe srcdoc="<script>alert(1)</script>" src="https://t.example"></iframe>',
+          )
+          postContentItem()
+
+          await waitFor(() => expect(insertCode).toHaveBeenCalledTimes(1))
+          const inserted = String(insertCode.mock.calls[0][0]).toLowerCase()
+          expect(inserted).not.toContain('srcdoc')
+          expect(inserted).not.toContain('alert(1)')
+        })
+
+        it('strips svg-based script vectors', async () => {
+          stubCodePayload('<svg><script>alert(1)</script></svg>')
+          postContentItem()
+
+          await waitFor(() => expect(insertCode).toHaveBeenCalledTimes(1))
+          const inserted = String(insertCode.mock.calls[0][0]).toLowerCase()
+          expect(inserted).not.toContain('<script')
+          expect(inserted).not.toContain('alert(1)')
+        })
       })
     })
   })

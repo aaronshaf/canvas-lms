@@ -89,7 +89,8 @@ export default class TextEntry extends React.Component {
     e.data.content_items
       .map(contentItem => RceLti11ContentItem.fromJSON(contentItem).codePayload)
       .forEach(code => {
-        editor.insertCode(code)
+        // sanitizeHTML returns a TrustedHTML object
+        editor.insertCode(String(sanitizeHTML(code)))
       })
   }
 
