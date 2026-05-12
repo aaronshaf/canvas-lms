@@ -29,6 +29,7 @@ import formatMessage from '../../../../../format-message'
 import {ExternalToolsEnv} from '../../ExternalToolsEnv'
 import {RceToolWrapper} from '../../RceToolWrapper'
 import {sanitizeUrl} from '../../../../../util/sanitizeUrl'
+import {sanitizeToolHtml} from '../../sanitizeToolHtml'
 import {instuiPopupMountNodeFn} from '../../../../../util/fullscreenHelpers'
 import {ExternalToolDialogTray} from './ExternalToolDialogTray'
 import {ExternalToolDialogModal} from './ExternalToolDialogModal'
@@ -135,7 +136,7 @@ export default class ExternalToolDialog extends React.Component<
       const code = contentItems[0].text
 
       // @ts-expect-error
-      env.rceWrapper?.setCode(code)
+      env.rceWrapper?.setCode(String(sanitizeToolHtml(code)))
     } else {
       contentItems.forEach(contentData => {
         const code = RceLti11ContentItem.fromJSON(
@@ -147,7 +148,7 @@ export default class ExternalToolDialog extends React.Component<
         ).codePayload
 
         // @ts-expect-error
-        env.rceWrapper?.insertCode(code)
+        env.rceWrapper?.insertCode(String(sanitizeToolHtml(code)))
       })
     }
     this.close()

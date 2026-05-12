@@ -19,6 +19,7 @@
 import {Lti13ContentItemJson} from './Lti13ContentItemJson'
 import {rceLti13ContentItemFromJson} from './rceLti13ContentItemFromJson'
 import {ExternalToolsEnv} from '../ExternalToolsEnv'
+import {sanitizeToolHtml} from '../sanitizeToolHtml'
 import {showFlashAlert} from '../../../../common/FlashAlert'
 import formatMessage from '../../../../format-message'
 
@@ -56,9 +57,9 @@ export default function processEditorContentItems(
 
       if (parsedItem != null) {
         if (event.data?.replaceEditorContents) {
-          env.replaceCode(parsedItem.toHtmlString())
+          env.replaceCode(String(sanitizeToolHtml(parsedItem.toHtmlString())))
         } else {
-          env.insertCode(parsedItem.toHtmlString())
+          env.insertCode(String(sanitizeToolHtml(parsedItem.toHtmlString())))
         }
       } else if (!unsupportedItemWarningShown) {
         showFlashAlert({
