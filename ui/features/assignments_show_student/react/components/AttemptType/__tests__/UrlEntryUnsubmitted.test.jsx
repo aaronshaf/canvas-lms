@@ -17,10 +17,11 @@
  */
 
 import {EXTERNAL_TOOLS_QUERY, USER_GROUPS_QUERY} from '@canvas/assignments/graphql/student/Queries'
-import {fireEvent, render} from '@testing-library/react'
+import {fireEvent, render, waitFor} from '@testing-library/react'
 import React, {createRef} from 'react'
 import {mockAssignmentAndSubmission, mockQuery} from '@canvas/assignments/graphql/studentMocks'
 import {MockedProvider} from '@apollo/client/testing'
+import {AlertManagerContext} from '@instructure/platform-alerts'
 import StudentViewContext from '@canvas/assignments/react/StudentViewContext'
 
 import UrlEntry from '../UrlEntry'
@@ -326,5 +327,188 @@ describe('UrlEntry - Unsubmitted', () => {
     const previewButton = getByTestId('preview-button')
     fireEvent.click(previewButton)
     expect(window.open).toHaveBeenCalledTimes(1)
+  })
+
+  describe('postMessage origin validation (handleLTIURLs)', () => {
+    const trustedOrigin = 'http://trusted.example'
+    let oldEnv
+    let setOnFailure
+    let createSubmissionDraft
+
+    beforeEach(() => {
+      oldEnv = window.ENV
+      window.ENV = {...oldEnv, DEEP_LINKING_POST_MESSAGE_ORIGIN: trustedOrigin}
+      setOnFailure = vi.fn()
+      createSubmissionDraft = vi.fn().mockResolvedValue({})
+    })
+
+    afterEach(() => {
+      window.ENV = oldEnv
+    })
+
+    async function renderUrlEntry() {
+      const props = await makeProps({
+        Submission: {
+          submissionDraft: {
+            activeSubmissionType: 'online_url',
+            attachments: [],
+            body: null,
+            meetsUrlCriteria: false,
+            url: '',
+          },
+        },
+      })
+      props.createSubmissionDraft = createSubmissionDraft
+      const overrides = {ExternalToolConnection: {nodes: [{}]}}
+      const mocks = await createGraphqlMocks(overrides)
+      const utils = render(
+        <AlertManagerContext.Provider value={{setOnFailure, setOnSuccess: vi.fn()}}>
+          <MockedProvider mocks={mocks}>
+            <UrlEntry {...props} />
+          </MockedProvider>
+        </AlertManagerContext.Provider>,
+      )
+      return {props, ...utils}
+    }
+
+    function postMessage({origin, data}) {
+      fireEvent(window, new MessageEvent('message', {origin, data}))
+    }
+
+    it('ignores LtiDeepLinkingResponse messages from a foreign origin', async () => {
+      await renderUrlEntry()
+
+      postMessage({
+        origin: 'http://evil.example',
+        data: {
+          subject: 'LtiDeepLinkingResponse',
+          content_items: [{url: 'http://evil.example/payload'}],
+        },
+      })
+
+      expect(createSubmissionDraft).not.toHaveBeenCalled()
+      expect(setOnFailure).not.toHaveBeenCalled()
+    })
+
+    it('ignores LtiDeepLinkingResponse error messages from a foreign origin', async () => {
+      await renderUrlEntry()
+
+      postMessage({
+        origin: 'http://evil.example',
+        data: {subject: 'LtiDeepLinkingResponse', errormsg: 'spoofed'},
+      })
+
+      expect(setOnFailure).not.toHaveBeenCalled()
+      expect(createSubmissionDraft).not.toHaveBeenCalled()
+    })
+
+    it('ignores A2ExternalContentReady messages from a foreign origin', async () => {
+      await renderUrlEntry()
+
+      postMessage({
+        origin: 'http://evil.example',
+        data: {
+          subject: 'A2ExternalContentReady',
+          content_items: [{url: 'http://evil.example/payload'}],
+        },
+      })
+
+      expect(createSubmissionDraft).not.toHaveBeenCalled()
+    })
+
+    it('ignores messages from a typosquat origin', async () => {
+      await renderUrlEntry()
+
+      postMessage({
+        origin: 'http://trusted.example.evil.com',
+        data: {
+          subject: 'LtiDeepLinkingResponse',
+          content_items: [{url: 'http://evil.example/payload'}],
+        },
+      })
+
+      expect(createSubmissionDraft).not.toHaveBeenCalled()
+      expect(setOnFailure).not.toHaveBeenCalled()
+    })
+
+    it('ignores messages with an empty origin', async () => {
+      await renderUrlEntry()
+
+      postMessage({
+        origin: '',
+        data: {
+          subject: 'LtiDeepLinkingResponse',
+          content_items: [{url: 'http://evil.example/payload'}],
+        },
+      })
+
+      expect(createSubmissionDraft).not.toHaveBeenCalled()
+      expect(setOnFailure).not.toHaveBeenCalled()
+    })
+
+    it('ignores messages with non-object data', async () => {
+      await renderUrlEntry()
+
+      postMessage({origin: trustedOrigin, data: 'just a string'})
+
+      expect(createSubmissionDraft).not.toHaveBeenCalled()
+      expect(setOnFailure).not.toHaveBeenCalled()
+    })
+
+    it('creates a submission draft for LtiDeepLinkingResponse from the trusted origin', async () => {
+      const {props} = await renderUrlEntry()
+
+      postMessage({
+        origin: trustedOrigin,
+        data: {
+          subject: 'LtiDeepLinkingResponse',
+          content_items: [{url: 'http://trusted.example/resource'}],
+        },
+      })
+
+      await waitFor(() => expect(createSubmissionDraft).toHaveBeenCalledTimes(1))
+      expect(createSubmissionDraft).toHaveBeenCalledWith({
+        variables: {
+          id: props.submission.id,
+          activeSubmissionType: 'online_url',
+          attempt: props.submission.attempt || 1,
+          url: 'http://trusted.example/resource',
+        },
+      })
+    })
+
+    it('forwards LtiDeepLinkingResponse error messages from the trusted origin', async () => {
+      await renderUrlEntry()
+
+      postMessage({
+        origin: trustedOrigin,
+        data: {subject: 'LtiDeepLinkingResponse', errormsg: 'something went wrong'},
+      })
+
+      await waitFor(() => expect(setOnFailure).toHaveBeenCalledWith('something went wrong'))
+      expect(createSubmissionDraft).not.toHaveBeenCalled()
+    })
+
+    it('creates a submission draft for A2ExternalContentReady from the trusted origin', async () => {
+      const {props} = await renderUrlEntry()
+
+      postMessage({
+        origin: trustedOrigin,
+        data: {
+          subject: 'A2ExternalContentReady',
+          content_items: [{url: 'http://trusted.example/resource'}],
+        },
+      })
+
+      await waitFor(() => expect(createSubmissionDraft).toHaveBeenCalledTimes(1))
+      expect(createSubmissionDraft).toHaveBeenCalledWith({
+        variables: {
+          id: props.submission.id,
+          activeSubmissionType: 'online_url',
+          attempt: props.submission.attempt || 1,
+          url: 'http://trusted.example/resource',
+        },
+      })
+    })
   })
 })

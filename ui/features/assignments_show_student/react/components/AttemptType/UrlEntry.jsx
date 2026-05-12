@@ -114,12 +114,20 @@ class UrlEntry extends React.Component {
   }
 
   handleLTIURLs = async e => {
+    if (e.origin !== ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN) {
+      return
+    }
+
+    if (!e.data || typeof e.data !== 'object') {
+      return
+    }
+
     if (e.data.subject === 'LtiDeepLinkingResponse') {
       if (e.data.errormsg) {
         this.context.setOnFailure(e.data.errormsg)
         return
       }
-      if (e.data.content_items.length) {
+      if (e.data.content_items?.length) {
         const url = e.data.content_items[0].url
         this.createSubmissionDraft(url)
       }
@@ -127,7 +135,7 @@ class UrlEntry extends React.Component {
 
     // Since LTI 1.0 handles its own message alerting we don't have to
     if (e.data.subject === 'A2ExternalContentReady') {
-      if (!e.data.errormsg && e.data.content_items.length) {
+      if (!e.data.errormsg && e.data.content_items?.length) {
         const url = e.data.content_items[0].url
         this.createSubmissionDraft(url)
       }
