@@ -621,7 +621,7 @@ class YoutubeMigrationService
       resource.message = replace_youtube_embed_in_html(resource.message, embed, new_html)
     when "CalendarEvent"
       resource = course.calendar_events.find(resource_id)
-      resource.description = replace_youtube_embed_in_html(resource.description, embed, new_html)
+      resource.description = replace_youtube_embed_in_html(resource.description(skip_sanitization: true), embed, new_html)
     when "Course"
       resource = course
       resource.syllabus_body = replace_youtube_embed_in_html(resource.syllabus_body, embed, new_html)

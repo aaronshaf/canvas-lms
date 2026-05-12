@@ -1066,7 +1066,11 @@ RSpec.describe YoutubeMigrationService do
     end
 
     context "with CalendarEvent" do
-      let(:calendar_event) { calendar_event_model(context: course, description: original_html) }
+      let(:calendar_event) do
+        event = calendar_event_model(context: course)
+        event.update_columns(description: original_html)
+        event
+      end
       let(:embed) { youtube_embed.merge(id: calendar_event.id, resource_type: "CalendarEvent", field: :description) }
 
       it "updates the event description" do
@@ -2795,7 +2799,9 @@ RSpec.describe YoutubeMigrationService do
 
     context "with CalendarEvent" do
       let(:calendar_event_with_embed) do
-        calendar_event_model(context: course, description: original_html, skip_attachment_association_update: true)
+        event = calendar_event_model(context: course, skip_attachment_association_update: true)
+        event.update_columns(description: original_html)
+        event
       end
 
       it_behaves_like "skips attachment association creation", "CalendarEvent", :calendar_event_with_embed, :description

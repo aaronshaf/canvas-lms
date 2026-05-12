@@ -36,12 +36,39 @@ class CalendarEvent < ApplicationRecord
   attr_accessor :cancel_reason, :imported
   attr_accessor :update_all
 
-  sanitize_field :description, CanvasSanitize::SANITIZE
+  # This is to allow only studio's iframe
+  ALLOWED_IFRAME_SRC = %r{\A/(media_attachments_iframe/|media_objects_iframe/|(courses|accounts)/\d+/external_tools/(retrieve|sessionless_launch))}
+
+  def self.sanitize_config
+    CanvasSanitize::SANITIZE.dup.tap do |cfg|
+      # we want to filter those
+      cfg[:elements] = cfg[:elements] - %w[object embed param]
+      cfg[:transformers] = Array(cfg[:transformers]) + [
+        lambda do |env|
+          return if env[:is_allowlisted]
+          # and also iframes
+          return unless env[:node].element? && env[:node].name == "iframe"
+
+          # but not iframe using this pattern cause this is studio
+          # and the editor allows to add video in this
+          src = env[:node]["src"].to_s
+          return if src.match?(ALLOWED_IFRAME_SRC)
+
+          env[:node].unlink
+        end
+      ]
+    end
+  end
+
+  sanitize_field :description, sanitize_config
   copy_authorized_links(:description) { [effective_context, nil] }
 
-  def description
-    raw = super
-    raw && Sanitize.clean(raw, CanvasSanitize::SANITIZE)
+  def description(skip_sanitization: false)
+    raw = super()
+    # this should be true only for converting legacy youtube iframe to studio
+    return raw if skip_sanitization
+
+    raw && Sanitize.clean(raw, self.class.sanitize_config)
   end
 
   include Workflow

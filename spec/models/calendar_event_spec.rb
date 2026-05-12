@@ -1373,5 +1373,46 @@ describe CalendarEvent do
     it "returns nil when description is nil" do
       expect(event.description).to be_nil
     end
+
+    it "strips iframes pointing at external hosts" do
+      event.update!(description: '<iframe src="https://attacker.example/x.html"></iframe>tail')
+      expect(event.description).not_to include("<iframe")
+      expect(event.description).to include("tail")
+    end
+
+    it "preserves canvas media attachment iframes" do
+      # necessary because of studio
+      html = '<iframe src="/media_attachments_iframe/42" width="640" height="360"></iframe>'
+      event.saving_user = @teacher
+      event.update!(description: html)
+      expect(event.description).to include('src="/media_attachments_iframe/42"')
+    end
+
+    it "preserves legacy media object iframes" do
+      html = '<iframe src="/media_objects_iframe/m-abc123"></iframe>'
+      event.saving_user = @teacher
+      event.update!(description: html)
+      expect(event.description).to include('src="/media_objects_iframe/m-abc123"')
+    end
+
+    it "preserves lti tool launch iframes" do
+      html = '<iframe class="lti-embed" src="/courses/1/external_tools/retrieve?url=studio"></iframe>'
+      event.update!(description: html)
+      expect(event.description).to include('src="/courses/1/external_tools/retrieve?url=studio"')
+    end
+
+    it "strips object, embed and param elements" do
+      html = '<object data="https://attacker.example/x.swf"><param name="movie" value="x"></object><embed src="https://attacker.example/y">'
+      event.update!(description: html)
+      expect(event.description).not_to include("<object")
+      expect(event.description).not_to include("<embed")
+      expect(event.description).not_to include("<param")
+    end
+
+    it "strips iframes from legacy unsanitized rows on read" do
+      event.update_columns(description: '<iframe src="https://attacker.example/"></iframe>safe')
+      expect(event.description).not_to include("<iframe")
+      expect(event.description).to include("safe")
+    end
   end
 end
