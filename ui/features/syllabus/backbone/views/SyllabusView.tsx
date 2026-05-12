@@ -48,7 +48,9 @@ interface SyllabusViewOverride {
 export interface SyllabusViewEvent {
   date?: Date | null
   due_at?: Date
+  due_at_iso?: string
   end_at?: Date
+  end_at_iso?: string
   eventCount?: number
   html_url?: string
   json: SyllabusEventApi
@@ -60,9 +62,11 @@ export interface SyllabusViewEvent {
   same_day: boolean
   same_time: boolean
   start_at?: Date
+  start_at_iso?: string
   subtype?: string
   title: string
   todo_at?: Date
+  todo_at_iso?: string
   type?: string
   workflow_state?: string
 }
@@ -274,10 +278,14 @@ class SyllabusView extends Backbone.View {
         title,
         html_url,
         start_at,
+        start_at_iso: json.start_at,
         end_at,
+        end_at_iso: json.end_at,
         due_at,
+        due_at_iso: json.start_at,
         orig_date: orig_start_date,
         todo_at,
+        todo_at_iso: json.todo_at,
         same_day:
           (start_date != null ? start_date.getTime() : undefined) ===
           (end_date != null ? end_date.getTime() : undefined),
