@@ -158,7 +158,7 @@ class ProfileController < ApplicationController
   skip_before_action :require_user, only: :show
   before_action :require_user_for_private_profile, only: :show
   before_action :reject_student_view_student
-  before_action :require_password_session, only: %i[communication communication_update update]
+  before_action :require_password_session, only: %i[communication communication_update update update_profile]
 
   include HorizonMode
   include StudentEnrollmentHelper

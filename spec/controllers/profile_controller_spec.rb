@@ -396,6 +396,15 @@ describe ProfileController do
       expect(@user.reload.pronouns).to be_nil
       expect(response).to be_successful
     end
+
+    it "requires a password session" do
+      session[:used_remember_me_token] = true
+      put "update_profile",
+          params: { user_profile: { bio: "stored xss" } },
+          format: "json"
+      expect(response).to redirect_to(login_url)
+      expect(@user.reload.profile.bio).to be_nil
+    end
   end
 
   describe "content_shares" do
