@@ -13677,14 +13677,14 @@ he:
       appointment_availability: "זמינות פגישה"
       appointment_cancelations: "ביטולי פגישה"
       appointment_signups: "הרשמות לפגישה"
-      blueprint: תבנית
+      blueprint: "תבנית דוגמה"
       calendar: יומן
       course_content: "תוכן קורס"
       discussion: דיון
       discussion_entry: "מופע דיון"
       due_date: "תאריך יעד"
-      files: קבצים
-      grading: "חישוב הציון"
+      files: "קבצים "
+      grading: הערכה
       grading_policies: "מדיניות הערכה"
       invitiation: הזמנה
       late_grading: "הערכה מאוחרת"
@@ -13794,33 +13794,33 @@ he:
       enrollment_registration: "תהליך הרשמה"
       event_date_changed: "מועד אירוע שונה"
       forgot_password: "שכחת סיסמה"
-      grade_weight_changed: "משקלות הערכה שונו"
+      grade_weight_changed: "משקלות הערכה שונו "
       group_assignment_submitted_late: "הגשת משימה קבוצתית באיחור"
       group_membership_accepted: "חברות בקבוצה אושרה"
       group_membership_rejected: "חברות בקבוצה נדחתה"
       merge_email_communication_channel: "מיזוג ערוץ תקשורת דוא\"ל"
       migration_import_failed: "ייבוא הגירת נתונים נכשל"
       migration_import_finished: "ייבוא הגירת נתונים נסתיים"
-      new_account_user: "חשבון משתמש חדש"
+      new_account_user: "חשבון משתמש חדש "
       new_announcement: "הכרזה חדשה"
       new_context_group_membership: "חברות חדשה בקבוצת קונטקסט"
       new_context_group_membership_invitation: "הזמנה לחברות בקבוצת קונטקסט חדשה"
-      new_course: "קורס חדש"
+      new_course: "קורס חדש "
       new_discussion_entry: "מופע דיון חדש"
       new_discussion_topic: "נושא דיון חדש"
       new_event_created: "אירוע חדש נוצר"
       new_file_added: "קובץ חדש נתווסף"
       new_files_added: "קבצים חדשים נתווספו"
       new_student_organized_group: "קבוצה חדשה המאורגנת ע\"י תלמידים"
-      new_user: "משתמש חדש"
+      new_user: "משתמש חדש "
       pseudonym_registration: "הרשמה בשם בדוי"
       pseudonym_registration_done: "הרשמה בשם בדוי בוצעה"
-      report_generated: "הדוח הוכן"
+      report_generated: "הדוח מוכן"
       report_generation_failed: "הכנת הדוח נכשלה"
       rubric_assessment_invitation: "הזמנה להערכת רובריקות"
       rubric_assessment_submission_reminder: "תזכורת הגשת הערכת רובריקות"
       rubric_association_created: "שיוך רובריקה נוצר"
-      submission_comment: "שיגור הערה"
+      submission_comment: "הערת הגשה"
       submission_comment_for_teacher: "הערת הגשה למורה"
       submission_grade_changed: "הערכת הגשה שונתה"
       submission_graded: "הגשה הוערכה"
@@ -15385,6 +15385,10 @@ he:
       email_sent: "הודעת אישור נשלחה אל %{email}. יש לוודא שאינה בתיבת דואר הזבל שלך."
       link_invalid: "הקישור בו השתמשת אינו תקין יותר. אם אין באפשרותך להתחבר, יש להקליק על \"שכחת סיסמה?\" כדי לאפס את סיסמתך."
       password_changed: "סיסמה שונתה"
+    set_password: 
+      confirm_change_password: 
+        loading: "בטעינה... "
+      page_title: "שינוי סיסמה"
   pseudonyms_mobile_login: 
     parent_signup: "הזדהות הורה"
   pts_51d69f4a: נקודות
