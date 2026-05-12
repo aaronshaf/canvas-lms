@@ -216,6 +216,10 @@ class AiConversationsController < ApplicationController
   #
   # Submit a like or dislike vote on an AI-generated message.
   #
+  # Ownership: load_conversation gates this action — only the conversation owner
+  # or a course manager reaches here. Sub-resource (message_id within the
+  # conversation) scoping is delegated to llma.
+  #
   # @argument vote [Required, String] "liked" or "disliked"
   # @argument message_id [Required, String] llm-conversation message UUID
   # @argument feedback_message [Optional, String] optional text for dislike
@@ -237,6 +241,10 @@ class AiConversationsController < ApplicationController
   # @API Delete feedback on a conversation message
   #
   # Remove a previously submitted vote (toggling off like/dislike).
+  #
+  # Ownership: load_conversation gates this action — only the conversation owner
+  # or a course manager reaches here. Sub-resource (message_id, feedback_id within
+  # the conversation) scoping is delegated to llma.
   #
   # @returns {Object} Success response
   def delete_feedback
@@ -288,8 +296,14 @@ class AiConversationsController < ApplicationController
     render_404 unless @experience&.course == @context && !@experience.deleted?
   end
 
+  # Security gate for every per-conversation action (show, post_message, destroy,
+  # evaluation, create_feedback, delete_feedback). A non-owner non-manager student
+  # passing another user's conversation id is rejected here with 404 before any
+  # downstream service or controller logic runs — this is the only place the
+  # ownership-or-manager rule is enforced for those actions, so changes here
+  # affect M-2's IDOR posture. Lock-in tests live in the controller spec under
+  # "feedback actor authorization (M-2)".
   def load_conversation
-    # For teachers, allow loading any conversation; for students, only their own
     permissions = %i[manage_assignments_add manage_assignments_edit manage_assignments_delete]
     @conversation = if @context.grants_any_right?(@current_user, *permissions)
                       # Teachers can view any conversation

@@ -769,6 +769,109 @@ describe AiConversationsController do
     end
   end
 
+  describe "feedback actor authorization (M-2)" do
+    # Lock-in: load_conversation is the security gate that prevents a student
+    # from leaving (or deleting) feedback on another user's conversation. These
+    # specs assert that contract from the feedback action's perspective so a
+    # regression to load_conversation's scoping is caught at the M-2 surface.
+    before :once do
+      @other_student = user_factory(active_all: true)
+      @course.enroll_student(@other_student, enrollment_state: "active")
+      @owners_conversation = @ai_experience.ai_conversations.create!(
+        llm_conversation_id: "owner-conv",
+        user: @student,
+        course: @course,
+        root_account: @course.root_account,
+        account: @course.account,
+        workflow_state: "active"
+      )
+    end
+
+    before do
+      @feedback_service = instance_double(AiExperiences::ConversationMessageFeedbackService)
+      allow(AiExperiences::ConversationMessageFeedbackService).to receive(:new).and_return(@feedback_service)
+      allow(@feedback_service).to receive(:create).and_return({ "id" => "fb-x" })
+      allow(@feedback_service).to receive(:delete)
+    end
+
+    context "as another student (not the conversation owner)" do
+      before { user_session(@other_student) }
+
+      it "create_feedback returns 404 and does not call llma" do
+        post :create_feedback,
+             params: { course_id: @course.id,
+                       ai_experience_id: @ai_experience.id,
+                       id: @owners_conversation.id,
+                       message_id: "msg-123",
+                       vote: "liked" },
+             format: :json
+
+        expect(response).to have_http_status(:not_found)
+        expect(@feedback_service).not_to have_received(:create)
+      end
+
+      it "delete_feedback returns 404 and does not call llma" do
+        delete :delete_feedback,
+               params: { course_id: @course.id,
+                         ai_experience_id: @ai_experience.id,
+                         id: @owners_conversation.id,
+                         message_id: "msg-123",
+                         feedback_id: "fb-1" },
+               format: :json
+
+        expect(response).to have_http_status(:not_found)
+        expect(@feedback_service).not_to have_received(:delete)
+      end
+    end
+
+    context "as the conversation owner" do
+      before { user_session(@student) }
+
+      it "create_feedback forwards to llma" do
+        post :create_feedback,
+             params: { course_id: @course.id,
+                       ai_experience_id: @ai_experience.id,
+                       id: @owners_conversation.id,
+                       message_id: "msg-123",
+                       vote: "liked" },
+             format: :json
+
+        expect(response).to be_successful
+        expect(@feedback_service).to have_received(:create)
+      end
+
+      it "delete_feedback forwards to llma" do
+        delete :delete_feedback,
+               params: { course_id: @course.id,
+                         ai_experience_id: @ai_experience.id,
+                         id: @owners_conversation.id,
+                         message_id: "msg-123",
+                         feedback_id: "fb-1" },
+               format: :json
+
+        expect(response).to be_successful
+        expect(@feedback_service).to have_received(:delete)
+      end
+    end
+
+    context "as a course manager (teacher) operating on someone else's conversation" do
+      before { user_session(@teacher) }
+
+      it "create_feedback forwards to llma" do
+        post :create_feedback,
+             params: { course_id: @course.id,
+                       ai_experience_id: @ai_experience.id,
+                       id: @owners_conversation.id,
+                       message_id: "msg-123",
+                       vote: "liked" },
+             format: :json
+
+        expect(response).to be_successful
+        expect(@feedback_service).to have_received(:create)
+      end
+    end
+  end
+
   describe "ai_experiences feature flag" do
     context "when feature flag is disabled" do
       before do
