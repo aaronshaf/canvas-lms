@@ -16,6 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import elementDenylist from './elementDenylist'
+
 function elemsToTinyStringConfig(
   list: Record<string, (string | Record<string, string>)[]>,
 ): string {
@@ -962,6 +964,8 @@ const defaultTinymceConfig = {
     rp: [],
     rt: [],
   }),
+
+  invalid_elements: elementDenylist.join(','),
 
   non_empty_elements:
     'td th iframe video audio object script a i area base basefont br col frame hr img input isindex link meta param embed source wbr track ruby',

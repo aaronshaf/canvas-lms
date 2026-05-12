@@ -109,6 +109,15 @@ describe('defaultTinymceConfig', () => {
         expect(allAllowedElements).not.toMatch(regex)
       })
     })
+
+    it('sets invalid_elements to enforce the denylist at runtime', () => {
+      const {invalid_elements} = defaultTinymceConfig
+      expect(invalid_elements).toBeDefined()
+      const deniedByConfig = invalid_elements.split(',')
+      elementDenylist.forEach(element => {
+        expect(deniedByConfig).toContain(element)
+      })
+    })
   })
 
   describe('font_formats', () => {
