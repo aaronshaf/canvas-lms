@@ -301,6 +301,7 @@ module Api::V1::CalendarEvent
       only: %w[id created_at description end_at max_appointments_per_participant min_appointments_per_participant participants_per_appointment start_at title updated_at workflow_state participant_visibility],
       methods: :sub_context_codes
     )
+    hash["description"] = api_user_content(group.description, @context, location: group.asset_string)
 
     if user
       hash["location_address"] = group.location_address

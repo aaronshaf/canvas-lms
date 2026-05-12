@@ -60,6 +60,19 @@ describe AppointmentGroupsController, type: :request do
     ].freeze
   end
 
+  it "processes description html through api_user_content" do
+    should_translate_user_content(@course1) do |content|
+      ag = AppointmentGroup.create!(title: "test", description: content, contexts: [@course1])
+      json = api_call(:get,
+                      "/api/v1/appointment_groups/#{ag.id}",
+                      controller: "appointment_groups",
+                      action: "show",
+                      format: "json",
+                      id: ag.id.to_s)
+      json["description"]
+    end
+  end
+
   it "returns manageable appointment groups" do
     ag1 = AppointmentGroup.create!(title: "something", contexts: [@course1])
     cat = @course1.group_categories.create(name: "foo")
