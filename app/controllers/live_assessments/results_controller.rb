@@ -78,6 +78,8 @@ module LiveAssessments
     before_action :require_context
     before_action :require_assessment
 
+    MAX_RESULTS_PER_REQUEST = 10_000
+
     # @API Create live assessment results
     #
     # Creates live assessment results and adds them to a live assessment
@@ -110,14 +112,39 @@ module LiveAssessments
       reject! "missing required key :results" unless params[:results].is_a?(Array)
 
       @results = []
+
+      if params[:results].size > MAX_RESULTS_PER_REQUEST
+        raise ArgumentError, "Too many results in one request. Please limit to #{MAX_RESULTS_PER_REQUEST} results per request."
+      end
+
       result_hashes_by_user_id = params[:results].group_by { |result| result[:links] and result[:links][:user] }
       Result.transaction do
         result_hashes_by_user_id.each do |user_id, result_hashes|
           reject! "missing required key :user" unless user_id
-          @user = @context.users.where(id: user_id).first
+          @user = @context.users.active.merge(Enrollment.active_or_pending).where(id: user_id).first
           reject! "user must be in the context" unless @user
 
           result_hashes.each do |result_hash|
+            reject! "missing required key :passed" if result_hash[:passed].nil?
+            reject! "missing required key :assessed_at" if result_hash[:assessed_at].blank?
+            if Time.zone.parse(result_hash[:assessed_at]) > Time.zone.now
+              Canvas::Errors.capture(
+                "Live assessment result with future assessed_at time",
+                {
+                  extra: {
+                    context_type: @context.class.name,
+                    context_id: @context.id,
+                    assessment_id: @assessment.id,
+                    current_user_id: @current_user.id,
+                    assessed_user_id: @user.id,
+                    assessment_time: result_hash[:assessed_at],
+                    server_time: Time.zone.now.iso8601
+                  }
+                },
+                :warn
+              )
+            end
+
             result = @assessment.results.build(
               user: @user,
               assessor: @current_user,
