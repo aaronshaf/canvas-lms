@@ -35,17 +35,17 @@
     tslib "^2.3.0"
     zen-observable-ts "^1.2.5"
 
-"@ardatan/relay-compiler@^12.0.3":
-  version "12.0.3"
-  resolved "https://registry.yarnpkg.com/@ardatan/relay-compiler/-/relay-compiler-12.0.3.tgz#a60824672da7f7cef2a3879ed833b120d292fa08"
-  integrity sha512-mBDFOGvAoVlWaWqs3hm1AciGHSQE1rqFc/liZTyYz/Oek9yZdT5H26pH2zAFuEiTiBVPPyMuqf5VjOFPI2DGsQ==
+"@ardatan/relay-compiler@12.2.0", "@ardatan/relay-compiler@^12.0.3":
+  version "12.2.0"
+  resolved "https://registry.yarnpkg.com/@ardatan/relay-compiler/-/relay-compiler-12.2.0.tgz#d508ffd53a022c8f983f5f699fd93a69790a1000"
+  integrity sha512-Bvt+EAf5KQQLkBLUrLwSuhJjX4O865VrU5XLGuRY6FgyLDCO9dggtpansHfsclWu60A6CJ7JFiCO639XZ3TzaA==
   dependencies:
     "@babel/generator" "^7.26.10"
     "@babel/parser" "^7.26.10"
     "@babel/runtime" "^7.26.10"
     chalk "^4.0.0"
     fb-watchman "^2.0.0"
-    immutable "~3.7.6"
+    immutable "^3"
     invariant "^2.2.4"
     nullthrows "^1.1.1"
     relay-runtime "12.0.0"
@@ -14140,7 +14140,7 @@ immutability-helper@^3:
   resolved "https://registry.yarnpkg.com/immutability-helper/-/immutability-helper-3.1.1.tgz#2b86b2286ed3b1241c9e23b7b21e0444f52f77b7"
   integrity sha512-Q0QaXjPjwIju/28TsugCHNEASwoCcJSyJV3uO1sOIQGI0jKgm9f41Lvz0DZj3n46cNCyAZTsEYoY4C2bVRUzyQ==
 
-immutable@^3.8.1, immutable@^3.8.3:
+immutable@^3, immutable@^3.8.1, immutable@^3.8.3:
   version "3.8.3"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.3.tgz#0a8d2494a94d4b2d4f0e99986e74dd25d1e9a859"
   integrity sha512-AUY/VyX0E5XlibOmWt10uabJzam1zlYjwiEgQSDc5+UIkFNaF9WM0JxXKaNMGf+F/ffUF+7kRKXM9A7C0xXqMg==
@@ -14149,11 +14149,6 @@ immutable@^5.1.5:
   version "5.1.5"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-5.1.5.tgz#93ee4db5c2a9ab42a4a783069f3c5d8847d40165"
   integrity sha512-t7xcm2siw+hlUM68I+UEOK+z84RzmN59as9DZ7P1l0994DKUWV7UXBMQZVxaoMSRQ+PBZbHCOoBt7a2wxOMt+A==
-
-immutable@~3.7.6:
-  version "3.7.6"
-  resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.7.6.tgz#13b4d3cb12befa15482a26fe1b2ebae640071e4b"
-  integrity sha512-AizQPcaofEtO11RZhPPHBOJRdo/20MKQF9mBLnVkBoyHi1/zXK8fzVdnEpSV9gxqtnh6Qomfp3F0xT5qP/vThw==
 
 import-fresh@^2.0.0:
   version "2.0.0"
