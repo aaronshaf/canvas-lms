@@ -707,11 +707,16 @@ class OutcomeGroupsApiController < ApplicationController
       return
     end
 
-    # source has to be global, in same context, or in an associated
-    # account
+    # source has to be global, in same context, or in an associated account
     source_context = @source_outcome_group.context
     unless !source_context || source_context == @context || @context.associated_accounts.include?(source_context)
       render json: "error".to_json, status: :bad_request
+      return
+    end
+
+    # user must have read access to the source context (CWE-863: missing per-source authz)
+    unless can_read_source_outcomes?(source_context)
+      render json: "error".to_json, status: :forbidden
       return
     end
 
@@ -763,6 +768,16 @@ class OutcomeGroupsApiController < ApplicationController
       authorized_action(@context, @current_user, :manage_outcomes)
     else
       authorized_action(Account.site_admin, @current_user, :manage_global_outcomes)
+    end
+  end
+
+  def can_read_source_outcomes?(source_context)
+    if source_context.nil?
+      Account.site_admin.grants_right?(@current_user, session, :read_global_outcomes)
+    elsif source_context == @context
+      true
+    else
+      source_context.grants_right?(@current_user, session, :read_outcomes)
     end
   end
 

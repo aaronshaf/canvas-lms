@@ -2119,6 +2119,81 @@ describe "Outcome Groups API", type: :request do
       assert_status(400)
     end
 
+    context "source context authorization (CWE-863)" do
+      before :once do
+        @parent_account = @account
+        @child_account = @parent_account.sub_accounts.create!
+        @ancestor_source_group = @parent_account.root_outcome_group.child_outcome_groups.create!(
+          title: "Ancestor Group"
+        )
+        @child_target_group = @child_account.root_outcome_group
+      end
+
+      it "allows importing from ancestor account when user has read_outcomes on it" do
+        # @user already has an account_user on @parent_account (from outer before :once),
+        # so they have read_outcomes on it. Adding one on @child_account gives them
+        # manage_outcomes on the destination too.
+        @user.account_users.create(account: @child_account)
+        api_call(:post,
+                 "/api/v1/accounts/#{@child_account.id}/outcome_groups/#{@child_target_group.id}/import",
+                 { controller: "outcome_groups_api",
+                   action: "import",
+                   account_id: @child_account.id.to_s,
+                   id: @child_target_group.id.to_s,
+                   format: "json" },
+                 { source_outcome_group_id: @ancestor_source_group.id.to_s })
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "forbids importing from ancestor account when user has no read access to source" do
+        restricted_user = User.create!
+        # Canvas automatically propagates UserAccountAssociations (UAAs) to every ancestor
+        # whenever an AccountUser or Pseudonym is created, so there is no natural way to
+        # have manage_outcomes on a child account without also having read_outcomes on its
+        # parent via UAA. We use skip_updating_account_associations to simulate the
+        # theoretical production case where the user has no association with the source
+        # account. The Pseudonym must also be pre-created inside the block so raw_api_call
+        # reuses it instead of creating a new one (which would re-add the parent UAA).
+        User.skip_updating_account_associations do
+          restricted_user.account_users.create(account: @child_account)
+          restricted_user.pseudonyms.create!(
+            unique_id: "restricted_#{restricted_user.id}@example.com",
+            account: Account.default
+          )
+        end
+
+        @user = restricted_user
+        raw_api_call(:post,
+                     "/api/v1/accounts/#{@child_account.id}/outcome_groups/#{@child_target_group.id}/import",
+                     { controller: "outcome_groups_api",
+                       action: "import",
+                       account_id: @child_account.id.to_s,
+                       id: @child_target_group.id.to_s,
+                       format: "json" },
+                     { source_outcome_group_id: @ancestor_source_group.id.to_s })
+        assert_status(403)
+      end
+
+      it "forbids importing a global group when read_global_outcomes is denied" do
+        # read_global_outcomes is currently granted to all authenticated users on
+        # Account.site_admin. This test guards the deny code path against future
+        # policy changes by simulating a denial via a targeted stub.
+        allow(Account.site_admin).to receive(:grants_right?).and_call_original
+        allow(Account.site_admin).to receive(:grants_right?)
+          .with(@user, anything, :read_global_outcomes).and_return(false)
+
+        raw_api_call(:post,
+                     "/api/v1/accounts/#{@account.id}/outcome_groups/#{@target_group.id}/import",
+                     { controller: "outcome_groups_api",
+                       action: "import",
+                       account_id: @account.id.to_s,
+                       id: @target_group.id.to_s,
+                       format: "json" },
+                     { source_outcome_group_id: @source_group.id.to_s })
+        assert_status(403)
+      end
+    end
+
     it "creates a new outcome group" do
       expect(@target_group.child_outcome_groups.size).to eq 0
       api_call(:post,
