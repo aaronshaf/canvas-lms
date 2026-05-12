@@ -120,6 +120,17 @@ export const isGuidDataValid = event => {
   return true
 }
 
+export const handleAbGuidPostMessage = (
+  event: MessageEvent,
+  setAbGuid: (guids: string[]) => void,
+) => {
+  const trustedOrigin = ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN
+  if (!trustedOrigin || event?.origin !== trustedOrigin) return
+  if (isGuidDataValid(event)) {
+    setAbGuid(getAbGuidArray(event))
+  }
+}
+
 function DiscussionTopicForm({
   // @ts-expect-error TS7031 (typescriptify)
   isEditing,
@@ -419,7 +430,7 @@ function DiscussionTopicForm({
     currentDiscussionTopic?.assignment?.importantDates || false,
   )
 
-  const [abGuid, setAbGuid] = useState(null)
+  const [abGuid, setAbGuid] = useState<string[] | null>(null)
 
   // Suppressed assignment state
   const [suppressedAssignment, setSuppressedAssignment] = useState(
@@ -601,14 +612,8 @@ function DiscussionTopicForm({
     }
   }, [isGraded])
 
-  // @ts-expect-error TS7006 (typescriptify)
-  const setAbGuidPostMessageListener = event => {
-    const validatedAbGuid = isGuidDataValid(event)
-    if (validatedAbGuid) {
-      // @ts-expect-error TS2345 (typescriptify)
-      setAbGuid(getAbGuidArray(event))
-    }
-  }
+  const setAbGuidPostMessageListener = (event: MessageEvent) =>
+    handleAbGuidPostMessage(event, setAbGuid)
 
   useEffect(() => {
     window.addEventListener('message', setAbGuidPostMessageListener)
