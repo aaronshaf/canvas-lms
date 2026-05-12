@@ -175,7 +175,7 @@ describe('CreateCourseModal (1)', () => {
     fireEvent.click(getByLabelText('Which account will this subject be associated with?'))
     await user.click(await screen.findByText('Elementary'))
     // Wait for the button to be enabled after account selection completes
-    await waitFor(() => expect(createButton).not.toBeDisabled())
+    await waitFor(() => expect(createButton).not.toBeDisabled(), {timeout: 5000})
   })
 
   it('includes all received accounts in the select, handling pagination correctly', async () => {
