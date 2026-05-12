@@ -1985,6 +1985,7 @@ class ApplicationController < ActionController::Base
   end
 
   def require_password_reset
+    return if @current_user && @real_current_user && @real_current_user != @current_user
     return unless @current_pseudonym&.must_reset_password? && request.get? && !api_request? && !verified_file_request?
 
     ap = @current_pseudonym.authentication_provider

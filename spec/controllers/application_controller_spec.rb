@@ -4721,6 +4721,20 @@ RSpec.describe ApplicationController, "#require_password_reset" do
       end
     end
 
+    context "when an admin is masquerading as the user" do
+      let(:admin) { account_admin_user(account: Account.default) }
+
+      before do
+        pseudonym.update!(authentication_provider: Account.default.canvas_authentication_provider)
+        controller.instance_variable_set(:@real_current_user, admin)
+      end
+
+      it "does not redirect to set_password_url" do
+        get :index, format: :html
+        expect(response).to be_successful
+      end
+    end
+
     context "when the pseudonym has no auth provider but the session was Canvas-authenticated" do
       before do
         session[:login_aac_is_canvas] = true
