@@ -295,7 +295,6 @@
     "change-case": "3.0.1",
     "concurrently": "^7.2.0",
     "core-js": "^3.20.3",
-    "core-js-builder": "^3",
     "coverage-istanbul-loader": "^3.0.5",
     "css-loader": "^3",
     "dependency-cruiser": "^16.9.0",

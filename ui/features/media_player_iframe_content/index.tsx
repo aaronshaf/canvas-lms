@@ -17,9 +17,6 @@
  */
 
 import {render} from '@canvas/react'
-// TODO: use URL() in browser to parse URL
-// eslint-disable-next-line import/no-nodejs-modules
-import {parse} from 'url'
 import ready from '@instructure/ready'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import CanvasStudioPlayer from '@canvas/canvas-studio-player'
@@ -66,9 +63,8 @@ const getAsrContext = (): AsrContext => {
   }
 }
 
-const addVerifier = (url: string, verifier: string | string[] | undefined): string => {
-  if (Array.isArray(verifier)) verifier = verifier[0]
-  if (typeof verifier == 'undefined') return url
+const addVerifier = (url: string, verifier: string | null): string => {
+  if (verifier == null) return url
 
   const parsedUrl = URL.parse(url)
   if (!parsedUrl) return url
@@ -91,13 +87,14 @@ ready(() => {
   const media_href_match = window.location.search.match(/mediahref=([^&]+)/)
   const media_object = ENV.media_object || {}
   const is_attachment = ENV.attachment
-  const parsed_loc = parse(window.location.href, true)
+  const parsed_loc = new URL(window.location.href)
+  const verifier = parsed_loc.searchParams.get('verifier')
   const is_video =
     /video/.test(media_object?.media_type) || /type=video/.test(window.location.search)
   let href_source
 
   if (media_href_match) {
-    href_source = addVerifier(decodeURIComponent(media_href_match[1]), parsed_loc.query.verifier)
+    href_source = addVerifier(decodeURIComponent(media_href_match[1]), verifier)
 
     if (is_video) {
       href_source = [href_source]
@@ -107,8 +104,8 @@ ready(() => {
   const mediaTracks = media_object?.media_tracks?.map(track => {
     return {
       ...track,
-      url: addVerifier(track.url, parsed_loc.query.verifier), // For CanvasStudioPlayer
-      src: addVerifier(track.url, parsed_loc.query.verifier), // For CanvasMediaPlayer
+      url: addVerifier(track.url, verifier), // For CanvasStudioPlayer
+      src: addVerifier(track.url, verifier), // For CanvasMediaPlayer
       label: captionLanguageForLocale(track.locale),
       type: track.kind,
       language: track.locale,
