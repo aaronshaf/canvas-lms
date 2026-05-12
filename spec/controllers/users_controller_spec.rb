@@ -708,6 +708,33 @@ describe UsersController do
           assert_status(400)
         end
 
+        describe "throttle on invalid pairing code" do
+          let(:observer_params) do
+            {
+              pseudonym: { unique_id: "jane@example.com" },
+              user: { name: "Jane Observer", terms_of_use: "1", initial_enrollment_type: "observer" }
+            }
+          end
+
+          it "increments the request cost by 200 when the pairing code is invalid" do
+            post "create", params: observer_params.merge(pairing_code: { code: "not-a-real-code" }), format: "json"
+
+            assert_status(400)
+            expect(controller.request.env["extra-request-cost"]).to eq(200)
+          end
+
+          it "does not increment the request cost when the pairing code is valid" do
+            user_with_pseudonym(active_all: true, password: "lolwut12")
+            course_with_student(user: @user, active_all: true)
+            pairing_code = @student.generate_observer_pairing_code
+
+            post "create", params: observer_params.merge(pairing_code: { code: pairing_code.code }), format: "json"
+
+            expect(response).to be_successful
+            expect(controller.request.env["extra-request-cost"]).to be_nil
+          end
+        end
+
         it "allows observers to self register with a pairing code" do
           course_with_student
           @domain_root_account = @course.account

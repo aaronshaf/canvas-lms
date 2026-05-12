@@ -442,6 +442,24 @@ describe UserObserveesController, type: :request do
       expect(create_call({ pairing_code: code.code }, api_user: parent)).to eq student.id
       expect(parent.reload.linked_students).to eq [student]
     end
+
+    context "throttle on invalid pairing code" do
+      it "increments the request cost by 200 on an invalid pairing code" do
+        expect_any_instance_of(UserObserveesController)
+          .to receive(:increment_request_cost).with(200).and_call_original
+
+        create_call({ pairing_code: "not-a-real-code" }, api_user: parent, expected_status: 422)
+
+        expect(parent.reload.linked_students).to eq []
+      end
+
+      it "does not increment the request cost when the pairing code is valid" do
+        code = student.generate_observer_pairing_code
+        expect_any_instance_of(UserObserveesController).not_to receive(:increment_request_cost)
+
+        expect(create_call({ pairing_code: code.code }, api_user: parent)).to eq student.id
+      end
+    end
   end
 
   context "GET #show" do
