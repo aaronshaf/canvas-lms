@@ -57,7 +57,7 @@ describe FeatureFlags::OakPredicate do
       end
 
       context "with approved AWS regions" do
-        %w[us-east-1 us-west-2 eu-central-1 eu-west-1 ap-southeast-2].each do |region|
+        %w[us-east-1 us-west-2 ca-central-1 eu-central-1 eu-west-1 ap-southeast-2].each do |region|
           it "returns true for #{region}" do
             predicate = described_class.new(context, region)
 

@@ -31,7 +31,7 @@ module FeatureFlags
     private
 
     def in_approved_region?
-      %w[us-east-1 us-west-2 eu-central-1 eu-west-1 ap-southeast-2].include? @region
+      %w[us-east-1 us-west-2 ca-central-1 eu-central-1 eu-west-1 ap-southeast-2].include? @region
     end
   end
 end
