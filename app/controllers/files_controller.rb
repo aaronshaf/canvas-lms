@@ -925,12 +925,12 @@ class FilesController < ApplicationController
   end
   protected :active_svg_payload?
 
-  # HTML is an active document: <script>, on* handlers, meta-refresh,
-  # and javascript: URIs all execute when the file is fetched with
-  # Content-Disposition: inline. With a separate files_domain
-  # configured, the file is served on a sandboxed origin so any XSS
-  # is contained off the app origin. Without one (typical on
-  # self-hosted Canvas that hasn't set files_domain), the file
+  # HTML and XML-family content render as active documents: <script>,
+  # on* handlers, meta-refresh, javascript: URIs (and, for XML with
+  # the XHTML namespace, embedded <script>) all execute when the file
+  # is fetched with Content-Disposition: inline. With a separate
+  # files_domain configured, the file is served on a sandboxed origin
+  # so any XSS is contained off the app origin. Without one, the file
   # renders on the app origin and any uploader — including a student
   # via a submission attachment — can pop XSS in the viewing user's
   # session. In that case force the attachment branch so the browser
@@ -938,7 +938,13 @@ class FilesController < ApplicationController
   def active_html_payload?(attachment)
     return false if HostUrl.has_file_host?
 
-    attachment.content_type.to_s.start_with?("text/html", "application/xhtml")
+    attachment.content_type.to_s.start_with?(
+      "text/html",
+      "application/xhtml",
+      "text/xml",
+      "application/xml",
+      "text/xsl"
+    )
   end
   protected :active_html_payload?
   protected :send_attachment

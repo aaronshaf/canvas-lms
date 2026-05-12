@@ -860,6 +860,39 @@ describe FilesController do
         get "show", params: { course_id: @course.id, id: xhtml_attachment.id, inline: 1, download: 1, verifier: xhtml_attachment.uuid }
       end
 
+      it "forces download for text/xml when no files_domain is configured" do
+        user_session(@teacher)
+        allow(HostUrl).to receive(:has_file_host?).and_return(false)
+        xml_attachment = attachment_with_context(
+          @course,
+          uploaded_data: stub_file_data("xss.xml", html_payload, "text/xml")
+        )
+        expect_any_instance_of(FilesController).to receive(:send_stored_file).with(xml_attachment, inline: false)
+        get "show", params: { course_id: @course.id, id: xml_attachment.id, inline: 1, download: 1, verifier: xml_attachment.uuid }
+      end
+
+      it "forces download for application/xml when no files_domain is configured" do
+        user_session(@teacher)
+        allow(HostUrl).to receive(:has_file_host?).and_return(false)
+        xml_attachment = attachment_with_context(
+          @course,
+          uploaded_data: stub_file_data("xss.xml", html_payload, "application/xml")
+        )
+        expect_any_instance_of(FilesController).to receive(:send_stored_file).with(xml_attachment, inline: false)
+        get "show", params: { course_id: @course.id, id: xml_attachment.id, inline: 1, download: 1, verifier: xml_attachment.uuid }
+      end
+
+      it "forces download for text/xsl when no files_domain is configured" do
+        user_session(@teacher)
+        allow(HostUrl).to receive(:has_file_host?).and_return(false)
+        xsl_attachment = attachment_with_context(
+          @course,
+          uploaded_data: stub_file_data("xss.xsl", html_payload, "text/xsl")
+        )
+        expect_any_instance_of(FilesController).to receive(:send_stored_file).with(xsl_attachment, inline: false)
+        get "show", params: { course_id: @course.id, id: xsl_attachment.id, inline: 1, download: 1, verifier: xsl_attachment.uuid }
+      end
+
       it "still allows inline text/html when a separate files_domain is configured" do
         user_session(@teacher)
         # files_domain is the sandboxed origin; with one configured the
