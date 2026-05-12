@@ -733,6 +733,7 @@ describe DeveloperKeysController do
       let(:dk) { DeveloperKey.create!(account: root_account) }
 
       before do
+        set_domain_root_account(account: root_account)
         account_admin_user(account: root_account)
         user_session(@admin)
       end
@@ -777,6 +778,7 @@ describe DeveloperKeysController do
         it "returns 403 forbidden for site admin keys" do
           account_admin_user(account: Account.site_admin)
           user_session(@admin)
+          set_domain_root_account(account: Account.site_admin)
           Account.site_admin.enable_feature!(:developer_key_regenerate_secret)
           site_admin_key = DeveloperKey.create!
           post :regenerate_secret, params: { id: site_admin_key.id }
