@@ -24,6 +24,7 @@
 
 import Backbone from '@canvas/backbone'
 import Popover from 'jquery-popover'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import OutcomeLineGraphView from './OutcomeLineGraphView'
 import template from '@canvas/outcomes/jst/outcomePopover.handlebars'
 
@@ -45,7 +46,14 @@ class OutcomePopoverView extends Backbone.View {
 
   // Overrides
   render() {
-    return template(this.toJSON())
+    const data = this.toJSON()
+    if (data.friendly_description) {
+      data.friendly_description = sanitizeHTML(data.friendly_description)
+    }
+    if (data.description) {
+      data.description = sanitizeHTML(data.description)
+    }
+    return template(data)
   }
 
   // Instance methods

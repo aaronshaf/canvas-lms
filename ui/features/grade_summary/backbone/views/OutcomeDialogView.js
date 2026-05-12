@@ -17,6 +17,7 @@
 
 import $ from 'jquery'
 import DialogBaseView from '@canvas/dialog-base-view'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import OutcomeLineGraphView from './OutcomeLineGraphView'
 import template from '@canvas/outcomes/jst/outcomePopover.handlebars'
 
@@ -65,10 +66,17 @@ class OutcomeResultsDialogView extends DialogBaseView {
   }
 
   toJSON() {
-    return {
+    const data = {
       ...super.toJSON(...arguments),
       dialog: true,
     }
+    if (data.friendly_description) {
+      data.friendly_description = sanitizeHTML(data.friendly_description)
+    }
+    if (data.description) {
+      data.description = sanitizeHTML(data.description)
+    }
+    return data
   }
 
   // Private

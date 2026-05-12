@@ -23,6 +23,7 @@ import Popover from 'jquery-popover'
 import Outcome from '@canvas/grade-summary/backbone/models/Outcome'
 import d3 from 'd3'
 import I18n from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import popover_template from '@canvas/outcomes/jst/outcomePopover.handlebars'
 
 extend(OutcomeColumnView, View)
@@ -58,6 +59,12 @@ OutcomeColumnView.prototype.createPopover = function (e) {
   const attributes = lodashExtend(new Outcome(this.attributes).present(), {
     account_level_scales: this.account_level_scales(),
   })
+  if (attributes.friendly_description) {
+    attributes.friendly_description = sanitizeHTML(attributes.friendly_description)
+  }
+  if (attributes.description) {
+    attributes.description = sanitizeHTML(attributes.description)
+  }
   const popover = new Popover(e, this.popover_template(attributes), {
     verticalSide: 'bottom',
     invertOffset: true,

@@ -117,4 +117,51 @@ describe('OutcomePopoverView', () => {
       expect(renderSpy).toHaveBeenCalled()
     })
   })
+
+  describe('XSS hardening', () => {
+    const renderWith = attrs => {
+      popoverView.model.set(attrs)
+      const html = popoverView.render()
+      const wrapper = document.createElement('div')
+      wrapper.innerHTML = html
+      return wrapper
+    }
+
+    it('strips onerror handlers from friendly_description', () => {
+      const wrapper = renderWith({
+        friendly_description: '<img src="x" onerror="window.__xssPop1=1">',
+        path: ['root'],
+      })
+      const img = wrapper.querySelector('img')
+      if (img) expect(img.getAttribute('onerror')).toBeNull()
+      expect(window.__xssPop1).toBeUndefined()
+    })
+
+    it('strips javascript: hrefs from description', () => {
+      const wrapper = renderWith({
+        description: '<a href="javascript:window.__xssPop2=1">x</a>',
+        path: ['root'],
+      })
+      const anchor = wrapper.querySelector('a[href]')
+      if (anchor) expect(anchor.getAttribute('href') ?? '').not.toMatch(/^javascript:/i)
+      expect(window.__xssPop2).toBeUndefined()
+    })
+
+    it('strips <script> tags from friendly_description', () => {
+      const wrapper = renderWith({
+        friendly_description: '<script>window.__xssPop3=1</script>safe',
+        path: ['root'],
+      })
+      expect(wrapper.querySelector('script')).toBeNull()
+      expect(wrapper.textContent).toContain('safe')
+    })
+
+    it('preserves benign markup in friendly_description', () => {
+      const wrapper = renderWith({
+        friendly_description: '<strong>keep me</strong>',
+        path: ['root'],
+      })
+      expect(wrapper.querySelector('strong')?.textContent).toBe('keep me')
+    })
+  })
 })
