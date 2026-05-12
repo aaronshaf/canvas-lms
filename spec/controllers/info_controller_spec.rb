@@ -330,6 +330,59 @@ describe InfoController do
     end
   end
 
+  describe "GET 'message_redirect'" do
+    before :once do
+      user_factory
+      @message = message_model(user: @user, url: "https://example.com/deeplink")
+    end
+
+    let(:default_host_redirect) { "http://#{HostUrl.default_host}/" }
+
+    it "redirects to the message url for the recipient" do
+      user_session(@user)
+      get "message_redirect", params: { id: AssetSignature.generate(@message) }
+      expect(response).to redirect_to(@message.url)
+    end
+
+    it "redirects to default host when logged in user is not the recipient" do
+      other_user = user_factory
+      user_session(other_user)
+      get "message_redirect", params: { id: AssetSignature.generate(@message) }
+      expect(response).to redirect_to(default_host_redirect)
+    end
+
+    it "redirects to default host when no user is logged in" do
+      get "message_redirect", params: { id: AssetSignature.generate(@message) }
+      expect(response).to redirect_to(default_host_redirect)
+    end
+
+    it "redirects to default host when the signature is forged" do
+      user_session(@user)
+      get "message_redirect", params: { id: "#{@message.id}-deadbeef" }
+      expect(response).to redirect_to(default_host_redirect)
+    end
+
+    it "redirects to default host when the message does not exist" do
+      user_session(@user)
+      missing_id = @message.id + 9999
+      signature = AssetSignature.generate(Message.new.tap { |m| m.id = missing_id })
+      get "message_redirect", params: { id: signature }
+      expect(response).to redirect_to(default_host_redirect)
+    end
+
+    context "with sharding" do
+      specs_require_sharding
+
+      it "redirects for the recipient when the user lives on another shard" do
+        cross_shard_user = @shard2.activate { user_factory }
+        cross_shard_message = message_model(user: cross_shard_user, url: "https://example.com/cross-shard")
+        user_session(cross_shard_user)
+        get "message_redirect", params: { id: AssetSignature.generate(cross_shard_message) }
+        expect(response).to redirect_to(cross_shard_message.url)
+      end
+    end
+  end
+
   describe "GET 'web-app-manifest'" do
     it "works" do
       get "web_app_manifest"

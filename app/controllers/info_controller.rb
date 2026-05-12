@@ -30,7 +30,7 @@ class InfoController < ApplicationController
 
   def message_redirect
     m = AssetSignature.find_by_signature(Message, params[:id])
-    if m&.url
+    if @current_user && m&.url && m.user == @current_user
       redirect_to m.url
     else
       redirect_to "http://#{HostUrl.default_host}/"
