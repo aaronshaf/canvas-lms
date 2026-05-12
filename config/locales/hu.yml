@@ -17397,7 +17397,7 @@ hu:
       discussion_entry: Fórumbejegyzés
       due_date: Határidő
       files: Fájlok
-      grading: Értékelés
+      grading: Osztályzás
       grading_policies: "Értékelési irányelvek"
       invitiation: Meghívás
       late_grading: "Kései osztályzás"
@@ -17405,7 +17405,7 @@ hu:
       migration: Migrálás
       one: Egyéb
       other: Egyéb
-      recording_ready: "Felvétel elkészült"
+      recording_ready: "A felvétel elkészült"
       registration: Regisztráció
       reminder: Emlékeztető
       student_appointment_signups: "Hallgatói megbeszélés-feliratkozások"
@@ -17561,7 +17561,7 @@ hu:
       pseudonym_registration: Álnév-regisztráció
       pseudonym_registration_done: "Álnév-regisztráció megtörtént"
       report_generated: "Jelentés generálva"
-      report_generation_failed: "Jelentés generálása sikertelen"
+      report_generation_failed: "A jelentés generálása sikertelen"
       rubric_assessment_invitation: "Meghívás értékelésre értékelőtáblával"
       rubric_assessment_submission_reminder: "Értékelőtábla beadási emlékeztető"
       rubric_association_created: "Értékelési tábla hozzárendelés létrehozva"
@@ -19628,6 +19628,10 @@ hu:
       account_registered: "Az azonosító regisztrálása sikeres!"
       account_updated: "Az azonosító frissítésre került!"
       email_sent: "Megerősítő e-mail elküldve ide: %{email}, ellenőrizze a spam mappát is"
+    set_password: 
+      confirm_change_password: 
+        loading: Betöltés...
+      page_title: "Jelszó megváltoztatása"
   pseudonyms_mobile_login: 
     parent_signup: "Szülői regisztráció"
   pts_212a1b18: "- pont"
