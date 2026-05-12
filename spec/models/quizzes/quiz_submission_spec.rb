@@ -79,6 +79,26 @@ describe Quizzes::QuizSubmission do
       associated_ids = @submission.attachment_associations.pluck(:attachment_id)
       expect(associated_ids).to match_array([@qq_attachment.id, @q_desc_attachment.id, essay_attachment.id])
     end
+
+    it "preserves event essay attachments across submission data updates" do
+      @submission = @quiz.generate_submission(@pupil)
+      event_attachment = attachment_with_context(@pupil)
+
+      event_data = [{ "quiz_question_id" => "1", "answer" => "<p><a href=\"/users/#{@pupil.id}/files/#{event_attachment.id}/download\">file</a></p>" }]
+      Quizzes::QuizSubmissionEvent.create!(
+        quiz_submission: @submission,
+        event_type: Quizzes::QuizSubmissionEvent::EVT_QUESTION_ANSWERED,
+        attempt: @submission.attempt,
+        event_data:
+      )
+
+      @submission.submission_data = [{ question_id: "1", text: "updated answer without the file" }]
+      @submission.updating_user = @pupil
+      @submission.save!
+      @submission.reload
+
+      expect(@submission.attachment_associations.pluck(:attachment_id)).to include(event_attachment.id)
+    end
   end
 
   context "with course and quiz" do

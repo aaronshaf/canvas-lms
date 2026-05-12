@@ -78,10 +78,9 @@ class Quizzes::QuizSubmission < ApplicationRecord
       end
     end
 
-    AttachmentAssociation.where(context_type: "Quizzes::QuizSubmission", context_id: id).delete_all
     associate_attachments_to_rce_object(all_html.compact.join("\n"), updating_user) unless all_html.empty?
 
-    clone_quiz_attachment_associations
+    clone_quiz_attachment_associations if saved_change_to_attribute?(:quiz_data)
   end
 
   def clone_quiz_attachment_associations

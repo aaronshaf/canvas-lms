@@ -241,6 +241,30 @@ describe Quizzes::QuizSubmissionEventsApiController, type: :request do
           end
         end
       end
+
+      context "with essay answer HTML containing file links" do
+        before(:once) do
+          Account.default.enable_feature!(:file_association_access)
+          @student_with_file = user_factory(active_all: true)
+          student_in_course(course: @course, user: @student_with_file)
+          @user = @teacher
+          @quiz_submission = @quiz.generate_submission(@student_with_file)
+          @essay_attachment = attachment_model(context: @student_with_file, user: @student_with_file)
+          html = "<a href=\"/users/#{@student_with_file.id}/files/#{@essay_attachment.id}/download\">file</a>"
+          @quiz_submission.events.create!(
+            event_type: Quizzes::QuizSubmissionEvent::EVT_QUESTION_ANSWERED,
+            attempt: @quiz_submission.attempt,
+            event_data: [{ "quiz_question_id" => "1", "answer" => html }]
+          )
+        end
+
+        it "adds location tags to file URLs in essay answers" do
+          events = api_index["quiz_submission_events"]
+          answered = events.find { |e| e["event_type"] == Quizzes::QuizSubmissionEvent::EVT_QUESTION_ANSWERED }
+          answer_html = answered["event_data"].first["answer"]
+          expect(answer_html).to include("location=quiz_submission_#{@quiz_submission.id}")
+        end
+      end
     end
 
     context "as someone else" do

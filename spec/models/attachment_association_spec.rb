@@ -274,6 +274,31 @@ describe AttachmentAssociation do
         result = AttachmentAssociation.verify_access("quiz_submission_#{@qsub.id}", other_qsub_user_attachment, @student)
         expect(result).to be_falsey
       end
+
+      context "with essay answer attachments linked via quiz submission events" do
+        before do
+          essay_attachment = attachment_with_context(@student)
+          html = "<p><a href=\"/users/#{@student.id}/files/#{essay_attachment.id}/download\">file</a></p>"
+          Quizzes::QuizSubmissionEvent.create!(
+            quiz_submission: @qsub,
+            event_type: Quizzes::QuizSubmissionEvent::EVT_QUESTION_ANSWERED,
+            attempt: @qsub.attempt,
+            event_data: [{ "quiz_question_id" => "1", "answer" => html }]
+          )
+          @essay_attachment = essay_attachment
+        end
+
+        it "allows the teacher to access an essay file linked through a submission event" do
+          result = AttachmentAssociation.verify_access("quiz_submission_#{@qsub.id}", @essay_attachment, @teacher)
+          expect(result).to be_truthy
+        end
+
+        it "does not allow an unrelated user to access an essay file linked through a submission event" do
+          other_user = user_with_pseudonym
+          result = AttachmentAssociation.verify_access("quiz_submission_#{@qsub.id}", @essay_attachment, other_user)
+          expect(result).to be_falsey
+        end
+      end
     end
   end
 end

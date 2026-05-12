@@ -23,6 +23,7 @@ require "sanitize"
 class Quizzes::QuizSubmissionEvent < ApplicationRecord
   extend RootAccountResolver
   include CanvasPartman::Concerns::Partitioned
+  include LinkedAttachmentHandler
 
   # An event describing the student choosing an answer to a question.
   EVT_QUESTION_ANSWERED = "question_answered"
@@ -57,6 +58,19 @@ class Quizzes::QuizSubmissionEvent < ApplicationRecord
     else
       false
     end
+  end
+
+  def update_attachment_associations
+    return unless event_type == EVT_QUESTION_ANSWERED
+    return unless event_data.is_a?(Array)
+
+    essay_html = event_data.filter_map do |answer|
+      answer["answer"] if answer.is_a?(Hash) && answer["answer"].is_a?(String) && answer["answer"].present?
+    end.join("\n")
+
+    return if essay_html.blank?
+
+    quiz_submission.associate_attachments_to_rce_object(essay_html, quiz_submission.updating_user)
   end
 
   private

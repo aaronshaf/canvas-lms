@@ -143,12 +143,26 @@ class Quizzes::QuizSubmissionEventsApiController < ApplicationController
                    {
                      id: e.id.to_s,
                      event_type: e.event_type,
-                     event_data: e.event_data,
+                     event_data: processed_event_data(e),
                      created_at: e.created_at
                    }
                  end
                }
              })
+    end
+  end
+
+  private
+
+  def processed_event_data(event)
+    return event.event_data unless event.event_type == Quizzes::QuizSubmissionEvent::EVT_QUESTION_ANSWERED
+    return event.event_data unless event.event_data.is_a?(Array)
+
+    location = "quiz_submission_#{@quiz_submission.id}"
+    event.event_data.map do |answer|
+      next answer unless answer.is_a?(Hash) && answer["answer"].is_a?(String)
+
+      answer.merge("answer" => api_user_content(answer["answer"], location:))
     end
   end
 end

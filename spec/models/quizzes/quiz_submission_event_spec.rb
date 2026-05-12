@@ -106,4 +106,73 @@ describe Quizzes::QuizSubmissionEvent do
       expect(event.event_data.first["flagged"]).to be true
     end
   end
+
+  describe "#update_attachment_associations" do
+    before(:once) do
+      course_factory
+      @quiz = @course.quizzes.create!
+      @student = User.create!(name: "quiz student")
+      @course.enroll_student(@student, enrollment_state: "active")
+      @quiz_submission = Quizzes::QuizSubmission.create!(quiz: @quiz, attempt: 1, user: @student)
+    end
+
+    def create_question_answered_event(event_data)
+      Quizzes::QuizSubmissionEvent.create!(
+        quiz_submission: @quiz_submission,
+        event_type: Quizzes::QuizSubmissionEvent::EVT_QUESTION_ANSWERED,
+        attempt: @quiz_submission.attempt,
+        event_data:
+      )
+    end
+
+    it "creates attachment associations on the quiz submission for essay answers with file links" do
+      attachment = attachment_model(context: @student, user: @student)
+      html = "<p><a href=\"/users/#{@student.id}/files/#{attachment.id}/download\">file</a></p>"
+
+      create_question_answered_event([{ "quiz_question_id" => "1", "answer" => html }])
+
+      expect(AttachmentAssociation.where(context: @quiz_submission, attachment:)).to exist
+    end
+
+    it "creates associations for multiple essay answers in one event" do
+      attachment1 = attachment_model(context: @student, user: @student)
+      attachment2 = attachment_model(context: @student, user: @student)
+      event_data = [
+        { "quiz_question_id" => "1", "answer" => "<a href=\"/users/#{@student.id}/files/#{attachment1.id}/download\">a</a>" },
+        { "quiz_question_id" => "2", "answer" => "<a href=\"/users/#{@student.id}/files/#{attachment2.id}/download\">b</a>" }
+      ]
+
+      create_question_answered_event(event_data)
+
+      associated_ids = AttachmentAssociation.where(context: @quiz_submission).pluck(:attachment_id)
+      expect(associated_ids).to include(attachment1.id, attachment2.id)
+    end
+
+    it "does not create associations for question_flagged events" do
+      Quizzes::QuizSubmissionEvent.create!(
+        quiz_submission: @quiz_submission,
+        event_type: Quizzes::QuizSubmissionEvent::EVT_QUESTION_FLAGGED,
+        attempt: @quiz_submission.attempt,
+        event_data: [{ "quiz_question_id" => "1", "flagged" => true }]
+      )
+
+      expect(AttachmentAssociation.where(context: @quiz_submission)).not_to exist
+    end
+
+    it "does not create associations when essay answers contain no file links" do
+      create_question_answered_event([{ "quiz_question_id" => "1", "answer" => "<p>plain text answer</p>" }])
+
+      expect(AttachmentAssociation.where(context: @quiz_submission)).not_to exist
+    end
+
+    it "does not create associations when the feature flag is disabled" do
+      allow_any_instance_of(Quizzes::QuizSubmission).to receive(:attachment_associations_creation_enabled?).and_return(false)
+      attachment = attachment_model(context: @student, user: @student)
+      html = "<p><a href=\"/users/#{@student.id}/files/#{attachment.id}/download\">file</a></p>"
+
+      create_question_answered_event([{ "quiz_question_id" => "1", "answer" => html }])
+
+      expect(AttachmentAssociation.where(context: @quiz_submission, attachment:)).not_to exist
+    end
+  end
 end
