@@ -162,7 +162,7 @@ class DeveloperKey extends React.Component {
   renderSecret = (developerKey, inherited) => {
     const {isRegenerating} = this.props
 
-    if (ENV.developerKeyRegenerateSecretEnabled && !inherited) {
+    if (ENV.developerKeyRegenerateSecretEnabled && !inherited && !this.isSiteAdmin) {
       return (
         <>
           <div data-testid="masked-secret" style={{marginTop: '0.5rem'}}>

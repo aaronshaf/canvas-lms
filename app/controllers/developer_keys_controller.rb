@@ -381,6 +381,11 @@ class DeveloperKeysController < ApplicationController
   #
   # @returns DeveloperKey
   def regenerate_secret
+    if account_context.site_admin?
+      return render json: { errors: [{ message: "Cannot regenerate secret for Site Admin keys" }] },
+                    status: :forbidden
+    end
+
     unless account_context.root_account.feature_enabled?(:developer_key_regenerate_secret)
       return render json: { errors: [{ message: "Feature not enabled" }] },
                     status: :forbidden

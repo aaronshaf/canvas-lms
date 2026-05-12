@@ -712,19 +712,21 @@ describe DeveloperKeysController do
     end
 
     describe "POST 'regenerate_secret'" do
-      let(:dk) { DeveloperKey.create!(account: Account.site_admin) }
+      let(:root_account) { Account.create! }
+      let(:dk) { DeveloperKey.create!(account: root_account) }
 
       before do
+        account_admin_user(account: root_account)
         user_session(@admin)
       end
 
       context "when feature flag is disabled" do
         before do
-          Account.site_admin.disable_feature!(:developer_key_regenerate_secret)
+          root_account.disable_feature!(:developer_key_regenerate_secret)
         end
 
         it "returns 403 forbidden" do
-          post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }
+          post :regenerate_secret, params: { id: dk.id }
           expect(response).to have_http_status(:forbidden)
           expect(json_parse(response.body)["errors"].first["message"]).to eq("Feature not enabled")
         end
@@ -732,13 +734,13 @@ describe DeveloperKeysController do
 
       context "when feature flag is enabled" do
         before do
-          Account.site_admin.enable_feature!(:developer_key_regenerate_secret)
+          root_account.enable_feature!(:developer_key_regenerate_secret)
         end
 
         it "regenerates the api_key" do
           original_key = dk.api_key
 
-          post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }
+          post :regenerate_secret, params: { id: dk.id }
           expect(response).to be_successful
 
           dk.reload
@@ -747,7 +749,7 @@ describe DeveloperKeysController do
         end
 
         it "returns the full api_key in the response" do
-          post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }
+          post :regenerate_secret, params: { id: dk.id }
           expect(response).to be_successful
 
           response_key = json_parse(response.body)["api_key"]
@@ -755,11 +757,21 @@ describe DeveloperKeysController do
           expect(response_key).not_to include("...")
         end
 
+        it "returns 403 forbidden for site admin keys" do
+          account_admin_user(account: Account.site_admin)
+          user_session(@admin)
+          Account.site_admin.enable_feature!(:developer_key_regenerate_secret)
+          site_admin_key = DeveloperKey.create!
+          post :regenerate_secret, params: { id: site_admin_key.id }
+          expect(response).to have_http_status(:forbidden)
+          expect(json_parse(response.body)["errors"].first["message"]).to eq("Cannot regenerate secret for Site Admin keys")
+        end
+
         context "when the key is an LTI key" do
-          let(:lti_key) { lti_developer_key_model(account: Account.site_admin) }
+          let(:lti_key) { lti_developer_key_model(account: root_account) }
 
           it "returns 400 bad request" do
-            post :regenerate_secret, params: { id: lti_key.id, account_id: Account.site_admin.id }
+            post :regenerate_secret, params: { id: lti_key.id }
             expect(response).to have_http_status(:bad_request)
             expect(json_parse(response.body)["errors"].first["message"]).to eq("Cannot regenerate secret for LTI keys")
           end
@@ -773,14 +785,14 @@ describe DeveloperKeysController do
             end
 
             it "returns 403 forbidden" do
-              post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }
+              post :regenerate_secret, params: { id: dk.id }
               expect(response).to have_http_status(:forbidden)
               expect(json_parse(response.body)["errors"].first["message"]).to eq("Cannot regenerate secret using a user-generated access token")
             end
           end
 
           context "when the token belongs to a different developer key" do
-            let(:other_dk) { DeveloperKey.create!(account: Account.site_admin, name: "Other Key") }
+            let(:other_dk) { DeveloperKey.create!(account: root_account, name: "Other Key") }
 
             before do
               controller.instance_variable_set(:@access_token,
@@ -788,7 +800,7 @@ describe DeveloperKeysController do
             end
 
             it "returns 403 forbidden" do
-              post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }
+              post :regenerate_secret, params: { id: dk.id }
               expect(response).to have_http_status(:forbidden)
               expect(json_parse(response.body)["errors"].first["message"]).to include("other than the one associated with this access token")
             end
@@ -802,7 +814,7 @@ describe DeveloperKeysController do
 
             it "successfully regenerates the secret" do
               original_key = dk.api_key
-              post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }
+              post :regenerate_secret, params: { id: dk.id }
               expect(response).to be_successful
               dk.reload
               expect(dk.api_key).not_to eq(original_key)
@@ -823,7 +835,7 @@ describe DeveloperKeysController do
             end
 
             it "returns 403 forbidden" do
-              post :regenerate_secret, params: { id: dk.id, account_id: Account.site_admin.id }, format: :json
+              post :regenerate_secret, params: { id: dk.id }, format: :json
               expect(response).to have_http_status(:forbidden)
             end
           end
@@ -837,14 +849,14 @@ describe DeveloperKeysController do
             end
 
             it "returns 403 forbidden for site admin keys" do
-              post :regenerate_secret, params: { id: dk.id, account_id: other_account.id }, format: :json
+              post :regenerate_secret, params: { id: dk.id }, format: :json
               expect(response).to have_http_status(:forbidden)
             end
 
             it "returns 403 forbidden for keys from different account" do
               test_domain_root_account.enable_feature!(:developer_key_regenerate_secret)
 
-              post :regenerate_secret, params: { id: parent_account_key.id, account_id: other_account.id }, format: :json
+              post :regenerate_secret, params: { id: parent_account_key.id }, format: :json
               expect(response).to have_http_status(:forbidden)
             end
           end
@@ -859,7 +871,7 @@ describe DeveloperKeysController do
             end
 
             it "returns 403 forbidden" do
-              post :regenerate_secret, params: { id: parent_account_key.id, account_id: child_account.id }, format: :json
+              post :regenerate_secret, params: { id: parent_account_key.id }, format: :json
               expect(response).to have_http_status(:forbidden)
             end
           end
@@ -876,7 +888,7 @@ describe DeveloperKeysController do
             it "successfully regenerates the key" do
               original_key = account_key.api_key
 
-              post :regenerate_secret, params: { id: account_key.id, account_id: test_domain_root_account.id }
+              post :regenerate_secret, params: { id: account_key.id }
               expect(response).to be_successful
 
               account_key.reload

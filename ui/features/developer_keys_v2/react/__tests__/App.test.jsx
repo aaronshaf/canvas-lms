@@ -465,5 +465,20 @@ describe('DeveloperKeys App', () => {
         expect(wrapper.queryByLabelText(/regenerate secret/i)).not.toBeInTheDocument()
       })
     })
+
+    describe('in site admin context', () => {
+      beforeEach(() => {
+        fakeENV.setup({FEATURES: {developer_key_regenerate_secret: true}})
+      })
+
+      it('does not show regenerate button for site admin keys', () => {
+        const inheritedList = siteAdminKeys
+        const {wrapper} = renderApp({
+          inheritedList,
+          ctx: {params: {contextId: 'site_admin'}},
+        })
+        expect(wrapper.queryByTestId('regenerate-secret')).not.toBeInTheDocument()
+      })
+    })
   })
 })
