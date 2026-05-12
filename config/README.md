@@ -47,6 +47,39 @@ in-tree usages are audited and wrapped; tracked as a follow-up.
 Spread props (`<a {...props} />`) and dynamic JSX element names are not
 visible to the rule — these are known gaps of static analysis.
 
+Rule: `canvas-sanitize-url/imperative` — imperative URL sinks must be a string
+literal or wrapped in `sanitizeUrl(...)`. Defense-in-depth backstop for the
+patterns JSX-only `at-href` can't see.
+
+Sinks checked:
+
+| Pattern | Example |
+|---------|---------|
+| `window.location = ...`         | `window.location = url` |
+| `window.location.href = ...`    | `window.location.href = url` |
+| `*.href = ...` / `*.src = ...`  | `el.href = url` |
+| `window.open(...)`              | `window.open(url, '_blank')` |
+| `*.setAttribute('href'\|'src'\|'action'\|'formaction', ...)` | `el.setAttribute('href', url)` |
+
+Allowed values mirror `at-href`: string literal, template literal with no
+interpolation, `sanitizeUrl(...)` call, `null` / `undefined`, conditional with
+both branches safe.
+
+Known gaps: computed property access (`el['href'] = url`), dynamic
+`setAttribute` attribute names, indirect aliases (`const set = el.setAttribute;
+set('href', url)`).
+
+To unwind a flagged site: wrap with `sanitizeUrl(...)`, or — for provably
+trusted URLs — add
+`// oxlint-disable-next-line canvas-sanitize-url/imperative`
+with a justification comment.
+
+Pre-existing sinks are listed in `config/canvas-sanitize-url-baseline.json`
+and are silently skipped by the rule. New sinks in any other file fail CI.
+Cleanup sweep tracked as a follow-up. When wrapping a site, remove its entry
+from the baseline in the same commit — the rule will start flagging any
+remaining sinks in that file. The baseline is shrink-only.
+
 ## Tests
 
 ```sh

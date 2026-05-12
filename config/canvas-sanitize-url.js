@@ -18,6 +18,9 @@
 
 'use strict'
 
+const fs = require('fs')
+const path = require('path')
+
 // Element name -> set of attribute names that flow into a URL sink.
 // InstUI `<Link>` and react-router `<Link>` are not yet covered while their
 // in-tree usages are audited and wrapped; tracked as a follow-up.
@@ -128,9 +131,119 @@ const atHrefRule = {
   },
 }
 
+// Pre-existing imperative sinks pending cleanup. Files listed here have the
+// `imperative` rule silenced; new sinks added elsewhere fail CI. Matches the
+// xsslint-baseline.json mechanic so the rule can land without blocking on the
+// audit/wrap sweep tracked as follow-up.
+const BASELINE_PATH = path.join(__dirname, 'canvas-sanitize-url-baseline.json')
+const baseline = (() => {
+  try {
+    return new Set(JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf8')).exemptFiles || [])
+  } catch {
+    return new Set()
+  }
+})()
+
+function relativeFilename(filename) {
+  if (!filename) return null
+  const cwd = process.cwd()
+  if (filename.startsWith(cwd + path.sep)) return filename.slice(cwd.length + 1)
+  return filename
+}
+
+const IMPERATIVE_SET_ATTRIBUTE_NAMES = new Set(['href', 'src', 'action', 'formaction'])
+
+function isSetAttributeCallee(callee) {
+  return (
+    callee.type === 'MemberExpression' &&
+    !callee.computed &&
+    callee.property.type === 'Identifier' &&
+    callee.property.name === 'setAttribute'
+  )
+}
+
+function isWindowOpenCallee(callee) {
+  if (callee.type !== 'MemberExpression' || callee.computed) return false
+  if (callee.property.type !== 'Identifier' || callee.property.name !== 'open') return false
+  return callee.object.type === 'Identifier' && callee.object.name === 'window'
+}
+
+function lhsKind(left) {
+  if (left.type !== 'MemberExpression' || left.computed) return null
+  if (left.property.type !== 'Identifier') return null
+  const name = left.property.name
+  if (name === 'href' || name === 'src') return name
+  // window.location = url
+  if (name === 'location' && left.object.type === 'Identifier' && left.object.name === 'window') {
+    return 'window.location'
+  }
+  return null
+}
+
+const imperativeRule = {
+  meta: {
+    type: 'problem',
+    docs: {
+      description:
+        'Require sanitizeUrl() at imperative URL sinks (window.location, .href, .src, setAttribute, window.open).',
+    },
+    schema: [],
+    messages: {
+      requireSanitize:
+        'Imperative URL sink `{{sink}}` must be a string literal or wrapped in sanitizeUrl(). Use sanitizeUrl(value), or add `// oxlint-disable-next-line canvas-sanitize-url/imperative` with a justification comment.',
+    },
+  },
+  create(context) {
+    const rel = relativeFilename(context.filename)
+    if (rel && baseline.has(rel)) return {}
+
+    return {
+      AssignmentExpression(node) {
+        if (node.operator !== '=') return
+        const kind = lhsKind(node.left)
+        if (!kind) return
+        if (isAllowedExpression(node.right)) return
+        context.report({
+          node,
+          messageId: 'requireSanitize',
+          data: {sink: kind === 'window.location' ? 'window.location' : `.${kind}`},
+        })
+      },
+      CallExpression(node) {
+        if (isWindowOpenCallee(node.callee)) {
+          const arg = node.arguments[0]
+          if (arg && arg.type !== 'SpreadElement' && !isAllowedExpression(arg)) {
+            context.report({node, messageId: 'requireSanitize', data: {sink: 'window.open'}})
+          }
+          return
+        }
+        if (isSetAttributeCallee(node.callee)) {
+          const [nameArg, valueArg] = node.arguments
+          if (
+            nameArg &&
+            nameArg.type === 'Literal' &&
+            typeof nameArg.value === 'string' &&
+            IMPERATIVE_SET_ATTRIBUTE_NAMES.has(nameArg.value.toLowerCase()) &&
+            valueArg &&
+            valueArg.type !== 'SpreadElement' &&
+            !isAllowedExpression(valueArg)
+          ) {
+            context.report({
+              node,
+              messageId: 'requireSanitize',
+              data: {sink: `setAttribute('${nameArg.value}', ...)`},
+            })
+          }
+        }
+      },
+    }
+  },
+}
+
 module.exports = {
   meta: {name: 'canvas-sanitize-url'},
   rules: {
     'at-href': atHrefRule,
+    imperative: imperativeRule,
   },
 }

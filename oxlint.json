@@ -79,6 +79,7 @@
       "rules": {
         "canvas-copyright/notice": "error",
         "canvas-sanitize-url/at-href": "error",
+        "canvas-sanitize-url/imperative": "error",
         "canvas-no-env-write/no-env-write": "warn"
       }
     },

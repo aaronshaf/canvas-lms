@@ -40,6 +40,137 @@ const tester = new RuleTester({
   },
 })
 
+tester.run('imperative', plugin.rules.imperative, {
+  valid: [
+    // String-literal RHS / args.
+    {code: "window.location = '/foo'"},
+    {code: "window.location.href = '/foo'"},
+    {code: "el.href = '/foo'"},
+    {code: "el.src = '/foo'"},
+    {code: "window.open('/foo')"},
+    {code: "window.open('/foo', '_blank')"},
+    {code: "el.setAttribute('href', '/foo')"},
+    {code: "el.setAttribute('src', '/foo')"},
+    {code: "el.setAttribute('action', '/foo')"},
+    {code: "el.setAttribute('formaction', '/foo')"},
+
+    // Template literal with no interpolation.
+    {code: 'window.location.href = `/foo`'},
+    {code: 'el.href = `/foo`'},
+    {code: 'window.open(`/foo`)'},
+    {code: "el.setAttribute('href', `/foo`)"},
+
+    // Wrapped values.
+    {code: 'window.location = sanitizeUrl(url)'},
+    {code: 'window.location.href = sanitizeUrl(url)'},
+    {code: 'window.location.href = obj.sanitizeUrl(url)'},
+    {code: 'el.href = sanitizeUrl(url)'},
+    {code: 'el.src = obj.sanitizeUrl(url)'},
+    {code: 'window.open(sanitizeUrl(url))'},
+    {code: "el.setAttribute('href', sanitizeUrl(url))"},
+    {code: "el.setAttribute('src', sanitizeUrl(url))"},
+
+    // Conditional with both branches safe.
+    {code: 'el.href = cond ? sanitizeUrl(url) : undefined'},
+    {code: "el.href = cond ? '/foo' : sanitizeUrl(url)"},
+
+    // null / undefined RHS — produces no navigation.
+    {code: 'el.href = null'},
+    {code: 'el.href = undefined'},
+
+    // Compound assignment is not a fresh write of the URL — skip.
+    {code: 'el.href += extra'},
+
+    // Computed property access not analyzed (known gap).
+    {code: "el['href'] = url"},
+
+    // setAttribute with non-URL attribute name passes.
+    {code: "el.setAttribute('class', cls)"},
+    {code: "el.setAttribute('data-x', value)"},
+
+    // setAttribute with dynamic attribute name not analyzed (known gap).
+    {code: 'el.setAttribute(name, value)'},
+
+    // Non-window .open is not the navigation sink.
+    {code: 'modal.open(url)'},
+    {code: 'open(url)'},
+
+    // Unrelated assignment targets.
+    {code: 'el.className = url'},
+    {code: 'config.url = url'},
+  ],
+
+  invalid: [
+    {
+      code: 'window.location = url',
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      code: 'window.location.href = url',
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      code: 'el.href = url',
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      code: 'el.src = buildUrl()',
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      code: 'el.href = `/x/${id}`',
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      code: "el.href = url || '/x'",
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      code: 'window.open(url)',
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      code: 'window.open(buildUrl(), "_blank")',
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      code: "el.setAttribute('href', url)",
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      code: "el.setAttribute('src', buildUrl())",
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      code: "el.setAttribute('action', url)",
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      code: "el.setAttribute('formaction', url)",
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      // Case-insensitive attribute name match.
+      code: "el.setAttribute('HREF', url)",
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    // Imposter sanitizeUrl-like callees do NOT pass.
+    {
+      code: 'el.href = NotSanitizeUrl(url)',
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    {
+      code: 'window.open(sanitize(url))',
+      errors: [{messageId: 'requireSanitize'}],
+    },
+    // One safe branch is not enough.
+    {
+      code: 'el.href = cond ? sanitizeUrl(x) : raw',
+      errors: [{messageId: 'requireSanitize'}],
+    },
+  ],
+})
+
 tester.run('at-href', plugin.rules['at-href'], {
   valid: [
     // No URL attribute at all.
