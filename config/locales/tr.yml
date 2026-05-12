@@ -22200,7 +22200,7 @@ tr:
       grading_policies: "Notlandırma Kuralları"
       invitiation: Davet
       late_grading: "Geç Notlandırma"
-      membership_update: "Üyelik Güncellemesi"
+      membership_update: "Üyelik Güncelleme"
       migration: Geçiş
       one: Diğer
       other: Diğer
@@ -22305,7 +22305,7 @@ tr:
     missing_display_display: "%{category} bildirimleri için"
     names: 
       access_token_created_on_behalf_of_user: "Kullanıcı Adına Oluşturulan Erişim Anahtarı"
-      access_token_deleted: "Erişim belirteci silindi."
+      access_token_deleted: "Erişim Jetonu Silindi"
       account_notification: "Hesap Bildirimi"
       account_user_notification: "Kullanıcı Hesabı Bildirimi"
       account_user_registration: "Kullanıcı Hesabı Kayıdı"
@@ -24976,6 +24976,10 @@ tr:
       email_sent: "Onay e-postası %{email} e-posta adresinize gönderildi, gereksiz klasörüne baktığınızdan emin olunuz"
       link_invalid: "Kullandığınız bağlantı artık geçerli değil. Giriş yapamıyorsanız şifrenizi sıfırlamak için \"Şifrenizi bilmiyor musunuz?\" a tıklayın."
       password_changed: "Şifreniz değiştirildi"
+    set_password: 
+      confirm_change_password: 
+        loading: Yükleniyor...
+      page_title: "Şifre Değiştir"
   pseudonyms_4c9734ec: "Takma adlar"
   pseudonyms_mobile_login: 
     parent_signup: "Ebeveyn Hesap Oluşturma"
