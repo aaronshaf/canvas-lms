@@ -67,7 +67,7 @@ export default function ExpandoText(props: {text: string; title: string}): JSX.E
           role="presentation"
         >
           <Text as="span" color="secondary">
-            <div className={css(styles.descriptionText)} dangerouslySetInnerHTML={{__html: text}} />
+            <div className={css(styles.descriptionText)}>{text}</div>
           </Text>
         </View>
       )}

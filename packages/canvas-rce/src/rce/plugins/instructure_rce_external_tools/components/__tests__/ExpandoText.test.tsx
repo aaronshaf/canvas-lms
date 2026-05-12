@@ -51,4 +51,12 @@ describe('RCE Plugins > ExternalToolSelectionItem', () => {
     fireEvent.click(toggleDescButton)
     expect(getByText('View description')).toBeInTheDocument()
   })
+
+  it('does not inject raw HTML from description text', () => {
+    const {container, getByText} = renderComponent(
+      '<img src="x" onerror="window.__xss=true">safe text',
+    )
+    fireEvent.click(getByText('View description'))
+    expect(container.querySelector('img')).toBeNull()
+  })
 })
