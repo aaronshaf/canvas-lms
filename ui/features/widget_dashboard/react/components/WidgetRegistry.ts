@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {useScope as createI18nScope} from '@canvas/i18n'
 import type {WidgetRegistry, WidgetRenderer} from '../types'
 import {WIDGET_TYPES, EDUCATOR_WIDGET_ROLE} from '../constants'
 import CourseWorkCombinedWidget from './widgets/CourseWorkCombinedWidget/CourseWorkCombinedWidget'
@@ -33,51 +34,89 @@ import {
 import {renderAnnouncementMessageEditor} from './widgets/EducatorAnnouncementCreationWidget/AnnouncementMessageEditor'
 import InboxWidget from './widgets/InboxWidget/InboxWidget'
 
+const I18n = createI18nScope('widget_dashboard')
+
 const widgetRegistry: WidgetRegistry = {
   [WIDGET_TYPES.COURSE_WORK_COMBINED]: {
     component: CourseWorkCombinedWidget,
-    displayName: 'Course work',
-    description: 'View course work statistics and assignments in one comprehensive view',
+    get displayName() {
+      return I18n.t('Course work')
+    },
+    get description() {
+      return I18n.t('View course work statistics and assignments in one comprehensive view')
+    },
   },
   [WIDGET_TYPES.COURSE_GRADES]: {
     component: CourseGradesWidget,
-    displayName: 'Course grades',
-    description: 'Track your grades and academic progress across all courses',
+    get displayName() {
+      return I18n.t('Course grades')
+    },
+    get description() {
+      return I18n.t('Track your grades and academic progress across all courses')
+    },
   },
   [WIDGET_TYPES.ANNOUNCEMENTS]: {
     component: AnnouncementsWidget,
-    displayName: 'Announcements',
-    description: 'Stay updated with the latest announcements from your courses',
+    get displayName() {
+      return I18n.t('Announcements')
+    },
+    get description() {
+      return I18n.t('Stay updated with the latest announcements from your courses')
+    },
   },
   [WIDGET_TYPES.PEOPLE]: {
     component: PeopleWidget,
-    displayName: 'People',
-    description: 'View and contact your course instructors and teaching assistants',
+    get displayName() {
+      return I18n.t('People')
+    },
+    get description() {
+      return I18n.t('View and contact your course instructors and teaching assistants')
+    },
   },
   [WIDGET_TYPES.TODO_LIST]: {
     component: TodoListWidget,
-    displayName: 'To-do list',
-    description: 'View and manage your planner items and upcoming tasks',
+    get displayName() {
+      return I18n.t('To-do list')
+    },
+    get description() {
+      return I18n.t('View and manage your planner items and upcoming tasks')
+    },
   },
   [WIDGET_TYPES.RECENT_GRADES]: {
     component: RecentGradesWidget,
-    displayName: 'Recent grades & feedback',
-    description: 'View your recently graded assignments and submissions',
+    get displayName() {
+      return I18n.t('Recent grades & feedback')
+    },
+    get description() {
+      return I18n.t('View your recently graded assignments and submissions')
+    },
   },
   [WIDGET_TYPES.PROGRESS_OVERVIEW]: {
     component: ProgressOverviewWidget,
-    displayName: 'Progress overview',
-    description: 'Track your progress across courses with module and assignment statistics',
+    get displayName() {
+      return I18n.t('Progress overview')
+    },
+    get description() {
+      return I18n.t('Track your progress across courses with module and assignment statistics')
+    },
   },
   [WIDGET_TYPES.INBOX]: {
     component: InboxWidget,
-    displayName: 'Inbox',
-    description: 'View recent messages from your Canvas conversations',
+    get displayName() {
+      return I18n.t('Inbox')
+    },
+    get description() {
+      return I18n.t('View recent messages from your Canvas conversations')
+    },
   },
   [WIDGET_TYPES.EDUCATOR_ANNOUNCEMENT_CREATION]: {
     component: EducatorAnnouncementCreationWidget,
-    displayName: 'Announcement creation',
-    description: 'Create and post announcements to your courses',
+    get displayName() {
+      return I18n.t('Announcement creation')
+    },
+    get description() {
+      return I18n.t('Create and post announcements to your courses')
+    },
     roles: [EDUCATOR_WIDGET_ROLE],
     props: {
       renderMessageEditor: renderAnnouncementMessageEditor,
@@ -85,14 +124,22 @@ const widgetRegistry: WidgetRegistry = {
   },
   [WIDGET_TYPES.EDUCATOR_TODO_LIST]: {
     component: EducatorTodoListWidget,
-    displayName: 'Todo List',
-    description: 'Smart todo list educator widget',
+    get displayName() {
+      return I18n.t('Todo List')
+    },
+    get description() {
+      return I18n.t('Review and grade student submissions organized by assignment')
+    },
     roles: [EDUCATOR_WIDGET_ROLE],
   },
   [WIDGET_TYPES.EDUCATOR_CONTENT_QUALITY]: {
     component: EducatorContentQualityWidget,
-    displayName: 'Content Quality',
-    description: 'Content quality and accessibility educator widget',
+    get displayName() {
+      return I18n.t('Content Quality')
+    },
+    get description() {
+      return I18n.t('Monitor and improve content quality and accessibility across your courses')
+    },
     roles: [EDUCATOR_WIDGET_ROLE],
   },
 }
