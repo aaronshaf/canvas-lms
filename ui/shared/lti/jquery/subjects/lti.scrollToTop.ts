@@ -18,11 +18,12 @@
 
 import $ from 'jquery'
 import {forwardedMsgSource} from '../forwarded_msg_source'
+import {findDomForWindow, findDomForWindowInRCEIframe} from '../util'
 import type {LtiMessageHandler} from '../lti_message_handler'
 
-const findIframeBySource = (e: MessageEvent<unknown>) => {
-  const source = forwardedMsgSource(e) ?? e.source
-  return Array.from(document.querySelectorAll('iframe')).find(f => f.contentWindow === source)
+const findSenderIframe = (e: MessageEvent<unknown>) => {
+  const fwd = forwardedMsgSource(e)
+  return findDomForWindow(fwd ?? e.source) || findDomForWindowInRCEIframe(e.source)
 }
 
 const scrollToTop: LtiMessageHandler = params => {
@@ -33,13 +34,14 @@ const scrollToTop: LtiMessageHandler = params => {
   const isTopNavEnabled = ENV.FEATURES?.top_navigation_placement && drawerContent.length
   const targetToScroll = isTopNavEnabled ? drawerContent : $('html, body')
 
-  let toolWrapper = $('.tool_content_wrapper')
-  if (!toolWrapper.length) {
-    // Fall back to finding the iframe by event source,
-    // e.g. for RCE content embedded tool iframes, there is no .tool_content_wrapper
-    toolWrapper = $(findIframeBySource(params.event) ?? [])
-  }
-  const offset = toolWrapper.offset()?.top
+  // Scope the scroll target to the sender's own iframe / wrapper so a tool
+  // cannot cause Canvas to scroll to another tool's iframe.
+  const senderIframe = findSenderIframe(params.event)
+  if (!senderIframe) return false
+  const wrapper = $(senderIframe).closest('.tool_content_wrapper')
+  const scrollAnchor = wrapper.length ? wrapper : $(senderIframe)
+
+  const offset = scrollAnchor.offset()?.top
   if (offset !== undefined) {
     // For a sub-container (drawer), offset().top is viewport-relative (since window.scrollY=0),
     // so we must add the container's current scrollTop to get the correct absolute position within it.

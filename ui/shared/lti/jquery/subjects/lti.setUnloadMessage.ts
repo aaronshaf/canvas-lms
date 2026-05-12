@@ -20,8 +20,8 @@ import htmlEscape from '@instructure/html-escape'
 import {setUnloadMessage} from '../util'
 import type {LtiMessageHandler} from '../lti_message_handler'
 
-const set: LtiMessageHandler<{message: string}> = ({message}) => {
-  setUnloadMessage(htmlEscape(message.message))
+const set: LtiMessageHandler<{message: string}> = ({message, event}) => {
+  setUnloadMessage(event.source, htmlEscape(message.message))
   return false
 }
 

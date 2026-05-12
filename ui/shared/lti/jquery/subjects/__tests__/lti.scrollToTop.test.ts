@@ -30,6 +30,17 @@ describe('lti.scrollToTop handler', () => {
   const message = {}
   const event = new MessageEvent('message', {origin: 'http://example.com'})
 
+  // Helper: register a sender iframe so the handler's sender-scope resolution succeeds.
+  // The handler ignores any tool-supplied selectors and acts on the sender's own iframe.
+  function setupSenderIframe(parent: HTMLElement = document.body): HTMLIFrameElement {
+    const fakeWindow = {} as Window
+    const ifr = document.createElement('iframe')
+    Object.defineProperty(ifr, 'contentWindow', {value: fakeWindow, configurable: true})
+    parent.appendChild(ifr)
+    vi.mocked(forwardedMsgSourceModule.forwardedMsgSource).mockReturnValue(fakeWindow)
+    return ifr
+  }
+
   beforeEach(() => {
     responseMessages = {
       sendResponse: vi.fn(),
@@ -73,6 +84,7 @@ describe('lti.scrollToTop handler', () => {
       const toolWrapper = document.createElement('div')
       toolWrapper.className = 'tool_content_wrapper'
       drawerContent.appendChild(toolWrapper)
+      setupSenderIframe(toolWrapper)
 
       let animatedTarget: JQuery | undefined
       vi.spyOn($.fn, 'animate').mockImplementation(function (this: JQuery) {
@@ -88,6 +100,7 @@ describe('lti.scrollToTop handler', () => {
       const toolWrapper = document.createElement('div')
       toolWrapper.className = 'tool_content_wrapper'
       drawerContent.appendChild(toolWrapper)
+      setupSenderIframe(toolWrapper)
 
       const animateSpy = vi.spyOn($.fn, 'animate')
       handler({message, event, responseMessages})
@@ -118,6 +131,7 @@ describe('lti.scrollToTop handler', () => {
       const toolWrapper = document.createElement('div')
       toolWrapper.className = 'tool_content_wrapper'
       document.body.appendChild(toolWrapper)
+      setupSenderIframe(toolWrapper)
 
       let animatedTarget: JQuery | undefined
       vi.spyOn($.fn, 'animate').mockImplementation(function (this: JQuery) {
@@ -148,6 +162,7 @@ describe('lti.scrollToTop handler', () => {
       const toolWrapper = document.createElement('div')
       toolWrapper.className = 'tool_content_wrapper'
       document.body.appendChild(toolWrapper)
+      setupSenderIframe(toolWrapper)
 
       let animatedTarget: JQuery | undefined
       vi.spyOn($.fn, 'animate').mockImplementation(function (this: JQuery) {

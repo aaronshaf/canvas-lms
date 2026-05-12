@@ -16,21 +16,26 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-let beforeUnloadHandler: null | ((e: BeforeUnloadEvent) => void) = null
+// Per-sender unload handlers so one LTI tool cannot clear or overwrite another's.
+const beforeUnloadHandlers = new Map<MessageEventSource, (e: BeforeUnloadEvent) => void>()
 
-export function setUnloadMessage(msg: string) {
-  removeUnloadMessage()
+export function setUnloadMessage(sender: MessageEventSource | null | undefined, msg: string) {
+  if (!sender) return
+  removeUnloadMessage(sender)
 
-  beforeUnloadHandler = function (e: BeforeUnloadEvent) {
+  const handler = function (e: BeforeUnloadEvent) {
     return (e.returnValue = msg || true)
   }
-  window.addEventListener('beforeunload', beforeUnloadHandler)
+  beforeUnloadHandlers.set(sender, handler)
+  window.addEventListener('beforeunload', handler)
 }
 
-export function removeUnloadMessage() {
-  if (beforeUnloadHandler) {
-    window.removeEventListener('beforeunload', beforeUnloadHandler)
-    beforeUnloadHandler = null
+export function removeUnloadMessage(sender: MessageEventSource | null | undefined) {
+  if (!sender) return
+  const handler = beforeUnloadHandlers.get(sender)
+  if (handler) {
+    window.removeEventListener('beforeunload', handler)
+    beforeUnloadHandlers.delete(sender)
   }
 }
 

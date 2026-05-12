@@ -19,8 +19,8 @@
 import {removeUnloadMessage} from '../util'
 import type {LtiMessageHandler} from '../lti_message_handler'
 
-const remove: LtiMessageHandler = () => {
-  removeUnloadMessage()
+const remove: LtiMessageHandler = ({event}) => {
+  removeUnloadMessage(event.source)
   return false
 }
 
