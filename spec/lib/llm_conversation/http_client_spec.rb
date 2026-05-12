@@ -26,7 +26,6 @@ describe LlmConversation::HttpClient do
 
   before do
     Setting.set("llm_conversation_base_url", "http://localhost:3001")
-    account.enable_feature!(:ai_experiences_v2_auth)
 
     api_enc, api_salt = Canvas::Security.encrypt_password("api-token", enc_key)
     refresh_enc, refresh_salt = Canvas::Security.encrypt_password("refresh-token", enc_key)
@@ -129,23 +128,6 @@ describe LlmConversation::HttpClient do
           .to raise_error(LlmConversation::Errors::ConversationError)
         expect(WebMock).to have_requested(:post, "http://localhost:3001/token/refresh").once
         expect(WebMock).to have_requested(:get, "http://localhost:3001/conversations").twice
-      end
-    end
-
-    context "when the account does not have V2 auth enabled" do
-      let(:v1_client) do
-        allow(Rails.application.credentials).to receive(:llm_conversation_bearer_token).and_return("v1-token")
-        described_class.new
-      end
-
-      before do
-        stub_request(:get, "http://localhost:3001/conversations").to_return(status: 401, body: "Unauthorized")
-      end
-
-      it "does not attempt a refresh and raises ConversationError" do
-        expect { v1_client.get("/conversations") }
-          .to raise_error(LlmConversation::Errors::ConversationError)
-        expect(WebMock).not_to have_requested(:post, "http://localhost:3001/token/refresh")
       end
     end
   end

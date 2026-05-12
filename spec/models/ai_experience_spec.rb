@@ -176,7 +176,7 @@ describe AiExperience do
   describe "conversation_context lifecycle callbacks" do
     before do
       Setting.set("llm_conversation_base_url", "http://localhost:3001")
-      allow(Rails.application.credentials).to receive(:llm_conversation_bearer_token).and_return("test-token")
+      allow(LlmConversation::TokenCache).to receive(:get_api_token).and_return("test-token")
     end
 
     describe "after_create" do

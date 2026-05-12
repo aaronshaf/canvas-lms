@@ -27,19 +27,11 @@ module LlmConversation
     def initialize(account: nil, use_initial_token: false)
       @base_url = resolve_base_url
       @root_account = account
-      @v2_auth = account&.feature_enabled?(:ai_experiences_v2_auth)
-
-      if use_initial_token && @root_account.present? && !@v2_auth
-        raise LlmConversation::Errors::ConversationError,
-              "Cannot use initial token: account does not have ai_experiences_v2_auth enabled"
-      end
 
       @bearer_token = if use_initial_token
                         Rails.application.credentials.dig(:llm_conversation_service, :initial_token)
-                      elsif @v2_auth
-                        LlmConversation::TokenCache.get_api_token(@root_account)
                       else
-                        Rails.application.credentials.llm_conversation_bearer_token
+                        LlmConversation::TokenCache.get_api_token(@root_account)
                       end
     end
 
@@ -162,7 +154,7 @@ module LlmConversation
       response = http.request(req)
 
       unless response.is_a?(Net::HTTPSuccess)
-        if response.is_a?(Net::HTTPUnauthorized) && @v2_auth && !retried
+        if response.is_a?(Net::HTTPUnauthorized) && !retried
           refresh_v2_token!
           return request(method, path, payload:, retried: true)
         end

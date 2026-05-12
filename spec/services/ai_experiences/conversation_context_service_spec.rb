@@ -38,7 +38,7 @@ describe AiExperiences::ConversationContextService do
 
   before do
     Setting.set("llm_conversation_base_url", "http://localhost:3001")
-    allow(Rails.application.credentials).to receive(:llm_conversation_bearer_token).and_return("test-token")
+    allow(LlmConversation::TokenCache).to receive(:get_api_token).and_return("test-token")
   end
 
   describe "#create" do
@@ -150,7 +150,7 @@ describe AiExperiences::ConversationContextService do
     end
 
     it "raises ConversationError when bearer token is missing" do
-      allow(Rails.application.credentials).to receive(:llm_conversation_bearer_token).and_return(nil)
+      allow(LlmConversation::TokenCache).to receive(:get_api_token).and_return(nil)
 
       expect do
         service.create(ai_experience:)
