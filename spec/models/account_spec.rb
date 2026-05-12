@@ -3551,6 +3551,30 @@ describe Account do
     end
   end
 
+  context "fft_registration_url validation" do
+    let(:root_account) { Account.create!(root_account: nil) }
+
+    it "is valid with a proper https URL" do
+      root_account.settings[:fft_registration_url] = "https://fft.example.com/register"
+      expect(root_account).to be_valid
+    end
+
+    it "is valid when blank" do
+      root_account.settings[:fft_registration_url] = ""
+      expect(root_account).to be_valid
+    end
+
+    it "is invalid with a javascript: scheme" do
+      root_account.settings[:fft_registration_url] = "javascript:alert(1)"
+      expect(root_account).not_to be_valid
+    end
+
+    it "is invalid with a data: scheme" do
+      root_account.settings[:fft_registration_url] = "data:text/html,<script>alert(1)</script>"
+      expect(root_account).not_to be_valid
+    end
+  end
+
   describe "#forgot_password_external_url" do
     let(:root_account) { Account.create!(root_account: nil) }
 

@@ -40,8 +40,8 @@
       <% end %>
       <div id="registration_options">
         <h2>Sign up now, it's free!</h2>
-        <% if (url = @domain_root_account.settings[:fft_registration_url]) %>
-          <a id="signup_teacher" href=<%= url %> title="Teacher Signup">I'm a Teacher</a>
+        <% if (url = sanitize_external_url(@domain_root_account.settings[:fft_registration_url])) %>
+          <a id="signup_teacher" href="<%= url %>" title="Teacher Signup">I'm a Teacher</a>
         <% else %>
           <a href="#" id="signup_teacher" class="signup_link" data-template="teacherDialog" title="Teacher Signup">I'm a Teacher</a>
         <% end %>

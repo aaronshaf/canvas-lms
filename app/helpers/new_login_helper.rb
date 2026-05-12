@@ -55,7 +55,7 @@ module NewLoginHelper
   private
 
   def free_for_teacher_registration_url
-    @domain_root_account.settings[:fft_registration_url].presence
+    sanitize_external_url(@domain_root_account.settings[:fft_registration_url].presence)
   end
 
   # course catalog link for display in the top navigation bar

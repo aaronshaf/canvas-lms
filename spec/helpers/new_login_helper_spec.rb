@@ -287,4 +287,28 @@ describe NewLoginHelper do
       expect(new_login_data_attributes).not_to have_key(:free_for_teacher_registration_url)
     end
   end
+
+  context "when fft_registration_url has an unsafe scheme" do
+    before do
+      # bypass model validation to simulate pre-fix stored data
+      @domain_root_account.settings[:fft_registration_url] = "javascript:alert(1)"
+      @domain_root_account.save(validate: false)
+    end
+
+    it "omits free_for_teacher_registration_url from data attributes" do
+      expect(new_login_data_attributes).not_to have_key(:free_for_teacher_registration_url)
+    end
+  end
+
+  context "when fft_registration_url is schemeless legacy data" do
+    before do
+      @domain_root_account.settings[:fft_registration_url] = "fft.example.com/register"
+      @domain_root_account.save(validate: false)
+    end
+
+    it "normalizes the URL with http:// in data attributes" do
+      expect(new_login_data_attributes[:free_for_teacher_registration_url])
+        .to eq("http://fft.example.com/register")
+    end
+  end
 end

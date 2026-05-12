@@ -218,6 +218,7 @@ class Account < ApplicationRecord
   validate :validate_auth_discovery_url
   validate :validate_login_help_url
   validate :validate_change_password_url
+  validate :validate_fft_registration_url
   validates :workflow_state, presence: true
   validate :no_active_courses, if: ->(a) { a.workflow_state_changed? && !a.active? }
   validate :no_active_sub_accounts, if: ->(a) { a.workflow_state_changed? && !a.active? }
@@ -1887,6 +1888,14 @@ class Account < ApplicationRecord
     settings[:change_password_url]
   end
 
+  def fft_registration_url=(fft_registration_url)
+    settings[:fft_registration_url] = fft_registration_url
+  end
+
+  def fft_registration_url
+    settings[:fft_registration_url]
+  end
+
   def unknown_user_url=(unknown_user_url)
     settings[:unknown_user_url] = unknown_user_url
   end
@@ -1912,6 +1921,12 @@ class Account < ApplicationRecord
   def validate_change_password_url
     validate_url_setting(:change_password_url, :change_password_url) do
       t("errors.invalid_change_password_url", "The change password URL is not valid")
+    end
+  end
+
+  def validate_fft_registration_url
+    validate_url_setting(:fft_registration_url, :fft_registration_url) do
+      t("errors.invalid_fft_registration_url", "The teacher registration URL is not valid")
     end
   end
 

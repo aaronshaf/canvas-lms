@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
 import {Responsive} from '@instructure/ui-responsive'
@@ -41,6 +42,9 @@ const Landing = () => {
   const {isUiActionPending} = useNewLogin()
   const {customMessageRegistration} = useNewLoginData()
   const {freeForTeacherRegistrationUrl} = useNewLoginData()
+  const safeFreeForTeacherUrl = freeForTeacherRegistrationUrl
+    ? sanitizeUrl(freeForTeacherRegistrationUrl)
+    : null
 
   const handleNavigate = (path: string) => (event: React.MouseEvent<ViewOwnProps>) => {
     event.preventDefault()
@@ -65,11 +69,11 @@ const Landing = () => {
               <Flex.Item shouldGrow={true}>
                 <Card
                   compact={!isTabletOrLarger}
-                  href={freeForTeacherRegistrationUrl ?? ROUTES.REGISTER_TEACHER}
+                  href={safeFreeForTeacherUrl ?? ROUTES.REGISTER_TEACHER}
                   icon={iconTeacher}
                   label={I18n.t('Create Teacher Account')}
                   onClick={
-                    freeForTeacherRegistrationUrl
+                    safeFreeForTeacherUrl
                       ? undefined
                       : handleNavigate(ROUTES.REGISTER_TEACHER)
                   }

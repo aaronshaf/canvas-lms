@@ -161,4 +161,17 @@ describe('Landing', () => {
     fireEvent.click(screen.getByLabelText('Create Teacher Account'))
     expect(mockNavigate).not.toHaveBeenCalled()
   })
+
+  it('neutralizes a javascript: freeForTeacherRegistrationUrl', () => {
+    const fftData = {
+      freeForTeacherRegistrationUrl: 'javascript:alert(1)',
+      isDataLoading: false,
+    }
+    mockUseNewLoginData.mockReturnValueOnce(fftData).mockReturnValueOnce(fftData)
+    renderLanding()
+    expect(screen.getByLabelText('Create Teacher Account')).toHaveAttribute(
+      'href',
+      'about:blank',
+    )
+  })
 })
