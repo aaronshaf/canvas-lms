@@ -328,6 +328,8 @@ describe('TextEntry', () => {
 
   describe('receiving messages', () => {
     let insertCode
+    let oldEnv
+    const trustedOrigin = window.origin || window.location.origin
 
     const fakeEvent = {
       subject: 'ContentDefinitelyNotReady',
@@ -359,7 +361,13 @@ describe('TextEntry', () => {
       ],
     }
 
+    function dispatchMessage({origin, data}) {
+      fireEvent(window, new MessageEvent('message', {origin, data}))
+    }
+
     beforeEach(async () => {
+      oldEnv = window.ENV
+      window.ENV = {...oldEnv, DEEP_LINKING_POST_MESSAGE_ORIGIN: trustedOrigin}
       await renderEditor()
       // At the moment, the fake editor throws an error if we call insertCode,
       // so we mock it out. For now this is fine since we don't actually care
@@ -368,17 +376,59 @@ describe('TextEntry', () => {
       fakeEditor.rceWrapper.insertCode = insertCode
     })
 
+    afterEach(() => {
+      window.ENV = oldEnv
+    })
+
     it('does nothing if the message is not A2ExternalContentReady', async () => {
-      window.postMessage(fakeEvent, '*')
+      dispatchMessage({origin: trustedOrigin, data: fakeEvent})
       expect(insertCode).not.toHaveBeenCalled()
     })
 
     it('inserts a link for each content item if the message is A2ExternalContentReady', async () => {
-      window.postMessage(realEvent, '*')
+      dispatchMessage({origin: trustedOrigin, data: realEvent})
       await act(async () => vi.runOnlyPendingTimers())
       await waitFor(() => expect(insertCode).toHaveBeenCalledTimes(2))
       expect(insertCode).toHaveBeenNthCalledWith(1, expect.stringContaining('first item'))
       expect(insertCode).toHaveBeenNthCalledWith(2, expect.stringContaining('second item'))
+    })
+
+    describe('postMessage origin validation', () => {
+      it('ignores A2ExternalContentReady messages from a foreign origin', async () => {
+        dispatchMessage({origin: 'http://evil.example', data: realEvent})
+        await act(async () => vi.runOnlyPendingTimers())
+        expect(insertCode).not.toHaveBeenCalled()
+      })
+
+      it('ignores messages from a typosquat origin', async () => {
+        dispatchMessage({
+          origin: `${trustedOrigin}.evil.com`,
+          data: realEvent,
+        })
+        await act(async () => vi.runOnlyPendingTimers())
+        expect(insertCode).not.toHaveBeenCalled()
+      })
+
+      it('ignores messages with an empty origin', async () => {
+        dispatchMessage({origin: '', data: realEvent})
+        await act(async () => vi.runOnlyPendingTimers())
+        expect(insertCode).not.toHaveBeenCalled()
+      })
+
+      it('ignores messages with non-object data even from the trusted origin', async () => {
+        dispatchMessage({origin: trustedOrigin, data: 'just a string'})
+        await act(async () => vi.runOnlyPendingTimers())
+        expect(insertCode).not.toHaveBeenCalled()
+      })
+
+      it('ignores messages whose content_items is not an array', async () => {
+        dispatchMessage({
+          origin: trustedOrigin,
+          data: {subject: 'A2ExternalContentReady', content_items: 'not-an-array'},
+        })
+        await act(async () => vi.runOnlyPendingTimers())
+        expect(insertCode).not.toHaveBeenCalled()
+      })
     })
   })
 

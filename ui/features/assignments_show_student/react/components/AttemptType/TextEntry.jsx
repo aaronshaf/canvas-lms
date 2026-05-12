@@ -65,8 +65,24 @@ export default class TextEntry extends React.Component {
   getRceIframe = () => document.getElementById('textentry_text_ifr')
 
   handleMessage = e => {
+    if (e.origin !== ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN) {
+      return
+    }
+
+    if (!e.data || typeof e.data !== 'object') {
+      return
+    }
+
+    if (e.data.subject !== 'A2ExternalContentReady') {
+      return
+    }
+
+    if (!Array.isArray(e.data.content_items)) {
+      return
+    }
+
     const editor = this._rceRef.current
-    if (editor == null || e.data.subject !== 'A2ExternalContentReady') {
+    if (editor == null) {
       return
     }
 
