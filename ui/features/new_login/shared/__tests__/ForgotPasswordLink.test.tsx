@@ -139,4 +139,27 @@ describe('ForgotPasswordLink', () => {
     fireEvent.click(button)
     expect(assignLocation).toHaveBeenCalledWith(forgotPasswordUrl)
   })
+
+  it('neutralizes a javascript: forgotPasswordUrl on render', () => {
+    mockUseNewLoginData.mockReturnValue({
+      isDataLoading: false,
+      isPreviewMode: false,
+      forgotPasswordUrl: 'javascript:alert(1)',
+    })
+    renderComponent()
+    const button = screen.getByText('Forgot password?')
+    expect(button.closest('a')).toHaveAttribute('href', 'about:blank')
+  })
+
+  it('neutralizes a javascript: forgotPasswordUrl on click', () => {
+    mockUseNewLoginData.mockReturnValue({
+      isDataLoading: false,
+      isPreviewMode: false,
+      forgotPasswordUrl: 'javascript:alert(1)',
+    })
+    renderComponent()
+    fireEvent.click(screen.getByText('Forgot password?'))
+    expect(assignLocation).toHaveBeenCalledWith('about:blank')
+    expect(assignLocation).not.toHaveBeenCalledWith('javascript:alert(1)')
+  })
 })

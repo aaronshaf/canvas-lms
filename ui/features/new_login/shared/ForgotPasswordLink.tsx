@@ -18,6 +18,7 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {assignLocation} from '@canvas/util/globalUtils'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {Flex} from '@instructure/ui-flex'
 import type {ViewOwnProps} from '@instructure/ui-view'
 import React from 'react'
@@ -32,6 +33,7 @@ const ForgotPasswordLink = () => {
   const navigate = useNavigate()
   const {isUiActionPending} = useNewLogin()
   const {isPreviewMode, forgotPasswordUrl} = useNewLoginData()
+  const safeForgotPasswordUrl = forgotPasswordUrl ? sanitizeUrl(forgotPasswordUrl) : null
 
   const isDisabled = isPreviewMode || isUiActionPending
 
@@ -56,12 +58,12 @@ const ForgotPasswordLink = () => {
   return (
     <Flex direction="column" gap="small">
       <Flex.Item overflowX="visible" overflowY="visible">
-        {forgotPasswordUrl ? (
+        {safeForgotPasswordUrl ? (
           <Link
             data-testid="forgot-password-link"
             forceButtonRole={false}
-            href={forgotPasswordUrl}
-            onClick={handleForgotPasswordUrl(forgotPasswordUrl)}
+            href={safeForgotPasswordUrl}
+            onClick={handleForgotPasswordUrl(safeForgotPasswordUrl)}
             isWithinText={false}
           >
             {I18n.t('Forgot password?')}

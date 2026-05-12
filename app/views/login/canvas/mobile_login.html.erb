@@ -80,7 +80,7 @@
   <% end %>
 
   <div class="forgotBlock">
-    <% if url = params[:canvas_login].blank? && @domain_root_account.try(:forgot_password_external_url) %>
+    <% if url = params[:canvas_login].blank? && sanitize_external_url(@domain_root_account.try(:forgot_password_external_url)) %>
       <%= link_to t('dont_know_password', "Forgot Password?"), url, :class => 'forgot-password' %>
     <% else %>
       <a tabindex="0" role="link" class="forgot-password flip-to-back"><%= t('dont_know_password', "Forgot Password?") %></a>

@@ -1763,4 +1763,39 @@ describe ApplicationHelper do
       end
     end
   end
+
+  describe "#sanitize_external_url" do
+    it "returns http URLs unchanged" do
+      expect(helper.sanitize_external_url("http://example.com/x")).to eq("http://example.com/x")
+    end
+
+    it "returns https URLs unchanged" do
+      expect(helper.sanitize_external_url("https://example.com/x")).to eq("https://example.com/x")
+    end
+
+    it "normalizes a schemeless URL by prepending http://" do
+      expect(helper.sanitize_external_url("example.com/x")).to eq("http://example.com/x")
+    end
+
+    it "returns nil for javascript: scheme" do
+      expect(helper.sanitize_external_url("javascript:alert(1)")).to be_nil
+    end
+
+    it "returns nil for data: scheme" do
+      expect(helper.sanitize_external_url("data:text/html,<script>alert(1)</script>")).to be_nil
+    end
+
+    it "returns nil for vbscript: scheme" do
+      expect(helper.sanitize_external_url("vbscript:msgbox(1)")).to be_nil
+    end
+
+    it "returns nil for blank input" do
+      expect(helper.sanitize_external_url("")).to be_nil
+      expect(helper.sanitize_external_url(nil)).to be_nil
+    end
+
+    it "is case-insensitive on the scheme check" do
+      expect(helper.sanitize_external_url("JavaScript:alert(1)")).to be_nil
+    end
+  end
 end

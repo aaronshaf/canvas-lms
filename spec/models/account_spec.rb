@@ -3527,6 +3527,71 @@ describe Account do
     end
   end
 
+  context "change_password_url validation" do
+    let(:root_account) { Account.create!(root_account: nil) }
+
+    it "is valid with a proper https URL" do
+      root_account.change_password_url = "https://example.com/reset"
+      expect(root_account).to be_valid
+    end
+
+    it "is valid when the URL is blank" do
+      root_account.change_password_url = ""
+      expect(root_account).to be_valid
+    end
+
+    it "is invalid with a javascript: scheme" do
+      root_account.change_password_url = "javascript:alert(1)"
+      expect(root_account).not_to be_valid
+    end
+
+    it "is invalid with a data: scheme" do
+      root_account.change_password_url = "data:text/html,<script>alert(1)</script>"
+      expect(root_account).not_to be_valid
+    end
+  end
+
+  describe "#forgot_password_external_url" do
+    let(:root_account) { Account.create!(root_account: nil) }
+
+    it "returns the stored URL when http" do
+      root_account.settings[:change_password_url] = "http://example.com/reset"
+      expect(root_account.forgot_password_external_url).to eq("http://example.com/reset")
+    end
+
+    it "returns the stored URL when https" do
+      root_account.settings[:change_password_url] = "https://example.com/reset"
+      expect(root_account.forgot_password_external_url).to eq("https://example.com/reset")
+    end
+
+    it "normalizes a schemeless legacy URL by prepending http://" do
+      # legacy data saved before validate_change_password_url existed may lack a scheme
+      root_account.settings[:change_password_url] = "example.com/reset"
+      expect(root_account.forgot_password_external_url).to eq("http://example.com/reset")
+    end
+
+    it "returns nil when blank" do
+      root_account.settings[:change_password_url] = ""
+      expect(root_account.forgot_password_external_url).to be_nil
+    end
+
+    it "returns nil when the stored scheme is javascript: (legacy data)" do
+      # bypass model validation to simulate pre-fix stored data
+      root_account.settings[:change_password_url] = "javascript:alert(1)"
+      expect(root_account.forgot_password_external_url).to be_nil
+    end
+
+    it "returns nil when the stored scheme is data:" do
+      root_account.settings[:change_password_url] = "data:text/html,<script>alert(1)</script>"
+      expect(root_account.forgot_password_external_url).to be_nil
+    end
+
+    it "returns nil when the stored scheme is vbscript:" do
+      root_account.settings[:change_password_url] = "vbscript:msgbox(1)"
+      expect(root_account.forgot_password_external_url).to be_nil
+    end
+  end
+
   describe "#restricted_file_access_for_user?" do
     let(:root_account) { Account.create!(root_account: nil) }
     let(:sub_account) { Account.create!(root_account:) }

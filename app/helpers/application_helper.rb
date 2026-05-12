@@ -141,6 +141,21 @@ module ApplicationHelper
     URI.join(uri, path).to_s
   end
 
+  # Returns `url` only if it parses cleanly and uses an http(s) scheme.
+  # Schemeless values are normalized to http:// so legacy data without a
+  # protocol keeps working. Returns nil for anything else. Mirrors
+  # ui/shared/util/sanitizeUrl.ts and is intended for rendering admin-supplied
+  # URLs in `<a href>` from server-rendered views, where Rails' link_to does
+  # no scheme filtering of its own. Rides on the same CanvasHttp.validate_url
+  # primitive used by validate_url_setting on the write side.
+  def sanitize_external_url(url)
+    return nil if url.blank?
+
+    CanvasHttp.validate_url(url).first
+  rescue URI::Error, ArgumentError
+    nil
+  end
+
   def url_helper_context_from_object(context)
     (context ? context.class.url_context_class : context.class).name.underscore
   end

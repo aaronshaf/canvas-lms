@@ -217,6 +217,7 @@ class Account < ApplicationRecord
   validate :account_chain_loop, if: :parent_account_id_changed?
   validate :validate_auth_discovery_url
   validate :validate_login_help_url
+  validate :validate_change_password_url
   validates :workflow_state, presence: true
   validate :no_active_courses, if: ->(a) { a.workflow_state_changed? && !a.active? }
   validate :no_active_sub_accounts, if: ->(a) { a.workflow_state_changed? && !a.active? }
@@ -1846,7 +1847,16 @@ class Account < ApplicationRecord
   end
 
   def forgot_password_external_url
-    change_password_url
+    url = change_password_url
+    return nil if url.blank?
+
+    # Layered defense for any legacy data or write paths that bypass
+    # validate_change_password_url. CanvasHttp.validate_url enforces the
+    # http/https scheme allowlist and prepends http:// to schemeless values
+    # so legacy entries like "example.com/reset" still resolve.
+    CanvasHttp.validate_url(url).first
+  rescue URI::Error, ArgumentError
+    nil
   end
 
   def auth_discovery_url=(url)
@@ -1896,6 +1906,12 @@ class Account < ApplicationRecord
   def validate_login_help_url
     validate_url_setting(:login_help_url, :login_help_url) do
       t("errors.invalid_login_help_url", "The login help URL is not valid")
+    end
+  end
+
+  def validate_change_password_url
+    validate_url_setting(:change_password_url, :change_password_url) do
+      t("errors.invalid_change_password_url", "The change password URL is not valid")
     end
   end
 
