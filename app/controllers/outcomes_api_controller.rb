@@ -570,7 +570,7 @@ class OutcomesApiController < ApplicationController
 
   def process_params
     oparams = params.permit(*DIRECT_PARAMS)
-    params[:description] = process_incoming_html_content(params[:description]) if params[:description]
+    oparams[:description] = process_incoming_html_content(oparams[:description]) if oparams[:description]
     oparams
   end
 end
