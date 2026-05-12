@@ -34,11 +34,19 @@ module HorizonMode
 
     app = CanvasCareer::ExperienceResolver.new(@current_user, @context, @domain_root_account, session).resolve
     if CanvasCareer::Constants::CAREER_APPS.include?(app)
+      return if block_pending_access_consent?
+
       redirect_to "#{canvas_career_path}#{request.fullpath}"
     end
   end
 
   private
+
+  def block_pending_access_consent?
+    return false if Account.site_admin.cached_account_users_for(@current_user).empty?
+
+    !authorized_action(@domain_root_account, @current_user, :read_as_admin)
+  end
 
   def force_academic?
     Canvas::Plugin.value_to_boolean(params[:force_classic])

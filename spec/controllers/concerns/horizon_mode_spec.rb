@@ -134,6 +134,50 @@ describe HorizonMode do
         get :show
       end
     end
+
+    context "when block_pending_access_consent? returns true" do
+      before do
+        allow(resolver).to receive(:resolve).and_return(CanvasCareer::Constants::App::CAREER_LEARNER)
+        allow(controller).to receive(:block_pending_access_consent?).and_return(true)
+      end
+
+      it "does not redirect to the career path" do
+        get :show
+        expect(response).to have_http_status(:ok)
+      end
+    end
+  end
+
+  describe "#block_pending_access_consent?" do
+    let_once(:domain_root_account) { account_model }
+
+    before do
+      controller.instance_variable_set(:@domain_root_account, domain_root_account)
+      controller.instance_variable_set(:@current_user, user)
+    end
+
+    context "when the user is not a site admin" do
+      it "returns false without calling authorized_action" do
+        expect(controller).not_to receive(:authorized_action)
+        expect(controller.send(:block_pending_access_consent?)).to be false
+      end
+    end
+
+    context "when the user is a site admin" do
+      before do
+        Account.site_admin.account_users.create!(user:, role: Role.get_built_in_role("AccountAdmin", root_account_id: Account.site_admin.id))
+      end
+
+      it "returns false when authorized_action succeeds" do
+        allow(controller).to receive(:authorized_action).and_return(true)
+        expect(controller.send(:block_pending_access_consent?)).to be false
+      end
+
+      it "returns true and blocks when authorized_action fails" do
+        allow(controller).to receive(:authorized_action).and_return(false)
+        expect(controller.send(:block_pending_access_consent?)).to be true
+      end
+    end
   end
 
   describe "redirect_to override" do
