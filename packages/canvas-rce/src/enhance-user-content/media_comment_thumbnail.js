@@ -18,7 +18,7 @@
 
 import formatMessage from '../format-message'
 import {closest, getData, setData} from './jqueryish_funcs'
-import {sanitizeUrl} from './doc_previews'
+import {sanitizeUrl} from '../util/sanitizeUrl'
 
 const MEDIA_COMMENT_THUMBNAIL_SIZES = {
   normal: {width: 140, height: 100},

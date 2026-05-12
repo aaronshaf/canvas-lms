@@ -26,7 +26,7 @@ import {MathJaxDirective, Mathml} from './mathml'
 import {makeExternalLinkIcon} from './external_links'
 import getTranslations from '../getTranslations'
 import {createOverlay} from './youtube_overlay'
-import {sanitizeUrl} from './doc_previews'
+import {sanitizeUrl} from '../util/sanitizeUrl'
 
 // in jest the es directory doesn't exist so stub the undefined svg
 const IconDownloadSVG = IconDownloadLine?.src || '<svg></svg>'

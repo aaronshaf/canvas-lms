@@ -26,7 +26,7 @@ import {
 } from './plugins/instructure_record/VideoOptionsTray/TrayController'
 import {mediaPlayerURLFromFile} from './plugins/shared/fileTypeUtils'
 import {prepEmbedSrc, prepLinkedSrc, absoluteToRelativeUrl} from '../common/fileUrl'
-import {sanitizeUrl} from '../enhance-user-content/doc_previews'
+import {sanitizeUrl} from '../util/sanitizeUrl'
 
 export function renderLink(data, contents, canvasOrigin) {
   const linkAttrs = {...data}

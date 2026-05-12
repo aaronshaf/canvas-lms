@@ -21,6 +21,7 @@ import {createRoot} from 'react-dom/client'
 import formatMessage from '../format-message'
 import {Spinner} from '@instructure/ui-spinner'
 import {getData, setData} from './jqueryish_funcs'
+import {sanitizeUrl} from '../util/sanitizeUrl'
 
 export const previewableMimeTypes = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
@@ -250,21 +251,3 @@ export function loadDocPreview($container, options) {
   }
 }
 
-/**
- * Replaces bad urls with harmless urls in cases where bad urls might cause harm
- * @param {string} url
- */
-export function sanitizeUrl(url) {
-  const defaultUrl = 'about:blank'
-  try {
-    const parsedUrl = new URL(url, window.location.origin)
-
-    if (parsedUrl.protocol === 'javascript:') {
-      return defaultUrl
-    }
-    return url
-  } catch (e) {
-    // URL() throws TypeError if url is not a valid URL
-    return defaultUrl
-  }
-}

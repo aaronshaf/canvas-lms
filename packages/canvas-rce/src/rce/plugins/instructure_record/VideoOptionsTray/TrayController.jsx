@@ -34,7 +34,7 @@ import {
   validateStudioEmbedOptions,
 } from '../../shared/StudioLtiSupportUtils'
 import VideoOptionsTray from '.'
-import {sanitizeUrl} from '../../../../enhance-user-content/doc_previews'
+import {sanitizeUrl} from '../../../../util/sanitizeUrl'
 
 export const CONTAINER_ID = 'instructure-video-options-tray-container'
 

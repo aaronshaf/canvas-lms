@@ -20,7 +20,7 @@ import {DeepPartialNullable} from '../../../../util/DeepPartialNullable'
 import {ExternalToolsEnv, externalToolsEnvFor} from '../ExternalToolsEnv'
 import {emptyAsNull} from '../../../../util/string-util'
 import {addParentFrameContextToUrl} from '../util/addParentFrameContextToUrl'
-import {sanitizeUrl} from '../../../../enhance-user-content/doc_previews'
+import {sanitizeUrl} from '../../../../util/sanitizeUrl'
 import tinymce from 'tinymce'
 import {
   StudioContentItemCustomJson,

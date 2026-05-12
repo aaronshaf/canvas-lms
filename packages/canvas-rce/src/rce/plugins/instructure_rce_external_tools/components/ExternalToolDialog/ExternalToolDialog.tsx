@@ -28,7 +28,7 @@ import {RceLti11ContentItem} from '../../lti11-content-items/RceLti11ContentItem
 import formatMessage from '../../../../../format-message'
 import {ExternalToolsEnv} from '../../ExternalToolsEnv'
 import {RceToolWrapper} from '../../RceToolWrapper'
-import {sanitizeUrl} from '../../../../../enhance-user-content/doc_previews'
+import {sanitizeUrl} from '../../../../../util/sanitizeUrl'
 import {instuiPopupMountNodeFn} from '../../../../../util/fullscreenHelpers'
 import {ExternalToolDialogTray} from './ExternalToolDialogTray'
 import {ExternalToolDialogModal} from './ExternalToolDialogModal'

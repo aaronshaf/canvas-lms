@@ -20,7 +20,7 @@
 // doc_previews.js as part of moving enhanceUserContent from the monolith
 // into the rce's package, we also copied its test.
 
-import {sanitizeUrl} from '../doc_previews'
+import {sanitizeUrl} from '../../util/sanitizeUrl'
 
 it('replaces javascript: scheme urls with about:blank', () => {
    
