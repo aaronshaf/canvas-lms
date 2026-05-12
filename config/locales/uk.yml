@@ -12265,7 +12265,7 @@ uk:
       registration: Реєстрація
       reminder: Нагадувач
       student_appointment_signups: "Реєстрація призначення студента"
-      submission_comment: коментарый
+      submission_comment: "коментар подання"
     conversation_created_description: "Ви створили бесіду"
     conversation_created_description_legend: "Ви створили бесіду"
     conversation_created_display: "Бесіди, створені мною"
@@ -12391,7 +12391,7 @@ uk:
       rubric_assessment_invitation: "Запрошення оцінки рубрики"
       rubric_assessment_submission_reminder: "Нагадування щодо подання завдання у відповідності до розділу"
       rubric_association_created: "Створено зв'язок із рубрикою"
-      submission_comment: "Представлення коментаря "
+      submission_comment: "коментар подання"
       submission_comment_for_teacher: "Представлення коментаря для вчителя"
       submission_grade_changed: "Представлення оцінки було змінено"
       submission_graded: "Матеріал оцінено"
@@ -13865,6 +13865,10 @@ uk:
       account_registered: "Обліковий запис зареєстровано!"
       account_updated: "Обліковий запис оновлено"
       email_sent: "Підтвердження електронної адреси вислано на %{email}, перевірте пошту і спам."
+    set_password: 
+      confirm_change_password: 
+        loading: Завантаження...
+      page_title: "Змінити пароль"
   pseudonyms_mobile_login: 
     parent_signup: "реєстрація батьків"
   pts_51d69f4a: Бали
