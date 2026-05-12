@@ -18845,7 +18845,7 @@ nn:
       enrollment_registration: Påmeldingsregistrering
       event_date_changed: "Dato for hending er endra"
       forgot_password: "Gløymt passord"
-      grade_weight_changed: "Vekting av vurderingsresultat er endra"
+      grade_weight_changed: "Vekting av vurdering er endra"
       group_assignment_submitted_late: "Gruppeoppgåve for seint levert"
       group_membership_accepted: "Gruppemedlemskap er godkjent"
       group_membership_rejected: "Gruppemedlemskap er avslått"
@@ -21013,6 +21013,10 @@ nn:
       email_sent: "E-post med stadfesting er send til %{email}, hugs å sjekke Søppelpost"
       link_invalid: "Lenka du brukte er ikkje lenger gyldig.  Om du ikkje kan logge på, klikkar du på \"Hugsar du ikkje passordet?\" for å tilbakestille passordet."
       password_changed: "Passord er endra"
+    set_password: 
+      confirm_change_password: 
+        loading: Lastar...
+      page_title: "Endre passord"
   pseudonyms_mobile_login: 
     parent_signup: "Registrering for foreldre"
   pts_212a1b18: "— poeng"
