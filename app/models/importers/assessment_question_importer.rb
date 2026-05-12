@@ -148,6 +148,19 @@ module Importers
         import_warnings << error
       end
 
+      %i[question_text correct_comments_html incorrect_comments_html neutral_comments_html more_comments_html].each do |field|
+        next unless hash[field].present?
+
+        hash[field] = Sanitize.clean(hash[field], CanvasSanitize::SANITIZE)
+      end
+      hash[:answers]&.each do |answer|
+        %i[html comments_html left_html].each do |field|
+          next unless answer[field].present?
+
+          answer[field] = Sanitize.clean(answer[field], CanvasSanitize::SANITIZE)
+        end
+      end
+
       if (id = hash["assessment_question_id"])
         AssessmentQuestion.where(id:).update_all(name: hash[:question_name],
                                                  question_data: hash,

@@ -175,7 +175,7 @@
         <% end %>
         <% if question && hash_get(question, :question_type) == "missing_word_question" %>
 
-          <span class="text_before_answers"><%= user_content(hash_get(question, :question_text), location: asset_string) %></span>
+          <span class="text_before_answers"><%= user_content(Sanitize.clean(hash_get(question, :question_text) || '', CanvasSanitize::SANITIZE), location: asset_string) %></span>
           <select class="answer_select question_input" name="question_<%= hash_get(question, :id, "blank") %>">
             <option value=""><%= t(:default_question_answer, "[ Choose ]") %></option>
             <% hash_get(question, :answers, []).each do |answer| %>
@@ -218,7 +218,7 @@
             :question => question, :answers => @stored_params, :answer_list => answer_list, :editable => assessing
           }) %>
         <% else %>
-          <%= user_content(hash_get(question, :question_text), location: asset_string) %>
+          <%= user_content(Sanitize.clean(hash_get(question, :question_text) || '', CanvasSanitize::SANITIZE), location: asset_string) %>
         <% end %>
       </div>
       <% if question_type && question_type.unsupported %>

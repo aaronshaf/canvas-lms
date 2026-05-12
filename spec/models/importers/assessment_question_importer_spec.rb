@@ -147,6 +147,66 @@ describe "Assessment Question import from hash" do
     expect(group.assessment_question_bank_id).to eq bank.id
   end
 
+  describe "HTML sanitization" do
+    let(:context) { course_model }
+    let(:migration) { ContentMigration.create!(context:) }
+
+    def import_question(attrs)
+      data = { "assessment_questions" => { "assessment_questions" => [attrs] } }
+      Importers::AssessmentQuestionImporter.process_migration(data, migration)
+      AssessmentQuestion.where(migration_id: attrs[:migration_id]).first
+    end
+
+    it "strips XSS from question_text on insert" do
+      aq = import_question(
+        migration_id: "xss_insert",
+        question_name: "XSS Test",
+        question_type: "essay_question",
+        question_text: "<script>alert(1)</script>Safe text",
+        points_possible: 1.0
+      )
+      expect(aq.question_data[:question_text]).not_to include("<script>")
+      expect(aq.question_data[:question_text]).to include("Safe text")
+    end
+
+    it "strips XSS from question_text on re-import" do
+      base = { migration_id: "xss_update", question_name: "XSS Test", question_type: "essay_question", question_text: "Clean text", points_possible: 1.0 }
+      import_question(base)
+      aq = import_question(base.merge(question_text: "<script>alert(1)</script>Updated text"))
+      expect(aq.question_data[:question_text]).not_to include("<script>")
+      expect(aq.question_data[:question_text]).to include("Updated text")
+    end
+
+    it "strips XSS from answer html fields" do
+      aq = import_question(
+        migration_id: "xss_answers",
+        question_name: "XSS Answer Test",
+        question_type: "multiple_choice_question",
+        question_text: "Pick one",
+        points_possible: 1.0,
+        answers: [
+          { id: 1, text: "A1", html: "<script>alert(1)</script>Answer 1", weight: 100 },
+          { id: 2, text: "A2", html: "<img src=x onerror=alert(1)>Answer 2", weight: 0 }
+        ]
+      )
+      answers = aq.question_data[:answers]
+      expect(answers[0][:html]).not_to include("<script>")
+      expect(answers[1][:html]).not_to include("onerror")
+    end
+
+    it "preserves safe HTML in question_text" do
+      aq = import_question(
+        migration_id: "safe_html",
+        question_name: "Safe HTML Test",
+        question_type: "essay_question",
+        question_text: "<b>Bold</b> and <i>italic</i>",
+        points_possible: 1.0
+      )
+      expect(aq.question_data[:question_text]).to include("<b>")
+      expect(aq.question_data[:question_text]).to include("<i>")
+    end
+  end
+
   it "sets root_account_id correctly" do
     context = course_model
     data = get_import_data [], "question_group"
