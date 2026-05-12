@@ -65,7 +65,7 @@ describe "Developer Keys" do
       key = Account.default.developer_keys.last
       expect(key.name).to eq "Cool Tool"
       expect(key.email).to eq "admin@example.com"
-      expect(key.redirect_uris).to eq ["http://example.com"]
+      expect(key.redirect_uris.map(&:redirect_uri)).to eq ["http://example.com"]
       expect(key.icon_url).to eq "/images/delete.png"
     end
 
@@ -87,7 +87,7 @@ describe "Developer Keys" do
       key = Account.default.developer_keys.last
       expect(key.name).to eq "Cooler Tool"
       expect(key.email).to eq "admins@example.com"
-      expect(key.redirect_uris).to eq ["http://b/"]
+      expect(key.redirect_uris.map(&:redirect_uri)).to eq ["http://b/"]
       expect(key.icon_url).to eq "/images/add.png"
     end
 

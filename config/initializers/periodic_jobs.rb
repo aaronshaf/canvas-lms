@@ -401,4 +401,8 @@ Rails.configuration.after_initialize do
   Delayed::Periodic.cron "ScheduledPost#process_scheduled_posts", "*/30 * * * *" do
     with_each_shard_by_database(ScheduledPost, :process_scheduled_posts)
   end
+
+  Delayed::Periodic.cron "DeveloperKeyRedirectUri.cleanup_stale_records", "0 5 * * *" do
+    with_each_shard_by_database(DeveloperKeyRedirectUri, :cleanup_stale_records, jitter: 30.minutes, local_offset: true)
+  end
 end

@@ -267,6 +267,175 @@ describe('DeveloperKeyFormFields', () => {
         expect(queryByTestId('utid-selector')).not.toBeInTheDocument()
       })
     })
+  })
 
+  describe('legacy Redirect URI field', () => {
+    it('renders when developerKey.redirect_uri is non-empty', () => {
+      const {getByTestId} = renderComponent(developerKey, false)
+      expect(getByTestId('legacy-redirect-uri-input')).toBeInTheDocument()
+    })
+
+    it('does not render when developerKey.redirect_uri is null', () => {
+      const key = {...developerKey, redirect_uri: null}
+      const {queryByTestId} = renderComponent(key, false)
+      expect(queryByTestId('legacy-redirect-uri-input')).not.toBeInTheDocument()
+    })
+
+    it('does not render when developerKey.redirect_uri is empty string', () => {
+      const key = {...developerKey, redirect_uri: ''}
+      const {queryByTestId} = renderComponent(key, false)
+      expect(queryByTestId('legacy-redirect-uri-input')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Redirect URIs help text', () => {
+    it('renders the exact-match guidance below the redirect_uris textarea', () => {
+      const {getByTestId} = renderComponent(developerKey, false)
+      expect(getByTestId('redirect-uris-help-text')).toHaveTextContent(
+        /must match exactly, including casing, protocol, host, port, path, and query string/,
+      )
+    })
+
+    it('mentions the 64-URI cap', () => {
+      const {getByTestId} = renderComponent(developerKey, false)
+      expect(getByTestId('redirect-uris-help-text')).toHaveTextContent(
+        /Up to 64 redirect URIs are allowed/,
+      )
+    })
+  })
+
+  describe('64-URI count validation', () => {
+    it('does not show an error when within the cap', () => {
+      const key = {
+        ...developerKey,
+        redirect_uris: Array.from({length: 64}, (_, i) => `https://example.com/${i}`).join('\n'),
+      }
+      const {queryByText} = renderComponent(key, false)
+      expect(queryByText(/cannot have more than 64 redirect URIs/)).not.toBeInTheDocument()
+    })
+
+    it('shows an error message when more than 64 URIs are entered', () => {
+      const key = {
+        ...developerKey,
+        redirect_uris: Array.from({length: 65}, (_, i) => `https://example.com/${i}`).join('\n'),
+      }
+      const {getByText} = renderComponent(key, false)
+      expect(
+        getByText(/cannot have more than 64 redirect URIs\. Please remove some entries/),
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe('inactive redirect URIs', () => {
+    it('does not render the section when there are no inactive URIs', () => {
+      const {queryByTestId} = renderComponent(developerKey, false)
+      expect(queryByTestId('inactive-redirect-uris')).not.toBeInTheDocument()
+    })
+
+    it('does not render the section when all_redirect_uris contains only active entries', () => {
+      const key = {
+        ...developerKey,
+        all_redirect_uris: [
+          {
+            redirect_uri: 'https://active.example.com/',
+            last_used_at: '2026-01-01T00:00:00Z',
+            workflow_state: 'active' as const,
+          },
+        ],
+      }
+      const {queryByTestId} = renderComponent(key, false)
+      expect(queryByTestId('inactive-redirect-uris')).not.toBeInTheDocument()
+    })
+
+    it('renders the section with an explanation when inactive URIs are present', () => {
+      const key = {
+        ...developerKey,
+        all_redirect_uris: [
+          {
+            redirect_uri: 'https://stale.example.com/',
+            last_used_at: null,
+            workflow_state: 'inactive' as const,
+          },
+        ],
+      }
+      const {getByTestId} = renderComponent(key, false)
+      expect(getByTestId('inactive-redirect-uris')).toHaveTextContent(
+        /automatically de-activated because they have not been used recently/,
+      )
+    })
+
+    it('shows each inactive URI in a list', () => {
+      const key = {
+        ...developerKey,
+        all_redirect_uris: [
+          {
+            redirect_uri: 'https://stale-a.example.com/',
+            last_used_at: '2026-01-01T00:00:00Z',
+            workflow_state: 'inactive' as const,
+          },
+          {
+            redirect_uri: 'https://stale-b.example.com/',
+            last_used_at: null,
+            workflow_state: 'inactive' as const,
+          },
+        ],
+      }
+      const {getByTestId} = renderComponent(key, false)
+      const list = getByTestId('inactive-redirect-uris-list')
+      expect(list).toHaveTextContent('https://stale-a.example.com/')
+      expect(list).toHaveTextContent('https://stale-b.example.com/')
+    })
+
+    it('only shows inactive entries from all_redirect_uris', () => {
+      const key = {
+        ...developerKey,
+        all_redirect_uris: [
+          {
+            redirect_uri: 'https://active.example.com/',
+            last_used_at: '2026-01-01T00:00:00Z',
+            workflow_state: 'active' as const,
+          },
+          {
+            redirect_uri: 'https://stale.example.com/',
+            last_used_at: null,
+            workflow_state: 'inactive' as const,
+          },
+        ],
+      }
+      const {getByTestId} = renderComponent(key, false)
+      const list = getByTestId('inactive-redirect-uris-list')
+      expect(list).toHaveTextContent('https://stale.example.com/')
+      expect(list).not.toHaveTextContent('https://active.example.com/')
+    })
+
+    it("renders 'never' for entries with no last_used_at", () => {
+      const key = {
+        ...developerKey,
+        all_redirect_uris: [
+          {
+            redirect_uri: 'https://stale.example.com/',
+            last_used_at: null,
+            workflow_state: 'inactive' as const,
+          },
+        ],
+      }
+      const {getByTestId} = renderComponent(key, false)
+      expect(getByTestId('inactive-redirect-uris-list')).toHaveTextContent(/last used: never/)
+    })
+
+    it('includes the last_used_at timestamp when present', () => {
+      const key = {
+        ...developerKey,
+        all_redirect_uris: [
+          {
+            redirect_uri: 'https://stale.example.com/',
+            last_used_at: '2026-01-15T10:30:00Z',
+            workflow_state: 'inactive' as const,
+          },
+        ],
+      }
+      const {getByTestId} = renderComponent(key, false)
+      expect(getByTestId('inactive-redirect-uris-list')).toHaveTextContent(/last used:/)
+    })
   })
 })

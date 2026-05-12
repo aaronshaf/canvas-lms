@@ -113,6 +113,12 @@
 #          "type": "array",
 #          "items": { "type": "string" }
 #        },
+#        "all_redirect_uris": {
+#          "description": "All redirect URIs associated with the key, including any that have been automatically deactivated due to inactivity, along with their last-used timestamp and workflow_state (one of 'active' or 'inactive')",
+#          "example": [{ "redirect_uri": "https://mytool.com/redirect", "last_used_at": "2024-01-15T12:00:00Z", "workflow_state": "active" }],
+#          "type": "array",
+#          "items": { "type": "object", "properties": { "redirect_uri": { "type": "string" }, "last_used_at": { "type": "datetime" }, "workflow_state": { "type": "string" } } }
+#        },
 #        "access_token_count": {
 #          "description": "(API keys only) The number of active access tokens associated with the key",
 #          "example": "42",

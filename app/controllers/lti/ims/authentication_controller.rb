@@ -240,7 +240,8 @@ module Lti
       def redirect_uri
         @redirect_uri ||= begin
           requested_redirect_base, requested_query_string = oidc_params[:redirect_uri].split("?")
-          is_valid = developer_key.redirect_uris.any? do |uri|
+          is_valid = developer_key.redirect_uris.any? do |redirect_uri|
+            uri = redirect_uri.redirect_uri
             if uri.include? "?"
               # Verify the required query params are present
               required_params = CGI.parse(uri.split("?").last).to_a

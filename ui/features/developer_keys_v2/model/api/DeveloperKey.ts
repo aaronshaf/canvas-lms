@@ -45,6 +45,11 @@ export interface DeveloperKey {
   vendor_code: string | null
   redirect_uri: string | null
   redirect_uris?: string
+  all_redirect_uris?: Array<{
+    redirect_uri: string
+    last_used_at: string | null
+    workflow_state: 'active' | 'inactive'
+  }>
   unified_tool_id?: string | null
   public_jwk_url?: string
   public_jwk?: string

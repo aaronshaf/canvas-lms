@@ -275,7 +275,7 @@ describe Lti::UpdateRegistrationService do
     it "updates the DeveloperKey" do
       subject
       expect(developer_key.reload.icon_url).to eq("http://example.com/icon")
-      expect(developer_key.redirect_uris).to eq(["http://example.com/redirect"])
+      expect(developer_key.redirect_uris.map(&:redirect_uri)).to eq(["http://example.com/redirect"])
     end
 
     it "sends updates to all deployments" do

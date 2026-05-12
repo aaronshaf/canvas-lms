@@ -1369,16 +1369,16 @@ RSpec.describe Lti::RegistrationsController do
     it "updates the associated developer key" do
       expect(subject).to be_successful
 
-      attributes = registration.developer_key.reload
-                               .attributes
-                               .with_indifferent_access
-                               .slice(:name,
-                                      :public_jwk,
-                                      :public_jwk_url,
-                                      :scopes,
-                                      :redirect_uris,
-                                      :icon_url)
-                               .compact
+      dk = registration.developer_key.reload
+      attributes = dk.attributes
+                     .with_indifferent_access
+                     .slice(:name,
+                            :public_jwk,
+                            :public_jwk_url,
+                            :scopes,
+                            :icon_url)
+                     .compact
+                     .merge(redirect_uris: dk.redirect_uris.map(&:redirect_uri))
 
       expect(attributes).to eq(
         {

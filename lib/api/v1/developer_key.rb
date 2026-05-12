@@ -53,7 +53,17 @@ module Api::V1::DeveloperKey
           hash["api_key"] = key.api_key
         end
         hash["redirect_uri"] = key.redirect_uri
-        hash["redirect_uris"] = key.redirect_uris.join("\n")
+        hash["redirect_uris"] = key.redirect_uris.reject(&:lenient).map(&:redirect_uri).join("\n")
+        hash["all_redirect_uris"] = key.developer_key_redirect_uris
+                                       .not_deleted
+                                       .order(:redirect_uri)
+                                       .map do |r|
+          {
+            "redirect_uri" => r.redirect_uri,
+            "last_used_at" => r.last_used_at,
+            "workflow_state" => r.workflow_state
+          }
+        end
         hash["notes"] = key.notes
         hash["access_token_count"] = key.access_token_count
         hash["last_used_at"] = key.last_used_at

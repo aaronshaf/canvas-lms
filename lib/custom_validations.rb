@@ -22,9 +22,9 @@ module CustomValidations
   module ClassMethods
     def validates_as_url(*fields, allowed_schemes: %w[http https])
       validates_each(fields, allow_nil: true) do |record, attr, value|
-        value, = CanvasHttp.validate_url(value, allowed_schemes:)
+        new_value, = CanvasHttp.validate_url(value, allowed_schemes:)
 
-        record.send(:"#{attr}=", value)
+        record.send(:"#{attr}=", new_value) unless value == new_value
       rescue CanvasHttp::Error, URI::Error, ArgumentError
         record.errors.add attr, "is not a valid URL"
       end

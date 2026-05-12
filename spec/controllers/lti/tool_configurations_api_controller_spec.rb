@@ -139,7 +139,7 @@ RSpec.describe Lti::ToolConfigurationsApiController do
         it "does not overwrite the URL's redirect uris with a blank string redirect uri" do
           subject
 
-          expect(config_from_response.developer_key.redirect_uris).to eq [canvas_lti_configuration["target_link_uri"]]
+          expect(config_from_response.developer_key.redirect_uris.map(&:redirect_uri)).to eq [canvas_lti_configuration["target_link_uri"]]
         end
       end
 
@@ -167,7 +167,7 @@ RSpec.describe Lti::ToolConfigurationsApiController do
 
           subject
 
-          expect(config_from_response.developer_key.redirect_uris).to eq [canvas_lti_configuration["target_link_uri"]]
+          expect(config_from_response.developer_key.redirect_uris.map(&:redirect_uri)).to eq [canvas_lti_configuration["target_link_uri"]]
         end
       end
 
@@ -177,7 +177,7 @@ RSpec.describe Lti::ToolConfigurationsApiController do
         it "set redirect_uris parameter to developer_key.redirect_uris" do
           subject
 
-          expect(config_from_response.developer_key.redirect_uris).to eq redirect_uris
+          expect(config_from_response.developer_key.redirect_uris.map(&:redirect_uri)).to match_array(redirect_uris)
           expect(config_from_response.redirect_uris).to eq redirect_uris
         end
       end
@@ -280,7 +280,7 @@ RSpec.describe Lti::ToolConfigurationsApiController do
     end
 
     it "sets the developer key redirect_uris" do
-      expect(subject.redirect_uris).to eq dev_key_params[:redirect_uris].split
+      expect(subject.redirect_uris.map(&:redirect_uri)).to match_array(dev_key_params[:redirect_uris].split)
     end
 
     it "sets the tool config redirect_uris" do
@@ -504,7 +504,7 @@ RSpec.describe Lti::ToolConfigurationsApiController do
 
       it "infers the redirect_uris from the settings" do
         expect(post(:create, params:)).to be_ok
-        expect(config_from_response.developer_key.redirect_uris).to eq(config_from_response.redirect_uris)
+        expect(config_from_response.developer_key.redirect_uris.map(&:redirect_uri)).to eq(config_from_response.redirect_uris)
       end
     end
 

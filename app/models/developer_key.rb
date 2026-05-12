@@ -47,6 +47,7 @@ class DeveloperKey < ApplicationRecord
     public_jwk_url
     scopes
   ].freeze
+  LAST_USED_AT_UPDATE_FREQUENCY = 30.minutes
 
   include CustomValidations
   include Workflow
@@ -60,6 +61,7 @@ class DeveloperKey < ApplicationRecord
   has_many :access_tokens, -> { where(workflow_state: "active") }
   has_many :developer_key_account_bindings, inverse_of: :developer_key
   has_many :context_external_tools
+  has_many :developer_key_redirect_uris, autosave: true, dependent: :delete_all
 
   has_one :tool_consumer_profile, class_name: "Lti::ToolConsumerProfile", inverse_of: :developer_key
   has_one :tool_configuration, class_name: "Lti::ToolConfiguration", inverse_of: :developer_key
@@ -87,6 +89,7 @@ class DeveloperKey < ApplicationRecord
   after_create :create_lti_registration
   after_create :create_default_account_binding
   after_save :clear_cache
+  after_save :prune_old_redirect_uris
   after_update :invalidate_access_tokens_if_scopes_removed!
   after_update :invalidate_access_tokens_if_secret_changed!
   after_update :destroy_external_tools!, if: :destroy_external_tools?
@@ -147,6 +150,11 @@ class DeveloperKey < ApplicationRecord
     save!
   end
 
+  def reload(...)
+    @redirect_uris = nil
+    super
+  end
+
   def confidential_client?
     client_type == CONFIDENTIAL_CLIENT_TYPE
   end
@@ -170,13 +178,82 @@ class DeveloperKey < ApplicationRecord
     account_binding_for(context.try(:account) || context)&.on? && usable?
   end
 
-  def redirect_uri=(value)
-    super(value.presence)
+  def redirect_uris
+    @redirect_uris ||= begin
+      records = if developer_key_redirect_uris.loaded? || !developer_key_redirect_uris.target.empty?
+                  developer_key_redirect_uris.select(&:active?).sort_by { |r| [r.lenient ? 1 : 0, r.redirect_uri] }
+                else
+                  developer_key_redirect_uris.active.order(:lenient, :redirect_uri).to_a
+                end
+      if records.empty?
+        strict_redirect_uris = Array(super).uniq
+        legacy = self[:redirect_uri]
+        strict_redirect_uris.delete(legacy)
+
+        records = strict_redirect_uris.map do |uri|
+          developer_key_redirect_uris.build(redirect_uri: uri)
+        end
+        if legacy.present?
+          records << developer_key_redirect_uris.build(redirect_uri: legacy, lenient: true)
+        end
+        self[:redirect_uri] = nil
+        self[:redirect_uris] = []
+      end
+
+      records
+    end
   end
 
   def redirect_uris=(value)
     value = value.split if value.is_a?(String)
-    super
+    values = Array(value).filter_map { |v| v.to_s.strip.presence }
+    self[:redirect_uris] = []
+    @redirect_uris = nil
+
+    current_records = developer_key_redirect_uris.to_a
+
+    values.each do |uri|
+      existing = current_records.detect { |r| r.redirect_uri == uri }
+      if existing
+        existing.lenient = false
+        existing.workflow_state = "active"
+      else
+        developer_key_redirect_uris.build(redirect_uri: uri)
+      end
+    end
+
+    current_records.each do |r|
+      next if r.lenient
+      next if values.include?(r.redirect_uri)
+      next unless r.active?
+
+      r.workflow_state = "deleted"
+    end
+  end
+
+  def redirect_uri
+    redirect_uris.find(&:lenient?)&.redirect_uri
+  end
+
+  def redirect_uri=(value)
+    value = value.presence
+    self[:redirect_uri] = nil
+    @redirect_uris = nil
+
+    if value.blank?
+      developer_key_redirect_uris.lenient.not_deleted.update_all(workflow_state: "deleted", updated_at: Time.zone.now)
+      return
+    end
+
+    developer_key_redirect_uris.lenient.not_deleted.where.not(redirect_uri: value).update_all(workflow_state: "deleted", updated_at: Time.zone.now)
+
+    existing = if developer_key_redirect_uris.loaded? || !developer_key_redirect_uris.target.empty?
+                 developer_key_redirect_uris.detect { |r| r.redirect_uri == value } || developer_key_redirect_uris.build(redirect_uri: value)
+               else
+                 developer_key_redirect_uris.find_or_initialize_by(redirect_uri: value)
+               end
+    existing.lenient = true
+    existing.workflow_state = "active"
   end
 
   def ims_registration?
@@ -184,18 +261,12 @@ class DeveloperKey < ApplicationRecord
   end
 
   def validate_redirect_uris
-    uris = redirect_uris&.map do |value|
-      next value if value == Canvas::OAuth::Provider::OAUTH2_OOB_URI
-
-      value, _ = CanvasHttp.validate_url(value, allowed_schemes: nil)
-      value
+    unless self[:redirect_uri].nil?
+      errors.add :redirect_uri, "legacy column must be nil; use developer_key_redirect_uris records instead"
     end
-
-    errors.add :redirect_uris, "a redirect_uri is too long" if uris.any? { |uri| uri.length > 4096 }
-
-    self.redirect_uris = uris unless uris == redirect_uris
-  rescue CanvasHttp::Error, URI::Error, ArgumentError
-    errors.add :redirect_uris, "is not a valid URI"
+    unless Array(self[:redirect_uris]).empty?
+      errors.add :redirect_uris, "legacy column must be empty; use developer_key_redirect_uris records instead"
+    end
   end
 
   def protect_default_key
@@ -364,38 +435,61 @@ class DeveloperKey < ApplicationRecord
     access_tokens.maximum(:last_used_at)
   end
 
-  # verify that the given uri has the same domain as this key's
-  # redirect_uri domain.
-  def redirect_uri_matches?(redirect_uri)
-    return false if redirect_uri.blank?
-    return true if redirect_uri == self.redirect_uri
-    return true if redirect_uris.include?(redirect_uri)
+  # Returns true for an exact match, :lenient for a subdomain match against
+  # a lenient record, or false otherwise.
+  def redirect_uri_matches?(input_redirect_uri)
+    return false if input_redirect_uri.blank?
 
-    # legacy deprecated
-    self_uri = URI.parse(self.redirect_uri)
-    self_domain = self_uri.host
-    other_uri = URI.parse(redirect_uri)
-    other_domain = other_uri.host
-    result = self_domain.present? && other_domain.present? &&
-             self_uri.scheme == other_uri.scheme &&
-             (self_domain == other_domain || other_domain.end_with?(".#{self_domain}"))
-    result && :lenient
+    records = redirect_uris
+
+    exact_match = records.find { |r| r.redirect_uri == input_redirect_uri }
+    if exact_match
+      touch_redirect_uri_last_used(exact_match)
+      return true
+    end
+
+    input_uri = URI.parse(input_redirect_uri)
+    input_host = input_uri.host
+    return false if input_host.blank?
+
+    lenient_match = records.detect do |r|
+      next false unless r.lenient?
+
+      self_uri = URI.parse(r.redirect_uri)
+      self_host = self_uri.host
+      next false if self_host.blank?
+
+      self_uri.scheme == input_uri.scheme &&
+        (self_host == input_host || input_host.end_with?(".#{self_host}"))
+    end
+
+    return false unless lenient_match
+
+    touch_redirect_uri_last_used(lenient_match)
+
+    if settings["infer_strict_redirect_uri"] && lenient_match.persisted?
+      infer_strict_redirect_uri(input_redirect_uri)
+    end
+
+    :lenient
   rescue URI::Error
     false
   end
 
-  # Verify that the given uri has the same scheme, domain and port as this key's
-  # redirect_uri's.
-  def redirect_uri_matches_for_lti?(redirect_uri)
-    return false if redirect_uri.blank?
-    return true if redirect_uri == self.redirect_uri
-    return true if redirect_uris.include?(redirect_uri)
+  # Verify that the given uri has the same scheme, domain and port as one of
+  # this key's redirect URIs.
+  def redirect_uri_matches_for_lti?(input_redirect_uri)
+    return false if input_redirect_uri.blank?
 
-    normalized_redirect_uri = Addressable::URI.parse(redirect_uri).normalized_site
-    return false if normalized_redirect_uri.blank?
-    return true if Addressable::URI.parse(self.redirect_uri)&.normalized_site == normalized_redirect_uri
+    records = redirect_uris.select(&:active?)
+    return true if records.any? { |r| r.redirect_uri == input_redirect_uri }
 
-    redirect_uris.any? { |uri| Addressable::URI.parse(uri).normalized_site == normalized_redirect_uri }
+    normalized_input = Addressable::URI.parse(input_redirect_uri).normalized_site
+    return false if normalized_input.blank?
+
+    records.any? do |r|
+      Addressable::URI.parse(r.redirect_uri).normalized_site == normalized_input
+    end
   rescue Addressable::URI::InvalidURIError
     false
   end
@@ -537,6 +631,33 @@ class DeveloperKey < ApplicationRecord
   end
 
   private
+
+  def touch_redirect_uri_last_used(record)
+    return unless record.persisted?
+    return if record.last_used_at.present? && record.last_used_at > LAST_USED_AT_UPDATE_FREQUENCY.ago
+
+    record.update_column(:last_used_at, Time.current.utc)
+  end
+
+  def infer_strict_redirect_uri(redirect_uri)
+    existing = if developer_key_redirect_uris.loaded? || !developer_key_redirect_uris.target.empty?
+                 developer_key_redirect_uris.find { |r| r.redirect_uri == redirect_uri } || developer_key_redirect_uris.build(redirect_uri:)
+               else
+                 find_or_initialize_by(redirect_uri:)
+               end
+    return if !existing.new_record? && existing.active?
+    return if developer_key_redirect_uris.active.count >= DeveloperKeyRedirectUri::MAX_ACTIVE
+
+    existing.workflow_state = "active"
+    existing.save
+  end
+
+  def prune_old_redirect_uris
+    developer_key_redirect_uris.not_active
+                               .order("last_used_at DESC NULLS LAST, id DESC")
+                               .offset(DeveloperKeyRedirectUri::MAX_ACTIVE)
+                               .delete_all
+  end
 
   def create_lti_registration
     return unless is_lti_key?

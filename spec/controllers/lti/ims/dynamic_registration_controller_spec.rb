@@ -199,7 +199,7 @@ describe Lti::IMS::DynamicRegistrationController do
           expect(dk.name).to eq(registration_params["client_name"])
           expect(dk.scopes).to eq(scopes - ["openid"])
           expect(dk.account.global_id).to eq(token_hash[:root_account_global_id])
-          expect(dk.redirect_uris).to eq(registration_params["redirect_uris"])
+          expect(dk.redirect_uris.map(&:redirect_uri)).to eq(registration_params["redirect_uris"])
           expect(dk.public_jwk_url).to eq(registration_params["jwks_uri"])
           expect(dk.is_lti_key).to be(true)
           expect(dk.icon_url).to eq("https://example.com/logo.jpg")

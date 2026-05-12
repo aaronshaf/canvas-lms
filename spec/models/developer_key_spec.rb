@@ -1856,14 +1856,14 @@ describe DeveloperKey do
 
   it "allows non-http redirect URIs" do
     developer_key_not_saved.redirect_uri = "tealpass://somewhere.edu/authentication"
-    developer_key_not_saved.redirect_uris = ["tealpass://somewhere.edu/authentication"]
+    developer_key_not_saved.redirect_uris = ["tealpass://somewhereelse.edu/authentication"]
     expect(developer_key_not_saved).to be_valid
   end
 
   it "allows the OAuth2 OOB URI in redirect_uris" do
     developer_key_not_saved.redirect_uris = [Canvas::OAuth::Provider::OAUTH2_OOB_URI]
     expect(developer_key_not_saved).to be_valid
-    expect(developer_key_not_saved.redirect_uris).to eq [Canvas::OAuth::Provider::OAUTH2_OOB_URI]
+    expect(developer_key_not_saved.redirect_uris.map(&:redirect_uri)).to include(Canvas::OAuth::Provider::OAUTH2_OOB_URI)
   end
 
   it "doesn't allow redirect_uris over 4096 characters" do
@@ -1966,7 +1966,7 @@ describe DeveloperKey do
     end
 
     it "does not allow subdomains when it matches in redirect_uris" do
-      developer_key_not_saved.redirect_uris << "http://example.com/a/b"
+      developer_key_not_saved.redirect_uris = ["http://example.com/a/b"]
 
       expect(developer_key_not_saved.redirect_uri_matches?("http://example.com/a/b")).to be true
 
@@ -1983,6 +1983,314 @@ describe DeveloperKey do
 
       expect(developer_key_not_saved.redirect_uri_matches?("http://www.example.com/a/b")).to be :lenient
       expect(developer_key_not_saved.redirect_uri_matches?("intents://www.example.com/a/b")).to be false
+    end
+
+    context "with DeveloperKeyRedirectUri records" do
+      let_once(:key) { DeveloperKey.new(name: "k", email: "k@k.com") }
+
+      it "returns true for an exact match against a strict record" do
+        key.developer_key_redirect_uris.build(redirect_uri: "https://example.com/cb")
+        expect(key.redirect_uri_matches?("https://example.com/cb")).to be true
+      end
+
+      it "returns :lenient for a subdomain match against a lenient record" do
+        key.developer_key_redirect_uris.build(redirect_uri: "https://example.com/cb", lenient: true)
+        expect(key.redirect_uri_matches?("https://api.example.com/cb")).to be :lenient
+      end
+
+      it "does not match subdomains against a strict record" do
+        key.developer_key_redirect_uris.build(redirect_uri: "https://example.com/cb", lenient: false)
+        expect(key.redirect_uri_matches?("https://api.example.com/cb")).to be false
+      end
+
+      it "ignores inactive records" do
+        record = key.developer_key_redirect_uris.build(redirect_uri: "https://example.com/cb")
+        record.deactivate
+        expect(key.redirect_uri_matches?("https://example.com/cb")).to be false
+      end
+
+      it "ignores deleted records" do
+        key.developer_key_redirect_uris.build(redirect_uri: "https://example.com/cb", workflow_state: "deleted")
+        expect(key.redirect_uri_matches?("https://example.com/cb")).to be false
+      end
+
+      describe "last_used_at tracking" do
+        before do
+          key.redirect_uri = "https://example.com/cb"
+          key.save!
+        end
+
+        it "touches last_used_at on the matched persisted record" do
+          record = key.developer_key_redirect_uris.first
+          expect(record.last_used_at).to be_nil
+          key.redirect_uri_matches?("https://example.com/cb")
+          expect(record.reload.last_used_at).to be_present
+        end
+
+        it "skips touching last_used_at if updated within LAST_USED_AT_UPDATE_FREQUENCY" do
+          recent = 10.minutes.ago
+          record = key.developer_key_redirect_uris.first
+          record.update!(last_used_at: recent)
+          key.redirect_uri_matches?("https://example.com/cb")
+          expect(record.reload.last_used_at).to be_within(1.second).of(recent)
+        end
+
+        it "touches last_used_at if the previous value is older than LAST_USED_AT_UPDATE_FREQUENCY" do
+          record = key.developer_key_redirect_uris.first
+          record.update!(last_used_at: 2.hours.ago)
+          key.redirect_uri_matches?("https://example.com/cb")
+          expect(record.reload.last_used_at).to be_within(5.seconds).of(Time.zone.now)
+        end
+
+        it "does not touch last_used_at on an in-memory (non-persisted) fallback record" do
+          new_key = DeveloperKey.create!(name: "k2", email: "x@x.com")
+          new_key.update_columns(redirect_uri: "https://lenient.example.com/")
+          new_key.reload
+          # No association rows — triggers the in-memory fallback path
+          expect { new_key.redirect_uri_matches?("https://lenient.example.com/") }.not_to raise_error
+        end
+      end
+
+      describe "settings.infer_strict_redirect_uri" do
+        let_once(:lenient_key) { DeveloperKey.create!(name: "infer", email: "i@i.com", redirect_uri: "https://example.com/cb") }
+
+        before do
+          lenient_key.settings["infer_strict_redirect_uri"] = true
+        end
+
+        it "creates a new strict record when a lenient subdomain match occurs" do
+          expect { lenient_key.redirect_uri_matches?("https://api.example.com/cb") }
+            .to change { lenient_key.developer_key_redirect_uris.count }.by(1)
+          inferred = lenient_key.developer_key_redirect_uris.find_by(redirect_uri: "https://api.example.com/cb")
+          expect(inferred).not_to be_lenient
+          expect(inferred).to be_active
+        end
+
+        it "does not infer when the match is exact" do
+          expect { lenient_key.redirect_uri_matches?("https://example.com/cb") }
+            .not_to change { lenient_key.developer_key_redirect_uris.count }
+        end
+
+        it "does not infer when MAX_ACTIVE has been reached" do
+          stub_const("DeveloperKeyRedirectUri::MAX_ACTIVE", 1)
+          expect { lenient_key.redirect_uri_matches?("https://api.example.com/cb") }
+            .not_to change { lenient_key.developer_key_redirect_uris.count }
+        end
+
+        it "does not infer when the setting is not enabled" do
+          lenient_key.update!(settings: {})
+          expect { lenient_key.redirect_uri_matches?("https://api.example.com/cb") }
+            .not_to change { lenient_key.developer_key_redirect_uris.count }
+        end
+
+        it "does not double-create when a non-deleted record already matches the input" do
+          lenient_key.redirect_uris = ["https://api.example.com/cb"]
+          lenient_key.save!
+          expect { lenient_key.redirect_uri_matches?("https://api.example.com/cb") }
+            .not_to change { lenient_key.developer_key_redirect_uris.count }
+        end
+
+        it "reactivates an inactive record matching the input instead of creating a new one" do
+          inactive = lenient_key.developer_key_redirect_uris.create!(redirect_uri: "https://api.example.com/cb")
+          inactive.deactivate
+          expect(inactive.reload).to be_inactive
+
+          expect { lenient_key.redirect_uri_matches?("https://api.example.com/cb") }
+            .not_to change { lenient_key.developer_key_redirect_uris.count }
+          expect(inactive.reload).to be_active
+        end
+
+        it "resurrects a deleted record matching the input instead of creating a new one" do
+          deleted = lenient_key.developer_key_redirect_uris.create!(
+            redirect_uri: "https://api.example.com/cb",
+            workflow_state: "deleted"
+          )
+
+          expect { lenient_key.redirect_uri_matches?("https://api.example.com/cb") }
+            .not_to change { lenient_key.developer_key_redirect_uris.count }
+          expect(deleted.reload).to be_active
+        end
+      end
+    end
+  end
+
+  describe "#redirect_uris" do
+    let_once(:key) { DeveloperKey.create!(name: "k", email: "k@k.com") }
+
+    it "returns records, ordered with lenient last and otherwise by redirect_uri" do
+      key.developer_key_redirect_uris.create!(redirect_uri: "https://b.example.com/", lenient: false)
+      key.developer_key_redirect_uris.create!(redirect_uri: "https://a.example.com/", lenient: false)
+      key.developer_key_redirect_uris.create!(redirect_uri: "https://c.example.com/", lenient: true)
+
+      records = key.reload.redirect_uris
+      expect(records.map(&:redirect_uri)).to eql(
+        ["https://a.example.com/", "https://b.example.com/", "https://c.example.com/"]
+      )
+      expect(records.map(&:lenient)).to eql([false, false, true])
+    end
+
+    it "returns records, ordered with lenient last and otherwise by redirect_uri when only in memory" do
+      key.reload
+      key.developer_key_redirect_uris.build(redirect_uri: "https://b.example.com/", lenient: false)
+      key.developer_key_redirect_uris.build(redirect_uri: "https://a.example.com/", lenient: false)
+      key.developer_key_redirect_uris.build(redirect_uri: "https://c.example.com/", lenient: true)
+
+      records = key.redirect_uris
+      expect(records.map(&:redirect_uri)).to eql(
+        ["https://a.example.com/", "https://b.example.com/", "https://c.example.com/"]
+      )
+      expect(records.map(&:lenient)).to eql([false, false, true])
+    end
+
+    it "falls back to in-memory records built from legacy columns when no association rows exist" do
+      blank_key = DeveloperKey.create!(name: "fallback", email: "f@f.com")
+      blank_key.update_columns(
+        redirect_uri: "https://lenient.example.com/",
+        redirect_uris: ["https://strict.example.com/"]
+      )
+      blank_key.reload
+
+      records = blank_key.redirect_uris
+      expect(records.size).to be 2
+      expect(records.map(&:persisted?)).to all(be false)
+      expect(records.first.redirect_uri).to eql "https://strict.example.com/"
+      expect(records.first.lenient).to be false
+      expect(records.last.redirect_uri).to eql "https://lenient.example.com/"
+      expect(records.last.lenient).to be true
+    end
+
+    it "excludes deleted records from the returned set" do
+      key.developer_key_redirect_uris.create!(redirect_uri: "https://gone.example.com/", workflow_state: "deleted")
+      key.developer_key_redirect_uris.create!(redirect_uri: "https://here.example.com/")
+      expect(key.reload.redirect_uris.map(&:redirect_uri)).to eql ["https://here.example.com/"]
+    end
+  end
+
+  describe "#redirect_uri" do
+    let(:key) { DeveloperKey.create!(name: "k", email: "k@k.com") }
+
+    it "returns the alphabetically first lenient record's URI" do
+      key.developer_key_redirect_uris.create!(redirect_uri: "https://z.example.com/", lenient: true)
+      key.developer_key_redirect_uris.create!(redirect_uri: "https://b.example.com/", lenient: true)
+      key.developer_key_redirect_uris.create!(redirect_uri: "https://a.example.com/", lenient: false)
+      expect(key.reload.redirect_uri).to eql "https://b.example.com/"
+    end
+
+    it "returns nil when there is no lenient record" do
+      key.developer_key_redirect_uris.create!(redirect_uri: "https://example.com/", lenient: false)
+      expect(key.reload.redirect_uri).to be_nil
+    end
+  end
+
+  describe "#redirect_uri=" do
+    let(:key) { DeveloperKey.create!(name: "k", email: "k@k.com") }
+
+    it "builds and persists a lenient record" do
+      key.redirect_uri = "https://lenient.example.com/"
+      key.save!
+      records = key.developer_key_redirect_uris.lenient
+      expect(records.pluck(:redirect_uri)).to eql ["https://lenient.example.com/"]
+    end
+
+    it "replaces an existing lenient record when set to a different value" do
+      key.redirect_uri = "https://first.example.com/"
+      key.save!
+      key.redirect_uri = "https://second.example.com/"
+      key.save!
+      records = key.developer_key_redirect_uris.not_deleted
+      expect(records.pluck(:redirect_uri)).to eql ["https://second.example.com/"]
+      expect(records.pluck(:lenient)).to eql [true]
+    end
+
+    it "marks the lenient record as deleted when set to nil" do
+      key.redirect_uri = "https://lenient.example.com/"
+      key.save!
+      key.redirect_uri = nil
+      key.save!
+      expect(key.developer_key_redirect_uris.not_deleted).to be_empty
+    end
+
+    it "promotes an existing strict record to lenient when its URI is assigned" do
+      key.redirect_uris = ["https://shared.example.com/"]
+      key.save!
+      key.redirect_uri = "https://shared.example.com/"
+      key.save!
+      record = key.developer_key_redirect_uris.find_by(redirect_uri: "https://shared.example.com/")
+      expect(record.lenient).to be true
+      expect(record.workflow_state).to eql "active"
+    end
+
+    it "nils out the legacy redirect_uri column attribute" do
+      key.update_columns(redirect_uri: "https://old.example.com/")
+      key.reload
+      key.redirect_uri = "https://new.example.com/"
+      expect(key.read_attribute(:redirect_uri)).to be_nil
+    end
+  end
+
+  describe "#redirect_uris=" do
+    let(:key) { DeveloperKey.create!(name: "k", email: "k@k.com") }
+
+    it "builds new strict records" do
+      key.redirect_uris = ["https://a.example.com/", "https://b.example.com/"]
+      key.save!
+      records = key.developer_key_redirect_uris.active
+      expect(records.pluck(:redirect_uri)).to match_array(["https://a.example.com/", "https://b.example.com/"])
+      expect(records.pluck(:lenient)).to all(be false)
+    end
+
+    it "marks missing strict records as deleted" do
+      key.redirect_uris = ["https://a.example.com/", "https://b.example.com/"]
+      key.save!
+      key.redirect_uris = ["https://a.example.com/"]
+      key.save!
+      expect(key.developer_key_redirect_uris.active.pluck(:redirect_uri)).to eql ["https://a.example.com/"]
+      expect(key.developer_key_redirect_uris.deleted.pluck(:redirect_uri)).to eql ["https://b.example.com/"]
+    end
+
+    it "reactivates an inactive record when its URI is set again" do
+      key.redirect_uris = ["https://a.example.com/"]
+      key.save!
+      record = key.developer_key_redirect_uris.find { |r| r.redirect_uri == "https://a.example.com/" }
+      record.deactivate
+      expect(record).to be_inactive
+
+      key.redirect_uris = ["https://a.example.com/"]
+      key.save!
+      expect(record).to be_active
+    end
+
+    it "promotes a lenient record to strict when it appears in the list" do
+      key.redirect_uri = "https://shared.example.com/"
+      key.save!
+      key.redirect_uris = ["https://shared.example.com/"]
+      key.save!
+      record = key.developer_key_redirect_uris.find_by(redirect_uri: "https://shared.example.com/")
+      expect(record.lenient).to be false
+    end
+
+    it "leaves lenient records alone when they are not in the new list" do
+      key.redirect_uri = "https://lenient.example.com/"
+      key.save!
+      key.redirect_uris = []
+      key.save!
+      record = key.developer_key_redirect_uris.find_by(redirect_uri: "https://lenient.example.com/")
+      expect(record.workflow_state).to eql "active"
+      expect(record.lenient).to be true
+    end
+
+    it "accepts a newline-separated string (controller form input)" do
+      key.redirect_uris = "https://a.example.com/\nhttps://b.example.com/"
+      key.save!
+      expect(key.developer_key_redirect_uris.active.pluck(:redirect_uri))
+        .to match_array(["https://a.example.com/", "https://b.example.com/"])
+    end
+
+    it "nils out the legacy redirect_uris column attribute" do
+      key.update_columns(redirect_uris: ["https://old.example.com/"])
+      key.reload
+      key.redirect_uris = ["https://new.example.com/"]
+      expect(key.read_attribute(:redirect_uris)).to eql []
     end
   end
 

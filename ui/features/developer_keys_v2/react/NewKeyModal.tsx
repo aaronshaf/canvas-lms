@@ -162,11 +162,33 @@ export default class DeveloperKeyModal extends React.Component<Props, State> {
     )
   }
 
+  get redirectUriCount() {
+    if (!this.hasRedirectUris) {
+      return 0
+    }
+    return (
+      this.developerKey.redirect_uris
+        ?.split(/\s+/)
+        .map((s: string) => s.trim())
+        .filter((s: string) => s.length > 0).length || 0
+    )
+  }
+
+  get hasTooManyRedirectUris() {
+    return this.redirectUriCount > 64
+  }
+
   alertAboutInvalidRedirectUris() {
     $.flashError(
       I18n.t(
         "One of the supplied redirect_uris is too long. Please ensure you've entered the correct value(s) for your redirect_uris.",
       ),
+    )
+  }
+
+  alertAboutTooManyRedirectUris() {
+    $.flashError(
+      I18n.t('A developer key cannot have more than 64 redirect URIs. Please remove some entries.'),
     )
   }
 
@@ -202,6 +224,10 @@ export default class DeveloperKeyModal extends React.Component<Props, State> {
     }
     if (this.hasInvalidRedirectUris) {
       this.alertAboutInvalidRedirectUris()
+      return
+    }
+    if (this.hasTooManyRedirectUris) {
+      this.alertAboutTooManyRedirectUris()
       return
     }
 
@@ -272,6 +298,10 @@ export default class DeveloperKeyModal extends React.Component<Props, State> {
     } else if (this.hasInvalidRedirectUris) {
       this.setState({isRedirectUrisValid: false})
       this.alertAboutInvalidRedirectUris()
+      return
+    } else if (this.hasTooManyRedirectUris) {
+      this.setState({isRedirectUrisValid: false})
+      this.alertAboutTooManyRedirectUris()
       return
     }
     let settings: {

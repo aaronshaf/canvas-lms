@@ -93,7 +93,7 @@ describe Lti::CreateRegistrationService do
     subject
 
     expect(DeveloperKey.last.scopes).to eql(configuration_params[:scopes])
-    expect(DeveloperKey.last.redirect_uris).to eql([configuration_params[:target_link_uri]])
+    expect(DeveloperKey.last.redirect_uris.map(&:redirect_uri)).to eql([configuration_params[:target_link_uri]])
   end
 
   context "with nil workflow_state" do

@@ -111,7 +111,7 @@ describe Lti::ApplyRegistrationUpdateRequestService do
         expect(registration.developer_key.name).to eq("Updated Test Registration")
         expect(registration.developer_key.oidc_initiation_url).to eq("https://example.com/login")
         expect(registration.developer_key.public_jwk_url).to eq("https://example.com/api/jwks")
-        expect(registration.developer_key.redirect_uris).to eq(["https://example.com/launch"])
+        expect(registration.developer_key.redirect_uris.map(&:redirect_uri)).to eq(["https://example.com/launch"])
       end
 
       it "marks the update request as applied" do

@@ -65,10 +65,42 @@ export type NewKeyFormProps = {
 
 const I18n = createI18nScope('react_developer_keys')
 
+const MAX_REDIRECT_URIS = 64
+
 const validationMessage: {
   text: FormMessageChild
   type: FormMessageType
 }[] = [{text: I18n.t('Must have at least one redirect_uri defined.'), type: 'error'}]
+
+const tooManyRedirectUrisMessage: {
+  text: FormMessageChild
+  type: FormMessageType
+}[] = [
+  {
+    text: I18n.t(
+      'A developer key cannot have more than %{max} redirect URIs. Please remove some entries.',
+      {max: MAX_REDIRECT_URIS},
+    ),
+    type: 'error',
+  },
+]
+
+const countRedirectUris = (value: string | undefined): number => {
+  if (!value) return 0
+  return value
+    .split(/\s+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 0).length
+}
+
+const formatLastUsedAt = (last_used_at: string | null): string => {
+  if (!last_used_at) return I18n.t('never')
+  try {
+    return new Date(last_used_at).toLocaleString()
+  } catch {
+    return last_used_at
+  }
+}
 
 const clientCredentialsAudienceTooltip = I18n.t(
   'Will credentials issued by this key be presented to Canvas or to a peer service (e.g. Canvas Data)?',
@@ -224,8 +256,55 @@ export default class NewKeyForm extends React.Component<NewKeyFormProps> {
                   value={developerKey.redirect_uris}
                   onChange={e => updateDeveloperKey('redirect_uris', e.target.value)}
                   resize="both"
-                  messages={showMissingRedirectUrisMessage ? validationMessage : []}
+                  messages={
+                    countRedirectUris(developerKey.redirect_uris) > MAX_REDIRECT_URIS
+                      ? tooManyRedirectUrisMessage
+                      : showMissingRedirectUrisMessage
+                        ? validationMessage
+                        : []
+                  }
                 />
+                <div
+                  data-testid="redirect-uris-help-text"
+                  style={{fontSize: '0.875rem', marginTop: '0.25rem'}}
+                >
+                  {I18n.t(
+                    'Redirect URIs must match exactly, including casing, protocol, host, port, path, and query string. Up to %{max} redirect URIs are allowed per developer key.',
+                    {max: MAX_REDIRECT_URIS},
+                  )}
+                </div>
+                {(() => {
+                  const inactiveRedirectUris =
+                    developerKey.all_redirect_uris?.filter(r => r.workflow_state === 'inactive') ??
+                    []
+                  if (inactiveRedirectUris.length === 0) return null
+                  return (
+                    <div
+                      data-testid="inactive-redirect-uris"
+                      style={{marginTop: '0.5rem', fontSize: '0.875rem'}}
+                    >
+                      <div>
+                        {I18n.t(
+                          'The following redirect URIs have been automatically de-activated because they have not been used recently:',
+                        )}
+                      </div>
+                      <ul data-testid="inactive-redirect-uris-list" style={{marginTop: '0.25rem'}}>
+                        {inactiveRedirectUris.map(entry => (
+                          <li key={entry.redirect_uri}>
+                            <code>{entry.redirect_uri}</code>{' '}
+                            <span style={{color: '#666'}}>
+                              (
+                              {I18n.t('last used: %{when}', {
+                                when: formatLastUsedAt(entry.last_used_at),
+                              })}
+                              )
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )
+                })()}
                 {!isLtiKey && (
                   <UtidSelector
                     redirectUris={developerKey.redirect_uris}
@@ -245,13 +324,17 @@ export default class NewKeyForm extends React.Component<NewKeyFormProps> {
                 )}
                 {!isLtiKey && (
                   <div>
-                    <TextInput
-                      data-testid="legacy-redirect-uri-input"
-                      renderLabel={I18n.t('Redirect URI (Legacy):')}
-                      name="developer_key[redirect_uri]"
-                      value={developerKey.redirect_uri || ''}
-                      onChange={e => updateDeveloperKey('redirect_uri', e.target.value)}
-                    />
+                    {developerKey.redirect_uri && (
+                      <TextInput
+                        data-testid="legacy-redirect-uri-input"
+                        renderLabel={I18n.t(
+                          'Legacy Redirect URI (Deprecated; matches on scheme and hostname only, including subdomains):',
+                        )}
+                        name="developer_key[redirect_uri]"
+                        value={developerKey.redirect_uri || ''}
+                        onChange={e => updateDeveloperKey('redirect_uri', e.target.value)}
+                      />
+                    )}
                     <TextInput
                       data-testid="vendor-code-input"
                       renderLabel={I18n.t('Vendor Code (LTI 2):')}
