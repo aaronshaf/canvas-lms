@@ -11602,10 +11602,10 @@ hy:
       appointment_cancelations: "Չեղյալ համարված հանդիպումներ"
       appointment_signups: "Հանդիպումների համար գրացումներ "
       calendar: Օրացույց
-      course_content: "Դասընթացի բովանդակություն "
+      course_content: "Դասընթացի բովանդակություն"
       discussion: Քննարկում
       discussion_entry: DiscussionEntry
-      due_date: "Կատարման ամսաթիվ"
+      due_date: Վերջնաժամկետ
       files: Ֆայլեր
       grading: Գնահատականներ
       grading_policies: "Գնահատման քաղաքականություններ"
@@ -11618,7 +11618,7 @@ hy:
       recording_ready: "Գրառումը պատրաստ է"
       registration: Գրանցում
       reminder: Հիշեցում
-      student_appointment_signups: "Ուսանողական հանդիպումների գրանցումներ"
+      student_appointment_signups: "Ունկնդրի հանդիպումների գրանցումներ"
       submission_comment: "Ուղարկված աշխատանքների մեկնաբանություն"
     conversation_created_description: "Դուք ստեղծել եք խոսակցություն"
     conversation_created_description_legend: "Դուք ստեղծել եք խոսակցություն"
@@ -11661,7 +11661,7 @@ hy:
       account_user_notification: "Հաշվի օգտատիրոջ ծանուցումներ"
       account_user_registration: "Հաշվի օգտատիրոջ ծանուցումներ"
       added_to_conversation: "Ավելացվել է խոսակցությանը"
-      alert: Ծանուցում
+      alert: Նախազգուշացում
       announcement_created_by_you: "Ձեր կողմից ստեղծված հայտարարություն"
       announcement_reply: " Պատասխան հայտարարությանը"
       appointment_canceled_by_user: "Հանդիպումը չեղյալ է համարվել օգտատիրոջ կողմից"
@@ -13107,6 +13107,10 @@ hy:
       email_sent: "Հաստատման մասին էլեկտրոնային նամակը ուղարկվել է %{email}, ստուգեք ձեր  սփամի թղթապանակը:"
       link_invalid: "Ձեր օգտագործած հղումը այլևս վավերական չէ: Եթե չեք կարող մուտք գործել համակարգ, սեղմեք \"Չգիտե՞ք ձեր գաղտնաբառը\"  կրկին ստեղծելու ձեր գաղտնաբառը:"
       password_changed: "Գաղտնաբառը փոխվել է"
+    set_password: 
+      confirm_change_password: 
+        loading: "Բեռնում է..."
+      page_title: "Փոխել գաղտնաբառը"
   pseudonyms_mobile_login: 
     parent_signup: "Ծնողի գրանցում"
   pts_51d69f4a: Միավորներ
