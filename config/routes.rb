@@ -3323,8 +3323,11 @@ CanvasRails::Application.routes.draw do
 
     # LTI Access Tokens (Site Admin only)
     get "lti_2_token", controller: "lti/token", action: :lti_2_token, as: :lti_2_token_site_admin
-    get "advantage_token", controller: "lti/token", action: :advantage_access_token, as: :lti_advantage_token_site_admin
   end
+
+  # LTI Advantage Token UI (Site Admin only)
+  get  "accounts/site_admin/lti_token", controller: "lti/token", action: :lti_token_form, as: :lti_token_form_site_admin
+  post "accounts/site_admin/lti_token", controller: "lti/token", action: :create_lti_token, as: :create_lti_token_site_admin
 
   ApiRouteSet.draw(self, "/api/sis") do
     scope(controller: :sis_api) do

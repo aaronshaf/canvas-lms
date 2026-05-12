@@ -26,9 +26,10 @@ Historically, generating an LTI access token requires an installed tool to creat
 
 It's now possible to, as a Site Admin user, directly ask Canvas for an LTI access token for any 1.3 tool. This will make local development and troubleshooting much easier.
 
-1. Sign in to Canvas as a Site Admin user (this can be local Canvas, or production).
-2. Find the host/school/local canvas url, and a ContextExternalTool id or DeveloperKey id related to the tool for which you need a token.
-3. Navigate to `<host>/api/lti/advantage_token`, and pass one of these two parameters: `tool_id=<tool id>` or `client_id=<client id>`. Example: `http://canvas.docker/api/lti/token?tool_id=6` or `office365.instructure.com/api/lti/token?client_id=170000000000401`
+1. Sign in to Canvas as a Site Admin user via browser session (API access tokens are rejected). Your Site Admin user must have an OTP secret configured (e.g. Google Authenticator, 1Password).
+2. Make the request from the same domain as the tool's root account (e.g. `office365.instructure.com` for a tool installed on the Office 365 account). Tools installed on the site_admin account cannot have tokens generated this way.
+3. Find the `ContextExternalTool` id for the tool you need a token for. The associated developer key must be an LTI 1.3 key. Note: only `tool_id` is accepted - if you only have a `client_id`, find a tool using that key first.
+4. Navigate to `<host>/accounts/site_admin/lti_token`, enter the tool ID, enter the current 6-digit OTP from your authenticator app, and submit. The access token is displayed on the same page.
 
 ### With the 1.3 Test Tool
 
