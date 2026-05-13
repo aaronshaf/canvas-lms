@@ -25,7 +25,7 @@
 /* eslint-disable no-constant-condition */
 // xsslint jqueryObject.function makeFormAnswer makeDisplayAnswer
 // xsslint jqueryObject.property sortable placeholder
-// xsslint safeString.property question_text
+// xsslint safeString.function sanitizeHTML
 import React from 'react'
 import {createRoot} from 'react-dom/client'
 import QuizRegradeModal from '../react/QuizRegradeModal'
@@ -34,6 +34,7 @@ import {find, forEach, keys, difference} from 'es-toolkit/compat'
 import $ from 'jquery'
 import calcCmd from './calcCmd'
 import htmlEscape, {raw} from '@instructure/html-escape'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import numberHelper from '@canvas/i18n/numberHelper'
 import ready from '@instructure/ready'
 import pluralize from '@canvas/util/stringPluralize'
@@ -783,11 +784,13 @@ export const quiz = (window.quiz = {
     $question.find('.blank_id_select').empty()
     if (question.question_type === 'missing_word_question') {
       var $text = $question.find('.question_text')
-      $text.html("<span class='text_before_answers'>" + raw(question.question_text) + '</span> ')
+      const $beforeSpan = $("<span class='text_before_answers'>")
+      $beforeSpan.html(sanitizeHTML(question.question_text))
+      $text.empty().append($beforeSpan).append(' ')
       $text.append($select)
-      $text.append(
-        " <span class='text_after_answers'>" + raw(question.text_after_answers) + '</span>',
-      )
+      const $afterSpan = $("<span class='text_after_answers'>")
+      $afterSpan.html(sanitizeHTML(question.text_after_answers))
+      $text.append(' ').append($afterSpan)
     } else if (
       question.question_type === 'multiple_dropdowns_question' ||
       question.question_type === 'fill_in_multiple_blanks_question'
@@ -3753,7 +3756,7 @@ ready(function () {
     for (const idx in questionList) {
       const question = questionList[idx].assessment_question
       if (!existingIDs[question.id] || true) {
-        $div.html(question.question_data.question_text)
+        $div.html(sanitizeHTML(question.question_data.question_text))
         question.question_text = TextHelper.truncateText($div.text(), {max: 75})
         question.question_name = question.question_data.question_name
         const $question = $findQuestionDialog
