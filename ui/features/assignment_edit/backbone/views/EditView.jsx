@@ -1223,14 +1223,26 @@ EditView.prototype.validateGuidData = function (event) {
   return dataArray
 }
 
-EditView.prototype.handleMessageEvent = function (event) {
+// Exported for unit testing without rendering the heavyweight Backbone EditView.
+export const handleAbGuidMessage = function (event, {trustedOrigin, validateGuidData, setAbGuid}) {
+  if (!trustedOrigin || event.origin !== trustedOrigin) {
+    return
+  }
   if (event?.data?.subject !== 'assignment.set_ab_guid') {
     return
   }
-  const abGuid = this.validateGuidData(event)
+  const abGuid = validateGuidData(event)
   if (abGuid) {
-    this.assignment.set('ab_guid', abGuid)
+    setAbGuid(abGuid)
   }
+}
+
+EditView.prototype.handleMessageEvent = function (event) {
+  handleAbGuidMessage(event, {
+    trustedOrigin: ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN,
+    validateGuidData: this.validateGuidData.bind(this),
+    setAbGuid: abGuid => this.assignment.set('ab_guid', abGuid),
+  })
 }
 
 EditView.prototype.handlePlacementExternalToolSelect = function (selection) {

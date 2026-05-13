@@ -32,7 +32,7 @@ import Section from '@canvas/sections/backbone/models/Section'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import {unfudgeDateForProfileTimezone} from '@instructure/moment-utils'
 import React from 'react'
-import EditView from '../EditView'
+import EditView, {handleAbGuidMessage} from '../EditView'
 import '@canvas/jquery/jquery.simulate'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -331,6 +331,7 @@ describe('EditView#handleMessageEvent', () => {
       GROUP_CATEGORIES: [],
       USAGE_RIGHTS_REQUIRED: false,
       ROOT_FOLDER_ID: '1',
+      DEEP_LINKING_POST_MESSAGE_ORIGIN: currentOrigin,
     })
 
     view = createEditView()
@@ -341,15 +342,17 @@ describe('EditView#handleMessageEvent', () => {
     document.body.innerHTML = ''
   })
 
-  it('sets ab_guid when subject is assignment.set_ab_guid and the ab_guid is formatted correctly', () => {
-    const mockEvent = {
-      data: {
-        subject: 'assignment.set_ab_guid',
-        data: ['1E20776E-7053-11DF-8EBF-BE719DFF4B22', '1e20776e-7053-11df-8eBf-Be719dff4b22'],
-      },
-    }
+  const abGuidEvent = (overrides = {}) => ({
+    origin: currentOrigin,
+    data: {
+      subject: 'assignment.set_ab_guid',
+      data: ['1E20776E-7053-11DF-8EBF-BE719DFF4B22', '1e20776e-7053-11df-8eBf-Be719dff4b22'],
+    },
+    ...overrides,
+  })
 
-    view.handleMessageEvent(mockEvent)
+  it('sets ab_guid when subject is assignment.set_ab_guid and the ab_guid is formatted correctly', () => {
+    view.handleMessageEvent(abGuidEvent())
 
     expect(view.assignment.get('ab_guid')).toEqual([
       '1E20776E-7053-11DF-8EBF-BE719DFF4B22',
@@ -358,29 +361,55 @@ describe('EditView#handleMessageEvent', () => {
   })
 
   it('does not set ab_guid when subject is not assignment.set_ab_guid', () => {
-    const mockEvent = {
-      data: {
-        subject: 'some.other.subject',
-        data: ['1E20776E-7053-11DF-8EBF-BE719DFF4B22', '1e20776e-7053-11df-8eBf-Be719dff4b22'],
-      },
-    }
-
-    view.handleMessageEvent(mockEvent)
+    view.handleMessageEvent(
+      abGuidEvent({
+        data: {subject: 'some.other.subject', data: ['1E20776E-7053-11DF-8EBF-BE719DFF4B22']},
+      }),
+    )
 
     expect(view.assignment.has('ab_guid')).toBe(false)
   })
 
   it('does not set ab_guid when the ab_guid is not formatted correctly', () => {
-    const mockEvent = {
-      data: {
-        subject: 'assignment.set_ab_guid',
-        data: ['not_an_ab_guid', '1e20776e-7053-11df-8eBf-Be719dff4b22'],
-      },
-    }
-
-    view.handleMessageEvent(mockEvent)
+    view.handleMessageEvent(
+      abGuidEvent({
+        data: {
+          subject: 'assignment.set_ab_guid',
+          data: ['not_an_ab_guid', '1e20776e-7053-11df-8eBf-Be719dff4b22'],
+        },
+      }),
+    )
 
     expect(view.assignment.has('ab_guid')).toBe(false)
+  })
+
+  describe('origin guard', () => {
+    it.each([
+      ['foreign origin', 'https://evil.example.com'],
+      ['typosquat origin', currentOrigin.replace('localhost', 'localhost.evil.com')],
+      ['empty origin', ''],
+      ['null origin', 'null'],
+    ])('ignores assignment.set_ab_guid from %s', (_label, origin) => {
+      view.handleMessageEvent(abGuidEvent({origin}))
+
+      expect(view.assignment.has('ab_guid')).toBe(false)
+    })
+
+    it('ignores messages when DEEP_LINKING_POST_MESSAGE_ORIGIN is not configured', () => {
+      ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN = undefined
+
+      view.handleMessageEvent(abGuidEvent())
+
+      expect(view.assignment.has('ab_guid')).toBe(false)
+    })
+
+    it('ignores messages when DEEP_LINKING_POST_MESSAGE_ORIGIN is empty', () => {
+      ENV.DEEP_LINKING_POST_MESSAGE_ORIGIN = ''
+
+      view.handleMessageEvent(abGuidEvent({origin: ''}))
+
+      expect(view.assignment.has('ab_guid')).toBe(false)
+    })
   })
 
   it('processes LtiDeepLinkingResponse messages', () => {
@@ -460,5 +489,66 @@ describe('EditView#handlesuppressFromGradebookChange', () => {
     view.handlesuppressFromGradebookChange()
 
     expect(spy).toHaveBeenCalledWith(false)
+  })
+})
+
+describe('handleAbGuidMessage (exported helper)', () => {
+  const trustedOrigin = 'https://canvas.example.com'
+  const validUuid = '1E20776E-7053-11DF-8EBF-BE719DFF4B22'
+  const validateGuidData = event => {
+    const data = event.data.data
+    const arr = Array.isArray(data) ? data : [data]
+    const re = /^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/
+    return arr.every(s => re.test(s)) ? arr : false
+  }
+
+  const buildEvent = (overrides = {}) => ({
+    origin: trustedOrigin,
+    data: {subject: 'assignment.set_ab_guid', data: [validUuid]},
+    ...overrides,
+  })
+
+  it('invokes setAbGuid with parsed guids when origin matches', () => {
+    const setAbGuid = vi.fn()
+    handleAbGuidMessage(buildEvent(), {trustedOrigin, validateGuidData, setAbGuid})
+    expect(setAbGuid).toHaveBeenCalledWith([validUuid])
+  })
+
+  it.each([
+    ['foreign', 'https://evil.example.com'],
+    ['typosquat', 'https://canvas.example.com.evil.com'],
+    ['scheme downgrade', 'http://canvas.example.com'],
+    ['empty', ''],
+    ['null string', 'null'],
+  ])('does not invoke setAbGuid for %s origin', (_label, origin) => {
+    const setAbGuid = vi.fn()
+    handleAbGuidMessage(buildEvent({origin}), {trustedOrigin, validateGuidData, setAbGuid})
+    expect(setAbGuid).not.toHaveBeenCalled()
+  })
+
+  it('does not invoke setAbGuid when trustedOrigin is missing', () => {
+    const setAbGuid = vi.fn()
+    handleAbGuidMessage(buildEvent(), {trustedOrigin: undefined, validateGuidData, setAbGuid})
+    handleAbGuidMessage(buildEvent({origin: ''}), {trustedOrigin: '', validateGuidData, setAbGuid})
+    expect(setAbGuid).not.toHaveBeenCalled()
+  })
+
+  it('does not invoke setAbGuid for non-matching subject even on trusted origin', () => {
+    const setAbGuid = vi.fn()
+    handleAbGuidMessage(buildEvent({data: {subject: 'other.subject', data: [validUuid]}}), {
+      trustedOrigin,
+      validateGuidData,
+      setAbGuid,
+    })
+    expect(setAbGuid).not.toHaveBeenCalled()
+  })
+
+  it('does not invoke setAbGuid when payload fails validation', () => {
+    const setAbGuid = vi.fn()
+    handleAbGuidMessage(
+      buildEvent({data: {subject: 'assignment.set_ab_guid', data: ['not-a-uuid']}}),
+      {trustedOrigin, validateGuidData, setAbGuid},
+    )
+    expect(setAbGuid).not.toHaveBeenCalled()
   })
 })
