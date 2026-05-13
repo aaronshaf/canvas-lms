@@ -23,6 +23,7 @@ import loginForm from '../jst/login.handlebars'
 import authenticity_token from '@canvas/authenticity-token'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import extensions from '@canvas/bundles/extensions'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('registration')
 
@@ -44,7 +45,7 @@ $('#registration_video a').click(
   preventDefault(function () {
     const iframe = document.createElement('iframe')
     iframe.style.cssFloat = 'left'
-    iframe.src = ENV.REGISTRATION_VIDEO_URL
+    iframe.src = sanitizeUrl(ENV.REGISTRATION_VIDEO_URL)
     iframe.width = '800'
     iframe.height = '450'
     iframe.frameBorder = '0'

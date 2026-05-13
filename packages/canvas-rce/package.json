@@ -207,7 +207,7 @@
     "jest": "^30",
     "mathjax": "^3.2.0",
     "msw": "^2.7",
-    "nyc": "^13",
+    "nyc": "^17",
     "proxyquire": "1.7.4",
     "shelljs": "^0.8.3",
     "skin-deep": "^1",

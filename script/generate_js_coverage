@@ -18,7 +18,18 @@ if [ "$RUN_TESTS_FIRST" ]; then
 fi
 
 echo '========== Merging all coverage reports =========='
-./node_modules/.bin/istanbul-merge --out .nyc_output/total-coverage.json "{coverage-jest,packages/*/coverage}/**/coverage*.json"
+rm -rf .nyc_output
+mkdir -p .nyc_output/_staging
+n=0
+while IFS= read -r f; do
+    cp "$f" ".nyc_output/_staging/coverage-$n.json"
+    n=$((n+1))
+done < <(for dir in coverage-jest packages/*/coverage; do
+    [ -d "$dir" ] || continue
+    find "$dir" -type f -name 'coverage*.json'
+done)
+./node_modules/.bin/nyc merge .nyc_output/_staging .nyc_output/total-coverage.json
+rm -rf .nyc_output/_staging
 echo '============= Generating HTML Report ============='
 ./node_modules/.bin/nyc report --reporter=html --report-dir coverage-js
 echo '============= Generating JSON Summary ============='

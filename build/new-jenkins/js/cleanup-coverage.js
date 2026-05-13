@@ -24,8 +24,8 @@
   vs
   "<...>/src/aws.js": {"data":{"path":"<...>/src/aws.js","statementMap":{"0":{"start"...
 
-  The difference is the added "data" key, which when present, will crash istanbul-merge
-  with the error:
+  The difference is the added "data" key, which when present, will crash nyc merge
+  (and istanbul-lib-coverage generally) with the error:
   Error: Invalid file coverage object, missing keys, found:data
 
   This script loops through all our js generated coverage reports and strips
@@ -61,7 +61,7 @@ fs.readdir(dirName, function (err, list) {
       const cleanedCoverage = normalizeJestCoverage(parsedData)
       fs.writeFileSync(
         dirArgs[1] + filename.slice(0, -5) + '-out.json',
-        JSON.stringify(cleanedCoverage, null, 4)
+        JSON.stringify(cleanedCoverage, null, 4),
       )
     })
   }
