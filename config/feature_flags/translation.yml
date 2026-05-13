@@ -9,8 +9,7 @@ translation:
 
 translation_feedback:
   state: hidden
-  applies_to: Course
-  root_opt_in: true
+  applies_to: SiteAdmin
   display_name: IgniteAI Translation Feedback
   description: Allow users to provide thumbs up/down feedback on AI-generated translations in discussions and announcements.
   visible_on: tier_1_visible_on_hook
