@@ -11812,6 +11812,10 @@ el:
       account_registered: "Ο λογαριασμός καταχωρίστηκε!"
       account_updated: "Ο λογαριασμός ενημερώθηκε!"
       email_sent: "Εστάλη μήνυμα επιβεβαίωσης στην ηλεκτρονική διεύθυνση %{email}, βεβαιωθείτε ότι ελέγχετε τα spam σας"
+    set_password: 
+      confirm_change_password: 
+        loading: Φόρτωση...
+      page_title: "Αλλάξτε Κωδικό Πρόσβασης"
   pseudonyms_mobile_login: 
     parent_signup: "Εγγραφή Γονέα"
   pts_51d69f4a: Μόρια
