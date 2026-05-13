@@ -107,7 +107,24 @@ module LlmConversation
 
       raise LlmConversation::Errors::ConversationError, base_url_error_message(region, test_cluster) if url.nil?
 
+      enforce_https!(url)
+
       url
+    end
+
+    # Production gate: `llm_conversation_base_url` must be HTTPS. A misconfigured
+    # `http://` Setting would put bearer JWTs *and* every indexed file's authenticated
+    # `public_url` on the wire in cleartext — see AIEXP-001 / plan H-6. Dev/test/CI
+    # keep using http://localhost:3001 because `Rails.env.production?` is false.
+    def enforce_https!(url)
+      return unless Rails.env.production?
+      return if URI.parse(url).scheme&.downcase == "https"
+
+      raise LlmConversation::Errors::ConversationError,
+            "llm_conversation_base_url must use HTTPS in production"
+    rescue URI::InvalidURIError
+      raise LlmConversation::Errors::ConversationError,
+            "llm_conversation_base_url is not a valid URL"
     end
 
     def base_url_error_message(region, test_cluster)

@@ -210,4 +210,47 @@ describe LlmConversation::HttpClient do
       end
     end
   end
+
+  describe "HTTPS enforcement on llm_conversation_base_url (H-6 / AIEXP-001)" do
+    context "in a production environment" do
+      before { allow(Rails.env).to receive(:production?).and_return(true) }
+
+      it "raises ConversationError when the configured URL is http://" do
+        Setting.set("llm_conversation_base_url", "http://insecure.example/api")
+        expect { described_class.new(account:) }
+          .to raise_error(LlmConversation::Errors::ConversationError, /must use HTTPS/)
+      end
+
+      it "raises ConversationError when the configured URL has no scheme" do
+        Setting.set("llm_conversation_base_url", "insecure.example/api")
+        expect { described_class.new(account:) }
+          .to raise_error(LlmConversation::Errors::ConversationError, /must use HTTPS/)
+      end
+
+      it "constructs successfully when the URL is https://" do
+        Setting.set("llm_conversation_base_url", "https://secure.example/api")
+        expect { described_class.new(account:) }.not_to raise_error
+      end
+
+      it "accepts upper-case HTTPS://" do
+        Setting.set("llm_conversation_base_url", "HTTPS://secure.example/api")
+        expect { described_class.new(account:) }.not_to raise_error
+      end
+
+      it "raises with a clear error when the URL is malformed" do
+        Setting.set("llm_conversation_base_url", "ht!tp://bad")
+        expect { described_class.new(account:) }
+          .to raise_error(LlmConversation::Errors::ConversationError, /not a valid URL|must use HTTPS/)
+      end
+    end
+
+    context "in a non-production environment" do
+      before { allow(Rails.env).to receive(:production?).and_return(false) }
+
+      it "allows http:// for local dev / CI" do
+        Setting.set("llm_conversation_base_url", "http://localhost:3001")
+        expect { described_class.new(account:) }.not_to raise_error
+      end
+    end
+  end
 end
