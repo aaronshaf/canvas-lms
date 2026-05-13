@@ -374,6 +374,40 @@ describe "Module Items API", type: :request do
       end
     end
 
+    it "includes lti_resource_link_lookup_uuid for external tool items with an associated resource link" do
+      tool = external_tool_1_3_model(context: @course)
+      tag = @module1.add_item(type: "external_tool", title: "Tool", id: tool.id, url: tool.url)
+      @module1.save!
+
+      json = api_call(:get,
+                      "/api/v1/courses/#{@course.id}/modules/#{@module1.id}/items",
+                      controller: "context_module_items_api",
+                      action: "index",
+                      format: "json",
+                      course_id: @course.id.to_s,
+                      module_id: @module1.id.to_s)
+
+      item = json.find { |i| i["type"] == "ExternalTool" && i["id"] == tag.id }
+      expect(item["lti_resource_link_lookup_uuid"]).to eq tag.associated_asset_lti_resource_link.lookup_uuid
+    end
+
+    it "omits lti_resource_link_lookup_uuid for LTI 1.1 tool items without a resource link" do
+      tool = @course.context_external_tools.create!(name: "b", url: "http://www.google.com", consumer_key: "12345", shared_secret: "secret")
+      tag = @module1.add_item(type: "external_tool", title: "Tool", id: tool.id, url: tool.url)
+      @module1.save!
+
+      json = api_call(:get,
+                      "/api/v1/courses/#{@course.id}/modules/#{@module1.id}/items",
+                      controller: "context_module_items_api",
+                      action: "index",
+                      format: "json",
+                      course_id: @course.id.to_s,
+                      module_id: @module1.id.to_s)
+
+      item = json.find { |i| i["type"] == "ExternalTool" && i["id"] == tag.id }
+      expect(item).not_to have_key("lti_resource_link_lookup_uuid")
+    end
+
     it "shows module items individually" do
       json = api_call(:get,
                       "/api/v1/courses/#{@course.id}/modules/#{@module2.id}/items/#{@wiki_page_tag.id}",

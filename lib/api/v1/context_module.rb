@@ -155,6 +155,11 @@ module Api::V1::ContextModule
       hash["new_tab"] = content_tag.new_tab
     end
 
+    if content_tag.content_type == "ContextExternalTool"
+      uuid = content_tag.associated_asset_lti_resource_link&.lookup_uuid
+      hash["lti_resource_link_lookup_uuid"] = uuid if uuid
+    end
+
     # add completion requirements
     if (criterion = context_module.completion_requirements&.detect { |r| r[:id] == content_tag.id })
       ch = { "type" => criterion[:type] }
