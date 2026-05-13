@@ -6164,6 +6164,7 @@ hu:
   complete_title_7482ddcf: "%{title} kész"
   completed_19711ce7: Befejezett
   completed_9b809e44: befejezett
+  completed_date_b0c2304b: "Befejezett %{date}"
   completed_peer_reviews_c134676: "Befejezett társértékelések"
   completed_submittedat_66f56614: "Befejezett %{submittedAt}"
   compose_44c904f4: Összeállítani
