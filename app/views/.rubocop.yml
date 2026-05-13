@@ -1,0 +1,24 @@
+plugins:
+ - rubocop-erb
+
+Layout:
+  Enabled: false
+
+Lint:
+  Enabled: false
+
+Naming:
+  Enabled: false
+
+Performance:
+  Enabled: false
+
+Rails:
+  Enabled: false
+
+Rails/OutputSafety:
+  Severity: error
+  Enabled: true
+
+Style:
+  Enabled: false
