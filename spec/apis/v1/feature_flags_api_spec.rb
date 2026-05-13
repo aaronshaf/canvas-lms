@@ -541,6 +541,7 @@ describe "Feature Flags API", type: :request do
 
     describe "hidden" do
       it "creates a site admin feature flag" do
+        allow(LoadAccount).to receive(:from_host).and_return(t_site_admin)
         api_call_as_user(site_admin_user,
                          :put,
                          "/api/v1/accounts/#{t_site_admin.id}/features/flags/hidden_feature",
@@ -815,6 +816,54 @@ describe "Feature Flags API", type: :request do
                        {},
                        {},
                        { expected_status: 404 })
+    end
+  end
+
+  describe "site admin domain enforcement" do
+    let(:admin) { site_admin_user }
+
+    it "PUT refuses to set a site admin feature flag from a non-site-admin domain" do
+      api_call_as_user(admin,
+                       :put,
+                       "/api/v1/accounts/#{t_site_admin.id}/features/flags/hidden_feature",
+                       { controller: "feature_flags", action: "update", format: "json", account_id: t_site_admin.id.to_s, feature: "hidden_feature" },
+                       {},
+                       {},
+                       { domain_root_account: t_root_account, expected_status: 403 })
+      expect(t_site_admin.feature_flags.where(feature: "hidden_feature")).not_to be_any
+    end
+
+    it "PUT allows setting a site admin feature flag from the site admin domain" do
+      allow(LoadAccount).to receive(:from_host).and_return(t_site_admin)
+      api_call_as_user(admin,
+                       :put,
+                       "/api/v1/accounts/#{t_site_admin.id}/features/flags/hidden_feature",
+                       { controller: "feature_flags", action: "update", format: "json", account_id: t_site_admin.id.to_s, feature: "hidden_feature" })
+      expect(t_site_admin.feature_flags.where(feature: "hidden_feature").count).to be 1
+    end
+
+    it "allows setting a site admin feature flag from any domain in development" do
+      allow(Rails.env).to receive(:development?).and_return(true)
+      api_call_as_user(admin,
+                       :put,
+                       "/api/v1/accounts/#{t_site_admin.id}/features/flags/hidden_feature",
+                       { controller: "feature_flags", action: "update", format: "json", account_id: t_site_admin.id.to_s, feature: "hidden_feature" },
+                       {},
+                       {},
+                       { domain_root_account: t_root_account })
+      expect(t_site_admin.feature_flags.where(feature: "hidden_feature").count).to be 1
+    end
+
+    it "DELETE refuses to remove a site admin feature flag from a non-site-admin domain" do
+      t_site_admin.feature_flags.create! feature: "hidden_feature"
+      api_call_as_user(admin,
+                       :delete,
+                       "/api/v1/accounts/#{t_site_admin.id}/features/flags/hidden_feature",
+                       { controller: "feature_flags", action: "delete", format: "json", account_id: t_site_admin.id.to_s, feature: "hidden_feature" },
+                       {},
+                       {},
+                       { domain_root_account: t_root_account, expected_status: 403 })
+      expect(t_site_admin.feature_flags.where(feature: "hidden_feature")).to be_any
     end
   end
 

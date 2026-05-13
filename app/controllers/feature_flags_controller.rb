@@ -137,6 +137,7 @@ class FeatureFlagsController < ApplicationController
   include Api::V1::FeatureFlag
 
   before_action :get_context
+  before_action :require_site_admin_domain_for_site_admin_context, only: %i[update delete accept_early_access_terms]
   skip_before_action :require_user, only: %i[environment]
 
   # @API List features
@@ -383,6 +384,14 @@ class FeatureFlagsController < ApplicationController
   end
 
   private
+
+  def require_site_admin_domain_for_site_admin_context
+    return unless @context.is_a?(Account) && @context.site_admin?
+    return if Rails.env.development?
+    return if LoadAccount.from_host(request.host) == Account.site_admin
+
+    render json: { message: "site admin feature flags can only be modified on the site admin domain" }, status: :forbidden
+  end
 
   def can_read_site_admin?
     @can_read_site_admin ||= Account.site_admin.grants_right?(@current_user, session, :read)
