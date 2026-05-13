@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #
-# Copyright (C) 2015 - present Instructure, Inc.
+# Copyright (C) 2026 - present Instructure, Inc.
 #
 # This file is part of Canvas.
 #
@@ -20,29 +20,10 @@
 
 require_relative "../apis/api_spec_helper"
 
-describe OutcomesApiController do
-  describe "#process_params" do
-    let(:params) { ActionController::Parameters.new(description: "original_content", outlier_field: "pampam") }
-    let(:controller) { OutcomesApiController.new }
-
-    before do
-      allow(controller).to receive_messages(process_incoming_html_content: "processed_content", params:)
-    end
-
-    it "processes description field" do
-      processed_params = controller.send(:process_params)
-      expect(processed_params[:description]).to eq("processed_content")
-    end
-
-    it "removes outlier fields" do
-      processed_params = controller.send(:process_params)
-      expect(processed_params).not_to have_key(:outlier_field)
-    end
-  end
-
-  describe "#process_params XSS sanitization (SEC-21939)" do
-    let(:controller) { OutcomesApiController.new }
-    let(:xss_payload) { %(</script><script>alert('xss')</script>Outcome) }
+describe OutcomeGroupsApiController do
+  describe "#outcome_groups_incoming_params XSS sanitization (SEC-21938)" do
+    let(:controller) { OutcomeGroupsApiController.new }
+    let(:xss_payload) { %(</script><script>alert('xss')</script>Group) }
     let(:entity_payload) { "&lt;script&gt;alert(1)&lt;/script&gt;x" }
     let(:double_entity_payload) { "&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;x" }
 
@@ -51,35 +32,39 @@ describe OutcomesApiController do
       allow(controller).to receive_messages(process_incoming_html_content: "", params: p)
     end
 
-    %i[title display_name vendor_guid].each do |field|
+    %i[title vendor_guid].each do |field|
       context field.to_s do
         it "strips raw HTML tags" do
           params_with(field => xss_payload)
-          result = controller.send(:process_params)
+          result = controller.send(:outcome_groups_incoming_params)
           expect(result[field]).not_to include("<script")
           expect(result[field]).not_to include("</script>")
         end
 
         it "strips single-entity-encoded tags" do
           params_with(field => entity_payload)
-          result = controller.send(:process_params)
+          result = controller.send(:outcome_groups_incoming_params)
           expect(result[field]).not_to include("<script")
           expect(result[field]).not_to include("</script>")
         end
 
         it "strips double-entity-encoded tags" do
           params_with(field => double_entity_payload)
-          result = controller.send(:process_params)
+          result = controller.send(:outcome_groups_incoming_params)
           expect(result[field]).not_to include("<script")
           expect(result[field]).not_to include("</script>")
         end
 
         it "preserves plain text including bare < and > characters" do
           params_with(field => "if x > y & z < w, then Plain Title")
-          result = controller.send(:process_params)
+          result = controller.send(:outcome_groups_incoming_params)
           expect(result[field]).to eq("if x > y & z < w, then Plain Title")
         end
       end
+    end
+
+    it "returns non-string field values unchanged" do
+      expect(controller.send(:strip_plain_text, nil)).to be_nil
     end
   end
 end

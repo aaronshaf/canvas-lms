@@ -542,6 +542,9 @@ class OutcomeGroupsApiController < ApplicationController
                                      :calculation_int,
                                      ratings: strong_anything)
       outcome_params[:description] = process_incoming_html_content(outcome_params[:description]) if outcome_params[:description]
+      %i[title display_name vendor_guid].each do |field|
+        outcome_params[field] = strip_plain_text(outcome_params[field]) if outcome_params[field]
+      end
       @outcome = context_create_outcome(outcome_params)
       unless @outcome.valid?
         render json: @outcome.errors, status: :bad_request
@@ -812,6 +815,25 @@ class OutcomeGroupsApiController < ApplicationController
   def outcome_groups_incoming_params
     ogparams = params.permit(:title, :description, :vendor_guid)
     ogparams[:description] = process_incoming_html_content(ogparams[:description]) if ogparams[:description]
+    %i[title vendor_guid].each do |field|
+      ogparams[field] = strip_plain_text(ogparams[field]) if ogparams[field]
+    end
     ogparams
+  end
+
+  # Strips all HTML from a plain-text field, including entity-encoded tags
+  # (e.g. &lt;script&gt;). Multi-pass decode + Sanitize ensures payloads
+  # cannot survive via encoding tricks. Safe to double-apply with model-layer
+  # sanitize_field — stripping is idempotent on already-clean strings.
+  def strip_plain_text(str)
+    return str unless str.is_a?(String)
+
+    prev = nil
+    decoded = str
+    while decoded != prev
+      prev = decoded
+      decoded = CGI.unescapeHTML(decoded)
+    end
+    CGI.unescapeHTML(Sanitize.fragment(decoded, elements: []))
   end
 end

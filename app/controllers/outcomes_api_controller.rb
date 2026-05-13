@@ -571,6 +571,25 @@ class OutcomesApiController < ApplicationController
   def process_params
     oparams = params.permit(*DIRECT_PARAMS)
     oparams[:description] = process_incoming_html_content(oparams[:description]) if oparams[:description]
+    %i[title display_name vendor_guid].each do |field|
+      oparams[field] = strip_plain_text(oparams[field]) if oparams[field]
+    end
     oparams
+  end
+
+  # Strips all HTML from a plain-text field, including entity-encoded tags
+  # (e.g. &lt;script&gt;). Multi-pass decode + Sanitize ensures payloads
+  # cannot survive via encoding tricks. Safe to double-apply with model-layer
+  # sanitize_field — stripping is idempotent on already-clean strings.
+  def strip_plain_text(str)
+    return str unless str.is_a?(String)
+
+    prev = nil
+    decoded = str
+    while decoded != prev
+      prev = decoded
+      decoded = CGI.unescapeHTML(decoded)
+    end
+    CGI.unescapeHTML(Sanitize.fragment(decoded, elements: []))
   end
 end
