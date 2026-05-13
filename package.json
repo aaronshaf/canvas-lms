@@ -433,6 +433,7 @@
     "node-forge": "^1.4.0",
     "node-fetch": "^2.6.7",
     "braces": "^3.0.3",
+    "**/matroska/mime": "^1.6.0",
     "@ardatan/relay-compiler": "12.2.0",
     "graphael": "https://github.com/instructure/graphael.git",
     "@instructure/canvas-theme": "11.6.0",
