@@ -219,14 +219,7 @@ window.modules = (function () {
                 } else {
                   $context_module_item.find('.ig-row').addClass('no-estimated-duration')
                 }
-                $context_module_item.fillTemplateData({
-                  data,
-                  htmlValues: [
-                    'estimated_duration_display',
-                    'estimated_duration_minutes',
-                    'can_set_estimated_duration',
-                  ],
-                })
+                $context_module_item.fillTemplateData({data})
               })
 
               const $moduleHeader = $('#context_module_' + module_id).find('.ig-header')
@@ -242,13 +235,7 @@ window.modules = (function () {
                 })
               }
 
-              $moduleHeader.fillTemplateData({
-                data: headerData,
-                htmlValues: [
-                  'estimated_duration_header_title',
-                  'estimated_duration_header_minutes',
-                ],
-              })
+              $moduleHeader.fillTemplateData({data: headerData})
             })
           })
         },
@@ -463,10 +450,7 @@ window.modules = (function () {
               } else {
                 $context_module_item.find('.due_date_display').remove()
               }
-              $context_module_item.fillTemplateData({
-                data,
-                htmlValues: ['points_possible_display'],
-              })
+              $context_module_item.fillTemplateData({data})
 
               // clean up empty elements so they don't show borders in updated item group design
               if (info.points_possible === null) {
