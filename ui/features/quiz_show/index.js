@@ -17,6 +17,7 @@
  */
 
 import $ from 'jquery'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import inputMethods from '@canvas/quizzes/jquery/quiz_inputs'
 import './jquery/index'
 import '@canvas/quizzes/jquery/quiz_rubric'
@@ -46,7 +47,7 @@ ready(() => {
     const versions = $('#quiz-submission-version-table')
     versions.css({height: '100px'})
     const dfd = $.get(ENV.SUBMISSION_VERSIONS_URL, html => {
-      versions.html(html)
+      versions.html(sanitizeHTML(html))
       versions.css({height: 'auto'})
     })
     versions.disableWhileLoading(dfd)

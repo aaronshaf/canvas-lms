@@ -547,7 +547,7 @@ function loadDashboardSidebar(observedUserId) {
       const newCourseForm = response[0].default
       const html = response[1].data
       // inject the erb html we got from the server
-      rightSide.html(html)
+      rightSide.html(sanitizeHTML(html))
       newCourseForm()
 
       // the injected html has a .Sidebar__TodoListContainer element in it,

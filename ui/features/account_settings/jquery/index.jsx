@@ -20,6 +20,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 // eslint-disable-next-line import/no-named-as-default
 import htmlEscape from '@instructure/html-escape'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import RichContentEditor from '@canvas/rce/RichContentEditor'
 import 'jqueryui/tabs'
 import globalAnnouncements from './global_announcements'
@@ -168,7 +169,7 @@ ready(function () {
       .then(req => req.text())
       .then(html => {
         try {
-          $('#tab-reports-mount').html(html)
+          $('#tab-reports-mount').html(sanitizeHTML(html))
           descMount = document.getElementById('report_desc_mount')
           descRoot = null
           reportMount = document.getElementById('run_report_mount')

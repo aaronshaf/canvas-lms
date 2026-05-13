@@ -19,6 +19,7 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import React from 'react'
 import {render, rerender} from '@canvas/react'
 import MessageStudentsDialog from '@canvas/message-students-dialog'
@@ -123,7 +124,7 @@ $(document).ready(function () {
       return callback()
     } else {
       return $.get(ENV.QUIZ_DETAILS_URL, html => {
-        $('#quiz_details_wrapper').html(html)
+        $('#quiz_details_wrapper').html(sanitizeHTML(html))
         callback()
       })
     }
