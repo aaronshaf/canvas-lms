@@ -608,6 +608,33 @@ describe('DiscussionTopicContainer', () => {
       expect(getByText('Peer review for Morty Smith')).toBeTruthy()
     })
 
+    it('hides the reviewee identity when peer reviews are anonymous', () => {
+      const {container, getByText} = setup({
+        discussionTopic: Discussion.mock({
+          participant: {posted: true},
+          assignment: {
+            _id: '42',
+            peerReviews: PeerReviews.mock({dueAt: null}),
+            assessmentRequestsForCurrentUser: [
+              {
+                _id: 'assessment-anon',
+                anonymizedUser: null,
+                anonymousId: 'anon-xyz-123',
+                workflowState: 'assigned',
+              },
+            ],
+          },
+        }),
+      })
+
+      expect(getByText(/Peer review for Anonymous Student/)).toBeInTheDocument()
+
+      const link = container.querySelector('.discussions-peer-review a')
+      expect(link.getAttribute('href')).toBe(
+        '/courses/1/assignments/42/anonymous_submissions/anon-xyz-123',
+      )
+    })
+
     it('does not render peer reviews if there are not any', () => {
       const props = {
         discussionTopic: Discussion.mock({
@@ -628,7 +655,7 @@ describe('DiscussionTopicContainer', () => {
             assessmentRequestsForCurrentUser: [
               {
                 _id: 'assessment1',
-                user: {
+                anonymizedUser: {
                   _id: 'user1',
                   displayName: 'Test User',
                 },
@@ -656,7 +683,7 @@ describe('DiscussionTopicContainer', () => {
             assessmentRequestsForCurrentUser: [
               {
                 _id: 'assessment1',
-                user: {
+                anonymizedUser: {
                   _id: 'user1',
                   displayName: 'Test User',
                 },

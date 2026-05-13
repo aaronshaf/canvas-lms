@@ -484,29 +484,39 @@ export const DiscussionTopicContainer = ({
                           />
                           {props.discussionTopic.assignment?.assessmentRequestsForCurrentUser?.map(
                             // @ts-expect-error TS7006 (typescriptify)
-                            assessmentRequest => (
-                              <PeerReview
-                                key={assessmentRequest._id}
-                                dueAtDisplayText={
-                                  props.discussionTopic.assignment.peerReviews?.dueAt
-                                }
-                                revieweeName={assessmentRequest.user.displayName}
-                                reviewLinkUrl={getReviewLinkUrl(
-                                  ENV.course_id,
-                                  props.discussionTopic.assignment._id,
-                                  assessmentRequest.user._id,
-                                )}
-                                workflowState={assessmentRequest.workflowState}
-                                disabled={
-                                  !isSubmissionComplete(
-                                    props.discussionTopic,
-                                    props.replyToTopicSubmission,
-                                    props.replyToEntrySubmission,
-                                    userHasEntry(),
-                                  )
-                                }
-                              />
-                            ),
+                            assessmentRequest => {
+                              const isAnonymous = !assessmentRequest.anonymizedUser
+                              const revieweeName = isAnonymous
+                                ? I18n.t('Anonymous Student')
+                                : assessmentRequest.anonymizedUser.displayName
+                              const revieweeId = isAnonymous
+                                ? assessmentRequest.anonymousId
+                                : assessmentRequest.anonymizedUser._id
+                              return (
+                                <PeerReview
+                                  key={assessmentRequest._id}
+                                  dueAtDisplayText={
+                                    props.discussionTopic.assignment.peerReviews?.dueAt
+                                  }
+                                  revieweeName={revieweeName}
+                                  reviewLinkUrl={getReviewLinkUrl(
+                                    ENV.course_id,
+                                    props.discussionTopic.assignment._id,
+                                    revieweeId,
+                                    isAnonymous,
+                                  )}
+                                  workflowState={assessmentRequest.workflowState}
+                                  disabled={
+                                    !isSubmissionComplete(
+                                      props.discussionTopic,
+                                      props.replyToTopicSubmission,
+                                      props.replyToEntrySubmission,
+                                      userHasEntry(),
+                                    )
+                                  }
+                                />
+                              )
+                            },
                           )}
                         </Flex.Item>
                         <Flex.Item shouldShrink={true} shouldGrow={true} overflowY="visible">

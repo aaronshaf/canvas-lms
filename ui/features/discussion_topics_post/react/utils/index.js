@@ -46,8 +46,9 @@ export const getGroupDiscussionUrl = (groupId, childDiscussionId) => {
   return `/groups/${groupId}/discussion_topics/${childDiscussionId}`
 }
 
-export const getReviewLinkUrl = (courseId, assignmentId, revieweeId) => {
-  return `/courses/${courseId}/assignments/${assignmentId}/submissions/${revieweeId}`
+export const getReviewLinkUrl = (courseId, assignmentId, revieweeId, isAnonymous = false) => {
+  const segment = isAnonymous ? 'anonymous_submissions' : 'submissions'
+  return `/courses/${courseId}/assignments/${assignmentId}/${segment}/${revieweeId}`
 }
 
 export const updateDiscussionTopicEntryCounts = (
