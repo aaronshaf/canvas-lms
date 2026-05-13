@@ -237,6 +237,7 @@
   }
 
   .icon-sis-imported:after {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-right: 0.5rem;
   }
 }
@@ -274,6 +275,7 @@ form[data-view='edit-assignment'] {
 
 #grading_period_selector{
   flex: 0 0;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-right: 0.75rem;
 }
 
@@ -295,6 +297,7 @@ form[data-view='edit-assignment'] {
     display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-left:0;
     a {
       text-decoration: none;
@@ -302,6 +305,7 @@ form[data-view='edit-assignment'] {
   }
   .assignment_index_header_left {
     flex: 1;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-right: 0;
   }
 }
@@ -340,6 +344,7 @@ form[data-view='edit-assignment'] {
 }
 
 .tooltip-label {
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
   text-align: right;
   @include fontSize(11px);
   line-height: 12px;

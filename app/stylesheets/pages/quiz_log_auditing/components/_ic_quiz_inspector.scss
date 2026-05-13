@@ -38,6 +38,7 @@
 
 .ic-QuizInspector__HeaderControls {
   position: absolute;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   right: 0;
   top: 0;
   font-size: 12px;
@@ -52,6 +53,7 @@
 
     input[type="checkbox"] {
       margin-top: -1px;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       margin-right: math.div($whitespace, 3);
     }
   }

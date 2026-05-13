@@ -671,6 +671,7 @@ div.completion_criterion_option {
 
 .radio-description {
   font-size: 0.8em;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   padding-left: 1.375rem;
   max-width: 25rem;
 }
@@ -717,6 +718,7 @@ div.completion_criterion_option {
 }
 
 .tooltip-label {
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
   text-align: right;
   @include fontSize(11px);
   line-height: 12px;

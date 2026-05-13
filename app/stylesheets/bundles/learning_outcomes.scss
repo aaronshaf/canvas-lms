@@ -84,6 +84,7 @@
         margin-#{direction(left)}: 0px;
       }
       .learning_outcome__margin-left-0 {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
         margin-left: 0;
       }
       .learning_outcome__mastery_points_wrap {
@@ -95,6 +96,7 @@
       }
       .learning_outcome__mastery_points__label {
         margin-top: 0.5rem;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
         margin-right: 0.5rem;
       }
     }

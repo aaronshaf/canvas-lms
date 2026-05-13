@@ -382,6 +382,7 @@ div.form-column-right, div.overrides-column-right {
 
   label {
     padding: 0;
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
     margin: 0 0 0 0;
   }
 

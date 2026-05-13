@@ -141,6 +141,7 @@ iframe.tool_launch {
 
 
 .lti_tool_icon {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-right: 0.25rem;
   max-width: 1.2rem;
  }

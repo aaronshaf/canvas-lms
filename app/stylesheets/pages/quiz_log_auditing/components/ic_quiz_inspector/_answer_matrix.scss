@@ -26,6 +26,7 @@
   }
 
   &.expanded, tr.active {
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
     td:not(:first-of-type) { text-align: left; }
   }
 
@@ -48,6 +49,7 @@
     border: none;
     padding: 0;
     background: transparent;
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
     text-align: left;
     word-break: normal;
     white-space: pre;
@@ -78,6 +80,7 @@
   // this to negate the visual effect of the outer 2px box shadow defined
   // on every emblem, otherwise they look 2 pixels "above the line":
   margin-bottom: -2px;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-left: 2px;
 
   &.is-empty {
@@ -99,6 +102,7 @@
   padding: $whitespace;
 
   .ic-AnswerMatrix__Emblem {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-right: 8px;
     vertical-align: middle;
     margin-top: -3px;

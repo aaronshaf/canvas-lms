@@ -26,6 +26,7 @@
   .account-group{
     > div > span > span{
       &:first-child{ font-weight: bolder; }
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       &:nth-child(2){ padding-left: 36px; }
       border: none;
       display: block

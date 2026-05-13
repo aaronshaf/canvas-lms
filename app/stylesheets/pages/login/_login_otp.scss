@@ -50,6 +50,7 @@ li.used_otp {
   text-align: center;
 
   @media (min-width: 768px) {
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
     text-align: left;
   }
 }

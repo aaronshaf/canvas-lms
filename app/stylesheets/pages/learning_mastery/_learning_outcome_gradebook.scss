@@ -379,6 +379,7 @@ $page-dark: #ebeff2;
 #learning-mastery-gradebook-table {
   border-spacing: 2px 0;
   border-collapse: separate;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-left: -2px;
   max-width: fit-content;
 }

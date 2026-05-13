@@ -508,6 +508,7 @@ address {
 $popoverArrowDistanceFromCorner: $popoverArrowOuterWidth;
 .ui-tooltip.popover {
   &:before, &:after {
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
     border-color: transparent transparent $popoverArrowOuterColor transparent;
     position: absolute;
     border-style:solid;

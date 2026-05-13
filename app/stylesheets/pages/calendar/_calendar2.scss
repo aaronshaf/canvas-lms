@@ -38,6 +38,7 @@
   color: $ic-bg-light-danger-text;
   i {
     vertical-align: middle;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-right: 0.25rem;
   }
 }

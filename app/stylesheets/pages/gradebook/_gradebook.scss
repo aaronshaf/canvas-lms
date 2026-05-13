@@ -47,6 +47,7 @@ a#accessibility_warning {
 }
 
 #emoji-quick-picker-container {
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
   margin: 10px 0 6px 0;
 }
 

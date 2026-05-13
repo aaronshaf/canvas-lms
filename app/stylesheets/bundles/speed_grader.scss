@@ -486,7 +486,9 @@ $icon-size: 1.4rem;
     display: flex;
     justify-content: flex-end;
     flex: 1;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     padding-left: 10px;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     padding-right: 10px;
   }
 }
@@ -1095,6 +1097,7 @@ body .ui-state-active .ui-selectmenu-icon {
 }
 
 .do-not-show-again {
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
   float: left;
   display: inline-block;
   margin-top: 1em;
@@ -1132,6 +1135,7 @@ figure {
   background: #DDECF5;
   border-radius: 4px;
   flex: 0 0;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-right: 4px;
 }
 
@@ -1285,10 +1289,14 @@ $dotted-border: 1px dotted var(--ic-brand-global-nav-menu-item__text-color);
     position: static;
     top: auto;
     bottom: auto;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     left: auto;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     right: auto;
     width: 100%;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-left: 0;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-right: 0;
   }
 
@@ -1429,6 +1437,7 @@ $dotted-border: 1px dotted var(--ic-brand-global-nav-menu-item__text-color);
     padding-#{direction(left)}: $ic-sp;
     padding-#{direction(right)}: $ic-sp;
     border-#{direction(left)}: $dotted-border;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-right: auto;
   }
 

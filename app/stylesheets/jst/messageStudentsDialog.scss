@@ -37,9 +37,11 @@
   .label-container {
     display: flex;
     align-items: center;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-right: 4px;
     label {
       font-weight: bold;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       margin-right: 4px;
       margin-bottom: 0;
     }

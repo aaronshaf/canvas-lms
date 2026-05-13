@@ -39,7 +39,9 @@
     }
 
     .g-recaptcha > * {
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
       float: right;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       right: 0;
     }
   }

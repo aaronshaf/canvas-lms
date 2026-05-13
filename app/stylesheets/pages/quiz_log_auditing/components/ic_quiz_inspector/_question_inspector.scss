@@ -34,6 +34,7 @@
   $counter-w: 32px;
   $counter-h: 28px;
 
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   padding-left: $counter-w + $whitespace;
   min-height: $counter-h;
   margin: $whitespace*2 0;
@@ -46,6 +47,7 @@
     background-color: $inactiveBg;
     color: $inactiveFg;
     padding: $whitespace*0.5 0;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-left: -$counter-w - $whitespace;
     width: $counter-w;
     text-align: center;
@@ -72,11 +74,13 @@
 .ic-QuestionInspector__QuestionId {
   font-size: 12px;
   position: absolute;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   right: 0;
 }
 
 .ic-QuestionInspector__QuestionType {
   color: $muteFg;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-left: $whitespace*0.5;
 }
 

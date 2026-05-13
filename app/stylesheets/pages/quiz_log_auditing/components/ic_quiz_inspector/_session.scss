@@ -18,7 +18,9 @@
 
 #ic-QuizInspector__Session {
   th {
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
     text-align: left;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     padding-right: $whitespace;
   }
 }
@@ -29,6 +31,7 @@
   border: 1px dashed $ic-color-light;
   font-size: 14px;
   position: absolute;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   left: -20px;
   top: 40px;
 }
@@ -63,7 +66,9 @@
   $bg: $ic-color-dark;
   background: $bg;
   box-shadow: 0 0 0 1px $bg;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-right: 1px;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-left: 1px;
   &, &:hover, &:focus {
     color: white;

@@ -151,7 +151,9 @@
   }
   @media (max-width: 300px) {
     .form-horizontal .controls {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       margin-left: unset;
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
       float: right;
     }
   }

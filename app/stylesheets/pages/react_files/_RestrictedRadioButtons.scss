@@ -45,6 +45,7 @@
   }
 
   .RestrictedRadioButtons__dates_wrapper {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     padding-left: 25px;
     margin-top: 15px
   }

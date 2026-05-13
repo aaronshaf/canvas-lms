@@ -89,6 +89,7 @@
 
     .links.displaying.pull-right {
       order: 2;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       margin-left: auto;
     }
   }
@@ -203,6 +204,7 @@
       }
 
       &:not(:last-child) {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
         border-right: 1px solid $ic-border-color;
       }
 
@@ -321,6 +323,7 @@
       flex-direction: column;
       justify-content: center;
       position: absolute;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       right: 0;
       top: 50%;
       transform: translate(50%, -50%);
@@ -360,7 +363,9 @@
 
     div.ratings {
       div.rating:not(:last-child) {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
         border-right-style: dashed;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
         border-right-color: $ic-border-dark;
       }
 
@@ -506,6 +511,7 @@ div.rubric-footer {
 
   .total_points_holder {
     order: 2;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-left: auto;
   }
 

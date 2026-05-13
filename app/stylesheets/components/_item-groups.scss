@@ -67,6 +67,7 @@
       vertical-align: middle;
     }
     .estimated_duration_header_title {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       margin-left: 8px;
     }
     .estimated_duration_header_minutes {

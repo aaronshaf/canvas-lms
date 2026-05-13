@@ -126,6 +126,7 @@
 
   .datetime_suggest {
     width: 6rem;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     padding-left: 0;
   }
   .date_field_responsive .datetime_suggest {
@@ -151,6 +152,7 @@
 
     .error-message {
       margin-top: 11px;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       margin-left: 3.5rem;
       margin-bottom: 0;
     }

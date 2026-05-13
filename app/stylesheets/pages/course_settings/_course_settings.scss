@@ -258,6 +258,7 @@ ul.user_list div.enrollment_type.pending {
     .draggable_handle {
       display: inline-block;
       padding: 10px 0px;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       margin-right: 10px;
       width: 25px;
       min-width: 25px;
@@ -554,6 +555,7 @@ td.center-text {
 
 .course-nav-tabs-list .course-nav-tab {
   border: solid #ddd;
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
   border-width: 0px 1px 1px 1px;
 }
 
@@ -567,6 +569,7 @@ td.center-text {
 
 .course-nav-tabs-list .course-nav-tab-dragging {
   background-color: $ic-list-item-background--selected;
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
   padding: 0rem 0.25rem 0rem 0.25rem;
   border-radius: 0.25rem;
   border: 2px solid var(--ic-brand-primary);

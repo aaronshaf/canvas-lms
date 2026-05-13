@@ -25,6 +25,7 @@
 }
 
 .ic-ActionLog__Entry {
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
   margin: 0 0 $whitespace 0;
 }
 
@@ -32,6 +33,7 @@
   display: inline-block;
   width: 60px;
   color: $muteFg;
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
   text-align: right;
 }
 

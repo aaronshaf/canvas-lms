@@ -32,6 +32,7 @@ a {
 
 .registration-content {
   width: auto;
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
   margin: 0 10px 0 10px;
   position: relative;
 }

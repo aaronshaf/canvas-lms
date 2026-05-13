@@ -3,6 +3,7 @@
 .management-header {
   display: flex;
   justify-content: space-between;
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
   margin: 0.315rem 0 1.7rem 0;
 }
 
@@ -13,5 +14,6 @@
 }
 
 #outcome_management{
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
   margin: 0 1.5rem 0;
 }

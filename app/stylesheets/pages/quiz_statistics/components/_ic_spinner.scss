@@ -22,6 +22,7 @@
 .ic-Spinner {
   display: inline-block;
   vertical-align: middle;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-left: $whitespace;
   margin-top: -6px;
   height: 38px;
@@ -30,6 +31,7 @@
     background-color: $highlightColor;
     height: 100%;
     width: 10px;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-right: 1px;
     display: inline-block;
 

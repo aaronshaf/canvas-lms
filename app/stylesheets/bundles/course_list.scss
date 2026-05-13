@@ -84,6 +84,7 @@ $responsive-font: clamp(0.6rem, 1.5vw, 1rem);
 
   th {
     // required to prevent sort icon from overflowing
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     padding-right: 1.2rem;
     a, i[class*="icon-"] {
       font-size: $responsive-font;

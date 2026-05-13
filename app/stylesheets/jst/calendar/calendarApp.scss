@@ -75,6 +75,7 @@
     padding-bottom: 3px;
     padding-#{direction(right)}: 8px;
     min-width: 150px;
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
     text-align: left;
   }
   td,th {

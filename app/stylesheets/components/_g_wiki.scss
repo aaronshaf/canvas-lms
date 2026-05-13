@@ -699,6 +699,7 @@ $revision-button-color: $ic-color-dark;
 
 #wiki_page_body_error {
   color: #E62429;
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
   margin: 12px 0 12px 0 !important;
 }
 
@@ -715,6 +716,7 @@ $revision-button-color: $ic-color-dark;
 .controls-section .format_example,
 .controls-section .datetime_suggest {
   font-size: 14px;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   padding-left: 0;
   color: inherit;
   .error-message {
@@ -723,6 +725,7 @@ $revision-button-color: $ic-color-dark;
     align-items: initial;
     color: $ic-color-danger;
     i.icon-warning.icon-Solid {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       margin-right: 4px;
     }
   }

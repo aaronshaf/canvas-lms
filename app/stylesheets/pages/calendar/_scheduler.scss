@@ -74,6 +74,7 @@
     text-align: center;
     font-weight: bold;
     div {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       margin-right: 30px;
     }
   }
@@ -97,11 +98,13 @@
   }
   .start-time-column {
     width: $time_column_width;
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
     text-align: left;
   }
   .separator-column {
     text-align: center;
     line-height: 28px;
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
     margin: 0 2px 0 2px;
   }
   .end-time-column {
@@ -133,12 +136,14 @@
   }
   .datetime_suggest {
     display: none;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     padding-left: 0;
 
     .error-message {
       display: flex;
       gap: 0.3em;
       padding-top: 0.2rem;
+/* stylelint-disable-next-line declaration-property-value-disallowed-list -- TODO: use logical properties for RTL support */
       text-align: left;
     }
   }

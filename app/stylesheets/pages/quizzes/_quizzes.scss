@@ -644,6 +644,7 @@ input[type]:required:invalid {
   }
 
   .answers_warning_message {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     padding-left: 0.5rem;
   }
 }
@@ -1422,6 +1423,7 @@ ul#quiz_versions {
     margin: 0.5rem 0;
   }
   .answers_warning_message {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     padding-left: 0.5rem;
   }
   #student_submissions_warning,
@@ -1529,6 +1531,7 @@ ul#quiz_versions {
         }
         .datetime_suggest {
           display: block;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
           padding-left: 0;
           font-size: 0.875rem;
 
@@ -1537,6 +1540,7 @@ ul#quiz_versions {
             flex-direction: row;
             gap: 0.375rem;
             i {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
               margin-right: 0;
             }
           }
@@ -1907,6 +1911,7 @@ ul#quiz_versions {
   padding: 2px;
   position: absolute;
   text-align: center;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   left: -2px;
   top: 11px;
   border-radius: 50%;
@@ -1938,10 +1943,13 @@ ul#quiz_versions {
 .answer_indicator {
   color: white;
   padding: 4px 8px;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   border-top-left-radius: 0.225rem;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   border-top-right-radius: 0.225rem;
   position: absolute;
   margin-top: -2rem;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-left: -1px;
 }
 

@@ -397,6 +397,7 @@ body:not(.with-left-side) .ic-app-nav-toggle-and-crumbs--files {
 .FileDragOverlay {
   position: absolute;
   top: 0;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   left: 0;
   width: calc(100% - 2*36px);
   height: calc(100% - 2*36px);

@@ -371,6 +371,7 @@ span.agendaView--no-assignments {
     }
     .ui-datepicker-trigger{
       border-bottom: 0.0625rem solid #4A5B68;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       border-right: 0.0625rem solid #4A5B68;
       border-top: 0.0625rem solid #4A5B68;
     }

@@ -47,6 +47,7 @@
 }
 
 .ic-button-line-left.mobile > span:not(:last-child) {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-right: 16px;
 }
 
@@ -55,6 +56,7 @@
 }
 
 .mobile .discussions-index-manage-menu {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-left: -9px;
 }
 
@@ -63,6 +65,7 @@
 }
 
 .ic-button-line-right.mobile > span:last-child {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   padding-right: 0;
 }
 

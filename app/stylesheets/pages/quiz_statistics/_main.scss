@@ -23,6 +23,7 @@
 @import "./components/ic_spinner";
 
 #canvas-quiz-statistics {
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
   padding: 25px 35px 55px 35px;
 
   a:not(:disabled) {
@@ -60,6 +61,7 @@
       border-radius: 4px;
 
       & + button {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
         margin-left: $whitespace * 0.5;
       }
 
@@ -97,6 +99,7 @@
     margin: 0;
     list-style: none;
     $dismiss-width: 60px;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     padding-right: $dismiss-width + $whitespace;
 
     li {
@@ -112,7 +115,9 @@
     .dismiss-notification {
       display: inline-block;
       position: relative;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       margin-left: -50px;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
       right: -60px;
       top: -10px;
     }
@@ -124,6 +129,7 @@
     display: flex;
     flex-direction: column;
     top: 150%;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     left: 50%;
     position: absolute;
     float: none;
@@ -131,13 +137,16 @@
   }
   p {
     text-align: center;
+/* stylelint-disable-next-line shorthand-property-no-redundant-values -- TODO: use logical properties for RTL support */
     margin: 13px 0 10px 0;
   }
   .links {
     margin: 0 auto;
   }
   img {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-left: auto;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-right: auto;
     display: block;
   }

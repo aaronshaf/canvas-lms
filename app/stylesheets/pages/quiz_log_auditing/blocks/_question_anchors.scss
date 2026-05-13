@@ -21,6 +21,7 @@
 }
 
 .ic-QuestionAnchors__Anchor {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-left: $whitespace * 0.5;
 
   &:visited {

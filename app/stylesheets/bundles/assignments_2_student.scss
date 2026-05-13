@@ -99,6 +99,7 @@ body.is-masquerading-or-student-view {
 .emoji-picker-container {
   position: absolute;
   bottom: 0;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   right: 0;
 }
 

@@ -179,6 +179,7 @@
     @include new-feature-pill;
     float: direction(right);
     margin-top: 1rem !important;
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     margin-left: 0.5rem !important;
   }
 }

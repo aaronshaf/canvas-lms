@@ -47,6 +47,7 @@ body.native-new-quizzes {
   }
 
   .ic-app-course-menu {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
     border-right: 1px solid $ic-border-light;
   }
 

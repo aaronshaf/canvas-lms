@@ -65,6 +65,7 @@
 
     &.cr-scoring-range__center--read-only {
       .cr-scoring-range__assignments {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
         padding-left: 0;
       }
     }

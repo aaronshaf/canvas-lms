@@ -294,16 +294,19 @@ textarea#account_notification_message, .edit_notification_form textarea {
 }
 
 #personal_pronouns_options {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-left: 1.5rem;
   margin-bottom: 1.0rem;
 }
 
 #name_pronunciation_options {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-left: 1.5rem;
   margin-bottom: 1.0rem;
 }
 
 #edit_profile_options {
+/* stylelint-disable-next-line property-disallowed-list -- TODO: use logical properties for RTL support */
   margin-left: 1.5rem;
   margin-bottom: 1.0rem;
 }
