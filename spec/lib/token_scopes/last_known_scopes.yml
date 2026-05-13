@@ -1539,7 +1539,7 @@
   path: '/api/v1/courses/:course_id/smartsearch'
 - verb: GET
   path: '/api/v1/courses/:course_id/smartsearch/index_status'
-- verb: GET
+- verb: POST
   path: '/api/v1/courses/:course_id/smartsearch/log'
 - verb: DELETE
   path: '/api/v1/courses/:course_id/student_enrollments/:student_enrollment_id/pace'

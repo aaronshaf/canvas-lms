@@ -65,8 +65,12 @@ class SmartSearchController < ApplicationController
   include Api::V1::ContextModule
 
   before_action :require_context
+  before_action :filter_log_params_from_request_logs, only: [:log]
   # TODO: Other ways of tuning results?
   MIN_DISTANCE = 0.70
+
+  ALLOWED_LOG_ACTIONS = %w[LIKE DISLIKE].freeze
+  MAX_LOG_COMMENT_LENGTH = 1000
 
   # @API Search course content
   # Find course content using a meaning-based search
@@ -111,6 +115,11 @@ class SmartSearchController < ApplicationController
   end
 
   def log
+    return render_unauthorized_action unless @context.grants_right?(@current_user, session, :read)
+    return render_unauthorized_action unless SmartSearch.smart_search_available?(@context)
+    return head :bad_request unless ALLOWED_LOG_ACTIONS.include?(params[:a])
+    return head :bad_request if params[:c].present? && params[:c].to_s.length > MAX_LOG_COMMENT_LENGTH
+
     # TODO: do something more with these params than logging them in the request logs
     # params[:a]
     # params[:c]
@@ -133,6 +142,7 @@ class SmartSearchController < ApplicationController
   end
 
   def index_status
+    return render_unauthorized_action unless @context.grants_right?(@current_user, session, :read)
     return render_unauthorized_action unless SmartSearch.smart_search_available?(@context)
 
     ready, progress = SmartSearch.check_course(@context)
@@ -143,5 +153,15 @@ class SmartSearchController < ApplicationController
     collection.select do |item|
       item.respond_to?(:show_in_search_for_user?) ? item.show_in_search_for_user?(@current_user) : true
     end
+  end
+
+  private
+
+  # The log endpoint accepts free-form text (`q` query, `c` comment) that may
+  # contain FERPA-protected content. Apply the parameter filter only for this
+  # action so we don't suppress `q` in unrelated request logs.
+  def filter_log_params_from_request_logs
+    existing = Array(request.env["action_dispatch.parameter_filter"])
+    request.env["action_dispatch.parameter_filter"] = (existing + %i[q c]).uniq
   end
 end

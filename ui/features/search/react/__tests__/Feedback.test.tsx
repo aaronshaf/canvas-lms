@@ -29,18 +29,19 @@ const props = {
 }
 
 describe('Feedback', () => {
-  let capturedUrls: string[]
+  let capturedBodies: Array<Record<string, unknown>>
 
   beforeAll(() => server.listen())
   afterEach(() => server.resetHandlers())
   afterAll(() => server.close())
 
   beforeEach(() => {
-    capturedUrls = []
+    capturedBodies = []
     server.use(
-      http.get(`/api/v1/courses/${props.courseId}/smartsearch/log`, ({request}) => {
-        capturedUrls.push(request.url)
-        return HttpResponse.json({})
+      http.post(`/api/v1/courses/${props.courseId}/smartsearch/log`, async ({request}) => {
+        const body = (await request.json()) as Record<string, unknown>
+        capturedBodies.push(body)
+        return new HttpResponse(null, {status: 204})
       }),
     )
   })
@@ -51,13 +52,11 @@ describe('Feedback', () => {
     fireEvent.click(getByTestId('positive-feedback'))
     fireEvent.click(getByTestId('pf-close'))
 
-    await waitFor(() => expect(capturedUrls.length).toBeGreaterThan(0))
-    const url = capturedUrls[capturedUrls.length - 1]
-    const parsedUrl = new URL(url)
-    const params = parsedUrl.searchParams
-    expect(params.get('a')).toBe('LIKE')
-    expect(params.get('q')).toBe('kittens')
-    expect(params.get('c')).toBe('')
+    await waitFor(() => expect(capturedBodies.length).toBeGreaterThan(0))
+    const body = capturedBodies[capturedBodies.length - 1]
+    expect(body.a).toBe('LIKE')
+    expect(body.q).toBe('kittens')
+    expect(body.c).toBe('')
   })
 
   it('sends negative feedback with no comments', async () => {
@@ -66,13 +65,11 @@ describe('Feedback', () => {
     fireEvent.click(getByTestId('negative-feedback'))
     fireEvent.click(getByTestId('nf-close'))
 
-    await waitFor(() => expect(capturedUrls.length).toBeGreaterThan(0))
-    const url = capturedUrls[capturedUrls.length - 1]
-    const parsedUrl = new URL(url)
-    const params = parsedUrl.searchParams
-    expect(params.get('a')).toBe('DISLIKE')
-    expect(params.get('q')).toBe('kittens')
-    expect(params.get('c')).toBe('')
+    await waitFor(() => expect(capturedBodies.length).toBeGreaterThan(0))
+    const body = capturedBodies[capturedBodies.length - 1]
+    expect(body.a).toBe('DISLIKE')
+    expect(body.q).toBe('kittens')
+    expect(body.c).toBe('')
   })
 
   it('sends negative feedback with comments', async () => {
@@ -86,12 +83,10 @@ describe('Feedback', () => {
     })
     fireEvent.click(getByTestId('nf-submit'))
 
-    await waitFor(() => expect(capturedUrls.length).toBeGreaterThan(0))
-    const url = capturedUrls[capturedUrls.length - 1]
-    const parsedUrl = new URL(url)
-    const params = parsedUrl.searchParams
-    expect(params.get('a')).toBe('DISLIKE')
-    expect(params.get('q')).toBe('kittens')
-    expect(params.get('c')).toBe('Not enough kittens')
+    await waitFor(() => expect(capturedBodies.length).toBeGreaterThan(0))
+    const body = capturedBodies[capturedBodies.length - 1]
+    expect(body.a).toBe('DISLIKE')
+    expect(body.q).toBe('kittens')
+    expect(body.c).toBe('Not enough kittens')
   })
 })

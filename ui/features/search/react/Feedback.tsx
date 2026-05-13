@@ -25,6 +25,7 @@ import {Flex} from '@instructure/ui-flex'
 import PositiveFeedbackModal from './PositiveFeedbackModal'
 import NegativeFeedbackModal from './NegativeFeedbackModal'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
+import doFetchApi from '@canvas/do-fetch-api-effect'
 
 const I18n = createI18nScope('SmartSearch')
 
@@ -44,9 +45,13 @@ export default function Feedback(props: Props) {
     searchTerm: string,
     comment: string = '',
   ) => {
-    fetch(
-      `/api/v1/courses/${courseId}/smartsearch/log?q=${encodeURIComponent(searchTerm)}&a=${action}&c=${encodeURIComponent(comment)}`,
-    )
+    doFetchApi({
+      path: `/api/v1/courses/${courseId}/smartsearch/log`,
+      method: 'POST',
+      body: {q: searchTerm, a: action, c: comment},
+    }).catch(() => {
+      // Feedback logging is best-effort; swallow errors so the UI flow is uninterrupted.
+    })
   }
 
   const onDislike = (comment: string) => {

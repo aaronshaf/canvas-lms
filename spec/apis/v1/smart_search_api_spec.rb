@@ -45,6 +45,24 @@ describe "Smart Search API", type: :request do
     it "returns unauthorized" do
       api_call(:get, @path, @params, {}, {}, { expected_status: 403 })
     end
+
+    it "returns unauthorized for index_status" do
+      api_call(:get,
+               @path + "/index_status",
+               @params.merge(action: "index_status"),
+               {},
+               {},
+               { expected_status: 403 })
+    end
+
+    it "returns unauthorized for log" do
+      api_call(:post,
+               @path + "/log",
+               @params.merge(action: "log"),
+               { q: "secret query", a: "LIKE", c: "feedback comment" },
+               {},
+               { expected_status: 403 })
+    end
   end
 
   describe "with feature enabled" do
@@ -107,6 +125,74 @@ describe "Smart Search API", type: :request do
       run_jobs
       response = api_call(:get, @path + "/index_status", @params.merge(action: "index_status"))
       expect(response["status"]).to eq("indexed")
+    end
+
+    describe "index_status authorization" do
+      it "rejects users without :read on the course and does not enqueue a reindex job" do
+        stub_smart_search
+        user_factory
+        expect do
+          api_call(:get,
+                   @path + "/index_status",
+                   @params.merge(action: "index_status"),
+                   {},
+                   {},
+                   { expected_status: 403 })
+        end.not_to change { Delayed::Job.where(tag: "SmartSearch.index_course").count }
+      end
+    end
+
+    describe "log endpoint" do
+      it "rejects users without :read on the course" do
+        stub_smart_search
+        user_factory
+        api_call(:post,
+                 @path + "/log",
+                 @params.merge(action: "log"),
+                 { q: "secret query", a: "LIKE", c: "feedback comment" },
+                 {},
+                 { expected_status: 403 })
+      end
+
+      it "accepts a well-formed LIKE feedback" do
+        stub_smart_search
+        raw_api_call(:post,
+                     @path + "/log",
+                     @params.merge(action: "log"),
+                     { q: "panda", a: "LIKE", c: "" },
+                     {},
+                     { expected_status: 204 })
+      end
+
+      it "accepts a well-formed DISLIKE feedback with a comment" do
+        stub_smart_search
+        raw_api_call(:post,
+                     @path + "/log",
+                     @params.merge(action: "log"),
+                     { q: "panda", a: "DISLIKE", c: "not enough kittens" },
+                     {},
+                     { expected_status: 204 })
+      end
+
+      it "rejects unknown action values" do
+        stub_smart_search
+        raw_api_call(:post,
+                     @path + "/log",
+                     @params.merge(action: "log"),
+                     { q: "panda", a: "HACK", c: "" },
+                     {},
+                     { expected_status: 400 })
+      end
+
+      it "rejects comments exceeding the length cap" do
+        stub_smart_search
+        raw_api_call(:post,
+                     @path + "/log",
+                     @params.merge(action: "log"),
+                     { q: "panda", a: "LIKE", c: "x" * (SmartSearchController::MAX_LOG_COMMENT_LENGTH + 1) },
+                     {},
+                     { expected_status: 400 })
+      end
     end
   end
 end
