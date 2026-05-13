@@ -7510,6 +7510,7 @@ tr:
   completed_1_item_909103f3: "1 öğe tamamlandı"
   completed_9b809e44: tamamlandı
   completed_all_items_de165115: "Tüm öğeler tamamlandı"
+  completed_date_b0c2304b: "Tamamlandı: %{date}"
   completed_icon_521596e4: "tamamlanan simge"
   completed_items_out_of_total_items_item_batches_mi_66ea175b: "%{total_items} öğe grubundan %{completed_items} tanesi taşındı"
   completed_of_total_required_items_68c060f2: "Gerekli öğelerin %{total} tanesinden %{completed} tanesi"
@@ -16040,6 +16041,7 @@ tr:
   headings_start_at_h2_425b9d4d: "Yardım İleti Dizisi"
   hebrew_88fbf778: "Yardım konusu"
   height_69b03e15: Yükseklik
+  hello_name_abc1a901: "Merhaba %{name},"
   hello_name_cabdd4ce: "Merhaba%{name}!"
   hello_name_your_outcomes_import_failed_due_to_an_e_385db5d3: |-
       Merhaba %{name},
