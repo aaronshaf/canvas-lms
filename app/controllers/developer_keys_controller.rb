@@ -551,9 +551,10 @@ class DeveloperKeysController < ApplicationController
 
   def restrict_cross_domain_modifications
     return unless Account.site_admin.feature_enabled?(:developer_key_domain_root_account_restriction)
+    return if Rails.env.development?
 
     key_account = @key ? (@key.account || Account.site_admin) : @context
-    return if @domain_root_account == key_account
+    return if LoadAccount.from_host(request.host) == key_account
 
     render json: { errors: [{ message: "Developer keys may only be managed from their account's domain" }] },
            status: :forbidden

@@ -32,7 +32,10 @@ module AccountDomainSpecHelper
     if respond_to?(:controller) && controller.present?
       controller.instance_variable_set(:@domain_root_account, account)
     end
-    allow(LoadAccount).to receive(:default_domain_root_account).and_return(account)
+    allow(LoadAccount).to receive_messages(
+      default_domain_root_account: account,
+      from_host: account
+    )
   end
 end
 

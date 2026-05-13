@@ -285,6 +285,7 @@ describe DeveloperKeysController, type: :request do
     post_hash = { developer_key: { name: "cool tool", icon_url: "" } }
     # make sure this key is created
     DeveloperKey.default
+    set_domain_root_account(account: Account.site_admin)
     json = api_call(:post,
                     "/api/v1/accounts/#{sa_id}/developer_keys.json",
                     {

@@ -926,7 +926,7 @@ describe DeveloperKeysController do
 
     before do
       user_session(test_domain_root_account_admin)
-      allow(LoadAccount).to receive(:default_domain_root_account).and_return(test_domain_root_account)
+      set_domain_root_account(account: test_domain_root_account)
     end
 
     describe "#index" do
@@ -1414,11 +1414,26 @@ describe DeveloperKeysController do
       before do
         Account.site_admin.disable_feature!(:developer_key_domain_root_account_restriction)
         user_session(site_admin_admin)
-        set_domain_root_account(account: Account.default)
+        set_domain_root_account(account: Account.site_admin)
+        set_domain_root_account(account: root_account)
       end
 
       it "allows updating a site admin key from a non-site-admin domain" do
-        put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated" } }, format: :json
+        put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated" }, account_id: Account.site_admin.id }, format: :json
+        expect(response).to be_successful
+      end
+    end
+
+    context "when in development mode" do
+      before do
+        allow(Rails.env).to receive(:development?).and_return(true)
+        user_session(site_admin_admin)
+        set_domain_root_account(account: Account.site_admin)
+        set_domain_root_account(account: root_account)
+      end
+
+      it "allows updating a site admin key from a non-site-admin domain" do
+        put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated" }, account_id: Account.site_admin.id }, format: :json
         expect(response).to be_successful
       end
     end
@@ -1426,11 +1441,12 @@ describe DeveloperKeysController do
     context "when domain does not match key's root account" do
       before do
         user_session(site_admin_admin)
-        set_domain_root_account(account: root_account)
+        set_domain_root_account(account: Account.site_admin)
+        allow(LoadAccount).to receive(:from_host).and_return(root_account)
       end
 
       it "returns forbidden when updating a site admin key" do
-        put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated" } }, format: :json
+        put :update, params: { id: site_admin_key.id, developer_key: { name: "Updated" }, account_id: Account.site_admin.id }, format: :json
         expect(response).to be_forbidden
         expect(json_parse(response.body)["errors"].first["message"]).to include("account's domain")
       end
@@ -1456,8 +1472,9 @@ describe DeveloperKeysController do
       it "returns forbidden when updating a key from a different root account domain" do
         other_account = Account.create!
         other_key = DeveloperKey.create!(account: other_account)
-        set_domain_root_account(account: root_account)
-        put :update, params: { id: other_key.id, developer_key: { name: "Updated" } }, format: :json
+        set_domain_root_account(account: other_account)
+        allow(LoadAccount).to receive(:from_host).and_return(root_account)
+        put :update, params: { id: other_key.id, developer_key: { name: "Updated" }, account_id: other_account.id }, format: :json
         expect(response).to be_forbidden
       end
     end
