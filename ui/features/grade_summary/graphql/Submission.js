@@ -37,6 +37,7 @@ export const Submission = {
       hideGradeFromStudent
       readState
       late
+      missing
       updatedAt
       excused
       studentEnteredScore
@@ -74,6 +75,7 @@ export const Submission = {
     hideGradeFromStudent: bool,
     readState: string,
     late: bool,
+    missing: bool,
     updatedAt: string,
     excused: bool,
     studentEnteredScore: string,
@@ -108,6 +110,7 @@ export const Submission = {
     hideGradeFromStudent = false,
     readState = 'read',
     late = false,
+    missing = false,
     updatedAt = '2019-01-01T00:00:00Z',
     excused = false,
     studentEnteredScore = '8',
@@ -144,6 +147,7 @@ export const Submission = {
     hideGradeFromStudent,
     readState,
     late,
+    missing,
     updatedAt,
     excused,
     studentEnteredScore,

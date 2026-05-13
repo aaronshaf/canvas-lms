@@ -48,6 +48,12 @@ export const ASSIGNMENT_STATUS = {
     color: 'danger',
     shouldConsiderAsGraded: false,
   },
+  MISSING_GRADED: {
+    id: 'missing_graded',
+    label: I18n.t('Missing'),
+    color: 'danger',
+    shouldConsiderAsGraded: true,
+  },
   NOT_SUBMITTED: {
     id: 'not_submitted',
     label: I18n.t('Not Submitted'),

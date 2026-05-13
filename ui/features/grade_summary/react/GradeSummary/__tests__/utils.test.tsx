@@ -635,6 +635,40 @@ describe('util', () => {
       expect(getDisplayStatus(assignment)).toStrictEqual(expectedOutput)
     })
 
+    it('should return "Missing" status when submission is missing and auto-graded by the missing policy', () => {
+      const assignment = {
+        submissionsConnection: {
+          nodes: [
+            {
+              missing: true,
+              gradingStatus: 'graded',
+              state: 'graded',
+            },
+          ],
+        },
+      }
+
+      const expectedOutput = <Pill color="danger">Missing</Pill>
+      expect(getDisplayStatus(assignment)).toStrictEqual(expectedOutput)
+    })
+
+    it('should return "Missing" status when submission is missing but not yet graded', () => {
+      const assignment = {
+        submissionsConnection: {
+          nodes: [
+            {
+              missing: true,
+              gradingStatus: null,
+              state: 'unsubmitted',
+            },
+          ],
+        },
+      }
+
+      const expectedOutput = <Pill color="danger">Missing</Pill>
+      expect(getDisplayStatus(assignment)).toStrictEqual(expectedOutput)
+    })
+
     it('should return "Not Submitted" status when dueDate is in the future and there is no submissionsConnection nodes', () => {
       const assignment = {
         dueAt: getTime(false),

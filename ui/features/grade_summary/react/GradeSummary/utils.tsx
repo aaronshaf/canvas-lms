@@ -163,7 +163,8 @@ export const getAssignmentStatus = assignment => {
   const {submissionsConnection, dropped, gradingType, dueAt} = assignment || {}
 
   const latestSubmission = submissionsConnection?.nodes?.[0]
-  const {gradingStatus, late, customGradeStatus, state, submittedAt} = latestSubmission || {}
+  const {gradingStatus, late, missing, customGradeStatus, state, submittedAt} =
+    latestSubmission || {}
 
   let status = null
 
@@ -173,6 +174,12 @@ export const getAssignmentStatus = assignment => {
     status = ASSIGNMENT_STATUS.DROPPED
   } else if (gradingType === 'not_graded') {
     status = ASSIGNMENT_STATUS.NOT_GRADED
+  } else if (missing) {
+    if (gradingStatus === 'graded') {
+      status = ASSIGNMENT_STATUS.MISSING_GRADED
+    } else {
+      status = ASSIGNMENT_STATUS.MISSING
+    }
   } else if (state === 'unsubmitted') {
     status = getAssignmentNoSubmissionStatus(dueAt)
   } else if (late) {
