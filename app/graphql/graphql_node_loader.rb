@@ -213,8 +213,7 @@ module GraphQLNodeLoader
     when "SubmissionByAssignmentAndUser"
       submission = Submission.active.preload(assignment: :context).find_by(assignment_id: id.fetch(:assignment_id),
                                                                            user_id: id.fetch(:user_id))
-      if Account.site_admin.feature_enabled?(:graphql_honor_anonymous_grading) &&
-         !submission&.can_read_submission_user_name?(ctx[:current_user], ctx[:session])
+      if submission && !submission.can_read_submission_user_name?(ctx[:current_user], ctx[:session])
         submission = nil
       end
       check_read_permission.call(submission)

@@ -672,10 +672,13 @@ module Interfaces::SubmissionInterface
   field :extra_attempts, Integer, null: true
 
   field :proxy_submitter_id, ID, null: true
+  def proxy_submitter_id
+    unless_hiding_user_for_anonymous_grading { object.proxy_submitter_id }
+  end
 
   field :proxy_submitter, String, null: true
   def proxy_submitter
-    object.proxy_submitter&.short_name
+    unless_hiding_user_for_anonymous_grading { object.proxy_submitter&.short_name }
   end
 
   field :assigned_assessments, [Types::AssessmentRequestType], null: true

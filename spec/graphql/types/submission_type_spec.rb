@@ -2110,6 +2110,26 @@ describe Types::SubmissionType do
     it "does not show the user to a grader when an assignment is actively anonymous" do
       expect(submission_type.resolve("userId")).to be_nil
     end
+
+    it "does not show the user node to a grader when an assignment is actively anonymous" do
+      expect(submission_type.resolve("user { _id }")).to be_nil
+    end
+
+    it "does not show the user on submission history nodes to a grader when an assignment is actively anonymous" do
+      @assignment.submit_homework(@student, body: "v1", submission_type: "online_text_entry", submitted_at: 1.hour.ago)
+      @assignment.submit_homework(@student, body: "v2", submission_type: "online_text_entry")
+      @submission.reload.update!(posted_at: nil)
+      expect(
+        submission_type.resolve("submissionHistoriesConnection { nodes { user { _id } } }")
+      ).to all(be_nil)
+    end
+
+    it "does not show proxy_submitter or proxy_submitter_id to a grader when an assignment is actively anonymous" do
+      proxy = teacher_in_course(course: @course, active_all: true).user
+      @submission.update!(proxy_submitter: proxy)
+      expect(submission_type.resolve("proxySubmitter")).to be_nil
+      expect(submission_type.resolve("proxySubmitterId")).to be_nil
+    end
   end
 
   describe "enrollments" do

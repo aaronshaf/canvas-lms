@@ -43,8 +43,6 @@ module GraphQLHelpers::AnonymousGrading
   end
 
   def unless_hiding_user_for_anonymous_grading
-    return yield unless Account.site_admin.feature_enabled?(:graphql_honor_anonymous_grading)
-
     permission_value = context[:hide_the_user_for_anonymous_grading]
 
     # If it's a promise, wait for it to resolve, otherwise use the value directly
