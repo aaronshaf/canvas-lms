@@ -19,6 +19,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import $ from 'jquery'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const DOCUMENT_NODE = 9
 const ELEMENT_NODE = 1
@@ -71,8 +72,9 @@ class SVGWrapper extends React.Component {
 
         this.setSVGFillColor(this.props.fillColor)
         this.svg.setAttribute('focusable', false)
-        this.rootSpan.innerHTML = ''
-        this.rootSpan.appendChild(this.svg)
+        const serialized = new XMLSerializer().serializeToString(this.svg)
+        this.rootSpan.innerHTML = sanitizeHTML(serialized)
+        this.svg = this.rootSpan.firstElementChild
       },
     })
   }
