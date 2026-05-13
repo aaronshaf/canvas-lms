@@ -22,4 +22,8 @@ module ProfileHelper
   def current_mfa_settings
     @current_mfa_settings ||= @user.mfa_settings(pseudonym_hint: @current_pseudonym)
   end
+
+  def safe_user_bio_html(bio)
+    Sanitize.clean(format_message(bio).first, CanvasSanitize::SANITIZE).html_safe # rubocop:disable Rails/OutputSafety
+  end
 end
