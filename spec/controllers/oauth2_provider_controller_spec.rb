@@ -534,6 +534,21 @@ describe OAuth2ProviderController do
         end
       end
     end
+
+    context "when an account admin is masquerading as another user" do
+      let_once(:admin) { account_admin_user }
+      let_once(:masqueradee) { user_with_pseudonym(active_all: true) }
+
+      before do
+        user_session admin
+        session[:become_user_id] = masqueradee.id
+      end
+
+      it "renders the confirm page (masquerade does not block OAuth)" do
+        get :confirm, session: session_hash
+        expect(response).to have_http_status(:ok)
+      end
+    end
   end
 
   describe "POST token" do

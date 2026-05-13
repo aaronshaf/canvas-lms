@@ -107,14 +107,10 @@ module Canvas::OAuth
       false
     end
 
-    # Checks to see if a token can be issued to this user for the associated client
-    def can_issue_token?(user, logged_in_user)
-      # Trusted keys can always have tokens issued to them
+    def can_issue_token?(logged_in_user)
       return true if key&.trusted?
 
-      # Otherwise check if a user could manually create a token for themselves
-      token = AccessToken.new(user:)
-      token.grants_right?(logged_in_user, :create)
+      AccessToken.can_manage_own_access_tokens?(logged_in_user)
     end
 
     def token_for(code)

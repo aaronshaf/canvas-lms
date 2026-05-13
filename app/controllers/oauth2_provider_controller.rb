@@ -121,7 +121,7 @@ class OAuth2ProviderController < ApplicationController
   def confirm
     if session[:oauth2]
       @provider = Canvas::OAuth::Provider.new(session[:oauth2][:client_id], session[:oauth2][:redirect_uri], session[:oauth2][:scopes], session[:oauth2][:purpose])
-      unless @provider.can_issue_token?(@current_user, logged_in_user)
+      unless @provider.can_issue_token?(logged_in_user)
         return redirect_to Canvas::OAuth::Provider.final_redirect(self,
                                                                   state: params[:state],
                                                                   error: "client_not_allowed_for_user",

@@ -532,12 +532,22 @@ module Canvas::OAuth
 
       it "returns true for trusted developer keys regardless of user permissions" do
         provider = Provider.new(trusted_key.id, "https://example.com")
-        expect(provider.can_issue_token?(regular_user, regular_user)).to be true
+        expect(provider.can_issue_token?(regular_user)).to be true
       end
 
       it "returns true for non-site-admin users with untrusted keys" do
         provider = Provider.new(developer_key.id, "https://example.com")
-        expect(provider.can_issue_token?(regular_user, regular_user)).to be true
+        expect(provider.can_issue_token?(regular_user)).to be true
+      end
+
+      context "when an account admin is masquerading as another user" do
+        let_once(:root_account) { account_model }
+        let_once(:account_admin) { account_admin_user(account: root_account) }
+
+        it "uses the acting user, not the target" do
+          provider = Provider.new(developer_key.id, "https://example.com")
+          expect(provider.can_issue_token?(account_admin)).to be true
+        end
       end
 
       context "when user is a site admin" do
@@ -546,18 +556,18 @@ module Canvas::OAuth
         it "returns false when user lacks site_admin_self_token_create permission" do
           account_with_role_changes(account: Account.site_admin, role_changes: { site_admin_self_token_create: false })
           provider = Provider.new(developer_key.id, "https://example.com")
-          expect(provider.can_issue_token?(site_admin, site_admin)).to be false
+          expect(provider.can_issue_token?(site_admin)).to be false
         end
 
         it "returns true when user has site_admin_self_token_create permission" do
           provider = Provider.new(developer_key.id, "https://example.com")
-          expect(provider.can_issue_token?(site_admin, site_admin)).to be true
+          expect(provider.can_issue_token?(site_admin)).to be true
         end
 
         it "returns true for trusted keys even without the permission" do
           account_with_role_changes(account: Account.site_admin, role_changes: { site_admin_self_token_create: false })
           provider = Provider.new(trusted_key.id, "https://example.com")
-          expect(provider.can_issue_token?(site_admin, site_admin)).to be true
+          expect(provider.can_issue_token?(site_admin)).to be true
         end
       end
     end
