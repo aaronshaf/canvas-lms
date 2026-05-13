@@ -16,11 +16,15 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {getAssignments} from '../helper'
+import {getAssignments, formatAssessmentRequest} from '../helper'
 import {createClient} from '@canvas/apollo-v3'
 
 vi.mock('@canvas/apollo-v3', () => ({
   createClient: vi.fn(),
+}))
+
+vi.mock('@canvas/i18n', () => ({
+  useScope: () => ({t: (key: string) => key}),
 }))
 
 const makeNode = (id: string) => ({
@@ -51,6 +55,37 @@ const makeResponse = (
       },
     },
   },
+})
+
+describe('formatAssessmentRequest', () => {
+  const base = {
+    id: 'req1',
+    anonymousId: 'anon123',
+    available: true,
+    createdAt: '2026-01-01T00:00:00Z',
+    workflowState: 'assigned',
+  }
+
+  it('uses anonymizedUser name and id when present (non-anonymous mode)', () => {
+    const result = formatAssessmentRequest({
+      ...base,
+      anonymizedUser: {id: 'user1', name: 'Jane Doe'},
+    })
+    expect(result.user_name).toBe('Jane Doe')
+    expect(result.user_id).toBe('user1')
+  })
+
+  it('falls back to "Anonymous Student" when anonymizedUser is null', () => {
+    const result = formatAssessmentRequest({...base, anonymizedUser: null})
+    expect(result.user_name).toBe('Anonymous Student')
+    expect(result.user_id).toBeUndefined()
+  })
+
+  it('falls back to "Anonymous Student" when anonymizedUser has no name', () => {
+    const result = formatAssessmentRequest({...base, anonymizedUser: {id: 'user1'}})
+    expect(result.user_name).toBe('Anonymous Student')
+    expect(result.user_id).toBe('user1')
+  })
 })
 
 describe('getAssignments', () => {

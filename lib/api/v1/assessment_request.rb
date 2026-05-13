@@ -26,6 +26,9 @@ module Api::V1::AssessmentRequest
   def assessment_request_json(assessment_request, user, session, includes = Set.new)
     assignment = assessment_request.asset.assignment
     json_attributes = %w[id user_id assessor_id asset_id asset_type workflow_state]
+    unless assessment_request.can_read_assessment_user_name?(user, session)
+      json_attributes.delete("user_id")
+    end
     if assignment.anonymous_peer_reviews? && !assignment.grants_any_right?(user, session, :grade)
       json_attributes.delete("assessor_id")
     end
@@ -33,7 +36,9 @@ module Api::V1::AssessmentRequest
     hash = api_json(assessment_request, user, session, only: json_attributes)
 
     if includes.include?("user")
-      hash["user"] = user_display_json(assessment_request.user, @context)
+      if assessment_request.can_read_assessment_user_name?(user, session)
+        hash["user"] = user_display_json(assessment_request.user, @context)
+      end
       unless assignment.anonymous_peer_reviews? && !assignment.grants_any_right?(user, session, :grade)
         hash["assessor"] = user_display_json(assessment_request.assessor, @context)
       end

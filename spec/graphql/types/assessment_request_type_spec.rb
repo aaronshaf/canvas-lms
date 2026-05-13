@@ -110,8 +110,13 @@ describe Types::AssessmentRequestType do
   describe "with anonymous peer review enabled" do
     before(:once) { @assignment.update_attribute(:anonymous_peer_reviews, true) }
 
-    it "works for user" do
-      expect(submission_type.resolve("assignedAssessments { user { _id } }").first).to eq @assessment_request.user.id.to_s
+    it "user is nil for the student reviewer (assessor)" do
+      expect(submission_type.resolve("assignedAssessments { user { _id } }").first).to be_nil
+    end
+
+    it "user is visible to a teacher" do
+      teacher_type = GraphQLTypeTester.new(@submission, current_user: @teacher)
+      expect(teacher_type.resolve("assignedAssessments { user { _id } }").first).to eq @assessment_request.user.id.to_s
     end
 
     it "anonymizedUser should be null" do
@@ -120,6 +125,42 @@ describe Types::AssessmentRequestType do
 
     it "anonymousId should match the anonymous id of the asset" do
       expect(submission_type.resolve("assignedAssessments { anonymousId }").first).to eq @assessment_request.asset.anonymous_id.to_s
+    end
+
+    it "loads associations in a constant number of queries as assessment requests grow" do
+      submission_re = /FROM (?:"\w+"\.)?"submissions"/i
+      assignment_re = /FROM (?:"\w+"\.)?"assignments"/i
+      course_re     = /FROM (?:"\w+"\.)?"courses"/i
+
+      add_reviewees = lambda do |n|
+        n.times do
+          reviewee = User.create!
+          @course.enroll_user(reviewee, "StudentEnrollment", enrollment_state: "active")
+          @assignment.assign_peer_review(@student, reviewee)
+        end
+      end
+
+      resolve_user = lambda do
+        GraphQLTypeTester.new(@submission, current_user: @teacher)
+                         .resolve("assignedAssessments { user { _id } }")
+      end
+
+      add_reviewees.call(1) # baseline: 2 total (1 from before + 1 new)
+      baseline = {
+        submissions: count_sql_queries(matcher: submission_re, &resolve_user),
+        assignments: count_sql_queries(matcher: assignment_re, &resolve_user),
+        courses: count_sql_queries(matcher: course_re, &resolve_user),
+      }
+
+      add_reviewees.call(3) # grow to 5 total
+      grown = {
+        submissions: count_sql_queries(matcher: submission_re, &resolve_user),
+        assignments: count_sql_queries(matcher: assignment_re, &resolve_user),
+        courses: count_sql_queries(matcher: course_re, &resolve_user),
+      }
+
+      expect(grown).to eq(baseline)
+      expect(baseline[:submissions]).to be > 0 # guard: resolver actually loaded something
     end
   end
 end

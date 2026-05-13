@@ -624,7 +624,7 @@ type AssessmentRequest implements LegacyIDInterface & Timestamped {
   """
   submissionComments: [SubmissionComment!]
   updatedAt: DateTime
-  user: User!
+  user: User
   workflowState: String!
 }
 

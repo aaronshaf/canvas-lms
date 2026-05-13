@@ -27,24 +27,23 @@ import type {
 import ASSIGNMENT_QUERY from '../graphql/Queries'
 import $ from 'jquery'
 import {createClient} from '@canvas/apollo-v3'
-import type {ReactElement} from 'react'
+import {useScope as createI18nScope} from '@canvas/i18n'
+
+const I18n = createI18nScope('module_student_view_peer_reviews')
 
 export function formatAssessmentRequest({
   anonymizedUser,
   anonymousId,
   available,
   createdAt,
-  user,
   workflowState,
 }: GraphQLAssesmentRequest): AssessmentRequest {
-  const {id: user_id, name: user_name} = user
-
   return {
     anonymous_id: anonymousId,
     available,
     createdAt,
-    user_id,
-    user_name: anonymizedUser?.name ?? user_name,
+    user_id: anonymizedUser?.id,
+    user_name: anonymizedUser?.name ?? I18n.t('Anonymous Student'),
     workflow_state: workflowState,
   }
 }

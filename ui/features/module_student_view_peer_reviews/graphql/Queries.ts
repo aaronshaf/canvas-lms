@@ -43,10 +43,6 @@ const ASSIGNMENT_QUERY = gql`
                   available
                   createdAt
                   workflowState
-                  user {
-                    id: _id
-                    name
-                  }
                   anonymizedUser {
                     id: _id
                     name

@@ -738,7 +738,7 @@ describe PeerReviewsApiController, type: :request do
         expect(json).to be_an(Array)
         expect(json.size).to eq(2)
         expect(json.all? { |ar| ar["assessor_id"].nil? }).to be true # Should be hidden for students
-        expect(json.pluck("user_id")).to match_array([@student2.id, student3.id])
+        expect(json.all? { |ar| ar["user_id"].nil? }).to be true # Should be hidden for students in anonymous mode
       end
 
       context "with assignment overrides" do

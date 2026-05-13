@@ -17,7 +17,6 @@
  */
 
 import type {Assignment} from 'api'
-import type {ReactElement} from 'react'
 
 export type GraphQLAssesmentRequest = {
   id: string
@@ -25,14 +24,10 @@ export type GraphQLAssesmentRequest = {
   available: boolean
   createdAt: string
   workflowState: string
-  user: {
-    id: string
-    name: string
-  }
   anonymizedUser: {
     id?: string
     name?: string
-  }
+  } | null
 }
 
 export type GraphQLAssignment = {

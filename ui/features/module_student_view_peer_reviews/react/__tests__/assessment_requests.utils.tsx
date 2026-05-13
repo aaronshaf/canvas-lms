@@ -27,7 +27,6 @@ describe('Assessment Requests', () => {
       anonymousId: 'anonymousId123',
       available: true,
       createdAt: '2022-01-01T00:00:00Z',
-      user: {id: 'userId123', name: 'UserName'},
       workflowState: 'active',
     }
 
@@ -36,7 +35,7 @@ describe('Assessment Requests', () => {
       anonymous_id: 'anonymousId123',
       available: true,
       createdAt: '2022-01-01T00:00:00Z',
-      user_id: 'userId123',
+      user_id: '1',
       user_name: 'AnonymizedUser',
       workflow_state: 'active',
     })
@@ -103,10 +102,6 @@ describe('Assessment Requests', () => {
             available: true,
             createdAt: '2023-01-01',
             workflowState: 'state1',
-            user: {
-              id: 'user1',
-              name: 'User 1',
-            },
             anonymizedUser: {
               id: 'anuser1',
               name: 'Anon User 1',

@@ -29,9 +29,17 @@ module Types
     field :available, Boolean, method: :available?, null: true
     field :workflow_state, String, null: false
 
-    field :user, UserType, null: false
+    field :user, UserType, null: true
     def user
-      load_association(:user)
+      load_association(:asset).then do |submission|
+        Loaders::AssociationLoader.for(Submission, :assignment).load(submission).then do |assignment|
+          Loaders::AssociationLoader.for(Assignment, :context).load(assignment).then do |_context|
+            if object.grants_right?(current_user, session, :read_assessment_user)
+              load_association(:user)
+            end
+          end
+        end
+      end
     end
 
     field :submission, SubmissionType, null: true do
