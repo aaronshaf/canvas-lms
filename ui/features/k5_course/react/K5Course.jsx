@@ -74,6 +74,7 @@ import EmptyModules from './EmptyModules'
 import {GradesPage} from './GradesPage'
 import OverviewPage from './OverviewPage'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
+import safeCssUrl from '@canvas/util/safeCssUrl'
 
 const I18n = createI18nScope('k5_course')
 
@@ -237,7 +238,7 @@ export const CourseHeaderHero = forwardRef(
           flexDirection: 'column',
           justifyContent: 'flex-end',
           backgroundColor: !image && backgroundColor,
-          backgroundImage: image && `url(${image})`,
+          backgroundImage: (image && safeCssUrl(image)) ?? undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',

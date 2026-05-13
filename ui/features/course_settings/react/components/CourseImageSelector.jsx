@@ -26,6 +26,7 @@ import {InstUIModal as Modal} from '@instructure/platform-instui-bindings'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import Actions from '../actions'
 import CourseImagePicker from './CourseImagePicker'
+import safeCssUrl from '@canvas/util/safeCssUrl'
 
 const I18n = createI18nScope('course_images')
 
@@ -75,7 +76,11 @@ export default class CourseImageSelector extends React.Component {
         <div className="CourseImageSelectorContent">
           <div
             className="CourseImageSelector"
-            style={this.state.imageUrl ? {backgroundImage: `url(${this.state.imageUrl})`} : {}}
+            style={
+              this.state.imageUrl
+                ? {backgroundImage: safeCssUrl(this.state.imageUrl) ?? undefined}
+                : {}
+            }
           >
             {this.state.gettingImage || this.state.removingImage ? (
               <div className="CourseImageSelector__Overlay">

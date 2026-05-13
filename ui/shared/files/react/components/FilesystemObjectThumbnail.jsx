@@ -21,6 +21,7 @@ import createReactClass from 'create-react-class'
 import Folder from '../../backbone/models/Folder'
 import mimeClass from '@canvas/mime/mimeClass'
 import FilesystemObjectThumbnail from './LegacyFilesystemObjectThumbnail'
+import safeCssUrl from '@canvas/util/safeCssUrl'
 
 FilesystemObjectThumbnail.render = function () {
   const additionalClassName = this.props.className ? this.props.className : ''
@@ -29,7 +30,7 @@ FilesystemObjectThumbnail.render = function () {
     return (
       <span
         className={`media-object ef-thumbnail FilesystemObjectThumbnail ${additionalClassName}`}
-        style={{backgroundImage: `url('${this.state.thumbnail_url}')`}}
+        style={{backgroundImage: safeCssUrl(this.state.thumbnail_url) ?? undefined}}
       />
     )
   } else {

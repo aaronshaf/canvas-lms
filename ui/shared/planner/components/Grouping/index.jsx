@@ -34,6 +34,7 @@ import {
 import {animatable} from '../../dynamic-ui'
 import buildStyle from './style'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
+import safeCssUrl from '@canvas/util/safeCssUrl'
 
 const I18n = createI18nScope('planner')
 
@@ -311,7 +312,9 @@ export class Grouping extends Component {
       )
     }
     const style =
-      this.getLayout() === 'large' ? {backgroundImage: `url(${this.props.image_url || ''})`} : null
+      this.getLayout() === 'large'
+        ? {backgroundImage: safeCssUrl(this.props.image_url) ?? undefined}
+        : null
     return (
       <a
         href={sanitizeUrl(this.props.url || '#')}

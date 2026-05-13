@@ -30,7 +30,7 @@ describe('FilesystemObjectThumbnail', () => {
     beforeEach(() => {
       file = new File({
         id: 65,
-        thumbnail_url: 'sweet_thumbnail_url',
+        thumbnail_url: 'https://example.com/sweet_thumbnail_url',
       })
       vi.useFakeTimers()
       vi.advanceTimersByTime(20000)
@@ -45,7 +45,7 @@ describe('FilesystemObjectThumbnail', () => {
         <FilesystemObjectThumbnail model={file} className="customClassname" />,
       )
       expect(container.firstChild).toHaveStyle({
-        backgroundImage: `url('sweet_thumbnail_url')`,
+        backgroundImage: `url('https://example.com/sweet_thumbnail_url')`,
       })
     })
 
