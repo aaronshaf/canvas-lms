@@ -880,27 +880,6 @@ describe ContentMigrationsController, type: :request do
         allow(Canvas::Plugin).to receive(:all_for_tag).and_return([p])
       end
 
-      context "is disabled" do
-        before do
-          Account.site_admin.disable_feature!(:instui_for_import_page)
-        end
-
-        it "returns the migrators without external tools" do
-          json = api_call(:get,
-                          "/api/v1/courses/#{@course.id}/content_migrations/migrators",
-                          { controller: "content_migrations", action: "available_migrators", format: "json", course_id: @course.id.to_param })
-
-          expect(json).to eq [
-            {
-              "type" => "common_cartridge_importer",
-              "requires_file_upload" => true,
-              "name" => "Common Cartridge 1.x Package",
-              "required_settings" => []
-            }
-          ]
-        end
-      end
-
       context "is enabled" do
         before do
           Account.site_admin.enable_feature!(:instui_for_import_page)
