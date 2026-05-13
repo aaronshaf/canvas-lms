@@ -186,6 +186,16 @@ describe AiExperiences::ConversationContextService do
             )
           ))
       end
+
+      it "requests the file URL with the indexing TTL" do
+        AiExperienceContextFile.create!(ai_experience:, attachment:)
+
+        expect_any_instance_of(Attachment).to receive(:public_url)
+          .with(expires_in: AiExperiences::ConversationContextDocumentsService::INDEXING_URL_TTL)
+          .and_return("https://example.com/syllabus.pdf")
+
+        service.create(ai_experience:)
+      end
     end
   end
 
@@ -292,6 +302,14 @@ describe AiExperiences::ConversationContextService do
               ]
             )
           ))
+      end
+
+      it "requests the file URL with the indexing TTL" do
+        expect_any_instance_of(Attachment).to receive(:public_url)
+          .with(expires_in: AiExperiences::ConversationContextDocumentsService::INDEXING_URL_TTL)
+          .and_return("https://example.com/syllabus.pdf")
+
+        service.update(ai_experience:)
       end
 
       it "excludes deleted attachments from context_files" do

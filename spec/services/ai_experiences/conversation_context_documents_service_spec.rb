@@ -219,6 +219,14 @@ describe AiExperiences::ConversationContextDocumentsService do
           .with(body: hash_including("url" => "http://localhost:3000/files/1/download", "sourceType" => "file"))
       end
 
+      it "requests the file URL with the indexing TTL" do
+        expect_any_instance_of(Attachment).to receive(:public_url)
+          .with(expires_in: described_class::INDEXING_URL_TTL)
+          .and_return("http://localhost:3000/files/1/download")
+
+        service.trigger_indexing(ai_experience:)
+      end
+
       it "sets context_index_status to 'in_progress'" do
         service.trigger_indexing(ai_experience:)
         expect(ai_experience.reload.context_index_status).to eq("in_progress")

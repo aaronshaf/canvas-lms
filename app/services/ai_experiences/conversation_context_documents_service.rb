@@ -20,6 +20,10 @@
 
 module AiExperiences
   class ConversationContextDocumentsService
+    # Bounds the cross-tenant leak window if llma's DB is compromised, while
+    # remaining long enough to survive Pine's queue + retries before Aspen fetches.
+    INDEXING_URL_TTL = 1.hour
+
     def initialize(account:)
       @client = LlmConversation::HttpClient.new(account:)
     end
@@ -75,7 +79,7 @@ module AiExperiences
 
         response = @client.post(
           "/contexts/#{context_id}/documents",
-          payload: { url: file.public_url, sourceType: "file" }
+          payload: { url: file.public_url(expires_in: INDEXING_URL_TTL), sourceType: "file" }
         )
 
         doc_id = response["id"]

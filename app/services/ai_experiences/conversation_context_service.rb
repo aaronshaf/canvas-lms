@@ -82,7 +82,7 @@ module AiExperiences
               courseId: ai_experience.course.global_id.to_s,
               title: file.display_name
             },
-            url: file.public_url
+            url: file.public_url(expires_in: ConversationContextDocumentsService::INDEXING_URL_TTL)
           }
         end
       end
