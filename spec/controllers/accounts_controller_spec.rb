@@ -1162,6 +1162,23 @@ describe AccountsController do
       end
     end
 
+    context "mfa_settings" do
+      before(:once) { account_with_admin(account: Account.default) }
+
+      before { user_session(@admin) }
+
+      it "allows a root account admin with manage_mfa_settings to update mfa_settings" do
+        post "update", params: { id: @account.id, account: { settings: { mfa_settings: "required" } } }
+        expect(@account.reload.mfa_settings).to eq :required
+      end
+
+      it "strips mfa_settings when the user lacks manage_mfa_settings" do
+        account_with_role_changes(user: @admin, role_changes: { manage_mfa_settings: false })
+        post "update", params: { id: @account.id, account: { settings: { mfa_settings: "required" } } }
+        expect(@account.reload.mfa_settings).to eq :disabled
+      end
+    end
+
     context "turnitin" do
       before(:once) { account_with_admin }
 

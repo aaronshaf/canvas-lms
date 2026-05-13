@@ -475,6 +475,16 @@ BASE_PERMISSIONS = {
         description: -> { I18n.t("Not available at the subaccount level.") } }
     ]
   },
+  manage_mfa_settings: {
+    label: -> { I18n.t("Account - Multi-Factor Authentication") },
+    account_only: :root,
+    true_for: %w[AccountAdmin],
+    available_to: %w[AccountAdmin AccountMembership],
+    account_details: [
+      { title: -> { I18n.t("Multi-Factor Authentication Management") },
+        description: -> { I18n.t("Allows user to view and manage the Multi-Factor Authentication setting in Account Settings.") } }
+    ]
+  },
   manage_site_settings: {
     label: -> { I18n.t("permissions.manage_site_settings", "Manage site-wide and plugin settings") },
     account_only: :site_admin,

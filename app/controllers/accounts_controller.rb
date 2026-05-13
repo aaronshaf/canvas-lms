@@ -1503,6 +1503,10 @@ class AccountsController < ApplicationController
 
         set_app_center_access_token
 
+        unless @account.grants_right?(@current_user, :manage_mfa_settings)
+          params[:account][:settings].try(:delete, :mfa_settings)
+        end
+
         if @account.grants_right?(@current_user, :manage_site_settings)
           google_docs_domain = params[:account][:settings].try(:delete, :google_docs_domain)
           if @account.feature_enabled?(:google_docs_domain_restriction) &&

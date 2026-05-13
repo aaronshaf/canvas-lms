@@ -179,7 +179,7 @@
               </tr>
               <% end %>
               <%= f.fields_for :settings do |settings| %>
-                <% if @account.grants_right?(@current_user, :manage_site_settings) %>
+                <% if @account.grants_right?(@current_user, :manage_mfa_settings) %>
                   <tr>
                     <td><%= settings.blabel :mfa_settings, :en => "Multi-Factor Authentication" %></td>
                     <td>
@@ -187,10 +187,15 @@
                                                           [t('select.mfa.optional', "Optional"), :optional],
                                                           [t('select.mfa.required_for_admins', "Required for Admins"), :required_for_admins],
                                                           [t('select.mfa.required', "Required"), :required]], :selected => @account.mfa_settings %>
-                      <p>
-                        <%= settings.check_box :mobile_qr_login_is_enabled, checked: @account.mobile_qr_login_is_enabled? %>
-                        <%= settings.label :mobile_qr_login_is_enabled, en: "Allow logins to the mobile apps via the use of QR codes" %>
-                      </p>
+                    </td>
+                  </tr>
+                <% end %>
+                <% if @account.grants_right?(@current_user, :manage_site_settings) %>
+                  <tr>
+                    <td><%= I18n.t("Mobile App QR Login") %></td>
+                    <td>
+                      <%= settings.check_box :mobile_qr_login_is_enabled, checked: @account.mobile_qr_login_is_enabled? %>
+                      <%= settings.label :mobile_qr_login_is_enabled, en: "Allow logins to the mobile apps via the use of QR codes" %>
                     </td>
                   </tr>
                 <% end %>
