@@ -16,35 +16,17 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// WebVTT caption element allowlist — no <link>, <style>, <meta>, or <base>
-const CAPTION_ELEMENT_ALLOWLIST = ['i', 'b', 'u', 'v', 'c', 'ruby', 'rt', 'lang']
+import DOMPurify from 'dompurify'
+
+// WebVTT cue text elements per the spec.
+const CAPTION_ALLOWED_TAGS = ['i', 'b', 'u', 'v', 'c', 'ruby', 'rt', 'lang']
 
 export function sanitizeCaption(html) {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(html, 'text/html')
-
-  let elements = Array.from(doc.body.children || [])
-  while (elements.length) {
-    const node = elements.shift()
-    if (CAPTION_ELEMENT_ALLOWLIST.includes(node.tagName.toLowerCase())) {
-      elements = elements.concat(Array.from(node.children || []))
-    } else {
-      node.parentNode.removeChild(node)
-    }
-  }
-
-  const allElements = doc.body.getElementsByTagName('*')
-  for (let i = 0, n = allElements.length; i < n; i++) {
-    const attributesObj = allElements[i].attributes,
-      attributes = Array.prototype.slice.call(attributesObj)
-    for (let j = 0, total = attributes.length; j < total; j++) {
-      if (attributes[j].name.startsWith('on') || attributes[j].value.startsWith('javascript')) {
-        allElements[i].parentNode.removeChild(allElements[i])
-      } else if (attributes[j].name === 'style' || attributes[j].name.startsWith('data-')) {
-        allElements[i].removeAttribute(attributes[j].name)
-      }
-    }
-  }
-
-  return doc.body.innerHTML
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: CAPTION_ALLOWED_TAGS,
+    ALLOWED_ATTR: [],
+    ALLOW_DATA_ATTR: false,
+    ALLOW_ARIA_ATTR: false,
+    KEEP_CONTENT: true,
+  })
 }
