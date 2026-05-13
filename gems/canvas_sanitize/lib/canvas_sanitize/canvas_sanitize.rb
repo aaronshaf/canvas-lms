@@ -47,12 +47,24 @@ module CanvasSanitize # :nodoc:
   end
 
   DEFAULT_PROTOCOLS = ["http", "https", :relative].freeze
-  URL_PROTOCOL_ATTRIBUTES = %w[href src cite altimg].freeze
+  URL_PROTOCOL_ATTRIBUTES = %w[href src cite altimg poster longdesc].freeze
 
   remove_spaces_from_ids = lambda do |env|
     return unless env[:node]&.element? && env[:node][:id] && env[:node][:id].match?(/\s/)
 
     env[:node][:id] = env[:node][:id].gsub(/\s+/, "")
+  end
+
+  scrub_srcset = lambda do |env|
+    node = env[:node]
+    return unless node&.element? && node["srcset"]
+
+    candidates = node["srcset"].split(",").map(&:strip)
+    clean = candidates.select do |candidate|
+      url = candidate.split(/\s+/).first.to_s
+      url.match?(%r{\Ahttps?://}i) || (url.start_with?("/") && !url.start_with?("//")) || url.match?(/\Adata:/i)
+    end
+    clean.empty? ? node.remove_attribute("srcset") : node["srcset"] = clean.join(", ")
   end
 
   SANITIZE = {
@@ -661,14 +673,14 @@ module CanvasSanitize # :nodoc:
         "data-item-href" => DEFAULT_PROTOCOLS
       }.freeze,
       "blockquote" => { "cite" => DEFAULT_PROTOCOLS }.freeze,
-      "img" => { "src" => DEFAULT_PROTOCOLS }.freeze,
+      "img" => { "src" => DEFAULT_PROTOCOLS, "longdesc" => DEFAULT_PROTOCOLS }.freeze,
       "q" => { "cite" => DEFAULT_PROTOCOLS }.freeze,
       "object" => { "data" => DEFAULT_PROTOCOLS }.freeze,
       "embed" => { "src" => DEFAULT_PROTOCOLS }.freeze,
       "iframe" => { "src" => DEFAULT_PROTOCOLS }.freeze,
       "style" => { "any" => DEFAULT_PROTOCOLS }.freeze,
-      "audio" => { "src" => ["data", "http", "https", :relative] }.freeze,
-      "video" => { "src" => ["data", "http", "https", :relative] }.freeze,
+      "audio" => { "src" => ["data", "http", "https", :relative], "poster" => ["http", "https"] }.freeze,
+      "video" => { "src" => ["data", "http", "https", :relative], "poster" => ["http", "https"] }.freeze,
       "source" => { "src" => ["data", "http", "https", :relative] }.freeze,
       "track" => { "src" => ["data", "http", "https", :relative] }.freeze,
     },
@@ -745,7 +757,7 @@ module CanvasSanitize # :nodoc:
       protocols: DEFAULT_PROTOCOLS
     },
 
-    transformers: remove_spaces_from_ids
+    transformers: [remove_spaces_from_ids, scrub_srcset]
   }.freeze
 
   # Any allowed elements for which we don't explicitly declare a

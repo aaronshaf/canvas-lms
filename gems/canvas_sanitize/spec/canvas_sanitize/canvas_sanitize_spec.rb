@@ -314,6 +314,74 @@ describe CanvasSanitize do
     expect(result).to include("content")
   end
 
+  describe "poster attribute protocol enforcement" do
+    it "strips javascript: from video poster" do
+      res = Sanitize.clean('<video poster="javascript:alert(1)"></video>', CanvasSanitize::SANITIZE)
+      expect(res).not_to include("poster")
+      expect(res).not_to include("javascript")
+    end
+
+    it "strips javascript: from audio poster" do
+      res = Sanitize.clean('<audio poster="javascript:alert(1)"></audio>', CanvasSanitize::SANITIZE)
+      expect(res).not_to include("poster")
+      expect(res).not_to include("javascript")
+    end
+
+    it "strips protocol-relative URL from video poster" do
+      res = Sanitize.clean('<video poster="//attacker.com/x.png"></video>', CanvasSanitize::SANITIZE)
+      expect(res).not_to include("poster")
+      expect(res).not_to include("attacker.com")
+    end
+
+    it "preserves a valid https poster URL on video" do
+      res = Sanitize.clean('<video poster="https://canvas.example.com/poster.jpg"></video>', CanvasSanitize::SANITIZE)
+      expect(res).to include('poster="https://canvas.example.com/poster.jpg"')
+    end
+  end
+
+  describe "longdesc attribute protocol enforcement" do
+    it "strips javascript: from img longdesc" do
+      res = Sanitize.clean('<img src="x.png" longdesc="javascript:alert(1)">', CanvasSanitize::SANITIZE)
+      expect(res).not_to include("longdesc")
+      expect(res).not_to include("javascript")
+    end
+
+    it "preserves a valid https longdesc URL" do
+      res = Sanitize.clean('<img src="x.png" longdesc="https://example.com/desc">', CanvasSanitize::SANITIZE)
+      expect(res).to include('longdesc="https://example.com/desc"')
+    end
+  end
+
+  describe "srcset attribute protocol enforcement" do
+    it "strips javascript: from source srcset" do
+      res = Sanitize.clean('<source srcset="javascript:alert(1) 2x">', CanvasSanitize::SANITIZE)
+      expect(res).not_to include("srcset")
+      expect(res).not_to include("javascript")
+    end
+
+    it "removes protocol-relative candidates while preserving root-relative ones" do
+      res = Sanitize.clean('<source srcset="//evil.com/x.png 2x, /canvas/y.jpg 1x">', CanvasSanitize::SANITIZE)
+      expect(res).not_to include("evil.com")
+      expect(res).to include("/canvas/y.jpg")
+    end
+
+    it "strips the entire srcset attribute when all candidates are invalid" do
+      res = Sanitize.clean('<source srcset="//evil.com/x.png 2x, //other.com/y.png 1x">', CanvasSanitize::SANITIZE)
+      expect(res).not_to include("srcset")
+    end
+
+    it "preserves data: image srcset candidates" do
+      # URL-encoded form avoids the comma-split limitation that affects base64 data URLs
+      res = Sanitize.clean('<source srcset="data:image/svg+xml,%3Csvg%2F%3E 1x">', CanvasSanitize::SANITIZE)
+      expect(res).to include("data:image/svg+xml")
+    end
+
+    it "preserves a valid https srcset candidate with density descriptor" do
+      res = Sanitize.clean('<source srcset="https://example.com/img.png 2x">', CanvasSanitize::SANITIZE)
+      expect(res).to include('srcset="https://example.com/img.png 2x"')
+    end
+  end
+
   Dir.glob(File.expand_path(File.join(__FILE__, "..", "..", "fixtures", "xss", "*.xss"))) do |filename|
     name = File.split(filename).last
     it "sanitizes xss attempts for #{name}" do
