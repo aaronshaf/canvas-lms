@@ -450,7 +450,7 @@ describe('enhanceUserContent()', () => {
       it('youtube preview gets alt text from link data-preview-alt', () => {
         const alt = 'test alt string'
         subject(
-          `<a href="https://youtu.be/xyzzy" class="instructure_video_link" data-preview-alt="${alt}">Link</a>`,
+          `<a href="https://youtu.be/dQw4w9WgXcQ" class="instructure_video_link" data-preview-alt="${alt}">Link</a>`,
         )
         enhanceUserContent()
         expect(document.querySelector('a.youtubed')).toBeInTheDocument()
@@ -461,7 +461,7 @@ describe('enhanceUserContent()', () => {
 
       it('youtube preview ignores missing alt', () => {
         subject(
-          '<a href="https://youtu.be/xyzzy" class="instructure_video_link" data-media_comment_id="27" >Link</a>',
+          '<a href="https://youtu.be/dQw4w9WgXcQ" class="instructure_video_link" data-media_comment_id="27" >Link</a>',
         )
         enhanceUserContent()
         expect(document.querySelector('a.youtubed')).toBeInTheDocument()

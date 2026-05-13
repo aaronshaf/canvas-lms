@@ -43,18 +43,61 @@ const canvasOrigin = 'http://localhost'
 describe('enhanced_user_content/instructure_helpers', () => {
   describe('youTubeID', () => {
     it('finds video id in shortened form of a youtube url', () => {
-      const id = youTubeID('https://youtu.be/xyzzy')
-      expect(id).toEqual('xyzzy')
+      expect(youTubeID('https://youtu.be/dQw4w9WgXcQ')).toEqual('dQw4w9WgXcQ')
     })
 
     it('finds the video id in the long form url', () => {
-      const id = youTubeID('https://www.youtube.com/watch?v=xyzzy')
-      expect(id).toEqual('xyzzy')
+      expect(youTubeID('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toEqual('dQw4w9WgXcQ')
     })
 
     it('returns null for a non-youtube url', () => {
-      const id = youTubeID('https://example.com/xyzzy')
-      expect(id).toBeNull()
+      expect(youTubeID('https://example.com/xyzzy')).toBeNull()
+    })
+
+    it('handles m.youtube.com (mobile)', () => {
+      expect(youTubeID('https://m.youtube.com/watch?v=dQw4w9WgXcQ')).toEqual('dQw4w9WgXcQ')
+    })
+
+    it('handles music.youtube.com', () => {
+      expect(youTubeID('https://music.youtube.com/watch?v=dQw4w9WgXcQ')).toEqual('dQw4w9WgXcQ')
+    })
+
+    it('ignores extra query params in long-form url', () => {
+      expect(youTubeID('https://www.youtube.com/watch?feature=share&v=dQw4w9WgXcQ')).toEqual(
+        'dQw4w9WgXcQ',
+      )
+    })
+
+    it('ignores timestamp in short url', () => {
+      expect(youTubeID('https://youtu.be/dQw4w9WgXcQ?t=42')).toEqual('dQw4w9WgXcQ')
+    })
+
+    it('accepts valid base64url characters in video id', () => {
+      expect(youTubeID('https://youtu.be/aB3-_cD4eF5')).toEqual('aB3-_cD4eF5')
+    })
+
+    it('returns null for a too-short video id', () => {
+      expect(youTubeID('https://youtu.be/abc')).toBeNull()
+    })
+
+    it('returns null for a too-long video id', () => {
+      expect(youTubeID('https://youtu.be/thiIsWayTooLongForId')).toBeNull()
+    })
+
+    it('does not include closing paren in extracted video id (CSS url() injection)', () => {
+      expect(youTubeID('https://youtu.be/abc123)evil')).toBeNull()
+    })
+
+    it('does not include double-quote in extracted video id (attribute injection)', () => {
+      expect(youTubeID('https://youtu.be/abc123"onload="evil()')).toBeNull()
+    })
+
+    it('returns null for a url with a space in the video id position', () => {
+      expect(youTubeID('https://youtu.be/abc123 extra')).toBeNull()
+    })
+
+    it('returns null for an entirely invalid url', () => {
+      expect(youTubeID('not a url at all')).toBeNull()
     })
   })
 

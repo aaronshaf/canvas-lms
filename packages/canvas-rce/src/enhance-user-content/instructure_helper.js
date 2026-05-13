@@ -23,12 +23,32 @@ import {show} from './jqueryish_funcs'
 import {parseUrlOrNull} from '../util/url-util'
 import psl from 'psl'
 
-const youTubeRegEx = /^https?:\/\/(www\.youtube\.com\/watch.*v(=|\/)|youtu\.be\/)([^&#]*)/
+const youTubeIdRegEx = /^[A-Za-z0-9_-]{11}$/
+const youTubeHosts = new Set([
+  'youtube.com',
+  'www.youtube.com',
+  'm.youtube.com',
+  'music.youtube.com',
+])
+
 export function youTubeID(path) {
-  const match = path.match(youTubeRegEx)
-  if (match && match[match.length - 1]) {
-    return match[match.length - 1]
+  let url
+  try {
+    url = new URL(path)
+  } catch {
+    return null
   }
+
+  if (url.hostname === 'youtu.be') {
+    const id = url.pathname.slice(1).split('/')[0]
+    return youTubeIdRegEx.test(id) ? id : null
+  }
+
+  if (youTubeHosts.has(url.hostname)) {
+    const id = url.searchParams.get('v')
+    return id && youTubeIdRegEx.test(id) ? id : null
+  }
+
   return null
 }
 
@@ -55,7 +75,7 @@ export function isExternalLink(element, canvasOrigin = window.location.origin) {
   return !!(
     href &&
     href.length &&
-    !href.match(/^(mailto\:|javascript\:)/) &&
+    !href.match(/^(mailto:|javascript:)/) &&
     element.hostname &&
     getTld(element.hostname) !== getTld(canvasHost)
   )
