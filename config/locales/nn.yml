@@ -6684,6 +6684,7 @@ nn:
   complete_title_7482ddcf: "Fullfør %{title}"
   completed_19711ce7: Fullført
   completed_9b809e44: fullført
+  completed_date_b0c2304b: "Fullført %{date}"
   completed_peer_reviews_c134676: "Fullførte fagfellevurderingar"
   completed_submittedat_66f56614: "Fullført %{submittedAt}"
   compose_44c904f4: Komponere
