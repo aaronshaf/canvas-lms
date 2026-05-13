@@ -17,8 +17,8 @@
  */
 
 import {useMutation, useQueryClient} from '@tanstack/react-query'
-import doFetchApi from '@canvas/do-fetch-api-effect'
-import {showFlashError} from '@instructure/platform-alerts'
+import doFetchApi, {FetchApiError} from '@canvas/do-fetch-api-effect'
+import {showFlashAlert, showFlashError} from '@instructure/platform-alerts'
 import {useScope as createI18nScope} from '@canvas/i18n'
 
 const I18n = createI18nScope('assignments_peer_reviews_student')
@@ -39,9 +39,19 @@ export function useAllocatePeerReviews() {
       })
     },
     onSuccess: (_data, variables) => {
-      // Invalidate the assignment query to refetch updated assessment requests
       queryClient.invalidateQueries({queryKey: ['peerReviewAssignment', variables.assignmentId]})
     },
-    onError: () => showFlashError(I18n.t('Failed to allocate peer reviews'))(),
+    onError: (error: unknown) => {
+      if (error instanceof FetchApiError && error.response.status === 400) {
+        showFlashAlert({
+          message: I18n.t(
+            'No peer reviews are available to complete at this time. Check back after more students have submitted.',
+          ),
+          type: 'info',
+        })
+        return
+      }
+      showFlashError(I18n.t('Failed to allocate peer reviews'))()
+    },
   })
 }

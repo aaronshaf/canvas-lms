@@ -24,12 +24,13 @@ import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {useAllocatePeerReviews} from '../useAllocatePeerReviews'
 import type {ReactNode} from 'react'
-import {showFlashError} from '@instructure/platform-alerts'
+import {showFlashAlert, showFlashError} from '@instructure/platform-alerts'
 
 vi.mock('@instructure/platform-alerts', async () => {
   const actual = await vi.importActual('@instructure/platform-alerts')
   return {
     ...actual,
+    showFlashAlert: vi.fn(),
     showFlashError: vi.fn(() => vi.fn()),
   }
 })
@@ -102,6 +103,29 @@ describe('useAllocatePeerReviews', () => {
     await waitFor(() => expect(result.current.isError).toBe(true))
 
     expect(showFlashError).toHaveBeenCalledWith('Failed to allocate peer reviews')
+  })
+
+  it('shows info flash and no error flash when API returns 400 (no allocations available)', async () => {
+    server.use(
+      http.post('/api/v1/courses/:courseId/assignments/:assignmentId/allocate', () => {
+        return HttpResponse.json(
+          {errors: {base: 'There are no peer reviews available to allocate to you.'}},
+          {status: 400},
+        )
+      }),
+    )
+
+    const {result} = renderHook(() => useAllocatePeerReviews(), {wrapper: createWrapper()})
+
+    result.current.mutate({
+      courseId: '100',
+      assignmentId: '10',
+    })
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+
+    expect(showFlashError).not.toHaveBeenCalled()
+    expect(showFlashAlert).toHaveBeenCalledWith(expect.objectContaining({type: 'info'}))
   })
 
   it('invalidates assignment query on success', async () => {
