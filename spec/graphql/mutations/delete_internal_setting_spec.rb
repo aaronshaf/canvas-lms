@@ -25,6 +25,10 @@ describe Mutations::DeleteInternalSetting do
   let(:secret_internal_setting) { Setting.create!(name: "secret_setting_to_be_deleted", value: "supersecret", secret: true) }
   let(:sender) { site_admin_user }
 
+  before do
+    allow(LoadAccount).to receive(:from_host).and_return(Account.site_admin)
+  end
+
   def execute(setting: internal_setting, user_executing: sender)
     mutation_command = <<~GQL
       mutation {
@@ -85,6 +89,15 @@ describe Mutations::DeleteInternalSetting do
       it "fails with insufficient permissions" do
         result = execute(user_executing: account_admin_user)
         expect_error(result, "insufficient permission")
+      end
+    end
+
+    context "request is not on the site admin domain" do
+      it "fails with insufficient permissions" do
+        allow(LoadAccount).to receive(:from_host).and_return(Account.default)
+        result = execute
+        expect_error(result, "insufficient permission")
+        expect(Setting.find_by(id: internal_setting.id)).not_to be_nil
       end
     end
   end

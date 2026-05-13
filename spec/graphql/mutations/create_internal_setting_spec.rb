@@ -23,6 +23,10 @@ require_relative "../graphql_spec_helper"
 describe Mutations::CreateInternalSetting do
   let(:sender) { site_admin_user }
 
+  before do
+    allow(LoadAccount).to receive(:from_host).and_return(Account.site_admin)
+  end
+
   def execute(name, value, user_executing: sender)
     mutation_command = <<~GQL
       mutation {
@@ -73,6 +77,15 @@ describe Mutations::CreateInternalSetting do
       it "fails with insufficient permissions" do
         result = execute("sentry_disabled", "never! 👀", user_executing: account_admin_user)
         expect_error(result, "insufficient permission")
+      end
+    end
+
+    context "request is not on the site admin domain" do
+      it "fails with insufficient permissions" do
+        allow(LoadAccount).to receive(:from_host).and_return(Account.default)
+        result = execute("sentry_disabled", "never! 👀")
+        expect_error(result, "insufficient permission")
+        expect(Setting.find_by(name: "sentry_disabled")).to be_nil
       end
     end
   end

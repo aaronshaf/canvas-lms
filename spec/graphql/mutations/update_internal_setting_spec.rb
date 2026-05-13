@@ -25,6 +25,10 @@ describe Mutations::UpdateInternalSetting do
   let(:secret_internal_setting) { Setting.create!(name: "secret_setting_to_be_deleted", value: "supersecret", secret: true) }
   let(:sender) { site_admin_user }
 
+  before do
+    allow(LoadAccount).to receive(:from_host).and_return(Account.site_admin)
+  end
+
   def execute(value, setting: internal_setting, user_executing: sender)
     mutation_command = <<~GQL
       mutation {
@@ -98,6 +102,24 @@ describe Mutations::UpdateInternalSetting do
       it "fails with insufficient permissions" do
         result = execute("new_value", user_executing: account_admin_user)
         expect_error(result, "insufficient permission")
+      end
+    end
+
+    context "request is not on the site admin domain" do
+      it "fails with insufficient permissions" do
+        allow(LoadAccount).to receive(:from_host).and_return(Account.default)
+        result = execute("new_value")
+        expect_error(result, "insufficient permission")
+        expect(Setting.find(internal_setting.id).value).to eq "change me"
+      end
+
+      it "allows the update in development environments" do
+        allow(LoadAccount).to receive(:from_host).and_return(Account.default)
+        allow(Rails.env).to receive(:development?).and_return(true)
+        result = execute("new_value")
+        expect(result["errors"]).to be_nil
+        expect(result.dig("data", "updateInternalSetting", "errors")).to be_nil
+        expect(Setting.find(internal_setting.id).value).to eq "new_value"
       end
     end
   end

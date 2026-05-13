@@ -55,6 +55,15 @@ class Mutations::BaseMutation < GraphQL::Schema::Mutation
     raise GraphQL::ExecutionError, "not found" unless obj.grants_right?(current_user, session, perm)
   end
 
+  def on_site_admin_domain?
+    return true if Rails.env.development?
+
+    request = context[:request]
+    return false unless request
+
+    LoadAccount.from_host(request.host) == Account.site_admin
+  end
+
   def verify_any_authorized_actions!(obj, perms)
     raise GraphQL::ExecutionError, "not found" unless obj.grants_any_right?(current_user, session, *Array(perms))
   end
