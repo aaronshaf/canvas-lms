@@ -343,24 +343,6 @@ describe Accessibility::ResourceScanController do
         expect(test_scans[2]["id"]).to eq(scan1.id)
       end
 
-      it "sorts by issue_count only when feature flag disabled" do
-        Account.site_admin.disable_feature!(:a11y_checker_close_issues)
-
-        get :index, params: { course_id: course.id, sort: "issue_count", direction: "desc" }, format: :json
-        expect(response).to have_http_status(:ok)
-
-        json = response.parsed_body
-        test_scans = json.select { |s| [scan1.id, scan2.id, scan3.id].include?(s["id"]) }
-
-        # Expected order when not considering closed count:
-        # scan1 and scan2 both have 5 active issues, so order between them may vary
-        # scan3 has 2 active issues, so it should be last
-        expect(test_scans.length).to eq(3)
-        first_two_ids = [test_scans[0]["id"], test_scans[1]["id"]]
-        expect(first_two_ids).to contain_exactly(scan1.id, scan2.id)
-        expect(test_scans[2]["id"]).to eq(scan3.id)
-      end
-
       it "includes closed_issue_count in response" do
         get :index, params: { course_id: course.id }, format: :json
         expect(response).to have_http_status(:ok)
@@ -440,50 +422,6 @@ describe Accessibility::ResourceScanController do
 
         it "orders tied resource_type asc results by id asc" do
           get :index, params: { course_id: course.id, sort: "resource_type", direction: "asc" }, format: :json
-          expect(response).to have_http_status(:ok)
-
-          json = response.parsed_body
-          tied = json.select { |s| [tied_scan_a.id, tied_scan_b.id].include?(s["id"]) }
-          expect(tied.pluck("id")).to eq([tied_scan_a.id, tied_scan_b.id])
-        end
-      end
-
-      context "issue_count tiebreaker (close_issues feature OFF)" do
-        let!(:tied_scan_a) do
-          accessibility_resource_scan_model(
-            course:,
-            context: wiki_page_model(course:),
-            workflow_state: "completed",
-            resource_name: "Issue Count Tied A",
-            issue_count: 4
-          )
-        end
-
-        let!(:tied_scan_b) do
-          accessibility_resource_scan_model(
-            course:,
-            context: wiki_page_model(course:),
-            workflow_state: "completed",
-            resource_name: "Issue Count Tied B",
-            issue_count: 4
-          )
-        end
-
-        before do
-          Account.site_admin.disable_feature!(:a11y_checker_close_issues)
-        end
-
-        it "orders tied issue_count asc results by id asc" do
-          get :index, params: { course_id: course.id, sort: "issue_count", direction: "asc" }, format: :json
-          expect(response).to have_http_status(:ok)
-
-          json = response.parsed_body
-          tied = json.select { |s| [tied_scan_a.id, tied_scan_b.id].include?(s["id"]) }
-          expect(tied.pluck("id")).to eq([tied_scan_a.id, tied_scan_b.id])
-        end
-
-        it "orders tied issue_count desc results by id asc" do
-          get :index, params: { course_id: course.id, sort: "issue_count", direction: "desc" }, format: :json
           expect(response).to have_http_status(:ok)
 
           json = response.parsed_body

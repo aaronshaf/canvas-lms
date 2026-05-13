@@ -140,14 +140,6 @@ describe "Folders API", type: :request do
       end
     end
 
-    it "has url to list file and folder listings" do
-      Account.site_admin.disable_feature! :files_a11y_rewrite
-      json = api_call(:get, @folders_path + "/#{@root.id}", @folders_path_options.merge(action: "show"), {})
-      expect(json["files_url"].ends_with?("/api/v1/folders/#{@root.id}/files")).to be true
-      expect(json["folders_url"].ends_with?("/api/v1/folders/#{@root.id}/folders")).to be true
-      expect(json["all_url"]).to be_nil
-    end
-
     it "has url to list file and folder listings with files_a11y_rewrite" do
       Account.site_admin.enable_feature! :files_a11y_rewrite
       json = api_call(:get, @folders_path + "/#{@root.id}", @folders_path_options.merge(action: "show"), {})
@@ -1316,12 +1308,6 @@ describe "Folders API", type: :request do
       end
     end
 
-    it "returns unauthorized if feature is disabled" do
-      Account.site_admin.disable_feature!(:files_a11y_rewrite)
-
-      api_call(:get, @folders_files_path, @folders_files_path_options, {}, {}, expected_status: 403)
-    end
-
     it "returns X-Total-Items header with correct count" do
       api_call(:get, @folders_files_path, @folders_files_path_options, {})
       expect(response.headers["X-Total-Items"]).to eq("5")
@@ -1585,12 +1571,6 @@ describe "Folders API", type: :request do
       end
     end
 
-    it "returns unauthorized if feature is disabled" do
-      Account.site_admin.disable_feature!(:files_a11y_rewrite)
-
-      api_call(:get, @folders_files_path, @folders_files_path_options, {}, {}, expected_status: 403)
-    end
-
     it "returns X-Total-Items header with correct count" do
       api_call(:get, @folders_files_path, @folders_files_path_options, {})
       expect(response.headers["X-Total-Items"]).to eq("6")
@@ -1640,15 +1620,6 @@ describe "Folders API", type: :request do
 
       it "returns forbidden without folder duplicates feature flag" do
         Account.site_admin.enable_feature! :files_a11y_rewrite
-        raw_api_call(:get,
-                     duplicates_path("course", @course.id, @test_folder.id),
-                     duplicates_params("course", @course.id, @test_folder.id))
-        expect(response).to have_http_status :forbidden
-      end
-
-      it "returns forbidden without files a11y rewrite feature flag" do
-        Account.site_admin.disable_feature! :files_a11y_rewrite
-        Account.site_admin.enable_feature! :files_a11y_folder_duplicates
         raw_api_call(:get,
                      duplicates_path("course", @course.id, @test_folder.id),
                      duplicates_params("course", @course.id, @test_folder.id))

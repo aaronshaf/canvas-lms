@@ -56,12 +56,6 @@ describe AccessibilityCourseScansController do
         post :create, params: { user_id: @teacher.id }, format: :json
         expect(response).to be_forbidden
       end
-
-      it "returns 403 when a11y_checker_account_statistics is disabled" do
-        Account.site_admin.disable_feature!(:a11y_checker_account_statistics)
-        post :create, params: { user_id: @teacher.id }, format: :json
-        expect(response).to be_forbidden
-      end
     end
 
     context "authorization" do

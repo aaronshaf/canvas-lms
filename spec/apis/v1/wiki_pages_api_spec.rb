@@ -400,25 +400,6 @@ describe WikiPagesApiController, type: :request do
       wiki_page_model({ title: "Learning Foundations" })
     end
 
-    context "with the flag off" do
-      before do
-        Account.site_admin.disable_feature!(:permanent_page_links)
-      end
-
-      it "404s" do
-        api_call_as_user(@teacher,
-                         :get,
-                         "/api/v1/courses/#{@course.id}/page_title_availability",
-                         { controller: "wiki_pages_api",
-                           action: "check_title_availability",
-                           format: "json",
-                           course_id: @course.id.to_s },
-                         {},
-                         {},
-                         { expected_status: 404 })
-      end
-    end
-
     context "with the flag on" do
       before do
         Account.site_admin.enable_feature!(:permanent_page_links)

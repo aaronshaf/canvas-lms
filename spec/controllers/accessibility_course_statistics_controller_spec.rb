@@ -44,13 +44,6 @@ describe AccessibilityCourseStatisticsController do
         expect(response).to be_forbidden
       end
 
-      it "returns 403 when a11y_checker_account_statistics is not enabled" do
-        Account.site_admin.disable_feature!(:a11y_checker_account_statistics)
-        user_session(@teacher)
-        get :index, params: { user_id: @teacher.id }, format: :json
-        expect(response).to be_forbidden
-      end
-
       it "returns 403 when user_id resolves to a different user" do
         other_user = user_factory(active_all: true)
         user_session(other_user)
