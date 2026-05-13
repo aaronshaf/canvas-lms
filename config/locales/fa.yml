@@ -12474,6 +12474,7 @@ fa:
   he_him_99aea1a8: "او \"مرد\" / او \"مرد\""
   header_f28f73db: عنوان
   hebrew_88fbf778: عبری
+  hello_name_abc1a901: "سلام %{name},"
   hello_name_cabdd4ce: "سلام %{name}! "
   hello_name_your_outcomes_import_failed_due_to_an_e_385db5d3: |-
       سلام %{name}،
@@ -18893,6 +18894,10 @@ fa:
       email_sent: "نامه الکترونیکی تأیید به %{email} ارسال شد، حتما صندوق هرزنامه خود را بازبینی کنید"
       link_invalid: "پیوند مورد استفاده شما دیگر معتبر نیست. اگر نمی توانید وارد شوید، بر روی «رمز عبور خود را نمی دانید؟» کلیک کنید تا رمز عبور خود را باز نشانی کنید."
       password_changed: "رمز عبور تغییر یافت"
+    set_password: 
+      confirm_change_password: 
+        loading: "در حال بارگزاری..."
+      page_title: "تغییر رمز عبور"
   pseudonyms_mobile_login: 
     parent_signup: "ثبت نام والدین"
   pts_51d69f4a: امتیازها
