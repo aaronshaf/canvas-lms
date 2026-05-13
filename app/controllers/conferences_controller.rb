@@ -511,6 +511,11 @@ class ConferencesController < ApplicationController
 
   def delete_recording
     if authorized_action(@conference, @current_user, :delete)
+      # Recordings live on a shared BBB server, so a recording_id from
+      # another conference would otherwise be honored. Reject before
+      # forwarding the delete to BBB.
+      return render_unauthorized_action unless @conference.find_recording_for_conference(params[:recording_id])
+
       @response = @conference.delete_recording(params[:recording_id])
       respond_to do |format|
         format.html { redirect_to named_context_url(@context, :context_conferences_url) }

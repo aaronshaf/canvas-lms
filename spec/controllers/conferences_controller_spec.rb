@@ -561,6 +561,39 @@ describe ConferencesController do
     end
   end
 
+  describe "DELETE 'delete_recording'" do
+    before do
+      PluginSetting.create!(name: "big_blue_button",
+                            settings: {
+                              domain: "bbb.totallyanexampleplzdontcallthis.com",
+                              secret_dec: "secret",
+                            })
+      allow(BigBlueButtonConference).to receive(:send_request).and_return("")
+      user_session(@teacher)
+      @bbb = BigBlueButtonConference.create!(title: "my conference", user: @teacher, context: @course)
+    end
+
+    it "deletes the recording when it belongs to the conference" do
+      allow_any_instance_of(BigBlueButtonConference).to receive(:find_recording_for_conference)
+        .with("abc123-xyz").and_return({ recordID: "abc123-xyz" })
+      allow_any_instance_of(BigBlueButtonConference).to receive(:delete_recording)
+        .with("abc123-xyz").and_return({ deleted: true })
+
+      delete "delete_recording", params: { course_id: @course.id, conference_id: @bbb.id, recording_id: "abc123-xyz" }, format: :json
+      expect(response).to be_successful
+      expect(json_parse).to eq("deleted" => true)
+    end
+
+    it "returns 403 and does not call BBB when the recording belongs to a different conference" do
+      allow_any_instance_of(BigBlueButtonConference).to receive(:find_recording_for_conference)
+        .with("other-conf-recording").and_return(nil)
+      expect_any_instance_of(BigBlueButtonConference).not_to receive(:delete_recording)
+
+      delete "delete_recording", params: { course_id: @course.id, conference_id: @bbb.id, recording_id: "other-conf-recording" }, format: :json
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
+
   context "LTI conferences" do
     before(:once) do
       Account.site_admin.enable_feature! :conference_selection_lti_placement

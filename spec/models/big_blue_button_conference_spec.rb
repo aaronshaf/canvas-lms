@@ -348,6 +348,32 @@ describe BigBlueButtonConference do
       end
     end
 
+    describe "find_recording_for_conference" do
+      before(:once) do
+        @bbb = BigBlueButtonConference.new(user: user_factory, context: course_factory)
+        @bbb.conference_key = "test"
+        @bbb.settings[:admin_key] = "admin"
+        @bbb.settings[:user_key] = "user"
+        @bbb.save
+      end
+
+      it "returns the recording when it belongs to this conference" do
+        recording = { recordID: "abc123-xyz" }
+        allow(@bbb).to receive(:fetch_recordings).and_return([recording])
+        expect(@bbb.find_recording_for_conference("abc123-xyz")).to eq(recording)
+      end
+
+      it "returns nil when the recording belongs to another conference" do
+        allow(@bbb).to receive(:fetch_recordings).and_return([{ recordID: "abc123-xyz" }])
+        expect(@bbb.find_recording_for_conference("other-conf-recording")).to be_nil
+      end
+
+      it "returns nil for a nil recording_id" do
+        allow(@bbb).to receive(:fetch_recordings).and_return([{ recordID: "abc123-xyz" }])
+        expect(@bbb.find_recording_for_conference(nil)).to be_nil
+      end
+    end
+
     describe "recording preloading" do
       it "loads up all recordings in a single api call" do
         @bbb2 = BigBlueButtonConference.create!(context: @bbb.context, user: @bbb.user, user_settings: @bbb.user_settings)

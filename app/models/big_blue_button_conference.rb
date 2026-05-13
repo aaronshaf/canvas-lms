@@ -259,10 +259,14 @@ class BigBlueButtonConference < WebConference
   end
 
   def recording(recording_id = nil)
-    unless recording_id.nil?
-      recording = fetch_recordings.find { |r| r[:recordID] == recording_id }
-      recording_formats(recording) if recording
-    end
+    return if recording_id.nil?
+
+    recording = find_recording_for_conference(recording_id)
+    recording_formats(recording) if recording
+  end
+
+  def find_recording_for_conference(recording_id)
+    fetch_recordings.find { |r| r[:recordID] == recording_id }
   end
 
   def recording_formats(recording)
