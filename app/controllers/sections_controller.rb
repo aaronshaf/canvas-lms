@@ -196,9 +196,12 @@ class SectionsController < ApplicationController
   end
 
   def user_count
+    visible_sections = @context.sections_visible_to(@current_user, @context.course_sections.active)
+    return render_unauthorized_action unless visible_sections.exists?
+
     GuardRail.activate(:secondary) do
       # Limit 100 to avoid killing the servers, ppl should use search anyway with this amount of sections
-      sections = @context.course_sections.active.order(CourseSection.best_unicode_collation_key("name")).limit(100)
+      sections = visible_sections.order(CourseSection.best_unicode_collation_key("name")).limit(100)
       sections = sections.where("name ILIKE ?", "%#{params[:search]}%") if params[:search].present?
 
       if params[:exclude].present?

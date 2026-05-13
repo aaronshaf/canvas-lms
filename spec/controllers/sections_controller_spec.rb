@@ -89,6 +89,48 @@ describe SectionsController do
       expect(sec1["user_count"]).to eq(0)
       expect(sec2).to be_nil
     end
+
+    context "authorization" do
+      it "blocks an authenticated user with no roster access from reading section counts" do
+        unauthorized_user = user_with_pseudonym(active_all: true, name: "Unauthorized", username: "unauth-user-count@test.com")
+        user_session(unauthorized_user)
+
+        get "user_count", params: { course_id: @course.id }, format: :json
+
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "section-level visibility filtering for students" do
+      it "returns only sections the student is enrolled in" do
+        student = user_with_pseudonym(active_all: true, name: "Student", username: "student-visibility@test.com")
+        @section1.enroll_user(student, "StudentEnrollment", enrollment_state: "active")
+        user_session(student)
+
+        get "user_count", params: { course_id: @course.id }, format: :json
+
+        expect(response).to have_http_status(:ok)
+        returned_ids = response.parsed_body["sections"].pluck("id")
+        expect(returned_ids).to include(@section1.id)
+        expect(returned_ids).not_to include(@section2.id)
+      end
+    end
+
+    context "section-level visibility filtering for section-restricted TAs" do
+      it "returns only the sections the TA is enrolled in when restricted to their section" do
+        restricted_ta = user_with_pseudonym(active_all: true, name: "Restricted TA", username: "restricted-ta-user-count@test.com")
+        ta_enrollment = @section1.enroll_user(restricted_ta, "TaEnrollment", enrollment_state: "active")
+        ta_enrollment.update!(limit_privileges_to_course_section: true)
+        user_session(restricted_ta)
+
+        get "user_count", params: { course_id: @course.id }, format: :json
+
+        expect(response).to have_http_status(:ok)
+        returned_ids = response.parsed_body["sections"].pluck("id")
+        expect(returned_ids).to include(@section1.id)
+        expect(returned_ids).not_to include(@section2.id)
+      end
+    end
   end
 
   describe "GET users" do
