@@ -313,8 +313,7 @@ export function enhanceUserContent(container = document, opts = {}) {
       childLink.setAttribute('target', '_blank')
       childLink.setAttribute('rel', 'noreferrer noopener')
       const $linkSpan = document.createElement('span')
-      const $linkText = childLink.innerHTML
-      $linkSpan.innerHTML = $linkText
+      Array.from(childLink.childNodes).forEach(n => $linkSpan.appendChild(n.cloneNode(true)))
       while (childLink.firstChild) childLink.removeChild(childLink.firstChild)
       childLink.appendChild($linkSpan)
       const externalLinkIcon = makeExternalLinkIcon(childLink)

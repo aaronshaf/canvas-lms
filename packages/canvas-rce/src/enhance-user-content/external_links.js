@@ -71,8 +71,7 @@ export function makeAllExternalLinksExternalLinks() {
         $linkToReplace.setAttribute('target', '_blank')
         $linkToReplace.setAttribute('rel', 'noreferrer noopener')
         const $linkSpan = document.createElement('span')
-        const $linkText = $linkToReplace.innerHTML
-        $linkSpan.innerHTML = $linkText
+        Array.from($linkToReplace.childNodes).forEach(n => $linkSpan.appendChild(n.cloneNode(true)))
         while ($linkToReplace.firstChild) $linkToReplace.removeChild($linkToReplace.firstChild)
         $linkToReplace.appendChild($linkSpan)
         $linkToReplace.appendChild($linkIndicator)

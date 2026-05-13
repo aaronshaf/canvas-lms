@@ -405,6 +405,30 @@ describe('enhanceUserContent()', () => {
       expect(document.querySelector('a.external').getAttribute('target')).toEqual('_blank')
     })
 
+    it('preserves plain text link content in the wrapping span', () => {
+      subject('<a href="https://instructure.com/">plain text</a>')
+      enhanceUserContent()
+      const span = document.querySelector('a.external > span:not(.external_link_icon)')
+      expect(span).toBeInTheDocument()
+      expect(span.textContent).toEqual('plain text')
+    })
+
+    it('preserves nested element structure in the wrapping span', () => {
+      subject('<a href="https://instructure.com/"><em>italic</em> and <strong>bold</strong></a>')
+      enhanceUserContent()
+      const span = document.querySelector('a.external > span:not(.external_link_icon)')
+      expect(span.querySelector('em')).toBeInTheDocument()
+      expect(span.querySelector('strong')).toBeInTheDocument()
+      expect(span.textContent).toEqual('italic and bold')
+    })
+
+    it('preserves text with HTML special characters in the wrapping span', () => {
+      subject('<a href="https://instructure.com/">AT&amp;T &lt;demo&gt;</a>')
+      enhanceUserContent()
+      const span = document.querySelector('a.external > span:not(.external_link_icon)')
+      expect(span.textContent).toEqual('AT&T <demo>')
+    })
+
     it('adds .external to 3 new links while keeping existing ones', () => {
       subject(`
         <a id="link1" href="https://example.com" class="not_external">Not External</a>

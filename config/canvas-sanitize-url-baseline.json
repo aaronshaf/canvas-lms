@@ -61,6 +61,7 @@
     "ui/features/quiz_statistics/stores/reports.js",
     "ui/features/quizzes/jquery/quizzes.jsx",
     "ui/features/quizzes_index/backbone/views/IndexView.jsx",
+    "ui/features/registration/jquery/index.js",
     "ui/features/registration_confirmation/index.js",
     "ui/features/rubrics/queries/ViewRubricQueries.ts",
     "ui/features/rubrics_show/index.js",
