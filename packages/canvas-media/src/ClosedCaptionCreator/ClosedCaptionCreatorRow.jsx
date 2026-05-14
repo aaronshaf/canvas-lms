@@ -24,7 +24,6 @@ import {IconQuestionLine, IconTrashLine} from '@instructure/ui-icons'
 import {Text} from '@instructure/ui-text'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {View} from '@instructure/ui-view'
-import {css, StyleSheet} from 'aphrodite'
 import {arrayOf, bool, element, func, objectOf, oneOfType, shape, string} from 'prop-types'
 import React, {Component} from 'react'
 import formatMessage from '../format-message'
@@ -53,19 +52,6 @@ export default class ClosedCaptionCreatorRow extends Component {
     inheritedCaption: bool,
     mountNode: oneOfType([element, func]),
   }
-
-  styles = StyleSheet.create({
-    messageErrorContainer: {
-      position: 'relative',
-      minWidth: '350px',
-    },
-    messageErrorContent: {
-      marginTop: '0.5rem',
-      position: 'absolute',
-      botton: 0,
-      left: 0,
-    },
-  })
 
   constructor(props) {
     super(props)
@@ -209,8 +195,8 @@ export default class ClosedCaptionCreatorRow extends Component {
             </View>
           )}
           {!this.state.isValidCC && (
-            <View as="div" className={css(this.styles.messageErrorContainer)}>
-              <div className={css(this.styles.messageErrorContent)}>
+            <View as="div" style={{position: 'relative', minWidth: '350px'}}>
+              <div style={{marginTop: '0.5rem', position: 'absolute', left: 0}}>
                 <Text color="danger">{this.state.messageErrorCC}</Text>
                 <Alert
                   variant="error"
