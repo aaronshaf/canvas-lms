@@ -5,6 +5,7 @@ require:
   - outrigger/cops/migration/tagged
 
 plugins:
+  - rubocop-erb
   - rubocop-factory_bot
   - rubocop-graphql
   - rubocop-rails
