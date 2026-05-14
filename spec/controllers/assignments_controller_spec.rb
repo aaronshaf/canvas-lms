@@ -2033,13 +2033,6 @@ describe AssignmentsController do
           expect(assigns[:js_env][:rubric_association][:id]).to eq @assignment.rubric_association.id
         end
 
-        it "does not set assigned_rubric and rubric_association in the ENV when FF is OFF" do
-          Account.site_admin.disable_feature!(:enhanced_rubrics_assignments)
-          get :show, params: { course_id: @course.id, id: @assignment.id }
-          expect(assigns[:js_env][:assigned_rubric]).to be_nil
-          expect(assigns[:js_env][:rubric_association]).to be_nil
-        end
-
         it "sets assigned_rubric and rubric_association for external_tool assignments" do
           @course.context_external_tools.create!(
             shared_secret: "test_secret",
@@ -3375,13 +3368,6 @@ describe AssignmentsController do
         get "edit", params: { course_id: @course.id, id: @assignment.id }
         expect(assigns[:js_env][:NEW_QUIZZES_ASSIGNMENT_BUILD_BUTTON_ENABLED]).to be(true)
       end
-
-      it "sets NEW_QUIZZES_ASSIGNMENT_BUILD_BUTTON_ENABLED in js_env as false if disabled" do
-        user_session(@teacher)
-        Account.site_admin.disable_feature!(:new_quizzes_assignment_build_button)
-        get "edit", params: { course_id: @course.id, id: @assignment.id }
-        expect(assigns[:js_env][:NEW_QUIZZES_ASSIGNMENT_BUILD_BUTTON_ENABLED]).to be(false)
-      end
     end
 
     describe "js_env PEER_REVIEW_ALLOCATION_AND_GRADING_ENABLED" do
@@ -3406,13 +3392,6 @@ describe AssignmentsController do
         Account.site_admin.enable_feature!(:hide_zero_point_quizzes_option)
         get "edit", params: { course_id: @course.id, id: @assignment.id }
         expect(assigns[:js_env][:HIDE_ZERO_POINT_QUIZZES_OPTION_ENABLED]).to be(true)
-      end
-
-      it "sets HIDE_ZERO_POINT_QUIZZES_OPTION_ENABLED in js_env as false if disabled" do
-        user_session(@teacher)
-        Account.site_admin.disable_feature!(:hide_zero_point_quizzes_option)
-        get "edit", params: { course_id: @course.id, id: @assignment.id }
-        expect(assigns[:js_env][:HIDE_ZERO_POINT_QUIZZES_OPTION_ENABLED]).to be(false)
       end
     end
 
@@ -3495,22 +3474,6 @@ describe AssignmentsController do
         expect(assigns[:js_env][:assigned_rubric][:can_update]).to be_truthy
         expect(assigns[:js_env][:assigned_rubric][:association_count]).to eq 1
         expect(assigns[:js_env][:rubric_association][:id]).to eq @assignment.rubric_association.id
-      end
-
-      it "does not set assigned_rubric and rubric_association in the ENV when FF is OFF" do
-        allow_any_instance_of(Assignment).to receive(:quiz_lti?).and_return(true)
-        Account.site_admin.disable_feature!(:enhanced_rubrics_assignments)
-        get :edit, params: { course_id: @course.id, id: @assignment.id, quiz_lti: true }
-        expect(assigns[:js_env][:assigned_rubric]).to be_nil
-        expect(assigns[:js_env][:rubric_association]).to be_nil
-      end
-
-      it "does not set assigned_rubric and rubric_association in the ENV when FF is OFF and quiz_lti is false" do
-        allow_any_instance_of(Assignment).to receive(:quiz_lti?).and_return(false)
-        Account.site_admin.disable_feature!(:enhanced_rubrics_assignments)
-        get :edit, params: { course_id: @course.id, id: @assignment.id }
-        expect(assigns[:js_env][:assigned_rubric]).to be_nil
-        expect(assigns[:js_env][:rubric_association]).to be_nil
       end
     end
   end

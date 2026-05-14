@@ -1990,20 +1990,6 @@ describe AccountsController do
         course1 = courses.find { |c| c["id"] == @c1.id }
         expect(course1["accessibility_course_statistic"]).to be_nil
       end
-
-      it "does not include accessibility_course_statistic when a11y_checker_account_statistics is not enabled" do
-        Account.site_admin.disable_feature!(:a11y_checker_account_statistics)
-        admin_logged_in(@account)
-        AccessibilityCourseStatistic.create!(
-          course: @c1,
-          active_issue_count: 5,
-          workflow_state: "active"
-        )
-        get "courses_api", params: { account_id: @account.id, include: ["accessibility_course_statistic"] }
-
-        expect(response).to be_successful
-        expect(response.body).not_to match(/"accessibility_course_statistic"/)
-      end
     end
 
     it "sets pagination total_pages/last page link for session-authenticated requests" do

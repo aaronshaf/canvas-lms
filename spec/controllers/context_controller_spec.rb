@@ -368,13 +368,6 @@ describe ContextController do
         expect(assigns[:_crumbs]).to include([@student.short_name.to_s, "/courses/#{@course.id}/users/#{@student.id}", {}])
       end
 
-      it "does not assign messages if show_recent_messages_on_new_roster_user_page ff is disabled" do
-        user_session(@admin)
-        Account.site_admin.disable_feature!(:show_recent_messages_on_new_roster_user_page)
-        get "roster_user", params: { course_id: @course.id, id: @student.id }
-        expect(assigns[:messages]).to be_nil
-      end
-
       context "show_recent_messages_on_new_roster_user_page enabled" do
         before :once do
           Account.site_admin.enable_feature!(:show_recent_messages_on_new_roster_user_page)
