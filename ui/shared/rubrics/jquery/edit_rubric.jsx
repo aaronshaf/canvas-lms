@@ -71,7 +71,9 @@ const rubricEditing = {
       return
     }
     $('#add_criterion_container').remove()
-    $rubric.find('#add_criterion_holder').append($('<span/>').attr('id', 'add_criterion_container'))
+    const _critSpan = document.createElement('span')
+    _critSpan.id = 'add_criterion_container'
+    $rubric.find('#add_criterion_holder').get(0)?.appendChild(_critSpan)
     setTimeout(() => {
       render(
         <RubricAddCriterionPopover
