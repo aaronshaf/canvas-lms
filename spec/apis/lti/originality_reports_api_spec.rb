@@ -93,10 +93,9 @@ module Lti
         @assignment.tool_settings_tool = message_handler
         @assignment.save!
 
-        new_tool_proxy = tool_proxy.deep_clone
-        new_tool_proxy.update(guid: SecureRandom.uuid)
+        tool_proxy.update(guid: SecureRandom.uuid)
 
-        token = Lti::OAuth2::AccessToken.create_jwt(aud:, sub: new_tool_proxy.guid)
+        token = Lti::OAuth2::AccessToken.create_jwt(aud:, sub: tool_proxy.guid)
         other_helpers = { Authorization: "Bearer #{token}" }
         allow_any_instance_of(Lti::ToolProxy).to receive(:active_in_context?).and_return(true)
         get @endpoints[:show], headers: other_helpers
@@ -196,9 +195,8 @@ module Lti
         it "allows tool proxies with matching access" do
           @assignment.tool_settings_tool = message_handler
           @assignment.save!
-          new_tool_proxy = tool_proxy.deep_clone
-          new_tool_proxy.update(guid: SecureRandom.uuid)
-          token = Lti::OAuth2::AccessToken.create_jwt(aud:, sub: new_tool_proxy.guid)
+          tool_proxy.update(guid: SecureRandom.uuid)
+          token = Lti::OAuth2::AccessToken.create_jwt(aud:, sub: tool_proxy.guid)
           other_helpers = { Authorization: "Bearer #{token}" }
           allow_any_instance_of(Lti::ToolProxy).to receive(:active_in_context?).and_return(true)
           get @endpoints[:alt_show], headers: other_helpers
