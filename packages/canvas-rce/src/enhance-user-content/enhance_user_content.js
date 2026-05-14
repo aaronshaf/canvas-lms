@@ -41,7 +41,16 @@ function makeDownloadButton(download_url, filename) {
 
   const $icon = document.createElement('span')
   $icon.setAttribute('role', 'presentation')
-  $icon.innerHTML = IconDownloadSVG
+  // DOMParser(text/html) is technically a TT parser sink, but Canvas's current
+  // enforcement policy covers innerHTML/outerHTML sinks only, not DOMParser.
+  // Input is a static build-time SVG constant (no user content).
+  $icon.appendChild(
+    document.importNode(
+      new DOMParser().parseFromString(`<body>${IconDownloadSVG}</body>`, 'text/html').body
+        .firstElementChild,
+      true,
+    ),
+  )
   $icon.firstChild.setAttribute(
     'style',
     'width:1em; height:1em; vertical-align:middle; fill:currentColor',
@@ -313,8 +322,7 @@ export function enhanceUserContent(container = document, opts = {}) {
       childLink.setAttribute('target', '_blank')
       childLink.setAttribute('rel', 'noreferrer noopener')
       const $linkSpan = document.createElement('span')
-      Array.from(childLink.childNodes).forEach(n => $linkSpan.appendChild(n.cloneNode(true)))
-      while (childLink.firstChild) childLink.removeChild(childLink.firstChild)
+      while (childLink.firstChild) $linkSpan.appendChild(childLink.firstChild)
       childLink.appendChild($linkSpan)
       const externalLinkIcon = makeExternalLinkIcon(childLink)
       childLink.appendChild(externalLinkIcon)

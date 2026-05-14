@@ -171,11 +171,13 @@ export async function insertPlaceholder(
       overflow: 'hidden',
     } as CSSStyleDeclaration)
 
-    // Create the spinner
-    placeholderElem.innerHTML = spinnerSvg(
+    // Create the spinner — built via DOM APIs to avoid TT createHTML sinks
+    const spinnerNode = spinnerElement(
       placeholderInfo.type === 'inline' ? 'x-small' : 'medium',
       placeholderId + '-label',
+      editor.dom.doc,
     )
+    placeholderElem.appendChild(spinnerNode)
 
     const spinnerElem = placeholderElem.firstElementChild as SVGElement
     if (!spinnerElem) {
@@ -307,188 +309,91 @@ export type PlaceholderInfo = {
 
 let placeholderIdCounter = 0
 
-/**
- * A fully standalone version of InstUI <Spinner> that can be used inside TinyMCE's iframe without access to
- * Canvas's CSS or JS.
- */
-// language=html
-function spinnerSvg(size: 'x-small' | 'small' | 'medium' | 'large', labelId: string) {
-  const radius = (() => {
-    switch (size) {
-      case 'x-small':
-        return '0.5em'
-      case 'small':
-        return '1em'
-      case 'large':
-        return '2.25em'
-      default:
-        return '1.75em'
-    }
-  })()
-
-  return `
-  <span class="Spinner-root Spinner-default Spinner-${size}" role="presentation">
-		<svg class="Spinner-circle"
-		     role="img"
-		     focusable="false"
-		     aria-labelledby="${labelId}"
-		>
-			<style>
-				@keyframes Spinner-rotate {
-					to {
-						transform: rotate(360deg);
-					}
-				}
-				@keyframes Spinner-morph {
-					0% {
-						stroke-dashoffset: 190%;
-					}
-					50% {
-						stroke-dashoffset: 50%;
-						transform: rotate(90deg);
-					}
-					100% {
-						stroke-dashoffset: 190%;
-						transform: rotate(360deg);
-					}
-				}
-				.Spinner-root {
-					display: inline-block;
-					vertical-align: middle;
-					position: relative;
-					box-sizing: border-box;
-					overflow: hidden;
-					--Spinner-trackColor: #F2F4F4;
-					--Spinner-color: #2B7ABC;
-					--Spinner-xSmallSize: 1.5em;
-					--Spinner-xSmallBorderWidth: 0.25em;
-					--Spinner-smallSize: 3em;
-					--Spinner-smallBorderWidth: 0.375em;
-					--Spinner-mediumSize: 5em;
-					--Spinner-mediumBorderWidth: 0.5em;
-					--Spinner-largeSize: 7em;
-					--Spinner-largeBorderWidth: 0.75em;
-					--Spinner-inverseColor: #2B7ABC;
-				}
-
-				.Spinner-circleTrack {
-					stroke: var(--Spinner-trackColor);
-					
-					/* Give the track extra width per UI */
-					stroke-width: calc(var(--Spinner-trackWidth) + 4px);
-				}
-				
-				.Spinner-circleSpin {
-					stroke-width: var(--Spinner-trackWidth);
-				}
-
-				.Spinner-x-small {
-					width: var(--Spinner-xSmallSize);
-					height: var(--Spinner-xSmallSize);
-					
-					--Spinner-trackWidth:  var(--Spinner-xSmallBorderWidth);
-				}
-				.Spinner-x-small .Spinner-circle {
-					width: var(--Spinner-xSmallSize);
-					height: var(--Spinner-xSmallSize);
-				}
-				.Spinner-x-small .Spinner-circleSpin {
-					stroke-dasharray: 3em;
-					transform-origin: 50% 50%;
-				}
-
-				.Spinner-small {
-					width: var(--Spinner-smallSize);
-					height: var(--Spinner-smallSize);
-					--Spinner-trackWidth:  var(--Spinner-smallBorderWidth);
-				}
-				.Spinner-small .Spinner-circle {
-					width: var(--Spinner-smallSize);
-					height: var(--Spinner-smallSize);
-				}
-				.Spinner-small .Spinner-circleTrack,
-				.Spinner-small .Spinner-circleSpin {
-					stroke-dasharray: 6em;
-					transform-origin: 50% 50%;
-				}
-
-				.Spinner-medium {
-					width: var(--Spinner-mediumSize);
-					height: var(--Spinner-mediumSize);
-					
-					--Spinner-trackWidth:  var(--Spinner-mediumBorderWidth);
-				}
-				.Spinner-medium .Spinner-circle {
-					stroke-width: var(--Spinner-mediumBorderWidth);
-					width: var(--Spinner-mediumSize);
-					height: var(--Spinner-mediumSize);
-				}
-				.Spinner-medium .Spinner-circleSpin {
-					stroke-dasharray: 10.5em;
-					transform-origin: 50% 50%;
-				}
-
-				.Spinner-large {
-					width: var(--Spinner-largeSize);
-					height: var(--Spinner-largeSize);
-					
-					--Spinner-trackWidth:  var(--Spinner-largeBorderWidth);
-				}
-				.Spinner-large .Spinner-circle {
-					stroke-width: var(--Spinner-largeBorderWidth);
-					width: var(--Spinner-largeSize);
-					height: var(--Spinner-largeSize);
-				}
-				.Spinner-large .Spinner-circleSpin {
-					stroke-dasharray: 14em;
-					transform-origin: 50% 50%;
-				}
-
-				.Spinner-circle {
-					display: block;
-					position: absolute;
-					top: 0;
-					left: 0;
-					/* stylelint-disable-line property-blacklist */
-					animation-name: Spinner-rotate;
-					animation-duration: 2.25s;
-					animation-iteration-count: infinite;
-					animation-timing-function: linear;
-				}
-
-				.Spinner-circleTrack,
-				.Spinner-circleSpin {
-					fill: none;
-				}
-
-				.Spinner-circleSpin {
-					stroke-linecap: round;
-				}
-
-				.Spinner-root:not(.ie11) .Spinner-circleSpin {
-					animation-name: Spinner-morph;
-					animation-duration: 1.75s;
-					animation-iteration-count: infinite;
-					animation-timing-function: ease;
-				}
-
-				.Spinner-root.ie11 .Spinner-circleSpin {
-					stroke-dashoffset: 100%;
-				}
-
-				.Spinner-default .Spinner-circleSpin {
-					stroke: var(--Spinner-color);
-				}
-
-				.Spinner-inverse .Spinner-circleSpin {
-					stroke: var(--Spinner-inverseColor);
-				}
-			</style>
-			<g role="presentation">
-				<circle class="Spinner-circleTrack" cx="50%" cy="50%" r="${radius}"></circle>
-				<circle class="Spinner-circleSpin" cx="50%" cy="50%" r="${radius}"></circle>
-			</g>
-		</svg>
-  </span>
+const SPINNER_CSS = `
+@keyframes Spinner-rotate { to { transform: rotate(360deg); } }
+@keyframes Spinner-morph {
+  0%   { stroke-dashoffset: 190%; }
+  50%  { stroke-dashoffset: 50%; transform: rotate(90deg); }
+  100% { stroke-dashoffset: 190%; transform: rotate(360deg); }
+}
+.Spinner-root {
+  display: inline-block; vertical-align: middle; position: relative;
+  box-sizing: border-box; overflow: hidden;
+  --Spinner-trackColor: #F2F4F4; --Spinner-color: #2B7ABC;
+  --Spinner-xSmallSize: 1.5em;   --Spinner-xSmallBorderWidth: 0.25em;
+  --Spinner-smallSize: 3em;      --Spinner-smallBorderWidth: 0.375em;
+  --Spinner-mediumSize: 5em;     --Spinner-mediumBorderWidth: 0.5em;
+  --Spinner-largeSize: 7em;      --Spinner-largeBorderWidth: 0.75em;
+  --Spinner-inverseColor: #2B7ABC;
+}
+.Spinner-circleTrack { stroke: var(--Spinner-trackColor); stroke-width: calc(var(--Spinner-trackWidth) + 4px); }
+.Spinner-circleSpin  { stroke-width: var(--Spinner-trackWidth); }
+.Spinner-x-small { width: var(--Spinner-xSmallSize); height: var(--Spinner-xSmallSize); --Spinner-trackWidth: var(--Spinner-xSmallBorderWidth); }
+.Spinner-x-small .Spinner-circle { width: var(--Spinner-xSmallSize); height: var(--Spinner-xSmallSize); }
+.Spinner-x-small .Spinner-circleSpin { stroke-dasharray: 3em; transform-origin: 50% 50%; }
+.Spinner-small { width: var(--Spinner-smallSize); height: var(--Spinner-smallSize); --Spinner-trackWidth: var(--Spinner-smallBorderWidth); }
+.Spinner-small .Spinner-circle { width: var(--Spinner-smallSize); height: var(--Spinner-smallSize); }
+.Spinner-small .Spinner-circleTrack, .Spinner-small .Spinner-circleSpin { stroke-dasharray: 6em; transform-origin: 50% 50%; }
+.Spinner-medium { width: var(--Spinner-mediumSize); height: var(--Spinner-mediumSize); --Spinner-trackWidth: var(--Spinner-mediumBorderWidth); }
+.Spinner-medium .Spinner-circle { stroke-width: var(--Spinner-mediumBorderWidth); width: var(--Spinner-mediumSize); height: var(--Spinner-mediumSize); }
+.Spinner-medium .Spinner-circleSpin { stroke-dasharray: 10.5em; transform-origin: 50% 50%; }
+.Spinner-large { width: var(--Spinner-largeSize); height: var(--Spinner-largeSize); --Spinner-trackWidth: var(--Spinner-largeBorderWidth); }
+.Spinner-large .Spinner-circle { stroke-width: var(--Spinner-largeBorderWidth); width: var(--Spinner-largeSize); height: var(--Spinner-largeSize); }
+.Spinner-large .Spinner-circleSpin { stroke-dasharray: 14em; transform-origin: 50% 50%; }
+.Spinner-circle { display: block; position: absolute; top: 0; left: 0; animation-name: Spinner-rotate; animation-duration: 2.25s; animation-iteration-count: infinite; animation-timing-function: linear; }
+.Spinner-circleTrack, .Spinner-circleSpin { fill: none; }
+.Spinner-circleSpin { stroke-linecap: round; }
+.Spinner-root:not(.ie11) .Spinner-circleSpin { animation-name: Spinner-morph; animation-duration: 1.75s; animation-iteration-count: infinite; animation-timing-function: ease; }
+.Spinner-root.ie11 .Spinner-circleSpin { stroke-dashoffset: 100%; }
+.Spinner-default .Spinner-circleSpin { stroke: var(--Spinner-color); }
+.Spinner-inverse .Spinner-circleSpin { stroke: var(--Spinner-inverseColor); }
 `
+
+/**
+ * A fully standalone version of InstUI <Spinner> built via DOM APIs.
+ * Returns a DOM node — no innerHTML or DOMParser (both are TT sinks).
+ */
+function spinnerElement(
+  size: 'x-small' | 'small' | 'medium' | 'large',
+  labelId: string,
+  doc: Document = document,
+): Element {
+  const SVG_NS = 'http://www.w3.org/2000/svg'
+  const radius =
+    size === 'x-small' ? '0.5em' : size === 'small' ? '1em' : size === 'large' ? '2.25em' : '1.75em'
+
+  const span = doc.createElement('span')
+  span.className = `Spinner-root Spinner-default Spinner-${size}`
+  span.setAttribute('role', 'presentation')
+
+  const svg = doc.createElementNS(SVG_NS, 'svg')
+  svg.setAttribute('class', 'Spinner-circle')
+  svg.setAttribute('role', 'img')
+  svg.setAttribute('focusable', 'false')
+  svg.setAttribute('aria-labelledby', labelId)
+
+  const style = doc.createElementNS(SVG_NS, 'style')
+  style.textContent = SPINNER_CSS
+
+  const g = doc.createElementNS(SVG_NS, 'g')
+  g.setAttribute('role', 'presentation')
+
+  const track = doc.createElementNS(SVG_NS, 'circle')
+  track.setAttribute('class', 'Spinner-circleTrack')
+  track.setAttribute('cx', '50%')
+  track.setAttribute('cy', '50%')
+  track.setAttribute('r', radius)
+
+  const spin = doc.createElementNS(SVG_NS, 'circle')
+  spin.setAttribute('class', 'Spinner-circleSpin')
+  spin.setAttribute('cx', '50%')
+  spin.setAttribute('cy', '50%')
+  spin.setAttribute('r', radius)
+
+  g.appendChild(track)
+  g.appendChild(spin)
+  svg.appendChild(style)
+  svg.appendChild(g)
+  span.appendChild(svg)
+  return span
 }

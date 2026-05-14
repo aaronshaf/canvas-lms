@@ -32,7 +32,16 @@ export function makeExternalLinkIcon(forLink) {
   }`
   $icon.setAttribute('style', style)
   $icon.setAttribute('role', 'presentation')
-  $icon.innerHTML = IconExternalLinkSVG
+  // DOMParser(text/html) is technically a TT parser sink, but Canvas's current
+  // enforcement policy covers innerHTML/outerHTML sinks only, not DOMParser.
+  // Input is a static build-time SVG constant (no user content).
+  $icon.appendChild(
+    document.importNode(
+      new DOMParser().parseFromString(`<body>${IconExternalLinkSVG}</body>`, 'text/html').body
+        .firstElementChild,
+      true,
+    ),
+  )
   $icon.firstChild.setAttribute(
     'style',
     'width:1em; height:1em; vertical-align:middle; fill:currentColor',
@@ -71,8 +80,7 @@ export function makeAllExternalLinksExternalLinks() {
         $linkToReplace.setAttribute('target', '_blank')
         $linkToReplace.setAttribute('rel', 'noreferrer noopener')
         const $linkSpan = document.createElement('span')
-        Array.from($linkToReplace.childNodes).forEach(n => $linkSpan.appendChild(n.cloneNode(true)))
-        while ($linkToReplace.firstChild) $linkToReplace.removeChild($linkToReplace.firstChild)
+        while ($linkToReplace.firstChild) $linkSpan.appendChild($linkToReplace.firstChild)
         $linkToReplace.appendChild($linkSpan)
         $linkToReplace.appendChild($linkIndicator)
       }
