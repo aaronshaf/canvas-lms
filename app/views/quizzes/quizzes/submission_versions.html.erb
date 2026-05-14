@@ -34,7 +34,7 @@
 
       <tbody>
         <% if @versions.size > 1 %>
-          <% version, index = @versions.reverse.each_with_index.detect {|k, v| k.score == @submission.kept_score } %>
+          <% version, index = @versions.reverse.each_with_index.detect {|k, _| k.score == @submission.kept_score } %>
           <% if version %>
             <%= render :partial => "submission_version", :locals => {:version => version, :index => @versions.length - index, :kept => true} %>
           <% end %>

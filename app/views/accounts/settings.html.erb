@@ -913,7 +913,7 @@
           <% end %>
 
           <%= f.fields_for :services do |services| %>
-            <% Account.services_exposed_to_ui_hash(:setting, @current_user, @account).sort_by { |k,h| Canvas::ICU.collation_key(h[:name]) }.each do |key, service| %>
+            <% Account.services_exposed_to_ui_hash(:setting, @current_user, @account).sort_by { |_, h| Canvas::ICU.collation_key(h[:name]) }.each do |key, service| %>
               <div>
                 <%= services.check_box key, :checked => @account.service_enabled?(key) %>
                 <%= services.label key, service[:name] + " " %>
@@ -1079,7 +1079,7 @@
             <h2 class="screenreader-only"><%= t('Enabled Web Services') %></h2>
             <legend><%= t('Enabled Web Services') %></legend>
             <%= f.fields_for :services do |services| %>
-              <% exposed_services.sort_by { |k,h| Canvas::ICU.collation_key(h[:name]) }.each do |key, service| %>
+              <% exposed_services.sort_by { |_, h| Canvas::ICU.collation_key(h[:name]) }.each do |key, service| %>
                 <div>
                   <%= services.check_box key, :checked => @account.service_enabled?(key) %>
                   <%= services.label key, service[:name] + " " %>

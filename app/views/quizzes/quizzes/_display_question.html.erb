@@ -64,7 +64,7 @@
   partial_credit = user_answer && hash_get(user_answer, :correct) == 'partial'
   if question_type.display_answers == "multiple" && hash_get(question, :question_type) != "missing_word_question"
     right_answers = hash_get(question, :answers, {})
-    right_answers = (hash_get(question, :matches) || hash_get(question, :answers).sort_by{|a| rand }) if question_type.entry_type == "matching" rescue {}
+    right_answers = (hash_get(question, :matches) || hash_get(question, :answers).sort_by{ rand }) if question_type.entry_type == "matching" rescue {}
   end
   object_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_content") &&
                      !!js_env.dig(:MASTER_COURSE_DATA, "restricted_by_master_course")

@@ -18,7 +18,7 @@
 
 <%
   @external_integration_keys ||= {}
-  external_integration_keys = @external_integration_keys.select { |key_type, key| key.grants_any_right?(@current_user, :read, :write) }
+  external_integration_keys = @external_integration_keys.select { |_key_type, key| key.grants_any_right?(@current_user, :read, :write) }
 %>
 <% unless external_integration_keys.empty? %>
   <fieldset id="external_integration_keys">

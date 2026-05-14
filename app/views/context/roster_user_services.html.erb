@@ -27,7 +27,7 @@
   <h2><%= t('headings.service_types', %{Service Types}) %></h2>
   <div>
     <ul class="service_types">
-    <% @services_hash.sort_by{|t, s| UserService.sort_position(t) }.each do |service_type, services| %>
+    <% @services_hash.sort_by{|t, _| UserService.sort_position(t) }.each do |service_type, services| %>
       <li>
         <%= image_tag "#{service_type}_icon.png", :alt => "" %>
         <a href="#service_<%= service_type %>"><%= service_type.titleize %></a>
@@ -100,7 +100,7 @@
   </p>
 <% end %>
 
-<% @services_hash.sort_by{|t, s| UserService.sort_position(t) }.each do |service_type, services| %>
+<% @services_hash.sort_by{|t, _| UserService.sort_position(t) }.each do |service_type, services| %>
 <% service_example = services.first %>
 <a name="service_<%= service_type %>"></a>
 <h2 class="service_type"><%= image_tag "#{service_type}_icon.png", :alt => "" %><%= service_type.titleize %></h2>
