@@ -155,7 +155,9 @@ export function selectMenuAccessibilityFixes(container: JQuery) {
 export function replaceDropdownIcon(container: JQuery) {
   const $span = $(container).find('span.ui-selectmenu-icon')
   $span.removeClass('ui-icon')
-  $("<i class='icon-mini-arrow-down'></i>").appendTo($span)
+  const _arrow = document.createElement('i')
+  _arrow.className = 'icon-mini-arrow-down'
+  $span.get(0)?.appendChild(_arrow)
 }
 
 export default class SpeedgraderSelectMenu {

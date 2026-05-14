@@ -660,36 +660,40 @@ export function initDropdown() {
     const $menu = $('#section-menu')
 
     if (ENV.multiselect_filters_enabled) {
-      $menu
-        .find('ul')
-        .append(
-          $.map(window.jsonData.context.active_course_sections, section => {
-            const $li = $('<li>')
-            const $div = $('<div>', {class: 'sg-sections-menu-item'})
+      const _ul = $menu.find('ul').get(0)
+      if (_ul) {
+        window.jsonData.context.active_course_sections.forEach(
+          (section: {id: string; name: string}) => {
+            const _li = document.createElement('li')
+            const _div = document.createElement('div')
+            _div.className = 'sg-sections-menu-item'
 
-            const $input = $('<input>', {
-              id: `section_box_${section.id}`,
-              type: 'checkbox',
-              'data-section-id': section.id,
-            })
+            const _input = document.createElement('input')
+            _input.id = `section_box_${section.id}`
+            _input.type = 'checkbox'
+            _input.setAttribute('data-section-id', section.id)
 
-            const $link = $('<a>', {
-              class: `section_${section.id}`,
-              'data-section-id': section.id,
-              href: '#',
-            }).text(section.name)
+            const _a = document.createElement('a')
+            _a.className = `section_${section.id}`
+            _a.setAttribute('data-section-id', section.id)
+            _a.href = '#'
+            _a.textContent = section.name
 
-            $div.append($input, $link)
-            $li.append($div)
-
-            return $li
-          }),
+            _div.appendChild(_input)
+            _div.appendChild(_a)
+            _li.appendChild(_div)
+            _ul.appendChild(_li)
+          },
         )
-        .append(
-          $('<li>', {class: 'ui-menu-item', id: 'sg-section-filter-apply-container'}).append(
-            $('<button>', {text: I18n.t('Apply')}),
-          ),
-        )
+
+        const _applyLi = document.createElement('li')
+        _applyLi.className = 'ui-menu-item'
+        _applyLi.id = 'sg-section-filter-apply-container'
+        const _applyBtn = document.createElement('button')
+        _applyBtn.textContent = I18n.t('Apply')
+        _applyLi.appendChild(_applyBtn)
+        _ul.appendChild(_applyLi)
+      }
 
       $menu
         .insertBefore($selectmenu_list)
@@ -785,13 +789,14 @@ export function initDropdown() {
     } else {
       $menu.find('ul').append(
         $.map(window.jsonData.context.active_course_sections, section => {
-          return $('<li>').append(
-            $('<a>', {
-              class: `section_${section.id}`,
-              'data-section-id': section.id,
-              href: '#',
-            }).text(section.name),
-          )
+          const _li = document.createElement('li')
+          const _a = document.createElement('a')
+          _a.className = `section_${section.id}`
+          _a.setAttribute('data-section-id', section.id)
+          _a.href = '#'
+          _a.textContent = section.name
+          _li.appendChild(_a)
+          return _li
         }),
       )
 
@@ -2505,18 +2510,17 @@ EG = {
   }) {
     const {status, similarity_score} = plagiarismAsset
 
-    const $indicator =
-      reportUrl != null ? $('<a />').attr('href', sanitizeUrl(reportUrl)) : $('<span />')
-    $indicator
-      .attr('title', String(tooltip))
-      .addClass('similarity_score_container')
-      .append($(similarityIcon(plagiarismAsset)))
+    const _indEl = reportUrl != null ? document.createElement('a') : document.createElement('span')
+    if (reportUrl != null) (_indEl as HTMLAnchorElement).href = sanitizeUrl(reportUrl)
+    _indEl.title = String(tooltip)
+    _indEl.className = 'similarity_score_container'
+    const $indicator = $(_indEl).append($(similarityIcon(plagiarismAsset)))
 
     if (status === 'scored') {
-      const $similarityScore = $('<span />')
-        .addClass('turnitin_similarity_score')
-        .text(`${similarity_score}%`)
-      $indicator.append($similarityScore)
+      const _scoreSpan = document.createElement('span')
+      _scoreSpan.className = 'turnitin_similarity_score'
+      _scoreSpan.textContent = `${similarity_score}%`
+      $indicator.get(0)?.appendChild(_scoreSpan)
     }
 
     return $indicator
@@ -3881,11 +3885,13 @@ EG = {
       commentElement.find('.edit_comment_link').remove()
     }
 
-    const formattedComment = containsHtmlTags(comment.comment)
-      ? sanitizeHTML(comment.comment)
-      : formatMessage(comment.comment)
-    // xsslint safeString.identifier formattedComment
-    commentElement.find('span.comment').html(formattedComment)
+    commentElement
+      .find('span.comment')
+      .html(
+        sanitizeHTML(
+          containsHtmlTags(comment.comment) ? comment.comment : formatMessage(comment.comment),
+        ),
+      )
 
     deleteCommentLinkText = I18n.t('Delete comment: %{commentText}', {commentText: spokenComment})
     commentElement.find('.delete_comment_link').attr('role', 'button')

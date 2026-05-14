@@ -289,20 +289,19 @@ function refreshEventHandlers(): void {
 function showErrorMessage(selector: JQuery, message: string): void {
   let errorContainer = selector.find('.error-message')
   if (errorContainer.length) return
-  errorContainer = $('<div />', {
-    class: 'error-message',
-    tabindex: '-1',
-  }).appendTo(selector)
-  $('<i />', {
-    class: 'icon-warning icon-Solid',
-  }).appendTo(errorContainer)
-  $('<span />', {
-    role: 'alert',
-    'aria-live': 'polite',
-    tabindex: '-1',
-  })
-    .text(message)
-    .appendTo(errorContainer)
+  const _errDiv = document.createElement('div')
+  _errDiv.className = 'error-message'
+  _errDiv.setAttribute('tabindex', '-1')
+  errorContainer = $(_errDiv).appendTo(selector)
+  const _warnI = document.createElement('i')
+  _warnI.className = 'icon-warning icon-Solid'
+  errorContainer.get(0)?.appendChild(_warnI)
+  const _alertSpan = document.createElement('span')
+  _alertSpan.setAttribute('role', 'alert')
+  _alertSpan.setAttribute('aria-live', 'polite')
+  _alertSpan.setAttribute('tabindex', '-1')
+  _alertSpan.textContent = message
+  errorContainer.get(0)?.appendChild(_alertSpan)
   selector.find('textarea').addClass('error-textarea')
   selector.find('.error-textarea').next('span').css('border-color', colors.ui.surfaceError)
 }
@@ -370,9 +369,9 @@ export function setup(): void {
     const comments = document.getElementsByClassName('comment_content')
     Array.from(comments).forEach(comment => {
       const content = comment instanceof HTMLElement ? (comment.dataset.content ?? '') : ''
-      const formattedComment = containsHtmlTags(content)
-        ? sanitizeHTML(content)
-        : formatMessage(content)
+      const formattedComment = sanitizeHTML(
+        containsHtmlTags(content) ? content : formatMessage(content),
+      )
       if (comment instanceof HTMLElement) {
         comment.innerHTML = formattedComment
       }
