@@ -438,13 +438,17 @@ export default class WikiPageEditView extends ValidatedFormView {
       if (existingError.length) {
         existingError.show()
       } else {
-        $('<span>', {
-          id: 'wiki_page_body_error',
-          class: 'ic-Form-message ic-Form-message--error',
-          role: 'alert',
-          'aria-live': 'assertive',
-        })
-          .append($('<i>', {class: 'icon-warning icon-Solid'}))
+        ;(() => {
+          const _errSpan = document.createElement('span')
+          _errSpan.id = 'wiki_page_body_error'
+          _errSpan.className = 'ic-Form-message ic-Form-message--error'
+          _errSpan.setAttribute('role', 'alert')
+          _errSpan.setAttribute('aria-live', 'assertive')
+          const _iconEl = document.createElement('i')
+          _iconEl.className = 'icon-warning icon-Solid'
+          // oxlint-disable-next-line canvas-xss/no-unsafe-html -- both operands are createElement nodes, no user input
+          return $(_errSpan).append(_iconEl)
+        })()
           .append(document.createTextNode(' ' + error.message))
           .hide()
           .insertBefore('#wiki_page_body_statusbar')
