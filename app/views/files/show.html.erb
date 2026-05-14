@@ -66,7 +66,7 @@
     </iframe>
   <% elsif @attachment.content_type && @attachment.content_type.start_with?('image/') %>
     <%= link_to(image_tag(download_url, :alt => @attachment.display_name), download_url) %>
-  <% elsif @attachment.content_type && @attachment.content_type.match(/\Avideo\/|audio\//) %>
+  <% elsif @attachment.content_type && @attachment.content_type.match(%r{\Avideo/|audio/}) %>
     <% js_bundle :file_preview %>
     <div id="media_preview" <%= media_preview_attributes(@attachment) %>></div>
   <% else %>

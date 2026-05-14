@@ -1,4 +1,4 @@
-<% presenter = ::Messages::AssignmentSubmittedLate::EmailPresenter.new(self) %>
+<% presenter = Messages::AssignmentSubmittedLate::EmailPresenter.new(self) %>
 
 <% define_content :link do %>
   <%= presenter.link %>

@@ -283,8 +283,9 @@
             </span>
             <div style="float: <%= direction('right') %>; font-size: 0.8em; color: #aaa; margin-<%= direction('right') %>: 20px; margin-top: 0.5em;"><%= datetime_string(submission.submitted_at || submission.updated_at) %></div>
             <div style="font-size: 0.8em; color #aaa; margin-<%= direction('left') %>: 20px;">
-              <%= t(:attachment_count, { :one => "1 Attachment", :other => "%{count} Attachments" },
-                    :count => submission.attachments.size) unless submission.attachments.empty? %></div>
+              <%= unless submission.attachments.empty?
+                    t(:attachment_count, { :one => "1 Attachment", :other => "%{count} Attachments" }, :count => submission.attachments.size)
+                  end %></div>
             <div class="clear"></div>
           </li>
         <% end %>

@@ -61,7 +61,7 @@
         <div class="hide_when_learning_outcome <%= range_rating_visible ? '' : 'hidden' %>">
           <div class="criterion_use_range_div editing toggle_for_hide_points <%= rubric_association&.hide_points ? 'hidden' : '' %>">
             <label class="criterion_range_label" aria-label="<%= t 'Range' %>">
-              <input type="checkbox" class="criterion_use_range" <%= 'checked' if (criterion.try(:criterion_use_range) && range_rating_enabled) %>/>
+              <input type="checkbox" class="criterion_use_range" <%= 'checked' if criterion.try(:criterion_use_range) && range_rating_enabled %>/>
               <span aria-hidden="true">
                 <%= t 'Range' %>
               </span>
@@ -74,7 +74,7 @@
         <% if !learning_outcome_criterion %>
           <a href="#" class="edit_criterion_link" role="button"><i class="icon-edit standalone-icon"></i><span class="screenreader-only"><%= t 'Edit criterion description' %></span></a>
         <% end %>
-        <% if should_show_delete || rubric == nil %>
+        <% if should_show_delete || rubric.nil? %>
           <a href="#" class="delete_criterion_link" role="button"><i class="icon-trash standalone-icon"></i><span class="screenreader-only"><%= t 'Delete criterion row' %></span></a>
         <% end %>
       </div>
@@ -129,7 +129,7 @@
                 <span role="text" class="rating-content-wrapper">
                   <span class="nobr toggle_for_hide_points <%= rubric_association&.hide_points(@current_user) ? 'hidden' : '' %>">
                     <span class="points"><%= n(round_if_whole(rating.points)) %></span>
-                    <span class="range_rating" style="<%= hidden if !use_range %>"><%= t('to') %> ><span class="min_points"><%= n(rating_min) %></span></span> <%= t('pts') %>
+                    <span class="range_rating" style="<%= hidden unless use_range %>"><%= t('to') %> ><span class="min_points"><%= n(rating_min) %></span></span> <%= t('pts') %>
                   </span>
                   <span class="description rating_description_value"><%= rating.description %></span>
                   <span class="rating_long_description small_description"><%= rating.long_description %></span>

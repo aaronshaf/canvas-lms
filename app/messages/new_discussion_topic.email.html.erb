@@ -21,8 +21,8 @@
 <% else %>
   <%= html_to_simple_html(asset.message,
   :base_url => dashboard_url,
-  :tags => ['tr', 'td', 'table', 'tbody', 'caption'],
-  :attributes => { 'table' => [ 'border', 'style', 'cellspacing', 'cellpadding' ] }) %>
+  :tags => %w[tr td table tbody caption],
+  :attributes => { 'table' => %w[border style cellspacing cellpadding] }) %>
 <% end %>
 
 <% if asset.attachment %>

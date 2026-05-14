@@ -877,7 +877,7 @@
       <% end %>
     </ul>
     <%= form_for :course_section, :url => "", :html => {:id => "edit_section_form", :method => :put, :style => "display: none;"} do |f| %>
-      <%= f.text_field :name, :id => "course_section_name_edit", :'aria-label' => t('buttons.edit_section_name', "Edit section name") %>
+      <%= f.text_field :name, :id => "course_section_name_edit", :"aria-label" => t('buttons.edit_section_name', "Edit section name") %>
     <% end %>
   </div>
   <% if @context.account.feature_enabled?(:intelligent_insights_modernisation) %>

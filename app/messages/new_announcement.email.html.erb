@@ -14,9 +14,9 @@
 
 <%= html_to_simple_html(asset.message,
       :base_url => dashboard_url,
-      :tags => ['tr', 'td', 'table', 'tbody', 'caption', 'span'],
+      :tags => %w[tr td table tbody caption span],
       :attributes => {
-        'table' => [ 'border', 'style', 'cellspacing', 'cellpadding' ],
+        'table' => %w[border style cellspacing cellpadding],
         'span' => ['style']
       }) %>
 

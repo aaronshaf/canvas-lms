@@ -70,11 +70,13 @@
                                                         end_tooltip: t('titles.term_ends', "Term ends"), whenever: [true, true] } %>
       </tr>
     <% types.each_with_index do |type, idx| %>
-      <% override = term.enrollment_dates_overrides.detect{|edo|
-           edo.context_type == @context.class.to_s &&
+      <% if term
+           override = term.enrollment_dates_overrides.detect{|edo|
+             edo.context_type == @context.class.to_s &&
              edo.context_id == @context.id &&
              edo.enrollment_type == type.to_s
-         } if term %>
+           }
+         end %>
       <% override ||= EnrollmentDatesOverride.new %>
       <% type_string = type.to_s.underscore %>
       <% start_whenever = true %>

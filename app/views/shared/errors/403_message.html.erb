@@ -17,7 +17,7 @@
 %>
 
 <%
-  self.instance_variables.each do |name|
+  instance_variables.each do |name|
     if name.start_with?("@content_for")
       instance_variable_set(name, nil)
     end

@@ -139,7 +139,7 @@
           <% end %>
         <% if can_do(@submission, @current_user, :view_turnitin_report) %>
           <% if (turnitin_score = @submission.turnitin_data[@submission.asset_string]) &&
-            @submission.turnitin_data[:provider] == nil && turnitin_score[:similarity_score] %>
+            @submission.turnitin_data[:provider].nil? && turnitin_score[:similarity_score] %>
             <% if show_updated_plagiarism_icons %>
               <%=
                 render partial: 'shared/originality_score_icon', locals: {

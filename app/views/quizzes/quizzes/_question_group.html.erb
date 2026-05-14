@@ -31,7 +31,7 @@
   content_is_locked = object_is_locked && js_env.dig(:MASTER_COURSE_DATA, "master_course_restrictions", :content)
   points_are_locked = object_is_locked && js_env.dig(:MASTER_COURSE_DATA, "master_course_restrictions", :points)
 %>
-<div <%= roles_stuff ? roles_stuff : nil %> class="quiz_sortable group_top <%= 'question_bank_top' if question_bank %>" style="<%= "display: none;" unless group %>" id="group_top_<%= hash_get(group, :id, 'template') %>"
+<div <%= roles_stuff || nil %> class="quiz_sortable group_top <%= 'question_bank_top' if question_bank %>" style="<%= "display: none;" unless group %>" id="group_top_<%= hash_get(group, :id, 'template') %>"
   <% if question_bank %>data-bank_question_count="<%= question_count %>"<% end %>
 >
   <%= form_for :quiz_group, :url => context_url(@context, :context_quiz_quiz_groups_url, @quiz.id), :html => {:class => "quiz_group_form"} do |f| %>

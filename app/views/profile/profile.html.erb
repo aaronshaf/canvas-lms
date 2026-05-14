@@ -175,7 +175,7 @@
   <% if @user.shard.database_server.maintenance_window_start_hour %>
   <tr>
     <td></td>
-    <td> <%= render partial: 'shared/maintenance_window', locals: { database_server: @user.shard.database_server, local_zone: ::Time.zone } %> </td>
+    <td> <%= render partial: 'shared/maintenance_window', locals: { database_server: @user.shard.database_server, local_zone: Time.zone } %> </td>
   </tr>
   <% end %>
   <% if @domain_root_account == Account.default %>
@@ -374,7 +374,7 @@ TEXT
   </td>
 </tr></table>
 <% end %>
-<h2><%= before_label(:'headers.approved_integrations', "Approved Integrations") %></h2>
+<h2><%= before_label(:"headers.approved_integrations", "Approved Integrations") %></h2>
 <div style="margin-<%= direction('left') %>: 20px;">
   <% if AccessToken.visible_tokens(@user.access_tokens).empty? %>
     <div id="no_approved_integrations"><%= t(:no_approved_integrations, <<~TEXT)

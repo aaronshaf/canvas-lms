@@ -17,7 +17,7 @@
 %>
 <% current_or_submission = @current_submission || @submission %>
 <% submission_location_tag = "quiz_submission_#{current_or_submission[:id]}" %>
-<div class="quiz-submission <%= "headless" if !@headers %>">
+<div class="quiz-submission <%= "headless" unless @headers %>">
 <% if !current_or_submission.results_visible?(user: @current_user)%>
   <h4><%= render_result_protection(@quiz, current_or_submission) %></h4>
 <% end %>
@@ -148,8 +148,7 @@
     <input id="fudge_points_input" type="hidden" name="fudge_points" value="<%= @submission.fudge_points || 0 %>">
     <input id="fudge_points_entry" type="text" value="<%= (!@submission.fudge_points || @submission.fudge_points == 0 ? '' : render_score(@submission.fudge_points)) %>" placeholder="--" autocomplete='off' />
     <%
-      fudge_text = begin
-        if @submission.quiz_points_possible == @quiz.points_possible || !@submission.quiz_points_possible || !@quiz.points_possible
+      fudge_text = if @submission.quiz_points_possible == @quiz.points_possible || !@submission.quiz_points_possible || !@quiz.points_possible
           t('labels.fudge_points_generic_explanation', "You can manually adjust the score by adding positive or negative points to this box.")
         elsif @quiz.survey?
           t('labels.fudge_points_changed_points_survey', <<~TEXT,
@@ -170,7 +169,6 @@
             :user => @submission.user.name,
             :difference => render_score(@quiz.points_possible - @submission.quiz_points_possible))
         end
-      end
     %>
 
     <% if @current_user.preferences[:enable_speedgrader_grade_by_question] %>

@@ -55,7 +55,7 @@
     context_module_item
     <%= 'student-view' if @is_student %>
     <% if module_item&.content&.respond_to?("can_duplicate?") %>
-      <%= 'cannot-duplicate' if !module_item&.content&.can_duplicate?%>
+      <%= 'cannot-duplicate' unless module_item&.content&.can_duplicate?%>
     <% end %>
     <% if module_item&.content&.is_a?(Assignment) %>
       <% if !module_item.content.quiz_lti? || Account.site_admin.feature_enabled?(:commons_new_quizzes) %>
@@ -141,7 +141,9 @@
           <span class="completion_requirement" style="display: none;">&nbsp;</span>
           <span class="position" style="display: none;"><%= module_item && module_item.position %></span>
           <span class="url" style="display: none;"><%= module_item.try(:url) if @can_view %></span>
-          <span class="new_tab" style="display: none;"><%= module_item.try(:new_tab) ? '1' : '0' if @can_view %></span>
+          <span class="new_tab" style="display: none;"><%= if @can_view
+                                                             module_item.try(:new_tab) ? '1' : '0'
+                                                           end %></span>
           <span class="estimated_duration_minutes" style="display: none;"></span>
           <span class="can_set_estimated_duration" style="display: none;"></span>
         </span>
@@ -303,7 +305,7 @@
               <% end %>
               <% if @context.allows_speed_grader? && @context.grants_any_right?(@current_user, :manage_grades, :view_all_grades)%>
                 <% speed_grader_id = module_item ? "#{module_item.content_type_class}-#{module_item.content_id}" : "blank" %>
-                <li id="<%="speed-grader-container-#{speed_grader_id}"%>" role='presentation' class="speed-grader-link-container <%= module_item&.assignment&.id && ['assignment', 'quiz','lti-quiz', 'discussion_topic'].include?(module_item.content_type_class) && item_data[:published_status] == 'published' ? '' : 'hidden' %>">
+                <li id="<%="speed-grader-container-#{speed_grader_id}"%>" role='presentation' class="speed-grader-link-container <%= module_item&.assignment&.id && %w[assignment quiz lti-quiz discussion_topic].include?(module_item.content_type_class) && item_data[:published_status] == 'published' ? '' : 'hidden' %>">
                   <a href="<%= context_url(@context, :context_url) %>/gradebook/speed_grader?assignment_id=<%= module_item&.assignment.present? ? module_item.assignment.id : "{{ assignment_id }}" %>" target="_blank" rel="noopener" title="<%= t('SpeedGrader')%>"><%= @module_item_image_tags['speed_grader'] %> <%= t('SpeedGrader') %></a>
                 </li>
               <% end %>

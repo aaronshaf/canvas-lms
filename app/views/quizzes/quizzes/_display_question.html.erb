@@ -324,7 +324,7 @@
         <% else %>
           <% if user_answer && question && question_type.multiple_sets %>
             <% variables = hash_get(question, :original_question_text, "").scan(/\[[A-Za-z0-9_\-.]+\]/).to_a.compact.pluck(1..-2) %>
-            <% variables = variables & hash_get(question, :answers, []).filter_map{|a| hash_get(a, :blank_id) }.uniq %>
+            <% variables &= hash_get(question, :answers, []).filter_map{|a| hash_get(a, :blank_id) }.uniq %>
             <% variables.each_with_index do |variable, idx| %>
               <% answers = hash_get(question, :answers, []).select{|a| hash_get(a, :blank_id) == variable } %>
               <% user_answer[:text] = hash_get(user_answer, "answer_for_#{variable}")

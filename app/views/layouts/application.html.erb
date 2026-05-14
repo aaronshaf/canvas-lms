@@ -45,7 +45,7 @@
   @has_content_notices = load_content_notices
   provide :head, include_common_stylesheets
   set_badge_counts_for(@context, @current_user) if @set_badge_counts
-  js_env({ notices: flash_notices() })
+  js_env({ notices: flash_notices })
   student_view_text = @context.is_a?(Course) && @context.horizon_course? ? t('View as Learner') : t('View as Student')
   enable_content_view_if_requested
   enable_hide_global_nav_if_requested
@@ -91,7 +91,7 @@
   body_classes << "with-left-side" if @show_left_side
   body_classes << "course-menu-expanded" if body_classes.include?("with-left-side") && !@collapse_course_menu
   #we dont want to render a right side unless there is actually content in it.
-  body_classes << "with-right-side" if right_side and not right_side.strip.empty?
+  body_classes << "with-right-side" if right_side and !right_side.strip.empty?
   body_classes << "padless-content" if @padless
   body_classes << "with-embedded-chat" if @show_embedded_chat
   body_classes << 'with-fixed-bottom' if @show_fixed_bottom

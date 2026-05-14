@@ -22,7 +22,7 @@
   <meta name="theme-color" content="<%= brand_variable('ic-brand-global-nav-bgd') %>">
   <%==
     login_metadata = (yield :login_metadata).presence
-    %Q(<meta name="description" content="#{login_metadata}">) if login_metadata
+    %(<meta name="description" content="#{login_metadata}">) if login_metadata
   %>
   <% unless @allow_robot_indexing %><meta name="robots" content="noindex,nofollow" /><% end %>
   <%= include_custom_meta_tags %>
@@ -83,5 +83,5 @@
     <%= prefetch_xhr(*args, **kwargs) %>
   <% end -%>
   <% if @include_recaptcha %><script src="https://www.google.com/recaptcha/api.js?render=explicit&hl=<%= I18n.locale %>" async></script><% end %>
-  <% deferred_js_bundle :usage_metrics if (load_usage_metrics? || load_consented_usage_metrics?) %>
+  <% deferred_js_bundle :usage_metrics if load_usage_metrics? || load_consented_usage_metrics? %>
 </head>

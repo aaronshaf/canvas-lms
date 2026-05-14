@@ -34,14 +34,13 @@
   <%
     active_assignments = @context.assignments.active
     assignment_counts_by_type = active_assignments.group(:submission_types).except(:order).count
-    assignment_counts = assignment_counts_by_type.inject(Hash.new(0)) do |counts, (types, count)|
+    assignment_counts = assignment_counts_by_type.each_with_object(Hash.new(0)) do |(types, count), counts|
       split_types = (types || '').split(',')
       if split_types.length == 1
         counts[types] += count
       else
         split_types.each { |type| counts[type] += count }
       end
-      counts
     end
   %>
   <% total_entries = DiscussionEntry.active.where(:discussion_topic_id => active_topics).count %>

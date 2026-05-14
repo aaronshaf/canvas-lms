@@ -25,8 +25,8 @@
   new_quizzes_enabled = NewQuizzesFeaturesHelper.new_quizzes_enabled?(@context)
   new_quizzes_by_default = new_quizzes_enabled && @context.feature_enabled?(:new_quizzes_by_default)
   newquizzes_engine_selected = @context.settings.dig(:engine_selected, :user_id, :newquizzes_engine_selected)
-  newquizzes_engine_selected = ['true', 'false'].include?(newquizzes_engine_selected) ? newquizzes_engine_selected : nil
-  newquizzes_engine_selected = @context.horizon_course? ? 'true' : newquizzes_engine_selected
+  newquizzes_engine_selected = nil unless ['true', 'false'].include?(newquizzes_engine_selected)
+  newquizzes_engine_selected = 'true' if @context.horizon_course?
   module_links_default_new_tab = @current_user&.get_preference(:module_links_default_new_tab)
 %>
 <% js_env({ NEW_QUIZZES_BY_DEFAULT: new_quizzes_by_default }) %>
@@ -213,8 +213,8 @@
               </td>
               <td>
                 <% Folder.root_folders(@context) %>
-                <% folders = @context.active_folders.select([:id, :name, :parent_folder_id]).to_a %>
-                <% root_folders = folders.select{|f| f.parent_folder_id == nil} %>
+                <% folders = @context.active_folders.select(%i[id name parent_folder_id]).to_a %>
+                <% root_folders = folders.select{|f| f.parent_folder_id.nil?} %>
                 <select name="attachment[folder_id]" id="attachment_folder_id">
                   <%= folders_as_options(root_folders, :all_folders => folders, :max_depth => 1) %>
                 </select>

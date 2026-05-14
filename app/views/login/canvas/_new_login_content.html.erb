@@ -19,11 +19,11 @@
 <%
   login_handle_name = @domain_root_account.login_handle_name_with_inference
   # disable form submission when previewing from theme editor
-  if params[:previewing_from_themeeditor]
-    login_btn_type = forgot_password_btn_type = "button"
-  else
-    login_btn_type = forgot_password_btn_type = "submit"
-  end
+  login_btn_type = forgot_password_btn_type = if params[:previewing_from_themeeditor]
+                                                "button"
+                                              else
+                                                "submit"
+                                              end
   unique_id = begin
     params[:login_hint]&.to_s ||
     params.dig(:pseudonym_session, :unique_id)&.to_s

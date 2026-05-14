@@ -411,8 +411,8 @@
                           elsif assignment_presenter.originality_report? && turnitin
                             asset_string = assignment_presenter.file&.asset_string || assignment_presenter.submission&.asset_string
                             url = polymorphic_url([ @context, assignment, submission, :originality_report], asset_string: asset_string, attempt: submission.attempt, only_path: true)
-                            anchor_title = turnitin[:error_message] ? turnitin[:error_message] : t('Originality Report')
-                            alt_text = turnitin[:error_message] ? turnitin[:error_message] : t('Originality Report')
+                            anchor_title = turnitin[:error_message] || t('Originality Report')
+                            alt_text = turnitin[:error_message] || t('Originality Report')
                           elsif assignment_presenter.is_online_upload? && assignment_presenter.file
                             asset_string = assignment_presenter.file.asset_string
                             url = context_url(@context, :context_assignment_submission_turnitin_report_url, assignment.id, @presenter.student_id, asset_string)
@@ -430,7 +430,7 @@
                             }
                           %>
                         <% else %>
-                          <a title="<%= anchor_title %>" href="<%= url %>" style="<%= 'visibility: hidden;' if !turnitin %>" target="_blank" data-tooltip="left">
+                          <a title="<%= anchor_title %>" href="<%= url %>" style="<%= 'visibility: hidden;' unless turnitin %>" target="_blank" data-tooltip="left">
                             <%= turnitin ? image_tag("turnitin_#{turnitin && turnitin[:state]}_score.png", :alt => alt_text) : image_tag("blank.png", :alt => '') %>
                           </a>
                         <% end %>
@@ -462,7 +462,7 @@
                           }
                         %>
                       <% else %>
-                        <span class="turnitin_score_container" style="<%= 'visibility: hidden;' if !vericite %>">
+                        <span class="turnitin_score_container" style="<%= 'visibility: hidden;' unless vericite %>">
                           <span class="vericite_score_container_caret <%= vericite && vericite[:state] %>_score"></span>
                           <a title="<%= t('titles.vericite_score', "VeriCite similarity score -- more information") %>" href="<%= url %>" target="_blank" class="tooltip not_external turnitin_similarity_score <%= vericite && vericite[:state] %>_score">
                             <%= vericite && vericite[:similarity_score] %>%
@@ -486,7 +486,7 @@
                   <%
                     sa_submission = @presenter.submissions.detect{ |s| s.assignment_id == sub_assignment.id }
                     sub_assignment_presenter = GradeSummaryAssignmentPresenter.new(@presenter, @current_user, sub_assignment, sa_submission)
-                    last_row = if sub_assignment.sub_assignment_tag == CheckpointLabels::REPLY_TO_ENTRY then "last_sub_assignment_row" else "" end
+                    last_row = sub_assignment.sub_assignment_tag == CheckpointLabels::REPLY_TO_ENTRY ? "last_sub_assignment_row" : ""
                   %>
                   <tr id="sub_assignment_<%= sub_assignment.id %>" class="sub_assignment_row parent_assignment_id_<%= "#{assignment.id} #{last_row}".strip %>" style="display: none;" aria-label="<%= t("discussion checkpoint row") %>">
                     <% if sub_assignment.sub_assignment_tag == CheckpointLabels::REPLY_TO_TOPIC %>

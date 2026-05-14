@@ -17,7 +17,7 @@
 %>
 
 <% page_section ||= nil %>
-<div class="section <%= "read_only" if (page_section && (page_section["attachment_id"] || page_section["submission_id"])) %>" id="page_section_<%= idx %>">
+<div class="section <%= "read_only" if page_section && (page_section["attachment_id"] || page_section["submission_id"]) %>" id="page_section_<%= idx %>">
   <a href="#" class="move_link no-hover" title="<%= t('titles.move_section', "Drag to rearrange sections") %>"><%= image_tag "move.png", :alt => t('Drag to rearrange sections') %></a>
   <div class="section_type_name">
     <% if !page_section || page_section["section_type"] == "rich_text" %>
