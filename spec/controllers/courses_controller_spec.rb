@@ -159,8 +159,6 @@ describe CoursesController do
       end
 
       context "with optimized_load_enrollments_for_index feature flag enabled" do
-        before { Account.site_admin.enable_feature!(:optimized_load_enrollments_for_index) }
-
         it "preloads role on enrollments" do
           enrollments = controller.send(:_load_enrollments_for_index)
           expect(enrollments.first.association(:role).loaded?).to be true
@@ -184,27 +182,6 @@ describe CoursesController do
         it "preloads enrollment_term through course" do
           enrollments = controller.send(:_load_enrollments_for_index)
           expect(enrollments.first.course.association(:enrollment_term).loaded?).to be true
-        end
-
-        it "produces the same enrollment classification as the old path" do
-          Account.site_admin.disable_feature!(:optimized_load_enrollments_for_index)
-          controller.load_enrollments_for_index
-          old_current = assigns[:current_enrollments].map(&:id).sort
-
-          Account.site_admin.enable_feature!(:optimized_load_enrollments_for_index)
-          controller.load_enrollments_for_index
-          new_current = assigns[:current_enrollments].map(&:id).sort
-
-          expect(new_current).to eq old_current
-        end
-      end
-
-      context "without optimized_load_enrollments_for_index feature flag" do
-        before { Account.site_admin.disable_feature!(:optimized_load_enrollments_for_index) }
-
-        it "does not preload role" do
-          enrollments = controller.send(:_load_enrollments_for_index)
-          expect(enrollments.first.association(:role).loaded?).to be false
         end
       end
     end

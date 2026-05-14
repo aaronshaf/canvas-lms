@@ -19,10 +19,6 @@
 #
 
 describe GradingSchemesJsonController, type: :request do
-  before(:once) do
-    Account.site_admin.disable_feature!(:archived_grading_schemes)
-  end
-
   let(:test_data) do
     [{ "name" => "A", "value" => 0.92 },
      { "name" => "A-", "value" => 0.9 },
@@ -110,7 +106,6 @@ describe GradingSchemesJsonController, type: :request do
 
     describe "get grading schemes with archived feature" do
       before(:once) do
-        Account.site_admin.enable_feature!(:archived_grading_schemes)
         @root_account = Account.default
         course_with_teacher(active_all: true, account: @root_account)
       end
@@ -182,7 +177,6 @@ describe GradingSchemesJsonController, type: :request do
 
     describe "get grouped schemes list by workflow_state" do
       before(:once) do
-        Account.site_admin.enable_feature!(:archived_grading_schemes)
         @data = GradingSchemesJsonController.to_grading_standard_data(test_data)
       end
 
@@ -246,8 +240,6 @@ describe GradingSchemesJsonController, type: :request do
 
         sub_account = Account.create(parent_account: @account, name: "Test subaccount")
         sub_admin = account_admin_user(account: sub_account)
-
-        Account.site_admin.enable_feature!(:archived_grading_schemes)
 
         user_session(sub_admin)
 
@@ -588,7 +580,6 @@ describe GradingSchemesJsonController, type: :request do
       let_once(:data2) { [["A", 0.5], ["F", 0]] }
 
       before do
-        Account.site_admin.enable_feature!(:archived_grading_schemes)
         Account.site_admin.enable_feature!(:default_account_grading_scheme)
         @root_account = Account.default
         sub_account = @root_account.sub_accounts.create!
@@ -765,7 +756,6 @@ describe GradingSchemesJsonController, type: :request do
 
       it "doesn't return unrelated archived schemes" do
         @course_level_grading_standard.update(workflow_state: "archived")
-        Account.site_admin.enable_feature!(:archived_grading_schemes)
         user_session(@teacher)
         get "/courses/" + @course.id.to_s + "/grading_schemes", as: :json
         expect(response).to have_http_status(:ok)
@@ -779,7 +769,6 @@ describe GradingSchemesJsonController, type: :request do
         assignment = @course.assignments.create!(title: "manual", grading_type: "letter_grade")
         assignment.submissions.create!(user: @student, workflow_state: "graded")
         @course_level_grading_standard.update(workflow_state: "archived")
-        Account.site_admin.enable_feature!(:archived_grading_schemes)
         user_session(@teacher)
         @course.update(grading_standard: @course_level_grading_standard)
         get "/courses/" + @course.id.to_s + "/grading_schemes", as: :json

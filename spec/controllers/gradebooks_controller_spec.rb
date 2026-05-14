@@ -22,7 +22,6 @@ describe GradebooksController do
   include TextHelper
 
   before :once do
-    Account.site_admin.disable_feature!(:archived_grading_schemes)
     course_with_teacher active_all: true
     @teacher_enrollment = @enrollment
     student_in_course active_all: true
@@ -520,19 +519,6 @@ describe GradebooksController do
         describe "final grade override score custom status" do
           let(:status) { CustomGradeStatus.create!(name: "custom", color: "#000000", root_account_id: @course.root_account, created_by: @teacher) }
 
-          it "does not include the final grade override score custom status id if the ff is off" do
-            Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-            invited_student_enrollment = @course.enroll_user(User.create!, "StudentEnrollment", enrollment_state: "invited")
-            score = invited_student_enrollment.update_override_score(
-              override_score: 95,
-              updating_user: @teacher
-            )
-            score.update!(custom_grade_status_id: status.id)
-            user_session(@teacher)
-            get :grade_summary, params: { course_id: @course.id, id: @student.id }
-            expect(assigns[:js_env]).not_to have_key(:final_override_custom_grade_status_id)
-          end
-
           it "does not include the final grade override score custom status id if there is no status" do
             Score.find_by(course_score: true).update!(custom_grade_status_id: nil, override_score: 95)
             user_session(@teacher)
@@ -584,7 +570,8 @@ describe GradebooksController do
     end
 
     context "assignment sorting" do
-      let!(:teacher_session) { user_session(@teacher) }
+      before { user_session(@teacher) }
+
       let!(:assignment1) { @course.assignments.create(title: "Banana", position: 2) }
       let!(:assignment2) { @course.assignments.create(title: "Apple", due_at: 3.days.from_now, position: 3) }
       let!(:assignment3) do
@@ -607,9 +594,7 @@ describe GradebooksController do
       end
 
       context "sort by: title" do
-        let!(:teacher_setup) do
-          @teacher.set_preference(:course_grades_assignment_order, @course.id, :title)
-        end
+        before { @teacher.set_preference(:course_grades_assignment_order, @course.id, :title) }
 
         it "sorts assignments by title" do
           get "grade_summary", params: { course_id: @course.id, id: @student.id }
@@ -631,27 +616,22 @@ describe GradebooksController do
       end
 
       context "sort by: module" do
-        let!(:first_context_module) { @course.context_modules.create! }
-        let!(:second_context_module) { @course.context_modules.create! }
-        let!(:assignment1_tag) do
+        before do
+          first_context_module = @course.context_modules.create!
+          second_context_module = @course.context_modules.create!
+
           a1_tag = assignment1.context_module_tags.new(context: @course, position: 1, tag_type: "context_module")
           a1_tag.context_module = second_context_module
           a1_tag.save!
-        end
 
-        let!(:assignment2_tag) do
           a2_tag = assignment2.context_module_tags.new(context: @course, position: 3, tag_type: "context_module")
           a2_tag.context_module = first_context_module
           a2_tag.save!
-        end
 
-        let!(:assignment3_tag) do
           a3_tag = assignment3.context_module_tags.new(context: @course, position: 2, tag_type: "context_module")
           a3_tag.context_module = first_context_module
           a3_tag.save!
-        end
 
-        let!(:teacher_setup) do
           @teacher.set_preference(:course_grades_assignment_order, @course.id, :module)
         end
 
@@ -760,17 +740,6 @@ describe GradebooksController do
     end
 
     context "custom gradebook statuses in grade summary" do
-      it "does not include custom gradebook status ids on submissions when feature flag is disabled" do
-        Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-        user_session(@student)
-        assignment = @course.assignments.create!
-        assignment.grade_student(@student, grade: 10, grader: @teacher)
-        get "grade_summary", params: { course_id: @course.id, id: @student.id }
-        controller.load_grade_summary_data
-        grade_summary_submission = assigns[:js_env][:submissions].find { |s| s[:assignment_id] == assignment.id }
-        expect(grade_summary_submission).not_to have_key(:custom_grade_status_id)
-      end
-
       it "does include custom gradebook status ids on submissions when feature flag is enabled" do
         Account.site_admin.enable_feature!(:custom_gradebook_statuses)
         user_session(@student)
@@ -1364,24 +1333,10 @@ describe GradebooksController do
         expect(gradebook_options[:colors]).to eql({ "late" => "#000000" })
       end
 
-      it "does not include standard grading status colors when the feature is disabled" do
-        Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-        @teacher.set_preference(:gradebook_settings, "colors", { "late" => "#EEEEEE" })
-        StandardGradeStatus.new(root_account: @course.root_account, status_name: "missing", color: "#000000").save!
-        get :show, params: { course_id: @course.id }
-        expect(gradebook_options[:colors]).to eql({ "late" => "#EEEEEE" })
-      end
-
       it "includes custom_grade_statuses_enabled as true when feature is enabled" do
         Account.site_admin.enable_feature!(:custom_gradebook_statuses)
         get :show, params: { course_id: @course.id }
         expect(gradebook_options[:custom_grade_statuses_enabled]).to be true
-      end
-
-      it "includes custom_grade_statuses_enabled as false when feature is disabled" do
-        Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-        get :show, params: { course_id: @course.id }
-        expect(gradebook_options[:custom_grade_statuses_enabled]).to be false
       end
 
       it "includes final_grade_override_enabled" do
@@ -4469,7 +4424,8 @@ describe GradebooksController do
     it "memoizes" do
       expect(@controller).to receive(:external_tools).and_return([]).once
 
-      expect(@controller.post_grades_ltis).to eq(@controller.post_grades_ltis)
+      result = @controller.post_grades_ltis
+      expect(result).to eq(@controller.post_grades_ltis)
     end
   end
 
@@ -4911,23 +4867,12 @@ describe GradebooksController do
           expect(json.first["rubric_association"]["context_code"]).to eq(account.asset_string)
         end
       end
-    end # shared_examples "grading_rubrics contract"
-
-    context "with :optimized_grading_rubrics disabled" do
-      before { Account.site_admin.disable_feature!(:optimized_grading_rubrics) }
-
-      it_behaves_like "grading_rubrics contract"
     end
 
-    context "with :optimized_grading_rubrics enabled" do
-      before { Account.site_admin.enable_feature!(:optimized_grading_rubrics) }
-
-      it_behaves_like "grading_rubrics contract"
-    end
+    it_behaves_like "grading_rubrics contract"
 
     context "with :grading_rubrics_pagination enabled" do
       before do
-        Account.site_admin.enable_feature!(:optimized_grading_rubrics)
         @course.root_account.enable_feature!(:grading_rubrics_pagination)
         user_session(@teacher)
       end

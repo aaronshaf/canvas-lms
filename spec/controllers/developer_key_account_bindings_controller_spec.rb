@@ -309,18 +309,6 @@ RSpec.describe DeveloperKeyAccountBindingsController do
       end
     end
 
-    context "when feature flag is disabled" do
-      before do
-        site_admin.disable_feature!(:modify_site_admin_developer_keys_permission)
-        user_session(site_admin_without_permission)
-      end
-
-      it "allows access when feature flag is off" do
-        post :create_or_update, params: site_admin_binding_params, format: :json
-        expect(response).to be_successful
-      end
-    end
-
     context "for regular account developer keys" do
       let(:regular_account) { account_model }
       let(:regular_account_admin) do
