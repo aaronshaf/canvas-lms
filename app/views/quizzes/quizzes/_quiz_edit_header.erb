@@ -27,7 +27,7 @@
 <div class="header-bar-right">
   <div class="header-group-left">
     <span id="quiz_display_points_possible">
-      <%= t("Points %{n}", :n => raw("<span style=\"margin-#{direction('left')}:5px\" class=\"points_possible\">#{render_score(@quiz.points_possible)}</span>")) %>
+      <%= t("Points %{n}", :n => tag.span(render_score(@quiz.points_possible), style: "margin-#{direction('left')}:5px", class: "points_possible")) %>
     </span>
 
     <% if @quiz.published? %>

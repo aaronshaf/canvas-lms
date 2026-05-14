@@ -50,7 +50,7 @@
 
 <script>
   window.ENV = window.ENV || {};
-  window.ENV.ROOT_OUTCOME_GROUP = <%= raw @root_outcome_group %>;
+  window.ENV.ROOT_OUTCOME_GROUP = <%= json_in_script_tag @root_outcome_group %>;
   var event = document.createEvent('Event');
   event.initEvent('rubricEditDataReady', true, true);
   document.dispatchEvent(event)

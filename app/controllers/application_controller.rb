@@ -720,7 +720,7 @@ class ApplicationController < ActionController::Base
   end
 
   def render_js_env
-    res = StringifyIds.recursively_stringify_ids(js_env.clone).to_json
+    res = StringifyIds.recursively_stringify_ids(js_env.clone)
     @js_env_has_been_rendered = true
     res
   end

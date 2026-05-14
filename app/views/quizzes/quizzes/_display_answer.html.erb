@@ -159,8 +159,8 @@
       </div>
       <div class="numerical_range_answer answer_type" <%= hidden(include_style: true) unless number_type == 'range' %>>
         <%= t(:range_answer, "Between %{lower_bound} and %{upper_bound}",
-              :lower_bound => raw("<span class=\"answer_range_start\">#{render_number(hash_get(answer, :start, 0))}</span>"),
-              :upper_bound => raw("<span class=\"answer_range_end\">#{render_number(hash_get(answer, :end, 0))}</span>")) %>
+              :lower_bound => tag.span(render_number(hash_get(answer, :start, 0)), class: :answer_range_start),
+              :upper_bound => tag.span(render_number(hash_get(answer, :end, 0)), class: :answer_range_end)) %>
       </div>
     <% end %>
     <div class="numerical_range_answer answer_type" <%= hidden(include_style: true) unless number_type == 'equation' %>>

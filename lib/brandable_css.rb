@@ -310,7 +310,7 @@ module BrandableCSS
         raise "#{file.expand_path} does not exist. You need to run `yarn run build:css` before you can serve css."
       end
 
-      @handlebars_index_json = file.read.rstrip
+      @handlebars_index_json = file.read.rstrip.html_safe.freeze # rubocop:disable Rails/OutputSafety -- will only be used in javascript, and it's already JSON
     end
 
     # bundle path should be something like "bundles/speedgrader" or "plugins/analytics/something"

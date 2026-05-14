@@ -120,17 +120,17 @@
             <% end %>
           <% end %>
           <% question[:points_possible] = 0 if question_type.answer_type == 'none' %>
-          <%= t(:points_possible, "%{points_possible} pts", :points_possible => raw("<span class=\"points question_points\"> / #{render_score(hash_get(question, :points_possible, "0"))}</span>")) %>
+          <%= t(:points_possible, "%{points_possible} pts", :points_possible => tag.span(" / #{render_score(hash_get(question, :points_possible, "0"))}", class: %i[points question_points]) ) %>
           <% if hash_get(user_answer, :score_before_regrade) %>
             <span class=user-regrade-points>
               <%= t('regraded_score', 'Regraded Score:') %>
               <%= render_score hash_get(user_answer, :points) %>
-              <%= t(:points_possible, "%{points_possible} pts", :points_possible => raw("<span class=\"points question_points\"> / #{render_score(hash_get(question, :points_possible, "0"))}</span>")) %>
+              <%= t(:points_possible, "%{points_possible} pts", :points_possible => tag.span(" / #{render_score(hash_get(question, :points_possible, "0"))}", class: %i[points question_points])) %>
             </span>
           <% end %>
         </div>
       <% else %>
-        <%= t(:points_possible, "%{points_possible} pts", :points_possible => raw("<span class=\"points question_points\">#{render_score(hash_get(question, :points_possible, "0"))}</span>")) %>
+        <%= t(:points_possible, "%{points_possible} pts", :points_possible => tag.span(render_score(hash_get(question, :points_possible, "0")), class: %i[points question_points])) %>
       <% end %>
     </span>
     </div>

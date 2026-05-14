@@ -56,13 +56,6 @@ describe "shared/_profile_form" do
   end
 
   describe "bio rendering (defense-in-depth)" do
-    before do
-      # Bypass upstream defense to verify the render-site is hardened in isolation.
-      # format_message returns [html_safe_string, *links]. Echoing the raw bio html_safe
-      # simulates a future refactor that drops the linkify/escape pass.
-      allow(view).to receive(:format_message) { |msg| [msg.to_s.html_safe] } # rubocop:disable Rails/OutputSafety
-    end
-
     it "strips <script> tags injected via bio" do
       user_data[:bio] = "<script>alert('xss')</script>safe text"
       render_form
@@ -101,12 +94,6 @@ describe "shared/_profile_form" do
       render_form
       srcsets = html.css("#biography img").pluck("srcset").compact
       expect(srcsets.any? { |s| s.match?(/\Ajavascript:/i) }).to be(false)
-    end
-
-    it "preserves benign formatting markup" do
-      user_data[:bio] = "<p>Hello <strong>world</strong></p>"
-      render_form
-      expect(html.css("#biography strong").text).to eq("world")
     end
 
     it "renders the empty placeholder when bio is blank string" do

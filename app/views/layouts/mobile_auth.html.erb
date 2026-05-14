@@ -32,7 +32,7 @@
   <%= include_common_stylesheets %>
 
   <script>
-    ENV = <%= raw js_env.to_json %>;
+    ENV = <%= json_in_script_tag js_env %>;
   </script>
 
   <% css_bundle :mobile_auth %>

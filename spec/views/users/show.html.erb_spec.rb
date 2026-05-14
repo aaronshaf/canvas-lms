@@ -44,4 +44,13 @@ describe "users/show" do
     expect(response).not_to be_nil
     expect(content_for(:right_side)).to include "Message #{@user.name}" # regardless of permissions
   end
+
+  it "hides the blank pseudonym template row with an inline style attribute" do
+    render "users/show"
+    doc = Nokogiri::HTML.fragment(rendered)
+    blank_row = doc.at_css("tr.login.blank")
+    expect(blank_row).not_to be_nil
+    expect(blank_row["style"]).to be_present
+    expect(blank_row["style"]).to match(/display\s*:\s*none/)
+  end
 end

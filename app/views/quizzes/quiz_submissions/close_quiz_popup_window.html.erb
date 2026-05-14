@@ -18,7 +18,7 @@
 
 <script type="text/javascript">
   setTimeout(function() {
-    window.opener.location = <%= raw course_quiz_url(@context, @quiz, @redirect_params).to_json %>;
+    window.opener.location = <%= json_in_script_tag course_quiz_url(@context, @quiz, @redirect_params) %>;
     window.close();
   }, 10);
 </script>

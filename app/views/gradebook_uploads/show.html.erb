@@ -79,7 +79,7 @@
     </table>
   </div>
   <div class="button-container">
-    <button type="submit" class="btn"><%= t('buttons.continue', "Continue %{icon}", :icon => raw('&rarr;')) %></button>
+    <button type="submit" class="btn"><%= t('buttons.continue', "Continue %{icon}", :icon => '&rarr;'.html_safe) %></button>
   </div>
 </form>
 

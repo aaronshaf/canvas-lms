@@ -32,8 +32,8 @@
   range_rating_visible = range_rating_enabled && !learning_outcome_criterion
 
   long_description_text = criterion.try(:long_description) || ''
-  long_description_text = Sanitize.clean(long_description_text, CanvasSanitize::SANITIZE) if long_description_text.present?
-  friendly_description = Sanitize.clean(friendly_description, CanvasSanitize::SANITIZE) if friendly_description.present?
+  long_description_text = html_sanitize(long_description_text) if long_description_text.present?
+  friendly_description = html_sanitize(friendly_description) if friendly_description.present?
 
   description = criterion.try(:description) || t('defaults.description', "Description of criterion")
 %>
@@ -51,11 +51,11 @@
           <span class="learning_outcome_id" style="display: none;"><%= learning_outcome_criterion %></span>
           <span class="criterion_id" style="display: none;"><%= criterion.try(:id) %></span>
           <% if !assessing %>
-            <div class="long_description small_description"><%= (@context.respond_to?(:user_is_student?) && @context.user_is_student?(@current_user, include_fake_student: true) && friendly_description.length > 0) ? friendly_description.html_safe : long_description_text.html_safe %></div>
+            <div class="long_description small_description"><%= (@context.respond_to?(:user_is_student?) && @context.user_is_student?(@current_user, include_fake_student: true) && friendly_description.length > 0) ? friendly_description : long_description_text %></div>
           <% end %>
           <div role="text" class="threshold toggle_for_hide_points <%= rubric_association&.hide_points(@current_user) ? 'hidden' : '' %>">
             <%= before_label :threshold, "threshold" %>
-            <%= t :points, "%{points} pts", :points => %{<span class="mastery_points">#{n((criterion.mastery_points rescue 5))}</span>}.html_safe %>
+            <%= t :points, "%{points} pts", :points => tag.span(n((criterion.mastery_points rescue 5)), class: :mastery_points) %>
           </div>
         </span>
         <div class="hide_when_learning_outcome <%= range_rating_visible ? '' : 'hidden' %>">
@@ -104,7 +104,7 @@
         </div>
       </div>
       <div class="displaying custom_rating_comments not_assessing" style="font-size: 0.8em; padding: 0px 5px;">
-        <%= assessment_rating && (assessment_rating[:comments_html] ? assessment_rating[:comments_html].html_safe : assessment_rating[:comments]) %>
+        <%= assessment_rating && (assessment_rating[:comments_html] ? html_sanitize(assessment_rating[:comments_html]) : assessment_rating[:comments]) %>
       </div>
     <% else %>
       <div class="ratings" style="<%= hidden if rubric && rubric.free_form_criterion_comments %>">
@@ -171,14 +171,7 @@
             points_value = n(round_if_whole((criterion.points rescue 5)))
           end
 
-          rating_points = %{
-            <input
-              type="text"
-              aria-label="#{h(t("Points"))}"
-              value="#{points_value}"
-              class="criterion_points span1 no-margin-bottom"
-            />
-          }.html_safe
+          rating_points = tag.input(type: "text", "aria-label": t("Points"), value: points_value, class: "criterion_points span1 no-margin-bottom")
         %>
         <% if assessing && criterion && criterion.points %>
           <%= t "%{points} / %{total} pts", points: rating_points, total: n(criterion.points) %>
@@ -192,7 +185,7 @@
         <span class="criterion_rating_points_holder" style="<%= hidden unless assessment_rating %>">
           <span class="criterion_rating_points"><%= assessment_rating ? n(round_if_whole(assessment_rating[:points])) : nbsp %></span> /
         </span>
-        <%= t :points, "%{points} pts", :points => %{<span class="display_criterion_points">#{ n(round_if_whole((criterion.points rescue 5))) }</span>}.html_safe %><br />
+        <%= t :points, "%{points} pts", :points => tag.span(n(round_if_whole((criterion.points rescue 5))), class: "display_criterion_points") %><br />
       </span>
     </div>
     <div class="ignoring">

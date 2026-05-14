@@ -616,7 +616,7 @@ class AssignmentsController < ApplicationController
 
   def rubric
     @assignment = @context.assignments.active.find(params[:assignment_id])
-    @root_outcome_group = outcome_group_json(@context.root_outcome_group, @current_user, session).to_json
+    @root_outcome_group = outcome_group_json(@context.root_outcome_group, @current_user, session)
     if authorized_action(@assignment, @current_user, :read)
       render partial: "shared/assignment_rubric_dialog"
     end

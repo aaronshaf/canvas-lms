@@ -19,8 +19,7 @@
 <html>
 <body>
 <script type="text/javascript">
-  parent.postMessage(JSON.stringify(<%=raw @data.to_json %>), '*');
+  parent.postMessage(JSON.stringify(<%= json_in_script_tag(@data) %>), '*');
 </script>
 </body>
 </html>
-

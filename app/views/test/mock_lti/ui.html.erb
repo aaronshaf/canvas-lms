@@ -6,7 +6,7 @@
     <button id="deep-link-btn" onclick="sendRequest('deep_link')">Create Asset Processor</button>
 
     <script>
-      const requests = <%= raw(@requests.to_json) %>
+      const requests = <%= json_in_script_tag(@requests) %>
 
       const sendRequest = async (requestType) => {
         const request = requests[requestType]

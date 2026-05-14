@@ -242,11 +242,11 @@ h3 .tally {
   <% if @section.start_at || @section.end_at %>
     <div>
       <% if @section.start_at && @section.end_at %>
-        <%= t('run_dates', 'Runs from %{start_date} to %{end_date}', :start_date => friendly_datetime(@section.start_at, context: @context).html_safe, :end_date => friendly_datetime(@section.end_at, context: @context).html_safe) %>
+        <%= t('run_dates', 'Runs from %{start_date} to %{end_date}', :start_date => friendly_datetime(@section.start_at, context: @context), :end_date => friendly_datetime(@section.end_at, context: @context)) %>
       <% elsif @section.end_at %>
-        <%= t('runs_until', 'Runs until %{end_date}', :end_date => friendly_datetime(@section.end_at, context: @context).html_safe) %>
+        <%= t('runs_until', 'Runs until %{end_date}', :end_date => friendly_datetime(@section.end_at, context: @context)) %>
       <% elsif @section.start_at %>
-        <%= t('run_from', 'Runs from %{start_date} with no end date', :start_date => friendly_datetime(@section.start_at, context: @context).html_safe) %>
+        <%= t('run_from', 'Runs from %{start_date} with no end date', :start_date => friendly_datetime(@section.start_at, context: @context)) %>
       <% end %>
     </div>
     <div style="margin-<%= direction('left') %>: 10px; font-size: 0.8em;">

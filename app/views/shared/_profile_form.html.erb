@@ -130,7 +130,7 @@
         <div class="hide-if-editing">
           <h3 id="profile_bio_label" class="profileHeader"><%= t :bio, "Biography" %></h3>
           <% if @user_data[:bio] && @user_data[:bio] != "" %>
-            <div id="biography"><%= safe_user_bio_html(@user_data[:bio]) %></div>
+            <div id="biography"><%= format_message(@user_data[:bio]).first %></div>
           <% else %>
             <p id="biography_empty_message"><%= t('user_has_no_bio', "No biography has been added") %></p>
           <% end %>

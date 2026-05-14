@@ -728,7 +728,7 @@ class Quizzes::QuizzesController < ApplicationController
       end
 
       @quiz_submission_list = { UNSUBMITTED_STUDENTS: unsubmitted_students_json,
-                                SUBMITTED_STUDENTS: submitted_students_json }.to_json
+                                SUBMITTED_STUDENTS: submitted_students_json }
       render layout: false
     end
   end

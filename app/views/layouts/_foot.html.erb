@@ -6,7 +6,7 @@
   <script>
     Object.assign(
       ENV,
-      <%= raw StringifyIds.recursively_stringify_ids(@js_env_data_we_need_to_render_later).to_json %>
+      <%= json_in_script_tag StringifyIds.recursively_stringify_ids(@js_env_data_we_need_to_render_later) %>
     )
   </script>
 <% end %>

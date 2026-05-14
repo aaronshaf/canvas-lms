@@ -42,14 +42,14 @@
           <span class="short_description"><%= alignment.learning_outcome.short_description %></span>
           <button type="button" class="delete_outcome_link Button--link"><i class="icon-end"></i></button>
           <span class="clear"></span>
-          <span class="content"><%= t :mastery_threshold, "mastery at %{threshold_percentage}", :threshold_percentage => raw("<span class=\"mastery_threshold\">#{(alignment.mastery_score || 0) * 100.0}</span>%") %></span>
+          <span class="content"><%= t :mastery_threshold, "mastery at %{threshold_percentage}", :threshold_percentage => tag.span((alignment.mastery_score || 0) * 100.0, :class => :mastery_threshold) %>%</span>
         </li>
       <% end %>
       <li class="blank outcome" style="display: none;">
         <span class="short_description">&nbsp;</span>
         <button type="button" class="delete_outcome_link Button--link"><i class="icon-end"></i></button>
         <span class="clear"></span>
-        <span class="content"><%= t :mastery_threshold, "mastery at %{threshold_percentage}", :threshold_percentage => raw("<span class=\"mastery_threshold\">&nbsp;</span>%") %></span>
+        <span class="content"><%= t :mastery_threshold, "mastery at %{threshold_percentage}", :threshold_percentage => tag.span(nbsp, class: :mastery_threshold) %>%</span>
       </li>
     </ul>
     <button type="button" class="btn button-sidebar-wide add_outcome_link"><i class="icon-paperclip"></i> <span class="add_outcome_text"><%= t 'links.align_outcome', "Align Outcome" %></span></button>

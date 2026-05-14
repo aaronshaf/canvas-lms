@@ -60,7 +60,7 @@ class ContextController < ApplicationController
     # render that part of the content. this header tells the browser that we're
     # doing it on purpose, so skip the XSS detection.
     response["X-XSS-Protection"] = "0"
-    @snippet = Base64.decode64(@snippet)
+    @snippet = Base64.decode64(@snippet).html_safe # rubocop:disable Rails/OutputSafety
     render layout: false
   end
 

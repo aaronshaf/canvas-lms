@@ -28,7 +28,7 @@
   }
 
   const onMessage = function(message) {
-    const drUrl = <%= @dr_url.to_json.html_safe %>;
+    const drUrl = <%= json_in_script_tag(@dr_url) %>;
     if (
       message.data.subject === 'org.imsglobal.lti.close' &&
       message.origin === originOfUrl(drUrl)

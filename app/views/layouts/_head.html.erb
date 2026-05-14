@@ -15,7 +15,7 @@
   # You should have received a copy of the GNU Affero General Public License along
   # with this program. If not, see <http://www.gnu.org/licenses/>.
 -%><!DOCTYPE html>
-<html dir="<%= I18n.rtl? ? 'rtl' : 'ltr' %>" lang=<%= raw I18n.locale.to_json %>>
+<html dir="<%= I18n.rtl? ? 'rtl' : 'ltr' %>" lang="<%= I18n.locale %>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -48,10 +48,10 @@
   <% js_bundle :navigation_header unless @headers == false %>
   <% js_env({ active_context_tab: get_active_tab }) %>
   <script>
-    INST = <%= benchmark("rendering INST") { raw(inst_env.to_json) } %>;
-    ENV = <%= benchmark("rendering ENV") { raw(render_js_env) } %>;
-    BRANDABLE_CSS_HANDLEBARS_INDEX = <%= benchmark("rendering BRANDABLE_CSS_HANDLEBARS_INDEX") { raw(BrandableCSS.handlebars_index_json) } %>
-      REMOTES = <%= benchmark("rendering REMOTES") { raw(remote_env.to_json) } %>;
+    INST = <%= benchmark("rendering INST") { json_in_script_tag(inst_env) } %>;
+    ENV = <%= benchmark("rendering ENV") { json_in_script_tag(render_js_env) } %>;
+    BRANDABLE_CSS_HANDLEBARS_INDEX = <%= benchmark("rendering BRANDABLE_CSS_HANDLEBARS_INDEX") { BrandableCSS.handlebars_index_json } %>;
+      REMOTES = <%= benchmark("rendering REMOTES") { json_in_script_tag(remote_env) } %>;
   </script>
   <% if js_env && js_env.present? %>
   <script type="text/javascript">

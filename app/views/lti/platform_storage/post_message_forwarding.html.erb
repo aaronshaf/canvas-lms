@@ -22,7 +22,7 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Canvas LTI PostMessageForwarding</title>
   <script>
-    window.ENV = { PARENT_ORIGIN: <%= raw @parent_origin.to_json %> }
+    window.ENV = { PARENT_ORIGIN: <%= json_in_script_tag(@parent_origin) %> }
   </script>
 </head>
 <body>

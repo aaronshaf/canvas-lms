@@ -41,7 +41,7 @@
     <script>
       Object.assign(
         ENV,
-        <%= raw StringifyIds.recursively_stringify_ids({
+        <%= json_in_script_tag StringifyIds.recursively_stringify_ids({
           COURSE_WIZARD: {
             just_saved: @context_just_saved,
             checklist_states: {
@@ -69,7 +69,7 @@
               can_change_course_publish_state: can_do(@context, @current_user, :manage_courses_publish)
             }
           }
-        }).to_json %>
+        }) %>
         )
       </script>
 

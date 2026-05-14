@@ -124,7 +124,7 @@
 <%= will_paginate(@students) %>
 
 <a href="#" class="icon-edit moderate_multiple_link" role="button" style="display: none;">
-  <%= t('buttons.change_extensions_for_selected_students', "Change Extensions for %{n} Selected Students", :n => raw('<span id="checked_count">X</span>')) %>
+  <%= t('buttons.change_extensions_for_selected_students', "Change Extensions for %{n} Selected Students", :n => tag.span("X", id: "checked_count")) %>
 </a>
 
 <div id="extend_time_dialog" class="student_extension_dialog" style="display: none;">

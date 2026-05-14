@@ -33,7 +33,7 @@
 
       if(data.subject === 'betterchat.is_mini_chat') {
         event.source.postMessage(
-          JSON.stringify({is_mini_chat: <%= embedded_chat_visible.to_json.html_safe %>}
+          JSON.stringify({is_mini_chat: <%= json_in_script_tag embedded_chat_visible %>}
         ), '*');
         return;
       }
@@ -47,7 +47,7 @@
 
       if (data.quicklaunch) {
         event.source.postMessage(
-          JSON.stringify({quicklaunch: <%= embedded_chat_quicklaunch_params.to_json.html_safe %>}
+          JSON.stringify({quicklaunch: <%= json_in_script_tag embedded_chat_quicklaunch_params %>}
         ), '*');
         return;
       }

@@ -53,7 +53,7 @@
       <% unless export.running? %>
         <% if export.workflow_state == 'exported' %>
           <p>
-            <% date = "<span class=\"created_at time_ago_date\" data-timestamp=\"#{export.created_at.iso8601}\">#{datetime_string export.created_at}</span>".html_safe %>
+            <% date = tag.span(datetime_string(export.created_at), class: %i[created_at time_ago_date], data: { timestamp: export.created_at.iso8601 }) %>
             <% if !export.attachment %>
               <% wrapper = link_to('\1', nil) %>
             <% else %>
