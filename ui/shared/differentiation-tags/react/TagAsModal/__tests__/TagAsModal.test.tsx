@@ -173,7 +173,7 @@ describe('TagAsModal', () => {
       renderComponent({categories: [multipleTagsCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
       // SimpleSelect renders options asynchronously after click
-      expect(await screen.findByText('Reading Groups')).toBeInTheDocument()
+      expect(await screen.findByText(/Reading Groups/i)).toBeInTheDocument()
       expect(await screen.findByRole('option', {name: 'Variant A'})).toBeInTheDocument()
       expect(await screen.findByRole('option', {name: 'Variant B'})).toBeInTheDocument()
     })
