@@ -251,7 +251,7 @@ function getChangeMultiFunc($questionContent, questionType, $select) {
           if (!matchHash[variable]) {
             let $option = $select.find('option').eq(idx)
             if (!$option.length) {
-              $option = $('<option/>').appendTo($select)
+              $option = $(document.createElement('option')).appendTo($select)
             }
             $option.removeClass('to_be_removed').val(variable).text(variable)
             matchHash[variable] = true
@@ -695,50 +695,56 @@ export const quiz = (window.quiz = {
     let hadOne = false
     if (question.question_type === 'calculated_question') {
       $.each(question.variables, (i, variable) => {
-        const $tr = $('<tr/>')
-        let $td = $("<td class='name'/>")
-        $td.text(variable.name)
-        $tr.append($td)
-        $td = $("<td class='min'/>")
-        $td.text(I18n.n(variable.min))
-        $tr.append($td)
-        $td = $("<td class='max'/>")
-        $td.text(I18n.n(variable.max))
-        $tr.append($td)
-        $td = $("<td class='scale'/>")
-        $td.text(I18n.n(variable.scale))
-        $tr.append($td)
+        const _vtr = document.createElement('tr')
+        const mkTd = (cls, txt) => {
+          const td = document.createElement('td')
+          if (cls) td.className = cls
+          td.textContent = txt
+          return td
+        }
+        _vtr.appendChild(mkTd('name', variable.name))
+        _vtr.appendChild(mkTd('min', I18n.n(variable.min)))
+        _vtr.appendChild(mkTd('max', I18n.n(variable.max)))
+        _vtr.appendChild(mkTd('scale', I18n.n(variable.scale)))
         $question.find('.variable_definitions_holder').css('display', '')
-        $question.find('.variable_definitions tbody').append($tr)
+        $question.find('.variable_definitions tbody')[0]?.appendChild(_vtr)
       })
       $.each(question.formulas, (i, formula) => {
-        const $div = $('<div/>')
-        $div.text(formula.formula)
-        $question.find('.formulas_holder').css('display', '').find('.formulas_list').append($div)
+        const _fdiv = document.createElement('div')
+        _fdiv.textContent = formula.formula
+        $question
+          .find('.formulas_holder')
+          .css('display', '')
+          .find('.formulas_list')[0]
+          ?.appendChild(_fdiv)
       })
       $question.find('.formula_decimal_places').text(question.formula_decimal_places)
       if (question.answers.length > 0) {
-        $question.find('.equation_combinations').append($('<thead/>'))
-        $question.find('.equation_combinations').append($('<tbody/>'))
-        const $tr = $('<tr/>')
+        $question.find('.equation_combinations').append(document.createElement('thead'))
+        $question.find('.equation_combinations').append(document.createElement('tbody'))
+        const _htr = document.createElement('tr')
         for (var idx in question.answers[0].variables) {
-          var $th = $('<th/>')
-          $th.text(question.answers[0].variables[idx].name)
-          $tr.append($th)
+          const _th = document.createElement('th')
+          _th.textContent = question.answers[0].variables[idx].name
+          _htr.appendChild(_th)
         }
-        var $th = $('<th/>')
-        $th.text(I18n.t('final_answer', 'Final Answer'))
-        $tr.append($th)
+        const _faeTh = document.createElement('th')
+        _faeTh.textContent = I18n.t('final_answer', 'Final Answer')
+        _htr.appendChild(_faeTh)
         $question.find('.equation_combinations_holder_holder').css('display', '')
-        $question.find('.equation_combinations thead').append($tr).show()
+        const $thead = $question.find('.equation_combinations thead')
+        $thead[0]?.appendChild(_htr)
+        $thead.show()
         $.each(question.answers, (i, data) => {
-          const $tr = $('<tr/>')
+          const _atr = document.createElement('tr')
           for (const idx in data.variables) {
-            var $td = $('<td/>')
-            $td.text(I18n.n(data.variables[idx].value))
-            $tr.append($td)
+            const _vtd = document.createElement('td')
+            _vtd.textContent = I18n.n(data.variables[idx].value)
+            _atr.appendChild(_vtd)
           }
-          var $td = $("<td class='final_answer'/>")
+          const _fatd = document.createElement('td')
+          _fatd.className = 'final_answer'
+          var $td = $(_fatd)
           let answerHtml = I18n.n(data.answer)
           if (question.answerDecimalPoints || question.answer_tolerance) {
             let tolerance = parseFloatOrPercentage(question.answer_tolerance)
@@ -752,8 +758,8 @@ export const quiz = (window.quiz = {
             }
           }
           $td.html(answerHtml)
-          $tr.append($td)
-          $question.find('.equation_combinations tbody').append($tr)
+          _atr.appendChild(_fatd)
+          $question.find('.equation_combinations tbody')[0]?.appendChild(_atr)
         })
       }
     } else {
@@ -803,7 +809,7 @@ export const quiz = (window.quiz = {
       for (var idx in variables) {
         const variable = idx
         if (variable && variables[idx]) {
-          var $option = $('<option/>')
+          var $option = $(document.createElement('option'))
           $option.val(variable).text(variable)
           $question.find('.blank_id_select').append($option)
         }
@@ -2927,15 +2933,16 @@ ready(function () {
           $var.find('.max').val(I18n.n(question.variables[idx].max))
           $var.find('.round').val(I18n.n(question.variables[idx].scale))
         }
-        var $th = $('<th/>')
-        $th.text(question.variables[idx].name)
-        $th.attr('id', 'possible_solution_' + question.variables[idx].name)
-        $form.find('.combinations_holder .combinations thead tr').append($th)
+        const _vth = document.createElement('th')
+        _vth.textContent = question.variables[idx].name
+        _vth.id = 'possible_solution_' + question.variables[idx].name
+        $form.find('.combinations_holder .combinations thead tr')[0]?.appendChild(_vth)
       }
-      var $th = $("<th class='final_answer'/>")
-      $th.text(I18n.t('final_answer', 'Final Answer'))
-      $th.attr('id', 'possible_solution_final')
-      $form.find('.combinations_holder .combinations thead tr').append($th)
+      const _fath = document.createElement('th')
+      _fath.className = 'final_answer'
+      _fath.textContent = I18n.t('final_answer', 'Final Answer')
+      _fath.id = 'possible_solution_final'
+      $form.find('.combinations_holder .combinations thead tr')[0]?.appendChild(_fath)
       for (var idx in question.formulas) {
         $form.find('.supercalc').val(question.formulas[idx])
         $form.find('.decimal_places .round').val(question.formula_decimal_places)
@@ -2948,15 +2955,15 @@ ready(function () {
       }
       $form.find('.combination_count').val(question.answers.length)
       for (var idx in question.answers) {
-        const $tr = $('<tr/>')
+        const _ctr = document.createElement('tr')
         for (const jdx in question.answers[idx].variables) {
-          var $td = $('<td/>')
-          $td.text(I18n.n(question.answers[idx].variables[jdx].value))
-          $td.attr(
+          const _vtd = document.createElement('td')
+          _vtd.textContent = I18n.n(question.answers[idx].variables[jdx].value)
+          _vtd.setAttribute(
             'aria-labelledby',
             'possible_solution_' + question.answers[idx].variables[jdx].name,
           )
-          $tr.append($td)
+          _ctr.appendChild(_vtd)
         }
         let html = I18n.n(question.answers[idx].answer_text)
         if (question.answer_tolerance) {
@@ -2965,11 +2972,13 @@ ready(function () {
             " <span style='font-size: 0.8em;'>+/-</span> " +
             htmlEscape(formatFloatOrPercentage(question.answer_tolerance))
         }
-        var $td = $("<td class='final_answer'/>")
+        const _fctd = document.createElement('td')
+        _fctd.className = 'final_answer'
+        const $td = $(_fctd)
         $td.html(html)
-        $td.attr('aria-labelledby', 'possible_solution_final')
-        $tr.append($td)
-        $form.find('.combinations tbody').append($tr)
+        _fctd.setAttribute('aria-labelledby', 'possible_solution_final')
+        _ctr.appendChild(_fctd)
+        $form.find('.combinations tbody')[0]?.appendChild(_ctr)
         $form.find('.combinations_holder').show()
       }
       $form.triggerHandler('settings_change', false)
@@ -3215,19 +3224,29 @@ ready(function () {
     const optionLabel = REGRADE_OPTION_LABELS[optionValue] || optionValue
     REGRADE_OPTIONS[$question.data('questionID')] = optionValue
     $question.find('.regrade_option_text').remove()
-    const $regradeInfoSpan = $('<span id="regrade_info_span">')
-    $regradeInfoSpan.append(document.createTextNode(optionLabel))
+    const _riSpan = document.createElement('span')
+    _riSpan.id = 'regrade_info_span'
+    _riSpan.appendChild(document.createTextNode(optionLabel))
+    const $regradeInfoSpan = $(_riSpan)
     $(newAnswerData.newAnswer).append($regradeInfoSpan)
-    const $optionTextSpan = $('<span class="regrade_option_text" style="display:none">').text(
-      optionLabel,
-    )
+    const _otSpan = document.createElement('span')
+    _otSpan.className = 'regrade_option_text'
+    _otSpan.style.display = 'none'
+    _otSpan.textContent = optionLabel
+    const $optionTextSpan = $(_otSpan)
     $(newAnswerData.newAnswer).parents('.answer').append($optionTextSpan)
     $question.find('.regrade_option').remove()
     $question.find('input[name="regrade_option"]').remove()
-    const $hiddenSpan = $('<span class="regrade_option" style="display:none">').text(optionValue)
-    const $hiddenInput = $(
-      '<input type="hidden" name="regrade_option" value="' + htmlEscape(optionValue) + '">',
-    )
+    const _hidSpan = document.createElement('span')
+    _hidSpan.className = 'regrade_option'
+    _hidSpan.style.display = 'none'
+    _hidSpan.textContent = optionValue
+    const $hiddenSpan = $(_hidSpan)
+    const _hidInput = document.createElement('input')
+    _hidInput.type = 'hidden'
+    _hidInput.name = 'regrade_option'
+    _hidInput.value = optionValue
+    const $hiddenInput = $(_hidInput)
     $question.append($hiddenSpan).append($hiddenInput)
   }
 
@@ -3549,7 +3568,7 @@ ready(function () {
       const group = {}
       group.id = $(this).attr('id').substring(10)
       group.name = $(this).getTemplateData({textValues: ['name']}).name
-      const $option = $('<option/>')
+      const $option = $(document.createElement('option'))
       $option.text(TextHelper.truncateText(group.name))
       $option.val(group.id)
       $option.addClass('group')
@@ -3752,7 +3771,7 @@ ready(function () {
       .find('.page_link')
       .showIf(bank_data.pages && bank_data.last_page && bank_data.pages > bank_data.last_page)
     updateFindQuestionDialogQuizGroups()
-    const $div = $('<div/>')
+    const $div = $(document.createElement('div'))
     for (const idx in questionList) {
       const question = questionList[idx].assessment_question
       if (!existingIDs[question.id] || true) {
@@ -5426,13 +5445,14 @@ $.fn.formulaQuestion = function () {
     const $table = $question.find('.combinations')
     $table.find('thead tr').empty()
     $question.find('.variables .variable').each(function () {
-      const $th = $('<th/>')
-      $th.text($(this).find('.name').text())
-      $table.find('thead tr').append($th)
+      const _vth = document.createElement('th')
+      _vth.textContent = $(this).find('.name').text()
+      $table.find('thead tr')[0]?.appendChild(_vth)
     })
-    const $th = $('<th/>')
-    $th.text(I18n.t('final_answer', 'Final Answer'))
-    $th.addClass('final_answer')
+    const _fath = document.createElement('th')
+    _fath.textContent = I18n.t('final_answer', 'Final Answer')
+    _fath.className = 'final_answer'
+    const $th = $(_fath)
     $table.find('thead tr').append($th)
     $table.find('tbody').empty()
     let cnt = numberHelper.parse($question.find('.combination_count').val()) || 10
@@ -5500,14 +5520,16 @@ $.fn.formulaQuestion = function () {
         })
         if (!existingCombinations[combination] || true) {
           if (solution.isValid()) {
-            var $result = $('<tr/>')
+            const _resultTr = document.createElement('tr')
+            var $result = $(_resultTr)
             $variable_values.each(function () {
-              const $td = $('<td/>')
-              $td.text(I18n.n($(this).attr('data-value')))
-              $result.append($td)
+              const _vtd = document.createElement('td')
+              _vtd.textContent = I18n.n($(this).attr('data-value'))
+              _resultTr.appendChild(_vtd)
             })
-            const $td = $('<td/>')
-            $td.addClass('final_answer')
+            const _fatd = document.createElement('td')
+            _fatd.className = 'final_answer'
+            const $td = $(_fatd)
             let html = htmlEscape(I18n.n(solution.rawValue()))
             if (answer_tolerance) {
               html +=
@@ -5614,7 +5636,7 @@ $.fn.formulaQuestion = function () {
     const functions = calcCmd.functionList()
     for (const idx in functions) {
       const func = functions[idx][0]
-      const $option = $('<option/>')
+      const $option = $(document.createElement('option'))
       $option.val(func).text(func)
       $('#calc_helper_methods').append($option)
     }

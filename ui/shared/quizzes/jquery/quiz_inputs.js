@@ -21,7 +21,11 @@ import $ from 'jquery'
 const inputMethods = {
   disableInputs(inputs) {
     const $body = $('body'),
-      $inputCover = $('<div />', {class: 'input_cover'})
+      $inputCover = (() => {
+        const _d = document.createElement('div')
+        _d.className = 'input_cover'
+        return $(_d)
+      })()
 
     $inputCover.on('mouseleave', function () {
       $(this).remove()

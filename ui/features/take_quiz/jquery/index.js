@@ -1044,13 +1044,14 @@ $(document).ready(() => {
     // to [aria-live="assertive"]!
     //
     // 100% win
-    const $timer = $('<div />', {
-      class: 'screenreader-only',
-      'aria-role': 'note',
-      'aria-live': 'assertive',
-      'aria-atomic': 'true',
-      'aria-relevant': 'additions',
-    }).appendTo(document.body)
+    const _timerEl = document.createElement('div')
+    _timerEl.className = 'screenreader-only'
+    _timerEl.setAttribute('aria-role', 'note')
+    _timerEl.setAttribute('aria-live', 'assertive')
+    _timerEl.setAttribute('aria-atomic', 'true')
+    _timerEl.setAttribute('aria-relevant', 'additions')
+    document.body.appendChild(_timerEl)
+    const $timer = $(_timerEl)
 
     $(document).on('keydown.timer_quickjump', function readTimeLeft(e) {
       if (e.altKey && (e.shiftKey || e.ctrlKey) && e.which === KC_T) {

@@ -100,7 +100,10 @@ $.fn.superCalc = function (options, more_options) {
     )
     $table.find('tfoot tr:last td:first').append($enter)
     $entryBox.hide()
-    const $input = $("<input type='text' readonly='true'/>")
+    const _calcInput = document.createElement('input')
+    _calcInput.type = 'text'
+    _calcInput.readOnly = true
+    const $input = $(_calcInput)
     $table.find('tfoot tr:last td:first').append($input.hide())
     $entryBox.data('supercalc_options', options)
     $entryBox.data('supercalc_answer', $input)

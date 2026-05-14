@@ -184,3 +184,94 @@ describe('quiz.updateDisplayQuestion — XSS regression', () => {
     expect($qt.innerHTML.toLowerCase()).not.toContain('<script')
   })
 })
+
+// Regression: $tr was left unrenamed when $tr -> _ctr refactor was applied.
+// Editing a calculated question threw: ReferenceError: $tr is not defined
+describe('calculated question edit — $tr rename regression', () => {
+  let $holder: ReturnType<typeof $>
+  let updateFormSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    // Build the question DOM that quizData() reads from.
+    // Variable "x" has one answer combination: x=5 -> 42.
+    $holder = $(`
+      <div class="question_holder">
+        <div id="question_regr_1" class="question display_question calculated_question">
+          <span class="question_type">calculated_question</span>
+          <span class="question_points">1</span>
+          <div class="original_question_text"></div>
+          <div class="answers"></div>
+          <div class="equation_combinations_holder_holder"></div>
+          <div class="multiple_answer_sets_holder"></div>
+          <div class="variable_definitions_holder">
+            <table class="variable_definitions"><tbody>
+              <tr>
+                <td class="name">x</td>
+                <td class="min">1</td>
+                <td class="max">10</td>
+                <td class="scale">0</td>
+              </tr>
+            </tbody></table>
+          </div>
+          <div class="formulas_holder"><div class="formulas_list"></div></div>
+          <div class="equation_combinations">
+            <table><tbody>
+              <tr>
+                <td>5</td>
+                <td class="final_answer">42</td>
+              </tr>
+            </tbody></table>
+          </div>
+          <span class="formula_decimal_places">2</span>
+          <span class="answer_tolerance"></span>
+          <a class="edit_question_link" href="#">Edit</a>
+        </div>
+      </div>
+    `)
+    document.body.appendChild($holder[0] as HTMLElement)
+
+    $(`
+      <div id="question_form_template">
+        <div class="question">
+          <input name="question_type" value="calculated_question" />
+        </div>
+        <div class="form_answers"></div>
+        <div class="answer_selection_type"></div>
+        <div class="variables"></div>
+        <input class="combination_count" type="text" />
+        <div class="combinations_holder">
+          <div class="combinations">
+            <table>
+              <thead><tr></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `).appendTo(document.body)
+
+    updateFormSpy = vi
+      .spyOn(quizModule.quiz, 'updateFormQuestion')
+      .mockReturnValue({question_type: 'calculated_question'} as any)
+  })
+
+  afterEach(() => {
+    $holder?.remove()
+    $('#question_form_template').remove()
+    document.body.innerHTML = ''
+    updateFormSpy?.mockRestore()
+  })
+
+  it('does not throw when the edit link is clicked', () => {
+    expect(() => {
+      $holder.find('.edit_question_link').trigger('click')
+    }).not.toThrow()
+  })
+
+  it('appends one <tr> to .combinations tbody for each answer', () => {
+    $holder.find('.edit_question_link').trigger('click')
+    // $form is inserted after the (now-hidden) .question element in the DOM
+    const $insertedForm = $holder.find('.question').next()
+    expect($insertedForm.find('.combinations tbody tr').length).toBe(1)
+  })
+})

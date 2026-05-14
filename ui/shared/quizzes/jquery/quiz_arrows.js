@@ -70,21 +70,26 @@ export default class QuizArrowApplicator {
       '#questions.suppress_correct_answers:not(.survey_results) .question.incorrect:not(.unanswered)',
     )
 
-    this.rightTpl = $('<span />', {class: 'answer_arrow correct'})
-    this.wrongTpl = $('<span />', {class: 'answer_arrow incorrect'})
-    this.correctTpl = $('<span />', {class: 'answer_arrow info'})
+    const mkSpan = cls => {
+      const s = document.createElement('span')
+      s.className = cls
+      return $(s)
+    }
+    this.rightTpl = mkSpan('answer_arrow correct')
+    this.wrongTpl = mkSpan('answer_arrow incorrect')
+    this.correctTpl = mkSpan('answer_arrow info')
 
-    this.shortTpl = $('<span />', {class: 'answer_arrow info'})
+    this.shortTpl = mkSpan('answer_arrow info')
 
-    this.creditFullTpl = $('<span />', {class: 'answer_indicator correct'})
-    this.creditPartialTpl = $('<span />', {class: 'answer_indicator incorrect'})
-    this.creditNoneTpl = $('<span />', {class: 'answer_indicator incorrect'})
+    this.creditFullTpl = mkSpan('answer_indicator correct')
+    this.creditPartialTpl = mkSpan('answer_indicator incorrect')
+    this.creditNoneTpl = mkSpan('answer_indicator incorrect')
 
-    this.unansweredTpl = $('<span />', {class: 'answer_indicator incorrect'})
-    this.answeredCorrectTpl = $('<span />', {class: 'answer_indicator correct'})
-    this.answeredIncorrectTpl = $('<span />', {class: 'answer_indicator incorrect'})
+    this.unansweredTpl = mkSpan('answer_indicator incorrect')
+    this.answeredCorrectTpl = mkSpan('answer_indicator correct')
+    this.answeredIncorrectTpl = mkSpan('answer_indicator incorrect')
 
-    this.surveyAnswerTpl = $('<span />', {class: 'answer_arrow info'})
+    this.surveyAnswerTpl = mkSpan('answer_arrow info')
     this.surveyAnswers = $('#questions.survey_results .selected_answer')
   }
 

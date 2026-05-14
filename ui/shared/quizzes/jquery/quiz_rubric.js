@@ -40,7 +40,7 @@ const quizRubric = {
   },
 
   buildLoadingDialog() {
-    const $loading = $('<div/>')
+    const $loading = $(document.createElement('div'))
     $loading.text(I18n.t('loading', 'Loading...'))
     $('body').append($loading)
     $loading.dialog({

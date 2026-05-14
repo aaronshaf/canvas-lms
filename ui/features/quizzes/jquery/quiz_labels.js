@@ -25,11 +25,11 @@ export default function addAriaDescription($answer, id) {
   const text = I18n.t('Answer %{answerId}', {answerId: id})
   const labelId = `answer${id}`
 
-  const $label = $('<label/>', {
-    id: labelId,
-    class: 'screenreader-only',
-    text,
-  })
+  const _lbl = document.createElement('label')
+  _lbl.id = labelId
+  _lbl.className = 'screenreader-only'
+  _lbl.textContent = text
+  const $label = $(_lbl)
 
   $answer.find('input:text').attr('aria-describedby', labelId)
   $answer.find('.deleteAnswerId').text(text)

@@ -74,7 +74,9 @@ $(document).ready(() => {
     })
 
   return $list.each(function () {
-    const $holder = $('<span/>').css('display', 'inline-block')
+    const _spnEl = document.createElement('span')
+    _spnEl.style.display = 'inline-block'
+    const $holder = $(_spnEl)
     $holder.before($(this))
     $holder.append($(this))
     return $holder

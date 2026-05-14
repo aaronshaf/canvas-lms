@@ -242,7 +242,7 @@ export default class LDBLoginPopup extends Backbone.View {
     // Store the links to the stylesheets
     styleSheets = compact(map(Array.from(document.styleSheets), styleSheet => styleSheet.href))
 
-    $inputSink = $('<div />').on('click', bringToFront).css({
+    $inputSink = $(document.createElement('div')).on('click', bringToFront).css({
       'z-index': 1000,
       position: 'fixed',
       left: 0,
