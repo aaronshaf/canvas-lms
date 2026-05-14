@@ -291,13 +291,17 @@ function addTooltipElementForAssignment($assignment) {
   $tooltipWrapRight = $grade.find('.tooltip_wrap right')
 
   if ($tooltipWrapRight.length === 0) {
-    $tooltipWrapRight = $('<span class="tooltip_wrap right"></span>')
+    const _wrapSpan = document.createElement('span')
+    _wrapSpan.className = 'tooltip_wrap right'
+    $tooltipWrapRight = $(_wrapSpan)
     $grade.append($tooltipWrapRight)
 
     $tooltipScoreTeaser = $tooltipWrapRight.find('.tooltip_text score_teaser')
 
     if ($tooltipScoreTeaser.length === 0) {
-      $tooltipScoreTeaser = $('<span class="tooltip_text score_teaser"></span>')
+      const _teaserSpan = document.createElement('span')
+      _teaserSpan.className = 'tooltip_text score_teaser'
+      $tooltipScoreTeaser = $(_teaserSpan)
       $tooltipWrapRight.append($tooltipScoreTeaser)
     }
   }

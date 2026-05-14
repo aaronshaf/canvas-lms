@@ -102,7 +102,7 @@ DeleteGroupView.prototype.updateAssignmentCount = function () {
 
 DeleteGroupView.prototype.addToGroupOptions = function (model) {
   const id = model.get('id')
-  const $opt = $('<option>')
+  const $opt = $(document.createElement('option'))
   $opt.val(id)
   $opt.addClass('ag_' + id)
   $opt.text(model.get('name'))

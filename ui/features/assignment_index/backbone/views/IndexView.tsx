@@ -238,7 +238,9 @@ IndexView.prototype.afterRender = function () {
 
 IndexView.prototype.requestBulkEdit = function () {
   if (window.ENV.FEATURES?.instui_nav) {
-    const bulkEditCrumb = $('<li>').text('Edit Assignment Dates')
+    const _liEl = document.createElement('li')
+    _liEl.textContent = 'Edit Assignment Dates'
+    const bulkEditCrumb = $(_liEl)
     // xsslint jqueryObject.identifier bulkEditCrumb
     $('#breadcrumbs ul').append(bulkEditCrumb)
   }

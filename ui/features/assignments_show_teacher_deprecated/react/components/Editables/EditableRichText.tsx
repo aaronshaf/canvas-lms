@@ -90,21 +90,14 @@ export default class EditableRichText extends React.Component {
     }
   }
 
-  testDiv = null
-
   renderView = () => {
     // @ts-expect-error
     const html = this.state.htmlValue
     // if the htmlValue is nothing but whitespace,
     // show the placeholder
-    if (!this.testDiv) {
-      // @ts-expect-error
-      this.testDiv = document.createElement('div')
-    }
-    // @ts-expect-error
-    this.testDiv.innerHTML = html
-    // @ts-expect-error
-    const hasContent = !!this.testDiv.textContent.trim()
+    const hasContent = !!(
+      html && new DOMParser().parseFromString(html, 'text/html').body.textContent?.trim()
+    )
     return (
       <View as="div" margin="small 0">
         {/* @ts-expect-error */}

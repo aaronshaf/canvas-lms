@@ -180,9 +180,11 @@ type SubmissionCommentProps = {
 }
 function SubmissionComment({comment, showDivider}: SubmissionCommentProps) {
   const {attachments, author, mediaObject} = comment
-  const formattedComment = containsHtmlTags(comment.htmlComment)
-    ? sanitizeHTML(comment.htmlComment)
-    : formatMessage(comment.htmlComment)
+  const formattedCommentHtml = sanitizeHTML(
+    containsHtmlTags(comment.htmlComment)
+      ? comment.htmlComment
+      : formatMessage(comment.htmlComment),
+  )
   return (
     <View
       as="div"
@@ -204,8 +206,7 @@ function SubmissionComment({comment, showDivider}: SubmissionCommentProps) {
               {author.name}
             </Link>
           </Heading>
-          {/* xsslint safeString.identifier formattedComment */}
-          <Text size="small" dangerouslySetInnerHTML={{__html: formattedComment}} />
+          <Text size="small" dangerouslySetInnerHTML={{__html: formattedCommentHtml}} />
           {mediaObject && (
             <View as="div">
               <Link

@@ -64,7 +64,7 @@ AssignmentGroupSelector.prototype.showAssignmentGroupCreateDialog = function () 
       'assignmentGroup:created',
       (function (_this) {
         return function (group) {
-          const $newGroup = $('<option>')
+          const $newGroup = $(document.createElement('option'))
           $newGroup.val(group.id)
           $newGroup.text(group.name)
           _this.$assignmentGroupId.prepend($newGroup)

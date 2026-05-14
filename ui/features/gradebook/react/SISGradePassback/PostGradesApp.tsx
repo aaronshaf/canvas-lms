@@ -47,7 +47,9 @@ class PostGradesApp extends React.Component<Props> {
   }
 
   static AppLaunch(store: ReturnType<typeof PostGradesStore>, returnFocusTo) {
-    const $dialog = $('<div class="post-grades-dialog">').dialog({
+    const _pgDiv = document.createElement('div')
+    _pgDiv.className = 'post-grades-dialog'
+    const $dialog = $(_pgDiv).dialog({
       title: I18n.t('Sync Grades to SIS'),
       maxWidth: 650,
       maxHeight: 450,

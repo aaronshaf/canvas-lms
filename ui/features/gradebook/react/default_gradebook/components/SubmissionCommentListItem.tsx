@@ -95,17 +95,16 @@ export default class SubmissionCommentListItem extends React.Component<Props> {
       )
     }
 
-    const formattedComment = containsHtmlTags(this.props.comment)
-      ? sanitizeHTML(this.props.comment)
-      : formatMessage(this.props.comment)
+    const formattedCommentHtml = sanitizeHTML(
+      containsHtmlTags(this.props.comment) ? this.props.comment : formatMessage(this.props.comment),
+    )
     return (
       <div>
         <Text size="small" lineHeight="condensed">
           <p
             style={{margin: '0 0 0.75rem'}}
             data-testid="comment"
-            // xsslint safeString.identifier formattedComment
-            dangerouslySetInnerHTML={{__html: formattedComment}}
+            dangerouslySetInnerHTML={{__html: formattedCommentHtml}}
           />
         </Text>
       </div>

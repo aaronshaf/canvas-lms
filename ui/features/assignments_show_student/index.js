@@ -21,5 +21,5 @@ import renderAssignmentsApp from './react/index'
 import ready from '@instructure/ready'
 
 ready(() => {
-  renderAssignmentsApp(ENV, $('<div/>').appendTo('#content')[0])
+  renderAssignmentsApp(ENV, $(document.createElement('div')).appendTo('#content')[0])
 })

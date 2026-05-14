@@ -36,12 +36,12 @@ function AssignmentDetailsText(description?: string): string {
 }
 
 const AssignmentDescription = (props: AssignmentToggleDetailsProps) => {
+  const descriptionHtml = AssignmentDetailsText(props.description)
   return (
     <View margin="0" padding="0">
       <div
         className="user_content"
-        // xsslint safeString.function AssignmentDetailsText
-        dangerouslySetInnerHTML={{__html: AssignmentDetailsText(props.description)}}
+        dangerouslySetInnerHTML={{__html: descriptionHtml}}
         data-testid="assignments-2-assignment-description"
       />
     </View>

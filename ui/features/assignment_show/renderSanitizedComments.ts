@@ -25,17 +25,18 @@ import {containsHtmlTags, formatMessage} from '@canvas/util/TextHelper'
 // this sink directly without booting the rest of the side-effect-heavy
 // assignment_show entry (LockManager, axios, react roots, etc.).
 //
-// `containsHtmlTags(content) ? sanitizeHTML(content) : formatMessage(content)`
-// is the production branch the test asserts on. The DOMPurify-backed
+// Both HTML and plain-text paths flow through sanitizeHTML so the result is
+// always TrustedHTML — required for TT Phase 2 (no raw string reaches innerHTML).
+// The DOMPurify-backed
 // `@canvas/sanitize-html` wrapper replaced `sanitize-html-with-tinymce`
 // (which used TinyMCE 5.10.9's regex-based SaxParser) as part of CFA-838.
 export function renderSanitizedComments(): void {
   const comments = document.getElementsByClassName('comment_content')
   Array.from(comments).forEach(comment => {
     const content = (comment instanceof HTMLElement ? comment.dataset.content : '') || ''
-    const formattedComment = containsHtmlTags(content)
-      ? sanitizeHTML(content)
-      : formatMessage(content)
+    const formattedComment = sanitizeHTML(
+      containsHtmlTags(content) ? content : formatMessage(content),
+    )
     comment.innerHTML = formattedComment
   })
 }

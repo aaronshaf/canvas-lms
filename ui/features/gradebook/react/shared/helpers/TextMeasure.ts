@@ -21,9 +21,10 @@ import $ from 'jquery'
 export default function getTextWidth(text: string) {
   let $textMeasure = $('#text-measure')
   if (!$textMeasure.length) {
-    $textMeasure = $('<span id="text-measure" style="padding: 10px; display: none;" />').appendTo(
-      '#content',
-    )
+    const _tm = document.createElement('span')
+    _tm.id = 'text-measure'
+    _tm.setAttribute('style', 'padding: 10px; display: none;')
+    $textMeasure = $(_tm).appendTo('#content')
   }
   // convert to integer to maintain backwards compatibility
   return Math.floor($textMeasure?.text(text).outerWidth() ?? 0)
