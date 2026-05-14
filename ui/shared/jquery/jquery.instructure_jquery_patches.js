@@ -31,7 +31,10 @@ $.attrHooks.method = $.extend($.attrHooks.method, {
     if (value === 'POST') {
       let $input = $(elem).find("input[name='_method']")
       if (!$input.length) {
-        $input = $("<input type='hidden' name='_method'/>").prependTo(elem)
+        const _mi = document.createElement('input')
+        _mi.type = 'hidden'
+        _mi.name = '_method'
+        $input = $(_mi).prependTo(elem)
       }
       $input.val(orginalVal)
     }

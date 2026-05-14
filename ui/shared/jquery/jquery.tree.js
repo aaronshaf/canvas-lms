@@ -104,7 +104,12 @@ $.fn.instTree = function (options) {
         cursor: 'move',
         distance: 3,
         helper() {
-          return $('<div id="instTree-drag"><span>' + $(this).html() + '</span></div>')
+          const _dragDiv = document.createElement('div')
+          _dragDiv.id = 'instTree-drag'
+          const _innerSpan = document.createElement('span')
+          Array.from(this.childNodes).forEach(n => _innerSpan.appendChild(n.cloneNode(true)))
+          _dragDiv.appendChild(_innerSpan)
+          return $(_dragDiv)
         },
         appendTo: tree,
       })

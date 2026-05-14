@@ -258,19 +258,21 @@ $.fn.formSubmit = function (options) {
       })
     } else if (doUploadFile) {
       const id = uniqueId(formId + '_'),
-        $frame = $(
-          "<div style='display: none;' id='box_" +
-            htmlEscape(id) +
-            "'><iframe id='frame_" +
-            htmlEscape(id) +
-            "' name='frame_" +
-            htmlEscape(id) +
-            "' src='about:blank' onload='$(\"#frame_" +
-            htmlEscape(id) +
-            '").triggerHandler("form_response_loaded");\'></iframe>',
-        )
-          .appendTo('body')
-          .find('#frame_' + id),
+        $frame = (() => {
+          const _boxDiv = document.createElement('div')
+          _boxDiv.style.display = 'none'
+          _boxDiv.id = 'box_' + id
+          const _iframe = document.createElement('iframe')
+          _iframe.id = 'frame_' + id
+          _iframe.name = 'frame_' + id
+          _iframe.src = 'about:blank'
+          _iframe.addEventListener('load', function () {
+            $(_iframe).triggerHandler('form_response_loaded')
+          })
+          _boxDiv.appendChild(_iframe)
+          document.body.appendChild(_boxDiv)
+          return $(_iframe)
+        })(),
         priorTarget = $form.attr('target'),
         priorEnctype = $form.attr('ENCTYPE'),
         request = new FakeXHR()
@@ -1191,11 +1193,13 @@ $.fn.errorBox = function (message, scroll, override_position) {
   if ($obj.hasClass('labeled-error')) {
     // error is rendered in a label
     $obj.addClass('ic-Input--has-error')
-    const $label = $('<label>').addClass('text-error labeled-error-message').insertAfter($obj)
+    const _lbl = document.createElement('label')
+    _lbl.className = 'text-error labeled-error-message'
+    const $label = $(_lbl).insertAfter($obj)
     const icon = document.createElement('i')
     icon.setAttribute('aria-hidden', 'true')
     icon.className = 'icon-warning icon-Solid'
-    const textNode = document.createTextNode(htmlEscape(message))
+    const textNode = document.createTextNode(message.toString())
     $label[0].appendChild(icon)
     $label[0].appendChild(textNode)
 
@@ -1221,12 +1225,17 @@ $.fn.errorBox = function (message, scroll, override_position) {
   // error is rendered in a floating box
   let $template = $('#error_box_template')
   if (!$template.length) {
-    $template = $(
-      "<div id='error_box_template' class='error_box errorBox' style=''>" +
-        "<div class='error_text' style=''></div>" +
-        "<img src='/images/error_bottom.png' class='error_bottom'/>" +
-        '</div>',
-    ).appendTo('body')
+    const _errBox = document.createElement('div')
+    _errBox.id = 'error_box_template'
+    _errBox.className = 'error_box errorBox'
+    const _errText = document.createElement('div')
+    _errText.className = 'error_text'
+    const _errImg = document.createElement('img')
+    _errImg.src = '/images/error_bottom.png'
+    _errImg.className = 'error_bottom'
+    _errBox.appendChild(_errText)
+    _errBox.appendChild(_errImg)
+    $template = $(_errBox).appendTo('body')
   }
   $.screenReaderFlashError(message)
 
@@ -1240,8 +1249,12 @@ $.fn.errorBox = function (message, scroll, override_position) {
   }
 
   $box.appendTo('body')
-  const errorTextEl = $box.find('.error_text')[0]
-  if (errorTextEl) errorTextEl.innerHTML = htmlEscape(message).toString()
+  // htmlEscape passes SafeStrings through unchanged (preserving <br/> separators
+  // from multi-error messages) while escaping plain strings so they render as
+  // text. jquery.htmlSanitizeShim (DOMPurify) provides an additional layer.
+  // xsslint safeString.identifier messageHtml
+  const messageHtml = htmlEscape(message).toString()
+  $box.find('.error_text').html(messageHtml)
 
   const offset = $obj.offset()
   const height = $box.outerHeight()
@@ -1375,10 +1388,14 @@ $.fn.markRequired = function (options) {
       }
       // Added the if statement to prevent the JS from adding the asterisk to the forgot password placeholder.
       if (this.id !== 'pseudonym_session_unique_id_forgot') {
-        label.append(
-          $('<span aria-hidden="true" />')
-            .text('*')
-            .attr('title', I18n.t('errors.field_is_required', 'This field is required')),
+        label.get(0)?.appendChild(
+          (() => {
+            const _req = document.createElement('span')
+            _req.setAttribute('aria-hidden', 'true')
+            _req.textContent = '*'
+            _req.title = I18n.t('errors.field_is_required', 'This field is required')
+            return _req
+          })(),
         )
       }
     })

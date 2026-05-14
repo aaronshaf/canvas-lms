@@ -58,9 +58,15 @@ $.fn.ifExists = function (func) {
 
 // Returns the width of the browser's scroll bars.
 $.fn.scrollbarWidth = function () {
-  const $div = $(
-      '<div style="width:50px;height:50px;overflow:hidden;position:absolute;top:-200px;left:-200px;"><div style="height:100px;"></div>',
-    ).appendTo(this),
+  const _inner = document.createElement('div')
+  _inner.style.height = '100px'
+  const _outer = document.createElement('div')
+  _outer.setAttribute(
+    'style',
+    'width:50px;height:50px;overflow:hidden;position:absolute;top:-200px;left:-200px;',
+  )
+  _outer.appendChild(_inner)
+  const $div = $(_outer).appendTo(this),
     $innerDiv = $div.find('div')
   // Append our div, do our calculation and then remove it
   const w1 = $innerDiv.innerWidth()
@@ -449,7 +455,7 @@ $.fn.autoGrowInput = function (o) {
     let val = ''
     const minWidth = o.minWidth || $(this).width()
     const input = $(this)
-    const testSubject = $('<tester/>').css({
+    const testSubject = $(document.createElement('span')).css({
       position: 'absolute',
       top: -9999,
       left: -9999,

@@ -47,6 +47,20 @@
 // double-pass on already-clean HTML). Non-string/non-function arguments
 // (DOM nodes, jQuery objects, DocumentFragments) pass through unchanged since
 // they do not involve HTML string parsing.
+//
+// Phase 2 migration path (require-trusted-types-for 'script' enforcement):
+//   Step 1 (raw-string → jQuery innerHTML) will throw under enforcement.
+//   Fix: replace the string arg with a pre-sanitized DocumentFragment before
+//   calling originalHtml. Use DOMParser to preserve table context:
+//     const doc = new DOMParser().parseFromString(sanitizeHTML(str), 'text/html')
+//   `sanitizeHTML` returns TrustedHTML (RETURN_TRUSTED_TYPE:true), so the
+//   DOMParser call receives a TrustedHTML object and bypasses the default policy.
+//   Move child nodes into a DocumentFragment and pass the fragment to jQuery.
+//   jQuery's fragment path uses appendChild() — no innerHTML — so TT is silent.
+//   Table-structure context is preserved because DOMParser produces a full
+//   <html><body> tree; caller context awareness shifts to the DOMParser path
+//   (identical to how browsers handle full-page HTML). Adjust the function-arg
+//   case similarly (call the function first, then sanitize its return value).
 
 import $ from 'jquery'
 import DOMPurify from 'dompurify'
