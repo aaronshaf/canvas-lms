@@ -42,7 +42,7 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
       <div style="margin: 15px 0 25px;">
         <% if content_is_locked %>
           <div id="quiz_description" class="quiz_description">
-            <%= @quiz.description.html_safe %>
+            <%= html_sanitize @quiz.description %>
           </div>
           <input type="hidden" name="description" value="<%=@quiz.description%>"/>
         <% else %>

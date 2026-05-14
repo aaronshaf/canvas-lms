@@ -530,7 +530,6 @@ module ApplicationHelper
   def html_sanitize(html)
     Sanitize.clean(html, CanvasSanitize::SANITIZE).html_safe # rubocop:disable Rails/OutputSafety
   end
-  alias_method :s, :html_sanitize
 
   # to_json unicode-escapes < and >, so as long as we're in a script tag in a view,
   # it's safe to mark it as html_safe.
