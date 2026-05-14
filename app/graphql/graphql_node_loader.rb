@@ -327,7 +327,9 @@ module GraphQLNodeLoader
       end
     when "AllocationRule"
       Loaders::IDLoader.for(AllocationRule).load(id).then do |record|
-        next if !record || record.deleted? || !record.course.grants_right?(ctx[:current_user], :read)
+        next nil unless record && !record.deleted?
+        next nil unless record.course.feature_enabled?(:peer_review_allocation_and_grading)
+        next nil unless record.course.grants_right?(ctx[:current_user], :read_as_admin)
 
         record
       end

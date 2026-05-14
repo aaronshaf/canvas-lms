@@ -2826,6 +2826,19 @@ describe Types::AssignmentType do
         result = @observer_assignment_type.resolve("allocationRules { rulesConnection { nodes { _id } } }")
         expect(result).to be_nil
       end
+
+      it "returns allocation rules for a TA without grade permission" do
+        ta_enrollment = ta_in_course(course:, active_all: true)
+        course.account.role_overrides.create!(
+          permission: "manage_grades",
+          role: ta_enrollment.role,
+          enabled: false
+        )
+        expect(assignment_with_peer_reviews.grants_right?(ta_enrollment.user, :grade)).to be_falsey
+        ta_without_grade_type = GraphQLTypeTester.new(assignment_with_peer_reviews, current_user: ta_enrollment.user)
+        result = ta_without_grade_type.resolve("allocationRules { rulesConnection { nodes { _id } } }")
+        expect(result).to eq([@allocation_rule_1.id.to_s, @allocation_rule_2.id.to_s])
+      end
     end
 
     context "when feature flag is disabled" do

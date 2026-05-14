@@ -1036,7 +1036,7 @@ module Types
     end
     def allocation_rules
       return nil unless object.is_a?(Assignment)
-      return nil unless assignment.grants_right?(current_user, :grade) &&
+      return nil unless assignment.context.grants_right?(current_user, :read_as_admin) &&
                         assignment.context.feature_enabled?(:peer_review_allocation_and_grading) &&
                         assignment.peer_reviews
 

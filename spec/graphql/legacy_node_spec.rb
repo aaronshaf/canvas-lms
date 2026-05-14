@@ -211,4 +211,85 @@ describe "legacyNode" do
       ).to be_nil
     end
   end
+
+  context "AllocationRule" do
+    before(:once) do
+      @course.enable_feature!(:peer_review_allocation_and_grading)
+      @assignment = assignment_model(course: @course, peer_reviews: true, peer_review_count: 1)
+      @other_student = @course.enroll_user(User.create!, "StudentEnrollment", enrollment_state: "active").user
+      @rule = AllocationRule.create!(
+        course: @course,
+        assignment: @assignment,
+        assessor: @student,
+        assessee: @other_student,
+        must_review: true,
+        review_permitted: true,
+        applies_to_assessor: true
+      )
+      @query = <<~GQL
+        query {
+          allocationRule: legacyNode(type: AllocationRule, _id: "#{@rule.id}") {
+            ... on AllocationRule {
+              _id
+            }
+          }
+        }
+      GQL
+    end
+
+    it "does not return the rule to a student enrolled in the course" do
+      expect(
+        run_query(@query, @student)["data"]["allocationRule"]
+      ).to be_nil
+    end
+
+    it "does not return the rule when the feature flag is disabled" do
+      @course.disable_feature!(:peer_review_allocation_and_grading)
+      expect(
+        run_query(@query, @teacher)["data"]["allocationRule"]
+      ).to be_nil
+    end
+
+    it "returns the rule to a TA who lacks grade permission" do
+      ta_enrollment = ta_in_course(course: @course, active_all: true)
+      ta = ta_enrollment.user
+      @course.account.role_overrides.create!(
+        permission: "manage_grades",
+        role: ta_enrollment.role,
+        enabled: false
+      )
+      expect(@assignment.grants_right?(ta, :grade)).to be_falsey
+      expect(
+        run_query(@query, ta)["data"]["allocationRule"]["_id"]
+      ).to eq @rule.id.to_s
+    end
+
+    it "returns the rule to the course teacher" do
+      expect(
+        run_query(@query, @teacher)["data"]["allocationRule"]["_id"]
+      ).to eq @rule.id.to_s
+    end
+
+    it "returns the rule to a course designer" do
+      designer = designer_in_course(course: @course, active_all: true).user
+      expect(
+        run_query(@query, designer)["data"]["allocationRule"]["_id"]
+      ).to eq @rule.id.to_s
+    end
+
+    it "returns the rule to a TA with grade permission" do
+      ta = ta_in_course(course: @course, active_all: true).user
+      expect(@assignment.grants_right?(ta, :grade)).to be_truthy
+      expect(
+        run_query(@query, ta)["data"]["allocationRule"]["_id"]
+      ).to eq @rule.id.to_s
+    end
+
+    it "returns the rule to an account admin" do
+      admin = account_admin_user(account: @course.account)
+      expect(
+        run_query(@query, admin)["data"]["allocationRule"]["_id"]
+      ).to eq @rule.id.to_s
+    end
+  end
 end

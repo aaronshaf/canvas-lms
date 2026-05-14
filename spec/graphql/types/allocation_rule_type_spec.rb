@@ -23,6 +23,7 @@ require_relative "../graphql_spec_helper"
 describe Types::AllocationRuleType do
   before(:once) do
     @course = course_factory(active_all: true)
+    @course.enable_feature!(:peer_review_allocation_and_grading)
     @teacher = teacher_in_course(active_all: true, course: @course).user
     @student1 = student_in_course(course: @course, active_all: true).user
     @student2 = student_in_course(course: @course, active_all: true).user
