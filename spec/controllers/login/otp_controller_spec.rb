@@ -102,6 +102,20 @@ describe Login::OtpController do
       end
     end
 
+    context "when the pseudonym must reset its password" do
+      before do
+        # re-fetch to drop the in-memory `password` attr set during creation,
+        # which would otherwise trip the password_must_differ_when_reset_required validation
+        Pseudonym.find(@pseudonym.id).update!(must_reset_password: true)
+      end
+
+      it "does not redirect to the password reset page" do
+        get :new
+        expect(response).to be_successful
+        expect(response).not_to redirect_to(set_password_url)
+      end
+    end
+
     context "when rendering JSON response" do
       before do
         request.headers["Accept"] = "application/json"

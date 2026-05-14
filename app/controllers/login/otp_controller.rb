@@ -27,6 +27,7 @@ class Login::OtpController < ApplicationController
 
   before_action :require_password_session
   before_action :forbid_on_files_domain
+  skip_before_action :require_password_reset
 
   def new
     # if we waiting on OTP for login, but we're not yet configured, start configuring
