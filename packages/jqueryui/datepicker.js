@@ -116,7 +116,10 @@ import './widget'
       disabled: false // The initial disabled state
     };
     $.extend(this._defaults, this.regional['']);
-    this.dpDiv = bindHover($('<div id="' + this._mainDivId + '" class="ui-datepicker ui-widget ui-widget-content ui-helper-clearfix ui-corner-all"></div>'));
+    const _dp = document.createElement('div');
+    _dp.id = this._mainDivId;
+    _dp.className = 'ui-datepicker ui-widget ui-widget-content ui-helper-clearfix ui-corner-all';
+    this.dpDiv = bindHover($(_dp));
   }
 
   $.extend(Datepicker.prototype, {
@@ -233,7 +236,7 @@ import './widget'
         inst.trigger = $(this._get(inst, 'buttonImageOnly') ?
           $('<img/>').addClass(this._triggerClass).
           attr({ src: buttonImage, alt: buttonText, title: buttonText }) :
-          $('<button type="button"></button>').addClass(this._triggerClass).
+          $(Object.assign(document.createElement('button'), {type: 'button'})).addClass(this._triggerClass).
           html(buttonImage == '' ? buttonText : $('<img/>').attr(
             { src:buttonImage, alt:buttonText, title:buttonText })));
         input[isRTL ? 'before' : 'after'](inst.trigger);

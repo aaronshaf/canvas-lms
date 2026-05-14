@@ -44,7 +44,7 @@ function LongTextEditor(args) {
   this.init = function () {
     const $container = args.alt_container ? $(args.alt_container) : $('body')
 
-    $wrapper = $('<div/>')
+    $wrapper = $(document.createElement('div'))
       .addClass('dontblur')
       .css({
         'z-index': 10000,
@@ -56,11 +56,11 @@ function LongTextEditor(args) {
         'border-radius': '10px',
       })
       .appendTo($container)
-    $input = $('<textarea>', {
-      hidefocus: true,
-      rows: 5,
-      maxlength: args.maxLength,
-    }).css({
+    const _ta = document.createElement('textarea')
+    _ta.setAttribute('hidefocus', 'true')
+    _ta.rows = 5
+    if (args.maxLength != null) _ta.maxLength = args.maxLength
+    $input = $(_ta).css({
       'background-color': 'white',
       width: '250px',
       height: '80px',
@@ -70,15 +70,19 @@ function LongTextEditor(args) {
 
     $wrapper.empty().append($input)
 
-    const buttonContainer = $('<div/>')
+    const buttonContainer = $(document.createElement('div'))
       .css({
         'text-align': 'right',
       })
       .appendTo($wrapper)
     const saveText = I18n.t('save', 'Save')
     const cancelText = I18n.t('cancel', 'Cancel')
-    $saveButton = $('<button>').text(saveText).appendTo(buttonContainer)
-    $cancelButton = $('<button>').text(cancelText).appendTo(buttonContainer)
+    const _saveBtn = document.createElement('button')
+    _saveBtn.textContent = saveText
+    const _cancelBtn = document.createElement('button')
+    _cancelBtn.textContent = cancelText
+    $saveButton = $(_saveBtn).appendTo(buttonContainer)
+    $cancelButton = $(_cancelBtn).appendTo(buttonContainer)
 
     $saveButton.click(this.save)
     $cancelButton.click(this.cancel)

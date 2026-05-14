@@ -144,7 +144,7 @@ import './resizable'
         })
         .prependTo( uiDialog );
 
-      uiDialogTitlebarClose = $( "<button type='button'></button>" )
+      uiDialogTitlebarClose = $( Object.assign(document.createElement('button'), {type: 'button'}) )
         .addClass( "ui-dialog-titlebar-close ui-corner-all" )
         .attr( "aria-label", options.closeText )
         .click(function( event ) {
@@ -408,8 +408,17 @@ import './resizable'
           props.click = function() {
             click.apply( that.element[0], arguments );
           };
-          button = $( "<button></button>", props )
+          button = $( document.createElement( "button" ) )
             .appendTo( that.uiButtonSet );
+          $.each( props, function( key, val ) {
+            if ( $.isFunction( val ) ) {
+              button.on( key, val );
+            } else if ( key === "text" ) {
+              button.text( val );
+            } else {
+              button.attr( key, val );
+            }
+          } );
           if ( $.fn.button ) {
             button.button();
           }

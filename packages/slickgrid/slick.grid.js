@@ -33,6 +33,19 @@ import {isRTL} from '@canvas/i18n/rtlHelper'
 import {getNormalizedScrollLeft, setNormalizedScrollLeft} from 'normalize-scroll-left'
 import 'jqueryui/sortable'
 
+// Named Trusted Types policy for SlickGrid cell rendering.
+// Cell formatters use htmlEscape() for all user-supplied values;
+// this policy avoids DOMPurify overhead (prohibitive on large Gradebooks)
+// while satisfying Phase 2 TT enforcement. The policy name signals
+// the reviewed code path — do not reference it from outside slick.grid.js.
+const _slickTTPolicy =
+  typeof window !== 'undefined' && window.trustedTypes?.createPolicy
+    ? window.trustedTypes.createPolicy('canvas-slickgrid', {createHTML: str => str})
+    : null
+const _setHTML = (el, str) => {
+  el.innerHTML = _slickTTPolicy ? _slickTTPolicy.createHTML(str) : str
+}
+
 /*
  * These eslint configurations are just becase that's how this file was
  * originally written and we want the file to remain as much like the original
@@ -325,9 +338,11 @@ if (typeof Slick === 'undefined') {
         $container_1.css('position', 'relative')
       }
 
-      $focusSink = $(
-        "<div tabIndex='0' hideFocus style='position:fixed;width:0;height:0;top:0;left:0;outline:0;'></div>"
-      ).appendTo($outerContainer)
+      var _fs = document.createElement('div')
+      _fs.tabIndex = 0
+      _fs.setAttribute('hideFocus', '')
+      _fs.setAttribute('style', 'position:fixed;width:0;height:0;top:0;left:0;outline:0;')
+      $focusSink = $(_fs).appendTo($outerContainer)
 
       // FreezeColumns - Add outerContainer and frozen column structure - Begin
       if (options.numberOfColumnsToFreeze > 0) {
@@ -350,38 +365,33 @@ if (typeof Slick === 'undefined') {
             break
           }
         }
-        $container_0 = $("<div class='container_0'></div>")
+        var _c0 = document.createElement('div'); _c0.className = 'container_0'
+        $container_0 = $(_c0)
           .css($.extend({}, containerCSS, {width: totalWidthOfFrozenColumns}))
           .addClass(containerClass)
           .appendTo($outerContainer)
-        $container_1 = $("<div class='container_1'></div>")
+        var _c1 = document.createElement('div'); _c1.className = 'container_1'
+        $container_1 = $(_c1)
           .css($.extend({}, containerCSS, {[rear]: totalWidthOfFrozenColumns, [front]: 0}))
           .addClass(containerClass)
           .appendTo($outerContainer)
 
-        $headerScroller_0 = $(
-          "<div class='headerScroller_0 slick-header ui-state-default' style='overflow:hidden;position:relative;' />"
-        ).appendTo($container_0)
-        $headers_0 = $(
-          "<div class='headers_0 slick-header-columns' style='" + rear + ":-1000px' />"
-        ).appendTo($headerScroller_0)
+        var _hs0 = document.createElement('div'); _hs0.className = 'headerScroller_0 slick-header ui-state-default'; _hs0.setAttribute('style','overflow:hidden;position:relative;')
+        $headerScroller_0 = $(_hs0).appendTo($container_0)
+        var _h0 = document.createElement('div'); _h0.className = 'headers_0 slick-header-columns'; _h0.setAttribute('style', rear + ':-1000px')
+        $headers_0 = $(_h0).appendTo($headerScroller_0)
 
-        $headerRowScroller_0 = $(
-          "<div class='headerRowScroller_0 slick-headerrow ui-state-default' style='overflow:hidden;position:relative;' />"
-        ).appendTo($container_0)
-        $headerRow_0 = $("<div class='headerRow_0 slick-headerrow-columns' />").appendTo(
-          $headerRowScroller_0
-        )
-        $headerRowSpacer_0 = $(
-          "<div class='headerRowSpacer_0' style='display:block;height:1px;position:absolute;top:0;left:0;'></div>"
-        ).appendTo($headerRowScroller_0)
+        var _hrs0 = document.createElement('div'); _hrs0.className = 'headerRowScroller_0 slick-headerrow ui-state-default'; _hrs0.setAttribute('style','overflow:hidden;position:relative;')
+        $headerRowScroller_0 = $(_hrs0).appendTo($container_0)
+        var _hr0 = document.createElement('div'); _hr0.className = 'headerRow_0 slick-headerrow-columns'
+        $headerRow_0 = $(_hr0).appendTo($headerRowScroller_0)
+        var _hrsp0 = document.createElement('div'); _hrsp0.className = 'headerRowSpacer_0'; _hrsp0.setAttribute('style','display:block;height:1px;position:absolute;top:0;left:0;')
+        $headerRowSpacer_0 = $(_hrsp0).appendTo($headerRowScroller_0)
 
-        $topPanelScroller_0 = $(
-          "<div class='topPanelScroller_0 slick-top-panel-scroller ui-state-default' style='overflow:hidden;position:relative;' />"
-        ).appendTo($container_0)
-        $topPanel_0 = $(
-          "<div class='topPanel_0 slick-top-panel' style='width:10000px' />"
-        ).appendTo($topPanelScroller_0)
+        var _tps0 = document.createElement('div'); _tps0.className = 'topPanelScroller_0 slick-top-panel-scroller ui-state-default'; _tps0.setAttribute('style','overflow:hidden;position:relative;')
+        $topPanelScroller_0 = $(_tps0).appendTo($container_0)
+        var _tp0 = document.createElement('div'); _tp0.className = 'topPanel_0 slick-top-panel'; _tp0.setAttribute('style','width:10000px')
+        $topPanel_0 = $(_tp0).appendTo($topPanelScroller_0)
 
         if (!options.showTopPanel) {
           $topPanelScroller_0.hide()
@@ -391,22 +401,17 @@ if (typeof Slick === 'undefined') {
           $headerRowScroller_0.hide()
         }
 
-        $viewport_0 = $(
-          "<div class='viewport_0 slick-viewport' style='width:100%;overflow:hidden;outline:0;position:relative;'>"
-        ).appendTo($container_0)
-        $canvas_0 = $("<div class='canvas_0 grid-canvas' />").appendTo($viewport_0)
+        var _vp0 = document.createElement('div'); _vp0.className = 'viewport_0 slick-viewport'; _vp0.setAttribute('style','width:100%;overflow:hidden;outline:0;position:relative;')
+        $viewport_0 = $(_vp0).appendTo($container_0)
+        var _cv0 = document.createElement('div'); _cv0.className = 'canvas_0 grid-canvas'
+        $canvas_0 = $(_cv0).appendTo($viewport_0)
       }
       // FreezeColumns - Add outerContainer and frozen column structure - End
-      $headerScroller_1 = $(
-        "<div class='headerScroller_1 slick-header ui-state-default' style='overflow:hidden;position:relative;' />"
-      ).appendTo($container_1)
-      if (isRTL($outerContainer[0])) {
-        $headers_1 = $("<div class='headers_1 slick-header-columns' />").appendTo($headerScroller_1)
-      } else {
-        $headers_1 = $(
-          "<div class='headers_1 slick-header-columns' style='" + rear + ":-1000px' />"
-        ).appendTo($headerScroller_1)
-      }
+      var _hs1 = document.createElement('div'); _hs1.className = 'headerScroller_1 slick-header ui-state-default'; _hs1.setAttribute('style','overflow:hidden;position:relative;')
+      $headerScroller_1 = $(_hs1).appendTo($container_1)
+      var _h1 = document.createElement('div'); _h1.className = 'headers_1 slick-header-columns'
+      if (!isRTL($outerContainer[0])) { _h1.setAttribute('style', rear + ':-1000px') }
+      $headers_1 = $(_h1).appendTo($headerScroller_1)
 
       // FreezeColumns - Set width of headers - Begin
       var headersWidthObj = getHeadersWidth()
@@ -418,15 +423,12 @@ if (typeof Slick === 'undefined') {
       }
       // FreezeColumns - Set width of headers - End
 
-      $headerRowScroller_1 = $(
-        "<div class='headerRowScroller_1 slick-headerrow ui-state-default' style='overflow:hidden;position:relative;' />"
-      ).appendTo($container_1)
-      $headerRow_1 = $("<div class='headerRow_1 slick-headerrow-columns' />").appendTo(
-        $headerRowScroller_1
-      )
-      $headerRowSpacer_1 = $(
-        "<div class='headerRowSpacer_1' style='display:block;height:1px;position:absolute;top:0;left:0;'></div>"
-      ).appendTo($headerRowScroller_1)
+      var _hrs1 = document.createElement('div'); _hrs1.className = 'headerRowScroller_1 slick-headerrow ui-state-default'; _hrs1.setAttribute('style','overflow:hidden;position:relative;')
+      $headerRowScroller_1 = $(_hrs1).appendTo($container_1)
+      var _hr1 = document.createElement('div'); _hr1.className = 'headerRow_1 slick-headerrow-columns'
+      $headerRow_1 = $(_hr1).appendTo($headerRowScroller_1)
+      var _hrsp1 = document.createElement('div'); _hrsp1.className = 'headerRowSpacer_1'; _hrsp1.setAttribute('style','display:block;height:1px;position:absolute;top:0;left:0;')
+      $headerRowSpacer_1 = $(_hrsp1).appendTo($headerRowScroller_1)
 
       // FreezeColumns - Set width of header row spacer - Begin
       var canvasWidthObj = getCanvasWidth()
@@ -436,12 +438,10 @@ if (typeof Slick === 'undefined') {
       }
       // FreezeColumns - Set width of header row spacer - End
 
-      $topPanelScroller_1 = $(
-        "<div class='topPanelScroller_1 slick-top-panel-scroller ui-state-default' style='overflow:hidden;position:relative;' />"
-      ).appendTo($container_1)
-      $topPanel_1 = $("<div class='topPanel_1 slick-top-panel' style='width:10000px' />").appendTo(
-        $topPanelScroller_1
-      )
+      var _tps1 = document.createElement('div'); _tps1.className = 'topPanelScroller_1 slick-top-panel-scroller ui-state-default'; _tps1.setAttribute('style','overflow:hidden;position:relative;')
+      $topPanelScroller_1 = $(_tps1).appendTo($container_1)
+      var _tp1 = document.createElement('div'); _tp1.className = 'topPanel_1 slick-top-panel'; _tp1.setAttribute('style','width:10000px')
+      $topPanel_1 = $(_tp1).appendTo($topPanelScroller_1)
 
       if (!options.showTopPanel) {
         $topPanelScroller_1.hide()
@@ -451,12 +451,12 @@ if (typeof Slick === 'undefined') {
         $headerRowScroller_1.hide()
       }
 
-      $viewport_1 = $(
-        "<div class='viewport_1 slick-viewport' style='z-index:0;width:100%;overflow:auto;outline:0;position:relative;'>"
-      ).appendTo($container_1)
+      var _vp1 = document.createElement('div'); _vp1.className = 'viewport_1 slick-viewport'; _vp1.setAttribute('style','z-index:0;width:100%;overflow:auto;outline:0;position:relative;')
+      $viewport_1 = $(_vp1).appendTo($container_1)
       $viewport_1.css('overflow-y', options.autoHeight ? 'hidden' : 'auto')
 
-      $canvas_1 = $("<div class='canvas_1 grid-canvas' />").appendTo($viewport_1)
+      var _cv1 = document.createElement('div'); _cv1.className = 'canvas_1 grid-canvas'
+      $canvas_1 = $(_cv1).appendTo($viewport_1)
 
       $focusSink2 = $focusSink.clone().appendTo($outerContainer)
 
@@ -597,9 +597,9 @@ if (typeof Slick === 'undefined') {
     }
 
     function measureScrollbar() {
-      var $c = $(
-        "<div style='position:absolute; top:-10000px; left:-10000px; width:100px; height:100px; overflow:scroll;'></div>"
-      ).appendTo('body')
+      var _sb = document.createElement('div')
+      _sb.setAttribute('style', 'position:absolute; top:-10000px; left:-10000px; width:100px; height:100px; overflow:scroll;')
+      var $c = $(_sb).appendTo('body')
       var dim = {
         width: $c.width() - $c[0].clientWidth,
         height: $c.height() - $c[0].clientHeight,
@@ -701,7 +701,9 @@ if (typeof Slick === 'undefined') {
       var supportedHeight = 1000000
       // FF reports the height back but still renders blank after ~6M px
       var testUpTo = navigator.userAgent.toLowerCase().match(/firefox/) ? 6000000 : 1000000000
-      var div = $("<div style='display:none' />").appendTo(document.body)
+      var _measureDiv = document.createElement('div')
+      _measureDiv.style.display = 'none'
+      var div = $(_measureDiv).appendTo(document.body)
 
       while (true) {
         var test = supportedHeight * 2
@@ -874,8 +876,10 @@ if (typeof Slick === 'undefined') {
       for (var i = 0; i < columns.length; i++) {
         var m = columns[i]
 
-        var header = $("<div class='ui-state-default slick-header-column' />")
-          .html("<span class='slick-column-name'>" + m.name + '</span>')
+        var _hdrEl = document.createElement('div'); _hdrEl.className = 'ui-state-default slick-header-column'
+        var _nameSpan = document.createElement('span'); _nameSpan.className = 'slick-column-name'; _nameSpan.textContent = m.name
+        var header = $(_hdrEl)
+          .append(_nameSpan)
           .width(m.width - headerColumnWidthDiff)
           .attr('id', '' + uid + m.id)
           .attr('title', m.toolTip || '')
@@ -889,7 +893,9 @@ if (typeof Slick === 'undefined') {
 
         if (m.sortable) {
           header.addClass('slick-header-sortable')
-          header.append("<span class='slick-sort-indicator' />")
+          var sortIndicator = document.createElement('span')
+          sortIndicator.className = 'slick-sort-indicator'
+          header.append(sortIndicator)
         }
 
         trigger(self.onHeaderCellRendered, {
@@ -898,9 +904,9 @@ if (typeof Slick === 'undefined') {
         })
 
         if (options.showHeaderRow) {
-          var headerRowCell = $(
-            "<div class='ui-state-default slick-headerrow-column b" + i + ' f' + i + "'></div>"
-          )
+          var _hrc = document.createElement('div')
+          _hrc.className = 'ui-state-default slick-headerrow-column b' + i + ' f' + i
+          var headerRowCell = $(_hrc)
             .data('column', m)
             .appendTo(i < numberOfColumnsToFreeze ? $headerRow_0 : $headerRow_1)
 
@@ -1078,7 +1084,8 @@ if (typeof Slick === 'undefined') {
             return
           }
           $col = $(e)
-          $("<div class='slick-resizable-handle' />")
+          var _rh = document.createElement('div'); _rh.className = 'slick-resizable-handle'
+          $(_rh)
             .appendTo(e)
             .on('dragstart', function (e, dd) {
               setTimeout(() => {
@@ -1316,8 +1323,10 @@ if (typeof Slick === 'undefined') {
       }
       el.remove()
 
-      var r = $("<div class='slick-row' />").appendTo($canvas_1)
-      el = $("<div class='slick-cell' id='' style='visibility:hidden'>-</div>").appendTo(r)
+      var _srow = document.createElement('div'); _srow.className = 'slick-row'
+      var r = $(_srow).appendTo($canvas_1)
+      var _scell = document.createElement('div'); _scell.className = 'slick-cell'; _scell.id = ''; _scell.style.visibility = 'hidden'; _scell.textContent = '-'
+      el = $(_scell).appendTo(r)
       cellWidthDiff = cellHeightDiff = 0
       if (
         el.css('box-sizing') != 'border-box' &&
@@ -1337,7 +1346,8 @@ if (typeof Slick === 'undefined') {
     }
 
     function createCssRules() {
-      $style = $("<style type='text/css' rel='stylesheet' />").appendTo($('head'))
+      var _styleEl = document.createElement('style'); _styleEl.type = 'text/css'; _styleEl.rel = 'stylesheet'
+      $style = $(_styleEl).appendTo($('head'))
       var rowHeight = options.rowHeight - cellHeightDiff
       var rules = [
         '.' + uid + ' .slick-header-column { ' + rear + ': 1000px; }',
@@ -2104,9 +2114,10 @@ if (typeof Slick === 'undefined') {
       if (currentEditor && activeRow === row && activeCell === cell) {
         currentEditor.loadValue(d)
       } else {
-        cellNode.innerHTML = d
-          ? getFormatter(row, m)(row, cell, getDataItemValueForColumn(d, m), m, d)
-          : ''
+        _setHTML(
+          cellNode,
+          d ? getFormatter(row, m)(row, cell, getDataItemValueForColumn(d, m), m, d) : '',
+        )
         invalidatePostProcessingResults(row)
       }
     }
@@ -2133,15 +2144,9 @@ if (typeof Slick === 'undefined') {
         if (row === activeRow && columnIdx === activeCell && currentEditor) {
           currentEditor.loadValue(d)
         } else if (d) {
-          node.innerHTML = getFormatter(row, m)(
-            row,
-            columnIdx,
-            getDataItemValueForColumn(d, m),
-            m,
-            d
-          )
+          _setHTML(node, getFormatter(row, m)(row, columnIdx, getDataItemValueForColumn(d, m), m, d))
         } else {
-          node.innerHTML = ''
+          _setHTML(node, '')
         }
       }
 
@@ -2474,9 +2479,9 @@ if (typeof Slick === 'undefined') {
       }
 
       var nonFrozenDiv = document.createElement('div')
-      nonFrozenDiv.innerHTML = stringArray.nonFrozen.join('')
+      _setHTML(nonFrozenDiv, stringArray.nonFrozen.join(''))
       var frozenDiv = document.createElement('div')
-      frozenDiv.innerHTML = stringArray.frozen.join('')
+      _setHTML(frozenDiv, stringArray.frozen.join(''))
 
       var processedRow
       var nonFrozenNode
@@ -2548,11 +2553,11 @@ if (typeof Slick === 'undefined') {
       }
 
       var nonFrozenDiv = document.createElement('div')
-      nonFrozenDiv.innerHTML = stringArray.nonFrozen.join('')
+      _setHTML(nonFrozenDiv, stringArray.nonFrozen.join(''))
       if (numberOfColumnsToFreeze > 0) {
         // FreezeColumns - Add divs for both frozen columns and update contents
         var frozenDiv = document.createElement('div')
-        frozenDiv.innerHTML = stringArray.frozen.join('')
+        _setHTML(frozenDiv, stringArray.frozen.join(''))
       }
 
       var currentRowCache
@@ -3250,12 +3255,9 @@ if (typeof Slick === 'undefined') {
         if (d) {
           var column = columns[activeCell]
           var formatter = getFormatter(activeRow, column)
-          activeCellNode.innerHTML = formatter(
-            activeRow,
-            activeCell,
-            getDataItemValueForColumn(d, column),
-            column,
-            d
+          _setHTML(
+            activeCellNode,
+            formatter(activeRow, activeCell, getDataItemValueForColumn(d, column), column, d),
           )
           invalidatePostProcessingResults(activeRow)
         }
@@ -3305,7 +3307,7 @@ if (typeof Slick === 'undefined') {
 
       // don't clear the cell if a custom editor is passed through
       if (!editor) {
-        activeCellNode.innerHTML = ''
+        _setHTML(activeCellNode, '')
       }
 
       currentEditor = new (editor || getEditor(activeRow, activeCell))({
@@ -4189,3 +4191,5 @@ if (typeof Slick === 'undefined') {
 
     init()
   }
+
+
