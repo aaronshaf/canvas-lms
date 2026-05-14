@@ -52,7 +52,7 @@
           <%= render partial: "debugging", locals: { provider: aac } %>
         <% end %>
 
-        <% if aac.show_mfa_configuration_options? %>
+        <% if aac.show_mfa_configuration_options? && aac.account.grants_right?(@current_user, :manage_mfa_settings) %>
           <div class="ic-Form-control ic-Form-control--radio" %>
             <span class="ic-Label"><%= t('MFA Required') %></span>
             <div class="ic-Radio">

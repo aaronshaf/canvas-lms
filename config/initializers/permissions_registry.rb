@@ -495,7 +495,11 @@ BASE_PERMISSIONS = {
     account_details: [
       { title: -> { I18n.t("Multi-Factor Authentication Management") },
         description: -> { I18n.t("Allows user to view and manage the Multi-Factor Authentication setting in Account Settings.") } }
-    ]
+    ],
+    account_considerations: [
+      { description: -> { I18n.t("To access account settings, Account-level settings - manage must also be enabled.") } },
+      { description: -> { I18n.t("To reset a specific user's Multi-Factor Authentication enrollment, Reset Multi-Factor Authentication must also be enabled.") } },
+    ],
   },
   manage_site_settings: {
     label: -> { I18n.t("permissions.manage_site_settings", "Manage site-wide and plugin settings") },
@@ -620,7 +624,10 @@ BASE_PERMISSIONS = {
     account_only: :root,
     true_for: %w[AccountAdmin],
     available_to: %w[AccountAdmin AccountMembership],
-    account_allows: ->(a) { a.mfa_settings != :disabled }
+    account_allows: ->(a) { a.mfa_settings != :disabled },
+    account_considerations: [
+      { description: -> { I18n.t("To configure the account's Multi-Factor Authentication policy, Account - Multi-Factor Authentication must also be enabled.") } },
+    ],
   },
   view_course_changes: {
     label: -> { I18n.t("Courses - view change logs") },

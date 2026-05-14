@@ -26,8 +26,9 @@ describe "authentication_providers/index" do
   before do
     assign(:context, assign(:account, account))
     assign(:domain_root_account, account)
-    assign(:current_user, user_with_pseudonym)
-    assign(:current_pseudonym, @pseudonym)
+    admin = account_admin_user(account:)
+    assign(:current_user, admin)
+    assign(:current_pseudonym, pseudonym(admin, account:))
     assign(:saml_identifiers, [])
     assign(:saml_authn_contexts, [])
     assign(:saml_login_attributes, {})
@@ -118,6 +119,20 @@ describe "authentication_providers/index" do
       doc = Nokogiri::HTML5(response.body)
       mfa_spans = doc.css("span").select { |span| span.text.include?("MFA Required") }
       expect(mfa_spans).not_to be_blank
+    end
+
+    it "does not display MFA panel when user lacks :manage_mfa_settings" do
+      account.role_overrides.create!(
+        role: admin_role,
+        permission: :manage_mfa_settings,
+        enabled: false
+      )
+      account.authentication_providers.scope.delete_all
+      account.authentication_providers.create!(auth_type: "saml")
+      render "authentication_providers/index"
+      doc = Nokogiri::HTML5(response.body)
+      mfa_spans = doc.css("span").select { |span| span.text.include?("MFA Required") }
+      expect(mfa_spans).to be_blank
     end
   end
 

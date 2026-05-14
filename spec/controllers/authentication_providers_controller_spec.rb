@@ -402,6 +402,51 @@ describe AuthenticationProvidersController do
       end
     end
 
+    context "manage_mfa_settings permission" do
+      before do
+        account.settings[:mfa_settings] = :optional
+        account.save!
+      end
+
+      it "persists MFA fields when user has both permissions" do
+        post "create",
+             params: { account_id: account.id,
+                       auth_type: "cas",
+                       auth_base: "http://example.com",
+                       mfa_option: "required",
+                       otp_via_sms: "0" }
+        expect(response).to be_redirect
+
+        ap = account.authentication_providers.active.last
+        expect(ap.mfa_required).to be(true)
+        expect(ap.skip_internal_mfa).to be(false)
+        expect(ap.settings["otp_via_sms"]).to be(false)
+      end
+
+      it "strips MFA fields when user lacks :manage_mfa_settings" do
+        account.role_overrides.create!(
+          role: admin_role(root_account_id: account.id),
+          permission: :manage_mfa_settings,
+          enabled: false
+        )
+
+        post "create",
+             params: { account_id: account.id,
+                       auth_type: "cas",
+                       auth_base: "http://example.com",
+                       mfa_option: "required",
+                       mfa_required: "1",
+                       skip_internal_mfa: "1",
+                       otp_via_sms: "0" }
+        expect(response).to be_redirect
+
+        ap = account.authentication_providers.active.last
+        expect(ap.mfa_required).to be(false)
+        expect(ap.skip_internal_mfa).to be(false)
+        expect(ap.settings).not_to have_key("otp_via_sms")
+      end
+    end
+
     it "does not allow non-admins" do
       user = user_with_pseudonym(active_all: true)
       user_session(user, user.pseudonyms.first)
@@ -432,6 +477,49 @@ describe AuthenticationProvidersController do
       user_session(user, pseudonym(user, account:))
       put :update, params: { account_id: account.id, id: auth_provider.id, auth_base: "http://updated.example.com" }
       expect(response).to be_redirect
+    end
+
+    context "manage_mfa_settings permission" do
+      before do
+        account.settings[:mfa_settings] = :optional
+        account.save!
+      end
+
+      it "persists MFA fields when user has both permissions" do
+        put "update",
+            params: { account_id: account.id,
+                      id: auth_provider.id,
+                      mfa_option: "required",
+                      otp_via_sms: "0" }
+        expect(response).to be_redirect
+
+        auth_provider.reload
+        expect(auth_provider.mfa_required).to be(true)
+        expect(auth_provider.skip_internal_mfa).to be(false)
+        expect(auth_provider.settings["otp_via_sms"]).to be(false)
+      end
+
+      it "strips MFA fields when user lacks :manage_mfa_settings" do
+        account.role_overrides.create!(
+          role: admin_role(root_account_id: account.id),
+          permission: :manage_mfa_settings,
+          enabled: false
+        )
+
+        put "update",
+            params: { account_id: account.id,
+                      id: auth_provider.id,
+                      mfa_option: "required",
+                      mfa_required: "1",
+                      skip_internal_mfa: "1",
+                      otp_via_sms: "0" }
+        expect(response).to be_redirect
+
+        auth_provider.reload
+        expect(auth_provider.mfa_required).to be(false)
+        expect(auth_provider.skip_internal_mfa).to be(false)
+        expect(auth_provider.settings).not_to have_key("otp_via_sms")
+      end
     end
   end
 

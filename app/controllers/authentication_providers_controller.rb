@@ -1136,6 +1136,9 @@ class AuthenticationProvidersController < ApplicationController
     unless @domain_root_account.grants_right?(@current_user, :manage_site_settings)
       data = data.reject { |k, _| klass.site_admin_params.include?(k.to_sym) }
     end
+    unless @account.grants_right?(@current_user, :manage_mfa_settings)
+      data = data.except(:mfa_required, :skip_internal_mfa, :otp_via_sms, :mfa_option)
+    end
 
     data[:jit_provisioning] = value_to_boolean(data[:jit_provisioning]) if data.include?(:jit_provisioning)
     data[:federated_attributes] = federated_attributes if federated_attributes
