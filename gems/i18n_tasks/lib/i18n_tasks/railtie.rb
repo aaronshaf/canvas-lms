@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-require "i18n_tasks"
 module I18nTasks
   class Railtie < Rails::Railtie
     rake_tasks do

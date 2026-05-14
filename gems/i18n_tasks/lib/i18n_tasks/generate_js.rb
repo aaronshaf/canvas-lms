@@ -18,6 +18,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module I18nTasks
+  CORE_KEYS = %i[date time number datetime support].freeze
+
   class GenerateJs
     PLURAL_KEYWORDS = %w[zero one two few many other].freeze
 

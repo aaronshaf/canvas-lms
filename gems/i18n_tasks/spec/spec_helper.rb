@@ -24,7 +24,7 @@ rescue LoadError => e
   warn "Error: #{e}"
 end
 
-require "i18n_tasks"
+require "i18n_tasks/tasks"
 
 Bundler.require(:default)
 

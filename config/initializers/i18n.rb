@@ -136,7 +136,7 @@ module I18nliner
 end
 
 if ENV["LOLCALIZE"]
-  require "i18n_tasks"
+  require "i18n_tasks/lolcalize"
   I18n.extend I18nTasks::Lolcalize
 end
 

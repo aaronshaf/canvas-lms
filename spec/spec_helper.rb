@@ -364,7 +364,7 @@ RSpec::Rails::ViewExampleGroup::ExampleMethods.prepend(RenderWithHelpers)
 require "rspec_mock_extensions"
 require "ams_spec_helper"
 
-require "i18n_tasks"
+require "i18n_tasks/tasks"
 require "factories"
 
 Dir[File.dirname(__FILE__) + "/shared_examples/**/*.rb"].each { |f| require f }

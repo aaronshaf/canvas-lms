@@ -17,4 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-require_relative "i18n_tasks/railtie" if defined?(Rails)
+require "utf8_cleaner"
+require "i18n"
+require "json"
+
+require "i18n_tasks/csv_backend"
+require "i18n_tasks/environment"
+require "i18n_tasks/extract"
+require "i18n_tasks/generate_js"
+require "i18n_tasks/hash_extensions"
+require "i18n_tasks/i18n_import"
+require "i18n_tasks/lolcalize"

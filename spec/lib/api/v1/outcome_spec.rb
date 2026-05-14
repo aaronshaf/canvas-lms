@@ -29,7 +29,7 @@ RSpec.describe "Api::V1::Outcome" do
       def api_v1_outcome_path(opts)
         "/api/v1/outcome/#{opts.fetch(:id)}"
       end
-      s
+
       def polymorphic_path(*_args)
         "/test"
       end
