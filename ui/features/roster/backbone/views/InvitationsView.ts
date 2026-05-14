@@ -24,6 +24,7 @@ import {last} from 'es-toolkit/compat'
 import DialogBaseView from '@canvas/dialog-base-view'
 import {datetimeString} from '@canvas/datetime/date-functions'
 import invitationsViewTemplate from '../../jst/InvitationsView.handlebars'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import '@canvas/rails-flash-notifications'
 
 const I18n = createI18nScope('course_settings')
@@ -54,7 +55,7 @@ export default class InvitationsView extends DialogBaseView {
 
     const data = this.model.toJSON()
     data.time = datetimeString(last(this.model.get('enrollments')).updated_at)
-    this.$el.html(invitationsViewTemplate(data))
+    this.$el[0].innerHTML = sanitizeHTML(invitationsViewTemplate(data)) as unknown as string
 
     const pending = this.invitationIsPending()
     const admin = this.$el.parents('.teacher_enrollments,.ta_enrollments').length > 0
