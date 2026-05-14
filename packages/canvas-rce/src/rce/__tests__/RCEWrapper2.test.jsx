@@ -425,6 +425,18 @@ describe('RCEWrapper', () => {
     })
   })
 
+  describe('XSS mitigation', () => {
+    it('strips onerror handlers from defaultContent before innerHTML assignment', () => {
+      createMountedElement({defaultContent: '<img src=x onerror="alert(\'XSS\')">'})
+      expect(rce._mceSerializedInitialHtml).not.toMatch(/onerror/i)
+    })
+
+    it('strips <script> tags from defaultContent before innerHTML assignment', () => {
+      createMountedElement({defaultContent: '<p>ok</p><script>window.__pwned=1</script>'})
+      expect(rce._mceSerializedInitialHtml).not.toMatch(/<script/i)
+    })
+  })
+
   describe('onFocus', () => {
     beforeEach(() => {
       jest.spyOn(Bridge, 'focusEditor')

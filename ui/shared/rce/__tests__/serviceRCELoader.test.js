@@ -161,6 +161,30 @@ describe('loadOnTarget', () => {
     })
   })
 
+  describe('createRCEProps defaultContent XSS mitigation', () => {
+    it('strips onerror handlers from textarea.value before passing as defaultContent', () => {
+      const realTextarea = document.createElement('textarea')
+      realTextarea.innerHTML = "&lt;img src=x onerror=alert('XSS')&gt;"
+      const props = RCELoader.createRCEProps(realTextarea, {})
+      expect(props.defaultContent).not.toMatch(/onerror/i)
+    })
+
+    it('strips <script> tags from textarea.value before passing as defaultContent', () => {
+      const realTextarea = document.createElement('textarea')
+      realTextarea.innerHTML = '&lt;script&gt;window.__pwned=1&lt;/script&gt;'
+      const props = RCELoader.createRCEProps(realTextarea, {})
+      expect(props.defaultContent).not.toMatch(/<script/i)
+    })
+
+    it('sanitizes tinyMCEInitOptions.defaultContent when the textarea is empty', () => {
+      const emptyTextarea = document.createElement('textarea')
+      const props = RCELoader.createRCEProps(emptyTextarea, {
+        defaultContent: "<img src=x onerror=alert('XSS')>",
+      })
+      expect(props.defaultContent).not.toMatch(/onerror/i)
+    })
+  })
+
   it('populates externalToolsConfig without context_external_tool_resource_selection_url', () => {
     window.ENV = {
       RICH_CONTENT_APP_HOST: 'http://rce.host',

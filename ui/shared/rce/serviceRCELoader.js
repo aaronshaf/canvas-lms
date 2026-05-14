@@ -23,6 +23,7 @@ import polyfill from './polyfill'
 import getRCSProps from './getRCSProps'
 import shouldUseFeature, {Feature} from './shouldUseFeature'
 import {getTypography} from '@instructure/platform-instui-bindings'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 window.INST = window.INST || {}
 
@@ -157,7 +158,7 @@ const RCELoader = {
     }
 
     return {
-      defaultContent: textarea.value || tinyMCEInitOptions.defaultContent,
+      defaultContent: sanitizeHTML(textarea.value || tinyMCEInitOptions.defaultContent),
       editorOptions: editorOptions.bind(null, width, textarea.id, tinyMCEInitOptions, null),
       language: ENV.LOCALE,
       mirroredAttrs: this._attrsToMirror(textarea),

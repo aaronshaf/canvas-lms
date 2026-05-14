@@ -101,6 +101,7 @@ import {AlertMessage, EditorOptions, RCETrayProps} from './types'
 import {externalToolsForToolbar} from './plugins/instructure_rce_external_tools/util/externalToolsForToolbar'
 import {initScreenreaderOnFormat} from './screenreaderOnFormat'
 import {normalizeContainingContext} from '../util/contextHelper'
+import {sanitizeHtml} from './sanitizeHtml'
 
 const RestoreAutoSaveModal = React.lazy(() => import('./RestoreAutoSaveModal'))
 const RceHtmlEditor = React.lazy(() => import('./RceHtmlEditor'))
@@ -943,8 +944,7 @@ class RCEWrapper extends React.Component<RCEWrapperProps, RCEWrapperState> {
   get _mceSerializedInitialHtml() {
     if (!this._mceSerializedInitialHtmlCached) {
       const el = window.document.createElement('div')
-      // @ts-expect-error
-      el.innerHTML = this.initialContent
+      el.innerHTML = sanitizeHtml(this.initialContent)
       const serializer = this.mceInstance().serializer
       this._mceSerializedInitialHtmlCached = serializer.serialize(el, {
         getInner: true,
