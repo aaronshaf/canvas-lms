@@ -18,6 +18,7 @@
 
 import React, {ReactNode, Suspense} from 'react'
 import {renderIconSvg} from '../util/instui-icon-helper'
+import {setRceHTML} from '../util/rceTrustedTypes'
 import {Editor} from '@tinymce/tinymce-react'
 
 import tinymce from 'tinymce'
@@ -606,7 +607,7 @@ class RCEWrapper extends React.Component<RCEWrapperProps, RCEWrapperState> {
     // From what I've read, "title" is more reliable than "aria-label" for
     // elements like iframes and embeds.
     const temp = document.createElement('div')
-    temp.innerHTML = code
+    setRceHTML(temp, code)
     const code_elem = temp.firstElementChild
     if (code_elem) {
       if (!code_elem.hasAttribute('title') && !code_elem.hasAttribute('aria-label')) {
@@ -944,7 +945,7 @@ class RCEWrapper extends React.Component<RCEWrapperProps, RCEWrapperState> {
   get _mceSerializedInitialHtml() {
     if (!this._mceSerializedInitialHtmlCached) {
       const el = window.document.createElement('div')
-      el.innerHTML = sanitizeHtml(this.initialContent)
+      setRceHTML(el, sanitizeHtml(this.initialContent ?? ''))
       const serializer = this.mceInstance().serializer
       this._mceSerializedInitialHtmlCached = serializer.serialize(el, {
         getInner: true,

@@ -17,6 +17,7 @@
  */
 
 import {relativeHttpUrlForHostname} from '../util/url-util'
+import {setRceHTML} from '../util/rceTrustedTypes'
 
 export const attributeNamesToUrlRelativize = ['href', 'cite', 'src', 'data']
 export const attributeNamesToRemove = ['data-api-endpoint', 'data-api-returntype']
@@ -44,7 +45,7 @@ export function transformRceContentForEditing(
     // Note we're doing this instead of using a DOMParser because the DOMParser semantics are different than how we
     // actually use user html, which is to insert it into the page.
     // Specifically, user content that includes malformed <html>,<body>,<head>, etc... tags will be parsed differently.
-    container.innerHTML = inputHtml
+    setRceHTML(container, inputHtml)
   } catch (e) {
     return inputHtml
   }

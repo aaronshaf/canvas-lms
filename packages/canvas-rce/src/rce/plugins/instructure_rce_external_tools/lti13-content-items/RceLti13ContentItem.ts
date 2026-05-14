@@ -24,6 +24,7 @@ import {
   Lti13ContentItemJson,
 } from './Lti13ContentItemJson'
 import {addParentFrameContextToUrl} from '../util/addParentFrameContextToUrl'
+import {setRceHTML} from '../../../../util/rceTrustedTypes'
 
 /**
  * Represents an LTI 1.3 Deep Linking Content Item for purposes related to the Rich Content Editor.
@@ -110,7 +111,7 @@ export abstract class RceLti13ContentItem<TJson extends object> {
     anchorTag.setAttribute('href', this.safeUrl)
     anchorTag.setAttribute('title', this.buildTitle() || '')
     anchorTag.setAttribute('target', '_blank')
-    anchorTag.innerHTML = innerHTML || ''
+    setRceHTML(anchorTag, innerHTML || '')
     return anchorTag.outerHTML
   }
 

@@ -21,6 +21,7 @@ import {ExternalToolsEnv, externalToolsEnvFor} from '../ExternalToolsEnv'
 import {emptyAsNull} from '../../../../util/string-util'
 import {addParentFrameContextToUrl} from '../util/addParentFrameContextToUrl'
 import {sanitizeUrl} from '../../../../util/sanitizeUrl'
+import {setRceHTML} from '../../../../util/rceTrustedTypes'
 import tinymce from 'tinymce'
 import {
   StudioContentItemCustomJson,
@@ -215,7 +216,7 @@ export class RceLti11ContentItem {
       if (this.text) img.alt = this.text
       a.appendChild(img)
     } else if (emptyAsNull(this.currentTinyMceSelection) != null && a != null) {
-      a.innerHTML = this.currentTinyMceSelection ?? ''
+      setRceHTML(a, this.currentTinyMceSelection ?? '')
     } else {
       // don't inject tool provided content into the page HTML
       const linkHtml = this.generateLinkHtml()

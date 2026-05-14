@@ -17,6 +17,7 @@
  */
 
 import classnames from 'classnames'
+import {setRceHTML} from '../util/rceTrustedTypes'
 import {
   renderAudio,
   renderImage,
@@ -190,7 +191,7 @@ export function existingContentToLink(editor, link) {
 // Parses HTML string with support in old browsers because jQuery's parseHTML was added in 1.8.
 function parseHTML(htmlString) {
   const tmp = document.implementation.createHTMLDocument()
-  tmp.body.innerHTML = htmlString.trim()
+  setRceHTML(tmp.body, htmlString.trim())
   return tmp.body.children
 }
 

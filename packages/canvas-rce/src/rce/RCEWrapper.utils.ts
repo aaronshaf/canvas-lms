@@ -17,6 +17,7 @@
  */
 
 import formatMessage from '../format-message'
+import {setRceHTML} from '../util/rceTrustedTypes'
 
 // standard: string of tinymce menu commands
 // e.g. 'instructure_links | inserttable instructure_media_embed | hr'
@@ -154,7 +155,7 @@ export function parsePluginsToExclude(plugins: string[]) {
 // is being uploaded
 export function patchAutosavedContent(content: string, asText: boolean = false) {
   const temp = document.createElement('div')
-  temp.innerHTML = content
+  setRceHTML(temp, content)
   temp.querySelectorAll('[data-placeholder-for]').forEach(placeholder => {
     // @ts-expect-error
     placeholder.parentElement.removeChild(placeholder)

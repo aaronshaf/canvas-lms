@@ -62,6 +62,8 @@ export function getAnchorElement(editor, selectedElm) {
   }
 }
 
+import {setRceHTML} from '../util/rceTrustedTypes'
+
 // is the selection only text, or are other elements selected
 const d = document.createElement('div')
 export function isOnlyTextSelected(html) {
@@ -70,7 +72,7 @@ export function isOnlyTextSelected(html) {
   //   return false
   // }
   // return true
-  d.innerHTML = html
+  setRceHTML(d, html)
   return !d.querySelector('img,iframe,video,audio')
 }
 
