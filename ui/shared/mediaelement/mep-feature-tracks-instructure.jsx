@@ -36,6 +36,7 @@ import InheritedCaptionTooltip from './InheritedCaptionTooltip'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {languageCodes} from './mediaLanguageCodes'
 import {sanitizeCaption} from './captionSanitizer'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('mepfeaturetracksinstructure')
 ;(function ($) {
@@ -95,7 +96,9 @@ const I18n = createI18nScope('mepfeaturetracksinstructure')
         }
       }
       t.cleartracks(player, controls, layers, media)
-      player.chapters = $('<div class="mejs-chapters mejs-layer"></div>').prependTo(layers).hide()
+      const _chDiv = document.createElement('div')
+      _chDiv.className = 'mejs-chapters mejs-layer'
+      player.chapters = $(_chDiv).prependTo(layers).hide()
       player.captions = $(
         '<div class="mejs-captions-layer mejs-layer"><div class="mejs-captions-position mejs-captions-position-hover" ' +
           attr +
@@ -522,15 +525,21 @@ const I18n = createI18nScope('mepfeaturetracksinstructure')
     addUploadTrackButton() {
       const t = this
 
-      $('<a href="#" role="button" class="upload-track" tabindex="-1">Upload subtitles</a>')
-        .appendTo(t.captionsButton.find('ul'))
-        .wrap('<li>')
-        .click(e => {
-          e.preventDefault()
-          import('./UploadMediaTrackForm').then(({default: UploadMediaTrackForm}) => {
-            new UploadMediaTrackForm(t.options.mediaCommentId, t.media.src, t.options.attachmentId)
-          })
+      const _uploadA = document.createElement('a')
+      _uploadA.href = '#'
+      _uploadA.setAttribute('role', 'button')
+      _uploadA.className = 'upload-track'
+      _uploadA.setAttribute('tabindex', '-1')
+      _uploadA.textContent = 'Upload subtitles'
+      const _uploadLi = document.createElement('li')
+      _uploadLi.appendChild(_uploadA)
+      t.captionsButton.find('ul').append(_uploadLi)
+      $(_uploadA).click(e => {
+        e.preventDefault()
+        import('./UploadMediaTrackForm').then(({default: UploadMediaTrackForm}) => {
+          new UploadMediaTrackForm(t.options.mediaCommentId, t.media.src, t.options.attachmentId)
         })
+      })
       t.adjustLanguageBox()
     },
 
@@ -541,32 +550,48 @@ const I18n = createI18nScope('mepfeaturetracksinstructure')
         label = mejs.language.codes[lang] || lang
       }
 
-      const $li = $('<li>')
-      $li
-        .append(
-          $('<input type="radio" disabled="disabled" aria-selected="false" tabindex="-1">')
-            .attr('name', `${t.id}_captions`)
-            .attr('id', id)
-            .attr('aria-label', label)
-            .val(lang),
-        )
-        .append($('<span aria-hidden="true">').attr('for', id).text('✓'))
-        .append($('<label aria-hidden="true">').attr('for', id).text(label))
+      const _li = document.createElement('li')
+      const _inp = document.createElement('input')
+      _inp.type = 'radio'
+      _inp.disabled = true
+      _inp.setAttribute('aria-selected', 'false')
+      _inp.tabIndex = -1
+      _inp.name = `${t.id}_captions`
+      _inp.id = id
+      _inp.setAttribute('aria-label', label)
+      _inp.value = lang
+      const _ckSpan = document.createElement('span')
+      _ckSpan.setAttribute('aria-hidden', 'true')
+      _ckSpan.setAttribute('for', id)
+      _ckSpan.textContent = '✓'
+      const _lbl = document.createElement('label')
+      _lbl.setAttribute('aria-hidden', 'true')
+      _lbl.setAttribute('for', id)
+      _lbl.textContent = label
+      _li.appendChild(_inp)
+      _li.appendChild(_ckSpan)
+      _li.appendChild(_lbl)
 
       if (
         t.options.can_add_captions &&
         !(track_el && track_el.getAttribute('data-inherited-track') == 'true')
       ) {
-        $li.append(
-          $('<a href="#" role="button" data-remove="li" tabindex="-1">')
-            .attr('data-confirm', I18n.t('Are you sure you want to delete this track?'))
-            .attr('data-url', src)
-            .attr('aria-label', I18n.t('Delete track'))
-            .append($('<span aria-hidden="true">').text('x')),
-        )
+        const _delA = document.createElement('a')
+        _delA.href = '#'
+        _delA.setAttribute('role', 'button')
+        _delA.setAttribute('data-remove', 'li')
+        _delA.tabIndex = -1
+        _delA.setAttribute('data-confirm', I18n.t('Are you sure you want to delete this track?'))
+        _delA.setAttribute('data-url', src)
+        _delA.setAttribute('aria-label', I18n.t('Delete track'))
+        const _xSpan = document.createElement('span')
+        _xSpan.setAttribute('aria-hidden', 'true')
+        _xSpan.textContent = 'x'
+        _delA.appendChild(_xSpan)
+        _li.appendChild(_delA)
       }
 
-      t.captionsButton.find('ul').append($li)
+      t.captionsButton.find('ul').append(_li)
       t.adjustLanguageBox()
 
       if (track_el && track_el.getAttribute('data-inherited-track') == 'true') {
@@ -660,7 +685,9 @@ const I18n = createI18nScope('mepfeaturetracksinstructure')
         img = t.slides.entries.imgs[index]
 
       if (typeof img === 'undefined' || typeof img.fadeIn === 'undefined') {
-        t.slides.entries.imgs[index] = img = $('<img src="' + url + '">').on('load', () => {
+        const _imgEl = document.createElement('img')
+        _imgEl.src = sanitizeUrl(url)
+        t.slides.entries.imgs[index] = img = $(_imgEl).on('load', () => {
           img.appendTo(t.slidesContainer).hide().fadeIn().siblings(':visible').fadeOut()
         })
       } else if (!img.is(':visible') && !img.is(':animated')) {

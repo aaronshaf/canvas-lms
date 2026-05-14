@@ -38,7 +38,7 @@ const getDefaultExport = mod => (mod.default ? mod.default : mod)
 let jsUploader
 
 $.mediaComment = function (_command, _arg1, _arg2) {
-  const $container = $('<div/>')
+  const $container = $(document.createElement('div'))
   $('body').append($container.hide())
   $.fn.mediaComment.apply($container, arguments)
 }
@@ -610,7 +610,9 @@ $.mediaComment.init = function (mediaType, opts) {
 
       let $dialog = $('#media_comment_dialog')
       if ($dialog.length === 0 && !INST.kalturaSettings.js_uploader) {
-        const $div = $('<div/>').attr('id', 'media_comment_dialog')
+        const _divEl = document.createElement('div')
+        _divEl.id = 'media_comment_dialog'
+        const $div = $(_divEl)
         $div.text(I18n.t('messages.loading', 'Loading...'))
         $div.dialog({
           title: I18n.t('Studio Capture'),

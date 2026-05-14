@@ -38,7 +38,9 @@ export default class DialogManager {
 
   createLoadingWindow() {
     if (this.dialog.length === 0) {
-      this.dialog = $('<div/>').attr('id', 'media_comment_dialog')
+      const _dlgEl = document.createElement('div')
+      _dlgEl.id = 'media_comment_dialog'
+      this.dialog = $(_dlgEl)
     }
     this.dialog.text(I18n.t('messages.loading', 'Loading...'))
     this.dialog.dialog({

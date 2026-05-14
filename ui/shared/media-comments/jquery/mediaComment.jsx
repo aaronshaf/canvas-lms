@@ -270,7 +270,10 @@ const mediaCommentActions = {
         width = 400
       }
 
-      const $dialog = $('<div style="overflow: hidden; padding: 0;" />')
+      const _dlgEl = document.createElement('div')
+      _dlgEl.style.overflow = 'hidden'
+      _dlgEl.style.padding = '0'
+      const $dialog = $(_dlgEl)
       if (mediaType === 'audio') {
         $dialog.css('padding-top', '0')
         height = 280
