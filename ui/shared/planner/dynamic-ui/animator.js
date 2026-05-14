@@ -16,14 +16,14 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import Velocity from 'velocity-animate'
+import {scrollAnimation} from './scrollAnimation'
 
 export class Animator {
   constructor(opts = {}) {
     Object.assign(
       this,
       {
-        velocity: Velocity,
+        velocity: scrollAnimation,
         document,
         window,
       },
