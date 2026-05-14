@@ -775,6 +775,17 @@ describe DeveloperKeysController do
           expect(response_key).not_to include("...")
         end
 
+        it "expires all existing active tokens for the key" do
+          token1 = AccessToken.create!(user: @admin, developer_key: dk, purpose: "token 1")
+          token2 = AccessToken.create!(user: @admin, developer_key: dk, purpose: "token 2")
+
+          post :regenerate_secret, params: { id: dk.id }
+          expect(response).to be_successful
+
+          expect(token1.reload).to be_deleted
+          expect(token2.reload).to be_deleted
+        end
+
         it "returns 403 forbidden for site admin keys" do
           account_admin_user(account: Account.site_admin)
           user_session(@admin)

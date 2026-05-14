@@ -2210,4 +2210,29 @@ describe DeveloperKey do
       expect(decoded).to eq claims
     end
   end
+
+  describe "#invalidate_access_tokens_if_secret_changed!" do
+    let(:key) { DeveloperKey.create! }
+    let(:user) { user_model }
+    let!(:token) { AccessToken.create!(user:, developer_key: key, purpose: "test") }
+
+    it "invalidates active tokens when api_key changes" do
+      key.generate_api_key(overwrite: true)
+      key.save!
+      expect(token.reload).to be_deleted
+    end
+
+    it "does not invalidate tokens when api_key is unchanged" do
+      key.update!(email: "test@example.com")
+      expect(token.reload).to be_active
+    end
+
+    it "does not affect tokens belonging to other keys" do
+      other_key = DeveloperKey.create!
+      other_token = AccessToken.create!(user:, developer_key: other_key, purpose: "other")
+      key.generate_api_key(overwrite: true)
+      key.save!
+      expect(other_token.reload).to be_active
+    end
+  end
 end

@@ -88,6 +88,7 @@ class DeveloperKey < ApplicationRecord
   after_create :create_default_account_binding
   after_save :clear_cache
   after_update :invalidate_access_tokens_if_scopes_removed!
+  after_update :invalidate_access_tokens_if_secret_changed!
   after_update :destroy_external_tools!, if: :destroy_external_tools?
   # See comment on destroy_associated_records! for why we don't use
   # lifecycle callbacks here.
@@ -764,6 +765,12 @@ class DeveloperKey < ApplicationRecord
   def invalidate_access_tokens_if_scopes_removed!
     return unless saved_change_to_scopes?
     return if (scopes_before_last_save - scopes).blank?
+
+    delay_if_production.invalidate_access_tokens!
+  end
+
+  def invalidate_access_tokens_if_secret_changed!
+    return unless saved_change_to_api_key?
 
     delay_if_production.invalidate_access_tokens!
   end
