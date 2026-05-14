@@ -757,15 +757,22 @@ export default class EditCalendarEventView extends Backbone.View {
       // Adds the error message with accessible attributes
       const errorId = `${id || 'input'}-error`
 
-      const errorContainer = $('<span>', {class: 'error-message', tabindex: -1})
-      const icon = $('<i>', {class: 'icon-warning icon-Solid', tabindex: -1, 'aria-hidden': true})
-      const text = $('<span>', {
-        id: errorId,
-        role: 'alert',
-        'aria-live': 'polite',
-        tabindex: -1,
-        text: message,
-      })
+      const _errSpan = document.createElement('span')
+      _errSpan.className = 'error-message'
+      _errSpan.tabIndex = -1
+      const errorContainer = $(_errSpan)
+      const _iconEl = document.createElement('i')
+      _iconEl.className = 'icon-warning icon-Solid'
+      _iconEl.tabIndex = -1
+      _iconEl.setAttribute('aria-hidden', 'true')
+      const icon = $(_iconEl)
+      const _textSpan = document.createElement('span')
+      _textSpan.id = errorId
+      _textSpan.setAttribute('role', 'alert')
+      _textSpan.setAttribute('aria-live', 'polite')
+      _textSpan.tabIndex = -1
+      _textSpan.textContent = message
+      const text = $(_textSpan)
 
       // xsslint jqueryObject.identifier errorContainer icon text
       errorContainer.append(icon, text)

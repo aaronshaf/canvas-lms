@@ -70,23 +70,22 @@ export default class EditApptCalendarEventDialog {
   showErrorMessage = (selector, message) => {
     let errorContainer = $('#error-message')
     if (errorContainer.length) return
-    errorContainer = $('<div />', {
-      id: 'error-message',
-      class: 'error-message',
-      tabindex: '-1',
-    }).appendTo(selector)
-    $('<i />', {
-      class: 'icon-warning icon-Solid',
-      'aria-hidden': true,
-      tabindex: '-1',
-    }).appendTo(errorContainer)
-    $('<span />', {
-      role: 'alert',
-      'aria-live': 'polite',
-      tabindex: '-1',
-    })
-      .text(message)
-      .appendTo(errorContainer)
+    const _errDiv = document.createElement('div')
+    _errDiv.id = 'error-message'
+    _errDiv.className = 'error-message'
+    _errDiv.tabIndex = -1
+    errorContainer = $(_errDiv).appendTo(selector)
+    const _warnIcon = document.createElement('i')
+    _warnIcon.className = 'icon-warning icon-Solid'
+    _warnIcon.setAttribute('aria-hidden', 'true')
+    _warnIcon.tabIndex = -1
+    _errDiv.appendChild(_warnIcon)
+    const _alertSpan = document.createElement('span')
+    _alertSpan.setAttribute('role', 'alert')
+    _alertSpan.setAttribute('aria-live', 'polite')
+    _alertSpan.tabIndex = -1
+    _alertSpan.textContent = message
+    _errDiv.appendChild(_alertSpan)
   }
 
   show() {

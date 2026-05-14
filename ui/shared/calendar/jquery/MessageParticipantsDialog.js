@@ -85,7 +85,9 @@ export default class MessageParticipantsDialog {
   }
 
   participantStatus(text = null) {
-    const $status = $('<li class="status" />')
+    const _liEl = document.createElement('li')
+    _liEl.className = 'status'
+    const $status = $(_liEl)
     this.$participantList.html($status)
     if (text) {
       $status.text(text)

@@ -279,7 +279,7 @@ export default class ShowEventDetailsDialog {
   cancelAppointment = $appt => {
     const url = $appt.data('url')
     const event = find(this.event.calendarEvent.child_events, e => e.url === url)
-    $('<div/>').confirmDelete({
+    $(document.createElement('div')).confirmDelete({
       url,
       message: $(
         deleteItemTemplate({
@@ -374,21 +374,25 @@ export default class ShowEventDetailsDialog {
         )
         .then(response => {
           if (response.data && response.data.length) {
-            const $ul = $('<ul>')
+            const ul = document.createElement('ul')
+            const $ul = $(ul)
             response.data.forEach(p => {
-              const $li = $('<li>').text(p.display_name)
-              $ul.append($li)
+              const _li = document.createElement('li')
+              _li.textContent = p.display_name
+              ul.appendChild(_li)
             })
 
             if (response.data.length > MAX_PAGE_SIZE - 1) {
-              const $lidot = $('<li>').text('(...)')
-              $ul.append($lidot)
+              const _lidot = document.createElement('li')
+              _lidot.textContent = '(...)'
+              ul.appendChild(_lidot)
             }
 
-            const $header = $('<th>')
-              .attr('id', 'attendees_header_text')
-              .attr('scope', 'row')
-              .text('Attendees')
+            const _th = document.createElement('th')
+            _th.id = 'attendees_header_text'
+            _th.setAttribute('scope', 'row')
+            _th.textContent = 'Attendees'
+            const $header = $(_th)
             $('#reservations').empty()
             $('#reservations').append($header)
             $('#reservations').append($ul)

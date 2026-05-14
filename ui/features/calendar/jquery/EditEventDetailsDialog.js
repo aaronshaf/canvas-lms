@@ -31,7 +31,10 @@ import 'jqueryui/tabs'
 
 const I18n = createI18nScope('calendar')
 
-const dialog = $('<div id="edit_event"><div /></div>')
+const _editEventEl = document.createElement('div')
+_editEventEl.id = 'edit_event'
+_editEventEl.appendChild(document.createElement('div'))
+const dialog = $(_editEventEl)
   .appendTo('body')
   .dialog({
     autoOpen: false,

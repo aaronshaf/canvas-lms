@@ -97,9 +97,12 @@ export default class MiniCalendar {
    */
   createLiveRegion() {
     if ($('#minical-live-region').length === 0) {
-      $(
-        '<div id="minical-live-region" aria-live="polite" aria-atomic="true" class="screenreader-only"></div>',
-      ).appendTo('body')
+      const _lr = document.createElement('div')
+      _lr.id = 'minical-live-region'
+      _lr.setAttribute('aria-live', 'polite')
+      _lr.setAttribute('aria-atomic', 'true')
+      _lr.className = 'screenreader-only'
+      $(_lr).appendTo('body')
     }
   }
 
@@ -298,7 +301,10 @@ export default class MiniCalendar {
    * Keeps fc-day-number class for backwards compatibility with tests
    */
   createDayButton(dayText) {
-    return $('<button class="day-wrapper-button fc-day-number"></button>').text(dayText).css({
+    const _dayBtn = document.createElement('button')
+    _dayBtn.className = 'day-wrapper-button fc-day-number'
+    _dayBtn.textContent = dayText
+    return $(_dayBtn).css({
       border: 'none',
       background: 'transparent',
       padding: '0',

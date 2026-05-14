@@ -56,7 +56,9 @@ const I18n = createI18nScope('calendar')
 
 // we use a <div> (with a <style> inside it) because you cant set .innerHTML directly on a
 // <style> node in ie8
-const $styleContainer = $('<div id="calendar_color_style_overrides" />').appendTo('body')
+const _styleEl = document.createElement('div')
+_styleEl.id = 'calendar_color_style_overrides'
+const $styleContainer = $(_styleEl).appendTo('body')
 
 function isSomethingFullscreen(document) {
   // safari requires webkit prefix
@@ -395,18 +397,18 @@ export default class Calendar {
           )
 
     $element.attr('title', newTitle)
-    $element.find('.fc-content').prepend(
-      $('<span>')
-        .addClass('screenreader-only')
-        .text(`${I18n.t('calendar_title', 'Calendar:')} ${event.contextInfo.name}`),
-    )
-    $element.find('.fc-title').prepend(
-      $('<span>')
-        .addClass('screenreader-only')
-        .text(screenReaderTitleHint + ' '),
-    )
+    const _srSpan1 = document.createElement('span')
+    _srSpan1.className = 'screenreader-only'
+    _srSpan1.textContent = `${I18n.t('calendar_title', 'Calendar:')} ${event.contextInfo.name}`
+    $element.find('.fc-content')[0]?.prepend(_srSpan1)
+    const _srSpan2 = document.createElement('span')
+    _srSpan2.className = 'screenreader-only'
+    _srSpan2.textContent = screenReaderTitleHint + ' '
+    $element.find('.fc-title')[0]?.prepend(_srSpan2)
     $element.find('.fc-title').toggleClass('calendar__event--completed', event.isCompleted())
-    element.find('.fc-content').prepend($('<i />', {class: `icon-${event.iconType()}`}))
+    const _icon = document.createElement('i')
+    _icon.className = `icon-${event.iconType()}`
+    element.find('.fc-content')[0]?.prepend(_icon)
     return true
   }
 
@@ -698,7 +700,9 @@ export default class Calendar {
     }
 
     if (!this.$nowLine) {
-      this.$nowLine = $('<div />', {class: 'calendar-nowline'})
+      const _nowLine = document.createElement('div')
+      _nowLine.className = 'calendar-nowline'
+      this.$nowLine = $(_nowLine)
     }
     $('.fc-slats').append(this.$nowLine)
 

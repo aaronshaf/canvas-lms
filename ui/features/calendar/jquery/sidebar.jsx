@@ -188,15 +188,17 @@ function setupCalendarFeedsWithSpecialAccessibilityConsiderationsForNVDA() {
           )
           // Replace the close button with a proper button element
           const $closeButton = $(e.target.parentElement).find('.ui-dialog-titlebar-close')
-          const $newCloseButton = $('<button>')
-            .addClass('ui-dialog-titlebar-close ui-corner-all')
-            .attr('type', 'button')
-            .attr('aria-label', I18n.t('Close'))
-            .append($('<span>').addClass('ui-icon ui-icon-closethick'))
-            .on('click', event => {
-              event.preventDefault()
-              $calendarFeedModalContent.dialog('close')
-            })
+          const _btnEl = document.createElement('button')
+          _btnEl.className = 'ui-dialog-titlebar-close ui-corner-all'
+          _btnEl.type = 'button'
+          _btnEl.setAttribute('aria-label', I18n.t('Close'))
+          const _iconSpan = document.createElement('span')
+          _iconSpan.className = 'ui-icon ui-icon-closethick'
+          _btnEl.appendChild(_iconSpan)
+          const $newCloseButton = $(_btnEl).on('click', event => {
+            event.preventDefault()
+            $calendarFeedModalContent.dialog('close')
+          })
           $closeButton.replaceWith($newCloseButton)
         },
         close: () => {
