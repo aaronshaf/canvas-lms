@@ -10,11 +10,5 @@ Naming:
 Performance:
   Enabled: false
 
-Rails:
-  Enabled: false
-
-Rails/OutputSafety:
-  Enabled: true
-
 Style:
   Enabled: false

@@ -198,7 +198,7 @@
             <span class="value"><%= @assignment.readable_submission_types || t(:no_submission, 'Nothing') %></span>
           </div>
         </div>
-        <% if @assignment.submission_types =~ /online_upload/ && !@assignment.allowed_extensions.blank? -%>
+        <% if @assignment.submission_types =~ /online_upload/ && @assignment.allowed_extensions.present? -%>
           <div class="control-group">
             <div class="control-label"><%= t :submission_types, 'File Types' %></div>
             <div class="controls">

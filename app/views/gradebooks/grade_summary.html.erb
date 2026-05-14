@@ -229,7 +229,7 @@
 
                 <td class="assignment_score" title="<%= t(:click_to_change, "Click to test a different score") unless assignment_presenter.unchangeable? %>">
                   <div style="position: relative; height: 100%;" class="score_holder">
-                    <% if !assignment_presenter.upload_status.present?  %>
+                    <% if assignment_presenter.upload_status.blank?  %>
                       <% js_bundle :progress_pill %>
                       <span class="assignment_presenter_for_submission" style="display: none;"><%= assignment_presenter.upload_status %></span>
                       <span class="react_pill_container"></span>
@@ -517,7 +517,7 @@
                     </td>
                     <td class="assignment_score">
                       <div style="position: relative; height: 100%;" class="score_holder">
-                        <% if !sub_assignment_presenter.upload_status.present?  %>
+                        <% if sub_assignment_presenter.upload_status.blank?  %>
                           <% js_bundle :progress_pill %>
                           <span class="assignment_presenter_for_submission" style="display: none;"><%= sub_assignment_presenter.upload_status %></span>
                           <span class="react_pill_container"></span>

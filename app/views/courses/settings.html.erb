@@ -961,7 +961,7 @@
             <%= f.blabel :root_account_id, :en => "Root Account" %>
           </td>
           <td>
-            <%= f.select :root_account_id, Account.root_accounts.active.order("name DESC").select([:id, :name]).map{|a| [a.name, a.id] }, :selected => @context.root_account_id %>
+            <%= f.select :root_account_id, Account.root_accounts.active.order(name: :desc).select([:id, :name]).map{|a| [a.name, a.id] }, :selected => @context.root_account_id %>
           </td>
         </tr>
         <tr>

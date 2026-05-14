@@ -44,7 +44,7 @@
     <% end %>
   </div>
   <ul class="right-side-list events">
-  <% if !event_list || event_list.empty? %>
+  <% if event_list.blank? %>
     <li>
       <small>
         <% if period == :one_week %>

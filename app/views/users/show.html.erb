@@ -117,7 +117,7 @@
         </ul>
       </div>
     </div>
-    <% if @user.adminable_accounts && !@user.adminable_accounts.empty? %>
+    <% if @user.adminable_accounts.present? %>
       <h3><%= t('accounts', 'Accounts') %> <%= count_if_any(@user.adminable_accounts.count) %></h3>
       <div class="accounts" style="font-size: 1.2em">
         <ul class="unstyled_list context_list" style="margin-<%= direction('left') %>: 5px; font-size: 0.9em; margin-bottom: 10px; max-height: 200px; overflow: auto; position: relative;">

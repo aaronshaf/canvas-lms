@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% if group_list && !group_list.empty? %>
+<% if group_list.present? %>
   <h2><%= t('headings.groups', %{Course Groups}) %></h2>
   <ul class="unstyled_list group_list" %>
     <% group_list.each do |group| %>

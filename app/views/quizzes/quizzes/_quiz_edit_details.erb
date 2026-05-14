@@ -315,7 +315,7 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
             <!-- Quiz Restrictions -->
             <div class="option-group">
               <label class="checkbox" for="enable_quiz_access_code">
-                <input type="checkbox" <%= 'checked' if !@quiz.access_code.blank? %> id="enable_quiz_access_code">
+                <input type="checkbox" <%= 'checked' if @quiz.access_code.present? %> id="enable_quiz_access_code">
                 <%= t("Require an access code") %>
               </label>
 
@@ -334,10 +334,10 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
             </div>
             <div class="option-group">
               <label class="checkbox" for="enable_quiz_ip_filter">
-                <input type="checkbox" <%= 'checked' if !@quiz.ip_filter.blank? %> id="enable_quiz_ip_filter">
+                <input type="checkbox" <%= 'checked' if @quiz.ip_filter.present? %> id="enable_quiz_ip_filter">
                 <%= t("Filter IP Addresses") %>
               </label>
-              <div class="form-control ip-filter options control-group screenreader-only" aria-hidden="<%= !@quiz.ip_filter.blank? %>">
+              <div class="form-control ip-filter options control-group screenreader-only" aria-hidden="<%= @quiz.ip_filter.present? %>">
                 <label for="quiz_ip_filter" class="bold form-control__label">
                   <%= t("Filter by IP address") %><span aria-hidden="true" class="asterisk"> *</span>
                 </label>

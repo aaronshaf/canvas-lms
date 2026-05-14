@@ -171,7 +171,7 @@
       <%= link_to t('view_in_a_new_tab', '(View in a new tab)'),
                   @submission.url,
                   class: "open_in_a_new_tab",
-                  target: "_blank" %>
+                  target: "_blank", rel: "noopener" %>
 
       <span style="display: inline-block;" class="ui-icon ui-icon-extlink ui-icon-inline"
         title="<%= t('titles.external_link', 'Links to an external site.') %>"/>

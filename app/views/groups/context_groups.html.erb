@@ -60,7 +60,7 @@
           <%= render :partial => 'group', :object => nil, :locals => {:in_group => true} %>
         </ul>
 
-        <% if @available_groups && !@available_groups.empty? %>
+        <% if @available_groups.present? %>
           <h2><%= t 'headings.available_groups', "Available Groups" %></h2>
           <ul class="group_list">
             <%= render :partial => 'group', :collection => @available_groups, :locals => {:in_categories => @user_groups.map{ |g| g.group_category }.compact.uniq, :in_group => false} %>

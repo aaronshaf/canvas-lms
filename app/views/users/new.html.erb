@@ -53,7 +53,7 @@
 
   <div id="registration_footer">
     <div class="registration-content">
-      <div class="left">&copy; <%= Time.now.year %> <a href="http://www.instructure.com">Instructure</a></div>
+      <div class="left">&copy; <%= Time.zone.now.year %> <a href="http://www.instructure.com">Instructure</a></div>
       <div class="right">
         <span href="#" class="terms_of_service_link" id="terms_of_service_link"></span>
         <%= link_to t(:privacy_policy, 'Privacy Policy'), privacy_policy_url %>

@@ -17,7 +17,7 @@
 %>
 
 <% location_tag = @submission ? "quiz_submission_#{@submission.id}" : "quiz_#{@quiz.id}" %>
-<% if @quiz.description && !@quiz.description.empty? %>
+<% if @quiz.description.present? %>
   <div class="description user_content teacher-version"><%= user_content(@quiz.description, location: location_tag) %></div>
 <% end %>
 

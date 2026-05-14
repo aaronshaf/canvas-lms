@@ -24,7 +24,7 @@
     <% if content[:locked] %>
       <% if content[:time_lock]%>
         <p>
-          <%= I18n.t(<<~TEXT, datetime: friendly_date(Time.at(content[:unlock_at]).to_s))
+          <%= I18n.t(<<~TEXT, datetime: friendly_date(Time.zone.at(content[:unlock_at]).to_s))
             This module is locked until %{datetime}
           TEXT
           %>
