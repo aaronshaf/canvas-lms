@@ -36,7 +36,7 @@
         <% cache([@current_user, safe_cache_key(@contexts), 'course_upcoming_events' ].cache_key) do %>
           <%
             events = @current_user.upcoming_events(:contexts => @contexts)
-            assignments = events.select{|e| e.is_a?(Assignment)}
+            assignments = events.grep(Assignment)
             @current_user_submissions = Submission.where(:assignment_id => assignments, :user_id => @current_user).to_a if assignments.any?
           %>
           <%= render :partial => "shared/event_list", :object => events, :locals => locals %>

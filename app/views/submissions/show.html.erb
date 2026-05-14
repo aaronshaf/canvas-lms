@@ -296,7 +296,7 @@
           </option>
         <% end %>
         <% if can_do(@context, @current_user, :manage_grades) && @submission.user != @current_user %>
-        <% unless @visible_rubric_assessments.map{|a| a.assessor_id}.include?(@current_user.id) %>
+        <% unless @visible_rubric_assessments.map(&:assessor_id).include?(@current_user.id) %>
           <option value="new" id="new_rubric_assessment_option"><%= t('options.new_assessment', '[New Assessment]') %></option>
         <% end %>
         <% end %>

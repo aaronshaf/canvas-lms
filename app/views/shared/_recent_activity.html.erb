@@ -84,7 +84,7 @@
             <div class=title>
               <%= activity_category_title(category, items) %>
             </div>
-            <% unread_count = items.count { |i| i.unread } %>
+            <% unread_count = items.count(&:unread) %>
             <% if unread_count > 0 %>
               <strong class="unread-count">
                 <span aria-hidden="true"><%= unread_count %></span>

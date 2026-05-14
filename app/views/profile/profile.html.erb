@@ -53,7 +53,7 @@
 <% js_env({
      folder_id: @user.profile_pics_folder.id,
      PASSWORD_POLICY: @domain_root_account.password_policy,
-     PASSWORD_POLICIES: Hash[@password_pseudonyms.map{ |p| [p.id, p.account.password_policy]}],
+     PASSWORD_POLICIES: @password_pseudonyms.to_h{ |p| [p.id, p.account.password_policy]},
      PROFILE: @user_data
    })
 %>
@@ -130,7 +130,7 @@
       </td>
     </tr>
   <% end %>
-  <% active_email_channels = @email_channels.select { |cc| cc.active? } %>
+  <% active_email_channels = @email_channels.select(&:active?) %>
   <% if active_email_channels.length > 1 %>
     <tr>
       <th scope="row"><label for="default_email_id"><%= before_label(:default_email, "Default Email") %></label></th>
@@ -360,7 +360,7 @@ TEXT
     <h3><%= t('headers.other_services', "Other Services") %></h3>
     <div style="margin-<%= direction('left') %>: 20px;">
     <%= before_label(:other_services, "Click any service below to register") %>
-    <% services = @user.user_services.map{|s| s.service} %>
+    <% services = @user.user_services.map(&:service) %>
     <ul id="unregistered_services" class="unstyled_list">
       <li id="unregistered_service_google_drive" class="service" style="<%= hidden if !feature_and_service_enabled?(:google_drive) || services.include?("google_drive") %>">
         <a href="#" class="btn btn-small"><%= image_tag "google_drive_icon.png", :alt => '' %> <%= t('links.google_drive', "Google Drive") %></a>

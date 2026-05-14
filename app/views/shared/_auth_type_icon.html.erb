@@ -17,7 +17,7 @@
 %>
 
 <span class="ic-Login_icon-sso ic-Login_icon-sso--icon-only" role="presentation">
-  <%= svg_icon "#{auth_type}" %>
+  <%= svg_icon auth_type.to_s %>
 </span>
 <% if with_login_text %>
   <span class="ic-Login__sso-button__title ic-Login__sso-button__title--<%= auth_type %>">

@@ -164,7 +164,7 @@
       <div class="profile_links">
         <h3 class="profileHeader"><%= t :links, "Links" %></h3>
         <div class="hide-if-editing">
-          <% if @user_data[:links].length > 0 %>
+          <% if !@user_data[:links].empty? %>
             <ul class="profileLink">
               <% @user_data[:links].each do |link| %>
                 <li class="profileLink__Item">
@@ -193,7 +193,7 @@
           </div>
         <% else %>
           <div class="show-if-editing">
-            <% if @user_data[:links].length > 0 %>
+            <% if !@user_data[:links].empty? %>
               <ul class="profileLink">
                 <% @user_data[:links].each do |link| %>
                   <li class="profileLink__Item">

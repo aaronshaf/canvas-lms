@@ -88,7 +88,7 @@
 <tbody>
   <% @outcomes.each do |outcome| %>
     <% results = @results_for_outcome[outcome.id] || [] %>
-    <tr class=" <%= 'js_unassessed_outcome' if results.length == 0 %>">
+    <tr class=" <%= 'js_unassessed_outcome' if results.empty? %>">
       <td class="short_description"><%= outcome.short_description %></td>
       <td class="attempts">
         <%= t :attempts_from_artifacts, "%{attempts} *from %{artifacts}*", :wrapper => '<div class="sub_attempt">\1</div>', :attempts => t(:attempts, "attempt", :count => results.sum{|r| [1, r.attempt || 0].max }), :artifacts => t(:artifacts, "artifact", :count => results.length) %>

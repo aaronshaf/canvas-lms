@@ -18,7 +18,7 @@
 
 <% batch = sis_batch_messages %>
 <ul>
-  <% if batch.processing_errors && batch.processing_errors.length > 0 %>
+  <% if batch.processing_errors.present? %>
     <li><%= t("There were a total of %{count} errors.", count: batch&.data&.dig(:counts, :error_count))%>
     <li><%= t(:sis_batch_errors_title, "Errors that prevent importing") %>
       <ul>
@@ -28,7 +28,7 @@
       </ul>
     </li>
   <% end %>
-  <% if batch.processing_warnings && batch.processing_warnings.length > 0 %>
+  <% if batch.processing_warnings.present? %>
     <li><%= t("There were a total of %{count} warnings.", count: batch&.data&.dig(:counts, :warning_count))%>
     <li><%= t(:sis_batch_warnings_title, "Warnings")%>
       <ul>

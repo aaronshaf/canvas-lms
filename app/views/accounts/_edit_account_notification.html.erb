@@ -79,7 +79,7 @@
       <div class="col-xs-12 col-lg-4">
         <i id="course-roles-label"><%= t "Course roles" %></i>
         <div class="ic-Checkbox-group" role="group" aria-labelledby="course-roles-label">
-          <% role_ids = announcement.account_notification_roles.map {|r| r.role_id} %>
+          <% role_ids = announcement.account_notification_roles.map(&:role_id) %>
           <% @course_roles.each do |r| %>
             <% course_role_checked = role_ids.include? r[:id] %>
             <div class="ic-Form-control ic-Form-control--checkbox">

@@ -10,7 +10,7 @@
     <% content[:items].each do |item| %>
       <li>
         <% if item[:href] %>
-          <a href="#<%= "#{item[:linked_resource_id]}" %>"><%= HtmlTextHelper.escape_html(item[:title]) %></a>
+          <a href="#<%= item[:linked_resource_id] %>"><%= HtmlTextHelper.escape_html(item[:title]) %></a>
         <% else %>
           <p><%= HtmlTextHelper.escape_html(item[:title]) %></p>
         <% end %>

@@ -4,23 +4,11 @@ inherit_from:
 Layout:
   Enabled: false
 
-Style/AndOr:
-  Enabled: false
 Style/CaseEquality:
-  Enabled: false
-Style/ClassEqualityComparison:
   Enabled: false
 Style/CollectionQuerying:
   Enabled: false
-Style/ConcatArrayLiterals:
-  Enabled: false
-Style/HashConversion:
-  Enabled: false
 Style/HashSyntax:
-  Enabled: false
-Style/InverseMethods:
-  Enabled: false
-Style/LineEndConcatenation:
   Enabled: false
 Style/MixinUsage:
   Enabled: false
@@ -28,27 +16,15 @@ Style/MultipleComparison:
   Enabled: false
 Style/PercentLiteralDelimiters:
   Enabled: false
-Style/PreferredHashMethods:
-  Enabled: false
 Style/QuotedSymbols:
   EnforcedStyle: double_quotes # because Style/StringLiterals is disabled
-Style/RedundantFilterChain:
-  Enabled: false
-Style/RedundantInterpolation:
-  Enabled: false
 Style/RedundantParentheses:
   Enabled: false
 Style/SafeNavigation:
-  Enabled: false
-Style/SelectByKind:
   Enabled: false
 Style/StringLiterals:
   Enabled: false
 Style/StringLiteralsInInterpolation:
   Enabled: false
-Style/SymbolProc:
-  Enabled: false
 Style/TernaryParentheses:
-  Enabled: false
-Style/ZeroLengthPredicate:
   Enabled: false

@@ -5,10 +5,10 @@
   <%= style %>
 </head>
   <body>
-    <h1 id="<%="#{HtmlTextHelper.escape_html(title)}_TOC"%>"><%="#{HtmlTextHelper.escape_html(title)}"%></h1>
+    <h1 id="<%="#{HtmlTextHelper.escape_html(title)}_TOC"%>"><%= HtmlTextHelper.escape_html(title) %></h1>
     <ol>
     <% content.each do |item| %>
-      <li><a href="#<%= "#{item[:identifier]}" %>"><%= HtmlTextHelper.escape_html(item[:title]) %></a></li>
+      <li><a href="#<%= item[:identifier] %>"><%= HtmlTextHelper.escape_html(item[:title]) %></a></li>
     <% end %>
     </ol>
     <hr/>

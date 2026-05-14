@@ -27,5 +27,5 @@
 <% end %>
 <%= display_text %>
 
-<% validator_link = "#{course_link_validator_url(asset.context)}" %>
+<% validator_link = course_link_validator_url(asset.context) %>
 <%= I18n.t("To check for other broken links, visit %{validator_link}", validator_link: validator_link) %>

@@ -292,7 +292,7 @@
           <% end %>
         </div>
       </div>
-      <% if (@context.elementary_subject_course? && @context.sis_batch_id.blank?) || (@context.elementary_homeroom_course? && @synced_subjects.length > 0) %>
+      <% if (@context.elementary_subject_course? && @context.sis_batch_id.blank?) || (@context.elementary_homeroom_course? && !@synced_subjects.empty?) %>
 
         <div class="form-row">
           <div class="form-label nobr"><%= f.blabel :enrollments_from_homeroom, :en => "Enrollments" %></div>
@@ -318,7 +318,7 @@
                   <% end %>
                 </div>
               </div>
-            <% elsif @context.elementary_homeroom_course? && @synced_subjects.length > 0 %>
+            <% elsif @context.elementary_homeroom_course? && !@synced_subjects.empty? %>
               <div class="palign">
                 <%= I18n.t("This homeroom syncs enrollments and subject start/end dates to: ") %>
                 <% links = @synced_subjects.each_with_index do |subject, i| %>
@@ -489,7 +489,7 @@
                   <%= f.label :"#{setting}_visibility_option", options[:get_setting_name].call, :class => "#{setting}-visibility" %>
                   <%= f.select(
                     :"#{setting}_visibility_option",
-                    @context.course_visibility_options.map{ |id, attrs| [attrs[:setting], "#{id}"] },
+                    @context.course_visibility_options.map{ |id, attrs| [attrs[:setting], id.to_s] },
                     {},
                     {
                       :id => options[:setting],

@@ -97,7 +97,7 @@
         </p>
       <% end %>
     <% end %>
-    <% if @current_user && @current_user == @user && @current_user.user_services.select{|s| feature_and_service_enabled?(s.service)}.empty? %>
+    <% if @current_user && @current_user == @user && @current_user.user_services.none?{|s| feature_and_service_enabled?(s.service)} %>
       <p>
         <%= t 'help.services', %{You haven't linked your user profile to any external services. You can link your Canvas account to services like X.com. This will make it easier for fellow course and group members to link up with you outside of class.} %>
       </p>
