@@ -45,7 +45,7 @@
     end
   %>
   <% total_entries = DiscussionEntry.active.where(:discussion_topic_id => active_topics).count %>
-  <% total_assignments = active_assignments.select(&:expects_submission?).length %>
+  <% total_assignments = active_assignments.count(&:expects_submission?) %>
   <% submission_counts = @context.submissions.having_submission.group(:submission_type).except(:order).count %>
   <% total_submissions = submission_counts.values.sum %>
 
@@ -109,7 +109,7 @@
 
         <tr>
           <td class="indent"><%= t('Quiz Questions') %></td>
-          <td class="indent quiz_question_count"><%= @context.quizzes.active.map{|q| (q.quiz_data || []).length}.sum %></td>
+          <td class="indent quiz_question_count"><%= @context.quizzes.active.sum{|q| (q.quiz_data || []).length} %></td>
         </tr>
 
         <tr>

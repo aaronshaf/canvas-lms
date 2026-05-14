@@ -66,7 +66,7 @@
           </td>
           <td><%= n(student[:enrollment].computed_current_score, percentage: true, precision: 1) %></td>
           <td><%= n(student[:enrollment].computed_final_score, percentage: true, precision: 1) %></td>
-          <td data-number="<%= (student[:ungraded].map(&:submitted_at).compact.min || 1.day.from_now).to_i / 3600 %>">
+          <td data-number="<%= (student[:ungraded].filter_map(&:submitted_at).min || 1.day.from_now).to_i / 3600 %>">
             <% student[:ungraded].each do |submission| %>
               <%= link_to(submission.assignment.title, speed_grader_course_gradebook_path(course, assignment_id: submission.assignment.id, student_id: student[:enrollment].user_id)) %><br/>
               <div style="padding-bottom: 5px; margin-top: -2px; padding-<%= direction('left') %>: 20px; font-size: 0.8em; color: #888;">

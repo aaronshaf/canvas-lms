@@ -64,7 +64,7 @@
       src="<%= safe_domain_file_url(@attachment, fallback_url: download_url, verifier: params[:verifier]) %>"
       style="width: 100%; height: 400px;" title="<%= t('File Content') %>">
     </iframe>
-  <% elsif @attachment.content_type && @attachment.content_type.match(/\Aimage\//) %>
+  <% elsif @attachment.content_type && @attachment.content_type.start_with?('image/') %>
     <%= link_to(image_tag(download_url, :alt => @attachment.display_name), download_url) %>
   <% elsif @attachment.content_type && @attachment.content_type.match(/\Avideo\/|audio\//) %>
     <% js_bundle :file_preview %>

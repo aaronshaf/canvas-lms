@@ -23,7 +23,7 @@
     tool_display = tool.extension_setting('global_navigation', 'windowTarget') == '_blank' ? 'borderless' : nil
     # need to correctly format toolId param for global navigation tools
     tool_label = tool.label_for(:global_navigation, I18n.locale)
-    tool_id = "#{tool_label.gsub(' ', '-').downcase}-#{tool.id}"
+    tool_id = "#{tool_label.tr(' ', '-').downcase}-#{tool.id}"
     tool_path = account_external_tool_path(@domain_root_account, tool, launch_type: 'global_navigation', display: tool_display, toolId: tool_id)
 
     { tool:, tool_path:, tool_label:, tool_id:, current_page: current_page?(tool_path), new_tab: tool_display == 'borderless' }

@@ -18,7 +18,7 @@
 
 <%
   self.instance_variables.each do |name|
-    if name.match(/\A@content_for/)
+    if name.start_with?("@content_for")
       instance_variable_set(name, nil)
     end
   end

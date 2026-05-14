@@ -84,7 +84,7 @@
             <div class=title>
               <%= activity_category_title(category, items) %>
             </div>
-            <% unread_count = items.select { |i| i.unread }.size %>
+            <% unread_count = items.count { |i| i.unread } %>
             <% if unread_count > 0 %>
               <strong class="unread-count">
                 <span aria-hidden="true"><%= unread_count %></span>
@@ -125,6 +125,6 @@
 <% end %>
 </ul>
 
-<% if categorized_items.values.map(&:count).sum == 0 %>
+<% if categorized_items.values.sum(&:count) == 0 %>
   <%= render :partial => 'shared/no_recent_activity' %>
 <% end %>

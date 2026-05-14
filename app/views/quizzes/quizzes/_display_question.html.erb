@@ -56,8 +56,8 @@
       matching_question
       multiple_dropdowns_question
       fill_in_multiple_blanks_question
-    }.include?(hash_get(question, 'question_type')) && incorrect && user_answer.select{|k, v| k.to_s.match(/answer_/) && v.to_s != '' }.length == 0) ||
-    (hash_get(question, 'question_type') == 'multiple_answers_question' && incorrect && user_answer.select{|k, v| k.to_s.match(/answer_/) && v.to_s != '0' }.length == 0) ||
+    }.include?(hash_get(question, 'question_type')) && incorrect && user_answer.count{|k, v| k.to_s.include?('answer_') && v.to_s != '' } == 0) ||
+    (hash_get(question, 'question_type') == 'multiple_answers_question' && incorrect && user_answer.count{|k, v| k.to_s.include?('answer_') && v.to_s != '0' } == 0) ||
     (hash_get(question, 'question_type') == 'file_upload_question' && hash_get(user_answer, 'attachment_ids').blank?) ||
     (hash_get(question, 'question_type') == 'essay_question' && hash_get(user_answer, 'text').blank?) ||
     false
@@ -209,7 +209,7 @@
         <% elsif question && hash_get(question, :question_type) == "multiple_dropdowns_question" %>
           <% answer_list = []
              if assessment_results
-               variables = hash_get(question, :answers, []).map{|a| hash_get(a, :blank_id) }.compact.uniq
+               variables = hash_get(question, :answers, []).filter_map{|a| hash_get(a, :blank_id) }.uniq
                variables.each {|var| answer_list << hash_get(user_answer, "answer_id_for_#{var}") }
              end
           %>
@@ -324,7 +324,7 @@
         <% else %>
           <% if user_answer && question && question_type.multiple_sets %>
             <% variables = hash_get(question, :original_question_text, "").scan(/\[[A-Za-z0-9_\-.]+\]/).to_a.compact.pluck(1..-2) %>
-            <% variables = variables & hash_get(question, :answers, []).map{|a| hash_get(a, :blank_id) }.compact.uniq %>
+            <% variables = variables & hash_get(question, :answers, []).filter_map{|a| hash_get(a, :blank_id) }.uniq %>
             <% variables.each_with_index do |variable, idx| %>
               <% answers = hash_get(question, :answers, []).select{|a| hash_get(a, :blank_id) == variable } %>
               <% user_answer[:text] = hash_get(user_answer, "answer_for_#{variable}")
@@ -414,7 +414,7 @@
             <% question[:answers] = [] if editing && question && hash_get(question, :question_type) == 'calculated_question' %>
             <% if question && (user_answer || assessment_results || !@quiz || display_correct_answers || (!assessment_results && !user_answer)) %>
               <% show_headers = @quiz && display_correct_answers && user_answer && question_type.display_answers == "single" && hash_get(question, :question_type) != "essay_question" %>
-              <% if editing || show_headers || !question_type.entry_type.match(/text_box/) %>
+              <% if editing || show_headers || !question_type.entry_type.include?('text_box') %>
                 <div class="answers_wrapper">
                   <%= render :partial => "quizzes/quizzes/display_answer", :collection => hash_get(question, :answers), :locals => { assessment_results:, question_type:, user_answer:, question:, question_bank_id: } %>
                 </div>

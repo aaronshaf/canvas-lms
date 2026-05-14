@@ -4,8 +4,5 @@ inherit_from:
 Layout:
   Enabled: false
 
-Performance:
-  Enabled: false
-
 Style:
   Enabled: false

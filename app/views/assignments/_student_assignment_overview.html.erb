@@ -46,7 +46,7 @@
       <span class='title'><%= t :submitting, 'Submitting' %></span>
       <span class='value'><%= @assignment.readable_submission_types + turnitin_text %></span>
     </li>
-    <% if @assignment.submission_types =~ /online_upload/ && @assignment.allowed_extensions.present? -%>
+    <% if @assignment.submission_types.include?('online_upload') && @assignment.allowed_extensions.present? -%>
       <li>
         <span class='title'><%= t :submission_types, 'File Types' %></span>
         <span class='value'><%= @assignment.allowed_extensions.to_sentence %></span>
