@@ -18,6 +18,10 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module PeerReview::Validations
+  def self.assignment_supports_peer_review_sub_assignment?(assignment)
+    !assignment.external_tool? && assignment.submission_types != "discussion_topic"
+  end
+
   def validate_parent_assignment(assignment)
     unless assignment.present? && assignment.is_a?(Assignment) && assignment.persisted?
       raise PeerReview::InvalidParentAssignmentError, I18n.t("Invalid parent assignment")

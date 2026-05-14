@@ -766,6 +766,33 @@ describe "discussions" do
         expect(dt.assignment.automatic_peer_reviews).to be false
       end
 
+      it "creates a graded discussion topic with legacy peer reviews when peer_review_allocation_and_grading is enabled" do
+        course.enable_feature!(:peer_review_allocation_and_grading)
+        get "/courses/#{course.id}/discussion_topics/new"
+
+        title = "Graded Discussion With Graded Peer Reviews FF On"
+        message = "replying to topic"
+
+        f("input[placeholder='Topic Title']").send_keys title
+        type_in_tiny("textarea", message)
+
+        force_click_native('input[type=checkbox][value="graded"]')
+        wait_for_ajaximations
+
+        f("input[data-testid='points-possible-input']").send_keys "12"
+        force_click_native("input[data-testid='peer_review_manual']")
+
+        f("button[data-testid='save-and-publish-button']").click
+        wait_for_ajaximations
+
+        dt = DiscussionTopic.last
+        expect(dt.title).to eq title
+        expect(dt.assignment).to be_present
+        expect(dt.assignment.submission_types).to eq "discussion_topic"
+        expect(dt.assignment.peer_reviews).to be true
+        expect(dt.assignment.peer_review_sub_assignment).to be_nil
+      end
+
       it "creates a discussion topic with an assignment with Sync to SIS" do
         @account = @course.root_account
         @account.set_feature_flag! "post_grades", "on"

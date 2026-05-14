@@ -1004,6 +1004,40 @@ describe Mutations::CreateDiscussionTopic do
       end
     end
 
+    it "creates a graded discussion topic with legacy peer reviews when peer_review_allocation_and_grading is enabled" do
+      @course.enable_feature!(:peer_review_allocation_and_grading)
+      title = "Graded Discussion With Peer Reviews"
+
+      query = <<~GQL
+        contextId: "#{@course.id}"
+        contextType: Course
+        title: "#{title}"
+        message: "A message"
+        published: true
+        assignment: {
+          courseId: "#{@course.id}",
+          name: "#{title}",
+          pointsPossible: 10,
+          peerReviews: {
+            enabled: true,
+            count: 1
+          }
+        }
+      GQL
+
+      result = execute_with_input_with_assignment(query)
+      assignment = Assignment.last
+
+      aggregate_failures do
+        expect(result.dig("data", "createDiscussionTopic", "errors")).to be_nil
+        expect(result.dig("data", "createDiscussionTopic", "discussionTopic", "_id"))
+          .to eq assignment.discussion_topic.id.to_s
+        expect(assignment.peer_reviews).to be true
+        expect(assignment.submission_types).to eq "discussion_topic"
+        expect(assignment.peer_review_sub_assignment).to be_nil
+      end
+    end
+
     it "successfully creates a graded discussion topic with a group override" do
       context_type = "Course"
       title = "Graded Discussion"

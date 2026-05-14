@@ -3337,6 +3337,46 @@ describe AssignmentsApiController, type: :request do
                                                 })
           end
         end
+
+        describe "submission_types validation" do
+          it "does not call create_api_peer_review_sub_assignment for discussion_topic assignments" do
+            assignment, assignment_params = build_peer_review_assignment(peer_review_params: { points_possible: 50 })
+            assignment.submission_types = "discussion_topic"
+            # `grading_periods_allow_submittable_create?` calls `apply_grading_params`,
+            # which writes `submittable.submission_types = submittable_params[:submission_types]`.
+            # Mirror that here so the assignment retains its submission_types through the flow.
+            assignment_params[:submission_types] = "discussion_topic"
+
+            expect_any_instance_of(Api::V1::Assignment).not_to receive(:create_api_peer_review_sub_assignment)
+
+            mock_and_call_create_api_assignment(assignment, assignment_params, {
+                                                  prepare_options: { assignment:, valid: true }
+                                                })
+          end
+
+          it "does not call create_api_peer_review_sub_assignment for external_tool assignments" do
+            assignment, assignment_params = build_peer_review_assignment(peer_review_params: { points_possible: 50 })
+            assignment.submission_types = "external_tool"
+            assignment_params[:submission_types] = "external_tool"
+
+            expect_any_instance_of(Api::V1::Assignment).not_to receive(:create_api_peer_review_sub_assignment)
+
+            mock_and_call_create_api_assignment(assignment, assignment_params, {
+                                                  prepare_options: { assignment:, valid: true }
+                                                })
+          end
+
+          it "does not call create_api_peer_review_sub_assignment when discussion_topic is set in memory before submission_types syncs" do
+            assignment, assignment_params = build_peer_review_assignment(peer_review_params: { points_possible: 50 })
+            assignment.association(:discussion_topic).target = DiscussionTopic.new
+
+            expect_any_instance_of(Api::V1::Assignment).not_to receive(:create_api_peer_review_sub_assignment)
+
+            mock_and_call_create_api_assignment(assignment, assignment_params, {
+                                                  prepare_options: { assignment:, valid: true }
+                                                })
+          end
+        end
       end
 
       describe "parameter passing" do
@@ -5815,6 +5855,80 @@ describe AssignmentsApiController, type: :request do
 
             result = test_object.send(:update_api_assignment, assignment, assignment_params, user)
             expect(result).to eq(:ok)
+          end
+        end
+
+        context "when assignment is a graded discussion topic (peer_review_allocation_and_grading enabled)" do
+          let!(:discussion_assignment) do
+            assignment_model(
+              context: course,
+              peer_reviews: true,
+              submission_types: "discussion_topic",
+              name: "Graded Discussion"
+            )
+          end
+
+          it "does not create a peer review sub assignment when peer reviews are already enabled" do
+            params = ActionController::Parameters.new({
+                                                        assignment: {
+                                                          peer_reviews: true,
+                                                          submission_types: "discussion_topic",
+                                                          peer_review: { points_possible: 50 }
+                                                        }
+                                                      }).permit!
+
+            expect_any_instance_of(Api::V1::Assignment).not_to receive(:create_api_peer_review_sub_assignment)
+            expect_any_instance_of(Api::V1::Assignment).not_to receive(:update_api_peer_review_sub_assignment)
+
+            result = call_update_assignment_api(discussion_assignment, params, user)
+
+            expect(result).to eq(:ok)
+            discussion_assignment.reload
+            expect(discussion_assignment.peer_reviews).to be true
+            expect(discussion_assignment.peer_review_sub_assignment).to be_nil
+          end
+
+          it "does not create a peer review sub assignment when peer reviews are newly enabled on existing discussion" do
+            ungraded_pr_discussion = assignment_model(
+              context: course,
+              peer_reviews: false,
+              submission_types: "discussion_topic",
+              name: "Discussion without Peer Reviews"
+            )
+            params = ActionController::Parameters.new({
+                                                        assignment: {
+                                                          peer_reviews: true,
+                                                          submission_types: "discussion_topic",
+                                                          peer_review: { points_possible: 50 }
+                                                        }
+                                                      }).permit!
+
+            expect_any_instance_of(Api::V1::Assignment).not_to receive(:create_api_peer_review_sub_assignment)
+            expect_any_instance_of(Api::V1::Assignment).not_to receive(:update_api_peer_review_sub_assignment)
+
+            result = call_update_assignment_api(ungraded_pr_discussion, params, user)
+
+            expect(result).to eq(:ok)
+            ungraded_pr_discussion.reload
+            expect(ungraded_pr_discussion.peer_reviews).to be true
+            expect(ungraded_pr_discussion.peer_review_sub_assignment).to be_nil
+          end
+
+          it "successfully updates other fields on a graded discussion with peer reviews" do
+            params = ActionController::Parameters.new({
+                                                        assignment: {
+                                                          name: "Renamed Graded Discussion",
+                                                          points_possible: 25
+                                                        }
+                                                      }).permit!
+
+            result = call_update_assignment_api(discussion_assignment, params, user)
+
+            expect(result).to eq(:ok)
+            discussion_assignment.reload
+            expect(discussion_assignment.name).to eq "Renamed Graded Discussion"
+            expect(discussion_assignment.points_possible).to eq 25
+            expect(discussion_assignment.peer_review_sub_assignment).to be_nil
           end
         end
 

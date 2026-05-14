@@ -669,7 +669,9 @@ module Api::V1::Assignment
     return false unless prepared_create[:valid]
 
     response = :created
-    has_peer_reviews = prepared_create[:assignment].peer_reviews && prepared_create[:assignment].context.feature_enabled?(:peer_review_allocation_and_grading)
+    has_peer_reviews = prepared_create[:assignment].peer_reviews &&
+                       prepared_create[:assignment].context.feature_enabled?(:peer_review_allocation_and_grading) &&
+                       assignment_type_supports_peer_review_sub_assignment?(prepared_create[:assignment])
 
     Assignment.suspend_due_date_caching do
       quiz_lti_param = assignment_params.key?(:quiz_lti) || assignment_params[:quiz_lti]
@@ -751,7 +753,8 @@ module Api::V1::Assignment
     cached_due_dates_changed = prepared_update[:assignment].update_cached_due_dates?
     response = :ok
 
-    has_peer_reviews = prepared_update[:assignment].peer_reviews
+    has_peer_reviews = prepared_update[:assignment].peer_reviews &&
+                       assignment_type_supports_peer_review_sub_assignment?(prepared_update[:assignment])
     peer_review_grading_enabled = prepared_update[:assignment].context.feature_enabled?(:peer_review_allocation_and_grading)
 
     should_recompute_peer_review_sub = false
@@ -1692,6 +1695,15 @@ module Api::V1::Assignment
     end
 
     peer_review_params
+  end
+
+  # Runs pre-save, so it's stricter than PeerReview::Validations: the third clause
+  # catches the GraphQL createDiscussionTopic in-flight state where
+  # discussion_topic is set in-memory before submission_types syncs.
+  def assignment_type_supports_peer_review_sub_assignment?(assignment)
+    return false unless PeerReview::Validations.assignment_supports_peer_review_sub_assignment?(assignment)
+
+    !(assignment.association(:discussion_topic).loaded? && assignment.discussion_topic.present?)
   end
 
   def create_api_peer_review_sub_assignment(parent_assignment, params)
