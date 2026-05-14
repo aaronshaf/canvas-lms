@@ -17,6 +17,7 @@
  */
 
 import $ from 'jquery'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const selector = '.lti-thumbnail-launch'
 
@@ -32,12 +33,12 @@ class LtiThumbnailLauncher {
 
   launch(element) {
     const placement = JSON.parse(element.attr('target'))
-    const iframe = $('<iframe/>', {
-      src: element.attr('href'),
-      allowfullscreen: '',
-      width: placement.displayWidth || 500,
-      height: placement.displayHeight || 500,
-    })
+    const _ifrEl = document.createElement('iframe')
+    _ifrEl.src = sanitizeUrl(element.attr('href'))
+    _ifrEl.setAttribute('allowfullscreen', '')
+    _ifrEl.width = placement.displayWidth || 500
+    _ifrEl.height = placement.displayHeight || 500
+    const iframe = $(_ifrEl)
     element.replaceWith(iframe)
   }
 }

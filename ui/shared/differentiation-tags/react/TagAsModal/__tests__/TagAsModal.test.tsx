@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {render, screen, waitFor, fireEvent, act} from '@testing-library/react'
+import {render, screen, waitFor, fireEvent, within} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -190,14 +190,15 @@ describe('TagAsModal', () => {
 
       renderComponent({categories: [singleTagCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      fireEvent.click(await screen.findByText('Honors'))
+      await user.click(
+        within(await screen.findByRole('listbox')).getByRole('option', {name: 'Honors'}),
+      )
       await user.click(screen.getByTestId('submit-button'))
 
       await waitFor(
         () => expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(101), // group id
       )
       expect(apiCalled).toBe(false)
-      await act(async () => {})
     })
 
     it('calls onCreationSuccess with a multi-variant group ID without an API call', async () => {
@@ -211,14 +212,15 @@ describe('TagAsModal', () => {
 
       renderComponent({categories: [multipleTagsCategoryTyped]})
       await user.click(screen.getByRole('combobox'))
-      fireEvent.click(await screen.findByText('Variant A'))
+      await user.click(
+        within(await screen.findByRole('listbox')).getByRole('option', {name: 'Variant A'}),
+      )
       await user.click(screen.getByTestId('submit-button'))
 
       await waitFor(
         () => expect(defaultProps.onCreationSuccess).toHaveBeenCalledWith(201), // Variant A group id
       )
       expect(apiCalled).toBe(false)
-      await act(async () => {})
     })
 
     it('shows validation error when no tag is selected', async () => {
@@ -330,7 +332,6 @@ describe('TagAsModal', () => {
       expect(screen.getByTitle('Reading Groups')).toBeInTheDocument()
       // Single tag category should NOT appear
       expect(screen.queryByTitle('Honors')).not.toBeInTheDocument()
-      await user.keyboard('{Escape}')
     })
 
     it('auto-selects the first tag set when switching to this option', async () => {

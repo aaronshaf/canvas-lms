@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import React, {useRef, useState} from 'react'
 import {Modal} from '@instructure/ui-modal'
 import {CloseButton, Button} from '@instructure/ui-buttons'
@@ -114,9 +115,11 @@ const AddStudentModal = ({open, handleClose, currentUserId, onStudentPaired}) =>
           as="div"
           display="inline-block"
           dangerouslySetInnerHTML={{
-            __html: I18n.t('Visit *Canvas Guides* to learn more.', {
-              wrappers: [canvasGuideLinkHtml],
-            }),
+            __html: sanitizeHTML(
+              I18n.t('Visit *Canvas Guides* to learn more.', {
+                wrappers: [canvasGuideLinkHtml],
+              }),
+            ),
           }}
         />
       </Modal.Body>

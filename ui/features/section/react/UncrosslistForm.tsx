@@ -18,6 +18,7 @@
 
 import React, {useState} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Modal} from '@instructure/ui-modal'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
@@ -105,9 +106,11 @@ export default function UncrosslistForm({
             <Text
               as="p"
               dangerouslySetInnerHTML={{
-                __html: I18n.t(
-                  'This will move the section back to its original course, *%{courseName}*.',
-                  {courseName, wrapper: '<strong>$1</strong>'},
+                __html: sanitizeHTML(
+                  I18n.t(
+                    'This will move the section back to its original course, *%{courseName}*.',
+                    {courseName, wrapper: '<strong>$1</strong>'},
+                  ),
                 ),
               }}
             ></Text>

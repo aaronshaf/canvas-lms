@@ -56,12 +56,13 @@ $(document).ready(function () {
           (i.contentWindow && i.contentWindow.document) ||
           window.frames[$obj.attr('id')].document
         const $body = $(d).find('body')
-        $body.html(
-          $('<h1 />').text(
-            I18n.t('error_heading', 'Ajax Error: %{status_code}', {status_code: status}),
-          ),
-        )
-        $body.append(document.createTextNode(text))
+        const _h1El = document.createElement('h1')
+        _h1El.textContent = I18n.t('error_heading', 'Ajax Error: %{status_code}', {
+          status_code: status,
+        })
+        $body.html('')
+        $body[0]?.appendChild(_h1El)
+        $body[0]?.appendChild(document.createTextNode(text))
         $('#instructure_ajax_error_box').hide()
         message = htmlEscape(message)
         if (debugOnly) {

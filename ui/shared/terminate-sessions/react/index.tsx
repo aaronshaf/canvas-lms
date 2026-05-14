@@ -17,6 +17,7 @@
  */
 
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {useState} from 'react'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Modal} from '@instructure/ui-modal'
@@ -94,9 +95,11 @@ export default function TerminateSessions({user}: TerminateSessionsProps) {
           <Flex direction="column" gap="small">
             <Text
               dangerouslySetInnerHTML={{
-                __html: I18n.t(
-                  'This will terminate all user sessions for *%{userName}*. This includes all browser-based sessions and all access tokens, including manually generated ones and Canvas mobile apps.',
-                  {userName: user.name, wrapper: '<b>$1</b>'},
+                __html: sanitizeHTML(
+                  I18n.t(
+                    'This will terminate all user sessions for *%{userName}*. This includes all browser-based sessions and all access tokens, including manually generated ones and Canvas mobile apps.',
+                    {userName: user.name, wrapper: '<b>$1</b>'},
+                  ),
                 ),
               }}
             />

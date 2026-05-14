@@ -20,6 +20,7 @@ import {useEffect} from 'react'
 import {Controller, useForm, type SubmitHandler} from 'react-hook-form'
 import * as z from 'zod'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {Heading} from '@instructure/ui-heading'
@@ -358,10 +359,11 @@ const AddEditPseudonym = ({
             <Text
               size="small"
               color="secondary"
-              // xsslint safeString.method t
               dangerouslySetInnerHTML={{
-                __html: I18n.t(
-                  "Note: This login's account uses delegated authentication, but allows fallback Canvas password authentication. The password fields in this form update the fallback Canvas password, <b>not</b> the delegated authentication.",
+                __html: sanitizeHTML(
+                  I18n.t(
+                    "Note: This login's account uses delegated authentication, but allows fallback Canvas password authentication. The password fields in this form update the fallback Canvas password, <b>not</b> the delegated authentication.",
+                  ),
                 ),
               }}
             />

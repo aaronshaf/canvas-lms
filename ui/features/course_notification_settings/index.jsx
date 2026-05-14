@@ -22,5 +22,5 @@ import React from 'react'
 import {legacyRender} from '@canvas/react'
 
 $(() => {
-  legacyRender(<NotificationSettings />, $('<div/>').appendTo('#content')[0])
+  legacyRender(<NotificationSettings />, $(document.createElement('div')).appendTo('#content')[0])
 })

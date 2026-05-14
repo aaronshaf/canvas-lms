@@ -17,6 +17,7 @@
  */
 import {User} from '../graphql/User'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {decodeHTML} from 'entities'
 
 const I18n = createI18nScope('conversations_2')
 
@@ -51,7 +52,7 @@ export const decodeHTMLAuthor = author => {
 
 export const decodeHTMLShortName = name => {
   if (!name) return name
-  return new DOMParser().parseFromString(name, 'text/html').body.textContent
+  return decodeHTML(name)
 }
 
 // Takes in data from either a VIEWABLE_SUBMISSIONS_QUERY or CONVERSATIONS_QUERY

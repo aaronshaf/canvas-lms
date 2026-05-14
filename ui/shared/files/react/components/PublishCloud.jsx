@@ -104,7 +104,7 @@ const PublishCloud = ({
   const openRestrictedDialog = () => {
     const buttonId = `publish-cloud-${model.id}`
     const originatorButton = $(`#${buttonId}`) ? $(`#${buttonId}`)[0] : null
-    const $dialog = $('<div>').dialog({
+    const $dialog = $(document.createElement('div')).dialog({
       title: I18n.t('Editing permissions for: %{name}', {name: model.displayName()}),
       width: 800,
       minHeight: 300,

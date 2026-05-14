@@ -16,6 +16,7 @@
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import htmlEscape from '@instructure/html-escape'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import React from 'react'
 import {legacyRender, legacyUnmountComponentAtNode, render} from '@canvas/react'
 import $ from 'jquery'
@@ -99,14 +100,17 @@ export default class WikiPageView extends Backbone.View {
     if (this.model.get('locked_for_user')) {
       const lock_info = this.model.get('lock_info')
       const lockEl = document.querySelector('.lock_explanation')
-      if (lockEl) lockEl.innerHTML = htmlEscape(lockExplanation(lock_info, 'page')).toString()
+      if (lockEl)
+        lockEl.innerHTML = sanitizeHTML(htmlEscape(lockExplanation(lock_info, 'page')).toString())
       if (lock_info.context_module && lock_info.context_module.id) {
         const prerequisites_lookup = `${ENV.MODULES_PATH}/${
           lock_info.context_module.id
         }/prerequisites/wiki_page_${this.model.get('page_id')}`
-        $('<a id="module_prerequisites_lookup_link" style="display: none;">')
-          .attr('x-canvaslms-trusted-url', prerequisites_lookup)
-          .appendTo($('.lock_explanation'))
+        const _prereqA = document.createElement('a')
+        _prereqA.id = 'module_prerequisites_lookup_link'
+        _prereqA.style.display = 'none'
+        _prereqA.setAttribute('x-canvaslms-trusted-url', prerequisites_lookup)
+        $('.lock_explanation')[0]?.appendChild(_prereqA)
         INST.lookupPrerequisites()
       }
     }
@@ -170,7 +174,7 @@ export default class WikiPageView extends Backbone.View {
 
     // attach/re-attach the sequence footer (if this is a course, but not the home page)
     if (!this.$sequenceFooter && !this.course_home && !!this.course_id) {
-      if (!this.$sequenceFooter) this.$sequenceFooter = $('<div></div>').hide()
+      if (!this.$sequenceFooter) this.$sequenceFooter = $(document.createElement('div')).hide()
       this.$sequenceFooter.moduleSequenceFooter({
         courseID: this.course_id,
         assetType: 'Page',

@@ -18,6 +18,7 @@
 
 import React, {useRef} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import CommMessageDisplay from './CommMessageDisplay'
 import {Alert} from '@instructure/ui-alerts'
 import {Heading} from '@instructure/ui-heading'
@@ -172,9 +173,8 @@ export default function CommMessageList({query}: CommMessageListProps): JSX.Elem
       <View margin="moduleElements none" as="div" data-testid="message-list-description">
         <Text
           variant="descriptionSection"
-          // xsslint safeString.function headingText
           dangerouslySetInnerHTML={{
-            __html: headingText(),
+            __html: sanitizeHTML(headingText()),
           }}
         />
       </View>

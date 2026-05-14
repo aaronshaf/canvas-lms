@@ -31,7 +31,15 @@ const inlineMediaComment = {
     ),
 
   buildCommentHolder: _$link =>
-    $('<div><div class="innerholder" tabindex="-1" style="margin-bottom: 15px;"></div></div>'),
+    (() => {
+      const _outer = document.createElement('div')
+      const _inner = document.createElement('div')
+      _inner.className = 'innerholder'
+      _inner.tabIndex = -1
+      _inner.style.marginBottom = '15px'
+      _outer.appendChild(_inner)
+      return $(_outer)
+    })(),
 
   getMediaCommentId($link) {
     let idAttr

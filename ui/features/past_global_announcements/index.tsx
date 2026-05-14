@@ -22,7 +22,7 @@ import {render} from '@canvas/react'
 import PastGlobalAnnouncements from './react/PastGlobalAnnouncements'
 
 $(() => {
-  const container = $('<div/>').appendTo('#content')[0]
+  const container = $(document.createElement('div')).appendTo('#content')[0]
   // @ts-expect-error - WithBreakpoints HOC injects breakpoints prop
   render(<PastGlobalAnnouncements />, container)
 })

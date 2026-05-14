@@ -94,7 +94,7 @@ const TableBody: React.FC<TableBodyProps> = ({
   const renderDragFeedback = (e: React.DragEvent) => {
     const {pageX, pageY} = e
     if (!dragHolderRef.current) {
-      dragHolderRef.current = $('<div>').appendTo(document.body)
+      dragHolderRef.current = $(document.createElement('div')).appendTo(document.body)
     }
     const feedback = <DragFeedback pageX={pageX} pageY={pageY} itemsToDrag={itemsToDrag()} />
     if (!dragRootRef.current) {

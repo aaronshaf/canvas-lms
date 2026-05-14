@@ -143,12 +143,13 @@ export function SearchSpan({...props}: SearchSpanProps) {
     }`
   }
 
-  // Parse once into a real DOM tree, mutate via element APIs, serialize back.
-  // This replaces the previous regex/character-split string mutators which
-  // could escape attribute boundaries (e.g. promoting <img onerror=…>
-  // embedded inside a title="…" value into a real DOM node). sanitizeHTML
-  // remains the final defense-in-depth pass.
-  const doc = new DOMParser().parseFromString(props.htmlBody ?? '', 'text/html')
+  // Pre-sanitize to TrustedHTML before parsing: DOMParser.parseFromString is
+  // a TrustedHTML sink in Chrome's Trusted Types implementation. Passing a
+  // TrustedHTML object bypasses the default policy under Phase 2 enforcement
+  // instead of relying on the pass-through policy to accept a raw string.
+  // sanitizeHTML still runs again after DOM mutation as defense-in-depth.
+  const sanitizedBody = sanitizeHTML(props.htmlBody ?? '')
+  const doc = new DOMParser().parseFromString(sanitizedBody as unknown as string, 'text/html')
   addTargetToLinks(doc.body)
   if (props.searchTerm && !props.isSplitView) {
     addSearchHighlighting(doc.body, props.searchTerm)

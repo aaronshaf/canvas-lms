@@ -31,6 +31,7 @@ import {ScreenReaderContent, AccessibleContent} from '@instructure/ui-a11y-conte
 import {IconWarningSolid} from '@instructure/ui-icons'
 import {View} from '@instructure/ui-view'
 import useDateTimeFormat from '@canvas/use-date-time-format-hook'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('CourseAvailabilityOptions')
 
@@ -156,8 +157,7 @@ export default function CourseAvailabilityOptions({canManage, viewPastLocked, vi
         <Text
           size="small"
           weight="light"
-          // xsslint safeString.function participationExplanationText
-          dangerouslySetInnerHTML={{__html: participationExplanationText()}}
+          dangerouslySetInnerHTML={{__html: sanitizeHTML(participationExplanationText())}}
         />
 
         {ENV.COURSE_PACES_ENABLED && (

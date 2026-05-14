@@ -22,7 +22,7 @@ import {legacyRender} from '@canvas/react'
 import PastGlobalAlert from './react/PastGlobalAlert'
 
 $(function onReady(): void {
-  const mountNode: Element = $('<div/>').appendTo('#announcementWrapper')[0]
+  const mountNode: Element = $(document.createElement('div')).appendTo('#announcementWrapper')[0]
 
   legacyRender(<PastGlobalAlert />, mountNode)
 })
