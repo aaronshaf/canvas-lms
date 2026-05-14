@@ -27,7 +27,7 @@ const I18n = createI18nScope('rubrics-assessment-tray')
 type AssessmentFooterProps = {
   isPreviewMode: boolean
   isRubricComplete: boolean
-  isStandAloneContainer: boolean
+  showCancelButton: boolean
   onDismiss: () => void
   onSubmit?: () => void
   onSubmitButtonRef?: (el: HTMLButtonElement | null) => void
@@ -35,7 +35,7 @@ type AssessmentFooterProps = {
 export const AssessmentFooter = ({
   isPreviewMode,
   isRubricComplete,
-  isStandAloneContainer,
+  showCancelButton,
   onDismiss,
   onSubmit,
   onSubmitButtonRef,
@@ -48,7 +48,7 @@ export const AssessmentFooter = ({
             <AssessmentStatusPill isRubricComplete={isRubricComplete} />
           </Flex.Item>
         )}
-        {isStandAloneContainer && (
+        {showCancelButton && (
           <Flex.Item>
             <Button
               color="secondary"

@@ -355,7 +355,7 @@ export const RubricAssessmentContainer = ({
           <Flex.Item as="footer">
             <AssessmentFooter
               isPreviewMode={isPreviewMode}
-              isStandAloneContainer={isStandaloneContainer}
+              showCancelButton={isStandaloneContainer && !isPeerReview}
               isRubricComplete={isRubricComplete({
                 criteria,
                 isFreeFormCriterionComments,

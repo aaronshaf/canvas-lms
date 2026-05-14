@@ -311,4 +311,22 @@ describe('RubricAssessmentContainer Tests', () => {
       expect(getByTestId('rubric-assessment-status-pill')).toHaveTextContent('Complete')
     })
   })
+
+  describe('Cancel button visibility', () => {
+    it('shows cancel button in standalone container when not peer review', () => {
+      const {getByTestId} = renderComponent({
+        isStandaloneContainer: true,
+        isPeerReview: false,
+      })
+      expect(getByTestId('cancel-rubric-assessment-button')).toBeInTheDocument()
+    })
+
+    it('does not show cancel button in standalone container when peer review', () => {
+      const {queryByTestId} = renderComponent({
+        isStandaloneContainer: true,
+        isPeerReview: true,
+      })
+      expect(queryByTestId('cancel-rubric-assessment-button')).not.toBeInTheDocument()
+    })
+  })
 })
