@@ -24,10 +24,10 @@
   end
 %>
 
-<%= t <<-BODY, body_text: body_text, url: content(:link)
+<%= t <<~TEXT, body_text: body_text, url: content(:link)
 %{body_text}
 
 You can view the assignment here:
 %{url}
-BODY
+TEXT
 %>

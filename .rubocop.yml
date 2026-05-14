@@ -85,6 +85,9 @@ Naming/FileName:
     - "**/Gemfile.d/~after.rb"
     - "**/urn_*.rb"
     - "**/fixtures/**/*.rb"
+    - "app/views/shared/_canvas-primary-nav.erb"
+    - "app/views/shared/_canvas-user-nav.erb"
+    - "app/views/shared/errors/AUT_message.html.erb"
     - "config/environments/*-*.rb"
     - "config/initializers/~*.rb"
     - "config/locales/*.rb" # names must match locale names

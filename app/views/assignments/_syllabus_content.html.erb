@@ -30,13 +30,13 @@
   else
     title_text = t("titles.course_syllabus", "Course Syllabus")
     submit_btn_text = t("buttons.update_syllabus", "Update Syllabus")
-    help_text = mt "instructions.syllabus", <<-DOC
+    help_text = mt "instructions.syllabus", <<~MD
 The syllabus page shows a table-oriented view of the course schedule, and the basics of
 course grading.  You can add any other comments, notes, or thoughts you have about the course
 structure, course policies or anything else.
 
 To add some comments, click the "Edit" link at the top.
-    DOC
+    MD
   end
 %>
 <% set_active_tab "syllabus" %>

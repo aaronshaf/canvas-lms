@@ -19,7 +19,7 @@
 <%= fields_for :settings do |f| %>
   <table style="width: 500px;" class="formtable">
     <tr>
-      <td colspan="2"><%= mt(:description, <<~TEXT, :kaltura_url => 'http://www.kaltura.com', :notification_url => 'http://your_canvas_domain/media_objects/kaltura_notifications')
+      <td colspan="2"><%= mt(:description, <<~MD, :kaltura_url => 'http://www.kaltura.com', :notification_url => 'http://your_canvas_domain/media_objects/kaltura_notifications')
 You will need an account either at [Kaltura.com](%{kaltura_url})
 or with a self-hosted instance of Kaltura.
 
@@ -31,7 +31,7 @@ Notification URL of:
 %{notification_url}
 
 Then check the boxes for "Add Entry" and "Delete Entry" in the "Sent by Server" column.
-TEXT
+MD
       %></td>
     </tr>
     <tr>

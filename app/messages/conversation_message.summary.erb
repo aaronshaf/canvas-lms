@@ -10,9 +10,9 @@
 
 <%= t :body, "%{user_name} just sent you a message in Canvas:", :user_name => content(:user_name) %>
 
-<%= CanvasTextHelper.truncate_text(asset.conversation.subject.present? ? <<HEREDOC : asset.body, :max_length => 200)
+<%= CanvasTextHelper.truncate_text(asset.conversation.subject.present? ? <<~TEXT : asset.body, :max_length => 200)
 Subject: #{asset.conversation.subject}
 
 #{asset.body}
-HEREDOC
+TEXT
 %>

@@ -10,8 +10,8 @@
 <% define_content :subject do %>
   <%= t('subject', 'New Canvas Account') %>
 <% end %>
-<%= t :body, <<-BODY, :host => new_host
+<%= t :body, <<~TEXT, :host => new_host
 An account has been created for you at %{host}, but you already have a Canvas account.  If you would like to merge them together, please visit the following url:
-BODY
+TEXT
 %>
 <%= content :link %>

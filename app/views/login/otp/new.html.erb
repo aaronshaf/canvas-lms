@@ -34,19 +34,19 @@
         <% if @current_user.mfa_settings(pseudonym_hint: @current_pseudonym) == :required %>
           <p><%= t("You are required to set up Multi-Factor Authentication.") %></p>
         <% end %>
-        <% otp_via_sms_message = otp_via_sms_in_us_region? ? mt(<<~MESSAGE) : ""
+        <% otp_via_sms_message = otp_via_sms_in_us_region? ? mt(<<~MD) : ""
           The device can be a code generator or a mobile phone that receives text messages.
           **Using an authenticator app is strongly recommended for enhanced security.**
-          MESSAGE
+          MD
         %>
-        <%= mt(<<~BODY, otp_via_sms_message:)
+        <%= mt(<<~MD, otp_via_sms_message:)
             Multi-Factor Authentication (MFA) enhances security by requiring a physical device and your Canvas login password.
             %{otp_via_sms_message}
 
             Configure MFA by scanning the QR code with a Time-based One-Time Password (TOTP) app on iPhone or Android
             (e.g., Google Authenticator, Microsoft Authenticator, Authy). After setup, print backup codes from your profile
             page if your primary MFA device is unavailable.
-          BODY
+          MD
         %>
         <div class="content-box">
           <div class="grid-row <%= otp_via_sms_in_us_region? ? "otp-login__grid-row-divider" : "center-xs" %>">

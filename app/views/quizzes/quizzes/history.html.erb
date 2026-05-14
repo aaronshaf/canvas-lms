@@ -32,13 +32,13 @@
      join_title(t(:page_title_quiz, "%{user}'s Quiz History", :user => user_name), @quiz.quiz_title || t(:default_quiz_name, "Quiz %{course_name}", :course_name => @context.name)))
 %>
 
-<% quizNavClass = 'quiz-nav' %>
+<% quiz_nav_class = 'quiz-nav' %>
 <% unless params[:headless] %>
-  <% quizNavClass = 'quiz-nav-fullpage' %>
+  <% quiz_nav_class = 'quiz-nav-fullpage' %>
 <% end %>
 
 <% if @current_user.preferences[:enable_speedgrader_grade_by_question] %>
-<div class='<%= quizNavClass %> pagination'>
+<div class='<%= quiz_nav_class %> pagination'>
   <ul class='nav'>
     <li class='nav-arrow' id='nav-prev'>
       <a href='#' id='nav-link-prev' title='<%= t(:prev_questions_arrow_title, "Previous questions")%>'>&lt;</a>

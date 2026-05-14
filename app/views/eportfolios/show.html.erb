@@ -111,11 +111,11 @@
   <% end %>
 
   <h2><%= t('headers.welcome', "Welcome to Your ePortfolio") %></h2>
-  <p><%= t(:welcome, <<-DETAILS)
+  <p><%= t(:welcome, <<~TEXT)
     If this is your first time here, you may want to pop up the wizard and see
     how best to get started. Otherwise you can quickly add recent submissions
     or just jump straight to the portfolio.
-    DETAILS
+    TEXT
   %></p>
   <ul class="unstyled_list" style="padding-<%= direction('left') %>: 20px; margin-bottom: 20px; line-height: 1.8em; font-size: 1.2em;">
     <li><a href="?view=wizard_box" class="wizard_popup_link icon-question"><%= t('links.wizard', "Getting Started Wizard") %></a></li>
@@ -124,20 +124,20 @@
 
   <% if @portfolio.public %>
     <h3><%= t('headers.public_eportfolio', "Your ePortfolio is Public") %></h3>
-    <p><%= t(:public_eportfolio, <<-DETAILS,
+    <p><%= t(:public_eportfolio, <<~TEXT,
       That means anyone who knows the address of your portfolio can view it.
       You can make your portfolio private by *changing your portfolio
       settings*.
-      DETAILS
+      TEXT
       :wrapper => '<a href="#" class="portfolio_settings_link"><b>\1</b></a>') %></p>
   <% else %>
     <h3><%= t('headers.private_eportfolio', "Your ePortfolio is Private") %></h3>
-    <p><%= t(:private_eportfolio, <<-DETAILS)
+    <p><%= t(:private_eportfolio, <<~TEXT)
       That means people can't find it or even view it without permission. You
       can see it since it's your portfolio, but if you want to let anybody else
       see it, you'll need to copy and share the following special link so
       they can access your portfolio:
-      DETAILS
+      TEXT
     %></p>
     <p>
     <%= t('links.share', "Copy and share this link to give others access to your private ePortfolio:") %><br />
@@ -345,10 +345,10 @@
   <h2 style="<%= hidden unless @page.show_comments || @page.allow_comments || can_do(@portfolio, @current_user, :update) %>"><%= t 'headings.page_comments', 'Page Comments' %></h2>
   <% if @page.show_comments || can_do(@portfolio, @current_user, :update) %>
     <% if !@page.page_comments.empty? && !@page.show_comments %>
-      <p><%= t(:private_comments, <<-DETAILS,
+      <p><%= t(:private_comments, <<~TEXT,
         Right now only you can see the comments for this page. You can make the
         comments public if you like by *changing the settings for this page*.
-        DETAILS
+        TEXT
         :wrapper => '<a href="#" class="edit_content_link"><b>\1</b></a>') %></p>
     <% end %>
     <div id="page_comments" style="padding: 5px 20px;">
@@ -357,10 +357,10 @@
     </div>
     <%= render :partial => "eportfolios/page_comment", :object => nil %>
   <% elsif @page.allow_comments %>
-    <p><%= t(:write_only_comments, <<-DETAILS)
+    <p><%= t(:write_only_comments, <<~TEXT)
       Comments for this page are private. You can make comments, but only the
       portfolio's owner will be able to see them.
-      DETAILS
+      TEXT
     %></p>
   <% end %>
   <% if @page.allow_comments %>

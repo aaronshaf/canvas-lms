@@ -39,7 +39,7 @@
 <% if @portfolios.empty? %>
   <div id="whats_an_eportfolio">
   <h2><%= t('headers.what', "What's an ePortfolio?") %></h2>
-  <%= mt('what.details', <<-DETAILS)
+  <%= mt('what.details', <<~MD)
 ePortfolios are a place where you can display and discuss the significant
 submissions and experiences that are happening during your learning
 process. You can use an ePortfolio to:
@@ -53,7 +53,7 @@ ePortfolios can be public for everyone to see, or private so only those you
 allow can see, and you can change that setting at any time.
 
 Ready to get started?
-DETAILS
+MD
   %>
   </div>
 <% else %>

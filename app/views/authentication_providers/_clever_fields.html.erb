@@ -17,11 +17,11 @@
 %>
 
 <% unless AuthenticationProvider::Clever.globally_configured? %>
-  <p><%= mt(<<~TEXT, clever_url: "http://apps.clever.com/signup", callback_url: clever_callback_url)
+  <p><%= mt(<<~MD, clever_url: "http://apps.clever.com/signup", callback_url: clever_callback_url)
 You will need to [register an application on Clever](%{clever_url}).
 You should configure %{callback_url} as the Redirect URL.
 After you create your app, make a note of the Client ID and Client Secret, and enter them here.
-TEXT
+MD
           %></p>
   <%= render partial: 'oauth2_fields', locals: { aac: aac, presenter: presenter, f: f } %>
 <% end %>
