@@ -99,7 +99,7 @@ module WebMock::API
 end
 
 require "delayed/testing"
-Rails.root.glob("spec/support/**/*.rb") { |f| require f }
+Rails.root.glob("spec/support/**/*.rb") { |f| require f unless f.to_s.end_with?("_spec.rb") }
 require "sharding_spec_helper"
 
 # nuke the db (say, if `rake db:migrate RAILS_ENV=test` created records),
@@ -440,6 +440,47 @@ RSpec.configure do |config|
   config.include Helpers
   config.include Factories
   config.include RequestHelper, type: :request
+
+  # Request- and integration-style specs (spec/requests/**, spec/integration/**,
+  # spec/apis/**, anything tagged type: :request or type: :integration) run
+  # with WebMock.disable_net_connect!(allow_localhost: true) so unstubbed
+  # outbound HTTP calls fail loudly instead of silently hitting real services.
+  # Non-HTTP collaborators (Postgres, Redis) and the Canvas app under test
+  # itself are unaffected.
+  #
+  # Note: rspec-rails maps spec/integration/** to type: :request via
+  # DIRECTORY_MAPPINGS, so the :integration filter below is defensive — it
+  # only matters for specs that are explicitly tagged type: :integration.
+  #
+  # The pre-example WebMock connect state is snapshotted and restored after
+  # each example, so this stricter posture does not leak to other specs and
+  # the hook automatically tracks any future change to the suite-wide default
+  # set at the top of this file (currently WebMock.allow_net_connect!, which
+  # is itself tech debt).
+  #
+  # Specs that legitimately need to reach an additional non-localhost host
+  # (e.g. LocalStack on a docker hostname) should widen the allow list
+  # inline, e.g.
+  #   WebMock.disable_net_connect!(allow_localhost: true, allow: %w[localstack])
+  # and rely on this hook to restore the prior state on exit. Specs that
+  # genuinely need real outbound traffic should wrap the action in
+  # `with_real_network { ... }` (spec/support/web_mock_helpers.rb).
+  # See doc/testing_ruby.md for the convention.
+  #
+  # The default allow list covers docker-compose services that request specs
+  # may legitimately reach over HTTP. Postgres and Redis aren't HTTP so
+  # WebMock ignores them; LocalStack is opt-in dev tooling not used by
+  # request specs; RCE is rendered client-side. That leaves DynamoDB Local.
+  net_connect_allow_hosts = %w[dynamodb].freeze
+  net_connect_isolation = lambda do |example|
+    WebMockHelpers.with_webmock_config_snapshot do
+      WebMock.disable_net_connect!(allow_localhost: true, allow: net_connect_allow_hosts)
+      example.run
+    end
+  end
+  config.around(type: :request, &net_connect_isolation)
+  config.around(type: :integration, &net_connect_isolation)
+
   config.include Onceler::BasicHelpers
   config.include ActionDispatch::TestProcess::FixtureFile
   config.project_source_dirs << "gems" # so that failures here are reported properly

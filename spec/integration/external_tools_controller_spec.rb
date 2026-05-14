@@ -195,7 +195,9 @@ describe ExternalToolsController do
         allow_any_instance_of(CC::Importer::BLTIConverter).to receive(:fetch).and_return(config_response)
 
         configxml = Rails.root.join("spec/fixtures/lti/config.youtube.xml").read
-        stub_request(:get, app_center_response["config_xml_url"]).to_return(body: configxml)
+        stub_request(:get, "https://www.edu-apps.org/lti_public_resources/config.xml")
+          .with(query: hash_including("id" => "youtube"))
+          .to_return(body: configxml)
         stub_request(:get, "https://www.edu-apps.org/tool_i_should_not_have_access_to.xml").to_return(status: 404)
       end
 
