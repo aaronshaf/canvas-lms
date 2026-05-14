@@ -93,9 +93,9 @@
           <% if editable %>
             <input class="question_input_hidden" type="hidden"
               name="question_score_<%= hash_get(question, :id) %>"
-              value="<%= point_value_for_input(user_answer, question).is_a?(Float) &&
+              value="<%= (point_value_for_input(user_answer, question).is_a?(Float) &&
                 !point_value_for_input(user_answer, question).nan? &&
-                round_if_whole(point_value_for_input(user_answer, question).round(2)) || ''
+                round_if_whole(point_value_for_input(user_answer, question).round(2))) || ''
               %>" />
             <label class="screenreader-only" for="question_score_<%= hash_get(question, :id) %>_visible"><%= t(:question_score, 'Question Score') %></label>
             <input class="question_input"
@@ -103,9 +103,9 @@
               data-question-id="<%= hash_get(question, :id) %>"
               name="question_score_<%= hash_get(question, :id) %>_visible"
               id="question_score_<%= hash_get(question, :id) %>_visible"
-              value="<%= point_value_for_input(user_answer, question).is_a?(Float) &&
+              value="<%= (point_value_for_input(user_answer, question).is_a?(Float) &&
                 !point_value_for_input(user_answer, question).nan? &&
-                render_score(point_value_for_input(user_answer, question)) || ''
+                render_score(point_value_for_input(user_answer, question))) || ''
               %>"
               autocomplete='off'/>
           <% else %>
@@ -179,7 +179,7 @@
           <select class="answer_select question_input" name="question_<%= hash_get(question, :id, "blank") %>">
             <option value=""><%= t(:default_question_answer, "[ Choose ]") %></option>
             <% hash_get(question, :answers, []).each do |answer| %>
-              <option value="<%= hash_get(answer, :id) %>" <%= "selected" if user_answer && hash_get(user_answer, :answer_id) == hash_get(answer, :id) || (@stored_params && @stored_params["question_#{hash_get(question, :id)}"].to_s == hash_get(answer, :id).to_s) %>><%= hash_get(answer, :text) %></option>
+              <option value="<%= hash_get(answer, :id) %>" <%= "selected" if (user_answer && hash_get(user_answer, :answer_id) == hash_get(answer, :id)) || (@stored_params && @stored_params["question_#{hash_get(question, :id)}"].to_s == hash_get(answer, :id).to_s) %>><%= hash_get(answer, :text) %></option>
             <% end %>
           </select>
           <span class="text_after_answers"><%= user_content(hash_get(question, :text_after_answers), location: asset_string) %></span>

@@ -104,8 +104,8 @@
                 <ul class="unstyled_list">
                 <% (@context.users - [@current_user]).each do |user| %>
                   <li>
-                    <%= check_box :invitees, "#{user.id}".to_sym, :value => user.id %>
-                    <%= label :invitees, "#{user.id}".to_sym, context_user_name(@context, user) %>
+                    <%= check_box :invitees, :"#{user.id}", :value => user.id %>
+                    <%= label :invitees, :"#{user.id}", context_user_name(@context, user) %>
                   </li>
                 <% end %>
                 </ul>

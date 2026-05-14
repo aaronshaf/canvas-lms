@@ -43,7 +43,7 @@
   <tr>
     <td class="course"><a href="<%= course_student_grades_path(enrollment.course_id, enrollment.user_id) %>"><%= context_user_name(enrollment.course, enrollment.user_id) %>, <%= enrollment.course.name %></a></td>
     <td class="percent">
-      <% if enrollment.course.hide_final_grades? || (@grading_periods[enrollment.course_id] && @grading_periods[enrollment.course_id][:selected_period_id] == 0) && !enrollment.course.display_totals_for_all_grading_periods?%>
+      <% if enrollment.course.hide_final_grades? || ((@grading_periods[enrollment.course_id] && @grading_periods[enrollment.course_id][:selected_period_id] == 0) && !enrollment.course.display_totals_for_all_grading_periods?)%>
         --
       <% elsif @grades&.dig(:observed_enrollments, enrollment.course_id, enrollment.user_id) %>
         <% if enrollment.course.restrict_quantitative_data?(@current_user) %>

@@ -59,7 +59,7 @@
   # Collapse the course menu according to user preference, unless a certain action
   # requests that it default to collapsed for that page
   @collapse_course_menu ||= @current_user&.reload&.collapse_course_nav?
-  context_is_course_or_account = @context&.is_a?(Course) || @context&.is_a?(Account)
+  context_is_course_or_account = @context.is_a?(Course) || @context.is_a?(Account)
   @enhanced_rubrics_enabled = context_is_course_or_account ? @context.feature_enabled?(:enhanced_rubrics) : false
 
   if @collapse_course_menu
@@ -152,11 +152,11 @@
           <% end %>
 
           <div class="ic-app-crumbs <%= 'ic-app-crumbs-enhanced-rubrics' if @enhanced_rubrics_enabled %>">
-            <% if @context&.is_a?(Course) && @context.elementary_subject_course? %>
+            <% if @context.is_a?(Course) && @context.elementary_subject_course? %>
               <%= link_to course_path(id: @context.id), :class => "btn k5-back-to-subject", :id => "back_to_subject" do %>
                 <i class="icon-arrow-open-left"></i> <%= t('Back to Subject') %>
               <% end %>
-            <% elsif @context&.is_a?(Course) && @context.horizon_back_to_units_enabled? %>
+            <% elsif @context.is_a?(Course) && @context.horizon_back_to_units_enabled? %>
               <%= link_to course_path(id: @context.id), :class => "btn horizon-back-to-units", :id => "back_to_units" do %>
                 <i class="icon-arrow-open-left"></i> <%= t('Back to Units') %>
               <% end %>
@@ -165,15 +165,15 @@
             <% end %>
           </div>
 
-          <% if @context&.is_a?(Course) && @context.elementary_subject_course? %>
+          <% if @context.is_a?(Course) && @context.elementary_subject_course? %>
             <span class="k5-heading-course-name"><%= @context.nickname_for(@current_user) %></span>
-          <% elsif @context&.is_a?(Course) && @context.horizon_back_to_units_enabled? %>
+          <% elsif @context.is_a?(Course) && @context.horizon_back_to_units_enabled? %>
             <span class="horizon-heading-course-name"><%= @context.nickname_for(@current_user) %></span>
           <% end %>
 
           <div id="nutrition_facts_container"></div>
           <div class="right-of-crumbs right-of-crumbs-no-reverse">
-            <% if (@context&.is_a?(Course) || @context&.is_a?(Assignment)) && @context_enrollment&.observer? %>
+            <% if (@context.is_a?(Course) || @context.is_a?(Assignment)) && @context_enrollment&.observer? %>
               <div id='observer-picker-mountpoint' style="margin: 3px;"></div>
             <% end %>
             <% if @show_learning_agent %>

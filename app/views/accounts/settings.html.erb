@@ -122,7 +122,7 @@
               <td><%= f.blabel :name, :en => "Account Name" %></td>
               <td><%= f.text_field :name, :class => 'same-width-as-select' %></td>
             </tr>
-            <% if !@account.root_account? && (@context.sis_source_id && can_do(@context.root_account, @current_user, :read_sis) || can_do(@context.root_account, @current_user, :manage_sis)) %>
+            <% if !@account.root_account? && ((@context.sis_source_id && can_do(@context.root_account, @current_user, :read_sis)) || can_do(@context.root_account, @current_user, :manage_sis)) %>
               <tr>
                 <td><%= f.blabel :sis_source_id, :en => "SIS ID" %></td>
                 <td>
@@ -692,7 +692,7 @@
                 <i class='icon-warning-borderless'></i>
                 <div class="account_settings__k5-help-text-container">
                   <p>
-                    <%= t ("This setting significantly changes the Canvas experience for students and teachers.")%>
+                    <%= t("This setting significantly changes the Canvas experience for students and teachers.")%>
                   </p>
                   <p>
                     <%= t do %>
@@ -804,7 +804,7 @@
                   <%= settings.label :global_includes, :en => "Custom CSS/JavaScript overrides" %>
                   <div id="global_includes_warning_message" class="account_settings__help-text">
                     <p>
-                      <%= t ("Custom CSS and Javascript may cause accessibility issues or conflicts with future Canvas updates!")%>
+                      <%= t("Custom CSS and Javascript may cause accessibility issues or conflicts with future Canvas updates!")%>
                     </p>
                     <p>
                       <%= t do %>

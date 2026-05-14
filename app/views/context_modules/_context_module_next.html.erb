@@ -285,7 +285,7 @@
         <% end %>
       </ul>
     <% end %>
-    <% if !context_module || @can_view && module_data[:items]&.empty? %>
+    <% if !context_module || (@can_view && module_data[:items]&.empty?) %>
       <div class='module_dnd' data-context-module-id="<%= context_module&.id %>"></div>
     <% end %>
 
