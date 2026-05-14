@@ -34,7 +34,7 @@ function moveItem(item, destinationFolder, options = {}) {
       if (jqXHR.status === 409) {
         // file already exists: prompt and retry
 
-        const container = $('<div>').appendTo('body')[0]
+        const container = $(document.createElement('div')).appendTo('body')[0]
         const root = render(
           <FileRenameForm
             onClose={() => {

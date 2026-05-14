@@ -32,22 +32,25 @@ const apiUserContent = {
       // only ever gets put there by us (in Api::Html::Content::apply_mathml).
       // Any user content that gets sent to the server will have the
       // x-canvaslms-safe-mathml attribute stripped out.
-      const mathml = $('<div/>').html($equationImage.attr('x-canvaslms-safe-mathml')).html()
-      const mathmlSpan = $('<span class="hidden-readable"></span>')
+      const _mathDiv = document.createElement('div')
+      const $mathDiv = $(_mathDiv)
+      $mathDiv.html($equationImage.attr('x-canvaslms-safe-mathml'))
+      const mathml = $mathDiv.html()
+      const _mathSpan = document.createElement('span')
+      _mathSpan.className = 'hidden-readable'
+      const mathmlSpan = $(_mathSpan)
       mathmlSpan.html(mathml)
       return mathmlSpan
     }
   },
 
   toMediaCommentLink(node) {
-    const $link = $(
-      `<a
-        id='media_comment_${htmlEscape($(node).data('media_comment_id'))}'
-        data-media_comment_type='${htmlEscape($(node).data('media_comment_type'))}'
-        class='instructure_inline_media_comment ${htmlEscape(node.nodeName.toLowerCase())}_comment'
-        data-alt='${htmlEscape($(node).attr('data-alt'))}'
-      />`,
-    )
+    const _a = document.createElement('a')
+    _a.id = `media_comment_${$(node).data('media_comment_id')}`
+    _a.setAttribute('data-media_comment_type', $(node).data('media_comment_type'))
+    _a.className = `instructure_inline_media_comment ${node.nodeName.toLowerCase()}_comment`
+    _a.setAttribute('data-alt', $(node).attr('data-alt') || '')
+    const $link = $(_a)
     $link.html($(node).html())
     return $link
   },
@@ -58,7 +61,7 @@ const apiUserContent = {
   // use this method to process any user content fields returned in api responses
   // this is important to handle object/embed tags safely, and to properly display audio/video tags
   convert(html, options = {}) {
-    const $dummy = $('<div />').html(html)
+    const $dummy = $(document.createElement('div')).html(html)
     // finds any <video/audio class="instructure_inline_media_comment"> and turns them into media comment thumbnails
     $dummy
       .find('video.instructure_inline_media_comment,audio.instructure_inline_media_comment')
@@ -99,18 +102,16 @@ const apiUserContent = {
             id='form-${htmlEscape(uuid)}'
           />`,
           )
-          $form.append(
-            $("<input type='hidden'/>").attr({
-              name: 'object_data',
-              value: $this.data('uc_snippet'),
-            }),
-          )
-          $form.append(
-            $("<input type='hidden'/>").attr({
-              name: 's',
-              value: $this.data('uc_sig'),
-            }),
-          )
+          const _inp1 = document.createElement('input')
+          _inp1.type = 'hidden'
+          _inp1.name = 'object_data'
+          _inp1.value = $this.data('uc_snippet')
+          $form[0]?.appendChild(_inp1)
+          const _inp2 = document.createElement('input')
+          _inp2.type = 'hidden'
+          _inp2.name = 's'
+          _inp2.value = $this.data('uc_sig')
+          $form[0]?.appendChild(_inp2)
           $('body').append($form)
           setTimeout(() => $form.submit(), 0)
           return $(

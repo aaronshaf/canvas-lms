@@ -54,48 +54,49 @@ INST.lookupPrerequisites = function () {
       if (data.locked === false) {
         return
       }
-      const $ul = $('<ul/>')
-      $ul.attr('id', 'module_prerequisites_list')
+      const _ul = document.createElement('ul')
+      _ul.id = 'module_prerequisites_list'
+      const $ul = $(_ul)
       for (const idx in data.modules) {
         const module = data.modules[idx]
-        const $li = $('<li/>')
-        const $i = $('<i/>')
-        $li.addClass('module')
-        $li.click(function () {
+        const _li = document.createElement('li')
+        const _i = document.createElement('i')
+        _li.classList.add('module')
+        _li.addEventListener('click', function () {
           $(this).find('ul').toggle()
         })
-        $li.toggleClass('locked', !!module.locked)
+        _li.classList.toggle('locked', !!module.locked)
         if (module.locked) {
-          $i.addClass('icon-lock')
+          _i.classList.add('icon-lock')
         }
-        $li.append($i)
-        const $h3 = $('<h3/>')
-        $h3.text(module.name)
-        $li.append($h3)
+        _li.appendChild(_i)
+        const _h3 = document.createElement('h3')
+        _h3.textContent = module.name
+        _li.appendChild(_h3)
         if (module.prerequisites && module.prerequisites.length > 0) {
-          const $pres = $('<ul/>')
+          const _pres = document.createElement('ul')
           for (const jdx in module.prerequisites) {
             const pre = module.prerequisites[jdx]
-            const $pre = $('<li/>')
-            $pre.addClass('requirement')
-            $pre.toggleClass('locked_requirement', !pre.available)
-            const $a = $('<a/>')
-            $a.attr('href', sanitizeUrl(pre.url))
-            $a.text(pre.title)
-            $a.toggleClass('icon-lock', !pre.available)
-            $pre.append($a)
+            const _pre = document.createElement('li')
+            _pre.classList.add('requirement')
+            _pre.classList.toggle('locked_requirement', !pre.available)
+            const _a = document.createElement('a')
+            _a.href = sanitizeUrl(pre.url)
+            _a.textContent = pre.title
+            _a.classList.toggle('icon-lock', !pre.available)
+            _pre.appendChild(_a)
             const desc = pre.requirement_description
             if (desc) {
-              const $div = $('<div/>')
-              $div.addClass('description')
-              $div.text(desc)
-              $pre.append($div)
+              const _div = document.createElement('div')
+              _div.classList.add('description')
+              _div.textContent = desc
+              _pre.appendChild(_div)
             }
-            $pres.append($pre)
+            _pres.appendChild(_pre)
           }
-          $li.append($pres)
+          _li.appendChild(_pres)
         }
-        $ul.append($li)
+        _ul.appendChild(_li)
       }
       $link.after($ul)
       const header = I18n.t('headers.completion_prerequisites', 'Completion Prerequisites')

@@ -198,7 +198,9 @@ export default class DatetimeField {
   }
 
   addDatePicker(options) {
-    this.$field.wrap('<div class="input-append" />')
+    const _wrapDiv = document.createElement('div')
+    _wrapDiv.className = 'input-append'
+    this.$field.wrap(_wrapDiv)
     const $wrapper = this.$field.parent('.input-append')
     // See if we were given an ISO initial value so we don't have to try to parse
     const initialValue = this.$field.attr('data-initial-value')
@@ -233,16 +235,24 @@ export default class DatetimeField {
     if (this.isReadonly()) return
     this.contextTimezone = options.contextTimezone || ENV.CONTEXT_TIMEZONE
     if (this.$options.showFormatExample) {
-      this.$formatExample = $('<span class="format_example" />').insertAfter($sibling)
+      const _fmtEx = document.createElement('span')
+      _fmtEx.className = 'format_example'
+      this.$formatExample = $(_fmtEx).insertAfter($sibling)
     }
-    this.$suggest = $('<div class="datetime_suggest" />').insertAfter($sibling)
+    const _suggest = document.createElement('div')
+    _suggest.className = 'datetime_suggest'
+    this.$suggest = $(_suggest).insertAfter($sibling)
     if (this.contextTimezone != null && this.contextTimezone !== ENV.TIMEZONE) {
-      this.$contextSuggest = $('<div class="datetime_suggest" />').insertAfter(this.$suggest)
+      const _ctxSuggest = document.createElement('div')
+      _ctxSuggest.className = 'datetime_suggest'
+      this.$contextSuggest = $(_ctxSuggest).insertAfter(this.$suggest)
     }
   }
 
   addHiddenInput() {
-    this.$hiddenInput = $('<input type="hidden">').insertAfter(this.$field)
+    const _hidden = document.createElement('input')
+    _hidden.type = 'hidden'
+    this.$hiddenInput = $(_hidden).insertAfter(this.$field)
     this.$hiddenInput.attr('name', this.$field.attr('name'))
     this.$hiddenInput.val(this.$field.val())
     this.$field.removeAttr('name')

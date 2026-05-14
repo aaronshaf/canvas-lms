@@ -77,11 +77,14 @@ const GradePublishing = {
     const $messages = $('#publish_grades_messages')
     $messages.empty()
     $.each(messages, (message, users) => {
-      const $message = $('<span/>')
-      $message.text(message)
-      const $item = $('<li/>')
-      $item.append($message)
-      const $count = $('<b>').text(users.length)
+      const _msgSpan = document.createElement('span')
+      _msgSpan.textContent = message
+      const _item = document.createElement('li')
+      _item.appendChild(_msgSpan)
+      const _count = document.createElement('b')
+      _count.textContent = String(users.length)
+      const $item = $(_item)
+      const $count = $(_count)
       $item.append(document.createTextNode(' - '), $count)
       $messages.append($item)
     })
@@ -178,7 +181,7 @@ $(document).ready(function () {
     success(data) {
       const section = data.course_section,
         $section = $('.section_blank:first').clone(true).attr('class', 'section'),
-        $option = $('<option/>')
+        $option = $(document.createElement('option'))
 
       $add_section_form
         .find('button')

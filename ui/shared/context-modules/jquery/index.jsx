@@ -100,6 +100,7 @@ import {
 import {ModuleItemsStore} from '../utils/ModuleItemsStore'
 import {fetchItemTitles} from '../utils/fetchItemTitles'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 if (!('INST' in window)) window.INST = {}
 
@@ -575,7 +576,7 @@ window.modules = (function () {
 
     addItemToModule($module, data) {
       if (!data) {
-        return $('<div/>')
+        return $(document.createElement('div'))
       }
       data.id = data.id || 'new'
       data.type = data.type || data['item[type]'] || underscoreString(data.content_type)
@@ -752,18 +753,28 @@ window.modules = (function () {
 
       if (cyoe.isReleased) {
         const fullText = I18n.t('Released by Mastery Path: %{path}', {path: cyoe.releasedLabel})
-        const $pathIcon = $(
-          '<span class="pill mastery-path-icon" aria-hidden="true" data-tooltip><i class="icon-mastery-paths" /></span>',
-        )
-          .attr('title', fullText)
-          .append(document.createTextNode(cyoe.releasedLabel))
-        const $srPath = $('<span class="screenreader-only">').text(fullText)
+        const _pathSpan = document.createElement('span')
+        _pathSpan.className = 'pill mastery-path-icon'
+        _pathSpan.setAttribute('aria-hidden', 'true')
+        _pathSpan.setAttribute('data-tooltip', '')
+        _pathSpan.title = fullText
+        const _pathI = document.createElement('i')
+        _pathI.className = 'icon-mastery-paths'
+        _pathSpan.appendChild(_pathI)
+        _pathSpan.appendChild(document.createTextNode(cyoe.releasedLabel))
+        const $pathIcon = $(_pathSpan)
+        const _srSpan = document.createElement('span')
+        _srSpan.className = 'screenreader-only'
+        _srSpan.textContent = fullText
+        const $srPath = $(_srSpan)
         $admin.prepend($srPath)
         $admin.prepend($pathIcon)
       }
 
       if (cyoe.isCyoeAble) {
-        const $mpLink = $('<a class="mastery_paths_link" />')
+        const _mpA = document.createElement('a')
+        _mpA.className = 'mastery_paths_link'
+        const $mpLink = $(_mpA)
           .attr(
             'href',
             ENV.CONTEXT_URL_ROOT +
@@ -782,7 +793,9 @@ window.modules = (function () {
         const mpIcon = document.createElement('i')
         mpIcon.className = 'icon-mastery-path'
         $mpLink.prepend(mpIcon, document.createTextNode(' '))
-        $admin.find('.delete_link').parent().before($('<li role="presentation" />').append($mpLink))
+        const _mpLi = document.createElement('li')
+        _mpLi.setAttribute('role', 'presentation')
+        $admin.find('.delete_link').parent().before($(_mpLi).append($mpLink))
       }
     },
 
@@ -1001,10 +1014,10 @@ const updatePrerequisites = function ($module, prereqs) {
       prereqsList += prereqs[i].name + ', '
     }
     prereqsList = prereqsList.slice(0, -2)
-    const $prerequisitesMessage = $('<div />', {
-      text: prerequisitesMessage(prereqsList),
-      class: 'prerequisites_message',
-    })
+    const _prereqDiv = document.createElement('div')
+    _prereqDiv.className = 'prerequisites_message'
+    _prereqDiv.textContent = prerequisitesMessage(prereqsList)
+    const $prerequisitesMessage = $(_prereqDiv)
     $prerequisitesDiv.append($prerequisitesMessage)
   }
 }
@@ -1031,7 +1044,10 @@ const newPillMessage = function ($module, requirement_count) {
   $message.attr('data-requirement-type', requirement_count === 1 ? 'one' : 'all')
 
   if (requirement_count != 0) {
-    const $pill = $('<ul class="pill"><li></li></ul></div>')
+    const _pillUl = document.createElement('ul')
+    _pillUl.className = 'pill'
+    _pillUl.appendChild(document.createElement('li'))
+    const $pill = $(_pillUl)
     $message.html($pill)
     const $pillMessage = $message.find('.pill li')
     const newPillMessageText =
@@ -1221,7 +1237,10 @@ modules.initModuleManagement = async function (duplicate) {
     const duplicateRequestUrl = $(this).attr('href')
     const duplicatedModuleElement = $(this).parents('.context_module')
     const spinner = <ModuleDuplicationSpinner />
-    const $tempElement = $('<div id="temporary-spinner" class="item-group-condensed"></div>')
+    const _spinEl = document.createElement('div')
+    _spinEl.id = 'temporary-spinner'
+    _spinEl.className = 'item-group-condensed'
+    const $tempElement = $(_spinEl)
     $tempElement.insertAfter(duplicatedModuleElement)
 
     const spinnerContainer = $('#temporary-spinner')[0]
@@ -2204,9 +2223,8 @@ function updateSubAssignmentData(contextModuleItem, subAssignments) {
         dueDateNode = document.createTextNode(` ${I18n.t('Multiple Due Dates')}`)
       } else if (subAssignment.vdd_tooltip != null) {
         subAssignment.vdd_tooltip.link_href = contextModuleItem.find('a.title').attr('href')
-        // vddTooltipView is a Handlebars template — output is already HTML-escaped
         const dateSpan = document.createElement('span')
-        dateSpan.innerHTML = vddTooltipView(subAssignment.vdd_tooltip)
+        dateSpan.innerHTML = sanitizeHTML(vddTooltipView(subAssignment.vdd_tooltip))
         const fragment = document.createDocumentFragment()
         fragment.appendChild(document.createTextNode(' '))
         fragment.appendChild(dateSpan)

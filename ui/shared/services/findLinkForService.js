@@ -20,6 +20,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 import htmlEscape from '@instructure/html-escape'
 import {truncateText} from '@canvas/util/TextHelper'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import '@canvas/jquery/jquery.ajaxJSON'
 import '@canvas/jquery/jquery.instructure_forms'
 import 'jqueryui/dialog'
@@ -66,7 +67,9 @@ let lastLookup // used to keep track of diigo requests
 export function findLinkForService(service_type, callback) {
   let $dialog = $('#instructure_bookmark_search')
   if (!$dialog.length) {
-    $dialog = $("<div id='instructure_bookmark_search'/>")
+    const _dlgDiv = document.createElement('div')
+    _dlgDiv.id = 'instructure_bookmark_search'
+    $dialog = $(_dlgDiv)
     $dialog.append(
       `${
         "<form id='bookmark_search_form' style='margin-bottom: 5px;'>" +
@@ -117,21 +120,21 @@ export function findLinkForService(service_type, callback) {
             if (data[idx].title == data[idx].description) {
               data[idx].short_title = truncateText(data[idx].description, {max: 30})
             }
-            $("<div class='bookmark'/>")
-              .appendTo($dialog.find('.results'))
-              .append(
-                $('<a class="bookmark_link" style="font-weight: bold;"/>')
-                  .attr({
-                    href: data[idx].url,
-                    title: data[idx].title,
-                  })
-                  .text(data[idx].short_title),
-              )
-              .append(
-                $("<div style='margin: 5px 10px; font-size: 0.8em;'/>").text(
-                  data[idx].description || I18n.t('no_description', 'No description'),
-                ),
-              )
+            const _bmkDiv = document.createElement('div')
+            _bmkDiv.className = 'bookmark'
+            const _bmkA = document.createElement('a')
+            _bmkA.className = 'bookmark_link'
+            _bmkA.style.fontWeight = 'bold'
+            _bmkA.href = sanitizeUrl(data[idx].url)
+            _bmkA.title = data[idx].title
+            _bmkA.textContent = data[idx].short_title
+            const _descDiv = document.createElement('div')
+            _descDiv.style.cssText = 'margin: 5px 10px; font-size: 0.8em;'
+            _descDiv.textContent =
+              data[idx].description || I18n.t('no_description', 'No description')
+            _bmkDiv.appendChild(_bmkA)
+            _bmkDiv.appendChild(_descDiv)
+            $(_bmkDiv).appendTo($dialog.find('.results'))
           }
         },
         () => {

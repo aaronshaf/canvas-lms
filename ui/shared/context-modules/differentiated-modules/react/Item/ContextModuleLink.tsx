@@ -22,6 +22,7 @@ import {Link} from '@instructure/ui-link'
 import {Tooltip} from '@instructure/ui-tooltip'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import htmlEscape from '@instructure/html-escape'
+import {sanitizeHTML} from '@canvas/sanitize-html'
 
 const I18n = createI18nScope('differentiated_modules')
 
@@ -93,17 +94,16 @@ function ContextModuleLink({courseId, contextModuleId, contextModuleName}: Conte
             }
           }
         }}
-        // encodeURIComponent percent-encodes every HTML-special char, so its
-        // output is safe in any quoted HTML attribute. xsslint doesn't know
-        // about it, so name it as a safe wrapper here.
         // xsslint safeString.function encodeURIComponent
         dangerouslySetInnerHTML={{
-          __html: I18n.t('Inherited from *%{contextModuleName}*', {
-            contextModuleName,
-            wrappers: [
-              `<a class="${htmlEscape(linkClassRef.current ?? '')}" target="_blank" href="/courses/${encodeURIComponent(String(courseId))}/modules#${encodeURIComponent(String(contextModuleId))}">$1</a>`,
-            ],
-          }),
+          __html: sanitizeHTML(
+            I18n.t('Inherited from *%{contextModuleName}*', {
+              contextModuleName,
+              wrappers: [
+                `<a class="${htmlEscape(linkClassRef.current ?? '')}" target="_blank" href="/courses/${encodeURIComponent(String(courseId))}/modules#${encodeURIComponent(String(contextModuleId))}">$1</a>`,
+              ],
+            }),
+          ),
         }}
       />
     </Tooltip>

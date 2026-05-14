@@ -73,7 +73,7 @@ const find_outcome = (function () {
                   .clone(true)
                   .removeClass('blank')
                 outcome.title = outcome.short_description
-                const $text = $('<div/>')
+                const $text = $(document.createElement('div'))
                 $text.text(outcome.short_description)
                 outcome.title = truncateText($.trim($text.text()), {max: 35})
                 outcome.display_name = outcome.cached_context_short_name || ''

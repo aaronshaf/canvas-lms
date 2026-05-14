@@ -54,20 +54,20 @@ export function patch(Backbone) {
         } else if (!isEmpty(attr) && (isArray(attr) || typeof attr === 'object')) {
           return toForm(attr, key, isArray(attr))
         } else if (!`${key}`.match(/^_/) && attr != null && attr instanceof Date) {
-          return $('<input/>', {
-            name: key,
-            value: attr.toISOString(),
-          })[0]
+          const _inp1 = document.createElement('input')
+          _inp1.name = key
+          _inp1.value = attr.toISOString()
+          return _inp1
         } else if (
           !`${key}`.match(/^_/) &&
           attr != null &&
           typeof attr !== 'object' &&
           typeof attr !== 'function'
         ) {
-          return $('<input/>', {
-            name: key,
-            value: attr,
-          })[0]
+          const _inp2 = document.createElement('input')
+          _inp2.name = key
+          _inp2.value = attr
+          return _inp2
         }
       })
       return flatten(inputs)

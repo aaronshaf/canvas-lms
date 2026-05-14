@@ -100,7 +100,7 @@ window.messageStudents = function (settings) {
   currentSettings = settings
   $message_students_dialog.find('.message_types').empty()
   for (let idx = 0, l = settings.options.length; idx < l; idx++) {
-    const $option = $('<option/>')
+    const $option = $(document.createElement('option'))
     const option = settings.options[idx]
     $option.val(idx).text(option.text)
     $message_students_dialog.find('.message_types').append($option)
@@ -126,9 +126,11 @@ window.messageStudents = function (settings) {
       student: student.name,
     })
     const $remove_button = $student.find('.remove-button')
-    $remove_button
-      .attr('title', remove_text)
-      .append($("<span class='screenreader-only'></span>").text(remove_text))
+    const _removeLabel = document.createElement('span')
+    _removeLabel.className = 'screenreader-only'
+    _removeLabel.textContent = remove_text
+    $remove_button.attr('title', remove_text)
+    $remove_button[0]?.appendChild(_removeLabel)
     $remove_button.click(function (event) {
       event.preventDefault()
       // hide the selected student

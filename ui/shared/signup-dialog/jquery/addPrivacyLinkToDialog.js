@@ -17,18 +17,19 @@
 
 import $ from 'jquery'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('site')
 
 export default function addPrivacyLinkToDialog($dialog) {
   if (!(ENV.ACCOUNT && ENV.ACCOUNT.privacy_policy_url)) return
 
-  const $privacy = $('<a>', {
-    href: ENV.ACCOUNT.privacy_policy_url,
-    style: 'padding-left: 1em; line-height: 3em',
-    class: 'privacy_policy_link',
-    target: '_blank',
-  })
+  const _privA = document.createElement('a')
+  _privA.href = sanitizeUrl(ENV.ACCOUNT.privacy_policy_url)
+  _privA.style.cssText = 'padding-left: 1em; line-height: 3em'
+  _privA.className = 'privacy_policy_link'
+  _privA.target = '_blank'
+  const $privacy = $(_privA)
   const $buttonPane = $dialog.closest('.ui-dialog').find('.ui-dialog-buttonpane')
   if (!$buttonPane.find('.privacy_policy_link').length) {
     $privacy.text(I18n.t('view_privacy_policy', 'View Privacy Policy'))

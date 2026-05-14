@@ -34,7 +34,7 @@ function openMoveDialog(
     )
   })
 
-  const $moveDialog = $('<div>').appendTo(document.body)
+  const $moveDialog = $(document.createElement('div')).appendTo(document.body)
   let root
 
   const handleClose = () => {

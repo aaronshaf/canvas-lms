@@ -64,7 +64,9 @@ export function refreshDuplicateLinkStatus($module) {
 }
 
 export function addIcon($icon_container, css_class, message) {
-  const $icon = $('<i data-tooltip></i>')
+  const _iEl = document.createElement('i')
+  _iEl.setAttribute('data-tooltip', '')
+  const $icon = $(_iEl)
   $icon.attr('class', css_class).attr('title', message).attr('aria-label', message)
   $icon_container.empty().append($icon)
 }

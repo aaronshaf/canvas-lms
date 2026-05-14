@@ -29,7 +29,7 @@ export default {
   },
   renderDragFeedback({pageX, pageY}) {
     if (!this.dragHolder) {
-      this.dragHolder = $('<div>').appendTo(document.body)
+      this.dragHolder = $(document.createElement('div')).appendTo(document.body)
     }
     // This should be in JSX, but /o\
 

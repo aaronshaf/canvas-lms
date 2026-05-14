@@ -367,21 +367,22 @@ export const Events = {
       const height = placement.selection_height
       let $dialog = $('#resource_selection_dialog')
       if ($dialog.length === 0) {
-        $dialog = $('<div/>', {
-          id: 'resource_selection_dialog',
-          style: 'padding: 0; overflow-y: hidden;',
-        })
-        $dialog.append(
-          $('<iframe/>', {
-            id: 'resource_selection_iframe',
-            style: `width: 800px; height: ${frameHeight}px; max-height: 100%; border: 0;`,
-            src: '/images/ajax-loader-medium-444.gif',
-            borderstyle: '0',
-            tabindex: '0',
-            allow: iframeAllowances(),
-            'data-lti-launch': 'true',
-          }),
+        const _dlgDiv = document.createElement('div')
+        _dlgDiv.id = 'resource_selection_dialog'
+        _dlgDiv.setAttribute('style', 'padding: 0; overflow-y: hidden;')
+        $dialog = $(_dlgDiv)
+        const _iframe = document.createElement('iframe')
+        _iframe.id = 'resource_selection_iframe'
+        _iframe.setAttribute(
+          'style',
+          `width: 800px; height: ${frameHeight}px; max-height: 100%; border: 0;`,
         )
+        _iframe.src = '/images/ajax-loader-medium-444.gif'
+        _iframe.setAttribute('borderstyle', '0')
+        _iframe.setAttribute('tabindex', '0')
+        _iframe.setAttribute('allow', iframeAllowances())
+        _iframe.setAttribute('data-lti-launch', 'true')
+        _dlgDiv.appendChild(_iframe)
 
         $('body').append($dialog.hide())
         $dialog.on('dialogbeforeclose', dialogCancelHandler)
@@ -438,7 +439,10 @@ export const Events = {
             $(this)
               .find('#resource_selection_iframe')
               .each(function () {
-                $('<div class="fix_for_resizing_over_iframe" style="background: #fff;"></div>')
+                const _fixDiv = document.createElement('div')
+                _fixDiv.className = 'fix_for_resizing_over_iframe'
+                _fixDiv.setAttribute('style', 'background: #fff;')
+                $(_fixDiv)
                   .css({
                     width: this.offsetWidth + 'px',
                     height: this.offsetHeight + 'px',
@@ -578,7 +582,10 @@ export const selectContentDialog = function (options?: SelectContentDialogOption
     getUserServices('BookmarkService', function (data: any) {
       for (const idx in data) {
         const service = data[idx].user_service
-        const $service = $("<a href='#' class='bookmark_service no-hover'/>")
+        const _svcLink = document.createElement('a')
+        _svcLink.href = '#'
+        _svcLink.className = 'bookmark_service no-hover'
+        const $service = $(_svcLink)
         $service.addClass(service.service)
         $service.data('service', service)
         $service.attr(
@@ -587,7 +594,7 @@ export const selectContentDialog = function (options?: SelectContentDialogOption
             service: service.service,
           }),
         )
-        const $img = $('<img/>')
+        const $img = $(document.createElement('img'))
         $img.attr('src', '/images/' + service.service + '_small_icon.png')
         $service.append($img)
         $service.click(function (event) {
@@ -725,9 +732,10 @@ $(document).ready(function () {
         .is(':hidden')
 
       if (item_data['item[url]'] === '') {
-        const $errorBox = $('<div />', {class: 'alert alert-error', role: 'alert'}).css({
-          marginTop: 8,
-        })
+        const _errDiv = document.createElement('div')
+        _errDiv.className = 'alert alert-error'
+        _errDiv.setAttribute('role', 'alert')
+        const $errorBox = $(_errDiv).css({marginTop: 8})
         $errorBox.text(
           I18n.t('errors.external_tool_url', "An external tool can't be saved without a URL."),
         )

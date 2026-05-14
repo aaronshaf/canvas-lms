@@ -69,7 +69,7 @@ const signupDialog = function (id, title, path) {
   if (!templates[id]) {
     return
   }
-  const $node = $nodes[id] != null ? $nodes[id] : ($nodes[id] = $('<div />'))
+  const $node = $nodes[id] != null ? $nodes[id] : ($nodes[id] = $(document.createElement('div')))
   path || (path = '/users')
   const html = templates[id]({
     account: ENV.ACCOUNT.registration_settings,

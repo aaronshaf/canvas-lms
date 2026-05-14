@@ -171,8 +171,11 @@ export default class RandomlyAssignMembersView extends DialogFormView {
   checkboxAccessibleAdvisory(box) {
     const label = box.parent()
     let advisory = label.find('span.screenreader-only.accessible_label')
-    if (!advisory.length)
-      advisory = $('<span class="screenreader-only accessible_label"></span>').appendTo(label)
+    if (!advisory.length) {
+      const _advSpan = document.createElement('span')
+      _advSpan.className = 'screenreader-only accessible_label'
+      advisory = $(_advSpan).appendTo(label)
+    }
     return advisory
   }
 }

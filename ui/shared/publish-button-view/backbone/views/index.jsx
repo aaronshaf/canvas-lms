@@ -143,7 +143,9 @@ export default (function (superClass) {
   PublishButton.prototype.addAriaLabel = function (label) {
     let $label = this.$el.find('span.screenreader-only.accessible_label')
     if (!$label.length) {
-      $label = $('<span class="screenreader-only accessible_label"></span>').appendTo(this.$el)
+      const _lbl = document.createElement('span')
+      _lbl.className = 'screenreader-only accessible_label'
+      $label = $(_lbl).appendTo(this.$el)
     }
     $label.text(label)
     return this.$el.attr('aria-label', label)
@@ -350,9 +352,15 @@ export default (function (superClass) {
       this.$el.attr('role', 'button')
     }
     this.$el.attr('tabindex', '0')
-    this.$el
-      .empty()
-      .append($('<i>'), $('<span>').addClass('publish-text'), $('<span>').addClass('dpd-mount'))
+    const _pbI = document.createElement('i')
+    const _pbText = document.createElement('span')
+    _pbText.className = 'publish-text'
+    const _pbDpd = document.createElement('span')
+    _pbDpd.className = 'dpd-mount'
+    this.$el.empty()
+    this.$el[0]?.appendChild(_pbI)
+    this.$el[0]?.appendChild(_pbText)
+    this.$el[0]?.appendChild(_pbDpd)
     this.cacheEls()
     // don't read text of button with screenreader
     this.$text.attr('tabindex', '-1')

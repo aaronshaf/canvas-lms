@@ -158,7 +158,7 @@ function bindKeyboardShortcutsHelpPanel() {
 function warnAboutRolesBeingSwitched() {
   $('#switched_role_type').ifExists(function () {
     const context_class = $(this).attr('class')
-    const $img = $('<img/>')
+    const $img = $(document.createElement('img'))
     let switched_roles_message = null
     switch ($(this).data('role')) {
       case 'TeacherEnrollment':

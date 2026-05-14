@@ -200,7 +200,7 @@ export default class GroupCategoriesView extends CollectionView {
   createItemView(model) {
     // create and add tab panel
     const panelId = `tab-${model.id != null ? model.id : model.cid}`
-    const $panel = $('<div/>')
+    const $panel = $(document.createElement('div'))
       .addClass('tab-panel')
       .attr('id', panelId)
       .data('loaded', false)

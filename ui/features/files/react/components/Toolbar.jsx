@@ -109,7 +109,7 @@ export default class Toolbar extends React.Component {
   // dialog window. This allows us to do react things inside of this already rendered
   // jQueryUI widget
   openRestrictedDialog() {
-    const $dialog = $('<div>').dialog({
+    const $dialog = $(document.createElement('div')).dialog({
       title: I18n.t(
         {
           one: 'Edit permissions for: %{itemName}',

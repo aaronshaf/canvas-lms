@@ -88,9 +88,9 @@ DialogBaseView.prototype.initDialog = function () {
     zIndex: 1000,
     ...result(this, 'dialogOptions'),
   }
-  this.dialog = $('<div id="' + opts.id + '"></div>')
-    .appendTo('body')
-    .dialog(opts)
+  const _dlg = document.createElement('div')
+  if (opts.id) _dlg.id = opts.id
+  this.dialog = $(_dlg).appendTo('body').dialog(opts)
   if (opts.containerId) {
     this.dialog.parent().attr('id', opts.containerId)
   }

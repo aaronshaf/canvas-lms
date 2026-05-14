@@ -54,7 +54,7 @@ export default function EditorToggle(elem, options) {
   }
   if (this.options.view) this.view = this.options.view
   this.textArea = this.createTextArea()
-  this.textAreaContainer = $('<div/>').append(this.textArea)
+  this.textAreaContainer = $(document.createElement('div')).append(this.textArea)
 
   if (this.options.switchViews) {
     this.switchViews = this.createSwitchViews()
@@ -150,7 +150,7 @@ Object.assign(EditorToggle.prototype, Backbone.Events, {
   // @api private
   getContent() {
     // remove MathML additions
-    const content = $('<div></div>').append(this.el.html())
+    const content = $(document.createElement('div')).append(this.el.html())
     content.find('.hidden-readable').remove()
     return $.trim(content.html())
   },
@@ -160,7 +160,7 @@ Object.assign(EditorToggle.prototype, Backbone.Events, {
   // @api private
   createTextArea() {
     return (
-      $('<textarea/>')
+      $(document.createElement('textarea'))
         // tiny mimics the width of the textarea. its min height is 110px, so
         // we want the textarea at least that big as well
         .css({
@@ -176,10 +176,10 @@ Object.assign(EditorToggle.prototype, Backbone.Events, {
   // creates the "done" button used to exit the editor
   // @api private
   createDone() {
-    return $('<div/>')
+    return $(document.createElement('div'))
       .addClass('edit_html_done_wrapper')
       .append(
-        $('<a/>')
+        $(document.createElement('a'))
           .text(this.options.doneText)
           .attr('href', '#')
           .addClass('btn edit_html_done')
@@ -199,7 +199,9 @@ Object.assign(EditorToggle.prototype, Backbone.Events, {
   // @api private
   createSwitchViews() {
     const component = <SwitchEditorControl textarea={this.textArea} />
-    const $container = $("<div class='switch-views'></div>")
+    const _switchDiv = document.createElement('div')
+    _switchDiv.className = 'switch-views'
+    const $container = $(_switchDiv)
 
     legacyRender(component, $container[0])
     return $container

@@ -116,7 +116,8 @@ TreeView.prototype.renderSelf = function () {
   this.$label ||
     (this.$label = (function (_this) {
       return function () {
-        _this.$labelInner = $('<span>').click(function (event) {
+        const _tvSpan = document.createElement('span')
+        _tvSpan.addEventListener('click', function (event) {
           // Lets this work well with file browsers like New Files
           if (_this.selectedStyleClass) {
             $('.' + _this.selectedStyleClass).each(function (key, element) {
@@ -126,14 +127,19 @@ TreeView.prototype.renderSelf = function () {
           }
           return typeof _this.onClick === 'function' ? _this.onClick(event, _this.model) : void 0
         })
+        _this.$labelInner = $(_tvSpan)
         const icon_class = _this.model.get('for_submissions') ? 'icon-folder-locked' : 'icon-folder'
-        const $label = $(
-          '<a\n  class="treeLabel"\n  role="presentation"\n  tabindex="-1"\n>\n  <i class="icon-mini-arrow-right"></i>\n  <i class="' +
-            htmlEscape(icon_class) +
-            '"></i>\n</a>',
-        )
-          .append(_this.$labelInner)
-          .prependTo(_this.$el)
+        const _tvA = document.createElement('a')
+        _tvA.className = 'treeLabel'
+        _tvA.setAttribute('role', 'presentation')
+        _tvA.setAttribute('tabindex', '-1')
+        const _tvArrow = document.createElement('i')
+        _tvArrow.className = 'icon-mini-arrow-right'
+        const _tvFolder = document.createElement('i')
+        _tvFolder.className = htmlEscape(icon_class)
+        _tvA.appendChild(_tvArrow)
+        _tvA.appendChild(_tvFolder)
+        const $label = $(_tvA).append(_this.$labelInner).prependTo(_this.$el)
         if (_this.dndOptions && !_this.model.get('for_submissions')) {
           const toggleActive = function (makeActive) {
             return function () {
@@ -180,7 +186,10 @@ TreeView.prototype.renderContents = function () {
   let itemsView, subtreesView
   if (this.model.isExpanded) {
     if (!this.$treeContents) {
-      this.$treeContents = $("<ul role='group' class='treeContents'/>").appendTo(this.$el)
+      const _tc = document.createElement('ul')
+      _tc.setAttribute('role', 'group')
+      _tc.className = 'treeContents'
+      this.$treeContents = $(_tc).appendTo(this.$el)
       subtreesView = new PaginatedCollectionView({
         collection: this.model.getSubtrees(),
         itemView: TreeView,

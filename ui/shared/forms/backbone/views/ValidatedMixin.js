@@ -141,12 +141,10 @@ export default {
   findOrCreateDescriptionField($input) {
     const id = $input.attr('id')
     if (!($('#' + id + '_sr_description').length > 0)) {
-      $('<div>')
-        .attr({
-          id: id + '_sr_description',
-          class: 'screenreader-only',
-        })
-        .insertBefore($input)
+      const _srDesc = document.createElement('div')
+      _srDesc.id = id + '_sr_description'
+      _srDesc.className = 'screenreader-only'
+      $(_srDesc).insertBefore($input)
     }
     const description = $('#' + id + '_sr_description')
     const originalDescriptionIds = this.getExistingDescriptionIds($input, id)

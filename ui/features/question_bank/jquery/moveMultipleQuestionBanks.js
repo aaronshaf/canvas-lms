@@ -37,7 +37,11 @@ const moveQuestions = {
   elements: {
     $dialog: () => $('#move_question_dialog'),
     $questions: () => $('#move_question_dialog .questions'),
-    $loadMessage: $('<li />').text(I18n.t('load_questions', 'Loading Questions...')),
+    $loadMessage: (() => {
+      const _li = document.createElement('li')
+      _li.textContent = I18n.t('load_questions', 'Loading Questions...')
+      return $(_li)
+    })(),
   },
   messages: {
     move_copy_questions: I18n.t('title.move_copy_questions', 'Move/Copy Questions'),

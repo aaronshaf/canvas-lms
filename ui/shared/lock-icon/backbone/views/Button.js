@@ -225,7 +225,12 @@ LockButton.prototype.render = function () {
   if (!this.disabled) {
     this.$el.attr('tabindex', '0')
   }
-  this.$el.empty().append($('<i>'), $('<span>').addClass('lock-text screenreader-only'))
+  const _lockI = document.createElement('i')
+  const _lockSpan = document.createElement('span')
+  _lockSpan.className = 'lock-text screenreader-only'
+  this.$el.empty()
+  this.$el[0]?.appendChild(_lockI)
+  this.$el[0]?.appendChild(_lockSpan)
   this.cacheEls()
   if (this.isLocked()) {
     return this.renderLocked()

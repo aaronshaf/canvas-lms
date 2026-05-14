@@ -308,12 +308,13 @@ $(document).ready(function () {
         .removeClass('default')
         .find('a.default_link span.screenreader-only.default_label')
         .remove()
+      const _defaultLabel = document.createElement('span')
+      _defaultLabel.className = 'screenreader-only'
+      _defaultLabel.textContent = I18n.t('This is the default email address')
       $('.channel#channel_' + channel_id_)
         .addClass('default')
-        .find('a.default_link')
-        .append(
-          $('<span class="screenreader-only" />').text(I18n.t('This is the default email address')),
-        )
+        .find('a.default_link')[0]
+        ?.appendChild(_defaultLabel)
       $('.default_email.display_data').text(data.user.communication_channel.path)
     })
   })

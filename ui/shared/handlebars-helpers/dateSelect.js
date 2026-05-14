@@ -31,7 +31,11 @@ function mkOption(value, label) {
 const builders = {
   year(options, htmlOptions) {
     const step = options.startYear < options.endYear ? 1 : -1
-    const $result = $('<select />', htmlOptions)
+    const _sel = document.createElement('select')
+    Object.entries(htmlOptions).forEach(([k, v]) => {
+      if (v != null) _sel.setAttribute(k, v)
+    })
+    const $result = $(_sel)
     if (options.includeBlank) $result.append(document.createElement('option'))
     let i = options.startYear
     while (i * step <= options.endYear * step) {
@@ -42,7 +46,11 @@ const builders = {
   },
   month(options, htmlOptions) {
     const months = I18n.lookup('date.month_names')
-    const $result = $('<select />', htmlOptions)
+    const _sel = document.createElement('select')
+    Object.entries(htmlOptions).forEach(([k, v]) => {
+      if (v != null) _sel.setAttribute(k, v)
+    })
+    const $result = $(_sel)
     if (options.includeBlank) $result.append(document.createElement('option'))
     for (let i = 1; i <= 12; i++) {
       $result.append(mkOption(i, months[i]))
@@ -50,7 +58,11 @@ const builders = {
     return $result
   },
   day(options, htmlOptions) {
-    const $result = $('<select />', htmlOptions)
+    const _sel = document.createElement('select')
+    Object.entries(htmlOptions).forEach(([k, v]) => {
+      if (v != null) _sel.setAttribute(k, v)
+    })
+    const $result = $(_sel)
     if (options.includeBlank) $result.append(document.createElement('option'))
     for (let i = 1; i <= 31; i++) {
       $result.append(mkOption(i, i))
@@ -93,7 +105,7 @@ export default function dateSelect(name, options, htmlOptions = clone(options)) 
     order,
   })
 
-  const $result = $('<span>')
+  const $result = $(document.createElement('span'))
   // in coffeescript: for i in [0...options.order.length]
   for (
     let i = 0, end = options.order.length, asc = end >= 0;
