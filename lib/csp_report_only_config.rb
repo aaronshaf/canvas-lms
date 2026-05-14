@@ -24,30 +24,26 @@
 # code *would* be blocked under a stricter policy, without breaking pages.
 #
 # The directive list is the union of:
-#   - static allowlist from Consul (process-cached, 5-min TTL)
+#   - static allowlist from Consul
 #   - per-Account allowlist from Account#csp_whitelisted_domains (LTI tool
 #     domains, files host, admin-curated Csp::Domain rows, etc.)
 module CspReportOnlyConfig
-  TTL_SECONDS = 5.minutes.to_i
   # Header-breaking chars: whitespace and `;` would split directives; `,` would
   # split header values when CSP appears alongside other policies.
   HEADER_UNSAFE = /[\s;,]/
-  HEADER_BYTES_CAP = 16_384
+  HEADER_BYTES_CAP_DEFAULT = 8_000
+  HEADER_BYTES_CAP_MAX = 32_768
 
   Canvas::Reloader.on_reload { reset! }
 
   def self.static_config
-    now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-    return @static_config if @expires_at && now < @expires_at
+    return @static_config if defined?(@static_config)
 
     @static_config = build_static_config
-    @expires_at = now + TTL_SECONDS
-    @static_config
   end
 
   def self.reset!
-    @static_config = nil
-    @expires_at = nil
+    remove_instance_variable(:@static_config) if instance_variable_defined?(:@static_config)
   end
 
   # Returns the directives string for a given Account + request, or nil if the
@@ -57,10 +53,10 @@ module CspReportOnlyConfig
     cfg = static_config
     return nil unless cfg
 
-    # Subtract static so enforce_size_cap can pop strictly per-Account entries
-    # while keeping the static prefix intact.
-    per_account = sanitized_per_account_domains(account, request) - cfg[:allowed_domains]
-    domains = enforce_size_cap(cfg[:allowed_domains], per_account, cfg[:report_uri])
+    candidates = cfg[:allowed_domains] | sanitized_per_account_domains(account, request)
+    domains = fit_within_cap(candidates, cfg[:report_uri], cfg[:max_header_bytes])
+    return nil unless domains
+
     format_directives(domains, cfg[:report_uri])
   end
 
@@ -69,30 +65,29 @@ module CspReportOnlyConfig
 
     domains = account.csp_whitelisted_domains(request, include_files: true, include_tools: true).compact
     good, bad = domains.partition { |d| !d.match?(HEADER_UNSAFE) }
-    bad.each do |d|
-      Rails.logger.warn("[csp_report_only] dropping per-account domain with header-breaking chars: #{d.inspect}")
-      InstStatsd::Statsd.distributed_increment("csp_report_only.domain_dropped")
-    end
+    bad.each { |d| report_event("domain_dropped", "dropping per-account domain with header-breaking chars: #{d.inspect}") }
     good
   rescue => e
     Canvas::Errors.capture(e, { type: :csp_report_only, account_id: account&.global_id }, :warn)
     []
   end
 
-  def self.enforce_size_cap(static, per_account, report_uri)
-    return static.dup if per_account.empty?
-
-    domains = static + per_account
+  # Pops domains from the tail until format_directives fits within the cap
+  def self.fit_within_cap(domains, report_uri, cap)
     truncated = 0
-    while domains.size > static.size && format_directives(domains, report_uri).bytesize > HEADER_BYTES_CAP
-      domains.pop
+    while format_directives(domains, report_uri).bytesize > cap
+      return nil if domains.empty?
+
+      domains = domains[0..-2]
       truncated += 1
     end
-    if truncated > 0
-      Rails.logger.warn("[csp_report_only] truncated #{truncated} per-account domain(s) to fit #{HEADER_BYTES_CAP}-byte cap")
-      InstStatsd::Statsd.distributed_increment("csp_report_only.header_truncated")
-    end
+    report_event("header_truncated", "truncated #{truncated} domain(s) to fit #{cap}-byte cap") if truncated > 0
     domains
+  end
+
+  def self.report_event(metric, message)
+    Rails.logger.warn("[csp_report_only] #{message}")
+    InstStatsd::Statsd.distributed_increment("csp_report_only.#{metric}")
   end
 
   def self.format_directives(domains, report_uri)
@@ -116,12 +111,15 @@ module CspReportOnlyConfig
     return nil if domains.empty? || report_uri.empty?
     return nil if domains.any? { |d| d.match?(HEADER_UNSAFE) } || report_uri.match?(HEADER_UNSAFE)
 
-    if format_directives(domains, report_uri).bytesize > HEADER_BYTES_CAP
-      Rails.logger.warn("[csp_report_only] static allowlist exceeds #{HEADER_BYTES_CAP}-byte cap; suppressing header")
-      return nil
-    end
+    max_header_bytes = sanitize_cap(raw["max_header_bytes"])
+    { allowed_domains: domains.freeze, report_uri: report_uri.freeze, max_header_bytes: }.freeze
+  end
 
-    { allowed_domains: domains.freeze, report_uri: report_uri.freeze }.freeze
+  def self.sanitize_cap(value)
+    cap = value.to_i
+    return HEADER_BYTES_CAP_DEFAULT unless cap.positive?
+
+    cap.clamp(1, HEADER_BYTES_CAP_MAX)
   end
 
   # `{region}` placeholder in the configured report_uri is replaced with
@@ -137,5 +135,11 @@ module CspReportOnlyConfig
 
     uri.gsub("{region}", region)
   end
-  private_class_method :build_static_config, :sanitized_per_account_domains, :enforce_size_cap, :format_directives, :interpolate_region
+  private_class_method :build_static_config,
+                       :sanitize_cap,
+                       :sanitized_per_account_domains,
+                       :fit_within_cap,
+                       :format_directives,
+                       :interpolate_region,
+                       :report_event
 end

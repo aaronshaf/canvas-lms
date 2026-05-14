@@ -74,26 +74,51 @@ describe CspReportOnlyConfig do
       expect(described_class.static_config).to be_nil
     end
 
-    it "returns nil if the static allowlist exceeds the header byte cap" do
-      stub_const("CspReportOnlyConfig::HEADER_BYTES_CAP", 200)
-      expect(Rails.logger).to receive(:warn).with(/static allowlist exceeds/)
+    it "exposes a max_header_bytes cap from the Consul config" do
       stub_consul(
-        "allowed_domains" => Array.new(20) { |i| "https://*.example#{i}.com" },
-        "report_uri" => "https://reports.example/submit/csp"
+        "allowed_domains" => ["https://*.instructure.com"],
+        "report_uri" => "https://r.example/csp",
+        "max_header_bytes" => 12_345
       )
-      expect(described_class.static_config).to be_nil
+      expect(described_class.static_config[:max_header_bytes]).to eq(12_345)
     end
 
-    it "memoizes within the TTL window" do
+    it "defaults max_header_bytes to HEADER_BYTES_CAP_DEFAULT when absent" do
+      stub_consul("allowed_domains" => ["https://*.instructure.com"], "report_uri" => "https://r.example/csp")
+      expect(described_class.static_config[:max_header_bytes]).to eq(CspReportOnlyConfig::HEADER_BYTES_CAP_DEFAULT)
+    end
+
+    {
+      "non-numeric string" => "abc",
+      "zero" => 0,
+      "negative" => -100,
+      "nil" => nil,
+      "empty string" => ""
+    }.each do |label, bad|
+      it "falls back to the default when max_header_bytes is #{label}" do
+        stub_consul(
+          "allowed_domains" => ["https://*.instructure.com"],
+          "report_uri" => "https://r.example/csp",
+          "max_header_bytes" => bad
+        )
+        expect(described_class.static_config[:max_header_bytes]).to eq(CspReportOnlyConfig::HEADER_BYTES_CAP_DEFAULT)
+      end
+    end
+
+    it "clamps absurdly large max_header_bytes values to HEADER_BYTES_CAP_MAX" do
+      stub_consul(
+        "allowed_domains" => ["https://*.instructure.com"],
+        "report_uri" => "https://r.example/csp",
+        "max_header_bytes" => 999_999_999
+      )
+      expect(described_class.static_config[:max_header_bytes]).to eq(CspReportOnlyConfig::HEADER_BYTES_CAP_MAX)
+    end
+
+    it "memoizes across repeated calls until reset!" do
       stub_consul("allowed_domains" => ["https://*.instructure.com"], "report_uri" => "https://r.example/csp")
       expect(Canvas).to receive(:load_config_file_or_consul).once.and_call_original
       3.times { described_class.static_config }
-    end
-
-    it "rebuilds after the TTL window expires" do
-      stub_consul("allowed_domains" => ["https://*.instructure.com"], "report_uri" => "https://r.example/csp")
-      described_class.static_config
-      described_class.instance_variable_set(:@expires_at, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 1)
+      described_class.reset!
       expect(Canvas).to receive(:load_config_file_or_consul).once.and_call_original
       described_class.static_config
     end
@@ -210,14 +235,20 @@ describe CspReportOnlyConfig do
       expect(result).not_to include("nil")
     end
 
-    it "truncates per-Account domains to fit the header cap, keeping static intact" do
-      stub_const("CspReportOnlyConfig::HEADER_BYTES_CAP", 300)
+    it "truncates per-Account domains from the tail to fit the configured cap" do
+      stub_consul("allowed_domains" => ["https://*.instructure.com"], "report_uri" => "https://r.example/csp", "max_header_bytes" => 300)
       stub_per_account("*.first.example.com", "*.second.example.com", "*.third.example.com")
-      expect(Rails.logger).to receive(:warn).with(/truncated \d+ per-account domain/)
+      expect(Rails.logger).to receive(:warn).with(/truncated \d+ domain/)
       allow(InstStatsd::Statsd).to receive(:distributed_increment)
       result = described_class.directives_for(account, request)
       expect(result.bytesize).to be <= 300
-      expect(result).to include("https://*.instructure.com") # static preserved
+      expect(result).to include("https://*.instructure.com") # static preserved (popped from tail = per-account first)
+    end
+
+    it "suppresses entirely when even an empty source list exceeds the cap" do
+      stub_consul("allowed_domains" => ["https://*.instructure.com"], "report_uri" => "https://r.example/csp", "max_header_bytes" => 50)
+      stub_per_account
+      expect(described_class.directives_for(account, request)).to be_nil
     end
 
     it "tolerates nil entries from the per-Account source" do
