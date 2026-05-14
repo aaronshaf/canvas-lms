@@ -239,3 +239,26 @@ Simple/SubstitutionVariablesLinter:
     any variable names, please also update the SubstitutionVariables array
     in ui/features/lti_registrations/manage/lib/extractSubstitutionVariables.ts
     to keep the frontend list synchronized with the backend definitions.
+
+Simple/NoControllerSpecsLinter:
+  Severity: "warn"
+  Precondition:
+    Statuses:
+      - added
+    Include:
+      # canvas proper
+      - "spec/controllers/**_spec.rb"
+      # gems, plugins, etc.
+      - "**/spec/controllers/**_spec.rb"
+  Message: |-
+    New controller specs are discouraged. Please write request specs instead
+    (place new specs in spec/requests).
+
+    The official recommendation of the Rails team and the RSpec core team is
+    to write request specs instead. Request specs allow you to focus on a
+    single controller action, but unlike controller tests involve the router,
+    the middleware stack, and both rack requests and responses. This adds
+    realism to the test that you are writing, and helps avoid many of the
+    issues that are common in controller specs.
+
+    See: https://rspec.info/blog/2016/07/rspec-3-5-has-been-released/
