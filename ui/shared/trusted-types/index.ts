@@ -77,7 +77,12 @@ if (typeof window !== 'undefined' && window.trustedTypes?.createPolicy) {
   window.trustedTypes.createPolicy('default', {
     createHTML: (input: string, sink?: string): string => {
       if (process.env.NODE_ENV !== 'production') {
-        logSinkOnce('default.createHTML', input, sink)
+        // Skip empty strings — jQueryUI position.js emits "" during geometry
+        // calculations. Zero-length HTML is never a risk; logging it creates
+        // noise that obscures real sinks in DevTools.
+        if (input.length > 0) {
+          logSinkOnce('default.createHTML', input, sink)
+        }
       }
       // Phase 1 pass-through: per-sink sanitizeHTML wrappers stay the
       // real defense. Sanitizing here would silently mutate production
@@ -89,19 +94,9 @@ if (typeof window !== 'undefined' && window.trustedTypes?.createPolicy) {
     // Permissive in Phase 1; the strict-CSP follow-up tightens this when
     // `script-src` enforcement lands.
     createScriptURL: (input: string): string => input,
-    // Pass-through with non-prod warn. jQuery's DOMEval (used internally
-    // by globalEval, dataType:'script' AJAX, and `<script>` tags inside
-    // .html()/.append() content) hits this sink via `script.text = code`.
-    // Throwing here would generate console noise on legitimate jQuery use
-    // and pre-commit Phase 4 to a stance we haven't decided yet (a named
-    // policy carve-out for jQuery may be the right answer). Phase 1's
-    // job is discovery, not enforcement.
-    createScript: (input: string, sink?: string): string => {
-      if (process.env.NODE_ENV !== 'production') {
-        logSinkOnce('default.createScript', input, sink)
-      }
-      return input
-    },
+    // Pass-through, no logging. jQuery's DOMEval hits this sink via
+    // `script.text = code`. Re-enable logging here when script-src enforced.
+    createScript: (input: string): string => input,
   })
 }
 

@@ -100,6 +100,14 @@ describe('@canvas/trusted-types default policy', () => {
       )
     })
 
+    it('does not console.debug for empty strings (noise guard)', async () => {
+      vi.stubEnv('NODE_ENV', 'development')
+      const policy = await captureRegisteredPolicy()
+
+      expect(policy.createHTML('')).toBe('')
+      expect(debugSpy).not.toHaveBeenCalled()
+    })
+
     it('does not console.debug in production', async () => {
       vi.stubEnv('NODE_ENV', 'production')
       const policy = await captureRegisteredPolicy()
@@ -152,24 +160,12 @@ describe('@canvas/trusted-types default policy', () => {
       expect(policy.createScript(code)).toBe(code)
     })
 
-    it('console.debugs in non-production with sink + sample + length', async () => {
+    it('does not console.debug in any environment (script logging disabled until later phase)', async () => {
       vi.stubEnv('NODE_ENV', 'development')
       const policy = await captureRegisteredPolicy()
 
       policy.createScript('window.foo = 1', 'HTMLScriptElement text')
 
-      expect(debugSpy).toHaveBeenCalledOnce()
-      expect(debugSpy).toHaveBeenCalledWith(
-        '[trusted-types] default.createScript (HTMLScriptElement text)',
-        {sample: 'window.foo = 1', length: 14},
-      )
-    })
-
-    it('does not console.debug in production', async () => {
-      vi.stubEnv('NODE_ENV', 'production')
-      const policy = await captureRegisteredPolicy()
-
-      expect(policy.createScript('window.foo = 1')).toBe('window.foo = 1')
       expect(debugSpy).not.toHaveBeenCalled()
     })
   })
