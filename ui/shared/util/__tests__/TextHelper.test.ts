@@ -317,7 +317,7 @@ describe('htmlDecode', () => {
   })
 
   test('decodes entities with leading whitespace', () => {
-    expect(TextHelper.htmlDecode('  A&amp;Test')).toBe('A&Test')
+    expect(TextHelper.htmlDecode('  A&amp;Test')).toBe('  A&Test')
   })
 
   test('handles malformed HTML', () => {

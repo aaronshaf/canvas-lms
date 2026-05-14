@@ -18,6 +18,7 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import htmlEscape, {raw} from '@instructure/html-escape'
+import {decodeHTML} from 'entities'
 import TwitterText from 'twitter-text'
 
 const I18n = createI18nScope('lib.text_helper')
@@ -168,12 +169,13 @@ export const containsHtmlTags = (message: string): boolean => {
 }
 
 export const stripHtmlTags = (htmlText?: string): string | null => {
-  return htmlText ? new DOMParser().parseFromString(htmlText, 'text/html').body.textContent : ''
+  if (!htmlText) return ''
+  return decodeHTML(htmlText.replace(/<[^>]*>/g, ''))
 }
 
 export function htmlDecode(input?: string | null): string {
   if (!input) return input || ''
-  return new DOMParser().parseFromString(input, 'text/html').documentElement.textContent || input
+  return decodeHTML(input.replace(/<[^>]*>/g, ''))
 }
 
 // Converts \n to <br /> and normalizes any existing <br> variants to <br />.

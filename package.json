@@ -144,6 +144,7 @@
     "crypto-js": "^4.2.0",
     "d3": "3.5.17",
     "emoji-mart": "^3.0.1",
+    "entities": "^8.0.0",
     "es-abstract": "^1.24.1",
     "es-toolkit": "^1.42.0",
     "export-from-json": "^1.6.0",
