@@ -92,7 +92,7 @@ Margin is capitalized to fix Outlook.com
             <td class="footercell" style="font-family:sans-serif; font-size:14px; vertical-align:top; color:#a8b9c6; font-size:12px; text-align:center; padding:10px; box-sizing:border-box; ">
 
               <% if !content(:footer_link).blank? %>
-                <%= content(:footer_link).html_safe %> &nbsp;|&nbsp;
+                <%= content(:footer_link) %> &nbsp;|&nbsp;
               <% end %>
 
               <% if !defined?(remove_profile_url_in_layout) || !remove_profile_url_in_layout %>

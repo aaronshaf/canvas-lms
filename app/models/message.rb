@@ -20,6 +20,13 @@
 
 class Message < ApplicationRecord
   # Included modules
+  include ActionView::Helpers::UrlHelper
+
+  class << self
+    # we're not a request, so we don't want these helpers
+    undef_method :_url_for_modules
+  end
+
   include Rails.application.routes.url_helpers
 
   include ERB::Util
@@ -511,6 +518,10 @@ class Message < ApplicationRecord
   end
 
   module OutputBufferDeleteSuffix
+    def strip
+      self.class.new(@raw_buffer.strip)
+    end
+
     def delete_suffix(str)
       self.class.new(@raw_buffer.delete_suffix(str))
     end
@@ -533,7 +544,7 @@ class Message < ApplicationRecord
     yield
 
     instance_variable_set(:"@message_content_#{name}",
-                          @output_buffer.to_s.strip)
+                          @output_buffer.strip.to_s)
     @output_buffer = old_output_buffer.delete_suffix("\n")
 
     if old_output_buffer.is_a?(ActiveSupport::SafeBuffer) && old_output_buffer.html_safe?
