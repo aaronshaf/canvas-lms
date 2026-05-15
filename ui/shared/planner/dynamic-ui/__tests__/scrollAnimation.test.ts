@@ -23,16 +23,6 @@ import {scrollAnimation} from '../scrollAnimation'
 const makeEl = (viewportTop: number): Element =>
   ({getBoundingClientRect: () => ({top: viewportTop})}) as unknown as Element
 
-// Simulate one full rAF-driven animation by draining the rAF queue
-// with a specified final timestamp (startTime + duration).
-const drainRAF = (startTime: number, duration: number) => {
-  // First tick: t = 0 (no progress yet, just schedules next)
-  vi.mocked(requestAnimationFrame).mock.calls[0]?.[0]?.(startTime)
-  // Final tick: t = 1 (progress = 1, calls complete)
-  const rafQueue = vi.mocked(requestAnimationFrame).mock.calls
-  rafQueue[rafQueue.length - 1]?.[0]?.(startTime + duration)
-}
-
 describe('scrollAnimation', () => {
   let scrollToSpy: ReturnType<typeof vi.spyOn>
 
