@@ -25,13 +25,26 @@ import {View} from '@instructure/ui-view'
 import {Heading} from '@instructure/ui-heading'
 import {Text} from '@instructure/ui-text'
 import {Alert} from '@instructure/ui-alerts'
+import type {GlobalEnv} from '@canvas/global/env/GlobalEnv'
 import {AIExperience, AIExperienceFormData} from '../../../types'
 import FormHeader from './FormHeader'
 import ConfigurationSection from './ConfigurationSection'
 import type {ContextFile} from '@canvas/canvas-file-upload/react/types'
 import {roundedTheme} from '../../../../../shared/ai-experiences/react/brand'
 
+declare const ENV: GlobalEnv & {AI_EXPERIENCES_FIELD_MAX_LENGTH?: number}
+
 const I18n = createI18nScope('ai_experiences_edit')
+
+// Source of truth is AiExperience::TEACHER_AUTHORED_FIELD_MAX, served via
+// js_env. The literal here is a fallback when ENV isn't populated (tests,
+// dev paths that skip the controller). Keep both numbers aligned if changed.
+export const TEACHER_AUTHORED_FIELD_MAX_FALLBACK = 10_000
+export const TEACHER_AUTHORED_FIELD_MAX =
+  ENV?.AI_EXPERIENCES_FIELD_MAX_LENGTH ?? TEACHER_AUTHORED_FIELD_MAX_FALLBACK
+
+// Mirrors the model validator `validates :title, length: { maximum: 255 }`.
+export const TITLE_MAX_LENGTH = 255
 
 interface AIExperienceFormProps {
   aiExperience?: AIExperience | null
@@ -103,18 +116,41 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
 
     if (!formData.title.trim()) {
       newErrors.title = I18n.t('Knowledge chat name required')
+    } else if (formData.title.length > TITLE_MAX_LENGTH) {
+      newErrors.title = I18n.t('Knowledge chat name must be %{max} characters or fewer', {
+        max: TITLE_MAX_LENGTH,
+      })
     }
 
-    if (!formData.facts.trim()) {
-      newErrors.facts = I18n.t('Please provide facts students should know')
+    if (formData.description.length > TEACHER_AUTHORED_FIELD_MAX) {
+      newErrors.description = I18n.t(
+        'Knowledge chat description must be %{max} characters or fewer',
+        {max: TEACHER_AUTHORED_FIELD_MAX},
+      )
+    }
+
+    if (formData.facts.length > TEACHER_AUTHORED_FIELD_MAX) {
+      newErrors.facts = I18n.t('Text source must be %{max} characters or fewer', {
+        max: TEACHER_AUTHORED_FIELD_MAX,
+      })
     }
 
     if (!formData.learning_objective.trim()) {
       newErrors.learning_objective = I18n.t('Please provide at least one learning objective')
+    } else if (formData.learning_objective.length > TEACHER_AUTHORED_FIELD_MAX) {
+      newErrors.learning_objective = I18n.t(
+        'Learning objective targets must be %{max} characters or fewer',
+        {max: TEACHER_AUTHORED_FIELD_MAX},
+      )
     }
 
     if (!formData.pedagogical_guidance.trim()) {
       newErrors.pedagogical_guidance = I18n.t('Please provide pedagogical guidance')
+    } else if (formData.pedagogical_guidance.length > TEACHER_AUTHORED_FIELD_MAX) {
+      newErrors.pedagogical_guidance = I18n.t(
+        'Pedagogical guidance must be %{max} characters or fewer',
+        {max: TEACHER_AUTHORED_FIELD_MAX},
+      )
     }
 
     return newErrors
@@ -174,7 +210,7 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
             margin="0 0 medium 0"
           >
             {I18n.t(
-              'Some required information is missing. Please complete all highlighted fields before saving.',
+              "The information you entered wasn't accepted. Update these fields to save your changes.",
             )}
           </Alert>
         )}
@@ -224,6 +260,11 @@ const AIExperienceForm: React.FC<AIExperienceFormProps> = ({
               onChange={handleInputChange('description')}
               resize="vertical"
               height="120px"
+              messages={
+                showErrors && errors.description
+                  ? [{type: 'newError', text: errors.description}]
+                  : []
+              }
             />
           </View>
 

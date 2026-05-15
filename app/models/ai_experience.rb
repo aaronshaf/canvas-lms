@@ -40,9 +40,15 @@ class AiExperience < ApplicationRecord
   # that legitimately bypass user auth (jobs, fixtures) leave this nil.
   attr_accessor :current_user, :current_session
 
+  # Length caps mirror llma's DTO limits (PR #259) so oversized payloads are
+  # rejected at save time, before any upstream call. See AIEXP-004 / M-8.
+  TEACHER_AUTHORED_FIELD_MAX = 10_000
+
   validates :title, presence: true, length: { maximum: 255 }
-  validates :learning_objective, presence: true
-  validates :pedagogical_guidance, presence: true
+  validates :description, length: { maximum: TEACHER_AUTHORED_FIELD_MAX }, allow_nil: true
+  validates :learning_objective, presence: true, length: { maximum: TEACHER_AUTHORED_FIELD_MAX }
+  validates :pedagogical_guidance, presence: true, length: { maximum: TEACHER_AUTHORED_FIELD_MAX }
+  validates :facts, length: { maximum: TEACHER_AUTHORED_FIELD_MAX }, allow_nil: true
   validates :workflow_state, presence: true, inclusion: { in: %w[unpublished published deleted] }
   validates :context_index_status, presence: true, inclusion: { in: %w[not_started in_progress completed failed] }
   validate :unpublish_ok?, if: -> { will_save_change_to_workflow_state?(to: "unpublished") }

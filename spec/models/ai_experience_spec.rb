@@ -49,6 +49,66 @@ describe AiExperience do
       expect(experience).not_to be_valid
     end
 
+    describe "teacher-authored field length caps (M-8 / AIEXP-004)" do
+      # Mirrors llma's DTO limits from PR #259 — rejects oversized payloads at
+      # save time, before any upstream HTTP call.
+      let(:max) { AiExperience::TEACHER_AUTHORED_FIELD_MAX }
+
+      it "accepts pedagogical_guidance at the cap" do
+        experience = AiExperience.new(valid_attributes.merge(pedagogical_guidance: "a" * max))
+        expect(experience).to be_valid
+      end
+
+      it "rejects pedagogical_guidance over the cap" do
+        experience = AiExperience.new(valid_attributes.merge(pedagogical_guidance: "a" * (max + 1)))
+        expect(experience).not_to be_valid
+        expect(experience.errors[:pedagogical_guidance]).to be_present
+      end
+
+      it "accepts learning_objective at the cap" do
+        experience = AiExperience.new(valid_attributes.merge(learning_objective: "a" * max))
+        expect(experience).to be_valid
+      end
+
+      it "rejects learning_objective over the cap" do
+        experience = AiExperience.new(valid_attributes.merge(learning_objective: "a" * (max + 1)))
+        expect(experience).not_to be_valid
+        expect(experience.errors[:learning_objective]).to be_present
+      end
+
+      it "accepts facts at the cap" do
+        experience = AiExperience.new(valid_attributes.merge(facts: "a" * max))
+        expect(experience).to be_valid
+      end
+
+      it "rejects facts over the cap" do
+        experience = AiExperience.new(valid_attributes.merge(facts: "a" * (max + 1)))
+        expect(experience).not_to be_valid
+        expect(experience.errors[:facts]).to be_present
+      end
+
+      it "still allows facts to be nil" do
+        experience = AiExperience.new(valid_attributes.except(:facts))
+        expect(experience).to be_valid
+      end
+
+      it "accepts description at the cap" do
+        experience = AiExperience.new(valid_attributes.merge(description: "a" * max))
+        expect(experience).to be_valid
+      end
+
+      it "rejects description over the cap" do
+        experience = AiExperience.new(valid_attributes.merge(description: "a" * (max + 1)))
+        expect(experience).not_to be_valid
+        expect(experience.errors[:description]).to be_present
+      end
+
+      it "allows description to be nil" do
+        experience = AiExperience.new(valid_attributes.except(:description))
+        expect(experience).to be_valid
+      end
+    end
+
     it "validates workflow_state inclusion" do
       experience = AiExperience.new(valid_attributes.merge(workflow_state: "invalid_state"))
       expect(experience).not_to be_valid

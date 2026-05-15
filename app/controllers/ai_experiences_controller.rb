@@ -146,6 +146,7 @@ class AiExperiencesController < ApplicationController
         js_env[:FEATURES] ||= {}
         js_env[:FEATURES][:ai_experiences_context_file_upload] =
           @context.feature_enabled?(:ai_experiences_context_file_upload)
+        js_env[:AI_EXPERIENCES_MESSAGE_MAX_LENGTH] = AiConversation::USER_MESSAGE_MAX_LENGTH
         render html: view_context.content_tag(:div, nil, id: "ai_experiences_show"),
                layout: true
       end
@@ -175,6 +176,7 @@ class AiExperiencesController < ApplicationController
     js_env[:FEATURES] ||= {}
     js_env[:FEATURES][:ai_experiences_context_file_upload] = @context.feature_enabled?(:ai_experiences_context_file_upload)
     js_env[:CONTEXT_FILE_MAX_SIZE_MB] = AiExperienceContextFile::MAX_FILE_SIZE / 1.megabyte
+    js_env[:AI_EXPERIENCES_FIELD_MAX_LENGTH] = AiExperience::TEACHER_AUTHORED_FIELD_MAX
   end
 
   # @API Show edit AI experience form
@@ -189,6 +191,7 @@ class AiExperiencesController < ApplicationController
     js_env[:FEATURES] ||= {}
     js_env[:FEATURES][:ai_experiences_context_file_upload] = @context.feature_enabled?(:ai_experiences_context_file_upload)
     js_env[:CONTEXT_FILE_MAX_SIZE_MB] = AiExperienceContextFile::MAX_FILE_SIZE / 1.megabyte
+    js_env[:AI_EXPERIENCES_FIELD_MAX_LENGTH] = AiExperience::TEACHER_AUTHORED_FIELD_MAX
   end
 
   # @API Create an AI experience

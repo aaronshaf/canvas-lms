@@ -160,6 +160,11 @@ class AiConversationsController < ApplicationController
       return render json: { error: "message is required" }, status: :bad_request
     end
 
+    if params[:message].length > AiConversation::USER_MESSAGE_MAX_LENGTH
+      return render json: { error: "message must be #{AiConversation::USER_MESSAGE_MAX_LENGTH} characters or fewer" },
+                    status: :unprocessable_content
+    end
+
     result = nil
     InstLLMHelper.with_rate_limit(user: @current_user, llm_config: rate_limit_config_for("ai_experiences_post_message")) do
       result = AiExperiences::ConversationContinueService.new(account: @context.root_account).continue(

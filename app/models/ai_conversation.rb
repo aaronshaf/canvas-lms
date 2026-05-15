@@ -18,6 +18,12 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 class AiConversation < ApplicationRecord
+  # Mirrors llma AddMessageDto.text @MaxLength(4000) from PR #259. The cap
+  # applies to user-supplied chat messages (students and teacher-preview),
+  # never persisted on this row — enforced at the controller boundary and
+  # surfaced to the UI via js_env.
+  USER_MESSAGE_MAX_LENGTH = 4_000
+
   belongs_to :root_account, class_name: "Account"
   belongs_to :account
   belongs_to :course

@@ -135,6 +135,7 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
               label={I18n.t('Pedagogical guidance')}
               value={formData.pedagogical_guidance}
               onChange={onChange('pedagogical_guidance')}
+              required
               resize="vertical"
               height="80px"
               maxHeight="300px"
@@ -169,7 +170,6 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
               label={I18n.t('Text source')}
               value={formData.facts}
               onChange={onChange('facts')}
-              required
               resize="vertical"
               height="80px"
               maxHeight="300px"

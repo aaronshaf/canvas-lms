@@ -185,6 +185,143 @@ describe('LLMConversationView', () => {
     expect(screen.getByText('Send')).toBeInTheDocument()
   })
 
+  describe('user message length cap (M-8, mirrors llma AddMessageDto.text @MaxLength(4000))', () => {
+    // Mirror of AiConversation::USER_MESSAGE_MAX_LENGTH. ENV.AI_EXPERIENCES_MESSAGE_MAX_LENGTH
+    // isn't populated in vitest, so the component's fallback (4000) is exercised here.
+    const MAX = 4_000
+
+    it('does not render a length-validation error under the cap', () => {
+      render(<LLMConversationView {...defaultProps} />)
+      expect(
+        screen.queryByText(`Message must be ${MAX.toLocaleString()} characters or fewer`),
+      ).not.toBeInTheDocument()
+    })
+
+    it('shows a length-validation error when the message exceeds the cap', async () => {
+      const initialMessages = [
+        {role: 'User', text: 'Start', timestamp: new Date()},
+        {role: 'Assistant', text: 'Hello', timestamp: new Date()},
+      ]
+      server.use(
+        http.post('/api/v1/courses/123/ai_experiences/1/conversations', () => {
+          return HttpResponse.json({id: '1', messages: initialMessages})
+        }),
+      )
+
+      render(<LLMConversationView {...defaultProps} />)
+
+      await waitFor(() => {
+        expect(screen.getAllByText(/Hello/i)[0]).toBeInTheDocument()
+      })
+
+      const input = screen.getByPlaceholderText('Your answer...')
+      fireEvent.change(input, {target: {value: 'a'.repeat(MAX + 1)}})
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(`Message must be ${MAX.toLocaleString()} characters or fewer`),
+        ).toBeInTheDocument()
+      })
+    })
+
+    it('disables the send button when the message exceeds the cap', async () => {
+      const initialMessages = [
+        {role: 'User', text: 'Start', timestamp: new Date()},
+        {role: 'Assistant', text: 'Hello', timestamp: new Date()},
+      ]
+      server.use(
+        http.post('/api/v1/courses/123/ai_experiences/1/conversations', () => {
+          return HttpResponse.json({id: '1', messages: initialMessages})
+        }),
+      )
+
+      render(<LLMConversationView {...defaultProps} />)
+
+      await waitFor(() => {
+        expect(screen.getAllByText(/Hello/i)[0]).toBeInTheDocument()
+      })
+
+      const input = screen.getByPlaceholderText('Your answer...')
+      fireEvent.change(input, {target: {value: 'a'.repeat(MAX + 1)}})
+
+      const sendButton = screen.getByTestId('llm-conversation-send-message-button')
+      await waitFor(() => {
+        expect(sendButton).toBeDisabled()
+      })
+    })
+
+    it('does not POST when sending is attempted with an over-cap message', async () => {
+      const initialMessages = [
+        {role: 'User', text: 'Start', timestamp: new Date()},
+        {role: 'Assistant', text: 'Hello', timestamp: new Date()},
+      ]
+      const postSpy = vi.fn(() => HttpResponse.json({id: '1', messages: []}))
+      server.use(
+        http.post('/api/v1/courses/123/ai_experiences/1/conversations', () => {
+          return HttpResponse.json({id: '1', messages: initialMessages})
+        }),
+        http.post('/api/v1/courses/123/ai_experiences/1/conversations/1/messages', postSpy),
+      )
+
+      render(<LLMConversationView {...defaultProps} />)
+
+      await waitFor(() => {
+        expect(screen.getAllByText(/Hello/i)[0]).toBeInTheDocument()
+      })
+
+      const input = screen.getByPlaceholderText('Your answer...')
+      fireEvent.change(input, {target: {value: 'a'.repeat(MAX + 1)}})
+
+      // Simulate Enter — bypasses the visual disabled state to confirm handleSendMessage
+      // also gates the over-cap path.
+      fireEvent.keyDown(input, {key: 'Enter'})
+
+      // Give any in-flight handler a tick to (not) fire.
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 50))
+      })
+
+      expect(postSpy).not.toHaveBeenCalled()
+    })
+
+    it('sends successfully when the message is exactly at the cap', async () => {
+      const initialMessages = [
+        {role: 'User', text: 'Start', timestamp: new Date()},
+        {role: 'Assistant', text: 'Hello', timestamp: new Date()},
+      ]
+      const postSpy = vi.fn(() =>
+        HttpResponse.json({
+          id: '1',
+          messages: [...initialMessages, {role: 'User', text: 'A', timestamp: new Date()}],
+        }),
+      )
+      server.use(
+        http.post('/api/v1/courses/123/ai_experiences/1/conversations', () => {
+          return HttpResponse.json({id: '1', messages: initialMessages})
+        }),
+        http.post('/api/v1/courses/123/ai_experiences/1/conversations/1/messages', postSpy),
+      )
+
+      render(<LLMConversationView {...defaultProps} />)
+
+      await waitFor(() => {
+        expect(screen.getAllByText(/Hello/i)[0]).toBeInTheDocument()
+      })
+
+      const input = screen.getByPlaceholderText('Your answer...')
+      fireEvent.change(input, {target: {value: 'a'.repeat(MAX)}})
+
+      const sendButton = screen.getByTestId('llm-conversation-send-message-button')
+      expect(sendButton).not.toHaveAttribute('aria-disabled', 'true')
+
+      fireEvent.click(sendButton)
+
+      await waitFor(() => {
+        expect(postSpy).toHaveBeenCalled()
+      })
+    })
+  })
+
   it('sends message when send button is clicked', async () => {
     const initialMessages = [
       {role: 'User', text: 'Start', timestamp: new Date()},

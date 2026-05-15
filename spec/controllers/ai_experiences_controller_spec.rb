@@ -510,6 +510,11 @@ describe AiExperiencesController do
         expect(assigns[:js_env][:FEATURES][:ai_experiences_context_file_upload]).to be false
       end
 
+      it "sets AI_EXPERIENCES_MESSAGE_MAX_LENGTH in js_env" do
+        get :show, params: { course_id: @course.id, id: @ai_experience.id }
+        expect(assigns[:js_env][:AI_EXPERIENCES_MESSAGE_MAX_LENGTH]).to eq(AiConversation::USER_MESSAGE_MAX_LENGTH)
+      end
+
       it "includes facts and pedagogical_guidance in JSON response for teachers" do
         get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
         json_response = json_parse(response.body)
@@ -1276,6 +1281,11 @@ describe AiExperiencesController do
         get :new, params: { course_id: @course.id }
         expect(assigns[:js_env][:CONTEXT_FILE_MAX_SIZE_MB]).to eq(AiExperienceContextFile::MAX_FILE_SIZE / 1.megabyte)
       end
+
+      it "sets AI_EXPERIENCES_FIELD_MAX_LENGTH in js_env" do
+        get :new, params: { course_id: @course.id }
+        expect(assigns[:js_env][:AI_EXPERIENCES_FIELD_MAX_LENGTH]).to eq(AiExperience::TEACHER_AUTHORED_FIELD_MAX)
+      end
     end
 
     context "as student" do
@@ -1319,6 +1329,11 @@ describe AiExperiencesController do
       it "sets CONTEXT_FILE_MAX_SIZE_MB in js_env" do
         get :edit, params: { course_id: @course.id, id: @ai_experience.id }
         expect(assigns[:js_env][:CONTEXT_FILE_MAX_SIZE_MB]).to eq(AiExperienceContextFile::MAX_FILE_SIZE / 1.megabyte)
+      end
+
+      it "sets AI_EXPERIENCES_FIELD_MAX_LENGTH in js_env" do
+        get :edit, params: { course_id: @course.id, id: @ai_experience.id }
+        expect(assigns[:js_env][:AI_EXPERIENCES_FIELD_MAX_LENGTH]).to eq(AiExperience::TEACHER_AUTHORED_FIELD_MAX)
       end
     end
 

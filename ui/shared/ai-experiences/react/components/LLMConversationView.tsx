@@ -19,6 +19,7 @@
 import React, {useState, useEffect, useRef, useCallback} from 'react'
 import {InstUISettingsProvider} from '@instructure/emotion'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import type {GlobalEnv} from '@canvas/global/env/GlobalEnv'
 import {Heading} from '@instructure/ui-heading'
 import {View} from '@instructure/ui-view'
 import {Flex} from '@instructure/ui-flex'
@@ -41,7 +42,28 @@ import GradientBorder from './GradientBorder'
 import MessageThread from './MessageThread'
 import {BRAND_GRADIENT, RADIUS_SM, RADIUS_PILL, navyButtonTheme, roundedTheme} from '../brand'
 
+declare const ENV: GlobalEnv & {AI_EXPERIENCES_MESSAGE_MAX_LENGTH?: number}
+
 const I18n = createI18nScope('ai_experiences')
+
+// Source of truth is AiConversation::USER_MESSAGE_MAX_LENGTH, served via
+// js_env from AiExperiencesController#show. The literal here is a fallback
+// for tests or unwired entry paths. Keep both numbers aligned if changed.
+export const USER_MESSAGE_MAX_LENGTH_FALLBACK = 4_000
+export const USER_MESSAGE_MAX_LENGTH =
+  ENV?.AI_EXPERIENCES_MESSAGE_MAX_LENGTH ?? USER_MESSAGE_MAX_LENGTH_FALLBACK
+
+const overCapMessages = (value: string) =>
+  value.length > USER_MESSAGE_MAX_LENGTH
+    ? [
+        {
+          type: 'newError' as const,
+          text: I18n.t('Message must be %{max} characters or fewer', {
+            max: USER_MESSAGE_MAX_LENGTH,
+          }),
+        },
+      ]
+    : []
 
 const expandButtonTheme = {borderRadius: RADIUS_PILL, smallHeight: '1.75rem'}
 const sendButtonTheme = navyButtonTheme
@@ -126,7 +148,7 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
           setError(null)
         }
       }
-    } catch (_error) {
+    } catch {
       setError(I18n.t('Failed to start conversation. Please try again.'))
     } finally {
       setIsInitializing(false)
@@ -181,7 +203,14 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
   }, [isInitializing])
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading || !conversationId) return
+    if (
+      !inputValue.trim() ||
+      isLoading ||
+      !conversationId ||
+      inputValue.length > USER_MESSAGE_MAX_LENGTH
+    ) {
+      return
+    }
 
     const newUserMessage = inputValue
     const userMessage: LLMConversationMessage = {
@@ -211,7 +240,7 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
         setProgress(json.progress || null)
         setError(null)
       }
-    } catch (_error) {
+    } catch {
       setError(I18n.t('Failed to send message. Please try again.'))
       // Remove the optimistically added message on error
       setMessages(prev => prev.slice(0, -1))
@@ -253,7 +282,7 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
         setProgress(json.progress || null)
         setError(null)
       }
-    } catch (_error) {
+    } catch {
       setError(I18n.t('Failed to restart conversation. Please try again.'))
       // Focus text input after error
       textAreaRef.current?.focus({preventScroll: true})
@@ -312,6 +341,7 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
                 placeholder={I18n.t('Your answer...')}
                 height="60px"
                 disabled={isInitializing}
+                messages={overCapMessages(inputValue)}
                 textareaRef={(el: HTMLTextAreaElement | null) => {
                   ;(textAreaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = el
                 }}
@@ -323,7 +353,12 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
                 onClick={handleSendMessage}
                 color="primary"
                 interaction={
-                  isLoading || isInitializing || !inputValue.trim() ? 'disabled' : 'enabled'
+                  isLoading ||
+                  isInitializing ||
+                  !inputValue.trim() ||
+                  inputValue.length > USER_MESSAGE_MAX_LENGTH
+                    ? 'disabled'
+                    : 'enabled'
                 }
                 themeOverride={sendButtonTheme}
               >
@@ -552,6 +587,7 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
                                 placeholder={I18n.t('Your answer...')}
                                 height="60px"
                                 disabled={isInitializing}
+                                messages={overCapMessages(inputValue)}
                                 textareaRef={(el: HTMLTextAreaElement | null) => {
                                   ;(
                                     textAreaRef as React.MutableRefObject<HTMLTextAreaElement | null>
@@ -565,7 +601,10 @@ const LLMConversationView: React.FC<LLMConversationViewProps> = ({
                                 onClick={handleSendMessage}
                                 color="primary"
                                 interaction={
-                                  isLoading || isInitializing || !inputValue.trim()
+                                  isLoading ||
+                                  isInitializing ||
+                                  !inputValue.trim() ||
+                                  inputValue.length > USER_MESSAGE_MAX_LENGTH
                                     ? 'disabled'
                                     : 'enabled'
                                 }

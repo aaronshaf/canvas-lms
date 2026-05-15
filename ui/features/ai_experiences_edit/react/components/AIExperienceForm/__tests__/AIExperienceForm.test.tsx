@@ -18,7 +18,7 @@
 
 import '@instructure/canvas-theme'
 import React from 'react'
-import {cleanup, render, screen, fireEvent, waitFor} from '@testing-library/react'
+import {render, screen, fireEvent, waitFor} from '@testing-library/react'
 import AIExperienceForm from '../AIExperienceForm'
 import type {AIExperience} from '../../../../types'
 import fakeEnv from '@canvas/test-utils/fakeENV'
@@ -184,20 +184,22 @@ describe('AIExperienceForm', () => {
       expect(mockOnSubmit).not.toHaveBeenCalled()
     })
 
-    it('shows error when facts is empty on submission', async () => {
+    it('does not require facts (Text source) on submission', async () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
-      const titleInput = screen.getByLabelText(/Knowledge chat name/) as HTMLInputElement
-      fireEvent.change(titleInput, {target: {value: 'Test Title'}})
-
-      const saveButton = screen.getByText('Save')
-      fireEvent.click(saveButton)
-
-      await waitFor(() => {
-        expect(screen.getByText('Please provide facts students should know')).toBeInTheDocument()
+      fireEvent.change(screen.getByLabelText(/Knowledge chat name/), {target: {value: 'Title'}})
+      fireEvent.change(screen.getByLabelText(/Learning objective targets/), {
+        target: {value: 'Objectives'},
+      })
+      fireEvent.change(screen.getByLabelText(/Pedagogical guidance/), {
+        target: {value: 'Guidance'},
       })
 
-      expect(mockOnSubmit).not.toHaveBeenCalled()
+      fireEvent.click(screen.getByText('Save'))
+
+      await waitFor(() => {
+        expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({facts: ''}))
+      })
     })
 
     it('shows error when learning_objective is empty on submission', async () => {
@@ -243,7 +245,7 @@ describe('AIExperienceForm', () => {
       await waitFor(() => {
         expect(
           screen.getByText(
-            'Some required information is missing. Please complete all highlighted fields before saving.',
+            "The information you entered wasn't accepted. Update these fields to save your changes.",
           ),
         ).toBeInTheDocument()
       })
@@ -253,9 +255,6 @@ describe('AIExperienceForm', () => {
       render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
 
       expect(screen.queryByText('Knowledge chat name required')).not.toBeInTheDocument()
-      expect(
-        screen.queryByText('Please provide facts students should know'),
-      ).not.toBeInTheDocument()
       expect(
         screen.queryByText('Please provide at least one learning objective'),
       ).not.toBeInTheDocument()
@@ -309,6 +308,150 @@ describe('AIExperienceForm', () => {
             pedagogical_guidance: 'New Pedagogical Guidance',
           }),
         )
+      })
+    })
+  })
+
+  describe('teacher-authored field length caps (M-8)', () => {
+    // Mirror of AiExperience::TEACHER_AUTHORED_FIELD_MAX. llma's DTO caps each
+    // variables-JSON string value at 10k.
+    const MAX = 10_000
+
+    const fillBaseRequiredFields = () => {
+      fireEvent.change(screen.getByLabelText(/Knowledge chat name/), {target: {value: 'Title'}})
+      fireEvent.change(screen.getByLabelText(/Text source/), {target: {value: 'Facts'}})
+      fireEvent.change(screen.getByLabelText(/Learning objective targets/), {
+        target: {value: 'Objectives'},
+      })
+      fireEvent.change(screen.getByLabelText(/Pedagogical guidance/), {
+        target: {value: 'Guidance'},
+      })
+    }
+
+    it('blocks submission and surfaces a length error when pedagogical_guidance is over the cap', async () => {
+      render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
+
+      fillBaseRequiredFields()
+      fireEvent.change(screen.getByLabelText(/Pedagogical guidance/), {
+        target: {value: 'a'.repeat(MAX + 1)},
+      })
+
+      fireEvent.click(screen.getByText('Save'))
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            `Pedagogical guidance must be ${MAX.toLocaleString()} characters or fewer`,
+          ),
+        ).toBeInTheDocument()
+      })
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('blocks submission when facts is over the cap', async () => {
+      render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
+
+      fillBaseRequiredFields()
+      fireEvent.change(screen.getByLabelText(/Text source/), {
+        target: {value: 'a'.repeat(MAX + 1)},
+      })
+
+      fireEvent.click(screen.getByText('Save'))
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(`Text source must be ${MAX.toLocaleString()} characters or fewer`),
+        ).toBeInTheDocument()
+      })
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('blocks submission when learning_objective is over the cap', async () => {
+      render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
+
+      fillBaseRequiredFields()
+      fireEvent.change(screen.getByLabelText(/Learning objective targets/), {
+        target: {value: 'a'.repeat(MAX + 1)},
+      })
+
+      fireEvent.click(screen.getByText('Save'))
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            `Learning objective targets must be ${MAX.toLocaleString()} characters or fewer`,
+          ),
+        ).toBeInTheDocument()
+      })
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('blocks submission when title exceeds 255 characters', async () => {
+      render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
+
+      fillBaseRequiredFields()
+      fireEvent.change(screen.getByLabelText(/Knowledge chat name/), {
+        target: {value: 'a'.repeat(256)},
+      })
+
+      fireEvent.click(screen.getByText('Save'))
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Knowledge chat name must be 255 characters or fewer'),
+        ).toBeInTheDocument()
+      })
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('blocks submission when description exceeds the teacher-authored cap', async () => {
+      render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
+
+      fillBaseRequiredFields()
+      fireEvent.change(screen.getByLabelText(/Knowledge chat description/), {
+        target: {value: 'a'.repeat(MAX + 1)},
+      })
+
+      fireEvent.click(screen.getByText('Save'))
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            `Knowledge chat description must be ${MAX.toLocaleString()} characters or fewer`,
+          ),
+        ).toBeInTheDocument()
+      })
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+
+    it('allows description to be empty on submission', async () => {
+      render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
+
+      fillBaseRequiredFields()
+      // description left empty
+      fireEvent.click(screen.getByText('Save'))
+
+      await waitFor(() => {
+        expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({description: ''}))
+      })
+    })
+
+    it('submits when all fields are at the cap', async () => {
+      render(<AIExperienceForm onSubmit={mockOnSubmit} isLoading={false} />)
+
+      fireEvent.change(screen.getByLabelText(/Knowledge chat name/), {target: {value: 'Title'}})
+      fireEvent.change(screen.getByLabelText(/Text source/), {target: {value: 'a'.repeat(MAX)}})
+      fireEvent.change(screen.getByLabelText(/Learning objective targets/), {
+        target: {value: 'b'.repeat(MAX)},
+      })
+      fireEvent.change(screen.getByLabelText(/Pedagogical guidance/), {
+        target: {value: 'c'.repeat(MAX)},
+      })
+
+      fireEvent.click(screen.getByText('Save'))
+
+      await waitFor(() => {
+        expect(mockOnSubmit).toHaveBeenCalled()
       })
     })
   })

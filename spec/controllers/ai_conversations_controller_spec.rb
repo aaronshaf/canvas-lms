@@ -392,6 +392,44 @@ describe AiConversationsController do
         expect(json_response["error"]).to eq("message is required")
       end
 
+      describe "student message length cap (M-8, mirrors llma AddMessageDto.text @MaxLength(4000))" do
+        let(:max) { AiConversation::USER_MESSAGE_MAX_LENGTH }
+
+        it "accepts a message at the cap" do
+          mock_service = instance_double(AiExperiences::ConversationContinueService)
+          allow(AiExperiences::ConversationContinueService).to receive(:new).and_return(mock_service)
+          allow(mock_service).to receive(:continue).and_return({ messages: [], progress: nil })
+
+          post :post_message,
+               params: {
+                 course_id: @course.id,
+                 ai_experience_id: @ai_experience.id,
+                 id: @conversation.id,
+                 message: "a" * max
+               },
+               format: :json
+
+          expect(response).to be_successful
+        end
+
+        it "rejects a message one character over the cap without calling llma" do
+          expect(AiExperiences::ConversationContinueService).not_to receive(:new)
+
+          post :post_message,
+               params: {
+                 course_id: @course.id,
+                 ai_experience_id: @ai_experience.id,
+                 id: @conversation.id,
+                 message: "a" * (max + 1)
+               },
+               format: :json
+
+          expect(response).to have_http_status(:unprocessable_content)
+          json_response = json_parse(response.body)
+          expect(json_response["error"]).to eq("message must be #{max} characters or fewer")
+        end
+      end
+
       it "returns service unavailable on conversation error" do
         mock_service = instance_double(AiExperiences::ConversationContinueService)
         allow(AiExperiences::ConversationContinueService).to receive(:new).and_return(mock_service)
