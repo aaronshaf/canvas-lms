@@ -21,14 +21,14 @@
 require_relative "../views_helper"
 
 describe "submissions/show_preview" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     a = @course.assignments.create!(title: "some assignment")
     assign(:assignment, a)
     assign(:submission, a.submit_homework(@user))
     render "submissions/show_preview"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "loads an lti launch" do

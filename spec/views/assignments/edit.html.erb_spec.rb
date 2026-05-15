@@ -36,9 +36,9 @@ describe "assignments/edit" do
     assign(:current_user_rubrics, [])
   end
 
-  it "renders" do
+  it "renders valid HTML" do
     render "assignments/edit"
-    expect(response).not_to be_nil # have_tag()
+    expect(response).to be_valid_html
   end
 
   it "renders rubrics" do

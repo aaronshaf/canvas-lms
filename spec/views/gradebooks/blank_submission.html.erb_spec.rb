@@ -21,8 +21,8 @@
 require_relative "../views_helper"
 
 describe "gradebooks/blank_submission" do
-  it "renders" do
+  it "renders valid HTML" do
     render "gradebooks/blank_submission"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

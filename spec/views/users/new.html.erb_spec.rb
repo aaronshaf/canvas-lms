@@ -21,7 +21,7 @@
 require_relative "../views_helper"
 
 describe "users/new" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     terms_of_service_content = TermsOfServiceContent.create!(content: "default content")
@@ -32,6 +32,6 @@ describe "users/new" do
     assign(:pseudonym, Pseudonym.new)
 
     render "users/new"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

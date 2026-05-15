@@ -27,9 +27,9 @@ describe "collaborations/index" do
     assign(:collaborations, [@course.collaborations.create!(user: @user, title: "my collab!")])
   end
 
-  it "renders" do
+  it "renders valid HTML" do
     render "collaborations/index"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "provides labels for accessibility devices i.e. screen readers" do

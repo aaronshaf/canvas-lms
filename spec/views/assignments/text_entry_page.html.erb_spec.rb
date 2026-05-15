@@ -21,12 +21,12 @@
 require_relative "../views_helper"
 
 describe "assignments/text_entry_page" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context(@course, @user)
     ass = assign(:assignment, @course.assignments.create!(title: "some assignment"))
     assign(:submission, ass.submit_homework(@user))
     render "assignments/text_entry_page"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html(as: :document)
   end
 end

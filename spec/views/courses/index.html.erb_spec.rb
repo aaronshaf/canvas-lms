@@ -21,7 +21,7 @@
 require_relative "../views_helper"
 
 describe "courses/index" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     assign(:current_enrollments, [@enrollment])
@@ -29,7 +29,7 @@ describe "courses/index" do
     assign(:future_enrollments, [])
     assign(:visible_groups, [])
     render "courses/index"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "shows context name in groups table" do

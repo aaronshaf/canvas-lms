@@ -35,9 +35,9 @@ describe "quizzes/quizzes/_quiz_submission" do
       Quizzes::SubmissionGrader.new(submission).grade_submission
     end
 
-    it "renders" do
+    it "renders valid HTML" do
       render partial: "quizzes/quizzes/quiz_submission"
-      expect(response).not_to be_nil
+      expect(response).to be_valid_html
     end
 
     it "sets the IS_SURVEY value in the js env" do
@@ -47,7 +47,7 @@ describe "quizzes/quizzes/_quiz_submission" do
   end
 
   context "quiz results are not visible to the student" do
-    it "renders" do
+    it "renders valid HTML" do
       quiz = @course.quizzes.create!
       quiz.hide_results = "always"
       quiz.save!
@@ -56,7 +56,7 @@ describe "quizzes/quizzes/_quiz_submission" do
       sub = assign(:submission, quiz.generate_submission(@user))
       Quizzes::SubmissionGrader.new(sub).grade_submission
       render partial: "quizzes/quizzes/quiz_submission"
-      expect(response).not_to be_nil
+      expect(response).to be_valid_html
     end
   end
 
@@ -77,7 +77,7 @@ describe "quizzes/quizzes/_quiz_submission" do
       sub = assign(:submission, quiz.generate_submission(@student))
       Quizzes::SubmissionGrader.new(sub).grade_submission
       render partial: "quizzes/quizzes/quiz_submission"
-      expect(response).not_to be_nil
+      expect(response).to be_valid_html
     end
   end
 end

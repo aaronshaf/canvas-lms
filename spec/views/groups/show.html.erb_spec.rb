@@ -21,7 +21,7 @@
 require_relative "../views_helper"
 
 describe "groups/show" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     @group = @course.groups.create!(name: "some group")
     view_context(@group, @user)
@@ -31,6 +31,6 @@ describe "groups/show" do
     assign(:context, @group)
     assign(:stream_items, [])
     render "groups/show"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

@@ -37,9 +37,9 @@ describe "quizzes/quizzes/moderate" do
     assign(:submissions, [])
   end
 
-  it "renders" do
+  it "renders valid HTML" do
     render "quizzes/quizzes/moderate"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "has filter options" do

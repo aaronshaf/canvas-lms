@@ -31,8 +31,8 @@ describe "errors/index" do
     )])
   end
 
-  it "renders" do
+  it "renders valid HTML" do
     render "errors/index"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

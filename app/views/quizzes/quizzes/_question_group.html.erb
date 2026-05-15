@@ -23,7 +23,7 @@
      question_bank = @banks_hash[hash_get(group, :assessment_question_bank_id)]
    end
   if group
-    roles_stuff = %Q|role="region" aria-label="#{t('Question Group')}"|
+    roles_stuff = tag.attributes(role: "region", aria: { label: t("Question Group") })
     question_count = question_bank ? question_bank.assessment_question_count : hash_get(group, :questions, []).count
   end
   object_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_content") &&
@@ -42,7 +42,7 @@
   <div class="pull-left">
     <input type="hidden" name="quiz_group[assessment_question_bank_id]" class="bank_id"/>
     <h2 class="group_display name"><%= hash_get(group, :name, t(:default_group_name, "Group")) %></h2>
-    <input name="quiz_group[name]" aria-label=<%= t('labels.group_name', "Group Name") %> type="text" value="Group Name" class="group_edit" value="<%= hash_get(group, :name, t(:default_group_name, "Group")) %>"/>
+    <input name="quiz_group[name]" aria-label="<%= t('labels.group_name', "Group Name") %>" type="text" class="group_edit" value="<%= hash_get(group, :name, t(:default_group_name, "Group")) %>"/>
     <span class="group_display">
       <%= t(:show_questions_and_points, "Pick *%{num_questions}* questions, #%{num_points}# pts per question",
             :num_questions => hash_get(group, :pick_count, 1),
@@ -57,8 +57,8 @@
             :num_questions => hash_get(group, :pick_count, 1),
             :num_points => render_score(hash_get(group, :question_points, 1)),
             :wrapper => {
-              '*' => "<span class='form-control questions_number_container'><input name='quiz_group[pick_count]' class='form-control__input questions_number' aria-describedby='questions_number_message_#{hash_get(group, :id, 'new')}' aria-label='#{h(t('labels.number_of_questions', "Number of Questions"))}' type='text' style='width: 20px;' value='\1' #{'readonly' if points_are_locked}/></span>",
-              '#' => "<span class='form-control question_points_container'><input name='quiz_group[question_points]' class='form-control__input question_points float_value' aria-describedby='question_points_message_#{hash_get(group, :id, 'new')}' aria-label='#{h(t('labels.points_per_question', "Points per Question"))}' type='text' style='width: 20px;' value='\1' #{'readonly' if points_are_locked}/></span>"
+              '*' => "<span class='form-control questions_number_container'><input name='quiz_group[pick_count]' class='form-control__input questions_number' aria-describedby='questions_number_message_#{hash_get(group, :id, 'new')}' aria-label='#{h(t('labels.number_of_questions', "Number of Questions"))}' type='text' style='width: 20px;' value='\\1' #{'readonly' if points_are_locked}/></span>",
+              '#' => "<span class='form-control question_points_container'><input name='quiz_group[question_points]' class='form-control__input question_points float_value' aria-describedby='question_points_message_#{hash_get(group, :id, 'new')}' aria-label='#{h(t('labels.points_per_question', "Points per Question"))}' type='text' style='width: 20px;' value='\\1' #{'readonly' if points_are_locked}/></span>"
             }) %>
       <span style="margin-bottom: 10px" class="form-control__message input-message__container questions_number_message_container hidden">
         <i class="input-message__icon icon-warning icon-Solid" aria-hidden="true"></i>
@@ -95,7 +95,7 @@
   <% end %>
   <div class="clear"></div>
   <div class="button-container">
-    <button type="button" class="group_edit cancel_button btn btn-small"/><%= t('#buttons.cancel', "Cancel") %></button>
+    <button type="button" class="group_edit cancel_button btn btn-small"><%= t('#buttons.cancel', "Cancel") %></button>
     <button type="submit" class="group_edit submit_button btn btn-small btn-primary"><%= t('buttons.update', "Update") %></button>
   </div>
   <div style="display: none;">
@@ -117,6 +117,5 @@
 <% hash_get(group, :questions, []).each do |question| %>
   <%= render :partial => "display_question", :object => question, :locals => {:in_group => true, :editing => true, :asset_string => "quiz_question_#{question['id']}", :group_id => group["id"]} %>
 <% end %>
-<div class="group_bottom" style="<%= "display: none;" unless group %>" id="<%= "group_bottom_template" unless group %>">
-  &nbsp;
-</div>
+<%= tag.div(nbsp, class: "group_bottom", style: (hidden unless group), id: ("group_bottom_template" unless group)) %>
+e

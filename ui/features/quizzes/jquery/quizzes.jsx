@@ -2296,7 +2296,7 @@ ready(function () {
   })
 
   $('#quiz_points_possible').on('input', function () {
-    restoreOriginalMessage($('#quiz_points_possible'))
+    restoreOriginalMessage($('#quiz_points_possible_holder'))
   })
 
   $('#time_limit_option').on('change', function () {
@@ -2769,7 +2769,7 @@ ready(function () {
       $('#quiz_options_form .quiz_survey_setting').showIf(
         assignment_id && assignment_id.match(/survey/),
       )
-      $('#quiz_points_possible').showIf(assignment_id === 'graded_survey')
+      $('#quiz_points_possible_holder').showIf(assignment_id === 'graded_survey')
       $('#survey_instructions').showIf(
         assignment_id === 'survey' || assignment_id === 'graded_survey',
       )

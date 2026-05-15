@@ -601,7 +601,7 @@ module QuizzesCommon
     els.each do |el|
       # its a question
       if el["class"].include?("question_holder")
-        id = el.find_element(:css, "a")["name"].gsub("question_", "")
+        id = el.find_element(:css, ".display_question")["id"].gsub("question_", "")
         question = {
           id: id.to_i,
           el:,

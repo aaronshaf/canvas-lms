@@ -21,7 +21,7 @@
 require_relative "../views_helper"
 
 describe "assignments/syllabus" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context(@course, @user)
 
@@ -29,6 +29,6 @@ describe "assignments/syllabus" do
     assign(:dates, events.map(&:start_at))
     assign(:undated_events, [@course.assignments.create!(title: "assignment 2"), @course.calendar_events.create!(title: "event 2")])
     render "assignments/syllabus"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

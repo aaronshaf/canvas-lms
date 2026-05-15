@@ -86,7 +86,7 @@ describe "assignments/_submission_sidebar" do
       submission[:submission_type] = "online_quiz"
       assign(:current_user_submission, submission)
       render
-      expect(response).not_to be_nil
+      expect(response).to be_valid_html
     end
   end
 

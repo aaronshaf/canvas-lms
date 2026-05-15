@@ -21,7 +21,7 @@
 require_relative "../views_helper"
 
 describe "profile/_sms_select" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     cc = communication_channel(@user, { username: "user@example.com" })
@@ -29,6 +29,6 @@ describe "profile/_sms_select" do
     assign(:sms_channels, [])
 
     render partial: "profile/sms_select", object: cc
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

@@ -21,7 +21,7 @@
 require_relative "../../views_helper"
 
 describe "quizzes/quizzes/_question_group" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     assign(:quiz, @course.quizzes.create!)
@@ -29,6 +29,6 @@ describe "quizzes/quizzes/_question_group" do
     group[:id] = 5
     group[:questions] = []
     render partial: "quizzes/quizzes/question_group", object: group, locals: { question_type: QuizzesHelper::QuestionType.new }
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

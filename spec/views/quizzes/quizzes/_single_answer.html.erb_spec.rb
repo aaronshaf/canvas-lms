@@ -21,12 +21,12 @@
 require_relative "../../views_helper"
 
 describe "quizzes/quizzes/_single_answer" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     assign(:quiz, @course.quizzes.create!)
     question_type = QuizzesHelper::QuestionType.new
     render partial: "quizzes/quizzes/single_answer", locals: { question_type:, user_answer: nil }
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

@@ -21,7 +21,7 @@
 require_relative "../views_helper"
 
 describe "pseudonyms/confirm_change_password" do
-  it "renders" do
+  it "renders valid HTML" do
     user_factory
     assign(:user, @user)
     assign(:current_user, @user)
@@ -29,6 +29,6 @@ describe "pseudonyms/confirm_change_password" do
     assign(:password_pseudonyms, @user.pseudonyms)
     assign(:cc, communication_channel(@user, { username: "unique@example.com" }))
     render "pseudonyms/confirm_change_password"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

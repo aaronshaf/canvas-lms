@@ -27,12 +27,12 @@ describe "context_modules/index" do
     assign(:collapsed_modules, [])
   end
 
-  it "renders" do
+  it "renders valid HTML" do
     course_factory
     view_context(@course, @user)
     assign(:modules, @course.context_modules.active)
     render "context_modules/index"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "shows content_tags" do
@@ -341,10 +341,8 @@ describe "context_modules/index" do
       assign(:modules, @course.context_modules.active)
       assign(:is_student, true)
 
-      # Should not raise an error even though parent is deleted
-      expect { render "context_modules/index" }.not_to raise_error
-
-      expect(response).not_to be_nil
+      render "context_modules/index"
+      expect(response).to be_valid_html
     end
   end
 end

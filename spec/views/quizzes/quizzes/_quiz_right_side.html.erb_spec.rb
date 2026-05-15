@@ -21,12 +21,12 @@
 require_relative "../../views_helper"
 
 describe "quizzes/quizzes/_quiz_right_side" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     assign(:quiz, @course.quizzes.create!)
     render partial: "quizzes/quizzes/quiz_right_side"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   context "when post policies is enabled" do

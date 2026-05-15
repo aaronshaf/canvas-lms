@@ -21,11 +21,11 @@
 require_relative "../views_helper"
 
 describe "announcements/index" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_teacher
     view_context(@course, @user)
     assign(:body_classes, [])
     render "announcements/index"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

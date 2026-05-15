@@ -21,8 +21,8 @@
 require_relative "../views_helper"
 
 describe "gradebooks/grade_summary_list" do
-  it "renders" do
+  it "renders valid HTML" do
     render "gradebooks/grade_summary_list"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

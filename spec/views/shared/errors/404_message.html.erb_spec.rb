@@ -21,7 +21,7 @@
 require_relative "../../views_helper"
 
 describe "shared/errors/404_message" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     begin
@@ -30,6 +30,6 @@ describe "shared/errors/404_message" do
       exception = assign(:exception, e)
     end
     render "shared/errors/404_message", locals: { exception:, status: "" }
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

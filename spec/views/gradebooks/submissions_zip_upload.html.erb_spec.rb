@@ -30,10 +30,10 @@ describe "gradebooks/submissions_zip_upload" do
     assign(:failures, [])
   end
 
-  it "renders" do
+  it "renders valid HTML" do
     render "gradebooks/submissions_zip_upload"
 
-    expect(rendered).to be_present
+    expect(response).to be_valid_html
   end
 
   it "includes a link back to the gradebook (gradebook by default)" do

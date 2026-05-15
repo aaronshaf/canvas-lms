@@ -21,11 +21,11 @@
 require_relative "../views_helper"
 
 describe "eportfolios/index" do
-  it "renders" do
+  it "renders valid HTML" do
     eportfolio_with_user
     view_portfolio
     assign(:portfolios, [@portfolio])
     render "eportfolios/user_index"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

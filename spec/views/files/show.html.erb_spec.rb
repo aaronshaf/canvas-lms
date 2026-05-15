@@ -21,12 +21,12 @@
 require_relative "../views_helper"
 
 describe "files/index" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     assign(:attachment, @course.attachments.create!(uploaded_data: default_uploaded_data))
     render "files/show"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "displays a message that the file is locked if user is a student and the file is locked/unpublished" do

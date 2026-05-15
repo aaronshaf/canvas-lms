@@ -21,12 +21,12 @@
 require_relative "../../views_helper"
 
 describe "quizzes/quizzes/_form_question" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     assign(:js_env, { quiz_max_combination_count: 200 })
     render partial: "quizzes/quizzes/form_question"
 
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

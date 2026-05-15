@@ -24,16 +24,19 @@ describe "shared/_user_lists" do
   it "renders as a course" do
     assign(:context, course_factory)
     render partial: "shared/user_lists"
+    expect(response).to be_valid_html
   end
 
   it "renders as a root account" do
     assign(:context, Account.default)
     render partial: "shared/user_lists"
+    expect(response).to be_valid_html
   end
 
   it "renders as a sub account" do
     assign(:context, Account.default.sub_accounts.create!)
     render partial: "shared/user_lists"
+    expect(response).to be_valid_html
   end
 
   it "renders as a root account with customized login handle" do
@@ -41,5 +44,6 @@ describe "shared/_user_lists" do
     Account.default.save!
     assign(:context, Account.default)
     render partial: "shared/user_lists"
+    expect(response).to be_valid_html
   end
 end

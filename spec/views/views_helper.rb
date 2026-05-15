@@ -20,6 +20,38 @@
 
 require "nokogiri"
 
+# Asserts that the rendered output parses cleanly under both Nokogiri's HTML4
+# and HTML5 parsers. The two parsers catch different classes of mistakes:
+# HTML4 catches things like broken attribute syntax and duplicate ids; HTML5
+# catches modern structural issues. Code 801 ("Tag X invalid") from HTML4 is
+# filtered out — it just means the tag isn't in the HTML4 vocabulary (svg,
+# dialog, etc.) and HTML5 will validate those properly.
+#
+# Accepts either a string or anything that responds to #body (e.g. response).
+# Pass `as: :document` for full-document parsing (layouts); the default is
+# fragment parsing.
+RSpec::Matchers.define :be_valid_html do |as: :fragment|
+  match do |actual|
+    html = actual.respond_to?(:body) ? actual.body : actual
+    html4 = if as == :document
+              Nokogiri::HTML(html)
+            else
+              Nokogiri::HTML.fragment(html)
+            end
+    html5 = if as == :document
+              Nokogiri::HTML5.parse(html, max_errors: 100)
+            else
+              Nokogiri::HTML5.fragment(html, max_errors: 100)
+            end
+    @errors = html4.errors.reject { |e| e.code == 801 } + html5.errors
+    @errors.empty?
+  end
+  failure_message do |_actual|
+    "expected rendered output to be valid HTML, but the parser reported:\n  " +
+      @errors.map(&:message).join("\n  ")
+  end
+end
+
 def view_context(context = @course, current_user = @user, real_current_user = nil)
   assign(:context, context)
   assign(:current_user, current_user)

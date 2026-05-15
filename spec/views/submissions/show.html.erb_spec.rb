@@ -28,13 +28,13 @@ describe "submissions/show" do
     course_with_student(active_all: true)
   end
 
-  it "renders" do
+  it "renders valid HTML" do
     view_context
     a = @course.assignments.create!(title: "some assignment")
     assign(:assignment, a)
     assign(:submission, a.submit_homework(@user))
     render "submissions/show"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   context "when assignment is a group assignment" do

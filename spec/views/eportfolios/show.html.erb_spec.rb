@@ -33,9 +33,9 @@ describe "eportfolios/show" do
     assign(:page, @portfolio.eportfolio_entries.create!(name: "some entry", eportfolio_category: category))
   end
 
-  it "renders" do
+  it "renders valid HTML" do
     render "eportfolios/show"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "shows the share link explicitly" do

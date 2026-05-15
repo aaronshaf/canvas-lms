@@ -21,7 +21,7 @@
 require_relative "../views_helper"
 
 describe "users/user_dashboard" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context(@course, @user)
     assign(:courses, [@course])
@@ -32,7 +32,7 @@ describe "users/user_dashboard" do
     assign(:stream_items, [])
 
     render "users/user_dashboard"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "shows announcements to users with no enrollments" do

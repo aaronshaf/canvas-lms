@@ -52,10 +52,9 @@ describe "gradebooks/speed_grader" do
     assign(:current_user, @teacher)
   end
 
-  it "renders without error" do
-    expect do
-      render template: "gradebooks/speed_grader", locals:
-    end.not_to raise_error
+  it "renders valid HTML" do
+    render(template: "gradebooks/speed_grader", locals:)
+    expect(response).to be_valid_html
   end
 
   it "includes a mount pount for submission comments" do

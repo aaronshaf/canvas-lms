@@ -21,7 +21,7 @@
 require_relative "../views_helper"
 
 describe "profile/_ways_to_contact" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     assign(:user_data, { can_edit_channels: true })
@@ -31,7 +31,7 @@ describe "profile/_ways_to_contact" do
     assign(:user, @user)
 
     render partial: "profile/ways_to_contact"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   describe "can_edit_channels" do

@@ -21,7 +21,7 @@
 require_relative "../../views_helper"
 
 describe "quizzes/quizzes/submission_versions" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_teacher(active_all: true)
     course_quiz
 
@@ -30,6 +30,6 @@ describe "quizzes/quizzes/submission_versions" do
     assign(:versions, [])
 
     render "quizzes/quizzes/submission_versions"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

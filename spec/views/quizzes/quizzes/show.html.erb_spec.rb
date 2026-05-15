@@ -21,12 +21,12 @@
 require_relative "../../views_helper"
 
 describe "quizzes/quizzes/show" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     assign(:quiz, @course.quizzes.create!)
     render "quizzes/quizzes/show"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "renders a notice instead of grades when grades have not been posted" do

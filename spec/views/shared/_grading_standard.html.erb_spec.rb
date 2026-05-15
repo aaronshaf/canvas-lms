@@ -44,10 +44,10 @@ describe "shared/_grading_standard" do
     view_context(@course, user)
   end
 
-  it "renders" do
+  it "renders valid HTML" do
     render partial: "shared/grading_standard", object: nil, locals: { read_only: false }
 
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "does not show find, edit, or remove links when read only" do

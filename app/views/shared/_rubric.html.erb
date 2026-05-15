@@ -150,7 +150,7 @@
           <% end %>
         </div>
       </div>
-      <div style="font-size: 0.8em; display: none"class="links displaying locked">
+      <div style="font-size: 0.8em; display: none" class="links displaying locked">
         <span style="<%= hidden if editable %>"><%= t 'messages.locked', "Can't change a rubric once you've started using it." %></span>
         <% if for_context %>
           <a href="<%= context_url(context, :context_rubric_url, rubric ? rubric.id : "{{ id }}") %>" class="delete_rubric_url" style="display: none;">&nbsp;</a>

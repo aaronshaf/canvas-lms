@@ -21,10 +21,10 @@
 require_relative "../views_helper"
 
 describe "files/_nested_content" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     render partial: "files/nested_content", object: []
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end

@@ -29,13 +29,13 @@ describe "quizzes/quizzes/new" do
     @quiz.quiz_questions.create
   end
 
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     assign(:quiz, @course.quizzes.create!)
     assign(:js_env, { quiz_max_combination_count: 200 })
     render "quizzes/quizzes/new"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   context "with course and quiz" do

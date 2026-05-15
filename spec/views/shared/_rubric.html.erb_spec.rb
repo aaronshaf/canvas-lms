@@ -26,11 +26,11 @@ describe "shared/_rubric" do
   let(:rubric_association) { rubric_association_model(context:, rubric:) }
   let(:html) { Nokogiri::HTML5.fragment(response) }
 
-  it "renders" do
+  it "renders valid HTML" do
     view_context(context)
 
     render partial: "shared/rubric", locals: { rubric: }
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "renders with points showing" do

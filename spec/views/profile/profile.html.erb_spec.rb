@@ -21,7 +21,7 @@
 require_relative "../views_helper"
 
 describe "profile/profile" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student(active_user: true)
     view_context
 
@@ -36,7 +36,7 @@ describe "profile/profile" do
     assign(:pseudonyms, @user.pseudonyms)
     assign(:password_pseudonyms, [])
     render "profile/profile"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "does not show the delete link for SIS pseudonyms without manage_sis" do

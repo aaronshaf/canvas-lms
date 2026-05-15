@@ -28,9 +28,9 @@ describe "quizzes/quizzes/_quiz_edit" do
     assign(:js_env, { quiz_max_combination_count: 200 })
   end
 
-  it "renders" do
+  it "renders valid HTML" do
     render partial: "quizzes/quizzes/quiz_edit"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "includes conditional content if configured" do

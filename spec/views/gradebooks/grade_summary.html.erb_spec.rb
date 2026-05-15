@@ -21,13 +21,13 @@
 require_relative "../views_helper"
 
 describe "gradebooks/grade_summary" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     @course.assignments.create!(title: "some assignment")
     assign(:presenter, GradeSummaryPresenter.new(@course, @user, nil))
     render "gradebooks/grade_summary"
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 
   it "does not show totals if configured so" do

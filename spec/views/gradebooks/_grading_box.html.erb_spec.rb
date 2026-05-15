@@ -21,11 +21,11 @@
 require_relative "../views_helper"
 
 describe "gradebooks/_grading_box" do
-  it "renders" do
+  it "renders valid HTML" do
     course_with_student
     view_context
     a = @course.assignments.create!(title: "some assignment")
     render partial: "gradebooks/grading_box", object: a
-    expect(response).not_to be_nil
+    expect(response).to be_valid_html
   end
 end
