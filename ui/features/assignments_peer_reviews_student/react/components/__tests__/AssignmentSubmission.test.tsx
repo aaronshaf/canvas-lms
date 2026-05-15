@@ -498,11 +498,7 @@ describe('AssignmentSubmission', () => {
       expect(screen.getByText('Sorry, Something Broke')).toBeInTheDocument()
     })
 
-    it('opens URL in new window when link is clicked', async () => {
-      const user = userEvent.setup()
-      const mockWindowOpen = vi.fn()
-      window.open = mockWindowOpen
-
+    it('renders the URL as a safe external link in a new tab', () => {
       render(
         <AssignmentSubmission
           {...createDefaultProps({
@@ -514,10 +510,10 @@ describe('AssignmentSubmission', () => {
         />,
       )
 
-      const link = screen.getByTestId('url-submission-text')
-      await user.click(link)
-
-      expect(mockWindowOpen).toHaveBeenCalledWith('https://example.com/test')
+      const anchor = screen.getByTestId('url-submission-text').closest('a')
+      expect(anchor).toHaveAttribute('href', 'https://example.com/test')
+      expect(anchor).toHaveAttribute('target', '_blank')
+      expect(anchor).toHaveAttribute('rel', 'noopener noreferrer')
     })
   })
 

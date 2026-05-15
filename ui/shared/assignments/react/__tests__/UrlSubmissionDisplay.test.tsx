@@ -18,33 +18,14 @@
 
 import React from 'react'
 import {render, screen} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import UrlSubmissionDisplay from '../UrlSubmissionDisplay'
 
 describe('UrlSubmissionDisplay', () => {
-  const mockWindowOpen = vi.fn()
-
-  beforeEach(() => {
-    window.open = mockWindowOpen
-    mockWindowOpen.mockClear()
-  })
-
   it('renders the URL text', () => {
     const url = 'https://example.com'
     render(<UrlSubmissionDisplay url={url} />)
 
     expect(screen.getByTestId('url-submission-text')).toHaveTextContent(url)
-  })
-
-  it('opens the URL in a new window when clicked', async () => {
-    const user = userEvent.setup()
-    const url = 'https://example.com/test-page'
-    render(<UrlSubmissionDisplay url={url} />)
-
-    const link = screen.getByTestId('url-submission-text')
-    await user.click(link)
-
-    expect(mockWindowOpen).toHaveBeenCalledWith(url)
   })
 
   it('renders the link component', () => {
@@ -68,5 +49,29 @@ describe('UrlSubmissionDisplay', () => {
     render(<UrlSubmissionDisplay url={url} />)
 
     expect(screen.getByTestId('url-submission-text')).toHaveTextContent(url)
+  })
+
+  it('renders an anchor with the URL as href when the scheme is safe', () => {
+    const url = 'https://example.com'
+    render(<UrlSubmissionDisplay url={url} />)
+
+    const anchor = screen.getByTestId('url-submission-text').closest('a')
+    expect(anchor).toHaveAttribute('href', url)
+  })
+
+  it('neutralizes dangerous schemes at the sink', () => {
+    const url = 'javascript:alert(1)'
+    render(<UrlSubmissionDisplay url={url} />)
+
+    const anchor = screen.getByTestId('url-submission-text').closest('a')
+    expect(anchor).not.toHaveAttribute('href', url)
+  })
+
+  it('opens the link in a new tab with noopener noreferrer', () => {
+    render(<UrlSubmissionDisplay url="https://example.com" />)
+
+    const anchor = screen.getByTestId('url-submission-text').closest('a')
+    expect(anchor).toHaveAttribute('target', '_blank')
+    expect(anchor).toHaveAttribute('rel', 'noopener noreferrer')
   })
 })

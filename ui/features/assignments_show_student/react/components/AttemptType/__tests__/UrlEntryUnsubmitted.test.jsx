@@ -329,6 +329,54 @@ describe('UrlEntry - Unsubmitted', () => {
     expect(window.open).toHaveBeenCalledTimes(1)
   })
 
+  it('neutralizes a javascript: URL before opening the preview', async () => {
+    const props = await makeProps({
+      Submission: {
+        submissionDraft: {
+          activeSubmissionType: 'online_url',
+          attachments: [],
+          body: null,
+          meetsUrlCriteria: true,
+          url: 'javascript:alert(1)',
+        },
+      },
+    })
+    window.open = vi.fn()
+    const mocks = await createGraphqlMocks({ExternalToolConnection: {nodes: [{}]}})
+    const {getByTestId} = render(
+      <MockedProvider mocks={mocks}>
+        <UrlEntry {...props} />
+      </MockedProvider>,
+    )
+
+    fireEvent.click(getByTestId('preview-button'))
+    expect(window.open).toHaveBeenCalledWith('about:blank')
+  })
+
+  it('neutralizes a data: URL before opening the preview', async () => {
+    const props = await makeProps({
+      Submission: {
+        submissionDraft: {
+          activeSubmissionType: 'online_url',
+          attachments: [],
+          body: null,
+          meetsUrlCriteria: true,
+          url: 'data:text/html,<script>alert(1)</script>',
+        },
+      },
+    })
+    window.open = vi.fn()
+    const mocks = await createGraphqlMocks({ExternalToolConnection: {nodes: [{}]}})
+    const {getByTestId} = render(
+      <MockedProvider mocks={mocks}>
+        <UrlEntry {...props} />
+      </MockedProvider>,
+    )
+
+    fireEvent.click(getByTestId('preview-button'))
+    expect(window.open).toHaveBeenCalledWith('about:blank')
+  })
+
   describe('postMessage origin validation (handleLTIURLs)', () => {
     const trustedOrigin = 'http://trusted.example'
     let oldEnv

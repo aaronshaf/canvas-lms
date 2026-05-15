@@ -34,6 +34,7 @@ import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import StudentViewContext from '@canvas/assignments/react/StudentViewContext'
 import {TextInput} from '@instructure/ui-text-input'
 import UrlSubmissionDisplay from '@canvas/assignments/react/UrlSubmissionDisplay'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('assignments_2_url_entry')
 
@@ -225,7 +226,7 @@ class UrlEntry extends React.Component {
                       <Button
                         renderIcon={IconEyeLine}
                         margin="0 0 0 x-small"
-                        onClick={() => window.open(this.state.url)}
+                        onClick={() => window.open(sanitizeUrl(this.state.url))}
                         data-testid="preview-button"
                       >
                         <ScreenReaderContent>{I18n.t('Preview website url')}</ScreenReaderContent>

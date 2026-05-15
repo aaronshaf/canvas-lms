@@ -21,6 +21,7 @@ import {Flex} from '@instructure/ui-flex'
 import {Text} from '@instructure/ui-text'
 import {Link} from '@instructure/ui-link'
 import {IconExternalLinkLine} from '@instructure/ui-icons'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 interface UrlSubmissionDisplayProps {
   url: string
@@ -35,7 +36,9 @@ const UrlSubmissionDisplay: React.FC<UrlSubmissionDisplayProps> = ({url}) => {
             renderIcon={IconExternalLinkLine}
             iconPlacement="end"
             margin="small"
-            onClick={() => window.open(url)}
+            href={sanitizeUrl(url)}
+            target="_blank"
+            rel="noopener noreferrer"
           >
             <span data-testid="url-submission-text">{url}</span>
           </Link>
