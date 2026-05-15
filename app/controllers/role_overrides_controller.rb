@@ -181,6 +181,10 @@ class RoleOverridesController < ApplicationController
 
   before_action :require_role, only: %i[activate_role remove_role update show]
 
+  before_action :require_elevated_auth_provider,
+                only: %i[add_role remove_role activate_role create update],
+                if: :require_elevated_auth_provider_for_role_management?
+
   # @API List roles
   # A paginated list of the roles available to an account.
   #
@@ -826,5 +830,9 @@ class RoleOverridesController < ApplicationController
     end
 
     res
+  end
+
+  def require_elevated_auth_provider_for_role_management?
+    AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_for_role_management")
   end
 end

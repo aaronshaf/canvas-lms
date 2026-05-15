@@ -973,4 +973,129 @@ describe "Roles API", type: :request do
       end
     end
   end
+
+  describe "elevated auth provider enforcement" do
+    let!(:elevated_provider) { @account.authentication_providers.create!(auth_type: "saml") }
+    let(:existing_role) do
+      @account.roles.create!(name: "ExistingElevatedAuthTestRole", base_role_type: "AccountMembership", workflow_state: "active")
+    end
+    let(:enforce_flag_enabled) { true }
+    let(:role_management_flag_enabled) { true }
+    let(:expected_status) { 200 }
+
+    before do
+      AuthenticationMethods::PseudonymAttributes.reset
+
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_return(false)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+        .with("enforce_violations").and_return(enforce_flag_enabled)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+        .with("require_for_role_management").and_return(role_management_flag_enabled)
+    end
+
+    shared_examples "a gated role management action" do
+      context "when no elevated provider is configured" do
+        it "allows the action" do
+          expect(subject).to be_present
+        end
+      end
+
+      context "when an elevated provider is configured" do
+        before do
+          @account.settings[:elevated_auth_provider_global_id] = elevated_provider.global_id
+          @account.save(validate: false)
+        end
+
+        context "and the request uses the elevated provider" do
+          before do
+            allow(AuthenticationMethods::PseudonymAttributes).to receive(:load_auth_provider).and_return(elevated_provider)
+          end
+
+          it "allows the action" do
+            expect(subject).to be_present
+          end
+        end
+
+        context "and the request does not use the elevated provider" do
+          let(:expected_status) { 403 }
+
+          it "blocks with 403 unauthorized" do
+            expect(subject["status"]).to eq "unauthorized"
+          end
+
+          context "but the require_for_role_management flag is off" do
+            let(:role_management_flag_enabled) { false }
+            let(:expected_status) { 200 }
+
+            it "allows the action" do
+              expect(subject).to be_present
+            end
+          end
+
+          context "but the enforce_violations flag is off" do
+            let(:enforce_flag_enabled) { false }
+            let(:expected_status) { 200 }
+
+            it "allows the action" do
+              expect(subject).to be_present
+            end
+          end
+        end
+      end
+    end
+
+    describe "add_role" do
+      subject do
+        api_call(:post,
+                 "/api/v1/accounts/#{@account.id}/roles",
+                 { controller: "role_overrides", action: "add_role", format: "json", account_id: @account.id.to_s },
+                 { role: "ElevatedAuthTestRole" },
+                 {},
+                 { expected_status: })
+      end
+
+      it_behaves_like "a gated role management action"
+    end
+
+    describe "remove_role" do
+      subject do
+        api_call(:delete,
+                 "/api/v1/accounts/#{@account.id}/roles/#{existing_role.id}",
+                 { controller: "role_overrides", action: "remove_role", format: "json", account_id: @account.id.to_s, id: existing_role.id.to_s },
+                 {},
+                 {},
+                 { expected_status: })
+      end
+
+      it_behaves_like "a gated role management action"
+    end
+
+    describe "activate_role" do
+      subject do
+        api_call(:post,
+                 "/api/v1/accounts/#{@account.id}/roles/#{existing_role.id}/activate",
+                 { controller: "role_overrides", action: "activate_role", format: "json", account_id: @account.id.to_s, id: existing_role.id.to_s },
+                 {},
+                 {},
+                 { expected_status: })
+      end
+
+      before { existing_role.deactivate! }
+
+      it_behaves_like "a gated role management action"
+    end
+
+    describe "update" do
+      subject do
+        api_call(:put,
+                 "/api/v1/accounts/#{@account.id}/roles/#{existing_role.id}",
+                 { controller: "role_overrides", action: "update", format: "json", account_id: @account.id.to_s, id: existing_role.id.to_s },
+                 { label: "RenamedElevatedAuthTestRole" },
+                 {},
+                 { expected_status: })
+      end
+
+      it_behaves_like "a gated role management action"
+    end
+  end
 end
