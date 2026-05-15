@@ -21,13 +21,30 @@ module AuthenticationMethods
   module ElevatedAuthProvider
     DYNAMIC_SETTINGS_KEY = "elevated_auth_provider.yml"
 
-    def self.setting_enabled?(name)
-      yaml = DynamicSettings.find(tree: :private)[DYNAMIC_SETTINGS_KEY, failsafe_cache: Rails.root.join("config")]
-      settings = YAML.safe_load(yaml || "{}") || {}
-      ActiveModel::Type::Boolean.new.cast(settings[name])
-    rescue Psych::Exception => e
-      Rails.logger.warn("[ElevatedAuthProvider] Failed to parse #{DYNAMIC_SETTINGS_KEY}: #{e.message}")
-      false
+    class << self
+      def setting_enabled?(name)
+        Canvas::Plugin.value_to_boolean(settings[name])
+      rescue Psych::Exception => e
+        Rails.logger.warn("[ElevatedAuthProvider] Failed to parse #{DYNAMIC_SETTINGS_KEY}: #{e.message}")
+        false
+      end
+
+      def reload
+        @settings = nil
+      end
+
+      def settings
+        @settings ||= begin
+          yaml = DynamicSettings.find(tree: :private)[DYNAMIC_SETTINGS_KEY, failsafe_cache: Rails.root.join("config")]
+          YAML.safe_load(yaml || "{}") || {}
+        rescue Psych::Exception
+          {}
+        end
+      end
+
+      def log_violations?
+        setting_enabled?("log_violations")
+      end
     end
 
     def require_elevated_auth_provider

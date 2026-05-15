@@ -39,6 +39,7 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
   before do
     AuthenticationMethods::PseudonymAttributes.reset
     AuthenticationMethods::AccessTokenAttributes.reset
+    AuthenticationMethods::ElevatedAuthProvider.reload
     allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_return(false)
     allow(InstStatsd::Statsd).to receive(:distributed_increment).and_call_original
     allow(InstStatsd::Statsd).to receive(:event).and_call_original
@@ -328,6 +329,100 @@ describe AuthenticationMethods::ElevatedAuthProvider, type: :controller do
             end
           end
         end
+      end
+    end
+  end
+
+  describe ".settings" do
+    let(:private_settings) { instance_double(DynamicSettings::FallbackProxy) }
+
+    before do
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_call_original
+      allow(DynamicSettings).to receive(:find).and_call_original
+      allow(DynamicSettings).to receive(:find).with(tree: :private).and_return(private_settings)
+    end
+
+    it "parses YAML from DynamicSettings" do
+      allow(private_settings).to receive(:[])
+        .with(AuthenticationMethods::ElevatedAuthProvider::DYNAMIC_SETTINGS_KEY, failsafe_cache: Rails.root.join("config"))
+        .and_return("log_violations: true\nenforce_violations: false\n")
+      expect(AuthenticationMethods::ElevatedAuthProvider.settings).to eq("log_violations" => true, "enforce_violations" => false)
+    end
+
+    it "returns an empty hash when the YAML is nil" do
+      allow(private_settings).to receive(:[]).and_return(nil)
+      expect(AuthenticationMethods::ElevatedAuthProvider.settings).to eq({})
+      expect(private_settings).to have_received(:[])
+        .with(AuthenticationMethods::ElevatedAuthProvider::DYNAMIC_SETTINGS_KEY, failsafe_cache: Rails.root.join("config"))
+    end
+
+    it "returns an empty hash when the YAML parses to nil" do
+      allow(private_settings).to receive(:[]).and_return("---\n")
+      expect(AuthenticationMethods::ElevatedAuthProvider.settings).to eq({})
+      expect(private_settings).to have_received(:[])
+        .with(AuthenticationMethods::ElevatedAuthProvider::DYNAMIC_SETTINGS_KEY, failsafe_cache: Rails.root.join("config"))
+    end
+
+    it "returns an empty hash when YAML parsing raises" do
+      allow(private_settings).to receive(:[]).and_return("::: not valid yaml :::")
+      expect(AuthenticationMethods::ElevatedAuthProvider.settings).to eq({})
+      expect(private_settings).to have_received(:[])
+        .with(AuthenticationMethods::ElevatedAuthProvider::DYNAMIC_SETTINGS_KEY, failsafe_cache: Rails.root.join("config"))
+    end
+
+    it "memoizes the parsed settings" do
+      allow(private_settings).to receive(:[]).and_return("log_violations: true\n")
+      AuthenticationMethods::ElevatedAuthProvider.settings
+      AuthenticationMethods::ElevatedAuthProvider.settings
+      expect(private_settings).to have_received(:[]).once
+    end
+
+    describe ".reload" do
+      it "clears the memoized settings so the next call re-reads" do
+        allow(private_settings).to receive(:[]).and_return("log_violations: true\n", "log_violations: false\n")
+        expect(AuthenticationMethods::ElevatedAuthProvider.settings).to eq("log_violations" => true)
+        AuthenticationMethods::ElevatedAuthProvider.reload
+        expect(AuthenticationMethods::ElevatedAuthProvider.settings).to eq("log_violations" => false)
+        expect(private_settings).to have_received(:[]).twice
+      end
+    end
+  end
+
+  describe ".setting_enabled?" do
+    before do
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_call_original
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:settings).and_return(settings_hash)
+    end
+
+    context "with a truthy value" do
+      let(:settings_hash) { { "log_violations" => true } }
+
+      it "returns true" do
+        expect(AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("log_violations")).to be true
+      end
+    end
+
+    context "with a string truthy value" do
+      let(:settings_hash) { { "log_violations" => "true" } }
+
+      it "casts strings to booleans" do
+        expect(AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("log_violations")).to be true
+      end
+    end
+
+    context "with a falsey value" do
+      let(:settings_hash) { { "log_violations" => false } }
+
+      it "returns false" do
+        expect(AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("log_violations")).to be false
+      end
+    end
+
+    context "with a missing key" do
+      let(:settings_hash) { {} }
+
+      it "returns false" do
+        expect(AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("log_violations")).to be false
       end
     end
   end
