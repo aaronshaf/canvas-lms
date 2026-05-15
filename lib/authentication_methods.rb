@@ -69,7 +69,7 @@ module AuthenticationMethods
     if auth_context[:real_current_user]
       @real_current_user = auth_context[:real_current_user]
       @real_current_pseudonym = auth_context[:real_current_pseudonym]
-      logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{request.url}"
+      logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{LoggingFilter.filter_uri(request.url)}"
     end
     raise_if_pseudonym_suspended
     @authenticated_with_jwt = true
@@ -97,7 +97,7 @@ module AuthenticationMethods
       if services_jwt.masquerading_user_global_id
         @real_current_user = User.find(services_jwt.masquerading_user_global_id)
         @real_current_pseudonym = SisPseudonym.for(@real_current_user, @domain_root_account, type: :implicit, require_sis: false)
-        logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{request.url}"
+        logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{LoggingFilter.filter_uri(request.url)}"
       end
       raise_if_pseudonym_suspended
       @authenticated_with_jwt = true
@@ -330,13 +330,13 @@ module AuthenticationMethods
           return false
           # else: they do match, everything is already set
         end
-        logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{request.url} via masquerade token"
+        logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{LoggingFilter.filter_uri(request.url)} via masquerade token"
       elsif user&.can_masquerade?(@current_user, @domain_root_account)
         @real_current_user = @current_user
         @current_user = user
         @real_current_pseudonym = @current_pseudonym
         @current_pseudonym = SisPseudonym.for(@current_user, @domain_root_account, type: :implicit, require_sis: false)
-        logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{request.url}"
+        logger.warn "[AUTH] #{@real_current_user.name}(#{@real_current_user.id}) impersonating #{@current_user.name} on page #{LoggingFilter.filter_uri(request.url)}"
       elsif api_request? # fail silently for UI, but not for API
         result = { errors: "Invalid as_user_id" }
         if user&.deleted? && user.merged_into_user_id && user.grants_right?(@current_user, :read)

@@ -266,6 +266,30 @@ describe AuthenticationMethods do
 
         expect { controller.send(:load_user) }.to raise_error(AuthenticationMethods::AccessTokenError)
       end
+
+      it "filters sensitive query params from the [AUTH] impersonating warn log" do
+        base64_encoded_token = build_encoded_token(@user.id, real_user_id: @real_user.id)
+        request = instance_double(ActionDispatch::Request,
+                                  authorization: "Bearer #{base64_encoded_token}",
+                                  format: Mime[:json],
+                                  host_with_port: "",
+                                  url: "https://canvas.example.com/courses/1?session_token=SHOULD_NOT_APPEAR_IN_LOGS",
+                                  method: "GET")
+        controller = mock_controller_class.new(request:)
+
+        warnings = []
+        logger_spy = instance_double(Logger, info: nil)
+        allow(logger_spy).to receive(:warn) { |msg| warnings << msg }
+        allow(controller).to receive_messages(api_request?: true, logger: logger_spy)
+
+        controller.send(:load_user)
+
+        impersonating = warnings.grep(/impersonating/)
+
+        expect(impersonating).not_to be_empty
+        expect(impersonating.join("\n")).to include("session_token=[FILTERED]")
+        expect(impersonating.join("\n")).not_to include("SHOULD_NOT_APPEAR_IN_LOGS")
+      end
     end
 
     context "with an access token" do

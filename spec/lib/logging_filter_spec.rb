@@ -43,6 +43,12 @@ describe "LoggingFilter" do
       expect(filtered_url).to eq url
     end
 
+    it "filters session_token from a URL" do
+      url = "https://canvas.example.com/courses/1?session_token=SECRET_VALUE"
+      filtered_url = LoggingFilter.filter_uri(url)
+      expect(filtered_url).to eq "https://canvas.example.com/courses/1?session_token=[FILTERED]"
+    end
+
     context "AWS pre-signed S3 URLs" do
       # A pre-signed S3 URL is bearer-equivalent for its TTL: anyone who reads it can download
       # the object until the signature expires. These tests lock in the H4 mitigation — the

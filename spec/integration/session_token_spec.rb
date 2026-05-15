@@ -84,4 +84,27 @@ describe "session token" do
     follow_redirect!
     expect(response).to be_successful
   end
+
+  it "does not leak the raw session_token to Rails.logger when a user consumes a session_url" do
+    log_messages = []
+    %i[debug info warn error fatal].each do |level|
+      allow(Rails.logger).to receive(level) do |msg = nil, &block|
+        log_messages << (msg || block&.call).to_s
+      end
+    end
+
+    get "https://www.example.com/login/session_token?return_to=https://www.example.com/",
+        params: { access_token: }
+    expect(response).to be_successful
+    raw_token = JSON.parse(response.body)["session_url"][/session_token=([^&]+)/, 1]
+    expect(raw_token).to be_present
+
+    # Focus the assertion on the consumption request (the one whose URL carries the token).
+    log_messages.clear
+
+    get "https://www.example.com/?session_token=#{raw_token}"
+
+    joined = log_messages.compact.join("\n")
+    expect(joined).not_to include(raw_token)
+  end
 end
