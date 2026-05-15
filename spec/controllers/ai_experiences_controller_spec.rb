@@ -17,7 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-describe AiExperiencesController do
+require_relative "../support/request_helper"
+
+describe AiExperiencesController, type: :request do
   before :once do
     course_with_teacher(active_all: true)
     student_in_course(active_all: true)
@@ -36,7 +38,7 @@ describe AiExperiencesController do
       before { user_session(@teacher) }
 
       it "returns http success" do
-        get :index, params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json"
         expect(response).to be_successful
       end
 
@@ -49,7 +51,7 @@ describe AiExperiencesController do
           workflow_state: "published"
         )
 
-        get :index, params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json"
         json_response = json_parse(response.body)
         experiences = json_response["experiences"]
         expect(experiences.length).to eq 2
@@ -67,32 +69,34 @@ describe AiExperiencesController do
           workflow_state: "published"
         )
 
-        get :index, params: { course_id: @course.id, workflow_state: "published" }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json", params: { workflow_state: "published" }
         json_response = json_parse(response.body)
         experiences = json_response["experiences"]
         expect(experiences.length).to eq 1
         expect(experiences.first["id"]).to eq published_experience.id
       end
 
-      it "sets COURSE_ID in js_env and page title for HTML format" do
-        get :index, params: { course_id: @course.id }
-        expect(assigns[:js_env][:COURSE_ID]).to eq(@course.id)
-        expect(assigns(:page_title)).to eq("AI Experiences")
+      it "sets COURSE_ID in js_env for HTML format" do
+        get "/courses/#{@course.id}/ai_experiences"
+        expect(js_env_from_response(response)["COURSE_ID"].to_i).to eq(@course.id)
+        parsed_html_body = Nokogiri.parse(response.body)
+        expect(parsed_html_body.css("title").first.inner_html).to eq("AI Experiences")
       end
 
       it "sets the active tab" do
-        get :index, params: { course_id: @course.id }
-        expect(assigns(:active_tab)).to eq("ai_experiences")
+        get "/courses/#{@course.id}/ai_experiences"
+        parsed_html_body = Nokogiri.parse(response.body)
+        expect(parsed_html_body.css("body").first.classes).to include("ai_experiences")
       end
 
       it "returns can_manage true for teachers" do
-        get :index, params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json"
         json_response = json_parse(response.body)
         expect(json_response["can_manage"]).to be true
       end
 
       it "does not include submission_status for teachers" do
-        get :index, params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json"
         json_response = json_parse(response.body)
         experiences = json_response["experiences"]
 
@@ -110,7 +114,7 @@ describe AiExperiencesController do
           workflow_state: "published"
         )
 
-        get :index, params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json"
         json_response = json_parse(response.body)
         experiences = json_response["experiences"]
 
@@ -137,7 +141,7 @@ describe AiExperiencesController do
             service_double = instance_double(AiExperiences::ConversationContextDocumentsService)
             allow(AiExperiences::ConversationContextDocumentsService).to receive(:new).and_return(service_double)
             expect(service_double).to receive(:sync_index_status).with(ai_experience: @ai_experience)
-            get :index, params: { course_id: @course.id }, format: :json
+            get "/courses/#{@course.id}/ai_experiences.json"
           end
         end
 
@@ -151,7 +155,7 @@ describe AiExperiencesController do
 
           it "does not sync index status for completed experiences" do
             expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get :index, params: { course_id: @course.id }, format: :json
+            get "/courses/#{@course.id}/ai_experiences.json"
           end
         end
 
@@ -165,7 +169,7 @@ describe AiExperiencesController do
 
           it "does not sync index status for failed experiences" do
             expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get :index, params: { course_id: @course.id }, format: :json
+            get "/courses/#{@course.id}/ai_experiences.json"
           end
         end
 
@@ -179,7 +183,7 @@ describe AiExperiencesController do
 
           it "does not sync index status for not_started experiences" do
             expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get :index, params: { course_id: @course.id }, format: :json
+            get "/courses/#{@course.id}/ai_experiences.json"
           end
         end
 
@@ -194,7 +198,7 @@ describe AiExperiencesController do
 
           it "does not sync index status" do
             expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get :index, params: { course_id: @course.id }, format: :json
+            get "/courses/#{@course.id}/ai_experiences.json"
           end
         end
 
@@ -208,7 +212,7 @@ describe AiExperiencesController do
 
           it "does not sync index status" do
             expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get :index, params: { course_id: @course.id }, format: :json
+            get "/courses/#{@course.id}/ai_experiences.json"
           end
         end
       end
@@ -218,7 +222,7 @@ describe AiExperiencesController do
       before { user_session(@student) }
 
       it "returns http success" do
-        get :index, params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json"
         expect(response).to be_successful
       end
 
@@ -238,7 +242,7 @@ describe AiExperiencesController do
           workflow_state: "published"
         )
 
-        get :index, params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json"
         json_response = json_parse(response.body)
         experiences = json_response["experiences"]
         experience_ids = experiences.pluck("id")
@@ -247,7 +251,7 @@ describe AiExperiencesController do
       end
 
       it "returns can_manage false for students" do
-        get :index, params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json"
         json_response = json_parse(response.body)
         expect(json_response["can_manage"]).to be false
       end
@@ -261,7 +265,7 @@ describe AiExperiencesController do
           workflow_state: "published"
         )
 
-        get :index, params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json"
         json_response = json_parse(response.body)
         experiences = json_response["experiences"]
 
@@ -279,7 +283,7 @@ describe AiExperiencesController do
           workflow_state: "published"
         )
 
-        get :index, params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json"
         json_response = json_parse(response.body)
         experiences = json_response["experiences"]
 
@@ -297,7 +301,7 @@ describe AiExperiencesController do
             workflow_state: "published"
           )
 
-          get :index, params: { course_id: @course.id }, format: :json
+          get "/courses/#{@course.id}/ai_experiences.json"
           json_response = json_parse(response.body)
           experiences = json_response["experiences"]
 
@@ -324,7 +328,7 @@ describe AiExperiencesController do
             workflow_state: "active"
           )
 
-          get :index, params: { course_id: @course.id }, format: :json
+          get "/courses/#{@course.id}/ai_experiences.json"
           json_response = json_parse(response.body)
           experiences = json_response["experiences"]
 
@@ -351,7 +355,7 @@ describe AiExperiencesController do
             workflow_state: "completed"
           )
 
-          get :index, params: { course_id: @course.id }, format: :json
+          get "/courses/#{@course.id}/ai_experiences.json"
           json_response = json_parse(response.body)
           experiences = json_response["experiences"]
 
@@ -392,7 +396,7 @@ describe AiExperiencesController do
             updated_at: 1.day.ago
           )
 
-          get :index, params: { course_id: @course.id }, format: :json
+          get "/courses/#{@course.id}/ai_experiences.json"
           json_response = json_parse(response.body)
           experiences = json_response["experiences"]
 
@@ -420,7 +424,7 @@ describe AiExperiencesController do
             workflow_state: "deleted"
           )
 
-          get :index, params: { course_id: @course.id }, format: :json
+          get "/courses/#{@course.id}/ai_experiences.json"
           json_response = json_parse(response.body)
           experiences = json_response["experiences"]
 
@@ -444,7 +448,7 @@ describe AiExperiencesController do
       end
 
       it "returns forbidden for teachers not enrolled in this course" do
-        get :index, params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json"
         expect(response).to have_http_status(:forbidden)
       end
     end
@@ -457,14 +461,14 @@ describe AiExperiencesController do
       before { user_session(@unenrolled_user) }
 
       it "returns forbidden for unenrolled users" do
-        get :index, params: { course_id: @course.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences.json"
         expect(response).to have_http_status(:forbidden)
       end
 
       it "renders unauthorized page for HTML requests" do
-        get :index, params: { course_id: @course.id }
+        get "/courses/#{@course.id}/ai_experiences"
         expect(response).to have_http_status(:unauthorized)
-        expect(response).to render_template("shared/unauthorized")
+        expect(response.body).to include('id="unauthorized_message"')
       end
     end
   end
@@ -474,12 +478,12 @@ describe AiExperiencesController do
       before { user_session(@teacher) }
 
       it "returns success for HTML format" do
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}"
         expect(response).to be_successful
       end
 
       it "returns JSON for JSON format" do
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         expect(response).to be_successful
         experience = json_parse(response.body)
         expect(experience["id"]).to eq(@ai_experience.id)
@@ -487,36 +491,37 @@ describe AiExperiencesController do
       end
 
       it "returns can_manage true in JSON response" do
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         json_response = json_parse(response.body)
         expect(json_response["can_manage"]).to be true
       end
 
       it "sets the active tab and page title" do
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }
-        expect(assigns(:active_tab)).to eq("ai_experiences")
-        expect(assigns(:page_title)).to eq(@ai_experience.title)
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}"
+        parsed_html_body = Nokogiri.parse(response.body)
+        expect(parsed_html_body.css("body").first.classes).to include("ai_experiences")
+        expect(parsed_html_body.css("title").first.inner_html).to eq(@ai_experience.title)
       end
 
       it "sets ai_experiences_context_file_upload feature flag in js_env when enabled" do
         @course.enable_feature!(:ai_experiences_context_file_upload)
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }
-        expect(assigns[:js_env][:FEATURES][:ai_experiences_context_file_upload]).to be true
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}"
+        expect(js_env_from_response(response).dig("FEATURES", "ai_experiences_context_file_upload")).to be true
       end
 
       it "sets ai_experiences_context_file_upload feature flag in js_env when disabled" do
         @course.disable_feature!(:ai_experiences_context_file_upload)
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }
-        expect(assigns[:js_env][:FEATURES][:ai_experiences_context_file_upload]).to be false
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}"
+        expect(js_env_from_response(response).dig("FEATURES", "ai_experiences_context_file_upload")).to be false
       end
 
       it "sets AI_EXPERIENCES_MESSAGE_MAX_LENGTH in js_env" do
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }
-        expect(assigns[:js_env][:AI_EXPERIENCES_MESSAGE_MAX_LENGTH]).to eq(AiConversation::USER_MESSAGE_MAX_LENGTH)
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}"
+        expect(js_env_from_response(response)["AI_EXPERIENCES_MESSAGE_MAX_LENGTH"]).to eq(AiConversation::USER_MESSAGE_MAX_LENGTH)
       end
 
       it "includes facts and pedagogical_guidance in JSON response for teachers" do
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         json_response = json_parse(response.body)
         expect(json_response["facts"]).to eq(@ai_experience.facts)
         expect(json_response["pedagogical_guidance"]).to eq(@ai_experience.pedagogical_guidance)
@@ -534,7 +539,7 @@ describe AiExperiencesController do
             service_double = instance_double(AiExperiences::ConversationContextDocumentsService)
             allow(AiExperiences::ConversationContextDocumentsService).to receive(:new).and_return(service_double)
             expect(service_double).to receive(:sync_index_status).with(ai_experience: @ai_experience)
-            get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+            get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
           end
         end
 
@@ -546,7 +551,7 @@ describe AiExperiencesController do
 
           it "does not call sync_index_status" do
             expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+            get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
           end
         end
 
@@ -558,7 +563,7 @@ describe AiExperiencesController do
 
           it "does not call sync_index_status" do
             expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+            get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
           end
         end
       end
@@ -569,20 +574,20 @@ describe AiExperiencesController do
 
       it "returns success for published experiences" do
         @ai_experience.update!(workflow_state: "published")
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         expect(response).to be_successful
       end
 
       it "returns can_manage false in JSON response" do
         @ai_experience.update!(workflow_state: "published")
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         json_response = json_parse(response.body)
         expect(json_response["can_manage"]).to be false
       end
 
       it "does not include facts and pedagogical_guidance in JSON response for students" do
         @ai_experience.update!(workflow_state: "published")
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         json_response = json_parse(response.body)
         expect(json_response).not_to have_key("facts")
         expect(json_response).not_to have_key("pedagogical_guidance")
@@ -590,22 +595,22 @@ describe AiExperiencesController do
 
       it "includes learning_objective in JSON response for students" do
         @ai_experience.update!(workflow_state: "published")
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         json_response = json_parse(response.body)
         expect(json_response["learning_objective"]).to eq(@ai_experience.learning_objective)
       end
 
       it "returns forbidden for unpublished experiences" do
         @ai_experience.update!(workflow_state: "unpublished")
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         expect(response).to have_http_status(:forbidden)
       end
 
       it "renders unauthorized page for unpublished experiences in HTML format" do
         @ai_experience.update!(workflow_state: "unpublished")
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}"
         expect(response).to have_http_status(:unauthorized)
-        expect(response).to render_template("shared/unauthorized")
+        expect(response.body).to include('id="unauthorized_message"')
       end
     end
 
@@ -623,7 +628,7 @@ describe AiExperiencesController do
 
       it "returns forbidden for teachers not enrolled in this course" do
         @ai_experience.update!(workflow_state: "published")
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         expect(response).to have_http_status(:forbidden)
       end
     end
@@ -637,13 +642,13 @@ describe AiExperiencesController do
 
       it "returns forbidden for published experiences when unenrolled" do
         @ai_experience.update!(workflow_state: "published")
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         expect(response).to have_http_status(:forbidden)
       end
 
       it "returns forbidden for unpublished experiences when unenrolled" do
         @ai_experience.update!(workflow_state: "unpublished")
-        get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         expect(response).to have_http_status(:forbidden)
       end
     end
@@ -663,16 +668,14 @@ describe AiExperiencesController do
       end
 
       it "returns forbidden for teachers not enrolled in this course" do
-        post :create,
+        post "/courses/#{@course.id}/ai_experiences.json",
              params: {
-               course_id: @course.id,
                ai_experience: {
                  title: "New Experience",
                  learning_objective: "Test objective",
                  pedagogical_guidance: "Test guidance"
                }
-             },
-             format: :json
+             }
 
         expect(response).to have_http_status(:forbidden)
       end
@@ -691,7 +694,7 @@ describe AiExperiencesController do
         }
 
         initial_count = AiExperience.count
-        post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+        post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
         expect(AiExperience.count).to eq(initial_count + 1)
 
         expect(response).to have_http_status(:created)
@@ -712,7 +715,7 @@ describe AiExperiencesController do
         }
 
         initial_count = AiExperience.count
-        post :create, params: { course_id: @course.id, ai_experience: invalid_params }, format: :json
+        post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: invalid_params }
         expect(AiExperience.count).to eq(initial_count)
 
         expect(response).to have_http_status(:bad_request)
@@ -726,7 +729,7 @@ describe AiExperiencesController do
         }
 
         initial_count = AiExperience.count
-        post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+        post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
         expect(AiExperience.count).to eq(initial_count + 1)
 
         expect(response).to have_http_status(:created)
@@ -745,7 +748,7 @@ describe AiExperiencesController do
           pedagogical_guidance: "Test pedagogical guidance"
         }
 
-        post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+        post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
 
         created_experience = AiExperience.last
         expect(created_experience.course).to eq(@course)
@@ -765,7 +768,7 @@ describe AiExperiencesController do
             context_file_ids: [attachment.id]
           }
 
-          post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+          post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
           expect(response).to have_http_status(:created)
 
           created_experience = AiExperience.last
@@ -783,7 +786,7 @@ describe AiExperiencesController do
           }
 
           expect do
-            post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+            post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
           end.not_to change(AiExperience, :count)
 
           expect(response).to have_http_status(:unprocessable_content)
@@ -801,7 +804,7 @@ describe AiExperiencesController do
           }
 
           expect do
-            post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+            post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
           end.not_to change(AiExperience, :count)
 
           expect(response).to have_http_status(:unprocessable_content)
@@ -819,7 +822,7 @@ describe AiExperiencesController do
           }
 
           expect do
-            post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+            post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
           end.not_to change(AiExperience, :count)
 
           expect(response).to have_http_status(:unprocessable_content)
@@ -839,7 +842,7 @@ describe AiExperiencesController do
           }
 
           expect do
-            post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+            post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
           end.not_to change(AiExperience, :count)
 
           expect(response).to have_http_status(:unprocessable_content)
@@ -859,7 +862,7 @@ describe AiExperiencesController do
             context_file_ids: [attachment.id]
           }
 
-          post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+          post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
           expect(response).to have_http_status(:created)
 
           created_experience = AiExperience.last
@@ -878,25 +881,22 @@ describe AiExperiencesController do
       it "increments total_created on success" do
         expect(InstStatsd::Statsd).to receive(:increment).with("ai_experiences.total_created", tags: expected_tags)
         allow(InstStatsd::Statsd).to receive(:increment)
-        post :create,
-             params: { course_id: @course.id, ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance" } },
-             format: :json
+        post "/courses/#{@course.id}/ai_experiences.json",
+             params: { ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance" } }
       end
 
       it "increments total_published when created as published" do
         expect(InstStatsd::Statsd).to receive(:increment).with("ai_experiences.total_published", tags: expected_tags)
         allow(InstStatsd::Statsd).to receive(:increment)
-        post :create,
-             params: { course_id: @course.id, ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance", workflow_state: "published" } },
-             format: :json
+        post "/courses/#{@course.id}/ai_experiences.json",
+             params: { ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance", workflow_state: "published" } }
       end
 
       it "does not increment total_published when created as unpublished" do
         expect(InstStatsd::Statsd).not_to receive(:increment).with("ai_experiences.total_published", anything)
         allow(InstStatsd::Statsd).to receive(:increment)
-        post :create,
-             params: { course_id: @course.id, ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance" } },
-             format: :json
+        post "/courses/#{@course.id}/ai_experiences.json",
+             params: { ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance" } }
       end
 
       it "increments total_with_source_files when created with files" do
@@ -904,33 +904,28 @@ describe AiExperiencesController do
         attachment = attachment_model(context: @course, size: 1.megabyte)
         expect(InstStatsd::Statsd).to receive(:increment).with("ai_experiences.total_with_source_files", tags: expected_tags)
         allow(InstStatsd::Statsd).to receive(:increment)
-        post :create,
-             params: { course_id: @course.id, ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance", context_file_ids: [attachment.id] } },
-             format: :json
+        post "/courses/#{@course.id}/ai_experiences.json",
+             params: { ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance", context_file_ids: [attachment.id] } }
       end
 
       it "does not increment total_with_source_files when created without files" do
         expect(InstStatsd::Statsd).not_to receive(:increment).with("ai_experiences.total_with_source_files", anything)
         allow(InstStatsd::Statsd).to receive(:increment)
-        post :create,
-             params: { course_id: @course.id, ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance" } },
-             format: :json
+        post "/courses/#{@course.id}/ai_experiences.json",
+             params: { ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance" } }
       end
 
       it "does not emit metrics on failure" do
         expect(InstStatsd::Statsd).not_to receive(:increment)
-        post :create,
-             params: { course_id: @course.id, ai_experience: { title: "" } },
-             format: :json
+        post "/courses/#{@course.id}/ai_experiences.json",
+             params: { ai_experience: { title: "" } }
       end
 
       it "does not emit metrics when context is not a Course" do
         expect(InstStatsd::Statsd).not_to receive(:increment)
-        allow(controller).to receive(:require_context)
-        controller.instance_variable_set(:@context, @course.account)
-        post :create,
-             params: { course_id: @course.id, ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance" } },
-             format: :json
+        allow_any_instance_of(Api).to receive(:api_find).and_return(Account.default)
+        post "/courses/#{@course.id}/ai_experiences.json",
+             params: { ai_experience: { title: "New", learning_objective: "obj", pedagogical_guidance: "guidance" } }
       end
     end
 
@@ -944,7 +939,7 @@ describe AiExperiencesController do
           pedagogical_guidance: "Test pedagogical guidance"
         }
 
-        post :create, params: { course_id: @course.id, ai_experience: experience_params }, format: :json
+        post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
         assert_forbidden
       end
     end
@@ -964,13 +959,8 @@ describe AiExperiencesController do
       end
 
       it "returns forbidden for teachers not enrolled in this course" do
-        put :update,
-            params: {
-              course_id: @course.id,
-              id: @ai_experience.id,
-              ai_experience: { title: "Updated Title" }
-            },
-            format: :json
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json",
+            params: { ai_experience: { title: "Updated Title" } }
 
         expect(response).to have_http_status(:forbidden)
       end
@@ -988,7 +978,7 @@ describe AiExperiencesController do
           pedagogical_guidance: "Updated pedagogical guidance"
         }
 
-        put :update, params: { course_id: @course.id, id: @ai_experience.id, ai_experience: update_params }, format: :json
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
 
         expect(response).to have_http_status(:ok)
 
@@ -1007,7 +997,7 @@ describe AiExperiencesController do
           pedagogical_guidance: "" # pedagogical_guidance is required
         }
 
-        put :update, params: { course_id: @course.id, id: @ai_experience.id, ai_experience: invalid_params }, format: :json
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: invalid_params }
 
         expect(response).to have_http_status(:bad_request)
 
@@ -1025,7 +1015,7 @@ describe AiExperiencesController do
             context_file_ids: [attachment.id]
           }
 
-          put :update, params: { course_id: @course.id, id: @ai_experience.id, ai_experience: update_params }, format: :json
+          put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
           expect(response).to have_http_status(:ok)
 
           @ai_experience.reload
@@ -1040,7 +1030,7 @@ describe AiExperiencesController do
             context_file_ids: [other_course_attachment.id]
           }
 
-          put :update, params: { course_id: @course.id, id: @ai_experience.id, ai_experience: update_params }, format: :json
+          put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
 
           expect(response).to have_http_status(:unprocessable_content)
           expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
@@ -1058,7 +1048,7 @@ describe AiExperiencesController do
             context_file_ids: [good_attachment.id, bad_attachment.id]
           }
 
-          put :update, params: { course_id: @course.id, id: @ai_experience.id, ai_experience: update_params }, format: :json
+          put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
 
           expect(response).to have_http_status(:unprocessable_content)
           expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
@@ -1074,7 +1064,7 @@ describe AiExperiencesController do
             context_file_ids: [personal_attachment.id]
           }
 
-          put :update, params: { course_id: @course.id, id: @ai_experience.id, ai_experience: update_params }, format: :json
+          put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
 
           expect(response).to have_http_status(:unprocessable_content)
           expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
@@ -1094,7 +1084,7 @@ describe AiExperiencesController do
             context_file_ids: [attachment.id]
           }
 
-          put :update, params: { course_id: @course.id, id: @ai_experience.id, ai_experience: update_params }, format: :json
+          put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
           expect(response).to have_http_status(:ok)
 
           @ai_experience.reload
@@ -1113,18 +1103,16 @@ describe AiExperiencesController do
       it "increments total_published when transitioning to published" do
         expect(InstStatsd::Statsd).to receive(:increment).with("ai_experiences.total_published", tags: expected_tags)
         allow(InstStatsd::Statsd).to receive(:increment)
-        put :update,
-            params: { course_id: @course.id, id: @ai_experience.id, ai_experience: { workflow_state: "published" } },
-            format: :json
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json",
+            params: { ai_experience: { workflow_state: "published" } }
       end
 
       it "decrements total_published when transitioning away from published" do
         @ai_experience.update!(workflow_state: "published")
         expect(InstStatsd::Statsd).to receive(:decrement).with("ai_experiences.total_published", tags: expected_tags)
         allow(InstStatsd::Statsd).to receive(:decrement)
-        put :update,
-            params: { course_id: @course.id, id: @ai_experience.id, ai_experience: { workflow_state: "unpublished" } },
-            format: :json
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json",
+            params: { ai_experience: { workflow_state: "unpublished" } }
       end
 
       it "does not emit publish metrics when workflow_state is unchanged" do
@@ -1132,17 +1120,15 @@ describe AiExperiencesController do
         expect(InstStatsd::Statsd).not_to receive(:decrement).with("ai_experiences.total_published", anything)
         allow(InstStatsd::Statsd).to receive(:increment)
         allow(InstStatsd::Statsd).to receive(:decrement)
-        put :update,
-            params: { course_id: @course.id, id: @ai_experience.id, ai_experience: { title: "New Title" } },
-            format: :json
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json",
+            params: { ai_experience: { title: "New Title" } }
       end
 
       it "does not emit metrics on failure" do
         expect(InstStatsd::Statsd).not_to receive(:increment)
         expect(InstStatsd::Statsd).not_to receive(:decrement)
-        put :update,
-            params: { course_id: @course.id, id: @ai_experience.id, ai_experience: { title: "" } },
-            format: :json
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json",
+            params: { ai_experience: { title: "" } }
       end
     end
 
@@ -1154,7 +1140,7 @@ describe AiExperiencesController do
           title: "Student Updated Experience"
         }
 
-        put :update, params: { course_id: @course.id, id: @ai_experience.id, ai_experience: update_params }, format: :json
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
         assert_forbidden
       end
     end
@@ -1174,9 +1160,7 @@ describe AiExperiencesController do
       end
 
       it "returns forbidden for teachers not enrolled in this course" do
-        delete :destroy,
-               params: { course_id: @course.id, id: @ai_experience.id },
-               format: :json
+        delete "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
 
         expect(response).to have_http_status(:forbidden)
       end
@@ -1186,7 +1170,7 @@ describe AiExperiencesController do
       before { user_session(@teacher) }
 
       it "soft deletes an AI experience" do
-        delete :destroy, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        delete "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
 
         expect(response).to have_http_status(:ok)
 
@@ -1205,20 +1189,20 @@ describe AiExperiencesController do
       it "decrements total_created on success" do
         expect(InstStatsd::Statsd).to receive(:decrement).with("ai_experiences.total_created", tags: expected_tags)
         allow(InstStatsd::Statsd).to receive(:decrement)
-        delete :destroy, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        delete "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
       end
 
       it "decrements total_published when destroying a published experience" do
         @ai_experience.update!(workflow_state: "published")
         expect(InstStatsd::Statsd).to receive(:decrement).with("ai_experiences.total_published", tags: expected_tags)
         allow(InstStatsd::Statsd).to receive(:decrement)
-        delete :destroy, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        delete "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
       end
 
       it "does not decrement total_published when destroying an unpublished experience" do
         expect(InstStatsd::Statsd).not_to receive(:decrement).with("ai_experiences.total_published", anything)
         allow(InstStatsd::Statsd).to receive(:decrement)
-        delete :destroy, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        delete "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
       end
 
       it "decrements total_with_source_files when destroying an experience with files" do
@@ -1227,13 +1211,13 @@ describe AiExperiencesController do
         @ai_experience.update!(context_file_ids: [attachment.id])
         expect(InstStatsd::Statsd).to receive(:decrement).with("ai_experiences.total_with_source_files", tags: expected_tags)
         allow(InstStatsd::Statsd).to receive(:decrement)
-        delete :destroy, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        delete "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
       end
 
       it "does not decrement total_with_source_files when destroying an experience without files" do
         expect(InstStatsd::Statsd).not_to receive(:decrement).with("ai_experiences.total_with_source_files", anything)
         allow(InstStatsd::Statsd).to receive(:decrement)
-        delete :destroy, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        delete "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
       end
     end
 
@@ -1241,7 +1225,7 @@ describe AiExperiencesController do
       before { user_session(@student) }
 
       it "returns forbidden" do
-        delete :destroy, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        delete "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         assert_forbidden
 
         @ai_experience.reload
@@ -1254,37 +1238,39 @@ describe AiExperiencesController do
     context "as teacher" do
       before { user_session(@teacher) }
 
-      it "sets COURSE_ID in js_env and page title" do
-        get :new, params: { course_id: @course.id }
-        expect(assigns[:js_env][:COURSE_ID]).to eq(@course.id)
-        expect(assigns(:page_title)).to eq("New AI Experience")
+      it "sets COURSE_ID in js_env" do
+        get "/courses/#{@course.id}/ai_experiences/new"
+        expect(js_env_from_response(response)["COURSE_ID"].to_i).to eq(@course.id)
+        parsed_html_body = Nokogiri.parse(response.body)
+        expect(parsed_html_body.css("title").first.inner_html).to eq("New AI Experience")
       end
 
       it "sets the active tab" do
-        get :new, params: { course_id: @course.id }
-        expect(assigns(:active_tab)).to eq("ai_experiences")
+        get "/courses/#{@course.id}/ai_experiences/new"
+        parsed_html_body = Nokogiri.parse(response.body)
+        expect(parsed_html_body.css("body").first.classes).to include("ai_experiences")
       end
 
       it "sets ai_experiences_context_file_upload feature flag in js_env when enabled" do
         @course.enable_feature!(:ai_experiences_context_file_upload)
-        get :new, params: { course_id: @course.id }
-        expect(assigns[:js_env][:FEATURES][:ai_experiences_context_file_upload]).to be true
+        get "/courses/#{@course.id}/ai_experiences/new"
+        expect(js_env_from_response(response).dig("FEATURES", "ai_experiences_context_file_upload")).to be true
       end
 
       it "sets ai_experiences_context_file_upload feature flag in js_env when disabled" do
         @course.disable_feature!(:ai_experiences_context_file_upload)
-        get :new, params: { course_id: @course.id }
-        expect(assigns[:js_env][:FEATURES][:ai_experiences_context_file_upload]).to be false
+        get "/courses/#{@course.id}/ai_experiences/new"
+        expect(js_env_from_response(response).dig("FEATURES", "ai_experiences_context_file_upload")).to be false
       end
 
       it "sets CONTEXT_FILE_MAX_SIZE_MB in js_env" do
-        get :new, params: { course_id: @course.id }
-        expect(assigns[:js_env][:CONTEXT_FILE_MAX_SIZE_MB]).to eq(AiExperienceContextFile::MAX_FILE_SIZE / 1.megabyte)
+        get "/courses/#{@course.id}/ai_experiences/new"
+        expect(js_env_from_response(response)["CONTEXT_FILE_MAX_SIZE_MB"]).to eq(AiExperienceContextFile::MAX_FILE_SIZE / 1.megabyte)
       end
 
       it "sets AI_EXPERIENCES_FIELD_MAX_LENGTH in js_env" do
-        get :new, params: { course_id: @course.id }
-        expect(assigns[:js_env][:AI_EXPERIENCES_FIELD_MAX_LENGTH]).to eq(AiExperience::TEACHER_AUTHORED_FIELD_MAX)
+        get "/courses/#{@course.id}/ai_experiences/new"
+        expect(js_env_from_response(response)["AI_EXPERIENCES_FIELD_MAX_LENGTH"]).to eq(AiExperience::TEACHER_AUTHORED_FIELD_MAX)
       end
     end
 
@@ -1292,7 +1278,7 @@ describe AiExperiencesController do
       before { user_session(@student) }
 
       it "returns unauthorized" do
-        get :new, params: { course_id: @course.id }
+        get "/courses/#{@course.id}/ai_experiences/new"
         assert_unauthorized
       end
     end
@@ -1302,38 +1288,41 @@ describe AiExperiencesController do
     context "as teacher" do
       before { user_session(@teacher) }
 
-      it "sets COURSE_ID and AI_EXPERIENCE_ID in js_env and page title" do
-        get :edit, params: { course_id: @course.id, id: @ai_experience.id }
-        expect(assigns[:js_env][:COURSE_ID]).to eq(@course.id)
-        expect(assigns[:js_env][:AI_EXPERIENCE_ID]).to eq(@ai_experience.id.to_s)
-        expect(assigns(:page_title)).to eq("Edit #{@ai_experience.title}")
+      it "sets COURSE_ID and AI_EXPERIENCE_ID in js_env" do
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/edit"
+        env = js_env_from_response(response)
+        expect(env["COURSE_ID"].to_i).to eq(@course.id)
+        expect(env["AI_EXPERIENCE_ID"]).to eq(@ai_experience.id.to_s)
+        parsed_html_body = Nokogiri.parse(response.body)
+        expect(parsed_html_body.css("title").first.inner_html).to eq("Edit #{@ai_experience.title}")
       end
 
       it "sets the active tab" do
-        get :edit, params: { course_id: @course.id, id: @ai_experience.id }
-        expect(assigns(:active_tab)).to eq("ai_experiences")
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/edit"
+        parsed_html_body = Nokogiri.parse(response.body)
+        expect(parsed_html_body.css("body").first.classes).to include("ai_experiences")
       end
 
       it "sets ai_experiences_context_file_upload feature flag in js_env when enabled" do
         @course.enable_feature!(:ai_experiences_context_file_upload)
-        get :edit, params: { course_id: @course.id, id: @ai_experience.id }
-        expect(assigns[:js_env][:FEATURES][:ai_experiences_context_file_upload]).to be true
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/edit"
+        expect(js_env_from_response(response).dig("FEATURES", "ai_experiences_context_file_upload")).to be true
       end
 
       it "sets ai_experiences_context_file_upload feature flag in js_env when disabled" do
         @course.disable_feature!(:ai_experiences_context_file_upload)
-        get :edit, params: { course_id: @course.id, id: @ai_experience.id }
-        expect(assigns[:js_env][:FEATURES][:ai_experiences_context_file_upload]).to be false
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/edit"
+        expect(js_env_from_response(response).dig("FEATURES", "ai_experiences_context_file_upload")).to be false
       end
 
       it "sets CONTEXT_FILE_MAX_SIZE_MB in js_env" do
-        get :edit, params: { course_id: @course.id, id: @ai_experience.id }
-        expect(assigns[:js_env][:CONTEXT_FILE_MAX_SIZE_MB]).to eq(AiExperienceContextFile::MAX_FILE_SIZE / 1.megabyte)
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/edit"
+        expect(js_env_from_response(response)["CONTEXT_FILE_MAX_SIZE_MB"]).to eq(AiExperienceContextFile::MAX_FILE_SIZE / 1.megabyte)
       end
 
       it "sets AI_EXPERIENCES_FIELD_MAX_LENGTH in js_env" do
-        get :edit, params: { course_id: @course.id, id: @ai_experience.id }
-        expect(assigns[:js_env][:AI_EXPERIENCES_FIELD_MAX_LENGTH]).to eq(AiExperience::TEACHER_AUTHORED_FIELD_MAX)
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/edit"
+        expect(js_env_from_response(response)["AI_EXPERIENCES_FIELD_MAX_LENGTH"]).to eq(AiExperience::TEACHER_AUTHORED_FIELD_MAX)
       end
     end
 
@@ -1341,7 +1330,7 @@ describe AiExperiencesController do
       before { user_session(@student) }
 
       it "returns unauthorized" do
-        get :edit, params: { course_id: @course.id, id: @ai_experience.id }
+        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/edit"
         assert_unauthorized
       end
     end
@@ -1357,48 +1346,48 @@ describe AiExperiencesController do
         before { user_session(@teacher) }
 
         it "returns 404 for index" do
-          get :index, params: { course_id: @course.id }, format: :json
+          get "/courses/#{@course.id}/ai_experiences.json"
           expect(response).to have_http_status(:not_found)
         end
 
         it "returns 404 for show" do
-          get :show, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+          get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
           expect(response).to have_http_status(:not_found)
         end
 
         it "returns 404 for create" do
-          post :create, params: { course_id: @course.id, ai_experience: { title: "Test", facts: "Test", learning_objective: "Test", pedagogical_guidance: "Test" } }, format: :json
+          post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: { title: "Test", facts: "Test", learning_objective: "Test", pedagogical_guidance: "Test" } }
           expect(response).to have_http_status(:not_found)
         end
 
         it "returns 404 for update" do
-          put :update, params: { course_id: @course.id, id: @ai_experience.id, ai_experience: { title: "Updated" } }, format: :json
+          put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: { title: "Updated" } }
           expect(response).to have_http_status(:not_found)
         end
 
         it "returns 404 for destroy" do
-          delete :destroy, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+          delete "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
           expect(response).to have_http_status(:not_found)
         end
 
         it "returns 404 for new" do
-          get :new, params: { course_id: @course.id }, format: :json
+          get "/courses/#{@course.id}/ai_experiences/new.json"
           expect(response).to have_http_status(:not_found)
         end
 
         it "returns 404 for edit" do
-          get :edit, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+          get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/edit.json"
           expect(response).to have_http_status(:not_found)
         end
 
         it "renders proper 404 template for HTML requests" do
-          get :index, params: { course_id: @course.id }
+          get "/courses/#{@course.id}/ai_experiences"
           expect(response).to have_http_status(:not_found)
-          expect(response).to render_template("shared/errors/404_message")
+          expect(response.body).to include('id="not_found_root"')
         end
 
         it "returns JSON error for JSON requests" do
-          get :index, params: { course_id: @course.id }, format: :json
+          get "/courses/#{@course.id}/ai_experiences.json"
           expect(response).to have_http_status(:not_found)
           json_response = json_parse(response.body)
           expect(json_response["error"]).to eq("Resource Not Found")
@@ -1439,7 +1428,7 @@ describe AiExperiencesController do
       before { user_session(@teacher) }
 
       it "returns all students including those without conversations" do
-        get :ai_conversations_index, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json"
         expect(response).to be_successful
 
         json_response = json_parse(response.body)
@@ -1461,7 +1450,7 @@ describe AiExperiencesController do
       end
 
       it "includes student information in each conversation" do
-        get :ai_conversations_index, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json"
 
         json_response = json_parse(response.body)
         conversations = json_response["conversations"]
@@ -1476,7 +1465,7 @@ describe AiExperiencesController do
       it "excludes deleted conversations but includes student without conversation" do
         @conversation1.update_column(:workflow_state, "deleted")
 
-        get :ai_conversations_index, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json"
 
         json_response = json_parse(response.body)
         conversations = json_response["conversations"]
@@ -1506,7 +1495,7 @@ describe AiExperiencesController do
           updated_at: 2.days.ago
         )
 
-        get :ai_conversations_index, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json"
 
         json_response = json_parse(response.body)
         conversations = json_response["conversations"]
@@ -1521,7 +1510,7 @@ describe AiExperiencesController do
       before { user_session(@student1) }
 
       it "returns unauthorized" do
-        get :ai_conversations_index, params: { course_id: @course.id, id: @ai_experience.id }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations.json"
         assert_forbidden
       end
     end
@@ -1530,7 +1519,7 @@ describe AiExperiencesController do
       before { user_session(@teacher) }
 
       it "returns 404 for non-existent experience" do
-        get :ai_conversations_index, params: { course_id: @course.id, id: 99_999 }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/99999/ai_conversations.json"
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -1564,7 +1553,7 @@ describe AiExperiencesController do
       end
 
       it "returns conversation with messages" do
-        get :ai_conversation_show, params: { course_id: @course.id, id: @ai_experience.id, conversation_id: @conversation.id }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations/#{@conversation.id}.json"
         expect(response).to be_successful
 
         json_response = json_parse(response.body)
@@ -1574,7 +1563,7 @@ describe AiExperiencesController do
       end
 
       it "includes student information" do
-        get :ai_conversation_show, params: { course_id: @course.id, id: @ai_experience.id, conversation_id: @conversation.id }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations/#{@conversation.id}.json"
 
         json_response = json_parse(response.body)
         expect(json_response).to have_key("student")
@@ -1582,7 +1571,7 @@ describe AiExperiencesController do
       end
 
       it "includes progress information" do
-        get :ai_conversation_show, params: { course_id: @course.id, id: @ai_experience.id, conversation_id: @conversation.id }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations/#{@conversation.id}.json"
 
         json_response = json_parse(response.body)
         expect(json_response).to have_key("progress")
@@ -1596,12 +1585,12 @@ describe AiExperiencesController do
           pedagogical_guidance: "Test"
         )
 
-        get :ai_conversation_show, params: { course_id: @course.id, id: other_experience.id, conversation_id: @conversation.id }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{other_experience.id}/ai_conversations/#{@conversation.id}.json"
         expect(response).to have_http_status(:not_found)
       end
 
       it "returns 404 for non-existent conversation" do
-        get :ai_conversation_show, params: { course_id: @course.id, id: @ai_experience.id, conversation_id: 99_999 }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations/99999.json"
         expect(response).to have_http_status(:not_found)
       end
 
@@ -1611,7 +1600,7 @@ describe AiExperiencesController do
         allow(mock_service).to receive(:fetch_with_progress)
           .and_raise(LlmConversation::Errors::ConversationError.new("internal llma stack trace"))
 
-        get :ai_conversation_show, params: { course_id: @course.id, id: @ai_experience.id, conversation_id: @conversation.id }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations/#{@conversation.id}.json"
         expect(response).to have_http_status(:service_unavailable)
 
         json_response = json_parse(response.body)
@@ -1624,7 +1613,7 @@ describe AiExperiencesController do
       before { user_session(@student1) }
 
       it "returns unauthorized" do
-        get :ai_conversation_show, params: { course_id: @course.id, id: @ai_experience.id, conversation_id: @conversation.id }, format: :json
+        get "/api/v1/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/ai_conversations/#{@conversation.id}.json"
         assert_forbidden
       end
     end
