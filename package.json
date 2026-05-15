@@ -397,7 +397,7 @@
     "lint:packages": "yarn lint:oxlint:packages",
     "lint:staged": "lint-staged",
     "lint:style": "stylelint './app/**/*.{css,scss}' './packages/**/*.{css,scss}'",
-    "lint:xss": "node ./script/xsslint.js",
+    "lint:xss": "oxlint --config config/oxlint-plugins/canvas-xss.oxlint.json -A all -D canvas-xss/no-unsafe-html --format unix ui/ gems/plugins/*/app/jsx/ gems/plugins/*/public/javascripts/",
     "i18n:check": "node_modules/@instructure/i18nliner-canvas/bin/i18nliner check",
     "i18n:extract": "node_modules/@instructure/i18nliner-canvas/bin/i18nliner export --translationsFile config/locales/generated/en-js.json --indexFile config/locales/generated/en-js-index.json",
     "i18n:extract:i18next": "node scripts/extract-i18next-strings.js",

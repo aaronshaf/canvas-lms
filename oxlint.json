@@ -3,6 +3,7 @@
   "plugins": ["react", "jsx_a11y", "import", "promise", "typescript"],
   "jsPlugins": [
     "./config/canvas-copyright.js",
+    "./config/oxlint-plugins/canvas-xss.js",
     "./config/canvas-sanitize-url.js",
     "./config/canvas-no-env-write.js"
   ],
@@ -78,9 +79,19 @@
       "files": ["ui/**/*.{js,mjs,ts,jsx,tsx}"],
       "rules": {
         "canvas-copyright/notice": "error",
+        "canvas-xss/no-unsafe-html": "error",
         "canvas-sanitize-url/at-href": "error",
         "canvas-sanitize-url/imperative": "error",
         "canvas-no-env-write/no-env-write": "warn"
+      }
+    },
+    {
+      "files": [
+        "gems/plugins/*/app/jsx/**/*.{js,mjs,ts,jsx,tsx}",
+        "gems/plugins/*/public/javascripts/**/*.{js,mjs,ts,jsx,tsx}"
+      ],
+      "rules": {
+        "canvas-xss/no-unsafe-html": "error"
       }
     },
     {
@@ -92,6 +103,7 @@
         "**/*.{test,spec}.{js,ts,jsx,tsx}"
       ],
       "rules": {
+        "canvas-xss/no-unsafe-html": "off",
         "canvas-no-env-write/no-env-write": "off"
       }
     },

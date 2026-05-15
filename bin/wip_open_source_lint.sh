@@ -70,7 +70,7 @@ function tatl_tael {
 
 function xsslint {
   gergich capture custom:./build/gergich/xsslint:Gergich::XSSLint \
-    "node script/xsslint.js"
+    "yarn lint:xss"
 }
 
 function run_brakeman {

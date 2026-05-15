@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "plugins": [],
+  "jsPlugins": ["./canvas-xss.js"],
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "ignorePatterns": ["**/node_modules/**", "**/*.d.ts"],
+  "rules": {
+    "canvas-xss/no-unsafe-html": "error"
+  }
+}

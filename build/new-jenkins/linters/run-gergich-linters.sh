@@ -38,7 +38,7 @@ if ! diff ui/shared/apollo-v3/possibleTypes.json ui/shared/apollo-v3/possibleTyp
   gergich comment "{\"path\":\"ui/shared/apollo-v3/possibleTypes.json\",\"position\":1,\"severity\":\"error\",\"message\":\"$message\"}"
 fi
 
-gergich capture custom:./build/gergich/xsslint:Gergich::XSSLint 'node script/xsslint.js'
+gergich capture custom:./build/gergich/xsslint:Gergich::XSSLint 'yarn lint:xss'
 gergich capture i18nliner 'bin/rails i18n:check'
 # purposely don't run under bundler; they shell out and use bundler as necessary
 ruby script/brakeman

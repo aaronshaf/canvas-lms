@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# gergich capture custom:./build/gergich/xsslint:Gergich::XSSLint "node script/xsslint.js"
+# gergich capture custom:./build/gergich/xsslint:Gergich::XSSLint "yarn lint:xss"
 class Gergich::XSSLint
   def run(output)
-    # e.g. alerts.js:110: possibly XSS-able argument to `append()`
-    pattern = /^([^:\n]+):(\d+): (.*)$/
+    # file:line[:col]: [severity:] message
+    pattern = /^([^:\n]+):(\d+)(?::\d+)?:\s+(?:\w+:\s+)?(.*)$/
 
     output.scan(pattern).filter_map do |file, line, error|
       { path: file, message: "[xsslint] #{error}", position: line.to_i, severity: "error" }

@@ -80,8 +80,36 @@ Cleanup sweep tracked as a follow-up. When wrapping a site, remove its entry
 from the baseline in the same commit — the rule will start flagging any
 remaining sinks in that file. The baseline is shrink-only.
 
+### `canvas-xss` (`oxlint-plugins/canvas-xss.js`)
+
+Rule: `canvas-xss/no-unsafe-html` — ports the old `script/xsslint.js` checks
+into oxlint. The rule uses the same `xsslint` engine/config, plus the Canvas
+extensions for TypeScript casts, optional chaining, URL API receiver
+whitelisting, `I18n.t(..., {wrapper|wrappers: ...})`, and
+`dangerouslySetInnerHTML={{__html: ...}}`.
+
+Sinks checked:
+
+| Pattern | Example |
+|---------|---------|
+| XSS-able calls from `xsslint` | `$('#target').html(value)` |
+| Htmly string concatenation | `'<span>' + userInput + '</span>'` |
+| Htmly template literals | `` `<span>${userInput}</span>` `` |
+| Unsanitized React HTML sinks | `<div dangerouslySetInnerHTML={{__html: content}} />` |
+
+Allowed values mirror the old xsslint safe-string configuration: literals,
+known safe helpers such as `sanitizeHTML(...)` / `htmlEscape(...)`, Canvas
+template/view wrappers, DOM node constructors, and `I18n.t` calls with
+`wrapper` / `wrappers`.
+
+To unwind a flagged site: sanitize the value with the shared helper, prove the
+value is already safe through one of the configured wrappers, or add
+`// oxlint-disable-next-line canvas-xss/no-unsafe-html`
+with a justification comment.
+
 ## Tests
 
 ```sh
 node --test config/__tests__/canvas-sanitize-url.test.js
+node --test config/__tests__/canvas-xss.test.js
 ```
