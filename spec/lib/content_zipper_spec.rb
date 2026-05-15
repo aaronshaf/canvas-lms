@@ -161,6 +161,26 @@ describe ContentZipper do
       expect(content).to include(@student.name)
     end
 
+    it "scrubs script tags and event handlers from online_text_entry bodies" do
+      course_with_student(active_all: true)
+      submission = submission_model(body: "<p>placeholder</p>")
+      submission.update_columns(body: %(<p>hi</p><script>alert(1)</script><img src=x onerror="alert(2)">))
+      attachment = Attachment.create!(display_name: "my_download.zip",
+                                      user: @teacher,
+                                      workflow_state: "to_be_zipped",
+                                      context: @assignment)
+      ContentZipper.process_attachment(attachment, @teacher)
+      attachment.reload
+
+      content = nil
+      Zip::File.foreach(attachment.full_filename) do |f|
+        content = f.get_input_stream.read if f.file?
+      end
+      expect(content).to include("<p>hi</p>")
+      expect(content).not_to include("<script>")
+      expect(content).not_to include("onerror")
+    end
+
     it "does not include student name in online_text_entry submissions if anonymous" do
       course_with_student(active_all: true)
       @student.update_attribute(:name, "some student name")

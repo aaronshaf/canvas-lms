@@ -27,7 +27,7 @@
 <body>
 <h1><%= before_label @assignment.title %> <%= user_name %></h1>
 <div style="width: 600px; margin: 20px auto; border: 1px solid #888; padding: 20px;">
-  <%= @submission.body %>
+  <%= Sanitize.clean(@submission.body || "", CanvasSanitize::SANITIZE) %>
 </div>
 </body>
 </html>
