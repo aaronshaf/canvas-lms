@@ -3159,6 +3159,100 @@ describe "Users API", type: :request do
                    { controller: "users", action: "split", format: "json", id: @user2.to_param })
       assert_status(400)
     end
+
+    describe "elevated auth provider enforcement" do
+      let!(:elevated_provider) { @account.authentication_providers.create!(auth_type: "saml") }
+      let(:enforce_flag_enabled) { true }
+      let(:login_management_flag_enabled) { true }
+      let(:expected_status) { 200 }
+
+      before do
+        AuthenticationMethods::PseudonymAttributes.reset
+
+        allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_return(false)
+        allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+          .with("enforce_violations").and_return(enforce_flag_enabled)
+        allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+          .with("require_for_login_management").and_return(login_management_flag_enabled)
+      end
+
+      describe "merge_into" do
+        subject(:merge_response) do
+          api_call(:put,
+                   "/api/v1/users/#{@user2.id}/merge_into/#{@user1.id}",
+                   { controller: "users", action: "merge_into", format: "json", id: @user2.to_param, destination_user_id: @user1.to_param },
+                   {},
+                   {},
+                   { expected_status: })
+        end
+
+        context "when no elevated provider is configured" do
+          it "allows merge" do
+            merge_response
+          end
+        end
+
+        context "when an elevated provider is configured" do
+          before do
+            @account.settings[:elevated_auth_provider_global_id] = elevated_provider.global_id
+            @account.save(validate: false)
+          end
+
+          context "and the api token does not carry the elevated provider" do
+            let(:expected_status) { 403 }
+
+            it "blocks with 403 unauthorized" do
+              expect(merge_response["status"]).to eq "unauthorized"
+            end
+
+            context "but the require_for_login_management flag is off" do
+              let(:login_management_flag_enabled) { false }
+              let(:expected_status) { 200 }
+
+              it "allows merge" do
+                merge_response
+              end
+            end
+
+            context "but the enforce_violations flag is off" do
+              let(:enforce_flag_enabled) { false }
+              let(:expected_status) { 200 }
+
+              it "allows merge" do
+                merge_response
+              end
+            end
+          end
+        end
+      end
+
+      describe "split" do
+        subject(:split_response) do
+          api_call(:post,
+                   "/api/v1/users/#{@user1.id}/split/",
+                   { controller: "users", action: "split", format: "json", id: @user1.to_param },
+                   {},
+                   {},
+                   { expected_status: })
+        end
+
+        context "when an elevated provider is configured" do
+          before do
+            @account.settings[:elevated_auth_provider_global_id] = elevated_provider.global_id
+            @account.save(validate: false)
+          end
+
+          context "and the api token does not carry the elevated provider" do
+            let(:expected_status) { 403 }
+
+            it "blocks with 403 unauthorized" do
+              UserMerge.from(@user2).into(@user1)
+              expect(split_response["status"]).to eq "unauthorized"
+            end
+          end
+        end
+      end
+    end
   end
 
   describe "Custom Colors" do
