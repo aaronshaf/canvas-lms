@@ -436,6 +436,11 @@ class RoleOverridesController < ApplicationController
   def activate_role
     return unless authorized_action(@context, @current_user, :manage_role_overrides)
 
+    if @role.built_in?
+      return render json: { message: t("Cannot activate a built-in role") }, status: :bad_request
+    end
+    raise ActiveRecord::RecordNotFound unless @role.account == @context
+
     if Role.where(account: @context, name: @role.name, workflow_state: "active").exists?
       return render json: { message: t("An active role already exists with that name") }, status: :bad_request
     end

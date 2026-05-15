@@ -302,6 +302,21 @@ describe "Roles API", type: :request do
         expect(json["workflow_state"]).to eq "active"
       end
 
+      it "is not able to reactivate a role from a sub-account" do
+        @role.update_attribute(:workflow_state, "inactive")
+        sub_account = @account.sub_accounts.create!
+
+        api_call(:post,
+                 "/api/v1/accounts/#{sub_account.id}/roles/#{@role.id}/activate",
+                 { controller: "role_overrides", action: "activate_role", format: "json", account_id: sub_account.id.to_param, id: @role.id },
+                 {},
+                 {},
+                 { expected_status: 404 })
+
+        @role.reload
+        expect(@role.workflow_state).to eq "inactive"
+      end
+
       it "does not recycle a deleted role" do
         @role.destroy
         expect(@account.roles.active.map(&:name)).not_to include @role_name
