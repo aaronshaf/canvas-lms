@@ -364,4 +364,79 @@ describe "Account Reports API", type: :request do
       expect(AccountReport.find(@report.id).workflow_state).to eq("complete")
     end
   end
+
+  describe "elevated auth provider enforcement" do
+    let!(:elevated_provider) { @admin.account.authentication_providers.create!(auth_type: "saml") }
+    let(:enforce_flag_enabled) { true }
+    let(:account_reports_flag_enabled) { true }
+
+    before do
+      AuthenticationMethods::PseudonymAttributes.reset
+
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_return(false)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+        .with("enforce_violations").and_return(enforce_flag_enabled)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+        .with("require_for_account_reports").and_return(account_reports_flag_enabled)
+    end
+
+    def list_reports(expected_status = 200)
+      api_call(:get,
+               "/api/v1/accounts/#{@admin.account.id}/reports",
+               { controller: "account_reports", action: "available_reports", format: "json", account_id: @admin.account.id.to_s },
+               {},
+               {},
+               { expected_status: })
+    end
+
+    def show_report(expected_status = 200)
+      api_call(:get,
+               "/api/v1/accounts/#{@admin.account.id}/reports/#{@report.report_type}/#{@report.id}",
+               { report: @report.report_type, controller: "account_reports", action: "show", format: "json", account_id: @admin.account.id.to_s, id: @report.id.to_s },
+               {},
+               {},
+               { expected_status: })
+    end
+
+    context "when no elevated provider is configured" do
+      it "allows available_reports" do
+        list_reports
+      end
+    end
+
+    context "when an elevated provider is configured" do
+      before do
+        @admin.account.settings[:elevated_auth_provider_global_id] = elevated_provider.global_id
+        @admin.account.save(validate: false)
+      end
+
+      context "and the api token does not carry the elevated provider" do
+        it "blocks available_reports with 403 unauthorized" do
+          json = list_reports(403)
+          expect(json["status"]).to eq "unauthorized"
+        end
+
+        it "blocks show with 403 unauthorized" do
+          json = show_report(403)
+          expect(json["status"]).to eq "unauthorized"
+        end
+
+        context "but the require_for_account_reports flag is off" do
+          let(:account_reports_flag_enabled) { false }
+
+          it "allows available_reports" do
+            list_reports
+          end
+        end
+
+        context "but the enforce_violations flag is off" do
+          let(:enforce_flag_enabled) { false }
+
+          it "allows available_reports" do
+            list_reports
+          end
+        end
+      end
+    end
+  end
 end

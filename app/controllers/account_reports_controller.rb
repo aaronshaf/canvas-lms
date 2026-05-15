@@ -198,6 +198,8 @@
 #
 class AccountReportsController < ApplicationController
   before_action :get_context
+  before_action :require_elevated_auth_provider,
+                if: :require_elevated_auth_provider_for_account_reports?
 
   include Api::V1::Account
   include Api::V1::AccountReport
@@ -479,5 +481,9 @@ class AccountReportsController < ApplicationController
     end
 
     json
+  end
+
+  def require_elevated_auth_provider_for_account_reports?
+    AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_for_account_reports")
   end
 end
