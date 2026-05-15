@@ -112,7 +112,38 @@ function methodDescription(method) {
       return 'HTML template literal'
     case 'dangerouslySetInnerHTML':
       return '`dangerouslySetInnerHTML` without sanitizeHTML'
+    case 'innerHTML':
+      return '`innerHTML` assignment without sanitizeHTML'
+    case 'outerHTML':
+      return '`outerHTML` assignment without sanitizeHTML'
+    case 'insertAdjacentHTML':
+      return '`insertAdjacentHTML` without sanitizeHTML'
+    case 'document.write':
+      return '`document.write` with unsafe value'
+    case 'srcdoc':
+      return '`srcdoc` assignment without sanitizeHTML'
+    case 'href=':
+      return '`href` assignment without sanitizeUrl'
+    case 'location.assign':
+      return '`location.assign` without sanitizeUrl'
+    case 'location.replace':
+      return '`location.replace` without sanitizeUrl'
+    case 'src=':
+      return '`src` assignment without sanitizeUrl'
+    case 'action=':
+      return '`action` assignment without sanitizeUrl'
+    case 'formAction=':
+      return '`formAction` assignment without sanitizeUrl'
+    case 'location=':
+      return '`location` assignment without sanitizeUrl'
+    case 'window.open':
+      return '`window.open` without sanitizeUrl'
     default:
+      if (method.startsWith("setAttribute('")) {
+        const attr = method.slice("setAttribute('".length, -"')".length)
+        if (/^on/i.test(attr)) return `\`setAttribute\` with event handler attribute \`${attr}\``
+        return `\`setAttribute('${attr}', ...)\` without sanitizeUrl`
+      }
       return `argument to \`${method}\``
   }
 }
@@ -191,6 +222,279 @@ function findDangerouslySetInnerHTMLWarnings(ast, linter) {
   return warnings
 }
 
+const DOM_HTML_SINK_PROPS = new Set(['innerHTML', 'outerHTML', 'srcdoc'])
+const MEMBER_LIKE = new Set(['MemberExpression', 'OptionalMemberExpression'])
+const CALL_LIKE = new Set(['CallExpression', 'OptionalCallExpression'])
+
+function findDomSinkWarnings(ast, linter) {
+  const warnings = []
+
+  function handleAssign(p) {
+    const {left, right} = p.node
+    if (!MEMBER_LIKE.has(left.type)) return
+    const prop = left.property
+    if (prop.type !== 'Identifier' || !DOM_HTML_SINK_PROPS.has(prop.name)) return
+    if (linter.isSafeString(right)) return
+    warnings.push({line: p.node.loc.start.line, method: prop.name})
+  }
+
+  function handleCall(p) {
+    const {callee, arguments: args} = p.node
+    if (!MEMBER_LIKE.has(callee.type)) return
+    const prop = callee.property
+    if (prop.type !== 'Identifier') return
+
+    if (prop.name === 'insertAdjacentHTML') {
+      const value = args[1]
+      if (!value || linter.isSafeString(value)) return
+      warnings.push({line: p.node.loc.start.line, method: 'insertAdjacentHTML'})
+      return
+    }
+
+    if (
+      (prop.name === 'write' || prop.name === 'writeln') &&
+      callee.object.type === 'Identifier' &&
+      callee.object.name === 'document'
+    ) {
+      const value = args[0]
+      if (!value || linter.isSafeString(value)) return
+      warnings.push({line: p.node.loc.start.line, method: 'document.write'})
+    }
+  }
+
+  traverse(ast, {
+    AssignmentExpression: handleAssign,
+    CallExpression: handleCall,
+    OptionalCallExpression: handleCall,
+  })
+  return warnings
+}
+
+const URL_SAFE_FNS = new Set(['sanitizeUrl', 'safeUrl', 'validateReturnToURL'])
+// Leading / must not be followed by / (which would make it protocol-relative)
+const SAFE_URL_PREFIX_RE = /^(\/(?!\/)|https?:\/\/|#|mailto:|tel:)/i
+
+function isSafeUrl(node) {
+  if (!node) return false
+  switch (node.type) {
+    case 'TSAsExpression':
+    case 'TSTypeAssertion':
+    case 'TSSatisfiesExpression':
+    case 'TSNonNullExpression':
+      return isSafeUrl(node.expression)
+  }
+  if (node.type === 'StringLiteral') return true
+  if (node.type === 'TemplateLiteral') {
+    if (node.expressions.length === 0) return true
+    const firstQuasi = node.quasis[0]
+    if (firstQuasi) {
+      const raw = (firstQuasi.value && (firstQuasi.value.raw || firstQuasi.value.cooked)) || ''
+      if (SAFE_URL_PREFIX_RE.test(raw)) return true
+    }
+  }
+  if (node.type === 'CallExpression') {
+    const c = node.callee
+    const name =
+      c.type === 'Identifier'
+        ? c.name
+        : MEMBER_LIKE.has(c.type) && c.property.type === 'Identifier'
+          ? c.property.name
+          : null
+    if (name && URL_SAFE_FNS.has(name)) return true
+  }
+  return false
+}
+
+function isLocationObject(node) {
+  if (node.type === 'Identifier' && node.name === 'location') return true
+  if (
+    node.type === 'MemberExpression' &&
+    node.property.type === 'Identifier' &&
+    node.property.name === 'location'
+  )
+    return true
+  return false
+}
+
+const URL_SINK_PROPS = new Set(['href', 'src', 'action', 'formAction'])
+
+function findUrlSinkWarnings(ast) {
+  const warnings = []
+
+  function handleAssign(p) {
+    const {left, right} = p.node
+    if (!MEMBER_LIKE.has(left.type)) return
+    const prop = left.property
+    if (prop.type !== 'Identifier') return
+    if (isSafeUrl(right)) return
+
+    if (URL_SINK_PROPS.has(prop.name)) {
+      warnings.push({line: p.node.loc.start.line, method: `${prop.name}=`})
+      return
+    }
+    if (prop.name === 'location') {
+      warnings.push({line: p.node.loc.start.line, method: 'location='})
+    }
+  }
+
+  function handleCall(p) {
+    const {callee, arguments: args} = p.node
+    if (!MEMBER_LIKE.has(callee.type)) return
+    const prop = callee.property
+    if (prop.type !== 'Identifier') return
+
+    if (prop.name === 'assign' || prop.name === 'replace') {
+      if (!isLocationObject(callee.object)) return
+      const value = args[0]
+      if (!value || isSafeUrl(value)) return
+      warnings.push({line: p.node.loc.start.line, method: `location.${prop.name}`})
+      return
+    }
+
+    if (
+      prop.name === 'open' &&
+      callee.object.type === 'Identifier' &&
+      callee.object.name === 'window'
+    ) {
+      const url = args[0]
+      if (!url || isSafeUrl(url)) return
+      warnings.push({line: p.node.loc.start.line, method: 'window.open'})
+    }
+  }
+
+  traverse(ast, {
+    AssignmentExpression: handleAssign,
+    CallExpression: handleCall,
+    OptionalCallExpression: handleCall,
+  })
+  return warnings
+}
+
+const DANGEROUS_ATTRS_URL = new Set(['href', 'src', 'action', 'formaction', 'srcdoc'])
+const DANGEROUS_ATTR_CODE_RE = /^on/i
+
+function findSetAttributeWarnings(ast) {
+  const warnings = []
+
+  function handleCall(p) {
+    const {callee, arguments: args} = p.node
+    if (!MEMBER_LIKE.has(callee.type)) return
+    const prop = callee.property
+    if (prop.type !== 'Identifier' || prop.name !== 'setAttribute') return
+    const attrArg = args[0]
+    const valueArg = args[1]
+    if (!attrArg || !valueArg) return
+    let attrName
+    if (attrArg.type === 'StringLiteral') {
+      attrName = attrArg.value.toLowerCase()
+    } else if (attrArg.type === 'TemplateLiteral' && attrArg.expressions.length === 0) {
+      attrName = (attrArg.quasis[0].value.cooked || attrArg.quasis[0].value.raw).toLowerCase()
+    } else {
+      return
+    }
+    if (DANGEROUS_ATTR_CODE_RE.test(attrName)) {
+      warnings.push({line: p.node.loc.start.line, method: `setAttribute('${attrName}')`})
+      return
+    }
+    if (DANGEROUS_ATTRS_URL.has(attrName)) {
+      if (isSafeUrl(valueArg)) return
+      warnings.push({line: p.node.loc.start.line, method: `setAttribute('${attrName}')`})
+    }
+  }
+
+  traverse(ast, {
+    CallExpression: handleCall,
+    OptionalCallExpression: handleCall,
+  })
+  return warnings
+}
+
+function walkNode(node, fn) {
+  if (!node || typeof node !== 'object') return
+  fn(node)
+  for (const key of Object.keys(node)) {
+    if (key === 'parent' || key === 'loc' || key === 'range') continue
+    const child = node[key]
+    if (Array.isArray(child)) child.forEach(c => walkNode(c, fn))
+    else if (child && typeof child.type === 'string') walkNode(child, fn)
+  }
+}
+
+function handlerHasOriginCheck(handlerArg) {
+  const params = handlerArg.params || []
+
+  // Function reference (Identifier) or zero params — can't verify, flag it
+  if (!params.length) return false
+
+  const param = params[0]
+
+  if (param.type === 'Identifier') {
+    const paramName = param.name
+    let found = false
+    walkNode(handlerArg.body || handlerArg, node => {
+      if (found) return
+      if (
+        MEMBER_LIKE.has(node.type) &&
+        node.object.type === 'Identifier' &&
+        node.object.name === paramName &&
+        node.property.type === 'Identifier' &&
+        (node.property.name === 'origin' || node.property.name === 'source')
+      ) {
+        found = true
+      }
+    })
+    return found
+  }
+
+  if (param.type === 'ObjectPattern') {
+    // Destructured: {data, origin} — check origin/source is in the pattern and used in body
+    const originProp = param.properties.find(p => {
+      if (p.type !== 'ObjectProperty' && p.type !== 'Property') return false
+      return (
+        p.key && p.key.type === 'Identifier' && (p.key.name === 'origin' || p.key.name === 'source')
+      )
+    })
+    if (!originProp) return false
+    const localName =
+      originProp.value && originProp.value.type === 'Identifier'
+        ? originProp.value.name
+        : originProp.key && originProp.key.name
+    if (!localName) return false
+    let found = false
+    walkNode(handlerArg.body || handlerArg, node => {
+      if (found) return
+      if (node.type === 'Identifier' && node.name === localName) found = true
+    })
+    return found
+  }
+
+  return false
+}
+
+function findPostMessageWarnings(ast) {
+  const warnings = []
+  traverse(ast, {
+    CallExpression(p) {
+      const {callee, arguments: args} = p.node
+      if (!MEMBER_LIKE.has(callee.type)) return
+      const prop = callee.property
+      if (prop.type !== 'Identifier' || prop.name !== 'addEventListener') return
+      const eventArg = args[0]
+      if (!eventArg || eventArg.type !== 'StringLiteral' || eventArg.value !== 'message') return
+      const handlerArg = args[1]
+      if (!handlerArg) return
+
+      // Non-inline handler (Identifier reference) — can't analyze, always flag
+      const isInline =
+        handlerArg.type === 'ArrowFunctionExpression' || handlerArg.type === 'FunctionExpression'
+      if (!isInline || !handlerHasOriginCheck(handlerArg)) {
+        warnings.push({line: p.node.loc.start.line})
+      }
+    },
+  })
+  return warnings
+}
+
 // Anchor all path resolution to the repo root so the plugin works correctly
 // regardless of the working directory when oxlint is invoked.
 const REPO_ROOT = path.resolve(__dirname, '../..')
@@ -253,20 +557,12 @@ function analyze(filename) {
   const ast = parseSource(filename)
   const linter = new Linter(ast, XSSLint.config)
   whitelistUrlApiReceivers(ast, linter)
-  return linter.run().concat(findDangerouslySetInnerHTMLWarnings(ast, linter))
-}
-
-function walk(node, callback) {
-  if (!node || typeof node !== 'object') return
-  if (typeof node.type === 'string') callback(node)
-  for (const [key, value] of Object.entries(node)) {
-    if (key === 'parent' || key === 'loc' || key === 'range') continue
-    if (Array.isArray(value)) {
-      for (const item of value) walk(item, callback)
-    } else if (value && typeof value.type === 'string') {
-      walk(value, callback)
-    }
-  }
+  return linter
+    .run()
+    .concat(findDangerouslySetInnerHTMLWarnings(ast, linter))
+    .concat(findDomSinkWarnings(ast, linter))
+    .concat(findUrlSinkWarnings(ast))
+    .concat(findSetAttributeWarnings(ast))
 }
 
 function nodeSize(node) {
@@ -277,7 +573,7 @@ function nodeSize(node) {
 function lineNodeFinder(programNode) {
   const exact = new Map()
   const containing = []
-  walk(programNode, node => {
+  walkNode(programNode, node => {
     if (!node.loc || !node.loc.start) return
     const line = node.loc.start.line
     const current = exact.get(line)
@@ -345,9 +641,39 @@ const noUnsafeHtmlRule = {
   },
 }
 
+const postmessageOriginRule = {
+  meta: {
+    type: 'problem',
+    docs: {description: 'postMessage listeners must check event.origin or event.source'},
+    schema: [],
+    messages: {
+      missingOriginCheck:
+        'message listener does not check `event.origin` or `event.source`. Verify the sender before using `event.data`, or add `// oxlint-disable-next-line canvas-xss/postmessage-origin-required` with a justification comment.',
+    },
+  },
+  create(context) {
+    const filename = context.filename
+    const rel = relativeFilename(filename)
+    if (!filename || isIgnored(rel)) return {}
+
+    return {
+      Program(programNode) {
+        const findNodeForLine = lineNodeFinder(programNode)
+        for (const warning of findPostMessageWarnings(programNode)) {
+          context.report({
+            node: findNodeForLine(warning.line),
+            messageId: 'missingOriginCheck',
+          })
+        }
+      },
+    }
+  },
+}
+
 module.exports = {
   meta: {name: 'canvas-xss'},
   rules: {
     'no-unsafe-html': noUnsafeHtmlRule,
+    'postmessage-origin-required': postmessageOriginRule,
   },
 }
