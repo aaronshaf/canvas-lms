@@ -423,7 +423,7 @@ module QuizzesHelper
     html = hash_get(hash, :"#{field}_html")
 
     if html
-      UserContent.escape(Sanitize.clean(html, CanvasSanitize::SANITIZE), nil, use_updated_math_rendering: controller.try(:use_new_math_equation_handling?))
+      UserContent.sanitize_and_process_html(html, nil, use_updated_math_rendering: controller.try(:use_new_math_equation_handling?))
     else
       hash_get(hash, field)
     end
@@ -436,7 +436,9 @@ module QuizzesHelper
     question = hash_get(options, :question)
     answers  = hash_get(options, :answers).dup
     answer_list = hash_get(options, :answer_list, [])
-    res = user_content hash_get(question, :question_text).dup
+    # QuizQuestionBuilder already sanitized this text and then injected <input>
+    # elements the allowlist would strip; tell user_content to skip re-sanitizing.
+    res = user_content(hash_get(question, :question_text).dup, pre_sanitized: true)
     readonly_markup = hash_get(options, :editable) ? " />" : 'readonly="readonly" />'
     label_attr = "aria-label='#{I18n.t("Fill in the blank, read surrounding text")}'"
 
@@ -476,7 +478,9 @@ module QuizzesHelper
     answers  = hash_get(options, :answers)
     answer_list = hash_get(options, :answer_list)
     editable = hash_get(options, :editable)
-    res      = user_content hash_get(question, :question_text)
+    # QuizQuestionBuilder already sanitized this text and then injected <select>
+    # elements the allowlist would strip; tell user_content to skip re-sanitizing.
+    res      = user_content(hash_get(question, :question_text), pre_sanitized: true)
     index = 0
     doc = Nokogiri::HTML5.fragment(res)
     selects = doc.css(".question_input")

@@ -2191,7 +2191,7 @@ module UserContentSerialization
       user_content_fields = options[:user_content] || []
       result.each_key do |name|
         if user_content_fields.include?(name.to_s)
-          result[name] = UserContent.escape(result[name])
+          result[name] = UserContent.sanitize_and_process_html(result[name])
         end
       end
     end

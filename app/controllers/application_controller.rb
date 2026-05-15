@@ -2910,9 +2910,16 @@ class ApplicationController < ActionController::Base
   # safe_html is used to indicate that the HTML is already safe and should not be escaped,
   # please also note that if the html has any attachments, safe_html should be set to true!!!
   # since we neet to process the attachments in the html.
-  def user_content(str, context: @context, user: @current_user, is_public: false, location: nil, safe_html: false)
+  #
+  # pre_sanitized indicates the caller already ran Sanitize.clean and intentionally
+  # injected markup (e.g. <input>/<select>) that the allowlist would strip. Skip
+  # sanitization here but still run the rewriter + canvas transforms.
+  def user_content(str, context: @context, user: @current_user, is_public: false, location: nil, safe_html: false, pre_sanitized: false)
     # rubocop:todo Rails/OutputSafety
     return nil unless str
+
+    # Sanitize before HtmlRewriter runs so its post-sanitize attribute injections aren't stripped.
+    str = Sanitize.clean(str, CanvasSanitize::SANITIZE) unless pre_sanitized
     return AttachmentLocationTagger.tag_url(str, location).html_safe if safe_html && !location.nil?
     return str.html_safe if safe_html
     # rubocop:enable Rails/OutputSafety
@@ -2944,7 +2951,7 @@ class ApplicationController < ActionController::Base
     end
     rewriter.set_handler("files", &file_handler)
     rewriter.set_handler("media_attachments_iframe", &file_handler)
-    UserContent.escape(rewriter.translate_content(str), request.host_with_port, use_updated_math_rendering: use_new_math_equation_handling?)
+    UserContent.process_canvas_html(rewriter.translate_content(str), request.host_with_port, use_updated_math_rendering: use_new_math_equation_handling?)
   end
   helper_method :user_content
 

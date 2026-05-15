@@ -513,13 +513,13 @@ describe UserContent, type: :request do
         end
 
         it "retains the alt attribute" do
-          escaped = UserContent.escape(@html)
+          escaped = UserContent.sanitize_and_process_html(@html)
           node = Nokogiri::HTML5.fragment(escaped).css("img").first
           expect(node["alt"]).to eql(@latex)
         end
 
         it "adds mathml in a span" do
-          escaped = UserContent.escape(@html, nil, use_updated_math_rendering: false)
+          escaped = UserContent.sanitize_and_process_html(@html, nil, use_updated_math_rendering: false)
           node = Nokogiri::HTML5.fragment(escaped).css("img").first.next_sibling
           expect(node.node_name).to eql("span")
           expect(node.inner_html).to eql(Ritex::Parser.new.parse(@latex))
@@ -533,17 +533,17 @@ describe UserContent, type: :request do
         end
 
         it "handles error gracefully" do
-          expect { UserContent.escape(@html) }.not_to raise_error
+          expect { UserContent.sanitize_and_process_html(@html) }.not_to raise_error
         end
 
         it "retains the alt attribute" do
-          escaped = UserContent.escape(@html)
+          escaped = UserContent.sanitize_and_process_html(@html)
           node = Nokogiri::HTML5.fragment(escaped).css("img").first
           expect(node["alt"]).to eql(@latex)
         end
 
         it "doesn't add mathml span" do
-          escaped = UserContent.escape(@html)
+          escaped = UserContent.sanitize_and_process_html(@html)
           node = Nokogiri::HTML5.fragment(escaped).css("span").first
           expect(node).to be_nil
         end

@@ -313,6 +313,67 @@ describe Quizzes::QuizQuestionBuilder do
     end
   end
 
+  describe ".decorate_question_for_submission" do
+    context "fill_in_multiple_blanks questions" do
+      it "strips XSS from question_text before injecting input elements" do
+        question = {
+          id: 1,
+          question_type: Quizzes::QuizQuestion::Q_FILL_IN_MULTIPLE_BLANKS,
+          question_text: '<script>alert("xss")</script><p>Fill in [color]</p>',
+          answers: [{ blank_id: "color", id: 1, text: "red" }]
+        }
+        Quizzes::QuizQuestionBuilder.decorate_question_for_submission(question, 1)
+
+        expect(question[:question_text]).not_to include("<script>")
+        expect(question[:question_text]).to include("<input")
+        expect(question[:question_text]).to include("<p>Fill in")
+      end
+
+      it "strips event-handler attributes from question_text before injecting input elements" do
+        question = {
+          id: 1,
+          question_type: Quizzes::QuizQuestion::Q_FILL_IN_MULTIPLE_BLANKS,
+          question_text: '<p onclick="evil()">Fill in [color]</p>',
+          answers: [{ blank_id: "color", id: 1, text: "red" }]
+        }
+        Quizzes::QuizQuestionBuilder.decorate_question_for_submission(question, 1)
+
+        expect(question[:question_text]).not_to include("onclick")
+        expect(question[:question_text]).to include("<input")
+      end
+    end
+
+    context "multiple_dropdowns questions" do
+      it "strips XSS from question_text before injecting select elements" do
+        question = {
+          id: 1,
+          question_type: Quizzes::QuizQuestion::Q_MULTIPLE_DROPDOWNS,
+          question_text: "<img src=x onerror=alert(1)>Choose [color]",
+          answers: [{ blank_id: "color", id: 1, text: "red" }]
+        }
+        Quizzes::QuizQuestionBuilder.decorate_question_for_submission(question, 1)
+
+        expect(question[:question_text]).not_to include("onerror")
+        expect(question[:question_text]).to include("<select")
+      end
+    end
+
+    context "calculated questions" do
+      it "strips XSS from question_text before variable substitution" do
+        question = {
+          id: 1,
+          question_type: Quizzes::QuizQuestion::Q_CALCULATED,
+          question_text: "<script>evil()</script>Calculate [x]",
+          answers: [{ variables: [{ name: "x", value: "5" }], answer: 5 }]
+        }
+        Quizzes::QuizQuestionBuilder.decorate_question_for_submission(question, 1)
+
+        expect(question[:question_text]).not_to include("<script>")
+        expect(question[:question_text]).to include("5")
+      end
+    end
+  end
+
   describe "#shuffle_matches" do
     let(:question) { { matches: } }
     let(:matches) { %w[a b c] }

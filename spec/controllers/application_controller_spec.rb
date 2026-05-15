@@ -143,6 +143,12 @@ RSpec.describe ApplicationController do
           expect(result).to include("location=course_syllabus_")
         end
       end
+
+      it "returns an html_safe string" do
+        content = "<p>Test content</p>"
+        result = controller.send(:user_content, content)
+        expect(result).to be_html_safe
+      end
     end
 
     describe "js_env" do

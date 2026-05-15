@@ -247,7 +247,7 @@ describe UserContent do
     end
   end
 
-  describe ".escape" do
+  describe ".sanitize_and_process_html" do
     it "stuffs mathml into a data attribute on equation images" do
       string = <<~HTML
         <div><ul>
@@ -256,7 +256,7 @@ describe UserContent do
           <li><img class='nothing_special'></li>
         </ul></div>
       HTML
-      html = UserContent.escape(string, nil, use_updated_math_rendering: false)
+      html = UserContent.sanitize_and_process_html(string, nil, use_updated_math_rendering: false)
       expected = <<~HTML
         <div><ul>
           <li>
@@ -278,13 +278,73 @@ describe UserContent do
         </div>
       HTML
 
-      html = UserContent.escape(string, nil, use_updated_math_rendering: false)
+      html = UserContent.sanitize_and_process_html(string, nil, use_updated_math_rendering: false)
       expected = <<~HTML
         <div>
         <img class="equation_image" data-equation-content="int f(x)/g(x)"><span class="hidden-readable"><math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mi>i</mi><mi>n</mi><mi>t</mi><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>/</mo><mi>g</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></math></span>text node
         </div>
       HTML
       expect(html).to match_ignoring_whitespace(expected)
+    end
+
+    it "sanitizes XSS attempts by removing dangerous attributes, and keeping safe ones" do
+      dangerous_html = '<img src=x onerror=alert(123)><p onclick="evil()">Click me</p>'
+      result = UserContent.sanitize_and_process_html(dangerous_html)
+
+      expect(result).to eq('<img src="x"><p>Click me</p>')
+    end
+
+    it "sanitizes XSS attempts by removing dangerous tags, and keeping safe ones" do
+      dangerous_html = '<script>alert("XSS")</script><p>Safe content</p>'
+      result = UserContent.sanitize_and_process_html(dangerous_html)
+
+      expect(result).to eq("<p>Safe content</p>")
+    end
+
+    it "converts object and embed tags to iframes after sanitization" do
+      html_with_object = '<object data="http://example.com/video.swf" width="400" height="300"></object>'
+      result = UserContent.sanitize_and_process_html(html_with_object, "canvas.test")
+
+      expect(result).to match(/<iframe class="user_content_iframe"/)
+    end
+
+    it "marks the result as html_safe" do
+      html = "<p>Hello <strong>world</strong></p>"
+      result = UserContent.sanitize_and_process_html(html)
+
+      expect(result).to be_html_safe
+    end
+
+    describe "preserves render-time-injected attributes" do
+      it "keeps loading=lazy on <img> when injected post-sanitize" do
+        # HtmlRewriter injects loading post-sanitize; img's allowlist omits it,
+        # so verify at the process_canvas_html layer, not sanitize_and_process_html.
+        result = UserContent.process_canvas_html('<img src="x" loading="lazy">')
+        expect(result).to include('loading="lazy"')
+      end
+
+      it "keeps loading=lazy on <iframe>" do
+        result = UserContent.sanitize_and_process_html('<iframe src="https://example.com/x" loading="lazy"></iframe>')
+        expect(result).to include('loading="lazy"')
+      end
+
+      it "keeps data-* attributes (covered by REGEX_DATA_ATTR)" do
+        result = UserContent.sanitize_and_process_html(
+          '<a href="/x" data-api-endpoint="/y" data-api-returntype="File">link</a>'
+        )
+        expect(result).to include('data-api-endpoint="/y"')
+        expect(result).to include('data-api-returntype="File"')
+      end
+
+      it "keeps aria-* attributes (covered by :all allowlist)" do
+        result = UserContent.sanitize_and_process_html('<img src="x" aria-label="alt text">')
+        expect(result).to include('aria-label="alt text"')
+      end
+
+      it "keeps class attribute (covered by :all allowlist)" do
+        result = UserContent.sanitize_and_process_html('<a class="instructure_file_link" href="/x">y</a>')
+        expect(result).to include('class="instructure_file_link"')
+      end
     end
   end
 end

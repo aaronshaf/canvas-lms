@@ -21,7 +21,23 @@ require "nokogiri"
 require "ritex"
 
 module UserContent
-  def self.escape(
+  # Sanitizes untrusted HTML, then applies Canvas's trusted post-sanitize
+  # transformations. Safe default for any caller that has untrusted input.
+  def self.sanitize_and_process_html(
+    str,
+    current_host = nil,
+    use_updated_math_rendering: true
+  )
+    process_canvas_html(
+      Sanitize.clean(str, CanvasSanitize::SANITIZE),
+      current_host,
+      use_updated_math_rendering:
+    )
+  end
+
+  # Applies trusted post-sanitize transforms (object/embed → iframe, MathML).
+  # Does NOT sanitize — callers must guarantee str is already safe.
+  def self.process_canvas_html(
     str,
     current_host = nil,
     use_updated_math_rendering: true

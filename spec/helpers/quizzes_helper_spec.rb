@@ -188,7 +188,7 @@ describe QuizzesHelper do
       @answers = []
 
       # double #user_content
-      def user_content(stuff)
+      def user_content(stuff, **)
         stuff
       end
     end
@@ -265,7 +265,7 @@ describe QuizzesHelper do
   context "multiple_dropdowns_question" do
     before do
       # double #user_content
-      def user_content(stuff)
+      def user_content(stuff, **)
         stuff
       end
     end

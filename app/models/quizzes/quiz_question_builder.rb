@@ -144,7 +144,9 @@ class Quizzes::QuizQuestionBuilder
     when ::Quizzes::QuizQuestion::Q_TEXT_ONLY
       question_name = t("#quizzes.quiz.default_text_only_question_name", "Spacer")
     when ::Quizzes::QuizQuestion::Q_FILL_IN_MULTIPLE_BLANKS
-      text = q[:question_text]
+      # Sanitize before injecting <input> elements; downstream rendering skips
+      # re-sanitization since <input> isn't in the allowlist.
+      text = Sanitize.clean(q[:question_text], CanvasSanitize::SANITIZE)
       variables = q[:answers].pluck(:blank_id).uniq
       variables.each do |variable|
         variable_id = ::AssessmentQuestion.variable_id(variable)
@@ -163,7 +165,9 @@ class Quizzes::QuizQuestionBuilder
       q[:original_question_text] = q[:question_text]
       q[:question_text] = text
     when ::Quizzes::QuizQuestion::Q_MULTIPLE_DROPDOWNS
-      text = q[:question_text]
+      # Sanitize before injecting <select> elements; downstream rendering skips
+      # re-sanitization since <select> isn't in the allowlist.
+      text = Sanitize.clean(q[:question_text], CanvasSanitize::SANITIZE)
       variables = q[:answers].pluck(:blank_id).uniq
       variables.each do |variable|
         variable_id = ::AssessmentQuestion.variable_id(variable)
@@ -190,10 +194,10 @@ class Quizzes::QuizQuestionBuilder
       q[:original_question_text] = q[:question_text]
       q[:question_text] = text
     when ::Quizzes::QuizQuestion::Q_CALCULATED
-      # on equation questions, pick one of the formulas, plug it in
+      # On equation questions, pick one of the formulas, plug it in
       # and you should be able to treat it like a numerical_answer
-      # question for all intents and purposes
-      text = q[:question_text]
+      # question for all intents and purposes.
+      text = Sanitize.clean(q[:question_text], CanvasSanitize::SANITIZE)
       q[:answers] = [q[:answers].sample].compact
       if q[:answers].first
         q[:answers].first[:variables].each do |variable|
