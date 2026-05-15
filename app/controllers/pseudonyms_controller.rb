@@ -386,6 +386,7 @@ class PseudonymsController < ApplicationController
     return unless find_authentication_provider
     return unless update_pseudonym_from_params
     return unless authorized_action(@pseudonym, @current_user, :create)
+    return unless authorized_per_site_admin_user_restrictions(@pseudonym.user)
 
     @pseudonym.generate_temporary_password unless params[:pseudonym][:password]
     if Pseudonym.unique_constraint_retry { @pseudonym.save_without_session_maintenance }
@@ -516,6 +517,7 @@ class PseudonymsController < ApplicationController
     return unless find_authentication_provider
     return unless update_pseudonym_from_params
     return unless authorized_action(@pseudonym, @current_user, [:update, :change_password])
+    return unless authorized_per_site_admin_user_restrictions(@pseudonym.user)
 
     if @pseudonym.save_without_session_maintenance
       flash[:notice] = t "notices.account_updated", "Account updated!"
@@ -573,6 +575,55 @@ class PseudonymsController < ApplicationController
 
   def require_elevated_auth_provider_for_login_management?
     AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_for_login_management")
+  end
+
+  # Temporary fix until we can refine permissions. See INTEROP-10576.
+  def authorized_per_site_admin_user_restrictions(target_user)
+    return true unless Account.site_admin.grants_right?(target_user, :read)
+    return true unless AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("restrict_modifying_site_admin_user_logins")
+
+    users_to_check = [@current_user, @real_current_user].compact.uniq
+    permitted =
+      users_to_check.any? &&
+      AuthenticationMethods::ElevatedAuthProvider.operation_permitted_by_client?(request:) &&
+      users_to_check.all? { |u| Account.site_admin.grants_right?(u, session, :manage_user_logins) }
+
+    log_context =
+      "#{request.method} #{request.path} on a site-admin target user " \
+      "(target_user=#{target_user.global_id}, " \
+      "current_user=#{@current_user&.global_id}, " \
+      "real_current_user=#{@real_current_user&.global_id})"
+
+    event_tags = Utils::InstStatsdUtils::Tags.tags_for(Shard.current).merge(
+      target_user_global_id: target_user.global_id.to_s,
+      current_user_global_id: @current_user&.global_id.to_s,
+      real_current_user_global_id: @real_current_user&.global_id.to_s,
+      request_method: request.method,
+      request_path: request.path
+    ).compact_blank
+
+    if permitted
+      InstStatsd::Statsd.event(
+        "Site-Admin User Login Management Allowed",
+        "[PseudonymsController] allowing #{log_context}",
+        type: :pseudonyms_site_admin_user_restriction_allowed,
+        alert_type: :info,
+        tags: event_tags
+      )
+      Rails.logger.info("[PseudonymsController] allowing #{log_context}")
+    else
+      InstStatsd::Statsd.event(
+        "Site-Admin User Login Management Blocked",
+        "[PseudonymsController] blocking #{log_context}",
+        type: :pseudonyms_site_admin_user_restriction_blocked,
+        alert_type: :warning,
+        tags: event_tags
+      )
+      Rails.logger.warn("[PseudonymsController] blocking #{log_context}")
+    end
+
+    render_unauthorized_action unless permitted
+    permitted
   end
 
   def context_is_root_account?

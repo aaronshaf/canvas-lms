@@ -47,6 +47,20 @@ module AuthenticationMethods
       end
     end
 
+    # Some OAuth2 clients are permitted to perform elevated operations based
+    # on their scope and grant type — either all of them (via the
+    # ELEVATED_OPERATIONS_PREFIX/all scope) or a specific controller/action.
+    # When require_client_credentials is on, we additionally require the
+    # caller's access token to be a client-credentials-issued InstAccess token.
+    def self.operation_permitted_by_client?(request:)
+      permitted = AuthenticationMethods::AccessTokenAttributes.current_developer_key&.elevated_operation_permitted?(request:)
+      if setting_enabled?("require_client_credentials")
+        permitted &&= AuthenticationMethods::AccessTokenAttributes.current_token.is_a?(InstAccess::Token)
+      end
+
+      permitted
+    end
+
     def require_elevated_auth_provider
       pseudonym_account = @current_pseudonym&.account
 
@@ -69,15 +83,6 @@ module AuthenticationMethods
       Rails.logger.public_send(level, "[ElevatedAuthProvider]: #{message}")
     end
 
-    def operation_permitted_by_client?
-      permitted = AuthenticationMethods::AccessTokenAttributes.current_developer_key&.elevated_operation_permitted?(request:)
-      if AuthenticationMethods::ElevatedAuthProvider.setting_enabled?("require_client_credentials")
-        permitted &&= AuthenticationMethods::AccessTokenAttributes.current_token.is_a?(InstAccess::Token)
-      end
-
-      permitted
-    end
-
     def elevated_auth_provider_required?(pseudonym_account)
       if pseudonym_account.nil?
         warn_no_pseudonym_account(@current_pseudonym)
@@ -90,14 +95,9 @@ module AuthenticationMethods
         return false
       end
 
-      # Some OAuth2 clients are permitted to either perform all elevated
-      # operations or a subset of them based on their scope and grant type.
-      #
       # Check if the DeveloperKey has the needed scopes and grant types
-      # to permit the operation without a session required. Additionally
-      # check to see if the token was issued for a client credentials grant
-      # (detected by the token's type)
-      return false if operation_permitted_by_client?
+      # to permit the operation without a session required.
+      return false if AuthenticationMethods::ElevatedAuthProvider.operation_permitted_by_client?(request:)
 
       pseudonym_account.elevated_auth_provider_global_id.present?
     end

@@ -259,14 +259,14 @@ describe PseudonymsController do
 
     it "destroys if authorized to delete pseudonyms" do
       Account.site_admin.account_users.create!(user: @user)
-      @p2 = @user.pseudonyms.build(unique_id: "another_one@test.com", password: "password", password_confirmation: "password")
+      target = user_with_pseudonym(active_all: true)
+      @p2 = target.pseudonyms.build(unique_id: "another_one@test.com", password: "password", password_confirmation: "password")
       @p2.sis_user_id = "another_one@test.com"
       @p2.save!
       @p2.account.authentication_providers.create!(auth_type: "ldap")
-      delete "destroy", params: { user_id: @user.id, id: @p2.id }
+      delete "destroy", params: { user_id: target.id, id: @p2.id }
       assert_status(200)
-      expect(@pseudonym).to be_active
-      expect(@p2).to be_active
+      expect(@p2.reload).to be_deleted
     end
   end
 
@@ -280,7 +280,8 @@ describe PseudonymsController do
       end
 
       it "uses the account id from params" do
-        post "create", params: { user_id: @user.id, pseudonym: { account_id: Account.site_admin.id, unique_id: "unique1" } }, format: "json"
+        target = user_with_pseudonym(active_all: true)
+        post "create", params: { user_id: target.id, pseudonym: { account_id: Account.site_admin.id, unique_id: "unique1" } }, format: "json"
         expect(response).to be_successful
       end
     end
@@ -808,6 +809,279 @@ describe PseudonymsController do
             expect(response).to have_http_status(:ok)
             expect(target_pseudonym.reload).to be_deleted
           end
+        end
+      end
+    end
+  end
+
+  describe "site-admin target user restriction" do
+    let(:account) { Account.default }
+    let(:caller_user) { site_admin_user(active_all: true) }
+    let(:target_user) do
+      u = user_with_pseudonym(active_all: true, account:)
+      Account.site_admin.account_users.create!(user: u)
+      u
+    end
+    let!(:target_pseudonym) { pseudonym(target_user, account:) }
+    let(:caller_site_admin_role) { caller_user.account_users.find_by(account: Account.site_admin).role }
+
+    before do
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?).and_return(false)
+      allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+        .with("restrict_modifying_site_admin_user_logins").and_return(true)
+      caller_pseudonym = pseudonym(caller_user, account:)
+      user_session(caller_user, caller_pseudonym)
+    end
+
+    def override_site_admin_manage_user_logins(enabled:, applies_to_self:, applies_to_descendants: true)
+      Account.site_admin.role_overrides.where(permission: "manage_user_logins", role: caller_site_admin_role).destroy_all
+      Account.site_admin.role_overrides.create!(
+        permission: "manage_user_logins",
+        role: caller_site_admin_role,
+        enabled:,
+        applies_to_self:,
+        applies_to_descendants:
+      )
+    end
+
+    def create_call
+      post :create,
+           params: { user_id: target_user.id,
+                     pseudonym: { account_id: account.id, unique_id: "new_login@example.com" } },
+           format: :json
+    end
+
+    def api_create_call
+      request.path = "/api/v1/accounts/#{account.id}/logins"
+      post :create,
+           params: { account_id: account.id,
+                     user: { id: target_user.id },
+                     login: { unique_id: "new_login@example.com" } },
+           format: :json
+    end
+
+    def update_call
+      put :update,
+          params: { user_id: target_user.id,
+                    id: target_pseudonym.id,
+                    pseudonym: { unique_id: "renamed@example.com" } },
+          format: :json
+    end
+
+    def api_update_call
+      request.path = "/api/v1/accounts/#{account.id}/logins/#{target_pseudonym.id}"
+      put :update,
+          params: { account_id: account.id,
+                    id: target_pseudonym.id,
+                    login: { unique_id: "renamed@example.com" } },
+          format: :json
+    end
+
+    shared_examples "blocked" do
+      it "blocks create with 403 and does not persist" do
+        expect { create_call }.not_to change { target_user.pseudonyms.count }
+        expect(response).to have_http_status(:forbidden)
+      end
+
+      it "blocks API create with 403 and does not persist" do
+        expect { api_create_call }.not_to change { target_user.pseudonyms.count }
+        expect(response).to have_http_status(:forbidden)
+      end
+
+      it "blocks update with 403 and does not change unique_id" do
+        original = target_pseudonym.unique_id
+        update_call
+        expect(response).to have_http_status(:forbidden)
+        expect(target_pseudonym.reload.unique_id).to eql original
+      end
+
+      it "blocks API update with 403 and does not change unique_id" do
+        original = target_pseudonym.unique_id
+        api_update_call
+        expect(response).to have_http_status(:forbidden)
+        expect(target_pseudonym.reload.unique_id).to eql original
+      end
+    end
+
+    shared_examples "allowed" do
+      it "allows create through" do
+        expect { create_call }.to change { target_user.pseudonyms.count }.by(1)
+        expect(response).to be_successful
+      end
+
+      it "allows update through and persists the new unique_id" do
+        update_call
+        expect(response).to be_successful
+        expect(target_pseudonym.reload.unique_id).to eql "renamed@example.com"
+      end
+
+      it "allows API update through and persists the new unique_id" do
+        api_update_call
+        expect(response).to be_successful
+        expect(target_pseudonym.reload.unique_id).to eql "renamed@example.com"
+      end
+    end
+
+    context "when the target is not a site-admin user" do
+      let(:target_user) { user_with_pseudonym(active_all: true, account:) }
+
+      it_behaves_like "allowed"
+    end
+
+    context "when the target is a site-admin user" do
+      it "allows destroy through regardless (so unwanted pseudonyms can be cleaned up)" do
+        delete :destroy,
+               params: { user_id: target_user.id, id: target_pseudonym.id },
+               format: :json
+        expect(response).to have_http_status(:ok)
+        expect(target_pseudonym.reload).to be_deleted
+      end
+
+      context "and no exception applies" do
+        it_behaves_like "blocked"
+      end
+
+      context "with an access token" do
+        let(:scopes) { [] }
+        let(:caller_developer_key) { DeveloperKey.create!(name: "key", scopes:) }
+
+        before do
+          AuthenticationMethods::AccessTokenAttributes.current_developer_key = caller_developer_key
+        end
+
+        after { AuthenticationMethods::AccessTokenAttributes.reset }
+
+        context "with a non-matching elevated_operations scope" do
+          let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/anonymous/index"] }
+
+          it_behaves_like "blocked"
+        end
+
+        context "with the /all scope but manage_user_logins is disabled on Site Admin" do
+          let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"] }
+
+          before { override_site_admin_manage_user_logins(enabled: false, applies_to_self: true) }
+
+          it_behaves_like "blocked"
+        end
+
+        context "with /all scope and Site-Admin manage_user_logins (applies_to_self: true)" do
+          let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"] }
+
+          before { override_site_admin_manage_user_logins(enabled: true, applies_to_self: true) }
+
+          it_behaves_like "allowed"
+        end
+
+        context "with action-specific elevated_operations scopes and Site-Admin manage_user_logins" do
+          let(:scopes) do
+            %w[create update].map do |action|
+              "#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/pseudonyms/#{action}"
+            end
+          end
+
+          before { override_site_admin_manage_user_logins(enabled: true, applies_to_self: true) }
+
+          it_behaves_like "allowed"
+        end
+
+        context "with /all scope but Site-Admin manage_user_logins is applies_to_self: false" do
+          let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"] }
+
+          before { override_site_admin_manage_user_logins(enabled: true, applies_to_self: false) }
+
+          it_behaves_like "blocked"
+        end
+
+        context "with /all scope and perm but require_client_credentials enforces InstAccess token" do
+          let(:scopes) { ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"] }
+
+          before do
+            override_site_admin_manage_user_logins(enabled: true, applies_to_self: true)
+            allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+              .with("require_client_credentials").and_return(true)
+          end
+
+          it_behaves_like "blocked"
+        end
+      end
+
+      context "with masquerading" do
+        # Both @current_user and @real_current_user must hold the Site-Admin
+        # manage_user_logins permission. Either alone is not enough.
+        let(:non_site_admin) { account_admin_user(account:) }
+        let(:caller_developer_key) do
+          DeveloperKey.create!(name: "key", scopes: ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"])
+        end
+
+        before do
+          override_site_admin_manage_user_logins(enabled: true, applies_to_self: true)
+          AuthenticationMethods::AccessTokenAttributes.current_developer_key = caller_developer_key
+        end
+
+        after { AuthenticationMethods::AccessTokenAttributes.reset }
+
+        context "when a non-site-admin is masquerading as the site-admin target_user" do
+          # Session-as user (target_user) has the perm, real (masquerading) user does not.
+          before do
+            user_session(target_user, target_pseudonym)
+            controller.instance_variable_set(:@real_current_user, non_site_admin)
+          end
+
+          it_behaves_like "blocked"
+        end
+
+        context "when a site-admin is masquerading as a non-site-admin (and target is still a site-admin)" do
+          # Real (masquerading) user has the perm, session-as user does not.
+          before do
+            user_session(non_site_admin, pseudonym(non_site_admin, account:))
+            controller.instance_variable_set(:@real_current_user, caller_user)
+          end
+
+          it_behaves_like "blocked"
+        end
+      end
+
+      context "when the restrict_modifying_site_admin_user_logins Consul setting is disabled (or unset)" do
+        before do
+          allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+            .with("restrict_modifying_site_admin_user_logins").and_return(false)
+        end
+
+        it_behaves_like "allowed"
+      end
+
+      context "when the restrict_modifying_site_admin_user_logins Consul setting is enabled" do
+        before do
+          allow(AuthenticationMethods::ElevatedAuthProvider).to receive(:setting_enabled?)
+            .with("restrict_modifying_site_admin_user_logins").and_return(true)
+        end
+
+        it_behaves_like "blocked"
+      end
+
+      describe "events" do
+        it "emits an allowed event when the call is permitted" do
+          caller_developer_key = DeveloperKey.create!(name: "key", scopes: ["#{TokenScopes::ELEVATED_OPERATIONS_PREFIX}/all"])
+          AuthenticationMethods::AccessTokenAttributes.current_developer_key = caller_developer_key
+          override_site_admin_manage_user_logins(enabled: true, applies_to_self: true)
+          expect(InstStatsd::Statsd).to receive(:event).with(
+            "Site-Admin User Login Management Allowed",
+            anything,
+            hash_including(type: :pseudonyms_site_admin_user_restriction_allowed, alert_type: :info)
+          )
+          create_call
+        ensure
+          AuthenticationMethods::AccessTokenAttributes.reset
+        end
+
+        it "emits a blocked event when the call is blocked" do
+          expect(InstStatsd::Statsd).to receive(:event).with(
+            "Site-Admin User Login Management Blocked",
+            anything,
+            hash_including(type: :pseudonyms_site_admin_user_restriction_blocked, alert_type: :warning)
+          )
+          create_call
         end
       end
     end
