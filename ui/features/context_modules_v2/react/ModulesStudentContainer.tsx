@@ -19,8 +19,11 @@
 import React from 'react'
 import {View} from '@instructure/ui-view'
 import ModulesListStudent from './componentsStudents/ModuleListStudent'
+import {useModuleItemsFetchQueueCleanup} from './hooks/queries/useModuleItems'
 
 const ModulesStudentContainer: React.FC = () => {
+  useModuleItemsFetchQueueCleanup()
+
   return (
     <View as="div" data-testid="modules-rewrite-student-container">
       <ModulesListStudent />

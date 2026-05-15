@@ -21,8 +21,11 @@ import {View} from '@instructure/ui-view'
 import ModulesList from './componentsTeacher/ModulesList'
 import './handlers/modulePageCommandEventHandlers'
 import {PublishingProvider} from '@canvas/context-modules/react/publishing/publishingContext'
+import {useModuleItemsFetchQueueCleanup} from './hooks/queries/useModuleItems'
 
 const ModulesContainer: React.FC = () => {
+  useModuleItemsFetchQueueCleanup()
+
   return (
     <View as="div" data-testid="modules-rewrite-container" className="modules-rewrite-container">
       <PublishingProvider>

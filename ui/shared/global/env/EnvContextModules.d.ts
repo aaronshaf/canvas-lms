@@ -78,6 +78,7 @@ export interface EnvContextModules {
     TEACHER_MODULE_SELECTION: boolean
     MODULES_ARE_PAGINATED?: boolean
     PAGE_SIZE?: number
+    FETCH_CONCURRENCY?: number
     SEAMLESS_EXTERNAL_URL_REDIRECT?: boolean
   }
   MODULES_OBSERVER_INFO?: {

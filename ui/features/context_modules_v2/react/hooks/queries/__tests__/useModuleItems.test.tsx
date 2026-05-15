@@ -25,7 +25,6 @@ import {setupServer} from 'msw/node'
 import {graphql, HttpResponse} from 'msw'
 
 const moduleId = 'mod-123'
-const errorMsg = 'Boom'
 
 const node1 = {id: 'item_1'}
 const node2 = {id: 'item_2'}

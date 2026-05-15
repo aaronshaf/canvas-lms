@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 - present Instructure, Inc.
+ * Copyright (C) 2026 - present Instructure, Inc.
  *
  * This file is part of Canvas.
  *
@@ -17,27 +17,22 @@
  */
 
 import {useAllModuleItems, getAllModuleItems} from '../useAllModuleItems'
-import * as moduleItemsHook from '../useModuleItems'
+import {moduleItemsFetchQueue} from '../useModuleItems'
 import {renderHook} from '@testing-library/react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import React from 'react'
 import {waitFor} from '@testing-library/react'
-import {SHOW_ALL_PAGE_SIZE} from '../../../utils/constants'
+import {setupServer} from 'msw/node'
+import {graphql, HttpResponse} from 'msw'
 
-vi.mock('../useModuleItems', () => ({
-  getModuleItems: vi.fn(),
-}))
-const mockGetModuleItems = moduleItemsHook.getModuleItems as ReturnType<typeof vi.fn>
-
-const moduleId = 'mod-123'
-const view = 'teacher'
-
+const moduleId = 'mod-all'
 const node1 = {id: 'item_1'}
 const node2 = {id: 'item_2'}
 const node3 = {id: 'item_3'}
-const node4 = {id: 'item_4'}
 
-const renderUseAllModuleItems = (moduleId: string, enabled = true) => {
+const server = setupServer()
+
+const renderUseAllModuleItems = (enabled = true) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -45,119 +40,161 @@ const renderUseAllModuleItems = (moduleId: string, enabled = true) => {
       },
     },
   })
-  return renderHook(() => useAllModuleItems(moduleId, enabled, view), {
+  return renderHook(() => useAllModuleItems(moduleId, enabled, 'teacher'), {
     wrapper: ({children}: {children: React.ReactNode}) => (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),
   })
 }
 
-describe.skip('useAllModuleItems', () => {
-  beforeEach(() => {
-    // First page has more items
-    mockGetModuleItems.mockResolvedValueOnce({
-      moduleItems: [
-        {...node1, moduleId, index: 0},
-        {...node2, moduleId, index: 1},
-      ],
-      pageInfo: {
-        hasNextPage: true,
-        endCursor: 'cursor1',
-      },
-    })
-
-    // Second page is the last page
-    mockGetModuleItems.mockResolvedValueOnce({
-      moduleItems: [
-        {...node3, moduleId, index: 2},
-        {...node4, moduleId, index: 3},
-      ],
-      pageInfo: {
-        hasNextPage: false,
-        endCursor: null,
-      },
-    })
-  })
+describe('useAllModuleItems', () => {
+  beforeAll(() => server.listen())
   afterEach(() => {
-    mockGetModuleItems.mockReset()
+    server.resetHandlers()
+    moduleItemsFetchQueue.clear()
+  })
+  afterAll(() => server.close())
+
+  it('fetches a single page when hasNextPage is false', async () => {
+    server.use(
+      graphql.query('GetModuleItemsQuery', () =>
+        HttpResponse.json({
+          data: {
+            legacyNode: {
+              moduleItemsConnection: {
+                edges: [{node: node1}, {node: node2}],
+                pageInfo: {hasNextPage: false, endCursor: null},
+              },
+            },
+          },
+        }),
+      ),
+    )
+
+    const {result} = renderUseAllModuleItems()
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true)
+    })
+
+    expect(result.current.data?.moduleItems).toHaveLength(2)
+    expect(result.current.data?.pageInfo).toEqual({hasNextPage: false, endCursor: null})
   })
 
-  describe('getAllModuleItems', () => {
-    it('fetches all items by paginating through results', async () => {
-      const result = await getAllModuleItems(moduleId, view)
+  it('paginates across multiple pages and concatenates items', async () => {
+    let calls = 0
+    server.use(
+      graphql.query('GetModuleItemsQuery', ({variables}) => {
+        calls++
+        if (variables.cursor == null) {
+          return HttpResponse.json({
+            data: {
+              legacyNode: {
+                moduleItemsConnection: {
+                  edges: [{node: node1}],
+                  pageInfo: {hasNextPage: true, endCursor: 'cursor-1'},
+                },
+              },
+            },
+          })
+        }
+        return HttpResponse.json({
+          data: {
+            legacyNode: {
+              moduleItemsConnection: {
+                edges: [{node: node2}, {node: node3}],
+                pageInfo: {hasNextPage: false, endCursor: null},
+              },
+            },
+          },
+        })
+      }),
+    )
 
-      expect(mockGetModuleItems).toHaveBeenCalledTimes(2)
-      expect(mockGetModuleItems).toHaveBeenNthCalledWith(
-        1,
-        moduleId,
-        null,
-        view,
-        SHOW_ALL_PAGE_SIZE,
-      )
-      expect(mockGetModuleItems).toHaveBeenNthCalledWith(
-        2,
-        moduleId,
-        'cursor1',
-        view,
-        SHOW_ALL_PAGE_SIZE,
-      )
+    const {result} = renderUseAllModuleItems()
 
-      expect(result.moduleItems).toHaveLength(4)
-      expect(result.pageInfo).toEqual({hasNextPage: false, endCursor: null})
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true)
     })
 
-    it('handles errors from getModuleItems', async () => {
-      const error = new Error('Failed to fetch module items')
-      mockGetModuleItems.mockReset()
-      mockGetModuleItems.mockRejectedValue(error)
-
-      await expect(getAllModuleItems(moduleId, view)).rejects.toThrow(error)
-    })
+    expect(calls).toBe(2)
+    expect(result.current.data?.moduleItems).toHaveLength(3)
+    expect(result.current.data?.pageInfo).toEqual({hasNextPage: false, endCursor: null})
   })
 
-  describe('the hook', () => {
-    afterEach(() => {
-      mockGetModuleItems.mockReset()
+  it('does not query when enabled is false', async () => {
+    let called = false
+    server.use(
+      graphql.query('GetModuleItemsQuery', () => {
+        called = true
+        return HttpResponse.json({
+          data: {
+            legacyNode: {
+              moduleItemsConnection: {edges: [], pageInfo: {hasNextPage: false, endCursor: null}},
+            },
+          },
+        })
+      }),
+    )
+
+    const {result} = renderUseAllModuleItems(false)
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
     })
 
-    it('fetches all module items when enabled', async () => {
-      const {result} = renderUseAllModuleItems(moduleId, true)
+    expect(called).toBe(false)
+    expect(result.current.data).toBeUndefined()
+  })
+})
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false)
-      })
+describe('getAllModuleItems', () => {
+  beforeAll(() => server.listen())
+  afterEach(() => {
+    server.resetHandlers()
+    moduleItemsFetchQueue.clear()
+  })
+  afterAll(() => server.close())
 
-      expect(result.current.isError).toBe(false)
-      const data = result.current.data
-      expect(data).toBeDefined()
-      expect(data?.moduleItems).toHaveLength(4)
-      expect(data?.pageInfo).toEqual({hasNextPage: false, endCursor: null})
-    })
+  it('concatenates items across multiple pages', async () => {
+    server.use(
+      graphql.query('GetModuleItemsQuery', ({variables}) => {
+        if (variables.cursor == null) {
+          return HttpResponse.json({
+            data: {
+              legacyNode: {
+                moduleItemsConnection: {
+                  edges: [{node: node1}],
+                  pageInfo: {hasNextPage: true, endCursor: 'cursor-1'},
+                },
+              },
+            },
+          })
+        }
+        return HttpResponse.json({
+          data: {
+            legacyNode: {
+              moduleItemsConnection: {
+                edges: [{node: node2}, {node: node3}],
+                pageInfo: {hasNextPage: false, endCursor: null},
+              },
+            },
+          },
+        })
+      }),
+    )
 
-    it('does not query if enabled is false', async () => {
-      const {result} = renderUseAllModuleItems(moduleId, false)
+    const result = await getAllModuleItems(moduleId, 'teacher')
 
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false)
-      })
+    expect(result.moduleItems.map(item => item.id)).toEqual(['item_1', 'item_2', 'item_3'])
+    expect(result.pageInfo).toEqual({hasNextPage: false, endCursor: null})
+  })
 
-      expect(mockGetModuleItems).not.toHaveBeenCalled()
-    })
+  it('propagates GraphQL errors from a page fetch to the caller', async () => {
+    server.use(
+      graphql.query('GetModuleItemsQuery', () => HttpResponse.json({errors: [{message: 'boom'}]})),
+    )
 
-    it('handles errors properly', async () => {
-      mockGetModuleItems.mockReset()
-      mockGetModuleItems.mockImplementation(() => {
-        throw new Error('Failed to fetch')
-      })
-      const {result} = renderUseAllModuleItems(moduleId, true)
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false)
-      })
-
-      expect(result.current.isError).toBe(true)
-
-      expect(result.current.error).toBeDefined()
-    })
+    await expect(getAllModuleItems(moduleId, 'teacher')).rejects.toThrow('boom')
   })
 })

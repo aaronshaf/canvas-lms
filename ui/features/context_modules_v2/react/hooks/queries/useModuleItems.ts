@@ -16,18 +16,22 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {useEffect} from 'react'
 import {gql} from 'graphql-tag'
+import PQueue from 'p-queue'
 import {executeQuery} from '@canvas/graphql'
-import {useScope as createI18nScope} from '@canvas/i18n'
 import {useQuery} from '@tanstack/react-query'
 import type {
   ModuleItem,
   PaginatedNavigationGraphQLResult,
   PaginatedNavigationResponse,
 } from '../../utils/types'
-import {MODULE_ITEMS, PAGE_SIZE, MODULE_ITEMS_QUERY_MAP} from '../../utils/constants'
-
-const I18n = createI18nScope('context_modules_v2')
+import {
+  MODULE_ITEMS,
+  MODULE_ITEMS_FETCH_CONCURRENCY,
+  PAGE_SIZE,
+  MODULE_ITEMS_QUERY_MAP,
+} from '../../utils/constants'
 
 const transformItems = (items: ModuleItem[], moduleId: string) =>
   items.map((item, index) => ({
@@ -36,44 +40,49 @@ const transformItems = (items: ModuleItem[], moduleId: string) =>
     index,
   }))
 
+export const moduleItemsFetchQueue = new PQueue({concurrency: MODULE_ITEMS_FETCH_CONCURRENCY})
+
+export function useModuleItemsFetchQueueCleanup() {
+  useEffect(() => {
+    return () => {
+      moduleItemsFetchQueue.clear()
+    }
+  }, [])
+}
+
 export async function getModuleItems(
   moduleId: string,
   cursor: string | null,
   view: string = 'teacher',
   pageSize: number = PAGE_SIZE,
+  signal?: AbortSignal,
 ): Promise<PaginatedNavigationResponse> {
   const persistedQuery = MODULE_ITEMS_QUERY_MAP[view]
   const query = gql`${persistedQuery}`
 
-  try {
-    const initialResult = await executeQuery<PaginatedNavigationGraphQLResult>(query, {
-      moduleId,
-      cursor: cursor,
-      first: pageSize,
-    })
-
-    if (initialResult.errors) {
-      throw new Error(initialResult.errors.map(err => err.message).join(', '))
-    }
-
-    const {moduleItemsConnection} = initialResult.legacyNode || {}
-    const edges = moduleItemsConnection?.edges || []
-    const pageInfo = moduleItemsConnection?.pageInfo || {
-      hasNextPage: false,
-      endCursor: null,
-    }
-
-    return {
-      moduleItems: transformItems(
-        edges.map(edge => edge.node),
+  const result = await moduleItemsFetchQueue.add(
+    () =>
+      executeQuery<PaginatedNavigationGraphQLResult>(query, {
         moduleId,
-      ),
-      pageInfo,
-    }
-  } catch (error: any) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error('Failed to load module items:', errorMessage)
-    throw error
+        cursor,
+        first: pageSize,
+      }),
+    {signal},
+  )
+
+  const {moduleItemsConnection} = result.legacyNode || {}
+  const edges = moduleItemsConnection?.edges || []
+  const pageInfo = moduleItemsConnection?.pageInfo || {
+    hasNextPage: false,
+    endCursor: null,
+  }
+
+  return {
+    moduleItems: transformItems(
+      edges.map(edge => edge.node),
+      moduleId,
+    ),
+    pageInfo,
   }
 }
 
@@ -85,7 +94,7 @@ export function useModuleItems(
 ) {
   return useQuery<PaginatedNavigationResponse, Error>({
     queryKey: [MODULE_ITEMS, moduleId, cursor],
-    queryFn: () => getModuleItems(moduleId, cursor, view),
+    queryFn: ({signal}) => getModuleItems(moduleId, cursor, view, PAGE_SIZE, signal),
     enabled,
     staleTime: 15 * 60 * 1000,
   })

@@ -23,6 +23,7 @@ import {setupServer} from 'msw/node'
 import {graphql, HttpResponse} from 'msw'
 import ModulesStudentContainer from '../ModulesStudentContainer'
 import {ContextModuleProvider} from '../hooks/useModuleContext'
+import {moduleItemsFetchQueue} from '../hooks/queries/useModuleItems'
 
 // TypeScript interfaces for better type safety
 interface ENVObserverOptions {
@@ -204,6 +205,18 @@ describe('ModulesStudentContainer', () => {
       expect(screen.queryByText(/You are observing/)).not.toBeInTheDocument()
       expect(screen.queryByText('Select a student to view')).not.toBeInTheDocument()
       expect(screen.getByText('No modules found')).toBeInTheDocument()
+    })
+  })
+
+  describe('moduleItemsFetchQueue cleanup', () => {
+    it('clears the module-items fetch queue on unmount', async () => {
+      const clearSpy = vi.spyOn(moduleItemsFetchQueue, 'clear')
+      const {unmount} = await setup()
+
+      unmount()
+      expect(clearSpy).toHaveBeenCalledTimes(1)
+
+      clearSpy.mockRestore()
     })
   })
 

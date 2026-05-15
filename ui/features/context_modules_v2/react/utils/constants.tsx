@@ -24,6 +24,11 @@ export const SHOW_ALL_PAGE_SIZE = 100
 export const PAGE_SIZE = ENV.MODULE_FEATURES?.PAGE_SIZE || 10
 export const MODULES_ARE_PAGINATED = !!ENV.MODULE_FEATURES?.MODULES_ARE_PAGINATED
 
+export const MODULE_ITEMS_FETCH_CONCURRENCY = Math.max(
+  1,
+  Number(ENV.MODULE_FEATURES?.FETCH_CONCURRENCY) || 4,
+)
+
 export const STUDENT = 'student'
 export const TEACHER = 'teacher'
 export const MODULE_ITEMS = 'moduleItems'

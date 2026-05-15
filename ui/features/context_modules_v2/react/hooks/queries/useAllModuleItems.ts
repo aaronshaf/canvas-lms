@@ -25,6 +25,7 @@ export async function getAllModuleItems(
   moduleId: string,
   view: string = 'teacher',
   pageSize: number = SHOW_ALL_PAGE_SIZE,
+  signal?: AbortSignal,
 ): Promise<PaginatedNavigationResponse> {
   const allItems: ModuleItem[] = []
   let currentCursor: string | null = null
@@ -32,7 +33,7 @@ export async function getAllModuleItems(
 
   // NOTE: getModuleItems can throw, so getAllModuleItems can
   while (hasMore) {
-    const result = await getModuleItems(moduleId, currentCursor, view, pageSize)
+    const result = await getModuleItems(moduleId, currentCursor, view, pageSize, signal)
     allItems.push(...result.moduleItems)
     hasMore = result.pageInfo.hasNextPage
     currentCursor = result.pageInfo.endCursor
@@ -44,7 +45,7 @@ export async function getAllModuleItems(
 export function useAllModuleItems(moduleId: string, enabled: boolean, view: string = 'teacher') {
   return useQuery<PaginatedNavigationResponse, Error>({
     queryKey: [MODULE_ITEMS_ALL, moduleId, view, SHOW_ALL_PAGE_SIZE],
-    queryFn: () => getAllModuleItems(moduleId, view),
+    queryFn: ({signal}) => getAllModuleItems(moduleId, view, SHOW_ALL_PAGE_SIZE, signal),
     enabled,
     staleTime: 15 * 60 * 1000,
   })
