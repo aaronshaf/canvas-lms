@@ -1866,6 +1866,7 @@ class CalendarEventsApiController < ApplicationController
         assignments << assignment unless @important_dates && assignment.important_dates && assignment.due_at.nil?
       else
         dates_list = assignment.all_dates_visible_to(user,
+                                                     include_module_overrides: false,
                                                      courses_user_has_been_enrolled_in:)
 
         if dates_list.empty?

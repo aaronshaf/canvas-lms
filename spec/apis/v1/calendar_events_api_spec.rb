@@ -4244,6 +4244,49 @@ describe CalendarEventsApiController, type: :request do
             expect(json.first["end_at"]).to eq "2012-01-12T12:00:00Z"
           end
         end
+
+        context "with module section overrides" do
+          before :once do
+            @module_section = @course.course_sections.create!(name: "Module Section")
+            @user = @teacher
+            assignment_override_model(
+              assignment: @default_assignment,
+              set: @module_section,
+              due_at: Time.zone.parse("2012-01-14 12:00:00")
+            )
+            @context_module = @course.context_modules.create!(name: "Test Module")
+            @context_module.add_item({ id: @default_assignment.id, type: "assignment" })
+            AssignmentOverride.create!(
+              context_module: @context_module,
+              set_type: "CourseSection",
+              set_id: @module_section.id,
+              workflow_state: "active"
+            )
+          end
+
+          let(:json) do
+            api_call(
+              :get,
+              "/api/v1/calendar_events?type=assignment&all_events=1&context_codes[]=course_#{@course.id}",
+              controller: "calendar_events_api",
+              action: "index",
+              format: "json",
+              type: "assignment",
+              context_codes: ["course_#{@course.id}"],
+              all_events: "1"
+            )
+          end
+
+          it "does not return a ghost undated entry for the module section override" do
+            assignment_entries = json.select { |e| e["id"] == "assignment_#{@default_assignment.id}" }
+            expect(assignment_entries).not_to include(a_hash_including("end_at" => nil))
+          end
+
+          it "returns the assignment with the section due date" do
+            assignment_entries = json.select { |e| e["id"] == "assignment_#{@default_assignment.id}" }
+            expect(assignment_entries).to include(a_hash_including("end_at" => "2012-01-14T12:00:00Z"))
+          end
+        end
       end
 
       context "as TA" do
