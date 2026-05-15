@@ -209,6 +209,19 @@ describe "Accounts API", type: :request do
       expect(json.pluck("name")).to eq ["Account 1", "Account 2", "implicit-access", "subby"]
     end
 
+    it "requires account admin rights" do
+      teacher_in_course(account: @a1)
+      api_call(:get,
+               "/api/v1/accounts/#{@a1.id}/sub_accounts",
+               { controller: "accounts",
+                 action: "sub_accounts",
+                 account_id: @a1.id.to_s,
+                 format: "json" },
+               {},
+               {},
+               { expected_status: 403 })
+    end
+
     it "preloads and returns correct course counts" do
       2.times { course_factory(active_all: true, account: @a2) }
       json = api_call(:get,

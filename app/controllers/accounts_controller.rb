@@ -618,7 +618,7 @@ class AccountsController < ApplicationController
   #
   # @returns [Account]
   def sub_accounts
-    return unless authorized_action(@account, @current_user, :read)
+    return unless authorized_action(@account, @current_user, :manage_account_settings)
 
     recursive = value_to_boolean(params[:recursive])
     @accounts = if recursive
