@@ -247,6 +247,49 @@ describe LoginController do
       get "session_token", format: :json, params: { return_to: "javascript://localhost/" }
       expect(response).to have_http_status :forbidden
     end
+
+    describe "user-generated access token gating" do
+      before do
+        user_session user_with_pseudonym(active: true)
+        allow_any_instance_of(Account).to receive(:require_acceptance_of_terms?).and_return(false)
+      end
+
+      it "rejects user-generated access tokens when the flag is enabled" do
+        Account.site_admin.enable_feature!(:block_session_token_for_user_generated_access_tokens_globally)
+        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
+
+        get "session_token", format: :json
+        expect(response).to have_http_status :forbidden
+      end
+
+      it "allows access tokens from a non-default developer key when the flag is enabled" do
+        Account.site_admin.enable_feature!(:block_session_token_for_user_generated_access_tokens_globally)
+        dk = DeveloperKey.create!
+        enable_developer_key_account_binding!(dk)
+        token = @user.access_tokens.create!(developer_key: dk, purpose: "test").full_token
+        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{token}" })
+
+        get "session_token", format: :json
+        expect(response).to be_successful
+      end
+
+      it "allows user-generated access tokens when the flag is disabled" do
+        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
+
+        get "session_token", format: :json
+        expect(response).to be_successful
+      end
+
+      it "emits a blocked DD event when rejecting" do
+        Account.site_admin.enable_feature!(:block_session_token_for_user_generated_access_tokens_globally)
+        allow(InstStatsd::Statsd).to receive(:event)
+        request.headers.merge!({ "CONTENT_TYPE" => "application/json", "HTTP_AUTHORIZATION" => "Bearer #{access_token_for_user(@user)}" })
+
+        get "session_token", format: :json
+        expect(InstStatsd::Statsd).to have_received(:event)
+          .with("Session Token Blocked", anything, hash_including(type: :session_token_blocked))
+      end
+    end
   end
 
   describe "#logout" do

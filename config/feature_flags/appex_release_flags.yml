@@ -132,6 +132,37 @@ log_session_token_failures:
       state: hidden
     production:
       state: hidden
+block_session_token_for_user_generated_access_tokens_globally:
+  state: hidden
+  applies_to: SiteAdmin
+  display_name: Block Session Token For User-Generated Access Tokens (Globally)
+  description: |-
+    When enabled, the /login/session_token endpoint rejects requests bearing
+    access tokens created from the /profile/settings UI (DeveloperKey.default)
+    for all users. These personal access tokens are an API-only artifact and
+    should not be able to bootstrap a web browser session.
+  environments:
+    development:
+      state: allowed
+    beta:
+      state: hidden
+    production:
+      state: hidden
+block_session_token_for_user_generated_access_tokens_for_site_admins:
+  state: hidden
+  applies_to: SiteAdmin
+  display_name: Block Session Token For User-Generated Access Tokens (Site Admins)
+  description: |-
+    When enabled, the /login/session_token endpoint rejects requests bearing
+    access tokens created from the /profile/settings UI (DeveloperKey.default)
+    for users who have read access to the site admin account.
+  environments:
+    development:
+      state: allowed
+    beta:
+      state: hidden
+    production:
+      state: hidden
 log_elevated_auth_provider_violations:
   state: hidden
   shadow: true

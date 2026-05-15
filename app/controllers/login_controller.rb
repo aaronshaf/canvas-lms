@@ -103,6 +103,7 @@ class LoginController < ApplicationController
   def session_token
     # must be used from API
     return render_unauthorized_action unless @access_token
+    return render_unauthorized_action unless AuthenticationMethods::SessionTokenPolicy.can_issue?(access_token: @access_token)
 
     # verify that we're sending them back to a host from the same instance
     begin
