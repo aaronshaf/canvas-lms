@@ -69,6 +69,27 @@ describe('validateUrl', () => {
     }
   })
 
+  // Characters that new URL() does NOT encode must be caught by our pre-normalization
+  // check. " is excluded from the pre-check because new URL() encodes it to %22 in
+  // paths, making it normalizable. " in a domain is still invalid (new URL() throws).
+  it.each([
+    ['[', 'http://example.com/pa[th'],
+    [']', 'http://example.com/pa]th'],
+    ['^', 'http://example.com/pa^th'],
+    ['|', 'http://example.com/pa|th'],
+    ['"', 'http://exam"ple.com/path'],
+  ])('rejects %s in URL', (_char, url) => {
+    expect('error' in validateUrl(url)).toBe(true)
+  })
+
+  it('normalizes " in URL path to %22 (not caught by pre-check)', () => {
+    const result = validateUrl('http://example.com/pa"th')
+    expect('normalized' in result).toBe(true)
+    if ('normalized' in result) {
+      expect(result.normalized).toBe('http://example.com/pa%22th')
+    }
+  })
+
   it('discards extra https//', () => {
     const result = validateUrl('https://https://example.com/')
     expect(result).toEqual({normalized: 'https://example.com/'})

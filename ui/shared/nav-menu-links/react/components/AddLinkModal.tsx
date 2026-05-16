@@ -54,13 +54,22 @@ export function validateUrl(str: string): UrlValidationResult {
 
   try {
     const prenormalized = str.trim().replace(/^https:\/\/https?:\/\//, 'https://')
+
+    // Pre-check only chars that new URL() does NOT encode in paths ([, ], ^, |).
+    // "  is deliberately excluded: new URL() encodes " → %22 in paths,
+    // making it normalizable (e.g. pa"th → pa%22th).
+    if (/[[\]^|]/.test(prenormalized)) {
+      return err(invalid)
+    }
+
     const url = new URL(prenormalized)
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
       return err(invalid)
     }
     const normalized = url.href
 
-    // Cases that even once normalized, ruby rejects:
+    // Catch remaining invalid chars (including " in domain, which throws above,
+    // and any % with malformed encoding) after normalization.
     if (INVALID_PERCENT_ENCODING.test(normalized) || INVALID_URL_CHARS.test(normalized)) {
       return err(invalid)
     }
