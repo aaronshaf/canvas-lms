@@ -18,11 +18,9 @@
 
 module SentryExtensions
   module Settings
-    class << self
-      Canvas::Reloader.on_reload do
-        reset_settings
-      end
+    Canvas::Reloader.on_reload { reset_settings }
 
+    class << self
       def settings
         @sentry_settings ||= build_settings
         @sentry_settings.presence || {}
