@@ -65,6 +65,29 @@ $.fn.toJSON = function () {
 const chainableStub = function (this: JQuery) {
   return this
 }
+
+// andSelf() was removed in jQuery 3.0; it's aliased to addBack().
+// packages/jqueryui 1.9.x still calls andSelf() so we need to shim it.
+// @ts-expect-error - andSelf is not in the jQuery 3.x type definitions
+$.fn.andSelf = $.fn.addBack
+
+// getClientRects() is not fully implemented by jsdom on non-DOM objects like window.
+// jqueryui/position.js calls $.fn.offset() which calls getClientRects on the element.
+// Add a fallback shim so position.js doesn't crash when positioning against window.
+const originalOffset = $.fn.offset
+// @ts-expect-error - our shim doesn't satisfy jQuery's overloaded offset signature
+$.fn.offset = function (...args: Parameters<typeof originalOffset>) {
+  try {
+    // eslint-disable-next-line prefer-rest-params
+    return (originalOffset as (...a: typeof args) => ReturnType<typeof originalOffset>).apply(
+      this,
+      args,
+    )
+  } catch {
+    return {top: 0, left: 0}
+  }
+}
+
 $.fn.tooltip = chainableStub
 $.fn.tabs = chainableStub
 $.fn.autocomplete = chainableStub
