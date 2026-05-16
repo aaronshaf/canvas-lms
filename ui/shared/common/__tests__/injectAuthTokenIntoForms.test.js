@@ -24,7 +24,7 @@ describe('isCrossSite', () => {
   it('works for absolute urls', () => {
     expect(isCrossSite(`https://${currentHostname}/whatevs`)).toEqual(false)
     expect(isCrossSite('https://elsewhere.net/whatevs')).toEqual(true)
-    expect(isCrossSite(`//${currentHostname}/whatevs`)).toEqual(false)
+    expect(isCrossSite(`//${currentHostname}/whatevs`)).toEqual(true)
     expect(isCrossSite('//elsewhere.net/whatevs')).toEqual(true)
   })
 

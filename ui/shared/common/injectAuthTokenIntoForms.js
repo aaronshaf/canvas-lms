@@ -20,6 +20,7 @@ import authenticityToken from '@canvas/authenticity-token'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const getHostname = function (href) {
+  if (!href) return location.hostname
   const a = document.createElement('a')
   a.href = sanitizeUrl(href)
   return a.hostname

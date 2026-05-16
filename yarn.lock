@@ -3149,6 +3149,11 @@
   dependencies:
     uuid "^9.0.0"
 
+"@instructure/platform-sanitize@0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-sanitize/-/platform-sanitize-0.3.0.tgz#a1db22887bbeab345d5a772022925ee55e92bbfc"
+  integrity sha512-bYJVUrCvqMyXJj8v5UY2MuOGxT+mmbDhU2XElcJnaXSMp9wOC3aG3NUYZ4hPj+fbxwLhEn03hEBVFclPdrEptA==
+
 "@instructure/platform-study-assist@0.12.1":
   version "0.12.1"
   resolved "https://registry.yarnpkg.com/@instructure/platform-study-assist/-/platform-study-assist-0.12.1.tgz#ad58842d5eee34ba1c92cad92feb48025e25a3c0"

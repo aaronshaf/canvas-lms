@@ -216,11 +216,11 @@ describe('SideNav', () => {
       expect(screen.getByText('Tool 2')).toBeInTheDocument()
       expect(screen.getByText('Tool 1').closest('a')).toHaveAttribute(
         'href',
-        'http://tool1.com&toolId=tool-1-1',
+        'http://tool1.com/&toolId=tool-1-1',
       )
       expect(screen.getByText('Tool 2').closest('a')).toHaveAttribute(
         'href',
-        'http://tool2.com&toolId=tool-2-2',
+        'http://tool2.com/&toolId=tool-2-2',
       )
     })
 
@@ -272,7 +272,7 @@ describe('SideNav', () => {
       expect(screen.getByText('Tool 1')).toBeInTheDocument()
       expect(screen.getByText('Tool 1').closest('a')).toHaveAttribute(
         'href',
-        'https://custom.example.com&toolId=tool-1-1',
+        'https://custom.example.com/&toolId=tool-1-1',
       )
     })
 
@@ -294,7 +294,7 @@ describe('SideNav', () => {
       expect(screen.getByText('Tool 2')).toBeInTheDocument()
       expect(screen.getByText('Tool 2').closest('a')).toHaveAttribute(
         'href',
-        'https://global.example.com&toolId=tool-2-2',
+        'https://global.example.com/&toolId=tool-2-2',
       )
     })
 
@@ -335,7 +335,7 @@ describe('SideNav', () => {
       expect(await screen.findByText('Tool with Null Image')).toBeInTheDocument()
       expect(screen.getByText('Tool with Null Image').closest('a')).toHaveAttribute(
         'href',
-        'http://tool-null-image.com&toolId=tool-with-null-image-1',
+        'http://tool-null-image.com/&toolId=tool-with-null-image-1',
       )
       const fallbackIcon = screen.getByTestId('IconExternalLinkLine')
       expect(fallbackIcon).toBeInTheDocument()
