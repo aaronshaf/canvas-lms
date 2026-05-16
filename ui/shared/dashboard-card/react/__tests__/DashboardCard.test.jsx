@@ -66,19 +66,21 @@ describe('DashboardCardHeaderHero', () => {
     const {container} = render(
       <DashboardCardHeaderHero image="https://example.com/path/to/image.png" />,
     )
+    // jsdom 26 normalizes url() to url("...") — match either form
     expect(
       container.querySelector('.ic-DashboardCard__header_image').style['background-image'],
-    ).toEqual('url(https://example.com/path/to/image.png)')
+    ).toMatch(/url\("?https:\/\/example\.com\/path\/to\/image\.png"?\)/)
   })
 
   it('adds instFS query params if it does use an inst-fs url', () => {
     const {container} = render(
       <DashboardCardHeaderHero image="https://inst-fs-iad-beta.inscloudgate.net/files/blah/foo?download=1&token=abcxyz" />,
     )
+    // jsdom 26 normalizes url() to url("...") — match either form
     expect(
       container.querySelector('.ic-DashboardCard__header_image').style['background-image'],
-    ).toEqual(
-      'url(https://inst-fs-iad-beta.inscloudgate.net/files/blah/foo?download=1&token=abcxyz&geometry=262x146)',
+    ).toMatch(
+      /url\("?https:\/\/inst-fs-iad-beta\.inscloudgate\.net\/files\/blah\/foo\?download=1&token=abcxyz&geometry=262x146"?\)/,
     )
   })
 

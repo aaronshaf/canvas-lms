@@ -99,7 +99,7 @@ describe('ModuleItemPaging', () => {
     const styles = getComputedStyle(spinnerContainer!)
     expect(styles.position).toBe('absolute')
     expect(styles.insetInlineStart).toBe('-3.5em')
-    expect(styles.top).toBe('-.25rem')
+    expect(styles.top).toMatch(/^-0?\.25rem$/)
   })
 
   it('should not add positioning style to spinner container on paginationData missing', () => {
@@ -108,6 +108,6 @@ describe('ModuleItemPaging', () => {
     const styles = getComputedStyle(spinnerContainer!)
     expect(styles.position).not.toBe('absolute')
     expect(styles.insetInlineStart).not.toBe('-3.5em')
-    expect(styles.top).not.toBe('-.25rem')
+    expect(styles.top).not.toMatch(/^-0?\.25rem$/)
   })
 })

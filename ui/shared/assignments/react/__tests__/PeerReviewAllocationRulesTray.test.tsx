@@ -469,7 +469,11 @@ describe('PeerReviewAllocationRulesTray', () => {
   describe('Screen reader alerts', () => {
     beforeEach(() => {
       vi.useFakeTimers()
-      HTMLElement.prototype.focus = vi.fn()
+      // jsdom 26: HTMLElement.prototype.focus is a getter-only property — use defineProperty
+      Object.defineProperty(HTMLElement.prototype, 'focus', {
+        configurable: true,
+        value: vi.fn(),
+      })
     })
 
     afterEach(() => {

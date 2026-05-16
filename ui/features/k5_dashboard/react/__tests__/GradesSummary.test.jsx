@@ -155,7 +155,9 @@ describe('GradesSummary', () => {
       <GradesSummary courses={[{...defaultCourse, courseImage: 'http://link/to/image.jpg'}]} />,
     )
     const image = getByTestId('k5-grades-course-image')
-    expect(image.style.getPropertyValue('background-image')).toBe('url(http://link/to/image.jpg)')
+    expect(image.style.getPropertyValue('background-image')).toMatch(
+      /url\("?http:\/\/link\/to\/image\.jpg"?\)/,
+    )
   })
 
   it('shows the course color if one is given and an image is not', () => {

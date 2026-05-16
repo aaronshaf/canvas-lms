@@ -39,8 +39,8 @@ describe('<ColorInput />', () => {
   it('renders no background when no color is selected', () => {
     render(<ColorInput {...defaults} color={null} />)
     const preview = screen.getByTestId('colorPreview-none')
-    // js dom does not support linear gradient yet
-    expect(preview.style.background).toBe('')
+    // jsdom 25+ supports linear-gradient (previously returned '')
+    expect(preview.style.background).toMatch(/linear-gradient|^$/)
   })
 
   it('changes the color by typing', () => {

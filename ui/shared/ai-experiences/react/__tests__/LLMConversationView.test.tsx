@@ -51,7 +51,7 @@ describe('LLMConversationView', () => {
     // Mock scrollIntoView which is not available in JSDOM
     Element.prototype.scrollIntoView = vi.fn()
     // Mock focus which is used for accessibility
-    HTMLElement.prototype.focus = vi.fn()
+    Object.defineProperty(HTMLElement.prototype, 'focus', {configurable: true, value: vi.fn()})
 
     // Default mocks for most tests - can be overridden in individual tests
     server.use(

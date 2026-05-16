@@ -53,7 +53,7 @@ describe('CourseImageSelector', () => {
     const {container} = render(<CourseImageSelector {...defaultProps} store={store} />)
 
     const element = container.querySelector('.CourseImageSelector')
-    expect(element.style.backgroundImage).toBe('url(http://coolUrl)')
+    expect(element.style.backgroundImage).toMatch(/url\("?http:\/\/coolUrl"?\)/)
   })
 
   it('renders course image edit options when an image is present', async () => {

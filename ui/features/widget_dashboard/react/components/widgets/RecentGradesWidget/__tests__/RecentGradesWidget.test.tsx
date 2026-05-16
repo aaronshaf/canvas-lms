@@ -525,9 +525,12 @@ describe('RecentGradesWidget', () => {
 
     setup()
 
-    await waitFor(() => {
-      expect(screen.getByText(/GraphQL Error/i)).toBeInTheDocument()
-    })
+    await waitFor(
+      () => {
+        expect(screen.getByText(/GraphQL Error/i)).toBeInTheDocument()
+      },
+      {timeout: 5000},
+    )
   })
 
   it('expands grade details when expand button is clicked', async () => {

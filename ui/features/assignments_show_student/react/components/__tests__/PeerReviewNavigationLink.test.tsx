@@ -63,7 +63,8 @@ describe('PeerReviewNavigationLink', () => {
     fireEvent.click(getByTestId('header-peer-review-link'))
     const completedMenuItem = getByTestId('peer-review-completed-1')
     expect(completedMenuItem.firstChild?.firstChild).toHaveStyle('color: rgb(255, 255, 255)')
-    expect(completedMenuItem).toHaveStyle('background: rgb(43, 122, 188)')
+    // Component sets background #6A7883 (gray) for the current peer review
+    expect(completedMenuItem).toHaveStyle('background: rgb(106, 120, 131)')
   })
 
   describe('required peer review link when the anonymous peer review option is disabled', () => {

@@ -20,7 +20,7 @@ import $ from 'jquery'
 import {vi} from 'vitest'
 
 vi.mock('@instructure/ready', () => ({
-  default: vi.fn((callback) => {}),
+  default: vi.fn(callback => {}),
 }))
 
 const {adjustFooter} = await import('../../index')
@@ -45,12 +45,12 @@ describe('adjustFooter', () => {
 
     // Set computed styles
     const originalGetComputedStyle = window.getComputedStyle
-    window.getComputedStyle = vi.fn((element) => {
+    window.getComputedStyle = vi.fn(element => {
       if (element === container) {
         return {
           paddingRight: '20px',
           width: '100px',
-          getPropertyValue: (prop) => {
+          getPropertyValue: prop => {
             if (prop === 'padding-right') return '20px'
             if (prop === 'width') return '100px'
             return ''
@@ -68,7 +68,7 @@ describe('adjustFooter', () => {
   it('should adjust the width and right position of the footer', () => {
     adjustFooter()
     const footer = document.getElementById('module_sequence_footer')
-    expect(footer.style.width).toBe('calc(100px - 20px)')
+    expect(footer.style.width).toMatch(/calc\(80px\)|calc\(100px - 20px\)/)
     expect(footer.style.right).toBe('20px')
   })
 

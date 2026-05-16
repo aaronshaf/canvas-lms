@@ -50,9 +50,9 @@ describe('DashboardCardHeaderHero', () => {
     const {getByTestId} = render(
       <DashboardCardHeaderHero {...heroProps} image="https://example.com/path/to/image.png" />,
     )
-    expect(getByTestId('k5-dashboard-card-hero').style.getPropertyValue('background-image')).toBe(
-      'url(https://example.com/path/to/image.png)',
-    )
+    expect(
+      getByTestId('k5-dashboard-card-hero').style.getPropertyValue('background-image'),
+    ).toMatch(/url\("?https:\/\/example\.com\/path\/to\/image\.png"?\)/)
   })
 
   it('adds instFS query params if it does use an inst-fs url', () => {
@@ -62,8 +62,10 @@ describe('DashboardCardHeaderHero', () => {
         image="https://inst-fs-iad-beta.inscloudgate.net/files/blah/foo?download=1&token=abcxyz"
       />,
     )
-    expect(getByTestId('k5-dashboard-card-hero').style.getPropertyValue('background-image')).toBe(
-      'url(https://inst-fs-iad-beta.inscloudgate.net/files/blah/foo?download=1&token=abcxyz&geometry=300x150)',
+    expect(
+      getByTestId('k5-dashboard-card-hero').style.getPropertyValue('background-image'),
+    ).toMatch(
+      /url\("?https:\/\/inst-fs-iad-beta\.inscloudgate\.net\/files\/blah\/foo\?download=1&token=abcxyz&geometry=300x150"?\)/,
     )
   })
 

@@ -23,7 +23,8 @@ import React from 'react'
 import {http, HttpResponse} from 'msw'
 import {setupServer} from 'msw/node'
 import {K5Course} from '../K5Course'
-import {MOCK_GROUPS,
+import {
+  MOCK_GROUPS,
   MOCK_COURSE_SYLLABUS,
   MOCK_COURSE_APPS,
   MOCK_COURSE_TABS,
@@ -112,7 +113,10 @@ describe('K-5 Subject Course', () => {
       const hero = getByTestId('k5-course-header-hero')
 
       expect(hero).toBeInTheDocument()
-      expect(hero.style.getPropertyValue('background-image')).toBe(`url(${bannerImageUrl})`)
+      // jsdom 26 normalizes url() to url("...") with quotes — match either form
+      expect(hero.style.getPropertyValue('background-image')).toMatch(
+        new RegExp(`url\\("?${bannerImageUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"?\\)`),
+      )
     })
 
     it('displays a huge version of the course card image if set and no banner image is set', () => {
@@ -120,7 +124,10 @@ describe('K-5 Subject Course', () => {
       const hero = getByTestId('k5-course-header-hero')
 
       expect(hero).toBeInTheDocument()
-      expect(hero.style.getPropertyValue('background-image')).toBe(`url(${cardImageUrl})`)
+      // jsdom 26 normalizes url() to url("...") with quotes — match either form
+      expect(hero.style.getPropertyValue('background-image')).toMatch(
+        new RegExp(`url\\("?${cardImageUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"?\\)`),
+      )
     })
 
     it('displays the course color if one is set but no course images are set', () => {

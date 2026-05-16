@@ -46,7 +46,7 @@ afterAll(() => {
 
 // Mock HTMLElement.focus to prevent focus errors in tests
 beforeEach(() => {
-  HTMLElement.prototype.focus = vi.fn()
+  Object.defineProperty(HTMLElement.prototype, 'focus', {configurable: true, value: vi.fn()})
   vi.useFakeTimers()
 })
 
@@ -328,9 +328,7 @@ describe('default proficiency', () => {
   })
 
   it('sends POST on submit', async () => {
-    const postSpy = vi
-      .spyOn(axios, 'post')
-      .mockImplementation(() => Promise.resolve({status: 200}))
+    const postSpy = vi.spyOn(axios, 'post').mockImplementation(() => Promise.resolve({status: 200}))
 
     const {getByText} = render(<ProficiencyTable {...defaultProps} />)
 
