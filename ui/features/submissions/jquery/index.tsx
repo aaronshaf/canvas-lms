@@ -570,7 +570,8 @@ export function setup(): void {
         const $wrapper = $(this)
         const $commentTextArea = $wrapper.find('textarea')
         const val = $commentTextArea.val()
-        const textVal = typeof val === 'string' ? val : Array.isArray(val) ? val.join('') : ''
+        const textVal =
+          typeof val === 'string' ? val : Array.isArray(val) ? (val as string[]).join('') : ''
 
         if ($commentTextArea.length > 0 && textVal.trim() === '') {
           showErrorMessage($wrapper, I18n.t('A comment is required.'))

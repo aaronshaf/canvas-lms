@@ -84,7 +84,8 @@ export const getSelectedBulkStudents = (state: StoreState) => state.ui.selectedB
 export const getShowProjections = createSelector(
   state => state.ui.showProjections,
   getCoursePaceType,
-  (showProjections, coursePaceType) => showProjections || coursePaceType === 'Enrollment',
+  (showProjections, coursePaceType): boolean =>
+    !!(showProjections || coursePaceType === 'Enrollment'),
 )
 
 /* Reducers */

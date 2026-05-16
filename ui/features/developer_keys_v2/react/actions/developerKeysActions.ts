@@ -429,11 +429,8 @@ export const actions = {
     (formData: unknown, url: string, method: string) => (dispatch: Dispatch) => {
       dispatch(actions.createOrEditDeveloperKeyStart())
 
-      return axios<DeveloperKey>({
-        method,
-        url,
-        data: formData,
-      })
+      return axios
+        .request<DeveloperKey>({url, method, data: formData})
         .then(response => {
           const key = response.data
           const maskedKey = maskKey(key)

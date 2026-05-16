@@ -16,6 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import type {Mock} from 'vitest'
+
 export interface MockFile {
   id: number
   filename: string
@@ -61,8 +63,8 @@ export interface MockTrayProps {
     initializeImages: () => void
     initializeDocuments: () => void
     initializeMedia: () => void
-    fetchImages: jest.Mock
-    getSession: jest.Mock
+    fetchImages: Mock
+    getSession: Mock
   }
   storeProps: Record<string, unknown>
   images: {

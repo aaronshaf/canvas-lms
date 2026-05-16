@@ -34,7 +34,7 @@ window.INST = window.INST || {}
 // the ref you add via <CanvasRce ref={yourRef} /> will be a reference
 // to the underlying RCEWrapper. You probably shouldn't use it until
 // onInit has been called. Until then tinymce is not initialized.
-const CanvasRce = forwardRef(function CanvasRce(
+const CanvasRce = forwardRef<RCEWrapper, CanvasRcePropTypes>(function CanvasRce(
   props: CanvasRcePropTypes,
   _rceRef: React.ForwardedRef<RCEWrapper>,
 ) {
@@ -64,7 +64,7 @@ const CanvasRce = forwardRef(function CanvasRce(
   const [tinymceConfig] = useState(() => {
     // tinymce is a global by now via import of CanvasRce importing tinyRCE
     const editorConfig = new EditorConfig(tinymce, window.INST, textareaId)
-    const config = {...editorConfig.defaultConfig(), ...(editorOptions ?? {})}
+    const config = {...editorConfig.defaultConfig(), ...editorOptions}
     if (editorOptions?.init_instance_callback) {
       // @ts-expect-error
       config.init_instance_callback = createChainedFunction(
