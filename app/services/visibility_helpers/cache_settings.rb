@@ -23,12 +23,10 @@ module VisibilityHelpers
       config["ttl"] || 5.minutes
     end
 
+    Canvas::Reloader.on_reload { @config = nil }
+
     class << self
       private
-
-      Canvas::Reloader.on_reload do
-        @config = nil
-      end
 
       def config
         @config ||=
