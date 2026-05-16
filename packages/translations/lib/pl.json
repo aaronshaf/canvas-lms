@@ -17,6 +17,9 @@
     "add_alt_text_for_the_image_48cd88aa": {
         "message": "Dodaj alternatywny tekst dla obrazka"
     },
+    "add_another_closed_caption_or_subtitle_d3e06618": {
+        "message": "Dodaj nowe napisy"
+    },
     "add_cc_subtitles_55f0394e": {
         "message": "Dodaj CC/napisy"
     },
@@ -572,6 +575,12 @@
     "degree_symbol_4a823d5f": {
         "message": "Symbol stopnia"
     },
+    "delete_failed_6285e600": {
+        "message": "Usunięcie nie powiodło się"
+    },
+    "deleting_captionname_f175b906": {
+        "message": "Trwa usuwanie { captionName }"
+    },
     "delimiters_4db4840d": {
         "message": "Ograniczniki"
     },
@@ -958,6 +967,9 @@
     },
     "generating_preview_45b53be0": {
         "message": "Generowanie podglądu..."
+    },
+    "generation_failed_bbf6693c": {
+        "message": "Niepowodzenie generowania"
     },
     "german_3ec99bbb": {
         "message": "Niemiecki"
@@ -2060,6 +2072,9 @@
     "request_d1129f7d": {
         "message": "Żądanie"
     },
+    "requesting_lang_caption_1e04346a": {
+        "message": "Próba wygenerowania napisów { lang }"
+    },
     "reset_95a81614": {
         "message": "Resetuj"
     },
@@ -2660,6 +2675,9 @@
     "upload_document_253f0478": {
         "message": "Prześlij dokument"
     },
+    "upload_failed_a27094da": {
+        "message": "Niepowodzenie przesłania"
+    },
     "upload_file_fd2361b8": {
         "message": "Prześlij plik"
     },
@@ -2674,6 +2692,9 @@
     },
     "uploading_19e8a4e7": {
         "message": "Przekazywanie"
+    },
+    "uploading_lang_caption_925b9d32": {
+        "message": "Przesyłanie napisów { lang }"
     },
     "uppercase_alphabetic_ordered_list_3f5aa6b2": {
         "message": "uporządkowana lista alfabetyczna, duże litery"

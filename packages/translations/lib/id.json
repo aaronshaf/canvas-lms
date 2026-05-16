@@ -17,6 +17,9 @@
     "add_alt_text_for_the_image_48cd88aa": {
         "message": "Tambah teks alternatif untuk gambar"
     },
+    "add_another_closed_caption_or_subtitle_d3e06618": {
+        "message": "Tambah closed caption atau subtitle lain"
+    },
     "add_cc_subtitles_55f0394e": {
         "message": "Tambah CC/Subtitle"
     },
@@ -572,6 +575,12 @@
     "degree_symbol_4a823d5f": {
         "message": "Simbol Derajat"
     },
+    "delete_failed_6285e600": {
+        "message": "Gagal Menghapus"
+    },
+    "deleting_captionname_f175b906": {
+        "message": "Menghapus { captionName }"
+    },
     "delimiters_4db4840d": {
         "message": "Delimiter"
     },
@@ -958,6 +967,9 @@
     },
     "generating_preview_45b53be0": {
         "message": "Membuat pratinjau..."
+    },
+    "generation_failed_bbf6693c": {
+        "message": "Pembuatan gagal"
     },
     "german_3ec99bbb": {
         "message": "Jerman"
@@ -2060,6 +2072,9 @@
     "request_d1129f7d": {
         "message": "Permintaan"
     },
+    "requesting_lang_caption_1e04346a": {
+        "message": "Meminta caption { lang }"
+    },
     "reset_95a81614": {
         "message": "Atur Ulang"
     },
@@ -2660,6 +2675,9 @@
     "upload_document_253f0478": {
         "message": "Unggah Dokumen"
     },
+    "upload_failed_a27094da": {
+        "message": "Unggahan gagal"
+    },
     "upload_file_fd2361b8": {
         "message": "Unggah File"
     },
@@ -2674,6 +2692,9 @@
     },
     "uploading_19e8a4e7": {
         "message": "Mengunggah"
+    },
+    "uploading_lang_caption_925b9d32": {
+        "message": "Mengunggah caption { lang }"
     },
     "uppercase_alphabetic_ordered_list_3f5aa6b2": {
         "message": "daftar diurutkan berdasarkan abjad huruf besar"

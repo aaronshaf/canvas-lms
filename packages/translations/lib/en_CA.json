@@ -17,6 +17,9 @@
     "add_alt_text_for_the_image_48cd88aa": {
         "message": "Add alt text for the image"
     },
+    "add_another_closed_caption_or_subtitle_d3e06618": {
+        "message": "Add another closed caption or subtitle"
+    },
     "add_cc_subtitles_55f0394e": {
         "message": "Add CC/Subtitles"
     },
@@ -572,6 +575,12 @@
     "degree_symbol_4a823d5f": {
         "message": "Degree Symbol"
     },
+    "delete_failed_6285e600": {
+        "message": "Delete failed"
+    },
+    "deleting_captionname_f175b906": {
+        "message": "Deleting { captionName }"
+    },
     "delimiters_4db4840d": {
         "message": "Delimiters"
     },
@@ -958,6 +967,9 @@
     },
     "generating_preview_45b53be0": {
         "message": "Generating preview..."
+    },
+    "generation_failed_bbf6693c": {
+        "message": "Generation failed"
     },
     "german_3ec99bbb": {
         "message": "German"
@@ -2060,6 +2072,9 @@
     "request_d1129f7d": {
         "message": "Request"
     },
+    "requesting_lang_caption_1e04346a": {
+        "message": "Requesting { lang } caption"
+    },
     "reset_95a81614": {
         "message": "Reset"
     },
@@ -2660,6 +2675,9 @@
     "upload_document_253f0478": {
         "message": "Upload Document"
     },
+    "upload_failed_a27094da": {
+        "message": "Upload failed"
+    },
     "upload_file_fd2361b8": {
         "message": "Upload File"
     },
@@ -2674,6 +2692,9 @@
     },
     "uploading_19e8a4e7": {
         "message": "Uploading"
+    },
+    "uploading_lang_caption_925b9d32": {
+        "message": "Uploading { lang } caption"
     },
     "uppercase_alphabetic_ordered_list_3f5aa6b2": {
         "message": "uppercase alphabetic ordered list"

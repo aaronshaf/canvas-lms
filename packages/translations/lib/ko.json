@@ -17,6 +17,9 @@
     "add_alt_text_for_the_image_48cd88aa": {
         "message": "이미지의 대체 텍스트 추가"
     },
+    "add_another_closed_caption_or_subtitle_d3e06618": {
+        "message": "다른 캡션 또는 자막을 추가"
+    },
     "add_cc_subtitles_55f0394e": {
         "message": "CC/자막 추가"
     },
@@ -572,6 +575,12 @@
     "degree_symbol_4a823d5f": {
         "message": "도(각도) 기호"
     },
+    "delete_failed_6285e600": {
+        "message": "삭제 실패"
+    },
+    "deleting_captionname_f175b906": {
+        "message": "{ captionName } 삭제"
+    },
     "delimiters_4db4840d": {
         "message": "구분자"
     },
@@ -958,6 +967,9 @@
     },
     "generating_preview_45b53be0": {
         "message": "미리 보기 생성 중..."
+    },
+    "generation_failed_bbf6693c": {
+        "message": "생성 실패"
     },
     "german_3ec99bbb": {
         "message": "독일어"
@@ -2060,6 +2072,9 @@
     "request_d1129f7d": {
         "message": "요청"
     },
+    "requesting_lang_caption_1e04346a": {
+        "message": "{ lang } 캡션 요청"
+    },
     "reset_95a81614": {
         "message": "초기화"
     },
@@ -2660,6 +2675,9 @@
     "upload_document_253f0478": {
         "message": "문서 업로드"
     },
+    "upload_failed_a27094da": {
+        "message": "업로드 실패"
+    },
     "upload_file_fd2361b8": {
         "message": "파일 업로드"
     },
@@ -2674,6 +2692,9 @@
     },
     "uploading_19e8a4e7": {
         "message": "업로드"
+    },
+    "uploading_lang_caption_925b9d32": {
+        "message": "{ lang } 캡션 업로드"
     },
     "uppercase_alphabetic_ordered_list_3f5aa6b2": {
         "message": "대문자 알파벳 순서 목록"

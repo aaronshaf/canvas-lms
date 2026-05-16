@@ -17,6 +17,9 @@
     "add_alt_text_for_the_image_48cd88aa": {
         "message": "Cuir téacs alt leis don íomhá"
     },
+    "add_another_closed_caption_or_subtitle_d3e06618": {
+        "message": "Cuir ceannscríbhinn dúnta nó fotheideal eile leis"
+    },
     "add_cc_subtitles_55f0394e": {
         "message": "Cuir CC/Fotheidil leis"
     },
@@ -572,6 +575,12 @@
     "degree_symbol_4a823d5f": {
         "message": "Siombail Céime"
     },
+    "delete_failed_6285e600": {
+        "message": "Theip ar an scriosadh"
+    },
+    "deleting_captionname_f175b906": {
+        "message": "Ag scriosadh { captionName }"
+    },
     "delimiters_4db4840d": {
         "message": "Teorainneoirí"
     },
@@ -958,6 +967,9 @@
     },
     "generating_preview_45b53be0": {
         "message": "Réamhamharc á giniúint..."
+    },
+    "generation_failed_bbf6693c": {
+        "message": "Theip ar an nginiúint"
     },
     "german_3ec99bbb": {
         "message": "Gearmáinis"
@@ -2060,6 +2072,9 @@
     "request_d1129f7d": {
         "message": "Iarratas"
     },
+    "requesting_lang_caption_1e04346a": {
+        "message": "Ag iarraidh { lang } fotheideal"
+    },
     "reset_95a81614": {
         "message": "Athshocraigh"
     },
@@ -2660,6 +2675,9 @@
     "upload_document_253f0478": {
         "message": "Uaslódáil Doiciméad"
     },
+    "upload_failed_a27094da": {
+        "message": "Theip ar an uaslódáil"
+    },
     "upload_file_fd2361b8": {
         "message": "Uaslódáil Comhad"
     },
@@ -2674,6 +2692,9 @@
     },
     "uploading_19e8a4e7": {
         "message": "Ag uaslódáil"
+    },
+    "uploading_lang_caption_925b9d32": {
+        "message": "Ag uaslódáil { lang } fotheideal"
     },
     "uppercase_alphabetic_ordered_list_3f5aa6b2": {
         "message": "liosta in ord aibítre i gcás uachtair"

@@ -17,6 +17,9 @@
     "add_alt_text_for_the_image_48cd88aa": {
         "message": "Lägg till alternativtext för bilden"
     },
+    "add_another_closed_caption_or_subtitle_d3e06618": {
+        "message": "Lägg till en annan undertext eller undertitel"
+    },
     "add_cc_subtitles_55f0394e": {
         "message": "Lägg till CC/undertext"
     },
@@ -572,6 +575,12 @@
     "degree_symbol_4a823d5f": {
         "message": "Gradersymbol"
     },
+    "delete_failed_6285e600": {
+        "message": "Radering misslyckades"
+    },
+    "deleting_captionname_f175b906": {
+        "message": "Raderar { captionName }"
+    },
     "delimiters_4db4840d": {
         "message": "Avgränsare"
     },
@@ -958,6 +967,9 @@
     },
     "generating_preview_45b53be0": {
         "message": "Genererar förhandsvisning ..."
+    },
+    "generation_failed_bbf6693c": {
+        "message": "Genereringen misslyckades"
     },
     "german_3ec99bbb": {
         "message": "Tyska"
@@ -2060,6 +2072,9 @@
     "request_d1129f7d": {
         "message": "Begäran"
     },
+    "requesting_lang_caption_1e04346a": {
+        "message": "Begär undertexter på { lang }"
+    },
     "reset_95a81614": {
         "message": "Återställ"
     },
@@ -2660,6 +2675,9 @@
     "upload_document_253f0478": {
         "message": "Ladda upp dokument"
     },
+    "upload_failed_a27094da": {
+        "message": "Det gick inte att ladda upp"
+    },
     "upload_file_fd2361b8": {
         "message": "Ladda upp fil"
     },
@@ -2674,6 +2692,9 @@
     },
     "uploading_19e8a4e7": {
         "message": "Laddar upp"
+    },
+    "uploading_lang_caption_925b9d32": {
+        "message": "Laddar upp undertexter på { lang }"
     },
     "uppercase_alphabetic_ordered_list_3f5aa6b2": {
         "message": "markera alfabetisk ordnad lista med versaler"

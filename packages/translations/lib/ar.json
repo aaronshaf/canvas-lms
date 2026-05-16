@@ -17,6 +17,9 @@
     "add_alt_text_for_the_image_48cd88aa": {
         "message": "إضافة نص بديل للصورة"
     },
+    "add_another_closed_caption_or_subtitle_d3e06618": {
+        "message": "إضافة تسمية توضيحية مغلقة أخرى أو ترجمة"
+    },
     "add_cc_subtitles_55f0394e": {
         "message": "إضافة شرح مكتوب لأحداث العرض/أشرطة الترجمة"
     },
@@ -572,6 +575,12 @@
     "degree_symbol_4a823d5f": {
         "message": "رمز الدرجة"
     },
+    "delete_failed_6285e600": {
+        "message": "فشل الحذف"
+    },
+    "deleting_captionname_f175b906": {
+        "message": "جارٍ حذف { captionName }"
+    },
     "delimiters_4db4840d": {
         "message": "المحدِدات"
     },
@@ -958,6 +967,9 @@
     },
     "generating_preview_45b53be0": {
         "message": "جارٍ إنشاء المعاينة..."
+    },
+    "generation_failed_bbf6693c": {
+        "message": "فشل الإنشاء"
     },
     "german_3ec99bbb": {
         "message": "الألمانية"
@@ -2060,6 +2072,9 @@
     "request_d1129f7d": {
         "message": "طلب"
     },
+    "requesting_lang_caption_1e04346a": {
+        "message": "جارٍ طلب التسمية التوضيحية { lang }"
+    },
     "reset_95a81614": {
         "message": "إعادة التعيين"
     },
@@ -2660,6 +2675,9 @@
     "upload_document_253f0478": {
         "message": "تحميل المستند"
     },
+    "upload_failed_a27094da": {
+        "message": "فشل التحميل"
+    },
     "upload_file_fd2361b8": {
         "message": "تحميل ملف"
     },
@@ -2674,6 +2692,9 @@
     },
     "uploading_19e8a4e7": {
         "message": "جارٍ التحميل"
+    },
+    "uploading_lang_caption_925b9d32": {
+        "message": "جارٍ تحميل التسمية التوضيحية { lang }"
     },
     "uppercase_alphabetic_ordered_list_3f5aa6b2": {
         "message": "قائمة أبجدية مرتبة بأحرف كبيرة"

@@ -17,6 +17,9 @@
     "add_alt_text_for_the_image_48cd88aa": {
         "message": "Ychwanegu testun amgen ar gyfer y ddelwedd"
     },
+    "add_another_closed_caption_or_subtitle_d3e06618": {
+        "message": "Ychwanegu capsiwn neu is-deitl caeëdig"
+    },
     "add_cc_subtitles_55f0394e": {
         "message": "Ychwanegu CC/Is-deitlau"
     },
@@ -572,6 +575,12 @@
     "degree_symbol_4a823d5f": {
         "message": "Symbol Gradd"
     },
+    "delete_failed_6285e600": {
+        "message": "Wedi methu dileu"
+    },
+    "deleting_captionname_f175b906": {
+        "message": "Wrthi’n dileu’r { captionName }"
+    },
     "delimiters_4db4840d": {
         "message": "Amffinyddion"
     },
@@ -958,6 +967,9 @@
     },
     "generating_preview_45b53be0": {
         "message": "Wrthi’n creu rhagolwg..."
+    },
+    "generation_failed_bbf6693c": {
+        "message": "Wedi methu creu"
     },
     "german_3ec99bbb": {
         "message": "Almaeneg"
@@ -2060,6 +2072,9 @@
     "request_d1129f7d": {
         "message": "Cais"
     },
+    "requesting_lang_caption_1e04346a": {
+        "message": "Yn gofyn am { lang } capsiwn"
+    },
     "reset_95a81614": {
         "message": "Ailosod"
     },
@@ -2660,6 +2675,9 @@
     "upload_document_253f0478": {
         "message": "Llwytho Dogfen i fyny"
     },
+    "upload_failed_a27094da": {
+        "message": "Wedi methu uwchlwytho"
+    },
     "upload_file_fd2361b8": {
         "message": "Llwytho Ffeil i Fyny"
     },
@@ -2674,6 +2692,9 @@
     },
     "uploading_19e8a4e7": {
         "message": "Llwytho i fyny"
+    },
+    "uploading_lang_caption_925b9d32": {
+        "message": "Wrthi’n uwchlwytho { lang } capsiwn"
     },
     "uppercase_alphabetic_ordered_list_3f5aa6b2": {
         "message": "rhestr mewn trefn, mewn priflythrennau, yn nhrefn yr wyddor"

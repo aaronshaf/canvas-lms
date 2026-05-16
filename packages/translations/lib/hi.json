@@ -17,6 +17,9 @@
     "add_alt_text_for_the_image_48cd88aa": {
         "message": "छवि के लिए वैकल्पिक पाठ जोड़ें"
     },
+    "add_another_closed_caption_or_subtitle_d3e06618": {
+        "message": "एक और क्लोज्ड कैप्शन या सबटाइटल जोड़ें"
+    },
     "add_cc_subtitles_55f0394e": {
         "message": "CC/उपशीर्षक जोड़ें"
     },
@@ -572,6 +575,12 @@
     "degree_symbol_4a823d5f": {
         "message": "डिग्री प्रतीक"
     },
+    "delete_failed_6285e600": {
+        "message": "मिटाया नहीं जा सका"
+    },
+    "deleting_captionname_f175b906": {
+        "message": "{ captionName } मिटाया जा रहा है"
+    },
     "delimiters_4db4840d": {
         "message": "परिसीमक"
     },
@@ -958,6 +967,9 @@
     },
     "generating_preview_45b53be0": {
         "message": "पूर्वावलोकन जेनरेट किया जा रहा है..."
+    },
+    "generation_failed_bbf6693c": {
+        "message": "जेनरेट नहीं किया जा सका"
     },
     "german_3ec99bbb": {
         "message": "जर्मन"
@@ -2060,6 +2072,9 @@
     "request_d1129f7d": {
         "message": "अनुरोध करें"
     },
+    "requesting_lang_caption_1e04346a": {
+        "message": "{ lang } कैप्शन का अनुरोध किया जा रहा है"
+    },
     "reset_95a81614": {
         "message": "रीसेट करें"
     },
@@ -2660,6 +2675,9 @@
     "upload_document_253f0478": {
         "message": "दस्तावेज़ अपलोड करें"
     },
+    "upload_failed_a27094da": {
+        "message": "अपलोड करना विफल रहा"
+    },
     "upload_file_fd2361b8": {
         "message": "फ़ाइल अपलोड करें"
     },
@@ -2674,6 +2692,9 @@
     },
     "uploading_19e8a4e7": {
         "message": "अपलोड किया जा रहा है"
+    },
+    "uploading_lang_caption_925b9d32": {
+        "message": "{ lang } कैप्शन अपलोड किया जा रहा है"
     },
     "uppercase_alphabetic_ordered_list_3f5aa6b2": {
         "message": "बड़े अक्षरों वाली क्रमित सूची"

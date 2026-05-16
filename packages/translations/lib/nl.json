@@ -17,6 +17,9 @@
     "add_alt_text_for_the_image_48cd88aa": {
         "message": "Alt-tekst toevoegen voor de afbeelding"
     },
+    "add_another_closed_caption_or_subtitle_d3e06618": {
+        "message": "Voeg nog een ondertitel toe"
+    },
     "add_cc_subtitles_55f0394e": {
         "message": "CC/ondertiteling toevoegen"
     },
@@ -572,6 +575,12 @@
     "degree_symbol_4a823d5f": {
         "message": "Gradensymbool"
     },
+    "delete_failed_6285e600": {
+        "message": "Kan niet verwijderen"
+    },
+    "deleting_captionname_f175b906": {
+        "message": "{ captionName } wordt verwijderd"
+    },
     "delimiters_4db4840d": {
         "message": "Scheidingstekens"
     },
@@ -958,6 +967,9 @@
     },
     "generating_preview_45b53be0": {
         "message": "Bezig met genereren van voorbeeld..."
+    },
+    "generation_failed_bbf6693c": {
+        "message": "Kan niet genereren"
     },
     "german_3ec99bbb": {
         "message": "Duits"
@@ -2060,6 +2072,9 @@
     "request_d1129f7d": {
         "message": "Aanvraag"
     },
+    "requesting_lang_caption_1e04346a": {
+        "message": "Ondertiteling in het { lang } aanvragen"
+    },
     "reset_95a81614": {
         "message": "Opnieuw instellen"
     },
@@ -2660,6 +2675,9 @@
     "upload_document_253f0478": {
         "message": "Document uploaden"
     },
+    "upload_failed_a27094da": {
+        "message": "Kan niet uploaden"
+    },
     "upload_file_fd2361b8": {
         "message": "Bestand uploaden"
     },
@@ -2674,6 +2692,9 @@
     },
     "uploading_19e8a4e7": {
         "message": "Bezig met uploaden"
+    },
+    "uploading_lang_caption_925b9d32": {
+        "message": "Ondertiteling in het { lang } uploaden"
     },
     "uppercase_alphabetic_ordered_list_3f5aa6b2": {
         "message": "geordende lijst op hoofdletters alfabet"

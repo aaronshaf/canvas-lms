@@ -17,6 +17,9 @@
     "add_alt_text_for_the_image_48cd88aa": {
         "message": "為圖像添加替代文字"
     },
+    "add_another_closed_caption_or_subtitle_d3e06618": {
+        "message": "添加其他關閉的標題或字幕"
+    },
     "add_cc_subtitles_55f0394e": {
         "message": "添加副本/字幕"
     },
@@ -572,6 +575,12 @@
     "degree_symbol_4a823d5f": {
         "message": "度數符號"
     },
+    "delete_failed_6285e600": {
+        "message": "刪除失敗"
+    },
+    "deleting_captionname_f175b906": {
+        "message": "刪除 { captionName }"
+    },
     "delimiters_4db4840d": {
         "message": "分隔符號"
     },
@@ -958,6 +967,9 @@
     },
     "generating_preview_45b53be0": {
         "message": "產生預覽中..."
+    },
+    "generation_failed_bbf6693c": {
+        "message": "産生失敗"
     },
     "german_3ec99bbb": {
         "message": "德語"
@@ -2060,6 +2072,9 @@
     "request_d1129f7d": {
         "message": "請求"
     },
+    "requesting_lang_caption_1e04346a": {
+        "message": "請求 { lang } 標題"
+    },
     "reset_95a81614": {
         "message": "重設"
     },
@@ -2660,6 +2675,9 @@
     "upload_document_253f0478": {
         "message": "上傳文件"
     },
+    "upload_failed_a27094da": {
+        "message": "上傳失敗"
+    },
     "upload_file_fd2361b8": {
         "message": "上傳檔案"
     },
@@ -2674,6 +2692,9 @@
     },
     "uploading_19e8a4e7": {
         "message": "正在上傳"
+    },
+    "uploading_lang_caption_925b9d32": {
+        "message": "上傳 { lang } 標題"
     },
     "uppercase_alphabetic_ordered_list_3f5aa6b2": {
         "message": "大寫字母有序清單"

@@ -17,6 +17,9 @@
     "add_alt_text_for_the_image_48cd88aa": {
         "message": "Dodaj nadomestno besedilo za sliko"
     },
+    "add_another_closed_caption_or_subtitle_d3e06618": {
+        "message": "Dodaj še ene napis ali podnapis"
+    },
     "add_cc_subtitles_55f0394e": {
         "message": "Dodaj Kp/podnaslov"
     },
@@ -572,6 +575,12 @@
     "degree_symbol_4a823d5f": {
         "message": "Simbol stopinje"
     },
+    "delete_failed_6285e600": {
+        "message": "Brisanje ni uspelo."
+    },
+    "deleting_captionname_f175b906": {
+        "message": "Brisanje { captionName }"
+    },
     "delimiters_4db4840d": {
         "message": "Ločila"
     },
@@ -958,6 +967,9 @@
     },
     "generating_preview_45b53be0": {
         "message": "Generiranje predogleda ..."
+    },
+    "generation_failed_bbf6693c": {
+        "message": "Ustvarjanje ni uspelo"
     },
     "german_3ec99bbb": {
         "message": "nemščina"
@@ -2060,6 +2072,9 @@
     "request_d1129f7d": {
         "message": "Zahteva"
     },
+    "requesting_lang_caption_1e04346a": {
+        "message": "Zahtevam napis { lang }"
+    },
     "reset_95a81614": {
         "message": "Obnovi"
     },
@@ -2660,6 +2675,9 @@
     "upload_document_253f0478": {
         "message": "Naloži dokument"
     },
+    "upload_failed_a27094da": {
+        "message": "Nalaganje ni uspelo"
+    },
     "upload_file_fd2361b8": {
         "message": "Naloži datoteko"
     },
@@ -2674,6 +2692,9 @@
     },
     "uploading_19e8a4e7": {
         "message": "Nalaganje"
+    },
+    "uploading_lang_caption_925b9d32": {
+        "message": "Nalagam napis { lang }"
     },
     "uppercase_alphabetic_ordered_list_3f5aa6b2": {
         "message": "abecedno urejeni seznam z velikimi začetnicami"
