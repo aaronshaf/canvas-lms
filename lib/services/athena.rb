@@ -61,12 +61,10 @@ module Services
       }
     end
 
+    Canvas::Reloader.on_reload { @config = nil }
+
     class << self
       private
-
-      Canvas::Reloader.on_reload do
-        @config = nil
-      end
 
       def config
         @config ||= YAML.safe_load(
