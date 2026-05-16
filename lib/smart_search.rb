@@ -23,11 +23,9 @@ module SmartSearch
 
   class EmbeddingError < StandardError; end
 
-  class << self
-    Canvas::Reloader.on_reload do
-      @bedrock_client = nil
-    end
+  Canvas::Reloader.on_reload { @bedrock_client = nil }
 
+  class << self
     def api_key
       Rails.application.credentials.dig(:smart_search, :openai_api_token)
     end
