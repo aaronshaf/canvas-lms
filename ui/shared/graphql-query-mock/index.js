@@ -47,6 +47,11 @@ async function getValidTypes() {
   }
 
   const typeIntrospectionQuery = '{ __schema { types { name } } }'
+  if (!schemaString) {
+    // schema.graphql not available in this environment — return empty set
+    _typeIntrospectionSet = new Set()
+    return _typeIntrospectionSet
+  }
   const schema = makeExecutableSchema({
     typeDefs: schemaString,
     resolverValidationOptions: {
@@ -136,6 +141,11 @@ export default async function mockGraphqlQuery(
 
   // Turn the AST query into a string that can be used to make a query against graphql.js
   const queryStr = print(addTypenameToDocument(queryAST))
+  if (!schemaString) {
+    throw new Error(
+      'schema.graphql is not available in this test environment. Ensure the file exists at the workspace root.',
+    )
+  }
   const schema = makeExecutableSchema({
     typeDefs: schemaString,
     resolverValidationOptions: {
