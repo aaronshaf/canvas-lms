@@ -261,6 +261,18 @@ describe WikiPagesController do
             expect(assigns[:js_env][:FEATURES]).not_to have_key(:study_assist)
           end
 
+          context "as a fake student (Student View)" do
+            before do
+              fake_student = @course.student_view_student
+              user_session(fake_student)
+            end
+
+            it "sets study_assist in FEATURES" do
+              get "show", params: { course_id: @course.id, id: @page.url }
+              expect(assigns[:js_env][:FEATURES][:study_assist]).to be true
+            end
+          end
+
           context "in a group context" do
             before do
               student_in_course(active_all: true)

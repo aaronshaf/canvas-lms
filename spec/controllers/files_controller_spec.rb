@@ -1446,6 +1446,13 @@ describe FilesController do
         get "show", params: { course_id: @course.id, id: @file.id }
         expect(assigns[:js_env].to_h.dig(:FEATURES, :study_assist)).to be_nil
       end
+
+      it "sets study_assist for a fake student (Student View)" do
+        fake_student = @course.student_view_student
+        user_session(fake_student)
+        get "show", params: { course_id: @course.id, id: @file.id }
+        expect(assigns[:js_env][:FEATURES][:study_assist]).to be true
+      end
     end
 
     context "when disabled" do
