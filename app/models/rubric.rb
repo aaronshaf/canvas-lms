@@ -491,7 +491,8 @@ class Rubric < ApplicationRecord
         # Outcomes descriptions are already html sanitized, so use that if an outcome criteria
         # is present. Otherwise we need to sanitize the input ourselves.
         unless criterion_data[:learning_outcome_id].present?
-          criterion[:long_description] = format_message((criterion_data[:long_description] || "").strip).first
+          sanitized_long_description = Sanitize.clean((criterion_data[:long_description] || "").strip, CanvasSanitize::SANITIZE)
+          criterion[:long_description] = format_message(sanitized_long_description).first
         end
         criterion[:points] = criterion_data[:points].to_f
         criterion_data[:id] = criterion_data[:id].strip if criterion_data[:id]

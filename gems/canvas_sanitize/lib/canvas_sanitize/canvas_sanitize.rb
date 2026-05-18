@@ -812,8 +812,6 @@ module CanvasSanitize # :nodoc:
   Config = Struct.new(:sanitizer, :fields, :allow_comments)
   module ClassMethods
     def sanitize_field(*args)
-      # Calls this as many times as a field is configured.  Will this play
-      # nicely?
       include CanvasSanitize::InstanceMethods
       extend CanvasSanitize::SingletonMethods
 
@@ -822,9 +820,15 @@ module CanvasSanitize # :nodoc:
       @config.fields = []
       @config.allow_comments = true
       args.each { |arg| infer_sanitize_arg(arg) }
+
+      # `class_attribute` redefines its reader each call, defaulting back to
+      # nil. Guard so multi-field calls and repeated `sanitize_field` calls
+      # accumulate rather than clobber prior config. Pass `false` to scope the
+      # check to this class so subclasses get their own config copy.
+      class_attribute :fully_sanitize_fields_config unless singleton_class.method_defined?(:fully_sanitize_fields_config, false)
+
+      fields = (self.fully_sanitize_fields_config ||= {})
       @config.fields.each do |field|
-        class_attribute :fully_sanitize_fields_config
-        fields = (self.fully_sanitize_fields_config ||= {})
         fields[field] = @config.sanitizer.first
       end
 

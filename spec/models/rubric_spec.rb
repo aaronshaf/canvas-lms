@@ -696,7 +696,7 @@ describe Rubric do
       end
 
       it "cannot be used for XSS when edited directly" do
-        expect(@rubric.criteria[0][:long_description]).to eq "&lt;script&gt;alert(&#39;danger&#39;);&lt;/script&gt;"
+        expect(@rubric.criteria[0][:long_description]).to eq ""
       end
 
       it "uses the sanitized outcome description when an id is provided" do

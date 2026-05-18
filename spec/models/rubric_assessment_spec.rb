@@ -1245,4 +1245,24 @@ describe RubricAssessment do
       end.not_to change(ContentParticipation, :count)
     end
   end
+
+  describe "htmlify_rating_comments sanitization" do
+    it "strips script tags from rating comments before htmlifying" do
+      assessment = @association.assess({
+                                         user: @student,
+                                         assessor: @teacher,
+                                         artifact: @assignment.find_or_create_submission(@student),
+                                         assessment: {
+                                           assessment_type: "grading",
+                                           criterion_crit1: {
+                                             points: 5,
+                                             comments: "ok<script>alert('xss')</script>",
+                                           }
+                                         }
+                                       })
+      rating = assessment.data.find { |r| r[:comments].present? }
+      expect(rating[:comments_html]).not_to include("<script")
+      expect(rating[:comments_html]).to include("ok")
+    end
+  end
 end

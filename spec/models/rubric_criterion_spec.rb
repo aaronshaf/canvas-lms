@@ -32,4 +32,33 @@ describe RubricCriterion do
     expect(rubric_criterion.rubric).to eq(rubric)
     expect(rubric_criterion.description).to eq("criterion")
   end
+
+  describe "sanitize_field" do
+    let(:root_account_id) { @course.root_account.id }
+
+    it "strips script tags from description on save" do
+      rc = RubricCriterion.create!(
+        rubric: @rubric,
+        description: "safe <script>alert('xss')</script>",
+        points: 10,
+        order: 1,
+        created_by: teacher,
+        root_account_id:
+      )
+      expect(rc.description).to eq("safe ")
+    end
+
+    it "strips script tags from long_description on save" do
+      rc = RubricCriterion.create!(
+        rubric: @rubric,
+        description: "ok",
+        long_description: "<p>keep</p><script>alert('xss')</script>",
+        points: 10,
+        order: 1,
+        created_by: teacher,
+        root_account_id:
+      )
+      expect(rc.long_description).to eq("<p>keep</p>")
+    end
+  end
 end
