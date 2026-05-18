@@ -18,6 +18,7 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {URL_PATTERNS} from '../../../constants'
+import {openWindow} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('widget_dashboard')
 
@@ -51,7 +52,7 @@ export const getCourseCodeColor = (): CourseCodeColors => {
 }
 
 export const createGradebookHandler = (courseId: string) => () => {
-  window.open(URL_PATTERNS.GRADEBOOK.replace('{courseId}', courseId), '_blank')
+  openWindow(URL_PATTERNS.GRADEBOOK.replace('{courseId}', courseId), '_blank')
 }
 
 export const getAccessibleTextColor = (backgroundColor: string): string => {

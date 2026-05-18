@@ -17,6 +17,7 @@
  */
 
 import type {ModuleItemContent} from '../../utils/types'
+import * as GlobalUtils from '@canvas/util/globalUtils'
 
 describe('moduleItemActionHandlers', () => {
   describe('handleSpeedGrader', () => {
@@ -32,7 +33,7 @@ describe('moduleItemActionHandlers', () => {
         content?.type?.toLowerCase().includes('assignment') ||
         content?.type?.toLowerCase().includes('quiz')
       ) {
-        window.open(
+        GlobalUtils.openWindow(
           `/courses/${courseId}/gradebook/speed_grader?assignment_id=${content._id}`,
           '_blank',
         )
@@ -43,7 +44,7 @@ describe('moduleItemActionHandlers', () => {
     }
 
     beforeEach(() => {
-      windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+      windowOpenSpy = vi.spyOn(GlobalUtils, 'openWindow').mockImplementation(() => null)
     })
 
     afterEach(() => {

@@ -64,7 +64,7 @@ describe('toHtmlString', () => {
     const overrides = {url: 'javascript:alert("hello world!");'}
     it('sanitizes the url', () => {
       expect(linkContentItemToHtmlString(overrideLinkContentItem(overrides))).toEqual(
-        '<a href="#javascript:alert(&quot;hello world!&quot;);" title="Title" target="_blank"><img src="https://www.test.com/thumbnail" alt="some text"></a>',
+        '<a href="about:blank" title="Title" target="_blank"><img src="https://www.test.com/thumbnail" alt="some text"></a>',
       )
     })
   })

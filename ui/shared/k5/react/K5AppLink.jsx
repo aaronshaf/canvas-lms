@@ -18,7 +18,7 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {InstUIModal as Modal} from '@instructure/platform-instui-bindings'
-import {assignLocation} from '@canvas/util/globalUtils'
+import {assignLocation, openWindow} from '@canvas/util/globalUtils'
 import {PresentationContent} from '@instructure/ui-a11y-content'
 import {Flex} from '@instructure/ui-flex'
 import {IconLtiSolid} from '@instructure/ui-icons'
@@ -48,7 +48,7 @@ export default function K5AppLink({app}) {
     if (app.courses.length > 1) {
       setModalOpen(true)
     } else if (app.windowTarget) {
-      window.open(launchUrl(app.courses[0].id), app.windowTarget)
+      openWindow(launchUrl(app.courses[0].id), app.windowTarget)
     } else {
       assignLocation(launchUrl(app.courses[0].id))
     }

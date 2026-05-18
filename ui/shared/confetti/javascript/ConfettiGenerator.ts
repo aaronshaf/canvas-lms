@@ -80,6 +80,7 @@ class ConfettiGenerator {
           image = this.cachedImageAssets[p.src]
         } else {
           image = new Image()
+          // oxlint-disable-next-line canvas-sanitize-url/imperative -- confetti particle asset; p.src is from internal ConfettiGenerator config, not user-supplied
           image.src = p.src as string
           this.cachedImageAssets[p.src as string] = image
         }

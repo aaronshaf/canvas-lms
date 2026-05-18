@@ -31,6 +31,7 @@ import Path from '../assignment-path'
 import * as actions from '../actions'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {transformScore} from '../score-helpers'
+import {openWindow} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('conditional_release')
 
@@ -107,7 +108,7 @@ export class AssignmentCardMenu extends React.Component {
         placement="bottom start"
       >
         <Menu.Item
-          onClick={() => window.open(this.props.assignment.get('html_url') + '/edit', '_blank')}
+          onClick={() => openWindow(this.props.assignment.get('html_url') + '/edit', '_blank')}
         >
           <IconEditLine /> <View margin="0 0 0 x-small">{I18n.t('Edit')}</View>
         </Menu.Item>

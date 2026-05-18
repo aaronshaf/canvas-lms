@@ -30,6 +30,7 @@ import doFetchApi from '@canvas/do-fetch-api-effect'
 import AIExperienceList from './components/AIExperienceList'
 import AIExperiencesEmptyState from './components/AIExperiencesEmptyState'
 import type {AiExperience} from './types'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const AiExperiencesIndex: React.FC = () => {
   const I18n = useI18nScope('ai_experiences')
@@ -66,12 +67,12 @@ const AiExperiencesIndex: React.FC = () => {
 
   const handleEdit = (id: number) => {
     const courseId = ENV.COURSE_ID
-    window.location.href = `/courses/${courseId}/ai_experiences/${id}/edit`
+    window.location.href = sanitizeUrl(`/courses/${courseId}/ai_experiences/${id}/edit`)
   }
 
   const handleTestConversation = (id: number) => {
     const courseId = ENV.COURSE_ID
-    window.location.href = `/courses/${courseId}/ai_experiences/${id}?preview=true`
+    window.location.href = sanitizeUrl(`/courses/${courseId}/ai_experiences/${id}?preview=true`)
   }
 
   const handleDelete = async (id: number) => {
@@ -129,7 +130,7 @@ const AiExperiencesIndex: React.FC = () => {
 
   const handleCreateNew = () => {
     const courseId = ENV.COURSE_ID
-    window.location.href = `/courses/${courseId}/ai_experiences/new`
+    window.location.href = sanitizeUrl(`/courses/${courseId}/ai_experiences/new`)
   }
 
   if (loading) {

@@ -31,6 +31,7 @@ import QuizEngineModal from '../../react/QuizEngineModal'
 import {ltiState} from '@canvas/lti/jquery/messages'
 import {getCookie} from '@instructure/platform-get-cookie'
 import {getQuizTypes} from '@canvas/util/resourceTypeUtil'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('quizzesIndexView')
 
@@ -122,7 +123,7 @@ export default class IndexView extends Backbone.View {
     if (newQuizzesSelected === null) {
       this.chooseQuizEngine()
     } else if (newQuizzesSelected === 'true') {
-      window.location.href = `${ENV.URLS.new_assignment_url}?quiz_lti`
+      window.location.href = sanitizeUrl(`${ENV.URLS.new_assignment_url}?quiz_lti`)
     } else if (newQuizzesSelected === 'false') {
       const authenticity_token = () => getCookie('_csrf_token')
       $.ajaxJSON(
@@ -130,7 +131,7 @@ export default class IndexView extends Backbone.View {
         'POST',
         {authenticity_token: authenticity_token()},
         data => {
-          window.location.href = data.url
+          window.location.href = sanitizeUrl(data.url)
         },
       )
     } else {

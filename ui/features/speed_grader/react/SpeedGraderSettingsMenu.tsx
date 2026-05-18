@@ -20,6 +20,8 @@ import React from 'react'
 import {Menu} from '@instructure/ui-menu'
 import {Text} from '@instructure/ui-text'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {openWindow} from '@canvas/util/globalUtils'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('SpeedGraderSettingsMenu')
 
@@ -66,7 +68,7 @@ export default function SpeedGraderSettingsMenu({
 }: SpeedGraderSettingsMenuProps) {
   function handleModerationPageSelect() {
     const url = `/courses/${courseID}/assignments/${assignmentID}/moderate`
-    window.open(url, '_blank')
+    openWindow(url, '_blank')
   }
 
   function handleHelpSelect() {
@@ -120,5 +122,5 @@ export default function SpeedGraderSettingsMenu({
 }
 
 SpeedGraderSettingsMenu.setURL = function (url: string) {
-  window.location.href = url
+  window.location.href = sanitizeUrl(url)
 }

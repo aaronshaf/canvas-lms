@@ -42,6 +42,7 @@ import Conference from '@canvas/calendar-conferences/react/Conference'
 import getConferenceType from '@canvas/calendar-conferences/getConferenceType'
 import replaceTags from '@canvas/util/replaceTags'
 import {subAssignmentOrOverride} from '@canvas/calendar/jquery/CommonEvent/SubAssignment'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('calendar')
 
@@ -314,7 +315,8 @@ export default class ShowEventDetailsDialog {
     })
   }
 
-  editSubAssignment = () => (window.location.href = `${this.event.assignment.html_url}/edit`)
+  editSubAssignment = () =>
+    (window.location.href = sanitizeUrl(`${this.event.assignment.html_url}/edit`))
 
   show = jsEvent => {
     const params = $.extend(true, {}, this.event, {
@@ -513,6 +515,6 @@ export default class ShowEventDetailsDialog {
   openShowPage = jsEvent => {
     const pieces = $(jsEvent.target).attr('href').split('#')
     pieces[0] += `?${encodeQueryString({return_to: window.location.href})}`
-    window.location.href = pieces.join('#')
+    window.location.href = sanitizeUrl(pieces.join('#'))
   }
 }

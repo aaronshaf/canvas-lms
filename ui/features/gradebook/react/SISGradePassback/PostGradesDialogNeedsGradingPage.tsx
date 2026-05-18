@@ -18,6 +18,7 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React from 'react'
+import {openWindow} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('modules')
 
@@ -34,7 +35,7 @@ type Props = {
 class PostGradesDialogNeedsGradingPage extends React.Component<Props> {
   // @ts-expect-error
   onClickRow = assignment_id => {
-    window.open(`gradebook/speed_grader?assignment_id=${assignment_id}`, '_blank', 'noopener')
+    openWindow(`gradebook/speed_grader?assignment_id=${assignment_id}`, '_blank', 'noopener')
   }
 
   render() {

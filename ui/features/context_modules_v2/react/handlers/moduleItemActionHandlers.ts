@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {showFlashSuccess, showFlashError} from '@instructure/platform-alerts'
 import {useScope as createI18nScope} from '@canvas/i18n'
@@ -31,6 +32,7 @@ import type {
 import React from 'react'
 import {MODULE_ITEMS, MODULE_ITEMS_ALL, MODULES, MOVE_MODULE_ITEM} from '../utils/constants'
 import {dispatchCommandEvent} from './dispatchCommandEvent'
+import {openWindow} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('context_modules_v2')
 
@@ -90,7 +92,7 @@ export const handleSpeedGrader = (
     content?.type?.toLowerCase().includes('assignment') ||
     content?.type?.toLowerCase().includes('quiz')
   ) {
-    window.open(
+    openWindow(
       `/courses/${courseId}/gradebook/speed_grader?assignment_id=${content._id}`,
       '_blank',
       'noopener',
@@ -314,7 +316,9 @@ export const handleRemove = (
 }
 
 export const handleMasteryPaths = (_id: string, setIsMenuOpen?: (isOpen: boolean) => void) => {
-  window.location.href = `${ENV.CONTEXT_URL_ROOT}/modules/items/${_id}/edit_mastery_paths`
+  window.location.href = sanitizeUrl(
+    `${ENV.CONTEXT_URL_ROOT}/modules/items/${_id}/edit_mastery_paths`,
+  )
   if (setIsMenuOpen) {
     setIsMenuOpen(false)
   }

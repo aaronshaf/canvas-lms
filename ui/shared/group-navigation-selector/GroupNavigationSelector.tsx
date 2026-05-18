@@ -28,6 +28,7 @@ import {View} from '@instructure/ui-view'
 import {useTranslation} from '@canvas/i18next'
 
 import type {SelectProps} from '@instructure/ui-select'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 type GroupOption = {
   id: string
@@ -90,7 +91,7 @@ export default function GroupNavigationSelector(props: Props) {
 
     // we don't want anything after index 4 (i.e. a specific discussion or announcement)
     const newPath = path.length >= 5 ? path.slice(0, 4) : path
-    window.location.href = newPath.join('/')
+    window.location.href = sanitizeUrl(newPath.join('/'))
   }
 
   return (

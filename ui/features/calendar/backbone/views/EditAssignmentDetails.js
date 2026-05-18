@@ -142,7 +142,7 @@ export default class EditAssignmentDetailsRewrite extends ValidatedFormView {
     }
     params.return_to = window.location.href
     pieces[0] += `?${encodeQueryString(params)}`
-    return (window.location.href = pieces.join('#'))
+    return (window.location.href = sanitizeUrl(pieces.join('#')))
   }
 
   contextChange(jsEvent, propagate) {

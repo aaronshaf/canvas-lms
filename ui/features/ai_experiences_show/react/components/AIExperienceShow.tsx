@@ -71,7 +71,9 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
   const previewCardRef = useRef<HTMLElement>(null)
 
   const handleEdit = () => {
-    window.location.href = `/courses/${aiExperience.course_id}/ai_experiences/${aiExperience.id}/edit`
+    window.location.href = sanitizeUrl(
+      `/courses/${aiExperience.course_id}/ai_experiences/${aiExperience.id}/edit`,
+    )
   }
 
   const handleDelete = async () => {
@@ -82,7 +84,7 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
         method: 'DELETE',
       })
       showFlashSuccess(I18n.t('Knowledge Chat deleted successfully'))()
-      window.location.href = `/courses/${aiExperience.course_id}/ai_experiences`
+      window.location.href = sanitizeUrl(`/courses/${aiExperience.course_id}/ai_experiences`)
     } catch (_error) {
       showFlashError(I18n.t('Failed to delete Knowledge Chat'))()
       setIsDeleting(false)

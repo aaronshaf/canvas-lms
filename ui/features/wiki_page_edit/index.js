@@ -21,6 +21,7 @@ import ready from '@instructure/ready'
 import WikiPage from '@canvas/wiki/backbone/models/WikiPage'
 import WikiPageEditView from '@canvas/wiki/backbone/views/WikiPageEditView'
 import LockManager from '@canvas/blueprint-courses/react/components/LockManager/index'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 $('body').addClass('edit')
 
@@ -51,10 +52,10 @@ ready(() => {
     const html_url = wikiPage.get('html_url')
     if (!created_at || !html_url) {
       if (ENV.WIKI_PAGES_PATH) {
-        window.location.href = ENV.WIKI_PAGES_PATH
+        window.location.href = sanitizeUrl(ENV.WIKI_PAGES_PATH)
       }
     } else {
-      window.location.href = html_url
+      window.location.href = sanitizeUrl(html_url)
     }
   })
 

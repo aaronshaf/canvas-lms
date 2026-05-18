@@ -843,7 +843,7 @@ $(document).ready(function () {
             data.attachment.file_state === 'available'
           ) {
             ;($('#export_progress') as any).progressbar('option', 'value', 100)
-            window.location.href = url + '.zip'
+            window.location.href = sanitizeUrl(url + '.zip')
             return
           } else if (data.attachment && data.attachment.file_state) {
             const progress = parseInt(data.attachment.file_state, 10)

@@ -57,6 +57,7 @@ import * as ReactDOMServer from 'react-dom/server'
 import useCreateDiscussionEntry from '../../hooks/useCreateDiscussionEntry'
 import {LoadingSpinner} from '../../components/LoadingSpinner/LoadingSpinner'
 import {useEventHandler, KeyboardShortcuts} from '../../KeyboardShortcuts/useKeyboardShortcut'
+import {openWindow} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('discussion_topics_post')
 
@@ -225,7 +226,7 @@ export const SplitScreenViewContainer = props => {
 
   // @ts-expect-error TS7006 (typescriptify)
   const onOpenInSpeedGrader = discussionEntry => {
-    window.open(getSpeedGraderUrl(discussionEntry.author._id, discussionEntry._id), '_blank')
+    openWindow(getSpeedGraderUrl(discussionEntry.author._id, discussionEntry._id), '_blank')
   }
 
   // This reply method is used for the split-screen reply

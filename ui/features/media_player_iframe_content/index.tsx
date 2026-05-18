@@ -27,6 +27,7 @@ import {NoTranscript} from './components/NoTranscript'
 import {isAsrGenerating} from './utils/isAsrGenerating'
 import {getPlayerTracks} from './utils/getPlayerTracks'
 
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import {createOnTranscriptEdit, onConfirmEditChanges} from './transcriptEditing'
 import {createPendoTrackEventHandler} from './pendoTrackEventHandler'
 
@@ -46,6 +47,7 @@ interface AsrContext {
 const I18n = createI18nScope('CanvasMediaPlayer')
 
 const isStandalone = () => {
+  // oxlint-disable-next-line canvas-sanitize-url/imperative -- reading window.location for comparison, not navigating
   return !window.frameElement && window.location === window?.top?.location
 }
 
@@ -236,7 +238,9 @@ ready(() => {
                 icon: 'expand',
                 onClick: () => {
                   if (window.top) {
-                    window.top.location.href = `/media_attachments/${attachment_id}/immersive_view`
+                    window.top.location.href = sanitizeUrl(
+                      `/media_attachments/${attachment_id}/immersive_view`,
+                    )
                   }
                 },
                 order: 0,

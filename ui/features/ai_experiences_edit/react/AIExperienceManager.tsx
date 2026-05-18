@@ -24,6 +24,7 @@ import {showFlashError} from '@instructure/platform-alerts'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {AIExperience, AIExperienceFormData} from '../types'
 import AIExperienceForm from './components/AIExperienceForm/AIExperienceForm'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('ai_experiences_edit')
 
@@ -94,7 +95,7 @@ const AIExperienceManager: React.FC<AIExperienceManagerProps> = ({
       setAIExperience(updatedExperience)
 
       if (updatedExperience.id) {
-        window.location.href = `/courses/${courseId}/ai_experiences/${updatedExperience.id}`
+        window.location.href = sanitizeUrl(`/courses/${courseId}/ai_experiences/${updatedExperience.id}`)
       }
     } catch (error) {
       let message = I18n.t('An unexpected error occurred. Please try again.')

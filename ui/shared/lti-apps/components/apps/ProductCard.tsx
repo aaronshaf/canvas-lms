@@ -27,6 +27,7 @@ import {Tag} from '@instructure/ui-tag'
 import {TruncateText} from '@instructure/ui-truncate-text'
 import TruncateWithTooltip from '../common/TruncateWithTooltip'
 import {productRoute} from '../../utils/routes'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 type ProductCardProps = {
   product: Product | OrganizationProduct
@@ -47,7 +48,7 @@ const ProductCard = (props: ProductCardProps) => {
         borderWidth="small"
         padding="mediumSmall"
         onClick={() => {
-          window.location.href = productRoute(product.global_product_id)
+          window.location.href = sanitizeUrl(productRoute(product.global_product_id))
         }}
         cursor="pointer"
         role="group"

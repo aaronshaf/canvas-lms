@@ -19,6 +19,7 @@
 import {useCallback, useState} from 'react'
 import {useContextModule} from './useModuleContext'
 import {ExternalTool, ExternalToolPlacementType, ExternalToolTrayItem} from '../utils/types'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 export interface ExternalToolLaunchState {
   isModalOpen: boolean
@@ -54,7 +55,7 @@ export const useExternalToolLaunch = () => {
         const toolId = trayTool.id
         const launchUrl = `/courses/${courseId}/external_tools/${toolId}?launch_type=module_menu&modules%5B%5D=${moduleId}`
         // eslint-disable-next-line react-compiler/react-compiler
-        window.location.href = launchUrl
+        window.location.href = sanitizeUrl(launchUrl)
       } else if (placement === 'module_group_menu') {
         // Launch tray for module_group_menu
         setLaunchState({

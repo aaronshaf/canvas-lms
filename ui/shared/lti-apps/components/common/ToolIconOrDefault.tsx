@@ -58,6 +58,7 @@ export const ToolIconOrDefault = ({
         }}
         src={iconUrl}
         onError={e => {
+          // oxlint-disable-next-line canvas-sanitize-url/imperative -- onerror fallback; defaultIconUrl is a hardcoded internal asset path
           ;(e.target as HTMLImageElement).src = defaultIconUrl
         }}
       />

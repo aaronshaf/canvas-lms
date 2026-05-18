@@ -34,6 +34,7 @@ import {CanvasAsyncSelect as PlatformCanvasAsyncSelect} from '@instructure/platf
 const CanvasAsyncSelect: any = PlatformCanvasAsyncSelect
 import type {FormMessage} from '@instructure/ui-form-field'
 import {useDebouncedCallback} from 'use-debounce'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('section')
 
@@ -349,7 +350,9 @@ export default function CrosslistForm({
 
       // On success, redirect to the section page in the NEW course and arrange for a success flash there
       addFlashNoticeForNextPage('success', I18n.t('Section successfully cross-listed!'))
-      window.location.href = `/courses/${state.confirmedCourseId}/sections/${sectionId}`
+      window.location.href = sanitizeUrl(
+        `/courses/${state.confirmedCourseId}/sections/${sectionId}`,
+      )
     } catch (error) {
       // On error, reset submitting state and show error message
       dispatch({type: 'SUBMIT_ERROR'})

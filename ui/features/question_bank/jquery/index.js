@@ -31,6 +31,7 @@ import '@canvas/jquery-keycodes'
 import '@canvas/loading-image'
 import '@canvas/util/templateData'
 import replaceTags from '@canvas/util/replaceTags'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('question_bank')
 
@@ -205,7 +206,7 @@ export function attachPageEvents(_e) {
           'Are you sure you want to delete this bank of questions?',
         ),
         success() {
-          window.location.href = $('.assessment_question_banks_url').attr('href')
+          window.location.href = sanitizeUrl($('.assessment_question_banks_url').attr('href'))
         },
       })
   })

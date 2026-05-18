@@ -48,6 +48,7 @@ import {
 import {renderUpdateCalendarEventDialog} from '@canvas/calendar/react/RecurringEvents/UpdateCalendarEventDialog'
 import FrequencyPicker from '@canvas/calendar/react/RecurringEvents/FrequencyPicker/FrequencyPicker'
 import {encodeQueryString} from '@instructure/query-string-encoding'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('calendar.edit_calendar_event')
 
@@ -290,7 +291,7 @@ const CalendarEventDetailsForm = ({event, closeCB, contextChangeCB, setSetContex
     jsEvent?.preventDefault()
 
     // @ts-expect-error TS2554 (typescriptify)
-    window.location.href = buildEditEventUrl().toString()
+    window.location.href = sanitizeUrl(buildEditEventUrl().toString())
   }
 
   // @ts-expect-error TS7006 (typescriptify)

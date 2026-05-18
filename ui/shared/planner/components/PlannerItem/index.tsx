@@ -59,6 +59,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {animatable} from '../../dynamic-ui'
 import buildStyle from './style'
 import {stripHtmlTags} from '@canvas/util/TextHelper'
+import {openWindow} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('planner')
 
@@ -835,7 +836,7 @@ export class PlannerItem_raw extends Component {
             renderIcon={enabled ? IconVideoCameraSolid : IconVideoCameraLine}
             onClick={() => {
               // @ts-expect-error TS2339 (typescriptify)
-              window.open(this.props.onlineMeetingURL)
+              openWindow(this.props.onlineMeetingURL)
             }}
           >
             <AccessibleContent alt={srlabel}>{I18n.t('Join')}</AccessibleContent>

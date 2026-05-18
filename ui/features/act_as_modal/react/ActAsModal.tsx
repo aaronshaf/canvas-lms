@@ -31,6 +31,7 @@ import {Button} from '@instructure/ui-buttons'
 
 import ActAsMask from './svg/ActAsMask'
 import ActAsPanda from './svg/ActAsPanda'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('act_as')
 
@@ -74,7 +75,7 @@ export default class ActAsModal extends React.Component<ActAsModalProps, ActAsMo
   UNSAFE_componentWillMount() {
     if (window.location.href === document.referrer) {
       this.setState({isLoading: true})
-      window.location.href = '/'
+      window.location.href = sanitizeUrl('/')
     }
   }
 
@@ -86,7 +87,7 @@ export default class ActAsModal extends React.Component<ActAsModalProps, ActAsMo
     const defaultUrl = '/'
 
     if (!document.referrer) {
-      window.location.href = defaultUrl
+      window.location.href = sanitizeUrl(defaultUrl)
     } else {
       const currentPage = window.location.href
       window.history.back()
@@ -94,7 +95,7 @@ export default class ActAsModal extends React.Component<ActAsModalProps, ActAsMo
       // and we return to the dashboard by default
       setTimeout(() => {
         if (window.location.href === currentPage) {
-          window.location.href = defaultUrl
+          window.location.href = sanitizeUrl(defaultUrl)
         }
       }, 1000)
     }

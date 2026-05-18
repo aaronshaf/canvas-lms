@@ -21,6 +21,7 @@ import {isEmpty, groupBy, zip, forEach} from 'es-toolkit/compat'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {windowAlert} from '@canvas/util/globalUtils'
 import '@canvas/jquery/jquery.ajaxJSON'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('gradebook_upload')
 
@@ -319,7 +320,7 @@ const ProcessGradebookUpload = {
 
   goToGradebook() {
     $('#gradebook_grid_form').text(I18n.t('Done.'))
-    window.location = ENV.gradebook_path
+    window.location.href = sanitizeUrl(ENV.gradebook_path)
   },
 }
 

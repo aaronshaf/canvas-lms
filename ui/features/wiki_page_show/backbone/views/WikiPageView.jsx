@@ -40,6 +40,7 @@ import DirectShareCourseTray from '@canvas/direct-sharing/react/components/Direc
 import {renderFrontPagePill} from '@canvas/wiki/react/renderFrontPagePill'
 import ItemAssignToManager from '@canvas/context-modules/differentiated-modules/react/Item/ItemAssignToManager'
 import FriendlyDatetime from '@canvas/datetime/react/components/FriendlyDatetime'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('pages')
 
@@ -160,7 +161,7 @@ export default class WikiPageView extends Backbone.View {
     // Fixes issue when using anchors IDs scroll. Sometimes the browsers can't find the element
     // due it is not loaded yet.
     if (window.location?.hash !== '') {
-      window.location.href = window.location.hash
+      window.location.href = sanitizeUrl(window.location.hash)
     }
 
     // Adds class if a LTI iframe is embed in content
@@ -201,13 +202,17 @@ export default class WikiPageView extends Backbone.View {
     ) {
       if (window.ENV.text_editor_preference == null) {
         renderChooseEditorModal(e, async editor => {
-          window.location.href = `${window.location.href.split('?')[0]}/edit?editor=${editor}`
+          window.location.href = sanitizeUrl(
+            `${window.location.href.split('?')[0]}/edit?editor=${editor}`,
+          )
         })
       } else if (window.ENV.text_editor_preference === 'block_editor') {
         e.preventDefault()
-        window.location.href = `${window.location.href.split('?')[0]}/edit${
-          window.location.href.split('?')[1] ? `?${window.location.href.split('?')[1]}` : ''
-        }`
+        window.location.href = sanitizeUrl(
+          `${window.location.href.split('?')[0]}/edit${
+            window.location.href.split('?')[1] ? `?${window.location.href.split('?')[1]}` : ''
+          }`,
+        )
       }
     }
   }

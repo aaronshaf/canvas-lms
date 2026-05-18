@@ -49,6 +49,7 @@ import useOutcomesRemove from '@canvas/outcomes/react/hooks/useOutcomesRemove'
 import {getOutcomeGroupAncestorsWithSelf} from '../../helpers/getOutcomeGroupAncestorsWithSelf'
 import {ROOT_GROUP} from '@canvas/outcomes/react/hooks/useOutcomesImport'
 import {Heading} from '@instructure/ui-heading'
+import {openWindow} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('OutcomeManagement')
 
@@ -343,7 +344,7 @@ const OutcomeManagementPanel = ({
         openOutcomeMoveModal()
       } else if (action === 'alignments') {
         // redirect to alignment details page for selected outcome
-        window.open('outcomes/' + edge.node._id)
+        openWindow('outcomes/' + edge.node._id)
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

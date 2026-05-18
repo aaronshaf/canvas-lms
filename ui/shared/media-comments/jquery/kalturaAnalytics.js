@@ -16,6 +16,7 @@
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import {encodeQueryString} from '@instructure/query-string-encoding'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 import $ from 'jquery'
 import 'jquery.cookie'
 import {clone, throttle} from 'es-toolkit/compat'
@@ -99,7 +100,7 @@ class KalturaAnalytics {
         function () {
           let url
           if ((url = queue_.shift())) {
-            return (iframe_.src = url)
+            return (iframe_.src = sanitizeUrl(url))
           }
         })(iframe, queue)
       this.iframes[i] = {iframe, queue, pinger: throttle(f, 4000)}

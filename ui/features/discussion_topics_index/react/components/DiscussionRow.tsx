@@ -272,15 +272,15 @@ class DiscussionRow extends Component {
         break
 
       case 'masterypaths':
-        // @ts-expect-error TS2322 (typescriptify)
-        window.location = `discussion_topics/${
-          // @ts-expect-error TS2339 (typescriptify)
-          this.props.discussion.id
-        }/edit?return_to=${encodeURIComponent(window.location.pathname)}#mastery-paths-editor`
+        window.location.href = sanitizeUrl(
+          `discussion_topics/${
+            // @ts-expect-error TS2339 (typescriptify)
+            this.props.discussion.id
+          }/edit?return_to=${encodeURIComponent(window.location.pathname)}#mastery-paths-editor`,
+        )
         break
       case 'ltiMenuTool':
-        // @ts-expect-error TS2322 (typescriptify)
-        window.location = `${menuTool.base_url}&discussion_topics[]=${id}`
+        window.location.href = sanitizeUrl(`${menuTool.base_url}&discussion_topics[]=${id}`)
         break
       case 'assignTo':
         // @ts-expect-error TS2339 (typescriptify)

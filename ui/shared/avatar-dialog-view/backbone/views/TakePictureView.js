@@ -171,6 +171,7 @@ export default class TakePictureView extends BaseView {
       return (this.img = BlobFactory.fromCanvas(canvas))
     }
 
+    // oxlint-disable-next-line canvas-sanitize-url/imperative -- url is a canvas.toDataURL() data URL from webcam capture, not user-supplied
     return (img.src = url)
   }
 

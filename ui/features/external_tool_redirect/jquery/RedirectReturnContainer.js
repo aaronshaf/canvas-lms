@@ -18,6 +18,7 @@
 import $ from 'jquery'
 
 import {handleExternalContentMessages} from '@canvas/external-tools/messages'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 export default class RedirectReturnContainer {
   attachLtiEvents() {
@@ -36,11 +37,11 @@ export default class RedirectReturnContainer {
   }
 
   _contentCancel = () => {
-    window.location.href = this.cancelUrl
+    window.location.href = sanitizeUrl(this.cancelUrl)
   }
 
   redirectToSuccessUrl = () => {
-    window.location.href = this.successUrl
+    window.location.href = sanitizeUrl(this.successUrl)
   }
 
   createMigration = file_url => {

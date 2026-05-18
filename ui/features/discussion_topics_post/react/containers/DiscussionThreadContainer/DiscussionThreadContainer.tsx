@@ -67,6 +67,7 @@ import {useEventHandler, KeyboardShortcuts} from '../../KeyboardShortcuts/useKey
 import useHighlightStore from '../../hooks/useHighlightStore'
 import useSpeedGrader from '../../hooks/useSpeedGrader'
 import useRestoreEntry from '../../hooks/useRestoreEntry'
+import {openWindow} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('discussion_topics_post')
 
@@ -530,7 +531,7 @@ export const DiscussionThreadContainer = props => {
   }
 
   const onOpenInSpeedGrader = () => {
-    window.open(
+    openWindow(
       getSpeedGraderUrl(props.discussionEntry.author._id, props.discussionEntry._id),
       '_blank',
     )

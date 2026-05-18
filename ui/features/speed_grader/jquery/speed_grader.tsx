@@ -622,7 +622,7 @@ export function initDropdown() {
 
       const newUrl = window.location.pathname + '?' + searchParams.toString()
 
-      window.location.href = newUrl
+      window.location.href = sanitizeUrl(newUrl)
     }
   })
 

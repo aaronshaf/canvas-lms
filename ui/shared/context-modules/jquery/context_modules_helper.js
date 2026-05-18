@@ -21,7 +21,7 @@ import sanitizeUrl from '@canvas/util/sanitizeUrl'
 const Helper = {}
 
 Helper.setWindowLocation = function (url) {
-  window.location = url
+  window.location.href = sanitizeUrl(url)
 }
 
 Helper.externalUrlLinkClick = function (event, $elt) {

@@ -33,6 +33,7 @@ import {View} from '@instructure/ui-view'
 import {Mask, Overlay} from '@instructure/ui-overlays'
 import {Spinner} from '@instructure/ui-spinner'
 import {useQuery} from '@tanstack/react-query'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('merge_users')
 
@@ -93,7 +94,7 @@ const PreviewMerge = ({
         ),
       )()
       setTimeout(() => {
-        window.location.href = urlToMoveTo
+        window.location.href = sanitizeUrl(urlToMoveTo)
       }, 3000)
     } catch (error: any) {
       const errorMessage =

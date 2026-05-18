@@ -55,7 +55,7 @@ export const anchorTag = (
   innerHTML?: string,
 ) => {
   const anchorTagEl = document.createElement('a')
-  anchorTagEl.setAttribute('href', safeUrl(item.url))
+  anchorTagEl.setAttribute('href', sanitizeUrl(item.url))
   anchorTagEl.setAttribute('title', item.title || '')
   anchorTagEl.setAttribute('target', '_blank')
   // innerHTML may originate from external LTI tools — sanitize before
@@ -141,6 +141,7 @@ export const renderLinkContentItem = (item: {
   url: string
   thumbnail?: ContentItemThumbnail
 }) => {
+  // oxlint-disable-next-line canvas-sanitize-url/imperative -- reading iframe.src for existence check, not setting it
   if (typeof item.iframe?.src !== 'undefined') {
     return iframeTag({title: item.title, iframe: item.iframe})
   }

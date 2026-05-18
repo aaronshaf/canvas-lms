@@ -20,6 +20,7 @@ import $ from 'jquery'
 import {addDeepLinkingListener as addOriginalListener} from './DeepLinking'
 import processSingleContentItem from './processors/processSingleContentItem'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import {openWindow} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('collaborations')
 
@@ -98,5 +99,5 @@ function collaborationSuccess(msg) {
 }
 
 function openCollaboration(id) {
-  window.open(collaborationUrl(id))
+  openWindow(collaborationUrl(id))
 }

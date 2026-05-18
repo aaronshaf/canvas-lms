@@ -506,6 +506,7 @@ export const downloadRubrics = async (
   const blob = await response.blob()
   const url = window.URL.createObjectURL(blob)
   const link = document.createElement('a')
+  // oxlint-disable-next-line canvas-sanitize-url/imperative -- blob: URL from createObjectURL is browser-generated for file download, not user-supplied
   link.href = url
   link.setAttribute('download', 'rubrics_export.csv')
   document.body.appendChild(link)

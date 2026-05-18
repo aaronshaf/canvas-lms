@@ -23,6 +23,7 @@ import {each, reject} from 'es-toolkit/compat'
 import {View} from '@canvas/backbone'
 import CollaborationView from './CollaborationView'
 import CollaborationFormView from './CollaborationFormView'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('collaborations')
 
@@ -138,7 +139,7 @@ CollaborationsPage.prototype.onFormValidate = function (e, $form, collaborationI
     e.stopPropagation()
   } else if (!collaborationId) {
     setTimeout(function () {
-      return (window.location = window.location.pathname)
+      window.location.href = sanitizeUrl(window.location.pathname)
     }, 2500)
   }
 }

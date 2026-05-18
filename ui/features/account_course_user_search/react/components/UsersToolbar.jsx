@@ -36,6 +36,7 @@ import {CanvasSelect} from '@instructure/platform-instui-bindings'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import CreateOrUpdateUserModal from './CreateOrUpdateUserModal'
 import {Flex} from '@instructure/ui-flex'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('account_course_user_search')
 
@@ -222,12 +223,16 @@ function renderKabobMenu(accountId) {
         }
       >
         {showAvatarItem && (
-          <Menu.Item onClick={() => (window.location = `/accounts/${accountId}/avatars`)}>
+          <Menu.Item
+            onClick={() => (window.location.href = sanitizeUrl(`/accounts/${accountId}/avatars`))}
+          >
             <IconStudentViewLine /> {I18n.t('Manage profile pictures')}
           </Menu.Item>
         )}
         {showGroupsItem && (
-          <Menu.Item onClick={() => (window.location = `/accounts/${accountId}/groups`)}>
+          <Menu.Item
+            onClick={() => (window.location.href = sanitizeUrl(`/accounts/${accountId}/groups`))}
+          >
             <IconGroupLine /> {I18n.t('View user groups')}
           </Menu.Item>
         )}

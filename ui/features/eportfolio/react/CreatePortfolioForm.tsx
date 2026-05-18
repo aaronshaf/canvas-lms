@@ -35,6 +35,7 @@ import doFetchApi from '@canvas/do-fetch-api-effect'
 import {ePortfolio} from './types'
 import {showFlashError} from '@instructure/platform-alerts'
 import {IconAddLine} from '@instructure/ui-icons'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('eportfolio')
 
@@ -89,7 +90,7 @@ export default function CreatePortfolioForm(props: Props) {
       // we are redirecting to the new portfolio
       // so we don't need to do anything else with the response
       if (json?.eportfolio_url) {
-        window.location.href = json.eportfolio_url
+        window.location.href = sanitizeUrl(json.eportfolio_url)
       }
     } catch {
       showFlashError(I18n.t('There was an error creating your ePortfolio.'))()

@@ -32,6 +32,7 @@ import {showFlashError} from '@instructure/platform-alerts'
 import {CanvasAsyncSelect, InstUIModal as Modal} from '@instructure/platform-instui-bindings'
 import useFetchApi from '@canvas/use-fetch-api-hook'
 import {createNewCourse, getAccountsFromEnrollments} from './utils'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 interface Account {
   id: string
@@ -104,7 +105,7 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
       syncHomeroomEnrollments,
       selectedHomeroom?.id || null,
     )
-      .then((course: any) => (window.location.href = `/courses/${course.id}/settings`))
+      .then((course: any) => (window.location.href = sanitizeUrl(`/courses/${course.id}/settings`)))
       .catch(err => {
         setLoading(false)
         showFlashError(errorMessage)(err)

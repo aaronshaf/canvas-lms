@@ -42,6 +42,7 @@ import * as tz from '@instructure/moment-utils'
 import {encodeQueryString} from '@instructure/query-string-encoding'
 import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
 import CreateEditAssignmentModal from '@canvas/assignments/react/CreateEditAssignmentModal'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('CreateAssignmentView')
 
@@ -176,7 +177,7 @@ CreateAssignmentView.prototype.moreOptions = function (data) {
 }
 
 CreateAssignmentView.prototype.redirectTo = function (url) {
-  return (window.location.href = url)
+  return (window.location.href = sanitizeUrl(url))
 }
 
 CreateAssignmentView.prototype.generateNewAssignment = function () {

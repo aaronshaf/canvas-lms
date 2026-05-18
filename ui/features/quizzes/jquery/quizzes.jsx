@@ -2678,9 +2678,9 @@ ready(function () {
 
         const return_to = deparam().return_to
         if (return_to && returnToHelper.isValid(return_to)) {
-          location.href = return_to
+          location.href = sanitizeUrl(return_to)
         } else {
-          location.href = $(this).attr('action')
+          location.href = sanitizeUrl($(this).attr('action'))
         }
         quiz.updateDisplayComments()
       }
@@ -5273,7 +5273,7 @@ ready(function () {
         message: I18n.t('confirms.delete_quiz', 'Are you sure you want to delete this quiz?'),
         url: $(this).attr('href'),
         success() {
-          window.location.replace(ENV.QUIZZES_URL)
+          window.location.replace(sanitizeUrl(ENV.QUIZZES_URL))
         },
       })
   })

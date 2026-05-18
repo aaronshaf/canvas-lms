@@ -36,11 +36,12 @@ import {
 import {CopyCourseForm} from './form/CopyCourseForm'
 import {useMutation, useQuery} from '@tanstack/react-query'
 import {FetchApiError} from '@canvas/do-fetch-api-effect'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('content_copy_redesign')
 
 export const onSuccessCallback = (newCourseId: string) => {
-  window.location.href = `/courses/${newCourseId}/content_migrations`
+  window.location.href = sanitizeUrl(`/courses/${newCourseId}/content_migrations`)
 }
 
 export const onErrorCallback = async (error: FetchApiError) => {

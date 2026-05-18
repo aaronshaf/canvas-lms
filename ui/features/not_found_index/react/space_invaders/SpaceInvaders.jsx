@@ -175,6 +175,7 @@ class SpaceInvaders extends React.Component {
   loadImage(src) {
     return new Promise((resolve, reject) => {
       const img = new Image()
+      // oxlint-disable-next-line canvas-sanitize-url/imperative -- game asset preloader; src is an internal canvas asset path, not user-supplied
       img.src = src
       img.onload = () => resolve(img)
       img.onerror = reject

@@ -47,6 +47,7 @@ import ItemAssignToManager from '@canvas/context-modules/differentiated-modules/
 import {Drilldown} from '@instructure/ui-drilldown'
 import {getGroupDiscussionUrl} from '../../utils'
 import SortOrderDropDown from './SortOrderDropDown'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('discussions_posts')
 
@@ -170,7 +171,9 @@ const DiscussionPostButtonsToolbar = props => {
           id={childTopic._id}
           value={childTopic.contextName}
           onOptionClick={() => {
-            window.location.href = getGroupDiscussionUrl(childTopic.contextId, childTopic._id)
+            window.location.href = sanitizeUrl(
+              getGroupDiscussionUrl(childTopic.contextId, childTopic._id),
+            )
           }}
         >
           {childTopic.contextName}

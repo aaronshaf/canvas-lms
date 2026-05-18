@@ -29,6 +29,7 @@ import ReactDOM from 'react-dom'
 import React from 'react'
 import '@canvas/jquery/jquery.instructure_forms'
 import {initializeTopNavPortalWithDefaults} from '@canvas/top-navigation/react/TopNavPortalWithDefaults'
+import {openWindow} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('conferences')
 
@@ -151,7 +152,7 @@ ConferenceView.prototype.start = function (e) {
     e.preventDefault()
     return
   }
-  const w = window.open(e.currentTarget.href, '_blank')
+  const w = openWindow(e.currentTarget.href, '_blank')
   if (!w) {
     return
   }

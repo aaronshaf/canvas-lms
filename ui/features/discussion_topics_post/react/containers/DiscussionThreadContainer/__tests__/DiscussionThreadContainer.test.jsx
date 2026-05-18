@@ -35,6 +35,7 @@ import {
 import {User} from '../../../../graphql/User'
 import {waitFor} from '@testing-library/dom'
 import {ObserverContext} from '../../../utils/ObserverContext'
+import {openWindow} from '@canvas/util/globalUtils'
 
 vi.mock('@canvas/util/globalUtils')
 
@@ -403,7 +404,7 @@ describe('DiscussionThreadContainer', () => {
       fireEvent.click(getByTestId('inSpeedGrader'))
 
       await waitFor(() => {
-        expect(openMock).toHaveBeenCalledWith(
+        expect(openWindow).toHaveBeenCalledWith(
           getSpeedGraderUrl('2', 'DiscussionEntry-default-mock'),
           `_blank`,
         )

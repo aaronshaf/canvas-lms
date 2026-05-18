@@ -16,6 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
+
 export const HORIZON_PARAMS = {
   content_only: 'true',
   instui_theme: 'career',
@@ -60,9 +62,9 @@ export function buildHorizonUrl(baseUrl, additionalParams = {}) {
  */
 export function redirectWithHorizonParams(url, additionalParams = {}) {
   if (ENV.horizon_course) {
-    window.location.href = buildHorizonUrl(url, additionalParams)
+    window.location.href = sanitizeUrl(buildHorizonUrl(url, additionalParams))
   } else {
-    window.location.href = url
+    window.location.href = sanitizeUrl(url)
   }
 }
 

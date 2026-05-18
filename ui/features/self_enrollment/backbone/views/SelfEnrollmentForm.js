@@ -22,6 +22,7 @@ import registrationErrors from '@canvas/normalize-registration-errors'
 import '@canvas/jquery/jquery.instructure_forms'
 import '@canvas/jquery/jquery.ajaxJSON'
 import {useScope as createI18nScope} from '@canvas/i18n'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('self_enrollment')
 
@@ -109,7 +110,7 @@ export default class SelfEnrollmentForm extends Backbone.View {
   beforeSubmit(data) {
     if (!this.action) return false
     if (this.options.confirmEnrollmentUrl && this.action === 'enroll') {
-      window.location = this.options.confirmEnrollmentUrl
+      window.location.href = sanitizeUrl(this.options.confirmEnrollmentUrl)
       return false
     }
 

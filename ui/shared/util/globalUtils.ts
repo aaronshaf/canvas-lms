@@ -16,6 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
+
 /**
  * Wrappers that can be mocked in tests, cf.
  *   https://github.com/jsdom/jsdom/issues/3492
@@ -27,11 +29,13 @@ export const openWindow = (
   target?: string,
   windowFeatures?: string,
 ): Window | null => {
-  return window.open(url, target, windowFeatures)
+  if (windowFeatures !== undefined) return window.open(sanitizeUrl(url), target, windowFeatures)
+  if (target !== undefined) return window.open(sanitizeUrl(url), target)
+  return window.open(sanitizeUrl(url))
 }
 
 export function replaceLocation(url: string): void {
-  window.location.replace(url)
+  window.location.replace(sanitizeUrl(url))
 }
 
 export function reloadWindow(): void {
@@ -39,7 +43,7 @@ export function reloadWindow(): void {
 }
 
 export function assignLocation(url: string): void {
-  window.location.assign(url)
+  window.location.assign(sanitizeUrl(url))
 }
 
 export function forceReload(): void {

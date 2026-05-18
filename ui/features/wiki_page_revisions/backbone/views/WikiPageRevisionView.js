@@ -20,6 +20,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import template from '../../jst/WikiPageRevision.handlebars'
 import {showConfirmationDialog} from '@canvas/dialogs/react/ConfirmationDialog'
 import {datetimeString} from '@canvas/datetime/date-functions'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('pages')
 
@@ -96,7 +97,9 @@ export default class WikiPageRevisionView extends Backbone.View {
     }
     return this.model.restore().done(attrs => {
       if (this.pages_path) {
-        return (this.windowLocation().href = `${this.pages_path}/${attrs.url}/revisions`)
+        return (this.windowLocation().href = sanitizeUrl(
+          `${this.pages_path}/${attrs.url}/revisions`,
+        ))
       } else {
         return this.windowLocation().reload()
       }

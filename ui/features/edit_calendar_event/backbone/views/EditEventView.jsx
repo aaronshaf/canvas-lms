@@ -49,6 +49,7 @@ import {showFlashAlert} from '@instructure/platform-alerts'
 import EditCalendarEventHeader from '../../react/components/EditCalendarEventHeader'
 import {renderDatetimeField} from '@canvas/datetime/jquery/DatetimeField'
 import splitAssetString from '@canvas/util/splitAssetString'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('calendar.edit')
 
@@ -498,7 +499,7 @@ export default class EditCalendarEventView extends Backbone.View {
   redirectWithMessage(message) {
     $.flashMessage(message)
     if (this.model.get('return_to_url')) {
-      window.location = this.model.get('return_to_url')
+      window.location.href = sanitizeUrl(this.model.get('return_to_url'))
     }
   }
 

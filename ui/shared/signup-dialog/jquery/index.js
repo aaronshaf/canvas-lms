@@ -30,6 +30,7 @@ import htmlEscape from '@instructure/html-escape'
 import './validate'
 import '@canvas/jquery/jquery.instructure_forms'
 import extensions from '@canvas/bundles/extensions'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('registration')
 
@@ -106,11 +107,13 @@ const signupDialog = function (id, title, path) {
       return function (data) {
         // they should now be authenticated (either registered or pre_registered)
         if (data.destination) {
-          return (window.location = data.destination)
+          window.location.href = sanitizeUrl(data.destination)
         } else if (data.course) {
-          return (window.location = '/courses/' + data.course.course.id + '?registration_success=1')
+          window.location.href = sanitizeUrl(
+            '/courses/' + data.course.course.id + '?registration_success=1',
+          )
         } else {
-          return (window.location = '/?registration_success=1')
+          window.location.href = sanitizeUrl('/?registration_success=1')
         }
       }
     })(this),

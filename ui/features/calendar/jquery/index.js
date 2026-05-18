@@ -51,6 +51,7 @@ import '@canvas/jquery/jquery.instructure_misc_plugins'
 import 'jquery-tinypubsub'
 import 'jqueryui/button'
 import 'jqueryui/tooltip'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('calendar')
 
@@ -665,7 +666,7 @@ export default class Calendar {
       if (replaceState || window.location.hash === '') {
         return window.history.replaceState(null, '', fragment)
       } else {
-        return (window.location.href = fragment)
+        return (window.location.href = sanitizeUrl(fragment))
       }
     }
   }

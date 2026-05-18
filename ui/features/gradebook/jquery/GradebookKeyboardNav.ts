@@ -20,6 +20,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import $ from 'jquery'
 import '@canvas/jquery-keycodes'
 import type GridSupport from '../react/default_gradebook/GradebookGrid/GridSupport/index'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 type KeyBinding = {
   key: string
@@ -240,7 +241,7 @@ export default class GradebookKeyboardNav {
       return
     }
     const url = this.getHeaderFromActiveCell().querySelector('a .assignment-name').closest('a').href
-    window.location = url
+    window.location.href = sanitizeUrl(url)
   }
 
   showSubmissionTray(_event: Event) {

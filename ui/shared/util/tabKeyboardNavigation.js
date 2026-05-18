@@ -17,6 +17,7 @@
  */
 
 import $ from 'jquery'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 /**
  * Sets up W3C ARIA-compliant keyboard navigation for tabs with automatic activation pattern.
@@ -98,7 +99,7 @@ export function setupTabKeyboardNavigation($tabContainer, options = {}) {
       })
     } else {
       // For external links, navigate via window.location
-      window.location.href = href
+      window.location.href = sanitizeUrl(href)
     }
   }
 

@@ -656,7 +656,8 @@ export function updateModuleUI(moduleElement: HTMLDivElement, payload: Assignmen
       icon.className = 'icon-group'
 
       const link = document.createElement('a')
-      link.href = `#${moduleElement.getAttribute('data-module-id') ?? ''}`
+      // oxlint-disable-next-line canvas-sanitize-url/imperative -- hash fragment anchor for scroll-to-module, not a navigation sink
+    link.href = `#${moduleElement.getAttribute('data-module-id') ?? ''}`
       link.className = 'view_assign_link'
       link.title = I18n.t('View Assign To')
       link.textContent = I18n.t('View Assign To')

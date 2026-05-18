@@ -34,6 +34,7 @@ import {getK5ThemeVars} from '@canvas/k5/react/k5-theme'
 import K5DashboardContext from '@canvas/k5/react/K5DashboardContext'
 import {DEFAULT_COURSE_COLOR, FOCUS_TARGETS} from '@canvas/k5/react/utils'
 import instFSOptimizedImageUrl from '@canvas/dashboard-card/util/instFSOptimizedImageUrl'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const k5ThemeVariables = getK5ThemeVars(
   Boolean(ENV.use_high_contrast),
@@ -273,7 +274,7 @@ const K5DashboardCard = ({
     if (e) {
       e.preventDefault()
     }
-    window.location = href
+    window.location.href = sanitizeUrl(href)
   }
 
   // The transform: translate3d(0,0,0) below is required to do a Chrome bug with react-dnd drag

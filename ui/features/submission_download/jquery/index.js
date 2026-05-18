@@ -22,6 +22,7 @@ import '@canvas/jquery/jquery.ajaxJSON'
 import 'jqueryui/dialog'
 import 'jqueryui/progressbar'
 import ready from '@instructure/ready'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('submissions')
 
@@ -71,7 +72,7 @@ ready(() => {
               const b = document.createElement('b')
               b.textContent = linkText
               const a = document.createElement('a')
-              a.href = url
+              a.href = sanitizeUrl(url)
               a.appendChild(b)
 
               $('#download_submissions_dialog .status')[0]?.replaceChildren(
@@ -81,7 +82,7 @@ ready(() => {
               )
               $('#download_submissions_dialog .status_loader').css('visibility', 'hidden')
 
-              window.location.href = url
+              window.location.href = sanitizeUrl(url)
               return
             } else if (attachment.workflow_state === 'errored') {
               // The only way the backend gets to an "errored" state is if there are no files to add

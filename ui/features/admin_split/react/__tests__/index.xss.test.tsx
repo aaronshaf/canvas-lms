@@ -75,6 +75,9 @@ describe('AdminSplit returnToReferrer security', () => {
         set href(url: string) {
           hrefAssigned = url
         },
+        assign(url: string) {
+          hrefAssigned = url
+        },
         get origin() {
           return new URL(originalHref).origin
         },

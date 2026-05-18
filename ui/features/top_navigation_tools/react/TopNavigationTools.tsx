@@ -35,6 +35,7 @@ type TopNavigationToolsProps = {
 }
 
 export const handleToolIconError = (tool: Tool) => (event: any) => {
+  // oxlint-disable-next-line canvas-sanitize-url/imperative -- onerror fallback to hardcoded server default icon; not user-supplied
   event.target.src = `/lti/tool_default_icon?name=${encodeURIComponent(tool.title || '')}`
   event.onerror = null
 }

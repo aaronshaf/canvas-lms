@@ -39,6 +39,7 @@ import {Pill} from '@instructure/ui-pill'
 import {Link} from '@instructure/ui-link'
 import {FetchApiError} from '@canvas/do-fetch-api-effect'
 import {showFlashAlert} from '@instructure/platform-alerts'
+import {openWindow} from '@canvas/util/globalUtils'
 
 const I18n = i18nScope('page_views')
 
@@ -92,7 +93,7 @@ export function PageViewsDownload({userId}: PageViewsDownloadProps): React.JSX.E
   const handleDownload = async (record: AsyncPageviewJob) => {
     try {
       const url = await getDownloadUrl(record)
-      window.open(url, '_self')
+      openWindow(url, '_self')
     } catch (error) {
       if (
         error instanceof FetchApiError &&

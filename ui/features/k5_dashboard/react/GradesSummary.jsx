@@ -34,6 +34,7 @@ import instFSOptimizedImageUrl from '@canvas/dashboard-card/util/instFSOptimized
 import {getK5ThemeVars} from '@canvas/k5/react/k5-theme'
 import {DEFAULT_COURSE_COLOR} from '@canvas/k5/react/utils'
 import {scoreToGrade} from '@instructure/grading-utils'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const k5ThemeVariables = getK5ThemeVars(
   Boolean(ENV.use_high_contrast),
@@ -134,7 +135,7 @@ export const GradeSummaryLine = ({
     if (e) {
       e.preventDefault()
     }
-    window.location = courseUrl
+   window.location.href = sanitizeUrl(courseUrl)
   }
   return (
     <View as="div">

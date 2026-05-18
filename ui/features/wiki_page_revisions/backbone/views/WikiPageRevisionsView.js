@@ -21,6 +21,7 @@ import WikiPageRevisionView from './WikiPageRevisionView'
 import template from '../../jst/WikiPageRevisions.handlebars'
 import '../../jquery/floatingSticky'
 import {publish} from 'jquery-tinypubsub'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 export default class WikiPageRevisionsView extends CollectionView {
   static initClass() {
@@ -148,7 +149,7 @@ export default class WikiPageRevisionsView extends CollectionView {
     if (ev != null) {
       ev.preventDefault()
     }
-    return (window.location.href = this.collection.parentModel.get('html_url'))
+    return (window.location.href = sanitizeUrl(this.collection.parentModel.get('html_url')))
   }
 
   toJSON() {

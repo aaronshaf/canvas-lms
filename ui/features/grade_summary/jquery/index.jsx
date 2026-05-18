@@ -53,6 +53,7 @@ import {scoreToPercentage, scoreToScaledPoints} from '@canvas/grading/GradeCalcu
 import useStore from '../react/stores'
 import replaceTags from '@canvas/util/replaceTags'
 import {ZUseCourseAssignmentsAssetReportsParams} from '@canvas/lti-asset-processor/react/hooks/useCourseAssignmentsAssetReports'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('gradingGradeSummary')
 
@@ -704,7 +705,7 @@ function displayPageContent() {
 }
 
 function goToURL(url) {
-  window.location.href = url
+  window.location.href = sanitizeUrl(url)
 }
 
 function saveAssignmentOrder(order) {

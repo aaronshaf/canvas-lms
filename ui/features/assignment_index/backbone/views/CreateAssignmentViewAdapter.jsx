@@ -23,6 +23,7 @@ import {encodeQueryString} from '@instructure/query-string-encoding'
 import axios from '@canvas/axios'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {showFlashAlert} from '@instructure/platform-alerts'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('CreateEditAssignmentModalAdapter')
 
@@ -165,7 +166,7 @@ const courseUrl = () => {
 }
 
 const redirectTo = url => {
-  window.location.href = url
+  window.location.href = sanitizeUrl(url)
 }
 
 const launchQuizNew = async data => {

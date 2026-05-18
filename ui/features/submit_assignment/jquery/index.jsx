@@ -293,7 +293,7 @@ ready(function () {
       success: data => {
         const location = data['redirect_url']
         if (location) {
-          window.location.href = location
+          window.location.href = sanitizeUrl(location)
         }
       },
       error: _data => {
@@ -491,7 +491,7 @@ ready(function () {
             if (window.ENV.CONFETTI_ENABLED && !data?.submission?.late) {
               url.searchParams.set('confetti', 'true')
             }
-            window.location = url.toString()
+            window.location.href = sanitizeUrl(url.toString())
           },
           error(_data) {
             submissionForm

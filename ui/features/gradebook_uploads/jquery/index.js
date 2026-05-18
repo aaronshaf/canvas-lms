@@ -28,6 +28,7 @@ import 'slickgrid/slick.editors' /* global.Slick.Editors */
 import '@canvas/jquery/jquery.instructure_forms' /* errorBox */
 import '@canvas/jquery/jquery.instructure_misc_helpers' /* /\.detect/ */
 import '@canvas/util/templateData'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('gradebook_uploads')
 /* fillTemplateData */
@@ -328,7 +329,7 @@ const GradebookUploader = {
       })
       .catch(error => {
         alert(error.message)
-        window.location = ENV.new_gradebook_upload_path
+        window.location.href = sanitizeUrl(ENV.new_gradebook_upload_path)
       })
 
     function processUploadedGradebook(uploadedGradebook) {

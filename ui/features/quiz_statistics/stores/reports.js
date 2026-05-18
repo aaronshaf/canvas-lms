@@ -23,13 +23,14 @@ import pollProgress from '../services/poll_progress'
 import populateCollection from './util/populate_collection'
 import QuizReports from '../backbone/collections/quiz_reports'
 import Store from '@canvas/quiz-legacy-client-apps/store'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const quizReports = new QuizReports()
 
 const triggerDownload = function (url) {
   const iframe = document.createElement('iframe')
   iframe.style.display = 'none'
-  iframe.src = url
+  iframe.src = sanitizeUrl(url)
   document.body.appendChild(iframe)
 }
 

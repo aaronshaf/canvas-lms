@@ -19,6 +19,9 @@
 import React from 'react'
 import SpeedGraderSettingsMenu from '../SpeedGraderSettingsMenu'
 import {render, waitFor, fireEvent} from '@testing-library/react'
+import {openWindow} from '@canvas/util/globalUtils'
+
+vi.mock('@canvas/util/globalUtils')
 
 describe('Webzip export app', () => {
   let $container
@@ -38,7 +41,6 @@ describe('Webzip export app', () => {
     $container = document.createElement('div')
     document.body.appendChild($container)
     vi.spyOn(SpeedGraderSettingsMenu, 'setURL').mockImplementation(() => {})
-    vi.spyOn(window, 'open').mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -104,12 +106,12 @@ describe('Webzip export app', () => {
     expect(wrapper.getByText('Moderation Page')).toBeInTheDocument()
   })
 
-  test('calls window.open when the "Moderation Page" is clicked', async () => {
+  test('calls openWindow when the "Moderation Page" is clicked', async () => {
     props.showModerationMenuItem = true
     const wrapper = render(<SpeedGraderSettingsMenu {...props} />, {attachTo: $container})
     fireEvent.click(wrapper.getByRole('button'))
     fireEvent.click(wrapper.getByText('Moderation Page'))
-    expect(window.open).toHaveBeenCalledTimes(1)
+    expect(openWindow).toHaveBeenCalledTimes(1)
   })
 
   test('opens the moderation page when the "Moderation Page" is clicked', async () => {
@@ -118,7 +120,7 @@ describe('Webzip export app', () => {
     fireEvent.click(wrapper.getByRole('button'))
     fireEvent.click(wrapper.getByText('Moderation Page'))
     const expectedURL = `/courses/${props.courseID}/assignments/${props.assignmentID}/moderate`
-    expect(window.open).toHaveBeenCalledWith(expectedURL, '_blank')
+    expect(openWindow).toHaveBeenCalledWith(expectedURL, '_blank')
   })
 
   test('opens the page in a new tab when the "Moderation Page" is clicked', async () => {
@@ -127,7 +129,7 @@ describe('Webzip export app', () => {
     fireEvent.click(wrapper.getByRole('button'))
     fireEvent.click(wrapper.getByText('Moderation Page'))
     const openInNewTabArgument = '_blank'
-    expect(window.open).toHaveBeenCalledWith(expect.any(String), openInNewTabArgument)
+    expect(openWindow).toHaveBeenCalledWith(expect.any(String), openInNewTabArgument)
   })
 
   test('does not include a "Help" menu item if passed showHelpMenuItem: false', async () => {

@@ -24,6 +24,7 @@ import {View} from '@instructure/ui-view'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {openExternalTool} from '@canvas/context-modules/jquery/utils'
 import {ScreenReaderContent} from '@instructure/ui-a11y-content'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('external_apps_menu_tray')
 
@@ -42,7 +43,7 @@ export default function ExternalAppsMenuPanel({
 
   useEffect(() => {
     if (redirectUrl) {
-      window.location.href = redirectUrl
+      window.location.href = sanitizeUrl(redirectUrl)
     }
   }, [redirectUrl])
 

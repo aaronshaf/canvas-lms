@@ -18,6 +18,7 @@
 
 import {useCallback, useEffect, useState} from 'react'
 import doFetchApi from '@canvas/do-fetch-api-effect'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 interface ModuleItem {
   html_url: string
@@ -78,13 +79,13 @@ export function useModuleItemSequence(
 
         if (item.prev?.html_url) {
           nav.onPreviousItem = () => {
-            window.location.href = item.prev!.html_url
+            window.location.href = sanitizeUrl(item.prev!.html_url)
           }
         }
 
         if (item.next?.html_url) {
           nav.onNextItem = () => {
-            window.location.href = item.next!.html_url
+            window.location.href = sanitizeUrl(item.next!.html_url)
           }
         }
 

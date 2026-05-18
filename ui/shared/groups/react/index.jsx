@@ -256,14 +256,14 @@ const StudentView = createReactClass({
       const $activeItemHref = $(this).find('a').attr('href')
       window.history.replaceState({}, document.title, $activeItemHref)
       if (event.type === 'click' || event.key === 'Enter' || event.key === ' ') {
-        window.location.href = $activeItemHref
+        window.location.href = sanitizeUrl($activeItemHref)
         window.location.reload()
       }
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
         oldTab.removeClass('ui-state-active ui-tabs-active')
         newTab.addClass('ui-state-active ui-tabs-active')
         newTab.find('a').trigger('focus')
-        window.location.href = newTab.find('a').attr('href')
+        window.location.href = sanitizeUrl(newTab.find('a').attr('href'))
       }
     })
   },

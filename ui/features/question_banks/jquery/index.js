@@ -137,7 +137,7 @@ $(document).ready(function () {
         link.setAttribute('title', link.getAttribute('title').replace('{{ title }}', bank.title))
         link.setAttribute(
           'href',
-          link.getAttribute('href').replace(encodeURIComponent('{{ id }}'), bank.id),
+          sanitizeUrl(link.getAttribute('href').replace(encodeURIComponent('{{ id }}'), bank.id)),
         )
       })
       $bank.find('.links button span').each((_, span) => {

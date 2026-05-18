@@ -28,6 +28,7 @@ import {showFlashAlert} from '@instructure/platform-alerts'
 import {Modal} from '@instructure/ui-modal'
 import {ProgressBar} from '@instructure/ui-progress'
 import {Heading} from '@instructure/ui-heading'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('course_paces_app')
 
@@ -55,7 +56,7 @@ const PaceDownloadModal = ({
 
   useEffect(() => {
     if (courseReport?.file_url) {
-      window.location.href = courseReport.file_url
+      window.location.href = sanitizeUrl(courseReport.file_url)
 
       showFlashAlert({
         message: I18n.t('The Course Pace download is complete.'),

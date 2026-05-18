@@ -66,6 +66,7 @@ import FormattedErrorMessage from '@canvas/assignments/react/FormattedErrorMessa
 import {unfudgeDateForProfileTimezone} from '@instructure/moment-utils'
 import {getUrlWithHorizonParams} from '@canvas/horizon/utils'
 import {SETTING_MESSAGES} from '@canvas/assignments/react/hooks/useSettingDependency'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('assignment_editview')
 
@@ -2417,7 +2418,7 @@ EditView.prototype._validateAllowedAttempts = function (data, errors) {
 }
 
 EditView.prototype.redirectAfterSave = function () {
-  return (window.location = this.locationAfterSave(deparam()))
+  window.location.href = sanitizeUrl(this.locationAfterSave(deparam()))
 }
 
 EditView.prototype.locationAfterSave = function (params) {
@@ -2455,7 +2456,7 @@ EditView.prototype.locationAfterSave = function (params) {
 EditView.prototype.redirectAfterCancel = function () {
   const location = this.locationAfterCancel(deparam())
   if (location) {
-    return (window.location = location)
+    window.location.href = sanitizeUrl(location)
   }
 }
 

@@ -159,6 +159,7 @@ const loadIcons = <T>(
     const key = keyExtractor(item)
     return new Promise<void>(resolve => {
       const img = new Image()
+      // oxlint-disable-next-line canvas-sanitize-url/imperative -- hardcoded static asset path, not user-supplied
       img.src = `/images/outcomes/${key}.svg`
       img.onload = () => {
         iconRef.current[key] = img

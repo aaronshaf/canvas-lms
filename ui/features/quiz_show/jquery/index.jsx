@@ -179,7 +179,7 @@ $(document).ready(function () {
       url: $(this).attr('href'),
       message: deleteConfirmMessage,
       success() {
-        window.location.href = ENV.QUIZZES_URL
+        window.location.href = sanitizeUrl(ENV.QUIZZES_URL)
       },
     })
   })

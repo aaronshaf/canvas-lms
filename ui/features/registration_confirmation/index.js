@@ -56,7 +56,7 @@ $(() => {
 
   if ($where_to_log_in.length) {
     $('#merge_if_clicked').click(() => {
-      window.location = $merge_link.attr('href')
+      window.location.href = sanitizeUrl($merge_link.attr('href'))
     })
 
     $merge_link.click(event => {
@@ -69,6 +69,6 @@ $(() => {
   $registration_form.formSubmit({
     disableWhileLoading: 'spin_on_success',
     errorFormatter: registrationErrors,
-    success: data => (window.location.href = data.url || '/'),
+    success: data => (window.location.href = sanitizeUrl(data.url || '/')),
   })
 })

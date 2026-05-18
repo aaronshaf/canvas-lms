@@ -19,6 +19,7 @@ import $ from 'jquery'
 
 import confirmationMessage from '@canvas/rubrics/jquery/rubric_delete_confirmation'
 import '@canvas/jquery/jquery.instructure_misc_plugins'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 $(document).ready(() => {
   $('#rubric-action-buttons .edit_rubric_link').click(event => {
@@ -28,7 +29,7 @@ $(document).ready(() => {
 
   $('#rubric-action-buttons .delete_rubric_link').click(event => {
     event.preventDefault()
-    const callback = () => (window.location.href = $('.rubrics_url').attr('href'))
+    const callback = () => (window.location.href = sanitizeUrl($('.rubrics_url').attr('href')))
 
     callback.confirmationMessage = confirmationMessage()
 

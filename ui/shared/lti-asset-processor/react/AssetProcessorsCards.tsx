@@ -30,6 +30,7 @@ import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {isNil} from 'es-toolkit/compat'
 import {useState} from 'react'
+import {openWindow} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('asset_processors_selection')
 
@@ -140,7 +141,7 @@ export const AssetProcessorsAttachedProcessorCard = ({
         features = featureParts.join(',')
       }
 
-      window.open(url, targetName, features)
+      openWindow(url, targetName, features)
       return // Don't show the modal if we opened a window
     }
 

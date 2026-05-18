@@ -55,7 +55,7 @@ ready(() => {
       const {id} = $(this)
         .parents('.context_module_item')
         .getTemplateData({textValues: ['id']})
-      window.location.replace(`#tag_${id}`)
+      window.location.replace(sanitizeUrl(`#tag_${id}`))
     })
 
   // @ts-expect-error
@@ -82,7 +82,7 @@ ready(() => {
   $(`#context_module_item_${$('#current_item_id').text()}`).addClass('selected')
   $('#frameless_link').click(event => {
     event.preventDefault()
-    window.location.href = $('#content_preview').attr('src') as string
+    window.location.href = sanitizeUrl($('#content_preview').attr('src') as string)
   })
 
   $('.hide_sidebar_link').click(event => {

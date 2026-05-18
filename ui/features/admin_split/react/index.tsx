@@ -23,6 +23,7 @@ import {Button} from '@instructure/ui-buttons'
 import {IconWarningLine} from '@instructure/ui-icons'
 import {useTranslation} from '@canvas/i18next'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
+import {assignLocation} from '@canvas/util/globalUtils'
 
 interface User {
   id: string
@@ -68,7 +69,7 @@ export default function AdminSplit({
     const safe = sanitizeUrl(document.referrer)
     try {
       if (safe && new URL(safe, window.location.href).origin === window.location.origin) {
-        window.location.href = safe
+        assignLocation(safe)
       }
     } catch {
       // invalid URL — do nothing

@@ -39,6 +39,7 @@ import {legacyRender} from '@canvas/react'
 import {VideoConferenceModal} from './react/components/VideoConferenceModal/VideoConferenceModal'
 import {getCookie} from '@instructure/platform-get-cookie'
 import {initializeTopNavPortalWithDefaults} from '@canvas/top-navigation/react/TopNavPortalWithDefaults'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('conferences')
 
@@ -246,7 +247,7 @@ ready(() => {
 
               if (response.status === 200) {
                 $.flashMessage(I18n.t('Conference Saved'))
-                window.location.href = window.location.href.split('#')[0]
+                window.location.href = sanitizeUrl(window.location.href.split('#')[0])
                 return true
               } else {
                 $.flashError(I18n.t('There was an error upon saving your conference'))
@@ -444,7 +445,7 @@ ready(() => {
 
             if (response.status === 200) {
               $.flashMessage(I18n.t('Conference Saved'))
-              window.location.href = window.location.href.split('#')[0]
+              window.location.href = sanitizeUrl(window.location.href.split('#')[0])
               return true
             } else {
               $.flashError(I18n.t('There was an error upon saving your conference'))

@@ -62,7 +62,7 @@ class ItemCog extends React.Component {
     this.props.model.get('restricted_by_master_course')
 
   downloadFile = (file, args) => {
-    window.location = file[0].get('url')
+    window.location.href = sanitizeUrl(file[0].get('url'))
     args.returnFocusTo?.focus()
   }
 
