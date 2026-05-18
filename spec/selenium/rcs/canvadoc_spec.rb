@@ -20,10 +20,12 @@
 require_relative "../common"
 require_relative "../helpers/gradebook_common"
 require_relative "../helpers/wiki_and_tiny_common"
+require_relative "../../support/account_domain_spec_helper"
 require_relative "pages/rce_next_page"
 
 describe "Canvadoc" do
   include_context "in-process server selenium tests"
+  include AccountDomainSpecHelper
   include GradebookCommon
   include WikiAndTinyCommon
   include RCENextPage
@@ -37,22 +39,13 @@ describe "Canvadoc" do
   end
 
   def turn_on_plugin_settings
-    get "/plugins/canvadocs"
-    # whee different UI for plugins
-    if element_exists?("#accounts_select")
-      f("#accounts_select option:nth-child(2)").click
-      unless f(".save_button").enabled?
-        f(".copy_settings_button").click
-      end
-      if f("#plugin_setting_disabled")[:checked]
-        f("#plugin_setting_disabled").click
-      end
-      wait_for_ajaximations
-    end
+    get "/plugins/canvadocs?all=1"
+    wait_for_ajaximations
   end
 
   context "as an admin" do
     before do
+      set_domain_root_account(account: Account.site_admin)
       stub_rcs_config
       site_admin_logged_in
       allow_any_instance_of(Canvadocs::API).to receive(:upload).and_return "id" => 1234

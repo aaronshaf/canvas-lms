@@ -22,6 +22,8 @@ describe PluginsController do
   include Rails.application.routes.url_helpers
 
   describe "#index" do
+    before { set_domain_root_account(account: Account.site_admin) }
+
     it "does not allow non-site-admins" do
       user = user_with_pseudonym(active_all: true)
       user_session(user)
@@ -39,6 +41,8 @@ describe PluginsController do
   end
 
   describe "#show" do
+    before { set_domain_root_account(account: Account.site_admin) }
+
     it "does not allow non-site-admins" do
       user = user_with_pseudonym(active_all: true)
       user_session(user)
@@ -56,6 +60,8 @@ describe PluginsController do
   end
 
   describe "#update" do
+    before { set_domain_root_account(account: Account.site_admin) }
+
     it "does not allow non-site-admins" do
       user = user_with_pseudonym(active_all: true)
       user_session(user)
@@ -74,6 +80,7 @@ describe PluginsController do
     it "still enables plugins even with no settings posted" do
       user = account_admin_user(account: Account.site_admin, active_all: true)
       user_session(user)
+      set_domain_root_account(account: Account.default)
       expect(PluginSetting.find_by(name: "account_reports")).to be_nil
 
       put "update", params: { id: "account_reports", account_id: Account.default.id, plugin_setting: { disabled: false } }
@@ -124,6 +131,7 @@ describe PluginsController do
     let(:plugins_flag_enabled) { true }
 
     before do
+      set_domain_root_account(account: Account.site_admin)
       user_with_pseudonym(active_all: true, account:)
       Account.site_admin.account_users.create!(user: @user)
       user_session(@user, @pseudonym)
