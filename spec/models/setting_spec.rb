@@ -92,6 +92,31 @@ describe Setting do
       expect(Setting.find_by(name: "new_nonsecret_setting").secret).to be_truthy
     end
 
+    context "when an existing row is flagged secret" do
+      before do
+        Setting.set("encryption_key", "REAL", secret: true)
+      end
+
+      it "refuses to overwrite the value without allow_secret_overwrite" do
+        expect { Setting.set("encryption_key", "ATTACKER") }
+          .to raise_error(Setting::ProtectedSecretError)
+        expect(Setting.find_by(name: "encryption_key").value).to eq "REAL"
+      end
+
+      it "refuses even when secret: true is passed without allow_secret_overwrite" do
+        expect { Setting.set("encryption_key", "ATTACKER", secret: true) }
+          .to raise_error(Setting::ProtectedSecretError)
+        expect(Setting.find_by(name: "encryption_key").value).to eq "REAL"
+      end
+
+      it "allows overwrite when allow_secret_overwrite: true is explicitly passed" do
+        Setting.set("encryption_key", "ROTATED", allow_secret_overwrite: true)
+        row = Setting.find_by(name: "encryption_key")
+        expect(row.value).to eq "ROTATED"
+        expect(row.secret).to be_truthy
+      end
+    end
+
     context "when in a Rails console" do
       before do
         stub_const("Rails::Console", {})

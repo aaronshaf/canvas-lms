@@ -19,6 +19,8 @@
 #
 
 class Setting < Switchman::UnshardedRecord
+  class ProtectedSecretError < StandardError; end
+
   def self.get(name, default, expires_in: nil, set_if_nx: false, skip_cache: false)
     raise ArgumentError, "Cannot specify both `expires_in` and `skip_cache`" if expires_in && skip_cache
 
@@ -50,8 +52,12 @@ class Setting < Switchman::UnshardedRecord
   end
 
   # Note that after calling this, you should send SIGHUP to all running Canvas processes
-  def self.set(name, value, secret: nil)
+  def self.set(name, value, secret: nil, allow_secret_overwrite: false)
     s = Setting.where(name:).first_or_initialize
+    if s.persisted? && s.secret && !allow_secret_overwrite
+      raise ProtectedSecretError, "refusing to overwrite a secret setting without allow_secret_overwrite: true"
+    end
+
     s.value = value&.to_s
     s.secret = secret unless secret.nil?
     s.save!

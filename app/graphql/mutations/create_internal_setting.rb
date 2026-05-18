@@ -29,11 +29,17 @@ class Mutations::CreateInternalSetting < Mutations::BaseMutation
       raise GraphQL::ExecutionError, "insufficient permission"
     end
 
+    if Setting.where(name: input[:name], secret: true).exists?
+      raise GraphQL::ExecutionError, "insufficient permission"
+    end
+
     Setting.set(input[:name], input[:value])
     internal_setting = Setting.find_by!(name: input[:name])
 
     { internal_setting: }
   rescue ActiveRecord::RecordInvalid => e
     errors_for(e.record)
+  rescue Setting::ProtectedSecretError
+    raise GraphQL::ExecutionError, "insufficient permission"
   end
 end

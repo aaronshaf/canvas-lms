@@ -88,5 +88,25 @@ describe Mutations::CreateInternalSetting do
         expect(Setting.find_by(name: "sentry_disabled")).to be_nil
       end
     end
+
+    context "the named setting already exists and is marked as secret" do
+      it "fails with insufficient permissions and does not overwrite the existing value" do
+        Setting.set("encryption_key", "REAL", secret: true)
+
+        result = execute("encryption_key", "ATTACKER")
+        expect_error(result, "insufficient permission")
+        expect(Setting.find_by(name: "encryption_key").value).to eq "REAL"
+      end
+
+      it "surfaces insufficient permission if the model guard fires after the existence check" do
+        # realize the site_admin_user factory before stubbing Setting.set,
+        # since the factory itself writes special-account settings
+        sender
+        allow(Setting).to receive(:set).and_raise(Setting::ProtectedSecretError)
+
+        result = execute("encryption_key", "ATTACKER")
+        expect_error(result, "insufficient permission")
+      end
+    end
   end
 end
