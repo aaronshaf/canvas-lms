@@ -25,7 +25,13 @@ import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {TextArea} from '@instructure/ui-text-area'
 import {Checkbox} from '@instructure/ui-checkbox'
 import {CommentLibrary} from './CommentLibrary'
-import {RubricAssessmentData, RubricCriterion, UpdateAssessmentData} from '../types/rubric'
+import {SelfAssessmentComment} from './SelfAssessmentComment'
+import {
+  RubricAssessmentData,
+  RubricCriterion,
+  RubricSubmissionUser,
+  UpdateAssessmentData,
+} from '../types/rubric'
 
 const I18n = createI18nScope('rubrics-assessment-tray')
 
@@ -40,12 +46,14 @@ export type TraditionalViewFreeFormCommentProps = {
   minWidth: string
   rubricSavedComments: string[]
   setCommentText: Dispatch<SetStateAction<string>>
+  submissionUser?: RubricSubmissionUser
   updateAssessmentData: (params: Partial<UpdateAssessmentData>) => void
 }
 
 export const TraditionalViewFreeFormComment: FC<TraditionalViewFreeFormCommentProps> = ({
   commentText,
   criterion,
+  criterionSelfAssessment,
   hasValidationError,
   hidePoints,
   isPeerReview,
@@ -53,6 +61,7 @@ export const TraditionalViewFreeFormComment: FC<TraditionalViewFreeFormCommentPr
   minWidth,
   rubricSavedComments,
   setCommentText,
+  submissionUser,
   updateAssessmentData,
 }) => {
   const [isSaveCommentChecked, setIsSaveCommentChecked] = useState(false)
@@ -123,6 +132,13 @@ export const TraditionalViewFreeFormComment: FC<TraditionalViewFreeFormCommentPr
               />
             </Flex.Item>
           )}
+          <Flex.Item margin="0 0 small 0">
+            <SelfAssessmentComment
+              selfAssessment={criterionSelfAssessment}
+              user={submissionUser}
+              submittedAtAlignment="start"
+            />
+          </Flex.Item>
         </Flex>
       </View>
     </View>

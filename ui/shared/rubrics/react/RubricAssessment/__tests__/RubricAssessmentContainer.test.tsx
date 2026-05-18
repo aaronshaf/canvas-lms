@@ -86,6 +86,22 @@ describe('RubricAssessmentContainer Tests', () => {
       expect(secondDetailsDiv).toHaveTextContent('amazing work')
     })
 
+    it('should display the self assessment comment in traditional view for free form rubrics', () => {
+      const {getByTestId, queryByTestId} = renderComponent({
+        ...selfAssessment,
+        isFreeFormCriterionComments: true,
+        viewModeOverride: 'traditional',
+      })
+
+      expect(queryByTestId('self-assessment-comment-3')).not.toBeInTheDocument()
+
+      fireEvent.click(getByTestId('self-assessment-toggle'))
+
+      const selfAssessmentComment = getByTestId('self-assessment-comment-3')
+      expect(selfAssessmentComment).toBeInTheDocument()
+      expect(selfAssessmentComment).toHaveTextContent('Test Student')
+    })
+
     it('should display a mix of teacher and self assessment when the self assessment toggle is clicked', () => {
       const {getByTestId} = renderComponent({
         ...selfAssessment,

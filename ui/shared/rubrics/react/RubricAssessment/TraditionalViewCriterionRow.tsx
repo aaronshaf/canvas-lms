@@ -168,6 +168,7 @@ export const TraditionalViewCriterionRow: FC<TraditionalViewCriterionRowProps> =
           <TraditionalViewFreeFormComment
             commentText={commentText}
             criterion={criterion}
+            criterionSelfAssessment={criterionSelfAssessment}
             hasValidationError={hasValidationError}
             hidePoints={hidePoints}
             isPeerReview={isPeerReview}
@@ -175,6 +176,7 @@ export const TraditionalViewCriterionRow: FC<TraditionalViewCriterionRowProps> =
             minWidth="25.5rem"
             rubricSavedComments={rubricSavedComments}
             setCommentText={setCommentText}
+            submissionUser={submissionUser}
             updateAssessmentData={updateAssessmentData}
           />
         ) : (
