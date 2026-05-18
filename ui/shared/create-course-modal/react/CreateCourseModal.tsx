@@ -70,6 +70,7 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
 }) => {
   const {t} = useTranslation('create_course_modal')
   const [loading, setLoading] = useState(true)
+  const [, setHomeroomsLoading] = useState(false)
   const [allAccounts, setAllAccounts] = useState<Account[]>([])
   const [allHomerooms, setAllHomerooms] = useState<Course[]>([])
   const [syncHomeroomEnrollments, setSyncHomeroomEnrollments] = useState(false)
@@ -246,7 +247,7 @@ export const CreateCourseModal: React.FC<CreateCourseModalProps> = ({
   )
 
   useFetchApi({
-    loading: setLoading,
+    loading: setHomeroomsLoading,
     success: homeroomsSuccess,
     params: {
       homeroom: true,
