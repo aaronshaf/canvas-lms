@@ -1467,7 +1467,9 @@ class User < ApplicationRecord
     # you're not associated with
     sorted_shards = common_shards + (associated_shards - common_shards)
     sorted_shards.each do |s|
-      account_list.call(s).each do |a|
+      accounts = account_list.call(s)
+      AccountPermissionService.preload_account_users_and_roles(accounts, user)
+      accounts.each do |a|
         res = yield(a)
         # Short circuit on success
         return true if res.success?

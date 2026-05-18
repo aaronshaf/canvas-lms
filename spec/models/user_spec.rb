@@ -4335,6 +4335,59 @@ describe User do
   end
 
   describe "check_accounts_right?" do
+    it "returns true when the seeker has the right on an account the target is associated with" do
+      target = user_factory(active_all: true)
+      account = Account.create!
+      account_admin_user(user: target, account:)
+      seeker = account_admin_user(account:, role: Role.get_built_in_role("AccountAdmin", root_account_id: account.id))
+
+      expect(target.check_accounts_right?(seeker, :view_statistics)).to be true
+    end
+
+    it "preloads AccountUsers once across the iterated accounts (no N+1)" do
+      target = user_factory(active_all: true)
+      root_account = Account.create!
+      sub_accounts = Array.new(10) do |i|
+        Account.create!(name: "Sub #{i}", parent_account: root_account, root_account:)
+      end
+      sub_accounts.each { |a| account_admin_user(user: target, account: a) }
+      seeker = account_admin_user(account: root_account, role: Role.get_built_in_role("AccountAdmin", root_account_id: root_account.id))
+
+      account_user_queries = 0
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+        account_user_queries += 1 if /FROM\s+(?:"\w+"\.)?"?account_users"?\b/i.match?(payload[:sql])
+      end
+
+      begin
+        expect(target.check_accounts_right?(seeker, :view_statistics)).to be true
+        expect(account_user_queries).to be <= 2
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+    end
+
+    it "returns false when the seeker has no rights and still batches AccountUser queries" do
+      target = user_factory(active_all: true)
+      root_account = Account.create!
+      sub_accounts = Array.new(10) do |i|
+        Account.create!(name: "Sub #{i}", parent_account: root_account, root_account:)
+      end
+      sub_accounts.each { |a| account_admin_user(user: target, account: a) }
+      non_admin_seeker = user_factory(active_all: true)
+
+      account_user_queries = 0
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+        account_user_queries += 1 if /FROM\s+(?:"\w+"\.)?"?account_users"?\b/i.match?(payload[:sql])
+      end
+
+      begin
+        expect(target.check_accounts_right?(non_admin_seeker, :view_statistics)).not_to be true
+        expect(account_user_queries).to be <= 2
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
+    end
+
     describe "sharding" do
       specs_require_sharding
 
@@ -4373,6 +4426,32 @@ describe User do
         )
         # ensure seeking user gets permissions it should on target user
         expect(target.grants_right?(seeker, :read_full_profile)).to be true
+      end
+
+      it "batches AccountUser lookups for a target with associations across shards" do
+        target = user_factory(active_all: true)
+        default_account = Account.create!
+        @shard1.activate do
+          shard1_account = Account.create!
+          account_admin_user(user: target, account: default_account)
+          account_admin_user(user: target, account: shard1_account)
+          seeker = account_admin_user(
+            account: shard1_account,
+            role: Role.get_built_in_role("AccountAdmin", root_account_id: shard1_account.id)
+          )
+
+          account_user_queries = 0
+          subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+            account_user_queries += 1 if /FROM\s+(?:"\w+"\.)?"?account_users"?\b/i.match?(payload[:sql])
+          end
+
+          begin
+            expect(target.check_accounts_right?(seeker, :view_statistics)).to be true
+            expect(account_user_queries).to be <= 4
+          ensure
+            ActiveSupport::Notifications.unsubscribe(subscriber)
+          end
+        end
       end
     end
   end

@@ -1829,6 +1829,14 @@ class Account < ApplicationRecord
   # can be set/overridden by plugin to enforce email pseudonyms
   attr_accessor :email_pseudonyms
 
+  # Newly-supplied copies win the dedupe so :role-preloaded AccountUsers
+  # don't get clobbered by stale entries from a prior cache hit.
+  def preload_cached_account_users(user, account_users)
+    @account_users_cache ||= {}
+    existing = @account_users_cache[user.global_id] || []
+    @account_users_cache[user.global_id] = (account_users + existing).uniq
+  end
+
   def password_policy
     Canvas::Security::PasswordPolicy.default_policy.merge(settings[:password_policy] || {})
   end
