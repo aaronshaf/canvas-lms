@@ -39,6 +39,16 @@ class ReleaseNotesController < ApplicationController
   end
 
   def upsert(note)
+    upsert_params[:langs]&.each do |lang, data|
+      next if data[:url].blank?
+
+      begin
+        data[:url], = CanvasHttp.validate_url(data[:url])
+      rescue URI::Error, ArgumentError
+        return render json: { errors: ["invalid url for lang #{lang}"] }, status: :bad_request
+      end
+    end
+
     note.target_roles = upsert_params[:target_roles] if upsert_params[:target_roles]
     upsert_params[:show_ats]&.each { |env, time| note.set_show_at(env, Time.parse(time).utc) }
     note.published = upsert_params[:published] if upsert_params.key?(:published)

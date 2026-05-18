@@ -75,6 +75,60 @@ describe('ReleaseNotesList', () => {
     expect(queryByText('Apr 27')).toBeInTheDocument()
   })
 
+  it('sanitizes javascript: urls to about:blank', () => {
+    queryClient.setQueryData(
+      ['releaseNotes'],
+      [
+        {
+          id: 'xss-1',
+          title: 'XSS attempt',
+          description: 'malicious',
+          // eslint-disable-next-line no-script-url
+          url: 'javascript:alert(1)',
+          date: '2021-04-26T08:00:00Z',
+        },
+      ],
+    )
+    const {getByText} = render(<ReleaseNotesList />)
+    expect(getByText('XSS attempt').closest('a')).toHaveAttribute('href', 'about:blank')
+  })
+
+  it('renders a missing url without crashing and omits href', () => {
+    queryClient.setQueryData(
+      ['releaseNotes'],
+      [
+        {
+          id: 'nourl-1',
+          title: 'No url',
+          description: 'a note without a url',
+          url: null,
+          date: '2021-04-26T08:00:00Z',
+        },
+      ],
+    )
+    const {queryByText} = render(<ReleaseNotesList />)
+    expect(queryByText('No url')).toBeInTheDocument()
+    expect(queryByText('No url')?.closest('a')?.getAttribute('href')).toBeFalsy()
+  })
+
+  it('renders an empty string url without crashing and omits href', () => {
+    queryClient.setQueryData(
+      ['releaseNotes'],
+      [
+        {
+          id: 'emptyurl-1',
+          title: 'Empty url',
+          description: 'a note with empty url',
+          url: '',
+          date: '2021-04-26T08:00:00Z',
+        },
+      ],
+    )
+    const {queryByText} = render(<ReleaseNotesList />)
+    expect(queryByText('Empty url')).toBeInTheDocument()
+    expect(queryByText('Empty url')?.closest('a')?.getAttribute('href')).toBeFalsy()
+  })
+
   it('shows a toggle for "notifications', () => {
     const {getByRole} = render(<ReleaseNotesList />)
 

@@ -111,6 +111,62 @@ describe ReleaseNotesController do
       post :create, params: { target_roles: ["user"] }, as: :json
       expect(response).to be_forbidden
     end
+
+    context "url validation" do
+      %w[javascript:alert(1) data:text/html,<script>1</script> vbscript:msgbox file:///etc/passwd].each do |bad_url|
+        it "rejects #{bad_url.split(":").first}: urls with 400" do
+          post "create",
+               params: {
+                 target_roles: ["user"],
+                 langs: { en: { title: "t", description: "d", url: bad_url } }
+               },
+               as: :json
+          expect(response).to have_http_status(:bad_request)
+        end
+      end
+
+      it "rejects mixed-case JaVaScRiPt: urls with 400" do
+        post "create",
+             params: {
+               target_roles: ["user"],
+               langs: { en: { title: "t", description: "d", url: "JaVaScRiPt:alert(1)" } }
+             },
+             as: :json
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "allows nil url" do
+        post "create",
+             params: {
+               target_roles: ["user"],
+               langs: { en: { title: "t", description: "d", url: nil } }
+             },
+             as: :json
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "allows empty url" do
+        post "create",
+             params: {
+               target_roles: ["user"],
+               langs: { en: { title: "t", description: "d", url: "" } }
+             },
+             as: :json
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "normalizes schemeless legacy URLs by prepending http://" do
+        post "create",
+             params: {
+               target_roles: ["user"],
+               langs: { en: { title: "t", description: "d", url: "example.com/note1" } }
+             },
+             as: :json
+        expect(response).to have_http_status(:ok)
+        the_note = ReleaseNote.find(response.parsed_body["id"], include_langs: true)
+        expect(the_note["en"][:url]).to eq("http://example.com/note1")
+      end
+    end
   end
 
   describe "update" do

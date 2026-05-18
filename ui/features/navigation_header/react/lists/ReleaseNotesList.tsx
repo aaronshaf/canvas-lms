@@ -33,6 +33,7 @@ import {ScreenReaderContent, PresentationContent} from '@instructure/ui-a11y-con
 import {IconWarningSolid} from '@instructure/ui-icons'
 import {getSetting, setSetting} from '@canvas/settings-query/react/settingsQuery'
 import {sessionStoragePersister} from '@instructure/platform-query'
+import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('Navigation')
 
@@ -124,7 +125,12 @@ export default function ReleaseNotesList() {
             return (
               <List.Item key={note.id}>
                 <Flex justifyItems="space-between" alignItems="start">
-                  <Link isWithinText={false} href={note.url} target="_blank" rel="noopener">
+                  <Link
+                    isWithinText={false}
+                    href={note.url ? sanitizeUrl(note.url) : undefined}
+                    target="_blank"
+                    rel="noopener"
+                  >
                     {note.title}
                   </Link>
                   <Text color="secondary">
