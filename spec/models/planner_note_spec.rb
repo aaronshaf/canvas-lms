@@ -72,4 +72,15 @@ describe PlannerNote do
       expect(PlannerNote.after(5.days.from_now).order(:id)).to eq []
     end
   end
+
+  describe "sanitization" do
+    it "strips disallowed elements from details on save" do
+      note = PlannerNote.create!(user_id: @teacher.id,
+                                 todo_date: 4.days.from_now,
+                                 title: "XSS",
+                                 details: "<a href='#' onclick='alert(1)'>ok</a><script>alert(1)</script>",
+                                 course_id: @course.id)
+      expect(note.details).to eql("<a href=\"#\">ok</a>")
+    end
+  end
 end

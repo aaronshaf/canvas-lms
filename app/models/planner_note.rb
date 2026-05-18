@@ -22,6 +22,8 @@ class PlannerNote < ApplicationRecord
   include Canvas::SoftDeletable
   include Plannable
 
+  sanitize_field :details, CanvasSanitize::SANITIZE
+
   belongs_to :user
   belongs_to :course
   belongs_to :linked_object, polymorphic:
