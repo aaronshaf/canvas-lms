@@ -806,7 +806,8 @@ class EnrollmentsApiController < ApplicationController
       section = @context.course_sections.active.find(params[:enrollment][:course_section_id])
     end
 
-    if section.blank? && @context.default_section(no_create: true)&.concluded?
+    default_section = @context.default_section(no_create: true)
+    if section.blank? && @context.course_sections.active.any? && (default_section.nil? || default_section.concluded?)
       section = @context.course_sections.active.find { |course_section| !course_section.concluded? }
 
       unless section.present?

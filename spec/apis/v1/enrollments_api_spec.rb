@@ -1088,6 +1088,29 @@ describe EnrollmentsApiController, type: :request do
         expect(new_enrollment).to be_self_enrolled
       end
 
+      it "enrolls in existing open section when default section was deleted" do
+        open_section = @course.course_sections.create!(name: "Open Section")
+        deleted_default = @course.course_sections.create!(name: "Default Section", default_section: true)
+        deleted_default.destroy
+        @course.reload
+        expect(@course.default_section(no_create: true)).to be_nil
+
+        json = api_call :post,
+                        @path,
+                        @path_options,
+                        {
+                          enrollment: {
+                            user_id: "self",
+                            self_enrollment_code: @course.self_enrollment_code
+                          }
+                        }
+        new_enrollment = Enrollment.find(json["id"])
+        expect(new_enrollment.course_section).to eq open_section
+        expect(@course.course_sections.active.where(default_section: true)).to be_empty
+        expect(new_enrollment).to be_active
+        expect(new_enrollment).to be_self_enrolled
+      end
+
       it "returns error when all sections are concluded" do
         # Create default section that is concluded
         @course.course_sections.create!(
