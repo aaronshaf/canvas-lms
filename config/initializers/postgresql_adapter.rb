@@ -404,16 +404,39 @@ module PostgreSQLAdapterExtensions
   end
 
   def non_empty_tables_message(non_empty_tables)
-    Rails.application.eager_load! unless Rails.autoloaders.main.eager_loaded?
-    message = "Test database is not empty! Tables with data: #{non_empty_tables.join(", ")}"
+    message = <<~TEXT
+      Test database is not empty! Tables with data: #{non_empty_tables.join(", ")}.
+      This indicates a spec has left data behind, which can cause test pollution and flaky specs.
+      Please figure out why data is surviving the spec transaction and fix it, rather than ignore this message.
+      A common culprit is a migration or DataFixup that should not be running in RAILS_ENV=test.
+      If you recently ran Canvas (either console, jobs, or the web server) in RAILS_ENV=test, that can also cause this.
+      In that case, you can reset your test database (`RAILS_ENV=test bin/rails db:test:reset`) to clear out the leftover data.
+    TEXT
     non_empty_tables.each do |table|
       model = ActiveRecord::Base.descendants.find { |m| m.table_name == table }
-      unless model
-        message += "\n  (no model registered for #{table})"
-        next
+      # the model might not be loaded yet. first try a relatively quick constantize,
+      # then if that fails (likely because the model name and table name don't match)
+      # load the world and try again.
+      begin
+        model ||= table.classify.constantize
+      rescue NameError
+        # ignore
+      end
+      if model.nil? && !Rails.autoloaders.main.eager_loaded?
+        Rails.application.eager_load!
+        model = ActiveRecord::Base.descendants.find { |m| m.table_name == table }
+        if model.nil?
+          message += "\n  (could not find model for #{table})"
+          next
+        end
       end
       records = model.limit(5).to_a
       count = model.count
+
+      if records.empty?
+        message += "\n  #{table} has no records; this should not be possible"
+        next
+      end
 
       message += records.map do |record|
         "\n  #{record.inspect}"
