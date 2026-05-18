@@ -2453,6 +2453,7 @@ en-AU:
   activate_key_developername_cd62a4a9: "Activate key %{developerName}"
   activate_key_name_a99df672: "Activate key %{name}"
   activate_this_key_6cd98f4b: "Activate this key"
+  activation_state_c34a79c9: "Activation State"
   active_announcements_6b67f33b: "Active Announcements"
   active_d04f222e: active
   active_d7e32718: Active
@@ -2495,6 +2496,7 @@ en-AU:
   add_a_document_processing_app_8d1bfa3c: "Add A Document Processing App"
   add_a_document_processing_app_caf98640: "Add a document processing app"
   add_a_horizontal_line_to_visually_separate_content_7255216d: "Add a horizontal line to visually separate content."
+  add_a_learning_objective_on_a_new_line_or_separate_87d17027: "Add a learning objective on a new line or separate by semi-colon (;)."
   add_a_letter_grade_c7b34199: "add a letter grade"
   add_a_link_552f6677: "Add a Link"
   add_a_message_4fee743f: "Add a Message "
@@ -2927,6 +2929,7 @@ en-AU:
   after_this_change_toolname_will_be_status_for_the__78700ad4: "After this change, %{toolName} will be *%{status}* for the %{courseName} course."
   after_this_change_toolname_will_be_status_for_the__ec7af9b7: "After this change, %{toolName} will be *%{status}* for the %{accountName} sub-account and its children."
   after_throttling_the_selected_jobs_the_newly_creat_44952b37: "After throttling the selected jobs, the newly created strand will be selected."
+  after_you_select_the_button_to_start_reports_won_t_8119fa42: "After you select the button to start, reports won’t be visible in SpeedGrader until the migration is finished."
   agenda_b010136d: Agenda
   agent_is_loading_9d5f5208: "Agent is loading"
   agent_is_processing_21498dab: "Agent is processing"
@@ -3189,6 +3192,7 @@ en-AU:
   allow_dashboard_cards_to_be_reordered_for_each_use_81f989d7: "Allow dashboard cards to be reordered for each user."
   allow_discussion_s_default_expand_setting_91cf307: "Allow discussion's default expand setting"
   allow_discussion_s_default_sorting_setting_95f86dd3: "Allow discussion's default sorting setting"
+  allow_emitting_events_to_kafka_461916c: "Allow emitting events to Kafka"
   allow_file_authorization_with_api_tokens_this_will_2c7e53c1: "Allow file authorisation with API tokens.  This will allow API users to download files without a file verifier."
   allow_final_grade_override_8cf4336b: "Allow final mark override"
   allow_final_grade_override_a21a79ee: "Allow Final Mark Override"
@@ -5117,6 +5121,8 @@ en-AU:
     anonymous_submission_description: "Anonymity can only be changed when creating a new Survey"
     anonymous_submission_description2: "To ensure complete anonymity, student responses will be shown in random order."
     keep_submission_anonymous: "Keep Submission Anonymous"
+  assignment_api: 
+    peer_review_error: "Peer Review: %{message}"
   assignment_assignment_submission_paper_view_8a4c9776: "Assignment %{assignment} submission Paper View"
   assignment_assignment_submission_plain_text_view_b217d372: "Assignment %{assignment} submission Plain Text View"
   assignment_bulk_editing_37248ca4: "Assignment Bulk Editing"
@@ -6035,6 +6041,7 @@ en-AU:
   assignments_speedgrader_2fbd6df4: "Assignments, SpeedGrader"
   assignments_tutorial_tray_4cc844b: "Assignments Tutorial Tray"
   assignments_usage_report_50671804: "Assignments Usage Report"
+  assignments_with_graded_peer_reviews_are_not_dragg_76204d93: "Assignments with graded peer reviews are not draggable. You can update their due dates by editing the assignment."
   assignments_with_revisions_cb8bdfa3: "Assignments with Revisions"
   assignments_with_revisions_count_items_136b33c2: 
     one: "Assignments with Revisions (%{count} item)"
@@ -6376,6 +6383,7 @@ en-AU:
   available_from_availabledate_until_untildate_f27b70aa: "Available from %{availableDate} until %{untilDate}"
   available_from_date_43b5e11d: "Available From Date"
   available_from_date_afc594fa: "Available From:"
+  available_from_date_and_time_97409523: "Available from date and time"
   available_from_date_cannot_be_after_due_date_79301945: "Available from date cannot be after due date"
   available_from_date_cannot_be_after_reply_to_topic_1a2cd950: "Available from date cannot be after reply to topic due date"
   available_from_date_cannot_be_after_required_repli_fcfa8021: "Available from date cannot be after required replies due date"
@@ -6393,6 +6401,7 @@ en-AU:
   available_pronouns_b45330b1: "Available Pronouns"
   available_submission_types_1c577ae5: "Available submission types"
   available_to_b7350e02: "Available to"
+  available_to_date_and_time_37732cb: "Available to date and time"
   available_until_3278ebe9: "Available until"
   available_until_date_2c0ccec3: "Available Until:"
   available_until_date_cd125c62: "Available Until Date"
@@ -7568,6 +7577,7 @@ en-AU:
   cannot_create_event_for_deleted_course_c800f310: "cannot create event for deleted course"
   cannot_create_or_change_reservation_for_past_appoi_45870c16: "Cannot create or change reservation for past appointment"
   cannot_delete_a_file_that_has_been_submitted_as_pa_fda24c4: "You cannot delete a file that has been submitted as part of an assignment."
+  cannot_delete_an_authentication_provider_that_is_c_e82eda63: "Cannot delete an authentication provider that is configured as the elevated authentication provider for this account."
   cannot_delete_an_override_with_a_due_date_within_a_fa94ca3b: "Cannot delete an override with a due date within a closed marking period"
   cannot_delete_block_templates_2c4a563: "Cannot delete block templates."
   cannot_delete_primary_control_for_deployment_1132e169: "Cannot delete primary control for deployment"
@@ -7980,6 +7990,7 @@ en-AU:
   chart_data_fb943984: "Chart data: "
   chart_of_the_student_s_grades_on_each_assignment_a1fb1908: "Chart of the student's marks on each assignment."
   chat_2153c6b7: Chat
+  chat_with_the_ai_just_like_a_learner_e8429791: "Chat with the AI just like a learner"
   chcp_student_activity_report_5611dd39: "CHCP Student Activity Report"
   check_accessibility_3c78211c: "Check Accessibility"
   check_allow_observers_to_sign_up_by_default_when_c_ccb4c09d: "Check 'Allow observers to sign-up' by default when creating new appointment groups"
@@ -8849,6 +8860,7 @@ en-AU:
   completed_9b809e44: completed
   completed_all_items_9d26fcb2: "Completed All Items"
   completed_all_items_de165115: "Completed all items"
+  completed_date_b0c2304b: "Completed %{date}"
   completed_icon_521596e4: "completed icon"
   completed_items_out_of_total_items_item_batches_mi_66ea175b: "%{completed_items} out of %{total_items} Item Batches Migrated"
   completed_of_total_required_items_68c060f2: "%{completed} of %{total} Required Items"
@@ -9095,6 +9107,7 @@ en-AU:
   consolidated_media_player_d39a16fd: "Consolidated Media Player"
   consortium_5d61844f: Consortium
   consortium_parent_keys_803547b: "Consortium Parent Keys"
+  consortium_trust_membership_registry_1ca8cbf9: "Consortium & Trust Membership Registry"
   constraint_9eeab2e0: Constraint
   consumer_key_57d9fcf1: "Consumer key"
   consumer_key_6f94ba11: "Consumer Key"
@@ -9173,6 +9186,8 @@ en-AU:
       home_page: "Home Page"
   content_imports_bea0afaa: "Content imports"
   content_is_still_being_uploaded_if_you_continue_it_8f06d0cb: "Content is still being uploaded, if you continue it will not be embedded properly."
+  content_is_too_long_for_study_tools_f283e735: "Content is too long for study tools."
+  content_isn_t_available_for_study_tools_dd5391ac: "Content isn't available for study tools."
   content_item_title_96079d16: "Content Item Title"
   content_items_with_errors_a9438fdb: "Content Items with Errors"
   content_licensing_help_3d15e649: "Content Licensing Help"
@@ -11807,6 +11822,7 @@ en-AU:
   create_and_administer_online_quizzes_and_surveys_b_7d2fa85f: "Create and administer online quizzes and surveys, both graded and ungraded."
   create_and_edit_line_items_cacad0fa: "Create and Edit Line Items"
   create_and_edit_scores_4177662c: "Create and Edit Scores"
+  create_and_manage_user_tags_at_the_account_level_39088782: "Create and manage user tags at the account level."
   create_announcement_668ed3bd: "Create announcement"
   create_announcement_7ebf0845: "Create Announcement"
   create_announcements_above_1c36202b: "Create announcements above"
@@ -12034,6 +12050,7 @@ en-AU:
     messages: Messages
     modules: Modules
     new_ai_experience: "New AI Experience"
+    notebook: Notebook
     outcomes: Outcomes
     people: People
     plugins: Plugins
@@ -13864,6 +13881,7 @@ en-AU:
   due_date_5d0a953c: "Due Date:"
   due_date_6a281fe3: "Due: %{date}"
   due_date_822625d8: "Due Date"
+  due_date_and_time_e4795d56: "Due date and time"
   due_date_at_time_3ec54b07: "Due %{date} at %{time}"
   due_date_bf4eaf46: "Due %{date} "
   due_date_cannot_be_after_assignment_lock_date_fa947e1f: "Due date cannot be after assignment lock date"
@@ -14324,6 +14342,7 @@ en-AU:
   embedded_release_notes_72d79b9b: "Embedded Release Notes"
   ember_modules_description: "Modules rewritten in Ember. Uses the native drag and drop API to allow dragging from external locations."
   embry_riddle_student_activity_tracking_8020dd95: "Embry Riddle Student Activity Tracking"
+  emit_events_to_kafka_1b40dffb: "Emit Events to Kafka"
   emoji_737e5f6b: Emoji
   emoji_categories_a08744ae: "Emoji categories"
   emoji_picker_5bb954f9: "Emoji picker"
@@ -14542,6 +14561,9 @@ en-AU:
   enables_native_permissions_page_instead_of_the_aca_4547ea7c: "Enables native permissions page instead of the Academic iframe in Canvas Career."
   enables_new_api_endpoints_for_the_course_and_user__2ba4afbf: "Enables new API endpoints for the course and user data provided by New Analytics."
   enables_optimizations_for_preloading_data_on_the_g_531307f: "Enables optimisations for preloading data on the Grade Summary page."
+  enables_pagination_for_grading_rubrics_api_endpoin_53efe200: |
+      Enables pagination for grading rubrics api endpoint when context code is provided to improve 
+      performance when dealing with a large number of rubrics.
   enables_postprocessing_records_after_sql_execution_61ec2943: "Enables postprocessing records after SQL execution to reduce query complexity in Outcome reports."
   enables_program_management_in_canvas_career_92aa043c: "Enables Program Management in Canvas Career."
   enables_role_based_dashboards_in_canvas_career_e1e5e0f5: "Enables role-based dashboards in Canvas Career."
@@ -14615,6 +14637,7 @@ en-AU:
   enables_the_summarize_tool_in_igniteai_study_tools_ee7ae23: |-
       Enables the Summarise tool in IgniteAI Study Tools.
       When disabled, students will not see the Summarise option.
+  enables_the_unified_consortium_trust_membership_re_d36cc80: "Enables the unified Consortium & Trust Membership Registry API with audit logging, trust link expiration, and consortium membership management endpoints."
   enables_top_navigation_lti_placement_lti_1_3_only_f46e894: "Enables top_navigation LTI placement. (LTI 1.3 Only)"
   enables_ui_features_for_managing_extended_submissi_841f45bc: "Enables UI features for managing \"extended\" Submissions."
   enables_updated_roles_permissions_ui_in_canvas_car_c2c95830: "Enables updated Roles & Permissions UI in Canvas Career."
@@ -14674,6 +14697,7 @@ en-AU:
   ends_at_9a62b528: "Ends at"
   ends_e3a6843f: Ends
   enforce_developer_keys_modify_site_admin_keys_perm_dd28e9fb: "Enforce \"Developer Keys -- Modify Site Admin Keys\" Permission"
+  enforce_elevated_auth_provider_requirement_8c143130: "Enforce Elevated Auth Provider Requirement"
   enforce_expiration_limits_on_access_tokens_issued__8f45eec1: "Enforce expiration limits on access tokens issued to site admin users."
   enforce_saml_onetimeuse_condition_a8f61873: "Enforce SAML OneTimeUse Condition"
   enforce_scopes_be28989c: "Enforce Scopes"
@@ -15445,6 +15469,7 @@ en-AU:
     bad_navigation_config: "Invalid course tab configuration"
     blank: Required
     cannot_save_att: "You don't have permission to edit the locked attribute %{att_name}"
+    elevated_auth_provider_required: "This action requires using an elevated authentication provider. Please contact your account administrator."
     format: "%{attribute} %{message}"
     index: 
       all_categories: "- All Categories -"
@@ -15740,6 +15765,7 @@ en-AU:
   exporting_a_file_may_take_anywhere_from_a_few_seco_7d41ed57: "Exporting a file may take anywhere from a few seconds to several minutes. CSV files are stored for 24 hours only."
   exporting_b1eab154: Exporting
   exporting_filename_ea2441ad: "Exporting %{filename}"
+  expose_the_api_and_account_settings_tab_for_the_fe_c7006212: "Expose the API and Account Settings tab for the Feature Rollout feature"
   exposed_d763c842: Exposed
   extend_assignment_due_dates_in_course_pacing_5ab23f52: "Extend assignment due dates in Course Pacing"
   extend_due_date_20651e76: "Extend Due Date"
@@ -16158,6 +16184,7 @@ en-AU:
   failed_to_load_the_schedule_tab_fd7b0911: "Failed to load the schedule tab"
   failed_to_load_the_to_do_sidebar_b6169202: "Failed to load the To Do Sidebar"
   failed_to_load_to_do_items_please_try_again_dee1eec2: "Failed to load to-do items. Please try again."
+  failed_to_load_todo_items_3d0c8086: "Failed to load ToDo items"
   failed_to_load_todos_93cfc2d2: "Failed to load todos"
   failed_to_load_used_locations_94fe4eae: "Failed to load used locations"
   failed_to_load_user_to_merge_please_try_again_late_448348a5: "Failed to load user to merge. Please try again later."
@@ -16315,6 +16342,7 @@ en-AU:
   feature_previews_account_settings_274440bc: "Feature Previews (Account Settings)"
   feature_previews_enable_disable_707af910: "Feature Previews - enable / disable"
   feature_previews_view_d3f820e4: "Feature Previews - view"
+  feature_rollout_api_and_ui_cdc6be93: "Feature Rollout API and UI"
   feature_settings_ff2b79da: "Feature Settings"
   featured_83f6041d: Featured
   featured_help_links_d805fe44: "Featured Help Links"
@@ -16580,6 +16608,7 @@ en-AU:
   filter_by_role_name_count_users_4488f172: 
     one: "Filter by Role: %{name} - %{count} user."
     other: "Filter by Role: %{name} - %{count} users."
+  filter_by_student_634a77c2: "Filter by student"
   filter_by_student_name_or_secondary_id_83dc524f: "Filter by student name or secondary ID"
   filter_by_submission_status_ddfd2538: "Filter by submission status"
   filter_by_tag_name_count_students_ab1e5b3a: 
@@ -16910,6 +16939,7 @@ en-AU:
   fulah_37c60dcf: Fulah
   full_article_9296bb6f: "Full article"
   full_letter_grade_3f2ed2e4: "Full Letter Grade"
+  full_list_of_assignments_to_grade_2da2d0e9: "Full list of assignments to grade"
   full_name_14c958f7: "Full Name:"
   full_name_23fdfb6d: "Full Name"
   full_name_83cf5453: "Full name"
@@ -17132,6 +17162,7 @@ en-AU:
   grade_peer_review_title_c54145d0: "Grade %{peer_review_title}"
   grade_percentage_for_missing_submissions_dc7ccac: "Grade percentage for missing submissions"
   grade_point_average_2976cc59: "Grade Point Average"
+  grade_post_policy_fe9365e2: "Grade Post Policy"
   grade_posting_policy_42c8a94b: "Mark Posting Policy"
   grade_posting_policy_name_a6d6f178: "Mark Posting Policy: %{name}"
   grade_posting_policy_tray_c929cfd: "Mark posting policy tray"
@@ -18027,8 +18058,10 @@ en-AU:
     out_of_nil: "No points possible"
     out_of_with_score: "(%{score} out of %{points})"
   grading_complete_340e886e: "Grading Complete"
+  grading_could_not_be_completed_please_try_again_61490bee: "Grading could not be completed. Please try again."
   grading_failed_please_try_again_later_or_grade_man_127386d9: "Grading failed. Please try again later or grade manually."
   grading_in_progress_c1cf7f23: "Grading In Progress"
+  grading_is_temporarily_unavailable_please_try_agai_e460d34: "Grading is temporarily unavailable. Please try again later."
   grading_not_started_89ec4cf3: "Grading Not Started"
   grading_period: 
     errors: 
@@ -18053,6 +18086,7 @@ en-AU:
   grading_periods_are_weighted_4f3663ab: "Marking periods are weighted"
   grading_periods_csv_50586e2d: "Marking Periods CSV"
   grading_periods_must_not_overlap_f45336fb: "Marking periods must not overlap"
+  grading_rubrics_pagination_6332eea6: "Grading Rubrics Pagination"
   grading_scheme_deleted_7ae5a072: "Marking scheme deleted"
   grading_scheme_f151d195: "Marking Scheme"
   grading_scheme_name_97b0ba89: "Grading Scheme Name"
@@ -18744,6 +18778,7 @@ en-AU:
   heads_up_a_valid_salesforce_account_id_should_be_a_999cbf7d: "Heads up! A valid Salesforce Account ID should be a sequence of 15 to 18 alphanumeric characters."
   hebrew_88fbf778: Hebrew
   height_69b03e15: Height
+  hello_name_abc1a901: "Hello %{name},"
   hello_name_b07db15: "Hello, %{name}!"
   hello_name_cabdd4ce: "Hello%{name}!"
   hello_name_your_outcomes_import_failed_due_to_an_e_385db5d3: |-
@@ -19221,6 +19256,7 @@ en-AU:
   identifier_is_required_bc630cea: "Identifier is required"
   identifying_the_usage_rights_is_required_b76a9270: "Identifying the usage rights is required"
   identity_service_discovery_page_d52e7f75: "Identity Service Discovery Page"
+  identity_sync_status_141d6a03: "Identity Sync Status"
   idp_certificate_fingerprint_e530cdd1: "IdP certificate fingerprint"
   idp_entity_id_25c51837: "IdP Entity ID"
   idp_initiated_1e87e621: "IdP Initiated"
@@ -19296,6 +19332,18 @@ en-AU:
       throughout the AGS API and LTI Launches, regardless of which domain the LTI
       launch happens on or the API is accessed through. For schools with multiple
       domains, this ensures consistency in Line Item IDs.
+  if_enabled_all_brand_config_management_endpoints_p_9185e25e: |-
+      If enabled, all brand config management endpoints participate in the
+      elevated auth provider requirement. When disabled the endpoints bypass
+      the check entirely, regardless of the log/enforce flags.
+  if_enabled_all_csp_settings_endpoints_participate__acefdd9f: |-
+      If enabled, all CSP settings endpoints participate in the elevated auth
+      provider requirement. When disabled the endpoints bypass the check
+      entirely, regardless of the log/enforce flags.
+  if_enabled_all_plugin_management_endpoints_partici_72ddb160: |-
+      If enabled, all plugin management endpoints participate in the elevated
+      auth provider requirement. When disabled the endpoints bypass the check
+      entirely, regardless of the log/enforce flags.
   if_enabled_allows_deep_linking_from_the_module_ind_632bb221: "If enabled, allows deep linking from the module index via a modal."
   if_enabled_allows_deep_linking_from_the_module_ind_f2dcbddb: "If enabled, allows deep linking from the module index."
   if_enabled_allows_more_than_the_maximum_possible_s_5d79c0d5: "If enabled, allows more than the maximum possible score on an Outcome to be given on a rubric."
@@ -19309,6 +19357,12 @@ en-AU:
   if_enabled_an_account_ready_callback_will_schedule_aef063c6: |-
       If enabled, an account_ready callback will schedule Instructure Identity Backfill
       jobs for new accounts. The scheduled operations are non-user facing only.
+  if_enabled_an_event_will_be_emitted_to_datadog_whe_24b92a1b: |-
+      If enabled, an event will be emitted to DataDog when cross-domain
+      file access occurs
+  if_enabled_an_event_will_be_emitted_to_datadog_whe_9d6ade36: |-
+      If enabled, an event will be emitted to DataDog when a file is
+      accessed using a legacy UUID verifier
   if_enabled_an_external_apps_menu_item_will_appear__f84485c7: |-
       If enabled, an External Apps menu item will appear in the Module popover menu. When clicked, a side tray
       displaying the external apps will appear
@@ -19381,6 +19435,14 @@ en-AU:
   if_enabled_pages_will_use_the_new_instui_headers_44a42c92: "If enabled, pages will use the new InstUI headers"
   if_enabled_prefills_the_assignment_form_with_value_edb8ebda: "If enabled, prefills the assignment form with values from deep link messages on the assignment create/edit page."
   if_enabled_query_parameters_will_not_be_copied_to__4c6ed625: "If enabled, query parameters will not be copied to the POST body during an LTI launch."
+  if_enabled_requests_that_require_an_elevated_authe_99af4889: |-
+      If enabled, requests that require an elevated authentication provider but
+      are made with a different (or no) auth provider are blocked: html requests
+      are redirected and json/api requests receive an unauthorised response.
+  if_enabled_requests_that_require_an_elevated_authe_d3860b78: |-
+      If enabled, requests that require an elevated authentication provider but
+      are made with a different (or no) auth provider will emit a violation event
+      to DataDog. The request itself is still allowed.
   if_enabled_root_accounts_and_subaccounts_will_see__84cd42e5: |-
       If enabled, root accounts and subaccounts will see toggle switches for enabling
       and disabling keys on the developer keys page. Siteadmin will still see the
@@ -19449,6 +19511,19 @@ en-AU:
   if_enabled_the_document_processor_placement_will_b_fd68dcd: |-
       If enabled, the Document Processor placement will be visible on Assignments and Discussions
       when at least one tool is configured to use this placement and Documents Processors are enabled for the root account.
+  if_enabled_the_elevated_authentication_provider_re_3ebaa93a: |-
+      If enabled, the elevated authentication provider requirement is checked
+      on the cross-domain login endpoint. Controlled independently from other
+      elevated auth provider enforcement so it can be rolled out on its own.
+  if_enabled_the_elevated_authentication_provider_re_7f4ae00d: |-
+      If enabled, the elevated authentication provider requirement is checked
+      on the sessionless launch endpoint. Controlled independently from other
+      elevated auth provider enforcement so it can be rolled out on its own.
+  if_enabled_the_elevated_authentication_provider_re_91fc8bbc: |-
+      If enabled, the elevated authentication provider requirement is checked
+      on login (pseudonym) create, update, and destroy actions. Controlled
+      independently from other elevated auth provider enforcement so it can be
+      rolled out on its own.
   if_enabled_the_generate_with_ai_button_will_appear_291b4450: "If enabled, the \"Generate With AI\" button will appear, allowing AI-based quiz creation for institutions in the Early Adopter Program"
   if_enabled_the_modules_page_will_use_the_new_modul_a585c7d8: "If enabled, the modules page will use the new modules page rewrite on student view."
   if_enabled_the_modules_page_will_use_the_new_modul_c4a1a3de: "If enabled, the modules page will use the new modules page rewrite."
@@ -19744,6 +19819,7 @@ en-AU:
   igniteai_generator_for_rubrics_d04fd660: "IgniteAI Generator for Rubrics"
   igniteai_grading_assistance_for_speedgrader_62c67d00: "IgniteAI Grading Assistance for SpeedGrader"
   igniteai_insights_for_discussions_4e640837: "IgniteAI Insights for Discussions"
+  igniteai_messages_count_36fa0c4a: "IgniteAI messages: %{count}"
   igniteai_question_authoring_for_quizzes_8598e87b: "IgniteAI Question Authoring for Quizzes"
   igniteai_search_6c018aa5: "IgniteAI Search"
   igniteai_search_community_ed27d7f4: "IgniteAI Search Community"
@@ -20539,6 +20615,7 @@ en-AU:
   invalid_pairing_code_dde8d40a: "Invalid pairing code."
   invalid_parameter_which_which_6275de7f: "Invalid parameter which='%{which}'"
   invalid_parent_assignment_9f3df9f8: "Invalid parent assignment"
+  invalid_peer_review_sub_assignment_91d6bf21: "Invalid peer review sub assignment"
   invalid_pin_type_630c88e0: "Invalid pin type"
   invalid_points_8e929c3f: "Invalid points"
   invalid_points_for_rating_tier_index_i_400d307e: "Invalid points for rating tier %{index}: \"%{i}\""
@@ -20674,6 +20751,7 @@ en-AU:
   items_items_selected_5b55e566: "%{items} items selected"
   items_last_accessed_before_date_may_not_be_shown_be840349: "Items last accessed before %{date} may not be shown."
   items_selected_have_different_usage_rights_52b325cc: "Items selected have different usage rights."
+  items_to_grade_pagination_965ece47: "Items to grade pagination"
   items_with_student_submissions_or_other_restrictio_e49fb99b: "Items with student submissions or other restrictions cannot be unpublished."
   itemtitle_reply_to_topic_df6a63a0: "%{itemTitle} Reply to Topic"
   itemtitle_required_replies_num_66397950: "%{itemTitle} Required Replies (%{num})"
@@ -20904,6 +20982,7 @@ en-AU:
   kindergarten_3c95802: Kindergarten
   know_your_users_5c1323be: "Know your users"
   knowledge_chat_34fd257b: "Knowledge Chat"
+  knowledge_chat_94cf8a45: "Knowledge chat"
   knowledge_chat_deleted_successfully_c8a85144: "Knowledge Chat deleted successfully"
   knowledge_chat_description_e0a796ee: "Knowledge chat description"
   knowledge_chat_name_4d7ce855: "Knowledge chat name"
@@ -21755,6 +21834,8 @@ en-AU:
   locked_until_unlock_date_498ead5f: "Locked until %{unlock_date}"
   locking_50fb52fc: locking
   locking_91f476a5: Locking...
+  log_cross_domain_file_access_827a0995: "Log cross-domain File Access"
+  log_elevated_auth_provider_violations_2331cd7b: "Log Elevated Auth Provider Violations"
   log_in_5c66644d: "Log In"
   log_in_c9e240ef: "Log in"
   log_in_or_14595749: "Log in or"
@@ -21769,6 +21850,7 @@ en-AU:
   log_out_url_2605c2c1: "Log Out URL"
   log_out_url_is_not_a_valid_uri_6566751e: "Log out URL is not a valid URI"
   log_session_token_failures_8cd12121: "Log Session Token Failures"
+  log_uuid_verifier_usage_2ddadf0f: "Log UUID Verifier Usage"
   logged_in_user_id_5a54b1ae: "Logged in user id"
   logged_out_724b3717: "Logged Out"
   logged_out_user: "Logged Out User %{user_counter}"
@@ -24507,6 +24589,7 @@ en-AU:
     errors: 
       valid_workflow_state: "Must send a valid workflow state"
   migration_not_started_yet_9eefff45: "Migration not started yet"
+  migration_reports_are_also_available_in_the_person_8d9cbb04: "Migration reports are also available in the personal files of the admin who started the migration. (My Files/LTI 2.0 migration)"
   migration_selection_5f1c5f55: "Migration Selection"
   migration_successful_f1811ef3: "Migration successful"
   migration_type_title_issues_e1b5c3b7: "%{migration_type_title} Issues"
@@ -24865,6 +24948,7 @@ en-AU:
   moodle_dropdown_warning_title: "Multiple Dropdowns question may have been imported incorrectly"
   moodle_formula_many_warning_title: "There are %{count} Formula questions in this bank that will need to have their possible answers regenerated"
   moodle_formula_warning_title: "Possible answers will need to be regenerated for Formula question"
+  more_assignments_are_available_apply_filter_to_see_49d32a3: "More assignments are available. Apply filter to see more."
   more_cf9cc661: More
   more_control_over_password_settings_at_institution_78d7e069: "More control over password settings at institution level"
   more_courses_5ebbe998: "More Courses"
@@ -26605,6 +26689,13 @@ en-AU:
   on_the_quizzes_page_within_a_course_the_tool_can_b_559c4057: "On the Quizzes page within a course the tool can be launched from the dropdown next to a quiz"
   on_the_quizzes_page_within_a_course_the_tool_can_b_599367da: "On the Quizzes page within a course the tool can be launched from the dropdown at the top of the screen"
   on_the_second_dayname_5e481a65: "on the second %{dayname}"
+  on_the_site_admin_account_hide_the_full_developer__659b64bf: |-
+      On the Site Admin account, hide the full Developer Key client secret
+      (api_key) in API responses except for a short grace window after the
+      key is created. Outside the window, a truncated hint (first 5 chars +
+      "...") is returned instead. The window length is configurable via the
+      DynamicSetting "site_admin_dev_key_secret_grace_window_seconds"
+      (default 900).
   on_the_third_dayname_e7079e49: "on the third %{dayname}"
   on_time_17ca5ad9: "On Time"
   on_time_percent_eebffe38: "On Time: %{percent}"
@@ -27220,6 +27311,7 @@ en-AU:
     ai_experiences: "AI Experiences"
     edit_ai_experience: "Edit %{title}"
     new_ai_experience: "New AI Experience"
+    notebook: Notebook
   page_title_106304bb: "Page title"
   page_title_ascending_b5df950c: "Page title: Ascending"
   page_title_d1a22bbf: "Page Title"
@@ -27435,6 +27527,8 @@ en-AU:
   peer_review_comments_71cb4605: "Peer Review Comments"
   peer_review_completed_a74de33: "Peer Review Completed"
   peer_review_configuration_ae9a31e8: "Peer Review Configuration"
+  peer_review_due_date_1396a83e: "Peer Review Due Date"
+  peer_review_due_date_and_time_3396d9e7: "Peer review due date and time"
   peer_review_due_date_cannot_be_after_assignment_lo_b75eaf3a: "Peer review due date cannot be after assignment lock date"
   peer_review_due_date_cannot_be_after_assignment_un_56c32449: "Peer review due date cannot be after assignment until date"
   peer_review_due_date_cannot_be_before_assignment_a_6e525cf2: "Peer review due date cannot be before assignment available from date"
@@ -27493,6 +27587,13 @@ en-AU:
     one: "Peer Review (%{count}):"
     other: "Peer Reviews (%{count}):"
   peer_reviews_e3a55964: "Peer Reviews"
+  peer_reviews_student: 
+    peer_review_submission_tab_desktop: 
+      one: "Submission to Review"
+      other: "Submissions to Review"
+    peer_review_submission_tab_mobile: 
+      one: Submission
+      other: Submissions
   peer_service_6b4828b9: "Peer Service"
   peer_services_102357e3: "Peer Services"
   peer_submissions_ready_for_review_availablecount_3ac80091: "Peer submissions ready for review: %{availableCount}"
@@ -28696,6 +28797,7 @@ en-AU:
   preview_for_file_name_17488a7a: "Preview for file: %{name}"
   preview_removal_998101a9: "Preview Removal"
   preview_rubric_267b2a9d: "Preview Rubric"
+  preview_the_chat_75f9b80c: "Preview the chat"
   preview_unavailable_2c51ca4d: "Preview unavailable"
   preview_unavailable_aacd459a: "Preview Unavailable"
   preview_ungraded_as_0_e3b97df6: "Preview ungraded as 0"
@@ -29141,6 +29243,7 @@ en-AU:
   project_lhotse_is_not_enabled_for_this_course_1aaee42d: "Project Lhotse is not enabled for this course."
   projected_end_date_bf3185fe: "Projected End Date"
   projected_start_date_9626c9d9: "Projected Start Date"
+  prompt_is_too_long_cc2dd656: "Prompt is too long."
   pronoun_does_not_match_account_pronoun_or_pronouns_6907bfa2: "Pronoun does not match account pronoun or pronouns are not enabled for this account, %{user_id}, skipping"
   pronouns_28bbef86: pronouns
   pronouns_d1cd8dd0: Pronouns
@@ -29162,11 +29265,13 @@ en-AU:
                 simultaneously, from within your Canvas course.
   provide_a_uri_to_your_idp_s_metadata_to_automatica_38e985bd: "Provide a URI to your IdP's metadata to automatically populate the other fields. If your school is part of InCommon or the UK Access Management Federation, specify urn:mace:incommon or http://ukfederation.org.uk, respectively, for the metadata URI, and also provide your school's entity ID."
   provide_a_uri_to_your_idp_s_metadata_to_automatica_6f81a3cd: "Provide a URI to your IdP's metadata to automatically populate the other fields. If your school is part of InCommon, specify urn:mace:incommon for the metadata URI and also provide your school's entity ID."
+  provide_context_and_learning_expectations_to_learn_b0036f63: "Provide context and learning expectations to learners."
   provide_feedback_46041456: "Provide Feedback"
   provide_igniteai_with_a_closed_loop_of_sources_to__c4a7449: "Provide IgniteAI with a closed-loop of sources to reference."
   provide_navigation_to_navigate_between_all_announc_9f1bed39: |-
       Provide navigation to navigate between all announcements available
       in the homeroom course.
+  provide_sources_for_the_llm_to_reference_46c502e6: "Provide sources for the LLM to reference."
   provide_the_url_to_your_saml_idp_discovery_service_daa80306: |-
       Provide the URL to your SAML IdP Discovery Service that conforms to the
       *urn:oasis:names:tc:SAML:profiles:SSO:idp-discovery-protocol* protocol.
@@ -29174,6 +29279,7 @@ en-AU:
       from the discovery service.
   provide_tutorial_information_for_instructors_new_t_163c8ed4: "Provide tutorial information for instructors new to Canvas."
   provide_tutorial_information_for_new_users_in_a_fl_c23462ac: "Provide tutorial information for new users in a flyout tray."
+  provide_us_a_prompt_that_tells_the_llm_language_le_b16ddac7: "Provide us a prompt that tells the LLM (language learning model) how to facilitate the activity."
   provide_your_own_role_or_style_of_igniteai_c19d60ca: "Provide your own role or style of IgniteAI"
   provider_2d212e55: Provider
   provider_35796463: "| %{provider}"
@@ -30956,6 +31062,7 @@ en-AU:
   rate_limiting_settings_7d1ea666: "Rate limiting settings"
   rate_limiting_settings_apply_to_external_tools_and_ff88e262: "Rate limiting settings apply to external tools and integrations that use OAuth client configurations with throttling parameters."
   rate_limiting_view_4729b95a: "Rate Limiting - view"
+  rate_of_assignments_submitted_a32a5392: "%{rate} of assignments submitted"
   rather_than_automatically_placing_manually_created_35195e72: |-
       Rather than automatically placing manually created courses into the
       "Manually Created Courses" sub-account, when enabled, this feature allows
@@ -31014,6 +31121,7 @@ en-AU:
   re_generate_alt_text_ef3827bc: "(Re)generate Alt Text"
   re_lock_modules_a957a7ae: "Re-lock modules"
   re_reported_b9671073: Re-Reported
+  re_run_c768247f: Re-run
   re_send_confirmation_bcc66940: "Re-Send Confirmation"
   re_send_notification_directly_to_users_when_announ_c421cea5: "Re-send notification directly to users when announcement starts"
   re_sending_379a8580: Re-Sending...
@@ -31713,6 +31821,12 @@ en-AU:
   require_completion_by_end_date_bd154e32: "Require Completion by End Date"
   require_completion_by_end_date_was_turned_on_and_s_756fc89c: "Require Completion by End Date was turned on and set to %{date}."
   require_completion_by_specified_end_date_ed742ecb: "Require Completion by Specified End Date"
+  require_elevated_auth_provider_for_brand_config_ma_f66a76f6: "Require Elevated Auth Provider For Brand Config Management"
+  require_elevated_auth_provider_for_cross_domain_lo_73c80db4: "Require Elevated Auth Provider For Cross Domain Login"
+  require_elevated_auth_provider_for_csp_settings_a395a348: "Require Elevated Auth Provider For CSP Settings"
+  require_elevated_auth_provider_for_login_managemen_afcc36f3: "Require Elevated Auth Provider For Login Management"
+  require_elevated_auth_provider_for_plugin_manageme_245c94ed: "Require Elevated Auth Provider For Plugin Management"
+  require_elevated_auth_provider_for_sessionless_lau_630142a6: "Require Elevated Auth Provider For Sessionless Launch"
   require_group_members_to_be_in_the_same_section_7f6c36af: "Require group members to be in the same section"
   require_manage_lti_permissions_to_set_external_app_9d7481a: "Require Manage LTI permissions to set External App Centre token"
   require_number_characters_0_9_82a543cc: "Require number characters (0...9)"
@@ -33274,6 +33388,7 @@ en-AU:
   self_service_user_merge_d66f3903: "Self Service User Merge"
   self_sign_up_c8d23585: "Self Sign-Up"
   self_sign_up_deadline_c784d6ae: "Self Sign-up Deadline"
+  self_sign_up_deadline_date_and_time_ac5c6c2d: "Self sign-up deadline date and time"
   self_sign_up_group_deadline_b8d8ab84: "Self Sign-up Group Deadline"
   self_sign_up_group_deadline_in_development_bf31739c: "Self Sign-up Group Deadline - In Development"
   self_signup_15b23092: self_signup
@@ -33433,6 +33548,7 @@ en-AU:
   set_some_up_now_1749bb44: "Set some up now."
   set_the_default_src_directive_for_the_content_secu_4a54822c: "Set the default-src directive for the Content-Security-Policy-Logging header to 'self' and log violations"
   set_the_due_date_in_course_pacing_after_the_assign_b4016cb7: "Set the due date in Course Pacing after the assignment is created."
+  set_the_learning_objectives_that_learners_need_to__45092c1f: "Set the learning objectives that learners need to cover in order to complete the activity."
   set_the_learning_objectives_that_learners_need_to__f01aaa42: "Set the learning objectives that learners need to obtain in order to complete the activity."
   set_the_mastery_scale_to_be_used_for_all_courses_w_a95a48a4: "Set the mastery scale to be used for all courses within this account."
   set_the_number_of_columns_1089c3a3: "Set the number of columns"
@@ -34702,6 +34818,7 @@ en-AU:
       users_matching_label: "Users Matching"
   site_admin_access_token_expiration_6e120bf7: "Site Admin Access Token Expiration"
   site_admin_d0417171: "Site Admin"
+  site_admin_developer_key_secret_grace_window_9f80c5fe: "Site Admin Developer Key Secret Grace Window"
   site_admin_level_flag_that_determines_if_we_should_450825a7: |-
       Site Admin level flag that determines if we should hit '/api/organizations' or '/api/v1/organizations' when calling
       the organisation API. This is a temporary flag that will be removed once the new API is fully rolled out.
@@ -35188,6 +35305,7 @@ en-AU:
   starts_fa6bf3f5: Starts
   starttime_to_endtime_4c46601f: "%{startTime} to %{endTime}"
   state_66a67ba2: State
+  state_courseid_must_match_the_path_course_id_9d794cc5: "State courseID must match the path course_id."
   state_published_e42697da: "state: published"
   state_published_e8914697: ", state: published"
   state_standards_c9b1affd: "State Standards"
@@ -35341,6 +35459,7 @@ en-AU:
   student_last_name_options_a07764dd: "Student Last Name Options"
   student_links_successfully_updated_f8e7a91e: "Student links successfully updated."
   student_messages_b0a242d: "Student Messages"
+  student_messages_count_a1294af9: "Student messages: %{count}"
   student_module_completion_c113d05f: "Student Module Completion"
   student_must_complete_all_of_these_requirements_656771d6: "Student must complete all of these requirements"
   student_must_complete_one_of_these_requirements_6046eb3a: "Student must complete one of these requirements."
@@ -35487,9 +35606,19 @@ en-AU:
   studentsperrangecount_out_of_totalstudentsenrolled_90cbfaf1: "%{studentsPerRangeCount} out of %{totalStudentsEnrolled} students"
   studio_capture_a88ec4e: "Studio Capture"
   studio_media_options_in_rce_1118428b: "Studio Media Options in RCE"
+  study_assist: 
+    chips: 
+      flashcards: Flashcards
+      quiz_me: "Quiz me"
+      summarize: Summarise
   study_assist_aac2d50b: "Study Assist"
   study_tools_617c3972: "Study tools"
   study_tools_a0bd1676: "Study Tools"
+  study_tools_are_temporarily_unavailable_744db1c5: "Study tools are temporarily unavailable."
+  study_tools_are_temporarily_unavailable_please_try_2bfe9456: "Study tools are temporarily unavailable. Please try again."
+  study_tools_aren_t_available_for_this_file_type_ed904ab2: "Study tools aren't available for this file type."
+  study_tools_aren_t_available_for_this_prompt_8b2c9cd0: "Study tools aren't available for this prompt."
+  study_tools_aren_t_enabled_for_this_course_ee55b2f4: "Study tools aren't enabled for this course."
   style_f6881133: Style
   sub_account_c213944c: Sub-account
   sub_account_daeadd0: Sub-Account
@@ -35910,6 +36039,7 @@ en-AU:
   summarize_7c7fc78c: Summarise
   summarize_discussion_28eb1890: "Summarise Discussion"
   summarize_discussions_using_ai_a1259ac: "Summarise discussions using AI."
+  summary_24ad7681: Summary
   summary_enabled_f9e9f706: "Summary Enabled"
   summary_generated_15d2d753: "Summary generated."
   summary_of_key_changes_in_the_new_login_ui_7221ba06: "Summary of Key Changes in the New Login UI:"
@@ -36108,6 +36238,7 @@ en-AU:
     item_banks: "Item Banks"
     logout: Logout
     modules: Modules
+    notebook: Notebook
     observees: Observing
     outcomes: Outcomes
     pace_plans: "Pace Plans"
@@ -36913,6 +37044,8 @@ en-AU:
   the_subject_s_rubrics_ba10759e: "The subject's rubrics."
   the_subject_s_stored_preference_settings_and_custo_7a69f65b: "The subject's stored preference settings and customizations."
   the_submission_is_not_available_just_yet_b3c199c: "The submission is not available just yet."
+  the_submission_is_too_long_to_be_graded_automatica_520c54eb: "The submission is too long to be graded automatically."
+  the_submission_language_is_not_supported_for_autom_fbc77a7c: "The submission language is not supported for automatic grading."
   the_submitted_after_date_to_report_on_9d90f026: "The submitted after date to report on"
   the_syllabus_lets_you_welcome_your_course_users_an_ba74c779: |-
       The Syllabus lets you welcome your course users and share expectations
@@ -37600,6 +37733,7 @@ en-AU:
   this_is_an_anonymous_discussion_though_student_nam_f98abe71: "This is an anonymous Discussion. Though student names and profile pictures will be hidden, your name and profile picture will be visible to all course members."
   this_is_an_anonymous_discussion_your_name_and_prof_72c49b77: "This is an anonymous Discussion, your name and profile picture will be hidden from other course members."
   this_is_an_anonymous_discussion_your_name_and_prof_c88f50e2: "This is an anonymous Discussion. Your name and profile picture will be hidden from other course members. Mentions have also been disabled."
+  this_is_an_automated_message_to_inform_you_that_yo_b753128a: "This is an automated message to inform you that your user-generated access token in Canvas is set to expire in 7 days on %{expiration_date}. The token with hint %{token_hint} is listed with Purpose: %{purpose}. The expiration date cannot be extended, but you can generate a new token by going to your user settings and clicking \"New Access Token\" under the Approved Integrations section if needed."
   this_is_an_institution_level_outcome_2a470cc: "This is an institution-level outcome"
   this_is_based_on_values_seen_in_this_grade_book_it_ecd599eb: "This is based on values seen in this grade book. It may not be the same values students see."
   this_is_enabled_by_default_as_assignments_can_not__767e9b16: "This is enabled by default as assignments cannot be withheld from the markbook and still count towards it."
@@ -37816,6 +37950,7 @@ en-AU:
   this_student_was_just_awarded_an_unusually_high_gr_9ad835f3: "This student was just awarded an unusually high mark."
   this_student_was_just_awarded_negative_points_55741a37: "This student was just awarded negative points."
   this_student_wrote_f1a3f22d: "This student wrote:"
+  this_study_tool_isn_t_currently_available_7c47f089: "This study tool isn't currently available."
   this_sub_account_has_no_children_60037600: "This sub-account has no children."
   this_submission_has_already_been_graded_and_is_rea_8ec61c52: "This submission has already been marked and is ready for moderation."
   this_submission_has_plagiarism_data_for_multiple_a_335c881d: "This submission has plagiarism data for multiple attachments. To see all reports, open SpeedGrader."
@@ -38536,6 +38671,7 @@ en-AU:
   to_generate_login_logout_activity_in_admin_tools_u_253c565b: "To generate login/logout activity in Admin Tools, Users - manage login details or Statistics - view must also be enabled. To generate grade change logs in Admin Tools, Grades - view change logs must also be enabled."
   to_generate_login_logout_activity_in_admin_tools_u_603c40a0: "To generate login/logout activity in Admin Tools, Users - manage login details or Statistics - view must also be enabled."
   to_generate_login_logout_activity_in_admin_tools_u_c5712e03: "To generate login/logout activity in Admin Tools, Users - manage login details​ or Statistics - view must also be enabled. To generate grade change logs in Admin Tools, Grades - view change logs must also be enabled."
+  to_grade_17f77dd9: "To grade"
   to_import_assignments_and_quizzes_using_the_course_86c5bdbb: "To import assignments and quizzes using the Course Import Tool, Course Content - add / edit / delete must be enabled."
   to_import_files_using_the_course_import_tool_cours_a0c2db0c: "To import files using the Course Import Tool, Course Content - add / edit / delete must also be enabled."
   to_import_files_using_the_course_import_tool_cours_eb0ce4e1: "To import files using the Course Import Tool, Course files - add and Course Content - add / edit / delete must be enabled."
@@ -39237,6 +39373,8 @@ en-AU:
   turn_on_youtube_content_migration_feature_adding_t_b29adc0: "Turn on YouTube Content Migration feature. Adding the scanning ability and the convert option on YouTube embeddings."
   turn_on_youtube_to_studio_content_migration_featur_e4116580: "Turn on YouTube to Studio content migration feature. Adding the scanning ability and the convert option on YouTube embeddings."
   turned_in_submission_date_e9180b8b: "turned in: %{submission_date}"
+  turned_off_4c4974a2: "Turned Off"
+  turned_on_c546373e: "Turned On"
   turning_off_this_tutorial_will_remove_the_tutorial_4a5031ec: "Turning off this tutorial will remove the tutorial tray from your view for all of your courses. It can be turned back on under Feature Previews in your User Settings."
   turning_off_this_tutorial_will_remove_the_tutorial_dfd81b3a: "Turning off this tutorial will remove the tutorial tray from your view for all of your courses. It can be turned back on under Feature Options in your User Settings."
   turnitin: 
@@ -40058,6 +40196,7 @@ en-AU:
   user_found_ef98a328: "User found"
   user_found_not_deleted_d7ea6da2: "User found (not deleted)"
   user_generated_a423b23c: "User Generated"
+  user_generated_access_key_expiration_email_8885389f: "User Generated Access Key Expiration Email"
   user_generated_access_tokens_5732ee5a: "User Generated Access Tokens"
   user_groups_query_error_bba6a6b7: "User groups query error"
   user_id_8256faeb: user_id
@@ -40950,6 +41089,7 @@ en-AU:
   we_look_for_errors_in_image_alt_text_table_and_lis_de60bd24: "We look for errors in image alt text, table and list formatting, headings, text contrast (in content created with the RCE) and duplicate links."
   we_re_excited_to_invite_you_to_try_our_pre_release_a32514d6: "We're excited to invite you to try our pre-release features! This gives you early access to some of our new features before they're generally available. Participation is optional and outside the scope of your existing customer agreement. There is no charge for participation and we just ask for your feedback to help us improve."
   we_re_grateful_for_your_willingness_to_test_things_db394f0b: "We're grateful for your willingness to test things out and help shape the future of our platform. If you have ideas, suggestions, or feedback, please share as it makes a big difference!"
+  we_re_replacing_lti_2_0_cpf_with_lti_1_3_asset_doc_343d1fbd: "We’re replacing LTI 2.0 (CPF) with LTI 1.3 (Asset/Document Processor). Review the migrations below to start using LTI 1.3 on your assignments. Most migrations finish in less than an hour. We’ll email you once yours is complete."
   we_re_sending_your_message_d586da: "We're sending your message..."
   we_re_sorry_a_login_error_has_occurred_please_chec_6dae02e2: "We're sorry, a login error has occurred; please check your child's credentials and try again."
   we_re_unable_to_show_a_comparison_for_these_change_26987aee: "We're unable to show a comparison for these changes. For a complete representation of changes, please use the API."
@@ -41363,6 +41503,7 @@ en-AU:
       When this flag is enabled, the course navigation will remain collapsed or expanded
       when navigating between pages depending on how it was last set by the user, instead
       of defaulting to expanded on most pages.
+  when_this_flag_is_enabled_users_will_receive_an_em_c0cec47f: "When this flag is enabled, users will receive an email 7 days prior to their user-generated access tokens expiring so that if they still require access they can switch over to a new key before their integration stops working."
   when_turning_this_on_links_on_the_content_exports__a95cc277: "When turning this on, links on the Content Exports page will not use JWT-verified links."
   when_two_or_more_links_are_next_to_each_other_and__8b584ffa: "When two or more links are next to each other and lead to the same destination, screen readers interpret them as two separate links, even though the intent is usually displaying a single link. This creates unnecessary repetition and is confusing."
   when_will_the_change_occur_4eb53390: "When Will the Change Occur?"
@@ -42137,6 +42278,7 @@ en-AU:
   you_ve_been_invited_to_the_course_course_course_ro_a74d748b: "You've been invited to the course, %{course}. Course role: %{role_type}"
   you_ve_been_mentioned_discussion_topic_by_user_nam_60649d56: "You've been mentioned: %{discussion_topic} by %{user_name}"
   you_ve_been_reminded_to_assess_rubric_context_70eeb600: "You've been reminded to assess %{rubric}, %{context}."
+  you_ve_hit_the_study_tools_rate_limit_try_again_la_f3cb84ea: "You've hit the study tools rate limit. Try again later."
   you_ve_scrolled_back_to_your_very_first_to_do_873510d1: "You've scrolled back to your very first To-Do!"
   you_ve_updated_the_scoring_criteria_this_will_affe_ec852671: "You’ve updated the scoring criteria; this will affect all students previously assessed using this outcome"
   you_will_be_redirected_to_a_login_page_where_you_w_fc8df402: "You will be redirected to a Login page where you will need to log in with your child's credentials."
@@ -42204,6 +42346,9 @@ en-AU:
   your_azure_active_directory_tenant_name_d8bb31fa: "Your Azure Active Directory Tenant Name"
   your_browser_connectivity_may_be_slow_or_unstable__97c1f4c5: "Your browser connectivity may be slow or unstable. In spite of your browser's timer being disconnected, your answers will be recorded for an additional 5 minutes beyond the original time limit on this attempt."
   your_browser_does_not_meet_the_minimum_requirement_2fa7c11f: "Your browser does not meet the minimum requirements for Canvas. Please visit the *Canvas Community* for a complete list of supported browsers."
+  your_canvas_access_token_purpose_purpose_will_expi_6b7d14dd: "Your Canvas access token (Purpose: %{purpose}) will expire on %{expiration_date}."
+  your_canvas_access_token_purpose_purpose_will_expi_aebcf87a: "Your Canvas access token (Purpose: %{purpose}) will expire on %{expiration_date}. Visit your user settings to generate a new token if needed."
+  your_canvas_access_token_will_expire_in_7_days_6204f47c: "Your Canvas access token will expire in 7 days"
   your_canvas_administrators_have_chosen_to_limit_yo_41a4187: "Your Canvas administrators have chosen to limit your ability to generate your own access token. Please reach out to your Canvas administrators to have them generate an access token on your behalf."
   your_classic_quizzes_have_been_migrated_to_new_qui_e49244da: "Your Classic Quizzes have been migrated to New Quizzes!"
   your_comment_is_not_posted_12677035: "Your comment is not posted"
