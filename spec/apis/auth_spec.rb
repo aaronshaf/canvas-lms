@@ -22,7 +22,7 @@ require_relative "api_spec_helper"
 
 describe "API Authentication", type: :request do
   before :once do
-    @key = DeveloperKey.create!(name: "test_key_#{SecureRandom.hex(4)}")
+    @key = DeveloperKey.create!(name: "test_key_#{SecureRandom.hex(4)}", redirect_uris: [Canvas::OAuth::Provider::OAUTH2_OOB_URI])
     enable_developer_key_account_binding!(@key)
   end
 

@@ -129,12 +129,6 @@ module Canvas::OAuth
       before { OAuthRedirectUriValidationConfig.reset! }
       after { OAuthRedirectUriValidationConfig.reset! }
 
-      it "is true when the redirect url is the OOB uri (without consulting matchers)" do
-        stub_matchers(matches: false)
-        provider = Provider.new("123", Provider::OAUTH2_OOB_URI)
-        expect(provider.has_valid_redirect?).to be true
-      end
-
       context "with default config (no Consul gate active)" do
         before { allow(OAuthRedirectUriValidationConfig).to receive_messages(report?: false, enforce?: false) }
 
@@ -183,13 +177,6 @@ module Canvas::OAuth
           expect(InstStatsd::Statsd).not_to receive(:event)
           expect(provider.has_valid_redirect?).to be true
         end
-
-        it "does not emit on OOB" do
-          stub_matchers(matches: false)
-          provider = Provider.new("123", Provider::OAUTH2_OOB_URI)
-          expect(InstStatsd::Statsd).not_to receive(:event)
-          expect(provider.has_valid_redirect?).to be true
-        end
       end
 
       context "with enforce mode" do
@@ -202,12 +189,6 @@ module Canvas::OAuth
 
         it "accepts a strict match" do
           stub_matchers(matches: true)
-          expect(provider.has_valid_redirect?).to be true
-        end
-
-        it "still accepts OOB" do
-          stub_matchers(matches: false)
-          provider = Provider.new("123", Provider::OAUTH2_OOB_URI)
           expect(provider.has_valid_redirect?).to be true
         end
       end
@@ -254,99 +235,28 @@ module Canvas::OAuth
           stub_matchers(matches: oob_explicitly_registered)
         end
 
-        context "with no validation config set" do
-          it "is allowed without reporting" do
+        context "when the key has OOB as an explicit redirect_uri" do
+          let(:oob_explicitly_registered) { true }
+
+          it "allows the redirect without reporting" do
             expect(InstStatsd::Statsd).not_to receive(:event)
             expect(provider.has_valid_redirect?).to be true
           end
         end
 
-        context "with report mode enabled and disallow_implicit_oob_redirect_uri enabled" do
-          before do
-            allow(OAuthRedirectUriValidationConfig).to receive_messages(
-              report?: true,
-              enforce?: false,
-              disallow_implicit_oob_redirect_uri?: true
+        context "when the key does not have OOB as an explicit redirect_uri (implicit OOB)" do
+          it "rejects the redirect" do
+            expect(provider.has_valid_redirect?).to be false
+          end
+
+          it "reports the violation when report mode is on" do
+            allow(OAuthRedirectUriValidationConfig).to receive(:report?).and_return(true)
+            expect(InstStatsd::Statsd).to receive(:event).with(
+              "OAuth Redirect URI Lenient Match",
+              kind_of(String),
+              hash_including(tags: hash_including(enforce: "true"))
             )
-          end
-
-          context "and the key does not have OOB as an explicit redirect_uri" do
-            it "reports the violation and still allows the redirect" do
-              expect(InstStatsd::Statsd).to receive(:event).with(
-                "OAuth Redirect URI Lenient Match",
-                kind_of(String),
-                hash_including(tags: hash_including(enforce: "false"))
-              )
-              expect(provider.has_valid_redirect?).to be true
-            end
-          end
-
-          context "and the key has OOB as an explicit redirect_uri" do
-            let(:oob_explicitly_registered) { true }
-
-            it "does not report and allows the redirect" do
-              expect(InstStatsd::Statsd).not_to receive(:event)
-              expect(provider.has_valid_redirect?).to be true
-            end
-          end
-        end
-
-        context "with disallow_implicit_oob_redirect_uri and enforce enabled" do
-          before do
-            allow(OAuthRedirectUriValidationConfig).to receive_messages(
-              report?: false,
-              enforce?: true,
-              disallow_implicit_oob_redirect_uri?: true
-            )
-          end
-
-          context "and the key does not have OOB as an explicit redirect_uri" do
-            it "rejects the redirect" do
-              expect(provider.has_valid_redirect?).to be false
-            end
-          end
-
-          context "and the key has OOB as an explicit redirect_uri" do
-            let(:oob_explicitly_registered) { true }
-
-            it "allows the redirect" do
-              expect(provider.has_valid_redirect?).to be true
-            end
-          end
-        end
-
-        context "with disallow_implicit_oob_redirect_uri and enforce_disallow_implicit_oob_redirect_uri enabled" do
-          before do
-            allow(OAuthRedirectUriValidationConfig).to receive_messages(
-              report?: false,
-              enforce?: false,
-              disallow_implicit_oob_redirect_uri?: true,
-              enforce_disallow_implicit_oob_redirect_uri?: true
-            )
-          end
-
-          context "and the key does not have OOB as an explicit redirect_uri" do
-            it "rejects the redirect without affecting non-OOB lenient matching" do
-              expect(provider.has_valid_redirect?).to be false
-            end
-
-            it "reports the violation when report mode is also on" do
-              allow(OAuthRedirectUriValidationConfig).to receive(:report?).and_return(true)
-              expect(InstStatsd::Statsd).to receive(:event).with(
-                "OAuth Redirect URI Lenient Match",
-                kind_of(String),
-                hash_including(tags: hash_including(enforce: "true"))
-              )
-              expect(provider.has_valid_redirect?).to be false
-            end
-          end
-
-          context "and the key has OOB as an explicit redirect_uri" do
-            let(:oob_explicitly_registered) { true }
-
-            it "allows the redirect" do
-              expect(provider.has_valid_redirect?).to be true
-            end
+            expect(provider.has_valid_redirect?).to be false
           end
 
           context "and a non-OOB redirect with only a lenient (subdomain) match is presented" do
@@ -363,102 +273,56 @@ module Canvas::OAuth
         context "with the Sec-Fetch-Dest gate" do
           let(:provider) { Provider.new("123", Provider::OAUTH2_OOB_URI, sec_fetch_dest:) }
           let(:sec_fetch_dest) { nil }
+          let(:oob_explicitly_registered) { true }
 
-          context "with no Sec-Fetch-Dest config set" do
-            let(:sec_fetch_dest) { "iframe" }
+          context "and Sec-Fetch-Dest is missing" do
+            let(:sec_fetch_dest) { nil }
 
-            it "ignores the header (does not emit, allows the redirect)" do
+            it "does not emit and allows the redirect" do
               expect(InstStatsd::Statsd).not_to receive(:event)
               expect(provider.has_valid_redirect?).to be true
             end
           end
 
-          context "with disallow_non_document_oob_sec_fetch_dest enabled (report-only)" do
-            before do
-              allow(OAuthRedirectUriValidationConfig).to receive(:disallow_non_document_oob_sec_fetch_dest?).and_return(true)
-            end
+          context "and Sec-Fetch-Dest is 'document'" do
+            let(:sec_fetch_dest) { "document" }
 
-            context "and Sec-Fetch-Dest is missing" do
-              let(:sec_fetch_dest) { nil }
-
-              it "does not emit and allows the redirect" do
-                expect(InstStatsd::Statsd).not_to receive(:event)
-                expect(provider.has_valid_redirect?).to be true
-              end
-            end
-
-            context "and Sec-Fetch-Dest is 'document'" do
-              let(:sec_fetch_dest) { "document" }
-
-              it "does not emit and allows the redirect" do
-                expect(InstStatsd::Statsd).not_to receive(:event)
-                expect(provider.has_valid_redirect?).to be true
-              end
-            end
-
-            context "and Sec-Fetch-Dest is non-document" do
-              let(:sec_fetch_dest) { "iframe" }
-
-              it "emits an instrumentation event and allows the redirect" do
-                expect(InstStatsd::Statsd).to receive(:event).with(
-                  "OAuth OOB Non-Document Sec-Fetch-Dest",
-                  kind_of(String),
-                  hash_including(
-                    type: :oauth_oob_non_document_sec_fetch_dest,
-                    alert_type: :warning,
-                    tags: hash_including(
-                      developer_key_id: "10000000000001",
-                      sec_fetch_dest: "iframe",
-                      enforce: "false"
-                    )
-                  )
-                )
-                expect(Rails.logger).to receive(:warn).with(/OAuthRedirectUri/)
-                expect(provider.has_valid_redirect?).to be true
-              end
+            it "does not emit and allows the redirect" do
+              expect(InstStatsd::Statsd).not_to receive(:event)
+              expect(provider.has_valid_redirect?).to be true
             end
           end
 
-          context "with enforce_disallow_non_document_oob_sec_fetch_dest enabled" do
-            before do
-              allow(OAuthRedirectUriValidationConfig).to receive_messages(
-                disallow_non_document_oob_sec_fetch_dest?: true,
-                enforce_disallow_non_document_oob_sec_fetch_dest?: true
-              )
-            end
+          context "and Sec-Fetch-Dest is non-document" do
+            let(:sec_fetch_dest) { "iframe" }
 
-            context "and Sec-Fetch-Dest is non-document" do
-              let(:sec_fetch_dest) { "iframe" }
-
-              it "emits an instrumentation event with enforce=true and rejects the redirect" do
-                expect(InstStatsd::Statsd).to receive(:event).with(
-                  "OAuth OOB Non-Document Sec-Fetch-Dest",
-                  kind_of(String),
-                  hash_including(tags: hash_including(sec_fetch_dest: "iframe", enforce: "true"))
+            it "emits an instrumentation event and rejects the redirect" do
+              expect(InstStatsd::Statsd).to receive(:event).with(
+                "OAuth OOB Non-Document Sec-Fetch-Dest",
+                kind_of(String),
+                hash_including(
+                  type: :oauth_oob_non_document_sec_fetch_dest,
+                  alert_type: :warning,
+                  tags: hash_including(
+                    developer_key_id: "10000000000001",
+                    sec_fetch_dest: "iframe",
+                    enforce: "true"
+                  )
                 )
-                expect(provider.has_valid_redirect?).to be false
-              end
+              )
+              expect(Rails.logger).to receive(:warn).with(/OAuthRedirectUri/)
+              expect(provider.has_valid_redirect?).to be false
             end
+          end
 
-            context "and Sec-Fetch-Dest is 'document'" do
-              let(:sec_fetch_dest) { "document" }
-              let(:oob_explicitly_registered) { true }
+          context "and the redirect is non-OOB with a non-document Sec-Fetch-Dest" do
+            let(:provider) { Provider.new("123", "http://evil.example.com/x", sec_fetch_dest: "iframe") }
 
-              it "allows the redirect" do
-                expect(InstStatsd::Statsd).not_to receive(:event)
-                expect(provider.has_valid_redirect?).to be true
-              end
-            end
+            before { stub_matchers(matches: true) }
 
-            context "and the redirect is non-OOB with a non-document Sec-Fetch-Dest" do
-              let(:provider) { Provider.new("123", "http://evil.example.com/x", sec_fetch_dest: "iframe") }
-
-              before { stub_matchers(matches: true) }
-
-              it "does not emit (the gate only applies to OOB)" do
-                expect(InstStatsd::Statsd).not_to receive(:event)
-                expect(provider.has_valid_redirect?).to be true
-              end
+            it "does not emit (the gate only applies to OOB)" do
+              expect(InstStatsd::Statsd).not_to receive(:event)
+              expect(provider.has_valid_redirect?).to be true
             end
           end
         end

@@ -23,7 +23,7 @@ describe "oauth2 flow" do
   include_context "in-process server selenium tests"
 
   before do
-    @key = DeveloperKey.create!(name: "Specs", redirect_uri: "http://www.example.com")
+    @key = DeveloperKey.create!(name: "Specs", redirect_uri: "http://www.example.com", redirect_uris: [Canvas::OAuth::Provider::OAUTH2_OOB_URI])
     enable_developer_key_account_binding!(@key)
     @client_id = @key.id
     @client_secret = @key.api_key

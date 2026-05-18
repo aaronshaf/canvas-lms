@@ -31,22 +31,6 @@ module OAuthRedirectUriValidationConfig
     !!config["enforce"]
   end
 
-  def self.disallow_implicit_oob_redirect_uri?
-    !!config["disallow_implicit_oob_redirect_uri"]
-  end
-
-  def self.enforce_disallow_implicit_oob_redirect_uri?
-    !!config["enforce_disallow_implicit_oob_redirect_uri"]
-  end
-
-  def self.disallow_non_document_oob_sec_fetch_dest?
-    !!config["disallow_non_document_oob_sec_fetch_dest"]
-  end
-
-  def self.enforce_disallow_non_document_oob_sec_fetch_dest?
-    !!config["enforce_disallow_non_document_oob_sec_fetch_dest"]
-  end
-
   def self.never_enforce_developer_keys
     @never_enforce_developer_keys ||= Array(config["never_enforce_developer_keys"]).to_set(&:to_s)
   end

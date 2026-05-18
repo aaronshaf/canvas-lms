@@ -87,7 +87,7 @@ describe OAuth2ProviderController do
 
   describe "GET auth" do
     let_once(:key) do
-      d = DeveloperKey.create! redirect_uri: "https://example.com"
+      d = DeveloperKey.create!(redirect_uri: "https://example.com", redirect_uris: [Canvas::OAuth::Provider::OAUTH2_OOB_URI])
       enable_developer_key_account_binding!(d)
       d
     end

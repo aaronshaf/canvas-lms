@@ -59,25 +59,16 @@ module Canvas::OAuth
       redirect_matches = key.redirect_uri_matches?(redirect_uri)
       return false if !self.class.is_oob?(redirect_uri) && !redirect_matches
 
-      if self.class.is_oob?(redirect_uri) &&
-         OAuthRedirectUriValidationConfig.disallow_non_document_oob_sec_fetch_dest? &&
-         non_document_sec_fetch_dest?
-        enforce_fetch_dest = OAuthRedirectUriValidationConfig.enforce_disallow_non_document_oob_sec_fetch_dest?
-        report_oob_non_document_fetch_dest_violation(enforce: enforce_fetch_dest)
-        return false if enforce_fetch_dest
+      if self.class.is_oob?(redirect_uri) && non_document_sec_fetch_dest?
+        report_oob_non_document_fetch_dest_violation
+        return false
       end
 
       report = OAuthRedirectUriValidationConfig.report?
       enforce = OAuthRedirectUriValidationConfig.enforce_for_developer_key?(key.global_id)
-      disallow_implicit_oob = OAuthRedirectUriValidationConfig.disallow_implicit_oob_redirect_uri?
-      return true unless report || enforce || disallow_implicit_oob
       return true if redirect_matches == true
 
-      if self.class.is_oob?(redirect_uri)
-        return true unless disallow_implicit_oob
-
-        enforce ||= OAuthRedirectUriValidationConfig.enforce_disallow_implicit_oob_redirect_uri?
-      end
+      enforce = true if self.class.is_oob?(redirect_uri)
 
       report_lenient_redirect_violation(enforce:) if report
       !enforce
@@ -228,7 +219,7 @@ module Canvas::OAuth
       @sec_fetch_dest.present? && @sec_fetch_dest != "document"
     end
 
-    def report_oob_non_document_fetch_dest_violation(enforce:)
+    def report_oob_non_document_fetch_dest_violation
       request_id = Canvas::ExecutionContext[:request_id]
 
       message = "OAuth OOB redirect with non-document Sec-Fetch-Dest on developer key " \
@@ -237,7 +228,7 @@ module Canvas::OAuth
       tags = Utils::InstStatsdUtils::Tags.tags_for(Shard.current).merge(
         developer_key_id: key.global_id.to_s,
         sec_fetch_dest: @sec_fetch_dest.to_s,
-        enforce: enforce.to_s
+        enforce: "true"
       )
 
       InstStatsd::Statsd.event(
