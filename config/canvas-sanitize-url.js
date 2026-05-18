@@ -54,6 +54,17 @@ function isSanitizeUrlCallee(callee) {
   return false
 }
 
+function isTestStubCallee(callee) {
+  if (callee.type !== 'MemberExpression' || callee.computed) return false
+  const prop = callee.property
+  if (prop.type !== 'Identifier') return false
+  if (prop.name !== 'fn' && prop.name !== 'stub' && prop.name !== 'spy') return false
+  const obj = callee.object
+  return (
+    obj.type === 'Identifier' && (obj.name === 'vi' || obj.name === 'jest' || obj.name === 'sinon')
+  )
+}
+
 function isAllowedExpression(expr) {
   if (!expr || expr.type === 'JSXEmptyExpression') return true
 
@@ -69,6 +80,12 @@ function isAllowedExpression(expr) {
 
   // sanitizeUrl(...) or x.sanitizeUrl(...)
   if (expr.type === 'CallExpression' && isSanitizeUrlCallee(expr.callee)) return true
+
+  // vi.fn() / jest.fn() / sinon.stub() — clearly a test mock, not a URL.
+  if (expr.type === 'CallExpression' && isTestStubCallee(expr.callee)) return true
+
+  // Object literal — clearly a stub/mock object, not a URL string.
+  if (expr.type === 'ObjectExpression') return true
 
   // Conditional with safe branches on both sides: cond ? sanitizeUrl(x) : undefined.
   if (expr.type === 'ConditionalExpression') {
@@ -196,6 +213,7 @@ const imperativeRule = {
   create(context) {
     const rel = relativeFilename(context.filename)
     if (rel && baseline.has(rel)) return {}
+    if (rel && /\/__tests__\//.test(rel)) return {}
 
     return {
       AssignmentExpression(node) {
