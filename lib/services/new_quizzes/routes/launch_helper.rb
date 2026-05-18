@@ -123,6 +123,8 @@ module Services
         )
           domain_root_account ||= context.root_account
 
+          assignment = AssignmentOverrideApplicator.assignment_overridden_for(assignment, user) if assignment && user
+
           variable_expander = Lti::VariableExpander.new(
             domain_root_account,
             context,

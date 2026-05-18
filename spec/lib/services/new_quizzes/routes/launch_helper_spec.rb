@@ -137,6 +137,51 @@ describe Services::NewQuizzes::Routes::LaunchHelper do
           basename:
         )
       end
+
+      context "when the assignment has user-specific date overrides" do
+        let(:base_lock_at) { 1.day.ago }
+        let(:override_lock_at) { 1.week.from_now }
+
+        before do
+          assignment.update!(lock_at: base_lock_at, due_at: nil, unlock_at: nil)
+          course.enroll_student(user, enrollment_state: "active")
+          create_adhoc_override_for_assignment(assignment, user, lock_at: override_lock_at)
+        end
+
+        it "passes the assignment with overrides applied to LaunchDataBuilder" do
+          expect(NewQuizzes::LaunchDataBuilder).to receive(:new) do |opts|
+            expect(opts[:assignment].lock_at).to be_within(1.second).of(override_lock_at)
+            instance_double(NewQuizzes::LaunchDataBuilder, build_with_signature: {})
+          end
+
+          described_class.default_launch_data(
+            tool:,
+            assignment:,
+            context: course,
+            user:,
+            controller:,
+            request:,
+            basename:
+          )
+        end
+
+        it "passes the assignment with overrides applied to the variable expander" do
+          expect(Lti::VariableExpander).to receive(:new) do |_root, _ctx, _ctrl, opts|
+            expect(opts[:assignment].lock_at).to be_within(1.second).of(override_lock_at)
+            instance_double(Lti::VariableExpander, expand_variables!: {}, enabled_capability_params: {})
+          end
+
+          described_class.default_launch_data(
+            tool:,
+            assignment:,
+            context: course,
+            user:,
+            controller:,
+            request:,
+            basename:
+          )
+        end
+      end
     end
   end
 
