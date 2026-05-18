@@ -255,6 +255,7 @@ const BlockToolbar = ({templateEditor}: BlockToolbarProps) => {
           if (n2.type.resolvedName === 'ImageBlock') {
             const src: string = n2.props.src
             if (src && imgmap[src]) {
+              // oxlint-disable-next-line canvas-sanitize-url/imperative -- n2.props.src is a Craft.js node data property, not a DOM img element
               n2.props.src = imgmap[src]
             }
           }

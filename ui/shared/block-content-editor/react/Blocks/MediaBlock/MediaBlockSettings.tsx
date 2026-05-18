@@ -65,6 +65,7 @@ export const MediaBlockSettings = () => {
 
   const handleMediaChange = (data: MediaSources) => {
     setProp((props: MediaData) => {
+      // oxlint-disable-next-line canvas-sanitize-url/imperative -- Craft.js setProp callback: prps is an in-memory node props object, not a DOM element
       props.src = data.src
       props.mediaId = data.mediaId
       props.attachment_id = data.attachment_id

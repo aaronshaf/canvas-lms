@@ -39,6 +39,7 @@ import DisplayLayoutButtons, {
 } from './components/create_from_templates/DisplayLayoutButtons'
 import {TagSelect, AvailableTags} from './components/create_from_templates/TagSelect'
 import {sanitizeHTML} from '@canvas/sanitize-html'
+import {assignLocation} from '@canvas/util/globalUtils'
 
 const I18n = createI18nScope('block-editor')
 
@@ -181,7 +182,7 @@ export default function CreateFromTemplate(props: {course_id: string; noBlocks: 
         <div style={{top: '25px', right: '25px', position: 'absolute'}}>
           <Button
             onClick={() => {
-              window.location.href = `/courses/${props.course_id}/pages`
+              assignLocation(`/courses/${props.course_id}/pages`)
             }}
             renderIcon={<IconArrowStartLine />}
           >

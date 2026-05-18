@@ -27,6 +27,7 @@ const saveGlobalTemplateToFile = (template: GlobalTemplate) => {
 
   const link = document.createElement('a')
   link.setAttribute('style', 'postion: absolute; top: -10000px; left: -10000px')
+  // oxlint-disable-next-line canvas-sanitize-url/imperative -- blob: URL from createObjectURL is browser-generated for file download, not user-supplied
   link.href = window.URL.createObjectURL(blob)
   link.download = `template-${template.global_id}.json`
   document.body.appendChild(link)

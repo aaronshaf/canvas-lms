@@ -38,6 +38,7 @@ export const AddMediaButton = ({setProp}: {setProp: (args: any) => void}) => {
   const handleSave = useCallback(
     ({attachment_id, iframe_url}: {attachment_id?: string; iframe_url?: string}) => {
       setProp((prps: MediaBlockProps) => {
+        // oxlint-disable-next-line canvas-sanitize-url/imperative -- Craft.js setProp callback: prps is an in-memory node props object, not a DOM element
         prps.src = iframe_url || undefined
         prps.attachmentId = attachment_id
       })

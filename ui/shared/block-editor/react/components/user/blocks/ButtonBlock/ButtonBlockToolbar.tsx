@@ -103,6 +103,7 @@ const ButtonBlockToolbar = () => {
     (text: string, url: string) => {
       setProp((prps: ButtonBlockProps) => {
         prps.text = text
+        // oxlint-disable-next-line canvas-sanitize-url/imperative -- Craft.js setProp callback: prps is an in-memory node props object, not a DOM element
         prps.href = url
       })
     },

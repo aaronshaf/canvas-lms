@@ -103,6 +103,7 @@ const ImageBlockToolbar = () => {
   const handleSave = useCallback(
     (imageURL: string | null, alt: string) => {
       setProp((prps: ImageBlockProps) => {
+        // oxlint-disable-next-line canvas-sanitize-url/imperative -- Craft.js setProp callback: prps is an in-memory node props object, not a DOM element
         prps.src = imageURL || undefined
         prps.alt = alt
       })
