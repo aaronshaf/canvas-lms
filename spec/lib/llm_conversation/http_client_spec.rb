@@ -25,7 +25,9 @@ describe LlmConversation::HttpClient do
   let(:enc_key) { LlmConversation::TokenCache::ENCRYPTION_KEY }
 
   before do
-    Setting.set("llm_conversation_base_url", "http://localhost:3001")
+    allow(Rails.application.credentials).to receive(:dig)
+      .with(:llm_conversation_service, :base_url)
+      .and_return("https://llm.test")
 
     api_enc, api_salt = Canvas::Security.encrypt_password("api-token", enc_key)
     refresh_enc, refresh_salt = Canvas::Security.encrypt_password("refresh-token", enc_key)
@@ -49,12 +51,12 @@ describe LlmConversation::HttpClient do
       end
 
       before do
-        stub_request(:get, "http://localhost:3001/conversations")
+        stub_request(:get, "https://llm.test/conversations")
           .to_return(
             { status: 401, body: "Unauthorized" },
             { status: 200, body: { "data" => [] }.to_json, headers: { "Content-Type" => "application/json" } }
           )
-        stub_request(:post, "http://localhost:3001/token/refresh")
+        stub_request(:post, "https://llm.test/token/refresh")
           .with(headers: { "Authorization" => "Bearer refresh-token" })
           .to_return(status: 200, body: refresh_response, headers: { "Content-Type" => "application/json" })
       end
@@ -87,7 +89,7 @@ describe LlmConversation::HttpClient do
       before do
         account.settings[:llm_conversation_service] = {}
         account.save!
-        stub_request(:get, "http://localhost:3001/conversations").to_return(status: 401, body: "Unauthorized")
+        stub_request(:get, "https://llm.test/conversations").to_return(status: 401, body: "Unauthorized")
       end
 
       it "raises a ConversationError" do
@@ -98,8 +100,8 @@ describe LlmConversation::HttpClient do
 
     context "when the refresh endpoint itself fails" do
       before do
-        stub_request(:get, "http://localhost:3001/conversations").to_return(status: 401, body: "Unauthorized")
-        stub_request(:post, "http://localhost:3001/token/refresh").to_return(status: 500, body: "Error")
+        stub_request(:get, "https://llm.test/conversations").to_return(status: 401, body: "Unauthorized")
+        stub_request(:post, "https://llm.test/token/refresh").to_return(status: 500, body: "Error")
       end
 
       it "raises a ConversationError" do
@@ -114,20 +116,20 @@ describe LlmConversation::HttpClient do
       end
 
       before do
-        stub_request(:get, "http://localhost:3001/conversations")
+        stub_request(:get, "https://llm.test/conversations")
           .to_return(
             { status: 401, body: "Unauthorized" },
             { status: 401, body: "Still unauthorized" }
           )
-        stub_request(:post, "http://localhost:3001/token/refresh")
+        stub_request(:post, "https://llm.test/token/refresh")
           .to_return(status: 200, body: refresh_response, headers: { "Content-Type" => "application/json" })
       end
 
       it "raises ConversationError without recursing into a second refresh" do
         expect { client.get("/conversations") }
           .to raise_error(LlmConversation::Errors::ConversationError)
-        expect(WebMock).to have_requested(:post, "http://localhost:3001/token/refresh").once
-        expect(WebMock).to have_requested(:get, "http://localhost:3001/conversations").twice
+        expect(WebMock).to have_requested(:post, "https://llm.test/token/refresh").once
+        expect(WebMock).to have_requested(:get, "https://llm.test/conversations").twice
       end
     end
   end
@@ -144,7 +146,7 @@ describe LlmConversation::HttpClient do
       end
 
       before do
-        stub_request(:get, "http://localhost:3001/conversations")
+        stub_request(:get, "https://llm.test/conversations")
           .to_return(status: 500, body: leaky_body, headers: { "Content-Type" => "application/json" })
         allow(Rails.logger).to receive(:warn)
       end
@@ -175,7 +177,7 @@ describe LlmConversation::HttpClient do
 
     context "when llma returns a whitelisted error code" do
       before do
-        stub_request(:get, "http://localhost:3001/conversations")
+        stub_request(:get, "https://llm.test/conversations")
           .to_return(
             status: 429,
             body: { "code" => "rate_limited", "message" => "internal rate-limit counter overflow" }.to_json,
@@ -194,7 +196,7 @@ describe LlmConversation::HttpClient do
 
     context "when llma returns an unknown error code" do
       before do
-        stub_request(:get, "http://localhost:3001/conversations")
+        stub_request(:get, "https://llm.test/conversations")
           .to_return(
             status: 400,
             body: { "code" => "some_new_code_we_dont_recognize", "message" => "boom" }.to_json,
@@ -208,6 +210,23 @@ describe LlmConversation::HttpClient do
         expect(e.user_message).to eq(LlmConversation::Errors::ConversationError::DEFAULT_USER_MESSAGE)
         expect(e.user_message).not_to include("boom")
       end
+    end
+  end
+
+  describe "base_url from credentials" do
+    it "uses the base_url from Rails credentials" do
+      stub_request(:get, "https://llm.test/ping").to_return(status: 200, body: "null")
+      client = described_class.new(account:)
+      client.get("/ping")
+      expect(WebMock).to have_requested(:get, "https://llm.test/ping")
+    end
+
+    it "raises when the credential is not set" do
+      allow(Rails.application.credentials).to receive(:dig)
+        .with(:llm_conversation_service, :base_url)
+        .and_return(nil)
+      expect { described_class.new(account:).get("/ping") }
+        .to raise_error(StandardError)
     end
   end
 end

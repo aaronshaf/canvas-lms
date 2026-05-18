@@ -37,7 +37,9 @@ describe AiExperiences::ConversationContextService do
   end
 
   before do
-    Setting.set("llm_conversation_base_url", "http://localhost:3001")
+    allow(Rails.application.credentials).to receive(:dig)
+      .with(:llm_conversation_service, :base_url)
+      .and_return("https://llm.test")
     allow(LlmConversation::TokenCache).to receive(:get_api_token).and_return("test-token")
   end
 
@@ -71,11 +73,11 @@ describe AiExperiences::ConversationContextService do
     end
 
     before do
-      stub_request(:get, "http://localhost:3001/prompts/by-code/alpha")
+      stub_request(:get, "https://llm.test/prompts/by-code/alpha")
         .with(headers: { "Authorization" => "Bearer test-token" })
         .to_return(status: 200, body: prompt_response.to_json, headers: { "Content-Type" => "application/json" })
 
-      stub_request(:post, "http://localhost:3001/conversation-context")
+      stub_request(:post, "https://llm.test/conversation-context")
         .with(
           headers: { "Authorization" => "Bearer test-token" },
           body: hash_including(
@@ -101,14 +103,14 @@ describe AiExperiences::ConversationContextService do
     it "looks up prompt by code before creating context" do
       service.create(ai_experience:)
 
-      expect(WebMock).to have_requested(:get, "http://localhost:3001/prompts/by-code/alpha")
+      expect(WebMock).to have_requested(:get, "https://llm.test/prompts/by-code/alpha")
         .with(headers: { "Authorization" => "Bearer test-token" })
     end
 
     it "sends correct payload to API" do
       service.create(ai_experience:)
 
-      expect(WebMock).to have_requested(:post, "http://localhost:3001/conversation-context")
+      expect(WebMock).to have_requested(:post, "https://llm.test/conversation-context")
         .with(
           body: hash_including(
             "type" => "assignment",
@@ -128,11 +130,11 @@ describe AiExperiences::ConversationContextService do
       context_id = service.create(ai_experience:)
 
       expect(context_id).to be_nil
-      expect(WebMock).not_to have_requested(:post, "http://localhost:3001/conversation-context")
+      expect(WebMock).not_to have_requested(:post, "https://llm.test/conversation-context")
     end
 
     it "raises ConversationError when prompt lookup fails" do
-      stub_request(:get, "http://localhost:3001/prompts/by-code/alpha")
+      stub_request(:get, "https://llm.test/prompts/by-code/alpha")
         .to_return(status: 404, body: "Not Found")
 
       expect do
@@ -141,7 +143,7 @@ describe AiExperiences::ConversationContextService do
     end
 
     it "raises ConversationError when API call fails" do
-      stub_request(:post, "http://localhost:3001/conversation-context")
+      stub_request(:post, "https://llm.test/conversation-context")
         .to_return(status: 500, body: "Internal Server Error")
 
       expect do
@@ -164,7 +166,7 @@ describe AiExperiences::ConversationContextService do
         course.enable_feature!(:ai_experiences_context_file_upload)
         allow_any_instance_of(Attachment).to receive(:public_url).and_return("https://example.com/syllabus.pdf")
 
-        stub_request(:post, "http://localhost:3001/conversation-context")
+        stub_request(:post, "https://llm.test/conversation-context")
           .to_return(status: 200, body: create_context_response.to_json, headers: { "Content-Type" => "application/json" })
       end
 
@@ -177,7 +179,7 @@ describe AiExperiences::ConversationContextService do
 
         service.create(ai_experience:)
 
-        expect(WebMock).to have_requested(:post, "http://localhost:3001/conversation-context")
+        expect(WebMock).to have_requested(:post, "https://llm.test/conversation-context")
           .with(body: hash_including(
             "data" => hash_including(
               "context_files" => [
@@ -218,7 +220,7 @@ describe AiExperiences::ConversationContextService do
     before do
       ai_experience.update_column(:llm_conversation_context_id, "context-uuid")
 
-      stub_request(:patch, "http://localhost:3001/conversation-context/context-uuid")
+      stub_request(:patch, "https://llm.test/conversation-context/context-uuid")
         .with(
           headers: { "Authorization" => "Bearer test-token" },
           body: hash_including(
@@ -237,7 +239,7 @@ describe AiExperiences::ConversationContextService do
         service.update(ai_experience:)
       end.not_to raise_error
 
-      expect(WebMock).to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+      expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
     end
 
     it "does not update if context_id is not set" do
@@ -245,11 +247,11 @@ describe AiExperiences::ConversationContextService do
 
       service.update(ai_experience:)
 
-      expect(WebMock).not_to have_requested(:patch, %r{http://localhost:3001/conversation-context/})
+      expect(WebMock).not_to have_requested(:patch, %r{https://llm.test/conversation-context/})
     end
 
     it "raises ConversationError when API call fails" do
-      stub_request(:patch, "http://localhost:3001/conversation-context/context-uuid")
+      stub_request(:patch, "https://llm.test/conversation-context/context-uuid")
         .to_return(status: 404, body: "Not Found")
 
       expect do
@@ -265,14 +267,14 @@ describe AiExperiences::ConversationContextService do
         AiExperienceContextFile.create!(ai_experience:, attachment:)
         allow(attachment).to receive(:public_url).and_return("https://example.com/syllabus.pdf")
 
-        stub_request(:patch, "http://localhost:3001/conversation-context/context-uuid")
+        stub_request(:patch, "https://llm.test/conversation-context/context-uuid")
           .to_return(status: 200, body: update_context_response.to_json, headers: { "Content-Type" => "application/json" })
       end
 
       it "sends context_files in PINE-compatible format" do
         service.update(ai_experience:)
 
-        expect(WebMock).to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+        expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
           .with(body: hash_including(
             "data" => hash_including(
               "context_files" => [
@@ -289,7 +291,7 @@ describe AiExperiences::ConversationContextService do
       it "uses global_id for courseId in metadata" do
         service.update(ai_experience:)
 
-        expect(WebMock).to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+        expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
           .with(body: hash_including(
             "data" => hash_including(
               "context_files" => [
@@ -317,7 +319,7 @@ describe AiExperiences::ConversationContextService do
 
         service.update(ai_experience:)
 
-        expect(WebMock).to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+        expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
           .with(body: hash_including(
             "data" => hash_including("context_files" => [])
           ))
@@ -334,7 +336,7 @@ describe AiExperiences::ConversationContextService do
 
         service.update(ai_experience:)
 
-        expect(WebMock).to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+        expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
           .with(body: hash_including(
             "data" => hash_including(
               "context_files" => array_including(
@@ -350,7 +352,7 @@ describe AiExperiences::ConversationContextService do
     before do
       ai_experience.update_column(:llm_conversation_context_id, "context-uuid")
 
-      stub_request(:delete, "http://localhost:3001/conversation-context/context-uuid")
+      stub_request(:delete, "https://llm.test/conversation-context/context-uuid")
         .with(headers: { "Authorization" => "Bearer test-token" })
         .to_return(status: 200, body: { "success" => true }.to_json, headers: { "Content-Type" => "application/json" })
     end
@@ -358,7 +360,7 @@ describe AiExperiences::ConversationContextService do
     it "deletes the conversation context and clears the ID" do
       service.delete(ai_experience:)
 
-      expect(WebMock).to have_requested(:delete, "http://localhost:3001/conversation-context/context-uuid")
+      expect(WebMock).to have_requested(:delete, "https://llm.test/conversation-context/context-uuid")
       expect(ai_experience.reload.llm_conversation_context_id).to be_nil
     end
 
@@ -367,11 +369,11 @@ describe AiExperiences::ConversationContextService do
 
       service.delete(ai_experience:)
 
-      expect(WebMock).not_to have_requested(:delete, %r{http://localhost:3001/conversation-context/})
+      expect(WebMock).not_to have_requested(:delete, %r{https://llm.test/conversation-context/})
     end
 
     it "raises ConversationError when API call fails" do
-      stub_request(:delete, "http://localhost:3001/conversation-context/context-uuid")
+      stub_request(:delete, "https://llm.test/conversation-context/context-uuid")
         .to_return(status: 500, body: "Internal Server Error")
 
       expect do
@@ -382,12 +384,12 @@ describe AiExperiences::ConversationContextService do
 
   describe "error handling" do
     before do
-      stub_request(:get, "http://localhost:3001/prompts/by-code/alpha")
+      stub_request(:get, "https://llm.test/prompts/by-code/alpha")
         .to_return(status: 200, body: { "success" => true, "data" => { "id" => "prompt-uuid" } }.to_json)
     end
 
     it "handles timeout errors" do
-      stub_request(:post, "http://localhost:3001/conversation-context")
+      stub_request(:post, "https://llm.test/conversation-context")
         .to_timeout
 
       expect do
@@ -396,7 +398,7 @@ describe AiExperiences::ConversationContextService do
     end
 
     it "handles socket errors" do
-      stub_request(:post, "http://localhost:3001/conversation-context")
+      stub_request(:post, "https://llm.test/conversation-context")
         .to_raise(SocketError.new("getaddrinfo: nodename nor servname provided"))
 
       expect do
@@ -405,7 +407,7 @@ describe AiExperiences::ConversationContextService do
     end
 
     it "handles JSON parse errors" do
-      stub_request(:post, "http://localhost:3001/conversation-context")
+      stub_request(:post, "https://llm.test/conversation-context")
         .to_return(status: 200, body: "invalid json")
 
       expect do

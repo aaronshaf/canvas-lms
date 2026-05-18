@@ -38,12 +38,14 @@ describe AiExperiences::ConversationContextDocumentsService do
   end
 
   before do
-    Setting.set("llm_conversation_base_url", "http://localhost:3001")
+    allow(Rails.application.credentials).to receive(:dig)
+      .with(:llm_conversation_service, :base_url)
+      .and_return("https://llm.test")
     allow(LlmConversation::TokenCache).to receive(:get_api_token).and_return("test-token")
   end
 
   describe "#sync_index_status" do
-    let(:documents_url) { "http://localhost:3001/contexts/context-uuid/documents" }
+    let(:documents_url) { "https://llm.test/contexts/context-uuid/documents" }
 
     before do
       ai_experience.update_column(:llm_conversation_context_id, "context-uuid")
@@ -180,7 +182,7 @@ describe AiExperiences::ConversationContextDocumentsService do
 
   describe "#trigger_indexing" do
     let(:attachment) { attachment_model(context: course, filename: "syllabus.pdf") }
-    let(:documents_url) { "http://localhost:3001/contexts/context-uuid/documents" }
+    let(:documents_url) { "https://llm.test/contexts/context-uuid/documents" }
 
     before do
       ai_experience.update_column(:llm_conversation_context_id, "context-uuid")
@@ -284,7 +286,7 @@ describe AiExperiences::ConversationContextDocumentsService do
         cf.update_column(:llm_conversation_service_document_id, "doc-uuid-1")
       end
     end
-    let(:remove_url) { "http://localhost:3001/contexts/context-uuid/documents/doc-uuid-1" }
+    let(:remove_url) { "https://llm.test/contexts/context-uuid/documents/doc-uuid-1" }
 
     before do
       ai_experience.update_column(:llm_conversation_context_id, "context-uuid")

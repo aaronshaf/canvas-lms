@@ -235,7 +235,9 @@ describe AiExperience do
 
   describe "conversation_context lifecycle callbacks" do
     before do
-      Setting.set("llm_conversation_base_url", "http://localhost:3001")
+      allow(Rails.application.credentials).to receive(:dig)
+        .with(:llm_conversation_service, :base_url)
+        .and_return("https://llm.test")
       allow(LlmConversation::TokenCache).to receive(:get_api_token).and_return("test-token")
     end
 
@@ -268,10 +270,10 @@ describe AiExperience do
       end
 
       before do
-        stub_request(:get, "http://localhost:3001/prompts/by-code/alpha")
+        stub_request(:get, "https://llm.test/prompts/by-code/alpha")
           .to_return(status: 200, body: prompt_response.to_json, headers: { "Content-Type" => "application/json" })
 
-        stub_request(:post, "http://localhost:3001/conversation-context")
+        stub_request(:post, "https://llm.test/conversation-context")
           .to_return(status: 200, body: create_context_response.to_json, headers: { "Content-Type" => "application/json" })
       end
 
@@ -279,11 +281,11 @@ describe AiExperience do
         experience = AiExperience.create!(valid_attributes)
 
         expect(experience.llm_conversation_context_id).to eq("context-uuid")
-        expect(WebMock).to have_requested(:post, "http://localhost:3001/conversation-context")
+        expect(WebMock).to have_requested(:post, "https://llm.test/conversation-context")
       end
 
       it "does not fail AI experience creation if context creation fails" do
-        stub_request(:post, "http://localhost:3001/conversation-context")
+        stub_request(:post, "https://llm.test/conversation-context")
           .to_return(status: 500, body: "Internal Server Error")
 
         expect do
@@ -294,7 +296,7 @@ describe AiExperience do
       end
 
       it "logs error when context creation fails" do
-        stub_request(:post, "http://localhost:3001/conversation-context")
+        stub_request(:post, "https://llm.test/conversation-context")
           .to_return(status: 500, body: "Internal Server Error")
 
         allow(Rails.logger).to receive(:error)
@@ -308,23 +310,23 @@ describe AiExperience do
         before { course.enable_feature!(:ai_experiences_context_file_upload) }
 
         before do
-          stub_request(:patch, "http://localhost:3001/conversation-context/context-uuid")
+          stub_request(:patch, "https://llm.test/conversation-context/context-uuid")
             .to_return(status: 200, body: { "success" => true }.to_json, headers: { "Content-Type" => "application/json" })
 
-          stub_request(:post, "http://localhost:3001/contexts/context-uuid/documents")
+          stub_request(:post, "https://llm.test/contexts/context-uuid/documents")
             .to_return(status: 201, body: { "id" => "doc-1", "status" => "pending" }.to_json, headers: { "Content-Type" => "application/json" })
         end
 
         it "updates conversation_context with context_files when created with files" do
           AiExperience.create!(valid_attributes.merge(context_file_ids: [attachment.id.to_s]))
 
-          expect(WebMock).to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+          expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
         end
 
         it "does not update conversation_context when created without files" do
           AiExperience.create!(valid_attributes)
 
-          expect(WebMock).not_to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+          expect(WebMock).not_to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
         end
       end
     end
@@ -351,32 +353,32 @@ describe AiExperience do
       end
 
       before do
-        stub_request(:patch, "http://localhost:3001/conversation-context/context-uuid")
+        stub_request(:patch, "https://llm.test/conversation-context/context-uuid")
           .to_return(status: 200, body: update_context_response.to_json, headers: { "Content-Type" => "application/json" })
       end
 
       it "updates conversation_context when pedagogical_guidance changes" do
         experience.update!(pedagogical_guidance: "Updated scenario")
 
-        expect(WebMock).to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+        expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
       end
 
       it "updates conversation_context when facts change" do
         experience.update!(facts: "Updated facts")
 
-        expect(WebMock).to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+        expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
       end
 
       it "updates conversation_context when learning_objective changes" do
         experience.update!(learning_objective: "Updated objectives")
 
-        expect(WebMock).to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+        expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
       end
 
       it "does not update conversation_context when other fields change" do
         experience.update!(title: "New Title")
 
-        expect(WebMock).not_to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+        expect(WebMock).not_to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
       end
 
       context "with ai_experiences_context_file_upload feature flag enabled" do
@@ -385,14 +387,14 @@ describe AiExperience do
         before { course.enable_feature!(:ai_experiences_context_file_upload) }
 
         before do
-          stub_request(:post, "http://localhost:3001/contexts/context-uuid/documents")
+          stub_request(:post, "https://llm.test/contexts/context-uuid/documents")
             .to_return(status: 201, body: { "id" => "doc-1", "status" => "pending" }.to_json, headers: { "Content-Type" => "application/json" })
         end
 
         it "updates conversation_context when context_file_ids change" do
           experience.update!(context_file_ids: [attachment.id.to_s])
 
-          expect(WebMock).to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+          expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
         end
 
         it "persists context file join records when context_file_ids are set" do
@@ -407,7 +409,7 @@ describe AiExperience do
           experience.update!(context_file_ids: [])
 
           expect(experience.ai_experience_context_files).to be_empty
-          expect(WebMock).to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+          expect(WebMock).to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
         end
 
         it "does not update conversation_context when context_file_ids unchanged" do
@@ -415,7 +417,7 @@ describe AiExperience do
 
           experience.update!(context_file_ids: [attachment.id.to_s])
 
-          expect(WebMock).not_to have_requested(:patch, "http://localhost:3001/conversation-context/context-uuid")
+          expect(WebMock).not_to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
         end
 
         it "calls remove_documents when a file is removed" do
@@ -461,7 +463,7 @@ describe AiExperience do
 
         context "when file indexing fails" do
           before do
-            stub_request(:post, "http://localhost:3001/contexts/context-uuid/documents")
+            stub_request(:post, "https://llm.test/contexts/context-uuid/documents")
               .to_return(status: 503, body: "Service Unavailable")
           end
 
@@ -488,7 +490,7 @@ describe AiExperience do
 
           before do
             context_file
-            stub_request(:delete, "http://localhost:3001/contexts/context-uuid/documents/doc-uuid-1")
+            stub_request(:delete, "https://llm.test/contexts/context-uuid/documents/doc-uuid-1")
               .to_return(status: 500, body: "Internal Server Error")
           end
 
@@ -511,11 +513,11 @@ describe AiExperience do
         experience.update_column(:llm_conversation_context_id, nil)
         experience.update!(pedagogical_guidance: "Updated scenario")
 
-        expect(WebMock).not_to have_requested(:patch, %r{http://localhost:3001/conversation-context/})
+        expect(WebMock).not_to have_requested(:patch, %r{https://llm.test/conversation-context/})
       end
 
       it "does not fail AI experience update if context update fails" do
-        stub_request(:patch, "http://localhost:3001/conversation-context/context-uuid")
+        stub_request(:patch, "https://llm.test/conversation-context/context-uuid")
           .to_return(status: 500, body: "Internal Server Error")
 
         expect do
@@ -525,7 +527,7 @@ describe AiExperience do
       end
 
       it "logs error when context update fails" do
-        stub_request(:patch, "http://localhost:3001/conversation-context/context-uuid")
+        stub_request(:patch, "https://llm.test/conversation-context/context-uuid")
           .to_return(status: 500, body: "Internal Server Error")
 
         allow(Rails.logger).to receive(:error)
@@ -542,25 +544,25 @@ describe AiExperience do
       end
 
       before do
-        stub_request(:delete, "http://localhost:3001/conversation-context/context-uuid")
+        stub_request(:delete, "https://llm.test/conversation-context/context-uuid")
           .to_return(status: 200, body: { "success" => true }.to_json, headers: { "Content-Type" => "application/json" })
       end
 
       it "deletes conversation_context when destroying AI experience" do
         experience.destroy
 
-        expect(WebMock).to have_requested(:delete, "http://localhost:3001/conversation-context/context-uuid")
+        expect(WebMock).to have_requested(:delete, "https://llm.test/conversation-context/context-uuid")
       end
 
       it "does not delete conversation_context if context_id is not set" do
         experience.update_column(:llm_conversation_context_id, nil)
         experience.destroy
 
-        expect(WebMock).not_to have_requested(:delete, %r{http://localhost:3001/conversation-context/})
+        expect(WebMock).not_to have_requested(:delete, %r{https://llm.test/conversation-context/})
       end
 
       it "does not fail AI experience destruction if context deletion fails" do
-        stub_request(:delete, "http://localhost:3001/conversation-context/context-uuid")
+        stub_request(:delete, "https://llm.test/conversation-context/context-uuid")
           .to_return(status: 500, body: "Internal Server Error")
 
         experience_id = experience.id
@@ -572,7 +574,7 @@ describe AiExperience do
       end
 
       it "logs error when context deletion fails" do
-        stub_request(:delete, "http://localhost:3001/conversation-context/context-uuid")
+        stub_request(:delete, "https://llm.test/conversation-context/context-uuid")
           .to_return(status: 500, body: "Internal Server Error")
 
         allow(Rails.logger).to receive(:error)

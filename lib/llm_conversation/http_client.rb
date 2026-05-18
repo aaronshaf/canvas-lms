@@ -25,8 +25,8 @@ require "uri"
 module LlmConversation
   class HttpClient
     def initialize(account: nil, use_initial_token: false)
-      @base_url = resolve_base_url
       @root_account = account
+      @base_url = Rails.application.credentials.dig(:llm_conversation_service, :base_url)
 
       @bearer_token = if use_initial_token
                         Rails.application.credentials.dig(:llm_conversation_service, :initial_token)
@@ -91,33 +91,6 @@ module LlmConversation
 
       LlmConversation::TokenCache.set_api_token(@root_account, new_api_token)
       @bearer_token = new_api_token
-    end
-
-    def resolve_base_url
-      region = ApplicationController.region
-      test_cluster = ApplicationController.test_cluster_name
-
-      url = if test_cluster.present? && region.present?
-              Setting.get("llm_conversation_base_url_beta_#{region}", nil)
-            elsif region.present?
-              Setting.get("llm_conversation_base_url_#{region}", nil)
-            else
-              Setting.get("llm_conversation_base_url", nil)
-            end
-
-      raise LlmConversation::Errors::ConversationError, base_url_error_message(region, test_cluster) if url.nil?
-
-      url
-    end
-
-    def base_url_error_message(region, test_cluster)
-      if test_cluster.present? && region.present?
-        "None of llm_conversation_base_url_beta_#{region}, llm_conversation_base_url_#{region}, or llm_conversation_base_url setting is configured"
-      elsif region.present?
-        "Neither llm_conversation_base_url_#{region} nor llm_conversation_base_url setting is configured"
-      else
-        "llm_conversation_base_url setting is not configured"
-      end
     end
 
     def request(method, path, payload: nil, retried: false)
