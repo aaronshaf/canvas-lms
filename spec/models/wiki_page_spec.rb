@@ -2169,4 +2169,30 @@ describe WikiPage do
       expect(page.reload.body).to be_nil
     end
   end
+
+  describe "save-time sanitization of body" do
+    before do
+      course_with_teacher(active_all: true)
+    end
+
+    # Reads raw column bypassing the #body reader, which also strips on read
+    # and would otherwise mask a broken before-save sanitize_field callback.
+    def persisted_body(page)
+      page.reload[:body]
+    end
+
+    it "strips script tags on create" do
+      page = @course.wiki_pages.create!(title: "xss create", body: "<script>alert(1)</script>safe text")
+      expect(persisted_body(page)).not_to include("<script>")
+      expect(persisted_body(page)).not_to include("alert(1)")
+      expect(persisted_body(page)).to include("safe text")
+    end
+
+    it "strips disallowed attributes on update" do
+      page = @course.wiki_pages.create!(title: "xss update", body: "placeholder")
+      page.update!(body: '<object onerror="alert(1)">x</object>')
+      expect(persisted_body(page)).not_to include("onerror")
+      expect(persisted_body(page)).not_to include("alert(1)")
+    end
+  end
 end
