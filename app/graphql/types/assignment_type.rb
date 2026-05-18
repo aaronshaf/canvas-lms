@@ -287,9 +287,7 @@ module Types
             ).joins(
               "JOIN #{User.quoted_table_name} AS assessee_users ON allocation_rules.assessee_id = assessee_users.id"
             ).where(
-              "assessor_users.name ILIKE ? OR assessee_users.name ILIKE ?",
-              "%#{search_term}%",
-              "%#{search_term}%"
+              User.wildcard("assessor_users.name", "assessee_users.name", search_term)
             )
           end
 

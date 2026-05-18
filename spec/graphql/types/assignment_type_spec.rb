@@ -3054,6 +3054,30 @@ describe Types::AssignmentType do
                                                   ])
         expect(result_without_filter).to eq(result_with_filter)
       end
+
+      context "with LIKE metacharacters in the search term" do
+        it "treats % as a literal character, not a match-all wildcard" do
+          result = @search_teacher_assignment_type.resolve(
+            'allocationRules { rulesConnection(filter: { searchTerm: "%%" }) { nodes { _id } } }'
+          )
+          expect(result).to be_empty
+        end
+
+        it "treats _ as a literal character, not a single-char wildcard" do
+          result = @search_teacher_assignment_type.resolve(
+            'allocationRules { rulesConnection(filter: { searchTerm: "F_" }) { nodes { _id } } }'
+          )
+          expect(result).to be_empty
+        end
+
+        it "does not raise on backslash input" do
+          expect do
+            @search_teacher_assignment_type.resolve(
+              'allocationRules { rulesConnection(filter: { searchTerm: "a\\\\" }) { nodes { _id } } }'
+            )
+          end.not_to raise_error
+        end
+      end
     end
   end
 
