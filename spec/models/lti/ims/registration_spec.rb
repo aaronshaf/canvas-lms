@@ -1059,9 +1059,14 @@ module Lti::IMS
           registration.root_account.enable_feature!(:lti_dr_registrations_update)
         end
 
-        it "returns true when the disable_reinstall extension is true" do
-          lti_tool_configuration[Lti::IMS::Registration::DISABLE_REINSTALL_EXTENSION] = true
-          expect(registration.reinstall_disabled?).to be true
+        context "when the disable_reinstall extension is true" do
+          let(:lti_tool_configuration) do
+            super().merge(Lti::IMS::Registration::DISABLE_REINSTALL_EXTENSION => true)
+          end
+
+          it "returns true" do
+            expect(registration.reinstall_disabled?).to be true
+          end
         end
 
         it "returns false when the disable_reinstall extension is not set" do

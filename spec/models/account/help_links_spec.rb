@@ -94,13 +94,22 @@ describe Account::HelpLinks do
     end
 
     it "removes default values from default links" do
-      links = account.help_links.sort_by { |a| a[:id] }.deep_dup
+      Setting.set "show_feedback_link", "true"
       updates = [
         { text: "this is new text", subtext: "this is new subtext" },
         { url: "this is a new url" },
         { feature_headline: "this is a new headline", is_new: true },
         { url: "yet another new url" }
       ]
+      # instantiate_links must be called so text/subtext/feature_headline are
+      # resolved from Procs to strings before process_links_before_save compares
+      # them. Capping to updates.length avoids zip producing nil entries when
+      # plugins add extra default links beyond the four tested here.
+      links = subject.instantiate_links(subject.default_links)
+                     .sort_by { |a| a[:id] }
+                     .first(updates.length)
+                     .deep_dup
+      updates = updates.first(links.length)
       links.zip(updates).each { |link, update| link.merge!(update) }
 
       processed = subject.process_links_before_save(links).sort_by { |a| a[:id] }
