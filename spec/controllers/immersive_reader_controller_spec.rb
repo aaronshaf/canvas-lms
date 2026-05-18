@@ -27,6 +27,15 @@ describe ImmersiveReaderController do
     WebMock.enable_net_connect!
   end
 
+  let(:ir_config) do
+    {
+      tenant_id: "faketenantid",
+      client_id: "fakeclientid",
+      client_secret: "fakesecret",
+      subdomain: "fakesub"
+    }
+  end
+
   it "requires a user be logged in" do
     get "authenticate"
     assert_unauthorized
@@ -39,84 +48,135 @@ describe ImmersiveReaderController do
     assert_status(404)
   end
 
-  it "authenticates with cognitive services" do
-    user_model
-    user_session(@user)
-    stub_request(:post, "https://login.windows.net")
-    allow(controller).to receive(:ir_config).and_return(
-      {
-        tenant_id: "faketenantid",
-        client_id: "fakeclientid",
-        client_secret: "fakesecret",
-        subdomain: "fakesub"
-      }
-    )
-    get "authenticate"
-    expect(WebMock).to have_requested(:post, "https://login.windows.net/faketenantid/oauth2/token")
-      .with(
-        body:
-          "grant_type=client_credentials&client_id=fakeclientid&client_secret=fakesecret&resource=https%3A%2F%2Fcognitiveservices.azure.com%2F",
-        headers: { "Content-Type" => "application/x-www-form-urlencoded" }
-      )
-      .once
+  context "when the feature flag is disabled" do
+    before do
+      user_model
+      user_session(@user)
+      allow(controller).to receive(:ir_config).and_return(ir_config)
+    end
+
+    it "returns 404 without contacting cognitive services" do
+      get "authenticate"
+      assert_status(404)
+      expect(WebMock).not_to have_requested(:post, /login\.windows\.net/)
+    end
   end
 
-  context "when the token request fails" do
-    let_once(:user) { user_model }
-
-    let(:response_body) { { error_description: "Some error" }.to_json }
-
+  context "when the feature flag is enabled" do
     before do
-      stub_request(
-        :post,
-        "https://login.windows.net/faketenantid/oauth2/token"
-      ).to_return(
-        status: 401,
-        body: response_body,
-        headers: {}
-      )
-
-      user_session(user)
-
-      allow(controller).to receive(:ir_config).and_return(
-        {
-          tenant_id: "faketenantid",
-          client_id: "fakeclientid",
-          client_secret: "fakesecret",
-          subdomain: "fakesub"
-        }
-      )
+      user_model
+      @user.enable_feature!(:user_immersive_reader_wiki_pages)
+      user_session(@user)
+      allow(controller).to receive(:ir_config).and_return(ir_config)
     end
 
-    shared_examples_for "contexts_with_a_captured_exception" do
-      it "captures the error" do
-        expect(Canvas::Errors).to receive(:capture_exception).with(
-          :immersive_reader,
-          instance_of(ImmersiveReaderController::ServiceError),
-          :warn
-        )
+    it "authenticates with cognitive services" do
+      stub_request(:post, "https://login.windows.net/faketenantid/oauth2/token")
+        .to_return(status: 200, body: { access_token: "tok-123" }.to_json)
 
+      get "authenticate"
+
+      expect(WebMock).to have_requested(:post, "https://login.windows.net/faketenantid/oauth2/token")
+        .with(
+          body:
+            "grant_type=client_credentials&client_id=fakeclientid&client_secret=fakesecret&resource=https%3A%2F%2Fcognitiveservices.azure.com%2F",
+          headers: { "Content-Type" => "application/x-www-form-urlencoded" }
+        )
+        .once
+      expect(response.parsed_body).to include("token" => "tok-123", "subdomain" => "fakesub")
+    end
+
+    it "caches the access_token across calls so a flood of inbound callers makes one outbound STS call" do
+      stub_request(:post, "https://login.windows.net/faketenantid/oauth2/token")
+        .to_return(status: 200, body: { access_token: "tok-cached" }.to_json)
+
+      enable_cache do
+        get "authenticate"
         get "authenticate"
       end
 
-      it "increments the error counter" do
-        allow(InstStatsd::Statsd).to receive(:distributed_increment)
-
-        expect(InstStatsd::Statsd).to receive(:distributed_increment).with(
-          "immersive_reader.authentication_failure",
-          tags: { status: "401" }
-        )
-
-        get "authenticate"
-      end
+      expect(WebMock).to have_requested(:post, "https://login.windows.net/faketenantid/oauth2/token").once
+      expect(response.parsed_body).to include("token" => "tok-cached")
     end
 
-    it_behaves_like "contexts_with_a_captured_exception"
+    it "increments a success statsd counter tagged with the cache result" do
+      stub_request(:post, "https://login.windows.net/faketenantid/oauth2/token")
+        .to_return(status: 200, body: { access_token: "tok-123" }.to_json)
+      allow(InstStatsd::Statsd).to receive(:distributed_increment)
 
-    context "and the response has an empty body" do
-      let(:response_body) { "" }
+      expect(InstStatsd::Statsd).to receive(:distributed_increment).with(
+        "immersive_reader.authentication_success",
+        tags: { cache: "miss" }
+      )
+
+      get "authenticate"
+    end
+
+    it "writes an audit log line on success" do
+      stub_request(:post, "https://login.windows.net/faketenantid/oauth2/token")
+        .to_return(status: 200, body: { access_token: "tok-123" }.to_json)
+      allow(Rails.logger).to receive(:info)
+
+      expect(Rails.logger).to receive(:info).with(/\[immersive_reader\] token issued/).at_least(:once)
+
+      get "authenticate"
+    end
+
+    context "when the token request fails" do
+      let(:response_body) { { error_description: "Some error" }.to_json }
+
+      before do
+        stub_request(
+          :post,
+          "https://login.windows.net/faketenantid/oauth2/token"
+        ).to_return(
+          status: 401,
+          body: response_body,
+          headers: {}
+        )
+      end
+
+      shared_examples_for "contexts_with_a_captured_exception" do
+        it "captures the error" do
+          expect(Canvas::Errors).to receive(:capture_exception).with(
+            :immersive_reader,
+            instance_of(ImmersiveReaderController::ServiceError),
+            :warn
+          )
+
+          get "authenticate"
+        end
+
+        it "increments the error counter" do
+          allow(InstStatsd::Statsd).to receive(:distributed_increment)
+
+          expect(InstStatsd::Statsd).to receive(:distributed_increment).with(
+            "immersive_reader.authentication_failure",
+            tags: { status: "401" }
+          )
+
+          get "authenticate"
+        end
+
+        it "does not emit a success statsd counter" do
+          allow(InstStatsd::Statsd).to receive(:distributed_increment)
+
+          expect(InstStatsd::Statsd).not_to receive(:distributed_increment).with(
+            "immersive_reader.authentication_success",
+            anything
+          )
+
+          get "authenticate"
+        end
+      end
 
       it_behaves_like "contexts_with_a_captured_exception"
+
+      context "and the response has an empty body" do
+        let(:response_body) { "" }
+
+        it_behaves_like "contexts_with_a_captured_exception"
+      end
     end
   end
 end
