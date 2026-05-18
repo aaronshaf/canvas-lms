@@ -1036,7 +1036,7 @@ module Types
                         assignment.context.feature_enabled?(:peer_review_allocation_and_grading) &&
                         assignment.peer_reviews
 
-      Loaders::PeerReviewStatusLoader.for(assignment_id).load(object.id)
+      Loaders::PeerReviewStatusLoader.for(assignment_id, current_user:).load(object.id)
     end
 
     field :activity_stream, ActivityStreamType, null: true do

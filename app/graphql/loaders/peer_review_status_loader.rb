@@ -19,20 +19,34 @@
 
 module Loaders
   class PeerReviewStatusLoader < GraphQL::Batch::Loader
-    def initialize(assignment_id)
+    def initialize(assignment_id, current_user:)
       super()
       @assignment_id = assignment_id
+      @current_user = current_user
     end
 
     def perform(user_ids)
+      assignment = Assignment.find_by(id: @assignment_id)
+      scoped_user_ids = if assignment
+                          base_scope = assignment.context.participating_students_by_date.not_fake_student
+                          visible_students_subquery = assignment.context.apply_enrollment_visibility(base_scope, @current_user)
+                                                                .select("users.*")
+
+                          scope = User.from("(#{visible_students_subquery.to_sql}) AS users").where(id: user_ids)
+                          scope = assignment.students_with_visibility(scope, user_ids)
+                          scope.pluck(:id)
+                        else
+                          []
+                        end
+
       must_review_counts = AllocationRule.active
-                                         .where(assignment_id: @assignment_id, assessor_id: user_ids, must_review: true)
+                                         .where(assignment_id: @assignment_id, assessor_id: scoped_user_ids, must_review: true)
                                          .group(:assessor_id)
                                          .count
 
       completed_reviews_counts = AssessmentRequest.joins(:submission)
                                                   .where(
-                                                    assessor_id: user_ids,
+                                                    assessor_id: scoped_user_ids,
                                                     workflow_state: "completed",
                                                     submissions: { assignment_id: @assignment_id }
                                                   )

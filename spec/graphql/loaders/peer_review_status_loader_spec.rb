@@ -36,7 +36,7 @@ describe Loaders::PeerReviewStatusLoader do
     @course.enroll_student(@student3, enrollment_state: "active")
   end
 
-  let(:loader) { described_class.new(@assignment.id) }
+  let(:loader) { described_class.new(@assignment.id, current_user: @teacher) }
 
   before do
     @submission1 = @assignment.submit_homework(@student1, {
@@ -174,6 +174,80 @@ describe Loaders::PeerReviewStatusLoader do
         GraphQL::Batch.batch do
           result = loader.load(@student1.id)
           expect(result.sync[:completed_reviews_count]).to eq(0)
+        end
+      end
+    end
+
+    context "when teacher has section-limited visibility" do
+      let(:section1) { @course.course_sections.create!(name: "Section 1") }
+      let(:section2) { @course.course_sections.create!(name: "Section 2") }
+      let(:section_limited_teacher) do
+        user_factory(name: "Section Limited Teacher").tap do |u|
+          @course.enroll_teacher(u, section: section1, limit_privileges_to_course_section: true, enrollment_state: "active")
+        end
+      end
+
+      before do
+        @course.enroll_student(@student1, section: section1, allow_multiple_enrollments: true, enrollment_state: "active")
+        @course.enroll_student(@student2, section: section2, allow_multiple_enrollments: true, enrollment_state: "active")
+
+        AllocationRule.create!(
+          assignment: @assignment,
+          course: @course,
+          assessor: @student2,
+          assessee: @student1,
+          must_review: true
+        )
+      end
+
+      it "returns zero counts for students outside the teacher's section" do
+        scoped_loader = described_class.new(@assignment.id, current_user: section_limited_teacher)
+        GraphQL::Batch.batch do
+          result = scoped_loader.load(@student2.id)
+          expect(result.sync).to eq({ must_review_count: 0, completed_reviews_count: 0 })
+        end
+      end
+
+      it "returns correct counts for students in the teacher's section" do
+        AllocationRule.create!(
+          assignment: @assignment,
+          course: @course,
+          assessor: @student1,
+          assessee: @student2,
+          must_review: true
+        )
+        scoped_loader = described_class.new(@assignment.id, current_user: section_limited_teacher)
+        GraphQL::Batch.batch do
+          result = scoped_loader.load(@student1.id)
+          expect(result.sync).to eq({ must_review_count: 1, completed_reviews_count: 0 })
+        end
+      end
+    end
+
+    context "when user is not assigned to the assignment" do
+      let(:outside_student) { user_factory(name: "Outside Student") }
+
+      before do
+        @course.enroll_student(outside_student, enrollment_state: "active")
+
+        @assignment.update!(only_visible_to_overrides: true)
+        override = @assignment.assignment_overrides.create!(set_type: "ADHOC")
+        [@student1, @student2, @student3].each { |s| override.assignment_override_students.create!(user: s) }
+        @assignment.assign_peer_review(outside_student, @student1).update!(workflow_state: "completed")
+
+        AllocationRule.new(
+          assignment: @assignment,
+          course: @course,
+          assessor: outside_student,
+          assessee: @student1,
+          must_review: true
+        ).save(validate: false)
+      end
+
+      it "returns zero counts for users not assigned to the assignment" do
+        GraphQL::Batch.batch do
+          result = loader.load(outside_student.id)
+          expect(result.sync).to eq({ must_review_count: 0, completed_reviews_count: 0 })
         end
       end
     end
