@@ -53,17 +53,31 @@ class AssignmentOverride < ApplicationRecord
   concrete_set = ->(override) { %w[CourseSection Group Course].include?(override.set_type) }
 
   validates :set, :set_id, presence: { if: concrete_set }
+  duplicate_set_message = lambda do |object, _data|
+    name = object.set&.try(:name)
+    if name.present?
+      t("\"%{name}\" is already assigned more than once. Remove the duplicate before saving.", name:)
+    else
+      t("This section, group, or user is already assigned more than once. Remove the duplicate before saving.")
+    end
+  end
   validates :set_id, uniqueness: { scope: %i[assignment_id set_type workflow_state],
+                                   message: duplicate_set_message,
                                    if: ->(override) { override.assignment? && override.active? && concrete_set.call(override) } }
   validates :set_id, uniqueness: { scope: %i[quiz_id set_type workflow_state],
+                                   message: duplicate_set_message,
                                    if: ->(override) { override.quiz? && override.active? && concrete_set.call(override) } }
   validates :set_id, uniqueness: { scope: %i[context_module_id set_type workflow_state],
+                                   message: duplicate_set_message,
                                    if: ->(override) { override.context_module? && override.active? && concrete_set.call(override) } }
   validates :set_id, uniqueness: { scope: %i[wiki_page_id set_type workflow_state],
+                                   message: duplicate_set_message,
                                    if: ->(override) { override.wiki_page? && override.active? && concrete_set.call(override) } }
   validates :set_id, uniqueness: { scope: %i[discussion_topic_id set_type workflow_state],
+                                   message: duplicate_set_message,
                                    if: ->(override) { override.discussion_topic? && override.active? && concrete_set.call(override) } }
   validates :set_id, uniqueness: { scope: %i[attachment_id set_type workflow_state],
+                                   message: duplicate_set_message,
                                    if: ->(override) { override.attachment? && override.active? && concrete_set.call(override) } }
 
   validate :validate_parent_override_for_sub_assignment
@@ -72,20 +86,25 @@ class AssignmentOverride < ApplicationRecord
 
   validate if: concrete_set do |record|
     if record.set && record.assignment && record.active?
+      name = record.set.try(:name)
       case record.set
       when CourseSection
-        record.errors.add :set, "not from assignment's course" unless record.set.course_id == record.assignment.context_id
+        unless record.set.course_id == record.assignment.context_id
+          record.errors.add :set, t("Section \"%{name}\" is not part of this course.", name:)
+        end
       when Group
         is_non_collaborative = record.set.non_collaborative?
         valid_group_category_id = record.assignment.effective_group_category_id
 
         if is_non_collaborative && !record.assignment.context.account.allow_assign_to_differentiation_tags?
-          record.errors.add :set, "not allowed to assign to assignment"
+          record.errors.add :set, t("Differentiation tag \"%{name}\" cannot be assigned to this assignment.", name:)
         elsif !is_non_collaborative && record.set.group_category_id != valid_group_category_id
-          record.errors.add :set, "not from assignment's group category"
+          record.errors.add :set, t("Group \"%{name}\" is not part of this assignment's group set.", name:)
         end
       when Course
-        record.errors.add :set, "not from assignment's course" unless record.set.id == record.assignment.context_id
+        unless record.set.id == record.assignment.context_id
+          record.errors.add :set, t("Course \"%{name}\" override does not match this assignment's course.", name:)
+        end
       end
     end
   end

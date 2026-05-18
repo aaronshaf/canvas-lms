@@ -42,7 +42,8 @@ import {showFlashAlert} from '@instructure/platform-alerts'
 import {getLiveRegion} from '@instructure/platform-instui-bindings'
 import {lockLabels} from '@canvas/blueprint-courses/react/labels'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import doFetchApi from '@canvas/do-fetch-api-effect'
+import doFetchApi, {FetchApiError} from '@canvas/do-fetch-api-effect'
+import {extractApiErrorMessage} from '@canvas/api/extractApiErrorMessage'
 import type {
   DateDetails,
   DateDetailsOverride,
@@ -130,10 +131,20 @@ export const updateModuleItem = ({
       onSuccess()
       window.location.reload()
     })
-    .catch((err: Error) => {
+    .catch(async (err: Error) => {
+      let detail: string | null = null
+      if (err instanceof FetchApiError && err.response) {
+        try {
+          detail = extractApiErrorMessage(await err.response.json())
+        } catch (_e) {
+          detail = null
+        }
+      }
+      const baseMessage = I18n.t(`Error updating "%{moduleItemName}"`, {moduleItemName})
       showFlashAlert({
-        err,
-        message: I18n.t(`Error updating "%{moduleItemName}`, {moduleItemName}),
+        err: detail ? null : err,
+        message: detail ? `${baseMessage}: ${detail}` : baseMessage,
+        type: 'error',
       })
     })
     .finally(() => onLoading(false))

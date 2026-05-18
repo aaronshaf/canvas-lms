@@ -28,6 +28,7 @@ import numberHelper from '@canvas/i18n/numberHelper'
 import round from '@canvas/round'
 import RichContentEditor from '@canvas/rce/RichContentEditor'
 import {showFlashAlert} from '@instructure/platform-alerts'
+import {extractApiErrorMessage} from '@canvas/api/extractApiErrorMessage'
 import EditViewTemplate from '../../jst/EditView.handlebars'
 import userSettings from '@canvas/user-settings'
 import TurnitinSettings from '@canvas/assignments/TurnitinSettings'
@@ -1826,6 +1827,16 @@ EditView.prototype.onSaveFail = function (xhr) {
       message: xhr.responseJSON.errors,
       type: 'error',
     })
+  } else {
+    const overrideMessage = extractApiErrorMessage(xhr?.responseJSON, {
+      restrictKeys: ['set', 'set_id', 'invalid_record', 'assignment_overrides'],
+    })
+    if (overrideMessage) {
+      showFlashAlert({
+        message: overrideMessage,
+        type: 'error',
+      })
+    }
   }
 
   return EditView.__super__.onSaveFail.call(this, xhr)

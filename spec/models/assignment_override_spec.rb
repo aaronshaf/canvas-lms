@@ -512,6 +512,34 @@ describe AssignmentOverride do
       expect(@override).not_to be_valid
     end
 
+    it "uses a user-friendly message for duplicate sets" do
+      section = @course.default_section
+      section.update!(name: "Section Alpha")
+      @override.set = section
+      @override.save!
+
+      duplicate = AssignmentOverride.new(assignment: @assignment, set: section)
+      expect(duplicate).not_to be_valid
+      expect(duplicate.errors[:set_id]).to include('"Section Alpha" is already assigned more than once. Remove the duplicate before saving.')
+    end
+
+    it "uses a user-friendly message for sections not in the assignment's course" do
+      @other_course = course_model
+      other_section = @other_course.default_section
+      other_section.update!(name: "Other Course Section")
+      @override.set = other_section
+      expect(@override).not_to be_valid
+      expect(@override.errors[:set]).to include('Section "Other Course Section" is not part of this course.')
+    end
+
+    it "uses a user-friendly message for groups not in the assignment's group category" do
+      @assignment.group_category = group_category
+      @category = group_category(name: "bar")
+      @override.set = @category.groups.create!(context: @assignment.context, name: "Renegade Group")
+      expect(@override).not_to be_valid
+      expect(@override.errors[:set]).to include('Group "Renegade Group" is not part of this assignment\'s group set.')
+    end
+
     it "allows duplicates of sets where only one is active" do
       @override.set = @course.default_section
       @override.save!

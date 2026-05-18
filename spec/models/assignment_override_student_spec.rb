@@ -58,6 +58,14 @@ describe AssignmentOverrideStudent do
       expect(@override_student).not_to be_valid
     end
 
+    it "uses a user-friendly message when the user is not a student in the course" do
+      ta = ta_in_course(course: @course, active_all: true).user
+      ta.update!(name: "Trevor TA")
+      @override_student.user = ta
+      expect(@override_student).not_to be_valid
+      expect(@override_student.errors[:user]).to include('"Trevor TA" is not enrolled as a student in this course.')
+    end
+
     it "rejects duplicate tuples" do
       @override_student.save!
       @override_student2 = @override.assignment_override_students.build

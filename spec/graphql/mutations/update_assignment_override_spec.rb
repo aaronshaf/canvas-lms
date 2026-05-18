@@ -351,7 +351,7 @@ describe Mutations::UpdateAssignment do
       ]
     GQL
     expect(result["errors"]).to be_nil
-    expect(result.dig("data", "updateAssignment", "errors", 0, "message")).to eq "Validation failed: Set has already been taken"
+    expect(result.dig("data", "updateAssignment", "errors", 0, "message")).to match(/\AValidation failed: Set "[^"]+" is already assigned more than once\. Remove the duplicate before saving\.\z/)
   end
 
   it "invalid dates cause validation errors" do

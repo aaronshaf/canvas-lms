@@ -247,6 +247,67 @@ describe('ItemAssignToTray - Save Operations', () => {
     expect(requestBody.assignment_overrides).toHaveLength(2)
   }, 30000)
 
+  it('surfaces the server error message when the save fails with a 400', async () => {
+    const user = userEvent.setup(USER_EVENT_OPTIONS)
+    server.use(
+      http.put(DATE_DETAILS, () => {
+        return HttpResponse.json(
+          {
+            invalid_record: [
+              'Validation failed: Set "Section Alpha" is already assigned more than once. Remove the duplicate before saving.',
+            ],
+          },
+          {status: 400},
+        )
+      }),
+    )
+    const {findAllByTestId, findByText, findAllByText} = renderComponent()
+    const assigneeSelector = (await findAllByTestId('assignee_selector'))[0]
+    fireEvent.click(assigneeSelector)
+    const option1 = await findByText(SECTIONS_DATA[0].name)
+    fireEvent.click(option1)
+    const save = (await findAllByTestId('differentiated_modules_save_button'))[0]
+    await user.click(save)
+    const flashes = await findAllByText(
+      /already assigned more than once\. Remove the duplicate before saving\./,
+    )
+    expect(flashes[0]).toBeInTheDocument()
+  }, 30000)
+
+  it('surfaces a Reporter-formatted server error message when the save fails with a 400', async () => {
+    const user = userEvent.setup(USER_EVENT_OPTIONS)
+    server.use(
+      http.put(DATE_DETAILS, () => {
+        return HttpResponse.json(
+          {
+            errors: {
+              set_id: [
+                {
+                  attribute: 'set_id',
+                  message:
+                    '"Section Alpha" is already assigned more than once. Remove the duplicate before saving.',
+                  type: 'taken',
+                },
+              ],
+            },
+          },
+          {status: 400},
+        )
+      }),
+    )
+    const {findAllByTestId, findByText, findAllByText} = renderComponent()
+    const assigneeSelector = (await findAllByTestId('assignee_selector'))[0]
+    fireEvent.click(assigneeSelector)
+    const option1 = await findByText(SECTIONS_DATA[0].name)
+    fireEvent.click(option1)
+    const save = (await findAllByTestId('differentiated_modules_save_button'))[0]
+    await user.click(save)
+    const flashes = await findAllByText(
+      /already assigned more than once\. Remove the duplicate before saving\./,
+    )
+    expect(flashes[0]).toBeInTheDocument()
+  }, 30000)
+
   it('disables Save button if no changes have been made', async () => {
     // There are some callbacks that update the cards, they are passed by the tray wrappers
     // We may consider a way to mock those callbacks

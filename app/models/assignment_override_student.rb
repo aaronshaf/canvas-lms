@@ -57,7 +57,8 @@ class AssignmentOverrideStudent < ApplicationRecord
 
   validate :user, if: :active? do |record|
     if no_enrollment?(record)
-      record.errors.add :user, "is not in the assignment's course"
+      name = record.user&.name
+      record.errors.add :user, t("\"%{name}\" is not enrolled as a student in this course.", name:)
     end
   end
 
