@@ -289,8 +289,7 @@ describe('RubricAssignmentContainer Tests', () => {
       expect(queryByTestId('delete-confirm-btn')).not.toBeInTheDocument()
 
       fireEvent.click(getByTestId('remove-assignment-rubric-button'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(getByTestId('delete-confirm-btn')).toBeInTheDocument()
+      await waitFor(() => expect(getByTestId('delete-confirm-btn')).toBeInTheDocument())
     }, 30000)
 
     it('should remove the rubric from the assignment when the delete confirm modal is confirmed', async () => {
@@ -301,8 +300,9 @@ describe('RubricAssignmentContainer Tests', () => {
       fireEvent.click(getByTestId('remove-assignment-rubric-button'))
       expect(getByTestId('delete-confirm-modal')).toBeInTheDocument()
       fireEvent.click(getByTestId('delete-confirm-btn'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(getByTestId('create-assignment-rubric-button')).toBeInTheDocument()
+      await waitFor(() =>
+        expect(getByTestId('create-assignment-rubric-button')).toBeInTheDocument(),
+      )
       expect(getByTestId('find-assignment-rubric-button')).toBeInTheDocument()
     }, 30000)
 
@@ -315,8 +315,7 @@ describe('RubricAssignmentContainer Tests', () => {
       })
       fireEvent.click(getByTestId('remove-assignment-rubric-button'))
       fireEvent.click(getByTestId('delete-confirm-btn'))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      expect(onRubricChange).toHaveBeenCalledWith(undefined, undefined)
+      await waitFor(() => expect(onRubricChange).toHaveBeenCalledWith(undefined, undefined))
     })
 
     it('should open the preview tray when the preview button is clicked', async () => {
