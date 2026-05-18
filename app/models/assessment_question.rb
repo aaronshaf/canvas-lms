@@ -21,6 +21,7 @@
 class AssessmentQuestion < ApplicationRecord
   extend RootAccountResolver
   include Workflow
+  include QuizQuestionHtmlSanitization
 
   has_many :quiz_questions, class_name: "Quizzes::QuizQuestion"
   has_many :attachments, as: :context, inverse_of: :context
@@ -32,6 +33,7 @@ class AssessmentQuestion < ApplicationRecord
   simply_versioned automatic: false
   acts_as_list scope: :assessment_question_bank
   before_validation :infer_defaults
+  before_save :sanitize_question_data_html_fields
   after_save :translate_links_if_changed
   validates :name, length: { maximum: maximum_string_length, allow_nil: true }
   validates :workflow_state, :assessment_question_bank_id, presence: true

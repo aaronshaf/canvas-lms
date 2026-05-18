@@ -529,8 +529,8 @@ describe ContentMigration do
       # TODO: fix media attachments not being copied to assessment question context like other attachments
       new_att = bank.assessment_questions.first.attachments.take
       translated_body = <<~HTML.strip
-        media comment: <iframe id="media_comment_0_l4l5n0wt" class="instructure_inline_media_comment video_comment" style="width: 320px; height: 240px; display: inline-block;" title="this is a media comment" data-media-type="video" src="/media_attachments_iframe/#{new_att.id}?verifier=#{new_att.uuid}&embedded=true&amp;type=video" allowfullscreen="allowfullscreen" allow="fullscreen" data-media-id="0_l4l5n0wt"></iframe>
-        media object: <iframe style="width: 400px; height: 225px; display: inline-block;" title="this is a media comment" data-media-type="video" allowfullscreen="allowfullscreen" allow="fullscreen" data-media-id="0_l4l5n0wt" src="/media_attachments_iframe/#{new_att.id}?verifier=#{new_att.uuid}&embedded=true&amp;type=video"></iframe>
+        media comment: <iframe id="media_comment_0_l4l5n0wt" class="instructure_inline_media_comment video_comment" style="width: 320px; height: 240px; display: inline-block;" title="this is a media comment" data-media-type="video" src="/media_attachments_iframe/#{new_att.id}?verifier=#{new_att.uuid}&amp;embedded=true&amp;type=video" allowfullscreen="allowfullscreen" allow="fullscreen" data-media-id="0_l4l5n0wt"></iframe>
+        media object: <iframe style="width: 400px; height: 225px; display: inline-block;" title="this is a media comment" data-media-type="video" allowfullscreen="allowfullscreen" allow="fullscreen" data-media-id="0_l4l5n0wt" src="/media_attachments_iframe/#{new_att.id}?verifier=#{new_att.uuid}&amp;embedded=true&amp;type=video"></iframe>
       HTML
 
       expect(aq.question_data["question_text"]).to match_ignoring_whitespace(translated_body)

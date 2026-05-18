@@ -59,7 +59,7 @@ describe AssessmentQuestion do
 
     @clone = @question.attachments.where(root_attachment: @attachment).first
 
-    expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src='/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}'>"
+    expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src=\"/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}\">"
   end
 
   it "translates links relative path url" do
@@ -69,7 +69,7 @@ describe AssessmentQuestion do
 
     @clone = @question.attachments.where(root_attachment: @attachment).first
 
-    expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src='/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}'>"
+    expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src=\"/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}\">"
   end
 
   it "handles existing query string parameters" do
@@ -81,7 +81,7 @@ describe AssessmentQuestion do
 
     @clone = @question.attachments.where(root_attachment: @attachment).first
 
-    expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src='/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}&wrap=1'> and this: <img src='/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}&wrap=1'>"
+    expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src=\"/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}&amp;wrap=1\"> and this: <img src=\"/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}&amp;wrap=1\">"
   end
 
   it "translates multiple links in same body" do
@@ -92,7 +92,7 @@ describe AssessmentQuestion do
 
     @clone = @question.attachments.where(root_attachment: @attachment).first
 
-    expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src='/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}'> and this: <img src='/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}'>"
+    expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src=\"/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}\"> and this: <img src=\"/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}\">"
   end
 
   it "translates user files" do
@@ -101,7 +101,7 @@ describe AssessmentQuestion do
 
     @question = @bank.assessment_questions.create!(question_data: data, updating_user: @teacher)
     @clone = @question.attachments.where(root_attachment: user_file).first
-    expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src='/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}'>"
+    expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src=\"/assessment_questions/#{@question.id}/files/#{@clone.id}/download?verifier=#{@clone.uuid}\">"
   end
 
   it "does not allow another users without proper permission to user file to clone it" do
@@ -121,6 +121,44 @@ describe AssessmentQuestion do
 
     clones = @question.attachments.where(root_attachment: @attachment)
     expect(clones.count).to eq 1
+  end
+
+  describe "save-time html sanitization" do
+    let(:xss_question_data) do
+      {
+        "question_type" => "multiple_choice_question",
+        "question_name" => "Question",
+        "name" => "Question",
+        "question_text" => '<img src="x" onerror="alert(1)">safe text',
+        "correct_comments_html" => '<img src="x" onerror="alert(2)">safe correct',
+        "incorrect_comments_html" => '<img src="x" onerror="alert(3)">safe incorrect',
+        "neutral_comments_html" => '<img src="x" onerror="alert(4)">safe neutral',
+        "comments_html" => '<img src="x" onerror="alert(5)">safe comments',
+        "text_after_answers" => '<img src="x" onerror="alert(6)">safe after',
+        "answers" => [
+          {
+            "id" => 1,
+            "html" => '<img src="x" onerror="alert(7)">safe a1 html',
+            "comments_html" => '<img src="x" onerror="alert(8)">safe a1 comments',
+            "weight" => 100.0
+          }
+        ]
+      }
+    end
+
+    it "sanitizes html fields in question_data on save" do
+      aq = @bank.assessment_questions.create!(question_data: xss_question_data)
+      data = aq.reload.read_attribute(:question_data)
+
+      expect(data["question_text"]).to eq('<img src="x">safe text')
+      expect(data["correct_comments_html"]).to eq('<img src="x">safe correct')
+      expect(data["incorrect_comments_html"]).to eq('<img src="x">safe incorrect')
+      expect(data["neutral_comments_html"]).to eq('<img src="x">safe neutral')
+      expect(data["comments_html"]).to eq('<img src="x">safe comments')
+      expect(data["text_after_answers"]).to eq('<img src="x">safe after')
+      expect(data["answers"][0]["html"]).to eq('<img src="x">safe a1 html')
+      expect(data["answers"][0]["comments_html"]).to eq('<img src="x">safe a1 comments')
+    end
   end
 
   describe "translate_link_regex" do
@@ -205,7 +243,7 @@ describe AssessmentQuestion do
 
       @clone = @question.attachments.where(root_attachment: @attachment).first
 
-      expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src='/assessment_questions/#{@question.id}/files/#{@clone.id}/download'> and this: <img src='/assessment_questions/#{@question.id}/files/#{@clone.id}/download'>"
+      expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src=\"/assessment_questions/#{@question.id}/files/#{@clone.id}/download\"> and this: <img src=\"/assessment_questions/#{@question.id}/files/#{@clone.id}/download\">"
     end
 
     it "translates user files and would not add verifiers" do
@@ -215,7 +253,7 @@ describe AssessmentQuestion do
 
       @question = @bank.assessment_questions.create!(question_data: data, updating_user: @teacher)
       @clone = @question.attachments.where(root_attachment: user_file).first
-      expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src='/assessment_questions/#{@question.id}/files/#{@clone.id}/download'>"
+      expect(@question.reload.question_data["question_text"]).to eq "Translate this: <img src=\"/assessment_questions/#{@question.id}/files/#{@clone.id}/download\">"
     end
   end
 
@@ -401,8 +439,8 @@ describe AssessmentQuestion do
       @question = @bank.assessment_questions.create!(question_data: data, updating_user: @teacher)
       @clone = @question.attachments.where(root_attachment: @media_attachment).first
 
-      expected_url = "/media_attachments_iframe/#{@clone.id}?verifier=#{@clone.uuid}&embedded=true&type=video"
-      expect(@question.reload.question_data["question_text"]).to eq "Watch this video: <iframe src='#{expected_url}'></iframe>"
+      expected_url = "/media_attachments_iframe/#{@clone.id}?verifier=#{@clone.uuid}&amp;embedded=true&amp;type=video"
+      expect(@question.reload.question_data["question_text"]).to eq "Watch this video: <iframe src=\"#{expected_url}\"></iframe>"
     end
 
     it "handles multiple media iframe links in the same content" do
@@ -420,8 +458,8 @@ describe AssessmentQuestion do
       @clone2 = @question.attachments.where(root_attachment: @media_attachment2).first
 
       result = @question.reload.question_data["question_text"]
-      expect(result).to include("<iframe src='/media_attachments_iframe/#{@clone1.id}")
-      expect(result).to include("<iframe src='/media_attachments_iframe/#{@clone2.id}")
+      expect(result).to include("<iframe src=\"/media_attachments_iframe/#{@clone1.id}")
+      expect(result).to include("<iframe src=\"/media_attachments_iframe/#{@clone2.id}")
     end
 
     it "handles mixed regular file and media iframe links" do
@@ -439,8 +477,8 @@ describe AssessmentQuestion do
       @media_clone = @question.attachments.where(root_attachment: @media_attachment).first
 
       result = @question.reload.question_data["question_text"]
-      expect(result).to include("<a href='/assessment_questions/#{@question.id}/files/#{@file_clone.id}/download")
-      expect(result).to include("<iframe src='/media_attachments_iframe/#{@media_clone.id}")
+      expect(result).to include("<a href=\"/assessment_questions/#{@question.id}/files/#{@file_clone.id}/download")
+      expect(result).to include("<iframe src=\"/media_attachments_iframe/#{@media_clone.id}")
     end
 
     # TODO: should be removed with GROW-146
@@ -459,7 +497,7 @@ describe AssessmentQuestion do
         @clone = @question.attachments.where(root_attachment: @media_attachment).first
 
         expected_url = "/media_attachments_iframe/#{@clone.id}?embedded=true"
-        expect(@question.reload.question_data["question_text"]).to eq "Media: <iframe src='#{expected_url}'></iframe>"
+        expect(@question.reload.question_data["question_text"]).to eq "Media: <iframe src=\"#{expected_url}\"></iframe>"
       end
     end
 
@@ -493,8 +531,8 @@ describe AssessmentQuestion do
       answer_html = @question.reload.question_data["answers"][0]["html"]
       comments_html = @question.reload.question_data["answers"][0]["comments_html"]
 
-      expect(answer_html).to include("<iframe src='/media_attachments_iframe/#{@clone.id}")
-      expect(comments_html).to include("<iframe src='/media_attachments_iframe/#{@clone.id}")
+      expect(answer_html).to include("<iframe src=\"/media_attachments_iframe/#{@clone.id}")
+      expect(comments_html).to include("<iframe src=\"/media_attachments_iframe/#{@clone.id}")
     end
 
     it "preserves media iframe URLs when attachment cloning fails" do
@@ -511,7 +549,7 @@ describe AssessmentQuestion do
       @question = @bank.assessment_questions.create!(question_data: data)
 
       original_url = "/media_attachments_iframe/#{@media_attachment.id}?embedded=true"
-      expect(@question.reload.question_data["question_text"]).to eq "Media: <iframe src='#{original_url}'></iframe>"
+      expect(@question.reload.question_data["question_text"]).to eq "Media: <iframe src=\"#{original_url}\"></iframe>"
     end
   end
 

@@ -176,6 +176,133 @@ describe Quizzes::QuizQuestion do
     end
   end
 
+  describe "save-time html sanitization" do
+    before do
+      course_with_teacher
+      @quiz = @course.quizzes.create
+    end
+
+    let(:xss_question_data) do
+      {
+        "question_type" => "multiple_choice_question",
+        "question_name" => "Question",
+        "name" => "Question",
+        "question_text" => '<img src="x" onerror="alert(1)">safe text',
+        "correct_comments_html" => '<img src="x" onerror="alert(2)">safe correct',
+        "incorrect_comments_html" => '<img src="x" onerror="alert(3)">safe incorrect',
+        "neutral_comments_html" => '<img src="x" onerror="alert(4)">safe neutral',
+        "comments_html" => '<img src="x" onerror="alert(5)">safe comments',
+        "text_after_answers" => '<img src="x" onerror="alert(6)">safe after',
+        "more_comments_html" => '<img src="x" onerror="alert(9)">safe more comments',
+        "answers" => [
+          {
+            "id" => 1,
+            "html" => '<img src="x" onerror="alert(7)">safe a1 html',
+            "comments_html" => '<img src="x" onerror="alert(8)">safe a1 comments',
+            "left_html" => '<img src="x" onerror="alert(10)">safe a1 left',
+            "weight" => 100.0
+          }
+        ]
+      }
+    end
+
+    it "sanitizes html fields in question_data on save" do
+      qq = @quiz.quiz_questions.new
+      qq["question_data"] = xss_question_data
+      qq.save!
+
+      data = qq.reload.read_attribute(:question_data)
+      expect(data["question_text"]).to eq('<img src="x">safe text')
+      expect(data["correct_comments_html"]).to eq('<img src="x">safe correct')
+      expect(data["incorrect_comments_html"]).to eq('<img src="x">safe incorrect')
+      expect(data["neutral_comments_html"]).to eq('<img src="x">safe neutral')
+      expect(data["comments_html"]).to eq('<img src="x">safe comments')
+      expect(data["text_after_answers"]).to eq('<img src="x">safe after')
+      expect(data["more_comments_html"]).to eq('<img src="x">safe more comments')
+      expect(data["answers"][0]["html"]).to eq('<img src="x">safe a1 html')
+      expect(data["answers"][0]["comments_html"]).to eq('<img src="x">safe a1 comments')
+      expect(data["answers"][0]["left_html"]).to eq('<img src="x">safe a1 left')
+    end
+
+    # more_comments_html and left_html are not set via the question_data=
+    # setter (QuestionData.generate drops them), but the importer writes
+    # them directly to the attribute, so the before_save sanitization must
+    # cover them.
+    it "sanitizes more_comments_html written directly (importer path)" do
+      qq = @quiz.quiz_questions.new
+      qq["question_data"] = {
+        "question_type" => "matching_question",
+        "question_name" => "Q",
+        "more_comments_html" => '<img src="x" onerror="alert(1)">safe',
+        "answers" => []
+      }
+      qq.save!
+
+      expect(qq.reload.read_attribute(:question_data)["more_comments_html"])
+        .to eq('<img src="x">safe')
+    end
+
+    it "sanitizes answer left_html written directly (importer path)" do
+      qq = @quiz.quiz_questions.new
+      qq["question_data"] = {
+        "question_type" => "matching_question",
+        "question_name" => "Q",
+        "answers" => [
+          { "id" => 1, "left_html" => '<img src="x" onerror="alert(1)">safe left', "weight" => 100.0 }
+        ]
+      }
+      qq.save!
+
+      expect(qq.reload.read_attribute(:question_data)["answers"][0]["left_html"])
+        .to eq('<img src="x">safe left')
+    end
+
+    it "sanitizes html via update_from_assessment_question!" do
+      bank = @course.assessment_question_banks.create!
+      aq = bank.assessment_questions.create!(question_data: {
+                                               "question_type" => "multiple_choice_question",
+                                               "question_name" => "Q",
+                                               "answers" => []
+                                             })
+      # Simulate pre-existing XSS data (as if written before this fix)
+      allow(aq).to receive(:question_data).and_return(
+        { "question_type" => "multiple_choice_question",
+          "question_name" => "Q",
+          "question_text" => '<img src="x" onerror="alert(1)">safe',
+          "answers" => [] }
+      )
+
+      qq = @quiz.quiz_questions.new
+      qq.assessment_question = aq
+      qq.assessment_question_version = nil
+      qq.workflow_state = "generated"
+      qq["question_data"] = {}
+      qq.save!
+
+      qq.update_from_assessment_question!(aq, nil, 0)
+
+      expect(qq.reload.read_attribute(:question_data)["question_text"]).to eq('<img src="x">safe')
+    end
+
+    it "does not raise when question_data is nil" do
+      qq = @quiz.quiz_questions.new
+      qq["question_data"] = nil
+      expect { qq.save! }.not_to raise_error
+    end
+
+    it "is idempotent on already-sanitized html" do
+      qq = @quiz.quiz_questions.new
+      qq["question_data"] = xss_question_data
+      qq.save!
+      first_save = qq.reload.read_attribute(:question_data)["question_text"]
+
+      qq.touch
+      second_save = qq.reload.read_attribute(:question_data)["question_text"]
+
+      expect(second_save).to eq(first_save)
+    end
+  end
+
   describe ".update_all_positions" do
     def question_positions(object)
       object.quiz_questions.active.sort_by(&:position).map(&:id)

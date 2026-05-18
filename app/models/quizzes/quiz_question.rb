@@ -36,6 +36,7 @@ class Quizzes::QuizQuestion < ApplicationRecord
 
   include Workflow
   include LinkedAttachmentHandler
+  include QuizQuestionHtmlSanitization
 
   attr_readonly :quiz_id
   belongs_to :quiz, class_name: "Quizzes::Quiz", inverse_of: :quiz_questions
@@ -50,6 +51,7 @@ class Quizzes::QuizQuestion < ApplicationRecord
 
   before_save :validate_blank_questions
   before_save :infer_defaults
+  before_save :sanitize_question_data_html_fields
   before_save :create_assessment_question, unless: :generated?
   before_destroy :delete_assessment_question, unless: :generated?
   before_destroy :update_quiz
@@ -84,12 +86,14 @@ class Quizzes::QuizQuestion < ApplicationRecord
     correct_comments_html
     incorrect_comments_html
     neutral_comments_html
+    more_comments_html
     text_after_answers
   ].freeze
 
   QUESTION_DATA_ANSWER_HTML_FIELDS = %i[
     html
     comments_html
+    left_html
   ].freeze
 
   def update_attachment_associations(migration: nil, skip_user_verification: false)
