@@ -3875,6 +3875,200 @@ describe Course do
         end
       end
 
+      describe "new external tool tab positioning relative to disabled tabs" do
+        let!(:tool) do
+          @course.context_external_tools.create!(
+            name: "New Tool",
+            domain: "example.com",
+            consumer_key: "key",
+            shared_secret: "secret",
+            course_navigation: { text: "New Tool", url: "https://example.com/lti" }
+          )
+        end
+
+        let(:tool_tab_id) { "context_external_tool_#{tool.id}" }
+
+        it "inserts the tool immediately after the last visible configured tab" do
+          @course.tab_configuration = [
+            { id: Course::TAB_HOME },
+            { id: Course::TAB_ANNOUNCEMENTS },
+            { id: Course::TAB_FILES, hidden: true },
+            { id: Course::TAB_ASSIGNMENTS, hidden: true }
+          ]
+          @course.save!
+
+          tab_ids = @course.tabs_available(@user, include_external: true).pluck(:id)
+          # Pin absolute ordering of the configured prefix: the tool lands immediately
+          # after the last visible tab (Announcements). A full-slice assertion catches
+          # any drift in the residual computation that relative checks alone would miss.
+          expect(tab_ids[0..4]).to eq([
+                                        Course::TAB_HOME,
+                                        Course::TAB_ANNOUNCEMENTS,
+                                        tool_tab_id,
+                                        Course::TAB_FILES,
+                                        Course::TAB_ASSIGNMENTS
+                                      ])
+        end
+
+        it "still includes the tool when no tabs are disabled" do
+          @course.tab_configuration = [{ id: Course::TAB_HOME }]
+          @course.save!
+
+          tab_ids = @course.tabs_available(@user, include_external: true).pluck(:id)
+          expect(tab_ids).to include(tool_tab_id)
+        end
+
+        it "appends the tool just before Settings when tab_configuration is empty" do
+          @course.tab_configuration = []
+          @course.save!
+
+          tab_ids = @course.tabs_available(@user, include_external: true).pluck(:id)
+          settings_index = tab_ids.index(Course::TAB_SETTINGS)
+          tool_index = tab_ids.index(tool_tab_id)
+          expect(tool_index).to eq(settings_index - 1)
+        end
+
+        it "inserts the tool before the hidden block when all configured tabs are hidden" do
+          @course.tab_configuration = [
+            { id: Course::TAB_HOME, hidden: true },
+            { id: Course::TAB_FILES, hidden: true }
+          ]
+          @course.save!
+
+          tab_ids = @course.tabs_available(@user, include_external: true).pluck(:id)
+          files_index = tab_ids.index(Course::TAB_FILES)
+          tool_index = tab_ids.index(tool_tab_id)
+          expect(tool_index).to be < files_index
+        end
+
+        it "does not insert the tool before a visible tab that follows a hidden tab" do
+          # [Home, Files(hidden), Modules] — tool must land after Modules, not before Files
+          @course.tab_configuration = [
+            { id: Course::TAB_HOME },
+            { id: Course::TAB_FILES, hidden: true },
+            { id: Course::TAB_MODULES }
+          ]
+          @course.save!
+
+          tab_ids = @course.tabs_available(@user, include_external: true).pluck(:id)
+          expect(tab_ids.index(tool_tab_id)).to be > tab_ids.index(Course::TAB_MODULES)
+        end
+
+        it "places the tool before AI Experiences when Settings is hidden" do
+          @course.enable_feature!(:ai_experiences)
+          @course.tab_configuration = [
+            { id: Course::TAB_HOME },
+            { id: Course::TAB_SETTINGS, hidden: true }
+          ]
+          @course.save!
+
+          tab_ids = @course.tabs_available(@user, include_external: true).pluck(:id)
+          # Home is the only visible tab; tool lands after it and before AI Experiences.
+          expect(tab_ids[0..2]).to eq([Course::TAB_HOME, tool_tab_id, Course::TAB_AI_EXPERIENCES])
+          expect(tab_ids.index(Course::TAB_AI_EXPERIENCES)).to be < tab_ids.index(Course::TAB_SETTINGS)
+        end
+
+        it "places the tool after the last visible tab when Settings is visible and ai_experiences is enabled" do
+          # [Home, Settings(visible), Modules, Files(hidden)] + :ai_experiences enabled.
+          # AI Experiences is inserted at settings_index=1, shifting every slot after it by +1.
+          # A stale captured after_last_visible_index (3) would point to Modules after the
+          # shift, landing the tool before a visible tab. The use-time anchor must still
+          # place the tool before Files (the first hidden tab).
+          @course.enable_feature!(:ai_experiences)
+          @course.tab_configuration = [
+            { id: Course::TAB_HOME },
+            { id: Course::TAB_SETTINGS },
+            { id: Course::TAB_MODULES },
+            { id: Course::TAB_FILES, hidden: true }
+          ]
+          @course.save!
+
+          tab_ids = @course.tabs_available(@user, include_external: true).pluck(:id)
+          files_index = tab_ids.index(Course::TAB_FILES)
+          modules_index = tab_ids.index(Course::TAB_MODULES)
+          tool_index = tab_ids.index(tool_tab_id)
+          expect(tool_index).to be > modules_index
+          expect(tool_index).to be < files_index
+        end
+
+        it "inserts the tool before hidden tabs when Settings is visible and precedes them" do
+          # [Home, Settings(visible), Files(hidden)] — Settings is always moved to the
+          # bottom by uncached_tabs_available, so the relevant invariant is: tool lands
+          # immediately before Files.
+          @course.tab_configuration = [
+            { id: Course::TAB_HOME },
+            { id: Course::TAB_SETTINGS },
+            { id: Course::TAB_FILES, hidden: true }
+          ]
+          @course.save!
+
+          tab_ids = @course.tabs_available(@user, include_external: true).pluck(:id)
+          files_index = tab_ids.index(Course::TAB_FILES)
+          expect(tab_ids[files_index - 1]).to eq(tool_tab_id)
+        end
+
+        it "places all new tools above hidden tabs and preserves their relative order" do
+          tool2 = @course.context_external_tools.create!(
+            name: "Second Tool",
+            domain: "example2.com",
+            consumer_key: "key2",
+            shared_secret: "secret2",
+            course_navigation: { text: "Second Tool", url: "https://example2.com/lti" }
+          )
+          tool2_tab_id = "context_external_tool_#{tool2.id}"
+          @course.tab_configuration = [
+            { id: Course::TAB_HOME },
+            { id: Course::TAB_FILES, hidden: true }
+          ]
+          @course.save!
+
+          tab_ids = @course.tabs_available(@user, include_external: true).pluck(:id)
+          files_index = tab_ids.index(Course::TAB_FILES)
+          expect(tab_ids.index(tool_tab_id)).to be < files_index
+          expect(tab_ids.index(tool2_tab_id)).to be < files_index
+          expect(tab_ids.index(tool_tab_id)).to be < tab_ids.index(tool2_tab_id)
+        end
+
+        it "hoists NavMenuLink tabs above hidden tabs" do
+          @course.root_account.enable_feature!(:nav_menu_links)
+          link = NavMenuLink.create!(
+            context: @course,
+            course_nav: true,
+            label: "External Resource",
+            url: "https://example.com"
+          )
+          @course.tab_configuration = [
+            { id: Course::TAB_HOME },
+            { id: Course::TAB_FILES, hidden: true }
+          ]
+          @course.save!
+
+          tab_ids = @course.tabs_available(@user, include_external: true).pluck(:id)
+          nav_tab_id = "nav_menu_link_#{link.id}"
+          expect(tab_ids.index(nav_tab_id)).to be < tab_ids.index(Course::TAB_FILES)
+        end
+
+        it "does not hoist external tool tabs in K5 subject-tab courses" do
+          # course_subject_tabs path re-orders external tabs to the bottom — hoisting would conflict
+          toggle_k5_setting(@course.account)
+          @course.tab_configuration = [
+            { id: Course::TAB_HOME },
+            { id: Course::TAB_FILES, hidden: true }
+          ]
+          @course.save!
+
+          tab_ids = @course.tabs_available(@user,
+                                           include_external: true,
+                                           course_subject_tabs: true).pluck(:id)
+          expect(tab_ids).to include(tool_tab_id)
+          # K5 path moves external tools to the bottom (Groups is placed after external tabs,
+          # so exclude it from the "must come before tool" check)
+          k5_non_groups_ids = Course.course_subject_tabs.pluck(:id) - [Course::TAB_GROUPS]
+          last_non_groups_index = k5_non_groups_ids.filter_map { |id| tab_ids.index(id) }.max
+          expect(tab_ids.index(tool_tab_id)).to be > last_non_groups_index
+        end
+      end
+
       describe "with horizon_course account setting on" do
         before :once do
           @course.account.enable_feature!(:horizon_course_setting)

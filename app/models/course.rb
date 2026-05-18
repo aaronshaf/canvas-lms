@@ -3856,17 +3856,31 @@ class Course < ApplicationRecord
       smart_search_tab = default_tabs.detect { |t| t[:id] == TAB_SEARCH }
       tabs.insert(1, default_tabs.delete(smart_search_tab)) if smart_search_tab && !tabs.empty?
 
+      # Remove AI Experiences from default_tabs before the bulk append so it is not
+      # double-inserted; it is placed before Settings explicitly below.
+      ai_experiences_tab = default_tabs.detect { |t| t[:id] == TAB_AI_EXPERIENCES }
+      default_tabs.delete(ai_experiences_tab) if ai_experiences_tab
+
+      # Hoist only new external tool tabs above the disabled-tab block (LX-3794 scope).
+      # Anchor is computed on the configured-only tabs (before += default_tabs) so it
+      # reflects the user's tab order; inserting before AI Experiences keeps the tool
+      # before any dynamically-added tabs (e.g. [Home, tool, AI Experiences]).
+      # Skip for K5 — the subject-tabs re-ordering below would conflict.
+      if course_subject_tabs || tabs.empty?
+        tabs += default_tabs + external_tabs
+      else
+        last_visible_idx = tabs.rindex { |t| !t[:hidden] }
+        tabs.insert(last_visible_idx ? last_visible_idx + 1 : 0, *external_tabs)
+        tabs += default_tabs
+      end
+
       # since TAB_AI_EXPERIENCES is added dynamically, insert it before Settings if not already configured
       # If it was configured by the user, it will have been removed from default_tabs by the mapping above
-      ai_experiences_tab = default_tabs.detect { |t| t[:id] == TAB_AI_EXPERIENCES }
       if ai_experiences_tab && !tabs.empty?
         settings_index = tabs.index { |t| t[:id] == TAB_SETTINGS }
         settings_index ||= tabs.length
-        tabs.insert(settings_index, default_tabs.delete(ai_experiences_tab))
+        tabs.insert(settings_index, ai_experiences_tab)
       end
-
-      tabs += default_tabs
-      tabs += external_tabs
 
       is_ams = root_account.feature_enabled?(:ams_root_account_integration) &&
                feature_enabled?(:ams_course_integration)
