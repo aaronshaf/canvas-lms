@@ -287,6 +287,31 @@ describe ContextModuleProgression do
       expect { new_progression = progression.evaluate! }.not_to raise_error
       expect(new_progression.workflow_state).to eq "locked"
     end
+
+    it "re-runs evaluate body after StaleObjectError retry" do
+      setup_modules
+      @module.publish!
+
+      progression = @user.context_module_progressions.create!(context_module: @module)
+
+      ContextModuleProgression.where(id: progression.id).update_all(
+        lock_version: progression.lock_version + 1,
+        workflow_state: "locked",
+        current: true,
+        evaluated_at: @module.updated_at + 1.second
+      )
+
+      save_attempts = 0
+      allow(progression).to receive(:save).and_wrap_original do |orig|
+        save_attempts += 1
+        orig.call
+      end
+
+      progression.evaluate!
+
+      expect(save_attempts).to eq 2
+      expect(progression.reload.workflow_state).to eq "unlocked"
+    end
   end
 
   it "does not invalidate progressions if a prerequisite changes, until manually relocked" do

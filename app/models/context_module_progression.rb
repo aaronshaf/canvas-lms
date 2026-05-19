@@ -455,6 +455,7 @@ class ContextModuleProgression < ApplicationRecord
     rescue ActiveRecord::StaleObjectError
       # retry up to five times, otherwise return current (stale) data
       reload
+      self.current = false
       retry_count += 1
       retry if retry_count < 10
 
