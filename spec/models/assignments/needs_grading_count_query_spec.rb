@@ -767,18 +767,6 @@ module Assignments
       student_in_course(active_all: true, user_name: "some user")
     end
 
-    context "with legacy implementation" do
-      before { Account.site_admin.disable_feature!(:optimized_needs_grading_count) }
-
-      it "delegates to NeedsGradingCountQueryLegacy, not optimized" do
-        assignment = @course.assignments.create!(title: "dispatch", submission_types: ["online_text_entry"])
-        expect(NeedsGradingCountQueryOptimized).not_to receive(:new)
-        NeedsGradingCountQuery.new([assignment], @teacher).count
-      end
-
-      it_behaves_like "NeedsGradingCountQuery behavior"
-    end
-
     context "with optimized implementation" do
       before { Account.site_admin.enable_feature!(:optimized_needs_grading_count) }
 
@@ -799,77 +787,6 @@ module Assignments
           .with(:optimized_needs_grading_count).once.and_return(false)
         query.count
         query.count
-      end
-    end
-  end
-
-  # Tests the Legacy implementation's Rails.cache layer specifically.
-  # The optimized implementation does not use Rails.cache.fetch_with_batched_keys,
-  # so these tests are intentionally not inside the shared_examples.
-  describe "Rails.cache caching" do
-    before { Account.site_admin.disable_feature!(:optimized_needs_grading_count) }
-
-    before :once do
-      course_with_teacher(active_all: true)
-      student_in_course(active_all: true, user_name: "some user")
-    end
-
-    it "serves count from cache until the cache key is cleared" do
-      student = student_in_course(course: @course, active_all: true).user
-      assignment = @course.assignments.create!(
-        title: "cached assignment",
-        submission_types: ["online_text_entry"]
-      )
-      assignment.submit_homework(student, submission_type: "online_text_entry", body: "hi")
-
-      enable_cache do
-        expect(NeedsGradingCountQuery.new([assignment], @teacher).count[assignment.global_id]).to eq(1)
-
-        # Change DB state bypassing callbacks so the cache key is NOT invalidated
-        Submission.where(assignment:, user: student).update_all(
-          workflow_state: "graded", score: 1, graded_at: Time.zone.now
-        )
-
-        # Cache should still serve the pre-grading value
-        expect(NeedsGradingCountQuery.new([assignment], @teacher).count[assignment.global_id]).to eq(1)
-
-        # Explicitly clearing the cache key forces a recompute on the next call
-        Timecop.freeze(1.minute.from_now) do
-          assignment.clear_cache_key(:needs_grading)
-          expect(NeedsGradingCountQuery.new([assignment], @teacher).count[assignment.global_id]).to eq(0)
-        end
-      end
-    end
-
-    it "serves count_by_section from cache until the cache key is cleared" do
-      course_with_teacher(active_all: true)
-      section2 = @course.course_sections.create!(name: "section 2")
-      student1 = student_in_course(course: @course, active_all: true).user
-      student2 = user_with_pseudonym(active_all: true)
-      section2.enroll_user(student2, "StudentEnrollment", "active")
-      assignment = @course.assignments.create!(
-        title: "by-section cached",
-        submission_types: ["online_text_entry"]
-      )
-      assignment.submit_homework(student1, submission_type: "online_text_entry", body: "s1")
-      assignment.submit_homework(student2, submission_type: "online_text_entry", body: "s2")
-
-      enable_cache do
-        sections = NeedsGradingCountQuery.new([assignment], @teacher).count_by_section[assignment.global_id]
-        expect(sections.sum { |s| s[:needs_grading_count] }).to eq(2)
-
-        Submission.where(assignment:).update_all(
-          workflow_state: "graded", score: 1, graded_at: Time.zone.now
-        )
-
-        sections_cached = NeedsGradingCountQuery.new([assignment], @teacher).count_by_section[assignment.global_id]
-        expect(sections_cached.sum { |s| s[:needs_grading_count] }).to eq(2)
-
-        Timecop.freeze(1.minute.from_now) do
-          assignment.clear_cache_key(:needs_grading)
-          sections_fresh = NeedsGradingCountQuery.new([assignment], @teacher).count_by_section[assignment.global_id]
-          expect(sections_fresh.sum { |s| s[:needs_grading_count] }).to eq(0)
-        end
       end
     end
   end

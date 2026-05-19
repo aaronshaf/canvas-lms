@@ -481,11 +481,6 @@ describe Assignment do
           @assignment.save!
         end
 
-        it "returns false when new_quizzes_grade_by_question_in_speedgrader is disabled" do
-          Account.site_admin.disable_feature!(:new_quizzes_grade_by_question_in_speedgrader)
-          expect(@assignment.supports_grade_by_question?).to be false
-        end
-
         it "returns true when new_quizzes_grade_by_question_in_speedgrader is enabled" do
           expect(@assignment.supports_grade_by_question?).to be true
         end
