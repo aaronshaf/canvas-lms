@@ -1202,13 +1202,25 @@ describe DeveloperKey do
           key.require_scopes
         end
 
-        context "when a public jwk is set" do
+        context "when a public jwk is set on an LTI key" do
           let(:key) do
+            developer_key_not_saved.is_lti_key = true
             developer_key_not_saved.generate_rsa_keypair!
             developer_key_not_saved
           end
 
           it { is_expected.to be true }
+        end
+
+        context "when a public jwk is set on a non-LTI key" do
+          # Non-LTI keys keep the admin's require_scopes setting even with a
+          # public_jwk present (used by the asymmetric service-user flow).
+          let(:key) do
+            developer_key_not_saved.generate_rsa_keypair!
+            developer_key_not_saved
+          end
+
+          it { is_expected.to be false }
         end
 
         context "when a public jwk is not set" do

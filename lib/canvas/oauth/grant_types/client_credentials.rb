@@ -19,10 +19,17 @@
 
 module Canvas::OAuth
   module GrantTypes
+    # ClientCredentials does NOT call super. BaseType#initialize creates a plain
+    # Canvas::OAuth::Provider and immediately verifies any JWT assertion — both
+    # incompatible with the CC flow, which needs an unverified key first (to
+    # dispatch to the correct provider subclass) and a CC-specific provider object.
+    # Shared validation logic is inherited from BaseType; token issuance is
+    # delegated to the selected provider.
     class ClientCredentials < BaseType
-      def initialize(opts, host, root_account, protocol = nil) # rubocop:disable Lint/MissingSuper
+      def initialize(opts, root_account, host:, protocol:) # rubocop:disable Lint/MissingSuper
+        @opts = opts
         @provider = client_credential_provider_for(opts, host, root_account, protocol:)
-        @secret = secret_for(@provider, opts)
+        @secret = opts[:client_secret]
       end
 
       def supported_type?
@@ -31,10 +38,41 @@ module Canvas::OAuth
 
       private
 
+      def validate_client_authentication
+        # For JWT assertion flows, no shared-secret check is needed
+        if jwt_bearer_assertion?
+          raise Canvas::OAuth::RequestError, :invalid_client_id unless @provider.has_valid_key?
+
+          return
+        end
+        super
+      end
+
       def client_credential_provider_for(opts, host, root_account, protocol: nil)
-        if opts[:client_assertion_type] == "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+        if jwt_bearer_assertion?
           raw_jwt = opts[:client_assertion]
-          return Canvas::OAuth::AsymmetricClientCredentialsProvider.new(
+          asymmetric_key = Canvas::OAuth::ClientAssertion.unverified_key_for(raw_jwt)
+
+          if asymmetric_key&.site_admin_service_auth?
+            return Canvas::OAuth::ClientCredentials::ServiceUser::AsymmetricProvider.new(
+              raw_jwt,
+              host,
+              scopes: scopes_from_opts(opts),
+              protocol:,
+              root_account:
+            )
+          end
+
+          if asymmetric_key&.is_lti_key?
+            return Canvas::OAuth::ClientCredentials::LtiAdvantage::Provider.new(
+              raw_jwt,
+              host,
+              scopes: scopes_from_opts(opts),
+              protocol:
+            )
+          end
+
+          return Canvas::OAuth::ClientCredentials::AsymmetricProvider.new(
             raw_jwt,
             host,
             scopes: scopes_from_opts(opts),
@@ -46,7 +84,7 @@ module Canvas::OAuth
         key = key_for(client_id)
 
         if key&.site_admin_service_auth?
-          return Canvas::OAuth::ServiceUserClientCredentialsProvider.new(
+          return Canvas::OAuth::ClientCredentials::ServiceUser::SymmetricProvider.new(
             client_id,
             host,
             scopes: scopes_from_opts(opts),
@@ -56,11 +94,7 @@ module Canvas::OAuth
           )
         end
 
-        Canvas::OAuth::SymmetricClientCredentialsProvider.new(client_id, host, scopes: scopes_from_opts(opts), protocol:)
-      end
-
-      def secret_for(provider, opts)
-        provider.try(:secret) || opts[:client_secret]
+        Canvas::OAuth::ClientCredentials::SymmetricProvider.new(client_id, host, scopes: scopes_from_opts(opts), protocol:)
       end
 
       def key_for(client_id)
@@ -80,10 +114,6 @@ module Canvas::OAuth
 
       def generate_token
         @provider.generate_token
-      end
-
-      def basic_auth?(opts)
-        opts[:client_assertion_type] != "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
       end
 
       def scopes_from_opts(opts)

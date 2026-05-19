@@ -181,26 +181,22 @@ class OAuth2ProviderController < ApplicationController
     basic_user, basic_pass = ActionController::HttpAuthentication::Basic.user_name_and_password(request) if request.authorization
     client_id = params[:client_id].presence || basic_user
     secret = params[:client_secret].presence || basic_pass
+    host_opts = { host: request.host_with_port, protocol: request.protocol }
 
     granter = case grant_type
               when "authorization_code"
                 if Canvas::OAuth::PKCE.use_pkce_in_token?(params) ||
                    Canvas::OAuth::PKCE.code_has_challenge?(params[:code])
-                  Canvas::OAuth::GrantTypes::AuthorizationCodeWithPKCE.new(client_id, secret, params)
+                  Canvas::OAuth::GrantTypes::AuthorizationCodeWithPKCE.new(client_id, secret, params, **host_opts)
                 else
-                  Canvas::OAuth::GrantTypes::AuthorizationCode.new(client_id, secret, params)
+                  Canvas::OAuth::GrantTypes::AuthorizationCode.new(client_id, secret, params, **host_opts)
                 end
               when "refresh_token"
-                Canvas::OAuth::GrantTypes::RefreshToken.new(client_id, secret, params)
+                Canvas::OAuth::GrantTypes::RefreshToken.new(client_id, secret, params, **host_opts)
               when "client_credentials"
-                Canvas::OAuth::GrantTypes::ClientCredentials.new(
-                  params,
-                  request.host_with_port,
-                  @domain_root_account,
-                  request.protocol
-                )
+                Canvas::OAuth::GrantTypes::ClientCredentials.new(params, @domain_root_account, **host_opts)
               else
-                Canvas::OAuth::GrantTypes::BaseType.new(client_id, secret, params)
+                Canvas::OAuth::GrantTypes::BaseType.new(client_id, secret, params, **host_opts)
               end
 
     raise Canvas::OAuth::RequestError, :unsupported_grant_type unless granter.supported_type?

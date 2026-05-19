@@ -18,17 +18,22 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Canvas::OAuth
-  class SymmetricClientCredentialsProvider < ClientCredentialsProvider
-    def valid?
-      key.present?
-    end
+  module ClientCredentials
+    # Symmetric (client_secret) flow. JWT assertion is only permitted for keys
+    # with client_credentials_audience == "external" (peer services).
+    # For service-user keys see ServiceUser::SymmetricProvider.
+    class SymmetricProvider < Provider
+      def valid?
+        key.present?
+      end
 
-    def error_message
-      valid? ? "" : "Unknown client_id"
-    end
+      def error_message
+        valid? ? "" : "Unknown client_id"
+      end
 
-    def assertion_method_permitted?
-      key&.client_credentials_audience == "external"
+      def assertion_method_permitted?
+        key&.client_credentials_audience == "external"
+      end
     end
   end
 end

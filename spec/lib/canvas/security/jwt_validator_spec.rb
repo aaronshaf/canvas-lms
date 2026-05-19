@@ -134,6 +134,27 @@ module Canvas::Security
           end
         end
       end
+
+      context "nonce TTL capping" do
+        # default exp (~11 min from iat) exceeds max_iat_age (5 min)
+        it "caps nonce TTL to max_iat_age when exp - iat exceeds it", :skip_before do
+          expect(Lti::Security).to receive(:check_and_store_nonce)
+            .with(anything, anything, 5.minutes)
+            .and_return(true)
+          validator.validate
+        end
+
+        context "when exp - iat is shorter than max_iat_age" do
+          let(:exp) { 2.minutes.from_now.to_i }
+
+          it "uses exp - iat as the nonce TTL", :skip_before do
+            expect(Lti::Security).to receive(:check_and_store_nonce)
+              .with(anything, anything, satisfy { |d| d < 5.minutes })
+              .and_return(true)
+            validator.validate
+          end
+        end
+      end
     end
 
     context "with missing assertion" do

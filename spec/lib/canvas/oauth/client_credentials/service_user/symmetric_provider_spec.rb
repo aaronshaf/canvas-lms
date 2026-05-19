@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-describe Canvas::OAuth::ServiceUserClientCredentialsProvider do
+describe Canvas::OAuth::ClientCredentials::ServiceUser::SymmetricProvider do
   include_context "InstAccess setup"
 
   let(:service_user) { user_model }
@@ -70,6 +70,18 @@ describe Canvas::OAuth::ServiceUserClientCredentialsProvider do
 
     context "whent he service user is deleted" do
       before { service_user.destroy! }
+
+      it { is_expected.to be false }
+
+      it "includes the correct error message" do
+        subject
+
+        expect(provider.error_message).to eq("No active service")
+      end
+    end
+
+    context "when the service user is suspended" do
+      before { allow_any_instance_of(User).to receive(:suspended?).and_return(true) }
 
       it { is_expected.to be false }
 

@@ -27,7 +27,7 @@ RSpec.describe Canvas::OAuth::GrantTypes::AuthorizationCodeWithPKCE do # rubocop
   let(:authorization_code_with_pkce) { described_class.new(client_id, secret, opts) }
 
   before do
-    allow(Canvas::OAuth::Provider).to receive(:new).with(client_id).and_return(provider)
+    allow(Canvas::OAuth::Provider).to receive(:new).with(client_id, key: nil).and_return(provider)
 
     allow(provider).to receive(:is_authorized_by?).with(secret).and_return(true)
     allow(provider).to receive_messages(has_valid_key?: true, token_for: token)

@@ -908,8 +908,8 @@ class DeveloperKey < ApplicationRecord
   end
 
   def set_require_scopes
-    # Prevent RSA keys from having API access
-    self.require_scopes = true if public_jwk.present? || public_jwk_url.present?
+    # LTI keys always require scoped access (validated to always have a JWK)
+    self.require_scopes = true if is_lti_key?
   end
 
   def validate_scopes!

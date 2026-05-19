@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rotp"
-
 #
 # Copyright (C) 2021 - present Instructure, Inc.
 #
@@ -19,6 +17,7 @@ require "rotp"
 # You should have received a copy of the GNU Affero General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
+require "rotp"
 
 class Lti::TokenController < ApplicationController
   include SupportHelpers::ControllerHelpers
@@ -58,7 +57,7 @@ class Lti::TokenController < ApplicationController
   private
 
   def lti_advantage_token
-    Canvas::OAuth::SiteAdminClientCredentialsProvider.new(
+    Canvas::OAuth::ClientCredentials::LtiAdvantage::SupportTokenProvider.new(
       key.global_id,
       request.host_with_port,
       TokenScopes::LTI_SCOPES.keys,

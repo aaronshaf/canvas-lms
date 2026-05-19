@@ -32,6 +32,12 @@ module Canvas::OAuth
         http_status: 401
       }.freeze,
 
+      invalid_jwt_assertion: {
+        error: :invalid_client,
+        error_description: "invalid JWT assertion",
+        http_status: 401
+      }.freeze,
+
       invalid_redirect: {
         error: :invalid_request,
         error_description: "redirect_uri does not match client settings"

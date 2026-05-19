@@ -83,7 +83,7 @@ module Canvas::Security
     def jti
       return if errors? || @skip_jti_check
 
-      nonce_duration = (@jwt["exp"].to_i - @jwt["iat"].to_i).seconds
+      nonce_duration = [(@jwt["exp"].to_i - @jwt["iat"].to_i).seconds, @max_iat_age].min
       nonce_key = "nonce:#{@jwt["sub"]}:#{@jwt["jti"]}"
       unless Lti::Security.check_and_store_nonce(nonce_key, @jwt["iat"], nonce_duration)
         errors.add(:base, "the 'jti' is invalid")

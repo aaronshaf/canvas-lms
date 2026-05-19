@@ -735,6 +735,78 @@ describe OAuth2ProviderController do
         expect(response).to be_successful
         expect(AccessToken.not_deleted.exists?(old_token.id)).to be(true)
       end
+
+      describe "JWT bearer client assertion (instead of client_secret)" do
+        let(:rsa_key_pair) { CanvasSecurity::RSAKeyPair.new }
+        let(:signing_key) { JSON::JWK.new(rsa_key_pair.to_jwk) }
+        let(:assertion_claims) do
+          {
+            iss: "the-client",
+            sub: key.id,
+            aud: Rails.application.routes.url_helpers.oauth2_token_url(host: request.host),
+            iat: 1.minute.ago.to_i,
+            exp: 10.minutes.from_now.to_i,
+            jti: SecureRandom.uuid
+          }
+        end
+        let(:client_assertion) { JSON::JWT.new(assertion_claims).sign(signing_key, :RS256).to_s }
+        let(:assertion_params) do
+          {
+            client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            client_assertion:
+          }
+        end
+
+        before { key.update!(public_jwk: rsa_key_pair.public_jwk) }
+
+        it "exchanges the code when the assertion verifies" do
+          expect(redis).to receive(:del).with(valid_code_redis_key).at_least(:once)
+          post :token, params: base_params.except(:client_secret).merge(code: valid_code).merge(assertion_params)
+          expect(response).to have_http_status(:ok)
+          expect(response.parsed_body.keys).to include("access_token")
+        end
+
+        it "rejects an assertion signed by a different key" do
+          imposter = JSON::JWK.new(CanvasSecurity::RSAKeyPair.new.to_jwk)
+          bad_jws = JSON::JWT.new(assertion_claims).sign(imposter, :RS256).to_s
+          post :token,
+               params: base_params.except(:client_secret)
+                       .merge(code: valid_code)
+                                  .merge(client_assertion_type: assertion_params[:client_assertion_type],
+                                         client_assertion: bad_jws)
+          expect(response).to have_http_status(:unauthorized)
+        end
+
+        it "does not let a mismatched client_id override the verified assertion signer" do
+          # The code was issued to `key`, but the request pairs key's client_id
+          # with an assertion validly signed by other_key. Authentication must
+          # bind to the verified signer (other_key), so the victim's code cannot
+          # be redeemed by someone holding only other_key's private key.
+          attacker_pair = CanvasSecurity::RSAKeyPair.new
+          other_key.update!(public_jwk: attacker_pair.public_jwk)
+          attacker_jws = JSON::JWT.new(assertion_claims.merge(sub: other_key.id))
+                                  .sign(JSON::JWK.new(attacker_pair.to_jwk), :RS256).to_s
+          post :token,
+               params: base_params.except(:client_secret)
+                       .merge(code: valid_code)
+                       .merge(client_assertion_type: assertion_params[:client_assertion_type],
+                              client_assertion: attacker_jws)
+          expect(response).not_to be_successful
+          expect(response.parsed_body).not_to have_key("access_token")
+        end
+
+        it "rejects an assertion with a wrong audience" do
+          assertion_claims[:aud] = "https://wrong.example/login/oauth2/token"
+          post :token, params: base_params.except(:client_secret).merge(code: valid_code).merge(assertion_params)
+          expect(response).to have_http_status(:unauthorized)
+        end
+
+        it "rejects an expired assertion" do
+          assertion_claims[:exp] = 10.minutes.ago.to_i
+          post :token, params: base_params.except(:client_secret).merge(code: valid_code).merge(assertion_params)
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
     end
 
     context "authorization code with verifier" do
@@ -1085,6 +1157,7 @@ describe OAuth2ProviderController do
       end
 
       before do
+        key.is_lti_key = true
         key.generate_rsa_keypair! overwrite: true
         key.save!
       end
