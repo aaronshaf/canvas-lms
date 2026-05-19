@@ -113,6 +113,7 @@ export default class ActAsModal extends React.Component<ActAsModalProps, ActAsMo
       ;(e.target as HTMLElement).click()
       return
     }
+    sessionStorage.removeItem(ENV.OAK_SESSION_KEY)
     this.setState({isLoading: true})
   }
 

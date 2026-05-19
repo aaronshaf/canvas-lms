@@ -24,8 +24,12 @@ import {getCookie} from '@instructure/platform-get-cookie'
 const I18n = createI18nScope('LogoutButton')
 
 export default function LogoutButton(props: ButtonProps) {
+  const handleSubmit = () => {
+    sessionStorage.removeItem(ENV.OAK_SESSION_KEY)
+  }
+
   return (
-    <form action="/logout" method="post">
+    <form action="/logout" method="post" onSubmit={handleSubmit}>
       <input name="utf8" value="✓" type="hidden" />
       <input name="_method" value="delete" type="hidden" />
       <input name="authenticity_token" value={getCookie('_csrf_token')} type="hidden" />

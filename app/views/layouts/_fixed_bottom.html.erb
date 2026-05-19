@@ -16,6 +16,12 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
+<script>
+  function handleStopMasquerading() {
+    sessionStorage.removeItem(ENV.OAK_SESSION_KEY)
+  }
+</script>
+
 <div id="fixed_bottom">
   <% if @fixed_warnings.present? %>
     <% @fixed_warnings.each_with_index do |warning, index| %>
@@ -65,7 +71,7 @@
         </div>
       </div>
       <div class="buttons ic-fixed-bottom-module ic-fixed-bottom-module--buttons">
-        <%= link_to t("Stop Acting as User"), user_masquerade_url(@real_current_user.id), 'data-method' => :post, :rel => 'nofollow', :class => 'Button stop_masquerading' %>
+        <%= link_to t("Stop Acting as User"), user_masquerade_url(@real_current_user.id), 'data-method' => :post, :rel => 'nofollow', :class => 'Button stop_masquerading', :onclick => "handleStopMasquerading()" %>
       </div>
     </div>
   <% end %>

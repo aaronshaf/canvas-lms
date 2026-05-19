@@ -258,6 +258,7 @@ export interface EnvCommon {
   USE_CLASSIC_FONT: string
   K5_HOMEROOM_COURSE: string
   K5_SUBJECT_COURSE: string
+  OAK_SESSION_KEY: string
   LOCALE_TRANSLATION_FILE: string
   DEFAULT_DUE_TIME?: string
   TIMEZONES: Array<{name: string; name_with_hour_offset: string}>
