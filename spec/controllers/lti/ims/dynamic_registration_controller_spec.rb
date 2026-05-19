@@ -1833,17 +1833,5 @@ describe Lti::IMS::DynamicRegistrationController do
         expect(response).to have_http_status(:ok)
       end
     end
-
-    context "when feature flag is disabled" do
-      before do
-        site_admin.disable_feature!(:modify_site_admin_developer_keys_permission)
-        user_session(site_admin_without_permission)
-      end
-
-      it "allows access when feature flag is off" do
-        get :registration_token, params: { account_id: site_admin.id }, format: :json
-        expect(response).to have_http_status(:ok)
-      end
-    end
   end
 end

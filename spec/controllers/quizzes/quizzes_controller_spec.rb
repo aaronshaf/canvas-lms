@@ -996,14 +996,6 @@ describe Quizzes::QuizzesController do
           expect(assigns[:js_env][:ROOT_OUTCOME_GROUP]).to be_present
         end
 
-        it "does not set assigned_rubric and rubric_association in the ENV when FF is OFF" do
-          user_session(@teacher)
-          Account.site_admin.disable_feature!(:enhanced_rubrics_assignments)
-          get "show", params: { course_id: @course.id, id: @quiz.id }
-          expect(assigns[:js_env][:assigned_rubric]).to be_nil
-          expect(assigns[:js_env][:rubric_association]).to be_nil
-        end
-
         it "does not set assigned_rubric when quiz is not associated with an assignment" do
           @quiz.quiz_type = "survey"
           @quiz.assignment = nil

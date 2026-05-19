@@ -273,22 +273,6 @@ describe GraphQLHelpers::AutoGradeEligibilityHelper do
         issues = described_class.validate_submission(submission:)
         expect(issues).to eq([{ level: "error", message: "Only PDF and DOCX files are supported." }])
       end
-
-      it "returns an array with file uploads disabled error when feature flag is off" do
-        Account.site_admin.disable_feature!(:grading_assistance_file_uploads)
-        submission = submission_model(
-          user: @student,
-          assignment:,
-          submission_type: "online_upload",
-          attachments: []
-        )
-
-        valid_attachment = instance_double(Attachment, mimetype: "application/pdf")
-        allow(submission).to receive_messages(attachments: [valid_attachment], extract_text_from_upload?: true, attachment_contains_images: false, word_count: 50, extracted_text: "short text")
-
-        issues = described_class.validate_submission(submission:)
-        expect(issues).to eq([{ level: "error", message: "Grading assistance is disabled for file uploads." }])
-      end
     end
 
     context "when submission is an upload with no attachments" do

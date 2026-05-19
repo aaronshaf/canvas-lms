@@ -763,17 +763,6 @@ RSpec.describe Lti::ToolConfigurationsApiController do
           expect(response).to be_forbidden
           expect(json_parse["errors"].first["message"]).to include("Site Admin developer keys")
         end
-
-        context "when modify_site_admin_developer_keys_permission FF is off" do
-          before { Account.site_admin.disable_feature!(:modify_site_admin_developer_keys_permission) }
-
-          it "allows creating a site admin tool configuration" do
-            subject
-            expect(response).to be_successful
-            key = DeveloperKey.find(json_parse.dig("developer_key", "id"))
-            expect(key.account).to be_nil
-          end
-        end
       end
     end
 
