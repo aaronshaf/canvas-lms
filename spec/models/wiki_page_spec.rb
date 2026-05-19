@@ -19,6 +19,10 @@
 #
 
 describe WikiPage do
+  it_behaves_like "sanitizes its sanitize_field columns on save" do
+    let(:record) { wiki_page_model }
+  end
+
   it "sends page updated notifications" do
     course_with_teacher(active_all: true)
     n = Notification.create(name: "Updated Wiki Page", category: "TestImmediately")

@@ -25,6 +25,10 @@ require_relative "../lti2_spec_helper"
 describe Assignment do
   include_context "lti2_spec_helper"
 
+  it_behaves_like "sanitizes its sanitize_field columns on save" do
+    let(:record) { assignment_model }
+  end
+
   before :once do
     course_with_teacher(active_all: true)
     @initial_student = student_in_course(active_all: true, user_name: "a student").user

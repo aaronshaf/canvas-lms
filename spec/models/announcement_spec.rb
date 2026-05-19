@@ -21,6 +21,10 @@
 require "nokogiri"
 
 describe Announcement do
+  it_behaves_like "sanitizes its sanitize_field columns on save" do
+    let(:record) { announcement_model }
+  end
+
   it "creates a new instance given valid attributes" do
     @context = Course.create
     @context.announcements.create!(valid_announcement_attributes)

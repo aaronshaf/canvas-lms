@@ -258,6 +258,10 @@ describe DiscussionTopic do
     expect(@course.discussion_topics.first.message).to eql("<a href=\"#\">only this should stay</a>")
   end
 
+  it_behaves_like "sanitizes its sanitize_field columns on save" do
+    let(:record) { discussion_topic_model }
+  end
+
   it "side-comment discussion type is threaded when it has threaded replies" do
     topic = @course.discussion_topics.create!(message: "test")
     topic.discussion_type = "side_comment"
