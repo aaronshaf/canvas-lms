@@ -96,6 +96,13 @@ Guidelines
 - All new UI should be built in [React](https://github.com/instructure/canvas-lms/tree/stable/ui) using the documented [API](https://canvas.instructure.com/doc/api/).
 - Contributed code should pass our linters, but sweeping changes solely to correct lint errors in existing code should be avoided. The following scripts can be used to run the linters against changes in your code: `script/eslint` for JavaScript code, `script/rlint` for Ruby code, and `script/stylelint` for (S)CSS code.
 
+## Security
+
+When working on models or render paths that store or display user-authored
+content, any ActiveRecord column that can contain user-authored HTML must
+declare [`sanitize_field`](doc/security/sanitize_field.md) so the value is
+scrubbed on save.
+
 ## CLA
 
 ### What is it and why do I need to sign it?
