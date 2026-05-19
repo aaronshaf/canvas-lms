@@ -189,14 +189,22 @@ describe Api::V1::AiExperience do
         expect(file_json).not_to have_key(:position)
       end
 
-      it "includes context_files array when can_manage is false" do
+      it "excludes context_files when can_manage is false" do
         attachment = attachment_model(context: @course, size: 1.megabyte, filename: "test.pdf")
         AiExperienceContextFile.create!(ai_experience: @ai_experience, attachment:)
 
         json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: false)
 
-        expect(json).to have_key(:context_files)
-        expect(json[:context_files].length).to eq(1)
+        expect(json).not_to have_key(:context_files)
+      end
+
+      it "excludes context_files by default when can_manage is not specified" do
+        attachment = attachment_model(context: @course, size: 1.megabyte, filename: "test.pdf")
+        AiExperienceContextFile.create!(ai_experience: @ai_experience, attachment:)
+
+        json = api.ai_experience_json(@ai_experience, @teacher, session)
+
+        expect(json).not_to have_key(:context_files)
       end
 
       it "excludes deleted attachments from context_files" do

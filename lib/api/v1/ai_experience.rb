@@ -50,7 +50,7 @@ module Api::V1::AiExperience
 
     # Include context files if feature flag is enabled.
     # Uses the scoped context_files association which excludes deleted attachments.
-    if ai_experience.course.feature_enabled?(:ai_experiences_context_file_upload)
+    if opts[:can_manage] && ai_experience.course.feature_enabled?(:ai_experiences_context_file_upload)
       json[:context_files] = ai_experience.context_files
                                           .order("ai_experience_context_files.position")
                                           .map do |attachment|

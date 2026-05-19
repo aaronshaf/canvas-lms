@@ -59,6 +59,7 @@ module LlmConversation
       raise LlmConversation::Errors::ConversationError, "No refresh token available for account" unless enc && salt
 
       refresh_token = Canvas::Security.decrypt_password(enc, salt, LlmConversation::TokenCache::ENCRYPTION_KEY)
+      initial_token = Rails.application.credentials.dig(:llm_conversation_service, :initial_token)
 
       uri = URI("#{@base_url}/token/refresh")
       http = Net::HTTP.new(uri.host, uri.port)
@@ -69,7 +70,8 @@ module LlmConversation
 
       req = Net::HTTP::Post.new(uri.request_uri,
                                 "Content-Type" => "application/json",
-                                "Authorization" => "Bearer #{refresh_token}")
+                                "Authorization" => "Bearer #{initial_token}")
+      req.body = { refresh_token: }.to_json
 
       response = http.request(req)
       raise LlmConversation::Errors::ConversationError, "Token refresh failed" unless response.is_a?(Net::HTTPSuccess)

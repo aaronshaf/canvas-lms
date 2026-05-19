@@ -28,6 +28,9 @@ describe LlmConversation::HttpClient do
     allow(Rails.application.credentials).to receive(:dig)
       .with(:llm_conversation_service, :base_url)
       .and_return("https://llm.test")
+    allow(Rails.application.credentials).to receive(:dig)
+      .with(:llm_conversation_service, :initial_token)
+      .and_return("initial-token")
 
     api_enc, api_salt = Canvas::Security.encrypt_password("api-token", enc_key)
     refresh_enc, refresh_salt = Canvas::Security.encrypt_password("refresh-token", enc_key)
@@ -57,7 +60,10 @@ describe LlmConversation::HttpClient do
             { status: 200, body: { "data" => [] }.to_json, headers: { "Content-Type" => "application/json" } }
           )
         stub_request(:post, "https://llm.test/token/refresh")
-          .with(headers: { "Authorization" => "Bearer refresh-token" })
+          .with(
+            headers: { "Authorization" => "Bearer initial-token" },
+            body: { refresh_token: "refresh-token" }.to_json
+          )
           .to_return(status: 200, body: refresh_response, headers: { "Content-Type" => "application/json" })
       end
 
