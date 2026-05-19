@@ -113,11 +113,6 @@ describe NewQuizzesFeaturesHelper do
       expect(new_quizzes_navigation_placements_enabled?).to be true
     end
 
-    it "is false when new_quizzes_account_course_level_item_banks is disabled" do
-      Account.site_admin.disable_feature!(:new_quizzes_account_course_level_item_banks)
-      expect(new_quizzes_navigation_placements_enabled?).to be false
-    end
-
     it "is false when quizzes_next is disabled" do
       allow(@context).to receive(:feature_enabled?).with(:quizzes_next).and_return(false)
       expect(new_quizzes_navigation_placements_enabled?).to be false
@@ -141,11 +136,6 @@ describe NewQuizzesFeaturesHelper do
       expect(new_quizzes_bank_migrations_enabled?).to be true
     end
 
-    it "returns false when new_quizzes_bank_migrations is disabled" do
-      Account.site_admin.disable_feature!(:new_quizzes_bank_migrations)
-      expect(new_quizzes_bank_migrations_enabled?).to be false
-    end
-
     it "returns false when quizzes_next is disabled" do
       allow(@context).to receive(:feature_enabled?).with(:quizzes_next).and_return(false)
       expect(new_quizzes_bank_migrations_enabled?).to be false
@@ -167,16 +157,6 @@ describe NewQuizzesFeaturesHelper do
 
     it "returns true when new_quizzes_unattached_bank_migrations, new_quizzes_bank_migrations, new_quizzes_migration and quizzes_next are true" do
       expect(new_quizzes_unattached_bank_migrations_enabled?).to be true
-    end
-
-    it "returns false when new_quizzes_unattached_bank_migrations is disabled" do
-      Account.site_admin.disable_feature!(:new_quizzes_unattached_bank_migrations)
-      expect(new_quizzes_unattached_bank_migrations_enabled?).to be false
-    end
-
-    it "returns false when new_quizzes_bank_migrations is disabled" do
-      Account.site_admin.disable_feature!(:new_quizzes_bank_migrations)
-      expect(new_quizzes_unattached_bank_migrations_enabled?).to be false
     end
 
     it "returns false when quizzes_next is disabled" do

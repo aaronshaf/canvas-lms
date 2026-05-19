@@ -114,12 +114,6 @@ describe AssignmentOverrideApplicator do
           expect(due_at).to eq @assignment.due_at
         end
 
-        it "uses the due date for the override associated with the concluded enrollment when the feature flag is disabled" do
-          Account.site_admin.disable_feature!(:deprioritize_section_overrides_for_nonactive_enrollments)
-          due_at = AssignmentOverrideApplicator.assignment_overridden_for(@assignment, @student).due_at
-          expect(due_at).to eq @section2_override.due_at
-        end
-
         it "uses the due date for any override associated with an active enrollment over the override associated with the concluded enrollment" do
           active_enrollment_section_override = create_section_override_for_assignment(
             @assignment,
@@ -162,12 +156,6 @@ describe AssignmentOverrideApplicator do
         it "uses the 'Everyone' due date over the due date for the override associated with the deactivated enrollment" do
           due_at = AssignmentOverrideApplicator.assignment_overridden_for(@assignment, @student).due_at
           expect(due_at).to eq @assignment.due_at
-        end
-
-        it "uses the due date for the override associated with the deactivated enrollment when the feature flag is disabled" do
-          Account.site_admin.disable_feature!(:deprioritize_section_overrides_for_nonactive_enrollments)
-          due_at = AssignmentOverrideApplicator.assignment_overridden_for(@assignment, @student).due_at
-          expect(due_at).to eq @section2_override.due_at
         end
 
         it "uses the due date for any override associated with an active enrollment over the override associated with the deactivated enrollment" do

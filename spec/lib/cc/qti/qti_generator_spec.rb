@@ -213,32 +213,6 @@ describe "QTI Generator" do
       @html_exporter = CC::CCHelper::HtmlContentExporter.new(@copy_from, @from_teacher)
     end
 
-    context "when the FF's quizzes_next and new_quizzes_common_cartridge are not enabled" do
-      before do
-        allow(@course).to receive(:feature_enabled?).and_call_original
-        allow_any_instance_of(Course).to receive(:feature_enabled?).with(:quizzes_next).and_return(true)
-        Account.site_admin.disable_feature!(:new_quizzes_common_cartridge)
-      end
-
-      it "does not load new quizzes into the Common Cartridge package" do
-        expect_any_instance_of(CC::Qti::NewQuizzesGenerator).not_to receive(:write_new_quizzes_content)
-        subject
-      end
-    end
-
-    context "when the FF's new_quizzes_common_cartridge is not enabled" do
-      before do
-        allow(@course).to receive(:feature_enabled?).and_call_original
-        allow_any_instance_of(Course).to receive(:feature_enabled?).with(:quizzes_next).and_return(false)
-        Account.site_admin.disable_feature!(:new_quizzes_common_cartridge)
-      end
-
-      it "does not load new quizzes into the Common Cartridge package" do
-        expect_any_instance_of(CC::Qti::NewQuizzesGenerator).not_to receive(:write_new_quizzes_content)
-        subject
-      end
-    end
-
     context "when the FF's quizzes_next and new_quizzes_common_cartridge are enabled" do
       before do
         allow(@course).to receive(:feature_enabled?).and_call_original

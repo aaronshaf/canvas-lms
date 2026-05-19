@@ -156,18 +156,6 @@ describe Api::V1::Course do
         expect(hash["accessibility_course_statistic"]).not_to be_present
       end
 
-      it "does not include accessibility_course_statistic when a11y_checker_account_statistics is disabled" do
-        Account.site_admin.disable_feature!(:a11y_checker_account_statistics)
-        account_admin_user(account: @account)
-        AccessibilityCourseStatistic.create!(
-          course: @course,
-          active_issue_count: 5,
-          workflow_state: "active"
-        )
-        hash = course_json(@course, @user, nil, ["accessibility_course_statistic"], nil)
-        expect(hash["accessibility_course_statistic"]).not_to be_present
-      end
-
       it "does not include accessibility_course_statistic when a11y_checker is disabled" do
         @account.disable_feature!(:a11y_checker)
         account_admin_user(account: @account)
