@@ -2188,4 +2188,185 @@ describe Types::QueryType do
       end
     end
   end
+
+  context "assignment visibility (direct object lookup)" do
+    before(:once) do
+      course_with_teacher(active_all: true)
+      @other_student = student_in_course(course: @course, active_all: true).user
+      @target_student = student_in_course(course: @course, active_all: true).user
+
+      @visible_assignment = @course.assignments.create!(
+        name: "Visible to all", workflow_state: "published"
+      )
+
+      @hidden_assignment = @course.assignments.create!(
+        name: "Hidden via overrides",
+        workflow_state: "published",
+        only_visible_to_overrides: true
+      )
+      create_adhoc_override_for_assignment(@hidden_assignment, [@other_student])
+    end
+
+    let(:ctx) { { current_user: @target_student, domain_root_account: @course.root_account } }
+
+    def fetch_assignment(id:, user: @target_student)
+      run_mutation(
+        "{ assignment(id: \"#{id}\") { _id } }",
+        current_user: user,
+        domain_root_account: @course.root_account
+      ).dig("data", "assignment")
+    end
+
+    def fetch_legacy_node(id:, user: @target_student)
+      run_mutation(
+        "{ legacyNode(_id: \"#{id}\", type: Assignment) { ... on Assignment { _id } } }",
+        current_user: user,
+        domain_root_account: @course.root_account
+      ).dig("data", "legacyNode")
+    end
+
+    it "omits the hidden assignment from the connection listing (baseline)" do
+      ids = run_mutation(
+        "{ course(id: \"#{@course.id}\") { assignmentsConnection { nodes { _id } } } }",
+        current_user: @target_student,
+        domain_root_account: @course.root_account
+      ).dig("data", "course", "assignmentsConnection", "nodes").pluck("_id")
+
+      expect(ids).to include(@visible_assignment.id.to_s)
+      expect(ids).not_to include(@hidden_assignment.id.to_s)
+    end
+
+    it "returns null for assignment(id:) when the student cannot see the assignment" do
+      expect(fetch_assignment(id: @hidden_assignment.id)).to be_nil
+    end
+
+    it "returns null for legacyNode(_id:, type: Assignment) when the student cannot see the assignment" do
+      expect(fetch_legacy_node(id: @hidden_assignment.id)).to be_nil
+    end
+
+    it "still returns visible assignments to the same student via assignment(id:)" do
+      expect(fetch_assignment(id: @visible_assignment.id)).to include("_id" => @visible_assignment.id.to_s)
+    end
+
+    it "still returns visible assignments to the same student via legacyNode" do
+      expect(fetch_legacy_node(id: @visible_assignment.id)).to include("_id" => @visible_assignment.id.to_s)
+    end
+
+    it "returns the assignment to a teacher via assignment(id:) even when restricted via overrides" do
+      expect(fetch_assignment(id: @hidden_assignment.id, user: @teacher)).to include("_id" => @hidden_assignment.id.to_s)
+    end
+
+    it "returns the assignment to a teacher via legacyNode even when restricted via overrides" do
+      expect(fetch_legacy_node(id: @hidden_assignment.id, user: @teacher)).to include("_id" => @hidden_assignment.id.to_s)
+    end
+
+    it "returns the assignment to a student who is on the override list" do
+      expect(fetch_assignment(id: @hidden_assignment.id, user: @other_student)).to include("_id" => @hidden_assignment.id.to_s)
+    end
+
+    it "returns null for assignment(sisId:) when the student cannot see the assignment" do
+      @hidden_assignment.update!(sis_source_id: "hidden-sis-1")
+      result = run_mutation(
+        "{ assignment(sisId: \"hidden-sis-1\") { _id } }",
+        current_user: @target_student,
+        domain_root_account: @course.root_account
+      )
+      expect(result.dig("data", "assignment")).to be_nil
+    end
+  end
+
+  context "sub-assignment visibility (direct object lookup)" do
+    before(:once) do
+      course_with_teacher(active_all: true)
+      @other_student = student_in_course(course: @course, active_all: true).user
+      @target_student = student_in_course(course: @course, active_all: true).user
+      @course.account.enable_feature!(:discussion_checkpoints)
+
+      topic = DiscussionTopic.create_graded_topic!(course: @course, title: "Checkpointed Discussion")
+      parent_assignment = topic.assignment
+      parent_assignment.update!(has_sub_assignments: true)
+
+      # Passing only an override date (no "everyone" date) causes the service to
+      # set only_visible_to_overrides: true on the resulting SubAssignment.
+      @hidden_sub_assignment = Checkpoints::DiscussionCheckpointCreatorService.call(
+        discussion_topic: topic,
+        checkpoint_label: CheckpointLabels::REPLY_TO_TOPIC,
+        dates: [{ type: "override", set_type: "ADHOC", student_ids: [@other_student.id], due_at: 1.week.from_now }],
+        points_possible: 5
+      )
+    end
+
+    def fetch_sub_assignment(id:, user: @target_student)
+      # SubAssignment resolves to Types::AssignmentType in canvas_schema.rb,
+      # so the inline fragment must use `... on Assignment`.
+      run_mutation(
+        "{ legacyNode(_id: \"#{id}\", type: SubAssignment) { ... on Assignment { _id } } }",
+        current_user: user,
+        domain_root_account: @course.root_account
+      ).dig("data", "legacyNode")
+    end
+
+    it "returns null via legacyNode when the student has no override for the sub-assignment" do
+      expect(fetch_sub_assignment(id: @hidden_sub_assignment.id)).to be_nil
+    end
+
+    it "returns the sub-assignment via legacyNode to a student who is on the override list" do
+      expect(fetch_sub_assignment(id: @hidden_sub_assignment.id, user: @other_student))
+        .to include("_id" => @hidden_sub_assignment.id.to_s)
+    end
+
+    it "returns the sub-assignment via legacyNode to a teacher regardless of overrides" do
+      expect(fetch_sub_assignment(id: @hidden_sub_assignment.id, user: @teacher))
+        .to include("_id" => @hidden_sub_assignment.id.to_s)
+    end
+  end
+
+  context "peer-review sub-assignment visibility (direct object lookup)" do
+    before(:once) do
+      course_with_teacher(active_all: true)
+      @other_student = student_in_course(course: @course, active_all: true).user
+      @target_student = student_in_course(course: @course, active_all: true).user
+      @course.enable_feature!(:peer_review_allocation_and_grading)
+
+      # PeerReviewSubAssignment visibility is driven by its parent assignment,
+      # so we set only_visible_to_overrides + the override on the parent.
+      parent = @course.assignments.create!(
+        name: "Parent",
+        workflow_state: "published",
+        peer_reviews: true,
+        peer_review_count: 2,
+        only_visible_to_overrides: true
+      )
+      @hidden_peer_review_sub = peer_review_model(parent_assignment: parent)
+
+      parent_override = parent.assignment_overrides.create!(
+        set_type: "ADHOC",
+        set_id: nil,
+        dont_touch_assignment: true
+      )
+      parent_override.assignment_override_students.create!(user: @other_student)
+    end
+
+    def fetch_peer_review_sub(id:, user: @target_student)
+      run_mutation(
+        "{ peerReviewSubAssignment(id: \"#{id}\") { _id } }",
+        current_user: user,
+        domain_root_account: @course.root_account
+      ).dig("data", "peerReviewSubAssignment")
+    end
+
+    it "returns null via peerReviewSubAssignment(id:) when the student has no override" do
+      expect(fetch_peer_review_sub(id: @hidden_peer_review_sub.id)).to be_nil
+    end
+
+    it "returns the peer-review sub-assignment to a student who is on the override list" do
+      expect(fetch_peer_review_sub(id: @hidden_peer_review_sub.id, user: @other_student))
+        .to include("_id" => @hidden_peer_review_sub.id.to_s)
+    end
+
+    it "returns the peer-review sub-assignment to a teacher regardless of overrides" do
+      expect(fetch_peer_review_sub(id: @hidden_peer_review_sub.id, user: @teacher))
+        .to include("_id" => @hidden_peer_review_sub.id.to_s)
+    end
+  end
 end

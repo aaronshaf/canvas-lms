@@ -21,6 +21,7 @@
 module GraphQLNodeLoader
   def self.load(type, id, ctx)
     check_read_permission = make_permission_check(ctx, :read)
+    check_assignment_visibility = make_assignment_visibility_check(ctx)
 
     case type
     when "Account"
@@ -39,9 +40,9 @@ module GraphQLNodeLoader
     when "CourseBySis"
       Loaders::SISIDLoader.for(Course, root_account: ctx[:domain_root_account]).load(id).then(check_read_permission)
     when "Assignment"
-      Loaders::IDLoader.for(AbstractAssignment).load(id).then(check_read_permission)
+      Loaders::IDLoader.for(AbstractAssignment).load(id).then(check_read_permission).then(check_assignment_visibility)
     when "SubAssignment"
-      Loaders::IDLoader.for(SubAssignment).load(id).then(check_read_permission)
+      Loaders::IDLoader.for(SubAssignment).load(id).then(check_read_permission).then(check_assignment_visibility)
     when "AbstractAssignment"
       include_types = id[:include_types]
       include_types = ["Assignment"] if include_types.blank?
@@ -60,16 +61,16 @@ module GraphQLNodeLoader
         else
           record
         end
-      end.then(check_read_permission)
+      end.then(check_read_permission).then(check_assignment_visibility)
     when "PeerReviewSubAssignment"
       Loaders::IDLoader.for(PeerReviewSubAssignment).load(id).then do |peer_review_sub_assignment|
         next nil unless peer_review_sub_assignment
         next nil unless peer_review_sub_assignment.context.feature_enabled?(:peer_review_allocation_and_grading)
 
         peer_review_sub_assignment
-      end.then(check_read_permission)
+      end.then(check_read_permission).then(check_assignment_visibility)
     when "AssignmentBySis"
-      Loaders::SISIDLoader.for(Assignment, root_account: ctx[:domain_root_account]).load(id).then(check_read_permission)
+      Loaders::SISIDLoader.for(Assignment, root_account: ctx[:domain_root_account]).load(id).then(check_read_permission).then(check_assignment_visibility)
     when "Section"
       Loaders::IDLoader.for(CourseSection).load(id).then(check_read_permission)
     when "SectionBySis"
@@ -364,6 +365,21 @@ module GraphQLNodeLoader
   def self.make_permission_check(ctx, *permissions)
     lambda do |o|
       o&.grants_any_right?(ctx[:current_user], ctx[:session], *permissions) ? o : nil
+    end
+  end
+
+  def self.make_assignment_visibility_check(ctx)
+    lambda do |o|
+      next nil unless o
+
+      user = ctx[:current_user]
+
+      next o unless user
+
+      # Delegate to DifferentiableAssignment.scope_filter so SubAssignment and
+      # PeerReviewSubAssignment use their own visibility scopes (which resolve
+      # through parent_assignment_id) rather than the Assignment-only path.
+      DifferentiableAssignment.scope_filter(o.class.where(id: o.id), user, o.context).exists? ? o : nil
     end
   end
 
