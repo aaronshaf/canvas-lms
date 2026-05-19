@@ -30,6 +30,7 @@ import {HIGHLIGHT_THEME} from '../themes'
 import {CloseButton} from '@instructure/ui-buttons'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
+import {View} from '@instructure/ui-view'
 
 const I18n = createI18nScope('notebook')
 
@@ -45,11 +46,9 @@ type HeaderProps = {
 
 function NotebookPanelHeader({onDismiss, closeButtonRef}: HeaderProps) {
   return (
-    <Flex as="div" padding="small" alignItems="center">
-      <Flex.Item shouldGrow={true}>
+    <View as="div" padding="medium" borderWidth="none none small none">
+      <Flex justifyItems="space-between" alignItems="center">
         <Heading level="h3">{I18n.t('Notebook')}</Heading>
-      </Flex.Item>
-      <Flex.Item>
         <CloseButton
           elementRef={el => {
             closeButtonRef.current = el
@@ -59,8 +58,8 @@ function NotebookPanelHeader({onDismiss, closeButtonRef}: HeaderProps) {
           screenReaderLabel={I18n.t('Close')}
           data-testid="notebook-close-button"
         />
-      </Flex.Item>
-    </Flex>
+      </Flex>
+    </View>
   )
 }
 

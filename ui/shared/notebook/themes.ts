@@ -21,9 +21,9 @@ import type {HighlightTheme} from '@instructure/platform-notebook'
 
 export const HIGHLIGHT_THEME: HighlightTheme = {
   colors: {
-    importantBackground: canvas.colors.contrasts.blue1212,
+    importantBackground: canvas.colors.contrasts.green1212,
     confusingBackground: canvas.colors.contrasts.red1212,
-    importantUnderline: canvas.colors.contrasts.blue4570,
+    importantUnderline: canvas.colors.contrasts.green4570,
     confusingUnderline: canvas.colors.contrasts.red4570,
   },
   borderWidthSmall: '0.0625rem',

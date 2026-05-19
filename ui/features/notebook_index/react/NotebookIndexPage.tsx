@@ -19,12 +19,15 @@
 import React, {useCallback, useMemo} from 'react'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {
+  NotebookEmptyState,
   NotebookProvider,
   NotesListView,
   useNotebook,
   useNotesData,
   type NoteType,
 } from '@instructure/platform-notebook'
+import {Flex} from '@instructure/ui-flex'
+import {View} from '@instructure/ui-view'
 import {
   CanvasNotebookApi,
   notebookTranslations,
@@ -36,6 +39,7 @@ import NotebookFilters from './NotebookFilters'
 import {useNotesColumnCount} from '../hooks/useNotesColumnCount'
 
 const DEFAULT_PAGE_SIZE = 20
+const EMPTY_STATE_MAX_WIDTH = '35rem'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,21 +83,33 @@ function NotebookIndexBody() {
     [],
   )
 
+  const isEmpty = !isLoading && !isError && notes.length === 0
+
   return (
     <>
       <NotebookFilters filter={filter} setFilter={setFilter} />
-      <NotesListView
-        notes={notes}
-        isLoading={isLoading}
-        isError={isError}
-        pageInfo={pageInfo}
-        onPreviousPage={fetchPreviousPage}
-        onNextPage={fetchNextPage}
-        highlightTheme={HIGHLIGHT_THEME}
-        noteHref={noteHref}
-        columnCount={columnCount}
-        renderNoteLink={renderNoteLink}
-      />
+      {isEmpty ? (
+        <Flex height="100%" alignItems="center" justifyItems="center">
+          <Flex.Item shouldGrow={false}>
+            <View as="div" maxWidth={EMPTY_STATE_MAX_WIDTH} padding="large">
+              <NotebookEmptyState hasActiveFilter={filter != null} />
+            </View>
+          </Flex.Item>
+        </Flex>
+      ) : (
+        <NotesListView
+          notes={notes}
+          isLoading={isLoading}
+          isError={isError}
+          pageInfo={pageInfo}
+          onPreviousPage={fetchPreviousPage}
+          onNextPage={fetchNextPage}
+          highlightTheme={HIGHLIGHT_THEME}
+          noteHref={noteHref}
+          columnCount={columnCount}
+          renderNoteLink={renderNoteLink}
+        />
+      )}
     </>
   )
 }

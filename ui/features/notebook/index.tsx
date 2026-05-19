@@ -20,8 +20,9 @@ import React from 'react'
 import {render} from '@canvas/react'
 import ready from '@instructure/ready'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import {Button} from '@instructure/ui-buttons'
+import {IconButton} from '@instructure/ui-buttons'
 import {IconNoteLine} from '@instructure/ui-icons'
+import {Tooltip} from '@instructure/ui-tooltip'
 
 const I18n = createI18nScope('notebook')
 
@@ -33,14 +34,15 @@ function dispatchOpen() {
 
 function NotebookTrigger() {
   return (
-    <Button
-      renderIcon={<IconNoteLine />}
-      color="secondary"
-      onClick={dispatchOpen}
-      data-testid="notebook-button"
-    >
-      {I18n.t('Notebook')}
-    </Button>
+    <Tooltip renderTip={I18n.t('Notebook')}>
+      <IconButton
+        renderIcon={<IconNoteLine />}
+        color="secondary"
+        onClick={dispatchOpen}
+        data-testid="notebook-button"
+        screenReaderLabel={I18n.t('Notebook')}
+      />
+    </Tooltip>
   )
 }
 

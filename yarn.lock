@@ -3212,10 +3212,10 @@
     "@instructure/platform-canvas-fetch" "0.1.3"
     "@instructure/platform-instui-bindings" "0.5.0"
 
-"@instructure/platform-notebook@0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@instructure/platform-notebook/-/platform-notebook-0.7.0.tgz#14eec6ac5ea2e5d8b5618c511d5efd073659ab83"
-  integrity sha512-MMNE3glmmsG0PynATJEr48ADF5hVnDr38036HMMP/K18z+xe/W2Mivryr/M4BLt0SSgBFzFyDg74wZNnTSDSTA==
+"@instructure/platform-notebook@0.9.1":
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-notebook/-/platform-notebook-0.9.1.tgz#da43d4765133324cdec548690630d56ea10db5f0"
+  integrity sha512-x0XnM1at/ZaY6wkHcTDiUMI3MbvTXFTjWxXP3w0UpHkSX6OhVhQWBiV0Vnhg8jAJeLNULRJh+38ilfFdsAkVLg==
   dependencies:
     diff-match-patch "^1.0.5"
     zod "^3.25.76"

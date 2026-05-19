@@ -31,6 +31,12 @@ vi.mock('@instructure/platform-notebook', () => ({
   NotebookProvider: ({children}: {children: React.ReactNode}) => (
     <div data-testid="notebook-provider">{children}</div>
   ),
+  NotebookEmptyState: ({hasActiveFilter}: {hasActiveFilter?: boolean}) => (
+    <div
+      data-testid="notebook-empty-state"
+      data-has-active-filter={hasActiveFilter ? 'true' : 'false'}
+    />
+  ),
   NotesListView: ({
     notes,
     isLoading,
@@ -170,10 +176,31 @@ describe('NotebookIndexPage', () => {
 
   it('renders the empty state', () => {
     render(<NotebookIndexPage />)
-    expect(screen.getByTestId('notes-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('notebook-empty-state')).toHaveAttribute(
+      'data-has-active-filter',
+      'false',
+    )
+  })
+
+  it('keeps filters visible and forwards hasActiveFilter when a filter is active with no results', () => {
+    mockUseNotesData.mockReturnValue({
+      ...defaultNotesDataReturn,
+      notes: [],
+      filter: 'Important',
+    })
+    render(<NotebookIndexPage />)
+    expect(screen.getByTestId('reaction-filter')).toBeInTheDocument()
+    expect(screen.getByTestId('notebook-empty-state')).toHaveAttribute(
+      'data-has-active-filter',
+      'true',
+    )
   })
 
   it('renders the reaction filter above the grid', () => {
+    mockUseNotesData.mockReturnValue({
+      ...defaultNotesDataReturn,
+      notes: [makeNote('1')],
+    })
     render(<NotebookIndexPage />)
     expect(screen.getByTestId('reaction-filter')).toBeInTheDocument()
   })
