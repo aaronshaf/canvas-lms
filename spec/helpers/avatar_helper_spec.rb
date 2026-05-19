@@ -237,6 +237,17 @@ describe AvatarHelper do
           .to eq "https://secure.gravatar.com/avatar/abc123"
       end
 
+      it "retains the original domain when request is nil even if avatar host belongs to the same account" do
+        user_with_avatar = user_model(
+          avatar_image_url: "https://canvas.university.edu/images/thumbnails/123/abc",
+          avatar_image_source: "attachment",
+          avatar_state: "approved"
+        )
+
+        expect(AvatarHelper.avatar_url_for_user(user_with_avatar, nil, root_account: Account.default, use_fallback: false))
+          .to eq "https://canvas.university.edu/images/thumbnails/123/abc"
+      end
+
       it "retains the original domain when avatar host belongs to a different account (Trust/Consortium)" do
         request = instance_double(ActionDispatch::Request,
                                   host: "school-a.instructure.com",
