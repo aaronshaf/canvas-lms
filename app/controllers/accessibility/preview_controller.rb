@@ -50,7 +50,14 @@ module Accessibility
     # 3. Apply the preview using the same code path as the actual fix
     # This would eliminate dependency on dead code and ensure preview/fix consistency.
     def create
-      response = Accessibility::Issue.new(context: @context).update_preview(params[:rule], params[:content_type], params[:content_id], params[:path], params[:value])
+      sanitized_value = params[:value].nil? ? nil : Sanitize.clean(params[:value])
+      response = Accessibility::Issue.new(context: @context).update_preview(
+        params[:rule],
+        params[:content_type],
+        params[:content_id],
+        params[:path],
+        sanitized_value
+      )
       render json: response[:json], status: response[:status]
     end
 

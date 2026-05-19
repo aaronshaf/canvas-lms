@@ -72,8 +72,11 @@ module Accessibility
       when "DiscussionTopic", "Announcement"
         context.discussion_topics.find(resource_id)
       when "Syllabus"
-        # Syllabus is part of Course, wrap it in SyllabusResource
-        # resource_id is actually the course_id for syllabus
+        # Syllabus is part of Course, wrap it in SyllabusResource.
+        # resource_id must equal context.id so a caller can't quietly target a course
+        # they didn't authorize against by passing a mismatched id.
+        raise ActiveRecord::RecordNotFound, "Syllabus resource_id does not match course" unless resource_id.to_s == context.id.to_s
+
         Accessibility::SyllabusResource.new(context)
       else
         raise ArgumentError, "Unsupported resource type: #{resource_type}"

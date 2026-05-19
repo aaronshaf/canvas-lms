@@ -357,6 +357,32 @@ describe Accessibility::Issue do
       end
     end
 
+    context "with Syllabus type" do
+      it "returns a SyllabusResource when resource_id matches the course" do
+        result = described_class.find_resource(course, "Syllabus", course.id)
+        expect(result).to be_a(Accessibility::SyllabusResource)
+        expect(result.course).to eq(course)
+      end
+
+      it "accepts a string resource_id that matches the course id" do
+        result = described_class.find_resource(course, "Syllabus", course.id.to_s)
+        expect(result).to be_a(Accessibility::SyllabusResource)
+      end
+
+      it "raises RecordNotFound when resource_id does not match the course id" do
+        other_course = course_model
+        expect do
+          described_class.find_resource(course, "Syllabus", other_course.id)
+        end.to raise_error(ActiveRecord::RecordNotFound)
+      end
+
+      it "raises RecordNotFound when resource_id is nil" do
+        expect do
+          described_class.find_resource(course, "Syllabus", nil)
+        end.to raise_error(ActiveRecord::RecordNotFound)
+      end
+    end
+
     context "with unsupported type" do
       it "raises ArgumentError" do
         expect do

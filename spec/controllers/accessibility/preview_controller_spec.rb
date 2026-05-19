@@ -67,6 +67,21 @@ RSpec.describe Accessibility::PreviewController do
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body).to eq({ "result" => "success" })
       end
+
+      it "sanitizes the value before passing it to update_preview" do
+        malicious_value = "<script>alert(1)</script>Caption text"
+        expect(accessibility_issue_instance).to receive(:update_preview).with("some_rule", "WikiPage", wiki_page.id.to_s, "some_path", "Caption text").and_return(response_data)
+
+        post :create, params: params.merge(value: malicious_value), format: :json
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "passes nil to update_preview when the value key is absent" do
+        expect(accessibility_issue_instance).to receive(:update_preview).with("some_rule", "WikiPage", wiki_page.id.to_s, "some_path", nil).and_return(response_data)
+
+        post :create, params: params.except(:value), format: :json
+        expect(response).to have_http_status(:ok)
+      end
     end
 
     context "for an assignment" do
