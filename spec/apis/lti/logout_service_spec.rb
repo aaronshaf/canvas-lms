@@ -117,6 +117,28 @@ describe LtiApiController, type: :request do
     end
   end
 
+  it "exposes scalar oauth_signature/timestamp/nonce when params arrive in the request body" do
+    env = Rack::MockRequest.env_for(
+      "http://www.example.com/api/lti/v1/logout_service/token",
+      "REQUEST_METHOD" => "POST",
+      "CONTENT_TYPE" => "application/x-www-form-urlencoded",
+      :input => URI.encode_www_form(
+        oauth_consumer_key: "k",
+        oauth_nonce: "n",
+        oauth_timestamp: "1700000000",
+        oauth_signature_method: "HMAC-SHA1",
+        oauth_signature: "sig",
+        oauth_version: "1.0"
+      )
+    )
+    proxy = OAuth::RequestProxy.proxy(ActionDispatch::Request.new(env))
+
+    expect(proxy.signature).to eq("sig")
+    expect { proxy.signature.bytesize }.not_to raise_error
+    expect(proxy.oauth_timestamp).to eq("1700000000")
+    expect(proxy.oauth_nonce).to eq("n")
+  end
+
   it "calls registered callbacks when the user logs out" do
     enable_cache do
       login_as "parajsa", "password1"

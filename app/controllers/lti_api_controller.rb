@@ -19,7 +19,7 @@
 #
 
 require "oauth"
-require "oauth/client/action_controller_request"
+require "oauth/request_proxy/action_dispatch_request"
 require "nokogiri"
 
 class LtiApiController < ApplicationController
