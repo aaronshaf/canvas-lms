@@ -575,9 +575,6 @@ CanvasRails::Application.routes.draw do
 
     resources :accessibility, only: [:index] do
       collection do
-        # TODO: RCX-4765 - The :issues resource is deprecated. UI was removed in 70d63e25976
-        # New accessibility checker uses resource_scan endpoints. Keep for external API compatibility.
-        resource :issues, only: [:create, :update], module: "accessibility"
         post "preview" => "accessibility/preview#create"
         get "preview" => "accessibility/preview#show"
         post "generate/table_caption" => "accessibility/generate#create_table_caption"

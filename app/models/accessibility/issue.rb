@@ -18,10 +18,6 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 module Accessibility
-  # TODO: RCX-4765 - This class generates accessibility issue data for the old wizard UI
-  # that was removed in commit 70d63e25976. The new accessibility checker uses
-  # AccessibilityResourceScan instead. This may still be used by external tools
-  # via the /accessibility/issues API endpoints, but has no Canvas UI consumers.
   class Issue
     include WikiPageIssues
     include AssignmentIssues
@@ -52,27 +48,6 @@ module Accessibility
         last_checked: Time.zone.now.strftime("%b %-d, %Y"),
         accessibility_scan_disabled: skip_scan
       }
-    end
-
-    def search(query)
-      data = generate
-      return data if query.blank?
-
-      {
-        pages: filter_resources(data[:pages], query),
-        assignments: filter_resources(data[:assignments], query),
-        announcements: filter_resources(data[:announcements], query),
-        discussion_topics: filter_resources(data[:discussion_topics], query),
-        attachments: filter_resources(data[:attachments], query),
-        syllabus: filter_single_resource(data[:syllabus], query),
-        last_checked: data[:last_checked],
-        accessibility_scan_disabled: data[:accessibility_scan_disabled]
-      }
-    end
-
-    def update_content(rule_id, resource_type, resource_id, path, value)
-      resource = self.class.find_resource(context, resource_type, resource_id)
-      HtmlFixer.new(rule_id, resource, path, value).apply_fix!
     end
 
     # TODO: This method is only used by PreviewController#create and should be eliminated.
@@ -106,26 +81,6 @@ module Accessibility
     end
 
     private
-
-    def filter_resources(resources, query)
-      resources.values&.select do |resource|
-        resource.values&.any? { |value| value.to_s.downcase.include?(query.downcase) }
-      end
-    end
-
-    def filter_single_resource(resource, query)
-      return {} unless resource.present?
-
-      if resource.values&.any? { |value| value.to_s.downcase.include?(query.downcase) }
-        resource
-      else
-        {}
-      end
-    end
-
-    def error_response(message, status)
-      { json: { error: message }, status: }
-    end
 
     def polymorphic_path(args)
       Rails.application.routes.url_helpers.polymorphic_url(args, only_path: true)
