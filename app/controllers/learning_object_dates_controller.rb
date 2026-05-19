@@ -265,21 +265,10 @@ class LearningObjectDatesController < ApplicationController
   #         }'
   def update
     if overridable.try(:is_child_content?)
-      updating_due_dates = false
-      updating_availability_dates = false
+      updating_due_dates, updating_availability_dates = blueprint_date_changes(overridable, params, params[:assignment_overrides])
 
-      updating_due_dates = true if params.key?(:due_at) || params.key?("due_at") || params.key?(:reply_to_topic_due_at) || params.key?("reply_to_topic_due_at") || params.key?(:required_replies_due_at) || params.key?("required_replies_due_at")
-      updating_availability_dates = true if params.key?(:unlock_at) || params.key?("unlock_at") || params.key?(:lock_at) || params.key?("lock_at")
-
-      if params[:assignment_overrides].present?
-        params[:assignment_overrides].each do |override|
-          updating_due_dates = true if override.key?(:due_at) || override.key?("due_at") || override.key?(:reply_to_topic_due_at) || override.key?("reply_to_topic_due_at") || override.key?(:required_replies_due_at) || override.key?("required_replies_due_at")
-          updating_availability_dates = true if override.key?(:unlock_at) || override.key?("unlock_at") || override.key?(:lock_at) || override.key?("lock_at")
-        end
-      end
-
-      if (updating_due_dates && overridable.try(:editing_restricted?, :due_dates)) ||
-         (updating_availability_dates && overridable.try(:editing_restricted?, :availability_dates))
+      if (updating_due_dates && overridable.editing_restricted?(:due_dates)) ||
+         (updating_availability_dates && overridable.editing_restricted?(:availability_dates))
         return render_unauthorized_action
       end
     end
@@ -556,7 +545,14 @@ class LearningObjectDatesController < ApplicationController
     allowed_params.unshift(:reply_to_topic_due_at) if allow_due_at?
     allowed_params.unshift(:required_replies_due_at) if allow_due_at?
     allowed_params.push({ peer_review: strong_anything }) if allow_peer_reviews?
-    params.permit(*allowed_params)
+    p = params.permit(*allowed_params)
+
+    if overridable.try(:is_child_content?)
+      p = p.except(:unlock_at, :lock_at) if overridable.editing_restricted?(:availability_dates)
+      p = p.except(:due_at, :reply_to_topic_due_at, :required_replies_due_at) if overridable.editing_restricted?(:due_dates)
+    end
+
+    p
   end
 
   def allow_peer_reviews?

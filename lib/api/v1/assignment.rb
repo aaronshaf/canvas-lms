@@ -1428,8 +1428,7 @@ module Api::V1::Assignment
     overrides = prepared_update[:overrides]
 
     if overrides.any? && assignment.is_child_content?
-      updating_due_dates = overrides.any? { |o| o.key?(:due_at) || o.key?(:reply_to_topic_due_at) || o.key?(:required_replies_due_at) }
-      updating_availability_dates = overrides.any? { |o| o.key?(:unlock_at) || o.key?(:lock_at) }
+      updating_due_dates, updating_availability_dates = blueprint_date_changes(assignment, {}, overrides)
 
       if (updating_due_dates && assignment.editing_restricted?(:due_dates)) ||
          (updating_availability_dates && assignment.editing_restricted?(:availability_dates))

@@ -10314,6 +10314,102 @@ describe AssignmentsApiController, type: :request do
         expect(child_content_tag.reload.downstream_changes).not_to be_empty
       end
     end
+
+    describe "blueprint child date restrictions" do
+      before :once do
+        other_course = Account.default.courses.create!
+        @master_template = MasterCourses::MasterTemplate.set_as_master_course(other_course)
+        original_assmt = other_course.assignments.create!(title: "blah")
+        @mct = @master_template.create_content_tag_for!(original_assmt)
+
+        course_with_teacher(active_all: true)
+        subscription = MasterCourses::ChildSubscription.create!(master_template: @master_template, child_course: @course)
+        @assignment = @course.assignments.create!(
+          name: "child",
+          migration_id: @mct.migration_id,
+          due_at: "2024-01-02T05:00:00Z",
+          unlock_at: "2024-01-01T05:00:00Z",
+          lock_at: "2024-01-31T05:00:00Z"
+        )
+        MasterCourses::ChildContentTag.create!(child_subscription: subscription, content: @assignment)
+      end
+
+      def update_assignment(expected_status: 200, **payload)
+        api_call(:put,
+                 "/api/v1/courses/#{@course.id}/assignments/#{@assignment.id}.json",
+                 {
+                   controller: "assignments_api",
+                   action: "update",
+                   format: "json",
+                   course_id: @course.id.to_s,
+                   id: @assignment.id.to_s
+                 },
+                 { assignment: payload },
+                 {},
+                 { expected_status: })
+      end
+
+      it "allows updating override due_at when payload echoes unchanged unlock_at/lock_at and only availability_dates are locked" do
+        @mct.update_attribute(:restrictions, { availability_dates: true })
+        existing = @assignment.assignment_overrides.create!(
+          set: @course.default_section,
+          due_at: "2024-01-02T05:00:00Z",
+          unlock_at: "2024-01-01T00:00:00Z",
+          lock_at: "2024-01-05T00:00:00Z"
+        )
+
+        update_assignment(
+          assignment_overrides: [{
+            id: existing.id,
+            course_section_id: @course.default_section.id,
+            due_at: "2024-01-03T05:00:00Z",
+            unlock_at: existing.unlock_at.iso8601,
+            lock_at: existing.lock_at.iso8601
+          }]
+        )
+
+        expect(existing.reload.due_at).to eq Time.zone.parse("2024-01-03T05:00:00Z")
+      end
+
+      it "rejects override due_at change when due_dates are locked" do
+        @mct.update_attribute(:restrictions, { due_dates: true })
+        existing = @assignment.assignment_overrides.create!(
+          set: @course.default_section,
+          due_at: "2024-01-02T05:00:00Z"
+        )
+
+        update_assignment(
+          expected_status: 403,
+          assignment_overrides: [{
+            id: existing.id,
+            course_section_id: @course.default_section.id,
+            due_at: "2024-01-04T05:00:00Z"
+          }]
+        )
+
+        expect(existing.reload.due_at).to eq Time.zone.parse("2024-01-02T05:00:00Z")
+      end
+
+      it "allows override update when payload echoes the existing override's due_at and only due_dates are locked" do
+        @mct.update_attribute(:restrictions, { due_dates: true })
+        existing = @assignment.assignment_overrides.create!(
+          set: @course.default_section,
+          due_at: "2024-01-02T05:00:00Z",
+          unlock_at: "2024-01-01T00:00:00Z"
+        )
+
+        update_assignment(
+          assignment_overrides: [{
+            id: existing.id,
+            course_section_id: @course.default_section.id,
+            due_at: existing.due_at.iso8601,
+            unlock_at: "2024-01-15T00:00:00Z"
+          }]
+        )
+
+        expect(existing.reload.unlock_at).to eq Time.zone.parse("2024-01-15T00:00:00Z")
+      end
+    end
   end
 
   describe "DELETE /courses/:course_id/assignments/:id (#delete)" do

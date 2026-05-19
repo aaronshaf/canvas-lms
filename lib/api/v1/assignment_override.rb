@@ -611,4 +611,42 @@ module Api::V1::AssignmentOverride
       overrides
     end
   end
+
+  BLUEPRINT_DUE_DATE_PARAM_KEYS = %i[due_at reply_to_topic_due_at required_replies_due_at].freeze
+  BLUEPRINT_DUE_DATE_OVERRIDE_KEYS = %i[due_at].freeze
+  BLUEPRINT_AVAILABILITY_DATE_KEYS = %i[unlock_at lock_at].freeze
+
+  def blueprint_date_changes(overridable, base_params, override_params)
+    due_changing = BLUEPRINT_DUE_DATE_PARAM_KEYS.any? { |k| date_param_changing?(base_params, k, overridable.try(k)) }
+    avail_changing = BLUEPRINT_AVAILABILITY_DATE_KEYS.any? { |k| date_param_changing?(base_params, k, overridable.try(k)) }
+
+    if override_params.present?
+      existing_by_id = overridable.respond_to?(:all_assignment_overrides) ? overridable.all_assignment_overrides.active.index_by(&:id) : {}
+      override_params.each do |o|
+        existing = existing_by_id[(o[:id] || o["id"])&.to_i]
+        due_changing ||= BLUEPRINT_DUE_DATE_OVERRIDE_KEYS.any? { |k| date_param_changing?(o, k, existing&.try(k)) }
+        avail_changing ||= BLUEPRINT_AVAILABILITY_DATE_KEYS.any? { |k| date_param_changing?(o, k, existing&.try(k)) }
+      end
+    end
+
+    [due_changing, avail_changing]
+  end
+  private :blueprint_date_changes
+
+  def date_param_changing?(source, key, current)
+    return false unless source.key?(key) || source.key?(key.to_s)
+
+    raw = source[key].nil? ? source[key.to_s] : source[key]
+    parsed = begin
+      raw.present? ? Time.zone.parse(raw.to_s) : nil
+    rescue
+      nil
+    end
+    # Unparseable input is not a determinable date change; let downstream validation surface it.
+    return false if raw.present? && parsed.nil?
+
+    iso = ->(v) { v.respond_to?(:iso8601) ? v.iso8601 : v }
+    iso.call(parsed) != iso.call(current)
+  end
+  private :date_param_changing?
 end

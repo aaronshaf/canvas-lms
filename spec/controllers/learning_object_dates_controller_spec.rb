@@ -1418,6 +1418,64 @@ describe LearningObjectDatesController do
             assignment_overrides: [{ course_section_id: @child_course.default_section.id, unlock_at: "2024-01-01T05:00:00Z" }] }
           expect(response).to be_unauthorized
         end
+
+        it "returns unauthorized when only availability_dates are locked and base unlock_at changes" do
+          @mct.update_attribute(:restrictions, { availability_dates: true })
+          put :update, params: { **default_params, unlock_at: "2024-06-01T05:00:00Z" }
+          expect(response).to be_unauthorized
+        end
+
+        it "allows updating due_at when payload includes unchanged unlock_at/lock_at and only availability_dates are locked" do
+          @mct.update_attribute(:restrictions, { availability_dates: true })
+          put :update, params: { **default_params,
+            due_at: "2022-01-02T05:00:00Z",
+            unlock_at: @child_assignment.unlock_at.iso8601,
+            lock_at: @child_assignment.lock_at.iso8601 }
+          expect(response).to be_successful
+          expect(@child_assignment.reload.due_at).to eq Time.zone.parse("2022-01-02T05:00:00Z")
+        end
+
+        it "allows updating due_at when echoed unlock_at/lock_at have sub-second DB precision" do
+          @mct.update_attribute(:restrictions, { availability_dates: true })
+          @child_assignment.update_column(:unlock_at, Time.zone.parse("2022-01-01T00:00:00.500000Z"))
+          @child_assignment.update_column(:lock_at, Time.zone.parse("2022-01-03T00:00:00.500000Z"))
+          put :update, params: { **default_params,
+            due_at: "2022-01-02T05:00:00Z",
+            unlock_at: @child_assignment.reload.unlock_at.iso8601,
+            lock_at: @child_assignment.reload.lock_at.iso8601 }
+          expect(response).to be_successful
+          expect(@child_assignment.reload.due_at).to eq Time.zone.parse("2022-01-02T05:00:00Z")
+        end
+
+        it "allows updating unlock_at when payload includes unchanged due_at and only due_dates are locked" do
+          @mct.update_attribute(:restrictions, { due_dates: true })
+          put :update, params: { **default_params,
+            due_at: @child_assignment.due_at.iso8601,
+            unlock_at: "2022-01-01T05:00:00Z",
+            lock_at: @child_assignment.lock_at.iso8601 }
+          expect(response).to be_successful
+          expect(@child_assignment.reload.unlock_at).to eq Time.zone.parse("2022-01-01T05:00:00Z")
+        end
+
+        it "allows updating override due_at when payload includes unchanged unlock_at/lock_at and only availability_dates are locked" do
+          @mct.update_attribute(:restrictions, { availability_dates: true })
+          existing = @child_assignment.assignment_overrides.create!(
+            set: @child_course.default_section,
+            due_at: "2022-01-02T05:00:00Z",
+            unlock_at: "2022-01-01T00:00:00Z",
+            lock_at: "2022-01-05T00:00:00Z"
+          )
+          put :update, params: { **default_params,
+            assignment_overrides: [{
+              id: existing.id,
+              course_section_id: @child_course.default_section.id,
+              due_at: "2022-01-03T05:00:00Z",
+              unlock_at: existing.unlock_at.iso8601,
+              lock_at: existing.lock_at.iso8601
+            }] }
+          expect(response).to be_successful
+          expect(existing.reload.due_at).to eq Time.zone.parse("2022-01-03T05:00:00Z")
+        end
       end
     end
 
@@ -2088,6 +2146,74 @@ describe LearningObjectDatesController do
           @topic.reload
           expect(@topic.sub_assignments.pluck(:description)).to all(eq @topic.message)
           expect(AttachmentAssociation.where(context: @topic.sub_assignments).pluck(:attachment_id)).to match_array([@attachment.id, @attachment.id])
+        end
+      end
+
+      context "on blueprint child courses with checkpoints" do
+        before :once do
+          @course.account.enable_feature! :discussion_checkpoints
+
+          @checkpoint_unlock_at = "2024-01-01T05:00:00Z"
+          @checkpoint_lock_at = "2024-12-31T05:00:00Z"
+          @checkpoint_topic = DiscussionTopic.create_graded_topic!(course: @course, title: "checkpointed blueprint child")
+
+          Checkpoints::DiscussionCheckpointCreatorService.call(
+            discussion_topic: @checkpoint_topic,
+            checkpoint_label: CheckpointLabels::REPLY_TO_TOPIC,
+            dates: [{ type: "everyone", due_at: "2024-01-15T05:00:00Z", unlock_at: @checkpoint_unlock_at, lock_at: @checkpoint_lock_at }],
+            points_possible: 5
+          )
+          Checkpoints::DiscussionCheckpointCreatorService.call(
+            discussion_topic: @checkpoint_topic,
+            checkpoint_label: CheckpointLabels::REPLY_TO_ENTRY,
+            dates: [{ type: "everyone", due_at: "2024-01-20T05:00:00Z", unlock_at: @checkpoint_unlock_at, lock_at: @checkpoint_lock_at }],
+            points_possible: 15,
+            replies_required: 3
+          )
+          @checkpoint_topic.reload
+
+          child_course = @course
+          master_template = MasterCourses::MasterTemplate.set_as_master_course(course_model)
+          child_subscription = master_template.add_child_course!(child_course)
+          MasterCourses::ChildContentTag.create!(child_subscription:, content: @checkpoint_topic.assignment)
+          @cp_mct = MasterCourses::MasterContentTag.create!(master_template:, content: assignment_model)
+          @checkpoint_topic.assignment.update!(migration_id: @cp_mct.migration_id)
+
+          @checkpoint_params = { course_id: child_course.id, discussion_topic_id: @checkpoint_topic.id }
+        end
+
+        it "returns unauthorized when due_dates are locked and reply_to_topic_due_at changes" do
+          @cp_mct.update_attribute(:restrictions, { due_dates: true })
+          put :update, params: { **@checkpoint_params, reply_to_topic_due_at: "2024-02-15T05:00:00Z" }
+          expect(response).to be_unauthorized
+        end
+
+        it "returns unauthorized when due_dates are locked and required_replies_due_at changes" do
+          @cp_mct.update_attribute(:restrictions, { due_dates: true })
+          put :update, params: { **@checkpoint_params, required_replies_due_at: "2024-02-20T05:00:00Z" }
+          expect(response).to be_unauthorized
+        end
+
+        it "allows updating reply_to_topic_due_at when payload echoes unchanged unlock_at/lock_at and only availability_dates are locked" do
+          @cp_mct.update_attribute(:restrictions, { availability_dates: true })
+          put :update, params: { **@checkpoint_params,
+            reply_to_topic_due_at: "2024-02-15T05:00:00Z",
+            unlock_at: @checkpoint_unlock_at,
+            lock_at: @checkpoint_lock_at }
+          expect(response).to be_no_content
+          reply_to_topic_sub = @checkpoint_topic.assignment.sub_assignments.find_by(sub_assignment_tag: CheckpointLabels::REPLY_TO_TOPIC)
+          expect(reply_to_topic_sub.reload.due_at).to eq Time.zone.parse("2024-02-15T05:00:00Z")
+        end
+
+        it "allows updating required_replies_due_at when payload echoes unchanged unlock_at/lock_at and only availability_dates are locked" do
+          @cp_mct.update_attribute(:restrictions, { availability_dates: true })
+          put :update, params: { **@checkpoint_params,
+            required_replies_due_at: "2024-02-20T05:00:00Z",
+            unlock_at: @checkpoint_unlock_at,
+            lock_at: @checkpoint_lock_at }
+          expect(response).to be_no_content
+          reply_to_entry_sub = @checkpoint_topic.assignment.sub_assignments.find_by(sub_assignment_tag: CheckpointLabels::REPLY_TO_ENTRY)
+          expect(reply_to_entry_sub.reload.due_at).to eq Time.zone.parse("2024-02-20T05:00:00Z")
         end
       end
     end
