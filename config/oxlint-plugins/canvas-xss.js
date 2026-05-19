@@ -189,6 +189,22 @@ function whitelistUrlApiReceivers(ast, linter) {
   }
 }
 
+// One-level variable lookup: if expr is an identifier bound to a single-init
+// const-like declaration with no subsequent writes, return the initializer.
+// This allows `const safe = sanitizeHTML(x); el.innerHTML = safe` to pass.
+function resolveBinding(expr, traversePath) {
+  if (!expr || expr.type !== 'Identifier') return expr
+  const binding = traversePath.scope.getBinding(expr.name)
+  if (
+    binding?.path.isVariableDeclarator() &&
+    binding.path.node.init &&
+    binding.constantViolations.length === 0
+  ) {
+    return binding.path.node.init
+  }
+  return expr
+}
+
 function findDangerouslySetInnerHTMLWarnings(ast, linter) {
   const warnings = []
   traverse(ast, {
@@ -211,7 +227,17 @@ function findDangerouslySetInnerHTMLWarnings(ast, linter) {
             (p.key.type === 'StringLiteral' && p.key.value === '__html')),
       )
       if (!htmlProp) return
+      // Check original first — preserves xsslint's safeString.identifier name
+      // matching (e.g. identifiers ending in Html/View/Template).
       if (linter.isSafeExpression('dangerouslySetInnerHTML', htmlProp.value)) return
+      // Supplemental: resolve one const binding to allow
+      // `const safe = sanitizeHTML(x); dangerouslySetInnerHTML={{__html: safe}}`.
+      const resolvedValue = resolveBinding(htmlProp.value, path)
+      if (
+        resolvedValue !== htmlProp.value &&
+        linter.isSafeExpression('dangerouslySetInnerHTML', resolvedValue)
+      )
+        return
 
       warnings.push({
         line: (node.loc || expr.loc).start.line,
@@ -235,6 +261,8 @@ function findDomSinkWarnings(ast, linter) {
     const prop = left.property
     if (prop.type !== 'Identifier' || !DOM_HTML_SINK_PROPS.has(prop.name)) return
     if (linter.isSafeString(right)) return
+    const resolvedRight = resolveBinding(right, p)
+    if (resolvedRight !== right && linter.isSafeString(resolvedRight)) return
     warnings.push({line: p.node.loc.start.line, method: prop.name})
   }
 
@@ -245,8 +273,10 @@ function findDomSinkWarnings(ast, linter) {
     if (prop.type !== 'Identifier') return
 
     if (prop.name === 'insertAdjacentHTML') {
-      const value = args[1]
-      if (!value || linter.isSafeString(value)) return
+      const raw = args[1]
+      if (!raw || linter.isSafeString(raw)) return
+      const resolved = resolveBinding(raw, p)
+      if (resolved !== raw && linter.isSafeString(resolved)) return
       warnings.push({line: p.node.loc.start.line, method: 'insertAdjacentHTML'})
       return
     }
@@ -256,8 +286,10 @@ function findDomSinkWarnings(ast, linter) {
       callee.object.type === 'Identifier' &&
       callee.object.name === 'document'
     ) {
-      const value = args[0]
-      if (!value || linter.isSafeString(value)) return
+      const raw = args[0]
+      if (!raw || linter.isSafeString(raw)) return
+      const resolved = resolveBinding(raw, p)
+      if (resolved !== raw && linter.isSafeString(resolved)) return
       warnings.push({line: p.node.loc.start.line, method: 'document.write'})
     }
   }
@@ -326,7 +358,7 @@ function findUrlSinkWarnings(ast) {
     if (!MEMBER_LIKE.has(left.type)) return
     const prop = left.property
     if (prop.type !== 'Identifier') return
-    if (isSafeUrl(right)) return
+    if (isSafeUrl(resolveBinding(right, p))) return
 
     if (URL_SINK_PROPS.has(prop.name)) {
       warnings.push({line: p.node.loc.start.line, method: `${prop.name}=`})
@@ -345,7 +377,7 @@ function findUrlSinkWarnings(ast) {
 
     if (prop.name === 'assign' || prop.name === 'replace') {
       if (!isLocationObject(callee.object)) return
-      const value = args[0]
+      const value = resolveBinding(args[0], p)
       if (!value || isSafeUrl(value)) return
       warnings.push({line: p.node.loc.start.line, method: `location.${prop.name}`})
       return
@@ -356,7 +388,7 @@ function findUrlSinkWarnings(ast) {
       callee.object.type === 'Identifier' &&
       callee.object.name === 'window'
     ) {
-      const url = args[0]
+      const url = resolveBinding(args[0], p)
       if (!url || isSafeUrl(url)) return
       warnings.push({line: p.node.loc.start.line, method: 'window.open'})
     }
@@ -397,7 +429,7 @@ function findSetAttributeWarnings(ast) {
       return
     }
     if (DANGEROUS_ATTRS_URL.has(attrName)) {
-      if (isSafeUrl(valueArg)) return
+      if (isSafeUrl(resolveBinding(valueArg, p))) return
       warnings.push({line: p.node.loc.start.line, method: `setAttribute('${attrName}')`})
     }
   }

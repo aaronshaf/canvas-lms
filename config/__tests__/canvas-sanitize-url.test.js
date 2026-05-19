@@ -274,3 +274,39 @@ tester.run('at-href', plugin.rules['at-href'], {
     },
   ],
 })
+
+// Variable tracking: one-level const binding lookup
+// These tests verify that `const safe = sanitizeUrl(x); el.href = safe`
+// does not fire the rule (the binding resolves to a safe initializer).
+const {RuleTester: VarTester} = require('eslint')
+const vt = new VarTester({
+  languageOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    parserOptions: {ecmaFeatures: {jsx: true}},
+  },
+})
+
+vt.run('imperative variable tracking', plugin.rules.imperative, {
+  valid: [
+    {code: 'const safe = sanitizeUrl(url); el.href = safe'},
+    {code: 'const safe = sanitizeUrl(url); window.open(safe)'},
+    {code: "const safe = sanitizeUrl(url); el.setAttribute('href', safe)"},
+  ],
+  invalid: [
+    {
+      code: 'const raw = url; el.href = raw',
+      errors: [{messageId: 'requireSanitize'}],
+    },
+  ],
+})
+
+vt.run('at-href variable tracking', plugin.rules['at-href'], {
+  valid: [{code: 'const href = sanitizeUrl(url); const x = <a href={href} />'}],
+  invalid: [
+    {
+      code: 'const href = url; const x = <a href={href} />',
+      errors: [{messageId: 'requireSanitize'}],
+    },
+  ],
+})

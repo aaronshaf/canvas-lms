@@ -505,3 +505,85 @@ test('flags message listener with zero-param handler', () => {
   `)
   assert.equal(reports.length, 1)
 })
+
+// Variable tracking: one-level const binding lookup
+test('allows dangerouslySetInnerHTML where __html variable was initialized with sanitizeHTML', () => {
+  const reports = lint(`
+    export function Example({content}: {content: string}) {
+      const safe = sanitizeHTML(content)
+      return <div dangerouslySetInnerHTML={{__html: safe}} />
+    }
+  `)
+  assert.equal(reports.length, 0)
+})
+
+test('still flags dangerouslySetInnerHTML where __html variable holds raw content', () => {
+  const reports = lint(`
+    export function Example({content}: {content: string}) {
+      const raw = content
+      return <div dangerouslySetInnerHTML={{__html: raw}} />
+    }
+  `)
+  assert.equal(reports.length, 1)
+})
+
+test('allows innerHTML where variable was initialized with sanitizeHTML', () => {
+  const reports = lint(`
+    const safe = sanitizeHTML(userInput)
+    element.innerHTML = safe
+  `)
+  assert.equal(reports.length, 0)
+})
+
+test('still flags innerHTML where variable holds raw content', () => {
+  const reports = lint(`
+    const raw = userInput
+    element.innerHTML = raw
+  `)
+  assert.equal(reports.length, 1)
+})
+
+test('allows element.href where variable was initialized with sanitizeUrl', () => {
+  const reports = lint(`
+    const safe = sanitizeUrl(url)
+    element.href = safe
+  `)
+  assert.equal(reports.length, 0)
+})
+
+test('still flags element.href where variable holds raw url', () => {
+  const reports = lint(`
+    const raw = url
+    element.href = raw
+  `)
+  assert.equal(reports.length, 1)
+})
+
+test('allows window.open where variable was initialized with sanitizeUrl', () => {
+  const reports = lint(`
+    const safe = sanitizeUrl(url)
+    window.open(safe, '_blank')
+  `)
+  assert.equal(reports.length, 0)
+})
+
+// Regression: identifiers allowed by xsslint's safeString.identifier name
+// patterns (e.g. ending in Html/View/Template) must not be overridden by the
+// binding-lookup path, even if their initializer is not itself a safe function.
+test('preserves safe-by-name identifier exemption for dangerouslySetInnerHTML', () => {
+  const reports = lint(`
+    function processHtml(input) { return input }
+    const descriptionHtml = processHtml(userContent)
+    const el = <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
+  `)
+  assert.equal(reports.length, 0)
+})
+
+test('preserves safe-by-name identifier exemption for innerHTML', () => {
+  const reports = lint(`
+    function processHtml(input) { return input }
+    const descriptionHtml = processHtml(userContent)
+    element.innerHTML = descriptionHtml
+  `)
+  assert.equal(reports.length, 0)
+})

@@ -109,6 +109,55 @@ function isAllowedValue(value) {
   return false
 }
 
+// Walk the ESLint scope chain looking for a single-init variable with no
+// subsequent writes (i.e. const-like). Returns the initializer AST node or null.
+function lookupVarInit(name, scope) {
+  let s = scope
+  while (s) {
+    const v = s.set?.get(name)
+    if (v) {
+      if (
+        v.defs.length === 1 &&
+        v.defs[0].type === 'Variable' &&
+        v.defs[0].node.init &&
+        v.references.filter(r => r.isWrite()).length <= 1
+      ) {
+        return v.defs[0].node.init
+      }
+      return null
+    }
+    s = s.upper
+  }
+  return null
+}
+
+// Scope-aware wrapper around isAllowedExpression: one-level const binding lookup.
+// scope may be null (e.g. when the host linter doesn't expose it) — safe fallback.
+function isAllowedExpressionInScope(expr, scope) {
+  if (!expr || expr.type === 'JSXEmptyExpression') return true
+  if (expr.type === 'ConditionalExpression') {
+    return (
+      isAllowedExpressionInScope(expr.consequent, scope) &&
+      isAllowedExpressionInScope(expr.alternate, scope)
+    )
+  }
+  if (isAllowedExpression(expr)) return true
+  if (scope && expr.type === 'Identifier') {
+    const init = lookupVarInit(expr.name, scope)
+    if (init) return isAllowedExpression(init)
+  }
+  return false
+}
+
+function isAllowedValueInScope(value, scope) {
+  if (value == null) return true
+  if (value.type === 'Literal') return true
+  if (value.type === 'JSXExpressionContainer') {
+    return isAllowedExpressionInScope(value.expression, scope)
+  }
+  return false
+}
+
 const atHrefRule = {
   meta: {
     type: 'problem',
@@ -130,12 +179,14 @@ const atHrefRule = {
         const sinkAttrs = SINKS[elementName]
         if (!sinkAttrs) return
 
+        const scope = context.sourceCode?.getScope?.(node) ?? null
+
         for (const attr of node.attributes) {
           if (attr.type !== 'JSXAttribute') continue
           const attrName = getAttrName(attr)
           if (!attrName || !sinkAttrs.has(attrName)) continue
 
-          if (!isAllowedValue(attr.value)) {
+          if (!isAllowedValueInScope(attr.value, scope)) {
             context.report({
               node: attr,
               messageId: 'requireSanitize',
@@ -220,7 +271,8 @@ const imperativeRule = {
         if (node.operator !== '=') return
         const kind = lhsKind(node.left)
         if (!kind) return
-        if (isAllowedExpression(node.right)) return
+        const scope = context.sourceCode?.getScope?.(node) ?? null
+        if (isAllowedExpressionInScope(node.right, scope)) return
         context.report({
           node,
           messageId: 'requireSanitize',
@@ -230,8 +282,11 @@ const imperativeRule = {
       CallExpression(node) {
         if (isWindowOpenCallee(node.callee)) {
           const arg = node.arguments[0]
-          if (arg && arg.type !== 'SpreadElement' && !isAllowedExpression(arg)) {
-            context.report({node, messageId: 'requireSanitize', data: {sink: 'window.open'}})
+          if (arg && arg.type !== 'SpreadElement') {
+            const scope = context.sourceCode?.getScope?.(node) ?? null
+            if (!isAllowedExpressionInScope(arg, scope)) {
+              context.report({node, messageId: 'requireSanitize', data: {sink: 'window.open'}})
+            }
           }
           return
         }
@@ -243,14 +298,16 @@ const imperativeRule = {
             typeof nameArg.value === 'string' &&
             IMPERATIVE_SET_ATTRIBUTE_NAMES.has(nameArg.value.toLowerCase()) &&
             valueArg &&
-            valueArg.type !== 'SpreadElement' &&
-            !isAllowedExpression(valueArg)
+            valueArg.type !== 'SpreadElement'
           ) {
-            context.report({
-              node,
-              messageId: 'requireSanitize',
-              data: {sink: `setAttribute('${nameArg.value}', ...)`},
-            })
+            const scope = context.sourceCode?.getScope?.(node) ?? null
+            if (!isAllowedExpressionInScope(valueArg, scope)) {
+              context.report({
+                node,
+                messageId: 'requireSanitize',
+                data: {sink: `setAttribute('${nameArg.value}', ...)`},
+              })
+            }
           }
         }
       },
