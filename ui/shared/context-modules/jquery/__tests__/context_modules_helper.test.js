@@ -37,7 +37,7 @@ describe('ContextModulesHelper', () => {
     Helper.externalUrlLinkClick(event, elt)
     expect(event.preventDefault).toHaveBeenCalledTimes(1)
     expect(elt.attr).toHaveBeenCalledWith('data-item-href')
-    expect(Helper.setWindowLocation).toHaveBeenCalledWith('http://example.com/')
+    expect(Helper.setWindowLocation).toHaveBeenCalledWith('http://example.com')
   })
 
   test('externalUrlLinkClick sanitizeUrl', () => {

@@ -431,7 +431,7 @@ const SideNav: React.FC<ISideNav> = ({externalTools = []}) => {
           {processedTools.map(tool => {
             let toolHref = sanitizeUrl(tool.href?.toString() || '#')
             if (!tool.href?.includes('toolId')) {
-              toolHref += `&toolId=${tool.toolId}`
+              toolHref += `${toolHref.includes('?') ? '&' : '?'}toolId=${tool.toolId}`
             }
             return (
               <SideNavBar.Item

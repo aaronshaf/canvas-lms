@@ -81,7 +81,7 @@ describe('RceCommandShim - send', () => {
     expect(remoteEditor.call).toHaveBeenCalledWith('insertLink', {
       url,
       classes,
-      href: 'http://someurl/',
+      href: 'http://someurl',
       class: classes,
       'data-preview-alt': previewAlt,
       dataAttributes: {'preview-alt': previewAlt},

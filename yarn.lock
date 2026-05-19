@@ -3149,10 +3149,10 @@
   dependencies:
     uuid "^9.0.0"
 
-"@instructure/platform-sanitize@0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@instructure/platform-sanitize/-/platform-sanitize-0.3.0.tgz#a1db22887bbeab345d5a772022925ee55e92bbfc"
-  integrity sha512-bYJVUrCvqMyXJj8v5UY2MuOGxT+mmbDhU2XElcJnaXSMp9wOC3aG3NUYZ4hPj+fbxwLhEn03hEBVFclPdrEptA==
+"@instructure/platform-sanitize@0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-sanitize/-/platform-sanitize-0.3.2.tgz#895ad0d98b590f4af30c0daa679ac95fc37fce0c"
+  integrity sha512-DsAdQ6CAQ2xmlXYCTLcl/tIG9LGUyJ8mxUrCMk+gRq0mkXUEGV+yN5/7DjP1T0Zmb/X963K9iYwk1NSrfX6/UA==
 
 "@instructure/platform-study-assist@0.12.1":
   version "0.12.1"

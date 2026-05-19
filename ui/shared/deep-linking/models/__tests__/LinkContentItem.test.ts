@@ -78,7 +78,7 @@ describe('toHtmlString', () => {
 
     it('returns markup for an iframe', () => {
       expect(linkContentItemToHtmlString(overrideLinkContentItem({iframe}))).toEqual(
-        '<iframe src="http://www.instructure.com/" title="Title" allowfullscreen="true" allow="" style="width: 500px; height: 200px;"></iframe>',
+        '<iframe src="http://www.instructure.com" title="Title" allowfullscreen="true" allow="" style="width: 500px; height: 200px;"></iframe>',
       )
     })
   })

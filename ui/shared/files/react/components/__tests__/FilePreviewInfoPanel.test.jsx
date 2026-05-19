@@ -86,7 +86,7 @@ describe('FilePreviewInfoPanel', () => {
     const {getByTestId} = renderComponent()
     const modifiedByElement = getByTestId('modified-by')
     const link = modifiedByElement.querySelector('a')
-    expect(link).toHaveAttribute('href', 'http://fun.com/')
+    expect(link).toHaveAttribute('href', 'http://fun.com')
     expect(modifiedByElement).toHaveTextContent('Jim Bob')
   })
 
