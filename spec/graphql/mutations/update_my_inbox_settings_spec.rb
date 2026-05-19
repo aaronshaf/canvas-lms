@@ -194,18 +194,5 @@ describe Mutations::UpdateMyInboxSettings do
       )
       expect_error(result, "Argument 'useOutOfOffice' on InputObject 'UpdateMyInboxSettingsInput' is required. Expected type Boolean!")
     end
-
-    it "requires feature to be enabled" do
-      Account.site_admin.disable_feature!(:inbox_settings)
-
-      result = execute_query(
-        mutation_str(
-          use_signature:,
-          use_out_of_office:
-        ),
-        context
-      )
-      expect_error(result, "inbox settings feature is disabled")
-    end
   end
 end

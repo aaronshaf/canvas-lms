@@ -143,27 +143,6 @@ describe Loaders::WikiPageLoaders do
       end
     end
 
-    context "when permanent page links feature is disabled" do
-      before do
-        Account.site_admin.disable_feature!(:permanent_page_links)
-      end
-
-      after do
-        Account.site_admin.enable_feature!(:permanent_page_links)
-      end
-
-      it "still works correctly without current_lookup" do
-        regular_page = @wiki.wiki_pages.create!(title: "Test Page", body: "Test content", context: @course)
-
-        GraphQL::Batch.batch do
-          loader = Loaders::WikiPageLoaders::CanUnpublishLoader.for(context)
-          loader.load(regular_page.id).then do |result|
-            expect(result).to be(true)
-          end
-        end
-      end
-    end
-
     context "with workflow states" do
       before(:once) do
         @deleted_page = @wiki.wiki_pages.create!(title: "Deleted Page", body: "Deleted content", context: @course)

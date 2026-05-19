@@ -165,14 +165,6 @@ describe Mutations::SetAssignmentPostPolicy do
 
     let(:context) { { current_user: teacher } }
 
-    it "will not set scheduled feedback release fields when the scheduled_feedback_releases ff is OFF" do
-      Account.site_admin.disable_feature!(:scheduled_feedback_releases)
-      execute_query(mutation_str(assignment_id: assignment.id, post_manually: true, post_comments_at: Time.zone.now, post_grades_at: Time.zone.now), context)
-      policy = PostPolicy.find_by(course:, assignment:)
-      expect(policy.scheduled_post&.post_comments_at).to be_nil
-      expect(policy.scheduled_post&.post_grades_at).to be_nil
-    end
-
     it "will set scheduled feedback release fields when the scheduled_feedback_releases is ON and post_manually is true" do
       post_comments_at = Time.zone.now
       post_grades_at = Time.zone.now

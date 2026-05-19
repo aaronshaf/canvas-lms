@@ -92,13 +92,4 @@ describe Mutations::DeleteCustomGradeStatus do
     expect(result.dig("data", "deleteCustomGradeStatus")).to be_nil
     expect(result["errors"][0]["message"]).to eq("custom grade status not found")
   end
-
-  it "doesn't allow the mutation to be called if the feature flag is disabled" do
-    CustomGradeStatus.create(name: "Test Status", color: "#000000", root_account: @course.root_account, created_by: @admin)
-    Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-    result = execute_with_input(delete_query)
-    expect(result["errors"]).not_to be_nil
-    expect(result.dig("data", "deleteCustomGradeStatus")).to be_nil
-    expect(result["errors"][0]["message"]).to eq("custom gradebook statuses feature flag is disabled")
-  end
 end

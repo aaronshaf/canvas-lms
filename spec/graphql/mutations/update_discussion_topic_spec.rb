@@ -1769,16 +1769,6 @@ RSpec.describe Mutations::UpdateDiscussionTopic do
       expect(@topic.require_initial_post).to be true
     end
 
-    it "does not trigger accessibility scan when a11y_checker_additional_resources feature is disabled" do
-      Account.site_admin.disable_feature!(:a11y_checker_additional_resources)
-
-      expect(Accessibility::ResourceScannerService).not_to receive(:call)
-
-      result = run_mutation(id: @topic.id, message: "Updated message")
-
-      expect(result["errors"]).to be_nil
-    end
-
     it "does not trigger accessibility scan when a11y_checker feature is disabled" do
       @course.account.disable_feature!(:a11y_checker)
       @course.reload
@@ -1914,58 +1904,6 @@ RSpec.describe Mutations::UpdateDiscussionTopic do
 
         expect(AccessibilityResourceScan.where(context: @topic).count).to eq(1)
         expect(AccessibilityResourceScan.where(context: assignment_ref).count).to eq(0)
-      end
-
-      context "when a11y_checker_additional_resources is disabled" do
-        before do
-          Account.site_admin.disable_feature!(:a11y_checker_additional_resources)
-        end
-
-        it "does not normalize when topic becomes graded" do
-          ungraded_topic = @course.discussion_topics.create!(
-            title: "Ungraded Topic",
-            message: "Test message",
-            user: @teacher
-          )
-
-          # Even if topic had a scan, it shouldn't be removed without the feature flag
-          AccessibilityResourceScan.where(context: ungraded_topic).delete_all
-          AccessibilityResourceScan.create!(context: ungraded_topic, course: @course)
-
-          expect(AccessibilityResourceScan.where(context: ungraded_topic).count).to eq(1)
-
-          result = run_mutation(
-            id: ungraded_topic.id,
-            assignment: {
-              setAssignment: true,
-              pointsPossible: 10,
-              gradingType: "points"
-            }
-          )
-
-          expect(result["errors"]).to be_nil
-          ungraded_topic.reload
-          expect(ungraded_topic.assignment).not_to be_nil
-
-          # Topic scan should NOT be removed (normalization disabled)
-          expect(AccessibilityResourceScan.where(context: ungraded_topic).count).to eq(1)
-        end
-
-        it "does not normalize when topic becomes ungraded" do
-          expect(AccessibilityResourceScan.where(context: @topic).count).to eq(0)
-
-          result = run_mutation(
-            id: @topic.id,
-            assignment: { setAssignment: false }
-          )
-
-          expect(result["errors"]).to be_nil
-          @topic.reload
-          expect(@topic.assignment).to be_nil
-
-          # Topic scan should NOT be created (normalization disabled)
-          expect(AccessibilityResourceScan.where(context: @topic).count).to eq(0)
-        end
       end
     end
 
