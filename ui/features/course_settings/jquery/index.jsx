@@ -167,8 +167,7 @@ function checkHomeroomSyncProgress(progress) {
 $(document).ready(function () {
   const $add_section_form = $('#add_section_form'),
     $edit_section_form = $('#edit_section_form'),
-    $course_form = $('#course_form'),
-    $enrollment_dialog = $('#enrollment_dialog')
+    $course_form = $('#course_form')
 
   $add_section_form.formSubmit({
     required: ['course_section[name]'],
@@ -476,37 +475,6 @@ $(document).ready(function () {
         $obj.focus().select()
       }
     })
-  $enrollment_dialog.find('.cancel_button').click(() => {
-    $enrollment_dialog.dialog('close')
-  })
-
-  $enrollment_dialog.find('.re_send_invitation_link').click(function (event) {
-    event.preventDefault()
-    const $link = $(this)
-    $link.text(I18n.t('links.re_sending_invitation', 'Re-Sending Invitation...'))
-    const url = $link.attr('href')
-    $.ajaxJSON(
-      url,
-      'POST',
-      {},
-      _data => {
-        $enrollment_dialog.fillTemplateData({
-          data: {invitation_sent_at: I18n.t('invitation_sent_now', 'Just Now')},
-        })
-        $link.text(I18n.t('invitation_sent', 'Invitation Sent!'))
-        const $user = $enrollment_dialog.data('user')
-        if ($user) {
-          $user.fillTemplateData({
-            data: {invitation_sent_at: I18n.t('invitation_sent_now', 'Just Now')},
-          })
-        }
-      },
-      _data => {
-        $link.text(I18n.t('errors.invitation', 'Invitation Failed.  Please try again.'))
-      },
-    )
-  })
-
   const renderFlashError = errorMessage => {
     $.flashError(errorMessage)
   }
