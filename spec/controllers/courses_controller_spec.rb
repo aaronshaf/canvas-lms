@@ -6924,6 +6924,13 @@ describe CoursesController do
       expect(@course.tab_configuration).to eq(processed_tabs)
     end
 
+    it "redirects to course settings with navigation anchor" do
+      user_session(@teacher)
+      tabs_json = [{ id: "assignments", label: "Assignments" }].to_json
+      put :update_nav, params: { course_id: @course.id, tabs_json: }
+      expect(response).to redirect_to(course_settings_url(@course, anchor: "tab-navigation"))
+    end
+
     it "requires update permission" do
       student_in_course(active_all: true)
       user_session(@student)

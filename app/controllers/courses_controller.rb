@@ -2011,7 +2011,7 @@ class CoursesController < ApplicationController
       )
       @context.save
       respond_to do |format|
-        format.html { redirect_to named_context_url(@context, :context_details_url) }
+        format.html { redirect_to course_settings_url(@context, anchor: "tab-navigation") }
         format.json { render json: { update_nav: true } }
       end
     end
