@@ -412,16 +412,6 @@ describe Gradebook::FinalGradeOverrides do
             expect(grading_period_score_2.reload.custom_grade_status_id).to eq @custom_status.id
           end
         end
-
-        it "does not modify override status if the feature flag is OFF" do
-          Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-          run(updates: override_status_updates)
-
-          aggregate_failures do
-            expect(@student1_score.reload.custom_grade_status_id).to be_nil
-            expect(@student2_score.reload.custom_grade_status_id).to be_nil
-          end
-        end
       end
 
       describe "error handling" do

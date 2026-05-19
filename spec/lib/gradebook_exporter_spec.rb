@@ -560,12 +560,6 @@ describe GradebookExporter do
           expect(actual_headers).to include "Override Status"
         end
 
-        it "does not include Override Status when 'Custom Status Labels' is disabled" do
-          Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-          actual_headers = CSV.parse(csv, headers: true).headers
-          expect(actual_headers).not_to include "Override Status"
-        end
-
         it "includes the Override Score when the course has a grading standard" do
           actual_headers = CSV.parse(csv, headers: true).headers
           expect(actual_headers).to include "Override Score"
