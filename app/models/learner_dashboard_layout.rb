@@ -30,7 +30,56 @@ class LearnerDashboardLayout < ApplicationRecord
 
   validates :name, presence: true, length: { maximum: 255 }
 
+  scope :visible_to_account, ->(acct) { active.where(account_id: [acct.id] + Account.sub_account_ids_recursive(acct.id)) }
+
+  def create_block_editor_data(user_uuid:, data:)
+    response = Canvas.retriable(tries: content_service_max_retries) do
+      ContentServiceClient.create_content(
+        root_account_uuid: root_account.uuid,
+        user_uuid:,
+        context_type: "LearnerDashboardLayout",
+        context_id: id,
+        data:
+      )
+    end
+    create_external_content_reference(content_id: response.external_content_id)
+  end
+
+  def update_block_editor_data(user_uuid:, data:)
+    ref = external_content_reference
+    if ref
+      Canvas.retriable(tries: content_service_max_retries) do
+        ContentServiceClient.update_content(
+          root_account_uuid: root_account.uuid,
+          user_uuid:,
+          external_content_id: ref.content_id,
+          data:
+        )
+      end
+    else
+      create_block_editor_data(user_uuid:, data:)
+    end
+  end
+
+  def get_block_editor_data(user_uuid:)
+    ref = external_content_reference
+    return unless ref
+
+    content = Canvas.retriable(tries: content_service_max_retries) do
+      ContentServiceClient.get_content(
+        root_account_uuid: root_account.uuid,
+        user_uuid:,
+        external_content_id: ref.content_id
+      )
+    end
+    content.data
+  end
+
   private
+
+  def content_service_max_retries
+    Setting.get("content_service_client_max_retries", "3").to_i
+  end
 
   def set_root_account_id
     self.root_account_id ||= account&.resolved_root_account_id

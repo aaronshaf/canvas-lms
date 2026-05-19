@@ -215,6 +215,22 @@
   path: '/api/v1/accounts/:account_id/learn_platform/products/:id'
 - verb: GET
   path: '/api/v1/accounts/:account_id/learn_platform/products_categories'
+- verb: DELETE
+  path: '/api/v1/accounts/:account_id/learner_dashboard_activation'
+- verb: GET
+  path: '/api/v1/accounts/:account_id/learner_dashboard_activation'
+- verb: PUT
+  path: '/api/v1/accounts/:account_id/learner_dashboard_activation'
+- verb: GET
+  path: '/api/v1/accounts/:account_id/learner_dashboard_layouts'
+- verb: POST
+  path: '/api/v1/accounts/:account_id/learner_dashboard_layouts'
+- verb: DELETE
+  path: '/api/v1/accounts/:account_id/learner_dashboard_layouts/:id'
+- verb: GET
+  path: '/api/v1/accounts/:account_id/learner_dashboard_layouts/:id'
+- verb: PUT
+  path: '/api/v1/accounts/:account_id/learner_dashboard_layouts/:id'
 - verb: GET
   path: '/api/v1/accounts/:account_id/logins'
 - verb: POST

@@ -1,0 +1,168 @@
+# frozen_string_literal: true
+
+#
+# Copyright (C) 2026 - present Instructure, Inc.
+#
+# This file is part of Canvas.
+#
+# Canvas is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Affero General Public License as published by the Free
+# Software Foundation, version 3 of the License.
+#
+# Canvas is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Affero General Public License along
+# with this program. If not, see <http://www.gnu.org/licenses/>.
+
+describe LearnerDashboardLayoutsController do
+  before :once do
+    @root_account = Account.default
+    @root_account.enable_feature!(:horizon_course_setting)
+    @root_account.enable_feature!(:horizon_configurable_learner_dashboard)
+    @root_account.update!(horizon_account: true)
+    @sub_account = @root_account.sub_accounts.create!(name: "Sub")
+    @admin = account_admin_user(account: @root_account)
+    @layout = LearnerDashboardLayout.create!(name: "Root Layout", account: @root_account)
+    @sub_layout = LearnerDashboardLayout.create!(name: "Sub Layout", account: @sub_account)
+  end
+
+  before { user_session(@admin) }
+
+  describe "GET #index" do
+    it "lists layouts visible to the account" do
+      get :index, params: { account_id: @root_account.id }, format: :json
+      expect(response).to have_http_status(:ok)
+      ids = response.parsed_body.pluck("id")
+      expect(ids).to include(@layout.id, @sub_layout.id)
+    end
+
+    it "scopes to sub-account subtree" do
+      get :index, params: { account_id: @sub_account.id }, format: :json
+      expect(response).to have_http_status(:ok)
+      ids = response.parsed_body.pluck("id")
+      expect(ids).to include(@sub_layout.id)
+      expect(ids).not_to include(@layout.id)
+    end
+
+    it "returns 401 without permission" do
+      user_session(user_factory(active_all: true))
+      get :index, params: { account_id: @root_account.id }, format: :json
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 404 when feature flag disabled" do
+      @root_account.disable_feature!(:horizon_configurable_learner_dashboard)
+      get :index, params: { account_id: @root_account.id }, format: :json
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "GET #show" do
+    it "returns layout with block_editor_data" do
+      allow_any_instance_of(LearnerDashboardLayout).to receive(:get_block_editor_data).and_return({ "blocks" => [] })
+      get :show, params: { account_id: @root_account.id, id: @layout.id }, format: :json
+      expect(response).to have_http_status(:ok)
+      body = response.parsed_body
+      expect(body["id"]).to eq(@layout.id)
+      expect(body["block_editor_data"]).to eq({ "blocks" => [] })
+    end
+
+    it "returns 404 for layout outside subtree" do
+      get :show, params: { account_id: @sub_account.id, id: @layout.id }, format: :json
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "returns 503 on Content Service error" do
+      error = InstructureMiscPlugin::Extensions::ContentServiceClient::ClientError.new(
+        "service down", service_errors: []
+      )
+      allow_any_instance_of(LearnerDashboardLayout).to receive(:get_block_editor_data).and_raise(error)
+      get :show, params: { account_id: @root_account.id, id: @layout.id }, format: :json
+      expect(response).to have_http_status(:service_unavailable)
+    end
+  end
+
+  describe "POST #create" do
+    it "creates a layout" do
+      expect do
+        post :create, params: { account_id: @root_account.id, name: "New" }, format: :json
+      end.to change { LearnerDashboardLayout.count }.by(1)
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body["name"]).to eq("New")
+    end
+
+    it "creates with block_editor_data" do
+      allow_any_instance_of(LearnerDashboardLayout).to receive(:create_block_editor_data)
+      post(
+        :create,
+        params: { account_id: @root_account.id, name: "With Data", block_editor_data: { blocks: [] } },
+        format: :json
+      )
+      expect(response).to have_http_status(:created)
+    end
+
+    it "returns 422 with invalid params" do
+      post :create, params: { account_id: @root_account.id, name: "" }, format: :json
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "returns 401 without add permission" do
+      user_session(user_factory(active_all: true))
+      post :create, params: { account_id: @root_account.id, name: "X" }, format: :json
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
+
+  describe "PUT #update" do
+    it "updates layout name" do
+      put(
+        :update,
+        params: { account_id: @root_account.id, id: @layout.id, name: "Renamed" },
+        format: :json
+      )
+      expect(response).to have_http_status(:ok)
+      expect(@layout.reload.name).to eq("Renamed")
+    end
+
+    it "updates block_editor_data" do
+      allow_any_instance_of(LearnerDashboardLayout).to receive(:update_block_editor_data)
+      put(
+        :update,
+        params: { account_id: @root_account.id, id: @layout.id, name: @layout.name, block_editor_data: { blocks: [1] } },
+        format: :json
+      )
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "returns 404 for missing layout" do
+      put :update, params: { account_id: @root_account.id, id: 0, name: "X" }, format: :json
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "DELETE #destroy" do
+    it "soft-deletes the layout" do
+      layout = LearnerDashboardLayout.create!(name: "Delete Me", account: @root_account)
+      expect do
+        delete :destroy, params: { account_id: @root_account.id, id: layout.id }, format: :json
+      end.to change { LearnerDashboardLayout.active.count }.by(-1)
+      expect(response).to have_http_status(:no_content)
+    end
+
+    it "returns 404 for already deleted layout" do
+      layout = LearnerDashboardLayout.create!(name: "Gone", account: @root_account)
+      layout.destroy
+      delete :destroy, params: { account_id: @root_account.id, id: layout.id }, format: :json
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "returns 401 without delete permission" do
+      user_session(user_factory(active_all: true))
+      delete :destroy, params: { account_id: @root_account.id, id: @layout.id }, format: :json
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
+end

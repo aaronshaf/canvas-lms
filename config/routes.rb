@@ -1338,6 +1338,20 @@ CanvasRails::Application.routes.draw do
       post "discovery_pages/token", action: :token, as: :discovery_pages_token
     end
 
+    scope(controller: :learner_dashboard_layouts) do
+      get "accounts/:account_id/learner_dashboard_layouts", action: :index
+      post "accounts/:account_id/learner_dashboard_layouts", action: :create
+      get "accounts/:account_id/learner_dashboard_layouts/:id", action: :show
+      put "accounts/:account_id/learner_dashboard_layouts/:id", action: :update
+      delete "accounts/:account_id/learner_dashboard_layouts/:id", action: :destroy
+    end
+
+    scope(controller: :learner_dashboard_activations) do
+      get "accounts/:account_id/learner_dashboard_activation", action: :show
+      put "accounts/:account_id/learner_dashboard_activation", action: :update
+      delete "accounts/:account_id/learner_dashboard_activation", action: :destroy
+    end
+
     scope(controller: :account_notifications) do
       post "accounts/:account_id/account_notifications", action: :create, as: "account_notification"
       put "accounts/:account_id/account_notifications/:id", action: :update, as: "account_notification_update"
