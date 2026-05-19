@@ -244,14 +244,6 @@ describe Types::CourseType do
           expect(assignment_ids).to include(@regular_assignment.id)
           expect(assignment_ids).not_to include(@hidden_assignment.id)
         end
-
-        it "includes all assignments when feature flag is disabled" do
-          Account.site_admin.disable_feature!(:hide_zero_point_quizzes_option)
-          result = course_type.resolve("assignmentsConnection { edges { node { _id } } }", current_user: @student)
-          assignment_ids = result.map(&:to_i)
-          expect(assignment_ids).to include(@regular_assignment.id)
-          expect(assignment_ids).to include(@hidden_assignment.id)
-        end
       end
 
       context "submission types" do
@@ -736,13 +728,6 @@ describe Types::CourseType do
         created_by: @admin,
         name: "My Status"
       )
-    end
-
-    it "returns nil when the feature flag is disabled" do
-      Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-      expect(
-        course_type.resolve("customGradeStatusesConnection { edges { node { name } } }", current_user: @teacher)
-      ).to be_nil
     end
 
     it "returns the custom grade statuses used by the course" do

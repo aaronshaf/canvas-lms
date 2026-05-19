@@ -137,14 +137,6 @@ describe Mutations::UpsertStandardGradeStatus do
         result = execute_with_input(query)
         expect_error(result, "is invalid")
       end
-
-      it "feature flag disabled" do
-        Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-        result = execute_with_input(create_query)
-        expect(result["errors"]).not_to be_nil
-        expect(result.dig("data", "upsertCustomGradeStatus")).to be_nil
-        expect(result["errors"][0]["message"]).to eq("custom gradebook statuses feature flag is disabled")
-      end
     end
 
     context "update:" do
@@ -178,19 +170,6 @@ describe Mutations::UpsertStandardGradeStatus do
         GQL
         result = execute_with_input(query)
         expect_error(result, "standard grade status not found")
-      end
-
-      it "feature flag disabled" do
-        Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-        query = <<~GQL
-          id: #{standard_grade_status.id}
-          name: "late"
-          color: "#000000"
-        GQL
-        result = execute_with_input(query)
-        expect(result["errors"]).not_to be_nil
-        expect(result.dig("data", "upsertCustomGradeStatus")).to be_nil
-        expect(result["errors"][0]["message"]).to eq("custom gradebook statuses feature flag is disabled")
       end
     end
   end

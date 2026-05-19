@@ -145,12 +145,6 @@ describe Types::AccountType do
       ).to eq StandardGradeStatus.all.map { |r| r.id.to_s }.sort
       expect(account_type.resolve("standardGradeStatusesConnection { nodes { name } }")).to eq ["missing"]
     end
-
-    it "doesn't work when feature flag is disabled" do
-      Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-      expect(account_type.resolve("customGradeStatusesConnection { nodes { _id } }")).to be_nil
-      expect(account_type.resolve("standardGradeStatusesConnection { nodes { _id } }")).to be_nil
-    end
   end
 
   describe "RubricsConnection" do

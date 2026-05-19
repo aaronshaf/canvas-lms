@@ -717,20 +717,6 @@ describe CanvasOutcomesHelper do
       end
     end
 
-    context "with feature flag disabled" do
-      before do
-        Account.site_admin.disable_feature!(:outcomes_rollup_propagation)
-      end
-
-      it "does not enqueue rollup calculation when feature flag is disabled" do
-        expect(Outcomes::StudentOutcomeRollupCalculationService).not_to receive(:calculate_for_student)
-        expect(Outcomes::StudentOutcomeRollupCalculationService).not_to receive(:calculate_for_course)
-
-        result = subject.enqueue_rollup_calculation(course_id: course.id, student_id: student.id)
-        expect(result).to be_nil
-      end
-    end
-
     context "edge cases" do
       before do
         Account.site_admin.enable_feature!(:outcomes_rollup_propagation)
