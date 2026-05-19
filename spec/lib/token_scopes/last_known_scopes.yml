@@ -571,6 +571,8 @@
   path: '/api/v1/career/enabled'
 - verb: GET
   path: '/api/v1/career/experience_summary'
+- verb: GET
+  path: '/api/v1/career/learner_dashboard'
 - verb: POST
   path: '/api/v1/career/switch_experience'
 - verb: POST

@@ -3064,6 +3064,10 @@ CanvasRails::Application.routes.draw do
       post "career/user_experiences", action: :create
       delete "career/user_experiences", action: :destroy
     end
+
+    scope(controller: "canvas_career/learner_dashboard") do
+      get "career/learner_dashboard", action: :show
+    end
   end
 
   # this is not a "normal" api endpoint in the sense that it is not documented or
