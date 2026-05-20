@@ -71,10 +71,10 @@ class OutcomeResultsDialogView extends DialogBaseView {
       dialog: true,
     }
     if (data.friendly_description) {
-      data.friendly_description = sanitizeHTML(data.friendly_description)
+      data.friendly_description = String(sanitizeHTML(data.friendly_description))
     }
     if (data.description) {
-      data.description = sanitizeHTML(data.description)
+      data.description = String(sanitizeHTML(data.description))
     }
     return data
   }

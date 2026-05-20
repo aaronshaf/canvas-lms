@@ -97,7 +97,7 @@ const moveQuestions = {
     if (Array.isArray(data.questions)) {
       data.questions.forEach(q => {
         const qd = q?.assessment_question?.question_data
-        if (qd) qd.question_text = sanitizeHTML(qd.question_text || '')
+        if (qd) qd.question_text = String(sanitizeHTML(qd.question_text || ''))
       })
     }
     const html = moveQuestionTemplate(data)

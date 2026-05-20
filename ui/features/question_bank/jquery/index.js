@@ -170,7 +170,7 @@ export function attachPageEvents(_e) {
           const question = data.questions[idx].assessment_question
           question.assessment_question_id = question.id
           const question_data = question.question_data
-          question_data.question_text = sanitizeHTML(question_data.question_text || '')
+          question_data.question_text = String(sanitizeHTML(question_data.question_text || ''))
           question.question_data = question_data
           const $question = $('#question_teaser_blank').clone().removeAttr('id')
           $question.fillTemplateData({
