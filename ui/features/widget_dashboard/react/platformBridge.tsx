@@ -62,6 +62,9 @@ const TRANSLATION_THUNKS: Record<string, TranslationThunk> = {
   all: () => I18n.t('All'),
   unknownSender: () => I18n.t('Unknown Sender'),
   noSubject: () => I18n.t('(No subject)'),
+  inboxFilterLabel: () => I18n.t('Filter:'),
+  loadingMessages: () => I18n.t('Loading messages...'),
+  loadingMessagesAriaLabel: () => I18n.t('Loading messages'),
 
   announcements: () => I18n.t('Announcements'),
   noAnnouncements: () => I18n.t('No recent announcements'),

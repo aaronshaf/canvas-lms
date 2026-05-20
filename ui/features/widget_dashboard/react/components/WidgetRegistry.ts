@@ -26,13 +26,13 @@ import TodoListWidget from './widgets/TodoListWidget/TodoListWidget'
 import RecentGradesWidget from './widgets/RecentGradesWidget/RecentGradesWidget'
 import {
   AnnouncementsWidget,
+  InboxWidget,
   ProgressOverviewWidget,
   EducatorAnnouncementCreationWidget,
   EducatorTodoListWidget,
   EducatorContentQualityWidget,
 } from '@instructure/platform-widget-dashboard'
 import {renderAnnouncementMessageEditor} from './widgets/EducatorAnnouncementCreationWidget/AnnouncementMessageEditor'
-import InboxWidget from './widgets/InboxWidget/InboxWidget'
 
 const I18n = createI18nScope('widget_dashboard')
 

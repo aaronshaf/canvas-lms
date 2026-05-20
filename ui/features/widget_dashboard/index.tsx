@@ -37,6 +37,7 @@ import {InstUISettingsProvider} from '@instructure/emotion'
 import {PlatformBridge} from './react/platformBridge'
 import {WidgetThemeProvider} from './react/theme/WidgetThemeContext'
 import {darkColors} from './react/theme/darkThemeColors'
+import {widgetDashboardPersister} from './react/utils/persister'
 
 const I18n = createI18nScope('widget_dashboard')
 
@@ -237,6 +238,7 @@ const WidgetDashboardApp = () => {
           sharedCourseData={ENV.SHARED_COURSE_DATA}
           dashboardFeatures={ENV.DASHBOARD_FEATURES}
           isDark={isDark}
+          queryPersister={widgetDashboardPersister}
         >
           <WidgetDashboardEditProvider>
             <WidgetLayoutProvider>
