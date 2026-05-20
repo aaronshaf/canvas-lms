@@ -57,6 +57,30 @@ describe('feature_flags::FeatureFlags', () => {
     expect(queryByText('Site Admin')).not.toBeInTheDocument()
   })
 
+  it('does not render the InheritableUser section when no such features exist', async () => {
+    const {getAllByText, queryByText} = render(<FeatureFlags />)
+    await waitFor(() => expect(getAllByText('Account')[0]).toBeInTheDocument())
+    expect(queryByText('User (Account-Inherited)')).not.toBeInTheDocument()
+  })
+
+  describe('with an InheritableUser feature present', () => {
+    beforeEach(() => {
+      server.use(
+        http.get('/api/v1/accounts/1/features', () => {
+          return HttpResponse.json([...rows, sampleData.inheritableUserFeature])
+        }),
+      )
+    })
+
+    it('renders the User (Account-Inherited) section', async () => {
+      const {getByText, getAllByText} = render(<FeatureFlags />)
+      await waitFor(() => expect(getAllByText('Account')[0]).toBeInTheDocument())
+      expect(getAllByText('User')[0]).toBeInTheDocument()
+      expect(getByText('User (Account-Inherited)')).toBeInTheDocument()
+      expect(getByText('Sample Inheritable User Feature')).toBeInTheDocument()
+    })
+  })
+
   describe('search', () => {
     it('renders an empty search bar on load', async () => {
       const {findByPlaceholderText} = render(<FeatureFlags />)

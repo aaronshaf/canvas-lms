@@ -102,6 +102,10 @@ export default function FeatureFlags({hiddenFlags, disableDefaults}) {
       id: 'User',
       title: I18n.t('User'),
     },
+    {
+      id: 'InheritableUser',
+      title: I18n.t('User (Account-Inherited)'),
+    },
   ]
 
   return (

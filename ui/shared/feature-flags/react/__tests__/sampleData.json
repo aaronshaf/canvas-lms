@@ -249,5 +249,31 @@
       "parent_state": "hidden"
     },
     "type": "feature_option"
+  },
+  "inheritableUserFeature": {
+    "feature": "sample_inheritable_user_feature",
+    "applies_to": "InheritableUser",
+    "root_opt_in": true,
+    "display_name": "Sample Inheritable User Feature",
+    "description": "This feature applies to account-inherited users",
+    "feature_flag": {
+      "feature": "sample_inheritable_user_feature",
+      "state": "allowed",
+      "transitions": {
+        "off": {
+          "locked": false
+        },
+        "on": {
+          "locked": false
+        },
+        "allowed_on": {
+          "locked": false
+        }
+      },
+      "locked": false,
+      "hidden": false,
+      "parent_state": "allowed"
+    },
+    "type": "feature_option"
   }
 }
