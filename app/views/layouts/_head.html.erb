@@ -51,7 +51,22 @@
     INST = <%= benchmark("rendering INST") { json_in_script_tag(inst_env) } %>;
     ENV = <%= benchmark("rendering ENV") { json_in_script_tag(render_js_env) } %>;
     BRANDABLE_CSS_HANDLEBARS_INDEX = <%= benchmark("rendering BRANDABLE_CSS_HANDLEBARS_INDEX") { BrandableCSS.handlebars_index_json } %>;
+    <% if %w[beta production].include?(Canvas.environment.to_s.downcase) %>
+      Object.defineProperty(window, 'REMOTES', {
+        value: (function deepFreeze(o) {
+          if (o && typeof o === 'object') {
+            for (var k in o) deepFreeze(o[k]);
+            Object.freeze(o);
+          }
+          return o;
+        })(<%= benchmark("rendering REMOTES") { json_in_script_tag(remote_env) } %>),
+        writable: false,
+        configurable: false,
+        enumerable: true,
+      });
+    <% else %>
       REMOTES = <%= benchmark("rendering REMOTES") { json_in_script_tag(remote_env) } %>;
+    <% end %>
   </script>
   <% if js_env.present? %>
   <script type="text/javascript">
