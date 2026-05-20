@@ -98,10 +98,7 @@ class AiExperiencesController < ApplicationController
     @experiences = @experiences.where(workflow_state: "published") unless can_manage
     @experiences = @experiences.where(workflow_state: params[:workflow_state]) if params[:workflow_state].present?
 
-    # Sync index status for actively indexing experiences
-    if @context.feature_enabled?(:ai_experiences_context_file_upload)
-      sync_in_progress_index_statuses(@experiences, @context.root_account)
-    end
+    sync_in_progress_index_statuses(@experiences, @context.root_account)
 
     set_active_tab "ai_experiences"
     add_crumb t("#crumbs.ai_experiences", "AI Experiences")
@@ -143,17 +140,13 @@ class AiExperiencesController < ApplicationController
         @page_title = @ai_experience.title
         js_bundle :ai_experiences_show
         js_env({ COURSE_ID: @context.id, AI_EXPERIENCE_ID: @ai_experience.id })
-        js_env[:FEATURES] ||= {}
-        js_env[:FEATURES][:ai_experiences_context_file_upload] =
-          @context.feature_enabled?(:ai_experiences_context_file_upload)
         js_env[:AI_EXPERIENCES_MESSAGE_MAX_LENGTH] = AiConversation::USER_MESSAGE_MAX_LENGTH
         render html: view_context.content_tag(:div, nil, id: "ai_experiences_show"),
                layout: true
       end
       format.json do
         failed_file_names = []
-        if @context.feature_enabled?(:ai_experiences_context_file_upload) &&
-           @ai_experience.llm_conversation_context_id.present?
+        if @ai_experience.llm_conversation_context_id.present?
           result = AiExperiences::ConversationContextDocumentsService.new(account: @context.root_account).sync_index_status(ai_experience: @ai_experience)
           failed_file_names = result&.dig(:failed_file_names) || []
         end
@@ -173,8 +166,6 @@ class AiExperiencesController < ApplicationController
     add_crumb t("#crumbs.new_ai_experience", "New AI Experience")
     @page_title = t("#page_title.new_ai_experience", "New AI Experience")
     js_env({ COURSE_ID: @context.id })
-    js_env[:FEATURES] ||= {}
-    js_env[:FEATURES][:ai_experiences_context_file_upload] = @context.feature_enabled?(:ai_experiences_context_file_upload)
     js_env[:CONTEXT_FILE_MAX_SIZE_MB] = AiExperienceContextFile::MAX_FILE_SIZE / 1.megabyte
     js_env[:AI_EXPERIENCES_FIELD_MAX_LENGTH] = AiExperience::TEACHER_AUTHORED_FIELD_MAX
   end
@@ -188,8 +179,6 @@ class AiExperiencesController < ApplicationController
     add_crumb @experience.title
     @page_title = t("#page_title.edit_ai_experience", "Edit %{title}", title: @experience.title)
     js_env({ COURSE_ID: @context.id, AI_EXPERIENCE_ID: params[:id] })
-    js_env[:FEATURES] ||= {}
-    js_env[:FEATURES][:ai_experiences_context_file_upload] = @context.feature_enabled?(:ai_experiences_context_file_upload)
     js_env[:CONTEXT_FILE_MAX_SIZE_MB] = AiExperienceContextFile::MAX_FILE_SIZE / 1.megabyte
     js_env[:AI_EXPERIENCES_FIELD_MAX_LENGTH] = AiExperience::TEACHER_AUTHORED_FIELD_MAX
   end
@@ -438,13 +427,7 @@ class AiExperiencesController < ApplicationController
 
   def experience_params
     base_params = %i[title description facts learning_objective pedagogical_guidance workflow_state]
-
-    # Only permit context_file_ids if feature flag is enabled
-    if @context.feature_enabled?(:ai_experiences_context_file_upload)
-      params.expect(ai_experience: [*base_params, { context_file_ids: [] }])
-    else
-      params.expect(ai_experience: base_params)
-    end
+    params.expect(ai_experience: [*base_params, { context_file_ids: [] }])
   end
 
   # Reject context_file_ids that reference attachments outside this course.
@@ -453,8 +436,6 @@ class AiExperiencesController < ApplicationController
   # context. require_manage_rights already gates the request itself, so we only
   # need to verify each id belongs to the current course (and is not deleted).
   def authorize_context_file_ids!
-    return unless @context.feature_enabled?(:ai_experiences_context_file_upload)
-
     submitted_ids = Array(params.dig(:ai_experience, :context_file_ids)).map(&:to_i).reject(&:zero?).uniq
     return if submitted_ids.empty?
 

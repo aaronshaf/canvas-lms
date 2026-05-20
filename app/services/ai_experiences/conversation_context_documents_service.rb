@@ -30,7 +30,6 @@ module AiExperiences
 
     def sync_index_status(ai_experience:)
       return unless ai_experience.llm_conversation_context_id.present?
-      return unless ai_experience.course.feature_enabled?(:ai_experiences_context_file_upload)
 
       response = @client.get("/contexts/#{ai_experience.llm_conversation_context_id}/documents")
 
@@ -92,7 +91,6 @@ module AiExperiences
     def remove_documents(ai_experience:, context_files:)
       context_id = ai_experience.llm_conversation_context_id
       return unless context_id.present?
-      return unless ai_experience.course.feature_enabled?(:ai_experiences_context_file_upload)
 
       context_files.each do |context_file|
         next if context_file.llm_conversation_service_document_id.blank?

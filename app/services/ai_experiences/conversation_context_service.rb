@@ -72,19 +72,17 @@ module AiExperiences
         root_account_uuid: ai_experience.course.root_account.uuid
       }
 
-      if ai_experience.course.feature_enabled?(:ai_experiences_context_file_upload)
-        data[:context_files] = ai_experience.context_files.reload.map do |file|
-          {
-            source: "canvas",
-            sourceType: "file",
-            sourceId: "file-#{file.global_id}",
-            metadata: {
-              courseId: ai_experience.course.global_id.to_s,
-              title: file.display_name
-            },
-            url: file.public_url(expires_in: ConversationContextDocumentsService::INDEXING_URL_TTL)
-          }
-        end
+      data[:context_files] = ai_experience.context_files.reload.map do |file|
+        {
+          source: "canvas",
+          sourceType: "file",
+          sourceId: "file-#{file.global_id}",
+          metadata: {
+            courseId: ai_experience.course.global_id.to_s,
+            title: file.display_name
+          },
+          url: file.public_url(expires_in: ConversationContextDocumentsService::INDEXING_URL_TTL)
+        }
       end
 
       data

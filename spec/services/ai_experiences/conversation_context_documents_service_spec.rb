@@ -49,20 +49,10 @@ describe AiExperiences::ConversationContextDocumentsService do
 
     before do
       ai_experience.update_column(:llm_conversation_context_id, "context-uuid")
-      course.enable_feature!(:ai_experiences_context_file_upload)
     end
 
     context "when context_id is not present" do
       before { ai_experience.update_column(:llm_conversation_context_id, nil) }
-
-      it "returns nil without making a request" do
-        service.sync_index_status(ai_experience:)
-        expect(WebMock).not_to have_requested(:get, documents_url)
-      end
-    end
-
-    context "when feature flag is disabled" do
-      before { course.disable_feature!(:ai_experiences_context_file_upload) }
 
       it "returns nil without making a request" do
         service.sync_index_status(ai_experience:)
@@ -290,20 +280,10 @@ describe AiExperiences::ConversationContextDocumentsService do
 
     before do
       ai_experience.update_column(:llm_conversation_context_id, "context-uuid")
-      course.enable_feature!(:ai_experiences_context_file_upload)
     end
 
     context "when context_id is not present" do
       before { ai_experience.update_column(:llm_conversation_context_id, nil) }
-
-      it "does not make any requests" do
-        service.remove_documents(ai_experience:, context_files: [context_file])
-        expect(WebMock).not_to have_requested(:delete, %r{/documents/})
-      end
-    end
-
-    context "when feature flag is disabled" do
-      before { course.disable_feature!(:ai_experiences_context_file_upload) }
 
       it "does not make any requests" do
         service.remove_documents(ai_experience:, context_files: [context_file])

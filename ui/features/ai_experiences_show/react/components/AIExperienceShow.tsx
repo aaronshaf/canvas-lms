@@ -27,11 +27,6 @@ import {Tabs} from '@instructure/ui-tabs'
 import {IconMoreLine, IconClockLine} from '@instructure/ui-icons'
 import {IconButton, Button} from '@instructure/ui-buttons'
 import {Alert} from '@instructure/ui-alerts'
-import type {GlobalEnv} from '@canvas/global/env/GlobalEnv'
-
-declare const ENV: GlobalEnv & {
-  FEATURES?: {ai_experiences_context_file_upload?: boolean}
-}
 import {Menu} from '@instructure/ui-menu'
 import {Modal} from '@instructure/ui-modal'
 import doFetchApi from '@canvas/do-fetch-api-effect'
@@ -289,21 +284,20 @@ const AIExperienceShow: React.FC<AIExperienceShowProps> = ({aiExperience}) => {
                   </View>
                 )}
 
-                {ENV?.FEATURES?.ai_experiences_context_file_upload &&
-                  (aiExperience.context_files?.length ?? 0) > 0 && (
-                    <View as="div" margin="medium 0 0 0">
-                      <Heading level="h3" margin="0 0 small 0">
-                        {I18n.t('File sources')}
-                      </Heading>
-                      <FileList
-                        files={aiExperience.context_files!.filter(
-                          f => !aiExperience.failed_context_file_names?.includes(f.display_name),
-                        )}
-                        uploadingFileNames={new Set()}
-                        failedFileNames={new Set(aiExperience.failed_context_file_names ?? [])}
-                      />
-                    </View>
-                  )}
+                {(aiExperience.context_files?.length ?? 0) > 0 && (
+                  <View as="div" margin="medium 0 0 0">
+                    <Heading level="h3" margin="0 0 small 0">
+                      {I18n.t('File sources')}
+                    </Heading>
+                    <FileList
+                      files={aiExperience.context_files!.filter(
+                        f => !aiExperience.failed_context_file_names?.includes(f.display_name),
+                      )}
+                      uploadingFileNames={new Set()}
+                      failedFileNames={new Set(aiExperience.failed_context_file_names ?? [])}
+                    />
+                  </View>
+                )}
               </View>
             </InstUISettingsProvider>
           </Tabs.Panel>

@@ -23,6 +23,10 @@ import AIExperienceForm from '../AIExperienceForm'
 import type {AIExperience} from '../../../../types'
 import fakeEnv from '@canvas/test-utils/fakeENV'
 
+vi.mock('@canvas/canvas-file-upload/react/CanvasFileUpload', () => ({
+  default: () => <div data-testid="canvas-file-upload-mock" />,
+}))
+
 const mockAiExperience: AIExperience = {
   id: '1',
   title: 'Test Experience',

@@ -124,96 +124,75 @@ describe AiExperiencesController, type: :request do
         expect(published_exp["learning_objective"]).to eq("Test objective")
       end
 
-      context "with ai_experiences_context_file_upload feature flag" do
+      context "when experiences have in_progress index status" do
         before do
-          @course.enable_feature!(:ai_experiences_context_file_upload)
+          @ai_experience.update_columns(
+            llm_conversation_context_id: "context-uuid",
+            context_index_status: "in_progress"
+          )
         end
 
-        context "when experiences have in_progress index status" do
-          before do
-            @ai_experience.update_columns(
-              llm_conversation_context_id: "context-uuid",
-              context_index_status: "in_progress"
-            )
-          end
+        it "syncs index status for in_progress experiences" do
+          service_double = instance_double(AiExperiences::ConversationContextDocumentsService)
+          allow(AiExperiences::ConversationContextDocumentsService).to receive(:new).and_return(service_double)
+          expect(service_double).to receive(:sync_index_status).with(ai_experience: @ai_experience)
+          get "/courses/#{@course.id}/ai_experiences.json"
+        end
+      end
 
-          it "syncs index status for in_progress experiences" do
-            service_double = instance_double(AiExperiences::ConversationContextDocumentsService)
-            allow(AiExperiences::ConversationContextDocumentsService).to receive(:new).and_return(service_double)
-            expect(service_double).to receive(:sync_index_status).with(ai_experience: @ai_experience)
-            get "/courses/#{@course.id}/ai_experiences.json"
-          end
+      context "when experiences have completed status" do
+        before do
+          @ai_experience.update_columns(
+            llm_conversation_context_id: "context-uuid",
+            context_index_status: "completed"
+          )
         end
 
-        context "when experiences have completed status" do
-          before do
-            @ai_experience.update_columns(
-              llm_conversation_context_id: "context-uuid",
-              context_index_status: "completed"
-            )
-          end
+        it "does not sync index status for completed experiences" do
+          expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
+          get "/courses/#{@course.id}/ai_experiences.json"
+        end
+      end
 
-          it "does not sync index status for completed experiences" do
-            expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get "/courses/#{@course.id}/ai_experiences.json"
-          end
+      context "when experiences have failed status" do
+        before do
+          @ai_experience.update_columns(
+            llm_conversation_context_id: "context-uuid",
+            context_index_status: "failed"
+          )
         end
 
-        context "when experiences have failed status" do
-          before do
-            @ai_experience.update_columns(
-              llm_conversation_context_id: "context-uuid",
-              context_index_status: "failed"
-            )
-          end
+        it "does not sync index status for failed experiences" do
+          expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
+          get "/courses/#{@course.id}/ai_experiences.json"
+        end
+      end
 
-          it "does not sync index status for failed experiences" do
-            expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get "/courses/#{@course.id}/ai_experiences.json"
-          end
+      context "when experiences have not_started status" do
+        before do
+          @ai_experience.update_columns(
+            llm_conversation_context_id: "context-uuid",
+            context_index_status: "not_started"
+          )
         end
 
-        context "when experiences have not_started status" do
-          before do
-            @ai_experience.update_columns(
-              llm_conversation_context_id: "context-uuid",
-              context_index_status: "not_started"
-            )
-          end
+        it "does not sync index status for not_started experiences" do
+          expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
+          get "/courses/#{@course.id}/ai_experiences.json"
+        end
+      end
 
-          it "does not sync index status for not_started experiences" do
-            expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get "/courses/#{@course.id}/ai_experiences.json"
-          end
+      context "when context_id is not present" do
+        before do
+          @ai_experience.update_columns(
+            llm_conversation_context_id: nil,
+            context_index_status: "in_progress"
+          )
         end
 
-        context "when feature flag is disabled" do
-          before do
-            @course.disable_feature!(:ai_experiences_context_file_upload)
-            @ai_experience.update_columns(
-              llm_conversation_context_id: "context-uuid",
-              context_index_status: "in_progress"
-            )
-          end
-
-          it "does not sync index status" do
-            expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get "/courses/#{@course.id}/ai_experiences.json"
-          end
-        end
-
-        context "when context_id is not present" do
-          before do
-            @ai_experience.update_columns(
-              llm_conversation_context_id: nil,
-              context_index_status: "in_progress"
-            )
-          end
-
-          it "does not sync index status" do
-            expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get "/courses/#{@course.id}/ai_experiences.json"
-          end
+        it "does not sync index status" do
+          expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
+          get "/courses/#{@course.id}/ai_experiences.json"
         end
       end
     end
@@ -503,18 +482,6 @@ describe AiExperiencesController, type: :request do
         expect(parsed_html_body.css("title").first.inner_html).to eq(@ai_experience.title)
       end
 
-      it "sets ai_experiences_context_file_upload feature flag in js_env when enabled" do
-        @course.enable_feature!(:ai_experiences_context_file_upload)
-        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}"
-        expect(js_env_from_response(response).dig("FEATURES", "ai_experiences_context_file_upload")).to be true
-      end
-
-      it "sets ai_experiences_context_file_upload feature flag in js_env when disabled" do
-        @course.disable_feature!(:ai_experiences_context_file_upload)
-        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}"
-        expect(js_env_from_response(response).dig("FEATURES", "ai_experiences_context_file_upload")).to be false
-      end
-
       it "sets AI_EXPERIENCES_MESSAGE_MAX_LENGTH in js_env" do
         get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}"
         expect(js_env_from_response(response)["AI_EXPERIENCES_MESSAGE_MAX_LENGTH"]).to eq(AiConversation::USER_MESSAGE_MAX_LENGTH)
@@ -528,43 +495,27 @@ describe AiExperiencesController, type: :request do
         expect(json_response["learning_objective"]).to eq(@ai_experience.learning_objective)
       end
 
-      context "with ai_experiences_context_file_upload feature flag" do
-        context "when enabled and context_id is present" do
-          before do
-            @course.enable_feature!(:ai_experiences_context_file_upload)
-            @ai_experience.update_column(:llm_conversation_context_id, "context-uuid")
-          end
-
-          it "calls sync_index_status before rendering" do
-            service_double = instance_double(AiExperiences::ConversationContextDocumentsService)
-            allow(AiExperiences::ConversationContextDocumentsService).to receive(:new).and_return(service_double)
-            expect(service_double).to receive(:sync_index_status).with(ai_experience: @ai_experience)
-            get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
-          end
+      context "when context_id is present" do
+        before do
+          @ai_experience.update_column(:llm_conversation_context_id, "context-uuid")
         end
 
-        context "when disabled" do
-          before do
-            @course.disable_feature!(:ai_experiences_context_file_upload)
-            @ai_experience.update_column(:llm_conversation_context_id, "context-uuid")
-          end
+        it "calls sync_index_status before rendering" do
+          service_double = instance_double(AiExperiences::ConversationContextDocumentsService)
+          allow(AiExperiences::ConversationContextDocumentsService).to receive(:new).and_return(service_double)
+          expect(service_double).to receive(:sync_index_status).with(ai_experience: @ai_experience)
+          get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
+        end
+      end
 
-          it "does not call sync_index_status" do
-            expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
-          end
+      context "when context_id is not present" do
+        before do
+          @ai_experience.update_column(:llm_conversation_context_id, nil)
         end
 
-        context "when context_id is not present" do
-          before do
-            @course.enable_feature!(:ai_experiences_context_file_upload)
-            @ai_experience.update_column(:llm_conversation_context_id, nil)
-          end
-
-          it "does not call sync_index_status" do
-            expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
-            get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
-          end
+        it "does not call sync_index_status" do
+          expect_any_instance_of(AiExperiences::ConversationContextDocumentsService).not_to receive(:sync_index_status)
+          get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json"
         end
       end
     end
@@ -756,118 +707,94 @@ describe AiExperiencesController, type: :request do
         expect(created_experience.account).to eq(@course.account)
       end
 
-      context "with ai_experiences_context_file_upload feature flag enabled" do
-        before { @course.enable_feature!(:ai_experiences_context_file_upload) }
+      it "accepts context_file_ids parameter" do
+        attachment = attachment_model(context: @course, size: 1.megabyte)
+        experience_params = {
+          title: "New Experience with Files",
+          learning_objective: "Test objective",
+          pedagogical_guidance: "Test pedagogical guidance",
+          context_file_ids: [attachment.id]
+        }
 
-        it "accepts context_file_ids parameter" do
-          attachment = attachment_model(context: @course, size: 1.megabyte)
-          experience_params = {
-            title: "New Experience with Files",
-            learning_objective: "Test objective",
-            pedagogical_guidance: "Test pedagogical guidance",
-            context_file_ids: [attachment.id]
-          }
+        post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
+        expect(response).to have_http_status(:created)
 
-          post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
-          expect(response).to have_http_status(:created)
-
-          created_experience = AiExperience.last
-          expect(created_experience.context_files).to include(attachment)
-        end
-
-        it "rejects context_file_ids referencing attachments from another course" do
-          other_course = Course.create!(name: "Other Course", account: Account.default)
-          other_course_attachment = attachment_model(context: other_course, size: 1.megabyte)
-          experience_params = {
-            title: "Cross-tenant attempt",
-            learning_objective: "Test objective",
-            pedagogical_guidance: "Test pedagogical guidance",
-            context_file_ids: [other_course_attachment.id]
-          }
-
-          expect do
-            post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
-          end.not_to change(AiExperience, :count)
-
-          expect(response).to have_http_status(:unprocessable_content)
-          expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
-        end
-
-        it "rejects context_file_ids referencing soft-deleted attachments" do
-          attachment = attachment_model(context: @course, size: 1.megabyte)
-          attachment.destroy # soft delete (file_state = 'deleted')
-          experience_params = {
-            title: "Deleted attachment attempt",
-            learning_objective: "Test objective",
-            pedagogical_guidance: "Test pedagogical guidance",
-            context_file_ids: [attachment.id]
-          }
-
-          expect do
-            post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
-          end.not_to change(AiExperience, :count)
-
-          expect(response).to have_http_status(:unprocessable_content)
-        end
-
-        it "rejects when any submitted id is unauthorized, even if others are valid" do
-          good_attachment = attachment_model(context: @course, size: 1.megabyte)
-          other_course = Course.create!(name: "Other Course", account: Account.default)
-          bad_attachment = attachment_model(context: other_course, size: 1.megabyte)
-          experience_params = {
-            title: "Mixed",
-            learning_objective: "Test objective",
-            pedagogical_guidance: "Test pedagogical guidance",
-            context_file_ids: [good_attachment.id, bad_attachment.id]
-          }
-
-          expect do
-            post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
-          end.not_to change(AiExperience, :count)
-
-          expect(response).to have_http_status(:unprocessable_content)
-          expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
-        end
-
-        # Personal (User-context) files are rejected even when the current user
-        # owns them: AI Experiences belong to the course, so source materials
-        # must be discoverable/auditable under /courses/:id/files.
-        it "rejects context_file_ids referencing the current user's personal files" do
-          personal_attachment = attachment_model(context: @teacher, size: 1.megabyte)
-          experience_params = {
-            title: "Personal file attempt",
-            learning_objective: "Test objective",
-            pedagogical_guidance: "Test pedagogical guidance",
-            context_file_ids: [personal_attachment.id]
-          }
-
-          expect do
-            post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
-          end.not_to change(AiExperience, :count)
-
-          expect(response).to have_http_status(:unprocessable_content)
-          expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
-        end
+        created_experience = AiExperience.last
+        expect(created_experience.context_files).to include(attachment)
       end
 
-      context "with ai_experiences_context_file_upload feature flag disabled" do
-        before { @course.disable_feature!(:ai_experiences_context_file_upload) }
+      it "rejects context_file_ids referencing attachments from another course" do
+        other_course = Course.create!(name: "Other Course", account: Account.default)
+        other_course_attachment = attachment_model(context: other_course, size: 1.megabyte)
+        experience_params = {
+          title: "Cross-tenant attempt",
+          learning_objective: "Test objective",
+          pedagogical_guidance: "Test pedagogical guidance",
+          context_file_ids: [other_course_attachment.id]
+        }
 
-        it "ignores context_file_ids parameter" do
-          attachment = attachment_model(context: @course, size: 1.megabyte)
-          experience_params = {
-            title: "New Experience",
-            learning_objective: "Test objective",
-            pedagogical_guidance: "Test pedagogical guidance",
-            context_file_ids: [attachment.id]
-          }
-
+        expect do
           post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
-          expect(response).to have_http_status(:created)
+        end.not_to change(AiExperience, :count)
 
-          created_experience = AiExperience.last
-          expect(created_experience.context_files).to be_empty
-        end
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
+      end
+
+      it "rejects context_file_ids referencing soft-deleted attachments" do
+        attachment = attachment_model(context: @course, size: 1.megabyte)
+        attachment.destroy # soft delete (file_state = 'deleted')
+        experience_params = {
+          title: "Deleted attachment attempt",
+          learning_objective: "Test objective",
+          pedagogical_guidance: "Test pedagogical guidance",
+          context_file_ids: [attachment.id]
+        }
+
+        expect do
+          post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
+        end.not_to change(AiExperience, :count)
+
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it "rejects when any submitted id is unauthorized, even if others are valid" do
+        good_attachment = attachment_model(context: @course, size: 1.megabyte)
+        other_course = Course.create!(name: "Other Course", account: Account.default)
+        bad_attachment = attachment_model(context: other_course, size: 1.megabyte)
+        experience_params = {
+          title: "Mixed",
+          learning_objective: "Test objective",
+          pedagogical_guidance: "Test pedagogical guidance",
+          context_file_ids: [good_attachment.id, bad_attachment.id]
+        }
+
+        expect do
+          post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
+        end.not_to change(AiExperience, :count)
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
+      end
+
+      # Personal (User-context) files are rejected even when the current user
+      # owns them: AI Experiences belong to the course, so source materials
+      # must be discoverable/auditable under /courses/:id/files.
+      it "rejects context_file_ids referencing the current user's personal files" do
+        personal_attachment = attachment_model(context: @teacher, size: 1.megabyte)
+        experience_params = {
+          title: "Personal file attempt",
+          learning_objective: "Test objective",
+          pedagogical_guidance: "Test pedagogical guidance",
+          context_file_ids: [personal_attachment.id]
+        }
+
+        expect do
+          post "/courses/#{@course.id}/ai_experiences.json", params: { ai_experience: experience_params }
+        end.not_to change(AiExperience, :count)
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
       end
     end
 
@@ -900,7 +827,6 @@ describe AiExperiencesController, type: :request do
       end
 
       it "increments total_with_source_files when created with files" do
-        @course.enable_feature!(:ai_experiences_context_file_upload)
         attachment = attachment_model(context: @course, size: 1.megabyte)
         expect(InstStatsd::Statsd).to receive(:increment).with("ai_experiences.total_with_source_files", tags: expected_tags)
         allow(InstStatsd::Statsd).to receive(:increment)
@@ -1005,91 +931,69 @@ describe AiExperiencesController, type: :request do
         expect(@ai_experience.title).to eq("Customer Service Training") # unchanged
       end
 
-      context "with ai_experiences_context_file_upload feature flag enabled" do
-        before { @course.enable_feature!(:ai_experiences_context_file_upload) }
+      it "accepts context_file_ids parameter" do
+        attachment = attachment_model(context: @course, size: 1.megabyte)
+        update_params = {
+          title: "Updated Experience",
+          context_file_ids: [attachment.id]
+        }
 
-        it "accepts context_file_ids parameter" do
-          attachment = attachment_model(context: @course, size: 1.megabyte)
-          update_params = {
-            title: "Updated Experience",
-            context_file_ids: [attachment.id]
-          }
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
+        expect(response).to have_http_status(:ok)
 
-          put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
-          expect(response).to have_http_status(:ok)
-
-          @ai_experience.reload
-          expect(@ai_experience.context_files).to include(attachment)
-        end
-
-        it "rejects context_file_ids referencing attachments from another course" do
-          other_course = Course.create!(name: "Other Course", account: Account.default)
-          other_course_attachment = attachment_model(context: other_course, size: 1.megabyte)
-          update_params = {
-            title: "Cross-tenant attempt",
-            context_file_ids: [other_course_attachment.id]
-          }
-
-          put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
-
-          expect(response).to have_http_status(:unprocessable_content)
-          expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
-          @ai_experience.reload
-          expect(@ai_experience.title).to eq("Customer Service Training") # unchanged
-          expect(@ai_experience.context_files).to be_empty
-        end
-
-        it "rejects update when any submitted id is unauthorized, even if others are valid" do
-          good_attachment = attachment_model(context: @course, size: 1.megabyte)
-          other_course = Course.create!(name: "Other Course", account: Account.default)
-          bad_attachment = attachment_model(context: other_course, size: 1.megabyte)
-          update_params = {
-            title: "Mixed update",
-            context_file_ids: [good_attachment.id, bad_attachment.id]
-          }
-
-          put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
-
-          expect(response).to have_http_status(:unprocessable_content)
-          expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
-          @ai_experience.reload
-          expect(@ai_experience.title).to eq("Customer Service Training")
-          expect(@ai_experience.context_files).to be_empty
-        end
-
-        it "rejects update with context_file_ids referencing the current user's personal files" do
-          personal_attachment = attachment_model(context: @teacher, size: 1.megabyte)
-          update_params = {
-            title: "Personal file attempt",
-            context_file_ids: [personal_attachment.id]
-          }
-
-          put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
-
-          expect(response).to have_http_status(:unprocessable_content)
-          expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
-          @ai_experience.reload
-          expect(@ai_experience.title).to eq("Customer Service Training")
-          expect(@ai_experience.context_files).to be_empty
-        end
+        @ai_experience.reload
+        expect(@ai_experience.context_files).to include(attachment)
       end
 
-      context "with ai_experiences_context_file_upload feature flag disabled" do
-        before { @course.disable_feature!(:ai_experiences_context_file_upload) }
+      it "rejects context_file_ids referencing attachments from another course" do
+        other_course = Course.create!(name: "Other Course", account: Account.default)
+        other_course_attachment = attachment_model(context: other_course, size: 1.megabyte)
+        update_params = {
+          title: "Cross-tenant attempt",
+          context_file_ids: [other_course_attachment.id]
+        }
 
-        it "ignores context_file_ids parameter" do
-          attachment = attachment_model(context: @course, size: 1.megabyte)
-          update_params = {
-            title: "Updated Experience",
-            context_file_ids: [attachment.id]
-          }
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
 
-          put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
-          expect(response).to have_http_status(:ok)
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
+        @ai_experience.reload
+        expect(@ai_experience.title).to eq("Customer Service Training") # unchanged
+        expect(@ai_experience.context_files).to be_empty
+      end
 
-          @ai_experience.reload
-          expect(@ai_experience.context_files).to be_empty
-        end
+      it "rejects update when any submitted id is unauthorized, even if others are valid" do
+        good_attachment = attachment_model(context: @course, size: 1.megabyte)
+        other_course = Course.create!(name: "Other Course", account: Account.default)
+        bad_attachment = attachment_model(context: other_course, size: 1.megabyte)
+        update_params = {
+          title: "Mixed update",
+          context_file_ids: [good_attachment.id, bad_attachment.id]
+        }
+
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
+        @ai_experience.reload
+        expect(@ai_experience.title).to eq("Customer Service Training")
+        expect(@ai_experience.context_files).to be_empty
+      end
+
+      it "rejects update with context_file_ids referencing the current user's personal files" do
+        personal_attachment = attachment_model(context: @teacher, size: 1.megabyte)
+        update_params = {
+          title: "Personal file attempt",
+          context_file_ids: [personal_attachment.id]
+        }
+
+        put "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}.json", params: { ai_experience: update_params }
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(json_parse(response.body)["errors"]).to have_key("context_file_ids")
+        @ai_experience.reload
+        expect(@ai_experience.title).to eq("Customer Service Training")
+        expect(@ai_experience.context_files).to be_empty
       end
     end
 
@@ -1206,7 +1110,6 @@ describe AiExperiencesController, type: :request do
       end
 
       it "decrements total_with_source_files when destroying an experience with files" do
-        @course.enable_feature!(:ai_experiences_context_file_upload)
         attachment = attachment_model(context: @course, size: 1.megabyte)
         @ai_experience.update!(context_file_ids: [attachment.id])
         expect(InstStatsd::Statsd).to receive(:decrement).with("ai_experiences.total_with_source_files", tags: expected_tags)
@@ -1251,18 +1154,6 @@ describe AiExperiencesController, type: :request do
         expect(parsed_html_body.css("body").first.classes).to include("ai_experiences")
       end
 
-      it "sets ai_experiences_context_file_upload feature flag in js_env when enabled" do
-        @course.enable_feature!(:ai_experiences_context_file_upload)
-        get "/courses/#{@course.id}/ai_experiences/new"
-        expect(js_env_from_response(response).dig("FEATURES", "ai_experiences_context_file_upload")).to be true
-      end
-
-      it "sets ai_experiences_context_file_upload feature flag in js_env when disabled" do
-        @course.disable_feature!(:ai_experiences_context_file_upload)
-        get "/courses/#{@course.id}/ai_experiences/new"
-        expect(js_env_from_response(response).dig("FEATURES", "ai_experiences_context_file_upload")).to be false
-      end
-
       it "sets CONTEXT_FILE_MAX_SIZE_MB in js_env" do
         get "/courses/#{@course.id}/ai_experiences/new"
         expect(js_env_from_response(response)["CONTEXT_FILE_MAX_SIZE_MB"]).to eq(AiExperienceContextFile::MAX_FILE_SIZE / 1.megabyte)
@@ -1301,18 +1192,6 @@ describe AiExperiencesController, type: :request do
         get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/edit"
         parsed_html_body = Nokogiri.parse(response.body)
         expect(parsed_html_body.css("body").first.classes).to include("ai_experiences")
-      end
-
-      it "sets ai_experiences_context_file_upload feature flag in js_env when enabled" do
-        @course.enable_feature!(:ai_experiences_context_file_upload)
-        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/edit"
-        expect(js_env_from_response(response).dig("FEATURES", "ai_experiences_context_file_upload")).to be true
-      end
-
-      it "sets ai_experiences_context_file_upload feature flag in js_env when disabled" do
-        @course.disable_feature!(:ai_experiences_context_file_upload)
-        get "/courses/#{@course.id}/ai_experiences/#{@ai_experience.id}/edit"
-        expect(js_env_from_response(response).dig("FEATURES", "ai_experiences_context_file_upload")).to be false
       end
 
       it "sets CONTEXT_FILE_MAX_SIZE_MB in js_env" do

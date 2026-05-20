@@ -33,7 +33,6 @@ import {
 } from '../../../../../shared/ai-experiences/react/brand'
 
 declare const ENV: GlobalEnv & {
-  FEATURES?: {ai_experiences_context_file_upload?: boolean}
   CONTEXT_FILE_MAX_SIZE_MB?: number
 }
 
@@ -185,22 +184,19 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({
             />
           </FormFieldGroup>
 
-          {/* Only render if feature flag is enabled */}
-          {ENV?.FEATURES?.ai_experiences_context_file_upload && (
-            <View as="div" margin="medium 0 0 0">
-              <CanvasFileUpload
-                files={contextFiles}
-                onFilesChange={onContextFilesChange}
-                courseId={courseId}
-                allowedFileTypes={['.docx', '.xlsx', '.xls', '.pptx', '.pdf', '.txt', '.html']}
-                maxFileSizeMB={ENV?.CONTEXT_FILE_MAX_SIZE_MB ?? 300}
-                maxFiles={10}
-                initialFailedFileNames={initialFailedFileNames}
-                primaryButtonThemeOverride={navyButtonTheme}
-                secondaryButtonThemeOverride={lightBlueButtonTheme}
-              />
-            </View>
-          )}
+          <View as="div" margin="medium 0 0 0">
+            <CanvasFileUpload
+              files={contextFiles}
+              onFilesChange={onContextFilesChange}
+              courseId={courseId}
+              allowedFileTypes={['.docx', '.xlsx', '.xls', '.pptx', '.pdf', '.txt', '.html']}
+              maxFileSizeMB={ENV?.CONTEXT_FILE_MAX_SIZE_MB ?? 300}
+              maxFiles={10}
+              initialFailedFileNames={initialFailedFileNames}
+              primaryButtonThemeOverride={navyButtonTheme}
+              secondaryButtonThemeOverride={lightBlueButtonTheme}
+            />
+          </View>
         </View>
       </View>
     </View>

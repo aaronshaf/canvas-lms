@@ -159,11 +159,10 @@ describe AiExperiences::ConversationContextService do
       end.to raise_error(LlmConversation::Errors::ConversationError, /Bearer token not configured/)
     end
 
-    context "with ai_experiences_context_file_upload feature flag enabled" do
+    context "with context files" do
       let(:attachment) { attachment_model(context: course, size: 1.megabyte, filename: "syllabus.pdf") }
 
       before do
-        course.enable_feature!(:ai_experiences_context_file_upload)
         allow_any_instance_of(Attachment).to receive(:public_url).and_return("https://example.com/syllabus.pdf")
 
         stub_request(:post, "https://llm.test/conversation-context")
@@ -259,11 +258,10 @@ describe AiExperiences::ConversationContextService do
       end.to raise_error(LlmConversation::Errors::ConversationError)
     end
 
-    context "with ai_experiences_context_file_upload feature flag enabled" do
+    context "with context files" do
       let(:attachment) { attachment_model(context: course, size: 1.megabyte, filename: "syllabus.pdf") }
 
       before do
-        course.enable_feature!(:ai_experiences_context_file_upload)
         AiExperienceContextFile.create!(ai_experience:, attachment:)
         allow(attachment).to receive(:public_url).and_return("https://example.com/syllabus.pdf")
 

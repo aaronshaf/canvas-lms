@@ -141,13 +141,8 @@ class AiExperience < ApplicationRecord
   attr_writer :can_unpublish, :can_publish
 
   def indexing_allows_publish_changes?
-    # If feature flag is disabled, don't restrict based on indexing
-    return true unless course.feature_enabled?(:ai_experiences_context_file_upload)
-
-    # If no context files uploaded, don't restrict
     return true if ai_experience_context_files.empty?
 
-    # Only allow publish state changes when indexing is completed
     context_index_status == "completed"
   end
 
@@ -243,7 +238,6 @@ class AiExperience < ApplicationRecord
   def index_new_context_files(added_context_file_ids)
     return if added_context_file_ids.blank?
     return unless llm_conversation_context_id.present?
-    return unless course.feature_enabled?(:ai_experiences_context_file_upload)
 
     AiExperiences::ConversationContextDocumentsService.new(account: course.root_account).trigger_indexing(ai_experience: self, context_file_ids: added_context_file_ids)
   end
@@ -261,11 +255,8 @@ class AiExperience < ApplicationRecord
     return false unless llm_conversation_context_id.present?
 
     context_changed = saved_change_to_pedagogical_guidance? || saved_change_to_facts? || saved_change_to_learning_objective?
-
-    if course.feature_enabled?(:ai_experiences_context_file_upload)
-      context_changed ||= @context_files_changed.present?
-      @context_files_changed = nil
-    end
+    context_changed ||= @context_files_changed.present?
+    @context_files_changed = nil
 
     context_changed
   end
@@ -279,7 +270,6 @@ class AiExperience < ApplicationRecord
 
   def remove_documents_from_llm_service(context_files)
     return unless llm_conversation_context_id.present?
-    return unless course.feature_enabled?(:ai_experiences_context_file_upload)
 
     AiExperiences::ConversationContextDocumentsService.new(account: course.root_account).remove_documents(ai_experience: self, context_files:)
   end

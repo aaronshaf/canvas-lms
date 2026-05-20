@@ -121,8 +121,6 @@ describe Api::V1::AiExperience do
     end
 
     context "context_ready" do
-      before { @course.enable_feature!(:ai_experiences_context_file_upload) }
-
       it "includes context_ready when can_manage is true" do
         json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: true)
         expect(json).to have_key(:context_ready)
@@ -166,9 +164,7 @@ describe Api::V1::AiExperience do
       end
     end
 
-    context "with ai_experiences_context_file_upload feature flag enabled" do
-      before { @course.enable_feature!(:ai_experiences_context_file_upload) }
-
+    context "context_files" do
       it "includes context_files array with correct ContextFile shape" do
         attachment = attachment_model(context: @course, size: 1.megabyte, filename: "test.pdf")
         AiExperienceContextFile.create!(ai_experience: @ai_experience, attachment:)
@@ -232,19 +228,6 @@ describe Api::V1::AiExperience do
         json = api.ai_experience_json(@ai_experience, @teacher, session, can_manage: true)
 
         expect(json[:context_files].pluck(:id)).to eq([att1.id.to_s, att2.id.to_s])
-      end
-    end
-
-    context "with ai_experiences_context_file_upload feature flag disabled" do
-      before { @course.disable_feature!(:ai_experiences_context_file_upload) }
-
-      it "does not include context_files array" do
-        attachment = attachment_model(context: @course, size: 1.megabyte)
-        AiExperienceContextFile.create!(ai_experience: @ai_experience, attachment:)
-
-        json = api.ai_experience_json(@ai_experience, @teacher, session)
-
-        expect(json).not_to have_key(:context_files)
       end
     end
 

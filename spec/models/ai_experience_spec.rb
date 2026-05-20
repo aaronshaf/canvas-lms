@@ -304,10 +304,8 @@ describe AiExperience do
         expect(Rails.logger).to have_received(:error).with(/Failed to create conversation context/)
       end
 
-      context "with ai_experiences_context_file_upload feature flag enabled" do
+      context "when created with context files" do
         let(:attachment) { attachment_model(context: course) }
-
-        before { course.enable_feature!(:ai_experiences_context_file_upload) }
 
         before do
           stub_request(:patch, "https://llm.test/conversation-context/context-uuid")
@@ -381,10 +379,8 @@ describe AiExperience do
         expect(WebMock).not_to have_requested(:patch, "https://llm.test/conversation-context/context-uuid")
       end
 
-      context "with ai_experiences_context_file_upload feature flag enabled" do
+      context "when context files are changed" do
         let(:attachment) { attachment_model(context: course) }
-
-        before { course.enable_feature!(:ai_experiences_context_file_upload) }
 
         before do
           stub_request(:post, "https://llm.test/contexts/context-uuid/documents")
@@ -818,17 +814,8 @@ describe AiExperience do
       allow_any_instance_of(AiExperiences::ConversationContextDocumentsService).to receive(:trigger_indexing)
     end
 
-    context "when feature flag is disabled" do
-      it "returns true" do
-        course.disable_feature!(:ai_experiences_context_file_upload)
-        experience.update_column(:context_index_status, "in_progress")
-        expect(experience.can_publish?).to be true
-      end
-    end
-
     context "when no context files uploaded" do
       it "returns true" do
-        course.enable_feature!(:ai_experiences_context_file_upload)
         experience.update_column(:context_index_status, "in_progress")
         expect(experience.can_publish?).to be true
       end
@@ -836,7 +823,6 @@ describe AiExperience do
 
     context "when indexing is completed" do
       it "returns true" do
-        course.enable_feature!(:ai_experiences_context_file_upload)
         attachment = attachment_model(context: course)
         experience.ai_experience_context_files.create!(attachment:)
         experience.update_column(:context_index_status, "completed")
@@ -846,7 +832,6 @@ describe AiExperience do
 
     context "when indexing is in_progress" do
       it "returns false" do
-        course.enable_feature!(:ai_experiences_context_file_upload)
         attachment = attachment_model(context: course)
         experience.ai_experience_context_files.create!(attachment:)
         experience.update_column(:context_index_status, "in_progress")
@@ -856,7 +841,6 @@ describe AiExperience do
 
     context "when indexing has failed" do
       it "returns false" do
-        course.enable_feature!(:ai_experiences_context_file_upload)
         attachment = attachment_model(context: course)
         experience.ai_experience_context_files.create!(attachment:)
         experience.update_column(:context_index_status, "failed")
@@ -866,7 +850,6 @@ describe AiExperience do
 
     context "when indexing is not_started" do
       it "returns false" do
-        course.enable_feature!(:ai_experiences_context_file_upload)
         attachment = attachment_model(context: course)
         experience.ai_experience_context_files.create!(attachment:)
         experience.update_column(:context_index_status, "not_started")
@@ -900,7 +883,6 @@ describe AiExperience do
       end
 
       it "returns false regardless of indexing status" do
-        course.enable_feature!(:ai_experiences_context_file_upload)
         attachment = attachment_model(context: course)
         experience.ai_experience_context_files.create!(attachment:)
         experience.update_column(:context_index_status, "completed")
@@ -910,7 +892,6 @@ describe AiExperience do
 
     context "when indexing is in_progress and no student conversations" do
       it "returns false" do
-        course.enable_feature!(:ai_experiences_context_file_upload)
         attachment = attachment_model(context: course)
         experience.ai_experience_context_files.create!(attachment:)
         experience.update_column(:context_index_status, "in_progress")
@@ -920,7 +901,6 @@ describe AiExperience do
 
     context "when indexing is completed and no student conversations" do
       it "returns true" do
-        course.enable_feature!(:ai_experiences_context_file_upload)
         attachment = attachment_model(context: course)
         experience.ai_experience_context_files.create!(attachment:)
         experience.update_column(:context_index_status, "completed")
@@ -940,7 +920,6 @@ describe AiExperience do
 
     context "when publishing while indexing is in_progress" do
       it "prevents publishing" do
-        course.enable_feature!(:ai_experiences_context_file_upload)
         attachment = attachment_model(context: course)
         experience.ai_experience_context_files.create!(attachment:)
         experience.update_column(:context_index_status, "in_progress")
@@ -951,7 +930,6 @@ describe AiExperience do
       end
 
       it "allows publishing when no context files are attached" do
-        course.enable_feature!(:ai_experiences_context_file_upload)
         experience.update_column(:context_index_status, "in_progress")
 
         experience.workflow_state = "published"
@@ -962,7 +940,6 @@ describe AiExperience do
     context "when unpublishing while indexing is in_progress" do
       it "prevents unpublishing" do
         experience.update_column(:workflow_state, "published")
-        course.enable_feature!(:ai_experiences_context_file_upload)
         attachment = attachment_model(context: course)
         experience.ai_experience_context_files.create!(attachment:)
         experience.update_column(:context_index_status, "in_progress")

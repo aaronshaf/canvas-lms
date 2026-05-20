@@ -404,15 +404,7 @@ describe('AIExperienceShow', () => {
       },
     ]
 
-    beforeEach(() => {
-      fakeENV.setup({FEATURES: {ai_experiences_context_file_upload: true}})
-    })
-
-    afterEach(() => {
-      fakeENV.teardown()
-    })
-
-    it('renders File sources section when flag is on and files are present', () => {
+    it('renders File sources section when files are present', () => {
       render(<AIExperienceShow aiExperience={{...mockAiExperience, context_files: mockFiles}} />)
       expect(screen.getByText('File sources')).toBeInTheDocument()
     })
@@ -442,12 +434,6 @@ describe('AIExperienceShow', () => {
 
     it('does not render File sources section when context_files is absent', () => {
       render(<AIExperienceShow aiExperience={mockAiExperience} />)
-      expect(screen.queryByText('File sources')).not.toBeInTheDocument()
-    })
-
-    it('does not render File sources section when feature flag is off', () => {
-      fakeENV.setup({FEATURES: {ai_experiences_context_file_upload: false}})
-      render(<AIExperienceShow aiExperience={{...mockAiExperience, context_files: mockFiles}} />)
       expect(screen.queryByText('File sources')).not.toBeInTheDocument()
     })
 
