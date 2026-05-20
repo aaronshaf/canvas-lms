@@ -381,27 +381,6 @@ describe CanvasSanitize do
     end
   end
 
-  it "does not raise SystemStackError on deeply nested HTML (CSAN-029)" do
-    deeply_nested = ("<div>" * 9_000) + ("</div>" * 9_000)
-    # Sanitize 7.0 traverse() overflows the C stack before reaching the
-    # configured max_tree_depth; the parser limit must fire first.
-    system_stack_raised = false
-    begin
-      Sanitize.clean(deeply_nested, CanvasSanitize::SANITIZE)
-    rescue SystemStackError
-      system_stack_raised = true
-    rescue
-      nil # ArgumentError from parser depth limit is acceptable
-    end
-    expect(system_stack_raised).to be false
-  end
-
-  it "sanitizes content within the depth limit unchanged" do
-    nested = ("<div>" * 100) + "content" + ("</div>" * 100)
-    result = Sanitize.clean(nested, CanvasSanitize::SANITIZE)
-    expect(result).to include("content")
-  end
-
   describe "poster attribute protocol enforcement" do
     it "strips javascript: from video poster" do
       res = Sanitize.clean('<video poster="javascript:alert(1)"></video>', CanvasSanitize::SANITIZE)

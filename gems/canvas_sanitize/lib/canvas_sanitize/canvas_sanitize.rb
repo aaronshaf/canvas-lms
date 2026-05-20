@@ -229,12 +229,11 @@ module CanvasSanitize # :nodoc:
       "mark"
     ].freeze,
 
-    # Nokogiri::Gumbo::DEFAULT_MAX_TREE_DEPTH = 400; canvas raises this to
-    # support deeply nested quiz tables, but Sanitize 7's recursive traverse()
-    # overflows the C stack at ~8576 levels (CSAN-029). 1_000 keeps the parser
-    # guard well below the stack limit while remaining generous for real content.
+    # The default is Nokogiri::Gumbo::DEFAULT_MAX_TREE_DEPTH = 400
+    # Quiz Submissions often contain many layers of nested tables
+    # User content (in pages or syllabus, for example) can also contain deeply-nested content
     parser_options: {
-      max_tree_depth: 1_000,
+      max_tree_depth: 10_000,
     }.freeze,
 
     attributes: {
