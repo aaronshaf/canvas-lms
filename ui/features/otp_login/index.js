@@ -16,29 +16,60 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import $ from 'jquery'
-import 'jquery-fancy-placeholder'
+import {useEffect} from 'react'
 
-export function Component() {
-  $('.field-with-fancyplaceholder input').fancyPlaceholder()
-  $('#login_form').find(':text:first').select()
+const LOGIN_FORM_ID = 'login_form'
+const SELECT_PHONE_FORM_ID = 'select_phone_form'
+const NEW_PHONE_FORM_ID = 'new_phone_form'
 
-  const $select_phone_form = $('#select_phone_form')
-  const $new_phone_form = $('#new_phone_form')
-  const $phone_select = $select_phone_form.find('select')
-  $phone_select.change(() => {
-    if ($phone_select.val() === '{{id}}') {
-      $select_phone_form.hide()
-      $new_phone_form.show()
+export function debounceSubmitOnce(formId) {
+  const form = document.getElementById(formId)
+  if (!form) return
+  form.addEventListener('submit', () => {
+    const button = form.querySelector('button[type="submit"]')
+    form.setAttribute('aria-busy', 'true')
+    const pendingLabel = button.getAttribute('data-text-while-loading')
+    if (pendingLabel) button.textContent = pendingLabel
+    button.disabled = true
+  })
+}
+
+export function autofocusVerificationCode() {
+  const input = document.querySelector(`#${LOGIN_FORM_ID} input[type="text"]`)
+  if (!input) return
+  input.focus()
+  input.select()
+}
+
+export function wirePhoneFormToggle() {
+  const selectForm = document.getElementById(SELECT_PHONE_FORM_ID)
+  const newForm = document.getElementById(NEW_PHONE_FORM_ID)
+  if (!selectForm || !newForm) return
+  const select = selectForm.querySelector('select')
+  const backLink = document.getElementById('back_to_choose_number_link')
+
+  select?.addEventListener('change', () => {
+    if (select.value === '{{id}}') {
+      selectForm.style.display = 'none'
+      newForm.style.display = ''
     }
   })
 
-  $('#back_to_choose_number_link').click(event => {
-    $new_phone_form.hide()
-    $select_phone_form.show()
-    $phone_select.find('option:first').prop('selected', true)
+  backLink?.addEventListener('click', event => {
     event.preventDefault()
+    newForm.style.display = 'none'
+    selectForm.style.display = ''
+    if (select) select.selectedIndex = 0
   })
+}
 
+export function Component() {
+  useEffect(() => {
+    autofocusVerificationCode()
+    wirePhoneFormToggle()
+    debounceSubmitOnce(LOGIN_FORM_ID)
+    debounceSubmitOnce(SELECT_PHONE_FORM_ID)
+    debounceSubmitOnce(NEW_PHONE_FORM_ID)
+  }, [])
   return null
 }

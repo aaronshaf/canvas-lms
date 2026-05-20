@@ -102,6 +102,25 @@ describe "login/otp/new" do
     expect(doc.text).to include("Remember this computer")
   end
 
+  describe "marks submit buttons with their in-flight labels" do
+    it "marks the Verify button with the in-flight label so the bundle can swap it" do
+      render
+      doc = Nokogiri::HTML5(rendered)
+      button = doc.at_css("form#login_form button[type='submit']")
+      expect(button).not_to be_nil
+      expect(button["data-text-while-loading"]).to eq("Verifying...")
+    end
+
+    it "marks both SMS Send buttons with the in-flight label" do
+      render
+      doc = Nokogiri::HTML5(rendered)
+      select_button = doc.at_css("form#select_phone_form button[type='submit']")
+      new_button = doc.at_css("form#new_phone_form button[type='submit']")
+      expect(select_button["data-text-while-loading"]).to eq("Sending...")
+      expect(new_button["data-text-while-loading"]).to eq("Sending...")
+    end
+  end
+
   context "when in US region" do
     it "displays SMS option" do
       render

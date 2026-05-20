@@ -80,7 +80,7 @@
                       </div>
                     </div>
                     <div>
-                      <button type="submit" class="Button Button--primary">
+                      <button type="submit" class="Button Button--primary" data-text-while-loading="<%= t("Sending...") %>">
                         <%= t("Send") %>
                       </button>
                     </div>
@@ -94,7 +94,7 @@
                     </div>
                   </div>
                   <div>
-                    <button type="submit" class="Button Button--primary">
+                    <button type="submit" class="Button Button--primary" data-text-while-loading="<%= t("Sending...") %>">
                       <%= t("Send") %>
                     </button>
                     <% unless ccs.empty? %>
@@ -129,7 +129,7 @@
         <div class="ic-Input-group">
           <%= f.blabel :verification_code, en: "Verification Code", class: "ic-Label" %>
           <%= f.text_field :verification_code, class: "ic-Input", autocomplete: "off" %>
-          <button type="submit" class="Button Button--primary">
+          <button type="submit" class="Button Button--primary" data-text-while-loading="<%= t("Verifying...") %>">
             <%= t("Verify") %>
           </button>
         </div>
