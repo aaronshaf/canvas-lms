@@ -284,6 +284,17 @@ describe Login::OtpController do
         expect(session[:pending_otp_secret_key]).to be_nil
         expect(session[:pending_otp_communication_channel_id]).to be_nil
       end
+
+      it "does not treat a redis-cached code as idempotent success while still configuring" do
+        skip "needs redis" unless Canvas.redis_enabled?
+
+        code = ROTP::TOTP.new(@secret_key).now
+        Canvas.redis.set("otp_used:#{@user.global_id}:#{code}", "1")
+
+        post :create, params: { otp_login: { verification_code: code } }
+        expect(response).to redirect_to otp_login_url
+        expect(flash[:error]).to eq "Invalid verification code, please try again"
+      end
     end
 
     context "verification" do
@@ -399,13 +410,16 @@ describe Login::OtpController do
         post :create, params: { otp_login: { verification_code: "123456" } }
       end
 
-      it "does not allow the same code to be used multiple times" do
+      it "rejects a replay of a cached code even when it would otherwise verify" do
         skip "needs redis" unless Canvas.redis_enabled?
 
-        Canvas.redis.set("otp_used:#{@user.global_id}:123456", "1")
+        code = ROTP::TOTP.new(@user.otp_secret_key).now
+        Canvas.redis.set("otp_used:#{@user.global_id}:#{code}", "1")
+
         expect_any_instance_of(ROTP::TOTP).not_to receive(:verify)
-        post :create, params: { otp_login: { verification_code: "123456" } }
-        expect(response).to redirect_to(otp_login_url)
+        post :create, params: { otp_login: { verification_code: code } }
+        expect(response).to redirect_to otp_login_url
+        expect(flash[:error]).to eq "Invalid verification code, please try again"
       end
 
       it "shows a configuration success notice if no pending OTP and configuration is completed" do

@@ -97,19 +97,17 @@ class Login::OtpController < ApplicationController
     increment_request_cost(150)
 
     verification_code = params[:otp_login][:verification_code].delete(" ")
-    if Canvas.redis_enabled?
-      key = "otp_used:#{@current_user.global_id}:#{verification_code}"
-      if Canvas.redis.get(key)
-        force_fail = true
-      else
-        Canvas.redis.setex(key, 10.minutes, "1")
-      end
-    end
 
     drift = 30
     # give them 5 minutes to enter an OTP sent via SMS
     drift = 300 if session[:pending_otp_communication_channel_id] ||
                    (!session[:pending_otp_secret_key] && @current_user.otp_communication_channel_id)
+
+    if Canvas.redis_enabled?
+      key = "otp_used:#{@current_user.global_id}:#{verification_code}"
+      # atomic claim — only one concurrent request wins; replays hit force_fail
+      force_fail = true unless Canvas.redis.set(key, "1", ex: 10.minutes, nx: true)
+    end
 
     if (!force_fail && ROTP::TOTP.new(secret_key).verify(verification_code, drift_behind: drift, drift_ahead: drift)) ||
        @current_user.authenticate_one_time_password(verification_code)
