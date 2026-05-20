@@ -488,7 +488,10 @@ class DeveloperKey < ApplicationRecord
     return false if normalized_input.blank?
 
     records.any? do |r|
-      Addressable::URI.parse(r.redirect_uri).normalized_site == normalized_input
+      next unless Addressable::URI.parse(r.redirect_uri).normalized_site == normalized_input
+
+      touch_redirect_uri_last_used(r)
+      true
     end
   rescue Addressable::URI::InvalidURIError
     false
