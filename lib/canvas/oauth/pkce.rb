@@ -48,6 +48,19 @@ module Canvas::OAuth
         options.include? :code_verifier
       end
 
+      # Whether a code_challenge is currently stored for this authorization
+      # code (i.e. the code was created with PKCE). See store_code_challenge
+      # for how we store the challenge code.
+      #
+      # @param code [String] the authorization code
+      # @return [Boolean] True if the code has a challenge stored with it;
+      #         false otherwise.
+      def code_has_challenge?(code)
+        return false if code.blank?
+
+        Canvas.redis.exists?("#{KEY_PREFIX}#{code}")
+      end
+
       # Stores a code challenge in Redis with a specified time-to-live (TTL).
       # The key includes the authorization code so that the authorization code
       # may be validated against the code challenge during the token exchange.
@@ -60,7 +73,10 @@ module Canvas::OAuth
         Canvas.redis.setex("#{KEY_PREFIX}#{code}", KEY_TTL, challenge)
       end
 
-      # Checks if the provided code verifier is valid by comparing it with the stored code challenge.
+      # Checks if the provided code verifier is valid by comparing it with
+      # the stored code challenge. This method will delete the stored challenge
+      # when it is called, so only call this method when we are going to accept
+      # or reject the request.
       #
       # See https://datatracker.ietf.org/doc/html/rfc7636#appendix-B
       #
@@ -69,6 +85,8 @@ module Canvas::OAuth
       #
       # @return [Boolean] true if the code verifier is valid, false otherwise
       def valid_code_verifier?(code:, code_verifier:)
+        return false if code_verifier.blank?
+
         code_challenge = fetch_code_challenge_for(code)
 
         return false if code_challenge.blank?

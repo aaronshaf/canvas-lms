@@ -680,6 +680,8 @@ describe OAuth2ProviderController do
         allow(redis).to receive(:get)
         allow(redis).to receive(:get).with(valid_code_redis_key).and_return(%({"client_id": #{key.id}, "user": #{user.id}}))
         allow(redis).to receive(:del).with(valid_code_redis_key).and_return(%({"client_id": #{key.id}, "user": #{user.id}}))
+        allow(redis).to receive(:exists?).and_return(false)
+        allow(redis).to receive(:exists?).with(valid_code_redis_key).and_return(true)
         redis
       end
 
@@ -756,6 +758,7 @@ describe OAuth2ProviderController do
         allow(redis).to receive(:del).with(valid_code_redis_key).and_return(%({"client_id": #{key.id}, "user": #{user.id}}))
 
         allow(redis).to receive(:get).with(code_challenge_key).and_return(code_challenge)
+        allow(redis).to receive(:exists?).with(code_challenge_key).and_return(true)
         allow(redis).to receive(:del).with(code_challenge_key)
 
         redis
@@ -793,6 +796,15 @@ describe OAuth2ProviderController do
 
         it "deletes the code challenge from Redis" do
           expect(redis).to receive(:del).with(code_challenge_key)
+          token_request
+        end
+
+        it "only fetches the code challenge from Redis once" do
+          # If the user provided a challenge code, it should only take one call to redis to
+          # verify the code. A different redis call is made if they *didn't* provide a code,
+          # to see if they should have provided one, but two redis calls should never be needed
+          # on the same request.
+          expect(redis).to receive(:get).with(code_challenge_key).once.and_return(code_challenge)
           token_request
         end
 
@@ -834,6 +846,28 @@ describe OAuth2ProviderController do
         it "includes the proper error in the response" do
           token_request
           expect(json_parse["error"]).to eq "invalid_grant"
+        end
+      end
+
+      context "when the token request omits the challenge code" do
+        let(:params) do
+          super().except(:code_verifier)
+        end
+
+        it { is_expected.to be_bad_request }
+
+        it "responds with invalid_grant rather than issuing a token" do
+          token_request
+          expect(json_parse).not_to have_key("access_token")
+          expect(json_parse["error"]).to eq "invalid_grant"
+        end
+
+        it "only makes one call to redis" do
+          # We should check redis to see if the oauth flow was started with a challenge code,
+          # and if so, and the user didn't provide a code in their request, we do not make a
+          # second call to redis.
+          expect(redis).to receive(:exists?).with(code_challenge_key).once.and_return(code_challenge)
+          token_request
         end
       end
     end

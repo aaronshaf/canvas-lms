@@ -184,7 +184,8 @@ class OAuth2ProviderController < ApplicationController
 
     granter = case grant_type
               when "authorization_code"
-                if Canvas::OAuth::PKCE.use_pkce_in_token?(params)
+                if Canvas::OAuth::PKCE.use_pkce_in_token?(params) ||
+                   Canvas::OAuth::PKCE.code_has_challenge?(params[:code])
                   Canvas::OAuth::GrantTypes::AuthorizationCodeWithPKCE.new(client_id, secret, params)
                 else
                   Canvas::OAuth::GrantTypes::AuthorizationCode.new(client_id, secret, params)

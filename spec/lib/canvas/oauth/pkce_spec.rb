@@ -102,5 +102,43 @@ RSpec.describe Canvas::OAuth::PKCE do # rubocop:disable RSpec/SpecFilePathFormat
         expect(described_class.valid_code_verifier?(code:, code_verifier:)).to be_falsey
       end
     end
+
+    context "when code verifier is nil" do
+      it "returns false without raising" do
+        expect { described_class.valid_code_verifier?(code:, code_verifier: nil) }.not_to raise_error
+        expect(described_class.valid_code_verifier?(code:, code_verifier: nil)).to be_falsey
+      end
+    end
+
+    context "when code verifier is blank" do
+      it "returns false" do
+        expect(described_class.valid_code_verifier?(code:, code_verifier: "")).to be_falsey
+      end
+    end
+  end
+
+  describe ".code_has_challenge?" do
+    let(:code) { "abc123" }
+
+    it "returns false for blank code" do
+      expect(described_class.code_has_challenge?(nil)).to be_falsey
+      expect(described_class.code_has_challenge?("")).to be_falsey
+    end
+
+    it "returns true when a challenge is stored for the code" do
+      allow(Canvas.redis).to receive(:exists?).with("oauth2/pkce:#{code}").and_return("some_challenge")
+      expect(described_class.code_has_challenge?(code)).to be_truthy
+    end
+
+    it "returns false when no challenge is stored for the code" do
+      allow(Canvas.redis).to receive(:get).with("oauth2/pkce:#{code}").and_return(nil)
+      expect(described_class.code_has_challenge?(code)).to be_falsey
+    end
+
+    it "does not consume the Redis key" do
+      expect(Canvas.redis).not_to receive(:del).with("oauth2/pkce:#{code}")
+      allow(Canvas.redis).to receive(:get).with("oauth2/pkce:#{code}").and_return("some_challenge")
+      described_class.code_has_challenge?(code)
+    end
   end
 end
