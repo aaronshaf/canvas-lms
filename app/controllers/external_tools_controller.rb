@@ -939,6 +939,8 @@ class ExternalToolsController < ApplicationController
   def show
     Utils::InstStatsdUtils::Timing.track "lti.show.request_time" do |timing_meta|
       if api_request?
+        return unless authorized_action(@context, @current_user, :read)
+
         tool = Lti::ContextToolFinder.only_for(@context).active.find(params[:external_tool_id])
         render json: external_tool_json(tool, @context, @current_user, session)
         timing_meta.tags = { lti_version: tool.lti_version }

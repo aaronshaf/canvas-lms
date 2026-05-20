@@ -274,6 +274,21 @@ describe ExternalToolsController, type: :request do
       show_call(@account)
     end
 
+    it "returns status 403 if unauthorized" do
+      tool = tool_with_everything(@account)
+      user_with_pseudonym(name: "not an admin")
+      api_call(:get,
+               "/api/v1/accounts/#{@account.id}/external_tools/#{tool.id}.json",
+               { controller: "external_tools",
+                 action: "show",
+                 format: "json",
+                 account_id: @account.to_param,
+                 external_tool_id: tool.to_param },
+               {},
+               {},
+               { expected_status: 403 })
+    end
+
     it "returns 404 for not found tool" do
       not_found_call(@account)
     end
