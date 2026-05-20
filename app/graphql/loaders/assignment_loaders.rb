@@ -82,6 +82,48 @@ module Loaders
       end
     end
 
+    class TotalSubmissionsLoader < GraphQL::Batch::Loader
+      def perform(assignment_ids)
+        counts = Submission
+                 .active
+                 .where(assignment_id: assignment_ids)
+                 .where.not(workflow_state: "unsubmitted")
+                 .group(:assignment_id)
+                 .count
+        assignment_ids.each { |id| fulfill(id, counts[id] || 0) }
+      end
+    end
+
+    class TotalGradedSubmissionsLoader < GraphQL::Batch::Loader
+      def perform(assignment_ids)
+        counts = Submission
+                 .active
+                 .where(assignment_id: assignment_ids)
+                 .graded
+                 .group(:assignment_id)
+                 .count
+        assignment_ids.each { |id| fulfill(id, counts[id] || 0) }
+      end
+    end
+
+    # Assumes single-shard execution: the class-rooted Submission.where(user_id:)
+    # query does not use Shard.partition_by_shard, consistent with other loaders
+    # in this file.
+    class CurrentUserSubmissionLoader < GraphQL::Batch::Loader
+      def initialize(user_id)
+        super()
+        @user_id = user_id
+      end
+
+      def perform(assignment_ids)
+        submissions = Submission
+                      .active
+                      .where(assignment_id: assignment_ids, user_id: @user_id)
+                      .index_by(&:assignment_id)
+        assignment_ids.each { |id| fulfill(id, submissions[id]) }
+      end
+    end
+
     class GradedSubmissionsExistLoader < GraphQL::Batch::Loader
       def perform(assignment_ids)
         # Load only gradeable assignments (filter non-gradeable at database level)

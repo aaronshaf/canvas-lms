@@ -347,22 +347,25 @@ module Types
     field :provisional_grading_locked, Boolean, "Indicates if the user is locked out of provisional grading for this assignment.", null: false
     def provisional_grading_locked
       return false unless assignment.moderated_grader_limit_reached?
-      return false unless assignment.context.grants_any_right?(current_user, :manage_grades, :view_all_grades)
-      return false if assignment.grades_published?
-      return false if assignment.permits_moderation?(current_user)
-      return false if assignment.provisional_moderation_graders.where(user: current_user).exists?
 
-      true
+      load_association(:context).then do |context|
+        next false unless context.grants_any_right?(current_user, :manage_grades, :view_all_grades)
+        next false if assignment.grades_published?
+        next false if assignment.permits_moderation?(current_user)
+        next false if assignment.provisional_moderation_graders.where(user: current_user).exists?
+
+        true
+      end
     end
 
     field :grading_role, GradingRole, "The grading role of the current user for this assignment. Returns null if the user does not have sufficient grading permissions.", null: true
     def grading_role
-      unless assignment.context.grants_any_right?(current_user, :manage_grades, :view_all_grades)
-        return nil
-      end
+      load_association(:context).then do |context|
+        next nil unless context.grants_any_right?(current_user, :manage_grades, :view_all_grades)
 
-      role = assignment.grading_role(current_user)
-      role&.to_s
+        role = assignment.grading_role(current_user)
+        role&.to_s
+      end
     end
 
     def self.overridden_field(field_name, description)
@@ -519,10 +522,12 @@ module Types
       description "Returns empty array if visible to everyone"
     end
     def assignment_visibility
-      return unless object.course.grants_any_right?(current_user, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+      load_association(:context).then do |course|
+        next unless course.grants_any_right?(current_user, :read_as_admin, :manage_grades, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
 
-      Loaders::DatesOverridableLoader.for.load(object).then do |assignment|
-        Loaders::AssignmentVisibilityLoader.load(assignment)
+        Loaders::DatesOverridableLoader.for.load(object).then do |assignment|
+          Loaders::AssignmentVisibilityLoader.load(assignment)
+        end
       end
     end
 
@@ -663,7 +668,7 @@ module Types
     field :grading_period_id, String, null: true
     def grading_period_id
       load_association(:submissions).then do |submissions|
-        submissions.pluck(:grading_period_id).uniq.first
+        submissions.filter_map(&:grading_period_id).uniq.first
       end
     end
 
@@ -861,13 +866,20 @@ module Types
     def score_statistic
       load_association(:context).then do |course|
         if course.grants_right?(current_user, :read_as_admin)
-          object.score_statistic if object.can_view_score_statistics?(current_user)
+          load_association(:score_statistic).then do |stat|
+            stat if object.can_view_score_statistics?(current_user)
+          end
         else
-          submission = object.submissions.find_by(user_id: current_user.id)
-          if submission &&
-             object.can_view_score_statistics?(current_user) &&
-             submission.eligible_for_showing_score_statistics?
-            object.score_statistic
+          stat_loader = load_association(:score_statistic)
+          sub_loader = Loaders::AssignmentLoaders::CurrentUserSubmissionLoader
+                       .for(current_user.id)
+                       .load(object.id)
+          Promise.all([stat_loader, sub_loader]).then do |stat, submission|
+            if submission &&
+               object.can_view_score_statistics?(current_user) &&
+               submission.eligible_for_showing_score_statistics?
+              stat
+            end
           end
         end
       end
@@ -895,9 +907,7 @@ module Types
     def total_submissions
       load_association(:context).then do |context|
         if context.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
-          load_association(:submissions).then do |submissions|
-            submissions.where.not(workflow_state: "unsubmitted").count
-          end
+          Loaders::AssignmentLoaders::TotalSubmissionsLoader.load(assignment.id)
         end
       end
     end
@@ -906,9 +916,7 @@ module Types
     def total_graded_submissions
       load_association(:context).then do |context|
         if context.grants_any_right?(current_user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
-          load_association(:submissions).then do |submissions|
-            submissions.graded.count
-          end
+          Loaders::AssignmentLoaders::TotalGradedSubmissionsLoader.load(assignment.id)
         end
       end
     end
@@ -937,9 +945,11 @@ module Types
 
     field :anonymous_student_identities, [AnonymousStudentIdentityType], null: true
     def anonymous_student_identities
-      return nil unless assignment.context.grants_right?(current_user, :manage_grades)
+      load_association(:context).then do |context|
+        next nil unless context.grants_right?(current_user, :manage_grades)
 
-      assignment.anonymous_student_identities.values
+        assignment.anonymous_student_identities.values
+      end
     end
 
     field :auto_grade_assignment_issues, Types::EligibilityIssueType, null: true, description: "Issues related to the assignment", deprecation_reason: "Use autoGradeEligibility instead"
