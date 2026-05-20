@@ -1038,4 +1038,102 @@ describe "Feature Flags API", type: :request do
       expect(t_root_account.early_access_program[:value]).to be true
     end
   end
+
+  describe "InheritableUser" do
+    before do
+      allow(Feature).to receive(:definitions).and_return({
+                                                           "inheritable_user_feature" => Feature.new(feature: "inheritable_user_feature", applies_to: "InheritableUser", state: "allowed"),
+                                                           "account_feature" => Feature.new(feature: "account_feature", applies_to: "Account", state: "allowed"),
+                                                         })
+    end
+
+    it "includes InheritableUser features in GET features for root account" do
+      json = api_call_as_user(t_root_admin,
+                              :get,
+                              "/api/v1/accounts/#{t_root_account.id}/features",
+                              { controller: "feature_flags", action: "index", format: "json", account_id: t_root_account.to_param })
+      expect(json.pluck("feature")).to include("inheritable_user_feature")
+    end
+
+    it "does not include InheritableUser features in GET features for sub-account" do
+      json = api_call_as_user(t_root_admin,
+                              :get,
+                              "/api/v1/accounts/#{t_sub_account.id}/features",
+                              { controller: "feature_flags", action: "index", format: "json", account_id: t_sub_account.to_param })
+      features = json.pluck("feature")
+      expect(features).not_to include("inheritable_user_feature")
+      expect(features).to include("account_feature")
+    end
+
+    it "inherits the root-account state for InheritableUser features in GET features for user" do
+      t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+      json = api_call_as_user(t_teacher,
+                              :get,
+                              "/api/v1/users/#{t_teacher.id}/features",
+                              { controller: "feature_flags", action: "index", format: "json", user_id: t_teacher.to_param },
+                              {},
+                              {},
+                              { domain_root_account: t_root_account })
+      feature = json.find { |f| f["feature"] == "inheritable_user_feature" }
+      expect(feature).not_to be_nil
+      expect(feature["feature_flag"]["state"]).to eq "on"
+    end
+
+    it "allows PUT InheritableUser flag on root account" do
+      api_call_as_user(t_root_admin,
+                       :put,
+                       "/api/v1/accounts/#{t_root_account.id}/features/flags/inheritable_user_feature?state=on",
+                       { controller: "feature_flags", action: "update", format: "json", account_id: t_root_account.to_param, feature: "inheritable_user_feature", state: "on" })
+      expect(t_root_account.feature_flags.where(feature: "inheritable_user_feature").first).to be_enabled
+    end
+
+    it "rejects PUT InheritableUser flag on sub-account" do
+      sub_admin = account_admin_user(account: t_sub_account)
+      json = api_call_as_user(sub_admin,
+                              :put,
+                              "/api/v1/accounts/#{t_sub_account.id}/features/flags/inheritable_user_feature?state=on",
+                              { controller: "feature_flags", action: "update", format: "json", account_id: t_sub_account.to_param, feature: "inheritable_user_feature", state: "on" },
+                              {},
+                              {},
+                              { expected_status: 400 })
+      expect(json["message"]).to eq("invalid feature")
+      expect(t_sub_account.feature_flags.where(feature: "inheritable_user_feature")).not_to be_any
+    end
+
+    it "refuses to update a user's InheritableUser flag when the root account state is non-overridable" do
+      t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+      api_call_as_user(t_teacher,
+                       :put,
+                       "/api/v1/users/#{t_teacher.id}/features/flags/inheritable_user_feature?state=off",
+                       { controller: "feature_flags", action: "update", format: "json", user_id: t_teacher.to_param, feature: "inheritable_user_feature", state: "off" },
+                       {},
+                       {},
+                       { domain_root_account: t_root_account, expected_status: 403 })
+      expect(t_teacher.feature_flags.where(feature: "inheritable_user_feature")).not_to be_any
+    end
+
+    it "GET single InheritableUser flag for user inherits root-account state" do
+      t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "on"
+      json = api_call_as_user(t_teacher,
+                              :get,
+                              "/api/v1/users/#{t_teacher.id}/features/flags/inheritable_user_feature",
+                              { controller: "feature_flags", action: "show", format: "json", user_id: t_teacher.to_param, feature: "inheritable_user_feature" },
+                              {},
+                              {},
+                              { domain_root_account: t_root_account })
+      expect(json["state"]).to eq "on"
+    end
+
+    it "allows a user to override an unlocked InheritableUser flag set to 'allowed' on the root account" do
+      t_root_account.feature_flags.create! feature: "inheritable_user_feature", state: "allowed"
+      api_call_as_user(t_teacher,
+                       :put,
+                       "/api/v1/users/#{t_teacher.id}/features/flags/inheritable_user_feature?state=on",
+                       { controller: "feature_flags", action: "update", format: "json", user_id: t_teacher.to_param, feature: "inheritable_user_feature", state: "on" },
+                       {},
+                       {},
+                       { domain_root_account: t_root_account })
+      expect(t_teacher.feature_flags.where(feature: "inheritable_user_feature").first.state).to eq "on"
+    end
+  end
 end

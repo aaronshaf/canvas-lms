@@ -41,7 +41,7 @@
 #           "type": "string"
 #         },
 #         "applies_to": {
-#           "description": "The type of object the feature applies to (RootAccount, Account, Course, or User):\n * RootAccount features may only be controlled by flags on root accounts.\n * Account features may be controlled by flags on accounts and their parent accounts.\n * Course features may be controlled by flags on courses and their parent accounts.\n * User features may be controlled by flags on users and site admin only.",
+#           "description": "The type of object the feature applies to (RootAccount, Account, Course, User, or InheritableUser):\n * RootAccount features may only be controlled by flags on root accounts.\n * Account features may be controlled by flags on accounts and their parent accounts.\n * Course features may be controlled by flags on courses and their parent accounts.\n * User features may be controlled by flags on users and site admin only.\n * InheritableUser features may be controlled by flags on users or on the root account; the root account flag is inherited by all users in that root account.",
 #           "example": "Course",
 #           "type": "string",
 #           "allowableValues": {
@@ -49,7 +49,8 @@
 #               "Course",
 #               "RootAccount",
 #               "Account",
-#               "User"
+#               "User",
+#               "InheritableUser"
 #             ]
 #           }
 #         },
