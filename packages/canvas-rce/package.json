@@ -52,7 +52,12 @@
     "clean:es": "rm -rf es",
     "check:ts": "tsc -p tsconfig.json",
     "generate-svgs": "yarn build:es && node --experimental-modules scripts/generateSvgs.js",
-    "publishToNpm": "scripts/publish_to_npm.sh"
+    "publishToNpm": "scripts/publish_to_npm.sh",
+    "harness:dev": "vite browser/harness --port 4444",
+    "test:browser": "playwright test -c browser/playwright.config.ts",
+    "test:browser:headed": "playwright test -c browser/playwright.config.ts --headed",
+    "test:browser:ui": "playwright test -c browser/playwright.config.ts --ui",
+    "pretest:browser": "yarn build:es"
   },
   "keywords": [
     "canvas",
@@ -219,7 +224,13 @@
     "webpack-merge": "^5",
     "webpack-nano": "^1",
     "webpack-plugin-serve": "^1",
-    "webpack": "^5"
+    "webpack": "^5",
+    "@axe-core/playwright": "^4.11.3",
+    "@babel/runtime-corejs3": "^7.29.2",
+    "@playwright/test": "^1.49.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "react-router-dom": "^6.30.3",
+    "vite": "^6.0.0"
   },
   "resolutions": {
     "format-message-estree-util": "./packages/format-message-estree-util"

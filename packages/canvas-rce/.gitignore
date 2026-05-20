@@ -6,3 +6,6 @@ npm-debug*
 doc/*.js
 github-pages/dist
 **/__tests__/__screenshots__/**
+browser/playwright-report/
+browser/playwright-junit.xml
+test-results/

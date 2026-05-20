@@ -1,0 +1,708 @@
+<testsuites id="" name="" tests="20" failures="0" skipped="0" errors="20" time="124.40234600000001">
+<testsuite name="smoke/default-content-rich.spec.ts" timestamp="2026-05-20T17:36:21.355Z" hostname="chromium" tests="6" failures="0" skipped="0" time="180.085" errors="6">
+<testcase name="defaultContent — rich HTML › defaultContent with bold text is preserved" classname="smoke/default-content-rich.spec.ts" time="30.012">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-default-content-rich-8da21-with-bold-text-is-preserved-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/default-content-rich.spec.ts:7:7 › defaultContent — rich HTML › defaultContent with bold text is preserved 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/default-content-rich.spec.ts:9:19
+
+    Error Context: ../../test-results/smoke-default-content-rich-8da21-with-bold-text-is-preserved-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="defaultContent — rich HTML › defaultContent with a table retains all cells" classname="smoke/default-content-rich.spec.ts" time="30.012">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-default-content-rich-1ae30-h-a-table-retains-all-cells-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/default-content-rich.spec.ts:15:7 › defaultContent — rich HTML › defaultContent with a table retains all cells 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/default-content-rich.spec.ts:17:19
+
+    Error Context: ../../test-results/smoke-default-content-rich-1ae30-h-a-table-retains-all-cells-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="defaultContent — rich HTML › defaultContent with a list preserves list items" classname="smoke/default-content-rich.spec.ts" time="30.015">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-default-content-rich-7fcf6-a-list-preserves-list-items-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/default-content-rich.spec.ts:32:7 › defaultContent — rich HTML › defaultContent with a list preserves list items 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/default-content-rich.spec.ts:34:19
+
+    Error Context: ../../test-results/smoke-default-content-rich-7fcf6-a-list-preserves-list-items-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="defaultContent — rich HTML › defaultContent with nested formatting is preserved" classname="smoke/default-content-rich.spec.ts" time="30.013">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-default-content-rich-14182-ted-formatting-is-preserved-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/default-content-rich.spec.ts:49:7 › defaultContent — rich HTML › defaultContent with nested formatting is preserved 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/default-content-rich.spec.ts:51:19
+
+    Error Context: ../../test-results/smoke-default-content-rich-14182-ted-formatting-is-preserved-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="defaultContent — rich HTML › setContent replaces existing content entirely" classname="smoke/default-content-rich.spec.ts" time="30.01">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-default-content-rich-a3747-s-existing-content-entirely-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/default-content-rich.spec.ts:65:7 › defaultContent — rich HTML › setContent replaces existing content entirely 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/default-content-rich.spec.ts:67:19
+
+    Error Context: ../../test-results/smoke-default-content-rich-a3747-s-existing-content-entirely-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="defaultContent — rich HTML › defaultContent with heading tags renders correct heading levels" classname="smoke/default-content-rich.spec.ts" time="30.023">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-default-content-rich-eb202-ders-correct-heading-levels-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/default-content-rich.spec.ts:80:7 › defaultContent — rich HTML › defaultContent with heading tags renders correct heading levels 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/default-content-rich.spec.ts:82:19
+
+    Error Context: ../../test-results/smoke-default-content-rich-eb202-ders-correct-heading-levels-chromium/error-context.md
+]]>
+</error>
+</testcase>
+</testsuite>
+<testsuite name="smoke/loads.spec.ts" timestamp="2026-05-20T17:36:21.355Z" hostname="chromium" tests="3" failures="0" skipped="0" time="90.048" errors="3">
+<testcase name="RCE loads › editor mounts and toolbar is visible" classname="smoke/loads.spec.ts" time="30.019">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-loads-RCE-loads-editor-mounts-and-toolbar-is-visible-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/loads.spec.ts:4:7 › RCE loads › editor mounts and toolbar is visible ──────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/loads.spec.ts:6:19
+
+    Error Context: ../../test-results/smoke-loads-RCE-loads-editor-mounts-and-toolbar-is-visible-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="RCE loads › content iframe is present" classname="smoke/loads.spec.ts" time="30.011">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-loads-RCE-loads-content-iframe-is-present-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/loads.spec.ts:10:7 › RCE loads › content iframe is present ────────────────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/loads.spec.ts:12:19
+
+    Error Context: ../../test-results/smoke-loads-RCE-loads-content-iframe-is-present-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="RCE loads › status bar is visible" classname="smoke/loads.spec.ts" time="30.018">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-loads-RCE-loads-status-bar-is-visible-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/loads.spec.ts:16:7 › RCE loads › status bar is visible ────────────────────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/loads.spec.ts:18:19
+
+    Error Context: ../../test-results/smoke-loads-RCE-loads-status-bar-is-visible-chromium/error-context.md
+]]>
+</error>
+</testcase>
+</testsuite>
+<testsuite name="smoke/readonly.spec.ts" timestamp="2026-05-20T17:36:21.355Z" hostname="chromium" tests="2" failures="0" skipped="0" time="60.027" errors="2">
+<testcase name="readonly mode › editor is in readonly mode" classname="smoke/readonly.spec.ts" time="30.014">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-readonly-readonly-mode-editor-is-in-readonly-mode-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/readonly.spec.ts:4:7 › readonly mode › editor is in readonly mode ─────────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/readonly.spec.ts:6:19
+
+    Error Context: ../../test-results/smoke-readonly-readonly-mode-editor-is-in-readonly-mode-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="readonly mode › defaultContent is visible" classname="smoke/readonly.spec.ts" time="30.013">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-readonly-readonly-mode-defaultContent-is-visible-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/readonly.spec.ts:11:7 › readonly mode › defaultContent is visible ─────────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/readonly.spec.ts:13:19
+
+    Error Context: ../../test-results/smoke-readonly-readonly-mode-defaultContent-is-visible-chromium/error-context.md
+]]>
+</error>
+</testcase>
+</testsuite>
+<testsuite name="smoke/rtl.spec.ts" timestamp="2026-05-20T17:36:21.355Z" hostname="chromium" tests="4" failures="0" skipped="0" time="120.054" errors="4">
+<testcase name="RTL (right-to-left) mode › editor mounts in RTL mode" classname="smoke/rtl.spec.ts" time="30.013">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-rtl-RTL-right-to-left-mode-editor-mounts-in-RTL-mode-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded while running &quot;beforeEach&quot; hook." type="Error">
+<![CDATA[  [chromium] › smoke/rtl.spec.ts:9:7 › RTL (right-to-left) mode › editor mounts in RTL mode ────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('RTL (right-to-left) mode', () => {
+    > 4 |   test.beforeEach(async ({page, rcePage}) => {
+        |        ^
+      5 |     await page.goto('/scenarios/rtl')
+      6 |     await rcePage.waitForEditor()
+      7 |   })
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/rtl.spec.ts:4:8
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/rtl.spec.ts:6:19
+
+    Error Context: ../../test-results/smoke-rtl-RTL-right-to-left-mode-editor-mounts-in-RTL-mode-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="RTL (right-to-left) mode › document has dir=rtl attribute" classname="smoke/rtl.spec.ts" time="30.021">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-rtl-RTL-right-to-lef-7e2c2-ument-has-dir-rtl-attribute-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded while running &quot;beforeEach&quot; hook." type="Error">
+<![CDATA[  [chromium] › smoke/rtl.spec.ts:14:7 › RTL (right-to-left) mode › document has dir=rtl attribute ──
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('RTL (right-to-left) mode', () => {
+    > 4 |   test.beforeEach(async ({page, rcePage}) => {
+        |        ^
+      5 |     await page.goto('/scenarios/rtl')
+      6 |     await rcePage.waitForEditor()
+      7 |   })
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/rtl.spec.ts:4:8
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/rtl.spec.ts:6:19
+
+    Error Context: ../../test-results/smoke-rtl-RTL-right-to-lef-7e2c2-ument-has-dir-rtl-attribute-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="RTL (right-to-left) mode › editor html element inherits RTL direction" classname="smoke/rtl.spec.ts" time="30.01">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-rtl-RTL-right-to-lef-2bb41-ment-inherits-RTL-direction-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded while running &quot;beforeEach&quot; hook." type="Error">
+<![CDATA[  [chromium] › smoke/rtl.spec.ts:19:7 › RTL (right-to-left) mode › editor html element inherits RTL direction 
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('RTL (right-to-left) mode', () => {
+    > 4 |   test.beforeEach(async ({page, rcePage}) => {
+        |        ^
+      5 |     await page.goto('/scenarios/rtl')
+      6 |     await rcePage.waitForEditor()
+      7 |   })
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/rtl.spec.ts:4:8
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/rtl.spec.ts:6:19
+
+    Error Context: ../../test-results/smoke-rtl-RTL-right-to-lef-2bb41-ment-inherits-RTL-direction-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="RTL (right-to-left) mode › typed content is saved correctly in RTL mode" classname="smoke/rtl.spec.ts" time="30.01">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-rtl-RTL-right-to-lef-84751-saved-correctly-in-RTL-mode-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded while running &quot;beforeEach&quot; hook." type="Error">
+<![CDATA[  [chromium] › smoke/rtl.spec.ts:25:7 › RTL (right-to-left) mode › typed content is saved correctly in RTL mode 
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('RTL (right-to-left) mode', () => {
+    > 4 |   test.beforeEach(async ({page, rcePage}) => {
+        |        ^
+      5 |     await page.goto('/scenarios/rtl')
+      6 |     await rcePage.waitForEditor()
+      7 |   })
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/rtl.spec.ts:4:8
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/rtl.spec.ts:6:19
+
+    Error Context: ../../test-results/smoke-rtl-RTL-right-to-lef-84751-saved-correctly-in-RTL-mode-chromium/error-context.md
+]]>
+</error>
+</testcase>
+</testsuite>
+<testsuite name="smoke/set-content-via-prop.spec.ts" timestamp="2026-05-20T17:36:21.355Z" hostname="chromium" tests="3" failures="0" skipped="0" time="90.059" errors="3">
+<testcase name="defaultContent prop › pre-loads HTML into the editor" classname="smoke/set-content-via-prop.spec.ts" time="30.017">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-set-content-via-prop-6fc32--loads-HTML-into-the-editor-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/set-content-via-prop.spec.ts:4:7 › defaultContent prop › pre-loads HTML into the editor 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/set-content-via-prop.spec.ts:6:19
+
+    Error Context: ../../test-results/smoke-set-content-via-prop-6fc32--loads-HTML-into-the-editor-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="defaultContent prop › defaultContent HTML is preserved in getContent()" classname="smoke/set-content-via-prop.spec.ts" time="30.021">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-set-content-via-prop-76886-is-preserved-in-getContent--chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/set-content-via-prop.spec.ts:12:7 › defaultContent prop › defaultContent HTML is preserved in getContent() 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/set-content-via-prop.spec.ts:14:19
+
+    Error Context: ../../test-results/smoke-set-content-via-prop-76886-is-preserved-in-getContent--chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="defaultContent prop › content is editable after being pre-loaded" classname="smoke/set-content-via-prop.spec.ts" time="30.021">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-set-content-via-prop-9b35f-able-after-being-pre-loaded-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded." type="Error">
+<![CDATA[  [chromium] › smoke/set-content-via-prop.spec.ts:20:7 › defaultContent prop › content is editable after being pre-loaded 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/set-content-via-prop.spec.ts:22:19
+
+    Error Context: ../../test-results/smoke-set-content-via-prop-9b35f-able-after-being-pre-loaded-chromium/error-context.md
+]]>
+</error>
+</testcase>
+</testsuite>
+<testsuite name="smoke/type-content.spec.ts" timestamp="2026-05-20T17:36:21.355Z" hostname="chromium" tests="2" failures="0" skipped="0" time="60.043" errors="2">
+<testcase name="typing content › typed text appears in editor content" classname="smoke/type-content.spec.ts" time="30.022">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-type-content-typing--a5621-t-appears-in-editor-content-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded while running &quot;beforeEach&quot; hook." type="Error">
+<![CDATA[  [chromium] › smoke/type-content.spec.ts:9:7 › typing content › typed text appears in editor content 
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('typing content', () => {
+    > 4 |   test.beforeEach(async ({page, rcePage}) => {
+        |        ^
+      5 |     await page.goto('/scenarios/basic')
+      6 |     await rcePage.waitForEditor()
+      7 |   })
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/type-content.spec.ts:4:8
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/type-content.spec.ts:6:19
+
+    Error Context: ../../test-results/smoke-type-content-typing--a5621-t-appears-in-editor-content-chromium/error-context.md
+]]>
+</error>
+</testcase>
+<testcase name="typing content › content is empty on load" classname="smoke/type-content.spec.ts" time="30.021">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/smoke-type-content-typing-content-content-is-empty-on-load-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="Test timeout of 30000ms exceeded while running &quot;beforeEach&quot; hook." type="Error">
+<![CDATA[  [chromium] › smoke/type-content.spec.ts:15:7 › typing content › content is empty on load ─────────
+
+    Test timeout of 30000ms exceeded while running "beforeEach" hook.
+
+      2 |
+      3 | test.describe('typing content', () => {
+    > 4 |   test.beforeEach(async ({page, rcePage}) => {
+        |        ^
+      5 |     await page.goto('/scenarios/basic')
+      6 |     await rcePage.waitForEditor()
+      7 |   })
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/type-content.spec.ts:4:8
+
+    Error: locator.waitFor: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('.tox-tinymce') to be visible
+
+
+       at ../fixtures/rce-page.ts:23
+
+      21 |
+      22 |   async waitForEditor(): Promise<void> {
+    > 23 |     await this.page.locator('.tox-tinymce').waitFor({state: 'visible', timeout: 30_000})
+         |                                             ^
+      24 |     await this.contentFrame().locator('body').waitFor({state: 'visible', timeout: 30_000})
+      25 |   }
+      26 |
+        at RcePage.waitForEditor (/Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/fixtures/rce-page.ts:23:45)
+        at /Users/ashafovaloff/inst/canvas-lms/packages/canvas-rce/e2e/tests/smoke/type-content.spec.ts:6:19
+
+    Error Context: ../../test-results/smoke-type-content-typing-content-content-is-empty-on-load-chromium/error-context.md
+]]>
+</error>
+</testcase>
+</testsuite>
+</testsuites>
