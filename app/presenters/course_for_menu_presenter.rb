@@ -21,14 +21,16 @@ class CourseForMenuPresenter
   include I18nUtilities
   include Rails.application.routes.url_helpers
 
-  def initialize(course, user = nil, context = nil, session = nil, opts = {})
+  attr_reader :course, :current_principal
+
+  def initialize(course, current_principal = nil, context = nil, session = nil, opts = {})
     @course = course
-    @user = user
+    @current_principal = current_principal
+    @user = current_principal&.user
     @context = context
     @session = session
     @opts = opts
   end
-  attr_reader :course
 
   def default_url_options
     { protocol: HostUrl.protocol, host: HostUrl.context_host(@course.root_account) }
@@ -58,15 +60,15 @@ class CourseForMenuPresenter
       isK5Subject: course.elementary_subject_course?,
       isHomeroom: course.homeroom_course,
       useClassicFont: course.account.use_classic_font_in_k5?,
-      canManage: course.grants_right?(@user, :manage_course_content_edit),
-      canReadAnnouncements: course.grants_right?(@user, :read_announcements),
+      canManage: course.grants_right?(current_principal, :manage_course_content_edit),
+      canReadAnnouncements: course.grants_right?(current_principal, :read_announcements),
       image: course.image,
       color: course.elementary_enabled? ? course.course_color : nil,
       position: position.presence&.to_i,
       published: course.published?
     }.tap do |hash|
       if @opts[:tabs]
-        tabs = course.tabs_available(@user, {
+        tabs = course.tabs_available(current_principal, {
                                        session: @session,
                                        only_check: @opts[:tabs],
                                        precalculated_permissions: {
@@ -82,7 +84,7 @@ class CourseForMenuPresenter
           presenter.to_h
         end
       end
-      hash[:canChangeCoursePublishState] = course.grants_right?(@user, :manage_courses_publish)
+      hash[:canChangeCoursePublishState] = course.grants_right?(current_principal, :manage_courses_publish)
       hash[:defaultView] = course.default_view
       hash[:pagesUrl] = polymorphic_url([course, :wiki_pages])
       hash[:frontPageTitle] = course&.wiki&.front_page&.title

@@ -2355,11 +2355,11 @@ class Account < ApplicationRecord
   TAB_RELEASE_NOTES = 17
   TAB_APPS = 18
 
-  def external_tool_tabs(opts, user)
+  def external_tool_tabs(opts, principal)
     tools = Lti::ContextToolFinder
             .new(self, type: :account_navigation)
             .all_tools_scope_union.to_unsorted_array
-            .select { |t| t.permission_given?(:account_navigation, user, self) && t.feature_flag_enabled?(self) }
+            .select { |t| t.permission_given?(:account_navigation, principal, self) && t.feature_flag_enabled?(self) }
 
     unless root_account?
       tools.reject! { |t| t.account_navigation[:root_account_only].to_s.downcase == "true" }
@@ -2389,32 +2389,32 @@ class Account < ApplicationRecord
     end
   end
 
-  def tabs_available(user = nil, opts = {})
-    manage_settings = user && grants_right?(user, :manage_account_settings)
-    manage_auth_providers = user && grants_any_right?(user, *read_or_manage_authentication_provider_permissions)
+  def tabs_available(principal = nil, opts = {})
+    manage_settings = grants_right?(principal, :manage_account_settings)
+    manage_auth_providers = grants_any_right?(principal, *read_or_manage_authentication_provider_permissions)
     eportfolios_deprecated = root_account.settings[:enable_eportfolios] == true &&
                              root_account.feature_enabled?(:eportfolio_deprecation_notice)
 
     tabs = []
     if root_account.site_admin?
-      tabs << { id: TAB_USERS, label: t("People"), css_class: "users", href: :account_users_path } if user && grants_right?(user, :read_roster)
-      tabs << { id: TAB_PERMISSIONS, label: t("#account.tab_permissions", "Permissions"), css_class: "permissions", href: :account_permissions_path } if user && grants_right?(user, :manage_role_overrides)
+      tabs << { id: TAB_USERS, label: t("People"), css_class: "users", href: :account_users_path } if principal && grants_right?(principal, :read_roster)
+      tabs << { id: TAB_PERMISSIONS, label: t("#account.tab_permissions", "Permissions"), css_class: "permissions", href: :account_permissions_path } if principal && grants_right?(principal, :manage_role_overrides)
       tabs << { id: TAB_SUB_ACCOUNTS, label: t("#account.tab_sub_accounts", "Sub-Accounts"), css_class: "sub_accounts", href: :account_sub_accounts_path } if manage_settings
       tabs << { id: TAB_AUTHENTICATION, label: t("#account.tab_authentication", "Authentication"), css_class: "authentication", href: :account_authentication_providers_path } if root_account? && manage_auth_providers
-      tabs << { id: TAB_PLUGINS, label: t("#account.tab_plugins", "Plugins"), css_class: "plugins", href: :plugins_path, no_args: true } if root_account? && grants_right?(user, :manage_site_settings)
-      tabs << { id: TAB_RELEASE_NOTES, label: t("Release Notes"), css_class: "release_notes", href: :account_release_notes_manage_path } if root_account? && ReleaseNote.enabled? && grants_right?(user, :manage_release_notes)
-      tabs << { id: TAB_RATE_LIMITING, label: t("#account.tab_rate_limiting", "Rate Limiting"), css_class: "rate_limiting", href: :account_rate_limiting_path } if user && grants_right?(user, :manage_rate_limiting)
-      tabs << { id: TAB_JOBS, label: t("#account.tab_jobs", "Jobs"), css_class: "jobs", href: :jobs_path, no_args: true } if root_account? && grants_right?(user, :view_jobs)
+      tabs << { id: TAB_PLUGINS, label: t("#account.tab_plugins", "Plugins"), css_class: "plugins", href: :plugins_path, no_args: true } if root_account? && grants_right?(principal, :manage_site_settings)
+      tabs << { id: TAB_RELEASE_NOTES, label: t("Release Notes"), css_class: "release_notes", href: :account_release_notes_manage_path } if root_account? && ReleaseNote.enabled? && grants_right?(principal, :manage_release_notes)
+      tabs << { id: TAB_RATE_LIMITING, label: t("#account.tab_rate_limiting", "Rate Limiting"), css_class: "rate_limiting", href: :account_rate_limiting_path } if principal && grants_right?(principal, :manage_rate_limiting)
+      tabs << { id: TAB_JOBS, label: t("#account.tab_jobs", "Jobs"), css_class: "jobs", href: :jobs_path, no_args: true } if root_account? && grants_right?(principal, :view_jobs)
     else
-      tabs << { id: TAB_COURSES, label: t("#account.tab_courses", "Courses"), css_class: "courses", href: :account_path } if user && grants_right?(user, :read_course_list)
-      tabs << { id: TAB_USERS, label: t("People"), css_class: "users", href: :account_users_path } if user && grants_right?(user, :read_roster)
-      tabs << { id: TAB_STATISTICS, label: t("#account.tab_statistics", "Statistics"), css_class: "statistics", href: :statistics_account_path } if user && grants_right?(user, :view_statistics)
-      tabs << { id: TAB_REPORTS, label: t("Reports"), css_class: "account_reports", href: :account_reports_path } if feature_enabled?(:new_account_reports_ui) && user && grants_right?(user, :read_reports)
-      tabs << { id: TAB_PERMISSIONS, label: t("#account.tab_permissions", "Permissions"), css_class: "permissions", href: :account_permissions_path } if user && grants_right?(user, :manage_role_overrides)
-      if user && grants_right?(user, :manage_outcomes)
+      tabs << { id: TAB_COURSES, label: t("#account.tab_courses", "Courses"), css_class: "courses", href: :account_path } if principal && grants_right?(principal, :read_course_list)
+      tabs << { id: TAB_USERS, label: t("People"), css_class: "users", href: :account_users_path } if principal && grants_right?(principal, :read_roster)
+      tabs << { id: TAB_STATISTICS, label: t("#account.tab_statistics", "Statistics"), css_class: "statistics", href: :statistics_account_path } if principal && grants_right?(principal, :view_statistics)
+      tabs << { id: TAB_REPORTS, label: t("Reports"), css_class: "account_reports", href: :account_reports_path } if feature_enabled?(:new_account_reports_ui) && principal && grants_right?(principal, :read_reports)
+      tabs << { id: TAB_PERMISSIONS, label: t("#account.tab_permissions", "Permissions"), css_class: "permissions", href: :account_permissions_path } if principal && grants_right?(principal, :manage_role_overrides)
+      if principal && grants_right?(principal, :manage_outcomes)
         tabs << { id: TAB_OUTCOMES, label: t("#account.tab_outcomes", "Outcomes"), css_class: "outcomes", href: :account_outcomes_path }
       end
-      if can_see_rubrics_tab?(user)
+      if can_see_rubrics_tab?(principal)
         tabs << { id: TAB_RUBRICS, label: t("#account.tab_rubrics", "Rubrics"), css_class: "rubrics", href: :account_rubrics_path }
       end
 
@@ -2423,15 +2423,15 @@ class Account < ApplicationRecord
                               else
                                 :account_grading_standards_path
                               end
-      tabs << { id: TAB_GRADING_STANDARDS, label: t("#account.tab_grading_standards", "Grading"), css_class: "grading_standards", href: grading_settings_href } if user && grants_right?(user, :manage_grades)
-      tabs << { id: TAB_QUESTION_BANKS, label: t("#account.tab_question_banks", "Question Banks"), css_class: "question_banks", href: :account_question_banks_path } if user && grants_any_right?(user, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
-      tabs << { id: TAB_ACCESSIBILITY, label: t("#account.tab_accessibility", "Accessibility"), css_class: "accessibility", href: :account_accessibility_path } if can_see_accessibility_tab?(user)
+      tabs << { id: TAB_GRADING_STANDARDS, label: t("#account.tab_grading_standards", "Grading"), css_class: "grading_standards", href: grading_settings_href } if principal && grants_right?(principal, :manage_grades)
+      tabs << { id: TAB_QUESTION_BANKS, label: t("#account.tab_question_banks", "Question Banks"), css_class: "question_banks", href: :account_question_banks_path } if principal && grants_any_right?(principal, *RoleOverride::GRANULAR_MANAGE_ASSIGNMENT_PERMISSIONS)
+      tabs << { id: TAB_ACCESSIBILITY, label: t("#account.tab_accessibility", "Accessibility"), css_class: "accessibility", href: :account_accessibility_path } if can_see_accessibility_tab?(principal)
       tabs << { id: TAB_SUB_ACCOUNTS, label: t("#account.tab_sub_accounts", "Sub-Accounts"), css_class: "sub_accounts", href: :account_sub_accounts_path } if manage_settings
-      tabs << { id: TAB_ACCOUNT_CALENDARS, label: t("Account Calendars"), css_class: "account_calendars", href: :account_calendar_settings_path } if user && grants_right?(user, :manage_account_calendar_visibility)
+      tabs << { id: TAB_ACCOUNT_CALENDARS, label: t("Account Calendars"), css_class: "account_calendars", href: :account_calendar_settings_path } if principal && grants_right?(principal, :manage_account_calendar_visibility)
       tabs << { id: TAB_TERMS, label: t("#account.tab_terms", "Terms"), css_class: "terms", href: :account_terms_path } if root_account? && manage_settings
       tabs << { id: TAB_AUTHENTICATION, label: t("#account.tab_authentication", "Authentication"), css_class: "authentication", href: :account_authentication_providers_path } if root_account? && manage_auth_providers
-      tabs << { id: TAB_RATE_LIMITING, label: t("#account.tab_rate_limiting", "Rate Limiting"), css_class: "rate_limiting", href: :account_rate_limiting_path } if user && grants_right?(user, :manage_rate_limiting)
-      if root_account? && allow_sis_import && user && grants_any_right?(user, :manage_sis, :import_sis)
+      tabs << { id: TAB_RATE_LIMITING, label: t("#account.tab_rate_limiting", "Rate Limiting"), css_class: "rate_limiting", href: :account_rate_limiting_path } if principal && grants_right?(principal, :manage_rate_limiting)
+      if root_account? && allow_sis_import && principal && grants_any_right?(principal, :manage_sis, :import_sis)
         tabs << { id: TAB_SIS_IMPORT,
                   label: t("#account.tab_sis_import", "SIS Import"),
                   css_class: "sis_import",
@@ -2441,23 +2441,23 @@ class Account < ApplicationRecord
 
     tabs << { id: TAB_BRAND_CONFIGS, label: t("#account.tab_brand_configs", "Themes"), css_class: "brand_configs", href: :account_brand_configs_path } if manage_settings && branding_allowed?
 
-    if root_account? && grants_right?(user, :manage_developer_keys)
+    if root_account? && grants_right?(principal, :manage_developer_keys)
       tabs << { id: TAB_DEVELOPER_KEYS, label: t("#account.tab_developer_keys", "Developer Keys"), css_class: "developer_keys", href: :account_developer_keys_path, account_id: root_account.id }
     end
 
-    if !root_account.site_admin? && user && grants_right?(user, :view_analytics_hub)
+    if !root_account.site_admin? && principal && grants_right?(principal, :view_analytics_hub)
       tabs << { id: TAB_ANALYTICS_HUB, label: t("#account.tab_analytics_hub", "Analytics Hub"), css_class: "analytics_hub", href: :account_analytics_hub_path }
     end
 
-    if root_account? && grants_right?(user, :manage_developer_keys)
+    if root_account? && grants_right?(principal, :manage_developer_keys)
       registrations_path = :account_lti_registrations_path
       tabs << { id: TAB_APPS, label: t("#account.tab_apps", "Apps"), css_class: "apps", href: registrations_path, account_id: root_account.id }
-    elsif root_account.feature_enabled?(:canvas_apps_sub_account_access) && root_account.feature_enabled?(:lti_registrations_usage_data) && !root_account? && grants_right?(user, :manage_lti_registrations)
+    elsif root_account.feature_enabled?(:canvas_apps_sub_account_access) && root_account.feature_enabled?(:lti_registrations_usage_data) && !root_account? && grants_right?(principal, :manage_lti_registrations)
       # Sub-account admins can access Canvas Apps when feature flag is enabled
       tabs << { id: TAB_APPS, label: t("#account.tab_apps", "Apps"), css_class: "apps", href: :account_lti_registrations_path, account_id: id }
     end
 
-    tabs += external_tool_tabs(opts, user)
+    tabs += external_tool_tabs(opts, principal)
     tabs += Lti::MessageHandler.lti_apps_tabs(self, [Lti::ResourcePlacement::ACCOUNT_NAVIGATION], opts)
     tabs += NavMenuLinkTabs.account_tabs(self) if root_account.feature_enabled?(:nav_menu_links)
     Lti::ResourcePlacement.update_tabs_and_return_item_banks_tab(tabs)
@@ -2471,12 +2471,12 @@ class Account < ApplicationRecord
     end
 
     # For now, only site admins can see the Oak admin menu item
-    site_admin_user = Account.site_admin.grants_right?(user, :read)
+    site_admin_user = Account.site_admin.grants_right?(principal, :read)
     if root_account? && feature_enabled?(:oak_for_admins) && site_admin_user && manage_settings
       tabs << { id: TAB_OAK_SETTINGS, label: t("#account.tab_oak_settings", "IgniteAI Agent"), css_class: "oak_settings", href: :account_oak_settings_path }
     end
-    tabs << { id: TAB_ADMIN_TOOLS, label: t("#account.tab_admin_tools", "Admin Tools"), css_class: "admin_tools", href: :account_admin_tools_path } if can_see_admin_tools_tab?(user)
-    if user && grants_right?(user, :moderate_user_content)
+    tabs << { id: TAB_ADMIN_TOOLS, label: t("#account.tab_admin_tools", "Admin Tools"), css_class: "admin_tools", href: :account_admin_tools_path } if can_see_admin_tools_tab?(principal)
+    if principal && grants_right?(principal, :moderate_user_content)
       tabs << {
         id: TAB_EPORTFOLIO_MODERATION,
         label: eportfolios_deprecated ? t("ePortfolio Moderation (Legacy)") : t("ePortfolio Moderation"),
@@ -2485,25 +2485,25 @@ class Account < ApplicationRecord
       }
     end
     tabs << { id: TAB_SETTINGS, label: t("#account.tab_settings", "Settings"), css_class: "settings", href: :account_settings_path }
-    tabs.delete_if { |t| t[:visibility] == "admins" } unless grants_right?(user, :manage)
+    tabs.delete_if { |t| t[:visibility] == "admins" } unless grants_right?(principal, :manage)
     tabs
   end
 
-  def can_see_rubrics_tab?(user)
-    user && grants_right?(user, :manage_rubrics)
+  def can_see_rubrics_tab?(principal)
+    principal && grants_right?(principal, :manage_rubrics)
   end
 
-  def can_see_admin_tools_tab?(user)
-    return false if !user || root_account.site_admin?
+  def can_see_admin_tools_tab?(principal)
+    return false if !principal || root_account.site_admin?
 
     admin_tool_permissions = RoleOverride.manageable_permissions(self).find_all { |p| p[1][:admin_tool] }
     admin_tool_permissions.any? do |p|
-      grants_right?(user, p.first)
+      grants_right?(principal, p.first)
     end
   end
 
-  def can_see_accessibility_tab?(user)
-    return false if !user || !grants_right?(user, :read_course_list)
+  def can_see_accessibility_tab?(principal)
+    return false if !principal || !grants_right?(principal, :read_course_list)
 
     a11y_checker_account_statistics?
   end

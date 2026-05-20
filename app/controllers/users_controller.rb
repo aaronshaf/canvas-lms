@@ -461,7 +461,7 @@ class UsersController < ApplicationController
                  OBSERVED_USER_ID: observed_user&.id,
                  CAN_ADD_OBSERVEE: @current_user
                                    .profile
-                                   .tabs_available(@current_user, root_account: @domain_root_account)
+                                   .tabs_available(current_principal, root_account: @domain_root_account)
                                    .any? { |t| t[:id] == UserProfile::TAB_OBSERVEES },
                  SHARED_COURSE_DATA: course_data_with_grades,
                  WIDGET_DASHBOARD_DARK_MODE: !!@current_user&.preferences&.dig(:widget_dashboard_dark_mode),
@@ -524,7 +524,7 @@ class UsersController < ApplicationController
              OBSERVED_USERS_LIST: observed_users_list,
              CAN_ADD_OBSERVEE: @current_user
                                .profile
-                               .tabs_available(@current_user, root_account: @domain_root_account)
+                               .tabs_available(current_principal, root_account: @domain_root_account)
                                .any? { |t| t[:id] == UserProfile::TAB_OBSERVEES }
            })
 

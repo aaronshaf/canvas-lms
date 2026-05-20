@@ -265,6 +265,8 @@ describe CoursesHelper do
         course_with_teacher(active_all: true)
       end
 
+      let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@current_user) }
+
       before do
         @context = @course
         @domain_root_account = Account.default

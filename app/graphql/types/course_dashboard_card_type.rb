@@ -159,7 +159,7 @@ module Types
     def links
       dashboard_card_tabs = UsersController::DASHBOARD_CARD_TABS
 
-      tabs = course.tabs_available(current_user, {
+      tabs = course.tabs_available(current_principal, {
                                      session:,
                                      only_check: dashboard_card_tabs,
                                      precalculated_permissions: {

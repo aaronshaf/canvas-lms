@@ -3711,21 +3711,21 @@ class Course < ApplicationRecord
     tab && tab[:hidden]
   end
 
-  def external_tool_tabs(opts, user)
+  def external_tool_tabs(opts, principal)
     tools = Lti::ContextToolFinder.new(self, type: :course_navigation)
-                                  .all_tools_scope_union.to_unsorted_array.select { |t| t.permission_given?(:course_navigation, user, self) && t.feature_flag_enabled?(self) }
+                                  .all_tools_scope_union.to_unsorted_array.select { |t| t.permission_given?(:course_navigation, principal, self) && t.feature_flag_enabled?(self) }
     Lti::ExternalToolTab.new(self, :course_navigation, tools, opts[:language]).tabs
   end
 
-  def tabs_available(user = nil, opts = {})
+  def tabs_available(principal = nil, opts = {})
     opts.reverse_merge!(include_external: true, include_hidden_unused: true)
-    cache_key = [user, self, opts].cache_key
+    cache_key = [principal, self, opts].cache_key
     @tabs_available ||= {}
-    @tabs_available[cache_key] ||= uncached_tabs_available(user, opts)
+    @tabs_available[cache_key] ||= uncached_tabs_available(principal, opts)
     @tabs_available[cache_key]
   end
 
-  def uncached_tabs_available(user, opts)
+  def uncached_tabs_available(principal, opts)
     # make sure t() is called before we switch to the secondary, in case we update the user's selected locale in the process
     course_subject_tabs = elementary_subject_course? && opts[:course_subject_tabs]
     default_tabs = if elementary_homeroom_course?
@@ -3750,7 +3750,7 @@ class Course < ApplicationRecord
                           })
     end
 
-    if enable_course_paces && grants_any_right?(user, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    if enable_course_paces && grants_any_right?(principal, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
       default_tabs.insert(default_tabs.index { |t| t[:id] == TAB_MODULES } + 1, {
                             id: TAB_COURSE_PACES,
                             label: t("#tabs.course_paces", "Course Pacing"),
@@ -3759,7 +3759,7 @@ class Course < ApplicationRecord
                           })
     end
 
-    if a11y_checker_enabled? && grants_any_right?(user, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
+    if a11y_checker_enabled? && grants_any_right?(principal, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS)
       default_tabs.push({
                           id: TAB_ACCESSIBILITY,
                           label: t("#tabs.accessibility", "Accessibility"),
@@ -3809,7 +3809,7 @@ class Course < ApplicationRecord
       home_tab = default_tabs.find { |t| t[:id] == TAB_HOME }
       settings_tab = default_tabs.find { |t| t[:id] == TAB_SETTINGS }
       external_tool_tabs = if opts[:include_external]
-                             external_tool_tabs(opts, user) +
+                             external_tool_tabs(opts, principal) +
                                Lti::MessageHandler.lti_apps_tabs(self, [Lti::ResourcePlacement::COURSE_NAVIGATION], opts)
                            else
                              []
@@ -3931,7 +3931,7 @@ class Course < ApplicationRecord
           if opts[:precalculated_permissions]&.key?(permission)
             opts[:precalculated_permissions][permission]
           else
-            grants_right?(user, opts[:session], permission)
+            grants_right?(principal, opts[:session], permission)
           end
         end
       end
@@ -3958,7 +3958,7 @@ class Course < ApplicationRecord
         tabs_that_can_be_marked_hidden_unused.reject! { |t| t[:id] == TAB_MODULES }
 
         # Hide Groups tab for students if there are no groups
-        unless grants_right?(user, :read_as_admin) || active_groups.exists?
+        unless grants_right?(principal, :read_as_admin) || active_groups.exists?
           tabs.delete_if { |t| t[:id] == TAB_GROUPS }
         end
       end
@@ -4028,7 +4028,7 @@ class Course < ApplicationRecord
         end
         # remove outcomes tab for logged-out users or non-students
         outcome_tab = tabs.detect { |t| t[:id] == TAB_OUTCOMES }
-        tabs.delete(outcome_tab) if outcome_tab && (!user || !check_for_permission.call(*RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS, :participate_as_student, :read_as_admin))
+        tabs.delete(outcome_tab) if outcome_tab && (!principal || !check_for_permission.call(*RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS, :participate_as_student, :read_as_admin))
 
         # remove hidden tabs from students
         additional_checks = {
@@ -4045,14 +4045,14 @@ class Course < ApplicationRecord
           # tab shouldn't be shown to non-admins
           (t[:hidden] || t[:hidden_unused]) &&
             # not an admin user
-            (!user || !check_for_permission.call(*RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS, :read_as_admin)) &&
+            (!principal || !check_for_permission.call(*RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS, :read_as_admin)) &&
             # can't do any of the additional things required
             (!additional_checks[t[:id]] || !check_for_permission.call(*additional_checks[t[:id]]))
         end
       end
 
       # Add YouTube migration tab before Settings if conditions are met
-      if feature_enabled?(:youtube_migration) && grants_any_right?(user, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS) && has_studio_integration?
+      if feature_enabled?(:youtube_migration) && grants_any_right?(principal, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS) && has_studio_integration?
         settings_index = tabs.index { |t| t[:id] == TAB_SETTINGS }
         settings_index ||= tabs.length
         tabs.insert(settings_index, {

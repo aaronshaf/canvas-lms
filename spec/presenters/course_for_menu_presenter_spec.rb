@@ -26,11 +26,12 @@ describe CourseForMenuPresenter do
   let_once(:account) { Account.default }
   let_once(:course) { Course.create!(account:) }
   let_once(:user) { User.create! }
+  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(user) }
 
   let(:dashboard_card_tabs) { UsersController::DASHBOARD_CARD_TABS }
 
   let_once(:presenter) do
-    CourseForMenuPresenter.new(course, user, account, nil, { tabs: dashboard_card_tabs })
+    CourseForMenuPresenter.new(course, current_principal, account, nil, { tabs: dashboard_card_tabs })
   end
 
   describe "#to_h" do
@@ -86,7 +87,7 @@ describe CourseForMenuPresenter do
 
     it "returns the course nickname if one is set" do
       user.set_preference(:course_nicknames, course.id, "nickname")
-      cs_presenter = CourseForMenuPresenter.new(course, user, account)
+      cs_presenter = CourseForMenuPresenter.new(course, current_principal, account)
       h = cs_presenter.to_h
       expect(h[:originalName]).to eq course.name
       expect(h[:shortName]).to eq "nickname"
@@ -95,25 +96,25 @@ describe CourseForMenuPresenter do
     it "sets isFavorited to true if course is favorited" do
       course.enroll_student(user)
       Favorite.create!(user:, context: course)
-      cs_presenter = CourseForMenuPresenter.new(course, user, account)
+      cs_presenter = CourseForMenuPresenter.new(course, current_principal, account)
       h = cs_presenter.to_h
       expect(h[:isFavorited]).to be true
     end
 
     it "sets isFavorited to false if course is unfavorited" do
       course.enroll_student(user)
-      cs_presenter = CourseForMenuPresenter.new(course, user, account)
+      cs_presenter = CourseForMenuPresenter.new(course, current_principal, account)
       h = cs_presenter.to_h
       expect(h[:isFavorited]).to be false
     end
 
     it "sets the published value" do
-      cs_presenter = CourseForMenuPresenter.new(course, user, account)
+      cs_presenter = CourseForMenuPresenter.new(course, current_principal, account)
       expect(cs_presenter.to_h).to have_key(:published)
     end
 
     it "sets additional keys" do
-      cs_presenter = CourseForMenuPresenter.new(course, user, account)
+      cs_presenter = CourseForMenuPresenter.new(course, current_principal, account)
       h = cs_presenter.to_h
       expect(h).to have_key(:published)
       expect(h).to have_key(:canChangeCoursePublishState)
@@ -125,12 +126,12 @@ describe CourseForMenuPresenter do
     context "isK5Subject" do
       it "is set for k5 subjects" do
         toggle_k5_setting(course.account)
-        h = CourseForMenuPresenter.new(course, user, account).to_h
+        h = CourseForMenuPresenter.new(course, current_principal, account).to_h
         expect(h[:isK5Subject]).to be_truthy
       end
 
       it "is false for classic courses" do
-        h = CourseForMenuPresenter.new(course, user, account).to_h
+        h = CourseForMenuPresenter.new(course, current_principal, account).to_h
         expect(h[:isK5Subject]).to be_falsey
       end
     end
@@ -143,12 +144,12 @@ describe CourseForMenuPresenter do
 
       it "is true when the course's account has use_classic_font?" do
         toggle_classic_font_setting(@account)
-        h = CourseForMenuPresenter.new(course, user, account).to_h
+        h = CourseForMenuPresenter.new(course, current_principal, account).to_h
         expect(h[:useClassicFont]).to be_truthy
       end
 
       it "is false if the course's account does not have use_classic_font?" do
-        h = CourseForMenuPresenter.new(course, user, account).to_h
+        h = CourseForMenuPresenter.new(course, current_principal, account).to_h
         expect(h[:useClassicFont]).to be_falsey
       end
     end
@@ -159,7 +160,7 @@ describe CourseForMenuPresenter do
       end
 
       it "sets `isHomeroom` to `true`" do
-        cs_presenter = CourseForMenuPresenter.new(course, user, account)
+        cs_presenter = CourseForMenuPresenter.new(course, current_principal, account)
         h = cs_presenter.to_h
         expect(h[:isHomeroom]).to be true
       end
@@ -171,14 +172,14 @@ describe CourseForMenuPresenter do
       end
 
       it "sets `color` to nil if the course is not associated with a K-5 account" do
-        h = CourseForMenuPresenter.new(course, user, account).to_h
+        h = CourseForMenuPresenter.new(course, current_principal, account).to_h
         expect(h[:color]).to be_nil
       end
 
       it "sets `color` if the course is associated with a K-5 account" do
         toggle_k5_setting(course.account)
 
-        h = CourseForMenuPresenter.new(course, user, account).to_h
+        h = CourseForMenuPresenter.new(course, current_principal, account).to_h
         expect(h[:color]).to eq "#789"
       end
     end
@@ -186,13 +187,13 @@ describe CourseForMenuPresenter do
     context "Dashcard Reordering" do
       it "returns a position if one is set" do
         user.set_dashboard_positions(course.asset_string => 3)
-        cs_presenter = CourseForMenuPresenter.new(course, user, account)
+        cs_presenter = CourseForMenuPresenter.new(course, current_principal, account)
         h = cs_presenter.to_h
         expect(h[:position]).to eq 3
       end
 
       it "returns nil when no position is set" do
-        cs_presenter = CourseForMenuPresenter.new(course, user, account)
+        cs_presenter = CourseForMenuPresenter.new(course, current_principal, account)
         h = cs_presenter.to_h
         expect(h[:position]).to be_nil
       end
@@ -205,7 +206,7 @@ describe CourseForMenuPresenter do
         account.trust_links.create!(managing_account: a2)
         course2 = a2.courses.create!(name: "course02")
 
-        cs_presenter = CourseForMenuPresenter.new(course2, user, account)
+        cs_presenter = CourseForMenuPresenter.new(course2, current_principal, account)
         h = cs_presenter.to_h
         expect(h).to have_key(:published)
       end

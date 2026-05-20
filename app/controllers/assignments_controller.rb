@@ -377,7 +377,7 @@ class AssignmentsController < ApplicationController
                    OBSERVED_USERS_LIST: observed_users(@current_user, session, @context.id),
                    CAN_ADD_OBSERVEE: @current_user
                                      .profile
-                                     .tabs_available(@current_user, root_account: @domain_root_account)
+                                     .tabs_available(current_principal, root_account: @domain_root_account)
                                      .any? { |t| t[:id] == UserProfile::TAB_OBSERVEES }
                  } })
 

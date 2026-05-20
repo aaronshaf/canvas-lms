@@ -19,10 +19,9 @@
 #
 
 shared_examples "allow Quiz LTI placement when the correct Feature Flags are enabled" do
+  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(current_user) }
   let(:available_section_tabs) do
-    SectionTabHelperSpec::AvailableSectionTabs.new(
-      context, current_user, domain_root_account, session
-    )
+    SectionTabHelperSpec::AvailableSectionTabs.new(context, current_principal, domain_root_account, session)
   end
 
   it "includes Quiz LTI placement if new_quizzes_account_course_level_item_banks and quizzes_next are enabled" do
@@ -65,6 +64,8 @@ describe SectionTabHelper do
 
   describe "AvailableSectionTabs" do
     let_once(:current_user) { course.users.first }
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(current_user) }
+
     let_once(:domain_root_account) { LoadAccount.default_domain_root_account }
     before do
       user_session(current_user)
@@ -87,7 +88,7 @@ describe SectionTabHelper do
       context "when context !tabs_available" do
         let(:available_section_tabs) do
           SectionTabHelperSpec::AvailableSectionTabs.new(
-            Object.new, current_user, domain_root_account, session
+            Object.new, current_principal, domain_root_account, session
           )
         end
 
@@ -107,7 +108,7 @@ describe SectionTabHelper do
 
         let(:available_section_tabs) do
           SectionTabHelperSpec::AvailableSectionTabs.new(
-            course, current_user, domain_root_account, session
+            course, current_principal, domain_root_account, session
           )
         end
 
@@ -130,7 +131,7 @@ describe SectionTabHelper do
 
           let(:available_section_tabs) do
             SectionTabHelperSpec::AvailableSectionTabs.new(
-              course, current_user, domain_root_account, session
+              course, current_principal, domain_root_account, session
             )
           end
 
@@ -158,7 +159,7 @@ describe SectionTabHelper do
 
           let(:available_section_tabs) do
             SectionTabHelperSpec::AvailableSectionTabs.new(
-              course, current_user, domain_root_account, session
+              course, current_principal, domain_root_account, session
             )
           end
 
@@ -177,10 +178,11 @@ describe SectionTabHelper do
         context "when context is an Account" do
           let_once(:account) { Account.default }
           let_once(:account_admin) { account_admin_user(account:) }
+          let(:admin_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(account_admin) }
 
           let(:available_section_tabs) do
             SectionTabHelperSpec::AvailableSectionTabs.new(
-              account, account_admin, domain_root_account, session
+              account, admin_principal, domain_root_account, session
             )
           end
 
@@ -209,7 +211,7 @@ describe SectionTabHelper do
 
           let(:available_section_tabs) do
             SectionTabHelperSpec::AvailableSectionTabs.new(
-              course, current_user, domain_root_account, session
+              course, current_principal, domain_root_account, session
             )
           end
 
@@ -237,7 +239,7 @@ describe SectionTabHelper do
 
           let(:available_section_tabs) do
             SectionTabHelperSpec::AvailableSectionTabs.new(
-              course, current_user, course.account, session
+              course, current_principal, course.account, session
             )
           end
 
@@ -292,9 +294,10 @@ describe SectionTabHelper do
         context "template course" do
           let_once(:template_current_user) { account_admin_user }
           let_once(:template_course) { Course.create!(account: domain_root_account, template: true) }
+          let(:template_user_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(template_current_user) }
           let(:tabs_available) do
             SectionTabHelperSpec::AvailableSectionTabs.new(
-              template_course, template_current_user, domain_root_account, session
+              template_course, template_user_principal, domain_root_account, session
             )
           end
 
@@ -401,7 +404,7 @@ describe SectionTabHelper do
 
           let(:available_section_tabs) do
             SectionTabHelperSpec::AvailableSectionTabs.new(
-              course, current_user, domain_root_account, session
+              course, current_principal, domain_root_account, session
             )
           end
 
@@ -413,9 +416,11 @@ describe SectionTabHelper do
         end
 
         context "and tabs include TAB_FILES" do
+          let(:student_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@student) }
+          let(:admin_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(account_admin_user) }
           let(:available_section_tabs) do
             SectionTabHelperSpec::AvailableSectionTabs.new(
-              course, @student, domain_root_account, session
+              course, student_principal, domain_root_account, session
             )
           end
 
@@ -430,7 +435,7 @@ describe SectionTabHelper do
 
           it "includes TAB_FILES if limited access for students is enabled on account and context is not a Course" do
             available_section_tabs = SectionTabHelperSpec::AvailableSectionTabs.new(
-              domain_root_account, account_admin_user, domain_root_account, session
+              domain_root_account, admin_principal, domain_root_account, session
             )
             expect(available_section_tabs.to_a.pluck(:id)).to include(Course::TAB_FILES)
           end

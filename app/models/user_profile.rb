@@ -93,7 +93,7 @@ class UserProfile < ApplicationRecord
     can :view_lti_tool
   end
 
-  def tabs_available(user = nil, opts = {})
+  def tabs_available(principal = nil, opts = {})
     @tabs ||=
       begin
         tabs =
@@ -102,14 +102,14 @@ class UserProfile < ApplicationRecord
             new_tab[:label] = tab[:label].call
             new_tab
           end
-        insert_profile_tab(tabs, user, opts)
-        insert_eportfolios_tab(tabs, user, opts)
-        insert_content_shares_tab(tabs, user, opts)
-        insert_lti_tool_tabs(tabs, user, opts) if user && opts[:root_account]
-        tabs = tabs.slice(0, 2) if user&.fake_student?
-        insert_observer_tabs(tabs, user)
-        insert_qr_mobile_login_tab(tabs, user, opts)
-        insert_past_global_announcements(tabs, user, opts)
+        insert_profile_tab(tabs, principal, opts)
+        insert_eportfolios_tab(tabs, principal, opts)
+        insert_content_shares_tab(tabs, principal, opts)
+        insert_lti_tool_tabs(tabs, principal, opts) if principal && opts[:root_account]
+        tabs = tabs.slice(0, 2) if principal&.user&.fake_student?
+        insert_observer_tabs(tabs, principal)
+        insert_qr_mobile_login_tab(tabs, principal, opts)
+        insert_past_global_announcements(tabs, principal, opts)
         insert_nav_menu_link_tabs(tabs, opts)
         tabs
       end
@@ -117,8 +117,8 @@ class UserProfile < ApplicationRecord
 
   private
 
-  def insert_profile_tab(tabs, user, opts)
-    if user && opts[:root_account]&.enable_profiles?
+  def insert_profile_tab(tabs, principal, opts)
+    if principal && opts[:root_account]&.enable_profiles?
       tabs.insert 1,
                   {
                     id: TAB_PROFILE,
@@ -130,8 +130,8 @@ class UserProfile < ApplicationRecord
     end
   end
 
-  def insert_eportfolios_tab(tabs, user, opts)
-    if user.eportfolios_enabled?
+  def insert_eportfolios_tab(tabs, principal, opts)
+    if principal&.user&.eportfolios_enabled?
       deprecated = opts[:root_account]&.feature_enabled?(:eportfolio_deprecation_notice)
       tabs <<
         {
@@ -144,8 +144,8 @@ class UserProfile < ApplicationRecord
     end
   end
 
-  def insert_content_shares_tab(tabs, user, _opts)
-    if user&.can_view_content_shares?
+  def insert_content_shares_tab(tabs, principal, _opts)
+    if principal&.user&.can_view_content_shares?
       tabs <<
         {
           id: TAB_CONTENT_SHARES,
@@ -157,21 +157,21 @@ class UserProfile < ApplicationRecord
     end
   end
 
-  def insert_lti_tool_tabs(tabs, user, opts)
+  def insert_lti_tool_tabs(tabs, principal, opts)
     tools = Lti::ContextToolFinder.new(opts[:root_account], type: :user_navigation).all_tools_scope_union.to_unsorted_array
-                                  .select { |t| t.permission_given?(:user_navigation, user, opts[:root_account]) }
+                                  .select { |t| t.permission_given?(:user_navigation, principal, opts[:root_account]) }
     tabs.concat(
-      Lti::ExternalToolTab.new(user, :user_navigation, tools, opts[:language]).tabs
-        .find_all { |tab| show_lti_tab?(tab, user, opts[:root_account]) }
+      Lti::ExternalToolTab.new(principal&.user, :user_navigation, tools, opts[:language]).tabs
+        .find_all { |tab| show_lti_tab?(tab, principal, opts[:root_account]) }
     )
   end
 
-  def show_lti_tab?(tab, user, account)
-    tab[:visibility] != "admins" || grants_right?(user, account, :view_lti_tool)
+  def show_lti_tab?(tab, principal, account)
+    tab[:visibility] != "admins" || grants_right?(principal, account, :view_lti_tool)
   end
 
-  def insert_observer_tabs(tabs, user)
-    if user&.as_observer_observation_links&.active&.exists?
+  def insert_observer_tabs(tabs, principal)
+    if principal&.user&.as_observer_observation_links&.active&.exists?
       tabs <<
         {
           id: TAB_OBSERVEES,
@@ -183,8 +183,8 @@ class UserProfile < ApplicationRecord
     end
   end
 
-  def insert_qr_mobile_login_tab(tabs, user, opts)
-    if user && instructure_misc_plugin_available? && opts[:root_account]&.mobile_qr_login_is_enabled?
+  def insert_qr_mobile_login_tab(tabs, principal, opts)
+    if principal && instructure_misc_plugin_available? && opts[:root_account]&.mobile_qr_login_is_enabled?
       tabs <<
         {
           id: TAB_QR_MOBILE_LOGIN,
@@ -196,8 +196,8 @@ class UserProfile < ApplicationRecord
     end
   end
 
-  def insert_past_global_announcements(tabs, user, _opts)
-    if user
+  def insert_past_global_announcements(tabs, principal, _opts)
+    if principal
       tabs <<
         {
           id: TAB_PAST_GLOBAL_ANNOUNCEMENTS,

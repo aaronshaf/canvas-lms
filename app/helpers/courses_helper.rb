@@ -180,7 +180,7 @@ module CoursesHelper
   def sortable_tabs
     tabs =
       @context.tabs_available(
-        @current_user,
+        current_principal,
         for_reordering: true,
         root_account: @domain_root_account,
         course_subject_tabs: @context.try(:elementary_subject_course?)

@@ -2445,7 +2445,7 @@ class CoursesController < ApplicationController
                  OBSERVED_USERS_LIST: observed_users(@current_user, session, @context.id),
                  CAN_ADD_OBSERVEE: @current_user
                                    .profile
-                                   .tabs_available(@current_user, root_account: @domain_root_account)
+                                   .tabs_available(current_principal, root_account: @domain_root_account)
                                    .any? { |t| t[:id] == UserProfile::TAB_OBSERVEES }
                } })
 
@@ -2754,7 +2754,7 @@ class CoursesController < ApplicationController
                      read_announcements: @context.grants_right?(current_principal, session, :read_announcements)
                    },
                    STUDENT_PLANNER_ENABLED: planner_enabled?,
-                   TABS: @context.tabs_available(@current_user, course_subject_tabs: true, session:),
+                   TABS: @context.tabs_available(current_principal, course_subject_tabs: true, session:),
                    OBSERVED_USERS_LIST: observed_users(@current_user, session, @context.id),
                    TAB_CONTENT_ONLY: embed_mode,
                    SHOW_IMMERSIVE_READER: show_immersive_reader?,

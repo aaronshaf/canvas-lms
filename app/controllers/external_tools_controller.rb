@@ -1877,7 +1877,7 @@ class ExternalToolsController < ApplicationController
 
   def external_tools_json_for_courses(courses)
     courses.reduce([]) do |all_results, course|
-      tabs = course.tabs_available(@current_user, course_subject_tabs: true)
+      tabs = course.tabs_available(current_principal, course_subject_tabs: true)
       tool_ids = tabs.filter_map { |t| Lti::ExternalToolTab.tool_id_for_tab(t) }
       @tools = ContextExternalTool.where(id: tool_ids)
       @tools = tool_ids.filter_map { |id| @tools.find { |t| t[:id] == id } }

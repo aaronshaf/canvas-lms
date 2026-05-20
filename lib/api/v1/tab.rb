@@ -29,7 +29,7 @@ module Api::V1::Tab
   end
 
   def tabs_available_json(context, current_principal, session, _includes = [], precalculated_permissions: nil)
-    json = context_tabs(context, current_principal.user, session:, precalculated_permissions:).map do |tab|
+    json = context_tabs(context, current_principal, session:, precalculated_permissions:).map do |tab|
       tab_json(tab.with_indifferent_access, context, current_principal, session)
     end
     json.sort_by! { |a| a["position"] }
@@ -89,7 +89,7 @@ module Api::V1::Tab
     end
   end
 
-  def context_tabs(context, user, precalculated_permissions: nil, session: nil)
+  def context_tabs(context, current_principal, precalculated_permissions: nil, session: nil)
     new_collaborations_enabled = context.feature_enabled?(:new_collaborations)
 
     if context.is_a?(User)
@@ -106,7 +106,7 @@ module Api::V1::Tab
       course_subject_tabs: params["include"]&.include?("course_subject_tabs")
     }
 
-    tabs = context.tabs_available(user, **opts).select do |tab|
+    tabs = context.tabs_available(current_principal, **opts).select do |tab|
       if !tab[:href] || !tab[:label]
         false
       elsif Api::V1::Tab.tab_is?(tab, context, :TAB_COLLABORATIONS)

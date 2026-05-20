@@ -961,7 +961,7 @@ class Group < ApplicationRecord
   TAB_HOME, TAB_PAGES, TAB_PEOPLE, TAB_DISCUSSIONS, TAB_FILES,
     TAB_CONFERENCES, TAB_ANNOUNCEMENTS, TAB_PROFILE, TAB_SETTINGS, TAB_COLLABORATIONS,
     TAB_COLLABORATIONS_NEW = *1..20
-  def tabs_available(user = nil, *)
+  def tabs_available(principal = nil, *)
     available_tabs = [
       { id: TAB_HOME,          label: t("#group.tabs.home", "Home"), css_class: "home", href: :group_path },
       { id: TAB_ANNOUNCEMENTS, label: t("#tabs.announcements", "Announcements"), css_class: "announcements", href: :group_announcements_path },
@@ -971,7 +971,7 @@ class Group < ApplicationRecord
       { id: TAB_FILES,         label: t("#group.tabs.files", "Files"), css_class: "files", href: :group_files_path },
     ]
 
-    if user && grants_right?(user, :read)
+    if principal && grants_right?(principal, :read)
       available_tabs << { id: TAB_CONFERENCES, label: WebConference.conference_tab_name, css_class: "conferences", href: :group_conferences_path }
       available_tabs << { id: TAB_COLLABORATIONS, label: t("#tabs.collaborations", "Collaborations"), css_class: "collaborations", href: :group_collaborations_path }
       available_tabs << { id: TAB_COLLABORATIONS_NEW, label: t("#tabs.collaborations", "Collaborations"), css_class: "collaborations", href: :group_lti_collaborations_path }

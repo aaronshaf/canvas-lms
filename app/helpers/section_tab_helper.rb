@@ -49,7 +49,7 @@ module SectionTabHelper
 
   def available_section_tabs
     @available_section_tabs ||=
-      AvailableSectionTabs.new(@context, @current_user, @domain_root_account, session).to_a
+      AvailableSectionTabs.new(@context, current_principal, @domain_root_account, session).to_a
   end
 
   def nav_name
@@ -90,15 +90,15 @@ module SectionTabHelper
     include NewQuizzesFeaturesHelper
 
     def initialize(
-      context, current_user, domain_root_account, session, precalculated_permissions = nil
+      context, current_principal, domain_root_account, session, precalculated_permissions = nil
     )
       @context = context
-      @current_user = current_user
+      @current_principal = current_principal
       @domain_root_account = domain_root_account
       @session = session
       @precalculated_permissions = precalculated_permissions
     end
-    attr_reader :context, :current_user, :domain_root_account, :session
+    attr_reader :context, :current_principal, :domain_root_account, :session
 
     def to_a
       return [] unless context.respond_to?(:tabs_available)
@@ -109,7 +109,7 @@ module SectionTabHelper
         end
 
         context.tabs_available(
-          current_user,
+          current_principal,
           {
             session:,
             root_account: domain_root_account,
@@ -128,7 +128,7 @@ module SectionTabHelper
             # can't manage people in template courses
             context.is_a?(Course) && context.template?
           elsif tab_is?(tab, "TAB_FILES")
-            context.is_a?(Course) && context&.account&.limited_access_for_user?(current_user)
+            context.is_a?(Course) && context&.account&.limited_access_for_user?(current_principal)
           end
         end
       end
@@ -139,7 +139,7 @@ module SectionTabHelper
     def cache_key
       k = [
         context,
-        current_user,
+        current_principal,
         domain_root_account,
         Lti::NavigationCache.new(domain_root_account),
         "section_tabs_hash",

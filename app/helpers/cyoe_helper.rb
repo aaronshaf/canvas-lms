@@ -100,7 +100,7 @@ module CyoeHelper
     awaiting_choice = data[:selected_set_id].nil? && data[:assignment_sets].present?
     modules_url = context_url(opts[:context] || @context, :context_url) + "/modules"
     choose_url = modules_url + "/items/" + tag_id + "/choose"
-    modules_disabled = (opts[:context] || @context).tabs_available(opts[:user] || @current_user).select { |tabs| tabs[:label] == "Modules" }.blank?
+    modules_disabled = (opts[:context] || @context).tabs_available(opts[:user] || current_principal).select { |tabs| tabs[:label] == "Modules" }.blank?
     data.merge!({
                   awaiting_choice:,
                   modules_url:,

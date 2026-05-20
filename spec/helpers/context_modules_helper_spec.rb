@@ -24,6 +24,8 @@ describe ContextModulesHelper do
   let_once(:t_course) { course_factory(active_all: true) }
   let_once(:t_module) { t_course.context_modules.create! name: "test module" }
 
+  let(:current_principal) { nil }
+
   describe "module_item_unpublishable?" do
     it "returns true for a nil item" do
       expect(module_item_unpublishable?(nil)).to be_truthy

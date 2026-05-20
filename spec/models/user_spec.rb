@@ -1942,13 +1942,15 @@ describe User do
   context "tabs_available" do
     before(:once) { Account.default }
 
+    let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@user) if @user }
+
     it "does not include unconfigured external tools" do
       tool = Account.default.context_external_tools.new(consumer_key: "bob", shared_secret: "bob", name: "bob", domain: "example.com")
       tool.course_navigation = { url: "http://www.example.com", text: "Example URL" }
       tool.save!
       expect(tool.has_placement?(:user_navigation)).to be false
       user_model
-      tabs = @user.profile.tabs_available(@user, root_account: Account.default)
+      tabs = @user.profile.tabs_available(current_principal, root_account: Account.default)
       expect(tabs.pluck(:id)).not_to include(tool.asset_string)
     end
 
@@ -1958,7 +1960,7 @@ describe User do
       tool.save!
       expect(tool.has_placement?(:user_navigation)).to be true
       user_model
-      tabs = @user.profile.tabs_available(@user, root_account: Account.default)
+      tabs = @user.profile.tabs_available(current_principal, root_account: Account.default)
       expect(tabs.pluck(:id)).to include(tool.asset_string)
       tab = tabs.detect { |t| t[:id] == tool.asset_string }
       expect(tab[:href]).to eq :user_external_tool_path

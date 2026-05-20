@@ -21,6 +21,8 @@
 describe DashboardHelper do
   include DashboardHelper
 
+  let(:current_principal) { Canvas::AdheresToPolicy::UserPrincipal.new(@current_user) }
+
   context "show_welcome_message?" do
     it "is true if the user has no current enrollments" do
       user_model
