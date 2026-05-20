@@ -242,11 +242,15 @@ function DiscussionTopicForm({
   const [rceContent, setRceContent] = useState(currentDiscussionTopic?.message || '')
 
   const isRceContentChanged = () => {
-    const originalContent = new DOMParser().parseFromString(
-      currentDiscussionTopic?.message || '',
+    const parser = new DOMParser()
+    const originalContent = parser.parseFromString(
+      sanitizeHTML(currentDiscussionTopic?.message || '') as unknown as string,
       'text/html',
     ).body.innerHTML
-    const newContent = new DOMParser().parseFromString(rceContent, 'text/html').body.innerHTML
+    const newContent = parser.parseFromString(
+      sanitizeHTML(rceContent) as unknown as string,
+      'text/html',
+    ).body.innerHTML
 
     return originalContent !== newContent
   }
