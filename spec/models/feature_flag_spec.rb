@@ -30,6 +30,7 @@ describe FeatureFlag do
                                                          "account_feature" => Feature.new(feature: "account_feature", applies_to: "Account"),
                                                          "course_feature" => Feature.new(feature: "course_feature", applies_to: "Course"),
                                                          "user_feature" => Feature.new(feature: "user_feature", applies_to: "User"),
+                                                         "inheritable_user_feature" => Feature.new(feature: "inheritable_user_feature", applies_to: "InheritableUser"),
                                                          "hidden_feature" => Feature.new(feature: "hidden_feature", state: "hidden", applies_to: "Course"),
                                                          "hidden_root_opt_in_feature" => Feature.new(feature: "hidden_feature", state: "hidden", applies_to: "Course", root_opt_in: true)
                                                        })
@@ -62,6 +63,78 @@ describe FeatureFlag do
       flag = t_sub_account.feature_flags.build(feature: "root_account_feature")
       expect(flag).not_to be_valid
       expect(flag.errors[:feature].first).to eq("does not apply to context")
+    end
+
+    context "InheritableUser features" do
+      let_once(:t_user) { account_admin_user(account: t_root_account) }
+
+      it "allows 'allowed' and 'allowed_on' states on a root account" do
+        flag = t_root_account.feature_flags.build(feature: "inheritable_user_feature", state: "allowed")
+        expect(flag).to be_valid, -> { flag.errors.full_messages.to_sentence }
+
+        flag = t_root_account.feature_flags.build(feature: "inheritable_user_feature", state: "allowed_on")
+        expect(flag).to be_valid, -> { flag.errors.full_messages.to_sentence }
+      end
+
+      it "allows 'on' and 'off' states on a root account" do
+        flag = t_root_account.feature_flags.build(feature: "inheritable_user_feature", state: "on")
+        expect(flag).to be_valid, -> { flag.errors.full_messages.to_sentence }
+
+        flag = t_root_account.feature_flags.build(feature: "inheritable_user_feature", state: "off")
+        expect(flag).to be_valid, -> { flag.errors.full_messages.to_sentence }
+      end
+
+      it "allows 'allowed' and 'allowed_on' states on site admin" do
+        flag = Account.site_admin.feature_flags.build(feature: "inheritable_user_feature", state: "allowed")
+        expect(flag).to be_valid, -> { flag.errors.full_messages.to_sentence }
+
+        flag = Account.site_admin.feature_flags.build(feature: "inheritable_user_feature", state: "allowed_on")
+        expect(flag).to be_valid, -> { flag.errors.full_messages.to_sentence }
+      end
+
+      it "allows 'on' and 'off' states on a user" do
+        flag = t_user.feature_flags.build(feature: "inheritable_user_feature", state: "on")
+        expect(flag).to be_valid, -> { flag.errors.full_messages.to_sentence }
+
+        flag = t_user.feature_flags.build(feature: "inheritable_user_feature", state: "off")
+        expect(flag).to be_valid, -> { flag.errors.full_messages.to_sentence }
+      end
+
+      it "does not allow 'allowed' or 'allowed_on' states on a user" do
+        flag = t_user.feature_flags.build(feature: "inheritable_user_feature", state: "allowed")
+        expect(flag).not_to be_valid
+        expect(flag.errors[:state].first).to eq("is not valid in context")
+
+        flag = t_user.feature_flags.build(feature: "inheritable_user_feature", state: "allowed_on")
+        expect(flag).not_to be_valid
+        expect(flag.errors[:state].first).to eq("is not valid in context")
+      end
+
+      it "does not apply to a course context" do
+        flag = t_course.feature_flags.build(feature: "inheritable_user_feature", state: "on")
+        expect(flag).not_to be_valid
+        expect(flag.errors[:feature].first).to eq("does not apply to context")
+      end
+
+      it "does not apply to a sub-account context" do
+        flag = t_sub_account.feature_flags.build(feature: "inheritable_user_feature", state: "allowed")
+        expect(flag).not_to be_valid
+        expect(flag.errors[:feature].first).to eq("does not apply to context")
+      end
+
+      it "populates root_account_ids from the account when an InheritableUser flag is saved on a root account" do
+        flag = t_root_account.feature_flags.create!(feature: "inheritable_user_feature", state: "allowed")
+        expect(flag.root_account_ids).to eq([t_root_account.id])
+      end
+
+      it "populates root_account_ids from the user when saved" do
+        t_user.update_column(:root_account_ids, [])
+        t_user.update_root_account_ids
+        expect(t_user.reload.root_account_ids).to eq([t_root_account.id])
+
+        flag = t_user.feature_flags.create!(feature: "inheritable_user_feature", state: "on")
+        expect(flag.root_account_ids).to eq([t_root_account.id])
+      end
     end
   end
 
