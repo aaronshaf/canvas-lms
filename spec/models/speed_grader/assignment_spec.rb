@@ -601,12 +601,6 @@ describe SpeedGrader::Assignment do
         Account.site_admin.enable_feature!(:custom_gradebook_statuses)
         expect(submission_json["custom_grade_status_id"]).to be_nil
       end
-
-      it "does not include the custom grade status in the custom_grade field when the feature flag is disabled" do
-        Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-        @assignment.submission_for_student(@student_1).update!(custom_grade_status:)
-        expect(submission_json["custom_grade_status_id"]).to be_nil
-      end
     end
 
     describe "attachment JSON" do

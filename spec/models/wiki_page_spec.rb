@@ -1433,16 +1433,6 @@ describe WikiPage do
       @page.save!
     end
 
-    context "when permanent_page_links flag is disabled" do
-      before :once do
-        Account.site_admin.disable_feature!(:permanent_page_links)
-      end
-
-      it "returns the page's url attribute" do
-        expect(@page.url).to eq("original-name")
-      end
-    end
-
     context "when permanent_page_links flag is enabled" do
       before :once do
         Account.site_admin.enable_feature!(:permanent_page_links)

@@ -108,15 +108,6 @@ describe PostPolicy do
     let(:course_policy) { course.default_post_policy }
     let(:policy) { assignment.post_policy }
 
-    it "does not set the scheduled post if the scheduled_feedback_releases feature is disabled" do
-      Account.site_admin.disable_feature!(:scheduled_feedback_releases)
-      policy.update!(post_manually: true)
-      post_comments_at = 2.days.from_now
-      post_grades_at = 3.days.from_now
-      policy.create_or_update_scheduled_post(post_comments_at, post_grades_at)
-      expect(policy.reload.scheduled_post).to be_nil
-    end
-
     it "creates a scheduled post with valid dates for posted manually policy" do
       policy.update!(post_manually: true)
 

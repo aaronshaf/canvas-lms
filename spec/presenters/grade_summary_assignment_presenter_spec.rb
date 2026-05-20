@@ -293,13 +293,6 @@ describe GradeSummaryAssignmentPresenter do
       expect(presenter.custom_grade_status?).to be_falsey
     end
 
-    it "returns false when there is a custom grade status but the feature flag is disabled" do
-      Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-      status = CustomGradeStatus.create!(color: "#00ffff", name: "custom status", root_account_id: @course.root_account_id, created_by_id: @teacher.id)
-      @submission.update!(custom_grade_status: status)
-      expect(presenter.custom_grade_status?).to be_falsey
-    end
-
     it "returns true when a custom grade status exists and the feature flag is enabled" do
       Account.site_admin.enable_feature!(:custom_gradebook_statuses)
       status = CustomGradeStatus.create!(color: "#00ffff", name: "custom status", root_account_id: @course.root_account_id, created_by_id: @teacher.id)

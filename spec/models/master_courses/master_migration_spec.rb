@@ -2619,16 +2619,6 @@ describe MasterCourses::MasterMigration do
           expect(subject.parent_folder.root_folder?).to be_truthy
         end
       end
-
-      context "when blueprint_support_sync_for_folder_movement_to_root_folder disabled" do
-        before do
-          Account.site_admin.disable_feature!(:blueprint_support_sync_for_folder_movement_to_root_folder)
-        end
-
-        it "does not sync folder move from sub folder to root folder" do
-          expect(subject.parent_folder.root_folder?).to be_falsey
-        end
-      end
     end
 
     it "baleets assignment overrides when an admin pulls a bait-n-switch with date restrictions" do
