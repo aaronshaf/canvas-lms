@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {stripHtmlTags} from '@canvas/util/TextHelper'
 import React from 'react'
 import {bool, string, func, oneOf} from 'prop-types'
 import apiUserContent from '@canvas/util/jquery/apiUserContent'
@@ -95,9 +96,7 @@ export default class EditableRichText extends React.Component {
     const html = this.state.htmlValue
     // if the htmlValue is nothing but whitespace,
     // show the placeholder
-    const hasContent = !!(
-      html && new DOMParser().parseFromString(html, 'text/html').body.textContent?.trim()
-    )
+    const hasContent = !!(html && (stripHtmlTags(html) || '').trim())
     return (
       <View as="div" margin="small 0">
         {/* @ts-expect-error */}

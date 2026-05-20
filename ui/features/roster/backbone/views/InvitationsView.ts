@@ -55,7 +55,7 @@ export default class InvitationsView extends DialogBaseView {
 
     const data = this.model.toJSON()
     data.time = datetimeString(last(this.model.get('enrollments')).updated_at)
-    this.$el[0].innerHTML = sanitizeHTML(invitationsViewTemplate(data)) as unknown as string
+    this.$el[0].innerHTML = sanitizeHTML(invitationsViewTemplate(data))
 
     const pending = this.invitationIsPending()
     const admin = this.$el.parents('.teacher_enrollments,.ta_enrollments').length > 0

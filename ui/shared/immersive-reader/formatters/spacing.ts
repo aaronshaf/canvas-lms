@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import type Formatter from './Formatter.d'
 
 const MATH_SPAN_QUERY = '.math_equation_latex'
@@ -29,7 +30,7 @@ const MATH_SPAN_QUERY = '.math_equation_latex'
 const spacing: Formatter = function spacing(content: string, parser: DOMParser): string {
   if (!content) return ''
 
-  const body = parser.parseFromString(content, 'text/html').body
+  const body = parser.parseFromString(sanitizeHTML(content), 'text/html').body
   const mathParagraph = body.querySelector(MATH_SPAN_QUERY)?.parentElement
 
   // Adjacent equations on new lines. Return a break to preserve new lines

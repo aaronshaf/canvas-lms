@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {fireEvent, render, waitFor} from '@testing-library/react'
+import {fireEvent, render, waitFor, within} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
@@ -88,10 +88,10 @@ describe('ContextModulesPublishIcon', () => {
       }),
     )
 
-    const {getByRole} = render(<ContextModulesPublishIcon {...defaultProps} />)
+    const {container, getByRole} = render(<ContextModulesPublishIcon {...defaultProps} />)
 
     // Open menu and click unpublish module only
-    const menuButton = getByRole('button', {
+    const menuButton = within(container).getByRole('button', {
       name: 'Lesson 2 module publish options, published',
       hidden: true,
     })
@@ -118,8 +118,10 @@ describe('ContextModulesPublishIcon', () => {
 
   it('calls updateModuleItem when publishing', async () => {
     const user = userEvent.setup({delay: null})
-    const {getByRole} = render(<ContextModulesPublishIcon {...defaultProps} published={false} />)
-    const menuButton = getByRole('button', {hidden: true})
+    const {container, getByRole} = render(
+      <ContextModulesPublishIcon {...defaultProps} published={false} />,
+    )
+    const menuButton = within(container).getByRole('button', {hidden: true})
     await user.click(menuButton)
     const publishButton = getByRole('menuitem', {name: 'Publish module and all items'})
     await user.click(publishButton)
@@ -147,26 +149,29 @@ describe('ContextModulesPublishIcon', () => {
       }),
     )
 
-    const {getByRole} = render(<ContextModulesPublishIcon {...defaultProps} published={true} />)
-    const menuButton = getByRole('button', {hidden: true})
+    const {container, getByRole} = render(
+      <ContextModulesPublishIcon {...defaultProps} published={true} />,
+    )
+    const menuButton = within(container).getByRole('button', {hidden: true})
     await user.click(menuButton)
     const unpublishButton = getByRole('menuitem', {name: 'Unpublish module and all items'})
     await user.click(unpublishButton)
 
     // Verify updateModuleItem was called for each module item during unpublishing
     await waitFor(
-      () =>
+      () => {
         expect(updateModuleItem).toHaveBeenCalledWith(
           expect.objectContaining({assignment_117: expect.any(Object)}),
           expect.any(Object),
           expect.any(Object),
-        ),
+        )
+        expect(updateModuleItem).toHaveBeenCalledWith(
+          expect.objectContaining({assignment_119: expect.any(Object)}),
+          expect.any(Object),
+          expect.any(Object),
+        )
+      },
       {timeout: 5000},
-    )
-    expect(updateModuleItem).toHaveBeenCalledWith(
-      expect.objectContaining({assignment_119: expect.any(Object)}),
-      expect.any(Object),
-      expect.any(Object),
     )
   })
 
@@ -183,10 +188,10 @@ describe('ContextModulesPublishIcon', () => {
       }),
     )
 
-    const {getByRole, findByText} = render(
+    const {container, getByRole, findByText} = render(
       <ContextModulesPublishIcon {...defaultProps} published={true} />,
     )
-    const menuButton = getByRole('button', {hidden: true})
+    const menuButton = within(container).getByRole('button', {hidden: true})
     fireEvent.click(menuButton)
     const publishButton = await findByText('Unpublish module and all items')
     userEvent.click(publishButton)

@@ -147,53 +147,122 @@ describe('containsHtmlTags', () => {
 })
 
 describe('stripHtmlTags', () => {
-  const htmlText = '<p>Test <strong>Content</strong></p>'
-  const strippedText = 'Test Content'
-
-  it('returns stripped text if arg is HTML text', () => {
-    const result = TextHelper.stripHtmlTags(htmlText)
-    expect(result).toEqual(strippedText)
+  it('strips tags and returns inner text', () => {
+    expect(TextHelper.stripHtmlTags('<p>Test <strong>Content</strong></p>')).toBe('Test Content')
   })
 
-  it('returns empty string if arg is empty', () => {
-    const result = TextHelper.stripHtmlTags('')
-    expect(result).toEqual('')
+  it('returns empty string for empty input', () => {
+    expect(TextHelper.stripHtmlTags('')).toBe('')
   })
 
-  it('returns empty string if undefined provided', () => {
-    const result = TextHelper.stripHtmlTags()
-    expect(result).toEqual('')
+  it('returns empty string for undefined', () => {
+    expect(TextHelper.stripHtmlTags()).toBe('')
   })
 
-  test('decodes HTML entities to their character equivalents', () => {
+  it('returns empty string for null (JS callers)', () => {
+    expect(TextHelper.stripHtmlTags(null as unknown as string)).toBe('')
+  })
+
+  it('returns plain text unchanged', () => {
+    expect(TextHelper.stripHtmlTags('Hello world')).toBe('Hello world')
+  })
+
+  it('strips tags that have attributes', () => {
+    expect(TextHelper.stripHtmlTags('<a href="http://example.com" class="foo">link text</a>')).toBe(
+      'link text',
+    )
+  })
+
+  it('strips self-closing tags', () => {
+    expect(TextHelper.stripHtmlTags('before<br/>after')).toBe('beforeafter')
+    expect(TextHelper.stripHtmlTags('<img src="x.png" alt="pic"/>')).toBe('')
+  })
+
+  it('strips deeply nested tags', () => {
+    expect(TextHelper.stripHtmlTags('<div><p><span>deep</span></p></div>')).toBe('deep')
+  })
+
+  it('strips tags with event handler attributes', () => {
+    expect(TextHelper.stripHtmlTags('<div onclick="evil()">safe text</div>')).toBe('safe text')
+  })
+
+  it('strips script and style tags, leaving their text content', () => {
+    expect(TextHelper.stripHtmlTags('<script>alert(1)</script>')).toBe('alert(1)')
+    expect(TextHelper.stripHtmlTags('<style>.foo{color:red}</style>')).toBe('.foo{color:red}')
+  })
+
+  it('returns empty string for tag-only input', () => {
+    expect(TextHelper.stripHtmlTags('<br/>')).toBe('')
+    expect(TextHelper.stripHtmlTags('<p></p>')).toBe('')
+    expect(TextHelper.stripHtmlTags('<>')).toBe('')
+  })
+
+  it('decodes named HTML entities', () => {
     expect(TextHelper.stripHtmlTags('&quot;')).toBe('"')
     expect(TextHelper.stripHtmlTags('&amp;')).toBe('&')
     expect(TextHelper.stripHtmlTags('&lt;')).toBe('<')
     expect(TextHelper.stripHtmlTags('&gt;')).toBe('>')
   })
 
-  test('handles complex names with multiple HTML entities', () => {
-    expect(TextHelper.stripHtmlTags('John Fields j&quot;E&amp;D&lt;I&gt;')).toBe(
-      'John Fields j"E&D<I>',
-    )
+  it('decodes numeric and hex entities', () => {
+    expect(TextHelper.stripHtmlTags('it&#39;s')).toBe("it's")
+    expect(TextHelper.stripHtmlTags('it&#x27;s')).toBe("it's")
+    expect(TextHelper.stripHtmlTags('&#65;')).toBe('A')
   })
 
-  test('handles names without HTML entities', () => {
-    expect(TextHelper.stripHtmlTags('John Doe')).toBe('John Doe')
-  })
-
-  test('handles mixed text with some HTML entities', () => {
+  it('decodes entities mixed with tags', () => {
+    expect(TextHelper.stripHtmlTags('<b>Hello &amp; world</b>')).toBe('Hello & world')
     expect(TextHelper.stripHtmlTags('Hello &amp; welcome to &lt;Canvas&gt;!')).toBe(
       'Hello & welcome to <Canvas>!',
     )
   })
 
-  test('decodes &#39; (decimal apostrophe from Ruby html_escape)', () => {
-    expect(TextHelper.stripHtmlTags('it&#39;s')).toBe("it's")
+  it('decodes international character entities', () => {
+    expect(TextHelper.stripHtmlTags('Caf&eacute;')).toBe('Café')
+    expect(TextHelper.stripHtmlTags('&copy; 2025')).toBe('© 2025')
+    expect(TextHelper.stripHtmlTags('Fran&ccedil;ois')).toBe('François')
   })
 
-  test('decodes &#x27; (hex apostrophe from JS htmlEscape)', () => {
-    expect(TextHelper.stripHtmlTags('it&#x27;s')).toBe("it's")
+  it('preserves whitespace within text', () => {
+    expect(TextHelper.stripHtmlTags('<p>  spaced  </p>')).toBe('  spaced  ')
+  })
+
+  it('strips tags containing newlines and tabs', () => {
+    expect(TextHelper.stripHtmlTags('<img\nsrc=x\nonerror=alert(1)>')).toBe('')
+    expect(TextHelper.stripHtmlTags('<img\tsrc=x>')).toBe('')
+  })
+
+  // The regex /<[^>]*>/g stops at the first literal `>` it finds.
+  // A `>` inside a quoted attribute causes a partial match, leaking
+  // the remainder of the attribute as plain text. Callers that need
+  // guaranteed-clean output for HTML contexts must use sanitizeHTML.
+  it('partially strips tags where `>` appears inside a quoted attribute', () => {
+    expect(TextHelper.stripHtmlTags('<div title="a>b">text</div>')).toBe('b">text')
+  })
+
+  // An unclosed tag (no `>`) is not matched and passes through as-is.
+  it('does not strip unclosed tags', () => {
+    expect(TextHelper.stripHtmlTags('<script')).toBe('<script')
+    expect(TextHelper.stripHtmlTags('<img src=x onerror=alert(1)')).toBe(
+      '<img src=x onerror=alert(1)',
+    )
+  })
+
+  // Tags are stripped FIRST, then entities decoded. Entity-encoded angle
+  // brackets survive the regex pass and decode into raw `<`/`>` characters.
+  // The output is plain text — safe as textContent but NOT safe for innerHTML.
+  it('decodes entity-encoded angle brackets after stripping — output is plain text with literal <>', () => {
+    expect(TextHelper.stripHtmlTags('&lt;script&gt;alert(1)&lt;/script&gt;')).toBe(
+      '<script>alert(1)</script>',
+    )
+    expect(TextHelper.stripHtmlTags('&#60;img src=x&#62;')).toBe('<img src=x>')
+    expect(TextHelper.stripHtmlTags('&#x3C;b&#x3E;bold&#x3C;/b&#x3E;')).toBe('<b>bold</b>')
+  })
+
+  // Double-encoded entities are only decoded one level — output stays encoded,
+  // which is safe for HTML contexts.
+  it('only decodes one layer of entity encoding', () => {
+    expect(TextHelper.stripHtmlTags('&amp;lt;script&amp;gt;')).toBe('&lt;script&gt;')
   })
 })
 

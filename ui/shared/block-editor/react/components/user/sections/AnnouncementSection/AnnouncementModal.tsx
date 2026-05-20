@@ -16,7 +16,8 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useCallback, useEffect, useRef, useState} from 'react'
+import {stripHtmlTags} from '@canvas/util/TextHelper'
+import React, {useCallback, useEffect, useState} from 'react'
 import {Button, CloseButton} from '@instructure/ui-buttons'
 import {Heading} from '@instructure/ui-heading'
 import {Modal} from '@instructure/ui-modal'
@@ -37,7 +38,6 @@ const AnnouncementModal = ({
   onSelect,
 }: AnnouncementModalProps) => {
   const [announcementId, setAnnouncementId] = useState<string | undefined>(currentAnnouncementId)
-  const parser = useRef(new DOMParser())
 
   useEffect(() => {
     if (!announcementId && announcements.length > 0) {
@@ -78,14 +78,13 @@ const AnnouncementModal = ({
           value={announcementId}
         >
           {announcements.map((announcement: Announcement) => {
-            const atitledoc = parser.current.parseFromString(announcement.title, 'text/html')
             return (
               <SimpleSelect.Option
                 id={announcement.id}
                 key={announcement.id}
                 value={announcement.id}
               >
-                {atitledoc.body.textContent as string}
+                {stripHtmlTags(announcement.title) || ''}
               </SimpleSelect.Option>
             )
           })}

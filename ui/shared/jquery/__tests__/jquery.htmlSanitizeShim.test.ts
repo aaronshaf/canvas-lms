@@ -80,7 +80,7 @@ $.fn.html = recorderHtml as unknown as typeof $.fn.html
 // applies identically.
 const expectedSanitizedDom = (payload: string): string => {
   const tmp = document.createElement('div')
-  tmp.innerHTML = sanitizeHTML(payload) as unknown as string
+  tmp.innerHTML = sanitizeHTML(payload)
   return tmp.innerHTML
 }
 

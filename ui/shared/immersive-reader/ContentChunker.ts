@@ -16,6 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {sanitizeHTML} from '@canvas/sanitize-html'
 import type Formatter from './Formatter'
 import spacing from './formatters/spacing'
 
@@ -121,7 +122,7 @@ class ContentChunker {
   }
 
   bodyFor(content: string): HTMLElement {
-    return this.parser.parseFromString(content, 'text/html').body
+    return this.parser.parseFromString(sanitizeHTML(content), 'text/html').body
   }
 }
 

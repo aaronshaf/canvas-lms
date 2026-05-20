@@ -16,14 +16,16 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {stripHtmlTags} from '@canvas/util/TextHelper'
+
 // Helper function (by Martin Yosifov) to detect what
 // type the description is (html, html-text, text)
 const descriptionType = description => {
   if (!description) return 'null'
-  const doc = new DOMParser().parseFromString(description, 'text/html')
-  const pTags = doc.getElementsByTagName('p').length
-  const divTags = doc.getElementsByTagName('div').length
-  const diff = description.length - doc.body.textContent.length
+  const pTags = (description.match(/<p[\s>]/gi) || []).length
+  const divTags = (description.match(/<div[\s>]/gi) || []).length
+  const textContent = stripHtmlTags(description) || ''
+  const diff = description.length - textContent.length
   if (diff === 0) return 'text'
   if ((pTags === 1 && diff === 7) || (divTags === 1 && diff === 11)) return 'html_text'
   return 'html'

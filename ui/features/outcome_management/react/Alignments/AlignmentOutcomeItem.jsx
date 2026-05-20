@@ -27,7 +27,7 @@ import {PresentationContent, ScreenReaderContent} from '@instructure/ui-a11y-con
 import {IconArrowOpenEndLine, IconArrowOpenDownLine} from '@instructure/ui-icons'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {sanitizeHTML} from '@canvas/sanitize-html'
-import {stripHtmlTags} from '@canvas/outcomes/stripHtmlTags'
+import {stripHtmlTags} from '@canvas/util/TextHelper'
 import {addZeroWidthSpace} from '@canvas/outcomes/addZeroWidthSpace'
 import useCanvasContext from '@canvas/outcomes/react/hooks/useCanvasContext'
 import AlignmentItem from './AlignmentItem'

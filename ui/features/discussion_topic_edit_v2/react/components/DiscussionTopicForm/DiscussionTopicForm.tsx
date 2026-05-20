@@ -255,11 +255,11 @@ function DiscussionTopicForm({
   const isRceContentChanged = () => {
     const parser = new DOMParser()
     const originalContent = parser.parseFromString(
-      sanitizeHTML(currentDiscussionTopic?.message || '') as unknown as string,
+      sanitizeHTML(currentDiscussionTopic?.message || ''),
       'text/html',
     ).body.innerHTML
     const newContent = parser.parseFromString(
-      sanitizeHTML(rceContent) as unknown as string,
+      sanitizeHTML(rceContent),
       'text/html',
     ).body.innerHTML
 

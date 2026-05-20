@@ -16,12 +16,14 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {sanitizeHTML} from '@canvas/sanitize-html'
+
 class ContentUtils {
   private readonly html: Document
 
   constructor(htmlAsStr: string) {
     const parser = new DOMParser()
-    this.html = parser.parseFromString(htmlAsStr, 'text/html')
+    this.html = parser.parseFromString(sanitizeHTML(htmlAsStr), 'text/html')
   }
 
   htmlContainsHyperlinkedImage(): boolean {

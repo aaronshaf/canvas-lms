@@ -32,14 +32,7 @@ import {AccessibleContent} from '@instructure/ui-a11y-content'
 
 const I18n = createI18nScope('discussion_topics_post')
 
-// Truncating raw HTML by character offset can land mid-tag or mid-attribute
-// and let the browser reinterpret the result on parse -- a mutation-XSS
-// lever even when the source has been sanitized. Truncate against plaintext
-// extracted via DOMParser so the truncated branch never embeds HTML.
-const htmlToPlainText = (html: string): string => {
-  if (!html) return ''
-  return new DOMParser().parseFromString(html, 'text/html').body.textContent || ''
-}
+import {stripHtmlTags} from '@canvas/util/TextHelper'
 
 export const ReplyPreview = ({...props}) => {
   const [shouldShowTruncatedText, setShouldShowTruncatedText] = useState(true)
@@ -65,7 +58,10 @@ export const ReplyPreview = ({...props}) => {
       render={responsiveProps => {
         const showTruncatedText = () => {
           if (shouldShowTruncatedText && message.length > TRUNCATE_LENGTH) {
-            const plain = htmlToPlainText(message)
+            // Truncating raw HTML by character offset can land mid-tag or
+            // mid-attribute and let the browser reinterpret the result on parse
+            // -- a mutation-XSS lever even when the source has been sanitized.
+            const plain = stripHtmlTags(message) || ''
             const truncated = plain.length > 165 ? `${plain.slice(0, 165)} ...` : plain
             return (
               // @ts-expect-error TS18049 (typescriptify)

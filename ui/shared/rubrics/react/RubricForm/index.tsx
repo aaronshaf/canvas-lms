@@ -33,7 +33,7 @@ import type {DropResult} from 'react-beautiful-dnd'
 import {OutcomeCriterionModal} from './components/OutcomeCriterionModal'
 import {RubricAssessmentTray} from '@canvas/rubrics/react/RubricAssessment'
 import type {GroupOutcome} from '@canvas/global/env/EnvCommon'
-import {stripHtmlTags} from '@canvas/outcomes/stripHtmlTags'
+import {stripHtmlTags} from '@canvas/util/TextHelper'
 import {
   calcPointsPossible,
   hasRubricChanged,
