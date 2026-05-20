@@ -648,28 +648,6 @@ describe LearningOutcomeResult do
         end
       end
 
-      context "with feature flag disabled" do
-        before do
-          Account.site_admin.disable_feature!(:outcomes_rollup_propagation)
-        end
-
-        it "does not enqueue rollup calculation when feature flag is disabled" do
-          lor = LearningOutcomeResult.new(
-            alignment:,
-            user: student,
-            context: course,
-            learning_outcome: outcome,
-            score: 3.0,
-            possible: 5.0
-          )
-
-          # Expect that the service method is not called when feature flag is off
-          expect(Outcomes::StudentOutcomeRollupCalculationService).not_to receive(:calculate_for_student)
-
-          lor.save!
-        end
-      end
-
       context "edge cases" do
         before do
           Account.site_admin.enable_feature!(:outcomes_rollup_propagation)

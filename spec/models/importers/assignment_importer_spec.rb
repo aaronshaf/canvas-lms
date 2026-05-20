@@ -2310,18 +2310,6 @@ describe "Importing assignments" do
       allow_any_instance_of(Course).to receive(:conditional_release?).and_return(true)
     end
 
-    context "when wiki_page_mastery_path_no_assignment_group FF is disabled" do
-      before do
-        Account.site_admin.disable_feature!(:wiki_page_mastery_path_no_assignment_group)
-      end
-
-      it "should not nil the assignment_group" do
-        imported_assignment = Importers::AssignmentImporter.import_from_migration(assignment_hash, course, migration, assignment)
-
-        expect(imported_assignment.assignment_group).to eq(assignment_group)
-      end
-    end
-
     context "when wiki_page_mastery_path_no_assignment_group FF is enabled" do
       before do
         Account.site_admin.enable_feature!(:wiki_page_mastery_path_no_assignment_group)

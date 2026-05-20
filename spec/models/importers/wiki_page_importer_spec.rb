@@ -72,7 +72,6 @@ describe "Importing wikis" do
   describe "conditional release and hidden assignment" do
     before do
       stub_const("ASSIGNMENT_MIGRATION_ID", "0000001")
-      Account.site_admin.disable_feature!(:wiki_page_mastery_path_no_assignment_group)
     end
 
     let(:assignment_hash) do
@@ -84,21 +83,6 @@ describe "Importing wikis" do
         assignment_group_migration_id: nil,
         assignment_overrides: []
       }
-    end
-
-    it "imports the wiki page" do
-      data = get_import_data("bb9", "wiki")
-
-      data[:assignment] = assignment_hash
-
-      context = get_import_context("bb9")
-      context.conditional_release = true
-      migration = context.content_migrations.create!
-
-      Importers::WikiPageImporter.import_from_migration(data, context, migration)
-
-      assignment = context.assignments.where(migration_id: ASSIGNMENT_MIGRATION_ID).first
-      expect(assignment.assignment_group.name).to eq("Imported Assignments")
     end
 
     context "wiki_page_mastery_path_no_assignment_group is on" do

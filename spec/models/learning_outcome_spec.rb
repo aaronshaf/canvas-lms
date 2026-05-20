@@ -1792,20 +1792,6 @@ describe LearningOutcome do
           end
         end
       end
-
-      context "with feature flag disabled" do
-        before do
-          Account.site_admin.disable_feature!(:outcomes_rollup_propagation)
-        end
-
-        it "does not enqueue rollup calculation when feature flag is disabled" do
-          outcome = course.created_learning_outcomes.create!(title: "Test Outcome", calculation_method: "highest")
-
-          expect(Outcomes::StudentOutcomeRollupCalculationService).not_to receive(:calculate_for_course)
-
-          outcome.update!(calculation_method: "latest")
-        end
-      end
     end
 
     describe "rubric criterion changes" do

@@ -469,41 +469,6 @@ describe GradingStandard do
         expect(@gs).not_to be_assessed_assignment
       end
     end
-
-    context "with assignment link" do
-      before(:once) do
-        @assignment = @course.assignments.create!(title: "hi",
-                                                  grading_type: "letter_grade",
-                                                  grading_standard_id: @gs.id,
-                                                  submission_types: ["online_text_entry"])
-      end
-
-      context "without submissions" do
-        before(:once) do
-          Account.site_admin.disable_feature!(:archived_grading_schemes)
-        end
-
-        it "is false" do
-          expect(@gs).not_to be_assessed_assignment
-        end
-      end
-
-      context "with submissions" do
-        before(:once) do
-          @submission = @assignment.submit_homework(@student, body: "done!")
-          Account.site_admin.disable_feature!(:archived_grading_schemes)
-        end
-
-        it "is false if no submissions are graded" do
-          expect(@gs).not_to be_assessed_assignment
-        end
-
-        it "is true if a graded submission exists" do
-          @submission.grade_it!
-          expect(@gs).to be_assessed_assignment
-        end
-      end
-    end
   end
 
   describe "permissions:" do
