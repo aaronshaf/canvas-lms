@@ -22,6 +22,7 @@ class LearnerDashboardLayoutsController < ApplicationController
 
   before_action :get_context
   before_action :require_feature_flag
+  before_action :extract_block_editor_data, only: %i[create update]
 
   def index
     return unless authorized_action(@context, @current_user, :manage_learner_dashboards_view)
@@ -46,8 +47,8 @@ class LearnerDashboardLayoutsController < ApplicationController
 
     layout = @context.learner_dashboard_layouts.build(layout_params)
     if layout.save
-      if params[:block_editor_data].present?
-        layout.create_block_editor_data(user_uuid: @current_user.uuid, data: params[:block_editor_data])
+      if @block_editor_data.present?
+        layout.create_block_editor_data(user_uuid: @current_user.uuid, data: @block_editor_data)
       end
       render json: learner_dashboard_layout_json(layout, @current_user, session), status: :created
     else
@@ -62,8 +63,8 @@ class LearnerDashboardLayoutsController < ApplicationController
 
     layout = @context.learner_dashboard_layouts.active.find(params[:id])
     if layout.update(layout_params)
-      if params[:block_editor_data].present?
-        layout.update_block_editor_data(user_uuid: @current_user.uuid, data: params[:block_editor_data])
+      if @block_editor_data.present?
+        layout.update_block_editor_data(user_uuid: @current_user.uuid, data: @block_editor_data)
       end
       render json: learner_dashboard_layout_json(layout, @current_user, session)
     else
@@ -95,6 +96,14 @@ class LearnerDashboardLayoutsController < ApplicationController
 
   def layout_params
     params.permit(:name)
+  end
+
+  def extract_block_editor_data
+    return if params[:block_editor_data].blank?
+
+    permitted = params.permit(block_editor_data: strong_anything)
+    extracted = permitted[:block_editor_data]
+    @block_editor_data = extracted.is_a?(Hash) ? extracted.to_h : extracted
   end
 
   def rescue_content_service_error(error)

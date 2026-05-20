@@ -104,6 +104,24 @@ describe LearnerDashboardLayoutsController do
       expect(response).to have_http_status(:created)
     end
 
+    it "passes properly extracted block_editor_data to the model" do
+      block_data = {
+        templateLayout: [{ component: "Header", id: "header-1" }],
+        templateData: [{ "Header|header-1" => { title: "Test" } }]
+      }
+      expect_any_instance_of(LearnerDashboardLayout).to receive(:create_block_editor_data) do |_layout, args|
+        expect(args[:data]).to be_a(Hash)
+        expect(args[:data]).not_to be_a(ActionController::Parameters)
+        expect(args[:data]["templateLayout"]).to be_present
+      end
+      post(
+        :create,
+        params: { account_id: @root_account.id, name: "Extracted", block_editor_data: block_data },
+        format: :json
+      )
+      expect(response).to have_http_status(:created)
+    end
+
     it "returns 422 with invalid params" do
       post :create, params: { account_id: @root_account.id, name: "" }, format: :json
       expect(response).to have_http_status(:unprocessable_content)
@@ -132,6 +150,24 @@ describe LearnerDashboardLayoutsController do
       put(
         :update,
         params: { account_id: @root_account.id, id: @layout.id, name: @layout.name, block_editor_data: { blocks: [1] } },
+        format: :json
+      )
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "passes properly extracted block_editor_data to the model" do
+      block_data = {
+        templateLayout: [{ component: "Text", id: "text-1" }],
+        templateData: [{ "Text|text-1" => { content: "<p>Hello</p>" } }]
+      }
+      expect_any_instance_of(LearnerDashboardLayout).to receive(:update_block_editor_data) do |_layout, args|
+        expect(args[:data]).to be_a(Hash)
+        expect(args[:data]).not_to be_a(ActionController::Parameters)
+        expect(args[:data]["templateLayout"]).to be_present
+      end
+      put(
+        :update,
+        params: { account_id: @root_account.id, id: @layout.id, name: @layout.name, block_editor_data: block_data },
         format: :json
       )
       expect(response).to have_http_status(:ok)
