@@ -18,7 +18,7 @@
 
 import {showFlashError} from '@instructure/platform-alerts'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import ErrorShip from '@instructure/platform-images/assets/ErrorShip.svg'
 import {assignLocation} from '@canvas/util/globalUtils'
@@ -120,7 +120,7 @@ export const CourseCopy = ({
       <GenericErrorPage
         imageUrl={ErrorShip}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('Page loading error')}
         errorCategory={I18n.t('Course Copy Error Page')}
         errorMessage={I18n.t('Try to reload the page.')}

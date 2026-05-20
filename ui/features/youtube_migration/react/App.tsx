@@ -38,7 +38,7 @@ import {
 import {YoutubeEmbed, YoutubeScanResource, YoutubeScanResultReport} from '../../../api'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import ErrorShip from '@instructure/platform-images/assets/ErrorShip.svg'
 import {showFlashError} from '@instructure/platform-alerts'
 import {Link} from '@instructure/ui-link'
@@ -146,7 +146,7 @@ const LastScanFailedResultView: React.FC<{
       <GenericErrorPage
         imageUrl={ErrorShip}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('Last YouTube content scan failed.')}
         errorCategory={I18n.t('YouTube Migration Error Page.')}
         errorMessage={I18n.t('Try to scan again.')}
@@ -977,7 +977,7 @@ export const App: React.FC<AppProps> = ({courseId}) => {
       <GenericErrorPage
         imageUrl={ErrorShip}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('Scan loading error')}
         errorCategory={I18n.t('YouTube Migration Error Page.')}
         errorMessage={I18n.t('Try to reload the page.')}

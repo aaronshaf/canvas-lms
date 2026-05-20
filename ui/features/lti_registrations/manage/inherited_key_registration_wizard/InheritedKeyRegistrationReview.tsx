@@ -17,7 +17,7 @@
  */
 import * as React from 'react'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {Alert} from '@instructure/ui-alerts'
@@ -219,7 +219,7 @@ export const InheritedKeyRegistrationReview = (props: InheritedKeyRegistrationRe
       <GenericErrorPage
         imageUrl={errorShipUrl}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('Dynamic Registration error')}
         errorCategory="Dynamic Registration"
         errorMessage={

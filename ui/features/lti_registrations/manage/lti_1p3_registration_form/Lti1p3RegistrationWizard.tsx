@@ -38,7 +38,7 @@ import {IconConfirmationWrapper} from './components/IconConfirmationWrapper'
 import {ReviewScreenWrapper} from './components/ReviewScreenWrapper'
 import {RegistrationModalBody} from '../registration_wizard/RegistrationModalBody'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import {Spinner} from '@instructure/ui-spinner'
 import {Flex} from '@instructure/ui-flex'
 import type {Lti1p3RegistrationWizardService} from './Lti1p3RegistrationWizardService'
@@ -199,7 +199,7 @@ const renderStepContent = (
           <GenericErrorPage
             imageUrl={errorShipUrl}
             onReportError={reportError}
-            translations={canvasErrorPageTranslations}
+            translations={errorPageTranslations}
             errorSubject={I18n.t('Dynamic Registration error')}
             errorCategory="Dynamic Registration"
             errorMessage={storeActions.state.errorMessage}

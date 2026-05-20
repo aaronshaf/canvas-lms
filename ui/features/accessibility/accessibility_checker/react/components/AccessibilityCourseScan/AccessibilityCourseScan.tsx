@@ -23,7 +23,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import {showFlashError} from '@instructure/platform-alerts'
 import {FetchApiError} from '@canvas/do-fetch-api-effect'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import ErrorShip from '@instructure/platform-images/assets/ErrorShip.svg'
 import {LoadingView} from './components/LoadingView'
 import {NoScanFoundView} from './components/NoScanFoundView'
@@ -142,7 +142,7 @@ export const AccessibilityCourseScan: React.FC<CourseScanProps> = ({
       <GenericErrorPage
         imageUrl={ErrorShip}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('Scan loading error')}
         errorCategory={I18n.t('Accessibility Scan Error Page.')}
         errorMessage={I18n.t('Try to reload the page.')}

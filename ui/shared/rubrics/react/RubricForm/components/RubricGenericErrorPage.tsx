@@ -19,7 +19,7 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 
 const I18n = createI18nScope('enhanced_rubrics_form')
 
@@ -28,7 +28,7 @@ export const RubricGenericErrorPage = () => {
     <GenericErrorPage
       imageUrl={errorShipUrl}
       onReportError={reportError}
-      translations={canvasErrorPageTranslations}
+      translations={errorPageTranslations}
       errorCategory={I18n.t('Edit Rubric Error Page')}
     />
   )

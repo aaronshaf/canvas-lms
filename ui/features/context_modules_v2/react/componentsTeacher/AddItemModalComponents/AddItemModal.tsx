@@ -17,7 +17,7 @@
  */
 import React, {useMemo, useEffect, useState, useCallback} from 'react'
 import {CanvasModal} from '@instructure/platform-instui-bindings'
-import {canvasErrorComponent} from '@canvas/error-page-utils'
+import {canvasErrorComponent} from '@canvas/canvas-error-page'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {Button} from '@instructure/ui-buttons'
 import {View} from '@instructure/ui-view'
@@ -282,17 +282,19 @@ const AddItemModal: React.FC<AddItemModalProps> = ({
       title={I18n.t('Add an item to %{module}', {module: moduleName})}
       closeButtonLabel={I18n.t('Close')}
       errorComponent={canvasErrorComponent()}
-      onKeyDown={((e: React.KeyboardEvent<HTMLFormElement>) => {
-        if (e.key === 'Enter') {
-          const t = e.target as HTMLElement
-          const isSubmitButton =
-            t.tagName === 'BUTTON' && (t as HTMLButtonElement).type === 'submit'
-          const inFileDrop = t.closest('[data-testid="module-file-drop"]')
-          if (!isSubmitButton && !inFileDrop) {
-            e.preventDefault()
+      onKeyDown={
+        ((e: React.KeyboardEvent<HTMLFormElement>) => {
+          if (e.key === 'Enter') {
+            const t = e.target as HTMLElement
+            const isSubmitButton =
+              t.tagName === 'BUTTON' && (t as HTMLButtonElement).type === 'submit'
+            const inFileDrop = t.closest('[data-testid="module-file-drop"]')
+            if (!isSubmitButton && !inFileDrop) {
+              e.preventDefault()
+            }
           }
-        }
-      }) as React.KeyboardEventHandler}
+        }) as React.KeyboardEventHandler
+      }
       onSubmit={(e: React.FormEvent) => {
         e.preventDefault()
         const hasNameError = isNameRequiredAndMissing(state, itemType)

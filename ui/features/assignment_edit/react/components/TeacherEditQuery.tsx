@@ -18,7 +18,7 @@
 
 import React from 'react'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import TeacherCreateEditView from './TeacherCreateEditView'
 import {TEACHER_EDIT_QUERY} from '@canvas/assignments/graphql/teacher/Queries'
 import {Spinner} from '@instructure/ui-spinner'
@@ -44,7 +44,7 @@ const TeacherEditQuery: React.FC<TeacherEditQueryProps> = ({assignmentLid}) => {
       <GenericErrorPage
         imageUrl={errorShipUrl}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('Edit Assignments 2 Teacher initial query error')}
         errorCategory={I18n.t('Edit Assignments 2 Teacher Error Page')}
         errorMessage={error.message}

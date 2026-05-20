@@ -18,7 +18,7 @@
 
 import {formatApiResultError, UnsuccessfulApiResult} from './ApiResult'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 
 type ApiResultErrorPageProps = {
@@ -35,7 +35,7 @@ export const ApiResultErrorPage = ({error, errorSubject}: ApiResultErrorPageProp
     <GenericErrorPage
       imageUrl={errorShipUrl}
       onReportError={reportError}
-      translations={canvasErrorPageTranslations}
+      translations={errorPageTranslations}
       errorSubject={errorSubject}
       errorMessage={formatApiResultError(error)}
     />

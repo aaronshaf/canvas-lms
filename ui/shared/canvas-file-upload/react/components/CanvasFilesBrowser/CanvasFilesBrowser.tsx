@@ -21,7 +21,7 @@ import BreadcrumbLinkWithTip from './BreadcrumbLinkWithTip'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import FileSelectTable from './FileSelectTable'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
 import {useCanvasFileBrowser} from './hooks/useCanvasFileBrowser'
@@ -95,7 +95,7 @@ const CanvasFilesBrowser: React.FC<CanvasFilesBrowserProps> = ({
       <GenericErrorPage
         imageUrl={errorShipUrl}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={error.message}
         errorCategory={I18n.t('Canvas File Browser Error')}
       />

@@ -23,7 +23,7 @@ import {useScope as createI18nScope} from '@canvas/i18n'
 import type {GlobalEnv} from '@canvas/global/env/GlobalEnv'
 import {ErrorBoundary} from '@instructure/platform-error-boundary'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {QueryClientProvider} from '@tanstack/react-query'
 import {queryClient} from '@instructure/platform-query'
@@ -48,7 +48,7 @@ ready(() => {
           <GenericErrorPage
             imageUrl={errorShipUrl}
             onReportError={reportError}
-            translations={canvasErrorPageTranslations}
+            translations={errorPageTranslations}
             errorCategory={I18n.t('Youtube Migration Error Page')}
           />
         }

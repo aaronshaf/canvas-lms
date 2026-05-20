@@ -21,8 +21,7 @@ import {legacyRender, legacyUnmountComponentAtNode} from '@canvas/react'
 import {useTranslation} from '@canvas/i18next'
 import {Button} from '@instructure/ui-buttons'
 import {CanvasModal} from '@instructure/platform-instui-bindings'
-import {canvasErrorComponent} from '@canvas/error-page-utils'
-
+import {canvasErrorComponent} from '@canvas/canvas-error-page'
 const dialogHolderId = 'confirmation_dialog_holder'
 
 type ButtonColor = 'primary' | 'primary-inverse' | 'secondary' | 'success' | 'danger'

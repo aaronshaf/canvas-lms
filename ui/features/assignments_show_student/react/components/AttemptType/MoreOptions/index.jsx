@@ -22,7 +22,7 @@ import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {USER_GROUPS_QUERY} from '@canvas/assignments/graphql/student/Queries'
 import {Flex} from '@instructure/ui-flex'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import {IconFolderLine, IconLtiLine} from '@instructure/ui-icons'
 import iframeAllowances from '@canvas/external-apps/iframeAllowances'
 import {useScope as createI18nScope} from '@canvas/i18n'
@@ -196,7 +196,7 @@ function CanvasFileChooser({allowedExtensions, courseID, onFileSelect, userID}) 
       <GenericErrorPage
         imageUrl={errorShipUrl}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('User groups query error')}
         errorCategory={I18n.t('Assignments 2 Student Error Page')}
       />

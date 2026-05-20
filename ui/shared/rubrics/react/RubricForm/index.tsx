@@ -18,9 +18,7 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import {NotFoundPage} from '@instructure/platform-generic-error-page'
-import {canvasNotFoundTranslations} from '@canvas/error-page-utils'
-import SVGWrapper from '@canvas/svg-wrapper'
+import {defaultNotFoundPage} from '@canvas/canvas-error-page'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
 import type {Rubric, RubricAssociation, RubricCriterion} from '@canvas/rubrics/react/types/rubric'
 import {View} from '@instructure/ui-view'
@@ -382,13 +380,7 @@ export const RubricForm = ({
   }
 
   if (isSuccess && !data && !!rubricId) {
-    return (
-      <NotFoundPage
-        artwork={<SVGWrapper url="/images/not_found_page/empty-planet.svg" />}
-        title={canvasNotFoundTranslations.title()}
-        description={canvasNotFoundTranslations.description()}
-      />
-    )
+    return defaultNotFoundPage()
   }
 
   return (

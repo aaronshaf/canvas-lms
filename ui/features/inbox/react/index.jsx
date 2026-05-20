@@ -22,7 +22,7 @@ import CanvasInbox from './containers/CanvasInbox'
 import {ErrorBoundary} from '@instructure/platform-error-boundary'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
 import React, {useEffect, useState} from 'react'
 
@@ -56,7 +56,7 @@ export const CanvasInboxApp = () => {
           <GenericErrorPage
             imageUrl={errorShipUrl}
             onReportError={reportError}
-            translations={canvasErrorPageTranslations}
+            translations={errorPageTranslations}
             errorCategory="Canvas Inbox Error Page"
           />
         }

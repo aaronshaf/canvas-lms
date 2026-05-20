@@ -22,7 +22,7 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {ErrorBoundary} from '@instructure/platform-error-boundary'
 import {AlertManager} from '@instructure/platform-alerts'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {LoadingIndicator} from '@instructure/platform-loading-indicator'
@@ -53,7 +53,7 @@ const DiscussionInsightsApp = () => {
             <GenericErrorPage
               imageUrl={errorShipUrl}
               onReportError={reportError}
-              translations={canvasErrorPageTranslations}
+              translations={errorPageTranslations}
               errorCategory={I18n.t('Discussion Insights Error Page')}
             />
           }

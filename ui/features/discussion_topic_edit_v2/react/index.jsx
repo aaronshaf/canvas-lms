@@ -24,7 +24,7 @@ import {LoadingIndicator} from '@instructure/platform-loading-indicator'
 import {ErrorBoundary} from '@instructure/platform-error-boundary'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import DiscussionTopicFormContainer from './containers/DiscussionTopicFormContainer/DiscussionTopicFormContainer'
 
 const I18n = createI18nScope('discussion_topics_edit')
@@ -49,7 +49,7 @@ export const DiscussionTopicEdit = _props => {
           <GenericErrorPage
             imageUrl={errorShipUrl}
             onReportError={reportError}
-            translations={canvasErrorPageTranslations}
+            translations={errorPageTranslations}
             errorCategory={I18n.t('Discussion Topic Edit Error Page')}
           />
         }

@@ -18,7 +18,7 @@
 
 import {ErrorBoundary} from '@instructure/platform-error-boundary'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import React from 'react'
 
@@ -40,7 +40,7 @@ export const WizardErrorBoundary = ({
         <GenericErrorPage
           imageUrl={imageUrl}
           onReportError={reportError}
-          translations={canvasErrorPageTranslations}
+          translations={errorPageTranslations}
           errorSubject={subject}
           errorCategory={category}
         />

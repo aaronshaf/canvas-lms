@@ -26,7 +26,7 @@ import iframeAllowances from '@canvas/external-apps/iframeAllowances'
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {executeQuery} from '@canvas/graphql'
 import {initializePendo} from '@canvas/pendo'
@@ -192,7 +192,7 @@ ready(() => {
       <GenericErrorPage
         imageUrl={errorShipUrl}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorMessage={[
           // @ts-expect-error
           !window.ENV.PLATFORM_SERVICE_SPEEDGRADER_ENABLED &&
@@ -223,7 +223,7 @@ ready(() => {
         <GenericErrorPage
           imageUrl={errorShipUrl}
           onReportError={reportError}
-          translations={canvasErrorPageTranslations}
+          translations={errorPageTranslations}
           errorMessage={error.message}
           errorSubject={I18n.t('SpeedGrader loading error')}
           errorCategory={I18n.t('SpeedGrader Error Page')}

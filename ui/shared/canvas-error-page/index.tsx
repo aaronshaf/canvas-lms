@@ -16,15 +16,20 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import type {ReactElement} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import doFetchApi from '@canvas/do-fetch-api-effect'
-import type {ErrorReport} from '@instructure/platform-generic-error-page'
+import SVGWrapper from '@canvas/svg-wrapper'
+import {
+  GenericErrorPage,
+  NotFoundPage,
+  createErrorReporter,
+} from '@instructure/platform-generic-error-page'
+import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import type {TranslationBridge} from '@instructure/platform-provider'
 
 const I18n = createI18nScope('generic_error_page')
-const I18nNotFound = createI18nScope('not_found_index')
 
-export const canvasErrorPageTranslations = {
+export const errorPageTranslations = {
   somethingBroke: () => I18n.t('Sorry, Something Broke'),
   helpUsImprove: () => I18n.t('Help us improve by telling us what happened'),
   reportIssue: () => I18n.t('Report Issue'),
@@ -37,28 +42,41 @@ export const canvasErrorPageTranslations = {
   submit: () => I18n.t('Submit'),
 } satisfies TranslationBridge
 
-export const canvasNotFoundTranslations = {
+const I18nNotFound = createI18nScope('not_found_index')
+
+export const notFoundTranslations = {
   title: () => I18nNotFound.t('Whoops... Looks like nothing is here!'),
   description: () => I18nNotFound.t("We couldn't find that page!"),
 }
 
-export async function reportError(report: ErrorReport): Promise<{logged: boolean}> {
-  const {json} = await doFetchApi<{logged: boolean; id: string}>({
-    path: '/error_reports',
-    method: 'POST',
-    body: {
-      error: {
-        subject: report.subject,
-        category: report.category,
-        exception_message: report.message,
-        message: report.message,
-        url: report.url,
-        comments: report.comments,
-        email: report.email,
-        backtrace: report.backtrace,
-        user_roles: window.ENV?.current_user_roles?.join(','),
-      },
-    },
-  })
-  return {logged: json?.logged ?? false}
+export const reportError = createErrorReporter({
+  userRoles: window.ENV?.current_user_roles,
+})
+
+type CanvasErrorComponentOptions = {
+  errorSubject?: string
+  errorCategory?: string
+  errorImageUrl?: string
+}
+
+export function canvasErrorComponent(options: CanvasErrorComponentOptions = {}): ReactElement {
+  return (
+    <GenericErrorPage
+      imageUrl={options.errorImageUrl ?? errorShipUrl}
+      onReportError={reportError}
+      translations={errorPageTranslations}
+      errorSubject={options.errorSubject}
+      errorCategory={options.errorCategory}
+    />
+  )
+}
+
+export function defaultNotFoundPage(): ReactElement {
+  return (
+    <NotFoundPage
+      artwork={<SVGWrapper url="/images/not_found_page/empty-planet.svg" />}
+      title={notFoundTranslations.title()}
+      description={notFoundTranslations.description()}
+    />
+  )
 }

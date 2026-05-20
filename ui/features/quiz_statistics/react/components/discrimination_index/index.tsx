@@ -17,7 +17,7 @@
  */
 
 import {CanvasModal} from '@instructure/platform-instui-bindings'
-import {canvasErrorComponent} from '@canvas/error-page-utils'
+import {canvasErrorComponent} from '@canvas/canvas-error-page'
 import classSet from '@canvas/quiz-legacy-client-apps/util/class_set'
 import formatNumber from '../../../util/format_number'
 import Help from './help'

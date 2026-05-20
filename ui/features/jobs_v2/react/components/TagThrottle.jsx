@@ -19,7 +19,7 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import React, {useState, useEffect} from 'react'
 import {CanvasModal} from '@instructure/platform-instui-bindings'
-import {canvasErrorComponent} from '@canvas/error-page-utils'
+import {canvasErrorComponent} from '@canvas/canvas-error-page'
 import {Button, IconButton} from '@instructure/ui-buttons'
 import {IconSettingsLine, IconInfoLine} from '@instructure/ui-icons'
 import {Text} from '@instructure/ui-text'

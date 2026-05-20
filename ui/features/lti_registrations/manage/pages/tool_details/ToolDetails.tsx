@@ -18,13 +18,8 @@
 
 import {useAppendBreadcrumb} from '@canvas/breadcrumbs/useAppendBreadcrumb'
 import FriendlyDatetime from '@canvas/datetime/react/components/FriendlyDatetime'
-import {GenericErrorPage, NotFoundPage} from '@instructure/platform-generic-error-page'
-import {
-  reportError,
-  canvasErrorPageTranslations,
-  canvasNotFoundTranslations,
-} from '@canvas/error-page-utils'
-import SVGWrapper from '@canvas/svg-wrapper'
+import {GenericErrorPage} from '@instructure/platform-generic-error-page'
+import {defaultNotFoundPage, errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {Button} from '@instructure/ui-buttons'
@@ -85,7 +80,7 @@ export const ToolDetails = (props: {accountId: AccountId}) => {
       <GenericErrorPage
         imageUrl={errorShipUrl}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('LTI Registrations listing error')}
         errorMessage={JSON.stringify(parsed.errors)}
       />
@@ -112,20 +107,14 @@ export const ToolDetailsRequest = ({
     const is404 = result.error instanceof FetchApiError && result.error.response.status === 404
 
     if (is404) {
-      return (
-        <NotFoundPage
-          artwork={<SVGWrapper url="/images/not_found_page/empty-planet.svg" />}
-          title={canvasNotFoundTranslations.title()}
-          description={canvasNotFoundTranslations.description()}
-        />
-      )
+      return defaultNotFoundPage()
     }
 
     return (
       <GenericErrorPage
         imageUrl={errorShipUrl}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('LTI Tool details fetch error')}
         errorMessage={result.error.message}
       />

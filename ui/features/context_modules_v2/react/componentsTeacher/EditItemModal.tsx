@@ -18,7 +18,7 @@
 
 import React, {useEffect, useState} from 'react'
 import {CanvasModal} from '@instructure/platform-instui-bindings'
-import {canvasErrorComponent} from '@canvas/error-page-utils'
+import {canvasErrorComponent} from '@canvas/canvas-error-page'
 import {Button} from '@instructure/ui-buttons'
 import {TextInput} from '@instructure/ui-text-input'
 import {useScope as createI18nScope} from '@canvas/i18n'

@@ -22,7 +22,7 @@ import {ErrorBoundary} from '@instructure/platform-error-boundary'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import ObserverOptions from '@canvas/observer-picker'
 import {QueryClientProvider} from '@tanstack/react-query'
 import {queryClient} from '@instructure/platform-query'
@@ -47,7 +47,7 @@ export default function renderAssignmentsApp(env, elt) {
             <GenericErrorPage
               imageUrl={errorShipUrl}
               onReportError={reportError}
-              translations={canvasErrorPageTranslations}
+              translations={errorPageTranslations}
               errorSubject={error.message}
               errorCategory="Assignments 2 Student Error Page"
               errorMessage={error.message}

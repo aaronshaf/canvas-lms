@@ -24,7 +24,7 @@ import {Spinner} from '@instructure/ui-spinner'
 import ready from '@instructure/ready'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 
 const I18n = createI18nScope('canvascareer')
@@ -101,7 +101,7 @@ ready(() => {
         <GenericErrorPage
           imageUrl={errorShipUrl}
           onReportError={reportError}
-          translations={canvasErrorPageTranslations}
+          translations={errorPageTranslations}
           errorMessage={error.message}
           errorSubject={I18n.t('Canvas Career loading error')}
           errorCategory={I18n.t('Canvas Career Error Page')}

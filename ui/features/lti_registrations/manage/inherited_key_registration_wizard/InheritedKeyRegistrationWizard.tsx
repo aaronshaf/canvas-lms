@@ -46,7 +46,7 @@ import {ReviewScreenWrapper} from '../lti_1p3_registration_form/components/Revie
 import {Header} from '../registration_wizard_forms/Header'
 import {PermissionConfirmationWrapper} from '../lti_1p3_registration_form/components/PermissionConfirmationWrapper'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 
 const I18n = createI18nScope('lti_registrations')
@@ -286,7 +286,7 @@ const renderCustomizationBody = (
         <GenericErrorPage
           imageUrl={errorShipUrl}
           onReportError={reportError}
-          translations={canvasErrorPageTranslations}
+          translations={errorPageTranslations}
           errorSubject={I18n.t('Error')}
           errorMessage={message}
         />
@@ -326,7 +326,7 @@ const renderBody = (state: InheritedKeyWizardState) => {
         <GenericErrorPage
           imageUrl={errorShipUrl}
           onReportError={reportError}
-          translations={canvasErrorPageTranslations}
+          translations={errorPageTranslations}
           errorSubject={I18n.t('Error')}
           errorMessage={message}
         />

@@ -44,7 +44,7 @@ import {DiscussionEdit} from '../../components/DiscussionEdit/DiscussionEdit'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {Flex} from '@instructure/ui-flex'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import {Heading} from '@instructure/ui-heading'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {SplitScreenThreadsContainer} from '../SplitScreenThreadsContainer/SplitScreenThreadsContainer'
@@ -423,7 +423,7 @@ export const SplitScreenViewContainer = props => {
         <GenericErrorPage
           imageUrl={errorShipUrl}
           onReportError={reportError}
-          translations={canvasErrorPageTranslations}
+          translations={errorPageTranslations}
           errorSubject={I18n.t('Splitscreen Entry query error')}
           errorCategory={I18n.t('Splitscreen Entry Post Error Page')}
         />

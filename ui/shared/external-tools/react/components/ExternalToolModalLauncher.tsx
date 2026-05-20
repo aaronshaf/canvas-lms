@@ -20,7 +20,7 @@
 
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {CanvasModal} from '@instructure/platform-instui-bindings'
-import {canvasErrorComponent} from '@canvas/error-page-utils'
+import {canvasErrorComponent} from '@canvas/canvas-error-page'
 import React from 'react'
 import {handleExternalContentMessages} from '../../messages'
 import ToolLaunchIframe from './ToolLaunchIframe'

@@ -31,7 +31,7 @@ import numberFormat from '@canvas/i18n/numberFormat'
 import {buildSubmissionDownloadUrl} from '@canvas/assignments/react/FileSubmissionPreview'
 import ErrorShip from '@instructure/platform-images/assets/ErrorShip.svg'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import FriendlyDatetime from '@canvas/datetime/react/components/FriendlyDatetime'
 import AssignmentDescription from '@canvas/assignments/react/AssignmentDescription'
 import NeedsSubmissionPeerReview from '@canvas/assignments/react/NeedsSubmissionPeerReview'
@@ -171,7 +171,7 @@ const PeerReviewsStudentView: React.FC<PeerReviewsStudentViewProps> = ({
       <GenericErrorPage
         imageUrl={ErrorShip}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('Student Peer Review Assignment error')}
         errorCategory={I18n.t('Student Peer Review Assignment Error Page.')}
         errorMessage={I18n.t('Failed to load assignment details.')}

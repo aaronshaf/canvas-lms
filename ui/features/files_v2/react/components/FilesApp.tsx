@@ -44,9 +44,7 @@ import Breadcrumbs from './FileFolderTable/Breadcrumbs'
 import BulkActionButtons from './FileFolderTable/BulkActionButtons'
 import CurrentUploads from './FilesHeader/CurrentUploads'
 import CurrentDownloads from './FilesHeader/CurrentDownloads'
-import {NotFoundPage} from '@instructure/platform-generic-error-page'
-import {canvasNotFoundTranslations} from '@canvas/error-page-utils'
-import SVGWrapper from '@canvas/svg-wrapper'
+import {defaultNotFoundPage} from '@canvas/canvas-error-page'
 import {FilesGenericSessionExpired} from './FilesGenericSessionExpired'
 import {BasicPagination} from './BasicPagination'
 import {usePreviewHandler} from '../hooks/usePreviewHandler'
@@ -343,13 +341,7 @@ const ResponsiveFilesApp = () => {
 
   const isNotFoundError = error instanceof NotFoundError
   if (isNotFoundError) {
-    return (
-      <NotFoundPage
-        artwork={<SVGWrapper url="/images/not_found_page/empty-planet.svg" />}
-        title={canvasNotFoundTranslations.title()}
-        description={canvasNotFoundTranslations.description()}
-      />
-    )
+    return defaultNotFoundPage()
   }
 
   if (!folders) {

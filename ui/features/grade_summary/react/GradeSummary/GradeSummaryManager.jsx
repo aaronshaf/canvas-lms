@@ -22,7 +22,7 @@ import {ApolloProvider, createClient, createPersistentCache} from '@canvas/apoll
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {ErrorBoundary} from '@instructure/platform-error-boundary'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 
 import GradeSummaryContainer from './GradeSummaryContainer'
@@ -63,7 +63,7 @@ const GradeSummaryManager = () => {
             <GenericErrorPage
               imageUrl={errorShipUrl}
               onReportError={reportError}
-              translations={canvasErrorPageTranslations}
+              translations={errorPageTranslations}
               errorCategory={I18n.t('Grade Summary Error Page')}
             />
           }

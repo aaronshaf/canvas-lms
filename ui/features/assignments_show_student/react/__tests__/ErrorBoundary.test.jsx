@@ -21,7 +21,7 @@ import React from 'react'
 import {render, screen} from '@testing-library/react'
 import {ErrorBoundary} from '@instructure/platform-error-boundary'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 
 // Component that throws an error during render
@@ -64,7 +64,7 @@ describe('Assignments Show Student ErrorBoundary', () => {
             <GenericErrorPage
               imageUrl={errorShipUrl}
               onReportError={reportError}
-              translations={canvasErrorPageTranslations}
+              translations={errorPageTranslations}
               showDevError={true}
               errorSubject={error.message}
               errorCategory="Assignments 2 Student Error Page"
@@ -92,7 +92,7 @@ describe('Assignments Show Student ErrorBoundary', () => {
             <GenericErrorPage
               imageUrl={errorShipUrl}
               onReportError={reportError}
-              translations={canvasErrorPageTranslations}
+              translations={errorPageTranslations}
               errorSubject={error.message}
               errorCategory="Assignments 2 Student Error Page"
               errorMessage={error.message}
@@ -117,7 +117,7 @@ describe('Assignments Show Student ErrorBoundary', () => {
             <GenericErrorPage
               imageUrl={errorShipUrl}
               onReportError={reportError}
-              translations={canvasErrorPageTranslations}
+              translations={errorPageTranslations}
               showDevError={true}
               errorCategory="Assignments 2 Student Error Page"
             />
@@ -143,7 +143,7 @@ describe('Assignments Show Student ErrorBoundary', () => {
             <GenericErrorPage
               imageUrl={errorShipUrl}
               onReportError={reportError}
-              translations={canvasErrorPageTranslations}
+              translations={errorPageTranslations}
               errorSubject={error.message}
               errorCategory="Assignments 2 Student Error Page"
               errorMessage={error.message}

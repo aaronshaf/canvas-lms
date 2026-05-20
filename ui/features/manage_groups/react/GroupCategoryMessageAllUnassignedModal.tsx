@@ -29,7 +29,7 @@ import {Tag} from '@instructure/ui-tag'
 import {TextArea} from '@instructure/ui-text-area'
 import {showFlashSuccess} from '@instructure/platform-alerts'
 import {CanvasModal} from '@instructure/platform-instui-bindings'
-import {canvasErrorComponent} from '@canvas/error-page-utils'
+import {canvasErrorComponent} from '@canvas/canvas-error-page'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {captureException} from '@sentry/react'
 

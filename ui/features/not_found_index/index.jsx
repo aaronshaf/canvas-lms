@@ -20,21 +20,12 @@ import React from 'react'
 import {render} from '@canvas/react'
 
 import {renderGameIntoDom} from './react/gameEntry'
-import {NotFoundPage} from '@instructure/platform-generic-error-page'
-import {canvasNotFoundTranslations} from '@canvas/error-page-utils'
-import SVGWrapper from '@canvas/svg-wrapper'
+import {defaultNotFoundPage} from '@canvas/canvas-error-page'
 
 export const renderNotFoundApp = domElementId => {
   const AppRootElement = document.getElementById(domElementId)
   if (AppRootElement) {
-    return render(
-      <NotFoundPage
-        artwork={<SVGWrapper url="/images/not_found_page/empty-planet.svg" />}
-        title={canvasNotFoundTranslations.title()}
-        description={canvasNotFoundTranslations.description()}
-      />,
-      AppRootElement,
-    )
+    return render(defaultNotFoundPage(), AppRootElement)
   }
   return null
 }

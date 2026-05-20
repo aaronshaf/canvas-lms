@@ -23,7 +23,7 @@ import {View} from '@instructure/ui-view'
 import {useTranslation} from '@canvas/i18next'
 import {TEACHER_QUERY} from '@canvas/assignments/graphql/teacher/Queries'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import TeacherSavedView from './TeacherSavedView'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 
@@ -43,7 +43,7 @@ const TeacherQuery: React.FC<TeacherQueryProps> = ({assignmentLid}) => {
       <GenericErrorPage
         imageUrl={errorShipUrl}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={t('Assignments 2 Teacher initial query error')}
         errorCategory={t('Assignments 2 Teacher Error Page')}
         errorMessage={error.message}

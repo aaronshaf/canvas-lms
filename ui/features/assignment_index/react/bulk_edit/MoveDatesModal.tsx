@@ -25,8 +25,7 @@ import {ScreenReaderContent} from '@instructure/ui-a11y-content'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {CanvasModal} from '@instructure/platform-instui-bindings'
-import {canvasErrorComponent} from '@canvas/error-page-utils'
-
+import {canvasErrorComponent} from '@canvas/canvas-error-page'
 const I18n = createI18nScope('assignments_bulk_edit')
 
 export const SHIFT_DAYS_MIN = 1

@@ -21,7 +21,7 @@ import {useQuery as useApolloQuery, useMutation} from '@apollo/client'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {AlertManagerContext} from '@instructure/platform-alerts'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 
 import SubmissionCommentsTray from '../SubmissionCommentsTray'
@@ -173,7 +173,7 @@ const GradeSummaryContainer = () => {
       <GenericErrorPage
         imageUrl={errorShipUrl}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('Grade Summary initial query error')}
         errorCategory={I18n.t('Grade Summary Error Page')}
       />
@@ -185,7 +185,7 @@ const GradeSummaryContainer = () => {
       <GenericErrorPage
         imageUrl={errorShipUrl}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('Failed to load assignments data')}
         errorCategory={I18n.t('Grade Summary Error Page')}
         errorMessage={
@@ -202,7 +202,7 @@ const GradeSummaryContainer = () => {
       <GenericErrorPage
         imageUrl={errorShipUrl}
         onReportError={reportError}
-        translations={canvasErrorPageTranslations}
+        translations={errorPageTranslations}
         errorSubject={I18n.t('Assignments data is missing or invalid')}
         errorCategory={I18n.t('Grade Summary Error Page')}
         errorMessage={I18n.t(

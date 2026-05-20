@@ -22,7 +22,7 @@ import DiscussionTopicManager from './DiscussionTopicManager'
 import {ErrorBoundary} from '@instructure/platform-error-boundary'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import PropTypes from 'prop-types'
 import React, {useEffect, useState} from 'react'
@@ -64,7 +64,7 @@ export const DiscussionTopicsPost = props => {
             <GenericErrorPage
               imageUrl={errorShipUrl}
               onReportError={reportError}
-              translations={canvasErrorPageTranslations}
+              translations={errorPageTranslations}
               errorCategory={I18n.t('Discussion Topic Post Error Page')}
             />
           }

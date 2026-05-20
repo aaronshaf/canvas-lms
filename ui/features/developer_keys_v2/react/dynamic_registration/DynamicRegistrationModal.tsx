@@ -33,11 +33,12 @@ import {Flex} from '@instructure/ui-flex'
 import {View} from '@instructure/ui-view'
 import {Spinner} from '@instructure/ui-spinner'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
-import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
+import {errorPageTranslations, reportError} from '@canvas/canvas-error-page'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
 
 const I18n = createI18nScope('react_developer_keys')
+
 type DynamicRegistrationModalProps = {
   contextId: string
   store: ReturnType<typeof storeCreator>
@@ -166,7 +167,7 @@ const DynamicRegistrationModalBody = ({contextId}: DynamicRegistrationModalBodyP
           <GenericErrorPage
             imageUrl={errorShipUrl}
             onReportError={reportError}
-            translations={canvasErrorPageTranslations}
+            translations={errorPageTranslations}
             errorMessage={state.error?.message}
             errorCategory="Dynamic Registration"
           />

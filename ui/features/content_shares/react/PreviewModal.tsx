@@ -20,7 +20,7 @@ import React from 'react'
 import {useTranslation} from '@canvas/i18next'
 import {Button} from '@instructure/ui-buttons'
 import {CanvasModal} from '@instructure/platform-instui-bindings'
-import {canvasErrorComponent} from '@canvas/error-page-utils'
+import {canvasErrorComponent} from '@canvas/canvas-error-page'
 import type {ContentShare} from '../types'
 import sanitizeUrl from '@canvas/util/sanitizeUrl'
 

@@ -22,7 +22,7 @@ import {Button} from '@instructure/ui-buttons'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 import {CanvasModal} from '@instructure/platform-instui-bindings'
-import {canvasErrorComponent} from '@canvas/error-page-utils'
+import {canvasErrorComponent} from '@canvas/canvas-error-page'
 import doFetchApi from '@canvas/do-fetch-api-effect'
 import {showFlashAlert} from '@instructure/platform-alerts'
 
