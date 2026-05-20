@@ -2341,8 +2341,9 @@ class User < ApplicationRecord
 
   def alternate_account_for_course_creation
     Rails.cache.fetch_with_batched_keys("alternate_account_for_course_creation", batch_object: self, batched_keys: :account_users) do
+      principal = Canvas::AdheresToPolicy::UserPrincipal.new(self)
       account_users.active.detect do |au|
-        break au.account if au.root_account_id == account.id && au.account.grants_right?(self, :manage_courses_add)
+        break au.account if au.root_account_id == account.id && au.account.grants_right?(principal, :manage_courses_add)
       end
     end
   end
@@ -4114,11 +4115,12 @@ class User < ApplicationRecord
     # This lets the frontend skip the homerooms fetch only for the specific selected account
     # that lacks the permission, rather than blocking all accounts globally.
     active_account_users = account_users.active.shard(in_region_associated_shards).preload(:account)
+    principal = Canvas::AdheresToPolicy::UserPrincipal.new(self)
     viewable_account_ids = if active_account_users.none?
                              nil
                            else
                              active_account_users
-                               .select { |au| au.account.grants_right?(self, :read_course_list) }
+                               .select { |au| au.account.grants_right?(principal, :read_course_list) }
                                .map { |au| au.account_id.to_s }
                            end
     { can_create:, restrict_to_mcc: mcc_only, viewable_account_ids: }
