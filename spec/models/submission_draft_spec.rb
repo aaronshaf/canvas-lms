@@ -346,4 +346,8 @@ RSpec.describe SubmissionDraft do
       expect(@submission_draft.meets_assignment_criteria?).to be(false)
     end
   end
+
+  it_behaves_like "sanitizes its sanitize_field columns on save" do
+    let(:record) { SubmissionDraft.create!(submission: submission_model, submission_attempt: 2) }
+  end
 end

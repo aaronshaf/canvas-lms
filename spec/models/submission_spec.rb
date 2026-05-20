@@ -41,6 +41,10 @@ describe Submission do
     }
   end
 
+  it_behaves_like "sanitizes its sanitize_field columns on save" do
+    let(:record) { submission_model }
+  end
+
   describe "inferred values" do
     subject do
       submission.infer_values
