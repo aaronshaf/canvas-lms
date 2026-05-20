@@ -18,7 +18,12 @@
 
 // Used to enable babel transformations for node_modules that use ecmascript module syntax directly
 // From https://github.com/nrwl/nx/issues/812
-const esModules = ['text-field-edit', '@instructure\\/ui-icons', 'msw'].join('|')
+const esModules = [
+  'text-field-edit',
+  '@instructure\\/ui-icons',
+  '@instructure\\/platform-sanitize',
+  'msw',
+].join('|')
 
 module.exports = {
   testTimeout: 15000,
@@ -49,6 +54,10 @@ module.exports = {
     customExportConditions: [''],
   },
   moduleNameMapper: {
+    // @instructure/platform-sanitize is ESM-only (no "require" export condition);
+    // point Jest directly at the dist file so the CJS resolver can find it.
+    '@instructure/platform-sanitize':
+      '<rootDir>/../../node_modules/@instructure/platform-sanitize/dist/index.js',
     // jest can't import css
     '\\.(css|less)$': '<rootDir>/src/rce/__mocks__/styleMock.js',
     // mock the tinymce-react Editor component
