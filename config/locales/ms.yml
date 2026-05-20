@@ -451,6 +451,7 @@ ms:
     titles: 
       accessibility_checker: "Penyemak Kebolehcapaian"
   accessibility_a662153d: Kebolehcapaian
+  accessibility_analytics_1d55b9ff: "Analisis Kebolehcapaian"
   accessibility_checker_7c1226f0: "Penyemak Kebolehcapaian"
   accessibility_checker_account_eap_enabler_e4103c63: "Pemboleh EAP Akaun Penyemak Kebolehcapaian"
   accessibility_checker_account_statistics_972704d9: "Statistik Akaun Penyemak Kebolehcapaian"
@@ -495,7 +496,9 @@ ms:
     default_site_administrator_account_name: "Pentadbir Laman Web"
     default_term_name: "Penggal Lalai"
     errors: 
+      invalid_change_password_url: "URL tukar kata laluan tidak sah"
       invalid_discovery_url: "URL penemuan tidak sah"
+      invalid_fft_registration_url: "URL pendaftaran guru tidak sah"
       invalid_login_help_url: "URL bantuan log masuk tidak sah"
     feedback_coach: "Lawati Komuniti"
     feedback_coach_sub: "Terokai pelbagai panduan, kemas kini, blog, forum dan sumber untuk membantu anda mendapatkan jawapan."
@@ -560,6 +563,7 @@ ms:
   account_level_notification_preferences_require_an__66467cd7: "Keutamaan pemberitahuan tahap akaun memerlukan account_id untuk dikemas kini"
   account_level_notifications_apply_to_all_courses_n_8b99c5b0: "Pemberitahuan tahap akaun terpakai kepada semua kursus. Pemberitahuan untuk satu-satu kursus boleh diubah dalam setiap kursus dan mengatasi pemberitahuan ini."
   account_level_settings_manage_4fca6f8e: "Tetapan tahap akaun - urus"
+  account_multi_factor_authentication_fd3897c0: "Akaun - Pengesahan Berbilang Faktor"
   account_name_7f63a13: "nama akaun"
   account_name_analytics_62bf60ae: "Analisis %{account.name}"
   account_name_bff54ed5: "Nama Akaun"
@@ -2617,6 +2621,7 @@ ms:
   all_subjects_5a42cfdb: "Semua Subjek"
   all_submission_comments_have_been_marked_as_read_74c0683b: "Semua komen serahan telah ditandakan sebagai telah dibaca"
   all_submissions_3eedfb97: "Semua serahan"
+  all_submissions_have_been_graded_e9534de8: "Semua serahan telah digredkan."
   all_submissions_must_have_a_selected_grade_3a84e5a9: "Semua serahan mestilah memiliki gred pilihan."
   all_terms_cd27b0fb: "Semua Penggal"
   all_terms_ce69fff: "Semua penggal"
@@ -2626,6 +2631,7 @@ ms:
   all_user_data_5d97832: "Semua data pengguna"
   all_users_associated_with_this_course_6be8d492: "Semua pengguna yang berkaitan dengan kursus ini"
   all_users_associated_with_this_institution_d29850be: "Semua pengguna yang berkaitan dengan institusi ini"
+  all_users_with_canvas_logins_will_be_required_to_r_2898fde3: "Semua pengguna dengan log masuk Canvas akan perlu menetapkan semula kata laluan mereka pada log masuk seterusnya. Tindakan ini tidak boleh dibuat asal."
   all_version_history_fbf060a0: "Semua Sejarah Versi"
   all_versions_student_submission_report_e4def68d: "Semua Versi Laporan Serahan Pelajar"
   all_weights_must_be_greater_than_or_equal_to_0_cc2dcdf1: "Semua pemberat mestilah lebih besar daripada atau sama dengan 0"
@@ -2855,6 +2861,7 @@ ms:
   allows_user_to_add_designers_to_a_course_f81791e8: "Membenarkan pengguna menambah pereka bentuk pada kursus."
   allows_user_to_add_designers_to_a_course_from_the__427db55b: "Membenarkan pengguna menambah pereka bentuk pada kursus dari halaman Kursus dalam akaun."
   allows_user_to_add_discussions_in_the_discussions__1b3d9a53: "Membenarkan pengguna menambah perbincangan dalam halaman Perbincangan."
+  allows_user_to_add_edit_and_delete_authentication__9ad88fd7: "Membenarkan pengguna menambah, mengedit dan memadamkan penyedia pengesahan untuk akaun ini."
   allows_user_to_add_edit_and_delete_events_in_accou_80a5588e: "Membenarkan pengguna menambah, mengedit dan memadamkan acara dalam kalendar akaun."
   allows_user_to_add_edit_and_delete_events_in_the_c_14413268: "Membenarkan pengguna menambah, mengedit dan memadamkan acara dalam kalendar kursus."
   allows_user_to_add_edit_and_delete_global_announce_8463e383: "Membenarkan pengguna menambah, mengedit dan memadamkan pengumuman global."
@@ -3110,8 +3117,10 @@ ms:
   allows_user_to_view_and_manage_quotas_tab_in_accou_aa3fea8: "Membenarkan pengguna melihat dan mengurus tab Kuota dalam Tetapan Akaun. Pengguna boleh menetapkan kuota kursus, pengguna dan storan kumpulan secara lalai."
   allows_user_to_view_and_manage_subaccounts_for_the_37d5120b: "Membenarkan pengguna melihat dan mengurus sub-akaun untuk akaun."
   allows_user_to_view_and_manage_terms_for_the_accou_4547d971: "Membenarkan pengguna melihat dan mengurus penggal untuk akaun."
+  allows_user_to_view_and_manage_the_multi_factor_au_8c8dce3c: "Membenarkan pengguna melihat dan mengurus tab tetapan Pengesahan Berbilang Faktor dalam Tetapan Akaun."
   allows_user_to_view_and_manage_the_settings_and_no_e223e6b8: "Membenarkan pengguna melihat dan mengurus tab Tetapan dan Pemberitahuan dalam Tetapan Akaun."
   allows_user_to_view_and_modify_login_information_f_78f3a544: "Membenarkan pengguna melihat dan mengubah suai maklumat log masuk untuk pengguna."
+  allows_user_to_view_authentication_providers_for_t_b979e33a: "Membenarkan pengguna melihat penyedia pengeahan untuk akaun."
   allows_user_to_view_blueprint_sync_history_d545cb7d: "Membenarkan pengguna melihat sejarah Penyegerakan Cetakan Biru."
   allows_user_to_view_course_activity_information_fo_e420113b: "Membenarkan pengguna melihat maklumat aktiviti kursus untuk akaun."
   allows_user_to_view_course_analytics_through_the_c_192889dc: "Membenarkan pengguna melihat analisis kursus melalui papan pemuka kursus."
@@ -3322,6 +3331,7 @@ ms:
   an_error_occurred_while_editing_the_rule_aca1a75c: "Ralat berlaku semasa mengedit peraturan"
   an_error_occurred_while_editing_this_group_please__8f4eeefe: "Ralat berlaku semasa mengedit kumpulan ini. Sila cuba semula."
   an_error_occurred_while_editing_this_outcome_pleas_f0e403a9: "Ralat berlaku semasa mengedit hasil ini. Sila cuba semula."
+  an_error_occurred_while_enqueueing_the_password_re_e3f0b8e0: "Ralat berlaku semasa mengaturkan tetap semula kata laluan."
   an_error_occurred_while_fetching_allocation_rules_e9df8ed1: "Ralat berlaku semasa mengambil peraturan peletakan"
   an_error_occurred_while_fetching_assignments_pleas_dbc5ec2b: "Ralat berlaku semasa mengambil tugasan. Sila cuba segarkan halaman semula."
   an_error_occurred_while_fetching_course_modules_9f87557e: "Ralat berlaku semasa mengambil modul kursus."
@@ -3505,6 +3515,7 @@ ms:
   announcement: 
     no_title: "Tiada Tajuk"
   announcement_created_in_count_course_f90d55bb: "Pengumuman dicipta dalam %{count} kursus."
+  announcement_creation_ad33ba: "Penciptaan Pengumuman"
   announcement_creation_f9db51ec: "Penciptaan Pengumuman"
   announcement_creation_failed_f7d227f5: "Penciptaan pengumuman gagal"
   announcement_e37d6dbd: pengumuman
@@ -3619,6 +3630,7 @@ ms:
   api_get_requests_with_a_body_instead_of_query_para_edc1ccf7: "Permintaan API GET yang dibuat dengan isi dan bukan parameter pertanyaan akan disekat dalam Produksi tidak lama lagi, sebagai sebahagian transisi untuk melayani Canvas menggunakan AWS Cloudfront. Permintaan ini sudah pun disekat dalam Beta dan Ujian."
   api_host_ddaf400e: "Hos API:"
   api_key_eeeb2167: "Kunci API"
+  api_key_secret_e63ca547: "Rahsia Kunci API"
   api_keys_393d8b5c: "Kunci API"
   api_rate_limiting_management_15e89ff6: "Pengurusan Pengehadan Kadar API"
   api_requests_now_require_the_user_agent_header_to__199e1721: |-
@@ -3847,6 +3859,7 @@ ms:
   are_you_sure_you_want_to_permanently_remove_the_us_e6b84ce0: "Adakah anda pasti anda ingin mengalih keluar pengguna secara kekal daripada SEMUA akaun?"
   are_you_sure_you_want_to_post_grades_for_this_assi_bafe5753: "Adakah anda pasti anda ingin menyiarkan gred untuk tugasan ini kepada pelajar?"
   are_you_sure_you_want_to_proceed_changes_you_made__2f87f0e7: "Adakah anda pasti anda ingin meneruskan? Perubahan yang anda lakukan tidak akan disimpan."
+  are_you_sure_you_want_to_regenerate_the_secret_for_d25ef1dc: "Adakah anda pasti anda ingin menjana semula rahsia untuk “%{keyName}”?"
   are_you_sure_you_want_to_regenerate_this_token_any_7f2a7fe5: "Adakah anda pasti anda ingin menjana semula token ini?  Apa-apa yang menggunakan token ini perlu dikemas kini."
   are_you_sure_you_want_to_remove_name_6c922a7c: "Anda pasti ingin mengalih keluar %{name}?"
   are_you_sure_you_want_to_remove_this_item_7887ce31: "Adakah anda pasti anda ingin mengalih keluar item ini?"
@@ -4912,6 +4925,8 @@ ms:
       login_handle_name_description: "Label yang digunakan untuk pengecam log masuk unik. Contoh: Log Masuk, Nama Pengguna, ID Pelajar dll."
       unknown_user_url_description: "Url untuk tujuan penghalaan semula apabila pengguna yang disahkan tidak ditemui dalam Canvas."
   authentication_providers_9e8e0e84: "Penyedia Pengesahan"
+  authentication_providers_manage_1bc9cf3c: "Penyedia Pengesahan - urus"
+  authentication_providers_read_4d91f489: "Penyedia Pengesahan - baca"
   authentication_settings_5c2078a3: "Tetapan Pengesahan"
   authentication_with_provider_was_successful_but_no_6a194137: "Pengesahan dengan %{provider} berjaya, tetapi tiada ID unik untuk log masuk ke Canvas telah disediakan."
   authentications_log_ca16ce81: "Log Pengesahan"
@@ -5149,6 +5164,11 @@ ms:
   block_duplicated_blocktype_264ba8a6: "Bongkah diduplikasikan: %{blockType}"
   block_editor_2e266d9c: "Editor Blok"
   block_editor_global_templates_edit_c94395df: "Templat Global Editor Blok - edit"
+  block_editor_template: 
+    errors: 
+      node_tree_not_object: "Pohon nod mestilah objek JSON"
+      node_tree_too_deep: "Pokok nod melebihi kedalaman maksimum %{max}"
+      node_tree_too_many_nodes: "Pokok nod melebihi maksimum %{max} nod"
   block_editor_templates_edit_60fc642d: "Templat Editor Blok - edit"
   block_editor_templates_global_edit_48039243: "Templat Editor Blok - edit global"
   block_page_411bac87: "sekat halaman"
@@ -6028,6 +6048,7 @@ ms:
   canvas_career_bulk_metadata_import_b9c482aa: "Canvas Career: Import Metadata Pukal"
   canvas_career_cannot_be_set_without_the_feature_fl_8bb3985e: "Canvas Career tidak dapat ditetapkan tanpa bendera ciri didayakan"
   canvas_career_chart_view_c42ddd43: "Canvas Career: Pandangan Carta"
+  canvas_career_configurable_learner_dashboard_3eeb9ac: "Canvas Career: Papan Pemuka Pelajar Boleh Konfigurasi"
   canvas_career_content_library_c04859c1: "Canvas Career: Pustaka Kandungan"
   canvas_career_course_academic_switcher_9fca2585: "Canvas Career: Penukar Akademik Kursus"
   canvas_career_course_index_page_13fd7fb9: "Canvas Career: Halaman Indeks Kursus"
@@ -7105,6 +7126,7 @@ ms:
   concluded_e1e482a0: "Telah Selesai"
   concluded_enrollments_8f460271: "Pendaftaran Yang Telah Selesai"
   concluded_enrollments_9da8da6: "Pendaftaran yang telah selesai"
+  concurrent_grading_in_gradebook_7d146335: "Penggredan Serentak dalam Buku Gred"
   conditional_release: 
     and: "&"
   conditional_release_tuning_priority_must_be_one_of_e273ebef: "Keutamaan penalaan pelancaran bersyarat mestilah terdiri daripada rendah, sederhana, tinggi"
@@ -8087,6 +8109,7 @@ ms:
   copy_the_video_url_dd509606: "Salin URL video"
   copy_this_module_item_to_a_course_790a0cf4: "Salin item modul ini ke kursus..."
   copy_this_module_to_a_course_ddd12cc7: "Salin modul ini ke kursus..."
+  copy_this_secret_down_now_once_you_close_this_dial_1777d661: "Salin rahsia ini sekarang. Setelah anda menutup dialog ini, anda tidak akan dapat mengambil rahsia penuh lagi. Rahsia penuh hanya ditunjukkan sebaik sahaja selepas penciptaan atau penjanaan semula."
   copy_this_token_down_now_once_you_leave_this_page__3f850f41: "*Salin token ini sekarang*. Setelah anda meninggalkan halaman ini, anda tidak akan dapat mengambil token penuh lagi, anda perlu menjana semula token untuk mendapat nilai baharu."
   copy_title_to_course_2a41a2f4: "Salin %{title} ke kursus"
   copy_to_64f8456b: "Salin Ke..."
@@ -9406,6 +9429,7 @@ ms:
   create_and_edit_line_items_cacad0fa: "Cipta dan Edit Item Baris"
   create_and_edit_scores_4177662c: "Cipta dan Edit Skor"
   create_and_manage_user_tags_at_the_account_level_39088782: "Cipta dan urus tag pengguna pada tahap akaun."
+  create_and_post_announcements_to_your_courses_dbf49bf1: "Cipta dan siar pengumuman pada kursus anda"
   create_announcement_668ed3bd: "Cipta pengumuman"
   create_announcement_7ebf0845: "Cipta Pengumuman"
   create_announcements_above_1c36202b: "Cipta pengumuman di atas"
@@ -10321,11 +10345,13 @@ ms:
   determines_visibility_of_the_grade_change_activity_6c23036b: "Menentukan kebolehlihatan pilihan Aktiviti Penukaran Gred dalam tab Pengelogan Alat Pentadbir."
   developer_key_921ddbae: "Kunci Pembangun"
   developer_key_account_bindings_e17eee60: "Pengikat Akaun Kunci Pembangun"
+  developer_key_created_cbbd5190: "Kunci Pembangun Dicipta"
   developer_key_developerkeyid_deleted_focus_moved_t_80fffb4d: "Kunci pembangun %{developerKeyId} dipadamkan. Fokus dialihkan untuk menambah butang kunci pembangun."
   developer_key_developerkeyid_deleted_focus_moved_t_9f5b5198: "Kunci pembangun %{developerKeyId} dipadamkan. Fokus dialihkan kepada butang padam untuk kunci pembangun dalam senarai."
   developer_key_include_parameter_support_58cbf874: "Kunci Pembangun Termasuk Sokongan Parameter"
   developer_key_is_an_external_tool_27c6166b: "Kunci pembangun ialah alat luar."
   developer_key_name_830f8a91: "Nama Kunci Pembangun"
+  developer_key_secret_regeneration_30f6eef9: "Penjanaan Semula Rahsia Kunci Pembangun"
   developer_key_settings_889721f1: "Tetapan Kunci Pembangun"
   developer_keys: 
     index: 
@@ -10367,6 +10393,7 @@ ms:
   diigo_is_a_social_bookmarking_tool_tailored_specif_1bff1643: "Diigo ialah alat penanda sosial yang disesuaikan khas untuk penyelidikan dan pendidikan. Editor kandungan beraneka Canvas akan membolehkan anda mencari tag Diigo anda supaya mudah memaut dari dalam Canvas ke sumber lain yang anda dapati berguna."
   diigo_login_b466e877: "Log masuk Diigo"
   diigo_logo_10fad9ee: "Logo Diigo"
+  direct_browser_navigation_is_required_for_this_end_ffcb6537: "Navigasi pelayar secara langsung diperlukan untuk titik akhir ini"
   disableWhileLoading: 
     loading: Memuatkan...
   disable_a5c05db3: Nyahdayakan
@@ -11496,6 +11523,7 @@ ms:
   enables_access_to_the_new_quizzes_public_api_quiz__52a8183c: "Membolehkan akses kepada API Umum Kuiz Baharu: API Item Kuiz"
   enables_access_to_the_new_quizzes_public_api_throu_abc70e4d: "Membolehkan akses kepada API Umum Kuiz Baharu melalui Canvas."
   enables_access_to_the_new_quizzes_reporting_api_cc1be086: "Mendayakan akses kepada API Pelaporan Kuiz Baharu"
+  enables_account_scoped_admin_customizable_learner__b3933e29: "Mendayakan papan pemuka pelajar boleh disuaikan pentadbir berskopkan akaun dalam Canvas Career."
   enables_administrators_to_register_lti_tools_with__b16d560f: "Membolehkan pentadbir mendaftar alat LTI dengan Pendaftaran Dinamik"
   enables_batch_processing_with_postgresql_cross_joi_6b7a90a8: "Mendayakan pemprosesan kelompok dengan PostgreSQL CROSS JOIN untuk mengurangkan saiz log dan meningkatkan keserasian dengan Observe."
   enables_canvas_enhanced_rubrics_in_assessment_mana_a030cf99: "Mendayakan Rubrik Dipertingkat Canvas dalam Perkhidmatan Pengurusan Pentaksiran (AMS)."
@@ -11557,6 +11585,12 @@ ms:
   enables_support_for_uploading_files_as_part_of_the_712baa12: "Mendayakan sokongan untuk memuat naik fail sebagai sebahagian alat penggredan berbantukan AI dalam Speedgrader Dimodenkan."
   enables_that_hidden_attachments_will_be_included_i_932c9552: "Mendayakan kepilan tersembunyi itu akan disertakan dalam rantaian penggantian."
   enables_the_ability_to_manage_bulk_api_and_permiss_b4eb478f: "Mendayakan keupayaan untuk mengurus pukal tetapan AI dan keizinan dalam Canvas Career."
+  enables_the_ability_to_regenerate_api_secrets_for__a125360a: |-
+      Mendayakan keupayaan untuk menjana semula rahsia API untuk kunci pembangun.
+      Apabila didayakan, rahsia kunci API disembunyikan dalam UI (menunjukkan hanya
+      5 aksara pertama), dan butang "Jana Semula Rahsia" membolehkan
+      penjanaan rahsia baharu tanpa pemadaman dan penciptaan semula kunci.
+      Rahsia penuh hanya ditunjukkan sebaik sahaja selepas penciptaan atau penjanaan semula.
   enables_the_ai_widgets_in_the_canvas_career_data_i_59265e99: "Mendayakan widget AI dalam papan pemuka Data & Cerapan Canvas Career."
   enables_the_assessment_management_service_47b6ac79: "Mendayakan Perkhidmatan Pengurusan PEntaksiran."
   enables_the_block_content_editor_in_canvas_career_e452d023: "Mendayakan editor kandungan bongkah dalam Canvas Career."
@@ -11663,6 +11697,7 @@ ms:
   ends_4fcb632: "Tamat:"
   ends_at_9a62b528: "Berakhir pada"
   ends_e3a6843f: Tamat
+  enforce_developer_key_domain_root_account_restrict_11e6795e: "Menguatkuasakan Penyekatan Akaun Akar Domain Kunci Pembangun"
   enforce_developer_keys_modify_site_admin_keys_perm_dd28e9fb: "Menguatkuasakan Keizinan “Kunci Pembangun -- Ubah suai Kunci Pentadbir Laman”"
   enforce_elevated_auth_provider_requirement_8c143130: "Kuat kuasakan Keperluan Penyedia Pengesahan Tinggi"
   enforce_expiration_limits_on_access_tokens_issued__8f45eec1: "Menguatkuasakan had tamat tempoh pada token akses yang dikeluarkan kepada pengguna pentadbir laman."
@@ -11712,6 +11747,7 @@ ms:
   enhanced_security_custom_javascript_and_css_will_n_95f4f703: "Keselamatan Dipertingkat: JavaScript tersuai dan CSS tidak akan dilaksanakan lagi pada halaman log masuk atau pendaftaran."
   enhances_the_color_contrast_of_text_buttons_etc_88e22e61: "Meningkatkan kontras warna teks, butang dll."
   enhances_the_readability_of_text_for_users_with_dy_9caf549b: "Meningkatkan kebolehbacaan teks untuk pengguna dengan disleksia"
+  enqueueing_383d9bb1: Beratur...
   enroll_in_a_course_301c4edd: "Daftarkan dalam Kursus"
   enroll_in_subject_9c1f1c18: "Daftar dalam Subjek"
   enroll_will_receive_temporary_enrollments_from_use_f0aa66a2: "%{enroll} akan menerima pendaftaran sementara daripada %{user}"
@@ -12910,6 +12946,7 @@ ms:
   failed_to_perform_search_c918100f: "Gagal melaksanakan carian"
   failed_to_regenerate_access_token_a07519f3: "Gagal menjana semula token akses."
   failed_to_regenerate_criteria_e1f4adca: "Gagal menjana semula kriteria"
+  failed_to_regenerate_secret_message_57c69fc2: "Gagal menjana semula rahsia: %{message}"
   failed_to_reject_enrollment_invitation_cdb5de40: "Gagal menolak jemputan pendaftaran"
   failed_to_remove_catalog_settings_f5359b2b: "Gagal mengalih keluar tetapan Katalog"
   failed_to_remove_feedback_please_try_again_51c6fc81: "Gagal mengalih keluar maklum balas. Sila cuba semula."
@@ -13325,6 +13362,7 @@ ms:
   finding_9881fade: "Sedang mencari..."
   finding_matched_jobs_f7cd0e6d: "Mencari kerja sepadan"
   finish_bc343002: Selesaikan
+  finish_peer_reviews_61cab1bc: "Siapkan Tinjauan Semula Setara"
   finish_recording_e0dd7520: "Selesai Merakam"
   finished_184e459a: "Selesai:"
   finished_19aaf6f5: Selesai
@@ -13432,6 +13470,7 @@ ms:
   for_title_69d92b3a: "untuk %{title}"
   forbidden_words_list_deleted_successfully_b9a0c5a4: "Senarai perkataan dilarang berjaya dipadamkan."
   force_login_after_delegated_logout_708dbb56: "Log Masuk Paksa Selepas Log Keluar Wakilan"
+  force_password_reset_886ed5e6: "Paksa Penetapan Semula Kata Laluan"
   foreground_3acfb942: "Latar depan"
   forgot_password_7232790f: "Lupa kata laluan?"
   forgot_password_9098c30d: "Lupa Kata Laluan"
@@ -13790,6 +13829,7 @@ ms:
   gradebook_settings_b45c6df9: "Tetapan Buku Gred"
   gradebook_settings_updated_fef63d60: "Tetapan Buku Gred dikemas kini"
   gradebook_speedgrader_66cb7a6a: "Buku Gred, SpeedGrader"
+  gradebook_status_receiving_and_sending_live_update_a6a3ed57: "Buku Gred %{status} menerima dan menghantar kemas kini langsung kepada penggred lain."
   gradebook_tutorial_tray_d835c750: "Dulang Tutorial Buku Gred"
   gradebook_uploads: 
     errors: 
@@ -15092,6 +15132,11 @@ ms:
       Jika didayakan, modul dan item modul akan boleh ditetapkan kepada
       individu dan kumpulan tertentu.
   if_enabled_new_quizzes_will_launch_in_a_display_ty_43ac03fc: "Jika didayakan, Kuiz Baharu akan dilancarkan dalam jenis paparan yang termasuk jejak navigasi dan menu di sebelah kiri"
+  if_enabled_oauth2_service_auth_keys_service_user_c_599d4758: |-
+      Jika didayakan, kunci pengesahan perkhidmatan OAuth2 (service_user_client_credentials
+      geran) mungkin memintas keperluan penyedia pengesahan tinggi apabila
+      skopnya termasuk skop operasi tinggi sepadan. Apabila
+      didayakan, tiada kunci pembangun menerima pintasan ini melalui skop.
   if_enabled_oauth_1_0a_signing_may_be_used_by_lti_t_f2d6da3b: "Jika didayakan, pendaftaran OAuth 1.0a boleh digunakan oleh alat LTI untuk mengakses API Perkhidmatan Keahlian."
   if_enabled_pages_will_use_the_new_instui_headers_44a42c92: "Jika didayakan, halaman akan menggunakan pengepala InstUI baharu"
   if_enabled_prefills_the_assignment_form_with_value_edb8ebda: "Jika didayakan, akan melakukan pra-isi borang tugasan dengan nilai daripada mesej pautan dalam di halaman cipta/edit tugasan."
@@ -15425,6 +15470,7 @@ ms:
   image_url_is_not_a_valid_url_4e31c8b0: "image_url bukan URL yang sah"
   images_should_include_an_alt_attribute_describing__b86d6a86: "Imej patut termasuk atribut alt yang menerangkan kandungan imej."
   immediately_c128ede6: "Dengan Segera"
+  immediately_require_all_users_with_canvas_logins_t_421f54a5: "Wajibkan semua pengguna yang mempunyai log masuk Canvas untuk menukar kata laluan mereka dengan segera pada log masuk seterusnya."
   immersive_reader_7b87538: "Alat Baca Imersif"
   immersive_reader_failed_to_load_bc8d4dd4: "Alat Baca Imersif Gagal Dimuatkan"
   impact_58f41b1d: Impact
@@ -15820,6 +15866,7 @@ ms:
   instructure_identity_sync_199f2759: "Identiti Instructure - segerakkan"
   instructure_identity_user_sync_352885a0: "Identiti Instructure Penyegerakan Pengguna"
   instructure_identity_user_sync_all_auth_providers_6af07f8c: "Pengguna Identity Instructure Menyegerakkan semua penyedia kebenaran"
+  instructure_identity_user_sync_globally_a1d549c1: "Penyegerakan Pengguna Instructure Identity Secara Global"
   instructure_identity_view_cb4979ad: "Identiti Instructure - lihat"
   instructure_inline_media_comment: 
     alerts: 
@@ -15870,11 +15917,12 @@ ms:
   integration_id_int_id_is_already_in_use_f30f03b5: "ID Integrasi \"%{int_id}\" sudah digunakan"
   integration_id_integration_id_is_already_in_use_bd1bbb09: "ID Integrasi \"%{integration_id}\" sudah digunakan"
   integrations_cadb03f3: Integrasi
-  intelligent-insights-accessibility-insights: "Mendayakan Cerapan Pintar - ciri Cerapan Kebolehcapaian dan keizinan yang mengiringinya."
+  intelligent-insights-accessibility-insights: "Mendayakan Cerapan Pintar - ciri Analisis Kebolehcapaian dan keizinan yang mengiringinya."
   intelligent-insights-modernisation: "Mendayakan Cerapan Pintar - ciri Pemodenan."
   intelligent-insights-rsi-ignore-course: "Mendayakan Cerapan Pintar - RSI - Mengabaikan ciri kursus."
   intelligent-insights-rsi-report: "Mendayakan Intelligent Insights - ciri Interaksi Tetap dan Substantif serta keizinan yang berserta dengannya."
   intelligent_insights_46ebf17b: "Intelligent Insights"
+  intelligent_insights_accessibility_analytics_3b776a1a: "Cerapan Pintar - Analisis Kebolehcapaian"
   intelligent_insights_accessibility_insights_bf918e4f: "Cerapan Pintar - Cerapan Kebolehcapaian"
   intelligent_insights_ask_your_data_73b2c0b1: "Intelligent Insights – Tanya Data Anda"
   intelligent_insights_contextual_messaging_addc77cc: "Cerapan Pintar - Pemesejan Berkonteks"
@@ -16452,6 +16500,7 @@ ms:
   last_youtube_content_scan_failed_f4785264: "Imbasan kandungan YouTube terakhir gagal."
   late_2be42b88: Lewat
   late_8bd684b6: lewat
+  late_amount_4d9366dd: "Lewat (%{amount})"
   late_anonymous_assignment_a_student_has_submitted__60158b6a: "Tugasan tanpa nama lewat: Pelajar telah membuat serahan lewat untuk %{assignment_title}"
   late_anonymous_assignment_assignment_name_b541c517: "Tugasan Tanpa Nama Lewat: %{assignment_name}"
   late_assignment_user_name_assignment_name_2df32e01: "Tugasan Lewat: %{user_name}, %{assignment_name}"
@@ -17055,6 +17104,7 @@ ms:
   loading_to_do_items_e293dc3e: "Memuatkan item untuk dilakukan..."
   loading_to_do_items_fcd93bdc: "Memuatkan item untuk dilakukan"
   loading_todo_course_name_b851e509: "Memuatkan Nama Kursus Untuk Dilakukan"
+  loading_todo_items_18c7159b: "Memuatkan item untuk dilakukan"
   loading_todo_title_5c73a869: "Memuatkan Tajuk Untuk Dilakukan"
   loading_total_grade_for_coursename_b6eff3b6: "Memuatkan gred keseluruhan untuk %{courseName}"
   loading_unsynced_changes_1b52f725: "Memuatkan perubahan belum disegerakkan..."
@@ -17678,6 +17728,7 @@ ms:
   merge_b_username_useremail_b_into_the_selected_use_db13b1ed: "Gabung <b>%{userName} %{userEmail}</b> dengan pengguna yang dipilih."
   merge_links_2478df96: "Gabung pautan"
   merge_user_accounts_a49e8fb1: "Gabung Akaun Pengguna"
+  merge_username_useremail_into_the_selected_user_e159e49a: "Gabung *%{userName} %{userEmail}* dengan pengguna yang dipilih."
   merge_users_20b8f463: "Gabung Pengguna"
   merging_user_accounts_37c7108: "Gabung Akaun Pengguna..."
   mesa_public_course_syllabus_52282dd3: "Silibus Kursus Umum Mesa"
@@ -19497,6 +19548,7 @@ ms:
   mobile_a08ef8fa: "Mudah Alih"
   mobile_app_css_file_abbf06bd: "Fail CSS apl mudah alih"
   mobile_app_javascript_file_faea55d5: "Fail JavaScript apl mudah alih"
+  mobile_app_qr_login_67204ac9: "Log Masuk QR Aplikasi Mudah Alih"
   mobile_homescreen_icon_f85d6b63: "Ikon Skrin Utama Mudah Alih"
   mobile_number_5fc2967d: "Nombor Mudah Alih"
   mobile_offline_mode_7eaff590: "Mod luar talian mudah alih"
@@ -19592,6 +19644,7 @@ ms:
   module_navigation_97043417: "Navigasi Modul"
   module_options_24663bfb: "Pilihan Modul"
   module_overview_3922742e: "Gambaran Keseluruhan Modul"
+  module_progress_for_c84a4519: "Kemajuan Modul untuk  "
   module_progress_for_name_fbff0ccb: "Kemajuan Modul untuk *%{name}*"
   module_publish_menu_30b638dd: "Menu Terbit Modul"
   module_publish_menu_88b54c1b: "Menu terbit modul"
@@ -19643,6 +19696,7 @@ ms:
   mon_8f18082a: Isn
   monday_432ff613: Isnin
   mongolian_5467c6a8: "Bahasa Mongolia"
+  monitor_and_improve_content_quality_and_accessibil_5a051319: "Pantau dan tingkatkan kualiti kandungan serta kebolehcapaian merentasi kursus anda"
   monitor_b908967: Pantau
   monitor_c42db0fb: monitor
   month_4b83b95f: Bulan
@@ -19770,6 +19824,7 @@ ms:
   multi_factor_authentication_1a6b3b3d: "Pengesahan berbilang faktor"
   multi_factor_authentication_backup_codes_4d781044: "Kod Sandaran Pengesahan Berbilang Faktor"
   multi_factor_authentication_configured_865b1bde: "Pengesahan berbilang faktor dikonfigurasikan"
+  multi_factor_authentication_management_627b6f95: "Pengurusan Pengesahan Berbilang Faktor"
   multi_factor_authentication_mfa_enhances_security__5c37b7e2: |-
       Pengesahan Berbilang Faktor  (MFA) meningkatkan keselamatan dengan meminta kata laluan peranti fizikal anda dan log masuk Canvas anda.
       %{otp_via_sms_message}
@@ -20192,6 +20247,7 @@ ms:
   new_release_note_37ec0ea7: "Nota Keluaran Baharu"
   new_rule_has_been_created_successfully_53a54623: "Peraturan baharu telah berjaya dicipta."
   new_rule_rule_has_been_created_successfully_fead4008: "Peraturan baharu \"%{rule}\" telah berjaya dicipta."
+  new_secret_1e144929: "Rahsia Baharu"
   new_setting_name_2bfbaeec: "Nama tetapan baharu..."
   new_setting_value_373a7dc7: "Nilai tetapan baharu..."
   new_single_tag_a25a577f: "Tag tunggal baharu"
@@ -20301,6 +20357,7 @@ ms:
   no_blackout_dates_1297ec22: "Tiada tarikh tegah liputan"
   no_broken_links_found_38d951e3: "Tiada pautan tidak berfungsi ditemui"
   no_cancel_installation_db8d12d7: "Tidak, Batalkan Pemasangan"
+  no_canvas_authentication_provider_194ebf2a: "tiada penyedia pengesahan Canvas"
   no_changes_8359125b: "Tiada Perubahan"
   no_changes_detected_the_registration_will_remain_t_99d2ef5a: "Tiada perubahan dikesan. Pendaftaran akan kekal sama."
   no_child_topic_found_b706d56a: "tiada topik anak ditemui"
@@ -20428,6 +20485,7 @@ ms:
   no_outcome_selected_16d15753: "Tiada Hasil Dipilih"
   no_override_uris_configured_for_this_tool_a4d1087e: "Tiada URI gantian dikonfigurasikan untuk alat ini."
   no_password_was_given_472222e5: "Tiada kata laluan diberikan"
+  no_peer_reviews_are_available_to_complete_at_this__1bedcd1d: "Tiada tinjauan semula setara yang tersedia untuk dilengkapkan buat masa ini. Semak semula selepas lebih ramai pelajar telah membuat serahan."
   no_peer_reviews_available_6e7e45a5: "Tiada tinjauan semula setara tersedia"
   no_pending_changes_65d4b8ef: "Tiada perubahan belum selesai"
   no_pending_changes_to_apply_b28f98cf: "Tiada perubahan yang masih belum selesai untuk dilaksanakan"
@@ -20686,6 +20744,8 @@ ms:
   nothing_planned_today_selecting_most_recent_item_ffd71bff: "Belum ada perancangan hari ini. Memilih item terkini."
   nothing_planned_today_selecting_next_item_f6718aa: "Belum ada perancangan hari ini. Memilih item seterusnya."
   nothing_planned_yet_8675ffe9: "Belum Ada Perancangan"
+  nothing_to_grade_yet_c4201369: "Belum ada apa-apa untuk digredkan"
+  nothing_to_review_cb7233e4: "Tiada apa-apa untuk ditinjau semula"
   nothing_to_split_off_of_this_user_28ba9dd5: "Tiada apa-apa untuk dibahagikan daripada pengguna ini"
   notice_concluded_student_6d416c4: "Notis: Pelajar Selesai"
   notice_handlers_1f39db9e: "Pemegang Notis"
@@ -21212,6 +21272,8 @@ ms:
       (lalai 900).
   on_the_third_dayname_e7079e49: "pada %{dayname} ketiga"
   on_time_17ca5ad9: "Tepat Masa"
+  on_time_amount_d0ee22b: "Menepati masa (%{amount})"
+  on_time_b7f8f5e7: "Menepati masa"
   on_time_percent_eebffe38: "Tepat Masa: %{percent}"
   on_top_8b78211c: "Di Bahagian Atas"
   once_a_grade_is_posted_manually_it_will_automatica_26aff290: "\n\
@@ -21234,6 +21296,7 @@ ms:
   one_or_more_content_items_sent_by_this_external_ap_76a5ba2a: "Satu atau lebih item kandungan yang dihantar oleh apl luar ini gagal untuk diproses dengan betul. Item kandungan ini tidak disimpan oleh Canvas, dan sebab kegagalan disenaraikan di bawah."
   one_or_more_grade_selected_was_provided_by_a_grade_58d46830: "Satu atau lebih gred yang dipilih diberikan oleh penggred dengan pendaftaran tidak aktif. Sila kemas kini pilihan anda kepada gred yang diberikan oleh penggred semasa."
   one_or_more_items_are_currently_being_imported_the_186fe069: "Satu atau lebih item sedang diimport pada masa ini. Item ini akan ditunjuk dalam kursus di bawah setelah ia tersedia."
+  one_or_more_selected_files_cannot_be_accessed_1dcf1d3b: "Satu atau lebih fail yang dipilih tidak boleh diakses"
   one_per_line_22deb010: "Satu pada setiap baris"
   one_per_line_format_name_value_173efc31: "Satu pada setiap baris. Nama format=nilai"
   one_per_line_format_name_value_79647700: "Satu pada setiap baris. Format: nama=nilai"
@@ -21858,6 +21921,7 @@ ms:
   password_must_include_at_least_one_special_charact_5982b827: "Kata laluan mestilah termasuk sekurang-kurangnya satu aksara khusus."
   password_options_f798095a: "Pilihan Kata Laluan"
   password_recovery_email_successfully_sent_8a736455: "E-mel pemulihan kata laluan berjaya dihantar."
+  password_reset_enqueued_for_all_canvas_logins_95b148d9: "Tetapan semula kata laluan diaturkan untuk semua log masuk Canvas."
   password_settings_saved_successfully_51c607f1: "Tetapan kata laluan berjaya disimpan."
   passwords_do_not_match_783bf99e: "Kata laluan tidak sepadan."
   past_14da759a: Lepas
@@ -22122,6 +22186,7 @@ ms:
   permissions_365c49e: Keizinan
   permissions_have_been_successfully_set_8d955e15: "Keizinan telah berjaya ditetapkan."
   permissions_manage_9eea4f8f: "Keizinan - urus"
+  permit_client_credentials_elevated_operations_b7ec4148: "Izinkan Operasi Tinggi Kelayakan Klien"
   permit_usage_of_all_includes_parameters_for_this_d_4f8318f4: "Izinkan penggunaan semua parameter \"include\" untuk kunci pembangun ini. Parameter \"include\" boleh memberikan akses kepada data tambahan yang tidak termasuk dalam skop yang dipilih di bawah."
   permit_usage_of_all_includes_parameters_for_this_d_aaff83d6: "Izinkan penggunaan semua parameter “includes” untuk kunci pembangun ini. Parameter “includes” boleh memberikan akses kepada data tambahan yang tidak termasuk dalam skop yang dipilih di bawah."
   permitted_api_endpoints_b092c4cc: "Titik akhir API yang diizinkan"
@@ -23459,6 +23524,7 @@ ms:
       integration_taken: "ID Integrasi sudah pun digunakan"
       invalid: "Hanya boleh mengandungi huruf, nombor atau yang berikut: %{characters}"
       mismatch: "Tidak sepadan"
+      must_differ: "Mestilah berbeza daripada kata laluan semasa"
       no_digits: "Mestilah termasuk sekurang-kurangnya satu nombor"
       no_symbols: "Mestilah termasuk sekurang-kurangnya satu simbol"
       not_email: "Bukan alamat e-mel yang sah"
@@ -23497,6 +23563,10 @@ ms:
       account_registered: "Akaun didaftarkan!"
       account_updated: "Akaun dikemas kini!"
       email_sent: "E-mel pengesahan dihantar kepada %{email}, pastikan anda memeriksa kotak spam"
+    set_password: 
+      confirm_change_password: 
+        loading: Memuatkan...
+      page_title: "Ubah Kata Laluan"
   pseudonyms_4c9734ec: "Nama samaran"
   pseudonyms_mobile_login: 
     parent_signup: "Pendaftaran Ibu Bapa"
@@ -24790,6 +24860,7 @@ ms:
   rate_limiting_settings_7d1ea666: "Tetapan pengehadan kadar"
   rate_limiting_settings_apply_to_external_tools_and_ff88e262: "Tetapan pengehadan kadar digunakan untuk alat luaran dan integrasi yang menggunakan konfigurasi klien OAuth dengan parameter pendikit."
   rate_limiting_view_4729b95a: "Pengehadan Kadar - lihat"
+  rate_of_assignments_submitted_1648a508: "%{rate}% daripada tugasan diserahkan"
   rate_of_assignments_submitted_a32a5392: "%{rate} daripada tugasan diserahkan"
   rather_than_automatically_placing_manually_created_35195e72: |-
       Berbanding dengan meletakkan kursus yang dicipta secara manual dalam
@@ -24943,6 +25014,7 @@ ms:
   recent_exports_table_cb98b2dd: "Jadual eksport terkini"
   recent_f19e8c64: Terkini
   recent_grades_c80850fc: "Gred terkini"
+  recent_grades_feedback_d9a38fa2: "Gred dan maklum balas terkini"
   recent_grades_pagination_aad399c8: "Penomboran halaman gred terkini"
   recent_history_bcb0f4c0: "Sejarah Terkini"
   recent_history_tray_241a384e: "Dulang Sejarah Terkini"
@@ -25022,13 +25094,17 @@ ms:
   regenerate_3e4679f8: "Jana Semula"
   regenerate_alt_text_1be48296: "Jana Semula Teks Alternatif"
   regenerate_alt_text_42a04ffe: "Jana semula teks alternatif"
+  regenerate_api_secret_3a6cefbc: "Jana semula Rahsia API"
   regenerate_caption_f8f18807: "Jana semula kapsyen"
   regenerate_criteria_7301f7fc: "Jana Semula Kriteria"
   regenerate_criterion_8a7d4a61: "Jana Semula Kriteria"
   regenerate_epub_395c8e56: "Jana Semula ePub"
+  regenerate_secret_4ed82b15: "Jana semula Rahsia"
   regenerate_summary_f189e9d: "Jana Semula Ringkasan"
   regenerate_token_7d4fb783: "Jana Semula Token"
+  regenerating_secret_b5cda90c: "Menjana semula rahsia"
   regenerating_themes_462e6cd9: "Menjana semula tema..."
+  regenerating_this_secret_will_invalidate_the_exist_bcf2d3ac: "Penjanaan semula rahsia ini akan membatalkan kesahan rahsia yang sedia ada. Mana-mana aplikasi yang menggunakan rahsia yang lama akan berhenti berfungsi sehingga dikemas kini dengan rahsia baharu."
   regenerating_token_42e5c747: "Menjana Semula Token..."
   region_47e29025: "Rantau:"
   region_939f2a6c: Rantau
@@ -25462,6 +25538,7 @@ ms:
   require_group_members_to_be_in_the_same_section_7f6c36af: "Pastikan ahli kumpulan berada dalam seksyen yang sama"
   require_manage_lti_permissions_to_set_external_app_9d7481a: "Perlu keizinan Urus LTI untuk menetapkan token Pusat Aplikasi Luaran"
   require_number_characters_0_9_82a543cc: "Memerlukan aksara angka (0...9)"
+  require_password_change_on_next_login_de087f0d: "Memerlukan penukaran kata laluan pada log masuk seterusnya"
   require_peer_reviews_9b5199d4: "Perlu Tinjauan Semula Setara"
   require_respondus_lockdown_browser_31425b3a: "Memerlukan Pelayar LockDown Respondus"
   require_symbol_characters_ie_usd_5bf9ffcc: "Memerlukan aksara simbol (iaitu: ! @ # $ %)"
@@ -25491,6 +25568,10 @@ ms:
   requirements_c64bcef3: Syarat
   requires_ask_your_data_permission_to_use_349e9be4: "Memerlukan keizinan Tanya Data Anda untuk digunakan."
   requires_recaptcha_for_self_registration_by_defaul_c1a9db63: "Memerlukan ReCAPTCHA untuk pendaftaran kendiri secara lalai"
+  requires_that_developer_key_create_update_delete_a_2fe32259: |-
+      Memerlukan Kunci Pembangun mencipta/mengemas kini/memadamkan permintaan API
+      yang berasal daripada domain sama dengan akaun akar kunci.
+      Mengelakkan mutasi rentas domain Kunci Pembangun melalui API.
   reregister_9ab95a57: "Daftar Semula"
   reregister_toolname_3dde0bfc: "Daftar Semula %{toolName}"
   rescan_dff042fc: "Imbas Semula"
@@ -25598,6 +25679,7 @@ ms:
   resubmit_to_tool_name_1cf02a31: "Serah semula kepada %{tool_name}"
   resubmitted_2080646f: "Diserahkan semula"
   resubmitted_all_replies_to_document_processing_app_93d9818b: "Semua balasan diserahkan semula kepada Aplikasi Pemprosesan Dokumen"
+  resubmitted_amount_56a53006: "Diserahkan semula (%{amount})"
   resubmitted_since_last_graded_8484d285: "Diserahkan semula sejak kali terakhir digredkan"
   resubmitted_to_document_processing_app_a5e1bc1: "Diserah Semula kepada Aplikasi Pemprosesan Dokumen"
   result_8f971a09: Keputusan
@@ -25642,6 +25724,7 @@ ms:
   review_7197fba3: "Semak "
   review_action_7bcca971: "Semak Tindakan"
   review_and_fix_e31364ca: "Semak dan perbetul"
+  review_and_grade_student_submissions_organized_by__2ae3862b: "Tinjau semula dan gredkan serahan pelajar yang disusun mengikut serahan"
   review_due_date_a4a08771: "Tarikh Siap Semakan"
   review_e5be5adc: Semak
   review_evaluation_2f68becd: "Penilaian Semakan"
@@ -26351,6 +26434,7 @@ ms:
   secondary_id_2812f253: "ID Sekunder:"
   secondary_info_835a07dd: "Maklumat sekunder"
   secret_key_2c9ea73c: "Kunci Rahsia:"
+  secret_regenerated_successfully_b9860ae0: "Rahsia Berjaya Dijana Semula"
   section: 
     confirms: 
       delete_enrollment: "Adakah anda pasti anda ingin memadamkan pendaftaran ini secara kekal?"
@@ -26473,6 +26557,7 @@ ms:
   sections_aef3ebf2: "Seksyen: "
   sections_are_an_additional_way_to_organize_users_t_57551e0: "Seksyen ialah cara tambahan untuk menyusun atur pengguna. Cara ini membolehkan anda mengajar berbilang kelas daripada kursus yang sama, supaya anda dapat meletakkan semua kandungan kursus pada satu tempat. Di bawah ini anda boleh mengalih pengguna ke seksyen yang berbeza, atau menambah/mengalih keluar pendaftaran seksyen. Pengguna mestilah berada dalam sekurang-kurangnya satu seksyen sepanjang masa."
   security_7a7e8808: Keselamatan
+  security_alerts_automate_user_deactivation_suspend_f4e704e5: "Isyarat Keselamatan - automasikan penyahaktifan pengguna (gantung, token tamat tempoh)"
   security_setting_to_restrict_join_urls_to_a_confer_258d3605: "Tetapan keselamatan untuk menyekat penyertaan URL ke persidangan"
   security_tab_failed_to_load_2d2242a: "Tab Keselamatan gagal dimuatkan"
   security_tab_failed_to_load_58394e89: "Tab Keselamatan gagal dimuatkan."
@@ -27661,6 +27746,7 @@ ms:
   show_sections_in_course_tray_2fa08349: "Tunjuk Seksyen dalam Dulang Kursus."
   show_sub_accounts_for_account_name_fa71a658: "Tunjuk Sub-Akaun untuk %{account_name}"
   show_suggestions_when_typing_b72545de: "Tunjuk cadangan semasa menaip"
+  show_summary_counts_ceb6a2e2: "Tunjuk bilangan ringkasan"
   show_to_d57767f: "Tunjuk kepada"
   show_to_everyone_94d66d01: "Tunjuk kepada semua orang"
   show_totals_as_points_on_student_grade_page_d9cb4207: "Tunjuk Jumlah sebagai Mata pada Halaman Gred Pelajar"
@@ -27853,6 +27939,10 @@ ms:
       akar. Sekiranya mencari akaun akar pengguna menyebabkan isu prestasi, kami boleh menggunakan bendera ini untuk mengelakkan
       kesan terhadap pelanggan. Menurut pelan, bendera ini akan didayakan terlebih dahulu sebelum mencuba penyegerakan pengguna bagi memastikan bahawa
       mencari akaun akar pengguna sahaja tidak menyebabkan isu prestasi.
+  site_admin_level_kill_switch_for_instructure_ident_cea71540: |-
+      Suis pemati tahap Pentadbir Laman untuk penyegerakan pengguna Instructure Identity. Apabila dinyahdayakan,
+      penyegerakan pengguna dimatikan untuk semua akaun akar tanpa mengira bendera
+      instructure_identity_user_sync bagi setiap akaun akar.
   site_admin_only_75b35b89: "Pentadbir Laman Sahaja"
   site_admin_only_send_to_1_denominator_users_in_ena_b4b3ed14: "Pentadbir Laman Web Sahaja Hantar kepada 1 / %{denominator} pengguna dalam akaun yang didayakan setiap bulan."
   site_admin_rate_limiting_b3222a4c: "Pentadbir Laman - Pengehadan Kadar"
@@ -28308,6 +28398,7 @@ ms:
   statuses_f41543d8: Status
   statusname_status_successfully_saved_5f8ab9f: "Status %{statusName} berjaya disimpan"
   stay_signed_in_1853e9b6: "Kekal berdaftar masuk"
+  stay_updated_with_the_latest_announcements_from_yo_63fdcbda: "Kekal mengikuti pengumuman terkini daripada kursus anda"
   steel_4baa48ca: Besi
   stemscopes_namespace_custom_data_87bcd65a: "STEMScopes - Data Tersuai Namespace"
   step: Langkah
@@ -28825,6 +28916,7 @@ ms:
   submissions_instructor_proxy_2247c633: "Serahan - proksi pengajar"
   submissions_posted_title_course_43677dba: "Serahan Disiarkan: %{title}, %{course}"
   submissions_to_assignments_including_legacy_graded_6d2bffb3: "Serahan untuk tugasan (termasuk kuiz bergred legasi) mengikut subjek."
+  submissions_will_appear_here_727cf947: "Serahan akan muncul di sini."
   submit_a3cc6859: Serahkan
   submit_a_comment_7edbf648: "Serahkan Komen"
   submit_a_feature_idea_2d4baa3d: "Serahkan Idea yang Menonjol"
@@ -30228,6 +30320,9 @@ ms:
   this_feature_can_t_be_enabled_while_autodetection__a3552fb4: "Ciri ini tidak boleh didayakan ketika pengesanan automatik pemisah medan didayakan"
   this_feature_can_t_be_enabled_while_semicolons_are_2e0adb54: "Ciri ini tidak boleh didayakan ketika koma bernoktah dijadikan pemisah medan"
   this_feature_enables_automatic_captioning_of_media_401c0201: "Ciri ini mendayakan pengkapsyenan automatik untuk komen serahan media."
+  this_feature_enables_graders_to_view_other_graders_9de0e665: |
+      Ciri ini membolehkan penggred melihat perubahan penggred lain dalam masa nyata apabila
+      menggred secara serentak dalam Buku Gred.
   this_feature_enables_lti_tools_to_create_asset_pro_1d08fc0d: |-
       Ciri ini mendayakan alat LTI untuk mencipta Pemproses Aset dan menggunakan perkhidmatan dan peletakan yang dikaitkan
       dengan spesifikasi Pemproses Aset 1EdTech.
@@ -31024,6 +31119,7 @@ ms:
   to_do_items_and_notes_created_by_the_subject_in_th_69839a3: "Item untuk dilakukan dan nota dicipta mengikut subjek dalam perancang Canvas."
   to_do_items_loading_d1cdfcd5: "Item Untuk Dilakukan Sedang Dimuatkan"
   to_do_itemtitle_5ab47e98: "Untuk Dilakukan, %{itemTitle}"
+  to_do_list_7837950d: "Senarai untuk dilakukan"
   to_do_list_pagination_f34c283c: "Penomboran halaman senarai untuk dilakukan"
   to_do_time_a7e17623: "Masa Untuk Dilakukan"
   to_edit_a_discussion_discussions_moderate_must_als_bd4c60f7: "Untuk mengedit perbincangan, Perbincangan - kendali mesti didayakan juga."
@@ -31304,6 +31400,8 @@ ms:
   totals_are_calculated_based_only_on_graded_assignm_7d1bbf55: "Jumlah dikira berdasarkan tugasan bergred sahaja"
   totals_be24703: Jumlah
   track_student_performance_and_activity_a92a2a8b: "Jejak prestasi dan aktiviti pelajar"
+  track_your_grades_and_academic_progress_across_all_acc041ce: "Jejaki gred dan kemajuan akademik anda merentasi semua kursus"
+  track_your_progress_across_courses_with_module_and_c23ca98a: "Jejaki kemajuan anda merentasi kursus dengan modul dan statistik tugasan"
   traditional_e5a0d358: Tradisional
   traditional_grade_export_e4414069: "Eksport Gred Tradisional"
   traditional_gradebook_d90461dc: "Buku Gred Tradisional"
@@ -32520,6 +32618,7 @@ ms:
         sis_id: "ID SIS"
         unique_id: "Log masuk"
       more: lagi...
+      must_reset_password: "Penetapan semula kata laluan diperlukan"
       never: "tidak pernah"
       none: tiada
       reset_mfa: "Tetap Semula Pengesahan Berbilang Faktor"
@@ -32763,6 +32862,8 @@ ms:
   view_all_messages_in_inbox_bc10cd69: "Lihat semua mesej dalam peti masuk"
   view_analytics_data_in_tables_instead_of_graphs_8a33f536: "Lihat data analisis dalam bentuk jadual, bukan graf"
   view_analytics_for_name_9b31594e: "Lihat analisis untuk %{name}"
+  view_and_contact_your_course_instructors_and_teach_d0d703f2: "Lihat dan hubungi pengajar kursus dan pembantu pengajar anda"
+  view_and_manage_your_planner_items_and_upcoming_ta_7ae41c55: "Lihat dan urus item penjadual anda dan tugasan akan datang"
   view_announcements_b6d6d819: "Lihat pengumuman"
   view_app_center_6c89a3fe: "Lihat Pusat Apl"
   view_app_configurations_52b52441: "Lihat Konfigurasi Apl"
@@ -32783,6 +32884,7 @@ ms:
     one: "Lihat 1 Hasil"
     other: "Lihat %{count} Hasil"
   view_course_analytics_eefe6b2: "Lihat Analisis Kursus"
+  view_course_work_statistics_and_assignments_in_one_392f3aac: "Lihat statistik kerja kursus dan tugasan anda dalam satu pandangan menyeluruh"
   view_coursename_gradebook_8b3a6240: "Lihat Buku Gred %{courseName}"
   view_coursename_gradebook_9cbe0e3: "Lihat buku gred %{courseName}"
   view_coursename_s_assignment_group_totals_bd4b707: "Lihat Jumlah Kumpulan Tugasan %{courseName}"
@@ -32847,6 +32949,7 @@ ms:
   view_progress_2d61dd4: "Lihat Kemajuan"
   view_question_banks_188a9e0f: "Lihat Bank Soalan"
   view_range_student_details_8116d68a: "Lihat julat butiran pelajar"
+  view_recent_messages_from_your_canvas_conversation_b8049bfd: "Lihat mesej terkini daripada perbualan Canvas anda"
   view_registered_services_6c8cd301: "Lihat Perkhidmatan Berdaftar"
   view_replies_8565a729: "Lihat Balasan"
   view_report_73f7b8f8: "Lihat Laporan"
@@ -32878,6 +32981,7 @@ ms:
   view_user_8b1082bc: "Lihat Pengguna"
   view_user_groups_538f22b4: "Lihat Kumpulan Pengguna"
   view_user_groups_d2bfa855: "Lihat kumpulan pengguna"
+  view_your_recently_graded_assignments_and_submissi_e3969261: "Lihat tugasan dan serahan anda yang digredkan baru-baru ini"
   viewed_6b75c21e: Dilihat
   viewed_at_25e51e3b: "Dilihat Pada"
   viewing_folders_is_not_available_798a15e1: "Melihat folder tidak disediakan"
@@ -33932,6 +34036,7 @@ ms:
   you_must_attach_at_least_one_file_to_this_assignme_9f39ce12: "Anda mesti mengepilkan sekurang-kurangnya satu fail untuk tugasan ini"
   you_must_be_authorized_to_manage_sis_in_order_to_r_a218ceb7: "Anda mesti memperoleh kebenaran untuk mengurus SIS bagi mengaktifkan semula log masuk dengan ID SIS yang berkaitan."
   you_must_be_authorized_to_manage_sis_in_order_to_s_bb867901: "Anda mesti memperoleh kebenaran untuk mengurus SIS bagi menggantung log masuk dengan ID SIS yang berkaitan."
+  you_must_change_your_password_to_continue_3d30aa9e: "Anda mestilah menukar kata laluan anda untuk meneruskan"
   you_must_choose_a_content_option_c776bdef: "Anda mesti memilih pilihan kandungan"
   you_must_complete_all_discussion_requirements_your_a696939f: "Anda mestilah melengkapkan semua keperluan perbincangan—hantaran awal dan balasan wajib anda—.sebelum anda dapat memulakan tinjauan semula setara."
   you_must_enter_a_date_f8eabfb1: "Anda mesti memasukkan tarikh"
@@ -34000,6 +34105,7 @@ ms:
   you_ve_been_invited_to_the_course_course_course_ro_a74d748b: "Anda telah dijemput ke kursus, %{course}. Peranan kursus: %{role_type}"
   you_ve_been_mentioned_discussion_topic_by_user_nam_60649d56: "Anda telah disebut: %{discussion_topic} sebelum atau pada %{user_name}"
   you_ve_been_reminded_to_assess_rubric_context_70eeb600: "Anda telah diberikan peringatan untuk mentaksir %{rubric}, %{context}."
+  you_ve_hit_the_ai_experiences_rate_limit_please_tr_99725722: "Anda telah mencapai had kadar Pengalaman AI. Sila cuba semula kemudian."
   you_ve_hit_the_study_tools_rate_limit_try_again_la_f3cb84ea: "Anda telah mencapai had kadar alat belajar. Cuba semula kemudian."
   you_ve_scrolled_back_to_your_very_first_to_do_873510d1: "Anda telah menatal kembali ke perkara Untuk Dilakukan yang mula-mula sekali!"
   you_ve_updated_the_scoring_criteria_this_will_affe_ec852671: "Anda telah mengemas kini kriteria penskoran; ini akan mempengaruhi semua pelajar yang telah ditaksir menggunakan hasil ini sebelumnya"
@@ -34056,6 +34162,7 @@ ms:
   you_will_not_be_able_to_preview_your_changes_f7b868fb: "Anda tidak akan dapat melihat pratonton perubahan anda"
   you_will_not_receive_any_course_notifications_at_t_7d9ce24f: "Anda tidak akan menerima apa-apa pemberitahuan kursus pada masa ini. Untuk mendayakan pemberitahuan kursus, gunakan togol di atas."
   you_will_only_see_comments_written_by_you_f294cb9d: "Anda hanya akan melihat komen yang ditulis oleh anda."
+  your_administrator_requires_you_to_choose_a_new_pa_2fd7897b: "Pentadbir anda memerlukan anda memilih kata laluan baharu sebelum meneruskan. Anda akan perlu mendaftar masuk selepas mengemas kini kata laluan."
   your_answer_3c264ee8: "Jawapan anda..."
   your_answer_8dad6ea4: "Jawapan Anda:"
   your_app_has_been_successfully_installed_this_moda_29640ff1: "Aplikasi anda telah berjaya dipasang. Modal ini hendaklah ditutup seketika."
