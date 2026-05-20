@@ -22,7 +22,7 @@
   item_data ||= { published_status: 'unpublished' }
   completion_criteria ||= nil
   editable ||= false
-  criterion = completion_criteria && completion_criteria.find{|c| c[:id] == module_item.id}
+  criterion = completion_criteria&.find{|c| c[:id] == module_item.id}
 %>
 
 <li

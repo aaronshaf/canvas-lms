@@ -44,16 +44,16 @@
       <% if @assignment.submission_types && @assignment.annotated_document? %>
         <li><a href="#submit_annotated_document_form" class="submit_annotated_document_option"><%= t 'Student Annotation' %></a></li>
       <% end %>
-      <% if @assignment.submission_types && @assignment.submission_types.include?('online_upload') %>
+      <% if @assignment.submission_types&.include?('online_upload') %>
         <li><a href="#submit_online_upload_form" class="submit_online_upload_option"><%= t 'links.submit.file_upload', "File Upload" %></a></li>
       <% end %>
-      <% if @assignment.submission_types && @assignment.submission_types.include?('online_text_entry') %>
+      <% if @assignment.submission_types&.include?('online_text_entry') %>
         <li><a href="#submit_online_text_entry_form" class="submit_online_text_entry_option"><%= t 'links.submit.text_entry', "Text Entry" %></a></li>
       <% end %>
-      <% if @assignment.submission_types && @assignment.submission_types.include?('online_url') %>
+      <% if @assignment.submission_types&.include?('online_url') %>
         <li><a href="#submit_online_url_form" class="submit_online_url_option"><%= t 'links.submit.website', "Website URL" %></a></li>
       <% end %>
-      <% if @assignment.submission_types && @assignment.submission_types.include?('media_recording') %>
+      <% if @assignment.submission_types&.include?('media_recording') %>
         <li><a href="#submit_media_recording_form" class="submit_media_recording_option"><%= t 'links.submit.media', "Media" %></a></li>
       <% end %>
       <% (@external_tools || []).each do |external_tool| %>
@@ -63,15 +63,15 @@
           data-name="<%= external_tool.name %>"><%= external_tool.label_for(:homework_submission, I18n.locale) %></a></li>
       <% end %>
     </ul>
-    <% if @assignment.submission_types && @assignment.submission_types.include?('online_upload') %>
+    <% if @assignment.submission_types&.include?('online_upload') %>
       <%= render :partial => 'assignments/submit_online_upload', locals: { eula_url: eula_url } %>
     <% end %>
 
-    <% if @assignment.submission_types && @assignment.submission_types.include?('online_text_entry') %>
+    <% if @assignment.submission_types&.include?('online_text_entry') %>
       <%= render :partial => 'assignments/submit_online_text_entry', locals: { eula_url: eula_url } %>
     <% end %>
 
-    <% if @assignment.submission_types && @assignment.submission_types.include?('online_url') %>
+    <% if @assignment.submission_types&.include?('online_url') %>
       <%= form_tag(submission_create_url, {:id => "submit_online_url_form", :class => "submit_assignment_form"}) do %>
         <%= hidden_field :submission, :submission_type, :value => "online_url" %>
         <table class="formtable" style="width: 100%;">
@@ -174,7 +174,7 @@
     }
     </style>
 
-    <% if @assignment.submission_types && @assignment.submission_types.include?('media_recording') %>
+    <% if @assignment.submission_types&.include?('media_recording') %>
       <% if !feature_enabled?(:kaltura) %>
         <div id="submit_media_recording_form">
           <h3><%= t 'titles.media_recordings_disabled', "Media recordings are not enabled for this Canvas site" %></h3>

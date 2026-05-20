@@ -25,7 +25,7 @@
     provide :head, include_common_stylesheets
     js_env({ notices: flash_notices })
 
-    body_classes << 'Underline-All-Links__enabled' if @current_user && @current_user.feature_enabled?(:underline_all_links)
+    body_classes << 'Underline-All-Links__enabled' if @current_user&.feature_enabled?(:underline_all_links)
 
     -%>
     <%= render :partial => "layouts/head" %>

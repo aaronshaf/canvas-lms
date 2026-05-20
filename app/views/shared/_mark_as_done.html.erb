@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% if @mark_done and @mark_done.has_requirement? %>
+<% if @mark_done&.has_requirement? %>
   <span id="mark-as-done-container">
     <button id="mark-as-done-checkbox" class="btn <%= @mark_done.checked? ? "btn-success" : '' %>"
          data-url="<%= @mark_done.api_url %>" data-is-checked="<%= @mark_done.checked? %>">

@@ -25,7 +25,7 @@
   <% end %>
 
   <% if @current_student_submissions.present? %>
-    <% if @assignment.submission_types && @assignment.submission_types.match(/(online_upload|online_text_entry|online_url)/) && @downloadable_submissions %>
+    <% if @assignment.submission_types&.match(/(online_upload|online_text_entry|online_url)/) && @downloadable_submissions %>
       <li>
         <%= render :partial => 'submissions/submission_download' %>
         <a href="<%= context_url(@context, :context_assignment_submissions_url, @assignment.id, :zip => 1) %>"

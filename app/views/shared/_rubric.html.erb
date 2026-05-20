@@ -129,9 +129,9 @@
           ><i class="icon-trash standalone-icon"></i></a>
         <% end %>
         <div style="display: none;">
-          <div class="use_for_grading"><%= (rubric_association && rubric_association.use_for_grading) ? "true" : nbsp %></div>
-          <div class="free_form_criterion_comments"><%= (rubric && rubric.free_form_criterion_comments) ? "true" : nbsp %></div>
-          <div class="hide_score_total"><%= (rubric && rubric.hide_score_total) ? "true" : nbsp %></div>
+          <div class="use_for_grading"><%= (rubric_association&.use_for_grading) ? "true" : nbsp %></div>
+          <div class="free_form_criterion_comments"><%= (rubric&.free_form_criterion_comments) ? "true" : nbsp %></div>
+          <div class="hide_score_total"><%= (rubric&.hide_score_total) ? "true" : nbsp %></div>
           <div class="hide_outcome_results"><%= (rubric_association&.hide_outcome_results) ? "true" : nbsp %></div>
           <div class="hide_points"><%= (rubric_association&.hide_points(@current_user)) ? "true" : nbsp %></div>
           <div class="rubric_association_id"><%= rubric_association ? rubric_association.id : nbsp %></div>
@@ -176,7 +176,7 @@
         </tr>
       </thead>
       <tbody>
-        <% if rubric && rubric.criteria %>
+        <% if rubric&.criteria %>
           <% learning_outcome_ids = edit_view ? rubric.learning_outcome_ids_from_results : [] %>
           <% rubric.criteria_object.each do |criterion| %>
             <% rating = assessment.ratings.find{|r| r[:criterion_id] == criterion.id} rescue nil %>
@@ -193,7 +193,7 @@
         <span id="add_criterion_holder" class="criterion_link"></span>
       </div>
       <div class="total_points_holder toggle_for_hide_points <%= rubric_association&.hide_points(@current_user) ? 'hidden' : '' %>"
-        style="<%= hidden if rubric_association && rubric_association.hide_score_total %>">
+        style="<%= hidden if rubric_association&.hide_score_total %>">
         <span role="text"><%= before_label :total_points, "Total Points" %>
           <% ot(:out_of, "%{points} *out of %{total}*", :points => capture { %>
             <span class="rubric_total">
@@ -214,7 +214,7 @@
     <form id="edit_rubric_form" class="edit-rubric-form no-margin-bottom" aria-label="<%= t "Rubric configuration" %>">
       <div class="rubric_custom_ratings" style="<%= hidden unless @assignment %>">
         <label>
-          <input type="checkbox" id="rubric_custom_rating" class="rubric_custom_rating" <%= 'checked' if rubric && rubric.free_form_criterion_comments %>/>
+          <input type="checkbox" id="rubric_custom_rating" class="rubric_custom_rating" <%= 'checked' if rubric&.free_form_criterion_comments %>/>
           <%= t "I'll write free-form comments when assessing students" %>
         </label>
       </div>
@@ -235,14 +235,14 @@
       <% if show_grading %>
         <div class="rubric_grading" style="<%= hidden unless @assignment %>">
           <label>
-            <input type="checkbox" id="grading_rubric" class="grading_rubric_checkbox" <%= 'checked' if rubric_association && rubric_association.use_for_grading %>/>
+            <input type="checkbox" id="grading_rubric" class="grading_rubric_checkbox" <%= 'checked' if rubric_association&.use_for_grading %>/>
             <%= t 'labels.grading_rubric', "Use this rubric for assignment grading" %>
           </label>
         </div>
       <% end %>
       <div class="totalling_rubric" style="<%= hidden unless @assignment %>">
         <label>
-          <input type="checkbox" id="totalling_rubric" class="totalling_rubric_checkbox" <%= 'checked' if rubric_association && rubric_association.hide_score_total %>/>
+          <input type="checkbox" id="totalling_rubric" class="totalling_rubric_checkbox" <%= 'checked' if rubric_association&.hide_score_total %>/>
           <%= t "Hide score total for assessment results" %>
         </label>
       </div>

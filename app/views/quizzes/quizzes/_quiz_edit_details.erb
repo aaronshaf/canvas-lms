@@ -67,7 +67,7 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
           <label class="control-label" for="quiz_assignment_group_id"><%= t("Assignment Group") %></label>
           <div class="controls">
             <select name="quiz[assignment_group_id]" id="quiz_assignment_group_id">
-              <% current_group_id = (@quiz.assignment && @quiz.assignment.assignment_group_id) || @quiz.assignment_group_id
+              <% current_group_id = (@quiz.assignment&.assignment_group_id) || @quiz.assignment_group_id
                  @context.require_assignment_group %>
               <% @context.assignment_groups.active.each do |g| %>
                 <option value="<%= g.id %>" <%= 'selected' if g.id == current_group_id%>><%= g.name %></option>

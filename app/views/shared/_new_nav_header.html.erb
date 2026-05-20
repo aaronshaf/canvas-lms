@@ -18,7 +18,7 @@
 
 <% js_bundle :navigation_header %>
 
-<% if @domain_root_account && @domain_root_account.feature_enabled?(:product_tours) %>
+<% if @domain_root_account&.feature_enabled?(:product_tours) %>
   <% js_bundle :nav_tourpoints %>
 <% end %>
 
@@ -174,7 +174,7 @@
           </a>
         </li>
       <% end %>
-      <% if @current_user && @current_user.current_active_groups? %>
+      <% if @current_user&.current_active_groups? %>
         <li class="menu-item ic-app-header__menu-list-item <%= ' ic-app-header__menu-list-item--active' if active_path?('/groups') %>">
           <a id="global_nav_groups_link" role="button" href="/groups" class="ic-app-header__menu-list-link">
             <div class="menu-item-icon-container" aria-hidden="true">

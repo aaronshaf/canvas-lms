@@ -64,7 +64,7 @@
       <% count += 1 %>
       <% submission = submissions_by_student[student.id] %>
       <% student_name = (@quiz.survey? && @quiz.anonymous_submissions) ? t(:student_n, "Student %{n}", :n => count) : student.last_name_first %>
-      <tr class="student <%= 'extendable' if submission && submission.extendable? %> <%= 'in_progress' if submission && submission.untaken? %> <%= 'manually_unlocked' if submission && submission.manually_unlocked %>" id="student_<%= student.id %>" data-started-at="<%= submission && submission.started_at && submission.started_at.iso8601 %>" data-end-at="<%= submission && submission.end_at && submission.end_at.iso8601 %>" data-user-id="<%= student.id %>">
+      <tr class="student <%= 'extendable' if submission&.extendable? %> <%= 'in_progress' if submission&.untaken? %> <%= 'manually_unlocked' if submission&.manually_unlocked %>" id="student_<%= student.id %>" data-started-at="<%= submission&.started_at&.iso8601 %>" data-end-at="<%= submission&.end_at&.iso8601 %>" data-user-id="<%= student.id %>">
         <td class="check">
           <input type="checkbox" class="student_check" data-id="<%= student.id %>" title="<%= t('titles.select_user', "Select %{user}", :user => student_name) %>"/>
         </td>
@@ -110,11 +110,11 @@
           <span class="score"><%= submission && render_score(submission.kept_score) %></span>
         </td>
         <td class="unlocked_col">
-          <span class="unlocked" title="<%= manually_unlocked_title %>" style="<%= hidden unless submission && submission.manually_unlocked %>"><i class="icon-unlock standalone-icon" alt="<%= manually_unlocked_title %>"><span class="screenreader-only"><%= manually_unlocked_title %></span></i></span>
+          <span class="unlocked" title="<%= manually_unlocked_title %>" style="<%= hidden unless submission&.manually_unlocked %>"><i class="icon-unlock standalone-icon" alt="<%= manually_unlocked_title %>"><span class="screenreader-only"><%= manually_unlocked_title %></span></i></span>
         </td>
         <td class="edit links">
           <% cue_title = t('titles.change_user_extensions', "Change user extensions") %>
-          <span class="extra_attempts" style="display: none;"><%= submission && submission.extra_attempts %></span>
+          <span class="extra_attempts" style="display: none;"><%= submission&.extra_attempts %></span>
           <a href="#" class="moderate_student_link no-hover" title="<%= cue_title %>"><i class="icon-edit standalone-icon"><span class="screenreader-only"><%= cue_title %></span></i></a>
         </td>
       </tr>

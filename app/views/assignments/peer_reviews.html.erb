@@ -84,7 +84,7 @@
         <li class="peer_review no_requests_message" style="<%= hidden unless !submission || submission.assigned_assessments.for_active_users(@context).empty? %>"><%= t :none_assigned, "None Assigned" %></li>
         <% if submission %>
           <% Canvas::ICU.collate_by(submission.assigned_assessments.for_active_users(@context)) {|r| r.asset.user.sortable_name }.each do |request| %>
-            <% if (request && request.asset && request.asset.user) %>
+            <% if (request&.asset&.user) %>
               <%= render :partial => 'peer_review_assignment', :locals => {:request => request} %>
             <% end %>
           <% end %>

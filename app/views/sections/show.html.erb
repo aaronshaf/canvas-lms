@@ -236,7 +236,7 @@ h3 .tally {
     <% end %>
     </table>
   </div>
-  <% if @section && ( (@section.sis_source_id && can_do(@context, @current_user, :read_sis)) || can_do(@context, @current_user, :manage_sis))%>
+  <% if (@section&.sis_source_id && can_do(@context, @current_user, :read_sis)) || (@section && can_do(@context, @current_user, :manage_sis)) %>
     <div><%= before_label('sis_id', "SIS ID") %> <span class="sis_source_id"><%= @section.sis_source_id %></span></div>
   <% end %>
   <% if @section.start_at || @section.end_at %>

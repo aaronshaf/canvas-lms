@@ -56,20 +56,20 @@
             <% end %>
           </td>
           <th class='overview' scope='row'>
-            <b class='unique_id'><%= pseudonym && pseudonym.unique_id %></b>
+            <b class='unique_id'><%= pseudonym&.unique_id %></b>
             <% if pseudonym&.passwordable? %>
               <div style="display:none" class="must_reset_password"><%= pseudonym.must_reset_password %></div>
               <div class="must-reset-password-indicator" style="<%= 'display:none' unless pseudonym.must_reset_password? %>">
                 <%= t('must_reset_password', "Password reset required") %>
               </div>
             <% end %>
-            <% if pseudonym && ((pseudonym.sis_user_id && can_do(pseudonym.account, @current_user, :read_sis)) || can_do(pseudonym, @current_user, :manage_sis)) %>
+            <% if (pseudonym&.sis_user_id && can_do(pseudonym.account, @current_user, :read_sis)) || (pseudonym && can_do(pseudonym, @current_user, :manage_sis)) %>
               <div>
                 <%= before_label('sis_id', 'SIS ID') %> <span id="sis_user_id_<%= pseudonym.id %>" class="sis_user_id"><%= pseudonym.sis_user_id %></span>
               </div>
               <div style="display:none" class="can_edit_sis_user_id"><%= can_do(pseudonym, @current_user, :manage_sis) %></div>
             <% end %>
-            <% if pseudonym && ((pseudonym.integration_id && can_do(pseudonym.account, @current_user, :read_sis)) || can_do(pseudonym, @current_user, :manage_sis)) %>
+            <% if (pseudonym&.integration_id && can_do(pseudonym.account, @current_user, :read_sis)) || (pseudonym && can_do(pseudonym, @current_user, :manage_sis)) %>
                 <div>
                   <%= before_label('integration_id', 'Integration ID') %> <span id="integration_id_<%= pseudonym.id %>" class="integration_id"><%= pseudonym.integration_id %></span>
                 </div>
@@ -94,7 +94,7 @@
           <% if !pseudonym || can_do(pseudonym, @current_user, :update) %>
             <td class='links <%= 'passwordable' if pseudonym && can_do(pseudonym, @current_user, :change_password) %> <%= 'delegated-auth' if pseudonym && !pseudonym.account.canvas_authentication? %>'
                 data-passwordable="<%= pseudonym&.passwordable? %>">
-              <a href="#" rel="<%= user_pseudonym_url(@user.id, pseudonym ? pseudonym.id : "{{ id }}") %>" class="edit_pseudonym_link" data-account-id="<%= pseudonym.account.id if pseudonym %>"><i class="icon-edit standalone-icon"></i></a>
+              <a href="#" rel="<%= user_pseudonym_url(@user.id, pseudonym ? pseudonym.id : "{{ id }}") %>" class="edit_pseudonym_link" data-account-id="<%= pseudonym&.account&.id %>"><i class="icon-edit standalone-icon"></i></a>
               <a href="#" rel="<%= user_pseudonym_url(@user.id, pseudonym ? pseudonym.id : "{{ id }}") %>" class="delete_pseudonym_link" style="<%= hidden if pseudonyms.length <= 2 || (pseudonym && !can_do(pseudonym, @current_user, :delete)) %>"><i class="icon-end standalone-icon"></i></a>
               <div id="edit_pseudonym_mount_point"></div>
             </td>

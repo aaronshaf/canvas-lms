@@ -113,7 +113,7 @@
       </ul>
       <%= render :partial => "quiz_right_side", :locals => {:allow_take => false} %>
     <% else %>
-      <% if @submission && @submission.completed? %>
+      <% if @submission&.completed? %>
         <%= render :partial => "quiz_right_side", :locals => {:allow_take => !@locked} %>
       <% end %>
     <% end %>
@@ -370,11 +370,11 @@
       </div>
     <% elsif @quiz.available? %>
       <% if @can_take %>
-        <% if @submission && @submission.untaken? %>
+        <% if @submission&.untaken? %>
           <div class="take_quiz_button">
             <%= link_to_resume_poll('class' => "btn btn-primary") %>
           </div>
-        <% elsif @assignment && @assignment.submission_for_student(@current_user).excused? %>
+        <% elsif @assignment&.submission_for_student(@current_user)&.excused? %>
           <div class="lock_explanation">
             <%= t "This quiz has been excused" %>
           </div>
@@ -416,7 +416,7 @@
   <div id="direct-share-mount-point"></div>
   <div id="assign-to-mount-point"></div>
 
-  <% if @submission && @submission.completed? %>
+  <% if @submission&.completed? %>
     <%= render "quiz_submission_results" %>
   <% end %>
 

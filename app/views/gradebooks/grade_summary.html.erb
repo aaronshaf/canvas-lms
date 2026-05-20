@@ -440,7 +440,7 @@
                       <%
                         vericite = nil
                         url = '#'
-                        if submission && submission.can_view_plagiarism_report('vericite', @current_user, session)
+                        if submission&.can_view_plagiarism_report('vericite', @current_user, session)
                           vericite = assignment_presenter.vericite
                           if assignment_presenter.is_text_entry?
                             url = context_url(@context, :context_assignment_submission_vericite_report_url, assignment.id, @presenter.student_id, submission.asset_string)
@@ -677,7 +677,7 @@
                                   <rect class="mid50" x="<%= graph.lq_pos %>" y="3" width="<%= graph.uq_pos - graph.lq_pos %>" height="24" stroke="#556572" stroke-width="2" rx="3" fill="none" />
                                   <line class="median" x1="<%= graph.median_pos %>" y1="3" x2="<%= graph.median_pos %>" y2="27" stroke="#556572" stroke-width="2" />
 
-                              <% if submission && submission.score %>
+                              <% if submission&.score %>
                               <rect class="myScore" x="<%= graph.score_pos - 7 %>" y="8" width="14" height="14" stroke="#224488" stroke-width="2" rx="3" fill="#aabbdd">
                                 <title><%= before_label(:your_score, "Your Score") %> <%= t(:submission_score, "*%{score}* out of %{possible}", :wrapper => '\1', :score => n(submission.score), :possible => n(round_if_whole(assignment.points_possible))) %></title>
                               </rect>
@@ -739,7 +739,7 @@
                 </td>
                 <% end %>
               </tr>
-              <tr id="rubric_<%= assignment.id %>" class="rubric_assessments <%= 'assignment_graded' if submission && submission.grade %>" style="display: none;">
+              <tr id="rubric_<%= assignment.id %>" class="rubric_assessments <%= 'assignment_graded' if submission&.grade %>" style="display: none;">
                 <% if assignment_presenter.has_rubric_assessments? %>
                   <td colspan="6">
                     <% assignment_presenter.rubric_assessments.each do |assessment| %>

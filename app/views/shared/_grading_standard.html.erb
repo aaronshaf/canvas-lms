@@ -18,7 +18,7 @@
 
 <% grading_standard ||= GradingStandard.default_instance %>
 
-<div class="grading_standard" id="grading_standard_<%= grading_standard && grading_standard.id ? grading_standard.id : 'blank' %>">
+<div class="grading_standard" id="grading_standard_<%= grading_standard&.id ? grading_standard.id : 'blank' %>">
   <div class="display_grading_standard">
     <div class="standard_title text-center">
       <% if !read_only %>
@@ -31,7 +31,7 @@
         </a>
         <a
           aria-label="<%= t('Edit Grading Scheme %{title}', title: grading_standard.title) %>"
-          class="edit_grading_standard_link no-hover <%= 'read_only' if grading_standard && grading_standard.assessed_assignment? %>"
+          class="edit_grading_standard_link no-hover <%= 'read_only' if grading_standard&.assessed_assignment? %>"
           href="#"
           title="<%= t('Edit Grading Scheme %{title}', title: grading_standard.title) %>"
         >

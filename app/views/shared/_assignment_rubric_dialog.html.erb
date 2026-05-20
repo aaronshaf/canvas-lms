@@ -43,7 +43,7 @@
   <% end %>
   <a href="#" role="button"
      class="btn add_rubric_link"
-     style="margin-top: 20px; <%= hidden if @assignment && @assignment.active_rubric_association? %>" <%= "aria-hidden=true" if @assignment && @assignment.active_rubric_association? %>>
+     style="margin-top: 20px; <%= hidden if @assignment&.active_rubric_association? %>" <%= "aria-hidden=true" if @assignment&.active_rubric_association? %>>
     <%= image_tag "rubric.png", :alt => '' %> <%= t 'links.add_rubric', "Add Rubric" %>
   </a>
 </div>

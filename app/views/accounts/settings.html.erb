@@ -1171,8 +1171,7 @@ acknowledge that you have read and agreed to the
 
         <%= render partial: 'external_integration_keys', locals: { f: f } %>
 
-        <% if @account.root_account &&
-              @account.root_account.feature_enabled?(:smart_alerts) &&
+        <% if               @account.root_account&.feature_enabled?(:smart_alerts) &&
               can_do(@account, @current_user, :manage_alerts)
         %>
           <fieldset>

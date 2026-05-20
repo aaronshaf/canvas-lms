@@ -354,7 +354,7 @@ context_modules_header_props = {
   <%= image_tag "text_entry_dim.png", :id => "criterion_image_must_contribute", :class => "image not_blank", :alt => t('images.alt.must_contribute', "must contribute"), :title => t('images.title.must_contribute', "Students must contribute to this item before the module is considered complete") %>
   <%= image_tag "blank.png", :id => "criterion_image_blank", :class => "image", :alt => "" %>
 </div>
-<div id="current_user_progression_list" class="user_<%= @current_user && @current_user.id %>" style="display: none;">
+<div id="current_user_progression_list" class="user_<%= @current_user&.id %>" style="display: none;">
   <div class="progression progression_blank">
     <div class="context_module_id">&nbsp;</div>
     <div class="workflow_state">&nbsp;</div>

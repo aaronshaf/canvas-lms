@@ -114,7 +114,7 @@
   </div>
 <% end %>
 
-<% if @domain_root_account && @domain_root_account.self_registration? %>
+<% if @domain_root_account&.self_registration? %>
   <% if @domain_root_account.self_registration_type == 'observer' %>
     <% js_env({
          ACCOUNT: account_json(@domain_root_account, nil, session, ['registration_settings']),

@@ -22,7 +22,7 @@
   item_data ||= { published_status: 'unpublished' }
   completion_criteria ||= nil
   can_direct_share = can_do(@context, @current_user, :direct_share)
-  criterion = completion_criteria && completion_criteria.find{|c| c[:id] == module_item.id}
+  criterion = completion_criteria&.find{|c| c[:id] == module_item.id}
   show_checkpoints = @context.discussion_checkpoints_enabled? && module_item && module_item.content_type == 'DiscussionTopic' && module_item.content.checkpoints?
   item_restrictions ||= nil
   @module_item_image_tags ||= {
@@ -62,16 +62,16 @@
         <%= 'show_assignment_menu' %>
       <% end %>
     <% end %>
-    <%= module_item.content_type_class(is_student: @is_student) if module_item %>
-    <%= 'also_assignment' if module_item && module_item.graded? %>
+    <%= module_item&.content_type_class(is_student: @is_student) %>
+    <%= 'also_assignment' if module_item&.graded? %>
     indent_<%= @context.horizon_course? ? '0' : (module_item.try_rescue(:indent) || '0') %>
     <%= 'progression_requirement' if criterion %>
     <%= criterion[:type] if criterion %>_requirement
-    <%= module_item.item_class if module_item %>
+    <%= module_item&.item_class %>
     <%= 'dupeable' if module_item&.duplicate_able? %>
   "
 >
-  <div class="ig-row <%= 'with-completion-requirements' if criterion %> <%= 'ig-published' if module_item && module_item.published? %> <%= 'student-view' if @is_student %> no-estimated-duration">
+  <div class="ig-row <%= 'with-completion-requirements' if criterion %> <%= 'ig-published' if module_item&.published? %> <%= 'student-view' if @is_student %> no-estimated-duration">
     <% if @can_edit || module_item.nil? %>
     <div aria-hidden="true" class="ig-handle">
       <span
@@ -93,7 +93,7 @@
         <i class="icon-quiz"></i>
         <i class="icon-quiz icon-Solid"></i>
         <i class="icon-link"></i>
-        <img id="mc_icon" src="/images/icons/<%= module_item && module_item.published? ? 'mc-assignment-pub-v2.svg' : 'mc-assignment-unpub-v2.svg' %>"
+        <img id="mc_icon" src="/images/icons/<%= module_item&.published? ? 'mc-assignment-pub-v2.svg' : 'mc-assignment-unpub-v2.svg' %>"
             alt="<%= t('Mastery Connect') %>" style="display: none; width: 1rem; height: 1rem;"/>
       </span>
     </span>
@@ -125,7 +125,7 @@
               href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>"
               aria-describedby="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-details"
               <% if item_data[:mastery_paths] && item_data[:mastery_paths][:locked] %>
-              aria-describedby="module-item-locked-<%= module_item && module_item.id %>"
+              aria-describedby="module-item-locked-<%= module_item&.id %>"
               <% end %>
             >
               <%= title %>
@@ -139,7 +139,7 @@
           <span class="points_possible" style="display: none;"><%= round_if_whole(module_item.try_rescue(:assignment).try_rescue(:points_possible)) || nbsp %></span>
           <span class="requirement" style="display: none;">&nbsp;</span>
           <span class="completion_requirement" style="display: none;">&nbsp;</span>
-          <span class="position" style="display: none;"><%= module_item && module_item.position %></span>
+          <span class="position" style="display: none;"><%= module_item&.position %></span>
           <span class="url" style="display: none;"><%= module_item.try(:url) if @can_view %></span>
           <span class="new_tab" style="display: none;"><%= if @can_view
                                                              module_item.try(:new_tab) ? '1' : '0'
@@ -159,7 +159,7 @@
         <!-- /dead code -->
         <span class="type" style="display: none;"><%= module_item ? module_item.content_type_class : nbsp %></span>
         <span class="id" style="display: none;"><%= module_item ? module_item.id : nbsp %></span>
-        <span class="graded" style="display: none;"><%= module_item && module_item.graded? ? '1' : '0' %></span>
+        <span class="graded" style="display: none;"><%= module_item&.graded? ? '1' : '0' %></span>
       </div>
 
       <div id="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-details" class="ig-details">
@@ -259,27 +259,27 @@
       <div class="ig-admin">
         <% if @can_view || module_item.nil? %>
           <span
-            data-module-item-id="<%= module_item && module_item.id %>"
-            data-module-type="<%= module_item && module_item.content_type_class %>"
-            data-content-id="<%= module_item && module_item.content_id %>"
+            data-module-item-id="<%= module_item&.id %>"
+            data-module-type="<%= module_item&.content_type_class %>"
+            data-content-id="<%= module_item&.content_id %>"
             class="lock-icon"
           >
           </span>
           <span
-            data-module-item-name="<%= module_item && module_item.title %>"
-            data-module-type="<%= module_item && module_item.content_type_class %>"
-            data-content-id="<%= module_item && module_item.content_id %>"
+            data-module-item-name="<%= module_item&.title %>"
+            data-module-type="<%= module_item&.content_type_class %>"
+            data-content-id="<%= module_item&.content_id %>"
             data-id="<%= module_item_publishable_id(module_item) %>"
-            data-course-id="<%= module_item && module_item.context_id %>"
-            data-module-id="<%= module_item && module_item.context_module_id %>"
-            data-module-item-id="<%= module_item && module_item.id %>"
+            data-course-id="<%= module_item&.context_id %>"
+            data-module-id="<%= module_item&.context_module_id %>"
+            data-module-item-id="<%= module_item&.id %>"
             data-assignment-id="<%= module_item && module_item.assignment.try(:id) %>"
             data-is-cyoeable="<%= module_item && cyoe_able?(module_item) %>"
             data-published="<%= module_item && item_data[:published_status] == 'published' %>"
             data-publishable="<%= module_item_publishable?(module_item) && !(@context.horizon_course? && module_item&.content_type == 'Quizzes::Quiz') %>"
             data-unpublishable="<%= module_item_unpublishable?(module_item) %>"
             data-publish-at="<%= module_item_publish_at(module_item) %>"
-            data-publish-title="<%= module_item && module_item.title ? module_item.title : '' %>"
+            data-publish-title="<%= module_item&.title ? module_item.title : '' %>"
             title=""
             data-tooltip
             class="publish-icon <%= item_data[:published_status] %>"
@@ -299,7 +299,7 @@
                 <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>" class="edit_item_link edit_link" title="<%= t('Edit item details') %>"><%= @module_item_image_tags['edit'] %> <%= t('Edit') %></a></li>
               <% end %>
               <% if @can_add || module_item.nil? %>
-                <% if module_item && module_item.quiz_lti %>
+                <% if module_item&.quiz_lti %>
                   <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>?build=true" title="<%= t('Build quiz') %>"><%= @module_item_image_tags['quiz'] %> <%= t('Build') %></a></li>
                 <%end%>
               <% end %>
@@ -383,7 +383,7 @@
                 <% end %>
               <% end %>
               <% if @can_delete || module_item.nil? %>
-                <% unless @context.horizon_course? && module_item && module_item.published? %>
+                <% unless @context.horizon_course? && module_item&.published? %>
                   <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>" class="delete_item_link delete_link" title="<%= t('Remove this item from the module') %>"><i class="icon-trash"></i> <%= t('Remove') %></a></li>
                 <% end %>
               <% end %>
@@ -403,7 +403,7 @@
                 <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>" class="indent_item_link" title="<%= t('Increase indent') %>"><%= @module_item_image_tags['indent'] %> <%= t('Increase indent') %></a></li>
               <%end%>
               <% if @can_add || module_item.nil? %>
-                <% if module_item && module_item.quiz_lti %>
+                <% if module_item&.quiz_lti %>
                   <li role="presentation"><a href="<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>?build=true" title="<%= t('Build quiz') %>"><%= @module_item_image_tags['quiz'] %> <%= t('Build') %></a></li>
                 <%end%>
                 <li class="dupe-option" role="presentation"><a href="/api/v1<%= context_url(@context, :context_url) %>/modules/items/<%= module_item ? module_item.id : "{{ id }}" %>/duplicate" class="duplicate_item_link" title="<%= t('Duplicate Item') %>"><%= @module_item_image_tags['duplicate'] %> <%= t('Duplicate') %></a></li>

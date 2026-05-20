@@ -97,7 +97,7 @@
   body_classes << 'with-fixed-bottom' if @show_fixed_bottom
   body_classes << 'pages' if controller.js_env[:WIKI_PAGE].present?
   body_classes << get_active_tab
-  body_classes << 'Underline-All-Links__enabled' if @current_user && @current_user.feature_enabled?(:underline_all_links)
+  body_classes << 'Underline-All-Links__enabled' if @current_user&.feature_enabled?(:underline_all_links)
   body_classes << 'is-masquerading-or-student-view' if @real_current_user && @real_current_user != @current_user
   body_classes << 'primary-nav-expanded' unless @collapse_global_nav
   body_classes << 'primary-nav-transitions' if @collapse_global_nav
@@ -227,10 +227,10 @@
           <% if left_side %>
             <%= left_side %>
           <% else %>
-            <% if @context && @context.is_a?(Group) && can_do(@context, @current_user, :manage) && @context.group_category %>
+            <% if @context.is_a?(Group) && can_do(@context, @current_user, :manage) && @context.group_category %>
               <span id="group-switch-mount-point"></span>
             <% end %>
-            <% if @context && @context.respond_to?(:enrollment_term) && !@context.enrollment_term.default_term? %>
+            <% if @context.respond_to?(:enrollment_term) && !@context.enrollment_term.default_term? %>
               <span id="section-tabs-header-subtitle" class="ellipsis"><%= @context.enrollment_term.name %></span>
             <% end %>
             <%= section_tabs %>
