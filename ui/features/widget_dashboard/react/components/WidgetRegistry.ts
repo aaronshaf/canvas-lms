@@ -19,12 +19,12 @@
 import {useScope as createI18nScope} from '@canvas/i18n'
 import type {WidgetRegistry, WidgetRenderer} from '../types'
 import {WIDGET_TYPES, EDUCATOR_WIDGET_ROLE} from '../constants'
-import CourseWorkCombinedWidget from './widgets/CourseWorkCombinedWidget/CourseWorkCombinedWidget'
 import CourseGradesWidget from './widgets/CourseGradesWidget/CourseGradesWidget'
 import TodoListWidget from './widgets/TodoListWidget/TodoListWidget'
 import RecentGradesWidget from './widgets/RecentGradesWidget/RecentGradesWidget'
 import {
   AnnouncementsWidget,
+  CourseWorkCombinedWidget,
   InboxWidget,
   PeopleWidget,
   ProgressOverviewWidget,

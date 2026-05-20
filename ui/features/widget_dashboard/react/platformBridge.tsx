@@ -30,7 +30,14 @@ const I18n = createI18nScope('widget_dashboard')
 
 type TranslationThunk = (opts?: Record<string, unknown>) => string
 
-const TRANSLATION_THUNKS: Record<string, TranslationThunk> = {
+// Filter out the WidgetDashboardTranslations index signature so missing keys
+// fail at compile time instead of silently falling back to raw English.
+type RemoveIndexSignature<T> = {
+  [K in keyof T as string extends K ? never : K]: T[K]
+}
+type NamedTranslationKey = keyof RemoveIndexSignature<WidgetDashboardTranslations>
+
+const NAMED_THUNKS: Record<NamedTranslationKey, TranslationThunk> = {
   loading: () => I18n.t('Loading'),
   error: () => I18n.t('Error'),
   retry: () => I18n.t('Retry'),
@@ -101,11 +108,13 @@ const TRANSLATION_THUNKS: Record<string, TranslationThunk> = {
   dueTomorrow: () => I18n.t('Due tomorrow'),
   overdue: () => I18n.t('Overdue'),
   failedToLoadCourseWork: () => I18n.t('Failed to load course work. Please try again.'),
+  loadingCourseWork: () => I18n.t('Loading course work'),
   loadingCourseWorkData: () => I18n.t('Loading course work data...'),
   courseWorkPagination: () => I18n.t('Course work pagination'),
   noUpcomingCourseWork: () => I18n.t('No upcoming course work'),
   noUpcomingCourseWorkForSelectedCourse: () =>
     I18n.t('No upcoming course work for selected course'),
+  showSummaryCounts: () => I18n.t('Show summary counts'),
   courseFilter: () => I18n.t('Course filter:'),
   due: () => I18n.t('Due'),
   missing: () => I18n.t('Missing'),
@@ -113,6 +122,7 @@ const TRANSLATION_THUNKS: Record<string, TranslationThunk> = {
   notSubmitted: () => I18n.t('Not submitted'),
   submissionStatus: () => I18n.t('Submission status:'),
   late: () => I18n.t('Late'),
+  excused: () => I18n.t('Excused'),
   pendingReview: () => I18n.t('Pending Review'),
   noDueDate: () => I18n.t('No due date'),
   today: () => I18n.t('Today'),
@@ -328,8 +338,6 @@ const TRANSLATION_THUNKS: Record<string, TranslationThunk> = {
     I18n.t('On time (%{amount})', {
       amount: opts.amount,
     }),
-  educatorTodoListCoursesFilterLabel: () => I18n.t('Courses'),
-  educatorTodoListLoadingAriaLabel: () => I18n.t('Loading todo items'),
 
   // Educator ToDo Modal
   educatorTodoListModalLabel: () => I18n.t('Full list of assignments to grade'),
@@ -338,17 +346,146 @@ const TRANSLATION_THUNKS: Record<string, TranslationThunk> = {
   educatorTodoListModalFailedToLoadItems: () => I18n.t('Failed to load ToDo items'),
   educatorTodoListModalMoreItemAlert: () =>
     I18n.t('More assignments are available. Apply filter to see more.'),
+
+  account: () => I18n.t('Account'),
+  addStudentModalDescription: () =>
+    I18n.t('Add a student to observe by entering their pairing code.'),
+  addStudentModalError: () => I18n.t('Could not add student. Please try again.'),
+  addStudentModalInvalidCode: () => I18n.t('The pairing code is invalid or expired.'),
+  addStudentModalPairButton: () => I18n.t('Pair'),
+  addStudentModalPairingCodeLabel: () => I18n.t('Pairing code'),
+  addStudentModalPairingCodeRequired: () => I18n.t('Pairing code is required.'),
+  addStudentModalSuccess: () => I18n.t('Student added.'),
+  addStudentModalTitle: () => I18n.t('Add a student'),
+  allAccounts: () => I18n.t('All accounts'),
+  allUpcoming: () => I18n.t('All upcoming'),
+  assignmentsAndQuizzes: () => I18n.t('Assignments and quizzes'),
+  assignmentsDueThisWeek: () => I18n.t('Assignments due this week'),
+  assignmentsOverdue: () => I18n.t('Assignments overdue'),
+  courseRemoved: () => I18n.t('Course removed'),
+  courseSelected: () => I18n.t('Course selected'),
+  currentGrade: () => I18n.t('Current grade'),
+  educatorA11yActiveCount: () => I18n.t('Active issues count'),
+  educatorA11yAllResolvedDescription: () => I18n.t('All accessibility issues have been resolved.'),
+  educatorA11yAllResolvedTitle: () => I18n.t('All resolved'),
+  educatorA11yLastUpdated: () => I18n.t('Last updated'),
+  educatorA11yNavigateToCourse: () => I18n.t('Navigate to course'),
+  educatorA11yNoIssuesDescription: () => I18n.t('No accessibility issues have been found.'),
+  educatorA11yNoIssuesTitle: () => I18n.t('No issues'),
+  educatorA11yPagination: () => I18n.t('Accessibility issues pagination'),
+  educatorA11yPublished: () => I18n.t('Published'),
+  educatorA11yUnpublished: () => I18n.t('Unpublished'),
+  failedToLoadContentQuality: () => I18n.t('Failed to load content quality.'),
+  gradesAndFeedback: () => I18n.t('Grades and feedback'),
+  maxSelectionsReached: () => I18n.t('Maximum selections reached.'),
+  messageInstructor: () => I18n.t('Message instructor'),
+  messages: () => I18n.t('Messages'),
+  newGrade: () => I18n.t('New grade'),
+  next24Hours: () => I18n.t('Next 24 hours'),
+  next48Hours: () => I18n.t('Next 48 hours'),
+  observerPickerAddStudent: () => I18n.t('Add student'),
+  observerPickerAssistiveText: () => I18n.t('Type to filter the list of observed students.'),
+  observerPickerLabel: () => I18n.t('Observing:'),
+  observerPickerNoResults: () => I18n.t('No matching students'),
+  observerPickerObserving: () => I18n.t('Observing'),
+  opensInNewTab: () => I18n.t('Opens in a new tab'),
+  quizzesDueThisWeek: () => I18n.t('Quizzes due this week'),
+  removeAllCourses: () => I18n.t('Remove all courses'),
+  ungradedSubmissions: () => I18n.t('Ungraded submissions'),
+  upToDate: () => I18n.t('Up to date'),
+  view: () => I18n.t('View'),
+  viewAccountDashboard: () => I18n.t('View account dashboard'),
+  workDue: () => I18n.t('Work due'),
 }
 
-const translations = new Proxy({} as WidgetDashboardTranslations, {
+// Literal-keyed thunks: platform-widget-dashboard passes English source strings
+// (e.g. "%{points} pts") directly to translate(). Routing them through I18n.t
+// here lets i18nliner extract them so non-English locales render translated
+// values instead of hardcoded English.
+const LITERAL_THUNKS: Record<string, TranslationThunk> = {
+  '%{points} pts': (opts = {}) => I18n.t('%{points} pts', {points: opts.points}),
+  '%{date} %{time}': (opts = {}) => I18n.t('%{date} %{time}', {date: opts.date, time: opts.time}),
+  '%{day} %{time}': (opts = {}) => I18n.t('%{day} %{time}', {day: opts.day, time: opts.time}),
+  '%{widgetName}': (opts = {}) => I18n.t('%{widgetName}', {widgetName: opts.widgetName}),
+  'Details must be %{max} characters or less': (opts = {}) =>
+    I18n.t('Details must be %{max} characters or less', {max: opts.max}),
+  'Due %{date}': (opts = {}) => I18n.t('Due %{date}', {date: opts.date}),
+  'Due in %{count} hours': (opts = {}) =>
+    I18n.t(
+      'due_in_n_hours',
+      {one: 'Due in 1 hour', other: 'Due in %{count} hours'},
+      {count: opts.count as number},
+    ),
+  'Due soon': () => I18n.t('Due soon'),
+  Excused: () => I18n.t('Excused'),
+  'Go to %{courseName}': (opts = {}) =>
+    I18n.t('Go to %{courseName}', {courseName: opts.courseName}),
+  'Grade updated %{days} days ago': (opts = {}) =>
+    I18n.t(
+      'grade_updated_n_days_ago',
+      {one: 'Grade updated 1 day ago', other: 'Grade updated %{days} days ago'},
+      {count: opts.days as number, days: opts.days},
+    ),
+  'Graded %{count} days ago': (opts = {}) =>
+    I18n.t(
+      'graded_n_days_ago',
+      {one: 'Graded 1 day ago', other: 'Graded %{count} days ago'},
+      {count: opts.count as number},
+    ),
+  'Graded %{count} hours ago': (opts = {}) =>
+    I18n.t(
+      'graded_n_hours_ago',
+      {one: 'Graded 1 hour ago', other: 'Graded %{count} hours ago'},
+      {count: opts.count as number},
+    ),
+  'Graded %{count} minutes ago': (opts = {}) =>
+    I18n.t(
+      'graded_n_minutes_ago',
+      {one: 'Graded 1 minute ago', other: 'Graded %{count} minutes ago'},
+      {count: opts.count as number},
+    ),
+  'Hide grades for %{courseName}': (opts = {}) =>
+    I18n.t('Hide grades for %{courseName}', {courseName: opts.courseName}),
+  Late: () => I18n.t('Late'),
+  'Mark %{title} as complete': (opts = {}) =>
+    I18n.t('Mark %{title} as complete', {title: opts.title}),
+  'Mark %{title} as incomplete': (opts = {}) =>
+    I18n.t('Mark %{title} as incomplete', {title: opts.title}),
+  Missing: () => I18n.t('Missing'),
+  'No due date': () => I18n.t('No due date'),
+  'Not Submitted': () => I18n.t('Not Submitted'),
+  Overdue: () => I18n.t('Overdue'),
+  'Pending Review': () => I18n.t('Pending Review'),
+  'Show grades for %{courseName}': (opts = {}) =>
+    I18n.t('Show grades for %{courseName}', {courseName: opts.courseName}),
+  Submitted: () => I18n.t('Submitted'),
+  'Title must be %{max} characters or less': (opts = {}) =>
+    I18n.t('Title must be %{max} characters or less', {max: opts.max}),
+  Today: () => I18n.t('Today'),
+  Tomorrow: () => I18n.t('Tomorrow'),
+  'Updated today': () => I18n.t('Updated today'),
+  'View %{courseName} gradebook': (opts = {}) =>
+    I18n.t('View %{courseName} gradebook', {courseName: opts.courseName}),
+}
+
+export const translations = new Proxy({} as WidgetDashboardTranslations, {
   get(_target, prop: string) {
-    return TRANSLATION_THUNKS[prop]?.() ?? prop
+    return NAMED_THUNKS[prop as NamedTranslationKey]?.() ?? prop
   },
 })
 
-function translate(key: string, options?: Record<string, unknown>): string {
-  const thunk = TRANSLATION_THUNKS[key]
-  return thunk ? thunk(options) : key
+export function translate(key: string, options?: Record<string, unknown>): string {
+  const thunk = NAMED_THUNKS[key as NamedTranslationKey] ?? LITERAL_THUNKS[key]
+  if (thunk) return thunk(options)
+  if (!options) return key
+  // Last-resort safety net. Bypasses I18n.t — register a LITERAL_THUNKS entry
+  // for any package-side string that needs to localize.
+  return key.replace(/%\{(\w+)\}/g, (_match, name) => {
+    if (!Object.prototype.hasOwnProperty.call(options, name)) return ''
+    const v = options[name]
+    if (v == null || typeof v === 'object' || typeof v === 'function') return ''
+    return String(v)
+  })
 }
 
 export function PlatformBridge({children}: {children: React.ReactNode}) {

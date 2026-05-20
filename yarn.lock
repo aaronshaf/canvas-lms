@@ -3249,10 +3249,10 @@
   dependencies:
     uuid "^11.1.1"
 
-"@instructure/platform-widget-dashboard@6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@instructure/platform-widget-dashboard/-/platform-widget-dashboard-6.0.0.tgz#36bc6f28ae8603bc16d2dcfee1b9691a5f5a2e69"
-  integrity sha512-Y9t8GYOWzvEN/9QM2xWx2QXaENCjzscIyOPFQjqI5dcevPkZnVljVnYBqnM+j7U+Ln3SAU4K2JbxZwLvLPo2MQ==
+"@instructure/platform-widget-dashboard@6.1.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-widget-dashboard/-/platform-widget-dashboard-6.1.0.tgz#36b0bdc411e9c8637ab3cae8638f67fe843b792d"
+  integrity sha512-LEMst6WiHL8oOeYE/q7dlV2gjXBtrU+Ct/3y73N243kLHaKpDQd4UlaQ4lrDFqagRDJohFlY/N9Ga0N9qCSspA==
   dependencies:
     "@instructure/platform-alerts" "1.0.0"
     "@instructure/platform-canvas-fetch" "0.1.3"
