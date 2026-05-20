@@ -39,7 +39,7 @@
   can_rename_course = can_manage_courses || (can_manage && !@context.root_account.settings[:prevent_course_renaming_by_teachers])
   can_change_course_availability = can_manage_courses || (can_manage && !@context.root_account.settings[:prevent_course_availability_editing_by_teachers])
   can_manage_master_courses = can_manage_courses && can_do(@context.account, @current_user, :manage_master_courses)
-  has_multiple_sections = @context.course_sections.active.count > 1
+  has_multiple_sections = @context.course_sections.active.many?
   show_publish_controls = can_do(@context, @current_user, :manage_courses_publish) && (@context.unpublished? || @context.unpublishable?)
 
   is_master_course = MasterCourses::MasterTemplate.is_master_course?(@context)
@@ -742,7 +742,7 @@
         <footer class="sticky-footer">
           <div>
             <% if Setting.get('cross_root_account_course_moves', 'false') == 'true' &&
-              Account.site_admin.grants_any_right?(@current_user, :manage_courses_admin) && Account.root_accounts.count > 1 %>
+              Account.site_admin.grants_any_right?(@current_user, :manage_courses_admin) && Account.root_accounts.many? %>
                 <a href="#" class="move_course_link btn"><i class="icon-arrow-right"></i> <%= t('links.move_course', %{Move To Another Account}) %></a>
             <% end %>
               <span class="course_form">

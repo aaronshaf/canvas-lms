@@ -4,15 +4,7 @@ inherit_from:
 Layout:
   Enabled: false
 
-Style/CaseEquality:
-  Enabled: false
-Style/CollectionQuerying:
-  Enabled: false
 Style/HashSyntax:
-  Enabled: false
-Style/MixinUsage:
-  Enabled: false
-Style/MultipleComparison:
   Enabled: false
 Style/PercentLiteralDelimiters:
   Enabled: false

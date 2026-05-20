@@ -223,6 +223,10 @@ Style/HashLikeCase:
 Style/IfUnlessModifier:
   # see also https://github.com/rubocop/rubocop/discussions/10048
   Enabled: false # can obscure important decisions or put too much code in a line
+Style/MixinUsage:
+  Severity: convention # TODO: fix offenses and change to error
+  Exclude:
+    - "**/*.erb" # ERB templates are _not_ top level
 Style/MultilineBlockChain:
   Enabled: false # this is common when building up a large API result
 Style/NumericPredicate:
@@ -455,8 +459,6 @@ Style/KeywordParametersOrder:
   Severity: convention
   AutoCorrect: false
 Style/MissingRespondToMissing:
-  Severity: convention
-Style/MixinUsage:
   Severity: convention
 Style/ModuleFunction:
   Severity: convention

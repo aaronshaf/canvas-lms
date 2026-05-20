@@ -56,8 +56,8 @@
       matching_question
       multiple_dropdowns_question
       fill_in_multiple_blanks_question
-    }.include?(hash_get(question, 'question_type')) && incorrect && user_answer.count{|k, v| k.to_s.include?('answer_') && v.to_s != '' } == 0) ||
-    (hash_get(question, 'question_type') == 'multiple_answers_question' && incorrect && user_answer.count{|k, v| k.to_s.include?('answer_') && v.to_s != '0' } == 0) ||
+    }.include?(hash_get(question, 'question_type')) && incorrect && user_answer.none? {|k, v| k.to_s.include?('answer_') && v.to_s != '' }) ||
+    (hash_get(question, 'question_type') == 'multiple_answers_question' && incorrect && user_answer.none? {|k, v| k.to_s.include?('answer_') && v.to_s != '0' }) ||
     (hash_get(question, 'question_type') == 'file_upload_question' && hash_get(user_answer, 'attachment_ids').blank?) ||
     (hash_get(question, 'question_type') == 'essay_question' && hash_get(user_answer, 'text').blank?) ||
     false

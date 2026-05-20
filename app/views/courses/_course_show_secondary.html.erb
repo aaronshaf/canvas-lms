@@ -53,7 +53,7 @@
               # The current wizard just always marks this as complete.
               calendar_event_step: !@context.calendar_events.active.exists?,
               add_ta_step: !@context.tas.exists?,
-              publish_step: @context.workflow_state === 'available'
+              publish_step: @context.workflow_state == 'available'
             },
             urls: {
               content_import: context_url(@context, :context_content_migrations_url),

@@ -18,7 +18,7 @@
 
 <p>Consumer Key: <span id="consumer_key"><%= params[:oauth_consumer_key] %></span></p>
 
-<% if params[:ext_content_intended_use] == 'embed' || params[:ext_content_intended_use] == 'homework' %>
+<% if %w[embed homework].include?(params[:ext_content_intended_use]) %>
   <a id="image_link" class="link" href="<%= @return_url %>?return_type=image&url=/images/delete.png&width=16&height=16&alt=delete">image embed</a>
   <br/>
   <a id="link_link" class="link" href="<%= @return_url %>?embed_type=link&url=/images/delete.png&title=delete&text=delete+link">link embed</a>

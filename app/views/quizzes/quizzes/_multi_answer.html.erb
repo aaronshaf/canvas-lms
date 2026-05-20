@@ -20,7 +20,7 @@
 <% answer = multi_answer %>
 <% question ||= {} %>
 <div class="answer">
-  <% if question_type.entry_type == "radio" || question_type.entry_type == "select" || question_type.entry_type == "checkbox" %>
+  <% if %w[radio select checkbox].include?(question_type.entry_type) %>
     <% answer_text = (hash_get(answer, :html).present? ? user_content(hash_get(answer, :html), location: asset_string) : hash_get(answer, :text)) || '' %>
     <% answer_label_id = "question_" + hash_get(question, :id).to_s + "_answer_" + hash_get(answer, :id).to_s + "_label" %>
     <label class="answer_row user_content">
