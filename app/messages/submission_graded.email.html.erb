@@ -13,7 +13,7 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t :subject, "Assignment Graded: %{assignment}, %{context}", :assignment => assignment.title, :context => assignment.context.name %>
+  <%= t :subject, "Assignment Graded: %{assignment}, %{context}", assignment: assignment.title, context: assignment.context.name %>
 <% end %>
 
 <% define_content :footer_link do %>
@@ -39,19 +39,19 @@
 <% if send_student_names(asset, user) %>
 <%= t "%{assignment} has been graded for %{name}.", assignment: assignment_title, name: asset.user.name %>
 <% else %>
-<%= t :body, "Your assignment %{assignment} has been graded.", :assignment => assignment_title %>
+<%= t :body, "Your assignment %{assignment} has been graded.", assignment: assignment_title %>
 <% end %>
 
-<p><%= t :graded_date, "graded: %{date}", :date => (datetime_string(force_zone(asset.graded_at)) rescue t(:no_date_set, "No Date Set")) %></p>
+<p><%= t :graded_date, "graded: %{date}", date: (datetime_string(force_zone(asset.graded_at)) rescue t(:no_date_set, "No Date Set")) %></p>
 
 <% if user.try(:send_scores_in_emails?, assignment.context) %>
   <% if asset.excused? %>
     <p><%= t :excused, "This assignment has been excused." %></p>
   <% elsif asset.score %>
     <% if assignment.restrict_quantitative_data?(user)%>
-      <p><%=t :grade, "grade: %{letter_grade}", :letter_grade => assignment.score_to_grade(asset.score, asset.grade, force_letter_grade: true)%></p>
+      <p><%=t :grade, "grade: %{letter_grade}", letter_grade: assignment.score_to_grade(asset.score, asset.grade, force_letter_grade: true)%></p>
     <% else %>
-      <p><%= t :score, "score: %{score} out of %{total}", :score => asset.score, :total => assignment.points_possible || t(:not_applicable, "N/A") %></p>
+      <p><%= t :score, "score: %{score} out of %{total}", score: asset.score, total: assignment.points_possible || t(:not_applicable, "N/A") %></p>
     <% end %>
   <% end %>
 <% end %>

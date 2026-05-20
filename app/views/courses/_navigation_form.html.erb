@@ -23,7 +23,7 @@ navigation_help_text =
   end
 %>
 
-<%= form_tag context_url(@context, :context_update_nav_url), {:id => "nav_form", :title => t('titles.edit_navigation', "Edit Course Navigation") } do %>
+<%= form_tag context_url(@context, :context_update_nav_url), {id: "nav_form", title: t('titles.edit_navigation', "Edit Course Navigation") } do %>
   <input type="hidden" name="tabs_json" id="tabs_json" value="[]" />
   <% tabs = sortable_tabs %>
   <div style="width: 400px; padding-top: 10px">

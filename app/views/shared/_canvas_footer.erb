@@ -29,6 +29,6 @@
     <% if @js_env && @js_env[:ONETRUST_CONSENT_DOMAIN_ID].present? %>
     <a id="ot-sdk-link" class="ot-sdk-show-settings" href="#"><%= t('cookie_consent_settings', 'Consent Settings') %></a>
     <% end %>
-    <%= render :partial => 'shared/footer_links' %>
+    <%= render partial: 'shared/footer_links' %>
   </div>
 </footer>

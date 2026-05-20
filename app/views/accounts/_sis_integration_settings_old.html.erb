@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<%= render partial: 'sis_agent_token_auth', locals: { f: f } %>
+<%= render partial: 'sis_agent_token_auth', locals: { f: } %>
 
 <% if Assignment.sis_grade_export_enabled?(@account) %>
     <fieldset id="sis_grade_export_settings">
@@ -32,14 +32,14 @@
 
                 <tr>
                     <td colspan="2">
-                        <%= r.check_box :value, :checked => hash[:value], :disabled => disabled %>
+                        <%= r.check_box :value, checked: hash[:value], disabled: %>
                         <%= r.label :value, t("\"Sync Grades to SIS\" checkbox is enabled by default for assignments, graded discussions, and quizzes") %>
                     </td>
                 </tr>
                 <% unless disabled %>
                 <tr>
                     <td colspan="2" class="sub_checkbox">
-                        <%= r.check_box :locked, :checked => hash[:locked] %>
+                        <%= r.check_box :locked, checked: hash[:locked] %>
                         <%= r.label :locked, t("Lock this setting for sub-accounts") %>
                     </td>
                 </tr>

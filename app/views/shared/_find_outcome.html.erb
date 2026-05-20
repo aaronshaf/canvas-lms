@@ -47,12 +47,12 @@
                   <td class="rating blank" style="display: none; padding: 2px 5px;">
                     <div class="description"></div>
                     <div class="long_description" style="font-size: 0.8em;"></div>
-                    <div><%= t :points, "%{points} pts", :points => '<span class="points"></span>'.html_safe %></div>
+                    <div><%= t :points, "%{points} pts", points: '<span class="points"></span>'.html_safe %></div>
                   </td>
                 </tr>
               </table>
               <div style="font-size: 0.8em; margin-bottom: 10px;">
-                <%= t :points_threshold, "threshold: %{points} pts", :points => '<span class="mastery_points">&nbsp;</span>'.html_safe %>
+                <%= t :points_threshold, "threshold: %{points} pts", points: '<span class="mastery_points">&nbsp;</span>'.html_safe %>
               </div>
             <% end %>
             <div class="button-container">

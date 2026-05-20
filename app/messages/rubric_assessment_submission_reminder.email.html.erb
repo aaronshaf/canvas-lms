@@ -7,7 +7,7 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t :subject, "Reminder to Assess: %{rubric}, %{context}", :rubric => asset.submission.assignment.title, :context => asset.rubric_association.context.name %>
+  <%= t :subject, "Reminder to Assess: %{rubric}, %{context}", rubric: asset.submission.assignment.title, context: asset.rubric_association.context.name %>
 <% end %>
 
 <% define_content :footer_link do %>
@@ -16,5 +16,5 @@
   </a>
 <% end %>
 
-<p><%= t :body, "You've been reminded to assess %{rubric}, %{context}:", :rubric => asset.submission.assignment.title, :context => asset.rubric_association.context.name %></p>
+<p><%= t :body, "You've been reminded to assess %{rubric}, %{context}:", rubric: asset.submission.assignment.title, context: asset.rubric_association.context.name %></p>
 

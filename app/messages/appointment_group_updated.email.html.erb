@@ -3,7 +3,7 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t('subject', 'Appointment "%{appointment_name}" has been updated (%{course})', :appointment_name => asset.title, :course => asset.contexts_for_user(user).map(&:name).join(", ")) %>
+  <%= t('subject', 'Appointment "%{appointment_name}" has been updated (%{course})', appointment_name: asset.title, course: asset.contexts_for_user(user).map(&:name).join(", ")) %>
 <% end %>
 
 <% define_content :footer_link do %>
@@ -12,7 +12,7 @@
   </a>
 <% end %>
 
-<p><%= t :message, 'Time slots have been added to "%{appointment_name}" and are available for signup.', :appointment_name => asset.title %></p>
+<p><%= t :message, 'Time slots have been added to "%{appointment_name}" and are available for signup.', appointment_name: asset.title %></p>
 
 <p><strong><%= t :details, 'Appointment Details' %>:</strong></p>
 <table border="0" style="font-size: 14px; color: #444444;
@@ -25,7 +25,7 @@
     <tr>
         <td style="padding-right: 10px;" valign="top"><%= t "Signup Type" %>:</td>
         <td valign="top"><%= (asset.participant_type == 'Group') ?
-                             t(:group_signup, "Group (%{group_category})", :group_category => asset.sub_contexts.first.name) :
+                             t(:group_signup, "Group (%{group_category})", group_category: asset.sub_contexts.first.name) :
                              t(:individual_signup, "Individual") %></td>
     </tr>
     <tr>

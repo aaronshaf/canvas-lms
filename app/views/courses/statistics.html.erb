@@ -24,7 +24,7 @@
 
 <% provide :page_title, join_title(t(:page_title, "Course Statistics"), @context.name) %>
 <div style="padding: 0 20px;" id="stats">
-  <h1><%= t 'Statistics for %{course}', :course => @context.name %></h1>
+  <h1><%= t 'Statistics for %{course}', course: @context.name %></h1>
 
   <% active_students = @context.participating_students.where("enrollments.type<>'StudentViewEnrollment'").distinct.count %>
   <% inactive_students = @context.student_enrollments.invited_by_date.distinct.count(:user_id) %>
@@ -43,7 +43,7 @@
       end
     end
   %>
-  <% total_entries = DiscussionEntry.active.where(:discussion_topic_id => active_topics).count %>
+  <% total_entries = DiscussionEntry.active.where(discussion_topic_id: active_topics).count %>
   <% total_assignments = active_assignments.count(&:expects_submission?) %>
   <% submission_counts = @context.submissions.having_submission.group(:submission_type).except(:order).count %>
   <% total_submissions = submission_counts.values.sum %>
@@ -193,14 +193,14 @@
         <tr>
           <td><%= before_label('uploaded_files', 'Uploaded Files') %></td>
           <td style="padding-<%= direction('left') %>: 10px; text-align: <%= direction('right') %>;"><%= number_to_human_size_mb(@files_size) %></td>
-          <td style="padding-<%= direction('left') %>: 10px; text-align: <%= direction('right') %>;"><%= t 'file_count', 'file', :count => @file_count %></td>
+          <td style="padding-<%= direction('left') %>: 10px; text-align: <%= direction('right') %>;"><%= t 'file_count', 'file', count: @file_count %></td>
         </tr>
 
         <% if @media_file_count && @media_file_count > 0 %>
         <tr>
           <td><%= before_label('media_files', 'Media Files') %></td>
           <td style="padding-<%= direction('left') %>: 10px; text-align: <%= direction('right') %>;"><%= number_to_human_size_mb(@media_files_size) %></td>
-          <td style="padding-<%= direction('left') %>: 10px; text-align: <%= direction('right') %>;"><%= t 'file_count', 'file', :count => @media_file_count %></td>
+          <td style="padding-<%= direction('left') %>: 10px; text-align: <%= direction('right') %>;"><%= t 'file_count', 'file', count: @media_file_count %></td>
         </tr>
         <% end %>
       </table>

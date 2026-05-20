@@ -32,7 +32,7 @@
 <%= t(:no_aligned_items, "No aligned items") if @alignments.empty? %>
 <ul id="alignments" class="<%= 'orderable' if @context.is_a?(Course) %>">
 <% @alignments.each do |alignment| %>
-  <%= render :partial => "outcome_alignment", :object => alignment %>
+  <%= render partial: "outcome_alignment", object: alignment %>
 <% end %>
 </ul>
 <h2 style="margin-top: 20px;"><%= t("#titles.outcome_artifacts", "Outcome Artifacts") %></h2>
@@ -56,7 +56,7 @@
       assignment.
     %>
     <% if result.artifact_type.present? && result.artifact_type != 'Submission' %>
-      <%= render :partial => "outcome_result", :object => result %>
+      <%= render partial: "outcome_result", object: result %>
     <% end %>
   <% end %>
   </ul>
@@ -66,7 +66,7 @@
   <div id="outcome_results_total_pages"><%= @results.total_pages %></div>
   <a href="<%= context_url(@context, :context_outcome_results_url, @outcome.id) %>" style="display: none;" class="outcome_results_url">&nbsp;</a>
   <ul>
-  <%= render :partial => "outcome_result" %>
-  <%= render :partial => "outcome_alignment" %>
+  <%= render partial: "outcome_result" %>
+  <%= render partial: "outcome_alignment" %>
   </ul>
 </div>

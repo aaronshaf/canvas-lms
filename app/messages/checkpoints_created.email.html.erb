@@ -4,7 +4,7 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= I18n.t("Assignment Created - %{assignment_name}, %{course_name}", :assignment_name => parent_assignment.title, :course_name => parent_assignment.context.name) %>
+  <%= I18n.t("Assignment Created - %{assignment_name}, %{course_name}", assignment_name: parent_assignment.title, course_name: parent_assignment.context.name) %>
 <% end %>
 
 <% define_content :footer_link do %>
@@ -14,7 +14,7 @@
 <% end %>
 
 <p><%= I18n.t("A new assignment has been created for your course, %{course_name}",
-              :course_name => parent_assignment.context.name) %></p>
+              course_name: parent_assignment.context.name) %></p>
 
 <hr style="border: 0;
   height: 1px;
@@ -38,6 +38,6 @@
 %>
 
 <p>
-  <%= I18n.t("due: reply to topic: %{assignment_due_date_time}", :assignment_due_date_time => reply_to_topic_due_date) %><br />
-  &nbsp;&nbsp;&nbsp;&nbsp;<%= I18n.t("additional replies (%{reply_to_entry_required_count}): %{assignment_due_date_time}", :reply_to_entry_required_count => reply_to_entry_required_count, :assignment_due_date_time => reply_to_entry_due_date) %>
+  <%= I18n.t("due: reply to topic: %{assignment_due_date_time}", assignment_due_date_time: reply_to_topic_due_date) %><br />
+  &nbsp;&nbsp;&nbsp;&nbsp;<%= I18n.t("additional replies (%{reply_to_entry_required_count}): %{assignment_due_date_time}", reply_to_entry_required_count:, assignment_due_date_time: reply_to_entry_due_date) %>
 </p>

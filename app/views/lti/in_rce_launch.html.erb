@@ -18,7 +18,7 @@
 
 <% provide :head, include_common_stylesheets %>
 <% js_env({ IN_RCE: true, IGNORE_LTI_POST_MESSAGES: true }) %>
-<%= render :partial => "layouts/head" %>
+<%= render partial: "layouts/head" %>
 
 <% css_bundle :external_tool_full_width %>
 
@@ -26,6 +26,6 @@
 
 <body class="ic-full-screen-lti-tool" style="height: 100vh; overflow: hidden;">
   <%= render partial: "lti/launch_iframe" %>
-  <%= render :partial => 'layouts/foot', :locals => { :include_common_bundle => true } %>
+  <%= render partial: 'layouts/foot', locals: { include_common_bundle: true } %>
   <script src="<%= javascript_path("/javascripts/lti_post_message_forwarding.js") %>"></script>
 </body>

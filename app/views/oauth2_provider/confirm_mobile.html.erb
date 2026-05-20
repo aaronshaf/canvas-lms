@@ -23,7 +23,7 @@
 
 <div class="face">
   <p>
-    <%= mt 'details.allow_application', " Allow %{app_name} to access your Canvas account.", :app_name => @provider.app_name %>
+    <%= mt 'details.allow_application', " Allow %{app_name} to access your Canvas account.", app_name: @provider.app_name %>
   </p>
   <% if @domain_root_account&.feature_enabled?(:oauth2_deny_post) %>
     <%= form_tag oauth2_auth_deny_post_path, id: "oauth2_deny_form", style: "display:none" do %>
@@ -36,13 +36,13 @@
       <% if @domain_root_account&.feature_enabled?(:oauth2_deny_post) %>
         <button type="submit" form="oauth2_deny_form" class="Button Button--block"><%= t(:cancel, "Cancel") %></button>
       <% else %>
-        <%= link_to(t(:cancel, "Cancel"), oauth2_auth_deny_path, :class => "Button Button--block") %>
+        <%= link_to(t(:cancel, "Cancel"), oauth2_auth_deny_path, class: "Button Button--block") %>
       <% end %>
     </div>
     <% if @provider.scopes == ["/auth/userinfo"] %>
       <div class="control-group">
         <label class="checkbox" for="remember_access">
-          <%= check_box_tag(:remember_access, "1", false, :class => "checkbox") %>
+          <%= check_box_tag(:remember_access, "1", false, class: "checkbox") %>
           <%= t 'remember_auth', 'Remember Authorization' %>
         </label>
       </div>

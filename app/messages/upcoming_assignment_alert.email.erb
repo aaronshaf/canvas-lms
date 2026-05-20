@@ -3,7 +3,7 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= I18n.t("Upcoming Due Date - %{assignment_name}, %{course_name}", :assignment_name => asset.title, :course_name => asset.context.name) %>
+  <%= I18n.t("Upcoming Due Date - %{assignment_name}, %{course_name}", assignment_name: asset.title, course_name: asset.context.name) %>
 <% end %>
 
 <%= I18n.t("Your assignment %{assignment_name} is due on %{due_at}. Click the following link to visit your assignment and get it in on time:",

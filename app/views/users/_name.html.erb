@@ -80,9 +80,9 @@
                 <% if @user != @current_user && @user.can_masquerade?(@real_current_user || @current_user, @domain_root_account) %>
                   <%= "|" unless first %><% first = false %>
                   <% if @context && !@context.is_a?(Account) && !@context.is_a?(User) %>
-                    <a href="<%= context_url(@context, :context_url, :become_user_id => @user.id) %>"> <%= t('Act as User') %></a>
+                    <a href="<%= context_url(@context, :context_url, become_user_id: @user.id) %>"> <%= t('Act as User') %></a>
                   <% else %>
-                    <a href="<%= dashboard_url(:become_user_id => @user.id) %>"> <%= t('Act as User') %></a>
+                    <a href="<%= dashboard_url(become_user_id: @user.id) %>"> <%= t('Act as User') %></a>
                   <% end %>
                 <% end %>
 
@@ -101,7 +101,7 @@
 
                 <% if (@context.is_a?(User) || @context.is_a?(Account)) && root_account && @user.allows_user_to_remove_from_account?(root_account, @current_user) %>
                   <%= "|" unless first %><% first = false %>
-                  <a href="<%= account_confirm_delete_user_url(root_account.id, @user.id) %>"><%= t('delete_from_account', 'Delete from %{account}', :account => root_account.name) %></a>
+                  <a href="<%= account_confirm_delete_user_url(root_account.id, @user.id) %>"><%= t('delete_from_account', 'Delete from %{account}', account: root_account.name) %></a>
                 <% end %>
 
                 <% if @domain_root_account.grants_right?(@current_user, :manage_site_settings) %>

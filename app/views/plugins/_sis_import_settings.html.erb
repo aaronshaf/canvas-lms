@@ -19,7 +19,7 @@
 <%= fields_for :settings do |f| %>
   <table style="width: 500px;" class="formtable">
     <tr>
-      <td><%= f.blabel :parallelism, :en => "Number of job processors to use to process SIS imports in parallel" %></td>
+      <td><%= f.blabel :parallelism, en: "Number of job processors to use to process SIS imports in parallel" %></td>
       <td><%= f.text_field :parallelism, value: settings[:parallelism] %></td>
     </tr>
   </table>

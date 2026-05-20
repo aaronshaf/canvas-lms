@@ -21,7 +21,7 @@
   <h2><%= t 'links.more_about_this_user', "More About This User" %></h2>
   <div class="page-action-list rs-margin-bottom" id="right_nav">
     <% if can_do(@membership, @current_user, :read_grades) && @membership.is_a?(StudentEnrollment) %>
-      <a href="<%= context_url(@context, :controller => :gradebooks, :action => :grade_summary, :id => @user.id) %>">
+      <a href="<%= context_url(@context, controller: :gradebooks, action: :grade_summary, id: @user.id) %>">
         <i class="icon-check-plus" aria-hidden="true"></i>
         <%= t 'links.user_grades', "Grades" %>
       </a>
@@ -83,17 +83,17 @@
       <p>
       <% services.each do |service| %>
         <% service_name = service.service.titleize rescue 'Unknown' %>
-        <a href="<%= service.service_user_link %>" title="<%= service_name %>" class="no-hover"><%= image_tag "#{service.service}_icon.png", :alt => service_name %></a>
+        <a href="<%= service.service_user_link %>" title="<%= service_name %>" class="no-hover"><%= image_tag "#{service.service}_icon.png", alt: service_name %></a>
       <% end %>
       </p>
     <% else %>
       <% if !services.empty?  %>
         <p>
-          <%= t 'services_not_visible', "%{user}'s registered services are not visible to you at this time.", :user => @user.short_name %>
+          <%= t 'services_not_visible', "%{user}'s registered services are not visible to you at this time.", user: @user.short_name %>
         </p>
       <% else %>
         <p>
-          <%= t 'no_services', "%{user} hasn't linked any external services to their account yet.", :user => @user.short_name %>
+          <%= t 'no_services', "%{user} hasn't linked any external services to their account yet.", user: @user.short_name %>
         </p>
       <% end %>
     <% end %>
@@ -121,7 +121,7 @@
 <% can_manage_admins = can_do(@context, @current_user, :allow_course_admin_actions) %>
 
 <% if !@context.is_a?(Group) && (can_manage_students || can_manage_admins) %>
-<%= render :partial => 'users/name', locals: { login_history: false } %>
+<%= render partial: 'users/name', locals: { login_history: false } %>
 <a href="#" class="more_user_information_link"><%= t('links.more_user_details', %{more user details...}) %></a>
   <div class="more_user_information" style="display: none;">
     <% if @context.is_a?(Course) %>
@@ -133,7 +133,7 @@
               <td>
                 <b><a href="<%= context_url(@context, :context_section_url, enrollment.course_section_id) rescue "#" %>"><%= enrollment.try_rescue(:course_section).try_rescue(:display_name) || enrollment.short_name %></a></b>
                 <div>
-                  <%= t 'enrolled_as', "Enrolled as: %{enrollment_type}", :enrollment_type => enrollment.readable_role_name %>
+                  <%= t 'enrolled_as', "Enrolled as: %{enrollment_type}", enrollment_type: enrollment.readable_role_name %>
                   <% if enrollment.rejected? %>
                     (<%= t('invitation_declined', 'Invitation Declined') %>)
                   <% end %>
@@ -142,15 +142,15 @@
                 <% if enrollment.is_a?(ObserverEnrollment) %>
                   <div style="font-size: 0.8em; padding-<%= direction('left') %>: 20px; <%= hidden unless enrollment.associated_user %>" class="associated_user" >
                     <%= t 'enrollment_linked_to', "linked to *%{linked_user}*",
-                        :linked_user => context_user_name(@context, enrollment.associated_user),
-                        :wrapper => '<span class="associated_user_name">\1</span>' %>
+                        linked_user: context_user_name(@context, enrollment.associated_user),
+                        wrapper: '<span class="associated_user_name">\1</span>' %>
                   </div>
                 <% end %>
                 <div style="font-size: 0.8em; padding-<%= direction('left') %>: 20px; <%= hidden unless enrollment.completed? || enrollment.inactive? %>" class="completed_at_holder">
                   <% if enrollment.workflow_state == 'inactive' %>
                     <%= t 'inactive' %>
                   <% elsif enrollment.completed_at %>
-                    <%= t 'completed_enrollment', "completed *%{completed_at}*", :completed_at => datetime_string(enrollment.completed_at), :wrapper => '<span class="completed_at">\1</span>' %>
+                    <%= t 'completed_enrollment', "completed *%{completed_at}*", completed_at: datetime_string(enrollment.completed_at), wrapper: '<span class="completed_at">\1</span>' %>
                   <% else %>
                     <%= t 'completed' %>
                   <% end %>
@@ -160,10 +160,10 @@
                 <td>
                   <% unless @context.completed? %>
                     <div class="conclude_enrollment_link_holder" style="margin-bottom: 5px; <%= hidden if enrollment.completed? %>">
-                      <a class="conclude_enrollment_link" href="<%= context_url(@context, :controller => :courses, :action => :conclude_user, :id => enrollment.id) %>"><%= t('links.conclude_enrollment', %{Conclude this Enrollment}) %></a>
+                      <a class="conclude_enrollment_link" href="<%= context_url(@context, controller: :courses, action: :conclude_user, id: enrollment.id) %>"><%= t('links.conclude_enrollment', %{Conclude this Enrollment}) %></a>
                     </div>
                     <div class="unconclude_enrollment_link_holder" style="margin-bottom: 5px; <%= hidden unless enrollment.explicitly_completed? || enrollment.inactive? %>">
-                      <a class="unconclude_enrollment_link" href="<%= context_url(@context, :controller => :courses, :action => :unconclude_user, :id => enrollment.id) %>"><%= t('links.restore_enrollment', %{Restore this Enrollment}) %></a>
+                      <a class="unconclude_enrollment_link" href="<%= context_url(@context, controller: :courses, action: :unconclude_user, id: enrollment.id) %>"><%= t('links.restore_enrollment', %{Restore this Enrollment}) %></a>
                     </div>
                   <% end %>
                   <div><% if enrollment.defined_by_sis? && !@context.grants_any_right?(@current_user, session, :manage_account_settings, :manage_sis) %>
@@ -203,7 +203,7 @@
         <% end %>
       </fieldset>
     <% end %>
-    <%= render :partial => 'users/logins' %>
+    <%= render partial: 'users/logins' %>
   </div>
 <div style="margin-bottom: 10px;">&nbsp;</div>
 <% elsif service_enabled?(:avatars) %>
@@ -228,6 +228,6 @@
   <h2><%= t('headings.recent_messages', %{Recent Messages}) %></h2>
   <%= t('no_messages', "No Messages") if @messages.empty? %>
   <% @messages.each do |message| %>
-    <%= render :partial => 'discussion_topics/entry', :object => message, :locals => {:out_of_context => true, :show_context => true, :assignment_visible_to_user => message.discussion_topic.visible_for?(@current_user)} %>
+    <%= render partial: 'discussion_topics/entry', object: message, locals: {out_of_context: true, show_context: true, assignment_visible_to_user: message.discussion_topic.visible_for?(@current_user)} %>
   <% end %>
 <% end %>

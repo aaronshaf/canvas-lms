@@ -103,44 +103,44 @@
             <% if discussion_checkpoints_enabled && use_discussion_toggle_link %>
               <%= t('group_discussion_submission_description_toggle',
                     "The submissions for the assignment are posts in the assignment's discussion for this group. You can view the discussion posts for %{user} below, or you can *switch to viewing the full group discussion context.*",
-                    :user => user_name,
-                    :wrapper => "<button id='discussion_temporary_toggle' <b>\\1</b></button>") %>
+                    user: user_name,
+                    wrapper: "<button id='discussion_temporary_toggle' <b>\\1</b></button>") %>
             <% else %>
               <%= t('group_discussion_submission_description',
                       "The submissions for this assignment are posts in the assignment's discussion for this group. Below are the discussion posts for %{user}, or you can *view the full group discussion*.",
-                      :user => user_name,
-                      :wrapper => "<a role='button' id='discussion_view_link'  href=\"#{context_url(group, :context_discussion_topics_url, :root_discussion_topic_id => @assignment.discussion_topic.id, :hide_student_names => params[:hide_student_name], :headless => 1, :embed => true, :hidden_user_id => hidden_user_id)}\"><b>\\1</b></a>") %>
+                      user: user_name,
+                      wrapper: "<a role='button' id='discussion_view_link'  href=\"#{context_url(group, :context_discussion_topics_url, root_discussion_topic_id: @assignment.discussion_topic.id, hide_student_names: params[:hide_student_name], headless: 1, embed: true, hidden_user_id:)}\"><b>\\1</b></a>") %>
             <% end %>
           <% else %>
             <% if discussion_checkpoints_enabled && use_discussion_toggle_link %>
               <%= t('discussion_submission_description_toggle',
                       "The submissions for the assignment are posts in the assignment's discussion. You can view the discussion posts for %{user} below, or you can *switch to viewing the full discussion context.*",
-                      :user => user_name,
-                      :wrapper => "<button id='discussion_temporary_toggle'><b>\\1</b></button>") %>
+                      user: user_name,
+                      wrapper: "<button id='discussion_temporary_toggle'><b>\\1</b></button>") %>
               <% else %>
                 <%= t('discussion_submission_description',
                       "The submissions for this assignment are posts in the assignment's discussion. Below are the discussion posts for %{user}, or you can *view the full discussion*.",
-                      :user => user_name,
-                      :wrapper => "<a role='button' id='discussion_view_link'  href=\"#{context_url(@assignment.context, :context_discussion_topic_url, @assignment.discussion_topic.id, :hide_student_names => params[:hide_student_name], :headless => 1, :embed => true, :hidden_user_id => hidden_user_id)}\"><b>\\1</b></a>") %>
+                      user: user_name,
+                      wrapper: "<a role='button' id='discussion_view_link'  href=\"#{context_url(@assignment.context, :context_discussion_topic_url, @assignment.discussion_topic.id, hide_student_names: params[:hide_student_name], headless: 1, embed: true, hidden_user_id:)}\"><b>\\1</b></a>") %>
             <% end %>
           <% end %>
         <% else %>
           <% if @assignment.discussion_topic.for_group_discussion? && (group = @assignment.discussion_topic.group_category.group_for(@user)) %>
             <%= t('group_discussion_submission_description_without_link',
                     "The submissions for this assignment are posts in the assignment's discussion for this group. Below are the discussion posts for %{user}.",
-                    :user => user_name) %>
+                    user: user_name) %>
           <% else %>
             <%= t('discussion_submission_description_without_link',
                     "The submissions for this assignment are posts in the assignment's discussion. Below are the discussion posts for %{user}.",
-                    :user => user_name) %>
+                    user: user_name) %>
           <% end %>
         <% end %>
       </p>
         <% @entries.each do |entry| %>
-          <%= render :partial => 'discussion_topics/entry', :object => entry, :locals => {:out_of_context => true, :skip_sub_entries => true, :link_to_headless => true, :hide_student_names => params[:hide_student_name], :assignment_visible_to_user => assignment_visible_to_user, :use_discussion_toggle_link => use_discussion_toggle_link} %>
+          <%= render partial: 'discussion_topics/entry', object: entry, locals: {out_of_context: true, skip_sub_entries: true, link_to_headless: true, hide_student_names: params[:hide_student_name], assignment_visible_to_user:, use_discussion_toggle_link:} %>
         <% end %>
         <div style="text-align: center; font-size: 1.2em; margin-top: 10px; display: none;">
-          <a href="<%= context_url(@assignment.context, :context_discussion_topic_url, @assignment.discussion_topic.id, :headless => 1, :combined => 1, :embed => true) %>" class="forward"><%= t('show_entire_discussion', 'Show the Entire Discussion') %></a>
+          <a href="<%= context_url(@assignment.context, :context_discussion_topic_url, @assignment.discussion_topic.id, headless: 1, combined: 1, embed: true) %>" class="forward"><%= t('show_entire_discussion', 'Show the Entire Discussion') %></a>
         </div>
     </div>
   <% else %>
@@ -266,7 +266,7 @@
             <td class="file-upload-submission-turnitin">
               <%=
                 render partial: 'submissions/originality_score', locals: {
-                  attachment: attachment,
+                  attachment:,
                   show_updated_icons: show_updated_plagiarism_icons
                 }
               %>
@@ -315,7 +315,7 @@
 
   <% js_bundle 'submissions_show_preview_upload' %>
 <% elsif @submission.submission_type == "online_quiz" and  @assignment&.quiz&.id %>
-  <meta HTTP-EQUIV="REFRESH" content="0; url=<%= context_url(@context, :context_quiz_history_url, @assignment.quiz.id, :user_id => @submission.user_id, :hide_student_name => params[:hide_student_name], :headless => 1, :version => @submission.quiz_submission_version) %>"/>
+  <meta HTTP-EQUIV="REFRESH" content="0; url=<%= context_url(@context, :context_quiz_history_url, @assignment.quiz.id, user_id: @submission.user_id, hide_student_name: params[:hide_student_name], headless: 1, version: @submission.quiz_submission_version) %>"/>
   <div style="text-align: center;">
     <%= t('quiz_submission', 'This submission was a quiz submission.  Redirecting to quiz page.') %>
   </div>

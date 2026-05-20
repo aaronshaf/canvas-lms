@@ -32,7 +32,7 @@
   end
 
 %>
-<li><a href="<%= course_url(enrollment.course, :invitation => enrollment.uuid) %>" title="<%= title_message %>" class="<%= enrollment.type.to_s.underscore %>">
+<li><a href="<%= course_url(enrollment.course, invitation: enrollment.uuid) %>" title="<%= title_message %>" class="<%= enrollment.type.to_s.underscore %>">
 <%=
   case enrollment.type
   when 'TeacherEnrollment'

@@ -25,8 +25,8 @@
          PASSWORD_POLICY: @domain_root_account.password_policy
        }) %>
     <%= link_to '#',
-          :id => 'coenrollment_link',
-          :class =>  "ic-Login__link ic-Login__register-banner",
+          id: 'coenrollment_link',
+          class: "ic-Login__link ic-Login__register-banner",
           data: reg_link_data(nil)  do %>
       <div class="ic-Login__banner-title">
         <%= t('Parent of a Canvas User?') %>
@@ -37,8 +37,8 @@
     <% end %>
   <% else %>
     <%= link_to "/register_from_website",
-                :id => 'register_link',
-                :class => "ic-Login__link ic-Login__register-banner" do %>
+                id: 'register_link',
+                class: "ic-Login__link ic-Login__register-banner" do %>
       <div class="ic-Login__banner-title">
         <%= t('Need a Canvas Account?') %>
       </div>

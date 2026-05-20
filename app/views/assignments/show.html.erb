@@ -38,13 +38,13 @@
 </style>
 
 <% provide :page_title, @assignment.title %>
-<% provide :right_side, render(:partial => "assignment_sidebar") %>
+<% provide :right_side, render(partial: "assignment_sidebar") %>
 
 <% if @show_locked_page %>
 
   <div class="assignment_header">
     <h1 id="assignment_head"><%= @assignment.title %></h1>
-    <%= render :partial => "assignment_details" %>
+    <%= render partial: "assignment_details" %>
     <div class="lock_explanation">
       <%= @locked.is_a?(Hash) ? lock_explanation(@locked, 'assignment', @context) : t(:assignment_locked, "This assignment is currently locked.") %>
     </div>
@@ -113,7 +113,7 @@
           <ul id="toolbar-1" class="al-options" role="menu" tabindex="0" aria-hidden="true" aria-expanded="false">
             <% if @can_link_to_speed_grader %>
               <li id="speed-grader-link-container" role="presentation" class='<%= "hidden" unless @assignment.published? %>'>
-                <a href="<%= context_url(@context, :speed_grader_context_gradebook_url, :assignment_id => @assignment.id) %>" target="_blank" rel="noopener" class="speed-grader-link-assignment icon-speed-grader">
+                <a href="<%= context_url(@context, :speed_grader_context_gradebook_url, assignment_id: @assignment.id) %>" target="_blank" rel="noopener" class="speed-grader-link-assignment icon-speed-grader">
                   <%= t(:speed_grader, "SpeedGrader") %>
                 </a>
               </li>
@@ -126,7 +126,7 @@
                 <a href="#" class="icon-duplicate direct-share-copy-to-menu-item"><%= t("Copy To...") %></a>
               </li>
             <% end %>
-            <%= external_tools_menu_items(@assignment_menu_tools, {link_class: "menu_tool_link", settings_key: :assignment_menu, in_list: true, url_params: {:assignments => [@assignment.id]}}) %>
+            <%= external_tools_menu_items(@assignment_menu_tools, {link_class: "menu_tool_link", settings_key: :assignment_menu, in_list: true, url_params: {assignments: [@assignment.id]}}) %>
           </ul>
         <% end %>
       </div>
@@ -246,8 +246,8 @@
           </tr>
         </thead>
 
-        <%= render 'shared/override_list', :assignment => @assignment,
-          :user => @current_user %>
+        <%= render 'shared/override_list', assignment: @assignment,
+          user: @current_user %>
 
       </table>
     <% end %>
@@ -289,7 +289,7 @@
 <% end %>
 
 <% if !@locked && can_do(@assignment, @current_user, :submit) %>
-  <%= render :partial => "submit_assignment", locals: { eula_url: eula_url }%>
+  <%= render partial: "submit_assignment", locals: { eula_url: }%>
 <% end %>
 
 <!--Show partial rubrics ERB if enhanced_rubrics_assignments is not enabled or in Student View-->
@@ -301,5 +301,5 @@
 <% end %>
 
 <% if Rubric.enhanced_rubrics_assignments_enabled?(@context) && can_do(@context, @current_user, :read_as_admin) %>
-  <%= render :partial => "shared/sequence_footer", :locals => {:asset => @assignment} unless @assignment.context_module_tags.empty? %>
+  <%= render partial: "shared/sequence_footer", locals: {asset: @assignment} unless @assignment.context_module_tags.empty? %>
 <% end %>

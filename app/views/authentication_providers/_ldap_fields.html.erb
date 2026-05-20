@@ -122,4 +122,4 @@
   <%= f.label :auth_password, t('Password'), class: 'ic-Label', for: "auth_password_#{presenter.id_suffix(aac)}" %>
   <%= f.password_field :auth_password, class: 'ic-Input', id: "auth_password_#{presenter.id_suffix(aac)}" %>
 </div>
-<%= render partial: 'jit_provisioning_field', locals: { aac: aac, presenter: presenter, f: f } %>
+<%= render partial: 'jit_provisioning_field', locals: { aac:, presenter:, f: } %>

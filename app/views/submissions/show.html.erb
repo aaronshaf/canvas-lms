@@ -60,7 +60,7 @@
   js_env_hash = {
     GRADING_TYPE: @assignment.grading_type,
     RUBRIC_ASSESSMENT: {
-      assessment_type: assessment_type,
+      assessment_type:,
       assessor_id: @current_user ? @current_user.id : "null",
       **rubric_assessment_user_param
     },
@@ -80,7 +80,7 @@
     },
     CURRENT_USER_CAN_GRADE_SUBMISSION: can_do(@assignment, @current_user, :grade),
 
-    :CUSTOM_GRADE_STATUSES => @assignment.course.custom_grade_statuses.as_json(include_root: false)
+    CUSTOM_GRADE_STATUSES: @assignment.course.custom_grade_statuses.as_json(include_root: false)
   }
 
   # Add checkpoint submission information if necessary
@@ -209,7 +209,7 @@
         <div class="submission-details-header__info">
         <div>
           <span class="submission-details-header__time <%='late' if @submission.late? %> <%= 'hidden' unless @submission.submitted_at %>">
-            <%= submission_author_name_for @assessment_request %> <%= t('submitted_at', 'submitted %{submit_date}', :submit_date => datetime_string(@submission.submitted_at)) %>
+            <%= submission_author_name_for @assessment_request %> <%= t('submitted_at', 'submitted %{submit_date}', submit_date: datetime_string(@submission.submitted_at)) %>
           </span>
           <% if @submission.proxy_submitter %>
             <br/>
@@ -312,7 +312,7 @@
           rubric_association: @assignment.rubric_association
         }}) %>
     <% end %>
-    <%= render :partial => "shared/rubric_criterion_dialog" %>
+    <%= render partial: "shared/rubric_criterion_dialog" %>
     <div class="button-container">
       <% if @assignment.rubric_association.user_can_assess_for?(assessor: @current_user, assessee: @submission.user) %>
         <button type="button" class="save_rubric_button btn btn-small"><%= t('buttons.save_comment', 'Save Comment') %></button>
@@ -335,7 +335,7 @@
       <div style="background-color: #fff; height: 100%">
         <a href="#" class="comments_link" style="display: none; <%= 'font-weight: bold;' unless submission_comments.empty? %>">Comments <% unless submission_comments.empty? %>(<%= submission_comments.length %>)<% end %></a>
         <div class="comments" style="height: 100%">
-          <button type="button" class="btn button-secondary cancel_comment_button" style="display: none; float: <%= direction('right') %>; margin-<%= direction('right') %>:0 !important;"><%= image_tag("delete_circle.png", :alt => t('Delete')) %></button>
+          <button type="button" class="btn button-secondary cancel_comment_button" style="display: none; float: <%= direction('right') %>; margin-<%= direction('right') %>:0 !important;"><%= image_tag("delete_circle.png", alt: t('Delete')) %></button>
           <div class="comment_list" aria-live="polite" style="padding: 10px; clear:right;">
             <% unless @submission.user_can_read_grade?(@current_user, session) %>
               <% if @submission.hide_grade_from_student? %>
@@ -369,7 +369,7 @@
                 <div class="comment_attachments" style="text-align: <%= direction('right') %>; margin-<%= direction('right') %>: 10px;">
                   <% comment.attachments.each do |attachment| %>
                     <div class="comment_attachment">
-                      <a href="<%= presenter.comment_attachment_download_url(submission_comment: comment, attachment: attachment) %>" class="comment_attachment_link <%= attachment.mime_class %>"><%= attachment.display_name %></a>
+                      <a href="<%= presenter.comment_attachment_download_url(submission_comment: comment, attachment:) %>" class="comment_attachment_link <%= attachment.mime_class %>"><%= attachment.display_name %></a>
                     </div>
                   <% end %>
                 </div>
@@ -384,7 +384,7 @@
             <% end %>
           </div>
           <div class="comment_media" id="comment_media_blank" style="display: none; white-space: normal;">
-            <%= t('media_comment_link', "This is a media comment, *click here to view*.", :wrapper => '<br/><a href="#" class="play_comment_link media-comment">\1</a>.') %>
+            <%= t('media_comment_link', "This is a media comment, *click here to view*.", wrapper: '<br/><a href="#" class="play_comment_link media-comment">\1</a>.') %>
             <span class="media_comment_id" style="display: none;">&nbsp;</span>
             <div class="media_comment_content">
             </div>
@@ -464,4 +464,4 @@
       </div>
     </div>
   </div>
-<% js_env({ rubricAssessments: @visible_rubric_assessments.as_json(:include => :assessor, :permissions => {:user => @current_user, :session => session}) }) %>
+<% js_env({ rubricAssessments: @visible_rubric_assessments.as_json(include: :assessor, permissions: {user: @current_user, session:}) }) %>

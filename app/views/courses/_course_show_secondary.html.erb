@@ -31,7 +31,7 @@
     <% end %>
 
     <% if @course_home_view != 'feed' && !@context.elementary_homeroom_course? %>
-    <a id="view_course_stream_btn" class="btn button-sidebar-wide" href="<%= context_url(@context, :context_url, :view => 'feed') %>">
+    <a id="view_course_stream_btn" class="btn button-sidebar-wide" href="<%= context_url(@context, :context_url, view: 'feed') %>">
       <i class="icon-stats"></i>
       <%= t('links.view_course_stream', %{View Course Stream}) %>
     </a>
@@ -81,7 +81,7 @@
       <% end %>
 
       <% if @accessibility_scan_enabled %>
-        <a id="course_check_accessibility_btn" href="<%= context_url(@context, :controller => :accessibility, :action => :index) %>"
+        <a id="course_check_accessibility_btn" href="<%= context_url(@context, controller: :accessibility, action: :index) %>"
            class="btn button-sidebar-wide accessibility_link"
         >
           <i class="icon-a11y"></i> <%= t('links.course_check_accessibility', %{Check Accessibility}) %>
@@ -89,7 +89,7 @@
       <% end %>
 
       <% if @can_create_announcements && !@context.elementary_homeroom_course? %>
-      <a class="btn button-sidebar-wide" href="<%= context_url(@context, :new_context_discussion_topic_url, :is_announcement => true) %>"><i class="icon-announcement"></i> <%= t('links.new_announcement', %{New Announcement}) %>
+      <a class="btn button-sidebar-wide" href="<%= context_url(@context, :new_context_discussion_topic_url, is_announcement: true) %>"><i class="icon-announcement"></i> <%= t('links.new_announcement', %{New Announcement}) %>
       </a>
       <% end %>
 
@@ -120,7 +120,7 @@
     <% end %>
 
     <% if @context_enrollment %>
-    <a id="view_course_notifications_btn" class="btn button-sidebar-wide" href="<%= context_url(@context, :context_url, :view => 'notifications') %>">
+    <a id="view_course_notifications_btn" class="btn button-sidebar-wide" href="<%= context_url(@context, :context_url, view: 'notifications') %>">
       <i class="icon-<%= @course_notifications_enabled ? "unmuted" : "muted" %>"></i>
       <%= t('links.view_course_notification_settings', %{View Course Notifications}) %>
     </a>
@@ -135,7 +135,7 @@
       types when determining which to-do list to display. Needs team discussion before changing.
       see https://instructure.atlassian.net/browse/EGG-2364
     %>
-    <%= render :partial => '/courses/to_do_list', :locals => {:contexts => [@context], :show_legacy_todo_list => !@context_enrollment&.student?} %>
-    <%= render :partial => "/courses/group_list", :locals => {:group_list => @user_groups} %>
+    <%= render partial: '/courses/to_do_list', locals: {contexts: [@context], show_legacy_todo_list: !@context_enrollment&.student?} %>
+    <%= render partial: "/courses/group_list", locals: {group_list: @user_groups} %>
     <%= nbsp unless @current_user %>
   </div>

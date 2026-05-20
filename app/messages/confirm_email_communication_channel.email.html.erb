@@ -15,8 +15,8 @@
 <p>
 <%= t :body,
       "The email address: %{email} is being added to a Canvas account registered at %{website}.",
-      :email => asset.path,
-      :website => data.from_host || HostUrl.default_host %>
+      email: asset.path,
+      website: data.from_host || HostUrl.default_host %>
 </p>
 
 <%= t :reject_message, "To prevent this address from being registered, please disregard this email." %>

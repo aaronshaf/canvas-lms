@@ -18,12 +18,12 @@
 
 <%
   provide :page_title,  @event.title || t(:page_title, "New Calendar Event")
-  return_to_url = return_to_calendar(:context => @context, :event => @event)
+  return_to_url = return_to_calendar(context: @context, event: @event)
 
   event_attrs = {
-    :id => @event.id,
-    :context_code => @context.asset_string,
-    :return_to_url => return_to_url
+    id: @event.id,
+    context_code: @context.asset_string,
+    return_to_url:
   }
   if @context.is_a? Course
     event_attrs[:sections_url] = context_url(@context, :api_v1_context_sections_url)

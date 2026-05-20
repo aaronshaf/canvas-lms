@@ -28,7 +28,7 @@
 <h1 class="screenreader-only"><%= @quiz.quiz_title %></h1>
 
 <div id="quiz_edit_wrapper" class="mathjax_ignore">
-  <%= render :partial => "quiz_edit" %>
+  <%= render partial: "quiz_edit" %>
 </div>
 
 
@@ -36,7 +36,7 @@
   <div class="question_generated_description"></div>
   <textarea style="width: 600px; height: 400px;" id="copy_paste_box"></textarea>
 </div>
-<%= render :partial => 'equations_help' %>
+<%= render partial: 'equations_help' %>
 <div id="ip_filters_dialog" style="display: none;">
   <h2><%= t('headers.ip_filters', "What are Quiz IP Filters?") %></h2>
   <p class="explanation"><%= t(:ip_filters, <<~TEXT)

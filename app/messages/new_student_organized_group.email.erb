@@ -2,10 +2,10 @@
   <%= polymorphic_url([asset.group.context, asset.group]) %>
 <% end %>
 <% define_content :subject do %>
-  <%= t :subject, "New Student Group for %{course_or_account}", :course_or_account => asset.group.context.name %>
+  <%= t :subject, "New Student Group for %{course_or_account}", course_or_account: asset.group.context.name %>
 <% end %>
 
-<%= t :title, "New Student Group: %{group_name}", :group_name => asset.group.name %>
+<%= t :title, "New Student Group: %{group_name}", group_name: asset.group.name %>
 
 <%=
     case asset.group.context_type

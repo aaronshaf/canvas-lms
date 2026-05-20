@@ -53,7 +53,7 @@
     <% elsif @context %>
       <p>
         <% if @context.try_rescue(:is_public) %>
-          <%= mt 'public_course', 'This page is part of the content for the course, **%{course}**.', :course => @context.name %>
+          <%= mt 'public_course', 'This page is part of the content for the course, **%{course}**.', course: @context.name %>
         <% end %>
         <%= t("You don't have access to view this resource.") %>
       </p>

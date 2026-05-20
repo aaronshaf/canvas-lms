@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<% provide :page_title do %><%= t(:submissions_upload, "%{assignment} Submissions Upload", :assignment => @assignment.title) %>: <%= t(:comments_made, {:one => "1 Comment Made", :other => "%{count} Comments Made"}, :count => @comments.length) %>, <%= t(:files_ignored, {:one => "1 File Ignored", :other => "%{count} Files Ignored"}, :count => @failures.length) %><% end %>
+<% provide :page_title do %><%= t(:submissions_upload, "%{assignment} Submissions Upload", assignment: @assignment.title) %>: <%= t(:comments_made, {one: "1 Comment Made", other: "%{count} Comments Made"}, count: @comments.length) %>, <%= t(:files_ignored, {one: "1 File Ignored", other: "%{count} Files Ignored"}, count: @failures.length) %><% end %>
 
 <% provide :right_side do %>
   <p><%= t(:done, <<~TEXT)
@@ -78,7 +78,7 @@
 }
 </style>
 
-<h2><%= t(:submissions_upload, "%{assignment} Submissions Upload", :assignment => @assignment.title) %></h2>
+<h2><%= t(:submissions_upload, "%{assignment} Submissions Upload", assignment: @assignment.title) %></h2>
 <h3 style="margin-top: 5px;"><%= t('headers.attached_files', "Attached files to the following user submissions") %></h3>
 <ul id="student_list" style="margin-top: 10px;">
 <% if @comments.empty? %>
@@ -90,9 +90,9 @@
     <ul class="file_list">
       <% comment.attachments.each do |file| %>
       <li>
-        <a href="<%= context_url(@context, :context_assignment_submission_url, @assignment.id, comment.submission.user_id, :download => file.id, :comment_id => comment.id) %>"><%= file.display_name %></a>
+        <a href="<%= context_url(@context, :context_assignment_submission_url, @assignment.id, comment.submission.user_id, download: file.id, comment_id: comment.id) %>"><%= file.display_name %></a>
         <% if file.filename != file.display_name %>
-          <span style="font-size: 0.6em;">(<%= t(:renamed_file, "renamed from %{filename}", :filename => file.filename) %>)</span>
+          <span style="font-size: 0.6em;">(<%= t(:renamed_file, "renamed from %{filename}", filename: file.filename) %>)</span>
         <% end %>
       </li>
       <% end %>

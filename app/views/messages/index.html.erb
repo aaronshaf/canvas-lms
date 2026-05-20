@@ -23,5 +23,5 @@
 
 <div id="messages_mount_point" data-user-name="<%= @context.name %>"></div>
 
-<%= render :partial => 'message', :collection => @messages %>
+<%= render partial: 'message', collection: @messages %>
 <%= will_paginate(@messages) %>

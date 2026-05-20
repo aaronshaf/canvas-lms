@@ -23,7 +23,7 @@
     <% course = assignment.context %>
     <% assignment_presenter = AssignmentPresenter.new(assignment) %>
     <% if course.grants_right?(@current_user, :manage_assignments_edit) %>
-      <a href="<%= context_url(assignment.context, :edit_context_assignment_url, assignment.id, :return_to => request.url) %>" class="btn button-sidebar-wide">
+      <a href="<%= context_url(assignment.context, :edit_context_assignment_url, assignment.id, return_to: request.url) %>" class="btn button-sidebar-wide">
         <i class="icon-edit"></i>
         <%= t :edit_assignment_settings, "Edit Assignment Settings" %>
       </a>
@@ -35,5 +35,5 @@
   <% end %>
 <% end %>
 <% if @module_tag %>
-  <%= render :partial => 'shared/sequence_footer', :locals => {:asset => @module_tag} %>
+  <%= render partial: 'shared/sequence_footer', locals: {asset: @module_tag} %>
 <% end %>

@@ -18,7 +18,7 @@
 
 <% page_section ||= nil %>
 <div class="section <%= "read_only" if page_section && (page_section["attachment_id"] || page_section["submission_id"]) %>" id="page_section_<%= idx %>">
-  <a href="#" class="move_link no-hover" title="<%= t('titles.move_section', "Drag to rearrange sections") %>"><%= image_tag "move.png", :alt => t('Drag to rearrange sections') %></a>
+  <a href="#" class="move_link no-hover" title="<%= t('titles.move_section', "Drag to rearrange sections") %>"><%= image_tag "move.png", alt: t('Drag to rearrange sections') %></a>
   <div class="section_type_name">
     <% if !page_section || page_section["section_type"] == "rich_text" %>
       <%= t('section_types.rich_text', "Rich Text Content") %>
@@ -41,19 +41,19 @@
         <div style="text-align: center;" class="attachment">
           <% attachment = @portfolio.shard.activate { @portfolio.user.attachments.find(page_section["attachment_id"]) } %>
           <% if attachment&.content_type&.start_with?('image') %>
-            <a href="<%= eportfolio_entry_view_file_path(@portfolio, @page, attachment.uuid) %>" class="no-hover"><%= image_tag eportfolio_entry_view_file_path(@portfolio, @page, attachment.uuid), :alt => attachment.display_name %></a>
+            <a href="<%= eportfolio_entry_view_file_path(@portfolio, @page, attachment.uuid) %>" class="no-hover"><%= image_tag eportfolio_entry_view_file_path(@portfolio, @page, attachment.uuid), alt: attachment.display_name %></a>
           <% elsif attachment %>
             <a href="<%= eportfolio_entry_view_file_path(@portfolio, @page, attachment.uuid) %>">
               <%= t('links.download_attachment', "Click here to Download *%{attachment}*",
-                    :attachment => attachment.display_name,
-                    :wrapper => '<span class="filename">\1</span>') %>
+                    attachment: attachment.display_name,
+                    wrapper: '<span class="filename">\1</span>') %>
             </a>
           <% end %>
         </div>
       <% elsif page_section["section_type"] == "submission" %>
         <% submission = @portfolio.user.submissions.where(id: page_section["submission_id"]).first if page_section["submission_id"].present? %>
         <% if submission %>
-          <iframe class="submission_preview" src="<%= eportfolio_entry_preview_submission_path(@portfolio, @page, submission.id) %>" style="border: 1px solid #aaa; width: 100%; height: 300px; display: block; margin-<%= direction('left') %>: auto; margin-<%= direction('right') %>: auto;" title="<%= t("%{assignment} preview", :assignment=> submission.assignment.title) %>">
+          <iframe class="submission_preview" src="<%= eportfolio_entry_preview_submission_path(@portfolio, @page, submission.id) %>" style="border: 1px solid #aaa; width: 100%; height: 300px; display: block; margin-<%= direction('left') %>: auto; margin-<%= direction('right') %>: auto;" title="<%= t("%{assignment} preview", assignment: submission.assignment.title) %>">
           </iframe>
         <% end %>
       <% end %>

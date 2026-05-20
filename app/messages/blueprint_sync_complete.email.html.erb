@@ -1,9 +1,9 @@
 <% define_content :link do %>
-  <%= polymorphic_url(asset.master_template.course, :anchor => asset.notification_link_anchor) %>
+  <%= polymorphic_url(asset.master_template.course, anchor: asset.notification_link_anchor) %>
 <% end %>
 
 <% define_content :subject do %>
-  <%= t :subject, "Blueprint Sync Finished: %{name}", :name => asset.master_template.course.name %>
+  <%= t :subject, "Blueprint Sync Finished: %{name}", name: asset.master_template.course.name %>
 <% end %>
 
 <% define_content :footer_link do %>
@@ -12,7 +12,7 @@
   </a>
 <% end %>
 
-<p><%= t :body, "Your blueprint course, %{name}, has synced changes to all associated courses.", :name => asset.master_template.course.name %></p>
+<p><%= t :body, "Your blueprint course, %{name}, has synced changes to all associated courses.", name: asset.master_template.course.name %></p>
 
 <% if asset.comment.present? %>
 <p>"<%= asset.comment %>"</p>

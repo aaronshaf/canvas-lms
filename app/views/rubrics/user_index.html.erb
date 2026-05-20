@@ -37,17 +37,17 @@
       <a href="<%= context_url(rubric.context, :context_rubric_url, rubric.id) %>" class="title"><%= rubric.title %></a>
       <span class="links">
         <% if can_do(rubric, @current_user, :update) %>
-          <a href="<%= context_url(rubric.context, :context_rubric_url, rubric.id) %>#edit" class="no-hover"><%= image_tag "edit.png", :alt => t('Edit') %></a>
+          <a href="<%= context_url(rubric.context, :context_rubric_url, rubric.id) %>#edit" class="no-hover"><%= image_tag "edit.png", alt: t('Edit') %></a>
         <% end %>
         <% if rubric.context == @context %>
-          <a href="<%= context_url(@context, :context_rubric_url, rubric.id) %>" class="delete_rubric_link no-hover" title="<%= t('delete_rubric', 'Delete Rubric') %>"><%= image_tag "delete.png", :alt => t('Delete Rubric') %></a>
+          <a href="<%= context_url(@context, :context_rubric_url, rubric.id) %>" class="delete_rubric_link no-hover" title="<%= t('delete_rubric', 'Delete Rubric') %>"><%= image_tag "delete.png", alt: t('Delete Rubric') %></a>
         <% elsif can_do(rubric, @current_user, :delete) %>
-          <a href="<%= context_url(@context, :context_rubric_url, rubric.id) %>" class="delete_rubric_link no-hover remove_link" title="<%= t('remove_rubric', 'Remove this Rubric from my list') %>"><%= image_tag "delete_circle.png", :alt => t('Remove this Rubric from my list') %></a>
+          <a href="<%= context_url(@context, :context_rubric_url, rubric.id) %>" class="delete_rubric_link no-hover remove_link" title="<%= t('remove_rubric', 'Remove this Rubric from my list') %>"><%= image_tag "delete_circle.png", alt: t('Remove this Rubric from my list') %></a>
         <% end %>
       </span>
       <span class="details">
-        <%= t({:one => "1 criterion", :other => "%{count} criteria"}, :count => rubric.criteria.length) %><br/>
-        <%= t('points_possible', {:one => "1 point possible", :other => "%{count} points possible"}, :count => round_if_whole(rubric.points_possible)) %>
+        <%= t({one: "1 criterion", other: "%{count} criteria"}, count: rubric.criteria.length) %><br/>
+        <%= t('points_possible', {one: "1 point possible", other: "%{count} points possible"}, count: round_if_whole(rubric.points_possible)) %>
       </span>
     </li>
   <% end %>
@@ -60,6 +60,6 @@
   <span class="current_user_id" style="display: none;"><%= @current_user.id %></span>
   <a href="<%= context_url(@context, :context_rubrics_url) %>" class="add_rubric_association_url" style="display: none;">&nbsp;</a>
 </div>
-<%= render :partial => "shared/find_outcome", :locals => {:context => @domain_root_account} %>
-<%= render :partial => "shared/rubric", :object => nil %>
-<%= render :partial => "shared/rubric_criterion_dialog" %>
+<%= render partial: "shared/find_outcome", locals: {context: @domain_root_account} %>
+<%= render partial: "shared/rubric", object: nil %>
+<%= render partial: "shared/rubric_criterion_dialog" %>

@@ -85,7 +85,7 @@
         <span class="estimated_duration_header_minutes"></span>
       <%end%>
     </span>
-    <%= render :partial => "context_modules/prerequisites_message", :locals => {:viewable => @can_view, :context_module => context_module} %>
+    <%= render partial: "context_modules/prerequisites_message", locals: {viewable: @can_view, context_module:} %>
     <div class="module_header_items">
       <div class="ig-header-admin">
 
@@ -119,7 +119,7 @@
               <i class="icon-lock locked_icon"
                 data-tooltip
                 title="<%= context_module&.to_be_unlocked ?
-                        t('Locked until %{unlock_date}', :unlock_date => datetime_string(context_module.try_rescue(:unlock_at)) || nbsp) : t('Locked') %>"
+                        t('Locked until %{unlock_date}', unlock_date: datetime_string(context_module.try_rescue(:unlock_at)) || nbsp) : t('Locked') %>"
               >
                 <span class="screenreader-only"><%= t("Module Locked") %></span>
               </i>
@@ -233,7 +233,7 @@
                   </li>
                 <% end %>
               <% else %>
-                <%= external_tools_menu_items(@menu_tools[:module_menu], {link_class: "menu_tool_link", settings_key: :module_menu, in_list: true, url_params: {:modules => [context_module ? context_module.id : "{{ id }}"]}}) %>
+                <%= external_tools_menu_items(@menu_tools[:module_menu], {link_class: "menu_tool_link", settings_key: :module_menu, in_list: true, url_params: {modules: [context_module ? context_module.id : "{{ id }}"]}}) %>
                 <%= external_tools_menu_items(@menu_tools[:module_group_menu], {link_class: "menu_tray_tool_link", settings_key: :module_group_menu, in_list: true}) %>
                 <%= external_tools_menu_items(@menu_tools[:module_menu_modal], {link_class: "menu_tray_tool_link", settings_key: :module_menu_modal, in_list: true}) %>
               <% end %>
@@ -273,13 +273,13 @@
               locals = {
                 item_restrictions: module_data.dig(:items_restrictions, item.id),
                 completion_criteria: context_module.completion_requirements,
-                item_data: item_data,
+                item_data:,
                 viewable: @can_view,
               }
             %>
-            <%= render :partial => 'context_modules/module_item_next', :object => item, :as => :module_item, :locals => locals %>
+            <%= render partial: 'context_modules/module_item_next', object: item, as: :module_item, locals: %>
             <% if item_data[:show_cyoe_placeholder] %>
-              <%= render :partial => 'context_modules/module_item_conditional_next', :object => item, :as => :module_item, :locals => locals %>
+              <%= render partial: 'context_modules/module_item_conditional_next', object: item, as: :module_item, locals: %>
             <% end %>
           <% end %>
         <% end %>
@@ -292,11 +292,11 @@
     <div class="footer">
       <div class="progression_container">
         <a href="#" class="progression_details_link" title="<%= t('links.title.student_progress', %{See Student Progress for this Module}) %>" style="display: none;">
-          <span class="progression_started"><%= t 'progression_started_count', '*%{count}* In Progress', :count => 0, :wrapper => '<span class="progression_started_count">\1</span>' %></span> <span class="progression_complete"><%= t'progression_complete_count', '*%{count}* Complete', :count => 0, :wrapper => '<span class="progression_complete_count">\1</span>' %></span>
+          <span class="progression_started"><%= t 'progression_started_count', '*%{count}* In Progress', count: 0, wrapper: '<span class="progression_started_count">\1</span>' %></span> <span class="progression_complete"><%= t'progression_complete_count', '*%{count}* Complete', count: 0, wrapper: '<span class="progression_complete_count">\1</span>' %></span>
         </a>
         <div class="unlock_details" style="<%= hidden unless context_module&.to_be_unlocked %>">
           <div class="unlock_at" style="<%= hidden %>"><%= datetime_string(context_module.try_rescue(:unlock_at), :verbose) %></div>
-          <%= t 'module_will_unlock_at', 'Will unlock *%{unlock_date}*', :wrapper => "<span class=\"displayed_unlock_at\" #{context_sensitive_datetime_title(context_module.try_rescue(:unlock_at), @context)}>\\1</span>", :unlock_date => datetime_string(context_module.try_rescue(:unlock_at)) || nbsp %>
+          <%= t 'module_will_unlock_at', 'Will unlock *%{unlock_date}*', wrapper: "<span class=\"displayed_unlock_at\" #{context_sensitive_datetime_title(context_module.try_rescue(:unlock_at), @context)}>\\1</span>", unlock_date: datetime_string(context_module.try_rescue(:unlock_at)) || nbsp %>
         </div>
       </div><!-- progression_container -->
     </div><!-- footer -->

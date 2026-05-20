@@ -36,7 +36,7 @@
           </button>
           <div id="<%= "#{report}_report_description" %>" style="display: none" class="report_description">
             <%= render(partial: description_partial, locals: {
-              report: report,
+              report:,
               report_details: details,
             }) %>
           </div>
@@ -63,7 +63,7 @@
               <form id="<%= report %>_form" class="run_report_form" action="<%= api_v1_account_create_report_path(@account, report) %>">
                 <div class="report_parameters">
                   <%= render(partial: parameters_partial, locals: {
-                    report: report,
+                    report:,
                     report_details: details,
                   }) %>
                 </div>
@@ -71,13 +71,13 @@
             </div>
           </div>
           <span class="running_report_message" style="<%= hidden unless in_progress %>">
-                  <%= t('report_running', 'The report is running.*You\'ll receive an email when it is done.*', :wrapper => '<div>\1</div>') %>
+                  <%= t('report_running', 'The report is running.*You\'ll receive an email when it is done.*', wrapper: '<div>\1</div>') %>
                 </span>
           <button id="configure_<%= report %>" style="<%= hidden if in_progress %>" class="Button Button--small configure_report_link"><%= t 'links.configure_report', 'Configure...' %></button>
         <% else %>
           <form id="<%= report %>_form" class="run_report_form" action="<%= api_v1_account_create_report_path(@account, report) %>">
                   <span class="running_report_message" style="<%= hidden unless in_progress %>">
-                    <%= t('report_running', 'The report is running.*You\'ll receive an email when it is done.*', :wrapper => '<div>\1</div>') %>
+                    <%= t('report_running', 'The report is running.*You\'ll receive an email when it is done.*', wrapper: '<div>\1</div>') %>
                   </span>
             <button id="run_<%= report %>" style="<%= hidden if in_progress %>" class="Button Button--small Button--primary run_report_link"><%= t 'links.run_report', 'Run Report' %></button>
           </form>

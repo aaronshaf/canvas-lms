@@ -3,7 +3,7 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t('subject', 'Appointments for %{appointment_name} have been canceled (%{course})', :appointment_name => asset.title, :course => asset.contexts_for_user(user).map(&:name).join(", ")) %>
+  <%= t('subject', 'Appointments for %{appointment_name} have been canceled (%{course})', appointment_name: asset.title, course: asset.contexts_for_user(user).map(&:name).join(", ")) %>
 <% end %>
 
 <% define_content :footer_link do %>
@@ -12,7 +12,7 @@
   </a>
 <% end %>
 
-<p><%= t :message, 'All appointments for %{appointment_name} have been canceled.', :appointment_name => asset.title %></p>
+<p><%= t :message, 'All appointments for %{appointment_name} have been canceled.', appointment_name: asset.title %></p>
 
 <p><strong><%= t :details, 'Appointment Details' %>:</strong></p>
 <table border="0" style="font-size: 14px; color: #444444;

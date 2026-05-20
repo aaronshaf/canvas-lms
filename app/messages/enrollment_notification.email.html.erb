@@ -8,7 +8,7 @@
 
 <% define_content :footer_link do %>
   <% if !asset.user.registered? && asset.user.communication_channel %>
-    <a href="<%= registration_confirmation_url(asset.user.communication_channel.confirmation_code, :host => HostUrl.context_host(asset.course)) %>">
+    <a href="<%= registration_confirmation_url(asset.user.communication_channel.confirmation_code, host: HostUrl.context_host(asset.course)) %>">
       <%= t :complete_registration_link, "Click here to complete registration" %>
     </a>
   <% else %>
@@ -21,7 +21,7 @@
 <% email = asset.user.email; login = asset.user.pseudonym.unique_id rescue "none" %>
 <% course = link_to(asset.course.name, content(:link)) %>
 <p>
-  <%= t "You've been enrolled in the course, %{course}. Course role: %{role_type}", :course => asset.course.name, :role_type => asset.readable_role_name %>
+  <%= t "You've been enrolled in the course, %{course}. Course role: %{role_type}", course: asset.course.name, role_type: asset.readable_role_name %>
 </p>
 
 <table border="0" style="font-size: 14px; color: #444444;

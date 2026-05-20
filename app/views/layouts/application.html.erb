@@ -50,7 +50,7 @@
   enable_content_view_if_requested
   enable_hide_global_nav_if_requested
 -%>
-<%= render :partial => "layouts/head" %>
+<%= render partial: "layouts/head" %>
 <%-
   left_side = nil
   left_side_custom = nil
@@ -116,13 +116,13 @@
     <% if @current_user.fake_student? %>
         <%= t("You are currently logged into Student View") %>
       <% else %>
-        <%= t("You are currently acting as %{user_name}", :user_name => @current_user.short_name) %>
+        <%= t("You are currently acting as %{user_name}", user_name: @current_user.short_name) %>
     <% end %>
   </div>
 <% end %>
 <%# Flash messages must be outside of #application or they won't work in screenreaders with modals open. %>
-<%= render :partial => 'shared/static_notices' unless @content_only %>
-<%= render :partial => 'shared/flash_notices' %>
+<%= render partial: 'shared/static_notices' unless @content_only %>
+<%= render partial: 'shared/flash_notices' %>
 <%if !@content_only && @domain_root_account&.feature_enabled?(:top_navigation_placement) %>
   <div id="drawer-layout-mount-point"></div>
 <% end %>
@@ -130,7 +130,7 @@
   <div id="student_study_drawer_mount_point"></div>
 <% end %>
 <div id="application" class="ic-app <%= 'content-only' if @content_only %>">
-  <%= render(:partial => 'shared/new_nav_header') unless @headers == false || @content_only %>
+  <%= render(partial: 'shared/new_nav_header') unless @headers == false || @content_only %>
 
   <div id="instructure_ajax_error_box">
     <div style="text-align: <%= direction('right') %>; background-color: #fff;"><a href="#" class="close_instructure_ajax_error_box_link"><%= t('links.close', 'Close') %></a></div>
@@ -153,11 +153,11 @@
 
           <div class="ic-app-crumbs <%= 'ic-app-crumbs-enhanced-rubrics' if @enhanced_rubrics_enabled %>">
             <% if @context.is_a?(Course) && @context.elementary_subject_course? %>
-              <%= link_to course_path(id: @context.id), :class => "btn k5-back-to-subject", :id => "back_to_subject" do %>
+              <%= link_to course_path(id: @context.id), class: "btn k5-back-to-subject", id: "back_to_subject" do %>
                 <i class="icon-arrow-open-left"></i> <%= t('Back to Subject') %>
               <% end %>
             <% elsif @context.is_a?(Course) && @context.horizon_back_to_units_enabled? %>
-              <%= link_to course_path(id: @context.id), :class => "btn horizon-back-to-units", :id => "back_to_units" do %>
+              <%= link_to course_path(id: @context.id), class: "btn horizon-back-to-units", id: "back_to_units" do %>
                 <i class="icon-arrow-open-left"></i> <%= t('Back to Units') %>
               <% end %>
             <% else %>
@@ -180,7 +180,7 @@
               <div id="learning_agent_mount_point"></div>
             <% end %>
             <% if show_student_view_button? %>
-              <%= link_to course_student_view_path(course_id: @context, redirect_to_referer: 1), :class => "btn btn-top-nav", :id => "easy_student_view", :method => :post, :"aria-label" => student_view_text do %>
+              <%= link_to course_student_view_path(course_id: @context, redirect_to_referer: 1), class: "btn btn-top-nav", id: "easy_student_view", method: :post, "aria-label": student_view_text do %>
                 <i class="icon-student-view"></i> <%= student_view_text %>
               <% end %>
             <% end %>
@@ -265,7 +265,7 @@
               </div>
             </div>
           <% end %>
-          <%= render :partial => 'shared/content_notices' if @has_content_notices && @show_left_side %>
+          <%= render partial: 'shared/content_notices' if @has_content_notices && @show_left_side %>
           <div id="content" class="ic-Layout-contentMain" role="main">
             <%= yield %>
           </div>
@@ -278,16 +278,16 @@
       </div>
     </div>
     <% if @show_footer && !@content_only %>
-      <%= render :partial => 'shared/canvas_footer' %>
+      <%= render partial: 'shared/canvas_footer' %>
     <% end %>
   </div>
 
   <% if @show_embedded_chat %>
-    <%= render :partial => 'shared/embedded_chat' %>
+    <%= render partial: 'shared/embedded_chat' %>
   <% end %>
 
   <% if @show_fixed_bottom %>
-    <%= render :partial => 'layouts/fixed_bottom' %>
+    <%= render partial: 'layouts/fixed_bottom' %>
   <% end %>
 
   <% if wizard = (yield :wizard_box).presence %>
@@ -324,10 +324,10 @@
   <div id="react-router-portals"></div>
 
   <% if microfrontend_overrides %>
-    <%= render :partial => 'shared/microfrontend_override_indicator' %>
+    <%= render partial: 'shared/microfrontend_override_indicator' %>
   <% end %>
 
-  <%= render :partial => 'layouts/foot', :locals => { :include_common_bundle => true } %>
+  <%= render partial: 'layouts/foot', locals: { include_common_bundle: true } %>
 </div> <!-- #application -->
 </body>
 </html>

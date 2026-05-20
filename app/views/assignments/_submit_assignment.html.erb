@@ -28,10 +28,10 @@
   js_bundle :submit_assignment
   css_bundle :tinymce
   js_env({
-    :SUBMIT_ASSIGNMENT => {
-      :ALLOWED_EXTENSIONS => ((@assignment.submission_types && @assignment.submission_types.include?('online_upload')) ? @assignment.allowed_extensions : []),
-      :ID => @assignment.id,
-      :GROUP_ID_FOR_USER => @assignment.group_category.try(:group_for, @current_user).try(:id)
+    SUBMIT_ASSIGNMENT: {
+      ALLOWED_EXTENSIONS: ((@assignment.submission_types && @assignment.submission_types.include?('online_upload')) ? @assignment.allowed_extensions : []),
+      ID: @assignment.id,
+      GROUP_ID_FOR_USER: @assignment.group_category.try(:group_for, @current_user).try(:id)
     }
   })
 %>
@@ -64,21 +64,21 @@
       <% end %>
     </ul>
     <% if @assignment.submission_types&.include?('online_upload') %>
-      <%= render :partial => 'assignments/submit_online_upload', locals: { eula_url: eula_url } %>
+      <%= render partial: 'assignments/submit_online_upload', locals: { eula_url: } %>
     <% end %>
 
     <% if @assignment.submission_types&.include?('online_text_entry') %>
-      <%= render :partial => 'assignments/submit_online_text_entry', locals: { eula_url: eula_url } %>
+      <%= render partial: 'assignments/submit_online_text_entry', locals: { eula_url: } %>
     <% end %>
 
     <% if @assignment.submission_types&.include?('online_url') %>
-      <%= form_tag(submission_create_url, {:id => "submit_online_url_form", :class => "submit_assignment_form"}) do %>
-        <%= hidden_field :submission, :submission_type, :value => "online_url" %>
+      <%= form_tag(submission_create_url, {id: "submit_online_url_form", class: "submit_assignment_form"}) do %>
+        <%= hidden_field :submission, :submission_type, value: "online_url" %>
         <table class="formtable" style="width: 100%;">
           <% if @assignment.has_group_category? %>
             <tr>
               <td colspan="2">
-                <%= render :partial => "assignments/group_submission_reminder" %>
+                <%= render partial: "assignments/group_submission_reminder" %>
               </td>
             </tr>
           <% end %>
@@ -94,7 +94,7 @@
                 <div style="text-align: <%= direction('left') %>;">
                   <div class="textarea-emoji-container">
                     <div class="textarea-container">
-                      <%= text_area :submission, :comment, :class => 'submission_comment_textarea', :placeholder => t('comments_placeholder', 'Comments...'), :title => t('additional_comments', 'Additional comments') %>
+                      <%= text_area :submission, :comment, class: 'submission_comment_textarea', placeholder: t('comments_placeholder', 'Comments...'), title: t('additional_comments', 'Additional comments') %>
                       <span class="emoji-picker-container" style="display: none;"></span>
                     </div>
                     <div class="emoji-quick-picker-container" style="display: none;"></div>
@@ -102,13 +102,13 @@
                 </div>
               </td>
             </tr>
-            <%= render :partial => "group_comment" %>
+            <%= render partial: "group_comment" %>
           <% end %>
           <% if @assignment.turnitin_enabled? %>
-            <%= render :partial => "turnitin" %>
+            <%= render partial: "turnitin" %>
           <% end %>
           <% if @assignment.vericite_enabled? %>
-            <%= render :partial => "vericite" %>
+            <%= render partial: "vericite" %>
           <% end %>
           <tr>
             <td colspan="2" class='button-container'>
@@ -181,15 +181,15 @@
           <p><%= t 'messages.media_recordings_disabled', "Media recordings are not enabled for this Canvas site, and you will not be able to submit these types of assignments.  Please contact your instructor about changing the settings for this assignment, or your system administrator about enabling media recordings." %></p>
         </div>
       <% else %>
-        <%= form_tag(submission_create_url, {:id => "submit_media_recording_form", :class => "submit_assignment_form", :multipart => true }) do %>
-        <%= hidden_field :submission, :submission_type, :value => "media_recording" %>
-        <%= hidden_field :submission, :media_comment_id, :value => "", :class => "media_comment_id" %>
-        <%= hidden_field :submission, :media_comment_type, :value => "video" %>
+        <%= form_tag(submission_create_url, {id: "submit_media_recording_form", class: "submit_assignment_form", multipart: true }) do %>
+        <%= hidden_field :submission, :submission_type, value: "media_recording" %>
+        <%= hidden_field :submission, :media_comment_id, value: "", class: "media_comment_id" %>
+        <%= hidden_field :submission, :media_comment_type, value: "video" %>
         <table class="formtable" style="width: 100%;">
           <tr>
             <td colspan="2" style="padding-bottom: 10px;">
               <%= t 'instructions.media_recording', "Use the button below to record your submission." %>
-                <%= render :partial => "assignments/group_submission_reminder" if @assignment.has_group_category? %>
+                <%= render partial: "assignments/group_submission_reminder" if @assignment.has_group_category? %>
             </td>
           </tr><tr>
             <td>
@@ -197,7 +197,7 @@
                 <div id="media_media_recording_ready" style="display: none; font-size: 1.5em;">
                   <%= t 'messages.media_recording_ready', "Ready to Submit!  Click 'Submit Assignment' button to finish."%>
                   <div id="media_media_recording_thumbnail">
-                    <%= image_tag "media_comment.png", :alt => '' %>
+                    <%= image_tag "media_comment.png", alt: '' %>
                   </div>
                 </div>
                 <div id="media_media_recording_submission" class="pull-left" style="display: none; width: auto; border: 2px solid #444;">
@@ -212,7 +212,7 @@
                 <div style="text-align: <%= direction('left') %>;">
                   <div class="textarea-emoji-container">
                     <div class="textarea-container">
-                      <%= text_area :submission, :comment, :class => 'submission_comment_textarea', :placeholder => t('comments_placeholder', 'Comments...'), :title => t('additional_comments', 'Additional comments') %>
+                      <%= text_area :submission, :comment, class: 'submission_comment_textarea', placeholder: t('comments_placeholder', 'Comments...'), title: t('additional_comments', 'Additional comments') %>
                       <span class="emoji-picker-container" style="display: none;"></span>
                     </div>
                     <div class="emoji-quick-picker-container" style="display: none;"></div>
@@ -220,7 +220,7 @@
                 </div>
               </td>
             </tr>
-            <%= render :partial => "group_comment" %>
+            <%= render partial: "group_comment" %>
           <% end %>
           <tr>
             <td colspan="2" class='button-container'>

@@ -89,7 +89,7 @@
             <% end %>
           </td>
           <td class='details'>
-            <%= render partial: 'users/last_login', locals: { pseudonym: pseudonym } if pseudonyms.length > 2 && pseudonym %>
+            <%= render partial: 'users/last_login', locals: { pseudonym: } if pseudonyms.length > 2 && pseudonym %>
           </td>
           <% if !pseudonym || can_do(pseudonym, @current_user, :update) %>
             <td class='links <%= 'passwordable' if pseudonym && can_do(pseudonym, @current_user, :change_password) %> <%= 'delegated-auth' if pseudonym && !pseudonym.account.canvas_authentication? %>'

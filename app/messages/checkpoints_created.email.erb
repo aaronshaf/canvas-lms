@@ -4,11 +4,11 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= I18n.t("Assignment Created - %{assignment_name}, %{course_name}", :assignment_name => parent_assignment.title, :course_name => parent_assignment.context.name) %>
+  <%= I18n.t("Assignment Created - %{assignment_name}, %{course_name}", assignment_name: parent_assignment.title, course_name: parent_assignment.context.name) %>
 <% end %>
 
 <%= I18n.t("A new assignment has been created for your course, %{course_name}",
-              :course_name => parent_assignment.context.name) %>
+              course_name: parent_assignment.context.name) %>
 
 <%= parent_assignment.title %>
 
@@ -23,8 +23,8 @@
   reply_to_entry_required_count = discussion_topic.reply_to_entry_required_count
 %>
 
-<%= I18n.t("due: reply to topic: %{assignment_due_date_time}", :assignment_due_date_time => reply_to_topic_due_date) %>
-    <%= I18n.t("additional replies (%{reply_to_entry_required_count}): %{assignment_due_date_time}", :reply_to_entry_required_count => reply_to_entry_required_count, :assignment_due_date_time => reply_to_entry_due_date) %>
+<%= I18n.t("due: reply to topic: %{assignment_due_date_time}", assignment_due_date_time: reply_to_topic_due_date) %>
+    <%= I18n.t("additional replies (%{reply_to_entry_required_count}): %{assignment_due_date_time}", reply_to_entry_required_count:, assignment_due_date_time: reply_to_entry_due_date) %>
 
 <%= before_label('click_to_see_assignment', 'Click here to view the assignment') %>
 <%= content :link %>

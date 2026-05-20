@@ -63,5 +63,5 @@
     <span class="value"><%= render_score(@assignment.points_possible) || 0 %></span>
   </li>
 
-  <%= render :partial => "shared/available_dates", :locals => {:association => @assignment} %>
+  <%= render partial: "shared/available_dates", locals: {association: @assignment} %>
 </ul>

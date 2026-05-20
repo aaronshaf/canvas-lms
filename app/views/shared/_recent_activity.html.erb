@@ -21,7 +21,7 @@
       <% if @context.nil? || @context.is_a?(User) %>
         <%= t :recent_activity, "Recent Activity" %>
       <% else %>
-        <%= t :recent_activity_in_course, "Recent Activity in %{course_or_group}", :course_or_group => @context.nickname_for(@current_user, :short_name) %>
+        <%= t :recent_activity_in_course, "Recent Activity in %{course_or_group}", course_or_group: @context.nickname_for(@current_user, :short_name) %>
       <% end %>
     </h1>
     <% if @context.is_a?(Group) %>
@@ -52,7 +52,7 @@
       <% if @context.nil? || @context.is_a?(User) %>
         <%= t :recent_activity, "Recent Activity" %>
       <% else %>
-        <%= t :recent_activity_in_course, "Recent Activity in %{course_or_group}", :course_or_group => @context.nickname_for(@current_user, :short_name) %>
+        <%= t :recent_activity_in_course, "Recent Activity in %{course_or_group}", course_or_group: @context.nickname_for(@current_user, :short_name) %>
       <% end %>
     </h2>
   <% end %>
@@ -60,7 +60,7 @@
 
 <ul class="recent_activity unstyled_list">
 <% categorized_items =
-    Rails.cache.fetch(['categorized_stream_items', @user || @current_user, collection_cache_key(@stream_items)].cache_key, :expires_in => 15.minutes) do
+    Rails.cache.fetch(['categorized_stream_items', @user || @current_user, collection_cache_key(@stream_items)].cache_key, expires_in: 15.minutes) do
       categorize_stream_items(@stream_items)
     end
 %>
@@ -88,9 +88,9 @@
             <% if unread_count > 0 %>
               <strong class="unread-count">
                 <span aria-hidden="true"><%= unread_count %></span>
-                <span class="screenreader-only"><%= t(:unread_count_badge, { :one => "1 *unread item*", :other => "%{count} *unread items*" },
-                      :count => unread_count,
-                      :wrapper => '<span>\1</span>') %>
+                <span class="screenreader-only"><%= t(:unread_count_badge, { one: "1 *unread item*", other: "%{count} *unread items*" },
+                      count: unread_count,
+                      wrapper: '<span>\1</span>') %>
                 </span>
               </strong>
             <% end %>
@@ -116,7 +116,7 @@
             </tr>
           </thead>
           <tbody>
-            <%= render :partial => 'shared/recent_activity_item', :collection => items %>
+            <%= render partial: 'shared/recent_activity_item', collection: items %>
           </tbody>
         </table>
       </div>
@@ -126,5 +126,5 @@
 </ul>
 
 <% if categorized_items.values.sum(&:count) == 0 %>
-  <%= render :partial => 'shared/no_recent_activity' %>
+  <%= render partial: 'shared/no_recent_activity' %>
 <% end %>

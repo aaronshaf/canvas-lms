@@ -27,13 +27,13 @@ MD
         %></td>
       </tr>
       <tr>
-        <td><%= f.blabel :client_id, :en => "Client ID" %></td>
+        <td><%= f.blabel :client_id, en: "Client ID" %></td>
         <td>
           <%= f.text_field :client_id, value: settings[:client_id] %>
         </td>
       </tr>
       <tr>
-        <td><%= f.blabel :client_secret, :en => "Client Secret" %></td>
+        <td><%= f.blabel :client_secret, en: "Client Secret" %></td>
         <td>
           <%= f.password_field :client_secret, autocomplete: false %>
         </td>

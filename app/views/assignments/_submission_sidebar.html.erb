@@ -49,7 +49,7 @@
     <% end %>
     <span class="<%= "late" if @current_user_submission.late? %>">
       <% if @current_user_submission.late? %>
-        <%= t 'messages.submission_late_timestamp', "%{submitted_at} (late)", :submitted_at => datetime_string(@current_user_submission.submitted_at) %>
+        <%= t 'messages.submission_late_timestamp', "%{submitted_at} (late)", submitted_at: datetime_string(@current_user_submission.submitted_at) %>
       <% else %>
         <%= datetime_string(@current_user_submission.submitted_at) %>
       <% end %>
@@ -70,9 +70,9 @@
     <% elsif @current_user_submission.submission_type == "online_upload" %>
       <% @current_user_submission.attachments.each do |attachment| %>
         <div>
-          <a href="<%= context_url(@context, :context_assignment_submission_url, @assignment.id, @current_user_submission.user_id, :download => attachment.id) %>">
+          <a href="<%= context_url(@context, :context_assignment_submission_url, @assignment.id, @current_user_submission.user_id, download: attachment.id) %>">
             <%= t 'links.submission.download_attachment', "Download %{attachment_display_name}", {
-              :attachment_display_name => attachment.display_name
+              attachment_display_name: attachment.display_name
             } %>
           </a>
         </div>
@@ -95,18 +95,18 @@
         <% else %>
          <% if !@assignment.restrict_quantitative_data?(@current_user, check_extra_permissions: true) %>
           <div><%= t 'labels.grade', "Grade: %{grade} *(%{points_possible} pts possible)*", {
-            :grade => i18n_grade(@current_user_submission.grade, @assignment.grading_type),
-            :points_possible => n(round_if_whole(@assignment.points_possible)),
-            :wrapper => '<span style="font-size: 0.8em;">\1</span>'
+            grade: i18n_grade(@current_user_submission.grade, @assignment.grading_type),
+            points_possible: n(round_if_whole(@assignment.points_possible)),
+            wrapper: '<span style="font-size: 0.8em;">\1</span>'
           } %></div>
         <% else %>
           <div><%= t 'labels.rqd_grade', "Grade: %{grade}", {
-            :grade => replace_dash_with_minus(@assignment.score_to_grade(@current_user_submission.score, @current_user_submission.grade, force_letter_grade: true)),
-            :wrapper => '<span style="font-size: 0.8em;">\1</span>'
+            grade: replace_dash_with_minus(@assignment.score_to_grade(@current_user_submission.score, @current_user_submission.grade, force_letter_grade: true)),
+            wrapper: '<span style="font-size: 0.8em;">\1</span>'
           } %></div>
         <% end %>
           <div><%= t 'labels.graded_anonymously', "Graded Anonymously: %{value}", {
-            :value => @current_user_submission.graded_anonymously ? t('labels.yes', "yes") : t('labels.no', "no")
+            value: @current_user_submission.graded_anonymously ? t('labels.yes', "yes") : t('labels.no', "no")
           } %></div>
         <% end %>
       <% end %>
@@ -144,14 +144,14 @@
             <div class="comment_attachments">
               <% comment.attachments.each do |attachment| %>
                 <div class="comment_attachment">
-                  <a href="<%= context_url(@context, :context_assignment_submission_url, @assignment.id, @current_user_submission.user_id, :comment_id => comment.id, :download => attachment.id) %>" class="comment_attachment_link <%= attachment.mime_class %>"><%= attachment.display_name %></a>
+                  <a href="<%= context_url(@context, :context_assignment_submission_url, @assignment.id, @current_user_submission.user_id, comment_id: comment.id, download: attachment.id) %>" class="comment_attachment_link <%= attachment.mime_class %>"><%= attachment.display_name %></a>
                 </div>
               <% end %>
             </div>
             <div class="signature" style="font-size: 0.8em; text-align: <%= direction('right') %>;">
               <%= t :comment_signature, "%{author}, %{created_at}", {
-                :author => comment_author_name_for(comment),
-                :created_at => datetime_string(comment.created_at)
+                author: comment_author_name_for(comment),
+                created_at: datetime_string(comment.created_at)
               } %>
             </div>
           </div>

@@ -38,7 +38,7 @@
       <div class="ic-Login__innerContent">
 
         <div class="ic-Login-header">
-          <%= render :partial => 'login/shared/header_logo' %>
+          <%= render partial: 'login/shared/header_logo' %>
           <div class="ic-Login-header__links">
             <%= render "login/canvas/login_banner" %>
             <% if @domain_root_account.enable_course_catalog? %>
@@ -51,7 +51,7 @@
 
         <div class="ic-Login__body">
           <%= render "shared/login_fft_helper" %>
-          <%= form_for :pseudonym_session, :url => url_for({ action: :create }.merge(params.slice(:id).to_unsafe_h)), :html => {:id => "login_form"} do |f| %>
+          <%= form_for :pseudonym_session, url: url_for({ action: :create }.merge(params.slice(:id).to_unsafe_h)), html: {id: "login_form"} do |f| %>
             <h1 class="ui-helper-hidden-accessible">
               <%= t('log_in', 'Log In') %>
             </h1>
@@ -59,18 +59,18 @@
             <%= login_inner_dialog if login_inner_dialog && !login_inner_dialog.strip.empty? %>
             <input type="hidden" name="redirect_to_ssl" value="1"/>
             <div class="ic-Form-control ic-Form-control--login">
-              <%= f.label :unique_id, login_handle_name, :class => "ic-Label" %>
-              <%= f.text_field :unique_id, :class => "ic-Input text", :value => unique_id, :autofocus => !params[:previewing_from_themeeditor] %>
+              <%= f.label :unique_id, login_handle_name, class: "ic-Label" %>
+              <%= f.text_field :unique_id, class: "ic-Input text", value: unique_id, autofocus: !params[:previewing_from_themeeditor] %>
             </div>
             <div class="ic-Form-control ic-Form-control--login">
-              <%= f.label :password, :en => "Password", :class => "ic-Label" %>
-              <%= f.password_field :password, :class => "ic-Input text", :role => "textbox" %>
+              <%= f.label :password, en: "Password", class: "ic-Label" %>
+              <%= f.password_field :password, class: "ic-Input text", role: "textbox" %>
             </div>
             <div class="ic-Login__actions">
               <div class="ic-Login__actions-timeout">
                 <% unless session_timeout_enabled? %>
-                    <%= f.check_box :remember_me, :checked => session[:used_remember_me_token] %>
-                    <%= f.label :remember_me, :en => "Stay signed in" %>
+                    <%= f.check_box :remember_me, checked: session[:used_remember_me_token] %>
+                    <%= f.label :remember_me, en: "Stay signed in" %>
                 <% end %>
 
                 <div class="ic-Login__forgot">
@@ -83,10 +83,10 @@
             </div> <!-- ic-Login__actions -->
             <%= render partial: "sso_buttons", locals: { aacs: @aacs_with_buttons } %>
           <% end %>
-          <%= form_for :pseudonym_session, :url => forgot_password_path, :html => {:id => "forgot_password_form", :style => "display: none;"} do |f| %>
+          <%= form_for :pseudonym_session, url: forgot_password_path, html: {id: "forgot_password_form", style: "display: none;"} do |f| %>
             <h1 class="ui-helper-hidden-accessible"><%= t('Forgot Password?') %></h1>
             <p id="forgot_password_instructions" class="ic-Login__forgot-text">
-              <%= t('login_handle', "Enter your %{login_handle_name} and we'll send you a link to change your password.", :login_handle_name => login_handle_name) %>
+              <%= t('login_handle', "Enter your %{login_handle_name} and we'll send you a link to change your password.", login_handle_name:) %>
             </p>
             <div class="ic-Form-control ic-Form-control--login">
               <label for="pseudonym_session_unique_id_forgot" class="ic-Label">
@@ -97,7 +97,7 @@
             </div>
             <div class="ic-Form-control ic-Form-control--login">
               <div class="ic-Login__actions">
-                <%= link_to t('back_to_login', "Back to Login"), login_path, :class => "ic-Login__actions--left ic-Login__link login_link"%>
+                <%= link_to t('back_to_login', "Back to Login"), login_path, class: "ic-Login__actions--left ic-Login__link login_link"%>
                 <button type="<%= forgot_password_btn_type %>" class="Button Button--login">
                   <%= t('buttons.request_password', 'Request Password') %>
                 </button>
@@ -115,13 +115,13 @@
             </a>
           <% end %>
           <%= help_link %>
-          <%= render :partial => 'shared/footer_links' %>
+          <%= render partial: 'shared/footer_links' %>
         </div>
         <a href="http://www.instructure.com" class="ic-Login-footer__logo-link" aria-label="By Instructure">
           <%= render partial: "login/canvas/instructure_logo", formats: [:svg] %>
         </a>
         <div id="footer-epilogue" class="ic-Login-footer__links">
-          <%= render :partial => 'shared/footer_epilogue' %>
+          <%= render partial: 'shared/footer_epilogue' %>
         </div>
     </footer>
     </div> <!-- end ic-Login__content -->

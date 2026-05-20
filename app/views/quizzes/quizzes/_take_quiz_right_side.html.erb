@@ -27,7 +27,7 @@
   <% if @submission.finished_at %>
     <div class="quiz_score">
       <%= before_label(:score, "Score") %>
-      <%= score_out_of_points_possible(@submission.score, @quiz.points_possible, :class => 'score_value') %>
+      <%= score_out_of_points_possible(@submission.score, @quiz.points_possible, class: 'score_value') %>
     </div>
   <% end %>
   <div id="quiz-time-elapsed">

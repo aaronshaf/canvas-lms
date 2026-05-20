@@ -26,7 +26,7 @@ to use %{backchannel_logout_uri}, and preferably set
 `backchannel_logout_session_required` to `true` if the provider supports it.
           MD
               %></p>
-<%= render partial: 'oauth2_fields', locals: { aac: aac, presenter: presenter, f: f } %>
+<%= render partial: 'oauth2_fields', locals: { aac:, presenter:, f: } %>
 <div class="ic-Form-control">
   <%= f.label :discovery_url, 'Discovery URL', class: 'ic-Label', for: "discovery_url_#{presenter.id_suffix(aac)}" %>
   <%= f.text_field :discovery_url, class: 'ic-Input', id: "discovery_#{presenter.id_suffix(aac)}" %>
@@ -86,4 +86,4 @@ to use %{backchannel_logout_uri}, and preferably set
   <%= f.label :login_attribute, 'Login Attribute', class: 'ic-Label', for: "login_attribute_#{presenter.id_suffix(aac)}" %>
   <%= f.text_field :login_attribute, value: aac.raw_login_attribute, placeholder: 'sub', class: 'ic-Input', id: "login_attribute_#{presenter.id_suffix(aac)}" %>
 </div>
-<%= render partial: 'jit_provisioning_field', locals: { aac: aac, presenter: presenter, f: f } %>
+<%= render partial: 'jit_provisioning_field', locals: { aac:, presenter:, f: } %>

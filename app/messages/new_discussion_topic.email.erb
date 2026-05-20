@@ -3,17 +3,17 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t :subject, "New Discussion - %{discussion_topic}: %{course}", :discussion_topic => asset.title, :course => asset.context.name %>
+  <%= t :subject, "New Discussion - %{discussion_topic}: %{course}", discussion_topic: asset.title, course: asset.context.name %>
 <% end %>
 
 <%= t :body, "A new discussion has been started that may be interesting to you:" %>
 
 <%= asset.title %>
 
-<% if !asset.available_for?(user, :check_policies => true) %>
+<% if !asset.available_for?(user, check_policies: true) %>
   <%= t("Discussion content is locked or not yet available") %>
 <% else %>
-  <%= html_to_text(asset.message, :base_url => dashboard_url) %>
+  <%= html_to_text(asset.message, base_url: dashboard_url) %>
 <% end %>
 
 <% if asset.attachment %><%= before_label :file_included, "File Included" %> <%= asset.attachment.display_name %> - <%= asset.attachment.readable_size %>

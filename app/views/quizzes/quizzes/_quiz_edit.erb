@@ -36,7 +36,7 @@
     <a href="<%= context_url(@context, :context_quiz_quiz_groups_url, @quiz.id) %>" class="add_group_url">&nbsp;</a>
   </div>
   <div class="header-bar">
-    <%= render :partial => 'quiz_edit_header' %>
+    <%= render partial: 'quiz_edit_header' %>
   </div>
   <div id="quiz_tabs" class="ui-tabs-minimal">
     <ul id="quiz_tabs_tab_list">
@@ -46,11 +46,11 @@
         <li><a href="#mastery-paths-editor"><%= t('Mastery Paths') %></a></li>
       <% end %>
     </ul>
-    <%= render :partial => 'quiz_edit_details' %>
-    <%= render :partial => 'quiz_edit_questions' %>
+    <%= render partial: 'quiz_edit_details' %>
+    <%= render partial: 'quiz_edit_questions' %>
     <% if ConditionalRelease::Service.enabled_in_context?(@context) then %>
-      <%= render :partial => 'quiz_edit_conditional_release' %>
+      <%= render partial: 'quiz_edit_conditional_release' %>
     <% end %>
   </div>
-  <%= render :partial => 'quiz_edit_form_actions' %>
+  <%= render partial: 'quiz_edit_form_actions' %>
 </div>

@@ -63,6 +63,6 @@
       <span class='value'><%= @assignment.allowed_attempts + (@current_user_submission&.extra_attempts || 0) %></span>
     </li>
   <% end %>
-  <%= render :partial => "shared/available_dates", :locals => {:association => @assignment} %>
+  <%= render partial: "shared/available_dates", locals: {association: @assignment} %>
   <div class="clear"></div>
 </ul>

@@ -36,12 +36,12 @@
         <% if @versions.size > 1 %>
           <% version, index = @versions.reverse.each_with_index.detect {|k, _| k.score == @submission.kept_score } %>
           <% if version %>
-            <%= render :partial => "submission_version", :locals => {:version => version, :index => @versions.length - index, :kept => true} %>
+            <%= render partial: "submission_version", locals: {version:, index: @versions.length - index, kept: true} %>
           <% end %>
         <% end %>
 
         <% @versions.reverse!.each_with_index do |version, index| %>
-          <%= render :partial => "submission_version", :locals => {:version => version, :index => @versions.length - index, :kept => false} %>
+          <%= render partial: "submission_version", locals: {version:, index: @versions.length - index, kept: false} %>
         <% end %>
       </tbody>
     </table>

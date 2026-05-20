@@ -21,9 +21,9 @@
 </h1>
 <script type="text/javascript">
   // open the quiz in a popup window with the plugin's given query param hash
-  window.open(<%= json_in_script_tag url_for(request.path_parameters.merge(@query_params).merge(:escape => false, :refresh_ldb => true)) %>);
+  window.open(<%= json_in_script_tag url_for(request.path_parameters.merge(@query_params).merge(escape: false, refresh_ldb: true)) %>);
 </script>
 
 <p>
-  <%= mt('links.return_to_quiz_page', "[Click here](%{url}) to return to the quiz page.", :url => context_url(@context, :context_quiz_url, @quiz)) %>
+  <%= mt('links.return_to_quiz_page', "[Click here](%{url}) to return to the quiz page.", url: context_url(@context, :context_quiz_url, @quiz)) %>
 </p>

@@ -24,21 +24,21 @@
       </td>
     </tr>
     <tr>
-      <td><%= f.blabel :client_id, :en => "Client ID" %></td>
+      <td><%= f.blabel :client_id, en: "Client ID" %></td>
       <td>
         <%= f.text_field :client_id, value: settings[:client_id] %>
       </td>
     </tr>
 
     <tr>
-      <td><%= f.blabel :client_secret, :en => "Client Secret" %></td>
+      <td><%= f.blabel :client_secret, en: "Client Secret" %></td>
       <td>
         <%= f.password_field :client_secret %>
       </td>
     </tr>
 
     <tr>
-      <td><%= f.blabel :redirect_uri, :en => "Redirect URI" %></td>
+      <td><%= f.blabel :redirect_uri, en: "Redirect URI" %></td>
       <td>
         <%= f.text_field :redirect_uri, value: settings[:redirect_uri] %>
       </td>
@@ -52,16 +52,16 @@
     </tr>
 
     <tr>
-      <td colspan="2"><%= mt(:description, <<~MD, :google_url => 'https://console.developers.google.com/project')
+      <td colspan="2"><%= mt(:description, <<~MD, google_url: 'https://console.developers.google.com/project')
 Paste the contents of client_secrets.json below. The text boxes above will be automatically filled in based on the content given below.
 MD
       %></td>
     </tr>
 
     <tr>
-      <td><%= f.blabel :client_secret_json, :en => "Client secrets json" %></td>
+      <td><%= f.blabel :client_secret_json, en: "Client secrets json" %></td>
       <td>
-        <%= f.text_area :client_secret_json, value: nil, :rows => '4' %>
+        <%= f.text_area :client_secret_json, value: nil, rows: '4' %>
       </td>
     </tr>
   </table>

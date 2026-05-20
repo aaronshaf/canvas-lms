@@ -6,4 +6,4 @@
   <%= t :subject, "Course Enrollment" %>
 <% end %>
 
-<%= t "You've been enrolled in the course, %{course}. Course role: %{role_type}", :course => asset.course.name, :role_type => asset.readable_role_name %>
+<%= t "You've been enrolled in the course, %{course}. Course role: %{role_type}", course: asset.course.name, role_type: asset.readable_role_name %>

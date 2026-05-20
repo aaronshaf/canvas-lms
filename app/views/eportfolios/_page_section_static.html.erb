@@ -31,8 +31,8 @@
           <% elsif attachment %>
             <a href="<%= attachment.unencoded_filename %>">
               <%= t('links.download_attachment', "Click here to Download *%{attachment}*",
-                    :attachment => attachment.display_name,
-                    :wrapper => '<span class="filename">\1</span>') %>
+                    attachment: attachment.display_name,
+                    wrapper: '<span class="filename">\1</span>') %>
             </a>
           <% end %>
         </div>
@@ -42,8 +42,8 @@
         <% if submission %>
           <div style="margin-bottom: 10px;">
             <%= t('headers.submission', "Student Submission for %{assignment}, created %{created_date}",
-                  :assignment => submission.assignment.title,
-                  :created_date => datetime_string(submission.submitted_at || submission.graded_at || submission.created_at)) %>
+                  assignment: submission.assignment.title,
+                  created_date: datetime_string(submission.submitted_at || submission.graded_at || submission.created_at)) %>
           </div>
           <% if submission.submission_type == 'online_url' %>
             <a href="<%= submission.url %>"><%= t('links.submission_url', "View the URL submitted for this assignment") %></a>
@@ -55,8 +55,8 @@
               <% if attachment %>
                 <li><a href="<%= attachment.unencoded_filename %>">
                   <%= t('links.download_attachment', "Click here to Download *%{attachment}*",
-                        :attachment => a.display_name,
-                        :wrapper => '<span class="filename">\1</span>') %>
+                        attachment: a.display_name,
+                        wrapper: '<span class="filename">\1</span>') %>
                 </a></li>
               <% end %>
             <% end %>

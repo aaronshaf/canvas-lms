@@ -28,19 +28,19 @@
       </td>
     </tr>
     <tr>
-      <td><%= f.blabel :base_url, :en => "Base URL" %></td>
+      <td><%= f.blabel :base_url, en: "Base URL" %></td>
       <td>
         <%= f.text_field :base_url, value: settings[:base_url] %>
       </td>
     </tr>
     <tr>
-      <td><%= f.blabel :jwt_issuer, :en => "JWT Issuer" %></td>
+      <td><%= f.blabel :jwt_issuer, en: "JWT Issuer" %></td>
       <td>
         <%= f.password_field :jwt_issuer, autocomplete: false %>
       </td>
     </tr>
     <tr>
-      <td><%= f.blabel :jwt_secret, :en => "JWT Secret" %></td>
+      <td><%= f.blabel :jwt_secret, en: "JWT Secret" %></td>
       <td>
         <%= f.password_field :jwt_secret, autocomplete: false %>
       </td>

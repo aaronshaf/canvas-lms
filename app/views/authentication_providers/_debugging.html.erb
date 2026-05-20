@@ -51,7 +51,7 @@
 
     <div class="debug_data" style="<%= hidden unless debugging %>">
       <% if debugging %>
-        <%= render partial: 'debug_data', locals: { provider: provider } %>
+        <%= render partial: 'debug_data', locals: { provider: } %>
       <% end %>
     </div>
   </div>

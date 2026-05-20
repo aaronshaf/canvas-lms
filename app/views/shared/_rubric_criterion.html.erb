@@ -55,7 +55,7 @@
           <% end %>
           <div role="text" class="threshold toggle_for_hide_points <%= rubric_association&.hide_points(@current_user) ? 'hidden' : '' %>">
             <%= before_label :threshold, "threshold" %>
-            <%= t :points, "%{points} pts", :points => tag.span(n((criterion.mastery_points rescue 5)), class: :mastery_points) %>
+            <%= t :points, "%{points} pts", points: tag.span(n((criterion.mastery_points rescue 5)), class: :mastery_points) %>
           </div>
         </span>
         <div class="hide_when_learning_outcome <%= range_rating_visible ? '' : 'hidden' %>">
@@ -109,7 +109,7 @@
     <% else %>
       <div class="ratings" style="<%= hidden if rubric&.free_form_criterion_comments %>">
         <% ratings = criterion.ratings rescue nil; ratings = nil if ratings&.empty? %>
-        <% ratings ||= [Rubric::Rating.new(:id => "blank", :description => t(:full_marks, "Full Marks"), :points => 5), Rubric::Rating.new(:id => "blank_2", :description => t(:no_marks, "No Marks"), :points => 0)] %>
+        <% ratings ||= [Rubric::Rating.new(id: "blank", description: t(:full_marks, "Full Marks"), points: 5), Rubric::Rating.new(id: "blank_2", description: t(:no_marks, "No Marks"), points: 0)] %>
         <% ratings.each_index do |idx| %>
           <% rating = ratings[idx];
             last_rating = idx == ratings.length - 1
@@ -176,7 +176,7 @@
         <% if assessing && criterion&.points %>
           <%= t "%{points} / %{total} pts", points: rating_points, total: n(criterion.points) %>
         <% else %>
-          <%= t :points, "%{points} pts", :points => rating_points %>
+          <%= t :points, "%{points} pts", points: rating_points %>
         <% end %>
       </span><br />
     </div>
@@ -185,7 +185,7 @@
         <span class="criterion_rating_points_holder" style="<%= hidden unless assessment_rating %>">
           <span class="criterion_rating_points"><%= assessment_rating ? n(round_if_whole(assessment_rating[:points])) : nbsp %></span> /
         </span>
-        <%= t :points, "%{points} pts", :points => tag.span(n(round_if_whole((criterion.points rescue 5))), class: "display_criterion_points") %><br />
+        <%= t :points, "%{points} pts", points: tag.span(n(round_if_whole((criterion.points rescue 5))), class: "display_criterion_points") %><br />
       </span>
     </div>
     <div class="ignoring">
@@ -194,7 +194,7 @@
     <div class="criterion_comments">
       <% if !rubric || !rubric.free_form_criterion_comments %>
         <a href="#" class="no-hover criterion_comments_link" title="<%= t "Additional Comments" %>">
-          <%= image_tag "rubric_comment.png", :alt => t('Additional Comments') %>
+          <%= image_tag "rubric_comment.png", alt: t('Additional Comments') %>
         </a>
         <div class="custom_rating" style="display: none;"><%= assessment_rating ? assessment_rating[:comments] : '' %></div>
       <% end %>

@@ -43,7 +43,7 @@
         nonxlistCourseId: @section.nonxlist_course_id&.to_s,
         nonxlistCourseName: @section.nonxlist_course&.name,
         enrollmentsCount: @student_enrollments_count,
-        manageableCoursesUrl: context_url(@current_user, :context_manageable_courses_url, :format => :json),
+        manageableCoursesUrl: context_url(@current_user, :context_manageable_courses_url, format: :json),
         confirmCrosslistUrl: context_url(@context, :context_section_confirm_crosslist_url, @section.id, ':id'),
         crosslistUrl: context_url(@context, :context_section_crosslist_url, @section.id)
       }.to_json %>"
@@ -139,7 +139,7 @@ h3 .tally {
 }
 </style>
 
-<%= form_for @section, :url => context_url(@context, :context_section_url, @section), :html => {:id => "edit_section_form", :style => "display: none;"} do |f| %>
+<%= form_for @section, url: context_url(@context, :context_section_url, @section), html: {id: "edit_section_form", style: "display: none;"} do |f| %>
 <table class="formtable">
   <tr>
     <td><label for="course_section_name">Section Name<abbr>*</abbr>:</label></td>
@@ -147,11 +147,11 @@ h3 .tally {
   </tr>
   <% if (@section.sis_source_id && can_do(@context, @current_user, :read_sis)) || can_do(@context.root_account, @current_user, :manage_sis) %>
     <tr>
-      <td><%= f.blabel :sis_source_id, :en => "SIS ID" %></td>
+      <td><%= f.blabel :sis_source_id, en: "SIS ID" %></td>
       <td>
         <span class="course_form">
           <% if can_do(@context.root_account, @current_user, :manage_sis) %>
-            <%= f.text_field :sis_source_id, :style => "width: 50px;", :title => "SIS ID", :value => @section.sis_source_id %>
+            <%= f.text_field :sis_source_id, style: "width: 50px;", title: "SIS ID", value: @section.sis_source_id %>
           <% else %>
             <%= @section.sis_source_id %>
           <% end %>
@@ -221,17 +221,17 @@ h3 .tally {
     <table id="enrollment_table">
     <% if @pending_enrollments_count > 0 %>
           <tr>
-            <td class="pending_enrollments"><%= t('pending_enrollment', {:one => '1 Pending Enrollment', :other => '%{count} Pending Enrollments'}, :count => @pending_enrollments_count) %></td>
+            <td class="pending_enrollments"><%= t('pending_enrollment', {one: '1 Pending Enrollment', other: '%{count} Pending Enrollments'}, count: @pending_enrollments_count) %></td>
           </tr>
     <% end %>
     <% if @enrollments_count > 0 %>
       <tr>
-        <td class="active_enrollments"><%= t('active_enrollment', {:one => '1 Active Enrollment', :other => '%{count} Active Enrollments'}, :count => @enrollments_count) %></td>
+        <td class="active_enrollments"><%= t('active_enrollment', {one: '1 Active Enrollment', other: '%{count} Active Enrollments'}, count: @enrollments_count) %></td>
       </tr>
     <% end %>
     <% if @completed_enrollments_count > 0 %>
           <tr>
-            <td class="completed_enrollments"><%= t('completed_enrollment', {:one => '1 Completed Enrollment', :other => '%{count} Completed Enrollments'}, :count => @completed_enrollments_count) %></td>
+            <td class="completed_enrollments"><%= t('completed_enrollment', {one: '1 Completed Enrollment', other: '%{count} Completed Enrollments'}, count: @completed_enrollments_count) %></td>
           </tr>
     <% end %>
     </table>
@@ -242,11 +242,11 @@ h3 .tally {
   <% if @section.start_at || @section.end_at %>
     <div>
       <% if @section.start_at && @section.end_at %>
-        <%= t('run_dates', 'Runs from %{start_date} to %{end_date}', :start_date => friendly_datetime(@section.start_at, context: @context), :end_date => friendly_datetime(@section.end_at, context: @context)) %>
+        <%= t('run_dates', 'Runs from %{start_date} to %{end_date}', start_date: friendly_datetime(@section.start_at, context: @context), end_date: friendly_datetime(@section.end_at, context: @context)) %>
       <% elsif @section.end_at %>
-        <%= t('runs_until', 'Runs until %{end_date}', :end_date => friendly_datetime(@section.end_at, context: @context)) %>
+        <%= t('runs_until', 'Runs until %{end_date}', end_date: friendly_datetime(@section.end_at, context: @context)) %>
       <% elsif @section.start_at %>
-        <%= t('run_from', 'Runs from %{start_date} with no end date', :start_date => friendly_datetime(@section.start_at, context: @context)) %>
+        <%= t('run_from', 'Runs from %{start_date} with no end date', start_date: friendly_datetime(@section.start_at, context: @context)) %>
       <% end %>
     </div>
     <div style="margin-<%= direction('left') %>: 10px; font-size: 0.8em;">

@@ -16,7 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<%= render :partial => "quiz_details" %>
+<%= render partial: "quiz_details" %>
 <% location_tag = @submission ? "quiz_submission_#{@submission.id}" : "quiz_#{@quiz.id}" %>
 <% if !@locked || @locked_reason[:lock_at] %>
   <% if @quiz.description.present? %>

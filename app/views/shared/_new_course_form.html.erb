@@ -16,36 +16,36 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 %>
 
-<%= form_for Course.new, :html => { :id => 'new_course_form',
+<%= form_for Course.new, html: { :id => 'new_course_form',
                                     :class => 'bootstrap-form form-horizontal',
                                     'data-turn-into-dialog' => '{"responsive":true,"width":500,"resizable":false}',
                                     :title => t('start_a_new_course', 'Start a New Course'),
                                     :style => 'display:none;' } do |f| %>
 
   <div class="control-group">
-    <%= f.label :name, :en => "Course Name", :class => "control-label" %>
+    <%= f.label :name, en: "Course Name", class: "control-label" %>
     <div class="controls">
       <%= f.text_field :name,
-                       :placeholder => t('new_course_name_placeholder', 'Course Name'),
-                       :class => 'input-xlarge',
-                       :maxlength => '255' %>
+                       placeholder: t('new_course_name_placeholder', 'Course Name'),
+                       class: 'input-xlarge',
+                       maxlength: '255' %>
     </div>
   </div>
   <div id="course_code_wrapper" class="control-group" style="display:none">
-    <%= f.label :course_code, :en => "Short Name", :class => "control-label" %>
+    <%= f.label :course_code, en: "Short Name", class: "control-label" %>
     <div class="controls">
       <%= f.text_field :course_code,
-                       :placeholder => t('sample_course_code', 'Course-101'),
-                       :class => 'input-small',
-                       :maxlength => '255' %>
+                       placeholder: t('sample_course_code', 'Course-101'),
+                       class: 'input-small',
+                       maxlength: '255' %>
       <div><%= t :course_cose_explanation, "This will be displayed in places with little space" %></div>
     </div>
   </div>
 
   <div class="control-group">
     <%= f.label :license,
-                :en => "Content License",
-                :class => "control-label" %>
+                en: "Content License",
+                class: "control-label" %>
     <div class="controls">
       <% cc, non_cc = Course.licenses.map { |id, attrs| [attrs[:readable_license].call, id]}.partition{|_, id| id.start_with?('cc')} %>
       <select name="course[license]" id="course_license" class="input-xlarge">

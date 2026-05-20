@@ -83,5 +83,5 @@ Teachers or students can set up group collaborations."
   <%= @collaborations.map {|c| collaboration(c, @current_user, @user_has_google_drive)}.inject(&:<<) %>
 </div>
 <% if can_do(@context, @current_user, :create_collaborations) && !@hide_create_ui %>
-  <%= render :partial => 'collaborations/forms' %>
+  <%= render partial: 'collaborations/forms' %>
 <% end %>

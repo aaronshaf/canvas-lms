@@ -6,6 +6,6 @@
   <%= before_label asset.subject %> <%= asset.account.name %>
 <% end %>
 
-<%= html_to_text(asset.message, :base_url => dashboard_url) %>
+<%= html_to_text(asset.message, base_url: dashboard_url) %>
 
 <%= content :link %>

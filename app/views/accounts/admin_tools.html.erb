@@ -18,7 +18,7 @@
 
 <%
   set_active_tab "admin_tools"
-  provide :page_title, t(:page_title, "Admin Tools for %{account}", :account => @context.name)
+  provide :page_title, t(:page_title, "Admin Tools for %{account}", account: @context.name)
   js_bundle :account_admin_tools
   css_bundle :account_admin_tools
 %>

@@ -74,7 +74,7 @@
 <% end %>
 <div id="rubrics" class="raw_listing">
   <% [@actual_rubric].each do |rubric| %>
-    <%= render :partial => "shared/rubric", :object => rubric, :locals => {:association => @account, :editable => can_do(rubric, @current_user, :update), :edit_view => true, :for_context => true} %>
+    <%= render partial: "shared/rubric", object: rubric, locals: {association: @account, editable: can_do(rubric, @current_user, :update), edit_view: true, for_context: true} %>
   <% end %>
   <div style="display: none;" id="rubric_parameters">
     <input type="hidden" name="rubric_association[association_type]" value="<%= @context.class.to_s %>"/>
@@ -84,6 +84,6 @@
   <span class="current_user_id" style="display: none;"><%= @current_user.id %></span>
   <a href="<%= context_url(@context, :context_rubrics_url) %>" class="add_rubric_association_url" style="display: none;">&nbsp;</a>
 </div>
-<%= render :partial => "shared/find_outcome" %>
-<%= render :partial => "shared/rubric", :object => nil %>
-<%= render :partial => "shared/rubric_criterion_dialog" %>
+<%= render partial: "shared/find_outcome" %>
+<%= render partial: "shared/rubric", object: nil %>
+<%= render partial: "shared/rubric_criterion_dialog" %>

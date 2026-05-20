@@ -9,6 +9,6 @@
 
 <%= t :body, "Reported as %{report_type}: %{user}, %{course}", report_type: data[:report_type], user: asset.author_name, course: asset.context.name %>
 
-<%= html_to_text(asset.message, :base_url => dashboard_url) %>
+<%= html_to_text(asset.message, base_url: dashboard_url) %>
 
 <%= t("View the discussion: %{link}.", link: content(:link)) %>

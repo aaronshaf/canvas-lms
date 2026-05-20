@@ -23,7 +23,7 @@ You should configure %{callback_url} as the Redirect URL.
 After you create your app, make a note of the Client ID and Client Secret, and enter them here.
 MD
           %></p>
-  <%= render partial: 'oauth2_fields', locals: { aac: aac, presenter: presenter, f: f } %>
+  <%= render partial: 'oauth2_fields', locals: { aac:, presenter:, f: } %>
 <% end %>
 <p><%= t(<<~TEXT)
 To restrict to users from a specific Clever district, enter the district's Clever ID here.
@@ -38,5 +38,5 @@ TEXT
 Note that some attributes may not be populated for all users at Clever.
 TEXT
 %></p>
-<%= render partial: 'login_attribute_dropdown', locals: { aac: aac, presenter: presenter, f: f } %>
-<%= render partial: 'jit_provisioning_field', locals: { aac: aac, presenter: presenter, f: f } %>
+<%= render partial: 'login_attribute_dropdown', locals: { aac:, presenter:, f: } %>
+<%= render partial: 'jit_provisioning_field', locals: { aac:, presenter:, f: } %>

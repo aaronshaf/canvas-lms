@@ -6,7 +6,7 @@
       <tr>
         <th><label for="student_grading_<%= @assignment.id %>"><%= I18n.t('Grade:') %></label></th>
         <td class="bold">
-          <%= render :partial => "gradebooks/grading_box", :object => @assignment, :locals => {:submission => @submission} %>
+          <%= render partial: "gradebooks/grading_box", object: @assignment, locals: {submission: @submission} %>
           <% if !@submission.excused? &&  @assignment.grading_type == 'points' && @assignment.points_possible && !@assignment.restrict_quantitative_data?(@current_user) %>
             <%= t('/ %{points_possible}', points_possible: I18n.n(round_if_whole(@assignment.points_possible)))%>
           <% end %>

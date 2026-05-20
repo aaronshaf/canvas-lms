@@ -83,7 +83,7 @@ additional_title_context ||= false
                 </p>
               </div>
             </a>
-            <%= render :partial => 'shared/ignore_option_list', :locals => {presenter: assignment} %>
+            <%= render partial: 'shared/ignore_option_list', locals: {presenter: assignment} %>
           </li>
         <% end %>
         <% presenter.needs_moderation.each_with_index do |assignment, i| %>
@@ -112,7 +112,7 @@ additional_title_context ||= false
                 </p>
               </div>
             </a>
-            <%= render :partial => 'shared/ignore_option_list', :locals => {presenter: assignment} %>
+            <%= render partial: 'shared/ignore_option_list', locals: {presenter: assignment} %>
           </li>
         <% end %>
         <% presenter.needs_submitting.each_with_index do |assignment, i| %>
@@ -149,7 +149,7 @@ additional_title_context ||= false
                 </p>
               </div>
             </a>
-            <%= render :partial => 'shared/ignore_option_list', :locals => {presenter: assignment} %>
+            <%= render partial: 'shared/ignore_option_list', locals: {presenter: assignment} %>
           </li>
         <% end %>
         <% presenter.needs_reviewing.each_with_index do |assessment_request, i| %>
@@ -180,13 +180,13 @@ additional_title_context ||= false
                 </p>
               </div>
             </a>
-            <%= render :partial => 'shared/ignore_option_list', :locals => {presenter: assessment_request} %>
+            <%= render partial: 'shared/ignore_option_list', locals: {presenter: assessment_request} %>
           </li>
         <% end %>
         <% if presenter.hidden_count > 0 %>
           <li>
           <a href="#" class="more_link">
-            <%= t 'links.show_more', '%{count} more...', :count => presenter.hidden_count %>
+            <%= t 'links.show_more', '%{count} more...', count: presenter.hidden_count %>
           </a>
           </li>
         <% end %>

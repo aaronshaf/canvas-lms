@@ -36,8 +36,8 @@
   <div class="assignment-gradebook-container">
     <div class="accessibility_warning">
       <%= link_to t('Warning: For improved accessibility, please click here to use the Individual View Gradebook.'),
-      context_url(@context, :change_gradebook_version_context_gradebook_url, :version => "srgb"),
-        :id => "accessibility_warning", :class => "screenreader-only" %>
+      context_url(@context, :change_gradebook_version_context_gradebook_url, version: "srgb"),
+        id: "accessibility_warning", class: "screenreader-only" %>
     </div>
 
     <% if @context.feature_enabled?(:concurrent_grading) %>
@@ -82,8 +82,8 @@
       <div id="gradebook_grid"></div>
     </div>
     <div style="display:none;">
-      <%= render :partial => "shared/message_students" %>
-      <%= render :partial => 'submissions/submission_download' %>
+      <%= render partial: "shared/message_students" %>
+      <%= render partial: 'submissions/submission_download' %>
     </div>
   </div>
 

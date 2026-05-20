@@ -64,15 +64,15 @@
               <% end %>
             <% end %>
             <% if export.expired? %>
-              <%= t "Course Export from %{date} (file not available)", :date => date %>
+              <%= t "Course Export from %{date} (file not available)", date: %>
             <% elsif export.export_type == ContentExport::COMMON_CARTRIDGE %>
-              <%= t "*Course Export from %{date}*", :date => date, :wrapper => wrapper %>
+              <%= t "*Course Export from %{date}*", date:, wrapper: %>
             <% elsif export.export_type == ContentExport::QTI %>
-              <%= t "*QTI Export from %{date}*", :date => date, :wrapper => wrapper %>
+              <%= t "*QTI Export from %{date}*", date:, wrapper: %>
             <% elsif export.export_type == ContentExport::USER_DATA %>
-              <%= t "*User Data Export from %{date}*", :date => date, :wrapper => wrapper %>
+              <%= t "*User Data Export from %{date}*", date:, wrapper: %>
             <% elsif export.export_type == ContentExport::ZIP %>
-              <%= t "*File Export from %{date}*", :date => date, :wrapper => wrapper %>
+              <%= t "*File Export from %{date}*", date:, wrapper: %>
             <% end %>
           </p>
         <% end %>
@@ -88,7 +88,7 @@
 
   <div class="form" style="<%= hidden if @current_export_id %>">
     <% if @context.is_a?(Course) %>
-      <%= form_tag course_content_exports_path(@context.id), :id => "exporter_form" do %>
+      <%= form_tag course_content_exports_path(@context.id), id: "exporter_form" do %>
         <fieldset>
           <h2><%= t :export_type, "Export Type" %></h2>
           <div>
@@ -99,7 +99,7 @@
             <input type="radio" name="export_type" value="qti" id="qti_export_radio">
             <label for="qti_export_radio"><%= t 'labels.quiz', 'Quiz' %></label>
             <div id="quiz_selection" style="display:none;">
-              <%= render :partial => 'quiz_export_checklist' %>
+              <%= render partial: 'quiz_export_checklist' %>
             </div>
           </div>
         </fieldset>
@@ -111,7 +111,7 @@
       <% end %>
     <% elsif @context == @current_user %>
       <% if @current_user.submissions.exists? %>
-        <%= form_tag dashboard_content_exports_path, :id => "exporter_form" do %>
+        <%= form_tag dashboard_content_exports_path, id: "exporter_form" do %>
           <div>
             <button type="submit" class="submit_button btn btn-primary"><%= t 'buttons.create', "Create Export" %></button>
           </div>

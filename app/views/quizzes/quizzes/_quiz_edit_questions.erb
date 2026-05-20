@@ -32,27 +32,27 @@
     <% if @quiz.quiz_questions.active.size > Quizzes::QuizzesController::QUIZ_QUESTIONS_DETAIL_LIMIT %>
     <span id='question-detail-disabled' class='hint'>
       <%= t('NOTE: Question details not available when more than %{question_count}.',
-            :question_count => Quizzes::QuizzesController::QUIZ_QUESTIONS_DETAIL_LIMIT) %>
+            question_count: Quizzes::QuizzesController::QUIZ_QUESTIONS_DETAIL_LIMIT) %>
     </span>
     <% end %>
   </div>
   <div id="questions" class="question_editing brief show_correct_answers" style="border-width:0">
     <% @quiz.root_entries.each do |question| %>
       <% if question[:entry_type] == "quiz_group" %>
-        <%= render :partial => "question_group", :object => question %>
+        <%= render partial: "question_group", object: question %>
       <% else %>
-        <%= render :partial => ((@quiz.quiz_questions.active.size > Quizzes::QuizzesController::QUIZ_QUESTIONS_DETAIL_LIMIT) ? "question_teaser" : "display_question"), :object => question, :locals => { editing: true, asset_string: "quiz_question_#{question['id']}"} %>
+        <%= render partial: ((@quiz.quiz_questions.active.size > Quizzes::QuizzesController::QUIZ_QUESTIONS_DETAIL_LIMIT) ? "question_teaser" : "display_question"), object: question, locals: { editing: true, asset_string: "quiz_question_#{question['id']}"} %>
       <% end %>
     <% end %>
   </div>
-  <%= render :partial => "question_teaser", :object => nil, :locals => { editing: true } %>
-  <%= render :partial => "display_question", :object => nil, :locals => { editing: true } %>
-  <%= render :partial => "display_answer", :object => nil %>
-  <%= render :partial => "form_answer", :object => nil %>
-  <%= render :partial => "form_question", :object => nil %>
-  <%= render :partial => "question_group", :object => nil %>
-  <%= render :partial => "find_question_from_bank" %>
-  <%= render :partial => "move_question" %>
+  <%= render partial: "question_teaser", object: nil, locals: { editing: true } %>
+  <%= render partial: "display_question", object: nil, locals: { editing: true } %>
+  <%= render partial: "display_answer", object: nil %>
+  <%= render partial: "form_answer", object: nil %>
+  <%= render partial: "form_question", object: nil %>
+  <%= render partial: "question_group", object: nil %>
+  <%= render partial: "find_question_from_bank" %>
+  <%= render partial: "move_question" %>
 
   <% unless content_is_locked || points_are_locked %>
     <div style="text-align: center; margin: -1px 1px 1px" class="add_question question_editing">

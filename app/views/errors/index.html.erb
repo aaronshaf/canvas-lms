@@ -21,7 +21,7 @@
   add_crumb t("#crumbs.error_reports", "Error Reports")
 %>
 
-<%= form_for @current_user, :url => '/error_reports', :html => { :method => :get }  do |f| %>
+<%= form_for @current_user, url: '/error_reports', html: { method: :get }  do |f| %>
   <% if error_search_enabled? %>
     <%= t :message_contains, "Message contains" %>
     <input type="text" name="message" value="<%= @message %>" style="width: 250px;"/>
@@ -34,7 +34,7 @@
 
 <% content_for :pagination do %>
   <% if params[:action] == 'index' %>
-    <%= will_paginate(@reports, :page_links => false) %>
+    <%= will_paginate(@reports, page_links: false) %>
   <% end %>
 <% end %>
 
@@ -45,7 +45,7 @@
     <h3>
       <%= link_to "##{report.id}", error_url(report) %>
       <% if @reports.length > 1 %>
-        <%= truncate(report.message, :length => 80) %>
+        <%= truncate(report.message, length: 80) %>
       <% else %>
         <%= report.message %>
       <% end %>

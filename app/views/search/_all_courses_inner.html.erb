@@ -44,7 +44,7 @@ colors = [
         <p class="pad-box-mini"><%= c.public_description %></p>
         <% if @current_user && c.open_enrollment && c.self_enrollment_enabled? %>
           <p>
-            <button class="btn course_enrollment_link" aria-label="<%= t('Join %{course}', :course => c.name) %>" data-href="/enroll/<%= c.self_enrollment_code %>">
+            <button class="btn course_enrollment_link" aria-label="<%= t('Join %{course}', course: c.name) %>" data-href="/enroll/<%= c.self_enrollment_code %>">
               <i class="icon-user-add"></i>
               <%= t(:join_course, 'Join this Course') %>
             </button>

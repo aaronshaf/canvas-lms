@@ -41,7 +41,7 @@
 <%= t :body, "Reported as %{report_type}: %{user}, %{course}", report_type: data[:report_type], user: asset.author_name, course: asset.context.name %>
 
 <p>
-<%= html_to_simple_html(asset.message, :base_url => dashboard_url) %>
+<%= html_to_simple_html(asset.message, base_url: dashboard_url) %>
 </p>
 
 <%= t("View the reply in the discussion using the link below.") %>

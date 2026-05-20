@@ -72,19 +72,19 @@ To add some comments, click the "Edit" link at the top.
 <div id="course_syllabus_details" style="<%= hidden unless can_do(@context, @current_user, *RoleOverride::GRANULAR_MANAGE_COURSE_CONTENT_PERMISSIONS) && (!@context.syllabus_body || @context.syllabus_body.strip.empty?) %>">
   <%= help_text %>
 </div>
-<%= form_for @context.class.to_s.underscore.to_sym, :url => context_url(@context, :context_url), :html => {:id => 'edit_course_syllabus_form', :style => 'display: none; margin-bottom: 10px;', :method => :put} do |f| %>
+<%= form_for @context.class.to_s.underscore.to_sym, url: context_url(@context, :context_url), html: {id: 'edit_course_syllabus_form', style: 'display: none; margin-bottom: 10px;', method: :put} do |f| %>
   <% if @context.elementary_enabled? %>
-    <%= f.blabel :syllabus_body, :important_info_description, :en => "Important Info Description" %>
+    <%= f.blabel :syllabus_body, :important_info_description, en: "Important Info Description" %>
   <% else %>
-    <%= f.blabel :syllabus_body, :syllabus_description, :en => "Syllabus Description" %>
+    <%= f.blabel :syllabus_body, :syllabus_description, en: "Syllabus Description" %>
   <% end %>
   <div class="clear"></div>
-  <%= f.text_area :syllabus_body, :style => "width: 100%; height: 300px;", :id => "course_syllabus_body" %>
+  <%= f.text_area :syllabus_body, style: "width: 100%; height: 300px;", id: "course_syllabus_body" %>
 
   <% if !@context.elementary_enabled? && !@context.horizon_course? %>
     <div class="ic-Form-control ic-Form-control--checkbox">
-      <%= f.check_box :syllabus_course_summary, :checked => @context.syllabus_course_summary? %>
-      <%= f.label :syllabus_course_summary, :class => 'ic-Label', :en => "Show Course Summary" %>
+      <%= f.check_box :syllabus_course_summary, checked: @context.syllabus_course_summary? %>
+      <%= f.label :syllabus_course_summary, class: 'ic-Label', en: "Show Course Summary" %>
     </div>
   <% end %>
 

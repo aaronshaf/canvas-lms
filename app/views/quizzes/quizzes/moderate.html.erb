@@ -20,7 +20,7 @@
   add_crumb @quiz.title, context_url(@context, :context_quiz_url, @quiz)
   add_crumb t(:page_title, 'Moderate Quiz')
 %>
-<% provide :page_title do %><%= t(:moderate_page_title, "%{title}: Moderate", :title => @quiz.title) %><% end %>
+<% provide :page_title do %><%= t(:moderate_page_title, "%{title}: Moderate", title: @quiz.title) %><% end %>
 <div class="alert" id="outstanding_quiz_submissions_found" style="display: none">
   <%= t(:outstanding_quiz_submissions_found, "There are outstanding quiz submissions.") %>
   <a href="#" role="button" class="icon-not-graded outstanding_link" id="check_outstanding">
@@ -63,20 +63,20 @@
     <% @students.each do |student| %>
       <% count += 1 %>
       <% submission = submissions_by_student[student.id] %>
-      <% student_name = (@quiz.survey? && @quiz.anonymous_submissions) ? t(:student_n, "Student %{n}", :n => count) : student.last_name_first %>
+      <% student_name = (@quiz.survey? && @quiz.anonymous_submissions) ? t(:student_n, "Student %{n}", n: count) : student.last_name_first %>
       <tr class="student <%= 'extendable' if submission&.extendable? %> <%= 'in_progress' if submission&.untaken? %> <%= 'manually_unlocked' if submission&.manually_unlocked %>" id="student_<%= student.id %>" data-started-at="<%= submission&.started_at&.iso8601 %>" data-end-at="<%= submission&.end_at&.iso8601 %>" data-user-id="<%= student.id %>">
         <td class="check">
-          <input type="checkbox" class="student_check" data-id="<%= student.id %>" title="<%= t('titles.select_user', "Select %{user}", :user => student_name) %>"/>
+          <input type="checkbox" class="student_check" data-id="<%= student.id %>" title="<%= t('titles.select_user', "Select %{user}", user: student_name) %>"/>
         </td>
         <td class="name">
           <%= t(:student_gets_extra_time,
               {one: "*%{student_name}* **gets 1 extra minute on each attempt**",
                 other:"*%{student_name}* **gets %{count} extra minutes on each attempt**" },
               {
-               student_name: student_name,
+               student_name:,
                count: (submission && submission.extra_time) || '0',
                wrapper: {
-                 '*' => submission ? %{<a class="student_name" href="#{context_url(@context, :context_quiz_history_url, @quiz.id, :quiz_submission_id => submission.id)}">\\1</a>} : '\1',
+                 '*' => submission ? %{<a class="student_name" href="#{context_url(@context, :context_quiz_history_url, @quiz.id, quiz_submission_id: submission.id)}">\\1</a>} : '\1',
                  '**' => %{<div class='extra_time_allowed' style="#{hidden unless submission && submission.extra_time && submission.extra_time != "0"}">\\1</div>}
                },
              })
@@ -87,7 +87,7 @@
           <span class="time">
           <% if submission && !submission.settings_only? %>
             <% if submission.completed? %>
-              <%= t(:finished_in, "finished in %{duration}", :duration => submission.finished_in_words) %>
+              <%= t(:finished_in, "finished in %{duration}", duration: submission.finished_in_words) %>
             <% elsif submission.overdue? %>
               --
             <% else %>
@@ -95,7 +95,7 @@
             <% end %>
           <% end %>
           </span>
-          <a href="#" class="extend_time_link no-hover"><%= image_tag "history.png", :alt => t(:add_time, "Add Time") %></a>
+          <a href="#" class="extend_time_link no-hover"><%= image_tag "history.png", alt: t(:add_time, "Add Time") %></a>
         </td>
         <td class="attempts_left number" style="<%= hidden if @quiz.allowed_attempts < 0 %>">
           <% if @quiz.allowed_attempts < 0 %>
@@ -124,7 +124,7 @@
 <%= will_paginate(@students) %>
 
 <a href="#" class="icon-edit moderate_multiple_link" role="button" style="display: none;">
-  <%= t('buttons.change_extensions_for_selected_students', "Change Extensions for %{n} Selected Students", :n => tag.span("X", id: "checked_count")) %>
+  <%= t('buttons.change_extensions_for_selected_students', "Change Extensions for %{n} Selected Students", n: tag.span("X", id: "checked_count")) %>
 </a>
 
 <div id="extend_time_dialog" class="student_extension_dialog" style="display: none;">
@@ -169,13 +169,13 @@
 <div id="moderate_student_dialog" class="student_extension_dialog" style="display: none;">
   <h2><%= t('headers.student_extensions', "Student Extensions") %></h2>
 
-  <%= form_for :quiz, :url => "", :html => {:id => "moderate_student_form", :method => :post} do |f| %>
+  <%= form_for :quiz, url: "", html: {id: "moderate_student_form", method: :post} do |f| %>
 
     <% if @quiz.allowed_attempts > 0 %>
       <div class="field extra_attempts">
         <label for="extension_extra_attempts">
           <%= before_label(:extra_attempts, "Extra Attempts") %>
-          <em class="note"><%= t(:global_extra_attempts, "everyone already gets %{n}", :n => @quiz.allowed_attempts) %></em>
+          <em class="note"><%= t(:global_extra_attempts, "everyone already gets %{n}", n: @quiz.allowed_attempts) %></em>
         </label>
         <span class="input">
           <input id="extension_extra_attempts" type="text" name="extra_attempts" title="<%= t('titles.extra_attempts', 'additional extra attempts') %>"/>
@@ -188,7 +188,7 @@
       <div class="field extra_time">
         <label for="extra_time">
           <%= t('extra_time_on_every_attempt', 'Extra time on every attempt:') %>
-          <em class="note"><%= t(:global_extra_attempt_time, "everyone already gets %{count} minutes", :count => @quiz.time_limit) %></em>
+          <em class="note"><%= t(:global_extra_attempt_time, "everyone already gets %{count} minutes", count: @quiz.time_limit) %></em>
         </label>
         <span class="input">
           <input id="extension_extra_time" type="text" name="extra_time" title="<%= t('titles.extra_quiz_minutes', "additional minutes on each attempt") %>"/>
@@ -252,7 +252,7 @@
 
 <div style="display: none;">
   <span class="now"><%= ActiveSupport::TimeWithZone.new(Time.now.utc, Time.zone) %></span>
-  <a href="<%= context_url(@context, :context_quiz_moderate_url, @quiz.id, :page => params[:page], :last_updated_at => "{{ update }}") %>" class="update_url">&nbsp;</a>
+  <a href="<%= context_url(@context, :context_quiz_moderate_url, @quiz.id, page: params[:page], last_updated_at: "{{ update }}") %>" class="update_url">&nbsp;</a>
   <% last_updated_at = @submissions.empty? ? nil : (@submissions.map(&:updated_at).max - 5.minutes).in_time_zone.iso8601 %>
   <span class="last_updated_at"><%= last_updated_at %></span>
   <a href="<%= context_url(@context, :context_quiz_extensions_url, @quiz.id, "{{ user_id }}") %>" class="extension_url">&nbsp;</a>

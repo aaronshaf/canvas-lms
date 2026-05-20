@@ -57,10 +57,10 @@
           url = context_url(@context, :context_assignment_submission_vericite_report_url, @submission.assignment_id, @submission.user_id, attachment.asset_string)
           title = t("Similarity score")
         elsif turnitin_score[:error_message].present?
-          url = polymorphic_url([@context, @assignment, @submission, :originality_report], asset_string: asset_string)
+          url = polymorphic_url([@context, @assignment, @submission, :originality_report], asset_string:)
           title = turnitin_score[:error_message]
         else
-          url = polymorphic_url([@context, @assignment, @submission, :originality_report], asset_string: asset_string, attempt: @submission.attempt)
+          url = polymorphic_url([@context, @assignment, @submission, :originality_report], asset_string:, attempt: @submission.attempt)
           # This should be I18n'ed but can't be in its current form
           title = I18n.t('Similarity score')
         end
@@ -88,7 +88,7 @@
                href="<%= polymorphic_url([@context, @assignment, @submission, :originality_report], asset_string: attachment&.asset_string || @submission.asset_string, attempt: @submission.attempt) %>"
                data-tooltip="left"
                target="_blank" >
-              <%= image_tag("turnitin_#{turnitin_score[:state]}_score.png", :alt => turnitin_score[:error_message]) %>
+              <%= image_tag("turnitin_#{turnitin_score[:state]}_score.png", alt: turnitin_score[:error_message]) %>
             </a>
           <% else %>
             <a href="<%= polymorphic_url([@context, @assignment, @submission, :originality_report], asset_string: attachment&.asset_string || @submission.asset_string, attempt: @submission.attempt) %>"

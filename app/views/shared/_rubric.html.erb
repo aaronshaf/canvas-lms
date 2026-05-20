@@ -56,8 +56,8 @@
                 value="<%= rubric.title rescue t('defaults.rubric_title', "Some Rubric") %>"
                 style="width: 200px;" maxlength="255" />
         </label>
-        <a href="<%= search_rubrics_url(:q => "") %>" style="display: none;" aria-hidden="true">
-          <%= image_tag "find.png", :alt => '' %> <%= t 'links.find_rubric', "Find Rubric" %>
+        <a href="<%= search_rubrics_url(q: "") %>" style="display: none;" aria-hidden="true">
+          <%= image_tag "find.png", alt: '' %> <%= t 'links.find_rubric', "Find Rubric" %>
         </a>
         <div class="editing">
           <i class="icon-warning icon-Solid title_error_message"
@@ -69,14 +69,14 @@
         </div>
         <% if rubric_association && !rubric_association.rubric_assessments.empty? %>
           <div class="editing" style="font-size: 0.8em;"><%= t 'messages.rubric_in_use',
-                                                              { :one => "Keep in mind that 1 student has already been assessed using this rubric.  Changing it will affect their evaluation.",
-                                                                :other => "Keep in mind that %{count} students have already been assessed using this rubric.  Changing it will affect their evaluations." },
-                                                            :count => rubric_association.rubric_assessments.count %></div>
+                                                              { one: "Keep in mind that 1 student has already been assessed using this rubric.  Changing it will affect their evaluation.",
+                                                                other: "Keep in mind that %{count} students have already been assessed using this rubric.  Changing it will affect their evaluations." },
+                                                            count: rubric_association.rubric_assessments.count %></div>
         <% end %>
       </div>
 
       <div class="editing">
-        <a href="<%= search_rubrics_url(:q => "") %>"
+        <a href="<%= search_rubrics_url(q: "") %>"
            class="find_rubric_link icon-search"
            role="button"
            style="<%= hidden unless !rubric || can_do(rubric_association, @current_user, :update) %>" title="<%= t 'titles.find_existing_rubric', "Find Existing Rubric" %>">
@@ -92,7 +92,7 @@
       </div>
 
       <div style="<%= hidden unless editable && edit_view %>" class="links displaying pull-right" >
-        <% hash = rubric_association ? {:rubric_association_id => rubric_association.id} : {} %>
+        <% hash = rubric_association ? {rubric_association_id: rubric_association.id} : {} %>
         <a
           href="<%= context_url(context, :context_rubric_url, rubric ? rubric.id : "{{ id }}", hash) %>"
           class="<%= 'copy_edit' if rubric && !can_do(rubric, @current_user, :update) %> edit_rubric_link no-print no-hover"
@@ -102,7 +102,7 @@
           role="button"
         ><i class="icon-edit standalone-icon"></i></a>
         <a
-          href="<%= search_rubrics_url(:q => "") %>"
+          href="<%= search_rubrics_url(q: "") %>"
           class="find_rubric_link no-print no-hover"
           style="<%= hidden unless !rubric || can_do(rubric_association, @current_user, :update) %>"
           title="<%= t 'links.find_another_rubric', "Find Another Rubric" %>"
@@ -181,10 +181,10 @@
           <% rubric.criteria_object.each do |criterion| %>
             <% rating = assessment.ratings.find{|r| r[:criterion_id] == criterion.id} rescue nil %>
             <% friendly_description = outcome_friendly_descriptions.detect {|x| x["learning_outcome_id"] == criterion[:learning_outcome_id]}.description rescue '' %>
-            <%= render :partial => "shared/rubric_criterion", :object => criterion, :locals => {:assessing => assessing, :assessment_rating => rating, :rubric => rubric, :rubric_association => rubric_association, :edit_view => edit_view, :friendly_description => friendly_description, :learning_outcome_ids => learning_outcome_ids} %>
+            <%= render partial: "shared/rubric_criterion", object: criterion, locals: {assessing:, assessment_rating: rating, rubric:, rubric_association:, edit_view:, friendly_description:, learning_outcome_ids:} %>
           <% end %>
         <% end %>
-        <%= render :partial => "shared/rubric_criterion", :object => nil %>
+        <%= render partial: "shared/rubric_criterion", object: nil %>
       </tbody>
     </table>
 

@@ -14,10 +14,10 @@
     asset.appointment_group.contexts.first.name  :
     asset.appointment_group.contexts_for_user(user).map(&:name).join(", ") %>
 <% define_content :subject do %>
-  <%= t('subject', 'Reservation canceled for %{appointment_name} (%{course})', :appointment_name => asset.title, :course => courses) %>
+  <%= t('subject', 'Reservation canceled for %{appointment_name} (%{course})', appointment_name: asset.title, course: courses) %>
 <% end %>
 
-<p><%= t :message, '%{user} canceled his/her reservation for %{appointment_name}.', :user => data.updating_user_name || data.updating_user.name, :appointment_name => asset.title %></p>
+<p><%= t :message, '%{user} canceled his/her reservation for %{appointment_name}.', user: data.updating_user_name || data.updating_user.name, appointment_name: asset.title %></p>
 
 <strong><%= t :details, 'Appointment Details' %>:</strong>
 <p>

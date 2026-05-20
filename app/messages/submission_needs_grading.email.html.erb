@@ -9,7 +9,7 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t :subject, "Quiz Submitted: %{quiz}, %{context}", :quiz => asset.quiz.title, :context => assignment.context.name %>
+  <%= t :subject, "Quiz Submitted: %{quiz}, %{context}", quiz: asset.quiz.title, context: assignment.context.name %>
 <% end %>
 
 <% define_content :footer_link do %>
@@ -18,6 +18,6 @@
   </a>
 <% end %>
 
-<p><%= t :body, "%{user_name} has completed the quiz %{quiz_title}, and it requires manual grading.", :user_name => asset.user.name, :quiz_title => asset.quiz.title %></p>
+<p><%= t :body, "%{user_name} has completed the quiz %{quiz_title}, and it requires manual grading.", user_name: asset.user.name, quiz_title: asset.quiz.title %></p>
 
-<p><%= t :submitted_date, "submitted: %{date}", :date => datetime_string(force_zone(asset.finished_at))  %></p>
+<p><%= t :submitted_date, "submitted: %{date}", date: datetime_string(force_zone(asset.finished_at))  %></p>

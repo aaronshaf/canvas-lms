@@ -14,9 +14,9 @@
 
 <% define_content :subject do %>
   <%= t :subject, "Submission Comment: %{user}, %{assignment}, %{context}",
-        :user => submission_comment_submittor(asset, user),
-        :assignment => assignment.title,
-        :context => assignment.context.name %>
+        user: submission_comment_submittor(asset, user),
+        assignment: assignment.title,
+        context: assignment.context.name %>
 <% end %>
 
 <% define_content :footer_link do %>
@@ -26,13 +26,13 @@
 <% end %>
 
 <p><%= t :body, "%{author} just made a new comment on the submission for %{user} for %{assignment}",
-         :author => submission_comment_author(asset, user),
-         :user => submission_comment_submittor(asset, user),
-         :assignment => assignment.title %></p>
+         author: submission_comment_author(asset, user),
+         user: submission_comment_submittor(asset, user),
+         assignment: assignment.title %></p>
 
 <%= html_to_simple_html(asset.comment,
-                        :base_url => dashboard_url,
-                        :tags => %w[p span h2 h3 h4 ul ol li code]) %>
+                        base_url: dashboard_url,
+                        tags: %w[p span h2 h3 h4 ul ol li code]) %>
 
 <% if asset.can_read_author?(user, nil) %>
   <% if avatar_enabled? %>

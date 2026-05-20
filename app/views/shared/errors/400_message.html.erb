@@ -30,11 +30,11 @@
   <img class="ic-Error-img" role="presentation" alt="" aria-hidden="true" src="/images/500_pageerror.svg">
   <h1><%= t('headings.page', %{Page Error}) %></h1>
   <p><%= t("Something broke unexpectedly.") %>
-    <br><%= t("If you have a moment, *click here to tell us what happened*.", :wrapper => '<a href="#" class="submit_error_link">\1</a>') %></p>
+    <br><%= t("If you have a moment, *click here to tell us what happened*.", wrapper: '<a href="#" class="submit_error_link">\1</a>') %></p>
   <% if (defined? message) && message %>
     <p><%= t('error', 'Error:') %> <%= message %></p>
   <% end %>
   <div class="ic-Error-form">
-    <%= render :partial => "shared/errors/error_form", :locals => {:error_category => '400'} %>
+    <%= render partial: "shared/errors/error_form", locals: {error_category: '400'} %>
   </div>
 </div>

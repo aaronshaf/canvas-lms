@@ -19,7 +19,7 @@
   <div class="rs-margin-bottom">
     <% chain = (@context.account_chain rescue [@domain_root_account]).select{|a| can_do(a, @current_user, :manage) }; %>
     <% if !chain.empty? %>
-      <%= before_label :see_results, "See %{user_name}'s results for", :user_name => @user.short_name %>
+      <%= before_label :see_results, "See %{user_name}'s results for", user_name: @user.short_name %>
       <ul>
       <% chain.each do |account| %>
         <li><a href="<%= context_url(account, :context_user_outcomes_results_url, @user.id) %>"><%= account.name %></a></li>
@@ -75,7 +75,7 @@
 
 <% js_bundle 'user_outcome_results' %>
 
-<h1 class="screenreader-only"><%= t :outcomes_for, "Outcomes for %{user_name}", :user_name => @user.name %></h1>
+<h1 class="screenreader-only"><%= t :outcomes_for, "Outcomes for %{user_name}", user_name: @user.name %></h1>
 
 <table id="outcomes">
 <thead>
@@ -91,14 +91,14 @@
     <tr class=" <%= 'js_unassessed_outcome' if results.empty? %>">
       <td class="short_description"><%= outcome.short_description %></td>
       <td class="attempts">
-        <%= t :attempts_from_artifacts, "%{attempts} *from %{artifacts}*", :wrapper => '<div class="sub_attempt">\1</div>', :attempts => t(:attempts, "attempt", :count => results.sum{|r| [1, r.attempt || 0].max }), :artifacts => t(:artifacts, "artifact", :count => results.length) %>
+        <%= t :attempts_from_artifacts, "%{attempts} *from %{artifacts}*", wrapper: '<div class="sub_attempt">\1</div>', attempts: t(:attempts, "attempt", count: results.sum{|r| [1, r.attempt || 0].max }), artifacts: t(:artifacts, "artifact", count: results.length) %>
       </td>
       <td class="latest_score <%= 'mastery' if results[-1]&.mastery %>" title="<%= results[-1]&.mastery ? t(:mastery, "Mastery on latest attempt") : t(:no_mastery, "No Mastery on latest attempt") %>">
         <% if results.empty? %>
            - 
         <% else %>
           <% if results[-1].possible %>
-            <%= t :score_out_of_possible, "%{score}* out of %{possible}*", :score => results[-1].score, :possible => results[-1].possible, :wrapper => '<span class="out_of">\1</span>' %>
+            <%= t :score_out_of_possible, "%{score}* out of %{possible}*", score: results[-1].score, possible: results[-1].possible, wrapper: '<span class="out_of">\1</span>' %>
           <% else %>
             <%= results[-1].score %><span class="out_of"></span>
           <% end %>
@@ -118,7 +118,7 @@
         <td colspan="4" id="outcome_results">
           <ul id="outcome_results_list">
             <% results.each do |result| %>
-              <%= render :partial => "outcome_result", :locals => { :outcome_result => result, :show_results_link => false } %>
+              <%= render partial: "outcome_result", locals: { outcome_result: result, show_results_link: false } %>
             <% end %>
           </ul>
         </td>
@@ -127,4 +127,4 @@
   <% end %>
   </tbody>
 </table>
-<%= render :partial => "shared/rubric_criterion_dialog" %>
+<%= render partial: "shared/rubric_criterion_dialog" %>

@@ -26,20 +26,20 @@
   <% js_bundle :copy_warnings_modal %>
 
 
-  <h1><%= t'headings.copy_course', 'Copy %{course}', :course => @context.name %></h1>
+  <h1><%= t'headings.copy_course', 'Copy %{course}', course: @context.name %></h1>
   <p>
     <%= t('details', %{Please enter the details for the new course.}) %>
   </p>
-  <%= form_for :course, :url => course_copy_course_url(@context), :html => {:id => "copy_course_form", :class => "form-horizontal"} do |f| %>
+  <%= form_for :course, url: course_copy_course_url(@context), html: {id: "copy_course_form", class: "form-horizontal"} do |f| %>
 
     <div class="control-group">
       <label class="control-label"><strong><%= t('name', 'Name') %></strong></label>
-      <div class="controls"><%= f.text_field :name, :value => @context.name %></div>
+      <div class="controls"><%= f.text_field :name, value: @context.name %></div>
     </div>
 
     <div class="control-group">
       <label class="control-label"><strong><%= t('course_code', 'Course Code') %></strong></label>
-      <div class="controls"><%= f.text_field :course_code, :value => @context.course_code %></div>
+      <div class="controls"><%= f.text_field :course_code, value: @context.course_code %></div>
     </div>
     <div class="control-group">
       <label class="control-label">
@@ -51,12 +51,12 @@
       </label>
       <div class="controls">
         <%= f.text_field :start_at,
-                         class: 'datetime_field',
-                         style: "width: 165px;",
-                         value: datetime_string(@context.start_at, :verbose),
+                         :class => 'datetime_field',
+                         :style => "width: 165px;",
+                         :value => datetime_string(@context.start_at, :verbose),
                          "aria-labelledby" => "course_starts_at_label",
                          "data-tooltip" => "",
-                         title: accessible_date_format %>
+                         :title => accessible_date_format %>
       </div>
     </div>
     <div class="control-group">
@@ -69,12 +69,12 @@
       </label>
       <div class="controls">
         <%= f.text_field :conclude_at,
-                         class: 'datetime_field',
-                         style: "width: 165px;",
-                         value: datetime_string(@context.conclude_at, :verbose),
+                         :class => 'datetime_field',
+                         :style => "width: 165px;",
+                         :value => datetime_string(@context.conclude_at, :verbose),
                          "aria-labelledby" => "course_ends_at_label",
                          "data-tooltip" => "",
-                         title: accessible_date_format %>
+                         :title => accessible_date_format %>
       </div>
     </div>
     <% if can_do(@context.account, @current_user, :manage_courses_admin) %>

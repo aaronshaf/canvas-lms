@@ -4,12 +4,12 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t :subject, "%{user} replied to %{discussion_topic}, %{course}", :discussion_topic => asset.title, :course => asset.context.name, :user => asset.author_name %>
+  <%= t :subject, "%{user} replied to %{discussion_topic}, %{course}", discussion_topic: asset.title, course: asset.context.name, user: asset.author_name %>
 <% end %>
 
-<%= t :body, "%{user} replied to %{discussion_topic}, %{course}:", :user => asset.author_name, :discussion_topic => asset.title, :course => asset.context.name %>
+<%= t :body, "%{user} replied to %{discussion_topic}, %{course}:", user: asset.author_name, discussion_topic: asset.title, course: asset.context.name %>
 
-<%= html_to_text(asset.message, :base_url => dashboard_url) %>
+<%= html_to_text(asset.message, base_url: dashboard_url) %>
 
 <% if IncomingMailProcessor::MailboxAccount.reply_to_enabled %>
   <%= t("Comment by replying to this message, or join the conversation using this link: %{link}. When allowed, if you need to include an attachment, please log in to Canvas and reply to the discussion.", link: content(:link)) %>

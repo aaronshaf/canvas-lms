@@ -3,7 +3,7 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t :subject, "Collaboration Invitation: %{course_or_group}", :course_or_group => asset.collaboration.context.name %>
+  <%= t :subject, "Collaboration Invitation: %{course_or_group}", course_or_group: asset.collaboration.context.name %>
 <% end %>
 
 <% define_content :footer_link do %>
@@ -16,21 +16,21 @@
 <% if asset.collaboration.user %>
   <%= t :body_with_user,
         "You've been invited to collaborate on a document, %{document} for %{course_or_group}.  The document was created by %{user} in %{service} and you were invited using your email address, %{email}.",
-        :document => asset.collaboration.title,
-        :course_or_group => asset.collaboration.context.name,
-        :user => asset.collaboration.user.short_name,
-        :service => asset.collaboration.service_name,
-        :email => asset.user&.gmail %>
+        document: asset.collaboration.title,
+        course_or_group: asset.collaboration.context.name,
+        user: asset.collaboration.user.short_name,
+        service: asset.collaboration.service_name,
+        email: asset.user&.gmail %>
 <% else %>
   <%= t :body,
         "You've been invited to collaborate on a document, %{document} for %{course_or_group}.  The document was created in %{service} and you were invited using your email address, %{email}.",
-        :document => asset.collaboration.title,
-        :course_or_group => asset.collaboration.context.name,
-        :service => asset.collaboration.service_name,
-        :email => asset.user&.gmail %>
+        document: asset.collaboration.title,
+        course_or_group: asset.collaboration.context.name,
+        service: asset.collaboration.service_name,
+        email: asset.user&.gmail %>
 <% end %>
 </p>
 
 <p><%= t :change_profile_settings,
          "If that's the wrong email address for this type of collaboration, you'll need to change your profile settings or register with %{service}.",
-         :service => asset.collaboration.service_name %></p>
+         service: asset.collaboration.service_name %></p>

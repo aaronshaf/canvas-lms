@@ -129,7 +129,7 @@
       You can make your portfolio private by *changing your portfolio
       settings*.
       TEXT
-      :wrapper => '<a href="#" class="portfolio_settings_link"><b>\1</b></a>') %></p>
+      wrapper: '<a href="#" class="portfolio_settings_link"><b>\1</b></a>') %></p>
   <% else %>
     <h3><%= t('headers.private_eportfolio', "Your ePortfolio is Private") %></h3>
     <p><%= t(:private_eportfolio, <<~TEXT)
@@ -142,11 +142,11 @@
     <p>
     <%= t('links.share', "Copy and share this link to give others access to your private ePortfolio:") %><br />
       <a
-        href="<%= eportfolio_path(@portfolio.id, :verifier => @portfolio.uuid) %>"
+        href="<%= eportfolio_path(@portfolio.id, verifier: @portfolio.uuid) %>"
         id="eportfolio_share_link"
         style="overflow-wrap: break-word;"
       >
-        <%= eportfolio_url(@portfolio.id, :verifier => @portfolio.uuid) %>
+        <%= eportfolio_url(@portfolio.id, verifier: @portfolio.uuid) %>
       </a>
     </p>
   <% end %>
@@ -219,21 +219,21 @@
     </p>
   <% end %>
   <h2 id="eportfolio_entry_<%= @page.id %>"><span class="name"><%= @page.name %></span></h2>
-  <%= form_for @page, :url => eportfolio_entry_url(@portfolio, @page), :html => {:id => "edit_page_form" } do |f| %>
+  <%= form_for @page, url: eportfolio_entry_url(@portfolio, @page), html: {id: "edit_page_form" } do |f| %>
   <div id="page_name_mount"></div>
   <div class="form_content">
     <%= f.hidden_field :name, id: "page_name_field" %>
   </div>
   <div id="page_content">
     <% @page.content_sections.each_with_index do |c, idx| %>
-      <%= render :partial => "eportfolios/page_section", :object => c, :locals => {:idx => idx} %>
+      <%= render partial: "eportfolios/page_section", object: c, locals: {idx:} %>
     <% end %>
   </div>
   <div class="form_content">
-    <%= f.check_box :allow_comments, :class => "allow_comments" %>
+    <%= f.check_box :allow_comments, class: "allow_comments" %>
     <%= f.label :allow_comments, t('labels.allow_comments', "Allow Comments on this Page") %>
     <div style="margin-<%= direction('left') %>: 40px;" class="show_comments_box <%= "disabled" unless @page.allow_comments %>">
-      <%= f.check_box :show_comments, :class => "show_comments" %>
+      <%= f.check_box :show_comments, class: "show_comments" %>
       <%= f.label :show_comments, t('labels.show_comments', "Make Comments Public") %>
     </div>
   </div>
@@ -245,13 +245,13 @@
           <a href="#" class="switch_views_link"><%= t '#editor.switch_editor_html', "HTML Editor" %></a>
           <a href="#" class="switch_views_link" style="display:none;"><%= t '#editor.switch_editor_rich_text', "Rich Content Editor" %></a>
         </div>
-        <%= f.text_area :content, :id => "edit_page_content", :style => "width: 98%; height: 300px;" %>
+        <%= f.text_area :content, id: "edit_page_content", style: "width: 98%; height: 300px;" %>
       </td>
     </tr><tr>
     </tr>
   </table>
   <% end %>
-  <%= render :partial => "eportfolios/page_section", :object => nil, :locals => {:idx => "blank"} %>
+  <%= render partial: "eportfolios/page_section", object: nil, locals: {idx: "blank"} %>
   <% if can_do(@portfolio, @current_user, :manage) %>
   <div id="edit_content_templates" style="display: none;">
     <div class="edit_rich_text_content form_content" style="display: none;">
@@ -305,11 +305,11 @@
         <div class="file_list" style="margin-<%= direction('left') %>: 50px; max-height: 200px; overflow: auto;">
           <b><%= t(:no_files, "No Files Uploaded") if @portfolio.user.attachments.active.empty? %></b>
           <% unless @portfolio.user.attachments.active.empty? %>
-            <%= render :partial => "files/nested_content", :object => @folders.reject(&:parent_folder_id), :locals => {:folders => @folders} %>
+            <%= render partial: "files/nested_content", object: @folders.reject(&:parent_folder_id), locals: {folders: @folders} %>
           <% end %>
         </div><br/>
         <%= before_label(:file_upload, "Or upload a new file") %><br/>
-        <%= file_field :attachment, :uploaded_data, :class => "file_upload", :style => "padding-#{ direction('left') }: 50px;" %>
+        <%= file_field :attachment, :uploaded_data, class: "file_upload", style: "padding-#{ direction('left') }: 50px;" %>
         <div style="font-size: 0.8em; margin-<%= direction('left') %>: 20px;">
           <%= t("%{file_size_limit} user file quota applies",
                 file_size_limit: number_to_human_size(@current_user.quota)) %>
@@ -321,14 +321,14 @@
       </div>
     </div>
     <div class="loading_submission" style="text-align: center;">
-      <%= image_tag "ajax-loader-bar.gif", :alt => '' %><br/>
+      <%= image_tag "ajax-loader-bar.gif", alt: '' %><br/>
       <%= before_label(:loading_submission, "Loading Submission") %><span class="submission_name">&nbsp;</span>...
     </div>
     <div class="uploading_file" style="text-align: center;">
-      <%= image_tag "ajax-loader-bar.gif", :alt => '' %><br/>
+      <%= image_tag "ajax-loader-bar.gif", alt: '' %><br/>
       <%= before_label(:uploading_file, "Uploading") %><span class="file_name">&nbsp;</span>...
     </div>
-    <%= form_for :attachment, :url => '#', :html => {:id => "upload_file_form"} do |f| %>
+    <%= form_for :attachment, url: '#', html: {id: "upload_file_form"} do |f| %>
     <% end %>
     <iframe class="submission_preview" style="border: 1px solid #aaa; width: 95%; height: 300px; display: block; margin-<%= direction('left') %>: auto; margin-<%= direction('right') %>: auto;" src="about:blank" title="<%= t("Preview") %>">
     </iframe>
@@ -350,13 +350,13 @@
         Right now only you can see the comments for this page. You can make the
         comments public if you like by *changing the settings for this page*.
         TEXT
-        :wrapper => '<a href="#" class="edit_content_link"><b>\1</b></a>') %></p>
+        wrapper: '<a href="#" class="edit_content_link"><b>\1</b></a>') %></p>
     <% end %>
     <div id="page_comments" style="padding: 5px 20px;">
       <%= t(:no_comments, "No Comments") if @page.page_comments.empty? %>
-      <%= render :partial => "eportfolios/page_comment", :collection => @page.page_comments %>
+      <%= render partial: "eportfolios/page_comment", collection: @page.page_comments %>
     </div>
-    <%= render :partial => "eportfolios/page_comment", :object => nil %>
+    <%= render partial: "eportfolios/page_comment", object: nil %>
   <% elsif @page.allow_comments %>
     <p><%= t(:write_only_comments, <<~TEXT)
       Comments for this page are private. You can make comments, but only the
@@ -365,17 +365,17 @@
     %></p>
   <% end %>
   <% if @page.allow_comments %>
-    <%= form_for :page_comment, :url => eportfolio_entry_page_comments_path(@portfolio.id, @page.id), :html => {:id => "add_page_comment_form", :style => "margin-top: 20px;"} do |f| %>
+    <%= form_for :page_comment, url: eportfolio_entry_page_comments_path(@portfolio.id, @page.id), html: {id: "add_page_comment_form", style: "margin-top: 20px;"} do |f| %>
       <h3><%= before_label(:add_comment, "Add a New Comment") %></h3>
       <% if @current_user %>
-        <%= f.text_area :message, :style => "width: 400px; height: 75px;" %>
+        <%= f.text_area :message, style: "width: 400px; height: 75px;" %>
         <div class="button-container">
           <button type="submit" class="btn btn-primary"><i class="icon-discussion"></i> <%= t('buttons.add_comment', "Add Comment") %></button>
         </div>
       <% else %>
         <div style="text-align: center; font-size: 1.2em; margin: 10px;">
           <%= t(:login_required, "You must be *logged in* to make comments on this page.",
-                :wrapper => "<a href=\"#{login_path}\"><b>\\1</b></a>") %>
+                wrapper: "<a href=\"#{login_path}\"><b>\\1</b></a>") %>
         </div>
       <% end %>
     <% end %>
@@ -397,11 +397,11 @@
   <div style="text-align: <%= direction('left') %>; font-size: 1.2em; margin: 30px 10px 0;">
     <a href="<%= eportfolio_url(@portfolio.id) %>" class="delete_eportfolio_link icon-trash"><%= t('links.delete', "Delete this ePortfolio") %></a>
   </div>
-  <%= form_tag eportfolio_url(@portfolio.id), {:method => :delete, :id => "delete_eportfolio_form", :style => "margin-top: 20px; margin-#{direction('left')}: 20px; display: none;"} do %>
+  <%= form_tag eportfolio_url(@portfolio.id), {method: :delete, id: "delete_eportfolio_form", style: "margin-top: 20px; margin-#{direction('left')}: 20px; display: none;"} do %>
     <%= t(:delete_confirm, {
-        :one => "You currently have 1 page in this ePortfolio. Are you sure you want to delete the entire ePortfolio?",
-        :other => "You currently have %{count} pages in this ePortfolio. Are you sure you want to delete the entire ePortfolio?"
-      }, :count => @portfolio.eportfolio_entries.count) %>
+        one: "You currently have 1 page in this ePortfolio. Are you sure you want to delete the entire ePortfolio?",
+        other: "You currently have %{count} pages in this ePortfolio. Are you sure you want to delete the entire ePortfolio?"
+      }, count: @portfolio.eportfolio_entries.count) %>
     <div class="button-container">
       <button type="submit" class="btn"><%= t('buttons.delete', "Delete ePortfolio") %></button>
       <button type="button" class="btn button-secondary delete_eportfolio_link"><%= t('#buttons.cancel', "Cancel") %></button>
@@ -415,8 +415,8 @@
     <a href="#" class="eportfolio_download" title="<%= t('links.view_original', "View the Original File") %>"><img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" class="eportfolio_image"></a>
   </div>
   <div id="eportfolio_download_file" style="text-align: center;">
-    <a href="#" class="eportfolio_download"><%= t('links.download_file', "Click here to download %{filename}", :filename => tag.span(nbsp, class: :filename)) %></a>
+    <a href="#" class="eportfolio_download"><%= t('links.download_file', "Click here to download %{filename}", filename: tag.span(nbsp, class: :filename)) %></a>
   </div>
 </div>
 
-<%= render :partial => "eportfolios/wizard_box" %>
+<%= render partial: "eportfolios/wizard_box" %>

@@ -17,7 +17,7 @@
 %>
 
 <% if @submission.posted? || @submission.was_preview? %>
-  <%= render(:partial => "quiz_submission") %>
+  <%= render(partial: "quiz_submission") %>
 <% else %>
-  <%= render(:partial => "muted") %>
+  <%= render(partial: "muted") %>
 <% end %>

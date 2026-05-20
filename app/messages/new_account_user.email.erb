@@ -5,7 +5,7 @@
   <%= t :subject, "New Account User" %>
 <% end %>
 
-<%= t :body, "New Account Admin for %{account}", :account => asset.account.name %>
+<%= t :body, "New Account Admin for %{account}", account: asset.account.name %>
   
-<%= t :details, "A new admin, %{user}, has been added for the account %{account}", :user => asset.user.name, :account => asset.account.name %>
+<%= t :details, "A new admin, %{user}, has been added for the account %{account}", user: asset.user.name, account: asset.account.name %>
 <%= content :link %>

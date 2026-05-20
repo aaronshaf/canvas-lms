@@ -23,7 +23,7 @@ You should add %{callback_url} as an OAuth 2.0 authorized redirect URL, and set 
 After you create your application, make a note of the Client ID and Client Secret, and enter them here.
 MD
       %></p>
-  <%= render partial: 'oauth2_fields', locals: { aac: aac, presenter: presenter, f: f } %>
+  <%= render partial: 'oauth2_fields', locals: { aac:, presenter:, f: } %>
 <% end %>
-<%= render partial: 'login_attribute_dropdown', locals: { aac: aac, presenter: presenter, f: f } %>
-<%= render partial: 'jit_provisioning_field', locals: { aac: aac, presenter: presenter, f: f } %>
+<%= render partial: 'login_attribute_dropdown', locals: { aac:, presenter:, f: } %>
+<%= render partial: 'jit_provisioning_field', locals: { aac:, presenter:, f: } %>

@@ -53,8 +53,8 @@
               <span class="id" style="display: none;">&nbsp;</span>
             </a>
             <div class="rubrics" style="font-size: 0.8em; color: #aaa;">
-              <%= t :criterion_count, "%{count} criteria", :count => '<span class="criterion_count">&nbsp;</span>'.html_safe %><br/>
-              <%= t :points_possible, "%{points} points possible", :points => '<span class="points_possible">&nbsp;</span>'.html_safe %>
+              <%= t :criterion_count, "%{count} criteria", count: '<span class="criterion_count">&nbsp;</span>'.html_safe %><br/>
+              <%= t :points_possible, "%{points} points possible", points: '<span class="points_possible">&nbsp;</span>'.html_safe %>
             </div>
           </li>
         </ul>
@@ -74,7 +74,7 @@
                 <div class="clear"></div>
               </div>
               <div style="margin-<%= direction('left') %>: 5px;" class="details">
-                <%= render :partial => "shared/rubric_summary", :object => nil, :locals => {:brief => true} %>
+                <%= render partial: "shared/rubric_summary", object: nil, locals: {brief: true} %>
               </div>
               <div class="clear"></div>
             </div>

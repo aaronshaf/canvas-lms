@@ -4,7 +4,7 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t :subject, "New Comment on Announcement %{discussion_topic}: %{course}", :discussion_topic => asset.title, :course => asset.context.name %>
+  <%= t :subject, "New Comment on Announcement %{discussion_topic}: %{course}", discussion_topic: asset.title, course: asset.context.name %>
 <% end %>
 
 <% define_content :footer_link do %>
@@ -13,10 +13,10 @@
   </a>
 <% end %>
 
-<p><%= t :body, "%{user} posted a new comment on the announcement: %{discussion_topic} for %{course}:", :user => asset.user.short_name, :discussion_topic => asset.title, :course => asset.context.name %></p>
+<p><%= t :body, "%{user} posted a new comment on the announcement: %{discussion_topic} for %{course}:", user: asset.user.short_name, discussion_topic: asset.title, course: asset.context.name %></p>
 
 <p>
-  <%= html_to_simple_html(asset.message, :base_url => dashboard_url) %>
+  <%= html_to_simple_html(asset.message, base_url: dashboard_url) %>
 </p>
 
 <% if avatar_enabled? %>

@@ -27,14 +27,14 @@
   <% if @current_student_submissions.present? %>
     <% if @assignment.submission_types&.match(/(online_upload|online_text_entry|online_url)/) && @downloadable_submissions %>
       <li>
-        <%= render :partial => 'submissions/submission_download' %>
-        <a href="<%= context_url(@context, :context_assignment_submissions_url, @assignment.id, :zip => 1) %>"
+        <%= render partial: 'submissions/submission_download' %>
+        <a href="<%= context_url(@context, :context_assignment_submissions_url, @assignment.id, zip: 1) %>"
           id="download_submission_button"
           class="download_submissions_link icon-download"><%= t 'links.download_submissions', "Download Submissions" %></a>
 
         <% if @can_grade %>
           <a href="#" class="upload_submissions_link icon-upload" style="<%= hidden unless @assignment.submissions_downloaded? %>"><%= t 'links.reupload_submissions', "Re-Upload Submissions" %></a>
-          <%= form_tag context_url(@context, :submissions_upload_context_gradebook_url, @assignment.id), {:id => "re_upload_submissions_form", :multipart => true, :style => "margin-top: 10px; margin-bottom: 0px; display: none;"} do %>
+          <%= form_tag context_url(@context, :submissions_upload_context_gradebook_url, @assignment.id), {id: "re_upload_submissions_form", multipart: true, style: "margin-top: 10px; margin-bottom: 0px; display: none;"} do %>
             <div style="font-size: 0.8em;">
               <%= mt <<~MD
   If you made changes to the student submission files you downloaded
@@ -82,11 +82,11 @@
     <% submitted = subs.length %>
     <span class="graded_count" id="ratio_of_submissions_graded" style="<%= 'font-weight: bold;' if graded < submitted %>">
       <%= t :graded_count, "%{graded_count} *out of* %{total} Submissions Graded",
-            :graded_count => graded, :total => submitted,
-            :wrapper => '<span style="font-size: 0.8em;">\1</span>' %>
+            graded_count: graded, total: submitted,
+            wrapper: '<span style="font-size: 0.8em;">\1</span>' %>
     </span>
     <% if resubmitted > 0 %>
-      <b><br /><%= t :resubmission_count, { :one => "1 Ungraded Re-submission", :other => "%{count} Ungraded Re-submissions" }, :count => resubmitted %></b>
+      <b><br /><%= t :resubmission_count, { one: "1 Ungraded Re-submission", other: "%{count} Ungraded Re-submissions" }, count: resubmitted %></b>
     <% end %>
   </div>
 

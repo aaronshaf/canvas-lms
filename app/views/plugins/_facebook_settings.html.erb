@@ -27,13 +27,13 @@ MD
       %></td>
     </tr>
     <tr>
-      <td><%= f.blabel :app_id, :en => "App ID" %></td>
+      <td><%= f.blabel :app_id, en: "App ID" %></td>
       <td>
         <%= f.text_field :app_id, value: settings[:app_id] %>
       </td>
     </tr>
     <tr>
-      <td><%= f.blabel :app_secret, :en => "App Secret" %></td>
+      <td><%= f.blabel :app_secret, en: "App Secret" %></td>
       <td>
         <%= f.password_field :app_secret, autocomplete: false %>
       </td>

@@ -17,6 +17,6 @@
 %>
 <% if @current_user_submission && !@assignment.quiz_lti? %>
 	<div id="sidebar_content">
-		<%= render :partial => "submission_sidebar" %>
+		<%= render partial: "submission_sidebar" %>
 	</div>
 <% end %>

@@ -5,7 +5,7 @@
   <%= t :subject, "New Course" %>
 <% end %>
 
-<%= t :body, "A new course, %{course}, has been added for the account %{account}", :course => asset.name, :account => asset.root_account.name %>
+<%= t :body, "A new course, %{course}, has been added for the account %{account}", course: asset.name, account: asset.root_account.name %>
 <% if !asset.teachers.empty? %>
 <%= before_label :teachers, "Teachers" %>
 <% asset.teachers.each do |teacher| %>

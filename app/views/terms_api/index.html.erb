@@ -18,7 +18,7 @@
 
 <% set_active_tab "terms" %>
 <% provide :page_title do %>
-  <%= t :page_title, "%{account} Terms", :account => @context.name %>
+  <%= t :page_title, "%{account} Terms", account: @context.name %>
 <% end %>
 
 <% js_bundle 'terms_index' %>
@@ -28,8 +28,8 @@
 
 <div class="terms-controls">
   <%= form_for @context,
-               :url => context_url(@context, :context_terms_url),
-               :html => { :method => :get } do |f| %>
+               url: context_url(@context, :context_terms_url),
+               html: { method: :get } do |f| %>
     <label for="term_search">
       <%= t :terms_search_name, "Search by term name" %>
     </label>
@@ -61,7 +61,7 @@
   <% if @terms.empty? %>
     <p>
       <% if @term_name.present? %>
-        <%= t :terms_no_results_name, "No terms found with name “%{name}”", :name => @term_name %>
+        <%= t :terms_no_results_name, "No terms found with name “%{name}”", name: @term_name %>
       <% else %>
         <%= t :terms_no_results, "No terms found" %>
       <% end %>
@@ -70,9 +70,9 @@
 
   <table id="terms">
     <% @terms.each do |term| %>
-      <%= render :partial => "term", :object => term %>
+      <%= render partial: "term", object: term %>
     <% end %>
-    <%= render :partial => "term", :object => nil %>
+    <%= render partial: "term", object: nil %>
   </table>
 </div>
 

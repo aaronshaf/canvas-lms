@@ -29,7 +29,7 @@
 <div id="react-conference-modal-container"></div>
 
 <% unless @render_alternatives %>
-  <% if can_do(WebConference.new(:context => @context), @current_user, :create) %>
+  <% if can_do(WebConference.new(context: @context), @current_user, :create) %>
     <% if @domain_root_account.feature_enabled?(:instui_nav) %>
       <div class="page_header_container">
         <h1 class="page_header">

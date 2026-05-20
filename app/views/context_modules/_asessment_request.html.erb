@@ -19,7 +19,7 @@
 <%
   assignment = module_item.assignment
   is_anonymous_peer_reviews_enabled = assignment.anonymous_peer_reviews?
-  title = t "Required Peer Review %{index}", :index => index
+  title = t("Required Peer Review %{index}", index:)
   reviewee_username = if assessment.available?
     is_anonymous_peer_reviews_enabled ? t("Anonymous User") : assessment.user.name
   else
@@ -63,7 +63,7 @@
           >
             <%= title %>
           </a>
-          <span title="<%= t "Required Peer Review %{index}", :index => index %>" class="title locked_title"><%= t "Required Peer Review %{index}", :index => index %></span>
+          <span title="<%= t "Required Peer Review %{index}", index: %>" class="title locked_title"><%= t "Required Peer Review %{index}", index: %></span>
         </span>
       </div>
 

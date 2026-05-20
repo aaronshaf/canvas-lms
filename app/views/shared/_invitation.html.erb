@@ -31,7 +31,7 @@
     end
 %>
 <% if !@domain_root_account || @domain_root_account.allow_invitation_previews? %>
-  <%= mt('wander_around_dont_get_lost', "Feel free to [wander around](%{link_to_course}) and see what it's like.", :link_to_course => course_path(invitation.course_id, :invitation => invitation.uuid)) %>
+  <%= mt('wander_around_dont_get_lost', "Feel free to [wander around](%{link_to_course}) and see what it's like.", link_to_course: course_path(invitation.course_id, invitation: invitation.uuid)) %>
 <% end %>
 <%= t('accept_or_reject', "When you're ready, you can either accept or reject the invitation.") %>
 <div class="button-container">

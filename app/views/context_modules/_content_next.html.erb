@@ -19,13 +19,13 @@
 <%
   course_home ||= false
   js_env({
-    :COLLAPSED_MODULES => @collapsed_modules,
-    :IS_STUDENT => can_do(@context, @current_user, :participate_as_student),
-    :COURSE_ID => @context.id,
-    :PUBLISH_MENU_PROGRESS_ID => @progress&.id,
-    :NO_MODULE_PROGRESSIONS => @context.large_roster,
-    :FEATURE_MODULES_PERF => module_performance_improvement_is_enabled?(@context, @current_user),
-    :EXPANDED_MODULES => @expanded_modules || [],
+    COLLAPSED_MODULES: @collapsed_modules,
+    IS_STUDENT: can_do(@context, @current_user, :participate_as_student),
+    COURSE_ID: @context.id,
+    PUBLISH_MENU_PROGRESS_ID: @progress&.id,
+    NO_MODULE_PROGRESSIONS: @context.large_roster,
+    FEATURE_MODULES_PERF: module_performance_improvement_is_enabled?(@context, @current_user),
+    EXPANDED_MODULES: @expanded_modules || [],
   })
 %>
 <% js_bundle :module_student_view_peer_reviews %>
@@ -216,23 +216,23 @@ context_modules_header_props = {
 
 </div>
 
-<%= render :partial => 'context_modules/context_module_next', :object => nil, :as => :context_module %>
-<%= render :partial => 'context_modules/module_item_next', :object => nil, :as => :module_item %>
+<%= render partial: 'context_modules/context_module_next', object: nil, as: :context_module %>
+<%= render partial: 'context_modules/module_item_next', object: nil, as: :module_item %>
 
 <% if @can_add || @can_edit %>
 
-  <%= render :partial => "shared/select_content_dialog", :locals => {:for_modules => true, lti_app_placements: [Lti::ResourcePlacement::LINK_SELECTION, Lti::ResourcePlacement::RESOURCE_SELECTION] }  %>
+  <%= render partial: "shared/select_content_dialog", locals: {for_modules: true, lti_app_placements: [Lti::ResourcePlacement::LINK_SELECTION, Lti::ResourcePlacement::RESOURCE_SELECTION] }  %>
   <div id="edit_item_dialog" style="display: none;">
-    <%= form_for :content_tag, :url => "", :html => {:id => "edit_item_form", :method => :put, :style => "margin: 20px 10px;"} do |f| %>
+    <%= form_for :content_tag, url: "", html: {id: "edit_item_form", method: :put, style: "margin: 20px 10px;"} do |f| %>
       <p tabindex="0"> </p>
       <table class="formtable">
         <tr>
-          <td><%= f.blabel :title, :en => "Title" %></td>
-          <td><%= f.text_field :title, :style => "width: 200px;" %></td>
+          <td><%= f.blabel :title, en: "Title" %></td>
+          <td><%= f.text_field :title, style: "width: 200px;" %></td>
         </tr>
         <tr class="external external_url">
-          <td><%= f.blabel :url, :en => "URL" %></td>
-          <td><%= f.text_field :url, :style => "width: 200px;" %></td>
+          <td><%= f.blabel :url, en: "URL" %></td>
+          <td><%= f.text_field :url, style: "width: 200px;" %></td>
         </tr>
         <% unless @context.horizon_course? %>
         <tr>
@@ -240,7 +240,7 @@ context_modules_header_props = {
           <td>
             <select name="content_tag[indent]" id="content_tag_indent_select">
               <% 0.upto(3) do |i| %>
-                <option value="<%= i %>"><%= t('indent.n', { :zero => %{Don't Indent}, :one => %{Indent 1 Level}, :other => %{Indent %{count} Levels} }, :count => i) %></option>
+                <option value="<%= i %>"><%= t('indent.n', { zero: %{Don't Indent}, one: %{Indent 1 Level}, other: %{Indent %{count} Levels} }, count: i) %></option>
               <% end %>
             </select>
           </td>
@@ -249,9 +249,9 @@ context_modules_header_props = {
         <% if @context.horizon_course? %>
         <tr id="estimated_duration_edit">
           <td colspan="2">
-            <%= f.blabel :estimated_duration, :en => "Time to Complete" %>
+            <%= f.blabel :estimated_duration, en: "Time to Complete" %>
             <span>
-              <%= f.number_field :estimated_duration_minutes, min: 0, :style => "width: 40px;", id: "estimated_minutes" %>
+              <%= f.number_field :estimated_duration_minutes, min: 0, style: "width: 40px;", id: "estimated_minutes" %>
               <%= t(:estimated_duration_minutes, "Minutes") %>
               <button
                 class="Button Button--icon-action-danger"
@@ -275,7 +275,7 @@ context_modules_header_props = {
         <tr class="external">
           <td colspan="2">
             <%= f.check_box :new_tab %>
-            <%= f.label :new_tab, :en => "Load in a new tab" %>
+            <%= f.label :new_tab, en: "Load in a new tab" %>
           </td>
         </tr>
         <tr>
@@ -294,7 +294,7 @@ context_modules_header_props = {
     </form>
   </div>
   <div id="add_prerequisite_dialog" style="display: none;">
-    <h3><%= t 'headings.add_prerequisite', 'Add Prerequisite to %{name}', :name => '<span class="name">&nbsp;</span>'.html_safe %></h3>
+    <h3><%= t 'headings.add_prerequisite', 'Add Prerequisite to %{name}', name: '<span class="name">&nbsp;</span>'.html_safe %></h3>
     <p style="display: none;"><%= t('select_prerequisite', %{Select the type of prerequisite.  Students cannot see a module until all prerequisites are satisfied.}) %>
       <div>
         <label class="screenreader-only" for="prerequisite_type_select"><%= t('Select type of prerequisite') %></label>
@@ -303,7 +303,7 @@ context_modules_header_props = {
         </select>
       </div>
     </p>
-    <p class="module_details"><%= t 'module_details', %{Modules are shown in sequential order, so only modules that are above %{name} can be set as prerequisites.}, :name => '<span class="name">&nbsp;</span>'.html_safe %>
+    <p class="module_details"><%= t 'module_details', %{Modules are shown in sequential order, so only modules that are above %{name} can be set as prerequisites.}, name: '<span class="name">&nbsp;</span>'.html_safe %>
       <div>
         <label class="screenreader-only" for="prerequisite_module_select"><%= t('Select prerequite module') %></label>
         <select id="prerequisite_module_select" class="module_id">
@@ -317,7 +317,7 @@ context_modules_header_props = {
   <select id="module_list" aria-label="<%= t('Select prerequisite module') %>">
     <option value="">[ <%= t('select_module.instructions', %{Select Module}) %> ]</option>
     <% @modules.each do |m| %>
-      <option value="<%= m.id %>" class="context_module_option context_module_<%= m.id %>"><%= t 'select_module.name', '%{module}', :module => m.name %></option>
+      <option value="<%= m.id %>" class="context_module_option context_module_<%= m.id %>"><%= t 'select_module.name', '%{module}', module: m.name %></option>
     <% end %>
   </select>
   <div id="display_criterion_blank" class="criterion pull-left" style="display: none;">
@@ -327,7 +327,7 @@ context_modules_header_props = {
     <span><a href="#" class="delete_prerequisite_link" title="<%= t('links.title.remove_prerequisite', %{Remove this prerequisite}) %>">&#215;</a></span>
   </div>
   <div id="completion_criterion_option" class="completion_criterion_option">
-    <% ot 'criterion_for_assignment', '%{assignment} %{select_criterion}', :assignment => capture { %>
+    <% ot 'criterion_for_assignment', '%{assignment} %{select_criterion}', assignment: capture { %>
     <span style="padding: 0 4px;">
       <select class="id assignment_picker" tabindex="0" aria-label="<%= t('Requirement subject') %>"></select>
     </span>
@@ -345,14 +345,14 @@ context_modules_header_props = {
     <span class="min_score_box" style="display: none;" tabindex="0">
       <label class="screenreader-only" for="criterion_min_score"><%= t('Minimum Score') %></label>
       <input id="criterion_min_score" type="text" class="min_score" style="width: 30px; margin-<%= direction('right') %>: 5px;"/>
-      <span class="points_possible_parent"><%= t 'assignment_points_possible', '/ %{points_possible}', :points_possible => '<span class="points_possible">&nbsp;</span>'.html_safe %></span>
+      <span class="points_possible_parent"><%= t 'assignment_points_possible', '/ %{points_possible}', points_possible: '<span class="points_possible">&nbsp;</span>'.html_safe %></span>
     </span>
   </div>
-  <%= image_tag "flagged_question_dim.png", :id => "criterion_image_min_score", :class => "image not_blank", :alt => t('images.alt.min_score', "minimum score"), :title => t('images.title.min_score', "Students must get at least a %{min_score} on this item before the module is considered complete", :min_score => "{{ min_score }}") %>
-  <%= image_tag "preview_dim.png", :id => "criterion_image_must_view", :class => "image not_blank", :alt => t('images.alt.must_view', "must view"), :title => t('images.title.must_view', "Students must view this item before the module is considered complete") %>
-  <%= image_tag "text_entry_dim.png", :id => "criterion_image_must_submit", :class => "image not_blank", :alt => t('images.alt.must_submit', "must submit"), :title => t('images.title.must_submit', "Students must submit this assignment before the module is considered complete") %>
-  <%= image_tag "text_entry_dim.png", :id => "criterion_image_must_contribute", :class => "image not_blank", :alt => t('images.alt.must_contribute', "must contribute"), :title => t('images.title.must_contribute', "Students must contribute to this item before the module is considered complete") %>
-  <%= image_tag "blank.png", :id => "criterion_image_blank", :class => "image", :alt => "" %>
+  <%= image_tag "flagged_question_dim.png", id: "criterion_image_min_score", class: "image not_blank", alt: t('images.alt.min_score', "minimum score"), title: t('images.title.min_score', "Students must get at least a %{min_score} on this item before the module is considered complete", min_score: "{{ min_score }}") %>
+  <%= image_tag "preview_dim.png", id: "criterion_image_must_view", class: "image not_blank", alt: t('images.alt.must_view', "must view"), title: t('images.title.must_view', "Students must view this item before the module is considered complete") %>
+  <%= image_tag "text_entry_dim.png", id: "criterion_image_must_submit", class: "image not_blank", alt: t('images.alt.must_submit', "must submit"), title: t('images.title.must_submit', "Students must submit this assignment before the module is considered complete") %>
+  <%= image_tag "text_entry_dim.png", id: "criterion_image_must_contribute", class: "image not_blank", alt: t('images.alt.must_contribute', "must contribute"), title: t('images.title.must_contribute', "Students must contribute to this item before the module is considered complete") %>
+  <%= image_tag "blank.png", id: "criterion_image_blank", class: "image", alt: "" %>
 </div>
 <div id="current_user_progression_list" class="user_<%= @current_user&.id %>" style="display: none;">
   <div class="progression progression_blank">
@@ -365,5 +365,5 @@ context_modules_header_props = {
 </div>
 
 <% unless @current_user.try(:prefers_no_keyboard_shortcuts?) %>
-  <%=  render :partial => "context_modules/keyboard_navigation" %>
+  <%=  render partial: "context_modules/keyboard_navigation" %>
 <% end %>

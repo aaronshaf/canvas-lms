@@ -27,5 +27,5 @@ Enable Sign in with Apple, and add %{callback_url} as a return URL. Enter the Id
     <%= f.text_field :client_id, class: 'ic-Input', id: "client_id_#{presenter.id_suffix(aac)}" %>
   </div>
 <% end %>
-<%= render partial: 'login_attribute_dropdown', locals: { aac: aac, presenter: presenter, f: f } %>
-<%= render partial: 'jit_provisioning_field', locals: { aac: aac, presenter: presenter, f: f } %>
+<%= render partial: 'login_attribute_dropdown', locals: { aac:, presenter:, f: } %>
+<%= render partial: 'jit_provisioning_field', locals: { aac:, presenter:, f: } %>

@@ -67,7 +67,7 @@
 </p>
 
 <%= render partial: 'sso_settings_form',
-           locals: { presenter: @presenter, account: @account, can_manage: can_manage }%>
+           locals: { presenter: @presenter, account: @account, can_manage: }%>
 
 <h2><%= t("Current Provider") %></h2>
 
@@ -83,7 +83,7 @@
 <% else %>
   <% @presenter.configs.each do |aac| %>
     <%= render partial: "aac_settings",
-               locals: { aac: aac, presenter: @presenter, account: @account, can_manage: can_manage } %>
+               locals: { aac:, presenter: @presenter, account: @account, can_manage: } %>
   <% end %>
 <% end %>
 
@@ -94,7 +94,7 @@
                  account: @account,
                  presenter: @presenter,
                  aac: @presenter.new_config(auth_type.sti_name),
-                 can_manage: can_manage
+                 can_manage:
                } %>
   <% end %>
 <% end %>

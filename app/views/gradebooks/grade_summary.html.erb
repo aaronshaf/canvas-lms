@@ -18,7 +18,7 @@
 <%
   @use_responsive_design = @domain_root_account.feature_enabled?(:responsive_student_grades_page)
 
-  provide :page_title, join_title(t(:page_title, "Grades for %{student}", :student => @presenter.student_name), @context.name)
+  provide :page_title, join_title(t(:page_title, "Grades for %{student}", student: @presenter.student_name), @context.name)
 %>
 <%
   whatif_instructions = t("You can view your grades based on What-If scores so that you know how grades will be affected by upcoming or resubmitted assignments. You can test scores for an assignment that already includes a score, or an assignment that has yet to be graded.")
@@ -28,7 +28,7 @@
 <%
   assignments_2_student_enabled = @context.feature_enabled?(:assignments_2_student)
   js_env({
-    assignments_2_student_enabled: assignments_2_student_enabled,
+    assignments_2_student_enabled:,
     restrict_quantitative_data: @context.restrict_quantitative_data?(@current_user)
   })
 %>
@@ -66,9 +66,9 @@
       </div>
       <div id="assignments-not-weighted">
         <% if @current_grading_period_id == 0 && @context.weighted_grading_periods? %>
-          <%= render :partial => "courses/sidebar_periods_weighting", :object => @presenter.grading_periods %>
+          <%= render partial: "courses/sidebar_periods_weighting", object: @presenter.grading_periods %>
         <% else %>
-          <%= render :partial => "courses/sidebar_weighting", :object => @presenter.groups %>
+          <%= render partial: "courses/sidebar_weighting", object: @presenter.groups %>
         <% end %>
         <% unless @presenter.no_calculations? %>
           <div id="only_consider_graded_assignments_wrapper" class="ic-Form-control ic-Form-control--checkbox">
@@ -410,7 +410,7 @@
                             url = context_url(@context, :context_assignment_submission_turnitin_report_url, assignment.id, @presenter.student_id, submission.asset_string)
                           elsif assignment_presenter.originality_report? && turnitin
                             asset_string = assignment_presenter.file&.asset_string || assignment_presenter.submission&.asset_string
-                            url = polymorphic_url([ @context, assignment, submission, :originality_report], asset_string: asset_string, attempt: submission.attempt, only_path: true)
+                            url = polymorphic_url([ @context, assignment, submission, :originality_report], asset_string:, attempt: submission.attempt, only_path: true)
                             anchor_title = turnitin[:error_message] || t('Originality Report')
                             alt_text = turnitin[:error_message] || t('Originality Report')
                           elsif assignment_presenter.is_online_upload? && assignment_presenter.file
@@ -431,7 +431,7 @@
                           %>
                         <% else %>
                           <a title="<%= anchor_title %>" href="<%= url %>" style="<%= 'visibility: hidden;' unless turnitin %>" target="_blank" data-tooltip="left">
-                            <%= turnitin ? image_tag("turnitin_#{turnitin && turnitin[:state]}_score.png", :alt => alt_text) : image_tag("blank.png", :alt => '') %>
+                            <%= turnitin ? image_tag("turnitin_#{turnitin && turnitin[:state]}_score.png", alt: alt_text) : image_tag("blank.png", alt: '') %>
                           </a>
                         <% end %>
                       <% end %>
@@ -492,7 +492,7 @@
                     <% if sub_assignment.sub_assignment_tag == CheckpointLabels::REPLY_TO_TOPIC %>
                       <td class="title" scope="row"> <%= t "Reply To Topic" %> </td>
                     <% else%>
-                      <td> <%=t("Reply To Entry (%{required_count})", :required_count => assignment.discussion_topic&.reply_to_entry_required_count || 0) %> </td>
+                      <td> <%=t("Reply To Entry (%{required_count})", required_count: assignment.discussion_topic&.reply_to_entry_required_count || 0) %> </td>
                     <% end%>
                     <td class="due">
                       <% if sub_assignment_presenter.has_no_group_weight?  %>
@@ -679,7 +679,7 @@
 
                               <% if submission&.score %>
                               <rect class="myScore" x="<%= graph.score_pos - 7 %>" y="8" width="14" height="14" stroke="#224488" stroke-width="2" rx="3" fill="#aabbdd">
-                                <title><%= before_label(:your_score, "Your Score") %> <%= t(:submission_score, "*%{score}* out of %{possible}", :wrapper => '\1', :score => n(submission.score), :possible => n(round_if_whole(assignment.points_possible))) %></title>
+                                <title><%= before_label(:your_score, "Your Score") %> <%= t(:submission_score, "*%{score}* out of %{possible}", wrapper: '\1', score: n(submission.score), possible: n(round_if_whole(assignment.points_possible))) %></title>
                               </rect>
                               <% end %>
                             </svg>
@@ -722,7 +722,7 @@
                               <div style="text-align: <%= direction('right') %>; font-size: 0.8em; margin-<%= direction('right') %>: 10px; clear: both;">
                                 <% comment.attachments.each do |attachment| %>
                                   <div>
-                                    <a href="<%= context_url(@context, :context_assignment_submission_url, submission.assignment_id, submission.user_id, :download => attachment.id, :comment_id => comment.id) %>"><%= image_tag "file.png", :style => "height: 12px;", :alt => "" %><%= t('links.download', "Download %{attachment}", :attachment => attachment.display_name) %></a>
+                                    <a href="<%= context_url(@context, :context_assignment_submission_url, submission.assignment_id, submission.user_id, download: attachment.id, comment_id: comment.id) %>"><%= image_tag "file.png", style: "height: 12px;", alt: "" %><%= t('links.download', "Download %{attachment}", attachment: attachment.display_name) %></a>
                                   </div>
                                 <% end %>
                               </div>
@@ -745,7 +745,7 @@
                     <% assignment_presenter.rubric_assessments.each do |assessment| %>
                       <div class="assessor" style="text-align: <%= direction('right') %>; margin-bottom: 5px">
                         <% if can_do(assessment, @current_user, :read_assessor) %>
-                          <%= t("Assessment by %{name}", :name => assessment.assessor_name) %>
+                          <%= t("Assessment by %{name}", name: assessment.assessor_name) %>
                         <% else %>
                           <%= t("Anonymous User") %>
                         <% end %>
@@ -761,7 +761,7 @@
                           tabindex="0"
                         >
                       <% else %>
-                        <%= render :partial => "shared/rubric", :object => assessment.rubric, :locals => { :assessment => assessment } %>
+                        <%= render partial: "shared/rubric", object: assessment.rubric, locals: { assessment: } %>
                       <% end %>
                       </div>
                     <% end %>
@@ -778,7 +778,7 @@
     <small><i class="icon-off" role="presentation"></i><%= t("Your instructor has not posted the grade. While your instructor has not posted the grade, grade and comment information is unavailable.") %></small>
   <% end %>
   <div id="total_groups_weight" style="display: none;"><%= @presenter.total_weight %></div>
-  <%= render :partial => "shared/rubric_criterion_dialog" %>
+  <%= render partial: "shared/rubric_criterion_dialog" %>
   <input type="text" style="width: 40px; display: none;" id="grade_entry" title="<%= t('titles.enter_score', "Enter a score to test") %>"/>
   <a href="#" id="revert_score_template" class="revert_score_link" title="<%= t('titles.revert_score', "Revert to original score") %>"><i class="icon-reply-2"></i></a>
   <a href="<%= context_url(@context, :context_assignment_submission_url, "{{ assignment_id }}", @presenter.student_id) %>" class="update_submission_url" style="display: none;">&nbsp;</a>

@@ -3,9 +3,9 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t :subject, "Web Conference Recording Ready: %{name}", :name => asset.context.name %>
+  <%= t :subject, "Web Conference Recording Ready: %{name}", name: asset.context.name %>
 <% end %>
 
-<%= t :body, "Your recording of %{title} for %{name} is ready.", :title => asset.title, :name => asset.context.name %>
+<%= t :body, "Your recording of %{title} for %{name} is ready.", title: asset.title, name: asset.context.name %>
 
-<%= t :details_link, "You can see the details here: %{link}", :link => content(:link) %>
+<%= t :details_link, "You can see the details here: %{link}", link: content(:link) %>

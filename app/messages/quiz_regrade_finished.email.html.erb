@@ -4,7 +4,7 @@
 
 <p>
   <% define_content :subject do %>
-    <%= t :subject, "Quiz Regrade Finished: %{quiz}, %{context}", :quiz => asset.quiz.title, :context => asset.quiz.context.name %>
+    <%= t :subject, "Quiz Regrade Finished: %{quiz}, %{context}", quiz: asset.quiz.title, context: asset.quiz.context.name %>
   <% end %>
 </p>
 
@@ -14,4 +14,4 @@
   </a>
 <% end %>
 
-<p><%= t :body, "A regrade has finished for the quiz %{quiz}", :quiz => asset.quiz %></p>
+<p><%= t :body, "A regrade has finished for the quiz %{quiz}", quiz: asset.quiz %></p>

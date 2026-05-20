@@ -4,8 +4,6 @@ inherit_from:
 Layout:
   Enabled: false
 
-Style/HashSyntax:
-  Enabled: false
 Style/PercentLiteralDelimiters:
   Enabled: false
 Style/QuotedSymbols:

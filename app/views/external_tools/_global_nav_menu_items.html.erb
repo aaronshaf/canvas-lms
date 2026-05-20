@@ -17,7 +17,7 @@
 %>
 
 <% granted_permissions = ContextExternalTool.global_navigation_granted_permissions(root_account: @domain_root_account,
-    user: @current_user, context: @context || @domain_root_account, session: session)
+    user: @current_user, context: @context || @domain_root_account, session:)
 
   tools = ContextExternalTool.filtered_global_navigation_tools(@domain_root_account, granted_permissions).map do |tool|
     tool_display = (tool.extension_setting('global_navigation', 'windowTarget') == '_blank') ? 'borderless' : nil

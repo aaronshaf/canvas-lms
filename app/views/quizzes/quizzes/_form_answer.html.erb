@@ -25,7 +25,7 @@
           <% click_to_set_correct = t("Click to set this answer as correct") %>
           <button class="select_answer_link no-hover" title="<%= click_to_set_correct %>" style="border: none; padding: 0; background: none">
             <span class="selectAsCorrectAnswerId screenreader-only"></span>
-            <%= image_tag "blank_answer.png", :class => "answer_image", :alt => click_to_set_correct %>
+            <%= image_tag "blank_answer.png", class: "answer_image", alt: click_to_set_correct %>
           </button><br/>
           <span class="answer_weight"><input class="float_value" type="text" style="width: 25px;" aria-label="<%= t("Answer Weight") %>" name="answer_weight"/>%</span>
         </div>
@@ -65,17 +65,17 @@
             <option value="precision_answer"><%= before_label(:answer_with_precision, "Answer with Precision") %></option>
           </select>
           <span class="exact_answer numerical_answer_text">
-            <%= t(:exact_answer_with_error_margin_accessible, "*exact answer* with error margin #error margin#", :wrapper => {
+            <%= t(:exact_answer_with_error_margin_accessible, "*exact answer* with error margin #error margin#", wrapper: {
                   '*' => '<input class="float_value long" type="text" style="width: 50px;" name="answer_exact" aria-label="\1"/>',
                   '#' => '<input class="float_value long" type="text" style="width: 70px;" name="answer_error_margin" aria-label="\1"/>' }) %>
           </span>
           <span class="range_answer numerical_answer_text">
-            <%= t(:answer_in_range_accessible, "between *range start* and #range end#", :wrapper => {
+            <%= t(:answer_in_range_accessible, "between *range start* and #range end#", wrapper: {
                   '*' => '<input class="float_value long" type="text" style="width: 50px;" name="answer_range_start" aria-label="\1"/>',
                   '#' => '<input class="float_value long" type="text" style="width: 50px;" name="answer_range_end" aria-label="\1"/>' }) %>
           </span>
           <span class="precision_answer numerical_answer_text">
-            <%= t(:answer_with_precision_accessible, "*exact answer* with precision #precision#", :wrapper => {
+            <%= t(:answer_with_precision_accessible, "*exact answer* with precision #precision#", wrapper: {
                   '*' => '<input class="float_value precision" type="text" style="width: 50px;" name="answer_approximate" aria-label="\1"/>',
                   '#' => '<input class="precision_value" type="text" style="width: 50px;" name="answer_precision" aria-label="\1" title="' + t('number between 1 and 16 inclusive') + '"/>' }) %>
           </span>

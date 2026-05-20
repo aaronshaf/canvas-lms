@@ -8,9 +8,9 @@
 
 <% define_content :subject do %>
   <% if IncomingMailProcessor::MailboxAccount.reply_to_enabled %>
-    <%= t "%{user_name} just sent you a message in Canvas.", :user_name => content(:user_name) %>
+    <%= t "%{user_name} just sent you a message in Canvas.", user_name: content(:user_name) %>
   <% else %>
-    <%= t "%{user_name}, you just sent a message in Canvas - Do not reply", :user_name => content(:user_name) %>
+    <%= t "%{user_name}, you just sent a message in Canvas - Do not reply", user_name: content(:user_name) %>
   <% end %>
 <% end %>
 

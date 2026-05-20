@@ -40,11 +40,11 @@
   }
 
   menu_type_to_class = {
-    :assignment_menu => Assignment,
-    :discussion_topic_menu => DiscussionTopic,
-    :file_menu => Attachment,
-    :quiz_menu => Quizzes::Quiz,
-    :wiki_page_menu => WikiPage
+    assignment_menu: Assignment,
+    discussion_topic_menu: DiscussionTopic,
+    file_menu: Attachment,
+    quiz_menu: Quizzes::Quiz,
+    wiki_page_menu: WikiPage
   }
 %>
 
@@ -183,23 +183,23 @@
             <span class="requirement_type min_score_requirement">
               <% score_display = content_tag(:span, (criterion && criterion[:min_score]) || nbsp, class: 'min_score') %>
               <span class="unfulfilled">
-                <%= t 'min_score.unfulfilled', 'Score at least %{score}', :score => score_display %>
-                <span class="screenreader-only"><%= t 'Must score at least %{score} to complete this module item', :score => score_display %></span>
+                <%= t 'min_score.unfulfilled', 'Score at least %{score}', score: score_display %>
+                <span class="screenreader-only"><%= t 'Must score at least %{score} to complete this module item', score: score_display %></span>
               </span>
               <span class="fulfilled">
-                <%= t 'min_score.fulfilled', 'Scored at least %{score}', :score => score_display %>
-                <span class="screenreader-only"><%= t 'Module item has been completed by scoring at least %{score}', :score => score_display %></span>
+                <%= t 'min_score.fulfilled', 'Scored at least %{score}', score: score_display %>
+                <span class="screenreader-only"><%= t 'Module item has been completed by scoring at least %{score}', score: score_display %></span>
               </span>
             </span>
             <span class="requirement_type min_percentage_requirement">
               <% percentage_display = content_tag(:span, (criterion && criterion[:min_percentage]) || nbsp, class: 'min_percentage') %>
               <span class="unfulfilled">
-                <%= t 'min_percentage.unfulfilled', 'Score at least %{score}%', :score => percentage_display %>
-                <span class="screenreader-only"><%= t 'Must score at least %{score}% to complete this module item', :score => percentage_display %></span>
+                <%= t 'min_percentage.unfulfilled', 'Score at least %{score}%', score: percentage_display %>
+                <span class="screenreader-only"><%= t 'Must score at least %{score}% to complete this module item', score: percentage_display %></span>
               </span>
               <span class="fulfilled">
-                <%= t 'min_percentage.fulfilled', 'Scored at least %{score}%', :score => percentage_display %>
-                <span class="screenreader-only"><%= t 'Module item has been completed by scoring at least %{score}%', :score => percentage_display %></span>
+                <%= t 'min_percentage.fulfilled', 'Scored at least %{score}%', score: percentage_display %>
+                <span class="screenreader-only"><%= t 'Module item has been completed by scoring at least %{score}%', score: percentage_display %></span>
               </span>
             </span>
             <span class="requirement_type must_view_requirement">

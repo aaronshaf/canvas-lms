@@ -25,7 +25,7 @@
     <button data-href="<%= account_remove_account_user_url(@context.id, account_user ? account_user.id : '{{ id }}') %>" class="remove_account_user_link">
       <i aria-hidden="true" class="icon-end standalone-icon"></i>
       <span class="screenreader-only">
-        <%= t("Remove %{name} as an admin", :name => account_user.try(:user).try(:name)) %>
+        <%= t("Remove %{name} as an admin", name: account_user.try(:user).try(:name)) %>
       </span>
     </button>
   <% end -%>

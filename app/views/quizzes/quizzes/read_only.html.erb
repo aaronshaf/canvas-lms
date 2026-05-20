@@ -49,9 +49,9 @@
 <div id="questions" class="brief">
   <% @quiz.root_entries.each do |question| %>
     <% if question[:entry_type] == "quiz_group" %>
-      <%= render :partial => "question_group", :object => question %>
+      <%= render partial: "question_group", object: question %>
     <% else %>
-      <%= render :partial => ((@quiz.active_quiz_questions.size > 25) ? "question_teaser" : "display_question"), :object => question, :locals => { editing: true, asset_string: "quiz_question_#{question['id']}"} %>
+      <%= render partial: ((@quiz.active_quiz_questions.size > 25) ? "question_teaser" : "display_question"), object: question, locals: { editing: true, asset_string: "quiz_question_#{question['id']}"} %>
     <% end %>
   <% end %>
 </div>
@@ -69,10 +69,10 @@
 
 </style>
 
-<%= render :partial => "question_teaser", :object => nil, :locals => { editing: true } %>
-<%= render :partial => "display_question", :object => nil, :locals => { editing: true } %>
-<%= render :partial => "display_answer", :object => nil %>
-<%= render :partial => "form_answer", :object => nil %>
-<%= render :partial => "form_question", :object => nil %>
-<%= render :partial => "question_group", :object => nil %>
-<%= render :partial => "find_question_from_bank" %>
+<%= render partial: "question_teaser", object: nil, locals: { editing: true } %>
+<%= render partial: "display_question", object: nil, locals: { editing: true } %>
+<%= render partial: "display_answer", object: nil %>
+<%= render partial: "form_answer", object: nil %>
+<%= render partial: "form_question", object: nil %>
+<%= render partial: "question_group", object: nil %>
+<%= render partial: "find_question_from_bank" %>

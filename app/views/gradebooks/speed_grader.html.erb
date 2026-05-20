@@ -20,9 +20,9 @@
   js_bundle :speed_grader
   css_bundle :speed_grader
   js_env({
-    :RUBRIC_ASSESSMENT => {
-      :assessor_id => @current_user.id.to_s,
-      :assessment_type => can_do(@assignment, @current_user, :grade) ? "grading" : "peer_review"
+    RUBRIC_ASSESSMENT: {
+      assessor_id: @current_user.id.to_s,
+      assessment_type: can_do(@assignment, @current_user, :grade) ? "grading" : "peer_review"
     },
     studio_media_capture_enabled: Account.site_admin.feature_enabled?(:speedgrader_studio_media_capture),
     ENTRY_ID: @entry_id
@@ -35,13 +35,13 @@
 %>
 
 
-<% provide :page_title, t(:page_title, "%{assignment_name}, SpeedGrader, %{course_name}", :assignment_name => @assignment.title, :course_name => @context.name) %>
+<% provide :page_title, t(:page_title, "%{assignment_name}, SpeedGrader, %{course_name}", assignment_name: @assignment.title, course_name: @context.name) %>
 <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;display: flex;flex-direction: column;" id="classic_speedgrader_container">
   <figure id="speed_grader_timeout_alert"></figure>
   <figure id="speed_grader_loading"></figure>
   <h1 class="screenreader-only"><%= t('page_header_title', "SpeedGrader") %></h1>
   <nav id="gradebook_header_container">
-    <%= form_tag({ :controller => :gradebooks, :course_id => @context.id, :action => :update_submission }, :class => "speed_grader_nav_form") do %>
+    <%= form_tag({ controller: :gradebooks, course_id: @context.id, action: :update_submission }, class: "speed_grader_nav_form") do %>
     <div id="gradebook_header" class="subheadContent" style="display:none;">
       <div id="speedgrader-icons" class="gradebookActions subheadContent subheadContent--flex-start">
         <a href="<%= polymorphic_url([@context, :gradebook]) %>" id="speed_grader_gradebook_link" class="Button Button--icon-action-rev gradebookActions__Button gradebook-icon-link" title="<%= t('Gradebook') %>">
@@ -225,7 +225,7 @@
                     <button type="button" class="hide_rubric_link Button"><%= t("Cancel") %></button>
                   </div>
                   <a href="<%= context_url(@context, :context_rubric_association_rubric_assessments_url, @assignment.rubric_association) %>" class="update_rubric_assessment_url" style="display: none;">&nbsp;</a>
-                  <%= render :partial => "shared/rubric_criterion_dialog" %>
+                  <%= render partial: "shared/rubric_criterion_dialog" %>
                 </div>
             </div>
             <% end %>
@@ -272,7 +272,7 @@
                           assessing: true,
                           checkpointed: @assignment.checkpoints_parent?,
                         }
-                        render :partial => "shared/rubric_summary", :object => @assignment.try_rescue(:rubric_association).try_rescue(:rubric), :locals => locals if @assignment.try_rescue(:rubric_association).try_rescue(:rubric)
+                        render partial: "shared/rubric_summary", object: @assignment.try_rescue(:rubric_association).try_rescue(:rubric), locals: locals if @assignment.try_rescue(:rubric_association).try_rescue(:rubric)
                       %>
                     </div>
                   </div>
@@ -321,7 +321,7 @@
                   </div>
                 </div>
                 <div class="comment_attachment" id="comment_attachment_blank" style="display: none;">
-                  <a href="<%= context_url(@context, resource, @assignment.id, "{{ submitter_id }}", :comment_id => "{{ comment_id }}", :download => "{{ id }}") %>"><span class="display_name">&nbsp;</span></a>
+                  <a href="<%= context_url(@context, resource, @assignment.id, "{{ submitter_id }}", comment_id: "{{ comment_id }}", download: "{{ id }}") %>"><span class="display_name">&nbsp;</span></a>
                 </div>
               </div>
             </div>
@@ -555,11 +555,11 @@
   <span id="aria_name_alert" class="screenreader-only" aria-live="polite"></span>
   <% unless @current_user.try(:prefers_no_keyboard_shortcuts?) %>
     <% keyboard_navigation([
-      {:key => t('keycodes.next_student', 'j'), :description => t('keycode_descriptions.next_student', 'Next Student')},
-      {:key => t('keycodes.previous_student', 'k'), :description => t('keycode_descriptions.previous_student', 'Previous Student')},
-      {:key => t('keycodes.leave_comment', 'c'), :description => t('keycode_descriptions.leave_comment', 'Leave Comment')},
-      {:key => t('keycodes.change_grade', 'g'), :description => t('keycode_descriptions.change_grade', 'Change Grade')},
-      {:key => t('keycodes.use_rubric', 'r'), :description => t('keycode_descriptions.use_rubric', 'Use Rubric')}
+      {key: t('keycodes.next_student', 'j'), description: t('keycode_descriptions.next_student', 'Next Student')},
+      {key: t('keycodes.previous_student', 'k'), description: t('keycode_descriptions.previous_student', 'Previous Student')},
+      {key: t('keycodes.leave_comment', 'c'), description: t('keycode_descriptions.leave_comment', 'Leave Comment')},
+      {key: t('keycodes.change_grade', 'g'), description: t('keycode_descriptions.change_grade', 'Change Grade')},
+      {key: t('keycodes.use_rubric', 'r'), description: t('keycode_descriptions.use_rubric', 'Use Rubric')}
     ]) %>
   <% end %>
 

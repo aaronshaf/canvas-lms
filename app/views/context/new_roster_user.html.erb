@@ -20,7 +20,7 @@
 <% provide :right_side do %>
   <div id="right_nav">
     <% if can_do(@membership, @current_user, :read_grades) && @membership.is_a?(StudentEnrollment) %>
-      <a class="btn button-sidebar-wide" href="<%= context_url(@context, :controller => :gradebooks, :action => :grade_summary, :id => @user.id) %>">
+      <a class="btn button-sidebar-wide" href="<%= context_url(@context, controller: :gradebooks, action: :grade_summary, id: @user.id) %>">
         <i class="icon-check-plus" aria-hidden="true"></i>
         <%= t "Student Grades" %>
       </a>
@@ -71,7 +71,7 @@
   <a href="<%= user_profile_path(@current_user) %>" class="profile_url" style="display: none;">&nbsp;</a>
 <% end %>
 
-<%= render :partial => 'shared/profile_main', :locals => { :is_roster_user_page => true }%>
+<%= render partial: 'shared/profile_main', locals: { is_roster_user_page: true }%>
 
 <% can_manage_students = can_do(@context, @current_user, :manage_students) %>
 <% can_manage_admins = can_do(@context, @current_user, :allow_course_admin_actions) %>
@@ -92,7 +92,7 @@
               <a href="<%= context_url(@context, :context_section_url, enrollment.course_section_id) rescue "#" %>"><%= enrollment.try_rescue(:course_section).try_rescue(:display_name) || enrollment.short_name %></a>
             </td>
             <td style="width: 50%;">
-              <%= t 'enrolled_as', "Enrolled as: %{enrollment_type}", :enrollment_type => enrollment.readable_role_name %>
+              <%= t 'enrolled_as', "Enrolled as: %{enrollment_type}", enrollment_type: enrollment.readable_role_name %>
               <% if enrollment.rejected? %>
                 (<%= t('invitation_declined', 'Invitation Declined') %>)
               <% end %>
@@ -101,21 +101,21 @@
               <% if enrollment.is_a?(ObserverEnrollment) %>
                 <br />
                 <%= t 'enrollment_linked_to', "Linked to *%{linked_user}*",
-                    :linked_user => context_user_name(@context, enrollment.associated_user),
-                    :wrapper => '<span class="associated_user_name">\1</span>' %>
+                    linked_user: context_user_name(@context, enrollment.associated_user),
+                    wrapper: '<span class="associated_user_name">\1</span>' %>
               <% end %>
               <div class="completed_at_holder" style="<%= hidden unless enrollment.completed? %>">
-                <%= t 'completed_enrollment', "Completed *%{completed_at}*", :completed_at => datetime_string(enrollment.completed_at), :wrapper => '<span class="completed_at">\1</span>' %>
+                <%= t 'completed_enrollment', "Completed *%{completed_at}*", completed_at: datetime_string(enrollment.completed_at), wrapper: '<span class="completed_at">\1</span>' %>
               </div>
             </td>
             <td style="width: 70px;">
             <% if enrollment.admin? ? (can_manage_admins && enrollment.user_id != @current_user.id) : can_manage_students %>
               <% unless @context.completed? %>
                 <div class="conclude_enrollment_link_holder" style="<%= hidden if enrollment.completed? %>">
-                  <a class="conclude_enrollment_link" href="<%= context_url(@context, :controller => :courses, :action => :conclude_user, :id => enrollment.id) %>"><%= t('links.conclude_enrollment', %{Conclude}) %></a>
+                  <a class="conclude_enrollment_link" href="<%= context_url(@context, controller: :courses, action: :conclude_user, id: enrollment.id) %>"><%= t('links.conclude_enrollment', %{Conclude}) %></a>
                 </div>
                 <div class="unconclude_enrollment_link_holder" style="<%= hidden unless enrollment.explicitly_completed? || enrollment.inactive? %>">
-                  <a class="unconclude_enrollment_link" href="<%= context_url(@context, :controller => :courses, :action => :unconclude_user, :id => enrollment.id) %>"><%= t('links.restore_enrollment', %{Restore}) %></a>
+                  <a class="unconclude_enrollment_link" href="<%= context_url(@context, controller: :courses, action: :unconclude_user, id: enrollment.id) %>"><%= t('links.restore_enrollment', %{Restore}) %></a>
                 </div>
               <% end %>
             </td>
@@ -154,7 +154,7 @@
       <% end %>
     </fieldset>
   <% end %>
-  <%= render :partial => 'users/logins' %>
+  <%= render partial: 'users/logins' %>
 </div>
 <% end %>
 <% if @messages %>
@@ -167,7 +167,7 @@
       </legend>
       <%= t('no_messages', "No Messages") if @messages.empty? %>
       <% @messages.each do |message| %>
-          <%= render :partial => 'discussion_topics/entry', :object => message, :locals => {:out_of_context => true, :show_context => true, :assignment_visible_to_user => message.discussion_topic.visible_for?(@current_user)} %>
+          <%= render partial: 'discussion_topics/entry', object: message, locals: {out_of_context: true, show_context: true, assignment_visible_to_user: message.discussion_topic.visible_for?(@current_user)} %>
       <% end %>
     </fieldset>
   </div>

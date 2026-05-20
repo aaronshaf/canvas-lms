@@ -42,29 +42,29 @@
           <span class="short_description"><%= alignment.learning_outcome.short_description %></span>
           <button type="button" class="delete_outcome_link Button--link"><i class="icon-end"></i></button>
           <span class="clear"></span>
-          <span class="content"><%= t :mastery_threshold, "mastery at %{threshold_percentage}", :threshold_percentage => tag.span((alignment.mastery_score || 0) * 100.0, :class => :mastery_threshold) %>%</span>
+          <span class="content"><%= t :mastery_threshold, "mastery at %{threshold_percentage}", threshold_percentage: tag.span((alignment.mastery_score || 0) * 100.0, class: :mastery_threshold) %>%</span>
         </li>
       <% end %>
       <li class="blank outcome" style="display: none;">
         <span class="short_description">&nbsp;</span>
         <button type="button" class="delete_outcome_link Button--link"><i class="icon-end"></i></button>
         <span class="clear"></span>
-        <span class="content"><%= t :mastery_threshold, "mastery at %{threshold_percentage}", :threshold_percentage => tag.span(nbsp, class: :mastery_threshold) %>%</span>
+        <span class="content"><%= t :mastery_threshold, "mastery at %{threshold_percentage}", threshold_percentage: tag.span(nbsp, class: :mastery_threshold) %>%</span>
       </li>
     </ul>
     <button type="button" class="btn button-sidebar-wide add_outcome_link"><i class="icon-paperclip"></i> <span class="add_outcome_text"><%= t 'links.align_outcome', "Align Outcome" %></span></button>
   </div>
-  <%= render :partial => 'shared/find_outcome', :locals => {:purpose => 'question_bank'}  %>
+  <%= render partial: 'shared/find_outcome', locals: {purpose: 'question_bank'}  %>
 <% end %>
 
 <div class="quiz-header">
-  <%= form_for @bank, :url => context_url(@context, :context_question_bank_url, @bank), :html => {:id => "edit_bank_form", :method => :put} do |f| %>
+  <%= form_for @bank, url: context_url(@context, :context_question_bank_url, @bank), html: {id: "edit_bank_form", method: :put} do |f| %>
     <div class="displaying">
       <h1><%= @bank.title %></h1>
     </div>
     <div class="editing" style="display: none;">
-      <b><%= f.label :title, :en => "Bank Name" %></b>
-      <%= f.text_field :title, :class => "bank_name_box" %>
+      <b><%= f.label :title, en: "Bank Name" %></b>
+      <%= f.text_field :title, class: "bank_name_box" %>
     </div>
   <% end %>
   <p>
@@ -74,35 +74,35 @@
     <input type="checkbox" id="show_question_details" <%= 'checked' if @questions.total_pages > 1 %> /><label for="show_question_details"> <%= t('show_details', 'Show Question Details') %></label>
   </div>
   <div id="bank_urls" style="display: none;">
-    <a href="<%= context_url(@context, :context_question_bank_questions_url, @bank, :page => "{{ page }}") %>" class="more_questions_url">&nbsp;</a>
+    <a href="<%= context_url(@context, :context_question_bank_questions_url, @bank, page: "{{ page }}") %>" class="more_questions_url">&nbsp;</a>
     <a href="<%= context_url(@context, :context_question_bank_assessment_questions_url, @bank) %>" class="add_question_url">&nbsp;</a>
     <a href="<%= context_url(@context, :context_question_bank_move_questions_url, @bank.id) %>" class="move_questions_url">&nbsp;</a>
     <a href="<%= context_url(@context, :context_question_banks_url) %>" class="assessment_question_banks_url">&nbsp;</a>
-    <a href="<%= context_url(@context, :context_question_banks_url, :managed => '1') %>" class="managed_banks_url">&nbsp;</a>
+    <a href="<%= context_url(@context, :context_question_banks_url, managed: '1') %>" class="managed_banks_url">&nbsp;</a>
     <a href="<%= context_url(@context, :context_question_bank_reorder_url, @bank.id) %>" class="reorder_questions_url" style="display: none;">&nbsp;</a>
     <span class="current_question_bank_id"><%= @bank.id %></span>
   </div>
 </div>
 <div id="questions" class="<%= 'uneditable' unless can_do(@bank, @current_user, :manage) %> question_editing brief question_bank show_correct_answers mathjax_ignore">
   <% if @questions.total_pages <= 1 %>
-    <%= render :partial => "quizzes/quizzes/display_question", :collection => @questions.map(&:data), :locals => { question_bank_id: @bank.id, editing: true } %>
+    <%= render partial: "quizzes/quizzes/display_question", collection: @questions.map(&:data), locals: { question_bank_id: @bank.id, editing: true } %>
   <% else %>
-    <%= render :partial => "question_teaser", :collection => @questions %>
+    <%= render partial: "question_teaser", collection: @questions %>
   <% end %>
 </div>
 
 <% if @questions.total_pages > 1 %>
   <div id="more_questions" data-current-page="1" data-total-pages="<%= @questions.total_pages %>" style="font-size: 1.2em; font-weight: bold; text-align: center;">
-    <a href="<%= context_url(@context, :context_question_bank_questions_url, @bank, :page => "{{ page }}") %>" class="more_questions_link"><%= t 'links.more_questions', "more questions" %></a>
+    <a href="<%= context_url(@context, :context_question_bank_questions_url, @bank, page: "{{ page }}") %>" class="more_questions_link"><%= t 'links.more_questions', "more questions" %></a>
   </div>
 <% end %>
 
-<%= render :partial => "question_teaser" %>
-<%= render :partial => "question_bank" %>
-<%= render :partial => "quizzes/quizzes/display_question", :object => nil, :locals => {:question_bank_id => @bank.id, :editing => true} %>
-<%= render :partial => "quizzes/quizzes/display_answer", :object => nil %>
-<%= render :partial => "quizzes/quizzes/form_answer", :object => nil %>
-<%= render :partial => "quizzes/quizzes/form_question", :object => nil, :locals => {:question_bank_id => @bank.id} %>
+<%= render partial: "question_teaser" %>
+<%= render partial: "question_bank" %>
+<%= render partial: "quizzes/quizzes/display_question", object: nil, locals: {question_bank_id: @bank.id, editing: true} %>
+<%= render partial: "quizzes/quizzes/display_answer", object: nil %>
+<%= render partial: "quizzes/quizzes/form_answer", object: nil %>
+<%= render partial: "quizzes/quizzes/form_question", object: nil, locals: {question_bank_id: @bank.id} %>
 <span class="question_bank_id" style="display: none;"><%= @bank.id %></span>
 <div style="display: none;">
   <div id="move_question_dialog">
@@ -151,4 +151,4 @@
 </div>
 <div id="assessment_question_bank_id" style="display: none;"><%= @bank.id %></div>
 
-<%= render :partial => 'quizzes/quizzes/equations_help' %>
+<%= render partial: 'quizzes/quizzes/equations_help' %>

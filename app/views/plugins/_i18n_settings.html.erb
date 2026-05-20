@@ -20,7 +20,7 @@
     <table style="width: 500px;" class="formtable">
       <% LocaleSelection.custom_locales.each do |locale| %>
           <tr>
-            <td><%= f.blabel locale, I18n.send(:t, :locales, :locale => locale)[locale] %></td>
+            <td><%= f.blabel locale, I18n.send(:t, :locales, locale:)[locale] %></td>
             <td><%= f.check_box locale, checked: Canvas::Plugin.value_to_boolean(settings[locale]) %></td>
           </tr>
       <% end %>

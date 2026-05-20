@@ -25,15 +25,15 @@
       </td>
     </tr>
     <tr>
-      <td><%= f.blabel :api_key, :en => "API Key" %></td>
+      <td><%= f.blabel :api_key, en: "API Key" %></td>
       <td><%= f.text_field :api_key, value: settings[:api_key] %></td>
     </tr>
     <tr>
-      <td><%= f.blabel :base_url, :en => "Base URL" %></td>
+      <td><%= f.blabel :base_url, en: "Base URL" %></td>
       <td><%= f.text_field :base_url, value: settings[:base_url] %></td>
     </tr>
     <tr>
-      <td><%= f.blabel :annotations_supported, :en => "Annotations Supported" %></td>
+      <td><%= f.blabel :annotations_supported, en: "Annotations Supported" %></td>
       <td><%= f.check_box :annotations_supported, checked: Canvas::Plugin.value_to_boolean(settings[:annotations_supported]) %></td>
     </tr>
   </table>

@@ -4,7 +4,7 @@
 <% end %>
 
 <% define_content :subject do %>
-  <%= t :subject, "%{user} mentioned you in %{discussion_topic}, %{course}", discussion_topic: asset.discussion_topic.title, course: asset.context.name, :user => asset.discussion_entry.user.short_name %>
+  <%= t :subject, "%{user} mentioned you in %{discussion_topic}, %{course}", discussion_topic: asset.discussion_topic.title, course: asset.context.name, user: asset.discussion_entry.user.short_name %>
 <% end %>
 
 <% define_content :footer_link do %>
@@ -50,7 +50,7 @@
   </p>
 <% end %>
 
-<%= t :body, "%{user} mentioned you in %{discussion_topic}, %{course}:", :user => asset.discussion_entry.user.short_name, :discussion_topic => asset.discussion_topic.title, :course => asset.context.name %>
+<%= t :body, "%{user} mentioned you in %{discussion_topic}, %{course}:", user: asset.discussion_entry.user.short_name, discussion_topic: asset.discussion_topic.title, course: asset.context.name %>
 
 <p>
 <%= html_to_simple_html(asset.message, base_url: dashboard_url) %>

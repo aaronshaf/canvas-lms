@@ -49,7 +49,7 @@
       <input type="hidden" name="redirect_to_previous" value="true" />
     </p>
     <div class="button_box ic-Login-confirmation__actions">
-      <%= link_to(t("#buttons.cancel", "Cancel"), logout_path, :method => :delete, :class => "btn logout") %>
+      <%= link_to(t("#buttons.cancel", "Cancel"), logout_path, method: :delete, class: "btn logout") %>
       <button type="submit" class="Button Button--primary"><%= t "#buttons.submit", "Submit" %></button>
     </div>
   </div>

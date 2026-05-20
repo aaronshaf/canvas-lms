@@ -17,12 +17,12 @@
 %>
 
 <% provide :head, include_common_stylesheets %>
-<%= render :partial => "layouts/head" %>
+<%= render partial: "layouts/head" %>
 <body style="margin:0; padding: 0; background: transparent;">
   <div id="content" class="file_preview_container" style="margin:0; padding: 0; position: absolute; top: 50%; left: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); color: white; text-align: center;">
     <img class="ic-Error-img" role="presentation" alt="" aria-hidden="true" src="/images/401_permissions.svg">
     <h2><%= t("Access Denied") %></h2>
     <div><%= t("You don't have access to view this resource.") %></div>
   </div>
-  <%= render :partial => 'layouts/foot', :locals => { :include_common_bundle => true } %>
+  <%= render partial: 'layouts/foot', locals: { include_common_bundle: true } %>
 </body>

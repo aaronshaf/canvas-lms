@@ -70,7 +70,7 @@
       <div class="controls">
         <span class="value">
           <% if @quiz.time_limit %>
-            <%= t(:time_limit, "Minute", :count => @quiz.time_limit + ((@submission && @submission.extra_time) || 0)) %>
+            <%= t(:time_limit, "Minute", count: @quiz.time_limit + ((@submission && @submission.extra_time) || 0)) %>
           <% else %>
             <%= t(:no_time_limit, "No Time Limit") %>
           <% end %>
@@ -249,8 +249,8 @@
       </tr>
     </thead>
 
-    <%= render 'shared/override_list', :assignment => @quiz,
-      :user => @current_user %>
+    <%= render 'shared/override_list', assignment: @quiz,
+      user: @current_user %>
 
   </table>
 <% end %>

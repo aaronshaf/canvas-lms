@@ -29,7 +29,7 @@
       <span class="id" style="display: none;"><%= item.id %></span>
       <span class="text name"><%= item.display_name %></span>
       <% if subcontent %>
-        <%= render :partial => "files/nested_content", :object => subcontent, :locals => {:exclude_files => exclude_files} %>
+        <%= render partial: "files/nested_content", object: subcontent, locals: {exclude_files:} %>
       <% end %>
     </li>
   <% end %>

@@ -41,24 +41,24 @@
       </div>
     <% end %>
   <% end %>
-  <% locals = {:title => t('coming_up', "Coming Up"), :contexts_to_link_to => @context, :upcoming => true, :period => :one_week} %>
+  <% locals = {title: t('coming_up', "Coming Up"), contexts_to_link_to: @context, upcoming: true, period: :one_week} %>
   <% if @current_user %>
     <% cache([@current_user, @context, 'group_upcoming_events' ]) do %>
-      <%= render :partial => "shared/event_list", :object => @current_user.upcoming_events(:contexts => @context), :locals => locals %>
+      <%= render partial: "shared/event_list", object: @current_user.upcoming_events(contexts: @context), locals: %>
     <% end %>
   <% else %>
-    <%= render :partial => "shared/event_list", :object => [], :locals => locals %>
+    <%= render partial: "shared/event_list", object: [], locals: %>
   <% end %>
 <% end %>
 
 <div id="group_messages">
-  <%= render :partial => 'shared/dashboard_messages' %>
-  <%= render :partial => 'shared/recent_activity' %>
+  <%= render partial: 'shared/dashboard_messages' %>
+  <%= render partial: 'shared/recent_activity' %>
 </div>
 
 <% js_bundle :student_group_dialog %>
 <% js_env({
-  :student_mode => true,
-  :group => @group.as_json[:group],
-  :group_category => @group.group_category.try(:[], :group_category)
+  student_mode: true,
+  group: @group.as_json[:group],
+  group_category: @group.group_category.try(:[], :group_category)
 })%>

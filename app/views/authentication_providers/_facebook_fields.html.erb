@@ -32,5 +32,5 @@ MD
       <%= f.password_field :app_secret, class: 'ic-Input', id: "app_secret_#{presenter.id_suffix(aac)}" %>
     </div>
 <% end %>
-<%= render partial: 'login_attribute_dropdown', locals: { aac: aac, presenter: presenter, f: f } %>
-<%= render partial: 'jit_provisioning_field', locals: { aac: aac, presenter: presenter, f: f } %>
+<%= render partial: 'login_attribute_dropdown', locals: { aac:, presenter:, f: } %>
+<%= render partial: 'jit_provisioning_field', locals: { aac:, presenter:, f: } %>

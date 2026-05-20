@@ -20,6 +20,6 @@
   <% if identity = (yield :identity).presence %>
     <%= identity %>
   <% else %>
-    <%= render(:partial => 'shared/identity') %>
+    <%= render(partial: 'shared/identity') %>
   <% end %>
 </div>

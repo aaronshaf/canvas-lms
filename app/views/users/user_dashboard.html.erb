@@ -89,8 +89,8 @@ if k5_user?
 
 <div id="dashboard" class="ic-dashboard-app">
   <h1 class="screenreader-only"><%= dashboard_title %></h1>
-  <%= render :partial => 'shared/dashboard_invitation', :collection => @pending_invitations %>
-  <%= render :partial => 'shared/dashboard_messages' %>
+  <%= render partial: 'shared/dashboard_invitation', collection: @pending_invitations %>
+  <%= render partial: 'shared/dashboard_messages' %>
   <% if k5_user? %>
     <div id="dashboard-app-container"></div>
   <% else %>
@@ -104,7 +104,7 @@ if k5_user?
         <% if @domain_root_account.feature_enabled?(:create_course_subaccount_picker) %>
           <div id="create_course_modal_container"></div>
         <% else %>
-          <%= render :partial => 'shared/new_course_form' %>
+          <%= render partial: 'shared/new_course_form' %>
         <% end %>
       <% end %>
     <% end %>
@@ -121,6 +121,6 @@ if k5_user?
       <!-- this will be populated via xhr from UsersController::dashboard_stream_items when someone selects the stream-items dashboard option -->
     </div>
 
-    <%= render :partial => 'shared/dashboard_card' %>
+    <%= render partial: 'shared/dashboard_card' %>
   <% end %>
 </div>

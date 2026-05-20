@@ -26,7 +26,7 @@
 
       <%= form_for(aac,
                    as: :authentication_provider,
-                   url: url,
+                   url:,
                    html: {
                            id: "#{aac.new_record? ? 'new' : 'edit'}_#{presenter.id_suffix(aac)}",
                            class: "ic-Form-group ic-Form-group--horizontal authentication_provider_form"
@@ -41,12 +41,12 @@
         <% end %>
 
         <%= render partial: "#{aac.auth_type}_fields",
-                 locals: {aac: aac, presenter: presenter, f: f}%>
+                 locals: {aac:, presenter:, f:}%>
 
         <%= render partial: "additional_settings", locals: { f:, presenter:, provider: aac } %>
 
         <% if aac.class.recognized_federated_attributes != [] %>
-          <%= render partial: "federated_attributes", locals: { aac: aac, presenter: presenter, f: f, can_manage: can_manage } %>
+          <%= render partial: "federated_attributes", locals: { aac:, presenter:, f:, can_manage: } %>
         <% end %>
 
         <% if !aac.new_record? && aac.class.supports_debugging? && can_manage %>

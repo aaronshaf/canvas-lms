@@ -22,16 +22,16 @@
   <div class="sis-name">
     <%= f.fields_for :settings do |settings| %>
       <%= settings.label :sis_name, t("SIS friendly name") %>
-      <%= settings.text_field :sis_name, :value => @account.settings[:sis_name], :maxlength => 255, :disabled => !@account.root_account? %>
+      <%= settings.text_field :sis_name, value: @account.settings[:sis_name], maxlength: 255, disabled: !@account.root_account? %>
     <% end %>
   </div>
   <div>
-    <%= f.check_box :allow_sis_import, :checked => @account.allow_sis_import %>
+    <%= f.check_box :allow_sis_import, checked: @account.allow_sis_import %>
     <%= f.label :allow_sis_import, t("SIS imports") %>
   </div>
   <div>
     <%= f.fields_for :settings do |settings| %>
-      <%= settings.check_box :include_integration_ids_in_gradebook_exports, :checked => @account.settings[:include_integration_ids_in_gradebook_exports] == true %>
+      <%= settings.check_box :include_integration_ids_in_gradebook_exports, checked: @account.settings[:include_integration_ids_in_gradebook_exports] == true %>
       <%= settings.label :include_integration_ids_in_gradebook_exports, t("Include Integration IDs in the gradebook exports.") %>
     <% end %>
   </div>
@@ -51,8 +51,8 @@
         <fieldset id="account_settings_sis_syncing_value_settings" class="nested" style="display: none;">
           <legend class="screenreader-only"><%= t("Additional settings for SIS syncing") %></legend>
           <div>
-            <%= ff_syncing.check_box :locked, :checked => sis_syncing[:locked],
-                                     :disabled => sis_syncing_locked_subs %>
+            <%= ff_syncing.check_box :locked, checked: sis_syncing[:locked],
+                                     disabled: sis_syncing_locked_subs %>
             <%= ff_syncing.label :locked, t("Lock this setting for sub-accounts") %>
           </div>
           <% if Assignment.sis_grade_export_enabled?(@account) %>
@@ -76,8 +76,8 @@
                         (require_due_date[:locked] && require_due_date[:inherited])
                   %>
                   <div>
-                    <%= ff_due_date.check_box :value, :checked => require_due_date[:value],
-                                              :disabled => require_due_date_disabled %>
+                    <%= ff_due_date.check_box :value, checked: require_due_date[:value],
+                                              disabled: require_due_date_disabled %>
                     <%= ff_due_date.label :value, t("Require assignment due date") %>
                   </div>
                 <% end %>
@@ -96,15 +96,15 @@
                 <fieldset id="account_settings_sis_assignment_name_length_value_settings" class="nested sis_name_length_nested_cleanup">
                   <div class="name-length-wrapper">
                     <%= settings.fields_for :sis_assignment_name_length_input do |ff_name_input|%>
-                      <%= ff_name_input.label :value, :en => "Characters"%>
+                      <%= ff_name_input.label :value, en: "Characters"%>
                       <%= ff_name_input.text_field :value,
-                                                   :type => "number",
-                                                   :value => @account.sis_assignment_name_length_input[:value],
-                                                   :class => "small-input",
-                                                   :max => 255,
-                                                   :min => 0,
-                                                   :disabled => name_length_disabled,
-                                                   :placeholder => "255"%>
+                                                   type: "number",
+                                                   value: @account.sis_assignment_name_length_input[:value],
+                                                   class: "small-input",
+                                                   max: 255,
+                                                   min: 0,
+                                                   disabled: name_length_disabled,
+                                                   placeholder: "255"%>
                     <% end %>
                   </div>
                 </fieldset>
@@ -125,4 +125,4 @@
   <% end %>
 </fieldset>
 
-<%= render partial: 'sis_agent_token_auth', locals: {f: f} %>
+<%= render partial: 'sis_agent_token_auth', locals: {f:} %>

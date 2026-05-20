@@ -72,7 +72,7 @@
                 <% ccs = @current_user.communication_channels.sms.unretired.map { |cc| [cc.path, cc.id] } %>
                 <% unless ccs.empty? %>
                   <% ccs << ["<< #{t("a new mobile number")} >>", "{{id}}"] %>
-                  <%= form_for :otp_login, :url => send_otp_via_sms_path, :html => {:id => "select_phone_form", :class => "ic-Form-group ic-Form-group--horizontal"} do |f| %>
+                  <%= form_for :otp_login, url: send_otp_via_sms_path, html: {id: "select_phone_form", class: "ic-Form-group ic-Form-group--horizontal"} do |f| %>
                     <div class="ic-Form-control">
                       <%= f.blabel :otp_communication_channel_id, en: "US Mobile Number", class: "ic-Label" %>
                       <div class="controls">
@@ -88,9 +88,9 @@
                 <% end %>
                 <%= form_for :otp_login, url: send_otp_via_sms_path, html: { id: "new_phone_form", style: (hidden unless ccs.empty?), class: "ic-Form-group" } do |f| %>
                   <div class="ic-Form-control">
-                    <%= f.blabel :phone_number, :en => "US Mobile Number", :class => "ic-Label" %>
+                    <%= f.blabel :phone_number, en: "US Mobile Number", class: "ic-Label" %>
                     <div class="controls">
-                      <%= f.text_field :phone_number, :class => "ic-Input" %>
+                      <%= f.text_field :phone_number, class: "ic-Input" %>
                     </div>
                   </div>
                   <div>
@@ -127,8 +127,8 @@
     <%= form_for :otp_login, url: otp_login_path, html: { id: "login_form", class: "ic-Form-group" } do |f| %>
       <div class="ic-Form-control">
         <div class="ic-Input-group">
-          <%= f.blabel :verification_code, :en => "Verification Code", :class => "ic-Label" %>
-          <%= f.text_field :verification_code, :class => "ic-Input", :autocomplete => "off" %>
+          <%= f.blabel :verification_code, en: "Verification Code", class: "ic-Label" %>
+          <%= f.text_field :verification_code, class: "ic-Input", autocomplete: "off" %>
           <button type="submit" class="Button Button--primary">
             <%= t("Verify") %>
           </button>
@@ -136,7 +136,7 @@
       </div>
       <div>
         <%= f.check_box :remember_me %>
-        <%= f.label :remember_me, :en => "Remember this computer" %>
+        <%= f.label :remember_me, en: "Remember this computer" %>
       </div>
     <% end %>
   </div>

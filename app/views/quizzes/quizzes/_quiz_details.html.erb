@@ -42,12 +42,12 @@
     <span class="title"><%= t('headers.questions', "Questions") %></span>
     <span class="value"><%= @question_count || 0 %></span>
   </li>
-  <%= render :partial => "shared/available_dates", :locals => {:association => @quiz} %>
+  <%= render partial: "shared/available_dates", locals: {association: @quiz} %>
   <li>
     <span class="title"><%= t('headers.time_limit', "Time Limit") %></span>
     <span class="value">
       <% if @quiz.time_limit %>
-        <%= t(:time_limit, "Minute", :count => @quiz.time_limit + ((@submission && @submission.extra_time) || 0)) %>
+        <%= t(:time_limit, "Minute", count: @quiz.time_limit + ((@submission && @submission.extra_time) || 0)) %>
       <% else %>
         <%= t(:none, "None") %>
       <% end %>

@@ -14,7 +14,7 @@
   </a>
 <% end %>
 
-<p><%= t('grade_changed', "The grading policy for the course, %{course_name} has changed.", :course_name => course.name) %></p>
+<p><%= t('grade_changed', "The grading policy for the course, %{course_name} has changed.", course_name: course.name) %></p>
 
 <% if course.group_weighting_scheme == 'percent' %>
   <p>

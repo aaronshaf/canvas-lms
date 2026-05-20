@@ -56,20 +56,20 @@
           %>
         </p>
         <ul class="group_list">
-          <%= render :partial => 'group', :collection => @user_groups, :locals => {:in_group => true} %>
-          <%= render :partial => 'group', :object => nil, :locals => {:in_group => true} %>
+          <%= render partial: 'group', collection: @user_groups, locals: {in_group: true} %>
+          <%= render partial: 'group', object: nil, locals: {in_group: true} %>
         </ul>
 
         <% if @available_groups.present? %>
           <h2><%= t 'headings.available_groups', "Available Groups" %></h2>
           <ul class="group_list">
-            <%= render :partial => 'group', :collection => @available_groups, :locals => {:in_categories => @user_groups.filter_map(&:group_category).uniq, :in_group => false} %>
+            <%= render partial: 'group', collection: @available_groups, locals: {in_categories: @user_groups.filter_map(&:group_category).uniq, in_group: false} %>
           </ul>
         <% end %>
 
-        <%= form_for :group, :url => context_url(@context, :context_groups_url), :html => {:id => "add_group_form", :style => "display: none;"} do |f| %>
+        <%= form_for :group, url: context_url(@context, :context_groups_url), html: {id: "add_group_form", style: "display: none;"} do |f| %>
           <h2><%= t 'headings.new_group', 'Make a New Group' %></h2>
-          <%= image_tag "warning.png", :alt => '' %>
+          <%= image_tag "warning.png", alt: '' %>
           <%= t :student_group_warning, <<~TEXT
           If your teacher has talked about putting you into
           groups as part of an assignment, this is not the way to make that happen.
@@ -80,7 +80,7 @@
           %>
           <table class="formtable">
             <tr>
-              <td><%= f.blabel :name, :en => "Group Name" %></td>
+              <td><%= f.blabel :name, en: "Group Name" %></td>
               <td><%= f.text_field :name %></td>
             <% if @context %>
               <tr>
@@ -104,7 +104,7 @@
                 <ul class="unstyled_list">
                 <% (@context.users - [@current_user]).each do |user| %>
                   <li>
-                    <%= check_box :invitees, :"#{user.id}", :value => user.id %>
+                    <%= check_box :invitees, :"#{user.id}", value: user.id %>
                     <%= label :invitees, :"#{user.id}", context_user_name(@context, user) %>
                   </li>
                 <% end %>

@@ -12,9 +12,9 @@
   </a>
 <% end %>
 
-<p><%= t :title, "New Course for %{account}", :account => asset.root_account.name %></p>
+<p><%= t :title, "New Course for %{account}", account: asset.root_account.name %></p>
 
-<p><%= t :body, "A course, %{course}, has been added for the account %{account}", :course => asset.name, :account => asset.root_account.name %></p>
+<p><%= t :body, "A course, %{course}, has been added for the account %{account}", course: asset.name, account: asset.root_account.name %></p>
 
 <% if !asset.teachers.empty? %>
   <p>
