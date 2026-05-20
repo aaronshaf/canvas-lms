@@ -210,6 +210,13 @@ class FilesController < ApplicationController
     raise ActiveRecord::RecordNotFound unless Api::ID_REGEX.match?(params[:id])
   end
 
+  def folder_id_lookup_allowed?(folder)
+    return true if @current_user
+
+    folder.context.grants_right?(nil, session, :read)
+  end
+  private :folder_id_lookup_allowed?
+
   def check_limited_access_contexts
     if @context.is_a?(Course) && @context&.account&.limited_access_for_user?(@current_user)
       redirect_to course_path(@context)
@@ -355,6 +362,11 @@ class FilesController < ApplicationController
       get_context
       verify_api_id unless @context.present?
       @folder = Folder.from_context_or_id(@context, params[:id])
+
+      if @context.blank? && !folder_id_lookup_allowed?(@folder)
+        render_json_unauthorized
+        return
+      end
 
       return unless authorized_action(@folder, @current_user, :read_contents)
 

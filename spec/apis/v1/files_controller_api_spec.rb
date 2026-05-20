@@ -2350,4 +2350,35 @@ describe "Files API", type: :request do
       expect(response).to have_http_status(:forbidden)
     end
   end
+
+  describe "GET /api/v1/folders/:id/files (anonymous folder-by-ID lookup)" do
+    before :once do
+      @root_folder = Folder.root_folders(@course).first
+      Attachment.create!(filename: "secret.txt",
+                         display_name: "secret.txt",
+                         uploaded_data: StringIO.new("file"),
+                         folder: @root_folder,
+                         context: @course)
+      @api_path = "/api/v1/folders/#{@root_folder.id}/files"
+      @api_opts = { controller: "files", action: "api_index", format: "json", id: @root_folder.id.to_param }
+    end
+
+    it "rejects an anonymous request when the course is private even if files_visibility is public" do
+      @course.update!(is_public: false, is_public_to_auth_users: false)
+      @course.files_visibility = "public"
+      @course.save!
+      @user = nil
+
+      raw_api_call(:get, @api_path, @api_opts)
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "still allows an anonymous request when the course itself is fully public" do
+      @course.update!(is_public: true)
+      @user = nil
+
+      raw_api_call(:get, @api_path, @api_opts)
+      expect(response).to have_http_status(:ok)
+    end
+  end
 end
