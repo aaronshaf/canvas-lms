@@ -2045,7 +2045,12 @@ class CoursesController < ApplicationController
         Enrollment.invited_by_date.where(
           user_id: @pending_enrollment.user_id,
           course_id: @pending_enrollment.course_id
-        ).find_each { |e| accept_enrollment(e) }
+        ).find_each do |e|
+          break if performed?
+
+          accept_enrollment(e)
+        end
+        performed?
       else
         accept_enrollment(@pending_enrollment)
       end

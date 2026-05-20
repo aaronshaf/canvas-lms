@@ -1917,6 +1917,37 @@ describe CoursesController do
         expect(@enrollment).to be_active
       end
 
+      context "DoubleRenderError on foreign invitation auto-accept" do
+        before do
+          allow(controller).to receive(:rescue_exception).and_wrap_original do |method, exception|
+            raise exception if exception.is_a?(AbstractController::DoubleRenderError)
+
+            method.call(exception)
+          end
+          account = Account.create!(settings: { allow_invitation_previews: false })
+          @course = course_factory(account:, active_course: true)
+          @invited_user = user_factory(active_all: true)
+          teacher = user_factory(active_all: true)
+          @course.enroll_teacher(teacher, enrollment_state: "active")
+          user_session(teacher)
+        end
+
+        it "does not raise on auto-accept redirect" do
+          invitation = @course.enroll_student(@invited_user, enrollment_state: "invited")
+          get "show", params: { id: @course.id, invitation: invitation.uuid }
+          expect(response).to be_redirect
+        end
+
+        it "does not raise with multi-section invitations" do
+          section_a = @course.course_sections.create!(name: "Section A")
+          section_b = @course.course_sections.create!(name: "Section B")
+          inv_a = @course.enroll_student(@invited_user, section: section_a, enrollment_state: "invited")
+          @course.enroll_student(@invited_user, section: section_b, enrollment_state: "invited", allow_multiple_enrollments: true)
+          get "show", params: { id: @course.id, invitation: inv_a.uuid, accept: 1 }
+          expect(response).to be_redirect
+        end
+      end
+
       it "does not error when navigating to unpublished course after admin enrollment invitation" do
         account = Account.create!
         account.settings[:allow_invitation_previews] = false
