@@ -5159,16 +5159,6 @@ describe Course do
               expect(output).not_to include("custom_grade_status")
               expect(output).not_to include(@custom_grade_status.name)
             end
-
-            it "does not include custom_grade_status if feature flag is disabled" do
-              Account.site_admin.disable_feature!(:custom_gradebook_statuses)
-              output = csv_output[0][1]
-              expect(output).to include(
-                "#{@user.id},U1,#{@course.id},,#{@ase[1].course_section_id},,#{@ase[1].user.id},,#{@ase[1].id},active,100.0,A\n"
-              )
-              expect(output).not_to include("custom_grade_status")
-              expect(output).not_to include(@custom_grade_status.name)
-            end
           end
         end
 
