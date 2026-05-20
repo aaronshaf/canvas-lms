@@ -1,0 +1,303 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Greps the render sites a given Model#column may flow through, producing
+# a markdown checklist for the XSS render-site verification tickets under
+# CNVS-73088 (Epic 2: Render-Site Escape Sweep).
+#
+# Usage: script/find_render_sites MODEL#COLUMN
+# Example: script/find_render_sites User#sortable_name
+#
+# Searches under: ui/, app/views/, app/messages/, app/serializers/,
+# app/presenters/. The "Risk sinks" section flags well-known unsafe-HTML
+# primitives (dangerouslySetInnerHTML, innerHTML=, html_safe, raw(),
+# safe_concat, .html(arg), Handlebars triple-stash) in files that
+# reference the column.
+#
+# Generic-section lines that are comments, imports, TS type decls, or
+# pure I18n.t() keys are filtered out; they are not render sites and
+# only inflate the FP count. Risk sinks are NOT filtered — every match
+# is shown so the verifier can decide.
+#
+# Results are scoped by model co-occurrence: a file qualifies only if
+# its path OR its content references the model name (PascalCase, snake,
+# or pluralized snake). This drops files that mention the column token
+# in an unrelated context (e.g. a "title" prop on a non-Assignment
+# component). It is permissive when the model name is itself a common
+# word (User, Account); for those the column-token filters carry the
+# load.
+#
+# Output is colorized on a TTY and plain markdown when redirected, so
+# `script/find_render_sites X#y > report.md` produces a paste-clean
+# checklist for Jira/Gerrit. Honors NO_COLOR.
+
+require "open3"
+
+# ANSI colorization for terminal use. Honors NO_COLOR (https://no-color.org)
+# and disables itself when stdout is redirected, so piping to a file gives
+# clean markdown for pasting into Jira/Gerrit.
+COLOR_ENABLED = $stdout.tty? && ENV["NO_COLOR"].nil?
+
+ANSI = {
+  reset: "\e[0m",
+  bold: "\e[1m",
+  dim: "\e[2m",
+  red: "\e[31m",
+  yellow: "\e[33m",
+  blue: "\e[34m",
+  cyan: "\e[36m"
+}.freeze
+
+def c(*codes, str)
+  return str unless COLOR_ENABLED
+
+  "#{codes.map { |k| ANSI.fetch(k) }.join}#{str}#{ANSI[:reset]}"
+end
+
+def highlight_tokens(text, tokens)
+  return text unless COLOR_ENABLED
+
+  tokens.reduce(text) do |acc, t|
+    acc.gsub(t) { |m| c(:bold, :yellow, m) }
+  end
+end
+
+ROOT = File.expand_path("..", __dir__)
+SEARCH_DIRS = %w[ui app/views app/messages app/serializers app/presenters].freeze
+
+# Magic pathspec exclusions: test fixtures, type decls, and snapshots are
+# not render sites — they pad the checklist without adding signal.
+EXCLUDE_PATHSPECS = [
+  ":(exclude,glob)**/__tests__/**",
+  ":(exclude,glob)**/__mocks__/**",
+  ":(exclude,glob)**/*.test.*",
+  ":(exclude,glob)**/*.spec.*",
+  ":(exclude,glob)**/*.d.ts",
+  ":(exclude,glob)**/__snapshots__/**"
+].freeze
+
+# Drop the line if its content matches any of these. These are not
+# render sites: comments don't execute, imports don't render, TS type
+# declarations are erased at runtime.
+NEGATIVE_LINE_FILTERS = [
+  %r{\A\s*(#|//|\*|--)},                            # comment-only
+  /\A\s*(import|export\s+(?:type|interface|\{))\b/, # ES imports / type re-exports
+  /\A\s*require\s*\(/,                              # CJS requires
+  /\A\s*from\s+["']/,                               # bare `from "..."` continuation
+  /\A\s*(interface|type)\s+\w/                      # type aliases / interfaces
+].freeze
+
+# Patterns flagging unsafe-HTML render primitives. Matched with `git
+# grep -E` inside files that already reference the column token.
+RISK_SINK_PATTERNS = {
+  "dangerouslySetInnerHTML" => "dangerouslySetInnerHTML",
+  "innerHTML assignment" => '\.innerHTML\s*=',
+  "jQuery .html(arg)" => '\.html\(\s*[^)\s]',
+  "Rails html_safe" => '\bhtml_safe\b',
+  "Rails raw()" => '\braw\(',
+  "Rails safe_concat" => '\.safe_concat\b',
+  "Handlebars triple-stash" => '\{\{\{'
+}.freeze
+
+COMMON_WORDS = %w[
+  name
+  title
+  body
+  description
+  text
+  content
+  message
+  email
+  url
+  type
+  subject
+  caption
+  label
+  summary
+  note
+  comment
+].freeze
+
+def die(msg)
+  warn msg
+  exit 1
+end
+
+def parse_arg(arg)
+  die "usage: script/find_render_sites MODEL#COLUMN" unless arg&.include?("#")
+  model, column = arg.split("#", 2)
+  die "model is required (left of #)" if model.empty?
+  die "column is required (right of #)" if column.empty?
+  [model, column]
+end
+
+def camelize(snake)
+  parts = snake.split("_")
+  parts[0] + parts[1..].map(&:capitalize).join
+end
+
+def kebabize(snake)
+  snake.tr("_", "-")
+end
+
+def underscore(pascal)
+  pascal.gsub(/([a-z\d])([A-Z])/, '\1_\2').downcase
+end
+
+def column_tokens(column)
+  tokens = [column]
+  if column.include?("_")
+    tokens << camelize(column)
+    tokens << kebabize(column)
+  end
+  tokens.uniq
+end
+
+def model_tokens(model)
+  snake = underscore(model)
+  [model, snake, "#{snake}s"].uniq
+end
+
+def git_grep_fixed(token, *paths)
+  cmd = ["git", "grep", "-n", "-F", "--", token, *paths, *EXCLUDE_PATHSPECS]
+  stdout, _status = Open3.capture2(*cmd, chdir: ROOT)
+  stdout.each_line.map(&:chomp)
+end
+
+def git_grep_regex(pattern, *paths)
+  cmd = ["git", "grep", "-n", "-E", "--", pattern, *paths, *EXCLUDE_PATHSPECS]
+  stdout, _status = Open3.capture2(*cmd, chdir: ROOT)
+  stdout.each_line.map(&:chomp)
+end
+
+def hits_for(token, dir)
+  return [] unless Dir.exist?(File.join(ROOT, dir))
+
+  git_grep_fixed(token, dir)
+end
+
+# Files in `dir` whose path OR content references any of `model_toks`.
+# Path match: any model token is a substring of the file path. Content
+# match: `git grep -l` returns files containing the token.
+def model_scoped_files(dir, model_toks)
+  return [] unless Dir.exist?(File.join(ROOT, dir))
+
+  ls_out, = Open3.capture2("git", "ls-files", "--", dir, *EXCLUDE_PATHSPECS, chdir: ROOT)
+  all_files = ls_out.each_line.map(&:chomp)
+  path_matched = all_files.select { |f| model_toks.any? { |t| f.include?(t) } }
+
+  content_matched = []
+  model_toks.each do |t|
+    cmd = ["git", "grep", "-l", "-F", "--", t, dir, *EXCLUDE_PATHSPECS]
+    out, = Open3.capture2(*cmd, chdir: ROOT)
+    content_matched.concat(out.each_line.map(&:chomp))
+  end
+
+  (path_matched + content_matched).uniq
+end
+
+def parse_hit(line)
+  path, lineno, *rest = line.split(":", 3)
+  [path, lineno, rest.join(":").strip]
+end
+
+# Drop a line if it has no signal: pure comment, import, type decl, or
+# the token appears only as an I18n.t() key arg.
+def filter_noise(lines, tokens)
+  lines.reject do |line|
+    _path, _lineno, preview = parse_hit(line)
+    next true if NEGATIVE_LINE_FILTERS.any? { |re| preview.match?(re) }
+
+    if preview.include?("I18n.t(")
+      stripped = preview.gsub(/I18n\.t\([^)]*\)/, "")
+      tokens.none? { |t| stripped.include?(t) }
+    else
+      false
+    end
+  end
+end
+
+def render_section(title, hits, tokens: [], risk: false)
+  header_color = risk ? :red : :blue
+  puts "#{c(:bold, header_color, "## #{title}")} #{c(:dim, "(#{hits.size})")}"
+  puts
+  if hits.empty?
+    puts c(:dim, "_no hits_")
+  else
+    hits.each do |line|
+      path, lineno, preview = parse_hit(line)
+      preview = preview[0, 160]
+      location = "#{c(:cyan, path)}:#{c(:dim, lineno)}"
+      puts "- [ ] #{location} — #{highlight_tokens(preview, tokens)}"
+    end
+  end
+  puts
+end
+
+def files_with_token(tokens)
+  SEARCH_DIRS.flat_map do |dir|
+    tokens.flat_map { |t| hits_for(t, dir) }
+          .map { |line| line.split(":", 2).first }
+  end.uniq
+end
+
+def risk_sink_hits(files)
+  return {} if files.empty?
+
+  RISK_SINK_PATTERNS.transform_values do |pattern|
+    git_grep_regex(pattern, *files, *EXCLUDE_PATHSPECS).uniq.sort
+  end
+end
+
+model, column = parse_arg(ARGV[0])
+tokens = column_tokens(column)
+m_tokens = model_tokens(model)
+
+puts c(:bold, :cyan, "# Render-site checklist: #{model}##{column}")
+puts
+puts "Column tokens: #{tokens.map { |t| c(:bold, :yellow, t) }.join(", ")}"
+puts "Model tokens (path+content scope): #{m_tokens.map { |t| c(:bold, :yellow, t) }.join(", ")}"
+puts
+
+model_scope = {}
+SEARCH_DIRS.each { |d| model_scope[d] = model_scoped_files(d, m_tokens) }
+
+totals = {}
+SEARCH_DIRS.each do |dir|
+  raw = tokens.flat_map { |t| hits_for(t, dir) }.uniq.sort
+  scoped_set = model_scope[dir]
+  scoped = raw.select { |line| scoped_set.include?(parse_hit(line).first) }
+  hits = filter_noise(scoped, tokens)
+  totals[dir] = "#{hits.size} (raw #{raw.size} → model-scoped #{scoped.size} → filtered #{hits.size})"
+  render_section(dir, hits, tokens:)
+end
+
+all_model_files = model_scope.values.flatten.uniq
+risk_files = files_with_token(tokens) & all_model_files
+puts c(:bold, :red, "## Risk sinks in files referencing the column")
+puts
+puts "Unsafe-HTML primitives in files that reference both `#{model}` and `#{column}`."
+puts "Verify each call site does not flow the column value through unescaped."
+puts
+risk_totals = 0
+risk_sink_hits(risk_files).each do |label, hits|
+  risk_totals += hits.size
+  render_section("Risk sink: #{label}", hits, tokens:, risk: true)
+end
+totals["risk sinks (total)"] = risk_totals
+
+puts c(:bold, :blue, "## Notes")
+puts
+totals.each { |k, v| puts "- #{k}: #{v}" }
+puts
+if COMMON_WORDS.include?(column)
+  puts c(:bold, :yellow, "- ⚠ Column `#{column}` is a common English word. Expect a high false-positive rate;")
+  puts "  triage by reading the preview text and confirming the reference is the #{model}-scoped column,"
+  puts "  not an unrelated local variable, prop, or i18n key."
+end
+puts "- Generic-section hits filtered: comments, imports, TS type decls, and lines whose only"
+puts "  occurrence of the token is inside an I18n.t() key string."
+puts "- Files are scoped to those whose path OR content references the model name."
+puts "  This is permissive when the model name is a common word (User, Account)."
+puts "- Risk-sink hits are NOT filtered — review every entry. Risk sinks scope to files that"
+puts "  reference both the column and the model; same-line co-occurrence is not required."
