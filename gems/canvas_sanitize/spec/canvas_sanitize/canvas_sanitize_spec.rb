@@ -255,27 +255,90 @@ describe CanvasSanitize do
     expect(res).to eq str
   end
 
+  # position: fixed and sticky escape the .user_content container and can overlay
+  # Canvas UI — a clickjacking vector. position: absolute is safe because Canvas
+  # wraps user content in `.user_content { position: relative }`, which constrains
+  # absolute children. z-index and clip are blocked outright (no legitimate use).
   describe "overlay-capable CSS property blocking" do
-    %w[position z-index top left right clip].each do |prop|
+    # z-index and clip have no safe values for user content — strip the property entirely.
+    %w[z-index clip].each do |prop|
       it "strips the #{prop} CSS property" do
-        res = Sanitize.clean(%(<div style="#{prop}:fixed">x</div>), CanvasSanitize::SANITIZE)
+        res = Sanitize.clean(%(<div style="#{prop}: 0">x</div>), CanvasSanitize::SANITIZE)
         expect(res).not_to match(/#{Regexp.escape(prop)}/)
       end
     end
 
-    it "strips a full clickjacking overlay declaration" do
+    # fixed and sticky escape the container boundary — the actual clickjacking danger.
+    it "strips position: fixed" do
+      res = Sanitize.clean(%(<div style="position: fixed">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).not_to match(/position/)
+    end
+
+    it "strips position: sticky" do
+      res = Sanitize.clean(%(<div style="position: sticky">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).not_to match(/position/)
+    end
+
+    it "strips position: fixed in compact (no-space) form" do
+      res = Sanitize.clean(%(<div style="position:fixed;color:red">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).not_to match(/position/)
+      expect(res).to match(/color/)
+    end
+
+    # relative and static stay within the .user_content boundary — safe to allow.
+    it "preserves position: relative" do
+      res = Sanitize.clean(%(<div style="position: relative">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).to match(/position/)
+      expect(res).to match(/relative/)
+    end
+
+    it "preserves position: static" do
+      res = Sanitize.clean(%(<div style="position: static">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).to match(/position/)
+      expect(res).to match(/static/)
+    end
+
+    it "preserves position: absolute with offset properties" do
+      res = Sanitize.clean(%(<div style="position: absolute; top: 0; left: 0">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).to match(/position/)
+      expect(res).to match(/absolute/)
+      expect(res).to match(/top/)
+      expect(res).to match(/left/)
+    end
+
+    it "strips position: -webkit-sticky (vendor-prefixed sticky)" do
+      res = Sanitize.clean(%(<div style="position: -webkit-sticky; top: 0">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).not_to match(/position/)
+    end
+
+    it "strips position: FIXED (case-insensitive)" do
+      res = Sanitize.clean(%(<div style="position: FIXED">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).not_to match(/position/)
+    end
+
+    it "strips position: fixed !important" do
+      res = Sanitize.clean(%(<div style="position: fixed !important">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).not_to match(/position/)
+    end
+
+    # top/left/right/bottom are harmless without fixed/sticky; stripping position
+    # is enough to neutralise the overlay without discarding the offset values.
+    it "strips position: fixed but preserves top/left/right/bottom" do
       res = Sanitize.clean(
-        %(<div style="position:fixed; top:0; left:0; right:0; z-index:99999">x</div>),
+        %(<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99999">x</div>),
         CanvasSanitize::SANITIZE
       )
-      %w[position top left right z-index].each do |prop|
-        expect(res).not_to match(/#{Regexp.escape(prop)}/)
-      end
+      expect(res).not_to match(/position/)
+      expect(res).not_to match(/z-index/)
+      expect(res).to match(/top/)
+      expect(res).to match(/left/)
+      expect(res).to match(/right/)
+      expect(res).to match(/bottom/)
     end
 
-    it "preserves safe CSS properties alongside removed overlay ones" do
+    it "preserves safe CSS properties alongside stripped position: fixed" do
       res = Sanitize.clean(
-        %(<p style="color:red; position:fixed; padding:8px; text-align:center">x</p>),
+        %(<p style="color: red; position: fixed; padding: 8px; text-align: center">x</p>),
         CanvasSanitize::SANITIZE
       )
       expect(res).to match(/color/)
@@ -285,11 +348,36 @@ describe CanvasSanitize do
     end
 
     it "does not strip safe-only declarations" do
-      str = %(<p style="color:red; padding:8px; text-align:center">x</p>)
+      str = %(<p style="color: red; padding: 8px; text-align: center">x</p>)
       res = Sanitize.clean(str, CanvasSanitize::SANITIZE)
       expect(res).to match(/color/)
       expect(res).to match(/padding/)
       expect(res).to match(/text-align/)
+    end
+
+    # Bypass regression tests: the transformer uses Crass to decode these so
+    # raw-regex approaches would be evaded.
+    it "strips position: fixed when value uses CSS character escapes" do
+      # \66ixed => CSS-decoded 'f' + 'ixed' = 'fixed'
+      res = Sanitize.clean(%(<div style="position: \\66ixed">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).not_to match(/fixed/)
+    end
+
+    it "strips position when property name uses CSS character escapes" do
+      # \\70osition => CSS-decoded 'p' + 'osition' = 'position'
+      res = Sanitize.clean(%(<div style="\\70osition: fixed">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).not_to match(/fixed/)
+    end
+
+    it "strips position: fixed with a newline between colon and value" do
+      res = Sanitize.clean(%(<div style="position:\nfixed">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).not_to match(/fixed/)
+    end
+
+    it "strips position: fixed when preceded by a CSS comment" do
+      res = Sanitize.clean(%(<div style="color: red;/**/position: fixed">x</div>), CanvasSanitize::SANITIZE)
+      expect(res).not_to match(/fixed/)
+      expect(res).to match(/color/)
     end
   end
 

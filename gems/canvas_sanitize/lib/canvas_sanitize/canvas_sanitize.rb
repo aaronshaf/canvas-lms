@@ -67,6 +67,35 @@ module CanvasSanitize # :nodoc:
     clean.empty? ? node.remove_attribute("srcset") : node["srcset"] = clean.join(", ")
   end
 
+  # Safe `position` values: fixed, sticky, and vendor-prefixed forms (e.g.
+  # -webkit-sticky) escape the .user_content container and can overlay Canvas
+  # UI, so they are not listed here. Crass decodes CSS escape sequences and
+  # CSS comments before we check, preventing bypasses like
+  # `position:\nfixed`, `position:\66ixed`, or `/**/position: fixed`.
+  SAFE_POSITION_KEYWORDS = %w[
+    static relative absolute initial inherit unset revert revert-layer
+  ].freeze
+
+  scrub_position_value = lambda do |env|
+    node = env[:node]
+    return unless node&.element?
+
+    style = node["style"]
+    return unless style
+
+    tree = Crass::Parser.parse_properties(style)
+    return unless tree.any? { |n| n[:node] == :property && n[:name]&.downcase == "position" }
+
+    filtered = tree.reject do |n|
+      next false unless n[:node] == :property && n[:name]&.downcase == "position"
+
+      !SAFE_POSITION_KEYWORDS.include?(n[:value]&.downcase)
+    end
+
+    new_style = Crass::Parser.stringify(filtered).strip
+    new_style.empty? ? node.remove_attribute("style") : node["style"] = new_style
+  end
+
   SANITIZE = {
     elements: [
       "a",
@@ -693,6 +722,7 @@ module CanvasSanitize # :nodoc:
         background
         border
         border-radius
+        bottom
         clear
         color
         column-gap
@@ -714,6 +744,7 @@ module CanvasSanitize # :nodoc:
         justify-content
         justify-items
         justify-self
+        left
         line-height
         list-style
         margin
@@ -729,11 +760,14 @@ module CanvasSanitize # :nodoc:
         place-content
         place-items
         place-self
+        position
+        right
         row-gap
         text-align
         table-layout
         text-decoration
         text-indent
+        top
         user-select
         vertical-align
         visibility
@@ -757,7 +791,7 @@ module CanvasSanitize # :nodoc:
       protocols: DEFAULT_PROTOCOLS
     },
 
-    transformers: [remove_spaces_from_ids, scrub_srcset]
+    transformers: [remove_spaces_from_ids, scrub_srcset, scrub_position_value]
   }.freeze
 
   # Any allowed elements for which we don't explicitly declare a
