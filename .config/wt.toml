@@ -1,5 +1,5 @@
 # Worktrunk project config for canvas-lms
-#
+
 # Some Canvas plugins in gems/plugins/ are independent git repos,
 # gitignored in the parent repo but typically worked on alongside it.
 #
@@ -11,23 +11,29 @@
 [post-start]
 copy = "wt step copy-ignored"
 
-# For each plugin repo, create a matching worktree
-# Disabled: created plugin sub-worktrees were tripping up
-# `inst canvas rebuild` (bundler/yarn picking up dirs on
-# branches that lacked expected gemspecs/package.jsons).
-[post-create]
-# plugins = """
-# for dir in {{ primary_worktree_path }}/gems/plugins/*/; do
-#   plugin=$(basename "$dir")
-#   [ ! -d "$dir/.git" ] && continue
-#   wt -C "$dir" switch --create {{ branch }} --yes --no-cd 2>&1 &
-# done
-# wait
-# """
-# Ensure dependencies are installed in new worktrees
-# (Fallback in case node_modules wasn't copied or is stale)
+# Block worktree creation on dependency install and workspace build.
+# Renamed from `post-create` to `pre-start` in worktrunk v0.32.0.
+# Pipeline (array-of-tables) form ensures serial execution — yarn install
+# must finish before `build:packages` runs. Table form would run in parallel.
+# Note: per-plugin sub-worktree creation was previously attempted here but
+# disabled because it tripped up `inst canvas rebuild` (bundler/yarn picked
+# up plugin dirs on branches that lacked expected gemspecs/package.jsons).
+
+# Fail early if worktrunk is below the required floor.
+[[pre-start]]
+version-check = """
+required="0.52.0"
+actual=$(wt --version 2>/dev/null | awk '{print $2}')
+if ! { echo "$required"; echo "$actual"; } | sort -V -C 2>/dev/null; then
+  echo "worktrunk >= $required required (you have ${actual:-none})." >&2
+  exit 1
+fi
+"""
+
+[[pre-start]]
 yarn = "yarn install --frozen-lockfile"
-# Build workspace packages (e.g. canvas-rce es/ output) needed for local vitest runs
+
+[[pre-start]]
 build = "yarn run build:packages"
 
 # Fast format check on changed files only (for agents)
