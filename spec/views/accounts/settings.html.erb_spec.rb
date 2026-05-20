@@ -169,13 +169,6 @@ describe "accounts/settings" do
 
         expect(response).not_to have_tag("input#account_settings_allow_gradebook_show_first_last_names")
       end
-
-      it "does not show the setting when the gradebook_show_first_last_names feature is disabled" do
-        Account.site_admin.disable_feature!(:gradebook_show_first_last_names)
-        render
-
-        expect(response).not_to have_tag("input#account_settings_allow_gradebook_show_first_last_names")
-      end
     end
 
     context "account admin user" do
@@ -199,13 +192,6 @@ describe "accounts/settings" do
       end
 
       it "does not show the setting by default" do
-        render
-
-        expect(response).not_to have_tag("input#account_settings_allow_gradebook_show_first_last_names_value")
-      end
-
-      it "does not show the setting when the gradebook_show_first_last_names feature is disabled" do
-        Account.site_admin.disable_feature!(:gradebook_show_first_last_names)
         render
 
         expect(response).not_to have_tag("input#account_settings_allow_gradebook_show_first_last_names_value")
@@ -317,12 +303,6 @@ describe "accounts/settings" do
       render
       expect(rendered).to include(setting_label)
     end
-
-    it "does not render the setting when the observer_appointment_groups feature is disabled" do
-      Account.site_admin.disable_feature!(:observer_appointment_groups)
-      render
-      expect(rendered).not_to include(setting_label)
-    end
   end
 
   describe "default_allow_observer_signup setting" do
@@ -339,12 +319,6 @@ describe "accounts/settings" do
     it "renders the setting when the observer_appointment_groups feature is enabled" do
       render
       expect(rendered).to include(setting_label)
-    end
-
-    it "does not render the setting when the observer_appointment_groups feature is disabled" do
-      Account.site_admin.disable_feature!(:observer_appointment_groups)
-      render
-      expect(rendered).not_to include(setting_label)
     end
   end
 
@@ -535,13 +509,6 @@ describe "accounts/settings" do
       render
 
       expect(response).to have_tag("select#account_settings_decimal_separator_value")
-    end
-
-    it "does not show up if the new_quizzes_separators feature is disabled" do
-      Account.site_admin.disable_feature!(:new_quizzes_separators)
-      render
-
-      expect(response).not_to have_tag("select#account_settings_decimal_separator_value")
     end
 
     it "does not show up if new quizzes is not provisioned" do

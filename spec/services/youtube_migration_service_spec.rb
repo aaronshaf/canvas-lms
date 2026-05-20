@@ -2639,15 +2639,6 @@ RSpec.describe YoutubeMigrationService do
       end
     end
 
-    context "when feature flag is disabled" do
-      it "does not process any scans" do
-        Account.site_admin.disable_feature!(:new_quizzes_scanning_youtube_links)
-        progress.update!(created_at: 2.hours.ago)
-        expect(described_class).not_to receive(:retry_scan)
-        described_class.process_stuck_scans
-      end
-    end
-
     context "with multiple stuck scans" do
       let(:progress2) do
         Progress.create!(
