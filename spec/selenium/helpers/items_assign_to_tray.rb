@@ -372,6 +372,10 @@ module ItemsAssignToTray
     element_exists?(icon_type_selector(icon_type))
   end
 
+  def icon_testid_exists?(testid)
+    element_exists?("[data-testid='#{testid}']")
+  end
+
   def item_tray_exists?
     element_exists?(module_item_edit_tray_selector)
   end

@@ -47,6 +47,7 @@ export const getIconType = (contentType?: string): IconType => {
   const type = contentType.toLowerCase()
 
   if (type.includes('assignment')) return 'assignment'
+  if (type === 'lti-quiz') return 'lti-quiz'
   if (type.includes('quiz')) return 'quiz'
   if (type.includes('discussion')) return 'discussion'
   if (type.includes('wiki') || type.includes('page')) return 'page'

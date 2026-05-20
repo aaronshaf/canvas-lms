@@ -125,7 +125,7 @@ export const handleAssignTo = (
   renderItemAssignToManager(true, document.activeElement as HTMLElement, {
     courseId,
     moduleItemName: title || 'Untitled Item',
-    moduleItemType: getItemType(content?.type),
+    moduleItemType: content?.isNewQuiz ? 'lti-quiz' : getItemType(content?.type),
     moduleItemContentId: content?._id,
     pointsPossible: content?.pointsPossible,
     moduleId,

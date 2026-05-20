@@ -61,6 +61,17 @@ describe "selective_release module item assign to tray", :ignore_js_errors do
   context "using assign to tray for newly created items", :ignore_js_errors do
     before(:once) do
       @module = @course.context_modules.create!(name: "module1")
+
+      classic_quiz = @course.quizzes.create!(title: "Classic Quiz Title")
+      classic_quiz.publish!
+      @module.add_item type: "quiz", id: classic_quiz.id
+      @classic_quiz_item = ContentTag.last
+
+      nq_assign = @course.assignments.create!(title: "NQ Quiz Title")
+      nq_assign.quiz_lti!
+      nq_assign.save!
+      @module.add_item type: "assignment", id: nq_assign.id
+      @nq_quiz_item = ContentTag.last
     end
 
     before do
@@ -80,39 +91,25 @@ describe "selective_release module item assign to tray", :ignore_js_errors do
     end
 
     it "shows the correct icon type and title for a classic quiz" do
-      skip("2025-08-22 only new quizzes are being made right now LX-3351")
       go_to_modules
       module_header_expand_toggles.first.click
-
-      # this call will probably need a block to add the correct options but waiting for final design on modal
-      add_newly_created_item("Quiz", @module, "New Quiz Title")
-
-      module_item = ContentTag.last
-      manage_module_item_button(module_item.id).click
+      manage_module_item_button(@classic_quiz_item.id).click
       click_manage_module_item_assign_to
 
       expect(item_tray_exists?).to be true
-      expect(icon_type_exists?("Quiz")).to be true
-      expect(item_type_text.text).to eq("Quiz")
+      expect(icon_testid_exists?("icon-quiz")).to be true
+      expect(item_type_text.text).to start_with("Quiz")
     end
 
     it "shows the correct icon type and title for an NQ quiz" do
-      skip("2025-08-22 only new quizzes are being made right now LX-3351")
       go_to_modules
       module_header_expand_toggles.first.click
-
-      # this call will probably need the block to add the correct options but waiting for final design on modal
-      add_newly_created_item("Quiz", @module, "New NQ Quiz Title") do
-        f("label[for=new_quizzes_radio]").click
-      end
-      module_item = ContentTag.last
-
-      manage_module_item_button(module_item.id).click
+      manage_module_item_button(@nq_quiz_item.id).click
       click_manage_module_item_assign_to
 
       expect(item_tray_exists?).to be true
-      expect(icon_type_exists?("Quiz")).to be true
-      expect(item_type_text.text).to eq("Quiz")
+      expect(icon_testid_exists?("icon-lti-quiz")).to be true
+      expect(item_type_text.text).to start_with("Quiz")
     end
 
     it "shows the assign to option for newly-created items that a teacher can manage" do
