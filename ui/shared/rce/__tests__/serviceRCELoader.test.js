@@ -19,6 +19,7 @@
 import $ from 'jquery'
 import 'jquery-migrate'
 import RCELoader from '../serviceRCELoader'
+import * as sanitizeHtmlModule from '@canvas/sanitize-html'
 import editorUtils from '@canvas/rce/editorUtils'
 import fakeENV from '@canvas/test-utils/fakeENV'
 import fixtures from '@canvas/test-utils/fixtures'
@@ -182,6 +183,24 @@ describe('loadOnTarget', () => {
         defaultContent: "<img src=x onerror=alert('XSS')>",
       })
       expect(props.defaultContent).not.toMatch(/onerror/i)
+    })
+
+    it('coerces a TrustedHTML-like return value from sanitizeHTML to a plain string', () => {
+      // Browsers with the Trusted Types API cause sanitizeHTML to return
+      // a TrustedHTML object, not a string. Downstream code (TinyMCE,
+      // transformRceContentForEditing) requires a plain string, so
+      // createRCEProps must coerce it.
+      const trustedHtmlLike = {toString: () => '<b>hello</b>'}
+      const spy = vi.spyOn(sanitizeHtmlModule, 'sanitizeHTML').mockReturnValue(trustedHtmlLike)
+
+      const textarea = document.createElement('textarea')
+      textarea.value = '<b>hello</b>'
+      const props = RCELoader.createRCEProps(textarea, {})
+
+      expect(typeof props.defaultContent).toBe('string')
+      expect(props.defaultContent).toBe('<b>hello</b>')
+
+      spy.mockRestore()
     })
   })
 

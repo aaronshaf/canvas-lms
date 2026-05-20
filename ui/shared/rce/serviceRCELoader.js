@@ -143,7 +143,7 @@ const RCELoader = {
     if (height) {
       tinyMCEInitOptions.tinyOptions = {
         height,
-        ...(tinyMCEInitOptions.tinyOptions || {}),
+        ...tinyMCEInitOptions.tinyOptions,
       }
     }
 
@@ -158,7 +158,7 @@ const RCELoader = {
     }
 
     return {
-      defaultContent: sanitizeHTML(textarea.value || tinyMCEInitOptions.defaultContent),
+      defaultContent: String(sanitizeHTML(textarea.value || tinyMCEInitOptions.defaultContent)),
       editorOptions: editorOptions.bind(null, width, textarea.id, tinyMCEInitOptions, null),
       language: ENV.LOCALE,
       mirroredAttrs: this._attrsToMirror(textarea),
