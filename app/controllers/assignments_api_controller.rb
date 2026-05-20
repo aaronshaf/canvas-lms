@@ -1003,6 +1003,9 @@ class AssignmentsApiController < ApplicationController
                                        .eager_load(:assignment_group)
                                        .preload(:rubric_association, :rubric)
                                        .reorder("assignment_groups.position, assignments.position, assignments.id")
+      if Account.site_admin.feature_enabled?(:wiki_page_mastery_path_no_assignment_group) && !value_to_boolean(params[:mastery_path_picker])
+        scope = scope.where.not(assignment_group_id: nil)
+      end
       assignment_search_min_length = 1
       scope = Assignment.search_by_attribute(scope, :title, params[:search_term], min_length: assignment_search_min_length)
       include_params = Array(params[:include])

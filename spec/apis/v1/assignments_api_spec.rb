@@ -1967,6 +1967,93 @@ describe AssignmentsApiController, type: :request do
     end
   end
 
+  describe "wiki_page mastery path assignments" do
+    before :once do
+      course_with_teacher(active_all: true)
+      @course.conditional_release = true
+      @course.save!
+    end
+
+    context "when wiki_page_mastery_path_no_assignment_group flag is enabled" do
+      before do
+        Account.site_admin.enable_feature!(:wiki_page_mastery_path_no_assignment_group)
+      end
+
+      it "excludes wiki_page assignments with null assignment_group_id from the index" do
+        regular = @course.assignments.create!(
+          title: "Regular Assignment",
+          submission_types: "online_text_entry",
+          assignment_group: @course.assignment_groups.first
+        )
+        wiki_page_assignment = @course.assignments.build(
+          title: "Lorem Page",
+          submission_types: "wiki_page",
+          workflow_state: "published",
+          only_visible_to_overrides: true,
+          root_account_id: @course.root_account_id
+        )
+        wiki_page_assignment.save!(validate: false)
+
+        json = api_get_assignments_index_from_course(@course)
+        returned_ids = json.pluck("id")
+
+        expect(returned_ids).to include(regular.id)
+        expect(returned_ids).not_to include(wiki_page_assignment.id)
+      end
+
+      it "does not filter out regular assignments with an assignment_group_id" do
+        assignment = @course.assignments.create!(
+          title: "Regular Assignment",
+          submission_types: "online_text_entry",
+          assignment_group: @course.assignment_groups.first
+        )
+
+        json = api_get_assignments_index_from_course(@course)
+        returned_ids = json.pluck("id")
+
+        expect(returned_ids).to include(assignment.id)
+      end
+
+      it "includes wiki_page assignments when mastery_path_picker param is set" do
+        wiki_page_assignment = @course.assignments.build(
+          title: "Lorem Page",
+          submission_types: "wiki_page",
+          workflow_state: "published",
+          only_visible_to_overrides: true,
+          root_account_id: @course.root_account_id
+        )
+        wiki_page_assignment.save!(validate: false)
+
+        json = api_get_assignments_index_from_course(@course, mastery_path_picker: "1")
+        returned_ids = json.pluck("id")
+
+        expect(returned_ids).to include(wiki_page_assignment.id)
+      end
+    end
+
+    context "when wiki_page_mastery_path_no_assignment_group flag is disabled" do
+      before do
+        Account.site_admin.disable_feature!(:wiki_page_mastery_path_no_assignment_group)
+      end
+
+      it "includes wiki_page assignments even with null assignment_group_id" do
+        wiki_page_assignment = @course.assignments.build(
+          title: "Lorem Page",
+          submission_types: "wiki_page",
+          workflow_state: "published",
+          only_visible_to_overrides: true,
+          root_account_id: @course.root_account_id
+        )
+        wiki_page_assignment.save!(validate: false)
+
+        json = api_get_assignments_index_from_course(@course)
+        returned_ids = json.pluck("id")
+
+        expect(returned_ids).to include(wiki_page_assignment.id)
+      end
+    end
+  end
+
   describe "GET /users/:user_id/courses/:course_id/assignments (#user_index)" do
     describe "checkpoints in-place" do
       before do
