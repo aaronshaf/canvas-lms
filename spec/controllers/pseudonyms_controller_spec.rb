@@ -88,6 +88,41 @@ describe PseudonymsController do
       assert_status(400)
     end
 
+    context "when the pseudonym is not passwordable" do
+      let(:account) do
+        # update_all bypasses AR callbacks; destroy_all would trigger
+        # AuthenticationProvider#destroy → enable_canvas_authentication,
+        # which immediately recreates the canvas AP if none are active.
+        account_model.tap { |a| a.authentication_providers.where(auth_type: "canvas").update_all(workflow_state: "deleted") }
+      end
+      let(:target_user) { User.create! }
+      let(:target_pseudonym) do
+        p = account.pseudonyms.build(user: target_user, unique_id: "no-canvas@example.com", password: "asdfasdf", password_confirmation: "asdfasdf")
+        p.save_without_session_maintenance
+        p
+      end
+      let(:target_cc) do
+        target_user.communication_channels.create!(path_type: "email", path: "no-canvas@example.com") do |cc|
+          cc.workflow_state = "active"
+        end
+      end
+
+      before do
+        target_pseudonym
+        target_cc
+      end
+
+      it "rejects change_password" do
+        expect(account.authentication_providers.active.where(auth_type: "canvas")).to be_empty
+        expect(target_pseudonym.reload).not_to be_passwordable
+        previous_password = target_pseudonym.crypted_password
+        post "change_password", params: { pseudonym_id: target_pseudonym.id, nonce: target_cc.confirmation_code, pseudonym: { password: "12341234", password_confirmation: "12341234" } }
+        assert_status(400)
+        expect(response.parsed_body).to eql({ "errors" => { "base" => "cannot_change_password" } })
+        expect(target_pseudonym.reload.crypted_password).to eql(previous_password)
+      end
+    end
+
     describe "forgot password" do
       before :once do
         Notification.create(name: "Forgot Password")
@@ -128,6 +163,42 @@ describe PseudonymsController do
         get "forgot_password", params: { pseudonym_session: { unique_id_forgot: @pseudonym.unique_id } }
         expect(response).to be_redirect
         expect(assigns[:ccs]).not_to include(@cc)
+      end
+
+      context "when the user has no passwordable pseudonym" do
+        let(:account) do
+          # update_all bypasses AR callbacks; destroy_all would trigger
+          # AuthenticationProvider#destroy → enable_canvas_authentication,
+          # which immediately recreates the canvas AP if none are active.
+          account_model.tap { |a| a.authentication_providers.where(auth_type: "canvas").update_all(workflow_state: "deleted") }
+        end
+        let(:target_user) { User.create! }
+        let(:target_pseudonym) do
+          p = account.pseudonyms.build(user: target_user, unique_id: "no-canvas-reset@example.com", password: "asdfasdf", password_confirmation: "asdfasdf")
+          p.save_without_session_maintenance
+          p
+        end
+        let(:target_cc) do
+          target_user.communication_channels.create!(path_type: "email", path: "no-canvas-reset@example.com") do |cc|
+            cc.workflow_state = "active"
+          end
+        end
+
+        before do
+          target_pseudonym
+          target_cc
+          allow(LoadAccount).to receive(:default_domain_root_account).and_return(account)
+        end
+
+        it "does not send the reset email but still appears successful" do
+          expect(account.authentication_providers.active.where(auth_type: "canvas")).to be_empty
+          expect(target_pseudonym.reload).not_to be_passwordable
+          original_code = target_cc.confirmation_code
+          get "forgot_password", params: { pseudonym_session: { unique_id_forgot: target_cc.path } }
+          expect(response).to be_redirect
+          expect(assigns[:ccs]).not_to include(target_cc)
+          expect(target_cc.reload.confirmation_code).to eql(original_code)
+        end
       end
 
       context "sharding" do

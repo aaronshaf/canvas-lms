@@ -137,7 +137,11 @@ class PseudonymsController < ApplicationController
         Shard.partition_by_shard([@domain_root_account.id] + @domain_root_account.trusted_account_ids) do |account_ids|
           next unless cc.user.associated_shards.include?(Shard.current)
 
-          if Pseudonym.active.where(user_id: cc.user_id, account_id: account_ids).exists?
+          scope = Pseudonym.active.where(user_id: cc.user_id, account_id: account_ids)
+          canvas_aps = AuthenticationProvider.active.where(auth_type: "canvas", account_id: account_ids)
+          if scope.where(authentication_provider_id: canvas_aps.select(:id))
+                  .or(scope.where(authentication_provider_id: nil, account_id: canvas_aps.select(:account_id)))
+                  .exists?
             found = true
             break
           end
@@ -160,9 +164,8 @@ class PseudonymsController < ApplicationController
     end
 
     respond_to do |format|
-      # Whether the email was actually found or not, we display the same
-      # message. Otherwise this form could be used to fish for valid
-      # email addresses.
+      # Whether the email was found or not, we display the same message.
+      # Otherwise this form could be used to fish for valid email addresses.
       @ccs.each(&:forgot_password!)
       format.html do
         flash[:notice] = t("notices.email_sent", "Confirmation email sent to %{email}, make sure to check your spam box", email:)
@@ -237,6 +240,10 @@ class PseudonymsController < ApplicationController
     @pseudonym = Pseudonym.find(params[:pseudonym][:id] || params[:pseudonym_id])
     if (@cc = @pseudonym.user.communication_channels.where(confirmation_code: params[:nonce])
                        .where("confirmation_code_expires_at IS NULL OR confirmation_code_expires_at > ?", Time.now.utc).first)
+      unless @pseudonym.passwordable?
+        render json: { errors: { base: "cannot_change_password" } }, status: :bad_request
+        return
+      end
       @pseudonym.require_password = true
       @pseudonym.password = params[:pseudonym][:password]
       @pseudonym.password_confirmation = params[:pseudonym][:password_confirmation]
