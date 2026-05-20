@@ -6760,6 +6760,41 @@ describe Course do
       course_with_observer(active_all: true)
       expect(@course.user_has_been_observer?(@observer)).to be_truthy
     end
+
+    context "when observed_students is already cached" do
+      before :once do
+        course_with_observer(active_all: true)
+        @student = user_factory
+        @course.enroll_student(@student, enrollment_state: "active")
+        @observer_enrollment = @course.observer_enrollments.first
+        @observer_enrollment.update!(associated_user_id: @student.id)
+      end
+
+      before do
+        RedisClient.with_dangerous_redis_methods { Rails.cache.clear }
+      end
+
+      it "returns true without hitting the DB when observed_students has entries" do
+        RequestCache.enable do
+          ObserverEnrollment.observed_students(@course, @observer)
+          expect do
+            expect(@course.user_has_been_observer?(@observer)).to be true
+          end.not_to make_database_queries
+        end
+      end
+
+      it "falls through to DB when observed_students cache is empty" do
+        observer_no_students = user_factory
+        @course.enroll_user(observer_no_students, "ObserverEnrollment", enrollment_state: "active")
+
+        RequestCache.enable do
+          ObserverEnrollment.observed_students(@course, observer_no_students)
+          expect do
+            expect(@course.user_has_been_observer?(observer_no_students)).to be true
+          end.to make_database_queries(matching: /SELECT.*enrollments.*WHERE.*user_id/)
+        end
+      end
+    end
   end
 
   describe Course, "#student_view_student" do

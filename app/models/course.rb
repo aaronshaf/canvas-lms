@@ -1466,6 +1466,11 @@ class Course < ApplicationRecord
       return preloaded_user_has_been?(user, "ObserverEnrollment")
     end
 
+    if RequestCache.exist?(:observed_students, self, user)
+      observed = RequestCache.cache(:observed_students, self, user) { {} }
+      return true if observed.any?
+    end
+
     fetch_on_enrollments("user_has_been_observer", user) do
       observer_enrollments.shard(self).active.where(user_id: user).exists? # active here is !deleted; it still includes concluded, etc.
     end
