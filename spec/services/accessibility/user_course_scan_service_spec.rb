@@ -46,19 +46,6 @@ describe Accessibility::UserCourseScanService do
       end
     end
 
-    context "when a11y_checker_account_statistics is disabled" do
-      before { Account.site_admin.disable_feature!(:a11y_checker_account_statistics) }
-
-      it "returns nil" do
-        expect(described_class.queue_user_courses_scan(teacher, account)).to be_nil
-      end
-
-      it "does not create a Progress record" do
-        expect { described_class.queue_user_courses_scan(teacher, account) }
-          .not_to change { Progress.count }
-      end
-    end
-
     context "when a11y_checker_account_statistics is enabled but a11y_checker is disabled" do
       before { account.disable_feature!(:a11y_checker) }
 

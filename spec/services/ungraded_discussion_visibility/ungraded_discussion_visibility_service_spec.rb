@@ -43,11 +43,6 @@ describe "UngradedDiscussionVisibility" do
 
     it_behaves_like "learning object visibilities with modules" do
       before :once do
-        Account.site_admin.disable_feature!(:visibility_performance_improvements)
-      end
-    end
-    it_behaves_like "learning object visibilities with modules" do
-      before :once do
         Account.site_admin.enable_feature!(:visibility_performance_improvements)
       end
     end
