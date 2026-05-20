@@ -19,6 +19,10 @@
 #
 
 describe AccountNotification do
+  it_behaves_like "sanitizes its sanitize_field columns on save" do
+    let(:record) { account_notification }
+  end
+
   before :once do
     account_notification
     user_factory
