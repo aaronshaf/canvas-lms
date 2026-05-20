@@ -1448,6 +1448,36 @@ describe Types::UserType do
     end
   end
 
+  context "preload_shard_associations batching" do
+    before(:once) do
+      @student2 = student_in_course(active_all: true, course: @course).user
+      @batch_admin = account_admin_user
+    end
+
+    it "calls User.preload_shard_associations once for a multi-user email query" do
+      type, = CanvasSchema.resolve_type(nil, @student, {})
+      id1 = CanvasSchema.id_from_object(@student, type, {})
+      id2 = CanvasSchema.id_from_object(@student2, type, {})
+
+      expect(User).to receive(:preload_shard_associations).once.and_call_original
+
+      CanvasSchema.execute(
+        <<~GQL,
+          query($id1: ID!, $id2: ID!) {
+            u1: node(id: $id1) { ... on User { email } }
+            u2: node(id: $id2) { ... on User { email } }
+          }
+        GQL
+        variables: { id1:, id2: },
+        context: {
+          current_user: @batch_admin,
+          domain_root_account: @course.account.root_account,
+          request: ActionDispatch::TestRequest.create
+        }
+      )
+    end
+  end
+
   context "groups" do
     before(:once) do
       @user_group_ids = (1..5).map do

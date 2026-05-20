@@ -142,28 +142,34 @@ module Types
       end
     end
 
+    def preload_shard_associations
+      Loaders::UserShardAssociationLoader.for.load(object)
+    end
+
     field :email, String, null: true
 
     def email
       # Check account/course permissions before user-level to avoid N+1 queries.
       # In course context, skip expensive object.grants_right? that loads all user enrollments.
-      domain_root_account = context[:domain_root_account]
-      unless domain_root_account.grants_right?(context[:current_user], :read_email_addresses)
-        course = context[:course]
-        has_permission = if course
-                           course.grants_right?(context[:current_user], :read_email_addresses)
-                         else
-                           object.grants_right?(context[:current_user], :read_email_addresses)
-                         end
+      preload_shard_associations.then do
+        domain_root_account = context[:domain_root_account]
+        unless domain_root_account.grants_right?(context[:current_user], :read_email_addresses)
+          course = context[:course]
+          has_permission = if course
+                             course.grants_right?(context[:current_user], :read_email_addresses)
+                           else
+                             object.grants_right?(context[:current_user], :read_email_addresses)
+                           end
 
-        return unless has_permission
+          next nil unless has_permission
+        end
+
+        next object.email if object.email_cached?
+
+        Loaders::AssociationLoader.for(User, :communication_channels)
+                                  .load(object)
+                                  .then { object.email }
       end
-
-      return object.email if object.email_cached?
-
-      Loaders::AssociationLoader.for(User, :communication_channels)
-                                .load(object)
-                                .then { object.email }
     end
 
     field :uuid, String, null: true
@@ -172,27 +178,29 @@ module Types
     def sis_id
       # Check account/course permissions before user-level to avoid N+1 queries.
       # In course context, skip expensive object.grants_any_right? that loads all user enrollments.
-      domain_root_account = context[:domain_root_account]
-      unless domain_root_account.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
-        course = context[:course]
-        has_permission = if course
-                           course.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
-                         else
-                           object.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
-                         end
+      preload_shard_associations.then do
+        domain_root_account = context[:domain_root_account]
+        unless domain_root_account.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+          course = context[:course]
+          has_permission = if course
+                             course.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+                           else
+                             object.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+                           end
 
-        return unless has_permission
-      end
+          next nil unless has_permission
+        end
 
-      load_association(:pseudonyms).then do
-        pseudonym = SisPseudonym.for(object,
-                                     domain_root_account,
-                                     type: :implicit,
-                                     require_sis: false,
-                                     root_account: domain_root_account,
-                                     in_region: true,
-                                     current_user:)
-        pseudonym&.sis_user_id
+        load_association(:pseudonyms).then do
+          pseudonym = SisPseudonym.for(object,
+                                       domain_root_account,
+                                       type: :implicit,
+                                       require_sis: false,
+                                       root_account: domain_root_account,
+                                       in_region: true,
+                                       current_user:)
+          pseudonym&.sis_user_id
+        end
       end
     end
 
@@ -200,27 +208,29 @@ module Types
     def integration_id
       # Check account/course permissions before user-level to avoid N+1 queries.
       # In course context, skip expensive object.grants_any_right? that loads all user enrollments.
-      domain_root_account = context[:domain_root_account]
-      unless domain_root_account.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
-        course = context[:course]
-        has_permission = if course
-                           course.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
-                         else
-                           object.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
-                         end
+      preload_shard_associations.then do
+        domain_root_account = context[:domain_root_account]
+        unless domain_root_account.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+          course = context[:course]
+          has_permission = if course
+                             course.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+                           else
+                             object.grants_any_right?(context[:current_user], :read_sis, :manage_sis)
+                           end
 
-        return unless has_permission
-      end
+          next nil unless has_permission
+        end
 
-      load_association(:pseudonyms).then do
-        pseudonym = SisPseudonym.for(object,
-                                     domain_root_account,
-                                     type: :implicit,
-                                     require_sis: false,
-                                     root_account: domain_root_account,
-                                     in_region: true,
-                                     current_user:)
-        pseudonym&.integration_id
+        load_association(:pseudonyms).then do
+          pseudonym = SisPseudonym.for(object,
+                                       domain_root_account,
+                                       type: :implicit,
+                                       require_sis: false,
+                                       root_account: domain_root_account,
+                                       in_region: true,
+                                       current_user:)
+          pseudonym&.integration_id
+        end
       end
     end
 
