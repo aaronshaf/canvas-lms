@@ -24,6 +24,7 @@ import {NotebookPanel} from '../NotebookPanel'
 const mockNotesListView = vi.fn((_props: object) => <div data-testid="notes-list-view" />)
 const mockUpdateNote = vi.fn()
 const mockDeleteNote = vi.fn()
+const mockCloseTray = vi.fn()
 
 const NOTE_A = {
   id: 'note-1',
@@ -41,6 +42,7 @@ vi.mock('@instructure/platform-notebook', () => ({
     selectedNoteId: null,
     selectNote: vi.fn(),
     clearSelectedNote: vi.fn(),
+    closeTray: mockCloseTray,
   }),
   useGetNotes: () => ({
     data: {notes: [NOTE_A], pageInfo: {}},
@@ -80,13 +82,14 @@ describe('NotebookPanel', () => {
     expect(screen.getByText('Notebook')).toBeInTheDocument()
   })
 
-  it('calls onDismiss when the close button is clicked', async () => {
+  it('calls onDismiss and closeTray when the close button is clicked', async () => {
     const user = userEvent.setup()
     const {onDismiss} = renderPanel()
     const closeEl = screen.getByTestId('notebook-close-button')
     const button = closeEl.tagName === 'BUTTON' ? closeEl : closeEl.querySelector('button')
     await user.click(button!)
     expect(onDismiss).toHaveBeenCalledTimes(1)
+    expect(mockCloseTray).toHaveBeenCalledTimes(1)
   })
 
   it('handleDelete calls deleteNote with the note id', () => {

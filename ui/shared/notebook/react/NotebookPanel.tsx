@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {useCallback, useMemo} from 'react'
+import React, {useCallback, useEffect, useMemo} from 'react'
 import {
   NotesListView,
   useNotebook,
@@ -64,8 +64,35 @@ function NotebookPanelHeader({onDismiss, closeButtonRef}: HeaderProps) {
 }
 
 export function NotebookPanel({onDismiss, closeButtonRef}: Props) {
-  const {api, objectId, objectType, courseId, selectedNoteId, selectNote, clearSelectedNote} =
-    useNotebook()
+  const {
+    api,
+    objectId,
+    objectType,
+    courseId,
+    selectedNoteId,
+    selectNote,
+    clearSelectedNote,
+    closeTray,
+  } = useNotebook()
+
+  const handleDismiss = useCallback(() => {
+    closeTray()
+    onDismiss()
+  }, [closeTray, onDismiss])
+
+  // Mount-only: focus the close button unless there is a pre-selected note
+  useEffect(() => {
+    if (!selectedNoteId) {
+      ;(closeButtonRef.current as HTMLElement | null)?.focus()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Reset platform-notebook's open-gate on unmount (ESC, overlay click).
+  useEffect(() => {
+    return () => closeTray()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const {data, isLoading, isError} = useGetNotes({
     api,
@@ -129,22 +156,24 @@ export function NotebookPanel({onDismiss, closeButtonRef}: Props) {
         boxSizing: 'border-box',
       }}
     >
-      <NotebookPanelHeader onDismiss={onDismiss} closeButtonRef={closeButtonRef} />
-      <NotesListView
-        notes={notes}
-        isLoading={isLoading}
-        isError={isError}
-        pageInfo={data?.pageInfo}
-        onPreviousPage={() => {}}
-        onNextPage={() => {}}
-        selectedNoteId={selectedNoteId ?? undefined}
-        onNoteSelect={id => (id === selectedNoteId ? clearSelectedNote() : selectNote(id))}
-        onNoteDelete={handleDelete}
-        onNoteSave={handleSave}
-        onNoteTypeChange={handleTypeChange}
-        columnCount={1}
-        highlightTheme={HIGHLIGHT_THEME}
-      />
+      <NotebookPanelHeader onDismiss={handleDismiss} closeButtonRef={closeButtonRef} />
+      <View as="div" padding="small">
+        <NotesListView
+          notes={notes}
+          isLoading={isLoading}
+          isError={isError}
+          pageInfo={data?.pageInfo}
+          onPreviousPage={() => {}}
+          onNextPage={() => {}}
+          selectedNoteId={selectedNoteId ?? undefined}
+          onNoteSelect={id => (id === selectedNoteId ? clearSelectedNote() : selectNote(id))}
+          onNoteDelete={handleDelete}
+          onNoteSave={handleSave}
+          onNoteTypeChange={handleTypeChange}
+          columnCount={1}
+          highlightTheme={HIGHLIGHT_THEME}
+        />
+      </View>
     </div>
   )
 }

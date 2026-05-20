@@ -57,12 +57,14 @@ type StudentStudyDrawerInnerProps = {
   pageContent: HTMLElement
   showStudyAssist: boolean
   showNotebook: boolean
+  notebookApi: CanvasNotebookApi | null
 }
 
 function StudentStudyDrawerInner({
   pageContent,
   showStudyAssist,
   showNotebook,
+  notebookApi,
 }: StudentStudyDrawerInnerProps) {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null)
   const [containerReady, setContainerReady] = useState(false)
@@ -70,6 +72,7 @@ function StudentStudyDrawerInner({
   const closeButtonRef = useRef<Element | null>(null)
 
   const handleDismiss = useCallback(() => setActivePanel(null), [])
+  const handleOpenNotebook = useCallback(() => setActivePanel('notebook'), [])
 
   const handleHostRef = useCallback(
     (el: HTMLDivElement | null) => {
@@ -106,8 +109,9 @@ function StudentStudyDrawerInner({
     return () => window.removeEventListener('keydown', handler)
   }, [activePanel])
 
+  // Notebook owns its own mount focus.
   useEffect(() => {
-    if (activePanel === null) return
+    if (activePanel === null || activePanel === 'notebook') return
     ;(closeButtonRef.current as HTMLElement | null)?.focus()
   }, [activePanel])
 
@@ -145,7 +149,7 @@ function StudentStudyDrawerInner({
     }
   }, [showNotebook])
 
-  return (
+  const content = (
     <View as="div" display="block" height="100vh" data-testid="student-study-drawer-layout">
       <DrawerLayout minWidth="40rem">
         <DrawerLayout.Content label={I18n.t('Page content')}>
@@ -175,6 +179,26 @@ function StudentStudyDrawerInner({
       )}
     </View>
   )
+
+  if (showNotebook && notebookApi) {
+    return (
+      <NotebookProvider
+        api={notebookApi}
+        currentUserId={window.ENV.current_user_id ?? ''}
+        objectId={String(window.ENV.NOTEBOOK_OBJECT_ID ?? '')}
+        objectType="WikiPage"
+        courseId={String(window.ENV.COURSE_ID ?? '')}
+        pageLastModifiedAt={window.ENV.WIKI_PAGE_UPDATED_AT}
+        translations={notebookTranslations}
+        translate={notebookTranslate}
+        onOpen={handleOpenNotebook}
+      >
+        {content}
+      </NotebookProvider>
+    )
+  }
+
+  return content
 }
 
 type Props = {
@@ -205,16 +229,6 @@ export default function StudentStudyDrawer({
     return courseId ? new CanvasNotebookApi(courseId) : null
   }, [])
 
-  const notebookEnabled = showNotebook && notebookApi !== null
-
-  const inner = (
-    <StudentStudyDrawerInner
-      pageContent={pageContent}
-      showStudyAssist={showStudyAssist}
-      showNotebook={notebookEnabled}
-    />
-  )
-
   return (
     <PlatformUiProvider
       executeQuery={platformExecuteQuery}
@@ -223,22 +237,12 @@ export default function StudentStudyDrawer({
       currentUserId={window.ENV.current_user_id ?? undefined}
     >
       <QueryClientProvider client={queryClient}>
-        {notebookEnabled && notebookApi ? (
-          <NotebookProvider
-            api={notebookApi}
-            currentUserId={window.ENV.current_user_id ?? ''}
-            objectId={String(window.ENV.NOTEBOOK_OBJECT_ID ?? '')}
-            objectType="WikiPage"
-            courseId={String(window.ENV.COURSE_ID ?? '')}
-            pageLastModifiedAt={window.ENV.WIKI_PAGE_UPDATED_AT}
-            translations={notebookTranslations}
-            translate={notebookTranslate}
-          >
-            {inner}
-          </NotebookProvider>
-        ) : (
-          inner
-        )}
+        <StudentStudyDrawerInner
+          pageContent={pageContent}
+          showStudyAssist={showStudyAssist}
+          showNotebook={showNotebook && notebookApi !== null}
+          notebookApi={notebookApi}
+        />
       </QueryClientProvider>
     </PlatformUiProvider>
   )

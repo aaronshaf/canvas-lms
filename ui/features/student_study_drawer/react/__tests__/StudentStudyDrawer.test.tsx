@@ -31,9 +31,9 @@ vi.mock('@instructure/platform-study-assist', () => ({
 }))
 
 vi.mock('@instructure/platform-notebook', () => ({
-  NotebookProvider: ({children}: {children: React.ReactNode}) => (
+  NotebookProvider: vi.fn(({children}: {children: React.ReactNode}) => (
     <div data-testid="notebook-provider">{children}</div>
-  ),
+  )),
   ContentWithNoteWrapper: () => <div data-testid="content-with-note-wrapper" />,
   NotesListView: () => <div data-testid="notes-list-view" />,
   useNotebook: () => ({
@@ -63,16 +63,21 @@ vi.mock('@canvas/notebook', () => ({
   }: {
     onDismiss: () => void
     closeButtonRef: React.MutableRefObject<Element | null>
-  }) => (
-    <div data-testid="notebook-panel">
-      <button
-        data-testid="notebook-close-button"
-        ref={el => {
-          closeButtonRef.current = el
-        }}
-      />
-    </div>
-  ),
+  }) => {
+    React.useEffect(() => {
+      ;(closeButtonRef.current as HTMLElement | null)?.focus()
+    }, [closeButtonRef])
+    return (
+      <div data-testid="notebook-panel">
+        <button
+          data-testid="notebook-close-button"
+          ref={el => {
+            closeButtonRef.current = el
+          }}
+        />
+      </div>
+    )
+  },
 }))
 
 vi.mock('@canvas/study-assist', () => ({
@@ -104,6 +109,7 @@ vi.mock('@canvas/pendo/react/hooks/usePendoTracking', () => ({
 
 import StudentStudyDrawer from '../StudentStudyDrawer'
 import {_resetPageContentWrapper} from '@canvas/page-content-wrapper'
+import {NotebookProvider} from '@instructure/platform-notebook'
 
 function makePageContent() {
   const el = document.createElement('section')
@@ -114,6 +120,7 @@ function makePageContent() {
 
 describe('StudentStudyDrawer', () => {
   beforeEach(() => {
+    vi.mocked(NotebookProvider).mockClear()
     window.ENV = {
       ...window.ENV,
       LOCALE: 'en',
@@ -167,6 +174,22 @@ describe('StudentStudyDrawer', () => {
 
     act(() => {
       window.dispatchEvent(new CustomEvent('notebook:open'))
+    })
+
+    expect(screen.getByTestId('notebook-panel')).toBeInTheDocument()
+    expect(screen.queryByTestId('study-assist-panel')).not.toBeInTheDocument()
+  })
+
+  it('opens the notebook panel when NotebookProvider calls onOpen', () => {
+    const pageContent = makePageContent()
+
+    render(
+      <StudentStudyDrawer pageContent={pageContent} showStudyAssist={true} showNotebook={true} />,
+    )
+
+    const {onOpen} = vi.mocked(NotebookProvider).mock.calls[0][0] as {onOpen?: () => void}
+    act(() => {
+      onOpen?.()
     })
 
     expect(screen.getByTestId('notebook-panel')).toBeInTheDocument()
