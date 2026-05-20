@@ -9,7 +9,7 @@
 <%= t("You've been given an account role for the %{account} account at %{website}. Role type: %{role_type}.",
     :role_type => asset.readable_type, :account => asset.account.name, :website => HostUrl.context_host(asset.account)) %>
 
-<% email = asset.user.email; login = (asset.user.pseudonym.unique_id rescue "none") %>
+<% email = asset.user.email; login = asset.user.pseudonym.unique_id rescue "none" %>
 <%= t(:name_info, "Name: %{name}", :name => asset.user.name) %>
 <%= t(:email_info, "Email: %{email}", :email => email) %>
 <% if email != login %><%= t(:username_info, "Username: %{username}", :username => login) %><% end %>

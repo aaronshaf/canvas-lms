@@ -27,7 +27,7 @@
     <tr>
         <td style="padding-right: 10px;" valign="top"><%= t :course, 'Course' %>:</td>
         <td valign="top"><%=
-            asset.participant_type == 'Group' ?
+            (asset.participant_type == 'Group') ?
                 asset.contexts.first.name :
                 asset.contexts_for_user(user).map(&:name).join(", ") %></td>
     </tr>

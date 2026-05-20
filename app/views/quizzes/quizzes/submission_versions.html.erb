@@ -40,7 +40,7 @@
           <% end %>
         <% end %>
 
-        <% (@versions.reverse!).each_with_index do |version, index| %>
+        <% @versions.reverse!.each_with_index do |version, index| %>
           <%= render :partial => "submission_version", :locals => {:version => version, :index => @versions.length - index, :kept => false} %>
         <% end %>
       </tbody>

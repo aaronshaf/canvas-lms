@@ -4,7 +4,7 @@
 
 <% remove_profile_url_in_layout = true %>
 
-<% email = asset.user.email; login = (asset.user.pseudonym.unique_id rescue "none") %>
+<% email = asset.user.email; login = asset.user.pseudonym.unique_id rescue "none" %>
 
 <p>
   <%= t :body, "You've been invited to participate in a class at %{account}.  The class is called %{course}. Course role: %{role_type}",

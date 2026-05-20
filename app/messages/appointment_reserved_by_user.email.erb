@@ -16,7 +16,7 @@
 <% else -%>
 <%= before_label :attendee, "Attendee" %> <%= asset.context.name %>
 <% end -%>
-<%= before_label :course, "Course" %> <%= courses = asset.appointment_group.participant_type == 'Group' ?
+<%= before_label :course, "Course" %> <%= courses = (asset.appointment_group.participant_type == 'Group') ?
                                             asset.appointment_group.contexts.first.name  :
                                             asset.appointment_group.contexts_for_user(user).map(&:name).join(", ") %>
 <% if asset.grants_right?(user, :read) -%>

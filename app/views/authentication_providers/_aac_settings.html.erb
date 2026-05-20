@@ -58,7 +58,7 @@
             <span class="ic-Label"><%= t('MFA Required') %></span>
             <div class="ic-Radio">
               <%# Make the value 'default' if MFA is required and this provider doesn't already require it so it doesn't become surprise sticky %>
-              <%= f.radio_button :mfa_option, aac.account.mfa_settings != :required || !!aac.settings["mfa_required"] ? 'required' : 'default',
+              <%= f.radio_button :mfa_option, (aac.account.mfa_settings != :required || !!aac.settings["mfa_required"]) ? 'required' : 'default',
                                  id: "mfa_option_required_#{presenter.id_suffix(aac)}",
                                  checked: !!aac.settings["mfa_required"] || (!aac.skip_internal_mfa? && aac.account.mfa_settings == :required) %>
               <%= f.label :mfa_option, t('Canvas enforces MFA *When logging in through this Provider, Canvas will challenge the user with MFA, or require it to be configured.*',

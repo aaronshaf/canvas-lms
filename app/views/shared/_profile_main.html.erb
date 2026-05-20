@@ -25,8 +25,8 @@
 
   is_roster_page = is_roster_user_page ||= false
   inst_env_feature_enabled = @domain_root_account.feature_enabled?(:instui_nav)
-  legacy_view = !inst_env_feature_enabled || is_roster_page ? "legacy" : ""
-  image_size = inst_env_feature_enabled && !is_roster_page  ? 80 : 128
+  legacy_view = (!inst_env_feature_enabled || is_roster_page) ? "legacy" : ""
+  image_size = (inst_env_feature_enabled && !is_roster_page)  ? 80 : 128
   primary_button = inst_env_feature_enabled ? "btn btn-primary" : ""
 
 %>

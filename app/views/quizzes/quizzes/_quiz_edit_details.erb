@@ -67,7 +67,7 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
           <label class="control-label" for="quiz_assignment_group_id"><%= t("Assignment Group") %></label>
           <div class="controls">
             <select name="quiz[assignment_group_id]" id="quiz_assignment_group_id">
-              <% current_group_id = (@quiz.assignment&.assignment_group_id) || @quiz.assignment_group_id
+              <% current_group_id = @quiz.assignment&.assignment_group_id || @quiz.assignment_group_id
                  @context.require_assignment_group %>
               <% @context.assignment_groups.active.each do |g| %>
                 <option value="<%= g.id %>" <%= 'selected' if g.id == current_group_id%>><%= g.name %></option>
@@ -172,7 +172,7 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
                   </label>
                   <div style="display: flex; flex-direction: column">
                     <%= text_field :quiz, :allowed_attempts, :tabindex => "0",
-                                   :value => (@quiz.allowed_attempts == -1 ? 1 : @quiz.allowed_attempts),
+                                   :value => ((@quiz.allowed_attempts == -1) ? 1 : @quiz.allowed_attempts),
                                    :"aria-label" => t("Number of allowed attempts"), :class => "form-control__input",
                                    :required => true, "aria-describedby" => "allowed_attempts__message"
                     %>
@@ -379,11 +379,9 @@ content_is_locked = !!js_env.dig(:MASTER_COURSE_DATA, "is_master_course_child_co
         <div class="quiz-overrides-column-right js-assignment-overrides overrideFormFlex">
         </div>
       </div>
-      <% if (
-        @context.root_account.feature_enabled?(:course_pace_pacing_with_mastery_paths) &&
+      <% if @context.root_account.feature_enabled?(:course_pace_pacing_with_mastery_paths) &&
         ConditionalRelease::Service.enabled_in_context?(@context) &&
-        @context.is_a?(Course) && @context.enable_course_paces?
-      ) %>
+        @context.is_a?(Course) && @context.enable_course_paces? %>
         <div>
           <label class="control-label">
             <%= t("Mastery Paths") %>

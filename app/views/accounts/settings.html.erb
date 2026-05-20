@@ -520,7 +520,7 @@
             <legend><%= t("Slack Api Key") %></legend>
             <div>
               <span><%= t("Current Slack Api Key:") %></span>
-              <span id="current_slack_api_key"><%= slack_api_key.length > 4 ? "#{slack_api_key[0..3]}#{'*' * (slack_api_key.length - 4)}" : '****' %></span>
+              <span id="current_slack_api_key"><%= (slack_api_key.length > 4) ? "#{slack_api_key[0..3]}#{'*' * (slack_api_key.length - 4)}" : '****' %></span>
             </div>
             <%= f.fields_for :slack do |slack| %>
               <%= slack.label :slack_api_key , t("New Slack Api Key") %>
@@ -567,7 +567,7 @@
                     <%= settings.check_box :can_change_pronouns, :checked => @account.can_change_pronouns? %>
                     <%= settings.label :can_change_pronouns, en: "Allow users to change their pronouns in Canvas" %>
                   </div>
-                    <% js_env({ PRONOUNS_LIST: ((@account.pronouns.presence || Pronouns.default_pronouns)) })
+                    <% js_env({ PRONOUNS_LIST: @account.pronouns.presence || Pronouns.default_pronouns })
                     js_bundle :available_pronouns_list %>
                 </div>
               <% end %>

@@ -305,7 +305,7 @@
         <div class="file_list" style="margin-<%= direction('left') %>: 50px; max-height: 200px; overflow: auto;">
           <b><%= t(:no_files, "No Files Uploaded") if @portfolio.user.attachments.active.empty? %></b>
           <% unless @portfolio.user.attachments.active.empty? %>
-            <%= render :partial => "files/nested_content", :object => (@folders.reject(&:parent_folder_id)), :locals => {:folders => @folders} %>
+            <%= render :partial => "files/nested_content", :object => @folders.reject(&:parent_folder_id), :locals => {:folders => @folders} %>
           <% end %>
         </div><br/>
         <%= before_label(:file_upload, "Or upload a new file") %><br/>

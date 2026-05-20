@@ -247,6 +247,6 @@
     </table>
     <div style="margin-top: 5px; text-align: <%= direction('right') %>"><a href="#" class="cancel_find_grading_standard_link"><%= t('#buttons.cancel', 'Cancel') %></a></div>
   </div>
-  <a href="<%= context_url(((grading_standard.context || @context) rescue @context), :context_grading_standard_url, grading_standard ? grading_standard.id : "{{ id }}") rescue "#" %>" style="display: none;" class="update_grading_standard_url">&nbsp;</a>
+  <a href="<%= context_url((grading_standard.context || @context rescue @context), :context_grading_standard_url, grading_standard ? grading_standard.id : "{{ id }}") rescue "#" %>" style="display: none;" class="update_grading_standard_url">&nbsp;</a>
   <textarea id="default_grading_standard_data" style="display: none;"><%= GradingStandard.default_grading_standard.to_json %></textarea>
 </div>

@@ -19,7 +19,7 @@
 <% error_category ||= '404' %>
 <form id="submit_error_form" style="<%= hidden %>" action="<%= errors_path %>" method="POST">
   <%= hidden_field :error, :category, :value => error_category %>
-  <%= hidden_field :error, :id, :value => (@error.try(:id)) %>
+  <%= hidden_field :error, :id, :value => @error.try(:id) %>
   <%= hidden_field :error, :url, :value => (request.url rescue "") %>
   <div style="width: 100%; margin: 0px auto;">
     <%= text_field :error, :username, :value => "" %><%# this is a honeypot field. it's hidden via css, but spambots don't know that. %>

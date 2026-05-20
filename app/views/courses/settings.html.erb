@@ -46,7 +46,7 @@
   blueprint_subscription = @context.master_course_subscriptions.active.first
   master_course = blueprint_subscription&.master_template&.course
 
-  can_see_restrict_quantitative_setting = ((@context&.restrict_quantitative_data || @context&.account&.restrict_quantitative_data&.[](:value)) && @context&.root_account&.feature_enabled?(:restrict_quantitative_data))
+  can_see_restrict_quantitative_setting = (@context&.restrict_quantitative_data || @context&.account&.restrict_quantitative_data&.[](:value)) && @context&.root_account&.feature_enabled?(:restrict_quantitative_data)
 %>
 
 <% provide :right_side do %>
@@ -507,7 +507,7 @@
             </div>
           <% else %>
             <div>
-              <%= @context.course_visibility == 'course' ?
+              <%= (@context.course_visibility == 'course') ?
                   t('If you need to make your course public please contact your administrator/support.') :
                   t('Contact your administrator if you need to change course visibility.') %>
             </div>

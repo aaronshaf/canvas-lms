@@ -22,7 +22,7 @@
   report_title ||= nil
   tooltip_text ||= nil
 
-  score = plagiarism_data[:status] == "scored" ? plagiarism_data[:similarity_score] : nil
+  score = (plagiarism_data[:status] == "scored") ? plagiarism_data[:similarity_score] : nil
   icon_class = case plagiarism_data[:status]
     when "error"
       "icon-warning"

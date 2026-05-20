@@ -60,7 +60,7 @@ MD
         <div class="hint"><%= t('hints.rtmp_domain', 'For hosted accounts, use "www.kaltura.com"') %></div>
       </td>
     </tr>
-    <% if(ENV["RAILS_ENV"] == "development") %>
+    <% if ENV["RAILS_ENV"] == "development" %>
       <tr>
         <td><%= f.blabel :protocol, :en => "Protocol" %></td>
         <td><%= f.select :protocol, [t('https'), t('http')], selected: settings[:protocol] %></td>

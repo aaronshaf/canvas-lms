@@ -23,7 +23,7 @@
   entry_id = entry ? entry.id : "{{ id }}"
   user_id = entry.try_rescue(:user_id) || "{{ user_id }}"
   topic ||= nil
-  discussion_topic_id = entry.try_rescue(:discussion_topic_id) || (topic&.id) || "{{ discussion_topic_id }}"
+  discussion_topic_id = entry.try_rescue(:discussion_topic_id) || topic&.id || "{{ discussion_topic_id }}"
   entry_key = entry.new_record? ? entry.try_rescue(:discussion_topic).try_rescue(:cache_key) : entry.try_rescue(:cache_key) if entry
   entry_key ||= entry_context.try_rescue(:asset_string) || 'blank'
   skip_sub_entries ||= false
@@ -94,7 +94,7 @@
   </div>
   <div class="content">
     <% unless hide_student_names %>
-      <div style="float: <%= direction('left') %>; margin: 0 5px 0 -10px;"><%= avatar((entry.try_rescue(:user_id)), context_code: entry_context.asset_string) %></div>
+      <div style="float: <%= direction('left') %>; margin: 0 5px 0 -10px;"><%= avatar(entry.try_rescue(:user_id), context_code: entry_context.asset_string) %></div>
     <% end %>
     <div class="course_id" style="display: none;"><%= entry_context.id if entry_context.is_a?(Course) %></div>
     <div class="message user_content"><%= user_content(entry.try_rescue(:message)) || nbsp %></div>

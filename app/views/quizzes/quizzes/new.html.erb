@@ -18,7 +18,7 @@
 
 <%
   js_env({ QUIZZES: { QUIZ: true } })
-  provide :page_title, (@quiz.quiz_title || !@quiz.quiz_title.empty? ? @quiz.quiz_title : t(:default_page_title, 'New Quiz'))
+  provide :page_title, ((@quiz.quiz_title || !@quiz.quiz_title.empty?) ? @quiz.quiz_title : t(:default_page_title, 'New Quiz'))
 %>
 
 <% if editing_restricted?(@quiz, :content) %>

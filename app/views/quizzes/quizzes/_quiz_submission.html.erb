@@ -146,7 +146,7 @@
   <div class="update_scores_fudge">
     <label for="fudge_points_entry"><%= before_label(:fudge_points, "Fudge Points") %></label>
     <input id="fudge_points_input" type="hidden" name="fudge_points" value="<%= @submission.fudge_points || 0 %>">
-    <input id="fudge_points_entry" type="text" value="<%= (!@submission.fudge_points || @submission.fudge_points == 0 ? '' : render_score(@submission.fudge_points)) %>" placeholder="--" autocomplete='off' />
+    <input id="fudge_points_entry" type="text" value="<%= ((!@submission.fudge_points || @submission.fudge_points == 0) ? '' : render_score(@submission.fudge_points)) %>" placeholder="--" autocomplete='off' />
     <%
       fudge_text = if @submission.quiz_points_possible == @quiz.points_possible || !@submission.quiz_points_possible || !@quiz.points_possible
           t('labels.fudge_points_generic_explanation', "You can manually adjust the score by adding positive or negative points to this box.")

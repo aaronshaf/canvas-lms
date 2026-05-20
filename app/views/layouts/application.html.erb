@@ -46,7 +46,7 @@
   provide :head, include_common_stylesheets
   set_badge_counts_for(@context, @current_user) if @set_badge_counts
   js_env({ notices: flash_notices })
-  student_view_text = @context.is_a?(Course) && @context.horizon_course? ? t('View as Learner') : t('View as Student')
+  student_view_text = (@context.is_a?(Course) && @context.horizon_course?) ? t('View as Learner') : t('View as Student')
   enable_content_view_if_requested
   enable_hide_global_nav_if_requested
 -%>
@@ -86,7 +86,7 @@
     skip_for_streaming :left_side, except: ["eportfolios/show", "eportfolio_categories/show", "eportfolio_entries/show"] do
       left_side = (yield :left_side).presence
     end
-    @show_left_side ||= (!section_tabs.empty?)
+    @show_left_side ||= !section_tabs.empty?
   end
   body_classes << "with-left-side" if @show_left_side
   body_classes << "course-menu-expanded" if body_classes.include?("with-left-side") && !@collapse_course_menu
@@ -290,7 +290,7 @@
     <%= render :partial => 'layouts/fixed_bottom' %>
   <% end %>
 
-  <% if (wizard = (yield :wizard_box).presence) %>
+  <% if wizard = (yield :wizard_box).presence %>
     <div id="wizard_box" tabindex="-1">
       <div class="wizard_content">
         <div class="links">
@@ -300,7 +300,7 @@
       </div>
     </div>
   <% end %>
-  <% if (keyboard_navigation = (yield :keyboard_navigation).presence) %>
+  <% if keyboard_navigation = (yield :keyboard_navigation).presence %>
     <div id="keyboard_navigation">
       <%= keyboard_navigation %>
       <div class='hidden-readable' tabindex='0'>

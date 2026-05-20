@@ -10,11 +10,7 @@ Style/PercentLiteralDelimiters:
   Enabled: false
 Style/QuotedSymbols:
   EnforcedStyle: double_quotes # because Style/StringLiterals is disabled
-Style/RedundantParentheses:
-  Enabled: false
 Style/StringLiterals:
   Enabled: false
 Style/StringLiteralsInInterpolation:
-  Enabled: false
-Style/TernaryParentheses:
   Enabled: false

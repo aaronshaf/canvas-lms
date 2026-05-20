@@ -169,7 +169,7 @@
           <%= t(:none, "None") %>
         <% end %>
       </span>
-      <span class="edit_data"><%= f.time_zone_select :time_zone, I18nTimeZone.us_zones, :model => I18nTimeZone, :default => (@domain_root_account.try(:default_time_zone) || "Mountain Time (US & Canada)") %></span>
+      <span class="edit_data"><%= f.time_zone_select :time_zone, I18nTimeZone.us_zones, :model => I18nTimeZone, :default => @domain_root_account.try(:default_time_zone) || "Mountain Time (US & Canada)" %></span>
     </td>
   </tr>
   <% if @user.shard.database_server.maintenance_window_start_hour %>
@@ -306,7 +306,7 @@
 </p>
 <% end %>
 
-<% unless (@domain_root_account&.service_enabled?(:none)) %>
+<% unless @domain_root_account&.service_enabled?(:none) %>
 <a name="registered_web_services"></a>
 <h2><%= t('headers.web_services', "Web Services") %></h2>
 <p><%= t(:web_services, <<~TEXT)

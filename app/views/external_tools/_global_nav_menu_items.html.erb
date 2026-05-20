@@ -20,7 +20,7 @@
     user: @current_user, context: @context || @domain_root_account, session: session)
 
   tools = ContextExternalTool.filtered_global_navigation_tools(@domain_root_account, granted_permissions).map do |tool|
-    tool_display = tool.extension_setting('global_navigation', 'windowTarget') == '_blank' ? 'borderless' : nil
+    tool_display = (tool.extension_setting('global_navigation', 'windowTarget') == '_blank') ? 'borderless' : nil
     # need to correctly format toolId param for global navigation tools
     tool_label = tool.label_for(:global_navigation, I18n.locale)
     tool_id = "#{tool_label.tr(' ', '-').downcase}-#{tool.id}"

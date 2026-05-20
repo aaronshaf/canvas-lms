@@ -10,7 +10,7 @@
 <% end %>
 <% end -%>
 
-<% courses = asset.appointment_group.participant_type == 'Group' ?
+<% courses = (asset.appointment_group.participant_type == 'Group') ?
     asset.appointment_group.contexts.first.name  :
     asset.appointment_group.contexts_for_user(user).map(&:name).join(", ") %>
 <% define_content :subject do %>

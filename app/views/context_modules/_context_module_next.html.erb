@@ -93,7 +93,7 @@
           <% if context_module && context_module.completion_requirements.present? %>
             <ul class="pill">
               <% count = context_module.requirement_count %>
-              <% completion_label = count == 1 ? t("Complete One Item") : t("Complete All Items") %>
+              <% completion_label = (count == 1) ? t("Complete One Item") : t("Complete All Items") %>
               <li aria-label="<%= completion_label %>" data-requirement-count="<%= count %>">
                 <%= completion_label %>
               </li>
@@ -119,7 +119,7 @@
               <i class="icon-lock locked_icon"
                 data-tooltip
                 title="<%= context_module&.to_be_unlocked ?
-                        t('Locked until %{unlock_date}', :unlock_date => (datetime_string(context_module.try_rescue(:unlock_at)) || nbsp)) : t('Locked') %>"
+                        t('Locked until %{unlock_date}', :unlock_date => datetime_string(context_module.try_rescue(:unlock_at)) || nbsp) : t('Locked') %>"
               >
                 <span class="screenreader-only"><%= t("Module Locked") %></span>
               </i>
@@ -296,7 +296,7 @@
         </a>
         <div class="unlock_details" style="<%= hidden unless context_module&.to_be_unlocked %>">
           <div class="unlock_at" style="<%= hidden %>"><%= datetime_string(context_module.try_rescue(:unlock_at), :verbose) %></div>
-          <%= t 'module_will_unlock_at', 'Will unlock *%{unlock_date}*', :wrapper => "<span class=\"displayed_unlock_at\" #{context_sensitive_datetime_title(context_module.try_rescue(:unlock_at), @context)}>\\1</span>", :unlock_date => (datetime_string(context_module.try_rescue(:unlock_at)) || nbsp) %>
+          <%= t 'module_will_unlock_at', 'Will unlock *%{unlock_date}*', :wrapper => "<span class=\"displayed_unlock_at\" #{context_sensitive_datetime_title(context_module.try_rescue(:unlock_at), @context)}>\\1</span>", :unlock_date => datetime_string(context_module.try_rescue(:unlock_at)) || nbsp %>
         </div>
       </div><!-- progression_container -->
     </div><!-- footer -->

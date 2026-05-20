@@ -60,8 +60,8 @@
     <% end %>
   </div>
   <div style="display: none;">
-    <span class="section_type"><%= (page_section["section_type"] || "rich_text") rescue "rich_text" %></span>
-    <span class="attachment_id"><%= (page_section["attachment_id"] || nbsp) rescue nbsp %></span>
-    <span class="submission_id"><%= (page_section["submission_id"] || nbsp) rescue nbsp %></span>
+    <span class="section_type"><%= page_section["section_type"] || "rich_text" rescue "rich_text" %></span>
+    <span class="attachment_id"><%= page_section["attachment_id"] || nbsp rescue nbsp %></span>
+    <span class="submission_id"><%= page_section["submission_id"] || nbsp rescue nbsp %></span>
   </div>
 </div>

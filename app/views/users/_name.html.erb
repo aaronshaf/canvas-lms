@@ -99,7 +99,7 @@
                   <div style="display: inline;" id="suspend-reactivate-link"></div>
                 <% end %>
 
-                <% if ((@context.is_a?(User) || @context.is_a?(Account)) && root_account) && @user.allows_user_to_remove_from_account?(root_account, @current_user) %>
+                <% if (@context.is_a?(User) || @context.is_a?(Account)) && root_account && @user.allows_user_to_remove_from_account?(root_account, @current_user) %>
                   <%= "|" unless first %><% first = false %>
                   <a href="<%= account_confirm_delete_user_url(root_account.id, @user.id) %>"><%= t('delete_from_account', 'Delete from %{account}', :account => root_account.name) %></a>
                 <% end %>

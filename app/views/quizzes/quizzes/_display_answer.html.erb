@@ -39,7 +39,7 @@
   selected_answer = false if question_type && question_type.display_answers == "single"
   selected_answer = true if hash_get(question, :question_type) == "fill_in_multiple_blanks_question" && hash_get(matched_answer, :id) == answer_id
   correct_answer = answer && hash_get(answer, :weight) == 100
-  correct_answer = ((hash_get(user_answer, "answer_#{answer_id}").to_f - hash_get(answer, :match_id).to_f)).abs < Float::EPSILON if user_answer && answer && question_type && question_type.answer_type == "matching_answer"
+  correct_answer = (hash_get(user_answer, "answer_#{answer_id}").to_f - hash_get(answer, :match_id).to_f).abs < Float::EPSILON if user_answer && answer && question_type && question_type.answer_type == "matching_answer"
   correct_answer = false if !user_answer && question && hash_get(question, :question_type) == "matching_question"
   correct_answer = false unless show_correct_answers || selected_answer
   correct_answer_class = show_correct_answers ? (correct_answer ? "correct_answer" : "") : "unspecified_answer"
@@ -102,7 +102,7 @@
       <input name="answer_text" type="text" style="width: 200px; margin-bottom: 5px; color: #000;" disabled="true" value="<%= hash_get(answer, :text) %>"/>
     </div>
     <div class="answer_match matching_answer answer_type" <%= hidden(include_style: true) unless answer_type == "matching_answer" %>>
-      <div class="answer_match_left" <%= hidden(include_style: true) if (hash_get(answer, :left_html) || hash_get(answer, :html)).present? %>><%= (hash_get(answer, :left) || hash_get(answer, :text)) %></div>
+      <div class="answer_match_left" <%= hidden(include_style: true) if (hash_get(answer, :left_html) || hash_get(answer, :html)).present? %>><%= hash_get(answer, :left) || hash_get(answer, :text) %></div>
       <div class="answer_match_left_html" <%= hidden(include_style: true) unless (hash_get(answer, :left_html) || hash_get(answer, :html)).present? %>><%= user_content((hash_get(answer, :left_html) || hash_get(answer, :html)).to_s, location: asset_string) %></div>
       <div class="answer_match_middle">&nbsp;</div>
       <div class="answer_match_right">
@@ -114,23 +114,23 @@
             <% show_comment = wrong_answer %>
           <% else %>
             <% if hash_get(user_answer, "answer_#{hash_get(answer,:id)}").to_i == hash_get(answer, :match_id).to_i %>
-              <%= (hash_get(answer, :right) || (question && hash_get(question, :matches, []).find{|m| hash_get(m, :match_id).to_i == hash_get(user_answer, "answer_#{answer_id}").to_i}[:text] rescue '')) %>
+              <%= hash_get(answer, :right) || (question && hash_get(question, :matches, []).find{|m| hash_get(m, :match_id).to_i == hash_get(user_answer, "answer_#{answer_id}").to_i}[:text]) rescue '' %>
             <% else %>
               <% matched = (hash_get(question, :matches) || hash_get(question, :answers, [])).find{|a| hash_get(a, :match_id).to_i == hash_get(user_answer, "answer_#{answer_id}").to_i} %>
               <span class="text_box_answer <%= 'correct_text_box_answer' if matched && matched[:weight] == 100 %>">
                       <%= before_label(:your_answer, 'Your Answer') %>
-                <% user_text = (hash_get(matched, :right) || hash_get(matched, :text))
+                <% user_text = hash_get(matched, :right) || hash_get(matched, :text)
                    user_text = nil if user_text.blank? %>
                 <b><%= user_text || t(:you_left_this_blank, '(You left this blank)') %></b>
               </span>
               <% if show_correct_answers %>
-                <br/>It was really: <%= (hash_get(answer, :right) || (question && hash_get(question, :matches, []).find{|m| hash_get(m, :match_id).to_i == hash_get(user_answer, :match_id).to_i}[:text] rescue '')) %>
+                <br/>It was really: <%= hash_get(answer, :right) || (question && hash_get(question, :matches, []).find{|m| hash_get(m, :match_id).to_i == hash_get(user_answer, :match_id).to_i}[:text]) rescue '' %>
               <% end %>
             <% end %>
           <% end %>
         <% else %>
           <span class="correct_answer">
-            <%= (hash_get(answer, :right) || (question && hash_get(question, :matches, []).find{|m| hash_get(m, :match_id).to_i == hash_get(answer, :match_id).to_i}[:text] rescue '')) %>
+            <%= hash_get(answer, :right) || (question && hash_get(question, :matches, []).find{|m| hash_get(m, :match_id).to_i == hash_get(answer, :match_id).to_i}[:text]) rescue '' %>
           </span>
         <% end %>
       </div>

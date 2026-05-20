@@ -82,7 +82,7 @@
              })
           %>
         </td>
-        <td class="attempt number"><%= submission && !submission.settings_only? ? submission.attempt : "--" %></td>
+        <td class="attempt number"><%= (submission && !submission.settings_only?) ? submission.attempt : "--" %></td>
         <td class="time_holder">
           <span class="time">
           <% if submission && !submission.settings_only? %>

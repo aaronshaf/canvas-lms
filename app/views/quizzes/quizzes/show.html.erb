@@ -266,7 +266,7 @@
               <%= render :partial => 'direct_share_buttons' %>
             <% end %>
 
-            <%= external_tools_menu_items((@quiz_menu_tools || []), {link_class: "menu_tool_link", settings_key: :quiz_menu, in_list: true, url_params: {:quizzes => [@quiz.id]}}) %>
+            <%= external_tools_menu_items(@quiz_menu_tools || [], {link_class: "menu_tool_link", settings_key: :quiz_menu, in_list: true, url_params: {:quizzes => [@quiz.id]}}) %>
           </ul>
         </div>
 

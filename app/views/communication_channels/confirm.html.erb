@@ -73,9 +73,9 @@
         <% end %>
       <% elsif @merge_opportunities.length == 1 && @current_user %>
         <p><% if @enrollment %>
-          <%= mt 'details.logged_in_other_user_course', "The invitation for %{course} was sent to **%{email}**, but you are currently logged in as **%{user}**.", :course => @course.name, :email => @communication_channel.path, :user => (@current_pseudonym && @current_pseudonym.user == @current_user ? @current_pseudonym : @current_user.pseudonym).unique_id %>
+          <%= mt 'details.logged_in_other_user_course', "The invitation for %{course} was sent to **%{email}**, but you are currently logged in as **%{user}**.", :course => @course.name, :email => @communication_channel.path, :user => ((@current_pseudonym && @current_pseudonym.user == @current_user) ? @current_pseudonym : @current_user.pseudonym).unique_id %>
         <% else %>
-          <%= mt 'details.logged_in_other_user', "**%{email}** is a new account, but you are currently logged in as **%{user}**.", :email => @communication_channel.path, :user => (@current_pseudonym && @current_pseudonym.user == @current_user ? @current_pseudonym : @current_user.pseudonym).unique_id %>
+          <%= mt 'details.logged_in_other_user', "**%{email}** is a new account, but you are currently logged in as **%{user}**.", :email => @communication_channel.path, :user => ((@current_pseudonym && @current_pseudonym.user == @current_user) ? @current_pseudonym : @current_user.pseudonym).unique_id %>
         <% end %></p>
         <p><strong><%=  t 'details.add_email', "Would you like to add this email address to your current account?" %></strong></p>
         <div class="button_box ic-Login-confirmation__actions">

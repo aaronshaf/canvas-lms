@@ -6,7 +6,7 @@
   <%= t :subject, "Course Invitation" %>
 <% end %>
 
-<% website = (HostUrl.context_host((asset.user.pseudonym).account) rescue nil) || HostUrl.default_host %>
+<% website = HostUrl.context_host(asset.user.pseudonym.account) rescue HostUrl.default_host %>
 
 <%= t "You've been invited to participate in a class at %{website}.  The class is called %{course}. Course role: %{role_type}",
     :website => website, :course => asset.course.name, :role_type => asset.readable_role_name %>

@@ -171,7 +171,7 @@
         <% render_peer_review_container = !@is_student && @context.feature_enabled?(:peer_review_allocation_and_grading) && (!module_item || (module_item.content_type == 'Assignment' && module_item.content&.peer_review_sub_assignment)) %>
         <% if !show_peer_review_info %>
           <div id="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-due-date" class="due_date_display ig-details__item"></div>
-          <% if (!module_item && !@is_student) || (module_item&.graded? && (!module_item.try_rescue(:assignment).restrict_quantitative_data?(@current_user, check_extra_permissions: true)))%>
+          <% if (!module_item && !@is_student) || (module_item&.graded? && !module_item.try_rescue(:assignment).restrict_quantitative_data?(@current_user, check_extra_permissions: true))%>
             <div id="module-item-<%= module_item ? module_item.id : "{{ id }}" %>-points" class="points_possible_display ig-details__item"></div>
           <%end%>
         <% end %>
@@ -291,7 +291,7 @@
         <div class="inline-block cog-menu-container">
           <a class="al-trigger al-trigger-gray" role="button" tabindex="0">
             <i class="icon-more" aria-hidden="true"></i>
-            <span class="screenreader-only"><%= t('Manage %{item_name}', {item_name: module_item && module_item.title ? module_item.title : 'item'})  %></span>
+            <span class="screenreader-only"><%= t('Manage %{item_name}', {item_name: (module_item && module_item.title) ? module_item.title : 'item'})  %></span>
           </a>
           <% if Account.site_admin.feature_enabled?(:additional_speedgrader_links) %>
             <ul class="al-options">
@@ -305,11 +305,11 @@
               <% end %>
               <% if @context.allows_speed_grader? && @context.grants_any_right?(@current_user, :manage_grades, :view_all_grades)%>
                 <% speed_grader_id = module_item ? "#{module_item.content_type_class}-#{module_item.content_id}" : "blank" %>
-                <li id="<%="speed-grader-container-#{speed_grader_id}"%>" role='presentation' class="speed-grader-link-container <%= module_item&.assignment&.id && %w[assignment quiz lti-quiz discussion_topic].include?(module_item.content_type_class) && item_data[:published_status] == 'published' ? '' : 'hidden' %>">
+                <li id="<%="speed-grader-container-#{speed_grader_id}"%>" role='presentation' class="speed-grader-link-container <%= (module_item&.assignment&.id && %w[assignment quiz lti-quiz discussion_topic].include?(module_item.content_type_class) && item_data[:published_status] == 'published') ? '' : 'hidden' %>">
                   <a href="<%= context_url(@context, :context_url) %>/gradebook/speed_grader?assignment_id=<%= module_item&.assignment.present? ? module_item.assignment.id : "{{ assignment_id }}" %>" target="_blank" rel="noopener" title="<%= t('SpeedGrader')%>"><%= @module_item_image_tags['speed_grader'] %> <%= t('SpeedGrader') %></a>
                 </li>
               <% end %>
-                <li class="assign-to-option <%= (module_item.present? && (module_item.show_assign_to?) && module_item.content&.grants_right?(@current_user, :manage_assign_to) ) ? "" : "hidden" %>" role="presentation">
+                <li class="assign-to-option <%= (module_item.present? && module_item.show_assign_to? && module_item.content&.grants_right?(@current_user, :manage_assign_to) ) ? "" : "hidden" %>" role="presentation">
                   <a
                     class="module-item-assign-to-link"
                     href="#<%= module_item ? module_item.id : "{{ id }}" %>"
@@ -483,7 +483,7 @@
             <div class="module-item-title" style="display: block; margin-left: 10px;">
               <span class="item_name">
                 <span class="ig-title">
-                  <%= checkpoint.sub_assignment_tag == CheckpointLabels::REPLY_TO_TOPIC ? t("Reply to Topic") : t("Required Replies (%{number})", number: module_item.content.reply_to_entry_required_count) %>
+                  <%= (checkpoint.sub_assignment_tag == CheckpointLabels::REPLY_TO_TOPIC) ? t("Reply to Topic") : t("Required Replies (%{number})", number: module_item.content.reply_to_entry_required_count) %>
                 </span>
               </span>
             </div>

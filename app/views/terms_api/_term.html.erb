@@ -24,7 +24,7 @@
       <span class="name"><%= term.name rescue nbsp %></span>
     </div>
     <div class="show_term" style="font-size: 0.8em;">
-      <% if ((term&.sis_source_id && can_do(@root_account, @current_user, :read_sis)) || can_do(@root_account, @current_user, :manage_sis)) %>
+      <% if (term&.sis_source_id && can_do(@root_account, @current_user, :read_sis)) || can_do(@root_account, @current_user, :manage_sis) %>
         <div style="font-size: 0.8em;">
           <%= before_label :sis_id, "SIS ID" %> <span class="sis_source_id"><%= term&.sis_source_id %></span>
         </div>
@@ -46,7 +46,7 @@
         <div class="control-group edit_term">
           <label class="control-label" for=<%= "enrollment_term_name_#{term&.id || 'new'}" %>><%= t :name, 'Term Name:' %></label>
           <div class="controls">
-            <%= f.text_field :name, id: "enrollment_term_name_#{term&.id || 'new'}", class: "input-large", disabled: (term && term == default_term) %>
+            <%= f.text_field :name, id: "enrollment_term_name_#{term&.id || 'new'}", class: "input-large", disabled: term && term == default_term %>
           </div>
         </div>
       <% if can_do(@root_account, @current_user, :manage_sis) %>

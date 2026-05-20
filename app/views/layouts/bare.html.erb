@@ -21,7 +21,7 @@
 <%- body_classes << 'bare-layout' %>
 <%- body_classes << 'is-masquerading-or-student-view' if @real_current_user && @real_current_user != @current_user -%>
 <%= render :partial => "layouts/head" %>
-<body class="<%= (body_classes).uniq.join(" ") %>">
+<body class="<%= body_classes.uniq.join(" ") %>">
 <%= yield %>
 <div id="react-router-portals"></div>
 <% if microfrontend_overrides %>
