@@ -185,6 +185,160 @@ describe('quiz.updateDisplayQuestion — XSS regression', () => {
   })
 })
 
+// addHTMLFeedback sanitizes HTML feedback before rendering
+describe('addHTMLFeedback — XSS prevention', () => {
+  let $fixture: ReturnType<typeof $>
+
+  const buildFeedbackFixture = (commentType: string, htmlContent: string) => {
+    // Build the question holder with pre-populated HTML feedback
+    const $holder = $(`
+      <div class="question_holder">
+        <div id="question_1" class="question display_question multiple_choice_question">
+          <span class="question_type">multiple_choice_question</span>
+          <div class="text">
+            <textarea name="question_text">Sample question text</textarea>
+          </div>
+          <div class="answers"></div>
+          <div class="${commentType}">
+            <div class="${commentType}_html"></div>
+            <input type="hidden" />
+          </div>
+          <a class="edit_question_link" href="#">Edit</a>
+        </div>
+      </div>
+    `)
+    document.body.appendChild($holder[0])
+
+    // Mock getTemplateData to return the malicious HTML
+    ;($ as any).fn.getTemplateData = vi.fn(function (this: any) {
+      return {
+        question_type: 'multiple_choice_question',
+        question_text: 'Sample question text',
+        correct_comments: '',
+        incorrect_comments: '',
+        neutral_comments: '',
+        correct_comments_html: commentType === 'correct_comments' ? htmlContent : '',
+        incorrect_comments_html: commentType === 'incorrect_comments' ? htmlContent : '',
+        neutral_comments_html: commentType === 'neutral_comments' ? htmlContent : '',
+        question_name: '',
+        question_points: '',
+        answer_selection_type: '',
+        blank_id: '',
+        matching_answer_incorrect_matches: '',
+        regrade_option: '',
+        regrade_disabled: '',
+      }
+    })
+
+    return $holder
+  }
+
+  const buildQuestionFormTemplate = () => {
+    const $template = $(`
+      <div id="question_form_template">
+        <div class="question">
+          <input name="question_type" value="multiple_choice_question" />
+        </div>
+        <div class="question_correct_comment">
+          <div class="correct_comments_html"></div>
+          <input type="hidden" />
+        </div>
+        <div class="question_incorrect_comment">
+          <div class="incorrect_comments_html"></div>
+          <input type="hidden" />
+        </div>
+        <div class="question_neutral_comment">
+          <div class="neutral_comments_html"></div>
+          <input type="hidden" />
+        </div>
+        <div class="answer_selection_type"></div>
+        <div class="form_answers"></div>
+      </div>
+    `)
+    document.body.appendChild($template[0])
+    return $template
+  }
+
+  beforeEach(() => {
+    delete (window as any).__xss_fired
+    buildQuestionFormTemplate()
+  })
+
+  afterEach(() => {
+    $fixture?.remove()
+    $('#question_form_template').remove()
+    document.body.innerHTML = ''
+    delete (window as any).__xss_fired
+  })
+
+  it('sanitizes <script> tags in correct_comments_html', () => {
+    $fixture = buildFeedbackFixture(
+      'correct_comments',
+      '<script>window.__xss_fired = true</script>Good job!',
+    )
+
+    // Trigger the edit link which calls addHTMLFeedback
+    $fixture.find('.edit_question_link').trigger('click')
+
+    // The form is inserted after the question element
+    const $insertedForm = $fixture.find('.display_question').next()
+    const $feedbackEl = $insertedForm.find('.question_correct_comment .correct_comments_html')[0]
+
+    expectNoXss($feedbackEl)
+    expect((window as any).__xss_fired).toBeUndefined()
+    expect($feedbackEl.innerHTML.toLowerCase()).not.toContain('<script')
+  })
+
+  it('sanitizes inline event handlers in incorrect_comments_html', () => {
+    $fixture = buildFeedbackFixture(
+      'incorrect_comments',
+      '<img src=x onerror="window.__xss_fired = true">Try again',
+    )
+
+    $fixture.find('.edit_question_link').trigger('click')
+
+    const $insertedForm = $fixture.find('.display_question').next()
+    const $feedbackEl = $insertedForm.find(
+      '.question_incorrect_comment .incorrect_comments_html',
+    )[0]
+
+    expectNoXss($feedbackEl)
+    expect((window as any).__xss_fired).toBeUndefined()
+  })
+
+  it('sanitizes <script> tags in neutral_comments_html', () => {
+    $fixture = buildFeedbackFixture(
+      'neutral_comments',
+      'Here is feedback <script>window.__xss_fired = true</script>',
+    )
+
+    $fixture.find('.edit_question_link').trigger('click')
+
+    const $insertedForm = $fixture.find('.display_question').next()
+    const $feedbackEl = $insertedForm.find('.question_neutral_comment .neutral_comments_html')[0]
+
+    expectNoXss($feedbackEl)
+    expect((window as any).__xss_fired).toBeUndefined()
+    expect($feedbackEl.innerHTML.toLowerCase()).not.toContain('<script')
+  })
+
+  it('sanitizes javascript: protocol in correct_comments_html', () => {
+    $fixture = buildFeedbackFixture(
+      'correct_comments',
+      '<a href="javascript:window.__xss_fired = true">Click me</a>',
+    )
+
+    $fixture.find('.edit_question_link').trigger('click')
+
+    const $insertedForm = $fixture.find('.display_question').next()
+    const $feedbackEl = $insertedForm.find('.question_correct_comment .correct_comments_html')[0]
+
+    expectNoXss($feedbackEl)
+    expect((window as any).__xss_fired).toBeUndefined()
+    expect($feedbackEl.innerHTML.toLowerCase()).not.toContain('javascript:')
+  })
+})
+
 // Regression: $tr was left unrenamed when $tr -> _ctr refactor was applied.
 // Editing a calculated question threw: ReferenceError: $tr is not defined
 describe('calculated question edit — $tr rename regression', () => {

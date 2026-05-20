@@ -1916,8 +1916,9 @@ function addHTMLFeedback($container, question_data, name) {
     question_data[name + '_html'] = html
   }
   if (html && html.length > 0) {
-    $container.find('.' + name + '_html').html(html)
-    $container.find('input[type="hidden"]').val(html)
+    const sanitized = sanitizeHTML(html)
+    $container.find('.' + name + '_html').html(sanitized)
+    $container.find('input[type="hidden"]').val(sanitized)
     $container.removeClass('empty')
   }
 }

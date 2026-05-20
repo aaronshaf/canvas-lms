@@ -51,4 +51,94 @@ describe "quizzes/quizzes/_display_question" do
     expect(response).not_to be_nil
     expect(response.body).to include "data-equation-content"
   end
+
+  describe "XSS prevention in text_after_answers" do
+    before do
+      course_with_student
+      view_context
+      @quiz = @course.quizzes.create!(title: "missing word quiz")
+      assign(:quiz, @quiz)
+    end
+
+    it "sanitizes <script> tags in text_after_answers" do
+      @quiz.quiz_questions.create!(question_data: {
+                                     name: "Fill in the blank",
+                                     points_possible: 1,
+                                     question_type: "missing_word_question",
+                                     question_text: "The answer is",
+                                     answers: [{ id: 1, text: "correct", weight: 100 }]
+                                   })
+      @quiz.generate_quiz_data
+      @quiz.save!
+
+      q = @quiz.stored_questions.first
+      q[:text_after_answers] = '<script>alert("XSS")</script>after text'
+
+      render partial: "quizzes/quizzes/display_question", object: q
+
+      expect(response.body).not_to include("<script>")
+      expect(response.body).not_to match(/<script[^>]*>/i)
+      expect(response.body).to include("after text")
+    end
+
+    it "sanitizes inline event handlers in text_after_answers" do
+      @quiz.quiz_questions.create!(question_data: {
+                                     name: "Fill in the blank",
+                                     points_possible: 1,
+                                     question_type: "missing_word_question",
+                                     question_text: "The answer is",
+                                     answers: [{ id: 1, text: "correct", weight: 100 }]
+                                   })
+      @quiz.generate_quiz_data
+      @quiz.save!
+
+      q = @quiz.stored_questions.first
+      q[:text_after_answers] = '<img src=x onerror="alert(\'XSS\')">text'
+
+      render partial: "quizzes/quizzes/display_question", object: q
+
+      expect(response.body).not_to match(/onerror\s*=/i)
+      expect(response.body).not_to match(/on\w+\s*=/i)
+      expect(response.body).to include("text")
+    end
+
+    it "sanitizes javascript: protocol in text_after_answers" do
+      @quiz.quiz_questions.create!(question_data: {
+                                     name: "Fill in the blank",
+                                     points_possible: 1,
+                                     question_type: "missing_word_question",
+                                     question_text: "The answer is",
+                                     answers: [{ id: 1, text: "correct", weight: 100 }]
+                                   })
+      @quiz.generate_quiz_data
+      @quiz.save!
+
+      q = @quiz.stored_questions.first
+      q[:text_after_answers] = '<a href="javascript:alert(\'XSS\')">click</a>'
+
+      render partial: "quizzes/quizzes/display_question", object: q
+
+      expect(response.body).not_to include("javascript:")
+      expect(response.body).to include("click")
+    end
+
+    it "allows safe HTML in text_after_answers" do
+      @quiz.quiz_questions.create!(question_data: {
+                                     name: "Fill in the blank",
+                                     points_possible: 1,
+                                     question_type: "missing_word_question",
+                                     question_text: "The answer is",
+                                     answers: [{ id: 1, text: "correct", weight: 100 }]
+                                   })
+      @quiz.generate_quiz_data
+      @quiz.save!
+
+      q = @quiz.stored_questions.first
+      q[:text_after_answers] = "<strong>the word</strong>"
+
+      render partial: "quizzes/quizzes/display_question", object: q
+
+      expect(response.body).to include("<strong>the word</strong>")
+    end
+  end
 end

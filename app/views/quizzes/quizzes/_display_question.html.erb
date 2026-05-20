@@ -158,8 +158,8 @@
     </div>
     <div class="text">
       <div class="original_question_text" style="display: none;">
-        <textarea disabled style="display: none;" name="text_after_answers" class="textarea_text_after_answers"><%= h(hash_get(question, :text_after_answers)) %></textarea>
-        <textarea disabled style="display: none;" name="question_text" class="textarea_question_text"><%= h(hash_get(question, :question_text)) %></textarea>
+        <textarea disabled style="display: none;" name="text_after_answers" class="textarea_text_after_answers"><%= h(Sanitize.clean(hash_get(question, :text_after_answers) || '', CanvasSanitize::SANITIZE)) %></textarea>
+        <textarea disabled style="display: none;" name="question_text" class="textarea_question_text"><%= h(Sanitize.clean(hash_get(question, :question_text) || '', CanvasSanitize::SANITIZE)) %></textarea>
       </div>
       <div id="question_<%= hash_get(question, :id, "new") %>_question_text" class="question_text user_content">
         <% if user_answer && user_answer[:regrade_option] %>
@@ -181,7 +181,7 @@
               <option value="<%= hash_get(answer, :id) %>" <%= "selected" if (user_answer && hash_get(user_answer, :answer_id) == hash_get(answer, :id)) || (@stored_params && @stored_params["question_#{hash_get(question, :id)}"].to_s == hash_get(answer, :id).to_s) %>><%= hash_get(answer, :text) %></option>
             <% end %>
           </select>
-          <span class="text_after_answers"><%= user_content(hash_get(question, :text_after_answers), location: asset_string) %></span>
+          <span class="text_after_answers"><%= user_content(Sanitize.clean(hash_get(question, :text_after_answers) || '', CanvasSanitize::SANITIZE), location: asset_string) %></span>
         <% elsif question && hash_get(question, :question_type) == "fill_in_multiple_blanks_question" && @stored_params %>
 
           <%
