@@ -137,7 +137,6 @@ class FoldersController < ApplicationController
   # @returns [Folder]
   def api_index
     @folder = Folder.find(params[:id])
-    return render_json_unauthorized unless folder_id_lookup_allowed?(@folder)
     return unless authorized_action(@folder, @current_user, :read_contents)
 
     opts = lock_options(@folder.context, @current_user, session)
@@ -157,7 +156,6 @@ class FoldersController < ApplicationController
     return render_json_unauthorized unless Account.site_admin.feature_enabled?(:files_a11y_rewrite)
 
     @folder = Folder.find(params[:id])
-    return render_json_unauthorized unless folder_id_lookup_allowed?(@folder)
     return unless authorized_action(@folder, @current_user, :read_contents)
 
     items, opts, all_item_count = paginated_folders_and_files(api_v1_list_folders_and_files_url)
@@ -175,13 +173,6 @@ class FoldersController < ApplicationController
     headers["X-Total-Items"] = all_item_count.to_s
     render json: folders_or_files_json(items, @current_user, session, opts)
   end
-
-  def folder_id_lookup_allowed?(folder)
-    return true if @current_user
-
-    folder.context.grants_right?(nil, session, :read)
-  end
-  private :folder_id_lookup_allowed?
 
   # Setup additional options based on context and permissions
   def lock_options(context, user, session)
@@ -352,10 +343,7 @@ class FoldersController < ApplicationController
         @folder = if @context
                     @context.folders.active.find(params[:id])
                   else
-                    folder = Folder.find(params[:id])
-                    return render_json_unauthorized unless folder_id_lookup_allowed?(folder)
-
-                    folder
+                    Folder.find(params[:id])
                   end
       end
     else

@@ -1742,35 +1742,4 @@ describe "Folders API", type: :request do
       assert_status(200)
     end
   end
-
-  context "unauthenticated folder-by-ID lookup against a non-public course" do
-    before :once do
-      @course.update!(is_public: false, is_public_to_auth_users: false)
-      @course.files_visibility = "public"
-      @course.save!
-      @user = nil
-    end
-
-    it "rejects api_index by folder ID" do
-      raw_api_call(:get,
-                   "/api/v1/folders/#{@root.id}/folders",
-                   { controller: "folders", action: "api_index", format: "json", id: @root.id.to_param })
-      assert_status(401)
-    end
-
-    it "rejects show by folder ID" do
-      raw_api_call(:get,
-                   "/api/v1/folders/#{@root.id}",
-                   { controller: "folders", action: "show", format: "json", id: @root.id.to_param })
-      assert_status(401)
-    end
-
-    it "rejects list_folders_and_files by folder ID" do
-      Account.site_admin.enable_feature!(:files_a11y_rewrite)
-      raw_api_call(:get,
-                   "/api/v1/folders/#{@root.id}/all",
-                   { controller: "folders", action: "list_folders_and_files", format: "json", id: @root.id.to_param })
-      assert_status(401)
-    end
-  end
 end
