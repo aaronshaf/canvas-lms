@@ -5,7 +5,8 @@
     "./config/canvas-copyright.js",
     "./config/oxlint-plugins/canvas-xss.js",
     "./config/canvas-sanitize-url.js",
-    "./config/canvas-no-env-write.js"
+    "./config/canvas-no-env-write.js",
+    "./config/canvas-no-env-read.js"
   ],
   "env": {
     "browser": true,
@@ -95,6 +96,12 @@
       }
     },
     {
+      "files": ["packages/**/*.{js,mjs,ts,jsx,tsx}"],
+      "rules": {
+        "canvas-no-env-read/no-env-read": "error"
+      }
+    },
+    {
       "files": [
         "ui/shared/test-utils/**",
         "ui/shared/stub-env/**",
@@ -104,7 +111,8 @@
       ],
       "rules": {
         "canvas-xss/no-unsafe-html": "off",
-        "canvas-no-env-write/no-env-write": "off"
+        "canvas-no-env-write/no-env-write": "off",
+        "canvas-no-env-read/no-env-read": "off"
       }
     },
     {

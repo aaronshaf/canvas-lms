@@ -16,24 +16,19 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+import fakeENV from '@canvas/test-utils/fakeENV'
 import {hasMeridiem} from '@instructure/moment-utils'
 
 describe('hasMeridiem::', () => {
-  const oldENV = window.ENV
-  beforeEach(() => {
-    window.ENV = {LOCALE: 'en'}
-  })
-
-  afterEach(() => {
-    window.ENV = oldENV
-  })
+  afterEach(() => fakeENV.teardown())
 
   it('returns true if locale defines AM/PM', () => {
+    fakeENV.setup({LOCALE: 'en'})
     expect(hasMeridiem()).toBe(true)
   })
 
   it('returns false if locale does not define AM/PM', () => {
-    window.ENV.LOCALE = 'fr'
+    fakeENV.setup({LOCALE: 'fr'})
     expect(hasMeridiem()).toBe(false)
   })
 })

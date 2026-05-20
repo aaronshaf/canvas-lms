@@ -265,6 +265,7 @@ export function adjustFormat(format) {
 }
 
 export function hasMeridiem() {
+  // oxlint-disable-next-line canvas-no-env-read/no-env-read
   const env = window.ENV
   const formatter = new Intl.DateTimeFormat((env && env.LOCALE) || navigator.language, {
     timeStyle: 'short',
