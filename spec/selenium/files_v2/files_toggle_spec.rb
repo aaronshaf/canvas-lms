@@ -53,23 +53,6 @@ describe "files index page" do
       expect(content).not_to contain_css(upload_button_selector)
     end
 
-    it "displays new UI when toggle is disabled" do
-      @teacher.set_preference(:files_ui_version, "v1")
-      Account.site_admin.disable_feature! :files_a11y_rewrite_toggle
-      get "/courses/#{@course.id}/files"
-      expect(create_folder_button).to be_displayed
-      expect(upload_button).to be_displayed
-    end
-
-    it "displays old UI when toggle is enabled and preference is v2 but flag is off" do
-      Account.site_admin.disable_feature! :files_a11y_rewrite
-      Account.site_admin.enable_feature! :files_a11y_rewrite_toggle
-      @teacher.set_preference(:files_ui_version, "v2")
-      get "/courses/#{@course.id}/files"
-      expect(content).not_to contain_css(create_folder_button_selector)
-      expect(content).not_to contain_css(upload_button_selector)
-    end
-
     it "persists user preference for files across canvas" do
       @teacher.set_preference(:files_ui_version, "v2")
       get "/courses/#{@course.id}/files"

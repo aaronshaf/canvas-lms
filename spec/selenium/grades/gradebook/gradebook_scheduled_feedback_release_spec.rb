@@ -67,21 +67,6 @@ describe "Gradebook Scheduled Feedback Release" do
     user_session(@teacher)
   end
 
-  context "with feature flag disabled" do
-    before(:once) do
-      Account.site_admin.disable_feature!(:scheduled_feedback_releases)
-    end
-
-    it "does not show scheduled release UI components" do
-      Gradebook.visit(@course)
-      Gradebook.click_grade_posting_policy(@assignment.id)
-
-      AssignmentPostingPolicyTray.select_manually_post
-
-      expect(f("body")).not_to contain_css('[data-testid="scheduled-release-policy"]')
-    end
-  end
-
   context "with feature flag enabled" do
     before(:once) do
       Account.site_admin.enable_feature!(:scheduled_feedback_releases)

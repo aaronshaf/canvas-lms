@@ -527,62 +527,6 @@ describe "discussions" do
     end
 
     context "graded" do
-      it "displays graded assignment options correctly when initially opening edit page with archived grading schemes disabled" do
-        Account.site_admin.disable_feature!(:archived_grading_schemes)
-        grading_standard = course.grading_standards.create!(title: "Win/Lose", data: [["Winner", 0.94], ["Loser", 0]])
-
-        # Create a grading standard and make sure it is selected
-        discussion_assignment_options = {
-          name: "assignment",
-          points_possible: 10,
-          grading_type: "letter_grade",
-          assignment_group: course.assignment_groups.create!(name: "assignment group"),
-          grading_standard_id: grading_standard.id,
-          only_visible_to_overrides: true,
-        }
-
-        discussion_assignment_peer_review_options = {
-          peer_reviews: true,
-          automatic_peer_reviews: true,
-          peer_reviews_due_at: 1.day.ago,
-          peer_review_count: 2,
-        }
-
-        discussion_assignment_options = discussion_assignment_options.merge(discussion_assignment_peer_review_options)
-
-        graded_discussion = create_graded_discussion(course, discussion_assignment_options)
-
-        course_override_due_date = 5.days.from_now
-        course_section = course.course_sections.create!(name: "section alpha")
-        graded_discussion.assignment.assignment_overrides.create!(set_type: "CourseSection", set_id: course_section.id, due_at: course_override_due_date)
-
-        get "/courses/#{course.id}/discussion_topics/#{graded_discussion.id}/edit"
-        # Grading scheme sub menu is selected
-        expect(fj("span:contains('#{grading_standard.title}')").present?).to be_truthy
-        expect(fj("span:contains('Manage All Grading Schemes')").present?).to be_truthy
-        # Graded checkbox
-        expect(is_checked(f("span[data-testid='graded-checkbox'] input"))).to be_truthy
-        # Points possible
-        expect(f("input[data-testid='points-possible-input']").attribute("value")).to eq "10"
-        # Grading type
-        expect(f("input[data-testid='display-grade-input']").attribute("value")).to eq "Letter Grade"
-        # Assignment Group
-        expect(f("input[data-testid='assignment-group-input']").attribute("value")).to eq "assignment group"
-        # Peer review checkboxes
-        expect(is_checked(f("input[data-testid='peer_review_manual']"))).to be_falsey
-        expect(is_checked(f("input[data-testid='peer_review_off']"))).to be_falsey
-        expect(is_checked(f("input[data-testid='peer_review_auto']"))).to be_truthy
-        # peer review count
-        expect(f("input[data-testid='peer-review-count-input']").attribute("value")).to eq "2"
-
-        # Peer review date
-        # Just checking for a value. Formatting and TZ differences between front-end and back-end
-        # makes an exact comparison too fragile.
-        expect(ff("input[placeholder='Select Date']")[0].attribute("value")).not_to be_empty
-
-        expect(assign_to_in_tray("Remove #{course_section.name}")[0]).to be_displayed
-      end
-
       it "allows settings a graded discussion to an ungraded discussion" do
         graded_discussion = create_graded_discussion(course)
         get "/courses/#{course.id}/discussion_topics/#{graded_discussion.id}/edit"
