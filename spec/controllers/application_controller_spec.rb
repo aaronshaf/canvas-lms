@@ -1036,6 +1036,41 @@ RSpec.describe ApplicationController do
           end
         end
 
+        describe "pendo_extended behavior" do
+          it "does not add extra fields to js_env when disabled" do
+            @account.enable_feature!(:send_usage_metrics)
+            @account.disable_feature!(:pendo_extended)
+            mock_dynamic_settings_for_pendo_cc("pendos!")
+            expect(controller.js_env[:USAGE_METRICS_METADATA]).not_to be_present
+          end
+
+          describe "when enabled" do
+            before do
+              controller.instance_variable_set(:@current_user, user_model)
+              @account.enable_feature!(:pendo_extended)
+            end
+
+            it "adds extra fields to js_env when enabled and SUM is on" do
+              @account.enable_feature!(:send_usage_metrics)
+              mock_dynamic_settings_for_pendo_cc("pendos!")
+              expect(controller.js_env[:USAGE_METRICS_METADATA][:instance_domain]).to be_present
+            end
+
+            it "adds extra fields to js_env when enabled and SUMAC is on" do
+              @account.enable_feature!(:send_usage_metrics_after_consent)
+              mock_dynamic_settings_for_pendo_cc(nil, "pendos!", "jp")
+              expect(controller.js_env[:USAGE_METRICS_METADATA][:instance_domain]).to be_present
+            end
+
+            it "does not add extra fields to js_env when enabled but SUM and SUMAC are off" do
+              @account.disable_feature!(:send_usage_metrics)
+              @account.disable_feature!(:send_usage_metrics_after_consent)
+              mock_dynamic_settings_for_pendo_cc("pendos!", "pendos!", "jp")
+              expect(controller.js_env[:USAGE_METRICS_METADATA]).not_to be_present
+            end
+          end
+        end
+
         describe "PRE_COOKIE_CONSENT" do
           it "is implied to be ''false'' if there is no user" do
             controller.instance_variable_set(:@current_user, nil)
