@@ -95,7 +95,7 @@
   <% else %>
     <% if Account.site_admin.feature_enabled?(:instui_header)
          dashboard_header_container_props = {
-           startNewCourseVisible: show_user_create_course_button(@current_user) || (@current_user.alternate_account_for_course_creation && @domain_root_account.feature_enabled?(:create_course_subaccount_picker)),
+           startNewCourseVisible: show_user_create_course_button(current_principal) || (@current_user.alternate_account_for_course_creation && @domain_root_account.feature_enabled?(:create_course_subaccount_picker)),
            viewGradesUrl: grades_path,
          } %>
       <% if dashboard_header_container_props[:startNewCourseVisible] %>

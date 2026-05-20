@@ -76,11 +76,11 @@ describe ApplicationHelper do
       @domain_root_account.update(settings: { no_enrollments_can_create_courses: true })
       expect(show_user_create_course_button(nil)).to be_falsey
       user_factory
-      expect(show_user_create_course_button(@user)).to be_truthy
+      expect(show_user_create_course_button(Canvas::AdheresToPolicy::UserPrincipal.new(@user))).to be_truthy
       course_with_teacher
-      expect(show_user_create_course_button(@teacher)).to be_falsey
+      expect(show_user_create_course_button(Canvas::AdheresToPolicy::UserPrincipal.new(@teacher))).to be_falsey
       account_admin_user
-      expect(show_user_create_course_button(@admin)).to be_truthy
+      expect(show_user_create_course_button(Canvas::AdheresToPolicy::UserPrincipal.new(@admin))).to be_truthy
     end
   end
 

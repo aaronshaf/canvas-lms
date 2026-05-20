@@ -405,10 +405,10 @@ module ApplicationHelper
     available_section_tabs.find { |tc| tc[:id] == tool.asset_string }.present?
   end
 
-  def show_user_create_course_button(user, account = nil)
-    return true if account&.grants_right?(user, :create_courses)
+  def show_user_create_course_button(principal, account = nil)
+    return true if account&.grants_right?(principal, :create_courses)
 
-    @domain_root_account.manually_created_courses_account.grants_right?(user, :create_courses)
+    @domain_root_account.manually_created_courses_account.grants_right?(principal, :create_courses)
   end
 
   # Public: Create HTML for a sidebar button w/ icon.

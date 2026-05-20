@@ -53,7 +53,7 @@
                   class: "Button" %>
     <% end %>
 
-    <% if show_user_create_course_button(@current_user) %>
+    <% if show_user_create_course_button(current_principal) %>
       <button
         type="button"
         id="start_new_course"
