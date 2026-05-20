@@ -217,39 +217,6 @@ class FilesController < ApplicationController
   end
   private :folder_id_lookup_allowed?
 
-  def file_id_lookup_allowed?(attachment)
-    return true if @authenticated_with_jwt
-    return true if access_via_location?(attachment, @current_user, :read)
-    return true if valid_attachment_verifier_for?(attachment)
-    return true if accessible_via_submission?(attachment)
-
-    attachment.context.grants_right?(@current_user, session, :read)
-  end
-  private :file_id_lookup_allowed?
-
-  def accessible_via_submission?(attachment)
-    attachment.attachment_associations
-              .where(context_type: "Submission")
-              .preload(:context)
-              .filter_map(&:context)
-              .any? { |submission| submission.grants_right?(@current_user, session, :read) }
-  end
-  private :accessible_via_submission?
-
-  def valid_attachment_verifier_for?(attachment)
-    return false if params[:verifier].blank?
-
-    Attachments::Verification.new(attachment).valid_verifier_for_permission?(
-      params[:verifier],
-      :read,
-      @domain_root_account,
-      session,
-      request:,
-      files_domain: @files_domain
-    )
-  end
-  private :valid_attachment_verifier_for?
-
   def check_limited_access_contexts
     if @context.is_a?(Course) && @context&.account&.limited_access_for_user?(@current_user)
       redirect_to course_path(@context)
@@ -564,11 +531,6 @@ class FilesController < ApplicationController
     # verify that the requested attachment belongs to the submission
     return render_unauthorized_action if @submission && !@submission.includes_attachment?(@attachment)
 
-    if @submission.nil? && !file_id_lookup_allowed?(@attachment)
-      render_json_unauthorized
-      return
-    end
-
     if (@submission && authorized_action(@submission, @current_user, :read)) || access_allowed(attachment: @attachment, user: @current_user, access_type: :download)
       render json: { public_url: @attachment.public_url(secure: request.ssl?, user: @current_user) }
     end
@@ -622,11 +584,6 @@ class FilesController < ApplicationController
 
     unless @attachment
       render json: { errors: [{ message: "The specified resource does not exist." }] }, status: :not_found
-      return
-    end
-
-    if @context.blank? && !file_id_lookup_allowed?(@attachment)
-      render_json_unauthorized
       return
     end
 
