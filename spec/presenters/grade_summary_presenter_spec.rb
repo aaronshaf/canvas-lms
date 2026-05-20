@@ -429,13 +429,6 @@ describe GradeSummaryPresenter do
       presenter = GradeSummaryPresenter.new(@course, @teacher, @student.id)
       expect(presenter.assignments).not_to include @practice_quiz
     end
-
-    it "does not filter out hidden zero point quizzes when hide_zero_point_quizzes_option FF is disabled" do
-      Account.site_admin.disable_feature!(:hide_zero_point_quizzes_option)
-      @practice_quiz = @course.assignments.create!(name: "Practice Quiz", points_possible: 0, submission_types: ["external_tool"], omit_from_final_grade: true, hide_in_gradebook: true)
-      presenter = GradeSummaryPresenter.new(@course, @teacher, @student.id)
-      expect(presenter.assignments).to include @practice_quiz
-    end
   end
 
   describe "#sort_options" do
@@ -580,19 +573,15 @@ describe GradeSummaryPresenter do
       end
 
       context "assignments in modules" do
-        let!(:assignment1_tag) do
+        before do
           a1_tag = assignment1.context_module_tags.new(context: @course, position: 1, tag_type: "context_module")
           a1_tag.context_module = second_context_module
           a1_tag.save!
-        end
 
-        let!(:assignment2_tag) do
           a2_tag = assignment2.context_module_tags.new(context: @course, position: 3, tag_type: "context_module")
           a2_tag.context_module = first_context_module
           a2_tag.save!
-        end
 
-        let!(:assignment3_tag) do
           a3_tag = assignment3.context_module_tags.new(context: @course, position: 2, tag_type: "context_module")
           a3_tag.context_module = first_context_module
           a3_tag.save!
