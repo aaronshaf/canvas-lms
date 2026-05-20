@@ -21,18 +21,19 @@ import type {WidgetRegistry, WidgetRenderer} from '../types'
 import {WIDGET_TYPES, EDUCATOR_WIDGET_ROLE} from '../constants'
 import CourseWorkCombinedWidget from './widgets/CourseWorkCombinedWidget/CourseWorkCombinedWidget'
 import CourseGradesWidget from './widgets/CourseGradesWidget/CourseGradesWidget'
-import PeopleWidget from './widgets/PeopleWidget/PeopleWidget'
 import TodoListWidget from './widgets/TodoListWidget/TodoListWidget'
 import RecentGradesWidget from './widgets/RecentGradesWidget/RecentGradesWidget'
 import {
   AnnouncementsWidget,
   InboxWidget,
+  PeopleWidget,
   ProgressOverviewWidget,
   EducatorAnnouncementCreationWidget,
   EducatorTodoListWidget,
   EducatorContentQualityWidget,
 } from '@instructure/platform-widget-dashboard'
 import {renderAnnouncementMessageEditor} from './widgets/EducatorAnnouncementCreationWidget/AnnouncementMessageEditor'
+import {renderPeopleMessageModal} from './widgets/PeopleWidget/renderMessageModal'
 
 const I18n = createI18nScope('widget_dashboard')
 
@@ -71,6 +72,9 @@ const widgetRegistry: WidgetRegistry = {
     },
     get description() {
       return I18n.t('View and contact your course instructors and teaching assistants')
+    },
+    props: {
+      renderMessageModal: renderPeopleMessageModal,
     },
   },
   [WIDGET_TYPES.TODO_LIST]: {

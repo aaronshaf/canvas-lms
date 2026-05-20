@@ -3165,6 +3165,11 @@
     "@graphql-typed-document-node/core" "^3.2.0"
     graphql "^16.9.0"
 
+"@instructure/platform-image-utils@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@instructure/platform-image-utils/-/platform-image-utils-0.2.0.tgz#7cd788149bbe24b84dda07ba0776b29c74d873aa"
+  integrity sha512-B90RFScYYUPQ0d4nZwWJ1T0QyMUIflr/3d2in288a9bin4dhxcTZIxsNUUvFo8rFjiOtxzZX+3aw2F0ay5qiHw==
+
 "@instructure/platform-images@0.2.0":
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@instructure/platform-images/-/platform-images-0.2.0.tgz#79d1ca8c212eff72f6819cd78692f76548c0fe7f"
@@ -17282,8 +17287,12 @@ punycode.js@^2.3.1:
   resolved "https://registry.yarnpkg.com/punycode.js/-/punycode.js-2.3.1.tgz#6b53e56ad75588234e79f4affa90972c7dd8cdb7"
   integrity sha512-uxFIHU0YlHYhDQtV4R9J6a52SLx28BCjT+4ieh7IGbgwVJWO+km431c4yRlREUAsAmt/uMjQUyQHNEPf0M39CA==
 
-punycode2@1.0.1, punycode@1.4.1, punycode@^2.1.0, punycode@^2.1.1, punycode@^2.3.1, "punycode@npm:punycode2@1.0.1":
-  name punycode
+punycode2@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/punycode2/-/punycode2-1.0.1.tgz#7190290a2f672a97c18bda38ad9f402787b4eded"
+  integrity sha512-+TXpd9YRW4YUZZPoRHJ3DILtWwootGc2DsgvfHmklQ8It1skINAuqSdqizt5nlTaBmwrYACHkHApCXjc9gHk2Q==
+
+punycode@1.4.1, punycode@^2.1.0, punycode@^2.1.1, punycode@^2.3.1, "punycode@npm:punycode2@1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/punycode2/-/punycode2-1.0.1.tgz#7190290a2f672a97c18bda38ad9f402787b4eded"
   integrity sha512-+TXpd9YRW4YUZZPoRHJ3DILtWwootGc2DsgvfHmklQ8It1skINAuqSdqizt5nlTaBmwrYACHkHApCXjc9gHk2Q==

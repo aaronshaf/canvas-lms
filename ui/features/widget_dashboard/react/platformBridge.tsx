@@ -163,10 +163,21 @@ const TRANSLATION_THUNKS: Record<string, TranslationThunk> = {
   failedToLoadCourseData: () => I18n.t('Failed to load course data'),
   failedToLoadInstructorData: () => I18n.t('Failed to load instructor data. Please try again.'),
   loadingPeopleData: () => I18n.t('Loading people data...'),
+  loadingInstructors: () => I18n.t('Loading instructors'),
   instructorsPagination: () => I18n.t('Instructors pagination'),
   noInstructorsFound: () => I18n.t('No instructors found'),
   teacher: () => I18n.t('Teacher'),
   teachingAssistant: () => I18n.t('Teaching Assistant'),
+  allRoles: () => I18n.t('All Roles'),
+  roleFilter: () => I18n.t('Role filter:'),
+  nEnrollments: (opts: Record<string, unknown> = {}) =>
+    I18n.t({one: '1 enrollment', other: '%{count} enrollments'}, {count: opts.count as number}),
+  roleInCourse: (opts: Record<string, unknown> = {}) =>
+    I18n.t('%{role} in %{course}', {role: opts.role as string, course: opts.course as string}),
+  sendMessageToInstructor: (opts: Record<string, unknown> = {}) =>
+    I18n.t('Send a message to %{instructor}', {instructor: opts.instructor as string}),
+  sendMessageToName: (opts: Record<string, unknown> = {}) =>
+    I18n.t('Send Message to %{name}', {name: opts.name as string}),
 
   todoItemCreatedSuccessfully: () => I18n.t('To-do item created successfully'),
   failedToCreateTodoItem: () => I18n.t('Failed to create to-do item. Please try again.'),
