@@ -1665,7 +1665,7 @@ class CoursesController < ApplicationController
     if authorized_action(@context, current_principal, :read_as_admin)
       load_all_contexts(context: @context)
 
-      @all_roles = Role.custom_roles_and_counts_for_course(@context, @current_user, include_inactive: true)
+      @all_roles = Role.custom_roles_and_counts_for_course(@context, current_principal, include_inactive: true)
 
       @invited_count = @context.invited_count_visible_to(@current_user)
 

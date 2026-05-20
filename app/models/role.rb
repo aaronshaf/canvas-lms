@@ -256,8 +256,8 @@ class Role < ApplicationRecord
 
   # returns same hash as all_enrollment_roles_for_account but adds enrollment
   # counts for the given course to each item
-  def self.custom_roles_and_counts_for_course(course, user, include_inactive: false)
-    users_scope = course.users_visible_to(user)
+  def self.custom_roles_and_counts_for_course(course, principal, include_inactive: false)
+    users_scope = course.users_visible_to(principal)
     built_in_role_ids = Role.built_in_course_roles(root_account_id: course.root_account_id).map(&:id)
     base_counts = users_scope.where(enrollments: { role_id: built_in_role_ids })
                              .group("enrollments.type").select("users.id").distinct.count
@@ -276,27 +276,27 @@ class Role < ApplicationRecord
     @enrollment_types
   end
 
-  def self.add_delete_roles_by_user(user, context)
+  def self.add_delete_roles_by_user(principal, context)
     is_blueprint = context.is_a?(Course) && MasterCourses::MasterTemplate.is_master_course?(context)
     addable = []
     deleteable = []
-    addable += ["TeacherEnrollment"] if context.grants_right?(user, :add_teacher_to_course)
-    deleteable += ["TeacherEnrollment"] if context.grants_right?(user, :remove_teacher_from_course)
-    addable += ["TaEnrollment"] if context.grants_right?(user, :add_ta_to_course)
-    deleteable += ["TaEnrollment"] if context.grants_right?(user, :remove_ta_from_course)
-    addable += ["DesignerEnrollment"] if context.grants_right?(user, :add_designer_to_course)
-    deleteable += ["DesignerEnrollment"] if context.grants_right?(user, :remove_designer_from_course)
-    addable += ["StudentEnrollment"] if context.grants_right?(user, :add_student_to_course) && !is_blueprint
-    deleteable += ["StudentEnrollment"] if context.grants_right?(user, :remove_student_from_course)
-    addable += ["ObserverEnrollment"] if context.grants_right?(user, :add_observer_to_course) && !is_blueprint
-    deleteable += ["ObserverEnrollment"] if context.grants_right?(user, :remove_observer_from_course)
+    addable += ["TeacherEnrollment"] if context.grants_right?(principal, :add_teacher_to_course)
+    deleteable += ["TeacherEnrollment"] if context.grants_right?(principal, :remove_teacher_from_course)
+    addable += ["TaEnrollment"] if context.grants_right?(principal, :add_ta_to_course)
+    deleteable += ["TaEnrollment"] if context.grants_right?(principal, :remove_ta_from_course)
+    addable += ["DesignerEnrollment"] if context.grants_right?(principal, :add_designer_to_course)
+    deleteable += ["DesignerEnrollment"] if context.grants_right?(principal, :remove_designer_from_course)
+    addable += ["StudentEnrollment"] if context.grants_right?(principal, :add_student_to_course) && !is_blueprint
+    deleteable += ["StudentEnrollment"] if context.grants_right?(principal, :remove_student_from_course)
+    addable += ["ObserverEnrollment"] if context.grants_right?(principal, :add_observer_to_course) && !is_blueprint
+    deleteable += ["ObserverEnrollment"] if context.grants_right?(principal, :remove_observer_from_course)
 
     [addable, deleteable]
   end
 
-  def self.compile_manageable_roles(role_data, user, context)
+  def self.compile_manageable_roles(role_data, principal, context)
     # for use with the old sad enrollment dialog
-    addable, deleteable = add_delete_roles_by_user(user, context)
+    addable, deleteable = add_delete_roles_by_user(principal, context)
     role_data.each_with_object([]) do |role, roles|
       is_addable = addable.include?(role[:base_role_name])
       is_deleteable = deleteable.include?(role[:base_role_name])
@@ -315,13 +315,13 @@ class Role < ApplicationRecord
     end
   end
 
-  def self.role_data(course, user, include_inactive: false)
-    role_data = custom_roles_and_counts_for_course(course, user, include_inactive:)
-    compile_manageable_roles(role_data, user, course)
+  def self.role_data(course, principal, include_inactive: false)
+    role_data = custom_roles_and_counts_for_course(course, principal, include_inactive:)
+    compile_manageable_roles(role_data, principal, course)
   end
 
-  def self.course_role_data_for_account(account, user)
+  def self.course_role_data_for_account(account, principal)
     role_data = all_enrollment_roles_for_account(account)
-    compile_manageable_roles(role_data, user, account)
+    compile_manageable_roles(role_data, principal, account)
   end
 end

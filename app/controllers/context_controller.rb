@@ -86,7 +86,7 @@ class ContextController < ApplicationController
         concluded_sections = []
       end
 
-      all_roles = Role.role_data(@context, @current_user)
+      all_roles = Role.role_data(@context, current_principal)
       load_all_contexts(context: @context)
       manage_students = @context.grants_right?(current_principal, session, :manage_students) && !MasterCourses::MasterTemplate.is_master_course?(@context)
       can_add_enrollments = @context.grants_any_right?(current_principal, session, *RoleOverride::GRANULAR_COURSE_ENROLLMENT_PERMISSIONS)

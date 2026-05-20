@@ -2134,7 +2134,7 @@ class AccountsController < ApplicationController
     end
 
     js_env({
-             COURSE_ROLES: Role.course_role_data_for_account(@account, @current_user)
+             COURSE_ROLES: Role.course_role_data_for_account(@account, current_principal)
            })
     js_bundle :account_course_user_search
     css_bundle :addpeople
