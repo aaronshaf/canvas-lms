@@ -457,7 +457,7 @@ CreateGroupView.prototype.messages = shimGetterShorthand(
       return I18n.t('You cannot use a number greater than the number of assignments')
     },
     no_name_error() {
-      return I18n.t('A name is required')
+      return I18n.t('Group Name is required')
     },
     name_too_long_error() {
       return I18n.t('Name is too long')

@@ -149,6 +149,11 @@ describe('CreateGroupView', () => {
     expect(errors['name'][0].message).toBe(view.messages.no_name_error)
   })
 
+  test('no name error message identifies the Group Name field', () => {
+    view = createView()
+    expect(view.messages.no_name_error).toContain('Group Name')
+  })
+
   test('it should not allow assignment groups with names longer than 255 characters', () => {
     view = createView()
     const data = {name: 'a'.repeat(256)}
