@@ -134,7 +134,7 @@ describe('TurnitinSettingsModal', () => {
       }
       openModal(ref, dialog)
       expect(screen.getByLabelText('Students Can See the Originality Report')).toHaveValue(
-        'after_grading',
+        'After the assignment is graded',
       )
       expect(screen.getByLabelText('Other Student Papers')).not.toBeChecked()
       expect(screen.getByLabelText('Internet Database')).toBeChecked()
@@ -298,7 +298,7 @@ describe('TurnitinSettingsModal', () => {
         },
       }
       openModal(ref, dialog)
-      expect(screen.getByLabelText('Students Can See the Originality Report')).toHaveValue('never')
+      expect(screen.getByLabelText('Students Can See the Originality Report')).toHaveValue('Never')
       expect(screen.getByLabelText('Exclude Quoted Material')).not.toBeChecked()
       expect(screen.getByLabelText('Exclude Self Plagiarism')).toBeChecked()
       expect(screen.getByLabelText('Store submissions in Institutional Index')).not.toBeChecked()

@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, {forwardRef, useCallback, useImperativeHandle, useState} from 'react'
+import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useState} from 'react'
 import {useScope as createI18nScope} from '@canvas/i18n'
 import {InstUIModal as Modal} from '@instructure/platform-instui-bindings'
 import {Button} from '@instructure/ui-buttons'
@@ -25,6 +25,7 @@ import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
 import {NumberInput} from '@instructure/ui-number-input'
 import {RadioInput, RadioInputGroup} from '@instructure/ui-radio-input'
+import {SimpleSelect} from '@instructure/ui-simple-select'
 import {Text} from '@instructure/ui-text'
 import {View} from '@instructure/ui-view'
 
@@ -77,13 +78,6 @@ function getErrorMessage(value: string, showEmptyError: boolean): string | null 
   return null
 }
 
-const visibilityOptions: Array<VisibilityOption> = [
-  {value: 'immediate', label: I18n.t('Immediately')},
-  {value: 'after_grading', label: I18n.t('After the assignment is graded')},
-  {value: 'after_due_date', label: I18n.t('After the Due Date')},
-  {value: 'never', label: I18n.t('Never')},
-]
-
 /*
  * Inner form component — rendered only when the modal is open so that
  * useState initializers run fresh each time with the latest settings.
@@ -98,6 +92,16 @@ type TurnitinSettingsFormProps = {
 )
 
 function TurnitinSettingsForm({type, settings, onSubmit, onCancel}: TurnitinSettingsFormProps) {
+  const visibilityOptions = useMemo<Array<VisibilityOption>>(
+    () => [
+      {value: 'immediate', label: I18n.t('Immediately')},
+      {value: 'after_grading', label: I18n.t('After the assignment is graded')},
+      {value: 'after_due_date', label: I18n.t('After the Due Date')},
+      {value: 'never', label: I18n.t('Never')},
+    ],
+    [],
+  )
+
   const [reportVisibility, setReportVisibility] = useState<VisibilityValue>(
     settings.originality_report_visibility || 'immediate',
   )
@@ -229,23 +233,18 @@ function TurnitinSettingsForm({type, settings, onSubmit, onCancel}: TurnitinSett
     <>
       <Modal.Body>
         <View as="div" margin="0 0 medium 0">
-          <View as="div" margin="0 0 small 0">
-            <label htmlFor="turnitin_report_visibility_select">
-              {I18n.t('Students Can See the Originality Report')}
-            </label>
-          </View>
-          <select
+          <SimpleSelect
             id="turnitin_report_visibility_select"
-            aria-label={I18n.t('Students Can See the Originality Report')}
+            renderLabel={I18n.t('Students Can See the Originality Report')}
             value={reportVisibility}
-            onChange={e => setReportVisibility(e.target.value as VisibilityValue)}
+            onChange={(_event, {value}) => setReportVisibility(value as VisibilityValue)}
           >
             {visibilityOptions.map(opt => (
-              <option key={opt.value} value={opt.value}>
+              <SimpleSelect.Option key={opt.value} id={opt.value} value={opt.value}>
                 {opt.label}
-              </option>
+              </SimpleSelect.Option>
             ))}
-          </select>
+          </SimpleSelect>
         </View>
 
         {isTurnitin && (
