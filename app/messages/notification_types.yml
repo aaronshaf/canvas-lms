@@ -252,6 +252,12 @@
       delay_for: 0
     - name: Pseudonym Suspended After Failed Login
       delay_for: 0
+    - name: Default Email Address Changed
+      delay_for: 0
+    - name: New Email Address Added
+      delay_for: 0
+    - name: Email Address Removed
+      delay_for: 0
     - name: Confirm Registration
       delay_for: 0
     - name: Forgot Password

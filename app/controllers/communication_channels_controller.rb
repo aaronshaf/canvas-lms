@@ -232,6 +232,9 @@ class CommunicationChannelsController < ApplicationController
 
     if cc_saved
       @cc.send_confirmation!(@domain_root_account) unless skip_confirmation
+      if @cc.path_type == CommunicationChannel::TYPE_EMAIL && @user.email_channel.present? && @user.email_channel.id != @cc.id
+        @cc.notify_email_added!
+      end
       flash[:notice] = t("profile.notices.contact_registered", "Contact method registered!")
       render json: communication_channel_json(@cc, @current_user, session)
     else
@@ -566,6 +569,9 @@ class CommunicationChannelsController < ApplicationController
 
     if @cc.destroy
       @user.touch
+      if @cc.path_type == CommunicationChannel::TYPE_EMAIL && @user.email_channel.present? && @user.email_channel.id != @cc.id
+        @cc.notify_email_removed!
+      end
       if api_request?
         render json: communication_channel_json(@cc, @current_user, session)
       else

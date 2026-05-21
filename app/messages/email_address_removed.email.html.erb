@@ -1,0 +1,15 @@
+<% define_content :link do %>
+  <%= login_url %>
+<% end %>
+
+<% define_content :subject do %>
+  <%= t :subject, "Security alert: email address removed" %>
+<% end %>
+
+<p><%= t :intro, "An email address was removed from your account." %></p>
+
+<p><%= t :prompt, "If you did not make this change, please contact your administrator to secure your account." %></p>
+
+<p><strong><%= t :details_header, "Details:" %></strong></p>
+
+<p><%= t :removed_email, "Removed email: %{email}", email: CommunicationChannel.mask_email_path(data[:removed_email_path]) %></p>

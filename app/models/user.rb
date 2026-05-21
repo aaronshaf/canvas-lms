@@ -1213,11 +1213,15 @@ class User < ApplicationRecord
       cc.path = e
       cc.user = self
     end
+    prior_default = email_channel
     cc.move_to_top
     cc.workflow_state = "unconfirmed" if cc.retired?
     cc.save!
     reload
     clear_email_cache!
+    if prior_default && prior_default.id != cc.id && prior_default.path_type == CommunicationChannel::TYPE_EMAIL
+      prior_default.notify_default_email_changed!
+    end
     cc.path
   end
 

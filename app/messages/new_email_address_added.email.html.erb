@@ -1,0 +1,15 @@
+<% define_content :link do %>
+  <%= login_url %>
+<% end %>
+
+<% define_content :subject do %>
+  <%= t :subject, "Security alert: new email address added" %>
+<% end %>
+
+<p><%= t :intro, "A new email address was added to your account." %></p>
+
+<p><%= t :prompt, "If you did not make this change, please contact your administrator to secure your account." %></p>
+
+<p><strong><%= t :details_header, "Details:" %></strong></p>
+
+<p><%= t :added_email, "New email: %{email}", email: CommunicationChannel.mask_email_path(data[:added_email_path]) %></p>

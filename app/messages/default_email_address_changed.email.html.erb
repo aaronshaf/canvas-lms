@@ -1,0 +1,17 @@
+<% define_content :link do %>
+  <%= login_url %>
+<% end %>
+
+<% define_content :subject do %>
+  <%= t :subject, "Security alert: account email changed" %>
+<% end %>
+
+<p><%= t :intro, "Your account's email address was updated." %></p>
+
+<p><%= t :prompt, "If you did not make this change, please contact your administrator to secure your account." %></p>
+
+<p><strong><%= t :details_header, "Details:" %></strong></p>
+
+<p><%= t :previous_email, "Previous email: %{email}", email: CommunicationChannel.mask_email_path(asset.path) %></p>
+
+<p><%= t :new_email, "New email: %{email}", email: CommunicationChannel.mask_email_path(data[:new_default_path]) %></p>

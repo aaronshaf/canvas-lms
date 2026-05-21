@@ -1026,4 +1026,102 @@ describe CommunicationChannel do
       expect(CommunicationChannel.supported).to be_empty
     end
   end
+
+  describe ".mask_email_path" do
+    it "masks the local and domain parts" do
+      expect(CommunicationChannel.mask_email_path("alice@example.com")).to eq("ali***@exa***")
+    end
+
+    it "returns nil for blank input" do
+      expect(CommunicationChannel.mask_email_path(nil)).to be_nil
+      expect(CommunicationChannel.mask_email_path("")).to be_nil
+    end
+
+    it "returns the input when no @ is present" do
+      expect(CommunicationChannel.mask_email_path("not-an-email")).to eq("not-an-email")
+    end
+
+    it "exposes length-1 chars for short local or domain segments" do
+      expect(CommunicationChannel.mask_email_path("ab@example.com")).to eq("a***@exa***")
+      expect(CommunicationChannel.mask_email_path("abc@io")).to eq("ab***@i***")
+      expect(CommunicationChannel.mask_email_path("a@b")).to eq("***@***")
+    end
+  end
+
+  describe "email-change alert notifications" do
+    let(:user) { user_with_pseudonym(active_all: true).tap { it.communication_channel.update!(path: "original@example.com") } }
+    let(:default_cc) { user.email_channel }
+    let(:account) { Account.default }
+
+    before do
+      allow(HostUrl).to receive(:context_host).and_return("someserver.com")
+      Notification.create!(name: "Default Email Address Changed", category: "Registration")
+      Notification.create!(name: "New Email Address Added", category: "Registration")
+      Notification.create!(name: "Email Address Removed", category: "Registration")
+    end
+
+    describe "#notify_default_email_changed!" do
+      let(:prior_default) { default_cc }
+
+      before do
+        prior_default # memoize before promoting the new one
+        new_default = user.communication_channels.email.create!(path: "brandnew@otherdomain.com")
+        new_default.move_to_top
+        user.clear_email_cache!
+      end
+
+      it "sends a message to the prior-default channel" do
+        prior_default.notify_default_email_changed!
+        message = Message.where(communication_channel_id: prior_default, notification_id: Notification.find_by(name: "Default Email Address Changed")).first
+        expect(message).not_to be_nil
+      end
+
+      it "includes a masked form of the current default email in the body" do
+        prior_default.notify_default_email_changed!
+        message = Message.where(communication_channel_id: prior_default, notification_id: Notification.find_by(name: "Default Email Address Changed")).first
+        expect(message.body).to include("bra***@oth***")
+      end
+
+      it "includes a masked form of the prior default email in the body" do
+        prior_default.notify_default_email_changed!
+        message = Message.where(communication_channel_id: prior_default, notification_id: Notification.find_by(name: "Default Email Address Changed")).first
+        expect(message.body).to include("ori***@exa***")
+      end
+    end
+
+    describe "#notify_email_added!" do
+      it "sends a message to the current default channel" do
+        added = user.communication_channels.email.create!(path: "added@example.com")
+        added.notify_email_added!
+        message = Message.where(communication_channel_id: default_cc, notification_id: Notification.find_by(name: "New Email Address Added")).first
+        expect(message).not_to be_nil
+        expect(message.body).to include("add***@exa***")
+      end
+
+      it "does not send if there is no other default channel" do
+        only_cc = user.email_channel
+        only_cc.notify_email_added!
+        message = Message.where(notification_id: Notification.find_by(name: "New Email Address Added")).first
+        expect(message).to be_nil
+      end
+    end
+
+    describe "#notify_email_removed!" do
+      it "sends a message to the current default channel" do
+        removed = user.communication_channels.email.create!(path: "removed@example.com")
+        removed.destroy
+        removed.notify_email_removed!
+        message = Message.where(communication_channel_id: default_cc, notification_id: Notification.find_by(name: "Email Address Removed")).first
+        expect(message).not_to be_nil
+        expect(message.body).to include("rem***@exa***")
+      end
+
+      it "does not send if the removed channel is the current default" do
+        only_cc = user.email_channel
+        only_cc.notify_email_removed!
+        message = Message.where(notification_id: Notification.find_by(name: "Email Address Removed")).first
+        expect(message).to be_nil
+      end
+    end
+  end
 end

@@ -2918,6 +2918,36 @@ describe User do
       expect(@user.communication_channels.map(&:path)).to eq ["email@example.com"]
       expect(@user.email).to eq "email@example.com"
     end
+
+    describe "default-changed alert" do
+      let(:notification) { Notification.create!(name: "Default Email Address Changed", category: "Registration") }
+
+      before do
+        allow(HostUrl).to receive(:context_host).and_return("someserver.com")
+        notification
+      end
+
+      it "notifies the prior default channel when changing emails" do
+        @user = User.create!
+        prior = communication_channel(@user, { username: "prior@example.com", active_cc: true })
+        @user.email = "new@example.com"
+        message = Message.where(communication_channel_id: prior.id, notification_id: notification.id).first
+        expect(message).not_to be_nil
+      end
+
+      it "does not notify when assigning the user's first email" do
+        @user = User.create!
+        @user.email = "first@example.com"
+        expect(Message.where(notification_id: notification.id)).to be_empty
+      end
+
+      it "does not notify when re-promoting the existing default" do
+        @user = User.create!
+        communication_channel(@user, { username: "current@example.com", active_cc: true })
+        @user.email = "current@example.com"
+        expect(Message.where(notification_id: notification.id)).to be_empty
+      end
+    end
   end
 
   describe "event methods" do

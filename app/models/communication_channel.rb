@@ -163,6 +163,21 @@ class CommunicationChannel < ApplicationRecord
         !user.creation_pending?
     end
     p.data { broadcast_data }
+
+    p.dispatch :default_email_address_changed
+    p.to { self }
+    p.whenever { @send_default_changed_notification && path_type == TYPE_EMAIL }
+    p.data { (broadcast_data || {}).merge(new_default_path: user.email_channel&.path) }
+
+    p.dispatch :new_email_address_added
+    p.to { user.email_channel }
+    p.whenever { @send_email_added_notification && path_type == TYPE_EMAIL && user.email_channel.present? && user.email_channel != self }
+    p.data { (broadcast_data || {}).merge(added_email_path: path) }
+
+    p.dispatch :email_address_removed
+    p.to { user.email_channel }
+    p.whenever { @send_email_removed_notification && path_type == TYPE_EMAIL && user.email_channel.present? && user.email_channel != self }
+    p.data { (broadcast_data || {}).merge(removed_email_path: path) }
   end
 
   def uniqueness_of_path
@@ -241,6 +256,21 @@ class CommunicationChannel < ApplicationRecord
     end
   end
 
+  # Returns an obfuscated form of an email path, e.g. "abc***@dom***".
+  def self.mask_email_path(email_path)
+    return nil if email_path.blank?
+
+    local, domain = email_path.split("@", 2)
+    return email_path unless domain
+
+    "#{mask_segment(local)}***@#{mask_segment(domain)}***"
+  end
+
+  def self.mask_segment(segment)
+    expose = (segment.length > 3) ? 3 : segment.length - 1
+    segment[0, expose].to_s
+  end
+
   def forgot_password!
     return if Rails.cache.read(["recent_password_reset", global_id].cache_key) == true
 
@@ -272,6 +302,27 @@ class CommunicationChannel < ApplicationRecord
     @send_merge_notification = true
     save!
     @send_merge_notification = false
+  end
+
+  def notify_default_email_changed!
+    @send_default_changed_notification = true
+    save!
+  ensure
+    @send_default_changed_notification = false
+  end
+
+  def notify_email_added!
+    @send_email_added_notification = true
+    save!
+  ensure
+    @send_email_added_notification = false
+  end
+
+  def notify_email_removed!
+    @send_email_removed_notification = true
+    save!
+  ensure
+    @send_email_removed_notification = false
   end
 
   def send_otp_via_sms_gateway!(message)

@@ -453,8 +453,12 @@ class ProfileController < ApplicationController
       if params[:default_email_id].present?
         @email_channel = @user.communication_channels.email.active.where(id: params[:default_email_id]).first
         if @email_channel
+          prior_default = @user.email_channel
           @email_channel.move_to_top
           @user.clear_email_cache!
+          if prior_default && prior_default.id != @email_channel.id
+            prior_default.notify_default_email_changed!
+          end
         end
       end
       if params[:pseudonym]
