@@ -273,8 +273,24 @@ class AssessmentQuestion < ApplicationRecord
       data = self["question_data"] = data.with_indifferent_access
     end
 
+    sanitize_question_data_html_fields!(data) if data.is_a?(Hash)
+
     data
   end
+
+  def sanitize_question_data_html_fields!(data)
+    Quizzes::QuizQuestion::QUESTION_DATA_HTML_FIELDS.each do |field|
+      data[field] = Sanitize.clean(data[field], CanvasSanitize::SANITIZE) if data[field].is_a?(String)
+    end
+    data[:answers]&.each do |answer|
+      next unless answer.is_a?(Hash)
+
+      Quizzes::QuizQuestion::QUESTION_DATA_ANSWER_HTML_FIELDS.each do |field|
+        answer[field] = Sanitize.clean(answer[field], CanvasSanitize::SANITIZE) if answer[field].is_a?(String)
+      end
+    end
+  end
+  private :sanitize_question_data_html_fields!
 
   def edited_independent_of_quiz_question
     self.workflow_state = "independently_edited"

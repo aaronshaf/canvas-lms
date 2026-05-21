@@ -303,6 +303,112 @@ describe Quizzes::QuizQuestion do
     end
   end
 
+  describe "#question_data egress sanitization" do
+    before :once do
+      course_with_teacher(active_all: true)
+      @quiz = @course.quizzes.create!
+      @bank = @course.assessment_question_banks.create!
+      @assessment_question = @bank.assessment_questions.create!
+      @question = Quizzes::QuizQuestion.create!(
+        quiz: @quiz,
+        assessment_question: @assessment_question,
+        question_data: {
+          question_name: "Q",
+          question_type: "multiple_choice_question",
+          answers: [{ "answer_text" => "a", "id" => 1 }]
+        }
+      )
+    end
+
+    # Write a raw hash directly to bypass save-time sanitization, simulating
+    # rows persisted before save-time hardening landed.
+    def write_dirty_question_data(hash)
+      @question.update_columns(question_data: hash)
+      @question.reload
+    end
+
+    it "strips script tags from top-level HTML fields on read" do
+      write_dirty_question_data(
+        question_text: "<script>alert('xss')</script>safe",
+        correct_comments_html: "<script>x</script>ok",
+        incorrect_comments_html: "<script>x</script>ok",
+        neutral_comments_html: "<script>x</script>ok",
+        text_after_answers: "<script>x</script>ok",
+        answers: []
+      )
+      data = @question.question_data
+      expect(data[:question_text]).not_to include("<script>")
+      expect(data[:question_text]).to include("safe")
+      expect(data[:correct_comments_html]).not_to include("<script>")
+      expect(data[:incorrect_comments_html]).not_to include("<script>")
+      expect(data[:neutral_comments_html]).not_to include("<script>")
+      expect(data[:text_after_answers]).not_to include("<script>")
+    end
+
+    it "strips event handler attributes from top-level fields on read" do
+      write_dirty_question_data(
+        question_text: %(<img src="x" onerror="alert(1)">),
+        answers: []
+      )
+      expect(@question.question_data[:question_text]).not_to include("onerror")
+    end
+
+    it "strips javascript: protocol from top-level fields on read" do
+      write_dirty_question_data(
+        question_text: %(<a href="javascript:alert(1)">click</a>),
+        answers: []
+      )
+      expect(@question.question_data[:question_text]).not_to include("javascript:")
+    end
+
+    it "strips script tags from per-answer HTML fields on read" do
+      write_dirty_question_data(
+        question_text: "ok",
+        answers: [
+          { "id" => 1, "html" => "<script>alert(1)</script>good", "comments_html" => "<script>alert(2)</script>good" },
+          { "id" => 2, "html" => "<script>alert(3)</script>good", "comments_html" => "<script>alert(4)</script>good" }
+        ]
+      )
+      answers = @question.question_data[:answers]
+      expect(answers[0][:html]).not_to include("<script>")
+      expect(answers[0][:html]).to include("good")
+      expect(answers[0][:comments_html]).not_to include("<script>")
+      expect(answers[1][:html]).not_to include("<script>")
+      expect(answers[1][:comments_html]).not_to include("<script>")
+    end
+
+    it "strips event handler attributes from per-answer HTML fields on read" do
+      write_dirty_question_data(
+        question_text: "ok",
+        answers: [{ "id" => 1, "html" => %(<img src="x" onerror="alert(1)">), "comments_html" => %(<img src="x" onerror="alert(2)">) }]
+      )
+      answers = @question.question_data[:answers]
+      expect(answers[0][:html]).not_to include("onerror")
+      expect(answers[0][:comments_html]).not_to include("onerror")
+    end
+
+    it "preserves safe HTML on read" do
+      write_dirty_question_data(
+        question_text: "<p>hello <strong>world</strong></p>",
+        answers: [{ "id" => 1, "html" => "<em>safe</em>" }]
+      )
+      data = @question.question_data
+      expect(data[:question_text]).to eq("<p>hello <strong>world</strong></p>")
+      expect(data[:answers][0][:html]).to eq("<em>safe</em>")
+    end
+
+    it "is idempotent across multiple reads" do
+      write_dirty_question_data(
+        question_text: "<script>x</script><p>ok</p>",
+        answers: [{ "id" => 1, "html" => "<script>y</script><p>also ok</p>" }]
+      )
+      first_text = @question.question_data[:question_text]
+      first_answer = @question.question_data[:answers][0][:html]
+      expect(@question.question_data[:question_text]).to eq(first_text)
+      expect(@question.question_data[:answers][0][:html]).to eq(first_answer)
+    end
+  end
+
   describe ".update_all_positions" do
     def question_positions(object)
       object.quiz_questions.active.sort_by(&:position).map(&:id)

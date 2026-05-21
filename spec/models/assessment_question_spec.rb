@@ -123,6 +123,49 @@ describe AssessmentQuestion do
     expect(clones.count).to eq 1
   end
 
+  describe "link translation interaction with egress sanitization" do
+    it "preserves translated URLs through the egress sanitizer on read" do
+      attachment = attachment_in_course(@course)
+      data = {
+        "name" => "Q",
+        "question_text" => %(Embed: <img src="/courses/#{@course.id}/files/#{attachment.id}/download">),
+        "answers" => [{ "id" => 1 }]
+      }
+      @question = @bank.assessment_questions.create!(question_data: data, updating_user: @teacher)
+      clone = @question.attachments.where(root_attachment: attachment).first
+
+      text = @question.reload.question_data["question_text"]
+      expect(text).to include("/assessment_questions/#{@question.id}/files/#{clone.id}/download")
+      expect(text).to include("verifier=#{clone.uuid}")
+    end
+
+    it "strips XSS while preserving a previously-translated URL on read" do
+      attachment = attachment_in_course(@course)
+      data = {
+        "name" => "Q",
+        "question_text" => %(Embed: <img src="/courses/#{@course.id}/files/#{attachment.id}/download">),
+        "answers" => [{ "id" => 1 }]
+      }
+      @question = @bank.assessment_questions.create!(question_data: data, updating_user: @teacher)
+      clone = @question.attachments.where(root_attachment: attachment).first
+      translated = @question.reload.read_attribute(:question_data)["question_text"]
+
+      # Simulate a row written before save-time sanitization: keep the
+      # already-translated URL but inject XSS next to it via update_columns
+      # so the egress reader is the only thing standing between the script
+      # tag and the user.
+      dirty = @question.read_attribute(:question_data).merge(
+        "question_text" => "<script>alert(1)</script>#{translated}"
+      )
+      @question.update_columns(question_data: dirty)
+
+      text = @question.reload.question_data["question_text"]
+      expect(text).not_to include("<script>")
+      expect(text).to include("/assessment_questions/#{@question.id}/files/#{clone.id}/download")
+      expect(text).to include("verifier=#{clone.uuid}")
+    end
+  end
+
   describe "save-time html sanitization" do
     let(:xss_question_data) do
       {
@@ -158,6 +201,106 @@ describe AssessmentQuestion do
       expect(data["text_after_answers"]).to eq('<img src="x">safe after')
       expect(data["answers"][0]["html"]).to eq('<img src="x">safe a1 html')
       expect(data["answers"][0]["comments_html"]).to eq('<img src="x">safe a1 comments')
+    end
+  end
+
+  describe "#question_data egress sanitization" do
+    before :once do
+      @aq = @bank.assessment_questions.create!(
+        question_data: {
+          "question_name" => "Q",
+          "question_type" => "multiple_choice_question",
+          "answers" => [{ "answer_text" => "a", "id" => 1 }]
+        }
+      )
+    end
+
+    # Write a raw hash directly to bypass save-time sanitization, simulating
+    # rows persisted before save-time hardening landed.
+    def write_dirty_question_data(hash)
+      @aq.update_columns(question_data: hash)
+      @aq.reload
+    end
+
+    it "strips script tags from top-level HTML fields on read" do
+      write_dirty_question_data(
+        "question_text" => "<script>alert('xss')</script>safe",
+        "correct_comments_html" => "<script>x</script>ok",
+        "incorrect_comments_html" => "<script>x</script>ok",
+        "neutral_comments_html" => "<script>x</script>ok",
+        "text_after_answers" => "<script>x</script>ok",
+        "answers" => []
+      )
+      data = @aq.question_data
+      expect(data[:question_text]).not_to include("<script>")
+      expect(data[:question_text]).to include("safe")
+      expect(data[:correct_comments_html]).not_to include("<script>")
+      expect(data[:incorrect_comments_html]).not_to include("<script>")
+      expect(data[:neutral_comments_html]).not_to include("<script>")
+      expect(data[:text_after_answers]).not_to include("<script>")
+    end
+
+    it "strips event handler attributes from top-level fields on read" do
+      write_dirty_question_data(
+        "question_text" => %(<img src="x" onerror="alert(1)">),
+        "answers" => []
+      )
+      expect(@aq.question_data[:question_text]).not_to include("onerror")
+    end
+
+    it "strips javascript: protocol from top-level fields on read" do
+      write_dirty_question_data(
+        "question_text" => %(<a href="javascript:alert(1)">click</a>),
+        "answers" => []
+      )
+      expect(@aq.question_data[:question_text]).not_to include("javascript:")
+    end
+
+    it "strips script tags from per-answer HTML fields on read" do
+      write_dirty_question_data(
+        "question_text" => "ok",
+        "answers" => [
+          { "id" => 1, "html" => "<script>alert(1)</script>good", "comments_html" => "<script>alert(2)</script>good" },
+          { "id" => 2, "html" => "<script>alert(3)</script>good", "comments_html" => "<script>alert(4)</script>good" }
+        ]
+      )
+      answers = @aq.question_data[:answers]
+      expect(answers[0][:html]).not_to include("<script>")
+      expect(answers[0][:html]).to include("good")
+      expect(answers[0][:comments_html]).not_to include("<script>")
+      expect(answers[1][:html]).not_to include("<script>")
+      expect(answers[1][:comments_html]).not_to include("<script>")
+    end
+
+    it "strips event handler attributes from per-answer HTML fields on read" do
+      write_dirty_question_data(
+        "question_text" => "ok",
+        "answers" => [{ "id" => 1, "html" => %(<img src="x" onerror="alert(1)">), "comments_html" => %(<img src="x" onerror="alert(2)">) }]
+      )
+      answers = @aq.question_data[:answers]
+      expect(answers[0][:html]).not_to include("onerror")
+      expect(answers[0][:comments_html]).not_to include("onerror")
+    end
+
+    it "preserves safe HTML on read" do
+      write_dirty_question_data(
+        "question_text" => "<p>hello <strong>world</strong></p>",
+        "answers" => [{ "id" => 1, "html" => "<em>safe</em>" }]
+      )
+      data = @aq.question_data
+      expect(data[:question_text]).to eq("<p>hello <strong>world</strong></p>")
+      expect(data[:answers][0][:html]).to eq("<em>safe</em>")
+    end
+
+    it "is idempotent across multiple reads" do
+      write_dirty_question_data(
+        "question_text" => "<script>x</script><p>ok</p>",
+        "answers" => [{ "id" => 1, "html" => "<script>y</script><p>also ok</p>" }]
+      )
+      first_text = @aq.question_data[:question_text]
+      first_answer = @aq.question_data[:answers][0][:html]
+      expect(@aq.question_data[:question_text]).to eq(first_text)
+      expect(@aq.question_data[:answers][0][:html]).to eq(first_answer)
     end
   end
 

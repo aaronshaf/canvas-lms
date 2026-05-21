@@ -62,6 +62,42 @@ describe Quizzes::Quiz do
     end
   end
 
+  describe "#description egress sanitization" do
+    let(:quiz) { @course.quizzes.create!(title: "hello") }
+
+    it "strips script tags on read" do
+      quiz.update_columns(description: "<script>alert('xss')</script>safe")
+      expect(quiz.reload.description).not_to include("<script>")
+      expect(quiz.description).to include("safe")
+    end
+
+    it "strips event handler attributes on read" do
+      quiz.update_columns(description: %(<img src="x" onerror="alert(1)">))
+      expect(quiz.reload.description).not_to include("onerror")
+    end
+
+    it "strips javascript: protocol on read" do
+      quiz.update_columns(description: %(<a href="javascript:alert(1)">click</a>))
+      expect(quiz.reload.description).not_to include("javascript:")
+    end
+
+    it "preserves safe HTML" do
+      quiz.update_columns(description: "<p>hello <strong>world</strong></p>")
+      expect(quiz.reload.description).to eq("<p>hello <strong>world</strong></p>")
+    end
+
+    it "returns nil when description is nil" do
+      quiz.update_columns(description: nil)
+      expect(quiz.reload.description).to be_nil
+    end
+
+    it "is idempotent" do
+      quiz.update_columns(description: "<script>x</script><p>ok</p>")
+      first_read = quiz.reload.description
+      expect(quiz.description).to eq(first_read)
+    end
+  end
+
   describe "default values for boolean attributes" do
     before(:once) do
       @quiz = @course.quizzes.create!(title: "hello")
