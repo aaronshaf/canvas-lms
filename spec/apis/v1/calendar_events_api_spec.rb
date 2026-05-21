@@ -969,9 +969,9 @@ describe CalendarEventsApiController, type: :request do
       end
     end
 
-    it "allows anonymous users to access a public syllabus" do
+    it "does not allow anonymous users to access events via public_syllabus alone" do
       @user = nil
-      public_course_query(opts: { expected_status: 200 }) do |c|
+      public_course_query(opts: { expected_status: 401 }) do |c|
         c.public_syllabus = true
       end
     end
@@ -982,6 +982,43 @@ describe CalendarEventsApiController, type: :request do
         c.public_syllabus = false
         c.public_syllabus_to_auth = true
       end
+    end
+
+    it "does not allow anonymous users to access an unpublished public course" do
+      @user = nil
+      public_course_query(opts: { expected_status: 401 }) do |c|
+        c.is_public = true
+        c.workflow_state = "claimed"
+      end
+    end
+
+    it "does not allow anonymous users to access a completed public course" do
+      @user = nil
+      public_course_query(opts: { expected_status: 401 }) do |c|
+        c.is_public = true
+        c.workflow_state = "completed"
+      end
+    end
+
+    it "does not leak assignment secure_params via public_syllabus" do
+      @course.public_syllabus = true
+      @course.save!
+      @course.assignments.create!(title: "secret assignment", due_at: 1.month.from_now)
+      @user = nil
+
+      api_call(:get,
+               "/api/v1/calendar_events?all_events=1&type=assignment&context_codes[]=course_#{@course.id}",
+               {
+                 controller: "calendar_events_api",
+                 action: "index",
+                 format: "json",
+                 type: "assignment",
+                 all_events: "1",
+                 context_codes: ["course_#{@course.id}"]
+               },
+               {},
+               {},
+               { expected_status: 401 })
     end
 
     it "returns undated events" do
