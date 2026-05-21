@@ -314,6 +314,7 @@ node(nodeLabel()) {
           build(job: '/Canvas/helpers/junit-uploader', parameters: [
             string(name: 'GERRIT_REFSPEC', value: "${env.GERRIT_REFSPEC}"),
             string(name: 'SOURCE', value: "${env.JOB_NAME}/${env.BUILD_NUMBER}"),
+            string(name: 'GERRIT_EVENT_TYPE', value: "${env.GERRIT_EVENT_TYPE}"),
           ], propagate: false, wait: false)
 
           def buildResult = buildFailed ? 'FAILURE' : currentBuild.currentResult
