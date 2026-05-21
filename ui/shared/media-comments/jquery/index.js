@@ -666,7 +666,7 @@ $.mediaComment.init = function (mediaType, opts) {
               .tabs({activate: $.mediaComment.video_delegate.expectReady})
             mediaCommentReady()
           } else if ($div.data('ks-error')) {
-            $div.html($div.data('ks-error'))
+            $div.text($div.data('ks-error'))
           } else {
             setTimeout(checkForKS, 500)
           }

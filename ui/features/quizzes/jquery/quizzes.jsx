@@ -4522,7 +4522,7 @@ ready(function () {
 
           ques.attr('id', 'question_' + question_data.id)
           link.attr('href', sanitizeUrl(href.replace(/ions\/.*/, 'ions/' + question_data.id)))
-          qId.html(question_data.id)
+          qId.text(question_data.id)
 
           $question.find('.edit_question_link').click()
         }
