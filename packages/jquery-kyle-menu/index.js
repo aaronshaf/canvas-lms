@@ -33,7 +33,7 @@ export default class KyleMenu {
     ;['onOpen', 'select', 'onClose', 'close', 'keepButtonActive'].forEach(
       m => (this[m] = this[m].bind(this))
     )
-    this.$trigger = $(trigger).data('kyleMenu', this)
+    this.$trigger = $(trigger).data('kyleMenu', this).attr('aria-expanded', 'false')
     this.$ariaMenuWrapper = this.$trigger.parent()
     this.opts = $.extend(true, {}, KyleMenu.defaults, options)
 
@@ -110,6 +110,7 @@ export default class KyleMenu {
   }
 
   onOpen(event) {
+    this.$trigger.attr('aria-expanded', 'true')
     this.$ariaMenuWrapper.attr('role', 'application')
     this.adjustCarat(event)
     this.$menu.addClass('ui-state-open')
@@ -133,6 +134,7 @@ export default class KyleMenu {
   }
 
   onClose() {
+    this.$trigger.attr('aria-expanded', 'false')
     if (this.opts.appendMenuTo) this.$menu.insertBefore(this.$placeholder)
     this.$trigger.removeClass('ui-state-active')
     this.$ariaMenuWrapper.removeAttr('role')
