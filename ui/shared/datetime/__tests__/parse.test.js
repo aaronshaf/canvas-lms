@@ -17,8 +17,11 @@
  */
 
 import moment from 'moment-timezone'
+import 'moment/locale/fi'
 import timezone from 'timezone'
+import en_US from 'timezone/en_US'
 import * as tz from '@instructure/moment-utils'
+import {configure} from '@instructure/moment-utils'
 import {moonwalk, equal, setup} from './helpers'
 
 setup(this)
@@ -63,3 +66,29 @@ test('parse("looks like integer") should be a year', () =>
 
 test('parse() should parse relative to UTC by default', () =>
   equal(+tz.parse('1969-07-21 02:56'), +moonwalk))
+
+describe('Finnish locale (fi) datetime parsing', () => {
+  beforeEach(() => {
+    configure({tz: timezone(en_US, 'en_US', 'UTC'), momentLocale: 'fi'})
+    moment.locale('fi')
+  })
+
+  afterEach(() => {
+    configure({})
+    moment.locale('en')
+  })
+
+  test('parse Finnish datetime with klo prefix and dot-separated time', () => {
+    const result = tz.parse('20.5.2026 klo 8.00')
+    expect(result).not.toBeNull()
+    expect(result.getUTCHours()).toBe(8)
+    expect(result.getUTCMinutes()).toBe(0)
+  })
+
+  test('parse Finnish datetime with klo prefix at midnight', () => {
+    const result = tz.parse('20.5.2026 klo 0.00')
+    expect(result).not.toBeNull()
+    expect(result.getUTCHours()).toBe(0)
+    expect(result.getUTCMinutes()).toBe(0)
+  })
+})

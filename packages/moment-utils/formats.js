@@ -76,6 +76,7 @@ const momentStockFormats = [
   'llll',
   'D MMM YYYY',
   'H:mm',
+  'l [klo] LT',
 ]
 
 // expand every i18n format that specifies minutes (%M or %-M) into two: one
