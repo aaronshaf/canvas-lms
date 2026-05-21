@@ -591,25 +591,6 @@ class RoleOverridesController < ApplicationController
     end
   end
 
-  # Internal API endpoint
-  # Used for checking Canvas permissions from Catalog
-  # Could be generalized for other use cases by adding to the whitelist
-
-  def check_account_permission
-    whitelist = %w[manage_catalog]
-    permission = params[:permission]
-
-    if whitelist.include?(permission)
-      render json: {
-        permission:,
-        granted: @context.grants_right?(@current_user, permission.to_sym)
-      }
-    else
-      render json: { message: t("Permission not found") },
-             status: :bad_request
-    end
-  end
-
   # Internal: Get role from params or return error. Used as before filter.
   #
   # Returns found role or false (to halt execution).

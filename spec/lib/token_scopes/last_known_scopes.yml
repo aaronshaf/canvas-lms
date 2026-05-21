@@ -340,8 +340,6 @@
 - verb: GET
   path: '/api/v1/accounts/:account_id/permissions'
 - verb: GET
-  path: '/api/v1/accounts/:account_id/permissions/:permission'
-- verb: GET
   path: '/api/v1/accounts/:account_id/quiz_ip_filters'
 - verb: GET
   path: '/api/v1/accounts/:account_id/reports'
