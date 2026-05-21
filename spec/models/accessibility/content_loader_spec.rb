@@ -33,7 +33,7 @@ describe Accessibility::ContentLoader do
   describe "#content" do
     context "for Assignments" do
       let!(:issue) { accessibility_issue_model(course:, context: assignment, node_path: nil) }
-      let(:content_loader) { described_class.new(issue_id: issue.id) }
+      let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
 
       it "returns assignment description" do
         result = content_loader.content
@@ -44,7 +44,7 @@ describe Accessibility::ContentLoader do
 
     context "for Pages" do
       let!(:issue) { accessibility_issue_model(course:, context: wiki_page, node_path: nil) }
-      let(:content_loader) { described_class.new(issue_id: issue.id) }
+      let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
 
       it "returns page body" do
         result = content_loader.content
@@ -55,7 +55,7 @@ describe Accessibility::ContentLoader do
 
     context "for DiscussionTopics" do
       let!(:issue) { accessibility_issue_model(course:, context: discussion_topic, node_path: nil) }
-      let(:content_loader) { described_class.new(issue_id: issue.id) }
+      let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
 
       it "returns discussion topic message" do
         result = content_loader.content
@@ -66,7 +66,7 @@ describe Accessibility::ContentLoader do
 
     context "for Announcements" do
       let!(:issue) { accessibility_issue_model(course:, context: announcement, node_path: nil) }
-      let(:content_loader) { described_class.new(issue_id: issue.id) }
+      let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
 
       it "returns announcement message" do
         result = content_loader.content
@@ -77,7 +77,7 @@ describe Accessibility::ContentLoader do
 
     context "for unknown content type" do
       let!(:issue) { accessibility_issue_model(course:, context: wiki_page, node_path: nil) }
-      let(:content_loader) { described_class.new(issue_id: issue.id) }
+      let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
 
       it "raises UnsupportedResourceTypeError" do
         # Mock the resource to simulate an unsupported type
@@ -94,7 +94,7 @@ describe Accessibility::ContentLoader do
 
   describe "#extract_element_from_content" do
     let!(:issue) { accessibility_issue_model(course:, context: wiki_page, node_path: xpath) }
-    let(:content_loader) { described_class.new(issue_id: issue.id) }
+    let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
 
     context "when element exists in content" do
       let(:xpath) { ".//h2" }
@@ -128,7 +128,7 @@ describe Accessibility::ContentLoader do
 
     context "when extracting from discussion topic" do
       let!(:issue) { accessibility_issue_model(course:, context: discussion_topic, node_path: xpath) }
-      let(:content_loader) { described_class.new(issue_id: issue.id) }
+      let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
       let(:xpath) { ".//h3" }
 
       it "returns discussion topic element" do
@@ -140,7 +140,7 @@ describe Accessibility::ContentLoader do
 
     context "when extracting from announcement" do
       let!(:issue) { accessibility_issue_model(course:, context: announcement, node_path: xpath) }
-      let(:content_loader) { described_class.new(issue_id: issue.id) }
+      let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
       let(:xpath) { ".//h4" }
 
       it "returns announcement element" do
@@ -207,7 +207,7 @@ describe Accessibility::ContentLoader do
     let!(:issue) { accessibility_issue_model(course:, context: wiki_page, rule_type: "img-alt", node_path: ".//div") }
 
     it "sets instance variables correctly" do
-      content_loader = described_class.new(issue_id: issue.id)
+      content_loader = described_class.new(course:, issue_id: issue.id)
 
       expect(content_loader.instance_variable_get(:@issue)).to eq(issue)
       expect(content_loader.instance_variable_get(:@resource)).to eq(wiki_page)
@@ -218,7 +218,7 @@ describe Accessibility::ContentLoader do
 
   describe "#resource_updated_since_issue?" do
     let!(:issue) { accessibility_issue_model(course:, context: wiki_page, node_path: nil) }
-    let(:content_loader) { described_class.new(issue_id: issue.id) }
+    let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
 
     context "when resource was updated after the issue was created" do
       it "returns true" do
@@ -249,7 +249,7 @@ describe Accessibility::ContentLoader do
 
     context "when rule_id is provided and rule exists" do
       let!(:issue) { accessibility_issue_model(course:, context: wiki_page, rule_type: "img-alt", node_path: ".//h1") }
-      let(:content_loader) { described_class.new(issue_id: issue.id) }
+      let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
 
       before do
         allow(Accessibility::Rule).to receive(:registry).and_return(mock_rule_registry)
@@ -267,7 +267,7 @@ describe Accessibility::ContentLoader do
 
     context "when rule_id is provided but rule does not exist" do
       let!(:issue) { accessibility_issue_model(course:, context: wiki_page, rule_type: "img-alt", node_path: ".//h1") }
-      let(:content_loader) { described_class.new(issue_id: issue.id) }
+      let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
 
       before do
         allow(Accessibility::Rule).to receive(:registry).and_return({})
@@ -282,7 +282,7 @@ describe Accessibility::ContentLoader do
 
     context "when rule_id is not provided" do
       let!(:issue) { accessibility_issue_model(course:, context: wiki_page, rule_type: "img-alt", node_path: ".//h1") }
-      let(:content_loader) { described_class.new(issue_id: issue.id) }
+      let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
 
       it "returns the element's HTML without using issue_preview" do
         result = content_loader.content
@@ -293,7 +293,7 @@ describe Accessibility::ContentLoader do
 
     context "when rule's issue_preview returns nil" do
       let!(:issue) { accessibility_issue_model(course:, context: wiki_page, rule_type: "img-alt", node_path: ".//h1") }
-      let(:content_loader) { described_class.new(issue_id: issue.id) }
+      let(:content_loader) { described_class.new(course:, issue_id: issue.id) }
 
       before do
         allow(Accessibility::Rule).to receive(:registry).and_return(mock_rule_registry)

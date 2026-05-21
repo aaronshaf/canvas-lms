@@ -24,8 +24,8 @@ module Accessibility
 
     include ::Accessibility::NokogiriMethods
 
-    def initialize(issue_id:)
-      @issue = AccessibilityIssue.find(issue_id)
+    def initialize(course:, issue_id:)
+      @issue = course.accessibility_issues.find(issue_id)
       # Use the resource from ResourceResolvable concern (handles syllabus)
       @resource = @issue.resource
       @rule_id = @issue.rule_type

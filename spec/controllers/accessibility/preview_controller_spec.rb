@@ -165,6 +165,23 @@ RSpec.describe Accessibility::PreviewController do
       end
     end
 
+    context "with issue_id belonging to a different course" do
+      let!(:other_course) { Course.create! }
+      let!(:other_wiki_page) { other_course.wiki_pages.create!(title: "Other", body: "Other body") }
+      let!(:other_issue) { accessibility_issue_model(course: other_course, context: other_wiki_page, node_path: nil) }
+      let(:params) do
+        {
+          course_id: course.id,
+          issue_id: other_issue.id.to_s
+        }
+      end
+
+      it "returns not found" do
+        get :show, params:, format: :json
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
     context "for an assignment" do
       let!(:assignment) { course.assignments.create!(description: "Assignment description") }
       let!(:issue) { accessibility_issue_model(course:, context: assignment, node_path: nil) }
