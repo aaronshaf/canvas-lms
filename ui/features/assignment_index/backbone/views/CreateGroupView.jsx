@@ -365,6 +365,15 @@ class CreateGroupView extends DialogFormView {
     }
 
     super.openAgain(...arguments)
+    const $title = this.$el.dialog('widget').find('.ui-dialog-title')
+    if ($title.length && $title[0].tagName !== 'H2') {
+      const $h2 = $('<h2>', {
+        id: $title.attr('id'),
+        class: $title.attr('class'),
+        text: $title.text(),
+      })
+      $title.replaceWith($h2)
+    }
     if (this.assignmentGroup) {
       const dropLowestContainer = this.getElement(
         `.ag_${this.assignmentGroup.id}_drop_lowest_container`,

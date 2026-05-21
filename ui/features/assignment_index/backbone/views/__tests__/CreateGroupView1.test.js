@@ -217,4 +217,15 @@ describe('CreateGroupView', () => {
     expect($.flashMessage).toHaveBeenCalledWith('Assignment group was saved successfully')
     vi.useRealTimers()
   })
+
+  test('it renders the dialog title as an h2 heading (WCAG 1.3.1)', () => {
+    view = createView({newGroup: true})
+    document.getElementById('fixtures').appendChild(view.el)
+    view.render()
+    view.firstOpen()
+
+    const $title = $('.ui-dialog-title')
+    expect($title).toHaveLength(1)
+    expect($title[0].tagName).toBe('H2')
+  })
 })
