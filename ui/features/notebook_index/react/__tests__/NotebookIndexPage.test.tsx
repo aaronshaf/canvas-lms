@@ -118,7 +118,6 @@ describe('NotebookIndexPage', () => {
     vi.clearAllMocks()
     window.ENV = {
       ...window.ENV,
-      JOURNEY_URL: 'https://journey.test',
       current_user_id: 'user-1',
       COURSE_ID: '42',
     } as typeof window.ENV
@@ -126,8 +125,8 @@ describe('NotebookIndexPage', () => {
     mockUseNotesData.mockReturnValue(defaultNotesDataReturn)
   })
 
-  it('renders nothing when JOURNEY_URL is not set', () => {
-    window.ENV.JOURNEY_URL = undefined
+  it('renders nothing when COURSE_ID is not set', () => {
+    window.ENV.COURSE_ID = undefined
     const {container} = render(<NotebookIndexPage />)
     expect(container.innerHTML).toBe('')
   })

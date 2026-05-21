@@ -32,7 +32,6 @@ class NotebookController < ApplicationController
 
     js_env({
              COURSE_ID: @context.id,
-             JOURNEY_URL: CanvasCareer::Config.new(@domain_root_account).public_app_config(request)&.dig("hosts", "journey")
            })
     js_env[:FEATURES] ||= {}
     js_env[:FEATURES][:notebook] = true

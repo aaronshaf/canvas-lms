@@ -26,13 +26,8 @@ describe NotebookController do
 
   describe "GET #index" do
     context "as a student with feature enabled" do
-      let(:journey_url) { "https://journey.example.com" }
-
       before do
         user_session(@student)
-        config = instance_double(CanvasCareer::Config)
-        allow(CanvasCareer::Config).to receive(:new).and_return(config)
-        allow(config).to receive(:public_app_config).and_return({ "hosts" => { "journey" => journey_url } })
       end
 
       it "renders successfully" do
@@ -43,7 +38,6 @@ describe NotebookController do
       it "sets js_env with expected values" do
         get :index, params: { course_id: @course.id }
         expect(assigns[:js_env][:COURSE_ID]).to eq(@course.id)
-        expect(assigns[:js_env][:JOURNEY_URL]).to eq(journey_url)
         expect(assigns[:js_env][:FEATURES][:notebook]).to be true
       end
     end

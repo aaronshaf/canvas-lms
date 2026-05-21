@@ -140,9 +140,8 @@ class WikiPagesController < ApplicationController
           @show_notebook = true
           js_env[:FEATURES][:notebook] = true
           js_env({
-                   WIKI_PAGE_ID: @page.url,
+                   NOTEBOOK_OBJECT_ID: @page.id,
                    WIKI_PAGE_UPDATED_AT: @page.updated_at.iso8601,
-                   JOURNEY_URL: CanvasCareer::Config.new(@domain_root_account).public_app_config(request).dig("hosts", "journey"),
                  })
           js_bundle :notebook
         end

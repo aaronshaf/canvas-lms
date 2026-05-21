@@ -17,7 +17,6 @@
  */
 
 import doFetchApi from '@canvas/do-fetch-api-effect'
-import {request} from 'graphql-request'
 import type {
   CreateNoteInputType,
   GetNotesParams,
@@ -29,21 +28,31 @@ import type {
 import {
   CREATE_NOTE_MUTATION,
   DELETE_NOTE_MUTATION,
-  EXECUTE_REDWOOD_QUERY,
   GET_NOTES_QUERY,
   UPDATE_NOTE_MUTATION,
 } from './queries'
 
-interface ExecuteRedwoodQueryResponse {
-  executeRedwoodQuery: {
-    data?: unknown
-    errors?: Array<{message: string}>
-  }
+interface GraphQLResponse<TData> {
+  data?: TData
+  errors?: Array<{message: string}>
 }
 
-interface NotesQueryData {
-  notes: {
-    nodes: NoteType[]
+interface StudyNoteFields {
+  _id: string
+  courseId: string
+  userText?: string
+  reactions: string[]
+  highlightData: Record<string, unknown>
+  learningObjectId: string
+  learningObjectType: string
+  userId: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface StudyNotesConnectionData {
+  studyNotesConnection: {
+    nodes: StudyNoteFields[]
     pageInfo: {
       hasNextPage?: boolean | null
       hasPreviousPage?: boolean | null
@@ -53,132 +62,143 @@ interface NotesQueryData {
   }
 }
 
-interface CreateNoteData {
-  createNote: NoteType
+interface CreateStudyNoteData {
+  createStudyNote: {
+    studyNote: StudyNoteFields
+    errors?: Array<{attribute: string; message: string}>
+  }
 }
 
-interface UpdateNoteData {
-  updateNote: NoteType
+interface UpdateStudyNoteData {
+  updateStudyNote: {
+    studyNote: StudyNoteFields
+    errors?: Array<{attribute: string; message: string}>
+  }
+}
+
+interface DeleteStudyNoteData {
+  deleteStudyNote: {
+    studyNoteId: string
+    errors?: Array<{attribute: string; message: string}>
+  }
+}
+
+function mapStudyNote(note: StudyNoteFields): NoteType {
+  return {
+    id: note._id,
+    rootAccountUuid: '',
+    courseId: String(note.courseId),
+    objectId: note.learningObjectId,
+    objectType: note.learningObjectType,
+    userText: note.userText,
+    reaction: note.reactions as NoteType['reaction'],
+    highlightData: note.highlightData as NoteType['highlightData'],
+    userId: String(note.userId),
+    createdAt: note.createdAt,
+    updatedAt: note.updatedAt,
+  }
+}
+
+async function executeGraphQL<TData>(
+  query: string,
+  variables?: Record<string, unknown>,
+): Promise<TData> {
+  const {json} = await doFetchApi<GraphQLResponse<TData>>({
+    path: '/api/graphql',
+    method: 'POST',
+    body: {query, variables},
+  })
+
+  if (!json) throw new Error('No response from GraphQL')
+
+  if (json.errors && json.errors.length > 0) {
+    throw new Error(json.errors.map(e => e.message).join('; '))
+  }
+
+  if (!json.data) throw new Error('No data returned from GraphQL')
+
+  return json.data
 }
 
 export class CanvasNotebookApi implements NotebookApi {
-  private journeyUrl: string
-  private jwtPromise: Promise<string> | null = null
+  private courseId: string
 
-  constructor(journeyUrl: string) {
-    this.journeyUrl = journeyUrl
-  }
-
-  private getJwt(): Promise<string> {
-    if (!this.jwtPromise) {
-      this.jwtPromise = doFetchApi<{token: string}>({
-        path: '/api/v1/jwts?canvas_audience=false&workflows[]=journey&workflows[]=redwood',
-        method: 'POST',
-      })
-        .then(({json}) => atob(json!.token))
-        .catch(err => {
-          this.jwtPromise = null
-          throw err
-        })
-    }
-    return this.jwtPromise
-  }
-
-  private async executeRedwoodQuery<TData>(
-    query: string,
-    variables?: Record<string, unknown>,
-    operationName?: string,
-  ): Promise<TData> {
-    const jwt = await this.getJwt()
-
-    const response = await request<ExecuteRedwoodQueryResponse>(
-      `${this.journeyUrl}/graphql`,
-      EXECUTE_REDWOOD_QUERY,
-      {
-        input: {
-          query,
-          variables,
-          operationName,
-        },
-      },
-      {Authorization: `Bearer ${jwt}`},
-    )
-
-    const redwoodResponse = response.executeRedwoodQuery
-
-    if (redwoodResponse.errors && redwoodResponse.errors.length > 0) {
-      const combinedMessage = redwoodResponse.errors
-        .map(error => error.message)
-        .filter((message): message is string => Boolean(message))
-        .join('; ')
-
-      throw new Error(combinedMessage || 'Unknown error from Redwood')
-    }
-
-    if (!redwoodResponse.data) {
-      throw new Error('No data returned from Redwood')
-    }
-
-    return redwoodResponse.data as TData
+  constructor(courseId: string) {
+    this.courseId = courseId
   }
 
   async getNotes(params: GetNotesParams): Promise<PaginatedNotes> {
-    const variables = {
-      filter: params.filter,
+    const {filter} = params
+    const canvasFilter = filter
+      ? {
+          learningObject: filter.learningObject
+            ? {
+                learningObjectId: filter.learningObject.id,
+                learningObjectType: filter.learningObject.type,
+              }
+            : undefined,
+          reactions: filter.reactions,
+        }
+      : undefined
+
+    const data = await executeGraphQL<StudyNotesConnectionData>(GET_NOTES_QUERY, {
+      courseId: this.courseId,
+      filter: canvasFilter,
       first: params.direction === 'prev' ? null : (params.pageSize ?? 10),
       last: params.direction === 'prev' ? (params.pageSize ?? 10) : null,
       after: params.direction === 'next' ? params.cursor : null,
       before: params.direction === 'prev' ? params.cursor : null,
-    }
+    })
 
-    const data = await this.executeRedwoodQuery<NotesQueryData>(
-      GET_NOTES_QUERY,
-      variables,
-      'GetNotes',
-    )
-
+    const {nodes, pageInfo} = data.studyNotesConnection
     return {
-      notes: data.notes.nodes,
+      notes: nodes.map(mapStudyNote),
       pageInfo: {
-        hasNextPage: data.notes.pageInfo.hasNextPage ?? undefined,
-        hasPreviousPage: data.notes.pageInfo.hasPreviousPage ?? undefined,
-        startCursor: data.notes.pageInfo.startCursor ?? undefined,
-        endCursor: data.notes.pageInfo.endCursor ?? undefined,
+        hasNextPage: pageInfo.hasNextPage ?? undefined,
+        hasPreviousPage: pageInfo.hasPreviousPage ?? undefined,
+        startCursor: pageInfo.startCursor ?? undefined,
+        endCursor: pageInfo.endCursor ?? undefined,
       },
     }
   }
 
   async createNote(input: CreateNoteInputType): Promise<NoteType> {
-    const data = await this.executeRedwoodQuery<CreateNoteData>(
-      CREATE_NOTE_MUTATION,
-      {
-        courseId: input.courseId,
-        objectId: input.objectId,
-        objectType: input.objectType,
-        userText: input.userText,
-        reaction: input.reaction,
-        highlightData: input.highlightData,
-      },
-      'CreateNote',
-    )
-    return data.createNote
+    const data = await executeGraphQL<CreateStudyNoteData>(CREATE_NOTE_MUTATION, {
+      courseId: this.courseId,
+      learningObjectId: input.objectId,
+      learningObjectType: input.objectType,
+      userText: input.userText,
+      reactions: input.reaction,
+      highlightData: input.highlightData,
+    })
+
+    if (data.createStudyNote.errors?.length) {
+      throw new Error(data.createStudyNote.errors.map(e => e.message).join('; '))
+    }
+
+    return mapStudyNote(data.createStudyNote.studyNote)
   }
 
   async updateNote(id: string, input: UpdateNoteInputType): Promise<NoteType> {
-    const data = await this.executeRedwoodQuery<UpdateNoteData>(
-      UPDATE_NOTE_MUTATION,
-      {
-        id,
-        userText: input.userText,
-        reaction: input.reaction,
-        highlightData: input.highlightData,
-      },
-      'UpdateNote',
-    )
-    return data.updateNote
+    const data = await executeGraphQL<UpdateStudyNoteData>(UPDATE_NOTE_MUTATION, {
+      id,
+      userText: input.userText,
+      reactions: input.reaction,
+      highlightData: input.highlightData,
+    })
+
+    if (data.updateStudyNote.errors?.length) {
+      throw new Error(data.updateStudyNote.errors.map(e => e.message).join('; '))
+    }
+
+    return mapStudyNote(data.updateStudyNote.studyNote)
   }
 
   async deleteNote(id: string): Promise<void> {
-    await this.executeRedwoodQuery(DELETE_NOTE_MUTATION, {id}, 'DeleteNote')
+    const data = await executeGraphQL<DeleteStudyNoteData>(DELETE_NOTE_MUTATION, {id})
+
+    if (data.deleteStudyNote.errors?.length) {
+      throw new Error(data.deleteStudyNote.errors.map(e => e.message).join('; '))
+    }
   }
 }

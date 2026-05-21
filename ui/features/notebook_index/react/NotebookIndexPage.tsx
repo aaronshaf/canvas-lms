@@ -99,8 +99,8 @@ function NotebookIndexBody() {
 }
 
 export default function NotebookIndexPage() {
-  const journeyUrl = window.ENV.JOURNEY_URL
-  const api = useMemo(() => (journeyUrl ? new CanvasNotebookApi(journeyUrl) : null), [journeyUrl])
+  const courseId = String(window.ENV.COURSE_ID ?? '')
+  const api = useMemo(() => (courseId ? new CanvasNotebookApi(courseId) : null), [courseId])
 
   if (!api) return null
 

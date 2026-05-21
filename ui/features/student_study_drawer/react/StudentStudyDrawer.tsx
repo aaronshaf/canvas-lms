@@ -201,8 +201,8 @@ export default function StudentStudyDrawer({
   )
 
   const notebookApi = useMemo(() => {
-    const journeyUrl = window.ENV.JOURNEY_URL
-    return journeyUrl ? new CanvasNotebookApi(journeyUrl) : null
+    const courseId = String(window.ENV.COURSE_ID ?? '')
+    return courseId ? new CanvasNotebookApi(courseId) : null
   }, [])
 
   const notebookEnabled = showNotebook && notebookApi !== null
@@ -227,8 +227,8 @@ export default function StudentStudyDrawer({
           <NotebookProvider
             api={notebookApi}
             currentUserId={window.ENV.current_user_id ?? ''}
-            objectId={window.ENV.WIKI_PAGE_ID ?? ''}
-            objectType="Page"
+            objectId={String(window.ENV.NOTEBOOK_OBJECT_ID ?? '')}
+            objectType="WikiPage"
             courseId={String(window.ENV.COURSE_ID ?? '')}
             pageLastModifiedAt={window.ENV.WIKI_PAGE_UPDATED_AT}
             translations={notebookTranslations}

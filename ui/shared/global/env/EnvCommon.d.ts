@@ -99,7 +99,7 @@ export interface BlueprintCoursesData {
 
 export interface EnvCommon {
   ASSET_HOST: string
-  JOURNEY_URL?: string
+  NOTEBOOK_OBJECT_ID?: number
   WIKI_PAGE_ID?: string
   WIKI_PAGE_UPDATED_AT?: string
   FILE_ID?: string

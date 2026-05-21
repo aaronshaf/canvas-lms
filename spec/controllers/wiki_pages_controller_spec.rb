@@ -303,12 +303,6 @@ describe WikiPagesController do
       end
 
       context "notebook feature" do
-        before do
-          config = instance_double(CanvasCareer::Config)
-          allow(CanvasCareer::Config).to receive(:new).and_return(config)
-          allow(config).to receive(:public_app_config).and_return({ "hosts" => { "journey" => "http://journey.test" } })
-        end
-
         context "when enabled" do
           before { @course.account.enable_feature!(:notebook) }
 
@@ -323,19 +317,14 @@ describe WikiPagesController do
               expect(assigns[:js_env][:FEATURES][:notebook]).to be true
             end
 
-            it "sets WIKI_PAGE_ID to the page url" do
+            it "sets NOTEBOOK_OBJECT_ID to the page id" do
               get "show", params: { course_id: @course.id, id: @page.url }
-              expect(assigns[:js_env][:WIKI_PAGE_ID]).to eq @page.url
+              expect(assigns[:js_env][:NOTEBOOK_OBJECT_ID]).to eq @page.id
             end
 
             it "sets WIKI_PAGE_UPDATED_AT to the page updated_at" do
               get "show", params: { course_id: @course.id, id: @page.url }
               expect(assigns[:js_env][:WIKI_PAGE_UPDATED_AT]).to eq @page.updated_at.iso8601
-            end
-
-            it "sets JOURNEY_URL from CanvasCareer config" do
-              get "show", params: { course_id: @course.id, id: @page.url }
-              expect(assigns[:js_env][:JOURNEY_URL]).to eq "http://journey.test"
             end
           end
 

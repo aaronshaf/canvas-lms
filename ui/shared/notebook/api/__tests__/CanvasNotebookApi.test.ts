@@ -16,313 +16,354 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {describe, it, expect, vi, beforeAll, beforeEach, afterEach, afterAll} from 'vitest'
+import {describe, it, expect, beforeAll, beforeEach, afterEach, afterAll} from 'vitest'
 import {setupServer} from 'msw/node'
 import {http, HttpResponse} from 'msw'
+import {REACTION_TYPE} from '@instructure/platform-notebook'
 import {CanvasNotebookApi} from '../CanvasNotebookApi'
-import {request} from 'graphql-request'
-import {EXECUTE_REDWOOD_QUERY} from '../queries'
 
-vi.mock('graphql-request', () => ({
-  request: vi.fn(),
-}))
+type CapturedRequest = {query: string; variables?: Record<string, unknown>}
 
-const mockRequest = vi.mocked(request)
+const COURSE_ID = '42'
 
-const JOURNEY_URL = 'https://journey.test'
-// btoa wraps the token so getJwt() can atob() it
-const FAKE_JWT = btoa('decoded-jwt-token')
-
-const server = setupServer(http.post('/api/v1/jwts', () => HttpResponse.json({token: FAKE_JWT})))
+const server = setupServer()
 
 beforeAll(() => server.listen())
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
-function makeRedwoodResponse(data: unknown) {
-  return {
-    executeRedwoodQuery: {
-      data,
-      errors: null,
-    },
-  }
+function mockGraphQL(responseBody: object, status = 200) {
+  server.use(http.post('/api/graphql', () => HttpResponse.json(responseBody, {status})))
 }
 
-function makeRedwoodErrorResponse(messages: string[]) {
-  return {
-    executeRedwoodQuery: {
-      data: null,
-      errors: messages.map(message => ({message})),
-    },
-  }
+const STUDY_NOTE_FIXTURE = {
+  _id: '1',
+  courseId: '42',
+  userText: 'my note',
+  reactions: ['Important'],
+  highlightData: {
+    selectedText: 'hello',
+    textPosition: null,
+    range: null,
+    pageLastModifiedAt: '2026-01-01',
+  },
+  learningObjectId: 'p1',
+  learningObjectType: 'WikiPage',
+  userId: 'u1',
+  createdAt: '2026-01-01T00:00:00Z',
+  updatedAt: '2026-01-01T00:00:00Z',
 }
 
 describe('CanvasNotebookApi', () => {
   let api: CanvasNotebookApi
 
   beforeEach(() => {
-    vi.clearAllMocks()
-    api = new CanvasNotebookApi(JOURNEY_URL)
-  })
-
-  describe('JWT caching', () => {
-    it('fetches a JWT on the first call', async () => {
-      let capturedUrl: string | undefined
-      server.use(
-        http.post('/api/v1/jwts', ({request: jwtRequest}) => {
-          capturedUrl = jwtRequest.url
-          return HttpResponse.json({token: FAKE_JWT})
-        }),
-      )
-      mockRequest.mockResolvedValue(makeRedwoodResponse({deleteNote: '1'}))
-
-      await api.deleteNote('1')
-
-      expect(capturedUrl).toContain('/api/v1/jwts')
-      expect(capturedUrl).toContain('canvas_audience=false&workflows[]=journey&workflows[]=redwood')
-    })
-
-    it('reuses the cached JWT on subsequent calls', async () => {
-      let jwtFetchCount = 0
-      server.use(
-        http.post('/api/v1/jwts', () => {
-          jwtFetchCount++
-          return HttpResponse.json({token: FAKE_JWT})
-        }),
-      )
-      mockRequest.mockResolvedValue(makeRedwoodResponse({deleteNote: '1'}))
-
-      await api.deleteNote('1')
-      await api.deleteNote('2')
-
-      expect(jwtFetchCount).toBe(1)
-    })
-
-    it('retries JWT fetch after a failure', async () => {
-      let jwtFetchCount = 0
-      server.use(
-        http.post('/api/v1/jwts', () => {
-          jwtFetchCount++
-          if (jwtFetchCount === 1) {
-            return new HttpResponse(null, {status: 401})
-          }
-          return HttpResponse.json({token: FAKE_JWT})
-        }),
-      )
-      mockRequest.mockResolvedValue(makeRedwoodResponse({deleteNote: '1'}))
-
-      await expect(api.deleteNote('1')).rejects.toThrow()
-
-      await api.deleteNote('1')
-
-      expect(jwtFetchCount).toBe(2)
-    })
+    api = new CanvasNotebookApi(COURSE_ID)
   })
 
   describe('getNotes', () => {
-    const notesData = {
-      notes: {
-        nodes: [
-          {
-            id: '1',
-            userId: 'u1',
-            courseId: 'c1',
-            objectId: 'p1',
-            objectType: 'Page',
-            userText: 'my note',
-            reaction: ['Important'],
-            highlightData: {selectedText: 'hello'},
-            rootAccountUuid: 'ra1',
-            createdAt: '2026-01-01',
-            updatedAt: '2026-01-01',
+    it('returns paginated notes mapped to NoteType', async () => {
+      mockGraphQL({
+        data: {
+          studyNotesConnection: {
+            nodes: [STUDY_NOTE_FIXTURE],
+            pageInfo: {
+              hasNextPage: true,
+              hasPreviousPage: false,
+              startCursor: 'c1',
+              endCursor: 'c2',
+            },
           },
-        ],
-        pageInfo: {
-          hasNextPage: true,
-          hasPreviousPage: false,
-          startCursor: 'c1',
-          endCursor: 'c2',
         },
-      },
-    }
-
-    it('returns paginated notes', async () => {
-      mockRequest.mockResolvedValue(makeRedwoodResponse(notesData))
+      })
 
       const result = await api.getNotes({pageSize: 10})
 
       expect(result.notes).toHaveLength(1)
-      expect(result.notes[0].id).toBe('1')
+      expect(result.notes[0]).toMatchObject({
+        id: '1',
+        courseId: '42',
+        objectId: 'p1',
+        objectType: 'WikiPage',
+        userText: 'my note',
+        reaction: ['Important'],
+        userId: 'u1',
+      })
       expect(result.pageInfo.hasNextPage).toBe(true)
       expect(result.pageInfo.endCursor).toBe('c2')
     })
 
-    it('passes filter and pagination params', async () => {
-      mockRequest.mockResolvedValue(makeRedwoodResponse(notesData))
-
-      await api.getNotes({
-        filter: {courseId: 'c1'},
-        pageSize: 5,
-        direction: 'next',
-        cursor: 'cursor-abc',
-      })
-
-      expect(mockRequest).toHaveBeenCalledWith(
-        `${JOURNEY_URL}/graphql`,
-        EXECUTE_REDWOOD_QUERY,
-        {
-          input: {
-            query: expect.stringContaining('query GetNotes'),
-            variables: {
-              filter: {courseId: 'c1'},
-              first: 5,
-              last: null,
-              after: 'cursor-abc',
-              before: null,
-            },
-            operationName: 'GetNotes',
+    it('maps _id to id', async () => {
+      mockGraphQL({
+        data: {
+          studyNotesConnection: {
+            nodes: [{...STUDY_NOTE_FIXTURE, _id: '99'}],
+            pageInfo: {},
           },
         },
-        {Authorization: 'Bearer decoded-jwt-token'},
+      })
+
+      const result = await api.getNotes({})
+      expect(result.notes[0].id).toBe('99')
+    })
+
+    it('sends courseId from constructor to the query', async () => {
+      const captured = {body: null as CapturedRequest | null}
+      server.use(
+        http.post('/api/graphql', async ({request}) => {
+          captured.body = (await request.json()) as CapturedRequest
+          return HttpResponse.json({
+            data: {studyNotesConnection: {nodes: [], pageInfo: {}}},
+          })
+        }),
       )
+
+      await api.getNotes({pageSize: 5})
+
+      expect(captured.body?.variables?.['courseId']).toBe(COURSE_ID)
+    })
+
+    it('maps learningObject filter to canvas-lms filter shape', async () => {
+      const captured = {body: null as CapturedRequest | null}
+      server.use(
+        http.post('/api/graphql', async ({request}) => {
+          captured.body = (await request.json()) as CapturedRequest
+          return HttpResponse.json({
+            data: {studyNotesConnection: {nodes: [], pageInfo: {}}},
+          })
+        }),
+      )
+
+      await api.getNotes({filter: {learningObject: {type: 'WikiPage', id: 'p1'}}})
+
+      expect(captured.body?.variables?.['filter']).toEqual({
+        learningObject: {learningObjectId: 'p1', learningObjectType: 'WikiPage'},
+        reactions: undefined,
+      })
+    })
+
+    it('passes cursor as after when direction is next', async () => {
+      const captured = {body: null as CapturedRequest | null}
+      server.use(
+        http.post('/api/graphql', async ({request}) => {
+          captured.body = (await request.json()) as CapturedRequest
+          return HttpResponse.json({
+            data: {studyNotesConnection: {nodes: [], pageInfo: {}}},
+          })
+        }),
+      )
+
+      await api.getNotes({direction: 'next', cursor: 'cursor-abc', pageSize: 5})
+
+      expect(captured.body?.variables).toMatchObject({
+        first: 5,
+        after: 'cursor-abc',
+        last: null,
+        before: null,
+      })
     })
 
     it('passes cursor as before when direction is prev', async () => {
-      mockRequest.mockResolvedValue(makeRedwoodResponse(notesData))
+      const captured = {body: null as CapturedRequest | null}
+      server.use(
+        http.post('/api/graphql', async ({request}) => {
+          captured.body = (await request.json()) as CapturedRequest
+          return HttpResponse.json({
+            data: {studyNotesConnection: {nodes: [], pageInfo: {}}},
+          })
+        }),
+      )
 
       await api.getNotes({direction: 'prev', cursor: 'cursor-xyz'})
 
-      expect(mockRequest).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(String),
-        expect.objectContaining({
-          input: expect.objectContaining({
-            variables: expect.objectContaining({
-              first: null,
-              last: 10,
-              before: 'cursor-xyz',
-              after: null,
-            }),
-          }),
-        }),
-        expect.any(Object),
-      )
+      expect(captured.body?.variables).toMatchObject({
+        first: null,
+        last: 10,
+        before: 'cursor-xyz',
+        after: null,
+      })
     })
   })
 
   describe('createNote', () => {
-    it('creates a note and returns it', async () => {
-      const newNote = {
-        id: '2',
-        userId: 'u1',
-        courseId: 'c1',
-        objectId: 'p1',
-        objectType: 'Page',
-        userText: 'new note',
-        reaction: ['Important'],
-        highlightData: {selectedText: 'text'},
-        rootAccountUuid: 'ra1',
-        createdAt: '2026-01-01',
-        updatedAt: '2026-01-01',
-      }
-      mockRequest.mockResolvedValue(makeRedwoodResponse({createNote: newNote}))
+    it('creates a note and returns it mapped to NoteType', async () => {
+      mockGraphQL({
+        data: {
+          createStudyNote: {
+            studyNote: {...STUDY_NOTE_FIXTURE, _id: '2', userText: 'new note'},
+            errors: [],
+          },
+        },
+      })
 
       const result = await api.createNote({
-        courseId: 'c1',
+        courseId: COURSE_ID,
         objectId: 'p1',
-        objectType: 'Page',
-        reaction: ['Important'],
-        highlightData: {
-          selectedText: 'text',
-          textPosition: null,
-          range: null,
-          pageLastModifiedAt: '2026-01-01',
-        },
-      } as Parameters<typeof api.createNote>[0])
+        objectType: 'WikiPage',
+        reaction: [REACTION_TYPE.IMPORTANT],
+        highlightData: STUDY_NOTE_FIXTURE.highlightData as Parameters<
+          typeof api.createNote
+        >[0]['highlightData'],
+      })
 
-      expect(result).toEqual(newNote)
+      expect(result.id).toBe('2')
+      expect(result.userText).toBe('new note')
+      expect(result.objectId).toBe('p1')
+    })
+
+    it('sends learningObjectId and learningObjectType from objectId/objectType', async () => {
+      const captured = {body: null as CapturedRequest | null}
+      server.use(
+        http.post('/api/graphql', async ({request}) => {
+          captured.body = (await request.json()) as CapturedRequest
+          return HttpResponse.json({
+            data: {createStudyNote: {studyNote: STUDY_NOTE_FIXTURE, errors: []}},
+          })
+        }),
+      )
+
+      await api.createNote({
+        courseId: COURSE_ID,
+        objectId: 'p1',
+        objectType: 'WikiPage',
+        reaction: [],
+        highlightData: STUDY_NOTE_FIXTURE.highlightData as Parameters<
+          typeof api.createNote
+        >[0]['highlightData'],
+      })
+
+      expect(captured.body?.variables).toMatchObject({
+        learningObjectId: 'p1',
+        learningObjectType: 'WikiPage',
+      })
+    })
+
+    it('throws when mutation returns errors', async () => {
+      mockGraphQL({
+        data: {
+          createStudyNote: {
+            studyNote: null,
+            errors: [{attribute: 'base', message: 'Course not found'}],
+          },
+        },
+      })
+
+      await expect(
+        api.createNote({
+          courseId: COURSE_ID,
+          objectId: 'p1',
+          objectType: 'WikiPage',
+          reaction: [],
+          highlightData: STUDY_NOTE_FIXTURE.highlightData as Parameters<
+            typeof api.createNote
+          >[0]['highlightData'],
+        }),
+      ).rejects.toThrow('Course not found')
     })
   })
 
   describe('updateNote', () => {
     it('updates a note and returns it', async () => {
-      const updatedNote = {
-        id: '1',
-        userId: 'u1',
-        courseId: 'c1',
-        objectId: 'p1',
-        objectType: 'Page',
-        userText: 'updated text',
-        reaction: ['Confusing'],
-        highlightData: {selectedText: 'text'},
-        rootAccountUuid: 'ra1',
-        createdAt: '2026-01-01',
-        updatedAt: '2026-01-02',
-      }
-      mockRequest.mockResolvedValue(makeRedwoodResponse({updateNote: updatedNote}))
+      mockGraphQL({
+        data: {
+          updateStudyNote: {
+            studyNote: {...STUDY_NOTE_FIXTURE, userText: 'updated'},
+            errors: [],
+          },
+        },
+      })
 
       const result = await api.updateNote('1', {
         id: '1',
-        reaction: ['Confusing'],
-        highlightData: {
-          selectedText: 'text',
-          textPosition: null,
-          range: null,
-          pageLastModifiedAt: '2026-01-01',
-        },
-      } as Parameters<typeof api.updateNote>[1])
+        reaction: [REACTION_TYPE.CONFUSING],
+        highlightData: STUDY_NOTE_FIXTURE.highlightData as Parameters<
+          typeof api.updateNote
+        >[1]['highlightData'],
+      })
 
-      expect(result).toEqual(updatedNote)
+      expect(result.userText).toBe('updated')
     })
 
-    it('includes the id in the variables', async () => {
-      mockRequest.mockResolvedValue(makeRedwoodResponse({updateNote: {id: '1'}}))
+    it('sends the note id in variables', async () => {
+      const captured = {body: null as CapturedRequest | null}
+      server.use(
+        http.post('/api/graphql', async ({request}) => {
+          captured.body = (await request.json()) as CapturedRequest
+          return HttpResponse.json({
+            data: {updateStudyNote: {studyNote: STUDY_NOTE_FIXTURE, errors: []}},
+          })
+        }),
+      )
 
       await api.updateNote('1', {
         id: '1',
-        reaction: ['Important'],
-        highlightData: {
-          selectedText: 'text',
-          textPosition: null,
-          range: null,
-          pageLastModifiedAt: '2026-01-01',
-        },
-      } as Parameters<typeof api.updateNote>[1])
+        reaction: [REACTION_TYPE.IMPORTANT],
+        highlightData: STUDY_NOTE_FIXTURE.highlightData as Parameters<
+          typeof api.updateNote
+        >[1]['highlightData'],
+      })
 
-      expect(mockRequest).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(String),
-        expect.objectContaining({
-          input: expect.objectContaining({
-            variables: expect.objectContaining({id: '1'}),
-          }),
+      expect(captured.body?.variables?.['id']).toBe('1')
+    })
+
+    it('throws when mutation returns errors', async () => {
+      mockGraphQL({
+        data: {
+          updateStudyNote: {
+            studyNote: null,
+            errors: [{attribute: 'base', message: 'Note not found'}],
+          },
+        },
+      })
+
+      await expect(
+        api.updateNote('999', {
+          id: '999',
+          reaction: [],
+          highlightData: STUDY_NOTE_FIXTURE.highlightData as Parameters<
+            typeof api.updateNote
+          >[1]['highlightData'],
         }),
-        expect.any(Object),
-      )
+      ).rejects.toThrow('Note not found')
     })
   })
 
   describe('deleteNote', () => {
     it('deletes a note without returning data', async () => {
-      mockRequest.mockResolvedValue(makeRedwoodResponse({deleteNote: '1'}))
+      mockGraphQL({
+        data: {deleteStudyNote: {studyNoteId: '1', errors: []}},
+      })
 
       await expect(api.deleteNote('1')).resolves.toBeUndefined()
+    })
+
+    it('throws when mutation returns errors', async () => {
+      mockGraphQL({
+        data: {
+          deleteStudyNote: {
+            studyNoteId: null,
+            errors: [{attribute: 'base', message: 'Note not found'}],
+          },
+        },
+      })
+
+      await expect(api.deleteNote('999')).rejects.toThrow('Note not found')
     })
   })
 
   describe('error handling', () => {
-    it('throws on Redwood errors', async () => {
-      mockRequest.mockResolvedValue(makeRedwoodErrorResponse(['Note not found', 'Access denied']))
+    it('throws on top-level GraphQL errors', async () => {
+      mockGraphQL({
+        errors: [{message: 'Not authorized'}, {message: 'Invalid query'}],
+      })
 
-      await expect(api.deleteNote('999')).rejects.toThrow('Note not found; Access denied')
+      await expect(api.deleteNote('1')).rejects.toThrow('Not authorized; Invalid query')
     })
 
     it('throws when no data is returned', async () => {
-      mockRequest.mockResolvedValue({
-        executeRedwoodQuery: {data: null, errors: null},
-      })
+      mockGraphQL({data: null})
 
-      await expect(api.deleteNote('1')).rejects.toThrow('No data returned from Redwood')
+      await expect(api.deleteNote('1')).rejects.toThrow('No data returned from GraphQL')
     })
   })
 })

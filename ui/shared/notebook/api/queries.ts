@@ -16,128 +16,105 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Journey proxy mutation that wraps Redwood GraphQL operations
-export const EXECUTE_REDWOOD_QUERY = `
-  mutation ExecuteRedwoodQuery($input: RedwoodQueryInput!) {
-    executeRedwoodQuery(input: $input) {
-      data
-      errors
-    }
-  }
-`
-
-const NOTE_FIELDS_FRAGMENT = `
-  fragment NoteFields on Note {
-    id
-    userId
+const STUDY_NOTE_FIELDS = `
+  fragment NotebookStudyNoteFields on StudyNote {
+    _id
     courseId
-    objectId
-    objectType
     userText
-    reaction
+    reactions
     highlightData
-    rootAccountUuid
+    learningObjectId
+    learningObjectType
+    userId
     createdAt
     updatedAt
   }
 `
 
-const NOTE_CONNECTION_FRAGMENT = `
-  fragment NoteConnection on NoteConnection {
-    edges {
-      cursor
-      node {
-        ...NoteFields
+export const GET_NOTES_QUERY = `
+  query NotebookGetNotes(
+    $courseId: ID!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+    $filter: StudyNoteFilterInput
+  ) {
+    studyNotesConnection(
+      courseId: $courseId
+      filter: $filter
+      first: $first
+      after: $after
+      last: $last
+      before: $before
+    ) {
+      nodes {
+        ...NotebookStudyNoteFields
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
       }
     }
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
-      startCursor
-      endCursor
-    }
-    nodes {
-      ...NoteFields
-    }
   }
-  ${NOTE_FIELDS_FRAGMENT}
-`
-
-export const GET_NOTES_QUERY = `
-  query GetNotes($first: Float, $after: String, $before: String, $last: Float, $filter: NoteFilterInput) {
-    notes(first: $first, after: $after, before: $before, last: $last, filter: $filter) {
-      ...NoteConnection
-    }
-  }
-  ${NOTE_CONNECTION_FRAGMENT}
+  ${STUDY_NOTE_FIELDS}
 `
 
 export const CREATE_NOTE_MUTATION = `
-  mutation CreateNote(
-    $courseId: String!
-    $objectId: String!
-    $objectType: String!
+  mutation NotebookCreateStudyNote(
+    $courseId: ID!
+    $learningObjectId: String!
+    $learningObjectType: LearningObjectType!
     $userText: String
-    $reaction: [String!]
+    $reactions: [String!]
     $highlightData: JSON
   ) {
-    createNote(
-      input: {
-        courseId: $courseId
-        objectId: $objectId
-        objectType: $objectType
-        userText: $userText
-        reaction: $reaction
-        highlightData: $highlightData
+    createStudyNote(input: {
+      courseId: $courseId
+      learningObjectId: $learningObjectId
+      learningObjectType: $learningObjectType
+      userText: $userText
+      reactions: $reactions
+      highlightData: $highlightData
+    }) {
+      studyNote {
+        ...NotebookStudyNoteFields
       }
-    ) {
-      id
-      rootAccountUuid
-      userId
-      courseId
-      objectId
-      objectType
-      userText
-      reaction
-      highlightData
-      createdAt
-      updatedAt
+      errors { attribute message }
     }
   }
+  ${STUDY_NOTE_FIELDS}
 `
 
 export const UPDATE_NOTE_MUTATION = `
-  mutation UpdateNote(
-    $id: String!
+  mutation NotebookUpdateStudyNote(
+    $id: ID!
     $userText: String
-    $reaction: [String!]
+    $reactions: [String!]
     $highlightData: JSON
   ) {
-    updateNote(
+    updateStudyNote(input: {
       id: $id
-      input: {
-        userText: $userText
-        reaction: $reaction
-        highlightData: $highlightData
+      userText: $userText
+      reactions: $reactions
+      highlightData: $highlightData
+    }) {
+      studyNote {
+        ...NotebookStudyNoteFields
       }
-    ) {
-      id
-      rootAccountUuid
-      userId
-      courseId
-      objectId
-      objectType
-      userText
-      reaction
-      highlightData
-      createdAt
-      updatedAt
+      errors { attribute message }
     }
   }
+  ${STUDY_NOTE_FIELDS}
 `
 
 export const DELETE_NOTE_MUTATION = `
-  mutation DeleteNote($id: String!) {
-    deleteNote(id: $id)
+  mutation NotebookDeleteStudyNote($id: ID!) {
+    deleteStudyNote(input: { id: $id }) {
+      studyNoteId
+      errors { attribute message }
+    }
   }
 `
