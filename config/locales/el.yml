@@ -1309,7 +1309,7 @@ el:
       pending_batches_title: "Εκκρεμή Τμήματα"
       process_data_button: "Επεξεργασία Δεδομένων"
       select_file_instructions: |-
-          <mrk mid="7790" mtype="seg">Επιλέξτε το αρχείο zip που θέλετε να εισαγάγετε.</mrk>  
+          <mrk mid="7790" mtype="seg">Επιλέξτε το αρχείο zip που θέλετε να εισαγάγετε.</mrk>
           <mrk mid="7791" mtype="seg">Για περιγραφή το τρόπου δημιουργίας αυτών των αρχείων zip, [παρακαλώ δείτε αυτά τα συνοδευτικά έγγραφα](%{url}).</mrk>
       sis_import_crumb: "Εισαγωγή SIS"
       title: "Εισαγωγή SIS"
