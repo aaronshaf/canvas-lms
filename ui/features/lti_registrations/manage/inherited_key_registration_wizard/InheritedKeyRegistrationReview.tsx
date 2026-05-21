@@ -19,9 +19,7 @@ import * as React from 'react'
 import {GenericErrorPage} from '@instructure/platform-generic-error-page'
 import {reportError, canvasErrorPageTranslations} from '@canvas/error-page-utils'
 import {useScope as createI18nScope} from '@canvas/i18n'
-import {sanitizeHTML} from '@canvas/sanitize-html'
 import errorShipUrl from '@instructure/platform-images/assets/ErrorShip.svg'
-import {htmlEscape} from '@instructure/html-escape'
 import {Alert} from '@instructure/ui-alerts'
 import {Flex} from '@instructure/ui-flex'
 import {Heading} from '@instructure/ui-heading'
@@ -154,16 +152,13 @@ export const InheritedKeyRegistrationReview = (props: InheritedKeyRegistrationRe
                 <Text size="small" weight="bold">
                   {I18n.t('Description')}:{' '}
                 </Text>
-                <Text
-                  size="small"
-                  dangerouslySetInnerHTML={{
-                    __html: sanitizeHTML(
-                      toolConfiguration.description
-                        ? htmlEscape(toolConfiguration.description)
-                        : I18n.t('*No description provided.*', {wrappers: ['<i>$1</i>']}),
-                    ),
-                  }}
-                />
+                {toolConfiguration.description ? (
+                  <Text size="small">{toolConfiguration.description}</Text>
+                ) : (
+                  <Text size="small" fontStyle="italic">
+                    {I18n.t('No description provided.')}
+                  </Text>
+                )}
               </div>
               {placements.map(p => {
                 return (
@@ -171,16 +166,13 @@ export const InheritedKeyRegistrationReview = (props: InheritedKeyRegistrationRe
                     <Text size="small" weight="bold">
                       {i18nLtiPlacement(p.placement)}:{' '}
                     </Text>
-                    <Text
-                      size="small"
-                      dangerouslySetInnerHTML={{
-                        __html: sanitizeHTML(
-                          labels[p.placement]
-                            ? htmlEscape(labels[p.placement])
-                            : I18n.t('**No label provided.**', {wrappers: ['<i>$1</i>']}),
-                        ),
-                      }}
-                    />
+                    {labels[p.placement] ? (
+                      <Text size="small">{labels[p.placement]}</Text>
+                    ) : (
+                      <Text size="small" fontStyle="italic">
+                        {I18n.t('No label provided.')}
+                      </Text>
+                    )}
                   </div>
                 )
               })}
